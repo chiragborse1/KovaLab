@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { isRootHelpInvocation } from "./cli/argv.js";
 import { parseCliContainerArgs, resolveCliContainerTarget } from "./cli/container-target.js";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
+import { applyKovaEnvAliases } from "./compat/env-aliases.js";
 import { normalizeWindowsArgv } from "./cli/windows-argv.js";
 import { buildCliRespawnPlan } from "./entry.respawn.js";
 import { tryHandleRootVersionFastPath } from "./entry.version-fast-path.js";
@@ -57,6 +58,7 @@ if (
 } else {
   process.title = resolveProcessTitle(process.argv[1]);
   const cliLogPrefix = resolveCliLogPrefix(process.argv[1]);
+  applyKovaEnvAliases(process.env);
   ensureOpenClawExecMarkerOnProcess();
   installProcessWarningFilter();
   normalizeEnv();

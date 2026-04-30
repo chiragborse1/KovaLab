@@ -22,6 +22,14 @@ import {
 } from "./constants.js";
 import { resolveGatewayStateDir } from "./paths.js";
 
+function readEnvAlias(
+  env: Record<string, string | undefined>,
+  modernKey: string,
+  legacyKey: string,
+): string | undefined {
+  return normalizeOptionalString(env[modernKey]) ?? normalizeOptionalString(env[legacyKey]);
+}
+
 export { isNodeVersionManagerRuntime, resolveLinuxSystemCaBundle };
 
 export type MinimalServicePathOptions = {
@@ -275,13 +283,14 @@ export function buildServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const profile = env.OPENCLAW_PROFILE;
-  const wrapperPath = normalizeOptionalString(env.OPENCLAW_WRAPPER);
+  const profile = readEnvAlias(env, "KOVA_PROFILE", "OPENCLAW_PROFILE");
+  const wrapperPath = readEnvAlias(env, "KOVA_WRAPPER", "OPENCLAW_WRAPPER");
   const resolvedLaunchdLabel =
     launchdLabel || (platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
   const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
+    KOVA_PROFILE: profile,
     OPENCLAW_PROFILE: profile,
     OPENCLAW_WRAPPER: wrapperPath,
     OPENCLAW_GATEWAY_PORT: String(port),
@@ -308,10 +317,16 @@ export function buildNodeServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const gatewayToken = normalizeOptionalString(env.OPENCLAW_GATEWAY_TOKEN);
-  const allowInsecurePrivateWs = normalizeOptionalString(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS);
+  const gatewayToken = readEnvAlias(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const allowInsecurePrivateWs = readEnvAlias(
+    env,
+    "KOVA_ALLOW_INSECURE_PRIVATE_WS",
+    "OPENCLAW_ALLOW_INSECURE_PRIVATE_WS",
+  );
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
+    KOVA_GATEWAY_TOKEN: gatewayToken,
+    KOVA_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
     OPENCLAW_GATEWAY_TOKEN: gatewayToken,
     OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
     OPENCLAW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
@@ -334,6 +349,8 @@ function buildCommonServiceEnvironment(
     TMPDIR: sharedEnv.tmpDir,
     NODE_EXTRA_CA_CERTS: sharedEnv.nodeCaCerts,
     NODE_USE_SYSTEM_CA: sharedEnv.nodeUseSystemCa,
+    KOVA_STATE_DIR: sharedEnv.stateDir,
+    KOVA_CONFIG_PATH: sharedEnv.configPath,
     OPENCLAW_STATE_DIR: sharedEnv.stateDir,
     OPENCLAW_CONFIG_PATH: sharedEnv.configPath,
   };
@@ -363,8 +380,10 @@ function resolveSharedServiceEnvironmentFields(
   extraPathDirs: string[] | undefined,
   execPath?: string,
 ): SharedServiceEnvironmentFields {
-  const stateDir = env.OPENCLAW_STATE_DIR;
-  const configPath = env.OPENCLAW_CONFIG_PATH;
+  const stateDir =
+    readEnvAlias(env, "KOVA_STATE_DIR", "OPENCLAW_STATE_DIR") ?? resolveGatewayStateDir(env);
+  const configPath =
+    readEnvAlias(env, "KOVA_CONFIG_PATH", "OPENCLAW_CONFIG_PATH") ?? path.join(stateDir, "kova.json");
   const tmpDir = resolveServiceTmpDir(env, platform);
   // On macOS, launchd services don't inherit the shell environment, so Node's undici/fetch
   // cannot locate the system CA bundle. Default to /etc/ssl/cert.pem so TLS verification

@@ -388,6 +388,8 @@ describe("buildServiceEnvironment", () => {
     }
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("18789");
     expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.KOVA_STATE_DIR).toBe(path.join("/home/user", ".kova"));
+    expect(env.KOVA_CONFIG_PATH).toBe(path.join("/home/user", ".kova", "kova.json"));
     expect(env.OPENCLAW_SERVICE_MARKER).toBe("openclaw");
     expect(env.OPENCLAW_SERVICE_KIND).toBe("gateway");
     expect(typeof env.OPENCLAW_SERVICE_VERSION).toBe("string");
@@ -425,7 +427,7 @@ describe("buildServiceEnvironment", () => {
       port: 18789,
       platform: "darwin",
     });
-    expect(env.TMPDIR).toBe(path.join("/Users/user", ".openclaw", "tmp"));
+    expect(env.TMPDIR).toBe(path.join("/Users/user", ".kova", "tmp"));
   });
 
   it("falls back to os.tmpdir when TMPDIR is not set on Linux", () => {
@@ -439,9 +441,10 @@ describe("buildServiceEnvironment", () => {
 
   it("uses profile-specific unit and label", () => {
     const env = buildServiceEnvironment({
-      env: { HOME: "/home/user", OPENCLAW_PROFILE: "work" },
+      env: { HOME: "/home/user", KOVA_PROFILE: "work" },
       port: 18789,
     });
+    expect(env.KOVA_PROFILE).toBe("work");
     expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("openclaw-gateway-work.service");
     expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("OpenClaw Gateway (work)");
     if (process.platform === "darwin") {
@@ -509,6 +512,7 @@ describe("buildNodeServiceEnvironment", () => {
     const env = buildNodeServiceEnvironment({
       env: { HOME: "/home/user", OPENCLAW_GATEWAY_TOKEN: " node-token " },
     });
+    expect(env.KOVA_GATEWAY_TOKEN).toBe("node-token");
     expect(env.OPENCLAW_GATEWAY_TOKEN).toBe("node-token");
   });
 
@@ -516,6 +520,7 @@ describe("buildNodeServiceEnvironment", () => {
     const env = buildNodeServiceEnvironment({
       env: { HOME: "/home/user", OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: " 1 " },
     });
+    expect(env.KOVA_ALLOW_INSECURE_PRIVATE_WS).toBe("1");
     expect(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS).toBe("1");
   });
 
@@ -555,7 +560,7 @@ describe("buildNodeServiceEnvironment", () => {
       env: { HOME: "/Users/user", TMPDIR: "/var/folders/xw/abc123/T/" },
       platform: "darwin",
     });
-    expect(env.TMPDIR).toBe(path.join("/Users/user", ".openclaw", "tmp"));
+    expect(env.TMPDIR).toBe(path.join("/Users/user", ".kova", "tmp"));
   });
 
   it("falls back to os.tmpdir for node services when TMPDIR is not set on Linux", () => {
@@ -627,32 +632,36 @@ describe("shared Node TLS env defaults", () => {
 describe("resolveGatewayStateDir", () => {
   it("uses the default state dir when no overrides are set", () => {
     const env = { HOME: "/Users/test" };
-    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".openclaw"));
+    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".kova"));
   });
 
   it("appends the profile suffix when set", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_PROFILE: "rescue" };
-    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".openclaw-rescue"));
+    const env = { HOME: "/Users/test", KOVA_PROFILE: "rescue" };
+    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".kova-rescue"));
   });
 
   it("treats default profiles as the base state dir", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_PROFILE: "Default" };
-    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".openclaw"));
+    const env = { HOME: "/Users/test", KOVA_PROFILE: "Default" };
+    expect(resolveGatewayStateDir(env)).toBe(path.join("/Users/test", ".kova"));
   });
 
-  it("uses OPENCLAW_STATE_DIR when provided", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_STATE_DIR: "/var/lib/openclaw" };
-    expect(resolveGatewayStateDir(env)).toBe(path.resolve("/var/lib/openclaw"));
+  it("prefers KOVA_STATE_DIR when provided", () => {
+    const env = {
+      HOME: "/Users/test",
+      KOVA_STATE_DIR: "/var/lib/kova",
+      OPENCLAW_STATE_DIR: "/var/lib/openclaw",
+    };
+    expect(resolveGatewayStateDir(env)).toBe(path.resolve("/var/lib/kova"));
   });
 
-  it("expands ~ in OPENCLAW_STATE_DIR", () => {
-    const env = { HOME: "/Users/test", OPENCLAW_STATE_DIR: "~/openclaw-state" };
-    expect(resolveGatewayStateDir(env)).toBe(path.resolve("/Users/test/openclaw-state"));
+  it("expands ~ in KOVA_STATE_DIR", () => {
+    const env = { HOME: "/Users/test", KOVA_STATE_DIR: "~/kova-state" };
+    expect(resolveGatewayStateDir(env)).toBe(path.resolve("/Users/test/kova-state"));
   });
 
   it("preserves Windows absolute paths without HOME", () => {
-    const env = { OPENCLAW_STATE_DIR: "C:\\State\\openclaw" };
-    expect(resolveGatewayStateDir(env)).toBe("C:\\State\\openclaw");
+    const env = { KOVA_STATE_DIR: "C:\\State\\kova" };
+    expect(resolveGatewayStateDir(env)).toBe("C:\\State\\kova");
   });
 });
 

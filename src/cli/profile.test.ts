@@ -159,10 +159,14 @@ describe("applyCliProfileEnv", () => {
       env,
       homedir: () => "/home/peter",
     });
-    const expectedStateDir = path.join(path.resolve("/home/peter"), ".openclaw-dev");
+    const expectedStateDir = path.join(path.resolve("/home/peter"), ".kova-dev");
+    expect(env.KOVA_PROFILE).toBe("dev");
     expect(env.OPENCLAW_PROFILE).toBe("dev");
+    expect(env.KOVA_STATE_DIR).toBe(expectedStateDir);
     expect(env.OPENCLAW_STATE_DIR).toBe(expectedStateDir);
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join(expectedStateDir, "openclaw.json"));
+    expect(env.KOVA_CONFIG_PATH).toBe(path.join(expectedStateDir, "kova.json"));
+    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join(expectedStateDir, "kova.json"));
+    expect(env.KOVA_GATEWAY_PORT).toBe("19001");
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("19001");
   });
 
@@ -178,11 +182,13 @@ describe("applyCliProfileEnv", () => {
     });
     expect(env.OPENCLAW_STATE_DIR).toBe("/custom");
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("19099");
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join("/custom", "openclaw.json"));
+    expect(env.KOVA_CONFIG_PATH).toBe(path.join("/custom", "kova.json"));
+    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join("/custom", "kova.json"));
   });
 
-  it("uses OPENCLAW_HOME when deriving profile state dir", () => {
+  it("uses KOVA_HOME when deriving profile state dir", () => {
     const env: Record<string, string | undefined> = {
+      KOVA_HOME: "/srv/kova-home",
       OPENCLAW_HOME: "/srv/openclaw-home",
       HOME: "/home/other",
     };
@@ -192,11 +198,11 @@ describe("applyCliProfileEnv", () => {
       homedir: () => "/home/fallback",
     });
 
-    const resolvedHome = path.resolve("/srv/openclaw-home");
-    expect(env.OPENCLAW_STATE_DIR).toBe(path.join(resolvedHome, ".openclaw-work"));
-    expect(env.OPENCLAW_CONFIG_PATH).toBe(
-      path.join(resolvedHome, ".openclaw-work", "openclaw.json"),
-    );
+    const resolvedHome = path.resolve("/srv/kova-home");
+    expect(env.KOVA_STATE_DIR).toBe(path.join(resolvedHome, ".kova-work"));
+    expect(env.OPENCLAW_STATE_DIR).toBe(path.join(resolvedHome, ".kova-work"));
+    expect(env.KOVA_CONFIG_PATH).toBe(path.join(resolvedHome, ".kova-work", "kova.json"));
+    expect(env.OPENCLAW_CONFIG_PATH).toBe(path.join(resolvedHome, ".kova-work", "kova.json"));
   });
 });
 

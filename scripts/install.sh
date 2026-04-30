@@ -2303,11 +2303,11 @@ maybe_open_dashboard() {
 }
 
 resolve_workspace_dir() {
-    local profile="${OPENCLAW_PROFILE:-default}"
+    local profile="${KOVA_PROFILE:-${OPENCLAW_PROFILE:-default}}"
     if [[ "${profile}" != "default" ]]; then
-        echo "${HOME}/.openclaw/workspace-${profile}"
+        echo "${HOME}/.kova/workspace-${profile}"
     else
-        echo "${HOME}/.openclaw/workspace"
+        echo "${HOME}/.kova/workspace"
     fi
 }
 
@@ -2316,8 +2316,8 @@ run_bootstrap_onboarding_if_needed() {
         return
     fi
 
-    local config_path="${OPENCLAW_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
-    if [[ -f "${config_path}" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
+    local config_path="${KOVA_CONFIG_PATH:-${OPENCLAW_CONFIG_PATH:-$HOME/.kova/kova.json}}"
+    if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
         return
     fi
 
@@ -2746,8 +2746,8 @@ main() {
         if [[ "$NO_ONBOARD" == "1" || "$skip_onboard" == "true" ]]; then
             ui_info "Skipping onboard (requested); run kova onboard later"
         else
-            local config_path="${OPENCLAW_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
-            if [[ -f "${config_path}" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
+            local config_path="${KOVA_CONFIG_PATH:-${OPENCLAW_CONFIG_PATH:-$HOME/.kova/kova.json}}"
+            if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
                 ui_info "Config already present; running doctor"
                 run_doctor
                 should_open_dashboard=true

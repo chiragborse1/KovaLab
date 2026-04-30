@@ -12,6 +12,28 @@ const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
 const LEGACY_CLI_NAME = "openclaw";
 const DEFAULT_CLI_NAME = "kova";
 
+const applyEnvAliases = () => {
+  const entries = Object.entries(process.env);
+  for (const [key, value] of entries) {
+    if (value === undefined) {
+      continue;
+    }
+    if (key.startsWith("KOVA_")) {
+      const aliasKey = `OPENCLAW_${key.slice("KOVA_".length)}`;
+      if (process.env[aliasKey] === undefined) {
+        process.env[aliasKey] = value;
+      }
+      continue;
+    }
+    if (key.startsWith("OPENCLAW_")) {
+      const aliasKey = `KOVA_${key.slice("OPENCLAW_".length)}`;
+      if (process.env[aliasKey] === undefined) {
+        process.env[aliasKey] = value;
+      }
+    }
+  }
+};
+
 const resolveCliName = () => {
   const base = path.basename(process.argv[1] ?? "").trim();
   const stem = path.parse(base).name.trim();
@@ -48,6 +70,7 @@ const ensureSupportedNodeVersion = () => {
 };
 
 ensureSupportedNodeVersion();
+applyEnvAliases();
 
 if (module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
   try {
