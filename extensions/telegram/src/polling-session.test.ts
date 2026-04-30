@@ -6,6 +6,30 @@ const createTelegramBotMock = vi.hoisted(() => vi.fn());
 const isRecoverableTelegramNetworkErrorMock = vi.hoisted(() => vi.fn(() => true));
 const computeBackoffMock = vi.hoisted(() => vi.fn(() => 0));
 const sleepWithAbortMock = vi.hoisted(() => vi.fn(async () => undefined));
+const withTelegramApiErrorLoggingMock = vi.hoisted(() =>
+  vi.fn(
+    async ({
+      fn,
+      shouldLog,
+      runtime,
+      operation,
+    }: {
+      fn: () => Promise<unknown>;
+      shouldLog?: (err: unknown) => boolean;
+      runtime?: { error?: (message: string) => void };
+      operation?: string;
+    }) => {
+      try {
+        return await fn();
+      } catch (err) {
+        if (!shouldLog || shouldLog(err)) {
+          runtime?.error?.(`telegram ${operation ?? "unknown"} failed: ${String(err)}`);
+        }
+        throw err;
+      }
+    },
+  ),
+);
 
 vi.mock("@grammyjs/runner", () => ({
   run: runMock,
@@ -20,7 +44,7 @@ vi.mock("./network-errors.js", () => ({
 }));
 
 vi.mock("./api-logging.js", () => ({
-  withTelegramApiErrorLogging: async ({ fn }: { fn: () => Promise<unknown> }) => await fn(),
+  withTelegramApiErrorLogging: withTelegramApiErrorLoggingMock,
 }));
 
 vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
@@ -139,6 +163,7 @@ function createPollingSessionWithTransportRestart(params: {
 function createPollingSession(params: {
   abortSignal: AbortSignal;
   log?: (message: string) => void;
+  runtime?: { error?: (message: string) => void };
   telegramTransport?: ReturnType<typeof makeTelegramTransport>;
   createTelegramTransport?: () => ReturnType<typeof makeTelegramTransport>;
   stallThresholdMs?: number;
@@ -148,7 +173,7 @@ function createPollingSession(params: {
     token: "tok",
     config: {},
     accountId: "default",
-    runtime: undefined,
+    runtime: params.runtime,
     proxyFetch: undefined,
     abortSignal: params.abortSignal,
     runnerOptions: {},
@@ -221,6 +246,7 @@ describe("TelegramPollingSession", () => {
     isRecoverableTelegramNetworkErrorMock.mockReset().mockReturnValue(true);
     computeBackoffMock.mockReset().mockReturnValue(0);
     sleepWithAbortMock.mockReset().mockResolvedValue(undefined);
+    withTelegramApiErrorLoggingMock.mockClear();
   });
 
   it("uses backoff helpers for recoverable polling retries", async () => {
@@ -567,6 +593,86 @@ describe("TelegramPollingSession", () => {
 
     expectTelegramBotTransportSequence(transport1, transport2);
     expect(createTelegramTransport).toHaveBeenCalledTimes(1);
+  });
+
+  it("rebuilds the transport after a recoverable setup error", async () => {
+    const abort = new AbortController();
+    const transport1 = makeTelegramTransport();
+    const transport2 = makeTelegramTransport();
+    const createTelegramTransport = vi.fn(() => transport2);
+    createTelegramBotMock
+      .mockImplementationOnce(() => {
+        throw new Error("setup failed");
+      })
+      .mockReturnValueOnce(makeBot());
+    runMock.mockReturnValueOnce({
+      task: async () => {
+        abort.abort();
+      },
+      stop: vi.fn(async () => undefined),
+      isRunning: () => false,
+    });
+
+    const session = createPollingSession({
+      abortSignal: abort.signal,
+      telegramTransport: transport1,
+      createTelegramTransport,
+    });
+
+    await session.runUntilAbort();
+
+    expectTelegramBotTransportSequence(transport1, transport2);
+    expect(createTelegramTransport).toHaveBeenCalledTimes(1);
+  });
+
+  it("rebuilds the transport and avoids duplicate deleteWebhook logs on recoverable cleanup errors", async () => {
+    const abort = new AbortController();
+    const transport1 = makeTelegramTransport();
+    const transport2 = makeTelegramTransport();
+    const createTelegramTransport = vi.fn(() => transport2);
+    const recoverableError = new Error("deleteWebhook network failed");
+    const runtimeError = vi.fn();
+    const log = vi.fn();
+    createTelegramBotMock
+      .mockReturnValueOnce({
+        api: {
+          deleteWebhook: vi.fn(async () => {
+            throw recoverableError;
+          }),
+          getUpdates: vi.fn(async () => []),
+          config: { use: vi.fn() },
+        },
+        stop: vi.fn(async () => undefined),
+      })
+      .mockReturnValueOnce(makeBot());
+    runMock.mockReturnValueOnce({
+      task: async () => {
+        abort.abort();
+      },
+      stop: vi.fn(async () => undefined),
+      isRunning: () => false,
+    });
+
+    const session = createPollingSession({
+      abortSignal: abort.signal,
+      runtime: { error: runtimeError },
+      log,
+      telegramTransport: transport1,
+      createTelegramTransport,
+    });
+
+    await session.runUntilAbort();
+
+    expectTelegramBotTransportSequence(transport1, transport2);
+    expect(createTelegramTransport).toHaveBeenCalledTimes(1);
+    const cleanupCall = withTelegramApiErrorLoggingMock.mock.calls[0]?.[0] as
+      | { shouldLog?: (err: unknown) => boolean }
+      | undefined;
+    expect(cleanupCall?.shouldLog?.(recoverableError)).toBe(false);
+    expect(runtimeError).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining("Telegram webhook cleanup failed: deleteWebhook network failed"),
+    );
   });
 
   it("does not trigger stall restart shortly after a getUpdates error", async () => {

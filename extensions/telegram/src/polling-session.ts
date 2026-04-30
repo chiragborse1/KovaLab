@@ -167,6 +167,7 @@ export class TelegramPollingSession {
     if (!isRecoverableTelegramNetworkError(err, { context: "unknown" })) {
       throw err;
     }
+    this.#transportState.markDirty();
     return this.#waitBeforeRestart(
       (delay) => `${logPrefix}: ${formatErrorMessage(err)}; retrying in ${delay}.`,
     );
@@ -207,6 +208,7 @@ export class TelegramPollingSession {
       await withTelegramApiErrorLogging({
         operation: "deleteWebhook",
         runtime: this.opts.runtime,
+        shouldLog: (err) => !isRecoverableTelegramNetworkError(err, { context: "unknown" }),
         fn: () => bot.api.deleteWebhook({ drop_pending_updates: false }),
       });
       this.#webhookCleared = true;
