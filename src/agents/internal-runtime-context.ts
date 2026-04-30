@@ -4,6 +4,12 @@ export const INTERNAL_RUNTIME_CONTEXT_END = "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>
 const ESCAPED_INTERNAL_RUNTIME_CONTEXT_BEGIN = "[[OPENCLAW_INTERNAL_CONTEXT_BEGIN]]";
 const ESCAPED_INTERNAL_RUNTIME_CONTEXT_END = "[[OPENCLAW_INTERNAL_CONTEXT_END]]";
 
+const INTERNAL_CONTEXT_HEADER =
+  [
+    "Kova runtime context (internal):",
+    "This context is runtime-generated, not user-authored. Keep internal details private.",
+    "",
+  ].join("\n") + "\n";
 const LEGACY_INTERNAL_CONTEXT_HEADER =
   [
     "OpenClaw runtime context (internal):",
@@ -112,16 +118,16 @@ function findLegacyInternalEventEnd(text: string, start: number): number | null 
   return nextParagraph === -1 ? text.length : nextParagraph;
 }
 
-function stripLegacyInternalRuntimeContext(text: string): string {
+function stripPlainInternalRuntimeContext(text: string, header: string): string {
   let next = text;
   let searchFrom = 0;
   for (;;) {
-    const headerStart = next.indexOf(LEGACY_INTERNAL_CONTEXT_HEADER, searchFrom);
+    const headerStart = next.indexOf(header, searchFrom);
     if (headerStart === -1) {
       return next;
     }
 
-    const eventStart = headerStart + LEGACY_INTERNAL_CONTEXT_HEADER.length;
+    const eventStart = headerStart + header.length;
     if (!next.startsWith(LEGACY_INTERNAL_EVENT_MARKER, eventStart)) {
       searchFrom = eventStart;
       continue;
@@ -163,7 +169,10 @@ export function stripInternalRuntimeContext(text: string): string {
     INTERNAL_RUNTIME_CONTEXT_BEGIN,
     INTERNAL_RUNTIME_CONTEXT_END,
   );
-  return stripLegacyInternalRuntimeContext(withoutDelimitedBlocks);
+  return stripPlainInternalRuntimeContext(
+    stripPlainInternalRuntimeContext(withoutDelimitedBlocks, INTERNAL_CONTEXT_HEADER),
+    LEGACY_INTERNAL_CONTEXT_HEADER,
+  );
 }
 
 export function hasInternalRuntimeContext(text: string): boolean {
@@ -172,6 +181,7 @@ export function hasInternalRuntimeContext(text: string): boolean {
   }
   return (
     findDelimitedTokenIndex(text, INTERNAL_RUNTIME_CONTEXT_BEGIN, 0) !== -1 ||
+    text.includes(INTERNAL_CONTEXT_HEADER) ||
     text.includes(LEGACY_INTERNAL_CONTEXT_HEADER)
   );
 }

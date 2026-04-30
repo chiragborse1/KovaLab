@@ -51,10 +51,19 @@ function stripInlineLeakedInternalContext(value: string): string {
   if (
     beginIndex !== -1 &&
     (value.includes(INTERNAL_RUNTIME_CONTEXT_END) ||
+      value.includes("Kova runtime context (internal):") ||
       value.includes("OpenClaw runtime context (internal):") ||
       value.includes("[Internal task completion event]"))
   ) {
     return value.slice(0, beginIndex);
+  }
+  const headerIndex = value.indexOf("Kova runtime context (internal):");
+  if (
+    headerIndex !== -1 &&
+    (value.includes("Keep internal details private.") ||
+      value.includes("[Internal task completion event]"))
+  ) {
+    return value.slice(0, headerIndex);
   }
   const legacyHeaderIndex = value.indexOf("OpenClaw runtime context (internal):");
   if (

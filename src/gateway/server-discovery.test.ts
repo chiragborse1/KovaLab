@@ -4,7 +4,16 @@ const getTailnetHostname = vi.hoisted(() => vi.fn());
 
 vi.mock("../infra/tailscale.js", () => ({ getTailnetHostname }));
 
-import { resolveTailnetDnsHint } from "./server-discovery.js";
+import { formatBonjourInstanceName, resolveTailnetDnsHint } from "./server-discovery.js";
+
+describe("formatBonjourInstanceName", () => {
+  test("defaults to Kova branding and preserves explicit branded names", () => {
+    expect(formatBonjourInstanceName("")).toBe("Kova");
+    expect(formatBonjourInstanceName("Mac Studio")).toBe("Mac Studio (Kova)");
+    expect(formatBonjourInstanceName("Lab Mac (Kova)")).toBe("Lab Mac (Kova)");
+    expect(formatBonjourInstanceName("Lab Mac (OpenClaw)")).toBe("Lab Mac (OpenClaw)");
+  });
+});
 
 describe("resolveTailnetDnsHint", () => {
   const prevTailnetDns = { value: undefined as string | undefined };

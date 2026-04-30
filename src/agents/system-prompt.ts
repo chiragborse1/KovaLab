@@ -405,19 +405,19 @@ function buildDocsSection(params: {
   }
   const lines = [
     "## Documentation",
-    docsPath ? `OpenClaw docs: ${docsPath}` : "OpenClaw docs: https://docs.openclaw.ai",
-    "Mirror: https://docs.openclaw.ai",
+    docsPath ? `Kova docs: ${docsPath}` : "Kova docs: https://docs.neuralstudio.in",
+    "Mirror: https://docs.neuralstudio.in",
     sourcePath ? `Local source: ${sourcePath}` : undefined,
-    "Source: https://github.com/openclaw/openclaw",
+    "Source: https://github.com/chiragborse1/KovaLab",
     "Community: https://discord.com/invite/clawd",
     "Find new skills: https://clawhub.ai",
     docsPath
-      ? "For OpenClaw behavior, commands, config, or architecture: consult local docs first."
-      : "For OpenClaw behavior, commands, config, or architecture: consult the docs mirror first.",
+      ? "For Kova behavior, commands, config, or architecture: consult local docs first."
+      : "For Kova behavior, commands, config, or architecture: consult the docs mirror first.",
     "For config field docs, prefer the `gateway` tool action `config.schema.lookup`; for broader config guidance, read `docs/gateway/configuration.md` and `docs/gateway/configuration-reference.md`.",
     sourcePath
-      ? "If docs are incomplete or stale, inspect the local OpenClaw source code before answering."
-      : "If docs are incomplete or stale, review the OpenClaw source on GitHub before answering.",
+      ? "If docs are incomplete or stale, inspect the local Kova source code before answering."
+      : "If docs are incomplete or stale, review the Kova source on GitHub before answering.",
     "When diagnosing issues, run `openclaw status` yourself when possible; only ask the user if you lack access (e.g., sandboxed).",
     "",
   ];
@@ -514,8 +514,8 @@ export function buildAgentSystemPrompt(params: {
     message: "Send messages and channel actions",
     gateway: "Restart, apply config, or run updates on the running OpenClaw process",
     agents_list: acpSpawnRuntimeEnabled
-      ? 'List OpenClaw agent ids allowed for sessions_spawn when runtime="subagent" (not ACP harness ids)'
-      : "List OpenClaw agent ids allowed for sessions_spawn",
+      ? 'List Kova agent ids allowed for sessions_spawn when runtime="subagent" (not ACP harness ids)'
+      : "List Kova agent ids allowed for sessions_spawn",
     sessions_list: "List other sessions (incl. sub-agents) with filters/last",
     sessions_history: "Fetch history for another session/sub-agent",
     sessions_send: "Send a message to another session/sub-agent",
@@ -693,11 +693,11 @@ export function buildAgentSystemPrompt(params: {
 
   // For "none" mode, return just the basic identity line
   if (promptMode === "none") {
-    return "You are a personal assistant running inside OpenClaw.";
+    return "You are a personal assistant running inside Kova.";
   }
 
   const lines = [
-    "You are a personal assistant running inside OpenClaw.",
+    "You are a personal assistant running inside Kova.",
     "",
     "## Tooling",
     "Tool availability (filtered by policy):",
@@ -712,7 +712,7 @@ export function buildAgentSystemPrompt(params: {
           "- apply_patch: apply multi-file patches",
           `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
           `- ${processToolName}: manage background exec sessions`,
-          "- browser: control OpenClaw's dedicated browser",
+          "- browser: control Kova's dedicated browser",
           "- canvas: present/eval/snapshot the Canvas",
           "- nodes: list/describe/notify/camera/screen on paired nodes",
           "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",

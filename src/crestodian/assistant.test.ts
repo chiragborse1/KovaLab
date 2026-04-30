@@ -95,8 +95,8 @@ describe("Crestodian assistant", () => {
     expect(prompt).toContain("Default model: openai/gpt-5.5");
     expect(prompt).toContain("id=main, name=Main, workspace=/tmp/main");
     expect(prompt).toContain("OpenAI API key: found");
-    expect(prompt).toContain("OpenClaw docs: /tmp/openclaw/docs");
-    expect(prompt).toContain("OpenClaw source: /tmp/openclaw");
+    expect(prompt).toContain("Kova docs: /tmp/openclaw/docs");
+    expect(prompt).toContain("Kova source: /tmp/openclaw");
   });
 
   it("uses Claude CLI first for configless planning", async () => {

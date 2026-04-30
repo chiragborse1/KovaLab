@@ -373,7 +373,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).not.toContain('runtime="acp" requires `agentId`');
     expect(prompt).not.toContain("not ACP harness ids");
     expect(prompt).toContain("- sessions_spawn: Spawn an isolated sub-agent session");
-    expect(prompt).toContain("- agents_list: List OpenClaw agent ids allowed for sessions_spawn");
+    expect(prompt).toContain("- agents_list: List Kova agent ids allowed for sessions_spawn");
   });
 
   it("omits ACP harness spawn guidance for sandboxed sessions and shows ACP block note", () => {
@@ -413,9 +413,9 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain(
       "- If exactly one skill clearly applies: read its SKILL.md at <location> with `Read`, then follow it.",
     );
-    expect(prompt).toContain("OpenClaw docs: /tmp/openclaw/docs");
+    expect(prompt).toContain("Kova docs: /tmp/openclaw/docs");
     expect(prompt).toContain(
-      "For OpenClaw behavior, commands, config, or architecture: consult local docs first.",
+      "For Kova behavior, commands, config, or architecture: consult local docs first.",
     );
   });
 
@@ -427,13 +427,13 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain("## Documentation");
-    expect(prompt).toContain("OpenClaw docs: /tmp/openclaw/docs");
+    expect(prompt).toContain("Kova docs: /tmp/openclaw/docs");
     expect(prompt).toContain("Local source: /tmp/openclaw");
     expect(prompt).toContain(
-      "For OpenClaw behavior, commands, config, or architecture: consult local docs first.",
+      "For Kova behavior, commands, config, or architecture: consult local docs first.",
     );
     expect(prompt).toContain(
-      "If docs are incomplete or stale, inspect the local OpenClaw source code before answering.",
+      "If docs are incomplete or stale, inspect the local Kova source code before answering.",
     );
   });
 
@@ -442,10 +442,10 @@ describe("buildAgentSystemPrompt", () => {
       workspaceDir: "/tmp/work",
     });
 
-    expect(prompt).toContain("OpenClaw docs: https://docs.openclaw.ai");
-    expect(prompt).toContain("Source: https://github.com/openclaw/openclaw");
+    expect(prompt).toContain("Kova docs: https://docs.neuralstudio.in");
+    expect(prompt).toContain("Source: https://github.com/chiragborse1/KovaLab");
     expect(prompt).toContain(
-      "If docs are incomplete or stale, review the OpenClaw source on GitHub before answering.",
+      "If docs are incomplete or stale, review the Kova source on GitHub before answering.",
     );
   });
 

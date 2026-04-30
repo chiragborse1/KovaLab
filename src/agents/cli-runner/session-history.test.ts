@@ -337,7 +337,7 @@ describe("buildCliSessionHistoryPrompt", () => {
       maxHistoryChars: 20,
     });
 
-    expect(prompt).toContain("[OpenClaw reseed history truncated]");
+    expect(prompt).toContain("[Kova reseed history truncated]");
     expect(prompt).toContain("<next_user_message>\ncurrent ask must survive\n</next_user_message>");
     expect(prompt).not.toContain("x".repeat(80));
   });

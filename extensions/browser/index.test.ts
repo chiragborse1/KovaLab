@@ -142,7 +142,7 @@ describe("browser plugin", () => {
         descriptors: [
           {
             name: "browser",
-            description: "Manage OpenClaw's dedicated browser (Chrome/Chromium)",
+            description: "Manage Kova's dedicated browser (Chrome/Chromium)",
             hasSubcommands: true,
           },
         ],

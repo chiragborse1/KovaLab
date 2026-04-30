@@ -292,7 +292,7 @@ describe("google-meet plugin", () => {
       chrome: {
         audioBackend: "blackhole-2ch",
         launch: true,
-        guestName: "OpenClaw Agent",
+        guestName: "Kova Agent",
         reuseExistingTab: true,
         autoJoin: true,
         waitForInCallMs: 20000,

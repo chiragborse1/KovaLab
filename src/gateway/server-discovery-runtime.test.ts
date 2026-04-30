@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
     changed: true,
     zonePath: "/tmp/openclaw.internal.db",
   })),
-  formatBonjourInstanceName: vi.fn((name: string) => `${name} (OpenClaw)`),
+  formatBonjourInstanceName: vi.fn((name: string) => `${name} (Kova)`),
   resolveBonjourCliPath: vi.fn(() => "/usr/local/bin/openclaw"),
   resolveTailnetDnsHint: vi.fn(async () => "gateway.tailnet.example.ts.net"),
 }));
@@ -185,7 +185,7 @@ describe("startGatewayDiscovery", () => {
       expect.objectContaining({
         domain: "openclaw.internal.",
         gatewayPort: 18789,
-        displayName: "Lab Mac (OpenClaw)",
+        displayName: "Lab Mac (Kova)",
         tailnetIPv4: "100.64.0.10",
         tailnetDns: "gateway.tailnet.example.ts.net",
       }),
