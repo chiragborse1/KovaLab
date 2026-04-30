@@ -15,7 +15,7 @@ vi.mock("./schtasks-exec.js", () => ({
 // Real content from the openclaw-gateway.service unit file (the canonical gateway unit).
 const GATEWAY_SERVICE_CONTENTS = `\
 [Unit]
-Description=OpenClaw Gateway (v2026.3.8)
+Description=Kova Gateway (v2026.3.8)
 After=network-online.target
 Wants=network-online.target
 
@@ -58,8 +58,8 @@ describe("detectMarkerLineWithGateway", () => {
     expect(detectMarkerLineWithGateway(TEST_SERVICE_CONTENTS)).toBeNull();
   });
 
-  it("returns openclaw for the canonical gateway unit (ExecStart has both openclaw and gateway)", () => {
-    expect(detectMarkerLineWithGateway(GATEWAY_SERVICE_CONTENTS)).toBe("openclaw");
+  it("returns kova for the canonical gateway unit (service marker and gateway are on the same line)", () => {
+    expect(detectMarkerLineWithGateway(GATEWAY_SERVICE_CONTENTS)).toBe("kova");
   });
 
   it("returns clawdbot for a clawdbot gateway unit", () => {
@@ -176,7 +176,7 @@ describe("findExtraGatewayServices (win32)", () => {
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
-        "TaskName: OpenClaw Gateway",
+        "TaskName: Kova Gateway",
         "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
         "",
         "TaskName: Clawdbot Legacy",

@@ -3,6 +3,7 @@ import path from "node:path";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import {
   GATEWAY_SERVICE_KIND,
+  LEGACY_GATEWAY_SERVICE_MARKERS,
   GATEWAY_SERVICE_MARKER,
   resolveGatewayLaunchAgentLabel,
   resolveGatewaySystemdServiceName,
@@ -16,7 +17,7 @@ export type ExtraGatewayService = {
   label: string;
   detail: string;
   scope: "user" | "system";
-  marker?: "openclaw" | "clawdbot";
+  marker?: "kova" | "openclaw" | "clawdbot";
   legacy?: boolean;
 };
 
@@ -24,7 +25,11 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-const EXTRA_MARKERS = ["openclaw", "clawdbot"] as const;
+const EXTRA_MARKERS = [
+  GATEWAY_SERVICE_MARKER,
+  ...LEGACY_GATEWAY_SERVICE_MARKERS,
+  "clawdbot",
+] as const;
 
 export function renderGatewayServiceCleanupHints(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
@@ -81,9 +86,12 @@ export function detectMarkerLineWithGateway(contents: string): Marker | null {
 
 function hasGatewayServiceMarker(content: string): boolean {
   const lower = normalizeLowercaseStringOrEmpty(content);
-  const markerKeys = ["openclaw_service_marker"];
-  const kindKeys = ["openclaw_service_kind"];
-  const markerValues = [normalizeLowercaseStringOrEmpty(GATEWAY_SERVICE_MARKER)];
+  const markerKeys = ["openclaw_service_marker", "kova_service_marker"];
+  const kindKeys = ["openclaw_service_kind", "kova_service_kind"];
+  const markerValues = [
+    normalizeLowercaseStringOrEmpty(GATEWAY_SERVICE_MARKER),
+    ...LEGACY_GATEWAY_SERVICE_MARKERS.map((value) => normalizeLowercaseStringOrEmpty(value)),
+  ];
   const hasMarkerKey = markerKeys.some((key) => lower.includes(key));
   const hasKindKey = kindKeys.some((key) => lower.includes(key));
   const hasMarkerValue = markerValues.some((value) => lower.includes(value));
@@ -103,14 +111,14 @@ function isOpenClawGatewayLaunchdService(label: string, contents: string): boole
   if (!lowerContents.includes("gateway")) {
     return false;
   }
-  return label.startsWith("ai.openclaw.");
+  return label.startsWith("ai.kova.") || label.startsWith("ai.openclaw.");
 }
 
 function isOpenClawGatewaySystemdService(name: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) {
     return true;
   }
-  if (!name.startsWith("openclaw-gateway")) {
+  if (!name.startsWith("kova-gateway") && !name.startsWith("openclaw-gateway")) {
     return false;
   }
   return normalizeLowercaseStringOrEmpty(contents).includes("gateway");
@@ -230,7 +238,10 @@ async function scanLaunchdDir(params: {
     if (isIgnoredLaunchdLabel(label)) {
       continue;
     }
-    if (marker === "openclaw" && isOpenClawGatewayLaunchdService(label, contents)) {
+    if (
+      (marker === GATEWAY_SERVICE_MARKER || marker === "openclaw") &&
+      isOpenClawGatewayLaunchdService(label, contents)
+    ) {
       continue;
     }
     results.push({
@@ -239,7 +250,7 @@ async function scanLaunchdDir(params: {
       detail: `plist: ${fullPath}`,
       scope: params.scope,
       marker,
-      legacy: marker !== "openclaw" || isLegacyLabel(label),
+      legacy: marker !== GATEWAY_SERVICE_MARKER || isLegacyLabel(label),
     });
   }
 
@@ -262,7 +273,10 @@ async function scanSystemdDir(params: {
     if (!marker) {
       continue;
     }
-    if (marker === "openclaw" && isOpenClawGatewaySystemdService(name, contents)) {
+    if (
+      (marker === GATEWAY_SERVICE_MARKER || marker === "openclaw") &&
+      isOpenClawGatewaySystemdService(name, contents)
+    ) {
       continue;
     }
     results.push({
@@ -271,7 +285,7 @@ async function scanSystemdDir(params: {
       detail: `unit: ${fullPath}`,
       scope: params.scope,
       marker,
-      legacy: marker !== "openclaw",
+      legacy: marker !== GATEWAY_SERVICE_MARKER,
     });
   }
 
@@ -436,7 +450,7 @@ export async function findExtraGatewayServices(
         detail: task.taskToRun ? `task: ${name}, run: ${task.taskToRun}` : name,
         scope: "system",
         marker,
-        legacy: marker !== "openclaw",
+        legacy: marker !== GATEWAY_SERVICE_MARKER,
       });
     }
     return results;

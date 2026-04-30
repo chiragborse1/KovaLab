@@ -12,7 +12,7 @@ import {
 describe("schtasks runtime parsing", () => {
   it.each(["Ready", "Running"])("parses %s status", (status) => {
     const output = [
-      "TaskName: \\OpenClaw Gateway",
+      "TaskName: \\Kova Gateway",
       `Status: ${status}`,
       "Last Run Time: 1/8/2026 1:23:45 AM",
       "Last Run Result: 0x0",
@@ -26,7 +26,7 @@ describe("schtasks runtime parsing", () => {
 
   it("parses 'Last Result' key variant (without 'Run') (#47726)", () => {
     const output = [
-      "TaskName: \\OpenClaw Gateway",
+      "TaskName: \\Kova Gateway",
       "Status: Running",
       "Last Run Time: 2026/3/16 8:34:15",
       "Last Result: 267009",
@@ -128,12 +128,12 @@ describe("resolveTaskScriptPath", () => {
     {
       name: "uses default path when OPENCLAW_PROFILE is unset",
       env: { USERPROFILE: "C:\\Users\\test" },
-      expected: path.join("C:\\Users\\test", ".openclaw", "gateway.cmd"),
+      expected: path.join("C:\\Users\\test", ".kova", "gateway.cmd"),
     },
     {
       name: "uses profile-specific path when OPENCLAW_PROFILE is set to a custom value",
       env: { USERPROFILE: "C:\\Users\\test", OPENCLAW_PROFILE: "jbphoenix" },
-      expected: path.join("C:\\Users\\test", ".openclaw-jbphoenix", "gateway.cmd"),
+      expected: path.join("C:\\Users\\test", ".kova-jbphoenix", "gateway.cmd"),
     },
     {
       name: "prefers OPENCLAW_STATE_DIR over profile-derived defaults",
@@ -147,7 +147,7 @@ describe("resolveTaskScriptPath", () => {
     {
       name: "falls back to HOME when USERPROFILE is not set",
       env: { HOME: "/home/test", OPENCLAW_PROFILE: "default" },
-      expected: path.join("/home/test", ".openclaw", "gateway.cmd"),
+      expected: path.join("/home/test", ".kova", "gateway.cmd"),
     },
   ])("$name", ({ env, expected }) => {
     expect(resolveTaskScriptPath(env)).toBe(expected);
@@ -221,7 +221,7 @@ describe("readScheduledTaskCommand", () => {
       {
         scriptLines: [
           "@echo off",
-          "rem OpenClaw Gateway",
+          "rem Kova Gateway",
           "cd /d C:\\Projects\\openclaw",
           "set NODE_ENV=production",
           "set OPENCLAW_PORT=18789",

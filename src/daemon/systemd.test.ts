@@ -37,7 +37,7 @@ type ExecFileError = Error & {
 
 const TEST_SERVICE_HOME = "/home/test";
 const TEST_MANAGED_HOME = "/tmp/openclaw-test-home";
-const GATEWAY_SERVICE = "openclaw-gateway.service";
+const GATEWAY_SERVICE = "kova-gateway.service";
 const NODE_SERVICE = "openclaw-node.service";
 
 const createExecFileError = (
@@ -367,7 +367,7 @@ describe("isSystemdServiceEnabled", () => {
     vi.spyOn(fs, "access").mockResolvedValue(undefined);
     execFileMock
       .mockImplementationOnce((_cmd, args, _opts, cb) => {
-        expect(args).toEqual(["--user", "is-enabled", "openclaw-gateway.service"]);
+        expect(args).toEqual(["--user", "is-enabled", "kova-gateway.service"]);
         const err = new Error("Failed to connect to bus") as Error & { code?: number };
         err.code = 1;
         cb(err, "", "Failed to connect to bus");
@@ -375,7 +375,7 @@ describe("isSystemdServiceEnabled", () => {
       .mockImplementationOnce((_cmd, args, _opts, cb) => {
         expect(args[0]).toBe("--machine");
         expect(String(args[1])).toMatch(/^[^@]+@$/);
-        expect(args.slice(2)).toEqual(["--user", "is-enabled", "openclaw-gateway.service"]);
+        expect(args.slice(2)).toEqual(["--user", "is-enabled", "kova-gateway.service"]);
         const err = new Error("permission denied") as Error & { code?: number };
         err.code = 1;
         cb(err, "", "permission denied");
@@ -391,7 +391,7 @@ describe("isSystemdServiceEnabled", () => {
       // On Ubuntu 24.04, `systemctl --user is-enabled <unit>` exits with
       // code 4 and prints "not-found" to stdout when the unit doesn't exist.
       const err = new Error(
-        "Command failed: systemctl --user is-enabled openclaw-gateway.service",
+        "Command failed: systemctl --user is-enabled kova-gateway.service",
       ) as Error & { code?: number };
       err.code = 4;
       cb(err, "not-found\n", "");
@@ -405,7 +405,7 @@ describe("isNonFatalSystemdInstallProbeError", () => {
   it("matches wrapper-only WSL install probe failures", () => {
     expect(
       isNonFatalSystemdInstallProbeError(
-        new Error("Command failed: systemctl --user is-enabled openclaw-gateway.service"),
+        new Error("Command failed: systemctl --user is-enabled kova-gateway.service"),
       ),
     ).toBe(true);
   });
@@ -465,12 +465,12 @@ describe("resolveSystemdUserUnitPath", () => {
     {
       name: "uses default service name when OPENCLAW_PROFILE is unset",
       env: { HOME: "/home/test" },
-      expected: "/home/test/.config/systemd/user/openclaw-gateway.service",
+      expected: "/home/test/.config/systemd/user/kova-gateway.service",
     },
     {
       name: "uses profile-specific service name when OPENCLAW_PROFILE is set to a custom value",
       env: { HOME: "/home/test", OPENCLAW_PROFILE: "jbphoenix" },
-      expected: "/home/test/.config/systemd/user/openclaw-gateway-jbphoenix.service",
+      expected: "/home/test/.config/systemd/user/kova-gateway-jbphoenix.service",
     },
     {
       name: "prefers OPENCLAW_SYSTEMD_UNIT over OPENCLAW_PROFILE",
@@ -592,7 +592,7 @@ describe("readSystemdServiceExecStart", () => {
   it("supports multiple EnvironmentFile entries and quoted paths", async () => {
     vi.spyOn(fs, "readFile").mockImplementation(async (pathname) => {
       const pathValue = pathLikeToString(pathname);
-      if (pathValue.endsWith("/openclaw-gateway.service")) {
+      if (pathValue.endsWith("/kova-gateway.service")) {
         return [
           "[Service]",
           "ExecStart=/usr/bin/openclaw gateway run",
@@ -618,7 +618,7 @@ describe("readSystemdServiceExecStart", () => {
   it("resolves relative EnvironmentFile paths from the unit directory", async () => {
     vi.spyOn(fs, "readFile").mockImplementation(async (pathname) => {
       const pathValue = pathLikeToString(pathname);
-      if (pathValue.endsWith("/openclaw-gateway.service")) {
+      if (pathValue.endsWith("/kova-gateway.service")) {
         return [
           "[Service]",
           "ExecStart=/usr/bin/openclaw gateway run",
@@ -647,7 +647,7 @@ describe("readSystemdServiceExecStart", () => {
   it("parses EnvironmentFile content with comments and quoted values", async () => {
     vi.spyOn(fs, "readFile").mockImplementation(async (pathname) => {
       const pathValue = pathLikeToString(pathname);
-      if (pathValue.endsWith("/openclaw-gateway.service")) {
+      if (pathValue.endsWith("/kova-gateway.service")) {
         return [
           "[Service]",
           "ExecStart=/usr/bin/openclaw gateway run",
@@ -1102,7 +1102,7 @@ describe("systemd service control", () => {
     execFileMock
       .mockImplementationOnce((_cmd, _args, _opts, cb) => cb(null, "", ""))
       .mockImplementationOnce((_cmd, args, _opts, cb) => {
-        assertUserSystemctlArgs(args, "restart", "openclaw-gateway-work.service");
+        assertUserSystemctlArgs(args, "restart", "kova-gateway-work.service");
         cb(null, "", "");
       });
     await assertRestartSuccess({ OPENCLAW_PROFILE: "work" });

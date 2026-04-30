@@ -54,6 +54,43 @@ function resolveLaunchAgentLabel(args?: { env?: Record<string, string | undefine
   return assertValidLaunchAgentLabel(resolveGatewayLaunchAgentLabel(args?.env?.OPENCLAW_PROFILE));
 }
 
+async function launchAgentPlistExistsForLabel(
+  env: GatewayServiceEnv,
+  label: string,
+): Promise<boolean> {
+  try {
+    await fs.access(resolveLaunchAgentPlistPathForLabel(env, label));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveLaunchAgentCandidateLabels(env: GatewayServiceEnv): string[] {
+  return [
+    resolveLaunchAgentLabel({ env }),
+    ...resolveLegacyGatewayLaunchAgentLabels(env.OPENCLAW_PROFILE),
+  ];
+}
+
+async function resolveInstalledLaunchAgentLabel(
+  env: GatewayServiceEnv,
+): Promise<{ label: string; plistPath: string }> {
+  for (const label of resolveLaunchAgentCandidateLabels(env)) {
+    if (await launchAgentPlistExistsForLabel(env, label)) {
+      return {
+        label,
+        plistPath: resolveLaunchAgentPlistPathForLabel(env, label),
+      };
+    }
+  }
+  const configured = resolveLaunchAgentLabel({ env });
+  return {
+    label: configured,
+    plistPath: resolveLaunchAgentPlistPathForLabel(env, configured),
+  };
+}
+
 function resolveLaunchAgentPlistPathForLabel(
   env: Record<string, string | undefined>,
   label: string,
@@ -70,8 +107,8 @@ export function resolveLaunchAgentPlistPath(env: GatewayServiceEnv): string {
 export async function readLaunchAgentProgramArguments(
   env: GatewayServiceEnv,
 ): Promise<GatewayServiceCommandConfig | null> {
-  const plistPath = resolveLaunchAgentPlistPath(env);
-  return readLaunchAgentProgramArgumentsFromFile(plistPath);
+  const { plistPath } = await resolveInstalledLaunchAgentLabel(env);
+  return await readLaunchAgentProgramArgumentsFromFile(plistPath);
 }
 
 export function buildLaunchAgentPlist({
@@ -273,24 +310,35 @@ export function parseLaunchctlPrint(output: string): LaunchctlPrintInfo {
 }
 
 export async function isLaunchAgentLoaded(args: GatewayServiceEnvArgs): Promise<boolean> {
+  const env = args.env ?? (process.env as GatewayServiceEnv);
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env: args.env });
-  const res = await execLaunchctl(["print", `${domain}/${label}`]);
-  return res.code === 0;
+  for (const label of resolveLaunchAgentCandidateLabels(env)) {
+    const res = await execLaunchctl(["print", `${domain}/${label}`]);
+    if (res.code === 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export async function isLaunchAgentListed(args: GatewayServiceEnvArgs): Promise<boolean> {
-  const label = resolveLaunchAgentLabel({ env: args.env });
+  const env = args.env ?? (process.env as GatewayServiceEnv);
   const res = await execLaunchctl(["list"]);
   if (res.code !== 0) {
     return false;
   }
-  return res.stdout.split(/\r?\n/).some((line) => line.trim().split(/\s+/).at(-1) === label);
+  const listedLabels = new Set(
+    res.stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim().split(/\s+/).at(-1))
+      .filter((label): label is string => Boolean(label)),
+  );
+  return resolveLaunchAgentCandidateLabels(env).some((label) => listedLabels.has(label));
 }
 
 export async function launchAgentPlistExists(env: GatewayServiceEnv): Promise<boolean> {
+  const { plistPath } = await resolveInstalledLaunchAgentLabel(env);
   try {
-    const plistPath = resolveLaunchAgentPlistPath(env);
     await fs.access(plistPath);
     return true;
   } catch {
@@ -302,27 +350,33 @@ export async function readLaunchAgentRuntime(
   env: Record<string, string | undefined>,
 ): Promise<GatewayServiceRuntime> {
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env });
-  const res = await execLaunchctl(["print", `${domain}/${label}`]);
-  if (res.code !== 0) {
-    const plistExists = await launchAgentPlistExists(env);
+  const serviceEnv = env as GatewayServiceEnv;
+  let lastDetail: string | undefined;
+  for (const label of resolveLaunchAgentCandidateLabels(serviceEnv)) {
+    const res = await execLaunchctl(["print", `${domain}/${label}`]);
+    if (res.code !== 0) {
+      lastDetail = (res.stderr || res.stdout).trim() || lastDetail;
+      continue;
+    }
+    const parsed = parseLaunchctlPrint(res.stdout || res.stderr || "");
+    const plistExists = await launchAgentPlistExistsForLabel(serviceEnv, label);
+    const state = normalizeLowercaseStringOrEmpty(parsed.state);
+    const status = state === "running" || parsed.pid ? "running" : state ? "stopped" : "unknown";
     return {
-      status: "unknown",
-      detail: (res.stderr || res.stdout).trim() || undefined,
-      ...(plistExists ? { missingSupervision: true } : { missingUnit: true }),
+      status,
+      state: parsed.state,
+      pid: parsed.pid,
+      lastExitStatus: parsed.lastExitStatus,
+      lastExitReason: parsed.lastExitReason,
+      cachedLabel: !plistExists,
     };
   }
-  const parsed = parseLaunchctlPrint(res.stdout || res.stderr || "");
-  const plistExists = await launchAgentPlistExists(env);
-  const state = normalizeLowercaseStringOrEmpty(parsed.state);
-  const status = state === "running" || parsed.pid ? "running" : state ? "stopped" : "unknown";
+  const installed = await resolveInstalledLaunchAgentLabel(serviceEnv);
+  const plistExists = await launchAgentPlistExistsForLabel(serviceEnv, installed.label);
   return {
-    status,
-    state: parsed.state,
-    pid: parsed.pid,
-    lastExitStatus: parsed.lastExitStatus,
-    lastExitReason: parsed.lastExitReason,
-    cachedLabel: !plistExists,
+    status: "unknown",
+    detail: lastDetail,
+    ...(plistExists ? { missingSupervision: true } : { missingUnit: true }),
   };
 }
 
@@ -333,10 +387,12 @@ export type LaunchAgentBootstrapRepairResult =
 export async function repairLaunchAgentBootstrap(args: {
   env?: Record<string, string | undefined>;
 }): Promise<LaunchAgentBootstrapRepairResult> {
-  const env = args.env ?? (process.env as Record<string, string | undefined>);
+  const env = (args.env ??
+    (process.env as Record<string, string | undefined>)) as GatewayServiceEnv;
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env });
-  const plistPath = resolveLaunchAgentPlistPath(env);
+  const existing = await resolveInstalledLaunchAgentLabel(env);
+  const label = existing.label;
+  const plistPath = existing.plistPath;
   await execLaunchctl(["enable", `${domain}/${label}`]);
   const boot = await execLaunchctl(["bootstrap", domain, plistPath]);
   let repairStatus: LaunchAgentBootstrapRepairResult["status"] = "repaired";
@@ -365,8 +421,9 @@ export async function uninstallLaunchAgent({
   stdout,
 }: GatewayServiceManageArgs): Promise<void> {
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env });
-  const plistPath = resolveLaunchAgentPlistPath(env);
+  const existing = await resolveInstalledLaunchAgentLabel(env);
+  const label = existing.label;
+  const plistPath = existing.plistPath;
   await execLaunchctl(["bootout", domain, plistPath]);
   await execLaunchctl(["unload", plistPath]);
 
@@ -481,7 +538,8 @@ async function waitForLaunchAgentStopped(serviceTarget: string): Promise<LaunchA
 export async function stopLaunchAgent({ stdout, env }: GatewayServiceControlArgs): Promise<void> {
   const serviceEnv = env ?? (process.env as GatewayServiceEnv);
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env: serviceEnv });
+  const existing = await resolveInstalledLaunchAgentLabel(serviceEnv);
+  const label = existing.label;
   const serviceTarget = `${domain}/${label}`;
 
   // Keep the LaunchAgent installed, but persistently suppress KeepAlive/RunAtLoad
@@ -678,8 +736,9 @@ export async function restartLaunchAgent({
 }: GatewayServiceControlArgs): Promise<GatewayServiceRestartResult> {
   const serviceEnv = env ?? (process.env as GatewayServiceEnv);
   const domain = resolveGuiDomain();
-  const label = resolveLaunchAgentLabel({ env: serviceEnv });
-  const plistPath = resolveLaunchAgentPlistPath(serviceEnv);
+  const existing = await resolveInstalledLaunchAgentLabel(serviceEnv);
+  const label = existing.label;
+  const plistPath = existing.plistPath;
   const serviceTarget = `${domain}/${label}`;
 
   // Restart requests issued from inside the managed gateway process tree need a

@@ -80,19 +80,19 @@ export async function prepareRestartScript(
       const unitName = resolveSystemdUnit(env);
       const escaped = shellEscape(unitName);
       const logSetup = renderPosixRestartLogSetup({ ...process.env, ...env });
-      filename = `openclaw-restart-${timestamp}.sh`;
+      filename = `kova-restart-${timestamp}.sh`;
       scriptContent = `#!/bin/sh
 # Standalone restart script — survives parent process termination.
 # Wait briefly to ensure file locks are released after update.
 sleep 1
 ${logSetup}
-printf '[%s] openclaw restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${escaped}' >&2
+printf '[%s] kova restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${escaped}' >&2
 if systemctl --user restart '${escaped}'; then
   status=0
-  printf '[%s] openclaw restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
+  printf '[%s] kova restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
 else
   status=$?
-  printf '[%s] openclaw restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
+  printf '[%s] kova restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
 fi
 # Self-cleanup
 rm -f "$0"
@@ -109,7 +109,7 @@ exit "$status"
       const plistPath = path.join(home, "Library", "LaunchAgents", `${label}.plist`);
       const escapedPlistPath = shellEscape(plistPath);
       const logSetup = renderPosixRestartLogSetup({ ...process.env, ...env });
-      filename = `openclaw-restart-${timestamp}.sh`;
+      filename = `kova-restart-${timestamp}.sh`;
       scriptContent = `#!/bin/sh
 # Standalone restart script — survives parent process termination.
 # Wait briefly to ensure file locks are released after update.
@@ -118,7 +118,7 @@ sleep 1
 # audit trail. Log setup is best-effort: restart must still run if the log path
 # is temporarily unavailable.
 ${logSetup}
-printf '[%s] openclaw restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${shellEscapeRestartLogValue(label)}' >&2
+printf '[%s] kova restart attempt source=update target=%s\\n' "$(date -u +%FT%TZ)" '${shellEscapeRestartLogValue(label)}' >&2
 # Try kickstart first (works when the service is still registered).
 # If it fails (e.g. after bootout), clear any persisted disabled state,
 # then re-register via bootstrap and kickstart. The final status is captured
@@ -131,11 +131,11 @@ if ! launchctl kickstart -k 'gui/${uid}/${escaped}'; then
   status=$?
 fi
 if [ "$status" -eq 0 ]; then
-  printf '[%s] openclaw restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
+  printf '[%s] kova restart done source=update\\n' "$(date -u +%FT%TZ)" >&2
 else
-  printf '[%s] openclaw restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
+  printf '[%s] kova restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
 fi
-# Self-cleanup (log is retained under the OpenClaw state logs directory).
+# Self-cleanup (log is retained under the Kova state logs directory).
 rm -f "$0"
 exit "$status"
 `;
@@ -149,7 +149,7 @@ exit "$status"
       const restartLogPath = resolveGatewayRestartLogPath({ ...process.env, ...env });
       const quotedLogPath = powerShellSingleQuote(restartLogPath);
       const quotedTaskName = powerShellSingleQuote(taskName);
-      filename = `openclaw-restart-${timestamp}.cmd`;
+      filename = `kova-restart-${timestamp}.cmd`;
       scriptContent = `@echo off
 REM Standalone restart script - survives parent process termination.
 REM Keep this as a cmd wrapper so Group Policy script execution policies
@@ -169,7 +169,7 @@ $logPath = ${quotedLogPath}
 try {
   $logDir = Split-Path -Parent $logPath
   New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-  Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] openclaw restart log initialized"
+  Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] kova restart log initialized"
 } catch {
   # Restart should still run if log setup is unavailable.
 }
@@ -212,7 +212,7 @@ function Invoke-OpenClawSchtasksWithTimeout {
         $process.Kill()
       } catch {
       }
-      Write-RestartLog "openclaw restart schtasks timeout source=update args=$($Arguments -join ' ')"
+      Write-RestartLog "kova restart schtasks timeout source=update args=$($Arguments -join ' ')"
       return 124
     }
     $stdout = $process.StandardOutput.ReadToEnd()
@@ -225,7 +225,7 @@ function Invoke-OpenClawSchtasksWithTimeout {
     }
     return $process.ExitCode
   } catch {
-    Write-RestartLog "openclaw restart schtasks failed source=update args=$($Arguments -join ' ') error=$($_.Exception.Message)"
+    Write-RestartLog "kova restart schtasks failed source=update args=$($Arguments -join ' ') error=$($_.Exception.Message)"
     return 1
   }
 }
@@ -283,16 +283,16 @@ function Get-OpenClawListenerPids {
 
 $taskName = ${quotedTaskName}
 $port = ${port}
-Write-RestartLog "openclaw restart attempt source=update target=$taskName"
+Write-RestartLog "kova restart attempt source=update target=$taskName"
 
 $taskState = Get-OpenClawScheduledTaskState -TaskName $taskName
 if ($taskState -eq "Running") {
   $endStatus = Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10
   if ($endStatus -ne 0) {
-    Write-RestartLog "openclaw restart schtasks end did not complete cleanly source=update status=$endStatus"
+    Write-RestartLog "kova restart schtasks end did not complete cleanly source=update status=$endStatus"
   }
 } else {
-  Write-RestartLog "openclaw restart skipped schtasks end source=update state=$taskState"
+  Write-RestartLog "kova restart skipped schtasks end source=update state=$taskState"
 }
 
 for ($attempt = 1; $attempt -le 10; $attempt++) {
@@ -305,9 +305,9 @@ for ($attempt = 1; $attempt -le 10; $attempt++) {
     foreach ($listenerPid in $listeners) {
       try {
         Stop-Process -Id $listenerPid -Force -ErrorAction Stop
-        Write-RestartLog "openclaw restart killed stale listener source=update pid=$listenerPid"
+        Write-RestartLog "kova restart killed stale listener source=update pid=$listenerPid"
       } catch {
-        Write-RestartLog "openclaw restart failed to kill stale listener source=update pid=$listenerPid error=$($_.Exception.Message)"
+        Write-RestartLog "kova restart failed to kill stale listener source=update pid=$listenerPid error=$($_.Exception.Message)"
       }
     }
     break
@@ -318,9 +318,9 @@ for ($attempt = 1; $attempt -le 10; $attempt++) {
 
 $status = Invoke-OpenClawSchtasksWithTimeout -Arguments @("/Run", "/TN", $taskName) -TimeoutSeconds 30
 if ($status -eq 0) {
-  Write-RestartLog "openclaw restart done source=update"
+  Write-RestartLog "kova restart done source=update"
 } else {
-  Write-RestartLog "openclaw restart failed source=update status=$status"
+  Write-RestartLog "kova restart failed source=update status=$status"
 }
 
 exit $status

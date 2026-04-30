@@ -8,8 +8,8 @@ import { parseStrictInteger, parseStrictPositiveInteger } from "../infra/parse-f
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { splitArgsPreservingQuotes } from "./arg-split.js";
 import {
-  LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES,
   resolveGatewayServiceDescription,
+  resolveLegacyGatewaySystemdServiceNames,
   resolveGatewaySystemdServiceName,
 } from "./constants.js";
 import { execFileUtf8 } from "./exec-file.js";
@@ -58,6 +58,37 @@ function resolveSystemdServiceName(env: GatewayServiceEnv): string {
   return resolveGatewaySystemdServiceName(env.OPENCLAW_PROFILE);
 }
 
+async function hasSystemdUnitPath(unitPath: string): Promise<boolean> {
+  try {
+    await fs.access(unitPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveExistingSystemdServiceName(env: GatewayServiceEnv): Promise<string> {
+  const configured = resolveSystemdServiceName(env);
+  try {
+    if (await hasSystemdUnitPath(resolveSystemdUnitPathForName(env, configured))) {
+      return configured;
+    }
+    for (const legacyName of resolveLegacyGatewaySystemdServiceNames(env.OPENCLAW_PROFILE)) {
+      if (legacyName === configured) {
+        continue;
+      }
+      if (await hasSystemdUnitPath(resolveSystemdUnitPathForName(env, legacyName))) {
+        return legacyName;
+      }
+    }
+  } catch (error) {
+    if ((error as Error).message !== "Missing HOME") {
+      throw error;
+    }
+  }
+  return configured;
+}
+
 function resolveSystemdUnitPath(env: GatewayServiceEnv): string {
   return resolveSystemdUnitPathForName(env, resolveSystemdServiceName(env));
 }
@@ -74,7 +105,7 @@ export type { SystemdUserLingerStatus };
 export async function readSystemdServiceExecStart(
   env: GatewayServiceEnv,
 ): Promise<GatewayServiceCommandConfig | null> {
-  const unitPath = resolveSystemdUnitPath(env);
+  const unitPath = resolveSystemdUnitPathForName(env, await resolveExistingSystemdServiceName(env));
   try {
     const content = await fs.readFile(unitPath, "utf8");
     let execStart = "";
@@ -668,11 +699,11 @@ export async function uninstallSystemdService({
   stdout,
 }: GatewayServiceManageArgs): Promise<void> {
   await assertSystemdAvailable(env);
-  const serviceName = resolveSystemdServiceName(env);
+  const serviceName = await resolveExistingSystemdServiceName(env);
   const unitName = `${serviceName}.service`;
   await execSystemctlUser(env, ["disable", "--now", unitName]);
 
-  const unitPath = resolveSystemdUnitPath(env);
+  const unitPath = resolveSystemdUnitPathForName(env, serviceName);
   try {
     await fs.unlink(unitPath);
     stdout.write(`${formatLine("Removed systemd service", unitPath)}\n`);
@@ -689,7 +720,7 @@ async function runSystemdServiceAction(params: {
 }) {
   const env = params.env ?? process.env;
   await assertSystemdAvailable(env);
-  const serviceName = resolveSystemdServiceName(env);
+  const serviceName = await resolveExistingSystemdServiceName(env);
   const unitName = `${serviceName}.service`;
   const res = await execSystemctlUser(env, [params.action, unitName]);
   if (res.code !== 0) {
@@ -725,8 +756,9 @@ export async function restartSystemdService({
 
 export async function isSystemdServiceEnabled(args: GatewayServiceEnvArgs): Promise<boolean> {
   const env = args.env ?? process.env;
+  const serviceName = await resolveExistingSystemdServiceName(env);
   try {
-    await fs.access(resolveSystemdUnitPath(env));
+    await fs.access(resolveSystemdUnitPathForName(env, serviceName));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return false;
@@ -734,7 +766,6 @@ export async function isSystemdServiceEnabled(args: GatewayServiceEnvArgs): Prom
     throw error;
   }
 
-  const serviceName = resolveSystemdServiceName(env);
   const unitName = `${serviceName}.service`;
   const res = await execSystemctlUser(env, ["is-enabled", unitName]);
   if (res.code === 0) {
@@ -758,7 +789,7 @@ export async function readSystemdServiceRuntime(
       detail: formatErrorMessage(err),
     };
   }
-  const serviceName = resolveSystemdServiceName(env);
+  const serviceName = await resolveExistingSystemdServiceName(env);
   const unitName = `${serviceName}.service`;
   const res = await execSystemctlUser(env, [
     "show",
@@ -806,7 +837,7 @@ async function isSystemctlAvailable(env: GatewayServiceEnv): Promise<boolean> {
 export async function findLegacySystemdUnits(env: GatewayServiceEnv): Promise<LegacySystemdUnit[]> {
   const results: LegacySystemdUnit[] = [];
   const systemctlAvailable = await isSystemctlAvailable(env);
-  for (const name of LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES) {
+  for (const name of resolveLegacyGatewaySystemdServiceNames(env.OPENCLAW_PROFILE)) {
     const unitPath = resolveSystemdUnitPathForName(env, name);
     let exists = false;
     try {

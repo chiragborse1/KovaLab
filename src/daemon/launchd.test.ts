@@ -80,7 +80,7 @@ async function runStopLaunchAgentWithFakeTimers(args: Parameters<typeof stopLaun
 
 function expectLaunchctlEnableBootstrapOrder(env: Record<string, string | undefined>) {
   const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
-  const label = "ai.openclaw.gateway";
+  const label = "ai.kova.gateway";
   const plistPath = resolveLaunchAgentPlistPath(env);
   const serviceId = `${domain}/${label}`;
   const enableIndex = state.launchctlCalls.findIndex(
@@ -376,7 +376,7 @@ describe("launchd runtime state", () => {
 
 describe("launchctl list detection", () => {
   it("detects the resolved label in launchctl list", async () => {
-    state.listOutput = "123 0 ai.openclaw.gateway\n";
+    state.listOutput = "123 0 ai.kova.gateway\n";
     const listed = await isLaunchAgentListed({
       env: { HOME: "/Users/test", OPENCLAW_PROFILE: "default" },
     });
@@ -476,7 +476,7 @@ describe("launchd install", () => {
 
   it("writes TMPDIR to LaunchAgent environment when provided", async () => {
     const env = createDefaultLaunchdEnv();
-    const tmpDir = "/Users/test/.openclaw/tmp";
+    const tmpDir = "/Users/test/.kova/tmp";
     await installLaunchAgent({
       env,
       stdout: new PassThrough(),
@@ -493,7 +493,7 @@ describe("launchd install", () => {
 
   it("creates the LaunchAgent TMPDIR before bootstrap", async () => {
     const env = createDefaultLaunchdEnv();
-    const tmpDir = "/Users/test/.openclaw/tmp";
+    const tmpDir = "/Users/test/.kova/tmp";
     await installLaunchAgent({
       env,
       stdout: new PassThrough(),
@@ -537,7 +537,7 @@ describe("launchd install", () => {
         '<plist version="1.0">',
         "  <dict>",
         "    <key>Label</key>",
-        "    <string>ai.openclaw.gateway</string>",
+        "    <string>ai.kova.gateway</string>",
         "    <key>ProgramArguments</key>",
         "    <array>",
         "      <string>node</string>",
@@ -596,9 +596,9 @@ describe("launchd install", () => {
     await stopLaunchAgent({ env, stdout });
 
     const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
-    const serviceId = `${domain}/ai.openclaw.gateway`;
+    const serviceId = `${domain}/ai.kova.gateway`;
     expect(state.launchctlCalls).toContainEqual(["disable", serviceId]);
-    expect(state.launchctlCalls).toContainEqual(["stop", "ai.openclaw.gateway"]);
+    expect(state.launchctlCalls).toContainEqual(["stop", "ai.kova.gateway"]);
     expect(state.launchctlCalls.some((call) => call[0] === "bootout")).toBe(false);
     expect(output).toContain("Stopped LaunchAgent");
   });
@@ -619,7 +619,7 @@ describe("launchd install", () => {
 
     expect(state.launchctlCalls).toContainEqual([
       "disable",
-      `${typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501"}/ai.openclaw.gateway`,
+      `${typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501"}/ai.kova.gateway`,
     ]);
     expect(state.launchctlCalls.some((call) => call[0] === "bootout")).toBe(false);
     expect(output).toContain("Stopped LaunchAgent");
@@ -750,7 +750,7 @@ describe("launchd install", () => {
     });
 
     const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
-    const label = "ai.openclaw.gateway";
+    const label = "ai.kova.gateway";
     const serviceId = `${domain}/${label}`;
     expect(result).toEqual({ outcome: "completed" });
     expect(cleanStaleGatewayProcessesSync).toHaveBeenCalledWith(18789);
@@ -797,7 +797,7 @@ describe("launchd install", () => {
     });
 
     const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
-    const serviceId = `${domain}/ai.openclaw.gateway`;
+    const serviceId = `${domain}/ai.kova.gateway`;
     const kickstartCalls = state.launchctlCalls.filter(
       (c) => c[0] === "kickstart" && c[1] === "-k" && c[2] === serviceId,
     );
@@ -914,12 +914,12 @@ describe("resolveLaunchAgentPlistPath", () => {
     {
       name: "uses default label when OPENCLAW_PROFILE is unset",
       env: { HOME: "/Users/test" },
-      expected: "/Users/test/Library/LaunchAgents/ai.openclaw.gateway.plist",
+      expected: "/Users/test/Library/LaunchAgents/ai.kova.gateway.plist",
     },
     {
       name: "uses profile-specific label when OPENCLAW_PROFILE is set to a custom value",
       env: { HOME: "/Users/test", OPENCLAW_PROFILE: "jbphoenix" },
-      expected: "/Users/test/Library/LaunchAgents/ai.openclaw.jbphoenix.plist",
+      expected: "/Users/test/Library/LaunchAgents/ai.kova.jbphoenix.plist",
     },
     {
       name: "prefers OPENCLAW_LAUNCHD_LABEL over OPENCLAW_PROFILE",
@@ -945,7 +945,7 @@ describe("resolveLaunchAgentPlistPath", () => {
         OPENCLAW_PROFILE: "myprofile",
         OPENCLAW_LAUNCHD_LABEL: "   ",
       },
-      expected: "/Users/test/Library/LaunchAgents/ai.openclaw.myprofile.plist",
+      expected: "/Users/test/Library/LaunchAgents/ai.kova.myprofile.plist",
     },
   ])("$name", ({ env, expected }) => {
     expect(resolveLaunchAgentPlistPath(env)).toBe(expected);

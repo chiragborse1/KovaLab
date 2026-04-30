@@ -4,7 +4,7 @@ import { buildSystemdUnit } from "./systemd-unit.js";
 describe("buildSystemdUnit", () => {
   it("quotes arguments with whitespace", () => {
     const unit = buildSystemdUnit({
-      description: "OpenClaw Gateway",
+      description: "Kova Gateway",
       programArguments: ["/usr/bin/openclaw", "gateway", "--name", "My Bot"],
       environment: {},
     });
@@ -14,7 +14,7 @@ describe("buildSystemdUnit", () => {
 
   it("renders control-group kill mode for child-process cleanup", () => {
     const unit = buildSystemdUnit({
-      description: "OpenClaw Gateway",
+      description: "Kova Gateway",
       programArguments: ["/usr/bin/openclaw", "gateway", "run"],
       environment: {},
     });
@@ -30,7 +30,7 @@ describe("buildSystemdUnit", () => {
   it("rejects environment values with line breaks", () => {
     expect(() =>
       buildSystemdUnit({
-        description: "OpenClaw Gateway",
+        description: "Kova Gateway",
         programArguments: ["/usr/bin/openclaw", "gateway", "start"],
         environment: {
           INJECT: "ok\nExecStartPre=/bin/touch /tmp/oc15789_rce",
@@ -41,7 +41,7 @@ describe("buildSystemdUnit", () => {
 
   it("renders EnvironmentFile entries before inline Environment values", () => {
     const unit = buildSystemdUnit({
-      description: "OpenClaw Gateway",
+      description: "Kova Gateway",
       programArguments: ["/usr/bin/openclaw", "gateway", "run"],
       environmentFiles: ["/home/test/.openclaw/.env"],
       environment: {

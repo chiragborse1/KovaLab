@@ -10,8 +10,8 @@ describe("buildPlatformRuntimeLogHints", () => {
           OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
           OPENCLAW_LOG_PREFIX: "gateway",
         },
-        systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        systemdServiceName: "kova-gateway",
+        windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
       "Launchd stdout (if installed): /tmp/openclaw-state/logs/gateway.log",
@@ -27,11 +27,11 @@ describe("buildPlatformRuntimeLogHints", () => {
         env: {
           OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
         },
-        systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        systemdServiceName: "kova-gateway",
+        windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
-      "Logs: journalctl --user -u openclaw-gateway.service -n 200 --no-pager",
+      "Logs: journalctl --user -u kova-gateway.service -n 200 --no-pager",
       "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
     ]);
     expect(
@@ -40,11 +40,11 @@ describe("buildPlatformRuntimeLogHints", () => {
         env: {
           OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
         },
-        systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        systemdServiceName: "kova-gateway",
+        windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
-      'Logs: schtasks /Query /TN "OpenClaw Gateway" /V /FO LIST',
+      'Logs: schtasks /Query /TN "Kova Gateway" /V /FO LIST',
       "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
     ]);
   });
@@ -58,8 +58,8 @@ describe("buildPlatformServiceStartHints", () => {
         installCommand: "openclaw gateway install",
         startCommand: "openclaw gateway",
         launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
-        systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        systemdServiceName: "kova-gateway",
+        windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
       "openclaw gateway install",
@@ -72,13 +72,13 @@ describe("buildPlatformServiceStartHints", () => {
         installCommand: "openclaw gateway install",
         startCommand: "openclaw gateway",
         launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
-        systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        systemdServiceName: "kova-gateway",
+        windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
       "openclaw gateway install",
       "openclaw gateway",
-      "systemctl --user start openclaw-gateway.service",
+      "systemctl --user start kova-gateway.service",
     ]);
   });
 });

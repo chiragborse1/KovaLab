@@ -15,7 +15,7 @@ import {
 } from "../../config/config.js";
 import { formatConfigIssueLines } from "../../config/issue-format.js";
 import { asResolvedSourceConfig, asRuntimeConfig } from "../../config/materialize.js";
-import { GATEWAY_SERVICE_KIND, GATEWAY_SERVICE_MARKER } from "../../daemon/constants.js";
+import { GATEWAY_SERVICE_KIND, isGatewayServiceMarker } from "../../daemon/constants.js";
 import { resolveGatewayInstallEntrypoint } from "../../daemon/gateway-entrypoint.js";
 import { resolveGatewayRestartLogPath } from "../../daemon/restart-logs.js";
 import { readGatewayServiceState, resolveGatewayService } from "../../daemon/service.js";
@@ -155,7 +155,7 @@ export function shouldUseLegacyProcessRestartAfterUpdate(params: {
 function isRunningInsideGatewayService(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  if (env.OPENCLAW_SERVICE_MARKER?.trim() !== GATEWAY_SERVICE_MARKER) {
+  if (!isGatewayServiceMarker(env.OPENCLAW_SERVICE_MARKER?.trim())) {
     return false;
   }
   const serviceKind = env.OPENCLAW_SERVICE_KIND?.trim();

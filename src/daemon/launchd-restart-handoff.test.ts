@@ -37,12 +37,12 @@ describe("scheduleDetachedLaunchdRestartHandoff", () => {
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [, args] = spawnMock.mock.calls[0] as [string, string[]];
     expect(args[0]).toBe("-c");
-    expect(args[2]).toBe("openclaw-launchd-restart-handoff");
+    expect(args[2]).toBe("kova-launchd-restart-handoff");
     expect(args[6]).toBe("9876");
-    expect(args[7]).toBe("ai.openclaw.gateway");
+    expect(args[7]).toBe("ai.kova.gateway");
     expect(args[1]).toContain('while kill -0 "$wait_pid" >/dev/null 2>&1; do');
-    expect(args[1]).toContain("exec >>'/Users/test/.openclaw/logs/gateway-restart.log' 2>&1");
-    expect(args[1]).toContain("openclaw restart attempt source=launchd-handoff mode=kickstart");
+    expect(args[1]).toContain("exec >>'/Users/test/.kova/logs/gateway-restart.log' 2>&1");
+    expect(args[1]).toContain("kova restart attempt source=launchd-handoff mode=kickstart");
     expect(args[1]).toContain('launchctl enable "$service_target"');
     expect(args[1]).toContain('if launchctl kickstart -k "$service_target"; then');
     expect(args[1]).not.toMatch(/launchctl[^\n]*\/dev\/null/);
@@ -62,7 +62,7 @@ describe("scheduleDetachedLaunchdRestartHandoff", () => {
     });
 
     const [, args] = spawnMock.mock.calls[0] as [string, string[]];
-    expect(args[7]).toBe("ai.openclaw.gateway");
+    expect(args[7]).toBe("ai.kova.gateway");
     expect(args[1]).toContain('if launchctl print "$service_target" >/dev/null 2>&1; then');
     expect(args[1]).toContain("reason=launchd-auto-reload");
     expect(args[1]).toContain("print_retry_count=$((print_retry_count - 1))");

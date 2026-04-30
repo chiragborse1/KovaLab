@@ -73,7 +73,7 @@ exit 0
     const runningGuard = 'if ($taskState -eq "Running")';
     const endCommand =
       'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10';
-    const skipEndLog = "openclaw restart skipped schtasks end";
+    const skipEndLog = "kova restart skipped schtasks end";
     const pollLoop = "for ($attempt = 1; $attempt -le 10; $attempt++)";
     const pollCall = `Get-OpenClawListenerPids -Port $port`;
     const forceKillBranch = "if ($attempt -eq 10)";
@@ -126,7 +126,7 @@ exit 0
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
-      expect(content).toContain("systemctl --user restart 'openclaw-gateway.service'");
+      expect(content).toContain("systemctl --user restart 'kova-gateway.service'");
       // Script should self-cleanup
       expect(content).toContain('rm -f "$0"');
       await cleanupScript(scriptPath);
@@ -151,15 +151,15 @@ exit 0
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
-      expect(content).toContain("launchctl kickstart -k 'gui/501/ai.openclaw.gateway'");
+      expect(content).toContain("launchctl kickstart -k 'gui/501/ai.kova.gateway'");
       // Should clear disabled state and fall back to bootstrap when kickstart fails.
-      expect(content).toContain("launchctl enable 'gui/501/ai.openclaw.gateway'");
+      expect(content).toContain("launchctl enable 'gui/501/ai.kova.gateway'");
       expect(content).toContain("launchctl bootstrap 'gui/501'");
       expect(content).toContain('rm -f "$0"');
       await cleanupScript(scriptPath);
     });
 
-    it("captures macOS launchctl stderr to ~/.openclaw/logs/gateway-restart.log (#68486)", async () => {
+    it("captures macOS launchctl stderr to ~/.kova/logs/gateway-restart.log (#68486)", async () => {
       // Silent failure in macOS update restart helper: previously every
       // launchctl call redirected stderr to /dev/null and the final kickstart
       // was chained with `|| true`, so bootstrap/kickstart failures were
@@ -173,7 +173,7 @@ exit 0
         OPENCLAW_PROFILE: "default",
         HOME: "/Users/testuser",
       });
-      expect(content).toContain("exec >>'/Users/testuser/.openclaw/logs/gateway-restart.log' 2>&1");
+      expect(content).toContain("exec >>'/Users/testuser/.kova/logs/gateway-restart.log' 2>&1");
       // Every launchctl call should allow output through now (no `2>/dev/null`)
       // and the final kickstart must not swallow its exit code.
       expect(content).not.toMatch(/launchctl[^\n]*2>\/dev\/null/);
@@ -229,10 +229,10 @@ exit 0
       const log = await fs.readFile(path.join(stateDir, "logs", "gateway-restart.log"), "utf-8");
 
       expect(result.code).toBe(42);
-      expect(log).toContain("openclaw restart attempt source=update target=ai.openclaw.gateway");
-      expect(log).toContain("launchctl kickstart -k gui/501/ai.openclaw.gateway");
-      expect(log).toContain("openclaw restart failed source=update status=42");
-      expect(log).not.toContain("openclaw restart done source=update");
+      expect(log).toContain("kova restart attempt source=update target=ai.kova.gateway");
+      expect(log).toContain("launchctl kickstart -k gui/501/ai.kova.gateway");
+      expect(log).toContain("kova restart failed source=update status=42");
+      expect(log).not.toContain("kova restart done source=update");
     });
 
     it("continues the macOS restart path when log setup fails", async () => {
@@ -316,11 +316,11 @@ exit 0
       expect(content).not.toContain("-File");
       expect(content).toContain('$ErrorActionPreference = "Continue"');
       expect(content).toContain("gateway-restart.log");
-      expect(content).toContain("$taskName = 'OpenClaw Gateway'");
+      expect(content).toContain("$taskName = 'Kova Gateway'");
       expect(content).toContain("function Invoke-OpenClawSchtasksWithTimeout");
       expect(content).toContain("function Get-OpenClawScheduledTaskState");
       expect(content).toContain("Get-ScheduledTask -TaskName $TaskName");
-      expect(content).toContain("openclaw restart skipped schtasks end");
+      expect(content).toContain("kova restart skipped schtasks end");
       expectWindowsRestartWaitOrdering(content);
       expect(content).toContain('del "%~f0" >nul 2>&1');
       await cleanupScript(scriptPath);
@@ -365,7 +365,7 @@ exit 0
       const { scriptPath, content } = await prepareAndReadScript({
         OPENCLAW_PROFILE: "production",
       });
-      expect(content).toContain("openclaw-gateway-production.service");
+      expect(content).toContain("kova-gateway-production.service");
       await cleanupScript(scriptPath);
     });
 
@@ -376,7 +376,7 @@ exit 0
       const { scriptPath, content } = await prepareAndReadScript({
         OPENCLAW_PROFILE: "staging",
       });
-      expect(content).toContain("gui/502/ai.openclaw.staging");
+      expect(content).toContain("gui/502/ai.kova.staging");
       await cleanupScript(scriptPath);
     });
 
@@ -386,7 +386,7 @@ exit 0
       const { scriptPath, content } = await prepareAndReadScript({
         OPENCLAW_PROFILE: "production",
       });
-      expect(content).toContain("$taskName = 'OpenClaw Gateway (production)'");
+      expect(content).toContain("$taskName = 'Kova Gateway (production)'");
       expectWindowsRestartWaitOrdering(content);
       await cleanupScript(scriptPath);
     });

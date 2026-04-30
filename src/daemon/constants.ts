@@ -1,10 +1,10 @@
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 // Default service labels (canonical + legacy compatibility)
-export const GATEWAY_LAUNCH_AGENT_LABEL = "ai.openclaw.gateway";
-export const GATEWAY_SYSTEMD_SERVICE_NAME = "openclaw-gateway";
-export const GATEWAY_WINDOWS_TASK_NAME = "OpenClaw Gateway";
-export const GATEWAY_SERVICE_MARKER = "openclaw";
+export const GATEWAY_LAUNCH_AGENT_LABEL = "ai.kova.gateway";
+export const GATEWAY_SYSTEMD_SERVICE_NAME = "kova-gateway";
+export const GATEWAY_WINDOWS_TASK_NAME = "Kova Gateway";
+export const GATEWAY_SERVICE_MARKER = "kova";
 export const GATEWAY_SERVICE_KIND = "gateway";
 export const NODE_LAUNCH_AGENT_LABEL = "ai.openclaw.node";
 export const NODE_SYSTEMD_SERVICE_NAME = "openclaw-node";
@@ -12,7 +12,11 @@ export const NODE_WINDOWS_TASK_NAME = "OpenClaw Node";
 export const NODE_SERVICE_MARKER = "openclaw";
 export const NODE_SERVICE_KIND = "node";
 export const NODE_WINDOWS_TASK_SCRIPT_NAME = "node.cmd";
-export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = ["clawdbot-gateway"];
+export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = [
+  "openclaw-gateway",
+  "clawdbot-gateway",
+];
+export const LEGACY_GATEWAY_SERVICE_MARKERS: string[] = ["openclaw"];
 
 export function normalizeGatewayProfile(profile?: string): string | null {
   const trimmed = profile?.trim();
@@ -32,12 +36,23 @@ export function resolveGatewayLaunchAgentLabel(profile?: string): string {
   if (!normalized) {
     return GATEWAY_LAUNCH_AGENT_LABEL;
   }
-  return `ai.openclaw.${normalized}`;
+  return `ai.kova.${normalized}`;
 }
 
 export function resolveLegacyGatewayLaunchAgentLabels(profile?: string): string[] {
-  void profile;
-  return [];
+  const normalized = normalizeGatewayProfile(profile);
+  if (!normalized) {
+    return ["ai.openclaw.gateway"];
+  }
+  return [`ai.openclaw.${normalized}`];
+}
+
+export function resolveLegacyGatewaySystemdServiceNames(profile?: string): string[] {
+  const suffix = resolveGatewayProfileSuffix(profile);
+  if (!suffix) {
+    return LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES;
+  }
+  return [`openclaw-gateway${suffix}`];
 }
 
 export function resolveGatewaySystemdServiceName(profile?: string): string {
@@ -45,7 +60,7 @@ export function resolveGatewaySystemdServiceName(profile?: string): string {
   if (!suffix) {
     return GATEWAY_SYSTEMD_SERVICE_NAME;
   }
-  return `openclaw-gateway${suffix}`;
+  return `kova-gateway${suffix}`;
 }
 
 export function resolveGatewayWindowsTaskName(profile?: string): string {
@@ -53,7 +68,18 @@ export function resolveGatewayWindowsTaskName(profile?: string): string {
   if (!normalized) {
     return GATEWAY_WINDOWS_TASK_NAME;
   }
-  return `OpenClaw Gateway (${normalized})`;
+  return `Kova Gateway (${normalized})`;
+}
+
+export function isGatewayServiceMarker(value?: string): boolean {
+  const normalized = normalizeLowercaseStringOrEmpty(value);
+  if (!normalized) {
+    return false;
+  }
+  return (
+    normalized === normalizeLowercaseStringOrEmpty(GATEWAY_SERVICE_MARKER) ||
+    LEGACY_GATEWAY_SERVICE_MARKERS.includes(normalized)
+  );
 }
 
 export function formatGatewayServiceDescription(params?: {
@@ -70,9 +96,9 @@ export function formatGatewayServiceDescription(params?: {
     parts.push(`v${version}`);
   }
   if (parts.length === 0) {
-    return "OpenClaw Gateway";
+    return "Kova Gateway";
   }
-  return `OpenClaw Gateway (${parts.join(", ")})`;
+  return `Kova Gateway (${parts.join(", ")})`;
 }
 
 export function resolveGatewayServiceDescription(params: {
@@ -83,8 +109,12 @@ export function resolveGatewayServiceDescription(params: {
   return (
     params.description ??
     formatGatewayServiceDescription({
-      profile: params.env.OPENCLAW_PROFILE,
-      version: params.environment?.OPENCLAW_SERVICE_VERSION ?? params.env.OPENCLAW_SERVICE_VERSION,
+      profile: params.env.KOVA_PROFILE ?? params.env.OPENCLAW_PROFILE,
+      version:
+        params.environment?.KOVA_SERVICE_VERSION ??
+        params.environment?.OPENCLAW_SERVICE_VERSION ??
+        params.env.KOVA_SERVICE_VERSION ??
+        params.env.OPENCLAW_SERVICE_VERSION,
     })
   );
 }

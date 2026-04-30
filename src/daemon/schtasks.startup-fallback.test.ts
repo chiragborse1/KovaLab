@@ -79,7 +79,7 @@ function resolveStartupEntryPath(env: Record<string, string>) {
     "Start Menu",
     "Programs",
     "Startup",
-    "OpenClaw Gateway.cmd",
+    "Kova Gateway.cmd",
   );
 }
 
