@@ -22,7 +22,11 @@ export function resolveCliName(argv: string[] = process.argv): string {
   return DEFAULT_CLI_NAME;
 }
 
-export function replaceCliName(command: string, cliName = resolveCliName()): string {
+export function resolveDisplayCliName(): string {
+  return DEFAULT_CLI_NAME;
+}
+
+export function replaceCliName(command: string, cliName = resolveDisplayCliName()): string {
   if (!command.trim()) {
     return command;
   }

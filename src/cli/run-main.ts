@@ -224,7 +224,7 @@ export async function runCli(argv: string[] = process.argv) {
 
     const { createCliProgress } = await import("./progress.js");
     const startupProgress = createCliProgress({
-      label: "Loading OpenClaw CLI…",
+      label: "Loading Kova CLI…",
       indeterminate: true,
       delayMs: 0,
       fallback: "none",
@@ -266,9 +266,9 @@ export async function runCli(argv: string[] = process.argv) {
         if (isUncaughtExceptionHandled(error)) {
           return;
         }
-        console.error("[openclaw] Uncaught exception:", formatUncaughtError(error));
+        console.error("[kova] Uncaught exception:", formatUncaughtError(error));
         for (const message of runFatalErrorHooks({ reason: "uncaught_exception", error })) {
-          console.error("[openclaw]", message);
+          console.error("[kova]", message);
         }
         restoreTerminalState("uncaught exception", { resumeStdinIfPaused: false });
         process.exit(1);

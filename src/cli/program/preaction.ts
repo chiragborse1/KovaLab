@@ -3,7 +3,7 @@ import { setVerbose } from "../../globals.js";
 import type { LogLevel } from "../../logging/levels.js";
 import { defaultRuntime } from "../../runtime.js";
 import { getVerboseFlag, isHelpOrVersionInvocation } from "../argv.js";
-import { resolveCliName } from "../cli-name.js";
+import { resolveDisplayCliName } from "../cli-name.js";
 import {
   applyCliExecutionStartupPresentation,
   ensureCliExecutionBootstrap,
@@ -22,7 +22,7 @@ function setProcessTitleForCommand(actionCommand: Command) {
     current = current.parent;
   }
   const name = current.name();
-  const cliName = resolveCliName();
+  const cliName = resolveDisplayCliName();
   if (!name || name === cliName) {
     return;
   }

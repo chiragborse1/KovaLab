@@ -436,9 +436,9 @@ export async function modelsAuthPasteTokenCommand(
   logConfigUpdated(runtime);
   runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
   if (provider === "anthropic") {
-    runtime.log("Anthropic setup-token auth is supported in OpenClaw.");
-    runtime.log("OpenClaw prefers Claude CLI reuse when it is available on the host.");
-    runtime.log("Anthropic staff told us this OpenClaw path is allowed again.");
+    runtime.log("Anthropic setup-token auth is supported in Kova.");
+    runtime.log("Kova prefers Claude CLI reuse when it is available on the host.");
+    runtime.log("Anthropic staff told us this Kova path is allowed again.");
   }
 }
 
@@ -591,7 +591,7 @@ function maybeLogOpenAICodexNativeSearchTip(runtime: RuntimeEnv, providerId: str
     return;
   }
   runtime.log(
-    "Tip: Codex-capable models can use native Codex web search. Enable it with openclaw configure --section web (recommended mode: cached). Docs: https://docs.openclaw.ai/tools/web",
+    "Tip: Codex-capable models can use native Codex web search. Enable it with kova configure --section web (recommended mode: cached). Docs: https://docs.openclaw.ai/tools/web",
   );
 }
 export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: RuntimeEnv) {

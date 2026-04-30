@@ -132,7 +132,7 @@ function formatRegistryState(state: "missing" | "fresh" | "stale"): string {
 export function registerPluginsCli(program: Command) {
   const plugins = program
     .command("plugins")
-    .description("Manage OpenClaw plugins and extensions")
+    .description("Manage Kova plugins and extensions")
     .addHelpText(
       "after",
       () =>

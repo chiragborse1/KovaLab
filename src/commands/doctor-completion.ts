@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { resolveCliName } from "../cli/cli-name.js";
+import { resolveDisplayCliName } from "../cli/cli-name.js";
 import {
   completionCacheExists,
   installCompletion,
@@ -19,7 +19,7 @@ type CompletionShell = "zsh" | "bash" | "fish" | "powershell";
 const COMPLETION_CACHE_WRITE_TIMEOUT_MS = 30_000;
 
 /** Generate the completion cache by spawning the CLI. */
-async function generateCompletionCache(cliName = resolveCliName()): Promise<boolean> {
+async function generateCompletionCache(cliName = resolveDisplayCliName()): Promise<boolean> {
   const root = await resolveOpenClawPackageRoot({
     moduleUrl: import.meta.url,
     argv1: process.argv[1],
@@ -85,7 +85,7 @@ export async function doctorShellCompletion(
   prompter: DoctorPrompter,
   options: DoctorCompletionOptions = {},
 ): Promise<void> {
-  const cliName = resolveCliName();
+  const cliName = resolveDisplayCliName();
   const status = await checkShellCompletionStatus(cliName);
 
   // Profile uses slow dynamic pattern - upgrade to cached version

@@ -253,8 +253,8 @@ function resolvePendingPairingIssue(
     displayName: pending.displayName,
     clientId: pending.clientId,
   });
-  const approveCommand = formatCliArgs(["openclaw", "devices", "approve", pending.requestId]);
-  const inspectCommand = formatCliArgs(["openclaw", "devices", "list"]);
+  const approveCommand = formatCliArgs(["kova", "devices", "approve", pending.requestId]);
+  const inspectCommand = formatCliArgs(["kova", "devices", "list"]);
   if (!paired) {
     return {
       kind: "first-time",
@@ -271,7 +271,7 @@ function resolvePendingPairingIssue(
       deviceLabel,
       approveCommand,
       inspectCommand,
-      removeCommand: formatCliArgs(["openclaw", "devices", "remove", pending.deviceId]),
+      removeCommand: formatCliArgs(["kova", "devices", "remove", pending.deviceId]),
     };
   }
   const requestedRoles = uniqueStrings(pending.roles, pending.role);
@@ -513,7 +513,7 @@ function collectLocalDeviceAuthIssues(snapshot: DoctorPairingSnapshot): string[]
 
 function formatPairingStoreReadIssue(error: JsonFileReadError): string {
   const problem = error.reason === "parse" ? "contains invalid JSON" : "could not be read";
-  return `- Device pairing store ${error.filePath} ${problem}. OpenClaw refused to treat it as empty to avoid overwriting approved pairings. Fix the JSON or file permissions, or move it aside and re-pair devices.`;
+  return `- Device pairing store ${error.filePath} ${problem}. Kova refused to treat it as empty to avoid overwriting approved pairings. Fix the JSON or file permissions, or move it aside and re-pair devices.`;
 }
 
 export async function noteDevicePairingHealth(params: {

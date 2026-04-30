@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { resolveCliName } from "../cli/cli-name.js";
+import { resolveDisplayCliName } from "../cli/cli-name.js";
 import { installCompletion } from "../cli/completion-runtime.js";
 import type { ShellCompletionStatus } from "../commands/doctor-completion.js";
 import {
@@ -47,7 +47,7 @@ export async function setupWizardShellCompletion(params: {
   deps?: Partial<CompletionDeps>;
 }): Promise<void> {
   const deps: CompletionDeps = {
-    resolveCliName,
+    resolveCliName: resolveDisplayCliName,
     checkShellCompletionStatus,
     ensureCompletionCacheExists,
     installCompletion,

@@ -101,7 +101,7 @@ export async function updateStatusCommand(opts: UpdateStatusOptions): Promise<vo
     },
   ];
 
-  defaultRuntime.log(theme.heading("OpenClaw update status"));
+  defaultRuntime.log(theme.heading("Kova update status"));
   defaultRuntime.log("");
   defaultRuntime.log(
     renderTable({

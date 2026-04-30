@@ -37,7 +37,7 @@ vi.mock("../../logging/console.js", () => ({
 }));
 
 vi.mock("../cli-name.js", () => ({
-  resolveCliName: () => "openclaw",
+  resolveDisplayCliName: () => "kova",
 }));
 
 vi.mock("./config-guard.js", () => ({
@@ -211,7 +211,7 @@ describe("registerPreActionHooks", () => {
       commandPath: ["status"],
     });
     expect(ensurePluginRegistryLoadedMock).not.toHaveBeenCalled();
-    expect(processTitleSetSpy).toHaveBeenCalledWith("openclaw-status");
+    expect(processTitleSetSpy).toHaveBeenCalledWith("kova-status");
 
     vi.clearAllMocks();
     await runPreAction({

@@ -327,26 +327,26 @@ describe("diagnostics-otel service", () => {
       attempt: 2,
     });
 
-    expect(telemetryState.counters.get("openclaw.webhook.received")?.add).toHaveBeenCalled();
+    expect(telemetryState.counters.get("kova.webhook.received")?.add).toHaveBeenCalled();
     expect(
-      telemetryState.histograms.get("openclaw.webhook.duration_ms")?.record,
+      telemetryState.histograms.get("kova.webhook.duration_ms")?.record,
     ).toHaveBeenCalled();
-    expect(telemetryState.counters.get("openclaw.message.queued")?.add).toHaveBeenCalled();
-    expect(telemetryState.counters.get("openclaw.message.processed")?.add).toHaveBeenCalled();
+    expect(telemetryState.counters.get("kova.message.queued")?.add).toHaveBeenCalled();
+    expect(telemetryState.counters.get("kova.message.processed")?.add).toHaveBeenCalled();
     expect(
-      telemetryState.histograms.get("openclaw.message.duration_ms")?.record,
+      telemetryState.histograms.get("kova.message.duration_ms")?.record,
     ).toHaveBeenCalled();
-    expect(telemetryState.histograms.get("openclaw.queue.wait_ms")?.record).toHaveBeenCalled();
-    expect(telemetryState.counters.get("openclaw.session.stuck")?.add).toHaveBeenCalled();
+    expect(telemetryState.histograms.get("kova.queue.wait_ms")?.record).toHaveBeenCalled();
+    expect(telemetryState.counters.get("kova.session.stuck")?.add).toHaveBeenCalled();
     expect(
-      telemetryState.histograms.get("openclaw.session.stuck_age_ms")?.record,
+      telemetryState.histograms.get("kova.session.stuck_age_ms")?.record,
     ).toHaveBeenCalled();
-    expect(telemetryState.counters.get("openclaw.run.attempt")?.add).toHaveBeenCalled();
+    expect(telemetryState.counters.get("kova.run.attempt")?.add).toHaveBeenCalled();
 
     const spanNames = telemetryState.tracer.startSpan.mock.calls.map((call) => call[0]);
-    expect(spanNames).toContain("openclaw.webhook.processed");
-    expect(spanNames).toContain("openclaw.message.processed");
-    expect(spanNames).toContain("openclaw.session.stuck");
+    expect(spanNames).toContain("kova.webhook.processed");
+    expect(spanNames).toContain("kova.message.processed");
+    expect(spanNames).toContain("kova.session.stuck");
 
     emitDiagnosticEvent({
       type: "log.record",
@@ -419,18 +419,18 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(telemetryState.histograms.get("openclaw.run.duration_ms")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.run.duration_ms")?.record).toHaveBeenCalledWith(
       100,
       expect.objectContaining({
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
       }),
     );
     expect(telemetryState.tracer.startSpan).toHaveBeenCalledWith(
-      "openclaw.run",
+      "kova.run",
       expect.objectContaining({
         attributes: expect.objectContaining({
-          "openclaw.outcome": "completed",
+          "kova.outcome": "completed",
         }),
       }),
       undefined,
@@ -480,12 +480,12 @@ describe("diagnostics-otel service", () => {
       ]),
     );
     expect(
-      telemetryState.counters.get("openclaw.telemetry.exporter.events")?.add,
+      telemetryState.counters.get("kova.telemetry.exporter.events")?.add,
     ).toHaveBeenCalledWith(1, {
-      "openclaw.exporter": "diagnostics-otel",
-      "openclaw.signal": "logs",
-      "openclaw.status": "started",
-      "openclaw.reason": "configured",
+      "kova.exporter": "diagnostics-otel",
+      "kova.signal": "logs",
+      "kova.status": "started",
+      "kova.reason": "configured",
     });
 
     unsubscribe();
@@ -526,13 +526,13 @@ describe("diagnostics-otel service", () => {
       ]),
     );
     expect(
-      telemetryState.counters.get("openclaw.telemetry.exporter.events")?.add,
+      telemetryState.counters.get("kova.telemetry.exporter.events")?.add,
     ).toHaveBeenCalledWith(1, {
-      "openclaw.exporter": "diagnostics-otel",
-      "openclaw.signal": "logs",
-      "openclaw.status": "failure",
-      "openclaw.reason": "emit_failed",
-      "openclaw.errorCategory": "TypeError",
+      "kova.exporter": "diagnostics-otel",
+      "kova.signal": "logs",
+      "kova.status": "failure",
+      "kova.reason": "emit_failed",
+      "kova.errorCategory": "TypeError",
     });
 
     unsubscribe();
@@ -544,7 +544,7 @@ describe("diagnostics-otel service", () => {
     const ctx = createOtelContext(OTEL_TEST_ENDPOINT, { metrics: true });
 
     await service.start(ctx);
-    telemetryState.counters.get("openclaw.telemetry.exporter.events")?.add.mockClear();
+    telemetryState.counters.get("kova.telemetry.exporter.events")?.add.mockClear();
     emitDiagnosticEvent({
       type: "telemetry.exporter",
       exporter: "spoofed-plugin-exporter",
@@ -554,7 +554,7 @@ describe("diagnostics-otel service", () => {
     });
 
     expect(
-      telemetryState.counters.get("openclaw.telemetry.exporter.events")?.add,
+      telemetryState.counters.get("kova.telemetry.exporter.events")?.add,
     ).not.toHaveBeenCalled();
 
     await service.stop?.(ctx);
@@ -577,10 +577,10 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     expect(sdkStart).not.toHaveBeenCalled();
-    expect(telemetryState.histograms.get("openclaw.run.duration_ms")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.run.duration_ms")?.record).toHaveBeenCalledWith(
       100,
       expect.objectContaining({
-        "openclaw.provider": "openai",
+        "kova.provider": "openai",
       }),
     );
     expect(telemetryState.tracer.startSpan).not.toHaveBeenCalled();
@@ -719,7 +719,7 @@ describe("diagnostics-otel service", () => {
       },
     });
 
-    const tokenAttr = emitCall?.attributes?.["openclaw.token"];
+    const tokenAttr = emitCall?.attributes?.["kova.token"];
     expect(tokenAttr).not.toBe("ghp_abcdefghijklmnopqrstuvwxyz123456"); // pragma: allowlist secret
     if (typeof tokenAttr === "string") {
       expect(tokenAttr).toContain("…");
@@ -742,9 +742,9 @@ describe("diagnostics-otel service", () => {
 
     expect(emitCall?.attributes).toEqual(
       expect.not.objectContaining({
-        "openclaw.traceId": expect.anything(),
-        "openclaw.spanId": expect.anything(),
-        "openclaw.traceFlags": expect.anything(),
+        "kova.traceId": expect.anything(),
+        "kova.spanId": expect.anything(),
+        "kova.traceFlags": expect.anything(),
       }),
     );
     expect(telemetryState.tracer.setSpanContext).not.toHaveBeenCalled();
@@ -812,25 +812,25 @@ describe("diagnostics-otel service", () => {
     const emitCall = logEmit.mock.calls[0]?.[0];
     expect(emitCall?.body.length).toBeLessThanOrEqual(4200);
     expect(emitCall?.attributes).toMatchObject({
-      "openclaw.good": expect.stringMatching(/^y+/),
+      "kova.good": expect.stringMatching(/^y+/),
       "code.lineno": 42,
       "code.function": "handler",
     });
-    expect(String(emitCall?.attributes?.["openclaw.good"]).length).toBeLessThanOrEqual(4200);
-    expect(Object.hasOwn(emitCall?.attributes ?? {}, `openclaw.${PROTO_KEY}`)).toBe(false);
-    expect(Object.hasOwn(emitCall?.attributes ?? {}, "openclaw.constructor")).toBe(false);
-    expect(Object.hasOwn(emitCall?.attributes ?? {}, "openclaw.prototype")).toBe(false);
+    expect(String(emitCall?.attributes?.["kova.good"]).length).toBeLessThanOrEqual(4200);
+    expect(Object.hasOwn(emitCall?.attributes ?? {}, `kova.${PROTO_KEY}`)).toBe(false);
+    expect(Object.hasOwn(emitCall?.attributes ?? {}, "kova.constructor")).toBe(false);
+    expect(Object.hasOwn(emitCall?.attributes ?? {}, "kova.prototype")).toBe(false);
     expect(
       Object.hasOwn(
         emitCall?.attributes ?? {},
-        "openclaw.sk-1234567890abcdef1234567890abcdef", // pragma: allowlist secret
+        "kova.sk-1234567890abcdef1234567890abcdef", // pragma: allowlist secret
       ),
     ).toBe(false);
     expect(emitCall?.attributes).toEqual(
       expect.not.objectContaining({
-        "openclaw.bad key": expect.anything(),
+        "kova.bad key": expect.anything(),
         "code.filepath": expect.anything(),
-        "openclaw.code.location": expect.anything(),
+        "kova.code.location": expect.anything(),
       }),
     );
     await service.stop?.(ctx);
@@ -894,7 +894,7 @@ describe("diagnostics-otel service", () => {
     });
 
     const modelUsageCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.usage",
+      (call) => call[0] === "kova.model.usage",
     );
     expect(telemetryState.tracer.setSpanContext).not.toHaveBeenCalled();
     expect(modelUsageCall?.[2]).toBeUndefined();
@@ -934,13 +934,13 @@ describe("diagnostics-otel service", () => {
       }),
     );
     const genAiTokenUsage = telemetryState.histograms.get("gen_ai.client.token.usage");
-    const tokens = telemetryState.counters.get("openclaw.tokens");
+    const tokens = telemetryState.counters.get("kova.tokens");
     expect(tokens?.add).toHaveBeenCalledWith(12, {
-      "openclaw.channel": "webchat",
-      "openclaw.agent": "ops",
-      "openclaw.provider": "openai",
-      "openclaw.model": "gpt-5.4",
-      "openclaw.token": "input",
+      "kova.channel": "webchat",
+      "kova.agent": "ops",
+      "kova.provider": "openai",
+      "kova.model": "gpt-5.4",
+      "kova.token": "input",
     });
     expect(genAiTokenUsage?.record).toHaveBeenCalledTimes(2);
     expect(genAiTokenUsage?.record).toHaveBeenCalledWith(12, {
@@ -973,15 +973,15 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(telemetryState.counters.get("openclaw.tokens")?.add).toHaveBeenCalledWith(2, {
-      "openclaw.channel": "unknown",
-      "openclaw.agent": "unknown",
-      "openclaw.provider": "openai",
-      "openclaw.model": "gpt-5.4",
-      "openclaw.token": "input",
+    expect(telemetryState.counters.get("kova.tokens")?.add).toHaveBeenCalledWith(2, {
+      "kova.channel": "unknown",
+      "kova.agent": "unknown",
+      "kova.provider": "openai",
+      "kova.model": "gpt-5.4",
+      "kova.token": "input",
     });
     expect(
-      JSON.stringify(telemetryState.counters.get("openclaw.tokens")?.add.mock.calls),
+      JSON.stringify(telemetryState.counters.get("kova.tokens")?.add.mock.calls),
     ).not.toContain("sk-test-secret-value");
     await service.stop?.(ctx);
   });
@@ -1034,7 +1034,7 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelUsageCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.usage",
+      (call) => call[0] === "kova.model.usage",
     );
     expect(modelUsageCall?.[1]).toMatchObject({
       attributes: {
@@ -1049,8 +1049,8 @@ describe("diagnostics-otel service", () => {
     });
     expect(modelUsageCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.sessionKey": expect.anything(),
-        "openclaw.sessionId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
+        "kova.sessionId": expect.anything(),
         "gen_ai.provider.name": expect.anything(),
         "gen_ai.input.messages": expect.anything(),
         "gen_ai.output.messages": expect.anything(),
@@ -1200,22 +1200,22 @@ describe("diagnostics-otel service", () => {
     const spanNames = telemetryState.tracer.startSpan.mock.calls.map((call) => call[0]);
     expect(spanNames).toEqual(
       expect.arrayContaining([
-        "openclaw.run",
-        "openclaw.model.call",
-        "openclaw.harness.run",
-        "openclaw.tool.execution",
+        "kova.run",
+        "kova.model.call",
+        "kova.harness.run",
+        "kova.tool.execution",
       ]),
     );
 
     const runCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.run",
+      (call) => call[0] === "kova.run",
     );
     expect(runCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.outcome": "completed",
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
-        "openclaw.channel": "webchat",
+        "kova.outcome": "completed",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
+        "kova.channel": "webchat",
       },
       startTime: expect.any(Number),
     });
@@ -1223,15 +1223,15 @@ describe("diagnostics-otel service", () => {
       attributes: expect.not.objectContaining({
         "gen_ai.system": expect.anything(),
         "gen_ai.request.model": expect.anything(),
-        "openclaw.runId": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
-        "openclaw.traceId": expect.anything(),
+        "kova.runId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
+        "kova.traceId": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
 
     const modelCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.call",
+      (call) => call[0] === "kova.model.call",
     );
     expect(modelCall?.[1]).toMatchObject({
       attributes: {
@@ -1243,146 +1243,146 @@ describe("diagnostics-otel service", () => {
     expect(modelCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
         "gen_ai.provider.name": expect.anything(),
-        "openclaw.callId": expect.anything(),
-        "openclaw.runId": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
+        "kova.callId": expect.anything(),
+        "kova.runId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
     expect(modelCall?.[2]).toBeUndefined();
 
     const harnessCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.harness.run",
+      (call) => call[0] === "kova.harness.run",
     );
     expect(harnessCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.harness.id": "codex",
-        "openclaw.harness.plugin": "codex-plugin",
-        "openclaw.outcome": "completed",
-        "openclaw.provider": "codex",
-        "openclaw.model": "gpt-5.4",
-        "openclaw.channel": "qa",
-        "openclaw.harness.result_classification": "reasoning-only",
-        "openclaw.harness.yield_detected": true,
-        "openclaw.harness.items.started": 3,
-        "openclaw.harness.items.completed": 2,
-        "openclaw.harness.items.active": 1,
+        "kova.harness.id": "codex",
+        "kova.harness.plugin": "codex-plugin",
+        "kova.outcome": "completed",
+        "kova.provider": "codex",
+        "kova.model": "gpt-5.4",
+        "kova.channel": "qa",
+        "kova.harness.result_classification": "reasoning-only",
+        "kova.harness.yield_detected": true,
+        "kova.harness.items.started": 3,
+        "kova.harness.items.completed": 2,
+        "kova.harness.items.active": 1,
       },
       startTime: expect.any(Number),
     });
     expect(harnessCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.runId": expect.anything(),
-        "openclaw.sessionId": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
-        "openclaw.traceId": expect.anything(),
+        "kova.runId": expect.anything(),
+        "kova.sessionId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
+        "kova.traceId": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
     expect(harnessCall?.[2]).toBeUndefined();
 
     const toolCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.tool.execution",
+      (call) => call[0] === "kova.tool.execution",
     );
     expect(toolCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.toolName": "read",
-        "openclaw.errorCategory": "TypeError",
-        "openclaw.errorCode": "429",
-        "openclaw.tool.params.kind": "object",
+        "kova.toolName": "read",
+        "kova.errorCategory": "TypeError",
+        "kova.errorCode": "429",
+        "kova.tool.params.kind": "object",
         "gen_ai.tool.name": "read",
       },
     });
     expect(toolCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.toolCallId": expect.anything(),
-        "openclaw.runId": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
+        "kova.toolCallId": expect.anything(),
+        "kova.runId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
     expect(toolCall?.[2]).toBeUndefined();
 
     expect(
-      telemetryState.histograms.get("openclaw.model_call.duration_ms")?.record,
+      telemetryState.histograms.get("kova.model_call.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       80,
       expect.objectContaining({
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.model_call.request_bytes")?.record,
+      telemetryState.histograms.get("kova.model_call.request_bytes")?.record,
     ).toHaveBeenCalledWith(
       1234,
       expect.objectContaining({
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.model_call.response_bytes")?.record,
+      telemetryState.histograms.get("kova.model_call.response_bytes")?.record,
     ).toHaveBeenCalledWith(
       567,
       expect.objectContaining({
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.model_call.time_to_first_byte_ms")?.record,
+      telemetryState.histograms.get("kova.model_call.time_to_first_byte_ms")?.record,
     ).toHaveBeenCalledWith(
       45,
       expect.objectContaining({
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
       }),
     );
-    const modelCallSpan = telemetryState.spans.find((span) => span.name === "openclaw.model.call");
+    const modelCallSpan = telemetryState.spans.find((span) => span.name === "kova.model.call");
     expect(modelCallSpan?.setAttributes).toHaveBeenCalledWith(
       expect.objectContaining({
-        "openclaw.model_call.request_bytes": 1234,
-        "openclaw.model_call.response_bytes": 567,
-        "openclaw.model_call.time_to_first_byte_ms": 45,
+        "kova.model_call.request_bytes": 1234,
+        "kova.model_call.response_bytes": 567,
+        "kova.model_call.time_to_first_byte_ms": 45,
       }),
     );
-    expect(telemetryState.histograms.get("openclaw.run.duration_ms")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.run.duration_ms")?.record).toHaveBeenCalledWith(
       100,
       expect.not.objectContaining({
-        "openclaw.runId": expect.anything(),
+        "kova.runId": expect.anything(),
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.harness.duration_ms")?.record,
+      telemetryState.histograms.get("kova.harness.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       90,
       expect.objectContaining({
-        "openclaw.harness.id": "codex",
-        "openclaw.harness.plugin": "codex-plugin",
-        "openclaw.outcome": "completed",
+        "kova.harness.id": "codex",
+        "kova.harness.plugin": "codex-plugin",
+        "kova.outcome": "completed",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.harness.duration_ms")?.record,
+      telemetryState.histograms.get("kova.harness.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       90,
       expect.not.objectContaining({
-        "openclaw.runId": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
+        "kova.runId": expect.anything(),
+        "kova.sessionKey": expect.anything(),
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.tool.execution.duration_ms")?.record,
+      telemetryState.histograms.get("kova.tool.execution.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       20,
       expect.not.objectContaining({
-        "openclaw.errorCode": expect.anything(),
-        "openclaw.runId": expect.anything(),
+        "kova.errorCode": expect.anything(),
+        "kova.runId": expect.anything(),
       }),
     );
 
-    const toolSpan = telemetryState.spans.find((span) => span.name === "openclaw.tool.execution");
+    const toolSpan = telemetryState.spans.find((span) => span.name === "kova.tool.execution");
     expect(toolSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
       message: "TypeError",
@@ -1428,7 +1428,7 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelCallAttrs = telemetryState.tracer.startSpan.mock.calls
-      .filter((call) => call[0] === "openclaw.model.call")
+      .filter((call) => call[0] === "kova.model.call")
       .map((call) => (call[1] as { attributes?: Record<string, unknown> }).attributes);
     expect(modelCallAttrs).toEqual([
       expect.objectContaining({
@@ -1477,7 +1477,7 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.call",
+      (call) => call[0] === "kova.model.call",
     );
     expect(modelCall?.[1]).toMatchObject({
       attributes: {
@@ -1493,7 +1493,7 @@ describe("diagnostics-otel service", () => {
       startTime: expect.any(Number),
     });
     const modelUsage = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.usage",
+      (call) => call[0] === "kova.model.usage",
     );
     expect(modelUsage?.[1]).toMatchObject({
       attributes: {
@@ -1531,38 +1531,38 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.call",
+      (call) => call[0] === "kova.model.call",
     );
     expect(modelCall?.[1]).toEqual({
       attributes: expect.objectContaining({
-        "openclaw.failureKind": "terminated",
+        "kova.failureKind": "terminated",
       }),
       startTime: expect.any(Number),
     });
     expect(modelCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.upstreamRequestIdHash": expect.anything(),
+        "kova.upstreamRequestIdHash": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
-    const span = telemetryState.spans.find((candidate) => candidate.name === "openclaw.model.call");
-    expect(span?.addEvent).toHaveBeenCalledWith("openclaw.provider.request", {
-      "openclaw.upstreamRequestIdHash": "sha256:123456abcdef",
+    const span = telemetryState.spans.find((candidate) => candidate.name === "kova.model.call");
+    expect(span?.addEvent).toHaveBeenCalledWith("kova.provider.request", {
+      "kova.upstreamRequestIdHash": "sha256:123456abcdef",
     });
     expect(
-      telemetryState.histograms.get("openclaw.model_call.duration_ms")?.record,
+      telemetryState.histograms.get("kova.model_call.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       40,
       expect.objectContaining({
-        "openclaw.failureKind": "terminated",
+        "kova.failureKind": "terminated",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.model_call.duration_ms")?.record,
+      telemetryState.histograms.get("kova.model_call.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       40,
       expect.not.objectContaining({
-        "openclaw.upstreamRequestIdHash": expect.anything(),
+        "kova.upstreamRequestIdHash": expect.anything(),
       }),
     );
     await service.stop?.(ctx);
@@ -1612,25 +1612,25 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const contextCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.context.assembled",
+      (call) => call[0] === "kova.context.assembled",
     );
-    const runSpan = telemetryState.spans.find((span) => span.name === "openclaw.run");
+    const runSpan = telemetryState.spans.find((span) => span.name === "kova.run");
     const runSpanId = runSpan?.spanContext.mock.results[0]?.value?.spanId;
     expect(contextCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.provider": "openai",
-        "openclaw.model": "gpt-5.4",
-        "openclaw.channel": "webchat",
-        "openclaw.trigger": "message",
-        "openclaw.context.message_count": 12,
-        "openclaw.context.history_text_chars": 1234,
-        "openclaw.context.history_image_blocks": 2,
-        "openclaw.context.max_message_text_chars": 456,
-        "openclaw.context.system_prompt_chars": 789,
-        "openclaw.context.prompt_chars": 42,
-        "openclaw.context.prompt_images": 1,
-        "openclaw.context.token_budget": 128_000,
-        "openclaw.context.reserve_tokens": 4096,
+        "kova.provider": "openai",
+        "kova.model": "gpt-5.4",
+        "kova.channel": "webchat",
+        "kova.trigger": "message",
+        "kova.context.message_count": 12,
+        "kova.context.history_text_chars": 1234,
+        "kova.context.history_image_blocks": 2,
+        "kova.context.max_message_text_chars": 456,
+        "kova.context.system_prompt_chars": 789,
+        "kova.context.prompt_chars": 42,
+        "kova.context.prompt_images": 1,
+        "kova.context.token_budget": 128_000,
+        "kova.context.reserve_tokens": 4096,
       },
     });
     expect(contextCall?.[1]).toEqual({
@@ -1668,28 +1668,28 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(telemetryState.counters.get("openclaw.tool.loop")?.add).toHaveBeenCalledWith(1, {
-      "openclaw.toolName": "process",
-      "openclaw.loop.level": "critical",
-      "openclaw.loop.action": "block",
-      "openclaw.loop.detector": "known_poll_no_progress",
-      "openclaw.loop.count": 20,
-      "openclaw.loop.paired_tool": "read",
+    expect(telemetryState.counters.get("kova.tool.loop")?.add).toHaveBeenCalledWith(1, {
+      "kova.toolName": "process",
+      "kova.loop.level": "critical",
+      "kova.loop.action": "block",
+      "kova.loop.detector": "known_poll_no_progress",
+      "kova.loop.count": 20,
+      "kova.loop.paired_tool": "read",
     });
     const loopSpanCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.tool.loop",
+      (call) => call[0] === "kova.tool.loop",
     );
     expect(loopSpanCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.toolName": "process",
-        "openclaw.loop.level": "critical",
-        "openclaw.loop.action": "block",
-        "openclaw.loop.detector": "known_poll_no_progress",
-        "openclaw.loop.count": 20,
-        "openclaw.loop.paired_tool": "read",
+        "kova.toolName": "process",
+        "kova.loop.level": "critical",
+        "kova.loop.action": "block",
+        "kova.loop.detector": "known_poll_no_progress",
+        "kova.loop.count": 20,
+        "kova.loop.paired_tool": "read",
       },
     });
-    const loopSpan = telemetryState.spans.find((span) => span.name === "openclaw.tool.loop");
+    const loopSpan = telemetryState.spans.find((span) => span.name === "kova.tool.loop");
     expect(loopSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
       message: "known_poll_no_progress:block",
@@ -1732,40 +1732,40 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(telemetryState.histograms.get("openclaw.memory.rss_bytes")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.memory.rss_bytes")?.record).toHaveBeenCalledWith(
       100,
       {},
     );
-    expect(telemetryState.histograms.get("openclaw.memory.rss_bytes")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.memory.rss_bytes")?.record).toHaveBeenCalledWith(
       200,
       {
-        "openclaw.memory.level": "critical",
-        "openclaw.memory.reason": "rss_growth",
+        "kova.memory.level": "critical",
+        "kova.memory.reason": "rss_growth",
       },
     );
-    expect(telemetryState.counters.get("openclaw.memory.pressure")?.add).toHaveBeenCalledWith(1, {
-      "openclaw.memory.level": "critical",
-      "openclaw.memory.reason": "rss_growth",
+    expect(telemetryState.counters.get("kova.memory.pressure")?.add).toHaveBeenCalledWith(1, {
+      "kova.memory.level": "critical",
+      "kova.memory.reason": "rss_growth",
     });
     const pressureCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.memory.pressure",
+      (call) => call[0] === "kova.memory.pressure",
     );
     expect(pressureCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.memory.level": "critical",
-        "openclaw.memory.reason": "rss_growth",
-        "openclaw.memory.rss_bytes": 200,
-        "openclaw.memory.heap_used_bytes": 50,
-        "openclaw.memory.heap_total_bytes": 90,
-        "openclaw.memory.external_bytes": 20,
-        "openclaw.memory.array_buffers_bytes": 6,
-        "openclaw.memory.threshold_bytes": 512,
-        "openclaw.memory.rss_growth_bytes": 256,
-        "openclaw.memory.window_ms": 60_000,
+        "kova.memory.level": "critical",
+        "kova.memory.reason": "rss_growth",
+        "kova.memory.rss_bytes": 200,
+        "kova.memory.heap_used_bytes": 50,
+        "kova.memory.heap_total_bytes": 90,
+        "kova.memory.external_bytes": 20,
+        "kova.memory.array_buffers_bytes": 6,
+        "kova.memory.threshold_bytes": 512,
+        "kova.memory.rss_growth_bytes": 256,
+        "kova.memory.window_ms": 60_000,
       },
     });
     const pressureSpan = telemetryState.spans.find(
-      (span) => span.name === "openclaw.memory.pressure",
+      (span) => span.name === "kova.memory.pressure",
     );
     expect(pressureSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
@@ -1859,9 +1859,9 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    const runSpan = telemetryState.spans.find((span) => span.name === "openclaw.run");
-    const modelSpan = telemetryState.spans.find((span) => span.name === "openclaw.model.call");
-    const toolSpan = telemetryState.spans.find((span) => span.name === "openclaw.tool.execution");
+    const runSpan = telemetryState.spans.find((span) => span.name === "kova.run");
+    const modelSpan = telemetryState.spans.find((span) => span.name === "kova.model.call");
+    const toolSpan = telemetryState.spans.find((span) => span.name === "kova.tool.execution");
     const runSpanId = runSpan?.spanContext.mock.results[0]?.value?.spanId;
     const modelSpanId = modelSpan?.spanContext.mock.results[0]?.value?.spanId;
 
@@ -1878,9 +1878,9 @@ describe("diagnostics-otel service", () => {
       ]),
     );
     expect(parentBySpanName).toMatchObject({
-      "openclaw.run": undefined,
-      "openclaw.model.call": runSpanId,
-      "openclaw.tool.execution": modelSpanId,
+      "kova.run": undefined,
+      "kova.model.call": runSpanId,
+      "kova.tool.execution": modelSpanId,
     });
     expect(toolSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
@@ -1935,10 +1935,10 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    const runSpan = telemetryState.spans.find((span) => span.name === "openclaw.run");
+    const runSpan = telemetryState.spans.find((span) => span.name === "kova.run");
     const runSpanId = runSpan?.spanContext.mock.results[0]?.value?.spanId;
     const modelUsageCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.usage",
+      (call) => call[0] === "kova.model.usage",
     );
 
     expect(telemetryState.tracer.setSpanContext).toHaveBeenCalledWith(
@@ -1993,8 +1993,8 @@ describe("diagnostics-otel service", () => {
       telemetryState.tracer.startSpan.mock.calls.map((call) => [call[0], call[2]]),
     );
     expect(parentBySpanName).toMatchObject({
-      "openclaw.run": undefined,
-      "openclaw.model.call": undefined,
+      "kova.run": undefined,
+      "kova.model.call": undefined,
     });
     await service.stop?.(ctx);
   });
@@ -2037,8 +2037,8 @@ describe("diagnostics-otel service", () => {
       telemetryState.tracer.startSpan.mock.calls.map((call) => [call[0], call[2]]),
     );
     expect(parentBySpanName).toMatchObject({
-      "openclaw.run": undefined,
-      "openclaw.model.call": undefined,
+      "kova.run": undefined,
+      "kova.model.call": undefined,
     });
     await service.stop?.(ctx);
   });
@@ -2095,9 +2095,9 @@ describe("diagnostics-otel service", () => {
       telemetryState.tracer.startSpan.mock.calls.map((call) => [call[0], call[2]]),
     );
     expect(parentBySpanName).toMatchObject({
-      "openclaw.run": undefined,
-      "openclaw.model.call": undefined,
-      "openclaw.tool.execution": undefined,
+      "kova.run": undefined,
+      "kova.model.call": undefined,
+      "kova.tool.execution": undefined,
     });
     await service.stop?.(ctx);
   });
@@ -2169,21 +2169,21 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     expect(
-      telemetryState.tracer.startSpan.mock.calls.filter((call) => call[0] === "openclaw.run"),
+      telemetryState.tracer.startSpan.mock.calls.filter((call) => call[0] === "kova.run"),
     ).toHaveLength(1);
     expect(
       telemetryState.tracer.startSpan.mock.calls.filter(
-        (call) => call[0] === "openclaw.model.call",
+        (call) => call[0] === "kova.model.call",
       ),
     ).toHaveLength(1);
     expect(
       telemetryState.tracer.startSpan.mock.calls.filter(
-        (call) => call[0] === "openclaw.tool.execution",
+        (call) => call[0] === "kova.tool.execution",
       ),
     ).toHaveLength(1);
     expect(
       telemetryState.tracer.startSpan.mock.calls.filter(
-        (call) => call[0] === "openclaw.harness.run",
+        (call) => call[0] === "kova.harness.run",
       ),
     ).toHaveLength(1);
     await service.stop?.(ctx);
@@ -2207,41 +2207,41 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(telemetryState.histograms.get("openclaw.exec.duration_ms")?.record).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.exec.duration_ms")?.record).toHaveBeenCalledWith(
       30,
       expect.objectContaining({
-        "openclaw.exec.target": "host",
-        "openclaw.exec.mode": "child",
-        "openclaw.outcome": "failed",
-        "openclaw.failureKind": "runtime-error",
+        "kova.exec.target": "host",
+        "kova.exec.mode": "child",
+        "kova.outcome": "failed",
+        "kova.failureKind": "runtime-error",
       }),
     );
 
     const execCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.exec",
+      (call) => call[0] === "kova.exec",
     );
     expect(execCall?.[1]).toMatchObject({
       attributes: {
-        "openclaw.exec.target": "host",
-        "openclaw.exec.mode": "child",
-        "openclaw.outcome": "failed",
-        "openclaw.exec.command_length": 42,
-        "openclaw.exec.exit_code": 1,
-        "openclaw.exec.timed_out": false,
-        "openclaw.failureKind": "runtime-error",
+        "kova.exec.target": "host",
+        "kova.exec.mode": "child",
+        "kova.outcome": "failed",
+        "kova.exec.command_length": 42,
+        "kova.exec.exit_code": 1,
+        "kova.exec.timed_out": false,
+        "kova.failureKind": "runtime-error",
       },
       startTime: expect.any(Number),
     });
     expect(execCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.exec.command": expect.anything(),
-        "openclaw.exec.workdir": expect.anything(),
-        "openclaw.sessionKey": expect.anything(),
+        "kova.exec.command": expect.anything(),
+        "kova.exec.workdir": expect.anything(),
+        "kova.sessionKey": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
 
-    const execSpan = telemetryState.spans.find((span) => span.name === "openclaw.exec");
+    const execSpan = telemetryState.spans.find((span) => span.name === "kova.exec");
     expect(execSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
       message: "runtime-error",
@@ -2280,69 +2280,69 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     expect(
-      telemetryState.counters.get("openclaw.message.delivery.started")?.add,
+      telemetryState.counters.get("kova.message.delivery.started")?.add,
     ).toHaveBeenCalledWith(1, {
-      "openclaw.channel": "matrix",
-      "openclaw.delivery.kind": "text",
+      "kova.channel": "matrix",
+      "kova.delivery.kind": "text",
     });
     expect(
-      telemetryState.histograms.get("openclaw.message.delivery.duration_ms")?.record,
+      telemetryState.histograms.get("kova.message.delivery.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       25,
       expect.objectContaining({
-        "openclaw.channel": "matrix",
-        "openclaw.delivery.kind": "text",
-        "openclaw.outcome": "completed",
+        "kova.channel": "matrix",
+        "kova.delivery.kind": "text",
+        "kova.outcome": "completed",
       }),
     );
     expect(
-      telemetryState.histograms.get("openclaw.message.delivery.duration_ms")?.record,
+      telemetryState.histograms.get("kova.message.delivery.duration_ms")?.record,
     ).toHaveBeenCalledWith(
       40,
       expect.objectContaining({
-        "openclaw.channel": "discord",
-        "openclaw.delivery.kind": "media",
-        "openclaw.outcome": "error",
-        "openclaw.errorCategory": "TypeError",
+        "kova.channel": "discord",
+        "kova.delivery.kind": "media",
+        "kova.outcome": "error",
+        "kova.errorCategory": "TypeError",
       }),
     );
 
     const deliverySpanCalls = telemetryState.tracer.startSpan.mock.calls.filter(
-      (call) => call[0] === "openclaw.message.delivery",
+      (call) => call[0] === "kova.message.delivery",
     );
     expect(deliverySpanCalls).toHaveLength(2);
     expect(deliverySpanCalls[0]?.[1]).toMatchObject({
       attributes: {
-        "openclaw.channel": "matrix",
-        "openclaw.delivery.kind": "text",
-        "openclaw.outcome": "completed",
-        "openclaw.delivery.result_count": 1,
+        "kova.channel": "matrix",
+        "kova.delivery.kind": "text",
+        "kova.outcome": "completed",
+        "kova.delivery.result_count": 1,
       },
       startTime: expect.any(Number),
     });
     expect(deliverySpanCalls[1]?.[1]).toMatchObject({
       attributes: {
-        "openclaw.channel": "discord",
-        "openclaw.delivery.kind": "media",
-        "openclaw.outcome": "error",
-        "openclaw.errorCategory": "TypeError",
+        "kova.channel": "discord",
+        "kova.delivery.kind": "media",
+        "kova.outcome": "error",
+        "kova.errorCategory": "TypeError",
       },
       startTime: expect.any(Number),
     });
     for (const call of deliverySpanCalls) {
       expect(call[1]).toEqual({
         attributes: expect.not.objectContaining({
-          "openclaw.sessionKey": expect.anything(),
-          "openclaw.messageId": expect.anything(),
-          "openclaw.conversationId": expect.anything(),
-          "openclaw.content": expect.anything(),
-          "openclaw.to": expect.anything(),
+          "kova.sessionKey": expect.anything(),
+          "kova.messageId": expect.anything(),
+          "kova.conversationId": expect.anything(),
+          "kova.content": expect.anything(),
+          "kova.to": expect.anything(),
         }),
         startTime: expect.any(Number),
       });
     }
     const errorSpan = telemetryState.spans.find(
-      (span) => span.name === "openclaw.message.delivery" && span.setStatus.mock.calls.length > 0,
+      (span) => span.name === "kova.message.delivery" && span.setStatus.mock.calls.length > 0,
     );
     expect(errorSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
@@ -2379,23 +2379,23 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.call",
+      (call) => call[0] === "kova.model.call",
     );
     const toolCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.tool.execution",
+      (call) => call[0] === "kova.tool.execution",
     );
     expect(modelCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.content.input_messages": expect.anything(),
-        "openclaw.content.output_messages": expect.anything(),
-        "openclaw.content.system_prompt": expect.anything(),
+        "kova.content.input_messages": expect.anything(),
+        "kova.content.output_messages": expect.anything(),
+        "kova.content.system_prompt": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
     expect(toolCall?.[1]).toEqual({
       attributes: expect.not.objectContaining({
-        "openclaw.content.tool_input": expect.anything(),
-        "openclaw.content.tool_output": expect.anything(),
+        "kova.content.tool_input": expect.anything(),
+        "kova.content.tool_output": expect.anything(),
       }),
       startTime: expect.any(Number),
     });
@@ -2441,10 +2441,10 @@ describe("diagnostics-otel service", () => {
     await flushDiagnosticEvents();
 
     const modelCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.call",
+      (call) => call[0] === "kova.model.call",
     );
     const toolCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.tool.execution",
+      (call) => call[0] === "kova.tool.execution",
     );
     const modelAttrs = (modelCall?.[1] as { attributes?: Record<string, unknown> } | undefined)
       ?.attributes;
@@ -2452,19 +2452,19 @@ describe("diagnostics-otel service", () => {
       ?.attributes;
 
     expect(modelAttrs).toMatchObject({
-      "openclaw.content.output_messages": "model reply",
-      "openclaw.content.system_prompt": "system prompt",
+      "kova.content.output_messages": "model reply",
+      "kova.content.system_prompt": "system prompt",
     });
-    expect(String(modelAttrs?.["openclaw.content.input_messages"])).not.toContain(
+    expect(String(modelAttrs?.["kova.content.input_messages"])).not.toContain(
       "sk-1234567890abcdef1234567890abcdef", // pragma: allowlist secret
     );
     expect(toolAttrs).toMatchObject({
-      "openclaw.content.tool_input": "tool input",
+      "kova.content.tool_input": "tool input",
     });
-    expect(String(toolAttrs?.["openclaw.content.tool_output"]).length).toBeLessThanOrEqual(
+    expect(String(toolAttrs?.["kova.content.tool_output"]).length).toBeLessThanOrEqual(
       MAX_TEST_OTEL_CONTENT_ATTRIBUTE_CHARS + OTEL_TRUNCATED_SUFFIX_MAX_CHARS,
     );
-    expect(String(toolAttrs?.["openclaw.content.tool_output"])).not.toContain("a".repeat(11));
+    expect(String(toolAttrs?.["kova.content.tool_output"])).not.toContain("a".repeat(11));
     await service.stop?.(ctx);
   });
 
@@ -2487,7 +2487,7 @@ describe("diagnostics-otel service", () => {
     });
 
     const modelUsageCall = telemetryState.tracer.startSpan.mock.calls.find(
-      (call) => call[0] === "openclaw.model.usage",
+      (call) => call[0] === "kova.model.usage",
     );
     expect(telemetryState.tracer.setSpanContext).not.toHaveBeenCalled();
     expect(modelUsageCall?.[2]).toBeUndefined();
@@ -2505,16 +2505,16 @@ describe("diagnostics-otel service", () => {
       reason: "token=ghp_abcdefghijklmnopqrstuvwxyz123456", // pragma: allowlist secret
     });
 
-    const sessionCounter = telemetryState.counters.get("openclaw.session.state");
+    const sessionCounter = telemetryState.counters.get("kova.session.state");
     expect(sessionCounter?.add).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
-        "openclaw.reason": expect.stringContaining("…"),
+        "kova.reason": expect.stringContaining("…"),
       }),
     );
     const attrs = sessionCounter?.add.mock.calls[0]?.[1] as Record<string, unknown> | undefined;
-    expect(typeof attrs?.["openclaw.reason"]).toBe("string");
-    expect(String(attrs?.["openclaw.reason"])).not.toContain(
+    expect(typeof attrs?.["kova.reason"]).toBe("string");
+    expect(String(attrs?.["kova.reason"])).not.toContain(
       "ghp_abcdefghijklmnopqrstuvwxyz123456", // pragma: allowlist secret
     );
     await service.stop?.(ctx);

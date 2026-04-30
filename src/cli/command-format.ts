@@ -1,4 +1,4 @@
-import { replaceCliName, resolveCliName } from "./cli-name.js";
+import { replaceCliName, resolveDisplayCliName } from "./cli-name.js";
 import { normalizeProfileName } from "./profile-utils.js";
 
 const CLI_PREFIX_RE = /^(?:pnpm|npm|bunx|npx)\s+(?:openclaw|kova)\b|^(?:openclaw|kova)\b/;
@@ -13,7 +13,7 @@ export function formatCliCommand(
   command: string,
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string {
-  const cliName = resolveCliName();
+  const cliName = resolveDisplayCliName();
   const normalizedCommand = replaceCliName(command, cliName);
   const rawContainer = env.OPENCLAW_CONTAINER_HINT?.trim();
   const container = rawContainer && CONTAINER_HINT_RE.test(rawContainer) ? rawContainer : undefined;

@@ -177,7 +177,7 @@ export async function promptRemoteGatewayConfig(
       copy: {
         modeMessage: "How do you want to provide this gateway token?",
         plaintextLabel: "Enter token now",
-        plaintextHint: "Stores the token directly in OpenClaw config",
+        plaintextHint: "Stores the token directly in Kova config",
       },
     });
     if (selectedMode === "ref") {

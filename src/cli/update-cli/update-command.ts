@@ -55,7 +55,7 @@ import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { stylePromptMessage } from "../../terminal/prompt-style.js";
 import { theme } from "../../terminal/theme.js";
 import { pathExists } from "../../utils.js";
-import { replaceCliName, resolveCliName } from "../cli-name.js";
+import { replaceCliName, resolveDisplayCliName } from "../cli-name.js";
 import { formatCliCommand } from "../command-format.js";
 import { installCompletion } from "../completion-runtime.js";
 import { runDaemonInstall, runDaemonRestart } from "../daemon-cli.js";
@@ -88,7 +88,7 @@ import {
 } from "./shared.js";
 import { suppressDeprecations } from "./suppress-deprecations.js";
 
-const CLI_NAME = resolveCliName();
+const CLI_NAME = resolveDisplayCliName();
 const SERVICE_REFRESH_TIMEOUT_MS = 60_000;
 const DEFAULT_UPDATE_STEP_TIMEOUT_MS = 30 * 60_000;
 const POST_CORE_UPDATE_ENV = "OPENCLAW_UPDATE_POST_CORE";
@@ -102,16 +102,16 @@ const SERVICE_REFRESH_PATH_ENV_KEYS = [
 
 const UPDATE_QUIPS = [
   "Leveled up! New skills unlocked. You're welcome.",
-  "Fresh code, same lobster. Miss me?",
+  "Fresh code, same unicorn. Miss me?",
   "Back and better. Did you even notice I was gone?",
   "Update complete. I learned some new tricks while I was out.",
   "Upgraded! Now with 23% more sass.",
   "I've evolved. Try to keep up.",
   "New version, who dis? Oh right, still me but shinier.",
-  "Patched, polished, and ready to pinch. Let's go.",
-  "The lobster has molted. Harder shell, sharper claws.",
+  "Patched, polished, and ready to sprint. Let's go.",
+  "The unicorn is back from the forge. Stronger horn, sharper instincts.",
   "Update done! Check the changelog or just trust me, it's good.",
-  "Reborn from the boiling waters of npm. Stronger now.",
+  "Reborn from the npm cauldron. Stronger now.",
   "I went away and came back smarter. You should try it sometime.",
   "Update complete. The bugs feared me, so they left.",
   "New version installed. Old version sends its regards.",
@@ -119,7 +119,7 @@ const UPDATE_QUIPS = [
   "I've seen things you wouldn't believe. Anyway, I'm updated.",
   "Back online. The changelog is long but our friendship is longer.",
   "Upgraded! Peter fixed stuff. Blame him if it breaks.",
-  "Molting complete. Please don't look at my soft shell phase.",
+  "Transformation complete. Please don't look directly at the glitter cloud.",
   "Version bump! Same chaos energy, fewer crashes (probably).",
 ];
 
@@ -202,11 +202,11 @@ async function resolvePackageRuntimePreflightError(params: {
   }
   const targetLabel = status.version ?? target;
   return [
-    `Node ${process.versions.node ?? "unknown"} is too old for openclaw@${targetLabel}.`,
+    `Node ${process.versions.node ?? "unknown"} is too old for kova@${targetLabel}.`,
     `The requested package requires ${status.nodeEngine}.`,
-    "Upgrade Node to 22.14+ or Node 24, then rerun `openclaw update`.",
-    "Bare `npm i -g openclaw` can silently install an older compatible release.",
-    "After upgrading Node, use `npm i -g openclaw@latest`.",
+    "Upgrade Node to 22.14+ or Node 24, then rerun `kova update`.",
+    "Bare `npm i -g kova` can silently install an older compatible release.",
+    "After upgrading Node, use `npm i -g kova@latest`.",
   ].join("\n");
 }
 
@@ -1324,7 +1324,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     defaultRuntime.error(
       [
         "Package updates cannot run from inside the gateway service process.",
-        "That path replaces the active OpenClaw dist tree while the live gateway may still lazy-load old chunks.",
+        "That path replaces the active Kova dist tree while the live gateway may still lazy-load old chunks.",
         `Run \`${replaceCliName(formatCliCommand("openclaw update"), CLI_NAME)}\` from a shell outside the gateway service, or stop the gateway service first and then update.`,
       ].join("\n"),
     );
@@ -1379,7 +1379,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
 
   const showProgress = !opts.json && process.stdout.isTTY;
   if (!opts.json) {
-    defaultRuntime.log(theme.heading("Updating OpenClaw..."));
+    defaultRuntime.log(theme.heading("Updating Kova..."));
     defaultRuntime.log("");
   }
 
@@ -1431,18 +1431,18 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
         ),
       );
       defaultRuntime.log(
-        theme.muted("Commit, stash, or discard the local changes, then rerun `openclaw update`."),
+        theme.muted("Commit, stash, or discard the local changes, then rerun `kova update`."),
       );
     }
     if (result.reason === "not-git-install") {
       defaultRuntime.log(
         theme.warn(
-          `Skipped: this OpenClaw install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
+          `Skipped: this Kova install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
         ),
       );
       defaultRuntime.log(
         theme.muted(
-          `Examples: \`${replaceCliName("npm i -g openclaw@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g openclaw@latest", CLI_NAME)}\``,
+          `Examples: \`${replaceCliName("npm i -g kova@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g kova@latest", CLI_NAME)}\``,
         ),
       );
     }

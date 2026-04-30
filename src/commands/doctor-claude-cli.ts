@@ -158,7 +158,7 @@ function formatWorkspaceHealthLine(workspaceDir: string, health: ClaudeCliDirHea
     return `- Workspace: ${display} (writable).`;
   }
   if (health === "missing") {
-    return `- Workspace: ${display} (missing; OpenClaw will create it on first run).`;
+    return `- Workspace: ${display} (missing; Kova will create it on first run).`;
   }
   if (health === "not_directory") {
     return `- Workspace: ${display} exists but is not a directory.`;
@@ -255,7 +255,7 @@ export function noteClaudeCliHealth(
   }
 
   if (!storedProfile) {
-    lines.push(`- OpenClaw auth profile: missing (${CLAUDE_CLI_PROFILE_ID}) in ${authStorePath}.`);
+    lines.push(`- Kova auth profile: missing (${CLAUDE_CLI_PROFILE_ID}) in ${authStorePath}.`);
     fixHints.push(
       `- Fix: run ${formatCliCommand(
         "openclaw models auth login --provider anthropic --method cli --set-default",
@@ -263,7 +263,7 @@ export function noteClaudeCliHealth(
     );
   } else if (storedProfile.provider !== CLAUDE_CLI_PROVIDER) {
     lines.push(
-      `- OpenClaw auth profile: ${CLAUDE_CLI_PROFILE_ID} is wired to provider "${storedProfile.provider}" instead of "${CLAUDE_CLI_PROVIDER}".`,
+      `- Kova auth profile: ${CLAUDE_CLI_PROFILE_ID} is wired to provider "${storedProfile.provider}" instead of "${CLAUDE_CLI_PROVIDER}".`,
     );
     fixHints.push(
       `- Fix: rerun ${formatCliCommand(
@@ -272,7 +272,7 @@ export function noteClaudeCliHealth(
     );
   } else {
     lines.push(
-      `- OpenClaw auth profile: ${CLAUDE_CLI_PROFILE_ID} (provider ${CLAUDE_CLI_PROVIDER}).`,
+      `- Kova auth profile: ${CLAUDE_CLI_PROFILE_ID} (provider ${CLAUDE_CLI_PROVIDER}).`,
     );
   }
 
