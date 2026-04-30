@@ -119,10 +119,10 @@ export function renderOverview(props: OverviewProps) {
           : nothing}
         <div style="margin-top: 6px">
           ${pairingState.requestId
-            ? html`<span class="mono">openclaw devices approve ${pairingState.requestId}</span
+            ? html`<span class="mono">kova devices approve ${pairingState.requestId}</span
                 ><br />`
             : nothing}
-          <span class="mono">openclaw devices list</span>
+          <span class="mono">kova devices list</span>
         </div>
         <div style="margin-top: 6px; font-size: 12px;">${t("overview.pairing.mobileHint")}</div>
         <div style="margin-top: 6px">
@@ -155,8 +155,8 @@ export function renderOverview(props: OverviewProps) {
         <div class="muted" style="margin-top: 8px">
           ${t("overview.auth.required")}
           <div style="margin-top: 6px">
-            <span class="mono">openclaw dashboard --no-open</span> → tokenized URL<br />
-            <span class="mono">openclaw doctor --generate-gateway-token</span> → set token
+            <span class="mono">kova dashboard --no-open</span> → tokenized URL<br />
+            <span class="mono">kova doctor --generate-gateway-token</span> → set token
           </div>
           <div style="margin-top: 6px">
             <a
@@ -173,7 +173,7 @@ export function renderOverview(props: OverviewProps) {
     }
     return html`
       <div class="muted" style="margin-top: 8px">
-        ${t("overview.auth.failed", { command: "openclaw dashboard --no-open" })}
+        ${t("overview.auth.failed", { command: "kova dashboard --no-open" })}
         <div style="margin-top: 6px">
           <a
             class="session-link"
@@ -381,16 +381,14 @@ export function renderOverview(props: OverviewProps) {
                 <ol class="login-gate__steps">
                   <li>
                     ${t("overview.connection.step1")}
-                    ${renderConnectCommand("openclaw gateway run")}
+                    ${renderConnectCommand("kova gateway run")}
                   </li>
                   <li>
-                    ${t("overview.connection.step2")} ${renderConnectCommand("openclaw dashboard")}
+                    ${t("overview.connection.step2")} ${renderConnectCommand("kova dashboard")}
                   </li>
                   <li>${t("overview.connection.step3")}</li>
                   <li>
-                    ${t("overview.connection.step4")}<code
-                      >openclaw doctor --generate-gateway-token</code
-                    >
+                    ${t("overview.connection.step4")}<code>kova doctor --generate-gateway-token</code>
                   </li>
                 </ol>
                 <div class="login-gate__docs">

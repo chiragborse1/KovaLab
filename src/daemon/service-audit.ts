@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { formatCliCommand } from "../cli/command-format.js";
 import { normalizeEnvVarKey } from "../infra/host-env-security.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -231,7 +232,7 @@ function auditGatewayToken(
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenEmbedded,
     message: "Gateway service embeds OPENCLAW_GATEWAY_TOKEN and should be reinstalled.",
-    detail: "Run `openclaw gateway install --force` to remove embedded service token.",
+    detail: `Run \`${formatCliCommand("openclaw gateway install --force")}\` to remove embedded service token.`,
     level: "recommended",
   });
   const expectedToken = normalizeOptionalString(expectedGatewayToken);
@@ -507,7 +508,7 @@ export function checkTokenDrift(params: {
       code: SERVICE_AUDIT_CODES.gatewayTokenDrift,
       message:
         "Config token differs from service token. The daemon will use the old token after restart.",
-      detail: "Run `openclaw gateway install --force` to sync the token.",
+      detail: `Run \`${formatCliCommand("openclaw gateway install --force")}\` to sync the token.`,
       level: "recommended",
     };
   }

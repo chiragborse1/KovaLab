@@ -257,7 +257,7 @@ export const en: TranslationMap = {
       metadataUpgradeSummary:
         "This device is already paired, but the metadata change is waiting for approval.",
       mobileHint:
-        "On mobile? Copy the full URL (including #token=...) from the Kova desktop command: openclaw dashboard --no-open.",
+        "On mobile? Copy the full URL (including #token=...) from the Kova desktop command: kova dashboard --no-open.",
       docsTitle: "Device pairing docs (opens in new tab)",
       docsLink: "Docs: Device pairing",
     },
@@ -296,7 +296,7 @@ export const en: TranslationMap = {
       modelAuthAttentionExpiredTitle: "Model auth expired",
       modelAuthAttentionExpiringTitle: "Model auth expiring soon",
       modelAuthAttentionExpiredDesc:
-        "{providers} — re-authenticate with the Kova CLI: openclaw models auth",
+        "{providers} — re-authenticate with the Kova CLI: kova models auth",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

@@ -111,9 +111,9 @@ export function renderLoginGate(state: AppViewState) {
           <div class="login-gate__help-title">${t("overview.connection.title")}</div>
           <ol class="login-gate__steps">
             <li>
-              ${t("overview.connection.step1")}${renderConnectCommand("openclaw gateway run")}
+              ${t("overview.connection.step1")}${renderConnectCommand("kova gateway run")}
             </li>
-            <li>${t("overview.connection.step2")} ${renderConnectCommand("openclaw dashboard")}</li>
+            <li>${t("overview.connection.step2")} ${renderConnectCommand("kova dashboard")}</li>
             <li>${t("overview.connection.step3")}</li>
           </ol>
           <div class="login-gate__docs">

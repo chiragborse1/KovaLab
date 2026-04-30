@@ -122,7 +122,11 @@ function isOpenClawGatewayTaskName(name: string): boolean {
     return false;
   }
   const defaultName = normalizeLowercaseStringOrEmpty(resolveGatewayWindowsTaskName());
-  return normalized === defaultName || normalized.startsWith("openclaw gateway");
+  return (
+    normalized === defaultName ||
+    normalized.startsWith("openclaw gateway") ||
+    normalized.startsWith("kova gateway")
+  );
 }
 
 function tryExtractPlistLabel(contents: string): string | null {
