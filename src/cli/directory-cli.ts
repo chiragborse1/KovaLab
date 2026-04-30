@@ -89,7 +89,7 @@ export function registerDirectoryCli(program: Command) {
           ],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/directory",
-          "docs.openclaw.ai/cli/directory",
+          "docs.neuralstudio.in/cli/directory",
         )}\n`,
     )
     .action(() => {

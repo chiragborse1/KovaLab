@@ -33,5 +33,5 @@ export const SECURITY_NOTE_MESSAGE = [
   formatCliCommand("openclaw security audit --fix"),
   "",
   heading("Learn more"),
-  "- https://docs.openclaw.ai/gateway/security",
+  "- https://docs.neuralstudio.in/gateway/security",
 ].join("\n");

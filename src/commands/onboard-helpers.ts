@@ -148,8 +148,8 @@ export function formatControlUiSshHint(params: {
     localUrl,
     authedUrl,
     "Docs:",
-    "https://docs.openclaw.ai/gateway/remote",
-    "https://docs.openclaw.ai/web/control-ui",
+    "https://docs.neuralstudio.in/gateway/remote",
+    "https://docs.neuralstudio.in/web/control-ui",
   ]
     .filter(Boolean)
     .join("\n");

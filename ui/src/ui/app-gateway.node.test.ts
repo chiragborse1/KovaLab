@@ -695,7 +695,7 @@ describe("connectGateway", () => {
     await Promise.resolve();
 
     expect(host.pendingAbort).toBeNull();
-    expect(warn).toHaveBeenCalledWith("[openclaw] pending abort failed:", error);
+    expect(warn).toHaveBeenCalledWith("[kova] pending abort failed:", error);
     warn.mockRestore();
   });
 

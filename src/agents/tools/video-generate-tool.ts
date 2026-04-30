@@ -166,7 +166,7 @@ const VideoGenerateToolSchema = Type.Object({
   filename: Type.Optional(
     Type.String({
       description:
-        "Optional output filename hint. OpenClaw preserves the basename and saves under its managed media directory.",
+        "Optional output filename hint. Kova preserves the basename and saves under its managed media directory.",
     }),
   ),
   size: Type.Optional(
@@ -188,7 +188,7 @@ const VideoGenerateToolSchema = Type.Object({
   durationSeconds: Type.Optional(
     Type.Number({
       description:
-        "Optional target duration in seconds. OpenClaw may round this to the nearest provider-supported duration.",
+        "Optional target duration in seconds. Kova may round this to the nearest provider-supported duration.",
       minimum: 1,
     }),
   ),
@@ -824,7 +824,7 @@ export function createVideoGenerateTool(options?: {
     name: "video_generate",
     displaySummary: "Generate videos",
     description:
-      "Generate videos using configured providers. Generated videos are saved under OpenClaw-managed media storage and delivered automatically as attachments. Duration requests may be rounded to the nearest provider-supported value.",
+      "Generate videos using configured providers. Generated videos are saved under Kova-managed media storage and delivered automatically as attachments. Duration requests may be rounded to the nearest provider-supported value.",
     parameters: VideoGenerateToolSchema,
     execute: async (_toolCallId, rawArgs) => {
       const args = rawArgs as Record<string, unknown>;

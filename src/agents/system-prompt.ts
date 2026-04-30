@@ -358,7 +358,7 @@ function buildMessagingSection(params: {
     "- Cross-session messaging → use sessions_send(sessionKey, message)",
     subagentOrchestrationGuidance,
     `- Runtime-generated completion events may ask for a user update. Rewrite those in your normal assistant voice and send the update (do not forward raw internal metadata or default to ${SILENT_REPLY_TOKEN}).`,
-    "- Never use exec/curl for provider messaging; OpenClaw handles all routing internally.",
+    "- Never use exec/curl for provider messaging; Kova handles all routing internally.",
     params.availableTools.has("message")
       ? [
           "",
@@ -418,7 +418,7 @@ function buildDocsSection(params: {
     sourcePath
       ? "If docs are incomplete or stale, inspect the local Kova source code before answering."
       : "If docs are incomplete or stale, review the Kova source on GitHub before answering.",
-    "When diagnosing issues, run `openclaw status` yourself when possible; only ask the user if you lack access (e.g., sandboxed).",
+    "When diagnosing issues, run `kova status` yourself when possible; only ask the user if you lack access (e.g., sandboxed).",
     "",
   ];
   return lines.filter((line): line is string => line !== undefined);
@@ -512,7 +512,7 @@ export function buildAgentSystemPrompt(params: {
     nodes: "List/describe/notify/camera/screen on paired nodes",
     cron: "Manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
     message: "Send messages and channel actions",
-    gateway: "Restart, apply config, or run updates on the running OpenClaw process",
+    gateway: "Restart, apply config, or run updates on the running Kova process",
     agents_list: acpSpawnRuntimeEnabled
       ? 'List Kova agent ids allowed for sessions_spawn when runtime="subagent" (not ACP harness ids)'
       : "List Kova agent ids allowed for sessions_spawn",
@@ -771,30 +771,30 @@ export function buildAgentSystemPrompt(params: {
       fallback: [],
     }),
     ...safetySection,
-    "## OpenClaw CLI Quick Reference",
-    "OpenClaw is controlled via subcommands. Do not invent commands.",
+    "## Kova CLI Quick Reference",
+    "Kova is controlled via subcommands. Do not invent commands.",
     "For config changes, use the first-class `gateway` tool (`config.schema.lookup`, `config.get`, `config.patch`, `config.apply`) instead of editing config through exec; the gateway tool hot-reloads config when possible and uses a safe restart only when required.",
     "Use the `gateway` tool action `restart` for Gateway restarts. Only use CLI service lifecycle commands when the user explicitly asks for them.",
     "Gateway service lifecycle quick reference:",
-    "- openclaw gateway status",
-    "- openclaw gateway restart",
+    "- kova gateway status",
+    "- kova gateway restart",
     "Operator-only, explicit user request:",
-    "- openclaw gateway start",
-    "- openclaw gateway stop",
-    "Do not chain `openclaw gateway stop` and `openclaw gateway start` as a restart substitute.",
-    "If unsure, ask the user to run `openclaw help` (or `openclaw gateway --help`) and paste the output.",
+    "- kova gateway start",
+    "- kova gateway stop",
+    "Do not chain `kova gateway stop` and `kova gateway start` as a restart substitute.",
+    "If unsure, ask the user to run `kova help` (or `kova gateway --help`) and paste the output.",
     "",
     ...skillsSection,
     ...memorySection,
     // Skip self-update for subagent/none modes
-    hasGateway && !isMinimal ? "## OpenClaw Self-Update" : "",
+    hasGateway && !isMinimal ? "## Kova Self-Update" : "",
     hasGateway && !isMinimal
       ? [
           "Get Updates (self-update) is ONLY allowed when the user explicitly asks for it.",
           "Do not run config.apply or update.run unless the user explicitly requests an update or config change; if it's not explicit, ask first.",
           "Use config.schema.lookup with a specific dot path to inspect only the relevant config subtree before making config changes or answering config-field questions; avoid guessing field names/types.",
           "Actions: config.schema.lookup, config.get, config.patch (partial update, merges with existing), config.apply (validate + write full config), update.run (update deps or git, then restart). Config writes hot-reload when possible and use a safe restart only when required.",
-          "After restart, OpenClaw pings the last active session automatically.",
+          "After restart, Kova pings the last active session automatically.",
         ].join("\n")
       : "",
     hasGateway && !isMinimal ? "" : "",
@@ -887,7 +887,7 @@ export function buildAgentSystemPrompt(params: {
       userTimezone,
     }),
     "## Workspace Files (injected)",
-    "These user-editable files are loaded by OpenClaw and included below in Project Context.",
+    "These user-editable files are loaded by Kova and included below in Project Context.",
     "",
     ...buildAssistantOutputDirectivesSection(isMinimal),
     ...buildWebchatCanvasSection({

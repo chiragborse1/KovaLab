@@ -150,7 +150,7 @@ export class VoiceClawRealtimeSession {
     this.releasePreauthBudget();
 
     if (!authResult.ok) {
-      this.send({ type: "error", message: "OpenClaw gateway authentication failed", code: 401 });
+      this.send({ type: "error", message: "Kova gateway authentication failed", code: 401 });
       this.ws.close(1008, "unauthorized");
       return;
     }
@@ -162,7 +162,7 @@ export class VoiceClawRealtimeSession {
     if (config.brainAgent !== "none" && this.auth.mode === "none" && !localDirect) {
       this.send({
         type: "error",
-        message: "OpenClaw real-time brain requires gateway auth for non-local connections",
+        message: "Kova real-time brain requires gateway auth for non-local connections",
         code: 403,
       });
       this.ws.close(1008, "auth required");
@@ -172,7 +172,7 @@ export class VoiceClawRealtimeSession {
     if (config.brainAgent !== "none" && !senderIsOwner) {
       this.send({
         type: "error",
-        message: "OpenClaw real-time brain requires owner-equivalent gateway auth",
+        message: "Kova real-time brain requires owner-equivalent gateway auth",
         code: 403,
       });
       this.ws.close(1008, "owner auth required");

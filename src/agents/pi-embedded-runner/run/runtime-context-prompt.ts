@@ -65,8 +65,8 @@ function buildRuntimeContextMessageContent(params: {
 }): string {
   return [
     params.kind === "runtime-event"
-      ? "OpenClaw runtime event."
-      : "OpenClaw runtime context for the immediately preceding user message.",
+      ? "Kova runtime event."
+      : "Kova runtime context for the immediately preceding user message.",
     "This context is runtime-generated, not user-authored. Keep internal details private.",
     "",
     params.runtimeContext,

@@ -171,7 +171,7 @@ export function registerBrowserCli(program: Command, argv: string[] = process.ar
           true,
         )}\n\n${theme.muted("Docs:")} ${formatDocsLink(
           "/cli/browser",
-          "docs.openclaw.ai/cli/browser",
+          "docs.neuralstudio.in/cli/browser",
         )}\n`,
     )
     .action(() => {

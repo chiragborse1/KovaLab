@@ -36,7 +36,7 @@ export function registerNodeCli(program: Command) {
           ["openclaw node install", "Install the node host service."],
           ["openclaw node start", "Start the installed node host service."],
           ["openclaw node restart", "Restart the installed node host service."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.openclaw.ai/cli/node")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/node", "docs.neuralstudio.in/cli/node")}\n`,
     );
 
   node

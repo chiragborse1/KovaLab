@@ -1,7 +1,7 @@
 import { formatTerminalLink } from "./terminal-link.js";
 
 function resolveDocsRoot(): string {
-  return "https://docs.openclaw.ai";
+  return "https://docs.neuralstudio.in";
 }
 
 export function formatDocsLink(
@@ -20,7 +20,8 @@ export function formatDocsLink(
       ? trimmed
       : `${docsRoot}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`
     : docsRoot;
-  return formatTerminalLink(label ?? url, url, {
+  const normalizedLabel = (label ?? url).replaceAll("docs.neuralstudio.in", "docs.neuralstudio.in");
+  return formatTerminalLink(normalizedLabel, url, {
     fallback: opts?.fallback ?? url,
     force: opts?.force,
   });

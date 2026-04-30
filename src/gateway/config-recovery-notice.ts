@@ -12,7 +12,7 @@ export function formatConfigRecoveryNotice(params: {
 }): string {
   const configName = path.basename(params.configPath) || "openclaw.json";
   return [
-    `Config recovery warning: OpenClaw restored ${configName} from the last-known-good backup during ${params.phase} (${params.reason}).`,
+    `Config recovery warning: Kova restored ${configName} from the last-known-good backup during ${params.phase} (${params.reason}).`,
     "The rejected config was invalid and was preserved as a timestamped .clobbered.* file.",
     `Do not write ${configName} again unless you validate the full config first.`,
   ].join(" ");

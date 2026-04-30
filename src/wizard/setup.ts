@@ -200,7 +200,7 @@ export async function runSetupWizard(
         [
           ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
           "",
-          "Docs: https://docs.openclaw.ai/gateway/configuration",
+          "Docs: https://docs.neuralstudio.in/gateway/configuration",
         ].join("\n"),
         "Config issues",
       );

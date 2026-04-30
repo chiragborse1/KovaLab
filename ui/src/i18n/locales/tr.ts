@@ -188,7 +188,7 @@ export const tr: TranslationMap = {
     skills: "Skills ve API anahtarları.",
     nodes: "Eşleştirilmiş cihazlar ve komutlar.",
     chat: "Hızlı müdahaleler için Gateway sohbeti.",
-    config: "openclaw.json dosyasını düzenleyin.",
+    config: "kova.json dosyasını düzenleyin.",
     communications: "Kanallar, mesajlar ve ses ayarları.",
     appearance: "Tema, UI ve kurulum sihirbazı ayarları.",
     automation: "Komutlar, kancalar, cron ve eklentiler.",
@@ -264,7 +264,7 @@ export const tr: TranslationMap = {
       metadataUpgradeSummary:
         "Bu cihaz zaten eşleştirilmiş, ancak meta veri değişikliği onay bekliyor.",
       mobileHint:
-        "Mobilde misiniz? Masaüstünüzde openclaw dashboard --no-open komutundan tam URL'yi (#token=... dahil) kopyalayın.",
+        "Mobilde misiniz? Masaüstünüzde kova dashboard --no-open komutundan tam URL'yi (#token=... dahil) kopyalayın.",
       docsTitle: "Cihaz eşleştirme belgeleri (yeni sekmede açılır)",
       docsLink: "Belgeler: Cihaz eşleştirme",
     },
@@ -304,7 +304,7 @@ export const tr: TranslationMap = {
       modelAuthAttentionExpiredTitle: "Model kimlik doğrulamasının süresi doldu",
       modelAuthAttentionExpiringTitle: "Model kimlik doğrulamasının süresi yakında dolacak",
       modelAuthAttentionExpiredDesc:
-        "{providers} — openclaw models auth ile yeniden kimlik doğrulayın",
+        "{providers} — kova models auth ile yeniden kimlik doğrulayın",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {

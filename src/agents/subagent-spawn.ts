@@ -366,7 +366,7 @@ async function prepareSubagentSessionContext(params: {
       });
       if (!fork) {
         throw new Error(
-          'context="fork" requested but OpenClaw could not fork the requester transcript.',
+          'context="fork" requested but Kova could not fork the requester transcript.',
         );
       }
       pruneLegacyStoreKeys({
@@ -387,7 +387,7 @@ async function prepareSubagentSessionContext(params: {
       if (!parentEntry || !forked) {
         return {
           status: "error",
-          error: 'context="fork" requested but OpenClaw could not prepare forked context.',
+          error: 'context="fork" requested but Kova could not prepare forked context.',
         };
       }
       return {

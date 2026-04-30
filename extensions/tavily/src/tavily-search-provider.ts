@@ -38,7 +38,7 @@ export function createTavilyWebSearchProvider(): WebSearchProviderPlugin {
     envVars: ["TAVILY_API_KEY"],
     placeholder: "tvly-...",
     signupUrl: "https://tavily.com/",
-    docsUrl: "https://docs.openclaw.ai/tools/tavily",
+    docsUrl: "https://docs.neuralstudio.in/tools/tavily",
     autoDetectOrder: 70,
     credentialPath: TAVILY_CREDENTIAL_PATH,
     ...createWebSearchProviderContractFields({

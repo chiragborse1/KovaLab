@@ -110,7 +110,7 @@ export function registerMemoryCli(program: Command) {
             "Also seed durable grounded candidates into the live short-term promotion store.",
           ],
           ["openclaw memory status --json", "Output machine-readable JSON (good for scripts)."],
-        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.openclaw.ai/cli/memory")}\n`,
+        ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.neuralstudio.in/cli/memory")}\n`,
     );
 
   memory

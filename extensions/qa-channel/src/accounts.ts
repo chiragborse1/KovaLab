@@ -32,7 +32,7 @@ export function resolveQaChannelAccount(params: {
   const baseEnabled = params.cfg.channels?.["qa-channel"]?.enabled !== false;
   const enabled = baseEnabled && merged.enabled !== false;
   const baseUrl = merged.baseUrl?.trim() ?? "";
-  const botUserId = merged.botUserId?.trim() || "openclaw";
+  const botUserId = merged.botUserId?.trim() || "kova";
   const botDisplayName = merged.botDisplayName?.trim() || "Kova QA";
   return {
     accountId,
