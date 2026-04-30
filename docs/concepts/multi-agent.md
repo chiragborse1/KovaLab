@@ -50,7 +50,7 @@ The Gateway can host **one agent** (default) or **many agents** side-by-side.
 
 ### Single-agent mode (default)
 
-If you do nothing, OpenClaw runs a single agent:
+If you do nothing, Kova runs a single agent:
 
 - `agentId` defaults to **`main`**.
 - Sessions are keyed as `agent:main:<mainKey>`.
@@ -62,7 +62,7 @@ If you do nothing, OpenClaw runs a single agent:
 Use the agent wizard to add a new isolated agent:
 
 ```bash
-openclaw agents add work
+kova agents add work
 ```
 
 Then add `bindings` (or let the wizard do it) to route inbound messages.
@@ -70,7 +70,7 @@ Then add `bindings` (or let the wizard do it) to route inbound messages.
 Verify with:
 
 ```bash
-openclaw agents list --bindings
+kova agents list --bindings
 ```
 
 ## Quick start
@@ -80,8 +80,8 @@ openclaw agents list --bindings
     Use the wizard or create workspaces manually:
 
     ```bash
-    openclaw agents add coding
-    openclaw agents add social
+    kova agents add coding
+    kova agents add social
     ```
 
     Each agent gets its own workspace with `SOUL.md`, `AGENTS.md`, and optional `USER.md`, plus a dedicated `agentDir` and session store under `~/.openclaw/agents/<agentId>`.
@@ -95,7 +95,7 @@ openclaw agents list --bindings
     - WhatsApp: link each phone number per account.
 
     ```bash
-    openclaw channels login --channel whatsapp --account work
+    kova channels login --channel whatsapp --account work
     ```
 
     See channel guides: [Discord](/channels/discord), [Telegram](/channels/telegram), [WhatsApp](/channels/whatsapp).
@@ -106,9 +106,9 @@ openclaw agents list --bindings
   </Step>
   <Step title="Restart and verify">
     ```bash
-    openclaw gateway restart
-    openclaw agents list --bindings
-    openclaw channels status --probe
+    kova gateway restart
+    kova agents list --bindings
+    kova channels status --probe
     ```
   </Step>
 </Steps>
@@ -241,7 +241,7 @@ Bindings are **deterministic** and **most-specific wins**:
   <Accordion title="Account-scope detail">
     - A binding that omits `accountId` matches the default account only.
     - Use `accountId: "*"` for a channel-wide fallback across all accounts.
-    - If you later add the same binding for the same agent with an explicit account id, OpenClaw upgrades the existing channel-only binding to account-scoped instead of duplicating it.
+    - If you later add the same binding for the same agent with an explicit account id, Kova upgrades the existing channel-only binding to account-scoped instead of duplicating it.
   </Accordion>
 </AccordionGroup>
 
@@ -249,7 +249,7 @@ Bindings are **deterministic** and **most-specific wins**:
 
 Channels that support **multiple accounts** (e.g. WhatsApp) use `accountId` to identify each login. Each `accountId` can be routed to a different agent, so one server can host multiple phone numbers without mixing sessions.
 
-If you want a channel-wide default account when `accountId` is omitted, set `channels.<channel>.defaultAccount` (optional). When unset, OpenClaw falls back to `default` if present, otherwise the first configured account id (sorted).
+If you want a channel-wide default account when `accountId` is omitted, set `channels.<channel>.defaultAccount` (optional). When unset, Kova falls back to `default` if present, otherwise the first configured account id (sorted).
 
 Common channels supporting this pattern include:
 
@@ -355,8 +355,8 @@ Common channels supporting this pattern include:
     Link each account before starting the gateway:
 
     ```bash
-    openclaw channels login --channel whatsapp --account personal
-    openclaw channels login --channel whatsapp --account biz
+    kova channels login --channel whatsapp --account personal
+    kova channels login --channel whatsapp --account biz
     ```
 
     `~/.openclaw/openclaw.json` (JSON5):

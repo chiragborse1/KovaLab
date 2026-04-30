@@ -1,4 +1,4 @@
-# OpenClaw Installer for Windows (PowerShell)
+# Kova Installer for Windows (PowerShell)
 # Usage: iwr -useb https://openclaw.ai/install.ps1 | iex
 # Or: & ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard
 
@@ -36,7 +36,7 @@ function Write-Host {
 function Write-Banner {
     Write-Host ""
     Write-Host "${ACCENT}  🦄 Kova Installer$NC" -Level info
-    Write-Host "${MUTED}  All your chats, one OpenClaw.$NC" -Level info
+    Write-Host "${MUTED}  All your chats, one Kova.$NC" -Level info
     Write-Host ""
 }
 
@@ -270,12 +270,12 @@ function Invoke-NativeCommandCapture {
     }
 }
 
-function Install-OpenClawNpm {
+function Install-KovaNpm {
     param([string]$Target = "latest")
 
     $installSpec = Resolve-PackageInstallSpec -Target $Target
     
-    Write-Host "Installing OpenClaw ($installSpec)..." -Level info
+    Write-Host "Installing Kova ($installSpec)..." -Level info
     
     try {
         # Run npm out-of-process so warning chatter on stderr does not get
@@ -305,10 +305,10 @@ function Install-OpenClawNpm {
     }
 }
 
-function Install-OpenClawGit {
+function Install-KovaGit {
     param([string]$RepoDir, [switch]$Update)
     
-    Write-Host "Installing OpenClaw from git..." -Level info
+    Write-Host "Installing Kova from git..." -Level info
     
     if (!(Test-Path $RepoDir)) {
         Write-Host "  Cloning repository..." -Level info
@@ -412,7 +412,7 @@ function Complete-Install {
         exit $script:InstallExitCode
     }
 
-    throw "OpenClaw installation failed with exit code $($script:InstallExitCode)."
+    throw "Kova installation failed with exit code $($script:InstallExitCode)."
 }
 
 # Main
@@ -438,12 +438,12 @@ function Main {
         }
         
         if ($DryRun) {
-            Write-Host "[DRY RUN] Would install OpenClaw from git to $GitDir" -Level info
+            Write-Host "[DRY RUN] Would install Kova from git to $GitDir" -Level info
         } else {
             try {
                 npm uninstall -g openclaw 2>$null | Out-Null
             } catch { }
-            if (!(Install-OpenClawGit -RepoDir $GitDir -Update:(-not $NoGitUpdate))) {
+            if (!(Install-KovaGit -RepoDir $GitDir -Update:(-not $NoGitUpdate))) {
                 return (Fail-Install)
             }
         }
@@ -454,7 +454,7 @@ function Main {
         }
         
         if ($DryRun) {
-            Write-Host "[DRY RUN] Would install OpenClaw via npm ($((Resolve-PackageInstallSpec -Target $Tag)))" -Level info
+            Write-Host "[DRY RUN] Would install Kova via npm ($((Resolve-PackageInstallSpec -Target $Tag)))" -Level info
         } else {
             $gitWrapper = "$env:USERPROFILE\.local\bin\kova.cmd"
             if (Test-Path $gitWrapper) {
@@ -464,9 +464,9 @@ function Main {
             $legacyGitWrapper = "$env:USERPROFILE\.local\bin\openclaw.cmd"
             if (Test-Path $legacyGitWrapper) {
                 Remove-Item -Force $legacyGitWrapper
-                Write-Host "Removed legacy OpenClaw alias" -Level info
+                Write-Host "Removed legacy openclaw alias" -Level info
             }
-            if (!(Install-OpenClawNpm -Target $Tag)) {
+            if (!(Install-KovaNpm -Target $Tag)) {
                 return (Fail-Install)
             }
         }

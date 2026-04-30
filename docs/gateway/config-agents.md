@@ -25,7 +25,7 @@ Default: `~/.openclaw/workspace`.
 
 ### `agents.defaults.repoRoot`
 
-Optional repository root shown in the system prompt's Runtime line. If unset, OpenClaw auto-detects by walking upward from the workspace.
+Optional repository root shown in the system prompt's Runtime line. If unset, Kova auto-detects by walking upward from the workspace.
 
 ```json5
 {
@@ -117,7 +117,7 @@ Default: `"once"`.
 
 ### Context budget ownership map
 
-OpenClaw has multiple high-volume prompt/context budgets, and they are
+Kova has multiple high-volume prompt/context budgets, and they are
 intentionally split by subsystem instead of all flowing through one generic
 knob.
 
@@ -363,24 +363,24 @@ Time format in system prompt. Default: `auto` (OS preference).
 - `pdfMaxPages`: default maximum pages considered by extraction fallback mode in the `pdf` tool.
 - `verboseDefault`: default verbose level for agents. Values: `"off"`, `"on"`, `"full"`. Default: `"off"`.
 - `elevatedDefault`: default elevated-output level for agents. Values: `"off"`, `"on"`, `"ask"`, `"full"`. Default: `"on"`.
-- `model.primary`: format `provider/model` (e.g. `openai/gpt-5.5` for API-key access or `openai-codex/gpt-5.5` for Codex OAuth). If you omit the provider, OpenClaw tries an alias first, then a unique configured-provider match for that exact model id, and only then falls back to the configured default provider (deprecated compatibility behavior, so prefer explicit `provider/model`). If that provider no longer exposes the configured default model, OpenClaw falls back to the first configured provider/model instead of surfacing a stale removed-provider default.
+- `model.primary`: format `provider/model` (e.g. `openai/gpt-5.5` for API-key access or `openai-codex/gpt-5.5` for Codex OAuth). If you omit the provider, Kova tries an alias first, then a unique configured-provider match for that exact model id, and only then falls back to the configured default provider (deprecated compatibility behavior, so prefer explicit `provider/model`). If that provider no longer exposes the configured default model, Kova falls back to the first configured provider/model instead of surfacing a stale removed-provider default.
 - `models`: the configured model catalog and allowlist for `/model`. Each entry can include `alias` (shortcut) and `params` (provider-specific, for example `temperature`, `maxTokens`, `cacheRetention`, `context1m`, `responsesServerCompaction`, `responsesCompactThreshold`, `chat_template_kwargs`, `extra_body`/`extraBody`).
-  - Safe edits: use `openclaw config set agents.defaults.models '<json>' --strict-json --merge` to add entries. `config set` refuses replacements that would remove existing allowlist entries unless you pass `--replace`.
+  - Safe edits: use `kova config set agents.defaults.models '<json>' --strict-json --merge` to add entries. `config set` refuses replacements that would remove existing allowlist entries unless you pass `--replace`.
   - Provider-scoped configure/onboarding flows merge selected provider models into this map and preserve unrelated providers already configured.
   - For direct OpenAI Responses models, server-side compaction is enabled automatically. Use `params.responsesServerCompaction: false` to stop injecting `context_management`, or `params.responsesCompactThreshold` to override the threshold. See [OpenAI server-side compaction](/providers/openai#server-side-compaction-responses-api).
 - `params`: global default provider parameters applied to all models. Set at `agents.defaults.params` (e.g. `{ cacheRetention: "long" }`).
 - `params` merge precedence (config): `agents.defaults.params` (global base) is overridden by `agents.defaults.models["provider/model"].params` (per-model), then `agents.list[].params` (matching agent id) overrides by key. See [Prompt Caching](/reference/prompt-caching) for details.
 - `params.extra_body`/`params.extraBody`: advanced pass-through JSON merged into `api: "openai-completions"` request bodies for OpenAI-compatible proxies. If it collides with generated request keys, the extra body wins; non-native completions routes still strip OpenAI-only `store` afterward.
 - `params.chat_template_kwargs`: vLLM/OpenAI-compatible chat-template arguments merged into top-level `api: "openai-completions"` request bodies. For `vllm/nemotron-3-*` with thinking off, the bundled vLLM plugin automatically sends `enable_thinking: false` and `force_nonempty_content: true`; explicit `chat_template_kwargs` override generated defaults, and `extra_body.chat_template_kwargs` still has final precedence. For vLLM Qwen thinking controls, set `params.qwenThinkingFormat` to `"chat-template"` or `"top-level"` on that model entry.
-- `params.preserveThinking`: Z.AI-only opt-in for preserved thinking. When enabled and thinking is on, OpenClaw sends `thinking.clear_thinking: false` and replays prior `reasoning_content`; see [Z.AI thinking and preserved thinking](/providers/zai#thinking-and-preserved-thinking).
-- `agentRuntime`: default low-level agent runtime policy. Omitted id defaults to OpenClaw Pi. Use `id: "pi"` to force the built-in PI harness, `id: "auto"` to let registered plugin harnesses claim supported models, a registered harness id such as `id: "codex"`, or a supported CLI backend alias such as `id: "claude-cli"`. Set `fallback: "none"` to disable automatic PI fallback. Explicit plugin runtimes such as `codex` fail closed by default unless you set `fallback: "pi"` in the same override scope. Keep model refs canonical as `provider/model`; select Codex, Claude CLI, Gemini CLI, and other execution backends through runtime config instead of legacy runtime provider prefixes. See [Agent runtimes](/concepts/agent-runtimes) for how this differs from provider/model selection.
+- `params.preserveThinking`: Z.AI-only opt-in for preserved thinking. When enabled and thinking is on, Kova sends `thinking.clear_thinking: false` and replays prior `reasoning_content`; see [Z.AI thinking and preserved thinking](/providers/zai#thinking-and-preserved-thinking).
+- `agentRuntime`: default low-level agent runtime policy. Omitted id defaults to Kova Pi. Use `id: "pi"` to force the built-in PI harness, `id: "auto"` to let registered plugin harnesses claim supported models, a registered harness id such as `id: "codex"`, or a supported CLI backend alias such as `id: "claude-cli"`. Set `fallback: "none"` to disable automatic PI fallback. Explicit plugin runtimes such as `codex` fail closed by default unless you set `fallback: "pi"` in the same override scope. Keep model refs canonical as `provider/model`; select Codex, Claude CLI, Gemini CLI, and other execution backends through runtime config instead of legacy runtime provider prefixes. See [Agent runtimes](/concepts/agent-runtimes) for how this differs from provider/model selection.
 - Config writers that mutate these fields (for example `/models set`, `/models set-image`, and fallback add/remove commands) save canonical object form and preserve existing fallback lists when possible.
 - `maxConcurrent`: max parallel agent runs across sessions (each session still serialized). Default: 4.
 
 ### `agents.defaults.agentRuntime`
 
 `agentRuntime` controls which low-level executor runs agent turns. Most
-deployments should keep the default OpenClaw Pi runtime. Use it when a trusted
+deployments should keep the default Kova Pi runtime. Use it when a trusted
 plugin provides a native harness, such as the bundled Codex app-server harness,
 or when you want a supported CLI backend such as Claude CLI. For the mental
 model, see [Agent runtimes](/concepts/agent-runtimes).
@@ -404,8 +404,8 @@ model, see [Agent runtimes](/concepts/agent-runtimes).
 - Environment overrides: `OPENCLAW_AGENT_RUNTIME=<id|auto|pi>` overrides `id`; `OPENCLAW_AGENT_HARNESS_FALLBACK=pi|none` overrides fallback for that process.
 - For Codex-only deployments, set `model: "openai/gpt-5.5"` and `agentRuntime.id: "codex"`. You may also set `agentRuntime.fallback: "none"` explicitly for readability; it is the default for explicit plugin runtimes.
 - For Claude CLI deployments, prefer `model: "anthropic/claude-opus-4-7"` plus `agentRuntime.id: "claude-cli"`. Legacy `claude-cli/claude-opus-4-7` model refs still work for compatibility, but new config should keep provider/model selection canonical and put the execution backend in `agentRuntime.id`.
-- Older runtime-policy keys are rewritten to `agentRuntime` by `openclaw doctor --fix`.
-- Harness choice is pinned per session id after the first embedded run. Config/env changes affect new or reset sessions, not an existing transcript. Legacy sessions with transcript history but no recorded pin are treated as PI-pinned. `/status` reports the effective runtime, for example `Runtime: OpenClaw Pi Default` or `Runtime: OpenAI Codex`.
+- Older runtime-policy keys are rewritten to `agentRuntime` by `kova doctor --fix`.
+- Harness choice is pinned per session id after the first embedded run. Config/env changes affect new or reset sessions, not an existing transcript. Legacy sessions with transcript history but no recorded pin are treated as PI-pinned. `/status` reports the effective runtime, for example `Runtime: Kova Pi Default` or `Runtime: OpenAI Codex`.
 - This only controls text agent-turn execution. Media generation, vision, PDF, music, video, and TTS still use their provider/model settings.
 
 **Built-in alias shorthands** (only apply when the model is in `agents.defaults.models`):
@@ -464,7 +464,7 @@ Optional CLI backends for text-only fallback runs (no tool calls). Useful as a b
 
 ### `agents.defaults.systemPromptOverride`
 
-Replace the entire OpenClaw-assembled system prompt with a fixed string. Set at the default level (`agents.defaults.systemPromptOverride`) or per agent (`agents.list[].systemPromptOverride`). Per-agent values take precedence; an empty or whitespace-only value is ignored. Useful for controlled prompt experiments.
+Replace the entire Kova-assembled system prompt with a fixed string. Set at the default level (`agents.defaults.systemPromptOverride`) or per agent (`agents.list[].systemPromptOverride`). Per-agent values take precedence; an empty or whitespace-only value is ignored. Useful for controlled prompt experiments.
 
 ```json5
 {
@@ -571,7 +571,7 @@ Periodic heartbeat runs.
 
 - `mode`: `default` or `safeguard` (chunked summarization for long histories). See [Compaction](/concepts/compaction).
 - `provider`: id of a registered compaction provider plugin. When set, the provider's `summarize()` is called instead of built-in LLM summarization. Falls back to built-in on failure. Setting a provider forces `mode: "safeguard"`. See [Compaction](/concepts/compaction).
-- `timeoutSeconds`: maximum seconds allowed for a single compaction operation before OpenClaw aborts it. Default: `900`.
+- `timeoutSeconds`: maximum seconds allowed for a single compaction operation before Kova aborts it. Default: `900`.
 - `keepRecentTokens`: Pi cut-point budget for keeping the most recent transcript tail verbatim. Manual `/compact` honors this when explicitly set; otherwise manual compaction is a hard checkpoint.
 - `identifierPolicy`: `strict` (default), `off`, or `custom`. `strict` prepends built-in opaque identifier retention guidance during compaction summarization.
 - `identifierInstructions`: optional custom identifier-preservation text used when `identifierPolicy=custom`.
@@ -782,7 +782,7 @@ When `backend: "openshell"` is selected, runtime-specific settings move to
 - `command`: SSH client command (default: `ssh`)
 - `workspaceRoot`: absolute remote root used for per-scope workspaces
 - `identityFile` / `certificateFile` / `knownHostsFile`: existing local files passed to OpenSSH
-- `identityData` / `certificateData` / `knownHostsData`: inline contents or SecretRefs that OpenClaw materializes into temp files at runtime
+- `identityData` / `certificateData` / `knownHostsData`: inline contents or SecretRefs that Kova materializes into temp files at runtime
 - `strictHostKeyChecking` / `updateHostKeys`: OpenSSH host-key policy knobs
 
 **SSH auth precedence:**
@@ -843,7 +843,7 @@ When `backend: "openshell"` is selected, runtime-specific settings move to
 - `mirror`: seed remote from local before exec, sync back after exec; local workspace stays canonical
 - `remote`: seed remote once when the sandbox is created, then keep the remote workspace canonical
 
-In `remote` mode, host-local edits made outside OpenClaw are not synced into the sandbox automatically after the seed step.
+In `remote` mode, host-local edits made outside Kova are not synced into the sandbox automatically after the seed step.
 Transport is SSH into the OpenShell sandbox, but the plugin owns sandbox lifecycle and optional mirror sync.
 
 **`setupCommand`** runs once after container creation (via `sh -lc`). Needs network egress, writable root, root user.
@@ -857,7 +857,7 @@ Transport is SSH into the OpenShell sandbox, but the plugin owns sandbox lifecyc
 **`docker.binds`** mounts additional host directories; global and per-agent binds are merged.
 
 **Sandboxed browser** (`sandbox.browser.enabled`): Chromium + CDP in a container. noVNC URL injected into system prompt. Does not require `browser.enabled` in `openclaw.json`.
-noVNC observer access uses VNC auth by default and OpenClaw emits a short-lived token URL (instead of exposing the password in the shared URL).
+noVNC observer access uses VNC auth by default and Kova emits a short-lived token URL (instead of exposing the password in the shared URL).
 
 - `allowHostControl: false` (default) blocks sandboxed sessions from targeting the host browser.
 - `network` defaults to `openclaw-sandbox-browser` (dedicated bridge network). Set to `bridge` only when you explicitly want global bridge connectivity.
@@ -1024,7 +1024,7 @@ Run multiple isolated agents inside one Gateway. See [Multi-Agent](/concepts/mul
 
 Within each tier, the first matching `bindings` entry wins.
 
-For `type: "acp"` entries, OpenClaw resolves by exact conversation identity (`match.channel` + account + `match.peer.id`) and does not use the route binding tier order above.
+For `type: "acp"` entries, Kova resolves by exact conversation identity (`match.channel` + account + `match.peer.id`) and does not use the route binding tier order above.
 
 ### Per-agent access profiles
 
@@ -1186,7 +1186,7 @@ See [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) for preceden
 - **`reset`**: primary reset policy. `daily` resets at `atHour` local time; `idle` resets after `idleMinutes`. When both configured, whichever expires first wins. Daily reset freshness uses the session row's `sessionStartedAt`; idle reset freshness uses `lastInteractionAt`. Background/system-event writes such as heartbeat, cron wakeups, exec notifications, and gateway bookkeeping can update `updatedAt`, but they do not keep daily/idle sessions fresh.
 - **`resetByType`**: per-type overrides (`direct`, `group`, `thread`). Legacy `dm` accepted as alias for `direct`.
 - **`parentForkMaxTokens`**: max parent-session `totalTokens` allowed when creating a forked thread session (default `100000`).
-  - If parent `totalTokens` is above this value, OpenClaw starts a fresh thread session instead of inheriting parent transcript history.
+  - If parent `totalTokens` is above this value, Kova starts a fresh thread session instead of inheriting parent transcript history.
   - Set `0` to disable this guard and always allow parent forking.
 - **`mainKey`**: legacy field. Runtime always uses `"main"` for the main direct-chat bucket.
 - **`agentToAgent.maxPingPongTurns`**: maximum reply-back turns between agents during agent-to-agent exchanges (integer, range: `0`–`5`). `0` disables ping-pong chaining.
@@ -1325,7 +1325,7 @@ Batches rapid text-only messages from the same sender into a single agent turn. 
 - API keys fall back to `ELEVENLABS_API_KEY`/`XI_API_KEY` and `OPENAI_API_KEY`.
 - Bundled speech providers are plugin-owned. If `plugins.allow` is set, include each TTS provider plugin you want to use, for example `microsoft` for Edge TTS. The legacy `edge` provider id is accepted as an alias for `microsoft`.
 - `providers.openai.baseUrl` overrides the OpenAI TTS endpoint. Resolution order is config, then `OPENAI_TTS_BASE_URL`, then `https://api.openai.com/v1`.
-- When `providers.openai.baseUrl` points to a non-OpenAI endpoint, OpenClaw treats it as an OpenAI-compatible TTS server and relaxes model/voice validation.
+- When `providers.openai.baseUrl` points to a non-OpenAI endpoint, Kova treats it as an OpenAI-compatible TTS server and relaxes model/voice validation.
 
 ---
 

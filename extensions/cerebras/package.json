@@ -2,7 +2,7 @@
   "name": "@openclaw/cerebras-provider",
   "version": "2026.4.26",
   "private": true,
-  "description": "OpenClaw Cerebras provider plugin",
+  "description": "Kova Cerebras provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

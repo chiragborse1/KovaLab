@@ -27,9 +27,9 @@ JavaScript when available:
 
 `extensions` and `setupEntry` remain valid source entries for workspace and git
 checkout development. `runtimeExtensions` and `runtimeSetupEntry` are preferred
-when OpenClaw loads an installed package and let npm packages avoid runtime
+when Kova loads an installed package and let npm packages avoid runtime
 TypeScript compilation. If an installed package only declares a TypeScript
-source entry, OpenClaw will use a matching built `dist/*.js` peer when one
+source entry, Kova will use a matching built `dist/*.js` peer when one
 exists, then fall back to the TypeScript source.
 
 All entry paths must stay inside the plugin package directory. Runtime entries
@@ -78,7 +78,7 @@ export default definePluginEntry({
 - `id` must match your `openclaw.plugin.json` manifest.
 - `kind` is for exclusive slots: `"memory"` or `"context-engine"`.
 - `configSchema` can be a function for lazy evaluation.
-- OpenClaw resolves and memoizes that schema on first access, so expensive schema
+- Kova resolves and memoizes that schema on first access, so expensive schema
   builders only run once.
 
 ## `defineChannelPluginEntry`
@@ -127,13 +127,13 @@ export default defineChannelPluginEntry({
   Use it as the canonical place for channel-owned CLI descriptors so root help
   stays non-activating, discovery snapshots include static command metadata, and
   normal CLI command registration remains compatible with full plugin loads.
-- Discovery registration is non-activating, not import-free. OpenClaw may
+- Discovery registration is non-activating, not import-free. Kova may
   evaluate the trusted plugin entry and channel plugin module to build the
   snapshot, so keep top-level imports side-effect-free and put sockets,
   clients, workers, and services behind `"full"`-only paths.
 - `registerFull` only runs when `api.registrationMode === "full"`. It is skipped
   during setup-only loading.
-- Like `definePluginEntry`, `configSchema` can be a lazy factory and OpenClaw
+- Like `definePluginEntry`, `configSchema` can be a lazy factory and Kova
   memoizes the resolved schema on first access.
 - For plugin-owned root CLI commands, prefer `api.registerCli(..., { descriptors: [...] })`
   when you want the command to stay lazy-loaded without disappearing from the
@@ -157,7 +157,7 @@ import { defineSetupPluginEntry } from "openclaw/plugin-sdk/channel-core";
 export default defineSetupPluginEntry(myChannelPlugin);
 ```
 
-OpenClaw loads this instead of the full entry when a channel is disabled,
+Kova loads this instead of the full entry when a channel is disabled,
 unconfigured, or when deferred loading is enabled. See
 [Setup and Config](/plugins/sdk-setup#setup-entry) for when this matters.
 
@@ -233,7 +233,7 @@ register(api) {
 ```
 
 Discovery mode builds a non-activating registry snapshot. It may still evaluate
-the plugin entry and the channel plugin object so OpenClaw can register channel
+the plugin entry and the channel plugin object so Kova can register channel
 capabilities and static CLI descriptors. Treat module evaluation in discovery as
 trusted but lightweight: no network clients, subprocesses, listeners, database
 connections, background workers, credential reads, or other live runtime side
@@ -248,18 +248,18 @@ provider/client SDK bootstraps still belong in `"full"`.
 For CLI registrars specifically:
 
 - use `descriptors` when the registrar owns one or more root commands and you
-  want OpenClaw to lazy-load the real CLI module on first invocation
+  want Kova to lazy-load the real CLI module on first invocation
 - make sure those descriptors cover every top-level command root exposed by the
   registrar
 - keep descriptor command names to letters, numbers, hyphen, and underscore,
-  starting with a letter or number; OpenClaw rejects descriptor names outside
+  starting with a letter or number; Kova rejects descriptor names outside
   that shape and strips terminal control sequences from descriptions before
   rendering help
 - use `commands` alone only for eager compatibility paths
 
 ## Plugin shapes
 
-OpenClaw classifies loaded plugins by their registration behavior:
+Kova classifies loaded plugins by their registration behavior:
 
 | Shape                 | Description                                        |
 | --------------------- | -------------------------------------------------- |
@@ -268,7 +268,7 @@ OpenClaw classifies loaded plugins by their registration behavior:
 | **hook-only**         | Only hooks, no capabilities                        |
 | **non-capability**    | Tools/commands/services but no capabilities        |
 
-Use `openclaw plugins inspect <id>` to see a plugin's shape.
+Use `kova plugins inspect <id>` to see a plugin's shape.
 
 ## Related
 

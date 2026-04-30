@@ -1,12 +1,12 @@
 ---
-summary: "Use xAI Grok models in OpenClaw"
+summary: "Use xAI Grok models in Kova"
 read_when:
-  - You want to use Grok models in OpenClaw
+  - You want to use Grok models in Kova
   - You are configuring xAI auth or model ids
 title: "xAI"
 ---
 
-OpenClaw ships a bundled `xai` provider plugin for Grok models.
+Kova ships a bundled `xai` provider plugin for Grok models.
 
 ## Getting started
 
@@ -18,7 +18,7 @@ OpenClaw ships a bundled `xai` provider plugin for Grok models.
     Set `XAI_API_KEY`, or run:
 
     ```bash
-    openclaw onboard --auth-choice xai-api-key
+    kova onboard --auth-choice xai-api-key
     ```
 
   </Step>
@@ -32,7 +32,7 @@ OpenClaw ships a bundled `xai` provider plugin for Grok models.
 </Steps>
 
 <Note>
-OpenClaw uses the xAI Responses API as the bundled xAI transport. The same
+Kova uses the xAI Responses API as the bundled xAI transport. The same
 `XAI_API_KEY` can also power Grok-backed `web_search`, first-class `x_search`,
 and remote `code_execution`.
 If you store an xAI key under `plugins.entries.xai.config.webSearch.apiKey`,
@@ -42,7 +42,7 @@ the bundled xAI model provider reuses that key as a fallback too.
 
 ## Built-in catalog
 
-OpenClaw includes these xAI model families out of the box:
+Kova includes these xAI model families out of the box:
 
 | Family         | Model ids                                                                |
 | -------------- | ------------------------------------------------------------------------ |
@@ -61,14 +61,14 @@ they follow the same API shape.
 current image-capable Grok refs in the bundled catalog.
 </Tip>
 
-## OpenClaw feature coverage
+## Kova feature coverage
 
-The bundled plugin maps xAI's current public API surface onto OpenClaw's shared
+The bundled plugin maps xAI's current public API surface onto Kova's shared
 provider and tool contracts. Capabilities that don't fit the shared contract
 (for example streaming TTS and realtime voice) are not exposed — see the table
 below.
 
-| xAI capability             | OpenClaw surface                          | Status                                                              |
+| xAI capability             | Kova surface                          | Status                                                              |
 | -------------------------- | ----------------------------------------- | ------------------------------------------------------------------- |
 | Chat / Responses           | `xai/<model>` model provider              | Yes                                                                 |
 | Server-side web search     | `web_search` provider `grok`              | Yes                                                                 |
@@ -77,17 +77,17 @@ below.
 | Images                     | `image_generate`                          | Yes                                                                 |
 | Videos                     | `video_generate`                          | Yes                                                                 |
 | Batch text-to-speech       | `messages.tts.provider: "xai"` / `tts`    | Yes                                                                 |
-| Streaming TTS              | —                                         | Not exposed; OpenClaw's TTS contract returns complete audio buffers |
+| Streaming TTS              | —                                         | Not exposed; Kova's TTS contract returns complete audio buffers |
 | Batch speech-to-text       | `tools.media.audio` / media understanding | Yes                                                                 |
 | Streaming speech-to-text   | Voice Call `streaming.provider: "xai"`    | Yes                                                                 |
 | Realtime voice             | —                                         | Not exposed yet; different session/WebSocket contract               |
-| Files / batches            | Generic model API compatibility only      | Not a first-class OpenClaw tool                                     |
+| Files / batches            | Generic model API compatibility only      | Not a first-class Kova tool                                     |
 
 <Note>
-OpenClaw uses xAI's REST image/video/TTS/STT APIs for media generation,
+Kova uses xAI's REST image/video/TTS/STT APIs for media generation,
 speech, and batch transcription, xAI's streaming STT WebSocket for live
 voice-call transcription, and the Responses API for model, search, and
-code-execution tools. Features that need different OpenClaw contracts, such as
+code-execution tools. Features that need different Kova contracts, such as
 Realtime voice sessions, are documented here as upstream capabilities rather
 than hidden plugin behavior.
 </Note>
@@ -122,7 +122,7 @@ Legacy aliases still normalize to the canonical bundled ids:
     The bundled `grok` web-search provider uses `XAI_API_KEY` too:
 
     ```bash
-    openclaw config set tools.web.search.provider grok
+    kova config set tools.web.search.provider grok
     ```
 
   </Accordion>
@@ -144,7 +144,7 @@ Legacy aliases still normalize to the canonical bundled ids:
     <Warning>
     Local video buffers are not accepted. Use remote `http(s)` URLs for
     video edit/extend inputs. Image-to-video accepts local image buffers because
-    OpenClaw can encode those as data URLs for xAI.
+    Kova can encode those as data URLs for xAI.
     </Warning>
 
     To use xAI as the default video provider:
@@ -180,7 +180,7 @@ Legacy aliases still normalize to the canonical bundled ids:
     - Resolutions: `1K`, `2K`
     - Count: up to 4 images
 
-    OpenClaw asks xAI for `b64_json` image responses so generated media can be
+    Kova asks xAI for `b64_json` image responses so generated media can be
     stored and delivered through the normal channel attachment path. Local
     reference images are converted to data URLs; remote `http(s)` references are
     passed through.
@@ -201,7 +201,7 @@ Legacy aliases still normalize to the canonical bundled ids:
 
     <Note>
     xAI also documents `quality`, `mask`, `user`, and additional native ratios
-    such as `1:2`, `2:1`, `9:20`, and `20:9`. OpenClaw forwards only the
+    such as `1:2`, `2:1`, `9:20`, and `20:9`. Kova forwards only the
     shared cross-provider image controls today; unsupported native-only knobs
     are intentionally not exposed through `image_generate`.
     </Note>
@@ -237,21 +237,21 @@ Legacy aliases still normalize to the canonical bundled ids:
     ```
 
     <Note>
-    OpenClaw uses xAI's batch `/v1/tts` endpoint. xAI also offers streaming TTS
-    over WebSocket, but the OpenClaw speech provider contract currently expects
+    Kova uses xAI's batch `/v1/tts` endpoint. xAI also offers streaming TTS
+    over WebSocket, but the Kova speech provider contract currently expects
     a complete audio buffer before reply delivery.
     </Note>
 
   </Accordion>
 
   <Accordion title="Speech-to-text">
-    The bundled `xai` plugin registers batch speech-to-text through OpenClaw's
+    The bundled `xai` plugin registers batch speech-to-text through Kova's
     media-understanding transcription surface.
 
     - Default model: `grok-stt`
     - Endpoint: xAI REST `/v1/stt`
     - Input path: multipart audio file upload
-    - Supported by OpenClaw wherever inbound audio transcription uses
+    - Supported by Kova wherever inbound audio transcription uses
       `tools.media.audio`, including Discord voice-channel segments and
       channel audio attachments
 
@@ -276,7 +276,7 @@ Legacy aliases still normalize to the canonical bundled ids:
     ```
 
     Language can be supplied through the shared audio media config or per-call
-    transcription request. Prompt hints are accepted by the shared OpenClaw
+    transcription request. Prompt hints are accepted by the shared Kova
     surface, but the xAI REST STT integration only forwards file, model, and
     language because those map cleanly to the current public xAI endpoint.
 
@@ -333,7 +333,7 @@ Legacy aliases still normalize to the canonical bundled ids:
   </Accordion>
 
   <Accordion title="x_search configuration">
-    The bundled xAI plugin exposes `x_search` as an OpenClaw tool for searching
+    The bundled xAI plugin exposes `x_search` as an Kova tool for searching
     X (formerly Twitter) content via Grok.
 
     Config path: `plugins.entries.xai.config.xSearch`
@@ -368,7 +368,7 @@ Legacy aliases still normalize to the canonical bundled ids:
   </Accordion>
 
   <Accordion title="Code execution configuration">
-    The bundled xAI plugin exposes `code_execution` as an OpenClaw tool for
+    The bundled xAI plugin exposes `code_execution` as an Kova tool for
     remote code execution in xAI's sandbox environment.
 
     Config path: `plugins.entries.xai.config.codeExecution`
@@ -405,11 +405,11 @@ Legacy aliases still normalize to the canonical bundled ids:
 
   <Accordion title="Known limits">
     - Auth is API-key only today. There is no xAI OAuth or device-code flow in
-      OpenClaw yet.
+      Kova yet.
     - `grok-4.20-multi-agent-experimental-beta-0304` is not supported on the
       normal xAI provider path because it requires a different upstream API
-      surface than the standard OpenClaw xAI transport.
-    - xAI Realtime voice is not registered as an OpenClaw provider yet. It
+      surface than the standard Kova xAI transport.
+    - xAI Realtime voice is not registered as an Kova provider yet. It
       needs a different bidirectional voice session contract than batch STT or
       streaming transcription.
     - xAI image `quality`, image `mask`, and extra native-only aspect ratios are
@@ -418,15 +418,15 @@ Legacy aliases still normalize to the canonical bundled ids:
   </Accordion>
 
   <Accordion title="Advanced notes">
-    - OpenClaw applies xAI-specific tool-schema and tool-call compatibility fixes
+    - Kova applies xAI-specific tool-schema and tool-call compatibility fixes
       automatically on the shared runner path.
     - Native xAI requests default `tool_stream: true`. Set
       `agents.defaults.models["xai/<model>"].params.tool_stream` to `false` to
       disable it.
     - The bundled xAI wrapper strips unsupported strict tool-schema flags and
       reasoning payload keys before sending native xAI requests.
-    - `web_search`, `x_search`, and `code_execution` are exposed as OpenClaw
-      tools. OpenClaw enables the specific xAI built-in it needs inside each tool
+    - `web_search`, `x_search`, and `code_execution` are exposed as Kova
+      tools. Kova enables the specific xAI built-in it needs inside each tool
       request instead of attaching all native tools to every chat turn.
     - `x_search` and `code_execution` are owned by the bundled xAI plugin rather
       than hardcoded into the core model runtime.
@@ -450,7 +450,7 @@ OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_TEST_QUIET=1 OPENCLAW_LIVE_IMAGE_GENERATION_P
 The provider-specific live file synthesizes normal TTS, telephony-friendly PCM
 TTS, transcribes audio through xAI batch STT, streams the same PCM through xAI
 realtime STT, generates text-to-image output, and edits a reference image. The
-shared image live file verifies the same xAI provider through OpenClaw's
+shared image live file verifies the same xAI provider through Kova's
 runtime selection, fallback, normalization, and media attachment path.
 
 ## Related

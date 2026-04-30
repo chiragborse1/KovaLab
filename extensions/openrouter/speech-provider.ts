@@ -263,7 +263,7 @@ export function buildOpenRouterSpeechProvider(): SpeechProviderPlugin {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": "https://openclaw.ai",
-          "X-OpenRouter-Title": "OpenClaw",
+          "X-OpenRouter-Title": "Kova",
         },
         provider: "openrouter",
         capability: "audio",

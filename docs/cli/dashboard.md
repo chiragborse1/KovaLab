@@ -1,18 +1,18 @@
 ---
-summary: "CLI reference for `openclaw dashboard` (open the Control UI)"
+summary: "CLI reference for `kova dashboard` (open the Control UI)"
 read_when:
   - You want to open the Control UI with your current token
   - You want to print the URL without launching a browser
 title: "Dashboard"
 ---
 
-# `openclaw dashboard`
+# `kova dashboard`
 
 Open the Control UI using your current auth.
 
 ```bash
-openclaw dashboard
-openclaw dashboard --no-open
+kova dashboard
+kova dashboard --no-open
 ```
 
 Notes:

@@ -227,7 +227,7 @@ The filtering order is:
     - Provider tool keys accept either `provider` (e.g. `google-antigravity`) or `provider/model` (e.g. `openai/gpt-5.4`).
   </Accordion>
   <Accordion title="Empty allowlist behavior">
-    If any explicit allowlist in that chain leaves the run with no callable tools, OpenClaw stops before submitting the prompt to the model. This is intentional: an agent configured with a missing tool such as `agents.list[].tools.allow: ["query_db"]` should fail loudly until the plugin that registers `query_db` is enabled, not continue as a text-only agent.
+    If any explicit allowlist in that chain leaves the run with no callable tools, Kova stops before submitting the prompt to the model. This is intentional: an agent configured with a missing tool such as `agents.list[].tools.allow: ["query_db"]` should fail loudly until the plugin that registers `query_db` is enabled, not continue as a text-only agent.
   </Accordion>
 </AccordionGroup>
 
@@ -281,7 +281,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
 </Tabs>
 
 <Note>
-Legacy `agent.*` configs are migrated by `openclaw doctor`; prefer `agents.defaults` + `agents.list` going forward.
+Legacy `agent.*` configs are migrated by `kova doctor`; prefer `agents.defaults` + `agents.list` going forward.
 </Note>
 
 ---
@@ -342,7 +342,7 @@ After configuring multi-agent sandbox and tools:
 <Steps>
   <Step title="Check agent resolution">
     ```bash
-    openclaw agents list --bindings
+    kova agents list --bindings
     ```
   </Step>
   <Step title="Verify sandbox containers">

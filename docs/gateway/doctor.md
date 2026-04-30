@@ -7,12 +7,12 @@ title: "Doctor"
 sidebarTitle: "Doctor"
 ---
 
-`openclaw doctor` is the repair + migration tool for OpenClaw. It fixes stale config/state, checks health, and provides actionable repair steps.
+`kova doctor` is the repair + migration tool for Kova. It fixes stale config/state, checks health, and provides actionable repair steps.
 
 ## Quick start
 
 ```bash
-openclaw doctor
+kova doctor
 ```
 
 ### Headless and automation modes
@@ -20,7 +20,7 @@ openclaw doctor
 <Tabs>
   <Tab title="--yes">
     ```bash
-    openclaw doctor --yes
+    kova doctor --yes
     ```
 
     Accept defaults without prompting (including restart/service/sandbox repair steps when applicable).
@@ -28,7 +28,7 @@ openclaw doctor
   </Tab>
   <Tab title="--repair">
     ```bash
-    openclaw doctor --repair
+    kova doctor --repair
     ```
 
     Apply recommended repairs without prompting (repairs + restarts where safe).
@@ -36,7 +36,7 @@ openclaw doctor
   </Tab>
   <Tab title="--repair --force">
     ```bash
-    openclaw doctor --repair --force
+    kova doctor --repair --force
     ```
 
     Apply aggressive repairs too (overwrites custom supervisor configs).
@@ -44,7 +44,7 @@ openclaw doctor
   </Tab>
   <Tab title="--non-interactive">
     ```bash
-    openclaw doctor --non-interactive
+    kova doctor --non-interactive
     ```
 
     Run without prompts and only apply safe migrations (config normalization + on-disk state moves). Skips restart/service/sandbox actions that require human confirmation. Legacy state migrations run automatically when detected.
@@ -52,7 +52,7 @@ openclaw doctor
   </Tab>
   <Tab title="--deep">
     ```bash
-    openclaw doctor --deep
+    kova doctor --deep
     ```
 
     Scan system services for extra gateway installs (launchd/systemd/schtasks).
@@ -123,7 +123,7 @@ cat ~/.openclaw/openclaw.json
 
 ## Dreams UI backfill and reset
 
-The Control UI Dreams scene includes **Backfill**, **Reset**, and **Clear Grounded** actions for the grounded dreaming workflow. These actions use gateway doctor-style RPC methods, but they are **not** part of `openclaw doctor` CLI repair/migration.
+The Control UI Dreams scene includes **Backfill**, **Reset**, and **Clear Grounded** actions for the grounded dreaming workflow. These actions use gateway doctor-style RPC methods, but they are **not** part of `kova doctor` CLI repair/migration.
 
 What they do:
 
@@ -140,7 +140,7 @@ What they do **not** do by themselves:
 If you want grounded historical replay to influence the normal deep promotion lane, use the CLI flow instead:
 
 ```bash
-openclaw memory rem-backfill --path ./memory --stage-short-term
+kova memory rem-backfill --path ./memory --stage-short-term
 ```
 
 That stages grounded durable candidates into the short-term dreaming store while keeping `DREAMS.md` as the review surface.
@@ -158,7 +158,7 @@ That stages grounded durable candidates into the short-term dreaming store while
 
   </Accordion>
   <Accordion title="2. Legacy config key migrations">
-    When the config contains deprecated keys, other commands refuse to run and ask you to run `openclaw doctor`.
+    When the config contains deprecated keys, other commands refuse to run and ask you to run `kova doctor`.
 
     Doctor will:
 
@@ -166,7 +166,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     - Show the migration it applied.
     - Rewrite `~/.openclaw/openclaw.json` with the updated schema.
 
-    The Gateway also auto-runs doctor migrations on startup when it detects a legacy config format, so stale configs are repaired without manual intervention. Cron job store migrations are handled by `openclaw doctor --fix`.
+    The Gateway also auto-runs doctor migrations on startup when it detects a legacy config format, so stale configs are repaired without manual intervention. Cron job store migrations are handled by `kova doctor --fix`.
 
     Current migrations:
 
@@ -245,7 +245,7 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     Doctor does not repair this automatically because both routes are valid:
 
-    - `openai-codex/*` + PI means "use Codex OAuth/subscription auth through the normal OpenClaw runner."
+    - `openai-codex/*` + PI means "use Codex OAuth/subscription auth through the normal Kova runner."
     - `openai/*` + `runtime: "codex"` means "run the embedded turn through native Codex app-server."
     - `/codex ...` means "control or bind a native Codex conversation from chat."
     - `/acp ...` or `runtime: "acp"` means "use the external ACP/acpx adapter."
@@ -264,7 +264,7 @@ That stages grounded durable candidates into the short-term dreaming store while
       - from legacy `~/.openclaw/credentials/*.json` (except `oauth.json`)
       - to `~/.openclaw/credentials/whatsapp/<accountId>/...` (default account id: `default`)
 
-    These migrations are best-effort and idempotent; doctor will emit warnings when it leaves any legacy folders behind as backups. The Gateway/CLI also auto-migrates the legacy sessions + agent dir on startup so history/auth/models land in the per-agent path without a manual doctor run. WhatsApp auth is intentionally only migrated via `openclaw doctor`. Talk provider/provider-map normalization now compares by structural equality, so key-order-only diffs no longer trigger repeat no-op `doctor --fix` changes.
+    These migrations are best-effort and idempotent; doctor will emit warnings when it leaves any legacy folders behind as backups. The Gateway/CLI also auto-migrates the legacy sessions + agent dir on startup so history/auth/models land in the per-agent path without a manual doctor run. WhatsApp auth is intentionally only migrated via `kova doctor`. Talk provider/provider-map normalization now compares by structural equality, so key-order-only diffs no longer trigger repeat no-op `doctor --fix` changes.
 
   </Accordion>
   <Accordion title="3a. Legacy plugin manifest migrations">
@@ -289,7 +289,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     Doctor scans every agent session directory for stale write-lock files — files left behind when a session exited abnormally. For each lock file found it reports: the path, PID, whether the PID is still alive, lock age, and whether it is considered stale (dead PID or older than 30 minutes). In `--fix` / `--repair` mode it removes stale lock files automatically; otherwise it prints a note and instructs you to rerun with `--fix`.
   </Accordion>
   <Accordion title="3d. Session transcript branch repair">
-    Doctor scans agent session JSONL files for the duplicated branch shape created by the 2026.4.24 prompt transcript rewrite bug: an abandoned user turn with OpenClaw internal runtime context plus an active sibling containing the same visible user prompt. In `--fix` / `--repair` mode, doctor backs up each affected file next to the original and rewrites the transcript to the active branch so gateway history and memory readers no longer see duplicate turns.
+    Doctor scans agent session JSONL files for the duplicated branch shape created by the 2026.4.24 prompt transcript rewrite bug: an abandoned user turn with Kova internal runtime context plus an active sibling containing the same visible user prompt. In `--fix` / `--repair` mode, doctor backs up each affected file next to the original and rewrites the transcript to the active branch so gateway history and memory readers no longer see duplicate turns.
   </Accordion>
   <Accordion title="4. State integrity checks (session persistence, routing, and safety)">
     The state directory is the operational brainstem. If it vanishes, you lose sessions, credentials, logs, and config (unless you have backups elsewhere).
@@ -311,7 +311,7 @@ That stages grounded durable candidates into the short-term dreaming store while
   <Accordion title="5. Model auth health (OAuth expiry)">
     Doctor inspects OAuth profiles in the auth store, warns when tokens are expiring/expired, and can refresh them when safe. If the Anthropic OAuth/token profile is stale, it suggests an Anthropic API key or the Anthropic setup-token path. Refresh prompts only appear when running interactively (TTY); `--non-interactive` skips refresh attempts.
 
-    When an OAuth refresh fails permanently (for example `refresh_token_reused`, `invalid_grant`, or a provider telling you to sign in again), doctor reports that re-auth is required and prints the exact `openclaw models auth login --provider ...` command to run.
+    When an OAuth refresh fails permanently (for example `refresh_token_reused`, `invalid_grant`, or a provider telling you to sign in again), doctor reports that re-auth is required and prints the exact `kova models auth login --provider ...` command to run.
 
     Doctor also reports auth profiles that are temporarily unusable due to:
 
@@ -326,16 +326,16 @@ That stages grounded durable candidates into the short-term dreaming store while
     When sandboxing is enabled, doctor checks Docker images and offers to build or switch to legacy names if the current image is missing.
   </Accordion>
   <Accordion title="7b. Bundled plugin runtime deps">
-    Doctor verifies runtime dependencies only for bundled plugins that are active in the current config or enabled by their bundled manifest default, for example `plugins.entries.discord.enabled: true`, legacy `channels.discord.enabled: true`, or a default-enabled bundled provider. If any are missing, doctor reports the packages and installs them in `openclaw doctor --fix` / `openclaw doctor --repair` mode. External plugins still use `openclaw plugins install` / `openclaw plugins update`; doctor does not install dependencies for arbitrary plugin paths.
+    Doctor verifies runtime dependencies only for bundled plugins that are active in the current config or enabled by their bundled manifest default, for example `plugins.entries.discord.enabled: true`, legacy `channels.discord.enabled: true`, or a default-enabled bundled provider. If any are missing, doctor reports the packages and installs them in `kova doctor --fix` / `kova doctor --repair` mode. External plugins still use `kova plugins install` / `kova plugins update`; doctor does not install dependencies for arbitrary plugin paths.
 
     During doctor repair, bundled runtime-dependency npm installs report spinner progress in TTY sessions and periodic line progress in piped/headless output. The Gateway and local CLI can also repair active bundled plugin runtime dependencies on demand before importing a bundled plugin. These installs are scoped to the plugin runtime install root, run with scripts disabled, do not write a package lock, and are guarded by an install-root lock so concurrent CLI or Gateway starts do not mutate the same `node_modules` tree at the same time.
 
   </Accordion>
   <Accordion title="8. Gateway service migrations and cleanup hints">
-    Doctor detects legacy gateway services (launchd/systemd/schtasks) and offers to remove them and install the OpenClaw service using the current gateway port. It can also scan for extra gateway-like services and print cleanup hints. Profile-named OpenClaw gateway services are considered first-class and are not flagged as "extra."
+    Doctor detects legacy gateway services (launchd/systemd/schtasks) and offers to remove them and install the Kova service using the current gateway port. It can also scan for extra gateway-like services and print cleanup hints. Profile-named Kova gateway services are considered first-class and are not flagged as "extra."
   </Accordion>
   <Accordion title="8b. Startup Matrix migration">
-    When a Matrix channel account has a pending or actionable legacy state migration, doctor (in `--fix` / `--repair` mode) creates a pre-migration snapshot and then runs the best-effort migration steps: legacy Matrix state migration and legacy encrypted-state preparation. Both steps are non-fatal; errors are logged and startup continues. In read-only mode (`openclaw doctor` without `--fix`) this check is skipped entirely.
+    When a Matrix channel account has a pending or actionable legacy state migration, doctor (in `--fix` / `--repair` mode) creates a pre-migration snapshot and then runs the best-effort migration steps: legacy Matrix state migration and legacy encrypted-state preparation. Both steps are non-fatal; errors are logged and startup continues. In read-only mode (`kova doctor` without `--fix`) this check is skipped entirely.
   </Accordion>
   <Accordion title="8c. Device pairing and auth drift">
     Doctor now inspects device-pairing state as part of the normal health pass.
@@ -352,10 +352,10 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     Doctor does not auto-approve pair requests or auto-rotate device tokens. It prints the exact next steps instead:
 
-    - inspect pending requests with `openclaw devices list`
-    - approve the exact request with `openclaw devices approve <requestId>`
-    - rotate a fresh token with `openclaw devices rotate --device <deviceId> --role <role>`
-    - remove and re-approve a stale record with `openclaw devices remove <deviceId>`
+    - inspect pending requests with `kova devices list`
+    - approve the exact request with `kova devices approve <requestId>`
+    - rotate a fresh token with `kova devices rotate --device <deviceId> --role <role>`
+    - remove and re-approve a stale record with `kova devices remove <deviceId>`
 
     This closes the common "already paired but still getting pairing required" hole: doctor now distinguishes first-time pairing from pending role/scope upgrades and from stale token/device-identity drift.
 
@@ -380,16 +380,16 @@ That stages grounded durable candidates into the short-term dreaming store while
     Doctor checks whether workspace bootstrap files (for example `AGENTS.md`, `CLAUDE.md`, or other injected context files) are near or over the configured character budget. It reports per-file raw vs. injected character counts, truncation percentage, truncation cause (`max/file` or `max/total`), and total injected characters as a fraction of the total budget. When files are truncated or near the limit, doctor prints tips for tuning `agents.defaults.bootstrapMaxChars` and `agents.defaults.bootstrapTotalMaxChars`.
   </Accordion>
   <Accordion title="11d. Stale channel plugin cleanup">
-    When `openclaw doctor --fix` removes a missing channel plugin, it also removes the dangling channel-scoped config that referenced that plugin: `channels.<id>` entries, heartbeat targets that named the channel, and `agents.*.models["<channel>/*"]` overrides. This prevents Gateway boot loops where the channel runtime is gone but config still asks the gateway to bind to it.
+    When `kova doctor --fix` removes a missing channel plugin, it also removes the dangling channel-scoped config that referenced that plugin: `channels.<id>` entries, heartbeat targets that named the channel, and `agents.*.models["<channel>/*"]` overrides. This prevents Gateway boot loops where the channel runtime is gone but config still asks the gateway to bind to it.
   </Accordion>
   <Accordion title="11c. Shell completion">
     Doctor checks whether tab completion is installed for the current shell (zsh, bash, fish, or PowerShell):
 
-    - If the shell profile uses a slow dynamic completion pattern (`source <(openclaw completion ...)`), doctor upgrades it to the faster cached file variant.
+    - If the shell profile uses a slow dynamic completion pattern (`source <(kova completion ...)`), doctor upgrades it to the faster cached file variant.
     - If completion is configured in the profile but the cache file is missing, doctor regenerates the cache automatically.
     - If no completion is configured at all, doctor prompts to install it (interactive mode only; skipped with `--non-interactive`).
 
-    Run `openclaw completion --write-state` to regenerate the cache manually.
+    Run `kova completion --write-state` to regenerate the cache manually.
 
   </Accordion>
   <Accordion title="12. Gateway auth checks (local token)">
@@ -397,13 +397,13 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     - If token mode needs a token and no token source exists, doctor offers to generate one.
     - If `gateway.auth.token` is SecretRef-managed but unavailable, doctor warns and does not overwrite it with plaintext.
-    - `openclaw doctor --generate-gateway-token` forces generation only when no token SecretRef is configured.
+    - `kova doctor --generate-gateway-token` forces generation only when no token SecretRef is configured.
 
   </Accordion>
   <Accordion title="12b. Read-only SecretRef-aware repairs">
     Some repair flows need to inspect configured credentials without weakening runtime fail-fast behavior.
 
-    - `openclaw doctor --fix` now uses the same read-only SecretRef summary model as status-family commands for targeted config repairs.
+    - `kova doctor --fix` now uses the same read-only SecretRef summary model as status-family commands for targeted config repairs.
     - Example: Telegram `allowFrom` / `groupAllowFrom` `@username` repair tries to use configured bot credentials when available.
     - If the Telegram bot token is configured via SecretRef but unavailable in the current command path, doctor reports that the credential is configured-but-unavailable and skips auto-resolution instead of crashing or misreporting the token as missing.
 
@@ -421,7 +421,7 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     When a cached gateway probe result is available (gateway was healthy at the time of the check), doctor cross-references its result with the CLI-visible config and notes any discrepancy. Doctor does not start a fresh embedding ping on the default path; use the deep memory status command when you want a live provider check.
 
-    Use `openclaw memory status --deep` to verify embedding readiness at runtime.
+    Use `kova memory status --deep` to verify embedding readiness at runtime.
 
   </Accordion>
   <Accordion title="14. Channel status warnings">
@@ -432,18 +432,18 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     Notes:
 
-    - `openclaw doctor` prompts before rewriting supervisor config.
-    - `openclaw doctor --yes` accepts the default repair prompts.
-    - `openclaw doctor --repair` applies recommended fixes without prompts.
-    - `openclaw doctor --repair --force` overwrites custom supervisor configs.
+    - `kova doctor` prompts before rewriting supervisor config.
+    - `kova doctor --yes` accepts the default repair prompts.
+    - `kova doctor --repair` applies recommended fixes without prompts.
+    - `kova doctor --repair --force` overwrites custom supervisor configs.
     - `OPENCLAW_SERVICE_REPAIR_POLICY=external` keeps doctor read-only for gateway service lifecycle. It still reports service health and runs non-service repairs, but skips service install/start/restart/bootstrap, supervisor config rewrites, and legacy service cleanup because an external supervisor owns that lifecycle.
     - If token auth requires a token and `gateway.auth.token` is SecretRef-managed, doctor service install/repair validates the SecretRef but does not persist resolved plaintext token values into supervisor service environment metadata.
     - Doctor detects managed `.env`/SecretRef-backed service environment values that older LaunchAgent, systemd, or Windows Scheduled Task installs embedded inline and rewrites the service metadata so those values load from the runtime source instead of the supervisor definition.
     - If token auth requires a token and the configured token SecretRef is unresolved, doctor blocks the install/repair path with actionable guidance.
     - If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, doctor blocks install/repair until mode is set explicitly.
     - For Linux user-systemd units, doctor token drift checks now include both `Environment=` and `EnvironmentFile=` sources when comparing service auth metadata.
-    - Doctor service repairs refuse to rewrite, stop, or restart a gateway service from an older OpenClaw binary when the config was last written by a newer version. See [Gateway troubleshooting](/gateway/troubleshooting#split-brain-installs-and-newer-config-guard).
-    - You can always force a full rewrite via `openclaw gateway install --force`.
+    - Doctor service repairs refuse to rewrite, stop, or restart a gateway service from an older Kova binary when the config was last written by a newer version. See [Gateway troubleshooting](/gateway/troubleshooting#split-brain-installs-and-newer-config-guard).
+    - You can always force a full rewrite via `kova gateway install --force`.
 
   </Accordion>
   <Accordion title="16. Gateway runtime + port diagnostics">

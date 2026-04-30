@@ -2,7 +2,7 @@
   "name": "@openclaw/deepseek-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw DeepSeek provider plugin",
+  "description": "Kova DeepSeek provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

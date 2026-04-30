@@ -2,7 +2,7 @@
   "name": "@openclaw/memory-wiki",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw persistent wiki plugin",
+  "description": "Kova persistent wiki plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.33",

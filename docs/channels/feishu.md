@@ -17,20 +17,20 @@ Feishu/Lark is an all-in-one collaboration platform where teams chat, share docu
 ## Quick start
 
 <Note>
-Requires OpenClaw 2026.4.25 or above. Run `openclaw --version` to check. Upgrade with `openclaw update`.
+Requires Kova 2026.4.25 or above. Run `kova --version` to check. Upgrade with `kova update`.
 </Note>
 
 <Steps>
   <Step title="Run the channel setup wizard">
   ```bash
-  openclaw channels login --channel feishu
+  kova channels login --channel feishu
   ```
   Scan the QR code with your Feishu/Lark mobile app to create a Feishu/Lark bot automatically.
   </Step>
   
   <Step title="After setup completes, restart the gateway to apply the changes">
   ```bash
-  openclaw gateway restart
+  kova gateway restart
   ```
   </Step>
 </Steps>
@@ -51,8 +51,8 @@ Configure `dmPolicy` to control who can DM the bot:
 **Approve a pairing request:**
 
 ```bash
-openclaw pairing list feishu
-openclaw pairing approve feishu <CODE>
+kova pairing list feishu
+kova pairing approve feishu <CODE>
 ```
 
 ### Group chats
@@ -153,13 +153,13 @@ Open the group in Feishu/Lark, click the menu icon in the top-right corner, and 
 Start the gateway, send a DM to the bot, then check the logs:
 
 ```bash
-openclaw logs --follow
+kova logs --follow
 ```
 
 Look for `open_id` in the log output. You can also check pending pairing requests:
 
 ```bash
-openclaw pairing list feishu
+kova pairing list feishu
 ```
 
 ---
@@ -185,7 +185,7 @@ Feishu/Lark does not support native slash-command menus, so send these as plain 
 1. Ensure the bot is added to the group
 2. Ensure you @mention the bot (required by default)
 3. Verify `groupPolicy` is not `"disabled"`
-4. Check logs: `openclaw logs --follow`
+4. Check logs: `kova logs --follow`
 
 ### Bot does not receive messages
 
@@ -193,14 +193,14 @@ Feishu/Lark does not support native slash-command menus, so send these as plain 
 2. Ensure event subscription includes `im.message.receive_v1`
 3. Ensure **persistent connection** (WebSocket) is selected
 4. Ensure all required permission scopes are granted
-5. Ensure the gateway is running: `openclaw gateway status`
-6. Check logs: `openclaw logs --follow`
+5. Ensure the gateway is running: `kova gateway status`
+6. Check logs: `kova logs --follow`
 
 ### App Secret leaked
 
 1. Reset the App Secret in Feishu Open Platform / Lark Developer
 2. Update the value in your config
-3. Restart the gateway: `openclaw gateway restart`
+3. Restart the gateway: `kova gateway restart`
 
 ---
 
@@ -430,7 +430,7 @@ Full configuration: [Gateway configuration](/gateway/configuration)
 - ✅ Stickers
 
 Inbound Feishu/Lark audio messages are normalized as media placeholders instead
-of raw `file_key` JSON. When `tools.media.audio` is configured, OpenClaw
+of raw `file_key` JSON. When `tools.media.audio` is configured, Kova
 downloads the voice-note resource and runs shared audio transcription before the
 agent turn, so the agent receives the spoken transcript. If Feishu includes
 transcript text directly in the audio payload, that text is used without another
@@ -454,7 +454,7 @@ is sent directly as native audio. MP3/WAV/M4A and other likely audio formats are
 transcoded to 48kHz Ogg/Opus with `ffmpeg` only when the reply requests voice
 delivery (`audioAsVoice` / message tool `asVoice`, including TTS voice-note
 replies). Ordinary MP3 attachments stay regular files. If `ffmpeg` is missing or
-conversion fails, OpenClaw falls back to a file attachment and logs the reason.
+conversion fails, Kova falls back to a file attachment and logs the reason.
 
 ### Threads and replies
 
@@ -464,7 +464,7 @@ conversion fails, OpenClaw falls back to a file attachment and logs the reason.
 
 For `groupSessionScope: "group_topic"` and `"group_topic_sender"`, native
 Feishu/Lark topic groups use the event `thread_id` (`omt_*`) as the canonical
-topic session key. Normal group replies that OpenClaw turns into threads keep
+topic session key. Normal group replies that Kova turns into threads keep
 using the reply root message ID (`om_*`) so the first turn and follow-up turn
 stay in the same session.
 

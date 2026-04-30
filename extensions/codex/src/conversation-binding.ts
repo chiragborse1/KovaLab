@@ -216,7 +216,7 @@ async function createThread(params: {
       sandbox: runtime.sandbox,
       ...(runtime.serviceTier ? { serviceTier: runtime.serviceTier } : {}),
       developerInstructions:
-        "This Codex thread is bound to an OpenClaw conversation. Answer normally; OpenClaw will deliver your final response back to the conversation.",
+        "This Codex thread is bound to a Kova conversation. Answer normally; Kova will deliver your final response back to the conversation.",
       experimentalRawEvents: true,
       persistExtendedHistory: true,
     },
@@ -263,7 +263,7 @@ async function runBoundTurn(params: {
           contentItems: [
             {
               type: "inputText",
-              text: "OpenClaw native Codex conversation binding does not expose dynamic OpenClaw tools yet.",
+              text: "Kova native Codex conversation binding does not expose dynamic Kova tools yet.",
             },
           ],
           success: false,
@@ -276,7 +276,7 @@ async function runBoundTurn(params: {
         return {
           decision: "decline",
           reason:
-            "OpenClaw native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
+            "Kova native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
         };
       }
       if (request.method === "item/permissions/requestApproval") {
@@ -286,7 +286,7 @@ async function runBoundTurn(params: {
         return {
           decision: "decline",
           reason:
-            "OpenClaw native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
+            "Kova native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.",
         };
       }
       return undefined;

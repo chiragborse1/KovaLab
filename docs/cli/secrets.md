@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `openclaw secrets` (reload, audit, configure, apply)"
+summary: "CLI reference for `kova secrets` (reload, audit, configure, apply)"
 read_when:
   - Re-resolving secret refs at runtime
   - Auditing plaintext residues and unresolved refs
@@ -7,9 +7,9 @@ read_when:
 title: "Secrets"
 ---
 
-# `openclaw secrets`
+# `kova secrets`
 
-Use `openclaw secrets` to manage SecretRefs and keep the active runtime snapshot healthy.
+Use `kova secrets` to manage SecretRefs and keep the active runtime snapshot healthy.
 
 Command roles:
 
@@ -21,12 +21,12 @@ Command roles:
 Recommended operator loop:
 
 ```bash
-openclaw secrets audit --check
-openclaw secrets configure
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json
-openclaw secrets audit --check
-openclaw secrets reload
+kova secrets audit --check
+kova secrets configure
+kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
+kova secrets apply --from /tmp/openclaw-secrets-plan.json
+kova secrets audit --check
+kova secrets reload
 ```
 
 If your plan includes `exec` SecretRefs/providers, pass `--allow-exec` on both dry-run and write apply commands.
@@ -47,9 +47,9 @@ Related:
 Re-resolve secret refs and atomically swap runtime snapshot.
 
 ```bash
-openclaw secrets reload
-openclaw secrets reload --json
-openclaw secrets reload --url ws://127.0.0.1:18789 --token <token>
+kova secrets reload
+kova secrets reload --json
+kova secrets reload --url ws://127.0.0.1:18789 --token <token>
 ```
 
 Notes:
@@ -67,7 +67,7 @@ Options:
 
 ## Audit
 
-Scan OpenClaw state for:
+Scan Kova state for:
 
 - plaintext secret storage
 - unresolved refs
@@ -80,10 +80,10 @@ Header residue note:
 - Sensitive provider header detection is name-heuristic based (common auth/credential header names and fragments such as `authorization`, `x-api-key`, `token`, `secret`, `password`, and `credential`).
 
 ```bash
-openclaw secrets audit
-openclaw secrets audit --check
-openclaw secrets audit --json
-openclaw secrets audit --allow-exec
+kova secrets audit
+kova secrets audit --check
+kova secrets audit --json
+kova secrets audit --allow-exec
 ```
 
 Exit behavior:
@@ -107,13 +107,13 @@ Report shape highlights:
 Build provider and SecretRef changes interactively, run preflight, and optionally apply:
 
 ```bash
-openclaw secrets configure
-openclaw secrets configure --plan-out /tmp/openclaw-secrets-plan.json
-openclaw secrets configure --apply --yes
-openclaw secrets configure --providers-only
-openclaw secrets configure --skip-provider-setup
-openclaw secrets configure --agent ops
-openclaw secrets configure --json
+kova secrets configure
+kova secrets configure --plan-out /tmp/openclaw-secrets-plan.json
+kova secrets configure --apply --yes
+kova secrets configure --providers-only
+kova secrets configure --skip-provider-setup
+kova secrets configure --agent ops
+kova secrets configure --json
 ```
 
 Flow:
@@ -148,18 +148,18 @@ Exec provider safety note:
 
 - Homebrew installs often expose symlinked binaries under `/opt/homebrew/bin/*`.
 - Set `allowSymlinkCommand: true` only when needed for trusted package-manager paths, and pair it with `trustedDirs` (for example `["/opt/homebrew"]`).
-- On Windows, if ACL verification is unavailable for a provider path, OpenClaw fails closed. For trusted paths only, set `allowInsecurePath: true` on that provider to bypass path security checks.
+- On Windows, if ACL verification is unavailable for a provider path, Kova fails closed. For trusted paths only, set `allowInsecurePath: true` on that provider to bypass path security checks.
 
 ## Apply a saved plan
 
 Apply or preflight a plan generated previously:
 
 ```bash
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --json
+kova secrets apply --from /tmp/openclaw-secrets-plan.json
+kova secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
+kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
+kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
+kova secrets apply --from /tmp/openclaw-secrets-plan.json --json
 ```
 
 Exec behavior:
@@ -189,9 +189,9 @@ Safety comes from strict preflight + atomic-ish apply with best-effort in-memory
 ## Example
 
 ```bash
-openclaw secrets audit --check
-openclaw secrets configure
-openclaw secrets audit --check
+kova secrets audit --check
+kova secrets configure
+kova secrets audit --check
 ```
 
 If `audit --check` still reports plaintext findings, update the remaining reported target paths and rerun audit.

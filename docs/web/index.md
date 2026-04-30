@@ -50,7 +50,7 @@ Keep the Gateway on loopback and let Tailscale Serve proxy it:
 Then start the gateway:
 
 ```bash
-openclaw gateway
+kova gateway
 ```
 
 Open:
@@ -73,7 +73,7 @@ Then start the gateway (this non-loopback example uses shared-secret token
 auth):
 
 ```bash
-openclaw gateway
+kova gateway
 ```
 
 Open:

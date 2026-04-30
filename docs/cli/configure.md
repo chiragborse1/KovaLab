@@ -1,25 +1,25 @@
 ---
-summary: "CLI reference for `openclaw configure` (interactive configuration prompts)"
+summary: "CLI reference for `kova configure` (interactive configuration prompts)"
 read_when:
   - You want to tweak credentials, devices, or agent defaults interactively
 title: "Configure"
 ---
 
-# `openclaw configure`
+# `kova configure`
 
 Interactive prompt to set up credentials, devices, and agent defaults.
 
 <Note>
-The **Model** section includes a multi-select for the `agents.defaults.models` allowlist (what shows up in `/model` and the model picker). Provider-scoped setup choices merge their selected models into the existing allowlist instead of replacing unrelated providers already in the config. Re-running provider auth from configure preserves an existing `agents.defaults.model.primary`. Use `openclaw models auth login --provider <id> --set-default` or `openclaw models set <model>` when you intentionally want to change the default model.
+The **Model** section includes a multi-select for the `agents.defaults.models` allowlist (what shows up in `/model` and the model picker). Provider-scoped setup choices merge their selected models into the existing allowlist instead of replacing unrelated providers already in the config. Re-running provider auth from configure preserves an existing `agents.defaults.model.primary`. Use `kova models auth login --provider <id> --set-default` or `kova models set <model>` when you intentionally want to change the default model.
 </Note>
 
 When configure starts from a provider auth choice, the default-model and allowlist pickers prefer that provider automatically. For paired providers such as Volcengine and BytePlus, the same preference also matches their coding-plan variants (`volcengine-plan/*`, `byteplus-plan/*`). If the preferred-provider filter would produce an empty list, configure falls back to the unfiltered catalog instead of showing a blank picker.
 
 <Tip>
-`openclaw config` without a subcommand opens the same wizard. Use `openclaw config get|set|unset` for non-interactive edits.
+`kova config` without a subcommand opens the same wizard. Use `kova config get|set|unset` for non-interactive edits.
 </Tip>
 
-For web search, `openclaw configure --section web` lets you choose a provider
+For web search, `kova configure --section web` lets you choose a provider
 and configure its credentials. Some providers also show provider-specific
 follow-up prompts:
 
@@ -60,10 +60,10 @@ Notes:
 ## Examples
 
 ```bash
-openclaw configure
-openclaw configure --section web
-openclaw configure --section model --section channels
-openclaw configure --section gateway --section daemon
+kova configure
+kova configure --section web
+kova configure --section model --section channels
+kova configure --section gateway --section daemon
 ```
 
 ## Related

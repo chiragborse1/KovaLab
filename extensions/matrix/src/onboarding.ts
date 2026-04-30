@@ -242,7 +242,7 @@ async function configureMatrixInviteAutoJoin(params: {
   await params.prompter.note(
     [
       "WARNING: Matrix invite auto-join defaults to off.",
-      "OpenClaw agents will not join invited rooms or fresh DM-style invites unless you set autoJoin.",
+      "Kova agents will not join invited rooms or fresh DM-style invites unless you set autoJoin.",
       'Choose "allowlist" to restrict joins or "always" to join every invite.',
     ].join("\n"),
     "Matrix invite auto-join",
@@ -633,7 +633,7 @@ async function runMatrixConfigure(params: {
     normalizeStringifiedOptionalString(
       await params.prompter.text({
         message: "Matrix device name (optional)",
-        initialValue: existing.deviceName ?? "OpenClaw Gateway",
+        initialValue: existing.deviceName ?? "Kova Gateway",
       }),
     ) ?? "";
 

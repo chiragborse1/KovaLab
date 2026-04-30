@@ -62,7 +62,7 @@ function rewriteOpenAICodexOAuthError(error: unknown): Error {
       "unsupported_region",
       [
         "OpenAI rejected the token exchange for this country, region, or network route.",
-        "If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the OpenClaw process and then retry `openclaw models auth login --provider openai-codex`.",
+        "If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the Kova process and then retry `openclaw models auth login --provider openai-codex`.",
       ].join(" "),
       error,
     );

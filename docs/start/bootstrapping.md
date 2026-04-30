@@ -14,7 +14,7 @@ for the first time.
 
 ## What bootstrapping does
 
-On the first agent run, OpenClaw bootstraps the workspace (default
+On the first agent run, Kova bootstraps the workspace (default
 `~/.openclaw/workspace`):
 
 - Seeds `AGENTS.md`, `BOOTSTRAP.md`, `IDENTITY.md`, `USER.md`.
@@ -24,7 +24,7 @@ On the first agent run, OpenClaw bootstraps the workspace (default
 
 ## Skipping bootstrapping
 
-To skip this for a pre-seeded workspace, run `openclaw onboard --skip-bootstrap`.
+To skip this for a pre-seeded workspace, run `kova onboard --skip-bootstrap`.
 
 ## Where it runs
 

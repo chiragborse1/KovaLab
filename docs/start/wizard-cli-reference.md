@@ -1,13 +1,13 @@
 ---
 summary: "Complete reference for CLI setup flow, auth/model setup, outputs, and internals"
 read_when:
-  - You need detailed behavior for openclaw onboard
+  - You need detailed behavior for kova onboard
   - You are debugging onboarding results or integrating onboarding clients
 title: "CLI setup reference"
 sidebarTitle: "CLI reference"
 ---
 
-This page is the full reference for `openclaw onboard`.
+This page is the full reference for `kova onboard`.
 For the short guide, see [Onboarding (CLI)](/start/wizard).
 
 ## What the wizard does
@@ -32,7 +32,7 @@ It does not install or modify anything on the remote host.
     - If `~/.openclaw/openclaw.json` exists, choose Keep, Modify, or Reset.
     - Re-running the wizard does not wipe anything unless you explicitly choose Reset (or pass `--reset`).
     - CLI `--reset` defaults to `config+creds+sessions`; use `--reset-scope full` to also remove workspace.
-    - If config is invalid or contains legacy keys, the wizard stops and asks you to run `openclaw doctor` before continuing.
+    - If config is invalid or contains legacy keys, the wizard stops and asks you to run `kova doctor` before continuing.
     - Reset uses `trash` and offers scopes:
       - Config only
       - Config + credentials + sessions
@@ -69,7 +69,7 @@ It does not install or modify anything on the remote host.
     - [BlueBubbles](/channels/bluebubbles): recommended for iMessage; server URL + password + webhook
     - [iMessage](/channels/imessage): legacy `imsg` CLI path + DB access
     - DM security: default is pairing. First DM sends a code; approve via
-      `openclaw pairing approve <channel> <code>` or use allowlists.
+      `kova pairing approve <channel> <code>` or use allowlists.
   </Step>
   <Step title="Daemon install">
     - macOS: LaunchAgent
@@ -78,13 +78,13 @@ It does not install or modify anything on the remote host.
       - Wizard attempts `loginctl enable-linger <user>` so gateway stays up after logout.
       - May prompt for sudo (writes `/var/lib/systemd/linger`); it tries without sudo first.
     - Native Windows: Scheduled Task first
-      - If task creation is denied, OpenClaw falls back to a per-user Startup-folder login item and starts the gateway immediately.
+      - If task creation is denied, Kova falls back to a per-user Startup-folder login item and starts the gateway immediately.
       - Scheduled Tasks remain preferred because they provide better supervisor status.
     - Runtime selection: Node (recommended; required for WhatsApp and Telegram). Bun is not recommended.
   </Step>
   <Step title="Health check">
-    - Starts gateway (if needed) and runs `openclaw health`.
-    - `openclaw status --deep` adds the live gateway health probe to status output, including channel probes when supported.
+    - Starts gateway (if needed) and runs `kova health`.
+    - `kova status --deep` adds the live gateway health probe to status output, including channel probes when supported.
   </Step>
   <Step title="Skills">
     - Reads available skills and checks requirements.
@@ -276,7 +276,7 @@ Typical fields in `~/.openclaw/openclaw.json`:
 - `wizard.lastRunCommand`
 - `wizard.lastRunMode`
 
-`openclaw agents add` writes `agents.list[]` and optional `bindings`.
+`kova agents add` writes `agents.list[]` and optional `bindings`.
 
 WhatsApp credentials go under `~/.openclaw/credentials/whatsapp/<accountId>/`.
 Sessions are stored under `~/.openclaw/agents/<agentId>/sessions/`.
@@ -308,4 +308,4 @@ Signal setup behavior:
 
 - Onboarding hub: [Onboarding (CLI)](/start/wizard)
 - Automation and scripts: [CLI Automation](/start/wizard-cli-automation)
-- Command reference: [`openclaw onboard`](/cli/onboard)
+- Command reference: [`kova onboard`](/cli/onboard)

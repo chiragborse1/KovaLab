@@ -1,12 +1,12 @@
 ---
-summary: "Community-maintained OpenClaw plugins: browse, install, and submit your own"
+summary: "Community-maintained Kova plugins: browse, install, and submit your own"
 read_when:
-  - You want to find third-party OpenClaw plugins
+  - You want to find third-party Kova plugins
   - You want to publish or list your own plugin
 title: "Community plugins"
 ---
 
-Community plugins are third-party packages that extend OpenClaw with new
+Community plugins are third-party packages that extend Kova with new
 channels, tools, providers, or other capabilities. They are built and maintained
 by the community, published on [ClawHub](/tools/clawhub) or npm, and
 installable with a single command.
@@ -16,10 +16,10 @@ docs-only PRs just to add your plugin here for discoverability; publish it on
 ClawHub instead.
 
 ```bash
-openclaw plugins install <package-name>
+kova plugins install <package-name>
 ```
 
-OpenClaw checks ClawHub first and falls back to npm automatically.
+Kova checks ClawHub first and falls back to npm automatically.
 
 ## Listed plugins
 
@@ -33,12 +33,12 @@ Search, e-commerce sites, and more — just by asking.
 - **repo:** [github.com/apify/apify-openclaw-plugin](https://github.com/apify/apify-openclaw-plugin)
 
 ```bash
-openclaw plugins install @apify/apify-openclaw-plugin
+kova plugins install @apify/apify-openclaw-plugin
 ```
 
 ### Codex App Server Bridge
 
-Independent OpenClaw bridge for Codex App Server conversations. Bind a chat to
+Independent Kova bridge for Codex App Server conversations. Bind a chat to
 a Codex thread, talk to it with plain text, and control it with chat-native
 commands for resume, planning, review, model selection, compaction, and more.
 
@@ -46,7 +46,7 @@ commands for resume, planning, review, model selection, compaction, and more.
 - **repo:** [github.com/pwrdrvr/openclaw-codex-app-server](https://github.com/pwrdrvr/openclaw-codex-app-server)
 
 ```bash
-openclaw plugins install openclaw-codex-app-server
+kova plugins install openclaw-codex-app-server
 ```
 
 ### DingTalk
@@ -58,12 +58,12 @@ file messages via any DingTalk client.
 - **repo:** [github.com/largezhou/openclaw-dingtalk](https://github.com/largezhou/openclaw-dingtalk)
 
 ```bash
-openclaw plugins install @largezhou/ddingtalk
+kova plugins install @largezhou/ddingtalk
 ```
 
 ### Lossless Claw (LCM)
 
-Lossless Context Management plugin for OpenClaw. DAG-based conversation
+Lossless Context Management plugin for Kova. DAG-based conversation
 summarization with incremental compaction — preserves full context fidelity
 while reducing token usage.
 
@@ -71,7 +71,7 @@ while reducing token usage.
 - **repo:** [github.com/Martian-Engineering/lossless-claw](https://github.com/Martian-Engineering/lossless-claw)
 
 ```bash
-openclaw plugins install @martian-engineering/lossless-claw
+kova plugins install @martian-engineering/lossless-claw
 ```
 
 ### Opik
@@ -83,12 +83,12 @@ cost, tokens, errors, and more.
 - **repo:** [github.com/comet-ml/opik-openclaw](https://github.com/comet-ml/opik-openclaw)
 
 ```bash
-openclaw plugins install @opik/opik-openclaw
+kova plugins install @opik/opik-openclaw
 ```
 
 ### Prometheus Avatar
 
-Give your OpenClaw agent a Live2D avatar with real-time lip-sync, emotion
+Give your Kova agent a Live2D avatar with real-time lip-sync, emotion
 expressions, and text-to-speech. Includes creator tools for AI asset generation
 and one-click deployment to the Prometheus Marketplace. Currently in alpha.
 
@@ -96,16 +96,16 @@ and one-click deployment to the Prometheus Marketplace. Currently in alpha.
 - **repo:** [github.com/myths-labs/prometheus-avatar](https://github.com/myths-labs/prometheus-avatar)
 
 ```bash
-openclaw plugins install @prometheusavatar/openclaw-plugin
+kova plugins install @prometheusavatar/openclaw-plugin
 ```
 
 ### QQbot
 
-Connect OpenClaw to QQ via the QQ Bot API. Supports private chats, group
+Connect Kova to QQ via the QQ Bot API. Supports private chats, group
 mentions, channel messages, and rich media including voice, images, videos,
 and files.
 
-Current OpenClaw releases bundle QQ Bot. Use the bundled setup in
+Current Kova releases bundle QQ Bot. Use the bundled setup in
 [QQ Bot](/channels/qqbot) for normal installs; install this external plugin only
 when you intentionally want the Tencent-maintained standalone package.
 
@@ -113,12 +113,12 @@ when you intentionally want the Tencent-maintained standalone package.
 - **repo:** [github.com/tencent-connect/openclaw-qqbot](https://github.com/tencent-connect/openclaw-qqbot)
 
 ```bash
-openclaw plugins install @tencent-connect/openclaw-qqbot
+kova plugins install @tencent-connect/openclaw-qqbot
 ```
 
 ### wecom
 
-WeCom channel plugin for OpenClaw by the Tencent WeCom team. Powered by
+WeCom channel plugin for Kova by the Tencent WeCom team. Powered by
 WeCom Bot WebSocket persistent connections, it supports direct messages & group
 chats, streaming replies, proactive messaging, image/file processing, Markdown
 formatting, built-in access control, and document/meeting/messaging skills.
@@ -127,7 +127,7 @@ formatting, built-in access control, and document/meeting/messaging skills.
 - **repo:** [github.com/WecomTeam/wecom-openclaw-plugin](https://github.com/WecomTeam/wecom-openclaw-plugin)
 
 ```bash
-openclaw plugins install @wecom/wecom-openclaw-plugin
+kova plugins install @wecom/wecom-openclaw-plugin
 ```
 
 ## Submit your plugin
@@ -136,7 +136,7 @@ We welcome community plugins that are useful, documented, and safe to operate.
 
 <Steps>
   <Step title="Publish to ClawHub or npm">
-    Your plugin must be installable via `openclaw plugins install \<package-name\>`.
+    Your plugin must be installable via `kova plugins install \<package-name\>`.
     Publish to [ClawHub](/tools/clawhub) (preferred) or npm.
     See [Building Plugins](/plugins/building-plugins) for the full guide.
 
@@ -152,7 +152,7 @@ We welcome community plugins that are useful, documented, and safe to operate.
     You do not need a docs PR just to make your plugin discoverable. Publish it
     on ClawHub instead.
 
-    Open a docs PR only when OpenClaw's source docs need an actual content
+    Open a docs PR only when Kova's source docs need an actual content
     change, such as correcting install guidance or adding cross-repo
     documentation that belongs in the main docs set.
 
@@ -163,7 +163,7 @@ We welcome community plugins that are useful, documented, and safe to operate.
 
 | Requirement                 | Why                                           |
 | --------------------------- | --------------------------------------------- |
-| Published on ClawHub or npm | Users need `openclaw plugins install` to work |
+| Published on ClawHub or npm | Users need `kova plugins install` to work |
 | Public GitHub repo          | Source review, issue tracking, transparency   |
 | Setup and usage docs        | Users need to know how to configure it        |
 | Active maintenance          | Recent updates or responsive issue handling   |

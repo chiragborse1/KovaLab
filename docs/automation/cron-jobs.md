@@ -2,7 +2,7 @@
 summary: "Scheduled jobs, webhooks, and Gmail PubSub triggers for the Gateway scheduler"
 read_when:
   - Scheduling background jobs or wakeups
-  - Wiring external triggers (webhooks, Gmail) into OpenClaw
+  - Wiring external triggers (webhooks, Gmail) into Kova
   - Deciding between heartbeat and cron for scheduled tasks
 title: "Scheduled tasks"
 sidebarTitle: "Scheduled tasks"
@@ -15,7 +15,7 @@ Cron is the Gateway's built-in scheduler. It persists jobs, wakes the agent at t
 <Steps>
   <Step title="Add a one-shot reminder">
     ```bash
-    openclaw cron add \
+    kova cron add \
       --name "Reminder" \
       --at "2026-02-01T16:00:00Z" \
       --session main \
@@ -26,13 +26,13 @@ Cron is the Gateway's built-in scheduler. It persists jobs, wakes the agent at t
   </Step>
   <Step title="Check your jobs">
     ```bash
-    openclaw cron list
-    openclaw cron show <job-id>
+    kova cron list
+    kova cron show <job-id>
     ```
   </Step>
   <Step title="See run history">
     ```bash
-    openclaw cron runs --id <job-id>
+    kova cron runs --id <job-id>
     ```
   </Step>
 </Steps>
@@ -42,12 +42,12 @@ Cron is the Gateway's built-in scheduler. It persists jobs, wakes the agent at t
 - Cron runs **inside the Gateway** process (not inside the model).
 - Job definitions persist at `~/.openclaw/cron/jobs.json` so restarts do not lose schedules.
 - Runtime execution state persists next to it in `~/.openclaw/cron/jobs-state.json`. If you track cron definitions in git, track `jobs.json` and gitignore `jobs-state.json`.
-- After the split, older OpenClaw versions can read `jobs.json` but may treat jobs as fresh because runtime fields now live in `jobs-state.json`.
-- When `jobs.json` is edited while the Gateway is running or stopped, OpenClaw compares the changed schedule fields with pending runtime slot metadata and clears stale `nextRunAtMs` values. Pure formatting or key-order-only rewrites preserve the pending slot.
+- After the split, older Kova versions can read `jobs.json` but may treat jobs as fresh because runtime fields now live in `jobs-state.json`.
+- When `jobs.json` is edited while the Gateway is running or stopped, Kova compares the changed schedule fields with pending runtime slot metadata and clears stale `nextRunAtMs` values. Pure formatting or key-order-only rewrites preserve the pending slot.
 - All cron executions create [background task](/automation/tasks) records.
 - One-shot jobs (`--at`) auto-delete after success by default.
 - Isolated cron runs best-effort close tracked browser tabs/processes for their `cron:<jobId>` session when the run completes, so detached browser automation does not leave orphaned processes behind.
-- Isolated cron runs also guard against stale acknowledgement replies. If the first result is just an interim status update (`on it`, `pulling everything together`, and similar hints) and no descendant subagent run is still responsible for the final answer, OpenClaw re-prompts once for the actual result before delivery.
+- Isolated cron runs also guard against stale acknowledgement replies. If the first result is just an interim status update (`on it`, `pulling everything together`, and similar hints) and no descendant subagent run is still responsible for the final answer, Kova re-prompts once for the actual result before delivery.
 - Isolated cron runs prefer structured execution-denial metadata from the embedded run, then fall back to known final summary/output markers such as `SYSTEM_RUN_DENIED` and `INVALID_REQUEST`, so a blocked command is not reported as a green run.
 - Isolated cron runs also treat run-level agent failures as job errors even when no reply payload is produced, so model/provider failures increment error counters and trigger failure notifications instead of clearing the job as successful.
 
@@ -79,7 +79,7 @@ Cron expressions are parsed by [croner](https://github.com/Hexagon/croner). When
 0 9 15 * 1
 ```
 
-This fires ~5–6 times per month instead of 0–1 times per month. OpenClaw uses Croner's default OR behavior here. To require both conditions, use Croner's `+` day-of-week modifier (`0 9 15 * +1`) or schedule on one field and guard the other in your job's prompt or command.
+This fires ~5–6 times per month instead of 0–1 times per month. Kova uses Croner's default OR behavior here. To require both conditions, use Croner's `+` day-of-week modifier (`0 9 15 * +1`) or schedule on one field and guard the other in your job's prompt or command.
 
 ## Execution styles
 
@@ -95,7 +95,7 @@ This fires ~5–6 times per month instead of 0–1 times per month. OpenClaw use
     **Main session** jobs enqueue a system event and optionally wake the heartbeat (`--wake now` or `--wake next-heartbeat`). Those system events do not extend daily/idle reset freshness for the target session. **Isolated** jobs run a dedicated agent turn with a fresh session. **Custom sessions** (`session:xxx`) persist context across runs, enabling workflows like daily standups that build on previous summaries.
   </Accordion>
   <Accordion title="What 'fresh session' means for isolated jobs">
-    For isolated jobs, "fresh session" means a new transcript/session id for each run. OpenClaw may carry safe preferences such as thinking/fast/verbose settings, labels, and explicit user-selected model/auth overrides, but it does not inherit ambient conversation context from an older cron row: channel/group routing, send or queue policy, elevation, origin, or ACP runtime binding. Use `current` or `session:<id>` when a recurring job should deliberately build on the same conversation context.
+    For isolated jobs, "fresh session" means a new transcript/session id for each run. Kova may carry safe preferences such as thinking/fast/verbose settings, labels, and explicit user-selected model/auth overrides, but it does not inherit ambient conversation context from an older cron row: channel/group routing, send or queue policy, elevation, origin, or ACP runtime binding. Use `current` or `session:<id>` when a recurring job should deliberately build on the same conversation context.
   </Accordion>
   <Accordion title="Runtime cleanup">
     For isolated jobs, runtime teardown now includes best-effort browser cleanup for that cron session. Cleanup failures are ignored so the actual cron result still wins.
@@ -104,9 +104,9 @@ This fires ~5–6 times per month instead of 0–1 times per month. OpenClaw use
 
   </Accordion>
   <Accordion title="Subagent and Discord delivery">
-    When isolated cron runs orchestrate subagents, delivery also prefers the final descendant output over stale parent interim text. If descendants are still running, OpenClaw suppresses that partial parent update instead of announcing it.
+    When isolated cron runs orchestrate subagents, delivery also prefers the final descendant output over stale parent interim text. If descendants are still running, Kova suppresses that partial parent update instead of announcing it.
 
-    For text-only Discord announce targets, OpenClaw sends the canonical final assistant text once instead of replaying both streamed/intermediate text payloads and the final answer. Media and structured Discord payloads are still delivered as separate payloads so attachments and components are not dropped.
+    For text-only Discord announce targets, Kova sends the canonical final assistant text once instead of replaying both streamed/intermediate text payloads and the final answer. Media and structured Discord payloads are still delivered as separate payloads so attachments and components are not dropped.
 
   </Accordion>
 </AccordionGroup>
@@ -152,9 +152,9 @@ If an isolated run hits a live model-switch handoff, cron retries with the switc
 
 Use `--announce --channel telegram --to "-1001234567890"` for channel delivery. For Telegram forum topics, use `-1001234567890:topic:123`. Slack/Discord/Mattermost targets should use explicit prefixes (`channel:<id>`, `user:<id>`). Matrix room IDs are case-sensitive; use the exact room ID or `room:!room:server` form from Matrix.
 
-For isolated jobs, chat delivery is shared. If a chat route is available, the agent can use the `message` tool even when the job uses `--no-deliver`. If the agent sends to the configured/current target, OpenClaw skips the fallback announce. Otherwise `announce`, `webhook`, and `none` only control what the runner does with the final reply after the agent turn.
+For isolated jobs, chat delivery is shared. If a chat route is available, the agent can use the `message` tool even when the job uses `--no-deliver`. If the agent sends to the configured/current target, Kova skips the fallback announce. Otherwise `announce`, `webhook`, and `none` only control what the runner does with the final reply after the agent turn.
 
-When an agent creates an isolated reminder from an active chat, OpenClaw stores the preserved live delivery target for the fallback announce route. Internal session keys may be lowercase; provider delivery targets are not reconstructed from those keys when current chat context is available.
+When an agent creates an isolated reminder from an active chat, Kova stores the preserved live delivery target for the fallback announce route. Internal session keys may be lowercase; provider delivery targets are not reconstructed from those keys when current chat context is available.
 
 Failure notifications follow a separate destination path:
 
@@ -169,7 +169,7 @@ Failure notifications follow a separate destination path:
 <Tabs>
   <Tab title="One-shot reminder">
     ```bash
-    openclaw cron add \
+    kova cron add \
       --name "Calendar check" \
       --at "20m" \
       --session main \
@@ -179,7 +179,7 @@ Failure notifications follow a separate destination path:
   </Tab>
   <Tab title="Recurring isolated job">
     ```bash
-    openclaw cron add \
+    kova cron add \
       --name "Morning brief" \
       --cron "0 7 * * *" \
       --tz "America/Los_Angeles" \
@@ -192,7 +192,7 @@ Failure notifications follow a separate destination path:
   </Tab>
   <Tab title="Model and thinking override">
     ```bash
-    openclaw cron add \
+    kova cron add \
       --name "Deep analysis" \
       --cron "0 6 * * 1" \
       --tz "America/Los_Angeles" \
@@ -278,16 +278,16 @@ Keep hook endpoints behind loopback, tailnet, or trusted reverse proxy.
 
 ## Gmail PubSub integration
 
-Wire Gmail inbox triggers to OpenClaw via Google PubSub.
+Wire Gmail inbox triggers to Kova via Google PubSub.
 
 <Note>
-**Prerequisites:** `gcloud` CLI, `gog` (gogcli), OpenClaw hooks enabled, Tailscale for the public HTTPS endpoint.
+**Prerequisites:** `gcloud` CLI, `gog` (gogcli), Kova hooks enabled, Tailscale for the public HTTPS endpoint.
 </Note>
 
 ### Wizard setup (recommended)
 
 ```bash
-openclaw webhooks gmail setup --account openclaw@gmail.com
+kova webhooks gmail setup --account openclaw@gmail.com
 ```
 
 This writes `hooks.gmail` config, enables the Gmail preset, and uses Tailscale Funnel for the push endpoint.
@@ -344,35 +344,35 @@ When `hooks.enabled=true` and `hooks.gmail.account` is set, the Gateway starts `
 
 ```bash
 # List all jobs
-openclaw cron list
+kova cron list
 
 # Show one job, including resolved delivery route
-openclaw cron show <jobId>
+kova cron show <jobId>
 
 # Edit a job
-openclaw cron edit <jobId> --message "Updated prompt" --model "opus"
+kova cron edit <jobId> --message "Updated prompt" --model "opus"
 
 # Force run a job now
-openclaw cron run <jobId>
+kova cron run <jobId>
 
 # Run only if due
-openclaw cron run <jobId> --due
+kova cron run <jobId> --due
 
 # View run history
-openclaw cron runs --id <jobId> --limit 50
+kova cron runs --id <jobId> --limit 50
 
 # Delete a job
-openclaw cron remove <jobId>
+kova cron remove <jobId>
 
 # Agent selection (multi-agent setups)
-openclaw cron add --name "Ops sweep" --cron "0 6 * * *" --session isolated --message "Check ops queue" --agent ops
-openclaw cron edit <jobId> --clear-agent
+kova cron add --name "Ops sweep" --cron "0 6 * * *" --session isolated --message "Check ops queue" --agent ops
+kova cron edit <jobId> --clear-agent
 ```
 
 <Note>
 Model override note:
 
-- `openclaw cron add|edit --model ...` changes the job's selected model.
+- `kova cron add|edit --model ...` changes the job's selected model.
 - If the model is allowed, that exact provider/model reaches the isolated agent run.
 - If it is not allowed, cron warns and falls back to the job's agent/default model selection.
 - Configured fallback chains still apply, but a plain `--model` override with no explicit per-job fallback list no longer falls through to the agent primary as a silent extra retry target.
@@ -402,7 +402,7 @@ Model override note:
 
 The runtime state sidecar is derived from `cron.store`: a `.json` store such as `~/clawd/cron/jobs.json` uses `~/clawd/cron/jobs-state.json`, while a store path without a `.json` suffix appends `-state.json`.
 
-If you hand-edit `jobs.json`, leave `jobs-state.json` out of source control. OpenClaw uses that sidecar for pending slots, active markers, last-run metadata, and the schedule identity that tells the scheduler when an externally edited job needs a fresh `nextRunAtMs`.
+If you hand-edit `jobs.json`, leave `jobs-state.json` out of source control. Kova uses that sidecar for pending slots, active markers, last-run metadata, and the schedule identity that tells the scheduler when an externally edited job needs a fresh `nextRunAtMs`.
 
 Disable cron: `cron.enabled: false` or `OPENCLAW_SKIP_CRON=1`.
 
@@ -423,14 +423,14 @@ Disable cron: `cron.enabled: false` or `OPENCLAW_SKIP_CRON=1`.
 ### Command ladder
 
 ```bash
-openclaw status
-openclaw gateway status
-openclaw cron status
-openclaw cron list
-openclaw cron runs --id <jobId> --limit 20
-openclaw system heartbeat last
-openclaw logs --follow
-openclaw doctor
+kova status
+kova gateway status
+kova cron status
+kova cron list
+kova cron runs --id <jobId> --limit 20
+kova system heartbeat last
+kova logs --follow
+kova doctor
 ```
 
 <AccordionGroup>
@@ -438,20 +438,20 @@ openclaw doctor
     - Check `cron.enabled` and `OPENCLAW_SKIP_CRON` env var.
     - Confirm the Gateway is running continuously.
     - For `cron` schedules, verify timezone (`--tz`) vs the host timezone.
-    - `reason: not-due` in run output means manual run was checked with `openclaw cron run <jobId> --due` and the job was not due yet.
+    - `reason: not-due` in run output means manual run was checked with `kova cron run <jobId> --due` and the job was not due yet.
   </Accordion>
   <Accordion title="Cron fired but no delivery">
     - Delivery mode `none` means no runner fallback send is expected. The agent can still send directly with the `message` tool when a chat route is available.
     - Delivery target missing/invalid (`channel`/`to`) means outbound was skipped.
     - For Matrix, copied or legacy jobs with lowercased `delivery.to` room IDs can fail because Matrix room IDs are case-sensitive. Edit the job to the exact `!room:server` or `room:!room:server` value from Matrix.
     - Channel auth errors (`unauthorized`, `Forbidden`) mean delivery was blocked by credentials.
-    - If the isolated run returns only the silent token (`NO_REPLY` / `no_reply`), OpenClaw suppresses direct outbound delivery and also suppresses the fallback queued summary path, so nothing is posted back to chat.
+    - If the isolated run returns only the silent token (`NO_REPLY` / `no_reply`), Kova suppresses direct outbound delivery and also suppresses the fallback queued summary path, so nothing is posted back to chat.
     - If the agent should message the user itself, check that the job has a usable route (`channel: "last"` with a previous chat, or an explicit channel/target).
   </Accordion>
   <Accordion title="Cron or heartbeat appears to prevent /new-style rollover">
     - Daily and idle reset freshness is not based on `updatedAt`; see [Session management](/concepts/session#session-lifecycle).
     - Cron wakeups, heartbeat runs, exec notifications, and gateway bookkeeping may update the session row for routing/status, but they do not extend `sessionStartedAt` or `lastInteractionAt`.
-    - For legacy rows created before those fields existed, OpenClaw can recover `sessionStartedAt` from the transcript JSONL session header when the file is still available. Legacy idle rows without `lastInteractionAt` use that recovered start time as their idle baseline.
+    - For legacy rows created before those fields existed, Kova can recover `sessionStartedAt` from the transcript JSONL session header when the file is still available. Legacy idle rows without `lastInteractionAt` use that recovered start time as their idle baseline.
   </Accordion>
   <Accordion title="Timezone gotchas">
     - Cron without `--tz` uses the gateway host timezone.

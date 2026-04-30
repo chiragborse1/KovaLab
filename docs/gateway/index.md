@@ -28,11 +28,11 @@ Use this page for day-1 startup and day-2 operations of the Gateway service.
   <Step title="Start the Gateway">
 
 ```bash
-openclaw gateway --port 18789
+kova gateway --port 18789
 # debug/trace mirrored to stdio
-openclaw gateway --port 18789 --verbose
+kova gateway --port 18789 --verbose
 # force-kill listener on selected port, then start
-openclaw gateway --force
+kova gateway --force
 ```
 
   </Step>
@@ -40,19 +40,19 @@ openclaw gateway --force
   <Step title="Verify service health">
 
 ```bash
-openclaw gateway status
-openclaw status
-openclaw logs --follow
+kova gateway status
+kova status
+kova logs --follow
 ```
 
-Healthy baseline: `Runtime: running`, `Connectivity probe: ok`, and `Capability: ...` that matches what you expect. Use `openclaw gateway status --require-rpc` when you need read-scope RPC proof, not just reachability.
+Healthy baseline: `Runtime: running`, `Connectivity probe: ok`, and `Capability: ...` that matches what you expect. Use `kova gateway status --require-rpc` when you need read-scope RPC proof, not just reachability.
 
   </Step>
 
   <Step title="Validate channel readiness">
 
 ```bash
-openclaw channels status --probe
+kova channels status --probe
 ```
 
 With a reachable gateway this runs live per-account channel probes and optional audits.
@@ -83,7 +83,7 @@ After the first successful load, the running process serves the active in-memory
 
 ## OpenAI-compatible endpoints
 
-OpenClaw’s highest-leverage compatibility surface is now:
+Kova’s highest-leverage compatibility surface is now:
 
 - `GET /v1/models`
 - `GET /v1/models/{id}`
@@ -99,7 +99,7 @@ Why this set matters:
 
 Planning note:
 
-- `/v1/models` is agent-first: it returns `openclaw`, `openclaw/default`, and `openclaw/<agentId>`.
+- `/v1/models` is agent-first: it returns `kova`, `openclaw/default`, and `openclaw/<agentId>`.
 - `openclaw/default` is the stable alias that always maps to the configured default agent.
 - Use `x-openclaw-model` when you want a backend provider/model override; otherwise the selected agent's normal model and embedding setup stays in control.
 
@@ -130,15 +130,15 @@ validation runs. Add any remote browser origins, such as HTTPS proxy URLs, to
 ## Operator command set
 
 ```bash
-openclaw gateway status
-openclaw gateway status --deep   # adds a system-level service scan
-openclaw gateway status --json
-openclaw gateway install
-openclaw gateway restart
-openclaw gateway stop
-openclaw secrets reload
-openclaw logs --follow
-openclaw doctor
+kova gateway status
+kova gateway status --deep   # adds a system-level service scan
+kova gateway status --json
+kova gateway install
+kova gateway restart
+kova gateway stop
+kova secrets reload
+kova logs --follow
+kova doctor
 ```
 
 `gateway status --deep` is for extra service discovery (LaunchDaemons/systemd system
@@ -154,8 +154,8 @@ You only need multiple gateways when you intentionally want isolation or a rescu
 Useful checks:
 
 ```bash
-openclaw gateway status --deep
-openclaw gateway probe
+kova gateway status --deep
+kova gateway probe
 ```
 
 What to expect:
@@ -176,28 +176,28 @@ Checklist per instance:
 Example:
 
 ```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json OPENCLAW_STATE_DIR=~/.openclaw-a openclaw gateway --port 19001
-OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b openclaw gateway --port 19002
+OPENCLAW_CONFIG_PATH=~/.openclaw/a.json OPENCLAW_STATE_DIR=~/.openclaw-a kova gateway --port 19001
+OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b kova gateway --port 19002
 ```
 
 Detailed setup: [/gateway/multiple-gateways](/gateway/multiple-gateways).
 
 ## VoiceClaw real-time brain endpoint
 
-OpenClaw exposes a VoiceClaw-compatible real-time WebSocket endpoint at
+Kova exposes a VoiceClaw-compatible real-time WebSocket endpoint at
 `/voiceclaw/realtime`. Use it when a VoiceClaw desktop client should talk
-directly to a real-time OpenClaw brain instead of going through a separate relay
+directly to a real-time Kova brain instead of going through a separate relay
 process.
 
-The endpoint uses Gemini Live for real-time audio and calls OpenClaw as the
-brain by exposing OpenClaw tools directly to Gemini Live. Tool calls return an
-immediate `working` result to keep the voice turn responsive, then OpenClaw
+The endpoint uses Gemini Live for real-time audio and calls Kova as the
+brain by exposing Kova tools directly to Gemini Live. Tool calls return an
+immediate `working` result to keep the voice turn responsive, then Kova
 executes the actual tool asynchronously and injects the result back into the
 live session. Set `GEMINI_API_KEY` in the gateway process environment. If
 gateway auth is enabled, the desktop client sends the gateway token or password
 in its first `session.config` message.
 
-Real-time brain access runs owner-authorized OpenClaw agent commands. Keep
+Real-time brain access runs owner-authorized Kova agent commands. Keep
 `gateway.auth.mode: "none"` limited to loopback-only test instances. Non-local
 real-time brain connections require gateway auth.
 
@@ -209,7 +209,7 @@ OPENCLAW_CONFIG_PATH=/path/to/openclaw-realtime/openclaw.json \
 OPENCLAW_STATE_DIR=/path/to/openclaw-realtime/state \
 OPENCLAW_SKIP_CHANNELS=1 \
 GEMINI_API_KEY=... \
-openclaw gateway --port 19789
+kova gateway --port 19789
 ```
 
 Then configure VoiceClaw to use:
@@ -245,24 +245,24 @@ Use supervised runs for production-like reliability.
   <Tab title="macOS (launchd)">
 
 ```bash
-openclaw gateway install
-openclaw gateway status
-openclaw gateway restart
-openclaw gateway stop
+kova gateway install
+kova gateway status
+kova gateway restart
+kova gateway stop
 ```
 
-Use `openclaw gateway restart` for restarts. Do not chain `openclaw gateway stop` and `openclaw gateway start`; on macOS, `gateway stop` intentionally disables the LaunchAgent before stopping it.
+Use `kova gateway restart` for restarts. Do not chain `kova gateway stop` and `kova gateway start`; on macOS, `gateway stop` intentionally disables the LaunchAgent before stopping it.
 
-LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>` (named profile). `openclaw doctor` audits and repairs service config drift.
+LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>` (named profile). `kova doctor` audits and repairs service config drift.
 
   </Tab>
 
   <Tab title="Linux (systemd user)">
 
 ```bash
-openclaw gateway install
+kova gateway install
 systemctl --user enable --now openclaw-gateway[-<profile>].service
-openclaw gateway status
+kova gateway status
 ```
 
 For persistence after logout, enable lingering:
@@ -275,7 +275,7 @@ Manual user-unit example when you need a custom install path:
 
 ```ini
 [Unit]
-Description=OpenClaw Gateway
+Description=Kova Gateway
 After=network-online.target
 Wants=network-online.target
 
@@ -297,15 +297,15 @@ WantedBy=default.target
   <Tab title="Windows (native)">
 
 ```powershell
-openclaw gateway install
-openclaw gateway status --json
-openclaw gateway restart
-openclaw gateway stop
+kova gateway install
+kova gateway status --json
+kova gateway restart
+kova gateway stop
 ```
 
-Native Windows managed startup uses a Scheduled Task named `OpenClaw Gateway`
-(or `OpenClaw Gateway (<profile>)` for named profiles). If Scheduled Task
-creation is denied, OpenClaw falls back to a per-user Startup-folder launcher
+Native Windows managed startup uses a Scheduled Task named `Kova Gateway`
+(or `Kova Gateway (<profile>)` for named profiles). If Scheduled Task
+creation is denied, Kova falls back to a per-user Startup-folder launcher
 that points at `gateway.cmd` inside the state directory.
 
   </Tab>
@@ -321,7 +321,7 @@ sudo systemctl enable --now openclaw-gateway[-<profile>].service
 
 Use the same service body as the user unit, but install it under
 `/etc/systemd/system/openclaw-gateway[-<profile>].service` and adjust
-`ExecStart=` if your `openclaw` binary lives elsewhere.
+`ExecStart=` if your `kova` binary lives elsewhere.
 
   </Tab>
 </Tabs>
@@ -329,9 +329,9 @@ Use the same service body as the user unit, but install it under
 ## Dev profile quick path
 
 ```bash
-openclaw --dev setup
-openclaw --dev gateway --allow-unconfigured
-openclaw --dev status
+kova --dev setup
+kova --dev gateway --allow-unconfigured
+kova --dev status
 ```
 
 Defaults include isolated state/config and base gateway port `19001`.
@@ -364,9 +364,9 @@ See full protocol docs: [Gateway Protocol](/gateway/protocol).
 ### Readiness
 
 ```bash
-openclaw gateway status
-openclaw channels status --probe
-openclaw health
+kova gateway status
+kova channels status --probe
+kova health
 ```
 
 ### Gap recovery

@@ -1,7 +1,7 @@
 {
   "id": "memory-wiki",
   "name": "Memory Wiki",
-  "description": "Persistent wiki compiler and Obsidian-friendly knowledge vault for OpenClaw.",
+  "description": "Persistent wiki compiler and Obsidian-friendly knowledge vault for Kova.",
   "skills": ["./skills"],
   "uiHints": {
     "vaultMode": {
@@ -14,7 +14,7 @@
     },
     "vault.renderMode": {
       "label": "Render Mode",
-      "help": "Render markdown in native OpenClaw format or Obsidian-friendly format."
+      "help": "Render markdown in native Kova format or Obsidian-friendly format."
     },
     "obsidian.useOfficialCli": {
       "label": "Use Obsidian CLI",

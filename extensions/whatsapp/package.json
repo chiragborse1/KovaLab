@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/whatsapp",
   "version": "2026.4.25",
-  "description": "OpenClaw WhatsApp channel plugin",
+  "description": "Kova WhatsApp channel plugin",
   "type": "module",
   "dependencies": {
     "@whiskeysockets/baileys": "7.0.0-rc.9",

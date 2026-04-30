@@ -9,9 +9,9 @@ Status: production-ready via WhatsApp Web (Baileys). Gateway owns linked session
 
 ## Install (on demand)
 
-- Onboarding (`openclaw onboard`) and `openclaw channels add --channel whatsapp`
+- Onboarding (`kova onboard`) and `kova channels add --channel whatsapp`
   prompt to install the WhatsApp plugin the first time you select it.
-- `openclaw channels login --channel whatsapp` also offers the install flow when
+- `kova channels login --channel whatsapp` also offers the install flow when
   the plugin is not present yet.
 - Dev channel + git checkout: defaults to the local plugin path.
 - Stable/Beta: defaults to the npm package `@openclaw/whatsapp`.
@@ -19,7 +19,7 @@ Status: production-ready via WhatsApp Web (Baileys). Gateway owns linked session
 Manual install stays available:
 
 ```bash
-openclaw plugins install @openclaw/whatsapp
+kova plugins install @openclaw/whatsapp
 ```
 
 <CardGroup cols={3}>
@@ -57,20 +57,20 @@ openclaw plugins install @openclaw/whatsapp
   <Step title="Link WhatsApp (QR)">
 
 ```bash
-openclaw channels login --channel whatsapp
+kova channels login --channel whatsapp
 ```
 
     For a specific account:
 
 ```bash
-openclaw channels login --channel whatsapp --account work
+kova channels login --channel whatsapp --account work
 ```
 
     To attach an existing/custom WhatsApp Web auth directory before login:
 
 ```bash
-openclaw channels add --channel whatsapp --account work --auth-dir /path/to/wa-auth
-openclaw channels login --channel whatsapp --account work
+kova channels add --channel whatsapp --account work --auth-dir /path/to/wa-auth
+kova channels login --channel whatsapp --account work
 ```
 
   </Step>
@@ -78,7 +78,7 @@ openclaw channels login --channel whatsapp --account work
   <Step title="Start the gateway">
 
 ```bash
-openclaw gateway
+kova gateway
 ```
 
   </Step>
@@ -86,8 +86,8 @@ openclaw gateway
   <Step title="Approve first pairing request (if using pairing mode)">
 
 ```bash
-openclaw pairing list whatsapp
-openclaw pairing approve whatsapp <CODE>
+kova pairing list whatsapp
+kova pairing approve whatsapp <CODE>
 ```
 
     Pairing requests expire after 1 hour. Pending requests are capped at 3 per channel.
@@ -96,7 +96,7 @@ openclaw pairing approve whatsapp <CODE>
 </Steps>
 
 <Note>
-OpenClaw recommends running WhatsApp on a separate number when possible. (The channel metadata and setup flow are optimized for that setup, but personal-number setups are also supported.)
+Kova recommends running WhatsApp on a separate number when possible. (The channel metadata and setup flow are optimized for that setup, but personal-number setups are also supported.)
 </Note>
 
 ## Deployment patterns
@@ -105,7 +105,7 @@ OpenClaw recommends running WhatsApp on a separate number when possible. (The ch
   <Accordion title="Dedicated number (recommended)">
     This is the cleanest operational mode:
 
-    - separate WhatsApp identity for OpenClaw
+    - separate WhatsApp identity for Kova
     - clearer DM allowlists and routing boundaries
     - lower chance of self-chat confusion
 
@@ -136,7 +136,7 @@ OpenClaw recommends running WhatsApp on a separate number when possible. (The ch
   </Accordion>
 
   <Accordion title="WhatsApp Web-only channel scope">
-    The messaging platform channel is WhatsApp Web-based (`Baileys`) in current OpenClaw channel architecture.
+    The messaging platform channel is WhatsApp Web-based (`Baileys`) in current Kova channel architecture.
 
     There is no separate Twilio WhatsApp messaging channel in the built-in chat-channel registry.
 
@@ -152,7 +152,7 @@ OpenClaw recommends running WhatsApp on a separate number when possible. (The ch
 - Direct chats use DM session rules (`session.dmScope`; default `main` collapses DMs to the agent main session).
 - Group sessions are isolated (`agent:<agentId>:whatsapp:group:<jid>`).
 - WhatsApp Web transport honors standard proxy environment variables on the gateway host (`HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` / lowercase variants). Prefer host-level proxy config over channel-specific WhatsApp proxy settings.
-- When `messages.removeAckAfterReply` is enabled, OpenClaw clears the WhatsApp ack reaction after a visible reply is delivered.
+- When `messages.removeAckAfterReply` is enabled, Kova clears the WhatsApp ack reaction after a visible reply is delivered.
 
 ## Plugin hooks and privacy
 
@@ -213,7 +213,7 @@ content and identifiers.
 
     - pairings are persisted in channel allow-store and merged with configured `allowFrom`
     - if no allowlist is configured, the linked self number is allowed by default
-    - OpenClaw never auto-pairs outbound `fromMe` DMs (messages you send to yourself from the linked device)
+    - Kova never auto-pairs outbound `fromMe` DMs (messages you send to yourself from the linked device)
 
   </Tab>
 
@@ -478,7 +478,7 @@ Behavior notes:
   </Accordion>
 
   <Accordion title="Logout behavior">
-    `openclaw channels logout --channel whatsapp [--account <id>]` clears WhatsApp auth state for that account.
+    `kova channels logout --channel whatsapp [--account <id>]` clears WhatsApp auth state for that account.
 
     In legacy auth directories, `oauth.json` is preserved while Baileys auth files are removed.
 
@@ -502,8 +502,8 @@ Behavior notes:
     Fix:
 
     ```bash
-    openclaw channels login --channel whatsapp
-    openclaw channels status
+    kova channels login --channel whatsapp
+    kova channels status
     ```
 
   </Accordion>
@@ -518,8 +518,8 @@ Behavior notes:
     Fix:
 
     ```bash
-    openclaw doctor
-    openclaw logs --follow
+    kova doctor
+    kova logs --follow
     ```
 
     If needed, re-link with `channels login`.
@@ -527,7 +527,7 @@ Behavior notes:
   </Accordion>
 
   <Accordion title="QR login times out behind a proxy">
-    Symptom: `openclaw channels login --channel whatsapp` fails before showing a usable QR code with `status=408 Request Time-out` or a TLS socket disconnect.
+    Symptom: `kova channels login --channel whatsapp` fails before showing a usable QR code with `status=408 Request Time-out` or a TLS socket disconnect.
 
     WhatsApp Web login uses the gateway host's standard proxy environment (`HTTPS_PROXY`, `HTTP_PROXY`, lowercase variants, and `NO_PROXY`). Verify the gateway process inherits the proxy env and that `NO_PROXY` does not match `mmg.whatsapp.net`.
 

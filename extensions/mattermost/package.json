@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/mattermost",
   "version": "2026.4.25",
-  "description": "OpenClaw Mattermost channel plugin",
+  "description": "Kova Mattermost channel plugin",
   "type": "module",
   "dependencies": {
     "ws": "^8.20.0"

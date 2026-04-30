@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/matrix",
   "version": "2026.4.25",
-  "description": "OpenClaw Matrix channel plugin",
+  "description": "Kova Matrix channel plugin",
   "type": "module",
   "dependencies": {
     "@matrix-org/matrix-sdk-crypto-nodejs": "^0.5.1",

@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw wiki` (memory-wiki vault status, search, compile, lint, apply, bridge, and Obsidian helpers)"
+summary: "CLI reference for `kova wiki` (memory-wiki vault status, search, compile, lint, apply, bridge, and Obsidian helpers)"
 read_when:
   - You want to use the memory-wiki CLI
-  - You are documenting or changing `openclaw wiki`
+  - You are documenting or changing `kova wiki`
 title: "Wiki"
 ---
 
-# `openclaw wiki`
+# `kova wiki`
 
 Inspect and maintain the `memory-wiki` vault.
 
@@ -20,7 +20,7 @@ Related:
 
 ## What it is for
 
-Use `openclaw wiki` when you want a compiled knowledge vault with:
+Use `kova wiki` when you want a compiled knowledge vault with:
 
 - wiki-native search and page reads
 - provenance-rich syntheses
@@ -31,32 +31,32 @@ Use `openclaw wiki` when you want a compiled knowledge vault with:
 ## Common commands
 
 ```bash
-openclaw wiki status
-openclaw wiki doctor
-openclaw wiki init
-openclaw wiki ingest ./notes/alpha.md
-openclaw wiki compile
-openclaw wiki lint
-openclaw wiki search "alpha"
-openclaw wiki get entity.alpha --from 1 --lines 80
+kova wiki status
+kova wiki doctor
+kova wiki init
+kova wiki ingest ./notes/alpha.md
+kova wiki compile
+kova wiki lint
+kova wiki search "alpha"
+kova wiki get entity.alpha --from 1 --lines 80
 
-openclaw wiki apply synthesis "Alpha Summary" \
+kova wiki apply synthesis "Alpha Summary" \
   --body "Short synthesis body" \
   --source-id source.alpha
 
-openclaw wiki apply metadata entity.alpha \
+kova wiki apply metadata entity.alpha \
   --source-id source.alpha \
   --status review \
   --question "Still active?"
 
-openclaw wiki bridge import
-openclaw wiki unsafe-local import
+kova wiki bridge import
+kova wiki unsafe-local import
 
-openclaw wiki obsidian status
-openclaw wiki obsidian search "alpha"
-openclaw wiki obsidian open syntheses/alpha-summary.md
-openclaw wiki obsidian command workspace:quick-switcher
-openclaw wiki obsidian daily
+kova wiki obsidian status
+kova wiki obsidian search "alpha"
+kova wiki obsidian open syntheses/alpha-summary.md
+kova wiki obsidian command workspace:quick-switcher
+kova wiki obsidian daily
 ```
 
 ## Commands
@@ -129,7 +129,7 @@ Behavior depends on config:
 - `search.corpus`: `wiki`, `memory`, or `all`
 
 Use `wiki search` when you want wiki-specific ranking or provenance details.
-For one broad shared recall pass, prefer `openclaw memory search` when the
+For one broad shared recall pass, prefer `kova memory search` when the
 active memory plugin exposes shared search.
 
 ### `wiki get <lookup>`
@@ -139,8 +139,8 @@ Read a wiki page by id or relative path.
 Examples:
 
 ```bash
-openclaw wiki get entity.alpha
-openclaw wiki get syntheses/alpha-summary.md --from 1 --lines 80
+kova wiki get entity.alpha
+kova wiki get syntheses/alpha-summary.md --from 1 --lines 80
 ```
 
 ### `wiki apply`
@@ -201,7 +201,7 @@ These require the official `obsidian` CLI on `PATH` when
 
 ## Configuration tie-ins
 
-`openclaw wiki` behavior is shaped by:
+`kova wiki` behavior is shaped by:
 
 - `plugins.entries.memory-wiki.config.vaultMode`
 - `plugins.entries.memory-wiki.config.search.backend`

@@ -1,13 +1,13 @@
 ---
-summary: "Export OpenClaw diagnostics to any OpenTelemetry collector via the diagnostics-otel plugin (OTLP/HTTP)"
+summary: "Export Kova diagnostics to any OpenTelemetry collector via the diagnostics-otel plugin (OTLP/HTTP)"
 title: "OpenTelemetry export"
 read_when:
-  - You want to send OpenClaw model usage, message flow, or session metrics to an OpenTelemetry collector
+  - You want to send Kova model usage, message flow, or session metrics to an OpenTelemetry collector
   - You are wiring traces, metrics, or logs into Grafana, Datadog, Honeycomb, New Relic, Tempo, or another OTLP backend
   - You need the exact metric names, span names, or attribute shapes to build dashboards or alerts
 ---
 
-OpenClaw exports diagnostics through the bundled `diagnostics-otel` plugin
+Kova exports diagnostics through the bundled `diagnostics-otel` plugin
 using **OTLP/HTTP (protobuf)**. Any collector or backend that accepts OTLP/HTTP
 works without code changes. For local file logs and how to read them, see
 [Logging](/logging).
@@ -19,7 +19,7 @@ works without code changes. For local file logs and how to read them, see
   and exec.
 - **`diagnostics-otel` plugin** subscribes to those events and exports them as
   OpenTelemetry **metrics**, **traces**, and **logs** over OTLP/HTTP.
-- **Provider calls** receive a W3C `traceparent` header from OpenClaw's
+- **Provider calls** receive a W3C `traceparent` header from Kova's
   trusted model-call span context when the provider transport accepts custom
   headers. Plugin-emitted trace context is not propagated.
 - Exporters only attach when both the diagnostics surface and the plugin are
@@ -55,7 +55,7 @@ works without code changes. For local file logs and how to read them, see
 You can also enable the plugin from the CLI:
 
 ```bash
-openclaw plugins enable diagnostics-otel
+kova plugins enable diagnostics-otel
 ```
 
 <Note>
@@ -125,7 +125,7 @@ and never include prompt text, response text, tool inputs, tool outputs, or
 session keys.
 
 Outbound model requests may include a W3C `traceparent` header. That header is
-generated only from OpenClaw-owned diagnostic trace context for the active model
+generated only from Kova-owned diagnostic trace context for the active model
 call. Existing caller-supplied `traceparent` headers are replaced, so plugins or
 custom provider options cannot spoof cross-service trace ancestry.
 
@@ -321,7 +321,7 @@ flags. Flags are case-insensitive and support wildcards (e.g. `telegram.*` or
 Or as a one-off env override:
 
 ```bash
-OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload openclaw gateway
+OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload kova gateway
 ```
 
 Flag output goes to the standard log file (`logging.file`) and is still
@@ -337,7 +337,7 @@ redacted by `logging.redactSensitive`. Full guide:
 ```
 
 You can also leave `diagnostics-otel` out of `plugins.allow`, or run
-`openclaw plugins disable diagnostics-otel`.
+`kova plugins disable diagnostics-otel`.
 
 ## Related
 

@@ -2,7 +2,7 @@
   "name": "@openclaw/qa-matrix",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Matrix QA runner plugin",
+  "description": "Kova Matrix QA runner plugin",
   "type": "module",
   "dependencies": {
     "undici": "8.1.0"

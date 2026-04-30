@@ -1,5 +1,5 @@
 ---
-summary: "ClawHub: public registry for OpenClaw skills and plugins, native install flows, and the clawhub CLI"
+summary: "ClawHub: public registry for Kova skills and plugins, native install flows, and the clawhub CLI"
 read_when:
   - Searching for, installing, or updating skills or plugins
   - Publishing skills or plugins to the registry
@@ -8,9 +8,9 @@ title: "ClawHub"
 sidebarTitle: "ClawHub"
 ---
 
-ClawHub is the public registry for **OpenClaw skills and plugins**.
+ClawHub is the public registry for **Kova skills and plugins**.
 
-- Use native `openclaw` commands to search, install, and update skills, and to install plugins from ClawHub.
+- Use native `kova` commands to search, install, and update skills, and to install plugins from ClawHub.
 - Use the separate `clawhub` CLI for registry auth, publish, delete/undelete, and sync workflows.
 
 Site: [clawhub.ai](https://clawhub.ai)
@@ -20,16 +20,16 @@ Site: [clawhub.ai](https://clawhub.ai)
 <Steps>
   <Step title="Search">
     ```bash
-    openclaw skills search "calendar"
+    kova skills search "calendar"
     ```
   </Step>
   <Step title="Install">
     ```bash
-    openclaw skills install <skill-slug>
+    kova skills install <skill-slug>
     ```
   </Step>
   <Step title="Use">
-    Start a new OpenClaw session — it picks up the new skill.
+    Start a new Kova session — it picks up the new skill.
   </Step>
   <Step title="Publish (optional)">
     For registry-authenticated workflows (publish, sync, manage), install
@@ -44,37 +44,37 @@ Site: [clawhub.ai](https://clawhub.ai)
   </Step>
 </Steps>
 
-## Native OpenClaw flows
+## Native Kova flows
 
 <Tabs>
   <Tab title="Skills">
     ```bash
-    openclaw skills search "calendar"
-    openclaw skills install <skill-slug>
-    openclaw skills update --all
+    kova skills search "calendar"
+    kova skills install <skill-slug>
+    kova skills update --all
     ```
 
-    Native `openclaw` commands install into your active workspace and
+    Native `kova` commands install into your active workspace and
     persist source metadata so later `update` calls can stay on ClawHub.
 
   </Tab>
   <Tab title="Plugins">
     ```bash
-    openclaw plugins install clawhub:<package>
-    openclaw plugins update --all
+    kova plugins install clawhub:<package>
+    kova plugins update --all
     ```
 
     Bare npm-safe plugin specs are also tried against ClawHub before npm:
 
     ```bash
-    openclaw plugins install openclaw-codex-app-server
+    kova plugins install openclaw-codex-app-server
     ```
 
     Use `npm:<package>` when you want npm-only resolution without a
     ClawHub lookup:
 
     ```bash
-    openclaw plugins install npm:openclaw-codex-app-server
+    kova plugins install npm:openclaw-codex-app-server
     ```
 
     Plugin installs validate advertised `pluginApi` and
@@ -86,19 +86,19 @@ Site: [clawhub.ai](https://clawhub.ai)
 </Tabs>
 
 <Note>
-`openclaw plugins install clawhub:...` only accepts installable plugin
-families. If a ClawHub package is actually a skill, OpenClaw stops and
-points you at `openclaw skills install <slug>` instead.
+`kova plugins install clawhub:...` only accepts installable plugin
+families. If a ClawHub package is actually a skill, Kova stops and
+points you at `kova skills install <slug>` instead.
 
 Anonymous ClawHub plugin installs also fail closed for private packages.
-Community or other non-official channels can still install, but OpenClaw
+Community or other non-official channels can still install, but Kova
 warns so operators can review source and verification before enabling
 them.
 </Note>
 
 ## What ClawHub is
 
-- A public registry for OpenClaw skills and plugins.
+- A public registry for Kova skills and plugins.
 - A versioned store of skill bundles and metadata.
 - A discovery surface for search, tags, and usage signals.
 
@@ -117,9 +117,9 @@ changes.
 ## Workspace and skill loading
 
 The separate `clawhub` CLI also installs skills into `./skills` under
-your current working directory. If an OpenClaw workspace is configured,
+your current working directory. If an Kova workspace is configured,
 `clawhub` falls back to that workspace unless you override `--workdir`
-(or `CLAWHUB_WORKDIR`). OpenClaw loads workspace skills from
+(or `CLAWHUB_WORKDIR`). Kova loads workspace skills from
 `<workspace>/skills` and picks them up in the **next** session.
 
 If you already use `~/.openclaw/skills` or bundled skills, workspace
@@ -154,7 +154,7 @@ abuse without blocking legitimate contributors.
   <Accordion title="Moderation">
     - Moderators can view hidden skills, unhide them, delete them, or ban users.
     - Abusing the report feature can result in account bans.
-    - Interested in becoming a moderator? Ask in the OpenClaw Discord and contact a moderator or maintainer.
+    - Interested in becoming a moderator? Ask in the Kova Discord and contact a moderator or maintainer.
   </Accordion>
 </AccordionGroup>
 
@@ -166,7 +166,7 @@ publish/sync.
 ### Global options
 
 <ParamField path="--workdir <dir>" type="string">
-  Working directory. Default: current dir; falls back to OpenClaw workspace.
+  Working directory. Default: current dir; falls back to Kova workspace.
 </ParamField>
 <ParamField path="--dir <dir>" type="string" default="skills">
   Skills directory, relative to workdir.
@@ -318,7 +318,7 @@ publish/sync.
 
 ### Plugin package metadata
 
-Code plugins must include the required OpenClaw metadata in
+Code plugins must include the required Kova metadata in
 `package.json`:
 
 ```json

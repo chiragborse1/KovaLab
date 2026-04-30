@@ -2,12 +2,12 @@
 summary: "Plugin compatibility contracts, deprecation metadata, and migration expectations"
 title: "Plugin compatibility"
 read_when:
-  - You maintain an OpenClaw plugin
+  - You maintain an Kova plugin
   - You see a plugin compatibility warning
   - You are planning a plugin SDK or manifest migration
 ---
 
-OpenClaw keeps older plugin contracts wired through named compatibility
+Kova keeps older plugin contracts wired through named compatibility
 adapters before removing them. This protects existing bundled and external
 plugins while the SDK, manifest, setup, config, and agent runtime contracts
 evolve.
@@ -45,7 +45,7 @@ core.
 
 ## Plugin inspector package
 
-The plugin inspector should live outside the core OpenClaw repo as a separate
+The plugin inspector should live outside the core Kova repo as a separate
 package/repository backed by the versioned compatibility and manifest
 contracts.
 
@@ -63,13 +63,13 @@ It should emit:
 - cold-path import checks
 - deprecation and compatibility warnings
 
-Use `--json` for stable machine-readable output in CI annotations. OpenClaw
+Use `--json` for stable machine-readable output in CI annotations. Kova
 core should expose contracts and fixtures the inspector can consume, but should
-not publish the inspector binary from the main `openclaw` package.
+not publish the inspector binary from the main `kova` package.
 
 ## Deprecation policy
 
-OpenClaw should not remove a documented plugin contract in the same release
+Kova should not remove a documented plugin contract in the same release
 that introduces its replacement.
 
 The migration sequence is:
@@ -122,8 +122,8 @@ Current compatibility records include:
 - generated bundled channel config metadata fallback while registry-first
   `channelConfigs` metadata lands
 - persisted plugin registry disable and install-migration env flags while
-  repair flows migrate operators to `openclaw plugins registry --refresh` and
-  `openclaw doctor --fix`
+  repair flows migrate operators to `kova plugins registry --refresh` and
+  `kova doctor --fix`
 - legacy plugin-owned web search, web fetch, and x_search config paths while
   doctor migrates them to `plugins.entries.<plugin>.config`
 - legacy `plugins.installs` authored config and bundled plugin load-path

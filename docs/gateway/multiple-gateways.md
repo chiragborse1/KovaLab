@@ -1,5 +1,5 @@
 ---
-summary: "Run multiple OpenClaw Gateways on one host (isolation, ports, and profiles)"
+summary: "Run multiple Kova Gateways on one host (isolation, ports, and profiles)"
 read_when:
   - Running more than one Gateway on the same machine
   - You need isolated config/state/ports per Gateway
@@ -28,13 +28,13 @@ else:
 
 ```bash
 # Rescue bot (separate Telegram bot, separate profile, port 19789)
-openclaw --profile rescue onboard
-openclaw --profile rescue gateway install --port 19789
+kova --profile rescue onboard
+kova --profile rescue gateway install --port 19789
 ```
 
 If your main bot is already running, that is usually all you need.
 
-During `openclaw --profile rescue onboard`:
+During `kova --profile rescue onboard`:
 
 - use the separate Telegram bot token
 - keep the `rescue` profile
@@ -63,7 +63,7 @@ For most setups, use a completely separate Telegram bot for the rescue profile:
 
 ## What `--profile rescue onboard` Changes
 
-`openclaw --profile rescue onboard` uses the normal onboarding flow, but it
+`kova --profile rescue onboard` uses the normal onboarding flow, but it
 writes everything into a separate profile.
 
 In practice, that means the rescue bot gets its own:
@@ -85,29 +85,29 @@ own base port:
 
 ```bash
 # main (default profile)
-openclaw setup
-openclaw gateway --port 18789
+kova setup
+kova gateway --port 18789
 
 # extra gateway
-openclaw --profile ops setup
-openclaw --profile ops gateway --port 19789
+kova --profile ops setup
+kova --profile ops gateway --port 19789
 ```
 
 If you want both Gateways to use named profiles, that also works:
 
 ```bash
-openclaw --profile main setup
-openclaw --profile main gateway --port 18789
+kova --profile main setup
+kova --profile main gateway --port 18789
 
-openclaw --profile ops setup
-openclaw --profile ops gateway --port 19789
+kova --profile ops setup
+kova --profile ops gateway --port 19789
 ```
 
 Services follow the same pattern:
 
 ```bash
-openclaw gateway install
-openclaw --profile ops gateway install --port 19789
+kova gateway install
+kova --profile ops gateway install --port 19789
 ```
 
 Use the rescue-bot quickstart when you want a fallback operator lane. Use the
@@ -148,22 +148,22 @@ If you override any of these in config or env, you must keep them unique per ins
 ```bash
 OPENCLAW_CONFIG_PATH=~/.openclaw/main.json \
 OPENCLAW_STATE_DIR=~/.openclaw \
-openclaw gateway --port 18789
+kova gateway --port 18789
 
 OPENCLAW_CONFIG_PATH=~/.openclaw/rescue.json \
 OPENCLAW_STATE_DIR=~/.openclaw-rescue \
-openclaw gateway --port 19789
+kova gateway --port 19789
 ```
 
 ## Quick checks
 
 ```bash
-openclaw gateway status --deep
-openclaw --profile rescue gateway status --deep
-openclaw --profile rescue gateway probe
-openclaw status
-openclaw --profile rescue status
-openclaw --profile rescue browser status
+kova gateway status --deep
+kova --profile rescue gateway status --deep
+kova --profile rescue gateway probe
+kova status
+kova --profile rescue status
+kova --profile rescue browser status
 ```
 
 Interpretation:

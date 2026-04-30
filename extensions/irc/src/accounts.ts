@@ -169,7 +169,7 @@ export function resolveIrcAccount(params: {
     const realname = (
       merged.realname?.trim() ||
       (accountId === DEFAULT_ACCOUNT_ID ? process.env.IRC_REALNAME?.trim() : "") ||
-      "OpenClaw"
+      "Kova"
     ).trim();
 
     const passwordResolution = resolvePassword(accountId, merged);

@@ -15,7 +15,7 @@ UI surfaces.
 
 Canvas state is stored under Application Support:
 
-- `~/Library/Application Support/OpenClaw/canvas/<session>/...`
+- `~/Library/Application Support/Kova/canvas/<session>/...`
 
 The Canvas panel serves those files via a **custom URL scheme**:
 
@@ -51,10 +51,10 @@ Canvas is exposed via the **Gateway WebSocket**, so the agent can:
 CLI examples:
 
 ```bash
-openclaw nodes canvas present --node <id>
-openclaw nodes canvas navigate --node <id> --url "/"
-openclaw nodes canvas eval --node <id> --js "document.title"
-openclaw nodes canvas snapshot --node <id>
+kova nodes canvas present --node <id>
+kova nodes canvas navigate --node <id> --url "/"
+kova nodes canvas eval --node <id> --js "document.title"
+kova nodes canvas snapshot --node <id>
 ```
 
 Notes:
@@ -93,13 +93,13 @@ cat > /tmp/a2ui-v0.8.jsonl <<'EOFA2'
 {"beginRendering":{"surfaceId":"main","root":"root"}}
 EOFA2
 
-openclaw nodes canvas a2ui push --jsonl /tmp/a2ui-v0.8.jsonl --node <id>
+kova nodes canvas a2ui push --jsonl /tmp/a2ui-v0.8.jsonl --node <id>
 ```
 
 Quick smoke:
 
 ```bash
-openclaw nodes canvas a2ui push --node <id> --text "Hello from A2UI"
+kova nodes canvas a2ui push --node <id> --text "Hello from A2UI"
 ```
 
 ## Triggering agent runs from Canvas

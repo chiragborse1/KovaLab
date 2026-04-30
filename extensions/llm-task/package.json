@@ -2,7 +2,7 @@
   "name": "@openclaw/llm-task",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw JSON-only LLM task plugin",
+  "description": "Kova JSON-only LLM task plugin",
   "type": "module",
   "dependencies": {
     "ajv": "^8.18.0",

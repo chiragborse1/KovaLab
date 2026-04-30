@@ -1,14 +1,14 @@
 ---
-summary: "Expose OpenClaw diagnostics as Prometheus text metrics through the diagnostics-prometheus plugin"
+summary: "Expose Kova diagnostics as Prometheus text metrics through the diagnostics-prometheus plugin"
 title: "Prometheus metrics"
 sidebarTitle: "Prometheus"
 read_when:
-  - You want Prometheus, Grafana, VictoriaMetrics, or another scraper to collect OpenClaw Gateway metrics
+  - You want Prometheus, Grafana, VictoriaMetrics, or another scraper to collect Kova Gateway metrics
   - You need the Prometheus metric names and label policy for dashboards or alerts
   - You want metrics without running an OpenTelemetry collector
 ---
 
-OpenClaw can expose diagnostics metrics through the bundled `diagnostics-prometheus` plugin. It listens to trusted internal diagnostics and renders a Prometheus text endpoint at:
+Kova can expose diagnostics metrics through the bundled `diagnostics-prometheus` plugin. It listens to trusted internal diagnostics and renders a Prometheus text endpoint at:
 
 ```text
 GET /api/diagnostics/prometheus
@@ -44,7 +44,7 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
       </Tab>
       <Tab title="CLI">
         ```bash
-        openclaw plugins enable diagnostics-prometheus
+        kova plugins enable diagnostics-prometheus
         ```
       </Tab>
     </Tabs>
@@ -65,7 +65,7 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
     ```yaml
     # prometheus.yml
     scrape_configs:
-      - job_name: openclaw
+      - job_name: kova
         scrape_interval: 30s
         metrics_path: /api/diagnostics/prometheus
         authorization:
@@ -115,7 +115,7 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
   <Accordion title="Bounded, low-cardinality labels">
     Prometheus labels stay bounded and low-cardinality. The exporter does not emit raw diagnostic identifiers such as `runId`, `sessionKey`, `sessionId`, `callId`, `toolCallId`, message IDs, chat IDs, or provider request IDs.
 
-    Label values are redacted and must match OpenClaw's low-cardinality character policy. Values that fail the policy are replaced with `unknown`, `other`, or `none`, depending on the metric.
+    Label values are redacted and must match Kova's low-cardinality character policy. Values that fail the policy are replaced with `unknown`, `other`, or `none`, depending on the metric.
 
   </Accordion>
   <Accordion title="Series cap and overflow accounting">
@@ -159,12 +159,12 @@ increase(openclaw_prometheus_series_dropped_total[15m]) > 0
 ```
 
 <Tip>
-Prefer `gen_ai_client_token_usage` for cross-provider dashboards: it follows the OpenTelemetry GenAI semantic conventions and is consistent with metrics from non-OpenClaw GenAI services.
+Prefer `gen_ai_client_token_usage` for cross-provider dashboards: it follows the OpenTelemetry GenAI semantic conventions and is consistent with metrics from non-Kova GenAI services.
 </Tip>
 
 ## Choosing between Prometheus and OpenTelemetry export
 
-OpenClaw supports both surfaces independently. You can run either, both, or neither.
+Kova supports both surfaces independently. You can run either, both, or neither.
 
 <Tabs>
   <Tab title="diagnostics-prometheus">
@@ -175,7 +175,7 @@ OpenClaw supports both surfaces independently. You can run either, both, or neit
     - Best for stacks already standardized on Prometheus + Grafana.
   </Tab>
   <Tab title="diagnostics-otel">
-    - **Push** model: OpenClaw sends OTLP/HTTP to a collector or OTLP-compatible backend.
+    - **Push** model: Kova sends OTLP/HTTP to a collector or OTLP-compatible backend.
     - Surface includes metrics, traces, and logs.
     - Bridges to Prometheus through an OpenTelemetry Collector (`prometheus` or `prometheusremotewrite` exporter) when you need both.
     - See [OpenTelemetry export](/gateway/opentelemetry) for the full catalog.
@@ -187,7 +187,7 @@ OpenClaw supports both surfaces independently. You can run either, both, or neit
 <AccordionGroup>
   <Accordion title="Empty response body">
     - Check `diagnostics.enabled: true` in config.
-    - Confirm the plugin is enabled and loaded with `openclaw plugins list --enabled`.
+    - Confirm the plugin is enabled and loaded with `kova plugins list --enabled`.
     - Generate some traffic; counters and histograms only emit lines after at least one event.
   </Accordion>
   <Accordion title="401 / unauthorized">

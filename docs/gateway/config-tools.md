@@ -42,7 +42,7 @@ Local onboarding defaults new local configs to `tools.profile: "coding"` when un
 | `group:nodes`      | `nodes`                                                                                                                 |
 | `group:agents`     | `agents_list`                                                                                                           |
 | `group:media`      | `image`, `image_generate`, `video_generate`, `tts`                                                                      |
-| `group:openclaw`   | All built-in tools (excludes provider plugins)                                                                          |
+| `group:kova`   | All built-in tools (excludes provider plugins)                                                                          |
 
 ### `tools.allow` / `tools.deny`
 
@@ -241,7 +241,7 @@ Configures inbound media understanding (image/audio/video):
     **CLI entry** (`type: "cli"`):
 
     - `command`: executable to run
-    - `args`: templated args (supports `{{MediaPath}}`, `{{Prompt}}`, `{{MaxChars}}`, etc.; `openclaw doctor --fix` migrates deprecated `{input}` placeholders to `{{MediaPath}}`)
+    - `args`: templated args (supports `{{MediaPath}}`, `{{Prompt}}`, `{{MaxChars}}`, etc.; `kova doctor --fix` migrates deprecated `{input}` placeholders to `{{MediaPath}}`)
 
     **Common fields:**
 
@@ -377,7 +377,7 @@ Experimental built-in tool flags. Default off unless a strict-agentic GPT-5 auto
 
 ## Custom providers and base URLs
 
-OpenClaw uses the built-in model catalog. Add custom providers via `models.providers` in config or `~/.openclaw/agents/<agentId>/agent/models.json`.
+Kova uses the built-in model catalog. Add custom providers via `models.providers` in config or `~/.openclaw/agents/<agentId>/agent/models.json`.
 
 ```json5
 {
@@ -429,7 +429,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
   <Accordion title="Top-level catalog">
     - `models.mode`: provider catalog behavior (`merge` or `replace`).
     - `models.providers`: custom provider map keyed by provider id.
-      - Safe edits: use `openclaw config set models.providers.<id> '<json>' --strict-json --merge` or `openclaw config set models.providers.<id>.models '<json-array>' --strict-json --merge` for additive updates. `config set` refuses destructive replacements unless you pass `--replace`.
+      - Safe edits: use `kova config set models.providers.<id> '<json>' --strict-json --merge` or `kova config set models.providers.<id>.models '<json-array>' --strict-json --merge` for additive updates. `config set` refuses destructive replacements unless you pass `--replace`.
   </Accordion>
   <Accordion title="Provider connection and auth">
     - `models.providers.*.api`: request adapter (`openai-completions`, `openai-responses`, `anthropic-messages`, `google-generative-ai`, etc). For self-hosted `/v1/chat/completions` backends such as MLX, vLLM, SGLang, and most OpenAI-compatible local servers, use `openai-completions`. A custom provider with `baseUrl` but no `api` defaults to `openai-completions`; set `openai-responses` only when the backend supports `/v1/responses`.
@@ -457,9 +457,9 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
   <Accordion title="Model catalog entries">
     - `models.providers.*.models`: explicit provider model catalog entries.
     - `models.providers.*.models.*.contextWindow`: native model context window metadata. This overrides provider-level `contextWindow` for that model.
-    - `models.providers.*.models.*.contextTokens`: optional runtime context cap. This overrides provider-level `contextTokens`; use it when you want a smaller effective context budget than the model's native `contextWindow`; `openclaw models list` shows both values when they differ.
-    - `models.providers.*.models.*.compat.supportsDeveloperRole`: optional compatibility hint. For `api: "openai-completions"` with a non-empty non-native `baseUrl` (host not `api.openai.com`), OpenClaw forces this to `false` at runtime. Empty/omitted `baseUrl` keeps default OpenAI behavior.
-    - `models.providers.*.models.*.compat.requiresStringContent`: optional compatibility hint for string-only OpenAI-compatible chat endpoints. When `true`, OpenClaw flattens pure text `messages[].content` arrays into plain strings before sending the request.
+    - `models.providers.*.models.*.contextTokens`: optional runtime context cap. This overrides provider-level `contextTokens`; use it when you want a smaller effective context budget than the model's native `contextWindow`; `kova models list` shows both values when they differ.
+    - `models.providers.*.models.*.compat.supportsDeveloperRole`: optional compatibility hint. For `api: "openai-completions"` with a non-empty non-native `baseUrl` (host not `api.openai.com`), Kova forces this to `false` at runtime. Empty/omitted `baseUrl` keeps default OpenAI behavior.
+    - `models.providers.*.models.*.compat.requiresStringContent`: optional compatibility hint for string-only OpenAI-compatible chat endpoints. When `true`, Kova flattens pure text `messages[].content` arrays into plain strings before sending the request.
   </Accordion>
   <Accordion title="Amazon Bedrock discovery">
     - `plugins.entries.amazon-bedrock.config.discovery`: Bedrock auto-discovery settings root.
@@ -476,7 +476,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
 
 <AccordionGroup>
   <Accordion title="Cerebras (GLM 4.7 / GPT OSS)">
-    The bundled `cerebras` provider plugin can configure this via `openclaw onboard --auth-choice cerebras-api-key`. Use explicit provider config only when overriding defaults.
+    The bundled `cerebras` provider plugin can configure this via `kova onboard --auth-choice cerebras-api-key`. Use explicit provider config only when overriding defaults.
 
     ```json5
     {
@@ -526,7 +526,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    Anthropic-compatible, built-in provider. Shortcut: `openclaw onboard --auth-choice kimi-code-api-key`.
+    Anthropic-compatible, built-in provider. Shortcut: `kova onboard --auth-choice kimi-code-api-key`.
 
   </Accordion>
   <Accordion title="Local models (LM Studio)">
@@ -567,7 +567,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    Set `MINIMAX_API_KEY`. Shortcuts: `openclaw onboard --auth-choice minimax-global-api` or `openclaw onboard --auth-choice minimax-cn-api`. The model catalog defaults to M2.7 only. On the Anthropic-compatible streaming path, OpenClaw disables MiniMax thinking by default unless you explicitly set `thinking` yourself. `/fast on` or `params.fastMode: true` rewrites `MiniMax-M2.7` to `MiniMax-M2.7-highspeed`.
+    Set `MINIMAX_API_KEY`. Shortcuts: `kova onboard --auth-choice minimax-global-api` or `kova onboard --auth-choice minimax-cn-api`. The model catalog defaults to M2.7 only. On the Anthropic-compatible streaming path, Kova disables MiniMax thinking by default unless you explicitly set `thinking` yourself. `/fast on` or `params.fastMode: true` rewrites `MiniMax-M2.7` to `MiniMax-M2.7-highspeed`.
 
   </Accordion>
   <Accordion title="Moonshot AI (Kimi)">
@@ -604,9 +604,9 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    For the China endpoint: `baseUrl: "https://api.moonshot.cn/v1"` or `openclaw onboard --auth-choice moonshot-api-key-cn`.
+    For the China endpoint: `baseUrl: "https://api.moonshot.cn/v1"` or `kova onboard --auth-choice moonshot-api-key-cn`.
 
-    Native Moonshot endpoints advertise streaming usage compatibility on the shared `openai-completions` transport, and OpenClaw keys that off endpoint capabilities rather than the built-in provider id alone.
+    Native Moonshot endpoints advertise streaming usage compatibility on the shared `openai-completions` transport, and Kova keys that off endpoint capabilities rather than the built-in provider id alone.
 
   </Accordion>
   <Accordion title="OpenCode">
@@ -621,7 +621,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    Set `OPENCODE_API_KEY` (or `OPENCODE_ZEN_API_KEY`). Use `opencode/...` refs for the Zen catalog or `opencode-go/...` refs for the Go catalog. Shortcut: `openclaw onboard --auth-choice opencode-zen` or `openclaw onboard --auth-choice opencode-go`.
+    Set `OPENCODE_API_KEY` (or `OPENCODE_ZEN_API_KEY`). Use `opencode/...` refs for the Zen catalog or `opencode-go/...` refs for the Go catalog. Shortcut: `kova onboard --auth-choice opencode-zen` or `kova onboard --auth-choice opencode-go`.
 
   </Accordion>
   <Accordion title="Synthetic (Anthropic-compatible)">
@@ -658,7 +658,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    Base URL should omit `/v1` (Anthropic client appends it). Shortcut: `openclaw onboard --auth-choice synthetic-api-key`.
+    Base URL should omit `/v1` (Anthropic client appends it). Shortcut: `kova onboard --auth-choice synthetic-api-key`.
 
   </Accordion>
   <Accordion title="Z.AI (GLM-4.7)">
@@ -673,7 +673,7 @@ OpenClaw uses the built-in model catalog. Add custom providers via `models.provi
     }
     ```
 
-    Set `ZAI_API_KEY`. `z.ai/*` and `z-ai/*` are accepted aliases. Shortcut: `openclaw onboard --auth-choice zai-api-key`.
+    Set `ZAI_API_KEY`. `z.ai/*` and `z-ai/*` are accepted aliases. Shortcut: `kova onboard --auth-choice zai-api-key`.
 
     - General endpoint: `https://api.z.ai/api/paas/v4`
     - Coding endpoint (default): `https://api.z.ai/api/coding/paas/v4`

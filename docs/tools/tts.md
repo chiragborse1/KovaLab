@@ -8,7 +8,7 @@ title: "Text-to-speech"
 sidebarTitle: "Text to speech (TTS)"
 ---
 
-OpenClaw can convert outbound replies into audio across **13 speech providers**
+Kova can convert outbound replies into audio across **13 speech providers**
 and deliver native voice messages on Feishu, Matrix, Telegram, and WhatsApp,
 audio attachments everywhere else, and PCM/Ulaw streams for telephony and Talk.
 
@@ -40,14 +40,14 @@ audio attachments everywhere else, and PCM/Ulaw streams for telephony and Talk.
 
   </Step>
   <Step title="Try it in chat">
-    `/tts status` shows the current state. `/tts audio Hello from OpenClaw`
+    `/tts status` shows the current state. `/tts audio Hello from Kova`
     sends a one-off audio reply.
   </Step>
 </Steps>
 
 <Note>
 Auto-TTS is **off** by default. When `messages.tts.provider` is unset,
-OpenClaw picks the first configured provider in registry auto-select order.
+Kova picks the first configured provider in registry auto-select order.
 </Note>
 
 ## Supported providers
@@ -78,7 +78,7 @@ if you keep summaries enabled.
 The bundled **Microsoft** provider uses Microsoft Edge's online neural TTS
 service via `node-edge-tts`. It is a public web service without a published
 SLA or quota — treat it as best-effort. The legacy provider id `edge` is
-normalized to `microsoft` and `openclaw doctor --fix` rewrites persisted
+normalized to `microsoft` and `kova doctor --fix` rewrites persisted
 config; new configs should always use `microsoft`.
 </Warning>
 
@@ -534,7 +534,7 @@ Provider selection runs explicit-first:
 4. `messages.tts.provider`.
 5. Registry auto-select.
 
-For each provider attempt, OpenClaw merges configs in this order:
+For each provider attempt, Kova merges configs in this order:
 
 1. `messages.tts.providers.<id>`
 2. `messages.tts.personas.<persona>.providers.<id>`
@@ -554,7 +554,7 @@ to use them:
     or `personaPrompt`. The older `audioProfile` and `speakerName` fields are
     still prepended as Google-specific prompt text. Inline audio tags such as
     `[whispers]` or `[laughs]` inside a `[[tts:text]]` block are preserved
-    inside the Gemini transcript; OpenClaw does not generate these tags.
+    inside the Gemini transcript; Kova does not generate these tags.
   </Accordion>
   <Accordion title="OpenAI">
     Maps persona prompt fields to the request `instructions` field **only when**
@@ -632,7 +632,7 @@ directive warnings.
 
 ## Slash commands
 
-Single command `/tts`. On Discord, OpenClaw also registers `/voice` because
+Single command `/tts`. On Discord, Kova also registers `/voice` because
 `/tts` is a built-in Discord command — text `/tts ...` still works.
 
 ```text
@@ -699,27 +699,27 @@ delivery.
   and CAF outputs are marked for iMessage voice memo delivery.
 - **Other channels**: MP3 (`mp3_44100_128` from ElevenLabs, `mp3` from OpenAI).
   - 44.1kHz / 128kbps is the default balance for speech clarity.
-- **MiniMax**: MP3 (`speech-2.8-hd` model, 32kHz sample rate) for normal audio attachments. For channel-advertised voice-note targets, OpenClaw transcodes the MiniMax MP3 to 48kHz Opus with `ffmpeg` before delivery when the channel advertises transcoding.
-- **Xiaomi MiMo**: MP3 by default, or WAV when configured. For channel-advertised voice-note targets, OpenClaw transcodes Xiaomi output to 48kHz Opus with `ffmpeg` before delivery when the channel advertises transcoding.
+- **MiniMax**: MP3 (`speech-2.8-hd` model, 32kHz sample rate) for normal audio attachments. For channel-advertised voice-note targets, Kova transcodes the MiniMax MP3 to 48kHz Opus with `ffmpeg` before delivery when the channel advertises transcoding.
+- **Xiaomi MiMo**: MP3 by default, or WAV when configured. For channel-advertised voice-note targets, Kova transcodes Xiaomi output to 48kHz Opus with `ffmpeg` before delivery when the channel advertises transcoding.
 - **Local CLI**: uses the configured `outputFormat`. Voice-note targets are
   converted to Ogg/Opus and telephony output is converted to raw 16 kHz mono PCM
   with `ffmpeg`.
-- **Google Gemini**: Gemini API TTS returns raw 24kHz PCM. OpenClaw wraps it as WAV for audio attachments, transcodes it to 48kHz Opus for voice-note targets, and returns PCM directly for Talk/telephony.
+- **Google Gemini**: Gemini API TTS returns raw 24kHz PCM. Kova wraps it as WAV for audio attachments, transcodes it to 48kHz Opus for voice-note targets, and returns PCM directly for Talk/telephony.
 - **Gradium**: WAV for audio attachments, Opus for voice-note targets, and `ulaw_8000` at 8 kHz for telephony.
 - **Inworld**: MP3 for normal audio attachments, native `OGG_OPUS` for voice-note targets, and raw `PCM` at 22050 Hz for Talk/telephony.
-- **xAI**: MP3 by default; `responseFormat` may be `mp3`, `wav`, `pcm`, `mulaw`, or `alaw`. OpenClaw uses xAI's batch REST TTS endpoint and returns a complete audio attachment; xAI's streaming TTS WebSocket is not used by this provider path. Native Opus voice-note format is not supported by this path.
+- **xAI**: MP3 by default; `responseFormat` may be `mp3`, `wav`, `pcm`, `mulaw`, or `alaw`. Kova uses xAI's batch REST TTS endpoint and returns a complete audio attachment; xAI's streaming TTS WebSocket is not used by this provider path. Native Opus voice-note format is not supported by this path.
 - **Microsoft**: uses `microsoft.outputFormat` (default `audio-24khz-48kbitrate-mono-mp3`).
   - The bundled transport accepts an `outputFormat`, but not all formats are available from the service.
   - Output format values follow Microsoft Speech output formats (including Ogg/WebM Opus).
   - Telegram `sendVoice` accepts OGG/MP3/M4A; use OpenAI/ElevenLabs if you need
     guaranteed Opus voice messages.
-  - If the configured Microsoft output format fails, OpenClaw retries with MP3.
+  - If the configured Microsoft output format fails, Kova retries with MP3.
 
 OpenAI/ElevenLabs output formats are fixed per channel (see above).
 
 ## Auto-TTS behavior
 
-When `messages.tts.auto` is enabled, OpenClaw:
+When `messages.tts.auto` is enabled, Kova:
 
 - Skips TTS if the reply already contains media or a `MEDIA:` directive.
 - Skips very short replies (under 10 chars).
@@ -758,10 +758,10 @@ Per-provider notes:
 - **Feishu / WhatsApp transcoding:** When a voice-note reply lands as MP3/WebM/WAV/M4A, the channel plugin transcodes to 48 kHz Ogg/Opus with `ffmpeg`. WhatsApp sends through Baileys with `ptt: true` and `audio/ogg; codecs=opus`. If conversion fails: Feishu falls back to attaching the original file; WhatsApp send fails rather than posting an incompatible PTT payload.
 - **MiniMax / Xiaomi MiMo:** Default MP3 (32 kHz for MiniMax `speech-2.8-hd`); transcoded to 48 kHz Opus for voice-note targets via `ffmpeg`.
 - **Local CLI:** Uses configured `outputFormat`. Voice-note targets are converted to Ogg/Opus and telephony output to raw 16 kHz mono PCM.
-- **Google Gemini:** Returns raw 24 kHz PCM. OpenClaw wraps as WAV for attachments, transcodes to 48 kHz Opus for voice-note targets, returns PCM directly for Talk/telephony.
+- **Google Gemini:** Returns raw 24 kHz PCM. Kova wraps as WAV for attachments, transcodes to 48 kHz Opus for voice-note targets, returns PCM directly for Talk/telephony.
 - **Inworld:** MP3 attachments, native `OGG_OPUS` voice-note, raw `PCM` 22050 Hz for Talk/telephony.
 - **xAI:** MP3 by default; `responseFormat` may be `mp3|wav|pcm|mulaw|alaw`. Uses xAI's batch REST endpoint — streaming WebSocket TTS is **not** used. Native Opus voice-note format is **not** supported.
-- **Microsoft:** Uses `microsoft.outputFormat` (default `audio-24khz-48kbitrate-mono-mp3`). Telegram `sendVoice` accepts OGG/MP3/M4A; use OpenAI/ElevenLabs if you need guaranteed Opus voice messages. If the configured Microsoft format fails, OpenClaw retries with MP3.
+- **Microsoft:** Uses `microsoft.outputFormat` (default `audio-24khz-48kbitrate-mono-mp3`). Telegram `sendVoice` accepts OGG/MP3/M4A; use OpenAI/ElevenLabs if you need guaranteed Opus voice messages. If the configured Microsoft format fails, Kova retries with MP3.
 
 OpenAI and ElevenLabs output formats are fixed per channel as listed above.
 
@@ -773,13 +773,13 @@ OpenAI and ElevenLabs output formats are fixed per channel as listed above.
       Auto-TTS mode. `inbound` only sends audio after an inbound voice message; `tagged` only sends audio when the reply includes `[[tts:...]]` directives or a `[[tts:text]]` block.
     </ParamField>
     <ParamField path="enabled" type="boolean" deprecated>
-      Legacy toggle. `openclaw doctor --fix` migrates this to `auto`.
+      Legacy toggle. `kova doctor --fix` migrates this to `auto`.
     </ParamField>
     <ParamField path="mode" type='"final" | "all"' default="final">
       `"all"` includes tool/block replies in addition to final replies.
     </ParamField>
     <ParamField path="provider" type="string">
-      Speech provider id. When unset, OpenClaw uses the first configured provider in registry auto-select order. Legacy `provider: "edge"` is rewritten to `"microsoft"` by `openclaw doctor --fix`.
+      Speech provider id. When unset, Kova uses the first configured provider in registry auto-select order. Legacy `provider: "edge"` is rewritten to `"microsoft"` by `kova doctor --fix`.
     </ParamField>
     <ParamField path="persona" type="string">
       Active persona id from `personas`. Normalized to lowercase.
@@ -794,7 +794,7 @@ OpenAI and ElevenLabs output formats are fixed per channel as listed above.
       Allow the model to emit TTS directives. `enabled` defaults to `true`; `allowProvider` defaults to `false`.
     </ParamField>
     <ParamField path="providers.<id>" type="object">
-      Provider-owned settings keyed by speech provider id. Legacy direct blocks (`messages.tts.openai`, `.elevenlabs`, `.microsoft`, `.edge`) are rewritten by `openclaw doctor --fix`; commit only `messages.tts.providers.<id>`.
+      Provider-owned settings keyed by speech provider id. Legacy direct blocks (`messages.tts.openai`, `.elevenlabs`, `.microsoft`, `.edge`) are rewritten by `kova doctor --fix`; commit only `messages.tts.providers.<id>`.
     </ParamField>
     <ParamField path="maxTextLength" type="number">
       Hard cap for TTS input characters. `/tts audio` fails if exceeded.
@@ -873,7 +873,7 @@ OpenAI and ElevenLabs output formats are fixed per channel as listed above.
     <ParamField path="saveSubtitles" type="boolean">Write JSON subtitles alongside the audio file.</ParamField>
     <ParamField path="proxy" type="string">Proxy URL for Microsoft speech requests.</ParamField>
     <ParamField path="timeoutMs" type="number">Request timeout override (ms).</ParamField>
-    <ParamField path="edge.*" type="object" deprecated>Legacy alias. Run `openclaw doctor --fix` to rewrite persisted config to `providers.microsoft`.</ParamField>
+    <ParamField path="edge.*" type="object" deprecated>Legacy alias. Run `kova doctor --fix` to rewrite persisted config to `providers.microsoft`.</ParamField>
   </Accordion>
 
   <Accordion title="MiniMax">

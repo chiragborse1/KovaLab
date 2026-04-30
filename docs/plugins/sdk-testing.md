@@ -1,5 +1,5 @@
 ---
-summary: "Testing utilities and patterns for OpenClaw plugins"
+summary: "Testing utilities and patterns for Kova plugins"
 title: "Plugin testing"
 sidebarTitle: "Testing"
 read_when:
@@ -8,7 +8,7 @@ read_when:
   - You want to understand contract tests for bundled plugins
 ---
 
-Reference for test utilities, patterns, and lint enforcement for OpenClaw
+Reference for test utilities, patterns, and lint enforcement for Kova
 plugins.
 
 <Tip>
@@ -84,7 +84,7 @@ describe("my-channel target resolution", () => {
 ### Testing registration contracts
 
 Unit tests that pass a hand-written `api` mock to `register(api)` do not exercise
-OpenClaw's loader acceptance gates. Add at least one loader-backed smoke test
+Kova's loader acceptance gates. Add at least one loader-backed smoke test
 for each registration surface your plugin depends on, especially hooks and
 exclusive capabilities such as memory.
 
@@ -256,7 +256,7 @@ patterns is recommended.
 
 ## Test configuration
 
-OpenClaw uses Vitest with V8 coverage thresholds. For plugin tests:
+Kova uses Vitest with V8 coverage thresholds. For plugin tests:
 
 ```bash
 # Run all tests

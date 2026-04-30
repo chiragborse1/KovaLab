@@ -1,18 +1,18 @@
 ---
-summary: "Deploy OpenClaw Gateway to a Kubernetes cluster with Kustomize"
+summary: "Deploy Kova Gateway to a Kubernetes cluster with Kustomize"
 read_when:
-  - You want to run OpenClaw on a Kubernetes cluster
-  - You want to test OpenClaw in a Kubernetes environment
+  - You want to run Kova on a Kubernetes cluster
+  - You want to test Kova in a Kubernetes environment
 title: "Kubernetes"
 ---
 
-# OpenClaw on Kubernetes
+# Kova on Kubernetes
 
-A minimal starting point for running OpenClaw on Kubernetes — not a production-ready deployment. It covers the core resources and is meant to be adapted to your environment.
+A minimal starting point for running Kova on Kubernetes — not a production-ready deployment. It covers the core resources and is meant to be adapted to your environment.
 
 ## Why not Helm?
 
-OpenClaw is a single container with some config files. The interesting customization is in agent content (markdown files, skills, config overrides), not infrastructure templating. Kustomize handles overlays without the overhead of a Helm chart. If your deployment grows more complex, a Helm chart can be layered on top of these manifests.
+Kova is a single container with some config files. The interesting customization is in agent content (markdown files, skills, config overrides), not infrastructure templating. Kustomize handles overlays without the overhead of a Helm chart. If your deployment grows more complex, a Helm chart can be layered on top of these manifests.
 
 ## What you need
 
@@ -27,7 +27,7 @@ OpenClaw is a single container with some config files. The interesting customiza
 export <PROVIDER>_API_KEY="..."
 ./scripts/k8s/deploy.sh
 
-kubectl port-forward svc/openclaw 18789:18789 -n openclaw
+kubectl port-forward svc/openclaw 18789:18789 -n kova
 open http://localhost:18789
 ```
 
@@ -35,7 +35,7 @@ Retrieve the configured shared secret for the Control UI. This deploy script
 creates token auth by default:
 
 ```bash
-kubectl get secret openclaw-secrets -n openclaw -o jsonpath='{.data.OPENCLAW_GATEWAY_TOKEN}' | base64 -d
+kubectl get secret openclaw-secrets -n kova -o jsonpath='{.data.OPENCLAW_GATEWAY_TOKEN}' | base64 -d
 ```
 
 For local debugging, `./scripts/k8s/deploy.sh --show-token` prints the token after deploy.
@@ -78,14 +78,14 @@ Use `--show-token` with either command if you want the token printed to stdout f
 ### 2) Access the gateway
 
 ```bash
-kubectl port-forward svc/openclaw 18789:18789 -n openclaw
+kubectl port-forward svc/openclaw 18789:18789 -n kova
 open http://localhost:18789
 ```
 
 ## What gets deployed
 
 ```
-Namespace: openclaw (configurable via OPENCLAW_NAMESPACE)
+Namespace: kova (configurable via OPENCLAW_NAMESPACE)
 ├── Deployment/openclaw        # Single pod, init container + gateway
 ├── Service/openclaw           # ClusterIP on port 18789
 ├── PersistentVolumeClaim      # 10Gi for agent state and config
@@ -123,9 +123,9 @@ Existing provider keys stay in the Secret unless you overwrite them.
 Or patch the Secret directly:
 
 ```bash
-kubectl patch secret openclaw-secrets -n openclaw \
+kubectl patch secret openclaw-secrets -n kova \
   -p '{"stringData":{"<PROVIDER>_API_KEY":"..."}}'
-kubectl rollout restart deployment/openclaw -n openclaw
+kubectl rollout restart deployment/openclaw -n kova
 ```
 
 ### Custom namespace

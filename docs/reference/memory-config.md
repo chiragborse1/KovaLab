@@ -9,7 +9,7 @@ read_when:
   - You want to enable multimodal memory indexing
 ---
 
-This page lists every configuration knob for OpenClaw memory search. For conceptual overviews, see:
+This page lists every configuration knob for Kova memory search. For conceptual overviews, see:
 
 <CardGroup cols={2}>
   <Card title="Memory overview" href="/concepts/memory">
@@ -55,7 +55,7 @@ See [Active Memory](/concepts/active-memory) for the activation model, plugin-ow
 
 ### Auto-detection order
 
-When `provider` is not set, OpenClaw selects the first available:
+When `provider` is not set, Kova selects the first available:
 
 <Steps>
   <Step title="local">
@@ -182,7 +182,7 @@ For custom OpenAI-compatible endpoints or overriding provider defaults:
 
   </Accordion>
   <Accordion title="Bedrock">
-    Bedrock uses the AWS SDK default credential chain — no API keys needed. If OpenClaw runs on EC2 with a Bedrock-enabled instance role, just set the provider and model:
+    Bedrock uses the AWS SDK default credential chain — no API keys needed. If Kova runs on EC2 with a Bedrock-enabled instance role, just set the provider and model:
 
     ```json5
     {
@@ -258,8 +258,8 @@ For custom OpenAI-compatible endpoints or overriding provider defaults:
     Use the standalone CLI to verify the same provider path the Gateway uses:
 
     ```bash
-    openclaw memory status --deep --agent main
-    openclaw memory index --force --agent main
+    kova memory status --deep --agent main
+    kova memory index --force --agent main
     ```
 
     If `provider` is `auto`, `local` is selected only when `local.modelPath` points to an existing local file. `hf:` and HTTP(S) model references can still be used explicitly with `provider: "local"`, but they do not make `auto` select local before the model is available on disk.
@@ -422,7 +422,7 @@ Session indexing is opt-in and runs asynchronously. Results can be slightly stal
 | `store.vector.enabled`       | `boolean` | `true`  | Use sqlite-vec for vector queries |
 | `store.vector.extensionPath` | `string`  | bundled | Override sqlite-vec path          |
 
-When sqlite-vec is unavailable, OpenClaw falls back to in-process cosine similarity automatically.
+When sqlite-vec is unavailable, Kova falls back to in-process cosine similarity automatically.
 
 ---
 
@@ -449,10 +449,10 @@ Set `memory.backend = "qmd"` to enable. All QMD settings live under `memory.qmd`
 | `sessions.retentionDays` | `number`  | --       | Transcript retention                         |
 | `sessions.exportDir`     | `string`  | --       | Export directory                             |
 
-OpenClaw prefers the current QMD collection and MCP query shapes, but keeps older QMD releases working by falling back to legacy `--mask` collection flags and older MCP tool names when needed.
+Kova prefers the current QMD collection and MCP query shapes, but keeps older QMD releases working by falling back to legacy `--mask` collection flags and older MCP tool names when needed.
 
 <Note>
-QMD model overrides stay on the QMD side, not OpenClaw config. If you need to override QMD's models globally, set environment variables such as `QMD_EMBED_MODEL`, `QMD_RERANK_MODEL`, and `QMD_GENERATE_MODEL` in the gateway runtime environment.
+QMD model overrides stay on the QMD side, not Kova config. If you need to override QMD's models globally, set environment variables such as `QMD_EMBED_MODEL`, `QMD_RERANK_MODEL`, and `QMD_GENERATE_MODEL` in the gateway runtime environment.
 </Note>
 
 <AccordionGroup>

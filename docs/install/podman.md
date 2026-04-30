@@ -1,23 +1,23 @@
 ---
-summary: "Run OpenClaw in a rootless Podman container"
+summary: "Run Kova in a rootless Podman container"
 read_when:
   - You want a containerized gateway with Podman instead of Docker
 title: "Podman"
 ---
 
-Run the OpenClaw Gateway in a rootless Podman container, managed by your current non-root user.
+Run the Kova Gateway in a rootless Podman container, managed by your current non-root user.
 
 The intended model is:
 
 - Podman runs the gateway container.
-- Your host `openclaw` CLI is the control plane.
+- Your host `kova` CLI is the control plane.
 - Persistent state lives on the host under `~/.openclaw` by default.
-- Day-to-day management uses `openclaw --container <name> ...` instead of `sudo -u openclaw`, `podman exec`, or a separate service user.
+- Day-to-day management uses `kova --container <name> ...` instead of `sudo -u kova`, `podman exec`, or a separate service user.
 
 ## Prerequisites
 
 - **Podman** in rootless mode
-- **OpenClaw CLI** installed on the host
+- **Kova CLI** installed on the host
 - **Optional:** `systemd --user` if you want Quadlet-managed auto-start
 - **Optional:** `sudo` only if you want `loginctl enable-linger "$(whoami)"` for boot persistence on a headless host
 
@@ -37,7 +37,7 @@ The intended model is:
   </Step>
 
   <Step title="Manage the running container from the host CLI">
-    Set `OPENCLAW_CONTAINER=openclaw`, then use normal `openclaw` commands from the host.
+    Set `OPENCLAW_CONTAINER=kova`, then use normal `kova` commands from the host.
   </Step>
 </Steps>
 
@@ -70,7 +70,7 @@ Container start:
 ./scripts/run-openclaw-podman.sh launch
 ```
 
-The script starts the container as your current uid/gid with `--userns=keep-id` and bind-mounts your OpenClaw state into the container.
+The script starts the container as your current uid/gid with `--userns=keep-id` and bind-mounts your Kova state into the container.
 
 Onboarding:
 
@@ -83,16 +83,16 @@ Then open `http://127.0.0.1:18789/` and use the token from `~/.openclaw/.env`.
 Host CLI default:
 
 ```bash
-export OPENCLAW_CONTAINER=openclaw
+export OPENCLAW_CONTAINER=kova
 ```
 
 Then commands such as these will run inside that container automatically:
 
 ```bash
-openclaw dashboard --no-open
-openclaw gateway status --deep   # includes extra service scan
-openclaw doctor
-openclaw channels login
+kova dashboard --no-open
+kova gateway status --deep   # includes extra service scan
+kova doctor
+kova channels login
 ```
 
 On macOS, Podman machine may make the browser appear non-local to the gateway.
@@ -108,7 +108,7 @@ For HTTPS or remote browser access, follow the main Tailscale docs.
 Podman-specific note:
 
 - Keep the Podman publish host at `127.0.0.1`.
-- Prefer host-managed `tailscale serve` over `openclaw gateway --tailscale serve`.
+- Prefer host-managed `tailscale serve` over `kova gateway --tailscale serve`.
 - On macOS, if local browser device-auth context is unreliable, use Tailscale access instead of ad hoc local tunnel workarounds.
 
 See:
@@ -163,7 +163,7 @@ The Podman setup also seeds `gateway.controlUi.allowedOrigins` for `127.0.0.1` a
 
 Useful env vars for the manual launcher:
 
-- `OPENCLAW_PODMAN_CONTAINER` -- container name (`openclaw` by default)
+- `OPENCLAW_PODMAN_CONTAINER` -- container name (`kova` by default)
 - `OPENCLAW_PODMAN_IMAGE` / `OPENCLAW_IMAGE` -- image to run
 - `OPENCLAW_PODMAN_GATEWAY_HOST_PORT` -- host port mapped to container `18789`
 - `OPENCLAW_PODMAN_BRIDGE_HOST_PORT` -- host port mapped to container `18790`
@@ -185,19 +185,19 @@ Quadlet note:
 
 ## Useful commands
 
-- **Container logs:** `podman logs -f openclaw`
-- **Stop container:** `podman stop openclaw`
-- **Remove container:** `podman rm -f openclaw`
-- **Open dashboard URL from host CLI:** `openclaw dashboard --no-open`
-- **Health/status via host CLI:** `openclaw gateway status --deep` (RPC probe + extra
+- **Container logs:** `podman logs -f kova`
+- **Stop container:** `podman stop kova`
+- **Remove container:** `podman rm -f kova`
+- **Open dashboard URL from host CLI:** `kova dashboard --no-open`
+- **Health/status via host CLI:** `kova gateway status --deep` (RPC probe + extra
   service scan)
 
 ## Troubleshooting
 
 - **Permission denied (EACCES) on config or workspace:** The container runs with `--userns=keep-id` and `--user <your uid>:<your gid>` by default. Ensure the host config/workspace paths are owned by your current user.
 - **Gateway start blocked (missing `gateway.mode=local`):** Ensure `~/.openclaw/openclaw.json` exists and sets `gateway.mode="local"`. `scripts/podman/setup.sh` creates this if missing.
-- **Container CLI commands hit the wrong target:** Use `openclaw --container <name> ...` explicitly, or export `OPENCLAW_CONTAINER=<name>` in your shell.
-- **`openclaw update` fails with `--container`:** Expected. Rebuild/pull the image, then restart the container or the Quadlet service.
+- **Container CLI commands hit the wrong target:** Use `kova --container <name> ...` explicitly, or export `OPENCLAW_CONTAINER=<name>` in your shell.
+- **`kova update` fails with `--container`:** Expected. Rebuild/pull the image, then restart the container or the Quadlet service.
 - **Quadlet service does not start:** Run `systemctl --user daemon-reload`, then `systemctl --user start openclaw.service`. On headless systems you may also need `sudo loginctl enable-linger "$(whoami)"`.
 - **SELinux blocks bind mounts:** Leave the default mount behavior alone; the launcher auto-adds `:Z` on Linux when SELinux is enforcing or permissive.
 

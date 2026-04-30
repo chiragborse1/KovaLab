@@ -8,7 +8,7 @@ title: "Video generation"
 sidebarTitle: "Video generation"
 ---
 
-OpenClaw agents can generate videos from text prompts, reference images, or
+Kova agents can generate videos from text prompts, reference images, or
 existing videos. Fourteen provider backends are supported, each with
 different model options, input modes, and feature sets. The agent picks the
 right provider automatically based on your configuration and available API
@@ -20,7 +20,7 @@ provider is available. If you do not see it in your agent tools, set a
 provider API key or configure `agents.defaults.videoGenerationModel`.
 </Note>
 
-OpenClaw treats video generation as three runtime modes:
+Kova treats video generation as three runtime modes:
 
 - `generate` — text-to-video requests with no reference media.
 - `imageToVideo` — request includes one or more reference images.
@@ -42,7 +42,7 @@ active mode before submission and reports supported modes in `action=list`.
   </Step>
   <Step title="Pick a default model (optional)">
     ```bash
-    openclaw config set agents.defaults.videoGenerationModel.primary "google/veo-3.1-fast-generate-preview"
+    kova config set agents.defaults.videoGenerationModel.primary "google/veo-3.1-fast-generate-preview"
     ```
   </Step>
   <Step title="Ask the agent">
@@ -59,24 +59,24 @@ active mode before submission and reports supported modes in `action=list`.
 Video generation is asynchronous. When the agent calls `video_generate` in a
 session:
 
-1. OpenClaw submits the request to the provider and immediately returns a task id.
+1. Kova submits the request to the provider and immediately returns a task id.
 2. The provider processes the job in the background (typically 30 seconds to 5 minutes depending on the provider and resolution).
-3. When the video is ready, OpenClaw wakes the same session with an internal completion event.
+3. When the video is ready, Kova wakes the same session with an internal completion event.
 4. The agent posts the finished video back into the original conversation.
 
 While a job is in flight, duplicate `video_generate` calls in the same
 session return the current task status instead of starting another
-generation. Use `openclaw tasks list` or `openclaw tasks show <taskId>` to
+generation. Use `kova tasks list` or `kova tasks show <taskId>` to
 check progress from the CLI.
 
 Outside of session-backed agent runs (for example, direct tool invocations),
 the tool falls back to inline generation and returns the final media path
 in the same turn.
 
-Generated video files are saved under OpenClaw-managed media storage when
+Generated video files are saved under Kova-managed media storage when
 the provider returns bytes. The default generated-video save cap follows
 the video media limit, and `agents.defaults.mediaMaxMb` raises it for
-larger renders. When a provider also returns a hosted output URL, OpenClaw
+larger renders. When a provider also returns a hosted output URL, Kova
 can deliver that URL instead of failing the task if local persistence
 rejects an oversized file.
 
@@ -92,9 +92,9 @@ rejects an oversized file.
 Check status from the CLI:
 
 ```bash
-openclaw tasks list
-openclaw tasks show <taskId>
-openclaw tasks cancel <taskId>
+kova tasks list
+kova tasks show <taskId>
+kova tasks cancel <taskId>
 ```
 
 If a video task is already `queued` or `running` for the current session,
@@ -227,7 +227,7 @@ dimensions). Providers that do not declare it surface the value via
 </ParamField>
 
 <Note>
-Not all providers support all parameters. OpenClaw normalizes duration to
+Not all providers support all parameters. Kova normalizes duration to
 the closest provider-supported value, and remaps translated geometry hints
 such as size-to-aspect-ratio when a fallback provider exposes a different
 control surface. Truly unsupported overrides are ignored on a best-effort
@@ -282,7 +282,7 @@ aggregated error includes the skip reason for each.
 
 ## Model selection
 
-OpenClaw resolves the model in this order:
+Kova resolves the model in this order:
 
 1. **`model` tool parameter** — if the agent specifies one in the call.
 2. **`videoGenerationModel.primary`** from config.
@@ -493,7 +493,7 @@ select `runway/gen4_aleph`.
 
 ## Configuration
 
-Set the default video-generation model in your OpenClaw config:
+Set the default video-generation model in your Kova config:
 
 ```json5
 {
@@ -511,7 +511,7 @@ Set the default video-generation model in your OpenClaw config:
 Or via the CLI:
 
 ```bash
-openclaw config set agents.defaults.videoGenerationModel.primary "qwen/wan2.6-t2v"
+kova config set agents.defaults.videoGenerationModel.primary "qwen/wan2.6-t2v"
 ```
 
 ## Related

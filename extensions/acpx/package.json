@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/acpx",
   "version": "2026.4.25",
-  "description": "OpenClaw ACP runtime backend",
+  "description": "Kova ACP runtime backend",
   "type": "module",
   "dependencies": {
     "acpx": "0.6.1"

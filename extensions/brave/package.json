@@ -2,7 +2,7 @@
   "name": "@openclaw/brave-plugin",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Brave plugin",
+  "description": "Kova Brave plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.33"

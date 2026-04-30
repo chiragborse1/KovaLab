@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw dns` (wide-area discovery helpers)"
+summary: "CLI reference for `kova dns` (wide-area discovery helpers)"
 read_when:
   - You want wide-area discovery (DNS-SD) via Tailscale + CoreDNS
   - You’re setting up split DNS for a custom discovery domain (example: openclaw.internal)
 title: "DNS"
 ---
 
-# `openclaw dns`
+# `kova dns`
 
 DNS helpers for wide-area discovery (Tailscale + CoreDNS). Currently focused on macOS + Homebrew CoreDNS.
 
@@ -18,9 +18,9 @@ Related:
 ## Setup
 
 ```bash
-openclaw dns setup
-openclaw dns setup --domain openclaw.internal
-openclaw dns setup --apply
+kova dns setup
+kova dns setup --domain openclaw.internal
+kova dns setup --apply
 ```
 
 ## `dns setup`
@@ -43,7 +43,7 @@ What it shows:
 Notes:
 
 - Without `--apply`, the command is a planning helper only and prints the recommended setup.
-- If `--domain` is omitted, OpenClaw uses `discovery.wideArea.domain` from config.
+- If `--domain` is omitted, Kova uses `discovery.wideArea.domain` from config.
 - `--apply` currently supports macOS only and expects Homebrew CoreDNS.
 - `--apply` bootstraps the zone file if needed, ensures the CoreDNS import stanza exists, and restarts the `coredns` brew service.
 

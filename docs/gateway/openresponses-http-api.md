@@ -6,7 +6,7 @@ read_when:
 title: "OpenResponses API"
 ---
 
-OpenClaw’s Gateway can serve an OpenResponses-compatible `POST /v1/responses` endpoint.
+Kova’s Gateway can serve an OpenResponses-compatible `POST /v1/responses` endpoint.
 
 This endpoint is **disabled by default**. Enable it in config first.
 
@@ -14,7 +14,7 @@ This endpoint is **disabled by default**. Enable it in config first.
 - Same port as the Gateway (WS + HTTP multiplex): `http://<gateway-host>:<port>/v1/responses`
 
 Under the hood, requests are executed as a normal Gateway agent run (same codepath as
-`openclaw agent`), so routing/permissions/config match your Gateway.
+`kova agent`), so routing/permissions/config match your Gateway.
 
 ## Authentication, security, and routing
 
@@ -86,7 +86,7 @@ Accepted but **currently ignored**:
 
 Supported:
 
-- `previous_response_id`: OpenClaw reuses the earlier response session when the request stays within the same agent/user/requested-session scope.
+- `previous_response_id`: Kova reuses the earlier response session when the request stays within the same agent/user/requested-session scope.
 
 ## Items (input)
 
@@ -291,7 +291,7 @@ Event types currently emitted:
 ## Usage
 
 `usage` is populated when the underlying provider reports token counts.
-OpenClaw normalizes common OpenAI-style aliases before those counters reach
+Kova normalizes common OpenAI-style aliases before those counters reach
 downstream status/session surfaces, including `input_tokens` / `output_tokens`
 and `prompt_tokens` / `completion_tokens`.
 

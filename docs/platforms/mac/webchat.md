@@ -19,7 +19,7 @@ agent (with a session switcher for other sessions).
 - Auto‑open for testing:
 
   ```bash
-  dist/OpenClaw.app/Contents/MacOS/OpenClaw --webchat
+  dist/Kova.app/Contents/MacOS/Kova --webchat
   ```
 
 - Logs: `./scripts/clawlog.sh` (subsystem `ai.openclaw`, category `WebChatSwiftUI`).

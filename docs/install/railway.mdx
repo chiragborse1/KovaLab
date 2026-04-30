@@ -1,14 +1,14 @@
 ---
-summary: "Deploy OpenClaw on Railway with one-click template"
+summary: "Deploy Kova on Railway with one-click template"
 read_when:
-  - Deploying OpenClaw to Railway
+  - Deploying Kova to Railway
   - You want a one-click cloud deploy with browser-based Control UI
 title: "Railway"
 ---
 
 # Railway
 
-Deploy OpenClaw on Railway with a one-click template and access it through the web Control UI.
+Deploy Kova on Railway with a one-click template and access it through the web Control UI.
 This is the easiest "no terminal on the server" path: Railway runs the Gateway for you.
 
 ## Quick checklist (new users)
@@ -38,7 +38,7 @@ Then open:
 
 ## What you get
 
-- Hosted OpenClaw Gateway + Control UI
+- Hosted Kova Gateway + Control UI
 - Persistent storage via Railway Volume (`/data`) so `openclaw.json`,
   per-agent `auth-profiles.json`, channel/provider state, sessions, and
   workspace survive redeploys
@@ -68,7 +68,7 @@ Set these variables on the service:
 
 ## Connect a channel
 
-Use the Control UI at `/openclaw` or run `openclaw onboard` via Railway's shell for channel setup instructions:
+Use the Control UI at `/openclaw` or run `kova onboard` via Railway's shell for channel setup instructions:
 
 - [Telegram](/channels/telegram) (fastest — just a bot token)
 - [Discord](/channels/discord)
@@ -79,14 +79,14 @@ Use the Control UI at `/openclaw` or run `openclaw onboard` via Railway's shell 
 Export your state, config, auth profiles, and workspace:
 
 ```bash
-openclaw backup create
+kova backup create
 ```
 
-This creates a portable backup archive with OpenClaw state plus any configured
+This creates a portable backup archive with Kova state plus any configured
 workspace. See [Backup](/cli/backup) for details.
 
 ## Next steps
 
 - Set up messaging channels: [Channels](/channels)
 - Configure the Gateway: [Gateway configuration](/gateway/configuration)
-- Keep OpenClaw up to date: [Updating](/install/updating)
+- Keep Kova up to date: [Updating](/install/updating)

@@ -7,26 +7,26 @@ read_when:
   - Reviewing what diagnostics data is recorded or redacted
 ---
 
-OpenClaw can create a local diagnostics zip that is safe to attach to bug
+Kova can create a local diagnostics zip that is safe to attach to bug
 reports. It combines sanitized Gateway status, health, logs, config shape, and
 recent payload-free stability events.
 
 ## Quick start
 
 ```bash
-openclaw gateway diagnostics export
+kova gateway diagnostics export
 ```
 
 The command prints the written zip path. To choose a path:
 
 ```bash
-openclaw gateway diagnostics export --output openclaw-diagnostics.zip
+kova gateway diagnostics export --output openclaw-diagnostics.zip
 ```
 
 For automation:
 
 ```bash
-openclaw gateway diagnostics export --json
+kova gateway diagnostics export --json
 ```
 
 ## What the export contains
@@ -74,22 +74,22 @@ diagnostics are enabled. It is for operational facts, not content.
 Inspect the live recorder:
 
 ```bash
-openclaw gateway stability
-openclaw gateway stability --type payload.large
-openclaw gateway stability --json
+kova gateway stability
+kova gateway stability --type payload.large
+kova gateway stability --json
 ```
 
 Inspect the newest persisted stability bundle after a fatal exit, shutdown
 timeout, or restart startup failure:
 
 ```bash
-openclaw gateway stability --bundle latest
+kova gateway stability --bundle latest
 ```
 
 Create a diagnostics zip from the newest persisted bundle:
 
 ```bash
-openclaw gateway stability --bundle latest --export
+kova gateway stability --bundle latest --export
 ```
 
 Persisted bundles live under `~/.openclaw/logs/stability/` when events exist.
@@ -97,7 +97,7 @@ Persisted bundles live under `~/.openclaw/logs/stability/` when events exist.
 ## Useful options
 
 ```bash
-openclaw gateway diagnostics export \
+kova gateway diagnostics export \
   --output openclaw-diagnostics.zip \
   --log-lines 5000 \
   --log-bytes 1000000

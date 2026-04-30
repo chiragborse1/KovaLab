@@ -7,7 +7,7 @@ read_when:
 title: "Testing"
 ---
 
-OpenClaw has three Vitest suites (unit/integration, e2e, live) and a small set
+Kova has three Vitest suites (unit/integration, e2e, live) and a small set
 of Docker runners. This doc is a "how we test" guide:
 
 - What each suite covers (and what it deliberately does _not_ cover).
@@ -25,7 +25,7 @@ Most days:
 - Direct file targeting now routes extension/channel paths too: `pnpm test extensions/discord/src/monitor/message-handler.preflight.test.ts`
 - Prefer targeted runs first when you are iterating on a single failure.
 - Docker-backed QA site: `pnpm qa:lab:up`
-- Linux VM-backed QA lane: `pnpm openclaw qa suite --runner multipass --scenario channel-chat-baseline`
+- Linux VM-backed QA lane: `pnpm kova qa suite --runner multipass --scenario channel-chat-baseline`
 
 When you touch tests or want extra confidence:
 
@@ -41,11 +41,11 @@ When debugging real providers/models (requires real creds):
     Models whose metadata advertises `image` input also run a tiny image turn.
     Disable the extra probes with `OPENCLAW_LIVE_MODEL_FILE_PROBE=0` or
     `OPENCLAW_LIVE_MODEL_IMAGE_PROBE=0` when isolating provider failures.
-  - CI coverage: daily `OpenClaw Scheduled Live And E2E Checks` and manual
-    `OpenClaw Release Checks` both call the reusable live/E2E workflow with
+  - CI coverage: daily `Kova Scheduled Live And E2E Checks` and manual
+    `Kova Release Checks` both call the reusable live/E2E workflow with
     `include_live_suites: true`, which includes separate Docker live model
     matrix jobs sharded by provider.
-  - For focused CI reruns, dispatch `OpenClaw Live And E2E Checks (Reusable)`
+  - For focused CI reruns, dispatch `Kova Live And E2E Checks (Reusable)`
     with `include_live_suites: true` and `live_models_only: true`.
   - Add new high-signal provider secrets to `scripts/ci-hydrate-live-auth.sh`
     plus `.github/workflows/openclaw-live-and-e2e-checks-reusable.yml` and its
@@ -73,14 +73,14 @@ When debugging real providers/models (requires real creds):
     and verifies the fuzzy planner fallback translates into an audited typed
     config write.
 - Crestodian first-run Docker smoke: `pnpm test:docker:crestodian-first-run`
-  - Starts from an empty OpenClaw state dir, routes bare `openclaw` to
+  - Starts from an empty Kova state dir, routes bare `kova` to
     Crestodian, applies setup/model/agent/Discord plugin + SecretRef writes,
     validates config, and verifies audit entries. The same Ring 0 setup path is
     also covered in QA Lab by
-    `pnpm openclaw qa suite --scenario crestodian-ring-zero-setup`.
+    `pnpm kova qa suite --scenario crestodian-ring-zero-setup`.
 - Moonshot/Kimi cost smoke: with `MOONSHOT_API_KEY` set, run
-  `openclaw models list --provider moonshot --json`, then run an isolated
-  `openclaw agent --local --session-id live-kimi-cost --message 'Reply exactly: KIMI_LIVE_OK' --thinking off --json`
+  `kova models list --provider moonshot --json`, then run an isolated
+  `kova agent --local --session-id live-kimi-cost --message 'Reply exactly: KIMI_LIVE_OK' --thinking off --json`
   against `moonshot/kimi-k2.6`. Verify the JSON reports Moonshot/K2.6 and the
   assistant transcript stores normalized `usage.cost`.
 
@@ -99,10 +99,10 @@ Convex-managed live Telegram lane, and Convex-managed live Discord lane as
 parallel jobs. Scheduled QA and release checks pass Matrix `--profile fast`
 explicitly, while the Matrix CLI and manual workflow input default remain
 `all`; manual dispatch can shard `all` into `transport`, `media`, `e2ee-smoke`,
-`e2ee-deep`, and `e2ee-cli` jobs. `OpenClaw Release Checks` runs parity plus
+`e2ee-deep`, and `e2ee-cli` jobs. `Kova Release Checks` runs parity plus
 the fast Matrix and Telegram lanes before release approval.
 
-- `pnpm openclaw qa suite`
+- `pnpm kova qa suite`
   - Runs repo-backed QA scenarios directly on the host.
   - Runs multiple selected scenarios in parallel by default with isolated
     gateway workers. `qa-channel` defaults to concurrency 4 (bounded by the
@@ -114,7 +114,7 @@ the fast Matrix and Telegram lanes before release approval.
     `aimock` starts a local AIMock-backed provider server for experimental
     fixture and protocol-mock coverage without replacing the scenario-aware
     `mock-openai` lane.
-- `pnpm openclaw qa suite --runner multipass`
+- `pnpm kova qa suite --runner multipass`
   - Runs the same QA suite inside a disposable Multipass Linux VM.
   - Keeps the same scenario-selection behavior as `qa suite` on the host.
   - Reuses the same provider/model selection flags as `qa suite`.
@@ -137,12 +137,12 @@ the fast Matrix and Telegram lanes before release approval.
     lane with Discord.
 - `pnpm test:docker:session-runtime-context`
   - Runs a deterministic built-app Docker smoke for embedded runtime context
-    transcripts. It verifies hidden OpenClaw runtime context is persisted as a
+    transcripts. It verifies hidden Kova runtime context is persisted as a
     non-display custom message instead of leaking into the visible user turn,
     then seeds an affected broken session JSONL and verifies
-    `openclaw doctor --fix` rewrites it to the active branch with a backup.
+    `kova doctor --fix` rewrites it to the active branch with a backup.
 - `pnpm test:docker:npm-telegram-live`
-  - Installs an OpenClaw package candidate in Docker, runs installed-package
+  - Installs an Kova package candidate in Docker, runs installed-package
     onboarding, configures Telegram through the installed CLI, then reuses the
     live Telegram QA lane with that installed package as the SUT Gateway.
   - Defaults to `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@beta`; set
@@ -150,7 +150,7 @@ the fast Matrix and Telegram lanes before release approval.
     `OPENCLAW_CURRENT_PACKAGE_TGZ` to test a resolved local tarball instead of
     installing from the registry.
   - Uses the same Telegram env credentials or Convex credential source as
-    `pnpm openclaw qa telegram`. For CI/release automation, set
+    `pnpm kova qa telegram`. For CI/release automation, set
     `OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex` plus
     `OPENCLAW_QA_CONVEX_SITE_URL` and the role secret. If
     `OPENCLAW_QA_CONVEX_SITE_URL` and a Convex role secret are present in CI,
@@ -198,7 +198,7 @@ gh workflow run package-acceptance.yml --ref main \
 ```
 
 - `pnpm test:docker:bundled-channel-deps`
-  - Packs and installs the current OpenClaw build in Docker, starts the Gateway
+  - Packs and installs the current Kova build in Docker, starts the Gateway
     with OpenAI configured, then enables bundled channel/plugins via config
     edits.
   - Verifies setup discovery leaves unconfigured plugin runtime dependencies
@@ -206,13 +206,13 @@ gh workflow run package-acceptance.yml --ref main \
     plugin's runtime dependencies on demand, and a second restart does not
     reinstall dependencies that were already activated.
   - Also installs a known older npm baseline, enables Telegram before running
-    `openclaw update --tag <candidate>`, and verifies the candidate's
+    `kova update --tag <candidate>`, and verifies the candidate's
     post-update doctor repairs bundled channel runtime dependencies without a
     harness-side postinstall repair.
 - `pnpm test:parallels:npm-update`
   - Runs the native packaged-install update smoke across Parallels guests. Each
     selected platform first installs the requested baseline package, then runs
-    the installed `openclaw update` command in the same guest and verifies the
+    the installed `kova update` command in the same guest and verifies the
     installed version, update status, gateway readiness, and one local agent
     turn.
   - Use `--platform macos`, `--platform windows`, or `--platform linux` while
@@ -244,13 +244,13 @@ gh workflow run package-acceptance.yml --ref main \
     understanding are loaded through bundled runtime APIs even when the agent
     turn itself only checks a simple text response.
 
-- `pnpm openclaw qa aimock`
+- `pnpm kova qa aimock`
   - Starts only the local AIMock provider server for direct protocol smoke
     testing.
-- `pnpm openclaw qa matrix`
+- `pnpm kova qa matrix`
   - Runs the Matrix live QA lane against a disposable Docker-backed Tuwunel homeserver.
-  - This QA host is repo/dev-only today. Packaged OpenClaw installs do not ship
-    `qa-lab`, so they do not expose `openclaw qa`.
+  - This QA host is repo/dev-only today. Packaged Kova installs do not ship
+    `qa-lab`, so they do not expose `kova qa`.
   - Repo checkouts load the bundled runner directly; no separate plugin install
     step is needed.
   - Provisions three temporary Matrix users (`driver`, `sut`, `observer`) plus one private room, then starts a QA gateway child with the real Matrix plugin as the SUT transport.
@@ -259,7 +259,7 @@ gh workflow run package-acceptance.yml --ref main \
   - Matrix does not expose shared credential-source flags because the lane provisions disposable users locally.
   - Writes a Matrix QA report, summary, observed-events artifact, and combined stdout/stderr output log under `.artifacts/qa-e2e/...`.
   - Emits progress by default and enforces a hard run timeout with `OPENCLAW_QA_MATRIX_TIMEOUT_MS` (default 30 minutes). `OPENCLAW_QA_MATRIX_NO_REPLY_WINDOW_MS` tunes negative no-reply quiet windows, and cleanup is bounded by `OPENCLAW_QA_MATRIX_CLEANUP_TIMEOUT_MS` with failures including the recovery `docker compose ... down --remove-orphans` command.
-- `pnpm openclaw qa telegram`
+- `pnpm kova qa telegram`
   - Runs the Telegram live QA lane against a real private group using the driver and SUT bot tokens from env.
   - Requires `OPENCLAW_QA_TELEGRAM_GROUP_ID`, `OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN`, and `OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN`. The group id must be the numeric Telegram chat id.
   - Supports `--credential-source convex` for shared pooled credentials. Use env mode by default, or set `OPENCLAW_QA_CREDENTIAL_SOURCE=convex` to opt into pooled leases.
@@ -283,7 +283,7 @@ transport coverage matrix.
 ### Shared Telegram credentials via Convex (v1)
 
 When `--credential-source convex` (or `OPENCLAW_QA_CREDENTIAL_SOURCE=convex`) is enabled for
-`openclaw qa telegram`, QA lab acquires an exclusive lease from a Convex-backed pool, heartbeats
+`kova qa telegram`, QA lab acquires an exclusive lease from a Convex-backed pool, heartbeats
 that lease while the lane is running, and releases the lease on shutdown.
 
 Reference Convex project scaffold:
@@ -318,10 +318,10 @@ Maintainer admin commands (pool add/remove/list) require
 CLI helpers for maintainers:
 
 ```bash
-pnpm openclaw qa credentials doctor
-pnpm openclaw qa credentials add --kind telegram --payload-file qa/telegram-credential.json
-pnpm openclaw qa credentials list --kind telegram
-pnpm openclaw qa credentials remove --credential-id <credential-id>
+pnpm kova qa credentials doctor
+pnpm kova qa credentials add --kind telegram --payload-file qa/telegram-credential.json
+pnpm kova qa credentials list --kind telegram
+pnpm kova qa credentials remove --credential-id <credential-id>
 ```
 
 Use `doctor` before live runs to check the Convex site URL, broker secrets,
@@ -370,7 +370,7 @@ own the flow.
 
 `qa-lab` owns the shared host mechanics:
 
-- the `openclaw qa` command root
+- the `kova qa` command root
 - suite startup and teardown
 - worker concurrency
 - artifact writing
@@ -380,7 +380,7 @@ own the flow.
 
 Runner plugins own the transport contract:
 
-- how `openclaw qa <runner>` is mounted beneath the shared `qa` root
+- how `kova qa <runner>` is mounted beneath the shared `qa` root
 - how the gateway is configured for that transport
 - how readiness is checked
 - how inbound events are injected
@@ -394,7 +394,7 @@ The minimum adoption bar for a new channel is:
 1. Keep `qa-lab` as the owner of the shared `qa` root.
 2. Implement the transport runner on the shared `qa-lab` host seam.
 3. Keep transport-specific mechanics inside the runner plugin or channel harness.
-4. Mount the runner as `openclaw qa <runner>` instead of registering a competing root command.
+4. Mount the runner as `kova qa <runner>` instead of registering a competing root command.
    Runner plugins should declare `qaRunners` in `openclaw.plugin.json` and export a matching `qaRunnerCliRegistrations` array from `runtime-api.ts`.
    Keep `runtime-api.ts` light; lazy CLI and runner execution should stay behind separate entrypoints.
 5. Author or adapt markdown scenarios under the themed `qa/scenarios/` directories.
@@ -594,7 +594,7 @@ Think of the suites as “increasing realism” (and increasing flakiness/cost):
 - Scope:
   - Starts an isolated OpenShell gateway on the host via Docker
   - Creates a sandbox from a temporary local Dockerfile
-  - Exercises OpenClaw's OpenShell backend over real `sandbox ssh-config` + SSH exec
+  - Exercises Kova's OpenShell backend over real `sandbox ssh-config` + SSH exec
   - Verifies remote-canonical filesystem behavior through the sandbox fs bridge
 - Expectations:
   - Opt-in only; not part of the default `pnpm test:e2e` run
@@ -655,7 +655,7 @@ These Docker runners split into two buckets:
   `OPENCLAW_LIVE_GATEWAY_STEP_TIMEOUT_MS=45000`, and
   `OPENCLAW_LIVE_GATEWAY_MODEL_TIMEOUT_MS=90000`. Override those env vars when you
   explicitly want the larger exhaustive scan.
-- `test:docker:all` builds the live Docker image once via `test:docker:live-build`, packs OpenClaw once as an npm tarball through `scripts/package-openclaw-for-docker.mjs`, then builds/reuses two `scripts/e2e/Dockerfile` images. The bare image is only the Node/Git runner for install/update/plugin-dependency lanes; those lanes mount the prebuilt tarball. The functional image installs the same tarball into `/app` for built-app functionality lanes. Docker lane definitions live in `scripts/lib/docker-e2e-scenarios.mjs`; planner logic lives in `scripts/lib/docker-e2e-plan.mjs`; `scripts/test-docker-all.mjs` executes the selected plan. The aggregate uses a weighted local scheduler: `OPENCLAW_DOCKER_ALL_PARALLELISM` controls process slots, while resource caps keep heavy live, npm-install, and multi-service lanes from all starting at once. If a single lane is heavier than the active caps, the scheduler can still start it when the pool is empty and then keeps it running alone until capacity is available again. Defaults are 10 slots, `OPENCLAW_DOCKER_ALL_LIVE_LIMIT=9`, `OPENCLAW_DOCKER_ALL_NPM_LIMIT=10`, and `OPENCLAW_DOCKER_ALL_SERVICE_LIMIT=7`; tune `OPENCLAW_DOCKER_ALL_WEIGHT_LIMIT` or `OPENCLAW_DOCKER_ALL_DOCKER_LIMIT` only when the Docker host has more headroom. The runner performs a Docker preflight by default, removes stale OpenClaw E2E containers, prints status every 30 seconds, stores successful lane timings in `.artifacts/docker-tests/lane-timings.json`, and uses those timings to start longer lanes first on later runs. Use `OPENCLAW_DOCKER_ALL_DRY_RUN=1` to print the weighted lane manifest without building or running Docker, or `node scripts/test-docker-all.mjs --plan-json` to print the CI plan for selected lanes, package/image needs, and credentials.
+- `test:docker:all` builds the live Docker image once via `test:docker:live-build`, packs Kova once as an npm tarball through `scripts/package-openclaw-for-docker.mjs`, then builds/reuses two `scripts/e2e/Dockerfile` images. The bare image is only the Node/Git runner for install/update/plugin-dependency lanes; those lanes mount the prebuilt tarball. The functional image installs the same tarball into `/app` for built-app functionality lanes. Docker lane definitions live in `scripts/lib/docker-e2e-scenarios.mjs`; planner logic lives in `scripts/lib/docker-e2e-plan.mjs`; `scripts/test-docker-all.mjs` executes the selected plan. The aggregate uses a weighted local scheduler: `OPENCLAW_DOCKER_ALL_PARALLELISM` controls process slots, while resource caps keep heavy live, npm-install, and multi-service lanes from all starting at once. If a single lane is heavier than the active caps, the scheduler can still start it when the pool is empty and then keeps it running alone until capacity is available again. Defaults are 10 slots, `OPENCLAW_DOCKER_ALL_LIVE_LIMIT=9`, `OPENCLAW_DOCKER_ALL_NPM_LIMIT=10`, and `OPENCLAW_DOCKER_ALL_SERVICE_LIMIT=7`; tune `OPENCLAW_DOCKER_ALL_WEIGHT_LIMIT` or `OPENCLAW_DOCKER_ALL_DOCKER_LIMIT` only when the Docker host has more headroom. The runner performs a Docker preflight by default, removes stale Kova E2E containers, prints status every 30 seconds, stores successful lane timings in `.artifacts/docker-tests/lane-timings.json`, and uses those timings to start longer lanes first on later runs. Use `OPENCLAW_DOCKER_ALL_DRY_RUN=1` to print the weighted lane manifest without building or running Docker, or `node scripts/test-docker-all.mjs --plan-json` to print the CI plan for selected lanes, package/image needs, and credentials.
 - `Package Acceptance` is the GitHub-native package gate for "does this installable tarball work as a product?" It resolves one candidate package from `source=npm`, `source=ref`, `source=url`, or `source=artifact`, uploads it as `package-under-test`, then runs the reusable Docker E2E lanes against that exact tarball instead of repacking the selected ref. `workflow_ref` selects the trusted workflow/harness scripts, while `package_ref` selects the source commit/branch/tag to pack when `source=ref`; this lets current acceptance logic validate older trusted commits. Profiles are ordered by breadth: `smoke` is quick install/channel/agent plus gateway/config, `package` is the package/update/plugin contract and the default native replacement for most Parallels package/update coverage, `product` adds MCP channels, cron/subagent cleanup, OpenAI web search, and OpenWebUI, and `full` runs the release-path Docker chunks with OpenWebUI. Release validation runs a custom package delta (`bundled-channel-deps-compat plugins-offline`) plus Telegram package QA because the release-path Docker chunks already cover the overlapping package/update/plugin lanes. Targeted GitHub Docker rerun commands generated from artifacts include prior package artifact and prepared image inputs when available, so failed lanes can avoid rebuilding the package and images.
 - Build and release checks run `scripts/check-cli-bootstrap-imports.mjs` after tsdown. The guard walks the static built graph from `dist/entry.js` and `dist/cli/run-main.js` and fails if pre-dispatch startup imports package dependencies such as Commander, prompt UI, undici, or logging before command dispatch. Packaged CLI smoke also covers root help, onboard help, doctor help, status, config schema, and a model-list command.
 - Package Acceptance legacy compatibility is capped at `2026.4.25` (`2026.4.25-beta.*` included). Through that cutoff, the harness tolerates only shipped-package metadata gaps: omitted private QA inventory entries, missing `gateway install --wrapper`, missing patch files in the tarball-derived git fixture, missing persisted `update.channel`, legacy plugin install-record locations, missing marketplace install-record persistence, and config metadata migration during `plugins update`. For packages after `2026.4.25`, those paths are strict failures.
@@ -671,10 +671,10 @@ The live-model Docker runners also bind-mount only the needed CLI auth homes (or
 - Observability smoke: `pnpm qa:otel:smoke` is a private QA source-checkout lane. It is intentionally not part of package Docker release lanes because the npm tarball omits QA Lab.
 - Open WebUI live smoke: `pnpm test:docker:openwebui` (script: `scripts/e2e/openwebui-docker.sh`)
 - Onboarding wizard (TTY, full scaffolding): `pnpm test:docker:onboard` (script: `scripts/e2e/onboard-docker.sh`)
-- Npm tarball onboarding/channel/agent smoke: `pnpm test:docker:npm-onboard-channel-agent` installs the packed OpenClaw tarball globally in Docker, configures OpenAI via env-ref onboarding plus Telegram by default, verifies doctor repairs activated plugin runtime deps, and runs one mocked OpenAI agent turn. Reuse a prebuilt tarball with `OPENCLAW_CURRENT_PACKAGE_TGZ=/path/to/openclaw-*.tgz`, skip the host rebuild with `OPENCLAW_NPM_ONBOARD_HOST_BUILD=0`, or switch channel with `OPENCLAW_NPM_ONBOARD_CHANNEL=discord`.
-- Update channel switch smoke: `pnpm test:docker:update-channel-switch` installs the packed OpenClaw tarball globally in Docker, switches from package `stable` to git `dev`, verifies the persisted channel and plugin post-update work, then switches back to package `stable` and checks update status.
+- Npm tarball onboarding/channel/agent smoke: `pnpm test:docker:npm-onboard-channel-agent` installs the packed Kova tarball globally in Docker, configures OpenAI via env-ref onboarding plus Telegram by default, verifies doctor repairs activated plugin runtime deps, and runs one mocked OpenAI agent turn. Reuse a prebuilt tarball with `OPENCLAW_CURRENT_PACKAGE_TGZ=/path/to/openclaw-*.tgz`, skip the host rebuild with `OPENCLAW_NPM_ONBOARD_HOST_BUILD=0`, or switch channel with `OPENCLAW_NPM_ONBOARD_CHANNEL=discord`.
+- Update channel switch smoke: `pnpm test:docker:update-channel-switch` installs the packed Kova tarball globally in Docker, switches from package `stable` to git `dev`, verifies the persisted channel and plugin post-update work, then switches back to package `stable` and checks update status.
 - Session runtime context smoke: `pnpm test:docker:session-runtime-context` verifies hidden runtime context transcript persistence plus doctor repair of affected duplicated prompt-rewrite branches.
-- Bun global install smoke: `bash scripts/e2e/bun-global-install-smoke.sh` packs the current tree, installs it with `bun install -g` in an isolated home, and verifies `openclaw infer image providers --json` returns bundled image providers instead of hanging. Reuse a prebuilt tarball with `OPENCLAW_BUN_GLOBAL_SMOKE_PACKAGE_TGZ=/path/to/openclaw-*.tgz`, skip the host build with `OPENCLAW_BUN_GLOBAL_SMOKE_HOST_BUILD=0`, or copy `dist/` from a built Docker image with `OPENCLAW_BUN_GLOBAL_SMOKE_DIST_IMAGE=openclaw-dockerfile-smoke:local`.
+- Bun global install smoke: `bash scripts/e2e/bun-global-install-smoke.sh` packs the current tree, installs it with `bun install -g` in an isolated home, and verifies `kova infer image providers --json` returns bundled image providers instead of hanging. Reuse a prebuilt tarball with `OPENCLAW_BUN_GLOBAL_SMOKE_PACKAGE_TGZ=/path/to/openclaw-*.tgz`, skip the host build with `OPENCLAW_BUN_GLOBAL_SMOKE_HOST_BUILD=0`, or copy `dist/` from a built Docker image with `OPENCLAW_BUN_GLOBAL_SMOKE_DIST_IMAGE=openclaw-dockerfile-smoke:local`.
 - Installer Docker smoke: `bash scripts/test-install-sh-docker.sh` shares one npm cache across its root, update, and direct-npm containers. Update smoke defaults to npm `latest` as the stable baseline before upgrading to the candidate tarball. Override with `OPENCLAW_INSTALL_SMOKE_UPDATE_BASELINE=2026.4.22` locally, or with the Install Smoke workflow's `update_baseline_version` input on GitHub. Non-root installer checks keep an isolated npm cache so root-owned cache entries do not mask user-local install behavior. Set `OPENCLAW_INSTALL_SMOKE_NPM_CACHE_DIR=/path/to/cache` to reuse the root/update/direct-npm cache across local reruns.
 - Install Smoke CI skips the duplicate direct-npm global update with `OPENCLAW_INSTALL_SMOKE_SKIP_NPM_GLOBAL=1`; run the script locally without that env when direct `npm install -g` coverage is needed.
 - Agents delete shared workspace CLI smoke: `pnpm test:docker:agents-delete-shared-workspace` (script: `scripts/e2e/agents-delete-shared-workspace-docker.sh`) builds the root Dockerfile image by default, seeds two agents with one workspace in an isolated container home, runs `agents delete --json`, and verifies valid JSON plus retained workspace behavior. Reuse the install-smoke image with `OPENCLAW_AGENTS_DELETE_SHARED_WORKSPACE_E2E_IMAGE=openclaw-dockerfile-smoke:local OPENCLAW_AGENTS_DELETE_SHARED_WORKSPACE_E2E_SKIP_BUILD=1`.
@@ -688,7 +688,7 @@ The live-model Docker runners also bind-mount only the needed CLI auth homes (or
   Set `OPENCLAW_PLUGINS_E2E_CLAWHUB=0` to skip the live ClawHub block, or override the default package with `OPENCLAW_PLUGINS_E2E_CLAWHUB_SPEC` and `OPENCLAW_PLUGINS_E2E_CLAWHUB_ID`.
 - Plugin update unchanged smoke: `pnpm test:docker:plugin-update` (script: `scripts/e2e/plugin-update-unchanged-docker.sh`)
 - Config reload metadata smoke: `pnpm test:docker:config-reload` (script: `scripts/e2e/config-reload-source-docker.sh`)
-- Bundled plugin runtime deps: `pnpm test:docker:bundled-channel-deps` builds a small Docker runner image by default, builds and packs OpenClaw once on the host, then mounts that tarball into each Linux install scenario. Reuse the image with `OPENCLAW_SKIP_DOCKER_BUILD=1`, skip the host rebuild after a fresh local build with `OPENCLAW_BUNDLED_CHANNEL_HOST_BUILD=0`, or point at an existing tarball with `OPENCLAW_CURRENT_PACKAGE_TGZ=/path/to/openclaw-*.tgz`. The full Docker aggregate and release-path `bundled-channels` chunk pre-pack this tarball once, then shard bundled channel checks into independent lanes, including separate update lanes for Telegram, Discord, Slack, Feishu, memory-lancedb, and ACPX. The legacy `plugins-integrations` chunk remains an aggregate alias for manual reruns. Use `OPENCLAW_BUNDLED_CHANNELS=telegram,slack` to narrow the channel matrix when running the bundled lane directly, or `OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=telegram,acpx` to narrow the update scenario. The lane also verifies that `channels.<id>.enabled=false` and `plugins.entries.<id>.enabled=false` suppress doctor/runtime-dependency repair.
+- Bundled plugin runtime deps: `pnpm test:docker:bundled-channel-deps` builds a small Docker runner image by default, builds and packs Kova once on the host, then mounts that tarball into each Linux install scenario. Reuse the image with `OPENCLAW_SKIP_DOCKER_BUILD=1`, skip the host rebuild after a fresh local build with `OPENCLAW_BUNDLED_CHANNEL_HOST_BUILD=0`, or point at an existing tarball with `OPENCLAW_CURRENT_PACKAGE_TGZ=/path/to/openclaw-*.tgz`. The full Docker aggregate and release-path `bundled-channels` chunk pre-pack this tarball once, then shard bundled channel checks into independent lanes, including separate update lanes for Telegram, Discord, Slack, Feishu, memory-lancedb, and ACPX. The legacy `plugins-integrations` chunk remains an aggregate alias for manual reruns. Use `OPENCLAW_BUNDLED_CHANNELS=telegram,slack` to narrow the channel matrix when running the bundled lane directly, or `OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=telegram,acpx` to narrow the update scenario. The lane also verifies that `channels.<id>.enabled=false` and `plugins.entries.<id>.enabled=false` suppress doctor/runtime-dependency repair.
 - Narrow bundled plugin runtime deps while iterating by disabling unrelated scenarios, for example:
   `OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 pnpm test:docker:bundled-channel-deps`.
 
@@ -714,7 +714,7 @@ real Telegram/Discord/etc. channel workers inside the container.
 `OPENCLAW_LIVE_GATEWAY_*` as well when you need to narrow or exclude gateway
 live coverage from that Docker lane.
 `test:docker:openwebui` is a higher-level compatibility smoke: it starts an
-OpenClaw gateway container with the OpenAI-compatible HTTP endpoints enabled,
+Kova gateway container with the OpenAI-compatible HTTP endpoints enabled,
 starts a pinned Open WebUI container against that gateway, signs in through
 Open WebUI, verifies `/api/models` exposes `openclaw/default`, then sends a
 real chat request through Open WebUI's `/api/chat/completions` proxy.
@@ -726,7 +726,7 @@ Successful runs print a small JSON payload like `{ "ok": true, "model":
 "openclaw/default", ... }`.
 `test:docker:mcp-channels` is intentionally deterministic and does not need a
 real Telegram, Discord, or iMessage account. It boots a seeded Gateway
-container, starts a second container that spawns `openclaw mcp serve`, then
+container, starts a second container that spawns `kova mcp serve`, then
 verifies routed conversation discovery, transcript reads, attachment metadata,
 live event queue behavior, outbound send routing, and Claude-style channel +
 permission notifications over the real stdio MCP bridge. The notification check

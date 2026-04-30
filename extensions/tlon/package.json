@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/tlon",
   "version": "2026.4.25",
-  "description": "OpenClaw Tlon/Urbit channel plugin",
+  "description": "Kova Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "3.1036.0",

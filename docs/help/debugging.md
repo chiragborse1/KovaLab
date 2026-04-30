@@ -45,7 +45,7 @@ Keep using `/verbose` for normal verbose status/tool output, and keep using
 
 ## Temporary CLI debug timing
 
-OpenClaw keeps `src/cli/debug-timing.ts` as a small helper for local
+Kova keeps `src/cli/debug-timing.ts` as a small helper for local
 investigation. It is intentionally not wired into CLI startup, command routing,
 or any command by default. Use it only while debugging a slow command, then
 remove the import and spans before landing the behavior change.
@@ -56,7 +56,7 @@ deciding whether to use a CPU profiler or fix a specific subsystem.
 ### Add temporary spans
 
 Add the helper near the code you are investigating. For example, while debugging
-`openclaw models list`, a temporary patch in
+`kova models list`, a temporary patch in
 `src/commands/models/list.list-command.ts` might look like this:
 
 ```ts
@@ -95,13 +95,13 @@ Guidelines:
 Readable mode is best for live debugging:
 
 ```bash
-OPENCLAW_DEBUG_TIMING=1 pnpm openclaw models list --all --provider moonshot
+OPENCLAW_DEBUG_TIMING=1 pnpm kova models list --all --provider moonshot
 ```
 
 Example output from a temporary `models list` investigation:
 
 ```text
-OpenClaw CLI debug timing: models list
+Kova CLI debug timing: models list
      0ms     +0ms start all=true json=false local=false plain=false provider="moonshot"
      2ms     +2ms debug:models:list:import_runtime duration=2ms
     17ms    +14ms debug:models:list:load_config duration=14ms sourceConfig=true
@@ -146,7 +146,7 @@ production paths.
 Use JSON mode when you want to save or compare timing data:
 
 ```bash
-OPENCLAW_DEBUG_TIMING=json pnpm openclaw models list --all --provider moonshot \
+OPENCLAW_DEBUG_TIMING=json pnpm kova models list --all --provider moonshot \
   2> .artifacts/models-list-timing.jsonl
 ```
 
@@ -220,10 +220,10 @@ Recommended flow (dev profile + dev bootstrap):
 
 ```bash
 pnpm gateway:dev
-OPENCLAW_PROFILE=dev openclaw tui
+OPENCLAW_PROFILE=dev kova tui
 ```
 
-If you don’t have a global install yet, run the CLI via `pnpm openclaw ...`.
+If you don’t have a global install yet, run the CLI via `pnpm kova ...`.
 
 What this does:
 
@@ -252,7 +252,7 @@ pnpm gateway:dev:reset
 `--dev` is a **global** profile flag and gets eaten by some runners. If you need to spell it out, use the env var form:
 
 ```bash
-OPENCLAW_PROFILE=dev openclaw gateway --dev --reset
+OPENCLAW_PROFILE=dev kova gateway --dev --reset
 ```
 
 </Note>
@@ -264,14 +264,14 @@ OPENCLAW_PROFILE=dev openclaw gateway --dev --reset
 If a non-dev gateway is already running (launchd or systemd), stop it first:
 
 ```bash
-openclaw gateway stop
+kova gateway stop
 ```
 
 </Tip>
 
-## Raw stream logging (OpenClaw)
+## Raw stream logging (Kova)
 
-OpenClaw can log the **raw assistant stream** before any filtering/formatting.
+Kova can log the **raw assistant stream** before any filtering/formatting.
 This is the best way to see whether reasoning is arriving as plain text deltas
 (or as separate thinking blocks).
 

@@ -2,7 +2,7 @@
   "name": "@openclaw/zai-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Z.AI provider plugin",
+  "description": "Kova Z.AI provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

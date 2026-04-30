@@ -1,12 +1,12 @@
 ---
-summary: "CLI reference for `openclaw doctor` (health checks + guided repairs)"
+summary: "CLI reference for `kova doctor` (health checks + guided repairs)"
 read_when:
   - You have connectivity/auth issues and want guided fixes
   - You updated and want a sanity check
 title: "Doctor"
 ---
 
-# `openclaw doctor`
+# `kova doctor`
 
 Health checks + quick fixes for the gateway and channels.
 
@@ -18,11 +18,11 @@ Related:
 ## Examples
 
 ```bash
-openclaw doctor
-openclaw doctor --repair
-openclaw doctor --deep
-openclaw doctor --repair --non-interactive
-openclaw doctor --generate-gateway-token
+kova doctor
+kova doctor --repair
+kova doctor --deep
+kova doctor --repair --non-interactive
+kova doctor --generate-gateway-token
 ```
 
 ## Options
@@ -49,8 +49,8 @@ Notes:
 - Set `OPENCLAW_SERVICE_REPAIR_POLICY=external` when another supervisor owns the gateway lifecycle. Doctor still reports gateway/service health and applies non-service repairs, but skips service install/start/restart/bootstrap and legacy service cleanup.
 - Doctor auto-migrates legacy flat Talk config (`talk.voiceId`, `talk.modelId`, and friends) into `talk.provider` + `talk.providers.<provider>`.
 - Repeat `doctor --fix` runs no longer report/apply Talk normalization when the only difference is object key order.
-- Doctor includes a memory-search readiness check and can recommend `openclaw configure --section model` when embedding credentials are missing.
-- If sandbox mode is enabled but Docker is unavailable, doctor reports a high-signal warning with remediation (`install Docker` or `openclaw config set agents.defaults.sandbox.mode off`).
+- Doctor includes a memory-search readiness check and can recommend `kova configure --section model` when embedding credentials are missing.
+- If sandbox mode is enabled but Docker is unavailable, doctor reports a high-signal warning with remediation (`install Docker` or `kova config set agents.defaults.sandbox.mode off`).
 - If `gateway.auth.token`/`gateway.auth.password` are SecretRef-managed and unavailable in the current command path, doctor reports a read-only warning and does not write plaintext fallback credentials.
 - If channel SecretRef inspection fails in a fix path, doctor continues and reports a warning instead of exiting early.
 - Telegram `allowFrom` username auto-resolution (`doctor --fix`) requires a resolvable Telegram token in the current command path. If token inspection is unavailable, doctor reports a warning and skips auto-resolution for that pass.

@@ -1,14 +1,14 @@
 ---
-summary: "Export redacted trajectory bundles for debugging an OpenClaw agent session"
+summary: "Export redacted trajectory bundles for debugging an Kova agent session"
 read_when:
   - Debugging why an agent answered, failed, or called tools a certain way
-  - Exporting a support bundle for an OpenClaw session
+  - Exporting a support bundle for an Kova session
   - Investigating prompt context, tool calls, runtime errors, or usage metadata
   - Disabling or relocating trajectory capture
 title: "Trajectory bundles"
 ---
 
-Trajectory capture is OpenClaw's per-session flight recorder. It records a
+Trajectory capture is Kova's per-session flight recorder. It records a
 structured timeline for each agent run, then `/export-trajectory` packages the
 current session into a redacted support bundle.
 
@@ -34,7 +34,7 @@ Alias:
 /trajectory
 ```
 
-OpenClaw writes the bundle under the workspace:
+Kova writes the bundle under the workspace:
 
 ```text
 .openclaw/trajectory-exports/openclaw-trajectory-<session>-<timestamp>/
@@ -56,7 +56,7 @@ authorization checks and owner checks for the channel.
 
 ## What gets recorded
 
-Trajectory capture is on by default for OpenClaw agent runs.
+Trajectory capture is on by default for Kova agent runs.
 
 Runtime events include:
 
@@ -96,7 +96,7 @@ An exported bundle can contain:
 | `manifest.json`       | Bundle schema, source files, event counts, and generated file list                             |
 | `events.jsonl`        | Ordered runtime and transcript timeline                                                        |
 | `session-branch.json` | Redacted active transcript branch and session header                                           |
-| `metadata.json`       | OpenClaw version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata     |
+| `metadata.json`       | Kova version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata     |
 | `artifacts.json`      | Final status, errors, usage, prompt cache, compaction count, assistant text, and tool metadata |
 | `prompts.json`        | Submitted prompts and selected prompt-building details                                         |
 | `system-prompt.txt`   | Latest compiled system prompt, when captured                                                   |
@@ -113,7 +113,7 @@ By default, runtime trajectory events are written beside the session file:
 <session>.trajectory.jsonl
 ```
 
-OpenClaw also writes a best-effort pointer file beside the session:
+Kova also writes a best-effort pointer file beside the session:
 
 ```text
 <session>.trajectory-path.json
@@ -126,12 +126,12 @@ dedicated directory:
 export OPENCLAW_TRAJECTORY_DIR=/var/lib/openclaw/trajectories
 ```
 
-When this variable is set, OpenClaw writes one JSONL file per session id in that
+When this variable is set, Kova writes one JSONL file per session id in that
 directory.
 
 ## Disable capture
 
-Set `OPENCLAW_TRAJECTORY=0` before starting OpenClaw:
+Set `OPENCLAW_TRAJECTORY=0` before starting Kova:
 
 ```bash
 export OPENCLAW_TRAJECTORY=0
@@ -144,7 +144,7 @@ provider artifacts, and prompt metadata may be missing.
 ## Privacy and limits
 
 Trajectory bundles are designed for support and debugging, not public posting.
-OpenClaw redacts sensitive values before writing export files:
+Kova redacts sensitive values before writing export files:
 
 - credentials and known secret-like payload fields
 - image data
@@ -167,7 +167,7 @@ and cannot know every application-specific secret.
 
 If the export has no runtime events:
 
-- confirm OpenClaw was started without `OPENCLAW_TRAJECTORY=0`
+- confirm Kova was started without `OPENCLAW_TRAJECTORY=0`
 - check whether `OPENCLAW_TRAJECTORY_DIR` points to a writable directory
 - run another message in the session, then export again
 - inspect `manifest.json` for `runtimeEventCount`

@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Gateway CLI (`openclaw gateway`) — run, query, and discover gateways"
+summary: "Kova Gateway CLI (`kova gateway`) — run, query, and discover gateways"
 read_when:
   - Running the Gateway from the CLI (dev or servers)
   - Debugging Gateway auth, bind modes, and connectivity
@@ -8,14 +8,14 @@ title: "Gateway"
 sidebarTitle: "Gateway"
 ---
 
-The Gateway is OpenClaw's WebSocket server (channels, nodes, sessions, hooks). Subcommands in this page live under `openclaw gateway …`.
+The Gateway is Kova's WebSocket server (channels, nodes, sessions, hooks). Subcommands in this page live under `kova gateway …`.
 
 <CardGroup cols={3}>
   <Card title="Bonjour discovery" href="/gateway/bonjour">
     Local mDNS + wide-area DNS-SD setup.
   </Card>
   <Card title="Discovery overview" href="/gateway/discovery">
-    How OpenClaw advertises and finds gateways.
+    How Kova advertises and finds gateways.
   </Card>
   <Card title="Configuration" href="/gateway/configuration">
     Top-level gateway config keys.
@@ -27,19 +27,19 @@ The Gateway is OpenClaw's WebSocket server (channels, nodes, sessions, hooks). S
 Run a local Gateway process:
 
 ```bash
-openclaw gateway
+kova gateway
 ```
 
 Foreground alias:
 
 ```bash
-openclaw gateway run
+kova gateway run
 ```
 
 <AccordionGroup>
   <Accordion title="Startup behavior">
     - By default, the Gateway refuses to start unless `gateway.mode=local` is set in `~/.openclaw/openclaw.json`. Use `--allow-unconfigured` for ad-hoc/dev runs.
-    - `openclaw onboard --mode local` and `openclaw setup` are expected to write `gateway.mode=local`. If the file exists but `gateway.mode` is missing, treat that as a broken or clobbered config and repair it instead of assuming local mode implicitly.
+    - `kova onboard --mode local` and `kova setup` are expected to write `gateway.mode=local`. If the file exists but `gateway.mode` is missing, treat that as a broken or clobbered config and repair it instead of assuming local mode implicitly.
     - If the file exists and `gateway.mode` is missing, the Gateway treats that as suspicious config damage and refuses to "guess local" for you.
     - Binding beyond loopback without auth is blocked (safety guardrail).
     - `SIGUSR1` triggers an in-process restart when authorized (`commands.restart` is enabled by default; set `commands.restart: false` to block manual restart, while gateway tool/config apply/update remain allowed).
@@ -139,7 +139,7 @@ When you set `--url`, the CLI does not fall back to config or environment creden
 ### `gateway health`
 
 ```bash
-openclaw gateway health --url ws://127.0.0.1:18789
+kova gateway health --url ws://127.0.0.1:18789
 ```
 
 The HTTP `/healthz` endpoint is a liveness probe: it returns once the server can answer HTTP. The HTTP `/readyz` endpoint is stricter and stays red while startup sidecars, channels, or configured hooks are still settling.
@@ -149,9 +149,9 @@ The HTTP `/healthz` endpoint is a liveness probe: it returns once the server can
 Fetch usage-cost summaries from session logs.
 
 ```bash
-openclaw gateway usage-cost
-openclaw gateway usage-cost --days 7
-openclaw gateway usage-cost --json
+kova gateway usage-cost
+kova gateway usage-cost --days 7
+kova gateway usage-cost --json
 ```
 
 <ParamField path="--days <days>" type="number" default="30">
@@ -163,11 +163,11 @@ openclaw gateway usage-cost --json
 Fetch the recent diagnostic stability recorder from a running Gateway.
 
 ```bash
-openclaw gateway stability
-openclaw gateway stability --type payload.large
-openclaw gateway stability --bundle latest
-openclaw gateway stability --bundle latest --export
-openclaw gateway stability --json
+kova gateway stability
+kova gateway stability --type payload.large
+kova gateway stability --bundle latest
+kova gateway stability --bundle latest --export
+kova gateway stability --json
 ```
 
 <ParamField path="--limit <limit>" type="number" default="25">
@@ -192,7 +192,7 @@ openclaw gateway stability --json
 <AccordionGroup>
   <Accordion title="Privacy and bundle behavior">
     - Records keep operational metadata: event names, counts, byte sizes, memory readings, queue/session state, channel/plugin names, and redacted session summaries. They do not keep chat text, webhook bodies, tool outputs, raw request or response bodies, tokens, cookies, secret values, hostnames, or raw session ids. Set `diagnostics.enabled: false` to disable the recorder entirely.
-    - On fatal Gateway exits, shutdown timeouts, and restart startup failures, OpenClaw writes the same diagnostic snapshot to `~/.openclaw/logs/stability/openclaw-stability-*.json` when the recorder has events. Inspect the newest bundle with `openclaw gateway stability --bundle latest`; `--limit`, `--type`, and `--since-seq` also apply to bundle output.
+    - On fatal Gateway exits, shutdown timeouts, and restart startup failures, Kova writes the same diagnostic snapshot to `~/.openclaw/logs/stability/openclaw-stability-*.json` when the recorder has events. Inspect the newest bundle with `kova gateway stability --bundle latest`; `--limit`, `--type`, and `--since-seq` also apply to bundle output.
   </Accordion>
 </AccordionGroup>
 
@@ -201,9 +201,9 @@ openclaw gateway stability --json
 Write a local diagnostics zip that is designed to attach to bug reports. For the privacy model and bundle contents, see [Diagnostics Export](/gateway/diagnostics).
 
 ```bash
-openclaw gateway diagnostics export
-openclaw gateway diagnostics export --output openclaw-diagnostics.zip
-openclaw gateway diagnostics export --json
+kova gateway diagnostics export
+kova gateway diagnostics export --output openclaw-diagnostics.zip
+kova gateway diagnostics export --json
 ```
 
 <ParamField path="--output <path>" type="string">
@@ -236,16 +236,16 @@ openclaw gateway diagnostics export --json
 
 The export contains a manifest, a Markdown summary, config shape, sanitized config details, sanitized log summaries, sanitized Gateway status/health snapshots, and the newest stability bundle when one exists.
 
-It is meant to be shared. It keeps operational details that help debugging, such as safe OpenClaw log fields, subsystem names, status codes, durations, configured modes, ports, plugin ids, provider ids, non-secret feature settings, and redacted operational log messages. It omits or redacts chat text, webhook bodies, tool outputs, credentials, cookies, account/message identifiers, prompt/instruction text, hostnames, and secret values. When a LogTape-style message looks like user/chat/tool payload text, the export keeps only that a message was omitted plus its byte count.
+It is meant to be shared. It keeps operational details that help debugging, such as safe Kova log fields, subsystem names, status codes, durations, configured modes, ports, plugin ids, provider ids, non-secret feature settings, and redacted operational log messages. It omits or redacts chat text, webhook bodies, tool outputs, credentials, cookies, account/message identifiers, prompt/instruction text, hostnames, and secret values. When a LogTape-style message looks like user/chat/tool payload text, the export keeps only that a message was omitted plus its byte count.
 
 ### `gateway status`
 
 `gateway status` shows the Gateway service (launchd/systemd/schtasks) plus an optional probe of connectivity/auth capability.
 
 ```bash
-openclaw gateway status
-openclaw gateway status --json
-openclaw gateway status --require-rpc
+kova gateway status
+kova gateway status --json
+kova gateway status --require-rpc
 ```
 
 <ParamField path="--url <url>" type="string">
@@ -307,8 +307,8 @@ If multiple gateways are reachable, it prints all of them. Multiple gateways are
 </Note>
 
 ```bash
-openclaw gateway probe
-openclaw gateway probe --json
+kova gateway probe
+kova gateway probe --json
 ```
 
 <AccordionGroup>
@@ -359,7 +359,7 @@ The macOS app "Remote over SSH" mode uses a local port-forward so the remote gat
 CLI equivalent:
 
 ```bash
-openclaw gateway probe --ssh user@gateway-host
+kova gateway probe --ssh user@gateway-host
 ```
 
 <ParamField path="--ssh <target>" type="string">
@@ -382,8 +382,8 @@ Config (optional, used as defaults):
 Low-level RPC helper.
 
 ```bash
-openclaw gateway call status
-openclaw gateway call logs.tail --params '{"sinceMs": 60000}'
+kova gateway call status
+kova gateway call logs.tail --params '{"sinceMs": 60000}'
 ```
 
 <ParamField path="--params <json>" type="string" default="{}">
@@ -415,29 +415,29 @@ openclaw gateway call logs.tail --params '{"sinceMs": 60000}'
 ## Manage the Gateway service
 
 ```bash
-openclaw gateway install
-openclaw gateway start
-openclaw gateway stop
-openclaw gateway restart
-openclaw gateway uninstall
+kova gateway install
+kova gateway start
+kova gateway stop
+kova gateway restart
+kova gateway uninstall
 ```
 
 ### Install with a wrapper
 
 Use `--wrapper` when the managed service must start through another executable, for example a
 secrets manager shim or a run-as helper. The wrapper receives the normal Gateway args and is
-responsible for eventually exec'ing `openclaw` or Node with those args.
+responsible for eventually exec'ing `kova` or Node with those args.
 
 ```bash
 cat > ~/.local/bin/openclaw-doppler <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-exec doppler run --project my-project --config production -- openclaw "$@"
+exec doppler run --project my-project --config production -- kova "$@"
 EOF
 chmod +x ~/.local/bin/openclaw-doppler
 
-openclaw gateway install --wrapper ~/.local/bin/openclaw-doppler --force
-openclaw gateway restart
+kova gateway install --wrapper ~/.local/bin/openclaw-doppler --force
+kova gateway restart
 ```
 
 You can also set the wrapper through the environment. `gateway install` validates that the path is
@@ -446,15 +446,15 @@ an executable file, writes the wrapper into service `ProgramArguments`, and pers
 repairs.
 
 ```bash
-OPENCLAW_WRAPPER="$HOME/.local/bin/openclaw-doppler" openclaw gateway install --force
-openclaw doctor
+OPENCLAW_WRAPPER="$HOME/.local/bin/openclaw-doppler" kova gateway install --force
+kova doctor
 ```
 
 To remove a persisted wrapper, clear `OPENCLAW_WRAPPER` while reinstalling:
 
 ```bash
-OPENCLAW_WRAPPER= openclaw gateway install --force
-openclaw gateway restart
+OPENCLAW_WRAPPER= kova gateway install --force
+kova gateway restart
 ```
 
 <AccordionGroup>
@@ -498,7 +498,7 @@ Wide-Area discovery records include (TXT):
 ### `gateway discover`
 
 ```bash
-openclaw gateway discover
+kova gateway discover
 ```
 
 <ParamField path="--timeout <ms>" type="number" default="2000">
@@ -511,8 +511,8 @@ openclaw gateway discover
 Examples:
 
 ```bash
-openclaw gateway discover --timeout 4000
-openclaw gateway discover --json | jq '.beacons[].wsUrl'
+kova gateway discover --timeout 4000
+kova gateway discover --json | jq '.beacons[].wsUrl'
 ```
 
 <Note>

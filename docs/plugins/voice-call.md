@@ -1,14 +1,14 @@
 ---
 summary: "Place outbound and accept inbound voice calls via Twilio, Telnyx, or Plivo, with optional realtime voice and streaming transcription"
 read_when:
-  - You want to place an outbound voice call from OpenClaw
+  - You want to place an outbound voice call from Kova
   - You are configuring or developing the voice-call plugin
   - You need realtime voice or streaming transcription on telephony
 title: "Voice call plugin"
 sidebarTitle: "Voice call"
 ---
 
-Voice calls for OpenClaw via a plugin. Supports outbound notifications,
+Voice calls for Kova via a plugin. Supports outbound notifications,
 multi-turn conversations, full-duplex realtime voice, streaming
 transcription, and inbound calls with allowlist policies.
 
@@ -29,13 +29,13 @@ the Gateway, then restart the Gateway to load it.
     <Tabs>
       <Tab title="From npm (recommended)">
         ```bash
-        openclaw plugins install @openclaw/voice-call
+        kova plugins install @openclaw/voice-call
         ```
       </Tab>
       <Tab title="From a local folder (dev)">
         ```bash
         PLUGIN_SRC=./path/to/local/voice-call-plugin
-        openclaw plugins install "$PLUGIN_SRC"
+        kova plugins install "$PLUGIN_SRC"
         cd "$PLUGIN_SRC" && pnpm install
         ```
       </Tab>
@@ -52,7 +52,7 @@ the Gateway, then restart the Gateway to load it.
   </Step>
   <Step title="Verify setup">
     ```bash
-    openclaw voicecall setup
+    kova voicecall setup
     ```
 
     The default output is readable in chat logs and terminals. It checks
@@ -63,15 +63,15 @@ the Gateway, then restart the Gateway to load it.
   </Step>
   <Step title="Smoke test">
     ```bash
-    openclaw voicecall smoke
-    openclaw voicecall smoke --to "+15555550123"
+    kova voicecall smoke
+    kova voicecall smoke --to "+15555550123"
     ```
 
     Both are dry runs by default. Add `--yes` to actually place a short
     outbound notify call:
 
     ```bash
-    openclaw voicecall smoke --to "+15555550123" --yes
+    kova voicecall smoke --to "+15555550123" --yes
     ```
 
   </Step>
@@ -170,9 +170,9 @@ Voice-call credentials accept SecretRefs. `plugins.entries.voice-call.config.twi
   </Accordion>
   <Accordion title="Legacy config migrations">
     Older configs using `provider: "log"`, `twilio.from`, or legacy
-    `streaming.*` OpenAI keys are rewritten by `openclaw doctor --fix`.
+    `streaming.*` OpenAI keys are rewritten by `kova doctor --fix`.
     Runtime fallback still accepts the old voice-call keys for now, but
-    the rewrite path is `openclaw doctor --fix` and the compat shim is
+    the rewrite path is `kova doctor --fix` and the compat shim is
     temporary.
 
     Auto-migrated streaming keys:
@@ -203,7 +203,7 @@ Current runtime behaviour:
 - `realtime.provider` is optional. If unset, Voice Call uses the first registered realtime voice provider.
 - Bundled realtime voice providers: Google Gemini Live (`google`) and OpenAI (`openai`), registered by their provider plugins.
 - Provider-owned raw config lives under `realtime.providers.<providerId>`.
-- Voice Call exposes the shared `openclaw_agent_consult` realtime tool by default. The realtime model can call it when the caller asks for deeper reasoning, current information, or normal OpenClaw tools.
+- Voice Call exposes the shared `openclaw_agent_consult` realtime tool by default. The realtime model can call it when the caller asks for deeper reasoning, current information, or normal Kova tools.
 - If `realtime.provider` points at an unregistered provider, or no realtime voice provider is registered at all, Voice Call logs a warning and skips realtime media instead of failing the whole plugin.
 - Consult session keys reuse the existing voice session when available, then fall back to the caller/callee phone number so follow-up consult calls keep context during the call.
 
@@ -388,7 +388,7 @@ the current Microsoft transport does not expose telephony PCM output.
 
 Behavior notes:
 
-- Legacy `tts.<provider>` keys inside plugin config (`openai`, `elevenlabs`, `microsoft`, `edge`) are repaired by `openclaw doctor --fix`; committed config should use `tts.providers.<provider>`.
+- Legacy `tts.<provider>` keys inside plugin config (`openai`, `elevenlabs`, `microsoft`, `edge`) are repaired by `kova doctor --fix`; committed config should use `tts.providers.<provider>`.
 - Core TTS is used when Twilio media streaming is enabled; otherwise calls fall back to provider-native voices.
 - If a Twilio media stream is already active, Voice Call does not fall back to TwiML `<Say>`. If telephony TTS is unavailable in that state, the playback request fails instead of mixing two playback paths.
 - When telephony TTS falls back to a secondary provider, Voice Call logs a warning with the provider chain (`from`, `to`, `attempts`) for debugging.
@@ -591,16 +591,16 @@ Example with a stable public host:
 ## CLI
 
 ```bash
-openclaw voicecall call --to "+15555550123" --message "Hello from OpenClaw"
-openclaw voicecall start --to "+15555550123"   # alias for call
-openclaw voicecall continue --call-id <id> --message "Any questions?"
-openclaw voicecall speak --call-id <id> --message "One moment"
-openclaw voicecall dtmf --call-id <id> --digits "ww123456#"
-openclaw voicecall end --call-id <id>
-openclaw voicecall status --call-id <id>
-openclaw voicecall tail
-openclaw voicecall latency                      # summarize turn latency from logs
-openclaw voicecall expose --mode funnel
+kova voicecall call --to "+15555550123" --message "Hello from Kova"
+kova voicecall start --to "+15555550123"   # alias for call
+kova voicecall continue --call-id <id> --message "Any questions?"
+kova voicecall speak --call-id <id> --message "One moment"
+kova voicecall dtmf --call-id <id> --digits "ww123456#"
+kova voicecall end --call-id <id>
+kova voicecall status --call-id <id>
+kova voicecall tail
+kova voicecall latency                      # summarize turn latency from logs
+kova voicecall expose --mode funnel
 ```
 
 `latency` reads `calls.jsonl` from the default voice-call storage path.

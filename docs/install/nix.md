@@ -1,5 +1,5 @@
 ---
-summary: "Install OpenClaw declaratively with Nix"
+summary: "Install Kova declaratively with Nix"
 read_when:
   - You want reproducible, rollback-able installs
   - You're already using Nix/NixOS/Home Manager
@@ -7,7 +7,7 @@ read_when:
 title: "Nix"
 ---
 
-Install OpenClaw declaratively with **[nix-openclaw](https://github.com/openclaw/nix-openclaw)** — a batteries-included Home Manager module.
+Install Kova declaratively with **[nix-openclaw](https://github.com/openclaw/nix-openclaw)** — a batteries-included Home Manager module.
 
 <Info>
 The [nix-openclaw](https://github.com/openclaw/nix-openclaw) repo is the source of truth for Nix installation. This page is a quick overview.
@@ -50,7 +50,7 @@ See the [nix-openclaw README](https://github.com/openclaw/nix-openclaw) for full
 
 ## Nix-mode runtime behavior
 
-When `OPENCLAW_NIX_MODE=1` is set (automatic with nix-openclaw), OpenClaw enters a deterministic mode that disables auto-install flows.
+When `OPENCLAW_NIX_MODE=1` is set (automatic with nix-openclaw), Kova enters a deterministic mode that disables auto-install flows.
 
 You can also set it manually:
 
@@ -72,7 +72,7 @@ defaults write ai.openclaw.mac openclaw.nixMode -bool true
 
 ### Config and state paths
 
-OpenClaw reads JSON5 config from `OPENCLAW_CONFIG_PATH` and stores mutable data in `OPENCLAW_STATE_DIR`. When running under Nix, set these explicitly to Nix-managed locations so runtime state and config stay out of the immutable store.
+Kova reads JSON5 config from `OPENCLAW_CONFIG_PATH` and stores mutable data in `OPENCLAW_STATE_DIR`. When running under Nix, set these explicitly to Nix-managed locations so runtime state and config stay out of the immutable store.
 
 | Variable               | Default                                 |
 | ---------------------- | --------------------------------------- |

@@ -2,7 +2,7 @@
   "name": "@openclaw/webhooks",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw webhook bridge plugin",
+  "description": "Kova webhook bridge plugin",
   "type": "module",
   "dependencies": {
     "zod": "^4.3.6"

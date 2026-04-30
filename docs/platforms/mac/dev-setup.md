@@ -1,5 +1,5 @@
 ---
-summary: "Setup guide for developers working on the OpenClaw macOS app"
+summary: "Setup guide for developers working on the Kova macOS app"
 read_when:
   - Setting up the macOS development environment
 title: "macOS dev setup"
@@ -7,7 +7,7 @@ title: "macOS dev setup"
 
 # macOS developer setup
 
-Build and run the OpenClaw macOS application from source.
+Build and run the Kova macOS application from source.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ pnpm install
 
 ## 2. Build and Package the App
 
-To build the macOS app and package it into `dist/OpenClaw.app`, run:
+To build the macOS app and package it into `dist/Kova.app`, run:
 
 ```bash
 ./scripts/package-mac-app.sh
@@ -41,11 +41,11 @@ For dev run modes, signing flags, and Team ID troubleshooting, see the macOS app
 
 ## 3. Install the CLI
 
-The macOS app expects a global `openclaw` CLI install to manage background tasks.
+The macOS app expects a global `kova` CLI install to manage background tasks.
 
 **To install it (recommended):**
 
-1. Open the OpenClaw app.
+1. Open the Kova app.
 2. Go to the **General** settings tab.
 3. Click **"Install CLI"**.
 
@@ -97,8 +97,8 @@ If the app crashes when you try to allow **Speech Recognition** or **Microphone*
 If the gateway status stays on "Starting...", check if a zombie process is holding the port:
 
 ```bash
-openclaw gateway status
-openclaw gateway stop
+kova gateway status
+kova gateway stop
 
 # If you're not using a LaunchAgent (dev mode / manual runs), find the listener:
 lsof -nP -iTCP:18789 -sTCP:LISTEN

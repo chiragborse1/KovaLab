@@ -5,12 +5,12 @@ sidebarTitle: "Migrate to SDK"
 read_when:
   - You see the OPENCLAW_PLUGIN_SDK_COMPAT_DEPRECATED warning
   - You see the OPENCLAW_EXTENSION_API_DEPRECATED warning
-  - You used api.registerEmbeddedExtensionFactory before OpenClaw 2026.4.25
+  - You used api.registerEmbeddedExtensionFactory before Kova 2026.4.25
   - You are updating a plugin to the modern plugin architecture
-  - You maintain an external OpenClaw plugin
+  - You maintain an external Kova plugin
 ---
 
-OpenClaw has moved from a broad backwards-compatibility layer to a modern plugin
+Kova has moved from a broad backwards-compatibility layer to a modern plugin
 architecture with focused, documented imports. If your plugin was built before
 the new architecture, this guide helps you migrate.
 
@@ -33,7 +33,7 @@ but new plugins must not use them, and existing plugins should migrate before
 the next major release removes them. The Pi-only embedded extension factory
 registration API has been removed; use tool-result middleware instead.
 
-OpenClaw does not remove or reinterpret documented plugin behavior in the same
+Kova does not remove or reinterpret documented plugin behavior in the same
 change that introduces a replacement. Breaking contract changes must first go
 through a compatibility adapter, diagnostics, docs, and a deprecation window.
 That applies to SDK imports, manifest fields, setup APIs, hooks, and runtime
@@ -525,7 +525,7 @@ canonical replacement.
     **Old**: `tool()` factory from `openclaw/plugin-sdk/provider-web-search`.
 
     **New**: implement `createTool(...)` directly on the provider plugin.
-    OpenClaw no longer needs the SDK helper to register the tool wrapper.
+    Kova no longer needs the SDK helper to register the tool wrapper.
 
   </Accordion>
 
@@ -570,7 +570,7 @@ canonical replacement.
 
     **New**: a single `resolveThinkingProfile(ctx)` that returns a
     `ProviderThinkingProfile` with the canonical `id`, optional `label`, and
-    ranked level list. OpenClaw downgrades stale stored values by profile
+    ranked level list. Kova downgrades stale stored values by profile
     rank automatically.
 
     Implement one hook instead of three. The legacy hooks keep working during
@@ -699,8 +699,8 @@ before the next major release.
 Set these environment variables while you work on migrating:
 
 ```bash
-OPENCLAW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING=1 openclaw gateway run
-OPENCLAW_SUPPRESS_EXTENSION_API_WARNING=1 openclaw gateway run
+OPENCLAW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING=1 kova gateway run
+OPENCLAW_SUPPRESS_EXTENSION_API_WARNING=1 kova gateway run
 ```
 
 This is a temporary escape hatch, not a permanent solution.

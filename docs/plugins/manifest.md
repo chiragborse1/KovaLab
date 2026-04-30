@@ -1,12 +1,12 @@
 ---
 summary: "Plugin manifest + JSON schema requirements (strict config validation)"
 read_when:
-  - You are building an OpenClaw plugin
+  - You are building an Kova plugin
   - You need to ship a plugin config schema or debug plugin validation errors
 title: "Plugin manifest"
 ---
 
-This page is for the **native OpenClaw plugin manifest** only.
+This page is for the **native Kova plugin manifest** only.
 
 For compatible bundle layouts, see [Plugin bundles](/plugins/bundles).
 
@@ -17,16 +17,16 @@ Compatible bundle formats use different manifest files:
   layout without a manifest
 - Cursor bundle: `.cursor-plugin/plugin.json`
 
-OpenClaw auto-detects those bundle layouts too, but they are not validated
+Kova auto-detects those bundle layouts too, but they are not validated
 against the `openclaw.plugin.json` schema described here.
 
-For compatible bundles, OpenClaw currently reads bundle metadata plus declared
+For compatible bundles, Kova currently reads bundle metadata plus declared
 skill roots, Claude command roots, Claude bundle `settings.json` defaults,
 Claude bundle LSP defaults, and supported hook packs when the layout matches
-OpenClaw runtime expectations.
+Kova runtime expectations.
 
-Every native OpenClaw plugin **must** ship a `openclaw.plugin.json` file in the
-**plugin root**. OpenClaw uses this manifest to validate configuration
+Every native Kova plugin **must** ship a `openclaw.plugin.json` file in the
+**plugin root**. Kova uses this manifest to validate configuration
 **without executing plugin code**. Missing or invalid manifests are treated as
 plugin errors and block config validation.
 
@@ -36,7 +36,7 @@ For the native capability model and current external-compatibility guidance:
 
 ## What this file does
 
-`openclaw.plugin.json` is the metadata OpenClaw reads **before it loads your
+`openclaw.plugin.json` is the metadata Kova reads **before it loads your
 plugin code**. Everything below must be cheap enough to inspect without booting
 plugin runtime.
 
@@ -47,7 +47,7 @@ plugin runtime.
 - activation hints for control-plane surfaces
 - shorthand model-family ownership
 - static capability-ownership snapshots (`contracts`)
-- QA runner metadata the shared `openclaw qa` host can inspect
+- QA runner metadata the shared `kova qa` host can inspect
 - channel-specific config metadata merged into catalog and validation surfaces
 
 **Do not use it for:** registering runtime behavior, declaring code entrypoints,
@@ -166,13 +166,13 @@ or npm install metadata. Those belong in your plugin code and `package.json`.
 | `syntheticAuthRefs`                  | No       | `string[]`                       | Provider or CLI backend refs whose plugin-owned synthetic auth hook should be probed during cold model discovery before runtime loads.                                                                                            |
 | `nonSecretAuthMarkers`               | No       | `string[]`                       | Bundled-plugin-owned placeholder API key values that represent non-secret local, OAuth, or ambient credential state.                                                                                                              |
 | `commandAliases`                     | No       | `object[]`                       | Command names owned by this plugin that should produce plugin-aware config and CLI diagnostics before runtime loads.                                                                                                              |
-| `providerAuthEnvVars`                | No       | `Record<string, string[]>`       | Deprecated compatibility env metadata for provider auth/status lookup. Prefer `setup.providers[].envVars` for new plugins; OpenClaw still reads this during the deprecation window.                                               |
+| `providerAuthEnvVars`                | No       | `Record<string, string[]>`       | Deprecated compatibility env metadata for provider auth/status lookup. Prefer `setup.providers[].envVars` for new plugins; Kova still reads this during the deprecation window.                                               |
 | `providerAuthAliases`                | No       | `Record<string, string>`         | Provider ids that should reuse another provider id for auth lookup, for example a coding provider that shares the base provider API key and auth profiles.                                                                        |
-| `channelEnvVars`                     | No       | `Record<string, string[]>`       | Cheap channel env metadata that OpenClaw can inspect without loading plugin code. Use this for env-driven channel setup or auth surfaces that generic startup/config helpers should see.                                          |
+| `channelEnvVars`                     | No       | `Record<string, string[]>`       | Cheap channel env metadata that Kova can inspect without loading plugin code. Use this for env-driven channel setup or auth surfaces that generic startup/config helpers should see.                                          |
 | `providerAuthChoices`                | No       | `object[]`                       | Cheap auth-choice metadata for onboarding pickers, preferred-provider resolution, and simple CLI flag wiring.                                                                                                                     |
 | `activation`                         | No       | `object`                         | Cheap activation planner metadata for provider, command, channel, route, and capability-triggered loading. Metadata only; plugin runtime still owns actual behavior.                                                              |
 | `setup`                              | No       | `object`                         | Cheap setup/onboarding descriptors that discovery and setup surfaces can inspect without loading plugin runtime.                                                                                                                  |
-| `qaRunners`                          | No       | `object[]`                       | Cheap QA runner descriptors used by the shared `openclaw qa` host before plugin runtime loads.                                                                                                                                    |
+| `qaRunners`                          | No       | `object[]`                       | Cheap QA runner descriptors used by the shared `kova qa` host before plugin runtime loads.                                                                                                                                    |
 | `contracts`                          | No       | `object`                         | Static bundled capability snapshot for external auth hooks, speech, realtime transcription, realtime voice, media-understanding, image-generation, music-generation, video-generation, web-fetch, web search, and tool ownership. |
 | `mediaUnderstandingProviderMetadata` | No       | `Record<string, object>`         | Cheap media-understanding defaults for provider ids declared in `contracts.mediaUnderstandingProviders`.                                                                                                                          |
 | `channelConfigs`                     | No       | `Record<string, object>`         | Manifest-owned channel config metadata merged into discovery and validation surfaces before runtime loads.                                                                                                                        |
@@ -185,7 +185,7 @@ or npm install metadata. Those belong in your plugin code and `package.json`.
 ## providerAuthChoices reference
 
 Each `providerAuthChoices` entry describes one onboarding or auth choice.
-OpenClaw reads this before provider runtime loads.
+Kova reads this before provider runtime loads.
 Provider setup lists use these manifest choices, descriptor-derived setup
 choices, and install-catalog metadata without loading provider runtime.
 
@@ -194,7 +194,7 @@ choices, and install-catalog metadata without loading provider runtime.
 | `provider`            | Yes      | `string`                                        | Provider id this choice belongs to.                                                                      |
 | `method`              | Yes      | `string`                                        | Auth method id to dispatch to.                                                                           |
 | `choiceId`            | Yes      | `string`                                        | Stable auth-choice id used by onboarding and CLI flows.                                                  |
-| `choiceLabel`         | No       | `string`                                        | User-facing label. If omitted, OpenClaw falls back to `choiceId`.                                        |
+| `choiceLabel`         | No       | `string`                                        | User-facing label. If omitted, Kova falls back to `choiceId`.                                        |
 | `choiceHint`          | No       | `string`                                        | Short helper text for the picker.                                                                        |
 | `assistantPriority`   | No       | `number`                                        | Lower values sort earlier in assistant-driven interactive pickers.                                       |
 | `assistantVisibility` | No       | `"visible"` \| `"manual-only"`                  | Hide the choice from assistant pickers while still allowing manual CLI selection.                        |
@@ -211,7 +211,7 @@ choices, and install-catalog metadata without loading provider runtime.
 ## commandAliases reference
 
 Use `commandAliases` when a plugin owns a runtime command name that users may
-mistakenly put in `plugins.allow` or try to run as a root CLI command. OpenClaw
+mistakenly put in `plugins.allow` or try to run as a root CLI command. Kova
 uses this metadata for diagnostics without importing plugin runtime code.
 
 ```json
@@ -305,7 +305,7 @@ that best describes ownership.
 ## qaRunners reference
 
 Use `qaRunners` when a plugin contributes one or more transport runners beneath
-the shared `openclaw qa` root. Keep this metadata cheap and static; the plugin
+the shared `kova qa` root. Keep this metadata cheap and static; the plugin
 runtime still owns actual CLI registration through a lightweight
 `runtime-api.ts` surface that exports `qaRunnerCliRegistrations`.
 
@@ -322,7 +322,7 @@ runtime still owns actual CLI registration through a lightweight
 
 | Field         | Required | Type     | What it means                                                      |
 | ------------- | -------- | -------- | ------------------------------------------------------------------ |
-| `commandName` | Yes      | `string` | Subcommand mounted beneath `openclaw qa`, for example `matrix`.    |
+| `commandName` | Yes      | `string` | Subcommand mounted beneath `kova qa`, for example `matrix`.    |
 | `description` | No       | `string` | Fallback help text used when the shared host needs a stub command. |
 
 ## setup reference
@@ -357,22 +357,22 @@ narrows the candidate plugin and setup still needs richer setup-time runtime
 hooks, set `requiresRuntime: true` and keep `setup-api` in place as the
 fallback execution path.
 
-OpenClaw also includes `setup.providers[].envVars` in generic provider auth and
+Kova also includes `setup.providers[].envVars` in generic provider auth and
 env-var lookups. `providerAuthEnvVars` remains supported through a compatibility
 adapter during the deprecation window, but non-bundled plugins that still use it
 receive a manifest diagnostic. New plugins should put setup/status env metadata
 on `setup.providers[].envVars`.
 
-OpenClaw can also derive simple setup choices from `setup.providers[].authMethods`
+Kova can also derive simple setup choices from `setup.providers[].authMethods`
 when no setup entry is available, or when `setup.requiresRuntime: false`
 declares setup runtime unnecessary. Explicit `providerAuthChoices` entries stay
 preferred for custom labels, CLI flags, onboarding scope, and assistant metadata.
 
 Set `requiresRuntime: false` only when those descriptors are sufficient for the
-setup surface. OpenClaw treats explicit `false` as a descriptor-only contract
+setup surface. Kova treats explicit `false` as a descriptor-only contract
 and will not execute `setup-api` or `openclaw.setupEntry` for setup lookup. If
 a descriptor-only plugin still ships one of those setup runtime entries,
-OpenClaw reports an additive diagnostic and continues ignoring it. Omitted
+Kova reports an additive diagnostic and continues ignoring it. Omitted
 `requiresRuntime` keeps legacy fallback behavior so existing plugins that added
 descriptors without the flag do not break.
 
@@ -433,7 +433,7 @@ Each field hint can include:
 
 ## contracts reference
 
-Use `contracts` only for static capability ownership metadata that OpenClaw can
+Use `contracts` only for static capability ownership metadata that Kova can
 read without importing the plugin runtime.
 
 ```json
@@ -472,7 +472,7 @@ Each list is optional:
 | `videoGenerationProviders`       | `string[]` | Video-generation provider ids this plugin owns.                       |
 | `webFetchProviders`              | `string[]` | Web-fetch provider ids this plugin owns.                              |
 | `webSearchProviders`             | `string[]` | Web-search provider ids this plugin owns.                             |
-| `migrationProviders`             | `string[]` | Import provider ids this plugin owns for `openclaw migrate`.          |
+| `migrationProviders`             | `string[]` | Import provider ids this plugin owns for `kova migrate`.          |
 | `tools`                          | `string[]` | Agent tool names this plugin owns for bundled contract checks.        |
 
 `contracts.embeddedExtensionFactories` is retained for bundled Codex
@@ -539,7 +539,7 @@ when `setup.requiresRuntime: false` declares setup runtime unnecessary.
 
 `channelConfigs` is plugin manifest metadata, not a new top-level user config
 section. Users still configure channel instances under `channels.<channel-id>`.
-OpenClaw reads manifest metadata to decide which plugin owns that configured
+Kova reads manifest metadata to decide which plugin owns that configured
 channel before plugin runtime code executes.
 
 For a channel plugin, `configSchema` and `channelConfigs` describe different
@@ -549,7 +549,7 @@ paths:
 - `channelConfigs.<channel-id>.schema` validates `channels.<channel-id>`
 
 Non-bundled plugins that declare `channels[]` should also declare matching
-`channelConfigs` entries. Without them, OpenClaw can still load the plugin, but
+`channelConfigs` entries. Without them, Kova can still load the plugin, but
 cold-path config schema, setup, and Control UI surfaces cannot know the
 channel-owned option shape until plugin runtime executes.
 
@@ -625,11 +625,11 @@ keeps the same channel id for config compatibility.
 }
 ```
 
-When `channels.chat` is configured, OpenClaw considers both the channel id and
+When `channels.chat` is configured, Kova considers both the channel id and
 the preferred plugin id. If the lower-priority plugin was only selected because
-it is bundled or enabled by default, OpenClaw disables it in the effective
+it is bundled or enabled by default, Kova disables it in the effective
 runtime config so one plugin owns the channel and its tools. Explicit user
-selection still wins: if the user explicitly enables both plugins, OpenClaw
+selection still wins: if the user explicitly enables both plugins, Kova
 preserves that choice and reports duplicate channel/tool diagnostics instead of
 silently changing the requested plugin set.
 
@@ -638,7 +638,7 @@ It is not a general priority field and it does not rename user config keys.
 
 ## modelSupport reference
 
-Use `modelSupport` when OpenClaw should infer your provider plugin from
+Use `modelSupport` when Kova should infer your provider plugin from
 shorthand model ids like `gpt-5.5` or `claude-sonnet-4.6` before plugin runtime
 loads.
 
@@ -651,7 +651,7 @@ loads.
 }
 ```
 
-OpenClaw applies this precedence:
+Kova applies this precedence:
 
 - explicit `provider/model` refs use the owning `providers` manifest metadata
 - `modelPatterns` beat `modelPrefixes`
@@ -668,7 +668,7 @@ Fields:
 
 ## modelCatalog reference
 
-Use `modelCatalog` when OpenClaw should know provider model metadata before
+Use `modelCatalog` when Kova should know provider model metadata before
 loading plugin runtime. This is the manifest-owned source for fixed catalog
 rows, provider aliases, suppression rules, and discovery mode. Runtime refresh
 still belongs in provider runtime code, but the manifest tells core when runtime
@@ -754,7 +754,7 @@ Model fields:
 | `contextTokens` | `number`                                                       | Optional effective runtime context cap when different from `contextWindow`. |
 | `maxTokens`     | `number`                                                       | Maximum output tokens when known.                                           |
 | `cost`          | `object`                                                       | Optional USD per million token pricing, including optional `tieredPricing`. |
-| `compat`        | `object`                                                       | Optional compatibility flags matching OpenClaw model config compatibility.  |
+| `compat`        | `object`                                                       | Optional compatibility flags matching Kova model config compatibility.  |
 | `status`        | `"available"` \| `"preview"` \| `"deprecated"` \| `"disabled"` | Listing status. Suppress only when the row must not appear at all.          |
 | `statusReason`  | `string`                                                       | Optional reason shown with non-available status.                            |
 | `replaces`      | `string[]`                                                     | Older provider-local model ids this model supersedes.                       |
@@ -883,13 +883,13 @@ Source fields:
 
 | Field                      | Type               | What it means                                                                                                        |
 | -------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `provider`                 | `string`           | External catalog provider id when it differs from the OpenClaw provider id, for example `z-ai` for a `zai` provider. |
+| `provider`                 | `string`           | External catalog provider id when it differs from the Kova provider id, for example `z-ai` for a `zai` provider. |
 | `passthroughProviderModel` | `boolean`          | Treat slash-containing model ids as nested provider/model refs, useful for proxy providers such as OpenRouter.       |
 | `modelIdTransforms`        | `"version-dots"[]` | Extra external catalog model-id variants. `version-dots` tries dotted version ids like `claude-opus-4.6`.            |
 
-### OpenClaw Provider Index
+### Kova Provider Index
 
-The OpenClaw Provider Index is OpenClaw-owned preview metadata for providers
+The Kova Provider Index is Kova-owned preview metadata for providers
 whose plugins may not be installed yet. It is not part of a plugin manifest.
 Plugin manifests remain the installed-plugin authority. The Provider Index is
 the internal fallback contract that future installable-provider and pre-install
@@ -900,7 +900,7 @@ Catalog authority order:
 1. User config.
 2. Installed plugin manifest `modelCatalog`.
 3. Model catalog cache from explicit refresh.
-4. OpenClaw Provider Index preview rows.
+4. Kova Provider Index preview rows.
 
 The Provider Index must not contain secrets, enabled state, runtime hooks, or
 live account-specific model data. Its preview catalogs use the same
@@ -918,7 +918,7 @@ expected integrity, and cheap auth-choice labels are enough to show an
 installable setup option. Once the plugin is installed, its manifest wins and
 the Provider Index entry is ignored for that provider.
 
-Legacy top-level capability keys are deprecated. Use `openclaw doctor --fix` to
+Legacy top-level capability keys are deprecated. Use `kova doctor --fix` to
 move `speechProviders`, `realtimeTranscriptionProviders`,
 `realtimeVoiceProviders`, `mediaUnderstandingProviders`,
 `imageGenerationProviders`, `videoGenerationProviders`,
@@ -933,17 +933,17 @@ The two files serve different jobs:
 | File                   | Use it for                                                                                                                       |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `openclaw.plugin.json` | Discovery, config validation, auth-choice metadata, and UI hints that must exist before plugin code runs                         |
-| `package.json`         | npm metadata, dependency installation, and the `openclaw` block used for entrypoints, install gating, setup, or catalog metadata |
+| `package.json`         | npm metadata, dependency installation, and the `kova` block used for entrypoints, install gating, setup, or catalog metadata |
 
 If you are unsure where a piece of metadata belongs, use this rule:
 
-- if OpenClaw must know it before loading plugin code, put it in `openclaw.plugin.json`
+- if Kova must know it before loading plugin code, put it in `openclaw.plugin.json`
 - if it is about packaging, entry files, or npm install behavior, put it in `package.json`
 
 ### package.json fields that affect discovery
 
 Some pre-runtime plugin metadata intentionally lives in `package.json` under the
-`openclaw` block instead of `openclaw.plugin.json`.
+`kova` block instead of `openclaw.plugin.json`.
 
 Important examples:
 
@@ -959,7 +959,7 @@ Important examples:
 | `openclaw.channel.persistedAuthState`                             | Lightweight persisted-auth checker metadata that can answer "is anything already signed in?" without loading the full channel runtime.                                               |
 | `openclaw.install.npmSpec` / `openclaw.install.localPath`         | Install/update hints for bundled and externally published plugins.                                                                                                                   |
 | `openclaw.install.defaultChoice`                                  | Preferred install path when multiple install sources are available.                                                                                                                  |
-| `openclaw.install.minHostVersion`                                 | Minimum supported OpenClaw host version, using a semver floor like `>=2026.3.22`.                                                                                                    |
+| `openclaw.install.minHostVersion`                                 | Minimum supported Kova host version, using a semver floor like `>=2026.3.22`.                                                                                                    |
 | `openclaw.install.expectedIntegrity`                              | Expected npm dist integrity string such as `sha512-...`; install and update flows verify the fetched artifact against it.                                                            |
 | `openclaw.install.allowInvalidConfigRecovery`                     | Allows a narrow bundled-plugin reinstall recovery path when config is invalid.                                                                                                       |
 | `openclaw.startup.deferConfiguredChannelFullLoadUntilAfterListen` | Lets setup-only channel surfaces load before the full channel plugin during startup.                                                                                                 |
@@ -1001,7 +1001,7 @@ not make arbitrary broken configs installable. Today it only allows install
 flows to recover from specific stale bundled-plugin upgrade failures, such as a
 missing bundled plugin path or a stale `channels.<id>` entry for that same
 bundled plugin. Unrelated config errors still block install and send operators
-to `openclaw doctor --fix`.
+to `kova doctor --fix`.
 
 `openclaw.channel.persistedAuthState` is package metadata for a tiny checker
 module:
@@ -1049,13 +1049,13 @@ hook instead.
 
 ## Discovery precedence (duplicate plugin ids)
 
-OpenClaw discovers plugins from several roots (bundled, global install, workspace, explicit config-selected paths). If two discoveries share the same `id`, only the **highest-precedence** manifest is kept; lower-precedence duplicates are dropped instead of loading beside it.
+Kova discovers plugins from several roots (bundled, global install, workspace, explicit config-selected paths). If two discoveries share the same `id`, only the **highest-precedence** manifest is kept; lower-precedence duplicates are dropped instead of loading beside it.
 
 Precedence, highest to lowest:
 
 1. **Config-selected** — a path explicitly pinned in `plugins.entries.<id>`
-2. **Bundled** — plugins shipped with OpenClaw
-3. **Global install** — plugins installed into the global OpenClaw plugin root
+2. **Bundled** — plugins shipped with Kova
+3. **Global install** — plugins installed into the global Kova plugin root
 4. **Workspace** — plugins discovered relative to the current workspace
 
 Implications:
@@ -1085,7 +1085,7 @@ See [Configuration reference](/gateway/configuration) for the full `plugins.*` s
 
 ## Notes
 
-- The manifest is **required for native OpenClaw plugins**, including local filesystem loads. Runtime still loads the plugin module separately; the manifest is only for discovery + validation.
+- The manifest is **required for native Kova plugins**, including local filesystem loads. Runtime still loads the plugin module separately; the manifest is only for discovery + validation.
 - Native manifests are parsed with JSON5, so comments, trailing commas, and unquoted keys are accepted as long as the final value is still an object.
 - Only documented manifest fields are read by the manifest loader. Avoid custom top-level keys.
 - `channels`, `providers`, `cliBackends`, and `skills` can all be omitted when a plugin does not need them.

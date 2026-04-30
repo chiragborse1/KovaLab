@@ -6,7 +6,7 @@ const exporter = createDiagnosticsPrometheusExporter();
 export default definePluginEntry({
   id: "diagnostics-prometheus",
   name: "Diagnostics Prometheus",
-  description: "Expose OpenClaw diagnostics metrics in Prometheus text format",
+  description: "Expose Kova diagnostics metrics in Prometheus text format",
   register(api) {
     api.registerService(exporter.service);
     api.registerHttpRoute({

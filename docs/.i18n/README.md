@@ -1,4 +1,4 @@
-# OpenClaw docs i18n assets
+# Kova docs i18n assets
 
 This folder stores translation config for the source docs repo.
 

@@ -2,7 +2,7 @@
   "name": "@openclaw/gradium-speech",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Gradium speech plugin",
+  "description": "Kova Gradium speech plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

@@ -331,8 +331,8 @@ function getRuntimeChoices(params: {
     params.data.runtimeChoicesByProvider?.get(normalizeProviderId(params.provider)) ?? [
       {
         id: "pi",
-        label: "OpenClaw Pi Default",
-        description: "Use the built-in OpenClaw Pi runtime.",
+        label: "Kova Pi Default",
+        description: "Use the built-in Kova Pi runtime.",
       },
     ]
   );

@@ -1,17 +1,17 @@
 ---
-summary: "CLI reference for `openclaw cron` (schedule and run background jobs)"
+summary: "CLI reference for `kova cron` (schedule and run background jobs)"
 read_when:
   - You want scheduled jobs and wakeups
   - You are debugging cron execution and logs
 title: "Cron"
 ---
 
-# `openclaw cron`
+# `kova cron`
 
 Manage cron jobs for the Gateway scheduler.
 
 <Tip>
-Run `openclaw cron --help` for the full command surface. See [Cron jobs](/automation/cron-jobs) for the conceptual guide.
+Run `kova cron --help` for the full command surface. See [Cron jobs](/automation/cron-jobs) for the conceptual guide.
 </Tip>
 
 ## Sessions
@@ -32,7 +32,7 @@ Run `openclaw cron --help` for the full command surface. See [Cron jobs](/automa
 
 ## Delivery
 
-`openclaw cron list` and `openclaw cron show <job-id>` preview the resolved delivery route. For `channel: "last"`, the preview shows whether the route resolved from the main or current session, or will fail closed.
+`kova cron list` and `kova cron show <job-id>` preview the resolved delivery route. For `channel: "last"`, the preview shows whether the route resolved from the main or current session, or will fail closed.
 
 <Note>
 Isolated `cron add` jobs default to `--announce` delivery. Use `--no-deliver` to keep output internal. `--deliver` remains as a deprecated alias for `--announce`.
@@ -81,16 +81,16 @@ One-shot jobs delete after success by default. Use `--keep-after-run` to preserv
 
 Recurring jobs use exponential retry backoff after consecutive errors: 30s, 1m, 5m, 15m, 60m. The schedule returns to normal after the next successful run.
 
-Skipped runs are tracked separately from execution errors. They do not affect retry backoff, but `openclaw cron edit <job-id> --failure-alert-include-skipped` can opt failure alerts into repeated skipped-run notifications.
+Skipped runs are tracked separately from execution errors. They do not affect retry backoff, but `kova cron edit <job-id> --failure-alert-include-skipped` can opt failure alerts into repeated skipped-run notifications.
 
 Note: cron job definitions live in `jobs.json`, while pending runtime state lives in `jobs-state.json`. If `jobs.json` is edited externally, the Gateway reloads changed schedules and clears stale pending slots; formatting-only rewrites do not clear the pending slot.
 
 ### Manual runs
 
-`openclaw cron run` returns as soon as the manual run is queued. Successful responses include `{ ok: true, enqueued: true, runId }`. Use `openclaw cron runs --id <job-id>` to follow the eventual outcome.
+`kova cron run` returns as soon as the manual run is queued. Successful responses include `{ ok: true, enqueued: true, runId }`. Use `kova cron runs --id <job-id>` to follow the eventual outcome.
 
 <Note>
-`openclaw cron run <job-id>` force-runs by default. Use `--due` to keep the older "only run if due" behavior.
+`kova cron run <job-id>` force-runs by default. Use `--due` to keep the older "only run if due" behavior.
 </Note>
 
 ## Models
@@ -144,7 +144,7 @@ Retention and pruning are controlled in config:
 ## Migrating older jobs
 
 <Note>
-If you have cron jobs from before the current delivery and store format, run `openclaw doctor --fix`. Doctor normalizes legacy cron fields (`jobId`, `schedule.cron`, top-level delivery fields including legacy `threadId`, payload `provider` delivery aliases) and migrates simple `notify: true` webhook fallback jobs to explicit webhook delivery when `cron.webhook` is configured.
+If you have cron jobs from before the current delivery and store format, run `kova doctor --fix`. Doctor normalizes legacy cron fields (`jobId`, `schedule.cron`, top-level delivery fields including legacy `threadId`, payload `provider` delivery aliases) and migrates simple `notify: true` webhook fallback jobs to explicit webhook delivery when `cron.webhook` is configured.
 </Note>
 
 ## Common edits
@@ -152,31 +152,31 @@ If you have cron jobs from before the current delivery and store format, run `op
 Update delivery settings without changing the message:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel telegram --to "123456789"
+kova cron edit <job-id> --announce --channel telegram --to "123456789"
 ```
 
 Disable delivery for an isolated job:
 
 ```bash
-openclaw cron edit <job-id> --no-deliver
+kova cron edit <job-id> --no-deliver
 ```
 
 Enable lightweight bootstrap context for an isolated job:
 
 ```bash
-openclaw cron edit <job-id> --light-context
+kova cron edit <job-id> --light-context
 ```
 
 Announce to a specific channel:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
+kova cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
 ```
 
 Create an isolated job with lightweight bootstrap context:
 
 ```bash
-openclaw cron add \
+kova cron add \
   --name "Lightweight morning brief" \
   --cron "0 7 * * *" \
   --session isolated \
@@ -192,11 +192,11 @@ openclaw cron add \
 Manual run and inspection:
 
 ```bash
-openclaw cron list
-openclaw cron show <job-id>
-openclaw cron run <job-id>
-openclaw cron run <job-id> --due
-openclaw cron runs --id <job-id> --limit 50
+kova cron list
+kova cron show <job-id>
+kova cron run <job-id>
+kova cron run <job-id> --due
+kova cron runs --id <job-id> --limit 50
 ```
 
 `cron runs` entries include delivery diagnostics with the intended cron target, the resolved target, message-tool sends, fallback use, and delivered state.
@@ -204,19 +204,19 @@ openclaw cron runs --id <job-id> --limit 50
 Agent and session retargeting:
 
 ```bash
-openclaw cron edit <job-id> --agent ops
-openclaw cron edit <job-id> --clear-agent
-openclaw cron edit <job-id> --session current
-openclaw cron edit <job-id> --session "session:daily-brief"
+kova cron edit <job-id> --agent ops
+kova cron edit <job-id> --clear-agent
+kova cron edit <job-id> --session current
+kova cron edit <job-id> --session "session:daily-brief"
 ```
 
 Delivery tweaks:
 
 ```bash
-openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
-openclaw cron edit <job-id> --best-effort-deliver
-openclaw cron edit <job-id> --no-best-effort-deliver
-openclaw cron edit <job-id> --no-deliver
+kova cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
+kova cron edit <job-id> --best-effort-deliver
+kova cron edit <job-id> --no-best-effort-deliver
+kova cron edit <job-id> --no-deliver
 ```
 
 ## Related

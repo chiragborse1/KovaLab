@@ -111,9 +111,9 @@ async function describeCodexImages(
           cwd: req.agentDir || process.cwd(),
           approvalPolicy: "on-request",
           sandbox: "read-only",
-          serviceName: "OpenClaw",
+          serviceName: "Kova",
           developerInstructions:
-            "You are OpenClaw's bounded image-understanding worker. Describe only the provided image content. Do not call tools, edit files, or ask follow-up questions.",
+            "You are Kova's bounded image-understanding worker. Describe only the provided image content. Do not call tools, edit files, or ask follow-up questions.",
           dynamicTools: [],
           experimentalRawEvents: true,
           persistExtendedHistory: false,
@@ -170,7 +170,7 @@ function denyCodexImageApprovalRequest(request: { method: string }): JsonValue |
   ) {
     return {
       decision: "decline",
-      reason: "OpenClaw Codex image understanding does not grant tool or file approvals.",
+      reason: "Kova Codex image understanding does not grant tool or file approvals.",
     };
   }
   if (request.method === "item/permissions/requestApproval") {
@@ -179,7 +179,7 @@ function denyCodexImageApprovalRequest(request: { method: string }): JsonValue |
   if (request.method.includes("requestApproval")) {
     return {
       decision: "decline",
-      reason: "OpenClaw Codex image understanding does not grant native approvals.",
+      reason: "Kova Codex image understanding does not grant native approvals.",
     };
   }
   if (request.method === "mcpServer/elicitation/request") {

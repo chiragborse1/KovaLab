@@ -128,7 +128,7 @@ provider- or plugin-specific policy to core prompt builders.
 
 Bundled plugins must declare `contracts.agentToolResultMiddleware` for each
 targeted runtime, for example `["pi", "codex"]`. External plugins
-cannot register this middleware; keep normal OpenClaw plugin hooks for work
+cannot register this middleware; keep normal Kova plugin hooks for work
 that does not need pre-model tool-result timing. The old Pi-only embedded
 extension factory registration path has been removed.
 </Accordion>
@@ -136,7 +136,7 @@ extension factory registration path has been removed.
 ### Gateway discovery registration
 
 `api.registerGatewayDiscoveryService(...)` lets a plugin advertise the active
-Gateway on a local discovery transport such as mDNS/Bonjour. OpenClaw calls the
+Gateway on a local discovery transport such as mDNS/Bonjour. Kova calls the
 service during Gateway startup when local discovery is enabled, passes the
 current Gateway ports and non-secret TXT hint data, and calls the returned
 `stop` handler during Gateway shutdown.
@@ -200,7 +200,7 @@ AI CLI backend such as `codex-cli`.
 
 - The backend `id` becomes the provider prefix in model refs like `codex-cli/gpt-5`.
 - The backend `config` uses the same shape as `agents.defaults.cliBackends.<id>`.
-- User config still wins. OpenClaw merges `agents.defaults.cliBackends.<id>` over the
+- User config still wins. Kova merges `agents.defaults.cliBackends.<id>` over the
   plugin default before running the CLI.
 - Use `normalizeConfig` when a backend needs compatibility rewrites after merge
   (for example normalizing old flag shapes).
@@ -295,7 +295,7 @@ my-plugin/
 
 Facade-loaded bundled plugin public surfaces (`api.ts`, `runtime-api.ts`,
 `index.ts`, `setup-entry.ts`, and similar public entry files) prefer the
-active runtime config snapshot when OpenClaw is already running. If no runtime
+active runtime config snapshot when Kova is already running. If no runtime
 snapshot exists yet, they fall back to the resolved config file on disk.
 
 Provider plugins can expose a narrow plugin-local contract barrel when a

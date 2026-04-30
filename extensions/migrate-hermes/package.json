@@ -2,7 +2,7 @@
   "name": "@openclaw/migrate-hermes",
   "version": "2026.4.25",
   "private": true,
-  "description": "Hermes to OpenClaw migration provider",
+  "description": "Hermes to Kova migration provider",
   "type": "module",
   "dependencies": {
     "yaml": "^2.8.3"

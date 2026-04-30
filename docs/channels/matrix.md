@@ -1,27 +1,27 @@
 ---
 summary: "Matrix support status, setup, and configuration examples"
 read_when:
-  - Setting up Matrix in OpenClaw
+  - Setting up Matrix in Kova
   - Configuring Matrix E2EE and verification
 title: "Matrix"
 ---
 
-Matrix is a bundled channel plugin for OpenClaw.
+Matrix is a bundled channel plugin for Kova.
 It uses the official `matrix-js-sdk` and supports DMs, rooms, threads, media, reactions, polls, location, and E2EE.
 
 ## Bundled plugin
 
-Current packaged OpenClaw releases ship the Matrix plugin in the box. You do not need to install anything; configuring `channels.matrix.*` (see [Setup](#setup)) is what activates it.
+Current packaged Kova releases ship the Matrix plugin in the box. You do not need to install anything; configuring `channels.matrix.*` (see [Setup](#setup)) is what activates it.
 
 For older builds or custom installs that exclude Matrix, install manually first:
 
 ```bash
-openclaw plugins install @openclaw/matrix
+kova plugins install @openclaw/matrix
 # or, from a local checkout
-openclaw plugins install ./path/to/local/matrix-plugin
+kova plugins install ./path/to/local/matrix-plugin
 ```
 
-`plugins install` registers and enables the plugin, so no separate `openclaw plugins enable matrix` step is needed. The plugin still does nothing until you configure the channel below. See [Plugins](/tools/plugin) for general plugin behavior and install rules.
+`plugins install` registers and enables the plugin, so no separate `kova plugins enable matrix` step is needed. The plugin still does nothing until you configure the channel below. See [Plugins](/tools/plugin) for general plugin behavior and install rules.
 
 ## Setup
 
@@ -33,13 +33,13 @@ openclaw plugins install ./path/to/local/matrix-plugin
 ### Interactive setup
 
 ```bash
-openclaw channels add
-openclaw configure --section channels
+kova channels add
+kova configure --section channels
 ```
 
 The wizard asks for: homeserver URL, auth method (access token or password), user ID (password auth only), optional device name, whether to enable E2EE, and whether to configure room access and auto-join.
 
-If matching `MATRIX_*` env vars already exist and the selected account has no saved auth, the wizard offers an env-var shortcut. To resolve room names before saving an allowlist, run `openclaw channels resolve --channel matrix "Project Room"`. When E2EE is enabled, the wizard writes the config and runs the same bootstrap as [`openclaw matrix encryption setup`](#encryption-and-verification).
+If matching `MATRIX_*` env vars already exist and the selected account has no saved auth, the wizard offers an env-var shortcut. To resolve room names before saving an allowlist, run `kova channels resolve --channel matrix "Project Room"`. When E2EE is enabled, the wizard writes the config and runs the same bootstrap as [`kova matrix encryption setup`](#encryption-and-verification).
 
 ### Minimal config
 
@@ -68,7 +68,7 @@ Password-based (the token is cached after first login):
       homeserver: "https://matrix.example.org",
       userId: "@bot:example.org",
       password: "replace-me", // pragma: allowlist secret
-      deviceName: "OpenClaw Gateway",
+      deviceName: "Kova Gateway",
     },
   },
 }
@@ -78,7 +78,7 @@ Password-based (the token is cached after first login):
 
 `channels.matrix.autoJoin` defaults to `off`. With the default, the bot will not appear in new rooms or DMs from fresh invites until you join manually.
 
-OpenClaw cannot tell at invite time whether an invited room is a DM or a group, so all invites — including DM-style invites — go through `autoJoin` first. `dm.policy` only applies later, after the bot has joined and the room has been classified.
+Kova cannot tell at invite time whether an invited room is a DM or a group, so all invites — including DM-style invites — go through `autoJoin` first. `dm.policy` only applies later, after the bot has joined and the room has been classified.
 
 <Warning>
 Set `autoJoin: "allowlist"` plus `autoJoinAllowlist` to restrict which invites the bot accepts, or `autoJoin: "always"` to accept every invite.
@@ -120,7 +120,7 @@ Matrix stores cached credentials under `~/.openclaw/credentials/matrix/`:
 - default account: `credentials.json`
 - named accounts: `credentials-<account>.json`
 
-When cached credentials exist there, OpenClaw treats Matrix as configured even if the access token is not in the config file — that covers setup, `openclaw doctor`, and channel-status probes.
+When cached credentials exist there, Kova treats Matrix as configured even if the access token is not in the config file — that covers setup, `kova doctor`, and channel-status probes.
 
 ### Environment variables
 
@@ -177,7 +177,7 @@ A practical baseline with DM pairing, room allowlist, and E2EE:
 
 ## Streaming previews
 
-Matrix reply streaming is opt-in. `streaming` controls how OpenClaw delivers the in-flight assistant reply; `blockStreaming` controls whether each completed block is preserved as its own Matrix message.
+Matrix reply streaming is opt-in. `streaming` controls how Kova delivers the in-flight assistant reply; `blockStreaming` controls whether each completed block is preserved as its own Matrix message.
 
 ```json5
 {
@@ -204,8 +204,8 @@ Matrix reply streaming is opt-in. `streaming` controls how OpenClaw delivers the
 
 Notes:
 
-- If a preview grows past Matrix's per-event size limit, OpenClaw stops preview streaming and falls back to final-only delivery.
-- Media replies always send attachments normally. If a stale preview can no longer be reused safely, OpenClaw redacts it before sending the final media reply.
+- If a preview grows past Matrix's per-event size limit, Kova stops preview streaming and falls back to final-only delivery.
+- Media replies always send attachments normally. If a stale preview can no longer be reused safely, Kova redacts it before sending the final media reply.
 - Preview edits cost extra Matrix API calls. Leave `streaming: "off"` if you want the most conservative rate-limit profile.
 
 ### Self-hosted push rules for quiet finalized previews
@@ -214,7 +214,7 @@ Notes:
 
 ## Bot-to-bot rooms
 
-By default, Matrix messages from other configured OpenClaw Matrix accounts are ignored.
+By default, Matrix messages from other configured Kova Matrix accounts are ignored.
 
 Use `allowBots` when you intentionally want inter-agent Matrix traffic:
 
@@ -236,8 +236,8 @@ Use `allowBots` when you intentionally want inter-agent Matrix traffic:
 - `allowBots: true` accepts messages from other configured Matrix bot accounts in allowed rooms and DMs.
 - `allowBots: "mentions"` accepts those messages only when they visibly mention this bot in rooms. DMs are still allowed.
 - `groups.<room>.allowBots` overrides the account-level setting for one room.
-- OpenClaw still ignores messages from the same Matrix user ID to avoid self-reply loops.
-- Matrix does not expose a native bot flag here; OpenClaw treats "bot-authored" as "sent by another configured Matrix account on this OpenClaw gateway".
+- Kova still ignores messages from the same Matrix user ID to avoid self-reply loops.
+- Matrix does not expose a native bot flag here; Kova treats "bot-authored" as "sent by another configured Matrix account on this Kova gateway".
 
 Use strict room allowlists and mention requirements when enabling bot-to-bot traffic in shared rooms.
 
@@ -245,12 +245,12 @@ Use strict room allowlists and mention requirements when enabling bot-to-bot tra
 
 In encrypted (E2EE) rooms, outbound image events use `thumbnail_file` so image previews are encrypted alongside the full attachment. Unencrypted rooms still use plain `thumbnail_url`. No configuration is needed — the plugin detects E2EE state automatically.
 
-All `openclaw matrix` commands accept `--verbose` (full diagnostics), `--json` (machine-readable output), and `--account <id>` (multi-account setups). Output is concise by default with quiet internal SDK logging. The examples below show the canonical form; add the flags as needed.
+All `kova matrix` commands accept `--verbose` (full diagnostics), `--json` (machine-readable output), and `--account <id>` (multi-account setups). Output is concise by default with quiet internal SDK logging. The examples below show the canonical form; add the flags as needed.
 
 ### Enable encryption
 
 ```bash
-openclaw matrix encryption setup
+kova matrix encryption setup
 ```
 
 Bootstraps secret storage and cross-signing, creates a room-key backup if needed, then prints status and next steps. Useful flags:
@@ -261,7 +261,7 @@ Bootstraps secret storage and cross-signing, creates a room-key backup if needed
 For a new account, enable E2EE at creation time:
 
 ```bash
-openclaw matrix account add \
+kova matrix account add \
   --homeserver https://matrix.example.org \
   --access-token syt_xxx \
   --enable-e2ee
@@ -288,8 +288,8 @@ Manual config equivalent:
 ### Status and trust signals
 
 ```bash
-openclaw matrix verify status
-openclaw matrix verify status --include-recovery-key --json
+kova matrix verify status
+kova matrix verify status --include-recovery-key --json
 ```
 
 `verify status` reports three independent trust signals (`--verbose` shows all of them):
@@ -307,7 +307,7 @@ openclaw matrix verify status --include-recovery-key --json
 The recovery key is sensitive — pipe it via stdin instead of passing it on the command line. Set `MATRIX_RECOVERY_KEY` (or `MATRIX_<ID>_RECOVERY_KEY` for a named account):
 
 ```bash
-printf '%s\n' "$MATRIX_RECOVERY_KEY" | openclaw matrix verify device --recovery-key-stdin
+printf '%s\n' "$MATRIX_RECOVERY_KEY" | kova matrix verify device --recovery-key-stdin
 ```
 
 The command reports three states:
@@ -319,17 +319,17 @@ The command reports three states:
 It exits non-zero when full identity trust is incomplete, even if the recovery key unlocked backup material. In that case, finish self-verification from another Matrix client:
 
 ```bash
-openclaw matrix verify self
+kova matrix verify self
 ```
 
 `verify self` waits for `Cross-signing verified: yes` before it exits successfully. Use `--timeout-ms <ms>` to tune the wait.
 
-The literal-key form `openclaw matrix verify device "<recovery-key>"` is also accepted, but the key ends up in your shell history.
+The literal-key form `kova matrix verify device "<recovery-key>"` is also accepted, but the key ends up in your shell history.
 
 ### Bootstrap or repair cross-signing
 
 ```bash
-openclaw matrix verify bootstrap
+kova matrix verify bootstrap
 ```
 
 `verify bootstrap` is the repair and setup command for encrypted accounts. In order, it:
@@ -339,7 +339,7 @@ openclaw matrix verify bootstrap
 - marks and cross-signs the current device
 - creates a server-side room-key backup if one does not already exist
 
-If the homeserver requires UIA to upload cross-signing keys, OpenClaw tries no-auth first, then `m.login.dummy`, then `m.login.password` (requires `channels.matrix.password`).
+If the homeserver requires UIA to upload cross-signing keys, Kova tries no-auth first, then `m.login.dummy`, then `m.login.password` (requires `channels.matrix.password`).
 
 Useful flags:
 
@@ -349,8 +349,8 @@ Useful flags:
 ### Room-key backup
 
 ```bash
-openclaw matrix verify backup status
-printf '%s\n' "$MATRIX_RECOVERY_KEY" | openclaw matrix verify backup restore --recovery-key-stdin
+kova matrix verify backup status
+printf '%s\n' "$MATRIX_RECOVERY_KEY" | kova matrix verify backup restore --recovery-key-stdin
 ```
 
 `backup status` shows whether a server-side backup exists and whether this device can decrypt it. `backup restore` imports backed-up room keys into the local crypto store; if the recovery key is already on disk you can omit `--recovery-key-stdin`.
@@ -358,7 +358,7 @@ printf '%s\n' "$MATRIX_RECOVERY_KEY" | openclaw matrix verify backup restore --r
 To replace a broken backup with a fresh baseline (accepts losing unrecoverable old history; can also recreate secret storage if the current backup secret is unloadable):
 
 ```bash
-openclaw matrix verify backup reset --yes
+kova matrix verify backup reset --yes
 ```
 
 Add `--rotate-recovery-key` only when you intentionally want the previous recovery key to stop unlocking the fresh backup baseline.
@@ -366,28 +366,28 @@ Add `--rotate-recovery-key` only when you intentionally want the previous recove
 ### Listing, requesting, and responding to verifications
 
 ```bash
-openclaw matrix verify list
+kova matrix verify list
 ```
 
 Lists pending verification requests for the selected account.
 
 ```bash
-openclaw matrix verify request --own-user
-openclaw matrix verify request --user-id @ops:example.org --device-id ABCDEF
+kova matrix verify request --own-user
+kova matrix verify request --user-id @ops:example.org --device-id ABCDEF
 ```
 
-Sends a verification request from this OpenClaw account. `--own-user` requests self-verification (you accept the prompt in another Matrix client of the same user); `--user-id`/`--device-id`/`--room-id` target someone else. `--own-user` cannot be combined with the other targeting flags.
+Sends a verification request from this Kova account. `--own-user` requests self-verification (you accept the prompt in another Matrix client of the same user); `--user-id`/`--device-id`/`--room-id` target someone else. `--own-user` cannot be combined with the other targeting flags.
 
 For lower-level lifecycle handling — typically while shadowing inbound requests from another client — these commands act on a specific request `<id>` (printed by `verify list` and `verify request`):
 
 | Command                                    | Purpose                                                             |
 | ------------------------------------------ | ------------------------------------------------------------------- |
-| `openclaw matrix verify accept <id>`       | Accept an inbound request                                           |
-| `openclaw matrix verify start <id>`        | Start the SAS flow                                                  |
-| `openclaw matrix verify sas <id>`          | Print the SAS emoji or decimals                                     |
-| `openclaw matrix verify confirm-sas <id>`  | Confirm that the SAS matches what the other client shows            |
-| `openclaw matrix verify mismatch-sas <id>` | Reject the SAS when the emoji or decimals do not match              |
-| `openclaw matrix verify cancel <id>`       | Cancel; takes optional `--reason <text>` and `--code <matrix-code>` |
+| `kova matrix verify accept <id>`       | Accept an inbound request                                           |
+| `kova matrix verify start <id>`        | Start the SAS flow                                                  |
+| `kova matrix verify sas <id>`          | Print the SAS emoji or decimals                                     |
+| `kova matrix verify confirm-sas <id>`  | Confirm that the SAS matches what the other client shows            |
+| `kova matrix verify mismatch-sas <id>` | Reject the SAS when the emoji or decimals do not match              |
+| `kova matrix verify cancel <id>`       | Cancel; takes optional `--reason <text>` and `--code <matrix-code>` |
 
 `accept`, `start`, `sas`, `confirm-sas`, `mismatch-sas`, and `cancel` all accept `--user-id` and `--room-id` as DM follow-up hints when the verification is anchored to a specific direct-message room.
 
@@ -399,7 +399,7 @@ Without `--account <id>`, Matrix CLI commands use the implicit default account. 
   <Accordion title="Startup behavior">
     With `encryption: true`, `startupVerification` defaults to `"if-unverified"`. On startup an unverified device requests self-verification in another Matrix client, skipping duplicates and applying a cooldown (24 hours by default). Tune with `startupVerificationCooldownHours` or disable with `startupVerification: "off"`.
 
-    Startup also runs a conservative crypto bootstrap pass that reuses the current secret storage and cross-signing identity. If bootstrap state is broken, OpenClaw attempts a guarded repair even without `channels.matrix.password`; if the homeserver requires password UIA, startup logs a warning and stays non-fatal. Already-owner-signed devices are preserved.
+    Startup also runs a conservative crypto bootstrap pass that reuses the current secret storage and cross-signing identity. If bootstrap state is broken, Kova attempts a guarded repair even without `channels.matrix.password`; if the homeserver requires password UIA, startup logs a warning and stays non-fatal. Already-owner-signed devices are preserved.
 
     See [Matrix migration](/channels/matrix-migration) for the full upgrade flow.
 
@@ -408,28 +408,28 @@ Without `--account <id>`, Matrix CLI commands use the implicit default account. 
   <Accordion title="Verification notices">
     Matrix posts verification lifecycle notices into the strict DM verification room as `m.notice` messages: request, ready (with "Verify by emoji" guidance), start/completion, and SAS (emoji/decimal) details when available.
 
-    Incoming requests from another Matrix client are tracked and auto-accepted. For self-verification, OpenClaw starts the SAS flow automatically and confirms its own side once emoji verification is available — you still need to compare and confirm "They match" in your Matrix client.
+    Incoming requests from another Matrix client are tracked and auto-accepted. For self-verification, Kova starts the SAS flow automatically and confirms its own side once emoji verification is available — you still need to compare and confirm "They match" in your Matrix client.
 
     Verification system notices are not forwarded to the agent chat pipeline.
 
   </Accordion>
 
   <Accordion title="Deleted or invalid Matrix device">
-    If `verify status` says the current device is no longer listed on the homeserver, create a new OpenClaw Matrix device. For password login:
+    If `verify status` says the current device is no longer listed on the homeserver, create a new Kova Matrix device. For password login:
 
 ```bash
-openclaw matrix account add \
+kova matrix account add \
   --account assistant \
   --homeserver https://matrix.example.org \
   --user-id '@assistant:example.org' \
   --password '<password>' \
-  --device-name OpenClaw-Gateway
+  --device-name Kova-Gateway
 ```
 
-    For token auth, create a fresh access token in your Matrix client or admin UI, then update OpenClaw:
+    For token auth, create a fresh access token in your Matrix client or admin UI, then update Kova:
 
 ```bash
-openclaw matrix account add \
+kova matrix account add \
   --account assistant \
   --homeserver https://matrix.example.org \
   --access-token '<token>'
@@ -440,11 +440,11 @@ openclaw matrix account add \
   </Accordion>
 
   <Accordion title="Device hygiene">
-    Old OpenClaw-managed devices can accumulate. List and prune:
+    Old Kova-managed devices can accumulate. List and prune:
 
 ```bash
-openclaw matrix devices list
-openclaw matrix devices prune-stale
+kova matrix devices list
+kova matrix devices prune-stale
 ```
 
   </Accordion>
@@ -452,7 +452,7 @@ openclaw matrix devices prune-stale
   <Accordion title="Crypto store">
     Matrix E2EE uses the official `matrix-js-sdk` Rust crypto path with `fake-indexeddb` as the IndexedDB shim. Crypto state persists to `crypto-idb-snapshot.json` (restrictive file permissions).
 
-    Encrypted runtime state lives under `~/.openclaw/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, OpenClaw reuses the best existing root so prior state remains visible.
+    Encrypted runtime state lives under `~/.openclaw/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, Kova reuses the best existing root so prior state remains visible.
 
   </Accordion>
 </AccordionGroup>
@@ -462,11 +462,11 @@ openclaw matrix devices prune-stale
 Update the Matrix self-profile for the selected account:
 
 ```bash
-openclaw matrix profile set --name "OpenClaw Assistant"
-openclaw matrix profile set --avatar-url https://cdn.example.org/avatar.png
+kova matrix profile set --name "Kova Assistant"
+kova matrix profile set --avatar-url https://cdn.example.org/avatar.png
 ```
 
-You can pass both options in one call. Matrix accepts `mxc://` avatar URLs directly; when you pass `http://` or `https://`, OpenClaw uploads the file first and stores the resolved `mxc://` URL into `channels.matrix.avatarUrl` (or the per-account override).
+You can pass both options in one call. Matrix accepts `mxc://` avatar URLs directly; when you pass `http://` or `https://`, Kova uploads the file first and stores the resolved `mxc://` URL into `channels.matrix.avatarUrl` (or the per-account override).
 
 ## Threads
 
@@ -474,7 +474,7 @@ Matrix supports native Matrix threads for both automatic replies and message-too
 
 ### Session routing (`sessionScope`)
 
-`dm.sessionScope` decides how Matrix DM rooms map to OpenClaw sessions:
+`dm.sessionScope` decides how Matrix DM rooms map to Kova sessions:
 
 - `"per-user"` (default): all DM rooms with the same routed peer share one session.
 - `"per-room"`: each Matrix DM room gets its own session key, even when the peer is the same.
@@ -495,12 +495,12 @@ Explicit conversation bindings always win over `sessionScope`, so bound rooms an
 
 - Inbound threaded messages include the thread root message as extra agent context.
 - Message-tool sends auto-inherit the current Matrix thread when targeting the same room (or the same DM user target), unless an explicit `threadId` is provided.
-- DM user-target reuse only kicks in when the current session metadata proves the same DM peer on the same Matrix account; otherwise OpenClaw falls back to normal user-scoped routing.
+- DM user-target reuse only kicks in when the current session metadata proves the same DM peer on the same Matrix account; otherwise Kova falls back to normal user-scoped routing.
 - `/focus`, `/unfocus`, `/agents`, `/session idle`, `/session max-age`, and thread-bound `/acp spawn` all work in Matrix rooms and DMs.
 - Top-level `/focus` creates a new Matrix thread and binds it to the target session when `threadBindings.spawnSubagentSessions: true`.
 - Running `/focus` or `/acp spawn --thread here` inside an existing Matrix thread binds that thread in place.
 
-When OpenClaw detects a Matrix DM room colliding with another DM room on the same shared session, it posts a one-time `m.notice` in that room pointing to the `/focus` escape hatch and suggesting a `dm.sessionScope` change. The notice only appears when thread bindings are enabled.
+When Kova detects a Matrix DM room colliding with another DM room on the same shared session, it posts a one-time `m.notice` in that room pointing to the `/focus` escape hatch and suggesting a `dm.sessionScope` change. The notice only appears when thread bindings are enabled.
 
 ## ACP conversation bindings
 
@@ -517,7 +517,7 @@ Fast operator flow:
 Notes:
 
 - `--bind here` does not create a child Matrix thread.
-- `threadBindings.spawnAcpSessions` is only required for `/acp spawn --thread auto|here`, where OpenClaw needs to create or bind a child Matrix thread.
+- `threadBindings.spawnAcpSessions` is only required for `/acp spawn --thread auto|here`, where Kova needs to create or bind a child Matrix thread.
 
 ### Thread binding config
 
@@ -559,7 +559,7 @@ Outbound reaction tooling is gated by `channels.matrix.actions.reactions`:
 
 - `channels.matrix.historyLimit` controls how many recent room messages are included as `InboundHistory` when a Matrix room message triggers the agent. Falls back to `messages.groupChat.historyLimit`; if both are unset, the effective default is `0`. Set `0` to disable.
 - Matrix room history is room-only. DMs keep using normal session history.
-- Matrix room history is pending-only: OpenClaw buffers room messages that did not trigger a reply yet, then snapshots that window when a mention or other trigger arrives.
+- Matrix room history is pending-only: Kova buffers room messages that did not trigger a reply yet, then snapshots that window when a mention or other trigger arrives.
 - The current trigger message is not included in `InboundHistory`; it stays in the main inbound body for that turn.
 - Retries of the same Matrix event reuse the original history snapshot instead of drifting forward to newer room messages.
 
@@ -614,26 +614,26 @@ See [Groups](/channels/groups) for mention-gating and allowlist behavior.
 Pairing example for Matrix DMs:
 
 ```bash
-openclaw pairing list matrix
-openclaw pairing approve matrix <CODE>
+kova pairing list matrix
+kova pairing approve matrix <CODE>
 ```
 
-If an unapproved Matrix user keeps messaging you before approval, OpenClaw reuses the same pending pairing code and may send a reminder reply after a short cooldown instead of minting a new code.
+If an unapproved Matrix user keeps messaging you before approval, Kova reuses the same pending pairing code and may send a reminder reply after a short cooldown instead of minting a new code.
 
 See [Pairing](/channels/pairing) for the shared DM pairing flow and storage layout.
 
 ## Direct room repair
 
-If direct-message state drifts out of sync, OpenClaw can end up with stale `m.direct` mappings that point at old solo rooms instead of the live DM. Inspect the current mapping for a peer:
+If direct-message state drifts out of sync, Kova can end up with stale `m.direct` mappings that point at old solo rooms instead of the live DM. Inspect the current mapping for a peer:
 
 ```bash
-openclaw matrix direct inspect --user-id @alice:example.org
+kova matrix direct inspect --user-id @alice:example.org
 ```
 
 Repair it:
 
 ```bash
-openclaw matrix direct repair --user-id @alice:example.org
+kova matrix direct repair --user-id @alice:example.org
 ```
 
 Both commands accept `--account <id>` for multi-account setups. The repair flow:
@@ -672,7 +672,7 @@ Related: [Exec approvals](/tools/exec-approvals).
 
 ## Slash commands
 
-Slash commands (`/new`, `/reset`, `/model`, `/focus`, `/unfocus`, `/agents`, `/session`, `/acp`, `/approve`, etc.) work directly in DMs. In rooms, OpenClaw also recognizes commands that are prefixed with the bot's own Matrix mention, so `@bot:server /new` triggers the command path without a custom mention regex. This keeps the bot responsive to the room-style `@mention /command` posts that Element and similar clients emit when a user tab-completes the bot before typing the command.
+Slash commands (`/new`, `/reset`, `/model`, `/focus`, `/unfocus`, `/agents`, `/session`, `/acp`, `/approve`, etc.) work directly in DMs. In rooms, Kova also recognizes commands that are prefixed with the bot's own Matrix mention, so `@bot:server /new` triggers the command path without a custom mention regex. This keeps the bot responsive to the room-style `@mention /command` posts that Element and similar clients emit when a user tab-completes the bot before typing the command.
 
 Authorization rules still apply: command senders must satisfy the same DM or room allowlist/owner policies as plain messages.
 
@@ -714,19 +714,19 @@ Authorization rules still apply: command senders must satisfy the same DM or roo
 **Default account selection:**
 
 - Set `defaultAccount` to pick the named account that implicit routing, probing, and CLI commands prefer.
-- If you have multiple accounts and one is literally named `default`, OpenClaw uses it implicitly even when `defaultAccount` is unset.
+- If you have multiple accounts and one is literally named `default`, Kova uses it implicitly even when `defaultAccount` is unset.
 - If you have multiple named accounts and no default is selected, CLI commands refuse to guess — set `defaultAccount` or pass `--account <id>`.
 - The top-level `channels.matrix.*` block is only treated as the implicit `default` account when its auth is complete (`homeserver` + `accessToken`, or `homeserver` + `userId` + `password`). Named accounts remain discoverable from `homeserver` + `userId` once cached credentials cover auth.
 
 **Promotion:**
 
-- When OpenClaw promotes a single-account config to multi-account during repair or setup, it preserves the existing named account if one exists or `defaultAccount` already points at one. Only Matrix auth/bootstrap keys move into the promoted account; shared delivery-policy keys stay at the top level.
+- When Kova promotes a single-account config to multi-account during repair or setup, it preserves the existing named account if one exists or `defaultAccount` already points at one. Only Matrix auth/bootstrap keys move into the promoted account; shared delivery-policy keys stay at the top level.
 
 See [Configuration reference](/gateway/config-channels#multi-account-all-channels) for the shared multi-account pattern.
 
 ## Private/LAN homeservers
 
-By default, OpenClaw blocks private/internal Matrix homeservers for SSRF protection unless you
+By default, Kova blocks private/internal Matrix homeservers for SSRF protection unless you
 explicitly opt in per account.
 
 If your homeserver runs on localhost, a LAN/Tailscale IP, or an internal hostname, enable
@@ -749,7 +749,7 @@ If your homeserver runs on localhost, a LAN/Tailscale IP, or an internal hostnam
 CLI setup example:
 
 ```bash
-openclaw matrix account add \
+kova matrix account add \
   --account ops \
   --homeserver http://matrix-synapse:8008 \
   --allow-private-network \
@@ -776,11 +776,11 @@ If your Matrix deployment needs an explicit outbound HTTP(S) proxy, set `channel
 ```
 
 Named accounts can override the top-level default with `channels.matrix.accounts.<id>.proxy`.
-OpenClaw uses the same proxy setting for runtime Matrix traffic and account status probes.
+Kova uses the same proxy setting for runtime Matrix traffic and account status probes.
 
 ## Target resolution
 
-Matrix accepts these target forms anywhere OpenClaw asks you for a room or user target:
+Matrix accepts these target forms anywhere Kova asks you for a room or user target:
 
 - Users: `@user:server`, `user:@user:server`, or `matrix:user:@user:server`
 - Rooms: `!room:server`, `room:!room:server`, or `matrix:room:!room:server`
@@ -788,7 +788,7 @@ Matrix accepts these target forms anywhere OpenClaw asks you for a room or user 
 
 Matrix room IDs are case-sensitive. Use the exact room ID casing from Matrix
 when configuring explicit delivery targets, cron jobs, bindings, or allowlists.
-OpenClaw keeps internal session keys canonical for storage, so those lowercase
+Kova keeps internal session keys canonical for storage, so those lowercase
 keys are not a reliable source for Matrix delivery IDs.
 
 Live directory lookup uses the logged-in Matrix account:

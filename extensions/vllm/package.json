@@ -2,7 +2,7 @@
   "name": "@openclaw/vllm-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw vLLM provider plugin",
+  "description": "Kova vLLM provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

@@ -1,19 +1,19 @@
 ---
-summary: "OpenClaw on Oracle Cloud (Always Free ARM)"
+summary: "Kova on Oracle Cloud (Always Free ARM)"
 read_when:
-  - Setting up OpenClaw on Oracle Cloud
-  - Looking for low-cost VPS hosting for OpenClaw
-  - Want 24/7 OpenClaw on a small server
+  - Setting up Kova on Oracle Cloud
+  - Looking for low-cost VPS hosting for Kova
+  - Want 24/7 Kova on a small server
 title: "Oracle Cloud (platform)"
 ---
 
-# OpenClaw on Oracle Cloud (OCI)
+# Kova on Oracle Cloud (OCI)
 
 ## Goal
 
-Run a persistent OpenClaw Gateway on Oracle Cloud's **Always Free** ARM tier.
+Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier.
 
-Oracle’s free tier can be a great fit for OpenClaw (especially if you already have an OCI account), but it comes with tradeoffs:
+Oracle’s free tier can be a great fit for Kova (especially if you already have an OCI account), but it comes with tradeoffs:
 
 - ARM architecture (most things work, but some binaries may be x86-only)
 - Capacity and signup can be finicky
@@ -41,7 +41,7 @@ Oracle’s free tier can be a great fit for OpenClaw (especially if you already 
 1. Log into [Oracle Cloud Console](https://cloud.oracle.com/)
 2. Navigate to **Compute → Instances → Create Instance**
 3. Configure:
-   - **Name:** `openclaw`
+   - **Name:** `kova`
    - **Image:** Ubuntu 24.04 (aarch64)
    - **Shape:** `VM.Standard.A1.Flex` (Ampere ARM)
    - **OCPUs:** 2 (or up to 4)
@@ -70,7 +70,7 @@ sudo apt install -y build-essential
 
 ```bash
 # Set hostname
-sudo hostnamectl set-hostname openclaw
+sudo hostnamectl set-hostname kova
 
 # Set password for ubuntu user
 sudo passwd ubuntu
@@ -83,10 +83,10 @@ sudo loginctl enable-linger ubuntu
 
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up --ssh --hostname=openclaw
+sudo tailscale up --ssh --hostname=kova
 ```
 
-This enables Tailscale SSH, so you can connect via `ssh openclaw` from any device on your tailnet — no public IP needed.
+This enables Tailscale SSH, so you can connect via `ssh kova` from any device on your tailnet — no public IP needed.
 
 Verify:
 
@@ -96,7 +96,7 @@ tailscale status
 
 **From now on, connect via Tailscale:** `ssh ubuntu@openclaw` (or use the Tailscale IP).
 
-## 5) Install OpenClaw
+## 5) Install Kova
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash
@@ -113,15 +113,15 @@ Use token auth as the default. It’s predictable and avoids needing any “inse
 
 ```bash
 # Keep the Gateway private on the VM
-openclaw config set gateway.bind loopback
+kova config set gateway.bind loopback
 
 # Require auth for the Gateway + Control UI
-openclaw config set gateway.auth.mode token
-openclaw doctor --generate-gateway-token
+kova config set gateway.auth.mode token
+kova doctor --generate-gateway-token
 
 # Expose over Tailscale Serve (HTTPS + tailnet access)
-openclaw config set gateway.tailscale.mode serve
-openclaw config set gateway.trustedProxies '["127.0.0.1"]'
+kova config set gateway.tailscale.mode serve
+kova config set gateway.trustedProxies '["127.0.0.1"]'
 
 systemctl --user restart openclaw-gateway.service
 ```
@@ -132,7 +132,7 @@ systemctl --user restart openclaw-gateway.service
 
 ```bash
 # Check version
-openclaw --version
+kova --version
 
 # Check daemon status
 systemctl --user status openclaw-gateway.service
@@ -180,7 +180,7 @@ No SSH tunnel needed. Tailscale provides:
 
 With the VCN locked down (only UDP 41641 open) and the Gateway bound to loopback, you get strong defense-in-depth: public traffic is blocked at the network edge, and admin access happens over your tailnet.
 
-This setup often removes the _need_ for extra host-based firewall rules purely to stop Internet-wide SSH brute force — but you should still keep the OS updated, run `openclaw security audit`, and verify you aren’t accidentally listening on public interfaces.
+This setup often removes the _need_ for extra host-based firewall rules purely to stop Internet-wide SSH brute force — but you should still keep the OS updated, run `kova security audit`, and verify you aren’t accidentally listening on public interfaces.
 
 ### Already protected
 
@@ -196,7 +196,7 @@ This setup often removes the _need_ for extra host-based firewall rules purely t
 ### Still recommended
 
 - **Credential permissions:** `chmod 700 ~/.openclaw`
-- **Security audit:** `openclaw security audit`
+- **Security audit:** `kova security audit`
 - **System updates:** `sudo apt update && sudo apt upgrade` regularly
 - **Monitor Tailscale:** Review devices in [Tailscale admin console](https://login.tailscale.com/admin)
 
@@ -245,14 +245,14 @@ Free tier ARM instances are popular. Try:
 sudo tailscale status
 
 # Re-authenticate
-sudo tailscale up --ssh --hostname=openclaw --reset
+sudo tailscale up --ssh --hostname=kova --reset
 ```
 
 ### Gateway will not start
 
 ```bash
-openclaw gateway status
-openclaw doctor --non-interactive
+kova gateway status
+kova doctor --non-interactive
 journalctl --user -u openclaw-gateway.service -n 50
 ```
 
@@ -291,7 +291,7 @@ All state lives in:
 Back up periodically:
 
 ```bash
-openclaw backup create
+kova backup create
 ```
 
 ---

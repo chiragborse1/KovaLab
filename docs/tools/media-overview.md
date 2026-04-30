@@ -1,14 +1,14 @@
 ---
 summary: "Image, video, music, speech, and media-understanding capabilities at a glance"
 read_when:
-  - Looking for an overview of OpenClaw's media capabilities
+  - Looking for an overview of Kova's media capabilities
   - Deciding which media provider to configure
   - Understanding how async media generation works
 title: "Media overview"
 sidebarTitle: "Media overview"
 ---
 
-OpenClaw generates images, videos, and music, understands inbound media
+Kova generates images, videos, and music, understands inbound media
 (images, audio, video), and speaks replies aloud with text-to-speech. All
 media capabilities are tool-driven: the agent decides when to use them based
 on the conversation, and each tool only appears when at least one backing
@@ -86,10 +86,10 @@ reply model.
 | Music (shared)  | Asynchronous | Same provider-processing characteristic as video.                  |
 | Music (ComfyUI) | Synchronous  | Local workflow runs inline against the configured ComfyUI server.  |
 
-For async tools, OpenClaw submits the request to the provider, returns a task
+For async tools, Kova submits the request to the provider, returns a task
 id immediately, and tracks the job in the task ledger. The agent continues
 responding to other messages while the job runs. When the provider finishes,
-OpenClaw wakes the agent so it can post the finished media back into the
+Kova wakes the agent so it can post the finished media back into the
 original channel.
 
 ## Speech-to-text and Voice Call
@@ -119,7 +119,7 @@ vendor without waiting for a completed recording.
   <Accordion title="xAI">
     Image, video, search, code-execution, batch TTS, batch STT, and Voice
     Call streaming STT. xAI Realtime voice is an upstream capability but is
-    not registered in OpenClaw until the shared realtime-voice contract can
+    not registered in Kova until the shared realtime-voice contract can
     represent it.
   </Accordion>
 </AccordionGroup>

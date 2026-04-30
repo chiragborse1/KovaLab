@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw manages conversation sessions"
+summary: "How Kova manages conversation sessions"
 read_when:
   - You want to understand session routing and isolation
   - You want to configure DM scope for multi-user setups
@@ -7,7 +7,7 @@ read_when:
 title: "Session management"
 ---
 
-OpenClaw organizes conversations into **sessions**. Each message is routed to a
+Kova organizes conversations into **sessions**. Each message is routed to a
 session based on where it came from -- DMs, group chats, cron jobs, etc.
 
 ## How messages are routed
@@ -53,7 +53,7 @@ If the same person contacts you from multiple channels, use
 `session.identityLinks` to link their identities so they share one session.
 </Tip>
 
-Verify your setup with `openclaw security audit`.
+Verify your setup with `kova security audit`.
 
 ## Session lifecycle
 
@@ -102,7 +102,7 @@ writes.
 
 ## Session maintenance
 
-OpenClaw automatically bounds session storage over time. By default, it runs
+Kova automatically bounds session storage over time. By default, it runs
 in `warn` mode (reports what would be cleaned). Set `session.maintenance.mode`
 to `"enforce"` for automatic cleanup:
 
@@ -118,12 +118,12 @@ to `"enforce"` for automatic cleanup:
 }
 ```
 
-Preview with `openclaw sessions cleanup --dry-run`.
+Preview with `kova sessions cleanup --dry-run`.
 
 ## Inspecting sessions
 
-- `openclaw status` -- session store path and recent activity.
-- `openclaw sessions --json` -- all sessions (filter with `--active <minutes>`).
+- `kova status` -- session store path and recent activity.
+- `kova sessions --json` -- all sessions (filter with `--active <minutes>`).
 - `/status` in chat -- context usage, model, and toggles.
 - `/context list` -- what is in the system prompt.
 

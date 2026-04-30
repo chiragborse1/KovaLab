@@ -2,7 +2,7 @@
   "name": "@openclaw/exa-plugin",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Exa plugin",
+  "description": "Kova Exa plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

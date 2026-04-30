@@ -1,16 +1,16 @@
 ---
-summary: "OpenClaw on DigitalOcean (simple paid VPS option)"
+summary: "Kova on DigitalOcean (simple paid VPS option)"
 read_when:
-  - Setting up OpenClaw on DigitalOcean
-  - Looking for cheap VPS hosting for OpenClaw
+  - Setting up Kova on DigitalOcean
+  - Looking for cheap VPS hosting for Kova
 title: "DigitalOcean (platform)"
 ---
 
-# OpenClaw on DigitalOcean
+# Kova on DigitalOcean
 
 ## Goal
 
-Run a persistent OpenClaw Gateway on DigitalOcean for **$6/month** (or $4/mo with reserved pricing).
+Run a persistent Kova Gateway on DigitalOcean for **$6/month** (or $4/mo with reserved pricing).
 
 If you want a $0/month option and don’t mind ARM + provider-specific setup, see the [Oracle Cloud guide](/platforms/oracle).
 
@@ -60,7 +60,7 @@ Use a clean base image (Ubuntu 24.04 LTS). Avoid third-party Marketplace 1-click
 ssh root@YOUR_DROPLET_IP
 ```
 
-## 3) Install OpenClaw
+## 3) Install Kova
 
 ```bash
 # Update system
@@ -70,17 +70,17 @@ apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 apt install -y nodejs
 
-# Install OpenClaw
+# Install Kova
 curl -fsSL https://openclaw.ai/install.sh | bash
 
 # Verify
-openclaw --version
+kova --version
 ```
 
 ## 4) Run Onboarding
 
 ```bash
-openclaw onboard --install-daemon
+kova onboard --install-daemon
 ```
 
 The wizard will walk you through:
@@ -94,7 +94,7 @@ The wizard will walk you through:
 
 ```bash
 # Check status
-openclaw status
+kova status
 
 # Check service
 systemctl --user status openclaw-gateway.service
@@ -124,8 +124,8 @@ curl -fsSL https://tailscale.com/install.sh | sh
 tailscale up
 
 # Configure Gateway to use Tailscale Serve
-openclaw config set gateway.tailscale.mode serve
-openclaw gateway restart
+kova config set gateway.tailscale.mode serve
+kova gateway restart
 ```
 
 Open: `https://<magicdns>/`
@@ -138,8 +138,8 @@ Notes:
 **Option C: Tailnet bind (no Serve)**
 
 ```bash
-openclaw config set gateway.bind tailnet
-openclaw gateway restart
+kova config set gateway.bind tailnet
+kova gateway restart
 ```
 
 Open: `http://<tailscale-ip>:18789` (token required).
@@ -149,14 +149,14 @@ Open: `http://<tailscale-ip>:18789` (token required).
 ### Telegram
 
 ```bash
-openclaw pairing list telegram
-openclaw pairing approve telegram <CODE>
+kova pairing list telegram
+kova pairing approve telegram <CODE>
 ```
 
 ### WhatsApp
 
 ```bash
-openclaw channels login whatsapp
+kova channels login whatsapp
 # Scan QR code
 ```
 
@@ -204,7 +204,7 @@ All state lives in:
 These survive reboots. Back them up periodically:
 
 ```bash
-openclaw backup create
+kova backup create
 ```
 
 ---
@@ -234,8 +234,8 @@ For the full setup guide, see [Oracle Cloud](/platforms/oracle). For signup tips
 ### Gateway will not start
 
 ```bash
-openclaw gateway status
-openclaw doctor --non-interactive
+kova gateway status
+kova doctor --non-interactive
 journalctl --user -u openclaw-gateway.service --no-pager -n 50
 ```
 

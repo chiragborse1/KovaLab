@@ -1,17 +1,17 @@
 ---
-summary: "Delegate architecture: running OpenClaw as a named agent on behalf of an organization"
+summary: "Delegate architecture: running Kova as a named agent on behalf of an organization"
 title: Delegate architecture
 read_when: "You want an agent with its own identity that acts on behalf of humans in an organization."
 status: active
 ---
 
-Goal: run OpenClaw as a **named delegate** — an agent with its own identity that acts "on behalf of" people in an organization. The agent never impersonates a human. It sends, reads, and schedules under its own account with explicit delegation permissions.
+Goal: run Kova as a **named delegate** — an agent with its own identity that acts "on behalf of" people in an organization. The agent never impersonates a human. It sends, reads, and schedules under its own account with explicit delegation permissions.
 
 This extends [Multi-Agent Routing](/concepts/multi-agent) from personal use into organizational deployments.
 
 ## What is a delegate?
 
-A **delegate** is an OpenClaw agent that:
+A **delegate** is an Kova agent that:
 
 - Has its **own identity** (email address, display name, calendar).
 - Acts **on behalf of** one or more humans — never pretends to be them.
@@ -22,7 +22,7 @@ The delegate model maps directly to how executive assistants work: they have the
 
 ## Why delegates?
 
-OpenClaw's default mode is a **personal assistant** — one human, one agent. Delegates extend this to organizations:
+Kova's default mode is a **personal assistant** — one human, one agent. Delegates extend this to organizations:
 
 | Personal mode               | Delegate mode                                  |
 | --------------------------- | ---------------------------------------------- |
@@ -34,7 +34,7 @@ OpenClaw's default mode is a **personal assistant** — one human, one agent. De
 Delegates solve two problems:
 
 1. **Accountability**: messages sent by the agent are clearly from the agent, not a human.
-2. **Scope control**: the identity provider enforces what the delegate can access, independent of OpenClaw's own tool policy.
+2. **Scope control**: the identity provider enforces what the delegate can access, independent of Kova's own tool policy.
 
 ## Capability tiers
 
@@ -131,7 +131,7 @@ Configure logging before the delegate handles any real data:
 - Session transcripts: `~/.openclaw/agents/delegate/sessions`
 - Identity provider audit logs (Exchange, Google Workspace)
 
-All delegate actions flow through OpenClaw's session store. For compliance, ensure these logs are retained and reviewed.
+All delegate actions flow through Kova's session store. For compliance, ensure these logs are retained and reviewed.
 
 ## Setting up a delegate
 
@@ -142,7 +142,7 @@ With hardening in place, proceed to grant the delegate its identity and permissi
 Use the multi-agent wizard to create an isolated agent for the delegate:
 
 ```bash
-openclaw agents add delegate
+kova agents add delegate
 ```
 
 This creates:
@@ -289,7 +289,7 @@ A complete delegate configuration for an organizational assistant that handles e
 The delegate's `AGENTS.md` defines its autonomous authority — what it may do without asking, what requires approval, and what is forbidden. [Cron Jobs](/automation/cron-jobs) drive its daily schedule.
 
 If you grant `sessions_history`, remember it is a bounded, safety-filtered
-recall view. OpenClaw redacts credential/token-like text, truncates long
+recall view. Kova redacts credential/token-like text, truncates long
 content, strips thinking tags / `<relevant-memories>` scaffolding / plain-text
 tool-call XML payloads (including `<tool_call>...</tool_call>`,
 `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`,

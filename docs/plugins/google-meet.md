@@ -1,19 +1,19 @@
 ---
 summary: "Google Meet plugin: join explicit Meet URLs through Chrome or Twilio with realtime voice defaults"
 read_when:
-  - You want an OpenClaw agent to join a Google Meet call
-  - You want an OpenClaw agent to create a new Google Meet call
+  - You want an Kova agent to join a Google Meet call
+  - You want an Kova agent to create a new Google Meet call
   - You are configuring Chrome, Chrome node, or Twilio as a Google Meet transport
 title: "Google Meet plugin"
 ---
 
-Google Meet participant support for OpenClaw — the plugin is explicit by design:
+Google Meet participant support for Kova — the plugin is explicit by design:
 
 - It only joins an explicit `https://meet.google.com/...` URL.
 - It can create a new Meet space through the Google Meet API, then join the
   returned URL.
 - `realtime` voice is the default mode.
-- Realtime voice can call back into the full OpenClaw agent when deeper
+- Realtime voice can call back into the full Kova agent when deeper
   reasoning or tools are needed.
 - Agents choose the join behavior with `mode`: use `realtime` for live
   listen/talk-back, or `transcribe` to join/control the browser without the
@@ -71,21 +71,21 @@ Enable the plugin:
 Check setup:
 
 ```bash
-openclaw googlemeet setup
+kova googlemeet setup
 ```
 
 The setup output is meant to be agent-readable. It reports Chrome profile,
 audio bridge, node pinning, delayed realtime intro, and, when Twilio delegation
 is configured, whether the `voice-call` plugin and Twilio credentials are ready.
 Treat any `ok: false` check as a blocker before asking an agent to join.
-Use `openclaw googlemeet setup --json` for scripts or machine-readable output.
+Use `kova googlemeet setup --json` for scripts or machine-readable output.
 Use `--transport chrome`, `--transport chrome-node`, or `--transport twilio`
 to preflight a specific transport before an agent tries it.
 
 Join a meeting:
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij
+kova googlemeet join https://meet.google.com/abc-defg-hij
 ```
 
 Or let an agent join through the `google_meet` tool:
@@ -102,23 +102,23 @@ Or let an agent join through the `google_meet` tool:
 Create a new meeting and join it:
 
 ```bash
-openclaw googlemeet create --transport chrome-node --mode realtime
+kova googlemeet create --transport chrome-node --mode realtime
 ```
 
 Create only the URL without joining:
 
 ```bash
-openclaw googlemeet create --no-join
+kova googlemeet create --no-join
 ```
 
 `googlemeet create` has two paths:
 
 - API create: used when Google Meet OAuth credentials are configured. This is
   the most deterministic path and does not depend on browser UI state.
-- Browser fallback: used when OAuth credentials are absent. OpenClaw uses the
+- Browser fallback: used when OAuth credentials are absent. Kova uses the
   pinned Chrome node, opens `https://meet.google.com/new`, waits for Google to
   redirect to a real meeting-code URL, then returns that URL. This path requires
-  the OpenClaw Chrome profile on the node to already be signed in to Google.
+  the Kova Chrome profile on the node to already be signed in to Google.
   Browser automation handles Meet's own first-run microphone prompt; that prompt
   is not treated as a Google login failure.
   Join and create flows also try to reuse an existing Meet tab before opening a
@@ -155,23 +155,23 @@ appears, browser automation handles it when it can. Login, host admission, and
 browser/OS permission prompts are reported as manual action with a reason and
 message for the agent to relay.
 
-Local Chrome joins through the signed-in OpenClaw browser profile. In Meet, pick
-`BlackHole 2ch` for the microphone/speaker path used by OpenClaw. For clean
+Local Chrome joins through the signed-in Kova browser profile. In Meet, pick
+`BlackHole 2ch` for the microphone/speaker path used by Kova. For clean
 duplex audio, use separate virtual devices or a Loopback-style graph; a single
 BlackHole device is enough for a first smoke test but can echo.
 
 ### Local gateway + Parallels Chrome
 
-You do **not** need a full OpenClaw Gateway or model API key inside a macOS VM
+You do **not** need a full Kova Gateway or model API key inside a macOS VM
 just to make the VM own Chrome. Run the Gateway and agent locally, then run a
 node host in the VM. Enable the bundled plugin on the VM once so the node
 advertises the Chrome command:
 
 What runs where:
 
-- Gateway host: OpenClaw Gateway, agent workspace, model/API keys, realtime
+- Gateway host: Kova Gateway, agent workspace, model/API keys, realtime
   provider, and the Google Meet plugin config.
-- Parallels macOS VM: OpenClaw CLI/node host, Google Chrome, SoX, BlackHole 2ch,
+- Parallels macOS VM: Kova CLI/node host, Google Chrome, SoX, BlackHole 2ch,
   and a Chrome profile signed in to Google.
 - Not needed in the VM: Gateway service, agent config, OpenAI/GPT key, or model
   provider setup.
@@ -195,16 +195,16 @@ system_profiler SPAudioDataType | grep -i BlackHole
 command -v rec play
 ```
 
-Install or update OpenClaw in the VM, then enable the bundled plugin there:
+Install or update Kova in the VM, then enable the bundled plugin there:
 
 ```bash
-openclaw plugins enable google-meet
+kova plugins enable google-meet
 ```
 
 Start the node host in the VM:
 
 ```bash
-openclaw node run --host <gateway-host> --port 18789 --display-name parallels-macos
+kova node run --host <gateway-host> --port 18789 --display-name parallels-macos
 ```
 
 If `<gateway-host>` is a LAN IP and you are not using TLS, the node refuses the
@@ -212,33 +212,33 @@ plaintext WebSocket unless you opt in for that trusted private network:
 
 ```bash
 OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
-  openclaw node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
+  kova node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
 ```
 
 Use the same environment variable when installing the node as a LaunchAgent:
 
 ```bash
 OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
-  openclaw node install --host <gateway-lan-ip> --port 18789 --display-name parallels-macos --force
-openclaw node restart
+  kova node install --host <gateway-lan-ip> --port 18789 --display-name parallels-macos --force
+kova node restart
 ```
 
 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` is process environment, not an
-`openclaw.json` setting. `openclaw node install` stores it in the LaunchAgent
+`openclaw.json` setting. `kova node install` stores it in the LaunchAgent
 environment when it is present on the install command.
 
 Approve the node from the Gateway host:
 
 ```bash
-openclaw devices list
-openclaw devices approve <requestId>
+kova devices list
+kova devices approve <requestId>
 ```
 
 Confirm the Gateway sees the node and that it advertises both `googlemeet.chrome`
 and browser capability/`browser.proxy`:
 
 ```bash
-openclaw nodes status
+kova nodes status
 ```
 
 Route Meet through that node on the Gateway host:
@@ -257,7 +257,7 @@ Route Meet through that node on the Gateway host:
         config: {
           defaultTransport: "chrome-node",
           chrome: {
-            guestName: "OpenClaw Agent",
+            guestName: "Kova Agent",
             autoJoin: true,
             reuseExistingTab: true,
           },
@@ -274,7 +274,7 @@ Route Meet through that node on the Gateway host:
 Now join normally from the Gateway host:
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij
+kova googlemeet join https://meet.google.com/abc-defg-hij
 ```
 
 or ask the agent to use the `google_meet` tool with `transport: "chrome-node"`.
@@ -283,10 +283,10 @@ For a one-command smoke test that creates or reuses a session, speaks a known
 phrase, and prints session health:
 
 ```bash
-openclaw googlemeet test-speech https://meet.google.com/abc-defg-hij
+kova googlemeet test-speech https://meet.google.com/abc-defg-hij
 ```
 
-During join, OpenClaw browser automation fills the guest name, clicks Join/Ask
+During join, Kova browser automation fills the guest name, clicks Join/Ask
 to join, and accepts Meet's first-run "Use microphone" choice when that prompt
 appears. During browser-only meeting creation, it can also continue past the
 same prompt without microphone if Meet does not expose the use-microphone button.
@@ -298,7 +298,7 @@ prompt automation could not resolve, the join/test-speech result reports
 message plus the current `browserUrl`/`browserTitle`, and retry only after the
 manual browser action is complete.
 
-If `chromeNode.node` is omitted, OpenClaw auto-selects only when exactly one
+If `chromeNode.node` is omitted, Kova auto-selects only when exactly one
 connected node advertises both `googlemeet.chrome` and browser control. If
 several capable nodes are connected, set `chromeNode.node` to the node id,
 display name, or remote IP.
@@ -309,9 +309,9 @@ Common failure checks:
   known to the Gateway but unavailable. Agents should treat that node as
   diagnostic state, not as a usable Chrome host, and report the setup blocker
   instead of falling back to another transport unless the user asked for that.
-- `No connected Google Meet-capable node`: start `openclaw node run` in the VM,
-  approve pairing, and make sure `openclaw plugins enable google-meet` and
-  `openclaw plugins enable browser` were run in the VM. Also confirm the
+- `No connected Google Meet-capable node`: start `kova node run` in the VM,
+  approve pairing, and make sure `kova plugins enable google-meet` and
+  `kova plugins enable browser` were run in the VM. Also confirm the
   Gateway host allows both node commands with
   `gateway.nodes.allowCommands: ["googlemeet.chrome", "browser.proxy"]`.
 - `BlackHole 2ch audio device not found`: install `blackhole-2ch` on the host
@@ -319,16 +319,16 @@ Common failure checks:
 - `BlackHole 2ch audio device not found on the node`: install `blackhole-2ch`
   in the VM and reboot the VM.
 - Chrome opens but cannot join: sign in to the browser profile inside the VM, or
-  keep `chrome.guestName` set for guest join. Guest auto-join uses OpenClaw
+  keep `chrome.guestName` set for guest join. Guest auto-join uses Kova
   browser automation through the node browser proxy; make sure the node browser
   config points at the profile you want, for example
   `browser.defaultProfile: "user"` or a named existing-session profile.
-- Duplicate Meet tabs: leave `chrome.reuseExistingTab: true` enabled. OpenClaw
+- Duplicate Meet tabs: leave `chrome.reuseExistingTab: true` enabled. Kova
   activates an existing tab for the same Meet URL before opening a new one, and
   browser meeting creation reuses an in-progress `https://meet.google.com/new`
   or Google account prompt tab before opening another one.
 - No audio: in Meet, route microphone/speaker through the virtual audio device
-  path used by OpenClaw; use separate virtual devices or Loopback-style routing
+  path used by Kova; use separate virtual devices or Loopback-style routing
   for clean duplex audio.
 
 ## Install notes
@@ -340,18 +340,18 @@ The Chrome realtime default uses two external tools:
 - `blackhole-2ch`: macOS virtual audio driver. It creates the `BlackHole 2ch`
   audio device that Chrome/Meet can route through.
 
-OpenClaw does not bundle or redistribute either package. The docs ask users to
+Kova does not bundle or redistribute either package. The docs ask users to
 install them as host dependencies through Homebrew. SoX is licensed as
 `LGPL-2.0-only AND GPL-2.0-only`; BlackHole is GPL-3.0. If you build an
-installer or appliance that bundles BlackHole with OpenClaw, review BlackHole's
+installer or appliance that bundles BlackHole with Kova, review BlackHole's
 upstream licensing terms or get a separate license from Existential Audio.
 
 ## Transports
 
 ### Chrome
 
-Chrome transport opens the Meet URL through OpenClaw browser control and joins
-as the signed-in OpenClaw browser profile. On macOS, the plugin checks for
+Chrome transport opens the Meet URL through Kova browser control and joins
+as the signed-in Kova browser profile. On macOS, the plugin checks for
 `BlackHole 2ch` before launch. If configured, it also runs an audio bridge
 health command and startup command before opening Chrome. Use `chrome` when
 Chrome/audio live on the Gateway host; use `chrome-node` when Chrome/audio live
@@ -360,11 +360,11 @@ profile with `browser.defaultProfile`; `chrome.browserProfile` is passed to
 `chrome-node` hosts.
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij --transport chrome
-openclaw googlemeet join https://meet.google.com/abc-defg-hij --transport chrome-node
+kova googlemeet join https://meet.google.com/abc-defg-hij --transport chrome
+kova googlemeet join https://meet.google.com/abc-defg-hij --transport chrome-node
 ```
 
-Route Chrome microphone and speaker audio through the local OpenClaw audio
+Route Chrome microphone and speaker audio through the local Kova audio
 bridge. If `BlackHole 2ch` is not installed, the join fails with a setup error
 instead of silently joining without an audio path.
 
@@ -375,7 +375,7 @@ does not parse Meet pages for phone numbers.
 
 Use this when Chrome participation is not available or you want a phone dial-in
 fallback. Google Meet must expose a phone dial-in number and PIN for the
-meeting; OpenClaw does not discover those from the Meet page.
+meeting; Kova does not discover those from the Meet page.
 
 Enable the Voice Call plugin on the Gateway host, not on the Chrome node:
 
@@ -417,16 +417,16 @@ do not appear in an already running Gateway process until it reloads.
 Then verify:
 
 ```bash
-openclaw config validate
-openclaw plugins list | grep -E 'google-meet|voice-call'
-openclaw googlemeet setup
+kova config validate
+kova plugins list | grep -E 'google-meet|voice-call'
+kova googlemeet setup
 ```
 
 When Twilio delegation is wired, `googlemeet setup` includes successful
 `twilio-voice-call-plugin` and `twilio-voice-call-credentials` checks.
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij \
+kova googlemeet join https://meet.google.com/abc-defg-hij \
   --transport twilio \
   --dial-in-number +15551234567 \
   --pin 123456
@@ -435,7 +435,7 @@ openclaw googlemeet join https://meet.google.com/abc-defg-hij \
 Use `--dtmf-sequence` when the meeting needs a custom sequence:
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij \
+kova googlemeet join https://meet.google.com/abc-defg-hij \
   --transport twilio \
   --dial-in-number +15551234567 \
   --dtmf-sequence ww123456#
@@ -468,7 +468,7 @@ In Google Cloud Console:
    - **Internal** is simplest for a Google Workspace organization.
    - **External** works for personal/test setups; while the app is in Testing,
      add each Google account that will authorize the app as a test user.
-4. Add the scopes OpenClaw requests:
+4. Add the scopes Kova requests:
    - `https://www.googleapis.com/auth/meetings.space.created`
    - `https://www.googleapis.com/auth/meetings.space.readonly`
    - `https://www.googleapis.com/auth/meetings.conference.media.readonly`
@@ -483,7 +483,7 @@ In Google Cloud Console:
 6. Copy the client ID and client secret.
 
 `meetings.space.created` is required by Google Meet `spaces.create`.
-`meetings.space.readonly` lets OpenClaw resolve Meet URLs/codes to spaces.
+`meetings.space.readonly` lets Kova resolve Meet URLs/codes to spaces.
 `meetings.conference.media.readonly` is for Meet Media API preflight and media
 work; Google may require Developer Preview enrollment for actual Media API use.
 If you only need browser-based Chrome joins, skip OAuth entirely.
@@ -494,7 +494,7 @@ Configure `oauth.clientId` and optionally `oauth.clientSecret`, or pass them as
 environment variables, then run:
 
 ```bash
-openclaw googlemeet auth login --json
+kova googlemeet auth login --json
 ```
 
 The command prints an `oauth` config block with a refresh token. It uses PKCE,
@@ -506,7 +506,7 @@ Examples:
 ```bash
 OPENCLAW_GOOGLE_MEET_CLIENT_ID="your-client-id" \
 OPENCLAW_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
-openclaw googlemeet auth login --json
+kova googlemeet auth login --json
 ```
 
 Use manual mode when the browser cannot reach the local callback:
@@ -514,7 +514,7 @@ Use manual mode when the browser cannot reach the local callback:
 ```bash
 OPENCLAW_GOOGLE_MEET_CLIENT_ID="your-client-id" \
 OPENCLAW_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
-openclaw googlemeet auth login --json --manual
+kova googlemeet auth login --json --manual
 ```
 
 The JSON output includes:
@@ -559,7 +559,7 @@ first and then environment fallback.
 
 The OAuth consent includes Meet space creation, Meet space read access, and Meet
 conference media read access. If you authenticated before meeting creation
-support existed, rerun `openclaw googlemeet auth login --json` so the refresh
+support existed, rerun `kova googlemeet auth login --json` so the refresh
 token has the `meetings.space.created` scope.
 
 ### Verify OAuth with doctor
@@ -567,7 +567,7 @@ token has the `meetings.space.created` scope.
 Run the OAuth doctor when you want a fast, non-secret health check:
 
 ```bash
-openclaw googlemeet doctor --oauth --json
+kova googlemeet doctor --oauth --json
 ```
 
 This does not load the Chrome runtime or require a connected Chrome node. It
@@ -589,8 +589,8 @@ To prove Google Meet API enablement and `spaces.create` scope as well, run the
 side-effecting create check:
 
 ```bash
-openclaw googlemeet doctor --oauth --create-space --json
-openclaw googlemeet create --no-join --json
+kova googlemeet doctor --oauth --create-space --json
+kova googlemeet create --no-join --json
 ```
 
 `--create-space` creates a throwaway Meet URL. Use it when you need to confirm
@@ -600,20 +600,20 @@ account has the `meetings.space.created` scope.
 To prove read access for an existing meeting space:
 
 ```bash
-openclaw googlemeet doctor --oauth --meeting https://meet.google.com/abc-defg-hij --json
-openclaw googlemeet resolve-space --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet doctor --oauth --meeting https://meet.google.com/abc-defg-hij --json
+kova googlemeet resolve-space --meeting https://meet.google.com/abc-defg-hij
 ```
 
 `doctor --oauth --meeting` and `resolve-space` prove read access to an existing
 space that the authorized Google account can access. A `403` from these checks
 usually means the Google Meet REST API is disabled, the consented refresh token
 is missing the required scope, or the Google account cannot access that Meet
-space. A refresh-token error means rerun `openclaw googlemeet auth login
+space. A refresh-token error means rerun `kova googlemeet auth login
 --json` and store the new `oauth` block.
 
 No OAuth credentials are needed for the browser fallback. In that mode, Google
 auth comes from the signed-in Chrome profile on the selected node, not from
-OpenClaw config.
+Kova config.
 
 These environment variables are accepted as fallbacks:
 
@@ -629,21 +629,21 @@ These environment variables are accepted as fallbacks:
 Resolve a Meet URL, code, or `spaces/{id}` through `spaces.get`:
 
 ```bash
-openclaw googlemeet resolve-space --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet resolve-space --meeting https://meet.google.com/abc-defg-hij
 ```
 
 Run preflight before media work:
 
 ```bash
-openclaw googlemeet preflight --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet preflight --meeting https://meet.google.com/abc-defg-hij
 ```
 
 List meeting artifacts and attendance after Meet has created conference records:
 
 ```bash
-openclaw googlemeet artifacts --meeting https://meet.google.com/abc-defg-hij
-openclaw googlemeet attendance --meeting https://meet.google.com/abc-defg-hij
-openclaw googlemeet export --meeting https://meet.google.com/abc-defg-hij --output ./meet-export
+kova googlemeet artifacts --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet attendance --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet export --meeting https://meet.google.com/abc-defg-hij --output ./meet-export
 ```
 
 With `--meeting`, `artifacts` and `attendance` use the latest conference record
@@ -654,10 +654,10 @@ Calendar lookup can resolve the meeting URL from Google Calendar before reading
 Meet artifacts:
 
 ```bash
-openclaw googlemeet latest --today
-openclaw googlemeet calendar-events --today --json
-openclaw googlemeet artifacts --event "Weekly sync"
-openclaw googlemeet attendance --today --format csv --output attendance.csv
+kova googlemeet latest --today
+kova googlemeet calendar-events --today --json
+kova googlemeet artifacts --event "Weekly sync"
+kova googlemeet attendance --today --format csv --output attendance.csv
 ```
 
 `--today` searches today's `primary` calendar for a Calendar event with a
@@ -670,23 +670,23 @@ OAuth login that includes the Calendar events readonly scope.
 If you already know the conference record id, address it directly:
 
 ```bash
-openclaw googlemeet latest --meeting https://meet.google.com/abc-defg-hij
-openclaw googlemeet artifacts --conference-record conferenceRecords/abc123 --json
-openclaw googlemeet attendance --conference-record conferenceRecords/abc123 --json
+kova googlemeet latest --meeting https://meet.google.com/abc-defg-hij
+kova googlemeet artifacts --conference-record conferenceRecords/abc123 --json
+kova googlemeet attendance --conference-record conferenceRecords/abc123 --json
 ```
 
 Write a readable report:
 
 ```bash
-openclaw googlemeet artifacts --conference-record conferenceRecords/abc123 \
+kova googlemeet artifacts --conference-record conferenceRecords/abc123 \
   --format markdown --output meet-artifacts.md
-openclaw googlemeet attendance --conference-record conferenceRecords/abc123 \
+kova googlemeet attendance --conference-record conferenceRecords/abc123 \
   --format markdown --output meet-attendance.md
-openclaw googlemeet attendance --conference-record conferenceRecords/abc123 \
+kova googlemeet attendance --conference-record conferenceRecords/abc123 \
   --format csv --output meet-attendance.csv
-openclaw googlemeet export --conference-record conferenceRecords/abc123 \
+kova googlemeet export --conference-record conferenceRecords/abc123 \
   --include-doc-bodies --zip --output meet-export
-openclaw googlemeet export --conference-record conferenceRecords/abc123 \
+kova googlemeet export --conference-record conferenceRecords/abc123 \
   --include-doc-bodies --dry-run
 ```
 
@@ -763,7 +763,7 @@ document-body export needs
 Create a fresh Meet space:
 
 ```bash
-openclaw googlemeet create
+kova googlemeet create
 ```
 
 The command prints the new `meeting uri`, source, and join session. With OAuth
@@ -799,10 +799,10 @@ can create the URL, the Gateway method returns a failed response and the
 ```json
 {
   "source": "browser",
-  "error": "google-login-required: Sign in to Google in the OpenClaw browser profile, then retry meeting creation.",
+  "error": "google-login-required: Sign in to Google in the Kova browser profile, then retry meeting creation.",
   "manualActionRequired": true,
   "manualActionReason": "google-login-required",
-  "manualActionMessage": "Sign in to Google in the OpenClaw browser profile, then retry meeting creation.",
+  "manualActionMessage": "Sign in to Google in the Kova browser profile, then retry meeting creation.",
   "browser": {
     "nodeId": "ba0f4e4bc...",
     "targetId": "tab-1",
@@ -839,7 +839,7 @@ Example JSON output from API create:
 
 Creating a Meet joins by default. The Chrome or Chrome-node transport still
 needs a signed-in Google Chrome profile to join through the browser. If the
-profile is signed out, OpenClaw reports `manualActionRequired: true` or a
+profile is signed out, Kova reports `manualActionRequired: true` or a
 browser fallback error and asks the operator to finish Google login before
 retrying.
 
@@ -881,10 +881,10 @@ Defaults:
 - `defaultMode: "realtime"`
 - `chromeNode.node`: optional node id/name/IP for `chrome-node`
 - `chrome.audioBackend: "blackhole-2ch"`
-- `chrome.guestName: "OpenClaw Agent"`: name used on the signed-out Meet guest
+- `chrome.guestName: "Kova Agent"`: name used on the signed-out Meet guest
   screen
 - `chrome.autoJoin: true`: best-effort guest-name fill and Join Now click
-  through OpenClaw browser automation on `chrome-node`
+  through Kova browser automation on `chrome-node`
 - `chrome.reuseExistingTab: true`: activate an existing Meet tab instead of
   opening duplicates
 - `chrome.waitForInCallMs: 20000`: wait for the Meet tab to report in-call
@@ -902,7 +902,7 @@ Defaults:
   `openclaw_agent_consult` for deeper answers
 - `realtime.introMessage`: short spoken readiness check when the realtime bridge
   connects; set it to `""` to join silently
-- `realtime.agentId`: optional OpenClaw agent id for
+- `realtime.agentId`: optional Kova agent id for
   `openclaw_agent_consult`; defaults to `main`
 
 Optional overrides:
@@ -916,7 +916,7 @@ Optional overrides:
     defaultProfile: "openclaw",
   },
   chrome: {
-    guestName: "OpenClaw Agent",
+    guestName: "Kova Agent",
     waitForInCallMs: 30000,
   },
   chromeNode: {
@@ -1004,15 +1004,15 @@ report it. Use `action: "leave"` to mark a session ended.
 Chrome realtime mode is optimized for a live voice loop. The realtime voice
 provider hears the meeting audio and speaks through the configured audio bridge.
 When the realtime model needs deeper reasoning, current information, or normal
-OpenClaw tools, it can call `openclaw_agent_consult`.
+Kova tools, it can call `openclaw_agent_consult`.
 
-The consult tool runs the regular OpenClaw agent behind the scenes with recent
+The consult tool runs the regular Kova agent behind the scenes with recent
 meeting transcript context and returns a concise spoken answer to the realtime
 voice session. The voice model can then speak that answer back into the meeting.
 It uses the same shared realtime consult tool as Voice Call.
 
 By default, consults run against the `main` agent. Set `realtime.agentId` when a
-Meet lane should consult a dedicated OpenClaw agent workspace, model defaults,
+Meet lane should consult a dedicated Kova agent workspace, model defaults,
 tool policy, memory, and session history.
 
 `realtime.toolPolicy` controls the consult run:
@@ -1030,13 +1030,13 @@ can reuse prior consult context during the same meeting.
 To force a spoken readiness check after Chrome has fully joined the call:
 
 ```bash
-openclaw googlemeet speak meet_... "Say exactly: I'm here and listening."
+kova googlemeet speak meet_... "Say exactly: I'm here and listening."
 ```
 
 For the full join-and-speak smoke:
 
 ```bash
-openclaw googlemeet test-speech https://meet.google.com/abc-defg-hij \
+kova googlemeet test-speech https://meet.google.com/abc-defg-hij \
   --transport chrome-node \
   --message "Say exactly: I'm here and listening."
 ```
@@ -1046,9 +1046,9 @@ openclaw googlemeet test-speech https://meet.google.com/abc-defg-hij \
 Use this sequence before handing a meeting to an unattended agent:
 
 ```bash
-openclaw googlemeet setup
-openclaw nodes status
-openclaw googlemeet test-speech https://meet.google.com/abc-defg-hij \
+kova googlemeet setup
+kova nodes status
+kova googlemeet test-speech https://meet.google.com/abc-defg-hij \
   --transport chrome-node \
   --message "Say exactly: Google Meet speech test complete."
 ```
@@ -1067,9 +1067,9 @@ For a remote Chrome host such as a Parallels macOS VM, this is the shortest
 safe check after updating the Gateway or the VM:
 
 ```bash
-openclaw googlemeet setup
-openclaw nodes status --connected
-openclaw nodes invoke \
+kova googlemeet setup
+kova nodes status --connected
+kova nodes invoke \
   --node parallels-macos \
   --command googlemeet.chrome \
   --params '{"action":"setup"}'
@@ -1082,8 +1082,8 @@ real meeting tab.
 For a Twilio smoke, use a meeting that exposes phone dial-in details:
 
 ```bash
-openclaw googlemeet setup
-openclaw googlemeet join https://meet.google.com/abc-defg-hij \
+kova googlemeet setup
+kova googlemeet join https://meet.google.com/abc-defg-hij \
   --transport twilio \
   --dial-in-number +15551234567 \
   --pin 123456
@@ -1104,8 +1104,8 @@ Expected Twilio state:
 Confirm the plugin is enabled in the Gateway config and reload the Gateway:
 
 ```bash
-openclaw plugins list | grep google-meet
-openclaw googlemeet setup
+kova plugins list | grep google-meet
+kova googlemeet setup
 ```
 
 If you just edited `plugins.entries.google-meet`, restart or reload the Gateway.
@@ -1117,18 +1117,18 @@ process.
 On the node host, run:
 
 ```bash
-openclaw plugins enable google-meet
-openclaw plugins enable browser
+kova plugins enable google-meet
+kova plugins enable browser
 OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
-  openclaw node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
+  kova node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
 ```
 
 On the Gateway host, approve the node and verify commands:
 
 ```bash
-openclaw devices list
-openclaw devices approve <requestId>
-openclaw nodes status
+kova devices list
+kova devices approve <requestId>
+kova nodes status
 ```
 
 The node must be connected and list `googlemeet.chrome` plus `browser.proxy`.
@@ -1150,7 +1150,7 @@ token. For a LAN Gateway this usually means:
 
 ```bash
 OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
-  openclaw node install \
+  kova node install \
   --host <gateway-lan-ip> \
   --port 18789 \
   --display-name parallels-macos \
@@ -1160,8 +1160,8 @@ OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
 Then reload the node service and re-run:
 
 ```bash
-openclaw googlemeet setup
-openclaw nodes status --connected
+kova googlemeet setup
+kova nodes status --connected
 ```
 
 ### Browser opens but agent cannot join
@@ -1179,9 +1179,9 @@ Common manual actions:
 - Close or repair a stuck Meet permission dialog.
 
 Do not report "not signed in" just because Meet shows "Do you want people to
-hear you in the meeting?" That is Meet's audio-choice interstitial; OpenClaw
+hear you in the meeting?" That is Meet's audio-choice interstitial; Kova
 clicks **Use microphone** through browser automation when available and keeps
-waiting for the real meeting state. For create-only browser fallback, OpenClaw
+waiting for the real meeting state. For create-only browser fallback, Kova
 may click **Continue without microphone** because creating the URL does not need
 the realtime audio path.
 
@@ -1195,11 +1195,11 @@ to the pinned Chrome node browser. Confirm:
   or matching `OPENCLAW_GOOGLE_MEET_*` environment variables are present.
 - For API creation: the refresh token was minted after create support was
   added. Older tokens may be missing the `meetings.space.created` scope; rerun
-  `openclaw googlemeet auth login --json` and update plugin config.
+  `kova googlemeet auth login --json` and update plugin config.
 - For browser fallback: `defaultTransport: "chrome-node"` and
   `chromeNode.node` point at a connected node with `browser.proxy` and
   `googlemeet.chrome`.
-- For browser fallback: the OpenClaw Chrome profile on that node is signed in
+- For browser fallback: the Kova Chrome profile on that node is signed in
   to Google and can open `https://meet.google.com/new`.
 - For browser fallback: retries reuse an existing `https://meet.google.com/new`
   or Google account prompt tab before opening a new tab. If an agent times out,
@@ -1209,7 +1209,7 @@ to the pinned Chrome node browser. Confirm:
   `manualActionMessage` to guide the operator. Do not retry in a loop until that
   action is complete.
 - For browser fallback: if Meet shows "Do you want people to hear you in the
-  meeting?", leave the tab open. OpenClaw should click **Use microphone** or, for
+  meeting?", leave the tab open. Kova should click **Use microphone** or, for
   create-only fallback, **Continue without microphone** through browser
   automation and continue waiting for the generated Meet URL. If it cannot, the
   error should mention `meet-audio-choice-required`, not `google-login-required`.
@@ -1219,8 +1219,8 @@ to the pinned Chrome node browser. Confirm:
 Check the realtime path:
 
 ```bash
-openclaw googlemeet setup
-openclaw googlemeet doctor
+kova googlemeet setup
+kova googlemeet doctor
 ```
 
 Use `mode: "realtime"` for listen/talk-back. `mode: "transcribe"` intentionally
@@ -1233,7 +1233,7 @@ Also verify:
 - `BlackHole 2ch` is visible on the Chrome host.
 - `rec` and `play` exist on the Chrome host.
 - Meet microphone and speaker are routed through the virtual audio path used by
-  OpenClaw.
+  Kova.
 
 `googlemeet doctor [session-id]` prints the session, node, in-call state,
 manual action reason, realtime provider connection, `realtimeReady`, audio
@@ -1247,8 +1247,8 @@ If an agent timed out and you can see a Meet tab already open, inspect that tab
 without opening another one:
 
 ```bash
-openclaw googlemeet recover-tab
-openclaw googlemeet recover-tab https://meet.google.com/abc-defg-hij
+kova googlemeet recover-tab
+kova googlemeet recover-tab https://meet.google.com/abc-defg-hij
 ```
 
 The equivalent tool action is `recover_current_tab`. It focuses and inspects an
@@ -1277,22 +1277,22 @@ export TWILIO_FROM_NUMBER=+15550001234
 Then restart or reload the Gateway and run:
 
 ```bash
-openclaw googlemeet setup
-openclaw voicecall setup
-openclaw voicecall smoke
+kova googlemeet setup
+kova voicecall setup
+kova voicecall smoke
 ```
 
 `voicecall smoke` is readiness-only by default. To dry-run a specific number:
 
 ```bash
-openclaw voicecall smoke --to "+15555550123"
+kova voicecall smoke --to "+15555550123"
 ```
 
 Only add `--yes` when you intentionally want to place a live outbound notify
 call:
 
 ```bash
-openclaw voicecall smoke --to "+15555550123" --yes
+kova voicecall smoke --to "+15555550123" --yes
 ```
 
 ### Twilio call starts but never enters the meeting
@@ -1301,7 +1301,7 @@ Confirm the Meet event exposes phone dial-in details. Pass the exact dial-in
 number and PIN or a custom DTMF sequence:
 
 ```bash
-openclaw googlemeet join https://meet.google.com/abc-defg-hij \
+kova googlemeet join https://meet.google.com/abc-defg-hij \
   --transport twilio \
   --dial-in-number +15551234567 \
   --dtmf-sequence ww123456#
@@ -1319,7 +1319,7 @@ phone dial-in participation.
 
 Chrome realtime mode needs either:
 
-- `chrome.audioInputCommand` plus `chrome.audioOutputCommand`: OpenClaw owns the
+- `chrome.audioInputCommand` plus `chrome.audioOutputCommand`: Kova owns the
   realtime model bridge and pipes audio in `chrome.audioFormat` between those
   commands and the selected realtime voice provider. The default Chrome path is
   24 kHz PCM16; 8 kHz G.711 mu-law remains available for legacy command pairs.

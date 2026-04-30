@@ -2,7 +2,7 @@
 summary: "DeepSeek setup (auth + model selection)"
 title: "DeepSeek"
 read_when:
-  - You want to use DeepSeek with OpenClaw
+  - You want to use DeepSeek with Kova
   - You need the API key env var or CLI auth choice
 ---
 
@@ -23,7 +23,7 @@ read_when:
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice deepseek-api-key
+    kova onboard --auth-choice deepseek-api-key
     ```
 
     This will prompt for your API key and set `deepseek/deepseek-v4-flash` as the default model.
@@ -31,14 +31,14 @@ read_when:
   </Step>
   <Step title="Verify models are available">
     ```bash
-    openclaw models list --provider deepseek
+    kova models list --provider deepseek
     ```
 
     To inspect the bundled static catalog without requiring a running Gateway,
     use:
 
     ```bash
-    openclaw models list --all --provider deepseek
+    kova models list --all --provider deepseek
     ```
 
   </Step>
@@ -49,7 +49,7 @@ read_when:
     For scripted or headless installations, pass all flags directly:
 
     ```bash
-    openclaw onboard --non-interactive \
+    kova onboard --non-interactive \
       --mode local \
       --auth-choice deepseek-api-key \
       --deepseek-api-key "$DEEPSEEK_API_KEY" \
@@ -76,7 +76,7 @@ is available to that process (for example, in `~/.openclaw/.env` or via
 | `deepseek/deepseek-reasoner` | DeepSeek Reasoner | text  | 131,072   | 65,536     | Reasoning-enabled V3.2 surface             |
 
 <Tip>
-V4 models support DeepSeek's `thinking` control. OpenClaw also replays
+V4 models support DeepSeek's `thinking` control. Kova also replays
 DeepSeek `reasoning_content` on follow-up turns so thinking sessions with tool
 calls can continue.
 </Tip>
@@ -86,18 +86,18 @@ calls can continue.
 DeepSeek V4 thinking sessions have a stricter replay contract than most
 OpenAI-compatible providers: when a thinking-enabled assistant message includes
 tool calls, DeepSeek expects the prior assistant `reasoning_content` to be sent
-back on the follow-up request. OpenClaw handles this inside the DeepSeek plugin,
+back on the follow-up request. Kova handles this inside the DeepSeek plugin,
 so normal multi-turn tool use works with `deepseek/deepseek-v4-flash` and
 `deepseek/deepseek-v4-pro`.
 
 If you switch an existing session from another OpenAI-compatible provider to a
 DeepSeek V4 model, older assistant tool-call turns may not have native
-DeepSeek `reasoning_content`. OpenClaw fills that missing field for DeepSeek V4
+DeepSeek `reasoning_content`. Kova fills that missing field for DeepSeek V4
 thinking requests so the provider can accept the replayed tool-call history
 without requiring `/new`.
 
-When thinking is disabled in OpenClaw (including the UI **None** selection),
-OpenClaw sends DeepSeek `thinking: { type: "disabled" }` and strips replayed
+When thinking is disabled in Kova (including the UI **None** selection),
+Kova sends DeepSeek `thinking: { type: "disabled" }` and strips replayed
 `reasoning_content` from the outgoing history. This keeps disabled-thinking
 sessions on the non-thinking DeepSeek path.
 

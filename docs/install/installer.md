@@ -7,13 +7,13 @@ read_when:
 title: "Installer internals"
 ---
 
-OpenClaw ships three installer scripts, served from `openclaw.ai`.
+Kova ships three installer scripts, served from `openclaw.ai`.
 
 | Script                             | Platform             | What it does                                                                                                   |
 | ---------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding.                   |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installs Node + OpenClaw into a local prefix (`~/.openclaw`) with npm or git checkout modes. No root required. |
-| [`install.ps1`](#installps1)       | Windows (PowerShell) | Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding.                   |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installs Node if needed, installs Kova via npm (default) or git, and can run onboarding.                   |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installs Node + Kova into a local prefix (`~/.openclaw`) with npm or git checkout modes. No root required. |
+| [`install.ps1`](#installps1)       | Windows (PowerShell) | Installs Node if needed, installs Kova via npm (default) or git, and can run onboarding.                   |
 
 ## Quick commands
 
@@ -51,7 +51,7 @@ OpenClaw ships three installer scripts, served from `openclaw.ai`.
 </Tabs>
 
 <Note>
-If install succeeds but `openclaw` is not found in a new terminal, see [Node.js troubleshooting](/install/node#troubleshooting).
+If install succeeds but `kova` is not found in a new terminal, see [Node.js troubleshooting](/install/node#troubleshooting).
 </Note>
 
 ---
@@ -71,18 +71,18 @@ Recommended for most interactive installs on macOS/Linux/WSL.
     Supports macOS and Linux (including WSL). If macOS is detected, installs Homebrew if missing.
   </Step>
   <Step title="Ensure Node.js 24 by default">
-    Checks Node version and installs Node 24 if needed (Homebrew on macOS, NodeSource setup scripts on Linux apt/dnf/yum). OpenClaw still supports Node 22 LTS, currently `22.14+`, for compatibility.
+    Checks Node version and installs Node 24 if needed (Homebrew on macOS, NodeSource setup scripts on Linux apt/dnf/yum). Kova still supports Node 22 LTS, currently `22.14+`, for compatibility.
   </Step>
   <Step title="Ensure Git">
     Installs Git if missing.
   </Step>
-  <Step title="Install OpenClaw">
+  <Step title="Install Kova">
     - `npm` method (default): global npm install
     - `git` method: clone/update repo, install deps with pnpm, build, then install wrapper at `~/.local/bin/openclaw`
   </Step>
   <Step title="Post-install tasks">
-    - Refreshes a loaded gateway service best-effort (`openclaw gateway install --force`, then restart)
-    - Runs `openclaw doctor --non-interactive` on upgrades and git installs (best effort)
+    - Refreshes a loaded gateway service best-effort (`kova gateway install --force`, then restart)
+    - Runs `kova doctor --non-interactive` on upgrades and git installs (best effort)
     - Attempts onboarding when appropriate (TTY available, onboarding not disabled, and bootstrap/config checks pass)
     - Defaults `SHARP_IGNORE_GLOBAL_LIBVIPS=1`
   </Step>
@@ -90,7 +90,7 @@ Recommended for most interactive installs on macOS/Linux/WSL.
 
 ### Source checkout detection
 
-If run inside an OpenClaw checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
+If run inside an Kova checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
 
 - use checkout (`git`), or
 - use global install (`npm`)
@@ -190,13 +190,13 @@ by default, plus git-checkout installs under the same prefix flow.
   <Step title="Ensure Git">
     If Git is missing, attempts install via apt/dnf/yum on Linux or Homebrew on macOS.
   </Step>
-  <Step title="Install OpenClaw under prefix">
+  <Step title="Install Kova under prefix">
     - `npm` method (default): installs under the prefix with npm, then writes wrapper to `<prefix>/bin/openclaw`
     - `git` method: clones/updates a checkout (default `~/openclaw`) and still writes the wrapper to `<prefix>/bin/openclaw`
   </Step>
   <Step title="Refresh loaded gateway service">
     If a gateway service is already loaded from that same prefix, the script runs
-    `openclaw gateway install --force`, then `openclaw gateway restart`, and
+    `kova gateway install --force`, then `kova gateway restart`, and
     probes gateway health best-effort.
   </Step>
 </Steps>
@@ -241,10 +241,10 @@ by default, plus git-checkout installs under the same prefix flow.
 | `--npm`                     | Shortcut for npm method                                                         |
 | `--git`, `--github`         | Shortcut for git method                                                         |
 | `--git-dir <path>`          | Git checkout directory (default: `~/openclaw`). Alias: `--dir`                  |
-| `--version <ver>`           | OpenClaw version or dist-tag (default: `latest`)                                |
+| `--version <ver>`           | Kova version or dist-tag (default: `latest`)                                |
 | `--node-version <ver>`      | Node version (default: `22.22.0`)                                               |
 | `--json`                    | Emit NDJSON events                                                              |
-| `--onboard`                 | Run `openclaw onboard` after install                                            |
+| `--onboard`                 | Run `kova onboard` after install                                            |
 | `--no-onboard`              | Skip onboarding (default)                                                       |
 | `--set-npm-prefix`          | On Linux, force npm prefix to `~/.npm-global` if current prefix is not writable |
 | `--help`                    | Show usage (`-h`)                                                               |
@@ -257,7 +257,7 @@ by default, plus git-checkout installs under the same prefix flow.
 | ------------------------------------------- | --------------------------------------------- |
 | `OPENCLAW_PREFIX=<path>`                    | Install prefix                                |
 | `OPENCLAW_INSTALL_METHOD=git\|npm`          | Install method                                |
-| `OPENCLAW_VERSION=<ver>`                    | OpenClaw version or dist-tag                  |
+| `OPENCLAW_VERSION=<ver>`                    | Kova version or dist-tag                  |
 | `OPENCLAW_NODE_VERSION=<ver>`               | Node version                                  |
 | `OPENCLAW_GIT_DIR=<path>`                   | Git checkout directory for git installs       |
 | `OPENCLAW_GIT_UPDATE=0\|1`                  | Toggle git updates for existing checkouts     |
@@ -283,14 +283,14 @@ by default, plus git-checkout installs under the same prefix flow.
   <Step title="Ensure Node.js 24 by default">
     If missing, attempts install via winget, then Chocolatey, then Scoop. Node 22 LTS, currently `22.14+`, remains supported for compatibility.
   </Step>
-  <Step title="Install OpenClaw">
+  <Step title="Install Kova">
     - `npm` method (default): global npm install using selected `-Tag`
     - `git` method: clone/update repo, install/build with pnpm, and install wrapper at `%USERPROFILE%\.local\bin\openclaw.cmd`
   </Step>
   <Step title="Post-install tasks">
     - Adds needed bin directory to user PATH when possible
-    - Refreshes a loaded gateway service best-effort (`openclaw gateway install --force`, then restart)
-    - Runs `openclaw doctor --non-interactive` on upgrades and git installs (best effort)
+    - Refreshes a loaded gateway service best-effort (`kova gateway install --force`, then restart)
+    - Runs `kova doctor --non-interactive` on upgrades and git installs (best effort)
   </Step>
   <Step title="Handle failures">
     `iwr ... | iex` and scriptblock installs report a terminating error without closing the current PowerShell session. Direct `powershell -File` / `pwsh -File` installs still exit non-zero for automation.
@@ -342,7 +342,7 @@ by default, plus git-checkout installs under the same prefix flow.
 | --------------------------- | ---------------------------------------------------------- |
 | `-InstallMethod npm\|git`   | Install method (default: `npm`)                            |
 | `-Tag <tag\|version\|spec>` | npm dist-tag, version, or package spec (default: `latest`) |
-| `-GitDir <path>`            | Checkout directory (default: `%USERPROFILE%\openclaw`)     |
+| `-GitDir <path>`            | Checkout directory (default: `%USERPROFILE%\kova`)     |
 | `-NoOnboard`                | Skip onboarding                                            |
 | `-NoGitUpdate`              | Skip `git pull`                                            |
 | `-DryRun`                   | Print actions only                                         |
@@ -422,7 +422,7 @@ Use non-interactive flags/env vars for predictable runs.
     Install Git for Windows, reopen PowerShell, rerun installer.
   </Accordion>
 
-  <Accordion title='Windows: "openclaw is not recognized"'>
+  <Accordion title='Windows: "kova is not recognized"'>
     Run `npm config get prefix` and add that directory to your user PATH (no `\bin` suffix needed on Windows), then reopen PowerShell.
   </Accordion>
 
@@ -438,7 +438,7 @@ Use non-interactive flags/env vars for predictable runs.
 
   </Accordion>
 
-  <Accordion title="openclaw not found after install">
+  <Accordion title="kova not found after install">
     Usually a PATH issue. See [Node.js troubleshooting](/install/node#troubleshooting).
   </Accordion>
 </AccordionGroup>

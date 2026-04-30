@@ -1,17 +1,17 @@
 ---
-summary: "What the OpenClaw system prompt contains and how it is assembled"
+summary: "What the Kova system prompt contains and how it is assembled"
 read_when:
   - Editing system prompt text, tools list, or time/heartbeat sections
   - Changing workspace bootstrap or skills injection behavior
 title: "System prompt"
 ---
 
-OpenClaw builds a custom system prompt for every agent run. The prompt is **OpenClaw-owned** and does not use the pi-coding-agent default prompt.
+Kova builds a custom system prompt for every agent run. The prompt is **Kova-owned** and does not use the pi-coding-agent default prompt.
 
-The prompt is assembled by OpenClaw and injected into each agent run.
+The prompt is assembled by Kova and injected into each agent run.
 
 Provider plugins can contribute cache-aware prompt guidance without replacing
-the full OpenClaw-owned prompt. The provider runtime can:
+the full Kova-owned prompt. The provider runtime can:
 
 - replace a small set of named core sections (`interaction_style`,
   `tool_call_style`, `execution_bias`)
@@ -37,14 +37,14 @@ The prompt is intentionally compact and uses fixed sections:
   results, check mutable state live, and verify before finalizing.
 - **Safety**: short guardrail reminder to avoid power-seeking behavior or bypassing oversight.
 - **Skills** (when available): tells the model how to load skill instructions on demand.
-- **OpenClaw Self-Update**: how to inspect config safely with
+- **Kova Self-Update**: how to inspect config safely with
   `config.schema.lookup`, patch config with `config.patch`, replace the full
   config with `config.apply`, and run `update.run` only on explicit user
   request. The owner-only `gateway` tool also refuses to rewrite
   `tools.exec.ask` / `tools.exec.security`, including legacy `tools.bash.*`
   aliases that normalize to those protected exec paths.
 - **Workspace**: working directory (`agents.defaults.workspace`).
-- **Documentation**: local path to OpenClaw docs (repo or npm package) and when to read them.
+- **Documentation**: local path to Kova docs (repo or npm package) and when to read them.
 - **Workspace Files (injected)**: indicates bootstrap files are included below.
 - **Sandbox** (when enabled): indicates sandboxed runtime, sandbox paths, and whether elevated exec is available.
 - **Current Date & Time**: user-local time, timezone, and time format.
@@ -82,11 +82,11 @@ manual approval is the only path.
 
 ## Prompt modes
 
-OpenClaw can render smaller system prompts for sub-agents. The runtime sets a
+Kova can render smaller system prompts for sub-agents. The runtime sets a
 `promptMode` for each run (not a user-facing config):
 
 - `full` (default): includes all sections above.
-- `minimal`: used for sub-agents; omits **Skills**, **Memory Recall**, **OpenClaw
+- `minimal`: used for sub-agents; omits **Skills**, **Memory Recall**, **Kova
   Self-Update**, **Model Aliases**, **User Identity**, **Reply Tags**,
   **Messaging**, **Silent Replies**, and **Heartbeats**. Tooling, **Safety**,
   Workspace, Sandbox, Current Date & Time (when known), Runtime, and injected
@@ -124,7 +124,7 @@ Large files are truncated with a marker. The max per-file size is controlled by
 `agents.defaults.bootstrapMaxChars` (default: 12000). Total injected bootstrap
 content across files is capped by `agents.defaults.bootstrapTotalMaxChars`
 (default: 60000). Missing files inject a short missing-file marker. When truncation
-occurs, OpenClaw can inject a warning block in Project Context; control this with
+occurs, Kova can inject a warning block in Project Context; control this with
 `agents.defaults.bootstrapPromptTruncationWarning` (`off`, `once`, `always`;
 default: `once`).
 
@@ -158,7 +158,7 @@ See [Date & Time](/date-time) for full behavior details.
 
 ## Skills
 
-When eligible skills exist, OpenClaw injects a compact **available skills list**
+When eligible skills exist, Kova injects a compact **available skills list**
 (`formatSkillsForPrompt`) that includes the **file path** for each skill. The
 prompt instructs the model to use `read` to load the SKILL.md at the listed
 location (workspace, managed, or bundled). If no skills are eligible, the
@@ -200,17 +200,17 @@ as `memory_get`, live tool results, and post-compaction AGENTS.md refreshes.
 ## Documentation
 
 The system prompt includes a **Documentation** section. When local docs are available, it
-points to the local OpenClaw docs directory (`docs/` in a Git checkout or the bundled npm
+points to the local Kova docs directory (`docs/` in a Git checkout or the bundled npm
 package docs). If local docs are unavailable, it falls back to
 [https://docs.openclaw.ai](https://docs.openclaw.ai).
 
-The same section also includes the OpenClaw source location. Git checkouts expose the local
+The same section also includes the Kova source location. Git checkouts expose the local
 source root so the agent can inspect code directly. Package installs include the GitHub
 source URL and tell the agent to review source there whenever the docs are incomplete or
 stale. The prompt also notes the public docs mirror, community Discord, and ClawHub
 ([https://clawhub.ai](https://clawhub.ai)) for skills discovery. It tells the model to
-consult docs first for OpenClaw behavior, commands, configuration, or architecture, and to
-run `openclaw status` itself when possible (asking the user only when it lacks access).
+consult docs first for Kova behavior, commands, configuration, or architecture, and to
+run `kova status` itself when possible (asking the user only when it lacks access).
 For configuration specifically, it points agents to the `gateway` tool action
 `config.schema.lookup` for exact field-level docs and constraints, then to
 `docs/gateway/configuration.md` and `docs/gateway/configuration-reference.md`

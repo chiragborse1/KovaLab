@@ -49,20 +49,20 @@ For how skills are loaded and prioritized, see [Skills](/tools/skills).
   </Step>
 
   <Step title="Load the skill">
-    Start a new session so OpenClaw picks up the skill:
+    Start a new session so Kova picks up the skill:
 
     ```bash
     # From chat
     /new
 
     # Or restart the gateway
-    openclaw gateway restart
+    kova gateway restart
     ```
 
     Verify the skill loaded:
 
     ```bash
-    openclaw skills list
+    kova skills list
     ```
 
   </Step>
@@ -71,7 +71,7 @@ For how skills are loaded and prioritized, see [Skills](/tools/skills).
     Send a message that should trigger the skill:
 
     ```bash
-    openclaw agent --message "give me a greeting"
+    kova agent --message "give me a greeting"
     ```
 
     Or just chat with the agent and ask for a greeting.
@@ -95,7 +95,7 @@ The YAML frontmatter supports these fields:
 
 - **Be concise** — instruct the model on _what_ to do, not how to be an AI
 - **Safety first** — if your skill uses `exec`, ensure prompts don't allow arbitrary command injection from untrusted input
-- **Test locally** — use `openclaw agent --message "..."` to test before sharing
+- **Test locally** — use `kova agent --message "..."` to test before sharing
 - **Use ClawHub** — browse and contribute skills at [ClawHub](https://clawhub.ai)
 
 ## Where skills live
@@ -106,7 +106,7 @@ The YAML frontmatter supports these fields:
 | `\<workspace\>/.agents/skills/` | High       | Per-workspace agent   |
 | `~/.agents/skills/`             | Medium     | Shared agent profile  |
 | `~/.openclaw/skills/`           | Medium     | Shared (all agents)   |
-| Bundled (shipped with OpenClaw) | Low        | Global                |
+| Bundled (shipped with Kova) | Low        | Global                |
 | `skills.load.extraDirs`         | Lowest     | Custom shared folders |
 
 ## Related

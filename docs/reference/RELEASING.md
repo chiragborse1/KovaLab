@@ -7,7 +7,7 @@ read_when:
   - Looking for version naming and cadence
 ---
 
-OpenClaw has three public release lanes:
+Kova has three public release lanes:
 
 - stable: tagged releases that publish to npm `beta` by default, or to npm `latest` when explicitly requested
 - beta: prerelease tags that publish to npm `beta`
@@ -25,7 +25,7 @@ OpenClaw has three public release lanes:
 - `latest` means the current promoted stable npm release
 - `beta` means the current beta install target
 - Stable and stable correction releases publish to npm `beta` by default; release operators can target `latest` explicitly, or promote a vetted beta build later
-- Every stable OpenClaw release ships the npm package and macOS app together;
+- Every stable Kova release ships the npm package and macOS app together;
   beta releases normally validate and publish the npm/package path first, with
   mac app build/sign/notarize reserved for stable unless explicitly requested
 
@@ -63,7 +63,7 @@ the maintainer-only release runbook.
    local deterministic preflight:
    `pnpm check:test-types`, `pnpm check:architecture`,
    `pnpm build && pnpm ui:build`, and `pnpm release:check`.
-6. Run `OpenClaw NPM Release` with `preflight_only=true`. Before a tag exists,
+6. Run `Kova NPM Release` with `preflight_only=true`. Before a tag exists,
    a full 40-character release-branch SHA is allowed for validation-only
    preflight. Save the successful `preflight_run_id`.
 7. Kick off all pre-release tests with `Full Release Validation` for the
@@ -100,7 +100,7 @@ the maintainer-only release runbook.
 - Run the manual `Full Release Validation` workflow before release approval to
   kick off all pre-release test boxes from one entrypoint. It accepts a branch,
   tag, or full commit SHA, dispatches manual `CI`, and dispatches
-  `OpenClaw Release Checks` for install smoke, package acceptance, Docker
+  `Kova Release Checks` for install smoke, package acceptance, Docker
   release-path suites, live/E2E, OpenWebUI, QA Lab parity, Matrix, and Telegram
   lanes. Provide `npm_telegram_package_spec` only after a package has been
   published and the post-publish Telegram E2E should run too. Example:
@@ -136,15 +136,15 @@ the maintainer-only release runbook.
   requiring Opik, Langfuse, or another external collector.
 - Run `pnpm release:check` before every tagged release
 - Release checks now run in a separate manual workflow:
-  `OpenClaw Release Checks`
-- `OpenClaw Release Checks` also runs the QA Lab mock parity gate plus the fast
+  `Kova Release Checks`
+- `Kova Release Checks` also runs the QA Lab mock parity gate plus the fast
   live Matrix profile and Telegram QA lane before release approval. The live
   lanes use the `qa-live-shared` environment; Telegram also uses Convex CI
   credential leases. Run the manual `QA-Lab - All Lanes` workflow with
   `matrix_profile=all` and `matrix_shards=true` when you want full Matrix
   transport, media, and E2EE inventory in parallel.
 - Cross-OS install and upgrade runtime validation is part of public
-  `OpenClaw Release Checks` and `Full Release Validation`, which call the
+  `Kova Release Checks` and `Full Release Validation`, which call the
   reusable workflow
   `.github/workflows/openclaw-cross-os-release-checks-reusable.yml` directly
 - This split is intentional: keep the real npm release path short,
@@ -153,9 +153,9 @@ the maintainer-only release runbook.
 - Secret-bearing release checks should be dispatched through `Full Release
 Validation` or from the `main`/release workflow ref so workflow logic and
   secrets stay controlled
-- `OpenClaw Release Checks` accepts a branch, tag, or full commit SHA as long
-  as the resolved commit is reachable from an OpenClaw branch or release tag
-- `OpenClaw NPM Release` validation-only preflight also accepts the current
+- `Kova Release Checks` accepts a branch, tag, or full commit SHA as long
+  as the resolved commit is reachable from an Kova branch or release tag
+- `Kova NPM Release` validation-only preflight also accepts the current
   full 40-character workflow-branch commit SHA without requiring a pushed tag
 - That SHA path is validation-only and cannot be promoted into a real publish
 - In SHA mode the workflow synthesizes `v<package.json version>` only for the
@@ -237,9 +237,9 @@ gh workflow run full-release-validation.yml \
 ```
 
 The workflow resolves the target ref, dispatches manual `CI` with
-`target_ref=<release-ref>`, dispatches `OpenClaw Release Checks`, and
+`target_ref=<release-ref>`, dispatches `Kova Release Checks`, and
 optionally dispatches standalone post-publish Telegram E2E when
-`npm_telegram_package_spec` is set. `OpenClaw Release Checks` then fans out
+`npm_telegram_package_spec` is set. `Kova Release Checks` then fans out
 install smoke, cross-OS release checks, live/E2E Docker release-path coverage,
 Package Acceptance with Telegram package QA, QA Lab parity, live Matrix, and
 live Telegram. A full run is only acceptable when the `Full Release Validation`
@@ -311,7 +311,7 @@ gh workflow run ci.yml --ref main -f target_ref=release/YYYY.M.D
 
 ### Docker
 
-The Docker box lives in `OpenClaw Release Checks` through
+The Docker box lives in `Kova Release Checks` through
 `openclaw-live-and-e2e-checks-reusable.yml`, plus the release-mode
 `install-smoke` workflow. It validates the release candidate through packaged
 Docker environments instead of only source-level tests.
@@ -341,7 +341,7 @@ failed lane can reuse the same tarball and GHCR images.
 
 ### QA Lab
 
-The QA Lab box is also part of `OpenClaw Release Checks`. It is the agentic
+The QA Lab box is also part of `Kova Release Checks`. It is the agentic
 behavior and channel-level release gate, separate from Vitest and Docker
 package mechanics.
 
@@ -369,14 +369,14 @@ workflow harness ref separate from the package source ref.
 
 Supported candidate sources:
 
-- `source=npm`: `openclaw@beta`, `openclaw@latest`, or an exact OpenClaw release
+- `source=npm`: `openclaw@beta`, `openclaw@latest`, or an exact Kova release
   version
 - `source=ref`: pack a trusted `package_ref` branch, tag, or full commit SHA
   with the selected `workflow_ref` harness
 - `source=url`: download an HTTPS `.tgz` with required `package_sha256`
 - `source=artifact`: reuse a `.tgz` uploaded by another GitHub Actions run
 
-`OpenClaw Release Checks` runs Package Acceptance with `source=ref`,
+`Kova Release Checks` runs Package Acceptance with `source=ref`,
 `package_ref=<release-ref>`, `suite_profile=custom`,
 `docker_lanes=bundled-channel-deps-compat plugins-offline`, and
 `telegram_mode=mock-openai`. The release-path Docker chunks cover the
@@ -427,7 +427,7 @@ Telegram workflow still accepts a published npm spec for post-publish checks.
 
 ## NPM workflow inputs
 
-`OpenClaw NPM Release` accepts these operator-controlled inputs:
+`Kova NPM Release` accepts these operator-controlled inputs:
 
 - `tag`: required release tag such as `v2026.4.2`, `v2026.4.2-1`, or
   `v2026.4.2-beta.1`; when `preflight_only=true`, it may also be the current
@@ -438,19 +438,19 @@ Telegram workflow still accepts a published npm spec for post-publish checks.
   the prepared tarball from the successful preflight run
 - `npm_dist_tag`: npm target tag for the publish path; defaults to `beta`
 
-`OpenClaw Release Checks` accepts these operator-controlled inputs:
+`Kova Release Checks` accepts these operator-controlled inputs:
 
 - `ref`: branch, tag, or full commit SHA to validate. Secret-bearing checks
-  require the resolved commit to be reachable from an OpenClaw branch or
+  require the resolved commit to be reachable from an Kova branch or
   release tag.
 
 Rules:
 
 - Stable and correction tags may publish to either `beta` or `latest`
 - Beta prerelease tags may publish only to `beta`
-- For `OpenClaw NPM Release`, full commit SHA input is allowed only when
+- For `Kova NPM Release`, full commit SHA input is allowed only when
   `preflight_only=true`
-- `OpenClaw Release Checks` and `Full Release Validation` are always
+- `Kova Release Checks` and `Full Release Validation` are always
   validation-only
 - The real publish path must use the same `npm_dist_tag` used during preflight;
   the workflow verifies that metadata before publish continues
@@ -459,7 +459,7 @@ Rules:
 
 When cutting a stable npm release:
 
-1. Run `OpenClaw NPM Release` with `preflight_only=true`
+1. Run `Kova NPM Release` with `preflight_only=true`
    - Before a tag exists, you may use the current full workflow-branch commit
      SHA for a validation-only dry run of the preflight workflow
 2. Choose `npm_dist_tag=beta` for the normal beta-first flow, or `latest` only
@@ -470,7 +470,7 @@ When cutting a stable npm release:
 4. If you intentionally only need the deterministic normal test graph, run the
    manual `CI` workflow on the release ref instead
 5. Save the successful `preflight_run_id`
-6. Run `OpenClaw NPM Release` again with `preflight_only=false`, the same
+6. Run `Kova NPM Release` again with `preflight_only=false`, the same
    `tag`, the same `npm_dist_tag`, and the saved `preflight_run_id`
 7. If the release landed on `beta`, use the private
    `openclaw/releases-private/.github/workflows/openclaw-npm-dist-tags.yml`

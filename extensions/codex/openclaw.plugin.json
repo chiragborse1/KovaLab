@@ -141,7 +141,7 @@
     },
     "discovery.enabled": {
       "label": "Enable Discovery",
-      "help": "When false, OpenClaw keeps the Codex harness available but uses the bundled fallback model list."
+      "help": "When false, Kova keeps the Codex harness available but uses the bundled fallback model list."
     },
     "discovery.timeoutMs": {
       "label": "Discovery Timeout",
@@ -210,7 +210,7 @@
     },
     "appServer.command": {
       "label": "Command",
-      "help": "Executable used for stdio transport. Leave unset to use OpenClaw's managed Codex binary.",
+      "help": "Executable used for stdio transport. Leave unset to use Kova's managed Codex binary.",
       "advanced": true
     },
     "appServer.args": {

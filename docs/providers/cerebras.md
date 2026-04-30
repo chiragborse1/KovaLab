@@ -2,7 +2,7 @@
 summary: "Cerebras setup (auth + model selection)"
 title: "Cerebras"
 read_when:
-  - You want to use Cerebras with OpenClaw
+  - You want to use Cerebras with Kova
   - You need the Cerebras API key env var or CLI auth choice
 ---
 
@@ -23,12 +23,12 @@ read_when:
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice cerebras-api-key
+    kova onboard --auth-choice cerebras-api-key
     ```
   </Step>
   <Step title="Verify models are available">
     ```bash
-    openclaw models list --provider cerebras
+    kova models list --provider cerebras
     ```
   </Step>
 </Steps>
@@ -36,7 +36,7 @@ read_when:
 ### Non-Interactive Setup
 
 ```bash
-openclaw onboard --non-interactive \
+kova onboard --non-interactive \
   --mode local \
   --auth-choice cerebras-api-key \
   --cerebras-api-key "$CEREBRAS_API_KEY"
@@ -44,7 +44,7 @@ openclaw onboard --non-interactive \
 
 ## Built-In Catalog
 
-OpenClaw ships a static Cerebras catalog for the public OpenAI-compatible endpoint:
+Kova ships a static Cerebras catalog for the public OpenAI-compatible endpoint:
 
 | Model ref                                 | Name                 | Notes                                  |
 | ----------------------------------------- | -------------------- | -------------------------------------- |

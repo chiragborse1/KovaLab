@@ -2,7 +2,7 @@
   "name": "@openclaw/qa-channel",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw QA synthetic channel plugin",
+  "description": "Kova QA synthetic channel plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.33"
@@ -31,7 +31,7 @@
       "detailLabel": "QA Channel",
       "docsPath": "/channels/qa-channel",
       "docsLabel": "qa-channel",
-      "blurb": "Synthetic Slack-class transport for automated OpenClaw QA scenarios.",
+      "blurb": "Synthetic Slack-class transport for automated Kova QA scenarios.",
       "systemImage": "checklist",
       "order": 999,
       "exposure": {

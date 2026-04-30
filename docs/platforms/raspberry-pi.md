@@ -1,17 +1,17 @@
 ---
-summary: "OpenClaw on Raspberry Pi (budget self-hosted setup)"
+summary: "Kova on Raspberry Pi (budget self-hosted setup)"
 read_when:
-  - Setting up OpenClaw on a Raspberry Pi
-  - Running OpenClaw on ARM devices
+  - Setting up Kova on a Raspberry Pi
+  - Running Kova on ARM devices
   - Building a cheap always-on personal AI
 title: "Raspberry Pi (platform)"
 ---
 
-# OpenClaw on Raspberry Pi
+# Kova on Raspberry Pi
 
 ## Goal
 
-Run a persistent, always-on OpenClaw Gateway on a Raspberry Pi for **~$35-80** one-time cost (no monthly fees).
+Run a persistent, always-on Kova Gateway on a Raspberry Pi for **~$35-80** one-time cost (no monthly fees).
 
 Perfect for:
 
@@ -107,7 +107,7 @@ echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
 
-## 6) Install OpenClaw
+## 6) Install Kova
 
 ### Option A: standard install (recommended)
 
@@ -130,7 +130,7 @@ The hackable install gives you direct access to logs and code — useful for deb
 ## 7) Run Onboarding
 
 ```bash
-openclaw onboard --install-daemon
+kova onboard --install-daemon
 ```
 
 Follow the wizard:
@@ -144,7 +144,7 @@ Follow the wizard:
 
 ```bash
 # Check status
-openclaw status
+kova status
 
 # Check service (standard install = systemd user unit)
 systemctl --user status openclaw-gateway.service
@@ -153,14 +153,14 @@ systemctl --user status openclaw-gateway.service
 journalctl --user -u openclaw-gateway.service -f
 ```
 
-## 9) Access the OpenClaw Dashboard
+## 9) Access the Kova Dashboard
 
 Replace `user@gateway-host` with your Pi username and hostname or IP address.
 
 On your computer, ask the Pi to print a fresh dashboard URL:
 
 ```bash
-ssh user@gateway-host 'openclaw dashboard --no-open'
+ssh user@gateway-host 'kova dashboard --no-open'
 ```
 
 The command prints `Dashboard URL:`. Depending on how `gateway.auth.token`
@@ -218,7 +218,7 @@ Notes:
 
 ### systemd startup tuning (optional)
 
-If this Pi is mostly running OpenClaw, add a service drop-in to reduce restart
+If this Pi is mostly running Kova, add a service drop-in to reduce restart
 jitter and keep startup env stable:
 
 ```bash
@@ -241,7 +241,7 @@ systemctl --user daemon-reload
 systemctl --user restart openclaw-gateway.service
 ```
 
-If possible, keep OpenClaw state/cache on SSD-backed storage to avoid SD-card
+If possible, keep Kova state/cache on SSD-backed storage to avoid SD-card
 random-I/O bottlenecks during cold starts.
 
 If this is a headless Pi, enable lingering once so the user service survives
@@ -283,7 +283,7 @@ htop
 
 ### Binary compatibility
 
-Most OpenClaw features work on ARM64, but some external binaries may need ARM builds:
+Most Kova features work on ARM64, but some external binaries may need ARM builds:
 
 | Tool               | ARM64 Status | Notes                               |
 | ------------------ | ------------ | ----------------------------------- |

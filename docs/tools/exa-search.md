@@ -7,7 +7,7 @@ read_when:
 title: "Exa search"
 ---
 
-OpenClaw supports [Exa AI](https://exa.ai/) as a `web_search` provider. Exa
+Kova supports [Exa AI](https://exa.ai/) as a `web_search` provider. Exa
 offers neural, keyword, and hybrid search modes with built-in content
 extraction (highlights, text, summaries).
 
@@ -22,7 +22,7 @@ extraction (highlights, text, summaries).
     Set `EXA_API_KEY` in the Gateway environment, or configure via:
 
     ```bash
-    openclaw configure --section web
+    kova configure --section web
     ```
 
   </Step>

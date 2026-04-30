@@ -2,7 +2,7 @@
 summary: "Together AI setup (auth + model selection)"
 title: "Together AI"
 read_when:
-  - You want to use Together AI with OpenClaw
+  - You want to use Together AI with Kova
   - You need the API key env var or CLI auth choice
 ---
 
@@ -25,7 +25,7 @@ models including Llama, DeepSeek, Kimi, and more through a unified API.
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice together-api-key
+    kova onboard --auth-choice together-api-key
     ```
   </Step>
   <Step title="Set a default model">
@@ -44,7 +44,7 @@ models including Llama, DeepSeek, Kimi, and more through a unified API.
 ### Non-interactive example
 
 ```bash
-openclaw onboard --non-interactive \
+kova onboard --non-interactive \
   --mode local \
   --auth-choice together-api-key \
   --together-api-key "$TOGETHER_API_KEY"
@@ -57,7 +57,7 @@ model.
 
 ## Built-in catalog
 
-OpenClaw ships this bundled Together catalog:
+Kova ships this bundled Together catalog:
 
 | Model ref                                                    | Name                                   | Input       | Context    | Notes                            |
 | ------------------------------------------------------------ | -------------------------------------- | ----------- | ---------- | -------------------------------- |
@@ -115,7 +115,7 @@ provider selection, and failover behavior.
   </Accordion>
 
   <Accordion title="Troubleshooting">
-    - Verify your key works: `openclaw models list --provider together`
+    - Verify your key works: `kova models list --provider together`
     - If models are not appearing, confirm the API key is set in the correct
       environment for your Gateway process.
     - Model refs use the form `together/<model-id>`.

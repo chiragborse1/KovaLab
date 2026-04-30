@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `openclaw skills` (search/install/update/list/info/check)"
+summary: "CLI reference for `kova skills` (search/install/update/list/info/check)"
 read_when:
   - You want to see which skills are available and ready to run
   - You want to search, install, or update skills from ClawHub
@@ -7,7 +7,7 @@ read_when:
 title: "Skills"
 ---
 
-# `openclaw skills`
+# `kova skills`
 
 Inspect local skills and install/update skills from ClawHub.
 
@@ -20,21 +20,21 @@ Related:
 ## Commands
 
 ```bash
-openclaw skills search "calendar"
-openclaw skills search --limit 20 --json
-openclaw skills install <slug>
-openclaw skills install <slug> --version <version>
-openclaw skills install <slug> --force
-openclaw skills update <slug>
-openclaw skills update --all
-openclaw skills list
-openclaw skills list --eligible
-openclaw skills list --json
-openclaw skills list --verbose
-openclaw skills info <name>
-openclaw skills info <name> --json
-openclaw skills check
-openclaw skills check --json
+kova skills search "calendar"
+kova skills search --limit 20 --json
+kova skills install <slug>
+kova skills install <slug> --version <version>
+kova skills install <slug> --force
+kova skills update <slug>
+kova skills update --all
+kova skills list
+kova skills list --eligible
+kova skills list --json
+kova skills list --verbose
+kova skills info <name>
+kova skills info <name> --json
+kova skills check
+kova skills check --json
 ```
 
 `search`/`install`/`update` use ClawHub directly and install into the active

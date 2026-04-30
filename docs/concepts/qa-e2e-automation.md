@@ -7,7 +7,7 @@ read_when:
 title: "QA E2E automation"
 ---
 
-The private QA stack is meant to exercise OpenClaw in a more realistic,
+The private QA stack is meant to exercise Kova in a more realistic,
 channel-shaped way than a single unit test can.
 
 Current pieces:
@@ -39,7 +39,7 @@ For faster QA Lab UI iteration without rebuilding the Docker image each time,
 start the stack with a bind-mounted QA Lab bundle:
 
 ```bash
-pnpm openclaw qa docker-build-image
+pnpm kova qa docker-build-image
 pnpm qa:lab:build
 pnpm qa:lab:up:fast
 pnpm qa:lab:watch
@@ -73,7 +73,7 @@ instrumentation.
 For a transport-real Matrix smoke lane, run:
 
 ```bash
-pnpm openclaw qa matrix --profile fast --fail-fast
+pnpm kova qa matrix --profile fast --fail-fast
 ```
 
 That lane provisions a disposable Tuwunel homeserver in Docker, registers
@@ -85,7 +85,7 @@ a combined stdout/stderr log into the selected Matrix QA output directory. To
 capture the outer `scripts/run-node.mjs` build/launcher output too, set
 `OPENCLAW_RUN_NODE_OUTPUT_LOG=<path>` to a repo-local log file.
 Matrix progress is printed by default. The CLI default profile is `all`, so
-plain `pnpm openclaw qa matrix` still runs the full catalog. Use `--profile
+plain `pnpm kova qa matrix` still runs the full catalog. Use `--profile
 fast` for the release-critical transport contract, or shard full coverage with
 `transport`, `media`, `e2ee-smoke`, `e2ee-deep`, and `e2ee-cli`. `--fail-fast`
 stops after the first failed scenario when you want a release gate instead of a
@@ -97,7 +97,7 @@ Docker teardown reports the exact recovery command instead of hanging.
 For a transport-real Telegram smoke lane, run:
 
 ```bash
-pnpm openclaw qa telegram
+pnpm kova qa telegram
 ```
 
 That lane targets one real private Telegram group instead of provisioning a
@@ -115,7 +115,7 @@ send request to the observed SUT reply, starting with the canary.
 Before using pooled live credentials, run:
 
 ```bash
-pnpm openclaw qa credentials doctor
+pnpm kova qa credentials doctor
 ```
 
 The doctor checks Convex broker env, validates endpoint settings, and verifies
@@ -125,12 +125,12 @@ set/missing status for secrets.
 For a transport-real Discord smoke lane, run:
 
 ```bash
-pnpm openclaw qa discord
+pnpm kova qa discord
 ```
 
 That lane targets one real private Discord guild channel with two bots: a
 driver bot controlled by the harness and a SUT bot started by the child
-OpenClaw gateway through the bundled Discord plugin. It requires
+Kova gateway through the bundled Discord plugin. It requires
 `OPENCLAW_QA_DISCORD_GUILD_ID`, `OPENCLAW_QA_DISCORD_CHANNEL_ID`,
 `OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN`, `OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN`,
 and `OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID` when using env credentials.
@@ -158,10 +158,10 @@ checklist.
 For a disposable Linux VM lane without bringing Docker into the QA path, run:
 
 ```bash
-pnpm openclaw qa suite --runner multipass --scenario channel-chat-baseline
+pnpm kova qa suite --runner multipass --scenario channel-chat-baseline
 ```
 
-This boots a fresh Multipass guest, installs dependencies, builds OpenClaw
+This boots a fresh Multipass guest, installs dependencies, builds Kova
 inside the guest, runs `qa suite`, then copies the normal QA report and
 summary back into `.artifacts/qa-e2e/...` on the host.
 It reuses the same scenario-selection behavior as `qa suite` on the host.
@@ -221,7 +221,7 @@ The baseline list should stay broad enough to cover:
 
 `qa suite` has two local provider mock lanes:
 
-- `mock-openai` is the scenario-aware OpenClaw mock. It remains the default
+- `mock-openai` is the scenario-aware Kova mock. It remains the default
   deterministic mock lane for repo-backed QA and parity gates.
 - `aimock` starts an AIMock-backed provider server for experimental protocol,
   fixture, record/replay, and chaos coverage. It is additive and does not
@@ -263,7 +263,7 @@ For character and style checks, run the same scenario across multiple live model
 refs and write a judged Markdown report:
 
 ```bash
-pnpm openclaw qa character-eval \
+pnpm kova qa character-eval \
   --model openai/gpt-5.5,thinking=medium,fast \
   --model openai/gpt-5.2,thinking=xhigh \
   --model openai/gpt-5,thinking=xhigh \

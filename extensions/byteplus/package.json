@@ -2,7 +2,7 @@
   "name": "@openclaw/byteplus-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw BytePlus provider plugin",
+  "description": "Kova BytePlus provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

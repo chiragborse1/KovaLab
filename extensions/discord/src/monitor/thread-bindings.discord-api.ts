@@ -186,7 +186,7 @@ export async function createWebhookForChannel(params: {
     }).rest;
     const created = (await rest.post(Routes.channelWebhooks(params.channelId), {
       body: {
-        name: "OpenClaw Agents",
+        name: "Kova Agents",
       },
     })) as { id?: string; token?: string };
     const webhookId = normalizeOptionalString(created?.id) ?? "";

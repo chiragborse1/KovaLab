@@ -2,7 +2,7 @@
   "name": "@openclaw/slack",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Slack channel plugin",
+  "description": "Kova Slack channel plugin",
   "type": "module",
   "dependencies": {
     "@slack/bolt": "^4.7.1",

@@ -2,13 +2,13 @@
 summary: "Tencent Cloud TokenHub setup for Hy3 preview"
 title: "Tencent Cloud (TokenHub)"
 read_when:
-  - You want to use Tencent Hy3 preview with OpenClaw
+  - You want to use Tencent Hy3 preview with Kova
   - You need the TokenHub API key setup
 ---
 
 # Tencent Cloud TokenHub
 
-Tencent Cloud ships as a **bundled provider plugin** in OpenClaw. It gives access to Tencent Hy3 preview through the TokenHub endpoint (`tencent-tokenhub`).
+Tencent Cloud ships as a **bundled provider plugin** in Kova. It gives access to Tencent Hy3 preview through the TokenHub endpoint (`tencent-tokenhub`).
 
 The provider uses an OpenAI-compatible API.
 
@@ -29,12 +29,12 @@ The provider uses an OpenAI-compatible API.
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice tokenhub-api-key
+    kova onboard --auth-choice tokenhub-api-key
     ```
   </Step>
   <Step title="Verify the model">
     ```bash
-    openclaw models list --provider tencent-tokenhub
+    kova models list --provider tencent-tokenhub
     ```
   </Step>
 </Steps>
@@ -42,7 +42,7 @@ The provider uses an OpenAI-compatible API.
 ## Non-interactive setup
 
 ```bash
-openclaw onboard --non-interactive \
+kova onboard --non-interactive \
   --mode local \
   --auth-choice tokenhub-api-key \
   --tokenhub-api-key "$TOKENHUB_API_KEY" \
@@ -59,15 +59,15 @@ openclaw onboard --non-interactive \
 Hy3 preview is Tencent Hunyuan's large MoE language model for reasoning, long-context instruction following, code, and agent workflows. Tencent's OpenAI-compatible examples use `hy3-preview` as the model id and support standard chat-completions tool calling plus `reasoning_effort`.
 
 <Tip>
-The model id is `hy3-preview`. Do not confuse it with Tencent's `HY-3D-*` models, which are 3D generation APIs and are not the OpenClaw chat model configured by this provider.
+The model id is `hy3-preview`. Do not confuse it with Tencent's `HY-3D-*` models, which are 3D generation APIs and are not the Kova chat model configured by this provider.
 </Tip>
 
 ## Endpoint override
 
-OpenClaw defaults to Tencent Cloud's `https://tokenhub.tencentmaas.com/v1` endpoint. Tencent also documents an international TokenHub endpoint:
+Kova defaults to Tencent Cloud's `https://tokenhub.tencentmaas.com/v1` endpoint. Tencent also documents an international TokenHub endpoint:
 
 ```bash
-openclaw config set models.providers.tencent-tokenhub.baseUrl "https://tokenhub-intl.tencentmaas.com/v1"
+kova config set models.providers.tencent-tokenhub.baseUrl "https://tokenhub-intl.tencentmaas.com/v1"
 ```
 
 Only override the endpoint when your TokenHub account or region requires it.
@@ -88,7 +88,7 @@ is available to that process (for example, in `~/.openclaw/.env` or via
 
 ## Related documentation
 
-- [OpenClaw Configuration](/gateway/configuration)
+- [Kova Configuration](/gateway/configuration)
 - [Model Providers](/concepts/model-providers)
 - [Tencent TokenHub product page](https://cloud.tencent.com/product/tokenhub)
 - [Tencent TokenHub text generation](https://cloud.tencent.com/document/product/1823/130079)

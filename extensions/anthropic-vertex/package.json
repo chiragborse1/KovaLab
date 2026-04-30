@@ -2,7 +2,7 @@
   "name": "@openclaw/anthropic-vertex-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Anthropic Vertex provider plugin",
+  "description": "Kova Anthropic Vertex provider plugin",
   "type": "module",
   "dependencies": {
     "@anthropic-ai/vertex-sdk": "^0.16.0",

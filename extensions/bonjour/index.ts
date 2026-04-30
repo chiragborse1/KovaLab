@@ -8,18 +8,18 @@ import { startGatewayBonjourAdvertiser } from "./src/advertiser.js";
 function formatBonjourInstanceName(displayName: string) {
   const trimmed = displayName.trim();
   if (!trimmed) {
-    return "OpenClaw";
+    return "Kova";
   }
   if (/openclaw/i.test(trimmed)) {
     return trimmed;
   }
-  return `${trimmed} (OpenClaw)`;
+  return `${trimmed} (Kova)`;
 }
 
 export default definePluginEntry({
   id: "bonjour",
   name: "Bonjour Gateway Discovery",
-  description: "Advertise the local OpenClaw gateway over Bonjour/mDNS.",
+  description: "Advertise the local Kova gateway over Bonjour/mDNS.",
   register(api) {
     api.registerGatewayDiscoveryService({
       id: "bonjour",

@@ -1,5 +1,5 @@
 ---
-summary: "Gateway config reference for core OpenClaw keys, defaults, and links to dedicated subsystem references"
+summary: "Gateway config reference for core Kova keys, defaults, and links to dedicated subsystem references"
 title: "Configuration reference"
 read_when:
   - You need exact field-level config semantics or defaults
@@ -8,11 +8,11 @@ read_when:
 
 Core config reference for `~/.openclaw/openclaw.json`. For a task-oriented overview, see [Configuration](/gateway/configuration).
 
-Covers the main OpenClaw config surfaces and links out when a subsystem has its own deeper reference. Channel- and plugin-owned command catalogs and deep memory/QMD knobs live on their own pages rather than on this one.
+Covers the main Kova config surfaces and links out when a subsystem has its own deeper reference. Channel- and plugin-owned command catalogs and deep memory/QMD knobs live on their own pages rather than on this one.
 
 Code truth:
 
-- `openclaw config schema` prints the live JSON Schema used for validation and Control UI, with bundled/plugin/channel metadata merged in when available
+- `kova config schema` prints the live JSON Schema used for validation and Control UI, with bundled/plugin/channel metadata merged in when available
 - `config.schema.lookup` returns one path-scoped schema node for drill-down tooling
 - `pnpm config:docs:check` / `pnpm config:docs:gen` validate the config-doc baseline hash against the current schema surface
 
@@ -27,7 +27,7 @@ Dedicated deep references:
 - [Slash commands](/tools/slash-commands) for the current built-in + bundled command catalog
 - owning channel/plugin pages for channel-specific command surfaces
 
-Config format is **JSON5** (comments + trailing commas allowed). All fields are optional — OpenClaw uses safe defaults when omitted.
+Config format is **JSON5** (comments + trailing commas allowed). All fields are optional — Kova uses safe defaults when omitted.
 
 ---
 
@@ -59,8 +59,8 @@ provider / base-URL setup moved to a dedicated page — see
 
 ## MCP
 
-OpenClaw-managed MCP server definitions live under `mcp.servers` and are
-consumed by embedded Pi and other runtime adapters. The `openclaw mcp list`,
+Kova-managed MCP server definitions live under `mcp.servers` and are
+consumed by embedded Pi and other runtime adapters. The `kova mcp list`,
 `show`, `set`, and `unset` commands manage this block without connecting to the
 target server during config edits.
 
@@ -89,8 +89,8 @@ target server during config edits.
 - `mcp.servers`: named stdio or remote MCP server definitions for runtimes that
   expose configured MCP tools.
   Remote entries use `transport: "streamable-http"` or `transport: "sse"`;
-  `type: "http"` is a CLI-native alias that `openclaw mcp set` and
-  `openclaw doctor --fix` normalize into the canonical `transport` field.
+  `type: "http"` is a CLI-native alias that `kova mcp set` and
+  `kova doctor --fix` normalize into the canonical `transport` field.
 - `mcp.sessionIdleTtlMs`: idle TTL for session-scoped bundled MCP runtimes.
   One-shot embedded runs request run-end cleanup; this TTL is the backstop for
   long-lived sessions and future callers.
@@ -162,7 +162,7 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 ```
 
 - Loaded from `~/.openclaw/extensions`, `<workspace>/.openclaw/extensions`, plus `plugins.load.paths`.
-- Discovery accepts native OpenClaw plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
+- Discovery accepts native Kova plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
 - **Config changes require a gateway restart.**
 - `allow`: optional allowlist (only listed plugins load). `deny` wins.
 - `plugins.entries.<id>.apiKey`: plugin-level API key convenience field (when supported by the plugin).
@@ -171,8 +171,8 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 - `plugins.entries.<id>.hooks.allowConversationAccess`: when `true`, trusted non-bundled plugins may read raw conversation content from typed hooks such as `llm_input`, `llm_output`, `before_agent_finalize`, and `agent_end`.
 - `plugins.entries.<id>.subagent.allowModelOverride`: explicitly trust this plugin to request per-run `provider` and `model` overrides for background subagent runs.
 - `plugins.entries.<id>.subagent.allowedModels`: optional allowlist of canonical `provider/model` targets for trusted subagent overrides. Use `"*"` only when you intentionally want to allow any model.
-- `plugins.entries.<id>.config`: plugin-defined config object (validated by native OpenClaw plugin schema when available).
-- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central OpenClaw option registry.
+- `plugins.entries.<id>.config`: plugin-defined config object (validated by native Kova plugin schema when available).
+- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central Kova option registry.
 - `plugins.entries.firecrawl.config.webFetch`: Firecrawl web-fetch provider settings.
   - `apiKey`: Firecrawl API key (accepts SecretRef). Falls back to `plugins.entries.firecrawl.config.webSearch.apiKey`, legacy `tools.web.fetch.firecrawl.apiKey`, or `FIRECRAWL_API_KEY` env var.
   - `baseUrl`: Firecrawl API base URL (default: `https://api.firecrawl.dev`).
@@ -193,7 +193,7 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
   - `memory.citations`
   - `memory.qmd.*`
   - `plugins.entries.memory-core.config.dreaming`
-- Enabled Claude bundle plugins can also contribute embedded Pi defaults from `settings.json`; OpenClaw applies those as sanitized agent settings, not as raw OpenClaw config patches.
+- Enabled Claude bundle plugins can also contribute embedded Pi defaults from `settings.json`; Kova applies those as sanitized agent settings, not as raw Kova config patches.
 - `plugins.slots.memory`: pick the active memory plugin id, or `"none"` to disable memory plugins.
 - `plugins.slots.contextEngine`: pick the active context engine plugin id; defaults to `"legacy"` unless you install and select another engine.
 
@@ -258,13 +258,13 @@ See [Plugins](/tools/plugin).
 - In strict mode, use `ssrfPolicy.hostnameAllowlist` and `ssrfPolicy.allowedHostnames` for explicit exceptions.
 - Remote profiles are attach-only (start/stop/reset disabled).
 - `profiles.*.cdpUrl` accepts `http://`, `https://`, `ws://`, and `wss://`.
-  Use HTTP(S) when you want OpenClaw to discover `/json/version`; use WS(S)
+  Use HTTP(S) when you want Kova to discover `/json/version`; use WS(S)
   when your provider gives you a direct DevTools WebSocket URL.
 - `remoteCdpTimeoutMs` and `remoteCdpHandshakeTimeoutMs` apply to remote and
   `attachOnly` CDP reachability plus tab-opening requests. Managed loopback
   profiles keep local CDP defaults.
 - If an externally managed CDP service is reachable through loopback, set that
-  profile's `attachOnly: true`; otherwise OpenClaw treats the loopback port as a
+  profile's `attachOnly: true`; otherwise Kova treats the loopback port as a
   local managed browser profile and may report local port ownership errors.
 - `existing-session` profiles use Chrome MCP instead of CDP and can attach on
   the selected host or through a connected browser node.
@@ -274,7 +274,7 @@ See [Plugins](/tools/plugin).
   snapshot/ref-driven actions instead of CSS-selector targeting, one-file upload
   hooks, no dialog timeout overrides, no `wait --load networkidle`, and no
   `responsebody`, PDF export, download interception, or batch actions.
-- Local managed `openclaw` profiles auto-assign `cdpPort` and `cdpUrl`; only
+- Local managed `kova` profiles auto-assign `cdpPort` and `cdpUrl`; only
   set `cdpUrl` explicitly for remote CDP.
 - Local managed profiles can set `executablePath` to override the global
   `browser.executablePath` for that profile. Use this to run one profile in
@@ -301,7 +301,7 @@ See [Plugins](/tools/plugin).
   ui: {
     seamColor: "#FF4500",
     assistant: {
-      name: "OpenClaw",
+      name: "Kova",
       avatar: "CB", // emoji, short text, image URL, or data URI
     },
   },
@@ -455,7 +455,7 @@ Run multiple gateways on one host with unique ports and state dirs:
 ```bash
 OPENCLAW_CONFIG_PATH=~/.openclaw/a.json \
 OPENCLAW_STATE_DIR=~/.openclaw-a \
-openclaw gateway --port 19001
+kova gateway --port 19001
 ```
 
 Convenience flags: `--dev` (uses `~/.openclaw-dev` + port `19001`), `--profile <name>` (uses `~/.openclaw-<name>`).
@@ -652,7 +652,7 @@ Validation and safety notes:
 
 - `minimal` (default): omit `cliPath` + `sshPort` from TXT records.
 - `full`: include `cliPath` + `sshPort`.
-- Hostname defaults to the system hostname when it is a valid DNS label, falling back to `openclaw`. Override with `OPENCLAW_MDNS_HOSTNAME`.
+- Hostname defaults to the system hostname when it is a valid DNS label, falling back to `kova`. Override with `OPENCLAW_MDNS_HOSTNAME`.
 
 ### Wide-area (DNS-SD)
 
@@ -666,7 +666,7 @@ Validation and safety notes:
 
 Writes a unicast DNS-SD zone under `~/.openclaw/dns/`. For cross-network discovery, pair with a DNS server (CoreDNS recommended) + Tailscale split DNS.
 
-Setup: `openclaw dns setup --apply`.
+Setup: `kova dns setup --apply`.
 
 ---
 
@@ -862,7 +862,7 @@ Notes:
 - Default log file: `/tmp/openclaw/openclaw-YYYY-MM-DD.log`.
 - Set `logging.file` for a stable path.
 - `consoleLevel` bumps to `debug` when `--verbose`.
-- `maxFileBytes`: maximum active log file size in bytes before rotation (positive integer; default: `104857600` = 100 MB). OpenClaw keeps up to five numbered archives beside the active file.
+- `maxFileBytes`: maximum active log file size in bytes before rotation (positive integer; default: `104857600` = 100 MB). Kova keeps up to five numbered archives beside the active file.
 - `redactSensitive` / `redactPatterns`: best-effort masking for console output, file logs, OTLP log records, and persisted session transcript text.
 
 ---
@@ -925,7 +925,7 @@ Notes:
 - `otel.flushIntervalMs`: periodic telemetry flush interval in ms.
 - `otel.captureContent`: opt-in raw content capture for OTEL span attributes. Defaults to off. Boolean `true` captures non-system message/tool content; the object form lets you enable `inputMessages`, `outputMessages`, `toolInputs`, `toolOutputs`, and `systemPrompt` explicitly.
 - `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental`: environment toggle for latest experimental GenAI span provider attributes. By default spans keep the legacy `gen_ai.system` attribute for compatibility; GenAI metrics use bounded semantic attributes.
-- `OPENCLAW_OTEL_PRELOADED=1`: environment toggle for hosts that already registered a global OpenTelemetry SDK. OpenClaw then skips plugin-owned SDK startup/shutdown while keeping diagnostic listeners active.
+- `OPENCLAW_OTEL_PRELOADED=1`: environment toggle for hosts that already registered a global OpenTelemetry SDK. Kova then skips plugin-owned SDK startup/shutdown while keeping diagnostic listeners active.
 - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`, and `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`: signal-specific endpoint env vars used when the matching config key is unset.
 - `cacheTrace.enabled`: log cache trace snapshots for embedded runs (default: `false`).
 - `cacheTrace.filePath`: output path for cache trace JSONL (default: `$OPENCLAW_STATE_DIR/logs/cache-trace.jsonl`).
@@ -1023,7 +1023,7 @@ Notes:
 
 - `cli.banner.taglineMode` controls banner tagline style:
   - `"random"` (default): rotating funny/seasonal taglines.
-  - `"default"`: fixed neutral tagline (`All your chats, one OpenClaw.`).
+  - `"default"`: fixed neutral tagline (`All your chats, one Kova.`).
   - `"off"`: no tagline text (banner title/version still shown).
 - To hide the entire banner (not just taglines), set env `OPENCLAW_HIDE_BANNER=1`.
 
@@ -1055,7 +1055,7 @@ See `agents.list` identity fields under [Agent defaults](/gateway/config-agents#
 
 ## Bridge (legacy, removed)
 
-Current builds no longer include the TCP bridge. Nodes connect over the Gateway WebSocket. `bridge.*` keys are no longer part of the config schema (validation fails until removed; `openclaw doctor --fix` can strip unknown keys).
+Current builds no longer include the TCP bridge. Nodes connect over the Gateway WebSocket. `bridge.*` keys are no longer part of the config schema (validation fails until removed; `kova doctor --fix` can strip unknown keys).
 
 <Accordion title="Legacy bridge config (historical reference)">
 
@@ -1224,8 +1224,8 @@ Split config into multiple files:
 - Sibling keys: merged after includes (override included values).
 - Nested includes: up to 10 levels deep.
 - Paths: resolved relative to the including file, but must stay inside the top-level config directory (`dirname` of `openclaw.json`). Absolute/`../` forms are allowed only when they still resolve inside that boundary.
-- OpenClaw-owned writes that change only one top-level section backed by a single-file include write through to that included file. For example, `plugins install` updates `plugins: { $include: "./plugins.json5" }` in `plugins.json5` and leaves `openclaw.json` intact.
-- Root includes, include arrays, and includes with sibling overrides are read-only for OpenClaw-owned writes; those writes fail closed instead of flattening the config.
+- Kova-owned writes that change only one top-level section backed by a single-file include write through to that included file. For example, `plugins install` updates `plugins: { $include: "./plugins.json5" }` in `plugins.json5` and leaves `openclaw.json` intact.
+- Root includes, include arrays, and includes with sibling overrides are read-only for Kova-owned writes; those writes fail closed instead of flattening the config.
 - Errors: clear messages for missing files, parse errors, and circular includes.
 
 ---

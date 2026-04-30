@@ -20,7 +20,7 @@ If the Gateway is running on the same computer, open:
 
 - [http://127.0.0.1:18789/](http://127.0.0.1:18789/) (or [http://localhost:18789/](http://localhost:18789/))
 
-If the page fails to load, start the Gateway first: `openclaw gateway`.
+If the page fails to load, start the Gateway first: `kova gateway`.
 
 Auth is supplied during the WebSocket handshake via:
 
@@ -40,21 +40,21 @@ When you connect to the Control UI from a new browser or device, the Gateway usu
 <Steps>
   <Step title="List pending requests">
     ```bash
-    openclaw devices list
+    kova devices list
     ```
   </Step>
   <Step title="Approve by request ID">
     ```bash
-    openclaw devices approve <requestId>
+    kova devices approve <requestId>
     ```
   </Step>
 </Steps>
 
-If the browser retries pairing with changed auth details (role/scopes/public key), the previous pending request is superseded and a new `requestId` is created. Re-run `openclaw devices list` before approval.
+If the browser retries pairing with changed auth details (role/scopes/public key), the previous pending request is superseded and a new `requestId` is created. Re-run `kova devices list` before approval.
 
-If the browser is already paired and you change it from read access to write/admin access, this is treated as an approval upgrade, not a silent reconnect. OpenClaw keeps the old approval active, blocks the broader reconnect, and asks you to approve the new scope set explicitly.
+If the browser is already paired and you change it from read access to write/admin access, this is treated as an approval upgrade, not a silent reconnect. Kova keeps the old approval active, blocks the broader reconnect, and asks you to approve the new scope set explicitly.
 
-Once approved, the device is remembered and won't require re-approval unless you revoke it with `openclaw devices revoke --device <id> --role <role>`. See [Devices CLI](/cli/devices) for token rotation and revocation.
+Once approved, the device is remembered and won't require re-approval unless you revoke it with `kova devices revoke --device <id> --role <role>`. See [Devices CLI](/cli/devices) for token rotation and revocation.
 
 <Note>
 - Direct local loopback browser connections (`127.0.0.1` / `localhost`) are auto-approved.
@@ -87,7 +87,7 @@ The Control UI can localize itself on first load based on your browser locale. T
 <AccordionGroup>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).
-    - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway mints a short-lived Realtime client secret with `talk.realtime.session`; the browser sends microphone audio directly to OpenAI and relays `openclaw_agent_consult` tool calls back through `chat.send` for the larger configured OpenClaw model.
+    - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway mints a short-lived Realtime client secret with `talk.realtime.session`; the browser sends microphone audio directly to OpenAI and relays `openclaw_agent_consult` tool calls back through `chat.send` for the larger configured Kova model.
     - Stream tool calls + live tool output cards in Chat (agent events).
   </Accordion>
   <Accordion title="Channels, instances, sessions, dreams">
@@ -147,13 +147,13 @@ The Control UI can localize itself on first load based on your browser locale. T
   <Accordion title="Talk mode (browser WebRTC)">
     Talk mode uses a registered realtime voice provider that supports browser WebRTC sessions. Configure OpenAI with `talk.provider: "openai"` plus `talk.providers.openai.apiKey`, or reuse the Voice Call realtime provider config. The browser never receives the standard OpenAI API key; it receives only the ephemeral Realtime client secret. Google Live realtime voice is supported for backend Voice Call and Google Meet bridges, but not this browser WebRTC path yet. The Realtime session prompt is assembled by the Gateway; `talk.realtime.session` does not accept caller-provided instruction overrides.
 
-    In the Chat composer, the Talk control is the waves button next to the microphone dictation button. When Talk starts, the composer status row shows `Connecting Talk...`, then `Talk live` while audio is connected, or `Asking OpenClaw...` while a realtime tool call is consulting the configured larger model through `chat.send`.
+    In the Chat composer, the Talk control is the waves button next to the microphone dictation button. When Talk starts, the composer status row shows `Connecting Talk...`, then `Talk live` while audio is connected, or `Asking Kova...` while a realtime tool call is consulting the configured larger model through `chat.send`.
 
   </Accordion>
   <Accordion title="Stop and abort">
     - Click **Stop** (calls `chat.abort`).
     - While a run is active, normal follow-ups queue. Click **Steer** on a queued message to inject that follow-up into the running turn.
-    - Type `/stop` (or standalone abort phrases like `stop`, `stop action`, `stop run`, `stop openclaw`, `please stop`) to abort out-of-band.
+    - Type `/stop` (or standalone abort phrases like `stop`, `stop action`, `stop run`, `stop kova`, `please stop`) to abort out-of-band.
     - `chat.abort` supports `{ sessionKey }` (no `runId`) to abort all active runs for that session.
   </Accordion>
   <Accordion title="Abort partial retention">
@@ -171,7 +171,7 @@ The Control UI ships a `manifest.webmanifest` and a service worker, so modern br
 | ----------------------------------------------------- | ------------------------------------------------------------------ |
 | `ui/public/manifest.webmanifest`                      | PWA manifest. Browsers offer "Install app" once it is reachable.   |
 | `ui/public/sw.js`                                     | Service worker that handles `push` events and notification clicks. |
-| `push/vapid-keys.json` (under the OpenClaw state dir) | Auto-generated VAPID keypair used to sign Web Push payloads.       |
+| `push/vapid-keys.json` (under the Kova state dir) | Auto-generated VAPID keypair used to sign Web Push payloads.       |
 | `push/web-push-subscriptions.json`                    | Persisted browser subscription endpoints.                          |
 
 Override the VAPID keypair through env vars on the Gateway process when you want to pin keys (for multi-host deployments, secrets rotation, or tests):
@@ -232,14 +232,14 @@ Absolute external `http(s)` embed URLs stay blocked by default. If you intention
     Keep the Gateway on loopback and let Tailscale Serve proxy it with HTTPS:
 
     ```bash
-    openclaw gateway --tailscale serve
+    kova gateway --tailscale serve
     ```
 
     Open:
 
     - `https://<magicdns>/` (or your configured `gateway.controlUi.basePath`)
 
-    By default, Control UI/WebSocket Serve requests can authenticate via Tailscale identity headers (`tailscale-user-login`) when `gateway.auth.allowTailscale` is `true`. OpenClaw verifies the identity by resolving the `x-forwarded-for` address with `tailscale whois` and matching it to the header, and only accepts these when the request hits loopback with Tailscale's `x-forwarded-*` headers. For Control UI operator sessions with browser device identity, this verified Serve path also skips the device-pairing round trip; device-less browsers and node-role connections still follow the normal device checks. Set `gateway.auth.allowTailscale: false` if you want to require explicit shared-secret credentials even for Serve traffic. Then use `gateway.auth.mode: "token"` or `"password"`.
+    By default, Control UI/WebSocket Serve requests can authenticate via Tailscale identity headers (`tailscale-user-login`) when `gateway.auth.allowTailscale` is `true`. Kova verifies the identity by resolving the `x-forwarded-for` address with `tailscale whois` and matching it to the header, and only accepts these when the request hits loopback with Tailscale's `x-forwarded-*` headers. For Control UI operator sessions with browser device identity, this verified Serve path also skips the device-pairing round trip; device-less browsers and node-role connections still follow the normal device checks. Set `gateway.auth.allowTailscale: false` if you want to require explicit shared-secret credentials even for Serve traffic. Then use `gateway.auth.mode: "token"` or `"password"`.
 
     For that async Serve identity path, failed auth attempts for the same client IP and auth scope are serialized before rate-limit writes. Concurrent bad retries from the same browser can therefore show `retry later` on the second request instead of two plain mismatches racing in parallel.
 
@@ -250,7 +250,7 @@ Absolute external `http(s)` embed URLs stay blocked by default. If you intention
   </Tab>
   <Tab title="Bind to tailnet + token">
     ```bash
-    openclaw gateway --bind tailnet --token "$(openssl rand -hex 32)"
+    kova gateway --bind tailnet --token "$(openssl rand -hex 32)"
     ```
 
     Then open:
@@ -264,7 +264,7 @@ Absolute external `http(s)` embed URLs stay blocked by default. If you intention
 
 ## Insecure HTTP
 
-If you open the dashboard over plain HTTP (`http://<lan-ip>` or `http://<tailscale-ip>`), the browser runs in a **non-secure context** and blocks WebCrypto. By default, OpenClaw **blocks** Control UI connections without device identity.
+If you open the dashboard over plain HTTP (`http://<lan-ip>` or `http://<tailscale-ip>`), the browser runs in a **non-secure context** and blocks WebCrypto. By default, Kova **blocks** Control UI connections without device identity.
 
 Documented exceptions:
 

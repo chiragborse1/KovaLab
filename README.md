@@ -1,9 +1,9 @@
-# 🦞 OpenClaw — Personal AI Assistant
+# 🦞 Kova — Personal AI Assistant
 
 <p align="center">
     <picture>
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/openclaw-logo-text-dark.svg">
-        <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/openclaw-logo-text.svg" alt="OpenClaw" width="500">
+        <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/openclaw-logo-text.svg" alt="Kova" width="500">
     </picture>
 </p>
 
@@ -18,7 +18,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-**OpenClaw** is a _personal AI assistant_ you run on your own devices.
+**Kova** is a _personal AI assistant_ you run on your own devices.
 It answers you on the channels you already use. It can speak and listen on macOS/iOS/Android, and can render a live Canvas you control. The Gateway is just the control plane — the product is the assistant.
 
 If you want a personal, single-user assistant that feels local, fast, and always-on, this is it.
@@ -29,8 +29,8 @@ Supported channels include: WhatsApp, Telegram, Slack, Discord, Google Chat, Sig
 
 New install? Start here: [Getting started](https://docs.openclaw.ai/start/getting-started)
 
-Preferred setup: run `openclaw onboard` in your terminal.
-OpenClaw Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Preferred setup: run `kova onboard` in your terminal.
+Kova Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
 
 ## Sponsors
@@ -102,10 +102,10 @@ Runtime: **Node 24 (recommended) or Node 22.14+**.
 npm install -g openclaw@latest
 # or: pnpm add -g openclaw@latest
 
-openclaw onboard --install-daemon
+kova onboard --install-daemon
 ```
 
-OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running.
+Kova Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running.
 
 ## Quick start (TL;DR)
 
@@ -114,34 +114,34 @@ Runtime: **Node 24 (recommended) or Node 22.14+**.
 Full beginner guide (auth, pairing, channels): [Getting started](https://docs.openclaw.ai/start/getting-started)
 
 ```bash
-openclaw onboard --install-daemon
+kova onboard --install-daemon
 
-openclaw gateway --port 18789 --verbose
+kova gateway --port 18789 --verbose
 
 # Send a message
-openclaw message send --target +1234567890 --message "Hello from OpenClaw"
+kova message send --target +1234567890 --message "Hello from Kova"
 
 # Talk to the assistant (optionally deliver back to any connected channel: WhatsApp/Telegram/Slack/Discord/Google Chat/Signal/iMessage/BlueBubbles/IRC/Microsoft Teams/Matrix/Feishu/LINE/Mattermost/Nextcloud Talk/Nostr/Synology Chat/Tlon/Twitch/Zalo/Zalo Personal/WeChat/QQ/WebChat)
-openclaw agent --message "Ship checklist" --thinking high
+kova agent --message "Ship checklist" --thinking high
 ```
 
-Upgrading? [Updating guide](https://docs.openclaw.ai/install/updating) (and run `openclaw doctor`).
+Upgrading? [Updating guide](https://docs.openclaw.ai/install/updating) (and run `kova doctor`).
 
 Models config + CLI: [Models](https://docs.openclaw.ai/concepts/models). Auth profile rotation + fallbacks: [Model failover](https://docs.openclaw.ai/concepts/model-failover).
 
 ## Security defaults (DM access)
 
-OpenClaw connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.
+Kova connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.
 
 Full security guide: [Security](https://docs.openclaw.ai/gateway/security)
 
 Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack:
 
 - **DM pairing** (`dmPolicy="pairing"` / `channels.discord.dmPolicy="pairing"` / `channels.slack.dmPolicy="pairing"`; legacy: `channels.discord.dm.policy`, `channels.slack.dm.policy`): unknown senders receive a short pairing code and the bot does not process their message.
-- Approve with: `openclaw pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
+- Approve with: `kova pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
 - Public inbound DMs require an explicit opt-in: set `dmPolicy="open"` and include `"*"` in the channel allowlist (`allowFrom` / `channels.discord.allowFrom` / `channels.slack.allowFrom`; legacy: `channels.discord.dm.allowFrom`, `channels.slack.dm.allowFrom`).
 
-Run `openclaw doctor` to surface risky/misconfigured DM policies.
+Run `kova doctor` to surface risky/misconfigured DM policies.
 
 ## Highlights
 
@@ -185,7 +185,7 @@ The Gateway alone delivers a great experience. All apps are optional and add ext
 
 If you plan to build/run companion apps, follow the platform runbooks below.
 
-### macOS (OpenClaw.app) (optional)
+### macOS (Kova.app) (optional)
 
 - Menu bar control for the Gateway and health.
 - Voice Wake + push-to-talk overlay.
@@ -198,13 +198,13 @@ Note: signed builds required for macOS permissions to stick across rebuilds (see
 
 - Pairs as a node over the Gateway WebSocket (device pairing).
 - Voice trigger forwarding + Canvas surface.
-- Controlled via `openclaw nodes …`.
+- Controlled via `kova nodes …`.
 
 Runbook: [iOS connect](https://docs.openclaw.ai/platforms/ios).
 
 ### Android node (optional)
 
-- Pairs as a WS node via device pairing (`openclaw devices ...`).
+- Pairs as a WS node via device pairing (`kova devices ...`).
 - Exposes Connect/Chat/Voice tabs plus Canvas, Camera, Screen capture, and Android device command families.
 - Runbook: [Android connect](https://docs.openclaw.ai/platforms/android).
 
@@ -220,8 +220,8 @@ cd openclaw
 
 pnpm install
 
-# First run only (or after resetting local OpenClaw config/workspace)
-pnpm openclaw setup
+# First run only (or after resetting local Kova config/workspace)
+pnpm kova setup
 
 # Optional: prebuild Control UI before first startup
 pnpm ui:build
@@ -237,9 +237,9 @@ pnpm build
 pnpm ui:build
 ```
 
-`pnpm openclaw setup` writes the local config/workspace needed for `pnpm gateway:watch`. It is safe to re-run, but you normally only need it on first setup or after resetting local state. `pnpm gateway:watch` does not rebuild `dist/control-ui`, so rerun `pnpm ui:build` after `ui/` changes or use `pnpm ui:dev` when iterating on the Control UI. If you want this checkout to run onboarding directly, use `pnpm openclaw onboard --install-daemon`.
+`pnpm kova setup` writes the local config/workspace needed for `pnpm gateway:watch`. It is safe to re-run, but you normally only need it on first setup or after resetting local state. `pnpm gateway:watch` does not rebuild `dist/control-ui`, so rerun `pnpm ui:build` after `ui/` changes or use `pnpm ui:dev` when iterating on the Control UI. If you want this checkout to run onboarding directly, use `pnpm kova onboard --install-daemon`.
 
-Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `openclaw` binary, while `pnpm gateway:watch` rebuilds the runtime on demand during the dev loop.
+Note: `pnpm kova ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `kova` binary, while `pnpm gateway:watch` rebuilds the runtime on demand during the dev loop.
 
 ## Development channels
 
@@ -247,7 +247,7 @@ Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` pro
 - **beta**: prerelease tags (`vYYYY.M.D-beta.N`), npm dist-tag `beta` (macOS app may be missing).
 - **dev**: moving head of `main`, npm dist-tag `dev` (when published).
 
-Switch channels (git + npm): `openclaw update --channel stable|beta|dev`.
+Switch channels (git + npm): `kova update --channel stable|beta|dev`.
 Details: [Development channels](https://docs.openclaw.ai/install/development-channels).
 
 ## Agent workspace + skills
@@ -276,7 +276,7 @@ Minimal `~/.openclaw/openclaw.json` (model + defaults):
 
 ## Molty
 
-OpenClaw was built for **Molty**, a space lobster AI assistant. 🦞
+Kova was built for **Molty**, a space lobster AI assistant. 🦞
 by Peter Steinberger and the community.
 
 - [openclaw.ai](https://openclaw.ai)

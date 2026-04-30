@@ -1,7 +1,7 @@
 {
   "id": "webhooks",
   "name": "Webhooks",
-  "description": "Authenticated inbound webhooks that bind external automation to OpenClaw TaskFlows.",
+  "description": "Authenticated inbound webhooks that bind external automation to Kova TaskFlows.",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

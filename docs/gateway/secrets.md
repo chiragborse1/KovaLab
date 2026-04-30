@@ -8,7 +8,7 @@ title: "Secrets management"
 sidebarTitle: "Secrets management"
 ---
 
-OpenClaw supports additive SecretRefs so supported credentials do not need to be stored as plaintext in configuration.
+Kova supports additive SecretRefs so supported credentials do not need to be stored as plaintext in configuration.
 
 <Note>
 Plaintext still works. SecretRefs are opt-in per credential.
@@ -65,7 +65,7 @@ These entries are logged with `SECRETS_GATEWAY_AUTH_SURFACE` and include the rea
 
 ## Onboarding reference preflight
 
-When onboarding runs in interactive mode and you choose SecretRef storage, OpenClaw runs preflight validation before saving:
+When onboarding runs in interactive mode and you choose SecretRef storage, Kova runs preflight validation before saving:
 
 - Env refs: validates env var name and confirms a non-empty value is visible during setup.
 - Provider refs (`file` or `exec`): validates provider selection, resolves `id`, and checks resolved value type.
@@ -170,7 +170,7 @@ Define providers under `secrets.providers`:
   <Accordion title="Exec provider">
     - Runs configured absolute binary path, no shell.
     - By default, `command` must point to a regular file (not a symlink).
-    - Set `allowSymlinkCommand: true` to allow symlink command paths (for example Homebrew shims). OpenClaw validates the resolved target path.
+    - Set `allowSymlinkCommand: true` to allow symlink command paths (for example Homebrew shims). Kova validates the resolved target path.
     - Pair `allowSymlinkCommand` with `trustedDirs` for package-manager paths (for example `["/opt/homebrew"]`).
     - Supports timeout, no-output timeout, output byte limits, env allowlist, and trusted dirs.
     - Windows fail-closed note: if ACL verification is unavailable for the command path, resolution fails. For trusted paths only, set `allowInsecurePath: true` on that provider to bypass path security checks.
@@ -213,7 +213,7 @@ Define providers under `secrets.providers`:
             command: "/opt/homebrew/bin/op",
             allowSymlinkCommand: true, // required for Homebrew symlinked binaries
             trustedDirs: ["/opt/homebrew"],
-            args: ["read", "op://Personal/OpenClaw QA API Key/password"],
+            args: ["read", "op://Personal/Kova QA API Key/password"],
             passEnv: ["HOME"],
             jsonOnly: false,
           },
@@ -347,7 +347,7 @@ The core `ssh` sandbox backend also supports SecretRefs for SSH auth material:
 
 Runtime behavior:
 
-- OpenClaw resolves these refs during sandbox activation, not lazily during each SSH call.
+- Kova resolves these refs during sandbox activation, not lazily during each SSH call.
 - Resolved values are written to temp files with restrictive permissions and used in generated SSH config.
 - If the effective sandbox backend is not `ssh`, these refs stay inactive and do not block startup.
 
@@ -398,7 +398,7 @@ Activation contract:
 
 ## Degraded and recovered signals
 
-When reload-time activation fails after a healthy state, OpenClaw enters degraded secrets state.
+When reload-time activation fails after a healthy state, Kova enters degraded secrets state.
 
 One-shot system event and log codes:
 
@@ -420,10 +420,10 @@ There are two broad behaviors:
 
 <Tabs>
   <Tab title="Strict command paths">
-    For example `openclaw memory` remote-memory paths and `openclaw qr --remote` when it needs remote shared-secret refs. They read from the active snapshot and fail fast when a required SecretRef is unavailable.
+    For example `kova memory` remote-memory paths and `kova qr --remote` when it needs remote shared-secret refs. They read from the active snapshot and fail fast when a required SecretRef is unavailable.
   </Tab>
   <Tab title="Read-only command paths">
-    For example `openclaw status`, `openclaw status --all`, `openclaw channels status`, `openclaw channels resolve`, `openclaw security audit`, and read-only doctor/config repair flows. They also prefer the active snapshot, but degrade instead of aborting when a targeted SecretRef is unavailable in that command path.
+    For example `kova status`, `kova status --all`, `kova channels status`, `kova channels resolve`, `kova security audit`, and read-only doctor/config repair flows. They also prefer the active snapshot, but degrade instead of aborting when a targeted SecretRef is unavailable in that command path.
 
     Read-only behavior:
 
@@ -437,7 +437,7 @@ There are two broad behaviors:
 
 Other notes:
 
-- Snapshot refresh after backend secret rotation is handled by `openclaw secrets reload`.
+- Snapshot refresh after backend secret rotation is handled by `kova secrets reload`.
 - Gateway RPC method used by these command paths: `secrets.resolve`.
 
 ## Audit and configure workflow
@@ -447,17 +447,17 @@ Default operator flow:
 <Steps>
   <Step title="Audit current state">
     ```bash
-    openclaw secrets audit --check
+    kova secrets audit --check
     ```
   </Step>
   <Step title="Configure SecretRefs">
     ```bash
-    openclaw secrets configure
+    kova secrets configure
     ```
   </Step>
   <Step title="Re-audit">
     ```bash
-    openclaw secrets audit --check
+    kova secrets audit --check
     ```
   </Step>
 </Steps>
@@ -475,7 +475,7 @@ Default operator flow:
     Exec note:
 
     - By default, audit skips exec SecretRef resolvability checks to avoid command side effects.
-    - Use `openclaw secrets audit --allow-exec` to execute exec providers during audit.
+    - Use `kova secrets audit --allow-exec` to execute exec providers during audit.
 
     Header residue note:
 
@@ -499,9 +499,9 @@ Default operator flow:
 
     Helpful modes:
 
-    - `openclaw secrets configure --providers-only`
-    - `openclaw secrets configure --skip-provider-setup`
-    - `openclaw secrets configure --agent <id>`
+    - `kova secrets configure --providers-only`
+    - `kova secrets configure --skip-provider-setup`
+    - `kova secrets configure --agent <id>`
 
     `configure` apply defaults:
 
@@ -514,10 +514,10 @@ Default operator flow:
     Apply a saved plan:
 
     ```bash
-    openclaw secrets apply --from /tmp/openclaw-secrets-plan.json
-    openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
-    openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-    openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
+    kova secrets apply --from /tmp/openclaw-secrets-plan.json
+    kova secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
+    kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
+    kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
     ```
 
     Exec note:
@@ -533,7 +533,7 @@ Default operator flow:
 ## One-way safety policy
 
 <Warning>
-OpenClaw intentionally does not write rollback backups containing historical plaintext secret values.
+Kova intentionally does not write rollback backups containing historical plaintext secret values.
 </Warning>
 
 Safety model:

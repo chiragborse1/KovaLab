@@ -1,24 +1,24 @@
 ---
 summary: "CLI reference and security model for Crestodian, the configless-safe setup and repair helper"
 read_when:
-  - You run openclaw with no command and want to understand Crestodian
-  - You need a configless-safe way to inspect or repair OpenClaw
+  - You run kova with no command and want to understand Crestodian
+  - You need a configless-safe way to inspect or repair Kova
   - You are designing or enabling message-channel rescue mode
 title: "Crestodian"
 ---
 
-# `openclaw crestodian`
+# `kova crestodian`
 
-Crestodian is OpenClaw's local setup, repair, and configuration helper. It is
+Crestodian is Kova's local setup, repair, and configuration helper. It is
 designed to stay reachable when the normal agent path is broken.
 
-Running `openclaw` with no command starts Crestodian in an interactive terminal.
-Running `openclaw crestodian` starts the same helper explicitly.
+Running `kova` with no command starts Crestodian in an interactive terminal.
+Running `kova crestodian` starts the same helper explicitly.
 
 ## What Crestodian shows
 
 On startup, interactive Crestodian opens the same TUI shell used by
-`openclaw tui`, with a Crestodian chat backend. The chat log starts with a short
+`kova tui`, with a Crestodian chat backend. The chat log starts with a short
 greeting:
 
 - when to start Crestodian
@@ -34,7 +34,7 @@ and editor controls.
 Use `status` for the detailed inventory with config path, docs/source paths,
 local CLI probes, API-key presence, agents, model, and Gateway details.
 
-Crestodian uses the same OpenClaw reference discovery as regular agents. In a Git checkout,
+Crestodian uses the same Kova reference discovery as regular agents. In a Git checkout,
 it points itself at local `docs/` and the local source tree. In an npm package install, it
 uses the bundled package docs and links to
 [https://github.com/openclaw/openclaw](https://github.com/openclaw/openclaw), with explicit
@@ -43,14 +43,14 @@ guidance to review source whenever the docs are not enough.
 ## Examples
 
 ```bash
-openclaw
-openclaw crestodian
-openclaw crestodian --json
-openclaw crestodian --message "models"
-openclaw crestodian --message "validate config"
-openclaw crestodian --message "setup workspace ~/Projects/work model openai/gpt-5.5" --yes
-openclaw crestodian --message "set default model openai/gpt-5.5" --yes
-openclaw onboard --modern
+kova
+kova crestodian
+kova crestodian --json
+kova crestodian --message "models"
+kova crestodian --message "validate config"
+kova crestodian --message "setup workspace ~/Projects/work model openai/gpt-5.5" --yes
+kova crestodian --message "set default model openai/gpt-5.5" --yes
+kova onboard --modern
 ```
 
 Inside the Crestodian TUI:
@@ -87,8 +87,8 @@ Crestodian's startup path is deliberately small. It can run when:
 - plugin command registration is unavailable
 - no agent has been configured yet
 
-`openclaw --help` and `openclaw --version` still use the normal fast paths.
-Noninteractive `openclaw` exits with a short message instead of printing root
+`kova --help` and `kova --version` still use the normal fast paths.
+Noninteractive `kova` exits with a short message instead of printing root
 help, because the no-command product is Crestodian.
 
 ## Operations and approval
@@ -126,8 +126,8 @@ Applied writes are recorded in:
 
 Discovery is not audited. Only applied operations and writes are logged.
 
-`openclaw onboard --modern` starts Crestodian as the modern onboarding preview.
-Plain `openclaw onboard` still runs classic onboarding.
+`kova onboard --modern` starts Crestodian as the modern onboarding preview.
+Plain `kova onboard` still runs classic onboarding.
 
 ## Setup bootstrap
 
@@ -157,8 +157,8 @@ model unset. Install or log into Codex/Claude Code, or expose
 
 Crestodian always starts in deterministic mode. For fuzzy commands that the
 deterministic parser does not understand, local Crestodian can make one bounded
-planner turn through OpenClaw's normal runtime paths. It first uses the
-configured OpenClaw model. If no configured model is usable yet, it can fall
+planner turn through Kova's normal runtime paths. It first uses the
+configured Kova model. If no configured model is usable yet, it can fall
 back to local runtimes already present on the machine:
 
 - Claude Code CLI: `claude-cli/claude-opus-4-7`
@@ -186,7 +186,7 @@ talk to work agent
 switch to main agent
 ```
 
-`openclaw tui`, `openclaw chat`, and `openclaw terminal` still open the normal
+`kova tui`, `kova chat`, and `kova terminal` still open the normal
 agent TUI directly. They do not start Crestodian.
 
 After switching into the normal TUI, use `/crestodian` to return to Crestodian.
@@ -213,11 +213,11 @@ Operator flow:
 
 ```text
 You, in a trusted owner DM: /crestodian status
-OpenClaw: Crestodian rescue mode. Gateway reachable: no. Config valid: no.
+Kova: Crestodian rescue mode. Gateway reachable: no. Config valid: no.
 You: /crestodian restart gateway
-OpenClaw: Plan: restart the Gateway. Reply /crestodian yes to apply.
+Kova: Plan: restart the Gateway. Reply /crestodian yes to apply.
 You: /crestodian yes
-OpenClaw: Applied. Audit entry written.
+Kova: Applied. Audit entry written.
 ```
 
 Agent creation can also be queued from the local prompt or rescue mode:
@@ -241,7 +241,7 @@ Security contract for remote rescue:
   rules, open group policy, unauthenticated webhooks, or anonymous channels.
 - Owner DMs only by default. Group/channel rescue requires explicit opt-in.
 - Remote rescue cannot open the local TUI or switch into an interactive agent
-  session. Use local `openclaw` for agent handoff.
+  session. Use local `kova` for agent handoff.
 - Persistent writes still require approval, even in rescue mode.
 - Audit every applied rescue operation. Message-channel rescue records channel,
   account, sender, and source-address metadata. Config-mutating operations also
@@ -304,13 +304,13 @@ Fresh configless setup through Crestodian is covered by:
 pnpm test:docker:crestodian-first-run
 ```
 
-That lane starts with an empty state dir, routes bare `openclaw` to Crestodian,
+That lane starts with an empty state dir, routes bare `kova` to Crestodian,
 sets the default model, creates an additional agent, configures Discord through
 a plugin enablement plus token SecretRef, validates config, and checks the audit
 log. QA Lab also has a repo-backed scenario for the same Ring 0 flow:
 
 ```bash
-pnpm openclaw qa suite --scenario crestodian-ring-zero-setup
+pnpm kova qa suite --scenario crestodian-ring-zero-setup
 ```
 
 ## Related

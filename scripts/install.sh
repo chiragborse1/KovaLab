@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# OpenClaw Installer for macOS and Linux
+# Kova Installer for macOS and Linux
 # Usage: curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash
 
 BOLD='\033[1m'
@@ -15,7 +15,7 @@ ERROR='\033[38;2;230;57;70m'        # coral-mid     #e63946
 MUTED='\033[38;2;90;100;128m'       # text-muted    #5a6480
 NC='\033[0m' # No Color
 
-DEFAULT_TAGLINE="All your chats, one OpenClaw."
+DEFAULT_TAGLINE="All your chats, one Kova."
 NODE_DEFAULT_MAJOR=24
 NODE_MIN_MAJOR=22
 NODE_MIN_MINOR=14
@@ -733,7 +733,7 @@ run_npm_global_install() {
         local log_quoted=""
         printf -v cmd_quoted '%q ' "${cmd[@]}"
         printf -v log_quoted '%q' "$log"
-        run_with_spinner "Installing OpenClaw package" bash -c "${cmd_quoted}>${log_quoted} 2>&1"
+        run_with_spinner "Installing Kova package" bash -c "${cmd_quoted}>${log_quoted} 2>&1"
         return $?
     fi
 
@@ -829,7 +829,7 @@ install_openclaw_npm() {
             attempted_build_tool_fix=true
             ui_info "Retrying npm install after build tools setup"
             if run_npm_global_install "$spec" "$log"; then
-                ui_success "OpenClaw npm package installed"
+                ui_success "Kova npm package installed"
                 return 0
             fi
         fi
@@ -849,7 +849,7 @@ install_openclaw_npm() {
             ui_warn "npm left stale directory; cleaning and retrying"
             cleanup_npm_openclaw_paths
             if run_npm_global_install "$spec" "$log"; then
-                ui_success "OpenClaw npm package installed"
+                ui_success "Kova npm package installed"
                 return 0
             fi
             return 1
@@ -859,7 +859,7 @@ install_openclaw_npm() {
             conflict="$(extract_openclaw_conflict_path "$log" || true)"
             if [[ -n "$conflict" ]] && cleanup_openclaw_bin_conflict "$conflict"; then
                 if run_npm_global_install "$spec" "$log"; then
-                    ui_success "OpenClaw npm package installed"
+                    ui_success "Kova npm package installed"
                     return 0
                 fi
                 return 1
@@ -872,7 +872,7 @@ install_openclaw_npm() {
         fi
         return 1
     fi
-    ui_success "OpenClaw npm package installed"
+    ui_success "Kova npm package installed"
     return 0
 }
 
@@ -1017,7 +1017,7 @@ HELP=0
 
 print_usage() {
     cat <<EOF
-OpenClaw installer (macOS + Linux)
+Kova installer (macOS + Linux)
 
 Usage:
   curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- [options]
@@ -1167,7 +1167,7 @@ choose_install_method_interactive() {
 
     if [[ -n "$GUM" ]] && gum_is_tty; then
         local header selection
-        header="Detected OpenClaw checkout in: ${detected_checkout}
+        header="Detected Kova checkout in: ${detected_checkout}
 Choose install method"
         selection="$("$GUM" choose \
             --header "$header" \
@@ -1190,7 +1190,7 @@ Choose install method"
 
     local choice=""
     choice="$(prompt_choice "$(cat <<EOF
-${WARN}→${NC} Detected a OpenClaw source checkout in: ${INFO}${detected_checkout}${NC}
+${WARN}→${NC} Detected a Kova source checkout in: ${INFO}${detected_checkout}${NC}
 Choose install method:
   1) Update this checkout (git) and use it
   2) Install global via npm (migrate away from git)
@@ -1672,10 +1672,10 @@ ensure_openclaw_bin_link() {
     return 0
 }
 
-# Check for existing OpenClaw installation
+# Check for existing Kova installation
 check_existing_openclaw() {
     if [[ -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
-        ui_info "Existing OpenClaw installation detected, upgrading"
+        ui_info "Existing Kova installation detected, upgrading"
         return 0
     fi
     return 1
@@ -1946,8 +1946,8 @@ warn_duplicate_openclaw_global_installs() {
         return 0
     fi
 
-    ui_warn "Multiple OpenClaw global installs detected"
-    echo "  Different Node/npm environments can run different OpenClaw versions."
+    ui_warn "Multiple Kova global installs detected"
+    echo "  Different Node/npm environments can run different Kova versions."
 
     local active_node active_npm active_openclaw
     active_node="$(command -v node 2>/dev/null || true)"
@@ -2115,9 +2115,9 @@ install_openclaw_from_git() {
     local repo_url="https://github.com/openclaw/openclaw.git"
 
     if [[ -d "$repo_dir/.git" ]]; then
-        ui_info "Installing OpenClaw from git checkout: ${repo_dir}"
+        ui_info "Installing Kova from git checkout: ${repo_dir}"
     else
-        ui_info "Installing OpenClaw from GitHub (${repo_url})"
+        ui_info "Installing Kova from GitHub (${repo_url})"
     fi
 
     if ! check_git; then
@@ -2128,7 +2128,7 @@ install_openclaw_from_git() {
     ensure_pnpm_binary_for_scripts
 
     if [[ ! -d "$repo_dir" ]]; then
-        run_quiet_step "Cloning OpenClaw" git clone "$repo_url" "$repo_dir"
+        run_quiet_step "Cloning Kova" git clone "$repo_url" "$repo_dir"
     fi
 
     if [[ "$GIT_UPDATE" == "1" ]]; then
@@ -2146,7 +2146,7 @@ install_openclaw_from_git() {
     if ! run_quiet_step "Building UI" run_pnpm -C "$repo_dir" ui:build; then
         ui_warn "UI build failed; continuing (CLI may still work)"
     fi
-    run_quiet_step "Building OpenClaw" run_pnpm -C "$repo_dir" build
+    run_quiet_step "Building Kova" run_pnpm -C "$repo_dir" build
 
     ensure_user_local_bin_on_path
 
@@ -2162,11 +2162,11 @@ exec node "${repo_dir}/openclaw.mjs" "\$@"
 EOF
     chmod +x "$HOME/.local/bin/kova" "$HOME/.local/bin/openclaw"
     ui_success "Kova wrapper installed to \$HOME/.local/bin/kova"
-    ui_info "Legacy OpenClaw alias kept at \$HOME/.local/bin/openclaw"
+    ui_info "Legacy openclaw alias kept at \$HOME/.local/bin/openclaw"
     ui_info "This checkout uses pnpm — run pnpm install (or corepack pnpm install) for deps"
 }
 
-# Install OpenClaw
+# Install Kova
 resolve_beta_version() {
     local beta=""
     beta="$(npm view openclaw dist-tags.beta 2>/dev/null || true)"
@@ -2246,9 +2246,9 @@ install_openclaw() {
         resolved_version="$(npm view "${package_name}@${OPENCLAW_VERSION}" version 2>/dev/null || true)"
     fi
     if [[ -n "$resolved_version" ]]; then
-        ui_info "Installing OpenClaw v${resolved_version}"
+        ui_info "Installing Kova v${resolved_version}"
     else
-        ui_info "Installing OpenClaw (${OPENCLAW_VERSION})"
+        ui_info "Installing Kova (${OPENCLAW_VERSION})"
     fi
     local install_spec=""
     install_spec="$(resolve_package_install_spec "${package_name}" "${OPENCLAW_VERSION}")"
@@ -2480,7 +2480,7 @@ verify_installation() {
         return 1
     fi
 
-    run_quiet_step "Checking OpenClaw version" "$claw" --version || return 1
+    run_quiet_step "Checking Kova version" "$claw" --version || return 1
 
     if is_gateway_daemon_loaded "$claw"; then
         run_quiet_step "Checking gateway service" "$claw" gateway status --deep || {
@@ -2519,7 +2519,7 @@ main() {
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
         if ! is_promptable; then
-            ui_info "Found OpenClaw checkout but no TTY; defaulting to npm install"
+            ui_info "Found Kova checkout but no TTY; defaulting to npm install"
             INSTALL_METHOD="npm"
         else
             local selected_method=""
@@ -2576,7 +2576,7 @@ main() {
         exit 1
     fi
 
-    ui_stage "Installing OpenClaw"
+    ui_stage "Installing Kova"
 
     local final_git_dir=""
     if [[ "$INSTALL_METHOD" == "git" ]]; then
@@ -2613,7 +2613,7 @@ main() {
         # Step 4: npm permissions (Linux)
         fix_npm_permissions
 
-        # Step 5: OpenClaw
+        # Step 5: Kova
         install_openclaw
     fi
 

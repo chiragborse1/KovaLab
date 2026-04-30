@@ -1,8 +1,8 @@
 ---
-summary: "Use OpenRouter's unified API to access many models in OpenClaw"
+summary: "Use OpenRouter's unified API to access many models in Kova"
 read_when:
   - You want a single API key for many LLMs
-  - You want to run models via OpenRouter in OpenClaw
+  - You want to run models via OpenRouter in Kova
   - You want to use OpenRouter for image generation
 title: "OpenRouter"
 ---
@@ -18,14 +18,14 @@ endpoint and API key. It is OpenAI-compatible, so most OpenAI SDKs work by switc
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --auth-choice openrouter-api-key
+    kova onboard --auth-choice openrouter-api-key
     ```
   </Step>
   <Step title="(Optional) Switch to a specific model">
     Onboarding defaults to `openrouter/auto`. Pick a concrete model later:
 
     ```bash
-    openclaw models set openrouter/<provider>/<model>
+    kova models set openrouter/<provider>/<model>
     ```
 
   </Step>
@@ -76,7 +76,7 @@ OpenRouter can also back the `image_generate` tool. Use an OpenRouter image mode
 }
 ```
 
-OpenClaw sends image requests to OpenRouter's chat completions image API with `modalities: ["image", "text"]`. Gemini image models receive supported `aspectRatio` and `resolution` hints through OpenRouter's `image_config`. Use `agents.defaults.imageGenerationModel.timeoutMs` for slower OpenRouter image models; the `image_generate` tool's per-call `timeoutMs` parameter still wins.
+Kova sends image requests to OpenRouter's chat completions image API with `modalities: ["image", "text"]`. Gemini image models receive supported `aspectRatio` and `resolution` hints through OpenRouter's `image_config`. Use `agents.defaults.imageGenerationModel.timeoutMs` for slower OpenRouter image models; the `image_generate` tool's per-call `timeoutMs` parameter still wins.
 
 ## Text-to-speech
 
@@ -108,17 +108,17 @@ If `messages.tts.providers.openrouter.apiKey` is omitted, TTS reuses
 
 OpenRouter uses a Bearer token with your API key under the hood.
 
-On real OpenRouter requests (`https://openrouter.ai/api/v1`), OpenClaw also adds
+On real OpenRouter requests (`https://openrouter.ai/api/v1`), Kova also adds
 OpenRouter's documented app-attribution headers:
 
 | Header                    | Value                 |
 | ------------------------- | --------------------- |
 | `HTTP-Referer`            | `https://openclaw.ai` |
-| `X-OpenRouter-Title`      | `OpenClaw`            |
+| `X-OpenRouter-Title`      | `Kova`            |
 | `X-OpenRouter-Categories` | `cli-agent`           |
 
 <Warning>
-If you repoint the OpenRouter provider at some other proxy or base URL, OpenClaw
+If you repoint the OpenRouter provider at some other proxy or base URL, Kova
 does **not** inject those OpenRouter-specific headers or Anthropic cache markers.
 </Warning>
 
@@ -127,12 +127,12 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
 <AccordionGroup>
   <Accordion title="Anthropic cache markers">
     On verified OpenRouter routes, Anthropic model refs keep the
-    OpenRouter-specific Anthropic `cache_control` markers that OpenClaw uses for
+    OpenRouter-specific Anthropic `cache_control` markers that Kova uses for
     better prompt-cache reuse on system/developer prompt blocks.
   </Accordion>
 
   <Accordion title="Thinking / reasoning injection">
-    On supported non-`auto` routes, OpenClaw maps the selected thinking level to
+    On supported non-`auto` routes, Kova maps the selected thinking level to
     OpenRouter proxy reasoning payloads. Unsupported model hints and
     `openrouter/auto` skip that reasoning injection. Hunter Alpha also skips
     proxy reasoning for stale configured model refs because OpenRouter could
@@ -146,13 +146,13 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
   </Accordion>
 
   <Accordion title="Gemini-backed routes">
-    Gemini-backed OpenRouter refs stay on the proxy-Gemini path: OpenClaw keeps
+    Gemini-backed OpenRouter refs stay on the proxy-Gemini path: Kova keeps
     Gemini thought-signature sanitation there, but does not enable native Gemini
     replay validation or bootstrap rewrites.
   </Accordion>
 
   <Accordion title="Provider routing metadata">
-    If you pass OpenRouter provider routing under model params, OpenClaw forwards
+    If you pass OpenRouter provider routing under model params, Kova forwards
     it as OpenRouter routing metadata before the shared stream wrappers run.
   </Accordion>
 </AccordionGroup>

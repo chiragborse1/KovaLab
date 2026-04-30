@@ -2,7 +2,7 @@
   "name": "@openclaw/senseaudio-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw SenseAudio media-understanding provider",
+  "description": "Kova SenseAudio media-understanding provider",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

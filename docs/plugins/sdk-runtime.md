@@ -43,7 +43,7 @@ The mutation helpers return `afterWrite` plus a typed `followUp` summary so call
 
 `api.runtime.config.loadConfig()` and `api.runtime.config.writeConfigFile(...)` are deprecated compatibility helpers. They warn once at runtime, and bundled plugins must not use them; the architecture guard fails if production plugin code calls them or imports those helpers from plugin SDK subpaths.
 
-Internal OpenClaw runtime code has the same direction: load config once at the CLI, gateway, or process boundary, then pass that value through. Successful mutation writes refresh the process runtime snapshot and advance its internal revision; long-lived caches should key off the runtime-owned cache key instead of serializing config locally. Long-lived runtime modules have a zero-tolerance scanner for ambient `loadConfig()` calls; use a passed `cfg`, a request `context.getRuntimeConfig()`, or `getRuntimeConfig()` at an explicit process boundary.
+Internal Kova runtime code has the same direction: load config once at the CLI, gateway, or process boundary, then pass that value through. Successful mutation writes refresh the process runtime snapshot and advance its internal revision; long-lived caches should key off the runtime-owned cache key instead of serializing config locally. Long-lived runtime modules have a zero-tolerance scanner for ambient `loadConfig()` calls; use a passed `cfg`, a request `context.getRuntimeConfig()`, or `getRuntimeConfig()` at an explicit process boundary.
 
 ## Runtime namespaces
 
@@ -82,7 +82,7 @@ Internal OpenClaw runtime code has the same direction: load config once at the C
     });
     ```
 
-    `runEmbeddedAgent(...)` is the neutral helper for starting a normal OpenClaw agent turn from plugin code. It uses the same provider/model resolution and agent-harness selection as channel-triggered replies.
+    `runEmbeddedAgent(...)` is the neutral helper for starting a normal Kova agent turn from plugin code. It uses the same provider/model resolution and agent-harness selection as channel-triggered replies.
 
     `runEmbeddedPiAgent(...)` remains as a compatibility alias.
 
@@ -154,11 +154,11 @@ Internal OpenClaw runtime code has the same direction: load config once at the C
     });
     ```
 
-    Inside the Gateway this runtime is in-process. In plugin CLI commands it calls the configured Gateway over RPC, so commands such as `openclaw googlemeet recover-tab` can inspect paired nodes from the terminal. Node commands still go through normal Gateway node pairing, command allowlists, and node-local command handling.
+    Inside the Gateway this runtime is in-process. In plugin CLI commands it calls the configured Gateway over RPC, so commands such as `kova googlemeet recover-tab` can inspect paired nodes from the terminal. Node commands still go through normal Gateway node pairing, command allowlists, and node-local command handling.
 
   </Accordion>
   <Accordion title="api.runtime.taskFlow">
-    Bind a Task Flow runtime to an existing OpenClaw session key or trusted tool context, then create and manage Task Flows without passing an owner on every call.
+    Bind a Task Flow runtime to an existing Kova session key or trusted tool context, then create and manage Task Flows without passing an owner on every call.
 
     ```typescript
     const taskFlow = api.runtime.taskFlow.fromToolContext(ctx);
@@ -185,7 +185,7 @@ Internal OpenClaw runtime code has the same direction: load config once at the C
     });
     ```
 
-    Use `bindSession({ sessionKey, requesterOrigin })` when you already have a trusted OpenClaw session key from your own binding layer. Do not bind from raw user input.
+    Use `bindSession({ sessionKey, requesterOrigin })` when you already have a trusted Kova session key from your own binding layer. Do not bind from raw user input.
 
   </Accordion>
   <Accordion title="api.runtime.tts">
@@ -194,13 +194,13 @@ Internal OpenClaw runtime code has the same direction: load config once at the C
     ```typescript
     // Standard TTS
     const clip = await api.runtime.tts.textToSpeech({
-      text: "Hello from OpenClaw",
+      text: "Hello from Kova",
       cfg: api.config,
     });
 
     // Telephony-optimized TTS
     const telephonyClip = await api.runtime.tts.textToSpeechTelephony({
-      text: "Hello from OpenClaw",
+      text: "Hello from Kova",
       cfg: api.config,
     });
 
@@ -273,7 +273,7 @@ Internal OpenClaw runtime code has the same direction: load config once at the C
 
     const result = await api.runtime.webSearch.search({
       config: api.config,
-      args: { query: "OpenClaw plugin SDK", count: 5 },
+      args: { query: "Kova plugin SDK", count: 5 },
     });
     ```
 

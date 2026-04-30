@@ -2,7 +2,7 @@
   "name": "@openclaw/inworld-speech",
   "version": "2026.4.16",
   "private": true,
-  "description": "OpenClaw Inworld speech plugin",
+  "description": "Kova Inworld speech plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

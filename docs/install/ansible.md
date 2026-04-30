@@ -1,5 +1,5 @@
 ---
-summary: "Automated, hardened OpenClaw installation with Ansible, Tailscale VPN, and firewall isolation"
+summary: "Automated, hardened Kova installation with Ansible, Tailscale VPN, and firewall isolation"
 read_when:
   - You want automated server deployment with security hardening
   - You need firewall-isolated setup with VPN access
@@ -9,7 +9,7 @@ title: "Ansible"
 
 # Ansible Installation
 
-Deploy OpenClaw to production servers with **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)** -- an automated installer with security-first architecture.
+Deploy Kova to production servers with **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)** -- an automated installer with security-first architecture.
 
 <Info>
 The [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) repo is the source of truth for Ansible deployment. This page is a quick overview.
@@ -49,7 +49,7 @@ The Ansible playbook installs and configures:
 2. **UFW firewall** -- SSH + Tailscale ports only
 3. **Docker CE + Compose V2** -- for the default agent sandbox backend
 4. **Node.js 24 + pnpm** -- runtime dependencies (Node 22 LTS, currently `22.14+`, remains supported)
-5. **OpenClaw** -- host-based, not containerized
+5. **Kova** -- host-based, not containerized
 6. **Systemd service** -- auto-start with security hardening
 
 <Note>
@@ -61,24 +61,24 @@ backend. See [Sandboxing](/gateway/sandboxing) for details and other backends.
 ## Post-Install Setup
 
 <Steps>
-  <Step title="Switch to the openclaw user">
+  <Step title="Switch to the kova user">
     ```bash
-    sudo -i -u openclaw
+    sudo -i -u kova
     ```
   </Step>
   <Step title="Run the onboarding wizard">
-    The post-install script guides you through configuring OpenClaw settings.
+    The post-install script guides you through configuring Kova settings.
   </Step>
   <Step title="Connect messaging providers">
     Log in to WhatsApp, Telegram, Discord, or Signal:
     ```bash
-    openclaw channels login
+    kova channels login
     ```
   </Step>
   <Step title="Verify the installation">
     ```bash
-    sudo systemctl status openclaw
-    sudo journalctl -u openclaw -f
+    sudo systemctl status kova
+    sudo journalctl -u kova -f
     ```
   </Step>
   <Step title="Connect to Tailscale">
@@ -90,17 +90,17 @@ backend. See [Sandboxing](/gateway/sandboxing) for details and other backends.
 
 ```bash
 # Check service status
-sudo systemctl status openclaw
+sudo systemctl status kova
 
 # View live logs
-sudo journalctl -u openclaw -f
+sudo journalctl -u kova -f
 
 # Restart gateway
-sudo systemctl restart openclaw
+sudo systemctl restart kova
 
-# Provider login (run as openclaw user)
-sudo -i -u openclaw
-openclaw channels login
+# Provider login (run as kova user)
+sudo -i -u kova
+kova channels login
 ```
 
 ## Security architecture
@@ -159,7 +159,7 @@ If you prefer manual control over the automation:
 
 ## Updating
 
-The Ansible installer sets up OpenClaw for manual updates. See [Updating](/install/updating) for the standard update flow.
+The Ansible installer sets up Kova for manual updates. See [Updating](/install/updating) for the standard update flow.
 
 To re-run the Ansible playbook (for example, for configuration changes):
 
@@ -181,15 +181,15 @@ This is idempotent and safe to run multiple times.
   <Accordion title="Service will not start">
     ```bash
     # Check logs
-    sudo journalctl -u openclaw -n 100
+    sudo journalctl -u kova -n 100
 
     # Verify permissions
     sudo ls -la /opt/openclaw
 
     # Test manual start
-    sudo -i -u openclaw
+    sudo -i -u kova
     cd ~/openclaw
-    openclaw gateway run
+    kova gateway run
     ```
 
   </Accordion>
@@ -203,15 +203,15 @@ This is idempotent and safe to run multiple times.
 
     # Build sandbox image if missing
     cd /opt/openclaw/openclaw
-    sudo -u openclaw ./scripts/sandbox-setup.sh
+    sudo -u kova ./scripts/sandbox-setup.sh
     ```
 
   </Accordion>
   <Accordion title="Provider login fails">
-    Make sure you are running as the `openclaw` user:
+    Make sure you are running as the `kova` user:
     ```bash
-    sudo -i -u openclaw
-    openclaw channels login
+    sudo -i -u kova
+    kova channels login
     ```
   </Accordion>
 </AccordionGroup>

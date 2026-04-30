@@ -8,7 +8,7 @@ read_when:
   - You want to tune consolidation without polluting MEMORY.md
 ---
 
-Dreaming is the background memory consolidation system in `memory-core`. It helps OpenClaw move strong short-term signals into durable memory while keeping the process explainable and reviewable.
+Dreaming is the background memory consolidation system in `memory-core`. It helps Kova move strong short-term signals into durable memory while keeping the process explainable and reviewable.
 
 <Note>
 Dreaming is **opt-in** and disabled by default.
@@ -172,10 +172,10 @@ Default cadence behavior:
 <Tabs>
   <Tab title="Promotion preview / apply">
     ```bash
-    openclaw memory promote
-    openclaw memory promote --apply
-    openclaw memory promote --limit 5
-    openclaw memory status --deep
+    kova memory promote
+    kova memory promote --apply
+    kova memory promote --limit 5
+    kova memory status --deep
     ```
 
     Manual `memory promote` uses deep-phase thresholds by default unless overridden with CLI flags.
@@ -185,8 +185,8 @@ Default cadence behavior:
     Explain why a specific candidate would or would not promote:
 
     ```bash
-    openclaw memory promote-explain "router vlan"
-    openclaw memory promote-explain "router vlan" --json
+    kova memory promote-explain "router vlan"
+    kova memory promote-explain "router vlan" --json
     ```
 
   </Tab>
@@ -194,8 +194,8 @@ Default cadence behavior:
     Preview REM reflections, candidate truths, and deep promotion output without writing anything:
 
     ```bash
-    openclaw memory rem-harness
-    openclaw memory rem-harness --json
+    kova memory rem-harness
+    kova memory rem-harness --json
     ```
 
   </Tab>

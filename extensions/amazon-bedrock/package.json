@@ -2,7 +2,7 @@
   "name": "@openclaw/amazon-bedrock-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Amazon Bedrock provider plugin",
+  "description": "Kova Amazon Bedrock provider plugin",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-bedrock": "3.1036.0",

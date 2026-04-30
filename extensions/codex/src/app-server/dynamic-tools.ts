@@ -78,7 +78,7 @@ export function createCodexDynamicToolBridge(params: {
       const tool = toolMap.get(call.tool);
       if (!tool) {
         return {
-          contentItems: [{ type: "inputText", text: `Unknown OpenClaw tool: ${call.tool}` }],
+          contentItems: [{ type: "inputText", text: `Unknown Kova tool: ${call.tool}` }],
           success: false,
         };
       }

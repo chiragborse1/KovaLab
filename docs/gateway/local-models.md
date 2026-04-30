@@ -1,5 +1,5 @@
 ---
-summary: "Run OpenClaw on local LLMs (LM Studio, vLLM, LiteLLM, custom OpenAI endpoints)"
+summary: "Run Kova on local LLMs (LM Studio, vLLM, LiteLLM, custom OpenAI endpoints)"
 read_when:
   - You want to serve models from your own GPU box
   - You are wiring LM Studio or an OpenAI-compatible proxy
@@ -7,9 +7,9 @@ read_when:
 title: "Local models"
 ---
 
-Local is doable, but OpenClaw expects large context + strong defenses against prompt injection. Small cards truncate context and leak safety. Aim high: **≥2 maxed-out Mac Studios or equivalent GPU rig (~$30k+)**. A single **24 GB** GPU works only for lighter prompts with higher latency. Use the **largest / full-size model variant you can run**; aggressively quantized or “small” checkpoints raise prompt-injection risk (see [Security](/gateway/security)).
+Local is doable, but Kova expects large context + strong defenses against prompt injection. Small cards truncate context and leak safety. Aim high: **≥2 maxed-out Mac Studios or equivalent GPU rig (~$30k+)**. A single **24 GB** GPU works only for lighter prompts with higher latency. Use the **largest / full-size model variant you can run**; aggressively quantized or “small” checkpoints raise prompt-injection risk (see [Security](/gateway/security)).
 
-If you want the lowest-friction local setup, start with [LM Studio](/providers/lmstudio) or [Ollama](/providers/ollama) and `openclaw onboard`. This page is the opinionated guide for higher-end local stacks and custom OpenAI-compatible local servers.
+If you want the lowest-friction local setup, start with [LM Studio](/providers/lmstudio) or [Ollama](/providers/ollama) and `kova onboard`. This page is the opinionated guide for higher-end local stacks and custom OpenAI-compatible local servers.
 
 <Warning>
 **WSL2 + Ollama + NVIDIA/CUDA users:** The official Ollama Linux installer enables a systemd service with `Restart=always`. On WSL2 GPU setups, autostart can reload the last model during boot and pin host memory. If your WSL2 VM repeatedly restarts after enabling Ollama, see [WSL2 crash loop](/providers/ollama#wsl2-crash-loop-repeated-reboots).
@@ -155,7 +155,7 @@ endpoint and model ID:
 }
 ```
 
-If `api` is omitted on a custom provider with a `baseUrl`, OpenClaw defaults to
+If `api` is omitted on a custom provider with a `baseUrl`, Kova defaults to
 `openai-completions`. Loopback endpoints such as `127.0.0.1` are trusted
 automatically; LAN, tailnet, and private DNS endpoints still need
 `request.allowPrivateNetwork: true`.
@@ -175,17 +175,17 @@ applies only to model HTTP requests, including connect, headers, body streaming,
 and the total guarded-fetch abort.
 
 <Note>
-For custom OpenAI-compatible providers, persisting a non-secret local marker such as `apiKey: "ollama-local"` is accepted when `baseUrl` resolves to loopback, a private LAN, `.local`, or a bare hostname. OpenClaw treats it as a valid local credential instead of reporting a missing key. Use a real value for any provider that accepts a public hostname.
+For custom OpenAI-compatible providers, persisting a non-secret local marker such as `apiKey: "ollama-local"` is accepted when `baseUrl` resolves to loopback, a private LAN, `.local`, or a bare hostname. Kova treats it as a valid local credential instead of reporting a missing key. Use a real value for any provider that accepts a public hostname.
 </Note>
 
 Behavior note for local/proxied `/v1` backends:
 
-- OpenClaw treats these as proxy-style OpenAI-compatible routes, not native
+- Kova treats these as proxy-style OpenAI-compatible routes, not native
   OpenAI endpoints
 - native OpenAI-only request shaping does not apply here: no
   `service_tier`, no Responses `store`, no OpenAI reasoning-compat payload
   shaping, and no prompt-cache hints
-- hidden OpenClaw attribution headers (`originator`, `version`, `User-Agent`)
+- hidden Kova attribution headers (`originator`, `version`, `User-Agent`)
   are not injected on these custom proxy URLs
 
 Compatibility notes for stricter OpenAI-compatible backends:
@@ -195,12 +195,12 @@ Compatibility notes for stricter OpenAI-compatible backends:
   `models.providers.<provider>.models[].compat.requiresStringContent: true` for
   those endpoints.
 - Some local models emit standalone bracketed tool requests as text, such as
-  `[tool_name]` followed by JSON and `[END_TOOL_REQUEST]`. OpenClaw promotes
+  `[tool_name]` followed by JSON and `[END_TOOL_REQUEST]`. Kova promotes
   those into real tool calls only when the name exactly matches a registered
   tool for the turn; otherwise the block is treated as unsupported text and is
   hidden from user-visible replies.
 - If a model emits JSON, XML, or ReAct-style text that looks like a tool call
-  but the provider did not emit a structured invocation, OpenClaw leaves it as
+  but the provider did not emit a structured invocation, Kova leaves it as
   text and logs a warning with the run id, provider/model, detected pattern, and
   tool name when available. Treat that as provider/model tool-call
   incompatibility, not a completed tool run.
@@ -230,25 +230,25 @@ Compatibility notes for stricter OpenAI-compatible backends:
   ```
 
   Use this only for models/sessions where every normal turn should call a tool.
-  It overrides OpenClaw's default proxy value of `tool_choice: "auto"`.
+  It overrides Kova's default proxy value of `tool_choice: "auto"`.
   Replace `local/my-local-model` with the exact provider/model ref shown by
-  `openclaw models list`.
+  `kova models list`.
 
   ```bash
-  openclaw config set agents.defaults.models '{"local/my-local-model":{"params":{"extra_body":{"tool_choice":"required"}}}}' --strict-json --merge
+  kova config set agents.defaults.models '{"local/my-local-model":{"params":{"extra_body":{"tool_choice":"required"}}}}' --strict-json --merge
   ```
 
-- Some smaller or stricter local backends are unstable with OpenClaw's full
+- Some smaller or stricter local backends are unstable with Kova's full
   agent-runtime prompt shape, especially when tool schemas are included. If the
   backend works for tiny direct `/v1/chat/completions` calls but fails on normal
-  OpenClaw agent turns, first try
+  Kova agent turns, first try
   `agents.defaults.experimental.localModelLean: true` to drop heavyweight
   default tools like `browser`, `cron`, and `message`; this is an experimental
   flag, not a stable default-mode setting. See
   [Experimental Features](/concepts/experimental-features). If that still fails, try
   `models.providers.<provider>.models[].compat.supportsTools: false`.
-- If the backend still fails only on larger OpenClaw runs, the remaining issue
-  is usually upstream model/server capacity or a backend bug, not OpenClaw's
+- If the backend still fails only on larger Kova runs, the remaining issue
+  is usually upstream model/server capacity or a backend bug, not Kova's
   transport layer.
 
 ## Troubleshooting
@@ -256,18 +256,18 @@ Compatibility notes for stricter OpenAI-compatible backends:
 - Gateway can reach the proxy? `curl http://127.0.0.1:1234/v1/models`.
 - LM Studio model unloaded? Reload; cold start is a common “hanging” cause.
 - Local server says `terminated`, `ECONNRESET`, or closes the stream mid-turn?
-  OpenClaw records a low-cardinality `model.call.error.failureKind` plus the
-  OpenClaw process RSS/heap snapshot in diagnostics. For LM Studio/Ollama
+  Kova records a low-cardinality `model.call.error.failureKind` plus the
+  Kova process RSS/heap snapshot in diagnostics. For LM Studio/Ollama
   memory pressure, match that timestamp against the server log or macOS crash /
   jetsam log to confirm whether the model server was killed.
-- OpenClaw warns when the detected context window is below **32k** and blocks below **16k**. If you hit that preflight, raise the server/model context limit or choose a larger model.
+- Kova warns when the detected context window is below **32k** and blocks below **16k**. If you hit that preflight, raise the server/model context limit or choose a larger model.
 - Context errors? Lower `contextWindow` or raise your server limit.
 - OpenAI-compatible server returns `messages[].content ... expected a string`?
   Add `compat.requiresStringContent: true` on that model entry.
-- Direct tiny `/v1/chat/completions` calls work, but `openclaw infer model run`
+- Direct tiny `/v1/chat/completions` calls work, but `kova infer model run`
   fails on Gemma or another local model? Disable tool schemas first with
   `compat.supportsTools: false`, then retest. If the server still crashes only
-  on larger OpenClaw prompts, treat it as an upstream server/model limitation.
+  on larger Kova prompts, treat it as an upstream server/model limitation.
 - Tool calls show up as raw JSON/XML/ReAct text, or the provider returns an
   empty `tool_calls` array? Do not add a proxy that blindly converts assistant
   text into tool execution. Fix the server chat template/parser first. If the

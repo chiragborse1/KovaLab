@@ -232,7 +232,7 @@ export const imessagePlugin: ChannelPlugin<ResolvedIMessageAccount, IMessageProb
     pairing: {
       text: {
         idLabel: "imessageSenderId",
-        message: "OpenClaw: your access has been approved.",
+        message: "Kova: your access has been approved.",
         notify: async ({ id, cfg }) =>
           await (await loadIMessageChannelRuntime()).notifyIMessageApproval({ id, cfg }),
       },

@@ -1,12 +1,12 @@
 ---
-summary: "Get OpenClaw installed and run your first chat in minutes."
+summary: "Get Kova installed and run your first chat in minutes."
 read_when:
   - First time setup from zero
   - You want the fastest path to a working chat
 title: "Getting started"
 ---
 
-Install OpenClaw, run onboarding, and chat with your AI assistant — all in
+Install Kova, run onboarding, and chat with your AI assistant — all in
 about 5 minutes. By the end you will have a running Gateway, configured auth,
 and a working chat session.
 
@@ -25,7 +25,7 @@ Need to install Node? See [Node setup](/install/node).
 ## Quick setup
 
 <Steps>
-  <Step title="Install OpenClaw">
+  <Step title="Install Kova">
     <Tabs>
       <Tab title="macOS / Linux">
         ```bash
@@ -51,7 +51,7 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Run onboarding">
     ```bash
-    openclaw onboard --install-daemon
+    kova onboard --install-daemon
     ```
 
     The wizard walks you through choosing a model provider, setting an API key,
@@ -62,7 +62,7 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Verify the Gateway is running">
     ```bash
-    openclaw gateway status
+    kova gateway status
     ```
 
     You should see the Gateway listening on port 18789.
@@ -70,7 +70,7 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Open the dashboard">
     ```bash
-    openclaw dashboard
+    kova dashboard
     ```
 
     This opens the Control UI in your browser. If it loads, everything is working.
@@ -112,8 +112,8 @@ Then set:
 Restart the gateway and reopen the dashboard:
 
 ```bash
-openclaw gateway restart
-openclaw dashboard
+kova gateway restart
+kova dashboard
 ```
 
 </Accordion>
@@ -136,7 +136,7 @@ openclaw dashboard
 </Columns>
 
 <Accordion title="Advanced: environment variables">
-  If you run OpenClaw as a service account or want custom paths:
+  If you run Kova as a service account or want custom paths:
 
 - `OPENCLAW_HOME` — home directory for internal path resolution
 - `OPENCLAW_STATE_DIR` — override the state directory

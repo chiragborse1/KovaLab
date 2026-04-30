@@ -81,7 +81,7 @@ export async function buildClaudePlan(ctx: MigrationProviderContext): Promise<Mi
       : []),
     ...(items.some((item) => item.kind === "archive")
       ? [
-          "Some Claude files are archive-only. They will be copied into the migration report for manual review, not loaded into OpenClaw.",
+          "Some Claude files are archive-only. They will be copied into the migration report for manual review, not loaded into Kova.",
         ]
       : []),
     ...(items.some((item) => item.kind === "manual")

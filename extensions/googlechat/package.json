@@ -2,7 +2,7 @@
   "name": "@openclaw/googlechat",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Google Chat channel plugin",
+  "description": "Kova Google Chat channel plugin",
   "type": "module",
   "dependencies": {
     "gaxios": "7.1.4",

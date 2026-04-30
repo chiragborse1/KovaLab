@@ -263,7 +263,7 @@ export function buildOpenRouterImageGenerationProvider(): ImageGenerationProvide
           defaultHeaders: {
             Authorization: `Bearer ${auth.apiKey}`,
             "HTTP-Referer": "https://openclaw.ai",
-            "X-OpenRouter-Title": "OpenClaw",
+            "X-OpenRouter-Title": "Kova",
           },
           provider: "openrouter",
           capability: "image",

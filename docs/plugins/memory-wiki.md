@@ -37,7 +37,7 @@ Think of the split like this:
 | Active memory plugin (`memory-core`, QMD, Honcho, etc.) | Recall, semantic search, promotion, dreaming, memory runtime                               |
 | `memory-wiki`                                           | Compiled wiki pages, provenance-rich syntheses, dashboards, wiki-specific search/get/apply |
 
-If the active memory plugin exposes shared recall artifacts, OpenClaw can search
+If the active memory plugin exposes shared recall artifacts, Kova can search
 both layers in one pass with `memory_search corpus=all`.
 
 When you need wiki-specific ranking, provenance, or direct page access, use the
@@ -62,7 +62,7 @@ Practical rule:
 - use `memory_search corpus=all` when you want shared search to span both layers
 
 If bridge mode reports zero exported artifacts, the active memory plugin is not
-currently exposing public bridge inputs yet. Run `openclaw wiki doctor` first,
+currently exposing public bridge inputs yet. Run `kova wiki doctor` first,
 then confirm the active memory plugin supports public artifacts.
 
 ## Vault modes
@@ -277,7 +277,7 @@ Put config under `plugins.entries.memory-wiki.config`:
           obsidian: {
             enabled: true,
             useOfficialCli: true,
-            vaultName: "OpenClaw Wiki",
+            vaultName: "Kova Wiki",
             openAfterWrites: false,
           },
           bridge: {
@@ -370,17 +370,17 @@ This keeps:
 `memory-wiki` also exposes a top-level CLI surface:
 
 ```bash
-openclaw wiki status
-openclaw wiki doctor
-openclaw wiki init
-openclaw wiki ingest ./notes/alpha.md
-openclaw wiki compile
-openclaw wiki lint
-openclaw wiki search "alpha"
-openclaw wiki get entity.alpha
-openclaw wiki apply synthesis "Alpha Summary" --body "..." --source-id source.alpha
-openclaw wiki bridge import
-openclaw wiki obsidian status
+kova wiki status
+kova wiki doctor
+kova wiki init
+kova wiki ingest ./notes/alpha.md
+kova wiki compile
+kova wiki lint
+kova wiki search "alpha"
+kova wiki get entity.alpha
+kova wiki apply synthesis "Alpha Summary" --body "..." --source-id source.alpha
+kova wiki bridge import
+kova wiki obsidian status
 ```
 
 See [CLI: wiki](/cli/wiki) for the full command reference.

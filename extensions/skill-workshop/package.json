@@ -2,7 +2,7 @@
   "name": "@openclaw/skill-workshop",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw skill workshop plugin",
+  "description": "Kova skill workshop plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.33"

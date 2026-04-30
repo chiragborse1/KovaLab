@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/zalo",
   "version": "2026.4.25",
-  "description": "OpenClaw Zalo channel plugin",
+  "description": "Kova Zalo channel plugin",
   "type": "module",
   "dependencies": {
     "undici": "8.1.0"

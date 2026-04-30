@@ -2,7 +2,7 @@
   "name": "@openclaw/xai-plugin",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw xAI plugin",
+  "description": "Kova xAI plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2",

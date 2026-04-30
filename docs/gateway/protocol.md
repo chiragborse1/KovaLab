@@ -8,7 +8,7 @@ title: "Gateway protocol"
 ---
 
 The Gateway WS protocol is the **single control plane + node transport** for
-OpenClaw. All clients (CLI, web UI, macOS app, iOS/Android nodes, headless
+Kova. All clients (CLI, web UI, macOS app, iOS/Android nodes, headless
 nodes) connect over WebSocket and declare their **role** + **scope** at
 handshake time.
 
@@ -577,7 +577,7 @@ rather than the pre-handshake defaults.
 - Pairing approvals are required for new device IDs unless local auto-approval
   is enabled.
 - Pairing auto-approval is centered on direct local loopback connects.
-- OpenClaw also has a narrow backend/container-local self-connect path for
+- Kova also has a narrow backend/container-local self-connect path for
   trusted shared-secret helper flows.
 - Same-host tailnet or LAN connects are still treated as remote for pairing and
   require approval.

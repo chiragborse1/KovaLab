@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/google-meet",
   "version": "2026.4.25",
-  "description": "OpenClaw Google Meet participant plugin",
+  "description": "Kova Google Meet participant plugin",
   "type": "module",
   "dependencies": {
     "commander": "^14.0.3",

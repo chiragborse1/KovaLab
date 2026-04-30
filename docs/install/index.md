@@ -1,5 +1,5 @@
 ---
-summary: "Install OpenClaw — installer script, npm/pnpm/bun, from source, Docker, and more"
+summary: "Install Kova — installer script, npm/pnpm/bun, from source, Docker, and more"
 read_when:
   - You need an install method other than the Getting Started quickstart
   - You want to deploy to a cloud platform
@@ -15,7 +15,7 @@ title: "Install"
 
 ## Recommended: installer script
 
-The fastest way to install. It detects your OS, installs Node if needed, installs OpenClaw, and launches onboarding.
+The fastest way to install. It detects your OS, installs Node if needed, installs Kova, and launches onboarding.
 
 <Tabs>
   <Tab title="macOS / Linux / WSL2">
@@ -51,7 +51,7 @@ For all flags and CI/automation options, see [Installer internals](/install/inst
 
 ### Local prefix installer (`install-cli.sh`)
 
-Use this when you want OpenClaw and Node kept under a local prefix such as
+Use this when you want Kova and Node kept under a local prefix such as
 `~/.openclaw`, without depending on a system-wide Node install:
 
 ```bash
@@ -62,7 +62,7 @@ It supports npm installs by default, plus git-checkout installs under the same
 prefix flow. Full reference: [Installer internals](/install/installer#install-clish).
 
 Already installed? Switch between package and git installs with
-`openclaw update --channel dev` and `openclaw update --channel stable`. See
+`kova update --channel dev` and `kova update --channel stable`. See
 [Updating](/install/updating#switch-between-npm-and-git-installs).
 
 ### npm, pnpm, or bun
@@ -73,14 +73,14 @@ If you already manage Node yourself:
   <Tab title="npm">
     ```bash
     npm install -g openclaw@latest
-    openclaw onboard --install-daemon
+    kova onboard --install-daemon
     ```
   </Tab>
   <Tab title="pnpm">
     ```bash
     pnpm add -g openclaw@latest
     pnpm approve-builds -g
-    openclaw onboard --install-daemon
+    kova onboard --install-daemon
     ```
 
     <Note>
@@ -91,7 +91,7 @@ If you already manage Node yourself:
   <Tab title="bun">
     ```bash
     bun add -g openclaw@latest
-    openclaw onboard --install-daemon
+    kova onboard --install-daemon
     ```
 
     <Note>
@@ -119,10 +119,10 @@ git clone https://github.com/openclaw/openclaw.git
 cd openclaw
 pnpm install && pnpm build && pnpm ui:build
 pnpm link --global
-openclaw onboard --install-daemon
+kova onboard --install-daemon
 ```
 
-Or skip the link and use `pnpm openclaw ...` from inside the repo. See [Setup](/start/setup) for full development workflows.
+Or skip the link and use `pnpm kova ...` from inside the repo. See [Setup](/start/setup) for full development workflows.
 
 ### Install from GitHub main
 
@@ -153,20 +153,20 @@ npm install -g github:openclaw/openclaw#main
 ## Verify the install
 
 ```bash
-openclaw --version      # confirm the CLI is available
-openclaw doctor         # check for config issues
-openclaw gateway status # verify the Gateway is running
+kova --version      # confirm the CLI is available
+kova doctor         # check for config issues
+kova gateway status # verify the Gateway is running
 ```
 
 If you want managed startup after install:
 
-- macOS: LaunchAgent via `openclaw onboard --install-daemon` or `openclaw gateway install`
+- macOS: LaunchAgent via `kova onboard --install-daemon` or `kova gateway install`
 - Linux/WSL2: systemd user service via the same commands
 - Native Windows: Scheduled Task first, with a per-user Startup-folder login item fallback if task creation is denied
 
 ## Hosting and deployment
 
-Deploy OpenClaw on a cloud server or VPS:
+Deploy Kova on a cloud server or VPS:
 
 <CardGroup cols={3}>
   <Card title="VPS" href="/vps">Any Linux VPS</Card>
@@ -185,19 +185,19 @@ Deploy OpenClaw on a cloud server or VPS:
 
 <CardGroup cols={3}>
   <Card title="Updating" href="/install/updating" icon="refresh-cw">
-    Keep OpenClaw up to date.
+    Keep Kova up to date.
   </Card>
   <Card title="Migrating" href="/install/migrating" icon="arrow-right">
     Move to a new machine.
   </Card>
   <Card title="Uninstall" href="/install/uninstall" icon="trash-2">
-    Remove OpenClaw completely.
+    Remove Kova completely.
   </Card>
 </CardGroup>
 
-## Troubleshooting: `openclaw` not found
+## Troubleshooting: `kova` not found
 
-If the install succeeded but `openclaw` is not found in your terminal:
+If the install succeeded but `kova` is not found in your terminal:
 
 ```bash
 node -v           # Node installed?

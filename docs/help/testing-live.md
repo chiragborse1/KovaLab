@@ -25,16 +25,16 @@ source ~/.profile
 Safe media smoke:
 
 ```bash
-pnpm openclaw infer tts convert --local --json \
-  --text "OpenClaw live smoke." \
+pnpm kova infer tts convert --local --json \
+  --text "Kova live smoke." \
   --output /tmp/openclaw-live-smoke.mp3
 ```
 
 Safe voice-call readiness smoke:
 
 ```bash
-pnpm openclaw voicecall setup --json
-pnpm openclaw voicecall smoke --to "+15555550123"
+pnpm kova voicecall setup --json
+pnpm kova voicecall smoke --to "+15555550123"
 ```
 
 `voicecall smoke` is a dry run unless `--yes` is also present. Use `--yes` only
@@ -131,8 +131,8 @@ Live tests are split into two layers so we can isolate failures:
 To see what you can test on your machine (and the exact `provider/model` ids), run:
 
 ```bash
-openclaw models list
-openclaw models list --json
+kova models list
+kova models list --json
 ```
 
 </Tip>
@@ -175,7 +175,7 @@ OPENCLAW_LIVE_TEST=1 \
 ```
 
 This does not ask Gemini to generate a response. It writes the same system
-settings OpenClaw gives Gemini, then runs `gemini --debug mcp list` to prove a
+settings Kova gives Gemini, then runs `gemini --debug mcp list` to prove a
 saved `transport: "streamable-http"` server is normalized to Gemini's HTTP MCP
 shape and can connect to a local streamable-HTTP MCP server.
 
@@ -269,7 +269,7 @@ Docker notes:
 - It sources `~/.profile`, stages the matching CLI auth material into the container, then installs the requested live CLI (`@anthropic-ai/claude-code`, `@openai/codex`, Factory Droid via `https://app.factory.ai/cli`, `@google/gemini-cli`, or `opencode-ai`) if missing. The ACP backend itself is the bundled embedded `acpx/runtime` package from the `acpx` plugin.
 - The Droid Docker variant stages `~/.factory` for settings, forwards `FACTORY_API_KEY`, and requires that API key because local Factory OAuth/keyring auth is not portable into the container. It uses ACPX's built-in `droid exec --output-format acp` registry entry.
 - The OpenCode Docker variant is a strict single-agent regression lane. It writes a temporary `OPENCODE_CONFIG_CONTENT` default model from `OPENCLAW_LIVE_ACP_BIND_OPENCODE_MODEL` (default `opencode/kimi-k2.6`) after sourcing `~/.profile`, and `pnpm test:docker:live-acp-bind:opencode` requires a bound assistant transcript instead of accepting the generic post-bind skip.
-- Direct `acpx` CLI calls are only a manual/workaround path for comparing behavior outside the Gateway. The Docker ACP bind smoke exercises OpenClaw's embedded `acpx` runtime backend.
+- Direct `acpx` CLI calls are only a manual/workaround path for comparing behavior outside the Gateway. The Docker ACP bind smoke exercises Kova's embedded `acpx` runtime backend.
 
 ## Live: Codex app-server harness smoke
 
@@ -278,7 +278,7 @@ Docker notes:
   - load the bundled `codex` plugin
   - select `OPENCLAW_AGENT_RUNTIME=codex`
   - send a first gateway agent turn to `openai/gpt-5.2` with the Codex harness forced
-  - send a second turn to the same OpenClaw session and verify the app-server
+  - send a second turn to the same Kova session and verify the app-server
     thread can resume
   - run `/codex status` and `/codex models` through the same gateway command
     path
@@ -350,8 +350,8 @@ Narrow, explicit allowlists are fastest and least flaky:
 
 - Google adaptive thinking smoke:
   - If local keys live in shell profile: `source ~/.profile`
-  - Gemini 3 dynamic default: `pnpm openclaw qa manual --provider-mode live-frontier --model google/gemini-3.1-pro-preview --alt-model google/gemini-3.1-pro-preview --message '/think adaptive Reply exactly: GEMINI_ADAPTIVE_OK' --timeout-ms 180000`
-  - Gemini 2.5 dynamic budget: `pnpm openclaw qa manual --provider-mode live-frontier --model google/gemini-2.5-flash --alt-model google/gemini-2.5-flash --message '/think adaptive Reply exactly: GEMINI25_ADAPTIVE_OK' --timeout-ms 180000`
+  - Gemini 3 dynamic default: `pnpm kova qa manual --provider-mode live-frontier --model google/gemini-3.1-pro-preview --alt-model google/gemini-3.1-pro-preview --message '/think adaptive Reply exactly: GEMINI_ADAPTIVE_OK' --timeout-ms 180000`
+  - Gemini 2.5 dynamic budget: `pnpm kova qa manual --provider-mode live-frontier --model google/gemini-2.5-flash --alt-model google/gemini-2.5-flash --message '/think adaptive Reply exactly: GEMINI25_ADAPTIVE_OK' --timeout-ms 180000`
 
 Notes:
 
@@ -359,8 +359,8 @@ Notes:
 - `google-antigravity/...` uses the Antigravity OAuth bridge (Cloud Code Assist-style agent endpoint).
 - `google-gemini-cli/...` uses the local Gemini CLI on your machine (separate auth + tooling quirks).
 - Gemini API vs Gemini CLI:
-  - API: OpenClaw calls Google’s hosted Gemini API over HTTP (API key / profile auth); this is what most users mean by “Gemini”.
-  - CLI: OpenClaw shells out to a local `gemini` binary; it has its own auth and can behave differently (streaming/tool support/version skew).
+  - API: Kova calls Google’s hosted Gemini API over HTTP (API key / profile auth); this is what most users mean by “Gemini”.
+  - CLI: Kova shells out to a local `gemini` binary; it has its own auth and can behave differently (streaming/tool support/version skew).
 
 ## Live: model matrix (what we cover)
 
@@ -408,7 +408,7 @@ Include at least one image-capable model in `OPENCLAW_LIVE_GATEWAY_MODELS` (Clau
 
 If you have keys enabled, we also support testing via:
 
-- OpenRouter: `openrouter/...` (hundreds of models; use `openclaw models scan` to find tool+image capable candidates)
+- OpenRouter: `openrouter/...` (hundreds of models; use `kova models scan` to find tool+image capable candidates)
 - OpenCode: `opencode/...` for Zen and `opencode-go/...` for Go (auth via `OPENCODE_API_KEY` / `OPENCODE_ZEN_API_KEY`)
 
 More providers you can include in the live matrix (if you have creds/config):
@@ -425,7 +425,7 @@ Do not hardcode "all models" in docs. The authoritative list is whatever `discov
 Live tests discover credentials the same way the CLI does. Practical implications:
 
 - If the CLI works, live tests should find the same keys.
-- If a live test says “no creds”, debug the same way you’d debug `openclaw models list` / model selection.
+- If a live test says “no creds”, debug the same way you’d debug `kova models list` / model selection.
 
 - Per-agent auth profiles: `~/.openclaw/agents/<agentId>/agent/auth-profiles.json` (this is what “profile keys” means in the live tests)
 - Config: `~/.openclaw/openclaw.json` (or `OPENCLAW_CONFIG_PATH`)
@@ -487,8 +487,8 @@ test passes:
 
 ```bash
 OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_INFER_CLI_TEST=1 pnpm test:live -- test/image-generation.infer-cli.live.test.ts
-openclaw infer image providers --json
-openclaw infer image generate \
+kova infer image providers --json
+kova infer image generate \
   --model google/gemini-3.1-flash-image-preview \
   --prompt "Minimal flat test image: one blue square on a white background, no text." \
   --output ./openclaw-infer-image-smoke.png \

@@ -27,12 +27,12 @@ title: "Thinking levels"
   - Anthropic Claude Opus 4.7 maps `/think xhigh` to adaptive thinking plus `output_config.effort: "xhigh"`, because `/think` is a thinking directive and `xhigh` is the Opus 4.7 effort setting.
   - Anthropic Claude Opus 4.7 also exposes `/think max`; it maps to the same provider-owned max effort path.
   - Ollama thinking-capable models expose `/think low|medium|high|max`; `max` maps to native `think: "high"` because Ollama's native API accepts `low`, `medium`, and `high` effort strings.
-  - OpenAI GPT models map `/think` through model-specific Responses API effort support. `/think off` sends `reasoning.effort: "none"` only when the target model supports it; otherwise OpenClaw omits the disabled reasoning payload instead of sending an unsupported value.
+  - OpenAI GPT models map `/think` through model-specific Responses API effort support. `/think off` sends `reasoning.effort: "none"` only when the target model supports it; otherwise Kova omits the disabled reasoning payload instead of sending an unsupported value.
   - Stale configured OpenRouter Hunter Alpha refs skip proxy reasoning injection because that retired route could return final answer text through reasoning fields.
   - Google Gemini maps `/think adaptive` to Gemini's provider-owned dynamic thinking. Gemini 3 requests omit a fixed `thinkingLevel`, while Gemini 2.5 requests send `thinkingBudget: -1`; fixed levels still map to the closest Gemini `thinkingLevel` or budget for that model family.
   - MiniMax (`minimax/*`) on the Anthropic-compatible streaming path defaults to `thinking: { type: "disabled" }` unless you explicitly set thinking in model params or request params. This avoids leaked `reasoning_content` deltas from MiniMax's non-native Anthropic stream format.
   - Z.AI (`zai/*`) only supports binary thinking (`on`/`off`). Any non-`off` level is treated as `on` (mapped to `low`).
-  - Moonshot (`moonshot/*`) maps `/think off` to `thinking: { type: "disabled" }` and any non-`off` level to `thinking: { type: "enabled" }`. When thinking is enabled, Moonshot only accepts `tool_choice` `auto|none`; OpenClaw normalizes incompatible values to `auto`.
+  - Moonshot (`moonshot/*`) maps `/think off` to `thinking: { type: "disabled" }` and any non-`off` level to `thinking: { type: "enabled" }`. When thinking is enabled, Moonshot only accepts `tool_choice` `auto|none`; Kova normalizes incompatible values to `auto`.
 
 ## Resolution order
 
@@ -58,17 +58,17 @@ title: "Thinking levels"
 - Levels: `on|off`.
 - Directive-only message toggles a session fast-mode override and replies `Fast mode enabled.` / `Fast mode disabled.`.
 - Send `/fast` (or `/fast status`) with no mode to see the current effective fast-mode state.
-- OpenClaw resolves fast mode in this order:
+- Kova resolves fast mode in this order:
   1. Inline/directive-only `/fast on|off`
   2. Session override
   3. Per-agent default (`agents.list[].fastModeDefault`)
   4. Per-model config: `agents.defaults.models["<provider>/<model>"].params.fastMode`
   5. Fallback: `off`
 - For `openai/*`, fast mode maps to OpenAI priority processing by sending `service_tier=priority` on supported Responses requests.
-- For `openai-codex/*`, fast mode sends the same `service_tier=priority` flag on Codex Responses. OpenClaw keeps one shared `/fast` toggle across both auth paths.
+- For `openai-codex/*`, fast mode sends the same `service_tier=priority` flag on Codex Responses. Kova keeps one shared `/fast` toggle across both auth paths.
 - For direct public `anthropic/*` requests, including OAuth-authenticated traffic sent to `api.anthropic.com`, fast mode maps to Anthropic service tiers: `/fast on` sets `service_tier=auto`, `/fast off` sets `service_tier=standard_only`.
 - For `minimax/*` on the Anthropic-compatible path, `/fast on` (or `params.fastMode: true`) rewrites `MiniMax-M2.7` to `MiniMax-M2.7-highspeed`.
-- Explicit Anthropic `serviceTier` / `service_tier` model params override the fast-mode default when both are set. OpenClaw still skips Anthropic service-tier injection for non-Anthropic proxy base URLs.
+- Explicit Anthropic `serviceTier` / `service_tier` model params override the fast-mode default when both are set. Kova still skips Anthropic service-tier injection for non-Anthropic proxy base URLs.
 - `/status` shows `Fast` only when fast mode is enabled.
 
 ## Verbose directives (/verbose or /v)
@@ -101,7 +101,7 @@ title: "Thinking levels"
 - Send `/reasoning` (or `/reasoning:`) with no argument to see the current reasoning level.
 - Resolution order: inline directive, then session override, then per-agent default (`agents.list[].reasoningDefault`), then fallback (`off`).
 
-Malformed local-model reasoning tags are handled conservatively. Closed `<think>...</think>` blocks stay hidden on normal replies, and unclosed reasoning after already visible text is also hidden. If a reply is fully wrapped in a single unclosed opening tag and would otherwise deliver as empty text, OpenClaw removes the malformed opening tag and delivers the remaining text.
+Malformed local-model reasoning tags are handled conservatively. Closed `<think>...</think>` blocks stay hidden on normal replies, and unclosed reasoning after already visible text is also hidden. If a reply is fully wrapped in a single unclosed opening tag and would otherwise deliver as empty text, Kova removes the malformed opening tag and delivers the remaining text.
 
 ## Related
 

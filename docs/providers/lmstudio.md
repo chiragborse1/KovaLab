@@ -1,7 +1,7 @@
 ---
-summary: "Run OpenClaw with LM Studio"
+summary: "Run Kova with LM Studio"
 read_when:
-  - You want to run OpenClaw with open source models via LM Studio
+  - You want to run Kova with open source models via LM Studio
   - You want to set up and configure LM Studio
 title: "LM Studio"
 ---
@@ -36,14 +36,14 @@ If you are using the app, make sure you have JIT enabled for a smooth experience
 export LM_API_TOKEN="your-lm-studio-api-token"
 ```
 
-If LM Studio authentication is disabled, you can leave the API key blank during interactive OpenClaw setup.
+If LM Studio authentication is disabled, you can leave the API key blank during interactive Kova setup.
 
 For LM Studio auth setup details, see [LM Studio Authentication](https://lmstudio.ai/docs/developer/core/authentication).
 
 4. Run onboarding and choose `LM Studio`:
 
 ```bash
-openclaw onboard
+kova onboard
 ```
 
 5. In onboarding, use the `Default model` prompt to pick your LM Studio model.
@@ -51,10 +51,10 @@ openclaw onboard
 You can also set or change it later:
 
 ```bash
-openclaw models set lmstudio/qwen/qwen3.5-9b
+kova models set lmstudio/qwen/qwen3.5-9b
 ```
 
-LM Studio model keys follow a `author/model-name` format (e.g. `qwen/qwen3.5-9b`). OpenClaw
+LM Studio model keys follow a `author/model-name` format (e.g. `qwen/qwen3.5-9b`). Kova
 model refs prepend the provider name: `lmstudio/qwen/qwen3.5-9b`. You can find the exact key for
 a model by running `curl http://localhost:1234/api/v1/models` and looking at the `key` field.
 
@@ -63,7 +63,7 @@ a model by running `curl http://localhost:1234/api/v1/models` and looking at the
 Use non-interactive onboarding when you want to script setup (CI, provisioning, remote bootstrap):
 
 ```bash
-openclaw onboard \
+kova onboard \
   --non-interactive \
   --accept-risk \
   --auth-choice lmstudio
@@ -72,7 +72,7 @@ openclaw onboard \
 Or specify the base URL, model, and optional API key:
 
 ```bash
-openclaw onboard \
+kova onboard \
   --non-interactive \
   --accept-risk \
   --auth-choice lmstudio \
@@ -85,7 +85,7 @@ openclaw onboard \
 the `lmstudio/` provider prefix.
 
 For authenticated LM Studio servers, pass `--lmstudio-api-key` or set `LM_API_TOKEN`.
-For unauthenticated LM Studio servers, omit the key; OpenClaw stores a local non-secret marker.
+For unauthenticated LM Studio servers, omit the key; Kova stores a local non-secret marker.
 
 `--custom-api-key` remains supported for compatibility, but `--lmstudio-api-key` is preferred for LM Studio.
 
@@ -101,7 +101,7 @@ LM Studio plugin config trusts the configured LM Studio endpoint for model reque
 ### Streaming usage compatibility
 
 LM Studio is streaming-usage compatible. When it does not emit an OpenAI-shaped
-`usage` object, OpenClaw recovers token counts from llama.cpp-style
+`usage` object, Kova recovers token counts from llama.cpp-style
 `timings.prompt_n` / `timings.predicted_n` metadata instead.
 
 Same streaming usage behavior applies to these OpenAI-compatible local backends:
@@ -117,9 +117,9 @@ Same streaming usage behavior applies to these OpenAI-compatible local backends:
 ### Thinking compatibility
 
 When LM Studio's `/api/v1/models` discovery reports model-specific reasoning
-options, OpenClaw preserves those native values in model compat metadata. For
+options, Kova preserves those native values in model compat metadata. For
 binary thinking models that advertise `allowed_options: ["off", "on"]`,
-OpenClaw maps disabled thinking to `off` and enabled `/think` levels to `on`
+Kova maps disabled thinking to `off` and enabled `/think` levels to `on`
 instead of sending OpenAI-only values such as `low` or `medium`.
 
 ### Explicit configuration

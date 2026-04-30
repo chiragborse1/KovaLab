@@ -1,14 +1,14 @@
 ---
-summary: "Run OpenClaw on a Linux server or cloud VPS — provider picker, architecture, and tuning"
+summary: "Run Kova on a Linux server or cloud VPS — provider picker, architecture, and tuning"
 read_when:
   - You want to run the Gateway on a Linux server or cloud VPS
   - You need a quick map of hosting guides
-  - You want generic Linux server tuning for OpenClaw
+  - You want generic Linux server tuning for Kova
 title: "Linux server"
 sidebarTitle: "Linux Server"
 ---
 
-Run the OpenClaw Gateway on any Linux server or cloud VPS. This page helps you
+Run the Kova Gateway on any Linux server or cloud VPS. This page helps you
 pick a provider, explains how cloud deployments work, and covers generic Linux
 tuning that applies everywhere.
 
@@ -92,7 +92,7 @@ For VM hosts using `systemd`, consider:
   - `TimeoutStartSec=90`
 - Prefer SSD-backed disks for state/cache paths to reduce random-I/O cold-start penalties.
 
-For the standard `openclaw onboard --install-daemon` path, edit the user unit:
+For the standard `kova onboard --install-daemon` path, edit the user unit:
 
 ```bash
 systemctl --user edit openclaw-gateway.service

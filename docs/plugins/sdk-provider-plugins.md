@@ -1,25 +1,25 @@
 ---
-summary: "Step-by-step guide to building a model provider plugin for OpenClaw"
+summary: "Step-by-step guide to building a model provider plugin for Kova"
 title: "Building provider plugins"
 sidebarTitle: "Provider plugins"
 read_when:
   - You are building a new model provider plugin
-  - You want to add an OpenAI-compatible proxy or custom LLM to OpenClaw
+  - You want to add an OpenAI-compatible proxy or custom LLM to Kova
   - You need to understand provider auth, catalogs, and runtime hooks
 ---
 
 This guide walks through building a provider plugin that adds a model provider
-(LLM) to OpenClaw. By the end you will have a provider with a model catalog,
+(LLM) to Kova. By the end you will have a provider with a model catalog,
 API key auth, and dynamic model resolution.
 
 <Info>
-  If you have not built any OpenClaw plugin before, read
+  If you have not built any Kova plugin before, read
   [Getting Started](/plugins/building-plugins) first for the basic package
   structure and manifest setup.
 </Info>
 
 <Tip>
-  Provider plugins add models to OpenClaw's normal inference loop. If the model
+  Provider plugins add models to Kova's normal inference loop. If the model
   must run through a native agent daemon that owns threads, compaction, or tool
   events, pair the provider with an [agent harness](/plugins/sdk-agent-harness)
   instead of putting daemon protocol details in core.
@@ -86,10 +86,10 @@ API key auth, and dynamic model resolution.
     ```
     </CodeGroup>
 
-    The manifest declares `providerAuthEnvVars` so OpenClaw can detect
+    The manifest declares `providerAuthEnvVars` so Kova can detect
     credentials without loading your plugin runtime. Add `providerAuthAliases`
     when a provider variant should reuse another provider id's auth. `modelSupport`
-    is optional and lets OpenClaw auto-load your provider plugin from shorthand
+    is optional and lets Kova auto-load your provider plugin from shorthand
     model ids like `acme-large` before runtime hooks exist. If you publish the
     provider on ClawHub, those `openclaw.compat` and `openclaw.build` fields
     are required in `package.json`.
@@ -169,10 +169,10 @@ API key auth, and dynamic model resolution.
     ```
 
     That is a working provider. Users can now
-    `openclaw onboard --acme-ai-api-key <key>` and select
+    `kova onboard --acme-ai-api-key <key>` and select
     `acme-ai/acme-large` as their model.
 
-    If the upstream provider uses different control tokens than OpenClaw, add a
+    If the upstream provider uses different control tokens than Kova, add a
     small bidirectional text transform instead of replacing the stream path:
 
     ```typescript
@@ -192,7 +192,7 @@ API key auth, and dynamic model resolution.
 
     `input` rewrites the final system prompt and text message content before
     transport. `output` rewrites assistant text deltas and final text before
-    OpenClaw parses its own control markers or channel delivery.
+    Kova parses its own control markers or channel delivery.
 
     For bundled providers that only register one text provider with API-key
     auth plus a single catalog-backed runtime, prefer the narrower
@@ -236,11 +236,11 @@ API key auth, and dynamic model resolution.
     });
     ```
 
-    `buildProvider` is the live catalog path used when OpenClaw can resolve real
+    `buildProvider` is the live catalog path used when Kova can resolve real
     provider auth. It may perform provider-specific discovery. Use
     `buildStaticProvider` only for offline rows that are safe to show before auth
     is configured; it must not require credentials or make network requests.
-    OpenClaw's `models list --all` display currently executes static catalogs
+    Kova's `models list --all` display currently executes static catalogs
     only for bundled provider plugins, with an empty config, empty env, and no
     agent/workspace paths.
 
@@ -419,7 +419,7 @@ API key auth, and dynamic model resolution.
     </Tabs>
 
     <Accordion title="All available provider hooks">
-      OpenClaw calls hooks in this order. Most providers only use 2-3:
+      Kova calls hooks in this order. Most providers only use 2-3:
 
       | # | Hook | When to use |
       | --- | --- | --- |
@@ -482,7 +482,7 @@ API key auth, and dynamic model resolution.
   <Step title="Add extra capabilities (optional)">
     A provider plugin can register speech, realtime transcription, realtime
     voice, media understanding, image generation, video generation, web fetch,
-    and web search alongside text inference. OpenClaw classifies this as a
+    and web search alongside text inference. Kova classifies this as a
     **hybrid-capability** plugin — the recommended pattern for company plugins
     (one plugin per vendor). See
     [Internals: Capability Ownership](/plugins/architecture#capability-ownership-model).

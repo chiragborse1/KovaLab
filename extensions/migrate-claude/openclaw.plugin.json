@@ -1,7 +1,7 @@
 {
   "id": "migrate-claude",
   "name": "Claude Migration",
-  "description": "Imports Claude Code and Claude Desktop instructions, MCP servers, skills, and safe configuration into OpenClaw.",
+  "description": "Imports Claude Code and Claude Desktop instructions, MCP servers, skills, and safe configuration into Kova.",
   "contracts": {
     "migrationProviders": ["claude"]
   },

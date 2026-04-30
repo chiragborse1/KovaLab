@@ -1,14 +1,14 @@
 ---
-summary: "CLI reference for `openclaw update` (safe-ish source update + gateway auto-restart)"
+summary: "CLI reference for `kova update` (safe-ish source update + gateway auto-restart)"
 read_when:
   - You want to update a source checkout safely
   - You need to understand `--update` shorthand behavior
 title: "Update"
 ---
 
-# `openclaw update`
+# `kova update`
 
-Safely update OpenClaw and switch between stable/beta/dev channels.
+Safely update Kova and switch between stable/beta/dev channels.
 
 If you installed via **npm/pnpm/bun** (global install, no git metadata),
 updates happen via the package-manager flow in [Updating](/install/updating).
@@ -16,18 +16,18 @@ updates happen via the package-manager flow in [Updating](/install/updating).
 ## Usage
 
 ```bash
-openclaw update
-openclaw update status
-openclaw update wizard
-openclaw update --channel beta
-openclaw update --channel dev
-openclaw update --tag beta
-openclaw update --tag main
-openclaw update --dry-run
-openclaw update --no-restart
-openclaw update --yes
-openclaw update --json
-openclaw --update
+kova update
+kova update status
+kova update wizard
+kova update --channel beta
+kova update --channel dev
+kova update --tag beta
+kova update --tag main
+kova update --dry-run
+kova update --no-restart
+kova update --yes
+kova update --json
+kova --update
 ```
 
 ## Options
@@ -51,9 +51,9 @@ Downgrades require confirmation because older versions can break configuration.
 Show the active update channel + git tag/branch/SHA (for source checkouts), plus update availability.
 
 ```bash
-openclaw update status
-openclaw update status --json
-openclaw update status --timeout 10
+kova update status
+kova update status --json
+kova update status --timeout 10
 ```
 
 Options:
@@ -73,7 +73,7 @@ Options:
 
 ## What it does
 
-When you switch channels explicitly (`--channel ...`), OpenClaw also keeps the
+When you switch channels explicitly (`--channel ...`), Kova also keeps the
 install method aligned:
 
 - `dev` → ensures a git checkout (default: `~/openclaw`, override with `OPENCLAW_GIT_DIR`),
@@ -84,13 +84,13 @@ install method aligned:
 
 The Gateway core auto-updater (when enabled via config) reuses this same update path.
 
-For package-manager installs, `openclaw update` resolves the target package
+For package-manager installs, `kova update` resolves the target package
 version before invoking the package manager. Even when the installed version
 already matches the target, the command refreshes the global package install,
 then runs plugin sync, a core-command completion refresh, and restart work. This
 keeps packaged sidecars and channel-owned plugin records aligned with the
-installed OpenClaw build while leaving full plugin-command completion rebuilds to
-explicit `openclaw completion --write-state` runs.
+installed Kova build while leaving full plugin-command completion rebuilds to
+explicit `kova completion --write-state` runs.
 
 ## Git checkout flow
 
@@ -125,7 +125,7 @@ explicit `openclaw completion --write-state` runs.
     Builds the gateway and the Control UI.
   </Step>
   <Step title="Run doctor">
-    `openclaw doctor` runs as the final safe-update check.
+    `kova doctor` runs as the final safe-update check.
   </Step>
   <Step title="Sync plugins">
     Syncs plugins to the active channel. Dev uses bundled plugins; stable and beta use npm. Updates npm-installed plugins.
@@ -133,11 +133,11 @@ explicit `openclaw completion --write-state` runs.
 </Steps>
 
 <Warning>
-If an exact pinned npm plugin update resolves to an artifact whose integrity differs from the stored install record, `openclaw update` aborts that plugin artifact update instead of installing it. Reinstall or update the plugin explicitly only after verifying that you trust the new artifact.
+If an exact pinned npm plugin update resolves to an artifact whose integrity differs from the stored install record, `kova update` aborts that plugin artifact update instead of installing it. Reinstall or update the plugin explicitly only after verifying that you trust the new artifact.
 </Warning>
 
 <Note>
-Post-update plugin sync failures fail the update result and stop restart follow-up work. Fix the plugin install or update error, then rerun `openclaw update`.
+Post-update plugin sync failures fail the update result and stop restart follow-up work. Fix the plugin install or update error, then rerun `kova update`.
 
 When the updated Gateway starts, enabled bundled plugin runtime dependencies are staged before plugin activation. Update-triggered restarts drain any active runtime-dependency staging before closing the Gateway, so service-manager restarts do not interrupt an in-flight npm install.
 
@@ -146,11 +146,11 @@ If pnpm bootstrap still fails, the updater stops early with a package-manager-sp
 
 ## `--update` shorthand
 
-`openclaw --update` rewrites to `openclaw update` (useful for shells and launcher scripts).
+`kova --update` rewrites to `kova update` (useful for shells and launcher scripts).
 
 ## Related
 
-- `openclaw doctor` (offers to run update first on git checkouts)
+- `kova doctor` (offers to run update first on git checkouts)
 - [Development channels](/install/development-channels)
 - [Updating](/install/updating)
 - [CLI reference](/cli)

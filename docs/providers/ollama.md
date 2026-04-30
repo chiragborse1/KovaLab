@@ -1,25 +1,25 @@
 ---
-summary: "Run OpenClaw with Ollama (cloud and local models)"
+summary: "Run Kova with Ollama (cloud and local models)"
 read_when:
-  - You want to run OpenClaw with cloud or local models via Ollama
+  - You want to run Kova with cloud or local models via Ollama
   - You need Ollama setup and configuration guidance
   - You want Ollama vision models for image understanding
 title: "Ollama"
 ---
 
-OpenClaw integrates with Ollama's native API (`/api/chat`) for hosted cloud models and local/self-hosted Ollama servers. You can use Ollama in three modes: `Cloud + Local` through a reachable Ollama host, `Cloud only` against `https://ollama.com`, or `Local only` against a reachable Ollama host.
+Kova integrates with Ollama's native API (`/api/chat`) for hosted cloud models and local/self-hosted Ollama servers. You can use Ollama in three modes: `Cloud + Local` through a reachable Ollama host, `Cloud only` against `https://ollama.com`, or `Local only` against a reachable Ollama host.
 
 <Warning>
-**Remote Ollama users**: Do not use the `/v1` OpenAI-compatible URL (`http://host:11434/v1`) with OpenClaw. This breaks tool calling and models may output raw tool JSON as plain text. Use the native Ollama API URL instead: `baseUrl: "http://host:11434"` (no `/v1`).
+**Remote Ollama users**: Do not use the `/v1` OpenAI-compatible URL (`http://host:11434/v1`) with Kova. This breaks tool calling and models may output raw tool JSON as plain text. Use the native Ollama API URL instead: `baseUrl: "http://host:11434"` (no `/v1`).
 </Warning>
 
-Ollama provider config uses `baseUrl` as the canonical key. OpenClaw also accepts `baseURL` for compatibility with OpenAI SDK-style examples, but new config should prefer `baseUrl`.
+Ollama provider config uses `baseUrl` as the canonical key. Kova also accepts `baseURL` for compatibility with OpenAI SDK-style examples, but new config should prefer `baseUrl`.
 
 ## Auth rules
 
 <AccordionGroup>
   <Accordion title="Local and LAN hosts">
-    Local and LAN Ollama hosts do not need a real bearer token. OpenClaw uses the local `ollama-local` marker only for loopback, private-network, `.local`, and bare-hostname Ollama base URLs.
+    Local and LAN Ollama hosts do not need a real bearer token. Kova uses the local `ollama-local` marker only for loopback, private-network, `.local`, and bare-hostname Ollama base URLs.
   </Accordion>
   <Accordion title="Remote and Ollama Cloud hosts">
     Remote public hosts and Ollama Cloud (`https://ollama.com`) require a real credential through `OLLAMA_API_KEY`, an auth profile, or the provider's `apiKey`.
@@ -48,7 +48,7 @@ Choose your preferred setup method and mode.
     <Steps>
       <Step title="Run onboarding">
         ```bash
-        openclaw onboard
+        kova onboard
         ```
 
         Select **Ollama** from the provider list.
@@ -63,7 +63,7 @@ Choose your preferred setup method and mode.
       </Step>
       <Step title="Verify the model is available">
         ```bash
-        openclaw models list --provider ollama
+        kova models list --provider ollama
         ```
       </Step>
     </Steps>
@@ -71,7 +71,7 @@ Choose your preferred setup method and mode.
     ### Non-interactive mode
 
     ```bash
-    openclaw onboard --non-interactive \
+    kova onboard --non-interactive \
       --auth-choice ollama \
       --accept-risk
     ```
@@ -79,7 +79,7 @@ Choose your preferred setup method and mode.
     Optionally specify a custom base URL or model:
 
     ```bash
-    openclaw onboard --non-interactive \
+    kova onboard --non-interactive \
       --auth-choice ollama \
       --custom-base-url "http://ollama-host:11434" \
       --custom-model-id "qwen3.5:27b" \
@@ -106,7 +106,7 @@ Choose your preferred setup method and mode.
         ollama pull llama3.3
         ```
       </Step>
-      <Step title="Enable Ollama for OpenClaw">
+      <Step title="Enable Ollama for Kova">
         For `Cloud only`, use your real `OLLAMA_API_KEY`. For host-backed setups, any placeholder value works:
 
         ```bash
@@ -117,13 +117,13 @@ Choose your preferred setup method and mode.
         export OLLAMA_API_KEY="ollama-local"
 
         # Or configure in your config file
-        openclaw config set models.providers.ollama.apiKey "OLLAMA_API_KEY"
+        kova config set models.providers.ollama.apiKey "OLLAMA_API_KEY"
         ```
       </Step>
       <Step title="Inspect and set your model">
         ```bash
-        openclaw models list
-        openclaw models set ollama/gemma4
+        kova models list
+        kova models set ollama/gemma4
         ```
 
         Or set the default in config:
@@ -149,40 +149,40 @@ Choose your preferred setup method and mode.
   <Tab title="Cloud + Local">
     `Cloud + Local` uses a reachable Ollama host as the control point for both local and cloud models. This is Ollama's preferred hybrid flow.
 
-    Use **Cloud + Local** during setup. OpenClaw prompts for the Ollama base URL, discovers local models from that host, and checks whether the host is signed in for cloud access with `ollama signin`. When the host is signed in, OpenClaw also suggests hosted cloud defaults such as `kimi-k2.5:cloud`, `minimax-m2.7:cloud`, and `glm-5.1:cloud`.
+    Use **Cloud + Local** during setup. Kova prompts for the Ollama base URL, discovers local models from that host, and checks whether the host is signed in for cloud access with `ollama signin`. When the host is signed in, Kova also suggests hosted cloud defaults such as `kimi-k2.5:cloud`, `minimax-m2.7:cloud`, and `glm-5.1:cloud`.
 
-    If the host is not signed in yet, OpenClaw keeps the setup local-only until you run `ollama signin`.
+    If the host is not signed in yet, Kova keeps the setup local-only until you run `ollama signin`.
 
   </Tab>
 
   <Tab title="Cloud only">
     `Cloud only` runs against Ollama's hosted API at `https://ollama.com`.
 
-    Use **Cloud only** during setup. OpenClaw prompts for `OLLAMA_API_KEY`, sets `baseUrl: "https://ollama.com"`, and seeds the hosted cloud model list. This path does **not** require a local Ollama server or `ollama signin`.
+    Use **Cloud only** during setup. Kova prompts for `OLLAMA_API_KEY`, sets `baseUrl: "https://ollama.com"`, and seeds the hosted cloud model list. This path does **not** require a local Ollama server or `ollama signin`.
 
-    The cloud model list shown during `openclaw onboard` is populated live from `https://ollama.com/api/tags`, capped at 500 entries, so the picker reflects the current hosted catalog rather than a static seed. If `ollama.com` is unreachable or returns no models at setup time, OpenClaw falls back to the previous hardcoded suggestions so onboarding still completes.
+    The cloud model list shown during `kova onboard` is populated live from `https://ollama.com/api/tags`, capped at 500 entries, so the picker reflects the current hosted catalog rather than a static seed. If `ollama.com` is unreachable or returns no models at setup time, Kova falls back to the previous hardcoded suggestions so onboarding still completes.
 
   </Tab>
 
   <Tab title="Local only">
-    In local-only mode, OpenClaw discovers models from the configured Ollama instance. This path is for local or self-hosted Ollama servers.
+    In local-only mode, Kova discovers models from the configured Ollama instance. This path is for local or self-hosted Ollama servers.
 
-    OpenClaw currently suggests `gemma4` as the local default.
+    Kova currently suggests `gemma4` as the local default.
 
   </Tab>
 </Tabs>
 
 ## Model discovery (implicit provider)
 
-When you set `OLLAMA_API_KEY` (or an auth profile) and **do not** define `models.providers.ollama` or another custom remote provider with `api: "ollama"`, OpenClaw discovers models from the local Ollama instance at `http://127.0.0.1:11434`.
+When you set `OLLAMA_API_KEY` (or an auth profile) and **do not** define `models.providers.ollama` or another custom remote provider with `api: "ollama"`, Kova discovers models from the local Ollama instance at `http://127.0.0.1:11434`.
 
 | Behavior             | Detail                                                                                                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Catalog query        | Queries `/api/tags`                                                                                                                                                 |
 | Capability detection | Uses best-effort `/api/show` lookups to read `contextWindow`, expanded `num_ctx` Modelfile parameters, and capabilities including vision/tools                      |
-| Vision models        | Models with a `vision` capability reported by `/api/show` are marked as image-capable (`input: ["text", "image"]`), so OpenClaw auto-injects images into the prompt |
+| Vision models        | Models with a `vision` capability reported by `/api/show` are marked as image-capable (`input: ["text", "image"]`), so Kova auto-injects images into the prompt |
 | Reasoning detection  | Marks `reasoning` with a model-name heuristic (`r1`, `reasoning`, `think`)                                                                                          |
-| Token limits         | Sets `maxTokens` to the default Ollama max-token cap used by OpenClaw                                                                                               |
+| Token limits         | Sets `maxTokens` to the default Ollama max-token cap used by Kova                                                                                               |
 | Costs                | Sets all costs to `0`                                                                                                                                               |
 
 This avoids manual model entries while keeping the catalog aligned with the local Ollama instance.
@@ -190,7 +190,7 @@ This avoids manual model entries while keeping the catalog aligned with the loca
 ```bash
 # See what models are available
 ollama list
-openclaw models list
+kova models list
 ```
 
 To add a new model, simply pull it with Ollama:
@@ -207,7 +207,7 @@ If you set `models.providers.ollama` explicitly, or configure a custom remote pr
 
 ## Vision and image description
 
-The bundled Ollama plugin registers Ollama as an image-capable media-understanding provider. This lets OpenClaw route explicit image-description requests and configured image-model defaults through local or hosted Ollama vision models.
+The bundled Ollama plugin registers Ollama as an image-capable media-understanding provider. This lets Kova route explicit image-description requests and configured image-model defaults through local or hosted Ollama vision models.
 
 For local vision, pull a model that supports images:
 
@@ -219,13 +219,13 @@ export OLLAMA_API_KEY="ollama-local"
 Then verify with the infer CLI:
 
 ```bash
-openclaw infer image describe \
+kova infer image describe \
   --file ./photo.jpg \
   --model ollama/qwen2.5vl:7b \
   --json
 ```
 
-`--model` must be a full `<provider/model>` ref. When it is set, `openclaw infer image describe` runs that model directly instead of skipping description because the model supports native vision.
+`--model` must be a full `<provider/model>` ref. When it is set, `kova infer image describe` runs that model directly instead of skipping description because the model supports native vision.
 
 To make Ollama the default image-understanding model for inbound media, configure `agents.defaults.imageModel`:
 
@@ -291,7 +291,7 @@ If you define `models.providers.ollama.models` manually, mark vision models with
 }
 ```
 
-OpenClaw rejects image-description requests for models that are not marked image-capable. With implicit discovery, OpenClaw reads this from Ollama when `/api/show` reports a vision capability.
+Kova rejects image-description requests for models that are not marked image-capable. With implicit discovery, Kova reads this from Ollama when `/api/show` reports a vision capability.
 
 ## Configuration
 
@@ -304,7 +304,7 @@ OpenClaw rejects image-description requests for models that are not marked image
     ```
 
     <Tip>
-    If `OLLAMA_API_KEY` is set, you can omit `apiKey` in the provider entry and OpenClaw will fill it for availability checks.
+    If `OLLAMA_API_KEY` is set, you can omit `apiKey` in the provider entry and Kova will fill it for availability checks.
     </Tip>
 
   </Tab>
@@ -375,18 +375,18 @@ OpenClaw rejects image-description requests for models that are not marked image
 
 ## Common recipes
 
-Use these as starting points and replace model IDs with the exact names from `ollama list` or `openclaw models list --provider ollama`.
+Use these as starting points and replace model IDs with the exact names from `ollama list` or `kova models list --provider ollama`.
 
 <AccordionGroup>
   <Accordion title="Local model with auto-discovery">
-    Use this when Ollama runs on the same machine as the Gateway and you want OpenClaw to discover the installed models automatically.
+    Use this when Ollama runs on the same machine as the Gateway and you want Kova to discover the installed models automatically.
 
     ```bash
     ollama serve
     ollama pull gemma4
     export OLLAMA_API_KEY="ollama-local"
-    openclaw models list --provider ollama
-    openclaw models set ollama/gemma4
+    kova models list --provider ollama
+    kova models set ollama/gemma4
     ```
 
     This path keeps config minimal. Do not add a `models.providers.ollama` block unless you want to define models manually.
@@ -431,7 +431,7 @@ Use these as starting points and replace model IDs with the exact names from `ol
     }
     ```
 
-    `contextWindow` is the OpenClaw-side context budget. `params.num_ctx` is sent to Ollama for the request. Keep them aligned when your hardware cannot run the model's full advertised context.
+    `contextWindow` is the Kova-side context budget. `params.num_ctx` is sent to Ollama for the request. Keep them aligned when your hardware cannot run the model's full advertised context.
 
   </Accordion>
 
@@ -546,7 +546,7 @@ Use these as starting points and replace model IDs with the exact names from `ol
     }
     ```
 
-    When OpenClaw sends the request, the active provider prefix is stripped so `ollama-large/qwen3.5:27b` reaches Ollama as `qwen3.5:27b`.
+    When Kova sends the request, the active provider prefix is stripped so `ollama-large/qwen3.5:27b` reaches Ollama as `qwen3.5:27b`.
 
   </Accordion>
 
@@ -609,7 +609,7 @@ Once configured, all your Ollama models are available:
 ```
 
 Custom Ollama provider ids are also supported. When a model ref uses the active
-provider prefix, such as `ollama-spark/qwen3:32b`, OpenClaw strips only that
+provider prefix, such as `ollama-spark/qwen3:32b`, Kova strips only that
 prefix before calling Ollama so the server receives `qwen3:32b`.
 
 For slow local models, prefer provider-scoped request tuning before raising the
@@ -645,21 +645,21 @@ set it per model when first-turn load time is the bottleneck.
 # Ollama daemon visible to this machine
 curl http://127.0.0.1:11434/api/tags
 
-# OpenClaw catalog and selected model
-openclaw models list --provider ollama
-openclaw models status
+# Kova catalog and selected model
+kova models list --provider ollama
+kova models status
 
 # Direct model smoke
-openclaw infer model run \
+kova infer model run \
   --model ollama/gemma4 \
   --prompt "Reply with exactly: ok"
 ```
 
-For remote hosts, replace `127.0.0.1` with the host used in `baseUrl`. If `curl` works but OpenClaw does not, check whether the Gateway runs on a different machine, container, or service account.
+For remote hosts, replace `127.0.0.1` with the host used in `baseUrl`. If `curl` works but Kova does not, check whether the Gateway runs on a different machine, container, or service account.
 
 ## Ollama Web Search
 
-OpenClaw supports **Ollama Web Search** as a bundled `web_search` provider.
+Kova supports **Ollama Web Search** as a bundled `web_search` provider.
 
 | Property    | Detail                                                                                                                                                               |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -667,7 +667,7 @@ OpenClaw supports **Ollama Web Search** as a bundled `web_search` provider.
 | Auth        | Key-free for signed-in local Ollama hosts; `OLLAMA_API_KEY` or configured provider auth for direct `https://ollama.com` search or auth-protected hosts               |
 | Requirement | Local/self-hosted hosts must be running and signed in with `ollama signin`; direct hosted search requires `baseUrl: "https://ollama.com"` plus a real Ollama API key |
 
-Choose **Ollama Web Search** during `openclaw onboard` or `openclaw configure --section web`, or set:
+Choose **Ollama Web Search** during `kova onboard` or `kova configure --section web`, or set:
 
 ```json5
 {
@@ -703,7 +703,7 @@ For direct hosted search through Ollama Cloud:
 }
 ```
 
-For a signed-in local daemon, OpenClaw uses the daemon's `/api/experimental/web_search` proxy. For `https://ollama.com`, it calls the hosted `/api/web_search` endpoint directly.
+For a signed-in local daemon, Kova uses the daemon's `/api/experimental/web_search` proxy. For `https://ollama.com`, it calls the hosted `/api/web_search` endpoint directly.
 
 <Note>
 For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-search).
@@ -737,7 +737,7 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
 
     This mode may not support streaming and tool calling simultaneously. You may need to disable streaming with `params: { streaming: false }` in model config.
 
-    When `api: "openai-completions"` is used with Ollama, OpenClaw injects `options.num_ctx` by default so Ollama does not silently fall back to a 4096 context window. If your proxy/upstream rejects unknown `options` fields, disable this behavior:
+    When `api: "openai-completions"` is used with Ollama, Kova injects `options.num_ctx` by default so Ollama does not silently fall back to a 4096 context window. If your proxy/upstream rejects unknown `options` fields, disable this behavior:
 
     ```json5
     {
@@ -758,11 +758,11 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
   </Accordion>
 
   <Accordion title="Context windows">
-    For auto-discovered models, OpenClaw uses the context window reported by Ollama when available, including larger `PARAMETER num_ctx` values from custom Modelfiles. Otherwise it falls back to the default Ollama context window used by OpenClaw.
+    For auto-discovered models, Kova uses the context window reported by Ollama when available, including larger `PARAMETER num_ctx` values from custom Modelfiles. Otherwise it falls back to the default Ollama context window used by Kova.
 
-    You can set provider-level `contextWindow`, `contextTokens`, and `maxTokens` defaults for every model under that Ollama provider, then override them per model when needed. `contextWindow` is OpenClaw's prompt and compaction budget. Native Ollama requests leave `options.num_ctx` unset unless you explicitly configure `params.num_ctx`, so Ollama can apply its own model, `OLLAMA_CONTEXT_LENGTH`, or VRAM-based default. To cap or force Ollama's per-request runtime context without rebuilding a Modelfile, set `params.num_ctx`; invalid, zero, negative, and non-finite values are ignored. The OpenAI-compatible Ollama adapter still injects `options.num_ctx` by default from the configured `params.num_ctx` or `contextWindow`; disable that with `injectNumCtxForOpenAICompat: false` if your upstream rejects `options`.
+    You can set provider-level `contextWindow`, `contextTokens`, and `maxTokens` defaults for every model under that Ollama provider, then override them per model when needed. `contextWindow` is Kova's prompt and compaction budget. Native Ollama requests leave `options.num_ctx` unset unless you explicitly configure `params.num_ctx`, so Ollama can apply its own model, `OLLAMA_CONTEXT_LENGTH`, or VRAM-based default. To cap or force Ollama's per-request runtime context without rebuilding a Modelfile, set `params.num_ctx`; invalid, zero, negative, and non-finite values are ignored. The OpenAI-compatible Ollama adapter still injects `options.num_ctx` by default from the configured `params.num_ctx` or `contextWindow`; disable that with `injectNumCtxForOpenAICompat: false` if your upstream rejects `options`.
 
-    Native Ollama model entries also accept the common Ollama runtime options under `params`, including `temperature`, `top_p`, `top_k`, `min_p`, `num_predict`, `stop`, `repeat_penalty`, `num_batch`, `num_thread`, and `use_mmap`. OpenClaw forwards only Ollama request keys, so OpenClaw runtime params such as `streaming` are not leaked to Ollama. Use `params.think` or `params.thinking` to send top-level Ollama `think`; `false` disables API-level thinking for Qwen-style thinking models.
+    Native Ollama model entries also accept the common Ollama runtime options under `params`, including `temperature`, `top_p`, `top_k`, `min_p`, `num_predict`, `stop`, `repeat_penalty`, `num_batch`, `num_thread`, and `use_mmap`. Kova forwards only Ollama request keys, so Kova runtime params such as `streaming` are not leaked to Ollama. Use `params.think` or `params.thinking` to send top-level Ollama `think`; `false` disables API-level thinking for Qwen-style thinking models.
 
     ```json5
     {
@@ -794,11 +794,11 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
   </Accordion>
 
   <Accordion title="Thinking control">
-    For native Ollama models, OpenClaw forwards thinking control as Ollama expects it: top-level `think`, not `options.think`.
+    For native Ollama models, Kova forwards thinking control as Ollama expects it: top-level `think`, not `options.think`.
 
     ```bash
-    openclaw agent --model ollama/gemma4 --thinking off
-    openclaw agent --model ollama/gemma4 --thinking low
+    kova agent --model ollama/gemma4 --thinking off
+    kova agent --model ollama/gemma4 --thinking low
     ```
 
     You can also set a model default:
@@ -822,13 +822,13 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
   </Accordion>
 
   <Accordion title="Reasoning models">
-    OpenClaw treats models with names such as `deepseek-r1`, `reasoning`, or `think` as reasoning-capable by default.
+    Kova treats models with names such as `deepseek-r1`, `reasoning`, or `think` as reasoning-capable by default.
 
     ```bash
     ollama pull deepseek-r1:32b
     ```
 
-    No additional configuration is needed. OpenClaw marks them automatically.
+    No additional configuration is needed. Kova marks them automatically.
 
   </Accordion>
 
@@ -883,9 +883,9 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
   </Accordion>
 
   <Accordion title="Streaming configuration">
-    OpenClaw's Ollama integration uses the **native Ollama API** (`/api/chat`) by default, which fully supports streaming and tool calling simultaneously. No special configuration is needed.
+    Kova's Ollama integration uses the **native Ollama API** (`/api/chat`) by default, which fully supports streaming and tool calling simultaneously. No special configuration is needed.
 
-    For native `/api/chat` requests, OpenClaw also forwards thinking control directly to Ollama: `/think off` and `openclaw agent --thinking off` send top-level `think: false`, while `/think low|medium|high` send the matching top-level `think` effort string. `/think max` maps to Ollama's highest native effort, `think: "high"`.
+    For native `/api/chat` requests, Kova also forwards thinking control directly to Ollama: `/think off` and `kova agent --thinking off` send top-level `think: false`, while `/think low|medium|high` send the matching top-level `think` effort string. `/think max` maps to Ollama's highest native effort, `think: "high"`.
 
     <Tip>
     If you need to use the OpenAI-compatible endpoint, see the "Legacy OpenAI-compatible mode" section above. Streaming and tool calling may not work simultaneously in that mode.
@@ -906,7 +906,7 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
     - high CPU in `app.slice` or `ollama.service` shortly after WSL2 startup
     - SIGTERM from systemd rather than a Linux OOM-killer event
 
-    OpenClaw logs a startup warning when it detects WSL2, `ollama.service` enabled with `Restart=always`, and visible CUDA markers.
+    Kova logs a startup warning when it detects WSL2, `ollama.service` enabled with `Restart=always`, and visible CUDA markers.
 
     Mitigation:
 
@@ -972,11 +972,11 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
 
   </Accordion>
 
-  <Accordion title="Remote host works with curl but not OpenClaw">
+  <Accordion title="Remote host works with curl but not Kova">
     Verify from the same machine and runtime that runs the Gateway:
 
     ```bash
-    openclaw gateway status --deep
+    kova gateway status --deep
     curl http://ollama-host:11434/api/tags
     ```
 
@@ -1038,7 +1038,7 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
   </Accordion>
 
   <Accordion title="Large-context model is too slow or runs out of memory">
-    Many Ollama models advertise contexts that are larger than your hardware can run comfortably. Native Ollama uses Ollama's own runtime context default unless you set `params.num_ctx`. Cap both OpenClaw's budget and Ollama's request context when you want predictable first-token latency:
+    Many Ollama models advertise contexts that are larger than your hardware can run comfortably. Native Ollama uses Ollama's own runtime context default unless you set `params.num_ctx`. Cap both Kova's budget and Ollama's request context when you want predictable first-token latency:
 
     ```json5
     {
@@ -1060,7 +1060,7 @@ For the full setup and behavior details, see [Ollama Web Search](/tools/ollama-s
     }
     ```
 
-    Lower `contextWindow` first if OpenClaw is sending too much prompt. Lower `params.num_ctx` if Ollama is loading a runtime context that is too large for the machine. Lower `maxTokens` if generation runs too long.
+    Lower `contextWindow` first if Kova is sending too much prompt. Lower `params.num_ctx` if Ollama is loading a runtime context that is too large for the machine. Lower `maxTokens` if generation runs too long.
 
   </Accordion>
 </AccordionGroup>

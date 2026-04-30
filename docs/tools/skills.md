@@ -8,15 +8,15 @@ title: "Skills"
 sidebarTitle: "Skills"
 ---
 
-OpenClaw uses **[AgentSkills](https://agentskills.io)-compatible** skill
+Kova uses **[AgentSkills](https://agentskills.io)-compatible** skill
 folders to teach the agent how to use tools. Each skill is a directory
-containing a `SKILL.md` with YAML frontmatter and instructions. OpenClaw
+containing a `SKILL.md` with YAML frontmatter and instructions. Kova
 loads bundled skills plus optional local overrides, and filters them at
 load time based on environment, config, and binary presence.
 
 ## Locations and precedence
 
-OpenClaw loads skills from these sources, **highest precedence first**:
+Kova loads skills from these sources, **highest precedence first**:
 
 | #   | Source                | Path                             |
 | --- | --------------------- | -------------------------------- |
@@ -114,21 +114,21 @@ its proposals. Full guide: [Skill Workshop plugin](/plugins/skill-workshop).
 
 ## ClawHub (install and sync)
 
-[ClawHub](https://clawhub.ai) is the public skills registry for OpenClaw.
-Use native `openclaw skills` commands for discover/install/update, or the
+[ClawHub](https://clawhub.ai) is the public skills registry for Kova.
+Use native `kova skills` commands for discover/install/update, or the
 separate `clawhub` CLI for publish/sync workflows. Full guide:
 [ClawHub](/tools/clawhub).
 
 | Action                             | Command                                |
 | ---------------------------------- | -------------------------------------- |
-| Install a skill into the workspace | `openclaw skills install <skill-slug>` |
-| Update all installed skills        | `openclaw skills update --all`         |
+| Install a skill into the workspace | `kova skills install <skill-slug>` |
+| Update all installed skills        | `kova skills update --all`         |
 | Sync (scan + publish updates)      | `clawhub sync --all`                   |
 
-Native `openclaw skills install` installs into the active workspace
+Native `kova skills install` installs into the active workspace
 `skills/` directory. The separate `clawhub` CLI also installs into
 `./skills` under your current working directory (or falls back to the
-configured OpenClaw workspace). OpenClaw picks that up as
+configured Kova workspace). Kova picks that up as
 `<workspace>/skills` on the next session.
 
 ## Security
@@ -141,7 +141,7 @@ Prefer sandboxed runs for untrusted inputs and risky tools. See
 
 - Workspace and extra-dir skill discovery only accepts skill roots and `SKILL.md` files whose resolved realpath stays inside the configured root.
 - Gateway-backed skill dependency installs (`skills.install`, onboarding, and the Skills settings UI) run the built-in dangerous-code scanner before executing installer metadata. `critical` findings block by default unless the caller explicitly sets the dangerous override; suspicious findings still warn only.
-- `openclaw skills install <slug>` is different — it downloads a ClawHub skill folder into the workspace and does not use the installer-metadata path above.
+- `kova skills install <slug>` is different — it downloads a ClawHub skill folder into the workspace and does not use the installer-metadata path above.
 - `skills.entries.*.env` and `skills.entries.*.apiKey` inject secrets into the **host** process for that agent turn (not the sandbox). Keep secrets out of prompts and logs.
 
 For a broader threat model and checklists, see [Security](/gateway/security).
@@ -157,7 +157,7 @@ description: Generate or edit images via a provider-backed image workflow
 ---
 ```
 
-OpenClaw follows the AgentSkills spec for layout/intent. The parser used
+Kova follows the AgentSkills spec for layout/intent. The parser used
 by the embedded agent supports **single-line** frontmatter keys only;
 `metadata` should be a **single-line JSON object**. Use `{baseDir}` in
 instructions to reference the skill folder path.
@@ -185,7 +185,7 @@ instructions to reference the skill folder path.
 
 ## Gating (load-time filters)
 
-OpenClaw filters skills at load time using `metadata` (single-line JSON):
+Kova filters skills at load time using `metadata` (single-line JSON):
 
 ```markdown
 ---
@@ -281,11 +281,11 @@ metadata:
 <AccordionGroup>
   <Accordion title="Installer selection rules">
     - If multiple installers are listed, the gateway picks a single preferred option (brew when available, otherwise node).
-    - If all installers are `download`, OpenClaw lists each entry so you can see the available artifacts.
+    - If all installers are `download`, Kova lists each entry so you can see the available artifacts.
     - Installer specs can include `os: ["darwin"|"linux"|"win32"]` to filter options by platform.
     - Node installs honor `skills.install.nodeManager` in `openclaw.json` (default: npm; options: npm/pnpm/yarn/bun). This only affects skill installs; the Gateway runtime should still be Node — Bun is not recommended for WhatsApp/Telegram.
-    - Gateway-backed installer selection is preference-driven: when install specs mix kinds, OpenClaw prefers Homebrew when `skills.install.preferBrew` is enabled and `brew` exists, then `uv`, then the configured node manager, then other fallbacks like `go` or `download`.
-    - If every install spec is `download`, OpenClaw surfaces all download options instead of collapsing to one preferred installer.
+    - Gateway-backed installer selection is preference-driven: when install specs mix kinds, Kova prefers Homebrew when `skills.install.preferBrew` is enabled and `brew` exists, then `uv`, then the configured node manager, then other fallbacks like `go` or `download`.
+    - If every install spec is `download`, Kova surfaces all download options instead of collapsing to one preferred installer.
   </Accordion>
   <Accordion title="Per-installer details">
     - **Go installs:** if `go` is missing and `brew` is available, the gateway installs Go via Homebrew first and sets `GOBIN` to Homebrew's `bin` when possible.
@@ -341,7 +341,7 @@ keys). Config keys match the **skill name** by default — if a skill
 defines `metadata.openclaw.skillKey`, use that key under `skills.entries`.
 
 <Note>
-For stock image generation/editing inside OpenClaw, use the core
+For stock image generation/editing inside Kova, use the core
 `image_generate` tool with `agents.defaults.imageGenerationModel` instead
 of a bundled skill. Skill examples here are for custom or third-party
 workflows. For native image analysis use the `image` tool with
@@ -352,7 +352,7 @@ auth/API key too.
 
 ## Environment injection
 
-When an agent run starts, OpenClaw:
+When an agent run starts, Kova:
 
 1. Reads skill metadata.
 2. Applies `skills.entries.<key>.env` and `skills.entries.<key>.apiKey` to `process.env`.
@@ -362,16 +362,16 @@ When an agent run starts, OpenClaw:
 Environment injection is **scoped to the agent run**, not a global shell
 environment.
 
-For the bundled `claude-cli` backend, OpenClaw also materializes the same
+For the bundled `claude-cli` backend, Kova also materializes the same
 eligible snapshot as a temporary Claude Code plugin and passes it with
 `--plugin-dir`. Claude Code can then use its native skill resolver while
-OpenClaw still owns precedence, per-agent allowlists, gating, and
+Kova still owns precedence, per-agent allowlists, gating, and
 `skills.entries.*` env/API key injection. Other CLI backends use the
 prompt catalog only.
 
 ## Snapshots and refresh
 
-OpenClaw snapshots the eligible skills **when a session starts** and
+Kova snapshots the eligible skills **when a session starts** and
 reuses that list for subsequent turns in the same session. Changes to
 skills or config take effect on the next new session.
 
@@ -382,12 +382,12 @@ Skills can refresh mid-session in two cases:
 
 Think of this as a **hot reload**: the refreshed list is picked up on the
 next agent turn. If the effective agent skill allowlist changes for that
-session, OpenClaw refreshes the snapshot so visible skills stay aligned
+session, Kova refreshes the snapshot so visible skills stay aligned
 with the current agent.
 
 ### Skills watcher
 
-By default, OpenClaw watches skill folders and bumps the skills snapshot
+By default, Kova watches skill folders and bumps the skills snapshot
 when `SKILL.md` files change. Configure under `skills.load`:
 
 ```json5
@@ -405,19 +405,19 @@ when `SKILL.md` files change. Configure under `skills.load`:
 
 If the Gateway runs on Linux but a **macOS node** is connected with
 `system.run` allowed (Exec approvals security not set to `deny`),
-OpenClaw can treat macOS-only skills as eligible when the required
+Kova can treat macOS-only skills as eligible when the required
 binaries are present on that node. The agent should execute those skills
 via the `exec` tool with `host=node`.
 
 This relies on the node reporting its command support and on a bin probe
 via `system.which` or `system.run`. Offline nodes do **not** make
 remote-only skills visible. If a connected node stops answering bin
-probes, OpenClaw clears its cached bin matches so agents no longer see
+probes, Kova clears its cached bin matches so agents no longer see
 skills that cannot currently run there.
 
 ## Token impact
 
-When skills are eligible, OpenClaw injects a compact XML list of available
+When skills are eligible, Kova injects a compact XML list of available
 skills into the system prompt (via `formatSkillsForPrompt` in
 `pi-coding-agent`). The cost is deterministic:
 
@@ -437,8 +437,8 @@ skill plus your actual field lengths.
 
 ## Managed skills lifecycle
 
-OpenClaw ships a baseline set of skills as **bundled skills** with the
-install (npm package or OpenClaw.app). `~/.openclaw/skills` exists for
+Kova ships a baseline set of skills as **bundled skills** with the
+install (npm package or Kova.app). `~/.openclaw/skills` exists for
 local overrides — for example, pinning or patching a skill without
 changing the bundled copy. Workspace skills are user-owned and override
 both on name conflicts.

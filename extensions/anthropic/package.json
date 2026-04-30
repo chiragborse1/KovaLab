@@ -2,7 +2,7 @@
   "name": "@openclaw/anthropic-provider",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Anthropic provider plugin",
+  "description": "Kova Anthropic provider plugin",
   "type": "module",
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2"

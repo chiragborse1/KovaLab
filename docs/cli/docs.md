@@ -1,11 +1,11 @@
 ---
-summary: "CLI reference for `openclaw docs` (search the live docs index)"
+summary: "CLI reference for `kova docs` (search the live docs index)"
 read_when:
-  - You want to search the live OpenClaw docs from the terminal
+  - You want to search the live Kova docs from the terminal
 title: "Docs"
 ---
 
-# `openclaw docs`
+# `kova docs`
 
 Search the live docs index.
 
@@ -16,15 +16,15 @@ Arguments:
 Examples:
 
 ```bash
-openclaw docs
-openclaw docs browser existing-session
-openclaw docs sandbox allowHostControl
-openclaw docs gateway token secretref
+kova docs
+kova docs browser existing-session
+kova docs sandbox allowHostControl
+kova docs gateway token secretref
 ```
 
 Notes:
 
-- With no query, `openclaw docs` opens the live docs search entrypoint.
+- With no query, `kova docs` opens the live docs search entrypoint.
 - Multi-word queries are passed through as one search request.
 
 ## Related

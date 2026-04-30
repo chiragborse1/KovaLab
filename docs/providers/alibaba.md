@@ -1,12 +1,12 @@
 ---
-summary: "Alibaba Model Studio Wan video generation in OpenClaw"
+summary: "Alibaba Model Studio Wan video generation in Kova"
 title: "Alibaba Model Studio"
 read_when:
-  - You want to use Alibaba Wan video generation in OpenClaw
+  - You want to use Alibaba Wan video generation in Kova
   - You need Model Studio or DashScope API key setup for video generation
 ---
 
-OpenClaw ships a bundled `alibaba` video-generation provider for Wan models on
+Kova ships a bundled `alibaba` video-generation provider for Wan models on
 Alibaba Model Studio / DashScope.
 
 - Provider: `alibaba`
@@ -19,7 +19,7 @@ Alibaba Model Studio / DashScope.
 <Steps>
   <Step title="Set an API key">
     ```bash
-    openclaw onboard --auth-choice qwen-standard-api-key
+    kova onboard --auth-choice qwen-standard-api-key
     ```
   </Step>
   <Step title="Set a default video model">
@@ -37,7 +37,7 @@ Alibaba Model Studio / DashScope.
   </Step>
   <Step title="Verify the provider is available">
     ```bash
-    openclaw models list --provider alibaba
+    kova models list --provider alibaba
     ```
   </Step>
 </Steps>
@@ -88,7 +88,7 @@ Reference image/video mode currently requires **remote http(s) URLs**. Local fil
   </Accordion>
 
   <Accordion title="Auth key priority">
-    OpenClaw checks for auth keys in this order:
+    Kova checks for auth keys in this order:
 
     1. `MODELSTUDIO_API_KEY` (preferred)
     2. `DASHSCOPE_API_KEY`

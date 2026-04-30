@@ -1,21 +1,21 @@
 ---
-summary: "Create your first OpenClaw plugin in minutes"
+summary: "Create your first Kova plugin in minutes"
 title: "Building plugins"
 sidebarTitle: "Getting Started"
 read_when:
-  - You want to create a new OpenClaw plugin
+  - You want to create a new Kova plugin
   - You need a quick-start for plugin development
-  - You are adding a new channel, provider, tool, or other capability to OpenClaw
+  - You are adding a new channel, provider, tool, or other capability to Kova
 ---
 
-Plugins extend OpenClaw with new capabilities: channels, model providers,
+Plugins extend Kova with new capabilities: channels, model providers,
 speech, realtime transcription, realtime voice, media understanding, image
 generation, video generation, web fetch, web search, agent tools, or any
 combination.
 
-You do not need to add your plugin to the OpenClaw repository. Publish to
+You do not need to add your plugin to the Kova repository. Publish to
 [ClawHub](/tools/clawhub) or npm and users install with
-`openclaw plugins install <package-name>`. OpenClaw tries ClawHub first and
+`kova plugins install <package-name>`. Kova tries ClawHub first and
 falls back to npm automatically.
 
 ## Prerequisites
@@ -28,7 +28,7 @@ falls back to npm automatically.
 
 <CardGroup cols={3}>
   <Card title="Channel plugin" icon="messages-square" href="/plugins/sdk-channel-plugins">
-    Connect OpenClaw to a messaging platform (Discord, IRC, etc.)
+    Connect Kova to a messaging platform (Discord, IRC, etc.)
   </Card>
   <Card title="Provider plugin" icon="cpu" href="/plugins/sdk-provider-plugins">
     Add a model provider (LLM, proxy, or custom endpoint)
@@ -75,7 +75,7 @@ and provider plugins have dedicated guides linked above.
     {
       "id": "my-plugin",
       "name": "My Plugin",
-      "description": "Adds a custom tool to OpenClaw",
+      "description": "Adds a custom tool to Kova",
       "configSchema": {
         "type": "object",
         "additionalProperties": false
@@ -100,7 +100,7 @@ and provider plugins have dedicated guides linked above.
     export default definePluginEntry({
       id: "my-plugin",
       name: "My Plugin",
-      description: "Adds a custom tool to OpenClaw",
+      description: "Adds a custom tool to Kova",
       register(api) {
         api.registerTool({
           name: "my_tool",
@@ -127,10 +127,10 @@ and provider plugins have dedicated guides linked above.
     ```bash
     clawhub package publish your-org/your-plugin --dry-run
     clawhub package publish your-org/your-plugin
-    openclaw plugins install clawhub:@myorg/openclaw-my-plugin
+    kova plugins install clawhub:@myorg/openclaw-my-plugin
     ```
 
-    OpenClaw also checks ClawHub before npm for bare package specs like
+    Kova also checks ClawHub before npm for bare package specs like
     `@myorg/openclaw-my-plugin`.
 
     **In-repo plugins:** place under the bundled plugin workspace tree — automatically discovered.
@@ -174,7 +174,7 @@ Bundled plugins can use `api.registerAgentToolResultMiddleware(...)` when they
 need async tool-result rewriting before the model sees the output. Declare the
 targeted runtimes in `contracts.agentToolResultMiddleware`, for example
 `["pi", "codex"]`. This is a trusted bundled-plugin seam; external
-plugins should prefer regular OpenClaw plugin hooks unless OpenClaw grows an
+plugins should prefer regular Kova plugin hooks unless Kova grows an
 explicit trust policy for this capability.
 
 If your plugin registers custom gateway RPC methods, keep them on a
@@ -194,7 +194,7 @@ Hook guard semantics to keep in mind:
 - `message_received`: prefer the typed `threadId` field when you need inbound thread/topic routing. Keep `metadata` for channel-specific extras.
 - `message_sending`: prefer typed `replyToId` / `threadId` routing fields over channel-specific metadata keys.
 
-The `/approve` command handles both exec and plugin approvals with bounded fallback: when an exec approval id is not found, OpenClaw retries the same id through plugin approvals. Plugin approval forwarding can be configured independently via `approvals.plugin` in config.
+The `/approve` command handles both exec and plugin approvals with bounded fallback: when an exec approval id is not found, Kova retries the same id through plugin approvals. Plugin approval forwarding can be configured independently via `approvals.plugin` in config.
 
 If custom approval plumbing needs to detect that same bounded fallback case,
 prefer `isApprovalNotFoundError` from `openclaw/plugin-sdk/error-runtime`
@@ -281,7 +281,7 @@ surfaces, not as the default pattern for new third-party plugins.
 
 ## Pre-submission checklist
 
-<Check>**package.json** has correct `openclaw` metadata</Check>
+<Check>**package.json** has correct `kova` metadata</Check>
 <Check>**openclaw.plugin.json** manifest is present and valid</Check>
 <Check>Entry point uses `defineChannelPluginEntry` or `definePluginEntry`</Check>
 <Check>All imports use focused `plugin-sdk/<subpath>` paths</Check>
@@ -291,7 +291,7 @@ surfaces, not as the default pattern for new third-party plugins.
 
 ## Beta release testing
 
-1. Watch for GitHub release tags on [openclaw/openclaw](https://github.com/openclaw/openclaw/releases) and subscribe via `Watch` > `Releases`. Beta tags look like `v2026.3.N-beta.1`. You can also turn on notifications for the official OpenClaw X account [@openclaw](https://x.com/openclaw) for release announcements.
+1. Watch for GitHub release tags on [openclaw/openclaw](https://github.com/openclaw/openclaw/releases) and subscribe via `Watch` > `Releases`. Beta tags look like `v2026.3.N-beta.1`. You can also turn on notifications for the official Kova X account [@openclaw](https://x.com/openclaw) for release announcements.
 2. Test your plugin against the beta tag as soon as it appears. The window before stable is typically only a few hours.
 3. Post in your plugin's thread in the `plugin-forum` Discord channel after testing with either `all good` or what broke. If you do not have a thread yet, create one.
 4. If something breaks, open or update an issue titled `Beta blocker: <plugin-name> - <summary>` and apply the `beta-blocker` label. Put the issue link in your thread.

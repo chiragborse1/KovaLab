@@ -1,7 +1,7 @@
 ---
-summary: "Shared Docker VM runtime steps for long-lived OpenClaw Gateway hosts"
+summary: "Shared Docker VM runtime steps for long-lived Kova Gateway hosts"
 read_when:
-  - You are deploying OpenClaw on a cloud VM with Docker
+  - You are deploying Kova on a cloud VM with Docker
   - You need the shared binary bake, persistence, and update flow
 title: "Docker VM runtime"
 ---
@@ -113,7 +113,7 @@ Expected output:
 
 ## What persists where
 
-OpenClaw runs in Docker, but Docker is not the source of truth.
+Kova runs in Docker, but Docker is not the source of truth.
 All long-lived state must survive restarts, rebuilds, and reboots.
 
 | Component           | Location                          | Persistence mechanism  | Notes                                                         |
@@ -131,7 +131,7 @@ All long-lived state must survive restarts, rebuilds, and reboots.
 
 ## Updates
 
-To update OpenClaw on the VM:
+To update Kova on the VM:
 
 ```bash
 git pull

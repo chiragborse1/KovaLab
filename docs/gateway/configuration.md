@@ -1,19 +1,19 @@
 ---
 summary: "Configuration overview: common tasks, quick setup, and links to the full reference"
 read_when:
-  - Setting up OpenClaw for the first time
+  - Setting up Kova for the first time
   - Looking for common configuration patterns
   - Navigating to specific config sections
 title: "Configuration"
 ---
 
-OpenClaw reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.openclaw/openclaw.json`.
+Kova reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.openclaw/openclaw.json`.
 The active config path must be a regular file. Symlinked `openclaw.json`
-layouts are unsupported for OpenClaw-owned writes; an atomic write may replace
+layouts are unsupported for Kova-owned writes; an atomic write may replace
 the path instead of preserving the symlink. If you keep config outside the
 default state directory, point `OPENCLAW_CONFIG_PATH` directly at the real file.
 
-If the file is missing, OpenClaw uses safe defaults. Common reasons to add a config:
+If the file is missing, Kova uses safe defaults. Common reasons to add a config:
 
 - Connect channels and control who can message the bot
 - Set models, tools, sandboxing, or automation (cron, hooks)
@@ -27,7 +27,7 @@ docs before editing config. Use this page for task-oriented guidance and
 field map and defaults.
 
 <Tip>
-**New to configuration?** Start with `openclaw onboard` for interactive setup, or check out the [Configuration Examples](/gateway/configuration-examples) guide for complete copy-paste configs.
+**New to configuration?** Start with `kova onboard` for interactive setup, or check out the [Configuration Examples](/gateway/configuration-examples) guide for complete copy-paste configs.
 </Tip>
 
 ## Minimal config
@@ -45,15 +45,15 @@ field map and defaults.
 <Tabs>
   <Tab title="Interactive wizard">
     ```bash
-    openclaw onboard       # full onboarding flow
-    openclaw configure     # config wizard
+    kova onboard       # full onboarding flow
+    kova configure     # config wizard
     ```
   </Tab>
   <Tab title="CLI (one-liners)">
     ```bash
-    openclaw config get agents.defaults.workspace
-    openclaw config set agents.defaults.heartbeat.every "2h"
-    openclaw config unset plugins.entries.brave.config.webSearch.apiKey
+    kova config get agents.defaults.workspace
+    kova config set agents.defaults.heartbeat.every "2h"
+    kova config unset plugins.entries.brave.config.webSearch.apiKey
     ```
   </Tab>
   <Tab title="Control UI">
@@ -72,10 +72,10 @@ field map and defaults.
 ## Strict validation
 
 <Warning>
-OpenClaw only accepts configurations that fully match the schema. Unknown keys, malformed types, or invalid values cause the Gateway to **refuse to start**. The only root-level exception is `$schema` (string), so editors can attach JSON Schema metadata.
+Kova only accepts configurations that fully match the schema. Unknown keys, malformed types, or invalid values cause the Gateway to **refuse to start**. The only root-level exception is `$schema` (string), so editors can attach JSON Schema metadata.
 </Warning>
 
-`openclaw config schema` prints the canonical JSON Schema used by Control UI
+`kova config schema` prints the canonical JSON Schema used by Control UI
 and validation. `config.schema.lookup` fetches a single path-scoped node plus
 child summaries for drill-down tooling. Field `title`/`description` docs metadata
 carries through nested objects, wildcard (`*`), array-item (`[]`), and `anyOf`/
@@ -85,18 +85,18 @@ manifest registry is loaded.
 When validation fails:
 
 - The Gateway does not boot
-- Only diagnostic commands work (`openclaw doctor`, `openclaw logs`, `openclaw health`, `openclaw status`)
-- Run `openclaw doctor` to see exact issues
-- Run `openclaw doctor --fix` (or `--yes`) to apply repairs
+- Only diagnostic commands work (`kova doctor`, `kova logs`, `kova health`, `kova status`)
+- Run `kova doctor` to see exact issues
+- Run `kova doctor --fix` (or `--yes`) to apply repairs
 
 The Gateway keeps a trusted last-known-good copy after each successful startup.
 If `openclaw.json` later fails validation (or drops `gateway.mode`, shrinks
-sharply, or has a stray log line prepended), OpenClaw preserves the broken file
+sharply, or has a stray log line prepended), Kova preserves the broken file
 as `.clobbered.*`, restores the last-known-good copy, and logs the recovery
 reason. The next agent turn also receives a system-event warning so the main
 agent does not blindly rewrite the restored config. Promotion to last-known-good
 is skipped when a candidate contains redacted secret placeholders such as `***`.
-When every validation issue is scoped to `plugins.entries.<id>...`, OpenClaw
+When every validation issue is scoped to `plugins.entries.<id>...`, Kova
 does not perform whole-file recovery. It keeps the current config active and
 surfaces the plugin-local failure so a plugin schema or host-version mismatch
 cannot roll back unrelated user settings.
@@ -156,7 +156,7 @@ cannot roll back unrelated user settings.
     ```
 
     - `agents.defaults.models` defines the model catalog and acts as the allowlist for `/model`.
-    - Use `openclaw config set agents.defaults.models '<json>' --strict-json --merge` to add allowlist entries without removing existing models. Plain replacements that would remove entries are rejected unless you pass `--replace`.
+    - Use `kova config set agents.defaults.models '<json>' --strict-json --merge` to add allowlist entries without removing existing models. Plain replacements that would remove entries are rejected unless you pass `--replace`.
     - Model refs use `provider/model` format (e.g. `anthropic/claude-opus-4-6`).
     - `agents.defaults.imageMaxDimensionPx` controls transcript/tool image downscaling (default `1200`); lower values usually reduce vision-token usage on screenshot-heavy runs.
     - See [Models CLI](/concepts/models) for switching models in chat and [Model Failover](/concepts/model-failover) for auth rotation and fallback behavior.
@@ -338,7 +338,7 @@ cannot roll back unrelated user settings.
     CLI equivalent:
 
     ```bash
-    openclaw config set gateway.push.apns.relay.baseUrl https://relay.example.com
+    kova config set gateway.push.apns.relay.baseUrl https://relay.example.com
     ```
 
     What this does:
@@ -491,11 +491,11 @@ cannot roll back unrelated user settings.
     - **Sibling keys**: merged after includes (override included values)
     - **Nested includes**: supported up to 10 levels deep
     - **Relative paths**: resolved relative to the including file
-    - **OpenClaw-owned writes**: when a write changes only one top-level section
+    - **Kova-owned writes**: when a write changes only one top-level section
       backed by a single-file include such as `plugins: { $include: "./plugins.json5" }`,
-      OpenClaw updates that included file and leaves `openclaw.json` intact
+      Kova updates that included file and leaves `openclaw.json` intact
     - **Unsupported write-through**: root includes, include arrays, and includes
-      with sibling overrides fail closed for OpenClaw-owned writes instead of
+      with sibling overrides fail closed for Kova-owned writes instead of
       flattening the config
     - **Error handling**: clear errors for missing files, parse errors, and circular includes
 
@@ -508,7 +508,7 @@ The Gateway watches `~/.openclaw/openclaw.json` and applies changes automaticall
 
 Direct file edits are treated as untrusted until they validate. The watcher waits
 for editor temp-write/rename churn to settle, reads the final file, and rejects
-invalid external edits by restoring the last-known-good config. OpenClaw-owned
+invalid external edits by restoring the last-known-good config. Kova-owned
 config writes use the same schema gate before writing; destructive clobbers such
 as dropping `gateway.mode` or shrinking the file by more than half are rejected
 and saved as `.rejected.*` for inspection.
@@ -520,7 +520,7 @@ issue instead of restoring `.last-good`.
 If you see `Config auto-restored from last-known-good` or
 `config reload restored last-known-good config` in logs, inspect the matching
 `.clobbered.*` file next to `openclaw.json`, fix the rejected payload, then run
-`openclaw config validate`. See [Gateway troubleshooting](/gateway/troubleshooting#gateway-restored-last-known-good-config)
+`kova config validate`. See [Gateway troubleshooting](/gateway/troubleshooting#gateway-restored-last-known-good-config)
 for the recovery checklist.
 
 ### Reload modes
@@ -561,7 +561,7 @@ Most fields hot-apply without downtime. In `hybrid` mode, restart-required chang
 
 ### Reload planning
 
-When you edit a source file that is referenced through `$include`, OpenClaw plans
+When you edit a source file that is referenced through `$include`, Kova plans
 the reload from the source-authored layout, not the flattened in-memory view.
 That keeps hot-reload decisions (hot-apply vs restart) predictable even when a
 single top-level section lives in its own included file such as
@@ -597,8 +597,8 @@ include update step summaries and command output tails.
 Example partial patch:
 
 ```bash
-openclaw gateway call config.get --params '{}'  # capture payload.hash
-openclaw gateway call config.patch --params '{
+kova gateway call config.get --params '{}'  # capture payload.hash
+kova gateway call config.patch --params '{
   "raw": "{ channels: { telegram: { groups: { \"*\": { requireMention: false } } } } }",
   "baseHash": "<hash>"
 }'
@@ -610,7 +610,7 @@ config already exists.
 
 ## Environment variables
 
-OpenClaw reads env vars from the parent process plus:
+Kova reads env vars from the parent process plus:
 
 - `.env` from the current working directory (if present)
 - `~/.openclaw/.env` (global fallback)
@@ -627,7 +627,7 @@ Neither file overrides existing env vars. You can also set inline env vars in co
 ```
 
 <Accordion title="Shell env import (optional)">
-  If enabled and expected keys aren't set, OpenClaw runs your login shell and imports only the missing keys:
+  If enabled and expected keys aren't set, Kova runs your login shell and imports only the missing keys:
 
 ```json5
 {

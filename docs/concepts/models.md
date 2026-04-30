@@ -27,7 +27,7 @@ Model refs choose a provider and model. They do not usually choose the low-level
 
 ## How model selection works
 
-OpenClaw selects models in this order:
+Kova selects models in this order:
 
 <Steps>
   <Step title="Primary model">
@@ -43,7 +43,7 @@ OpenClaw selects models in this order:
 
 <AccordionGroup>
   <Accordion title="Related model surfaces">
-    - `agents.defaults.models` is the allowlist/catalog of models OpenClaw can use (plus aliases).
+    - `agents.defaults.models` is the allowlist/catalog of models Kova can use (plus aliases).
     - `agents.defaults.imageModel` is used **only when** the primary model can't accept images.
     - `agents.defaults.pdfModel` is used by the `pdf` tool. If omitted, the tool falls back to `agents.defaults.imageModel`, then the resolved session/default model.
     - `agents.defaults.imageGenerationModel` is used by the shared image-generation capability. If omitted, `image_generate` can still infer an auth-backed provider default. It tries the current default provider first, then the remaining registered image-generation providers in provider-id order. If you set a specific provider/model, also configure that provider's auth/API key.
@@ -64,7 +64,7 @@ OpenClaw selects models in this order:
 If you don't want to hand-edit config, run onboarding:
 
 ```bash
-openclaw onboard
+kova onboard
 ```
 
 It can set up model + auth for common providers, including **OpenAI Code (Codex) subscription** (OAuth) and **Anthropic** (API key or Claude CLI).
@@ -90,21 +90,21 @@ Provider configuration examples (including OpenCode) live in [OpenCode](/provide
 Use additive writes when updating `agents.defaults.models` by hand:
 
 ```bash
-openclaw config set agents.defaults.models '{"openai/gpt-5.4":{}}' --strict-json --merge
+kova config set agents.defaults.models '{"openai/gpt-5.4":{}}' --strict-json --merge
 ```
 
 <AccordionGroup>
   <Accordion title="Clobber protection rules">
-    `openclaw config set` protects model/provider maps from accidental clobbers. A plain object assignment to `agents.defaults.models`, `models.providers`, or `models.providers.<id>.models` is rejected when it would remove existing entries. Use `--merge` for additive changes; use `--replace` only when the provided value should become the complete target value.
+    `kova config set` protects model/provider maps from accidental clobbers. A plain object assignment to `agents.defaults.models`, `models.providers`, or `models.providers.<id>.models` is rejected when it would remove existing entries. Use `--merge` for additive changes; use `--replace` only when the provided value should become the complete target value.
 
-    Interactive provider setup and `openclaw configure --section model` also merge provider-scoped selections into the existing allowlist, so adding Codex, Ollama, or another provider does not drop unrelated model entries. Configure preserves an existing `agents.defaults.model.primary` when provider auth is re-applied. Explicit default-setting commands such as `openclaw models auth login --provider <id> --set-default` and `openclaw models set <model>` still replace `agents.defaults.model.primary`.
+    Interactive provider setup and `kova configure --section model` also merge provider-scoped selections into the existing allowlist, so adding Codex, Ollama, or another provider does not drop unrelated model entries. Configure preserves an existing `agents.defaults.model.primary` when provider auth is re-applied. Explicit default-setting commands such as `kova models auth login --provider <id> --set-default` and `kova models set <model>` still replace `agents.defaults.model.primary`.
 
   </Accordion>
 </AccordionGroup>
 
 ## "Model is not allowed" (and why replies stop)
 
-If `agents.defaults.models` is set, it becomes the **allowlist** for `/model` and for session overrides. When a user selects a model that isn't in that allowlist, OpenClaw returns:
+If `agents.defaults.models` is set, it becomes the **allowlist** for `/model` and for session overrides. When a user selects a model that isn't in that allowlist, Kova returns:
 
 ```
 Model "provider/model" is not allowed. Use /model to list available models.
@@ -154,17 +154,17 @@ You can switch models for the current session without restarting:
   <Accordion title="Persistence and live switching">
     - `/model` persists the new session selection immediately.
     - If the agent is idle, the next run uses the new model right away.
-    - If a run is already active, OpenClaw marks a live switch as pending and only restarts into the new model at a clean retry point.
+    - If a run is already active, Kova marks a live switch as pending and only restarts into the new model at a clean retry point.
     - If tool activity or reply output has already started, the pending switch can stay queued until a later retry opportunity or the next user turn.
     - `/model status` is the detailed view (auth candidates and, when configured, provider endpoint `baseUrl` + `api` mode).
   </Accordion>
   <Accordion title="Ref parsing">
     - Model refs are parsed by splitting on the **first** `/`. Use `provider/model` when typing `/model <ref>`.
     - If the model ID itself contains `/` (OpenRouter-style), you must include the provider prefix (example: `/model openrouter/moonshotai/kimi-k2`).
-    - If you omit the provider, OpenClaw resolves the input in this order:
+    - If you omit the provider, Kova resolves the input in this order:
       1. alias match
       2. unique configured-provider match for that exact unprefixed model id
-      3. deprecated fallback to the configured default provider — if that provider no longer exposes the configured default model, OpenClaw instead falls back to the first configured provider/model to avoid surfacing a stale removed-provider default.
+      3. deprecated fallback to the configured default provider — if that provider no longer exposes the configured default model, Kova instead falls back to the first configured provider/model to avoid surfacing a stale removed-provider default.
   </Accordion>
 </AccordionGroup>
 
@@ -173,27 +173,27 @@ Full command behavior/config: [Slash commands](/tools/slash-commands).
 ## CLI commands
 
 ```bash
-openclaw models list
-openclaw models status
-openclaw models set <provider/model>
-openclaw models set-image <provider/model>
+kova models list
+kova models status
+kova models set <provider/model>
+kova models set-image <provider/model>
 
-openclaw models aliases list
-openclaw models aliases add <alias> <provider/model>
-openclaw models aliases remove <alias>
+kova models aliases list
+kova models aliases add <alias> <provider/model>
+kova models aliases remove <alias>
 
-openclaw models fallbacks list
-openclaw models fallbacks add <provider/model>
-openclaw models fallbacks remove <provider/model>
-openclaw models fallbacks clear
+kova models fallbacks list
+kova models fallbacks add <provider/model>
+kova models fallbacks remove <provider/model>
+kova models fallbacks clear
 
-openclaw models image-fallbacks list
-openclaw models image-fallbacks add <provider/model>
-openclaw models image-fallbacks remove <provider/model>
-openclaw models image-fallbacks clear
+kova models image-fallbacks list
+kova models image-fallbacks add <provider/model>
+kova models image-fallbacks remove <provider/model>
+kova models image-fallbacks clear
 ```
 
-`openclaw models` (no subcommand) is a shortcut for `models status`.
+`kova models` (no subcommand) is a shortcut for `models status`.
 
 ### `models list`
 
@@ -237,12 +237,12 @@ Example (Claude CLI):
 
 ```bash
 claude auth login
-openclaw models status
+kova models status
 ```
 
 ## Scanning (OpenRouter free models)
 
-`openclaw models scan` inspects OpenRouter's **free model catalog** and can optionally probe models for tool and image support.
+`kova models scan` inspects OpenRouter's **free model catalog** and can optionally probe models for tool and image support.
 
 <ParamField path="--no-probe" type="boolean">
   Skip live probes (metadata only).
@@ -267,7 +267,7 @@ openclaw models status
 </ParamField>
 
 <Note>
-The OpenRouter `/models` catalog is public, so metadata-only scans can list free candidates without a key. Probing and inference still require an OpenRouter API key (from auth profiles or `OPENROUTER_API_KEY`). If no key is available, `openclaw models scan` falls back to metadata-only output and leaves config unchanged. Use `--no-probe` to request metadata-only mode explicitly.
+The OpenRouter `/models` catalog is public, so metadata-only scans can list free candidates without a key. Probing and inference still require an OpenRouter API key (from auth profiles or `OPENROUTER_API_KEY`). If no key is available, `kova models scan` falls back to metadata-only output and leaves config unchanged. Use `--no-probe` to request metadata-only mode explicitly.
 </Note>
 
 Scan results are ranked by:
@@ -284,7 +284,7 @@ Input:
 - Optional filters: `--max-age-days`, `--min-params`, `--provider`, `--max-candidates`
 - Request/probe controls: `--timeout`, `--concurrency`
 
-When live probes run in a TTY, you can select fallbacks interactively. In non-interactive mode, pass `--yes` to accept defaults. Metadata-only results are informational; `--set-default` and `--set-image` require live probes so OpenClaw does not configure an unusable keyless OpenRouter model.
+When live probes run in a TTY, you can select fallbacks interactively. In non-interactive mode, pass `--yes` to accept defaults. Metadata-only results are informational; `--set-default` and `--set-image` require live probes so Kova does not configure an unusable keyless OpenRouter model.
 
 ## Models registry (`models.json`)
 
@@ -305,7 +305,7 @@ Custom providers in `models.providers` are written into `models.json` under the 
 </AccordionGroup>
 
 <Note>
-Marker persistence is source-authoritative: OpenClaw writes markers from the active source config snapshot (pre-resolution), not from resolved runtime secret values. This applies whenever OpenClaw regenerates `models.json`, including command-driven paths like `openclaw agent`.
+Marker persistence is source-authoritative: Kova writes markers from the active source config snapshot (pre-resolution), not from resolved runtime secret values. This applies whenever Kova regenerates `models.json`, including command-driven paths like `kova agent`.
 </Note>
 
 ## Related

@@ -2,7 +2,7 @@
   "name": "@openclaw/firecrawl-plugin",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw Firecrawl plugin",
+  "description": "Kova Firecrawl plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.1.33"

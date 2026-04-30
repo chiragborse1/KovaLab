@@ -9,12 +9,12 @@ title: "Discovery and transports"
 
 # Discovery & transports
 
-OpenClaw has two distinct problems that look similar on the surface:
+Kova has two distinct problems that look similar on the surface:
 
 1. **Operator remote control**: the macOS menu bar app controlling a gateway running elsewhere.
 2. **Node pairing**: iOS/Android (and future nodes) finding a gateway and pairing securely.
 
-The design goal is to keep all network discovery/advertising in the **Node Gateway** (`openclaw gateway`) and keep clients (mac app, iOS) as consumers.
+The design goal is to keep all network discovery/advertising in the **Node Gateway** (`kova gateway`) and keep clients (mac app, iOS) as consumers.
 
 ## Terms
 
@@ -46,7 +46,7 @@ Protocol details:
 
 ### 1) Bonjour / DNS-SD discovery
 
-Multicast Bonjour is best-effort and does not cross networks. OpenClaw can also browse the
+Multicast Bonjour is best-effort and does not cross networks. Kova can also browse the
 same gateway beacon via a configured wide-area DNS-SD domain, so discovery can cover:
 
 - `local.` on the same LAN

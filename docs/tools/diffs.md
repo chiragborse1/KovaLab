@@ -422,7 +422,7 @@ Resolution order:
 
 <Steps>
   <Step title="Config">
-    `browser.executablePath` in OpenClaw config.
+    `browser.executablePath` in Kova config.
   </Step>
   <Step title="Environment variables">
     - `OPENCLAW_BROWSER_EXECUTABLE_PATH`

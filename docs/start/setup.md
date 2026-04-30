@@ -1,5 +1,5 @@
 ---
-summary: "Advanced setup and development workflows for OpenClaw"
+summary: "Advanced setup and development workflows for Kova"
 read_when:
   - Setting up a new machine
   - You want “latest + greatest” without breaking your personal setup
@@ -35,16 +35,16 @@ If you want “100% tailored to me” _and_ easy updates, keep your customizatio
 Bootstrap once:
 
 ```bash
-openclaw setup
+kova setup
 ```
 
 From inside this repo, use the local CLI entry:
 
 ```bash
-openclaw setup
+kova setup
 ```
 
-If you don’t have a global install yet, run it via `pnpm openclaw setup` (or `bun run openclaw setup` if you are using the Bun workflow).
+If you don’t have a global install yet, run it via `pnpm kova setup` (or `bun run kova setup` if you are using the Bun workflow).
 
 ## Run the Gateway from this repo
 
@@ -56,24 +56,24 @@ node openclaw.mjs gateway --port 18789 --verbose
 
 ## Stable workflow (macOS app first)
 
-1. Install + launch **OpenClaw.app** (menu bar).
+1. Install + launch **Kova.app** (menu bar).
 2. Complete the onboarding/permissions checklist (TCC prompts).
 3. Ensure Gateway is **Local** and running (the app manages it).
 4. Link surfaces (example: WhatsApp):
 
 ```bash
-openclaw channels login
+kova channels login
 ```
 
 5. Sanity check:
 
 ```bash
-openclaw health
+kova health
 ```
 
 If onboarding is not available in your build:
 
-- Run `openclaw setup`, then `openclaw channels login`, then start the Gateway manually (`openclaw gateway`).
+- Run `kova setup`, then `kova channels login`, then start the Gateway manually (`kova gateway`).
 
 ## Bleeding edge workflow (Gateway in a terminal)
 
@@ -91,28 +91,28 @@ If you also want the macOS app on the bleeding edge:
 
 ```bash
 pnpm install
-# First run only (or after resetting local OpenClaw config/workspace)
-pnpm openclaw setup
+# First run only (or after resetting local Kova config/workspace)
+pnpm kova setup
 pnpm gateway:watch
 ```
 
 `gateway:watch` runs the gateway in watch mode and reloads on relevant source,
 config, and bundled-plugin metadata changes.
-`pnpm openclaw setup` is the one-time local config/workspace initialization step for a fresh checkout.
+`pnpm kova setup` is the one-time local config/workspace initialization step for a fresh checkout.
 `pnpm gateway:watch` does not rebuild `dist/control-ui`, so rerun `pnpm ui:build` after `ui/` changes or use `pnpm ui:dev` while developing the Control UI.
 
 If you are intentionally using the Bun workflow, the equivalent commands are:
 
 ```bash
 bun install
-# First run only (or after resetting local OpenClaw config/workspace)
-bun run openclaw setup
+# First run only (or after resetting local Kova config/workspace)
+bun run kova setup
 bun run gateway:watch
 ```
 
 ### 2) Point the macOS app at your running Gateway
 
-In **OpenClaw.app**:
+In **Kova.app**:
 
 - Connection Mode: **Local**
   The app will attach to the running gateway on the configured port.
@@ -123,7 +123,7 @@ In **OpenClaw.app**:
 - Or via CLI:
 
 ```bash
-openclaw health
+kova health
 ```
 
 ### Common footguns
@@ -153,7 +153,7 @@ Use this when debugging auth or deciding what to back up:
 
 ## Updating (without wrecking your setup)
 
-- Keep `~/.openclaw/workspace` and `~/.openclaw/` as “your stuff”; don’t put personal prompts/config into the `openclaw` repo.
+- Keep `~/.openclaw/workspace` and `~/.openclaw/` as “your stuff”; don’t put personal prompts/config into the `kova` repo.
 - Updating source: `git pull` + your chosen package-manager install step (`pnpm install` by default; `bun install` for Bun workflow) + keep using the matching `gateway:watch` command.
 
 ## Linux (systemd user service)
@@ -174,5 +174,5 @@ user service (no lingering needed). See [Gateway runbook](/gateway) for the syst
 - [Gateway runbook](/gateway) (flags, supervision, ports)
 - [Gateway configuration](/gateway/configuration) (config schema + examples)
 - [Discord](/channels/discord) and [Telegram](/channels/telegram) (reply tags + replyToMode settings)
-- [OpenClaw assistant setup](/start/openclaw)
+- [Kova assistant setup](/start/openclaw)
 - [macOS app](/platforms/macos) (gateway lifecycle)

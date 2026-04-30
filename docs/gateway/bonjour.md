@@ -8,7 +8,7 @@ title: "Bonjour discovery"
 
 # Bonjour / mDNS discovery
 
-OpenClaw uses Bonjour (mDNS / DNS‑SD) to discover an active Gateway (WebSocket endpoint).
+Kova uses Bonjour (mDNS / DNS‑SD) to discover an active Gateway (WebSocket endpoint).
 Multicast `local.` browsing is a **LAN-only convenience**. The bundled `bonjour`
 plugin owns LAN advertising and is enabled by default. For cross-network discovery,
 the same beacon can also be published through a configured wide-area DNS-SD domain.
@@ -28,7 +28,7 @@ High‑level steps:
 3. Configure Tailscale **split DNS** so your chosen domain resolves via that
    DNS server for clients (including iOS).
 
-OpenClaw supports any discovery domain; `openclaw.internal.` is just an example.
+Kova supports any discovery domain; `openclaw.internal.` is just an example.
 iOS/Android nodes browse both `local.` and your configured wide‑area domain.
 
 ### Gateway config (recommended)
@@ -43,7 +43,7 @@ iOS/Android nodes browse both `local.` and your configured wide‑area domain.
 ### One-time DNS server setup (gateway host)
 
 ```bash
-openclaw dns setup --apply
+kova dns setup --apply
 ```
 
 This installs CoreDNS and configures it to:
@@ -143,7 +143,7 @@ The Gateway writes a rolling log file (printed on startup as
 
 Bonjour uses the system hostname for the advertised `.local` host when it is a
 valid DNS label. If the system hostname contains spaces, underscores, or another
-invalid DNS-label character, OpenClaw falls back to `openclaw.local`. Set
+invalid DNS-label character, Kova falls back to `openclaw.local`. Set
 `OPENCLAW_MDNS_HOSTNAME=<name>` before starting the Gateway when you need an
 explicit host label.
 
@@ -177,10 +177,10 @@ It is safe for Docker images, service files, launch scripts, and one-off
 debugging because the setting disappears when the environment does.
 
 Use plugin configuration only when you intentionally want to turn off the
-bundled LAN discovery plugin for that OpenClaw config:
+bundled LAN discovery plugin for that Kova config:
 
 ```bash
-openclaw plugins disable bonjour
+kova plugins disable bonjour
 ```
 
 ## Docker gotchas
@@ -242,7 +242,7 @@ If a node no longer auto-discovers the Gateway after Docker setup:
 - **Multicast blocked**: some Wi‑Fi networks disable mDNS.
 - **Advertiser stuck in probing/announcing**: hosts with blocked multicast,
   container bridges, WSL, or interface churn can leave the ciao advertiser in a
-  non-announced state. OpenClaw retries a few times and then disables Bonjour
+  non-announced state. Kova retries a few times and then disables Bonjour
   for the current Gateway process instead of restarting the advertiser forever.
 - **Docker bridge networking**: Bonjour auto-disables in detected containers.
   Set `OPENCLAW_DISABLE_BONJOUR=0` only for host, macvlan, or another
@@ -262,8 +262,8 @@ sequences (e.g. spaces become `\032`).
 
 ## Disabling / configuration
 
-- `openclaw plugins disable bonjour` disables LAN multicast advertising by disabling the bundled plugin.
-- `openclaw plugins enable bonjour` restores the default LAN discovery plugin.
+- `kova plugins disable bonjour` disables LAN multicast advertising by disabling the bundled plugin.
+- `kova plugins enable bonjour` restores the default LAN discovery plugin.
 - `OPENCLAW_DISABLE_BONJOUR=1` disables LAN multicast advertising without changing plugin config; accepted truthy values are `1`, `true`, `yes`, and `on` (legacy: `OPENCLAW_DISABLE_BONJOUR`).
 - `OPENCLAW_DISABLE_BONJOUR=0` forces LAN multicast advertising on, including inside detected containers; accepted falsy values are `0`, `false`, `no`, and `off`.
 - When `OPENCLAW_DISABLE_BONJOUR` is unset, Bonjour advertises on normal hosts and auto-disables inside detected containers.

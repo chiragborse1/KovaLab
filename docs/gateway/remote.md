@@ -33,7 +33,7 @@ Ideal when your laptop sleeps often but you want the agent always-on.
 
 The laptop does **not** run the agent. It connects remotely:
 
-- Use the macOS app's **Remote over SSH** mode (Settings → General → OpenClaw runs).
+- Use the macOS app's **Remote over SSH** mode (Settings → General → Kova runs).
 - The app opens and manages the tunnel, so WebChat and health checks just work.
 
 Runbook: [macOS remote access](/platforms/mac/remote).
@@ -73,8 +73,8 @@ ssh -N -L 18789:127.0.0.1:18789 user@host
 
 With the tunnel up:
 
-- `openclaw health` and `openclaw status --deep` now reach the remote gateway via `ws://127.0.0.1:18789`.
-- `openclaw gateway status`, `openclaw gateway health`, `openclaw gateway probe`, and `openclaw gateway call` can also target the forwarded URL via `--url` when needed.
+- `kova health` and `kova status --deep` now reach the remote gateway via `ws://127.0.0.1:18789`.
+- `kova gateway status`, `kova gateway health`, `kova gateway probe`, and `kova gateway call` can also target the forwarded URL via `--url` when needed.
 
 <Note>
 Replace `18789` with your configured `gateway.port` (or `--port` or `OPENCLAW_GATEWAY_PORT`).
@@ -189,7 +189,7 @@ ssh-copy-id -i ~/.ssh/id_rsa <REMOTE_USER>@<REMOTE_IP>
 Store the token in config so it persists across restarts:
 
 ```bash
-openclaw config set gateway.remote.token "<your-token>"
+kova config set gateway.remote.token "<your-token>"
 ```
 
 #### Step 4: create the LaunchAgent

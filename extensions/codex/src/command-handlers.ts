@@ -258,7 +258,7 @@ async function bindConversation(
 ): Promise<PluginCommandResult> {
   if (!ctx.sessionFile) {
     return {
-      text: "Cannot bind Codex because this command did not include an OpenClaw session file.",
+      text: "Cannot bind Codex because this command did not include a Kova session file.",
     };
   }
   const parsed = parseBindArgs(args);
@@ -363,7 +363,7 @@ async function resumeThread(
     return "Usage: /codex resume <thread-id>";
   }
   if (!ctx.sessionFile) {
-    return "Cannot attach a Codex thread because this command did not include an OpenClaw session file.";
+    return "Cannot attach a Codex thread because this command did not include a Kova session file.";
   }
   const response = await deps.codexControlRequest(
     pluginConfig,
@@ -381,7 +381,7 @@ async function resumeThread(
     model: isJsonObject(response) ? readString(response, "model") : undefined,
     modelProvider: isJsonObject(response) ? readString(response, "modelProvider") : undefined,
   });
-  return `Attached this OpenClaw session to Codex thread ${effectiveThreadId}.`;
+  return `Attached this Kova session to Codex thread ${effectiveThreadId}.`;
 }
 
 async function stopConversationTurn(
@@ -391,7 +391,7 @@ async function stopConversationTurn(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return "Cannot stop Codex because this command did not include an OpenClaw session file.";
+    return "Cannot stop Codex because this command did not include a Kova session file.";
   }
   return (await deps.stopCodexConversationTurn({ sessionFile, pluginConfig })).message;
 }
@@ -404,7 +404,7 @@ async function steerConversationTurn(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return "Cannot steer Codex because this command did not include an OpenClaw session file.";
+    return "Cannot steer Codex because this command did not include a Kova session file.";
   }
   return (
     await deps.steerCodexConversationTurn({
@@ -423,7 +423,7 @@ async function setConversationModel(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return "Cannot set Codex model because this command did not include an OpenClaw session file.";
+    return "Cannot set Codex model because this command did not include a Kova session file.";
   }
   const normalized = model.trim();
   if (!normalized) {
@@ -445,7 +445,7 @@ async function setConversationFastMode(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return "Cannot set Codex fast mode because this command did not include an OpenClaw session file.";
+    return "Cannot set Codex fast mode because this command did not include a Kova session file.";
   }
   const parsed = parseCodexFastModeArg(value);
   if (value && parsed == null && value.trim().toLowerCase() !== "status") {
@@ -466,7 +466,7 @@ async function setConversationPermissions(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return "Cannot set Codex permissions because this command did not include an OpenClaw session file.";
+    return "Cannot set Codex permissions because this command did not include a Kova session file.";
   }
   const parsed = parseCodexPermissionsModeArg(value);
   if (value && !parsed && value.trim().toLowerCase() !== "status") {
@@ -493,11 +493,11 @@ async function startThreadAction(
 ): Promise<string> {
   const sessionFile = await resolveControlSessionFile(ctx);
   if (!sessionFile) {
-    return `Cannot start Codex ${label} because this command did not include an OpenClaw session file.`;
+    return `Cannot start Codex ${label} because this command did not include a Kova session file.`;
   }
   const binding = await deps.readCodexAppServerBinding(sessionFile);
   if (!binding?.threadId) {
-    return `No Codex thread is attached to this OpenClaw session yet.`;
+    return `No Codex thread is attached to this Kova session yet.`;
   }
   if (method === CODEX_CONTROL_METHODS.review) {
     await deps.codexControlRequest(pluginConfig, method, {

@@ -26,7 +26,7 @@ Trusted tool-result media uses the same `MEDIA:` / `[[audio_as_voice]]` parser b
 
 When block streaming is enabled, `MEDIA:` remains single-delivery metadata for a
 turn. If the same media URL is sent in a streamed block and repeated in the final
-assistant payload, OpenClaw delivers the attachment once and strips the duplicate
+assistant payload, Kova delivers the attachment once and strips the duplicate
 from the final payload.
 
 ## `[embed ...]`

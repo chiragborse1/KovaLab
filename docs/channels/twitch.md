@@ -1,17 +1,17 @@
 ---
 summary: "Twitch chat bot configuration and setup"
 read_when:
-  - Setting up Twitch chat integration for OpenClaw
+  - Setting up Twitch chat integration for Kova
 title: "Twitch"
 sidebarTitle: "Twitch"
 ---
 
-Twitch chat support via IRC connection. OpenClaw connects as a Twitch user (bot account) to receive and send messages in channels.
+Twitch chat support via IRC connection. Kova connects as a Twitch user (bot account) to receive and send messages in channels.
 
 ## Bundled plugin
 
 <Note>
-Twitch ships as a bundled plugin in current OpenClaw releases, so normal packaged builds do not need a separate install.
+Twitch ships as a bundled plugin in current Kova releases, so normal packaged builds do not need a separate install.
 </Note>
 
 If you are on an older build or a custom install that excludes Twitch, install it manually:
@@ -19,12 +19,12 @@ If you are on an older build or a custom install that excludes Twitch, install i
 <Tabs>
   <Tab title="npm registry">
     ```bash
-    openclaw plugins install @openclaw/twitch
+    kova plugins install @openclaw/twitch
     ```
   </Tab>
   <Tab title="Local checkout">
     ```bash
-    openclaw plugins install ./path/to/local/twitch-plugin
+    kova plugins install ./path/to/local/twitch-plugin
     ```
   </Tab>
 </Tabs>
@@ -35,7 +35,7 @@ Details: [Plugins](/tools/plugin)
 
 <Steps>
   <Step title="Ensure plugin is available">
-    Current packaged OpenClaw releases already bundle it. Older/custom installs can add it manually with the commands above.
+    Current packaged Kova releases already bundle it. Older/custom installs can add it manually with the commands above.
   </Step>
   <Step title="Create a Twitch bot account">
     Create a dedicated Twitch account for the bot (or use an existing account).
@@ -267,8 +267,8 @@ Each account needs its own token (one token per channel).
 First, run diagnostic commands:
 
 ```bash
-openclaw doctor
-openclaw channels status --probe
+kova doctor
+kova channels status --probe
 ```
 
 <AccordionGroup>

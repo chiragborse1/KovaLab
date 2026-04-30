@@ -2,7 +2,7 @@
   "name": "@openclaw/line",
   "version": "2026.4.25",
   "private": true,
-  "description": "OpenClaw LINE channel plugin",
+  "description": "Kova LINE channel plugin",
   "type": "module",
   "dependencies": {
     "@line/bot-sdk": "^11.0.0"
