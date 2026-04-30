@@ -361,8 +361,8 @@ function isBundledExtensionOwnedRuntimeImport(params: {
 
 export function resolveInstalledBinaryPath(prefixDir: string, platform = process.platform): string {
   return platform === "win32"
-    ? join(prefixDir, "openclaw.cmd")
-    : join(prefixDir, "bin", "openclaw");
+    ? join(prefixDir, "kova.cmd")
+    : join(prefixDir, "bin", "kova");
 }
 
 function collectExpectedBundledExtensionPackageIds(): ReadonlySet<string> {

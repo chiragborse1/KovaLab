@@ -15,7 +15,7 @@
   },
   "bin": {
     "openclaw": "openclaw.mjs",
-    "kova": "openclaw.mjs"
+    "kova": "kova.mjs"
   },
   "directories": {
     "doc": "docs",
@@ -24,6 +24,7 @@
   "files": [
     "CHANGELOG.md",
     "LICENSE",
+    "kova.mjs",
     "openclaw.mjs",
     "README.md",
     "assets/",
@@ -1448,8 +1449,10 @@
     "mac:package": "bash scripts/package-mac-app.sh",
     "mac:restart": "bash scripts/restart-mac.sh",
     "moltbot:rpc": "node scripts/run-node.mjs agent --mode rpc --json",
-    "openclaw": "node scripts/run-node.mjs",
-    "openclaw:rpc": "node scripts/run-node.mjs agent --mode rpc --json",
+    "kova": "node scripts/run-node.mjs --cli-name kova",
+    "kova:rpc": "node scripts/run-node.mjs --cli-name kova agent --mode rpc --json",
+    "openclaw": "node scripts/run-node.mjs --cli-name openclaw",
+    "openclaw:rpc": "node scripts/run-node.mjs --cli-name openclaw agent --mode rpc --json",
     "plugin-sdk:api:check": "node --import tsx scripts/generate-plugin-sdk-api-baseline.ts --check",
     "plugin-sdk:api:gen": "node --import tsx scripts/generate-plugin-sdk-api-baseline.ts --write",
     "plugin-sdk:check-exports": "node scripts/sync-plugin-sdk-exports.mjs --check",

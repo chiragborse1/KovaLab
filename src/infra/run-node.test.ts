@@ -414,6 +414,34 @@ describe("run-node script", () => {
     });
   });
 
+  it("uses the kova wrapper when the runner is invoked with --cli-name kova", async () => {
+    await withTempDir({ prefix: "openclaw-run-node-" }, async (tmp) => {
+      await setupTrackedProject(tmp);
+      const spawnCalls: Array<{ args: string[] }> = [];
+      const spawn = (_cmd: string, args: string[]) => {
+        spawnCalls.push({ args });
+        return createPipedExitedProcess({});
+      };
+
+      const exitCode = await runNodeMain({
+        cwd: tmp,
+        args: ["--cli-name", "kova", "status"],
+        env: {
+          ...process.env,
+          OPENCLAW_RUNNER_LOG: "0",
+        },
+        spawn,
+        stderr: process.stderr,
+        stdout: process.stdout,
+        execPath: process.execPath,
+        platform: process.platform,
+      });
+
+      expect(exitCode).toBe(0);
+      expect(spawnCalls.at(-1)?.args).toEqual(["kova.mjs", "status"]);
+    });
+  });
+
   it("surfaces generic output log stream errors", async () => {
     await withTempDir({ prefix: "openclaw-run-node-" }, async (tmp) => {
       await setupTrackedProject(tmp);

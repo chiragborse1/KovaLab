@@ -45,6 +45,15 @@ describe("isMainModule", () => {
         wrapperEntryPairs: [{ wrapperBasename: "openclaw.mjs", entryBasename: "entry.js" }],
       }),
     ).toBe(true);
+    expect(
+      isMainModule({
+        currentFile: "/repo/dist/entry.js",
+        argv: ["node", "/repo/kova.mjs"],
+        cwd: "/repo",
+        env: {},
+        wrapperEntryPairs: [{ wrapperBasename: "kova.mjs", entryBasename: "entry.js" }],
+      }),
+    ).toBe(true);
   });
 
   it("returns false for unmatched wrapper launches", () => {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { enableCompileCache } from "node:module";
+import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { isRootHelpInvocation } from "./cli/argv.js";
@@ -16,9 +17,20 @@ import { installProcessWarningFilter } from "./infra/warning-filter.js";
 import { attachChildProcessBridge } from "./process/child-process-bridge.js";
 
 const ENTRY_WRAPPER_PAIRS = [
+  { wrapperBasename: "kova.mjs", entryBasename: "entry.js" },
+  { wrapperBasename: "kova.js", entryBasename: "entry.js" },
   { wrapperBasename: "openclaw.mjs", entryBasename: "entry.js" },
   { wrapperBasename: "openclaw.js", entryBasename: "entry.js" },
 ] as const;
+
+function resolveProcessTitle(argv1: string | undefined): string {
+  const stem = path.parse(path.basename(argv1 ?? "")).name.trim();
+  return stem === "openclaw" ? "openclaw" : "kova";
+}
+
+function resolveCliLogPrefix(argv1: string | undefined): string {
+  return `[${resolveProcessTitle(argv1)}]`;
+}
 
 function shouldForceReadOnlyAuthStore(argv: string[]): boolean {
   const tokens = argv.slice(2).filter((token) => token.length > 0 && !token.startsWith("-"));
@@ -43,7 +55,8 @@ if (
 ) {
   // Imported as a dependency — skip all entry-point side effects.
 } else {
-  process.title = "openclaw";
+  process.title = resolveProcessTitle(process.argv[1]);
+  const cliLogPrefix = resolveCliLogPrefix(process.argv[1]);
   ensureOpenClawExecMarkerOnProcess();
   installProcessWarningFilter();
   normalizeEnv();
@@ -87,7 +100,7 @@ if (
 
     child.once("error", (error) => {
       console.error(
-        "[openclaw] Failed to respawn CLI:",
+        `${cliLogPrefix} Failed to respawn CLI:`,
         error instanceof Error ? (error.stack ?? error.message) : error,
       );
       process.exit(1);
@@ -102,20 +115,20 @@ if (
   if (!ensureCliRespawnReady()) {
     const parsedContainer = parseCliContainerArgs(process.argv);
     if (!parsedContainer.ok) {
-      console.error(`[openclaw] ${parsedContainer.error}`);
+      console.error(`${cliLogPrefix} ${parsedContainer.error}`);
       process.exit(2);
     }
 
     const parsed = parseCliProfileArgs(parsedContainer.argv);
     if (!parsed.ok) {
       // Keep it simple; Commander will handle rich help/errors after we strip flags.
-      console.error(`[openclaw] ${parsed.error}`);
+      console.error(`${cliLogPrefix} ${parsed.error}`);
       process.exit(2);
     }
 
     const containerTargetName = resolveCliContainerTarget(process.argv);
     if (containerTargetName && parsed.profile) {
-      console.error("[openclaw] --container cannot be combined with --profile/--dev");
+      console.error(`${cliLogPrefix} --container cannot be combined with --profile/--dev`);
       process.exit(2);
     }
 
@@ -139,6 +152,7 @@ export async function tryHandleRootHelpFastPath(
     env?: NodeJS.ProcessEnv;
   } = {},
 ): Promise<boolean> {
+  const cliLogPrefix = resolveCliLogPrefix(argv[1]);
   if (resolveCliContainerTarget(argv, deps.env)) {
     return false;
   }
@@ -149,7 +163,7 @@ export async function tryHandleRootHelpFastPath(
     deps.onError ??
     ((error: unknown) => {
       console.error(
-        "[openclaw] Failed to display help:",
+        `${cliLogPrefix} Failed to display help:`,
         error instanceof Error ? (error.stack ?? error.message) : error,
       );
       process.exitCode = 1;
@@ -172,6 +186,7 @@ export async function tryHandleRootHelpFastPath(
 }
 
 async function runMainOrRootHelp(argv: string[]): Promise<void> {
+  const cliLogPrefix = resolveCliLogPrefix(argv[1]);
   if (await tryHandleRootHelpFastPath(argv)) {
     return;
   }
@@ -180,7 +195,7 @@ async function runMainOrRootHelp(argv: string[]): Promise<void> {
     await runCli(argv);
   } catch (error) {
     console.error(
-      "[openclaw] Failed to start CLI:",
+      `${cliLogPrefix} Failed to start CLI:`,
       error instanceof Error ? (error.stack ?? error.message) : error,
     );
     process.exitCode = 1;

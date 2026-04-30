@@ -145,13 +145,13 @@ describe("normalizeInstalledBinaryVersion", () => {
 describe("resolveInstalledBinaryPath", () => {
   it("uses the Unix global bin path on non-Windows platforms", () => {
     expect(resolveInstalledBinaryPath("/tmp/openclaw-prefix", "darwin")).toBe(
-      "/tmp/openclaw-prefix/bin/openclaw",
+      "/tmp/openclaw-prefix/bin/kova",
     );
   });
 
   it("uses the Windows npm shim path on win32", () => {
     expect(resolveInstalledBinaryPath("C:/openclaw-prefix", "win32")).toBe(
-      "C:/openclaw-prefix/openclaw.cmd",
+      "C:/openclaw-prefix/kova.cmd",
     );
   });
 });

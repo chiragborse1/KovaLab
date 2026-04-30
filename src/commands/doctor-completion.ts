@@ -19,7 +19,7 @@ type CompletionShell = "zsh" | "bash" | "fish" | "powershell";
 const COMPLETION_CACHE_WRITE_TIMEOUT_MS = 30_000;
 
 /** Generate the completion cache by spawning the CLI. */
-async function generateCompletionCache(): Promise<boolean> {
+async function generateCompletionCache(cliName = resolveCliName()): Promise<boolean> {
   const root = await resolveOpenClawPackageRoot({
     moduleUrl: import.meta.url,
     argv1: process.argv[1],
@@ -29,7 +29,9 @@ async function generateCompletionCache(): Promise<boolean> {
     return false;
   }
 
-  const binPath = path.join(root, "openclaw.mjs");
+  const preferredBinPath = path.join(root, `${cliName}.mjs`);
+  const fallbackBinPath = path.join(root, "openclaw.mjs");
+  const binPath = preferredBinPath === fallbackBinPath ? fallbackBinPath : preferredBinPath;
   const result = spawnSync(process.execPath, [binPath, "completion", "--write-state"], {
     cwd: root,
     env: process.env,
@@ -95,7 +97,7 @@ export async function doctorShellCompletion(
 
     // Ensure cache exists first
     if (!status.cacheExists) {
-      const generated = await generateCompletionCache();
+      const generated = await generateCompletionCache(cliName);
       if (!generated) {
         note(
           `Failed to generate completion cache. Run \`${cliName} completion --write-state\` manually.`,
@@ -120,7 +122,7 @@ export async function doctorShellCompletion(
       `Shell completion is configured in your ${status.shell} profile but the cache is missing.\nRegenerating cache...`,
       "Shell completion",
     );
-    const generated = await generateCompletionCache();
+    const generated = await generateCompletionCache(cliName);
     if (generated) {
       note(`Completion cache regenerated at ${status.cachePath}`, "Shell completion");
     } else {
@@ -146,7 +148,7 @@ export async function doctorShellCompletion(
 
     if (shouldInstall) {
       // First generate the cache
-      const generated = await generateCompletionCache();
+      const generated = await generateCompletionCache(cliName);
       if (!generated) {
         note(
           `Failed to generate completion cache. Run \`${cliName} completion --write-state\` manually.`,
@@ -178,5 +180,5 @@ export async function ensureCompletionCacheExists(binName = "kova"): Promise<boo
     return true;
   }
 
-  return generateCompletionCache();
+  return generateCompletionCache(binName);
 }

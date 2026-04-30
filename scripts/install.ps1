@@ -35,7 +35,7 @@ function Write-Host {
 
 function Write-Banner {
     Write-Host ""
-    Write-Host "${ACCENT}  🦞 OpenClaw Installer$NC" -Level info
+    Write-Host "${ACCENT}  🦄 Kova Installer$NC" -Level info
     Write-Host "${MUTED}  All your chats, one OpenClaw.$NC" -Level info
     Write-Host ""
 }
@@ -297,7 +297,7 @@ function Install-OpenClawNpm {
             Write-Host "npm install failed with exit code $($installResult.ExitCode)" -Level error
             return $false
         }
-        Write-Host "OpenClaw installed" -Level success
+        Write-Host "Kova installed" -Level success
         return $true
     } catch {
         Write-Host "npm install failed: $_" -Level error
@@ -338,14 +338,19 @@ function Install-OpenClawGit {
         New-Item -ItemType Directory -Path $wrapperDir -Force | Out-Null
     }
 
-    $entryPath = Join-Path $RepoDir "dist\entry.js"
+    $entryPath = Join-Path $RepoDir "kova.mjs"
+    $legacyEntryPath = Join-Path $RepoDir "openclaw.mjs"
     @"
 @echo off
 node "$entryPath" %*
+"@ | Out-File -FilePath "$wrapperDir\kova.cmd" -Encoding ASCII -Force
+    @"
+@echo off
+node "$legacyEntryPath" %*
 "@ | Out-File -FilePath "$wrapperDir\openclaw.cmd" -Encoding ASCII -Force
     Add-ToPath -Path $wrapperDir
     
-    Write-Host "OpenClaw installed" -Level success
+    Write-Host "Kova installed" -Level success
     return $true
 }
 
@@ -451,10 +456,15 @@ function Main {
         if ($DryRun) {
             Write-Host "[DRY RUN] Would install OpenClaw via npm ($((Resolve-PackageInstallSpec -Target $Tag)))" -Level info
         } else {
-            $gitWrapper = "$env:USERPROFILE\.local\bin\openclaw.cmd"
+            $gitWrapper = "$env:USERPROFILE\.local\bin\kova.cmd"
             if (Test-Path $gitWrapper) {
                 Remove-Item -Force $gitWrapper
                 Write-Host "Removed git wrapper (switching to npm)" -Level info
+            }
+            $legacyGitWrapper = "$env:USERPROFILE\.local\bin\openclaw.cmd"
+            if (Test-Path $legacyGitWrapper) {
+                Remove-Item -Force $legacyGitWrapper
+                Write-Host "Removed legacy OpenClaw alias" -Level info
             }
             if (!(Install-OpenClawNpm -Target $Tag)) {
                 return (Fail-Install)
@@ -477,11 +487,11 @@ function Main {
     
     if (!$NoOnboard -and !$DryRun) {
         Write-Host ""
-        Write-Host "Run 'openclaw onboard' to complete setup" -Level info
+        Write-Host "Run 'kova onboard' to complete setup" -Level info
     }
     
     Write-Host ""
-    Write-Host "🦞 OpenClaw installed successfully!" -Level success
+    Write-Host "🦄 Kova installed successfully!" -Level success
     return $true
 }
 

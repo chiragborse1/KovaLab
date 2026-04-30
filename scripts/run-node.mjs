@@ -492,7 +492,7 @@ const logRunner = (message, deps) => {
   if (deps.env.OPENCLAW_RUNNER_LOG === "0") {
     return;
   }
-  const line = `[openclaw] ${message}\n`;
+  const line = `[${deps.cliWrapperName}] ${message}\n`;
   deps.stderr.write(line);
   deps.outputTee?.write(line);
 };
@@ -566,8 +566,17 @@ const getInterruptedSpawnExitCode = (res) => {
   return null;
 };
 
+const resolveCliWrapperName = (args, env = process.env) => {
+  const wrapperName = args[0] === "--cli-name" ? args[1] : env.OPENCLAW_CLI_WRAPPER;
+  return wrapperName === "kova" ? "kova" : "openclaw";
+};
+
+const stripCliWrapperArgs = (args) => {
+  return args[0] === "--cli-name" && typeof args[1] === "string" ? args.slice(2) : args;
+};
+
 const runOpenClaw = async (deps) => {
-  const nodeProcess = deps.spawn(deps.execPath, ["openclaw.mjs", ...deps.args], {
+  const nodeProcess = deps.spawn(deps.execPath, [`${deps.cliWrapperName}.mjs`, ...deps.args], {
     cwd: deps.cwd,
     env: deps.env,
     stdio: deps.outputTee ? ["inherit", "pipe", "pipe"] : "inherit",
@@ -603,7 +612,7 @@ const closeRunNodeOutputTee = async (deps, exitCode) => {
     await deps.outputTee.close();
   } catch (error) {
     deps.stderr.write(
-      `[openclaw] Failed to write output log: ${error?.message ?? "unknown error"}\n`,
+      `[${deps.cliWrapperName}] Failed to write output log: ${error?.message ?? "unknown error"}\n`,
     );
     return exitCode === 0 ? 1 : exitCode;
   }
@@ -802,6 +811,7 @@ const writeBuildStamp = (deps) => {
 const shouldSkipCleanWatchRuntimeSync = (deps) => deps.env.OPENCLAW_WATCH_MODE === "1";
 
 export async function runNodeMain(params = {}) {
+  const rawArgs = params.args ?? process.argv.slice(2);
   const deps = {
     spawn: params.spawn ?? spawn,
     spawnSync: params.spawnSync ?? spawnSync,
@@ -811,10 +821,11 @@ export async function runNodeMain(params = {}) {
     process: params.process ?? process,
     execPath: params.execPath ?? process.execPath,
     cwd: params.cwd ?? process.cwd(),
-    args: params.args ?? process.argv.slice(2),
+    args: stripCliWrapperArgs(rawArgs),
     env: params.env ? { ...params.env } : { ...process.env },
     runRuntimePostBuild: params.runRuntimePostBuild ?? runRuntimePostBuild,
   };
+  deps.cliWrapperName = resolveCliWrapperName(rawArgs, deps.env);
 
   deps.distRoot = path.join(deps.cwd, "dist");
   deps.distEntry = path.join(deps.distRoot, "/entry.js");
