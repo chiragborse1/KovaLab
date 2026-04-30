@@ -1,6 +1,6 @@
 {
-  "name": "OpenClaw Control",
-  "short_name": "OpenClaw",
+  "name": "Kova Control",
+  "short_name": "Kova",
   "description": "Multi-channel AI gateway control panel",
   "start_url": "./",
   "display": "standalone",

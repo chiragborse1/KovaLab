@@ -80,10 +80,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: "OpenClaw", body: event.data.text() };
+    data = { title: "Kova", body: event.data.text() };
   }
 
-  const title = data.title || "OpenClaw";
+  const title = data.title || "Kova";
   const options = {
     body: data.body || "",
     icon: "./apple-touch-icon.png",
