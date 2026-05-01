@@ -85,7 +85,7 @@ describe("runServiceRestart config pre-flight (#35862)", () => {
   });
 
   it("blocks restart from an older binary when config was written by a newer one", async () => {
-    setConfigSnapshot({ exists: true, valid: true, lastTouchedVersion: "9999.1.1" });
+    setConfigSnapshot({ exists: true, valid: true, lastTouchedVersion: "3.0.0" });
 
     await expect(runServiceRestart(createServiceRunArgs())).rejects.toThrow("__exit__:1");
 
@@ -197,7 +197,7 @@ describe("runServiceStop future-config guard", () => {
   });
 
   it("blocks stop from an older binary when config was written by a newer one", async () => {
-    setConfigSnapshot({ exists: true, valid: true, lastTouchedVersion: "9999.1.1" });
+    setConfigSnapshot({ exists: true, valid: true, lastTouchedVersion: "3.0.0" });
 
     await expect(
       runServiceStop({

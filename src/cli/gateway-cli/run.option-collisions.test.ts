@@ -235,8 +235,8 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: true,
-      config: { meta: { lastTouchedVersion: "9999.1.1" } },
-      sourceConfig: { meta: { lastTouchedVersion: "9999.1.1" } },
+      config: { meta: { lastTouchedVersion: "3.0.0" } },
+      sourceConfig: { meta: { lastTouchedVersion: "3.0.0" } },
     };
 
     await expect(
@@ -252,8 +252,8 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: true,
-      config: { meta: { lastTouchedVersion: "9999.1.1" } },
-      sourceConfig: { meta: { lastTouchedVersion: "9999.1.1" } },
+      config: { meta: { lastTouchedVersion: "3.0.0" } },
+      sourceConfig: { meta: { lastTouchedVersion: "3.0.0" } },
     };
     const previousMarker = process.env.OPENCLAW_SERVICE_MARKER;
     process.env.OPENCLAW_SERVICE_MARKER = "gateway";

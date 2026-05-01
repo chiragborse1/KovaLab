@@ -12,6 +12,8 @@ export type OpenClawVersion = {
 };
 
 const VERSION_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
+const LEGACY_CALVER_MAJOR_THRESHOLD = 2000;
+const MODERN_SEMVER_MAJOR_THRESHOLD = 100;
 
 export function parseOpenClawVersion(raw: string | null | undefined): OpenClawVersion | null {
   if (!raw) {
@@ -68,6 +70,16 @@ export function compareOpenClawVersions(
   const parsedB = parseOpenClawVersion(b);
   if (!parsedA || !parsedB) {
     return null;
+  }
+  const schemeA = classifyVersionScheme(parsedA);
+  const schemeB = classifyVersionScheme(parsedB);
+  if (schemeA !== schemeB) {
+    if (schemeA === "modern-semver" && schemeB === "legacy-calver") {
+      return 1;
+    }
+    if (schemeA === "legacy-calver" && schemeB === "modern-semver") {
+      return -1;
+    }
   }
   if (parsedA.major !== parsedB.major) {
     return parsedA.major < parsedB.major ? -1 : 1;
@@ -131,4 +143,14 @@ function releaseRank(version: OpenClawVersion): number {
     return 2;
   }
   return 1;
+}
+
+function classifyVersionScheme(version: OpenClawVersion): "legacy-calver" | "modern-semver" {
+  if (version.major >= LEGACY_CALVER_MAJOR_THRESHOLD) {
+    return "legacy-calver";
+  }
+  if (version.major < MODERN_SEMVER_MAJOR_THRESHOLD) {
+    return "modern-semver";
+  }
+  return "modern-semver";
 }

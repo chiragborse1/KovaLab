@@ -66,7 +66,7 @@ describe("resolveGatewayService", () => {
         JSON.stringify(
           {
             meta: {
-              lastTouchedVersion: "9999.1.1",
+              lastTouchedVersion: "3.0.0",
             },
           },
           null,

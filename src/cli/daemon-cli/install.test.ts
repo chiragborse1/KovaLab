@@ -340,8 +340,8 @@ describe("runDaemonInstall", () => {
     readConfigFileSnapshotMock.mockResolvedValue({
       exists: true,
       valid: true,
-      config: { meta: { lastTouchedVersion: "9999.1.1" } },
-      sourceConfig: { meta: { lastTouchedVersion: "9999.1.1" } },
+      config: { meta: { lastTouchedVersion: "3.0.0" } },
+      sourceConfig: { meta: { lastTouchedVersion: "3.0.0" } },
     });
 
     await runDaemonInstall({ json: true, force: true });

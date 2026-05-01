@@ -56,6 +56,11 @@ describe("compareOpenClawVersions", () => {
     expect(compareOpenClawVersions("2026.3.23-beta.2", "2026.3.23-beta.1")).toBe(1);
     expect(compareOpenClawVersions("2026.3.23.beta.1", "2026.3.23-beta.2")).toBe(-1);
   });
+
+  it("treats modern Kova semver releases as newer than legacy OpenClaw calver releases", () => {
+    expect(compareOpenClawVersions("2.0.0", "2026.4.26")).toBe(1);
+    expect(compareOpenClawVersions("2026.4.26", "2.0.0")).toBe(-1);
+  });
 });
 
 describe("isSameOpenClawStableFamily", () => {
@@ -85,5 +90,10 @@ describe("shouldWarnOnTouchedVersion", () => {
     expect(shouldWarnOnTouchedVersion("2026.3.23-beta.1", "2026.3.23")).toBe(true);
     expect(shouldWarnOnTouchedVersion("2026.3.23", "2026.3.24")).toBe(true);
     expect(shouldWarnOnTouchedVersion("2026.3.23", "2027.1.1")).toBe(true);
+  });
+
+  it("treats Kova semver configs as the successor to legacy OpenClaw calver configs", () => {
+    expect(shouldWarnOnTouchedVersion("2.0.0", "2026.4.26")).toBe(false);
+    expect(shouldWarnOnTouchedVersion("2026.4.26", "2.0.0")).toBe(true);
   });
 });

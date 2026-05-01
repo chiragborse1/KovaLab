@@ -51,6 +51,17 @@ describe("resolveFutureConfigActionBlock", () => {
     ).toBeNull();
   });
 
+  it("allows modern Kova builds to operate on legacy OpenClaw-written configs", () => {
+    expect(
+      resolveFutureConfigActionBlock({
+        action: "stop the gateway service",
+        currentVersion: "2.0.0",
+        snapshot: snapshotWithTouchedVersion("2026.4.26"),
+        env: {},
+      }),
+    ).toBeNull();
+  });
+
   it("allows intentional downgrade override through env", () => {
     expect(
       resolveFutureConfigActionBlock({
