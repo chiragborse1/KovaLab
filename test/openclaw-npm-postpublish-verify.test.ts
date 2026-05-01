@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { listBundledPluginPackArtifacts } from "../scripts/lib/bundled-plugin-build-entries.mjs";
 import {
   buildPublishedInstallCommandArgs,
   buildPublishedInstallScenarios,
@@ -12,7 +11,8 @@ import {
   collectInstalledPackageErrors,
   normalizeInstalledBinaryVersion,
   resolveInstalledBinaryPath,
-} from "../scripts/openclaw-npm-postpublish-verify.ts";
+} from "../scripts/kova-npm-postpublish-verify.ts";
+import { listBundledPluginPackArtifacts } from "../scripts/lib/bundled-plugin-build-entries.mjs";
 import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../src/plugins/runtime-sidecar-paths.ts";
 
 const PUBLISHED_BUNDLED_RUNTIME_SIDECAR_PATHS = BUNDLED_RUNTIME_SIDECAR_PATHS.filter(
@@ -145,11 +145,11 @@ describe("collectInstalledContextEngineRuntimeErrors", () => {
 
 describe("normalizeInstalledBinaryVersion", () => {
   it("accepts decorated CLI version output", () => {
-    expect(normalizeInstalledBinaryVersion("OpenClaw 2026.4.8 (9ece252)")).toBe("2026.4.8");
-    expect(normalizeInstalledBinaryVersion("OpenClaw 2026.4.8-beta.1 (9ece252)")).toBe(
+    expect(normalizeInstalledBinaryVersion("Kova 2026.4.8 (9ece252)")).toBe("2026.4.8");
+    expect(normalizeInstalledBinaryVersion("Kova 2026.4.8-beta.1 (9ece252)")).toBe(
       "2026.4.8-beta.1",
     );
-    expect(normalizeInstalledBinaryVersion("OpenClaw 2026.4.8-2 (9ece252)")).toBe("2026.4.8-2");
+    expect(normalizeInstalledBinaryVersion("Kova 2026.4.8-2 (9ece252)")).toBe("2026.4.8-2");
     expect(normalizeInstalledBinaryVersion("Kova 0.2.0 (9ece252)")).toBe("0.2.0");
   });
 });

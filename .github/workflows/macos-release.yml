@@ -73,7 +73,7 @@ jobs:
           RELEASE_MAIN_REF="refs/remotes/origin/${WORKFLOW_REF_NAME}"
           export RELEASE_SHA RELEASE_TAG RELEASE_MAIN_REF
           git fetch --no-tags origin "+refs/heads/${WORKFLOW_REF_NAME}:refs/remotes/origin/${WORKFLOW_REF_NAME}"
-          pnpm release:openclaw:npm:check
+          pnpm release:kova:npm:check
 
       - name: Summarize next step
         env:

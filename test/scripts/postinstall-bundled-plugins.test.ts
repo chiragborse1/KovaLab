@@ -5,6 +5,7 @@ import {
   createBundledRuntimeDependencyInstallArgs,
   createBundledRuntimeDependencyInstallEnv,
   createNestedNpmInstallEnv,
+  ensureInstalledLegacyPackageAlias,
   isDirectPostinstallInvocation,
   pruneInstalledPackageDist,
   discoverBundledPluginRuntimeDeps,
@@ -150,6 +151,20 @@ describe("bundled plugin postinstall", () => {
       npm_config_package_lock: "false",
       npm_config_save: "false",
     });
+  });
+
+  it("creates a legacy openclaw package alias for installed getkova packages", async () => {
+    const packageRoot = await createTempDirAsync("kova-installed-alias-");
+    await fs.writeFile(
+      path.join(packageRoot, "package.json"),
+      JSON.stringify({ name: "getkova", version: "0.2.0" }),
+    );
+
+    ensureInstalledLegacyPackageAlias({ packageRoot });
+
+    const aliasPath = path.join(packageRoot, "node_modules", "openclaw");
+    await expect(fs.access(aliasPath)).resolves.toBeUndefined();
+    await expect(fs.realpath(aliasPath)).resolves.toBe(packageRoot);
   });
 
   it("does not install bundled plugin deps outside of source checkouts by default", async () => {

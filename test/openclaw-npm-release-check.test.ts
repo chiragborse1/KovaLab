@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { WORKSPACE_TEMPLATE_PACK_PATHS } from "../scripts/lib/workspace-bootstrap-smoke.mjs";
 import {
   compareReleaseVersions,
   collectControlUiPackErrors,
@@ -19,7 +18,8 @@ import {
   resolveNpmCommandInvocation,
   shouldSkipPackedTarballValidation,
   utcCalendarDayDistance,
-} from "../scripts/openclaw-npm-release-check.ts";
+} from "../scripts/kova-npm-release-check.ts";
+import { WORKSPACE_TEMPLATE_PACK_PATHS } from "../scripts/lib/workspace-bootstrap-smoke.mjs";
 import { PACKAGE_DIST_INVENTORY_RELATIVE_PATH } from "../src/infra/package-dist-inventory.ts";
 
 const REQUIRED_PACKED_PATHS = [
@@ -602,7 +602,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
         repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
-        bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
+        bin: { kova: "kova.mjs" },
       }),
     ).toEqual([]);
   });
@@ -614,7 +614,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
         repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
-        bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
+        bin: { kova: "kova.mjs" },
         peerDependencies: { "node-llama-cpp": "3.18.1" },
         peerDependenciesMeta: { "node-llama-cpp": { optional: true } },
       }),
@@ -631,7 +631,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
         repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
-        bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
+        bin: { kova: "kova.mjs" },
         dependencies: { "node-llama-cpp": "3.18.1" },
       }),
     ).toContain('package.json dependencies["node-llama-cpp"] must be omitted; keep it optional.');
@@ -644,7 +644,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
         repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
-        bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
+        bin: { kova: "kova.mjs" },
         optionalDependencies: { "node-llama-cpp": "3.18.1" },
       }),
     ).toContain(

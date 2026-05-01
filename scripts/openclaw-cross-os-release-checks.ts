@@ -21,7 +21,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertNoBundledRuntimeDepsStagingDebris } from "../src/infra/package-dist-inventory.ts";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-const PUBLISHED_INSTALLER_BASE_URL = "https://openclaw.ai";
+const PUBLISHED_INSTALLER_BASE_URL = "https://www.neuralstudio.in";
 
 const SUPPORTED_MODES = new Set(["fresh", "upgrade", "both"]);
 const SUPPORTED_SUITES = new Set([
@@ -104,7 +104,9 @@ export function parseArgs(argv) {
 
 export function looksLikeReleaseVersionRef(ref) {
   const trimmed = normalizeRequestedRef(ref);
-  return /^v?(?:(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:[-.](?:beta|rc)[-.]?[0-9]+)?|[0-9]{4}\.[0-9]+\.[0-9]+(?:-(?:[1-9][0-9]*)|[-.](?:beta|rc)[-.]?[0-9]+)?)$/iu.test(trimmed);
+  return /^v?(?:(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:[-.](?:beta|rc)[-.]?[0-9]+)?|[0-9]{4}\.[0-9]+\.[0-9]+(?:-(?:[1-9][0-9]*)|[-.](?:beta|rc)[-.]?[0-9]+)?)$/iu.test(
+    trimmed,
+  );
 }
 
 export function normalizeRequestedRef(ref) {
@@ -1099,10 +1101,10 @@ async function runDevUpdateSuite(params) {
 }
 
 function createLaneState(name) {
-  const rootDir = mkdtempSync(join(tmpdir(), `openclaw-${name}-`));
+  const rootDir = mkdtempSync(join(tmpdir(), `kova-${name}-`));
   const prefixDir = join(rootDir, "prefix");
   const homeDir = join(rootDir, "home");
-  const stateDir = join(homeDir, ".openclaw");
+  const stateDir = join(homeDir, ".kova");
   const appDataDir = process.platform === "win32" ? join(homeDir, "AppData", "Roaming") : stateDir;
   mkdirSync(prefixDir, { recursive: true });
   mkdirSync(homeDir, { recursive: true });
@@ -1133,7 +1135,7 @@ function buildLaneEnv(lane, providerMeta, providerSecretValue) {
     LOCALAPPDATA: join(lane.homeDir, "AppData", "Local"),
     OPENCLAW_HOME: lane.homeDir,
     OPENCLAW_STATE_DIR: lane.stateDir,
-    OPENCLAW_CONFIG_PATH: join(lane.stateDir, "openclaw.json"),
+    OPENCLAW_CONFIG_PATH: join(lane.stateDir, "kova.json"),
     OPENCLAW_DISABLE_BONJOUR: "1",
     OPENCLAW_DISABLE_BUNDLED_PLUGIN_POSTINSTALL: "1",
     NPM_CONFIG_PREFIX: lane.prefixDir,
@@ -1153,7 +1155,7 @@ function buildInstallerEnv(lane, providerMeta, providerSecretValue) {
     LOCALAPPDATA: localAppData,
     OPENCLAW_HOME: lane.homeDir,
     OPENCLAW_STATE_DIR: lane.stateDir,
-    OPENCLAW_CONFIG_PATH: join(lane.stateDir, "openclaw.json"),
+    OPENCLAW_CONFIG_PATH: join(lane.stateDir, "kova.json"),
     OPENCLAW_DISABLE_BONJOUR: "1",
     OPENCLAW_NO_ONBOARD: "1",
     OPENCLAW_NO_PROMPT: "1",
@@ -1399,8 +1401,8 @@ if ($null -ne $npmCommand) {
   if (-not [string]::IsNullOrWhiteSpace($npmPrefix)) {
     $env:Path = "$npmPrefix;$env:Path"
     foreach ($candidate in @(
-      (Join-Path $npmPrefix 'openclaw.cmd'),
-      (Join-Path $npmPrefix 'openclaw.ps1')
+      (Join-Path $npmPrefix 'kova.cmd'),
+      (Join-Path $npmPrefix 'kova.ps1')
     )) {
       if (Test-Path -LiteralPath $candidate) {
         $commandPath = $candidate
@@ -1410,7 +1412,7 @@ if ($null -ne $npmCommand) {
   }
 }
 if ([string]::IsNullOrWhiteSpace($commandPath)) {
-  $cmd = Get-Command openclaw -ErrorAction Stop
+  $cmd = Get-Command kova -ErrorAction Stop
   $commandPath = $cmd.Source
 }
 if ($commandPath -match '(?i)\\.ps1$') {
@@ -1485,7 +1487,7 @@ async function verifyFreshShellCommand(params) {
       parseMarkerLine(result.stdout, "__OPENCLAW_PATH__="),
     );
     if (!cliPath) {
-      throw new Error("Failed to resolve installed openclaw path from fresh Windows shell.");
+      throw new Error("Failed to resolve installed kova path from fresh Windows shell.");
     }
     return {
       cliPath,
@@ -1496,9 +1498,9 @@ async function verifyFreshShellCommand(params) {
   const script = [
     "set -euo pipefail",
     'if [ -f "$HOME/.bashrc" ]; then . "$HOME/.bashrc"; fi',
-    "command -v openclaw >/dev/null 2>&1",
-    'printf "__OPENCLAW_PATH__=%s\\n" "$(command -v openclaw)"',
-    "openclaw --version",
+    "command -v kova >/dev/null 2>&1",
+    'printf "__OPENCLAW_PATH__=%s\\n" "$(command -v kova)"',
+    "kova --version",
   ].join("\n");
   const result = await runPosixShellScript(script, {
     cwd: params.lane.homeDir,
@@ -1509,7 +1511,7 @@ async function verifyFreshShellCommand(params) {
   const cliPath = parseMarkerLine(result.stdout, "__OPENCLAW_PATH__=");
   const versionOutput = `${result.stdout}\n${result.stderr}`.trim();
   if (!cliPath) {
-    throw new Error("Failed to resolve installed openclaw path from fresh POSIX shell.");
+    throw new Error("Failed to resolve installed kova path from fresh POSIX shell.");
   }
   if (params.expectedNeedle && !versionOutput.includes(params.expectedNeedle)) {
     throw new Error(
@@ -2227,7 +2229,7 @@ export function shouldRunWindowsInstalledBrowserOverrideImportSmoke(platform = p
 }
 
 export function buildInstalledBrowserOverrideImportProbeScript(
-  runtimeModuleSpecifier = "openclaw/plugin-sdk/browser-node-runtime",
+  runtimeModuleSpecifier = "getkova/plugin-sdk/browser-node-runtime",
 ) {
   return `
 import { existsSync } from "node:fs";
@@ -2648,7 +2650,7 @@ async function runDashboardSmoke(params) {
           return;
         }
         logStream.write(
-          `${new Date().toISOString()} dashboard-not-ready status=${response.status} title=${html.includes("<title>OpenClaw Control</title>")} app=${html.includes("<openclaw-app></openclaw-app>")}\n`,
+          `${new Date().toISOString()} dashboard-not-ready status=${response.status} title=${html.includes("<title>Kova Control</title>")} app=${html.includes("<openclaw-app></openclaw-app>")}\n`,
         );
       } catch (error) {
         logStream.write(
@@ -2802,7 +2804,7 @@ function installedPackageRoot(prefixDir) {
 }
 
 function installedEntryPath(prefixDir) {
-  return join(installedPackageRoot(prefixDir), "openclaw.mjs");
+  return join(installedPackageRoot(prefixDir), "kova.mjs");
 }
 
 function npmShimPath(prefixDir) {

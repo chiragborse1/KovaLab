@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Official installer E2E harness for Docker.
 #
-# Installs OpenClaw through the public one-liner, verifies the resolved npm
+# Installs Kova through the public one-liner, verifies the resolved npm
 # version, then exercises onboard + local embedded agent tool turns for the
 # configured model providers. Keep this script package-install based: it should
 # validate the installed npm artifact, not repo sources.
@@ -15,7 +15,7 @@ fi
 # shellcheck source=../install-sh-common/version-parse.sh
 source "$VERIFY_HELPER_PATH"
 
-INSTALL_URL="${OPENCLAW_INSTALL_URL:-https://openclaw.bot/install.sh}"
+INSTALL_URL="${OPENCLAW_INSTALL_URL:-https://www.neuralstudio.in/install.sh}"
 MODELS_MODE="${OPENCLAW_E2E_MODELS:-both}" # both|openai|anthropic
 INSTALL_TAG="${OPENCLAW_INSTALL_TAG:-latest}"
 E2E_PREVIOUS_VERSION="${OPENCLAW_INSTALL_E2E_PREVIOUS:-}"
@@ -88,7 +88,7 @@ else
 fi
 
 echo "==> Verify installed version"
-INSTALLED_VERSION="$(openclaw --version 2>/dev/null | head -n 1 | tr -d '\r')"
+INSTALLED_VERSION="$(kova --version 2>/dev/null | head -n 1 | tr -d '\r')"
 INSTALLED_VERSION="$(extract_openclaw_semver "$INSTALLED_VERSION")"
 echo "installed=$INSTALLED_VERSION expected=$EXPECTED_VERSION"
 if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
@@ -101,7 +101,7 @@ set_image_model() {
   shift
   local candidate
   for candidate in "$@"; do
-    if openclaw --profile "$profile" models set-image "$candidate" >/dev/null 2>&1; then
+    if kova --profile "$profile" models set-image "$candidate" >/dev/null 2>&1; then
       echo "$candidate"
       return 0
     fi
@@ -115,7 +115,7 @@ set_agent_model() {
   local candidate
   shift
   for candidate in "$@"; do
-    if openclaw --profile "$profile" models set "$candidate" >/dev/null 2>&1; then
+    if kova --profile "$profile" models set "$candidate" >/dev/null 2>&1; then
       echo "$candidate"
       return 0
     fi

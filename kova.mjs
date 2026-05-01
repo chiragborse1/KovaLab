@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 
-import path from "node:path";
 import { readFileSync } from "node:fs";
 import { access } from "node:fs/promises";
 import module from "node:module";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR = 12;
 const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
-const LEGACY_CLI_NAME = "openclaw";
 const DEFAULT_CLI_NAME = "kova";
 
 const applyEnvAliases = () => {
@@ -35,9 +34,7 @@ const applyEnvAliases = () => {
 };
 
 const resolveCliName = () => {
-  const base = path.basename(process.argv[1] ?? "").trim();
-  const stem = path.parse(base).name.trim();
-  return stem === LEGACY_CLI_NAME ? LEGACY_CLI_NAME : DEFAULT_CLI_NAME;
+  return DEFAULT_CLI_NAME;
 };
 
 const CLI_NAME = resolveCliName();
@@ -150,9 +147,9 @@ const buildMissingEntryErrorMessage = async () => {
     "Build locally with `pnpm install && pnpm build`, or install a built package instead.",
   );
   lines.push(
-    "For pinned GitHub installs, use `npm install -g github:openclaw/openclaw#<ref>` instead of a raw `/archive/<ref>.tar.gz` URL.",
+    "For pinned GitHub installs, use `npm install -g github:chiragborse1/KovaLab#<ref>` instead of a raw `/archive/<ref>.tar.gz` URL.",
   );
-  lines.push("For releases, use `npm install -g openclaw@latest`.");
+  lines.push("For releases, use `npm install -g getkova@latest`.");
   return lines.join("\n");
 };
 

@@ -1,6 +1,6 @@
 # Kova Installer for Windows (PowerShell)
-# Usage: iwr -useb https://openclaw.ai/install.ps1 | iex
-# Or: & ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard
+# Usage: iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+# Or: & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
 
 param(
     [ValidateSet("npm", "git")]
@@ -339,7 +339,7 @@ function Install-KovaGit {
     }
 
     $entryPath = Join-Path $RepoDir "kova.mjs"
-    $legacyEntryPath = Join-Path $RepoDir "openclaw.mjs"
+    $legacyEntryPath = Join-Path $RepoDir "kova.mjs"
     @"
 @echo off
 node "$entryPath" %*
@@ -374,7 +374,7 @@ function Resolve-PackageInstallSpec {
         return "getkova@latest"
     }
     if ($trimmed.ToLowerInvariant() -eq "main") {
-        return "github:openclaw/openclaw#main"
+        return "github:chiragborse1/KovaLab#main"
     }
     if (Test-ExplicitPackageInstallSpec -Target $trimmed) {
         return $trimmed

@@ -218,8 +218,8 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
     );
     expect(script).toContain("Get-Command npm.cmd -ErrorAction SilentlyContinue");
     expect(script).toContain('$env:Path = "$npmPrefix;$env:Path"');
-    expect(script).toContain("(Join-Path $npmPrefix 'openclaw.cmd')");
-    expect(script).toContain("$cmd = Get-Command openclaw -ErrorAction Stop");
+    expect(script).toContain("(Join-Path $npmPrefix 'kova.cmd')");
+    expect(script).toContain("$cmd = Get-Command kova -ErrorAction Stop");
   });
 
   it("keeps Windows dev-update toolchain checks compatible with setup-node PATH shims", () => {
@@ -274,9 +274,9 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
   });
 
   it("uses the published installer URLs for native installer lanes", () => {
-    expect(resolvePublishedInstallerUrl("darwin")).toBe("https://openclaw.ai/install.sh");
-    expect(resolvePublishedInstallerUrl("linux")).toBe("https://openclaw.ai/install.sh");
-    expect(resolvePublishedInstallerUrl("win32")).toBe("https://openclaw.ai/install.ps1");
+    expect(resolvePublishedInstallerUrl("darwin")).toBe("https://www.neuralstudio.in/install.sh");
+    expect(resolvePublishedInstallerUrl("linux")).toBe("https://www.neuralstudio.in/install.sh");
+    expect(resolvePublishedInstallerUrl("win32")).toBe("https://www.neuralstudio.in/install.ps1");
   });
 
   it("uses managed gateway services only on native Windows runners", () => {
@@ -310,17 +310,17 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
     expect(shouldRunWindowsInstalledBrowserOverrideImportSmoke("linux")).toBe(false);
 
     const script = buildInstalledBrowserOverrideImportProbeScript();
-    expect(script).toContain('from "openclaw/plugin-sdk/browser-node-runtime"');
+    expect(script).toContain('from "getkova/plugin-sdk/browser-node-runtime"');
     expect(script).toContain('overrideEnvVar: "OPENCLAW_BROWSER_CONTROL_MODULE"');
     expect(script).toContain("startBrowserControlService");
     expect(script).toContain("stopBrowserControlService");
     expect(script).toContain("Browser control override start sentinel was not written.");
 
     const installedScript = buildInstalledBrowserOverrideImportProbeScript(
-      "file:///C:/Users/runner/AppData/Roaming/npm/node_modules/openclaw/dist/plugin-sdk/browser-node-runtime.js",
+      "file:///C:/Users/runner/AppData/Roaming/npm/node_modules/getkova/dist/plugin-sdk/browser-node-runtime.js",
     );
     expect(installedScript).toContain(
-      'from "file:///C:/Users/runner/AppData/Roaming/npm/node_modules/openclaw/dist/plugin-sdk/browser-node-runtime.js"',
+      'from "file:///C:/Users/runner/AppData/Roaming/npm/node_modules/getkova/dist/plugin-sdk/browser-node-runtime.js"',
     );
     expect(readFileSync("scripts/openclaw-cross-os-release-checks.ts", "utf8")).toContain(
       "OPENCLAW_BROWSER_CONTROL_MODULE: pathToFileURL(overridePath).href",
@@ -329,15 +329,11 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
 
   it("normalizes Windows installed CLI paths to the cmd shim", () => {
     expect(
-      normalizeWindowsInstalledCliPath(
-        String.raw`C:\Users\runner\AppData\Roaming\npm\openclaw.ps1`,
-      ),
-    ).toBe(String.raw`C:\Users\runner\AppData\Roaming\npm\openclaw.cmd`);
+      normalizeWindowsInstalledCliPath(String.raw`C:\Users\runner\AppData\Roaming\npm\kova.ps1`),
+    ).toBe(String.raw`C:\Users\runner\AppData\Roaming\npm\kova.cmd`);
     expect(
-      normalizeWindowsInstalledCliPath(
-        String.raw`C:\Users\runner\AppData\Roaming\npm\openclaw.cmd`,
-      ),
-    ).toBe(String.raw`C:\Users\runner\AppData\Roaming\npm\openclaw.cmd`);
+      normalizeWindowsInstalledCliPath(String.raw`C:\Users\runner\AppData\Roaming\npm\kova.cmd`),
+    ).toBe(String.raw`C:\Users\runner\AppData\Roaming\npm\kova.cmd`);
   });
 
   it("normalizes generic Windows PowerShell shims to cmd shims", () => {
@@ -355,12 +351,12 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
   it("derives the installed prefix from resolved CLI paths", () => {
     expect(
       resolveInstalledPrefixDirFromCliPath(
-        String.raw`C:\Users\runner\AppData\Roaming\npm\openclaw.ps1`,
+        String.raw`C:\Users\runner\AppData\Roaming\npm\kova.ps1`,
         "win32",
       ),
     ).toBe(String.raw`C:\Users\runner\AppData\Roaming\npm`);
     expect(
-      resolveInstalledPrefixDirFromCliPath("/Users/runner/.npm-global/bin/openclaw", "darwin"),
+      resolveInstalledPrefixDirFromCliPath("/Users/runner/.npm-global/bin/kova", "darwin"),
     ).toBe("/Users/runner/.npm-global");
   });
 

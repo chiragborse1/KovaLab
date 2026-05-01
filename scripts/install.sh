@@ -264,7 +264,7 @@ detect_os_or_die() {
     if [[ "$OS" == "unknown" ]]; then
         ui_error "Unsupported operating system"
         echo "This installer supports macOS and Linux (including WSL)."
-        echo "For Windows, use: iwr -useb https://openclaw.ai/install.ps1 | iex"
+        echo "For Windows, use: iwr -useb https://www.neuralstudio.in/install.ps1 | iex"
         exit 1
     fi
 
@@ -540,7 +540,7 @@ cleanup_openclaw_bin_conflict() {
     if [[ -L "$bin_path" ]]; then
         local target=""
         target="$(readlink "$bin_path" 2>/dev/null || true)"
-        if [[ "$target" == *"/node_modules/openclaw/"* ]]; then
+        if [[ "$target" == *"/node_modules/getkova/"* || "$target" == *"/node_modules/openclaw/"* ]]; then
             rm -f "$bin_path"
             ui_info "Removed stale openclaw symlink at ${bin_path}"
             return 0
@@ -1020,7 +1020,7 @@ print_usage() {
 Kova installer (macOS + Linux)
 
 Usage:
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- [options]
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- [options]
 
 Options:
   --install-method, --method npm|git   Install via npm (default) or from a git checkout
@@ -1052,11 +1052,11 @@ Environment variables:
   SHARP_IGNORE_GLOBAL_LIBVIPS=0|1    Default: 1 (avoid sharp building against global libvips)
 
 Examples:
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --no-onboard --verify
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --version main
-  curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --install-method git --no-onboard
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --no-onboard
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --no-onboard --verify
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --version main
+  curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --install-method git --no-onboard
 EOF
 }
 
@@ -1248,7 +1248,7 @@ print_homebrew_admin_fix() {
     echo "  2) Ask an Administrator to grant admin rights, then sign out/in:"
     echo "     sudo dseditgroup -o edit -a ${current_user} -t user admin"
     echo "Then retry:"
-    echo "  curl -fsSL https://openclaw.ai/install.sh | bash"
+    echo "  curl -fsSL https://www.neuralstudio.in/install.sh | bash"
 }
 
 install_homebrew() {
@@ -1405,7 +1405,7 @@ ensure_default_node_active_shell() {
         echo "  nvm use ${NODE_DEFAULT_MAJOR}"
         echo "  nvm alias default ${NODE_DEFAULT_MAJOR}"
         echo "Then open a new shell and rerun:"
-        echo "  curl -fsSL https://openclaw.ai/install.sh | bash"
+        echo "  curl -fsSL https://www.neuralstudio.in/install.sh | bash"
     else
         echo "Install/select Node.js ${NODE_DEFAULT_MAJOR} (or Node ${NODE_MIN_VERSION}+ minimum) and ensure it is first on PATH, then rerun installer."
     fi
@@ -1652,7 +1652,7 @@ fix_npm_permissions() {
 ensure_openclaw_bin_link() {
     local npm_root=""
     npm_root="$(npm root -g 2>/dev/null || true)"
-    if [[ -z "$npm_root" || ! -d "$npm_root/openclaw" ]]; then
+    if [[ -z "$npm_root" || ! -d "$npm_root/getkova" ]]; then
         return 1
     fi
     local npm_bin=""
@@ -1662,11 +1662,11 @@ ensure_openclaw_bin_link() {
     fi
     mkdir -p "$npm_bin"
     if [[ ! -x "${npm_bin}/kova" ]]; then
-        ln -sf "$npm_root/openclaw/kova.mjs" "${npm_bin}/kova"
+        ln -sf "$npm_root/getkova/kova.mjs" "${npm_bin}/kova"
         ui_info "Created kova bin link at ${npm_bin}/kova"
     fi
     if [[ ! -x "${npm_bin}/openclaw" ]]; then
-        ln -sf "$npm_root/openclaw/openclaw.mjs" "${npm_bin}/openclaw"
+        ln -sf "$npm_root/getkova/kova.mjs" "${npm_bin}/openclaw"
         ui_info "Created openclaw compatibility link at ${npm_bin}/openclaw"
     fi
     return 0
@@ -2158,7 +2158,7 @@ EOF
     cat > "$HOME/.local/bin/openclaw" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-exec node "${repo_dir}/openclaw.mjs" "\$@"
+exec node "${repo_dir}/kova.mjs" "\$@"
 EOF
     chmod +x "$HOME/.local/bin/kova" "$HOME/.local/bin/openclaw"
     ui_success "Kova wrapper installed to \$HOME/.local/bin/kova"
@@ -2169,7 +2169,7 @@ EOF
 # Install Kova
 resolve_beta_version() {
     local beta=""
-    beta="$(npm view openclaw dist-tags.beta 2>/dev/null || true)"
+    beta="$(npm view getkova dist-tags.beta 2>/dev/null || true)"
     if [[ -z "$beta" || "$beta" == "undefined" || "$beta" == "null" ]]; then
         return 1
     fi
@@ -2208,7 +2208,7 @@ resolve_package_install_spec() {
     local normalized_value=""
     normalized_value="$(to_lowercase_ascii "$value")"
     if [[ "$normalized_value" == "main" ]]; then
-        echo "github:openclaw/openclaw#main"
+        echo "github:chiragborse1/KovaLab#main"
         return 0
     fi
     if is_explicit_package_install_spec "$value"; then
@@ -2401,8 +2401,8 @@ resolve_openclaw_version() {
     if [[ -z "$version" ]]; then
         local npm_root=""
         npm_root=$(npm root -g 2>/dev/null || true)
-        if [[ -n "$npm_root" && -f "$npm_root/openclaw/package.json" ]]; then
-            version=$(node -e "console.log(require('${npm_root}/openclaw/package.json').version)" 2>/dev/null || true)
+        if [[ -n "$npm_root" && -f "$npm_root/getkova/package.json" ]]; then
+            version=$(node -e "console.log(require('${npm_root}/getkova/package.json').version)" 2>/dev/null || true)
         fi
     fi
     echo "$version"
@@ -2709,7 +2709,7 @@ main() {
         ui_kv "Wrapper" "$HOME/.local/bin/kova"
         ui_kv "Legacy alias" "$HOME/.local/bin/openclaw"
         ui_kv "Update command" "kova update"
-        ui_kv "Switch to npm" "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --install-method npm"
+        ui_kv "Switch to npm" "curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --install-method npm"
     elif [[ "$is_upgrade" == "true" ]]; then
         ui_info "Upgrade complete"
         if [[ -r /dev/tty && -w /dev/tty ]]; then

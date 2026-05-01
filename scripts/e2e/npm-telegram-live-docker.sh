@@ -184,8 +184,8 @@ package_label="${OPENCLAW_NPM_TELEGRAM_PACKAGE_LABEL:-$install_source}"
 echo "Installing ${package_label} from ${install_source}..."
 npm install -g "$install_source" --no-fund --no-audit
 
-command -v openclaw
-openclaw --version
+command -v kova
+kova --version
 EOF
 
 # Mount only test harness/plugin QA sources; the SUT itself is the installed package candidate.
@@ -219,14 +219,15 @@ dump_hotpath_logs() {
 }
 trap 'status=$?; dump_hotpath_logs "$status"; exit "$status"' ERR
 
-command -v openclaw
-openclaw --version
+command -v kova
+kova --version
 mkdir -p /app/node_modules
-openclaw_package_dir="/npm-global/lib/node_modules/openclaw"
+openclaw_package_dir="/npm-global/lib/node_modules/getkova"
 # The mounted QA harness imports openclaw/plugin-sdk and package dependencies;
 # point those imports at the installed package without copying source into the test image.
-rm -rf /app/node_modules/openclaw
+rm -rf /app/node_modules/openclaw /app/node_modules/getkova
 ln -sfnT "$openclaw_package_dir" /app/node_modules/openclaw
+ln -sfnT "$openclaw_package_dir" /app/node_modules/getkova
 rm -rf /app/dist
 ln -sfnT "$openclaw_package_dir/dist" /app/dist
 cp "$openclaw_package_dir/package.json" /app/package.json
@@ -238,6 +239,7 @@ import fs from "node:fs";
 for (const packageJsonPath of [
   "/app/package.json",
   "/app/node_modules/openclaw/package.json",
+  "/app/node_modules/getkova/package.json",
 ]) {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
   pkg.exports = pkg.exports && typeof pkg.exports === "object" ? pkg.exports : {};
@@ -264,7 +266,7 @@ for deps_dir in "$openclaw_package_dir/node_modules" /npm-global/lib/node_module
     [ -e "$dependency_dir" ] || continue
     dependency_name="$(basename "$dependency_dir")"
     case "$dependency_name" in
-      .bin | openclaw)
+      .bin | openclaw | getkova)
         continue
         ;;
       @*)
@@ -287,7 +289,7 @@ done
 
 link_installed_package_dependency() {
   local name="$1"
-  local source="/npm-global/lib/node_modules/openclaw/node_modules/$name"
+  local source="/npm-global/lib/node_modules/getkova/node_modules/$name"
   local target="/app/node_modules/$name"
   if [ ! -e "$source" ]; then
     echo "Installed package dependency is missing: $name" >&2
@@ -307,7 +309,7 @@ for dependency in \
 done
 
 echo "Running installed-package onboarding recovery hot path..."
-OPENAI_API_KEY="${OPENAI_API_KEY:-sk-openclaw-npm-telegram-hotpath}" openclaw onboard --non-interactive --accept-risk \
+OPENAI_API_KEY="${OPENAI_API_KEY:-sk-kova-npm-telegram-hotpath}" kova onboard --non-interactive --accept-risk \
   --mode local \
   --auth-choice openai-api-key \
   --secret-input-mode ref \
@@ -319,9 +321,9 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-sk-openclaw-npm-telegram-hotpath}" openclaw on
   --skip-health \
   --json >/tmp/openclaw-npm-telegram-onboard.json </dev/null
 
-openclaw channels add --channel telegram --token "123456:openclaw-npm-telegram-hotpath" >/tmp/openclaw-npm-telegram-channel-add.log 2>&1 </dev/null
-openclaw doctor --fix --non-interactive >/tmp/openclaw-npm-telegram-doctor-fix.log 2>&1 </dev/null
-openclaw doctor --non-interactive >/tmp/openclaw-npm-telegram-doctor-check.log 2>&1 </dev/null
+kova channels add --channel telegram --token "123456:kova-npm-telegram-hotpath" >/tmp/openclaw-npm-telegram-channel-add.log 2>&1 </dev/null
+kova doctor --fix --non-interactive >/tmp/openclaw-npm-telegram-doctor-fix.log 2>&1 </dev/null
+kova doctor --non-interactive >/tmp/openclaw-npm-telegram-doctor-check.log 2>&1 </dev/null
 if grep -F -q "Bundled plugin runtime deps are missing." /tmp/openclaw-npm-telegram-doctor-check.log; then
   exit 1
 fi
@@ -329,7 +331,7 @@ if grep -F -q "Failed to install bundled plugin runtime deps" /tmp/openclaw-npm-
   exit 1
 fi
 
-export OPENCLAW_NPM_TELEGRAM_SUT_COMMAND="$(command -v openclaw)"
+export OPENCLAW_NPM_TELEGRAM_SUT_COMMAND="$(command -v kova)"
 trap - ERR
 tsx scripts/e2e/npm-telegram-live-runner.ts
 EOF

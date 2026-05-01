@@ -124,8 +124,8 @@ jobs:
       - name: Run root Dockerfile CLI smoke
         run: |
           docker run --rm --entrypoint sh openclaw-dockerfile-smoke:local -lc '
-            which openclaw &&
-            openclaw --version &&
+            which kova &&
+            kova --version &&
             node -e "
               const fs = require(\"node:fs\");
               const path = require(\"node:path\");
@@ -154,8 +154,8 @@ jobs:
       - name: Smoke test Dockerfile with matrix extension build arg
         run: |
           docker run --rm --entrypoint sh openclaw-ext-smoke:local -lc '
-            which openclaw &&
-            openclaw --version &&
+            which kova &&
+            kova --version &&
             node -e "
               const Module = require(\"node:module\");
               const matrixPackage = require(\"/app/extensions/matrix/package.json\");
@@ -170,7 +170,7 @@ jobs:
                 requireFromMatrix.resolve(dep);
               }
               const { spawnSync } = require(\"node:child_process\");
-              const run = spawnSync(\"openclaw\", [\"plugins\", \"list\", \"--json\"], { encoding: \"utf8\" });
+              const run = spawnSync(\"kova\", [\"plugins\", \"list\", \"--json\"], { encoding: \"utf8\" });
               if (run.status !== 0) {
                 process.stderr.write(run.stderr || run.stdout || \"plugins list failed\\n\");
                 process.exit(run.status ?? 1);
@@ -237,7 +237,7 @@ jobs:
 
       - name: Run root Dockerfile CLI smoke
         run: |
-          docker run --rm --entrypoint sh openclaw-dockerfile-smoke:local -lc 'which openclaw && openclaw --version'
+          docker run --rm --entrypoint sh openclaw-dockerfile-smoke:local -lc 'which kova && kova --version'
 
       - name: Run agents delete shared workspace Docker CLI smoke
         env:
@@ -254,8 +254,8 @@ jobs:
       - name: Smoke test Dockerfile with matrix extension build arg
         run: |
           docker run --rm --entrypoint sh openclaw-ext-smoke:local -lc '
-            which openclaw &&
-            openclaw --version &&
+            which kova &&
+            kova --version &&
             node -e "
               const Module = require(\"node:module\");
               const matrixPackage = require(\"/app/extensions/matrix/package.json\");
@@ -270,7 +270,7 @@ jobs:
                 requireFromMatrix.resolve(dep);
               }
               const { spawnSync } = require(\"node:child_process\");
-              const run = spawnSync(\"openclaw\", [\"plugins\", \"list\", \"--json\"], { encoding: \"utf8\" });
+              const run = spawnSync(\"kova\", [\"plugins\", \"list\", \"--json\"], { encoding: \"utf8\" });
               if (run.status !== 0) {
                 process.stderr.write(run.stderr || run.stdout || \"plugins list failed\\n\");
                 process.exit(run.status ?? 1);
@@ -331,8 +331,8 @@ jobs:
 
       - name: Run installer docker tests
         env:
-          OPENCLAW_INSTALL_URL: https://openclaw.ai/install.sh
-          OPENCLAW_INSTALL_CLI_URL: https://openclaw.ai/install-cli.sh
+          OPENCLAW_INSTALL_URL: https://www.neuralstudio.in/install.sh
+          OPENCLAW_INSTALL_CLI_URL: https://www.neuralstudio.in/install-cli.sh
           OPENCLAW_NO_ONBOARD: "1"
           OPENCLAW_INSTALL_SMOKE_SKIP_CLI: "1"
           OPENCLAW_INSTALL_SMOKE_SKIP_IMAGE_BUILD: "1"

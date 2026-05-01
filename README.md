@@ -1,7 +1,7 @@
 # 🦄 Kova — Personal AI Assistant
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/kova-logo.png" alt="Kova" width="220">
+    <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/kova-logo.png" alt="Kova" width="220">
 </p>
 
 <p align="center">
@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/openclaw/openclaw/actions/workflows/ci.yml?branch=main"><img src="https://img.shields.io/github/actions/workflow/status/openclaw/openclaw/ci.yml?branch=main&style=for-the-badge" alt="CI status"></a>
-  <a href="https://github.com/openclaw/openclaw/releases"><img src="https://img.shields.io/github/v/release/openclaw/openclaw?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
+  <a href="https://github.com/chiragborse1/KovaLab/actions/workflows/ci.yml?branch=dev"><img src="https://img.shields.io/github/actions/workflow/status/chiragborse1/KovaLab/ci.yml?branch=dev&style=for-the-badge" alt="CI status"></a>
+  <a href="https://github.com/chiragborse1/KovaLab/releases"><img src="https://img.shields.io/github/v/release/chiragborse1/KovaLab?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
   <a href="https://discord.gg/clawd"><img src="https://img.shields.io/discord/1456350064065904867?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
@@ -22,7 +22,7 @@ If you want a personal, single-user assistant that feels local, fast, and always
 
 Supported channels include: WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, BlueBubbles, IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, QQ, WebChat.
 
-[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Vision](VISION.md) · [DeepWiki](https://deepwiki.com/openclaw/openclaw) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Updating](https://docs.neuralstudio.in/install/updating) · [Showcase](https://docs.neuralstudio.in/start/showcase) · [FAQ](https://docs.neuralstudio.in/help/faq) · [Onboarding](https://docs.neuralstudio.in/start/wizard) · [Nix](https://github.com/openclaw/nix-openclaw) · [Docker](https://docs.neuralstudio.in/install/docker) · [Discord](https://discord.gg/clawd)
+[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Vision](VISION.md) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Updating](https://docs.neuralstudio.in/install/updating) · [Showcase](https://docs.neuralstudio.in/start/showcase) · [FAQ](https://docs.neuralstudio.in/help/faq) · [Onboarding](https://docs.neuralstudio.in/start/wizard) · [Docker](https://docs.neuralstudio.in/install/docker) · [Discord](https://discord.gg/clawd)
 
 New install? Start here: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
@@ -37,48 +37,48 @@ Works with npm, pnpm, or bun.
     <td align="center" width="16.66%">
       <a href="https://openai.com/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/openai-light.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/openai.svg" alt="OpenAI" height="28">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/openai-light.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/openai.svg" alt="OpenAI" height="28">
         </picture>
       </a>
     </td>
     <td align="center" width="16.66%">
       <a href="https://github.com/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/github-light.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/github.svg" alt="GitHub" height="28">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/github-light.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/github.svg" alt="GitHub" height="28">
         </picture>
       </a>
     </td>
     <td align="center" width="16.66%">
       <a href="https://www.nvidia.com/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/nvidia.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/nvidia-dark.svg" alt="NVIDIA" height="28">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/nvidia.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/nvidia-dark.svg" alt="NVIDIA" height="28">
         </picture>
       </a>
     </td>
     <td align="center" width="16.66%">
       <a href="https://vercel.com/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/vercel-light.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/vercel.svg" alt="Vercel" height="24">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/vercel-light.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/vercel.svg" alt="Vercel" height="24">
         </picture>
       </a>
     </td>
     <td align="center" width="16.66%">
       <a href="https://blacksmith.sh/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/blacksmith-light.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/blacksmith.svg" alt="Blacksmith" height="28">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/blacksmith-light.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/blacksmith.svg" alt="Blacksmith" height="28">
         </picture>
       </a>
     </td>
     <td align="center" width="16.66%">
       <a href="https://www.convex.dev/">
         <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/convex-light.svg">
-          <img src="https://raw.githubusercontent.com/openclaw/openclaw/main/docs/assets/sponsors/convex.svg" alt="Convex" height="24">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/convex-light.svg">
+          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/convex.svg" alt="Convex" height="24">
         </picture>
       </a>
     </td>
@@ -96,8 +96,8 @@ Model note: while many providers and models are supported, prefer a current flag
 Runtime: **Node 24 (recommended) or Node 22.14+**.
 
 ```bash
-npm install -g openclaw@latest
-# or: pnpm add -g openclaw@latest
+npm install -g getkova@latest
+# or: pnpm add -g getkova@latest
 
 kova onboard --install-daemon
 ```
@@ -212,8 +212,8 @@ Prefer `pnpm` for builds from source. Bun is optional for running TypeScript dir
 For the dev loop:
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/chiragborse1/KovaLab.git
+cd KovaLab
 
 pnpm install
 
@@ -249,13 +249,13 @@ Details: [Development channels](https://docs.neuralstudio.in/install/development
 
 ## Agent workspace + skills
 
-- Workspace root: `~/.openclaw/workspace` (configurable via `agents.defaults.workspace`).
+- Workspace root: `~/.kova/workspace` (configurable via `agents.defaults.workspace`).
 - Injected prompt files: `AGENTS.md`, `SOUL.md`, `TOOLS.md`.
-- Skills: `~/.openclaw/workspace/skills/<skill>/SKILL.md`.
+- Skills: `~/.kova/workspace/skills/<skill>/SKILL.md`.
 
 ## Configuration
 
-Minimal `~/.openclaw/openclaw.json` (model + defaults):
+Minimal `~/.kova/kova.json` (model + defaults):
 
 ```json5
 {
@@ -269,7 +269,7 @@ Minimal `~/.openclaw/openclaw.json` (model + defaults):
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=openclaw/openclaw&type=date&legend=top-left)](https://www.star-history.com/#openclaw/openclaw&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=chiragborse1/KovaLab&type=date&legend=top-left)](https://www.star-history.com/#chiragborse1/KovaLab&type=date&legend=top-left)
 
 ## Molty
 

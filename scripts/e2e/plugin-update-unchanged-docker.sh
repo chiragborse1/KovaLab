@@ -25,9 +25,9 @@ docker run --rm \
   bash -lc "set -euo pipefail
 package_tgz=\"\${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}\"
 npm install -g --prefix /tmp/npm-prefix \"\$package_tgz\" --no-fund --no-audit >/tmp/openclaw-install.log 2>&1
-entry=\"/tmp/npm-prefix/lib/node_modules/openclaw/dist/index.mjs\"
-[ -f \"\$entry\" ] || entry=/tmp/npm-prefix/lib/node_modules/openclaw/dist/index.js
-package_version=\$(node -p \"require('/tmp/npm-prefix/lib/node_modules/openclaw/package.json').version\")
+entry=\"/tmp/npm-prefix/lib/node_modules/getkova/dist/index.mjs\"
+[ -f \"\$entry\" ] || entry=/tmp/npm-prefix/lib/node_modules/getkova/dist/index.js
+package_version=\$(node -p \"require('/tmp/npm-prefix/lib/node_modules/getkova/package.json').version\")
 OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT=\$(PACKAGE_VERSION=\"\$package_version\" node -e 'const version = process.env.PACKAGE_VERSION || \"\"; const match = new RegExp(\"^(\\\\d{4})\\\\.(\\\\d{1,2})\\\\.(\\\\d{1,2})(?:[-+].*)?\").exec(version); if (!match) { console.log(\"0\"); process.exit(0); } const value = [Number(match[1]), Number(match[2]), Number(match[3])]; const max = [2026, 4, 25]; for (let i = 0; i < value.length; i += 1) { if (value[i] < max[i]) { console.log(\"1\"); process.exit(0); } if (value[i] > max[i]) { console.log(\"0\"); process.exit(0); } } console.log(\"1\");')
 export OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT
 export NPM_CONFIG_REGISTRY=http://127.0.0.1:4873

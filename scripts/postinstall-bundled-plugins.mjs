@@ -11,6 +11,7 @@ import {
   closeSync,
   existsSync,
   lstatSync,
+  mkdirSync,
   openSync,
   readdirSync,
   readFileSync,
@@ -18,6 +19,7 @@ import {
   renameSync,
   rmdirSync,
   rmSync,
+  symlinkSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -103,6 +105,8 @@ const BAILEYS_MEDIA_DISPATCHER_HEADER_REPLACEMENT = [
 const BAILEYS_MEDIA_ONCE_IMPORT_RE = /import\s+\{\s*once\s*\}\s+from\s+['"]events['"]/u;
 const BAILEYS_MEDIA_ASYNC_CONTEXT_RE =
   /async\s+function\s+encryptedStream|encryptedStream\s*=\s*async/u;
+const LEGACY_PACKAGE_ALIAS_NAME = "openclaw";
+const CANONICAL_PACKAGE_NAME = "getkova";
 
 function hasEnvFlag(env, key) {
   const value = env?.[key]?.trim().toLowerCase();
@@ -715,6 +719,49 @@ function shouldRunBundledPluginPostinstall(params) {
   return true;
 }
 
+export function ensureInstalledLegacyPackageAlias(params = {}) {
+  const packageRoot = params.packageRoot ?? DEFAULT_PACKAGE_ROOT;
+  const pathExists = params.existsSync ?? existsSync;
+  const pathLstat = params.lstatSync ?? lstatSync;
+  const makeDir = params.mkdirSync ?? mkdirSync;
+  const createSymlink = params.symlinkSync ?? symlinkSync;
+  const removePath = params.rmSync ?? rmSync;
+  const readJsonFile = params.readJson ?? readJson;
+  const log = params.log ?? console;
+  const packageJsonPath = join(packageRoot, "package.json");
+  if (!pathExists(packageJsonPath)) {
+    return;
+  }
+  const packageJson = readJsonFile(packageJsonPath);
+  if (packageJson?.name !== CANONICAL_PACKAGE_NAME) {
+    return;
+  }
+
+  const nodeModulesDir = join(packageRoot, "node_modules");
+  const aliasPath = join(nodeModulesDir, LEGACY_PACKAGE_ALIAS_NAME);
+  if (pathExists(aliasPath)) {
+    try {
+      const stats = pathLstat(aliasPath);
+      if (stats.isSymbolicLink() || stats.isDirectory()) {
+        return;
+      }
+      removePath(aliasPath, { force: true, recursive: true });
+    } catch (error) {
+      log.warn(`[postinstall] could not verify legacy package alias: ${String(error)}`);
+      return;
+    }
+  }
+
+  makeDir(nodeModulesDir, { recursive: true });
+  const targetPath = process.platform === "win32" ? packageRoot : "..";
+  try {
+    createSymlink(targetPath, aliasPath, process.platform === "win32" ? "junction" : "dir");
+    log.log("[postinstall] created legacy openclaw package alias for getkova.");
+  } catch (error) {
+    log.warn(`[postinstall] could not create legacy package alias: ${String(error)}`);
+  }
+}
+
 export function runBundledPluginPostinstall(params = {}) {
   const env = params.env ?? process.env;
   const packageRoot = params.packageRoot ?? DEFAULT_PACKAGE_ROOT;
@@ -751,6 +798,16 @@ export function runBundledPluginPostinstall(params = {}) {
     readFileSync: params.readFileSync,
     readdirSync: params.readdirSync,
     rmSync: params.rmSync,
+    log,
+  });
+  ensureInstalledLegacyPackageAlias({
+    packageRoot,
+    existsSync: pathExists,
+    lstatSync: params.lstatSync,
+    mkdirSync: params.mkdirSync,
+    symlinkSync: params.symlinkSync,
+    rmSync: params.rmSync,
+    readJson: params.readJson,
     log,
   });
   if (

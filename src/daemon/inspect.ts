@@ -25,9 +25,11 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-const EXTRA_MARKERS = [
-  GATEWAY_SERVICE_MARKER,
-  ...LEGACY_GATEWAY_SERVICE_MARKERS,
+type Marker = "kova" | "openclaw" | "clawdbot";
+
+const EXTRA_MARKERS: readonly Marker[] = [
+  GATEWAY_SERVICE_MARKER as Marker,
+  ...(LEGACY_GATEWAY_SERVICE_MARKERS as readonly Marker[]),
   "clawdbot",
 ] as const;
 
@@ -55,8 +57,6 @@ export function renderGatewayServiceCleanupHints(
       return [];
   }
 }
-
-type Marker = (typeof EXTRA_MARKERS)[number];
 
 function detectMarker(content: string): Marker | null {
   const lower = normalizeLowercaseStringOrEmpty(content);

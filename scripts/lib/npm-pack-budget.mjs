@@ -1,9 +1,7 @@
-// 2026.3.12 ballooned to ~213.6 MiB unpacked and correlated with low-memory
-// startup/doctor OOM reports. 2026.4.12 intentionally stages Matrix runtime
-// dependencies, including crypto wasm, so packaged installs do not miss Docker
-// and gateway runtime dependencies. Keep the budget below the 2026.3.12 bloat
-// level while allowing that mirrored runtime surface.
-export const NPM_PACK_UNPACKED_SIZE_BUDGET_BYTES = 202 * 1024 * 1024;
+// Kova's npm tarball should stay comfortably below a 50 MiB unpacked budget.
+// This still leaves room for staged runtime dependencies while catching pack
+// bloat quickly during release validation.
+export const NPM_PACK_UNPACKED_SIZE_BUDGET_BYTES = 50 * 1024 * 1024;
 
 export function formatMiB(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;

@@ -236,8 +236,8 @@ function resolveGlobalRoot(prefixDir: string, cwd: string): string {
 
 function resolveInstalledBinaryPath(prefixDir: string): string {
   return process.platform === "win32"
-    ? join(prefixDir, "openclaw.cmd")
-    : join(prefixDir, "bin", "openclaw");
+    ? join(prefixDir, "kova.cmd")
+    : join(prefixDir, "bin", "kova");
 }
 
 export function createPackedBundledPluginPostinstallEnv(
@@ -405,8 +405,8 @@ function assertBundledRuntimeDependencyPresent(params: {
 }
 
 function writePackedBundledPluginActivationConfig(homeDir: string): void {
-  const configPath = join(homeDir, ".openclaw", "openclaw.json");
-  mkdirSync(join(homeDir, ".openclaw"), { recursive: true });
+  const configPath = join(homeDir, ".kova", "kova.json");
+  mkdirSync(join(homeDir, ".kova"), { recursive: true });
   writeFileSync(
     configPath,
     `${JSON.stringify(
@@ -424,7 +424,7 @@ function writePackedBundledPluginActivationConfig(homeDir: string): void {
         models: {
           providers: {
             openai: {
-              apiKey: "sk-openclaw-release-check",
+              apiKey: "sk-kova-release-check",
               baseUrl: "https://api.openai.com/v1",
               models: [],
             },
@@ -456,14 +456,14 @@ function runPackedBundledPluginActivationSmoke(packageRoot: string, tmpRoot: str
   mkdirSync(homeDir, { recursive: true });
   const env = createPackedCliSmokeEnv(process.env, {
     HOME: homeDir,
-    OPENAI_API_KEY: "sk-openclaw-release-check",
+    OPENAI_API_KEY: "sk-kova-release-check",
   });
   for (const dep of lazyDeps) {
     assertBundledRuntimeDependencyAbsent({ packageRoot, env, ...dep });
   }
 
   writePackedBundledPluginActivationConfig(homeDir);
-  execFileSync(process.execPath, [join(packageRoot, "openclaw.mjs"), "plugins", "doctor"], {
+  execFileSync(process.execPath, [join(packageRoot, "kova.mjs"), "plugins", "doctor"], {
     cwd: packageRoot,
     stdio: "inherit",
     env,
@@ -484,7 +484,7 @@ function runPackedCliSmoke(params: {
   const env = createPackedCliSmokeEnv(process.env, {
     HOME: params.homeDir,
     OPENCLAW_STATE_DIR: params.stateDir,
-    OPENAI_API_KEY: "sk-openclaw-release-check",
+    OPENAI_API_KEY: "sk-kova-release-check",
   });
   const windowsRoot = env.SystemRoot ?? env.WINDIR ?? "C:\\Windows";
   const trustedCmdPath = join(windowsRoot, "System32", "cmd.exe");
@@ -514,7 +514,7 @@ function runPackedCliSmoke(params: {
 }
 
 function runPackedBundledChannelEntrySmoke(): void {
-  const tmpRoot = mkdtempSync(join(tmpdir(), "openclaw-release-pack-smoke-"));
+  const tmpRoot = mkdtempSync(join(tmpdir(), "kova-release-pack-smoke-"));
   try {
     const packDir = join(tmpRoot, "pack");
     mkdirSync(packDir);
@@ -524,7 +524,7 @@ function runPackedBundledChannelEntrySmoke(): void {
     const prefixDir = join(tmpRoot, "prefix");
     installPackedTarball(prefixDir, tarballPath, tmpRoot);
 
-    const packageRoot = join(resolveGlobalRoot(prefixDir, tmpRoot), "openclaw");
+    const packageRoot = join(resolveGlobalRoot(prefixDir, tmpRoot), "getkova");
     const homeDir = join(tmpRoot, "home");
     const stateDir = join(tmpRoot, "state");
     mkdirSync(homeDir, { recursive: true });
@@ -552,21 +552,17 @@ function runPackedBundledChannelEntrySmoke(): void {
       },
     );
 
-    execFileSync(
-      process.execPath,
-      [join(packageRoot, "openclaw.mjs"), "completion", "--write-state"],
-      {
-        cwd: packageRoot,
-        stdio: "inherit",
-        env: {
-          ...process.env,
-          HOME: homeDir,
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_SUPPRESS_NOTES: "1",
-          OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
-        },
+    execFileSync(process.execPath, [join(packageRoot, "kova.mjs"), "completion", "--write-state"], {
+      cwd: packageRoot,
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        HOME: homeDir,
+        OPENCLAW_STATE_DIR: stateDir,
+        OPENCLAW_SUPPRESS_NOTES: "1",
+        OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
       },
-    );
+    });
 
     const completionFiles = readdirSync(join(stateDir, "completions")).filter(
       (entry) => !entry.startsWith("."),

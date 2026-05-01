@@ -25,19 +25,17 @@ function resolveCredentialRole(env: NodeJS.ProcessEnv) {
   return env.OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE ?? env.OPENCLAW_QA_CREDENTIAL_ROLE;
 }
 
-async function resolveTrustedOpenClawCommand(rawCommand: string) {
+async function resolveTrustedKovaCommand(rawCommand: string) {
   if (!path.isAbsolute(rawCommand)) {
     throw new Error("OPENCLAW_NPM_TELEGRAM_SUT_COMMAND must be an absolute path.");
   }
   const commandName = path.basename(rawCommand);
-  if (commandName !== "openclaw" && commandName !== "openclaw.cmd") {
-    throw new Error(
-      `OPENCLAW_NPM_TELEGRAM_SUT_COMMAND must point to openclaw; got: ${commandName}`,
-    );
+  if (commandName !== "kova" && commandName !== "kova.cmd") {
+    throw new Error(`OPENCLAW_NPM_TELEGRAM_SUT_COMMAND must point to kova; got: ${commandName}`);
   }
   const npmPrefix = process.env.NPM_CONFIG_PREFIX?.trim();
   if (!npmPrefix) {
-    throw new Error("Missing NPM_CONFIG_PREFIX for installed openclaw command validation.");
+    throw new Error("Missing NPM_CONFIG_PREFIX for installed kova command validation.");
   }
   const [realCommand, realPrefix] = await Promise.all([
     fs.realpath(rawCommand),
@@ -52,11 +50,11 @@ async function resolveTrustedOpenClawCommand(rawCommand: string) {
 async function main() {
   const { runTelegramQaLive } =
     await import("../../extensions/qa-lab/src/live-transports/telegram/telegram-live.runtime.ts");
-  const rawSutOpenClawCommand = process.env.OPENCLAW_NPM_TELEGRAM_SUT_COMMAND?.trim();
-  if (!rawSutOpenClawCommand) {
+  const rawSutKovaCommand = process.env.OPENCLAW_NPM_TELEGRAM_SUT_COMMAND?.trim();
+  if (!rawSutKovaCommand) {
     throw new Error("Missing OPENCLAW_NPM_TELEGRAM_SUT_COMMAND.");
   }
-  const sutOpenClawCommand = await resolveTrustedOpenClawCommand(rawSutOpenClawCommand);
+  const sutOpenClawCommand = await resolveTrustedKovaCommand(rawSutKovaCommand);
 
   const repoRoot = path.resolve(process.env.OPENCLAW_NPM_TELEGRAM_REPO_ROOT ?? process.cwd());
   const outputDir =

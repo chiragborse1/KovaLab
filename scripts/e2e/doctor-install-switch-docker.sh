@@ -105,8 +105,8 @@ LOGINCTL
     exit 1
   fi
 
-	  npm_bin="/tmp/npm-prefix/bin/openclaw"
-	  npm_root="/tmp/npm-prefix/lib/node_modules/openclaw"
+	  npm_bin="/tmp/npm-prefix/bin/kova"
+	  npm_root="/tmp/npm-prefix/lib/node_modules/getkova"
 	  if [ -f "$npm_root/dist/index.mjs" ]; then
 	    npm_entry="$npm_root/dist/index.mjs"
 	  else
@@ -118,7 +118,7 @@ LOGINCTL
 	  else
 	    git_entry="$git_root/dist/index.js"
 	  fi
-	  git_cli="$git_root/openclaw.mjs"
+	  git_cli="$git_root/kova.mjs"
 
   package_version="$(node -p "require(\"$npm_root/package.json\").version")"
   is_legacy_package_acceptance_compat() {

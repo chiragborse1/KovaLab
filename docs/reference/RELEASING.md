@@ -165,10 +165,10 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   `OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_CACHE_TEST=1 pnpm test:live:cache`
   using both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` workflow secrets
 - npm release preflight no longer waits on the separate release checks lane
-- Run `RELEASE_TAG=v0.2.0 node --import tsx scripts/openclaw-npm-release-check.ts`
+- Run `RELEASE_TAG=v0.2.0 node --import tsx scripts/kova-npm-release-check.ts`
   (or the matching beta tag) before approval
 - After npm publish, run
-  `node --import tsx scripts/openclaw-npm-postpublish-verify.ts 0.2.0`
+  `node --import tsx scripts/kova-npm-postpublish-verify.ts 0.2.0`
   (or the matching beta version) to verify the published registry
   install path in a fresh temp prefix
 - After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@0.2.0-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
@@ -497,7 +497,7 @@ alerts, and OTP handling observable and prevents repeated host alerts.
 - [`.github/workflows/openclaw-release-checks.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-release-checks.yml)
 - [`.github/workflows/openclaw-cross-os-release-checks-reusable.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-cross-os-release-checks-reusable.yml)
 - [`scripts/resolve-openclaw-package-candidate.mjs`](https://github.com/openclaw/openclaw/blob/main/scripts/resolve-openclaw-package-candidate.mjs)
-- [`scripts/openclaw-npm-release-check.ts`](https://github.com/openclaw/openclaw/blob/main/scripts/openclaw-npm-release-check.ts)
+- [`scripts/kova-npm-release-check.ts`](https://github.com/chiragborse1/KovaLab/blob/dev/scripts/kova-npm-release-check.ts)
 - [`scripts/package-mac-dist.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/package-mac-dist.sh)
 - [`scripts/make_appcast.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/make_appcast.sh)
 

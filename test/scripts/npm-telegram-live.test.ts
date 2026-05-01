@@ -70,6 +70,7 @@ describe("package Telegram live Docker E2E", () => {
     expect(script).toContain('cp "$openclaw_package_dir/package.json" /app/package.json');
     expect(script).toContain('ln -sfnT /app/extensions "$openclaw_package_dir/extensions"');
     expect(script).toContain('"/app/node_modules/openclaw/package.json"');
+    expect(script).toContain('"/app/node_modules/getkova/package.json"');
     expect(script).toContain('pkg.exports["./plugin-sdk/qa-channel"]');
     expect(script).toContain('"./extensions/qa-channel/api.ts"');
     expect(script).toContain('pkg.exports["./plugin-sdk/qa-channel-protocol"]');
@@ -86,7 +87,7 @@ describe("package Telegram live Docker E2E", () => {
 
     expect(script).toContain("link_installed_package_dependency()");
     expect(script).toContain(
-      'local source="/npm-global/lib/node_modules/openclaw/node_modules/$name"',
+      'local source="/npm-global/lib/node_modules/getkova/node_modules/$name"',
     );
     expect(script).toContain('ln -sfn "$source" "$target"');
     expect(script).toContain('link_installed_package_dependency "$dependency"');

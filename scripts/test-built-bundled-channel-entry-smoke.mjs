@@ -19,7 +19,10 @@ const distExtensionsRoot = path.join(packageRoot, "dist", "extensions");
 const installedLayoutEnv = "OPENCLAW_BUNDLED_CHANNEL_SMOKE_INSTALLED_LAYOUT";
 
 function packageRootLooksInstalled(root) {
-  return root.replaceAll("\\", "/").endsWith("/node_modules/openclaw");
+  const normalized = root.replaceAll("\\", "/");
+  return (
+    normalized.endsWith("/node_modules/openclaw") || normalized.endsWith("/node_modules/getkova")
+  );
 }
 
 function smokeInInstalledLayoutIfNeeded() {
@@ -29,9 +32,11 @@ function smokeInInstalledLayoutIfNeeded() {
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-channel-entry-smoke-"));
   const nodeModulesRoot = path.join(tempRoot, "node_modules");
-  const installedPackageRoot = path.join(nodeModulesRoot, "openclaw");
+  const installedPackageRoot = path.join(nodeModulesRoot, "getkova");
+  const legacyPackageRoot = path.join(nodeModulesRoot, "openclaw");
   fs.mkdirSync(nodeModulesRoot, { recursive: true });
   fs.symlinkSync(packageRoot, installedPackageRoot, "dir");
+  fs.symlinkSync(packageRoot, legacyPackageRoot, "dir");
 
   try {
     const result = spawnSync(
