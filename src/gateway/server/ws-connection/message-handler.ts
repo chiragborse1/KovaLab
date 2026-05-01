@@ -421,21 +421,23 @@ export function attachGatewayWsMessageHandler(params: {
 
         const frame = parsed;
         const connectParams = frame.params as ConnectParams;
-        const normalizedClientId = normalizeGatewayClientId(connectParams.client.id);
-        if (normalizedClientId) {
-          connectParams.client.id = normalizedClientId;
-        }
+        const rawClientId = connectParams.client.id;
+        const normalizedClientId = normalizeGatewayClientId(rawClientId);
+        const normalizedClient =
+          normalizedClientId && normalizedClientId !== rawClientId
+            ? { ...connectParams.client, id: normalizedClientId }
+            : connectParams.client;
         const resolvedAuth = getResolvedAuth();
-        const clientLabel = connectParams.client.displayName ?? connectParams.client.id;
+        const clientLabel = normalizedClient.displayName ?? normalizedClient.id;
         const clientMeta = {
-          client: connectParams.client.id,
-          clientDisplayName: connectParams.client.displayName,
-          mode: connectParams.client.mode,
-          version: connectParams.client.version,
-          platform: connectParams.client.platform,
-          deviceFamily: connectParams.client.deviceFamily,
-          modelIdentifier: connectParams.client.modelIdentifier,
-          instanceId: connectParams.client.instanceId,
+          client: normalizedClient.id,
+          clientDisplayName: normalizedClient.displayName,
+          mode: normalizedClient.mode,
+          version: normalizedClient.version,
+          platform: normalizedClient.platform,
+          deviceFamily: normalizedClient.deviceFamily,
+          modelIdentifier: normalizedClient.modelIdentifier,
+          instanceId: normalizedClient.instanceId,
         };
         const markHandshakeFailure = (cause: string, meta?: Record<string, unknown>) => {
           setHandshakeState("failed");
@@ -489,14 +491,14 @@ export function attachGatewayWsMessageHandler(params: {
         connectParams.role = role;
         connectParams.scopes = scopes;
 
-        const isControlUi = isOperatorUiClient(connectParams.client);
-        const isBrowserOperatorUi = isBrowserOperatorUiClient(connectParams.client);
+        const isControlUi = isOperatorUiClient(normalizedClient);
+        const isBrowserOperatorUi = isBrowserOperatorUiClient(normalizedClient);
         const isWebchat = isWebchatConnect(connectParams);
         const isNativeAppUi =
-          connectParams.client.mode === GATEWAY_CLIENT_MODES.UI &&
-          (connectParams.client.id === GATEWAY_CLIENT_IDS.MACOS_APP ||
-            connectParams.client.id === GATEWAY_CLIENT_IDS.IOS_APP ||
-            connectParams.client.id === GATEWAY_CLIENT_IDS.ANDROID_APP);
+          normalizedClient.mode === GATEWAY_CLIENT_MODES.UI &&
+          (normalizedClient.id === GATEWAY_CLIENT_IDS.MACOS_APP ||
+            normalizedClient.id === GATEWAY_CLIENT_IDS.IOS_APP ||
+            normalizedClient.id === GATEWAY_CLIENT_IDS.ANDROID_APP);
         if (enforceOriginCheckForAnyClient || isBrowserOperatorUi || isWebchat) {
           const hostHeaderOriginFallbackEnabled =
             configSnapshot.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
@@ -768,6 +770,9 @@ export function attachGatewayWsMessageHandler(params: {
             rejectDeviceAuthInvalid("device-public-key", "device public key invalid");
             return;
           }
+        }
+        if (normalizedClientId) {
+          connectParams.client.id = normalizedClientId;
         }
 
         ({ authResult, authOk, authMethod } = await resolveConnectAuthDecision({
