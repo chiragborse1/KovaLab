@@ -371,7 +371,7 @@ function Resolve-PackageInstallSpec {
 
     $trimmed = $Target.Trim()
     if ([string]::IsNullOrWhiteSpace($trimmed)) {
-        return "openclaw@latest"
+        return "getkova@latest"
     }
     if ($trimmed.ToLowerInvariant() -eq "main") {
         return "github:openclaw/openclaw#main"
@@ -379,7 +379,7 @@ function Resolve-PackageInstallSpec {
     if (Test-ExplicitPackageInstallSpec -Target $trimmed) {
         return $trimmed
     }
-    return "openclaw@$trimmed"
+    return "getkova@$trimmed"
 }
 
 function Add-ToPath {

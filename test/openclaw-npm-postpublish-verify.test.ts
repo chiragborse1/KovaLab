@@ -27,7 +27,7 @@ describe("buildPublishedInstallScenarios", () => {
     expect(buildPublishedInstallScenarios("2026.3.23")).toEqual([
       {
         name: "fresh-exact",
-        installSpecs: ["openclaw@2026.3.23"],
+        installSpecs: ["getkova@2026.3.23"],
         expectedVersion: "2026.3.23",
       },
     ]);
@@ -37,12 +37,12 @@ describe("buildPublishedInstallScenarios", () => {
     expect(buildPublishedInstallScenarios("2026.3.23-2")).toEqual([
       {
         name: "fresh-exact",
-        installSpecs: ["openclaw@2026.3.23-2"],
+        installSpecs: ["getkova@2026.3.23-2"],
         expectedVersion: "2026.3.23-2",
       },
       {
         name: "upgrade-from-base-stable",
-        installSpecs: ["openclaw@2026.3.23", "openclaw@2026.3.23-2"],
+        installSpecs: ["getkova@2026.3.23", "getkova@2026.3.23-2"],
         expectedVersion: "2026.3.23-2",
       },
     ]);
@@ -51,14 +51,14 @@ describe("buildPublishedInstallScenarios", () => {
 
 describe("buildPublishedInstallCommandArgs", () => {
   it("runs lifecycle scripts for published install verification", () => {
-    const args = buildPublishedInstallCommandArgs("/tmp/openclaw-prefix", "openclaw@2026.4.10");
+    const args = buildPublishedInstallCommandArgs("/tmp/openclaw-prefix", "getkova@2026.4.10");
 
     expect(args).toEqual([
       "install",
       "-g",
       "--prefix",
       "/tmp/openclaw-prefix",
-      "openclaw@2026.4.10",
+      "getkova@2026.4.10",
       "--no-fund",
       "--no-audit",
     ]);

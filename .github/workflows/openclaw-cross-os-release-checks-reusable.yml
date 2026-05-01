@@ -299,11 +299,11 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -n "${INPUT_PREVIOUS_VERSION}" ]]; then
-            echo "value=openclaw@${INPUT_PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
+            echo "value=getkova@${INPUT_PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          BASELINE_VERSION="$(npm view openclaw@latest version)"
-          echo "value=openclaw@${BASELINE_VERSION}" >> "$GITHUB_OUTPUT"
+          BASELINE_VERSION="$(npm view getkova@latest version)"
+          echo "value=getkova@${BASELINE_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Pack baseline artifact
         if: ${{ inputs.mode != 'fresh' }}

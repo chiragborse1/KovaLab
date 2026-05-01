@@ -113,7 +113,7 @@ usage() {
 Usage: bash scripts/e2e/parallels-npm-update-smoke.sh [options]
 
 Options:
-  --package-spec <npm-spec>  Baseline npm package spec. Default: openclaw@latest
+  --package-spec <npm-spec>  Baseline npm package spec. Default: getkova@latest
   --update-target <target>    Target passed to guest 'openclaw update --tag'.
                              Default: host-served tgz packed from current checkout.
                              Examples: latest, beta, 2026.4.10, http://host/openclaw.tgz
@@ -448,8 +448,8 @@ resolve_current_head() {
 resolve_registry_target_version() {
   local target="$1"
   local spec="$target"
-  if [[ "$spec" != openclaw@* ]]; then
-    spec="openclaw@$spec"
+  if [[ "$spec" != getkova@* ]]; then
+    spec="getkova@$spec"
   fi
   npm view "$spec" version 2>/dev/null | tail -n 1 | tr -d '\r' || true
 }
@@ -468,7 +468,7 @@ preflight_registry_update_target() {
   target_version="$(resolve_registry_target_version "$UPDATE_TARGET")"
   [[ -n "$baseline_version" && -n "$target_version" ]] || return 0
   if [[ "$baseline_version" == "$target_version" ]]; then
-    die "--update-target $UPDATE_TARGET resolves to openclaw@$target_version, same as baseline $PACKAGE_SPEC; publish or choose a newer --update-target before running VM update coverage"
+    die "--update-target $UPDATE_TARGET resolves to getkova@$target_version, same as baseline $PACKAGE_SPEC; publish or choose a newer --update-target before running VM update coverage"
   fi
 }
 
@@ -1902,7 +1902,7 @@ PY
 
 LATEST_VERSION="$(resolve_latest_version)"
 if [[ -z "$PACKAGE_SPEC" ]]; then
-  PACKAGE_SPEC="openclaw@$LATEST_VERSION"
+  PACKAGE_SPEC="getkova@$LATEST_VERSION"
 fi
 preflight_registry_update_target
 resolve_current_head

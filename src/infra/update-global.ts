@@ -31,8 +31,9 @@ export type ResolvedGlobalInstallTarget = ResolvedGlobalInstallCommand & {
   packageRoot: string | null;
 };
 
-const PRIMARY_PACKAGE_NAME = "openclaw";
-const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME] as const;
+const PRIMARY_PACKAGE_NAME = "getkova";
+const LEGACY_PACKAGE_NAMES = ["openclaw"] as const;
+const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME, ...LEGACY_PACKAGE_NAMES] as const;
 const GLOBAL_RENAME_PREFIX = ".";
 export const OPENCLAW_MAIN_PACKAGE_SPEC = "github:openclaw/openclaw#main";
 const COREPACK_ENABLE_DOWNLOAD_PROMPT_DEFAULT = "0";
@@ -447,7 +448,7 @@ export async function resolveGlobalPackageRoot(
   if (!root) {
     return null;
   }
-  return path.join(root, PRIMARY_PACKAGE_NAME);
+  return await resolveKnownGlobalPackageRoot(root, pkgRoot);
 }
 
 export async function resolveGlobalInstallTarget(params: {
@@ -466,8 +467,31 @@ export async function resolveGlobalInstallTarget(params: {
   return {
     ...command,
     globalRoot,
-    packageRoot: globalRoot ? path.join(globalRoot, PRIMARY_PACKAGE_NAME) : null,
+    packageRoot: globalRoot ? await resolveKnownGlobalPackageRoot(globalRoot, params.pkgRoot) : null,
   };
+}
+
+async function resolveKnownGlobalPackageRoot(
+  globalRoot: string,
+  pkgRoot?: string | null,
+): Promise<string> {
+  for (const name of ALL_PACKAGE_NAMES) {
+    const candidate = path.join(globalRoot, name);
+    if (await pathExists(candidate)) {
+      return candidate;
+    }
+  }
+  const hintedRoot = pkgRoot?.trim();
+  if (hintedRoot) {
+    const resolvedHint = path.resolve(hintedRoot);
+    if (path.dirname(resolvedHint) === path.resolve(globalRoot)) {
+      const hintedName = path.basename(resolvedHint);
+      if (ALL_PACKAGE_NAMES.includes(hintedName as (typeof ALL_PACKAGE_NAMES)[number])) {
+        return resolvedHint;
+      }
+    }
+  }
+  return path.join(globalRoot, PRIMARY_PACKAGE_NAME);
 }
 
 export async function detectGlobalInstallManagerForRoot(

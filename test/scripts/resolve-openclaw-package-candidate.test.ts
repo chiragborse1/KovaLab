@@ -6,20 +6,20 @@ import {
 
 describe("resolve-openclaw-package-candidate", () => {
   it("accepts only OpenClaw release package specs for npm candidates", () => {
-    expect(() => validateOpenClawPackageSpec("openclaw@beta")).not.toThrow();
-    expect(() => validateOpenClawPackageSpec("openclaw@latest")).not.toThrow();
-    expect(() => validateOpenClawPackageSpec("openclaw@2026.4.27")).not.toThrow();
-    expect(() => validateOpenClawPackageSpec("openclaw@2026.4.27-1")).not.toThrow();
-    expect(() => validateOpenClawPackageSpec("openclaw@2026.4.27-beta.2")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@beta")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@latest")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@2026.4.27")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@2026.4.27-1")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@2026.4.27-beta.2")).not.toThrow();
 
-    expect(() => validateOpenClawPackageSpec("@evil/openclaw@1.0.0")).toThrow(
-      "package_spec must be openclaw@beta",
+    expect(() => validateOpenClawPackageSpec("@evil/getkova@1.0.0")).toThrow(
+      "package_spec must be getkova@beta",
     );
-    expect(() => validateOpenClawPackageSpec("openclaw@canary")).toThrow(
-      "package_spec must be openclaw@beta",
+    expect(() => validateOpenClawPackageSpec("getkova@canary")).toThrow(
+      "package_spec must be getkova@beta",
     );
-    expect(() => validateOpenClawPackageSpec("openclaw@2026.04.27")).toThrow(
-      "package_spec must be openclaw@beta",
+    expect(() => validateOpenClawPackageSpec("getkova@2026.04.27")).toThrow(
+      "package_spec must be getkova@beta",
     );
   });
 
@@ -31,7 +31,7 @@ describe("resolve-openclaw-package-candidate", () => {
         "--package-ref",
         "release/2026.4.27",
         "--package-spec",
-        "openclaw@beta",
+        "getkova@beta",
         "--package-url",
         "",
         "--package-sha256",
@@ -46,7 +46,7 @@ describe("resolve-openclaw-package-candidate", () => {
       outputDir: ".artifacts/docker-e2e-package",
       packageSha256: "",
       packageRef: "release/2026.4.27",
-      packageSpec: "openclaw@beta",
+      packageSpec: "getkova@beta",
       packageUrl: "",
       source: "npm",
     });

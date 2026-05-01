@@ -347,7 +347,7 @@ jobs:
 
           release_id="${TARGET_REF#refs/tags/}"
           release_id="${release_id#v}"
-          if [[ "$PACKAGE_SPEC" =~ ^openclaw@(.+)$ ]]; then
+          if [[ "$PACKAGE_SPEC" =~ ^getkova@(.+)$ ]]; then
             release_id="${BASH_REMATCH[1]}"
           fi
           release_id="$(printf '%s' "$release_id" | tr '/:@ ' '----' | tr -cd 'A-Za-z0-9._-')"

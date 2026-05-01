@@ -61,8 +61,8 @@ The workflow has four jobs:
 
 Candidate sources:
 
-- `source=npm`: accepts only `openclaw@beta`, `openclaw@latest`, or an exact
-  Kova release version such as `openclaw@2026.4.27-beta.2`. Use this for
+- `source=npm`: accepts only `getkova@beta`, `getkova@latest`, or an exact
+  Kova release version such as `getkova@2026.4.27-beta.2`. Use this for
   published beta/stable acceptance.
 - `source=ref`: packs a trusted `package_ref` branch, tag, or full commit SHA.
   The resolver fetches Kova branches/tags, verifies the selected commit is
@@ -125,7 +125,7 @@ gh workflow run package-acceptance.yml \
   --ref main \
   -f workflow_ref=main \
   -f source=npm \
-  -f package_spec=openclaw@beta \
+  -f package_spec=getkova@beta \
   -f suite_profile=product \
   -f telegram_mode=mock-openai
 

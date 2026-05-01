@@ -49,7 +49,7 @@ describe("package acceptance workflow", () => {
       "package_artifact_name: ${{ needs.resolve_package.outputs.package_artifact_name }}",
     );
     expect(workflow).toContain(
-      "package_label: openclaw@${{ needs.resolve_package.outputs.package_version }}",
+      "package_label: getkova@${{ needs.resolve_package.outputs.package_version }}",
     );
     expect(workflow).toContain(
       "harness_ref: ${{ inputs.source == 'ref' && inputs.package_ref || inputs.workflow_ref }}",

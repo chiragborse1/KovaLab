@@ -122,7 +122,7 @@ with email auth.
 ## Updating
 
 ```bash
-npm i -g openclaw@latest
+npm i -g getkova@latest
 kova doctor
 kova gateway restart
 kova health

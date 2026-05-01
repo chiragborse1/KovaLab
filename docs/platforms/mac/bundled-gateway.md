@@ -17,7 +17,7 @@ running (or attaches to an existing local Gateway if one is already running).
 Node 24 is the default runtime on the Mac. Node 22 LTS, currently `22.14+`, still works for compatibility. Then install `kova` globally:
 
 ```bash
-npm install -g openclaw@<version>
+npm install -g getkova@<version>
 ```
 
 The macOS app’s **Install CLI** button runs the same global install flow the app

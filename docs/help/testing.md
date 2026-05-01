@@ -145,7 +145,7 @@ the fast Matrix and Telegram lanes before release approval.
   - Installs an Kova package candidate in Docker, runs installed-package
     onboarding, configures Telegram through the installed CLI, then reuses the
     live Telegram QA lane with that installed package as the SUT Gateway.
-  - Defaults to `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@beta`; set
+  - Defaults to `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@beta`; set
     `OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ=/path/to/openclaw-current.tgz` or
     `OPENCLAW_CURRENT_PACKAGE_TGZ` to test a resolved local tarball instead of
     installing from the registry.
@@ -172,7 +172,7 @@ the fast Matrix and Telegram lanes before release approval.
 ```bash
 gh workflow run package-acceptance.yml --ref main \
   -f source=npm \
-  -f package_spec=openclaw@beta \
+  -f package_spec=getkova@beta \
   -f suite_profile=product \
   -f telegram_mode=mock-openai
 ```

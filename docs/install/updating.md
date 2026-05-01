@@ -84,7 +84,7 @@ curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method npm --ve
 ## Alternative: manual npm, pnpm, or bun
 
 ```bash
-npm i -g openclaw@latest
+npm i -g getkova@latest
 ```
 
 When `kova update` manages a global npm install, it first runs the normal
@@ -94,11 +94,11 @@ cannot compile, while keeping the original failure visible if the fallback also
 fails.
 
 ```bash
-pnpm add -g openclaw@latest
+pnpm add -g getkova@latest
 ```
 
 ```bash
-bun add -g openclaw@latest
+bun add -g getkova@latest
 ```
 
 ### Advanced npm install topics
@@ -197,7 +197,7 @@ kova health
 ### Pin a version (npm)
 
 ```bash
-npm i -g openclaw@<version>
+npm i -g getkova@<version>
 kova doctor
 kova gateway restart
 ```

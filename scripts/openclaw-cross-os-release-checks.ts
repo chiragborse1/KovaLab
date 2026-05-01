@@ -253,7 +253,7 @@ async function main(argv) {
   const previousVersion = args["previous-version"]?.trim() || "";
   const baselineSpec =
     args["baseline-spec"]?.trim() ||
-    (previousVersion ? `openclaw@${previousVersion}` : "openclaw@latest");
+    (previousVersion ? `getkova@${previousVersion}` : "getkova@latest");
   const providedBaselineTgz = args["baseline-tgz"]?.trim()
     ? resolve(args["baseline-tgz"].trim())
     : "";
@@ -1220,11 +1220,11 @@ export function buildRealUpdateEnv(env) {
 
 export function resolveExplicitBaselineVersion(baselineSpec) {
   const trimmed = baselineSpec.trim();
-  if (!trimmed || trimmed === "openclaw@latest") {
+  if (!trimmed || trimmed === "getkova@latest") {
     return "";
   }
-  if (trimmed.startsWith("openclaw@")) {
-    return trimmed.slice("openclaw@".length);
+  if (trimmed.startsWith("getkova@")) {
+    return trimmed.slice("getkova@".length);
   }
   return trimmed;
 }
@@ -1234,13 +1234,13 @@ async function resolveInstallerTargetVersion(params) {
   if (resolvedVersion) {
     return resolvedVersion;
   }
-  const latestResult = await runCommand(npmCommand(), ["view", "openclaw@latest", "version"], {
+  const latestResult = await runCommand(npmCommand(), ["view", "getkova@latest", "version"], {
     logPath: join(params.logsDir, `${params.suiteName}-latest-version.log`),
     timeoutMs: 2 * 60 * 1000,
   });
   const latestVersion = latestResult.stdout.trim();
   if (!latestVersion) {
-    throw new Error("npm view openclaw@latest version did not return a version.");
+    throw new Error("npm view getkova@latest version did not return a version.");
   }
   return latestVersion;
 }
@@ -2799,8 +2799,8 @@ function verifyInstalledCandidate(installed, build) {
 
 function installedPackageRoot(prefixDir) {
   return process.platform === "win32"
-    ? join(prefixDir, "node_modules", "openclaw")
-    : join(prefixDir, "lib", "node_modules", "openclaw");
+    ? join(prefixDir, "node_modules", "getkova")
+    : join(prefixDir, "lib", "node_modules", "getkova");
 }
 
 function installedEntryPath(prefixDir) {

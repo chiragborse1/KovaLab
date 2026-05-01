@@ -66,7 +66,7 @@ kova update --tag beta
 kova update --tag main
 
 # Install a specific npm package spec
-kova update --tag openclaw@2026.4.1-beta.1
+kova update --tag getkova@2026.4.1-beta.1
 ```
 
 Notes:

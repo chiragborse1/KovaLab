@@ -422,8 +422,8 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
 
   it("only treats pinned baseline specs as exact installer version assertions", () => {
     expect(resolveExplicitBaselineVersion("")).toBe("");
-    expect(resolveExplicitBaselineVersion("openclaw@latest")).toBe("");
-    expect(resolveExplicitBaselineVersion("openclaw@2026.4.10")).toBe("2026.4.10");
+    expect(resolveExplicitBaselineVersion("getkova@latest")).toBe("");
+    expect(resolveExplicitBaselineVersion("getkova@2026.4.10")).toBe("2026.4.10");
     expect(resolveExplicitBaselineVersion("2026.4.10")).toBe("2026.4.10");
   });
 
@@ -432,13 +432,13 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
     try {
       const packageRoot =
         process.platform === "win32"
-          ? join(prefixDir, "node_modules", "openclaw")
-          : join(prefixDir, "lib", "node_modules", "openclaw");
+          ? join(prefixDir, "node_modules", "getkova")
+          : join(prefixDir, "lib", "node_modules", "getkova");
       mkdirSync(packageRoot, { recursive: true });
       writeFileSync(
         join(packageRoot, "package.json"),
         JSON.stringify({
-          name: "openclaw",
+          name: "getkova",
           version: "2026.4.10",
         }),
         "utf8",
@@ -456,7 +456,7 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
       writeFileSync(
         join(packageRoot, "package.json"),
         JSON.stringify({
-          name: "openclaw",
+          name: "getkova",
           scripts: {
             build: "pnpm build",
           },

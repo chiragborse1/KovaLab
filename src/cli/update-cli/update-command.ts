@@ -75,7 +75,6 @@ import {
   ensureGitCheckout,
   normalizeTag,
   parseTimeoutMsOrExit,
-  readPackageName,
   readPackageVersion,
   resolveGitInstallDir,
   resolveGlobalManager,
@@ -202,11 +201,11 @@ async function resolvePackageRuntimePreflightError(params: {
   }
   const targetLabel = status.version ?? target;
   return [
-    `Node ${process.versions.node ?? "unknown"} is too old for kova@${targetLabel}.`,
+    `Node ${process.versions.node ?? "unknown"} is too old for getkova@${targetLabel}.`,
     `The requested package requires ${status.nodeEngine}.`,
     "Upgrade Node to 22.14+ or Node 24, then rerun `kova update`.",
-    "Bare `npm i -g kova` can silently install an older compatible release.",
-    "After upgrading Node, use `npm i -g kova@latest`.",
+    "Bare `npm i -g getkova` can silently install an older compatible release.",
+    "After upgrading Node, use `npm i -g getkova@latest`.",
   ].join("\n");
 }
 
@@ -435,11 +434,8 @@ async function runPackageInstallUpdate(params: {
     pkgRoot: params.root,
   });
   const pkgRoot = installTarget.packageRoot;
-  const packageName =
-    (pkgRoot ? await readPackageName(pkgRoot) : await readPackageName(params.root)) ??
-    DEFAULT_PACKAGE_NAME;
   const installSpec = resolveGlobalInstallSpec({
-    packageName,
+    packageName: DEFAULT_PACKAGE_NAME,
     tag: params.tag,
     env: installEnv,
   });
@@ -448,8 +444,14 @@ async function runPackageInstallUpdate(params: {
   if (pkgRoot) {
     await cleanupGlobalRenameDirs({
       globalRoot: path.dirname(pkgRoot),
-      packageName,
+      packageName: path.basename(pkgRoot),
     });
+    if (path.basename(pkgRoot) !== DEFAULT_PACKAGE_NAME) {
+      await cleanupGlobalRenameDirs({
+        globalRoot: path.dirname(pkgRoot),
+        packageName: DEFAULT_PACKAGE_NAME,
+      });
+    }
   }
 
   const diskWarning = createLowDiskSpaceWarning({
@@ -467,7 +469,7 @@ async function runPackageInstallUpdate(params: {
   const packageUpdate = await runGlobalPackageUpdateSteps({
     installTarget,
     installSpec,
-    packageName,
+    packageName: DEFAULT_PACKAGE_NAME,
     packageRoot: pkgRoot,
     runCommand,
     timeoutMs: params.timeoutMs,
@@ -1442,7 +1444,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       );
       defaultRuntime.log(
         theme.muted(
-          `Examples: \`${replaceCliName("npm i -g kova@latest", CLI_NAME)}\` or \`${replaceCliName("pnpm add -g kova@latest", CLI_NAME)}\``,
+          `Examples: \`npm i -g getkova@latest\` or \`pnpm add -g getkova@latest\``,
         ),
       );
     }

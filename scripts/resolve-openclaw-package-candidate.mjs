@@ -10,9 +10,9 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DEFAULT_OUTPUT_NAME = "openclaw-current.tgz";
+const DEFAULT_OUTPUT_NAME = "getkova-current.tgz";
 export const OPENCLAW_PACKAGE_SPEC_RE =
-  /^openclaw@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$/u;
+  /^getkova@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$/u;
 
 function usage() {
   return `Usage: node scripts/resolve-openclaw-package-candidate.mjs --source <ref|npm|url|artifact> --output-dir <dir> [options]
@@ -82,7 +82,7 @@ export function parseArgs(argv) {
 export function validateOpenClawPackageSpec(spec) {
   if (!OPENCLAW_PACKAGE_SPEC_RE.test(spec)) {
     throw new Error(
-      `package_spec must be openclaw@beta, openclaw@latest, or an exact OpenClaw release version; got: ${spec}`,
+      `package_spec must be getkova@beta, getkova@latest, or an exact Kova release version; got: ${spec}`,
     );
   }
 }
@@ -281,7 +281,7 @@ async function moveNewestPackedTarball(outputDir, packOutput, outputName) {
   if (!filename) {
     for (const line of packOutput.split(/\r?\n/u)) {
       const trimmed = line.trim();
-      if (/^openclaw-.*\.tgz$/u.test(trimmed)) {
+      if (/^getkova-.*\.tgz$/u.test(trimmed)) {
         filename = trimmed;
       }
     }
@@ -289,12 +289,12 @@ async function moveNewestPackedTarball(outputDir, packOutput, outputName) {
   if (!filename) {
     const entries = await fs.readdir(outputDir);
     filename = entries
-      .filter((entry) => /^openclaw-.*\.tgz$/u.test(entry))
+      .filter((entry) => /^getkova-.*\.tgz$/u.test(entry))
       .toSorted((a, b) => a.localeCompare(b))
       .at(-1);
   }
   if (!filename) {
-    throw new Error(`npm pack produced no OpenClaw tarball in ${outputDir}`);
+    throw new Error(`npm pack produced no Kova tarball in ${outputDir}`);
   }
   const packed = path.join(outputDir, filename);
   const target = path.join(outputDir, outputName);
@@ -420,8 +420,8 @@ async function resolveCandidate(options) {
     version: pkg.version,
   };
 
-  if (pkg.name !== "openclaw") {
-    throw new Error(`package candidate must be named "openclaw"; got: ${pkg.name || "<missing>"}`);
+  if (pkg.name !== "getkova") {
+    throw new Error(`package candidate must be named "getkova"; got: ${pkg.name || "<missing>"}`);
   }
   if (!pkg.version) {
     throw new Error("package candidate package.json has no version");

@@ -48,17 +48,17 @@ export function registerUpdateCli(program: Command) {
     .option("--yes", "Skip confirmation prompts (non-interactive)", false)
     .addHelpText("after", () => {
       const examples = [
-        ["openclaw update", "Update a source checkout (git)"],
-        ["openclaw update --channel beta", "Switch to beta channel (git + npm)"],
-        ["openclaw update --channel dev", "Switch to dev channel (git + npm)"],
-        ["openclaw update --tag beta", "One-off update to a dist-tag or version"],
-        ["openclaw update --tag main", "One-off package install from GitHub main"],
-        ["openclaw update --dry-run", "Preview actions without changing anything"],
-        ["openclaw update --no-restart", "Update without restarting the service"],
-        ["openclaw update --json", "Output result as JSON"],
-        ["openclaw update --yes", "Non-interactive (accept downgrade prompts)"],
-        ["openclaw update wizard", "Interactive update wizard"],
-        ["openclaw --update", "Shorthand for openclaw update"],
+        ["kova update", "Update a source checkout (git)"],
+        ["kova update --channel beta", "Switch to beta channel (git + npm)"],
+        ["kova update --channel dev", "Switch to dev channel (git + npm)"],
+        ["kova update --tag beta", "One-off update to a dist-tag or version"],
+        ["kova update --tag main", "One-off package install from GitHub main"],
+        ["kova update --dry-run", "Preview actions without changing anything"],
+        ["kova update --no-restart", "Update without restarting the service"],
+        ["kova update --json", "Output result as JSON"],
+        ["kova update --yes", "Non-interactive (accept downgrade prompts)"],
+        ["kova update wizard", "Interactive update wizard"],
+        ["kova --update", "Shorthand for kova update"],
       ] as const;
       const fmtExamples = examples
         .map(([cmd, desc]) => `  ${theme.command(cmd)} ${theme.muted(`# ${desc}`)}`)
@@ -70,7 +70,7 @@ ${theme.heading("What this does:")}
 
 ${theme.heading("Switch channels:")}
   - Use --channel stable|beta|dev to persist the update channel in config
-  - Run openclaw update status to see the active channel and source
+  - Run kova update status to see the active channel and source
   - Use --tag <dist-tag|version|spec> for a one-off package update without persisting
 
 ${theme.heading("Non-interactive:")}
@@ -134,9 +134,9 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.neuralstudio.in/cl
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw update status", "Show channel + version status."],
-          ["openclaw update status --json", "JSON output."],
-          ["openclaw update status --timeout 10", "Custom timeout."],
+          ["kova update status", "Show channel + version status."],
+          ["kova update status --json", "JSON output."],
+          ["kova update status --timeout 10", "Custom timeout."],
         ])}\n\n${theme.heading("Notes:")}\n${theme.muted(
           "- Shows current update channel (stable/beta/dev) and source",
         )}\n${theme.muted("- Includes git tag/branch/SHA for source checkouts")}\n\n${theme.muted(

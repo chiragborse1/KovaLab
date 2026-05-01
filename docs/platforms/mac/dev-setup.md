@@ -52,10 +52,10 @@ The macOS app expects a global `kova` CLI install to manage background tasks.
 Alternatively, install it manually:
 
 ```bash
-npm install -g openclaw@<version>
+npm install -g getkova@<version>
 ```
 
-`pnpm add -g openclaw@<version>` and `bun add -g openclaw@<version>` also work.
+`pnpm add -g getkova@<version>` and `bun add -g getkova@<version>` also work.
 For the Gateway runtime, Node remains the recommended path.
 
 ## Troubleshooting

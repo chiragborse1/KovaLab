@@ -26,7 +26,7 @@ on:
       package_spec:
         description: Published package spec when source=npm
         required: false
-        default: openclaw@beta
+        default: getkova@beta
         type: string
       package_url:
         description: HTTPS .tgz URL when source=url
@@ -92,7 +92,7 @@ on:
       package_spec:
         description: Published package spec when source=npm
         required: false
-        default: openclaw@beta
+        default: getkova@beta
         type: string
       package_url:
         description: HTTPS .tgz URL when source=url
@@ -479,7 +479,7 @@ jobs:
     with:
       package_spec: ${{ inputs.package_spec }}
       package_artifact_name: ${{ needs.resolve_package.outputs.package_artifact_name }}
-      package_label: openclaw@${{ needs.resolve_package.outputs.package_version }}
+      package_label: getkova@${{ needs.resolve_package.outputs.package_version }}
       harness_ref: ${{ inputs.source == 'ref' && inputs.package_ref || inputs.workflow_ref }}
       provider_mode: ${{ needs.resolve_package.outputs.telegram_mode }}
     secrets:

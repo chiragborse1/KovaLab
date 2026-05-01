@@ -74,8 +74,8 @@ the maintainer-only release runbook.
    proves the fix. Rerun the full umbrella only when the changed surface makes
    prior evidence stale.
 9. For beta, tag `vYYYY.M.D-beta.N`, publish with npm dist-tag `beta`, then run
-   post-publish package acceptance against the published `openclaw@YYYY.M.D-beta.N`
-   or `openclaw@beta` package. If a pushed or published beta needs a fix, cut
+   post-publish package acceptance against the published `getkova@YYYY.M.D-beta.N`
+   or `getkova@beta` package. If a pushed or published beta needs a fix, cut
    the next `-beta.N`; do not delete or rewrite the old beta.
 10. For stable, continue only after the vetted beta or release candidate has the
     required validation evidence. Stable npm publish reuses the successful
@@ -107,7 +107,7 @@ the maintainer-only release runbook.
   `gh workflow run full-release-validation.yml --ref main -f ref=release/YYYY.M.D`
 - Run the manual `Package Acceptance` workflow when you want side-channel proof
   for a package candidate while release work continues. Use `source=npm` for
-  `openclaw@beta`, `openclaw@latest`, or an exact release version; `source=ref`
+  `getkova@beta`, `getkova@latest`, or an exact release version; `source=ref`
   to pack a trusted `package_ref` branch/tag/SHA with the current
   `workflow_ref` harness; `source=url` for an HTTPS tarball with a required
   SHA-256; or `source=artifact` for a tarball uploaded by another GitHub
@@ -115,7 +115,7 @@ the maintainer-only release runbook.
   `package-under-test`, reuses the Docker E2E release scheduler against that
   tarball, and can run Telegram QA against the same tarball with
   `telegram_mode=mock-openai` or `telegram_mode=live-frontier`.
-  Example: `gh workflow run package-acceptance.yml --ref main -f workflow_ref=main -f source=npm -f package_spec=openclaw@beta -f suite_profile=product -f telegram_mode=mock-openai`
+  Example: `gh workflow run package-acceptance.yml --ref main -f workflow_ref=main -f source=npm -f package_spec=getkova@beta -f suite_profile=product -f telegram_mode=mock-openai`
   Common profiles:
   - `smoke`: install/channel/agent, gateway network, and config reload lanes
   - `package`: artifact-native package/update/plugin lanes without OpenWebUI or live ClawHub
@@ -173,7 +173,7 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   `node --import tsx scripts/openclaw-npm-postpublish-verify.ts YYYY.M.D`
   (or the matching beta/correction version) to verify the published registry
   install path in a fresh temp prefix
-- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@YYYY.M.D-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
+- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@YYYY.M.D-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential
   pool. Local maintainer one-offs may omit the Convex vars and pass the three
@@ -273,7 +273,7 @@ gh workflow run full-release-validation.yml \
   -f ref=release/YYYY.M.D \
   -f provider=openai \
   -f mode=both \
-  -f npm_telegram_package_spec=openclaw@YYYY.M.D-beta.N \
+  -f npm_telegram_package_spec=getkova@YYYY.M.D-beta.N \
   -f npm_telegram_provider_mode=mock-openai
 ```
 
@@ -369,7 +369,7 @@ workflow harness ref separate from the package source ref.
 
 Supported candidate sources:
 
-- `source=npm`: `openclaw@beta`, `openclaw@latest`, or an exact Kova release
+- `source=npm`: `getkova@beta`, `getkova@latest`, or an exact Kova release
   version
 - `source=ref`: pack a trusted `package_ref` branch, tag, or full commit SHA
   with the selected `workflow_ref` harness
@@ -405,7 +405,7 @@ gh workflow run package-acceptance.yml \
   --ref main \
   -f workflow_ref=main \
   -f source=npm \
-  -f package_spec=openclaw@beta \
+  -f package_spec=getkova@beta \
   -f suite_profile=product
 ```
 

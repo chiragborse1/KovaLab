@@ -90,9 +90,9 @@ describe("update global helpers", () => {
       resolveGlobalInstallSpec({
         packageName: "openclaw",
         tag: "beta",
-        env: { OPENCLAW_UPDATE_PACKAGE_SPEC: "openclaw@next" },
+        env: { OPENCLAW_UPDATE_PACKAGE_SPEC: "getkova@next" },
       }),
-    ).toBe("openclaw@next");
+    ).toBe("getkova@next");
   });
 
   it("resolves global roots and package roots from runner output", async () => {
@@ -112,7 +112,7 @@ describe("update global helpers", () => {
       path.join(".bun", "install", "global", "node_modules"),
     );
     await expect(resolveGlobalPackageRoot("npm", runCommand, 1000)).resolves.toBe(
-      path.join("/tmp/npm-root", "openclaw"),
+      path.join("/tmp/npm-root", "getkova"),
     );
   });
 
@@ -238,20 +238,20 @@ describe("update global helpers", () => {
           globalRoot: brewRoot,
           packageRoot: pkgRoot,
         });
-        expect(globalInstallArgs("npm", "openclaw@latest", pkgRoot)).toEqual([
+        expect(globalInstallArgs("npm", "getkova@latest", pkgRoot)).toEqual([
           brewNpm,
           "i",
           "-g",
-          "openclaw@latest",
+          "getkova@latest",
           "--no-fund",
           "--no-audit",
           "--loglevel=error",
         ]);
-        expect(globalInstallFallbackArgs("npm", "openclaw@latest", pkgRoot)).toEqual([
+        expect(globalInstallFallbackArgs("npm", "getkova@latest", pkgRoot)).toEqual([
           brewNpm,
           "i",
           "-g",
-          "openclaw@latest",
+          "getkova@latest",
           "--omit=optional",
           "--no-fund",
           "--no-audit",
@@ -275,11 +275,11 @@ describe("update global helpers", () => {
       await expect(
         detectGlobalInstallManagerForRoot(runCommand, pkgRoot, 1000),
       ).resolves.toBeNull();
-      expect(globalInstallArgs("npm", "openclaw@latest", pkgRoot)).toEqual([
+      expect(globalInstallArgs("npm", "getkova@latest", pkgRoot)).toEqual([
         "npm",
         "i",
         "-g",
-        "openclaw@latest",
+        "getkova@latest",
         "--no-fund",
         "--no-audit",
         "--loglevel=error",
@@ -309,11 +309,11 @@ describe("update global helpers", () => {
           "npm",
         );
         await expect(resolveGlobalRoot("npm", runCommand, 1000, pkgRoot)).resolves.toBe(npmRoot);
-        expect(globalInstallArgs("npm", "openclaw@latest", pkgRoot)).toEqual([
+        expect(globalInstallArgs("npm", "getkova@latest", pkgRoot)).toEqual([
           npmCmd,
           "i",
           "-g",
-          "openclaw@latest",
+          "getkova@latest",
           "--no-fund",
           "--no-audit",
           "--loglevel=error",
@@ -329,42 +329,42 @@ describe("update global helpers", () => {
       manager: "npm",
       command: "npm",
     });
-    expect(globalInstallArgs("npm", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("npm", "getkova@latest")).toEqual([
       "npm",
       "i",
       "-g",
-      "openclaw@latest",
+      "getkova@latest",
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
     ]);
-    expect(globalInstallArgs("pnpm", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("pnpm", "getkova@latest")).toEqual([
       "pnpm",
       "add",
       "-g",
-      "openclaw@latest",
+      "getkova@latest",
     ]);
-    expect(globalInstallArgs("bun", "openclaw@latest")).toEqual([
+    expect(globalInstallArgs("bun", "getkova@latest")).toEqual([
       "bun",
       "add",
       "-g",
-      "openclaw@latest",
+      "getkova@latest",
     ]);
 
-    expect(globalInstallFallbackArgs("npm", "openclaw@latest")).toEqual([
+    expect(globalInstallFallbackArgs("npm", "getkova@latest")).toEqual([
       "npm",
       "i",
       "-g",
-      "openclaw@latest",
+      "getkova@latest",
       "--omit=optional",
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
     ]);
-    expect(globalInstallFallbackArgs("pnpm", "openclaw@latest")).toBeNull();
+    expect(globalInstallFallbackArgs("pnpm", "getkova@latest")).toBeNull();
     expect(
-      globalInstallArgs({ manager: "pnpm", command: "/opt/homebrew/bin/pnpm" }, "openclaw@latest"),
-    ).toEqual(["/opt/homebrew/bin/pnpm", "add", "-g", "openclaw@latest"]);
+      globalInstallArgs({ manager: "pnpm", command: "/opt/homebrew/bin/pnpm" }, "getkova@latest"),
+    ).toEqual(["/opt/homebrew/bin/pnpm", "add", "-g", "getkova@latest"]);
   });
 
   it("cleans only renamed package directories", async () => {
