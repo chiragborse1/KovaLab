@@ -30,6 +30,7 @@ jobs:
           NODE
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm canvas:a2ui:bundle
       - run: pnpm build
 
       - name: Run tests
