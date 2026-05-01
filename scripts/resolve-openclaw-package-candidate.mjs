@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUTPUT_NAME = "getkova-current.tgz";
 export const OPENCLAW_PACKAGE_SPEC_RE =
-  /^getkova@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$/u;
+  /^getkova@(beta|latest|((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-beta\.[1-9][0-9]*)?|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?))$/u;
 
 function usage() {
   return `Usage: node scripts/resolve-openclaw-package-candidate.mjs --source <ref|npm|url|artifact> --output-dir <dir> [options]

@@ -28,6 +28,31 @@ const REQUIRED_PACKED_PATHS = [
 ] as const;
 
 describe("parseReleaseVersion", () => {
+  it("parses stable SemVer releases", () => {
+    expect(parseReleaseVersion("0.2.0")).toMatchObject({
+      version: "0.2.0",
+      baseVersion: "0.2.0",
+      channel: "stable",
+      scheme: "semver",
+      major: 0,
+      minor: 2,
+      patch: 0,
+    });
+  });
+
+  it("parses beta SemVer releases", () => {
+    expect(parseReleaseVersion("0.2.0-beta.2")).toMatchObject({
+      version: "0.2.0-beta.2",
+      baseVersion: "0.2.0",
+      channel: "beta",
+      scheme: "semver",
+      major: 0,
+      minor: 2,
+      patch: 0,
+      betaNumber: 2,
+    });
+  });
+
   it("parses stable CalVer releases", () => {
     expect(parseReleaseVersion("2026.3.10")).toMatchObject({
       version: "2026.3.10",
@@ -69,6 +94,7 @@ describe("parseReleaseVersion", () => {
     expect(parseReleaseVersion("2026.2.30")).toBeNull();
     expect(parseReleaseVersion("2026.3.10-0")).toBeNull();
     expect(parseReleaseVersion("2.0.0-beta2")).toBeNull();
+    expect(parseReleaseVersion("0.2")).toBeNull();
   });
 });
 
@@ -90,6 +116,22 @@ describe("parseReleaseTagVersion", () => {
 });
 
 describe("resolveNpmPublishPlan", () => {
+  it("publishes SemVer beta prereleases to beta only", () => {
+    expect(resolveNpmPublishPlan("0.2.0-beta.2")).toEqual({
+      channel: "beta",
+      publishTag: "beta",
+      mirrorDistTags: [],
+    });
+  });
+
+  it("publishes stable SemVer releases to beta first", () => {
+    expect(resolveNpmPublishPlan("0.2.0")).toEqual({
+      channel: "stable",
+      publishTag: "beta",
+      mirrorDistTags: [],
+    });
+  });
+
   it("publishes beta prereleases to beta only", () => {
     expect(resolveNpmPublishPlan("2026.3.29-beta.2")).toEqual({
       channel: "beta",
@@ -198,6 +240,18 @@ describe("shouldSkipPackedTarballValidation", () => {
 });
 
 describe("compareReleaseVersions", () => {
+  it("orders SemVer beta before the matching stable release", () => {
+    expect(compareReleaseVersions("0.2.0", "0.2.0-beta.2")).toBe(1);
+  });
+
+  it("orders newer SemVer patch releases after older ones", () => {
+    expect(compareReleaseVersions("0.2.1", "0.2.0")).toBe(1);
+  });
+
+  it("returns null when comparing SemVer and CalVer releases", () => {
+    expect(compareReleaseVersions("0.2.0", "2026.3.29")).toBeNull();
+  });
+
   it("treats stable as newer than same-day beta", () => {
     expect(compareReleaseVersions("2026.3.29", "2026.3.29-beta.2")).toBe(1);
   });
@@ -269,23 +323,23 @@ describe("parseNpmPackJsonOutput", () => {
     const stdout = [
       'npm warn Unknown project config "node-linker".',
       "",
-      "> openclaw@2026.3.23 prepack",
+      "> getkova@0.2.0 prepack",
       "> pnpm build && pnpm ui:build",
       "",
       "[copy-hook-metadata] Copied 4 hook metadata files.",
-      '[{"filename":"openclaw.tgz","files":[{"path":"dist/control-ui/index.html"}]}]',
+      '[{"filename":"getkova.tgz","files":[{"path":"dist/control-ui/index.html"}]}]',
     ].join("\n");
 
     expect(parseNpmPackJsonOutput(stdout)).toEqual([
       {
-        filename: "openclaw.tgz",
+        filename: "getkova.tgz",
         files: [{ path: "dist/control-ui/index.html" }],
       },
     ]);
   });
 
   it("returns null when no JSON payload is present", () => {
-    expect(parseNpmPackJsonOutput("> openclaw@2026.3.23 prepack")).toBeNull();
+    expect(parseNpmPackJsonOutput("> getkova@0.2.0 prepack")).toBeNull();
   });
 });
 
@@ -469,6 +523,26 @@ describe("collectPackedTestCargoErrors", () => {
 });
 
 describe("collectReleaseTagErrors", () => {
+  it("accepts SemVer tags without the CalVer date window", () => {
+    expect(
+      collectReleaseTagErrors({
+        packageVersion: "0.2.0",
+        releaseTag: "v0.2.0",
+        now: new Date("2030-01-01T00:00:00Z"),
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts SemVer beta tags paired with matching beta versions", () => {
+    expect(
+      collectReleaseTagErrors({
+        packageVersion: "0.2.0-beta.1",
+        releaseTag: "v0.2.0-beta.1",
+        now: new Date("2030-01-01T00:00:00Z"),
+      }),
+    ).toEqual([]);
+  });
+
   it("accepts versions within the two-day CalVer window", () => {
     expect(
       collectReleaseTagErrors({
@@ -527,7 +601,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         name: "getkova",
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
-        repository: { url: "git+https://github.com/openclaw/openclaw.git" },
+        repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
         bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
       }),
     ).toEqual([]);
@@ -539,7 +613,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         name: "getkova",
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
-        repository: { url: "git+https://github.com/openclaw/openclaw.git" },
+        repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
         bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
         peerDependencies: { "node-llama-cpp": "3.18.1" },
         peerDependenciesMeta: { "node-llama-cpp": { optional: true } },
@@ -556,7 +630,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         name: "getkova",
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
-        repository: { url: "git+https://github.com/openclaw/openclaw.git" },
+        repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
         bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
         dependencies: { "node-llama-cpp": "3.18.1" },
       }),
@@ -569,7 +643,7 @@ describe("collectReleasePackageMetadataErrors", () => {
         name: "getkova",
         description: "Multi-channel AI gateway with extensible messaging integrations",
         license: "MIT",
-        repository: { url: "git+https://github.com/openclaw/openclaw.git" },
+        repository: { url: "git+https://github.com/chiragborse1/KovaLab.git" },
         bin: { openclaw: "openclaw.mjs", kova: "kova.mjs" },
         optionalDependencies: { "node-llama-cpp": "3.18.1" },
       }),

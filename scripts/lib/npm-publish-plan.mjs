@@ -3,6 +3,10 @@ const BETA_VERSION_REGEX =
   /^(?<year>\d{4})\.(?<month>[1-9]\d?)\.(?<day>[1-9]\d?)-beta\.(?<beta>[1-9]\d*)$/;
 const CORRECTION_VERSION_REGEX =
   /^(?<year>\d{4})\.(?<month>[1-9]\d?)\.(?<day>[1-9]\d?)-(?<correction>[1-9]\d*)$/;
+const SEMVER_STABLE_VERSION_REGEX =
+  /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)$/;
+const SEMVER_BETA_VERSION_REGEX =
+  /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)-beta\.(?<beta>[1-9]\d*)$/;
 
 /**
  * @typedef {object} ParsedReleaseVersion
@@ -84,6 +88,44 @@ function parseDateParts(version, groups, channel) {
 
 /**
  * @param {string} version
+ * @param {Record<string, string | undefined>} groups
+ * @param {"stable" | "beta"} channel
+ * @returns {ParsedReleaseVersion | null}
+ */
+function parseSemverParts(version, groups, channel) {
+  const major = Number.parseInt(groups.major ?? "", 10);
+  const minor = Number.parseInt(groups.minor ?? "", 10);
+  const patch = Number.parseInt(groups.patch ?? "", 10);
+  const betaNumber = channel === "beta" ? Number.parseInt(groups.beta ?? "", 10) : undefined;
+
+  if (
+    !Number.isInteger(major) ||
+    !Number.isInteger(minor) ||
+    !Number.isInteger(patch) ||
+    major < 0 ||
+    minor < 0 ||
+    patch < 0
+  ) {
+    return null;
+  }
+  if (channel === "beta" && (!Number.isInteger(betaNumber) || (betaNumber ?? 0) < 1)) {
+    return null;
+  }
+
+  return {
+    version,
+    baseVersion: `${major}.${minor}.${patch}`,
+    channel,
+    major,
+    minor,
+    patch,
+    betaNumber,
+    scheme: "semver",
+  };
+}
+
+/**
+ * @param {string} version
  * @returns {ParsedReleaseVersion | null}
  */
 export function parseReleaseVersion(version) {
@@ -94,12 +136,14 @@ export function parseReleaseVersion(version) {
 
   const stableMatch = STABLE_VERSION_REGEX.exec(trimmed);
   if (stableMatch?.groups) {
-    return parseDateParts(trimmed, stableMatch.groups, "stable");
+    const parsed = parseDateParts(trimmed, stableMatch.groups, "stable");
+    return parsed ? { ...parsed, scheme: "calver" } : null;
   }
 
   const betaMatch = BETA_VERSION_REGEX.exec(trimmed);
   if (betaMatch?.groups) {
-    return parseDateParts(trimmed, betaMatch.groups, "beta");
+    const parsed = parseDateParts(trimmed, betaMatch.groups, "beta");
+    return parsed ? { ...parsed, scheme: "calver" } : null;
   }
 
   const correctionMatch = CORRECTION_VERSION_REGEX.exec(trimmed);
@@ -113,7 +157,18 @@ export function parseReleaseVersion(version) {
     return {
       ...parsedCorrection,
       correctionNumber,
+      scheme: "calver",
     };
+  }
+
+  const semverStableMatch = SEMVER_STABLE_VERSION_REGEX.exec(trimmed);
+  if (semverStableMatch?.groups) {
+    return parseSemverParts(trimmed, semverStableMatch.groups, "stable");
+  }
+
+  const semverBetaMatch = SEMVER_BETA_VERSION_REGEX.exec(trimmed);
+  if (semverBetaMatch?.groups) {
+    return parseSemverParts(trimmed, semverBetaMatch.groups, "beta");
   }
 
   return null;
@@ -129,6 +184,29 @@ export function compareReleaseVersions(left, right) {
   const parsedRight = parseReleaseVersion(right);
   if (parsedLeft === null || parsedRight === null) {
     return null;
+  }
+  if (parsedLeft.scheme !== parsedRight.scheme) {
+    return null;
+  }
+
+  if (parsedLeft.scheme === "semver" && parsedRight.scheme === "semver") {
+    if (parsedLeft.major !== parsedRight.major) {
+      return Math.sign(parsedLeft.major - parsedRight.major);
+    }
+    if (parsedLeft.minor !== parsedRight.minor) {
+      return Math.sign(parsedLeft.minor - parsedRight.minor);
+    }
+    if (parsedLeft.patch !== parsedRight.patch) {
+      return Math.sign(parsedLeft.patch - parsedRight.patch);
+    }
+
+    if (parsedLeft.channel !== parsedRight.channel) {
+      return parsedLeft.channel === "stable" ? 1 : -1;
+    }
+    if (parsedLeft.channel === "beta" && parsedRight.channel === "beta") {
+      return Math.sign((parsedLeft.betaNumber ?? 0) - (parsedRight.betaNumber ?? 0));
+    }
+    return 0;
   }
 
   const dateDelta = parsedLeft.date.getTime() - parsedRight.date.getTime();

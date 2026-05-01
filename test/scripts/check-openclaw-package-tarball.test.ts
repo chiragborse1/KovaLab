@@ -48,7 +48,7 @@ describe("check-openclaw-package-tarball", () => {
 
         expect(result.status, result.stderr).toBe(0);
         expect(result.stderr).toContain("legacy inventory references omitted private QA");
-        expect(result.stdout).toContain("OpenClaw package tarball integrity passed.");
+        expect(result.stdout).toContain("Kova package tarball integrity passed.");
       },
       "2026.4.25-beta.10",
     );

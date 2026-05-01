@@ -41,7 +41,7 @@ resolve_credential_role() {
 
 validate_openclaw_package_spec() {
   local spec="$1"
-  if [[ "$spec" =~ ^getkova@(beta|latest|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?)$ ]]; then
+  if [[ "$spec" =~ ^getkova@(beta|latest|((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-beta\.[1-9][0-9]*)?|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?))$ ]]; then
     return 0
   fi
   echo "OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC must be getkova@beta, getkova@latest, or an exact Kova release version; got: $spec" >&2

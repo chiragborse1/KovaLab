@@ -1,17 +1,17 @@
 {
   "name": "getkova",
-  "version": "2026.4.26",
+  "version": "0.2.0",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
-  "homepage": "https://github.com/openclaw/openclaw#readme",
+  "homepage": "https://www.neuralstudio.in/",
   "bugs": {
-    "url": "https://github.com/openclaw/openclaw/issues"
+    "url": "https://github.com/chiragborse1/KovaLab/issues"
   },
   "license": "MIT",
   "author": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openclaw/openclaw.git"
+    "url": "git+https://github.com/chiragborse1/KovaLab.git"
   },
   "bin": {
     "openclaw": "openclaw.mjs",

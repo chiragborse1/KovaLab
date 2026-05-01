@@ -10,10 +10,10 @@ installIosFixtureCleanup();
 describe("parseArgs", () => {
   it("requires exactly one pin source", () => {
     expect(() => parseArgs([])).toThrow(
-      "Choose exactly one of --from-gateway or --version <YYYY.M.D>",
+      "Choose exactly one of --from-gateway or --version <X.Y.Z>",
     );
-    expect(() => parseArgs(["--from-gateway", "--version", "2026.4.7"])).toThrow(
-      "Choose exactly one of --from-gateway or --version <YYYY.M.D>",
+    expect(() => parseArgs(["--from-gateway", "--version", "0.2.1"])).toThrow(
+      "Choose exactly one of --from-gateway or --version <X.Y.Z>",
     );
   });
 });
@@ -21,7 +21,7 @@ describe("parseArgs", () => {
 describe("pinIosVersion", () => {
   it("pins an explicit iOS release version and syncs generated artifacts", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
+      version: "0.2.0",
       changelog: `# OpenClaw iOS Changelog
 
 ## Unreleased
@@ -32,22 +32,22 @@ describe("pinIosVersion", () => {
     });
 
     const result = pinIosVersion({
-      explicitVersion: "2026.4.7",
+      explicitVersion: "0.2.1",
       fromGateway: false,
       rootDir,
       sync: true,
     });
 
-    expect(result.previousVersion).toBe("2026.4.6");
-    expect(result.nextVersion).toBe("2026.4.7");
+    expect(result.previousVersion).toBe("0.2.0");
+    expect(result.nextVersion).toBe("0.2.1");
     expect(result.packageVersion).toBeNull();
-    expect(resolveIosVersion(rootDir).canonicalVersion).toBe("2026.4.7");
+    expect(resolveIosVersion(rootDir).canonicalVersion).toBe("0.2.1");
     expect(fs.readFileSync(path.join(rootDir, "apps", "ios", "version.json"), "utf8")).toContain(
-      '"version": "2026.4.7"',
+      '"version": "0.2.1"',
     );
     expect(
       fs.readFileSync(path.join(rootDir, "apps", "ios", "Config", "Version.xcconfig"), "utf8"),
-    ).toContain("OPENCLAW_MARKETING_VERSION = 2026.4.7");
+    ).toContain("OPENCLAW_MARKETING_VERSION = 0.2.1");
     expect(
       fs.readFileSync(
         path.join(rootDir, "apps", "ios", "fastlane", "metadata", "en-US", "release_notes.txt"),
@@ -59,8 +59,8 @@ describe("pinIosVersion", () => {
 
   it("pins from the current gateway version without carrying prerelease suffixes", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
-      packageVersion: "2026.4.10-beta.3",
+      version: "0.2.0",
+      packageVersion: "0.2.3-beta.3",
       changelog: `# OpenClaw iOS Changelog
 
 ## Unreleased
@@ -77,15 +77,15 @@ describe("pinIosVersion", () => {
       sync: true,
     });
 
-    expect(result.previousVersion).toBe("2026.4.6");
-    expect(result.nextVersion).toBe("2026.4.10");
-    expect(result.packageVersion).toBe("2026.4.10-beta.3");
-    expect(resolveIosVersion(rootDir).marketingVersion).toBe("2026.4.10");
+    expect(result.previousVersion).toBe("0.2.0");
+    expect(result.nextVersion).toBe("0.2.3");
+    expect(result.packageVersion).toBe("0.2.3-beta.3");
+    expect(resolveIosVersion(rootDir).marketingVersion).toBe("0.2.3");
   });
 
   it("can skip syncing checked-in artifacts when requested", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
+      version: "0.2.0",
       changelog: `# OpenClaw iOS Changelog
 
 ## Unreleased
@@ -98,7 +98,7 @@ describe("pinIosVersion", () => {
     });
 
     const result = pinIosVersion({
-      explicitVersion: "2026.4.8",
+      explicitVersion: "0.2.2",
       fromGateway: false,
       rootDir,
       sync: false,

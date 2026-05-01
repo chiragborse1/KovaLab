@@ -1,4 +1,8 @@
-# OpenClaw iOS Changelog
+# Kova iOS Changelog
+
+## 0.2.0 - 2026-05-01
+
+Maintenance update for the current Kova release.
 
 ## 2026.4.26 - 2026-04-26
 

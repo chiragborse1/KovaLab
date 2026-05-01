@@ -119,7 +119,8 @@ export function collectInstalledPackageErrors(params: {
 
 export function normalizeInstalledBinaryVersion(output: string): string {
   const trimmed = output.trim();
-  const versionMatch = /\b\d{4}\.\d{1,2}\.\d{1,2}(?:-\d+|-beta\.\d+)?\b/u.exec(trimmed);
+  const versionMatch =
+    /\b(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:beta\.\d+|\d+))?\b/u.exec(trimmed);
   return versionMatch?.[0] ?? trimmed;
 }
 

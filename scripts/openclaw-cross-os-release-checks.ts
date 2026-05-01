@@ -104,9 +104,7 @@ export function parseArgs(argv) {
 
 export function looksLikeReleaseVersionRef(ref) {
   const trimmed = normalizeRequestedRef(ref);
-  return /^v?[0-9]{4}\.[0-9]+\.[0-9]+(?:-(?:[1-9][0-9]*)|[-.](?:beta|rc)[-.]?[0-9]+)?$/iu.test(
-    trimmed,
-  );
+  return /^v?(?:(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:[-.](?:beta|rc)[-.]?[0-9]+)?|[0-9]{4}\.[0-9]+\.[0-9]+(?:-(?:[1-9][0-9]*)|[-.](?:beta|rc)[-.]?[0-9]+)?)$/iu.test(trimmed);
 }
 
 export function normalizeRequestedRef(ref) {

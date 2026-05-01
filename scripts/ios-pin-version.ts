@@ -24,11 +24,11 @@ export type PinIosVersionResult = {
 
 function usage(): string {
   return [
-    "Usage: node --import tsx scripts/ios-pin-version.ts (--from-gateway | --version <YYYY.M.D>) [--no-sync] [--root dir]",
+    "Usage: node --import tsx scripts/ios-pin-version.ts (--from-gateway | --version <X.Y.Z>) [--no-sync] [--root dir]",
     "",
     "Examples:",
     "  node --import tsx scripts/ios-pin-version.ts --from-gateway",
-    "  node --import tsx scripts/ios-pin-version.ts --version 2026.4.10",
+    "  node --import tsx scripts/ios-pin-version.ts --version 0.2.0",
   ].join("\n");
 }
 
@@ -75,7 +75,7 @@ export function parseArgs(argv: string[]): CliOptions {
   }
 
   if (fromGateway === (explicitVersion !== null)) {
-    throw new Error("Choose exactly one of --from-gateway or --version <YYYY.M.D>.");
+    throw new Error("Choose exactly one of --from-gateway or --version <X.Y.Z>.");
   }
 
   if (explicitVersion !== null && !explicitVersion.trim()) {

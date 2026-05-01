@@ -14,26 +14,26 @@ import { installIosFixtureCleanup, writeIosFixture } from "./ios-version.test-su
 installIosFixtureCleanup();
 
 describe("resolveIosVersion", () => {
-  it("parses pinned CalVer versions and derives Apple marketing fields", () => {
+  it("parses pinned SemVer versions and derives Apple marketing fields", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
-      changelog: "# OpenClaw iOS Changelog\n\n## 2026.4.6\n\nStable notes.\n",
+      version: "0.2.0",
+      changelog: "# OpenClaw iOS Changelog\n\n## 0.2.0\n\nStable notes.\n",
     });
 
     expect(resolveIosVersion(rootDir)).toMatchObject({
-      canonicalVersion: "2026.4.6",
-      marketingVersion: "2026.4.6",
+      canonicalVersion: "0.2.0",
+      marketingVersion: "0.2.0",
       buildVersion: "1",
     });
   });
 
-  it("rejects semver-only versions", () => {
+  it("accepts legacy CalVer pinned versions for compatibility", () => {
     const rootDir = writeIosFixture({
-      version: "1.2.3",
-      changelog: "# OpenClaw iOS Changelog\n\n## Unreleased\n\nNotes.\n",
+      version: "2026.4.6",
+      changelog: "# OpenClaw iOS Changelog\n\n## 2026.4.6\n\nNotes.\n",
     });
 
-    expect(() => resolveIosVersion(rootDir)).toThrow("Expected pinned CalVer like 2026.4.6");
+    expect(resolveIosVersion(rootDir).canonicalVersion).toBe("2026.4.6");
   });
 
   it("rejects prerelease suffixes in the pinned iOS version file", () => {
@@ -42,13 +42,19 @@ describe("resolveIosVersion", () => {
       changelog: "# OpenClaw iOS Changelog\n\n## Unreleased\n\nNotes.\n",
     });
 
-    expect(() => resolveIosVersion(rootDir)).toThrow("Expected pinned CalVer like 2026.4.6");
+    expect(() => resolveIosVersion(rootDir)).toThrow(
+      "Expected pinned SemVer like 0.2.0 or legacy CalVer like 2026.4.6",
+    );
   });
 });
 
 describe("gateway version normalization", () => {
   it("keeps stable gateway CalVer values", () => {
     expect(normalizeGatewayVersionToPinnedIosVersion("2026.4.6")).toBe("2026.4.6");
+  });
+
+  it("keeps stable gateway SemVer values", () => {
+    expect(normalizeGatewayVersionToPinnedIosVersion("0.2.0")).toBe("0.2.0");
   });
 
   it("strips beta suffixes when pinning from gateway version", () => {
@@ -61,14 +67,14 @@ describe("gateway version normalization", () => {
 
   it("reads and normalizes the root package version for iOS releases", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
-      packageVersion: "2026.4.7-beta.5",
+      version: "0.2.0",
+      packageVersion: "0.2.3-beta.5",
       changelog: "# OpenClaw iOS Changelog\n\n## Unreleased\n\nNotes.\n",
     });
 
     expect(resolveGatewayVersionForIosRelease(rootDir)).toEqual({
-      packageVersion: "2026.4.7-beta.5",
-      pinnedIosVersion: "2026.4.7",
+      packageVersion: "0.2.3-beta.5",
+      pinnedIosVersion: "0.2.3",
     });
   });
 });
@@ -76,13 +82,13 @@ describe("gateway version normalization", () => {
 describe("renderIosVersionXcconfig", () => {
   it("renders checked-in defaults from the pinned iOS version", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.8",
-      changelog: "# OpenClaw iOS Changelog\n\n## 2026.4.8\n\nNotes.\n",
+      version: "0.2.0",
+      changelog: "# OpenClaw iOS Changelog\n\n## 0.2.0\n\nNotes.\n",
     });
     const version = resolveIosVersion(rootDir);
 
-    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_IOS_VERSION = 2026.4.8");
-    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_MARKETING_VERSION = 2026.4.8");
+    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_IOS_VERSION = 0.2.0");
+    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_MARKETING_VERSION = 0.2.0");
     expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_BUILD_VERSION = 1");
   });
 });
@@ -90,14 +96,14 @@ describe("renderIosVersionXcconfig", () => {
 describe("release note extraction", () => {
   it("extracts exact pinned version sections first", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
+      version: "0.2.0",
       changelog: `# OpenClaw iOS Changelog
 
 ## Unreleased
 
 Draft notes.
 
-## 2026.4.6
+## 0.2.0
 
 - Exact release notes.
 `,
@@ -110,7 +116,7 @@ Draft notes.
 
   it("falls back to Unreleased when the release section does not exist yet", () => {
     const rootDir = writeIosFixture({
-      version: "2026.4.6",
+      version: "0.2.0",
       changelog: `# OpenClaw iOS Changelog
 
 ## Unreleased
@@ -130,8 +136,8 @@ Draft notes.
   it("extracts markdown bodies without the version heading", () => {
     expect(
       extractChangelogSection(
-        `# OpenClaw iOS Changelog\n\n## 2026.4.6 - 2026-04-06\n\nLine one.\n\n## 2026.4.5\n`,
-        "2026.4.6",
+        `# OpenClaw iOS Changelog\n\n## 0.2.0 - 2026-04-06\n\nLine one.\n\n## 0.1.9\n`,
+        "0.2.0",
       ),
     ).toBe("Line one.");
   });

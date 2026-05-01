@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 
 function usage() {
-  return "Usage: node scripts/check-openclaw-package-tarball.mjs <openclaw.tgz>";
+  return "Usage: node scripts/check-openclaw-package-tarball.mjs <getkova.tgz>";
 }
 
 function fail(message) {
@@ -19,7 +19,7 @@ if (!tarball || process.argv.length > 3) {
   fail(usage());
 }
 if (!fs.existsSync(tarball)) {
-  fail(`OpenClaw package tarball does not exist: ${tarball}`);
+  fail(`Kova package tarball does not exist: ${tarball}`);
 }
 
 const list = spawnSync("tar", ["-tf", tarball], {
@@ -160,10 +160,10 @@ if (entrySet.has("dist/postinstall-inventory.json")) {
 }
 
 if (errors.length > 0) {
-  fail(`OpenClaw package tarball integrity failed:\n${errors.join("\n")}`);
+  fail(`Kova package tarball integrity failed:\n${errors.join("\n")}`);
 }
 
 for (const warning of warnings) {
-  console.warn(`OpenClaw package tarball integrity warning: ${warning}`);
+  console.warn(`Kova package tarball integrity warning: ${warning}`);
 }
-console.log("OpenClaw package tarball integrity passed.");
+console.log("Kova package tarball integrity passed.");

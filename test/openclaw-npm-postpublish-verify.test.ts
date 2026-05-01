@@ -23,6 +23,16 @@ const REQUIRED_INSTALLED_RUNTIME_SIDECAR_PATHS = [
 ] as const;
 
 describe("buildPublishedInstallScenarios", () => {
+  it("uses a single fresh scenario for plain SemVer stable releases", () => {
+    expect(buildPublishedInstallScenarios("0.2.0")).toEqual([
+      {
+        name: "fresh-exact",
+        installSpecs: ["getkova@0.2.0"],
+        expectedVersion: "0.2.0",
+      },
+    ]);
+  });
+
   it("uses a single fresh scenario for plain stable releases", () => {
     expect(buildPublishedInstallScenarios("2026.3.23")).toEqual([
       {
@@ -139,6 +149,8 @@ describe("normalizeInstalledBinaryVersion", () => {
     expect(normalizeInstalledBinaryVersion("OpenClaw 2026.4.8-beta.1 (9ece252)")).toBe(
       "2026.4.8-beta.1",
     );
+    expect(normalizeInstalledBinaryVersion("OpenClaw 2026.4.8-2 (9ece252)")).toBe("2026.4.8-2");
+    expect(normalizeInstalledBinaryVersion("Kova 0.2.0 (9ece252)")).toBe("0.2.0");
   });
 });
 

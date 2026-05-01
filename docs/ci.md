@@ -62,7 +62,7 @@ The workflow has four jobs:
 Candidate sources:
 
 - `source=npm`: accepts only `getkova@beta`, `getkova@latest`, or an exact
-  Kova release version such as `getkova@2026.4.27-beta.2`. Use this for
+  Kova release version such as `getkova@0.2.0-beta.2`. Use this for
   published beta/stable acceptance.
 - `source=ref`: packs a trusted `package_ref` branch, tag, or full commit SHA.
   The resolver fetches Kova branches/tags, verifies the selected commit is
@@ -134,7 +134,7 @@ gh workflow run package-acceptance.yml \
   --ref main \
   -f workflow_ref=main \
   -f source=ref \
-  -f package_ref=release/YYYY.M.D \
+  -f package_ref=release/0.2.0 \
   -f suite_profile=package \
   -f telegram_mode=mock-openai
 
@@ -251,7 +251,7 @@ trusted caller run that graph against a branch, tag, or full commit SHA while
 using the workflow file from the selected dispatch ref.
 
 ```bash
-gh workflow run ci.yml --ref release/YYYY.M.D
+gh workflow run ci.yml --ref release/0.2.0
 gh workflow run ci.yml --ref main -f target_ref=<branch-or-sha>
 gh workflow run full-release-validation.yml --ref main -f ref=<branch-or-sha>
 ```

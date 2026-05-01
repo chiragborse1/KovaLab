@@ -90,6 +90,8 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
   });
 
   it("detects release refs and keeps branch refs out of release-only logic", () => {
+    expect(looksLikeReleaseVersionRef("0.2.0")).toBe(true);
+    expect(looksLikeReleaseVersionRef("refs/tags/v0.2.0-beta.1")).toBe(true);
     expect(looksLikeReleaseVersionRef("2026.4.5")).toBe(true);
     expect(looksLikeReleaseVersionRef("refs/tags/v2026.4.5-beta.1")).toBe(true);
     expect(looksLikeReleaseVersionRef("v2026.4.5-beta.1")).toBe(true);
@@ -100,8 +102,14 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
 
   it("normalizes full Git refs before suite and update decisions", () => {
     expect(normalizeRequestedRef(" refs/heads/main ")).toBe("main");
+    expect(normalizeRequestedRef("refs/tags/v0.2.0")).toBe("v0.2.0");
     expect(normalizeRequestedRef("refs/tags/v2026.4.14")).toBe("v2026.4.14");
     expect(isImmutableReleaseRef("refs/tags/test-tag")).toBe(true);
+    expect(resolveRequestedSuites("both", "refs/tags/v0.2.0")).toEqual([
+      "packaged-fresh",
+      "installer-fresh",
+      "packaged-upgrade",
+    ]);
     expect(resolveRequestedSuites("both", "refs/tags/v2026.4.14")).toEqual([
       "packaged-fresh",
       "installer-fresh",
@@ -117,6 +125,11 @@ describe("scripts/openclaw-cross-os-release-checks", () => {
   });
 
   it("skips the dev-update suite for immutable release refs", () => {
+    expect(resolveRequestedSuites("both", "v0.2.0")).toEqual([
+      "packaged-fresh",
+      "installer-fresh",
+      "packaged-upgrade",
+    ]);
     expect(resolveRequestedSuites("both", "v2026.4.5")).toEqual([
       "packaged-fresh",
       "installer-fresh",

@@ -1,6 +1,6 @@
-# OpenClaw iOS Versioning
+# Kova iOS Versioning
 
-OpenClaw iOS uses a **pinned CalVer release version** instead of reading the current gateway version automatically on every build.
+Kova iOS uses a **pinned release version** instead of reading the current gateway version automatically on every build.
 
 ## Goals
 
@@ -14,34 +14,37 @@ OpenClaw iOS uses a **pinned CalVer release version** instead of reading the cur
 
 The pinned iOS release version lives in `apps/ios/version.json`.
 
-Supported pinned format:
+Supported pinned formats:
 
+- `X.Y.Z`
 - `YYYY.M.D`
 
 Examples:
 
-- `2026.4.6`
+- `0.2.0`
 - `2026.4.10`
 
 The root gateway version in `package.json` may still be one of:
 
+- `X.Y.Z`
+- `X.Y.Z-beta.N`
 - `YYYY.M.D`
 - `YYYY.M.D-beta.N`
 - `YYYY.M.D-N`
 
-When you pin iOS from the gateway version, the iOS tooling strips the gateway suffix and keeps only the base CalVer.
+When you pin iOS from the gateway version, the iOS tooling strips the gateway suffix and keeps only the base stable version.
 
 Examples:
 
-- gateway `2026.4.10` -> iOS `2026.4.10`
-- gateway `2026.4.10-beta.3` -> iOS `2026.4.10`
+- gateway `0.2.0` -> iOS `0.2.0`
+- gateway `0.2.0-beta.3` -> iOS `0.2.0`
 - gateway `2026.4.10-2` -> iOS `2026.4.10`
 
 ## Apple bundle mapping
 
-Pinned iOS version `2026.4.10` maps to:
+Pinned iOS version `0.2.0` maps to:
 
-- `CFBundleShortVersionString = 2026.4.10`
+- `CFBundleShortVersionString = 0.2.0`
 - `CFBundleVersion = numeric build number only`
 
 `CFBundleShortVersionString` stays fixed for a TestFlight train until you intentionally pin a newer iOS release version.
@@ -71,8 +74,8 @@ Pinned iOS version `2026.4.10` maps to:
 ### Version parsing and sync tooling
 
 - `scripts/lib/ios-version.ts`
-  - validates pinned iOS CalVer
-  - normalizes gateway version -> pinned iOS CalVer
+  - validates pinned iOS release versions
+  - normalizes gateway version -> pinned iOS release version
   - renders checked-in xcconfig and release notes
 - `scripts/ios-version.ts`
   - CLI for JSON, shell, or single-field version reads
@@ -96,7 +99,7 @@ Pinned iOS version `2026.4.10` maps to:
 
 When generating `apps/ios/fastlane/metadata/en-US/release_notes.txt`, the tooling reads the first available changelog section in this order:
 
-1. exact pinned version, for example `## 2026.4.10`
+1. exact pinned version, for example `## 0.2.0`
 2. `## Unreleased`
 
 Recommended workflow:
@@ -111,7 +114,7 @@ pnpm ios:version
 pnpm ios:version:check
 pnpm ios:version:sync
 pnpm ios:version:pin -- --from-gateway
-pnpm ios:version:pin -- --version 2026.4.10
+pnpm ios:version:pin -- --version 0.2.0
 ```
 
 ## Normal TestFlight iteration workflow

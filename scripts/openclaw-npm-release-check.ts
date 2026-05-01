@@ -32,12 +32,16 @@ export type ParsedReleaseVersion = {
   version: string;
   baseVersion: string;
   channel: "stable" | "beta";
-  year: number;
-  month: number;
-  day: number;
+  scheme: "calver" | "semver";
+  year?: number;
+  month?: number;
+  day?: number;
   betaNumber?: number;
   correctionNumber?: number;
-  date: Date;
+  date?: Date;
+  major?: number;
+  minor?: number;
+  patch?: number;
 };
 
 export type ParsedReleaseTag = {
@@ -45,8 +49,9 @@ export type ParsedReleaseTag = {
   packageVersion: string;
   baseVersion: string;
   channel: "stable" | "beta";
+  scheme: "calver" | "semver";
   correctionNumber?: number;
-  date: Date;
+  date?: Date;
 };
 
 export type NpmPublishPlan = {
@@ -59,7 +64,7 @@ export type NpmDistTagMirrorAuth = {
   hasAuth: boolean;
   source: "node-auth-token" | "npm-token" | "none";
 };
-const EXPECTED_REPOSITORY_URL = "https://github.com/openclaw/openclaw";
+const EXPECTED_REPOSITORY_URL = "https://github.com/chiragborse1/KovaLab";
 const OPTIONAL_LOCAL_EMBEDDING_RUNTIME_PACKAGE = "node-llama-cpp";
 const MAX_CALVER_DISTANCE_DAYS = 2;
 const REQUIRED_PACKED_PATHS = [
@@ -333,7 +338,7 @@ export function collectReleaseTagErrors(params: {
   const parsedVersion = parseReleaseVersion(packageVersion);
   if (parsedVersion === null) {
     errors.push(
-      `package.json version must match YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${packageVersion || "<missing>"}".`,
+      `package.json version must match X.Y.Z, X.Y.Z-beta.N, YYYY.M.D, YYYY.M.D-N, or YYYY.M.D-beta.N; found "${packageVersion || "<missing>"}".`,
     );
   }
 
@@ -345,7 +350,7 @@ export function collectReleaseTagErrors(params: {
   const parsedTag = parseReleaseTagVersion(tagVersion);
   if (parsedTag === null) {
     errors.push(
-      `Release tag must match vYYYY.M.D, vYYYY.M.D-beta.N, or fallback correction tag vYYYY.M.D-N; found "${releaseTag || "<missing>"}".`,
+      `Release tag must match vX.Y.Z, vX.Y.Z-beta.N, vYYYY.M.D, vYYYY.M.D-beta.N, or fallback correction tag vYYYY.M.D-N; found "${releaseTag || "<missing>"}".`,
     );
   }
 
@@ -371,7 +376,7 @@ export function collectReleaseTagErrors(params: {
     );
   }
 
-  if (parsedVersion !== null) {
+  if (parsedVersion?.scheme === "calver" && parsedVersion.date) {
     const dayDistance = utcCalendarDayDistance(parsedVersion.date, now);
     if (dayDistance > MAX_CALVER_DISTANCE_DAYS) {
       const nowLabel = now.toISOString().slice(0, 10);
@@ -650,7 +655,9 @@ async function main(): Promise<number> {
   const parsedVersion = parseReleaseVersion(pkg.version ?? "");
   const channel = parsedVersion?.channel ?? "unknown";
   const dayDistance =
-    parsedVersion === null ? "unknown" : String(utcCalendarDayDistance(parsedVersion.date, now));
+    parsedVersion?.scheme === "calver" && parsedVersion.date
+      ? String(utcCalendarDayDistance(parsedVersion.date, now))
+      : "n/a";
   console.log(
     `openclaw-npm-release-check: validated ${channel} release ${pkg.version} (${dayDistance} day UTC delta${skipPackValidation ? "; metadata-only" : ""}).`,
   );

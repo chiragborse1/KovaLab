@@ -8,6 +8,8 @@ describe("resolve-openclaw-package-candidate", () => {
   it("accepts only OpenClaw release package specs for npm candidates", () => {
     expect(() => validateOpenClawPackageSpec("getkova@beta")).not.toThrow();
     expect(() => validateOpenClawPackageSpec("getkova@latest")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@0.2.0")).not.toThrow();
+    expect(() => validateOpenClawPackageSpec("getkova@0.2.0-beta.2")).not.toThrow();
     expect(() => validateOpenClawPackageSpec("getkova@2026.4.27")).not.toThrow();
     expect(() => validateOpenClawPackageSpec("getkova@2026.4.27-1")).not.toThrow();
     expect(() => validateOpenClawPackageSpec("getkova@2026.4.27-beta.2")).not.toThrow();
@@ -19,6 +21,9 @@ describe("resolve-openclaw-package-candidate", () => {
       "package_spec must be getkova@beta",
     );
     expect(() => validateOpenClawPackageSpec("getkova@2026.04.27")).toThrow(
+      "package_spec must be getkova@beta",
+    );
+    expect(() => validateOpenClawPackageSpec("getkova@0.2")).toThrow(
       "package_spec must be getkova@beta",
     );
   });

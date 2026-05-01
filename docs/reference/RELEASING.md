@@ -15,13 +15,11 @@ Kova has three public release lanes:
 
 ## Version naming
 
-- Stable release version: `YYYY.M.D`
-  - Git tag: `vYYYY.M.D`
-- Stable correction release version: `YYYY.M.D-N`
-  - Git tag: `vYYYY.M.D-N`
-- Beta prerelease version: `YYYY.M.D-beta.N`
-  - Git tag: `vYYYY.M.D-beta.N`
-- Do not zero-pad month or day
+- Stable release version: `X.Y.Z`
+  - Git tag: `vX.Y.Z`
+- Beta prerelease version: `X.Y.Z-beta.N`
+  - Git tag: `vX.Y.Z-beta.N`
+- Legacy CalVer tags remain accepted for compatibility with older release branches and tooling
 - `latest` means the current promoted stable npm release
 - `beta` means the current beta install target
 - Stable and stable correction releases publish to npm `beta` by default; release operators can target `latest` explicitly, or promote a vetted beta build later
@@ -33,7 +31,7 @@ Kova has three public release lanes:
 
 - Releases move beta-first
 - Stable follows only after the latest beta is validated
-- Maintainers normally cut releases from a `release/YYYY.M.D` branch created
+- Maintainers normally cut releases from a `release/X.Y.Z` branch created
   from current `main`, so release validation and fixes do not block new
   development on `main`
 - If a beta tag has been pushed or published and needs a fix, maintainers cut
@@ -57,7 +55,7 @@ the maintainer-only release runbook.
    `src/commands/doctor/shared/deprecation-compat.ts`. Remove expired
    compatibility only when the upgrade path stays covered, or record why it is
    intentionally carried.
-4. Create `release/YYYY.M.D` from current `main`; do not do normal release work
+4. Create `release/X.Y.Z` from current `main`; do not do normal release work
    directly on `main`.
 5. Bump every required version location for the intended tag, then run the
    local deterministic preflight:
@@ -73,8 +71,8 @@ the maintainer-only release runbook.
    file, lane, workflow job, package profile, provider, or model allowlist that
    proves the fix. Rerun the full umbrella only when the changed surface makes
    prior evidence stale.
-9. For beta, tag `vYYYY.M.D-beta.N`, publish with npm dist-tag `beta`, then run
-   post-publish package acceptance against the published `getkova@YYYY.M.D-beta.N`
+9. For beta, tag `vX.Y.Z-beta.N`, publish with npm dist-tag `beta`, then run
+   post-publish package acceptance against the published `getkova@X.Y.Z-beta.N`
    or `getkova@beta` package. If a pushed or published beta needs a fix, cut
    the next `-beta.N`; do not delete or rewrite the old beta.
 10. For stable, continue only after the vetted beta or release candidate has the
@@ -104,7 +102,7 @@ the maintainer-only release runbook.
   release-path suites, live/E2E, OpenWebUI, QA Lab parity, Matrix, and Telegram
   lanes. Provide `npm_telegram_package_spec` only after a package has been
   published and the post-publish Telegram E2E should run too. Example:
-  `gh workflow run full-release-validation.yml --ref main -f ref=release/YYYY.M.D`
+  `gh workflow run full-release-validation.yml --ref main -f ref=release/0.2.0`
 - Run the manual `Package Acceptance` workflow when you want side-channel proof
   for a package candidate while release work continues. Use `source=npm` for
   `getkova@beta`, `getkova@latest`, or an exact release version; `source=ref`
@@ -129,7 +127,7 @@ the maintainer-only release runbook.
   contracts, Node 22 compatibility, `check`, `check-additional`, build smoke,
   docs checks, Python skills, Windows, macOS, Android, and Control UI i18n
   lanes.
-  Example: `gh workflow run ci.yml --ref release/YYYY.M.D`
+  Example: `gh workflow run ci.yml --ref release/0.2.0`
 - Run `pnpm qa:otel:smoke` when validating release telemetry. It exercises
   QA-lab through a local OTLP/HTTP receiver and verifies the exported trace
   span names, bounded attributes, and content/identifier redaction without
@@ -167,13 +165,13 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   `OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_CACHE_TEST=1 pnpm test:live:cache`
   using both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` workflow secrets
 - npm release preflight no longer waits on the separate release checks lane
-- Run `RELEASE_TAG=vYYYY.M.D node --import tsx scripts/openclaw-npm-release-check.ts`
-  (or the matching beta/correction tag) before approval
+- Run `RELEASE_TAG=v0.2.0 node --import tsx scripts/openclaw-npm-release-check.ts`
+  (or the matching beta tag) before approval
 - After npm publish, run
-  `node --import tsx scripts/openclaw-npm-postpublish-verify.ts YYYY.M.D`
-  (or the matching beta/correction version) to verify the published registry
+  `node --import tsx scripts/openclaw-npm-postpublish-verify.ts 0.2.0`
+  (or the matching beta version) to verify the published registry
   install path in a fresh temp prefix
-- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@YYYY.M.D-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
+- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@0.2.0-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential
   pool. Local maintainer one-offs may omit the Convex vars and pass the three
@@ -184,7 +182,7 @@ Validation` or from the `main`/release workflow ref so workflow logic and
 - Maintainer release automation now uses preflight-then-promote:
   - real npm publish must pass a successful npm `preflight_run_id`
   - the real npm publish must be dispatched from the same `main` or
-    `release/YYYY.M.D` branch as the successful preflight run
+    `release/X.Y.Z` branch as the successful preflight run
   - stable npm releases default to `beta`
   - stable npm publish can target `latest` explicitly via workflow input
   - token-based npm dist-tag mutation now lives in
@@ -231,7 +229,7 @@ branch, tag, or full commit SHA as `ref`:
 ```bash
 gh workflow run full-release-validation.yml \
   --ref main \
-  -f ref=release/YYYY.M.D \
+  -f ref=release/0.2.0 \
   -f provider=openai \
   -f mode=both
 ```
@@ -256,7 +254,7 @@ Use these variants depending on release stage:
 # Validate an unpublished release candidate branch.
 gh workflow run full-release-validation.yml \
   --ref main \
-  -f ref=release/YYYY.M.D \
+  -f ref=release/0.2.0 \
   -f provider=openai \
   -f mode=both
 
@@ -270,10 +268,10 @@ gh workflow run full-release-validation.yml \
 # After publishing a beta, add published-package Telegram E2E.
 gh workflow run full-release-validation.yml \
   --ref main \
-  -f ref=release/YYYY.M.D \
+  -f ref=release/0.2.0 \
   -f provider=openai \
   -f mode=both \
-  -f npm_telegram_package_spec=getkova@YYYY.M.D-beta.N \
+  -f npm_telegram_package_spec=getkova@0.2.0-beta.N \
   -f npm_telegram_provider_mode=mock-openai
 ```
 
@@ -306,7 +304,7 @@ Run manual CI directly only when the release needs deterministic normal CI but
 not the Docker, QA Lab, live, cross-OS, or package boxes:
 
 ```bash
-gh workflow run ci.yml --ref main -f target_ref=release/YYYY.M.D
+gh workflow run ci.yml --ref main -f target_ref=release/0.2.0
 ```
 
 ### Docker
