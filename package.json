@@ -1,9 +1,9 @@
 {
   "name": "getkova",
-  "version": "0.2.0",
+  "version": "2.0.0",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
-  "homepage": "https://www.neuralstudio.in/",
+  "homepage": "https://github.com/chiragborse1/KovaLab#readme",
   "bugs": {
     "url": "https://github.com/chiragborse1/KovaLab/issues"
   },
