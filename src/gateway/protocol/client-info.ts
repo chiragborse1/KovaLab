@@ -53,7 +53,7 @@ export type GatewayClientCap = (typeof GATEWAY_CLIENT_CAPS)[keyof typeof GATEWAY
 
 const GATEWAY_CLIENT_ID_SET = new Set<GatewayClientId>(Object.values(GATEWAY_CLIENT_IDS));
 const GATEWAY_CLIENT_MODE_SET = new Set<GatewayClientMode>(Object.values(GATEWAY_CLIENT_MODES));
-const LEGACY_GATEWAY_CLIENT_IDS: Readonly<Record<string, GatewayClientId>> = {
+export const LEGACY_GATEWAY_CLIENT_IDS: Readonly<Record<string, GatewayClientId>> = {
   "openclaw-control-ui": GATEWAY_CLIENT_IDS.CONTROL_UI,
   "openclaw-tui": GATEWAY_CLIENT_IDS.TUI,
   "openclaw-macos": GATEWAY_CLIENT_IDS.MACOS_APP,
@@ -61,6 +61,10 @@ const LEGACY_GATEWAY_CLIENT_IDS: Readonly<Record<string, GatewayClientId>> = {
   "openclaw-android": GATEWAY_CLIENT_IDS.ANDROID_APP,
   "openclaw-probe": GATEWAY_CLIENT_IDS.PROBE,
 };
+export const ACCEPTED_GATEWAY_CLIENT_ID_VALUES = [
+  ...Object.values(GATEWAY_CLIENT_IDS),
+  ...Object.keys(LEGACY_GATEWAY_CLIENT_IDS),
+] as const;
 
 export function normalizeGatewayClientId(raw?: string | null): GatewayClientId | undefined {
   const normalized = normalizeOptionalLowercaseString(raw);
