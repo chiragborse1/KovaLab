@@ -1104,8 +1104,66 @@ describe("systemd service control", () => {
       .mockImplementationOnce((_cmd, args, _opts, cb) => {
         assertUserSystemctlArgs(args, "restart", "kova-gateway-work.service");
         cb(null, "", "");
-      });
+    });
     await assertRestartSuccess({ OPENCLAW_PROFILE: "work" });
+  });
+
+  it("prefers the active legacy unit when both Kova and OpenClaw unit files exist", async () => {
+    vi.spyOn(fs, "access").mockImplementation(async (pathname) => {
+      const pathValue = pathLikeToString(pathname);
+      if (
+        pathValue.endsWith("/kova-gateway.service") ||
+        pathValue.endsWith("/openclaw-gateway.service")
+      ) {
+        return;
+      }
+      throw Object.assign(new Error(`ENOENT: ${pathValue}`), { code: "ENOENT" });
+    });
+
+    execFileMock
+      .mockImplementationOnce((_cmd, args, _opts, cb) => {
+        assertUserSystemctlArgs(args, "status");
+        cb(null, "", "");
+      })
+      .mockImplementationOnce((_cmd, args, _opts, cb) => {
+        assertUserSystemctlArgs(
+          args,
+          "show",
+          "kova-gateway.service",
+          "--no-page",
+          "--property",
+          "LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMainCode",
+        );
+        cb(createExecFileError("show failed"), "", "Unit kova-gateway.service could not be found.");
+      })
+      .mockImplementationOnce((_cmd, args, _opts, cb) => {
+        assertUserSystemctlArgs(args, "is-enabled", "kova-gateway.service");
+        cb(
+          createExecFileError("is-enabled failed"),
+          "",
+          "Unit file kova-gateway.service does not exist.",
+        );
+      })
+      .mockImplementationOnce((_cmd, args, _opts, cb) => {
+        assertUserSystemctlArgs(
+          args,
+          "show",
+          "openclaw-gateway.service",
+          "--no-page",
+          "--property",
+          "LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMainCode",
+        );
+        cb(null, ["LoadState=loaded", "ActiveState=active", "SubState=running"].join("\n"), "");
+      })
+      .mockImplementationOnce((_cmd, args, _opts, cb) => {
+        assertUserSystemctlArgs(args, "stop", "openclaw-gateway.service");
+        cb(null, "", "");
+      });
+
+    await stopSystemdService({
+      stdout: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: { HOME: TEST_SERVICE_HOME },
+    });
   });
 
   it("surfaces stop failures with systemctl detail", async () => {

@@ -34,6 +34,7 @@ const state = vi.hoisted(() => ({
   stopCode: 1,
   bootoutError: "",
   bootoutCode: 1,
+  loadedServiceTarget: undefined as string | undefined,
   serviceLoaded: true,
   serviceRunning: true,
   stopLeavesRunning: false,
@@ -127,6 +128,9 @@ vi.mock("./exec-file.js", () => ({
       return { stdout: state.listOutput, stderr: "", code: 0 };
     }
     if (call[0] === "print") {
+      if (state.loadedServiceTarget && call[1] !== state.loadedServiceTarget) {
+        return { stdout: "", stderr: "Could not find service", code: 113 };
+      }
       if (state.printNotLoadedRemaining > 0) {
         state.printNotLoadedRemaining -= 1;
         return { stdout: "", stderr: "Could not find service", code: 113 };
@@ -280,6 +284,7 @@ beforeEach(() => {
   state.stopCode = 1;
   state.bootoutError = "";
   state.bootoutCode = 1;
+  state.loadedServiceTarget = undefined;
   state.serviceLoaded = true;
   state.serviceRunning = true;
   state.stopLeavesRunning = false;
@@ -603,6 +608,22 @@ describe("launchd install", () => {
     expect(output).toContain("Stopped LaunchAgent");
   });
 
+  it("prefers the loaded legacy LaunchAgent when both Kova and OpenClaw plists exist", async () => {
+    const env = createDefaultLaunchdEnv();
+    const stdout = new PassThrough();
+    const domain = typeof process.getuid === "function" ? `gui/${process.getuid()}` : "gui/501";
+    const kovaPlistPath = resolveLaunchAgentPlistPath(env);
+    const legacyPlistPath = kovaPlistPath.replace("ai.kova.gateway", "ai.openclaw.gateway");
+    state.files.set(kovaPlistPath, "<plist/>");
+    state.files.set(legacyPlistPath, "<plist/>");
+    state.loadedServiceTarget = `${domain}/ai.openclaw.gateway`;
+
+    await stopLaunchAgent({ env, stdout });
+
+    expect(state.launchctlCalls).toContainEqual(["disable", `${domain}/ai.openclaw.gateway`]);
+    expect(state.launchctlCalls).toContainEqual(["stop", "ai.openclaw.gateway"]);
+  });
+
   it("treats already-unloaded services as successfully stopped without bootout fallback", async () => {
     const env = createDefaultLaunchdEnv();
     const stdout = new PassThrough();
@@ -892,7 +913,7 @@ describe("launchd install", () => {
     }
     expect(message).toContain("logged-in macOS GUI session");
     expect(message).toContain("wrong user (including sudo)");
-    expect(message).toContain("https://docs.openclaw.ai/gateway");
+    expect(message).toContain("https://docs.neuralstudio.in/gateway");
   });
 
   it("surfaces generic bootstrap failures without GUI-specific guidance", async () => {

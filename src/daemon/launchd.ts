@@ -76,13 +76,25 @@ function resolveLaunchAgentCandidateLabels(env: GatewayServiceEnv): string[] {
 async function resolveInstalledLaunchAgentLabel(
   env: GatewayServiceEnv,
 ): Promise<{ label: string; plistPath: string }> {
+  const installedCandidates: Array<{ label: string; plistPath: string }> = [];
   for (const label of resolveLaunchAgentCandidateLabels(env)) {
+    const plistPath = resolveLaunchAgentPlistPathForLabel(env, label);
     if (await launchAgentPlistExistsForLabel(env, label)) {
-      return {
-        label,
-        plistPath: resolveLaunchAgentPlistPathForLabel(env, label),
-      };
+      installedCandidates.push({ label, plistPath });
     }
+  }
+  if (installedCandidates.length === 1) {
+    return installedCandidates[0]!;
+  }
+  if (installedCandidates.length > 1) {
+    const domain = resolveGuiDomain();
+    for (const candidate of installedCandidates) {
+      const probe = await execLaunchctl(["print", `${domain}/${candidate.label}`]);
+      if (probe.code === 0) {
+        return candidate;
+      }
+    }
+    return installedCandidates[0]!;
   }
   const configured = resolveLaunchAgentLabel({ env });
   return {
