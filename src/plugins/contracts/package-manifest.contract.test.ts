@@ -3,7 +3,7 @@ import { describePackageManifestContract } from "../../../test/helpers/plugins/p
 type PackageManifestContractParams = Parameters<typeof describePackageManifestContract>[0];
 
 const packageManifestContractTests: PackageManifestContractParams[] = [
-  { pluginId: "bluebubbles", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "bluebubbles", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "discord",
     pluginLocalRuntimeDeps: [
@@ -13,13 +13,13 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
       "opusscript",
     ],
     mirroredRootRuntimeDeps: ["https-proxy-agent"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
   {
     pluginId: "feishu",
     pluginLocalRuntimeDeps: ["@larksuiteoapi/node-sdk"],
     mirroredRootRuntimeDeps: ["typebox"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
   { pluginId: "google", pluginLocalRuntimeDeps: ["@google/genai"] },
   {
@@ -29,10 +29,10 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
   {
     pluginId: "googlechat",
     pluginLocalRuntimeDeps: ["gaxios", "google-auth-library"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
-  { pluginId: "irc", minHostVersionBaseline: "2026.3.22" },
-  { pluginId: "line", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "irc", minHostVersionBaseline: "2.0.0" },
+  { pluginId: "line", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "amazon-bedrock",
     pluginLocalRuntimeDeps: [
@@ -60,14 +60,14 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
       "music-metadata",
     ],
     mirroredRootRuntimeDeps: ["markdown-it"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
-  { pluginId: "mattermost", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "mattermost", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "memory-lancedb",
     pluginLocalRuntimeDeps: ["@lancedb/lancedb"],
     mirroredRootRuntimeDeps: ["typebox", "openai"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
   {
     pluginId: "msteams",
@@ -80,13 +80,13 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
       "jwks-rsa",
     ],
     mirroredRootRuntimeDeps: ["typebox"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
-  { pluginId: "nextcloud-talk", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "nextcloud-talk", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "nostr",
     pluginLocalRuntimeDeps: ["nostr-tools"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
   { pluginId: "openshell", pluginLocalRuntimeDeps: ["openshell"] },
   {
@@ -99,21 +99,21 @@ const packageManifestContractTests: PackageManifestContractParams[] = [
     pluginLocalRuntimeDeps: ["@slack/bolt", "@slack/web-api"],
     mirroredRootRuntimeDeps: ["https-proxy-agent"],
   },
-  { pluginId: "synology-chat", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "synology-chat", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "telegram",
     pluginLocalRuntimeDeps: ["@grammyjs/runner", "@grammyjs/transformer-throttler", "grammy"],
   },
-  { pluginId: "tlon", minHostVersionBaseline: "2026.3.22" },
-  { pluginId: "twitch", minHostVersionBaseline: "2026.3.22" },
-  { pluginId: "voice-call", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "tlon", minHostVersionBaseline: "2.0.0" },
+  { pluginId: "twitch", minHostVersionBaseline: "2.0.0" },
+  { pluginId: "voice-call", minHostVersionBaseline: "2.0.0" },
   {
     pluginId: "whatsapp",
     pluginLocalRuntimeDeps: ["@whiskeysockets/baileys", "jimp"],
-    minHostVersionBaseline: "2026.3.22",
+    minHostVersionBaseline: "2.0.0",
   },
-  { pluginId: "zalo", minHostVersionBaseline: "2026.3.22" },
-  { pluginId: "zalouser", minHostVersionBaseline: "2026.3.22" },
+  { pluginId: "zalo", minHostVersionBaseline: "2.0.0" },
+  { pluginId: "zalouser", minHostVersionBaseline: "2.0.0" },
 ];
 
 for (const params of packageManifestContractTests) {

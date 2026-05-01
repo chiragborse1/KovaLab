@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/azure-speech",
-  "version": "2026.4.16",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova Azure Speech plugin",
   "type": "module",

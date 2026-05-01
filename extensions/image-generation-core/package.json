@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/image-generation-core",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova image generation runtime package",
   "type": "module",

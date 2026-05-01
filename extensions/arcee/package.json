@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/arcee-provider",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova Arcee provider plugin",
   "type": "module",

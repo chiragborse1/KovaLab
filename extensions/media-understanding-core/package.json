@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/media-understanding-core",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova media understanding runtime package",
   "type": "module",

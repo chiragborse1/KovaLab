@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/fireworks-provider",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova Fireworks provider plugin",
   "type": "module",

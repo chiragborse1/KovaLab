@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/voice-call",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "description": "Kova voice-call plugin",
   "type": "module",
   "dependencies": {
@@ -13,7 +13,7 @@
     "openclaw": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.25"
+    "openclaw": ">=2.0.0"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -25,13 +25,13 @@
       "./index.ts"
     ],
     "install": {
-      "minHostVersion": ">=2026.4.10"
+      "minHostVersion": ">=2.0.0"
     },
     "compat": {
-      "pluginApi": ">=2026.4.25"
+      "pluginApi": ">=2.0.0"
     },
     "build": {
-      "openclawVersion": "2026.4.25"
+      "openclawVersion": "2.0.0"
     },
     "release": {
       "publishToClawHub": true,

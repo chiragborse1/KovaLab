@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/huggingface-provider",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova Hugging Face provider plugin",
   "type": "module",

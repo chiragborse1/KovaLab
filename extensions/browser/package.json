@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/browser-plugin",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova browser tool plugin",
   "type": "module",

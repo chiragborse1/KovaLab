@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/bonjour",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "description": "Kova Bonjour/mDNS gateway discovery",
   "type": "module",
   "dependencies": {

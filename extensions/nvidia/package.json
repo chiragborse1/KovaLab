@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/nvidia-provider",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova NVIDIA provider plugin",
   "type": "module",

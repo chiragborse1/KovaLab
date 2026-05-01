@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/matrix",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "description": "Kova Matrix channel plugin",
   "type": "module",
   "dependencies": {
@@ -18,7 +18,7 @@
     "openclaw": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.4.25"
+    "openclaw": ">=2.0.0"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -78,7 +78,7 @@
     "install": {
       "npmSpec": "@openclaw/matrix",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2026.4.10",
+      "minHostVersion": ">=2.0.0",
       "allowInvalidConfigRecovery": true
     },
     "bundle": {

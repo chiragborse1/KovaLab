@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/mistral-provider",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova Mistral provider plugin",
   "type": "module",

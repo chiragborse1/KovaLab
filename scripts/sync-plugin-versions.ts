@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { compareComparableSemver, parseComparableSemver } from "../src/infra/semver-compare.js";
 
 type PackageJson = {
   name?: string;
@@ -19,14 +20,19 @@ type PackageJson = {
   };
 };
 
-const OPENCLAW_VERSION_RANGE_RE = /^>=\d{4}\.\d{1,2}\.\d{1,2}(?:[-.][^"\s]+)?$/u;
+const OPENCLAW_VERSION_RANGE_RE = /^>=(\d+\.\d+\.\d+(?:[-.][^"\s]+)?)$/u;
+
+function parseComparableRangeFloor(range: string): string | null {
+  const match = OPENCLAW_VERSION_RANGE_RE.exec(range);
+  return match?.[1] ?? null;
+}
 
 function syncOpenClawDependencyRange(
   deps: Record<string, string> | undefined,
   targetVersion: string,
 ): boolean {
   const current = deps?.openclaw;
-  if (!current || current === "workspace:*" || !OPENCLAW_VERSION_RANGE_RE.test(current)) {
+  if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
     return false;
   }
   const next = `>=${targetVersion}`;
@@ -40,7 +46,7 @@ function syncOpenClawDependencyRange(
 function syncPluginApiVersion(pkg: PackageJson, targetVersion: string): boolean {
   const compat = pkg.openclaw?.compat;
   const current = compat?.pluginApi;
-  if (!current || !OPENCLAW_VERSION_RANGE_RE.test(current)) {
+  if (!current || !parseComparableRangeFloor(current)) {
     return false;
   }
   const next = `>=${targetVersion}`;
@@ -48,6 +54,23 @@ function syncPluginApiVersion(pkg: PackageJson, targetVersion: string): boolean 
     return false;
   }
   compat.pluginApi = next;
+  return true;
+}
+
+function syncMinHostVersionFloor(pkg: PackageJson, targetVersion: string): boolean {
+  const install = pkg.openclaw?.install;
+  const current = install?.minHostVersion;
+  const currentFloor = current ? parseComparableRangeFloor(current) : null;
+  if (!install || !currentFloor) {
+    return false;
+  }
+  const currentVersion = parseComparableSemver(currentFloor, { normalizeLegacyDotBeta: true });
+  const target = parseComparableSemver(targetVersion, { normalizeLegacyDotBeta: true });
+  const comparison = compareComparableSemver(currentVersion, target);
+  if (comparison == null || comparison <= 0) {
+    return false;
+  }
+  install.minHostVersion = `>=${targetVersion}`;
   return true;
 }
 
@@ -122,14 +145,16 @@ export function syncPluginVersions(rootDir = resolve(".")) {
     const versionChanged = pkg.version !== targetVersion;
     const devDependencyChanged = syncOpenClawDependencyRange(pkg.devDependencies, targetVersion);
     const peerDependencyChanged = syncOpenClawDependencyRange(pkg.peerDependencies, targetVersion);
-    // minHostVersion is a compatibility floor, not release alignment metadata.
-    // Keep it stable unless the owning plugin intentionally raises it.
+    // Bundled plugins cannot require a host newer than the release that ships them.
+    // Lower impossible floors during release-scheme migrations, but keep older valid floors.
+    const minHostVersionChanged = syncMinHostVersionFloor(pkg, targetVersion);
     const pluginApiChanged = syncPluginApiVersion(pkg, targetVersion);
     const buildOpenClawVersionChanged = syncBuildOpenClawVersion(pkg, targetVersion);
     const packageChanged =
       versionChanged ||
       devDependencyChanged ||
       peerDependencyChanged ||
+      minHostVersionChanged ||
       pluginApiChanged ||
       buildOpenClawVersionChanged;
     if (!packageChanged) {

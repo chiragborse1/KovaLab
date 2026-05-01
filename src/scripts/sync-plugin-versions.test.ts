@@ -16,12 +16,12 @@ describe("syncPluginVersions", () => {
     cleanupTempDirs(tempDirs);
   });
 
-  it("preserves workspace openclaw devDependencies and plugin host floors", () => {
+  it("preserves workspace openclaw devDependencies and aligns impossible host floors", () => {
     const rootDir = makeTempDir(tempDirs, "openclaw-sync-plugin-versions-");
 
     writeJson(path.join(rootDir, "package.json"), {
-      name: "openclaw",
-      version: "2026.4.1",
+      name: "getkova",
+      version: "2.0.0",
     });
     writeJson(path.join(rootDir, "extensions/bluebubbles/package.json"), {
       name: "@openclaw/bluebubbles",
@@ -66,11 +66,11 @@ describe("syncPluginVersions", () => {
     };
 
     expect(summary.updated).toContain("@openclaw/bluebubbles");
-    expect(updatedPackage.version).toBe("2026.4.1");
+    expect(updatedPackage.version).toBe("2.0.0");
     expect(updatedPackage.devDependencies?.openclaw).toBe("workspace:*");
-    expect(updatedPackage.peerDependencies?.openclaw).toBe(">=2026.4.1");
-    expect(updatedPackage.openclaw?.install?.minHostVersion).toBe(">=2026.3.30");
-    expect(updatedPackage.openclaw?.compat?.pluginApi).toBe(">=2026.4.1");
-    expect(updatedPackage.openclaw?.build?.openclawVersion).toBe("2026.4.1");
+    expect(updatedPackage.peerDependencies?.openclaw).toBe(">=2.0.0");
+    expect(updatedPackage.openclaw?.install?.minHostVersion).toBe(">=2.0.0");
+    expect(updatedPackage.openclaw?.compat?.pluginApi).toBe(">=2.0.0");
+    expect(updatedPackage.openclaw?.build?.openclawVersion).toBe("2.0.0");
   });
 });

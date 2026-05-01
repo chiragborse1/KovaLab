@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/tts-local-cli",
-  "version": "2026.4.25",
+  "version": "2.0.0",
   "private": true,
   "description": "Kova local CLI TTS plugin",
   "type": "module",
