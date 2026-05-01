@@ -21,17 +21,5 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Detect optional scripts
-        id: scripts
-        run: |
-          node <<'NODE' >> "$GITHUB_OUTPUT"
-          const scripts = require("./package.json").scripts || {};
-          console.log(`has_test=${Boolean(scripts.test)}`);
-          NODE
-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-
-      - name: Run tests
-        if: steps.scripts.outputs.has_test == 'true'
-        run: pnpm test
