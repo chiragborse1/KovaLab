@@ -539,7 +539,7 @@ describe("update-cli", () => {
 
     expect(spawnSync).toHaveBeenCalledWith(
       expect.any(String),
-      [path.join(root, "openclaw.mjs"), "completion", "--write-state"],
+      [path.join(root, "kova.mjs"), "completion", "--write-state"],
       expect.objectContaining({
         env: expect.objectContaining({
           OPENCLAW_COMPLETION_SKIP_PLUGIN_COMMANDS: "1",
@@ -1092,7 +1092,9 @@ describe("update-cli", () => {
     );
 
     expect(defaultRuntime.error).toHaveBeenCalledWith(
-      expect.stringContaining("Package updates cannot run from inside the gateway service process."),
+      expect.stringContaining(
+        "Package updates cannot run from inside the gateway service process.",
+      ),
     );
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     expect(runGatewayUpdate).not.toHaveBeenCalled();

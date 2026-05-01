@@ -62,7 +62,7 @@ describe("parseCliContainerArgs", () => {
     expect(
       parseCliContainerArgs([
         "node",
-        "openclaw",
+        "kova",
         "nodes",
         "run",
         "--",
@@ -77,7 +77,7 @@ describe("parseCliContainerArgs", () => {
       container: null,
       argv: [
         "node",
-        "openclaw",
+        "kova",
         "nodes",
         "run",
         "--",
@@ -150,7 +150,7 @@ describe("maybeRunCliInContainer", () => {
         "--env",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "status",
       ],
       {
@@ -201,7 +201,7 @@ describe("maybeRunCliInContainer", () => {
         "--env",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "status",
       ],
       {
@@ -256,7 +256,7 @@ describe("maybeRunCliInContainer", () => {
         "--env",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "status",
       ],
       {
@@ -309,7 +309,7 @@ describe("maybeRunCliInContainer", () => {
         "-e",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "health",
       ],
       {
@@ -372,7 +372,7 @@ describe("maybeRunCliInContainer", () => {
         "-e",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "status",
       ],
       {
@@ -478,7 +478,7 @@ describe("maybeRunCliInContainer", () => {
         "--env",
         "OPENCLAW_CLI_CONTAINER_BYPASS=1",
         "demo",
-        "openclaw",
+        "kova",
         "setup",
       ],
       {
@@ -559,7 +559,7 @@ describe("maybeRunCliInContainer", () => {
         spawnSync,
       }),
     ).toThrow(
-      "openclaw update is not supported with --container; rebuild or restart the container image instead.",
+      "kova update is not supported with --container; rebuild or restart the container image instead.",
     );
     expect(spawnSync).not.toHaveBeenCalled();
   });
@@ -576,7 +576,7 @@ describe("maybeRunCliInContainer", () => {
         spawnSync,
       }),
     ).toThrow(
-      "openclaw update is not supported with --container; rebuild or restart the container image instead.",
+      "kova update is not supported with --container; rebuild or restart the container image instead.",
     );
     expect(spawnSync).not.toHaveBeenCalled();
   });
@@ -593,7 +593,7 @@ describe("maybeRunCliInContainer", () => {
         spawnSync,
       }),
     ).toThrow(
-      "openclaw update is not supported with --container; rebuild or restart the container image instead.",
+      "kova update is not supported with --container; rebuild or restart the container image instead.",
     );
     expect(spawnSync).not.toHaveBeenCalled();
   });

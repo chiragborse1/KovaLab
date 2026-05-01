@@ -29,9 +29,7 @@ async function generateCompletionCache(cliName = resolveDisplayCliName()): Promi
     return false;
   }
 
-  const preferredBinPath = path.join(root, `${cliName}.mjs`);
-  const fallbackBinPath = path.join(root, "openclaw.mjs");
-  const binPath = preferredBinPath === fallbackBinPath ? fallbackBinPath : preferredBinPath;
+  const binPath = path.join(root, `${cliName}.mjs`);
   const result = spawnSync(process.execPath, [binPath, "completion", "--write-state"], {
     cwd: root,
     env: process.env,
@@ -52,9 +50,7 @@ export type ShellCompletionStatus = {
 };
 
 /** Check the status of shell completion for the current shell. */
-export async function checkShellCompletionStatus(
-  binName = "kova",
-): Promise<ShellCompletionStatus> {
+export async function checkShellCompletionStatus(binName = "kova"): Promise<ShellCompletionStatus> {
   const shell = resolveShellFromEnv() as CompletionShell;
   const profileInstalled = await isCompletionInstalled(shell, binName);
   const cacheExists = await completionCacheExists(shell, binName);

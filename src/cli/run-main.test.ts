@@ -193,7 +193,7 @@ describe("resolveMissingPluginCommandMessage", () => {
     expect(message).toContain("runtime slash command");
     expect(message).toContain("/dreaming");
     expect(message).toContain("memory-core");
-    expect(message).toContain("openclaw memory");
+    expect(message).toContain("kova memory");
   });
 
   it("returns the runtime command message even when plugins.allow is set", () => {

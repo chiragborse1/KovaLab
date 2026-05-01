@@ -162,7 +162,7 @@ export async function runCli(argv: string[] = process.argv) {
     if (shouldRunBareRootCrestodian) {
       if (!process.stdin.isTTY || !process.stdout.isTTY) {
         console.error(
-          'Crestodian needs an interactive TTY. Use `openclaw crestodian --message "status"` for one command.',
+          'Crestodian needs an interactive TTY. Use `kova crestodian --message "status"` for one command.',
         );
         process.exitCode = 1;
         return;

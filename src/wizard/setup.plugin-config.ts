@@ -1,3 +1,4 @@
+import { formatCliCommand } from "../cli/command-format.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { PluginConfigUiHint } from "../plugins/types.js";
 import { getPath, setPathCreateStrict } from "../secrets/path-utils.js";
@@ -175,7 +176,8 @@ async function promptPluginFields(params: {
     // direct users to openclaw config set or the Web UI instead.
     if (hint.sensitive) {
       await prompter.note(
-        `"${label}" is sensitive. Set it via:\n  openclaw config set plugins.entries.${plugin.id}.config.${key} <value>\nor use the Web UI Settings page.`,
+        `"${label}" is sensitive. Set it via:\n  ${formatCliCommand(`kova config set plugins.entries.${plugin.id}.config.${key} <value>`)}` +
+          "\nor use the Web UI Settings page.",
         "Sensitive field",
       );
       continue;

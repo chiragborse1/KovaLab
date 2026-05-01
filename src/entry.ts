@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 import { isRootHelpInvocation } from "./cli/argv.js";
 import { parseCliContainerArgs, resolveCliContainerTarget } from "./cli/container-target.js";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
-import { applyKovaEnvAliases } from "./compat/env-aliases.js";
 import { normalizeWindowsArgv } from "./cli/windows-argv.js";
+import { applyKovaEnvAliases } from "./compat/env-aliases.js";
 import { buildCliRespawnPlan } from "./entry.respawn.js";
 import { tryHandleRootVersionFastPath } from "./entry.version-fast-path.js";
 import { isTruthyEnvValue, normalizeEnv } from "./infra/env.js";
@@ -20,13 +20,11 @@ import { attachChildProcessBridge } from "./process/child-process-bridge.js";
 const ENTRY_WRAPPER_PAIRS = [
   { wrapperBasename: "kova.mjs", entryBasename: "entry.js" },
   { wrapperBasename: "kova.js", entryBasename: "entry.js" },
-  { wrapperBasename: "openclaw.mjs", entryBasename: "entry.js" },
-  { wrapperBasename: "openclaw.js", entryBasename: "entry.js" },
 ] as const;
 
 function resolveProcessTitle(argv1: string | undefined): string {
   const stem = path.parse(path.basename(argv1 ?? "")).name.trim();
-  return stem === "openclaw" ? "openclaw" : "kova";
+  return stem === "kova" ? "kova" : "kova";
 }
 
 function resolveCliLogPrefix(argv1: string | undefined): string {

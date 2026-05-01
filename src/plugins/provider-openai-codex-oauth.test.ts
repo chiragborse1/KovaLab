@@ -176,7 +176,7 @@ describe("loginOpenAICodexOAuth", () => {
     expect(spin.stop).toHaveBeenCalledWith("OpenAI OAuth failed");
     expect(runtime.error).toHaveBeenCalledWith(expect.stringContaining("oauth failed"));
     expect(prompter.note).toHaveBeenCalledWith(
-      "Trouble with OAuth? See https://docs.openclaw.ai/start/faq",
+      "Trouble with OAuth? See https://docs.neuralstudio.in/start/faq",
       "OAuth help",
     );
   });
@@ -198,7 +198,7 @@ describe("loginOpenAICodexOAuth", () => {
     expect(spin.stop).toHaveBeenCalledWith("OpenAI OAuth failed");
     expect(runtime.error).toHaveBeenCalledWith(expect.stringContaining("HTTPS_PROXY"));
     expect(prompter.note).toHaveBeenCalledWith(
-      "Trouble with OAuth? See https://docs.openclaw.ai/start/faq",
+      "Trouble with OAuth? See https://docs.neuralstudio.in/start/faq",
       "OAuth help",
     );
   });

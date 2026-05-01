@@ -339,15 +339,11 @@ function Install-KovaGit {
     }
 
     $entryPath = Join-Path $RepoDir "kova.mjs"
-    $legacyEntryPath = Join-Path $RepoDir "kova.mjs"
     @"
 @echo off
 node "$entryPath" %*
 "@ | Out-File -FilePath "$wrapperDir\kova.cmd" -Encoding ASCII -Force
-    @"
-@echo off
-node "$legacyEntryPath" %*
-"@ | Out-File -FilePath "$wrapperDir\openclaw.cmd" -Encoding ASCII -Force
+    Remove-Item -LiteralPath "$wrapperDir\openclaw.cmd" -Force -ErrorAction SilentlyContinue
     Add-ToPath -Path $wrapperDir
     
     Write-Host "Kova installed" -Level success

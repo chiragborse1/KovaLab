@@ -141,7 +141,7 @@ function buildContainerExecArgs(params: {
     envFlag,
     "OPENCLAW_CLI_CONTAINER_BYPASS=1",
     params.containerName,
-    "openclaw",
+    "kova",
     ...params.argv,
   ];
 }
@@ -163,7 +163,7 @@ function buildContainerExecEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 }
 
 function isBlockedContainerCommand(argv: string[]): boolean {
-  if (resolveCliArgvInvocation(["node", "openclaw", ...argv]).primary === "update") {
+  if (resolveCliArgvInvocation(["node", "kova", ...argv]).primary === "update") {
     return true;
   }
   for (let i = 0; i < argv.length; i += 1) {

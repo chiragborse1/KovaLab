@@ -138,7 +138,7 @@ function resolveGatewayStartupConfigWithoutInvalidModelProviders(params: {
   const runtimeConfig = materializeRuntimeConfig(validated.config, "load");
   for (const providerId of providerIds) {
     params.log.warn(
-      `gateway: skipped model provider ${providerId}; configured provider api is invalid. Run "openclaw doctor --fix" to repair the config.`,
+      `gateway: skipped model provider ${providerId}; configured provider api is invalid. Run "kova doctor --fix" to repair the config.`,
     );
   }
   return {
@@ -169,7 +169,7 @@ function resolveGatewayStartupConfigWithoutInvalidPluginEntries(params: {
   const runtimeConfig = materializeRuntimeConfig(validated.config, "load");
   for (const issue of params.snapshot.issues) {
     params.log.warn(
-      `gateway: skipped plugin config validation issue at ${issue.path}: ${issue.message}. Run "openclaw doctor --fix" to quarantine the plugin config.`,
+      `gateway: skipped plugin config validation issue at ${issue.path}: ${issue.message}. Run "kova doctor --fix" to quarantine the plugin config.`,
     );
   }
   return {
