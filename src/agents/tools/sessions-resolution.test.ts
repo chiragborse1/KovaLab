@@ -111,11 +111,11 @@ describe("session key display/internal mapping", () => {
   it("maps interactive client ids to the requester session", () => {
     expect(
       resolveCurrentSessionClientAlias({
-        key: "openclaw-tui",
+        key: "kova-tui",
         requesterInternalKey: "agent:main:main",
       }),
     ).toBe("agent:main:main");
-    expect(resolveCurrentSessionClientAlias({ key: "openclaw-tui" })).toBeUndefined();
+    expect(resolveCurrentSessionClientAlias({ key: "kova-tui" })).toBeUndefined();
     expect(
       resolveCurrentSessionClientAlias({
         key: "node-host",
@@ -325,7 +325,7 @@ describe("resolveSessionReference", () => {
   it("treats the TUI client label as the requester session", async () => {
     await expect(
       resolveSessionReference({
-        sessionKey: "openclaw-tui",
+        sessionKey: "kova-tui",
         alias: "main",
         mainKey: "main",
         requesterInternalKey: "agent:main:main",

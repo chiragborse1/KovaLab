@@ -76,7 +76,11 @@ import {
   shouldAutoApproveNodePairingFromTrustedCidrs,
 } from "../../node-pairing-auto-approve.js";
 import { checkBrowserOrigin } from "../../origin-check.js";
-import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "../../protocol/client-info.js";
+import {
+  GATEWAY_CLIENT_IDS,
+  GATEWAY_CLIENT_MODES,
+  normalizeGatewayClientId,
+} from "../../protocol/client-info.js";
 import {
   buildPairingConnectCloseReason,
   buildPairingConnectErrorDetails,
@@ -417,6 +421,10 @@ export function attachGatewayWsMessageHandler(params: {
 
         const frame = parsed;
         const connectParams = frame.params as ConnectParams;
+        const normalizedClientId = normalizeGatewayClientId(connectParams.client.id);
+        if (normalizedClientId) {
+          connectParams.client.id = normalizedClientId;
+        }
         const resolvedAuth = getResolvedAuth();
         const clientLabel = connectParams.client.displayName ?? connectParams.client.id;
         const clientMeta = {

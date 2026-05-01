@@ -840,7 +840,7 @@ export function registerControlUiAndPairingSuite(): void {
       "openclaw-bootstrap-node-",
     );
     const client = {
-      id: "openclaw-ios",
+      id: "kova-ios",
       version: "2026.3.30",
       platform: "iOS 26.3.1",
       mode: "node",
@@ -1011,7 +1011,7 @@ export function registerControlUiAndPairingSuite(): void {
     );
     const nodeClient = {
       ...client,
-      id: "openclaw-android",
+      id: "kova-android",
       mode: "node",
     };
 
@@ -1068,7 +1068,7 @@ export function registerControlUiAndPairingSuite(): void {
       "openclaw-bootstrap-role-upgrade-",
     );
     const client = {
-      id: "openclaw-ios",
+      id: "kova-ios",
       version: "2026.3.30",
       platform: "iOS 26.3.1",
       mode: "node",

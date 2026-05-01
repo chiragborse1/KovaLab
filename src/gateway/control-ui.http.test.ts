@@ -276,7 +276,7 @@ describe("handleControlUiHttpRequest", () => {
         publicKey: "test-public-key",
         role: "operator",
         scopes: ["operator.read"],
-        clientId: "openclaw-control-ui",
+        clientId: "kova-control-ui",
         clientMode: "webchat",
       });
       const approved = await approveDevicePairing(requested.request.requestId, {

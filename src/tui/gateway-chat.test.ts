@@ -510,7 +510,7 @@ describe("GatewayChatClient", () => {
     expect(
       (client as unknown as { client: { opts: { clientName?: string; mode?: string } } }).client
         .opts.clientName,
-    ).toBe("openclaw-tui");
+    ).toBe("kova-tui");
     expect(
       (client as unknown as { client: { opts: { clientName?: string; mode?: string } } }).client
         .opts.mode,

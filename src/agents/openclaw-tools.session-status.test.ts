@@ -478,7 +478,7 @@ describe("session_status tool", () => {
 
     const tool = getSessionStatusTool("agent:main:main");
 
-    const result = await tool.execute("call-tui-label", { sessionKey: "openclaw-tui" });
+    const result = await tool.execute("call-tui-label", { sessionKey: "kova-tui" });
     const details = result.details as { ok?: boolean; sessionKey?: string };
     expect(details.ok).toBe(true);
     expect(details.sessionKey).toBe("agent:main:main");

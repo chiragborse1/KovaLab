@@ -732,6 +732,81 @@ describe("model-pricing-cache", () => {
     );
   });
 
+  it("retries transient transport fetch failures before logging source warnings", async () => {
+    const warnings: string[] = [];
+    loggingState.rawConsole = {
+      log: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn((message: string) => warnings.push(message)),
+      error: vi.fn(),
+    };
+    setLoggerOverride({ level: "silent", consoleLevel: "warn" });
+
+    const config = {
+      agents: {
+        defaults: {
+          model: { primary: "anthropic/claude-opus-4-6" },
+        },
+      },
+    } as unknown as OpenClawConfig;
+    const attempts = {
+      openRouter: 0,
+      liteLLM: 0,
+    };
+    const fetchImpl = withFetchPreconnect(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.includes("openrouter.ai")) {
+        attempts.openRouter += 1;
+        if (attempts.openRouter === 1) {
+          throw new TypeError("fetch failed", {
+            cause: new Error("socket hang up"),
+          } as ErrorOptions);
+        }
+        return new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "anthropic/claude-opus-4.6",
+                pricing: {
+                  prompt: "0.000005",
+                  completion: "0.000025",
+                },
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      attempts.liteLLM += 1;
+      if (attempts.liteLLM === 1) {
+        throw new TypeError("fetch failed");
+      }
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    await refreshGatewayModelPricingCache({ config, fetchImpl });
+
+    expect(attempts).toEqual({
+      openRouter: 2,
+      liteLLM: 2,
+    });
+    expect(warnings).toEqual([]);
+    expect(
+      getCachedGatewayModelPricing({ provider: "anthropic", model: "claude-opus-4-6" }),
+    ).toEqual({
+      input: 5,
+      output: 25,
+      cacheRead: 0,
+      cacheWrite: 0,
+    });
+  });
+
   it("treats oversized LiteLLM catalog responses as source failures", async () => {
     const config = {
       agents: {

@@ -2,18 +2,18 @@ import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js"
 
 export const GATEWAY_CLIENT_IDS = {
   WEBCHAT_UI: "webchat-ui",
-  CONTROL_UI: "openclaw-control-ui",
-  TUI: "openclaw-tui",
+  CONTROL_UI: "kova-control-ui",
+  TUI: "kova-tui",
   WEBCHAT: "webchat",
   CLI: "cli",
   GATEWAY_CLIENT: "gateway-client",
-  MACOS_APP: "openclaw-macos",
-  IOS_APP: "openclaw-ios",
-  ANDROID_APP: "openclaw-android",
+  MACOS_APP: "kova-macos",
+  IOS_APP: "kova-ios",
+  ANDROID_APP: "kova-android",
   NODE_HOST: "node-host",
   TEST: "test",
   FINGERPRINT: "fingerprint",
-  PROBE: "openclaw-probe",
+  PROBE: "kova-probe",
 } as const;
 
 export type GatewayClientId = (typeof GATEWAY_CLIENT_IDS)[keyof typeof GATEWAY_CLIENT_IDS];
@@ -53,15 +53,24 @@ export type GatewayClientCap = (typeof GATEWAY_CLIENT_CAPS)[keyof typeof GATEWAY
 
 const GATEWAY_CLIENT_ID_SET = new Set<GatewayClientId>(Object.values(GATEWAY_CLIENT_IDS));
 const GATEWAY_CLIENT_MODE_SET = new Set<GatewayClientMode>(Object.values(GATEWAY_CLIENT_MODES));
+const LEGACY_GATEWAY_CLIENT_IDS: Readonly<Record<string, GatewayClientId>> = {
+  "openclaw-control-ui": GATEWAY_CLIENT_IDS.CONTROL_UI,
+  "openclaw-tui": GATEWAY_CLIENT_IDS.TUI,
+  "openclaw-macos": GATEWAY_CLIENT_IDS.MACOS_APP,
+  "openclaw-ios": GATEWAY_CLIENT_IDS.IOS_APP,
+  "openclaw-android": GATEWAY_CLIENT_IDS.ANDROID_APP,
+  "openclaw-probe": GATEWAY_CLIENT_IDS.PROBE,
+};
 
 export function normalizeGatewayClientId(raw?: string | null): GatewayClientId | undefined {
   const normalized = normalizeOptionalLowercaseString(raw);
   if (!normalized) {
     return undefined;
   }
-  return GATEWAY_CLIENT_ID_SET.has(normalized as GatewayClientId)
-    ? (normalized as GatewayClientId)
-    : undefined;
+  if (GATEWAY_CLIENT_ID_SET.has(normalized as GatewayClientId)) {
+    return normalized as GatewayClientId;
+  }
+  return LEGACY_GATEWAY_CLIENT_IDS[normalized];
 }
 
 export function normalizeGatewayClientName(raw?: string | null): GatewayClientName | undefined {
