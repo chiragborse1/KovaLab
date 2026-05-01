@@ -101,6 +101,8 @@ export type AgentCommandOpts = {
   cleanupBundleMcpOnRunEnd?: boolean;
   /** Internal local CLI callers can annotate result metadata before JSON/text output. */
   resultMetaOverrides?: AgentCommandResultMetaOverrides;
+  /** Internal ingress callers can suppress local stdout-style payload logging. */
+  suppressLocalOutputLogging?: boolean;
   /** Internal one-shot model probe mode: no tools, no workspace/chat prompt policy. */
   modelRun?: boolean;
   /** Internal prompt-mode override for trusted local/gateway callsites. */

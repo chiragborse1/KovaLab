@@ -350,7 +350,9 @@ export async function deliverAgentCommandResult(params: {
   }
 
   if (!payloads || payloads.length === 0) {
-    runtime.log("No reply from agent.");
+    if (!opts.suppressLocalOutputLogging) {
+      runtime.log("No reply from agent.");
+    }
     return { payloads: [], meta: resultMeta };
   }
 
@@ -369,7 +371,7 @@ export async function deliverAgentCommandResult(params: {
     }
     runtime.log(output);
   };
-  if (!deliver) {
+  if (!deliver && !opts.suppressLocalOutputLogging) {
     for (const payload of deliveryPayloads) {
       logPayload(payload);
     }

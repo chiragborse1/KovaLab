@@ -1191,6 +1191,7 @@ export const agentHandlers: GatewayRequestHandlers = {
           }),
           senderIsOwner,
           allowModelOverride,
+          suppressLocalOutputLogging: true,
         },
         runId,
         idempotencyKey: idem,

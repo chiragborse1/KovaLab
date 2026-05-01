@@ -180,6 +180,32 @@ describe("normalizeAgentCommandReplyPayloads", () => {
     expect(delivered.payloads).toMatchObject([{ text: "Options: on, off." }]);
   });
 
+  it("suppresses local preview logging for gateway-style ingress runs", async () => {
+    const runtime = {
+      log: vi.fn(),
+    };
+
+    const delivered = await deliverAgentCommandResult({
+      cfg: {} as OpenClawConfig,
+      deps: {} as CliDeps,
+      runtime: runtime as never,
+      opts: {
+        message: "test",
+        channel: "slack",
+        suppressLocalOutputLogging: true,
+      } as AgentCommandOpts,
+      outboundSession: undefined,
+      sessionEntry: undefined,
+      payloads: [{ text: "internal preview should stay off stdout" }],
+      result: createResult(),
+    });
+
+    expect(runtime.log).not.toHaveBeenCalled();
+    expect(delivered.payloads).toMatchObject([
+      { text: "internal preview should stay off stdout" },
+    ]);
+  });
+
   it("normalizes reply-media paths before outbound delivery", async () => {
     const normalizerFn = vi.fn(
       async (payload: ReplyPayload): Promise<ReplyPayload> => ({

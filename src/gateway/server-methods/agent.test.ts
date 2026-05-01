@@ -850,6 +850,25 @@ describe("gateway agent handler", () => {
     expect(callArgs?.senderIsOwner).toBe(senderIsOwner);
   });
 
+  it("suppresses local stdout-style payload logging for gateway agent runs", async () => {
+    primeMainAgentRun();
+
+    await invokeAgent(
+      {
+        message: "keep result on the gateway channel only",
+        sessionKey: "agent:main:main",
+        idempotencyKey: "test-suppress-local-output",
+      },
+      { reqId: "suppress-local-output" },
+    );
+
+    await waitForAssertion(() => expect(mocks.agentCommand).toHaveBeenCalled());
+    const callArgs = mocks.agentCommand.mock.calls.at(-1)?.[0] as
+      | { suppressLocalOutputLogging?: boolean }
+      | undefined;
+    expect(callArgs?.suppressLocalOutputLogging).toBe(true);
+  });
+
   it("respects explicit bestEffortDeliver=false for main session runs", async () => {
     mocks.agentCommand.mockClear();
     primeMainAgentRun();

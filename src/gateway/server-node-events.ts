@@ -362,6 +362,7 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
           thinking: "low",
           deliver: false,
           messageChannel: "node",
+          suppressLocalOutputLogging: true,
           inputProvenance: {
             kind: "external_user",
             sourceChannel: "voice",
@@ -535,6 +536,7 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
           timeout:
             typeof link?.timeoutSeconds === "number" ? link.timeoutSeconds.toString() : undefined,
           messageChannel: "node",
+          suppressLocalOutputLogging: true,
           senderIsOwner: false,
           allowModelOverride: false,
         },
