@@ -27,9 +27,9 @@ Save to `~/.openclaw/openclaw.json` and you can DM the bot from that number.
 ```json5
 {
   identity: {
-    name: "Clawd",
+    name: "Kova",
     theme: "helpful assistant",
-    emoji: "🦞",
+    emoji: "🦄",
   },
   agent: {
     workspace: "~/.openclaw/workspace",
@@ -104,7 +104,7 @@ Save to `~/.openclaw/openclaw.json` and you can DM the bot from that number.
   // Routing + queue
   routing: {
     groupChat: {
-      mentionPatterns: ["@openclaw", "openclaw"],
+      mentionPatterns: ["@kova", "kova"],
       historyLimit: 50,
     },
     queue: {

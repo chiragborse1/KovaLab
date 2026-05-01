@@ -26,7 +26,7 @@ kova agents bindings
 kova agents bind --agent work --bind telegram:ops
 kova agents unbind --agent work --bind telegram:ops
 kova agents set-identity --workspace ~/.openclaw/workspace --from-identity
-kova agents set-identity --agent main --avatar avatars/openclaw.png
+kova agents set-identity --agent main --avatar avatars/kova.png
 kova agents delete work
 ```
 
@@ -196,7 +196,7 @@ kova agents set-identity --workspace ~/.openclaw/workspace --from-identity
 Override fields explicitly:
 
 ```bash
-kova agents set-identity --agent main --name "Kova" --emoji "🦞" --avatar avatars/openclaw.png
+kova agents set-identity --agent main --name "Kova" --emoji "🦄" --avatar avatars/kova.png
 ```
 
 Config sample:
@@ -209,9 +209,9 @@ Config sample:
         id: "main",
         identity: {
           name: "Kova",
-          theme: "space lobster",
-          emoji: "🦞",
-          avatar: "avatars/openclaw.png",
+          theme: "helpful assistant",
+          emoji: "🦄",
+          avatar: "avatars/kova.png",
         },
       },
     ],

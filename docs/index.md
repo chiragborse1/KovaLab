@@ -5,24 +5,24 @@ read_when:
 title: "Kova"
 ---
 
-# Kova 🦞
+# Kova 🦄
 
 <p align="center">
     <img
-        src="/assets/openclaw-logo-text-dark.png"
+        src="/assets/kova-logo.png"
         alt="Kova"
         width="500"
         class="dark:hidden"
     />
     <img
-        src="/assets/openclaw-logo-text.png"
+        src="/assets/kova-logo.png"
         alt="Kova"
         width="500"
         class="hidden dark:block"
     />
 </p>
 
-> _"EXFOLIATE! EXFOLIATE!"_ — A space lobster, probably
+> _"Stay sharp. Ship clearly."_ — Kova
 
 <p align="center">
   <strong>Any OS gateway for AI agents across Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more.</strong><br />
@@ -128,7 +128,7 @@ Open the browser Control UI after the Gateway starts.
 - Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)
 
 <p align="center">
-  <img src="/whatsapp-openclaw.jpg" alt="Kova" width="420" />
+  <img src="/assets/kova-logo.png" alt="Kova" width="320" />
 </p>
 
 ## Configuration (optional)
@@ -148,7 +148,7 @@ Example:
       groups: { "*": { requireMention: true } },
     },
   },
-  messages: { groupChat: { mentionPatterns: ["@openclaw"] } },
+  messages: { groupChat: { mentionPatterns: ["@kova"] } },
 }
 ```
 

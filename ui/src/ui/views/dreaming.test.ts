@@ -201,8 +201,9 @@ describe("dreaming view", () => {
   it("renders the active dream scene chrome and status", () => {
     const container = renderInto(buildProps({ dreamingOf: "reindexing old chats\u2026" }));
 
-    const svg = container.querySelector(".dreams__lobster svg");
-    expect(svg).not.toBeNull();
+    const mascot = container.querySelector(".dreams__mascot img");
+    expect(mascot).not.toBeNull();
+    expect(mascot?.getAttribute("src")).toBe("Kova_logo.png");
 
     const zs = container.querySelectorAll(".dreams__z");
     expect(zs.length).toBe(3);

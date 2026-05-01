@@ -9,13 +9,13 @@ title: "Credits"
 
 ## The name
 
-Kova = CLAW + TARDIS, because every space lobster needs a time and space machine.
+Kova is the product name used across the gateway, Control UI, and docs.
 
 ## Credits
 
-- **Peter Steinberger** ([@steipete](https://x.com/steipete)) - Creator, lobster whisperer
+- **Peter Steinberger** ([@steipete](https://x.com/steipete)) - Creator
 - **Mario Zechner** ([@badlogicc](https://x.com/badlogicgames)) - Pi creator, security pen tester
-- **Clawd** - The space lobster who demanded a better name
+- **Clawd** - Earlier internal character name from the pre-Kova era
 
 ## Core contributors
 
@@ -25,7 +25,7 @@ Kova = CLAW + TARDIS, because every space lobster needs a time and space machine
 
 ## License
 
-MIT - Free as a lobster in the ocean.
+MIT - Free to use, modify, and self-host.
 
 > "We are all just playing with our own prompts." (An AI, probably high on tokens)
 

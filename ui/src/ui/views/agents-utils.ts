@@ -243,7 +243,7 @@ export function resolveChatAvatarRenderUrl(
 
 export function agentLogoUrl(basePath: string): string {
   const base = normalizeOptionalString(basePath)?.replace(/\/$/, "") ?? "";
-  return base ? `${base}/favicon.svg` : "favicon.svg";
+  return base ? `${base}/Kova_logo.png` : "Kova_logo.png";
 }
 
 export function assistantAvatarFallbackUrl(basePath: string): string {

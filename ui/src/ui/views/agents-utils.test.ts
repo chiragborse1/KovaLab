@@ -107,12 +107,12 @@ describe("sortLocaleStrings", () => {
 
 describe("agentLogoUrl", () => {
   it("keeps base-mounted control UI logo paths absolute to the mount", () => {
-    expect(agentLogoUrl("/ui")).toBe("/ui/favicon.svg");
-    expect(agentLogoUrl("/apps/openclaw/")).toBe("/apps/openclaw/favicon.svg");
+    expect(agentLogoUrl("/ui")).toBe("/ui/Kova_logo.png");
+    expect(agentLogoUrl("/apps/openclaw/")).toBe("/apps/openclaw/Kova_logo.png");
   });
 
   it("uses a route-relative fallback before basePath bootstrap finishes", () => {
-    expect(agentLogoUrl("")).toBe("favicon.svg");
+    expect(agentLogoUrl("")).toBe("Kova_logo.png");
   });
 });
 
@@ -164,7 +164,7 @@ describe("resolveAgentAvatarUrl", () => {
 
   it("returns null for initials or emoji avatar values without a URL", () => {
     expect(resolveAgentAvatarUrl({ identity: { avatar: "A" } })).toBeNull();
-    expect(resolveAgentAvatarUrl({ identity: { avatar: "🦞" } })).toBeNull();
+    expect(resolveAgentAvatarUrl({ identity: { avatar: "🦄" } })).toBeNull();
   });
 });
 

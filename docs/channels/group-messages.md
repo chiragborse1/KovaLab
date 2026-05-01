@@ -5,7 +5,7 @@ read_when:
 title: "Group messages"
 ---
 
-Goal: let Clawd sit in WhatsApp groups, wake up only when pinged, and keep that thread separate from the personal DM session.
+Goal: let Kova sit in WhatsApp groups, wake up only when pinged, and keep that thread separate from the personal DM session.
 
 <Note>
 `agents.list[].groupChat.mentionPatterns` is also used by Telegram, Discord, Slack, and iMessage. This doc focuses on WhatsApp-specific behavior. For multi-agent setups, set `agents.list[].groupChat.mentionPatterns` per agent, or use `messages.groupChat.mentionPatterns` as a global fallback.
@@ -23,7 +23,7 @@ Goal: let Clawd sit in WhatsApp groups, wake up only when pinged, and keep that 
 
 ## Config example (WhatsApp)
 
-Add a `groupChat` block to `~/.openclaw/openclaw.json` so display-name pings work even when WhatsApp strips the visual `@` in the text body:
+Add a `groupChat` block to `~/.kova/kova.json` so display-name pings work even when WhatsApp strips the visual `@` in the text body:
 
 ```json5
 {

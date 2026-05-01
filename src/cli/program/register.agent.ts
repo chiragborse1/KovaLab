@@ -225,14 +225,14 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/agent", "docs.neuralstudio.in/cli
         `
 ${theme.heading("Examples:")}
 ${formatHelpExamples([
-  ['openclaw agents set-identity --agent main --name "OpenClaw" --emoji "🦞"', "Set name + emoji."],
-  ["openclaw agents set-identity --agent main --avatar avatars/openclaw.png", "Set avatar path."],
+  ['kova agents set-identity --agent main --name "Kova" --emoji "🦄"', "Set name + emoji."],
+  ["kova agents set-identity --agent main --avatar avatars/kova.png", "Set avatar path."],
   [
-    "openclaw agents set-identity --workspace ~/.openclaw/workspace --from-identity",
+    "kova agents set-identity --workspace ~/.kova/workspace --from-identity",
     "Load from IDENTITY.md.",
   ],
   [
-    "openclaw agents set-identity --identity-file ~/.openclaw/workspace/IDENTITY.md --agent main",
+    "kova agents set-identity --identity-file ~/.kova/workspace/IDENTITY.md --agent main",
     "Use a specific IDENTITY.md.",
   ],
 ])}

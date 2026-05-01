@@ -1213,7 +1213,7 @@ See [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) for preceden
 ```json5
 {
   messages: {
-    responsePrefix: "🦞", // or "auto"
+    responsePrefix: "🦄", // or "auto"
     ackReaction: "👀",
     ackReactionScope: "group-mentions", // group-mentions | group-all | direct | all
     removeAckAfterReply: false,
@@ -1341,7 +1341,7 @@ Defaults for Talk mode (macOS/iOS/Android).
       elevenlabs: {
         voiceId: "elevenlabs_voice_id",
         voiceAliases: {
-          Clawd: "EXAVITQu4vr4xnSDxMaL",
+          Kova: "EXAVITQu4vr4xnSDxMaL",
           Roger: "CwhRBWXzGAHq8TQ4Fs17",
         },
         modelId: "eleven_v3",
