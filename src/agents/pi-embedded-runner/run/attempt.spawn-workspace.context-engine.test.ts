@@ -162,7 +162,7 @@ describe("runEmbeddedAttempt context engine sessionKey forwarding", () => {
       expect.arrayContaining([
         expect.objectContaining({
           role: "custom",
-          customType: "openclaw.runtime-context",
+          customType: "kova.runtime-context",
           display: false,
           content: expect.stringContaining("secret runtime context"),
         }),

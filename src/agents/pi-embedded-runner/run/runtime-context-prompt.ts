@@ -1,4 +1,4 @@
-const OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE = "openclaw.runtime-context";
+import { KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE } from "../../internal-runtime-context.js";
 
 type RuntimeContextSession = {
   sendCustomMessage: (
@@ -87,10 +87,10 @@ export async function queueRuntimeContextForNextTurn(params: {
   }
   await params.session.sendCustomMessage(
     {
-      customType: OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE,
+      customType: KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
       content: buildRuntimeContextMessageContent({ runtimeContext, kind: "next-turn" }),
       display: false,
-      details: { source: "openclaw-runtime-context" },
+      details: { source: "kova-runtime-context" },
     },
     { deliverAs: "nextTurn" },
   );
