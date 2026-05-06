@@ -47,6 +47,19 @@ export type SettingsRowStatus = {
 
 export type SettingsStatusMap = Partial<Record<string, SettingsRowStatus>>;
 
+export type SettingsRuntimeStatus = {
+  provider: string;
+  model: string;
+  memory: "ON" | "OFF";
+  gateway: "Running" | "Stopped";
+  latencyMs?: number;
+};
+
+type SettingsStatusSnapshot = {
+  rows: SettingsStatusMap;
+  runtime: SettingsRuntimeStatus;
+};
+
 type SettingsTheme = "Neural" | "Classic" | "Mono";
 
 const THEME_ACCENTS: Record<SettingsTheme, string> = {
@@ -394,7 +407,7 @@ async function pathExists(candidate: string): Promise<boolean> {
   }
 }
 
-export async function resolveSettingsStatusMap(cfg: OpenClawConfig): Promise<SettingsStatusMap> {
+async function resolveSettingsStatusSnapshot(cfg: OpenClawConfig): Promise<SettingsStatusSnapshot> {
   const workspaceDir = resolveUserPath(resolveDisplayWorkspace(cfg));
   const workspaceExists = await pathExists(workspaceDir);
   const memoryEnabled = cfg.agents?.defaults?.memorySearch?.enabled !== false;
@@ -416,22 +429,38 @@ export async function resolveSettingsStatusMap(cfg: OpenClawConfig): Promise<Set
     resolveSecretInput(cfg, cfg.gateway?.auth?.token, "gateway.auth.token"),
     resolveSecretInput(cfg, cfg.gateway?.auth?.password, "gateway.auth.password"),
   ]);
+  const gatewayStartedAt = Date.now();
   const gateway = await probeGatewayReachable({
     url: gatewayUrl,
     token: process.env.OPENCLAW_GATEWAY_TOKEN ?? gatewayToken,
     password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? gatewayPassword,
     timeoutMs: 350,
   });
+  const gatewayLatencyMs = Date.now() - gatewayStartedAt;
+  const model = splitModelRef(modelPrimary(cfg.agents?.defaults?.model));
 
   return {
-    workspace: workspaceExists ? status("✓ Exists", "ok") : status("⚠ Missing", "warn"),
-    gateway: gateway.ok ? status("✓ Running", "ok") : status("⚠ Stopped", "warn"),
-    memory: memoryEnabled
-      ? memoryHasEntries
-        ? status("✓ Has data", "ok")
-        : status("⚠ Empty", "warn")
-      : status("Disabled", "muted"),
+    rows: {
+      workspace: workspaceExists ? status("✓ Exists", "ok") : status("⚠ Missing", "warn"),
+      gateway: gateway.ok ? status("✓ Running", "ok") : status("⚠ Stopped", "warn"),
+      memory: memoryEnabled
+        ? memoryHasEntries
+          ? status("✓ Has data", "ok")
+          : status("⚠ Empty", "warn")
+        : status("Disabled", "muted"),
+    },
+    runtime: {
+      provider: model.provider,
+      model: model.model,
+      memory: memoryEnabled ? "ON" : "OFF",
+      gateway: gateway.ok ? "Running" : "Stopped",
+      ...(gateway.ok ? { latencyMs: gatewayLatencyMs } : {}),
+    },
   };
+}
+
+export async function resolveSettingsStatusMap(cfg: OpenClawConfig): Promise<SettingsStatusMap> {
+  return (await resolveSettingsStatusSnapshot(cfg)).rows;
 }
 
 function nextThemeName(current: string): SettingsTheme {
@@ -535,6 +564,7 @@ export function renderSettingsDashboard(params: {
   selectedIndex: number;
   message?: string;
   searchQuery?: string;
+  runtimeStatus?: SettingsRuntimeStatus;
 }): string {
   const width = 96;
   const inner = width - 2;
@@ -559,6 +589,20 @@ export function renderSettingsDashboard(params: {
   }
   lines.push(`│${" ".repeat(inner)}│`);
   lines.push(`│${"─".repeat(inner)}│`);
+  if (params.runtimeStatus) {
+    const latency =
+      params.runtimeStatus.latencyMs === undefined
+        ? "offline"
+        : `${String(params.runtimeStatus.latencyMs)}ms`;
+    const runtimeLine = [
+      params.runtimeStatus.provider,
+      params.runtimeStatus.model,
+      `Memory ${params.runtimeStatus.memory}`,
+      `Gateway ${params.runtimeStatus.gateway}`,
+      latency,
+    ].join(" • ");
+    lines.push(`│  ${padRight(theme.accent(truncatePlain(runtimeLine, inner - 2)), inner - 2)}│`);
+  }
   lines.push(`│  ${padRight("[Enter] Edit   [Space] Toggle   [/] Search   [Q] Quit", inner - 2)}│`);
   const footer =
     params.searchQuery !== undefined
@@ -612,12 +656,6 @@ async function saveConfig(nextConfig: OpenClawConfig): Promise<void> {
   });
 }
 
-function printNonInteractive(rows: SettingsDashboardRow[], runtime: RuntimeEnv): void {
-  runtime.log(renderSettingsDashboard({ rows, selectedIndex: 0 }));
-  runtime.log("");
-  runtime.log("Interactive controls need a TTY. Use `kova configure --section <name>` in scripts.");
-}
-
 async function runAction(action: SettingsAction, runtime: RuntimeEnv): Promise<void> {
   if (action.type === "configure") {
     await configureCommandWithSections([action.section], runtime);
@@ -654,9 +692,21 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
 
   const stdin = process.stdin as KeypressInput;
   const stdout = process.stdout as WriteStream;
-  let statusMap = await resolveSettingsStatusMap(workingConfig);
+  let statusSnapshot = await resolveSettingsStatusSnapshot(workingConfig);
+  let statusMap = statusSnapshot.rows;
+  let runtimeStatus = statusSnapshot.runtime;
   if (!stdin.isTTY || !stdout.isTTY) {
-    printNonInteractive(buildSettingsDashboardRows(workingConfig, statusMap), runtime);
+    runtime.log(
+      renderSettingsDashboard({
+        rows: buildSettingsDashboardRows(workingConfig, statusMap),
+        selectedIndex: 0,
+        runtimeStatus,
+      }),
+    );
+    runtime.log("");
+    runtime.log(
+      "Interactive controls need a TTY. Use `kova configure --section <name>` in scripts.",
+    );
     return;
   }
 
@@ -667,13 +717,17 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
   const render = () => {
     const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
     stdout.write("\x1b[?25l\x1b[2J\x1b[H");
-    stdout.write(renderSettingsDashboard({ rows, selectedIndex, message, searchQuery }));
+    stdout.write(
+      renderSettingsDashboard({ rows, selectedIndex, message, searchQuery, runtimeStatus }),
+    );
   };
 
   const reload = async () => {
     workingConfig = await readCurrentConfig(runtime);
     if (workingConfig) {
-      statusMap = await resolveSettingsStatusMap(workingConfig);
+      statusSnapshot = await resolveSettingsStatusSnapshot(workingConfig);
+      statusMap = statusSnapshot.rows;
+      runtimeStatus = statusSnapshot.runtime;
     }
   };
 

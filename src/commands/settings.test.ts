@@ -93,12 +93,24 @@ describe("settings dashboard", () => {
 
   it("renders the keyboard help and status column", () => {
     const rows = buildSettingsDashboardRows({});
-    const output = renderSettingsDashboard({ rows, selectedIndex: 0, searchQuery: "gateway" });
+    const output = renderSettingsDashboard({
+      rows,
+      selectedIndex: 0,
+      searchQuery: "gateway",
+      runtimeStatus: {
+        provider: "OpenAI",
+        model: "GPT-5.5",
+        memory: "ON",
+        gateway: "Running",
+        latencyMs: 24,
+      },
+    });
 
     expect(output).toContain("Kova Settings");
     expect(output).toContain("[Enter] Edit");
     expect(output).toContain("[Space] Toggle");
     expect(output).toContain("[/] Search");
     expect(output).toContain("Search: /gateway");
+    expect(output).toContain("OpenAI • GPT-5.5 • Memory ON • Gateway Running • 24ms");
   });
 });

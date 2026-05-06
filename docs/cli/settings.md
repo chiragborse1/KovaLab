@@ -32,6 +32,9 @@ Each row includes a small status indicator where Kova can resolve one quickly,
 for example Gateway running/stopped, workspace existence, memory data, active
 plugins, and configured channels.
 
+The bottom runtime bar summarizes the current provider, model, memory mode,
+Gateway state, and latest Gateway probe latency.
+
 Keyboard controls:
 
 - Up/Down: move between rows
