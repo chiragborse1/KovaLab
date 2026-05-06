@@ -9,6 +9,11 @@ import { resolveNpmRunner } from "./npm-runner.mjs";
 const TRANSIENT_TEMP_REMOVE_ERROR_CODES = new Set(["EBUSY", "ENOTEMPTY", "EPERM"]);
 const TEMP_REMOVE_RETRY_DELAYS_MS = [10, 25, 50];
 const TEMP_OWNER_FILE = "owner.json";
+const LOCAL_BUNDLED_RUNTIME_DEPS_DIR = path.resolve(
+  process.cwd(),
+  ".local",
+  "bundled-plugin-runtime-deps",
+);
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -71,6 +76,48 @@ function makePluginOwnedTempDir(pluginDir, label) {
   return makeOwnedTempDir(pluginDir, `.openclaw-runtime-deps-${label}-`);
 }
 
+function isInsidePath(childPath, parentPath) {
+  const relative = path.relative(parentPath, childPath);
+  return (
+    relative === "" || (!!relative && !relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+}
+
+function removeOwnedRuntimeDepsSymlinkIfPresent(targetPath, label) {
+  let stats;
+  try {
+    stats = fs.lstatSync(targetPath);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return false;
+    }
+    throw error;
+  }
+
+  if (!stats.isSymbolicLink()) {
+    return false;
+  }
+
+  const linkTarget = fs.readlinkSync(targetPath);
+  const resolvedTarget = path.resolve(path.dirname(targetPath), linkTarget);
+  if (
+    path.basename(targetPath) === "node_modules" &&
+    isInsidePath(resolvedTarget, LOCAL_BUNDLED_RUNTIME_DEPS_DIR)
+  ) {
+    fs.unlinkSync(targetPath);
+    return true;
+  }
+
+  throw new Error(`refusing to ${label} via symlinked path: ${targetPath}`);
+}
+
+function prepareRuntimeDepsDirTarget(targetPath, label) {
+  if (removeOwnedRuntimeDepsSymlinkIfPresent(targetPath, label)) {
+    return;
+  }
+  assertPathIsNotSymlink(targetPath, label);
+}
+
 function assertPathIsNotSymlink(targetPath, label) {
   try {
     if (fs.lstatSync(targetPath).isSymbolicLink()) {
@@ -85,7 +132,7 @@ function assertPathIsNotSymlink(targetPath, label) {
 }
 
 function replaceDirAtomically(targetPath, sourcePath) {
-  assertPathIsNotSymlink(targetPath, "replace runtime deps");
+  prepareRuntimeDepsDirTarget(targetPath, "replace runtime deps");
   const targetParentDir = path.dirname(targetPath);
   fs.mkdirSync(targetParentDir, { recursive: true });
   const backupPath = makeTempDir(
@@ -1070,7 +1117,7 @@ function stageInstalledRootRuntimeDeps(params) {
   const rootsToCopy = selectRuntimeDependencyRootsToCopy(resolution);
   const nodeModulesDir = path.join(pluginDir, "node_modules");
   if (rootsToCopy.length === 0) {
-    assertPathIsNotSymlink(nodeModulesDir, "remove runtime deps");
+    prepareRuntimeDepsDirTarget(nodeModulesDir, "remove runtime deps");
     removePathIfExists(nodeModulesDir);
     writeJsonAtomically(stampPath, {
       cheapFingerprint,
@@ -1202,7 +1249,7 @@ function installPluginRuntimeDeps(params) {
       pruneStagedRuntimeDependencyCargo(stagedNodeModulesDir, pruneConfig);
       replaceDirAtomically(nodeModulesDir, stagedNodeModulesDir);
     } else {
-      assertPathIsNotSymlink(nodeModulesDir, "remove runtime deps");
+      prepareRuntimeDepsDirTarget(nodeModulesDir, "remove runtime deps");
       removePathIfExists(nodeModulesDir);
     }
     writeJsonAtomically(stampPath, {
