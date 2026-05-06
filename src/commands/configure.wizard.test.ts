@@ -62,7 +62,7 @@ vi.mock("../terminal/note.js", () => ({
 }));
 
 vi.mock("./onboard-helpers.js", () => ({
-  DEFAULT_WORKSPACE: "~/.openclaw/workspace",
+  DEFAULT_WORKSPACE: "~/.kova/workspace",
   applyWizardMetadata: (cfg: OpenClawConfig) => cfg,
   ensureWorkspaceAndSessions: vi.fn(),
   guardCancel: <T>(value: T) => value,
@@ -623,7 +623,7 @@ describe("runConfigureWizard", () => {
     expect(retryCall.nextConfig).toMatchObject({
       agents: {
         defaults: {
-          workspace: expect.stringContaining("/.openclaw/workspace"),
+          workspace: expect.stringContaining("/.kova/workspace"),
         },
       },
       plugins: {

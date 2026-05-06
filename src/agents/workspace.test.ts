@@ -23,17 +23,26 @@ import {
 } from "./workspace.js";
 
 describe("resolveDefaultAgentWorkspaceDir", () => {
-  it("uses OPENCLAW_HOME for default workspace resolution", () => {
+  it("uses HOME/.kova/workspace by default", () => {
     const dir = resolveDefaultAgentWorkspaceDir({
-      OPENCLAW_HOME: "/srv/openclaw-home",
+      HOME: "/home/chirag",
+    } as NodeJS.ProcessEnv);
+
+    expect(dir).toBe(path.join(path.resolve("/home/chirag"), ".kova", "workspace"));
+  });
+
+  it("uses KOVA_HOME for default workspace resolution", () => {
+    const dir = resolveDefaultAgentWorkspaceDir({
+      KOVA_HOME: "/srv/kova-home",
       HOME: "/home/other",
     } as NodeJS.ProcessEnv);
 
-    expect(dir).toBe(path.join(path.resolve("/srv/openclaw-home"), ".openclaw", "workspace"));
+    expect(dir).toBe(path.join(path.resolve("/srv/kova-home"), ".kova", "workspace"));
   });
 });
 
-const WORKSPACE_STATE_PATH_SEGMENTS = [".openclaw", "workspace-state.json"] as const;
+const WORKSPACE_STATE_PATH_SEGMENTS = [".kova", "workspace-state.json"] as const;
+const LEGACY_WORKSPACE_STATE_PATH_SEGMENTS = [".openclaw", "workspace-state.json"] as const;
 
 async function readWorkspaceState(dir: string): Promise<{
   version: number;
@@ -159,7 +168,7 @@ describe("ensureAgentWorkspace", () => {
     const tempDir = await makeTempWorkspace("openclaw-workspace-");
     await fs.mkdir(path.join(tempDir, ".openclaw"), { recursive: true });
     await fs.writeFile(
-      path.join(tempDir, ...WORKSPACE_STATE_PATH_SEGMENTS),
+      path.join(tempDir, ...LEGACY_WORKSPACE_STATE_PATH_SEGMENTS),
       JSON.stringify({
         version: 1,
         onboardingCompletedAt: "2026-03-15T02:30:00.000Z",
