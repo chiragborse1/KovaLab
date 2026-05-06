@@ -384,6 +384,44 @@ describe("stageBundledPluginRuntime", () => {
     expect(fs.readFileSync(runtimePackagePath, "utf8")).toContain('"extensions": [');
   });
 
+  it("skips bundled runtime-deps staging debris in dist plugin overlays", () => {
+    const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-debris-");
+    createDistPluginDir(repoRoot, "whatsapp");
+    setupRepoFiles(repoRoot, {
+      [bundledDistPluginFile("whatsapp", "index.js")]: "export default {}\n",
+      [bundledDistPluginFile(
+        "whatsapp",
+        ".openclaw-runtime-deps-backup-node_modules-old/@jimp/plugin-dither/src/index.js",
+      )]: "stale\n",
+      [bundledDistPluginFile("whatsapp", ".openclaw-runtime-deps-stamp.json")]: "{}\n",
+    });
+
+    expect(() => stageBundledPluginRuntime({ repoRoot })).not.toThrow();
+
+    expect(
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          "dist-runtime",
+          "extensions",
+          "whatsapp",
+          ".openclaw-runtime-deps-backup-node_modules-old",
+        ),
+      ),
+    ).toBe(false);
+    expect(
+      fs.existsSync(
+        path.join(
+          repoRoot,
+          "dist-runtime",
+          "extensions",
+          "whatsapp",
+          ".openclaw-runtime-deps-stamp.json",
+        ),
+      ),
+    ).toBe(false);
+  });
+
   it("copies bundled plugin skill trees into the runtime overlay", () => {
     const repoRoot = makeRepoRoot("openclaw-stage-bundled-runtime-skills-");
     createDistPluginDir(repoRoot, "feishu");

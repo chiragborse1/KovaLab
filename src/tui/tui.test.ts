@@ -167,8 +167,8 @@ describe("resolveGatewayDisconnectState", () => {
   it("returns pairing recovery guidance when disconnect reason requires pairing", () => {
     const state = resolveGatewayDisconnectState("gateway closed (1008): pairing required");
     expect(state.connectionStatus).toContain("pairing required");
-    expect(state.activityStatus).toBe("pairing required: run openclaw devices list");
-    expect(state.pairingHint).toContain("openclaw devices list");
+    expect(state.activityStatus).toBe("pairing required: run kova devices list");
+    expect(state.pairingHint).toContain("kova devices list");
   });
 
   it("falls back to idle for generic disconnect reasons", () => {
@@ -344,7 +344,7 @@ describe("resolveLocalAuthCliInvocation", () => {
     expect(
       resolveLocalAuthCliInvocation({
         execPath: "/usr/bin/node",
-        wrapperPath: "/repo/openclaw.mjs",
+        wrapperPath: "/repo/kova.mjs",
         runNodePath: "/repo/scripts/run-node.mjs",
         hasDistEntry: false,
         hasRunNodeScript: true,
@@ -359,14 +359,14 @@ describe("resolveLocalAuthCliInvocation", () => {
     expect(
       resolveLocalAuthCliInvocation({
         execPath: "/usr/bin/node",
-        wrapperPath: "/repo/openclaw.mjs",
+        wrapperPath: "/repo/kova.mjs",
         runNodePath: "/repo/scripts/run-node.mjs",
         hasDistEntry: true,
         hasRunNodeScript: true,
       }),
     ).toEqual({
       command: "/usr/bin/node",
-      args: ["/repo/openclaw.mjs", "models", "auth", "login"],
+      args: ["/repo/kova.mjs", "models", "auth", "login"],
     });
   });
 });
@@ -410,7 +410,7 @@ describe("resolveLocalAuthSpawnCwd", () => {
   it("runs the packaged wrapper from the repo root", () => {
     expect(
       resolveLocalAuthSpawnCwd({
-        args: ["/repo/openclaw.mjs", "models", "auth", "login"],
+        args: ["/repo/kova.mjs", "models", "auth", "login"],
         defaultCwd: "/worktree/subdir",
       }),
     ).toBe("/repo");

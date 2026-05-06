@@ -352,6 +352,33 @@ describe("ensureChannelSetupPluginInstalled", () => {
     );
   });
 
+  it("auto-confirms the only install source when requested", async () => {
+    const runtime = makeRuntime();
+    const { prompter, select } = makeSkipInstallPrompter();
+    const cfg: OpenClawConfig = { plugins: { allow: ["bundled-chat"] } };
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    installPluginFromNpmSpec.mockResolvedValue({
+      ok: true,
+      pluginId: "bundled-chat",
+      targetDir: "/tmp/bundled-chat",
+      extensions: [],
+    });
+
+    const result = await ensureChannelSetupPluginInstalled({
+      cfg,
+      entry: baseEntry,
+      prompter,
+      runtime,
+      autoConfirmSingleSource: true,
+    });
+
+    expect(select).not.toHaveBeenCalled();
+    expect(result.installed).toBe(true);
+    expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
+      expect.objectContaining({ spec: bundledChatNpmSpec }),
+    );
+  });
+
   it("uses local path when selected", async () => {
     const runtime = makeRuntime();
     const prompter = makePrompter({

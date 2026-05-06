@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
-import "./kova.mjs";
+process.stderr.write('The "openclaw" command has been removed. Use "kova" instead.\n');
+process.exit(1);

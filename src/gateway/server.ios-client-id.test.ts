@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { GATEWAY_CLIENT_IDS, GATEWAY_CLIENT_MODES } from "./protocol/client-info.js";
+import {
+  GATEWAY_CLIENT_IDS,
+  GATEWAY_CLIENT_MODES,
+  normalizeGatewayClientId,
+} from "./protocol/client-info.js";
 import { validateConnectParams } from "./protocol/index.js";
 
 function makeConnectParams(clientId: string) {
@@ -29,6 +33,17 @@ describe("connect params client id validation", () => {
       expect(validateConnectParams.errors ?? []).toHaveLength(0);
     },
   );
+
+  test.each([
+    ["openclaw-ios", GATEWAY_CLIENT_IDS.IOS_APP],
+    ["openclaw-android", GATEWAY_CLIENT_IDS.ANDROID_APP],
+    ["openclaw-macos", GATEWAY_CLIENT_IDS.MACOS_APP],
+  ])("accepts legacy id %s and normalizes it to %s", (legacyId, expectedClientId) => {
+    const ok = validateConnectParams(makeConnectParams(legacyId));
+    expect(ok).toBe(true);
+    expect(validateConnectParams.errors ?? []).toHaveLength(0);
+    expect(normalizeGatewayClientId(legacyId)).toBe(expectedClientId);
+  });
 
   test("rejects unknown client ids", () => {
     const ok = validateConnectParams(makeConnectParams("openclaw-mobile"));

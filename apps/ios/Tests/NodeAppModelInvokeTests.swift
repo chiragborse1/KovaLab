@@ -477,7 +477,7 @@ private final class MockBootstrapNotificationCenter: NotificationCentering, @unc
                 caps: [],
                 commands: [],
                 permissions: [:],
-                clientId: "openclaw-ios",
+                clientId: "kova-ios",
                 clientMode: "node",
                 clientDisplayName: nil))
 

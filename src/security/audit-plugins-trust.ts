@@ -3,6 +3,7 @@ import path from "node:path";
 import { listReadOnlyChannelPluginsForConfig } from "../channels/plugins/read-only.js";
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import { inspectReadOnlyChannelAccount } from "../channels/read-only-account-inspect.js";
+import { formatCliCommand } from "../cli/command-format.js";
 import { resolveNativeSkillsEnabled } from "../config/commands.js";
 import type { OpenClawConfig } from "../config/config.js";
 import type { AgentToolsConfig } from "../config/types.tools.js";
@@ -495,8 +496,7 @@ export async function collectPluginsTrustFindings(params: {
         severity: "warn",
         title: "Plugin index records drift from installed package versions",
         detail: `Detected plugin install metadata drift:\n${pluginVersionDrift.map((entry) => `- ${entry}`).join("\n")}`,
-        remediation:
-          "Run `openclaw plugins update --all` (or reinstall affected plugins) to refresh install metadata.",
+        remediation: `Run \`${formatCliCommand("kova plugins update --all")}\` (or reinstall affected plugins) to refresh install metadata.`,
       });
     }
   }
@@ -557,8 +557,7 @@ export async function collectPluginsTrustFindings(params: {
         severity: "warn",
         title: "Hook install records drift from installed package versions",
         detail: `Detected hook install metadata drift:\n${hookVersionDrift.map((entry) => `- ${entry}`).join("\n")}`,
-        remediation:
-          "Run `openclaw hooks update --all` (or reinstall affected hooks) to refresh install metadata.",
+        remediation: `Run \`${formatCliCommand("kova hooks update --all")}\` (or reinstall affected hooks) to refresh install metadata.`,
       });
     }
   }

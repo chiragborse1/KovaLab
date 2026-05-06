@@ -285,9 +285,9 @@ export async function finalizeSetupWizard(
         [
           "Gateway not detected yet.",
           "Setup was run without Gateway service install, so no background gateway is expected.",
-          `Start now: ${formatCliCommand("openclaw gateway run")}`,
-          `Or rerun with: ${formatCliCommand("openclaw onboard --install-daemon")}`,
-          `Or skip this probe next time: ${formatCliCommand("openclaw onboard --skip-health")}`,
+          `Start now: ${formatCliCommand("kova gateway run")}`,
+          `Or rerun with: ${formatCliCommand("kova onboard --install-daemon")}`,
+          `Or skip this probe next time: ${formatCliCommand("kova onboard --skip-health")}`,
         ].join("\n"),
         "Gateway",
       );
@@ -404,11 +404,11 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           "Gateway token: shared auth for the Gateway + Control UI.",
-          "Stored in: $OPENCLAW_CONFIG_PATH (default: ~/.openclaw/openclaw.json) under gateway.auth.token, or in OPENCLAW_GATEWAY_TOKEN.",
-          `View token: ${formatCliCommand("openclaw config get gateway.auth.token")}`,
-          `Generate token: ${formatCliCommand("openclaw doctor --generate-gateway-token")}`,
+          "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
+          `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
+          `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
           "Web UI keeps dashboard URL tokens in memory for the current tab and strips them from the URL after load.",
-          `Open the dashboard anytime: ${formatCliCommand("openclaw dashboard --no-open")}`,
+          `Open the dashboard anytime: ${formatCliCommand("kova dashboard --no-open")}`,
           "If prompted: paste the token into Control UI settings (or use the tokenized dashboard URL).",
         ].join("\n"),
         "Token",
@@ -471,7 +471,7 @@ export async function finalizeSetupWizard(
       );
     } else {
       await prompter.note(
-        `When you're ready: ${formatCliCommand("openclaw dashboard --no-open")}`,
+        `When you're ready: ${formatCliCommand("kova dashboard --no-open")}`,
         "Later",
       );
     }
@@ -557,7 +557,7 @@ export async function finalizeSetupWizard(
         [
           `Web search provider ${label} is selected but unavailable under the current plugin policy.`,
           "web_search will not work until the provider is re-enabled or a different provider is selected.",
-          `  ${formatCliCommand("openclaw configure --section web")}`,
+          `  ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
@@ -579,7 +579,7 @@ export async function finalizeSetupWizard(
         [
           `Provider ${label} is selected but no API key was found.`,
           "web_search will not work until a key is added.",
-          `  ${formatCliCommand("openclaw configure --section web")}`,
+          `  ${formatCliCommand("kova configure --section web")}`,
           "",
           `Get your key at: ${entry?.signupUrl ?? "https://docs.neuralstudio.in/tools/web"}`,
           "Docs: https://docs.neuralstudio.in/tools/web",
@@ -590,7 +590,7 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           `Web search (${label}) is configured but disabled.`,
-          `Re-enable: ${formatCliCommand("openclaw configure --section web")}`,
+          `Re-enable: ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
@@ -625,7 +625,7 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           "Web search was skipped. You can enable it later:",
-          `  ${formatCliCommand("openclaw configure --section web")}`,
+          `  ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
@@ -646,7 +646,7 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.note(
-    'What now: https://openclaw.ai/showcase ("What People Are Building").',
+    'What now: https://www.neuralstudio.in/ ("What People Are Building").',
     "What now",
   );
 

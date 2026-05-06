@@ -1,7 +1,7 @@
-// OpenClaw Control – Service Worker
+// Kova Control - Service Worker
 // Handles offline caching and push notifications.
 
-const CACHE_NAME = "openclaw-control-v1";
+const CACHE_NAME = "kova-control-v1";
 
 // Minimal app-shell files to precache.
 const PRECACHE_URLS = ["./"];
@@ -88,7 +88,7 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     icon: "./apple-touch-icon.png",
     badge: "./favicon-32.png",
-    tag: data.tag || "openclaw-notification",
+    tag: data.tag || "kova-notification",
     data: { url: data.url || "./" },
   };
 

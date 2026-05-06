@@ -112,7 +112,7 @@ export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessE
   delete childEnv.VITEST_MODE;
   delete childEnv.VITEST_POOL_ID;
   delete childEnv.VITEST_WORKER_ID;
-  const { stdout, stderr } = await execFileAsync(process.execPath, ["openclaw.mjs", ...args], {
+  const { stdout, stderr } = await execFileAsync(process.execPath, ["kova.mjs", ...args], {
     cwd: process.cwd(),
     env: childEnv,
     timeout: 30_000,
@@ -122,7 +122,7 @@ export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessE
   if (!trimmed) {
     throw new Error(
       [
-        `openclaw ${args.join(" ")} produced no JSON stdout`,
+        `kova ${args.join(" ")} produced no JSON stdout`,
         stderr.trim() ? `stderr: ${stderr.trim()}` : undefined,
       ]
         .filter(Boolean)
@@ -134,7 +134,7 @@ export async function runOpenClawCliJson<T>(args: string[], env: NodeJS.ProcessE
   } catch (error) {
     throw new Error(
       [
-        `openclaw ${args.join(" ")} returned invalid JSON`,
+        `kova ${args.join(" ")} returned invalid JSON`,
         `stdout: ${trimmed}`,
         stderr.trim() ? `stderr: ${stderr.trim()}` : undefined,
         error instanceof Error ? `cause: ${error.message}` : undefined,

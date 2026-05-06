@@ -300,5 +300,5 @@ export async function runSetupMigrationImport(params: {
   };
   assertApplySucceeded(withReport);
   await params.prompter.note(formatMigrationPlan(withReport).join("\n"), "Migration applied");
-  await params.prompter.outro("Migration complete. Run `openclaw doctor` next.");
+  await params.prompter.outro("Migration complete. Run `kova doctor` next.");
 }

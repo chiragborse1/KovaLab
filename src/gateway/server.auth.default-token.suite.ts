@@ -397,6 +397,36 @@ export function registerDefaultAuthTokenSuite(): void {
       await new Promise<void>((resolve) => ws.once("close", () => resolve()));
     });
 
+    test("accepts legacy client ids when the signed payload matches the legacy id", async () => {
+      const ws = await openWs(port);
+      const token = resolveGatewayTokenOrEnv();
+      const nonce = await readConnectChallengeNonce(ws);
+
+      const legacyClient = {
+        id: "openclaw-ios",
+        version: "1.0.0",
+        platform: "ios",
+        mode: GATEWAY_CLIENT_MODES.UI,
+      } as const;
+      const { device } = await createSignedDevice({
+        token,
+        scopes: ["operator.read"],
+        clientId: legacyClient.id,
+        clientMode: legacyClient.mode,
+        nonce,
+      });
+
+      const connectRes = await sendRawConnectReq(ws, {
+        id: "c-legacy-client-id",
+        token,
+        client: legacyClient,
+        device,
+      });
+      expect(connectRes.ok).toBe(true);
+      await expectStatusMissingScopeButHealthAvailable(ws);
+      ws.close();
+    });
+
     test("sends connect challenge on open", async () => {
       const ws = new WebSocket(`ws://127.0.0.1:${port}`);
       const evtPromise: Promise<{

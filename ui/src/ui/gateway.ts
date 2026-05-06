@@ -5,6 +5,7 @@ import {
   type GatewayClientMode,
   type GatewayClientName,
 } from "../../../src/gateway/protocol/client-info.js";
+export { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES };
 import {
   ConnectErrorDetailCodes,
   formatConnectErrorMessage,

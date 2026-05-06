@@ -1,3 +1,4 @@
+import { formatCliCommand } from "../cli/command-format.js";
 import type { SecretInputMode } from "../commands/onboard-types.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
@@ -379,7 +380,7 @@ export async function runSearchSetupFlow(
       {
         value: "__skip__" as const,
         label: "Skip for now",
-        hint: "Configure later with openclaw configure --section web",
+        hint: `Configure later with ${formatCliCommand("kova configure --section web")}`,
       },
     ],
     initialValue: defaultProvider,

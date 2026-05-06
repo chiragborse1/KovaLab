@@ -4,7 +4,10 @@ import {
   hasInternalRuntimeContext,
   INTERNAL_RUNTIME_CONTEXT_BEGIN,
   INTERNAL_RUNTIME_CONTEXT_END,
+  KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
+  LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE,
   stripInternalRuntimeContext,
+  stripRuntimeContextCustomMessages,
 } from "./internal-runtime-context.js";
 
 function createDeterministicRng(seed: number): () => number {
@@ -84,5 +87,23 @@ describe("internal runtime context codec", () => {
       expect(stripped).not.toContain(INTERNAL_RUNTIME_CONTEXT_BEGIN);
       expect(stripped).not.toContain(INTERNAL_RUNTIME_CONTEXT_END);
     }
+  });
+
+  it("filters Kova and legacy OpenClaw runtime-context custom messages", () => {
+    const visibleUser = { role: "user", content: "visible" };
+    const kovaRuntime = {
+      role: "custom",
+      customType: KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
+      content: "hidden",
+    };
+    const legacyRuntime = {
+      role: "custom",
+      customType: LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE,
+      content: "legacy hidden",
+    };
+
+    expect(stripRuntimeContextCustomMessages([visibleUser, kovaRuntime, legacyRuntime])).toEqual([
+      visibleUser,
+    ]);
   });
 });

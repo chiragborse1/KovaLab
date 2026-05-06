@@ -15,6 +15,7 @@ import {
 } from "../../config/config.js";
 import { formatConfigIssueLines } from "../../config/issue-format.js";
 import { asResolvedSourceConfig, asRuntimeConfig } from "../../config/materialize.js";
+import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { GATEWAY_SERVICE_KIND, isGatewayServiceMarker } from "../../daemon/constants.js";
 import { resolveGatewayInstallEntrypoint } from "../../daemon/gateway-entrypoint.js";
 import { resolveGatewayRestartLogPath } from "../../daemon/restart-logs.js";
@@ -93,6 +94,7 @@ const DEFAULT_UPDATE_STEP_TIMEOUT_MS = 30 * 60_000;
 const POST_CORE_UPDATE_ENV = "OPENCLAW_UPDATE_POST_CORE";
 const POST_CORE_UPDATE_CHANNEL_ENV = "OPENCLAW_UPDATE_POST_CORE_CHANNEL";
 const POST_CORE_UPDATE_RESULT_PATH_ENV = "OPENCLAW_UPDATE_POST_CORE_RESULT_PATH";
+const POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV = "OPENCLAW_UPDATE_POST_CORE_INSTALL_RECORDS_PATH";
 const SERVICE_REFRESH_PATH_ENV_KEYS = [
   "OPENCLAW_HOME",
   "OPENCLAW_STATE_DIR",
@@ -125,6 +127,25 @@ const UPDATE_QUIPS = [
 type PostCorePluginUpdateResult = NonNullable<
   NonNullable<UpdateRunResult["postUpdate"]>["plugins"]
 >;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizePluginInstallRecordMap(value: unknown): Record<string, PluginInstallRecord> {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const records: Record<string, PluginInstallRecord> = {};
+  for (const [pluginId, record] of Object.entries(value).toSorted(([left], [right]) =>
+    left.localeCompare(right),
+  )) {
+    if (isRecord(record) && typeof record.source === "string") {
+      records[pluginId] = structuredClone(record) as PluginInstallRecord;
+    }
+  }
+  return records;
+}
 
 function pickUpdateQuip(): string {
   return UPDATE_QUIPS[Math.floor(Math.random() * UPDATE_QUIPS.length)] ?? "Update complete.";
@@ -607,6 +628,7 @@ async function updatePluginsAfterCoreUpdate(params: {
   configSnapshot: Awaited<ReturnType<typeof readConfigFileSnapshot>>;
   opts: UpdateCommandOptions;
   timeoutMs: number;
+  pluginInstallRecords?: Record<string, PluginInstallRecord>;
 }): Promise<PostCorePluginUpdateResult> {
   if (!params.configSnapshot.valid) {
     if (!params.opts.json) {
@@ -644,7 +666,8 @@ async function updatePluginsAfterCoreUpdate(params: {
     defaultRuntime.log(theme.heading("Updating plugins..."));
   }
 
-  const pluginInstallRecords = await loadInstalledPluginIndexInstallRecords();
+  const pluginInstallRecords =
+    params.pluginInstallRecords ?? (await loadInstalledPluginIndexInstallRecords());
   const syncResult = await syncPluginsForUpdateChannel({
     config: withPluginInstallRecords(params.configSnapshot.sourceConfig, pluginInstallRecords),
     channel: params.channel,
@@ -1001,6 +1024,7 @@ async function runPostCorePluginUpdate(params: {
   configSnapshot: Awaited<ReturnType<typeof readConfigFileSnapshot>>;
   opts: UpdateCommandOptions;
   timeoutMs: number;
+  pluginInstallRecords?: Record<string, PluginInstallRecord>;
 }): Promise<PostCorePluginUpdateResult> {
   return await updatePluginsAfterCoreUpdate({
     root: params.root,
@@ -1008,6 +1032,7 @@ async function runPostCorePluginUpdate(params: {
     configSnapshot: params.configSnapshot,
     opts: params.opts,
     timeoutMs: params.timeoutMs,
+    pluginInstallRecords: params.pluginInstallRecords,
   });
 }
 
@@ -1019,6 +1044,27 @@ async function writePostCorePluginUpdateResultFile(
     return;
   }
   await fs.writeFile(filePath, `${JSON.stringify(result)}\n`, "utf-8");
+}
+
+async function writePostCorePluginInstallRecordsFile(
+  filePath: string,
+  records: Record<string, PluginInstallRecord>,
+): Promise<void> {
+  await fs.writeFile(filePath, `${JSON.stringify(records)}\n`, "utf-8");
+}
+
+async function readPostCorePluginInstallRecordsFile(
+  filePath: string | undefined,
+): Promise<Record<string, PluginInstallRecord> | undefined> {
+  if (!filePath) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(await fs.readFile(filePath, "utf-8")) as unknown;
+    return normalizePluginInstallRecordMap(parsed);
+  } catch {
+    return undefined;
+  }
 }
 
 async function readPostCorePluginUpdateResultFile(
@@ -1044,6 +1090,7 @@ async function continuePostCoreUpdateInFreshProcess(params: {
   root: string;
   channel: "stable" | "beta" | "dev";
   opts: UpdateCommandOptions;
+  pluginInstallRecords: Record<string, PluginInstallRecord>;
 }): Promise<{ resumed: boolean; pluginUpdate?: PostCorePluginUpdateResult }> {
   const entryPath = path.join(params.root, "dist", "entry.js");
   if (!(await pathExists(entryPath))) {
@@ -1063,13 +1110,12 @@ async function continuePostCoreUpdateInFreshProcess(params: {
   if (params.opts.timeout) {
     argv.push("--timeout", params.opts.timeout);
   }
-  const resultDir =
-    params.opts.json === true
-      ? await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-post-core-"))
-      : null;
-  const resultPath = resultDir ? path.join(resultDir, "plugins.json") : null;
+  const resultDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-post-core-"));
+  const resultPath = params.opts.json === true ? path.join(resultDir, "plugins.json") : null;
+  const installRecordsPath = path.join(resultDir, "plugin-install-records.json");
 
   try {
+    await writePostCorePluginInstallRecordsFile(installRecordsPath, params.pluginInstallRecords);
     const child = spawn(resolveNodeRunner(), argv, {
       stdio: "inherit",
       env: {
@@ -1077,6 +1123,7 @@ async function continuePostCoreUpdateInFreshProcess(params: {
         [POST_CORE_UPDATE_ENV]: "1",
         [POST_CORE_UPDATE_CHANNEL_ENV]: params.channel,
         ...(resultPath ? { [POST_CORE_UPDATE_RESULT_PATH_ENV]: resultPath } : {}),
+        [POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV]: installRecordsPath,
       },
     });
 
@@ -1103,9 +1150,7 @@ async function continuePostCoreUpdateInFreshProcess(params: {
     }
     return { resumed: true, ...(pluginUpdate ? { pluginUpdate } : {}) };
   } finally {
-    if (resultDir) {
-      await fs.rm(resultDir, { recursive: true, force: true }).catch(() => undefined);
-    }
+    await fs.rm(resultDir, { recursive: true, force: true }).catch(() => undefined);
   }
 }
 
@@ -1121,6 +1166,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
   const invocationCwd = tryResolveInvocationCwd();
   const postCoreUpdateResume = process.env[POST_CORE_UPDATE_ENV] === "1";
   const postCoreUpdateChannel = process.env[POST_CORE_UPDATE_CHANNEL_ENV]?.trim();
+  const postCoreInstallRecordsPath = process.env[POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV];
 
   const timeoutMs = parseTimeoutMsOrExit(opts.timeout);
   const shouldRestart = opts.restart !== false;
@@ -1147,6 +1193,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       configSnapshot: await readConfigFileSnapshot(),
       opts,
       timeoutMs: updateStepTimeoutMs,
+      pluginInstallRecords: await readPostCorePluginInstallRecordsFile(postCoreInstallRecordsPath),
     });
     if (opts.json) {
       await writePostCorePluginUpdateResultFile(
@@ -1387,6 +1434,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
 
   const { progress, stop } = createUpdateProgress(showProgress);
   const startedAt = Date.now();
+  const preUpdatePluginInstallRecords = await loadInstalledPluginIndexInstallRecords();
 
   const result =
     updateInstallKind === "package"
@@ -1443,9 +1491,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
         ),
       );
       defaultRuntime.log(
-        theme.muted(
-          `Examples: \`npm i -g getkova@latest\` or \`pnpm add -g getkova@latest\``,
-        ),
+        theme.muted(`Examples: \`npm i -g getkova@latest\` or \`pnpm add -g getkova@latest\``),
       );
     }
     defaultRuntime.exit(0);
@@ -1493,6 +1539,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       root: postUpdateRoot,
       channel,
       opts,
+      pluginInstallRecords: preUpdatePluginInstallRecords,
     });
     pluginsUpdatedInFreshProcess = freshProcessResult.resumed;
     postCorePluginUpdate = freshProcessResult.pluginUpdate;
@@ -1505,6 +1552,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       configSnapshot: postUpdateConfigSnapshot,
       opts,
       timeoutMs: updateStepTimeoutMs,
+      pluginInstallRecords: preUpdatePluginInstallRecords,
     });
   }
 

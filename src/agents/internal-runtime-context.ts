@@ -4,6 +4,9 @@ export const INTERNAL_RUNTIME_CONTEXT_END = "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>
 const ESCAPED_INTERNAL_RUNTIME_CONTEXT_BEGIN = "[[OPENCLAW_INTERNAL_CONTEXT_BEGIN]]";
 const ESCAPED_INTERNAL_RUNTIME_CONTEXT_END = "[[OPENCLAW_INTERNAL_CONTEXT_END]]";
 
+export const KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE = "kova.runtime-context";
+export const LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE = "openclaw.runtime-context";
+
 const INTERNAL_CONTEXT_HEADER =
   [
     "Kova runtime context (internal):",
@@ -183,5 +186,44 @@ export function hasInternalRuntimeContext(text: string): boolean {
     findDelimitedTokenIndex(text, INTERNAL_RUNTIME_CONTEXT_BEGIN, 0) !== -1 ||
     text.includes(INTERNAL_CONTEXT_HEADER) ||
     text.includes(LEGACY_INTERNAL_CONTEXT_HEADER)
+  );
+}
+
+function isRuntimeContextCustomMessage(message: unknown): boolean {
+  if (!message || typeof message !== "object") {
+    return false;
+  }
+  const candidate = message as { role?: unknown; customType?: unknown };
+  return (
+    candidate.role === "custom" &&
+    (candidate.customType === KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE ||
+      candidate.customType === LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE)
+  );
+}
+
+export function stripRuntimeContextCustomMessages<T>(messages: T[]): T[] {
+  if (!messages.some(isRuntimeContextCustomMessage)) {
+    return messages;
+  }
+  return messages.filter((message) => !isRuntimeContextCustomMessage(message));
+}
+
+function isUserMessage(message: unknown): boolean {
+  return Boolean(
+    message && typeof message === "object" && (message as { role?: unknown }).role === "user",
+  );
+}
+
+/** Removes stale runtime-context custom messages while preserving current-turn context. */
+export function stripHistoricalRuntimeContextCustomMessages<T>(messages: T[]): T[] {
+  if (!messages.some(isRuntimeContextCustomMessage)) {
+    return messages;
+  }
+  const lastUserIndex = messages.findLastIndex(isUserMessage);
+  if (lastUserIndex === -1) {
+    return messages.filter((message) => !isRuntimeContextCustomMessage(message));
+  }
+  return messages.filter(
+    (message, index) => !isRuntimeContextCustomMessage(message) || index > lastUserIndex,
   );
 }

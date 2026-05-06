@@ -1665,16 +1665,16 @@ ensure_openclaw_bin_link() {
         ln -sf "$npm_root/getkova/kova.mjs" "${npm_bin}/kova"
         ui_info "Created kova bin link at ${npm_bin}/kova"
     fi
-    if [[ ! -x "${npm_bin}/openclaw" ]]; then
-        ln -sf "$npm_root/getkova/kova.mjs" "${npm_bin}/openclaw"
-        ui_info "Created openclaw compatibility link at ${npm_bin}/openclaw"
+    if [[ -e "${npm_bin}/openclaw" ]]; then
+        rm -f "${npm_bin}/openclaw"
+        ui_info "Removed legacy openclaw alias at ${npm_bin}/openclaw"
     fi
     return 0
 }
 
 # Check for existing Kova installation
 check_existing_openclaw() {
-    if [[ -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
+    if [[ -n "$(type -P kova 2>/dev/null || true)" || -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
         ui_info "Existing Kova installation detected, upgrading"
         return 0
     fi
@@ -2155,14 +2155,9 @@ install_openclaw_from_git() {
 set -euo pipefail
 exec node "${repo_dir}/kova.mjs" "\$@"
 EOF
-    cat > "$HOME/.local/bin/openclaw" <<EOF
-#!/usr/bin/env bash
-set -euo pipefail
-exec node "${repo_dir}/kova.mjs" "\$@"
-EOF
-    chmod +x "$HOME/.local/bin/kova" "$HOME/.local/bin/openclaw"
+    rm -f "$HOME/.local/bin/openclaw"
+    chmod +x "$HOME/.local/bin/kova"
     ui_success "Kova wrapper installed to \$HOME/.local/bin/kova"
-    ui_info "Legacy openclaw alias kept at \$HOME/.local/bin/openclaw"
     ui_info "This checkout uses pnpm — run pnpm install (or corepack pnpm install) for deps"
 }
 

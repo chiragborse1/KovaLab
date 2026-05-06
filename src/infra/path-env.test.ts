@@ -80,7 +80,7 @@ describe("ensureOpenClawCliOnPath", () => {
   function setupAppCliRoot(name: string) {
     const tmp = abs(`/tmp/openclaw-path/${name}`);
     const appBinDir = path.join(tmp, "AppBin");
-    const appCli = path.join(appBinDir, "openclaw");
+    const appCli = path.join(appBinDir, "kova");
     setDir(tmp);
     setDir(appBinDir);
     setExe(appCli);
@@ -198,7 +198,7 @@ describe("ensureOpenClawCliOnPath", () => {
     ({ envValue, allowProjectLocalBin }) => {
       const { tmp, appCli } = setupAppCliRoot("case-project-local");
       const localBinDir = path.join(tmp, "node_modules", ".bin");
-      const localCli = path.join(localBinDir, "openclaw");
+      const localCli = path.join(localBinDir, "kova");
       setDir(path.join(tmp, "node_modules"));
       setDir(localBinDir);
       setExe(localCli);

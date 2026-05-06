@@ -539,7 +539,7 @@ describe("update-cli", () => {
 
     expect(spawnSync).toHaveBeenCalledWith(
       expect.any(String),
-      [path.join(root, "openclaw.mjs"), "completion", "--write-state"],
+      [path.join(root, "kova.mjs"), "completion", "--write-state"],
       expect.objectContaining({
         env: expect.objectContaining({
           OPENCLAW_COMPLETION_SKIP_PLUGIN_COMMANDS: "1",
@@ -667,6 +667,85 @@ describe("update-cli", () => {
 
     expect(updateNpmInstalledPlugins).toHaveBeenCalledWith(
       expect.objectContaining({ timeoutMs: 1_800_000 }),
+    );
+  });
+
+  it("passes pre-core plugin install records into the resumed post-core process", async () => {
+    const tempDir = createCaseDir("openclaw-update");
+    mockPackageInstallStatus(tempDir);
+    pathExists.mockResolvedValue(true);
+    const pluginInstallRecords = {
+      demo: {
+        source: "npm",
+        spec: "@openclaw/demo@1.0.0",
+        installPath: "/tmp/demo",
+      },
+    };
+    loadInstalledPluginIndexInstallRecords.mockResolvedValueOnce(pluginInstallRecords);
+
+    spawn.mockImplementation(
+      (_command: string, _args: string[], options?: { env?: NodeJS.ProcessEnv }) => {
+        const child = new EventEmitter() as EventEmitter & {
+          emit: EventEmitter["emit"];
+          once: EventEmitter["once"];
+        };
+        queueMicrotask(async () => {
+          const installRecordsPath =
+            options?.env?.OPENCLAW_UPDATE_POST_CORE_INSTALL_RECORDS_PATH?.toString() ?? "";
+          if (installRecordsPath) {
+            const raw = await fs.readFile(installRecordsPath, "utf8");
+            expect(JSON.parse(raw)).toEqual(pluginInstallRecords);
+          }
+          child.emit("exit", 0, null);
+        });
+        return child;
+      },
+    );
+
+    await updateCommand({ yes: true });
+
+    const spawnEnv = spawn.mock.calls.find(
+      (call) =>
+        typeof call[2] === "object" &&
+        call[2] !== null &&
+        "env" in call[2] &&
+        (call[2].env as NodeJS.ProcessEnv | undefined)?.OPENCLAW_UPDATE_POST_CORE === "1",
+    )?.[2]?.env as NodeJS.ProcessEnv | undefined;
+    expect(spawnEnv?.OPENCLAW_UPDATE_POST_CORE_INSTALL_RECORDS_PATH).toBeTruthy();
+  });
+
+  it("reuses serialized install records when resuming post-core plugin updates", async () => {
+    const tempDir = createCaseDir("openclaw-update");
+    const installRecordsPath = path.join(tempDir, "plugin-install-records.json");
+    const pluginInstallRecords = {
+      demo: {
+        source: "npm",
+        spec: "@openclaw/demo@1.0.0",
+        installPath: "/tmp/demo",
+      },
+    };
+    await fs.mkdir(tempDir, { recursive: true });
+    await fs.writeFile(installRecordsPath, `${JSON.stringify(pluginInstallRecords)}\n`, "utf8");
+
+    await withEnvAsync(
+      {
+        OPENCLAW_UPDATE_POST_CORE: "1",
+        OPENCLAW_UPDATE_POST_CORE_CHANNEL: "stable",
+        OPENCLAW_UPDATE_POST_CORE_INSTALL_RECORDS_PATH: installRecordsPath,
+      },
+      async () => {
+        await updateCommand({ restart: false });
+      },
+    );
+
+    expect(syncPluginsForUpdateChannel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          plugins: expect.objectContaining({
+            installs: pluginInstallRecords,
+          }),
+        }),
+      }),
     );
   });
 
@@ -1092,7 +1171,9 @@ describe("update-cli", () => {
     );
 
     expect(defaultRuntime.error).toHaveBeenCalledWith(
-      expect.stringContaining("Package updates cannot run from inside the gateway service process."),
+      expect.stringContaining(
+        "Package updates cannot run from inside the gateway service process.",
+      ),
     );
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     expect(runGatewayUpdate).not.toHaveBeenCalled();

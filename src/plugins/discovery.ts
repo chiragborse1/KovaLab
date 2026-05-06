@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { formatCliCommand } from "../cli/command-format.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -893,7 +894,7 @@ export function discoverOpenClawPlugins(params: {
           result.diagnostics.push({
             level: "warn",
             source: trimmed,
-            message: `ignored plugins.load.paths entry that points at OpenClaw's ${bundledAlias.kind} bundled plugin directory; remove this redundant path or run openclaw doctor --fix`,
+            message: `ignored plugins.load.paths entry that points at OpenClaw's ${bundledAlias.kind} bundled plugin directory; remove this redundant path or run ${formatCliCommand("kova doctor --fix")}`,
           });
           continue;
         }

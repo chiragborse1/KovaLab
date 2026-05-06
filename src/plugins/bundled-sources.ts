@@ -1,3 +1,4 @@
+import { formatCliCommand } from "../cli/command-format.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { discoverOpenClawPlugins } from "./discovery.js";
 import { loadPluginManifest } from "./manifest.js";
@@ -118,5 +119,5 @@ export function resolveBundledPluginInstallCommandHint(params: {
   if (!bundledSource?.localPath) {
     return null;
   }
-  return `openclaw plugins install ${bundledSource.localPath}`;
+  return formatCliCommand(`kova plugins install ${bundledSource.localPath}`);
 }

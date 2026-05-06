@@ -10,6 +10,7 @@ import {
 import { resolvePluginWebSearchConfig } from "../config/plugin-web-search-config.js";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { formatErrorMessage } from "../infra/errors.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { planManifestModelCatalogRows, type ModelCatalogCost } from "../model-catalog/index.js";
 import { isInstalledPluginEnabled } from "../plugins/installed-plugin-index.js";
@@ -73,6 +74,7 @@ const LITELLM_PRICING_URL =
 const CACHE_TTL_MS = 24 * 60 * 60_000;
 const FETCH_TIMEOUT_MS = 60_000;
 const MAX_PRICING_CATALOG_BYTES = 5 * 1024 * 1024;
+const FETCH_RETRY_DELAY_MS = 1_000;
 const log = createSubsystemLogger("gateway").child("model-pricing");
 
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -131,11 +133,52 @@ function isTimeoutError(error: unknown): boolean {
   return /\bTimeoutError\b/u.test(String(error));
 }
 
+function formatPricingError(error: unknown): string {
+  const message = formatErrorMessage(error);
+  const name = readErrorName(error);
+  if (name && !message.startsWith(`${name}:`)) {
+    return `${name}: ${message}`;
+  }
+  return message;
+}
+
+function isRetryableTransportFetchError(error: unknown): boolean {
+  if (isTimeoutError(error)) {
+    return false;
+  }
+  const formatted = formatPricingError(error).toLowerCase();
+  return (
+    readErrorName(error) === "TypeError" &&
+    (/fetch failed/u.test(formatted) ||
+      /\b(econnreset|econnrefused|enotfound|eai_again|socket hang up|network)\b/u.test(formatted))
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(
+  fetchImpl: typeof fetch,
+  input: string,
+  init: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetchImpl(input, init);
+  } catch (error) {
+    if (!isRetryableTransportFetchError(error)) {
+      throw error;
+    }
+    await sleep(FETCH_RETRY_DELAY_MS);
+    return await fetchImpl(input, init);
+  }
+}
+
 function formatPricingFetchFailure(source: "LiteLLM" | "OpenRouter", error: unknown): string {
   if (isTimeoutError(error)) {
     return `${source} pricing fetch failed (timeout ${formatTimeoutSeconds(FETCH_TIMEOUT_MS)}): ${String(error)}`;
   }
-  return `${source} pricing fetch failed: ${String(error)}`;
+  return `${source} pricing fetch failed: ${formatPricingError(error)}`;
 }
 
 function toPricePerMillion(value: number | null): number {
@@ -315,7 +358,7 @@ function parseLiteLLMPricing(entry: LiteLLMModelEntry): CachedModelPricing | nul
 type LiteLLMPricingCatalog = Map<string, CachedModelPricing>;
 
 async function fetchLiteLLMPricingCatalog(fetchImpl: typeof fetch): Promise<LiteLLMPricingCatalog> {
-  const response = await fetchImpl(LITELLM_PRICING_URL, {
+  const response = await fetchWithRetry(fetchImpl, LITELLM_PRICING_URL, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
@@ -783,7 +826,7 @@ export function collectConfiguredModelPricingRefs(
 async function fetchOpenRouterPricingCatalog(
   fetchImpl: typeof fetch,
 ): Promise<Map<string, OpenRouterPricingEntry>> {
-  const response = await fetchImpl(OPENROUTER_MODELS_URL, {
+  const response = await fetchWithRetry(fetchImpl, OPENROUTER_MODELS_URL, {
     headers: { Accept: "application/json" },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });

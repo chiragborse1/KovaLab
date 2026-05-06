@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import JSZip from "jszip";
+import { formatCliCommand } from "../cli/command-format.js";
 import {
   ARCHIVE_LIMIT_ERROR_CODE,
   ArchiveLimitError,
@@ -668,7 +669,7 @@ function validateClawHubPluginPackage(params: {
   }
   if (pkg.family === "skill") {
     return buildClawHubInstallFailure(
-      `"${pkg.name}" is a skill. Use "openclaw skills install ${pkg.name}" instead.`,
+      `"${pkg.name}" is a skill. Use "${formatCliCommand(`kova skills install ${pkg.name}`)}" instead.`,
       CLAWHUB_INSTALL_ERROR_CODE.SKILL_PACKAGE,
     );
   }

@@ -241,7 +241,7 @@ actor GatewayWizardClient {
         }
         let osVersion = ProcessInfo.processInfo.operatingSystemVersion
         let platform = "macos \(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
-        let clientId = "openclaw-macos"
+        let clientId = "kova-macos"
         let clientMode = "ui"
         let role = "operator"
         // Explicit scopes; gateway no longer defaults empty scopes to admin.

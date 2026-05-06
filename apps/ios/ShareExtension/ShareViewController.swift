@@ -191,7 +191,7 @@ final class ShareViewController: UIViewController {
                 token: config.token,
                 bootstrapToken: nil,
                 password: config.password,
-                connectOptions: makeOptions("openclaw-ios"),
+                connectOptions: makeOptions("kova-ios"),
                 sessionBox: nil,
                 onConnected: {},
                 onDisconnected: { _ in },

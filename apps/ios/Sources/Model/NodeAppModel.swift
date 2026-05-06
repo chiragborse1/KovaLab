@@ -2420,7 +2420,9 @@ private extension NodeAppModel {
 
     func legacyClientIdFallback(currentClientId: String, error: Error) -> String? {
         let normalizedClientId = currentClientId.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard normalizedClientId == "openclaw-ios" else { return nil }
+        guard normalizedClientId == "kova-ios" || normalizedClientId == "openclaw-ios" else {
+            return nil
+        }
         let message = error.localizedDescription.lowercased()
         guard message.contains("invalid connect params"), message.contains("/client/id") else {
             return nil
@@ -4308,7 +4310,7 @@ extension NodeAppModel {
                 caps: [],
                 commands: [],
                 permissions: [:],
-                clientId: "openclaw-ios",
+                clientId: "kova-ios",
                 clientMode: "node",
                 clientDisplayName: nil),
             sessionBox: nil)

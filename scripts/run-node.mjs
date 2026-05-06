@@ -568,7 +568,7 @@ const getInterruptedSpawnExitCode = (res) => {
 
 const resolveCliWrapperName = (args, env = process.env) => {
   const wrapperName = args[0] === "--cli-name" ? args[1] : env.OPENCLAW_CLI_WRAPPER;
-  return wrapperName === "kova" ? "kova" : "openclaw";
+  return wrapperName === "kova" ? "kova" : "kova";
 };
 
 const stripCliWrapperArgs = (args) => {

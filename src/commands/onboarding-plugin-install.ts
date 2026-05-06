@@ -435,6 +435,7 @@ export async function ensureOnboardingPluginInstalled(params: {
   runtime: RuntimeEnv;
   workspaceDir?: string;
   promptInstall?: boolean;
+  autoConfirmSingleSource?: boolean;
 }): Promise<OnboardingPluginInstallResult> {
   const { entry, prompter, runtime, workspaceDir } = params;
   let next = params.cfg;
@@ -455,15 +456,21 @@ export async function ensureOnboardingPluginInstalled(params: {
     bundledLocalPath,
     hasNpmSpec: Boolean(npmSpec),
   });
+  const installSources: InstallChoice[] = [
+    ...(npmSpec ? (["npm"] as const) : []),
+    ...(localPath ? (["local"] as const) : []),
+  ];
   const choice =
     params.promptInstall === false
       ? defaultChoice
-      : await promptInstallChoice({
-          entry,
-          localPath,
-          defaultChoice,
-          prompter,
-        });
+      : params.autoConfirmSingleSource && installSources.length === 1
+        ? installSources[0]
+        : await promptInstallChoice({
+            entry,
+            localPath,
+            defaultChoice,
+            prompter,
+          });
 
   if (choice === "skip") {
     return {

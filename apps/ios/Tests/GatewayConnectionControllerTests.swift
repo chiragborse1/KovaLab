@@ -73,11 +73,11 @@ import UIKit
     @Test @MainActor func operatorConnectOptionsOnlyRequestApprovalScopeWhenEnabled() {
         let appModel = NodeAppModel()
         let withoutApprovalScope = appModel._test_makeOperatorConnectOptions(
-            clientId: "openclaw-ios",
+            clientId: "kova-ios",
             displayName: "OpenClaw iOS",
             includeApprovalScope: false)
         let withApprovalScope = appModel._test_makeOperatorConnectOptions(
-            clientId: "openclaw-ios",
+            clientId: "kova-ios",
             displayName: "OpenClaw iOS",
             includeApprovalScope: true)
 

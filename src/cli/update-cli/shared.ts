@@ -262,7 +262,7 @@ export async function resolveGlobalManager(params: {
 const COMPLETION_CACHE_WRITE_TIMEOUT_MS = 30_000;
 
 export async function tryWriteCompletionCache(root: string, jsonMode: boolean): Promise<void> {
-  const binPath = path.join(root, "openclaw.mjs");
+  const binPath = path.join(root, "kova.mjs");
   if (!(await pathExists(binPath))) {
     return;
   }

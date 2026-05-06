@@ -1,4 +1,5 @@
 import { loginOpenAICodex, type OAuthCredentials } from "@mariozechner/pi-ai/oauth";
+import { formatCliCommand } from "../cli/command-format.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { ensureGlobalUndiciEnvProxyDispatcher } from "../infra/net/undici-global-dispatcher.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -62,7 +63,7 @@ function rewriteOpenAICodexOAuthError(error: unknown): Error {
       "unsupported_region",
       [
         "OpenAI rejected the token exchange for this country, region, or network route.",
-        "If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the Kova process and then retry `openclaw models auth login --provider openai-codex`.",
+        `If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the Kova process and then retry \`${formatCliCommand("kova models auth login --provider openai-codex")}\`.`,
       ].join(" "),
       error,
     );
@@ -206,7 +207,10 @@ export async function loginOpenAICodexOAuth(params: {
     spin.stop("OpenAI OAuth failed");
     const rewrittenError = rewriteOpenAICodexOAuthError(err);
     runtime.error(String(rewrittenError));
-    await prompter.note("Trouble with OAuth? See https://docs.neuralstudio.in/start/faq", "OAuth help");
+    await prompter.note(
+      "Trouble with OAuth? See https://docs.neuralstudio.in/start/faq",
+      "OAuth help",
+    );
     throw rewrittenError;
   } finally {
     markLoginSettled();

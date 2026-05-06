@@ -71,7 +71,7 @@ describe("runtime context prompt submission", () => {
 
     expect(sendCustomMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        customType: "openclaw.runtime-context",
+        customType: "kova.runtime-context",
         content: expect.stringContaining("secret runtime context"),
         display: false,
       }),
@@ -82,7 +82,7 @@ describe("runtime context prompt submission", () => {
   it("labels runtime-only events as system context", async () => {
     const { buildRuntimeEventSystemContext } = await import("./runtime-context-prompt.js");
 
-    expect(buildRuntimeEventSystemContext("internal event")).toContain("OpenClaw runtime event.");
+    expect(buildRuntimeEventSystemContext("internal event")).toContain("Kova runtime event.");
     expect(buildRuntimeEventSystemContext("internal event")).toContain("not user-authored");
   });
 });

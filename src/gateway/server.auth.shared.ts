@@ -279,6 +279,13 @@ async function sendRawConnectReq(
   params: {
     id: string;
     token?: string;
+    client?: {
+      id: string;
+      version: string;
+      platform: string;
+      mode: string;
+      displayName?: string;
+    };
     device: { id: string; publicKey: string; signature: string; signedAt: number; nonce?: string };
   },
 ) {
@@ -290,7 +297,7 @@ async function sendRawConnectReq(
       params: {
         minProtocol: PROTOCOL_VERSION,
         maxProtocol: PROTOCOL_VERSION,
-        client: TEST_OPERATOR_CLIENT,
+        client: params.client ?? TEST_OPERATOR_CLIENT,
         caps: [],
         role: "operator",
         auth: params.token ? { token: params.token } : undefined,

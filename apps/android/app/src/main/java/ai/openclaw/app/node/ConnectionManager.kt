@@ -149,7 +149,7 @@ class ConnectionManager(
       caps = buildCapabilities(),
       commands = buildInvokeCommands(),
       permissions = emptyMap(),
-      client = buildClientInfo(clientId = "openclaw-android", clientMode = "node"),
+      client = buildClientInfo(clientId = "kova-android", clientMode = "node"),
       userAgent = buildUserAgent(),
     )
   }
@@ -161,7 +161,7 @@ class ConnectionManager(
       caps = emptyList(),
       commands = emptyList(),
       permissions = emptyMap(),
-      client = buildClientInfo(clientId = "openclaw-android", clientMode = "ui"),
+      client = buildClientInfo(clientId = "kova-android", clientMode = "ui"),
       userAgent = buildUserAgent(),
     )
   }

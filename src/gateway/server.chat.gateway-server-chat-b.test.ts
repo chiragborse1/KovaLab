@@ -285,7 +285,7 @@ describe("gateway server chat", () => {
             message: {
               role: "user",
               content:
-                'Sender (untrusted metadata):\n```json\n{"label":"openclaw-control-ui"}\n```\n\n[Thu 2026-03-26 16:29 GMT] hi',
+                'Sender (untrusted metadata):\n```json\n{"label":"kova-control-ui"}\n```\n\n[Thu 2026-03-26 16:29 GMT] hi',
             },
           }),
           JSON.stringify({
@@ -614,6 +614,61 @@ describe("gateway server chat", () => {
       expect(second.content?.replace(/\s+/g, " ").trim()).toBe("A B");
       expect(third.text?.replace(/\s+/g, " ").trim()).toBe("C");
       expect(fourth.content?.[0]?.text).toBe("  keep padded  ");
+    });
+  });
+
+  test("chat.history keeps visible assistant progress text from mixed tool-use transcript messages", async () => {
+    await withGatewayChatHarness(async ({ ws, createSessionDir }) => {
+      const sessionDir = await prepareMainHistoryHarness({ ws, createSessionDir });
+      await writeMainSessionTranscript(sessionDir, [
+        JSON.stringify({
+          message: {
+            role: "user",
+            content: [{ type: "text", text: "fix it" }],
+            timestamp: 1,
+          },
+        }),
+        JSON.stringify({
+          message: {
+            role: "assistant",
+            content: [
+              { type: "thinking", thinking: "private reasoning" },
+              {
+                type: "text",
+                text: "I will clean that up now.",
+                textSignature: JSON.stringify({
+                  v: 1,
+                  id: "msg-progress",
+                  phase: "commentary",
+                }),
+              },
+              {
+                type: "toolCall",
+                id: "call-read",
+                name: "read",
+                arguments: { path: "AGENTS.md" },
+              },
+            ],
+            timestamp: 2,
+          },
+        }),
+        JSON.stringify({
+          message: {
+            role: "toolResult",
+            toolCallId: "call-read",
+            toolName: "read",
+            content: [{ type: "text", text: "file contents" }],
+            timestamp: 3,
+          },
+        }),
+      ]);
+
+      const messages = await fetchHistoryMessages(ws);
+      expect(messages[1]).toMatchObject({
+        role: "assistant",
+        content: [{ type: "text", text: "I will clean that up now." }],
+        timestamp: 2,
+      });
     });
   });
 

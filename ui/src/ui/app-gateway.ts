@@ -54,6 +54,7 @@ import {
   resolveGatewayErrorDetailCode,
   type GatewayEventFrame,
   type GatewayHelloOk,
+  GATEWAY_CLIENT_NAMES,
 } from "./gateway.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -415,7 +416,7 @@ export function connectGateway(host: GatewayHost, options?: ConnectGatewayOption
     url: host.settings.gatewayUrl,
     token: host.settings.token.trim() ? host.settings.token : undefined,
     password: host.password.trim() ? host.password : undefined,
-    clientName: "openclaw-control-ui",
+    clientName: GATEWAY_CLIENT_NAMES.CONTROL_UI,
     clientVersion,
     mode: "webchat",
     instanceId: host.clientInstanceId,
