@@ -109,6 +109,6 @@ export type TuiBackend = {
   resetSession: (key: string, reason?: "new" | "reset") => Promise<unknown>;
   getGatewayStatus: () => Promise<unknown>;
   listModels: () => Promise<TuiModelChoice[]>;
-  listTools?: (opts: { agentId: string }) => Promise<ToolsCatalogResult>;
+  listTools?: (opts: { agentId: string; includePlugins?: boolean }) => Promise<ToolsCatalogResult>;
   listSkills?: (opts: { agentId: string }) => Promise<SkillStatusReport>;
 };

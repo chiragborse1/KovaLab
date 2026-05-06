@@ -247,10 +247,13 @@ export class GatewayChatClient implements TuiBackend {
     return Array.isArray(res?.models) ? res.models : [];
   }
 
-  async listTools(opts: { agentId: string }): Promise<ToolsCatalogResult> {
+  async listTools(opts: {
+    agentId: string;
+    includePlugins?: boolean;
+  }): Promise<ToolsCatalogResult> {
     return await this.client.request<ToolsCatalogResult>("tools.catalog", {
       agentId: opts.agentId,
-      includePlugins: true,
+      includePlugins: opts.includePlugins,
     });
   }
 

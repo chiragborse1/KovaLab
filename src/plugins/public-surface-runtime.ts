@@ -92,6 +92,36 @@ function resolvePackageSourceFallbackForBundledDir(params: {
   });
 }
 
+function isUsableBuiltPublicSurfaceCandidate(params: {
+  rootDir: string;
+  candidate: string;
+  dirName: string;
+  artifactBasename: string;
+}): boolean {
+  if (!fs.existsSync(params.candidate)) {
+    return false;
+  }
+
+  const distRuntimeCandidate = path.resolve(
+    params.rootDir,
+    "dist-runtime",
+    "extensions",
+    params.dirName,
+    params.artifactBasename,
+  );
+  if (path.resolve(params.candidate) !== distRuntimeCandidate) {
+    return true;
+  }
+
+  // dist-runtime plugin entries are wrappers that re-export the canonical
+  // dist/extensions artifact. During local rebuilds the wrapper can outlive the
+  // canonical target, so skip it and fall back to source instead of loading a
+  // guaranteed-broken wrapper.
+  return fs.existsSync(
+    path.resolve(params.rootDir, "dist", "extensions", params.dirName, params.artifactBasename),
+  );
+}
+
 export function resolveBundledPluginPublicSurfacePath(params: {
   rootDir: string;
   dirName: string;
@@ -107,18 +137,26 @@ export function resolveBundledPluginPublicSurfacePath(params: {
   if (explicitBundledPluginsDir) {
     const explicitPluginDir = path.resolve(explicitBundledPluginsDir, dirName);
     const explicitBuiltCandidate = path.join(explicitPluginDir, artifactBasename);
-    if (fs.existsSync(explicitBuiltCandidate)) {
-      return explicitBuiltCandidate;
-    }
-    return (
-      resolveBundledPluginSourcePublicSurfacePath({
-        sourceRoot: explicitBundledPluginsDir,
+    if (
+      isUsableBuiltPublicSurfaceCandidate({
+        rootDir: params.rootDir,
+        candidate: explicitBuiltCandidate,
         dirName,
         artifactBasename,
-      }) ??
-      resolvePackageSourceFallbackForBundledDir({
-        rootDir: params.rootDir,
-        bundledPluginsDir: explicitBundledPluginsDir,
+      })
+    ) {
+      return explicitBuiltCandidate;
+    }
+    const packageSourceFallback = resolvePackageSourceFallbackForBundledDir({
+      rootDir: params.rootDir,
+      bundledPluginsDir: explicitBundledPluginsDir,
+      dirName,
+      artifactBasename,
+    });
+    return (
+      packageSourceFallback ??
+      resolveBundledPluginSourcePublicSurfacePath({
+        sourceRoot: explicitBundledPluginsDir,
         dirName,
         artifactBasename,
       })
@@ -129,7 +167,14 @@ export function resolveBundledPluginPublicSurfacePath(params: {
     path.resolve(params.rootDir, "dist", "extensions", dirName, artifactBasename),
     path.resolve(params.rootDir, "dist-runtime", "extensions", dirName, artifactBasename),
   ]) {
-    if (fs.existsSync(candidate)) {
+    if (
+      isUsableBuiltPublicSurfaceCandidate({
+        rootDir: params.rootDir,
+        candidate,
+        dirName,
+        artifactBasename,
+      })
+    ) {
       return candidate;
     }
   }

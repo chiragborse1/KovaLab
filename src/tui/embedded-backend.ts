@@ -335,11 +335,11 @@ export class EmbeddedTuiBackend implements TuiBackend {
     }));
   }
 
-  async listTools(opts: { agentId: string }) {
+  async listTools(opts: { agentId: string; includePlugins?: boolean }) {
     return buildToolsCatalogResult({
       cfg: getRuntimeConfig(),
       agentId: opts.agentId,
-      includePlugins: true,
+      includePlugins: opts.includePlugins,
     });
   }
 

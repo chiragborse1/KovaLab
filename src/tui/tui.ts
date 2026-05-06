@@ -590,7 +590,8 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     hero.setState({ catalogStatus: "refreshing live tools and skills..." });
     tui.requestRender();
     const [toolsResult, skillsResult] = await Promise.allSettled([
-      client.listTools?.({ agentId }) ?? Promise.resolve({ agentId, profiles: [], groups: [] }),
+      client.listTools?.({ agentId, includePlugins: false }) ??
+        Promise.resolve({ agentId, profiles: [], groups: [] }),
       client.listSkills?.({ agentId }) ??
         Promise.resolve({ workspaceDir: "", managedSkillsDir: "", skills: [] }),
     ]);

@@ -70,6 +70,29 @@ describe("bundled plugin public surface runtime", () => {
     ).toBe(sourceModulePath);
   });
 
+  it("skips stale dist-runtime wrappers when the canonical dist artifact is missing", () => {
+    const packageRoot = createTempDir();
+    const sourceModulePath = path.join(packageRoot, "extensions", "demo", "index.ts");
+    const wrapperPath = path.join(packageRoot, "dist-runtime", "extensions", "demo", "index.js");
+    fs.mkdirSync(path.dirname(sourceModulePath), { recursive: true });
+    fs.mkdirSync(path.dirname(wrapperPath), { recursive: true });
+    fs.writeFileSync(sourceModulePath, "export const marker = 'source';\n", "utf8");
+    fs.writeFileSync(
+      wrapperPath,
+      'export * from "../../../dist/extensions/demo/index.js";\n',
+      "utf8",
+    );
+
+    expect(
+      resolveBundledPluginPublicSurfacePath({
+        rootDir: packageRoot,
+        bundledPluginsDir: path.join(packageRoot, "dist-runtime", "extensions"),
+        dirName: "demo",
+        artifactBasename: "index.js",
+      }),
+    ).toBe(sourceModulePath);
+  });
+
   it("allows plugin-local nested artifact paths", () => {
     expect(normalizeBundledPluginArtifactSubpath("src/outbound-adapter.js")).toBe(
       "src/outbound-adapter.js",
