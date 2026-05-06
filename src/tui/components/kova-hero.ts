@@ -120,7 +120,8 @@ function formatSkills(skills: KovaHeroSkill[], maxRows: number): string[] {
   }
 
   const rows = visible.slice(0, maxRows).map((skill) => {
-    const source = skill.source ? theme.dim(` (${skill.source})`) : "";
+    const sourceLabel = formatSkillSourceLabel(skill.source);
+    const source = sourceLabel ? theme.dim(` (${sourceLabel})`) : "";
     const marker = skill.eligible === false ? theme.dim("offline ") : "";
     return `${marker}${skill.name}${source}`;
   });
@@ -128,6 +129,21 @@ function formatSkills(skills: KovaHeroSkill[], maxRows: number): string[] {
     rows.push(theme.dim(`and ${String(visible.length - rows.length)} more skills...`));
   }
   return rows;
+}
+
+export function formatSkillSourceLabel(source?: string): string {
+  switch ((source ?? "").trim()) {
+    case "openclaw-bundled":
+      return "kova-bundled";
+    case "openclaw-extra":
+      return "kova-extra";
+    case "openclaw-managed":
+      return "kova-managed";
+    case "openclaw-workspace":
+      return "kova-workspace";
+    default:
+      return source?.trim() ?? "";
+  }
 }
 
 export class KovaHero implements Component {

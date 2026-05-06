@@ -1,7 +1,7 @@
 import { visibleWidth } from "@mariozechner/pi-tui";
 import { describe, expect, it } from "vitest";
 import { normalizeTestText } from "../../../test/helpers/normalize-text.js";
-import { KovaHero } from "./kova-hero.js";
+import { KovaHero, formatSkillSourceLabel } from "./kova-hero.js";
 
 describe("KovaHero", () => {
   it("renders the connected Kova shell with live tools and skills", () => {
@@ -59,5 +59,27 @@ describe("KovaHero", () => {
         expect(visibleWidth(line)).toBeLessThanOrEqual(width);
       }
     }
+  });
+
+  it("renders Kova source labels for legacy OpenClaw skill sources", () => {
+    const hero = new KovaHero();
+    hero.setState({
+      skills: [
+        { name: "one", source: "openclaw-bundled", eligible: false },
+        { name: "two", source: "openclaw-extra", eligible: true },
+      ],
+    });
+
+    const rendered = normalizeTestText(hero.render(120).join("\n"));
+    expect(rendered).toContain("kova-bundled");
+    expect(rendered).toContain("kova-extra");
+    expect(rendered).not.toContain("openclaw-bundled");
+    expect(rendered).not.toContain("openclaw-extra");
+  });
+
+  it("maps known legacy skill source labels without changing unknown sources", () => {
+    expect(formatSkillSourceLabel("openclaw-bundled")).toBe("kova-bundled");
+    expect(formatSkillSourceLabel("openclaw-extra")).toBe("kova-extra");
+    expect(formatSkillSourceLabel("workspace")).toBe("workspace");
   });
 });
