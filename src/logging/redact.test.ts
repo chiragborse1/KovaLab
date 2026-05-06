@@ -223,6 +223,38 @@ describe("redactSensitiveText", () => {
     expect(output).toContain("OPENAI_API_KEY=sk-123…cdef");
   });
 
+  it("masks Tencent Cloud SecretId values", () => {
+    const output = redactSensitiveText("SecretId is AKIDz8exampleFake01Key99Test", {
+      mode: "tools",
+      patterns: defaults,
+    });
+    expect(output).toBe("SecretId is AKIDz8…Test");
+  });
+
+  it("masks Alibaba Cloud AccessKey IDs", () => {
+    const output = redactSensitiveText("AccessKeyId=LTAI5tExampleFakeKeyXyz9", {
+      mode: "tools",
+      patterns: defaults,
+    });
+    expect(output).toBe("AccessKeyId=LTAI5t…Xyz9");
+  });
+
+  it("masks HuggingFace tokens", () => {
+    const output = redactSensitiveText("hf_ABCDEFghijklmnopqrstuv", {
+      mode: "tools",
+      patterns: defaults,
+    });
+    expect(output).toBe("hf_ABC…stuv");
+  });
+
+  it("masks Replicate tokens", () => {
+    const output = redactSensitiveText("r8_ABCDEFghijklmnopqrstuv", {
+      mode: "tools",
+      patterns: defaults,
+    });
+    expect(output).toBe("r8_ABC…stuv");
+  });
+
   it("skips redaction when mode is off", () => {
     const input = "OPENAI_API_KEY=sk-1234567890abcdef";
     const output = redactSensitiveText(input, {
