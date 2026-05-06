@@ -1,11 +1,25 @@
 {
-  "fallbackKeys": [],
-  "generatedAt": "2026-04-30T19:39:31.569Z",
+  "fallbackKeys": [
+    "login.brand",
+    "login.description",
+    "login.headline",
+    "login.heroAria",
+    "login.panelSubtitle",
+    "login.panelTitle",
+    "login.trustAria",
+    "login.trustAuth",
+    "login.trustLocal",
+    "login.trustNetwork",
+    "login.visualDashboard",
+    "login.visualGateway",
+    "login.visualSession"
+  ],
+  "generatedAt": "2026-05-06T18:37:30.572Z",
   "locale": "zh-TW",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "0d5cfe3d9fc60f8bc8d3e21570b012113de8054ecaeb47fe2fb2205cd1a83985",
-  "totalKeys": 763,
+  "sourceHash": "70c8086ad36e2e1a03a51085d48ad3e1a3a069a3bf0f96e99c68025b35c41ac5",
+  "totalKeys": 776,
   "translatedKeys": 763,
   "workflow": 1
 }

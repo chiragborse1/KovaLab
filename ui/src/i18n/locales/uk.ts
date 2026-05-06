@@ -691,6 +691,21 @@ export const uk: TranslationMap = {
   },
   login: {
     subtitle: "Панель Gateway",
+    brand: "Kova Control",
+    heroAria: "Kova gateway connection overview",
+    trustAria: "Kova access guarantees",
+    headline: "Control Kova from a verified browser session.",
+    description:
+      "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
+    panelTitle: "Connect to Kova",
+    panelSubtitle:
+      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
+    visualGateway: "Gateway",
+    visualSession: "Session",
+    visualDashboard: "Dashboard",
+    trustLocal: "Local-first",
+    trustAuth: "Token or password",
+    trustNetwork: "Tailscale-ready",
     passwordPlaceholder: "необов’язково",
     showToken: "Показати токен",
     hideToken: "Приховати токен",

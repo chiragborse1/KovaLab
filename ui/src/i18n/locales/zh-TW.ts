@@ -252,8 +252,7 @@ export const zh_TW: TranslationMap = {
       roleUpgradeSummary: "此裝置已完成配對，但所要求的角色變更仍在等待核准。",
       metadataUpgradeTitle: "裝置中繼資料變更等待核准。",
       metadataUpgradeSummary: "此裝置已完成配對，但中繼資料變更仍在等待核准。",
-      mobileHint:
-        "在手機上？從桌面執行 kova dashboard --no-open 複製完整 URL（包括 #token=...）。",
+      mobileHint: "在手機上？從桌面執行 kova dashboard --no-open 複製完整 URL（包括 #token=...）。",
       docsTitle: "裝置配對文件（在新分頁中開啟）",
       docsLink: "文件：裝置配對",
     },
@@ -674,6 +673,21 @@ export const zh_TW: TranslationMap = {
   },
   login: {
     subtitle: "閘道儀表板",
+    brand: "Kova Control",
+    heroAria: "Kova gateway connection overview",
+    trustAria: "Kova access guarantees",
+    headline: "Control Kova from a verified browser session.",
+    description:
+      "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
+    panelTitle: "Connect to Kova",
+    panelSubtitle:
+      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
+    visualGateway: "Gateway",
+    visualSession: "Session",
+    visualDashboard: "Dashboard",
+    trustLocal: "Local-first",
+    trustAuth: "Token or password",
+    trustNetwork: "Tailscale-ready",
     passwordPlaceholder: "可選",
     showToken: "顯示權杖",
     hideToken: "隱藏權杖",

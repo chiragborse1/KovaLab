@@ -304,8 +304,7 @@ export const de: TranslationMap = {
       modelAuthExpiresIn: "läuft {when} ab",
       modelAuthAttentionExpiredTitle: "Modell-Authentifizierung abgelaufen",
       modelAuthAttentionExpiringTitle: "Modell-Authentifizierung läuft bald ab",
-      modelAuthAttentionExpiredDesc:
-        "{providers} — mit kova models auth erneut authentifizieren",
+      modelAuthAttentionExpiredDesc: "{providers} — mit kova models auth erneut authentifizieren",
       modelAuthAttentionExpiringEntry: "{provider} ({when})",
     },
     attention: {
@@ -693,6 +692,21 @@ export const de: TranslationMap = {
   },
   login: {
     subtitle: "Gateway-Dashboard",
+    brand: "Kova Control",
+    heroAria: "Kova gateway connection overview",
+    trustAria: "Kova access guarantees",
+    headline: "Control Kova from a verified browser session.",
+    description:
+      "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
+    panelTitle: "Connect to Kova",
+    panelSubtitle:
+      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
+    visualGateway: "Gateway",
+    visualSession: "Session",
+    visualDashboard: "Dashboard",
+    trustLocal: "Local-first",
+    trustAuth: "Token or password",
+    trustNetwork: "Tailscale-ready",
     passwordPlaceholder: "optional",
     showToken: "Token anzeigen",
     hideToken: "Token ausblenden",
