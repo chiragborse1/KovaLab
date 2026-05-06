@@ -26,7 +26,8 @@ type SettingsAction =
   | { type: "configure"; section: WizardSection }
   | { type: "onboard" }
   | { type: "health" }
-  | { type: "finish" };
+  | { type: "finish" }
+  | { type: "restart-gateway" };
 
 type SettingsToggle = "memory" | "browser" | "voice" | "theme";
 
@@ -36,6 +37,14 @@ export type SettingsDashboardRow = {
   value: string;
   hint: string;
   status?: SettingsRowStatus;
+  action?: SettingsAction;
+  toggle?: SettingsToggle;
+};
+
+export type SettingsPaletteCommand = {
+  id: string;
+  label: string;
+  hint: string;
   action?: SettingsAction;
   toggle?: SettingsToggle;
 };
@@ -376,6 +385,61 @@ export function buildSettingsDashboardRows(
   ];
 }
 
+export function buildSettingsPaletteCommands(
+  rows: SettingsDashboardRow[],
+): SettingsPaletteCommand[] {
+  const labels: Record<string, string> = {
+    provider: "Change Provider",
+    model: "Change Model",
+    workspace: "Change Workspace",
+    gateway: "Open Gateway Settings",
+    channels: "Open Channels",
+    memory: "Toggle Memory",
+    browser: "Toggle Browser Tools",
+    voice: "Toggle Voice",
+    web: "Open Web Search",
+    skills: "Open Skills",
+    plugins: "Open Plugins",
+    daemon: "Manage Background Service",
+    health: "Run Health Check",
+    theme: "Cycle Theme",
+    setup: "Open Full Setup",
+    finish: "Finish",
+  };
+  const commands = rows.map((row) => ({
+    id: row.id,
+    label: labels[row.id] ?? row.label,
+    hint: row.hint,
+    action: row.action,
+    toggle: row.toggle,
+  }));
+  return [
+    ...commands.slice(0, 4),
+    {
+      id: "restart-gateway",
+      label: "Restart Gateway",
+      hint: "Restart the Gateway service or unmanaged process",
+      action: { type: "restart-gateway" },
+    },
+    ...commands.slice(4),
+  ];
+}
+
+export function filterSettingsPaletteCommands(
+  commands: SettingsPaletteCommand[],
+  query: string,
+): SettingsPaletteCommand[] {
+  const normalized = normalizeSearchQuery(query);
+  if (!normalized) {
+    return commands;
+  }
+  return commands.filter((command) =>
+    [command.id, command.label, command.hint]
+      .filter((entry): entry is string => Boolean(entry))
+      .some((entry) => entry.toLowerCase().includes(normalized)),
+  );
+}
+
 async function resolveSecretInput(cfg: OpenClawConfig, value: unknown, configPath: string) {
   try {
     return await resolveSetupSecretInputString({
@@ -565,6 +629,11 @@ export function renderSettingsDashboard(params: {
   message?: string;
   searchQuery?: string;
   runtimeStatus?: SettingsRuntimeStatus;
+  palette?: {
+    query: string;
+    selectedIndex: number;
+    commands: SettingsPaletteCommand[];
+  };
 }): string {
   const width = 96;
   const inner = width - 2;
@@ -588,6 +657,29 @@ export function renderSettingsDashboard(params: {
     );
   }
   lines.push(`│${" ".repeat(inner)}│`);
+  if (params.palette) {
+    lines.push(`│${"─".repeat(22)} Command Palette ${"─".repeat(inner - 39)}│`);
+    lines.push(
+      `│  ${padRight(`>${params.palette.query ? ` ${params.palette.query}` : ""}`, inner - 2)}│`,
+    );
+    const start = Math.max(
+      0,
+      Math.min(params.palette.selectedIndex - 5, params.palette.commands.length - 6),
+    );
+    const visible = params.palette.commands.slice(start, start + 6);
+    for (let index = 0; index < visible.length; index++) {
+      const command = visible[index]!;
+      const selected = start + index === params.palette.selectedIndex;
+      const cursor = selected ? theme.accent("›") : " ";
+      const label = selected ? theme.heading(command.label) : command.label;
+      const hint = theme.muted(truncatePlain(command.hint, inner - 32));
+      lines.push(`│ ${cursor} ${padRight(label, 28)} ${padRight(hint, inner - 33)}│`);
+    }
+    if (visible.length === 0) {
+      lines.push(`│  ${padRight(theme.muted("No matching commands"), inner - 2)}│`);
+    }
+    lines.push(`│${" ".repeat(inner)}│`);
+  }
   lines.push(`│${"─".repeat(inner)}│`);
   if (params.runtimeStatus) {
     const latency =
@@ -603,9 +695,12 @@ export function renderSettingsDashboard(params: {
     ].join(" • ");
     lines.push(`│  ${padRight(theme.accent(truncatePlain(runtimeLine, inner - 2)), inner - 2)}│`);
   }
-  lines.push(`│  ${padRight("[Enter] Edit   [Space] Toggle   [/] Search   [Q] Quit", inner - 2)}│`);
-  const footer =
-    params.searchQuery !== undefined
+  lines.push(
+    `│  ${padRight("[Enter] Edit   [Space] Toggle   [/] Search   [Ctrl+P] Commands   [Q] Quit", inner - 2)}│`,
+  );
+  const footer = params.palette
+    ? "Ctrl+P palette: type to filter, Enter to run, Esc to close."
+    : params.searchQuery !== undefined
       ? `Search: /${params.searchQuery}`
       : (params.message ?? "Ready");
   lines.push(`│  ${padRight(footer, inner - 2)}│`);
@@ -668,6 +763,11 @@ async function runAction(action: SettingsAction, runtime: RuntimeEnv): Promise<v
   if (action.type === "finish") {
     return;
   }
+  if (action.type === "restart-gateway") {
+    const { runDaemonRestart } = await import("../cli/daemon-cli/lifecycle.js");
+    await runDaemonRestart({});
+    return;
+  }
   await setupWizardCommand({}, runtime);
 }
 
@@ -680,6 +780,9 @@ function describeAction(action: SettingsAction): string {
   }
   if (action.type === "finish") {
     return "kova settings";
+  }
+  if (action.type === "restart-gateway") {
+    return "kova gateway restart";
   }
   return "kova onboard";
 }
@@ -711,14 +814,35 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
   }
 
   let selectedIndex = 0;
-  let message = "Use arrows to move, Enter to edit, Space to toggle, / to search.";
+  let message =
+    "Use arrows to move, Enter to edit, Space to toggle, / to search, Ctrl+P for commands.";
   let searchQuery: string | undefined;
+  let paletteQuery: string | undefined;
+  let paletteIndex = 0;
 
   const render = () => {
     const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
+    const paletteCommands =
+      paletteQuery === undefined
+        ? undefined
+        : filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), paletteQuery);
     stdout.write("\x1b[?25l\x1b[2J\x1b[H");
     stdout.write(
-      renderSettingsDashboard({ rows, selectedIndex, message, searchQuery, runtimeStatus }),
+      renderSettingsDashboard({
+        rows,
+        selectedIndex,
+        message,
+        searchQuery,
+        runtimeStatus,
+        palette:
+          paletteQuery === undefined
+            ? undefined
+            : {
+                query: paletteQuery,
+                selectedIndex: paletteIndex,
+                commands: paletteCommands ?? [],
+              },
+      }),
     );
   };
 
@@ -766,6 +890,87 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
           resolve();
           return;
         }
+        if (paletteQuery !== undefined) {
+          const commands = filterSettingsPaletteCommands(
+            buildSettingsPaletteCommands(rows),
+            paletteQuery,
+          );
+          if (key.name === "escape") {
+            paletteQuery = undefined;
+            paletteIndex = 0;
+            message = "Command palette closed.";
+            render();
+            return;
+          }
+          if (key.name === "up") {
+            paletteIndex = commands.length
+              ? (paletteIndex - 1 + commands.length) % commands.length
+              : 0;
+            render();
+            return;
+          }
+          if (key.name === "down") {
+            paletteIndex = commands.length ? (paletteIndex + 1) % commands.length : 0;
+            render();
+            return;
+          }
+          if (key.name === "backspace" || key.name === "delete") {
+            paletteQuery = paletteQuery.slice(0, -1);
+            paletteIndex = 0;
+            render();
+            return;
+          }
+          if (key.name === "return") {
+            const command = commands[paletteIndex] ?? commands[0];
+            if (!command) {
+              message = "No matching command.";
+              render();
+              return;
+            }
+            if (command.toggle) {
+              workingConfig = applySettingsToggle(workingConfig!, command.toggle);
+              await saveConfig(workingConfig);
+              await reload();
+              paletteQuery = undefined;
+              paletteIndex = 0;
+              message = `${command.label} saved automatically.`;
+              render();
+              return;
+            }
+            if (!command.action) {
+              paletteQuery = undefined;
+              paletteIndex = 0;
+              message = "No command attached.";
+              render();
+              return;
+            }
+            cleanup();
+            if (command.action.type === "finish") {
+              resolve();
+              return;
+            }
+            runtime.log(`Opening ${formatCliCommand(describeAction(command.action))}...`);
+            await runAction(command.action, runtime);
+            await settingsCommand(runtime);
+            resolve();
+            return;
+          }
+          if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
+            paletteQuery += _chunk;
+            paletteIndex = 0;
+            render();
+          }
+          return;
+        }
+
+        if (key.ctrl && key.name === "p") {
+          paletteQuery = "";
+          paletteIndex = 0;
+          message = "Command palette opened.";
+          render();
+          return;
+        }
+
         if (searchQuery !== undefined) {
           if (key.name === "escape") {
             searchQuery = undefined;

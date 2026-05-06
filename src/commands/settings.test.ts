@@ -3,7 +3,9 @@ import { resolveLegacyDefaultAgentWorkspaceDir } from "../agents/workspace-defau
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
   applySettingsToggle,
+  buildSettingsPaletteCommands,
   buildSettingsDashboardRows,
+  filterSettingsPaletteCommands,
   findSettingsRowIndex,
   renderSettingsDashboard,
 } from "./settings.js";
@@ -91,6 +93,15 @@ describe("settings dashboard", () => {
     expect(rows[findSettingsRowIndex(rows, "browser")]?.id).toBe("browser");
   });
 
+  it("builds a command palette with direct actions", () => {
+    const rows = buildSettingsDashboardRows({});
+    const commands = buildSettingsPaletteCommands(rows);
+
+    expect(commands.map((command) => command.label)).toContain("Change Provider");
+    expect(commands.map((command) => command.label)).toContain("Restart Gateway");
+    expect(filterSettingsPaletteCommands(commands, "plugins")[0]?.label).toBe("Open Plugins");
+  });
+
   it("renders the keyboard help and status column", () => {
     const rows = buildSettingsDashboardRows({});
     const output = renderSettingsDashboard({
@@ -109,8 +120,27 @@ describe("settings dashboard", () => {
     expect(output).toContain("Kova Settings");
     expect(output).toContain("[Enter] Edit");
     expect(output).toContain("[Space] Toggle");
+    expect(output).toContain("[Ctrl+P] Commands");
     expect(output).toContain("[/] Search");
     expect(output).toContain("Search: /gateway");
     expect(output).toContain("OpenAI • GPT-5.5 • Memory ON • Gateway Running • 24ms");
+  });
+
+  it("renders the command palette overlay", () => {
+    const rows = buildSettingsDashboardRows({});
+    const commands = filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), "gateway");
+    const output = renderSettingsDashboard({
+      rows,
+      selectedIndex: 0,
+      palette: {
+        query: "gateway",
+        selectedIndex: 0,
+        commands,
+      },
+    });
+
+    expect(output).toContain("Command Palette");
+    expect(output).toContain("> gateway");
+    expect(output).toContain("Restart Gateway");
   });
 });

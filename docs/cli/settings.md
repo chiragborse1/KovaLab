@@ -41,6 +41,8 @@ Keyboard controls:
 - Enter: edit the selected row using the existing Kova configuration flow
 - Space: toggle supported rows; changes save automatically
 - `/`: search rows and jump as you type, for example `/gateway`
+- Ctrl+P: open the command palette, then type to filter commands such as
+  `Change Provider`, `Toggle Memory`, `Restart Gateway`, or `Open Plugins`
 - Q/Esc or the **Finish** row: quit
 
 After an editor finishes, the dashboard opens again with refreshed values.
