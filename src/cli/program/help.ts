@@ -22,10 +22,7 @@ const ROOT_COMMANDS_HINT =
 
 const EXAMPLES = [
   ["kova models --help", "Show detailed help for the models command."],
-  [
-    "kova channels login --verbose",
-    "Link personal WhatsApp Web and show QR + connection logs.",
-  ],
+  ["kova channels login --verbose", "Link personal WhatsApp Web and show QR + connection logs."],
   [
     'kova message send --target +15555550123 --message "Hi" --json',
     "Send via your web session and print JSON result.",
@@ -51,15 +48,15 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     .version(ctx.programVersion)
     .option(
       "--container <name>",
-      "Run the CLI inside a running Podman/Docker container named <name> (default: env OPENCLAW_CONTAINER)",
+      "Run the CLI inside a running Podman/Docker container named <name> (default: env KOVA_CONTAINER)",
     )
     .option(
       "--dev",
-      "Dev profile: isolate state under ~/.openclaw-dev, default gateway port 19001, and shift derived ports (browser/canvas)",
+      "Dev profile: isolate state under ~/.kova-dev, default gateway port 19001, and shift derived ports (browser/canvas)",
     )
     .option(
       "--profile <name>",
-      "Use a named profile (isolates OPENCLAW_STATE_DIR/OPENCLAW_CONFIG_PATH under ~/.openclaw-<name>)",
+      "Use a named profile (isolates KOVA_STATE_DIR/KOVA_CONFIG_PATH under ~/.kova-<name>)",
     )
     .option(
       "--log-level <level>",
@@ -115,9 +112,7 @@ export function configureProgramHelp(program: Command, ctx: ProgramContext) {
     hasRootVersionAlias(process.argv)
   ) {
     const commit = resolveCommitHash({ moduleUrl: import.meta.url });
-    console.log(
-      commit ? `Kova ${ctx.programVersion} (${commit})` : `Kova ${ctx.programVersion}`,
-    );
+    console.log(commit ? `Kova ${ctx.programVersion} (${commit})` : `Kova ${ctx.programVersion}`);
     process.exit(0);
   }
 
