@@ -25,6 +25,11 @@ jobs:
       - run: pnpm build
       - run: pnpm ui:build
 
-      - run: npm publish --access public
+      - run: |
+          if [[ "$GITHUB_REF" == *"-beta"* ]]; then
+            npm publish --access public --tag beta
+          else
+            npm publish --access public --tag latest
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
