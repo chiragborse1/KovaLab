@@ -34,6 +34,47 @@ describe("pi tool definition adapter logging", () => {
     mocks.logDebug.mockReset();
   });
 
+  it("does not log missing read targets as terminal errors", async () => {
+    const missing = new Error(
+      "ENOENT: no such file or directory, access '/workspace/docs/README.md'",
+    ) as NodeJS.ErrnoException;
+    missing.code = "ENOENT";
+    const baseTool = {
+      name: "read",
+      label: "Read",
+      description: "reads files",
+      parameters: Type.Object({
+        path: Type.String(),
+      }),
+      execute: async () => {
+        throw missing;
+      },
+    } satisfies AgentTool;
+
+    const [def] = toToolDefinitions([baseTool]);
+    if (!def) {
+      throw new Error("missing tool definition");
+    }
+
+    const result = await def.execute(
+      "call-read-missing",
+      { path: "docs/README.md", limit: 20 },
+      undefined,
+      undefined,
+      extensionContext,
+    );
+
+    expect(logError).not.toHaveBeenCalled();
+    expect(mocks.logDebug).toHaveBeenCalledWith(
+      expect.stringContaining("[tools] read failed: ENOENT: no such file or directory"),
+    );
+    expect(result.details).toMatchObject({
+      status: "error",
+      tool: "read",
+      error: expect.stringContaining("ENOENT: no such file or directory"),
+    });
+  });
+
   it("logs raw malformed edit params when required aliases are missing", async () => {
     const baseTool = {
       name: "edit",

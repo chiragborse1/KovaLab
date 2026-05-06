@@ -63,6 +63,26 @@ function describeToolExecutionError(err: unknown): {
   return { message: String(err) };
 }
 
+function readErrorCode(err: unknown): string | undefined {
+  if (!err || typeof err !== "object" || !("code" in err)) {
+    return undefined;
+  }
+  const code = (err as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
+
+function isExpectedMissingReadTargetError(params: { toolName: string; err: unknown }): boolean {
+  if (params.toolName !== "read") {
+    return false;
+  }
+  const code = readErrorCode(params.err);
+  if (code === "ENOENT" || code === "ENOTDIR") {
+    return true;
+  }
+  const message = params.err instanceof Error ? params.err.message : String(params.err);
+  return /\b(?:ENOENT|ENOTDIR)\b/i.test(message);
+}
+
 function serializeToolParams(value: unknown): string {
   if (value === undefined) {
     return "<undefined>";
@@ -263,7 +283,12 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             rawParams: params,
             effectiveParams: executeParams,
           });
-          logError(`[tools] ${normalizedName} failed: ${described.message} ${inputPreview}`);
+          const failureMessage = `[tools] ${normalizedName} failed: ${described.message} ${inputPreview}`;
+          if (isExpectedMissingReadTargetError({ toolName: normalizedName, err })) {
+            logDebug(failureMessage);
+          } else {
+            logError(failureMessage);
+          }
 
           return buildToolExecutionErrorResult({
             toolName: normalizedName,
