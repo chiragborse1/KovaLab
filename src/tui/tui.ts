@@ -184,6 +184,21 @@ export function resolveInitialTuiAgentId(params: {
   return normalizeAgentId(params.fallbackAgentId);
 }
 
+export function resolveTuiModelLabel(params: {
+  provider?: string | null;
+  model?: string | null;
+}): string {
+  const model = params.model?.trim();
+  if (!model) {
+    return "unknown";
+  }
+  const provider = params.provider?.trim();
+  if (!provider || model === provider || model.startsWith(`${provider}/`)) {
+    return model;
+  }
+  return `${provider}/${model}`;
+}
+
 export function resolveGatewayDisconnectState(reason?: string): {
   connectionStatus: string;
   activityStatus: string;
@@ -643,11 +658,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     const sessionLabel = formatSessionKey(currentSessionKey);
     const agentLabel = formatAgentLabel(currentAgentId);
     const title = opts.title ?? "Kova Agent";
-    const modelLabel = sessionInfo.model
-      ? sessionInfo.modelProvider
-        ? `${sessionInfo.modelProvider}/${sessionInfo.model}`
-        : sessionInfo.model
-      : "unknown";
+    const modelLabel = resolveTuiModelLabel({
+      provider: sessionInfo.modelProvider,
+      model: sessionInfo.model,
+    });
     hero.setState({
       title,
       connection: client.connection.url,
@@ -899,11 +913,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       ? `${sessionKeyLabel} (${sessionInfo.displayName})`
       : sessionKeyLabel;
     const agentLabel = formatAgentLabel(currentAgentId);
-    const modelLabel = sessionInfo.model
-      ? sessionInfo.modelProvider
-        ? `${sessionInfo.modelProvider}/${sessionInfo.model}`
-        : sessionInfo.model
-      : "unknown";
+    const modelLabel = resolveTuiModelLabel({
+      provider: sessionInfo.modelProvider,
+      model: sessionInfo.model,
+    });
     const tokens = formatTokens(sessionInfo.totalTokens ?? null, sessionInfo.contextTokens ?? null);
     const think = sessionInfo.thinkingLevel ?? "off";
     const fast = sessionInfo.fastMode === true;

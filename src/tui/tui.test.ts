@@ -13,6 +13,7 @@ import {
   resolveLocalAuthCliInvocation,
   resolveLocalAuthSpawnCwd,
   resolveLocalAuthSpawnOptions,
+  resolveTuiModelLabel,
   resolveTuiSessionKey,
   stopTuiSafely,
 } from "./tui.js";
@@ -176,6 +177,18 @@ describe("resolveGatewayDisconnectState", () => {
     expect(state.connectionStatus).toBe("gateway disconnected: network timeout");
     expect(state.activityStatus).toBe("idle");
     expect(state.pairingHint).toBeUndefined();
+  });
+});
+
+describe("resolveTuiModelLabel", () => {
+  it("does not duplicate provider prefixes already present in model ids", () => {
+    expect(resolveTuiModelLabel({ provider: "openrouter", model: "openrouter/auto" })).toBe(
+      "openrouter/auto",
+    );
+  });
+
+  it("adds provider prefixes for bare model ids", () => {
+    expect(resolveTuiModelLabel({ provider: "openai", model: "gpt-5.4" })).toBe("openai/gpt-5.4");
   });
 });
 
