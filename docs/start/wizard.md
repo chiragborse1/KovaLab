@@ -16,6 +16,10 @@ and workspace defaults in one guided flow.
 kova onboard
 ```
 
+Onboarding opens with a Kova Neural Runtime boot screen. It identifies the
+runtime, shows the setup sequence at a glance, then initializes the guided
+wizard.
+
 <Info>
 Fastest first chat: open the Control UI (no channel setup needed). Run
 `kova dashboard` and chat in the browser. Docs: [Dashboard](/web/dashboard).

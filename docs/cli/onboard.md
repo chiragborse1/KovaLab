@@ -9,6 +9,10 @@ title: "Onboard"
 
 Interactive onboarding for local or remote Gateway setup.
 
+The interactive flow starts with a Kova Neural Runtime boot screen, then walks
+through setup mode, workspace, model/auth, Gateway, channels, search, skills,
+hooks, and final launch options.
+
 ## Related guides
 
 <CardGroup cols={2}>

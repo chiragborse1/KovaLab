@@ -97,17 +97,33 @@ export function validateGatewayPasswordInput(value: unknown): string | undefined
 }
 
 export function printWizardHeader(runtime: RuntimeEnv) {
-  const header = [
-    "██╗  ██╗ ██████╗ ██╗   ██╗ █████╗ ",
-    "██║ ██╔╝██╔═══██╗██║   ██║██╔══██╗",
-    "█████╔╝ ██║   ██║██║   ██║███████║",
-    "██╔═██╗ ██║   ██║╚██╗ ██╔╝██╔══██║",
-    "██║  ██╗╚██████╔╝ ╚████╔╝ ██║  ██║",
-    "╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝",
-    "                    🦄 KOVA 🦄                     ",
-    " ",
+  runtime.log(formatWizardBootScreen());
+}
+
+function formatBootScreenRow(label: string, value: string): string {
+  const content = `${label.padEnd(8, " ")} ${value}`.slice(0, 53);
+  return `│  ${content.padEnd(53, " ")} │`;
+}
+
+export function formatWizardBootScreen(): string {
+  return [
+    "╭────────────────────────────────────────────────────────╮",
+    "│                                                        │",
+    "│                  KOVA NEURAL RUNTIME                  │",
+    "│                                                        │",
+    "│              Agentic Intelligence Layer               │",
+    "│        local gateway • tools • memory • channels       │",
+    "│                                                        │",
+    "├────────────────────────────────────────────────────────┤",
+    formatBootScreenRow("build", VERSION),
+    formatBootScreenRow("boot", "identify operator + workspace"),
+    formatBootScreenRow("wire", "model, gateway, channels, skills"),
+    formatBootScreenRow("guard", "permissions, tokens, and reachable services"),
+    "╰────────────────────────────────────────────────────────╯",
+    "",
+    "Initializing environment...",
+    "",
   ].join("\n");
-  runtime.log(header);
 }
 
 export function applyWizardMetadata(

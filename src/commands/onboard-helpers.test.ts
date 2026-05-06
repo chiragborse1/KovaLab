@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeEnv } from "../runtime.js";
 import {
+  formatWizardBootScreen,
   handleReset,
   normalizeGatewayTokenInput,
   openUrl,
@@ -46,6 +47,18 @@ afterEach(() => {
   vi.clearAllMocks();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+});
+
+describe("formatWizardBootScreen", () => {
+  it("prints the Kova neural runtime identity before onboarding starts", () => {
+    const output = formatWizardBootScreen();
+
+    expect(output).toContain("KOVA NEURAL RUNTIME");
+    expect(output).toContain("Agentic Intelligence Layer");
+    expect(output).toContain("Initializing environment...");
+    expect(output).not.toContain("OpenClaw");
+    expect(output).not.toContain("OPENCLAW");
+  });
 });
 
 describe("handleReset", () => {
