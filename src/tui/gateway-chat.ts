@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { SkillStatusReport } from "../agents/skills-status.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { assertExplicitGatewayAuthModeWhenBothConfigured } from "../gateway/auth-mode-policy.js";
 import { resolveGatewayInteractiveSurfaceAuth } from "../gateway/auth-surface-resolution.js";
@@ -20,6 +21,7 @@ import {
   type SessionsListParams,
   type SessionsPatchResult,
   type SessionsPatchParams,
+  type ToolsCatalogResult,
 } from "../gateway/protocol/index.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { VERSION } from "../version.js";
@@ -243,6 +245,19 @@ export class GatewayChatClient implements TuiBackend {
   async listModels(): Promise<GatewayModelChoice[]> {
     const res = await this.client.request("models.list");
     return Array.isArray(res?.models) ? res.models : [];
+  }
+
+  async listTools(opts: { agentId: string }): Promise<ToolsCatalogResult> {
+    return await this.client.request<ToolsCatalogResult>("tools.catalog", {
+      agentId: opts.agentId,
+      includePlugins: true,
+    });
+  }
+
+  async listSkills(opts: { agentId: string }): Promise<SkillStatusReport> {
+    return await this.client.request<SkillStatusReport>("skills.status", {
+      agentId: opts.agentId,
+    });
   }
 }
 

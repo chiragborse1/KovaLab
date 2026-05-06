@@ -324,7 +324,7 @@ export async function runCrestodianTui(
       historyLimit: 200,
       backend,
       config: {},
-      title: "openclaw crestodian",
+      title: "Kova Crestodian",
       ...(nextInput ? { message: nextInput } : {}),
     });
 

@@ -82,7 +82,7 @@ describe("runCrestodianTui", () => {
         session: "agent:crestodian:main",
         historyLimit: 200,
         config: {},
-        title: "openclaw crestodian",
+        title: "Kova Crestodian",
       }),
     );
     const callOptions = mocks.runTui.mock.calls[0]?.[0] as { backend?: unknown } | undefined;

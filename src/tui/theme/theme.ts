@@ -10,6 +10,8 @@ import type { SearchableSelectListTheme } from "../components/searchable-select-
 
 const DARK_TEXT = "#E8E3D5";
 const LIGHT_TEXT = "#1E1E1E";
+const KOVA_ORANGE = "#FF710E";
+const KOVA_ORANGE_SOFT = "#FF9A3D";
 const XTERM_LEVELS = [0, 95, 135, 175, 215, 255] as const;
 
 function channelToSrgb(value: number): number {
@@ -80,22 +82,22 @@ export const lightMode = isLightBackground();
 export const darkPalette = {
   text: "#E8E3D5",
   dim: "#7B7F87",
-  accent: "#F6C453",
-  accentSoft: "#F2A65A",
-  border: "#3C414B",
+  accent: KOVA_ORANGE,
+  accentSoft: KOVA_ORANGE_SOFT,
+  border: KOVA_ORANGE,
   userBg: "#2B2F36",
   userText: "#F3EEE0",
   systemText: "#9BA3B2",
   toolPendingBg: "#1F2A2F",
   toolSuccessBg: "#1E2D23",
   toolErrorBg: "#2F1F1F",
-  toolTitle: "#F6C453",
+  toolTitle: KOVA_ORANGE,
   toolOutput: "#E1DACB",
   quote: "#8CC8FF",
   quoteBorder: "#3B4D6B",
-  code: "#F0C987",
+  code: KOVA_ORANGE_SOFT,
   codeBlock: "#1E232A",
-  codeBorder: "#343A45",
+  codeBorder: KOVA_ORANGE,
   link: "#7DD3A5",
   error: "#F97066",
   success: "#7DD3A5",
@@ -104,22 +106,22 @@ export const darkPalette = {
 export const lightPalette = {
   text: "#1E1E1E",
   dim: "#5B6472",
-  accent: "#B45309",
-  accentSoft: "#C2410C",
-  border: "#5B6472",
+  accent: "#C84F00",
+  accentSoft: KOVA_ORANGE,
+  border: KOVA_ORANGE,
   userBg: "#F3F0E8",
   userText: "#1E1E1E",
   systemText: "#4B5563",
   toolPendingBg: "#EFF6FF",
   toolSuccessBg: "#ECFDF5",
   toolErrorBg: "#FEF2F2",
-  toolTitle: "#B45309",
+  toolTitle: "#C84F00",
   toolOutput: "#374151",
   quote: "#1D4ED8",
   quoteBorder: "#2563EB",
   code: "#92400E",
   codeBlock: "#F9FAFB",
-  codeBorder: "#92400E",
+  codeBorder: KOVA_ORANGE,
   link: "#047857",
   error: "#DC2626",
   success: "#047857",

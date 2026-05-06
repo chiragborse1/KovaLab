@@ -26,6 +26,7 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { getSlashCommands } from "./commands.js";
 import { ChatLog } from "./components/chat-log.js";
 import { CustomEditor } from "./components/custom-editor.js";
+import { KovaHero } from "./components/kova-hero.js";
 import { EmbeddedTuiBackend } from "./embedded-backend.js";
 import { GatewayChatClient } from "./gateway-chat.js";
 import { editorTheme, theme } from "./theme/theme.js";
@@ -529,13 +530,13 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     }
     return { data: next };
   });
-  const header = new Text("", 1, 0);
+  const hero = new KovaHero();
   const statusContainer = new Container();
   const footer = new Text("", 1, 0);
   const chatLog = new ChatLog();
   const editor = new CustomEditor(tui, editorTheme);
   const root = new Container();
-  root.addChild(header);
+  root.addChild(hero);
   root.addChild(chatLog);
   root.addChild(statusContainer);
   root.addChild(footer);
@@ -582,15 +583,81 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   currentSessionKey = resolveSessionKey(initialSessionInput);
 
+  let catalogRefreshKey = "";
+  let catalogRefreshPromise: Promise<void> | null = null;
+
+  const refreshHeroCatalog = async (agentId: string) => {
+    hero.setState({ catalogStatus: "refreshing live tools and skills..." });
+    tui.requestRender();
+    const [toolsResult, skillsResult] = await Promise.allSettled([
+      client.listTools?.({ agentId }) ?? Promise.resolve({ agentId, profiles: [], groups: [] }),
+      client.listSkills?.({ agentId }) ??
+        Promise.resolve({ workspaceDir: "", managedSkillsDir: "", skills: [] }),
+    ]);
+    if (agentId !== currentAgentId) {
+      return;
+    }
+
+    if (toolsResult.status === "fulfilled") {
+      hero.setState({ toolGroups: toolsResult.value.groups });
+    }
+    if (skillsResult.status === "fulfilled") {
+      hero.setState({ skills: skillsResult.value.skills });
+    }
+
+    const failed = [toolsResult, skillsResult].filter((result) => result.status === "rejected");
+    if (failed.length > 0) {
+      hero.setState({
+        catalogStatus: `catalog partially unavailable (${String(failed.length)} request${failed.length === 1 ? "" : "s"} failed)`,
+      });
+    } else {
+      hero.setState({ catalogStatus: "" });
+    }
+    tui.requestRender();
+  };
+
+  const maybeRefreshHeroCatalog = () => {
+    if (!isConnected) {
+      return;
+    }
+    const key = currentAgentId;
+    if (!key || catalogRefreshKey === key || catalogRefreshPromise) {
+      return;
+    }
+    catalogRefreshKey = key;
+    catalogRefreshPromise = refreshHeroCatalog(key)
+      .catch(() => {
+        hero.setState({ catalogStatus: "catalog unavailable" });
+      })
+      .finally(() => {
+        catalogRefreshPromise = null;
+        if (currentAgentId !== key) {
+          catalogRefreshKey = "";
+          maybeRefreshHeroCatalog();
+        }
+      });
+  };
+
   const updateHeader = () => {
     const sessionLabel = formatSessionKey(currentSessionKey);
     const agentLabel = formatAgentLabel(currentAgentId);
-    const title = opts.title ?? "kova tui";
-    header.setText(
-      theme.header(
-        `${title} - ${client.connection.url} - agent ${agentLabel} - session ${sessionLabel}`,
-      ),
-    );
+    const title = opts.title ?? "Kova Agent";
+    const modelLabel = sessionInfo.model
+      ? sessionInfo.modelProvider
+        ? `${sessionInfo.modelProvider}/${sessionInfo.model}`
+        : sessionInfo.model
+      : "unknown";
+    hero.setState({
+      title,
+      connection: client.connection.url,
+      connectionStatus,
+      activityStatus,
+      agentLabel,
+      sessionLabel,
+      modelLabel,
+      tokenLabel: formatTokens(sessionInfo.totalTokens ?? null, sessionInfo.contextTokens ?? null),
+    });
+    maybeRefreshHeroCatalog();
   };
 
   const busyStates = new Set(["sending", "waiting", "streaming", "running"]);
@@ -736,6 +803,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       statusText?.setText(theme.dim(text));
     }
     lastActivityStatus = activityStatus;
+    updateHeader();
   };
 
   const setConnectionStatus = (text: string, ttlMs?: number) => {

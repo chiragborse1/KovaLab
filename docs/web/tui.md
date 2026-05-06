@@ -51,7 +51,7 @@ Notes:
 
 ## What you see
 
-- Header: connection URL, current agent, current session.
+- Header: Kova hero panel with connection state, current agent/session, model, token count, and live tools/skills summary.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
 - Footer: connection state + agent + session + model + think/fast/verbose/trace/reasoning + token counts + deliver.

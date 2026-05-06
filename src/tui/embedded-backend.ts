@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { agentCommandFromIngress } from "../agents/agent-command.js";
-import { resolveSessionAgentId } from "../agents/agent-scope.js";
+import { resolveAgentWorkspaceDir, resolveSessionAgentId } from "../agents/agent-scope.js";
 import { DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { canExecRequestNode } from "../agents/exec-defaults.js";
 import { buildAllowedModelSet, resolveThinkingDefault } from "../agents/model-selection.js";
+import { buildWorkspaceSkillStatus, type SkillStatusReport } from "../agents/skills-status.js";
 import { createDefaultDeps } from "../cli/deps.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { updateSessionStore } from "../config/sessions.js";
@@ -29,6 +31,7 @@ import {
   enforceChatHistoryFinalBudget,
   replaceOversizedChatHistoryMessages,
 } from "../gateway/server-methods/chat.js";
+import { buildToolsCatalogResult } from "../gateway/server-methods/tools-catalog.js";
 import { loadGatewayModelCatalog } from "../gateway/server-model-catalog.js";
 import { performGatewaySessionReset } from "../gateway/session-reset-service.js";
 import { capArrayByJsonBytes } from "../gateway/session-utils.fs.js";
@@ -45,6 +48,7 @@ import {
 import { applySessionsPatchToStore } from "../gateway/sessions-patch.js";
 import { type AgentEventPayload, onAgentEvent } from "../infra/agent-events.js";
 import { setEmbeddedMode } from "../infra/embedded-mode.js";
+import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { defaultRuntime } from "../runtime.js";
 import { INTERNAL_MESSAGE_CHANNEL } from "../utils/message-channel.js";
 import type {
@@ -329,6 +333,30 @@ export class EmbeddedTuiBackend implements TuiBackend {
       contextWindow: entry.contextWindow,
       reasoning: entry.reasoning,
     }));
+  }
+
+  async listTools(opts: { agentId: string }) {
+    return buildToolsCatalogResult({
+      cfg: getRuntimeConfig(),
+      agentId: opts.agentId,
+      includePlugins: true,
+    });
+  }
+
+  async listSkills(opts: { agentId: string }): Promise<SkillStatusReport> {
+    const cfg = getRuntimeConfig();
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, opts.agentId);
+    return buildWorkspaceSkillStatus(workspaceDir, {
+      config: cfg,
+      eligibility: {
+        remote: getRemoteSkillEligibility({
+          advertiseExecNode: canExecRequestNode({
+            cfg,
+            agentId: opts.agentId,
+          }),
+        }),
+      },
+    });
   }
 
   private abortSessionRuns(sessionKey: string) {
