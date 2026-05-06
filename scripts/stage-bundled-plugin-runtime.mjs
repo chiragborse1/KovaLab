@@ -140,6 +140,10 @@ function isPathOrNestedPath(relativePath, nestedPath) {
   return relativePath === nestedPath || relativePath.endsWith(`/${nestedPath}`);
 }
 
+function isRuntimeDepsStagingDebris(name) {
+  return name.startsWith(".openclaw-runtime-deps-") || name.startsWith(".kova-runtime-deps-");
+}
+
 function shouldCopyRuntimeFile(relativePath) {
   return (
     isBundledSkillRuntimePath(relativePath) ||
@@ -191,7 +195,7 @@ function stagePluginRuntimeOverlay(sourceDir, targetDir, relativeDir = "") {
   fs.mkdirSync(targetDir, { recursive: true });
 
   for (const dirent of fs.readdirSync(sourceDir, { withFileTypes: true })) {
-    if (dirent.name === "node_modules") {
+    if (dirent.name === "node_modules" || isRuntimeDepsStagingDebris(dirent.name)) {
       continue;
     }
 
