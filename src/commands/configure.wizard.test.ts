@@ -299,7 +299,7 @@ describe("runConfigureWizard", () => {
       })(cfg),
     );
     queueWizardPrompts({
-      select: ["local"],
+      select: [],
       confirm: [true, false],
     });
 
@@ -341,7 +341,7 @@ describe("runConfigureWizard", () => {
     setupBaseWizardState();
     mocks.resolveSearchProviderOptions.mockReturnValue([]);
     queueWizardPrompts({
-      select: ["local"],
+      select: [],
       confirm: [true, false],
     });
 
@@ -369,7 +369,7 @@ describe("runConfigureWizard", () => {
   it("does not load managed search provider options when web search is disabled", async () => {
     setupBaseWizardState();
     queueWizardPrompts({
-      select: ["local"],
+      select: [],
       confirm: [false, true],
     });
 
@@ -388,7 +388,7 @@ describe("runConfigureWizard", () => {
   it("defers channel status checks until a channel is selected", async () => {
     setupBaseWizardState();
     queueWizardPrompts({
-      select: ["local", "configure"],
+      select: ["configure"],
       confirm: [],
     });
 
@@ -428,7 +428,7 @@ describe("runConfigureWizard", () => {
       })(cfg),
     );
     queueWizardPrompts({
-      select: ["local"],
+      select: [],
       confirm: [true, false],
     });
 
@@ -450,7 +450,7 @@ describe("runConfigureWizard", () => {
       },
     });
     queueWizardPrompts({
-      select: ["local", "cached"],
+      select: ["cached"],
       confirm: [true, true, false, true],
     });
 
@@ -497,7 +497,7 @@ describe("runConfigureWizard", () => {
       },
     });
     queueWizardPrompts({
-      select: ["firecrawl"],
+      select: [],
       confirm: [true, false, true, false],
     });
 
@@ -536,7 +536,7 @@ describe("runConfigureWizard", () => {
     };
     setupBaseWizardState(baseConfig);
     queueWizardPrompts({
-      select: ["local"],
+      select: [],
       confirm: [],
     });
 

@@ -34,7 +34,9 @@ Keyboard controls:
 - Enter: edit the selected row using the existing Kova configuration flow
 - Space: toggle supported rows
 - S: save pending toggles
-- Q/Esc: quit
+- Q/Esc or the **Finish** row: quit
+
+After an editor finishes, the dashboard opens again with refreshed values.
 
 `kova settings` does not remove the full onboarding path. The **Full Setup**
 row still opens the complete setup wizard for first-time setup, import, reset,

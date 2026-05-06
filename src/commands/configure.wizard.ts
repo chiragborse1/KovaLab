@@ -409,70 +409,75 @@ export async function runConfigureWizard(
       }
     }
 
-    const localUrl = "ws://127.0.0.1:18789";
-    const remoteUrl = normalizeOptionalString(baseConfig.gateway?.remote?.url) ?? "";
-    const localProbePromise = (async () => {
-      const [baseLocalProbeToken, baseLocalProbePassword] = await Promise.all([
-        resolveGatewaySecretInputForWizard({
-          cfg: baseConfig,
-          value: baseConfig.gateway?.auth?.token,
-          path: "gateway.auth.token",
-        }),
-        resolveGatewaySecretInputForWizard({
-          cfg: baseConfig,
-          value: baseConfig.gateway?.auth?.password,
-          path: "gateway.auth.password",
-        }),
-      ]);
-      return probeGatewayReachable({
-        url: localUrl,
-        token: process.env.OPENCLAW_GATEWAY_TOKEN ?? baseLocalProbeToken,
-        password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? baseLocalProbePassword,
-        timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
-      });
-    })();
-    const remoteProbePromise = remoteUrl
-      ? (async () => {
-          const baseRemoteProbeToken = await resolveGatewaySecretInputForWizard({
+    const targetedSections = opts.sections !== undefined;
+    let mode: "local" | "remote" = baseConfig.gateway?.mode === "remote" ? "remote" : "local";
+
+    if (!targetedSections) {
+      const localUrl = "ws://127.0.0.1:18789";
+      const remoteUrl = normalizeOptionalString(baseConfig.gateway?.remote?.url) ?? "";
+      const localProbePromise = (async () => {
+        const [baseLocalProbeToken, baseLocalProbePassword] = await Promise.all([
+          resolveGatewaySecretInputForWizard({
             cfg: baseConfig,
-            value: baseConfig.gateway?.remote?.token,
-            path: "gateway.remote.token",
-          });
-          return probeGatewayReachable({
-            url: remoteUrl,
-            token: baseRemoteProbeToken,
-            timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
-          });
-        })()
-      : Promise.resolve(null);
-    const [localProbe, remoteProbe] = await Promise.all([localProbePromise, remoteProbePromise]);
+            value: baseConfig.gateway?.auth?.token,
+            path: "gateway.auth.token",
+          }),
+          resolveGatewaySecretInputForWizard({
+            cfg: baseConfig,
+            value: baseConfig.gateway?.auth?.password,
+            path: "gateway.auth.password",
+          }),
+        ]);
+        return probeGatewayReachable({
+          url: localUrl,
+          token: process.env.OPENCLAW_GATEWAY_TOKEN ?? baseLocalProbeToken,
+          password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? baseLocalProbePassword,
+          timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
+        });
+      })();
+      const remoteProbePromise = remoteUrl
+        ? (async () => {
+            const baseRemoteProbeToken = await resolveGatewaySecretInputForWizard({
+              cfg: baseConfig,
+              value: baseConfig.gateway?.remote?.token,
+              path: "gateway.remote.token",
+            });
+            return probeGatewayReachable({
+              url: remoteUrl,
+              token: baseRemoteProbeToken,
+              timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
+            });
+          })()
+        : Promise.resolve(null);
+      const [localProbe, remoteProbe] = await Promise.all([localProbePromise, remoteProbePromise]);
 
-    const mode = guardCancel(
-      await select({
-        message: "Where will the Gateway run?",
-        options: [
-          {
-            value: "local",
-            label: "Local (this machine)",
-            hint: localProbe.ok
-              ? `Gateway reachable (${localUrl})`
-              : `No gateway detected (${localUrl})`,
-          },
-          {
-            value: "remote",
-            label: "Remote (info-only)",
-            hint: !remoteUrl
-              ? "No remote URL configured yet"
-              : remoteProbe?.ok
-                ? `Gateway reachable (${remoteUrl})`
-                : `Configured but unreachable (${remoteUrl})`,
-          },
-        ],
-      }),
-      runtime,
-    );
+      mode = guardCancel(
+        await select({
+          message: "Where will the Gateway run?",
+          options: [
+            {
+              value: "local",
+              label: "Local (this machine)",
+              hint: localProbe.ok
+                ? `Gateway reachable (${localUrl})`
+                : `No gateway detected (${localUrl})`,
+            },
+            {
+              value: "remote",
+              label: "Remote (info-only)",
+              hint: !remoteUrl
+                ? "No remote URL configured yet"
+                : remoteProbe?.ok
+                  ? `Gateway reachable (${remoteUrl})`
+                  : `Configured but unreachable (${remoteUrl})`,
+            },
+          ],
+        }),
+        runtime,
+      );
+    }
 
-    if (mode === "remote") {
+    if (!targetedSections && mode === "remote") {
       let remoteConfig = await promptRemoteGatewayConfig(baseConfig, prompter);
       remoteConfig = applyWizardMetadata(remoteConfig, {
         command: opts.command,
@@ -492,7 +497,7 @@ export async function runConfigureWizard(
     let nextConfig = { ...baseConfig };
     let mergeBaseConfig = structuredClone(baseConfig);
     let didSetGatewayMode = false;
-    if (nextConfig.gateway?.mode !== "local") {
+    if (mode === "local" && nextConfig.gateway?.mode !== "local") {
       nextConfig = {
         ...nextConfig,
         gateway: {

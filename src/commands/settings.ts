@@ -22,7 +22,8 @@ import { setupWizardCommand } from "./onboard.js";
 type SettingsAction =
   | { type: "configure"; section: WizardSection }
   | { type: "onboard" }
-  | { type: "health" };
+  | { type: "health" }
+  | { type: "finish" };
 
 type SettingsToggle = "memory" | "browser" | "voice" | "theme";
 
@@ -96,6 +97,23 @@ function displayWorkspace(cfg: OpenClawConfig): string {
     return shortenHomePath(DEFAULT_AGENT_WORKSPACE_DIR);
   }
   return shortenHomePath(configured);
+}
+
+function normalizeSettingsConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const workspace = normalizeOptionalString(cfg.agents?.defaults?.workspace);
+  if (!workspace || !isLegacyDefaultWorkspace(workspace)) {
+    return cfg;
+  }
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...cfg.agents?.defaults,
+        workspace: DEFAULT_AGENT_WORKSPACE_DIR,
+      },
+    },
+  };
 }
 
 function countConfiguredChannels(cfg: OpenClawConfig): number {
@@ -255,6 +273,13 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       hint: "First-time setup, import, reset, bootstrap",
       action: { type: "onboard" },
     },
+    {
+      id: "finish",
+      label: "Finish",
+      value: "Close",
+      hint: "Close settings",
+      action: { type: "finish" },
+    },
   ];
 }
 
@@ -265,6 +290,7 @@ function nextThemeName(current: string): SettingsTheme {
 }
 
 export function applySettingsToggle(cfg: OpenClawConfig, toggle: SettingsToggle): OpenClawConfig {
+  cfg = normalizeSettingsConfig(cfg);
   if (toggle === "memory") {
     const enabled = cfg.agents?.defaults?.memorySearch?.enabled !== false;
     return {
@@ -343,10 +369,10 @@ export function renderSettingsDashboard(params: {
   dirty: boolean;
   message?: string;
 }): string {
-  const width = 70;
+  const width = 78;
   const inner = width - 2;
-  const labelWidth = 20;
-  const valueWidth = 24;
+  const labelWidth = 22;
+  const valueWidth = 30;
   const lines: string[] = [];
   lines.push(`╭${"─".repeat(18)} Kova Settings ${"─".repeat(inner - 33)}╮`);
   lines.push(`│${" ".repeat(inner)}│`);
@@ -381,10 +407,11 @@ async function readCurrentConfig(runtime: RuntimeEnv): Promise<OpenClawConfig | 
     runtime.exit(1);
     return null;
   }
-  return snapshot.sourceConfig ?? snapshot.config ?? {};
+  return normalizeSettingsConfig(snapshot.sourceConfig ?? snapshot.config ?? {});
 }
 
-async function saveConfig(nextConfig: OpenClawConfig, runtime: RuntimeEnv): Promise<void> {
+async function saveConfig(nextConfig: OpenClawConfig): Promise<void> {
+  nextConfig = normalizeSettingsConfig(nextConfig);
   await mutateConfigFile({
     mutate: (draft) => {
       const target = draft as Record<string, unknown>;
@@ -394,7 +421,6 @@ async function saveConfig(nextConfig: OpenClawConfig, runtime: RuntimeEnv): Prom
       Object.assign(target, nextConfig);
     },
   });
-  runtime.log("Settings saved.");
 }
 
 function printNonInteractive(rows: SettingsDashboardRow[], runtime: RuntimeEnv): void {
@@ -412,6 +438,9 @@ async function runAction(action: SettingsAction, runtime: RuntimeEnv): Promise<v
     await configureCommandWithSections(["health"], runtime);
     return;
   }
+  if (action.type === "finish") {
+    return;
+  }
   await setupWizardCommand({}, runtime);
 }
 
@@ -421,6 +450,9 @@ function describeAction(action: SettingsAction): string {
   }
   if (action.type === "health") {
     return "kova configure --section health";
+  }
+  if (action.type === "finish") {
+    return "kova settings";
   }
   return "kova onboard";
 }
@@ -497,7 +529,10 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
         }
         if (key.name === "space") {
           if (!selected.toggle) {
-            message = "This row opens an editor. Press Enter.";
+            message =
+              selected.action?.type === "finish"
+                ? "Press Enter to close settings."
+                : "This row opens an editor. Press Enter.";
             render();
             return;
           }
@@ -509,9 +544,11 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
         }
         if (key.name === "s") {
           if (dirty) {
-            cleanup();
-            await saveConfig(workingConfig!, runtime);
-            resolve();
+            await saveConfig(workingConfig!);
+            workingConfig = await readCurrentConfig(runtime);
+            dirty = false;
+            message = "Settings saved.";
+            render();
             return;
           }
           message = "No changes to save.";
@@ -535,11 +572,16 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
             return;
           }
           cleanup();
+          if (selected.action.type === "finish") {
+            resolve();
+            return;
+          }
           if (dirty) {
-            await saveConfig(workingConfig!, runtime);
+            await saveConfig(workingConfig!);
           }
           runtime.log(`Opening ${formatCliCommand(describeAction(selected.action))}...`);
           await runAction(selected.action, runtime);
+          await settingsCommand(runtime);
           resolve();
         }
       } catch (error) {

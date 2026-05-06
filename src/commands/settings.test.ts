@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { resolveLegacyDefaultAgentWorkspaceDir } from "../agents/workspace-default.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
   applySettingsToggle,
@@ -44,11 +45,24 @@ describe("settings dashboard", () => {
       "Health Check",
       "Theme",
       "Full Setup",
+      "Finish",
     ]);
     expect(rows.find((row) => row.id === "provider")?.value).toBe("openai");
     expect(rows.find((row) => row.id === "model")?.value).toBe("gpt-5.5");
     expect(rows.find((row) => row.id === "channels")?.value).toBe("1 configured");
     expect(rows.find((row) => row.id === "web")?.value).toBe("brave");
+  });
+
+  it("shows the Kova workspace when config still has the legacy default workspace", () => {
+    const rows = buildSettingsDashboardRows({
+      agents: {
+        defaults: {
+          workspace: resolveLegacyDefaultAgentWorkspaceDir(),
+        },
+      },
+    });
+
+    expect(rows.find((row) => row.id === "workspace")?.value).toBe("~/.kova/workspace");
   });
 
   it("toggles safe boolean settings without touching unrelated config", () => {
