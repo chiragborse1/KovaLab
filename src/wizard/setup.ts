@@ -298,8 +298,7 @@ export async function runSetupWizard(
     });
 
     if (action === "reset") {
-      const workspaceDefault =
-        baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE;
+      const workspaceDefault = onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig);
       const resetScope = (await prompter.select({
         message: "What should be cleared?",
         options: [
@@ -559,10 +558,10 @@ export async function runSetupWizard(
   const workspaceInput =
     opts.workspace ??
     (flow === "quickstart"
-      ? (baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE)
+      ? onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig)
       : await prompter.text({
           message: "Kova workspace",
-          initialValue: baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE,
+          initialValue: onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig),
         }));
 
   const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);

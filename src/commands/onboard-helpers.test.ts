@@ -4,11 +4,14 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeEnv } from "../runtime.js";
 import {
+  DEFAULT_WORKSPACE,
   formatWizardBootScreen,
   handleReset,
+  LEGACY_DEFAULT_WORKSPACE,
   normalizeGatewayTokenInput,
   openUrl,
   probeGatewayReachable,
+  resolveOnboardWorkspaceDefault,
   resolveBrowserOpenCommand,
   resolveControlUiLinks,
   validateGatewayPasswordInput,
@@ -59,6 +62,24 @@ describe("formatWizardBootScreen", () => {
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("OPENCLAW");
+  });
+});
+
+describe("resolveOnboardWorkspaceDefault", () => {
+  it("replaces the legacy OpenClaw default workspace with the Kova default", () => {
+    expect(
+      resolveOnboardWorkspaceDefault({
+        agents: { defaults: { workspace: LEGACY_DEFAULT_WORKSPACE } },
+      }),
+    ).toBe(DEFAULT_WORKSPACE);
+  });
+
+  it("keeps custom workspace paths", () => {
+    expect(
+      resolveOnboardWorkspaceDefault({
+        agents: { defaults: { workspace: "/tmp/custom-workspace" } },
+      }),
+    ).toBe("/tmp/custom-workspace");
   });
 });
 

@@ -10,6 +10,7 @@ import {
   applyWizardMetadata,
   DEFAULT_WORKSPACE,
   ensureWorkspaceAndSessions,
+  LEGACY_DEFAULT_WORKSPACE,
   resolveControlUiLinks,
   waitForGatewayReachable,
 } from "../onboard-helpers.js";
@@ -133,6 +134,7 @@ export async function runNonInteractiveLocalSetup(params: {
     opts,
     baseConfig,
     defaultWorkspaceDir: DEFAULT_WORKSPACE,
+    legacyDefaultWorkspaceDir: LEGACY_DEFAULT_WORKSPACE,
   });
 
   let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);

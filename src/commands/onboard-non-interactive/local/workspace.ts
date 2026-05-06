@@ -6,10 +6,16 @@ export function resolveNonInteractiveWorkspaceDir(params: {
   opts: OnboardOptions;
   baseConfig: OpenClawConfig;
   defaultWorkspaceDir: string;
+  legacyDefaultWorkspaceDir?: string;
 }) {
+  const configured = params.baseConfig.agents?.defaults?.workspace?.trim();
+  const configuredIsLegacyDefault =
+    configured &&
+    params.legacyDefaultWorkspaceDir &&
+    resolveUserPath(configured) === resolveUserPath(params.legacyDefaultWorkspaceDir);
   const raw = (
     params.opts.workspace ??
-    params.baseConfig.agents?.defaults?.workspace ??
+    (configured && !configuredIsLegacyDefault ? configured : undefined) ??
     params.defaultWorkspaceDir
   ).trim();
   return resolveUserPath(raw);

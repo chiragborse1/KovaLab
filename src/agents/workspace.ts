@@ -15,6 +15,7 @@ import { resolveWorkspaceTemplateDir } from "./workspace-templates.js";
 export {
   DEFAULT_AGENT_WORKSPACE_DIR,
   resolveDefaultAgentWorkspaceDir,
+  resolveLegacyDefaultAgentWorkspaceDir,
 } from "./workspace-default.js";
 export const DEFAULT_AGENTS_FILENAME = "AGENTS.md";
 export const DEFAULT_SOUL_FILENAME = "SOUL.md";

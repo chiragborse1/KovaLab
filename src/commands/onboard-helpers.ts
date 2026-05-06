@@ -2,7 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { inspect } from "node:util";
 import { cancel, isCancel } from "@clack/prompts";
-import { DEFAULT_AGENT_WORKSPACE_DIR, ensureAgentWorkspace } from "../agents/workspace.js";
+import {
+  DEFAULT_AGENT_WORKSPACE_DIR,
+  ensureAgentWorkspace,
+  resolveLegacyDefaultAgentWorkspaceDir,
+} from "../agents/workspace.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import { resolveConfigPath } from "../config/paths.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
@@ -21,7 +25,13 @@ import { runCommandWithTimeout } from "../process/exec.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { stylePromptTitle } from "../terminal/prompt-style.js";
-import { resolveConfigDir, shortenHomeInString, shortenHomePath, sleep } from "../utils.js";
+import {
+  resolveConfigDir,
+  resolveUserPath,
+  shortenHomeInString,
+  shortenHomePath,
+  sleep,
+} from "../utils.js";
 import { VERSION } from "../version.js";
 import type { NodeManagerChoice, OnboardMode, ResetScope } from "./onboard-types.js";
 export { randomToken } from "./random-token.js";
@@ -308,3 +318,18 @@ function summarizeError(err: unknown): string {
 }
 
 export const DEFAULT_WORKSPACE = DEFAULT_AGENT_WORKSPACE_DIR;
+export const LEGACY_DEFAULT_WORKSPACE = resolveLegacyDefaultAgentWorkspaceDir();
+
+function isLegacyDefaultWorkspace(value: string): boolean {
+  return (
+    path.resolve(resolveUserPath(value)) === path.resolve(resolveUserPath(LEGACY_DEFAULT_WORKSPACE))
+  );
+}
+
+export function resolveOnboardWorkspaceDefault(config: OpenClawConfig): string {
+  const configured = config.agents?.defaults?.workspace?.trim();
+  if (configured && !isLegacyDefaultWorkspace(configured)) {
+    return configured;
+  }
+  return DEFAULT_WORKSPACE;
+}

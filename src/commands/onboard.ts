@@ -10,7 +10,7 @@ import {
   normalizeLegacyOnboardAuthChoice,
   resolveDeprecatedAuthChoiceReplacement,
 } from "./auth-choice-legacy.js";
-import { DEFAULT_WORKSPACE, handleReset } from "./onboard-helpers.js";
+import { handleReset, resolveOnboardWorkspaceDefault } from "./onboard-helpers.js";
 import { runInteractiveSetup } from "./onboard-interactive.js";
 import { runNonInteractiveSetup } from "./onboard-non-interactive.js";
 import type { OnboardOptions, ResetScope } from "./onboard-types.js";
@@ -76,8 +76,7 @@ export async function setupWizardCommand(
   if (normalizedOpts.reset) {
     const snapshot = await readConfigFileSnapshot();
     const baseConfig = snapshot.valid ? (snapshot.sourceConfig ?? snapshot.config) : {};
-    const workspaceDefault =
-      normalizedOpts.workspace ?? baseConfig.agents?.defaults?.workspace ?? DEFAULT_WORKSPACE;
+    const workspaceDefault = normalizedOpts.workspace ?? resolveOnboardWorkspaceDefault(baseConfig);
     const resetScope: ResetScope = normalizedOpts.resetScope ?? "config+creds+sessions";
     await handleReset(resetScope, resolveUserPath(workspaceDefault), runtime);
   }

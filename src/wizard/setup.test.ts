@@ -215,6 +215,10 @@ vi.mock("../config/config.js", () => ({
 
 vi.mock("../commands/onboard-helpers.js", () => ({
   DEFAULT_WORKSPACE: "/tmp/kova-workspace",
+  resolveOnboardWorkspaceDefault: (config: OpenClawConfig) =>
+    config.agents?.defaults?.workspace === "/tmp/openclaw-workspace"
+      ? "/tmp/kova-workspace"
+      : (config.agents?.defaults?.workspace ?? "/tmp/kova-workspace"),
   applyWizardMetadata: (cfg: unknown) => cfg,
   summarizeExistingConfig: () => "summary",
   handleReset: async () => {},

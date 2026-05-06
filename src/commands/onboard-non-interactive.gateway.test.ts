@@ -105,6 +105,7 @@ vi.mock("./onboard-helpers.js", () => {
   };
   return {
     DEFAULT_WORKSPACE: "/tmp/kova-workspace",
+    LEGACY_DEFAULT_WORKSPACE: "/tmp/openclaw-workspace",
     applyWizardMetadata: (cfg: unknown) => cfg,
     ensureWorkspaceAndSessions: ensureWorkspaceAndSessionsMock,
     normalizeGatewayTokenInput,

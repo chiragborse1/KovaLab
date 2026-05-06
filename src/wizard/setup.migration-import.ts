@@ -236,11 +236,10 @@ export async function runSetupMigrationImport(params: {
   const workspaceInput =
     params.opts.workspace ??
     (params.opts.nonInteractive
-      ? (params.baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE)
+      ? onboardHelpers.resolveOnboardWorkspaceDefault(params.baseConfig)
       : await params.prompter.text({
           message: "Target workspace directory",
-          initialValue:
-            params.baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE,
+          initialValue: onboardHelpers.resolveOnboardWorkspaceDefault(params.baseConfig),
         }));
   const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);
   let targetConfig = applyLocalSetupWorkspaceConfig(params.baseConfig, workspaceDir);
