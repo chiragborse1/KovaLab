@@ -85,6 +85,9 @@ const resolveDefaultAgentId = vi.hoisted(() => vi.fn((_cfg?: unknown) => "defaul
 const listTrustedChannelPluginCatalogEntries = vi.hoisted(() =>
   vi.fn((_params?: unknown): unknown[] => []),
 );
+const getTrustedChannelPluginCatalogEntry = vi.hoisted(() =>
+  vi.fn((_channelId: string, _params?: unknown): unknown => undefined),
+);
 const getChannelSetupPlugin = vi.hoisted(() => vi.fn((_channel?: unknown) => undefined));
 const listChannelSetupPlugins = vi.hoisted(() => vi.fn((): unknown[] => []));
 const listActiveChannelSetupPlugins = vi.hoisted(() => vi.fn((): unknown[] => []));
@@ -160,6 +163,8 @@ vi.mock("../commands/channel-setup/registry.js", () => ({
 vi.mock("../commands/channel-setup/trusted-catalog.js", () => ({
   listTrustedChannelPluginCatalogEntries: (params?: unknown) =>
     listTrustedChannelPluginCatalogEntries(params),
+  getTrustedChannelPluginCatalogEntry: (channelId: string, params?: unknown) =>
+    getTrustedChannelPluginCatalogEntry(channelId, params),
 }));
 
 vi.mock("../config/channel-configured.js", () => ({
@@ -197,6 +202,7 @@ describe("setupChannels workspace shadow exclusion", () => {
         origin: "bundled",
       },
     ]);
+    getTrustedChannelPluginCatalogEntry.mockReturnValue(undefined);
     getChannelSetupPlugin.mockReturnValue(undefined);
     listActiveChannelSetupPlugins.mockReturnValue([]);
     listChannelSetupPlugins.mockReturnValue([]);
@@ -576,6 +582,89 @@ describe("setupChannels workspace shadow exclusion", () => {
 
     expect(quickstartSelectionCount).toBe(2);
     expect(ensureChannelSetupPluginInstalled).toHaveBeenCalledTimes(2);
+    expect(configure).toHaveBeenCalledTimes(1);
+  });
+
+  it("reinstalls missing installed-catalog plugins instead of hard-stopping setup", async () => {
+    const configure = vi.fn(async ({ cfg }: { cfg: Record<string, unknown> }) => ({
+      cfg: {
+        ...cfg,
+        channels: {
+          "external-chat": { token: "secret" },
+        },
+      } as never,
+    }));
+    const externalChatPlugin = makeSetupPlugin({
+      id: "external-chat",
+      label: "External Chat",
+      setupWizard: {
+        channel: "external-chat",
+        getStatus: vi.fn(async () => ({
+          channel: "external-chat",
+          configured: false,
+          statusLines: [],
+        })),
+        configure,
+      } as ChannelSetupPlugin["setupWizard"],
+    });
+    const installedCatalogEntry = makeCatalogEntry("external-chat", "External Chat", {
+      pluginId: "@vendor/external-chat-plugin",
+      install: { npmSpec: "@vendor/external-chat-plugin" },
+    });
+    resolveChannelSetupEntries.mockReturnValue(
+      externalChatSetupEntries({
+        installedCatalogEntries: [installedCatalogEntry],
+        installedCatalogById: new Map([["external-chat", installedCatalogEntry]]),
+      }),
+    );
+    loadChannelSetupPluginRegistrySnapshotForChannel
+      .mockReturnValueOnce(makePluginRegistry())
+      .mockReturnValue(
+        makePluginRegistry({
+          channels: [
+            {
+              pluginId: "@vendor/external-chat-plugin",
+              source: "global",
+              plugin: externalChatPlugin,
+            },
+          ],
+        }),
+      );
+    ensureChannelSetupPluginInstalled.mockResolvedValueOnce({
+      cfg: {},
+      installed: true,
+      pluginId: "@vendor/external-chat-plugin",
+      status: "installed",
+    });
+    isChannelConfigured.mockReturnValue(false);
+    const note = vi.fn(async () => undefined);
+    const select = vi.fn().mockResolvedValueOnce("external-chat").mockResolvedValueOnce("__done__");
+
+    await setupChannels(
+      {} as never,
+      {} as never,
+      {
+        confirm: vi.fn(async () => true),
+        note,
+        select,
+      } as never,
+      {
+        deferStatusUntilSelection: true,
+        skipConfirm: true,
+        skipDmPolicyPrompt: true,
+      },
+    );
+
+    expect(ensureChannelSetupPluginInstalled).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entry: expect.objectContaining({
+          id: "external-chat",
+          install: expect.objectContaining({ npmSpec: "@vendor/external-chat-plugin" }),
+        }),
+        autoConfirmSingleSource: true,
+      }),
+    );
+    expect(note).not.toHaveBeenCalledWith("external-chat plugin not available.", "Channel setup");
     expect(configure).toHaveBeenCalledTimes(1);
   });
 

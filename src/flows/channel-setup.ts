@@ -16,7 +16,10 @@ import {
   loadChannelSetupPluginRegistrySnapshotForChannel,
 } from "../commands/channel-setup/plugin-install.js";
 import { resolveChannelSetupWizardAdapterForPlugin } from "../commands/channel-setup/registry.js";
-import { listTrustedChannelPluginCatalogEntries } from "../commands/channel-setup/trusted-catalog.js";
+import {
+  getTrustedChannelPluginCatalogEntry,
+  listTrustedChannelPluginCatalogEntries,
+} from "../commands/channel-setup/trusted-catalog.js";
 import type {
   ChannelSetupConfiguredResult,
   ChannelSetupResult,
@@ -546,16 +549,73 @@ export async function setupChannels(
       await loadScopedChannelPlugin(channel, result.pluginId ?? catalogEntry.pluginId);
       await refreshStatus(channel);
     } else if (installedCatalogEntry) {
-      const plugin = await loadScopedChannelPlugin(channel, installedCatalogEntry.pluginId);
+      let plugin = await loadScopedChannelPlugin(channel, installedCatalogEntry.pluginId);
+      if (!plugin && installedCatalogEntry.install?.npmSpec) {
+        const disabledHint = resolveConfigDisabledHint(channel);
+        if (disabledHint) {
+          await prompter.note(
+            `${channel} cannot be configured while ${disabledHint}. Enable it before setup.`,
+            "Channel setup",
+          );
+          return "done";
+        }
+        const workspaceDir = resolveWorkspaceDir();
+        const result = await ensureChannelSetupPluginInstalled({
+          cfg: next,
+          entry: installedCatalogEntry,
+          prompter,
+          runtime,
+          workspaceDir,
+          autoConfirmSingleSource: true,
+        });
+        next = result.cfg;
+        if (!result.installed) {
+          return "retry_selection";
+        }
+        plugin = await loadScopedChannelPlugin(
+          channel,
+          result.pluginId ?? installedCatalogEntry.pluginId,
+        );
+      }
       if (!plugin) {
         await prompter.note(`${channel} plugin not available.`, "Channel setup");
         return "done";
       }
       await refreshStatus(channel);
     } else {
-      const enabled = await enableBundledPluginForSetup(channel);
-      if (!enabled) {
-        return "done";
+      const fallbackCatalogEntry = getTrustedChannelPluginCatalogEntry(channel, {
+        cfg: next,
+        workspaceDir: resolveWorkspaceDir(),
+      });
+      if (fallbackCatalogEntry?.install?.npmSpec) {
+        const disabledHint = resolveConfigDisabledHint(channel);
+        if (disabledHint) {
+          await prompter.note(
+            `${channel} cannot be configured while ${disabledHint}. Enable it before setup.`,
+            "Channel setup",
+          );
+          return "done";
+        }
+        const workspaceDir = resolveWorkspaceDir();
+        const result = await ensureChannelSetupPluginInstalled({
+          cfg: next,
+          entry: fallbackCatalogEntry,
+          prompter,
+          runtime,
+          workspaceDir,
+          autoConfirmSingleSource: true,
+        });
+        next = result.cfg;
+        if (!result.installed) {
+          return "retry_selection";
+        }
+        await loadScopedChannelPlugin(channel, result.pluginId ?? fallbackCatalogEntry.pluginId);
+        await refreshStatus(channel);
+      } else {
+        const enabled = await enableBundledPluginForSetup(channel);
+        if (!enabled) {
+          return "done";
+        }
       }
     }
 

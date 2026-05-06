@@ -1615,6 +1615,25 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     expect(mockState.lastDispatchCtx?.CommandBody).toBe("/scopecheck");
   });
 
+  it("marks slash-prefixed gateway chat messages as text commands", async () => {
+    createTranscriptFixture("openclaw-chat-send-command-source-text-");
+    mockState.finalText = "ok";
+    const respond = vi.fn();
+    const context = createChatContext();
+
+    await runNonStreamingChatSend({
+      context,
+      respond,
+      idempotencyKey: "idem-gateway-command-source-text",
+      message: "/status",
+      client: createScopedCliClient(["operator.write"]),
+      expectBroadcast: false,
+    });
+
+    expect(mockState.lastDispatchCtx?.CommandSource).toBe("text");
+    expect(mockState.lastDispatchCtx?.CommandBody).toBe("/status");
+  });
+
   it("normalizes missing gateway caller scopes to an empty array before dispatch", async () => {
     createTranscriptFixture("openclaw-chat-send-missing-gateway-client-scopes-");
     mockState.finalText = "ok";
