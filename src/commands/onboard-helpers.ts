@@ -53,7 +53,7 @@ export function summarizeExistingConfig(config: OpenClawConfig): string {
   const rows: string[] = [];
   const defaults = config.agents?.defaults;
   if (defaults?.workspace) {
-    rows.push(shortenHomeInString(`workspace: ${defaults.workspace}`));
+    rows.push(shortenHomeInString(`workspace: ${resolveOnboardWorkspaceDefault(config)}`));
   }
   if (defaults?.model) {
     const model = resolveAgentModelPrimaryValue(defaults.model);

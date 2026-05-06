@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { emitKeypressEvents } from "node:readline";
 import type { ReadStream, WriteStream } from "node:tty";
@@ -15,8 +16,10 @@ import { defaultRuntime } from "../runtime.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { theme } from "../terminal/theme.js";
 import { resolveUserPath, shortenHomePath, truncateUtf16Safe } from "../utils.js";
+import { resolveSetupSecretInputString } from "../wizard/setup.secret-input.js";
 import { configureCommandWithSections } from "./configure.commands.js";
 import type { WizardSection } from "./configure.shared.js";
+import { resolveControlUiLinks, probeGatewayReachable } from "./onboard-helpers.js";
 import { setupWizardCommand } from "./onboard.js";
 
 type SettingsAction =
@@ -32,9 +35,17 @@ export type SettingsDashboardRow = {
   label: string;
   value: string;
   hint: string;
+  status?: SettingsRowStatus;
   action?: SettingsAction;
   toggle?: SettingsToggle;
 };
+
+export type SettingsRowStatus = {
+  text: string;
+  tone: "ok" | "warn" | "muted" | "error";
+};
+
+export type SettingsStatusMap = Partial<Record<string, SettingsRowStatus>>;
 
 type SettingsTheme = "Neural" | "Classic" | "Mono";
 
@@ -91,12 +102,16 @@ function isLegacyDefaultWorkspace(value: string): boolean {
   );
 }
 
-function displayWorkspace(cfg: OpenClawConfig): string {
+function resolveDisplayWorkspace(cfg: OpenClawConfig): string {
   const configured = normalizeOptionalString(cfg.agents?.defaults?.workspace);
   if (!configured || isLegacyDefaultWorkspace(configured)) {
-    return shortenHomePath(DEFAULT_AGENT_WORKSPACE_DIR);
+    return DEFAULT_AGENT_WORKSPACE_DIR;
   }
-  return shortenHomePath(configured);
+  return configured;
+}
+
+function displayWorkspace(cfg: OpenClawConfig): string {
+  return shortenHomePath(resolveDisplayWorkspace(cfg));
 }
 
 function normalizeSettingsConfig(cfg: OpenClawConfig): OpenClawConfig {
@@ -151,7 +166,22 @@ function resolveThemeName(cfg: OpenClawConfig): SettingsTheme {
   return (match?.[0] as SettingsTheme | undefined) ?? "Neural";
 }
 
-export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboardRow[] {
+function status(text: string, tone: SettingsRowStatus["tone"]): SettingsRowStatus {
+  return { text, tone };
+}
+
+function withStatus(
+  id: string,
+  fallback: SettingsRowStatus | undefined,
+  statusMap: SettingsStatusMap | undefined,
+): SettingsRowStatus | undefined {
+  return statusMap?.[id] ?? fallback;
+}
+
+export function buildSettingsDashboardRows(
+  cfg: OpenClawConfig,
+  statusMap?: SettingsStatusMap,
+): SettingsDashboardRow[] {
   const model = splitModelRef(modelPrimary(cfg.agents?.defaults?.model));
   const channels = countConfiguredChannels(cfg);
   const webSearch = cfg.tools?.web?.search;
@@ -170,6 +200,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Provider",
       value: model.provider,
       hint: "Choose credentials and provider auth",
+      status: withStatus(
+        "provider",
+        model.provider === "Not set" ? status("⚠ Not set", "warn") : status("✓ Connected", "ok"),
+        statusMap,
+      ),
       action: { type: "configure", section: "model" },
     },
     {
@@ -177,6 +212,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Model",
       value: model.model,
       hint: "Pick primary model and fallbacks",
+      status: withStatus(
+        "model",
+        model.model === "Not set" ? status("⚠ Not set", "warn") : status("✓ Ready", "ok"),
+        statusMap,
+      ),
       action: { type: "configure", section: "model" },
     },
     {
@@ -184,6 +224,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Workspace",
       value: displayWorkspace(cfg),
       hint: "Set agent workspace and session files",
+      status: withStatus("workspace", status("✓ Kova", "ok"), statusMap),
       action: { type: "configure", section: "workspace" },
     },
     {
@@ -191,6 +232,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Gateway",
       value: `${gatewayMode} :${String(gatewayPort)} ${gatewayAuth}`,
       hint: "Port, bind, auth, Tailscale",
+      status: withStatus("gateway", status("… Checking", "muted"), statusMap),
       action: { type: "configure", section: "gateway" },
     },
     {
@@ -198,6 +240,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Channels",
       value: channels > 0 ? `${String(channels)} configured` : "Not linked",
       hint: "Link Telegram, WhatsApp, Discord, Slack, and more",
+      status: withStatus(
+        "channels",
+        channels > 0 ? status("✓ Linked", "ok") : status("⚠ None", "warn"),
+        statusMap,
+      ),
       action: { type: "configure", section: "channels" },
     },
     {
@@ -205,6 +252,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Memory",
       value: enabledLabel(memoryEnabled),
       hint: "Space toggles memory search",
+      status: withStatus(
+        "memory",
+        memoryEnabled ? status("… Checking", "muted") : status("Disabled", "muted"),
+        statusMap,
+      ),
       action: { type: "configure", section: "plugins" },
       toggle: "memory",
     },
@@ -213,6 +265,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Browser Tools",
       value: enabledLabel(browserEnabled),
       hint: "Space toggles browser tool availability",
+      status: withStatus(
+        "browser",
+        browserEnabled ? status("✓ Installed", "ok") : status("Disabled", "muted"),
+        statusMap,
+      ),
       action: { type: "configure", section: "gateway" },
       toggle: "browser",
     },
@@ -221,6 +278,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Voice",
       value: enabledLabel(voiceEnabled),
       hint: "Space toggles outbound TTS auto mode",
+      status: withStatus(
+        "voice",
+        voiceEnabled ? status("✓ Ready", "ok") : status("Disabled", "muted"),
+        statusMap,
+      ),
       action: { type: "configure", section: "plugins" },
       toggle: "voice",
     },
@@ -229,6 +291,11 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Web Search",
       value: webSearch?.enabled === false ? "Disabled" : (webSearch?.provider ?? "Auto"),
       hint: "Configure search and fetch tools",
+      status: withStatus(
+        "web",
+        webSearch?.enabled === false ? status("Disabled", "muted") : status("✓ Ready", "ok"),
+        statusMap,
+      ),
       action: { type: "configure", section: "web" },
     },
     {
@@ -236,6 +303,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Skills",
       value: countSkills(cfg) > 0 ? `${String(countSkills(cfg))} allowed` : "Default",
       hint: "Install and enable workspace skills",
+      status: withStatus("skills", status("✓ Available", "ok"), statusMap),
       action: { type: "configure", section: "skills" },
     },
     {
@@ -243,6 +311,13 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Plugins",
       value: `${String(countEnabledPlugins(cfg))} enabled`,
       hint: "Configure plugin settings",
+      status: withStatus(
+        "plugins",
+        countEnabledPlugins(cfg) > 0
+          ? status(`✓ ${String(countEnabledPlugins(cfg))} Active`, "ok")
+          : status("⚠ None", "warn"),
+        statusMap,
+      ),
       action: { type: "configure", section: "plugins" },
     },
     {
@@ -250,6 +325,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Background Service",
       value: "Manage",
       hint: "Install or update service startup",
+      status: withStatus("daemon", status("Check", "muted"), statusMap),
       action: { type: "configure", section: "daemon" },
     },
     {
@@ -257,6 +333,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Health Check",
       value: "Run",
       hint: "Check Gateway and channel health",
+      status: withStatus("health", status("Manual", "muted"), statusMap),
       action: { type: "health" },
     },
     {
@@ -264,6 +341,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Theme",
       value: themeName,
       hint: "Space cycles dashboard accent",
+      status: withStatus("theme", status("✓ Active", "ok"), statusMap),
       toggle: "theme",
     },
     {
@@ -271,6 +349,7 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Full Setup",
       value: "Open",
       hint: "First-time setup, import, reset, bootstrap",
+      status: withStatus("setup", status("Wizard", "muted"), statusMap),
       action: { type: "onboard" },
     },
     {
@@ -278,9 +357,81 @@ export function buildSettingsDashboardRows(cfg: OpenClawConfig): SettingsDashboa
       label: "Finish",
       value: "Close",
       hint: "Close settings",
+      status: withStatus("finish", status("Done", "muted"), statusMap),
       action: { type: "finish" },
     },
   ];
+}
+
+async function resolveSecretInput(cfg: OpenClawConfig, value: unknown, configPath: string) {
+  try {
+    return await resolveSetupSecretInputString({
+      config: cfg,
+      value,
+      path: configPath,
+      env: process.env,
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+async function hasDirectoryEntries(dir: string): Promise<boolean> {
+  try {
+    const entries = await fs.readdir(dir);
+    return entries.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function pathExists(candidate: string): Promise<boolean> {
+  try {
+    await fs.access(candidate);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveSettingsStatusMap(cfg: OpenClawConfig): Promise<SettingsStatusMap> {
+  const workspaceDir = resolveUserPath(resolveDisplayWorkspace(cfg));
+  const workspaceExists = await pathExists(workspaceDir);
+  const memoryEnabled = cfg.agents?.defaults?.memorySearch?.enabled !== false;
+  const memoryHasEntries = memoryEnabled
+    ? await hasDirectoryEntries(path.join(workspaceDir, "memory"))
+    : false;
+
+  const gatewayPort = cfg.gateway?.port ?? 18789;
+  const localLinks = resolveControlUiLinks({
+    bind: cfg.gateway?.bind ?? "loopback",
+    port: gatewayPort,
+    customBindHost: cfg.gateway?.customBindHost,
+    basePath: cfg.gateway?.controlUi?.basePath,
+    tlsEnabled: cfg.gateway?.tls?.enabled === true,
+  });
+  const remoteUrl = normalizeOptionalString(cfg.gateway?.remote?.url);
+  const gatewayUrl = cfg.gateway?.mode === "remote" && remoteUrl ? remoteUrl : localLinks.wsUrl;
+  const [gatewayToken, gatewayPassword] = await Promise.all([
+    resolveSecretInput(cfg, cfg.gateway?.auth?.token, "gateway.auth.token"),
+    resolveSecretInput(cfg, cfg.gateway?.auth?.password, "gateway.auth.password"),
+  ]);
+  const gateway = await probeGatewayReachable({
+    url: gatewayUrl,
+    token: process.env.OPENCLAW_GATEWAY_TOKEN ?? gatewayToken,
+    password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? gatewayPassword,
+    timeoutMs: 350,
+  });
+
+  return {
+    workspace: workspaceExists ? status("✓ Exists", "ok") : status("⚠ Missing", "warn"),
+    gateway: gateway.ok ? status("✓ Running", "ok") : status("⚠ Stopped", "warn"),
+    memory: memoryEnabled
+      ? memoryHasEntries
+        ? status("✓ Has data", "ok")
+        : status("⚠ Empty", "warn")
+      : status("Disabled", "muted"),
+  };
 }
 
 function nextThemeName(current: string): SettingsTheme {
@@ -353,6 +504,22 @@ function padRight(input: string, width: number): string {
   return input + " ".repeat(Math.max(0, width - plainLength));
 }
 
+function styleStatus(rowStatus: SettingsRowStatus | undefined): string {
+  if (!rowStatus) {
+    return "";
+  }
+  if (rowStatus.tone === "ok") {
+    return theme.success(rowStatus.text);
+  }
+  if (rowStatus.tone === "warn") {
+    return theme.warn(rowStatus.text);
+  }
+  if (rowStatus.tone === "error") {
+    return theme.error(rowStatus.text);
+  }
+  return theme.muted(rowStatus.text);
+}
+
 function truncatePlain(input: string, width: number): string {
   if (stripAnsi(input).length <= width) {
     return input;
@@ -366,13 +533,14 @@ function truncatePlain(input: string, width: number): string {
 export function renderSettingsDashboard(params: {
   rows: SettingsDashboardRow[];
   selectedIndex: number;
-  dirty: boolean;
   message?: string;
+  searchQuery?: string;
 }): string {
-  const width = 78;
+  const width = 96;
   const inner = width - 2;
   const labelWidth = 22;
-  const valueWidth = 30;
+  const valueWidth = 28;
+  const statusWidth = 18;
   const lines: string[] = [];
   lines.push(`╭${"─".repeat(18)} Kova Settings ${"─".repeat(inner - 33)}╮`);
   lines.push(`│${" ".repeat(inner)}│`);
@@ -383,18 +551,39 @@ export function renderSettingsDashboard(params: {
     const label = selected ? theme.heading(row.label) : row.label;
     const rawValue = truncatePlain(row.value, valueWidth);
     const value = selected ? theme.accentBright(rawValue) : rawValue;
+    const rowStatus = styleStatus(row.status);
     const toggle = row.toggle ? theme.muted("[space]") : "";
     lines.push(
-      `│ ${cursor} ${padRight(label, labelWidth)} ${padRight(value, valueWidth)} ${padRight(toggle, inner - labelWidth - valueWidth - 5)}│`,
+      `│ ${cursor} ${padRight(label, labelWidth)} ${padRight(value, valueWidth)} ${padRight(rowStatus, statusWidth)} ${padRight(toggle, inner - labelWidth - valueWidth - statusWidth - 6)}│`,
     );
   }
   lines.push(`│${" ".repeat(inner)}│`);
   lines.push(`│${"─".repeat(inner)}│`);
-  lines.push(`│  ${padRight("[Enter] Edit   [Space] Toggle   [S] Save   [Q] Quit", inner - 2)}│`);
-  const status = params.message ?? (params.dirty ? "Unsaved changes" : "Ready");
-  lines.push(`│  ${padRight(status, inner - 2)}│`);
+  lines.push(`│  ${padRight("[Enter] Edit   [Space] Toggle   [/] Search   [Q] Quit", inner - 2)}│`);
+  const footer =
+    params.searchQuery !== undefined
+      ? `Search: /${params.searchQuery}`
+      : (params.message ?? "Ready");
+  lines.push(`│  ${padRight(footer, inner - 2)}│`);
   lines.push(`╰${"─".repeat(inner)}╯`);
   return lines.join("\n");
+}
+
+function normalizeSearchQuery(query: string): string {
+  return query.trim().replace(/^\/+/, "").toLowerCase();
+}
+
+export function findSettingsRowIndex(rows: SettingsDashboardRow[], query: string): number {
+  const normalized = normalizeSearchQuery(query);
+  if (!normalized) {
+    return 0;
+  }
+  const found = rows.findIndex((row) =>
+    [row.id, row.label, row.value, row.hint, row.status?.text]
+      .filter((entry): entry is string => Boolean(entry))
+      .some((entry) => entry.toLowerCase().includes(normalized)),
+  );
+  return found === -1 ? 0 : found;
 }
 
 async function readCurrentConfig(runtime: RuntimeEnv): Promise<OpenClawConfig | null> {
@@ -424,7 +613,7 @@ async function saveConfig(nextConfig: OpenClawConfig): Promise<void> {
 }
 
 function printNonInteractive(rows: SettingsDashboardRow[], runtime: RuntimeEnv): void {
-  runtime.log(renderSettingsDashboard({ rows, selectedIndex: 0, dirty: false }));
+  runtime.log(renderSettingsDashboard({ rows, selectedIndex: 0 }));
   runtime.log("");
   runtime.log("Interactive controls need a TTY. Use `kova configure --section <name>` in scripts.");
 }
@@ -465,19 +654,27 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
 
   const stdin = process.stdin as KeypressInput;
   const stdout = process.stdout as WriteStream;
+  let statusMap = await resolveSettingsStatusMap(workingConfig);
   if (!stdin.isTTY || !stdout.isTTY) {
-    printNonInteractive(buildSettingsDashboardRows(workingConfig), runtime);
+    printNonInteractive(buildSettingsDashboardRows(workingConfig, statusMap), runtime);
     return;
   }
 
   let selectedIndex = 0;
-  let dirty = false;
-  let message = "Use arrows to move, Enter to edit, Space to toggle.";
+  let message = "Use arrows to move, Enter to edit, Space to toggle, / to search.";
+  let searchQuery: string | undefined;
 
   const render = () => {
-    const rows = buildSettingsDashboardRows(workingConfig!);
+    const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
     stdout.write("\x1b[?25l\x1b[2J\x1b[H");
-    stdout.write(renderSettingsDashboard({ rows, selectedIndex, dirty, message }));
+    stdout.write(renderSettingsDashboard({ rows, selectedIndex, message, searchQuery }));
+  };
+
+  const reload = async () => {
+    workingConfig = await readCurrentConfig(runtime);
+    if (workingConfig) {
+      statusMap = await resolveSettingsStatusMap(workingConfig);
+    }
   };
 
   let onKeypress:
@@ -502,7 +699,7 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
   await new Promise<void>((resolve, reject) => {
     onKeypress = async (_chunk: string, key: { name?: string; ctrl?: boolean }) => {
       try {
-        const rows = buildSettingsDashboardRows(workingConfig!);
+        const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
         const selected = rows[selectedIndex] ?? rows[0];
         if (!selected) {
           cleanup();
@@ -513,6 +710,40 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
         if (key.ctrl && key.name === "c") {
           cleanup();
           resolve();
+          return;
+        }
+        if (searchQuery !== undefined) {
+          if (key.name === "escape") {
+            searchQuery = undefined;
+            message = "Search cleared.";
+            render();
+            return;
+          }
+          if (key.name === "return") {
+            searchQuery = undefined;
+            message = rows[selectedIndex]?.hint ?? "Ready";
+            render();
+            return;
+          }
+          if (key.name === "backspace" || key.name === "delete") {
+            searchQuery = searchQuery.slice(0, -1);
+          } else if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
+            searchQuery += _chunk;
+          }
+          const nextIndex = findSettingsRowIndex(rows, searchQuery);
+          selectedIndex = nextIndex;
+          message =
+            rows[nextIndex] && normalizeSearchQuery(searchQuery)
+              ? `Jumped to ${rows[nextIndex].label}. Press Enter to edit.`
+              : "Type to search settings.";
+          render();
+          return;
+        }
+
+        if (_chunk === "/") {
+          searchQuery = "";
+          message = "Type to search settings.";
+          render();
           return;
         }
         if (key.name === "up") {
@@ -537,29 +768,19 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
             return;
           }
           workingConfig = applySettingsToggle(workingConfig!, selected.toggle);
-          dirty = true;
-          message = `${selected.label} changed. Press S to save.`;
+          await saveConfig(workingConfig);
+          await reload();
+          message = `${selected.label} saved automatically.`;
           render();
           return;
         }
         if (key.name === "s") {
-          if (dirty) {
-            await saveConfig(workingConfig!);
-            workingConfig = await readCurrentConfig(runtime);
-            dirty = false;
-            message = "Settings saved.";
-            render();
-            return;
-          }
-          message = "No changes to save.";
+          message = "Settings auto-save after every toggle.";
           render();
           return;
         }
         if (key.name === "q" || key.name === "escape") {
           cleanup();
-          if (dirty) {
-            runtime.log("Discarded unsaved settings changes.");
-          }
           resolve();
           return;
         }
@@ -575,9 +796,6 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
           if (selected.action.type === "finish") {
             resolve();
             return;
-          }
-          if (dirty) {
-            await saveConfig(workingConfig!);
           }
           runtime.log(`Opening ${formatCliCommand(describeAction(selected.action))}...`);
           await runAction(selected.action, runtime);

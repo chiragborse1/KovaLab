@@ -28,12 +28,16 @@ The dashboard is a post-onboarding control surface for common configuration:
 - Background service
 - Health check
 
+Each row includes a small status indicator where Kova can resolve one quickly,
+for example Gateway running/stopped, workspace existence, memory data, active
+plugins, and configured channels.
+
 Keyboard controls:
 
 - Up/Down: move between rows
 - Enter: edit the selected row using the existing Kova configuration flow
-- Space: toggle supported rows
-- S: save pending toggles
+- Space: toggle supported rows; changes save automatically
+- `/`: search rows and jump as you type, for example `/gateway`
 - Q/Esc or the **Finish** row: quit
 
 After an editor finishes, the dashboard opens again with refreshed values.

@@ -4,6 +4,7 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
   applySettingsToggle,
   buildSettingsDashboardRows,
+  findSettingsRowIndex,
   renderSettingsDashboard,
 } from "./settings.js";
 
@@ -51,6 +52,8 @@ describe("settings dashboard", () => {
     expect(rows.find((row) => row.id === "model")?.value).toBe("gpt-5.5");
     expect(rows.find((row) => row.id === "channels")?.value).toBe("1 configured");
     expect(rows.find((row) => row.id === "web")?.value).toBe("brave");
+    expect(rows.find((row) => row.id === "provider")?.status?.text).toBe("✓ Connected");
+    expect(rows.find((row) => row.id === "plugins")?.status?.text).toBe("✓ 1 Active");
   });
 
   it("shows the Kova workspace when config still has the legacy default workspace", () => {
@@ -81,13 +84,21 @@ describe("settings dashboard", () => {
     expect(withVoice.messages?.tts).toMatchObject({ auto: "always", provider: "openai" });
   });
 
-  it("renders the keyboard help and dirty state", () => {
+  it("finds settings rows from slash-search queries", () => {
     const rows = buildSettingsDashboardRows({});
-    const output = renderSettingsDashboard({ rows, selectedIndex: 0, dirty: true });
+
+    expect(rows[findSettingsRowIndex(rows, "/gateway")]?.id).toBe("gateway");
+    expect(rows[findSettingsRowIndex(rows, "browser")]?.id).toBe("browser");
+  });
+
+  it("renders the keyboard help and status column", () => {
+    const rows = buildSettingsDashboardRows({});
+    const output = renderSettingsDashboard({ rows, selectedIndex: 0, searchQuery: "gateway" });
 
     expect(output).toContain("Kova Settings");
     expect(output).toContain("[Enter] Edit");
     expect(output).toContain("[Space] Toggle");
-    expect(output).toContain("Unsaved changes");
+    expect(output).toContain("[/] Search");
+    expect(output).toContain("Search: /gateway");
   });
 });
