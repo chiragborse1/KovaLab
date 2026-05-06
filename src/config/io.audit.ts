@@ -1,7 +1,106 @@
 import path from "node:path";
+import { redactSensitiveText } from "../logging/redact.js";
 import { resolveStateDir } from "./paths.js";
 
 const CONFIG_AUDIT_LOG_FILENAME = "config-audit.jsonl";
+const CONFIG_AUDIT_ARGV_CAP = 8;
+
+const SECRET_FLAG_NAMES = new Set([
+  "--token",
+  "--api-key",
+  "--apikey",
+  "--secret",
+  "--password",
+  "--passwd",
+  "--auth-token",
+  "--access-token",
+  "--refresh-token",
+  "--client-secret",
+  "--hook-token",
+  "--gateway-token",
+  "--bot-token",
+  "--app-token",
+  "--remote-token",
+  "--push-token",
+  "--webhook-secret",
+  "--webhook-token",
+  "--service-account-token",
+  "--op-service-account-token",
+  "--bearer",
+  "--bearer-token",
+  "--pat",
+  "--personal-access-token",
+  "--oauth-token",
+  "--id-token",
+  "--identity-token",
+  "--session-token",
+  "--service-token",
+  "--private-key",
+  "--recovery-key",
+  "--gateway-key",
+  "--session-key",
+  "--active-key",
+]);
+
+const SECRET_FLAG_SUFFIX_PATTERN =
+  /^--(?:[a-z0-9]+(?:-[a-z0-9]+)*-)?(?:token|secret|password|passwd|api[-_]?key|api[-_]?secret|webhook|credential|bearer|pat|private[-_]?key|recovery[-_]?key|signing[-_]?key|encryption[-_]?key|master[-_]?key|session[-_]?key|gateway[-_]?key|service[-_]?key|hook[-_]?key)$/;
+
+function parseFlagName(arg: string): string | null {
+  if (!arg.startsWith("--")) {
+    return null;
+  }
+  const eq = arg.indexOf("=");
+  return (eq === -1 ? arg : arg.slice(0, eq)).toLowerCase();
+}
+
+function isSecretFlagName(flagName: string | null): boolean {
+  if (flagName === null) {
+    return false;
+  }
+  return SECRET_FLAG_NAMES.has(flagName) || SECRET_FLAG_SUFFIX_PATTERN.test(flagName);
+}
+
+export function redactConfigAuditArgv(argv: readonly string[]): string[] {
+  const result: string[] = [];
+  let redactNext = false;
+  for (const current of argv) {
+    if (redactNext) {
+      redactNext = false;
+      result.push("***");
+      continue;
+    }
+    const flagName = parseFlagName(current);
+    if (isSecretFlagName(flagName)) {
+      const eq = current.indexOf("=");
+      if (eq !== -1) {
+        result.push(`${current.slice(0, eq + 1)}***`);
+        continue;
+      }
+      result.push(current);
+      redactNext = true;
+      continue;
+    }
+    result.push(redactSensitiveText(current, { mode: "tools" }));
+  }
+  return result;
+}
+
+function capArgv(argv: readonly string[] | undefined): string[] {
+  if (!Array.isArray(argv)) {
+    return [];
+  }
+  return argv.slice(0, CONFIG_AUDIT_ARGV_CAP);
+}
+
+export function snapshotConfigAuditProcessInfo(): ConfigAuditProcessInfo {
+  return {
+    pid: process.pid,
+    ppid: process.ppid,
+    cwd: process.cwd(),
+    argv: redactConfigAuditArgv(capArgv(process.argv)),
+    execArgv: redactConfigAuditArgv(capArgv(process.execArgv)),
+  };
+}
 
 export type ConfigWriteAuditResult = "rename" | "copy-fallback" | "failed" | "rejected";
 
@@ -163,15 +262,13 @@ function resolveConfigAuditProcessInfo(
   processInfo?: ConfigAuditProcessInfo,
 ): ConfigAuditProcessInfo {
   if (processInfo) {
-    return processInfo;
+    return {
+      ...processInfo,
+      argv: redactConfigAuditArgv(capArgv(processInfo.argv)),
+      execArgv: redactConfigAuditArgv(capArgv(processInfo.execArgv)),
+    };
   }
-  return {
-    pid: process.pid,
-    ppid: process.ppid,
-    cwd: process.cwd(),
-    argv: process.argv.slice(0, 8),
-    execArgv: process.execArgv.slice(0, 8),
-  };
+  return snapshotConfigAuditProcessInfo();
 }
 
 export function resolveConfigAuditLogPath(env: NodeJS.ProcessEnv, homedir: () => string): string {

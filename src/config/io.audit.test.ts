@@ -7,6 +7,7 @@ import {
   createConfigWriteAuditRecordBase,
   finalizeConfigWriteAuditRecord,
   formatConfigOverwriteLogMessage,
+  redactConfigAuditArgv,
   resolveConfigAuditLogPath,
 } from "./io.audit.js";
 
@@ -53,7 +54,7 @@ function createRenameAuditRecord(home: string) {
 }
 
 function readAuditLog(home: string): unknown[] {
-  const auditPath = path.join(home, ".openclaw", "logs", "config-audit.jsonl");
+  const auditPath = path.join(home, ".kova", "logs", "config-audit.jsonl");
   return fs
     .readFileSync(auditPath, "utf-8")
     .trim()
@@ -82,7 +83,7 @@ describe("config io audit helpers", () => {
       } as NodeJS.ProcessEnv,
       () => home,
     );
-    expect(auditPath).toBe(path.join(home, ".openclaw", "logs", "config-audit.jsonl"));
+    expect(auditPath).toBe(path.join(home, ".kova", "logs", "config-audit.jsonl"));
     expect(auditPath.startsWith(path.resolve("undefined"))).toBe(false);
   });
 
@@ -97,6 +98,51 @@ describe("config io audit helpers", () => {
     ).toBe(
       "Config overwrite: /tmp/openclaw.json (sha256 prev-hash -> next-hash, backup=/tmp/openclaw.json.bak, changedPaths=3)",
     );
+  });
+
+  it("redacts argv values that follow known secret flag names", () => {
+    expect(
+      redactConfigAuditArgv([
+        "node",
+        "kova",
+        "gateway",
+        "--token",
+        "super-secret-gateway-token-12345",
+        "--api-key",
+        "sk-very-real-looking-openai-api-key-AB12CD34",
+        "--port",
+        "8080",
+      ]),
+    ).toEqual(["node", "kova", "gateway", "--token", "***", "--api-key", "***", "--port", "8080"]);
+  });
+
+  it("redacts the value half of secret --flag=value argv entries", () => {
+    expect(redactConfigAuditArgv(["kova", "--token=ghp_realgithubtoken1234567890ABCD"])).toEqual([
+      "kova",
+      "--token=***",
+    ]);
+  });
+
+  it("redacts credential-suffixed argv flags through the heuristic classifier", () => {
+    expect(
+      redactConfigAuditArgv([
+        "kova",
+        "--custom-api-key",
+        "tenant-key-AB12CD34EF56GH78",
+        "--plugin-private-key=PEM-LIKE-MATERIAL",
+      ]),
+    ).toEqual(["kova", "--custom-api-key", "***", "--plugin-private-key=***"]);
+  });
+
+  it("redacts standalone token shapes through shared logging patterns", () => {
+    const result = redactConfigAuditArgv([
+      "kova",
+      "ghp_realgithubtoken1234567890ABCD",
+      "hf_ABCDEFghijklmnopqrstuv",
+    ]);
+    expect(result[0]).toBe("kova");
+    expect(result[1]).not.toContain("ghp_realgithubtoken");
+    expect(result[2]).toBe("hf_ABC…stuv");
   });
 
   it("captures watch markers and next stat metadata for successful writes", () => {
@@ -156,6 +202,63 @@ describe("config io audit helpers", () => {
     expect(record.nextDev).toBe("12");
     expect(record.nextIno).toBe("13");
     expect(record.result).toBe("rename");
+  });
+
+  it("redacts and caps caller-supplied process argv before audit persistence", () => {
+    const base = createConfigWriteAuditRecordBase({
+      configPath: "/tmp/openclaw.json",
+      env: {} as NodeJS.ProcessEnv,
+      existsBefore: true,
+      previousHash: "prev-hash",
+      nextHash: "next-hash",
+      previousBytes: 12,
+      nextBytes: 24,
+      previousMetadata: {
+        dev: "10",
+        ino: "11",
+        mode: 0o600,
+        nlink: 1,
+        uid: 501,
+        gid: 20,
+      },
+      changedPathCount: 1,
+      hasMetaBefore: true,
+      hasMetaAfter: true,
+      gatewayModeBefore: "local",
+      gatewayModeAfter: "local",
+      suspicious: [],
+      now: "2026-04-07T08:00:00.000Z",
+      processInfo: {
+        pid: 101,
+        ppid: 99,
+        cwd: "/work",
+        argv: [
+          "node",
+          "kova",
+          "--token",
+          "leaked-but-not-anymore-12345",
+          "--port",
+          "8080",
+          "--bind",
+          "lan",
+          "--later-token",
+          "not-captured",
+        ],
+        execArgv: ["--inspect", "--api-key=secret"],
+      },
+    });
+
+    expect(base.argv).toEqual([
+      "node",
+      "kova",
+      "--token",
+      "***",
+      "--port",
+      "8080",
+      "--bind",
+      "lan",
+    ]);
+    expect(base.execArgv).toEqual(["--inspect", "--api-key=***"]);
   });
 
   it("drops next-file metadata and preserves error details for failed writes", () => {
