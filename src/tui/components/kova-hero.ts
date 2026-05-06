@@ -156,6 +156,10 @@ export class KovaHero implements Component {
     };
   }
 
+  invalidate(): void {
+    // KovaHero renders directly from state and has no cached child state.
+  }
+
   render(width: number): string[] {
     if (width < 72) {
       return this.renderCompact(width);
