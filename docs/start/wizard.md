@@ -28,9 +28,13 @@ Fastest first chat: open the browser dashboard, no chat channel needed. Run
 To reconfigure later:
 
 ```bash
+kova settings
 kova configure
 kova agents add <name>
 ```
+
+Plain `kova onboard` also opens `kova settings` after a valid config exists, so
+you do not have to repeat first-run onboarding for routine edits.
 
 <Note>
 `--json` does not imply non-interactive mode. For scripts, use `--non-interactive`.

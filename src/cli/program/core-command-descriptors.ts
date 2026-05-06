@@ -25,6 +25,11 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
+    name: "settings",
+    description: "Open the Kova settings dashboard",
+    hasSubcommands: false,
+  },
+  {
     name: "config",
     description:
       "Non-interactive config helpers (get/set/unset/file/validate). Default: starts guided setup.",

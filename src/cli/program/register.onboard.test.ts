@@ -4,6 +4,8 @@ import { registerOnboardCommand } from "./register.onboard.js";
 
 const mocks = vi.hoisted(() => ({
   runCrestodian: vi.fn(),
+  readConfigFileSnapshot: vi.fn(),
+  settingsCommand: vi.fn(),
   setupWizardCommandMock: vi.fn(),
   runtime: {
     log: vi.fn(),
@@ -48,6 +50,14 @@ vi.mock("../../commands/onboard.js", () => ({
   setupWizardCommand: mocks.setupWizardCommandMock,
 }));
 
+vi.mock("../../commands/settings.js", () => ({
+  settingsCommand: mocks.settingsCommand,
+}));
+
+vi.mock("../../config/config.js", () => ({
+  readConfigFileSnapshot: mocks.readConfigFileSnapshot,
+}));
+
 vi.mock("../../crestodian/crestodian.js", () => ({
   runCrestodian: mocks.runCrestodian,
 }));
@@ -66,6 +76,8 @@ describe("registerOnboardCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.runCrestodian.mockResolvedValue(undefined);
+    mocks.readConfigFileSnapshot.mockResolvedValue({ exists: false, valid: true });
+    mocks.settingsCommand.mockResolvedValue(undefined);
     setupWizardCommandMock.mockResolvedValue(undefined);
   });
 
@@ -79,6 +91,27 @@ describe("registerOnboardCommand", () => {
       runtime,
     );
     expect(mocks.runCrestodian).not.toHaveBeenCalled();
+  });
+
+  it("opens settings instead of repeating onboarding when config already exists", async () => {
+    mocks.readConfigFileSnapshot.mockResolvedValueOnce({ exists: true, valid: true });
+
+    await runCli(["onboard"]);
+
+    expect(setupWizardCommandMock).not.toHaveBeenCalled();
+    expect(mocks.settingsCommand).toHaveBeenCalledWith(runtime);
+  });
+
+  it("keeps explicit onboarding flags on the setup wizard path", async () => {
+    await runCli(["onboard", "--flow", "quickstart"]);
+
+    expect(mocks.settingsCommand).not.toHaveBeenCalled();
+    expect(setupWizardCommandMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        flow: "quickstart",
+      }),
+      runtime,
+    );
   });
 
   it("sets installDaemon from explicit install flags and prioritizes --skip-daemon", async () => {

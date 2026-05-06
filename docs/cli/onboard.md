@@ -13,6 +13,11 @@ The interactive flow starts with a Kova Setup screen, then walks through setup
 type, workspace, model, Gateway access, chat channels, web search, skills,
 hooks, and where to start first.
 
+After a valid config exists, plain `kova onboard` opens the settings dashboard
+instead of repeating first-run onboarding. Pass explicit onboarding flags such
+as `--flow quickstart`, `--reset`, or `--non-interactive` when you need the
+full setup path again.
+
 ## Related guides
 
 <CardGroup cols={2}>
@@ -37,6 +42,7 @@ hooks, and where to start first.
 
 ```bash
 kova onboard
+kova settings
 kova onboard --modern
 kova onboard --flow quickstart
 kova onboard --flow manual
@@ -48,8 +54,11 @@ kova onboard --mode remote --remote-url wss://gateway-host:18789
 
 `--flow import` uses plugin-owned migration providers such as Hermes. It only runs against a fresh Kova setup; if existing config, credentials, sessions, or workspace memory/identity files are present, reset or choose a fresh setup before importing.
 
-`--modern` starts the Crestodian conversational onboarding preview. Without
-`--modern`, `kova onboard` keeps the classic onboarding flow.
+`kova settings` is the normal post-onboarding control surface for model,
+workspace, Gateway, channels, memory, browser tools, voice, web search, skills,
+plugins, background service, health checks, and theme. `--modern` starts the
+Crestodian conversational onboarding preview. Without `--modern`, first-run
+`kova onboard` keeps the guided setup flow.
 
 For plaintext private-network `ws://` targets (trusted networks only), set
 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` in the onboarding process environment.
@@ -211,6 +220,7 @@ kova onboard --non-interactive \
 
 ```bash
 kova configure
+kova settings
 kova agents add <name>
 ```
 

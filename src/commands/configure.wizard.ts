@@ -43,6 +43,7 @@ import {
   DEFAULT_WORKSPACE,
   ensureWorkspaceAndSessions,
   guardCancel,
+  LEGACY_DEFAULT_WORKSPACE,
   probeGatewayReachable,
   resolveControlUiLinks,
   summarizeExistingConfig,
@@ -57,6 +58,18 @@ type SetupPluginConfigModule = typeof import("../wizard/setup.plugin-config.js")
 const GATEWAY_HINT_PROBE_TIMEOUT_MS = 300;
 
 let setupPluginConfigModulePromise: Promise<SetupPluginConfigModule> | undefined;
+
+function resolveWorkspaceWizardDefault(value: string | undefined): string {
+  const configured = normalizeOptionalString(value);
+  if (
+    configured &&
+    nodePath.resolve(resolveUserPath(configured)) !==
+      nodePath.resolve(resolveUserPath(LEGACY_DEFAULT_WORKSPACE))
+  ) {
+    return configured;
+  }
+  return DEFAULT_WORKSPACE;
+}
 
 function loadSetupPluginConfigModule(): Promise<SetupPluginConfigModule> {
   setupPluginConfigModulePromise ??= import("../wizard/setup.plugin-config.js");
@@ -489,10 +502,9 @@ export async function runConfigureWizard(
       };
       didSetGatewayMode = true;
     }
-    let workspaceDir =
-      nextConfig.agents?.defaults?.workspace ??
-      baseConfig.agents?.defaults?.workspace ??
-      DEFAULT_WORKSPACE;
+    let workspaceDir = resolveWorkspaceWizardDefault(
+      nextConfig.agents?.defaults?.workspace ?? baseConfig.agents?.defaults?.workspace,
+    );
     let gatewayPort = resolveGatewayPort(baseConfig);
 
     const persistConfig = async () => {
