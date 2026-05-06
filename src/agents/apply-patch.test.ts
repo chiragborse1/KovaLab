@@ -518,7 +518,7 @@ describe("applyPatch", () => {
             timing: "before-realpath",
             run: async () => {
               await expect(applyPatch(patch, { cwd: dir })).rejects.toThrow(
-                /symlink escapes sandbox root|under root|not found/i,
+                /path alias under sandbox root|symlink escapes sandbox root|under root|not found/i,
               );
             },
           });
@@ -556,7 +556,9 @@ describe("applyPatch", () => {
             symlinkTarget: outside,
             timing: "before-realpath",
             run: async () => {
-              await expect(applyPatch(patch, { cwd: dir })).rejects.toThrow(/under root/i);
+              await expect(applyPatch(patch, { cwd: dir })).rejects.toThrow(
+                /path alias under sandbox root|under root/i,
+              );
             },
           });
           await expect(fs.stat(path.join(outside, "nested"))).rejects.toMatchObject({
