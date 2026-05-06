@@ -183,7 +183,7 @@ export async function runSetupWizard(
 ) {
   const onboardHelpers = await import("../commands/onboard-helpers.js");
   onboardHelpers.printWizardHeader(runtime);
-  await prompter.intro("Kova First-Light");
+  await prompter.intro("Kova Setup");
   await requireRiskAcknowledgement({ opts, prompter });
 
   const snapshot = await readSetupConfigFileSnapshot();
@@ -233,8 +233,8 @@ export async function runSetupWizard(
     );
   }
 
-  const quickstartHint = `Fast local launch. Tune later with ${formatCliCommand("kova configure")}.`;
-  const manualHint = "Choose network, auth, service runtime, and exposure details.";
+  const quickstartHint = `Fast local setup. Change details later with ${formatCliCommand("kova configure")}.`;
+  const manualHint = "Choose workspace, network, auth, service, and channel details yourself.";
   const migrationDetections = await detectSetupMigrationSources({ config: baseConfig, runtime });
   const firstMigrationDetection = migrationDetections[0];
   const importOption = firstMigrationDetection
@@ -265,10 +265,10 @@ export async function runSetupWizard(
   let flow: SetupFlowChoice =
     explicitFlow ??
     (await prompter.select({
-      message: "Choose your launch path",
+      message: "Choose setup type",
       options: [
-        { value: "quickstart", label: "Spark path", hint: quickstartHint },
-        { value: "advanced", label: "Forge path", hint: manualHint },
+        { value: "quickstart", label: "Quick setup", hint: quickstartHint },
+        { value: "advanced", label: "Custom setup", hint: manualHint },
         ...(importOption ? [importOption] : []),
       ],
       initialValue: "quickstart",
@@ -276,8 +276,8 @@ export async function runSetupWizard(
 
   if (opts.mode === "remote" && flow === "quickstart") {
     await prompter.note(
-      "Spark path is local-only. Switching to Forge path for remote gateway setup.",
-      "Launch path",
+      "Quick setup is local-only. Switching to custom setup for remote gateway setup.",
+      "Setup type",
     );
     flow = "advanced";
   }
@@ -285,14 +285,14 @@ export async function runSetupWizard(
   if (snapshot.exists) {
     await prompter.note(
       onboardHelpers.summarizeExistingConfig(baseConfig),
-      "Existing Kova core detected",
+      "Existing Kova setup found",
     );
 
     const action = await prompter.select({
-      message: "How should this core be handled?",
+      message: "What should happen to this setup?",
       options: [
-        { value: "keep", label: "Keep current core" },
-        { value: "modify", label: "Tune current core" },
+        { value: "keep", label: "Keep current setup" },
+        { value: "modify", label: "Change current setup" },
         { value: "reset", label: "Start clean" },
       ],
     });
@@ -416,7 +416,7 @@ export async function runSetupWizard(
     };
     const quickstartLines = quickstartGateway.hasExisting
       ? [
-          "Spark path will keep your current gateway shell:",
+          "Quick setup will keep your current gateway settings:",
           `Gateway port: ${quickstartGateway.port}`,
           `Gateway bind: ${formatBind(quickstartGateway.bind)}`,
           ...(quickstartGateway.bind === "custom" && quickstartGateway.customBindHost
@@ -424,17 +424,17 @@ export async function runSetupWizard(
             : []),
           `Gateway auth: ${formatAuth(quickstartGateway.authMode)}`,
           `Tailscale exposure: ${formatTailscale(quickstartGateway.tailscaleMode)}`,
-          "Next: connect model, workspace, channels, and launch surface.",
+          "Next: choose model, workspace, channels, and where to start.",
         ]
       : [
-          "Spark path will create a private local gateway shell:",
+          "Quick setup will create a private local gateway:",
           `Gateway port: ${quickstartGateway.port}`,
           "Gateway bind: Loopback (127.0.0.1)",
           "Gateway auth: Token (default)",
           "Tailscale exposure: Off",
-          "Next: connect model, workspace, channels, and launch surface.",
+          "Next: choose model, workspace, channels, and where to start.",
         ];
-    await prompter.note(quickstartLines.join("\n"), "Spark path");
+    await prompter.note(quickstartLines.join("\n"), "Quick setup");
   }
 
   const localPort = resolveGatewayPort(baseConfig);
@@ -552,7 +552,7 @@ export async function runSetupWizard(
     nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
     nextConfig = await writeWizardConfigFile(nextConfig);
     logConfigUpdated(runtime);
-    await prompter.outro("Remote Kova gateway profile sealed.");
+    await prompter.outro("Remote Kova gateway setup saved.");
     return;
   }
 
@@ -715,7 +715,7 @@ export async function runSetupWizard(
   const settings = gateway.settings;
 
   if (opts.skipChannels ?? opts.skipProviders) {
-    await prompter.note("Channel layer skipped. You can wire chat surfaces later.", "Channels");
+    await prompter.note("Chat channels skipped. You can add them later.", "Channels");
   } else {
     const { listChannelPlugins } = await import("../channels/plugins/index.js");
     const { setupChannels } = await import("../commands/onboard-channels.js");
@@ -744,7 +744,7 @@ export async function runSetupWizard(
   });
 
   if (opts.skipSearch) {
-    await prompter.note("Web recall skipped. You can add search later.", "Web recall");
+    await prompter.note("Web search skipped. You can add it later.", "Web search");
   } else {
     const { setupSearch } = await import("../commands/onboard-search.js");
     nextConfig = await setupSearch(nextConfig, runtime, prompter, {
@@ -754,7 +754,7 @@ export async function runSetupWizard(
   }
 
   if (opts.skipSkills) {
-    await prompter.note("Skill layer skipped. You can install skills later.", "Skills");
+    await prompter.note("Skills skipped. You can install them later.", "Skills");
   } else {
     const { setupSkills } = await import("../commands/onboard-skills.js");
     nextConfig = await setupSkills(nextConfig, workspaceDir, runtime, prompter);

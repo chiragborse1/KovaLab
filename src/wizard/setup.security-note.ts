@@ -1,33 +1,33 @@
 import chalk from "chalk";
 import { formatCliCommand } from "../cli/command-format.js";
 
-export const SECURITY_NOTE_TITLE = "Kova operating covenant";
+export const SECURITY_NOTE_TITLE = "Security notice";
 
 export const SECURITY_CONFIRM_MESSAGE =
-  "I understand Kova is a powerful local agent and I am responsible for who can reach it. Continue?";
+  "I understand Kova can use tools and access connected accounts. Continue?";
 
 const heading = (text: string) => chalk.bold(text);
 
 export const SECURITY_NOTE_MESSAGE = [
-  "Kova is a beta local-first agent runtime. Treat it like a trusted operator account, not a toy chatbot.",
-  "When tools are enabled, Kova may read files, call services, send messages, and run actions you authorize.",
-  "Model output is not a security boundary. Malicious prompts, files, websites, or chat messages can try to redirect the agent.",
+  "Kova is a beta local-first agent. Treat it like an app that can act on your behalf.",
+  "When tools are enabled, Kova may read files, call services, send messages, and run actions you approve.",
+  "Messages, files, and websites can include malicious instructions. Keep tool access limited.",
   "",
-  "Default posture: personal use, one owner, one trust boundary.",
-  "Shared inboxes or group chats need explicit allowlists, isolated sessions, and reduced tool authority.",
+  "Recommended default: personal use, one owner, private access.",
+  "For group chats or shared inboxes, use allowlists, separate sessions, and fewer tools.",
   "",
-  "Do not expose Kova to the internet or shared channels until you understand the access model.",
-  "If this machine holds sensitive files or credentials, keep sandboxing and least-privilege settings tight.",
+  "Do not expose Kova to the public internet until you understand the security settings.",
+  "If this machine has sensitive files or credentials, keep sandboxing and approvals enabled.",
   "",
-  heading("Kova baseline"),
-  "- Owner-only pairing for channels and devices.",
-  "- Mention gating for groups.",
-  "- Per-sender DM sessions for shared channels.",
-  "- Sandbox or approval prompts for local command execution.",
-  "- SecretRefs or environment-managed secrets instead of plaintext files where practical.",
-  "- Strong current-generation models for tool-enabled or untrusted inputs.",
+  heading("Recommended settings"),
+  "- Owner-only pairing for chat channels and devices.",
+  "- Require mentions in group chats.",
+  "- Keep separate sessions for each sender.",
+  "- Use sandboxing or approval prompts for local commands.",
+  "- Prefer environment-backed secrets instead of plaintext when possible.",
+  "- Use a strong current model when tools are enabled.",
   "",
-  heading("Maintenance loop"),
+  heading("Security checks"),
   formatCliCommand("kova security audit --deep"),
   formatCliCommand("kova security audit --fix"),
   "",

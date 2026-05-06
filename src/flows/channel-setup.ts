@@ -653,7 +653,7 @@ export async function setupChannels(
     while (true) {
       const { entries } = getChannelEntries();
       const choice = await prompter.select({
-        message: "Choose a Spark channel",
+        message: "Choose a chat channel",
         options: [
           ...resolveChannelSetupSelectionContributions({
             entries,

@@ -137,7 +137,7 @@ export async function finalizeSetupWizard(
           });
     if (flow === "quickstart") {
       await prompter.note(
-        "Spark path uses the Node runtime for the Gateway service because it is the most stable supported path.",
+        "Quick setup uses the Node runtime for the Gateway service because it is the most stable supported path.",
         "Gateway service runtime",
       );
     }
@@ -305,12 +305,12 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     [
-      "Optional satellites can extend Kova beyond this terminal:",
+      "Optional apps can extend Kova beyond this terminal:",
       "- macOS app for system hooks and notifications",
       "- iOS app for camera and canvas workflows",
       "- Android app for camera and canvas workflows",
     ].join("\n"),
-    "Kova satellites",
+    "Kova apps",
   );
 
   const controlUiBasePath =
@@ -355,8 +355,8 @@ export async function finalizeSetupWizard(
     });
   }
   const gatewayStatusLine = gatewayProbe.ok
-    ? "Gateway signal: reachable"
-    : `Gateway signal: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
+    ? "Gateway status: reachable"
+    : `Gateway status: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
   const bootstrapPath = path.join(
     resolveUserPath(options.workspaceDir),
     DEFAULT_BOOTSTRAP_FILENAME,
@@ -368,9 +368,9 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     [
-      `Command Deck: ${links.httpUrl}`,
+      `Dashboard: ${links.httpUrl}`,
       settings.authMode === "token" && settings.gatewayToken
-        ? `Command Deck (with token): ${authedUrl}`
+        ? `Dashboard (with token): ${authedUrl}`
         : undefined,
       `Gateway WS: ${links.wsUrl}`,
       gatewayStatusLine,
@@ -378,7 +378,7 @@ export async function finalizeSetupWizard(
     ]
       .filter(Boolean)
       .join("\n"),
-    "Command Deck",
+    "Dashboard",
   );
 
   let controlUiOpened = false;
@@ -396,33 +396,33 @@ export async function finalizeSetupWizard(
           "Specific goals, boundaries, and preferences make the agent more useful.",
           'We will send: "Wake up, my friend!"',
         ].join("\n"),
-        "First message",
+        "First chat",
       );
     }
 
     if (gatewayProbe.ok) {
       await prompter.note(
         [
-          "Gateway token: shared auth for Gateway and Command Deck access.",
+          "Gateway token: shared auth for Gateway and Dashboard access.",
           "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
-          "Command Deck keeps dashboard URL tokens in memory for the current tab and strips them from the URL after load.",
+          "Dashboard keeps URL tokens in memory for the current tab and strips them from the URL after load.",
           `Open the dashboard anytime: ${formatCliCommand("kova dashboard --no-open")}`,
-          "If prompted: paste the token into Command Deck settings or use the tokenized dashboard URL.",
+          "If prompted: paste the token into Dashboard settings or use the tokenized dashboard URL.",
         ].join("\n"),
-        "Gateway seal",
+        "Gateway token",
       );
     }
 
     const hatchOptions: { value: "tui" | "web" | "later"; label: string }[] = [
-      { value: "tui", label: "Enter Terminal cockpit (recommended)" },
-      ...(gatewayProbe.ok ? [{ value: "web" as const, label: "Open Command Deck" }] : []),
+      { value: "tui", label: "Open Terminal chat (recommended)" },
+      ...(gatewayProbe.ok ? [{ value: "web" as const, label: "Open Dashboard" }] : []),
       { value: "later", label: "Finish without launching" },
     ];
 
     hatchChoice = await prompter.select({
-      message: "Choose your first Kova surface",
+      message: "Choose where to start",
       options: hatchOptions,
       initialValue: "tui",
     });
@@ -459,15 +459,15 @@ export async function finalizeSetupWizard(
       }
       await prompter.note(
         [
-          `Command Deck link (with token): ${authedUrl}`,
+          `Dashboard link (with token): ${authedUrl}`,
           controlUiOpened
-            ? "Opened in your browser. Keep that tab to command Kova."
-            : "Copy/paste this URL in a browser on this machine to command Kova.",
+            ? "Opened in your browser."
+            : "Copy/paste this URL in a browser on this machine.",
           controlUiOpenHint,
         ]
           .filter(Boolean)
           .join("\n"),
-        "Command Deck ready",
+        "Dashboard ready",
       );
     } else {
       await prompter.note(
@@ -476,7 +476,7 @@ export async function finalizeSetupWizard(
       );
     }
   } else if (opts.skipUi) {
-    await prompter.note("Launch surface prompts skipped.", "Launch surface");
+    await prompter.note("Start prompt skipped.", "Start");
   }
 
   await prompter.note(
@@ -484,12 +484,12 @@ export async function finalizeSetupWizard(
       "Back up your Kova workspace.",
       "Docs: https://docs.neuralstudio.in/concepts/agent-workspace",
     ].join("\n"),
-    "Memory backup",
+    "Backup",
   );
 
   await prompter.note(
-    "Keep Kova boringly secure: audit access, review tools, and avoid broad public exposure. https://docs.neuralstudio.in/security",
-    "Security loop",
+    "Keep Kova secure: review access, review tools, and avoid public exposure. https://docs.neuralstudio.in/security",
+    "Security",
   );
 
   await setupWizardShellCompletion({ flow, prompter });
@@ -521,15 +521,15 @@ export async function finalizeSetupWizard(
 
     await prompter.note(
       [
-        `Command Deck link (with token): ${authedUrl}`,
+        `Dashboard link (with token): ${authedUrl}`,
         controlUiOpened
-          ? "Opened in your browser. Keep that tab to command Kova."
-          : "Copy/paste this URL in a browser on this machine to command Kova.",
+          ? "Opened in your browser."
+          : "Copy/paste this URL in a browser on this machine.",
         controlUiOpenHint,
       ]
         .filter(Boolean)
         .join("\n"),
-      "Command Deck ready",
+      "Dashboard ready",
     );
   }
 
@@ -555,24 +555,24 @@ export async function finalizeSetupWizard(
     if (!entry) {
       await prompter.note(
         [
-          `Web recall provider ${label} is selected but unavailable under the current plugin policy.`,
+          `Web search provider ${label} is selected but unavailable under the current plugin policy.`,
           "web_search will not work until the provider is re-enabled or a different provider is selected.",
           `  ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     } else if (webSearchEnabled !== false && hasKey) {
       await prompter.note(
         [
-          "Web recall is enabled, so Kova can look things up online when needed.",
+          "Web search is enabled, so Kova can look things up online when needed.",
           "",
           `Provider: ${label}`,
           ...(keySource ? [keySource] : []),
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     } else if (!hasKey) {
       await prompter.note(
@@ -584,17 +584,17 @@ export async function finalizeSetupWizard(
           `Get your key at: ${entry?.signupUrl ?? "https://docs.neuralstudio.in/tools/web"}`,
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     } else {
       await prompter.note(
         [
-          `Web recall (${label}) is configured but disabled.`,
+          `Web search (${label}) is configured but disabled.`,
           `Re-enable: ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     }
   } else {
@@ -607,29 +607,29 @@ export async function finalizeSetupWizard(
     if (legacyDetected) {
       await prompter.note(
         [
-          `Web recall is available via ${legacyDetected.label} (auto-detected).`,
+          `Web search is available via ${legacyDetected.label} (auto-detected).`,
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     } else if (codexNativeSummary) {
       await prompter.note(
         [
-          "Managed web recall provider was skipped.",
+          "Managed web search provider was skipped.",
           codexNativeSummary,
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     } else {
       await prompter.note(
         [
-          "Web recall was skipped. You can enable it later:",
+          "Web search was skipped. You can enable it later:",
           `  ${formatCliCommand("kova configure --section web")}`,
           "",
           "Docs: https://docs.neuralstudio.in/tools/web",
         ].join("\n"),
-        "Web recall",
+        "Web search",
       );
     }
   }
@@ -647,15 +647,15 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     'Next ideas: https://www.neuralstudio.in/ ("What People Are Building").',
-    "Next spark",
+    "Next steps",
   );
 
   await prompter.outro(
     controlUiOpened
-      ? "Kova is awake. Command Deck opened; keep that tab available."
+      ? "Kova is ready. Dashboard opened in your browser."
       : seededInBackground
-        ? "Kova is awake. Command Deck was seeded in the background."
-        : "Kova is awake. Use the launch links above when you are ready.",
+        ? "Kova is ready. Dashboard was prepared in the background."
+        : "Kova is ready. Use the links above when you are ready.",
   );
 
   return { launchedTui };

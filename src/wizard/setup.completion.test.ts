@@ -25,7 +25,7 @@ function createDeps() {
 }
 
 describe("setupWizardShellCompletion", () => {
-  it("Spark path installs without prompting", async () => {
+  it("quick setup installs without prompting", async () => {
     const prompter = createPrompter();
     const deps = createDeps();
 

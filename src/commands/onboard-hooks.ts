@@ -12,7 +12,7 @@ export async function setupInternalHooks(
 ): Promise<OpenClawConfig> {
   await prompter.note(
     [
-      "Hooks are Kova's internal tripwires: small automations that run when agent events happen.",
+      "Hooks are small automations that run when agent events happen.",
       "Example: save session context to memory when you issue /new or /reset.",
       "",
       "Learn more: https://docs.neuralstudio.in/automation/hooks",
@@ -29,7 +29,7 @@ export async function setupInternalHooks(
 
   if (eligibleHooks.length === 0) {
     await prompter.note(
-      "No eligible hooks found. You can wire automation hooks later in config.",
+      "No hooks found. You can add automation hooks later in config.",
       "No hooks available",
     );
     return cfg;
@@ -78,7 +78,7 @@ export async function setupInternalHooks(
       `  ${formatCliCommand("kova hooks enable <name>")}`,
       `  ${formatCliCommand("kova hooks disable <name>")}`,
     ].join("\n"),
-    "Hooks wired",
+    "Hooks enabled",
   );
 
   return next;

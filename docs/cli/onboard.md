@@ -7,17 +7,17 @@ title: "Onboard"
 
 # `kova onboard`
 
-Interactive First-Light onboarding for local or remote Kova Gateway setup.
+Interactive onboarding for local or remote Kova Gateway setup.
 
-The interactive flow starts with a Kova First-Light boot screen, then walks
-through launch path, workspace, model binding, Gateway seal, channel layer, web
-recall, skills, hooks, and final launch surface.
+The interactive flow starts with a Kova Setup screen, then walks through setup
+type, workspace, model, Gateway access, chat channels, web search, skills,
+hooks, and where to start first.
 
 ## Related guides
 
 <CardGroup cols={2}>
   <Card title="CLI onboarding hub" href="/start/wizard" icon="rocket">
-    Walkthrough of the First-Light CLI flow.
+    Walkthrough of the CLI setup flow.
   </Card>
   <Card title="Onboarding overview" href="/start/onboarding-overview" icon="map">
     How Kova onboarding fits together.
@@ -182,8 +182,8 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: Spark path, minimal prompts, auto-generates a Gateway token seal.
-    - `manual`: Forge path, full prompts for port, bind, and auth (alias of `advanced`).
+    - `quickstart`: Quick setup, minimal prompts, auto-generates a Gateway token.
+    - `manual`: Custom setup, full prompts for port, bind, and auth (alias of `advanced`).
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
   <Accordion title="Provider prefiltering">
@@ -201,7 +201,7 @@ kova onboard --non-interactive \
   </Accordion>
   <Accordion title="Other behaviors">
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
-    - Fastest first chat: `kova dashboard` (Command Deck browser dashboard, no channel setup).
+    - Fastest first chat: `kova dashboard` (browser dashboard, no channel setup).
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

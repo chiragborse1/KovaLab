@@ -63,7 +63,7 @@ export async function configureGatewayForSetup(
       : Number.parseInt(
           normalizeWizardTextInput(
             await prompter.text({
-              message: "Gateway listen port",
+              message: "Gateway port",
               initialValue: String(localPort),
               validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
             }),
@@ -75,13 +75,13 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.bind
       : await prompter.select<GatewayWizardSettings["bind"]>({
-          message: "Gateway network posture",
+          message: "Gateway network access",
           options: [
-            { value: "loopback", label: "Private loopback (127.0.0.1)" },
-            { value: "lan", label: "LAN listener (0.0.0.0)" },
-            { value: "tailnet", label: "Tailnet listener (Tailscale IP)" },
-            { value: "auto", label: "Auto posture (Loopback -> LAN)" },
-            { value: "custom", label: "Pinned IP address" },
+            { value: "loopback", label: "This computer only (127.0.0.1)" },
+            { value: "lan", label: "Local network (0.0.0.0)" },
+            { value: "tailnet", label: "Tailscale network" },
+            { value: "auto", label: "Automatic" },
+            { value: "custom", label: "Custom IP address" },
           ],
         });
 
@@ -90,7 +90,7 @@ export async function configureGatewayForSetup(
     const needsPrompt = flow !== "quickstart" || !customBindHost;
     if (needsPrompt) {
       const input = await prompter.text({
-        message: "Pinned Gateway IP",
+        message: "Custom Gateway IP",
         placeholder: "192.168.1.100",
         initialValue: customBindHost ?? "",
         validate: validateIPv4AddressInput,
@@ -103,14 +103,14 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.authMode
       : ((await prompter.select({
-          message: "Gateway access key",
+          message: "Gateway login method",
           options: [
             {
               value: "token",
-              label: "Token seal",
-              hint: "Recommended for local and remote control surfaces",
+              label: "Token",
+              hint: "Recommended",
             },
-            { value: "password", label: "Password gate" },
+            { value: "password", label: "Password" },
           ],
           initialValue: "token",
         })) as GatewayAuthChoice);
@@ -119,7 +119,7 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.tailscaleMode
       : await prompter.select<GatewayWizardSettings["tailscaleMode"]>({
-          message: "Tailnet exposure",
+          message: "Tailscale access",
           options: [...TAILSCALE_EXPOSURE_OPTIONS],
         });
 
@@ -137,7 +137,7 @@ export async function configureGatewayForSetup(
   if (tailscaleMode !== "off" && flow !== "quickstart") {
     await prompter.note(TAILSCALE_DOCS_LINES.join("\n"), "Tailscale");
     tailscaleResetOnExit = await prompter.confirm({
-      message: "Clear Tailscale serve/funnel state when Kova exits?",
+      message: "Clear Tailscale serve/funnel settings when Kova exits?",
       initialValue: false,
     });
   }
@@ -210,7 +210,7 @@ export async function configureGatewayForSetup(
       gatewayTokenInput = gatewayToken;
     } else {
       const tokenInput = await prompter.text({
-        message: "Gateway token seal (blank to generate)",
+        message: "Gateway token (blank to generate)",
         placeholder: "Needed for multi-machine or non-loopback access",
         initialValue:
           quickstartTokenString ??
@@ -250,7 +250,7 @@ export async function configureGatewayForSetup(
       } else {
         password = normalizeWizardTextInput(
           await prompter.text({
-            message: "Gateway password gate",
+            message: "Gateway password",
             validate: validateGatewayPasswordInput,
           }),
         );

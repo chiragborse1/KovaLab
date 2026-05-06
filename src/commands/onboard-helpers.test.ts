@@ -50,12 +50,12 @@ afterEach(() => {
 });
 
 describe("formatWizardBootScreen", () => {
-  it("prints the Kova First-Light identity before onboarding starts", () => {
+  it("prints the Kova setup identity before onboarding starts", () => {
     const output = formatWizardBootScreen();
 
     expect(output).toContain("KOVA");
-    expect(output).toContain("First-Light Onboarding");
-    expect(output).toContain("shape a private agent from model to launch");
+    expect(output).toContain("Setup");
+    expect(output).toContain("set up your local AI agent");
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("OPENCLAW");

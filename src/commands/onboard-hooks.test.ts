@@ -180,7 +180,7 @@ describe("onboard-hooks", () => {
       expect(result).toEqual(cfg);
       expect(prompter.multiselect).not.toHaveBeenCalled();
       expect(prompter.note).toHaveBeenCalledWith(
-        "No eligible hooks found. You can wire automation hooks later in config.",
+        "No hooks found. You can add automation hooks later in config.",
         "No hooks available",
       );
     });
@@ -229,7 +229,7 @@ describe("onboard-hooks", () => {
       expect(noteCalls).toHaveLength(2);
 
       // First note should explain what hooks are
-      expect(noteCalls[0][0]).toContain("Hooks are Kova's internal tripwires");
+      expect(noteCalls[0][0]).toContain("Hooks are small automations");
       expect(noteCalls[0][0]).toContain("small automations");
 
       // Second note should confirm configuration
