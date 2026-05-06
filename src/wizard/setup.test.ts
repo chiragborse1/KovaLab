@@ -59,7 +59,7 @@ const configureGatewayForSetup = vi.hoisted(() =>
 const finalizeSetupWizard = vi.hoisted(() =>
   vi.fn(async (options) => {
     if (!options.nextConfig?.tools?.web?.search?.provider) {
-      await options.prompter.note("Web search was skipped.", "Web search");
+      await options.prompter.note("Web recall was skipped.", "Web recall");
     }
 
     if (options.opts.skipUi) {
@@ -67,7 +67,7 @@ const finalizeSetupWizard = vi.hoisted(() =>
     }
 
     const hatch = await options.prompter.select({
-      message: "How do you want to hatch your bot?",
+      message: "Choose your first Kova surface",
       options: [],
     });
     if (hatch !== "tui") {
@@ -339,13 +339,13 @@ describe("runSetupWizard", () => {
 
     const caseDir = await makeCaseDir("provider-missing-id-");
     const select = vi.fn(async ({ message }: WizardSelectParams<unknown>) => {
-      if (message === "Select setup mode") {
+      if (message === "Choose your launch path") {
         return "quickstart";
       }
-      if (message === "Select channel (QuickStart)") {
+      if (message === "Choose a Spark channel") {
         return "__skip__";
       }
-      if (message === "How do you want to hatch your bot?") {
+      if (message === "Choose your first Kova surface") {
         return "skip";
       }
       return "skip";
@@ -536,7 +536,7 @@ describe("runSetupWizard", () => {
     }
 
     const select = vi.fn(async (opts: WizardSelectParams<unknown>) => {
-      if (opts.message === "How do you want to hatch your bot?") {
+      if (opts.message === "Choose your first Kova surface") {
         return "tui";
       }
       return "quickstart";
@@ -606,7 +606,7 @@ describe("runSetupWizard", () => {
 
       const calls = getWizardNoteCalls(note);
       expect(calls.length).toBeGreaterThan(0);
-      expect(calls.some((call) => call?.[1] === "Web search")).toBe(true);
+      expect(calls.some((call) => call?.[1] === "Web recall")).toBe(true);
     } finally {
       if (prevBraveKey === undefined) {
         delete process.env.BRAVE_API_KEY;
@@ -616,7 +616,7 @@ describe("runSetupWizard", () => {
     }
   });
 
-  it("defers channel setup plugin loads during QuickStart until a channel is selected", async () => {
+  it("defers channel setup plugin loads during Spark path until a channel is selected", async () => {
     const prompter = buildWizardPrompter({});
     const runtime = createRuntime();
 
@@ -973,7 +973,7 @@ describe("runSetupWizard", () => {
     expect(
       calls.some(
         (call) =>
-          call?.[1] === "QuickStart" &&
+          call?.[1] === "Spark path" &&
           typeof call?.[0] === "string" &&
           call[0].includes("Gateway port: 18791"),
       ),

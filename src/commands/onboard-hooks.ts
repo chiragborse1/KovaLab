@@ -12,12 +12,12 @@ export async function setupInternalHooks(
 ): Promise<OpenClawConfig> {
   await prompter.note(
     [
-      "Hooks let you automate actions when agent commands are issued.",
-      "Example: Save session context to memory when you issue /new or /reset.",
+      "Hooks are Kova's internal tripwires: small automations that run when agent events happen.",
+      "Example: save session context to memory when you issue /new or /reset.",
       "",
       "Learn more: https://docs.neuralstudio.in/automation/hooks",
     ].join("\n"),
-    "Hooks",
+    "Automation hooks",
   );
 
   // Discover available hooks using the hook discovery system
@@ -29,14 +29,14 @@ export async function setupInternalHooks(
 
   if (eligibleHooks.length === 0) {
     await prompter.note(
-      "No eligible hooks found. You can configure hooks later in your config.",
-      "No Hooks Available",
+      "No eligible hooks found. You can wire automation hooks later in config.",
+      "No hooks available",
     );
     return cfg;
   }
 
   const toEnable = await prompter.multiselect({
-    message: "Enable hooks?",
+    message: "Enable automation hooks?",
     options: [
       { value: "__skip__", label: "Skip for now" },
       ...eligibleHooks.map((hook) => ({
@@ -74,11 +74,11 @@ export async function setupInternalHooks(
       `Enabled ${selected.length} hook${selected.length > 1 ? "s" : ""}: ${selected.join(", ")}`,
       "",
       "You can manage hooks later with:",
-      `  ${formatCliCommand("openclaw hooks list")}`,
-      `  ${formatCliCommand("openclaw hooks enable <name>")}`,
-      `  ${formatCliCommand("openclaw hooks disable <name>")}`,
+      `  ${formatCliCommand("kova hooks list")}`,
+      `  ${formatCliCommand("kova hooks enable <name>")}`,
+      `  ${formatCliCommand("kova hooks disable <name>")}`,
     ].join("\n"),
-    "Hooks Configured",
+    "Hooks wired",
   );
 
   return next;

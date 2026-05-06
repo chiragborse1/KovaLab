@@ -355,8 +355,8 @@ export async function setupChannels(
       if (adapter) {
         await prompter.note(
           `${channel} plugin not available (continuing with setup). If the channel still doesn't work after setup, run \`${formatCliCommand(
-            "openclaw plugins list",
-          )}\` and \`${formatCliCommand("openclaw plugins enable " + channel)}\`, then restart the gateway.`,
+            "kova plugins list",
+          )}\` and \`${formatCliCommand("kova plugins enable " + channel)}\`, then restart the gateway.`,
           "Channel setup",
         );
         await refreshStatus(channel);
@@ -653,7 +653,7 @@ export async function setupChannels(
     while (true) {
       const { entries } = getChannelEntries();
       const choice = await prompter.select({
-        message: "Select channel (QuickStart)",
+        message: "Choose a Spark channel",
         options: [
           ...resolveChannelSetupSelectionContributions({
             entries,
@@ -663,7 +663,7 @@ export async function setupChannels(
           {
             value: "__skip__",
             label: "Skip for now",
-            hint: `You can add channels later via \`${formatCliCommand("openclaw channels add")}\``,
+            hint: `You can add channels later via \`${formatCliCommand("kova channels add")}\``,
           },
         ],
         initialValue: quickstartDefault,

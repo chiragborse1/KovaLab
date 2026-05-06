@@ -246,9 +246,9 @@ export async function runNonInteractiveLocalSetup(params: {
           daemonInstall.skippedReason === "systemd-user-unavailable"
             ? [
                 "Fix: rerun without `--install-daemon` for one-shot setup, or enable a working user-systemd session and retry.",
-                "If your auth profile uses env-backed refs, keep those env vars set in the shell that runs `openclaw gateway run` or `openclaw agent --local`.",
+                "If your auth profile uses env-backed refs, keep those env vars set in the shell that runs `kova gateway run` or `kova agent --local`.",
               ]
-            : [`Run \`${formatCliCommand("openclaw gateway status --deep")}\` for more detail.`],
+            : [`Run \`${formatCliCommand("kova gateway status --deep")}\` for more detail.`],
       });
       runtime.exit(1);
       return;
@@ -302,12 +302,12 @@ export async function runNonInteractiveLocalSetup(params: {
         hints: !opts.installDaemon
           ? [
               "Non-interactive local setup only waits for an already-running gateway unless you pass --install-daemon.",
-              `Fix: start \`${formatCliCommand("openclaw gateway run")}\`, re-run with \`--install-daemon\`, or use \`--skip-health\`.`,
+              `Fix: start \`${formatCliCommand("kova gateway run")}\`, re-run with \`--install-daemon\`, or use \`--skip-health\`.`,
               process.platform === "win32"
                 ? "Native Windows managed gateway install tries Scheduled Tasks first and falls back to a per-user Startup-folder login item when task creation is denied."
                 : undefined,
             ].filter((value): value is string => Boolean(value))
-          : [`Run \`${formatCliCommand("openclaw gateway status --deep")}\` for more detail.`],
+          : [`Run \`${formatCliCommand("kova gateway status --deep")}\` for more detail.`],
       });
       runtime.exit(1);
       return;
@@ -344,7 +344,7 @@ export async function runNonInteractiveLocalSetup(params: {
 
   if (!opts.json) {
     runtime.log(
-      `Tip: run \`${formatCliCommand("openclaw configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.neuralstudio.in/tools/web`,
+      `Tip: run \`${formatCliCommand("kova configure --section web")}\` to store your Brave API key for web_search. Docs: https://docs.neuralstudio.in/tools/web`,
     );
   }
 }

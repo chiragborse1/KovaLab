@@ -145,7 +145,7 @@ describe("onboard-hooks", () => {
       });
       expect(prompter.note).toHaveBeenCalledTimes(2);
       expect(prompter.multiselect).toHaveBeenCalledWith({
-        message: "Enable hooks?",
+        message: "Enable automation hooks?",
         options: [
           { value: "__skip__", label: "Skip for now" },
           {
@@ -180,8 +180,8 @@ describe("onboard-hooks", () => {
       expect(result).toEqual(cfg);
       expect(prompter.multiselect).not.toHaveBeenCalled();
       expect(prompter.note).toHaveBeenCalledWith(
-        "No eligible hooks found. You can configure hooks later in your config.",
-        "No Hooks Available",
+        "No eligible hooks found. You can wire automation hooks later in config.",
+        "No hooks available",
       );
     });
 
@@ -229,12 +229,12 @@ describe("onboard-hooks", () => {
       expect(noteCalls).toHaveLength(2);
 
       // First note should explain what hooks are
-      expect(noteCalls[0][0]).toContain("Hooks let you automate actions");
-      expect(noteCalls[0][0]).toContain("automate actions");
+      expect(noteCalls[0][0]).toContain("Hooks are Kova's internal tripwires");
+      expect(noteCalls[0][0]).toContain("small automations");
 
       // Second note should confirm configuration
       expect(noteCalls[1][0]).toContain("Enabled 1 hook: session-memory");
-      expect(noteCalls[1][0]).toMatch(/(?:openclaw|openclaw)( --profile isolated)? hooks list/);
+      expect(noteCalls[1][0]).toMatch(/(?:kova|kova)( --profile isolated)? hooks list/);
     });
   });
 });

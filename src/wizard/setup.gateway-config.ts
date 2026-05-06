@@ -63,7 +63,7 @@ export async function configureGatewayForSetup(
       : Number.parseInt(
           normalizeWizardTextInput(
             await prompter.text({
-              message: "Gateway port",
+              message: "Gateway listen port",
               initialValue: String(localPort),
               validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
             }),
@@ -75,13 +75,13 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.bind
       : await prompter.select<GatewayWizardSettings["bind"]>({
-          message: "Gateway bind",
+          message: "Gateway network posture",
           options: [
-            { value: "loopback", label: "Loopback (127.0.0.1)" },
-            { value: "lan", label: "LAN (0.0.0.0)" },
-            { value: "tailnet", label: "Tailnet (Tailscale IP)" },
-            { value: "auto", label: "Auto (Loopback → LAN)" },
-            { value: "custom", label: "Custom IP" },
+            { value: "loopback", label: "Private loopback (127.0.0.1)" },
+            { value: "lan", label: "LAN listener (0.0.0.0)" },
+            { value: "tailnet", label: "Tailnet listener (Tailscale IP)" },
+            { value: "auto", label: "Auto posture (Loopback -> LAN)" },
+            { value: "custom", label: "Pinned IP address" },
           ],
         });
 
@@ -90,7 +90,7 @@ export async function configureGatewayForSetup(
     const needsPrompt = flow !== "quickstart" || !customBindHost;
     if (needsPrompt) {
       const input = await prompter.text({
-        message: "Custom IP address",
+        message: "Pinned Gateway IP",
         placeholder: "192.168.1.100",
         initialValue: customBindHost ?? "",
         validate: validateIPv4AddressInput,
@@ -103,14 +103,14 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.authMode
       : ((await prompter.select({
-          message: "Gateway auth",
+          message: "Gateway access key",
           options: [
             {
               value: "token",
-              label: "Token",
-              hint: "Recommended default (local + remote)",
+              label: "Token seal",
+              hint: "Recommended for local and remote control surfaces",
             },
-            { value: "password", label: "Password" },
+            { value: "password", label: "Password gate" },
           ],
           initialValue: "token",
         })) as GatewayAuthChoice);
@@ -119,7 +119,7 @@ export async function configureGatewayForSetup(
     flow === "quickstart"
       ? quickstartGateway.tailscaleMode
       : await prompter.select<GatewayWizardSettings["tailscaleMode"]>({
-          message: "Tailscale exposure",
+          message: "Tailnet exposure",
           options: [...TAILSCALE_EXPOSURE_OPTIONS],
         });
 
@@ -137,7 +137,7 @@ export async function configureGatewayForSetup(
   if (tailscaleMode !== "off" && flow !== "quickstart") {
     await prompter.note(TAILSCALE_DOCS_LINES.join("\n"), "Tailscale");
     tailscaleResetOnExit = await prompter.confirm({
-      message: "Reset Tailscale serve/funnel on exit?",
+      message: "Clear Tailscale serve/funnel state when Kova exits?",
       initialValue: false,
     });
   }
@@ -173,8 +173,8 @@ export async function configureGatewayForSetup(
             prompter,
             explicitMode: opts.secretInputMode,
             copy: {
-              modeMessage: "How do you want to provide the gateway token?",
-              plaintextLabel: "Generate/store plaintext token",
+              modeMessage: "How should Kova store the Gateway token?",
+              plaintextLabel: "Generate and store token",
               plaintextHint: "Default",
               refLabel: "Use SecretRef",
               refHint: "Store a reference instead of plaintext",
@@ -196,7 +196,7 @@ export async function configureGatewayForSetup(
           prompter,
           preferredEnvVar: "OPENCLAW_GATEWAY_TOKEN",
           copy: {
-            sourceMessage: "Where is this gateway token stored?",
+            sourceMessage: "Where should Kova read the Gateway token from?",
             envVarPlaceholder: "OPENCLAW_GATEWAY_TOKEN",
           },
         });
@@ -210,7 +210,7 @@ export async function configureGatewayForSetup(
       gatewayTokenInput = gatewayToken;
     } else {
       const tokenInput = await prompter.text({
-        message: "Gateway token (blank to generate)",
+        message: "Gateway token seal (blank to generate)",
         placeholder: "Needed for multi-machine or non-loopback access",
         initialValue:
           quickstartTokenString ??
@@ -230,7 +230,7 @@ export async function configureGatewayForSetup(
         prompter,
         explicitMode: opts.secretInputMode,
         copy: {
-          modeMessage: "How do you want to provide the gateway password?",
+          modeMessage: "How should Kova store the Gateway password?",
           plaintextLabel: "Enter password now",
           plaintextHint: "Stores the password directly in Kova config",
         },
@@ -242,7 +242,7 @@ export async function configureGatewayForSetup(
           prompter,
           preferredEnvVar: "OPENCLAW_GATEWAY_PASSWORD",
           copy: {
-            sourceMessage: "Where is this gateway password stored?",
+            sourceMessage: "Where should Kova read the Gateway password from?",
             envVarPlaceholder: "OPENCLAW_GATEWAY_PASSWORD",
           },
         });
@@ -250,7 +250,7 @@ export async function configureGatewayForSetup(
       } else {
         password = normalizeWizardTextInput(
           await prompter.text({
-            message: "Gateway password",
+            message: "Gateway password gate",
             validate: validateGatewayPasswordInput,
           }),
         );

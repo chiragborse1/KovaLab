@@ -272,7 +272,7 @@ describe("finalizeSetupWizard", () => {
     process.env.OPENCLAW_GATEWAY_PASSWORD = "resolved-gateway-password"; // pragma: allowlist secret
     resolveSetupSecretInputString.mockResolvedValueOnce("resolved-gateway-password");
     const select = vi.fn(async (params: { message: string }) => {
-      if (params.message === "How do you want to hatch your bot?") {
+      if (params.message === "Choose your first Kova surface") {
         return "tui";
       }
       return "later";
@@ -349,7 +349,7 @@ describe("finalizeSetupWizard", () => {
   it("restores terminal state after failed TUI hatch", async () => {
     launchTuiCli.mockRejectedValueOnce(new Error("TUI exited with code 1"));
     const select = vi.fn(async (params: { message: string }) => {
-      if (params.message === "How do you want to hatch your bot?") {
+      if (params.message === "Choose your first Kova surface") {
         return "tui";
       }
       return "later";
@@ -445,7 +445,7 @@ describe("finalizeSetupWizard", () => {
     gatewayServiceRestart.mockResolvedValueOnce({ outcome: "scheduled" });
     const prompter = buildWizardPrompter({
       select: vi.fn(async (params: { message: string }) => {
-        if (params.message === "Gateway service already installed") {
+        if (params.message === "A Kova Gateway service already exists") {
           return "restart";
         }
         return "later";
@@ -497,7 +497,7 @@ describe("finalizeSetupWizard", () => {
 
     expect(prompter.note).toHaveBeenCalledWith(
       expect.stringContaining("selected but unavailable under the current plugin policy"),
-      "Web search",
+      "Web recall",
     );
     expect(resolveExistingKey).not.toHaveBeenCalled();
     expect(hasExistingKey).not.toHaveBeenCalled();
@@ -522,8 +522,8 @@ describe("finalizeSetupWizard", () => {
     await finalizeSetupWizard(createAdvancedFinalizeArgs({ prompter }));
 
     expect(prompter.note).toHaveBeenCalledWith(
-      expect.stringContaining("Web search is available via Perplexity Search (auto-detected)."),
-      "Web search",
+      expect.stringContaining("Web recall is available via Perplexity Search (auto-detected)."),
+      "Web recall",
     );
   });
 
@@ -552,9 +552,9 @@ describe("finalizeSetupWizard", () => {
 
     expect(prompter.note).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Web search is enabled, so your agent can look things up online when needed.",
+        "Web recall is enabled, so Kova can look things up online when needed.",
       ),
-      "Web search",
+      "Web recall",
     );
   });
 
@@ -596,10 +596,10 @@ describe("finalizeSetupWizard", () => {
 
     expect(runtime.error).not.toHaveBeenCalledWith("health failed");
     expect(prompter.note).toHaveBeenCalledWith(
-      expect.stringContaining("Setup was run without Gateway service install"),
+      expect.stringContaining("You skipped background service install"),
       "Gateway",
     );
-    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Dashboard ready");
+    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Command Deck ready");
   });
 
   it("does not show a Codex native search summary when web search is globally disabled", async () => {

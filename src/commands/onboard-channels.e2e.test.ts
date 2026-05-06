@@ -64,7 +64,7 @@ function createQuickstartTelegramSelect(options?: {
   strictUnexpected?: boolean;
 }) {
   return vi.fn(async ({ message }: { message: string }) => {
-    if (message === "Select channel (QuickStart)") {
+    if (message === "Choose a Spark channel") {
       return "telegram";
     }
     if (options?.configuredAction && message.includes("already configured")) {
@@ -582,7 +582,7 @@ describe("setupChannels", () => {
 
     const note = vi.fn(async (_message?: string, _title?: string) => {});
     const select = vi.fn(async ({ message }: { message: string }) => {
-      if (message === "Select channel (QuickStart)") {
+      if (message === "Choose a Spark channel") {
         return "telegram";
       }
       return "__done__";
@@ -1082,7 +1082,7 @@ describe("setupChannels", () => {
     });
 
     expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Select channel (QuickStart)" }),
+      expect.objectContaining({ message: "Choose a Spark channel" }),
     );
     expect(select).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.stringContaining("already configured") }),

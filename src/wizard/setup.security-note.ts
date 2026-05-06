@@ -1,37 +1,36 @@
 import chalk from "chalk";
 import { formatCliCommand } from "../cli/command-format.js";
 
-export const SECURITY_NOTE_TITLE = "Security disclaimer";
+export const SECURITY_NOTE_TITLE = "Kova operating covenant";
 
 export const SECURITY_CONFIRM_MESSAGE =
-  "I understand this is personal-by-default and shared/multi-user use requires lock-down. Continue?";
+  "I understand Kova is a powerful local agent and I am responsible for who can reach it. Continue?";
 
 const heading = (text: string) => chalk.bold(text);
 
 export const SECURITY_NOTE_MESSAGE = [
-  "Kova is a hobby project and still in beta. Expect sharp edges.",
-  "By default, Kova is a personal agent: one trusted operator boundary.",
-  "This bot can read files and run actions if tools are enabled.",
-  "A bad prompt can trick it into doing unsafe things.",
+  "Kova is a beta local-first agent runtime. Treat it like a trusted operator account, not a toy chatbot.",
+  "When tools are enabled, Kova may read files, call services, send messages, and run actions you authorize.",
+  "Model output is not a security boundary. Malicious prompts, files, websites, or chat messages can try to redirect the agent.",
   "",
-  "Kova is not a hostile multi-tenant boundary by default.",
-  "If multiple users can message one tool-enabled agent, they share that delegated tool authority.",
+  "Default posture: personal use, one owner, one trust boundary.",
+  "Shared inboxes or group chats need explicit allowlists, isolated sessions, and reduced tool authority.",
   "",
-  "If you’re not comfortable with security hardening and access control, don’t run Kova.",
-  "Ask someone experienced to help before enabling tools or exposing it to the internet.",
+  "Do not expose Kova to the internet or shared channels until you understand the access model.",
+  "If this machine holds sensitive files or credentials, keep sandboxing and least-privilege settings tight.",
   "",
-  heading("Recommended baseline"),
-  "- Pairing/allowlists + mention gating.",
-  "- Multi-user/shared inbox: split trust boundaries (separate gateway/credentials, ideally separate OS users/hosts).",
-  "- Sandbox + least-privilege tools.",
-  "- Shared inboxes: isolate DM sessions (session.dmScope: per-channel-peer) and keep tool access minimal.",
-  "- Keep secrets out of the agent’s reachable filesystem.",
-  "- Use the strongest available model for any bot with tools or untrusted inboxes.",
+  heading("Kova baseline"),
+  "- Owner-only pairing for channels and devices.",
+  "- Mention gating for groups.",
+  "- Per-sender DM sessions for shared channels.",
+  "- Sandbox or approval prompts for local command execution.",
+  "- SecretRefs or environment-managed secrets instead of plaintext files where practical.",
+  "- Strong current-generation models for tool-enabled or untrusted inputs.",
   "",
-  heading("Run regularly"),
+  heading("Maintenance loop"),
   formatCliCommand("kova security audit --deep"),
   formatCliCommand("kova security audit --fix"),
   "",
-  heading("Learn more"),
+  heading("Reference"),
   "- https://docs.neuralstudio.in/gateway/security",
 ].join("\n");

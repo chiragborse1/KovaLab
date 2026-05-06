@@ -66,7 +66,7 @@ export async function setupWizardCommand(
       [
         "Non-interactive setup requires explicit risk acknowledgement.",
         "Read: https://docs.neuralstudio.in/security",
-        `Re-run with: ${formatCliCommand("openclaw onboard --non-interactive --accept-risk ...")}`,
+        `Re-run with: ${formatCliCommand("kova onboard --non-interactive --accept-risk ...")}`,
       ].join("\n"),
     );
     runtime.exit(1);

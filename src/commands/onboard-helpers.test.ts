@@ -50,12 +50,13 @@ afterEach(() => {
 });
 
 describe("formatWizardBootScreen", () => {
-  it("prints the Kova neural runtime identity before onboarding starts", () => {
+  it("prints the Kova First-Light identity before onboarding starts", () => {
     const output = formatWizardBootScreen();
 
-    expect(output).toContain("KOVA NEURAL RUNTIME");
-    expect(output).toContain("Agentic Intelligence Layer");
-    expect(output).toContain("Initializing environment...");
+    expect(output).toContain("KOVA");
+    expect(output).toContain("First-Light Onboarding");
+    expect(output).toContain("shape a private agent from model to launch");
+    expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("OPENCLAW");
   });

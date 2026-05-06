@@ -7,17 +7,17 @@ title: "Onboard"
 
 # `kova onboard`
 
-Interactive onboarding for local or remote Gateway setup.
+Interactive First-Light onboarding for local or remote Kova Gateway setup.
 
-The interactive flow starts with a Kova Neural Runtime boot screen, then walks
-through setup mode, workspace, model/auth, Gateway, channels, search, skills,
-hooks, and final launch options.
+The interactive flow starts with a Kova First-Light boot screen, then walks
+through launch path, workspace, model binding, Gateway seal, channel layer, web
+recall, skills, hooks, and final launch surface.
 
 ## Related guides
 
 <CardGroup cols={2}>
   <Card title="CLI onboarding hub" href="/start/wizard" icon="rocket">
-    Walkthrough of the interactive CLI flow.
+    Walkthrough of the First-Light CLI flow.
   </Card>
   <Card title="Onboarding overview" href="/start/onboarding-overview" icon="map">
     How Kova onboarding fits together.
@@ -26,7 +26,7 @@ hooks, and final launch options.
     Outputs, internals, and per-step behavior.
   </Card>
   <Card title="CLI automation" href="/start/wizard-cli-automation" icon="terminal">
-    Non-interactive flags and scripted setups.
+    Non-interactive flags and scripted launches.
   </Card>
   <Card title="macOS app onboarding" href="/start/onboarding" icon="apple">
     Onboarding flow for the macOS menu bar app.
@@ -53,7 +53,7 @@ kova onboard --mode remote --remote-url wss://gateway-host:18789
 
 For plaintext private-network `ws://` targets (trusted networks only), set
 `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` in the onboarding process environment.
-There is no `openclaw.json` equivalent for this client-side transport
+There is no `kova.json` equivalent for this client-side transport
 break-glass.
 
 Non-interactive custom provider:
@@ -182,8 +182,8 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: minimal prompts, auto-generates a gateway token.
-    - `manual`: full prompts for port, bind, and auth (alias of `advanced`).
+    - `quickstart`: Spark path, minimal prompts, auto-generates a Gateway token seal.
+    - `manual`: Forge path, full prompts for port, bind, and auth (alias of `advanced`).
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
   <Accordion title="Provider prefiltering">
@@ -193,7 +193,7 @@ kova onboard --non-interactive \
 
   </Accordion>
   <Accordion title="Web-search follow-ups">
-    Some web-search providers trigger provider-specific follow-up prompts:
+    Some web recall providers trigger provider-specific follow-up prompts:
 
     - **Grok** can offer optional `x_search` setup with the same `XAI_API_KEY` and an `x_search` model choice.
     - **Kimi** can ask for the Moonshot API region (`api.moonshot.ai` vs `api.moonshot.cn`) and the default Kimi web-search model.
@@ -201,7 +201,7 @@ kova onboard --non-interactive \
   </Accordion>
   <Accordion title="Other behaviors">
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
-    - Fastest first chat: `kova dashboard` (Control UI, no channel setup).
+    - Fastest first chat: `kova dashboard` (Command Deck browser dashboard, no channel setup).
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>
