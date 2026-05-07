@@ -579,6 +579,38 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     });
   });
 
+  it("does not inject duplicate assistant transcript rows when media cannot be persisted", async () => {
+    createTranscriptFixture("openclaw-chat-send-unpersisted-media-no-duplicate-");
+    mockState.triggerAgentRunStart = true;
+    mockState.dispatchedReplies = [
+      {
+        kind: "final",
+        payload: {
+          text: "final answer",
+          mediaUrl: "data:text/plain;base64,bm90LWltYWdl",
+        },
+      },
+    ];
+    const respond = vi.fn();
+    const context = createChatContext();
+
+    await runNonStreamingChatSend({
+      context,
+      respond,
+      idempotencyKey: "idem-unpersisted-media-no-duplicate",
+      expectBroadcast: false,
+    });
+
+    expect(
+      mockState.emittedTranscriptUpdates.filter(
+        (update) =>
+          typeof update.message === "object" &&
+          update.message !== null &&
+          (update.message as { role?: unknown }).role === "assistant",
+      ),
+    ).toEqual([]);
+  });
+
   it("renders image reply payloads as assistant image content instead of MEDIA text", async () => {
     createTranscriptFixture("openclaw-chat-send-agent-image-");
     mockState.finalPayload = {
