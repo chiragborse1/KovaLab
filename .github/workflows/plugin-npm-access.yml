@@ -1,0 +1,80 @@
+name: Kova Plugin NPM Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Optional comma-separated package names. Empty means all publishable @kovaai plugins.
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  set_public_access:
+    name: Set plugin packages public
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Checkout package metadata so the package list is derived from source of truth.
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Configure npm registry auth using the Kova-specific npm org token.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      # Resolve all publishable @kovaai plugin packages, or the selected subset.
+      - name: Resolve packages
+        env:
+          SELECTED_PACKAGES: ${{ inputs.packages }}
+        run: |
+          node <<'JS' > .plugin-packages.tsv
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const selected = new Set(
+            (process.env.SELECTED_PACKAGES || "")
+              .split(/[,\s]+/)
+              .map((entry) => entry.trim())
+              .filter(Boolean),
+          );
+          const extensionsDir = path.join(process.cwd(), "extensions");
+          const rows = [];
+          for (const dirent of fs.readdirSync(extensionsDir, { withFileTypes: true })) {
+            if (!dirent.isDirectory()) continue;
+            const packagePath = path.join(extensionsDir, dirent.name, "package.json");
+            if (!fs.existsSync(packagePath)) continue;
+            const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+            if (pkg?.openclaw?.release?.publishToNpm !== true) continue;
+            if (typeof pkg.name !== "string" || !pkg.name.startsWith("@kovaai/")) continue;
+            if (selected.size > 0 && !selected.has(pkg.name)) continue;
+            rows.push(`${pkg.name}\t${pkg.version}`);
+          }
+          rows.sort();
+          if (rows.length === 0) {
+            throw new Error("No matching @kovaai plugin packages found.");
+          }
+          console.log(rows.join("\n"));
+          JS
+          cat .plugin-packages.tsv
+
+      # Force public access and verify each package is visible from npm.
+      - name: Set public access and verify
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.KOVAAI_NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.KOVAAI_NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r package version; do
+            echo "Setting public access for ${package}@${version}"
+            npm access public "${package}"
+            npm view "${package}@${version}" version
+          done < .plugin-packages.tsv
