@@ -524,6 +524,38 @@ describe("exec approvals", () => {
     expect(calls).not.toContain("exec.approval.request");
   });
 
+  it("asks for approval when a call requests allowlist security without ask", async () => {
+    await writeExecApprovalsConfig({
+      version: 1,
+      defaults: { security: "full", ask: "off", askFallback: "full" },
+      agents: {},
+    });
+    const calls: string[] = [];
+    vi.mocked(callGatewayTool).mockImplementation(async (method, _opts, params) => {
+      calls.push(method);
+      if (method === "exec.approval.request") {
+        return acceptedApprovalResponse(params);
+      }
+      if (method === "exec.approval.waitDecision") {
+        return { decision: "deny" };
+      }
+      return { ok: true };
+    });
+
+    const tool = createExecTool({
+      host: "gateway",
+      approvalRunningNoticeMs: 0,
+    });
+
+    const result = await tool.execute("call-allowlist-no-ask", {
+      command: "ls -l",
+      security: "allowlist",
+    });
+
+    expectPendingCommandText(result, "ls -l");
+    expect(calls).toContain("exec.approval.request");
+  });
+
   it("preserves explicit workdir for node exec", async () => {
     const remoteWorkdir = "/Users/vv";
     let runCwd: string | undefined;

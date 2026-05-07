@@ -1487,7 +1487,9 @@ export function createExecTool(
       }
       // Keep local exec defaults in sync with exec-approvals.json when tools.exec.* is unset.
       const configuredAsk = defaults?.ask ?? approvalDefaults?.ask ?? "off";
-      const requestedAsk = normalizeExecAsk(params.ask);
+      const requestedAsk =
+        normalizeExecAsk(params.ask) ??
+        (requestedSecurity === "allowlist" && params.ask == null ? "on-miss" : null);
       let ask = maxAsk(configuredAsk, requestedAsk ?? configuredAsk);
       const bypassApprovals = elevatedRequested && elevatedMode === "full";
       if (bypassApprovals) {
