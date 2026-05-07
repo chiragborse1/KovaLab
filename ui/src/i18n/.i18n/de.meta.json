@@ -6,6 +6,7 @@
     "login.heroAria",
     "login.panelSubtitle",
     "login.panelTitle",
+    "login.quickHint",
     "login.trustAria",
     "login.trustAuth",
     "login.trustLocal",
@@ -14,12 +15,12 @@
     "login.visualGateway",
     "login.visualSession"
   ],
-  "generatedAt": "2026-05-07T05:33:00.358Z",
+  "generatedAt": "2026-05-07T08:19:59.043Z",
   "locale": "de",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "50dd238aff08df64104e8a5d1dc5a11b14b76cb69724298f2a861e3aa7825dd3",
-  "totalKeys": 776,
+  "sourceHash": "736d7edf79c87e251a4edb93a460b4c995796a60a475e0fea6735d9fe00084a9",
+  "totalKeys": 777,
   "translatedKeys": 763,
   "workflow": 1
 }

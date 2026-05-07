@@ -196,8 +196,8 @@ export const en: TranslationMap = {
   },
   overview: {
     access: {
-      title: "Gateway Access",
-      subtitle: "Where the dashboard connects and how it authenticates.",
+      title: "Connection",
+      subtitle: "Gateway URL, auth, and language for this browser.",
       wsUrl: "WebSocket URL",
       token: "Gateway Token",
       password: "Password (not stored)",
@@ -266,7 +266,7 @@ export const en: TranslationMap = {
       stayHttp: "If you must stay on HTTP, set {config} (token-only).",
     },
     connection: {
-      title: "How to connect",
+      title: "Connection link",
       step1: "Start the gateway on your host machine:",
       step2: "Get a tokenized dashboard URL:",
       step3: "Paste the WebSocket URL and token above, or open the tokenized URL directly.",
@@ -689,8 +689,8 @@ export const en: TranslationMap = {
     description:
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
-    panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
+    panelSubtitle: "Paste your gateway URL and one secret. Nothing is stored permanently.",
+    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
     visualDashboard: "Dashboard",

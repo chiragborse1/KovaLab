@@ -682,6 +682,7 @@ export const zh_TW: TranslationMap = {
     panelTitle: "Connect to Kova",
     panelSubtitle:
       "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
     visualDashboard: "Dashboard",

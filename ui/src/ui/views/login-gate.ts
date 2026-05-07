@@ -4,7 +4,6 @@ import type { AppViewState } from "../app-view-state.ts";
 import { icons } from "../icons.ts";
 import { normalizeBasePath } from "../navigation.ts";
 import { agentLogoUrl } from "./agents-utils.ts";
-import { renderConnectCommand } from "./connect-command.ts";
 
 export function renderLoginGate(state: AppViewState) {
   const basePath = normalizeBasePath(state.basePath ?? "");
@@ -49,7 +48,6 @@ export function renderLoginGate(state: AppViewState) {
 
         <div class="login-gate__card">
           <div class="login-gate__header">
-            <div class="login-gate__eyebrow">${t("overview.access.title")}</div>
             <div class="login-gate__title">${t("login.panelTitle")}</div>
             <div class="login-gate__sub">${t("login.panelSubtitle")}</div>
           </div>
@@ -142,22 +140,15 @@ export function renderLoginGate(state: AppViewState) {
                 <div>${state.lastError}</div>
               </div>`
             : ""}
-          <div class="login-gate__help">
-            <div class="login-gate__help-title">${t("overview.connection.title")}</div>
-            <ol class="login-gate__steps">
-              <li>${t("overview.connection.step1")}${renderConnectCommand("kova gateway run")}</li>
-              <li>${t("overview.connection.step2")} ${renderConnectCommand("kova dashboard")}</li>
-              <li>${t("overview.connection.step3")}</li>
-            </ol>
-            <div class="login-gate__docs">
-              <a
-                class="session-link"
-                href="https://docs.neuralstudio.in/web/dashboard"
-                target="_blank"
-                rel="noreferrer"
-                >${t("overview.connection.docsLink")}</a
-              >
-            </div>
+          <div class="login-gate__quick-note">
+            <span>${t("login.quickHint")}</span>
+            <a
+              class="session-link"
+              href="https://docs.neuralstudio.in/web/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              >${t("overview.connection.docsLink")}</a
+            >
           </div>
         </div>
       </div>

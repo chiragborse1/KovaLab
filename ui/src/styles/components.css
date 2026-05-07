@@ -124,16 +124,14 @@
 .login-gate__card {
   position: relative;
   width: 100%;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 34%),
-    var(--login-panel);
-  border: 1px solid var(--login-panel-border);
-  border-radius: 28px;
-  padding: clamp(24px, 3vw, 34px);
+  background: rgba(12, 12, 14, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: clamp(22px, 3vw, 30px);
   box-shadow:
-    0 34px 100px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(22px);
+    0 28px 80px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(18px);
   animation: scale-in 0.28s var(--ease-out);
 }
 
@@ -143,13 +141,13 @@
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(255, 113, 14, 0.16), transparent 34%);
-  opacity: 0.8;
+  border-top: 2px solid rgba(255, 113, 14, 0.68);
+  opacity: 0.9;
 }
 
 .login-gate__header {
   position: relative;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .login-gate__logo {
@@ -170,18 +168,18 @@
 
 .login-gate__title {
   color: var(--text-strong);
-  font-size: clamp(26px, 3vw, 34px);
+  font-size: clamp(24px, 3vw, 30px);
   font-weight: 850;
   letter-spacing: -0.02em;
-  line-height: 1.02;
+  line-height: 1.08;
 }
 
 .login-gate__sub {
-  max-width: 34rem;
+  max-width: 30rem;
   color: color-mix(in srgb, var(--text) 78%, transparent);
-  font-size: 14px;
-  line-height: 1.6;
-  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 8px;
 }
 
 .login-gate__hero-copy {
@@ -374,9 +372,7 @@
   padding: 12px 16px;
   border: 0;
   border-radius: 16px;
-  background:
-    linear-gradient(135deg, #ff710e, #ff3d00 52%, #f1a313),
-    var(--login-accent);
+  background: linear-gradient(135deg, #ff710e, #ff3d00 52%, #f1a313), var(--login-accent);
   color: #180a00;
   font-size: 15px;
   font-weight: 850;
@@ -386,9 +382,7 @@
 }
 
 .login-gate__connect:hover {
-  background:
-    linear-gradient(135deg, #ff8a29, #ff4b12 52%, #ffc04a),
-    var(--login-accent);
+  background: linear-gradient(135deg, #ff8a29, #ff4b12 52%, #ffc04a), var(--login-accent);
   box-shadow:
     0 20px 48px rgba(255, 113, 14, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -398,6 +392,26 @@
   margin-top: 16px;
   border-color: rgba(239, 68, 68, 0.32);
   background: rgba(239, 68, 68, 0.08);
+}
+
+.login-gate__quick-note {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 247, 237, 0.56);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.login-gate__quick-note .session-link {
+  color: var(--login-accent-strong);
+  font-weight: 750;
+  white-space: nowrap;
 }
 
 .login-gate__help {
@@ -529,6 +543,11 @@
 
   .login-gate__secret-row {
     gap: 6px;
+  }
+
+  .login-gate__quick-note {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
@@ -5574,10 +5593,74 @@ td.data-table-key-col {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-top: 16px;
 }
 
 .ov-access-grid__full {
   grid-column: 1 / -1;
+}
+
+.ov-access-secret-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ov-access-secret-row input {
+  flex: 1 1 0%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ov-access-secret-row .btn--icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.ov-access-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ov-access-note {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-muted) 76%, transparent);
+}
+
+.ov-access-note strong,
+.ov-access-note span {
+  display: block;
+}
+
+.ov-access-note strong {
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ov-access-note span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ov-access-note .login-gate__command {
+  margin: 0;
+}
+
+.ov-access-note__links {
+  font-size: 12px;
 }
 
 /* Bottom grid (event log + log tail) */

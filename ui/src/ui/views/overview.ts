@@ -119,8 +119,7 @@ export function renderOverview(props: OverviewProps) {
           : nothing}
         <div style="margin-top: 6px">
           ${pairingState.requestId
-            ? html`<span class="mono">kova devices approve ${pairingState.requestId}</span
-                ><br />`
+            ? html`<span class="mono">kova devices approve ${pairingState.requestId}</span><br />`
             : nothing}
           <span class="mono">kova devices list</span>
         </div>
@@ -258,7 +257,7 @@ export function renderOverview(props: OverviewProps) {
       <div class="card">
         <div class="card-title">${t("overview.access.title")}</div>
         <div class="card-sub">${t("overview.access.subtitle")}</div>
-        <div class="ov-access-grid" style="margin-top: 16px;">
+        <div class="ov-access-grid">
           <label class="field ov-access-grid__full">
             <span>${t("overview.access.wsUrl")}</span>
             <input
@@ -279,22 +278,20 @@ export function renderOverview(props: OverviewProps) {
             : html`
                 <label class="field">
                   <span>${t("overview.access.token")}</span>
-                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                  <div class="ov-access-secret-row">
                     <input
                       type=${props.showGatewayToken ? "text" : "password"}
                       autocomplete="off"
-                      style="flex: 1 1 0%; min-width: 0; box-sizing: border-box;"
                       .value=${props.settings.token}
                       @input=${(e: Event) => {
                         const v = (e.target as HTMLInputElement).value;
                         props.onSettingsChange({ ...props.settings, token: v });
                       }}
-                      placeholder="OPENCLAW_GATEWAY_TOKEN"
+                      placeholder="KOVA_GATEWAY_TOKEN"
                     />
                     <button
                       type="button"
                       class="btn btn--icon ${props.showGatewayToken ? "active" : ""}"
-                      style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
                       title=${props.showGatewayToken
                         ? t("overview.access.hideToken")
                         : t("overview.access.showToken")}
@@ -308,11 +305,10 @@ export function renderOverview(props: OverviewProps) {
                 </label>
                 <label class="field">
                   <span>${t("overview.access.password")}</span>
-                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                  <div class="ov-access-secret-row">
                     <input
                       type=${props.showGatewayPassword ? "text" : "password"}
                       autocomplete="off"
-                      style="flex: 1 1 0%; min-width: 0; width: 100%; box-sizing: border-box;"
                       .value=${props.password}
                       @input=${(e: Event) => {
                         const v = (e.target as HTMLInputElement).value;
@@ -323,7 +319,6 @@ export function renderOverview(props: OverviewProps) {
                     <button
                       type="button"
                       class="btn btn--icon ${props.showGatewayPassword ? "active" : ""}"
-                      style="flex-shrink: 0; width: 36px; height: 36px; box-sizing: border-box;"
                       title=${props.showGatewayPassword
                         ? t("overview.access.hidePassword")
                         : t("overview.access.showPassword")}
@@ -365,7 +360,7 @@ export function renderOverview(props: OverviewProps) {
             </select>
           </label>
         </div>
-        <div class="row" style="margin-top: 14px;">
+        <div class="ov-access-actions">
           <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>
           <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
           <span class="muted"
@@ -376,23 +371,13 @@ export function renderOverview(props: OverviewProps) {
         </div>
         ${!props.connected
           ? html`
-              <div class="login-gate__help" style="margin-top: 16px;">
-                <div class="login-gate__help-title">${t("overview.connection.title")}</div>
-                <ol class="login-gate__steps">
-                  <li>
-                    ${t("overview.connection.step1")}
-                    ${renderConnectCommand("kova gateway run")}
-                  </li>
-                  <li>
-                    ${t("overview.connection.step2")} ${renderConnectCommand("kova dashboard")}
-                  </li>
-                  <li>${t("overview.connection.step3")}</li>
-                  <li>
-                    ${t("overview.connection.step4")}<code>kova doctor --generate-gateway-token</code>
-                  </li>
-                </ol>
-                <div class="login-gate__docs">
-                  ${t("overview.connection.docsHint")}
+              <div class="ov-access-note">
+                <div>
+                  <strong>${t("overview.connection.title")}</strong>
+                  <span>${t("overview.connection.step2")}</span>
+                </div>
+                ${renderConnectCommand("kova dashboard")}
+                <div class="ov-access-note__links">
                   <a
                     class="session-link"
                     href="https://docs.neuralstudio.in/web/dashboard"
