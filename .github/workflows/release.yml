@@ -1,0 +1,70 @@
+name: GitHub Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the exact tag that triggered this release.
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Install the same pnpm version used by the Kova CI workflows.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      # Setup Node.js with pnpm dependency caching for repeatable release builds.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Install dependencies exactly as locked.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build the runtime package before creating the release.
+      - name: Build Kova
+        run: pnpm build
+
+      # Build the browser Control UI so the release is verified against the web surface too.
+      - name: Build Control UI
+        run: pnpm ui:build
+
+      # Pack the npm artifact; this gives users a downloadable installable tarball.
+      - name: Pack npm artifact
+        run: npm pack
+
+      # Keep the package tarball as a workflow artifact for debugging failed release uploads.
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kova-npm-package
+          path: getkova-*.tgz
+          if-no-files-found: ignore
+
+      # Create the GitHub Release with auto-generated notes and attach build artifacts.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            getkova-*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

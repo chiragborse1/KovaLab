@@ -167,6 +167,22 @@ describe("package dist inventory", () => {
     });
   });
 
+  it("ignores omitted extension node_modules symlink roots", async () => {
+    await withTempDir(
+      { prefix: "openclaw-dist-inventory-node-modules-symlink-" },
+      async (packageRoot) => {
+        const pluginDir = path.join(packageRoot, "dist", "extensions", "anthropic");
+        const stagedDepsDir = path.join(packageRoot, "staged-deps");
+        await fs.mkdir(pluginDir, { recursive: true });
+        await fs.mkdir(stagedDepsDir, { recursive: true });
+        await fs.writeFile(path.join(stagedDepsDir, "package.json"), "{}", "utf8");
+        await fs.symlink(stagedDepsDir, path.join(pluginDir, "node_modules"));
+
+        await expect(writePackageDistInventory(packageRoot)).resolves.toEqual([]);
+      },
+    );
+  });
+
   it("ignores runtime-created install staging dirs during installed dist verification", async () => {
     await withTempDir({ prefix: "openclaw-dist-inventory-stage-" }, async (packageRoot) => {
       const realFile = path.join(packageRoot, "dist", "real-AbC123.js");

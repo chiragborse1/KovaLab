@@ -110,6 +110,9 @@ async function collectRelativeFiles(rootDir: string, baseDir: string): Promise<s
       entries.map(async (entry) => {
         const entryPath = path.join(rootDir, entry.name);
         const relativePath = normalizeRelativePath(path.relative(baseDir, entryPath));
+        if (isOmittedDistSubtree(relativePath)) {
+          return [];
+        }
         if (entry.isSymbolicLink()) {
           throw new Error(`Unsafe package dist path: ${relativePath}`);
         }
