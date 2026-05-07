@@ -75,6 +75,6 @@ jobs:
           set -euo pipefail
           while IFS=$'\t' read -r package version; do
             echo "Setting public access for ${package}@${version}"
-            npm access public "${package}"
+            npm access set status=public "${package}"
             npm view "${package}@${version}" version
           done < .plugin-packages.tsv
