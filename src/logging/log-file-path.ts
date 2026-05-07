@@ -5,7 +5,7 @@ import {
   resolvePreferredOpenClawTmpDir,
 } from "../infra/tmp-openclaw-dir.js";
 
-const LOG_PREFIX = "openclaw";
+const LOG_PREFIX = "kova";
 const LOG_SUFFIX = ".log";
 
 function canUseNodeFs(): boolean {
