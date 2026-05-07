@@ -577,9 +577,17 @@ async function linkHostPeerDependencies(params: {
       // creating the new symlink so re-installs are idempotent.
       await fs.rm(linkPath, { recursive: true, force: true });
       await fs.symlink(hostRoot, linkPath, "junction");
-      params.logger.info?.(`Linked host peerDependency "${peerName}" -> ${hostRoot}`);
+      params.logger.info?.(
+        peerName === "openclaw"
+          ? `Linked legacy host SDK alias -> ${hostRoot}`
+          : `Linked host peerDependency "${peerName}" -> ${hostRoot}`,
+      );
     } catch (err) {
-      params.logger.warn?.(`Failed to symlink host peerDependency "${peerName}": ${String(err)}`);
+      params.logger.warn?.(
+        peerName === "openclaw"
+          ? `Failed to symlink legacy host SDK alias: ${String(err)}`
+          : `Failed to symlink host peerDependency "${peerName}": ${String(err)}`,
+      );
     }
   }
 }
@@ -674,7 +682,7 @@ async function installPluginFromPackageDir(
     if (minHostVersionCheck.kind === "invalid") {
       return {
         ok: false,
-        error: `invalid package.json openclaw.install.minHostVersion: ${minHostVersionCheck.error}`,
+        error: `invalid package.json plugin install.minHostVersion: ${minHostVersionCheck.error}`,
         code: PLUGIN_INSTALL_ERROR_CODE.INVALID_MIN_HOST_VERSION,
       };
     }
@@ -808,7 +816,7 @@ export async function installPluginFromArchive(
 
   return await runtime.withExtractedArchiveRoot({
     archivePath,
-    tempDirPrefix: "openclaw-plugin-",
+    tempDirPrefix: "kova-plugin-",
     timeoutMs,
     logger,
     rootMarkers: PLUGIN_ARCHIVE_ROOT_MARKERS,
@@ -981,7 +989,7 @@ export async function installPluginFromNpmSpec(
     requestedSpecifier: spec,
   };
   const flowResult = await runtime.installFromNpmSpecArchiveWithInstaller({
-    tempDirPrefix: "openclaw-npm-pack-",
+    tempDirPrefix: "kova-npm-pack-",
     spec,
     timeoutMs,
     expectedIntegrity: params.expectedIntegrity,

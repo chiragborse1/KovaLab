@@ -1,8 +1,8 @@
 import { isAtLeast, parseSemver } from "../infra/runtime-guard.js";
 
 export const MIN_HOST_VERSION_FORMAT =
-  'openclaw.install.minHostVersion must use a semver floor in the form ">=x.y.z"';
-const MIN_HOST_VERSION_RE = /^>=(\d+)\.(\d+)\.(\d+)$/;
+  'plugin install.minHostVersion must use a semver floor in the form ">=x.y.z" or ">=x.y.z-prerelease"';
+const MIN_HOST_VERSION_RE = /^>=(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?$/;
 
 export type MinHostVersionRequirement = {
   raw: string;
@@ -34,7 +34,7 @@ export function parseMinHostVersionRequirement(raw: unknown): MinHostVersionRequ
   if (!match) {
     return null;
   }
-  const minimumLabel = `${match[1]}.${match[2]}.${match[3]}`;
+  const minimumLabel = `${match[1]}.${match[2]}.${match[3]}${match[4] ?? ""}`;
   if (!parseSemver(minimumLabel)) {
     return null;
   }

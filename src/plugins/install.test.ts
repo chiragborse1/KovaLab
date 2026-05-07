@@ -2402,7 +2402,7 @@ describe("installPluginFromDir", () => {
       name: "rejects plugins with invalid minHostVersion metadata",
       minHostVersion: "2026.3.22",
       expectedCode: PLUGIN_INSTALL_ERROR_CODE.INVALID_MIN_HOST_VERSION,
-      expectedMessageIncludes: ["invalid package.json openclaw.install.minHostVersion"],
+      expectedMessageIncludes: ["invalid package.json plugin install.minHostVersion"],
     },
     {
       name: "reports unknown host versions distinctly for minHostVersion-gated plugins",
