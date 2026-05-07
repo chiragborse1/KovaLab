@@ -1107,6 +1107,7 @@ describe("classifyFailoverReason", () => {
     expect(classifyFailoverReason("deadline exceeded")).toBe("timeout");
     expect(classifyFailoverReason("request ended without sending any chunks")).toBe("timeout");
     expect(classifyFailoverReason("Connection error.")).toBe("timeout");
+    expect(classifyFailoverReason("Network connection lost.")).toBe("timeout");
     expect(classifyFailoverReason("fetch failed")).toBe("timeout");
     expect(classifyFailoverReason("network error: ECONNREFUSED")).toBe("timeout");
     expect(

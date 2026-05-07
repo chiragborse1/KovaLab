@@ -102,6 +102,7 @@ const ERROR_PATTERNS = {
     /^(?=[\s\S]*\bgot status:\s*internal\b)(?=[\s\S]*\bcode["']?\s*[:=]\s*500\b)/i,
     /^(?=[\s\S]*["']status["']\s*:\s*["']internal["'])(?=[\s\S]*["']code["']\s*:\s*500\b)/i,
     "connection error",
+    "connection lost",
     "network error",
     "network request failed",
     "fetch failed",
