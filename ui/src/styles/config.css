@@ -511,8 +511,16 @@
   border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
   border-radius: var(--radius-xl);
   background:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 38%),
-    linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 86%, var(--accent) 14%), var(--card));
+    radial-gradient(
+      circle at 12% 0%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--bg-elevated) 86%, var(--accent) 14%),
+      var(--card)
+    );
   box-shadow: var(--shadow-sm);
 }
 
@@ -522,6 +530,15 @@
   font-weight: 750;
   letter-spacing: -0.04em;
   color: var(--text-strong);
+}
+
+.config-scope-hero__eyebrow {
+  margin-bottom: 7px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .config-scope-hero p {
@@ -651,11 +668,214 @@
   gap: 16px;
 }
 
+.config-simple-panel {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.config-simple-panel--empty {
+  padding: 18px;
+}
+
+.config-simple-panel--empty h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.config-simple-panel--empty p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.config-simple-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 54%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 58%, var(--card) 42%);
+}
+
+.config-simple-panel__header h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 740;
+}
+
+.config-simple-panel__header p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.config-simple-panel__header > span {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
+  border-radius: var(--radius-full);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.config-simple-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: 1px;
+  background: color-mix(in srgb, var(--border) 42%, transparent);
+}
+
+.config-simple-control,
+.config-simple-toggle {
+  min-width: 0;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--card);
+}
+
+.config-simple-control--stacked {
+  display: grid;
+  align-items: stretch;
+}
+
+.config-simple-control__copy {
+  min-width: 0;
+}
+
+.config-simple-control__copy span {
+  display: block;
+  color: var(--text-strong);
+  font-size: 0.83rem;
+  font-weight: 720;
+}
+
+.config-simple-control__copy p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.config-simple-control__options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.config-option-btn {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 750;
+  padding: 6px 10px;
+}
+
+.config-option-btn--active {
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.config-simple-control__input,
+.config-simple-control__select,
+.config-simple-control__textarea {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg) 74%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 8px 10px;
+}
+
+.config-simple-control__input,
+.config-simple-control__select {
+  width: min(220px, 42vw);
+}
+
+.config-simple-control__textarea {
+  width: 100%;
+  min-height: 82px;
+  resize: vertical;
+  font-family: var(--mono);
+}
+
+.config-simple-toggle {
+  cursor: pointer;
+}
+
+.config-simple-toggle--disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.config-simple-toggle__control {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 26px;
+}
+
+.config-simple-toggle__control input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.config-simple-toggle__control span {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.config-simple-toggle__control span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.config-simple-toggle__control input:checked + span {
+  background: color-mix(in srgb, var(--accent) 64%, transparent);
+}
+
+.config-simple-toggle__control input:checked + span::after {
+  transform: translateX(20px);
+}
+
 .config-section-guide__summary {
   padding: 18px;
   border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 12%), var(--card));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 12%),
+    var(--card)
+  );
 }
 
 .config-section-guide__summary h3 {

@@ -8,6 +8,7 @@ import type { ThemeMode, ThemeName } from "../theme.ts";
 import type { ConfigUiHints } from "../types.ts";
 import {
   countSensitiveConfigValues,
+  defaultValue,
   hintForPath,
   humanize,
   isSensitiveConfigPath,
@@ -537,12 +538,224 @@ function resolveSectionMeta(
   };
 }
 
-function isCommunicationScope(props: ConfigProps): boolean {
-  return (
-    props.includeSections?.includes("channels") === true &&
-    props.includeSections?.includes("messages") === true &&
-    (props.navRootLabel === "Communication" || props.navRootLabel === "Channels & Inbox")
-  );
+type GuidedScopeId = "communication" | "automation" | "infrastructure" | "ai";
+
+type GuidedScopeDefinition = {
+  id: GuidedScopeId;
+  label: string;
+  eyebrow: string;
+  description: string;
+  sections: Record<string, { title: string; detail: string; tips: string[] }>;
+};
+
+const GUIDED_SCOPES: GuidedScopeDefinition[] = [
+  {
+    id: "communication",
+    label: "Channels & Inbox",
+    eyebrow: "Communication",
+    description:
+      "Connect where Kova talks to you, tune message behavior, and manage voice or browser notifications without scrolling through raw config fields.",
+    sections: {
+      channels: {
+        title: "Chat Apps",
+        detail: "Telegram, WhatsApp, Discord, Slack, Matrix, and other inboxes.",
+        tips: [
+          "Prefer the dedicated Channels page for QR login and live health.",
+          "Use advanced fields only for provider-specific account details.",
+        ],
+      },
+      messages: {
+        title: "Message Handling",
+        detail: "Reply style, routing, streaming, and inbound message behavior.",
+        tips: [
+          "Keep defaults unless you need custom routing.",
+          "Changes affect live message behavior after save/apply.",
+        ],
+      },
+      broadcast: {
+        title: "Broadcasts",
+        detail: "Shared outbound announcements and multi-recipient behavior.",
+        tips: ["Use this for groups, alerts, and fan-out behavior.", "Keep target lists narrow."],
+      },
+      talk: {
+        title: "Voice & Talk",
+        detail: "Realtime talk, speech output, and audio provider settings.",
+        tips: ["Provider credentials should stay secret-backed.", "Test from Chat after saving."],
+      },
+      audio: {
+        title: "Audio",
+        detail: "Speech input/output defaults used by voice-capable surfaces.",
+        tips: [
+          "Use defaults for normal chat.",
+          "Tune provider fields only when voice sounds wrong.",
+        ],
+      },
+    },
+  },
+  {
+    id: "automation",
+    label: "Automation",
+    eyebrow: "Automation",
+    description:
+      "Manage what Kova can run, when it runs, and how approvals are routed. Everyday controls are shown first; advanced routing stays available when needed.",
+    sections: {
+      commands: {
+        title: "Commands",
+        detail: "User-facing slash commands and command behavior.",
+        tips: ["Disable commands you do not need.", "Keep risky actions approval-gated."],
+      },
+      hooks: {
+        title: "Hooks",
+        detail: "Event hooks that react to gateway or agent activity.",
+        tips: ["Use hooks for predictable automation.", "Keep side effects small and testable."],
+      },
+      bindings: {
+        title: "Bindings",
+        detail: "Keyboard, command, and action bindings.",
+        tips: ["Use clear names.", "Avoid overlapping shortcuts or triggers."],
+      },
+      cron: {
+        title: "Schedules",
+        detail: "Recurring jobs, background checks, and scheduled automations.",
+        tips: ["Start with low frequency.", "Use the Cron page for complex schedule editing."],
+      },
+      approvals: {
+        title: "Approvals",
+        detail: "Forward exec and plugin approval prompts to operational chat destinations.",
+        tips: [
+          "Keep forwarding off unless a human needs approval prompts outside the origin chat.",
+          "Limit targets and agent filters to reduce notification noise.",
+        ],
+      },
+      plugins: {
+        title: "Plugins",
+        detail: "Plugin loading, enablement, and runtime behavior.",
+        tips: ["Enable only what you use.", "Restart or apply after changing plugin behavior."],
+      },
+    },
+  },
+  {
+    id: "infrastructure",
+    label: "Infrastructure",
+    eyebrow: "Infrastructure",
+    description:
+      "Gateway, web, browser, media, node, and protocol settings. Common service controls are surfaced first; low-level fields stay in Advanced.",
+    sections: {
+      gateway: {
+        title: "Gateway",
+        detail: "Local gateway host, port, bind, token, and service behavior.",
+        tips: [
+          "Loopback binding is safest for local setups.",
+          "Use tunnels or TLS for remote access.",
+        ],
+      },
+      web: {
+        title: "Web UI",
+        detail: "Dashboard web server and browser-facing settings.",
+        tips: ["Keep tokens enabled.", "Expose only through trusted networks."],
+      },
+      browser: {
+        title: "Browser Tools",
+        detail: "Browser automation, web access, and browsing helpers.",
+        tips: [
+          "Disable if you do not use browser automation.",
+          "Install browser deps before enabling.",
+        ],
+      },
+      nodeHost: {
+        title: "Node Host",
+        detail: "Remote node host and device execution surface.",
+        tips: [
+          "Pair only trusted nodes.",
+          "Review exec approvals before enabling remote execution.",
+        ],
+      },
+      canvasHost: {
+        title: "Canvas Host",
+        detail: "Canvas runtime and interactive UI host settings.",
+        tips: ["Use defaults unless canvas fails to launch.", "Keep local-only when possible."],
+      },
+      discovery: {
+        title: "Discovery",
+        detail: "LAN discovery and service advertisement.",
+        tips: ["Disable on untrusted networks.", "Use explicit URLs for production hosts."],
+      },
+      media: {
+        title: "Media",
+        detail: "Uploads, rendering, and media handling.",
+        tips: ["Keep file limits conservative.", "Avoid public upload paths without auth."],
+      },
+      acp: {
+        title: "ACP",
+        detail: "Agent Client Protocol integration settings.",
+        tips: ["Use stable endpoints.", "Keep auth scoped to the minimum needed."],
+      },
+      mcp: {
+        title: "MCP",
+        detail: "Model Context Protocol servers and tool bridges.",
+        tips: ["Enable trusted servers only.", "Review tool permissions before exposing them."],
+      },
+    },
+  },
+  {
+    id: "ai",
+    label: "AI & Agents",
+    eyebrow: "AI Runtime",
+    description:
+      "Provider, model, tools, skills, memory, and session behavior. The simple view highlights safe everyday controls before advanced config.",
+    sections: {
+      agents: {
+        title: "Agents",
+        detail: "Agent profiles, model defaults, and behavior routing.",
+        tips: ["Keep a small number of active agents.", "Use clear names for each role."],
+      },
+      models: {
+        title: "Models",
+        detail: "Provider and model selection, fallback, and runtime preferences.",
+        tips: ["Use one primary provider first.", "Add fallback only after the primary works."],
+      },
+      skills: {
+        title: "Skills",
+        detail: "Skill loading, availability, and install behavior.",
+        tips: ["Enable skills intentionally.", "Keep missing requirement warnings visible."],
+      },
+      tools: {
+        title: "Tools",
+        detail: "Tool access, tool gating, and execution behavior.",
+        tips: ["Prefer least privilege.", "Use approvals for destructive tools."],
+      },
+      memory: {
+        title: "Memory",
+        detail: "Recall, storage, dreaming, and background memory behavior.",
+        tips: [
+          "Start enabled only if you want persistent context.",
+          "Review memory location and retention.",
+        ],
+      },
+      session: {
+        title: "Sessions",
+        detail: "Transcript, history, and session storage behavior.",
+        tips: ["Keep session cleanup enabled.", "Archive before deleting history."],
+      },
+    },
+  },
+];
+
+function resolveGuidedScope(props: ConfigProps): GuidedScopeDefinition | null {
+  const label = props.navRootLabel;
+  if (label === "Channels & Inbox" || label === "Communication") {
+    return GUIDED_SCOPES.find((scope) => scope.id === "communication") ?? null;
+  }
+  if (label === "Automation") {
+    return GUIDED_SCOPES.find((scope) => scope.id === "automation") ?? null;
+  }
+  if (label === "Infrastructure") {
+    return GUIDED_SCOPES.find((scope) => scope.id === "infrastructure") ?? null;
+  }
+  if (label === "AI & Agents") {
+    return GUIDED_SCOPES.find((scope) => scope.id === "ai") ?? null;
+  }
+  return null;
 }
 
 function readConfigRecord(value: unknown, key: string): Record<string, unknown> {
@@ -563,6 +776,257 @@ function countEnabledEntries(record: Record<string, unknown>): number {
     }
     return (entry as Record<string, unknown>).enabled !== false;
   }).length;
+}
+
+function resolveConfigFieldMeta(
+  path: Array<string | number>,
+  schema: JsonSchema,
+  hints: ConfigUiHints,
+): { label: string; help?: string; sensitive: boolean } {
+  const hint = hintForPath(path, hints);
+  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1) ?? "setting"));
+  const help = hint?.help ?? schema.description;
+  return {
+    label,
+    help,
+    sensitive: hint?.sensitive === true || isSensitiveConfigPath(pathKey(path)),
+  };
+}
+
+function unwrapSimpleSchema(schema: JsonSchema): JsonSchema {
+  const variants = schema.anyOf ?? schema.oneOf;
+  if (!variants) {
+    return schema;
+  }
+  const nonNull = variants.filter(
+    (variant) =>
+      !(variant.type === "null" || (Array.isArray(variant.type) && variant.type.includes("null"))),
+  );
+  if (nonNull.length === 1) {
+    return { ...nonNull[0], title: schema.title, description: schema.description };
+  }
+  const literals = nonNull
+    .map((variant) => variant.const ?? (variant.enum?.length === 1 ? variant.enum[0] : undefined))
+    .filter((value) => value !== undefined);
+  if (literals.length === nonNull.length && literals.length > 0) {
+    return { ...schema, enum: literals, anyOf: undefined, oneOf: undefined };
+  }
+  return schema;
+}
+
+function arrayItemsSchema(schema: JsonSchema): JsonSchema | undefined {
+  return Array.isArray(schema.items) ? schema.items[0] : schema.items;
+}
+
+function isStringArraySchema(schema: JsonSchema): boolean {
+  const unwrapped = unwrapSimpleSchema(schema);
+  return (
+    schemaType(unwrapped) === "array" && schemaType(arrayItemsSchema(unwrapped) ?? {}) === "string"
+  );
+}
+
+function isSimpleControlSchema(schema: JsonSchema): boolean {
+  const unwrapped = unwrapSimpleSchema(schema);
+  const type = schemaType(unwrapped);
+  return (
+    Boolean(unwrapped.enum?.length) ||
+    type === "boolean" ||
+    type === "string" ||
+    type === "number" ||
+    type === "integer" ||
+    isStringArraySchema(unwrapped)
+  );
+}
+
+type SimpleConfigControl = {
+  path: Array<string | number>;
+  schema: JsonSchema;
+  value: unknown;
+};
+
+function collectSimpleConfigControls(params: {
+  schema: JsonSchema | undefined;
+  value: unknown;
+  path: Array<string | number>;
+  hints: ConfigUiHints;
+  max?: number;
+}): SimpleConfigControl[] {
+  const max = params.max ?? 14;
+  const out: SimpleConfigControl[] = [];
+  const visit = (
+    schema: JsonSchema | undefined,
+    value: unknown,
+    path: Array<string | number>,
+    depth: number,
+  ) => {
+    if (!schema || out.length >= max) {
+      return;
+    }
+    const unwrapped = unwrapSimpleSchema(schema);
+    const meta = resolveConfigFieldMeta(path, unwrapped, params.hints);
+    if (path.length > 1 && !meta.sensitive && isSimpleControlSchema(unwrapped)) {
+      out.push({ path, schema: unwrapped, value });
+      return;
+    }
+    if (depth >= 3 || schemaType(unwrapped) !== "object" || !unwrapped.properties) {
+      return;
+    }
+    const record =
+      value && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : {};
+    const entries = Object.entries(unwrapped.properties).toSorted((left, right) => {
+      const leftOrder = hintForPath([...path, left[0]], params.hints)?.order ?? 50;
+      const rightOrder = hintForPath([...path, right[0]], params.hints)?.order ?? 50;
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+      return left[0].localeCompare(right[0]);
+    });
+    for (const [key, childSchema] of entries) {
+      visit(childSchema, record[key], [...path, key], depth + 1);
+      if (out.length >= max) {
+        break;
+      }
+    }
+  };
+  visit(params.schema, params.value, params.path, 0);
+  return out;
+}
+
+function formatControlValue(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return "";
+}
+
+function renderSimpleConfigControl(params: {
+  control: SimpleConfigControl;
+  hints: ConfigUiHints;
+  disabled: boolean;
+  onPatch: (path: Array<string | number>, value: unknown) => void;
+}) {
+  const schema = unwrapSimpleSchema(params.control.schema);
+  const type = schemaType(schema);
+  const meta = resolveConfigFieldMeta(params.control.path, schema, params.hints);
+  const value = params.control.value ?? schema.default ?? defaultValue(schema);
+  const renderHelp = meta.help ? html`<p>${meta.help}</p>` : nothing;
+
+  if (schema.enum?.length) {
+    const options = schema.enum;
+    return html`
+      <div class="config-simple-control">
+        <div class="config-simple-control__copy">
+          <span>${meta.label}</span>
+          ${renderHelp}
+        </div>
+        <div class="config-simple-control__options">
+          ${options.length <= 5
+            ? options.map(
+                (option) => html`
+                  <button
+                    type="button"
+                    class="config-option-btn ${String(option) === String(value)
+                      ? "config-option-btn--active"
+                      : ""}"
+                    ?disabled=${params.disabled}
+                    @click=${() => params.onPatch(params.control.path, option)}
+                  >
+                    ${String(option)}
+                  </button>
+                `,
+              )
+            : html`
+                <select
+                  class="config-simple-control__select"
+                  ?disabled=${params.disabled}
+                  .value=${String(value)}
+                  @change=${(event: Event) =>
+                    params.onPatch(params.control.path, (event.target as HTMLSelectElement).value)}
+                >
+                  ${options.map(
+                    (option) => html`<option value=${String(option)}>${String(option)}</option>`,
+                  )}
+                </select>
+              `}
+        </div>
+      </div>
+    `;
+  }
+
+  if (type === "boolean") {
+    const checked = typeof value === "boolean" ? value : false;
+    return html`
+      <label
+        class="config-simple-toggle ${params.disabled ? "config-simple-toggle--disabled" : ""}"
+      >
+        <div class="config-simple-control__copy">
+          <span>${meta.label}</span>
+          ${renderHelp}
+        </div>
+        <span class="config-simple-toggle__control">
+          <input
+            type="checkbox"
+            .checked=${checked}
+            ?disabled=${params.disabled}
+            @change=${(event: Event) =>
+              params.onPatch(params.control.path, (event.target as HTMLInputElement).checked)}
+          />
+          <span></span>
+        </span>
+      </label>
+    `;
+  }
+
+  if (isStringArraySchema(schema)) {
+    const text = Array.isArray(value)
+      ? value.filter((item) => typeof item === "string").join("\n")
+      : "";
+    return html`
+      <label class="config-simple-control config-simple-control--stacked">
+        <div class="config-simple-control__copy">
+          <span>${meta.label}</span>
+          ${renderHelp}
+        </div>
+        <textarea
+          class="config-simple-control__textarea"
+          rows="3"
+          placeholder="One value per line"
+          ?disabled=${params.disabled}
+          .value=${text}
+          @input=${(event: Event) => {
+            const next = (event.target as HTMLTextAreaElement).value
+              .split(/\r?\n|,/u)
+              .map((item) => item.trim())
+              .filter(Boolean);
+            params.onPatch(params.control.path, next);
+          }}
+        ></textarea>
+      </label>
+    `;
+  }
+
+  return html`
+    <label class="config-simple-control">
+      <div class="config-simple-control__copy">
+        <span>${meta.label}</span>
+        ${renderHelp}
+      </div>
+      <input
+        class="config-simple-control__input"
+        type=${type === "number" || type === "integer" ? "number" : "text"}
+        ?disabled=${params.disabled}
+        .value=${formatControlValue(value)}
+        @input=${(event: Event) => {
+          const raw = (event.target as HTMLInputElement).value;
+          const next =
+            type === "number" || type === "integer" ? (raw === "" ? undefined : Number(raw)) : raw;
+          params.onPatch(params.control.path, next);
+        }}
+      />
+    </label>
+  `;
 }
 
 function renderCommunicationCard(params: {
@@ -741,7 +1205,169 @@ function renderCommunicationOverview(props: ConfigProps) {
   `;
 }
 
-function communicationAdvancedTitle(section: string): string {
+function sectionStatusLabel(value: unknown): string {
+  if (value === undefined || value === null) {
+    return "Default";
+  }
+  if (typeof value === "boolean") {
+    return value ? "Enabled" : "Disabled";
+  }
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return "Set";
+  }
+  const keys = Object.keys(value as Record<string, unknown>);
+  if (keys.length === 0) {
+    return "Default";
+  }
+  const enabledCount = countEnabledEntries(value as Record<string, unknown>);
+  return enabledCount > 0 ? `${enabledCount} active` : `${keys.length} configured`;
+}
+
+function renderGuidedScopeOverview(params: {
+  scope: GuidedScopeDefinition;
+  props: ConfigProps;
+  schema: JsonSchema | null;
+}) {
+  if (params.scope.id === "communication") {
+    return renderCommunicationOverview(params.props);
+  }
+  const config = params.props.formValue ?? {};
+  const schemaProps = params.schema?.properties ?? {};
+  const sectionEntries = Object.entries(params.scope.sections).filter(
+    ([key]) => key in schemaProps,
+  );
+  return html`
+    <div class="config-scope-overview">
+      <section class="config-scope-hero">
+        <div>
+          <div class="config-scope-hero__eyebrow">${params.scope.eyebrow}</div>
+          <h2>${params.scope.label}</h2>
+          <p>${params.scope.description}</p>
+        </div>
+        <div class="config-scope-hero__status">
+          <span class="settings-status-dot settings-status-dot--ok"></span>
+          ${sectionEntries.length} section${sectionEntries.length === 1 ? "" : "s"}
+        </div>
+      </section>
+
+      <div class="config-scope-grid">
+        ${sectionEntries.map(([key, copy]) => {
+          const value = config[key];
+          const status = sectionStatusLabel(value);
+          const controls = collectSimpleConfigControls({
+            schema: schemaProps[key],
+            value,
+            path: [key],
+            hints: params.props.uiHints,
+            max: 4,
+          });
+          return renderCommunicationCard({
+            icon: getSectionIcon(key),
+            title: copy.title,
+            status,
+            detail: copy.detail,
+            rows: [
+              {
+                label: "Simple controls",
+                value: controls.length > 0 ? String(controls.length) : "Advanced",
+              },
+              { label: "Current state", value: status },
+            ],
+            actionLabel: controls.length > 0 ? `Open ${copy.title}` : "Open advanced settings",
+            onAction: () => params.props.onSectionChange(key),
+          });
+        })}
+      </div>
+    </div>
+  `;
+}
+
+function renderGuidedSection(params: {
+  scope: GuidedScopeDefinition;
+  section: string;
+  schema: JsonSchema | undefined;
+  value: unknown;
+  props: ConfigProps;
+  advanced: TemplateResult;
+}) {
+  const copy = params.scope.sections[params.section] ?? {
+    title: resolveSectionMeta(params.section, params.schema).label,
+    detail: resolveSectionMeta(params.section, params.schema).description ?? "Advanced settings.",
+    tips: ["Change one thing at a time.", "Save before applying to the running gateway."],
+  };
+  const controls = collectSimpleConfigControls({
+    schema: params.schema,
+    value: params.value,
+    path: [params.section],
+    hints: params.props.uiHints,
+    max: 16,
+  });
+  const hiddenControlCount = Math.max(
+    0,
+    collectSimpleConfigControls({
+      schema: params.schema,
+      value: params.value,
+      path: [params.section],
+      hints: params.props.uiHints,
+      max: 99,
+    }).length - controls.length,
+  );
+  return html`
+    <div class="config-section-guide">
+      <section class="config-section-guide__summary">
+        <h3>${copy.title}</h3>
+        <p>${copy.detail}</p>
+        <div class="config-section-guide__tips">
+          ${copy.tips.map((tip) => html`<span>${tip}</span>`)}
+        </div>
+      </section>
+
+      ${controls.length > 0
+        ? html`
+            <section class="config-simple-panel">
+              <div class="config-simple-panel__header">
+                <div>
+                  <h4>Common controls</h4>
+                  <p>
+                    These update the same config fields as Advanced, but without the raw nested
+                    layout.
+                  </p>
+                </div>
+                ${hiddenControlCount > 0
+                  ? html`<span>${hiddenControlCount} more in Advanced</span>`
+                  : nothing}
+              </div>
+              <div class="config-simple-panel__grid">
+                ${controls.map((control) =>
+                  renderSimpleConfigControl({
+                    control,
+                    hints: params.props.uiHints,
+                    disabled: params.props.loading || !params.props.formValue,
+                    onPatch: params.props.onFormPatch,
+                  }),
+                )}
+              </div>
+            </section>
+          `
+        : html`
+            <section class="config-simple-panel config-simple-panel--empty">
+              <h4>Advanced-only section</h4>
+              <p>
+                This section is mostly lists, nested objects, or sensitive values. Use Advanced
+                below so Kova keeps the exact config shape.
+              </p>
+            </section>
+          `}
+
+      <details class="config-advanced-details">
+        <summary>${guidedAdvancedTitle(params.section)}</summary>
+        <div class="config-advanced-details__body">${params.advanced}</div>
+      </details>
+    </div>
+  `;
+}
+
+function guidedAdvancedTitle(section: string): string {
   switch (section) {
     case "channels":
       return "Advanced channel fields";
@@ -756,71 +1382,6 @@ function communicationAdvancedTitle(section: string): string {
     default:
       return "Advanced fields";
   }
-}
-
-function renderCommunicationSectionGuide(params: { section: string; advanced: TemplateResult }) {
-  const sectionCopy: Record<string, { title: string; body: string; tips: string[] }> = {
-    channels: {
-      title: "Chat Apps",
-      body: "Use this when you want Kova in Telegram, WhatsApp, Discord, Slack, or another inbox.",
-      tips: [
-        "Prefer the dedicated Channels page for QR login and live health.",
-        "Use advanced fields only for provider-specific account details.",
-      ],
-    },
-    messages: {
-      title: "Message Handling",
-      body: "Controls how inbound messages become agent turns and how Kova formats replies.",
-      tips: [
-        "Keep defaults unless you need custom routing.",
-        "Advanced fields affect live message behavior after save/apply.",
-      ],
-    },
-    broadcast: {
-      title: "Broadcasts",
-      body: "Controls shared announcements and multi-recipient delivery behavior.",
-      tips: [
-        "Use this for groups, alerts, and fan-out behavior.",
-        "Keep target lists narrow for safety.",
-      ],
-    },
-    talk: {
-      title: "Voice & Talk",
-      body: "Controls browser realtime talk and voice provider behavior.",
-      tips: [
-        "Provider credentials should stay secret-backed.",
-        "Test from the Chat composer after saving.",
-      ],
-    },
-    audio: {
-      title: "Audio",
-      body: "Controls speech input/output defaults used by voice-capable surfaces.",
-      tips: [
-        "Use defaults for normal chat.",
-        "Tune provider fields only when voice output sounds wrong.",
-      ],
-    },
-  };
-  const copy = sectionCopy[params.section] ?? {
-    title: "Communication Settings",
-    body: "Advanced communication settings.",
-    tips: ["Change one thing at a time.", "Save before applying to the running gateway."],
-  };
-  return html`
-    <div class="config-section-guide">
-      <section class="config-section-guide__summary">
-        <h3>${copy.title}</h3>
-        <p>${copy.body}</p>
-        <div class="config-section-guide__tips">
-          ${copy.tips.map((tip) => html`<span>${tip}</span>`)}
-        </div>
-      </section>
-      <details class="config-advanced-details">
-        <summary>${communicationAdvancedTitle(params.section)}</summary>
-        <div class="config-advanced-details__body">${params.advanced}</div>
-      </details>
-    </div>
-  `;
 }
 
 const MAX_CONFIG_DIFF_DEPTH = 64;
@@ -1661,14 +2222,14 @@ export function renderConfig(props: ConfigProps) {
     formMode === "form" &&
     props.activeSection === null &&
     Boolean(include?.has("__appearance__"));
-  const communicationScope = isCommunicationScope(props);
-  const showCommunicationOverview =
-    communicationScope &&
+  const guidedScope = resolveGuidedScope(props);
+  const showGuidedScopeOverview =
+    guidedScope !== null &&
     formMode === "form" &&
     props.activeSection === null &&
     !props.searchQuery.trim();
-  const showGuidedCommunicationSection =
-    communicationScope &&
+  const showGuidedScopeSection =
+    guidedScope !== null &&
     formMode === "form" &&
     props.activeSection !== null &&
     props.activeSection !== "__notifications__" &&
@@ -2019,11 +2580,19 @@ export function renderConfig(props: ConfigProps) {
                 ? renderNotificationsSection(props)
                 : nothing
               : formMode === "form"
-                ? showCommunicationOverview
-                  ? renderCommunicationOverview(props)
-                  : showGuidedCommunicationSection && props.activeSection
-                    ? renderCommunicationSectionGuide({
+                ? showGuidedScopeOverview && guidedScope
+                  ? renderGuidedScopeOverview({
+                      scope: guidedScope,
+                      props,
+                      schema: analysis.schema,
+                    })
+                  : showGuidedScopeSection && guidedScope && props.activeSection
+                    ? renderGuidedSection({
+                        scope: guidedScope,
                         section: props.activeSection,
+                        schema: activeSectionSchema,
+                        value: props.formValue?.[props.activeSection],
+                        props,
                         advanced: renderConfigForm({
                           schema: analysis.schema,
                           uiHints: props.uiHints,

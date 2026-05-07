@@ -399,6 +399,89 @@ describe("config view", () => {
     expect(container.querySelector(".config-form--modern")).not.toBeNull();
   });
 
+  it("renders simple approval controls before advanced automation config", () => {
+    const onFormPatch = vi.fn();
+    const { container } = renderConfigView({
+      navRootLabel: "Automation",
+      includeSections: ["commands", "hooks", "bindings", "cron", "approvals", "plugins"],
+      activeSection: "approvals",
+      onFormPatch,
+      schema: {
+        type: "object",
+        properties: {
+          approvals: {
+            type: "object",
+            properties: {
+              exec: {
+                type: "object",
+                title: "Exec Approval Forwarding",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Forward Exec Approvals",
+                    description: "Forward approval requests to chat destinations.",
+                  },
+                  agentFilter: {
+                    type: "array",
+                    title: "Approval Agent Filter",
+                    items: { type: "string" },
+                  },
+                },
+              },
+              plugin: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                    title: "Forward Plugin Approvals",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      formValue: {
+        approvals: {
+          exec: { enabled: false, agentFilter: ["primary"] },
+          plugin: { enabled: true },
+        },
+      },
+      originalValue: {
+        approvals: {
+          exec: { enabled: false, agentFilter: ["primary"] },
+          plugin: { enabled: true },
+        },
+      },
+    });
+
+    expect(container.querySelector(".config-simple-panel")).not.toBeNull();
+    expect(normalizedText(container)).toContain("Common controls");
+    expect(normalizedText(container)).toContain("Forward Exec Approvals");
+    expect(normalizedText(container)).toContain("Approval Agent Filter");
+    expect(normalizedText(container)).toContain("Advanced fields");
+    expect(container.querySelector(".config-form--modern")).not.toBeNull();
+
+    const toggle = container.querySelector<HTMLInputElement>(
+      ".config-simple-toggle input[type='checkbox']",
+    );
+    expect(toggle).not.toBeNull();
+    toggle!.checked = true;
+    toggle?.dispatchEvent(new Event("change"));
+    expect(onFormPatch).toHaveBeenCalledWith(["approvals", "exec", "enabled"], true);
+
+    const textarea = container.querySelector<HTMLTextAreaElement>(
+      ".config-simple-control__textarea",
+    );
+    expect(textarea).not.toBeNull();
+    textarea!.value = "primary\nops-agent";
+    textarea?.dispatchEvent(new Event("input"));
+    expect(onFormPatch).toHaveBeenCalledWith(
+      ["approvals", "exec", "agentFilter"],
+      ["primary", "ops-agent"],
+    );
+  });
+
   it("renders and wires the search field controls", () => {
     const container = document.createElement("div");
     const onSearchChange = vi.fn();
