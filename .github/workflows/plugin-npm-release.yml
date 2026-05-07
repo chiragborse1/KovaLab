@@ -247,8 +247,8 @@ jobs:
       # Publish the plugin package using the resolved latest/beta dist-tag.
       - name: Publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.KOVAAI_NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.KOVAAI_NPM_TOKEN }}
         run: bash scripts/plugin-npm-publish.sh --publish "${{ matrix.plugin.packageDir }}"
 
       # Re-pack the published npm package and verify runtime entries exist.
