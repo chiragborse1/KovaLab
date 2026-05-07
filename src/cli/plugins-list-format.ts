@@ -3,6 +3,27 @@ import { sanitizeTerminalText } from "../terminal/safe-text.js";
 import { theme } from "../terminal/theme.js";
 import { shortenHomeInString } from "../utils.js";
 
+function humanizeKovaPackageName(packageName: string): string {
+  return packageName
+    .replace(/^@openclaw\//u, "")
+    .replace(/^openclaw[-_]?/u, "")
+    .replace(/[-_]provider$/u, " provider")
+    .replace(/[-_]+/gu, " ")
+    .replace(/\b\w/gu, (letter) => letter.toUpperCase());
+}
+
+function formatPluginDisplayName(plugin: PluginRecord): string {
+  const name = plugin.name || plugin.id;
+  if (plugin.origin === "bundled" && name.startsWith("@openclaw/")) {
+    return `Kova ${humanizeKovaPackageName(name)}`;
+  }
+  return name;
+}
+
+function formatPluginFormat(format: string): string {
+  return format === "openclaw" ? "kova" : format;
+}
+
 export function formatPluginLine(plugin: PluginRecord, verbose = false): string {
   const status =
     plugin.status === "error"
@@ -10,8 +31,9 @@ export function formatPluginLine(plugin: PluginRecord, verbose = false): string 
       : plugin.enabled
         ? theme.success("enabled")
         : theme.warn("disabled");
-  const name = theme.command(plugin.name || plugin.id);
-  const idSuffix = plugin.name && plugin.name !== plugin.id ? theme.muted(` (${plugin.id})`) : "";
+  const displayName = formatPluginDisplayName(plugin);
+  const name = theme.command(displayName);
+  const idSuffix = displayName !== plugin.id ? theme.muted(` (${plugin.id})`) : "";
   const desc = plugin.description
     ? theme.muted(
         plugin.description.length > 60
@@ -19,7 +41,7 @@ export function formatPluginLine(plugin: PluginRecord, verbose = false): string 
           : plugin.description,
       )
     : theme.muted("(no description)");
-  const format = plugin.format ?? "openclaw";
+  const format = formatPluginFormat(plugin.format ?? "openclaw");
 
   if (!verbose) {
     return `${name}${idSuffix} ${status} ${theme.muted(`[${format}]`)} - ${desc}`;
