@@ -19,14 +19,14 @@ skips approvals).
 Effective policy is the **stricter** of `tools.exec.*` and approvals
 defaults; if an approvals field is omitted, the `tools.exec` value is
 used. Host exec also uses local approvals state on that machine — a
-host-local `ask: "always"` in `~/.openclaw/exec-approvals.json` keeps
+host-local `ask: "always"` in `~/.kova/exec-approvals.json` keeps
 prompting even if session or config defaults request `ask: "on-miss"`.
 </Note>
 
 ## Inspecting the effective policy
 
-| Command                                                          | What it shows                                                                          |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Command                                                      | What it shows                                                                          |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `kova approvals get` / `--gateway` / `--node <id\|name\|ip>` | Requested policy, host policy sources, and the effective result.                       |
 | `kova exec-policy show`                                      | Local-machine merged view.                                                             |
 | `kova exec-policy set` / `preset`                            | Synchronize the local requested policy with the local host approvals file in one step. |
@@ -71,7 +71,7 @@ Exec approvals are enforced locally on the execution host:
 Approvals live in a local JSON file on the execution host:
 
 ```text
-~/.openclaw/exec-approvals.json
+~/.kova/exec-approvals.json
 ```
 
 Example schema:
@@ -80,7 +80,7 @@ Example schema:
 {
   "version": 1,
   "socket": {
-    "path": "~/.openclaw/exec-approvals.sock",
+    "path": "~/.kova/exec-approvals.sock",
     "token": "base64url-token"
   },
   "defaults": {
@@ -167,7 +167,7 @@ automatically.
 If you want host exec to run without approval prompts, you must open
 **both** policy layers — requested exec policy in Kova config
 (`tools.exec.*`) **and** host-local approvals policy in
-`~/.openclaw/exec-approvals.json`.
+`~/.kova/exec-approvals.json`.
 
 YOLO is the default host behavior unless you tighten it explicitly:
 
@@ -233,7 +233,7 @@ kova exec-policy preset yolo
 That local shortcut updates both:
 
 - Local `tools.exec.host/security/ask`.
-- Local `~/.openclaw/exec-approvals.json` defaults.
+- Local `~/.kova/exec-approvals.json` defaults.
 
 It is intentionally local-only. To change gateway-host or node-host
 approvals remotely, use `kova approvals set --gateway` or
@@ -333,7 +333,7 @@ shows last-used metadata per pattern so you can keep the list tidy.
 The target selector chooses **Gateway** (local approvals) or a **Node**.
 Nodes must advertise `system.execApprovals.get/set` (macOS app or
 headless node host). If a node does not advertise exec approvals yet,
-edit its local `~/.openclaw/exec-approvals.json` directly.
+edit its local `~/.kova/exec-approvals.json` directly.
 
 CLI: `kova approvals` supports gateway or node editing — see
 [Approvals CLI](/cli/approvals).

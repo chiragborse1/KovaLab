@@ -8,6 +8,7 @@ import {
   normalizeOptionalString,
   readStringValue,
 } from "../shared/string-coerce.js";
+import { resolveConfigDir } from "../utils.js";
 import { resolveAllowAlwaysPatternEntries } from "./exec-approvals-allowlist.js";
 import type { ExecCommandSegment } from "./exec-approvals-analysis.js";
 import type { ExecAllowlistEntry } from "./exec-approvals.types.js";
@@ -170,8 +171,8 @@ const DEFAULT_SECURITY: ExecSecurity = "full";
 const DEFAULT_ASK: ExecAsk = "off";
 export const DEFAULT_EXEC_APPROVAL_ASK_FALLBACK: ExecSecurity = "full";
 const DEFAULT_AUTO_ALLOW_SKILLS = false;
-const DEFAULT_SOCKET = "~/.openclaw/exec-approvals.sock";
-const DEFAULT_FILE = "~/.openclaw/exec-approvals.json";
+const EXEC_APPROVALS_SOCKET_FILE = "exec-approvals.sock";
+const EXEC_APPROVALS_STATE_FILE = "exec-approvals.json";
 
 function hashExecApprovalsRaw(raw: string | null): string {
   return crypto
@@ -181,11 +182,11 @@ function hashExecApprovalsRaw(raw: string | null): string {
 }
 
 export function resolveExecApprovalsPath(): string {
-  return expandHomePrefix(DEFAULT_FILE);
+  return path.join(resolveConfigDir(), EXEC_APPROVALS_STATE_FILE);
 }
 
 export function resolveExecApprovalsSocketPath(): string {
-  return expandHomePrefix(DEFAULT_SOCKET);
+  return path.join(resolveConfigDir(), EXEC_APPROVALS_SOCKET_FILE);
 }
 
 function normalizeAllowlistPattern(value: string | undefined): string | null {
