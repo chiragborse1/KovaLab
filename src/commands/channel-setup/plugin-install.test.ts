@@ -430,31 +430,25 @@ describe("ensureChannelSetupPluginInstalled", () => {
     expect(await runInitialValueForChannel("beta")).toBe("npm");
   });
 
-  it("defaults to bundled local path on beta channel when available", async () => {
+  it("uses bundled local path without prompting when available", async () => {
     const runtime = makeRuntime();
     const { prompter, select } = makeSkipInstallPrompter();
     const cfg: OpenClawConfig = { update: { channel: "beta" } };
     vi.mocked(fs.existsSync).mockReturnValue(false);
     mockBundledChatSource();
 
-    await ensureChannelSetupPluginInstalled({
+    const result = await ensureChannelSetupPluginInstalled({
       cfg,
       entry: baseEntry,
       prompter,
       runtime,
     });
 
-    expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({
-        initialValue: "local",
-        options: expect.arrayContaining([
-          expect.objectContaining({
-            value: "local",
-            hint: bundledPluginRootAt("/opt/openclaw", "bundled-chat"),
-          }),
-        ]),
-      }),
-    );
+    expect(select).not.toHaveBeenCalled();
+    expect(result.installed).toBe(true);
+    expect(result.cfg.plugins?.entries?.["bundled-chat"]?.enabled).toBe(true);
+    expect(result.cfg.plugins?.load?.paths).toBeUndefined();
+    expect(result.cfg.plugins?.installs).toBeUndefined();
   });
 
   it("uses the bundled default install source without prompting in non-interactive mode", async () => {

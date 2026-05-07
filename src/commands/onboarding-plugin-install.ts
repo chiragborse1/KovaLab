@@ -461,16 +461,18 @@ export async function ensureOnboardingPluginInstalled(params: {
     ...(localPath ? (["local"] as const) : []),
   ];
   const choice =
-    params.promptInstall === false
-      ? defaultChoice
-      : params.autoConfirmSingleSource && installSources.length === 1
-        ? installSources[0]
-        : await promptInstallChoice({
-            entry,
-            localPath,
-            defaultChoice,
-            prompter,
-          });
+    bundledLocalPath && localPath
+      ? "local"
+      : params.promptInstall === false
+        ? defaultChoice
+        : params.autoConfirmSingleSource && installSources.length === 1
+          ? installSources[0]
+          : await promptInstallChoice({
+              entry,
+              localPath,
+              defaultChoice,
+              prompter,
+            });
 
   if (choice === "skip") {
     return {
