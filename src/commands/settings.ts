@@ -813,39 +813,6 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
     return;
   }
 
-  let selectedIndex = 0;
-  let message =
-    "Use arrows to move, Enter to edit, Space to toggle, / to search, Ctrl+P for commands.";
-  let searchQuery: string | undefined;
-  let paletteQuery: string | undefined;
-  let paletteIndex = 0;
-
-  const render = () => {
-    const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
-    const paletteCommands =
-      paletteQuery === undefined
-        ? undefined
-        : filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), paletteQuery);
-    stdout.write("\x1b[?25l\x1b[2J\x1b[H");
-    stdout.write(
-      renderSettingsDashboard({
-        rows,
-        selectedIndex,
-        message,
-        searchQuery,
-        runtimeStatus,
-        palette:
-          paletteQuery === undefined
-            ? undefined
-            : {
-                query: paletteQuery,
-                selectedIndex: paletteIndex,
-                commands: paletteCommands ?? [],
-              },
-      }),
-    );
-  };
-
   const reload = async () => {
     workingConfig = await readCurrentConfig(runtime);
     if (workingConfig) {
@@ -855,218 +822,254 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
     }
   };
 
-  let onKeypress:
-    | ((chunk: string, key: { name?: string; ctrl?: boolean }) => Promise<void>)
-    | undefined;
+  while (true) {
+    let selectedIndex = 0;
+    let message =
+      "Use arrows to move, Enter to edit, Space to toggle, / to search, Ctrl+P for commands.";
+    let searchQuery: string | undefined;
+    let paletteQuery: string | undefined;
+    let paletteIndex = 0;
 
-  const cleanup = () => {
-    if (onKeypress) {
-      stdin.off("keypress", onKeypress);
-      onKeypress = undefined;
-    }
-    stdin.setRawMode(false);
-    stdin.pause();
-    stdout.write("\x1b[?25h\n");
-  };
+    const render = () => {
+      const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
+      const paletteCommands =
+        paletteQuery === undefined
+          ? undefined
+          : filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), paletteQuery);
+      stdout.write("\x1b[?25l\x1b[2J\x1b[H");
+      stdout.write(
+        renderSettingsDashboard({
+          rows,
+          selectedIndex,
+          message,
+          searchQuery,
+          runtimeStatus,
+          palette:
+            paletteQuery === undefined
+              ? undefined
+              : {
+                  query: paletteQuery,
+                  selectedIndex: paletteIndex,
+                  commands: paletteCommands ?? [],
+                },
+        }),
+      );
+    };
 
-  emitKeypressEvents(stdin);
-  stdin.setRawMode(true);
-  stdin.resume();
-  render();
+    let onKeypress:
+      | ((chunk: string, key: { name?: string; ctrl?: boolean }) => Promise<void>)
+      | undefined;
 
-  await new Promise<void>((resolve, reject) => {
-    onKeypress = async (_chunk: string, key: { name?: string; ctrl?: boolean }) => {
-      try {
-        const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
-        const selected = rows[selectedIndex] ?? rows[0];
-        if (!selected) {
-          cleanup();
-          resolve();
-          return;
-        }
+    const cleanup = () => {
+      if (onKeypress) {
+        stdin.off("keypress", onKeypress);
+        onKeypress = undefined;
+      }
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdout.write("\x1b[?25h\n");
+    };
 
-        if (key.ctrl && key.name === "c") {
-          cleanup();
-          resolve();
-          return;
-        }
-        if (paletteQuery !== undefined) {
-          const commands = filterSettingsPaletteCommands(
-            buildSettingsPaletteCommands(rows),
-            paletteQuery,
-          );
-          if (key.name === "escape") {
-            paletteQuery = undefined;
+    emitKeypressEvents(stdin);
+    stdin.setRawMode(true);
+    stdin.resume();
+    render();
+
+    const nextAction = await new Promise<SettingsAction | null>((resolve, reject) => {
+      onKeypress = async (_chunk: string, key: { name?: string; ctrl?: boolean }) => {
+        try {
+          const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
+          const selected = rows[selectedIndex] ?? rows[0];
+          if (!selected) {
+            cleanup();
+            resolve(null);
+            return;
+          }
+
+          if (key.ctrl && key.name === "c") {
+            cleanup();
+            resolve(null);
+            return;
+          }
+          if (paletteQuery !== undefined) {
+            const commands = filterSettingsPaletteCommands(
+              buildSettingsPaletteCommands(rows),
+              paletteQuery,
+            );
+            if (key.name === "escape") {
+              paletteQuery = undefined;
+              paletteIndex = 0;
+              message = "Command palette closed.";
+              render();
+              return;
+            }
+            if (key.name === "up") {
+              paletteIndex = commands.length
+                ? (paletteIndex - 1 + commands.length) % commands.length
+                : 0;
+              render();
+              return;
+            }
+            if (key.name === "down") {
+              paletteIndex = commands.length ? (paletteIndex + 1) % commands.length : 0;
+              render();
+              return;
+            }
+            if (key.name === "backspace" || key.name === "delete") {
+              paletteQuery = paletteQuery.slice(0, -1);
+              paletteIndex = 0;
+              render();
+              return;
+            }
+            if (key.name === "return") {
+              const command = commands[paletteIndex] ?? commands[0];
+              if (!command) {
+                message = "No matching command.";
+                render();
+                return;
+              }
+              if (command.toggle) {
+                workingConfig = applySettingsToggle(workingConfig!, command.toggle);
+                await saveConfig(workingConfig);
+                await reload();
+                paletteQuery = undefined;
+                paletteIndex = 0;
+                message = `${command.label} saved automatically.`;
+                render();
+                return;
+              }
+              if (!command.action) {
+                paletteQuery = undefined;
+                paletteIndex = 0;
+                message = "No command attached.";
+                render();
+                return;
+              }
+              cleanup();
+              if (command.action.type === "finish") {
+                resolve(null);
+                return;
+              }
+              resolve(command.action);
+              return;
+            }
+            if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
+              paletteQuery += _chunk;
+              paletteIndex = 0;
+              render();
+            }
+            return;
+          }
+
+          if (key.ctrl && key.name === "p") {
+            paletteQuery = "";
             paletteIndex = 0;
-            message = "Command palette closed.";
+            message = "Command palette opened.";
+            render();
+            return;
+          }
+
+          if (searchQuery !== undefined) {
+            if (key.name === "escape") {
+              searchQuery = undefined;
+              message = "Search cleared.";
+              render();
+              return;
+            }
+            if (key.name === "return") {
+              searchQuery = undefined;
+              message = rows[selectedIndex]?.hint ?? "Ready";
+              render();
+              return;
+            }
+            if (key.name === "backspace" || key.name === "delete") {
+              searchQuery = searchQuery.slice(0, -1);
+            } else if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
+              searchQuery += _chunk;
+            }
+            const nextIndex = findSettingsRowIndex(rows, searchQuery);
+            selectedIndex = nextIndex;
+            message =
+              rows[nextIndex] && normalizeSearchQuery(searchQuery)
+                ? `Jumped to ${rows[nextIndex].label}. Press Enter to edit.`
+                : "Type to search settings.";
+            render();
+            return;
+          }
+
+          if (_chunk === "/") {
+            searchQuery = "";
+            message = "Type to search settings.";
             render();
             return;
           }
           if (key.name === "up") {
-            paletteIndex = commands.length
-              ? (paletteIndex - 1 + commands.length) % commands.length
-              : 0;
+            selectedIndex = (selectedIndex - 1 + rows.length) % rows.length;
+            message = selected.hint;
             render();
             return;
           }
           if (key.name === "down") {
-            paletteIndex = commands.length ? (paletteIndex + 1) % commands.length : 0;
+            selectedIndex = (selectedIndex + 1) % rows.length;
+            message = selected.hint;
             render();
             return;
           }
-          if (key.name === "backspace" || key.name === "delete") {
-            paletteQuery = paletteQuery.slice(0, -1);
-            paletteIndex = 0;
+          if (key.name === "space") {
+            if (!selected.toggle) {
+              message =
+                selected.action?.type === "finish"
+                  ? "Press Enter to close settings."
+                  : "This row opens an editor. Press Enter.";
+              render();
+              return;
+            }
+            workingConfig = applySettingsToggle(workingConfig!, selected.toggle);
+            await saveConfig(workingConfig);
+            await reload();
+            message = `${selected.label} saved automatically.`;
             render();
+            return;
+          }
+          if (key.name === "s") {
+            message = "Settings auto-save after every toggle.";
+            render();
+            return;
+          }
+          if (key.name === "q" || key.name === "escape") {
+            cleanup();
+            resolve(null);
             return;
           }
           if (key.name === "return") {
-            const command = commands[paletteIndex] ?? commands[0];
-            if (!command) {
-              message = "No matching command.";
-              render();
-              return;
-            }
-            if (command.toggle) {
-              workingConfig = applySettingsToggle(workingConfig!, command.toggle);
-              await saveConfig(workingConfig);
-              await reload();
-              paletteQuery = undefined;
-              paletteIndex = 0;
-              message = `${command.label} saved automatically.`;
-              render();
-              return;
-            }
-            if (!command.action) {
-              paletteQuery = undefined;
-              paletteIndex = 0;
-              message = "No command attached.";
+            if (!selected.action) {
+              message = selected.toggle
+                ? "Press Space to toggle this setting."
+                : "No editor attached.";
               render();
               return;
             }
             cleanup();
-            if (command.action.type === "finish") {
-              resolve();
+            if (selected.action.type === "finish") {
+              resolve(null);
               return;
             }
-            runtime.log(`Opening ${formatCliCommand(describeAction(command.action))}...`);
-            await runAction(command.action, runtime);
-            await settingsCommand(runtime);
-            resolve();
-            return;
+            resolve(selected.action);
           }
-          if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
-            paletteQuery += _chunk;
-            paletteIndex = 0;
-            render();
-          }
-          return;
-        }
-
-        if (key.ctrl && key.name === "p") {
-          paletteQuery = "";
-          paletteIndex = 0;
-          message = "Command palette opened.";
-          render();
-          return;
-        }
-
-        if (searchQuery !== undefined) {
-          if (key.name === "escape") {
-            searchQuery = undefined;
-            message = "Search cleared.";
-            render();
-            return;
-          }
-          if (key.name === "return") {
-            searchQuery = undefined;
-            message = rows[selectedIndex]?.hint ?? "Ready";
-            render();
-            return;
-          }
-          if (key.name === "backspace" || key.name === "delete") {
-            searchQuery = searchQuery.slice(0, -1);
-          } else if (_chunk && !key.ctrl && _chunk >= " " && _chunk !== "\x7f") {
-            searchQuery += _chunk;
-          }
-          const nextIndex = findSettingsRowIndex(rows, searchQuery);
-          selectedIndex = nextIndex;
-          message =
-            rows[nextIndex] && normalizeSearchQuery(searchQuery)
-              ? `Jumped to ${rows[nextIndex].label}. Press Enter to edit.`
-              : "Type to search settings.";
-          render();
-          return;
-        }
-
-        if (_chunk === "/") {
-          searchQuery = "";
-          message = "Type to search settings.";
-          render();
-          return;
-        }
-        if (key.name === "up") {
-          selectedIndex = (selectedIndex - 1 + rows.length) % rows.length;
-          message = selected.hint;
-          render();
-          return;
-        }
-        if (key.name === "down") {
-          selectedIndex = (selectedIndex + 1) % rows.length;
-          message = selected.hint;
-          render();
-          return;
-        }
-        if (key.name === "space") {
-          if (!selected.toggle) {
-            message =
-              selected.action?.type === "finish"
-                ? "Press Enter to close settings."
-                : "This row opens an editor. Press Enter.";
-            render();
-            return;
-          }
-          workingConfig = applySettingsToggle(workingConfig!, selected.toggle);
-          await saveConfig(workingConfig);
-          await reload();
-          message = `${selected.label} saved automatically.`;
-          render();
-          return;
-        }
-        if (key.name === "s") {
-          message = "Settings auto-save after every toggle.";
-          render();
-          return;
-        }
-        if (key.name === "q" || key.name === "escape") {
+        } catch (error) {
           cleanup();
-          resolve();
-          return;
+          reject(error);
         }
-        if (key.name === "return") {
-          if (!selected.action) {
-            message = selected.toggle
-              ? "Press Space to toggle this setting."
-              : "No editor attached.";
-            render();
-            return;
-          }
-          cleanup();
-          if (selected.action.type === "finish") {
-            resolve();
-            return;
-          }
-          runtime.log(`Opening ${formatCliCommand(describeAction(selected.action))}...`);
-          await runAction(selected.action, runtime);
-          await settingsCommand(runtime);
-          resolve();
-        }
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    };
+      };
 
-    stdin.on("keypress", onKeypress);
-  });
+      stdin.on("keypress", onKeypress);
+    });
+
+    if (!nextAction) {
+      return;
+    }
+    runtime.log(`Opening ${formatCliCommand(describeAction(nextAction))}...`);
+    await runAction(nextAction, runtime);
+    await reload();
+  }
 }
