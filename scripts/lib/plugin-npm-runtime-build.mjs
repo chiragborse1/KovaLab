@@ -145,14 +145,24 @@ function normalizeHostPeerRange(value) {
     : `>=${normalized}`;
 }
 
+function normalizePublishedHostPeerRange(value) {
+  const normalized = normalizePackageEntry(value);
+  if (!normalized) {
+    return "";
+  }
+  return /^[<>=~^*]|^(?:workspace|npm|file|link|portal|catalog):/u.test(normalized)
+    ? normalized
+    : `^${normalized}`;
+}
+
 function resolveHostPeerRange(packageJson, rootPackageJson) {
   return (
+    normalizePublishedHostPeerRange(packageJson.peerDependencies?.getkova) ||
+    normalizePublishedHostPeerRange(rootPackageJson?.version) ||
+    normalizePublishedHostPeerRange(packageJson.version) ||
     normalizeHostPeerRange(packageJson.openclaw?.compat?.pluginApi) ||
-    normalizeHostPeerRange(packageJson.peerDependencies?.getkova) ||
     normalizeHostPeerRange(packageJson.peerDependencies?.openclaw) ||
-    normalizeHostPeerRange(packageJson.openclaw?.build?.openclawVersion) ||
-    normalizeHostPeerRange(rootPackageJson?.version) ||
-    normalizeHostPeerRange(packageJson.version)
+    normalizeHostPeerRange(packageJson.openclaw?.build?.openclawVersion)
   );
 }
 

@@ -20,7 +20,7 @@ type PackageJson = {
   };
 };
 
-const KOVA_VERSION_RANGE_RE = /^>=(\d+\.\d+\.\d+(?:[-.][^"\s]+)?)$/u;
+const KOVA_VERSION_RANGE_RE = /^(?:>=|\^)(\d+\.\d+\.\d+(?:[-.][^"\s]+)?)$/u;
 
 function parseComparableRangeFloor(range: string): string | null {
   const match = KOVA_VERSION_RANGE_RE.exec(range);
@@ -35,7 +35,7 @@ function syncKovaDependencyRange(
   if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
     return false;
   }
-  const next = `>=${targetVersion}`;
+  const next = `^${targetVersion}`;
   if (current === next) {
     return false;
   }

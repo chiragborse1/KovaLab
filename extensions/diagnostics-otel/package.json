@@ -19,14 +19,6 @@
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
-  "peerDependencies": {
-    "getkova": ">=2.0.0-beta.3"
-  },
-  "peerDependenciesMeta": {
-    "getkova": {
-      "optional": true
-    }
-  },
   "openclaw": {
     "extensions": [
       "./index.ts"

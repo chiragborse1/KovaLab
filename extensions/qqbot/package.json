@@ -16,14 +16,6 @@
     "@types/ws": "^8.18.1",
     "getkova": "workspace:*"
   },
-  "peerDependencies": {
-    "getkova": ">=2.0.0-beta.3"
-  },
-  "peerDependenciesMeta": {
-    "getkova": {
-      "optional": true
-    }
-  },
   "openclaw": {
     "extensions": [
       "./index.ts"
