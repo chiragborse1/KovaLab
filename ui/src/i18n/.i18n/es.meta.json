@@ -14,11 +14,11 @@
     "login.visualGateway",
     "login.visualSession"
   ],
-  "generatedAt": "2026-05-06T18:37:33.291Z",
+  "generatedAt": "2026-05-07T05:33:01.571Z",
   "locale": "es",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "70c8086ad36e2e1a03a51085d48ad3e1a3a069a3bf0f96e99c68025b35c41ac5",
+  "sourceHash": "50dd238aff08df64104e8a5d1dc5a11b14b76cb69724298f2a861e3aa7825dd3",
   "totalKeys": 776,
   "translatedKeys": 763,
   "workflow": 1

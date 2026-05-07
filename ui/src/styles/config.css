@@ -494,6 +494,236 @@
 }
 
 /* ===========================================
+   Scoped Settings Landing Pages
+   =========================================== */
+
+.config-scope-overview {
+  display: grid;
+  gap: 18px;
+}
+
+.config-scope-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 86%, var(--accent) 14%), var(--card));
+  box-shadow: var(--shadow-sm);
+}
+
+.config-scope-hero h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: var(--text-strong);
+}
+
+.config-scope-hero p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.config-scope-hero__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.config-scope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 14px;
+}
+
+.config-scope-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.config-scope-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--border-strong) 72%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.config-scope-card__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--bg-elevated) 62%, var(--card) 38%);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 54%, transparent);
+}
+
+.config-scope-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.config-scope-card__icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.config-scope-card__title-wrap {
+  min-width: 0;
+}
+
+.config-scope-card__title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.config-scope-card__detail {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.config-scope-card__rows {
+  padding: 2px 0;
+}
+
+.config-scope-card__action {
+  width: calc(100% - 24px);
+  margin: 10px 12px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border) 62%);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 11%, transparent);
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 9px 10px;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.config-scope-card__action:hover,
+.config-scope-card__action:focus-visible {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border) 42%);
+  outline: none;
+}
+
+.config-section-guide {
+  display: grid;
+  gap: 16px;
+}
+
+.config-section-guide__summary {
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 12%), var(--card));
+}
+
+.config-section-guide__summary h3 {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 740;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+
+.config-section-guide__summary p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.config-section-guide__tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.config-section-guide__tips span {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 6px 9px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  color: var(--muted);
+  font-size: 0.74rem;
+  border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
+}
+
+.config-advanced-details {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.config-advanced-details summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--bg-elevated) 58%, var(--card) 42%);
+}
+
+.config-advanced-details__body {
+  padding: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 54%, transparent);
+}
+
+@media (max-width: 760px) {
+  .config-scope-hero {
+    display: grid;
+  }
+
+  .config-scope-hero__status {
+    width: fit-content;
+  }
+}
+
+/* ===========================================
    Appearance Section
    =========================================== */
 

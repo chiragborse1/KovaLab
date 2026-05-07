@@ -325,6 +325,80 @@ describe("config view", () => {
     expect(content.scrollLeft).toBe(0);
   });
 
+  it("renders a guided Channels & Inbox landing instead of the full raw communication form", () => {
+    const onSectionChange = vi.fn();
+    const { container } = renderConfigView({
+      navRootLabel: "Channels & Inbox",
+      includeSections: ["channels", "messages", "broadcast", "__notifications__", "talk", "audio"],
+      includeVirtualSections: true,
+      onSectionChange,
+      schema: {
+        type: "object",
+        properties: {
+          channels: {
+            type: "object",
+            properties: {
+              telegram: { type: "object", properties: { token: { type: "string" } } },
+            },
+          },
+          messages: { type: "object", properties: { streaming: { type: "boolean" } } },
+          broadcast: { type: "object", properties: {} },
+          talk: { type: "object", properties: {} },
+          audio: { type: "object", properties: {} },
+        },
+      },
+      formValue: {
+        channels: { telegram: { enabled: true } },
+        messages: { streaming: true },
+      },
+      originalValue: {
+        channels: { telegram: { enabled: true } },
+        messages: { streaming: true },
+      },
+    });
+
+    expect(container.querySelector(".config-scope-overview")).not.toBeNull();
+    expect(container.querySelector(".config-form--modern")).toBeNull();
+    expect(normalizedText(container)).toContain("Channels & Inbox");
+    expect(normalizedText(container)).toContain("1 channel configured");
+
+    const openChannels = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Open channel settings",
+    );
+    expect(openChannels).toBeTruthy();
+    openChannels?.click();
+    expect(onSectionChange).toHaveBeenCalledWith("channels");
+  });
+
+  it("keeps communication section fields behind an advanced disclosure", () => {
+    const { container } = renderConfigView({
+      navRootLabel: "Channels & Inbox",
+      includeSections: ["channels", "messages", "broadcast", "__notifications__", "talk", "audio"],
+      includeVirtualSections: true,
+      activeSection: "messages",
+      schema: {
+        type: "object",
+        properties: {
+          messages: {
+            type: "object",
+            properties: {
+              streaming: { type: "boolean", title: "Streaming replies" },
+            },
+          },
+        },
+      },
+      formValue: { messages: { streaming: true } },
+      originalValue: { messages: { streaming: true } },
+    });
+
+    expect(container.querySelector(".config-section-guide")).not.toBeNull();
+    const details = container.querySelector("details.config-advanced-details");
+    expect(details).not.toBeNull();
+    expect(normalizedText(container)).toContain("Message Handling");
+    expect(normalizedText(container)).toContain("Advanced message fields");
+    expect(container.querySelector(".config-form--modern")).not.toBeNull();
+  });
+
   it("renders and wires the search field controls", () => {
     const container = document.createElement("div");
     const onSearchChange = vi.fn();

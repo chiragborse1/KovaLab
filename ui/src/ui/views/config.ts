@@ -260,6 +260,12 @@ const sidebarIcons = {
       <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"></path>
     </svg>
   `,
+  notifications: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+  `,
   audio: html`
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M9 18V5l12-2v13"></path>
@@ -529,6 +535,292 @@ function resolveSectionMeta(
     label: schema?.title ?? humanize(key),
     description: schema?.description ?? "",
   };
+}
+
+function isCommunicationScope(props: ConfigProps): boolean {
+  return (
+    props.includeSections?.includes("channels") === true &&
+    props.includeSections?.includes("messages") === true &&
+    (props.navRootLabel === "Communication" || props.navRootLabel === "Channels & Inbox")
+  );
+}
+
+function readConfigRecord(value: unknown, key: string): Record<string, unknown> {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const nested = record[key];
+  return nested && typeof nested === "object" && !Array.isArray(nested)
+    ? (nested as Record<string, unknown>)
+    : {};
+}
+
+function countEnabledEntries(record: Record<string, unknown>): number {
+  return Object.entries(record).filter(([key, entry]) => {
+    if (key === "defaults") {
+      return false;
+    }
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      return true;
+    }
+    return (entry as Record<string, unknown>).enabled !== false;
+  }).length;
+}
+
+function renderCommunicationCard(params: {
+  icon: TemplateResult;
+  title: string;
+  status: string;
+  detail: string;
+  rows: Array<{ label: string; value: string; tone?: "ok" | "warn" | "muted" }>;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  return html`
+    <section class="config-scope-card">
+      <div class="config-scope-card__header">
+        <span class="config-scope-card__icon">${params.icon}</span>
+        <div class="config-scope-card__title-wrap">
+          <h3 class="config-scope-card__title">${params.title}</h3>
+          <p class="config-scope-card__detail">${params.detail}</p>
+        </div>
+        <span class="qs-badge ${params.status === "Ready" ? "qs-badge--ok" : ""}"
+          >${params.status}</span
+        >
+      </div>
+      <div class="config-scope-card__rows">
+        ${params.rows.map(
+          (row) => html`
+            <div class="qs-row">
+              <span class="qs-row__label">${row.label}</span>
+              <span class="qs-row__value ${row.tone === "ok" ? "ok" : ""}">${row.value}</span>
+            </div>
+          `,
+        )}
+      </div>
+      <button class="config-scope-card__action" @click=${params.onAction}>
+        ${params.actionLabel}
+      </button>
+    </section>
+  `;
+}
+
+function renderCommunicationOverview(props: ConfigProps) {
+  const config = props.formValue ?? {};
+  const channels = readConfigRecord(config, "channels");
+  const messages = readConfigRecord(config, "messages");
+  const broadcast = readConfigRecord(config, "broadcast");
+  const talk = readConfigRecord(config, "talk");
+  const audio = readConfigRecord(config, "audio");
+  const channelCount = countEnabledEntries(channels);
+  const pushLabel = props.webPush?.subscribed
+    ? "Subscribed"
+    : props.webPush?.supported
+      ? "Available"
+      : "Unavailable";
+  const talkEnabled =
+    talk.provider ||
+    readConfigRecord(talk, "realtime").provider ||
+    readConfigRecord(talk, "openai").apiKey
+      ? "Configured"
+      : "Not configured";
+
+  return html`
+    <div class="config-scope-overview">
+      <section class="config-scope-hero">
+        <div>
+          <h2>Channels & Inbox</h2>
+          <p>
+            Connect where Kova talks to you, tune message behavior, and manage voice or browser
+            notifications without scrolling through raw config fields.
+          </p>
+        </div>
+        <div class="config-scope-hero__status">
+          <span
+            class="settings-status-dot ${channelCount > 0 ? "settings-status-dot--ok" : ""}"
+          ></span>
+          ${channelCount > 0
+            ? `${channelCount} channel${channelCount === 1 ? "" : "s"} configured`
+            : "No channels configured"}
+        </div>
+      </section>
+
+      <div class="config-scope-grid">
+        ${renderCommunicationCard({
+          icon: sidebarIcons.channels,
+          title: "Chat Apps",
+          status: channelCount > 0 ? "Ready" : "Setup",
+          detail: "Telegram, WhatsApp, Discord, Slack, Matrix, and other inboxes.",
+          rows: [
+            {
+              label: "Connected apps",
+              value: String(channelCount),
+              tone: channelCount > 0 ? "ok" : "warn",
+            },
+            { label: "Best place to manage", value: "Channels tab" },
+          ],
+          actionLabel: "Open channel settings",
+          onAction: () => props.onSectionChange("channels"),
+        })}
+        ${renderCommunicationCard({
+          icon: sidebarIcons.messages,
+          title: "Message Handling",
+          status: Object.keys(messages).length > 0 ? "Ready" : "Default",
+          detail: "Defaults for replies, routing, streaming, and inbound behavior.",
+          rows: [
+            { label: "Custom rules", value: String(Object.keys(messages).length) },
+            { label: "Safe default", value: "On" },
+          ],
+          actionLabel: "Tune messages",
+          onAction: () => props.onSectionChange("messages"),
+        })}
+        ${renderCommunicationCard({
+          icon: sidebarIcons.broadcast,
+          title: "Broadcasts",
+          status: Object.keys(broadcast).length > 0 ? "Ready" : "Default",
+          detail: "Shared outbound announcements and multi-recipient behavior.",
+          rows: [
+            { label: "Rules", value: String(Object.keys(broadcast).length) },
+            { label: "Use when", value: "Groups or alerts" },
+          ],
+          actionLabel: "Open broadcasts",
+          onAction: () => props.onSectionChange("broadcast"),
+        })}
+        ${renderCommunicationCard({
+          icon: sidebarIcons.talk,
+          title: "Voice & Talk",
+          status: talkEnabled === "Configured" || Object.keys(audio).length > 0 ? "Ready" : "Setup",
+          detail: "Realtime talk, speech output, and audio provider settings.",
+          rows: [
+            { label: "Talk", value: talkEnabled },
+            {
+              label: "Audio settings",
+              value: Object.keys(audio).length > 0 ? "Custom" : "Default",
+            },
+          ],
+          actionLabel: "Open voice settings",
+          onAction: () => props.onSectionChange("talk"),
+        })}
+        ${renderCommunicationCard({
+          icon: sidebarIcons.notifications,
+          title: "Browser Notifications",
+          status: props.webPush?.subscribed ? "Ready" : "Setup",
+          detail: "Let the web dashboard notify this browser when Kova needs attention.",
+          rows: [
+            {
+              label: "Browser push",
+              value: pushLabel,
+              tone: props.webPush?.subscribed ? "ok" : "muted",
+            },
+            { label: "Stored", value: "Browser-local" },
+          ],
+          actionLabel: "Manage notifications",
+          onAction: () => props.onSectionChange("__notifications__"),
+        })}
+        <section class="config-scope-card config-scope-card--advanced">
+          <div class="config-scope-card__header">
+            <span class="config-scope-card__icon">${sidebarIcons.default}</span>
+            <div class="config-scope-card__title-wrap">
+              <h3 class="config-scope-card__title">Advanced Config</h3>
+              <p class="config-scope-card__detail">
+                Open one section at a time when you need exact config fields.
+              </p>
+            </div>
+          </div>
+          <div class="config-scope-card__rows">
+            <div class="qs-row">
+              <span class="qs-row__label">Search</span>
+              <span class="qs-row__value">Use the search box above</span>
+            </div>
+            <div class="qs-row">
+              <span class="qs-row__label">Raw JSON</span>
+              <span class="qs-row__value">Available from full Config</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  `;
+}
+
+function communicationAdvancedTitle(section: string): string {
+  switch (section) {
+    case "channels":
+      return "Advanced channel fields";
+    case "messages":
+      return "Advanced message fields";
+    case "broadcast":
+      return "Advanced broadcast fields";
+    case "talk":
+      return "Advanced talk fields";
+    case "audio":
+      return "Advanced audio fields";
+    default:
+      return "Advanced fields";
+  }
+}
+
+function renderCommunicationSectionGuide(params: { section: string; advanced: TemplateResult }) {
+  const sectionCopy: Record<string, { title: string; body: string; tips: string[] }> = {
+    channels: {
+      title: "Chat Apps",
+      body: "Use this when you want Kova in Telegram, WhatsApp, Discord, Slack, or another inbox.",
+      tips: [
+        "Prefer the dedicated Channels page for QR login and live health.",
+        "Use advanced fields only for provider-specific account details.",
+      ],
+    },
+    messages: {
+      title: "Message Handling",
+      body: "Controls how inbound messages become agent turns and how Kova formats replies.",
+      tips: [
+        "Keep defaults unless you need custom routing.",
+        "Advanced fields affect live message behavior after save/apply.",
+      ],
+    },
+    broadcast: {
+      title: "Broadcasts",
+      body: "Controls shared announcements and multi-recipient delivery behavior.",
+      tips: [
+        "Use this for groups, alerts, and fan-out behavior.",
+        "Keep target lists narrow for safety.",
+      ],
+    },
+    talk: {
+      title: "Voice & Talk",
+      body: "Controls browser realtime talk and voice provider behavior.",
+      tips: [
+        "Provider credentials should stay secret-backed.",
+        "Test from the Chat composer after saving.",
+      ],
+    },
+    audio: {
+      title: "Audio",
+      body: "Controls speech input/output defaults used by voice-capable surfaces.",
+      tips: [
+        "Use defaults for normal chat.",
+        "Tune provider fields only when voice output sounds wrong.",
+      ],
+    },
+  };
+  const copy = sectionCopy[params.section] ?? {
+    title: "Communication Settings",
+    body: "Advanced communication settings.",
+    tips: ["Change one thing at a time.", "Save before applying to the running gateway."],
+  };
+  return html`
+    <div class="config-section-guide">
+      <section class="config-section-guide__summary">
+        <h3>${copy.title}</h3>
+        <p>${copy.body}</p>
+        <div class="config-section-guide__tips">
+          ${copy.tips.map((tip) => html`<span>${tip}</span>`)}
+        </div>
+      </section>
+      <details class="config-advanced-details">
+        <summary>${communicationAdvancedTitle(params.section)}</summary>
+        <div class="config-advanced-details__body">${params.advanced}</div>
+      </details>
+    </div>
+  `;
 }
 
 const MAX_CONFIG_DIFF_DEPTH = 64;
@@ -1369,6 +1661,18 @@ export function renderConfig(props: ConfigProps) {
     formMode === "form" &&
     props.activeSection === null &&
     Boolean(include?.has("__appearance__"));
+  const communicationScope = isCommunicationScope(props);
+  const showCommunicationOverview =
+    communicationScope &&
+    formMode === "form" &&
+    props.activeSection === null &&
+    !props.searchQuery.trim();
+  const showGuidedCommunicationSection =
+    communicationScope &&
+    formMode === "form" &&
+    props.activeSection !== null &&
+    props.activeSection !== "__notifications__" &&
+    !props.searchQuery.trim();
 
   return html`
     <div class="config-layout">
@@ -1715,16 +2019,12 @@ export function renderConfig(props: ConfigProps) {
                 ? renderNotificationsSection(props)
                 : nothing
               : formMode === "form"
-                ? html`
-                    ${showAppearanceOnRoot ? renderAppearanceSection(props) : nothing}
-                    ${props.schemaLoading
-                      ? html`
-                          <div class="config-loading">
-                            <div class="config-loading__spinner"></div>
-                            <span>Loading schema…</span>
-                          </div>
-                        `
-                      : renderConfigForm({
+                ? showCommunicationOverview
+                  ? renderCommunicationOverview(props)
+                  : showGuidedCommunicationSection && props.activeSection
+                    ? renderCommunicationSectionGuide({
+                        section: props.activeSection,
+                        advanced: renderConfigForm({
                           schema: analysis.schema,
                           uiHints: props.uiHints,
                           value: props.formValue,
@@ -1735,15 +2035,43 @@ export function renderConfig(props: ConfigProps) {
                           searchQuery: props.searchQuery,
                           activeSection: props.activeSection,
                           activeSubsection: effectiveSubsection,
-                          revealSensitive:
-                            props.activeSection === "env" ? envSensitiveVisible : false,
+                          revealSensitive: false,
                           isSensitivePathRevealed,
                           onToggleSensitivePath: (path) => {
                             toggleSensitivePathReveal(path);
                             requestUpdate();
                           },
-                        })}
-                  `
+                        }),
+                      })
+                    : html`
+                        ${showAppearanceOnRoot ? renderAppearanceSection(props) : nothing}
+                        ${props.schemaLoading
+                          ? html`
+                              <div class="config-loading">
+                                <div class="config-loading__spinner"></div>
+                                <span>Loading schema…</span>
+                              </div>
+                            `
+                          : renderConfigForm({
+                              schema: analysis.schema,
+                              uiHints: props.uiHints,
+                              value: props.formValue,
+                              rawAvailable,
+                              disabled: props.loading || !props.formValue,
+                              unsupportedPaths: analysis.unsupportedPaths,
+                              onPatch: props.onFormPatch,
+                              searchQuery: props.searchQuery,
+                              activeSection: props.activeSection,
+                              activeSubsection: effectiveSubsection,
+                              revealSensitive:
+                                props.activeSection === "env" ? envSensitiveVisible : false,
+                              isSensitivePathRevealed,
+                              onToggleSensitivePath: (path) => {
+                                toggleSensitivePathReveal(path);
+                                requestUpdate();
+                              },
+                            })}
+                      `
                 : (() => {
                     const sensitiveCount = countSensitiveConfigValues(
                       props.formValue,
