@@ -31,6 +31,10 @@ function showDialogWhenClosed(el?: Element) {
   el.showModal();
 }
 
+function displaySkillSource(source: string): string {
+  return source.replace(/^openclaw-/u, "kova-");
+}
+
 export type SkillsStatusFilter = "all" | "ready" | "needs-setup" | "disabled";
 
 export type SkillsProps = {
@@ -551,7 +555,9 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
           <div
             style="border-top: 1px solid var(--border); padding-top: 12px; display: grid; gap: 6px; font-size: 12px; color: var(--muted);"
           >
-            <div><span style="font-weight: 600;">Source:</span> ${skill.source}</div>
+            <div>
+              <span style="font-weight: 600;">Source:</span> ${displaySkillSource(skill.source)}
+            </div>
             <div style="font-family: var(--mono); word-break: break-all;">${skill.filePath}</div>
             ${(() => {
               const safeHref = safeExternalHref(skill.homepage);
