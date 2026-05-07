@@ -1288,7 +1288,9 @@ function renderGuidedSection(params: {
   schema: JsonSchema | undefined;
   value: unknown;
   props: ConfigProps;
-  advanced: TemplateResult;
+  advancedOpen: boolean;
+  onAdvancedToggle: (open: boolean) => void;
+  renderAdvanced: () => TemplateResult;
 }) {
   const copy = params.scope.sections[params.section] ?? {
     title: resolveSectionMeta(params.section, params.schema).label,
@@ -1302,16 +1304,15 @@ function renderGuidedSection(params: {
     hints: params.props.uiHints,
     max: 16,
   });
-  const hiddenControlCount = Math.max(
-    0,
+  const mayHaveMoreControls =
+    controls.length >= 16 &&
     collectSimpleConfigControls({
       schema: params.schema,
       value: params.value,
       path: [params.section],
       hints: params.props.uiHints,
-      max: 99,
-    }).length - controls.length,
-  );
+      max: 17,
+    }).length > controls.length;
   return html`
     <div class="config-section-guide">
       <section class="config-section-guide__summary">
@@ -1333,9 +1334,7 @@ function renderGuidedSection(params: {
                     layout.
                   </p>
                 </div>
-                ${hiddenControlCount > 0
-                  ? html`<span>${hiddenControlCount} more in Advanced</span>`
-                  : nothing}
+                ${mayHaveMoreControls ? html`<span>More in Advanced</span>` : nothing}
               </div>
               <div class="config-simple-panel__grid">
                 ${controls.map((control) =>
@@ -1359,9 +1358,18 @@ function renderGuidedSection(params: {
             </section>
           `}
 
-      <details class="config-advanced-details">
+      <details
+        class="config-advanced-details"
+        ?open=${params.advancedOpen}
+        @toggle=${(event: Event) => {
+          const details = event.currentTarget as HTMLDetailsElement;
+          params.onAdvancedToggle(details.open);
+        }}
+      >
         <summary>${guidedAdvancedTitle(params.section)}</summary>
-        <div class="config-advanced-details__body">${params.advanced}</div>
+        ${params.advancedOpen
+          ? html`<div class="config-advanced-details__body">${params.renderAdvanced()}</div>`
+          : nothing}
       </details>
     </div>
   `;
@@ -1400,6 +1408,13 @@ let rawDiffCache:
       diff: ConfigDiffEntry[];
     }
   | undefined;
+let formDiffCache:
+  | {
+      original: Record<string, unknown> | null;
+      current: Record<string, unknown> | null;
+      diff: ConfigDiffEntry[];
+    }
+  | undefined;
 
 function formatConfigDiffPath(path: ConfigDiffPath): string {
   return path.length > 0 ? path.join(".") : "<root>";
@@ -1409,8 +1424,12 @@ function computeDiff(
   original: Record<string, unknown> | null,
   current: Record<string, unknown> | null,
 ): ConfigDiffEntry[] {
+  if (formDiffCache?.original === original && formDiffCache.current === current) {
+    return formDiffCache.diff;
+  }
   if (!original || !current) {
-    return [];
+    formDiffCache = { original, current, diff: [] };
+    return formDiffCache.diff;
   }
   const changes: ConfigDiffEntry[] = [];
   let visited = 0;
@@ -1522,6 +1541,7 @@ function computeDiff(
   }
 
   compare(original, current, [], 0);
+  formDiffCache = { original, current, diff: changes };
   return changes;
 }
 
@@ -1954,6 +1974,7 @@ interface ConfigEphemeralState {
   envRevealed: boolean;
   validityDismissed: boolean;
   revealedSensitivePaths: Set<string>;
+  openAdvancedSections: Set<string>;
   lastCustomThemeImportFocusToken: number | null;
 }
 
@@ -1964,6 +1985,7 @@ function createConfigEphemeralState(): ConfigEphemeralState {
     envRevealed: false,
     validityDismissed: false,
     revealedSensitivePaths: new Set(),
+    openAdvancedSections: new Set(),
     lastCustomThemeImportFocusToken: null,
   };
 }
@@ -1974,6 +1996,7 @@ let lastConfigContextKey: string | null = null;
 function resetConfigEphemeralState() {
   Object.assign(cvs, createConfigEphemeralState());
   rawDiffCache = undefined;
+  formDiffCache = undefined;
 }
 
 function configContextKey(props: ConfigProps): string {
@@ -2003,6 +2026,10 @@ function toggleSensitivePathReveal(path: Array<string | number>) {
   } else {
     cvs.revealedSensitivePaths.add(key);
   }
+}
+
+function advancedSectionKey(scope: GuidedScopeDefinition, section: string): string {
+  return `${scope.id}:${section}`;
 }
 
 export function resetConfigViewStateForTests() {
@@ -2587,31 +2614,48 @@ export function renderConfig(props: ConfigProps) {
                       schema: analysis.schema,
                     })
                   : showGuidedScopeSection && guidedScope && props.activeSection
-                    ? renderGuidedSection({
-                        scope: guidedScope,
-                        section: props.activeSection,
-                        schema: activeSectionSchema,
-                        value: props.formValue?.[props.activeSection],
-                        props,
-                        advanced: renderConfigForm({
-                          schema: analysis.schema,
-                          uiHints: props.uiHints,
-                          value: props.formValue,
-                          rawAvailable,
-                          disabled: props.loading || !props.formValue,
-                          unsupportedPaths: analysis.unsupportedPaths,
-                          onPatch: props.onFormPatch,
-                          searchQuery: props.searchQuery,
-                          activeSection: props.activeSection,
-                          activeSubsection: effectiveSubsection,
-                          revealSensitive: false,
-                          isSensitivePathRevealed,
-                          onToggleSensitivePath: (path) => {
-                            toggleSensitivePathReveal(path);
+                    ? (() => {
+                        const advancedKey = advancedSectionKey(guidedScope, props.activeSection);
+                        return renderGuidedSection({
+                          scope: guidedScope,
+                          section: props.activeSection,
+                          schema: activeSectionSchema,
+                          value: props.formValue?.[props.activeSection],
+                          props,
+                          advancedOpen: cvs.openAdvancedSections.has(advancedKey),
+                          onAdvancedToggle: (open) => {
+                            const currentOpen = cvs.openAdvancedSections.has(advancedKey);
+                            if (currentOpen === open) {
+                              return;
+                            }
+                            if (open) {
+                              cvs.openAdvancedSections.add(advancedKey);
+                            } else {
+                              cvs.openAdvancedSections.delete(advancedKey);
+                            }
                             requestUpdate();
                           },
-                        }),
-                      })
+                          renderAdvanced: () =>
+                            renderConfigForm({
+                              schema: analysis.schema,
+                              uiHints: props.uiHints,
+                              value: props.formValue,
+                              rawAvailable,
+                              disabled: props.loading || !props.formValue,
+                              unsupportedPaths: analysis.unsupportedPaths,
+                              onPatch: props.onFormPatch,
+                              searchQuery: props.searchQuery,
+                              activeSection: props.activeSection,
+                              activeSubsection: effectiveSubsection,
+                              revealSensitive: false,
+                              isSensitivePathRevealed,
+                              onToggleSensitivePath: (path) => {
+                                toggleSensitivePathReveal(path);
+                                requestUpdate();
+                              },
+                            }),
+                        });
+                      })()
                     : html`
                         ${showAppearanceOnRoot ? renderAppearanceSection(props) : nothing}
                         ${props.schemaLoading

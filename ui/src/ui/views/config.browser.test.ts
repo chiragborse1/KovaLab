@@ -370,7 +370,7 @@ describe("config view", () => {
     expect(onSectionChange).toHaveBeenCalledWith("channels");
   });
 
-  it("keeps communication section fields behind an advanced disclosure", () => {
+  it("lazy-renders communication advanced fields only after opening the disclosure", async () => {
     const { container } = renderConfigView({
       navRootLabel: "Channels & Inbox",
       includeSections: ["channels", "messages", "broadcast", "__notifications__", "talk", "audio"],
@@ -396,6 +396,13 @@ describe("config view", () => {
     expect(details).not.toBeNull();
     expect(normalizedText(container)).toContain("Message Handling");
     expect(normalizedText(container)).toContain("Advanced message fields");
+    expect(container.querySelector(".config-form--modern")).toBeNull();
+
+    details?.dispatchEvent(new Event("toggle"));
+    (details as HTMLDetailsElement).open = true;
+    details?.dispatchEvent(new Event("toggle"));
+    await Promise.resolve();
+
     expect(container.querySelector(".config-form--modern")).not.toBeNull();
   });
 
@@ -460,7 +467,7 @@ describe("config view", () => {
     expect(normalizedText(container)).toContain("Forward Exec Approvals");
     expect(normalizedText(container)).toContain("Approval Agent Filter");
     expect(normalizedText(container)).toContain("Advanced fields");
-    expect(container.querySelector(".config-form--modern")).not.toBeNull();
+    expect(container.querySelector(".config-form--modern")).toBeNull();
 
     const toggle = container.querySelector<HTMLInputElement>(
       ".config-simple-toggle input[type='checkbox']",
