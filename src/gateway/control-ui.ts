@@ -55,7 +55,8 @@ import { authorizeOperatorScopesForMethod } from "./method-scopes.js";
 import { resolveRequestClientIp } from "./net.js";
 
 const ROOT_PREFIX = "/";
-const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__openclaw__/assistant-media";
+const CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__kova__/assistant-media";
+const LEGACY_CONTROL_UI_ASSISTANT_MEDIA_PREFIX = "/__openclaw__/assistant-media";
 const CONTROL_UI_ASSETS_MISSING_MESSAGE =
   "Control UI assets not found. Build them with `pnpm ui:build` (auto-installs UI deps), or run `pnpm ui:dev` during development.";
 const CONTROL_UI_OPERATOR_READ_SCOPE = "operator.read";
@@ -223,10 +224,13 @@ function normalizeAssistantMediaSource(source: string): string | null {
   return trimmed;
 }
 
-function resolveAssistantMediaRoutePath(basePath?: string): string {
+function resolveAssistantMediaRoutePaths(basePath?: string): string[] {
   const normalizedBasePath =
     basePath && basePath !== "/" ? (basePath.endsWith("/") ? basePath.slice(0, -1) : basePath) : "";
-  return `${normalizedBasePath}${CONTROL_UI_ASSISTANT_MEDIA_PREFIX}`;
+  return [
+    `${normalizedBasePath}${CONTROL_UI_ASSISTANT_MEDIA_PREFIX}`,
+    `${normalizedBasePath}${LEGACY_CONTROL_UI_ASSISTANT_MEDIA_PREFIX}`,
+  ];
 }
 
 function resolveAssistantMediaAuthToken(req: IncomingMessage): string | undefined {
@@ -456,7 +460,7 @@ export async function handleControlUiAssistantMediaRequest(
     return false;
   }
   const url = new URL(urlRaw, "http://localhost");
-  if (url.pathname !== resolveAssistantMediaRoutePath(opts?.basePath)) {
+  if (!resolveAssistantMediaRoutePaths(opts?.basePath).includes(url.pathname)) {
     return false;
   }
 

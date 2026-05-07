@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { A2UI_PATH, CANVAS_HOST_PATH, CANVAS_WS_PATH } from "../../canvas-host/a2ui.js";
+import { isCanvasRoutePath } from "../../canvas-host/a2ui.js";
 import { safeEqualSecret } from "../../security/secret-equal.js";
 import type { AuthRateLimiter } from "../auth-rate-limit.js";
 import {
@@ -12,13 +12,7 @@ import { getBearerToken, resolveHttpBrowserOriginPolicy } from "../http-auth-uti
 import type { GatewayWsClient } from "./ws-types.js";
 
 export function isCanvasPath(pathname: string): boolean {
-  return (
-    pathname === A2UI_PATH ||
-    pathname.startsWith(`${A2UI_PATH}/`) ||
-    pathname === CANVAS_HOST_PATH ||
-    pathname.startsWith(`${CANVAS_HOST_PATH}/`) ||
-    pathname === CANVAS_WS_PATH
-  );
+  return isCanvasRoutePath(pathname);
 }
 
 function hasAuthorizedWsClientForCanvasCapability(

@@ -1,13 +1,20 @@
-const A2UI_PATH = "/__openclaw__/a2ui";
-const CANVAS_HOST_PATH = "/__openclaw__/canvas";
-const CANVAS_CAPABILITY_PATH_PREFIX = "/__openclaw__/cap";
+const A2UI_PATH = "/__kova__/a2ui";
+const LEGACY_A2UI_PATH = "/__openclaw__/a2ui";
+const CANVAS_HOST_PATH = "/__kova__/canvas";
+const LEGACY_CANVAS_HOST_PATH = "/__openclaw__/canvas";
+const CANVAS_CAPABILITY_PATH_PREFIX = "/__kova__/cap";
+const LEGACY_CANVAS_CAPABILITY_PATH_PREFIX = "/__openclaw__/cap";
+
+function isPathUnder(pathname: string, basePath: string): boolean {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
+}
 
 function isCanvasHttpPath(pathname: string): boolean {
   return (
-    pathname === CANVAS_HOST_PATH ||
-    pathname.startsWith(`${CANVAS_HOST_PATH}/`) ||
-    pathname === A2UI_PATH ||
-    pathname.startsWith(`${A2UI_PATH}/`)
+    isPathUnder(pathname, CANVAS_HOST_PATH) ||
+    isPathUnder(pathname, LEGACY_CANVAS_HOST_PATH) ||
+    isPathUnder(pathname, A2UI_PATH) ||
+    isPathUnder(pathname, LEGACY_A2UI_PATH)
   );
 }
 
@@ -55,7 +62,10 @@ export function resolveCanvasIframeUrl(
   try {
     const scopedHostUrl = new URL(canvasHostUrl);
     const scopedPrefix = scopedHostUrl.pathname.replace(/\/+$/, "");
-    if (!scopedPrefix.startsWith(CANVAS_CAPABILITY_PATH_PREFIX)) {
+    if (
+      !scopedPrefix.startsWith(CANVAS_CAPABILITY_PATH_PREFIX) &&
+      !scopedPrefix.startsWith(LEGACY_CANVAS_CAPABILITY_PATH_PREFIX)
+    ) {
       return safeEntryUrl;
     }
     const entry = new URL(safeEntryUrl, scopedHostUrl.origin);

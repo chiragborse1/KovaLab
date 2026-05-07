@@ -9,9 +9,9 @@ import type { TlsOptions } from "node:tls";
 import type { WebSocketServer } from "ws";
 import {
   A2UI_PATH,
-  CANVAS_HOST_PATH,
-  CANVAS_WS_PATH,
   handleA2uiHttpRequest,
+  isCanvasRoutePath,
+  isCanvasWsPath,
 } from "../canvas-host/a2ui.js";
 import type { CanvasHostHandler } from "../canvas-host/server.js";
 import { resolveBundledChannelGatewayAuthBypassPaths } from "../channels/plugins/gateway-auth-bypass.js";
@@ -227,13 +227,7 @@ function isA2uiPath(pathname: string): boolean {
 }
 
 function isCanvasPath(pathname: string): boolean {
-  return (
-    pathname === A2UI_PATH ||
-    pathname.startsWith(`${A2UI_PATH}/`) ||
-    pathname === CANVAS_HOST_PATH ||
-    pathname.startsWith(`${CANVAS_HOST_PATH}/`) ||
-    pathname === CANVAS_WS_PATH
-  );
+  return isCanvasRoutePath(pathname);
 }
 
 function shouldEnforceDefaultPluginGatewayAuth(pathContext: PluginRoutePathContext): boolean {
@@ -844,7 +838,7 @@ export function attachGatewayUpgradeHandler(opts: {
       const resolvedAuth = getResolvedAuth();
       const url = new URL(req.url ?? "/", "http://localhost");
       if (canvasHost) {
-        if (url.pathname === CANVAS_WS_PATH) {
+        if (isCanvasWsPath(url.pathname)) {
           const { authorizeCanvasRequest } = await getCanvasAuthModule();
           const ok = await authorizeCanvasRequest({
             req,

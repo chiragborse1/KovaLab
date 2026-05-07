@@ -19,9 +19,10 @@ import { lowercasePreservingWhitespace, normalizeOptionalString } from "../share
 import { ensureDir, resolveUserPath } from "../utils.js";
 import {
   CANVAS_HOST_PATH,
-  CANVAS_WS_PATH,
+  LEGACY_CANVAS_HOST_PATH,
   injectCanvasLiveReload,
   isA2uiPath,
+  isCanvasWsPath,
 } from "./a2ui-shared.js";
 import { normalizeUrlPath, resolveFileWithinRoot } from "./file-resolver.js";
 
@@ -331,7 +332,7 @@ export async function createCanvasHostHandler(
       return false;
     }
     const url = new URL(req.url ?? "/", "http://localhost");
-    if (url.pathname !== CANVAS_WS_PATH) {
+    if (!isCanvasWsPath(url.pathname)) {
       return false;
     }
     wss.handleUpgrade(req, socket as Socket, head, (ws) => {
@@ -348,7 +349,7 @@ export async function createCanvasHostHandler(
 
     try {
       const url = new URL(urlRaw, "http://localhost");
-      if (url.pathname === CANVAS_WS_PATH) {
+      if (isCanvasWsPath(url.pathname)) {
         res.statusCode = liveReload ? 426 : 404;
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.end(liveReload ? "upgrade required" : "not found");
@@ -356,11 +357,20 @@ export async function createCanvasHostHandler(
       }
 
       let urlPath = url.pathname;
-      if (basePath !== "/") {
-        if (urlPath !== basePath && !urlPath.startsWith(`${basePath}/`)) {
+      const basePaths =
+        basePath === CANVAS_HOST_PATH ? [CANVAS_HOST_PATH, LEGACY_CANVAS_HOST_PATH] : [basePath];
+      const matchedBasePath = basePaths.find(
+        (candidate) =>
+          candidate === "/" || urlPath === candidate || urlPath.startsWith(`${candidate}/`),
+      );
+      if (!matchedBasePath) {
+        return false;
+      }
+      if (matchedBasePath !== "/") {
+        if (urlPath !== matchedBasePath && !urlPath.startsWith(`${matchedBasePath}/`)) {
           return false;
         }
-        urlPath = urlPath === basePath ? "/" : urlPath.slice(basePath.length) || "/";
+        urlPath = urlPath === matchedBasePath ? "/" : urlPath.slice(matchedBasePath.length) || "/";
       }
 
       if (req.method !== "GET" && req.method !== "HEAD") {

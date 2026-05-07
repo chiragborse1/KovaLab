@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { detectMime } from "../media/mime.js";
 import { lowercasePreservingWhitespace } from "../shared/string-coerce.js";
-import { A2UI_PATH, injectCanvasLiveReload, isA2uiPath } from "./a2ui-shared.js";
+import { injectCanvasLiveReload, resolveA2uiPathBase } from "./a2ui-shared.js";
 import { resolveFileWithinRoot } from "./file-resolver.js";
 
 export {
@@ -13,6 +13,13 @@ export {
   CANVAS_WS_PATH,
   injectCanvasLiveReload,
   isA2uiPath,
+  isCanvasRoutePath,
+  isCanvasWsPath,
+  LEGACY_A2UI_PATH,
+  LEGACY_CANVAS_HOST_PATH,
+  LEGACY_CANVAS_WS_PATH,
+  resolveA2uiPathBase,
+  resolveCanvasHostPathBase,
 } from "./a2ui-shared.js";
 
 let cachedA2uiRootReal: string | null | undefined;
@@ -92,7 +99,7 @@ export async function handleA2uiHttpRequest(
   }
 
   const url = new URL(urlRaw, "http://localhost");
-  const basePath = isA2uiPath(url.pathname) ? A2UI_PATH : undefined;
+  const basePath = resolveA2uiPathBase(url.pathname);
   if (!basePath) {
     return false;
   }

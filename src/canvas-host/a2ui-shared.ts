@@ -1,13 +1,40 @@
 import { lowercasePreservingWhitespace } from "../shared/string-coerce.js";
 
-export const A2UI_PATH = "/__openclaw__/a2ui";
+export const A2UI_PATH = "/__kova__/a2ui";
+export const LEGACY_A2UI_PATH = "/__openclaw__/a2ui";
 
-export const CANVAS_HOST_PATH = "/__openclaw__/canvas";
+export const CANVAS_HOST_PATH = "/__kova__/canvas";
+export const LEGACY_CANVAS_HOST_PATH = "/__openclaw__/canvas";
 
-export const CANVAS_WS_PATH = "/__openclaw__/ws";
+export const CANVAS_WS_PATH = "/__kova__/ws";
+export const LEGACY_CANVAS_WS_PATH = "/__openclaw__/ws";
 
 export function isA2uiPath(pathname: string): boolean {
-  return pathname === A2UI_PATH || pathname.startsWith(`${A2UI_PATH}/`);
+  return resolveA2uiPathBase(pathname) !== undefined;
+}
+
+export function resolveA2uiPathBase(pathname: string): string | undefined {
+  return [A2UI_PATH, LEGACY_A2UI_PATH].find(
+    (basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`),
+  );
+}
+
+export function isCanvasHostPath(pathname: string): boolean {
+  return resolveCanvasHostPathBase(pathname) !== undefined;
+}
+
+export function resolveCanvasHostPathBase(pathname: string): string | undefined {
+  return [CANVAS_HOST_PATH, LEGACY_CANVAS_HOST_PATH].find(
+    (basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`),
+  );
+}
+
+export function isCanvasWsPath(pathname: string): boolean {
+  return pathname === CANVAS_WS_PATH || pathname === LEGACY_CANVAS_WS_PATH;
+}
+
+export function isCanvasRoutePath(pathname: string): boolean {
+  return isA2uiPath(pathname) || isCanvasHostPath(pathname) || isCanvasWsPath(pathname);
 }
 
 export function injectCanvasLiveReload(html: string): string {
@@ -16,9 +43,9 @@ export function injectCanvasLiveReload(html: string): string {
 (() => {
   // Cross-platform action bridge helper.
   // Works on:
-  // - iOS: window.webkit.messageHandlers.openclawCanvasA2UIAction.postMessage(...)
-  // - Android: window.openclawCanvasA2UIAction.postMessage(...)
-  const handlerNames = ["openclawCanvasA2UIAction"];
+  // - iOS: window.webkit.messageHandlers.kovaCanvasA2UIAction.postMessage(...)
+  // - Android: window.kovaCanvasA2UIAction.postMessage(...)
+  const handlerNames = ["kovaCanvasA2UIAction", "openclawCanvasA2UIAction"];
   function postToNode(payload) {
     try {
       const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
@@ -45,9 +72,14 @@ export function injectCanvasLiveReload(html: string): string {
     const action = { ...userAction, id };
     return postToNode({ userAction: action });
   }
+  globalThis.Kova = globalThis.Kova ?? {};
+  globalThis.Kova.postMessage = postToNode;
+  globalThis.Kova.sendUserAction = sendUserAction;
   globalThis.OpenClaw = globalThis.OpenClaw ?? {};
   globalThis.OpenClaw.postMessage = postToNode;
   globalThis.OpenClaw.sendUserAction = sendUserAction;
+  globalThis.kovaPostMessage = postToNode;
+  globalThis.kovaSendUserAction = sendUserAction;
   globalThis.openclawPostMessage = postToNode;
   globalThis.openclawSendUserAction = sendUserAction;
 
