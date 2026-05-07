@@ -1,4 +1,5 @@
-export const CONTROL_UI_BOOTSTRAP_CONFIG_PATH = "/__openclaw/control-ui-config.json";
+export const CONTROL_UI_BOOTSTRAP_CONFIG_PATH = "/__kova/control-ui-config.json";
+export const LEGACY_CONTROL_UI_BOOTSTRAP_CONFIG_PATH = "/__openclaw/control-ui-config.json";
 
 export type ControlUiEmbedSandboxMode = "strict" | "scripts" | "trusted";
 

@@ -111,7 +111,7 @@ describe("control UI routing", () => {
 
     expect(app.tab).toBe("dreams");
     expect(app.querySelector(".dreams__tab")).not.toBeNull();
-    expect(app.querySelector(".dreams__lobster")).not.toBeNull();
+    expect(app.querySelector(".dreams__mascot img")).not.toBeNull();
   });
 
   it("requires confirmation before sending dreaming restart patch", async () => {

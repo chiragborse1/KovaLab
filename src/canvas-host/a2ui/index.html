@@ -282,7 +282,7 @@
           statusEl.style.display = "none";
         }
 
-        window.__openclaw = {
+        const kovaCanvasDebug = {
           canvas,
           ctx,
           setDebugStatusEnabled,
@@ -305,6 +305,8 @@
             }
           },
         };
+        window.__kova = kovaCanvasDebug;
+        window.__openclaw = kovaCanvasDebug;
       })();
     </script>
   </body>

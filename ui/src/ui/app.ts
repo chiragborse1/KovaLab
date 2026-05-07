@@ -139,7 +139,7 @@ function resolveOnboardingMode(): boolean {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
-@customElement("openclaw-app")
+@customElement("kova-app")
 export class OpenClawApp extends LitElement {
   private i18nController = new I18nController(this);
   clientInstanceId = generateUUID();
@@ -1091,4 +1091,8 @@ export class OpenClawApp extends LitElement {
   render() {
     return renderApp(this as unknown as AppViewState);
   }
+}
+
+if (!customElements.get("openclaw-app")) {
+  customElements.define("openclaw-app", class LegacyOpenClawApp extends OpenClawApp {});
 }

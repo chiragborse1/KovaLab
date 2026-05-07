@@ -30,6 +30,7 @@ import {
 import { authorizeHttpGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
 import {
   CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
+  LEGACY_CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
   type ControlUiBootstrapConfig,
 } from "./control-ui-contract.js";
 import { buildControlUiCspHeader, computeInlineScriptHashes } from "./control-ui-csp.js";
@@ -757,10 +758,11 @@ export async function handleControlUiHttpRequest(
 
   applyControlUiSecurityHeaders(res);
 
-  const bootstrapConfigPath = basePath
-    ? `${basePath}${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`
-    : CONTROL_UI_BOOTSTRAP_CONFIG_PATH;
-  if (pathname === bootstrapConfigPath) {
+  const bootstrapConfigPaths = [
+    CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
+    LEGACY_CONTROL_UI_BOOTSTRAP_CONFIG_PATH,
+  ].map((configPath) => (basePath ? `${basePath}${configPath}` : configPath));
+  if (bootstrapConfigPaths.includes(pathname)) {
     if (
       !(await authorizeControlUiReadRequest(req, res, {
         auth: opts?.auth,
