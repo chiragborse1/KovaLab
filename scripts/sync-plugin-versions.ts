@@ -20,18 +20,18 @@ type PackageJson = {
   };
 };
 
-const OPENCLAW_VERSION_RANGE_RE = /^>=(\d+\.\d+\.\d+(?:[-.][^"\s]+)?)$/u;
+const KOVA_VERSION_RANGE_RE = /^>=(\d+\.\d+\.\d+(?:[-.][^"\s]+)?)$/u;
 
 function parseComparableRangeFloor(range: string): string | null {
-  const match = OPENCLAW_VERSION_RANGE_RE.exec(range);
+  const match = KOVA_VERSION_RANGE_RE.exec(range);
   return match?.[1] ?? null;
 }
 
-function syncOpenClawDependencyRange(
+function syncKovaDependencyRange(
   deps: Record<string, string> | undefined,
   targetVersion: string,
 ): boolean {
-  const current = deps?.openclaw;
+  const current = deps?.getkova;
   if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
     return false;
   }
@@ -39,7 +39,7 @@ function syncOpenClawDependencyRange(
   if (current === next) {
     return false;
   }
-  deps.openclaw = next;
+  deps.getkova = next;
   return true;
 }
 
@@ -95,7 +95,7 @@ function ensureChangelogEntry(changelogPath: string, version: string): boolean {
   if (content.includes(`## ${version}`)) {
     return false;
   }
-  const entry = `## ${version}\n\n### Changes\n- Version alignment with core OpenClaw release numbers.\n\n`;
+  const entry = `## ${version}\n\n### Changes\n- Version alignment with core Kova release numbers.\n\n`;
   if (content.startsWith("# Changelog\n\n")) {
     const next = content.replace("# Changelog\n\n", `# Changelog\n\n${entry}`);
     writeFileSync(changelogPath, next);
@@ -143,8 +143,8 @@ export function syncPluginVersions(rootDir = resolve(".")) {
     }
 
     const versionChanged = pkg.version !== targetVersion;
-    const devDependencyChanged = syncOpenClawDependencyRange(pkg.devDependencies, targetVersion);
-    const peerDependencyChanged = syncOpenClawDependencyRange(pkg.peerDependencies, targetVersion);
+    const devDependencyChanged = syncKovaDependencyRange(pkg.devDependencies, targetVersion);
+    const peerDependencyChanged = syncKovaDependencyRange(pkg.peerDependencies, targetVersion);
     // Bundled plugins cannot require a host newer than the release that ships them.
     // Lower impossible floors during release-scheme migrations, but keep older valid floors.
     const minHostVersionChanged = syncMinHostVersionFloor(pkg, targetVersion);

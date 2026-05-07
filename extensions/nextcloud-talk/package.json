@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/nextcloud-talk",
-  "version": "2.0.0",
+  "name": "@kovaai/nextcloud-talk",
+  "version": "2.0.0-beta.3",
   "description": "Kova Nextcloud Talk channel plugin",
   "type": "module",
   "dependencies": {
@@ -11,10 +11,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -38,15 +38,15 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/nextcloud-talk",
+      "npmSpec": "@kovaai/nextcloud-talk",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

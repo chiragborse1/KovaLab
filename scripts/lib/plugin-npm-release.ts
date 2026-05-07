@@ -212,10 +212,8 @@ export function collectPublishablePluginPackageErrors(
   const packageVersion = packageJson.version?.trim() ?? "";
   const extensions = packageJson.openclaw?.extensions ?? [];
 
-  if (!packageName.startsWith("@openclaw/")) {
-    errors.push(
-      `package name must start with "@openclaw/"; found "${packageName || "<missing>"}".`,
-    );
+  if (!packageName.startsWith("@kovaai/")) {
+    errors.push(`package name must start with "@kovaai/"; found "${packageName || "<missing>"}".`);
   }
   if (packageJson.private === true) {
     errors.push("package.json private must not be true.");
@@ -232,6 +230,12 @@ export function collectPublishablePluginPackageErrors(
   }
   if (extensions.some((entry) => typeof entry !== "string" || !entry.trim())) {
     errors.push("openclaw.extensions must contain only non-empty strings.");
+  }
+  const installNpmSpec = packageJson.openclaw?.install?.npmSpec?.trim();
+  if (installNpmSpec && installNpmSpec !== packageName) {
+    errors.push(
+      `openclaw.install.npmSpec must match package name "${packageName}"; found "${installNpmSpec}".`,
+    );
   }
 
   return errors;
@@ -416,7 +420,7 @@ export function resolveChangedPublishablePluginPackages(params: {
 }
 
 export function isPluginVersionPublished(packageName: string, version: string): boolean {
-  const tempDir = mkdtempSync(join(tmpdir(), "openclaw-plugin-npm-view-"));
+  const tempDir = mkdtempSync(join(tmpdir(), "kova-plugin-npm-view-"));
   const userconfigPath = join(tempDir, "npmrc");
   writeFileSync(userconfigPath, "");
 

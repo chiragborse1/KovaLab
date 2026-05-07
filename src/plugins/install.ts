@@ -535,15 +535,21 @@ async function detectNativePackageInstallSource(packageDir: string): Promise<boo
 }
 
 /**
- * After the staged plugin tree has been scanned, symlink the host openclaw
- * package for plugins that declare it as a peer dependency.
+ * After the staged plugin tree has been scanned, symlink the host package for
+ * plugins that declare Kova as a peer dependency. The legacy openclaw alias is
+ * still required because forked plugin SDK imports intentionally remain
+ * compatible with `openclaw/plugin-sdk/*`.
  */
-async function linkOpenClawPeerDependencies(params: {
+async function linkHostPeerDependencies(params: {
   installedDir: string;
   peerDependencies: Record<string, string>;
   logger: PluginInstallLogger;
 }): Promise<void> {
-  const peers = Object.keys(params.peerDependencies).filter((name) => name === "openclaw");
+  const peerNames = new Set(Object.keys(params.peerDependencies));
+  const peers = [
+    ...(peerNames.has("getkova") ? ["getkova", "openclaw"] : []),
+    ...(peerNames.has("openclaw") ? ["openclaw"] : []),
+  ].filter((name, index, list) => list.indexOf(name) === index);
   if (peers.length === 0) {
     return;
   }
@@ -555,7 +561,7 @@ async function linkOpenClawPeerDependencies(params: {
   });
   if (!hostRoot) {
     params.logger.warn?.(
-      "Could not locate openclaw package root to symlink peerDependencies; plugin may fail to resolve openclaw at runtime.",
+      "Could not locate Kova package root to symlink peerDependencies; plugin may fail to resolve the host SDK at runtime.",
     );
     return;
   }
@@ -571,9 +577,9 @@ async function linkOpenClawPeerDependencies(params: {
       // creating the new symlink so re-installs are idempotent.
       await fs.rm(linkPath, { recursive: true, force: true });
       await fs.symlink(hostRoot, linkPath, "junction");
-      params.logger.info?.(`Linked peerDependency "${peerName}" -> ${hostRoot}`);
+      params.logger.info?.(`Linked host peerDependency "${peerName}" -> ${hostRoot}`);
     } catch (err) {
-      params.logger.warn?.(`Failed to symlink peerDependency "${peerName}": ${String(err)}`);
+      params.logger.warn?.(`Failed to symlink host peerDependency "${peerName}": ${String(err)}`);
     }
   }
 }
@@ -771,7 +777,7 @@ async function installPluginFromPackageDir(
       if (scanResult) {
         return scanResult;
       }
-      await linkOpenClawPeerDependencies({
+      await linkHostPeerDependencies({
         installedDir,
         peerDependencies: peerDeps,
         logger,

@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/bluebubbles",
-  "version": "2.0.0",
+  "name": "@kovaai/bluebubbles",
+  "version": "2.0.0-beta.3",
   "description": "Kova BlueBubbles channel plugin",
   "type": "module",
   "devDependencies": {
@@ -8,10 +8,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -44,15 +44,15 @@
       ]
     },
     "install": {
-      "npmSpec": "@openclaw/bluebubbles",
+      "npmSpec": "@kovaai/bluebubbles",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

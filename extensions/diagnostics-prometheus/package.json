@@ -1,20 +1,33 @@
 {
-  "name": "@openclaw/diagnostics-prometheus",
-  "version": "2.0.0",
+  "name": "@kovaai/diagnostics-prometheus",
+  "version": "2.0.0-beta.3",
   "description": "Kova diagnostics Prometheus exporter",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
+  "peerDependencies": {
+    "getkova": ">=2.0.0-beta.3"
+  },
+  "peerDependenciesMeta": {
+    "getkova": {
+      "optional": true
+    }
+  },
   "openclaw": {
     "extensions": [
       "./index.ts"
     ],
+    "install": {
+      "npmSpec": "@kovaai/diagnostics-prometheus",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2.0.0-beta.3"
+    },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

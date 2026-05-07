@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/memory-lancedb",
-  "version": "2.0.0",
+  "name": "@kovaai/memory-lancedb",
+  "version": "2.0.0-beta.3",
   "description": "Kova LanceDB-backed long-term memory plugin with auto-recall/capture",
   "type": "module",
   "dependencies": {
@@ -11,20 +11,28 @@
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
+  "peerDependencies": {
+    "getkova": ">=2.0.0-beta.3"
+  },
+  "peerDependenciesMeta": {
+    "getkova": {
+      "optional": true
+    }
+  },
   "openclaw": {
     "extensions": [
       "./index.ts"
     ],
     "install": {
-      "npmSpec": "@openclaw/memory-lancedb",
+      "npmSpec": "@kovaai/memory-lancedb",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

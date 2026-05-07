@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/qqbot",
-  "version": "2.0.0",
+  "name": "@kovaai/qqbot",
+  "version": "2.0.0-beta.3",
   "private": false,
   "description": "Kova QQ Bot channel plugin",
   "type": "module",
@@ -17,10 +17,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -40,16 +40,16 @@
       "systemImage": "bubble.left.and.bubble.right"
     },
     "install": {
-      "npmSpec": "@openclaw/qqbot",
+      "npmSpec": "@kovaai/qqbot",
       "localPath": "extensions/qqbot",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "bundle": {
       "stageRuntimeDependencies": true

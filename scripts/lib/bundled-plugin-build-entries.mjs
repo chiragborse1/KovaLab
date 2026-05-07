@@ -30,7 +30,7 @@ function isManifestlessBundledRuntimeSupportPackage(params) {
   return params.topLevelPublicSurfaceEntries.length > 0;
 }
 
-function collectPluginSourceEntries(packageJson) {
+export function collectPluginSourceEntries(packageJson) {
   let packageEntries = Array.isArray(packageJson?.openclaw?.extensions)
     ? packageJson.openclaw.extensions.filter(
         (entry) => typeof entry === "string" && entry.trim().length > 0,
@@ -51,7 +51,7 @@ function shouldStageBundledPluginRuntimeDependencies(packageJson) {
   return packageJson?.openclaw?.bundle?.stageRuntimeDependencies === true;
 }
 
-function collectTopLevelPublicSurfaceEntries(pluginDir) {
+export function collectTopLevelPublicSurfaceEntries(pluginDir) {
   if (!fs.existsSync(pluginDir)) {
     return [];
   }

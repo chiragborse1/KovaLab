@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/diagnostics-otel",
-  "version": "2.0.0",
+  "name": "@kovaai/diagnostics-otel",
+  "version": "2.0.0-beta.3",
   "description": "Kova diagnostics OpenTelemetry exporter",
   "type": "module",
   "dependencies": {
@@ -19,15 +19,28 @@
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
+  "peerDependencies": {
+    "getkova": ">=2.0.0-beta.3"
+  },
+  "peerDependenciesMeta": {
+    "getkova": {
+      "optional": true
+    }
+  },
   "openclaw": {
     "extensions": [
       "./index.ts"
     ],
+    "install": {
+      "npmSpec": "@kovaai/diagnostics-otel",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2.0.0-beta.3"
+    },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

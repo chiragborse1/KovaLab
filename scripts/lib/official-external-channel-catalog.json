@@ -1,26 +1,242 @@
 {
   "entries": [
     {
-      "name": "@wecom/wecom-openclaw-plugin",
-      "description": "OpenClaw WeCom channel plugin by the Tencent WeCom team.",
-      "source": "external",
+      "name": "@kovaai/bluebubbles",
+      "description": "Kova BlueBubbles channel plugin",
+      "source": "official",
       "kind": "channel",
       "openclaw": {
         "channel": {
-          "id": "wecom",
-          "label": "WeCom",
-          "selectionLabel": "WeCom（企业微信）",
-          "detailLabel": "WeCom",
-          "docsPath": "/plugins/community#wecom",
-          "docsLabel": "wecom",
-          "blurb": "Enterprise messaging and documents, scheduling, task tools.",
-          "aliases": ["qywx", "wework", "enterprise-wechat"],
-          "order": 45
+          "id": "bluebubbles",
+          "label": "BlueBubbles",
+          "selectionLabel": "BlueBubbles (macOS app)",
+          "detailLabel": "BlueBubbles",
+          "docsPath": "/channels/bluebubbles",
+          "docsLabel": "bluebubbles",
+          "blurb": "iMessage via the BlueBubbles mac app and REST API.",
+          "aliases": ["bb"],
+          "preferOver": ["imessage"],
+          "systemImage": "bubble.left.and.text.bubble.right",
+          "order": 75
         },
         "install": {
-          "npmSpec": "@wecom/wecom-openclaw-plugin@2026.4.23",
+          "npmSpec": "@kovaai/bluebubbles",
           "defaultChoice": "npm",
-          "expectedIntegrity": "sha512-bnzfdIEEu1/LFvcdyjaTkyxt27w6c7dqhkPezU62OWaqmcdFsUGR3T55USK/O9pIKsNcnL1Tnu1pqKYCWHFgWQ=="
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/discord",
+      "description": "Kova Discord channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "discord",
+          "label": "Discord",
+          "selectionLabel": "Discord (Bot API)",
+          "detailLabel": "Discord Bot",
+          "docsPath": "/channels/discord",
+          "docsLabel": "discord",
+          "blurb": "Discord bot support for direct messages, servers, and approvals.",
+          "systemImage": "bubble.left.and.bubble.right",
+          "markdownCapable": true,
+          "preferSessionLookupForAnnounceTarget": true
+        },
+        "install": {
+          "npmSpec": "@kovaai/discord",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3",
+          "allowInvalidConfigRecovery": true
+        }
+      }
+    },
+    {
+      "name": "@kovaai/feishu",
+      "description": "Kova Feishu/Lark channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "feishu",
+          "label": "Feishu",
+          "selectionLabel": "Feishu/Lark",
+          "docsPath": "/channels/feishu",
+          "docsLabel": "feishu",
+          "blurb": "Feishu/Lark enterprise messaging with doc, wiki, and drive tools.",
+          "aliases": ["lark"],
+          "order": 35,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "npmSpec": "@kovaai/feishu",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/msteams",
+      "description": "Kova Microsoft Teams channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "msteams",
+          "label": "Microsoft Teams",
+          "selectionLabel": "Microsoft Teams (Teams SDK)",
+          "docsPath": "/channels/msteams",
+          "docsLabel": "msteams",
+          "blurb": "Microsoft Teams support for enterprise chat workflows.",
+          "aliases": ["teams"],
+          "order": 60
+        },
+        "install": {
+          "npmSpec": "@kovaai/msteams",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/nextcloud-talk",
+      "description": "Kova Nextcloud Talk channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "nextcloud-talk",
+          "label": "Nextcloud Talk",
+          "selectionLabel": "Nextcloud Talk (self-hosted)",
+          "docsPath": "/channels/nextcloud-talk",
+          "docsLabel": "nextcloud-talk",
+          "blurb": "Self-hosted chat via Nextcloud Talk webhook bots.",
+          "aliases": ["nc-talk", "nc"],
+          "order": 65,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "npmSpec": "@kovaai/nextcloud-talk",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/nostr",
+      "description": "Kova Nostr channel plugin for encrypted DMs",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "nostr",
+          "label": "Nostr",
+          "selectionLabel": "Nostr (NIP-04 DMs)",
+          "docsPath": "/channels/nostr",
+          "docsLabel": "nostr",
+          "blurb": "Decentralized messaging with encrypted DMs.",
+          "order": 55,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "npmSpec": "@kovaai/nostr",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/qqbot",
+      "description": "Kova QQ Bot channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "qqbot",
+          "label": "QQ Bot",
+          "selectionLabel": "QQ Bot (Official API)",
+          "detailLabel": "QQ Bot",
+          "docsPath": "/channels/qqbot",
+          "docsLabel": "qqbot",
+          "blurb": "QQ Bot API support for group chat and direct messages.",
+          "systemImage": "bubble.left.and.bubble.right"
+        },
+        "install": {
+          "npmSpec": "@kovaai/qqbot",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/whatsapp",
+      "description": "Kova WhatsApp channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "whatsapp",
+          "label": "WhatsApp",
+          "selectionLabel": "WhatsApp (QR link)",
+          "detailLabel": "WhatsApp Web",
+          "docsPath": "/channels/whatsapp",
+          "docsLabel": "whatsapp",
+          "blurb": "WhatsApp Web support via QR-code login.",
+          "systemImage": "message"
+        },
+        "install": {
+          "npmSpec": "@kovaai/whatsapp",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/zalo",
+      "description": "Kova Zalo channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "zalo",
+          "label": "Zalo",
+          "selectionLabel": "Zalo (Bot API)",
+          "docsPath": "/channels/zalo",
+          "docsLabel": "zalo",
+          "blurb": "Vietnam-focused messaging via the Zalo Bot API.",
+          "aliases": ["zl"],
+          "order": 80,
+          "quickstartAllowFrom": true
+        },
+        "install": {
+          "npmSpec": "@kovaai/zalo",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/zalouser",
+      "description": "Kova Zalo Personal Account channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "openclaw": {
+        "channel": {
+          "id": "zalouser",
+          "label": "Zalo Personal",
+          "selectionLabel": "Zalo (Personal Account)",
+          "docsPath": "/channels/zalouser",
+          "docsLabel": "zalouser",
+          "blurb": "Zalo personal account support via QR-code login.",
+          "aliases": ["zlu"],
+          "order": 85,
+          "quickstartAllowFrom": false
+        },
+        "install": {
+          "npmSpec": "@kovaai/zalouser",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
         }
       }
     }

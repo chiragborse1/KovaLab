@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/google-meet",
-  "version": "2.0.0",
+  "name": "@kovaai/google-meet",
+  "version": "2.0.0-beta.3",
   "description": "Kova Google Meet participant plugin",
   "type": "module",
   "dependencies": {
@@ -12,10 +12,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -24,13 +24,15 @@
       "./index.ts"
     ],
     "install": {
-      "minHostVersion": ">=2.0.0"
+      "npmSpec": "@kovaai/google-meet",
+      "defaultChoice": "npm",
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

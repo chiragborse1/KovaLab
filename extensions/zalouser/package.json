@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/zalouser",
-  "version": "2.0.0",
+  "name": "@kovaai/zalouser",
+  "version": "2.0.0-beta.3",
   "description": "Kova Zalo Personal Account plugin via native zca-js integration",
   "type": "module",
   "dependencies": {
@@ -12,10 +12,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -44,15 +44,15 @@
       }
     },
     "install": {
-      "npmSpec": "@openclaw/zalouser",
+      "npmSpec": "@kovaai/zalouser",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "release": {
       "publishToClawHub": true,

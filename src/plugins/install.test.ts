@@ -2646,6 +2646,30 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
+  it("creates host package aliases when peerDependencies declares getkova", async () => {
+    const { pluginDir, extensionsDir } = setupPluginInstallDirs();
+    const fakeHostRoot = suiteTempRootTracker.makeTempDir();
+    const run = vi.mocked(runCommandWithTimeout);
+    resolveRootMock.mockReturnValue(fakeHostRoot);
+
+    writePluginWithPeerDeps(pluginDir, { getkova: "*" });
+
+    const { result } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    for (const peerName of ["getkova", "openclaw"]) {
+      const symlinkPath = path.join(result.targetDir, "node_modules", peerName);
+      const stat = fs.lstatSync(symlinkPath);
+      expect(stat.isSymbolicLink()).toBe(true);
+      expect(fs.realpathSync(symlinkPath)).toBe(fs.realpathSync(fakeHostRoot));
+    }
+    expect(run).not.toHaveBeenCalled();
+  });
+
   it("does not create a symlink when peerDependencies is empty", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     resolveRootMock.mockReturnValue(suiteTempRootTracker.makeTempDir());
@@ -2700,6 +2724,6 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     const { result, warnings } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
 
     expect(result.ok).toBe(true);
-    expect(warnings.some((w) => w.includes("Could not locate openclaw package root"))).toBe(true);
+    expect(warnings.some((w) => w.includes("Could not locate Kova package root"))).toBe(true);
   });
 });

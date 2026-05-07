@@ -1,6 +1,6 @@
 {
-  "name": "@openclaw/feishu",
-  "version": "2.0.0",
+  "name": "@kovaai/feishu",
+  "version": "2.0.0-beta.3",
   "description": "Kova Feishu/Lark channel plugin (community maintained by @m1heng)",
   "type": "module",
   "dependencies": {
@@ -12,10 +12,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "getkova": ">=2.0.0-beta.3"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "getkova": {
       "optional": true
     }
   },
@@ -38,15 +38,15 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/feishu",
+      "npmSpec": "@kovaai/feishu",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0"
+      "pluginApi": ">=2.0.0-beta.3"
     },
     "build": {
-      "openclawVersion": "2.0.0"
+      "openclawVersion": "2.0.0-beta.3"
     },
     "bundle": {
       "stageRuntimeDependencies": true
