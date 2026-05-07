@@ -102,6 +102,39 @@ describe("config io write", () => {
       logger: silentLogger,
     });
 
+  it("writes implicit legacy .kova/openclaw.json configs back to kova.json", async () => {
+    await withSuiteHome(async (home) => {
+      const stateDir = path.join(home, ".kova");
+      const legacyConfigPath = path.join(stateDir, "openclaw.json");
+      const canonicalConfigPath = path.join(stateDir, "kova.json");
+      await fs.mkdir(stateDir, { recursive: true });
+      await fs.writeFile(
+        legacyConfigPath,
+        `${JSON.stringify({ gateway: { mode: "local", port: 18789 } }, null, 2)}\n`,
+        "utf-8",
+      );
+
+      const io = createConfigIO({
+        env: {} as NodeJS.ProcessEnv,
+        homedir: () => home,
+        logger: silentLogger,
+      });
+      expect(io.configPath).toBe(legacyConfigPath);
+
+      await io.writeConfigFile({ gateway: { mode: "local", port: 18790 } });
+
+      const migrated = JSON.parse(await fs.readFile(canonicalConfigPath, "utf-8")) as {
+        gateway?: { port?: number };
+      };
+      const legacy = JSON.parse(await fs.readFile(legacyConfigPath, "utf-8")) as {
+        gateway?: { port?: number };
+      };
+      expect(migrated.gateway?.port).toBe(18790);
+      expect(legacy.gateway?.port).toBe(18789);
+      expect(mockMaintainConfigBackups).not.toHaveBeenCalled();
+    });
+  });
+
   it("migrates shipped plugin install config records into the plugin index", async () => {
     await withSuiteHome(async (home) => {
       const configPath = path.join(home, ".openclaw", "openclaw.json");

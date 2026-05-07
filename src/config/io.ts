@@ -76,7 +76,7 @@ import {
   materializeRuntimeConfig,
 } from "./materialize.js";
 import { applyMergePatch } from "./merge-patch.js";
-import { resolveConfigPath, resolveStateDir } from "./paths.js";
+import { resolveCanonicalConfigPath, resolveConfigPath, resolveStateDir } from "./paths.js";
 import {
   extractShippedPluginInstallConfigRecords,
   stripShippedPluginInstallConfigRecords,
@@ -942,6 +942,29 @@ function resolveConfigPathForDeps(deps: Required<ConfigIoDeps>): string {
     return deps.configPath;
   }
   return resolveConfigPath(deps.env, resolveStateDir(deps.env, deps.homedir));
+}
+
+function resolveConfigWritePathForDeps(params: {
+  configPath: string;
+  deps: Required<ConfigIoDeps>;
+}): string {
+  if (params.deps.configPath) {
+    return params.configPath;
+  }
+  const canonicalPath = resolveCanonicalConfigPath(
+    params.deps.env,
+    resolveStateDir(params.deps.env, params.deps.homedir),
+  );
+  const configDir = path.dirname(params.configPath);
+  if (
+    path.basename(params.configPath) === "openclaw.json" &&
+    path.basename(configDir) === ".kova" &&
+    path.resolve(configDir) === path.resolve(path.dirname(canonicalPath)) &&
+    path.resolve(params.configPath) !== path.resolve(canonicalPath)
+  ) {
+    return canonicalPath;
+  }
+  return params.configPath;
 }
 
 function normalizeDeps(overrides: ConfigIoDeps = {}): Required<ConfigIoDeps> {
@@ -1915,6 +1938,7 @@ export function createConfigIO(
           persistShippedPluginInstallMigration: false,
         })
       ).snapshot;
+    const writeConfigPath = resolveConfigWritePathForDeps({ configPath, deps });
     let envRefMap: Map<string, string> | null = null;
     let changedPaths: Set<string> | null = null;
     if (snapshot.valid && snapshot.exists) {
@@ -1998,10 +2022,10 @@ export function createConfigIO(
       // If reading the current file fails, write cfg as-is (no env restoration)
     }
 
-    const dir = path.dirname(configPath);
+    const dir = path.dirname(writeConfigPath);
     await deps.fs.promises.mkdir(dir, { recursive: true, mode: 0o700 });
     await tightenStateDirPermissionsIfNeeded({
-      configPath,
+      configPath: writeConfigPath,
       env: deps.env,
       homedir: deps.homedir,
       fsModule: deps.fs,
@@ -2050,7 +2074,7 @@ export function createConfigIO(
       }
       deps.logger.warn(
         formatConfigOverwriteLogMessage({
-          configPath,
+          configPath: writeConfigPath,
           previousHash: previousHash ?? null,
           nextHash,
           changedPathCount,
@@ -2070,11 +2094,13 @@ export function createConfigIO(
       if (isVitest && !shouldLogInVitest) {
         return;
       }
-      deps.logger.warn(`Config write anomaly: ${configPath} (${suspiciousReasons.join(", ")})`);
+      deps.logger.warn(
+        `Config write anomaly: ${writeConfigPath} (${suspiciousReasons.join(", ")})`,
+      );
     };
     const previousMetadata = resolveConfigStatMetadata(previousStat);
     const auditRecordBase = createConfigWriteAuditRecordBase({
-      configPath,
+      configPath: writeConfigPath,
       env: deps.env,
       existsBefore: snapshot.exists,
       previousHash: previousHash ?? null,
@@ -2108,7 +2134,7 @@ export function createConfigIO(
     };
     const blockingReasons = resolveConfigWriteBlockingReasons(suspiciousReasons);
     if (blockingReasons.length > 0 && options.allowDestructiveWrite !== true) {
-      const rejectedPath = `${configPath}.rejected.${formatConfigArtifactTimestamp(new Date().toISOString())}`;
+      const rejectedPath = `${writeConfigPath}.rejected.${formatConfigArtifactTimestamp(new Date().toISOString())}`;
       await deps.fs.promises
         .writeFile(rejectedPath, json, {
           encoding: "utf-8",
@@ -2116,7 +2142,7 @@ export function createConfigIO(
           flag: "wx",
         })
         .catch(() => {});
-      const message = `Config write rejected: ${configPath} (${blockingReasons.join(", ")}). Rejected payload saved to ${rejectedPath}.`;
+      const message = `Config write rejected: ${writeConfigPath} (${blockingReasons.join(", ")}). Rejected payload saved to ${rejectedPath}.`;
       const err = Object.assign(new Error(message), {
         code: "CONFIG_WRITE_REJECTED",
         rejectedPath,
@@ -2129,7 +2155,7 @@ export function createConfigIO(
 
     const tmp = path.join(
       dir,
-      `${path.basename(configPath)}.${process.pid}.${crypto.randomUUID()}.tmp`,
+      `${path.basename(writeConfigPath)}.${process.pid}.${crypto.randomUUID()}.tmp`,
     );
 
     const pluginInstallConfigMigration =
@@ -2141,18 +2167,18 @@ export function createConfigIO(
         mode: 0o600,
       });
 
-      if (deps.fs.existsSync(configPath)) {
-        await maintainConfigBackups(configPath, deps.fs.promises);
+      if (deps.fs.existsSync(writeConfigPath)) {
+        await maintainConfigBackups(writeConfigPath, deps.fs.promises);
       }
 
       try {
-        await deps.fs.promises.rename(tmp, configPath);
+        await deps.fs.promises.rename(tmp, writeConfigPath);
       } catch (err) {
         const code = (err as { code?: string }).code;
         // Windows doesn't reliably support atomic replace via rename when dest exists.
         if (code === "EPERM" || code === "EEXIST") {
-          await deps.fs.promises.copyFile(tmp, configPath);
-          await deps.fs.promises.chmod(configPath, 0o600).catch(() => {
+          await deps.fs.promises.copyFile(tmp, writeConfigPath);
+          await deps.fs.promises.chmod(writeConfigPath, 0o600).catch(() => {
             // best-effort
           });
           await deps.fs.promises.unlink(tmp).catch(() => {
@@ -2164,7 +2190,7 @@ export function createConfigIO(
           await appendWriteAudit(
             "copy-fallback",
             undefined,
-            await deps.fs.promises.stat(configPath).catch(() => null),
+            await deps.fs.promises.stat(writeConfigPath).catch(() => null),
           );
           return { persistedHash: nextHash, persistedConfig: stampedOutputConfig };
         }
@@ -2179,7 +2205,7 @@ export function createConfigIO(
       await appendWriteAudit(
         "rename",
         undefined,
-        await deps.fs.promises.stat(configPath).catch(() => null),
+        await deps.fs.promises.stat(writeConfigPath).catch(() => null),
       );
       return { persistedHash: nextHash, persistedConfig: stampedOutputConfig };
     } catch (err) {
