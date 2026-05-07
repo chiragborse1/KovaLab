@@ -131,7 +131,7 @@ export function applyToolPolicyPipeline(params: {
         const otherEntries = resolved.unknownAllowlist.filter(
           (entry) => !isKnownCoreToolId(entry) && !unavailableCoreWarningAllowlist.has(entry),
         );
-        const warningEntries = [...warnableGatedCoreEntries, ...otherEntries];
+        const warningEntries = otherEntries;
         if (
           shouldWarnAboutUnknownAllowlist({
             hasGatedCoreEntries: warnableGatedCoreEntries.length > 0,
@@ -141,7 +141,7 @@ export function applyToolPolicyPipeline(params: {
           const entries = warningEntries.join(", ");
           const suffix = describeUnknownAllowlistSuffix({
             pluginOnlyAllowlist: resolved.pluginOnlyAllowlist,
-            hasGatedCoreEntries: warnableGatedCoreEntries.length > 0,
+            hasGatedCoreEntries: false,
             hasOtherEntries: otherEntries.length > 0,
           });
           const warning = `tools: ${step.label} allowlist contains unknown entries (${entries}). ${suffix}`;
@@ -163,7 +163,7 @@ function shouldWarnAboutUnknownAllowlist(params: {
   hasGatedCoreEntries: boolean;
   hasOtherEntries: boolean;
 }): boolean {
-  return params.hasGatedCoreEntries || params.hasOtherEntries;
+  return params.hasOtherEntries;
 }
 
 function describeUnknownAllowlistSuffix(params: {

@@ -85,28 +85,32 @@ describe("tool-policy-pipeline", () => {
     expect(warnings).toEqual([]);
   });
 
-  test("still warns for profile steps when explicit alsoAllow entries are present", () => {
+  test("does not warn for profile steps when explicit alsoAllow entries are known core tools", () => {
     const warnings = runAllowlistWarningStep({
       allow: ["apply_patch", "browser"],
       label: "tools.profile (coding)",
       suppressUnavailableCoreToolWarningAllowlist: ["apply_patch"],
     });
-    expect(warnings.length).toBe(1);
-    expect(warnings[0]).toContain("unknown entries (browser)");
-    expect(warnings[0]).not.toContain("apply_patch");
-    expect(warnings[0]).toContain("shipped core tools but are not active for this run");
+    expect(warnings).toEqual([]);
   });
 
-  test("still warns for explicit allowlists that mention unavailable gated core tools", () => {
+  test("does not warn for explicit allowlists that only mention unavailable gated core tools", () => {
     const warnings = runAllowlistWarningStep({
       allow: ["apply_patch"],
       label: "tools.allow",
     });
-    expect(warnings.length).toBe(1);
-    expect(warnings[0]).toContain("unknown entries (apply_patch)");
-    expect(warnings[0]).toContain("shipped core tools but are not active for this run");
-    expect(warnings[0]).not.toContain("Allowlist contains only plugin entries");
-    expect(warnings[0]).not.toContain("unless the plugin is enabled");
+    expect(warnings).toEqual([]);
+  });
+
+  test("warns for explicit allowlists that mix unavailable core tools with unknown tools", () => {
+    const warnings = runAllowlistWarningStep({
+      allow: ["apply_patch", "not-a-real-tool"],
+      label: "tools.allow",
+    });
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain("unknown entries (not-a-real-tool)");
+    expect(warnings[0]).not.toContain("apply_patch");
+    expect(warnings[0]).toContain("unless the plugin is enabled");
   });
 
   test("default profile steps suppress unavailable baseline profile entries", () => {
