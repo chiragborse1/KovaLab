@@ -25,16 +25,16 @@ function createDeps() {
 }
 
 describe("setupWizardShellCompletion", () => {
-  it("quick setup installs without prompting", async () => {
+  it("quick setup skips shell completion without prompting", async () => {
     const prompter = createPrompter();
     const deps = createDeps();
 
     await setupWizardShellCompletion({ flow: "quickstart", prompter, deps });
 
     expect(prompter.confirm).not.toHaveBeenCalled();
-    expect(deps.ensureCompletionCacheExists).toHaveBeenCalledWith("kova");
-    expect(deps.installCompletion).toHaveBeenCalledWith("zsh", true, "kova");
-    expect(prompter.note).toHaveBeenCalled();
+    expect(deps.ensureCompletionCacheExists).not.toHaveBeenCalled();
+    expect(deps.installCompletion).not.toHaveBeenCalled();
+    expect(prompter.note).not.toHaveBeenCalled();
   });
 
   it("Advanced: prompts; skip means no install", async () => {

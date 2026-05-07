@@ -74,13 +74,14 @@ export async function setupWizardShellCompletion(params: {
 
   if (!completionStatus.profileInstalled) {
     // Case 3: No completion at all
-    const shouldInstall =
-      params.flow === "quickstart"
-        ? true
-        : await params.prompter.confirm({
-            message: `Enable ${completionStatus.shell} shell completion for ${cliName}?`,
-            initialValue: true,
-          });
+    if (params.flow === "quickstart") {
+      return;
+    }
+
+    const shouldInstall = await params.prompter.confirm({
+      message: `Enable ${completionStatus.shell} shell completion for ${cliName}?`,
+      initialValue: true,
+    });
 
     if (!shouldInstall) {
       return;

@@ -830,13 +830,23 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
     let paletteQuery: string | undefined;
     let paletteIndex = 0;
 
+    let alternateScreen = false;
+    let cleanedUp = false;
+    const enterAlternateScreen = () => {
+      if (alternateScreen) {
+        return;
+      }
+      stdout.write("\x1b[?1049h\x1b[?25l");
+      alternateScreen = true;
+    };
     const render = () => {
       const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
       const paletteCommands =
         paletteQuery === undefined
           ? undefined
           : filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), paletteQuery);
-      stdout.write("\x1b[?25l\x1b[2J\x1b[H");
+      enterAlternateScreen();
+      stdout.write("\x1b[H\x1b[J");
       stdout.write(
         renderSettingsDashboard({
           rows,
@@ -861,16 +871,25 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
       | undefined;
 
     const cleanup = () => {
+      if (cleanedUp) {
+        return;
+      }
+      cleanedUp = true;
       if (onKeypress) {
         stdin.off("keypress", onKeypress);
         onKeypress = undefined;
       }
       stdin.setRawMode(false);
       stdin.pause();
-      stdout.write("\x1b[?25h\n");
+      stdout.write(alternateScreen ? "\x1b[?25h\x1b[?1049l" : "\x1b[?25h");
+      stdout.write("\n");
     };
 
     emitKeypressEvents(stdin);
+    while (stdin.read() !== null) {
+      // Drain buffered keypresses left behind by nested prompts before
+      // returning to the dashboard; otherwise Enter can reopen the first row.
+    }
     stdin.setRawMode(true);
     stdin.resume();
     render();
@@ -1005,13 +1024,13 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
           }
           if (key.name === "up") {
             selectedIndex = (selectedIndex - 1 + rows.length) % rows.length;
-            message = selected.hint;
+            message = rows[selectedIndex]?.hint ?? "Ready";
             render();
             return;
           }
           if (key.name === "down") {
             selectedIndex = (selectedIndex + 1) % rows.length;
-            message = selected.hint;
+            message = rows[selectedIndex]?.hint ?? "Ready";
             render();
             return;
           }
