@@ -109,12 +109,12 @@ importers:
       markdown-it:
         specifier: 14.1.1
         version: 14.1.1
+      node-domexception:
+        specifier: npm:@nolyfill/domexception@1.0.28
+        version: '@nolyfill/domexception@1.0.28'
       openai:
         specifier: ^6.34.0
         version: 6.34.0(ws@8.20.0)(zod@4.3.6)
-      osc-progress:
-        specifier: ^0.3.0
-        version: 0.3.0
       proxy-agent:
         specifier: ^8.0.1
         version: 8.0.1
@@ -134,8 +134,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
       web-push:
         specifier: ^3.6.7
         version: 3.6.7
@@ -356,8 +356,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
       ws:
         specifier: ^8.20.0
         version: 8.20.0
@@ -529,8 +529,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
       ws:
         specifier: ^8.20.0
         version: 8.20.0
@@ -1182,8 +1182,8 @@ importers:
         specifier: '>=2.0.0'
         version: 2026.5.5(@types/express@5.0.6)
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
     devDependencies:
       '@openclaw/matrix':
         specifier: workspace:*
@@ -1350,8 +1350,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -1531,8 +1531,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -1575,8 +1575,8 @@ importers:
         specifier: '>=2.0.0'
         version: 2026.5.5(@types/express@5.0.6)
       undici:
-        specifier: 8.1.0
-        version: 8.1.0
+        specifier: 7.25.0
+        version: 7.25.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -6755,10 +6755,6 @@ packages:
   opusscript@0.1.1:
     resolution: {integrity: sha512-mL0fZZOUnXdZ78woRXp18lApwpp0lF5tozJOD1Wut0dgrA9WuQTgSels/CSmFleaAZrJi/nci5KOVtbuxeWoQA==}
 
-  osc-progress@0.3.0:
-    resolution: {integrity: sha512-4/8JfsetakdeEa4vAYV45FW20aY+B/+K8NEXp5Eiar3wR8726whgHrbSg5Ar/ZY1FLJ/AGtUqV7W2IVF+Gvp9A==}
-    engines: {node: '>=20'}
-
   oxfmt@0.46.0:
     resolution: {integrity: sha512-CopwJOwPAjZ9p76fCvz+mSOJTw9/NY3cSksZK3VO/bUQ8UoEcketNgUuYS0UB3p+R9XnXe7wGGXUmyFxc7QxJA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -7745,10 +7741,6 @@ packages:
   undici@7.25.0:
     resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
     engines: {node: '>=20.18.1'}
-
-  undici@8.1.0:
-    resolution: {integrity: sha512-E9MkTS4xXLnRPYqxH2e6Hr2/49e7WFDKczKcCaFH4VaZs2iNvHMqeIkyUAD9vM8kujy9TjVrRlQ5KkdEJxB2pw==}
-    engines: {node: '>=22.19.0'}
 
   undici@8.2.0:
     resolution: {integrity: sha512-Z+4Hx9GE26Lh9Upwfnc8C7SsrpBPGaM/Gm6kMFtiG7c+5IvQKlXi/t+9x9DrrCh29cww5TSP9YdVaBcnLDs5fQ==}
@@ -14765,8 +14757,6 @@ snapshots:
 
   opusscript@0.1.1: {}
 
-  osc-progress@0.3.0: {}
-
   oxfmt@0.46.0:
     dependencies:
       tinypool: 2.1.0
@@ -15915,8 +15905,6 @@ snapshots:
   undici-types@7.19.2: {}
 
   undici@7.25.0: {}
-
-  undici@8.1.0: {}
 
   undici@8.2.0: {}
 

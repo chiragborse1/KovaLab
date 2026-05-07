@@ -1,5 +1,4 @@
 import { spinner } from "@clack/prompts";
-import { createOscProgressController, supportsOscProgress } from "osc-progress";
 import {
   clearActiveProgressLine,
   registerActiveProgressLine,
@@ -8,6 +7,10 @@ import {
 import { theme } from "../terminal/theme.js";
 
 const DEFAULT_DELAY_MS = 0;
+const OSC_PROGRESS_PREFIX = "\x1b]9;4;";
+const OSC_PROGRESS_ST = "\x1b\\";
+const OSC_PROGRESS_BEL = "\x07";
+const OSC_PROGRESS_C1_ST = "\x9c";
 let activeProgress = 0;
 
 type ProgressOptions = {
@@ -33,12 +36,70 @@ export type ProgressTotalsUpdate = {
   label?: string;
 };
 
+type OscProgressController = {
+  setIndeterminate: (label: string) => void;
+  setPercent: (label: string, percent: number) => void;
+  clear: () => void;
+};
+
 const noopReporter: ProgressReporter = {
   setLabel: () => {},
   setPercent: () => {},
   tick: () => {},
   done: () => {},
 };
+
+function sanitizeOscProgressLabel(label: string): string {
+  return label
+    .replaceAll(OSC_PROGRESS_ST, "")
+    .split("\x1b")
+    .join("")
+    .replaceAll(OSC_PROGRESS_BEL, "")
+    .replaceAll(OSC_PROGRESS_C1_ST, "")
+    .replaceAll("]", "")
+    .trim();
+}
+
+function supportsOscProgress(env: NodeJS.ProcessEnv, isTty: boolean | undefined): boolean {
+  if (!isTty) {
+    return false;
+  }
+  const termProgram = (env.TERM_PROGRAM ?? "").toLowerCase();
+  return (
+    termProgram.includes("ghostty") || termProgram.includes("wezterm") || Boolean(env.WT_SESSION)
+  );
+}
+
+function createOscProgressController(options: {
+  env: NodeJS.ProcessEnv;
+  isTty: boolean | undefined;
+  write: (chunk: string) => void;
+}): OscProgressController {
+  if (!supportsOscProgress(options.env, options.isTty)) {
+    return {
+      setIndeterminate: () => {},
+      setPercent: () => {},
+      clear: () => {},
+    };
+  }
+
+  let lastLabel = "Working";
+  const send = (state: number, percent: number | null, label: string) => {
+    const cleanLabel = sanitizeOscProgressLabel(label);
+    lastLabel = cleanLabel || lastLabel;
+    const progress =
+      percent === null ? "" : String(Math.max(0, Math.min(100, Math.round(percent))));
+    options.write(
+      `${OSC_PROGRESS_PREFIX}${String(state)};${progress};${lastLabel}${OSC_PROGRESS_ST}`,
+    );
+  };
+
+  return {
+    setIndeterminate: (label) => send(3, null, label),
+    setPercent: (label, percent) => send(1, percent, label),
+    clear: () => send(0, 0, lastLabel),
+  };
+}
 
 export function createCliProgress(options: ProgressOptions): ProgressReporter {
   if (options.enabled === false) {

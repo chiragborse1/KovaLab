@@ -142,11 +142,6 @@
       "class": "default-runtime-initially",
       "risk": ["provider-sdk", "network"]
     },
-    "osc-progress": {
-      "owner": "core:terminal-progress",
-      "class": "core-runtime",
-      "risk": ["terminal-rendering"]
-    },
     "pdfjs-dist": {
       "owner": "plugin:document-extract",
       "class": "plugin-runtime",
