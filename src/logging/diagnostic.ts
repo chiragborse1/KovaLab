@@ -40,9 +40,10 @@ const webhookStats = {
   lastReceived: 0,
 };
 
-const DEFAULT_STUCK_SESSION_WARN_MS = 120_000;
+const DEFAULT_STUCK_SESSION_WARN_MS = 180_000;
 const MIN_STUCK_SESSION_WARN_MS = 1_000;
 const MAX_STUCK_SESSION_WARN_MS = 24 * 60 * 60 * 1000;
+const STUCK_SESSION_REPEAT_WARN_MS = 300_000;
 const RECENT_DIAGNOSTIC_ACTIVITY_MS = 120_000;
 let commandPollBackoffRuntimePromise: Promise<
   typeof import("../agents/command-poll-backoff.runtime.js")
@@ -269,6 +270,9 @@ export function logSessionStateChange(
   const prevState = state.state;
   state.state = params.state;
   state.lastActivity = Date.now();
+  if (params.state === "idle" || params.state !== prevState) {
+    state.lastStuckWarnAt = undefined;
+  }
   if (params.state === "idle") {
     state.queueDepth = Math.max(0, state.queueDepth - 1);
   }
@@ -453,7 +457,11 @@ export function startDiagnosticHeartbeat(
 
     for (const [, state] of diagnosticSessionStates) {
       const ageMs = now - state.lastActivity;
-      if (state.state === "processing" && ageMs > stuckSessionWarnMs) {
+      const canWarnAgain =
+        state.lastStuckWarnAt === undefined ||
+        now - state.lastStuckWarnAt >= STUCK_SESSION_REPEAT_WARN_MS;
+      if (state.state === "processing" && ageMs > stuckSessionWarnMs && canWarnAgain) {
+        state.lastStuckWarnAt = now;
         logSessionStuck({
           sessionId: state.sessionId,
           sessionKey: state.sessionKey,

@@ -176,9 +176,9 @@ function describeUnknownAllowlistSuffix(params: {
     : "";
   const detail =
     params.hasGatedCoreEntries && params.hasOtherEntries
-      ? "Some entries are shipped core tools but unavailable in the current runtime/provider/model/config; other entries won't match any tool unless the plugin is enabled."
+      ? "Some entries are shipped core tools but are not active for this run (for example owner-only tools in a non-owner session, or tools disabled by runtime/provider/model/config); other entries won't match any tool unless the plugin is enabled."
       : params.hasGatedCoreEntries
-        ? "These entries are shipped core tools but unavailable in the current runtime/provider/model/config."
+        ? "These entries are shipped core tools but are not active for this run; this usually means owner-only tools in a non-owner session, or tools disabled by the runtime/provider/model/config."
         : "These entries won't match any tool unless the plugin is enabled.";
   return preface ? `${preface} ${detail}` : detail;
 }

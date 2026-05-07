@@ -144,6 +144,31 @@ describe("stuck session diagnostics threshold", () => {
     expect(events.filter((event) => event.type === "session.stuck")).toHaveLength(1);
   });
 
+  it("throttles repeated stuck session diagnostics for the same processing run", () => {
+    const events: Array<{ type: string }> = [];
+    const unsubscribe = onDiagnosticEvent((event) => {
+      events.push({ type: event.type });
+    });
+    try {
+      startDiagnosticHeartbeat({
+        diagnostics: {
+          enabled: true,
+          stuckSessionWarnMs: 30_000,
+        },
+      });
+      logSessionStateChange({ sessionId: "s1", sessionKey: "main", state: "processing" });
+      vi.advanceTimersByTime(61_000);
+      vi.advanceTimersByTime(240_000);
+      expect(events.filter((event) => event.type === "session.stuck")).toHaveLength(1);
+
+      vi.advanceTimersByTime(60_000);
+    } finally {
+      unsubscribe();
+    }
+
+    expect(events.filter((event) => event.type === "session.stuck")).toHaveLength(2);
+  });
+
   it("starts and stops the stability recorder with the heartbeat lifecycle", () => {
     startDiagnosticHeartbeat({
       diagnostics: {
@@ -236,9 +261,9 @@ describe("stuck session diagnostics threshold", () => {
   });
 
   it("uses default threshold for invalid values", () => {
-    expect(resolveStuckSessionWarnMs({ diagnostics: { stuckSessionWarnMs: -1 } })).toBe(120_000);
-    expect(resolveStuckSessionWarnMs({ diagnostics: { stuckSessionWarnMs: 0 } })).toBe(120_000);
-    expect(resolveStuckSessionWarnMs()).toBe(120_000);
+    expect(resolveStuckSessionWarnMs({ diagnostics: { stuckSessionWarnMs: -1 } })).toBe(180_000);
+    expect(resolveStuckSessionWarnMs({ diagnostics: { stuckSessionWarnMs: 0 } })).toBe(180_000);
+    expect(resolveStuckSessionWarnMs()).toBe(180_000);
   });
 });
 

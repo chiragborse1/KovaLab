@@ -6,6 +6,7 @@ export type SessionState = {
   lastActivity: number;
   state: SessionStateValue;
   queueDepth: number;
+  lastStuckWarnAt?: number;
   toolCallHistory?: ToolCallRecord[];
   toolLoopWarningBuckets?: Map<string, number>;
   commandPollCounts?: Map<string, { count: number; lastPollAt: number }>;

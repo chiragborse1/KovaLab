@@ -671,7 +671,9 @@ describe("TelegramPollingSession", () => {
     expect(cleanupCall?.shouldLog?.(recoverableError)).toBe(false);
     expect(runtimeError).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith(
-      expect.stringContaining("Telegram webhook cleanup failed: deleteWebhook network failed"),
+      expect.stringContaining(
+        "Telegram webhook cleanup network retry: deleteWebhook network failed",
+      ),
     );
   });
 
@@ -1127,7 +1129,7 @@ describe("TelegramPollingSession", () => {
     await session.runUntilAbort();
 
     expect(log).toHaveBeenCalledWith(
-      expect.stringContaining("Another OpenClaw gateway, script, or Telegram poller"),
+      expect.stringContaining("Another Kova gateway, script, or Telegram poller"),
     );
   });
 
