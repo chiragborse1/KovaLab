@@ -167,7 +167,7 @@ describe("bonjour-discovery", () => {
   it("falls back to tailnet DNS probing for wide-area when split DNS is not configured", async () => {
     const calls: Array<{ argv: string[]; timeoutMs: number }> = [];
     const zone = WIDE_AREA_DOMAIN.replace(/\.$/, "");
-    const serviceBase = `_openclaw-gw._tcp.${zone}`;
+    const serviceBase = `_kova-gw._tcp.${zone}`;
     const studioService = `studio-gateway.${serviceBase}`;
 
     const run = vi.fn(async (argv: string[], options: { timeoutMs: number }) => {
@@ -305,7 +305,7 @@ describe("bonjour-discovery", () => {
       run: run as unknown as typeof runCommandWithTimeout,
     });
 
-    expect(calls.filter((c) => c[1] === "-B")).toHaveLength(1);
-    expect(calls.find((c) => c[1] === "-B")?.[3]).toBe("local.");
+    expect(calls.filter((c) => c[1] === "-B")).toHaveLength(2);
+    expect(calls.filter((c) => c[1] === "-B").map((c) => c[3])).toEqual(["local.", "local."]);
   });
 });

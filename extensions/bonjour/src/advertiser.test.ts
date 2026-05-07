@@ -37,6 +37,7 @@ function enableAdvertiserUnitMode(hostname = "test-host") {
   // Allow advertiser to run in unit tests.
   delete process.env.VITEST;
   process.env.NODE_ENV = "development";
+  process.env.OPENCLAW_DISABLE_BONJOUR = "0";
   vi.spyOn(os, "hostname").mockReturnValue(hostname);
   process.env.OPENCLAW_MDNS_HOSTNAME = hostname;
 }
@@ -152,7 +153,7 @@ describe("gateway bonjour advertiser", () => {
 
     expect(createService).toHaveBeenCalledTimes(1);
     const [gatewayCall] = createService.mock.calls as Array<[Record<string, unknown>]>;
-    expect(gatewayCall?.[0]?.type).toBe("openclaw-gw");
+    expect(gatewayCall?.[0]?.type).toBe("kova-gw");
     const gatewayType = asString(gatewayCall?.[0]?.type, "");
     expect(gatewayType.length).toBeLessThanOrEqual(15);
     expect(gatewayCall?.[0]?.port).toBe(18789);
@@ -217,6 +218,7 @@ describe("gateway bonjour advertiser", () => {
 
   it("auto-disables Bonjour in detected containers", async () => {
     enableAdvertiserUnitMode();
+    delete process.env.OPENCLAW_DISABLE_BONJOUR;
     vi.spyOn(fs, "existsSync").mockImplementation((filePath) => String(filePath) === "/.dockerenv");
 
     const started = await startAdvertiser({
@@ -688,10 +690,7 @@ describe("gateway bonjour advertiser", () => {
   });
 
   it("normalizes hostnames with domains for service names", async () => {
-    // Allow advertiser to run in unit tests.
-    delete process.env.VITEST;
-    process.env.NODE_ENV = "development";
-
+    enableAdvertiserUnitMode("Mac.localdomain");
     vi.spyOn(os, "hostname").mockReturnValue("Mac.localdomain");
 
     const destroy = vi.fn().mockResolvedValue(undefined);
@@ -712,10 +711,8 @@ describe("gateway bonjour advertiser", () => {
     await started.stop();
   });
 
-  it("falls back to openclaw when system hostname is invalid for DNS", async () => {
-    // Allow advertiser to run in unit tests.
-    delete process.env.VITEST;
-    process.env.NODE_ENV = "development";
+  it("falls back to kova when system hostname is invalid for DNS", async () => {
+    enableAdvertiserUnitMode();
     delete process.env.OPENCLAW_MDNS_HOSTNAME;
     vi.spyOn(os, "hostname").mockReturnValue("My_Lobster Host");
 
@@ -729,16 +726,14 @@ describe("gateway bonjour advertiser", () => {
     });
 
     const [gatewayCall] = createService.mock.calls as Array<[ServiceCall]>;
-    expect(gatewayCall?.[0]?.hostname).toBe("openclaw");
-    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("openclaw.local");
+    expect(gatewayCall?.[0]?.hostname).toBe("kova");
+    expect((gatewayCall?.[0]?.txt as Record<string, string>)?.lanHost).toBe("kova.local");
 
     await started.stop();
   });
 
   it("uses system hostname when OPENCLAW_MDNS_HOSTNAME is unset", async () => {
-    // Allow advertiser to run in unit tests.
-    delete process.env.VITEST;
-    process.env.NODE_ENV = "development";
+    enableAdvertiserUnitMode();
     delete process.env.OPENCLAW_MDNS_HOSTNAME;
     vi.spyOn(os, "hostname").mockReturnValue("Lobster");
 

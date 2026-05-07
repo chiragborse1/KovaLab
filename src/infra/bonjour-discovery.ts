@@ -67,7 +67,27 @@ export type GatewayBonjourDiscoverOpts = {
 };
 
 const DEFAULT_TIMEOUT_MS = 2000;
-const GATEWAY_SERVICE_TYPE = "_openclaw-gw._tcp";
+const GATEWAY_SERVICE_TYPE = "_kova-gw._tcp";
+const LEGACY_GATEWAY_SERVICE_TYPE = "_openclaw-gw._tcp";
+const GATEWAY_SERVICE_TYPES = [GATEWAY_SERVICE_TYPE, LEGACY_GATEWAY_SERVICE_TYPE] as const;
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function includesGatewayServiceType(line: string): boolean {
+  return GATEWAY_SERVICE_TYPES.some((serviceType) => line.includes(serviceType));
+}
+
+function stripGatewayServiceSuffix(ptrName: string): string {
+  for (const serviceType of GATEWAY_SERVICE_TYPES) {
+    const stripped = ptrName.replace(new RegExp(`\\.?${escapeRegex(serviceType)}\\..*$`), "");
+    if (stripped !== ptrName) {
+      return stripped;
+    }
+  }
+  return ptrName;
+}
 
 function decodeDnsSdEscapes(value: string): string {
   let decoded = false;
@@ -223,13 +243,15 @@ function parseDnsSdBrowse(stdout: string): string[] {
   const instances = new Set<string>();
   for (const raw of stdout.split("\n")) {
     const line = raw.trim();
-    if (!line || !line.includes(GATEWAY_SERVICE_TYPE)) {
+    if (!line || !includesGatewayServiceType(line)) {
       continue;
     }
     if (!line.includes("Add")) {
       continue;
     }
-    const match = line.match(/_openclaw-gw\._tcp\.?\s+(.+)$/);
+    const match = GATEWAY_SERVICE_TYPES.map((serviceType) =>
+      line.match(new RegExp(`${escapeRegex(serviceType)}\\.?\\s+(.+)$`)),
+    ).find((candidate) => candidate?.[1]);
     if (match?.[1]) {
       instances.add(decodeDnsSdEscapes(match[1].trim()));
     }
@@ -304,18 +326,29 @@ async function discoverViaDnsSd(
   timeoutMs: number,
   run: typeof runCommandWithTimeout,
 ): Promise<GatewayBonjourBeacon[]> {
-  const browse = await run(["dns-sd", "-B", GATEWAY_SERVICE_TYPE, domain], {
-    timeoutMs,
-  });
-  const instances = parseDnsSdBrowse(browse.stdout);
   const results: GatewayBonjourBeacon[] = [];
-  for (const instance of instances) {
-    const resolved = await run(["dns-sd", "-L", instance, GATEWAY_SERVICE_TYPE, domain], {
+  const seen = new Set<string>();
+  for (const serviceType of GATEWAY_SERVICE_TYPES) {
+    const browse = await run(["dns-sd", "-B", serviceType, domain], {
       timeoutMs,
-    });
-    const parsed = parseDnsSdResolve(resolved.stdout, instance);
-    if (parsed) {
-      results.push({ ...parsed, domain });
+    }).catch(() => null);
+    if (!browse) {
+      continue;
+    }
+    const instances = parseDnsSdBrowse(browse.stdout);
+    for (const instance of instances) {
+      const resolved = await run(["dns-sd", "-L", instance, serviceType, domain], {
+        timeoutMs,
+      }).catch(() => null);
+      if (!resolved) {
+        continue;
+      }
+      const parsed = parseDnsSdResolve(resolved.stdout, instance);
+      const key = `${domain}\0${parsed?.instanceName ?? instance}`;
+      if (parsed && !seen.has(key)) {
+        seen.add(key);
+        results.push({ ...parsed, domain });
+      }
     }
   }
   return results;
@@ -417,7 +450,7 @@ async function discoverWideAreaViaTailnetDns(
     if (!ptrName) {
       continue;
     }
-    const instanceName = ptrName.replace(/\.?_openclaw-gw\._tcp\..*$/, "");
+    const instanceName = stripGatewayServiceSuffix(ptrName);
 
     const srv = await run(["dig", "+short", "+time=1", "+tries=1", nameserverArg, ptrName, "SRV"], {
       timeoutMs: Math.max(1, Math.min(350, budget)),
@@ -486,12 +519,14 @@ function parseAvahiBrowse(stdout: string): GatewayBonjourBeacon[] {
     if (!line) {
       continue;
     }
-    if (line.startsWith("=") && line.includes(GATEWAY_SERVICE_TYPE)) {
+    if (line.startsWith("=") && includesGatewayServiceType(line)) {
       if (current) {
         results.push(current);
       }
-      const marker = ` ${GATEWAY_SERVICE_TYPE}`;
-      const idx = line.indexOf(marker);
+      const idx =
+        GATEWAY_SERVICE_TYPES.map((serviceType) => line.indexOf(` ${serviceType}`)).find(
+          (candidate) => candidate >= 0,
+        ) ?? -1;
       const left = idx >= 0 ? line.slice(0, idx).trim() : line;
       const parts = left.split(/\s+/);
       const instanceName = parts.length > 3 ? parts.slice(3).join(" ") : left;
@@ -568,13 +603,28 @@ async function discoverViaAvahi(
   timeoutMs: number,
   run: typeof runCommandWithTimeout,
 ): Promise<GatewayBonjourBeacon[]> {
-  const args = ["avahi-browse", "-rt", GATEWAY_SERVICE_TYPE];
-  if (domain && domain !== "local.") {
-    // avahi-browse wants a plain domain (no trailing dot)
-    args.push("-d", domain.replace(/\.$/, ""));
+  const results: GatewayBonjourBeacon[] = [];
+  const seen = new Set<string>();
+  for (const serviceType of GATEWAY_SERVICE_TYPES) {
+    const args = ["avahi-browse", "-rt", serviceType];
+    if (domain && domain !== "local.") {
+      // avahi-browse wants a plain domain (no trailing dot)
+      args.push("-d", domain.replace(/\.$/, ""));
+    }
+    const browse = await run(args, { timeoutMs }).catch(() => null);
+    if (!browse) {
+      continue;
+    }
+    for (const beacon of parseAvahiBrowse(browse.stdout)) {
+      const key = `${domain}\0${beacon.instanceName}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      results.push({ ...beacon, domain });
+    }
   }
-  const browse = await run(args, { timeoutMs });
-  return parseAvahiBrowse(browse.stdout).map((beacon) => Object.assign({}, beacon, { domain }));
+  return results;
 }
 
 export async function discoverGatewayBeacons(
