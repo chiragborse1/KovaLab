@@ -20,7 +20,7 @@ import {
   globalInstallFallbackArgs,
   isExplicitPackageInstallSpec,
   isMainPackageTarget,
-  OPENCLAW_MAIN_PACKAGE_SPEC,
+  KOVA_MAIN_PACKAGE_SPEC,
   resolveGlobalInstallCommand,
   resolveGlobalPackageRoot,
   resolveGlobalInstallTarget,
@@ -117,15 +117,15 @@ describe("update global helpers", () => {
   });
 
   it("maps main and explicit install specs for global installs", () => {
-    expect(resolveGlobalInstallSpec({ packageName: "openclaw", tag: "main" })).toBe(
-      OPENCLAW_MAIN_PACKAGE_SPEC,
+    expect(resolveGlobalInstallSpec({ packageName: "getkova", tag: "main" })).toBe(
+      KOVA_MAIN_PACKAGE_SPEC,
     );
     expect(
       resolveGlobalInstallSpec({
-        packageName: "openclaw",
-        tag: "github:openclaw/openclaw#feature/my-branch",
+        packageName: "getkova",
+        tag: "github:chiragborse1/KovaLab#feature/my-branch",
       }),
-    ).toBe("github:openclaw/openclaw#feature/my-branch");
+    ).toBe("github:chiragborse1/KovaLab#feature/my-branch");
     expect(
       resolveGlobalInstallSpec({
         packageName: "openclaw",
@@ -153,7 +153,7 @@ describe("update global helpers", () => {
     expect(isMainPackageTarget(" MAIN ")).toBe(true);
     expect(isMainPackageTarget("beta")).toBe(false);
 
-    expect(isExplicitPackageInstallSpec("github:openclaw/openclaw#main")).toBe(true);
+    expect(isExplicitPackageInstallSpec("github:chiragborse1/KovaLab#main")).toBe(true);
     expect(isExplicitPackageInstallSpec("https://example.com/openclaw-main.tgz")).toBe(true);
     expect(isExplicitPackageInstallSpec("file:/tmp/openclaw-main.tgz")).toBe(true);
     expect(isExplicitPackageInstallSpec("beta")).toBe(false);
@@ -161,7 +161,9 @@ describe("update global helpers", () => {
     expect(canResolveRegistryVersionForPackageTarget("latest")).toBe(true);
     expect(canResolveRegistryVersionForPackageTarget("2026.3.22")).toBe(true);
     expect(canResolveRegistryVersionForPackageTarget("main")).toBe(false);
-    expect(canResolveRegistryVersionForPackageTarget("github:openclaw/openclaw#main")).toBe(false);
+    expect(canResolveRegistryVersionForPackageTarget("github:chiragborse1/KovaLab#main")).toBe(
+      false,
+    );
   });
 
   it("detects install managers from resolved roots and on-disk presence", async () => {

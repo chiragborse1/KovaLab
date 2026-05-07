@@ -6,6 +6,8 @@ import { detectPackageManager as detectPackageManagerImpl } from "./detect-packa
 import { compareComparableSemver, parseComparableSemver } from "./semver-compare.js";
 import { channelToNpmTag, type UpdateChannel } from "./update-channels.js";
 
+const NPM_PACKAGE_NAME = "getkova";
+
 export type PackageManager = "pnpm" | "bun" | "npm" | "unknown";
 
 export type GitUpdateStatus = {
@@ -310,7 +312,7 @@ export async function fetchNpmPackageTargetStatus(params: {
   const target = params.target;
   try {
     const res = await fetchWithTimeout(
-      `https://registry.npmjs.org/openclaw/${encodeURIComponent(target)}`,
+      `https://registry.npmjs.org/${NPM_PACKAGE_NAME}/${encodeURIComponent(target)}`,
       {},
       Math.max(250, timeoutMs),
     );

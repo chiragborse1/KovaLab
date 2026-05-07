@@ -35,7 +35,7 @@ const PRIMARY_PACKAGE_NAME = "getkova";
 const LEGACY_PACKAGE_NAMES = ["openclaw"] as const;
 const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME, ...LEGACY_PACKAGE_NAMES] as const;
 const GLOBAL_RENAME_PREFIX = ".";
-export const OPENCLAW_MAIN_PACKAGE_SPEC = "github:openclaw/openclaw#main";
+export const KOVA_MAIN_PACKAGE_SPEC = "github:chiragborse1/KovaLab#main";
 const COREPACK_ENABLE_DOWNLOAD_PROMPT_DEFAULT = "0";
 const NPM_GLOBAL_INSTALL_QUIET_FLAGS = ["--no-fund", "--no-audit", "--loglevel=error"] as const;
 const NPM_GLOBAL_INSTALL_OMIT_OPTIONAL_FLAGS = [
@@ -305,6 +305,8 @@ export function resolveGlobalInstallSpec(params: {
   env?: NodeJS.ProcessEnv;
 }): string {
   const override =
+    params.env?.KOVA_UPDATE_PACKAGE_SPEC?.trim() ||
+    process.env.KOVA_UPDATE_PACKAGE_SPEC?.trim() ||
     params.env?.OPENCLAW_UPDATE_PACKAGE_SPEC?.trim() ||
     process.env.OPENCLAW_UPDATE_PACKAGE_SPEC?.trim();
   if (override) {
@@ -312,7 +314,7 @@ export function resolveGlobalInstallSpec(params: {
   }
   const target = normalizePackageTarget(params.tag);
   if (isMainPackageTarget(target)) {
-    return OPENCLAW_MAIN_PACKAGE_SPEC;
+    return KOVA_MAIN_PACKAGE_SPEC;
   }
   if (isExplicitPackageInstallSpec(target)) {
     return target;
@@ -467,7 +469,9 @@ export async function resolveGlobalInstallTarget(params: {
   return {
     ...command,
     globalRoot,
-    packageRoot: globalRoot ? await resolveKnownGlobalPackageRoot(globalRoot, params.pkgRoot) : null,
+    packageRoot: globalRoot
+      ? await resolveKnownGlobalPackageRoot(globalRoot, params.pkgRoot)
+      : null,
   };
 }
 

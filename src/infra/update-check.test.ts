@@ -36,14 +36,17 @@ describe("compareSemverStrings", () => {
 
 describe("resolveNpmChannelTag", () => {
   let versionByTag: Record<string, string | null>;
+  let requestedUrls: string[];
 
   beforeEach(() => {
     versionByTag = {};
+    requestedUrls = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url =
           typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        requestedUrls.push(url);
         const tag = decodeURIComponent(url.split("/").pop() ?? "");
         const version = versionByTag[tag] ?? null;
         return {
@@ -121,6 +124,7 @@ describe("resolveNpmChannelTag", () => {
       version: null,
       error: "HTTP 404",
     });
+    expect(requestedUrls).toContain("https://registry.npmjs.org/getkova/latest");
   });
 });
 
