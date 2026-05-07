@@ -19,6 +19,8 @@ const STARTUP_CHAT_HISTORY_RETRY_TIMEOUT_MS = 60_000;
 const STARTUP_CHAT_HISTORY_DEFAULT_RETRY_MS = 500;
 const STARTUP_CHAT_HISTORY_MAX_RETRY_MS = 5_000;
 const chatHistoryRequestVersions = new WeakMap<object, number>();
+const handledTerminalChatEvents = new WeakMap<object, Set<string>>();
+const MAX_HANDLED_TERMINAL_CHAT_EVENTS = 200;
 
 function beginChatHistoryRequest(state: ChatState): number {
   const key = state as object;
@@ -37,6 +39,42 @@ function shouldApplyChatHistoryResult(
   sessionKey: string,
 ): boolean {
   return isLatestChatHistoryRequest(state, version) && state.sessionKey === sessionKey;
+}
+
+function isTerminalChatEventState(state: ChatEventPayload["state"]): boolean {
+  return state === "final" || state === "aborted" || state === "error";
+}
+
+function terminalChatEventKey(payload: ChatEventPayload): string | null {
+  if (!payload.runId || !payload.sessionKey || !isTerminalChatEventState(payload.state)) {
+    return null;
+  }
+  return `${payload.sessionKey}\0${payload.runId}\0${payload.state}`;
+}
+
+function hasHandledTerminalChatEvent(state: ChatState, payload: ChatEventPayload): boolean {
+  const key = terminalChatEventKey(payload);
+  if (!key) {
+    return false;
+  }
+  return handledTerminalChatEvents.get(state as object)?.has(key) === true;
+}
+
+function rememberHandledTerminalChatEvent(state: ChatState, payload: ChatEventPayload) {
+  const key = terminalChatEventKey(payload);
+  if (!key) {
+    return;
+  }
+  const hostKey = state as object;
+  const existing = handledTerminalChatEvents.get(hostKey) ?? new Set<string>();
+  if (existing.size >= MAX_HANDLED_TERMINAL_CHAT_EVENTS) {
+    const oldest = existing.values().next().value;
+    if (typeof oldest === "string") {
+      existing.delete(oldest);
+    }
+  }
+  existing.add(key);
+  handledTerminalChatEvents.set(hostKey, existing);
 }
 
 function isSilentReplyStream(text: string): boolean {
@@ -695,11 +733,15 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   if (payload.sessionKey !== state.sessionKey) {
     return null;
   }
+  if (hasHandledTerminalChatEvent(state, payload)) {
+    return null;
+  }
 
   // Final from another run (e.g. sub-agent announce): refresh history to show new message.
   // See https://github.com/openclaw/openclaw/issues/1909
   if (payload.runId && state.chatRunId && payload.runId !== state.chatRunId) {
     if (payload.state === "final") {
+      rememberHandledTerminalChatEvent(state, payload);
       const finalMessage = normalizeFinalAssistantMessage(payload.message);
       if (finalMessage && !isAssistantSilentReply(finalMessage)) {
         state.chatMessages = [...state.chatMessages, finalMessage];
@@ -716,6 +758,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
       state.chatStream = next;
     }
   } else if (payload.state === "final") {
+    rememberHandledTerminalChatEvent(state, payload);
     const finalMessage = normalizeFinalAssistantMessage(payload.message);
     if (finalMessage && !isAssistantSilentReply(finalMessage)) {
       state.chatMessages = [...state.chatMessages, finalMessage];
@@ -733,6 +776,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "aborted") {
+    rememberHandledTerminalChatEvent(state, payload);
     const normalizedMessage = normalizeAbortedAssistantMessage(payload.message);
     if (normalizedMessage && !isAssistantSilentReply(normalizedMessage)) {
       state.chatMessages = [...state.chatMessages, normalizedMessage];
@@ -753,6 +797,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "error") {
+    rememberHandledTerminalChatEvent(state, payload);
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
