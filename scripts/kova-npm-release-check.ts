@@ -70,6 +70,12 @@ const MAX_CALVER_DISTANCE_DAYS = 2;
 const REQUIRED_PACKED_PATHS = [
   PACKAGE_DIST_INVENTORY_RELATIVE_PATH,
   "dist/control-ui/index.html",
+  "docs/index.md",
+  "docs/cli/gateway.md",
+  "docs/web/control-ui.md",
+  "patches/@agentclientprotocol__claude-agent-acp@0.31.0.patch",
+  "patches/@whiskeysockets__baileys@7.0.0-rc.9.patch",
+  "scripts/lib/official-external-channel-catalog.json",
   ...WORKSPACE_TEMPLATE_PACK_PATHS,
 ];
 const CONTROL_UI_ASSET_PREFIX = "dist/control-ui/assets/";
