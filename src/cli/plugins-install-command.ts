@@ -19,6 +19,7 @@ import {
   installPluginFromMarketplace,
   resolveMarketplaceInstallShortcut,
 } from "../plugins/marketplace.js";
+import { resolveOfficialExternalPluginNpmSpec } from "../plugins/official-external-plugin-catalog.js";
 import { validateJsonSchemaValue } from "../plugins/schema-validator.js";
 import { defaultRuntime } from "../runtime.js";
 import { theme } from "../terminal/theme.js";
@@ -430,7 +431,13 @@ export async function runPluginInstallCommand(params: {
     return defaultRuntime.exit(1);
   }
 
-  const raw = shorthand?.ok ? shorthand.plugin : params.raw;
+  let raw = shorthand?.ok ? shorthand.plugin : params.raw;
+  const officialNpmSpec = !params.opts.marketplace
+    ? resolveOfficialExternalPluginNpmSpec(raw)
+    : undefined;
+  if (officialNpmSpec) {
+    raw = `npm:${officialNpmSpec}`;
+  }
   const opts = {
     ...params.opts,
     marketplace:

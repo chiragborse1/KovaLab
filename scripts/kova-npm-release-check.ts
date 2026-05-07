@@ -76,6 +76,7 @@ const REQUIRED_PACKED_PATHS = [
   "patches/@agentclientprotocol__claude-agent-acp@0.31.0.patch",
   "patches/@whiskeysockets__baileys@7.0.0-rc.9.patch",
   "scripts/lib/official-external-channel-catalog.json",
+  "scripts/lib/official-external-plugin-catalog.json",
   ...WORKSPACE_TEMPLATE_PACK_PATHS,
 ];
 const CONTROL_UI_ASSET_PREFIX = "dist/control-ui/assets/";

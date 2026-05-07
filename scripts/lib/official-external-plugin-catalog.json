@@ -1,0 +1,106 @@
+{
+  "entries": [
+    {
+      "name": "@kovaai/diagnostics-otel",
+      "description": "Kova diagnostics OpenTelemetry exporter",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "diagnostics-otel",
+          "label": "Diagnostics OpenTelemetry"
+        },
+        "install": {
+          "npmSpec": "@kovaai/diagnostics-otel",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/diagnostics-prometheus",
+      "description": "Kova diagnostics Prometheus exporter",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "diagnostics-prometheus",
+          "label": "Diagnostics Prometheus"
+        },
+        "install": {
+          "npmSpec": "@kovaai/diagnostics-prometheus",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/google-meet",
+      "description": "Kova Google Meet participant plugin",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "google-meet",
+          "label": "Google Meet"
+        },
+        "install": {
+          "npmSpec": "@kovaai/google-meet",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/lobster",
+      "description": "Kova workflow tool plugin",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "lobster",
+          "label": "Kova Workflow"
+        },
+        "install": {
+          "npmSpec": "@kovaai/lobster",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/memory-lancedb",
+      "description": "Kova LanceDB-backed long-term memory plugin",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "memory-lancedb",
+          "label": "Memory LanceDB"
+        },
+        "install": {
+          "npmSpec": "@kovaai/memory-lancedb",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
+      "name": "@kovaai/voice-call",
+      "description": "Kova voice-call plugin",
+      "source": "official",
+      "kind": "plugin",
+      "openclaw": {
+        "plugin": {
+          "id": "voice-call",
+          "label": "Voice Call"
+        },
+        "install": {
+          "npmSpec": "@kovaai/voice-call",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    }
+  ]
+}
