@@ -31,6 +31,21 @@ function packageRelativePathExists(packageDir, relativePath) {
   return fs.existsSync(path.join(packageDir, relativePath));
 }
 
+function normalizeRepositoryForNpmProvenance(repository) {
+  if (!repository || typeof repository !== "object" || Array.isArray(repository)) {
+    return repository;
+  }
+  const url = typeof repository.url === "string" ? repository.url.trim() : "";
+  if (!url) {
+    return repository;
+  }
+  const normalizedUrl = url.replace(/^git\+/u, "").replace(/\.git$/u, "");
+  return {
+    ...repository,
+    url: normalizedUrl,
+  };
+}
+
 function assertPluginNpmRuntimeBuildExists(plan) {
   const missing = listPluginNpmRuntimeBuildOutputs(plan).filter(
     (runtimePath) => !packageRelativePathExists(plan.packageDir, runtimePath.replace(/^\.\//u, "")),
@@ -76,6 +91,11 @@ export function resolveAugmentedPluginNpmPackageJson(params) {
   const packageJson = {
     ...plan.packageJson,
     files: plan.packageFiles,
+    repository: normalizeRepositoryForNpmProvenance(
+      plan.packageJson.repository ?? plan.rootPackageJson?.repository,
+    ),
+    homepage: plan.packageJson.homepage ?? plan.rootPackageJson?.homepage,
+    bugs: plan.packageJson.bugs ?? plan.rootPackageJson?.bugs,
     peerDependencies: plan.packagePeerMetadata.peerDependencies,
     peerDependenciesMeta: plan.packagePeerMetadata.peerDependenciesMeta,
     openclaw: {
