@@ -27,6 +27,7 @@ describe("security audit loopback and logging findings", () => {
           gateway: {
             bind: "loopback",
             controlUi: { enabled: true },
+            auth: { mode: "trusted-proxy" },
           },
         };
         expect(
@@ -36,6 +37,22 @@ describe("security audit loopback and logging findings", () => {
             collectGatewayConfigFindings(cfg, cfg, process.env),
           ),
         ).toBe(true);
+      })(),
+      (async () => {
+        const cfg: OpenClawConfig = {
+          gateway: {
+            bind: "loopback",
+            controlUi: { enabled: true },
+            auth: { mode: "token", token: "test-token" },
+          },
+        };
+        expect(
+          hasGatewayFinding(
+            "gateway.trusted_proxies_missing",
+            "warn",
+            collectGatewayConfigFindings(cfg, cfg, process.env),
+          ),
+        ).toBe(false);
       })(),
       withEnvAsync(
         {

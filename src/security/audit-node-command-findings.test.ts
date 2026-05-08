@@ -56,6 +56,26 @@ describe("security audit node command findings", () => {
         detailIncludes: ["zzzzzzzzzzzzzz"],
         detailExcludes: ["did you mean"],
       },
+      {
+        name: "accepts dangerous denyCommands even when not allowlisted",
+        cfg: {
+          gateway: {
+            nodes: {
+              denyCommands: [
+                "camera.snap",
+                "camera.clip",
+                "screen.record",
+                "contacts.add",
+                "calendar.add",
+                "reminders.add",
+                "sms.send",
+                "sms.search",
+              ],
+            },
+          },
+        } satisfies OpenClawConfig,
+        expectedAbsent: true,
+      },
     ] as const;
 
     for (const testCase of cases) {
@@ -63,6 +83,10 @@ describe("security audit node command findings", () => {
       const finding = findings.find(
         (entry) => entry.checkId === "gateway.nodes.deny_commands_ineffective",
       );
+      if ("expectedAbsent" in testCase && testCase.expectedAbsent) {
+        expect(finding, testCase.name).toBeUndefined();
+        continue;
+      }
       expect(finding?.severity, testCase.name).toBe("warn");
       expectDetailText({
         detail: finding?.detail,

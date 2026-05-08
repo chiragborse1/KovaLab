@@ -116,7 +116,8 @@ export function collectGatewayConfigFindings(
     });
   }
 
-  if (bind === "loopback" && controlUiEnabled && trustedProxies.length === 0) {
+  const usesProxyTrust = auth.mode === "trusted-proxy" || allowRealIpFallback;
+  if (bind === "loopback" && controlUiEnabled && usesProxyTrust && trustedProxies.length === 0) {
     findings.push({
       checkId: "gateway.trusted_proxies_missing",
       severity: "warn",

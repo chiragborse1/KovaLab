@@ -181,6 +181,12 @@ function listKnownNodeCommands(cfg: OpenClawConfig): Set<string> {
     },
   };
   const out = new Set<string>();
+  for (const cmd of DEFAULT_DANGEROUS_NODE_COMMANDS) {
+    const normalized = normalizeNodeCommand(cmd);
+    if (normalized) {
+      out.add(normalized);
+    }
+  }
   for (const platform of ["ios", "android", "macos", "linux", "windows", "unknown"]) {
     const allow = resolveNodeCommandAllowlist(baseCfg, { platform });
     for (const cmd of allow) {
