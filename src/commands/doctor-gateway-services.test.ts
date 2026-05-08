@@ -35,6 +35,9 @@ const mocks = vi.hoisted(() => ({
   resolveIsNixMode: vi.fn(() => false),
   findExtraGatewayServices: vi.fn().mockResolvedValue([]),
   renderGatewayServiceCleanupHints: vi.fn().mockReturnValue([]),
+  needsNodeRuntimeMigration: vi.fn(() => false),
+  renderSystemNodeWarning: vi.fn().mockReturnValue(undefined),
+  resolveSystemNodeInfo: vi.fn().mockResolvedValue(null),
   uninstallLegacySystemdUnits: vi.fn().mockResolvedValue([]),
   note: vi.fn(),
 }));
@@ -58,13 +61,13 @@ vi.mock("../daemon/inspect.js", () => ({
 }));
 
 vi.mock("../daemon/runtime-paths.js", () => ({
-  renderSystemNodeWarning: vi.fn().mockReturnValue(undefined),
-  resolveSystemNodeInfo: vi.fn().mockResolvedValue(null),
+  renderSystemNodeWarning: mocks.renderSystemNodeWarning,
+  resolveSystemNodeInfo: mocks.resolveSystemNodeInfo,
 }));
 
 vi.mock("../daemon/service-audit.js", () => ({
   auditGatewayServiceConfig: mocks.auditGatewayServiceConfig,
-  needsNodeRuntimeMigration: vi.fn(() => false),
+  needsNodeRuntimeMigration: mocks.needsNodeRuntimeMigration,
   readEmbeddedGatewayToken: readEmbeddedGatewayTokenForTest,
   SERVICE_AUDIT_CODES: {
     gatewayEntrypointMismatch: testServiceAuditCodes.gatewayEntrypointMismatch,
@@ -230,6 +233,9 @@ describe("maybeRepairGatewayServiceConfig", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fsMocks.realpath.mockImplementation(async (value: string) => value);
+    mocks.needsNodeRuntimeMigration.mockReturnValue(false);
+    mocks.renderSystemNodeWarning.mockReturnValue(undefined);
+    mocks.resolveSystemNodeInfo.mockResolvedValue(null);
     mocks.resolveGatewayAuthTokenForService.mockImplementation(async (cfg: OpenClawConfig, env) => {
       const configToken =
         typeof cfg.gateway?.auth?.token === "string" ? cfg.gateway.auth.token.trim() : undefined;
@@ -283,6 +289,50 @@ describe("maybeRepairGatewayServiceConfig", () => {
     expect(mocks.replaceConfigFile).not.toHaveBeenCalled();
     expect(mocks.stage).not.toHaveBeenCalled();
     expect(mocks.install).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not duplicate gateway runtime warnings already emitted by the node install plan", async () => {
+    const nvmNode = "/home/chirag/.nvm/versions/node/v22.22.2/bin/node";
+    mocks.readCommand.mockResolvedValue({
+      programArguments: [nvmNode, "/usr/local/bin/kova", "gateway", "--port", "18789"],
+      environment: {},
+    });
+    mocks.buildGatewayInstallPlan.mockImplementation(async ({ warn }) => {
+      warn?.(
+        "System Node 20.20.2 at /usr/bin/node is below the required Node 22.14+. Using /home/chirag/.nvm/versions/node/v22.22.2/bin/node for the daemon.",
+        "Gateway runtime",
+      );
+      return {
+        programArguments: [nvmNode, "/usr/local/bin/kova", "gateway", "--port", "18789"],
+        workingDirectory: "/tmp",
+        environment: {},
+      };
+    });
+    mocks.auditGatewayServiceConfig.mockResolvedValue({
+      ok: true,
+      issues: [{ code: "runtime", message: "runtime migration", level: "recommended" }],
+    });
+    mocks.needsNodeRuntimeMigration.mockReturnValue(true);
+    mocks.resolveSystemNodeInfo.mockResolvedValue({
+      path: "/usr/bin/node",
+      version: "20.20.2",
+      supported: false,
+    });
+    mocks.renderSystemNodeWarning.mockReturnValue("duplicate doctor runtime warning");
+
+    await runRepair({ gateway: {} });
+
+    const runtimeNotes = mocks.note.mock.calls.filter(([, title]) => title === "Gateway runtime");
+    const runtimeMessages = runtimeNotes.map(([message]) => message);
+    expect(runtimeMessages).not.toContain("duplicate doctor runtime warning");
+    expect(runtimeMessages).not.toEqual(
+      expect.arrayContaining([expect.stringContaining("not found")]),
+    );
+    expect(runtimeMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Using /home/chirag/.nvm/versions/node/v22.22.2/bin/node"),
+      ]),
+    );
   });
 
   it("passes planned managed env keys into service audit for legacy inline secret detection", async () => {
@@ -805,7 +855,7 @@ describe("maybeScanExtraGatewayServices", () => {
       "Legacy gateway removed",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "Legacy gateway services removed. Installing OpenClaw gateway next.",
+      "Legacy gateway services removed. Installing Kova gateway next.",
     );
   });
 
