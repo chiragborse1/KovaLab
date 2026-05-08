@@ -193,6 +193,39 @@ const resolveRoutedPolicyConversationType = (
   return undefined;
 };
 
+function isExplicitSourceReplyCommand(ctx: FinalizedMsgContext): boolean {
+  if (ctx.CommandSource === "native") {
+    return true;
+  }
+  return ctx.CommandSource === "text" && ctx.CommandAuthorized === true;
+}
+
+function resolveSourceReplyDeliveryMode(params: {
+  cfg: OpenClawConfig;
+  ctx: FinalizedMsgContext;
+  requested?: "automatic" | "message_tool_only";
+}): "automatic" | "message_tool_only" {
+  if (params.requested) {
+    return params.requested;
+  }
+  if (isExplicitSourceReplyCommand(params.ctx)) {
+    return "automatic";
+  }
+  const chatType = normalizeChatType(params.ctx.ChatType);
+  if (chatType === "group" || chatType === "channel") {
+    const configuredMode = params.cfg.messages?.groupChat?.visibleReplies;
+    if (configuredMode === "automatic") {
+      return "automatic";
+    }
+    if (configuredMode === "message_tool") {
+      return "message_tool_only";
+    }
+    const sourceChannel = normalizeMessageChannel(params.ctx.Surface ?? params.ctx.Provider);
+    return sourceChannel === "telegram" ? "message_tool_only" : "automatic";
+  }
+  return "automatic";
+}
+
 const resolveSessionStoreLookup = (
   ctx: FinalizedMsgContext,
   cfg: OpenClawConfig,
@@ -340,19 +373,9 @@ export async function dispatchReplyFromConfig(
     });
   };
 
-  const inboundDedupeClaim = claimInboundDedupe(ctx);
-  if (inboundDedupeClaim.status === "duplicate" || inboundDedupeClaim.status === "inflight") {
-    recordProcessed("skipped", { reason: "duplicate" });
-    return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
-  }
   let inboundDedupeReplayUnsafe = false;
   const markInboundDedupeReplayUnsafe = () => {
     inboundDedupeReplayUnsafe = true;
-  };
-  const commitInboundDedupeIfClaimed = () => {
-    if (inboundDedupeClaim.status === "claimed") {
-      commitInboundDedupe(inboundDedupeClaim.key);
-    }
   };
 
   const initialSessionStoreEntry = resolveSessionStoreLookup(ctx, cfg);
@@ -574,10 +597,10 @@ export async function dispatchReplyFromConfig(
     ? toPluginConversationBinding(pluginOwnedBindingRecord)
     : null;
 
-  // Resolve sendPolicy early so every outbound path below (plugin-binding
-  // notices, fast-abort, normal dispatch) honors suppressDelivery. Under
-  // sendPolicy: "deny" the agent still processes inbound, but no outbound
-  // reply/notice/indicator is allowed. See #53328.
+  // Resolve automatic source-delivery suppression early so every outbound path
+  // below (plugin-binding notices, fast-abort, normal dispatch) honors it. The
+  // agent still processes inbound, but automatic replies/notices/indicators are
+  // blocked; explicit message tool sends remain available.
   const sendPolicy = resolveSendPolicy({
     cfg,
     entry: sessionStoreEntry.entry,
@@ -591,8 +614,35 @@ export async function dispatchReplyFromConfig(
       undefined,
     chatType: sessionStoreEntry.entry?.chatType,
   });
-  const suppressDelivery = sendPolicy === "deny";
+  const sendPolicyDenied = sendPolicy === "deny";
+  const sourceReplyDeliveryMode = resolveSourceReplyDeliveryMode({
+    cfg,
+    ctx,
+    requested: params.replyOptions?.sourceReplyDeliveryMode,
+  });
+  const suppressDelivery = sendPolicyDenied;
+  const deliverySuppressionReason = "sendPolicy: deny";
   const suppressHookUserDelivery = suppressAcpChildUserDelivery || suppressDelivery;
+  const attachSourceReplyDeliveryMode = (
+    result: DispatchFromConfigResult,
+  ): DispatchFromConfigResult =>
+    sourceReplyDeliveryMode === "message_tool_only"
+      ? { ...result, sourceReplyDeliveryMode }
+      : result;
+
+  const inboundDedupeClaim = claimInboundDedupe(ctx);
+  if (inboundDedupeClaim.status === "duplicate" || inboundDedupeClaim.status === "inflight") {
+    recordProcessed("skipped", { reason: "duplicate" });
+    return attachSourceReplyDeliveryMode({
+      queuedFinal: false,
+      counts: dispatcher.getQueuedCounts(),
+    });
+  }
+  const commitInboundDedupeIfClaimed = () => {
+    if (inboundDedupeClaim.status === "claimed") {
+      commitInboundDedupe(inboundDedupeClaim.key);
+    }
+  };
 
   let pluginFallbackReason:
     | "plugin-bound-fallback-missing-plugin"
@@ -607,7 +657,7 @@ export async function dispatchReplyFromConfig(
       // through to normal (suppressed) agent processing so no delivery leaks
       // via the plugin path. See #53328.
       logVerbose(
-        `plugin-bound inbound skipped under sendPolicy: deny (plugin=${pluginOwnedBinding.pluginId} session=${sessionKey ?? "unknown"}); falling through to suppressed agent processing`,
+        `plugin-bound inbound skipped under ${deliverySuppressionReason} (plugin=${pluginOwnedBinding.pluginId} session=${sessionKey ?? "unknown"}); falling through to suppressed agent processing`,
       );
     } else {
       logVerbose(
@@ -637,7 +687,10 @@ export async function dispatchReplyFromConfig(
           markIdle("plugin_binding_dispatch");
           recordProcessed("completed", { reason: "plugin-bound-handled" });
           commitInboundDedupeIfClaimed();
-          return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
+          return attachSourceReplyDeliveryMode({
+            queuedFinal: false,
+            counts: dispatcher.getQueuedCounts(),
+          });
         }
         case "missing_plugin":
         case "no_handler": {
@@ -664,7 +717,10 @@ export async function dispatchReplyFromConfig(
           markIdle("plugin_binding_declined");
           recordProcessed("completed", { reason: "plugin-bound-declined" });
           commitInboundDedupeIfClaimed();
-          return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
+          return attachSourceReplyDeliveryMode({
+            queuedFinal: false,
+            counts: dispatcher.getQueuedCounts(),
+          });
         }
         case "error": {
           logVerbose(
@@ -677,7 +733,10 @@ export async function dispatchReplyFromConfig(
           markIdle("plugin_binding_error");
           recordProcessed("completed", { reason: "plugin-bound-error" });
           commitInboundDedupeIfClaimed();
-          return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
+          return attachSourceReplyDeliveryMode({
+            queuedFinal: false,
+            counts: dispatcher.getQueuedCounts(),
+          });
         }
       }
     }
@@ -742,7 +801,7 @@ export async function dispatchReplyFromConfig(
         }
       } else {
         logVerbose(
-          `dispatch-from-config: fast_abort reply suppressed by sendPolicy: deny (session=${sessionKey ?? "unknown"})`,
+          `dispatch-from-config: fast_abort reply suppressed by ${deliverySuppressionReason} (session=${sessionKey ?? "unknown"})`,
         );
       }
       const counts = dispatcher.getQueuedCounts();
@@ -750,7 +809,7 @@ export async function dispatchReplyFromConfig(
       recordProcessed("completed", { reason: "fast_abort" });
       markIdle("message_completed");
       commitInboundDedupeIfClaimed();
-      return { queuedFinal, counts };
+      return attachSourceReplyDeliveryMode({ queuedFinal, counts });
     }
 
     const isSlackNonDirectSurface =
@@ -829,7 +888,7 @@ export async function dispatchReplyFromConfig(
         recordProcessed("completed", { reason: "before_dispatch_handled" });
         markIdle("message_completed");
         commitInboundDedupeIfClaimed();
-        return { queuedFinal, counts };
+        return attachSourceReplyDeliveryMode({ queuedFinal, counts });
       }
     }
 
@@ -861,10 +920,10 @@ export async function dispatchReplyFromConfig(
       );
       if (replyDispatchResult?.handled) {
         commitInboundDedupeIfClaimed();
-        return {
+        return attachSourceReplyDeliveryMode({
           queuedFinal: replyDispatchResult.queuedFinal,
           counts: replyDispatchResult.counts,
-        };
+        });
       }
     }
 
@@ -872,7 +931,7 @@ export async function dispatchReplyFromConfig(
     // (context, memory, tool calls) but suppress all outbound delivery.
     if (suppressDelivery) {
       logVerbose(
-        `Delivery suppressed by send policy for session ${sessionStoreEntry.sessionKey ?? sessionKey ?? "unknown"} — agent will still process the message`,
+        `Delivery suppressed by ${deliverySuppressionReason} for session ${sessionStoreEntry.sessionKey ?? sessionKey ?? "unknown"} — agent will still process the message`,
       );
     }
 
@@ -1044,6 +1103,7 @@ export async function dispatchReplyFromConfig(
       ctx,
       {
         ...params.replyOptions,
+        sourceReplyDeliveryMode,
         typingPolicy: typing.typingPolicy,
         suppressTyping: typing.suppressTyping,
         onToolResult: (payload: ReplyPayload) => {
@@ -1238,10 +1298,10 @@ export async function dispatchReplyFromConfig(
           },
         );
         if (tailDispatchResult?.handled) {
-          return {
+          return attachSourceReplyDeliveryMode({
             queuedFinal: tailDispatchResult.queuedFinal,
             counts: tailDispatchResult.counts,
-          };
+          });
         }
       }
     }
@@ -1330,7 +1390,7 @@ export async function dispatchReplyFromConfig(
       pluginFallbackReason ? { reason: pluginFallbackReason } : undefined,
     );
     markIdle("message_completed");
-    return { queuedFinal, counts };
+    return attachSourceReplyDeliveryMode({ queuedFinal, counts });
   } catch (err) {
     if (inboundDedupeClaim.status === "claimed") {
       if (inboundDedupeReplayUnsafe) {

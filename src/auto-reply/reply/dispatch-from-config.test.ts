@@ -3344,6 +3344,41 @@ describe("dispatchReplyFromConfig", () => {
     );
   });
 
+  it("keeps message-tool-only delivery mode on duplicate inbound returns", async () => {
+    setNoAbort();
+    const cfg = { diagnostics: { enabled: true } } as OpenClawConfig;
+    const ctx = buildTestCtx({
+      Provider: "telegram",
+      Surface: "telegram",
+      OriginatingChannel: "telegram",
+      OriginatingTo: "telegram:-100123",
+      ChatType: "group",
+      MessageSid: "msg-tool-only-dup",
+      SessionKey: "agent:main:telegram:group:-100123",
+    });
+    const replyResolver = vi.fn(async () => ({ text: "private" }) as ReplyPayload);
+
+    const firstResult = await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher: createDispatcher(),
+      replyResolver,
+    });
+    const duplicateResult = await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher: createDispatcher(),
+      replyResolver,
+    });
+
+    expect(replyResolver).toHaveBeenCalledTimes(1);
+    expect(firstResult.sourceReplyDeliveryMode).toBe("message_tool_only");
+    expect(duplicateResult).toMatchObject({
+      queuedFinal: false,
+      sourceReplyDeliveryMode: "message_tool_only",
+    });
+  });
+
   it("releases inbound dedupe when dispatch fails before completion", async () => {
     setNoAbort();
     const cfg = { diagnostics: { enabled: true } } as OpenClawConfig;
