@@ -102,7 +102,7 @@ async function runBrowserToggle(
   }
   const name = status.profile ?? "openclaw";
   const headlessLabel = params.path === "/start" && status.headless ? " (headless)" : "";
-  defaultRuntime.log(info(`🦞 browser [${name}] running: ${status.running}${headlessLabel}`));
+  defaultRuntime.log(info(`🦄 browser [${name}] running: ${status.running}${headlessLabel}`));
 }
 
 function runBrowserCommand(action: () => Promise<void>) {
@@ -170,7 +170,7 @@ async function runBrowserDoctor(parent: BrowserParentOpts, profile?: string, dee
     ok: status.running,
     detail: status.running
       ? `running${status.cdpReady === false ? ", CDP not ready" : ""}`
-      : "not running; run `openclaw browser start`",
+      : "not running; run `kova browser start`",
   });
 
   try {
@@ -395,11 +395,11 @@ export function registerBrowserManageCommands(
           return;
         }
         if (!result.moved) {
-          defaultRuntime.log(info(`🦞 browser profile already missing.`));
+          defaultRuntime.log(info(`🦄 browser profile already missing.`));
           return;
         }
         const dest = result.to ?? result.from;
-        defaultRuntime.log(info(`🦞 browser profile moved to Trash (${dest})`));
+        defaultRuntime.log(info(`🦄 browser profile moved to Trash (${dest})`));
       });
     });
 
@@ -705,7 +705,7 @@ export function registerBrowserManageCommands(
           const loc = `  ${formatBrowserConnectionSummary(result)}`;
           defaultRuntime.log(
             info(
-              `🦞 Created profile "${result.profile}"\n${loc}\n  color: ${result.color}${
+              `🦄 Created profile "${result.profile}"\n${loc}\n  color: ${result.color}${
                 result.userDataDir ? `\n  userDataDir: ${shortenHomePath(result.userDataDir)}` : ""
               }${opts.driver === "existing-session" ? "\n  driver: existing-session" : ""}`,
             ),
@@ -733,8 +733,8 @@ export function registerBrowserManageCommands(
           return;
         }
         const msg = result.deleted
-          ? `🦞 Deleted profile "${result.profile}" (user data removed)`
-          : `🦞 Deleted profile "${result.profile}" (no user data found)`;
+          ? `🦄 Deleted profile "${result.profile}" (user data removed)`
+          : `🦄 Deleted profile "${result.profile}" (no user data found)`;
         defaultRuntime.log(info(msg));
       });
     });

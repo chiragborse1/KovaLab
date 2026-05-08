@@ -71,7 +71,7 @@ export async function assertBlackHole2chAvailable(params: {
     throw new Error(
       [
         "BlackHole 2ch audio device not found.",
-        "Install BlackHole 2ch and route Chrome input/output through the OpenClaw audio bridge.",
+        "Install BlackHole 2ch and route Chrome input/output through the Kova audio bridge.",
         hint,
       ]
         .filter(Boolean)
@@ -288,16 +288,16 @@ function meetStatusScript(params: { guestName: string; autoJoin: boolean }) {
   let manualActionMessage;
   if (!inCall && (host === "accounts.google.com" || /use your google account|to continue to google meet|choose an account|sign in to (join|continue)/i.test(pageText))) {
     manualActionReason = "google-login-required";
-    manualActionMessage = "Sign in to Google in the OpenClaw browser profile, then retry the Meet join.";
+    manualActionMessage = "Sign in to Google in the Kova browser profile, then retry the Meet join.";
   } else if (!inCall && /asking to be let in|you.?ll join when someone lets you in|waiting to be let in|ask to join/i.test(pageText)) {
     manualActionReason = "meet-admission-required";
-    manualActionMessage = "Admit the OpenClaw browser participant in Google Meet, then retry speech.";
+    manualActionMessage = "Admit the Kova browser participant in Google Meet, then retry speech.";
   } else if (!inCall && /allow.*(microphone|camera)|blocked.*(microphone|camera)|permission.*(microphone|camera)/i.test(pageText)) {
     manualActionReason = "meet-permission-required";
-    manualActionMessage = "Allow microphone/camera permissions for Meet in the OpenClaw browser profile, then retry.";
+    manualActionMessage = "Allow microphone/camera permissions for Meet in the Kova browser profile, then retry.";
   } else if (!inCall && !microphoneChoice && /do you want people to hear you in the meeting/i.test(pageText)) {
     manualActionReason = "meet-audio-choice-required";
-    manualActionMessage = "Meet is showing the microphone choice. Click Use microphone in the OpenClaw browser profile, then retry.";
+    manualActionMessage = "Meet is showing the microphone choice. Click Use microphone in the Kova browser profile, then retry.";
   }
   return JSON.stringify({
     clickedJoin: Boolean(join),
@@ -424,7 +424,7 @@ async function openMeetWithBrowserRequest(params: {
         manualActionRequired: true,
         manualActionReason: "browser-control-unavailable",
         manualActionMessage:
-          "Open the OpenClaw browser profile, finish Google Meet login, admission, or permission prompts, then retry.",
+          "Open the Kova browser profile, finish Google Meet login, admission, or permission prompts, then retry.",
         notes: [
           `Browser control could not inspect or auto-join Meet: ${
             error instanceof Error ? error.message : String(error)

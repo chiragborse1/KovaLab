@@ -118,7 +118,7 @@ export function buildBrowserDoctorReport(params: {
       ...(status.cdpHttp || !status.running
         ? {}
         : {
-            fixHint: "Run openclaw browser start or inspect browser.cdpUrl/CDP port reachability.",
+            fixHint: "Run kova browser start or inspect browser.cdpUrl/CDP port reachability.",
           }),
     });
 

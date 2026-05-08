@@ -118,18 +118,18 @@ registerCommand({
  * distribution they run.
  *
  * Note: unlike the standalone build, the built-in plugin is released
- * in-tree with the OpenClaw framework (same version), so an online
+ * in-tree with the Kova framework (same version), so an online
  * npm dist-tag check is not applicable here and is intentionally
  * omitted.
  */
 registerCommand({
   name: "bot-version",
-  description: "查看 QQBot 插件版本和 OpenClaw 框架版本",
-  usage: [`/bot-version`, ``, `查看当前 QQBot 插件版本和 OpenClaw 框架版本。`].join("\n"),
+  description: "查看 QQBot 插件版本和 Kova 框架版本",
+  usage: [`/bot-version`, ``, `查看当前 QQBot 插件版本和 Kova 框架版本。`].join("\n"),
   handler: async () => {
     const frameworkVersion = resolveRuntimeServiceVersion();
     const lines = [
-      `🦞 OpenClaw 框架版本：${frameworkVersion}`,
+      `🦄 Kova 框架版本：${frameworkVersion}`,
       `🤖 QQBot 插件版本：v${PLUGIN_VERSION}`,
       `🌟 官方 GitHub 仓库：[点击前往](${QQBOT_PLUGIN_GITHUB_URL})`,
     ];

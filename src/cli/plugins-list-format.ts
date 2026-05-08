@@ -12,7 +12,9 @@ function humanizeKovaPackageName(packageName: string): string {
     .replace(/\b\w/gu, (letter) => letter.toUpperCase());
 }
 
-function formatPluginDisplayName(plugin: PluginRecord): string {
+export function formatPluginDisplayName(
+  plugin: Pick<PluginRecord, "id" | "name" | "origin">,
+): string {
   const name = plugin.name || plugin.id;
   if (plugin.origin === "bundled" && name.startsWith("@openclaw/")) {
     return `Kova ${humanizeKovaPackageName(name)}`;

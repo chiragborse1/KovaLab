@@ -12,7 +12,7 @@ import { formatDocsLink } from "../terminal/links.js";
 import { getTerminalTableWidth, renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
 import { shortenHomeInString, shortenHomePath } from "../utils.js";
-import { formatPluginLine } from "./plugins-list-format.js";
+import { formatPluginDisplayName, formatPluginLine } from "./plugins-list-format.js";
 
 export type PluginsListOptions = {
   json?: boolean;
@@ -192,9 +192,9 @@ export function registerPluginsCli(program: Command) {
           }
           const sourceLine = desc ? `${formattedSource.value}\n${desc}` : formattedSource.value;
           return {
-            Name: plugin.name || plugin.id,
-            ID: plugin.name && plugin.name !== plugin.id ? plugin.id : "",
-            Format: plugin.format ?? "openclaw",
+            Name: formatPluginDisplayName(plugin),
+            ID: formatPluginDisplayName(plugin) !== plugin.id ? plugin.id : "",
+            Format: plugin.format === "openclaw" ? "kova" : (plugin.format ?? "kova"),
             Status:
               plugin.status === "error"
                 ? theme.error("error")
@@ -290,11 +290,9 @@ export function registerPluginsCli(program: Command) {
 
         const tableWidth = getTerminalTableWidth();
         const rows = inspectAll.map((inspect) => ({
-          Name: inspect.plugin.name || inspect.plugin.id,
+          Name: formatPluginDisplayName(inspect.plugin),
           ID:
-            inspect.plugin.name && inspect.plugin.name !== inspect.plugin.id
-              ? inspect.plugin.id
-              : "",
+            formatPluginDisplayName(inspect.plugin) !== inspect.plugin.id ? inspect.plugin.id : "",
           Status:
             inspect.plugin.status === "loaded"
               ? theme.success("loaded")
@@ -362,8 +360,9 @@ export function registerPluginsCli(program: Command) {
       }
 
       const lines: string[] = [];
-      lines.push(theme.heading(inspect.plugin.name || inspect.plugin.id));
-      if (inspect.plugin.name && inspect.plugin.name !== inspect.plugin.id) {
+      const displayName = formatPluginDisplayName(inspect.plugin);
+      lines.push(theme.heading(displayName));
+      if (displayName !== inspect.plugin.id) {
         lines.push(theme.muted(`id: ${inspect.plugin.id}`));
       }
       if (inspect.plugin.description) {
@@ -377,7 +376,11 @@ export function registerPluginsCli(program: Command) {
       if (inspect.plugin.failedAt) {
         lines.push(`${theme.muted("Failed at:")} ${inspect.plugin.failedAt.toISOString()}`);
       }
-      lines.push(`${theme.muted("Format:")} ${inspect.plugin.format ?? "openclaw"}`);
+      lines.push(
+        `${theme.muted("Format:")} ${
+          inspect.plugin.format === "openclaw" ? "kova" : (inspect.plugin.format ?? "kova")
+        }`,
+      );
       if (inspect.plugin.bundleFormat) {
         lines.push(`${theme.muted("Bundle format:")} ${inspect.plugin.bundleFormat}`);
       }
@@ -820,9 +823,7 @@ export function registerPluginsCli(program: Command) {
       ];
       if (inspection.refreshReasons.length > 0) {
         lines.push(`${theme.muted("Refresh reasons:")} ${inspection.refreshReasons.join(", ")}`);
-        lines.push(
-          `${theme.muted("Repair:")} ${theme.command("openclaw plugins registry --refresh")}`,
-        );
+        lines.push(`${theme.muted("Repair:")} ${theme.command("kova plugins registry --refresh")}`);
       }
       defaultRuntime.log(lines.join("\n"));
     });

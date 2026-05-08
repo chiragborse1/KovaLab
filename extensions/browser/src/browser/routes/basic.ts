@@ -181,7 +181,7 @@ async function runBrowserLiveProbe(req: BrowserRequest, ctx: BrowserRouteContext
       label: "Live snapshot",
       status: "fail" as const,
       summary: String(err),
-      fixHint: "Run openclaw browser start, then retry with openclaw browser doctor --deep.",
+      fixHint: "Run kova browser start, then retry with kova browser doctor --deep.",
     };
   }
 }

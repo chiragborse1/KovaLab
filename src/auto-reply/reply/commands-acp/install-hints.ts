@@ -17,14 +17,14 @@ export function resolveAcpInstallCommandHint(cfg: OpenClawConfig): string {
   if (backendId === "acpx") {
     const workspaceLocalPath = path.join(workspaceDir, "extensions", "acpx");
     if (existsSync(workspaceLocalPath)) {
-      return `openclaw plugins install ${workspaceLocalPath}`;
+      return `kova plugins install ${workspaceLocalPath}`;
     }
     const bundledInstallHint = resolveBundledPluginInstallCommandHint({
       pluginId: backendId,
       workspaceDir,
     });
     if (bundledInstallHint) {
-      const localPath = bundledInstallHint.replace(/^openclaw plugins install /u, "");
+      const localPath = bundledInstallHint.replace(/^(?:openclaw|kova) plugins install /u, "");
       const resolvedLocalPath = path.resolve(localPath);
       const relativeToWorkspace = path.relative(workspaceDir, resolvedLocalPath);
       const belongsToWorkspace =
@@ -34,7 +34,7 @@ export function resolveAcpInstallCommandHint(cfg: OpenClawConfig): string {
         return bundledInstallHint;
       }
     }
-    return "openclaw plugins install acpx";
+    return "kova plugins install acpx";
   }
   return `Install and enable the plugin that provides ACP backend "${backendId}".`;
 }

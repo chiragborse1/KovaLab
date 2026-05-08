@@ -72,16 +72,16 @@ function ensureOptionsKey(options?: BrowserEnsureOptions): string {
 
 function formatLocalPortOwnershipHint(profile: ResolvedBrowserProfile): string {
   const resetHint =
-    `If OpenClaw should own this local profile, run action=reset-profile profile=${profile.name} ` +
+    `If Kova should own this local profile, run action=reset-profile profile=${profile.name} ` +
     "to stop the conflicting process.";
   if (!profile.cdpIsLoopback) {
     return resetHint;
   }
   return (
     `${resetHint} If this port is an externally managed CDP service such as Browserless, ` +
-    `set browser.profiles.${profile.name}.attachOnly=true so OpenClaw attaches without trying ` +
+    `set browser.profiles.${profile.name}.attachOnly=true so Kova attaches without trying ` +
     "to manage the local process. For Browserless Docker, set EXTERNAL to the same WebSocket " +
-    "endpoint OpenClaw can reach via browser.profiles.<name>.cdpUrl."
+    "endpoint Kova can reach via browser.profiles.<name>.cdpUrl."
   );
 }
 

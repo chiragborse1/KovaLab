@@ -135,13 +135,13 @@ function resolveBrowserFetchOperatorHint(
 ): string {
   if (opts?.ownership === "external-browser") {
     return (
-      "The browser profile is external to OpenClaw; make sure its browser/CDP endpoint " +
-      "is running and reachable. Restarting the OpenClaw gateway will not launch it."
+      "The browser profile is external to Kova; make sure its browser/CDP endpoint " +
+      "is running and reachable. Restarting the Kova gateway will not launch it."
     );
   }
   const isLocal = !isAbsoluteHttp(url);
   return isLocal
-    ? `Restart the OpenClaw gateway (OpenClaw.app menubar, or \`${formatCliCommand("openclaw gateway")}\`).`
+    ? `Restart the Kova gateway (or \`${formatCliCommand("openclaw gateway")}\`).`
     : "If this is a sandboxed session, ensure the sandbox browser is running.";
 }
 
@@ -206,7 +206,7 @@ function enhanceBrowserFetchError(url: string, err: unknown, timeoutMs: number):
   const kind = classifyBrowserFetchFailure(err);
   if (kind === "timeout") {
     return new Error(
-      `Can't reach the OpenClaw browser control service (timed out after ${timeoutMs}ms). ${operatorHint}`,
+      `Can't reach the Kova browser control service (timed out after ${timeoutMs}ms). ${operatorHint}`,
       err instanceof Error ? { cause: err } : undefined,
     );
   }
@@ -218,7 +218,7 @@ function enhanceBrowserFetchError(url: string, err: unknown, timeoutMs: number):
   }
   return new Error(
     appendBrowserToolModelHint(
-      `Can't reach the OpenClaw browser control service. ${operatorHint} (${msg})`,
+      `Can't reach the Kova browser control service. ${operatorHint} (${msg})`,
     ),
     err instanceof Error ? { cause: err } : undefined,
   );

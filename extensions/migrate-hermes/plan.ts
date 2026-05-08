@@ -156,7 +156,7 @@ export async function buildHermesPlan(ctx: MigrationProviderContext): Promise<Mi
     summary: summarizeMigrationItems(items),
     items,
     warnings,
-    nextSteps: ["Run openclaw doctor after applying the migration."],
+    nextSteps: ["Run kova doctor after applying the migration."],
     metadata: { agentDir: targets.agentDir },
   };
 }

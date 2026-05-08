@@ -88,7 +88,7 @@ export default definePluginEntry({
       },
       buildUnknownModelHint: () =>
         "vLLM requires authentication to be registered as a provider. " +
-        'Set VLLM_API_KEY (any value works) or run "openclaw configure". ' +
+        'Set VLLM_API_KEY (any value works) or run "kova configure". ' +
         "See: https://docs.neuralstudio.in/providers/vllm",
       wrapStreamFn: wrapVllmProviderStream,
     });
