@@ -27,12 +27,16 @@ describe("resolveFeishuReasoningPreviewEnabled", () => {
 
     expect(
       resolveFeishuReasoningPreviewEnabled({
+        cfg: {},
+        agentId: "main",
         storePath: "/tmp/feishu-sessions.json",
         sessionKey: "agent:main:feishu:dm:ou_sender_1",
       }),
     ).toBe(true);
     expect(
       resolveFeishuReasoningPreviewEnabled({
+        cfg: {},
+        agentId: "main",
         storePath: "/tmp/feishu-sessions.json",
         sessionKey: "agent:main:feishu:dm:ou_sender_2",
       }),
@@ -46,12 +50,46 @@ describe("resolveFeishuReasoningPreviewEnabled", () => {
 
     expect(
       resolveFeishuReasoningPreviewEnabled({
+        cfg: {},
+        agentId: "main",
         storePath: "/tmp/feishu-sessions.json",
         sessionKey: "agent:main:feishu:dm:ou_sender_1",
       }),
     ).toBe(false);
     expect(
       resolveFeishuReasoningPreviewEnabled({
+        cfg: {},
+        agentId: "main",
+        storePath: "/tmp/feishu-sessions.json",
+      }),
+    ).toBe(false);
+  });
+
+  it("uses configured defaults when a session does not override reasoning", () => {
+    loadSessionStoreMock.mockReturnValue({});
+
+    expect(
+      resolveFeishuReasoningPreviewEnabled({
+        cfg: {
+          agents: {
+            defaults: { reasoningDefault: "off" },
+            list: [{ id: "Ops", reasoningDefault: "stream" }],
+          },
+        },
+        agentId: "ops",
+        storePath: "/tmp/feishu-sessions.json",
+        sessionKey: "agent:ops:feishu:dm:ou_sender_1",
+      }),
+    ).toBe(true);
+    expect(
+      resolveFeishuReasoningPreviewEnabled({
+        cfg: {
+          agents: {
+            defaults: { reasoningDefault: "stream" },
+            list: [{ id: "Ops", reasoningDefault: "off" }],
+          },
+        },
+        agentId: "ops",
         storePath: "/tmp/feishu-sessions.json",
       }),
     ).toBe(false);

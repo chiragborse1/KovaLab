@@ -31,6 +31,7 @@ import {
   logVerbose,
   sleepWithAbort,
 } from "openclaw/plugin-sdk/runtime-env";
+import { resolveTelegramConfigReasoningDefault } from "./agent-config.js";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import type { TelegramMessageContext } from "./bot-message-context.js";
 import {
@@ -195,8 +196,9 @@ function resolveTelegramReasoningLevel(params: {
   telegramDeps: TelegramBotDeps;
 }): TelegramReasoningLevel {
   const { cfg, sessionKey, agentId, telegramDeps } = params;
+  const configDefault = resolveTelegramConfigReasoningDefault(cfg, agentId);
   if (!sessionKey) {
-    return "off";
+    return configDefault;
   }
   try {
     const storePath = telegramDeps.resolveStorePath(cfg.session?.store, { agentId });
@@ -205,13 +207,13 @@ function resolveTelegramReasoningLevel(params: {
     });
     const entry = resolveSessionStoreEntry({ store, sessionKey }).existing;
     const level = entry?.reasoningLevel;
-    if (level === "on" || level === "stream") {
+    if (level === "on" || level === "stream" || level === "off") {
       return level;
     }
   } catch {
-    // Fall through to default.
+    return "off";
   }
-  return "off";
+  return configDefault;
 }
 
 const MAX_PROGRESS_MARKDOWN_TEXT_CHARS = 300;

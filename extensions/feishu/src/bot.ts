@@ -1243,6 +1243,8 @@ export async function handleFeishuMessage(params: {
 
         const agentSessionKey = buildBroadcastSessionKey(route.sessionKey, route.agentId, agentId);
         const allowReasoningPreview = resolveFeishuReasoningPreviewEnabled({
+          cfg,
+          agentId,
           storePath: core.channel.session.resolveStorePath(cfg.session?.store, { agentId }),
           sessionKey: agentSessionKey,
         });
@@ -1360,6 +1362,8 @@ export async function handleFeishuMessage(params: {
 
       const identity = resolveAgentOutboundIdentity(cfg, route.agentId);
       const allowReasoningPreview = resolveFeishuReasoningPreviewEnabled({
+        cfg,
+        agentId: route.agentId,
         storePath: core.channel.session.resolveStorePath(cfg.session?.store, {
           agentId: route.agentId,
         }),

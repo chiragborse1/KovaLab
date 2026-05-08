@@ -1023,6 +1023,38 @@ describe("dispatchTelegramMessage draft streaming", () => {
     expect(loadSessionStore).toHaveBeenCalledWith("/tmp/sessions.json", { skipCache: true });
   });
 
+  it("streams reasoning from configured defaults", async () => {
+    const { answerDraftStream, reasoningDraftStream } = setupDraftStreams({
+      answerMessageId: 1001,
+      reasoningMessageId: 111,
+    });
+    dispatchReplyWithBufferedBlockDispatcher.mockImplementation(
+      async ({ dispatcherOptions, replyOptions }) => {
+        await replyOptions?.onReasoningStream?.({ text: "<think>Thinking</think>" });
+        await replyOptions?.onPartialReply?.({ text: "Answer" });
+        await dispatcherOptions.deliver({ text: "Answer" }, { kind: "final" });
+        return { queuedFinal: true };
+      },
+    );
+    deliverReplies.mockResolvedValue({ delivered: true });
+
+    await dispatchWithContext({
+      context: createContext({
+        route: { agentId: "ops" } as unknown as TelegramMessageContext["route"],
+      }),
+      cfg: {
+        agents: {
+          defaults: { reasoningDefault: "off" },
+          list: [{ id: "Ops", reasoningDefault: "stream" }],
+        },
+      },
+      streamMode: "partial",
+    });
+
+    expect(reasoningDraftStream.update).toHaveBeenCalledWith("Reasoning:\n_Thinking_");
+    expect(answerDraftStream.update).toHaveBeenCalledWith("Answer");
+  });
+
   it("does not expose reasoning preview callbacks unless session reasoning is stream", async () => {
     let seenReasoningCallback: unknown;
     const answerDraftStream = createDraftStream(999);
