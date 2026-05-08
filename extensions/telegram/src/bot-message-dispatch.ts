@@ -427,6 +427,9 @@ export const dispatchTelegramMessage = async ({
           onSupersededPreview:
             laneName === "answer" || laneName === "reasoning"
               ? (preview) => {
+                  if (preview.retain) {
+                    return;
+                  }
                   if (laneName === "reasoning") {
                     if (!archivedReasoningPreviewIds.includes(preview.messageId)) {
                       archivedReasoningPreviewIds.push(preview.messageId);

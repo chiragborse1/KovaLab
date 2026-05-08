@@ -2282,6 +2282,49 @@ describe("dispatchTelegramMessage draft streaming", () => {
     expect(deliverReplies).not.toHaveBeenCalled();
   });
 
+  it("keeps retained overflow draft previews", async () => {
+    let answerDraftParams:
+      | {
+          onSupersededPreview?: (preview: {
+            messageId: number;
+            textSnapshot: string;
+            retain?: boolean;
+          }) => void;
+        }
+      | undefined;
+    const answerDraftStream = createDraftStream(1001);
+    const reasoningDraftStream = createDraftStream();
+    createTelegramDraftStream
+      .mockImplementationOnce((params) => {
+        answerDraftParams = params as typeof answerDraftParams;
+        return answerDraftStream;
+      })
+      .mockImplementationOnce(() => reasoningDraftStream);
+    dispatchReplyWithBufferedBlockDispatcher.mockImplementation(async ({ replyOptions }) => {
+      await replyOptions?.onPartialReply?.({ text: "Hello" });
+      answerDraftParams?.onSupersededPreview?.({
+        messageId: 17,
+        textSnapshot: "first page",
+        retain: true,
+      });
+      answerDraftParams?.onSupersededPreview?.({
+        messageId: 18,
+        textSnapshot: "stale page",
+      });
+      return { queuedFinal: true };
+    });
+    deliverReplies.mockResolvedValue({ delivered: true });
+
+    const bot = createBot();
+    await dispatchWithContext({ context: createContext(), streamMode: "partial", bot });
+
+    const deleteMessageCalls = (
+      bot.api as unknown as { deleteMessage: { mock: { calls: unknown[][] } } }
+    ).deleteMessage.mock.calls;
+    expect(deleteMessageCalls).not.toContainEqual([123, 17]);
+    expect(deleteMessageCalls).toContainEqual([123, 18]);
+  });
+
   it("splits reasoning lane only when a later reasoning block starts", async () => {
     const { reasoningDraftStream } = setupDraftStreams({
       answerMessageId: 999,
