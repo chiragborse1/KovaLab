@@ -337,6 +337,7 @@ See [Plugins](/tools/plugin).
     tailscale: {
       mode: "off", // off | serve | funnel
       resetOnExit: false,
+      preserveFunnel: false,
     },
     controlUi: {
       enabled: true,
@@ -404,6 +405,7 @@ See [Plugins](/tools/plugin).
   value, so repeated failures from one localhost origin do not automatically
   lock out a different origin.
 - `tailscale.mode`: `serve` (tailnet only, loopback bind) or `funnel` (public, requires auth).
+- `tailscale.preserveFunnel`: when `true` and `tailscale.mode = "serve"`, Kova checks `tailscale funnel status` before re-applying Serve at startup and skips it if an externally configured Funnel route already covers the gateway port. Default `false`.
 - `controlUi.allowedOrigins`: explicit browser-origin allowlist for Gateway WebSocket connects. Required when browser clients are expected from non-loopback origins.
 - `controlUi.dangerouslyAllowHostHeaderOriginFallback`: dangerous mode that enables Host-header origin fallback for deployments that intentionally rely on Host-header origin policy.
 - `remote.transport`: `ssh` (default) or `direct` (ws/wss). For `direct`, `remote.url` must be `ws://` or `wss://`.

@@ -116,6 +116,11 @@ kova gateway --tailscale funnel --auth password
 - `tailscale.mode: "funnel"` refuses to start unless auth mode is `password` to avoid public exposure.
 - Set `gateway.tailscale.resetOnExit` if you want Kova to undo `tailscale serve`
   or `tailscale funnel` configuration on shutdown.
+- Set `gateway.tailscale.preserveFunnel: true` to keep an externally configured
+  `tailscale funnel` route alive across gateway restarts. When enabled and the
+  gateway runs in `mode: "serve"`, Kova checks `tailscale funnel status` before
+  re-applying Serve and skips it when a Funnel route already covers the gateway
+  port. The Kova-managed Funnel password-only policy is unchanged.
 - `gateway.bind: "tailnet"` is a direct Tailnet bind (no HTTPS, no Serve/Funnel).
 - `gateway.bind: "auto"` prefers loopback; use `tailnet` if you want Tailnet-only.
 - Serve/Funnel only expose the **Gateway control UI + WS**. Nodes connect over
