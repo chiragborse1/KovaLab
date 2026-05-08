@@ -1,6 +1,11 @@
 import type { ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
 import type { TelegramAccountConfig } from "openclaw/plugin-sdk/config-runtime";
-import { danger, logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
+import {
+  createSubsystemLogger,
+  danger,
+  logVerbose,
+  shouldLogVerbose,
+} from "openclaw/plugin-sdk/runtime-env";
 import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import {
@@ -13,6 +18,23 @@ import { dispatchTelegramMessage } from "./bot-message-dispatch.js";
 import type { TelegramBotOptions } from "./bot.types.js";
 import { buildTelegramThreadParams } from "./bot/helpers.js";
 import type { TelegramContext, TelegramStreamMode } from "./bot/types.js";
+
+const telegramInboundLog = createSubsystemLogger("gateway/channels/telegram").child("inbound");
+
+export function formatTelegramInboundLogLine(params: {
+  from?: string;
+  to?: string;
+  chatType?: string;
+  body?: string;
+  mediaType?: string;
+}): string {
+  const from = params.from || "unknown";
+  const to = params.to || "telegram";
+  const chatType = params.chatType || "direct";
+  const kindLabel = params.mediaType ? `, ${params.mediaType}` : "";
+  const length = (params.body ?? "").length;
+  return `Inbound message ${from} -> ${to} (${chatType}${kindLabel}, ${length} chars)`;
+}
 
 /** Dependencies injected once when creating the message processor. */
 type TelegramMessageProcessorDeps = Omit<
@@ -107,6 +129,21 @@ export const createTelegramMessageProcessor = (deps: TelegramMessageProcessorDep
           (options?.ingressBuffer ? ` buffer=${options.ingressBuffer}` : ""),
       );
     }
+    telegramInboundLog.info(
+      formatTelegramInboundLogLine({
+        from: context.ctxPayload?.From,
+        to: context.primaryCtx?.me?.username
+          ? `@${context.primaryCtx.me.username}`
+          : context.ctxPayload?.To,
+        chatType: context.ctxPayload?.ChatType,
+        body:
+          context.ctxPayload?.RawBody ??
+          context.ctxPayload?.BodyForCommands ??
+          context.ctxPayload?.BodyForAgent ??
+          context.ctxPayload?.Body,
+        mediaType: allMedia[0]?.contentType,
+      }),
+    );
     try {
       await dispatchTelegramMessage({
         context,
