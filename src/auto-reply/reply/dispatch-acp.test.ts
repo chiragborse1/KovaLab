@@ -363,7 +363,11 @@ describe("tryDispatchAcpReply", () => {
     channelPluginMocks.getChannelPlugin.mockClear();
     messageActionMocks.runMessageAction.mockReset();
     messageActionMocks.runMessageAction.mockResolvedValue({ ok: true as const });
-    ttsMocks.maybeApplyTtsToPayload.mockClear();
+    ttsMocks.maybeApplyTtsToPayload.mockReset();
+    ttsMocks.maybeApplyTtsToPayload.mockImplementation(async (paramsUnknown: unknown) => {
+      const params = paramsUnknown as { payload: unknown };
+      return params.payload;
+    });
     ttsMocks.resolveTtsConfig.mockReset();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
     mediaUnderstandingMocks.applyMediaUnderstanding.mockReset();
@@ -378,7 +382,7 @@ describe("tryDispatchAcpReply", () => {
     globalThis.fetch = originalFetch;
   });
 
-  it("routes ACP block output to originating channel", async () => {
+  it("routes default ACP output to the originating channel as a final reply", async () => {
     setReadyAcpResolution();
     mockRoutedTextTurn("hello");
 
@@ -389,7 +393,8 @@ describe("tryDispatchAcpReply", () => {
       shouldRouteToOriginating: true,
     });
 
-    expect(result?.counts.block).toBe(1);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",
@@ -1060,24 +1065,21 @@ describe("tryDispatchAcpReply", () => {
     );
   });
 
-  it("does not deliver final fallback text when routed block text was already visible", async () => {
+  it("does not add a fallback when routed ACP text was already delivered as final", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies({ text: "CODEX_OK" }, {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>);
+    queueTtsReplies({ text: "CODEX_OK" });
     const { result } = await runRoutedAcpTextTurn("CODEX_OK");
 
-    expect(result?.counts.block).toBe(1);
-    expect(result?.counts.final).toBe(0);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledTimes(1);
   });
 
-  it("does not deliver final fallback text when routed discord block text was already visible", async () => {
+  it("routes default ACP text as one final reply to Discord", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies(
-      { text: "Received your test message." },
-      {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>,
-    );
+    queueTtsReplies({ text: "Received your test message." });
     mockRoutedTextTurn("Received your test message.");
 
     const { dispatcher } = createDispatcher();
@@ -1089,8 +1091,8 @@ describe("tryDispatchAcpReply", () => {
       originatingTo: "channel:1478836151241412759",
     });
 
-    expect(result?.counts.block).toBe(1);
-    expect(result?.counts.final).toBe(0);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledTimes(1);
     expect(routeMocks.routeReply).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1101,13 +1103,10 @@ describe("tryDispatchAcpReply", () => {
     );
   });
 
-  it("does not deliver final fallback text when routed Slack block text was already visible", async () => {
+  it("routes default ACP text as one final reply to Slack", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies(
-      { text: "Shared update." },
-      {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>,
-    );
+    queueTtsReplies({ text: "Shared update." });
     mockRoutedTextTurn("Shared update.");
 
     const { dispatcher } = createDispatcher();
@@ -1119,8 +1118,8 @@ describe("tryDispatchAcpReply", () => {
       originatingTo: "channel:C123",
     });
 
-    expect(result?.counts.block).toBe(1);
-    expect(result?.counts.final).toBe(0);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledTimes(1);
     expect(routeMocks.routeReply).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1131,10 +1130,10 @@ describe("tryDispatchAcpReply", () => {
     );
   });
 
-  it("does not deliver final fallback text when direct block text was already visible", async () => {
+  it("delivers default Telegram ACP text directly as a final reply", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies({ text: "CODEX_OK" }, {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>);
+    queueTtsReplies({ text: "CODEX_OK" });
     mockVisibleTextTurn("CODEX_OK");
 
     const { dispatcher, counts } = createDispatcher();
@@ -1151,19 +1150,17 @@ describe("tryDispatchAcpReply", () => {
     expect(result?.counts.final).toBe(0);
     expect(counts.block).toBe(0);
     expect(counts.final).toBe(0);
-    expect(dispatcher.sendBlockReply).toHaveBeenCalledWith(
+    expect(result?.queuedFinal).toBe(true);
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledWith(
       expect.objectContaining({ text: "CODEX_OK" }),
     );
-    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
   });
 
-  it("does not deliver final fallback text when direct discord block text was already visible", async () => {
+  it("delivers default Discord ACP text directly as a final reply", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies(
-      { text: "Received." },
-      {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>,
-    );
+    queueTtsReplies({ text: "Received." });
     mockVisibleTextTurn("Received.");
 
     const { dispatcher, counts } = createDispatcher();
@@ -1180,19 +1177,17 @@ describe("tryDispatchAcpReply", () => {
     expect(result?.counts.final).toBe(0);
     expect(counts.block).toBe(0);
     expect(counts.final).toBe(0);
-    expect(dispatcher.sendBlockReply).toHaveBeenCalledWith(
+    expect(result?.queuedFinal).toBe(true);
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Received." }),
     );
-    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
   });
 
-  it("does not deliver final fallback text when direct Slack block text was already visible", async () => {
+  it("delivers default Slack ACP text directly as a final reply", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies(
-      { text: "Slack says hi." },
-      {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>,
-    );
+    queueTtsReplies({ text: "Slack says hi." });
     mockVisibleTextTurn("Slack says hi.");
 
     const { dispatcher, counts } = createDispatcher();
@@ -1209,16 +1204,17 @@ describe("tryDispatchAcpReply", () => {
     expect(result?.counts.final).toBe(0);
     expect(counts.block).toBe(0);
     expect(counts.final).toBe(0);
-    expect(dispatcher.sendBlockReply).toHaveBeenCalledWith(
+    expect(result?.queuedFinal).toBe(true);
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledWith(
       expect.objectContaining({ text: "Slack says hi." }),
     );
-    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
   });
 
-  it("treats visible telegram ACP block delivery as a successful final response", async () => {
+  it("treats Telegram ACP final delivery as a successful final response", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies({ text: "CODEX_OK" }, {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>);
+    queueTtsReplies({ text: "CODEX_OK" });
     mockVisibleTextTurn("CODEX_OK");
 
     const { dispatcher } = createDispatcher();
@@ -1232,16 +1228,16 @@ describe("tryDispatchAcpReply", () => {
     });
 
     expect(result?.queuedFinal).toBe(true);
-    expect(dispatcher.sendBlockReply).toHaveBeenCalledWith(
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledWith(
       expect.objectContaining({ text: "CODEX_OK" }),
     );
-    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
   });
 
-  it("preserves final fallback when direct block text is filtered by channels without a visibility override", async () => {
+  it("delivers default ACP text as final for channels without a visibility override", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies({ text: "CODEX_OK" }, {} as ReturnType<typeof ttsMocks.maybeApplyTtsToPayload>);
+    queueTtsReplies({ text: "CODEX_OK" });
     mockVisibleTextTurn("CODEX_OK");
 
     const { dispatcher, counts } = createDispatcher();
@@ -1258,9 +1254,8 @@ describe("tryDispatchAcpReply", () => {
     expect(result?.counts.final).toBe(0);
     expect(counts.block).toBe(0);
     expect(counts.final).toBe(0);
-    expect(dispatcher.sendBlockReply).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "CODEX_OK" }),
-    );
+    expect(result?.queuedFinal).toBe(true);
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
     expect(dispatcher.sendFinalReply).toHaveBeenCalledWith(
       expect.objectContaining({ text: "CODEX_OK" }),
     );
@@ -1323,6 +1318,12 @@ describe("tryDispatchAcpReply", () => {
   it("honors the configured default account for ACP projector chunking when AccountId is omitted", async () => {
     setReadyAcpResolution();
     const cfg = createAcpTestConfig({
+      acp: {
+        enabled: true,
+        stream: {
+          deliveryMode: "live",
+        },
+      },
       channels: {
         discord: {
           defaultAccount: "work",
@@ -1362,30 +1363,27 @@ describe("tryDispatchAcpReply", () => {
     );
   });
 
-  it("does not add a second routed payload when routed block text was already visible", async () => {
+  it("does not add a second routed payload when routed final text was already visible", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "final" });
-    queueTtsReplies({ text: "Task completed" }, {
-      mediaUrl: "https://example.com/final.mp3",
-      audioAsVoice: true,
-    } as MockTtsReply);
+    queueTtsReplies({ text: "Task completed" });
     const { result } = await runRoutedAcpTextTurn("Task completed");
 
-    expect(result?.counts.block).toBe(1);
-    expect(result?.counts.final).toBe(0);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledTimes(1);
     expectRoutedPayload(1, {
       text: "Task completed",
     });
   });
 
-  it("skips fallback when TTS mode is all (blocks already processed with TTS)", async () => {
+  it("skips fallback when TTS mode is all and final delivery already succeeded", async () => {
     setReadyAcpResolution();
     ttsMocks.resolveTtsConfig.mockReturnValue({ mode: "all" });
     const { result } = await runRoutedAcpTextTurn("Response");
 
-    expect(result?.counts.block).toBe(1);
-    expect(result?.counts.final).toBe(0);
+    expect(result?.counts.block).toBe(0);
+    expect(result?.counts.final).toBe(1);
     expect(routeMocks.routeReply).toHaveBeenCalledTimes(1);
   });
 
