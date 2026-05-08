@@ -284,6 +284,34 @@ describe("buildGatewayInstallPlan", () => {
     );
   });
 
+  it("drops stale version-manager paths when preserving existing service PATH", async () => {
+    mockNodeGatewayPlanFixture({
+      serviceEnvironment: {
+        OPENCLAW_PORT: "3000",
+        PATH: "/usr/local/bin:/usr/bin:/bin",
+        TMPDIR: "/tmp",
+      },
+    });
+
+    const plan = await buildGatewayInstallPlan({
+      env: isolatedPlanEnv(),
+      port: 3000,
+      runtime: "node",
+      existingEnvironment: {
+        PATH: [
+          "/home/user/.nvm/versions/node/v22.22.2/bin",
+          "/home/user/.local/share/pnpm",
+          "/custom/tools/bin",
+          "/tmp/kova-transient/bin",
+          "/usr/bin",
+        ].join(path.delimiter),
+      },
+    });
+
+    const parts = plan.environment.PATH?.split(path.delimiter) ?? [];
+    expect(parts).toEqual(["/usr/local/bin", "/usr/bin", "/bin", "/custom/tools/bin"]);
+  });
+
   it("skips auth-profile store load when no auth-profile source exists", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {

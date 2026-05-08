@@ -125,8 +125,26 @@ function mergeServicePath(
       return false;
     }
     const resolved = path.resolve(segment);
-    return !normalizedTmpDirs.some(
-      (tmpRoot) => resolved === tmpRoot || resolved.startsWith(`${tmpRoot}${path.sep}`),
+    if (
+      normalizedTmpDirs.some(
+        (tmpRoot) => resolved === tmpRoot || resolved.startsWith(`${tmpRoot}${path.sep}`),
+      )
+    ) {
+      return false;
+    }
+    const normalized = resolved.replaceAll("\\", "/");
+    return !(
+      normalized.includes("/.nvm/") ||
+      normalized.includes("/.fnm/") ||
+      normalized.includes("/.volta/") ||
+      normalized.includes("/.asdf/") ||
+      normalized.includes("/.n/") ||
+      normalized.includes("/.nodenv/") ||
+      normalized.includes("/.nodebrew/") ||
+      normalized.includes("/nvs/") ||
+      normalized.includes("/.local/share/pnpm/") ||
+      normalized.includes("/pnpm/") ||
+      normalized.endsWith("/pnpm")
     );
   };
   const addPath = (value: string | undefined, options?: { preserve?: boolean }) => {
