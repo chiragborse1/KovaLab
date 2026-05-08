@@ -849,16 +849,15 @@ function isSubframeDocumentNavigationRequest(page: Page, request: Request): bool
   }
 }
 
-function isPolicyDenyNavigationError(err: unknown): boolean {
+export function isPolicyDenyNavigationError(err: unknown): boolean {
   return err instanceof SsrFBlockedError || err instanceof InvalidBrowserNavigationUrlError;
 }
 
-async function closeBlockedNavigationTarget(opts: {
+async function quarantineBlockedTarget(opts: {
   cdpUrl: string;
   page: Page;
   targetId?: string;
 }): Promise<void> {
-  // Quarantine the concrete page first; then persist by target id when available.
   markPageRefBlocked(opts.cdpUrl, opts.page);
   const resolvedTargetId = await pageTargetId(opts.page).catch(() => null);
   const fallbackTargetId = normalizeOptionalString(opts.targetId) ?? "";
@@ -866,6 +865,14 @@ async function closeBlockedNavigationTarget(opts: {
   if (targetIdToBlock) {
     markTargetBlocked(opts.cdpUrl, targetIdToBlock);
   }
+}
+
+export async function closeBlockedNavigationTarget(opts: {
+  cdpUrl: string;
+  page: Page;
+  targetId?: string;
+}): Promise<void> {
+  await quarantineBlockedTarget(opts);
   await opts.page.close().catch(() => {});
 }
 
@@ -891,7 +898,7 @@ export async function assertPageNavigationCompletedSafely(
     });
   } catch (err) {
     if (isPolicyDenyNavigationError(err)) {
-      await closeBlockedNavigationTarget({
+      await quarantineBlockedTarget({
         cdpUrl: opts.cdpUrl,
         page: opts.page,
         targetId: opts.targetId,
@@ -1335,14 +1342,25 @@ export async function createPageViaPlaywright(
         throw err;
       }
     }
-    await assertPageNavigationCompletedSafely({
-      cdpUrl: opts.cdpUrl,
-      page,
-      response,
-      ssrfPolicy: opts.ssrfPolicy,
-      browserProxyMode: opts.browserProxyMode,
-      targetId: createdTargetId ?? undefined,
-    });
+    try {
+      await assertPageNavigationCompletedSafely({
+        cdpUrl: opts.cdpUrl,
+        page,
+        response,
+        ssrfPolicy: opts.ssrfPolicy,
+        browserProxyMode: opts.browserProxyMode,
+        targetId: createdTargetId ?? undefined,
+      });
+    } catch (err) {
+      if (isPolicyDenyNavigationError(err)) {
+        await closeBlockedNavigationTarget({
+          cdpUrl: opts.cdpUrl,
+          page,
+          targetId: createdTargetId ?? undefined,
+        });
+      }
+      throw err;
+    }
   }
 
   // Get the targetId for this page

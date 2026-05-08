@@ -7,6 +7,7 @@ Docs: https://docs.openclaw.ai
 ### Fixes
 
 - Plugins/Nix: allow externally configured plugin roots under `/nix/store` to load in `KOVA_NIX_MODE=1` or `OPENCLAW_NIX_MODE=1` while keeping normal external plugin hardlink rejection unchanged. Thanks @joshp123.
+- Browser: keep user-owned tabs open when read-only browser operations hit an SSRF policy denial, while still closing tabs created by Kova-owned navigation flows. Thanks @scotthuang.
 
 ## 2026.4.26
 
