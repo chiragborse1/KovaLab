@@ -14,6 +14,7 @@ import {
   type NormalizedPluginsConfig,
 } from "./config-policy.js";
 import { discoverOpenClawPlugins, type PluginCandidate } from "./discovery.js";
+import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import { loadInstalledPluginIndexInstallRecordsSync } from "./installed-plugin-index-record-reader.js";
 import type { PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 import {
@@ -614,7 +615,12 @@ export function loadPluginManifestRegistry(
   };
 
   for (const candidate of candidates) {
-    const rejectHardlinks = candidate.origin !== "bundled";
+    const rejectHardlinks = shouldRejectHardlinkedPluginFiles({
+      origin: candidate.origin,
+      rootDir: candidate.rootDir,
+      env,
+      realpathCache,
+    });
     const isBundleRecord = (candidate.format ?? "openclaw") === "bundle";
     const manifestRes:
       | ReturnType<typeof loadPluginManifest>

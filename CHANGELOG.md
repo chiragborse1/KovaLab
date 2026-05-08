@@ -4,6 +4,10 @@ Docs: https://docs.openclaw.ai
 
 ## Unreleased
 
+### Fixes
+
+- Plugins/Nix: allow externally configured plugin roots under `/nix/store` to load in `KOVA_NIX_MODE=1` or `OPENCLAW_NIX_MODE=1` while keeping normal external plugin hardlink rejection unchanged. Thanks @joshp123.
+
 ## 2026.4.26
 
 ### Changes

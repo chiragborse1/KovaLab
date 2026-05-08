@@ -65,6 +65,7 @@ import {
   type PluginActivationState,
 } from "./config-state.js";
 import { discoverOpenClawPlugins } from "./discovery.js";
+import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import { getGlobalHookRunner, initializeGlobalHookRunner } from "./hook-runner-global.js";
 import { toSafeImportPath } from "./import-specifier.js";
 import { loadInstalledPluginIndexInstallRecordsSync } from "./installed-plugin-index-records.js";
@@ -2798,11 +2799,16 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
           : runtimeCandidateSource;
       const moduleLoadSource = resolveCanonicalDistRuntimeSource(loadSource);
       const moduleRoot = resolveCanonicalDistRuntimeSource(runtimePluginRoot);
+      const rejectHardlinks = shouldRejectHardlinkedPluginFiles({
+        origin: candidate.origin,
+        rootDir: candidate.rootDir,
+        env,
+      });
       const opened = openBoundaryFileSync({
         absolutePath: moduleLoadSource,
         rootPath: moduleRoot,
         boundaryLabel: "plugin root",
-        rejectHardlinks: candidate.origin !== "bundled",
+        rejectHardlinks,
         skipLexicalRootCheck: true,
       });
       if (!opened.ok) {
@@ -2890,7 +2896,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
               absolutePath: runtimeCandidateSource,
               rootPath: runtimePluginRoot,
               boundaryLabel: "plugin root",
-              rejectHardlinks: candidate.origin !== "bundled",
+              rejectHardlinks,
               skipLexicalRootCheck: true,
             });
             if (!runtimeOpened.ok) {
@@ -3465,7 +3471,11 @@ export async function loadOpenClawPluginCliRegistry(
       absolutePath: sourceForCliMetadata,
       rootPath: pluginRoot,
       boundaryLabel: "plugin root",
-      rejectHardlinks: candidate.origin !== "bundled",
+      rejectHardlinks: shouldRejectHardlinkedPluginFiles({
+        origin: candidate.origin,
+        rootDir: candidate.rootDir,
+        env,
+      }),
       skipLexicalRootCheck: true,
     });
     if (!opened.ok) {
