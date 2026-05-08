@@ -900,12 +900,12 @@ describe("loadOpenClawPlugins", () => {
   it("repairs enabled bundled plugin runtime deps before importing the plugin", () => {
     const bundledDir = makeTempDir();
     const plugin = writePlugin({
-      id: "discord",
-      dir: path.join(bundledDir, "discord"),
+      id: "runtime-chat",
+      dir: path.join(bundledDir, "runtime-chat"),
       filename: "index.cjs",
       body: `const dep = require("discord-runtime/package.json");
 module.exports = {
-  id: "discord",
+  id: "runtime-chat",
   register() {
     if (dep.name !== "discord-runtime") {
       throw new Error("missing runtime dep");
@@ -918,7 +918,7 @@ module.exports = {
       path.join(plugin.dir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/discord",
+          name: "@openclaw/runtime-chat",
           version: "1.0.0",
           dependencies: {
             "discord-runtime": "1.0.0",
@@ -934,8 +934,8 @@ module.exports = {
       path.join(plugin.dir, "openclaw.plugin.json"),
       JSON.stringify(
         {
-          id: "discord",
-          channels: ["discord"],
+          id: "runtime-chat",
+          channels: ["runtime-chat"],
           configSchema: EMPTY_PLUGIN_SCHEMA,
         },
         null,
@@ -957,16 +957,19 @@ module.exports = {
       config: {
         plugins: {
           enabled: true,
+          entries: {
+            "runtime-chat": { enabled: true },
+          },
         },
         channels: {
-          discord: {
+          "runtime-chat": {
             enabled: true,
           },
         },
       },
       bundledRuntimeDepsInstaller: ({ installRoot, missingSpecs }) => {
         expect(logger.info).toHaveBeenCalledWith(
-          "[plugins] discord staging bundled runtime deps (1 missing, 1 install specs): discord-runtime@1.0.0",
+          "[plugins] runtime-chat staging bundled runtime deps (1 missing, 1 install specs): discord-runtime@1.0.0",
         );
         installedSpecs.push(...missingSpecs);
         expect(fs.realpathSync(installRoot)).toBe(fs.realpathSync(plugin.dir));
@@ -982,10 +985,10 @@ module.exports = {
     });
 
     expect(installedSpecs).toEqual(["discord-runtime@1.0.0"]);
-    expect(registry.plugins.find((entry) => entry.id === "discord")?.status).toBe("loaded");
+    expect(registry.plugins.find((entry) => entry.id === "runtime-chat")?.status).toBe("loaded");
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringMatching(
-        /^\[plugins\] discord installed bundled runtime deps in \d+ms: discord-runtime@1\.0\.0$/u,
+        /^\[plugins\] runtime-chat installed bundled runtime deps in \d+ms: discord-runtime@1\.0\.0$/u,
       ),
     );
   });
@@ -993,17 +996,17 @@ module.exports = {
   it("keeps bundled runtime dep install logs off non-activating loads", () => {
     const bundledDir = makeTempDir();
     const plugin = writePlugin({
-      id: "discord",
-      dir: path.join(bundledDir, "discord"),
+      id: "runtime-chat",
+      dir: path.join(bundledDir, "runtime-chat"),
       filename: "index.cjs",
-      body: `module.exports = { id: "discord", register() {} };`,
+      body: `module.exports = { id: "runtime-chat", register() {} };`,
     });
     process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
     fs.writeFileSync(
       path.join(plugin.dir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/discord",
+          name: "@openclaw/runtime-chat",
           version: "1.0.0",
           dependencies: {
             "discord-runtime": "1.0.0",
@@ -1019,7 +1022,7 @@ module.exports = {
       path.join(plugin.dir, "openclaw.plugin.json"),
       JSON.stringify(
         {
-          id: "discord",
+          id: "runtime-chat",
           enabledByDefault: true,
           configSchema: EMPTY_PLUGIN_SCHEMA,
         },
@@ -1056,29 +1059,29 @@ module.exports = {
       },
     });
 
-    expect(registry.plugins.find((entry) => entry.id === "discord")?.status).toBe("loaded");
+    expect(registry.plugins.find((entry) => entry.id === "runtime-chat")?.status).toBe("loaded");
     expect(logger.info).not.toHaveBeenCalledWith(
-      "[plugins] discord installed bundled runtime deps: discord-runtime@1.0.0",
+      "[plugins] runtime-chat installed bundled runtime deps: discord-runtime@1.0.0",
     );
     expect(logger.info).not.toHaveBeenCalledWith(
-      "[plugins] discord staging bundled runtime deps (1 missing, 1 install specs): discord-runtime@1.0.0",
+      "[plugins] runtime-chat staging bundled runtime deps (1 missing, 1 install specs): discord-runtime@1.0.0",
     );
   });
 
   it("does not repair disabled bundled plugin runtime deps", () => {
     const bundledDir = makeTempDir();
     const plugin = writePlugin({
-      id: "discord",
-      dir: path.join(bundledDir, "discord"),
+      id: "runtime-chat",
+      dir: path.join(bundledDir, "runtime-chat"),
       filename: "index.cjs",
-      body: `module.exports = { id: "discord", register() {} };`,
+      body: `module.exports = { id: "runtime-chat", register() {} };`,
     });
     process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
     fs.writeFileSync(
       path.join(plugin.dir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/discord",
+          name: "@openclaw/runtime-chat",
           version: "1.0.0",
           dependencies: {
             "discord-runtime": "1.0.0",
@@ -1103,23 +1106,23 @@ module.exports = {
       },
     });
 
-    expect(registry.plugins.find((entry) => entry.id === "discord")?.status).toBe("disabled");
+    expect(registry.plugins.find((entry) => entry.id === "runtime-chat")?.status).toBe("disabled");
   });
 
   it("does not repair disabled selected setup-only channel runtime deps", () => {
     const bundledDir = makeTempDir();
     const plugin = writePlugin({
-      id: "feishu",
-      dir: path.join(bundledDir, "feishu"),
+      id: "setup-chat",
+      dir: path.join(bundledDir, "setup-chat"),
       filename: "index.cjs",
-      body: `module.exports = { id: "feishu", register() {} };`,
+      body: `module.exports = { id: "setup-chat", register() {} };`,
     });
     process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
     fs.writeFileSync(
       path.join(plugin.dir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/feishu",
+          name: "@openclaw/setup-chat",
           version: "1.0.0",
           dependencies: {
             "feishu-runtime": "1.0.0",
@@ -1138,9 +1141,9 @@ module.exports = {
       path.join(plugin.dir, "openclaw.plugin.json"),
       JSON.stringify(
         {
-          id: "feishu",
+          id: "setup-chat",
           configSchema: EMPTY_PLUGIN_SCHEMA,
-          channels: ["feishu"],
+          channels: ["setup-chat"],
         },
         null,
         2,
@@ -1152,12 +1155,12 @@ module.exports = {
       `
 module.exports = {
   plugin: {
-    id: "feishu",
+    id: "setup-chat",
     meta: {
-      id: "feishu",
+      id: "setup-chat",
       label: "Feishu",
       selectionLabel: "Feishu",
-      docsPath: "/channels/feishu",
+      docsPath: "/channels/setup-chat",
       blurb: "setup only",
     },
     capabilities: { chatTypes: ["direct"] },
@@ -1177,35 +1180,35 @@ module.exports = {
         plugins: {
           enabled: true,
           entries: {
-            feishu: { enabled: false },
+            "setup-chat": { enabled: false },
           },
         },
       },
       includeSetupOnlyChannelPlugins: true,
-      onlyPluginIds: ["feishu"],
+      onlyPluginIds: ["setup-chat"],
       bundledRuntimeDepsInstaller: () => {
         throw new Error("disabled setup-only deps should not install");
       },
     });
 
     expect(registry.channelSetups[0]?.plugin.meta.label).toBe("Feishu");
-    expect(registry.plugins.find((entry) => entry.id === "feishu")?.status).toBe("disabled");
+    expect(registry.plugins.find((entry) => entry.id === "setup-chat")?.status).toBe("disabled");
   });
 
   it("repairs enabled selected setup-only channel runtime deps before loading setup entry", () => {
     const bundledDir = makeTempDir();
     const plugin = writePlugin({
-      id: "feishu",
-      dir: path.join(bundledDir, "feishu"),
+      id: "setup-chat",
+      dir: path.join(bundledDir, "setup-chat"),
       filename: "index.cjs",
-      body: `module.exports = { id: "feishu", register() {} };`,
+      body: `module.exports = { id: "setup-chat", register() {} };`,
     });
     process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = bundledDir;
     fs.writeFileSync(
       path.join(plugin.dir, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/feishu",
+          name: "@openclaw/setup-chat",
           version: "1.0.0",
           dependencies: {
             "feishu-runtime": "1.0.0",
@@ -1224,9 +1227,9 @@ module.exports = {
       path.join(plugin.dir, "openclaw.plugin.json"),
       JSON.stringify(
         {
-          id: "feishu",
+          id: "setup-chat",
           configSchema: EMPTY_PLUGIN_SCHEMA,
-          channels: ["feishu"],
+          channels: ["setup-chat"],
         },
         null,
         2,
@@ -1239,12 +1242,12 @@ module.exports = {
 const runtime = require("feishu-runtime");
 module.exports = {
   plugin: {
-    id: "feishu",
+    id: "setup-chat",
     meta: {
-      id: "feishu",
+      id: "setup-chat",
       label: runtime.label,
       selectionLabel: runtime.label,
-      docsPath: "/channels/feishu",
+      docsPath: "/channels/setup-chat",
       blurb: "setup only",
     },
     capabilities: { chatTypes: ["direct"] },
@@ -1265,12 +1268,12 @@ module.exports = {
         plugins: {
           enabled: true,
           entries: {
-            feishu: { enabled: true },
+            "setup-chat": { enabled: true },
           },
         },
       },
       includeSetupOnlyChannelPlugins: true,
-      onlyPluginIds: ["feishu"],
+      onlyPluginIds: ["setup-chat"],
       bundledRuntimeDepsInstaller: ({ installRoot, missingSpecs }) => {
         installedSpecs.push(...missingSpecs);
         const depRoot = path.join(installRoot, "node_modules", "feishu-runtime");
@@ -1290,7 +1293,7 @@ module.exports = {
 
     expect(installedSpecs).toEqual(["feishu-runtime@1.0.0"]);
     expect(registry.channelSetups[0]?.plugin.meta.label).toBe("Feishu Runtime Ready");
-    expect(registry.plugins.find((entry) => entry.id === "feishu")?.status).toBe("loaded");
+    expect(registry.plugins.find((entry) => entry.id === "setup-chat")?.status).toBe("loaded");
   });
 
   it("repairs default-enabled bundled plugin runtime deps", () => {
@@ -1946,7 +1949,7 @@ module.exports = {
   it("loads bundled plugins with plugin-sdk imports from a package dist root", () => {
     const packageRoot = makeTempDir();
     const bundledDir = path.join(packageRoot, "dist", "extensions");
-    const pluginRoot = path.join(bundledDir, "discord");
+    const pluginRoot = path.join(bundledDir, "runtime-chat");
     fs.mkdirSync(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
     fs.mkdirSync(pluginRoot, { recursive: true });
     fs.writeFileSync(
@@ -1964,7 +1967,7 @@ module.exports = {
       [
         `import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";`,
         `export default {`,
-        `  id: "discord",`,
+        `  id: "runtime-chat",`,
         `  register(api) {`,
         `    api.registerCommand({ name: normalizeLowercaseStringOrEmpty("DISCORD"), handler: () => "ok" });`,
         `  },`,
@@ -1977,7 +1980,7 @@ module.exports = {
       path.join(pluginRoot, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/discord",
+          name: "@openclaw/runtime-chat",
           version: "1.0.0",
           type: "module",
           openclaw: { extensions: ["./index.js"] },
@@ -1991,7 +1994,7 @@ module.exports = {
       path.join(pluginRoot, "openclaw.plugin.json"),
       JSON.stringify(
         {
-          id: "discord",
+          id: "runtime-chat",
           enabledByDefault: true,
           configSchema: EMPTY_PLUGIN_SCHEMA,
         },
@@ -2011,7 +2014,7 @@ module.exports = {
       },
     });
 
-    expect(registry.plugins.find((entry) => entry.id === "discord")?.status).toBe("loaded");
+    expect(registry.plugins.find((entry) => entry.id === "runtime-chat")?.status).toBe("loaded");
   });
 
   it("loads dist-runtime wrappers from an external stage dir", () => {
@@ -6452,7 +6455,7 @@ module.exports = {
         loadRegistry: () => {
           const bundledDir = makeTempDir();
           const memoryCoreDir = path.join(bundledDir, "memory-core");
-          const memoryLanceDir = path.join(bundledDir, "memory-lancedb");
+          const memoryLanceDir = path.join(bundledDir, "memory-vector-test");
           mkdirSafe(memoryCoreDir);
           mkdirSafe(memoryLanceDir);
           writePlugin({
@@ -6462,10 +6465,10 @@ module.exports = {
             body: memoryPluginBody("memory-core"),
           });
           writePlugin({
-            id: "memory-lancedb",
+            id: "memory-vector-test",
             dir: memoryLanceDir,
             filename: "index.cjs",
-            body: memoryPluginBody("memory-lancedb"),
+            body: memoryPluginBody("memory-vector-test"),
           });
           const openSchema = { type: "object", additionalProperties: true };
           fs.writeFileSync(
@@ -6480,7 +6483,7 @@ module.exports = {
           fs.writeFileSync(
             path.join(memoryLanceDir, "openclaw.plugin.json"),
             JSON.stringify(
-              { id: "memory-lancedb", kind: "memory", configSchema: openSchema },
+              { id: "memory-vector-test", kind: "memory", configSchema: openSchema },
               null,
               2,
             ),
@@ -6492,11 +6495,14 @@ module.exports = {
             cache: false,
             config: {
               plugins: {
-                allow: ["memory-core", "memory-lancedb"],
-                slots: { memory: "memory-lancedb" },
+                allow: ["memory-core", "memory-vector-test"],
+                slots: { memory: "memory-vector-test" },
                 entries: {
                   "memory-core": { enabled: true },
-                  "memory-lancedb": { enabled: true, config: { dreaming: { enabled: true } } },
+                  "memory-vector-test": {
+                    enabled: true,
+                    config: { dreaming: { enabled: true } },
+                  },
                 },
               },
             },
@@ -6504,7 +6510,7 @@ module.exports = {
         },
         assert: (registry: ReturnType<typeof loadOpenClawPlugins>) => {
           const core = registry.plugins.find((entry) => entry.id === "memory-core");
-          const lance = registry.plugins.find((entry) => entry.id === "memory-lancedb");
+          const lance = registry.plugins.find((entry) => entry.id === "memory-vector-test");
           expect(core?.status).toBe("loaded");
           expect(lance?.status).toBe("loaded");
           expect(lance?.memorySlotSelected).toBe(true);
@@ -6516,7 +6522,7 @@ module.exports = {
         loadRegistry: () => {
           const bundledDir = makeTempDir();
           const memoryCoreDir = path.join(bundledDir, "memory-core");
-          const memoryLanceDir = path.join(bundledDir, "memory-lancedb");
+          const memoryLanceDir = path.join(bundledDir, "memory-vector-test");
           mkdirSafe(memoryCoreDir);
           mkdirSafe(memoryLanceDir);
           writePlugin({
@@ -6526,10 +6532,10 @@ module.exports = {
             body: `throw new Error("memory-core should not load when dreaming is disabled");`,
           });
           writePlugin({
-            id: "memory-lancedb",
+            id: "memory-vector-test",
             dir: memoryLanceDir,
             filename: "index.cjs",
-            body: memoryPluginBody("memory-lancedb"),
+            body: memoryPluginBody("memory-vector-test"),
           });
           fs.writeFileSync(
             path.join(memoryCoreDir, "openclaw.plugin.json"),
@@ -6543,7 +6549,7 @@ module.exports = {
           fs.writeFileSync(
             path.join(memoryLanceDir, "openclaw.plugin.json"),
             JSON.stringify(
-              { id: "memory-lancedb", kind: "memory", configSchema: EMPTY_PLUGIN_SCHEMA },
+              { id: "memory-vector-test", kind: "memory", configSchema: EMPTY_PLUGIN_SCHEMA },
               null,
               2,
             ),
@@ -6555,11 +6561,11 @@ module.exports = {
             cache: false,
             config: {
               plugins: {
-                allow: ["memory-core", "memory-lancedb"],
-                slots: { memory: "memory-lancedb" },
+                allow: ["memory-core", "memory-vector-test"],
+                slots: { memory: "memory-vector-test" },
                 entries: {
                   "memory-core": { enabled: true },
-                  "memory-lancedb": { enabled: true },
+                  "memory-vector-test": { enabled: true },
                 },
               },
             },
@@ -6567,7 +6573,7 @@ module.exports = {
         },
         assert: (registry: ReturnType<typeof loadOpenClawPlugins>) => {
           const core = registry.plugins.find((entry) => entry.id === "memory-core");
-          const lance = registry.plugins.find((entry) => entry.id === "memory-lancedb");
+          const lance = registry.plugins.find((entry) => entry.id === "memory-vector-test");
           expect(core?.status).toBe("disabled");
           expect(lance?.status).toBe("loaded");
         },

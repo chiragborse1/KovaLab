@@ -187,7 +187,7 @@ describe("buildGatewayInstallPlan", () => {
       platform: "darwin",
     });
 
-    expect(plan.workingDirectory).toBe(path.join(isolatedHome, ".openclaw"));
+    expect(plan.workingDirectory).toBe(path.join(isolatedHome, ".kova"));
     expect(mocks.buildServiceEnvironment).toHaveBeenCalledWith(
       expect.objectContaining({
         platform: "darwin",
@@ -586,8 +586,6 @@ describe("gatewayInstallErrorHint", () => {
   it("returns platform-specific hints", () => {
     expect(gatewayInstallErrorHint("win32")).toContain("Startup-folder login item");
     expect(gatewayInstallErrorHint("win32")).toContain("elevated PowerShell");
-    expect(gatewayInstallErrorHint("linux")).toMatch(
-      /(?:openclaw|openclaw)( --profile isolated)? gateway install/,
-    );
+    expect(gatewayInstallErrorHint("linux")).toMatch(/kova( --profile isolated)? gateway install/);
   });
 });
