@@ -463,10 +463,24 @@ const NOOP_NOTIFY_CASES: NotifyNoopCase[] = [
   }),
 ];
 const DISALLOWED_ELEVATION_CASES: DisallowedElevationCase[] = [
-  withLabel("rejects elevated requests when not allowed", {
+  withLabel("downgrades elevated requests in direct runtime when not allowed", {
     defaultLevel: "off",
     overrides: {
       messageProvider: "telegram",
+      sessionKey: DEFAULT_NOTIFY_SESSION_KEY,
+    },
+    requestElevated: true,
+    expectedOutputIncludes: "hi",
+  }),
+  withLabel("rejects sandbox elevated requests when not allowed", {
+    defaultLevel: "off",
+    overrides: {
+      messageProvider: "telegram",
+      sandbox: {
+        containerName: "sandbox",
+        workspaceDir: process.cwd(),
+        containerWorkdir: "/workspace",
+      },
       sessionKey: DEFAULT_NOTIFY_SESSION_KEY,
     },
     requestElevated: true,

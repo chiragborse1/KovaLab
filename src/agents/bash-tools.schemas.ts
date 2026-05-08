@@ -23,7 +23,8 @@ export const execSchema = Type.Object({
   ),
   elevated: Type.Optional(
     Type.Boolean({
-      description: "Run on the host with elevated permissions (if allowed)",
+      description:
+        "Run on the host with elevated permissions only when the session explicitly allows it; leave unset for normal status/diagnostic commands.",
     }),
   ),
   host: Type.Optional(

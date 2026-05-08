@@ -1421,7 +1421,7 @@ export function createExecTool(
               ? "ask"
               : "off";
       const effectiveDefaultMode = elevatedAllowed ? elevatedDefaultMode : "off";
-      const elevatedMode =
+      let elevatedMode =
         typeof params.elevated === "boolean"
           ? params.elevated
             ? elevatedDefaultMode === "full"
@@ -1429,41 +1429,49 @@ export function createExecTool(
               : "ask"
             : "off"
           : effectiveDefaultMode;
-      const elevatedRequested = elevatedMode !== "off";
+      let elevatedRequested = elevatedMode !== "off";
       if (elevatedRequested) {
         if (!elevatedDefaults?.enabled || !elevatedDefaults.allowed) {
           const runtime = defaults?.sandbox ? "sandboxed" : "direct";
-          const gates: string[] = [];
-          const contextParts: string[] = [];
-          const provider = normalizeOptionalString(defaults?.messageProvider);
-          const sessionKey = normalizeOptionalString(defaults?.sessionKey);
-          if (provider) {
-            contextParts.push(`provider=${provider}`);
-          }
-          if (sessionKey) {
-            contextParts.push(`session=${sessionKey}`);
-          }
-          if (!elevatedDefaults?.enabled) {
-            gates.push("enabled (tools.elevated.enabled / agents.list[].tools.elevated.enabled)");
+          if (!defaults?.sandbox) {
+            warnings.push(
+              `Warning: elevated exec is unavailable in ${runtime} runtime; running with normal exec policy.`,
+            );
+            elevatedMode = "off";
+            elevatedRequested = false;
           } else {
-            gates.push(
-              "allowFrom (tools.elevated.allowFrom.<provider> / agents.list[].tools.elevated.allowFrom.<provider>)",
+            const gates: string[] = [];
+            const contextParts: string[] = [];
+            const provider = normalizeOptionalString(defaults?.messageProvider);
+            const sessionKey = normalizeOptionalString(defaults?.sessionKey);
+            if (provider) {
+              contextParts.push(`provider=${provider}`);
+            }
+            if (sessionKey) {
+              contextParts.push(`session=${sessionKey}`);
+            }
+            if (!elevatedDefaults?.enabled) {
+              gates.push("enabled (tools.elevated.enabled / agents.list[].tools.elevated.enabled)");
+            } else {
+              gates.push(
+                "allowFrom (tools.elevated.allowFrom.<provider> / agents.list[].tools.elevated.allowFrom.<provider>)",
+              );
+            }
+            throw new Error(
+              [
+                `elevated is not available right now (runtime=${runtime}).`,
+                `Failing gates: ${gates.join(", ")}`,
+                contextParts.length > 0 ? `Context: ${contextParts.join(" ")}` : undefined,
+                "Fix-it keys:",
+                "- tools.elevated.enabled",
+                "- tools.elevated.allowFrom.<provider>",
+                "- agents.list[].tools.elevated.enabled",
+                "- agents.list[].tools.elevated.allowFrom.<provider>",
+              ]
+                .filter(Boolean)
+                .join("\n"),
             );
           }
-          throw new Error(
-            [
-              `elevated is not available right now (runtime=${runtime}).`,
-              `Failing gates: ${gates.join(", ")}`,
-              contextParts.length > 0 ? `Context: ${contextParts.join(" ")}` : undefined,
-              "Fix-it keys:",
-              "- tools.elevated.enabled",
-              "- tools.elevated.allowFrom.<provider>",
-              "- agents.list[].tools.elevated.enabled",
-              "- agents.list[].tools.elevated.allowFrom.<provider>",
-            ]
-              .filter(Boolean)
-              .join("\n"),
-          );
         }
       }
       if (elevatedRequested) {
