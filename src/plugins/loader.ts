@@ -2094,6 +2094,8 @@ function warnWhenAllowlistIsOpen(params: {
   pluginsEnabled: boolean;
   allow: string[];
   warningCacheKey: string;
+  provenance: PluginProvenanceIndex;
+  env: NodeJS.ProcessEnv;
   discoverablePlugins: Array<{ id: string; source: string; origin: PluginRecord["origin"] }>;
 }) {
   if (!params.emitWarning) {
@@ -2105,9 +2107,17 @@ function warnWhenAllowlistIsOpen(params: {
   if (params.allow.length > 0) {
     return;
   }
-  const autoDiscoverable = params.discoverablePlugins.filter(
-    (entry) => entry.origin === "workspace" || entry.origin === "global",
-  );
+  const autoDiscoverable = params.discoverablePlugins.filter((entry) => {
+    if (entry.origin !== "workspace" && entry.origin !== "global") {
+      return false;
+    }
+    return !isTrackedByProvenance({
+      pluginId: entry.id,
+      source: entry.source,
+      index: params.provenance,
+      env: params.env,
+    });
+  });
   if (autoDiscoverable.length === 0) {
     return;
   }
@@ -2361,12 +2371,19 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
     });
     pushDiagnostics(registry.diagnostics, manifestRegistry.diagnostics);
+    const provenance = buildProvenanceIndex({
+      config: cfg,
+      normalizedLoadPaths: normalized.loadPaths,
+      env,
+    });
     warnWhenAllowlistIsOpen({
       emitWarning: shouldActivate,
       logger,
       pluginsEnabled: normalized.enabled,
       allow: normalized.allow,
       warningCacheKey: cacheKey,
+      provenance,
+      env,
       // Keep warning input scoped as well so partial snapshot loads only mention the
       // plugins that were intentionally requested for this registry.
       discoverablePlugins: manifestRegistry.plugins
@@ -2376,11 +2393,6 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
           source: plugin.source,
           origin: plugin.origin,
         })),
-    });
-    const provenance = buildProvenanceIndex({
-      config: cfg,
-      normalizedLoadPaths: normalized.loadPaths,
-      env,
     });
 
     const manifestByRoot = new Map(
@@ -3272,12 +3284,19 @@ export async function loadOpenClawPluginCliRegistry(
     installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
   });
   pushDiagnostics(registry.diagnostics, manifestRegistry.diagnostics);
+  const provenance = buildProvenanceIndex({
+    config: cfg,
+    normalizedLoadPaths: normalized.loadPaths,
+    env,
+  });
   warnWhenAllowlistIsOpen({
     emitWarning: false,
     logger,
     pluginsEnabled: normalized.enabled,
     allow: normalized.allow,
     warningCacheKey: `${cacheKey}::cli-metadata`,
+    provenance,
+    env,
     discoverablePlugins: manifestRegistry.plugins
       .filter((plugin) => !onlyPluginIdSet || onlyPluginIdSet.has(plugin.id))
       .map((plugin) => ({
@@ -3285,11 +3304,6 @@ export async function loadOpenClawPluginCliRegistry(
         source: plugin.source,
         origin: plugin.origin,
       })),
-  });
-  const provenance = buildProvenanceIndex({
-    config: cfg,
-    normalizedLoadPaths: normalized.loadPaths,
-    env,
   });
   const manifestByRoot = new Map(
     manifestRegistry.plugins.map((record) => [record.rootDir, record]),

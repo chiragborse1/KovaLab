@@ -7191,6 +7191,53 @@ module.exports = {
     });
   });
 
+  it("does not warn about an open allowlist when discovered global plugins are tracked installs", () => {
+    useNoBundledPlugins();
+    const stateDir = makeTempDir();
+    withEnv({ OPENCLAW_STATE_DIR: stateDir }, () => {
+      const globalDir = path.join(stateDir, "extensions", "tracked-global");
+      mkdirSafe(globalDir);
+      writePlugin({
+        id: "tracked-global",
+        body: simplePluginBody("tracked-global"),
+        dir: globalDir,
+        filename: "index.cjs",
+      });
+      writePersistedInstalledPluginIndexInstallRecordsSync(
+        {
+          "tracked-global": {
+            source: "npm",
+            installPath: globalDir,
+          },
+        },
+        { stateDir },
+      );
+
+      const warnings: string[] = [];
+      const registry = loadOpenClawPlugins({
+        cache: false,
+        logger: createWarningLogger(warnings),
+        config: {
+          plugins: {
+            enabled: true,
+          },
+        },
+      });
+
+      expect(registry.plugins.find((entry) => entry.id === "tracked-global")?.status).toBe(
+        "loaded",
+      );
+      expect(warnings.some((message) => message.includes("plugins.allow is empty"))).toBe(false);
+      expect(
+        warnings.some(
+          (message) =>
+            message.includes("tracked-global") &&
+            message.includes("loaded without install/load-path provenance"),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it.each([
     {
       name: "rejects plugin entry files that escape plugin root via symlink",
