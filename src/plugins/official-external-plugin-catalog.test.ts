@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   getOfficialExternalPluginCatalogEntry,
+  isOfficialExternalPluginId,
+  isOfficialExternalPluginPackageName,
   listOfficialExternalPluginCatalogEntries,
   resolveOfficialExternalPluginNpmSpec,
 } from "./official-external-plugin-catalog.js";
@@ -28,5 +30,11 @@ describe("official external plugin catalog", () => {
 
     expect(new Set(keys).size).toBe(keys.length);
     expect(getOfficialExternalPluginCatalogEntry("voice-call")?.name).toBe("@kovaai/voice-call");
+  });
+
+  it("identifies trusted official external plugin ids and package names", () => {
+    expect(isOfficialExternalPluginId("diagnostics-prometheus")).toBe(true);
+    expect(isOfficialExternalPluginPackageName("@kovaai/diagnostics-prometheus")).toBe(true);
+    expect(isOfficialExternalPluginPackageName("@example/diagnostics-prometheus")).toBe(false);
   });
 });

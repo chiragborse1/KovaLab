@@ -22,10 +22,12 @@ function createRegistry(
   services: OpenClawPluginService[],
   pluginId = "plugin:test",
   origin: PluginOrigin = "workspace",
+  pluginName = pluginId,
 ) {
   const registry = createEmptyPluginRegistry();
   registry.services = services.map((service) => ({
     pluginId,
+    pluginName,
     service,
     source: "test",
     origin,
@@ -180,7 +182,7 @@ describe("startPluginServices", () => {
     expect(stopThrows).toHaveBeenCalledOnce();
   });
 
-  it("grants internal diagnostics only to bundled diagnostics exporter services", async () => {
+  it("grants internal diagnostics only to trusted diagnostics exporter services", async () => {
     const contexts: OpenClawPluginServiceContext[] = [];
     const diagnosticsService = createTrackingService("diagnostics-otel", { contexts });
     await startPluginServices({
@@ -203,6 +205,23 @@ describe("startPluginServices", () => {
     expect(prometheusContexts[0]?.internalDiagnostics?.onEvent).toBeTypeOf("function");
     expect(prometheusContexts[0]?.internalDiagnostics?.emit).toBeTypeOf("function");
 
+    const officialExternalContexts: OpenClawPluginServiceContext[] = [];
+    const officialExternalService = createTrackingService("diagnostics-prometheus", {
+      contexts: officialExternalContexts,
+    });
+    await startPluginServices({
+      registry: createRegistry(
+        [officialExternalService],
+        "diagnostics-prometheus",
+        "global",
+        "@kovaai/diagnostics-prometheus",
+      ),
+      config: createServiceConfig(),
+    });
+
+    expect(officialExternalContexts[0]?.internalDiagnostics?.onEvent).toBeTypeOf("function");
+    expect(officialExternalContexts[0]?.internalDiagnostics?.emit).toBeTypeOf("function");
+
     const untrustedContexts: OpenClawPluginServiceContext[] = [];
     const untrustedService = createTrackingService("diagnostics-otel", {
       contexts: untrustedContexts,
@@ -213,5 +232,21 @@ describe("startPluginServices", () => {
     });
 
     expect(untrustedContexts[0]?.internalDiagnostics).toBeUndefined();
+
+    const spoofedContexts: OpenClawPluginServiceContext[] = [];
+    const spoofedService = createTrackingService("diagnostics-prometheus", {
+      contexts: spoofedContexts,
+    });
+    await startPluginServices({
+      registry: createRegistry(
+        [spoofedService],
+        "diagnostics-prometheus",
+        "global",
+        "@example/diagnostics-prometheus",
+      ),
+      config: createServiceConfig(),
+    });
+
+    expect(spoofedContexts[0]?.internalDiagnostics).toBeUndefined();
   });
 });

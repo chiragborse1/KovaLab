@@ -135,3 +135,17 @@ export function resolveOfficialExternalPluginNpmSpec(
   }
   return normalizeOptionalString(resolveOfficialExternalPluginInstall(entry)?.npmSpec);
 }
+
+export function isOfficialExternalPluginId(pluginId: string | undefined): boolean {
+  const normalized = normalizeOptionalString(pluginId);
+  return normalized ? Boolean(getOfficialExternalPluginCatalogEntry(normalized)) : false;
+}
+
+export function isOfficialExternalPluginPackageName(packageName: string | undefined): boolean {
+  const normalized = normalizeOptionalString(packageName);
+  if (!normalized) {
+    return false;
+  }
+  const entry = getOfficialExternalPluginCatalogEntry(normalized);
+  return Boolean(entry && normalizeOptionalString(entry.name) === normalized);
+}

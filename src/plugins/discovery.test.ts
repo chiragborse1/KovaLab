@@ -405,13 +405,45 @@ describe("discoverOpenClawPlugins", () => {
     expect(diagnostics).toEqual([]);
   });
 
+  it("does not discover official external packages from the bundled plugin tree", () => {
+    const stateDir = makeTempDir();
+    const bundledDir = path.join(stateDir, "bundled");
+    const diagnosticsDir = path.join(bundledDir, "diagnostics-prometheus");
+    const browserDir = path.join(bundledDir, "browser");
+    createPackagePluginWithEntry({
+      packageDir: diagnosticsDir,
+      packageName: "@kovaai/diagnostics-prometheus",
+      pluginId: "diagnostics-prometheus",
+      entryPath: "index.js",
+    });
+    createPackagePluginWithEntry({
+      packageDir: browserDir,
+      packageName: "@kovaai/browser",
+      pluginId: "browser",
+      entryPath: "index.js",
+    });
+
+    const { candidates, diagnostics } = discoverOpenClawPlugins({
+      env: {
+        ...buildDiscoveryEnv(stateDir),
+        OPENCLAW_BUNDLED_PLUGINS_DIR: bundledDir,
+      },
+    });
+
+    expectCandidateIds(candidates, {
+      includes: ["browser"],
+      excludes: ["diagnostics-prometheus"],
+    });
+    expect(diagnostics).toEqual([]);
+  });
+
   it("ignores packaged bundled plugin paths in configured load paths", () => {
     const stateDir = makeTempDir();
     const packageRoot = path.join(stateDir, "node_modules", "openclaw");
     const bundledRoot = path.join(packageRoot, "dist", "extensions");
-    const bundledPluginDir = path.join(bundledRoot, "feishu");
+    const bundledPluginDir = path.join(bundledRoot, "telegram");
     mkdirSafe(bundledPluginDir);
-    writePluginManifest({ pluginDir: bundledPluginDir, id: "feishu" });
+    writePluginManifest({ pluginDir: bundledPluginDir, id: "telegram" });
     writePluginEntry(path.join(bundledPluginDir, "index.js"));
 
     const { candidates, diagnostics } = discoverOpenClawPlugins({
@@ -422,7 +454,7 @@ describe("discoverOpenClawPlugins", () => {
       },
     });
 
-    expect(candidates.filter((candidate) => candidate.idHint === "feishu")).toEqual([
+    expect(candidates.filter((candidate) => candidate.idHint === "telegram")).toEqual([
       expect.objectContaining({ origin: "bundled" }),
     ]);
     expect(diagnostics).toEqual([

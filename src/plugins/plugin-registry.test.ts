@@ -464,6 +464,47 @@ describe("plugin registry facade", () => {
     ]);
   });
 
+  it("falls back to the derived registry when persisted bundled records became external packages", async () => {
+    const stateDir = makeTempDir();
+    const rootDir = makeTempDir();
+    const staleBundledRootDir = makeTempDir();
+    const candidate = createCandidate(rootDir);
+    fs.writeFileSync(path.join(staleBundledRootDir, "index.ts"), "", "utf8");
+    fs.writeFileSync(
+      path.join(staleBundledRootDir, "openclaw.plugin.json"),
+      JSON.stringify({ id: "discord", configSchema: { type: "object" } }),
+      "utf8",
+    );
+    await writePersistedInstalledPluginIndex(
+      createIndex("discord", {
+        plugins: [
+          {
+            ...createIndex("discord").plugins[0],
+            manifestPath: path.join(staleBundledRootDir, "openclaw.plugin.json"),
+            source: path.join(staleBundledRootDir, "index.ts"),
+            rootDir: staleBundledRootDir,
+            origin: "bundled",
+          },
+        ],
+      }),
+      { stateDir },
+    );
+
+    const result = loadPluginRegistrySnapshotWithMetadata({
+      stateDir,
+      candidates: [candidate],
+      env: hermeticEnv({ OPENCLAW_BUNDLED_PLUGINS_DIR: staleBundledRootDir }),
+    });
+
+    expect(result.source).toBe("derived");
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({ code: "persisted-registry-stale-source" }),
+    ]);
+    expect(listPluginRecords({ index: result.snapshot }).map((plugin) => plugin.pluginId)).toEqual([
+      "demo",
+    ]);
+  });
+
   it("falls back to the derived registry when persisted policy is stale", async () => {
     const stateDir = makeTempDir();
     const rootDir = makeTempDir();

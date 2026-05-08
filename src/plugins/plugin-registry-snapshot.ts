@@ -22,6 +22,7 @@ import {
   type LoadInstalledPluginIndexParams,
   type RefreshInstalledPluginIndexParams,
 } from "./installed-plugin-index.js";
+import { isOfficialExternalPluginId } from "./official-external-plugin-catalog.js";
 import { resolvePluginCacheInputs } from "./roots.js";
 
 export type PluginRegistrySnapshot = InstalledPluginIndex;
@@ -121,6 +122,12 @@ function hasMismatchedPersistedBundledPluginRoot(
   );
 }
 
+function hasExternalizedPersistedBundledPlugin(index: InstalledPluginIndex): boolean {
+  return index.plugins.some(
+    (plugin) => plugin.origin === "bundled" && isOfficialExternalPluginId(plugin.pluginId),
+  );
+}
+
 function resolveDerivedSnapshotCacheKey(
   params: LoadPluginRegistryParams,
   env: NodeJS.ProcessEnv,
@@ -206,6 +213,13 @@ export function loadPluginRegistrySnapshotWithMetadata(
           code: "persisted-registry-stale-source",
           message:
             "Persisted plugin registry points at a different bundled plugin tree; using derived plugin index. Run `kova plugins registry --refresh` to update the persisted registry.",
+        });
+      } else if (hasExternalizedPersistedBundledPlugin(persistedIndex)) {
+        diagnostics.push({
+          level: "warn",
+          code: "persisted-registry-stale-source",
+          message:
+            "Persisted plugin registry contains plugins that are now external packages; using derived plugin index. Run `kova plugins registry --refresh` to update the persisted registry.",
         });
       } else {
         return {

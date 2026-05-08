@@ -18,6 +18,7 @@ import {
   type PackageManifest,
   type PluginManifest,
 } from "./manifest.js";
+import { isOfficialExternalPluginId } from "./official-external-plugin-catalog.js";
 import { resolveLoaderPackageRoot } from "./sdk-alias.js";
 
 const OPENCLAW_PACKAGE_ROOT =
@@ -107,6 +108,9 @@ function collectBundledPluginMetadata(
     const pluginDir = path.join(resolvedScanDir, dirName);
     const manifestResult = loadPluginManifest(pluginDir, false);
     if (!manifestResult.ok) {
+      continue;
+    }
+    if (isOfficialExternalPluginId(manifestResult.manifest.id)) {
       continue;
     }
 

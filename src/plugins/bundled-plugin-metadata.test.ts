@@ -139,19 +139,54 @@ describe("bundled plugin metadata", () => {
     expect(BUNDLED_RUNTIME_SIDECAR_PATHS).not.toContain("dist/extensions/qa-matrix/runtime-api.js");
   });
 
+  it("excludes official external packages from bundled metadata", () => {
+    const tempRoot = createGeneratedPluginTempRoot("openclaw-bundled-plugin-external-skip-");
+    const pluginsDir = path.join(tempRoot, "extensions");
+    const diagnosticsRoot = path.join(pluginsDir, "diagnostics-prometheus");
+    const browserRoot = path.join(pluginsDir, "browser");
+    writeJson(path.join(diagnosticsRoot, "package.json"), {
+      name: "@kovaai/diagnostics-prometheus",
+      version: "2.0.0-beta.3",
+      openclaw: { extensions: ["./index.ts"] },
+    });
+    writeJson(path.join(diagnosticsRoot, "openclaw.plugin.json"), {
+      id: "diagnostics-prometheus",
+      configSchema: { type: "object" },
+    });
+    fs.writeFileSync(path.join(diagnosticsRoot, "index.ts"), "export default {};\n", "utf8");
+    writeJson(path.join(browserRoot, "package.json"), {
+      name: "@kovaai/browser",
+      version: "2.0.0",
+      openclaw: { extensions: ["./index.ts"] },
+    });
+    writeJson(path.join(browserRoot, "openclaw.plugin.json"), {
+      id: "browser",
+      configSchema: { type: "object" },
+    });
+    fs.writeFileSync(path.join(browserRoot, "index.ts"), "export default {};\n", "utf8");
+
+    clearBundledPluginMetadataCache();
+    expect(
+      listBundledPluginMetadata({
+        rootDir: tempRoot,
+        scanDir: pluginsDir,
+      }).map((entry) => entry.manifest.id),
+    ).toEqual(["browser"]);
+  });
+
   it("captures setup-entry metadata for bundled channel plugins", () => {
-    const discord = listRepoBundledPluginMetadata().find((entry) => entry.dirName === "discord");
-    expect(discord?.source).toEqual({ source: "./index.ts", built: "index.js" });
-    expect(discord?.setupSource).toEqual({ source: "./setup-entry.ts", built: "setup-entry.js" });
-    expectArtifactPresence(discord?.publicSurfaceArtifacts, {
+    const telegram = listRepoBundledPluginMetadata().find((entry) => entry.dirName === "telegram");
+    expect(telegram?.source).toEqual({ source: "./index.ts", built: "index.js" });
+    expect(telegram?.setupSource).toEqual({ source: "./setup-entry.ts", built: "setup-entry.js" });
+    expectArtifactPresence(telegram?.publicSurfaceArtifacts, {
       contains: ["api.js", "runtime-api.js", "session-key-api.js"],
       excludes: ["test-api.js"],
     });
-    expectArtifactPresence(discord?.runtimeSidecarArtifacts, {
+    expectArtifactPresence(telegram?.runtimeSidecarArtifacts, {
       contains: ["runtime-api.js"],
     });
-    expect(discord?.manifest.id).toBe("discord");
-    expect(collectRepoBundledChannelConfigsForTest("discord")?.discord).toEqual(
+    expect(telegram?.manifest.id).toBe("telegram");
+    expect(collectRepoBundledChannelConfigsForTest("telegram")?.telegram).toEqual(
       expect.objectContaining({
         schema: expect.objectContaining({ type: "object" }),
       }),
@@ -186,16 +221,6 @@ describe("bundled plugin metadata", () => {
     });
   });
 
-  it("keeps Discord's narrow runtime setter on the bundled runtime sidecar surface", () => {
-    const discord = listRepoBundledPluginMetadata().find((entry) => entry.dirName === "discord");
-    expectArtifactPresence(discord?.publicSurfaceArtifacts, {
-      contains: ["runtime-setter-api.js"],
-    });
-    expectArtifactPresence(discord?.runtimeSidecarArtifacts, {
-      contains: ["runtime-setter-api.js"],
-    });
-  });
-
   it("loads tlon channel config metadata from the lightweight schema surface", () => {
     expect(collectRepoBundledChannelConfigsForTest("tlon")?.tlon).toEqual(
       expect.objectContaining({
@@ -205,12 +230,6 @@ describe("bundled plugin metadata", () => {
   });
 
   it("keeps bundled persisted-auth metadata on channel package manifests", () => {
-    const whatsapp = listRepoBundledPluginMetadata().find((entry) => entry.dirName === "whatsapp");
-    expect(whatsapp?.packageManifest?.channel?.persistedAuthState).toEqual({
-      specifier: "./auth-presence",
-      exportName: "hasAnyWhatsAppAuth",
-    });
-
     const matrix = listRepoBundledPluginMetadata().find((entry) => entry.dirName === "matrix");
     expect(matrix?.packageManifest?.channel?.persistedAuthState).toEqual({
       specifier: "./auth-presence",
@@ -227,19 +246,12 @@ describe("bundled plugin metadata", () => {
 
   it("keeps bundled configured-state metadata on channel package manifests", () => {
     const configuredChannels = listRepoBundledPluginMetadata()
-      .filter((entry) => ["discord", "irc", "slack", "telegram"].includes(entry.dirName))
+      .filter((entry) => ["irc", "slack", "telegram"].includes(entry.dirName))
       .map((entry) => ({
         dir: entry.dirName,
         configuredState: entry.packageManifest?.channel?.configuredState,
       }));
     expect(configuredChannels).toEqual([
-      {
-        dir: "discord",
-        configuredState: {
-          specifier: "./configured-state",
-          exportName: "hasDiscordConfiguredState",
-        },
-      },
       {
         dir: "irc",
         configuredState: {

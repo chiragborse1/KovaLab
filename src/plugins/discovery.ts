@@ -20,6 +20,7 @@ import {
   type OpenClawPackageManifest,
   type PackageManifest,
 } from "./manifest.js";
+import { isOfficialExternalPluginId } from "./official-external-plugin-catalog.js";
 import {
   resolvePackageRuntimeExtensionSources,
   resolvePackageSetupSource,
@@ -69,6 +70,13 @@ const discoveryCache = new Map<string, { expiresAt: number; result: PluginDiscov
 
 // Keep a short cache window to collapse bursty reloads during startup flows.
 const DEFAULT_DISCOVERY_CACHE_MS = 1000;
+
+function shouldSkipBundledOfficialExternalPlugin(params: {
+  origin: PluginOrigin;
+  pluginId?: string;
+}): boolean {
+  return params.origin === "bundled" && isOfficialExternalPluginId(params.pluginId);
+}
 
 export function clearPluginDiscoveryCache(): void {
   discoveryCache.clear();
@@ -626,6 +634,9 @@ function discoverInDirectory(params: {
     const extensionResolution = resolvePackageExtensionEntries(manifest ?? undefined);
     const extensions = extensionResolution.status === "ok" ? extensionResolution.entries : [];
     const manifestId = resolveIdHintManifestId(fullPath, rejectHardlinks);
+    if (shouldSkipBundledOfficialExternalPlugin({ origin: params.origin, pluginId: manifestId })) {
+      continue;
+    }
     const setupSource = resolvePackageSetupSource({
       packageDir: fullPath,
       manifest,
@@ -762,6 +773,9 @@ function discoverFromPath(params: {
     const extensionResolution = resolvePackageExtensionEntries(manifest ?? undefined);
     const extensions = extensionResolution.status === "ok" ? extensionResolution.entries : [];
     const manifestId = resolveIdHintManifestId(resolved, rejectHardlinks);
+    if (shouldSkipBundledOfficialExternalPlugin({ origin: params.origin, pluginId: manifestId })) {
+      return;
+    }
     const setupSource = resolvePackageSetupSource({
       packageDir: resolved,
       manifest,

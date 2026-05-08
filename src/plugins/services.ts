@@ -5,6 +5,7 @@ import {
   onInternalDiagnosticEvent,
 } from "../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import { isOfficialExternalPluginPackageName } from "./official-external-plugin-catalog.js";
 import type { PluginServiceRegistration } from "./registry-types.js";
 import type { PluginRegistry } from "./registry.js";
 import type { OpenClawPluginServiceContext, PluginLogger } from "./types.js";
@@ -24,11 +25,14 @@ function createServiceContext(params: {
   workspaceDir?: string;
   service?: PluginServiceRegistration;
 }): OpenClawPluginServiceContext {
+  const isDiagnosticsExporter =
+    params.service?.pluginId === params.service?.service.id &&
+    (params.service?.service.id === "diagnostics-otel" ||
+      params.service?.service.id === "diagnostics-prometheus");
   const grantsInternalDiagnostics =
-    params.service?.origin === "bundled" &&
-    params.service.pluginId === params.service.service.id &&
-    (params.service.service.id === "diagnostics-otel" ||
-      params.service.service.id === "diagnostics-prometheus");
+    isDiagnosticsExporter &&
+    (params.service?.origin === "bundled" ||
+      isOfficialExternalPluginPackageName(params.service?.pluginName));
 
   return {
     config: params.config,
