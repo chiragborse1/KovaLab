@@ -293,6 +293,7 @@ export function buildServiceEnvironment(params: {
     KOVA_PROFILE: profile,
     OPENCLAW_PROFILE: profile,
     OPENCLAW_WRAPPER: wrapperPath,
+    KOVA_GATEWAY_PORT: String(port),
     OPENCLAW_GATEWAY_PORT: String(port),
     OPENCLAW_LAUNCHD_LABEL: resolvedLaunchdLabel,
     OPENCLAW_SYSTEMD_UNIT: systemdUnit,
@@ -383,7 +384,8 @@ function resolveSharedServiceEnvironmentFields(
   const stateDir =
     readEnvAlias(env, "KOVA_STATE_DIR", "OPENCLAW_STATE_DIR") ?? resolveGatewayStateDir(env);
   const configPath =
-    readEnvAlias(env, "KOVA_CONFIG_PATH", "OPENCLAW_CONFIG_PATH") ?? path.join(stateDir, "kova.json");
+    readEnvAlias(env, "KOVA_CONFIG_PATH", "OPENCLAW_CONFIG_PATH") ??
+    path.join(stateDir, "kova.json");
   const tmpDir = resolveServiceTmpDir(env, platform);
   // On macOS, launchd services don't inherit the shell environment, so Node's undici/fetch
   // cannot locate the system CA bundle. Default to /etc/ssl/cert.pem so TLS verification

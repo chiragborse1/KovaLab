@@ -386,6 +386,7 @@ describe("buildServiceEnvironment", () => {
     } else {
       expect(env.PATH).toContain("/usr/bin");
     }
+    expect(env.KOVA_GATEWAY_PORT).toBe("18789");
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("18789");
     expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
     expect(env.KOVA_STATE_DIR).toBe(path.join("/home/user", ".kova"));

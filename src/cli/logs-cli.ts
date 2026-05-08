@@ -37,6 +37,7 @@ type LogsTailPayload = {
 type LogsCliOptions = {
   limit?: string;
   maxBytes?: string;
+  deep?: boolean;
   follow?: boolean;
   interval?: string;
   json?: boolean;
@@ -65,7 +66,7 @@ async function fetchLogs(
   showProgress: boolean,
 ): Promise<LogsTailPayload> {
   const limit = parsePositiveInt(opts.limit, 200);
-  const maxBytes = parsePositiveInt(opts.maxBytes, 250_000);
+  const maxBytes = parsePositiveInt(opts.maxBytes, opts.deep ? 2_000_000 : 250_000);
   try {
     const payload = await callGatewayFromCli(
       "logs.tail",
@@ -248,7 +249,8 @@ export function registerLogsCli(program: Command) {
     .command("logs")
     .description("Tail gateway file logs via RPC")
     .option("--limit <n>", "Max lines to return", "200")
-    .option("--max-bytes <n>", "Max bytes to read", "250000")
+    .option("--max-bytes <n>", "Max bytes to read")
+    .option("--deep", "Read a larger log window without changing output format", false)
     .option("--follow", "Follow log output", false)
     .option("--interval <ms>", "Polling interval in ms", "1000")
     .option("--json", "Emit JSON log lines", false)

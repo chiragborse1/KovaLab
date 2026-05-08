@@ -26,7 +26,7 @@ describe("settings dashboard", () => {
       browser: { enabled: true },
       messages: { tts: { auto: "off" } },
       plugins: { entries: { "memory-core": { enabled: true } } },
-      skills: { allow: ["github"] },
+      skills: { allowBundled: ["github"] },
       ui: { seamColor: "#ff710e" },
     };
 

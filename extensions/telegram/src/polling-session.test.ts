@@ -1,4 +1,5 @@
 import type { ChannelAccountSnapshot } from "openclaw/plugin-sdk/channel-contract";
+import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runMock = vi.hoisted(() => vi.fn());
@@ -163,7 +164,7 @@ function createPollingSessionWithTransportRestart(params: {
 function createPollingSession(params: {
   abortSignal: AbortSignal;
   log?: (message: string) => void;
-  runtime?: { error?: (message: string) => void };
+  runtime?: RuntimeEnv;
   telegramTransport?: ReturnType<typeof makeTelegramTransport>;
   createTelegramTransport?: () => ReturnType<typeof makeTelegramTransport>;
   stallThresholdMs?: number;
@@ -655,7 +656,7 @@ describe("TelegramPollingSession", () => {
 
     const session = createPollingSession({
       abortSignal: abort.signal,
-      runtime: { error: runtimeError },
+      runtime: { log: vi.fn(), error: runtimeError, exit: vi.fn() },
       log,
       telegramTransport: transport1,
       createTelegramTransport,

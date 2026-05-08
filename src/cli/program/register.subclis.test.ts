@@ -131,6 +131,17 @@ describe("registerSubCliCommands", () => {
     expect(registerAcpCli).not.toHaveBeenCalled();
   });
 
+  it("keeps legacy aliases callable but hidden from root help", () => {
+    const program = createRegisteredProgram(["node", "openclaw"]);
+
+    const help = program.helpInformation();
+
+    expect(program.commands.map((cmd) => cmd.name())).toContain("clawbot");
+    expect(program.commands.map((cmd) => cmd.name())).toContain("daemon");
+    expect(help).not.toContain("clawbot");
+    expect(help).not.toContain("daemon");
+  });
+
   it("omits the qa placeholder when the private qa cli is disabled", () => {
     delete process.env.OPENCLAW_ENABLE_PRIVATE_QA_CLI;
 

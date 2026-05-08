@@ -342,6 +342,9 @@ function shouldIgnoreScannedDirectory(dirName: string): boolean {
   if (!normalized) {
     return true;
   }
+  if (normalized.startsWith(".")) {
+    return true;
+  }
   if (SCANNED_DIRECTORY_IGNORE_NAMES.has(normalized)) {
     return true;
   }

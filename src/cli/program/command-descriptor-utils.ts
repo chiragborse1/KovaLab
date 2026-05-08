@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import { sanitizeForLog } from "../../terminal/ansi.js";
 import type { NamedCommandDescriptor } from "./command-group-descriptors.js";
 
-export type CommandDescriptorLike = Pick<NamedCommandDescriptor, "name" | "description">;
+export type CommandDescriptorLike = Pick<NamedCommandDescriptor, "name" | "description" | "hidden">;
 
 const SAFE_COMMAND_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
@@ -59,6 +59,10 @@ export function collectUniqueCommandDescriptors<TDescriptor extends CommandDescr
   return descriptors;
 }
 
+export function hideCommandFromHelp(command: Command): void {
+  (command as Command & { _hidden?: boolean })._hidden = true;
+}
+
 export function defineCommandDescriptorCatalog<TDescriptor extends NamedCommandDescriptor>(
   descriptors: readonly TDescriptor[],
 ): CommandDescriptorCatalog<TDescriptor> {
@@ -80,7 +84,12 @@ export function addCommandDescriptorsToProgram(
     if (existingCommands.has(name)) {
       continue;
     }
-    program.command(name).description(sanitizeCommandDescriptorDescription(descriptor.description));
+    const command = program
+      .command(name)
+      .description(sanitizeCommandDescriptorDescription(descriptor.description));
+    if (descriptor.hidden) {
+      hideCommandFromHelp(command);
+    }
     existingCommands.add(name);
   }
   return existingCommands;

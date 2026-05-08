@@ -181,6 +181,25 @@ describe("logs cli", () => {
     expect(stderrWrites.join("")).toContain("reading local log file instead");
   });
 
+  it("accepts --deep and requests a larger log window", async () => {
+    callGatewayFromCli.mockResolvedValueOnce({
+      file: "/tmp/openclaw.log",
+      lines: ["deep line"],
+    });
+
+    const stdoutWrites = captureStdoutWrites();
+
+    await runLogsCli(["logs", "--deep"]);
+
+    expect(callGatewayFromCli).toHaveBeenCalledWith(
+      "logs.tail",
+      expect.objectContaining({ deep: true }),
+      { cursor: undefined, limit: 200, maxBytes: 2_000_000 },
+      { progress: true },
+    );
+    expect(stdoutWrites.join("")).toContain("deep line");
+  });
+
   describe("formatLogTimestamp", () => {
     it("formats UTC timestamp in plain mode by default", () => {
       const result = formatLogTimestamp("2025-01-01T12:00:00.000Z");

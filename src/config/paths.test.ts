@@ -50,6 +50,15 @@ describe("gateway port resolution", () => {
     ).toBe(19001);
   });
 
+  it("prefers KOVA_GATEWAY_PORT over legacy port env and config", () => {
+    expect(
+      resolveGatewayPort(
+        { gateway: { port: 19003 } },
+        envWith({ KOVA_GATEWAY_PORT: "19002", OPENCLAW_GATEWAY_PORT: "19001" }),
+      ),
+    ).toBe(19002);
+  });
+
   it("accepts Compose-style IPv4 host publish values from env", () => {
     expect(
       resolveGatewayPort(

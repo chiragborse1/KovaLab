@@ -332,6 +332,28 @@ describe("discoverOpenClawPlugins", () => {
     expect(result.diagnostics).toEqual([]);
   });
 
+  it("ignores hidden directories under extension roots", () => {
+    const stateDir = makeTempDir();
+    const globalExt = path.join(stateDir, "extensions");
+    createPackagePluginWithEntry({
+      packageDir: path.join(globalExt, ".openclaw-install-backups"),
+      packageName: "@openclaw/backup-plugin",
+      pluginId: "backup-plugin",
+    });
+    createPackagePluginWithEntry({
+      packageDir: path.join(globalExt, "visible-plugin"),
+      packageName: "@openclaw/visible-plugin",
+      pluginId: "visible-plugin",
+    });
+
+    const result = discoverOpenClawPlugins({ env: buildDiscoveryEnv(stateDir) });
+
+    expectCandidatePresence(result, {
+      present: ["visible-plugin"],
+      absent: ["backup-plugin", ".openclaw-install-backups"],
+    });
+  });
+
   it("resolves tilde workspace dirs against the provided env", () => {
     const stateDir = makeTempDir();
     const homeDir = makeTempDir();

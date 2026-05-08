@@ -5,6 +5,7 @@ import {
   renderGatewayServiceStartHints,
   resolveDaemonContainerContext,
   resolveRuntimeStatusColor,
+  safeDaemonEnv,
 } from "./shared.js";
 
 describe("resolveRuntimeStatusColor", () => {
@@ -82,5 +83,18 @@ describe("filterContainerGenericHints", () => {
         { OPENCLAW_CONTAINER_HINT: "openclaw-demo-container" } as NodeJS.ProcessEnv,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("safeDaemonEnv", () => {
+  it("shows Kova env names before legacy compatibility aliases", () => {
+    expect(
+      safeDaemonEnv({
+        KOVA_GATEWAY_PORT: "18789",
+        OPENCLAW_GATEWAY_PORT: "18789",
+        KOVA_STATE_DIR: "/tmp/kova",
+        OPENCLAW_STATE_DIR: "/tmp/openclaw",
+      }),
+    ).toEqual(["KOVA_STATE_DIR=/tmp/kova", "KOVA_GATEWAY_PORT=18789"]);
   });
 });

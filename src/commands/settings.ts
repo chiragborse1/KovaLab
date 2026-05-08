@@ -178,7 +178,7 @@ function countEnabledPlugins(cfg: OpenClawConfig): number {
 }
 
 function countSkills(cfg: OpenClawConfig): number {
-  const allow = cfg.skills?.allow;
+  const allow = cfg.skills?.allowBundled;
   return Array.isArray(allow) ? allow.length : 0;
 }
 

@@ -219,6 +219,10 @@ async function listInstalledPluginDirs(params: {
   const pluginDirs = entries
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
+    .filter((entry) => {
+      const normalized = normalizeOptionalString(entry);
+      return Boolean(normalized && !normalized.startsWith("."));
+    })
     .filter(Boolean);
   return { extensionsDir, pluginDirs };
 }

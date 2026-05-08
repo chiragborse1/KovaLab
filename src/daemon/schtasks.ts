@@ -348,7 +348,7 @@ async function launchFallbackTaskScript(env: GatewayServiceEnv): Promise<void> {
 }
 
 function resolveConfiguredGatewayPort(env: GatewayServiceEnv): number | null {
-  const raw = env.OPENCLAW_GATEWAY_PORT?.trim();
+  const raw = env.KOVA_GATEWAY_PORT?.trim() || env.OPENCLAW_GATEWAY_PORT?.trim();
   if (!raw) {
     return null;
   }
@@ -392,6 +392,7 @@ async function resolveScheduledTaskPort(env: GatewayServiceEnv): Promise<number 
   const command = await readScheduledTaskCommand(env).catch(() => null);
   return (
     parsePortFromProgramArguments(command?.programArguments) ??
+    parsePositivePort(command?.environment?.KOVA_GATEWAY_PORT) ??
     parsePositivePort(command?.environment?.OPENCLAW_GATEWAY_PORT) ??
     resolveConfiguredGatewayPort(env)
   );

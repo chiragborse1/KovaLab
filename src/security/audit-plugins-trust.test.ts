@@ -438,6 +438,10 @@ describe("security audit extension tool reachability findings", () => {
       recursive: true,
       mode: 0o700,
     });
+    await fs.mkdir(path.join(sharedExtensionsStateDir, "extensions", ".openclaw-install-backups"), {
+      recursive: true,
+      mode: 0o700,
+    });
   });
 
   afterAll(async () => {
@@ -461,13 +465,12 @@ describe("security audit extension tool reachability findings", () => {
         name: "flags extensions without plugins.allow",
         cfg: {} satisfies OpenClawConfig,
         assert: (findings: Awaited<ReturnType<typeof runSharedExtensionsAudit>>) => {
-          expect(
-            findings.some(
-              (finding) =>
-                finding.checkId === "plugins.extensions_no_allowlist" &&
-                finding.severity === "warn",
-            ),
-          ).toBe(true);
+          const finding = findings.find(
+            (candidate) => candidate.checkId === "plugins.extensions_no_allowlist",
+          );
+          expect(finding?.severity).toBe("warn");
+          expect(finding?.detail).toContain("Found 1 extension(s)");
+          expect(finding?.detail).not.toContain(".openclaw-install-backups");
         },
       },
       {

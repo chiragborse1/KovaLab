@@ -1348,8 +1348,9 @@ export type PluginPackageChannelCliOption = {
 
 export type PluginPackageInstall = {
   npmSpec?: string;
+  clawhubSpec?: string;
   localPath?: string;
-  defaultChoice?: "npm" | "local";
+  defaultChoice?: "npm" | "clawhub" | "local";
   minHostVersion?: string;
   expectedIntegrity?: string;
   allowInvalidConfigRecovery?: boolean;

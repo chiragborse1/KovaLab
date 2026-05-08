@@ -1,11 +1,13 @@
 import type { Command } from "commander";
 import { reparseProgramFromActionArgs } from "./action-reparse.js";
+import { hideCommandFromHelp } from "./command-descriptor-utils.js";
 import { removeCommandByName } from "./command-tree.js";
 
 type RegisterLazyCommandParams = {
   program: Command;
   name: string;
   description: string;
+  hidden?: boolean;
   options?: readonly {
     flags: string;
     description: string;
@@ -37,11 +39,15 @@ export function registerLazyCommand({
   program,
   name,
   description,
+  hidden,
   options,
   removeNames,
   register,
 }: RegisterLazyCommandParams): void {
   const placeholder = program.command(name).description(description);
+  if (hidden) {
+    hideCommandFromHelp(placeholder);
+  }
   for (const option of options ?? []) {
     placeholder.option(option.flags, option.description);
   }

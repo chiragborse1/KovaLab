@@ -11,7 +11,12 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
     description: "Run, inspect, and query the WebSocket Gateway",
     hasSubcommands: true,
   },
-  { name: "daemon", description: "Gateway service (legacy alias)", hasSubcommands: true },
+  {
+    name: "daemon",
+    description: "Gateway service (legacy alias)",
+    hasSubcommands: true,
+    hidden: true,
+  },
   { name: "logs", description: "Tail gateway file logs via RPC", hasSubcommands: false },
   {
     name: "system",
@@ -122,6 +127,7 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
     name: "clawbot",
     description: "Legacy clawbot command aliases",
     hasSubcommands: true,
+    hidden: true,
   },
   {
     name: "pairing",

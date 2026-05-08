@@ -150,6 +150,11 @@ function buildContainerExecEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const next = { ...env };
   // Container-targeted CLI invocations should use the container's own profile
   // and gateway auth/runtime state rather than inheriting host overrides.
+  delete next.KOVA_PROFILE;
+  delete next.KOVA_GATEWAY_PORT;
+  delete next.KOVA_GATEWAY_URL;
+  delete next.KOVA_GATEWAY_TOKEN;
+  delete next.KOVA_GATEWAY_PASSWORD;
   delete next.OPENCLAW_PROFILE;
   delete next.OPENCLAW_GATEWAY_PORT;
   delete next.OPENCLAW_GATEWAY_URL;

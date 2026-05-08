@@ -194,7 +194,9 @@ async function resolveLaunchAgentGatewayPort(env: GatewayServiceEnv): Promise<nu
   if (fromArgs !== null) {
     return fromArgs;
   }
-  const fromEnv = parseStrictPositiveInteger(env.OPENCLAW_GATEWAY_PORT ?? "");
+  const fromEnv = parseStrictPositiveInteger(
+    env.KOVA_GATEWAY_PORT ?? env.OPENCLAW_GATEWAY_PORT ?? "",
+  );
   return fromEnv ?? null;
 }
 
