@@ -4,13 +4,16 @@ import {
   toAgentModelListLike,
 } from "../config/model-input.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { normalizeOptionalString } from "../shared/string-coerce.js";
 import {
   resolveAgentConfig,
   resolveAgentEffectiveModelPrimary,
   resolveAgentModelFallbacksOverride,
 } from "./agent-scope.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
+import { findModelInCatalog } from "./model-catalog.js";
 import type { ModelCatalogEntry } from "./model-catalog.types.js";
+import { splitTrailingAuthProfile } from "./model-ref-profile.js";
 export { resolveThinkingDefault } from "./model-thinking-default.js";
 import {
   type ModelRef,
@@ -224,6 +227,59 @@ export function resolveDefaultModelForAgent(params: {
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
   });
+}
+
+export async function canonicalizeCaseOnlyCatalogModelRef(params: {
+  raw: string | undefined;
+  cfg?: OpenClawConfig;
+  defaultProvider: string;
+  loadCatalog: () => Promise<ModelCatalogEntry[]>;
+  aliasIndex?: ModelAliasIndex;
+  allowManifestNormalization?: boolean;
+  allowPluginNormalization?: boolean;
+  preserveAuthProfile?: boolean;
+}): Promise<string | undefined> {
+  const rawModel = normalizeOptionalString(params.raw);
+  if (!rawModel) {
+    return undefined;
+  }
+  const split = splitTrailingAuthProfile(rawModel);
+  if (split.profile && params.preserveAuthProfile === false) {
+    return rawModel;
+  }
+  if (!isCaseOnlyProviderModelRef(split.model)) {
+    return rawModel;
+  }
+  const resolved = resolveModelRefFromString({
+    cfg: params.cfg,
+    raw: split.model,
+    defaultProvider: params.defaultProvider,
+    aliasIndex: params.aliasIndex,
+    allowManifestNormalization: params.allowManifestNormalization,
+    allowPluginNormalization: params.allowPluginNormalization,
+  });
+  if (!resolved) {
+    return rawModel;
+  }
+  const entry = findModelInCatalog(
+    await params.loadCatalog(),
+    resolved.ref.provider,
+    resolved.ref.model,
+  );
+  return entry ? appendAuthProfileSuffix(`${entry.provider}/${entry.id}`, split.profile) : rawModel;
+}
+
+function hasExplicitProviderModelRef(raw: string): boolean {
+  const slash = raw.indexOf("/");
+  return slash > 0 && slash < raw.length - 1;
+}
+
+function isCaseOnlyProviderModelRef(raw: string): boolean {
+  return hasExplicitProviderModelRef(raw) && raw !== raw.toLowerCase();
+}
+
+function appendAuthProfileSuffix(modelRef: string, profile: string | undefined): string {
+  return profile ? `${modelRef}@${profile}` : modelRef;
 }
 
 function resolveAllowedFallbacks(params: { cfg: OpenClawConfig; agentId?: string }): string[] {

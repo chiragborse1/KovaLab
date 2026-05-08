@@ -11,8 +11,10 @@ import {
   loadAuthProfileStoreForRuntime,
 } from "../agents/auth-profiles.js";
 import { updateAuthProfileStoreWithLock } from "../agents/auth-profiles/store.js";
+import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
+import { canonicalizeCaseOnlyCatalogModelRef } from "../agents/model-selection.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
@@ -568,6 +570,20 @@ function requireProviderModelOverride(
   };
 }
 
+async function canonicalizeModelRunRef(params: {
+  raw: string | undefined;
+  cfg: OpenClawConfig;
+  preserveAuthProfile: boolean;
+}): Promise<string | undefined> {
+  return await canonicalizeCaseOnlyCatalogModelRef({
+    cfg: params.cfg,
+    raw: params.raw,
+    defaultProvider: DEFAULT_PROVIDER,
+    loadCatalog: () => loadModelCatalog({ config: params.cfg, readOnly: true }),
+    preserveAuthProfile: params.preserveAuthProfile,
+  });
+}
+
 async function runModelRun(params: {
   prompt: string;
   model?: string;
@@ -575,12 +591,17 @@ async function runModelRun(params: {
 }) {
   const cfg = getRuntimeConfig();
   const agentId = resolveDefaultAgentId(cfg);
+  const modelRef = await canonicalizeModelRunRef({
+    raw: params.model,
+    cfg,
+    preserveAuthProfile: params.transport === "local",
+  });
   if (params.transport === "local") {
     const result = await agentCommand(
       {
         message: params.prompt,
         agentId,
-        model: params.model,
+        model: modelRef,
         json: false,
         modelRun: true,
         promptMode: "none",
@@ -607,7 +628,7 @@ async function runModelRun(params: {
     } satisfies CapabilityEnvelope;
   }
 
-  const { provider, model } = resolveModelRefOverride(params.model);
+  const { provider, model } = resolveModelRefOverride(modelRef);
   const response: {
     result?: {
       payloads?: Array<{ text?: string; mediaUrl?: string | null; mediaUrls?: string[] }>;
