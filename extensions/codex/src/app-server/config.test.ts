@@ -91,6 +91,7 @@ describe("Codex app-server config", () => {
     const runtime = resolveCodexAppServerRuntimeOptions({
       pluginConfig: {},
       env: {},
+      requirementsToml: null,
     });
 
     expect(runtime).toEqual(
@@ -189,6 +190,75 @@ describe("Codex app-server config", () => {
         approvalPolicy: "on-request",
         sandbox: "workspace-write",
         approvalsReviewer: "auto_review",
+      }),
+    );
+  });
+
+  it("uses guardian defaults when Codex requirements disallow yolo policy", () => {
+    const runtime = resolveCodexAppServerRuntimeOptions({
+      pluginConfig: {},
+      env: {},
+      requirementsToml: `
+        allowed_sandbox_modes = ["read-only", "workspace-write"]
+        allowed_approval_policies = ["on-failure"]
+        allowed_approvals_reviewers = ["guardian_subagent"]
+      `,
+    });
+
+    expect(runtime).toEqual(
+      expect.objectContaining({
+        approvalPolicy: "on-failure",
+        sandbox: "workspace-write",
+        approvalsReviewer: "guardian_subagent",
+      }),
+    );
+  });
+
+  it("uses matching remote sandbox requirements before top-level sandbox defaults", () => {
+    const runtime = resolveCodexAppServerRuntimeOptions({
+      pluginConfig: {},
+      env: {},
+      hostName: "devbox.local",
+      requirementsToml: `
+        allowed_sandbox_modes = ["danger-full-access"]
+
+        [[remote_sandbox_config]]
+        hostname_patterns = ["devbox.*"]
+        allowed_sandbox_modes = ["read-only"]
+      `,
+    });
+
+    expect(runtime).toEqual(
+      expect.objectContaining({
+        approvalPolicy: "on-request",
+        sandbox: "read-only",
+        approvalsReviewer: "auto_review",
+      }),
+    );
+  });
+
+  it("keeps explicit policy fields ahead of Codex requirements defaults", () => {
+    const runtime = resolveCodexAppServerRuntimeOptions({
+      pluginConfig: {
+        appServer: {
+          approvalPolicy: "never",
+          sandbox: "danger-full-access",
+          approvalsReviewer: "user",
+        },
+      },
+      env: {},
+      requirementsToml: `
+        allowed_sandbox_modes = ["read-only"]
+        allowed_approval_policies = ["on-request"]
+        allowed_approvals_reviewers = ["auto_review"]
+      `,
+    });
+
+    expect(runtime).toEqual(
+      expect.objectContaining({
+        approvalPolicy: "never",
+        sandbox: "danger-full-access",
+        approvalsReviewer: "user",
       }),
     );
   });
