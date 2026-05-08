@@ -43,6 +43,7 @@ import {
   FailoverError,
   resolveFailoverStatus,
 } from "../failover-error.js";
+import { ensureSelectedAgentHarnessPlugin } from "../harness/runtime-plugin.js";
 import { selectAgentHarness } from "../harness/selection.js";
 import { LiveSessionModelSwitchError } from "../live-model-switch-error.js";
 import { shouldSwitchToLiveModel, clearLiveModelSwitchPending } from "../live-model-switch.js";
@@ -405,6 +406,14 @@ export async function runEmbeddedPiAgent(
       provider = hookSelection.provider;
       modelId = hookSelection.modelId;
       const legacyBeforeAgentStartResult = hookSelection.legacyBeforeAgentStartResult;
+      await ensureSelectedAgentHarnessPlugin({
+        provider,
+        modelId,
+        config: params.config,
+        agentId: params.agentId,
+        sessionKey: params.sessionKey,
+        workspaceDir: resolvedWorkspace,
+      });
       const agentHarness = selectAgentHarness({
         provider,
         modelId,

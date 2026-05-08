@@ -47,6 +47,7 @@ import { resolveAgentRunContext } from "./command/run-context.js";
 import { resolveSession } from "./command/session.js";
 import type { AgentCommandIngressOpts, AgentCommandOpts } from "./command/types.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
+import { ensureSelectedAgentHarnessPlugin } from "./harness/runtime-plugin.js";
 import { AGENT_LANE_SUBAGENT } from "./lanes.js";
 import { LiveSessionModelSwitchError } from "./live-model-switch.js";
 import { loadModelCatalog } from "./model-catalog.js";
@@ -892,6 +893,14 @@ async function agentCommandInternal(
       runContext.messageChannel,
       opts.replyChannel ?? opts.channel,
     );
+    await ensureSelectedAgentHarnessPlugin({
+      config: cfg,
+      provider,
+      modelId: model,
+      agentId: sessionAgentId,
+      sessionKey,
+      workspaceDir,
+    });
 
     let result: Awaited<ReturnType<AttemptExecutionRuntime["runAgentAttempt"]>>;
     let fallbackProvider = provider;
