@@ -24,6 +24,7 @@ export type ToolCallSummary = {
   meta?: string;
   mutatingAction: boolean;
   actionFingerprint?: string;
+  fileTarget?: import("./tool-mutation.js").FileTarget;
 };
 
 export type EmbeddedPiSubscribeState = {

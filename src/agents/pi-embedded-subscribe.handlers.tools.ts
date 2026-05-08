@@ -96,6 +96,7 @@ function buildToolCallSummary(toolName: string, args: unknown, meta?: string): T
     meta,
     mutatingAction: mutation.mutatingAction,
     actionFingerprint: mutation.actionFingerprint,
+    fileTarget: mutation.fileTarget,
   };
 }
 
@@ -835,6 +836,7 @@ export async function handleToolExecutionEnd(
       timedOut: isToolResultTimedOut(sanitizedResult) || undefined,
       mutatingAction: callSummary?.mutatingAction,
       actionFingerprint: callSummary?.actionFingerprint,
+      fileTarget: callSummary?.fileTarget,
     };
   } else if (ctx.state.lastToolError) {
     // Keep unresolved mutating failures until the same action succeeds.
@@ -844,6 +846,7 @@ export async function handleToolExecutionEnd(
           toolName,
           meta,
           actionFingerprint: callSummary?.actionFingerprint,
+          fileTarget: callSummary?.fileTarget,
         })
       ) {
         ctx.state.lastToolError = undefined;
