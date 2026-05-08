@@ -138,4 +138,34 @@ describe("flushPendingToolResultsAfterIdle", () => {
     });
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it("clears pending tool results immediately when timeoutMs is zero or negative", async () => {
+    const sm = guardSessionManager(SessionManager.inMemory());
+    const appendMessage = sm.appendMessage.bind(sm) as unknown as (message: AgentMessage) => void;
+    const idle = deferred<void>();
+    const waitForIdle = vi.fn(() => idle.promise);
+    const agent = { waitForIdle };
+
+    appendMessage(assistantToolCall("call_orphan_immediate"));
+    await flushPendingToolResultsAfterIdle({
+      agent,
+      sessionManager: sm,
+      timeoutMs: 0,
+      clearPendingOnTimeout: true,
+    });
+
+    expect(waitForIdle).not.toHaveBeenCalled();
+    expect(getMessages(sm).map((m) => m.role)).toEqual(["assistant"]);
+
+    appendMessage(assistantToolCall("call_orphan_negative"));
+    await flushPendingToolResultsAfterIdle({
+      agent,
+      sessionManager: sm,
+      timeoutMs: -100,
+      clearPendingOnTimeout: true,
+    });
+
+    expect(waitForIdle).not.toHaveBeenCalled();
+    expect(getMessages(sm).map((m) => m.role)).toEqual(["assistant", "assistant"]);
+  });
 });

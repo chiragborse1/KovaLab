@@ -1956,6 +1956,7 @@ export async function runEmbeddedAttempt(
           agent: activeSession?.agent,
           sessionManager,
           clearPendingOnTimeout: true,
+          ...(params.abortSignal?.aborted ? { timeoutMs: 0 } : {}),
         });
         activeSession.dispose();
         throw err;
@@ -3234,6 +3235,12 @@ export async function runEmbeddedAttempt(
           bundleMcpRuntime,
           bundleLspRuntime,
           sessionLock,
+          aborted:
+            Boolean(params.abortSignal?.aborted) ||
+            aborted ||
+            timedOut ||
+            idleTimedOut ||
+            timedOutDuringCompaction,
         });
       } catch (err) {
         cleanupError = err;
