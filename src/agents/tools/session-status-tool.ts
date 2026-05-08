@@ -163,6 +163,54 @@ function listImplicitDefaultDirectFallbackKeys(params: {
   return [...new Set(candidates)];
 }
 
+type ActiveStatusModelIdentity = { provider?: string; model: string };
+
+function resolveActiveStatusModelIdentity(params: {
+  activeModelId?: string;
+  activeModelProvider?: string;
+  isImplicitCurrentRequest: boolean;
+  isSemanticCurrentRequest: boolean;
+  liveSessionKeys: Iterable<string | undefined>;
+  modelRaw?: string;
+  resolvedKey: string;
+}): ActiveStatusModelIdentity | undefined {
+  const activeModelId = params.activeModelId?.trim();
+  if (!activeModelId || params.modelRaw !== undefined) {
+    return undefined;
+  }
+  if (!params.isSemanticCurrentRequest && !params.isImplicitCurrentRequest) {
+    return undefined;
+  }
+  const resolvedKey = params.resolvedKey.trim();
+  const liveSessionKeys = new Set(
+    Array.from(params.liveSessionKeys, (value) => value?.trim()).filter((value): value is string =>
+      Boolean(value),
+    ),
+  );
+  if (!liveSessionKeys.has(resolvedKey)) {
+    return undefined;
+  }
+  const activeModelProvider = params.activeModelProvider?.trim();
+  return activeModelProvider
+    ? { provider: activeModelProvider, model: activeModelId }
+    : { model: activeModelId };
+}
+
+function withActiveStatusModelIdentity(
+  entry: SessionEntry,
+  identity: ActiveStatusModelIdentity,
+): SessionEntry {
+  const next: SessionEntry = {
+    ...entry,
+    model: identity.model,
+    ...(identity.provider ? { modelProvider: identity.provider } : {}),
+  };
+  delete next.providerOverride;
+  delete next.modelOverride;
+  delete next.modelOverrideSource;
+  return next;
+}
+
 function formatSessionTaskLine(params: {
   relatedSessionKey: string;
   callerOwnerKey: string;
@@ -255,6 +303,8 @@ export function createSessionStatusTool(opts?: {
   agentSessionKey?: string;
   config?: OpenClawConfig;
   sandboxed?: boolean;
+  activeModelProvider?: string;
+  activeModelId?: string;
 }): AnyAgentTool {
   return {
     label: "Session Status",
@@ -331,6 +381,7 @@ export function createSessionStatusTool(opts?: {
         requestedKeyRaw = currentSessionAlias;
       }
       const requestedKeyInput = requestedKeyRaw?.trim() ?? "";
+      const isSemanticCurrentRequest = requestedKeyInput === "current";
       let resolvedViaSessionId = false;
       let resolvedViaImplicitCurrentFallback = false;
       if (!requestedKeyRaw?.trim()) {
@@ -515,14 +566,31 @@ export function createSessionStatusTool(opts?: {
         }
       }
 
-      const runtimeModelIdentity = resolveSessionModelIdentityRef(
-        cfg,
-        resolved.entry,
-        agentId,
-        `${configured.provider}/${configured.model}`,
-      );
+      const activeModelIdentity = resolveActiveStatusModelIdentity({
+        activeModelId: opts?.activeModelId,
+        activeModelProvider: opts?.activeModelProvider,
+        isImplicitCurrentRequest: requestedKeyParam === undefined,
+        isSemanticCurrentRequest,
+        liveSessionKeys: [
+          opts?.agentSessionKey,
+          storeScopedRequesterKey,
+          effectiveRequesterKey,
+          visibilityRequesterKey,
+        ],
+        modelRaw,
+        resolvedKey: resolved.key,
+      });
+      const runtimeModelIdentity = activeModelIdentity
+        ? activeModelIdentity
+        : resolveSessionModelIdentityRef(
+            cfg,
+            resolved.entry,
+            agentId,
+            `${configured.provider}/${configured.model}`,
+          );
       const hasExplicitModelOverride = Boolean(
-        resolved.entry.providerOverride?.trim() || resolved.entry.modelOverride?.trim(),
+        !activeModelIdentity &&
+        (resolved.entry.providerOverride?.trim() || resolved.entry.modelOverride?.trim()),
       );
       const runtimeProviderForCard = runtimeModelIdentity.provider?.trim();
       const runtimeModelForCard = runtimeModelIdentity.model.trim();
@@ -532,8 +600,9 @@ export function createSessionStatusTool(opts?: {
       const defaultModelForCard = hasExplicitModelOverride
         ? configured.model
         : runtimeModelForCard || configured.model;
-      const statusSessionEntry =
-        !hasExplicitModelOverride && !runtimeProviderForCard && runtimeModelForCard
+      const statusSessionEntry = activeModelIdentity
+        ? withActiveStatusModelIdentity(resolved.entry, activeModelIdentity)
+        : !hasExplicitModelOverride && !runtimeProviderForCard && runtimeModelForCard
           ? { ...resolved.entry, providerOverride: "" }
           : resolved.entry;
       const providerOverrideForCard = statusSessionEntry.providerOverride?.trim();
