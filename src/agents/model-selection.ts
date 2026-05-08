@@ -255,7 +255,6 @@ export async function canonicalizeCaseOnlyCatalogModelRef(params: {
     raw: split.model,
     defaultProvider: params.defaultProvider,
     aliasIndex: params.aliasIndex,
-    allowManifestNormalization: params.allowManifestNormalization,
     allowPluginNormalization: params.allowPluginNormalization,
   });
   if (!resolved) {
