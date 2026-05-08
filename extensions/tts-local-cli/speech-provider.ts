@@ -273,11 +273,11 @@ async function convertAudio(
   const outputPath = path.join(outputDir, `converted${getFileExt(target)}`);
   const args = ["-y", "-i", inputPath];
   if (target === "opus") {
-    args.push("-c:a", "libopus", "-b:a", "64k", outputPath);
+    args.push("-c:a", "libopus", "-b:a", "64k", "-f", "opus", outputPath);
   } else if (target === "wav") {
-    args.push("-c:a", "pcm_s16le", outputPath);
+    args.push("-c:a", "pcm_s16le", "-f", "wav", outputPath);
   } else {
-    args.push("-c:a", "libmp3lame", "-b:a", "128k", outputPath);
+    args.push("-c:a", "libmp3lame", "-b:a", "128k", "-f", "mp3", outputPath);
   }
   await runFfmpeg(args);
   return readFileSync(outputPath);
