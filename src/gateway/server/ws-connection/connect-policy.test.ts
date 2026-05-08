@@ -120,6 +120,36 @@ describe("ws connect policy", () => {
         role: "operator",
         isControlUi: false,
         controlUiAuthPolicy: policy,
+        localBackendSelfPairingOk: true,
+        trustedProxyAuthOk: false,
+        sharedAuthOk: false,
+        authOk: true,
+        hasSharedAuth: false,
+        isLocalClient: true,
+      }).kind,
+    ).toBe("allow");
+
+    expect(
+      evaluateMissingDeviceIdentity({
+        hasDeviceIdentity: false,
+        role: "node",
+        isControlUi: false,
+        controlUiAuthPolicy: policy,
+        localBackendSelfPairingOk: true,
+        trustedProxyAuthOk: false,
+        sharedAuthOk: false,
+        authOk: true,
+        hasSharedAuth: false,
+        isLocalClient: true,
+      }).kind,
+    ).toBe("reject-device-required");
+
+    expect(
+      evaluateMissingDeviceIdentity({
+        hasDeviceIdentity: false,
+        role: "operator",
+        isControlUi: false,
+        controlUiAuthPolicy: policy,
         trustedProxyAuthOk: false,
         sharedAuthOk: true,
         authOk: true,

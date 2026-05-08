@@ -653,6 +653,7 @@ export function attachGatewayWsMessageHandler(params: {
             isControlUi,
             controlUiAuthPolicy,
             trustedProxyAuthOk,
+            localBackendSelfPairingOk: skipLocalBackendSelfPairing,
             sharedAuthOk,
             authOk,
             hasSharedAuth,
