@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { STATE_DIR } from "../config/paths.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
@@ -20,6 +22,20 @@ function createPluginLogger(): PluginLogger {
   };
 }
 
+function readPluginPackageName(rootDir: string | undefined): string | undefined {
+  if (!rootDir) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8")) as {
+      name?: unknown;
+    };
+    return typeof parsed.name === "string" ? parsed.name : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function createServiceContext(params: {
   config: OpenClawConfig;
   workspaceDir?: string;
@@ -32,7 +48,7 @@ function createServiceContext(params: {
   const grantsInternalDiagnostics =
     isDiagnosticsExporter &&
     (params.service?.origin === "bundled" ||
-      isOfficialExternalPluginPackageName(params.service?.pluginName));
+      isOfficialExternalPluginPackageName(readPluginPackageName(params.service?.rootDir)));
 
   return {
     config: params.config,

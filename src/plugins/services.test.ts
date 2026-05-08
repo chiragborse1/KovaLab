@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 import { createEmptyPluginRegistry } from "./registry.js";
 import type { OpenClawPluginService, OpenClawPluginServiceContext } from "./types.js";
@@ -18,11 +21,14 @@ vi.mock("../logging/subsystem.js", () => ({
 import { STATE_DIR } from "../config/paths.js";
 import { startPluginServices } from "./services.js";
 
+const tempDirs: string[] = [];
+
 function createRegistry(
   services: OpenClawPluginService[],
   pluginId = "plugin:test",
   origin: PluginOrigin = "workspace",
   pluginName = pluginId,
+  rootDir = "/plugins/test-plugin",
 ) {
   const registry = createEmptyPluginRegistry();
   registry.services = services.map((service) => ({
@@ -31,9 +37,20 @@ function createRegistry(
     service,
     source: "test",
     origin,
-    rootDir: "/plugins/test-plugin",
+    rootDir,
   })) as typeof registry.services;
   return registry;
+}
+
+function createPackageRoot(packageName: string): string {
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-plugin-service-"));
+  tempDirs.push(rootDir);
+  fs.writeFileSync(
+    path.join(rootDir, "package.json"),
+    `${JSON.stringify({ name: packageName }, null, 2)}\n`,
+    "utf8",
+  );
+  return rootDir;
 }
 
 function createServiceConfig() {
@@ -131,6 +148,12 @@ describe("startPluginServices", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    for (const dir of tempDirs.splice(0)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("starts services and stops them in reverse order", async () => {
     const starts: string[] = [];
     const stops: string[] = [];
@@ -214,7 +237,8 @@ describe("startPluginServices", () => {
         [officialExternalService],
         "diagnostics-prometheus",
         "global",
-        "@kovaai/diagnostics-prometheus",
+        "Diagnostics Prometheus",
+        createPackageRoot("@kovaai/diagnostics-prometheus"),
       ),
       config: createServiceConfig(),
     });
@@ -242,7 +266,8 @@ describe("startPluginServices", () => {
         [spoofedService],
         "diagnostics-prometheus",
         "global",
-        "@example/diagnostics-prometheus",
+        "Diagnostics Prometheus",
+        createPackageRoot("@example/diagnostics-prometheus"),
       ),
       config: createServiceConfig(),
     });
