@@ -1,6 +1,7 @@
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { CHANNEL_IDS, normalizeChatChannelId } from "../channels/ids.js";
+import { listChannelPluginCatalogEntries } from "../channels/plugins/catalog.js";
 import { withBundledPluginAllowlistCompat } from "../plugins/bundled-compat.js";
 import {
   normalizePluginsConfig,
@@ -978,6 +979,16 @@ function validateConfigObjectWithPluginsBase(
     return ensureInstalledPluginRecordIds().has(normalizedChannelId);
   };
 
+  const findInstallableChannelCatalogEntry = (channelId: string) => {
+    const normalizedChannelId = normalizeLowercaseStringOrEmpty(channelId);
+    if (!normalizedChannelId) {
+      return undefined;
+    }
+    return listChannelPluginCatalogEntries({ env: opts.env, excludeWorkspace: true }).find(
+      (entry) => normalizeLowercaseStringOrEmpty(entry.id) === normalizedChannelId,
+    );
+  };
+
   const replaceChannelConfig = (channelId: string, nextValue: unknown) => {
     if (!channelsCloned) {
       mutatedConfig = {
@@ -1038,7 +1049,14 @@ function validateConfigObjectWithPluginsBase(
           path: `channels.${trimmed}`,
           message: `unknown channel id: ${trimmed}`,
         };
-        if (hasStalePluginEvidenceForUnknownChannel(trimmed)) {
+        const installCatalogEntry = findInstallableChannelCatalogEntry(trimmed);
+        if (installCatalogEntry) {
+          const pluginId = installCatalogEntry.pluginId ?? installCatalogEntry.id;
+          warnings.push({
+            path: issue.path,
+            message: `channel plugin is not available: ${trimmed} (install or enable plugin "${pluginId}", then run kova doctor --fix)`,
+          });
+        } else if (hasStalePluginEvidenceForUnknownChannel(trimmed)) {
           warnings.push({
             ...issue,
             message: `${issue.message} (stale channel plugin config ignored; run kova doctor --fix to remove stale config, or install the plugin)`,

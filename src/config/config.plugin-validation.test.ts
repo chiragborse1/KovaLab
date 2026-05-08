@@ -285,7 +285,7 @@ describe("config plugin validation", () => {
     expect(res.warnings).toContainEqual({
       path: "channels.missing-chat",
       message:
-        "unknown channel id: missing-chat (stale channel plugin config ignored; run openclaw doctor --fix to remove stale config, or install the plugin)",
+        "unknown channel id: missing-chat (stale channel plugin config ignored; run kova doctor --fix to remove stale config, or install the plugin)",
     });
     expect(res.warnings).toContainEqual({
       path: "plugins.allow",
@@ -357,7 +357,7 @@ describe("config plugin validation", () => {
       expect(res.warnings).toContainEqual({
         path: "channels.missing-sms",
         message:
-          "unknown channel id: missing-sms (stale channel plugin config ignored; run openclaw doctor --fix to remove stale config, or install the plugin)",
+          "unknown channel id: missing-sms (stale channel plugin config ignored; run kova doctor --fix to remove stale config, or install the plugin)",
       });
     } finally {
       await fs.rm(installedPluginIndexPath, { force: true });
