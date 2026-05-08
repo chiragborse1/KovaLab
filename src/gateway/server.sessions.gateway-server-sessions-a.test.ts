@@ -3211,6 +3211,68 @@ describe("gateway server sessions", () => {
     });
   });
 
+  test("sessions.create with emitCommandHooks=true resets parent in place when session.dmScope is main", async () => {
+    const { dir } = await createSessionStoreDir();
+    const transcriptPath = path.join(dir, "sess-parent-dms.jsonl");
+    await fs.writeFile(
+      transcriptPath,
+      `${JSON.stringify({
+        type: "message",
+        id: "m1",
+        message: { role: "user", content: "hello before /new" },
+      })}\n`,
+      "utf-8",
+    );
+
+    testState.sessionConfig = { dmScope: "main" };
+    try {
+      await writeSessionStore({
+        entries: {
+          main: {
+            sessionId: "sess-parent-dms",
+            sessionFile: transcriptPath,
+            updatedAt: Date.now(),
+          },
+        },
+      });
+
+      const result = await directSessionReq<{
+        ok: boolean;
+        key: string;
+        sessionId: string;
+        runStarted: boolean;
+      }>("sessions.create", {
+        parentSessionKey: "main",
+        emitCommandHooks: true,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.payload?.key).toBe("agent:main:main");
+      expect(result.payload?.runStarted).toBe(false);
+      expect(result.payload?.sessionId).not.toBe("sess-parent-dms");
+
+      expect(sessionLifecycleHookMocks.runSessionEnd).toHaveBeenCalledTimes(1);
+      expect(sessionLifecycleHookMocks.runSessionStart).toHaveBeenCalledTimes(1);
+      const [endEvent] = (
+        sessionLifecycleHookMocks.runSessionEnd.mock.calls as unknown as Array<[unknown, unknown]>
+      )[0] ?? [undefined, undefined];
+      const [startEvent] = (
+        sessionLifecycleHookMocks.runSessionStart.mock.calls as unknown as Array<[unknown, unknown]>
+      )[0] ?? [undefined, undefined];
+      expect(endEvent).toMatchObject({
+        sessionId: "sess-parent-dms",
+        sessionKey: "agent:main:main",
+        reason: "new",
+      });
+      expect(startEvent).toMatchObject({
+        sessionKey: "agent:main:main",
+        resumedFrom: "sess-parent-dms",
+      });
+    } finally {
+      testState.sessionConfig = undefined;
+    }
+  });
+
   test("sessions.reset returns unavailable when active run does not stop", async () => {
     const { dir, storePath } = await seedActiveMainSession();
     const waitCallCountAtSnapshotClear: number[] = [];

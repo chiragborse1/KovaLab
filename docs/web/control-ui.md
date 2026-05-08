@@ -141,6 +141,7 @@ The Control UI can localize itself on first load based on your browser locale. T
     - `chat.history` also strips display-only inline directive tags from visible assistant text (for example `[[reply_to_*]]` and `[[audio_as_voice]]`), plain-text tool-call XML payloads (including `<tool_call>...</tool_call>`, `<function_call>...</function_call>`, `<tool_calls>...</tool_calls>`, `<function_calls>...</function_calls>`, and truncated tool-call blocks), and leaked ASCII/full-width model control tokens, and omits assistant entries whose whole visible text is only the exact silent token `NO_REPLY` / `no_reply`.
     - During an active send and the final history refresh, the chat view keeps local optimistic user/assistant messages visible if `chat.history` briefly returns an older snapshot; the canonical transcript replaces those local messages once the Gateway history catches up.
     - `chat.inject` appends an assistant note to the session transcript and broadcasts a `chat` event for UI-only updates (no agent run, no channel delivery).
+    - Typing `/new` creates and switches to a fresh dashboard session, except when `session.dmScope: "main"` is configured and the current parent is the agent's main session; then it resets the main session in place. Typing `/reset` keeps the explicit in-place reset for the current session.
     - The chat header model and thinking pickers patch the active session immediately through `sessions.patch`; they are persistent session overrides, not one-turn-only send options.
     - When fresh Gateway session usage reports show high context pressure, the chat composer area shows a context notice and, at recommended compaction levels, a compact button that runs the normal session compaction path. Stale token snapshots are hidden until the Gateway reports fresh usage again.
   </Accordion>
@@ -167,12 +168,12 @@ The Control UI can localize itself on first load based on your browser locale. T
 
 The Control UI ships a `manifest.webmanifest` and a service worker, so modern browsers can install it as a standalone PWA. Web Push lets the Gateway wake the installed PWA with notifications even when the tab or browser window is not open.
 
-| Surface                                               | What it does                                                       |
-| ----------------------------------------------------- | ------------------------------------------------------------------ |
-| `ui/public/manifest.webmanifest`                      | PWA manifest. Browsers offer "Install app" once it is reachable.   |
-| `ui/public/sw.js`                                     | Service worker that handles `push` events and notification clicks. |
+| Surface                                           | What it does                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------ |
+| `ui/public/manifest.webmanifest`                  | PWA manifest. Browsers offer "Install app" once it is reachable.   |
+| `ui/public/sw.js`                                 | Service worker that handles `push` events and notification clicks. |
 | `push/vapid-keys.json` (under the Kova state dir) | Auto-generated VAPID keypair used to sign Web Push payloads.       |
-| `push/web-push-subscriptions.json`                    | Persisted browser subscription endpoints.                          |
+| `push/web-push-subscriptions.json`                | Persisted browser subscription endpoints.                          |
 
 Override the VAPID keypair through env vars on the Gateway process when you want to pin keys (for multi-host deployments, secrets rotation, or tests):
 

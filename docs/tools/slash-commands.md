@@ -124,6 +124,7 @@ Current source-of-truth:
 <AccordionGroup>
   <Accordion title="Sessions and runs">
     - `/new [model]` starts a new session; `/reset` is the reset alias.
+    - In the Control UI, typed `/new` creates and switches to a fresh dashboard session, except when `session.dmScope: "main"` is configured and the current parent is the agent's main session; then it resets the main session in place.
     - `/reset soft [message]` keeps the current transcript, drops reused CLI backend session ids, and reruns startup/system-prompt loading in-place.
     - `/compact [instructions]` compacts the session context. See [Compaction](/concepts/compaction).
     - `/stop` aborts the current run.

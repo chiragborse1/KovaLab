@@ -13,6 +13,7 @@ import { clearSessionQueues } from "../../auto-reply/reply/queue/cleanup.js";
 import { normalizeReasoningLevel, normalizeThinkLevel } from "../../auto-reply/thinking.js";
 import {
   loadSessionStore,
+  resolveAgentMainSessionKey,
   resolveMainSessionKey,
   resolveSessionFilePath,
   resolveSessionFilePathOptions,
@@ -854,6 +855,46 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         return;
       }
       canonicalParentSessionKey = parent.canonicalKey;
+    }
+    if (
+      canonicalParentSessionKey &&
+      p.emitCommandHooks === true &&
+      !requestedKey &&
+      !resolveOptionalInitialSessionMessage(p) &&
+      cfg.session?.dmScope === "main"
+    ) {
+      const parentAgentId = normalizeAgentId(
+        resolveAgentIdFromSessionKey(canonicalParentSessionKey) ?? resolveDefaultAgentId(cfg),
+      );
+      const parentMainKey = resolveAgentMainSessionKey({ cfg, agentId: parentAgentId });
+      if (canonicalParentSessionKey === parentMainKey) {
+        const { performGatewaySessionReset } = await loadSessionsRuntimeModule();
+        const resetResult = await performGatewaySessionReset({
+          key: canonicalParentSessionKey,
+          reason: "new",
+          commandSource: "webchat",
+        });
+        if (!resetResult.ok) {
+          respond(false, undefined, resetResult.error);
+          return;
+        }
+        respond(
+          true,
+          {
+            ok: true,
+            key: resetResult.key,
+            sessionId: resetResult.entry.sessionId,
+            entry: resetResult.entry,
+            runStarted: false,
+          },
+          undefined,
+        );
+        emitSessionsChanged(context, {
+          sessionKey: resetResult.key,
+          reason: "new",
+        });
+        return;
+      }
     }
     const loweredRequestedKey = normalizeOptionalLowercaseString(requestedKey);
     const key = requestedKey
