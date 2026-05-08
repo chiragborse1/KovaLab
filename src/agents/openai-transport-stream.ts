@@ -1367,12 +1367,19 @@ async function processOpenAICompletionsStream(
       continue;
     }
     if (choice.delta.content) {
-      if (currentBlock?.type === "toolCall") {
-        queuePostToolCallDelta({ kind: "text", text: choice.delta.content });
-      } else {
-        appendTextDelta(choice.delta.content);
+      const contentDeltas = getCompletionsContentDeltas(choice.delta.content);
+      for (const contentDelta of contentDeltas) {
+        if (currentBlock?.type === "toolCall") {
+          queuePostToolCallDelta(contentDelta);
+        } else if (contentDelta.kind === "text") {
+          appendTextDelta(contentDelta.text);
+        } else {
+          appendThinkingDelta(contentDelta);
+        }
       }
-      continue;
+      if (contentDeltas.length > 0) {
+        continue;
+      }
     }
     const reasoningDeltas = getCompletionsReasoningDeltas(
       choice.delta as Record<string, unknown>,
@@ -1471,6 +1478,44 @@ type CompletionsReasoningDelta =
       kind: "text";
       text: string;
     };
+
+function getCompletionsContentDeltas(content: unknown): CompletionsReasoningDelta[] {
+  if (typeof content === "string") {
+    return content ? [{ kind: "text", text: content }] : [];
+  }
+  if (Array.isArray(content)) {
+    return content.flatMap((item) => getCompletionsContentDeltas(item));
+  }
+  if (!content || typeof content !== "object") {
+    return [];
+  }
+  const record = content as Record<string, unknown>;
+  const type = typeof record.type === "string" ? record.type.toLowerCase() : "";
+  const extractText = (value: unknown): string => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) => extractText(item)).join("");
+    }
+    if (value && typeof value === "object") {
+      const nested = value as Record<string, unknown>;
+      return extractText(nested.text ?? nested.content ?? nested.thinking);
+    }
+    return "";
+  };
+  const text = extractText(record.text ?? record.content ?? record.thinking);
+  if (!text) {
+    return [];
+  }
+  if (type.includes("thinking") || type.includes("reasoning")) {
+    return [{ kind: "thinking", signature: "content", text }];
+  }
+  if (type === "text" || type === "output_text" || type.endsWith(".output_text")) {
+    return [{ kind: "text", text }];
+  }
+  return [];
+}
 
 function getCompletionsReasoningDeltas(
   delta: Record<string, unknown>,
