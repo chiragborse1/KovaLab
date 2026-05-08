@@ -172,8 +172,10 @@ describe("registerTelegramNativeCommands", () => {
         (entry) => entry.description.length < customCommands[0].description.length,
       ),
     ).toBe(true);
-    expect(runtimeLog).toHaveBeenCalledWith(
-      "Telegram menu text exceeded the conservative 5700-character payload budget; shortening descriptions to keep 92 commands visible.",
+    expect(runtimeLog).not.toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Telegram menu text exceeded the conservative 5700-character payload budget",
+      ),
     );
   });
 
