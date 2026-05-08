@@ -126,7 +126,10 @@ describe("getMinimalServicePathParts - Linux user directories", () => {
 
     // Should also include macOS system directories
     expect(result).toContain("/opt/homebrew/bin");
+    expect(result).toContain("/opt/homebrew/sbin");
     expect(result).toContain("/usr/local/bin");
+    expect(result).toContain("/usr/sbin");
+    expect(result).toContain("/sbin");
   });
 
   it("includes env-configured version manager dirs on macOS", () => {
