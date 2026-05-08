@@ -56,6 +56,10 @@ export function installEmbeddedRunnerFastRunE2eMocks(
       runAttempt: vi.fn(),
     })),
     runAgentHarnessAttemptWithFallback: (params: unknown) => options.runEmbeddedAttempt(params),
+    resolveAgentHarnessPolicy: vi.fn(() => ({
+      runtime: "pi",
+      fallback: "pi",
+    })),
   }));
   vi.doMock("../runtime-plan/build.js", () => ({
     buildAgentRuntimePlan: vi.fn(

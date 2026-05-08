@@ -83,6 +83,7 @@ const installRunEmbeddedMocks = () => {
 };
 
 let runEmbeddedPiAgent: typeof import("./pi-embedded-runner/run.js").runEmbeddedPiAgent;
+let authProfileUsageTesting: typeof import("./auth-profiles/usage.js").__testing;
 let createDiagnosticLogRecordCaptureFn: typeof import("../logging/test-helpers/diagnostic-log-capture.js").createDiagnosticLogRecordCapture;
 let cleanupLogCapture: (() => void) | undefined;
 let resetLoggerFn: typeof import("../logging/logger.js").resetLogger;
@@ -93,6 +94,7 @@ beforeAll(async () => {
   vi.resetModules();
   installRunEmbeddedMocks();
   ({ runEmbeddedPiAgent } = await import("./pi-embedded-runner/run.js"));
+  ({ __testing: authProfileUsageTesting } = await import("./auth-profiles/usage.js"));
   ({ createDiagnosticLogRecordCapture: createDiagnosticLogRecordCaptureFn } =
     await import("../logging/test-helpers/diagnostic-log-capture.js"));
   ({ resetLogger: resetLoggerFn, setLoggerOverride: setLoggerOverrideFn } =
@@ -128,6 +130,7 @@ beforeEach(() => {
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  authProfileUsageTesting.setDepsForTest(null);
   cleanupLogCapture?.();
   cleanupLogCapture = undefined;
   setLoggerOverrideFn(null);
@@ -901,6 +904,46 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
     expect(typeof usageStats["openai:p1"]?.cooldownUntil).toBe("number");
     expect(computeBackoffMock).not.toHaveBeenCalled();
     expect(sleepWithAbortMock).not.toHaveBeenCalled();
+  });
+
+  it("starts the retry attempt before prompt failure cooldown marking finishes", async () => {
+    let releaseMark: (() => void) | undefined;
+    const markCanFinish = new Promise<void>((resolve) => {
+      releaseMark = resolve;
+    });
+    let markStarted = false;
+    authProfileUsageTesting.setDepsForTest({
+      updateAuthProfileStoreWithLock: async () => {
+        markStarted = true;
+        await markCanFinish;
+        return null;
+      },
+    });
+
+    try {
+      await withAgentWorkspace(async ({ agentDir, workspaceDir }) => {
+        await writeAuthStore(agentDir);
+        mockPromptErrorThenSuccessfulAttempt("rate limit exceeded");
+
+        const runPromise = runAutoPinnedOpenAiTurn({
+          agentDir,
+          workspaceDir,
+          sessionKey: "agent:test:prompt-deferred-mark",
+          runId: "run:prompt-deferred-mark",
+        });
+
+        await vi.waitFor(() => expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(2));
+        expect(markStarted).toBe(true);
+        releaseMark?.();
+        releaseMark = undefined;
+        await runPromise;
+
+        const usageStats = await readUsageStats(agentDir);
+        expect(typeof usageStats["openai:p2"]?.lastUsed).toBe("number");
+      });
+    } finally {
+      releaseMark?.();
+    }
   });
 
   it("uses configured overload backoff before rotating profiles", async () => {
