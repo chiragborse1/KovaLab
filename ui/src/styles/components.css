@@ -224,24 +224,37 @@
    =========================================== */
 
 .card {
-  border: 1px solid var(--border);
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card) 96%, white 4%),
+      color-mix(in srgb, var(--card) 88%, var(--bg) 12%)
+    ),
+    var(--card);
+  border-radius: calc(var(--radius-xl) - 2px);
+  padding: 20px;
   animation: rise 0.25s var(--ease-out) backwards;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 7%, transparent),
+    0 18px 42px color-mix(in srgb, black 10%, transparent);
   transition:
     border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border-strong) 78%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 8%, transparent),
+    var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .card-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 15.5px;
+  font-weight: 720;
   letter-spacing: -0.02em;
   color: var(--text-strong);
 }
@@ -397,10 +410,14 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 58%, transparent);
   padding: 5px 11px;
   border-radius: var(--radius-full);
-  background: var(--secondary);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--secondary) 88%, white 5%),
+    color-mix(in srgb, var(--secondary) 76%, var(--bg) 24%)
+  );
   font-size: 12px;
   font-weight: 500;
   transition: border-color var(--duration-fast) ease;
@@ -433,8 +450,8 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 64%, transparent);
+  background: color-mix(in srgb, var(--card) 80%, var(--accent-subtle) 20%);
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
@@ -625,27 +642,39 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 62%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-elevated) 92%, white 4%),
+    color-mix(in srgb, var(--bg-elevated) 78%, var(--bg) 22%)
+  );
+  padding: 8px 15px;
+  border-radius: calc(var(--radius-lg) - 3px);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 650;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition:
     border-color var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
 }
 
 .btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-strong);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-hover) 88%, white 4%),
+    color-mix(in srgb, var(--bg-hover) 74%, var(--bg) 26%)
+  );
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border-strong) 74%);
+  transform: translateY(-1px);
 }
 
 .btn:active {
   background: var(--secondary);
+  transform: translateY(0);
 }
 
 .btn svg {
@@ -661,10 +690,16 @@
 
 .btn.primary,
 .btn.cron-refresh-btn--loading {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 74%, white 10%);
+  background: linear-gradient(
+    135deg,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 72%, var(--accent-2) 28%)
+  );
   color: var(--primary-foreground);
-  box-shadow: 0 1px 3px var(--accent-subtle);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
+    0 12px 24px color-mix(in srgb, var(--accent-glow) 72%, transparent);
 }
 
 .btn.primary:hover {
@@ -703,9 +738,9 @@
 }
 
 .btn.active {
-  border-color: var(--accent);
-  background: var(--accent-subtle);
-  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border-strong));
+  background: color-mix(in srgb, var(--accent-subtle) 72%, var(--bg-elevated) 28%);
+  color: var(--text-strong);
 }
 
 .btn.danger {
@@ -733,13 +768,13 @@
   padding: 8px;
   min-width: 36px;
   height: 36px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 60%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
 }
 
 .btn--icon:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--bg-hover) 76%, var(--accent-subtle) 24%);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border-strong));
 }
 
 .btn--icon svg {
@@ -4985,10 +5020,20 @@ td.data-table-key-col {
 .ov-card {
   display: grid;
   gap: 6px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--card);
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  border-radius: calc(var(--radius-xl) - 2px);
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--accent) 8%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card) 96%, white 5%),
+      color-mix(in srgb, var(--card) 84%, var(--bg) 16%)
+    );
   cursor: pointer;
   text-align: left;
   transition:
@@ -4999,8 +5044,8 @@ td.data-table-key-col {
 }
 
 .ov-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-strong) 72%);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -5011,15 +5056,15 @@ td.data-table-key-col {
 
 .ov-card__label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 760;
+  color: color-mix(in srgb, var(--muted) 78%, var(--accent) 22%);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
 }
 
 .ov-card__value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 25px;
+  font-weight: 780;
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--text-strong);
