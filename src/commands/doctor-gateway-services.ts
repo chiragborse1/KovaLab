@@ -12,7 +12,12 @@ import {
   type ExtraGatewayService,
 } from "../daemon/inspect.js";
 import { OPENCLAW_WRAPPER_ENV_KEY } from "../daemon/program-args.js";
-import { renderSystemNodeWarning, resolveSystemNodeInfo } from "../daemon/runtime-paths.js";
+import { isNodeRuntime } from "../daemon/runtime-binary.js";
+import {
+  isVersionManagedNodePath,
+  renderSystemNodeWarning,
+  resolveSystemNodeInfo,
+} from "../daemon/runtime-paths.js";
 import {
   auditGatewayServiceConfig,
   needsNodeRuntimeMigration,
@@ -65,6 +70,25 @@ function findGatewayEntrypoint(programArguments?: string[]): string | null {
     return null;
   }
   return programArguments[gatewayIndex - 1] ?? null;
+}
+
+function resolveRepairNodePath(params: {
+  command: GatewayServiceCommandConfig;
+  platform?: NodeJS.Platform;
+  systemNodePath?: string | null;
+}): string | undefined {
+  if (params.systemNodePath) {
+    return params.systemNodePath;
+  }
+  const currentRuntime = params.command.programArguments?.[0];
+  if (
+    currentRuntime &&
+    isNodeRuntime(currentRuntime) &&
+    !isVersionManagedNodePath(currentRuntime, params.platform)
+  ) {
+    return currentRuntime;
+  }
+  return undefined;
 }
 
 function buildGatewayServiceRepairEnv(
@@ -307,7 +331,7 @@ export async function maybeRepairGatewayServiceConfig(
     );
   }
   const expectedGatewayToken = tokenRefConfigured ? undefined : gatewayTokenResolution.token;
-  const { expectedManagedServiceEnvKeys, expectedPlan, port, runtimeChoice } =
+  const { expectedManagedServiceEnvKeys, port, runtimeChoice } =
     await buildGatewayServiceAuditInputs({
       cfg,
       command,
@@ -356,7 +380,14 @@ export async function maybeRepairGatewayServiceConfig(
           runtime: "node",
           nodePath: systemNodePath,
         })
-      : expectedPlan;
+      : await buildExpectedGatewayServicePlan({
+          cfg,
+          command,
+          serviceInstallEnv,
+          port,
+          runtime: runtimeChoice,
+          nodePath: resolveRepairNodePath({ command }),
+        });
   const { programArguments } = expectedRuntimePlan;
   const expectedEntrypoint = findGatewayEntrypoint(programArguments);
   const currentEntrypoint = findGatewayEntrypoint(command.programArguments);
@@ -472,7 +503,7 @@ export async function maybeRepairGatewayServiceConfig(
     serviceInstallEnv,
     port: updatedPort,
     runtime: needsNodeRuntime && systemNodePath ? "node" : runtimeChoice,
-    nodePath: systemNodePath ?? undefined,
+    nodePath: resolveRepairNodePath({ command, systemNodePath }),
   });
   try {
     await (updateRepairMode ? service.stage : service.install)({

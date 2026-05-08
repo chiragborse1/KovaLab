@@ -61,6 +61,8 @@ vi.mock("../daemon/inspect.js", () => ({
 }));
 
 vi.mock("../daemon/runtime-paths.js", () => ({
+  isVersionManagedNodePath: (nodePath: string) =>
+    nodePath.includes("/.nvm/") || nodePath.includes("/.fnm/"),
   renderSystemNodeWarning: mocks.renderSystemNodeWarning,
   resolveSystemNodeInfo: mocks.resolveSystemNodeInfo,
 }));
@@ -573,6 +575,42 @@ describe("maybeRepairGatewayServiceConfig", () => {
       "Gateway service config",
     );
     expect(mocks.stage).not.toHaveBeenCalled();
+    expect(mocks.install).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves current system Node when repairing PATH-only service drift", async () => {
+    const command = {
+      programArguments: ["/usr/local/bin/node", "/opt/kova/dist/index.js", "gateway"],
+      environment: {
+        PATH: "/usr/local/bin:/usr/bin:/bin:/home/user/.nvm/versions/node/v22.22.2/bin",
+      },
+    };
+    mocks.readCommand.mockResolvedValue(command);
+    mocks.auditGatewayServiceConfig.mockResolvedValue({
+      ok: false,
+      issues: [
+        {
+          code: "gateway-path-nonminimal",
+          message: "Gateway service PATH includes version managers",
+          level: "recommended",
+        },
+      ],
+    });
+    mocks.buildGatewayInstallPlan.mockResolvedValue({
+      programArguments: command.programArguments,
+      environment: { PATH: "/usr/local/bin:/usr/bin:/bin" },
+    });
+
+    await runNonInteractiveRepair({
+      cfg: { gateway: {} },
+      updateInProgress: false,
+    });
+
+    expect(mocks.buildGatewayInstallPlan).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        nodePath: "/usr/local/bin/node",
+      }),
+    );
     expect(mocks.install).toHaveBeenCalledTimes(1);
   });
 
