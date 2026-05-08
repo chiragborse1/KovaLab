@@ -190,7 +190,7 @@ export default definePluginEntry({
       for (const warning of formatVoiceCallLegacyConfigWarnings({
         value: api.pluginConfig,
         configPathPrefix: "plugins.entries.voice-call.config",
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "kova doctor --fix",
       })) {
         api.logger.warn(warning);
       }

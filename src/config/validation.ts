@@ -65,7 +65,8 @@ function stripDeprecatedValidationKeys(raw: unknown): unknown {
 }
 
 const CUSTOM_EXPECTED_ONE_OF_RE = /expected one of ((?:"[^"]+"(?:\|"?[^"]+"?)*)+)/i;
-const SECRETREF_POLICY_DOC_URL = "https://docs.neuralstudio.in/reference/secretref-credential-surface";
+const SECRETREF_POLICY_DOC_URL =
+  "https://docs.neuralstudio.in/reference/secretref-credential-surface";
 const bundledChannelSchemaById = new Map<string, unknown>(
   GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA.map(
     (entry) => [entry.channelId, entry.schema] as const,
@@ -469,9 +470,9 @@ function formatLegacySecretRefEnvMarkerMessage(candidate: {
     ? JSON.stringify({ source: "env", provider: candidate.ref.provider, id: candidate.ref.id })
     : '{"source":"env","provider":"default","id":"ENV_VAR"}';
   return [
-    `${JSON.stringify(candidate.value)} is a legacy SecretRef marker and is not valid openclaw.json config.`,
+    `${JSON.stringify(candidate.value)} is a legacy SecretRef marker and is not valid kova.json config.`,
     `Use a structured SecretRef object instead, for example ${replacement}.`,
-    'Run "openclaw doctor --fix" to migrate valid secretref-env:<ENV_VAR> markers.',
+    'Run "kova doctor --fix" to migrate valid secretref-env:<ENV_VAR> markers.',
     `See ${SECRETREF_POLICY_DOC_URL}.`,
   ].join(" ");
 }
@@ -1040,7 +1041,7 @@ function validateConfigObjectWithPluginsBase(
         if (hasStalePluginEvidenceForUnknownChannel(trimmed)) {
           warnings.push({
             ...issue,
-            message: `${issue.message} (stale channel plugin config ignored; run openclaw doctor --fix to remove stale config, or install the plugin)`,
+            message: `${issue.message} (stale channel plugin config ignored; run kova doctor --fix to remove stale config, or install the plugin)`,
           });
         } else {
           issues.push(issue);
