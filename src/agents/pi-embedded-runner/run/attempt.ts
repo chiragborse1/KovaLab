@@ -314,6 +314,7 @@ import {
   shouldPreemptivelyCompactBeforePrompt,
 } from "./preemptive-compaction.js";
 import {
+  buildCurrentTurnPromptContextSuffix,
   queueRuntimeContextForNextTurn,
   resolveRuntimeContextPromptParts,
 } from "./runtime-context-prompt.js";
@@ -2649,13 +2650,17 @@ export async function runEmbeddedAttempt(
               imagesCount: imageResult.images.length,
             });
             const btwSnapshotMessages = normalizedReplayMessages.slice(-MAX_BTW_SNAPSHOT_MESSAGES);
+            const currentTurnPromptContextSuffix = promptSubmission.runtimeOnly
+              ? ""
+              : buildCurrentTurnPromptContextSuffix(params.currentTurnContext);
+            const promptForModel = promptSubmission.prompt + currentTurnPromptContextSuffix;
             updateActiveEmbeddedRunSnapshot(params.sessionId, {
               transcriptLeafId,
               messages: btwSnapshotMessages,
-              inFlightPrompt: promptSubmission.prompt,
+              inFlightPrompt: promptForModel,
             });
             if (promptSubmission.runtimeOnly) {
-              await abortable(activeSession.prompt(promptSubmission.prompt));
+              await abortable(activeSession.prompt(promptForModel));
             } else {
               await queueRuntimeContextForNextTurn({
                 session: activeSession,
@@ -2666,10 +2671,10 @@ export async function runEmbeddedAttempt(
               // This avoids potential issues with models that don't expect the images parameter
               if (imageResult.images.length > 0) {
                 await abortable(
-                  activeSession.prompt(promptSubmission.prompt, { images: imageResult.images }),
+                  activeSession.prompt(promptForModel, { images: imageResult.images }),
                 );
               } else {
-                await abortable(activeSession.prompt(promptSubmission.prompt));
+                await abortable(activeSession.prompt(promptForModel));
               }
             }
           }

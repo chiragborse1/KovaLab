@@ -1,4 +1,5 @@
 import { KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE } from "../../internal-runtime-context.js";
+import type { CurrentTurnPromptContext } from "./params.js";
 
 type RuntimeContextSession = {
   sendCustomMessage: (
@@ -70,6 +71,58 @@ function buildRuntimeContextMessageContent(params: {
     "This context is runtime-generated, not user-authored. Keep internal details private.",
     "",
     params.runtimeContext,
+  ].join("\n");
+}
+
+function sanitizeCurrentTurnContextString(value: string): string {
+  return value.replace(/\u0000/g, "").slice(0, 4000);
+}
+
+export function buildCurrentTurnPromptContextSuffix(
+  context: CurrentTurnPromptContext | undefined,
+): string {
+  const replyChain = context?.replyChain?.filter(
+    (entry) =>
+      entry.body?.trim() ||
+      entry.mediaType?.trim() ||
+      entry.mediaPath?.trim() ||
+      entry.mediaRef?.trim(),
+  );
+  if (!replyChain || replyChain.length === 0) {
+    return "";
+  }
+  const payload = replyChain.map((entry) => ({
+    message_id: entry.messageId ? sanitizeCurrentTurnContextString(entry.messageId) : undefined,
+    thread_id: entry.threadId ? sanitizeCurrentTurnContextString(entry.threadId) : undefined,
+    sender: entry.sender ? sanitizeCurrentTurnContextString(entry.sender) : undefined,
+    sender_id: entry.senderId ? sanitizeCurrentTurnContextString(entry.senderId) : undefined,
+    sender_username: entry.senderUsername
+      ? sanitizeCurrentTurnContextString(entry.senderUsername)
+      : undefined,
+    timestamp: entry.timestamp,
+    body: entry.body ? sanitizeCurrentTurnContextString(entry.body) : undefined,
+    is_quote: entry.isQuote === true ? true : undefined,
+    media_type: entry.mediaType ? sanitizeCurrentTurnContextString(entry.mediaType) : undefined,
+    media_path: entry.mediaPath ? sanitizeCurrentTurnContextString(entry.mediaPath) : undefined,
+    media_ref: entry.mediaRef ? sanitizeCurrentTurnContextString(entry.mediaRef) : undefined,
+    reply_to_id: entry.replyToId ? sanitizeCurrentTurnContextString(entry.replyToId) : undefined,
+    forwarded_from: entry.forwardedFrom
+      ? sanitizeCurrentTurnContextString(entry.forwardedFrom)
+      : undefined,
+    forwarded_from_id: entry.forwardedFromId
+      ? sanitizeCurrentTurnContextString(entry.forwardedFromId)
+      : undefined,
+    forwarded_from_username: entry.forwardedFromUsername
+      ? sanitizeCurrentTurnContextString(entry.forwardedFromUsername)
+      : undefined,
+    forwarded_date: entry.forwardedDate,
+  }));
+  return [
+    "",
+    "Reply chain of current user message (untrusted, nearest first):",
+    "```json",
+    JSON.stringify(payload, null, 2),
+    "```",
   ].join("\n");
 }
 

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { resolveSessionAuthProfileOverride } from "../../agents/auth-profiles/session-override.js";
 import type { ExecToolDefaults } from "../../agents/bash-tools.js";
 import { resolveFastModeState } from "../../agents/fast-mode.js";
+import type { CurrentTurnPromptContext } from "../../agents/pi-embedded-runner/run/params.js";
 import { resolveEmbeddedFullAccessState } from "../../agents/pi-embedded-runner/sandbox-info.js";
 import type { EmbeddedFullAccessBlockedReason } from "../../agents/pi-embedded-runner/types.js";
 import { resolveIngressWorkspaceOverrideForSpawnedRun } from "../../agents/spawned-context.js";
@@ -176,6 +177,21 @@ function hasInboundHistoryBody(ctx: TemplateContext): boolean {
     Array.isArray(ctx.InboundHistory) &&
     ctx.InboundHistory.some((entry) => entry.body.replaceAll("\u0000", "").trim().length > 0)
   );
+}
+
+function resolveCurrentTurnPromptContext(
+  ctx: TemplateContext,
+): CurrentTurnPromptContext | undefined {
+  const replyChain = Array.isArray(ctx.ReplyChain)
+    ? ctx.ReplyChain.filter(
+        (entry) =>
+          entry.body?.trim() ||
+          entry.mediaType?.trim() ||
+          entry.mediaPath?.trim() ||
+          entry.mediaRef?.trim(),
+      )
+    : undefined;
+  return replyChain && replyChain.length > 0 ? { replyChain } : undefined;
 }
 
 type RunPreparedReplyParams = {
@@ -759,6 +775,7 @@ export async function runPreparedReply(
     ({ activeSessionId, isActive, isStreaming } = queueState.busyState);
   }
   const authProfileIdSource = preparedSessionState.sessionEntry?.authProfileOverrideSource;
+  const currentTurnContext = resolveCurrentTurnPromptContext(sessionCtx);
   const followupRun = {
     prompt: queuedBody,
     transcriptPrompt: transcriptCommandBody,
@@ -837,6 +854,7 @@ export async function runPreparedReply(
       inputProvenance: ctx.InputProvenance ?? sessionCtx.InputProvenance,
       extraSystemPrompt: extraSystemPromptParts.join("\n\n") || undefined,
       extraSystemPromptStatic: extraSystemPromptStaticParts.join("\n\n"),
+      currentTurnContext,
       skipProviderRuntimeHints: useFastReplyRuntime,
       allowEmptyAssistantReplyAsSilent,
       ...(!useFastReplyRuntime &&
