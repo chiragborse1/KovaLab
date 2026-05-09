@@ -31,27 +31,18 @@
   }
 
   .chat-controls__session-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
-    gap: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
   }
 
-  .chat-controls__thinking-select {
-    grid-column: 1 / -1;
-  }
-
-  .chat-controls__session,
-  .chat-controls__model,
-  .chat-controls__thinking-select {
+  .chat-controls__session {
     min-width: 0;
     max-width: none;
   }
 
-  .chat-controls__session select,
-  .chat-controls__model select,
-  .chat-controls__thinking-select select {
+  .chat-controls__session select {
     width: 100%;
     max-width: none;
   }

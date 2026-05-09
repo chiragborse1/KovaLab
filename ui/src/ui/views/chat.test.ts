@@ -11,7 +11,10 @@ import {
 import { renderChatQueue } from "../chat/chat-queue.ts";
 import { buildRawSidebarContent } from "../chat/chat-sidebar-raw.ts";
 import { renderWelcomeState } from "../chat/chat-welcome.ts";
-import { renderChatSessionSelect } from "../chat/session-controls.ts";
+import {
+  renderChatModelThinkingControls,
+  renderChatSessionSelect,
+} from "../chat/session-controls.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ModelCatalogEntry } from "../types.ts";
 import type { ChatQueueItem } from "../ui-types.ts";
@@ -324,6 +327,7 @@ function renderChatView(overrides: Partial<Parameters<typeof renderChat>[0]> = {
       stream: null,
       streamStartedAt: null,
       assistantAvatarUrl: null,
+      composerControls: undefined,
       draft: "",
       queue: [],
       realtimeTalkActive: false,
@@ -584,6 +588,24 @@ describe("chat welcome", () => {
 });
 
 describe("chat session controls", () => {
+  it("keeps model and thinking controls inside the message composer", () => {
+    const { state } = createChatHeaderState();
+    const header = document.createElement("div");
+    render(renderChatSessionSelect(state), header);
+
+    expect(header.querySelector('select[data-chat-model-select="true"]')).toBeNull();
+    expect(header.querySelector('select[data-chat-thinking-select="true"]')).toBeNull();
+
+    const container = renderChatView({
+      composerControls: renderChatModelThinkingControls(state),
+    });
+
+    const composer = container.querySelector(".agent-chat__composer-controls");
+    expect(composer).not.toBeNull();
+    expect(composer?.querySelector('select[data-chat-model-select="true"]')).not.toBeNull();
+    expect(composer?.querySelector('select[data-chat-thinking-select="true"]')).not.toBeNull();
+  });
+
   it("patches the current session model and refreshes active tool visibility", async () => {
     const { state, request } = createChatHeaderState();
     state.agentsPanel = "tools";
@@ -595,7 +617,7 @@ describe("chat session controls", () => {
       groups: [],
     };
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const modelSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-model-select="true"]',
@@ -625,7 +647,7 @@ describe("chat session controls", () => {
   it("clears the session model override back to the default model", async () => {
     const { state, request } = createChatHeaderState({ model: "gpt-5-mini" });
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const modelSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-model-select="true"]',
@@ -645,12 +667,12 @@ describe("chat session controls", () => {
     expect(state.sessionsResult?.sessions[0]?.model).toBeUndefined();
   });
 
-  it("disables the chat header model picker while a run is active", () => {
+  it("disables the chat composer model picker while a run is active", () => {
     const { state } = createChatHeaderState();
     state.chatRunId = "run-123";
     state.chatStream = "Working";
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const modelSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-model-select="true"]',
@@ -662,7 +684,7 @@ describe("chat session controls", () => {
   it("keeps the selected model visible when the active session is absent from sessions.list", async () => {
     const { state } = createChatHeaderState({ omitSessionFromList: true });
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const modelSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-model-select="true"]',
@@ -672,7 +694,7 @@ describe("chat session controls", () => {
     modelSelect!.value = "openai/gpt-5-mini";
     modelSelect!.dispatchEvent(new Event("change", { bubbles: true }));
     await flushTasks();
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const rerendered = container.querySelector<HTMLSelectElement>(
       'select[data-chat-model-select="true"]',
@@ -694,7 +716,7 @@ describe("chat session controls", () => {
       omitSessionFromList: true,
     });
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const thinkingSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-thinking-select="true"]',
@@ -718,7 +740,7 @@ describe("chat session controls", () => {
       thinkingDefault: "adaptive",
     });
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const thinkingSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-thinking-select="true"]',
@@ -735,7 +757,7 @@ describe("chat session controls", () => {
       omitSessionFromList: true,
     });
     const container = document.createElement("div");
-    render(renderChatSessionSelect(state), container);
+    render(renderChatModelThinkingControls(state), container);
 
     const thinkingSelect = container.querySelector<HTMLSelectElement>(
       'select[data-chat-thinking-select="true"]',

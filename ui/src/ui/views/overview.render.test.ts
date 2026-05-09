@@ -127,7 +127,7 @@ describe("overview view rendering", () => {
   it("does not render dashboard event or gateway log panels", async () => {
     const container = document.createElement("div");
     const props = createOverviewProps({
-      eventLog: [{ id: "event-1", ts: Date.now(), level: "info", message: "dashboard event" }],
+      eventLog: [{ ts: Date.now(), event: "dashboard event" }],
       overviewLogLines: ["gateway log line"],
     });
 

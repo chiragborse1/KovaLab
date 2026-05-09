@@ -25,8 +25,6 @@ export function renderChatSessionSelect(
   onSwitchSession: ChatSessionSwitchHandler = () => undefined,
 ) {
   const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
-  const modelSelect = renderChatModelSelect(state);
-  const thinkingSelect = renderChatThinkingSelect(state);
   const selectedSessionLabel =
     sessionGroups.flatMap((group) => group.options).find((entry) => entry.key === state.sessionKey)
       ?.label ?? state.sessionKey;
@@ -66,7 +64,14 @@ export function renderChatSessionSelect(
           )}
         </select>
       </label>
-      ${modelSelect} ${thinkingSelect}
+    </div>
+  `;
+}
+
+export function renderChatModelThinkingControls(state: AppViewState) {
+  return html`
+    <div class="chat-controls__model-thinking">
+      ${renderChatModelSelect(state)} ${renderChatThinkingSelect(state)}
     </div>
   `;
 }

@@ -65,6 +65,7 @@ export type ChatProps = {
   stream: string | null;
   streamStartedAt: number | null;
   assistantAvatarUrl?: string | null;
+  composerControls?: TemplateResult;
   draft: string;
   queue: ChatQueueItem[];
   realtimeTalkActive?: boolean;
@@ -1144,6 +1145,9 @@ export function renderChat(props: ChatProps) {
                     : "Talk live")}
               </div>
             `
+          : nothing}
+        ${props.composerControls
+          ? html`<div class="agent-chat__composer-controls">${props.composerControls}</div>`
           : nothing}
 
         <textarea

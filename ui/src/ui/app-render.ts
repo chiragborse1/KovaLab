@@ -6,6 +6,7 @@ import { DEFAULT_CRON_FORM } from "./app-defaults.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
 import {
   renderChatControls,
+  renderChatModelThinkingControls,
   renderChatMobileToggle,
   renderChatSessionSelect,
   renderTab,
@@ -2403,6 +2404,7 @@ export function renderApp(state: AppViewState) {
               streamSegments: state.chatStreamSegments,
               stream: state.chatStream,
               streamStartedAt: state.chatStreamStartedAt,
+              composerControls: renderChatModelThinkingControls(state),
               draft: state.chatMessage,
               queue: state.chatQueue,
               realtimeTalkActive: state.realtimeTalkActive,
