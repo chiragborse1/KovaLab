@@ -237,6 +237,17 @@
   margin-top: 8px;
 }
 
+.task-card__error {
+  margin-top: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .task-card__chips {
   flex-wrap: wrap;
   margin-top: 10px;

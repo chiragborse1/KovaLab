@@ -20,6 +20,7 @@ export function renderTaskCard(task: Task, handlers: TaskActionHandlers) {
       ${showCost ? html`<span class="task-cost-chip">${formatCurrency(task.cost)}</span>` : nothing}
       ${task.status === "failed"
         ? html`
+            <div class="task-card__error">${task.error ?? "Task failed"}</div>
             <div class="task-card__footer" @click=${stop}>
               <button class="btn btn--sm task-retry-btn" @click=${() => handlers.onRetry(task.id)}>
                 Retry

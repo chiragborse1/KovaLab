@@ -347,6 +347,7 @@ class KovaTasksPage extends LitElement {
                 ☰
               </button>
             </div>
+            <button class="btn" @click=${this.openTemplatePicker}>Templates</button>
             <button class="btn primary" @click=${() => this.openNewTask()}>+ New Task</button>
           </div>
         </div>
