@@ -1814,6 +1814,8 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "tasks"
           ? renderLazyView(lazyTasks, (m) =>
               m.renderTasksPage({
+                client: state.client,
+                sessionKey: state.sessionKey,
                 agentsList: state.agentsList,
                 sessionsResult: state.sessionsResult,
                 modelCatalog: state.chatModelCatalog,

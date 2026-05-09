@@ -11,20 +11,20 @@ The Tasks sidebar route now renders a complete task tracker surface:
 - Task detail drawer with overview, output, and timeline tabs.
 - Template picker modal and zero-task empty state.
 
-## Mock To Real API Swap
+## Gateway Data
 
-Task data currently comes from `mockData.ts`. The top-level `TASKS_API_MODE` flag and TODO mark the seam for replacing mock calls with gateway RPC calls once a tasks endpoint exists.
+Task data is loaded from the Gateway task ledger through `tasks.list`.
 
-The expected swap is:
+The UI maps Gateway task records in `gatewayData.ts`:
 
-- Replace `createInitialTasks()` with a gateway-backed task list request.
-- Replace `tickMockTasks()` with a refresh request for running tasks.
-- Replace local create/retry/approve/reject/cancel/delete mutations with gateway RPC calls, then refresh the board.
+- Gateway statuses `succeeded`, `failed`, `timed_out`, `cancelled`, and `lost` are folded into the board columns.
+- Gateway runtimes `cli`, `cron`, `acp`, and `subagent` are mapped to user-facing source chips.
+- Output and timeline are synthesized from the durable task summaries because the ledger does not store full transcript streams.
 
-No component needs to change if the real API returns the `Task` shape in `types.ts`.
+New immediate tasks use the existing `agent` RPC, which already creates a `cli` task record when a session key is present. Scheduled and recurring tasks use `cron.add`; their task records appear when Cron executes the job.
 
 ## Polling
 
-`TasksPage.ts` owns the polling interval. It refreshes running mock tasks every `3000ms` in `connectedCallback()` and clears the interval in `disconnectedCallback()`.
+`TasksPage.ts` owns the polling interval. It refreshes the Gateway ledger every `3000ms` in `connectedCallback()` and clears the interval in `disconnectedCallback()`.
 
 Change the interval in `TasksPage.ts` if the gateway endpoint needs a different refresh cadence.

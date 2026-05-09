@@ -1,29 +1,27 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { AgentsListResult, ModelCatalogEntry, SessionsListResult } from "../../types.ts";
-import {
-  createInitialTasks,
-  createTaskFromDraft,
-  TASK_TEMPLATES,
-  tickMockTasks,
-} from "./mockData.ts";
+import { mapGatewayTask, tickGatewayTasks } from "./gatewayData.ts";
 import { renderNewTaskDrawer } from "./NewTaskDrawer.ts";
 import { renderTaskBoard } from "./TaskBoard.ts";
 import { renderTaskDetailPanel } from "./TaskDetailPanel.ts";
 import { renderTaskEmptyState } from "./TaskEmptyState.ts";
 import { renderTaskListView, type TaskSortState } from "./TaskListView.ts";
 import { renderTemplatePicker } from "./TemplatePicker.ts";
+import { TASK_TEMPLATES } from "./templates.ts";
 import type {
   NewTaskDraft,
   Task,
   TaskActionHandlers,
   TaskDetailTab,
+  TasksListResult,
+  TaskRunView,
   TaskStatus,
   TasksPageProps,
   TaskTemplate,
   TaskViewMode,
 } from "./types.ts";
-import { TASK_STATUS_LABELS, TASK_STATUS_ORDER, formatCurrency, statusClass } from "./utils.ts";
+import { TASK_STATUS_LABELS, TASK_STATUS_ORDER, cronExpression } from "./utils.ts";
 
 type TaskFilter = "all" | TaskStatus;
 
@@ -63,12 +61,16 @@ function defaultModelForAgent(agents: AgentsListResult | null, agentId: string):
 
 @customElement("kova-tasks-page")
 class KovaTasksPage extends LitElement {
+  @property({ attribute: false }) client: TasksPageProps["client"] = null;
+  @property({ attribute: false }) sessionKey: string | null | undefined = null;
   @property({ attribute: false }) agentsList: AgentsListResult | null = null;
   @property({ attribute: false }) sessionsResult: SessionsListResult | null = null;
   @property({ attribute: false }) modelCatalog: ModelCatalogEntry[] = [];
   @property({ attribute: false }) onNavigateToCron?: () => void;
 
-  @state() private tasks: Task[] = createInitialTasks();
+  @state() private tasks: Task[] = [];
+  @state() private loading = false;
+  @state() private error: string | null = null;
   @state() private activeFilter: TaskFilter = "all";
   @state() private viewMode: TaskViewMode = "board";
   @state() private newTaskOpen = false;
@@ -83,6 +85,7 @@ class KovaTasksPage extends LitElement {
 
   private pollId: number | undefined;
   private toastId: number | undefined;
+  private inFlightLoad: Promise<void> | null = null;
 
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
@@ -90,9 +93,17 @@ class KovaTasksPage extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
+    void this.loadTasks();
     this.pollId = window.setInterval(() => {
-      this.tasks = tickMockTasks(this.tasks, Date.now());
+      this.tasks = tickGatewayTasks(this.tasks, Date.now());
+      void this.loadTasks({ silent: true });
     }, 3000);
+  }
+
+  override updated(changed: PropertyValues<this>): void {
+    if (changed.has("client") && this.client) {
+      void this.loadTasks();
+    }
   }
 
   override disconnectedCallback(): void {
@@ -118,6 +129,36 @@ class KovaTasksPage extends LitElement {
     }, 2600);
   };
 
+  private async loadTasks(options: { silent?: boolean } = {}): Promise<void> {
+    if (!this.client) {
+      this.error = "Gateway client is not connected.";
+      this.tasks = [];
+      return;
+    }
+    if (this.inFlightLoad) {
+      return this.inFlightLoad;
+    }
+    if (!options.silent) {
+      this.loading = true;
+    }
+    this.inFlightLoad = this.client
+      .request<TasksListResult>("tasks.list", { limit: 200 })
+      .then((result) => {
+        this.tasks = result.tasks.map((task) => mapGatewayTask(task));
+        this.error = null;
+      })
+      .catch((err: unknown) => {
+        this.error = err instanceof Error ? err.message : String(err);
+      })
+      .finally(() => {
+        if (!options.silent) {
+          this.loading = false;
+        }
+        this.inFlightLoad = null;
+      });
+    return this.inFlightLoad;
+  }
+
   private openNewTask = (status?: TaskStatus): void => {
     this.draft = {
       ...createDraft(defaultAgentId(this.agentsList)),
@@ -141,29 +182,106 @@ class KovaTasksPage extends LitElement {
     this.newTaskOpen = true;
   };
 
-  private saveTask = (): void => {
+  private composeTaskMessage(): string {
+    const parts = [this.draft.title.trim()];
+    if (this.draft.notes.trim()) {
+      parts.push(`Context:\n${this.draft.notes.trim()}`);
+    }
+    if (this.draft.urls.length > 0) {
+      parts.push(`URLs:\n${this.draft.urls.map((url) => `- ${url}`).join("\n")}`);
+    }
+    if (this.draft.sessionRef.trim()) {
+      parts.push(`Reference session: ${this.draft.sessionRef.trim()}`);
+    }
+    return parts.join("\n\n");
+  }
+
+  private async saveTask(): Promise<void> {
     if (!this.draft.title.trim()) {
+      return;
+    }
+    if (!this.client) {
+      this.showToast("Gateway is not connected");
       return;
     }
     const model = this.draft.useDefaultModel
       ? defaultModelForAgent(this.agentsList, this.draft.agent)
       : this.draft.modelOverride || "gpt-5.5";
-    const task = createTaskFromDraft(this.draft, model);
-    this.tasks = [task, ...this.tasks];
-    this.newTaskOpen = false;
-    this.showToast(
-      this.draft.runMode === "now"
-        ? "Task created"
-        : `Task scheduled${this.draft.scheduledFor ? ` for ${this.draft.scheduledFor}` : ""}`,
-    );
-  };
+    const message = this.composeTaskMessage();
+    try {
+      if (this.draft.runMode === "now") {
+        await this.client.request("agent", {
+          message,
+          agentId: this.draft.agent,
+          sessionKey: this.sessionKey || `agent:${this.draft.agent}:main`,
+          ...(this.draft.useDefaultModel ? {} : { model }),
+          idempotencyKey: `tasks-ui:${crypto.randomUUID()}`,
+        });
+        this.showToast("Task started");
+      } else {
+        const scheduledAt =
+          this.draft.runMode === "scheduled" ? Date.parse(this.draft.scheduledFor) : undefined;
+        if (this.draft.runMode === "scheduled" && !Number.isFinite(scheduledAt)) {
+          this.showToast("Choose a valid scheduled time");
+          return;
+        }
+        const schedule =
+          this.draft.runMode === "scheduled"
+            ? { kind: "at" as const, at: new Date(scheduledAt as number).toISOString() }
+            : { kind: "cron" as const, expr: cronExpression(this.draft.cron) };
+        await this.client.request("cron.add", {
+          name: this.draft.title.trim(),
+          description: this.draft.notes.trim() || undefined,
+          agentId: this.draft.agent,
+          enabled: true,
+          deleteAfterRun: this.draft.runMode === "scheduled",
+          schedule,
+          sessionTarget: "isolated",
+          wakeMode: "now",
+          payload: {
+            kind: "agentTurn",
+            message,
+            ...(this.draft.useDefaultModel ? {} : { model }),
+          },
+        });
+        this.showToast(
+          this.draft.runMode === "scheduled"
+            ? "Task scheduled through Cron"
+            : "Recurring task scheduled through Cron",
+        );
+      }
+      this.newTaskOpen = false;
+      await this.loadTasks({ silent: true });
+    } catch (err) {
+      this.showToast(err instanceof Error ? err.message : String(err));
+    }
+  }
 
   private openTask = (task: Task): void => {
     this.selectedTaskId = task.id;
     this.detailTab = "overview";
     this.titleDraft = task.title;
     this.editingTitle = false;
+    void this.loadTaskDetail(task.id);
   };
+
+  private async loadTaskDetail(taskId: string): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+    try {
+      const result = await this.client.request<{ task: TaskRunView }>("tasks.show", {
+        lookup: taskId,
+      });
+      const mapped = mapGatewayTask(result.task);
+      this.updateTask(taskId, () => mapped);
+      if (this.selectedTaskId === taskId) {
+        this.titleDraft = mapped.title;
+      }
+    } catch {
+      // Keep the list view copy if detail refresh races with pruning/deletion.
+    }
+  }
 
   private closeTask = (): void => {
     this.selectedTaskId = null;
@@ -175,93 +293,84 @@ class KovaTasksPage extends LitElement {
   };
 
   private retryTask = (taskId: string): void => {
-    const startedAtMs = Date.now();
-    this.updateTask(taskId, (task) => ({
-      ...task,
-      status: "running",
-      error: undefined,
-      duration: 0,
-      startedAt: "just now",
-      startedAtMs,
-      completedAt: undefined,
-      completedAtMs: undefined,
-      output: `${task.output ?? ""}\nRetry started.`,
-      timeline: [
-        ...(task.timeline ?? []),
-        {
-          timestamp: "just now",
-          timestampMs: startedAtMs,
-          type: "started",
-          label: "Retry started",
-        },
-      ],
-    }));
-    this.showToast("Task retry started");
+    void this.retryTaskAsync(taskId);
   };
 
+  private async retryTaskAsync(taskId: string): Promise<void> {
+    const task = this.tasks.find((entry) => entry.id === taskId);
+    if (!task || !this.client) {
+      return;
+    }
+    try {
+      if (task.runtime === "cron" && task.sourceId) {
+        await this.client.request("cron.run", { id: task.sourceId, mode: "force" });
+      } else {
+        await this.client.request("agent", {
+          message: task.title,
+          agentId: task.agent,
+          sessionKey: task.sessionKey || this.sessionKey || `agent:${task.agent}:main`,
+          idempotencyKey: `tasks-ui-retry:${task.id}:${crypto.randomUUID()}`,
+        });
+      }
+      this.showToast("Task retry started");
+      await this.loadTasks({ silent: true });
+    } catch (err) {
+      this.showToast(err instanceof Error ? err.message : String(err));
+    }
+  }
+
   private approveTask = (taskId: string): void => {
-    const startedAtMs = Date.now();
-    this.updateTask(taskId, (task) => ({
-      ...task,
-      status: "running",
-      startedAt: "just now",
-      startedAtMs,
-      output: `${task.output ?? ""}\nApproval granted. Continuing execution.`,
-      timeline: [
-        ...(task.timeline ?? []),
-        {
-          timestamp: "just now",
-          timestampMs: startedAtMs,
-          type: "started",
-          label: "Approval granted",
-        },
-      ],
-    }));
-    this.showToast("Task approved");
+    void taskId;
+    this.showToast("Use the approvals panel to resolve approval requests");
   };
 
   private rejectTask = (taskId: string): void => {
-    const completedAtMs = Date.now();
-    this.updateTask(taskId, (task) => ({
-      ...task,
-      status: "failed",
-      error: "Approval rejected",
-      completedAt: "failed just now",
-      completedAtMs,
-      output: `${task.output ?? ""}\nApproval rejected by user.`,
-      timeline: [
-        ...(task.timeline ?? []),
-        {
-          timestamp: "just now",
-          timestampMs: completedAtMs,
-          type: "failed",
-          label: "Approval rejected",
-        },
-      ],
-    }));
-    this.showToast("Task rejected");
+    void taskId;
+    this.showToast("Use the approvals panel to reject approval requests");
   };
 
   private cancelTask = (taskId: string): void => {
-    const completedAtMs = Date.now();
-    this.updateTask(taskId, (task) => ({
-      ...task,
-      status: "failed",
-      error: "Task cancelled",
-      completedAt: "cancelled just now",
-      completedAtMs,
-      output: `${task.output ?? ""}\nTask cancelled.`,
-    }));
-    this.showToast("Task cancelled");
+    void this.cancelTaskAsync(taskId);
   };
 
-  private deleteTask = (taskId: string): void => {
-    this.tasks = this.tasks.filter((task) => task.id !== taskId);
-    if (this.selectedTaskId === taskId) {
-      this.selectedTaskId = null;
+  private async cancelTaskAsync(taskId: string): Promise<void> {
+    if (!this.client) {
+      return;
     }
-    this.showToast("Task deleted");
+    try {
+      const result = await this.client.request<{ cancelled: boolean; reason?: string }>(
+        "tasks.cancel",
+        { lookup: taskId },
+      );
+      this.showToast(result.cancelled ? "Task cancelled" : (result.reason ?? "Task not cancelled"));
+      await this.loadTasks({ silent: true });
+    } catch (err) {
+      this.showToast(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  private deleteTask = (taskId: string): void => {
+    void this.deleteTaskAsync(taskId);
   };
+
+  private async deleteTaskAsync(taskId: string): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+    try {
+      const result = await this.client.request<{ deleted: boolean; reason?: string }>(
+        "tasks.delete",
+        { taskId },
+      );
+      if (result.deleted && this.selectedTaskId === taskId) {
+        this.selectedTaskId = null;
+      }
+      this.showToast(result.deleted ? "Task deleted" : (result.reason ?? "Task not deleted"));
+      await this.loadTasks({ silent: true });
+    } catch (err) {
+      this.showToast(err instanceof Error ? err.message : String(err));
+    }
+  }
 
   private addUrl = (): void => {
     const url = this.draft.urlDraft.trim();
@@ -279,6 +388,7 @@ class KovaTasksPage extends LitElement {
     const title = this.titleDraft.trim();
     if (this.selectedTaskId && title) {
       this.updateTask(this.selectedTaskId, (task) => ({ ...task, title }));
+      this.showToast("Title changed locally for this view");
     }
     this.editingTitle = false;
   };
@@ -331,6 +441,7 @@ class KovaTasksPage extends LitElement {
             )}
           </div>
           <div class="tasks-header__actions">
+            ${this.loading ? html`<span class="tasks-header__status">Loading…</span>` : nothing}
             <div class="tasks-view-toggle" aria-label="View mode">
               <button
                 class=${this.viewMode === "board" ? "is-active" : ""}
@@ -370,32 +481,32 @@ class KovaTasksPage extends LitElement {
     return html`
       <div class="tasks-page">
         ${this.renderHeader()}
-        ${this.tasks.length === 0
-          ? renderTaskEmptyState({
-              onCreate: () => this.openNewTask(),
-              onTemplates: this.openTemplatePicker,
-              onImportCron: () => this.onNavigateToCron?.(),
-            })
-          : this.viewMode === "board"
-            ? renderTaskBoard({
-                tasks: visibleTasks,
-                handlers,
-                onAddTask: this.openNewTask,
+        ${this.error ? html`<div class="tasks-error">${this.error}</div>` : nothing}
+        ${this.loading && this.tasks.length === 0
+          ? html`<div class="tasks-loading">Loading task ledger…</div>`
+          : this.tasks.length === 0
+            ? renderTaskEmptyState({
+                onCreate: () => this.openNewTask(),
+                onTemplates: this.openTemplatePicker,
+                onImportCron: () => this.onNavigateToCron?.(),
               })
-            : renderTaskListView({
-                tasks: visibleTasks,
-                handlers,
-                sort: this.sort,
-                onSort: (sort) => (this.sort = sort),
-              })}
+            : this.viewMode === "board"
+              ? renderTaskBoard({
+                  tasks: visibleTasks,
+                  handlers,
+                  onAddTask: this.openNewTask,
+                })
+              : renderTaskListView({
+                  tasks: visibleTasks,
+                  handlers,
+                  sort: this.sort,
+                  onSort: (sort) => (this.sort = sort),
+                })}
 
         <div class="tasks-metrics-strip">
           <span>${this.tasks.length} tracked tasks</span>
           <span>${this.statusCount("running")} running</span>
-          <span
-            >${formatCurrency(this.tasks.reduce((sum, task) => sum + (task.cost ?? 0), 0))} total
-            mock cost</span
-          >
+          <span>${this.statusCount("failed")} needs attention</span>
         </div>
 
         ${this.newTaskOpen
@@ -446,6 +557,8 @@ class KovaTasksPage extends LitElement {
 export function renderTasksPage(props: TasksPageProps) {
   return html`
     <kova-tasks-page
+      .client=${props.client}
+      .sessionKey=${props.sessionKey}
       .agentsList=${props.agentsList}
       .sessionsResult=${props.sessionsResult}
       .modelCatalog=${props.modelCatalog}

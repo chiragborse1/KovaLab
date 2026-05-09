@@ -61,6 +61,25 @@
   margin-top: 0;
 }
 
+.tasks-header__status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tasks-error,
+.tasks-loading {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  padding: 12px 14px;
+  color: var(--muted);
+}
+
+.tasks-error {
+  border-color: rgba(239, 68, 68, 0.32);
+  color: #fca5a5;
+}
+
 .tasks-filter-pill,
 .tasks-view-toggle button,
 .tasks-icon-btn,

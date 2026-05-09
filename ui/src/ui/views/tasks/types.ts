@@ -1,3 +1,4 @@
+import type { GatewayBrowserClient } from "../../gateway.ts";
 import type { AgentsListResult, ModelCatalogEntry, SessionsListResult } from "../../types.ts";
 
 export type TaskStatus = "queued" | "running" | "completed" | "failed" | "needs_approval";
@@ -6,6 +7,23 @@ export type TaskViewMode = "board" | "list";
 export type TaskRunMode = "now" | "scheduled" | "recurring";
 export type TaskDetailTab = "overview" | "output" | "timeline";
 export type TaskOnComplete = "none" | "notification" | "chain";
+export type BackendTaskRuntime = "subagent" | "acp" | "cli" | "cron";
+export type BackendTaskStatus =
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "timed_out"
+  | "cancelled"
+  | "lost";
+export type BackendTaskDeliveryStatus =
+  | "pending"
+  | "delivered"
+  | "session_queued"
+  | "failed"
+  | "parent_missing"
+  | "not_applicable";
+export type BackendTaskNotifyPolicy = "done_only" | "state_changes" | "silent";
 
 export interface TimelineEvent {
   timestamp: string;
@@ -18,7 +36,16 @@ export interface Task {
   id: string;
   title: string;
   status: TaskStatus;
+  backendStatus?: BackendTaskStatus;
   source: TaskSource;
+  runtime?: BackendTaskRuntime;
+  sourceId?: string;
+  sessionKey?: string;
+  runId?: string;
+  deliveryStatus?: BackendTaskDeliveryStatus;
+  notifyPolicy?: BackendTaskNotifyPolicy;
+  progressSummary?: string;
+  terminalSummary?: string;
   agent: string;
   model: string;
   cost?: number;
@@ -83,8 +110,43 @@ export interface TaskActionHandlers {
 }
 
 export interface TasksPageProps {
+  client: GatewayBrowserClient | null;
+  sessionKey?: string | null;
   agentsList: AgentsListResult | null;
   sessionsResult: SessionsListResult | null;
   modelCatalog: ModelCatalogEntry[];
   onNavigateToCron?: () => void;
+}
+
+export interface TaskRunView {
+  id: string;
+  runtime: BackendTaskRuntime;
+  sourceId?: string;
+  sessionKey: string;
+  ownerKey: string;
+  scope: "session" | "system";
+  childSessionKey?: string;
+  flowId?: string;
+  parentTaskId?: string;
+  agentId?: string;
+  runId?: string;
+  label?: string;
+  title: string;
+  status: BackendTaskStatus;
+  deliveryStatus: BackendTaskDeliveryStatus;
+  notifyPolicy: BackendTaskNotifyPolicy;
+  createdAt: number;
+  startedAt?: number;
+  endedAt?: number;
+  lastEventAt?: number;
+  cleanupAfter?: number;
+  error?: string;
+  progressSummary?: string;
+  terminalSummary?: string;
+  terminalOutcome?: "succeeded" | "blocked";
+}
+
+export interface TasksListResult {
+  tasks: TaskRunView[];
+  count: number;
 }
