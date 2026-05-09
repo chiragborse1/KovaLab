@@ -5,6 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 import type { SessionsListResult } from "../types.ts";
 import { renderSessions, type SessionsProps } from "./sessions.ts";
 
+type UpdatableElement = HTMLElement & {
+  requestUpdate: () => void;
+  performUpdate: () => void;
+};
+import { detectSource, deriveTitle } from "./sessions/sessionUtils.ts";
+
 function buildResult(session: SessionsListResult["sessions"][number]): SessionsListResult {
   return {
     ts: Date.now(),
@@ -27,6 +33,8 @@ function buildMultiResult(sessions: SessionsListResult["sessions"]): SessionsLis
 
 function buildProps(result: SessionsListResult): SessionsProps {
   return {
+    client: null,
+    connected: false,
     loading: false,
     result,
     error: null,
@@ -65,32 +73,55 @@ function buildProps(result: SessionsListResult): SessionsProps {
   };
 }
 
+async function renderView(container: HTMLElement, props: SessionsProps): Promise<HTMLElement> {
+  render(renderSessions(props), container);
+  await customElements.whenDefined("kova-sessions-page");
+  const page = container.querySelector("kova-sessions-page") as UpdatableElement | null;
+  page?.requestUpdate();
+  page?.performUpdate();
+  return page ?? container;
+}
+
+async function openFirstDetail(container: HTMLElement): Promise<void> {
+  const row = container.querySelector(".session-row") as HTMLElement | null;
+  row?.click();
+  const page = container.querySelector("kova-sessions-page") as UpdatableElement | null;
+  page?.performUpdate();
+}
+
 describe("sessions view", () => {
-  it("renders and patches provider-owned thinking ids", async () => {
+  it("derives readable session titles and sources", () => {
+    expect(deriveTitle("agent:main:telegram:direct:7634812849", null)).toBe(
+      "Telegram · @7634812849",
+    );
+    expect(deriveTitle("agent:main:dreaming-narrative-rem-abc", null)).toBe("Memory Dream · rem");
+    expect(deriveTitle("agent:main:main", null)).toBe("Main Session");
+    expect(detectSource("agent:main:cron:abc")).toBe("cron");
+    expect(detectSource("agent:main:discord:abc")).toBe("discord");
+  });
+
+  it("renders and patches provider-owned thinking ids in the detail panel", async () => {
     const container = document.createElement("div");
     const onPatch = vi.fn();
-    render(
-      renderSessions({
-        ...buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            thinkingLevel: "adaptive",
-            thinkingLevels: [
-              { id: "off", label: "off" },
-              { id: "adaptive", label: "adaptive" },
-              { id: "max", label: "maximum" },
-            ],
-          }),
-        ),
-        onPatch,
-      }),
-      container,
-    );
-    await Promise.resolve();
+    await renderView(container, {
+      ...buildProps(
+        buildResult({
+          key: "agent:main:main",
+          kind: "direct",
+          updatedAt: Date.now(),
+          thinkingLevel: "adaptive",
+          thinkingLevels: [
+            { id: "off", label: "off" },
+            { id: "adaptive", label: "adaptive" },
+            { id: "max", label: "maximum" },
+          ],
+        }),
+      ),
+      onPatch,
+    });
+    await openFirstDetail(container);
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector("aside select") as HTMLSelectElement | null;
     expect(thinking?.value).toBe("adaptive");
     expect(Array.from(thinking?.options ?? []).map((option) => option.value)).toEqual([
       "",
@@ -112,26 +143,24 @@ describe("sessions view", () => {
 
   it("labels inherited thinking with the resolved session default", async () => {
     const container = document.createElement("div");
-    render(
-      renderSessions(
-        buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            thinkingDefault: "adaptive",
-            thinkingLevels: [
-              { id: "off", label: "off" },
-              { id: "adaptive", label: "adaptive" },
-            ],
-          }),
-        ),
-      ),
+    await renderView(
       container,
+      buildProps(
+        buildResult({
+          key: "agent:main:main",
+          kind: "direct",
+          updatedAt: Date.now(),
+          thinkingDefault: "adaptive",
+          thinkingLevels: [
+            { id: "off", label: "off" },
+            { id: "adaptive", label: "adaptive" },
+          ],
+        }),
+      ),
     );
-    await Promise.resolve();
+    await openFirstDetail(container);
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector("aside select") as HTMLSelectElement | null;
     expect(thinking?.value).toBe("");
     expect(thinking?.options[0]?.textContent?.trim()).toBe("Default (adaptive)");
   });
@@ -139,24 +168,21 @@ describe("sessions view", () => {
   it("keeps legacy binary thinking labels patching canonical ids", async () => {
     const container = document.createElement("div");
     const onPatch = vi.fn();
-    render(
-      renderSessions({
-        ...buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            thinkingLevel: "low",
-            thinkingOptions: ["off", "on"],
-          }),
-        ),
-        onPatch,
-      }),
-      container,
-    );
-    await Promise.resolve();
+    await renderView(container, {
+      ...buildProps(
+        buildResult({
+          key: "agent:main:main",
+          kind: "direct",
+          updatedAt: Date.now(),
+          thinkingLevel: "low",
+          thinkingOptions: ["off", "on"],
+        }),
+      ),
+      onPatch,
+    });
+    await openFirstDetail(container);
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector("aside select") as HTMLSelectElement | null;
     expect(thinking?.value).toBe("low");
     expect(
       Array.from(thinking?.options ?? [])
@@ -170,134 +196,55 @@ describe("sessions view", () => {
     expect(onPatch).toHaveBeenCalledWith("agent:main:main", { thinkingLevel: "low" });
   });
 
-  it("shows agent identity name and emoji for matching session keys", async () => {
-    const container = document.createElement("div");
-    render(
-      renderSessions({
-        ...buildProps(
-          buildResult({
-            key: "agent:data-expert:dingtalk:cidzg6sF43NZMy52Rnk8EN",
-            kind: "direct",
-            updatedAt: Date.now(),
-          }),
-        ),
-        agentIdentityById: {
-          "data-expert": {
-            agentId: "data-expert",
-            name: "Data Expert",
-            avatar: "",
-            emoji: "📊",
-          },
-        },
-      }),
-      container,
-    );
-    await Promise.resolve();
-
-    const keyCell = container.querySelector(".session-key-cell");
-    expect(keyCell?.textContent).toContain("📊 Data Expert (dingtalk)");
-    expect(keyCell?.getAttribute("title")).toBe("📊 Data Expert (dingtalk)");
-  });
-
-  it("keeps raw keys when identity data is unavailable", async () => {
-    const container = document.createElement("div");
-    render(
-      renderSessions(
-        buildProps(
-          buildResult({
-            key: "agent:unknown-agent:telegram:abc123",
-            kind: "direct",
-            updatedAt: Date.now(),
-          }),
-        ),
-      ),
-      container,
-    );
-    await Promise.resolve();
-
-    const keyCell = container.querySelector(".session-key-cell");
-    expect(keyCell?.textContent).toContain("agent:unknown-agent:telegram:abc123");
-    expect(keyCell?.getAttribute("title")).toBe("agent:unknown-agent:telegram:abc123");
-  });
-
-  it("keeps raw keys for inherited identity object properties", async () => {
-    const container = document.createElement("div");
-    render(
-      renderSessions(
-        buildProps(
-          buildResult({
-            key: "agent:constructor:telegram:abc123",
-            kind: "direct",
-            updatedAt: Date.now(),
-          }),
-        ),
-      ),
-      container,
-    );
-    await Promise.resolve();
-
-    const text = container.querySelector(".session-key-cell")?.textContent ?? "";
-    expect(text).toContain("agent:constructor:telegram:abc123");
-    expect(text).not.toContain("Object (telegram)");
-  });
-
   it("filters rows by agent identity name", async () => {
     const container = document.createElement("div");
-    render(
-      renderSessions({
-        ...buildProps(
-          buildMultiResult([
-            {
-              key: "agent:data-expert:dingtalk:cidzg6sF43NZMy52Rnk8EN",
-              kind: "direct",
-              updatedAt: 20,
-            },
-            {
-              key: "agent:code-agent:telegram:abc123",
-              kind: "direct",
-              updatedAt: 10,
-            },
-          ]),
-        ),
-        searchQuery: "data expert",
-        agentIdentityById: {
-          "data-expert": {
-            agentId: "data-expert",
-            name: "Data Expert",
-            avatar: "",
+    await renderView(container, {
+      ...buildProps(
+        buildMultiResult([
+          {
+            key: "agent:data-expert:dingtalk:cidzg6sF43NZMy52Rnk8EN",
+            kind: "direct",
+            updatedAt: 20,
           },
+          {
+            key: "agent:code-agent:telegram:abc123",
+            kind: "direct",
+            updatedAt: 10,
+          },
+        ]),
+      ),
+      searchQuery: "data expert",
+      agentIdentityById: {
+        "data-expert": {
+          agentId: "data-expert",
+          name: "Data Expert",
+          avatar: "",
         },
-      }),
-      container,
-    );
-    await Promise.resolve();
+      },
+    });
 
-    expect(container.querySelector(".session-key-cell")?.textContent).toContain(
-      "Data Expert (dingtalk)",
-    );
-    expect(container.textContent).not.toContain("code-agent");
+    expect(container.textContent).toContain("cidzg6sF43NZMy52Rnk8EN");
+    expect(container.textContent).not.toContain("abc123");
   });
 
   it("keeps session selects stable and deselects only the current page", async () => {
     const container = document.createElement("div");
-    render(
-      renderSessions(
-        buildProps(
-          buildResult({
-            key: "agent:main:main",
-            kind: "direct",
-            updatedAt: Date.now(),
-            fastMode: true,
-            verboseLevel: "full",
-            reasoningLevel: "custom-mode",
-          }),
-        ),
-      ),
+    await renderView(
       container,
+      buildProps(
+        buildResult({
+          key: "agent:main:main",
+          kind: "direct",
+          updatedAt: Date.now(),
+          fastMode: true,
+          verboseLevel: "full",
+          reasoningLevel: "custom-mode",
+        }),
+      ),
     );
-    await Promise.resolve();
+    await openFirstDetail(container);
 
-    const selects = container.querySelectorAll("select");
+    const selects = container.querySelectorAll("aside select");
     const fast = selects[1] as HTMLSelectElement | undefined;
     const verbose = selects[2] as HTMLSelectElement | undefined;
     const reasoning = selects[3] as HTMLSelectElement | undefined;
@@ -312,33 +259,32 @@ describe("sessions view", () => {
     const onSelectPage = vi.fn();
     const onDeselectPage = vi.fn();
     const onDeselectAll = vi.fn();
-    render(
-      renderSessions({
-        ...buildProps(
-          buildMultiResult([
-            {
-              key: "page-0",
-              kind: "direct",
-              updatedAt: 20,
-            },
-            {
-              key: "page-1",
-              kind: "direct",
-              updatedAt: 10,
-            },
-          ]),
-        ),
-        pageSize: 1,
-        selectedKeys: new Set(["page-0", "off-page"]),
-        onSelectPage,
-        onDeselectPage,
-        onDeselectAll,
-      }),
-      container,
-    );
-    await Promise.resolve();
+    await renderView(container, {
+      ...buildProps(
+        buildMultiResult([
+          {
+            key: "page-0",
+            kind: "direct",
+            updatedAt: 20,
+          },
+          {
+            key: "page-1",
+            kind: "direct",
+            updatedAt: 10,
+          },
+        ]),
+      ),
+      pageSize: 1,
+      selectedKeys: new Set(["page-0", "off-page"]),
+      onSelectPage,
+      onDeselectPage,
+      onDeselectAll,
+    });
 
-    const headerCheckbox = container.querySelector("thead input[type=checkbox]");
+    const toolbars = container.querySelectorAll(".sessions-filter-bar");
+    const headerCheckbox = toolbars[1]?.querySelector(
+      "input[type=checkbox]",
+    ) as HTMLInputElement | null;
     headerCheckbox?.dispatchEvent(new Event("change", { bubbles: true }));
 
     expect(onDeselectPage).toHaveBeenCalledWith(["page-0"]);

@@ -1707,6 +1707,8 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "sessions"
           ? renderLazyView(lazySessions, (m) =>
               m.renderSessions({
+                client: state.client,
+                connected: state.connected,
                 loading: state.sessionsLoading,
                 result: state.sessionsResult,
                 error: state.sessionsError,
@@ -1787,6 +1789,9 @@ export function renderApp(state: AppViewState) {
                     }
                     state.sessionsSelectedKeys = next;
                   }
+                },
+                onDeleteSession: async (key) => {
+                  await deleteSessionsAndRefresh(state, [key]);
                 },
                 onNavigateToChat: (sessionKey) => {
                   switchChatSession(state, sessionKey);
