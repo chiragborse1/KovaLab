@@ -1,4 +1,5 @@
 import { html } from "lit";
+import { icons } from "../icons.ts";
 import {
   agentLogoUrl,
   assistantAvatarFallbackUrl,
@@ -16,11 +17,11 @@ export type ChatWelcomeProps = {
 };
 
 const WELCOME_SUGGESTIONS = [
-  "What can you do?",
-  "Summarize my recent sessions",
-  "Help me configure a channel",
-  "Check system health",
-];
+  { text: "What can you do?", icon: icons.zap },
+  { text: "Summarize my recent sessions", icon: icons.fileText },
+  { text: "Help me configure a channel", icon: icons.plug },
+  { text: "Check system health", icon: icons.monitor },
+] as const;
 
 function resolveAssistantAvatarUrl(
   props: Pick<ChatWelcomeProps, "assistantAvatar" | "assistantAvatarUrl">,
@@ -66,10 +67,10 @@ export function renderWelcomeState(props: ChatWelcomeProps) {
       <div class="agent-chat__badges">
         <span class="agent-chat__badge"><img src=${logoUrl} alt="" /> Ready to chat</span>
       </div>
-      <p class="agent-chat__hint">Type a message below &middot; <kbd>/</kbd> for commands</p>
+      <p class="agent-chat__hint">Your AI gateway, your rules</p>
       <div class="agent-chat__suggestions">
         ${WELCOME_SUGGESTIONS.map(
-          (text) => html`
+          ({ text, icon }) => html`
             <button
               type="button"
               class="agent-chat__suggestion"
@@ -78,7 +79,8 @@ export function renderWelcomeState(props: ChatWelcomeProps) {
                 props.onSend();
               }}
             >
-              ${text}
+              <span class="agent-chat__suggestion-icon">${icon}</span>
+              <span>${text}</span>
             </button>
           `,
         )}
