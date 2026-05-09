@@ -4,6 +4,8 @@ import { formatCurrency, sourceClass, statusClass, taskTimeLabel } from "./utils
 
 export function renderTaskCard(task: Task, handlers: TaskActionHandlers) {
   const stop = (event: Event) => event.stopPropagation();
+  const showCost =
+    task.status !== "queued" && task.status !== "needs_approval" && task.cost !== undefined;
   return html`
     <article class=${`task-card ${statusClass(task.status)}`} @click=${() => handlers.onOpen(task)}>
       <div class="task-card__top">
@@ -15,9 +17,7 @@ export function renderTaskCard(task: Task, handlers: TaskActionHandlers) {
         <span class="task-model-pill">${task.model}</span>
         <span class="task-time">${taskTimeLabel(task)}</span>
       </div>
-      ${task.status === "queued"
-        ? nothing
-        : html`<span class="task-cost-chip">${formatCurrency(task.cost)}</span>`}
+      ${showCost ? html`<span class="task-cost-chip">${formatCurrency(task.cost)}</span>` : nothing}
       ${task.status === "failed"
         ? html`
             <div class="task-card__footer" @click=${stop}>
