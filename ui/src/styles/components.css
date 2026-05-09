@@ -4875,19 +4875,6 @@ td.data-table-key-col {
     transform var(--duration-fast) ease;
 }
 
-.skill-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 20%, transparent)
-  );
-  opacity: 0.68;
-}
-
 .skill-card:hover,
 .skill-card:focus-within {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
