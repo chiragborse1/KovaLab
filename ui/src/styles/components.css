@@ -224,7 +224,7 @@
    =========================================== */
 
 .card {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, white 3%, var(--border));
   background: var(--card);
   border-radius: var(--radius-lg);
   padding: 18px;
@@ -236,7 +236,9 @@
 
 .card:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 5%, transparent),
+    var(--shadow-sm);
 }
 
 .card-title {
@@ -5261,7 +5263,11 @@ td.data-table-key-col {
   border: 1px solid color-mix(in srgb, white 4%, var(--border));
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%),
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--kova-accent, var(--accent)) 16%, transparent),
+      transparent 34%
+    ),
     color-mix(in srgb, var(--card) 92%, var(--bg-elevated) 8%);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 8%, transparent),
@@ -5376,9 +5382,9 @@ td.data-table-key-col {
 
 .ov-card {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   padding: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, white 3%, var(--border));
   border-radius: var(--radius-lg);
   background: var(--card);
   cursor: pointer;
@@ -5392,8 +5398,24 @@ td.data-table-key-col {
 
 .ov-card:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 5%, transparent),
+    0 12px 28px color-mix(in srgb, black 14%, transparent);
   transform: translateY(-1px);
+}
+
+.ov-card--warn {
+  border-color: color-mix(in srgb, var(--warn) 38%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--warn) 16%, transparent), transparent 42%),
+    var(--card);
+}
+
+.ov-card--danger {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--danger) 18%, transparent), transparent 42%),
+    var(--card);
 }
 
 .ov-card:focus-visible {
@@ -5402,6 +5424,9 @@ td.data-table-key-col {
 }
 
 .ov-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
@@ -5409,12 +5434,57 @@ td.data-table-key-col {
   letter-spacing: 0.04em;
 }
 
+.ov-card__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+
+.ov-card__icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .ov-card__value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: clamp(2rem, 3vw, 2.35rem);
+  font-weight: 780;
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--text-strong);
+}
+
+.ov-card__sparkline {
+  display: block;
+  width: 100%;
+  max-width: 120px;
+  height: 30px;
+  margin-top: -2px;
+  color: var(--kova-accent, var(--accent));
+}
+
+.ov-card__sparkline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ov-card__sparkline polygon {
+  fill: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.ov-card__sparkline polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .ov-card__hint {
@@ -5557,6 +5627,35 @@ td.data-table-key-col {
 
 .ov-recent__row:hover {
   border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+}
+
+.ov-recent__identity {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.ov-recent__status {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.ov-recent__status--active {
+  background: var(--ok);
+}
+
+.ov-recent__status--idle {
+  background: var(--warn);
+}
+
+.ov-recent__status--closed {
+  background: var(--muted);
 }
 
 .ov-recent__key {
@@ -5567,21 +5666,24 @@ td.data-table-key-col {
   min-width: 0;
 }
 
-.ov-recent__model {
-  color: var(--muted);
-  font-size: 12px;
+.ov-recent__model-pill {
+  max-width: 180px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--kova-accent, var(--accent)) 26%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--kova-accent-subtle, var(--accent-subtle)) 78%, transparent);
+  color: color-mix(in srgb, var(--kova-accent, var(--accent)) 72%, var(--text));
+  font-size: 11px;
   font-family: var(--mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ov-recent__time {
   color: var(--muted);
   font-size: 12px;
   white-space: nowrap;
-}
-
-.blur-digits {
-  filter: blur(4px);
-  user-select: none;
 }
 
 /* Section divider */
@@ -5843,7 +5945,7 @@ details[open] > .ov-expandable-toggle::after {
     gap: 8px;
   }
 
-  .ov-recent__model {
+  .ov-recent__model-pill {
     font-size: 11px;
   }
 
@@ -5964,7 +6066,7 @@ details[open] > .ov-expandable-toggle::after {
   }
 
   .ov-card__value {
-    font-size: 18px;
+    font-size: 1.55rem;
   }
 
   .ov-bottom-grid {

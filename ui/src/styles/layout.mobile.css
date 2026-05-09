@@ -237,8 +237,8 @@
     bottom: 10px;
     width: 3px;
     border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--accent) 86%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 34%, transparent);
+    background: color-mix(in srgb, var(--kova-accent, var(--accent)) 86%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--kova-accent, var(--accent)) 34%, transparent);
   }
 
   .sidebar--collapsed .sidebar-shell__footer {

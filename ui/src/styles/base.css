@@ -44,6 +44,10 @@
   --accent-glow: rgba(255, 92, 92, 0.2);
   --primary: #ff5c5c;
   --primary-foreground: #ffffff;
+  --kova-accent: #8b5cf6;
+  --kova-accent-hover: #a78bfa;
+  --kova-accent-subtle: rgba(139, 92, 246, 0.14);
+  --kova-accent-glow: rgba(139, 92, 246, 0.28);
 
   /* Secondary */
   --secondary: #161920;
@@ -151,6 +155,10 @@
   --accent-glow: rgba(220, 38, 38, 0.1);
   --primary: #dc2626;
   --primary-foreground: #ffffff;
+  --kova-accent: #6d5dfc;
+  --kova-accent-hover: #5548e8;
+  --kova-accent-subtle: rgba(109, 93, 252, 0.1);
+  --kova-accent-glow: rgba(109, 93, 252, 0.16);
 
   --secondary: #f1f3f5;
   --secondary-foreground: #3c3c43;
@@ -549,6 +557,18 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 ::selection {

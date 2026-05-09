@@ -1495,9 +1495,8 @@ export function renderApp(state: AppViewState) {
                               title="${t("common.docs")} (opens in new tab)"
                             >
                               <span aria-hidden="true">${icons.book}</span>
-                              <span>${t("common.docs")}</span>
-                              <span aria-hidden="true">→</span>
                               <span aria-hidden="true">${icons.externalLink}</span>
+                              <span class="sr-only">${t("common.docs")}</span>
                             </a>
                           </span>
                           ${renderSidebarConnectionStatus(state)}

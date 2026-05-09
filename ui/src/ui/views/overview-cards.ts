@@ -1,10 +1,12 @@
 import { html, nothing, type TemplateResult } from "lit";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { t } from "../../i18n/index.ts";
 import { formatCost, formatTokens, formatRelativeTimestamp } from "../format.ts";
+import { icons } from "../icons.ts";
 import { isMonitoredAuthProvider } from "../model-auth-helpers.ts";
 import { formatNextRun } from "../presenter.ts";
 import type {
+  GatewaySessionRow,
+  ModelAuthStatusProvider,
   SessionsUsageResult,
   SessionsListResult,
   SkillStatusReport,
@@ -24,30 +26,133 @@ export type OverviewCardsProps = {
   onNavigate: (tab: string) => void;
 };
 
-const DIGIT_RUN = /\d{3,}/g;
-
-function blurDigits(value: string): TemplateResult {
-  const escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const blurred = escaped.replace(DIGIT_RUN, (m) => `<span class="blur-digits">${m}</span>`);
-  return html`${unsafeHTML(blurred)}`;
-}
-
 type StatCard = {
   kind: string;
   tab: string;
   label: string;
   value: string | TemplateResult;
   hint: string | TemplateResult;
+  tone?: "warn" | "danger";
+  icon?: TemplateResult;
+  sparkline?: number[];
+  sparklineLabel?: string;
 };
 
-function renderStatCard(card: StatCard, onNavigate: (tab: string) => void) {
+function renderSparkline(values: number[] | undefined, label: string | undefined) {
+  if (!values || values.length < 2) {
+    return nothing;
+  }
+  const width = 104;
+  const height = 28;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = Math.max(1, max - min);
+  const step = width / Math.max(1, values.length - 1);
+  const points = values
+    .map((value, index) => {
+      const x = index * step;
+      const y = height - ((value - min) / span) * (height - 4) - 2;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const area = `0,${height} ${points} ${width},${height}`;
   return html`
-    <button class="ov-card" data-kind=${card.kind} @click=${() => onNavigate(card.tab)}>
-      <span class="ov-card__label">${card.label}</span>
+    <span class="ov-card__sparkline" title=${label ?? ""} aria-label=${label ?? "Trend"}>
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-hidden="true">
+        <polygon points=${area}></polygon>
+        <polyline points=${points}></polyline>
+      </svg>
+    </span>
+  `;
+}
+
+function renderStatCard(card: StatCard, onNavigate: (tab: string) => void) {
+  const classes = ["ov-card", card.tone ? `ov-card--${card.tone}` : ""].filter(Boolean).join(" ");
+  return html`
+    <button class=${classes} data-kind=${card.kind} @click=${() => onNavigate(card.tab)}>
+      <span class="ov-card__label">
+        ${card.icon ? html`<span class="ov-card__icon">${card.icon}</span>` : nothing} ${card.label}
+      </span>
       <span class="ov-card__value">${card.value}</span>
+      ${renderSparkline(card.sparkline, card.sparklineLabel)}
       <span class="ov-card__hint">${card.hint}</span>
     </button>
   `;
+}
+
+function buildLastSevenDays(now = new Date()): string[] {
+  const out: string[] = [];
+  for (let i = 6; i >= 0; i -= 1) {
+    const day = new Date(now);
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - i);
+    out.push(day.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+function buildDailyCostTrend(result: SessionsUsageResult | null): number[] {
+  const byDate = new Map((result?.aggregates.daily ?? []).map((d) => [d.date, d.cost] as const));
+  return buildLastSevenDays().map((date) => byDate.get(date) ?? 0);
+}
+
+function buildDailySessionTrend(result: SessionsListResult | null): number[] {
+  const days = buildLastSevenDays();
+  const counts = new Map(days.map((date) => [date, 0] as const));
+  for (const session of result?.sessions ?? []) {
+    if (!session.updatedAt) {
+      continue;
+    }
+    const date = new Date(session.updatedAt).toISOString().slice(0, 10);
+    if (counts.has(date)) {
+      counts.set(date, (counts.get(date) ?? 0) + 1);
+    }
+  }
+  return days.map((date) => counts.get(date) ?? 0);
+}
+
+function resolveAuthTone(providers: ModelAuthStatusProvider[]): "warn" | "danger" | undefined {
+  let tone: "warn" | "danger" | undefined;
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  for (const provider of providers) {
+    if (provider.status === "expired" || provider.status === "missing") {
+      return "danger";
+    }
+    if (provider.status === "expiring") {
+      tone = "warn";
+    }
+    if (
+      provider.expiry &&
+      Number.isFinite(provider.expiry.remainingMs) &&
+      provider.expiry.remainingMs <= oneDayMs
+    ) {
+      return "danger";
+    }
+  }
+  return tone;
+}
+
+function resolveSessionTitle(row: GatewaySessionRow): string {
+  const derived = row.derivedTitle?.trim();
+  const preview = row.lastMessagePreview?.trim();
+  const display = row.displayName?.trim();
+  const label = row.label?.trim();
+  return derived || preview || display || label || row.key;
+}
+
+function resolveSessionState(row: GatewaySessionRow): "active" | "idle" | "closed" {
+  if (row.status === "running" || row.hasActiveSubagentRun) {
+    return "active";
+  }
+  if (
+    row.status === "failed" ||
+    row.status === "killed" ||
+    row.status === "timeout" ||
+    row.abortedLastRun
+  ) {
+    return "closed";
+  }
+  return "idle";
 }
 
 function renderSkeletonCards() {
@@ -83,6 +188,8 @@ export function renderOverviewCards(props: OverviewCardsProps) {
   const totalTokens = formatTokens(totals?.totalTokens);
   const totalMessages = totals ? String(props.usageResult?.aggregates?.messages?.total ?? 0) : "0";
   const sessionCount = props.sessionsResult?.count ?? null;
+  const costTrend = buildDailyCostTrend(props.usageResult);
+  const sessionTrend = buildDailySessionTrend(props.sessionsResult);
 
   const skills = props.skillsReport?.skills ?? [];
   const enabledSkills = skills.filter((s) => !s.disabled).length;
@@ -115,6 +222,8 @@ export function renderOverviewCards(props: OverviewCardsProps) {
       label: t("overview.cards.cost"),
       value: totalCost,
       hint: `${totalTokens} tokens · ${totalMessages} msgs`,
+      sparkline: costTrend,
+      sparklineLabel: "7-day cost trend",
     },
     {
       kind: "sessions",
@@ -122,6 +231,8 @@ export function renderOverviewCards(props: OverviewCardsProps) {
       label: t("overview.stats.sessions"),
       value: String(sessionCount ?? t("common.na")),
       hint: t("overview.stats.sessionsHint"),
+      sparkline: sessionTrend,
+      sparklineLabel: "7-day session activity",
     },
     {
       kind: "skills",
@@ -221,12 +332,15 @@ export function renderOverviewCards(props: OverviewCardsProps) {
       hintParts.join(" · ") ||
       t("overview.cards.modelAuthProviders", { count: String(monitoredProviders.length) });
 
+    const authTone = resolveAuthTone(monitoredProviders);
     cards.push({
       kind: "auth",
       tab: "overview",
       label: t("overview.cards.modelAuth"),
       value: authValue,
       hint: authHint,
+      tone: authTone,
+      icon: authTone ? icons.alertTriangle : undefined,
     });
   }
 
@@ -242,11 +356,17 @@ export function renderOverviewCards(props: OverviewCardsProps) {
             <ul class="ov-recent__list">
               ${sessions.map(
                 (s) => html`
-                  <li class="ov-recent__row">
-                    <span class="ov-recent__key"
-                      >${blurDigits(s.displayName || s.label || s.key)}</span
-                    >
-                    <span class="ov-recent__model">${s.model ?? ""}</span>
+                  <li class="ov-recent__row" title=${s.key}>
+                    <span class="ov-recent__identity">
+                      <span
+                        class="ov-recent__status ov-recent__status--${resolveSessionState(s)}"
+                        title=${resolveSessionState(s)}
+                      ></span>
+                      <span class="ov-recent__key">${resolveSessionTitle(s)}</span>
+                    </span>
+                    ${s.model
+                      ? html`<span class="ov-recent__model-pill">${s.model}</span>`
+                      : html`<span></span>`}
                     <span class="ov-recent__time"
                       >${s.updatedAt ? formatRelativeTimestamp(s.updatedAt) : ""}</span
                     >
