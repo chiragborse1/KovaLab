@@ -82,6 +82,7 @@ class KovaTasksPage extends LitElement {
   @state() private toast: string | null = null;
   @state() private editingTitle = false;
   @state() private titleDraft = "";
+  @state() private supersededTaskIds = new Set<string>();
 
   private pollId: number | undefined;
   private toastId: number | undefined;
@@ -144,7 +145,9 @@ class KovaTasksPage extends LitElement {
     this.inFlightLoad = this.client
       .request<TasksListResult>("tasks.list", { limit: 200 })
       .then((result) => {
-        this.tasks = result.tasks.map((task) => mapGatewayTask(task));
+        this.tasks = result.tasks
+          .filter((task) => !this.supersededTaskIds.has(task.id))
+          .map((task) => mapGatewayTask(task));
         this.error = null;
       })
       .catch((err: unknown) => {
@@ -311,6 +314,10 @@ class KovaTasksPage extends LitElement {
           sessionKey: task.sessionKey || this.sessionKey || `agent:${task.agent}:main`,
           idempotencyKey: `tasks-ui-retry:${task.id}:${crypto.randomUUID()}`,
         });
+      }
+      this.supersededTaskIds = new Set([...this.supersededTaskIds, task.id]);
+      if (this.selectedTaskId === task.id) {
+        this.selectedTaskId = null;
       }
       this.showToast("Task retry started");
       await this.loadTasks({ silent: true });
