@@ -526,8 +526,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(calc(100% - 36px), 980px);
-  margin: 0 auto 14px;
+  width: min(calc(100% - 30px), 1040px);
+  margin: 0 auto 16px;
   padding: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -552,14 +552,14 @@
 
 .agent-chat__input > textarea {
   width: 100%;
-  min-height: 52px;
-  max-height: 150px;
+  min-height: 64px;
+  max-height: 180px;
   resize: none;
-  padding: 14px 14px 10px;
+  padding: 16px 16px 12px;
   border: none;
   background: transparent;
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
   font-family: inherit;
   line-height: 1.4;
   outline: none;
@@ -577,15 +577,15 @@
 .agent-chat__composer-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-  max-width: min(520px, 48vw);
+  max-width: min(600px, 52vw);
 }
 
 .agent-chat__composer-controls .chat-controls__model-thinking {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: nowrap;
   width: 100%;
   min-width: 0;
@@ -594,17 +594,17 @@
 .agent-chat__composer-controls .chat-controls__model,
 .agent-chat__composer-controls .chat-controls__thinking-select {
   flex: 1 1 140px;
-  min-width: 120px;
-  max-width: 220px;
+  min-width: 136px;
+  max-width: 250px;
 }
 
 .agent-chat__composer-controls .chat-controls__model select,
 .agent-chat__composer-controls .chat-controls__thinking-select select {
   width: 100%;
   max-width: none;
-  height: 30px;
-  padding: 4px 8px;
-  font-size: 12px;
+  height: 34px;
+  padding: 5px 9px;
+  font-size: 13px;
 }
 
 .chat-native-select {
@@ -637,8 +637,8 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  min-height: 30px;
-  padding: 4px 9px;
+  min-height: 34px;
+  padding: 5px 10px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--card) 92%, var(--bg));
@@ -672,7 +672,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
 }
 
@@ -758,14 +758,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: 8px 12px;
 }
 
 .agent-chat__toolbar-left,
 .agent-chat__toolbar-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -796,8 +796,8 @@
 
 .agent-chat__input-btn svg,
 .agent-chat__toolbar .btn--ghost svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5px;
