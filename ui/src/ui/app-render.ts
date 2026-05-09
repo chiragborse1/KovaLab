@@ -161,9 +161,11 @@ const lazyAgents = createLazyView(() => import("./views/agents.ts"), notifyLazyV
 const lazyChannels = createLazyView(() => import("./views/channels.ts"), notifyLazyViewChanged);
 const lazyCron = createLazyView(() => import("./views/cron.ts"), notifyLazyViewChanged);
 const lazyDebug = createLazyView(() => import("./views/debug.ts"), notifyLazyViewChanged);
+const lazyFiles = createLazyView(() => import("./views/files.ts"), notifyLazyViewChanged);
 const lazyInstances = createLazyView(() => import("./views/instances.ts"), notifyLazyViewChanged);
 const lazyLogs = createLazyView(() => import("./views/logs.ts"), notifyLazyViewChanged);
 const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyViewChanged);
+const lazyOperations = createLazyView(() => import("./views/operations.ts"), notifyLazyViewChanged);
 const lazySessions = createLazyView(() => import("./views/sessions.ts"), notifyLazyViewChanged);
 const lazySkills = createLazyView(() => import("./views/skills.ts"), notifyLazyViewChanged);
 
@@ -949,6 +951,16 @@ export function renderApp(state: AppViewState) {
     state.aiAgentsActiveSubsection,
     AI_AGENTS_SECTION_KEYS,
   );
+  const mcpSelection = normalizeScopedConfigSelection(
+    state.infrastructureActiveSection,
+    state.infrastructureActiveSubsection,
+    ["mcp"] as const,
+  );
+  const profilesSelection = normalizeScopedConfigSelection(
+    state.aiAgentsActiveSection,
+    state.aiAgentsActiveSubsection,
+    ["agents", "models", "session"] as const,
+  );
   const renderConfigTabForActiveTab = () => {
     switch (state.tab) {
       case "config": {
@@ -1218,6 +1230,38 @@ export function renderApp(state: AppViewState) {
           onSubsectionChange: (section) => (state.aiAgentsActiveSubsection = section),
           navRootLabel: "AI & Agents",
           includeSections: [...AI_AGENTS_SECTION_KEYS],
+        });
+      case "mcp":
+        return renderConfigTab({
+          formMode: state.infrastructureFormMode,
+          searchQuery: state.infrastructureSearchQuery,
+          activeSection: mcpSelection.activeSection,
+          activeSubsection: mcpSelection.activeSubsection,
+          onFormModeChange: (mode) => (state.infrastructureFormMode = mode),
+          onSearchChange: (query) => (state.infrastructureSearchQuery = query),
+          onSectionChange: (section) => {
+            state.infrastructureActiveSection = section;
+            state.infrastructureActiveSubsection = null;
+          },
+          onSubsectionChange: (section) => (state.infrastructureActiveSubsection = section),
+          navRootLabel: "MCP",
+          includeSections: ["mcp"],
+        });
+      case "profiles":
+        return renderConfigTab({
+          formMode: state.aiAgentsFormMode,
+          searchQuery: state.aiAgentsSearchQuery,
+          activeSection: profilesSelection.activeSection,
+          activeSubsection: profilesSelection.activeSubsection,
+          onFormModeChange: (mode) => (state.aiAgentsFormMode = mode),
+          onSearchChange: (query) => (state.aiAgentsSearchQuery = query),
+          onSectionChange: (section) => {
+            state.aiAgentsActiveSection = section;
+            state.aiAgentsActiveSubsection = null;
+          },
+          onSubsectionChange: (section) => (state.aiAgentsActiveSubsection = section),
+          navRootLabel: "Profiles",
+          includeSections: ["agents", "models", "session"],
         });
       default:
         return nothing;
@@ -1588,6 +1632,30 @@ export function renderApp(state: AppViewState) {
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
             })
           : nothing}
+        ${state.tab === "operations"
+          ? renderLazyView(lazyOperations, (m) =>
+              m.renderOperations({
+                connected: state.connected,
+                channelsSnapshot: state.channelsSnapshot,
+                channelsLoading: state.channelsLoading,
+                channelsError: state.channelsError,
+                cronStatus: state.cronStatus,
+                cronJobs: state.cronJobs,
+                cronLoading: state.cronLoading,
+                nodes: state.nodes,
+                nodesLoading: state.nodesLoading,
+                logsEntries: state.logsEntries,
+                logsLoading: state.logsLoading,
+                logsError: state.logsError,
+                onRefresh: () => {
+                  void loadChannels(state, false);
+                  void state.loadCron();
+                  void loadNodes(state);
+                  void loadLogs(state, { reset: true });
+                },
+              }),
+            )
+          : nothing}
         ${state.tab === "channels"
           ? renderLazyView(lazyChannels, (m) =>
               m.renderChannels({
@@ -1846,6 +1914,70 @@ export function renderApp(state: AppViewState) {
                 onNavigateToChat: (sessionKey) => {
                   switchChatSession(state, sessionKey);
                   state.setTab("chat" as import("./navigation.ts").Tab);
+                },
+              }),
+            )
+          : nothing}
+        ${state.tab === "files"
+          ? renderLazyView(lazyFiles, (m) =>
+              m.renderFiles({
+                loading: state.agentsLoading,
+                error: state.agentsError,
+                agentsList: state.agentsList,
+                selectedAgentId: resolvedAgentId,
+                agentFiles: {
+                  list: state.agentFilesList,
+                  loading: state.agentFilesLoading,
+                  error: state.agentFilesError,
+                  active: state.agentFileActive,
+                  contents: state.agentFileContents,
+                  drafts: state.agentFileDrafts,
+                  saving: state.agentFileSaving,
+                },
+                onRefreshAgents: async () => {
+                  await loadAgents(state);
+                  const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
+                  if (agentIds.length > 0) {
+                    void loadAgentIdentities(state, agentIds);
+                  }
+                  const agentId = resolveSelectedAgentId();
+                  if (agentId) {
+                    void loadAgentFiles(state, agentId);
+                  }
+                },
+                onSelectAgent: (agentId) => {
+                  if (state.agentsSelectedId === agentId) {
+                    return;
+                  }
+                  state.agentsSelectedId = agentId;
+                  resetAgentFilesState();
+                  void loadAgentIdentity(state, agentId);
+                  void loadAgentFiles(state, agentId);
+                },
+                onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
+                onSelectFile: (name) => {
+                  state.agentFileActive = name;
+                  const agentId = resolveSelectedAgentId();
+                  if (!agentId) {
+                    return;
+                  }
+                  void loadAgentFileContent(state, agentId, name);
+                },
+                onFileDraftChange: (name, content) => {
+                  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+                },
+                onFileReset: (name) => {
+                  const base = state.agentFileContents[name] ?? "";
+                  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: base };
+                },
+                onFileSave: (name) => {
+                  const agentId = resolveSelectedAgentId();
+                  if (!agentId) {
+                    return;
+                  }
+                  const content =
+                    state.agentFileDrafts[name] ?? state.agentFileContents[name] ?? "";
+                  void saveAgentFile(state, agentId, name, content);
                 },
               }),
             )

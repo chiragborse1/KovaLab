@@ -3,36 +3,30 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
-  { label: "chat", tabs: ["chat"] },
   {
-    label: "control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+    label: "main",
+    tabs: ["overview", "chat", "agents", "files", "cron", "sessions", "operations"],
   },
-  { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
+  { label: "knowledge", tabs: ["dreams", "skills", "mcp", "profiles"] },
   {
-    label: "settings",
-    tabs: [
-      "config",
-      "communications",
-      "appearance",
-      "automation",
-      "infrastructure",
-      "aiAgents",
-      "debug",
-      "logs",
-    ],
+    label: "system",
+    tabs: ["channels", "instances", "nodes", "usage", "config", "appearance", "logs", "debug"],
   },
 ] as const;
 
 export type Tab =
   | "agents"
+  | "files"
   | "overview"
+  | "operations"
   | "channels"
   | "instances"
   | "sessions"
   | "usage"
   | "cron"
   | "skills"
+  | "mcp"
+  | "profiles"
   | "nodes"
   | "chat"
   | "config"
@@ -47,13 +41,17 @@ export type Tab =
 
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
+  files: "/files",
   overview: "/overview",
+  operations: "/operations",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
   usage: "/usage",
   cron: "/cron",
   skills: "/skills",
+  mcp: "/mcp",
+  profiles: "/profiles",
   nodes: "/nodes",
   chat: "/chat",
   config: "/config",
@@ -69,6 +67,8 @@ const TAB_PATHS: Record<Tab, string> = {
 
 const PATH_ALIASES: Record<string, Tab> = {
   "/dreams": "dreams",
+  "/memory": "dreams",
+  "/jobs": "cron",
 };
 
 const PATH_TO_TAB = new Map<string, Tab>([
@@ -159,10 +159,14 @@ export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
       return "folder";
+    case "files":
+      return "fileText";
     case "chat":
       return "messageSquare";
     case "overview":
       return "barChart";
+    case "operations":
+      return "monitor";
     case "channels":
       return "link";
     case "instances":
@@ -175,6 +179,10 @@ export function iconForTab(tab: Tab): IconName {
       return "loader";
     case "skills":
       return "zap";
+    case "mcp":
+      return "plug";
+    case "profiles":
+      return "brain";
     case "nodes":
       return "monitor";
     case "config":

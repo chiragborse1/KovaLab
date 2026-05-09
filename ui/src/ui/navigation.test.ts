@@ -28,11 +28,15 @@ describe("iconForTab", () => {
   it("returns stable icons for known tabs", () => {
     expect(iconForTab("chat")).toBe("messageSquare");
     expect(iconForTab("overview")).toBe("barChart");
+    expect(iconForTab("files")).toBe("fileText");
+    expect(iconForTab("operations")).toBe("monitor");
     expect(iconForTab("channels")).toBe("link");
     expect(iconForTab("instances")).toBe("radio");
     expect(iconForTab("sessions")).toBe("fileText");
     expect(iconForTab("cron")).toBe("loader");
     expect(iconForTab("skills")).toBe("zap");
+    expect(iconForTab("mcp")).toBe("plug");
+    expect(iconForTab("profiles")).toBe("brain");
     expect(iconForTab("nodes")).toBe("monitor");
     expect(iconForTab("config")).toBe("settings");
     expect(iconForTab("debug")).toBe("bug");
@@ -57,8 +61,8 @@ describe("titleForTab", () => {
 
   it("returns expected titles", () => {
     expect(titleForTab("chat")).toBe("Chat");
-    expect(titleForTab("overview")).toBe("Overview");
-    expect(titleForTab("cron")).toBe("Cron Jobs");
+    expect(titleForTab("overview")).toBe("Dashboard");
+    expect(titleForTab("cron")).toBe("Jobs");
   });
 });
 
@@ -129,9 +133,15 @@ describe("tabFromPath", () => {
   it("returns tab for valid path", () => {
     expect(tabFromPath("/chat")).toBe("chat");
     expect(tabFromPath("/overview")).toBe("overview");
+    expect(tabFromPath("/files")).toBe("files");
+    expect(tabFromPath("/operations")).toBe("operations");
+    expect(tabFromPath("/mcp")).toBe("mcp");
+    expect(tabFromPath("/profiles")).toBe("profiles");
     expect(tabFromPath("/sessions")).toBe("sessions");
     expect(tabFromPath("/dreaming")).toBe("dreams");
     expect(tabFromPath("/dreams")).toBe("dreams");
+    expect(tabFromPath("/memory")).toBe("dreams");
+    expect(tabFromPath("/jobs")).toBe("cron");
   });
 
   it("returns chat for root path", () => {
@@ -179,10 +189,9 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
-    expect(labels).toContain("chat");
-    expect(labels).toContain("control");
-    expect(labels).toContain("agent");
-    expect(labels).toContain("settings");
+    expect(labels).toContain("main");
+    expect(labels).toContain("knowledge");
+    expect(labels).toContain("system");
   });
 
   it("all tabs are unique", () => {
