@@ -18,6 +18,8 @@ import {
 } from "../thinking.ts";
 import type { GatewayThinkingLevelOption, SessionsListResult } from "../types.ts";
 
+let chatControlOutsideCloseInstalled = false;
+
 type ChatSessionSwitchHandler = (state: AppViewState, nextSessionKey: string) => void;
 
 export function renderChatSessionSelect(
@@ -305,6 +307,8 @@ function renderChatControlDropdown(params: {
   selectedValue: string;
   onSelect: (value: string) => Promise<void>;
 }) {
+  installChatControlOutsideClose();
+
   if (params.disabled) {
     return html`
       <button class="chat-control-select" type="button" disabled aria-label=${params.ariaLabel}>
@@ -351,6 +355,33 @@ function renderChatControlDropdown(params: {
       </div>
     </details>
   `;
+}
+
+function installChatControlOutsideClose() {
+  if (chatControlOutsideCloseInstalled || typeof document === "undefined") {
+    return;
+  }
+  chatControlOutsideCloseInstalled = true;
+  document.addEventListener("pointerdown", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || target.closest(".chat-control-select")) {
+      return;
+    }
+    closeAllChatControlDropdowns();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeAllChatControlDropdowns();
+    }
+  });
+}
+
+function closeAllChatControlDropdowns() {
+  for (const dropdown of document.querySelectorAll<HTMLDetailsElement>(
+    ".chat-control-select[open]",
+  )) {
+    dropdown.removeAttribute("open");
+  }
 }
 
 function closeSiblingChatControlDropdowns(event: Event) {
