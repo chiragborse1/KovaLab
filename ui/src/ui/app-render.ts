@@ -1487,15 +1487,18 @@ export function renderApp(state: AppViewState) {
                                   </span>
                                 `
                               : nothing}
-                            <a
-                              class="sidebar-brand__docs sidebar-utility-link"
-                              href="https://docs.neuralstudio.in"
-                              target=${EXTERNAL_LINK_TARGET}
-                              rel=${buildExternalLinkRel()}
-                              title="${t("common.docs")} (opens in new tab)"
-                            >
-                              <span>${t("common.docs")}</span>
-                            </a>
+                            <span class="sidebar-brand__footer-row">
+                              <a
+                                class="sidebar-brand__docs sidebar-utility-link"
+                                href="https://docs.neuralstudio.in"
+                                target=${EXTERNAL_LINK_TARGET}
+                                rel=${buildExternalLinkRel()}
+                                title="${t("common.docs")} (opens in new tab)"
+                              >
+                                <span>${t("common.docs")}</span>
+                              </a>
+                              <span class="sidebar-brand__surface">Web UI</span>
+                            </span>
                           </span>
                           ${renderSidebarConnectionStatus(state)}
                         </div>
