@@ -315,7 +315,10 @@ function renderChatControlDropdown(params: {
   }
 
   return html`
-    <details class="chat-control-select">
+    <details
+      class="chat-control-select"
+      @toggle=${(e: Event) => closeSiblingChatControlDropdowns(e)}
+    >
       <summary aria-label=${params.ariaLabel} title=${params.selectedLabel}>
         <span class="chat-control-select__label">${params.selectedLabel}</span>
         <span class="chat-control-select__chevron" aria-hidden="true">▾</span>
@@ -348,6 +351,20 @@ function renderChatControlDropdown(params: {
       </div>
     </details>
   `;
+}
+
+function closeSiblingChatControlDropdowns(event: Event) {
+  const current = event.currentTarget;
+  if (!(current instanceof HTMLDetailsElement) || !current.open) {
+    return;
+  }
+  const root = current.closest(".chat-controls__model-thinking") ?? current.parentElement;
+  const openDropdowns = root?.querySelectorAll<HTMLDetailsElement>(".chat-control-select[open]");
+  for (const dropdown of openDropdowns ?? []) {
+    if (dropdown !== current) {
+      dropdown.removeAttribute("open");
+    }
+  }
 }
 
 async function switchChatModel(state: AppViewState, nextModel: string) {
