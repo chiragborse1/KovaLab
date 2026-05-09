@@ -35,6 +35,16 @@ function displaySkillSource(source: string): string {
   return source.replace(/^openclaw-/u, "kova-");
 }
 
+function displaySkillSourceTag(skill: SkillStatusEntry): string {
+  if (skill.bundled || skill.source === "openclaw-bundled") {
+    return "Built in";
+  }
+  if (skill.source === "openclaw-workspace") {
+    return "Marketplace";
+  }
+  return "Workspace";
+}
+
 export type SkillsStatusFilter = "all" | "ready" | "needs-setup" | "disabled";
 
 export type SkillsProps = {
@@ -174,7 +184,15 @@ export function renderSkills(props: SkillsProps) {
             name="skills-filter"
           />
         </label>
-        <div class="muted skills-status-count">${filtered.length} shown</div>
+        <label class="field skills-status-search skills-status-search--marketplace">
+          <input
+            .value=${props.clawhubQuery}
+            @input=${(e: Event) => props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
+            placeholder="Search Marketplace skills…"
+            autocomplete="off"
+            name="clawhub-search"
+          />
+        </label>
         <button
           class="btn"
           ?disabled=${props.loading || !props.connected}
@@ -186,20 +204,8 @@ export function renderSkills(props: SkillsProps) {
 
       <section class="card skills-content-card">
         <div>
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="font-weight: 600;">Marketplace</div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <label class="field" style="flex: 1; min-width: 180px;">
-              <input
-                .value=${props.clawhubQuery}
-                @input=${(e: Event) =>
-                  props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-                placeholder="Search Marketplace skills…"
-                autocomplete="off"
-                name="clawhub-search"
-              />
-            </label>
+          <div class="skills-marketplace-header">
+            <div class="skills-marketplace-title">Marketplace</div>
             ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
           </div>
           ${props.clawhubSearchError
@@ -410,6 +416,8 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
   const dotClass = skillStatusClass(skill);
   const stateLabel = skill.disabled ? "Disabled" : skill.eligible ? "Ready" : "Needs setup";
   const sourceLabel = displaySkillSource(skill.source);
+  const sourceTag = displaySkillSourceTag(skill);
+  const canUninstall = skill.source === "openclaw-workspace";
 
   return html`
     <article class="skill-card" @click=${() => props.onDetailOpen(skill.skillKey)}>
@@ -422,24 +430,42 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
             <div class="skill-card__source">${sourceLabel}</div>
           </div>
         </div>
-        <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
-          <input
-            type="checkbox"
-            class="skill-toggle"
-            .checked=${!skill.disabled}
-            ?disabled=${busy}
-            @change=${(e: Event) => {
-              e.stopPropagation();
-              props.onToggle(skill.skillKey, skill.disabled);
-            }}
-          />
-        </label>
       </div>
       <p class="skill-card__description">${clampText(skill.description, 150)}</p>
       <div class="skill-card__footer">
-        <span class="skill-card__badge ${skill.eligible ? "skill-card__badge--ok" : ""}">
-          ${stateLabel}
-        </span>
+        <div class="skill-card__badges">
+          <span class="skill-card__badge ${skill.eligible ? "skill-card__badge--ok" : ""}">
+            ${stateLabel}
+          </span>
+          <span class="skill-card__badge">${sourceTag}</span>
+        </div>
+        <div class="skill-card__actions" @click=${(e: Event) => e.stopPropagation()}>
+          ${canUninstall
+            ? html`
+                <button
+                  class="btn btn--sm danger"
+                  ?disabled=${props.clawhubInstallSlug !== null}
+                  @click=${() => props.onClawHubUninstall(skill.skillKey)}
+                >
+                  ${props.clawhubInstallSlug === skill.skillKey
+                    ? "Uninstalling\u2026"
+                    : "Uninstall"}
+                </button>
+              `
+            : nothing}
+          <label class="skill-toggle-wrap">
+            <input
+              type="checkbox"
+              class="skill-toggle"
+              .checked=${!skill.disabled}
+              ?disabled=${busy}
+              @change=${(e: Event) => {
+                e.stopPropagation();
+                props.onToggle(skill.skillKey, skill.disabled);
+              }}
+            />
+          </label>
+        </div>
       </div>
     </article>
   `;

@@ -101,6 +101,7 @@ describe("renderSkills", () => {
 
   it("renders installed skills as aligned rectangular cards", () => {
     const container = document.createElement("div");
+    const onClawHubUninstall = vi.fn();
 
     render(
       renderSkills(
@@ -116,8 +117,14 @@ describe("renderSkills", () => {
                 eligible: false,
                 missing: { bins: ["gh"], env: [], config: [], os: [] },
               }),
+              createSkill({
+                name: "Marketplace Skill",
+                skillKey: "marketplace-skill",
+                source: "openclaw-workspace",
+              }),
             ],
           },
+          onClawHubUninstall,
         }),
       ),
       container,
@@ -125,13 +132,29 @@ describe("renderSkills", () => {
 
     const grid = container.querySelector(".skills-grid");
     const cards = Array.from(container.querySelectorAll(".skill-card"));
+    const statusBar = container.querySelector(".skills-status-bar");
 
     expect(grid).toBeTruthy();
-    expect(cards).toHaveLength(2);
-    expect(normalizeText(cards[0])).toContain("Repo Skill");
-    expect(normalizeText(cards[0])).toContain("Ready");
-    expect(normalizeText(cards[1])).toContain("Needs setup");
-    expect(normalizeText(cards[1])).not.toContain("1 missing");
+    expect(cards).toHaveLength(3);
+    expect(statusBar?.querySelector('input[name="skills-filter"]')).toBeTruthy();
+    expect(statusBar?.querySelector('input[name="clawhub-search"]')).toBeTruthy();
+    const repoCard = cards.find((card) => normalizeText(card).includes("Repo Skill"));
+    const needsSetupCard = cards.find((card) => normalizeText(card).includes("Needs Setup"));
+    const marketplaceCard = cards.find((card) => normalizeText(card).includes("Marketplace Skill"));
+    expect(repoCard).toBeTruthy();
+    expect(needsSetupCard).toBeTruthy();
+    expect(marketplaceCard).toBeTruthy();
+    expect(normalizeText(repoCard!)).toContain("Ready");
+    expect(normalizeText(repoCard!)).toContain("Workspace");
+    expect(normalizeText(needsSetupCard!)).toContain("Needs setup");
+    expect(normalizeText(needsSetupCard!)).not.toContain("1 missing");
+    expect(normalizeText(marketplaceCard!)).toContain("Marketplace");
+    expect(normalizeText(container)).not.toContain("shown");
+
+    marketplaceCard?.querySelector<HTMLButtonElement>(".skill-card__actions .btn.danger")?.click();
+
+    expect(onClawHubUninstall).toHaveBeenCalledTimes(1);
+    expect(onClawHubUninstall).toHaveBeenCalledWith("marketplace-skill");
   });
 
   it("opens detail dialogs and routes ClawHub actions", async () => {
