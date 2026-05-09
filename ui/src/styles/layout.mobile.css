@@ -254,7 +254,7 @@
     padding: 12px 8px 0;
   }
 
-  .sidebar--collapsed .sidebar-version {
+  .sidebar--collapsed .sidebar-brand--footer {
     width: auto;
     min-height: 40px;
     padding: 0 12px;
@@ -264,7 +264,7 @@
     padding: 8px 0 2px;
   }
 
-  .shell--nav-collapsed:not(.shell--nav-drawer-open) .sidebar--collapsed .sidebar-version {
+  .shell--nav-collapsed:not(.shell--nav-drawer-open) .sidebar--collapsed .sidebar-brand--footer {
     width: 44px;
     min-height: 44px;
     padding: 0;

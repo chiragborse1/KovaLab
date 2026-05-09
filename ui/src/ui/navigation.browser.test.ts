@@ -307,6 +307,7 @@ describe("control UI routing", () => {
     expect(app.querySelector(".sidebar-shell__header")).not.toBeNull();
     expect(app.querySelector(".sidebar-shell__body")).not.toBeNull();
     expect(app.querySelector(".sidebar-shell__footer")).not.toBeNull();
+    expect(app.querySelector(".sidebar-shell__header .sidebar-brand")).toBeNull();
     expect(app.querySelector(".sidebar-brand")).not.toBeNull();
     expect(app.querySelector(".sidebar-brand__logo")).not.toBeNull();
     expect(app.querySelector(".sidebar-brand__copy")).not.toBeNull();
@@ -318,9 +319,10 @@ describe("control UI routing", () => {
     app.requestUpdate();
     await app.updateComplete;
 
-    const version = app.querySelector<HTMLElement>(".sidebar-version");
+    const version = app.querySelector<HTMLElement>(".sidebar-brand__version");
     const statusDot = app.querySelector<HTMLElement>(".sidebar-version__status");
     expect(version).not.toBeNull();
+    expect(version?.textContent).toContain("v1.2.3");
     expect(statusDot).not.toBeNull();
     expect(statusDot?.getAttribute("aria-label")).toContain("Online");
 
@@ -397,7 +399,7 @@ describe("control UI routing", () => {
     await app.updateComplete;
 
     expect(app.querySelector(".nav-section__label")).toBeNull();
-    expect(app.querySelector(".sidebar-brand__logo")).toBeNull();
+    expect(app.querySelector(".sidebar-brand__logo")).not.toBeNull();
 
     expect(app.querySelector(".sidebar-shell__footer")).not.toBeNull();
     expect(app.querySelector(".sidebar-utility-link")).not.toBeNull();
@@ -417,6 +419,7 @@ describe("control UI routing", () => {
     expect(item.querySelector(".nav-item__text")).toBeNull();
     expect(app.querySelector(".sidebar-brand__copy")).toBeNull();
     expect(header.querySelector(".nav-collapse-toggle")).not.toBeNull();
+    expect(header.querySelector(".sidebar-brand")).toBeNull();
   });
 
   it("preserves session navigation and keeps focus mode scoped to chat", async () => {

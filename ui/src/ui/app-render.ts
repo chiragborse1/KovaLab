@@ -1369,17 +1369,6 @@ export function renderApp(state: AppViewState) {
         <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
           <div class="sidebar-shell">
             <div class="sidebar-shell__header">
-              <div class="sidebar-brand">
-                ${navCollapsed
-                  ? nothing
-                  : html`
-                      <img class="sidebar-brand__logo" src="${agentLogoUrl(basePath)}" alt="Kova" />
-                      <span class="sidebar-brand__copy">
-                        <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
-                        <span class="sidebar-brand__title">Kova</span>
-                      </span>
-                    `}
-              </div>
               <button
                 type="button"
                 class="nav-collapse-toggle"
@@ -1438,38 +1427,63 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="sidebar-shell__footer">
               <div class="sidebar-utility-group">
-                <a
-                  class="nav-item nav-item--external sidebar-utility-link"
-                  href="https://docs.neuralstudio.in"
-                  target=${EXTERNAL_LINK_TARGET}
-                  rel=${buildExternalLinkRel()}
-                  title="${t("common.docs")} (opens in new tab)"
-                >
-                  <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
-                  ${!navCollapsed
-                    ? html`
-                        <span class="nav-item__text">${t("common.docs")}</span>
-                        <span class="nav-item__external-icon">${icons.externalLink}</span>
-                      `
-                    : nothing}
-                </a>
-                <div class="sidebar-mode-switch">${renderTopbarThemeModeToggle(state)}</div>
                 ${(() => {
                   const version = state.hello?.server?.version ?? "";
-                  return version
+                  return navCollapsed
                     ? html`
-                        <div class="sidebar-version" title=${`v${version}`}>
-                          ${!navCollapsed
-                            ? html`
-                                <span class="sidebar-version__label">${t("common.version")}</span>
-                                <span class="sidebar-version__text">v${version}</span>
-                                ${renderSidebarConnectionStatus(state)}
-                              `
-                            : html` ${renderSidebarConnectionStatus(state)} `}
-                        </div>
+                        <a
+                          class="sidebar-brand sidebar-brand--footer sidebar-brand--compact-link sidebar-utility-link"
+                          href="https://docs.neuralstudio.in"
+                          target=${EXTERNAL_LINK_TARGET}
+                          rel=${buildExternalLinkRel()}
+                          title="${t("common.docs")} (opens in new tab)"
+                        >
+                          <img
+                            class="sidebar-brand__logo"
+                            src="${agentLogoUrl(basePath)}"
+                            alt="Kova"
+                          />
+                          ${renderSidebarConnectionStatus(state)}
+                        </a>
                       `
-                    : nothing;
+                    : html`
+                        <div
+                          class="sidebar-brand sidebar-brand--footer"
+                          title=${version ? `Kova v${version}` : "Kova"}
+                        >
+                          <img
+                            class="sidebar-brand__logo"
+                            src="${agentLogoUrl(basePath)}"
+                            alt="Kova"
+                          />
+                          <span class="sidebar-brand__copy">
+                            <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
+                            <span class="sidebar-brand__title">Kova</span>
+                            ${version
+                              ? html`
+                                  <span class="sidebar-brand__version">
+                                    <span>${t("common.version")}</span>
+                                    <strong>v${version}</strong>
+                                  </span>
+                                `
+                              : nothing}
+                            <a
+                              class="sidebar-brand__docs sidebar-utility-link"
+                              href="https://docs.neuralstudio.in"
+                              target=${EXTERNAL_LINK_TARGET}
+                              rel=${buildExternalLinkRel()}
+                              title="${t("common.docs")} (opens in new tab)"
+                            >
+                              <span aria-hidden="true">${icons.book}</span>
+                              <span>${t("common.docs")}</span>
+                              <span aria-hidden="true">${icons.externalLink}</span>
+                            </a>
+                          </span>
+                          ${renderSidebarConnectionStatus(state)}
+                        </div>
+                      `;
                 })()}
+                <div class="sidebar-mode-switch">${renderTopbarThemeModeToggle(state)}</div>
               </div>
             </div>
           </div>
