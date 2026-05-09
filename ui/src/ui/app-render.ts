@@ -1392,7 +1392,7 @@ export function renderApp(state: AppViewState) {
                   aria-label="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
                 >
                   <span class="nav-collapse-toggle__icon" aria-hidden="true"
-                    >${navCollapsed ? icons.panelLeftOpen : icons.panelLeftClose}</span
+                    >${navCollapsed ? icons.chevronRight : icons.chevronLeft}</span
                   >
                 </button>
               </div>
