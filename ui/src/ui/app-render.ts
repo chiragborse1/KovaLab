@@ -1590,6 +1590,7 @@ export function renderApp(state: AppViewState) {
           ? renderOverview({
               connected: state.connected,
               hello: state.hello,
+              userName: state.userName ?? null,
               settings: state.settings,
               password: state.password,
               lastError: state.lastError,
