@@ -1371,7 +1371,16 @@ export function renderApp(state: AppViewState) {
             <div class="sidebar-shell__header">
               <div class="sidebar-menu-header">
                 ${!navCollapsed
-                  ? html`<span class="sidebar-menu-header__label">Menu</span>`
+                  ? html`
+                      <span class="sidebar-menu-header__brand">
+                        <img
+                          class="sidebar-menu-header__logo"
+                          src="${agentLogoUrl(basePath)}"
+                          alt=""
+                        />
+                        <span class="sidebar-menu-header__label">Kova Forge</span>
+                      </span>
+                    `
                   : nothing}
                 <button
                   type="button"
