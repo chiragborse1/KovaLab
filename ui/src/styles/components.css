@@ -3600,6 +3600,15 @@ td.data-table-key-col {
   flex: 1 1 auto;
 }
 
+.skills-status-search {
+  flex: 0 1 360px;
+  min-width: 220px;
+}
+
+.skills-status-count {
+  white-space: nowrap;
+}
+
 .skills-content-card {
   margin-top: 0;
 }

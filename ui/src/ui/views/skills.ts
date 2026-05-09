@@ -156,6 +156,16 @@ export function renderSkills(props: SkillsProps) {
             `,
           )}
         </div>
+        <label class="field skills-status-search">
+          <input
+            .value=${props.filter}
+            @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
+            placeholder="Search skills"
+            autocomplete="off"
+            name="skills-filter"
+          />
+        </label>
+        <div class="muted skills-status-count">${filtered.length} shown</div>
         <button
           class="btn"
           ?disabled=${props.loading || !props.connected}
@@ -166,23 +176,7 @@ export function renderSkills(props: SkillsProps) {
       </div>
 
       <section class="card skills-content-card">
-        <div
-          class="filters"
-          style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;"
-        >
-          <label class="field" style="flex: 1; min-width: 180px;">
-            <input
-              .value=${props.filter}
-              @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-              placeholder="Filter installed skills"
-              autocomplete="off"
-              name="skills-filter"
-            />
-          </label>
-          <div class="muted">${filtered.length} shown</div>
-        </div>
-
-        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+        <div>
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
             <div style="font-weight: 600;">ClawHub</div>
             <div class="muted" style="font-size: 13px;">
