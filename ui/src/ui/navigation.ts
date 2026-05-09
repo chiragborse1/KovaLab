@@ -3,17 +3,31 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
-  { label: "chat", tabs: ["chat"] },
   {
-    label: "control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+    label: "main",
+    tabs: [
+      "overview",
+      "chat",
+      "agents",
+      "files",
+      "terminal",
+      "cron",
+      "tasks",
+      "conductor",
+      "operations",
+      "sessions",
+    ],
   },
-  { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
+  { label: "knowledge", tabs: ["dreams", "skills", "mcp", "profiles"] },
   {
-    label: "settings",
+    label: "advanced",
     tabs: [
       "config",
+      "channels",
       "communications",
+      "instances",
+      "nodes",
+      "usage",
       "appearance",
       "automation",
       "infrastructure",
@@ -27,6 +41,13 @@ export const TAB_GROUPS = [
 export type Tab =
   | "agents"
   | "overview"
+  | "files"
+  | "terminal"
+  | "tasks"
+  | "conductor"
+  | "operations"
+  | "mcp"
+  | "profiles"
   | "channels"
   | "instances"
   | "sessions"
@@ -48,6 +69,13 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
   overview: "/overview",
+  files: "/files",
+  terminal: "/terminal",
+  tasks: "/tasks",
+  conductor: "/conductor",
+  operations: "/operations",
+  mcp: "/mcp",
+  profiles: "/profiles",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
@@ -68,6 +96,9 @@ const TAB_PATHS: Record<Tab, string> = {
 };
 
 const PATH_ALIASES: Record<string, Tab> = {
+  "/dashboard": "overview",
+  "/jobs": "cron",
+  "/memory": "dreams",
   "/dreams": "dreams",
 };
 
@@ -159,6 +190,20 @@ export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
       return "folder";
+    case "files":
+      return "fileText";
+    case "terminal":
+      return "terminal";
+    case "tasks":
+      return "check";
+    case "conductor":
+      return "spark";
+    case "operations":
+      return "radio";
+    case "mcp":
+      return "link";
+    case "profiles":
+      return "brain";
     case "chat":
       return "messageSquare";
     case "overview":

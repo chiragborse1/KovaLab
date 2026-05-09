@@ -84,6 +84,12 @@ The Control UI can localize itself on first load based on your browser locale. T
 
 ## What it can do (today)
 
+The sidebar is grouped by operating intent:
+
+- **Main**: Dashboard, Chat, Agents, Files, Terminal readiness, Jobs, Tasks, Conductor, Operations, and Sessions.
+- **Knowledge**: Memory, Skills, MCP, and Profiles.
+- **Advanced**: the full legacy control/config surfaces for channels, instances, nodes, usage, appearance, automation, infrastructure, AI agents, debug, and logs.
+
 <AccordionGroup>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).

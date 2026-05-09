@@ -28,6 +28,13 @@ describe("iconForTab", () => {
   it("returns stable icons for known tabs", () => {
     expect(iconForTab("chat")).toBe("messageSquare");
     expect(iconForTab("overview")).toBe("barChart");
+    expect(iconForTab("files")).toBe("fileText");
+    expect(iconForTab("terminal")).toBe("terminal");
+    expect(iconForTab("tasks")).toBe("check");
+    expect(iconForTab("conductor")).toBe("spark");
+    expect(iconForTab("operations")).toBe("radio");
+    expect(iconForTab("mcp")).toBe("link");
+    expect(iconForTab("profiles")).toBe("brain");
     expect(iconForTab("channels")).toBe("link");
     expect(iconForTab("instances")).toBe("radio");
     expect(iconForTab("sessions")).toBe("fileText");
@@ -57,8 +64,8 @@ describe("titleForTab", () => {
 
   it("returns expected titles", () => {
     expect(titleForTab("chat")).toBe("Chat");
-    expect(titleForTab("overview")).toBe("Overview");
-    expect(titleForTab("cron")).toBe("Cron Jobs");
+    expect(titleForTab("overview")).toBe("Dashboard");
+    expect(titleForTab("cron")).toBe("Jobs");
   });
 });
 
@@ -117,6 +124,7 @@ describe("pathForTab", () => {
   it("returns correct path without base", () => {
     expect(pathForTab("chat")).toBe("/chat");
     expect(pathForTab("overview")).toBe("/overview");
+    expect(pathForTab("mcp")).toBe("/mcp");
   });
 
   it("prepends base path", () => {
@@ -129,7 +137,10 @@ describe("tabFromPath", () => {
   it("returns tab for valid path", () => {
     expect(tabFromPath("/chat")).toBe("chat");
     expect(tabFromPath("/overview")).toBe("overview");
+    expect(tabFromPath("/dashboard")).toBe("overview");
     expect(tabFromPath("/sessions")).toBe("sessions");
+    expect(tabFromPath("/jobs")).toBe("cron");
+    expect(tabFromPath("/memory")).toBe("dreams");
     expect(tabFromPath("/dreaming")).toBe("dreams");
     expect(tabFromPath("/dreams")).toBe("dreams");
   });
@@ -161,6 +172,8 @@ describe("inferBasePathFromPathname", () => {
   it("returns empty string for direct tab path", () => {
     expect(inferBasePathFromPathname("/chat")).toBe("");
     expect(inferBasePathFromPathname("/overview")).toBe("");
+    expect(inferBasePathFromPathname("/dashboard")).toBe("");
+    expect(inferBasePathFromPathname("/mcp")).toBe("");
     expect(inferBasePathFromPathname("/dreaming")).toBe("");
     expect(inferBasePathFromPathname("/dreams")).toBe("");
   });
@@ -179,10 +192,7 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
-    expect(labels).toContain("chat");
-    expect(labels).toContain("control");
-    expect(labels).toContain("agent");
-    expect(labels).toContain("settings");
+    expect(labels).toEqual(["main", "knowledge", "advanced"]);
   });
 
   it("all tabs are unique", () => {
