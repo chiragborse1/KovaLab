@@ -327,7 +327,8 @@ describe("control UI routing", () => {
     expect(version?.textContent).toContain("v1.2.3");
     expect(statusDot).not.toBeNull();
     expect(statusDot?.getAttribute("aria-label")).toContain("Online");
-    expect(statusDot?.closest(".sidebar-brand__mark")).not.toBeNull();
+    expect(statusDot?.closest(".sidebar-brand--footer")).not.toBeNull();
+    expect(statusDot?.closest(".sidebar-brand__mark")).toBeNull();
 
     app.applySettings({ ...app.settings, navWidth: 360 });
     await app.updateComplete;

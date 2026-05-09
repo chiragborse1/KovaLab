@@ -490,7 +490,7 @@
   border-radius: 0;
   background: transparent;
   color: var(--text);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
@@ -829,17 +829,17 @@
 
 .sidebar-brand--footer .sidebar-version__status {
   position: absolute;
-  left: -2px;
-  top: -2px;
+  right: 10px;
+  top: 14px;
   margin-left: 0;
   border: 2px solid var(--bg-elevated);
 }
 
 .sidebar--collapsed .sidebar-brand--footer .sidebar-version__status {
   position: absolute;
-  left: 6px;
-  top: 6px;
-  right: auto;
+  left: auto;
+  top: 9px;
+  right: 6px;
   bottom: auto;
   margin-left: 0;
   border: 2px solid var(--bg);

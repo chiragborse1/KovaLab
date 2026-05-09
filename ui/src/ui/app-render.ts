@@ -1457,7 +1457,6 @@ export function renderApp(state: AppViewState) {
                               src="${agentLogoUrl(basePath)}"
                               alt="Kova"
                             />
-                            ${renderSidebarConnectionStatus(state)}
                           </span>
                           <span class="sidebar-brand__copy">
                             <span class="sidebar-brand__title">Kova</span>
@@ -1478,9 +1477,11 @@ export function renderApp(state: AppViewState) {
                             >
                               <span aria-hidden="true">${icons.book}</span>
                               <span>${t("common.docs")}</span>
+                              <span aria-hidden="true">→</span>
                               <span aria-hidden="true">${icons.externalLink}</span>
                             </a>
                           </span>
+                          ${renderSidebarConnectionStatus(state)}
                         </div>
                       `;
                 })()}
