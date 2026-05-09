@@ -1494,9 +1494,7 @@ export function renderApp(state: AppViewState) {
                               rel=${buildExternalLinkRel()}
                               title="${t("common.docs")} (opens in new tab)"
                             >
-                              <span aria-hidden="true">${icons.book}</span>
-                              <span aria-hidden="true">${icons.externalLink}</span>
-                              <span class="sr-only">${t("common.docs")}</span>
+                              <span>${t("common.docs")}</span>
                             </a>
                           </span>
                           ${renderSidebarConnectionStatus(state)}
@@ -1638,6 +1636,10 @@ export function renderApp(state: AppViewState) {
               onConnect: () => state.connect(),
               onRefresh: () => state.loadOverview({ refresh: true }),
               onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
+              onOpenSessionChat: (sessionKey) => {
+                state.setTab("chat");
+                switchChatSession(state, sessionKey);
+              },
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
             })
           : nothing}

@@ -24,6 +24,7 @@ export type OverviewCardsProps = {
   modelAuthStatus: ModelAuthStatusResult | null;
   presenceCount: number;
   onNavigate: (tab: string) => void;
+  onOpenSessionChat: (sessionKey: string) => void;
 };
 
 type StatCard = {
@@ -370,6 +371,13 @@ export function renderOverviewCards(props: OverviewCardsProps) {
                     <span class="ov-recent__time"
                       >${s.updatedAt ? formatRelativeTimestamp(s.updatedAt) : ""}</span
                     >
+                    <button
+                      type="button"
+                      class="ov-recent__open"
+                      @click=${() => props.onOpenSessionChat(s.key)}
+                    >
+                      Open Chat
+                    </button>
                   </li>
                 `,
               )}

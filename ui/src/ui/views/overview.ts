@@ -60,6 +60,7 @@ export type OverviewProps = {
   onConnect: () => void;
   onRefresh: () => void;
   onNavigate: (tab: string) => void;
+  onOpenSessionChat: (sessionKey: string) => void;
   onRefreshLogs: () => void;
 };
 
@@ -511,6 +512,7 @@ export function renderOverview(props: OverviewProps) {
       modelAuthStatus: props.modelAuthStatus,
       presenceCount: props.presenceCount,
       onNavigate: props.onNavigate,
+      onOpenSessionChat: props.onOpenSessionChat,
     })}
     ${renderOverviewAttention({ items: props.attentionItems })}
   `;

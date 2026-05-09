@@ -55,6 +55,7 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
     onConnect: () => undefined,
     onRefresh: () => undefined,
     onNavigate: () => undefined,
+    onOpenSessionChat: () => undefined,
     onRefreshLogs: () => undefined,
     ...overrides,
   };
