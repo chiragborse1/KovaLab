@@ -381,8 +381,8 @@
 }
 
 .sidebar-menu-header__logo {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   border-radius: var(--radius-sm);
   box-shadow: 0 6px 14px color-mix(in srgb, black 14%, transparent);
