@@ -1,5 +1,4 @@
 import { html, nothing, type TemplateResult } from "lit";
-import type { DevicePairingList } from "../controllers/devices.ts";
 import type { Tab } from "../navigation.ts";
 import type {
   AgentsListResult,
@@ -14,14 +13,6 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-}
-
-function getPath(value: unknown, path: string[]): unknown {
-  let current = value;
-  for (const segment of path) {
-    current = asRecord(current)[segment];
-  }
-  return current;
 }
 
 function countChannels(snapshot: ChannelsStatusSnapshot | null) {
@@ -109,59 +100,6 @@ export function renderTasksSurface(params: {
 ${JSON.stringify(params.status.tasks ?? {}, null, 2)}</pre
             >`}
     </section>
-  `;
-}
-
-export function renderTerminalSurface(params: {
-  loading: boolean;
-  nodes: Array<Record<string, unknown>>;
-  devices: DevicePairingList | null;
-  config: Record<string, unknown> | null;
-  onRefresh: () => void;
-  onNavigate: (tab: Tab) => void;
-}) {
-  const defaultExecNode = getPath(params.config, ["tools", "exec", "node"]);
-  const pairedCount = params.devices?.paired.length ?? 0;
-  const pendingCount = params.devices?.pending.length ?? 0;
-  return html`
-    <div class="grid grid-cols-2">
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Terminal Readiness</div>
-            <div class="card-sub">
-              Exec host, paired devices, and node availability for terminal-style work.
-            </div>
-          </div>
-          <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
-            ${params.loading ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-        <div class="stat-grid" style="margin-top: 16px;">
-          ${stat("Nodes", params.nodes.length)} ${stat("Paired devices", pairedCount)}
-          ${stat("Pending", pendingCount)}
-          ${stat(
-            "Default exec node",
-            typeof defaultExecNode === "string" && defaultExecNode ? defaultExecNode : "gateway",
-          )}
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-title">Where To Configure</div>
-        <div class="card-sub">
-          Terminal execution depends on node pairing and exec approvals, not only UI state.
-        </div>
-        <div class="row" style="margin-top: 16px;">
-          <button class="btn btn--sm" @click=${() => params.onNavigate("nodes")}>
-            Open node controls
-          </button>
-          <button class="btn btn--sm btn--ghost" @click=${() => params.onNavigate("automation")}>
-            Open approvals
-          </button>
-        </div>
-      </section>
-    </div>
   `;
 }
 

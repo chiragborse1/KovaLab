@@ -86,8 +86,8 @@ The Control UI can localize itself on first load based on your browser locale. T
 
 The sidebar is grouped by operating intent:
 
-- **Main**: Dashboard, Chat, Agents, Files, Terminal readiness, Jobs, Tasks, Conductor, Operations, and Sessions.
-- **Knowledge**: Memory, Skills, MCP, and Profiles.
+- **Main**: Dashboard, Chat, Agents, Jobs, Tasks, Conductor, Operations, and Sessions.
+- **Knowledge**: Memory, Skills, and MCP.
 - **Advanced**: the full legacy control/config surfaces for channels, instances, nodes, usage, appearance, automation, infrastructure, AI agents, debug, and logs.
 
 <AccordionGroup>

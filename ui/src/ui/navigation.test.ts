@@ -28,13 +28,10 @@ describe("iconForTab", () => {
   it("returns stable icons for known tabs", () => {
     expect(iconForTab("chat")).toBe("messageSquare");
     expect(iconForTab("overview")).toBe("barChart");
-    expect(iconForTab("files")).toBe("fileText");
-    expect(iconForTab("terminal")).toBe("terminal");
     expect(iconForTab("tasks")).toBe("check");
     expect(iconForTab("conductor")).toBe("spark");
     expect(iconForTab("operations")).toBe("radio");
     expect(iconForTab("mcp")).toBe("link");
-    expect(iconForTab("profiles")).toBe("brain");
     expect(iconForTab("channels")).toBe("link");
     expect(iconForTab("instances")).toBe("radio");
     expect(iconForTab("sessions")).toBe("fileText");

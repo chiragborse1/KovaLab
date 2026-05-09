@@ -9,15 +9,13 @@ describe("TAB_GROUPS", () => {
       "overview",
       "chat",
       "agents",
-      "files",
-      "terminal",
       "cron",
       "tasks",
       "conductor",
       "operations",
       "sessions",
     ]);
-    expect(knowledge?.tabs).toEqual(["dreams", "skills", "mcp", "profiles"]);
+    expect(knowledge?.tabs).toEqual(["dreams", "skills", "mcp"]);
   });
 
   it("keeps the full legacy controls available under advanced", () => {
@@ -40,7 +38,6 @@ describe("TAB_GROUPS", () => {
 
   it("routes every published settings slice", () => {
     expect(tabFromPath("/mcp")).toBe("mcp");
-    expect(tabFromPath("/profiles")).toBe("profiles");
     expect(tabFromPath("/communications")).toBe("communications");
     expect(tabFromPath("/appearance")).toBe("appearance");
     expect(tabFromPath("/automation")).toBe("automation");

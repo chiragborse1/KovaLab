@@ -139,11 +139,7 @@ import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById } from "./views/config-presets.ts";
 import { renderQuickSettings, type QuickSettingsChannel } from "./views/config-quick.ts";
 import { renderConfig, type ConfigProps } from "./views/config.ts";
-import {
-  renderConductorSurface,
-  renderTasksSurface,
-  renderTerminalSurface,
-} from "./views/control-surfaces.ts";
+import { renderConductorSurface, renderTasksSurface } from "./views/control-surfaces.ts";
 import {
   renderCronQuickCreate,
   createDefaultDraft,
@@ -166,7 +162,6 @@ const lazyAgents = createLazyView(() => import("./views/agents.ts"), notifyLazyV
 const lazyChannels = createLazyView(() => import("./views/channels.ts"), notifyLazyViewChanged);
 const lazyCron = createLazyView(() => import("./views/cron.ts"), notifyLazyViewChanged);
 const lazyDebug = createLazyView(() => import("./views/debug.ts"), notifyLazyViewChanged);
-const lazyFiles = createLazyView(() => import("./views/files.ts"), notifyLazyViewChanged);
 const lazyInstances = createLazyView(() => import("./views/instances.ts"), notifyLazyViewChanged);
 const lazyLogs = createLazyView(() => import("./views/logs.ts"), notifyLazyViewChanged);
 const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyViewChanged);
@@ -1226,22 +1221,6 @@ export function renderApp(state: AppViewState) {
           navRootLabel: "Infrastructure",
           includeSections: ["mcp", "commands", "browser", "tools"],
         });
-      case "profiles":
-        return renderConfigTab({
-          formMode: state.aiAgentsFormMode,
-          searchQuery: state.aiAgentsSearchQuery,
-          activeSection: "auth",
-          activeSubsection: null,
-          onFormModeChange: (mode) => (state.aiAgentsFormMode = mode),
-          onSearchChange: (query) => (state.aiAgentsSearchQuery = query),
-          onSectionChange: (section) => {
-            state.configActiveSection = section;
-            state.configActiveSubsection = null;
-          },
-          onSubsectionChange: (section) => (state.configActiveSubsection = section),
-          navRootLabel: "Profiles",
-          includeSections: ["auth", "agents", "models"],
-        });
       case "aiAgents":
         return renderConfigTab({
           formMode: state.aiAgentsFormMode,
@@ -1790,27 +1769,6 @@ export function renderApp(state: AppViewState) {
               onRefresh: () => loadDebug(state),
             })
           : nothing}
-        ${state.tab === "terminal"
-          ? renderTerminalSurface({
-              loading:
-                state.nodesLoading ||
-                state.devicesLoading ||
-                state.configLoading ||
-                state.execApprovalsLoading,
-              nodes: state.nodes,
-              devices: state.devicesList,
-              config:
-                state.configForm ??
-                (state.configSnapshot?.config as Record<string, unknown> | null),
-              onRefresh: () => {
-                void loadNodes(state);
-                void loadDevices(state);
-                void loadConfig(state);
-                void loadExecApprovals(state);
-              },
-              onNavigate: (tab) => state.setTab(tab),
-            })
-          : nothing}
         ${state.tab === "conductor"
           ? renderConductorSurface({
               agents: state.agentsList,
@@ -1947,57 +1905,6 @@ export function renderApp(state: AppViewState) {
                 onNavigateToChat: (sessionKey) => {
                   switchChatSession(state, sessionKey);
                   state.setTab("chat" as import("./navigation.ts").Tab);
-                },
-              }),
-            )
-          : nothing}
-        ${state.tab === "files"
-          ? renderLazyView(lazyFiles, (m) =>
-              m.renderFiles({
-                loading: state.agentsLoading,
-                error: state.agentsError,
-                agentsList: state.agentsList,
-                selectedAgentId: state.agentsSelectedId ?? resolvedAgentId,
-                agentFiles: {
-                  list: state.agentFilesList,
-                  loading: state.agentFilesLoading,
-                  error: state.agentFilesError,
-                  active: state.agentFileActive,
-                  contents: state.agentFileContents,
-                  drafts: state.agentFileDrafts,
-                  saving: state.agentFileSaving,
-                },
-                onRefreshAgents: () => loadAgents(state),
-                onSelectAgent: (agentId) => {
-                  state.agentsSelectedId = agentId;
-                  resetAgentFilesState(true);
-                  void loadAgentFiles(state, agentId);
-                },
-                onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
-                onSelectFile: (name) => {
-                  const agentId = state.agentsSelectedId ?? resolvedAgentId;
-                  if (!agentId) {
-                    return;
-                  }
-                  state.agentFileActive = name;
-                  void loadAgentFileContent(state, agentId, name);
-                },
-                onFileDraftChange: (name, content) => {
-                  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
-                },
-                onFileReset: (name) => {
-                  const next = { ...state.agentFileDrafts };
-                  delete next[name];
-                  state.agentFileDrafts = next;
-                },
-                onFileSave: (name) => {
-                  const agentId = state.agentsSelectedId ?? resolvedAgentId;
-                  if (!agentId) {
-                    return;
-                  }
-                  const content =
-                    state.agentFileDrafts[name] ?? state.agentFileContents[name] ?? "";
-                  void saveAgentFile(state, agentId, name, content);
                 },
               }),
             )

@@ -5,20 +5,9 @@ import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 export const TAB_GROUPS = [
   {
     label: "main",
-    tabs: [
-      "overview",
-      "chat",
-      "agents",
-      "files",
-      "terminal",
-      "cron",
-      "tasks",
-      "conductor",
-      "operations",
-      "sessions",
-    ],
+    tabs: ["overview", "chat", "agents", "cron", "tasks", "conductor", "operations", "sessions"],
   },
-  { label: "knowledge", tabs: ["dreams", "skills", "mcp", "profiles"] },
+  { label: "knowledge", tabs: ["dreams", "skills", "mcp"] },
   {
     label: "advanced",
     tabs: [
@@ -41,13 +30,10 @@ export const TAB_GROUPS = [
 export type Tab =
   | "agents"
   | "overview"
-  | "files"
-  | "terminal"
   | "tasks"
   | "conductor"
   | "operations"
   | "mcp"
-  | "profiles"
   | "channels"
   | "instances"
   | "sessions"
@@ -69,13 +55,10 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
   overview: "/overview",
-  files: "/files",
-  terminal: "/terminal",
   tasks: "/tasks",
   conductor: "/conductor",
   operations: "/operations",
   mcp: "/mcp",
-  profiles: "/profiles",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
@@ -190,10 +173,6 @@ export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
       return "folder";
-    case "files":
-      return "fileText";
-    case "terminal":
-      return "terminal";
     case "tasks":
       return "check";
     case "conductor":
@@ -202,8 +181,6 @@ export function iconForTab(tab: Tab): IconName {
       return "radio";
     case "mcp":
       return "link";
-    case "profiles":
-      return "brain";
     case "chat":
       return "messageSquare";
     case "overview":

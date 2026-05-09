@@ -342,7 +342,6 @@ export async function refreshActiveTab(host: SettingsHost) {
     case "infrastructure":
     case "aiAgents":
     case "mcp":
-    case "profiles":
       await loadConfigSchema(app);
       await loadConfig(app);
       return;
@@ -370,12 +369,6 @@ export async function refreshActiveTab(host: SettingsHost) {
       await loadDebug(app);
       host.eventLog = host.eventLogBuffer;
       return;
-    case "terminal":
-      await loadNodes(app);
-      await loadDevices(app);
-      await loadConfig(app);
-      await loadExecApprovals(app);
-      return;
     case "conductor":
       await Promise.all([
         loadAgents(app),
@@ -390,10 +383,6 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "cron":
       await loadCron(host);
-      return;
-    case "files":
-      host.agentsPanel = "files";
-      await refreshAgentsTab(host, app);
       return;
     case "skills":
       await loadSkills(app);
