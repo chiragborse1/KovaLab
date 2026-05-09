@@ -140,7 +140,7 @@ import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById } from "./views/config-presets.ts";
 import { renderQuickSettings, type QuickSettingsChannel } from "./views/config-quick.ts";
 import { renderConfig, type ConfigProps } from "./views/config.ts";
-import { renderConductorSurface, renderTasksSurface } from "./views/control-surfaces.ts";
+import { renderConductorSurface } from "./views/control-surfaces.ts";
 import {
   renderCronQuickCreate,
   createDefaultDraft,
@@ -169,6 +169,7 @@ const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyVie
 const lazyOperations = createLazyView(() => import("./views/operations.ts"), notifyLazyViewChanged);
 const lazySessions = createLazyView(() => import("./views/sessions.ts"), notifyLazyViewChanged);
 const lazySkills = createLazyView(() => import("./views/skills.ts"), notifyLazyViewChanged);
+const lazyTasks = createLazyView(() => import("./views/tasks/TasksPage.ts"), notifyLazyViewChanged);
 
 function formatDreamNextCycle(nextRunAtMs: number | undefined): string | null {
   if (typeof nextRunAtMs !== "number" || !Number.isFinite(nextRunAtMs)) {
@@ -1811,11 +1812,14 @@ export function renderApp(state: AppViewState) {
           : nothing}
         ${renderUsageTab(state)}
         ${state.tab === "tasks"
-          ? renderTasksSurface({
-              loading: state.debugLoading,
-              status: state.debugStatus,
-              onRefresh: () => loadDebug(state),
-            })
+          ? renderLazyView(lazyTasks, (m) =>
+              m.renderTasksPage({
+                agentsList: state.agentsList,
+                sessionsResult: state.sessionsResult,
+                modelCatalog: state.chatModelCatalog,
+                onNavigateToCron: () => state.setTab("cron" as import("./navigation.ts").Tab),
+              }),
+            )
           : nothing}
         ${state.tab === "conductor"
           ? renderConductorSurface({
