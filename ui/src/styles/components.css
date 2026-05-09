@@ -3519,9 +3519,8 @@ td.data-table-key-col {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 25%, color-mix(in srgb, white 22%, transparent), transparent 34%),
-    hsl(var(--agent-hue, 28deg) 82% 42% / 0.28);
+  background: var(--secondary);
+  border: 1px solid var(--border);
   color: var(--text-strong);
   display: grid;
   place-items: center;
@@ -3741,6 +3740,126 @@ td.data-table-key-col {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
+.agent-profiles-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+}
+
+.agent-profiles-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agent-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.agent-profile-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-height: 190px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease,
+    background var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.agent-profile-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
+.agent-profile-card.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.agent-profile-card__top,
+.agent-profile-card__footer,
+.agent-profile-card__state,
+.agent-profile-card__meta {
+  display: flex;
+  align-items: center;
+}
+
+.agent-profile-card__top,
+.agent-profile-card__footer {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agent-profile-card__state {
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agent-profile-card__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.agent-profile-card__name {
+  min-width: 0;
+  color: var(--text-strong);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-profile-card__id,
+.agent-profile-card__workspace {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-profile-card__meta {
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.agent-profile-card__meta span {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--secondary);
+}
+
+.agent-profiles-empty {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
 .agent-sticky-header {
   position: sticky;
   top: 0;
@@ -3752,16 +3871,8 @@ td.data-table-key-col {
   padding: 12px 14px;
   border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   border-radius: var(--radius-xl);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--bg-elevated) 88%, var(--kova-accent, var(--accent)) 12%),
-      color-mix(in srgb, var(--bg-elevated) 96%, transparent)
-    ),
-    var(--bg-elevated);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 7%, transparent),
-    0 16px 34px color-mix(in srgb, black 14%, transparent);
+  background: var(--bg-elevated);
+  box-shadow: 0 10px 24px color-mix(in srgb, black 10%, transparent);
 }
 
 .agent-sticky-header__main {

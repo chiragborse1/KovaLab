@@ -21,7 +21,6 @@ import {
 export type { AgentsPanel } from "./agents.types.ts";
 import { renderAgentTools, renderAgentSkills } from "./agents-panels-tools-skills.ts";
 import {
-  agentAvatarHue,
   agentBadgeText,
   buildAgentContext,
   normalizeAgentLabel,
@@ -166,43 +165,20 @@ export function renderAgents(props: AgentsProps) {
 
   return html`
     <div class="agents-layout">
-      <section class="agents-toolbar">
-        <div class="agents-toolbar-row">
-          <div class="agents-control-select">
-            <select
-              class="agents-select"
-              .value=${selectedId ?? ""}
-              ?disabled=${props.loading || agents.length === 0}
-              @change=${(e: Event) => props.onSelectAgent((e.target as HTMLSelectElement).value)}
-            >
-              ${agents.length === 0
-                ? html` <option value="">No agents</option> `
-                : agents.map(
-                    (agent) => html`
-                      <option value=${agent.id} ?selected=${agent.id === selectedId}>
-                        ${normalizeAgentLabel(agent)}${agentBadgeText(agent.id, defaultId)
-                          ? ` (${agentBadgeText(agent.id, defaultId)})`
-                          : ""}
-                      </option>
-                    `,
-                  )}
-            </select>
-          </div>
-          <div class="agents-toolbar-actions">
-            <button
-              class="btn btn--sm agents-refresh-btn"
-              ?disabled=${props.loading}
-              @click=${props.onRefresh}
-            >
-              ${props.loading ? t("common.loading") : t("common.refresh")}
-            </button>
-          </div>
-        </div>
-        ${props.error
-          ? html`<div class="callout danger" style="margin-top: 8px;">${props.error}</div>`
-          : nothing}
-      </section>
       <section class="agents-main">
+        ${renderAgentProfiles({
+          agents,
+          selectedId,
+          defaultId,
+          configForm: props.config.form,
+          agentFilesList: props.agentFiles.list,
+          agentIdentityById: props.agentIdentityById,
+          loading: props.loading,
+          error: props.error,
+          runtimeSessionMatchesSelectedAgent: props.runtimeSessionMatchesSelectedAgent,
+          onRefresh: props.onRefresh,
+          onSelectAgent: props.onSelectAgent,
+        })}
         ${!selectedAgent
           ? html`
               <div class="card">
@@ -335,6 +311,96 @@ export function renderAgents(props: AgentsProps) {
   `;
 }
 
+function renderAgentProfiles(params: {
+  agents: AgentsListResult["agents"];
+  selectedId: string | null;
+  defaultId: string | null;
+  configForm: Record<string, unknown> | null;
+  agentFilesList: AgentsFilesListResult | null;
+  agentIdentityById: Record<string, AgentIdentityResult>;
+  loading: boolean;
+  error: string | null;
+  runtimeSessionMatchesSelectedAgent: boolean;
+  onRefresh: () => void;
+  onSelectAgent: (agentId: string) => void;
+}) {
+  return html`
+    <section class="agent-profiles-card">
+      <div class="agent-profiles-card__header">
+        <div>
+          <div class="card-title">Agent profiles</div>
+          <div class="card-sub">
+            Choose a profile to inspect workspace, tools, skills, and jobs.
+          </div>
+        </div>
+        <button
+          class="btn btn--sm agents-refresh-btn"
+          ?disabled=${params.loading}
+          @click=${params.onRefresh}
+        >
+          ${params.loading ? t("common.loading") : t("common.refresh")}
+        </button>
+      </div>
+      ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
+      ${params.agents.length === 0
+        ? html`
+            <div class="agent-profiles-empty">
+              <div class="card-title">No agent profiles</div>
+              <div class="card-sub">Create an agent profile to manage its workspace and tools.</div>
+            </div>
+          `
+        : html`
+            <div class="agent-profile-grid">
+              ${params.agents.map((agent) => {
+                const identity = params.agentIdentityById[agent.id] ?? null;
+                const context = buildAgentContext(
+                  agent,
+                  params.configForm,
+                  params.agentFilesList,
+                  params.defaultId,
+                  identity,
+                );
+                const selected = agent.id === params.selectedId;
+                const active = selected && params.runtimeSessionMatchesSelectedAgent;
+                return html`
+                  <button
+                    class="agent-profile-card ${selected ? "is-selected" : ""}"
+                    type="button"
+                    @click=${() => params.onSelectAgent(agent.id)}
+                    aria-pressed=${selected ? "true" : "false"}
+                  >
+                    <div class="agent-profile-card__top">
+                      ${renderAgentAvatar({ agent, identity })}
+                      <span class="agent-profile-card__state">
+                        <span class="agent-status-dot ${active ? "is-active" : ""}"></span>
+                        ${active ? "Active" : "Idle"}
+                      </span>
+                    </div>
+                    <div class="agent-profile-card__body">
+                      <div class="agent-profile-card__name">${context.identityName}</div>
+                      <div class="agent-profile-card__id mono">${agent.id}</div>
+                    </div>
+                    <div class="agent-profile-card__meta">
+                      <span>${context.model || "-"}</span>
+                      <span>${context.skillsLabel}</span>
+                    </div>
+                    <div class="agent-profile-card__footer">
+                      <span class="agent-profile-card__workspace">${context.workspace}</span>
+                      ${agentBadgeText(agent.id, params.defaultId)
+                        ? html`<span class="agent-pill"
+                            >${agentBadgeText(agent.id, params.defaultId)}</span
+                          >`
+                        : nothing}
+                    </div>
+                  </button>
+                `;
+              })}
+            </div>
+          `}
+    </section>
+  `;
+}
+
 function renderAgentAvatar(params: {
   agent: AgentsListResult["agents"][number];
   identity: AgentIdentityResult | null;
@@ -344,10 +410,7 @@ function renderAgentAvatar(params: {
   const label = normalizeAgentLabel(params.agent);
   const fallback = emoji || label.slice(0, 1).toUpperCase() || params.agent.id.slice(0, 1);
   return html`
-    <span
-      class="agent-avatar agent-avatar--lg"
-      style="--agent-hue: ${agentAvatarHue(params.agent.id)}deg"
-    >
+    <span class="agent-avatar agent-avatar--lg">
       ${avatarUrl
         ? html`<img src=${avatarUrl} alt="" />`
         : html`<span aria-hidden="true">${fallback}</span>`}
