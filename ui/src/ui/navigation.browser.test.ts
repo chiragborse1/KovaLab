@@ -308,8 +308,9 @@ describe("control UI routing", () => {
     expect(app.querySelector(".sidebar-shell__body")).not.toBeNull();
     expect(app.querySelector(".sidebar-shell__footer")).not.toBeNull();
     expect(app.querySelector(".sidebar-shell__header .sidebar-brand")).toBeNull();
-    expect(app.querySelector('.sidebar-shell__header a.nav-item[href="/chat"]')).not.toBeNull();
-    expect(app.querySelector('.sidebar-shell__body a.nav-item[href="/chat"]')).toBeNull();
+    expect(app.querySelector(".sidebar-menu-header")).not.toBeNull();
+    expect(app.querySelector('.sidebar-shell__header a.nav-item[href="/chat"]')).toBeNull();
+    expect(app.querySelector('.nav-section--standalone a.nav-item[href="/chat"]')).not.toBeNull();
     expect(app.querySelector(".sidebar-brand")).not.toBeNull();
     expect(app.querySelector(".sidebar-brand__logo")).not.toBeNull();
     expect(app.querySelector(".sidebar-brand__copy")).not.toBeNull();

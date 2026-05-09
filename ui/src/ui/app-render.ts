@@ -1369,10 +1369,10 @@ export function renderApp(state: AppViewState) {
         <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
           <div class="sidebar-shell">
             <div class="sidebar-shell__header">
-              <div class="sidebar-top-actions">
-                <div class="sidebar-pinned-chat">
-                  ${renderTab(state, "chat", { collapsed: navCollapsed })}
-                </div>
+              <div class="sidebar-menu-header">
+                ${!navCollapsed
+                  ? html`<span class="sidebar-menu-header__label">Menu</span>`
+                  : nothing}
                 <button
                   type="button"
                   class="nav-collapse-toggle"
@@ -1392,6 +1392,11 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="sidebar-shell__body">
               <nav class="sidebar-nav">
+                <section class="nav-section nav-section--standalone">
+                  <div class="nav-section__items">
+                    ${renderTab(state, "chat", { collapsed: navCollapsed })}
+                  </div>
+                </section>
                 ${TAB_GROUPS.map((group) => {
                   const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
                   const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
