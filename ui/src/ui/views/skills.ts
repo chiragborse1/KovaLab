@@ -242,7 +242,7 @@ export function renderSkills(props: SkillsProps) {
                       <span>${group.label}</span>
                       <span class="muted">${group.skills.length}</span>
                     </summary>
-                    <div class="list skills-grid">
+                    <div class="skills-grid">
                       ${group.skills.map((skill) => renderSkill(skill, props))}
                     </div>
                   </details>
@@ -387,21 +387,21 @@ function renderClawHubDetailDialog(props: SkillsProps) {
 function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
   const busy = props.busyKey === skill.skillKey;
   const dotClass = skillStatusClass(skill);
+  const missing = computeSkillMissing(skill);
+  const stateLabel = skill.disabled ? "Disabled" : skill.eligible ? "Ready" : "Needs setup";
+  const sourceLabel = displaySkillSource(skill.source);
 
   return html`
-    <div class="list-item list-item-clickable" @click=${() => props.onDetailOpen(skill.skillKey)}>
-      <div class="list-main">
-        <div class="list-title" style="display: flex; align-items: center; gap: 8px;">
+    <article class="skill-card" @click=${() => props.onDetailOpen(skill.skillKey)}>
+      <div class="skill-card__top">
+        <div class="skill-card__identity">
           <span class="statusDot ${dotClass}"></span>
-          ${skill.emoji ? html`<span>${skill.emoji}</span>` : nothing}
-          <span>${skill.name}</span>
+          <span class="skill-card__emoji">${skill.emoji ?? "◇"}</span>
+          <div class="skill-card__title-wrap">
+            <div class="skill-card__title">${skill.name}</div>
+            <div class="skill-card__source">${sourceLabel}</div>
+          </div>
         </div>
-        <div class="list-sub">${clampText(skill.description, 140)}</div>
-      </div>
-      <div
-        class="list-meta"
-        style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;"
-      >
         <label class="skill-toggle-wrap" @click=${(e: Event) => e.stopPropagation()}>
           <input
             type="checkbox"
@@ -415,7 +415,21 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
           />
         </label>
       </div>
-    </div>
+      <p class="skill-card__description">${clampText(skill.description, 150)}</p>
+      <div class="skill-card__footer">
+        <span class="skill-card__badge ${skill.eligible ? "skill-card__badge--ok" : ""}">
+          ${stateLabel}
+        </span>
+        ${skill.blockedByAllowlist
+          ? html`<span class="skill-card__badge skill-card__badge--warn">Allowlist</span>`
+          : nothing}
+        ${missing.length > 0
+          ? html`<span class="skill-card__badge skill-card__badge--warn">
+              ${missing.length} missing
+            </span>`
+          : nothing}
+      </div>
+    </article>
   `;
 }
 

@@ -98,6 +98,41 @@ describe("renderSkills", () => {
     }
   });
 
+  it("renders installed skills as aligned rectangular cards", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderSkills(
+        createProps({
+          report: {
+            workspaceDir: "/tmp/workspace",
+            managedSkillsDir: "/tmp/skills",
+            skills: [
+              createSkill({ name: "Repo Skill", skillKey: "repo-skill", source: "workspace" }),
+              createSkill({
+                name: "Needs Setup",
+                skillKey: "needs-setup",
+                eligible: false,
+                missing: { bins: ["gh"], env: [], config: [], os: [] },
+              }),
+            ],
+          },
+        }),
+      ),
+      container,
+    );
+
+    const grid = container.querySelector(".skills-grid");
+    const cards = Array.from(container.querySelectorAll(".skill-card"));
+
+    expect(grid).toBeTruthy();
+    expect(cards).toHaveLength(2);
+    expect(normalizeText(cards[0])).toContain("Repo Skill");
+    expect(normalizeText(cards[0])).toContain("Ready");
+    expect(normalizeText(cards[1])).toContain("Needs setup");
+    expect(normalizeText(cards[1])).toContain("1 missing");
+  });
+
   it("opens detail dialogs and routes ClawHub actions", async () => {
     const container = document.createElement("div");
     const onDetailClose = vi.fn();
