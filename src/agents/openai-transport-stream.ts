@@ -870,6 +870,26 @@ function buildOpenAICodexResponsesInstructions(context: Context): string | undef
   return sanitizeTransportPayloadText(stripSystemPromptCacheBoundary(context.systemPrompt));
 }
 
+function ensureOpenAICodexResponsesInput(
+  messages: ResponseInput,
+  instructions: string | undefined,
+) {
+  if (messages.length > 0 || !instructions) {
+    return messages;
+  }
+  return [
+    {
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: "Continue from the available session context.",
+        },
+      ],
+    },
+  ] satisfies ResponseInput;
+}
+
 export function buildOpenAIResponsesParams(
   model: Model<Api>,
   context: Context,
@@ -886,17 +906,22 @@ export function buildOpenAIResponsesParams(
     new Set(["openai", "openai-codex", "opencode", "azure-openai-responses"]),
     { includeSystemPrompt: !isCodexResponses, supportsDeveloperRole },
   );
+  const codexResponsesInstructions = isCodexResponses
+    ? buildOpenAICodexResponsesInstructions(context)
+    : undefined;
   const cacheRetention = resolveCacheRetention(options?.cacheRetention);
   const payloadPolicy = resolveOpenAIResponsesPayloadPolicy(model, {
     storeMode: "disable",
   });
   const params: OpenAIResponsesRequestParams = {
     model: model.id,
-    input: messages,
+    input: isCodexResponses
+      ? ensureOpenAICodexResponsesInput(messages, codexResponsesInstructions)
+      : messages,
     stream: true,
     prompt_cache_key: cacheRetention === "none" ? undefined : options?.sessionId,
     prompt_cache_retention: getPromptCacheRetention(model.baseUrl, cacheRetention),
-    ...(isCodexResponses ? { instructions: buildOpenAICodexResponsesInstructions(context) } : {}),
+    ...(codexResponsesInstructions ? { instructions: codexResponsesInstructions } : {}),
     ...(metadata ? { metadata } : {}),
   };
   if (options?.maxTokens) {
