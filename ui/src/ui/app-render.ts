@@ -1451,13 +1451,15 @@ export function renderApp(state: AppViewState) {
                           class="sidebar-brand sidebar-brand--footer"
                           title=${version ? `Kova v${version}` : "Kova"}
                         >
-                          <img
-                            class="sidebar-brand__logo"
-                            src="${agentLogoUrl(basePath)}"
-                            alt="Kova"
-                          />
+                          <span class="sidebar-brand__mark">
+                            <img
+                              class="sidebar-brand__logo"
+                              src="${agentLogoUrl(basePath)}"
+                              alt="Kova"
+                            />
+                            ${renderSidebarConnectionStatus(state)}
+                          </span>
                           <span class="sidebar-brand__copy">
-                            <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
                             <span class="sidebar-brand__title">Kova</span>
                             ${version
                               ? html`
@@ -1479,7 +1481,6 @@ export function renderApp(state: AppViewState) {
                               <span aria-hidden="true">${icons.externalLink}</span>
                             </a>
                           </span>
-                          ${renderSidebarConnectionStatus(state)}
                         </div>
                       `;
                 })()}

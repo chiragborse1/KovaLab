@@ -387,7 +387,6 @@ function renderClawHubDetailDialog(props: SkillsProps) {
 function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
   const busy = props.busyKey === skill.skillKey;
   const dotClass = skillStatusClass(skill);
-  const missing = computeSkillMissing(skill);
   const stateLabel = skill.disabled ? "Disabled" : skill.eligible ? "Ready" : "Needs setup";
   const sourceLabel = displaySkillSource(skill.source);
 
@@ -420,14 +419,6 @@ function renderSkill(skill: SkillStatusEntry, props: SkillsProps) {
         <span class="skill-card__badge ${skill.eligible ? "skill-card__badge--ok" : ""}">
           ${stateLabel}
         </span>
-        ${skill.blockedByAllowlist
-          ? html`<span class="skill-card__badge skill-card__badge--warn">Allowlist</span>`
-          : nothing}
-        ${missing.length > 0
-          ? html`<span class="skill-card__badge skill-card__badge--warn">
-              ${missing.length} missing
-            </span>`
-          : nothing}
       </div>
     </article>
   `;

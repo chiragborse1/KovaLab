@@ -130,7 +130,7 @@ describe("renderSkills", () => {
     expect(normalizeText(cards[0])).toContain("Repo Skill");
     expect(normalizeText(cards[0])).toContain("Ready");
     expect(normalizeText(cards[1])).toContain("Needs setup");
-    expect(normalizeText(cards[1])).toContain("1 missing");
+    expect(normalizeText(cards[1])).not.toContain("1 missing");
   });
 
   it("opens detail dialogs and routes ClawHub actions", async () => {

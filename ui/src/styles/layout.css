@@ -340,7 +340,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  padding: 14px 10px 12px;
+  padding: 8px 10px 12px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -364,7 +364,7 @@
   justify-content: flex-end;
   gap: 12px;
   min-height: 0;
-  padding: 0 8px 14px;
+  padding: 0 8px 8px;
 }
 
 .sidebar-shell__body {
@@ -387,9 +387,9 @@
 
 .sidebar-brand--footer {
   position: relative;
-  align-items: center;
-  min-height: 66px;
-  padding: 12px;
+  align-items: flex-start;
+  min-height: 84px;
+  padding: 12px 12px 12px 10px;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: var(--radius-xl);
   background:
@@ -409,9 +409,15 @@
   text-decoration: none;
 }
 
+.sidebar-brand__mark {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .sidebar-brand__logo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border-radius: var(--radius-md);
   box-shadow: 0 8px 18px color-mix(in srgb, black 12%, transparent);
@@ -420,7 +426,7 @@
 .sidebar-brand__copy {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -434,7 +440,7 @@
 }
 
 .sidebar-brand__title {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -447,13 +453,15 @@
 .sidebar-brand__version {
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
-  width: fit-content;
-  margin-top: 5px;
-  padding: 4px 7px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 4px 0;
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
@@ -476,11 +484,11 @@
   gap: 6px;
   width: fit-content;
   min-height: 0;
-  margin-top: 6px;
-  padding: 5px 8px;
-  border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--bg) 42%, transparent);
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
   font-size: 11px;
   font-weight: 700;
@@ -493,8 +501,6 @@
 }
 
 .sidebar-brand__docs:hover {
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
   color: var(--text-strong);
 }
 
@@ -822,13 +828,19 @@
 }
 
 .sidebar-brand--footer .sidebar-version__status {
-  margin-left: auto;
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  margin-left: 0;
+  border: 2px solid var(--bg-elevated);
 }
 
 .sidebar--collapsed .sidebar-brand--footer .sidebar-version__status {
   position: absolute;
-  right: 5px;
-  bottom: 5px;
+  left: 6px;
+  top: 6px;
+  right: auto;
+  bottom: auto;
   margin-left: 0;
   border: 2px solid var(--bg);
 }
