@@ -634,6 +634,7 @@ export function renderApp(state: AppViewState) {
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
+  const isSkills = state.tab === "skills";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
   const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
@@ -1509,7 +1510,7 @@ export function renderApp(state: AppViewState) {
           </div>
         </aside>
       </div>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main class="content ${isChat ? "content--chat" : ""} ${isSkills ? "content--skills" : ""}">
         ${state.updateStatusBanner
           ? html`<div class="callout ${state.updateStatusBanner.tone}" role="alert">
               ${state.updateStatusBanner.text}
