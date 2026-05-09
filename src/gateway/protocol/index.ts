@@ -114,6 +114,26 @@ import {
   CronStatusParamsSchema,
   type CronUpdateParams,
   CronUpdateParamsSchema,
+  type TasksCancelParams,
+  TasksCancelParamsSchema,
+  type TasksCancelResult,
+  TasksCancelResultSchema,
+  type TasksDeleteParams,
+  TasksDeleteParamsSchema,
+  type TasksDeleteResult,
+  TasksDeleteResultSchema,
+  type TasksListParams,
+  TasksListParamsSchema,
+  type TasksListResult,
+  TasksListResultSchema,
+  type TasksNotifyParams,
+  TasksNotifyParamsSchema,
+  type TasksNotifyResult,
+  TasksNotifyResultSchema,
+  type TasksShowParams,
+  TasksShowParamsSchema,
+  type TasksShowResult,
+  TasksShowResultSchema,
   type DevicePairApproveParams,
   DevicePairApproveParamsSchema,
   type DevicePairListParams,
@@ -497,6 +517,16 @@ export const validateCronUpdateParams = ajv.compile<CronUpdateParams>(CronUpdate
 export const validateCronRemoveParams = ajv.compile<CronRemoveParams>(CronRemoveParamsSchema);
 export const validateCronRunParams = ajv.compile<CronRunParams>(CronRunParamsSchema);
 export const validateCronRunsParams = ajv.compile<CronRunsParams>(CronRunsParamsSchema);
+export const validateTasksListParams = ajv.compile<TasksListParams>(TasksListParamsSchema);
+export const validateTasksShowParams = ajv.compile<TasksShowParams>(TasksShowParamsSchema);
+export const validateTasksCancelParams = ajv.compile<TasksCancelParams>(TasksCancelParamsSchema);
+export const validateTasksDeleteParams = ajv.compile<TasksDeleteParams>(TasksDeleteParamsSchema);
+export const validateTasksNotifyParams = ajv.compile<TasksNotifyParams>(TasksNotifyParamsSchema);
+export const validateTasksListResult = ajv.compile<TasksListResult>(TasksListResultSchema);
+export const validateTasksShowResult = ajv.compile<TasksShowResult>(TasksShowResultSchema);
+export const validateTasksCancelResult = ajv.compile<TasksCancelResult>(TasksCancelResultSchema);
+export const validateTasksDeleteResult = ajv.compile<TasksDeleteResult>(TasksDeleteResultSchema);
+export const validateTasksNotifyResult = ajv.compile<TasksNotifyResult>(TasksNotifyResultSchema);
 export const validateDevicePairListParams = ajv.compile<DevicePairListParams>(
   DevicePairListParamsSchema,
 );
@@ -710,6 +740,16 @@ export {
   CronRemoveParamsSchema,
   CronRunParamsSchema,
   CronRunsParamsSchema,
+  TasksListParamsSchema,
+  TasksListResultSchema,
+  TasksShowParamsSchema,
+  TasksShowResultSchema,
+  TasksCancelParamsSchema,
+  TasksCancelResultSchema,
+  TasksDeleteParamsSchema,
+  TasksDeleteResultSchema,
+  TasksNotifyParamsSchema,
+  TasksNotifyResultSchema,
   LogsTailParamsSchema,
   LogsTailResultSchema,
   ExecApprovalsGetParamsSchema,
@@ -843,6 +883,16 @@ export type {
   CronRunParams,
   CronRunsParams,
   CronRunLogEntry,
+  TasksListParams,
+  TasksListResult,
+  TasksShowParams,
+  TasksShowResult,
+  TasksCancelParams,
+  TasksCancelResult,
+  TasksDeleteParams,
+  TasksDeleteResult,
+  TasksNotifyParams,
+  TasksNotifyResult,
   ExecApprovalsGetParams,
   ExecApprovalsSetParams,
   ExecApprovalsSnapshot,
