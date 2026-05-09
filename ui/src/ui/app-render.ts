@@ -954,12 +954,12 @@ export function renderApp(state: AppViewState) {
   const mcpSelection = normalizeScopedConfigSelection(
     state.infrastructureActiveSection,
     state.infrastructureActiveSubsection,
-    ["mcp"] as const,
+    ["mcp", "commands"] as const,
   );
   const profilesSelection = normalizeScopedConfigSelection(
     state.aiAgentsActiveSection,
     state.aiAgentsActiveSubsection,
-    ["agents", "models", "session"] as const,
+    ["agents", "models", "tools", "browser", "commands", "session"] as const,
   );
   const renderConfigTabForActiveTab = () => {
     switch (state.tab) {
@@ -1245,7 +1245,7 @@ export function renderApp(state: AppViewState) {
           },
           onSubsectionChange: (section) => (state.infrastructureActiveSubsection = section),
           navRootLabel: "MCP",
-          includeSections: ["mcp"],
+          includeSections: ["mcp", "commands"],
         });
       case "profiles":
         return renderConfigTab({
@@ -1261,7 +1261,7 @@ export function renderApp(state: AppViewState) {
           },
           onSubsectionChange: (section) => (state.aiAgentsActiveSubsection = section),
           navRootLabel: "Profiles",
-          includeSections: ["agents", "models", "session"],
+          includeSections: ["agents", "models", "tools", "browser", "commands", "session"],
         });
       default:
         return nothing;

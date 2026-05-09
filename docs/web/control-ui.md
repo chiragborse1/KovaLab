@@ -89,7 +89,7 @@ The Control UI can localize itself on first load based on your browser locale. T
     - Main: Dashboard, Chat, Agents, Files, Jobs, Sessions, and Operations.
     - Knowledge: Memory, Skills, MCP, and Profiles.
     - System: Channels, Instances, Nodes, Usage, Config, Appearance, Logs, and Debug.
-    - Files is a first-class agent workspace file editor backed by `agents.files.*`; MCP and Profiles are focused config views over the real `mcp`, `agents`, `models`, and `session` sections.
+    - Files is a first-class agent workspace file editor backed by `agents.files.*`; MCP and Profiles open with preference-style controls first, then keep exact config sections available behind advanced drill-downs.
   </Accordion>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).
