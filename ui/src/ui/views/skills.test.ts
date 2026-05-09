@@ -86,6 +86,7 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     onClawHubDetailOpen: () => undefined,
     onClawHubDetailClose: () => undefined,
     onClawHubInstall: () => undefined,
+    onClawHubUninstall: () => undefined,
     ...overrides,
   };
 }
@@ -141,6 +142,7 @@ describe("renderSkills", () => {
     });
     const onClawHubDetailOpen = vi.fn();
     const onClawHubInstall = vi.fn();
+    const onClawHubUninstall = vi.fn();
 
     installDialogMethod("showModal", showModal);
     installDialogMethod("close", function (this: HTMLDialogElement) {
@@ -203,6 +205,45 @@ describe("renderSkills", () => {
     expect(onClawHubInstall).toHaveBeenCalledWith("github");
 
     onClawHubInstall.mockClear();
+    onClawHubDetailOpen.mockClear();
+    showModal.mockClear();
+
+    render(
+      renderSkills(
+        createProps({
+          report: {
+            workspaceDir: "/tmp/workspace",
+            managedSkillsDir: "/tmp/skills",
+            skills: [createSkill({ skillKey: "github", source: "openclaw-workspace" })],
+          },
+          clawhubQuery: "git",
+          clawhubResults: [
+            {
+              score: 0.95,
+              slug: "github",
+              displayName: "GitHub",
+              summary: "GitHub integration for OpenClaw",
+              version: "1.2.3",
+            },
+          ],
+          onClawHubDetailOpen,
+          onClawHubInstall,
+          onClawHubUninstall,
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+
+    container
+      .querySelector<HTMLButtonElement>(".list-item .btn.btn--sm")
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(onClawHubInstall).not.toHaveBeenCalled();
+    expect(onClawHubUninstall).toHaveBeenCalledTimes(1);
+    expect(onClawHubUninstall).toHaveBeenCalledWith("github");
+
+    onClawHubUninstall.mockClear();
     showModal.mockClear();
 
     render(
@@ -233,6 +274,7 @@ describe("renderSkills", () => {
             },
           },
           onClawHubInstall,
+          onClawHubUninstall,
         }),
       ),
       container,

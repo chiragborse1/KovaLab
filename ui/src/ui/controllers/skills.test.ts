@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  installFromClawHub,
   installSkill,
   loadClawHubDetail,
   saveSkillApiKey,
   searchClawHub,
   setClawHubSearchQuery,
+  uninstallFromClawHub,
   updateSkillEnabled,
   type SkillsState,
 } from "./skills.ts";
@@ -196,7 +198,7 @@ describe("skill mutations", () => {
       },
       expectedRequest: ["skills.update", { skillKey: "github", apiKey: "sk-test" }],
       expectedMessage:
-        "API key saved — stored in the Kova config file (openclaw.json → skills.entries.github)",
+        "API key saved — stored in the Kova config file (kova.json -> skills.entries.github)",
     },
     {
       name: "installs skills and uses server success messages",
@@ -238,5 +240,31 @@ describe("skill mutations", () => {
       message: "skills update failed",
     });
     expect(state.skillsBusyKey).toBeNull();
+  });
+
+  it.each([
+    {
+      name: "installs Marketplace skills",
+      run: (state: SkillsState) => installFromClawHub(state, "github"),
+      expectedRequest: ["skills.install", { source: "clawhub", slug: "github" }],
+      response: { message: "Installed github" },
+      expectedMessage: { kind: "success", text: "Installed github" },
+    },
+    {
+      name: "uninstalls Marketplace skills",
+      run: (state: SkillsState) => uninstallFromClawHub(state, "github"),
+      expectedRequest: ["skills.uninstall", { source: "clawhub", slug: "github" }],
+      response: { message: "Uninstalled github" },
+      expectedMessage: { kind: "success", text: "Uninstalled github" },
+    },
+  ])("$name", async ({ run, expectedRequest, response, expectedMessage }) => {
+    const { state, request } = createState();
+    request.mockResolvedValue(response);
+
+    await run(state);
+
+    expect(request).toHaveBeenCalledWith(expectedRequest[0], expectedRequest[1]);
+    expect(state.clawhubInstallMessage).toEqual(expectedMessage);
+    expect(state.clawhubInstallSlug).toBeNull();
   });
 });

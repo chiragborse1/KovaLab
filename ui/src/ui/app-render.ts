@@ -111,6 +111,7 @@ import {
   saveSkillApiKey,
   searchClawHub,
   setClawHubSearchQuery,
+  uninstallFromClawHub,
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
@@ -2300,6 +2301,7 @@ export function renderApp(state: AppViewState) {
                 onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
                 onClawHubInstall: (slug) => installFromClawHub(state, slug),
+                onClawHubUninstall: (slug) => uninstallFromClawHub(state, slug),
               }),
             )
           : nothing}

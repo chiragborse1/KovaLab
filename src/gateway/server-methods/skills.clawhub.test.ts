@@ -5,6 +5,7 @@ const resolveDefaultAgentIdMock = vi.fn(() => "main");
 const resolveAgentWorkspaceDirMock = vi.fn(() => "/tmp/workspace");
 const installSkillFromClawHubMock = vi.fn();
 const installSkillMock = vi.fn();
+const uninstallSkillFromClawHubMock = vi.fn();
 const updateSkillsFromClawHubMock = vi.fn();
 
 vi.mock("../../config/config.js", () => ({
@@ -20,6 +21,7 @@ vi.mock("../../agents/agent-scope.js", () => ({
 
 vi.mock("../../agents/skills-clawhub.js", () => ({
   installSkillFromClawHub: (...args: unknown[]) => installSkillFromClawHubMock(...args),
+  uninstallSkillFromClawHub: (...args: unknown[]) => uninstallSkillFromClawHubMock(...args),
   updateSkillsFromClawHub: (...args: unknown[]) => updateSkillsFromClawHubMock(...args),
 }));
 
@@ -38,6 +40,7 @@ describe("skills gateway handlers (clawhub)", () => {
     resolveAgentWorkspaceDirMock.mockReset();
     installSkillFromClawHubMock.mockReset();
     installSkillMock.mockReset();
+    uninstallSkillFromClawHubMock.mockReset();
     updateSkillsFromClawHubMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
@@ -185,6 +188,47 @@ describe("skills gateway handlers (clawhub)", () => {
           },
         ],
       },
+    });
+  });
+
+  it("uninstalls a ClawHub skill through skills.uninstall", async () => {
+    uninstallSkillFromClawHubMock.mockResolvedValue({
+      ok: true,
+      slug: "calendar",
+      targetDir: "/tmp/workspace/skills/calendar",
+      removed: true,
+    });
+
+    let ok: boolean | null = null;
+    let response: unknown;
+    let error: unknown;
+    await skillsHandlers["skills.uninstall"]({
+      params: {
+        source: "clawhub",
+        slug: "calendar",
+      },
+      req: {} as never,
+      client: null as never,
+      isWebchatConnect: () => false,
+      context: makeContext() as never,
+      respond: (success, result, err) => {
+        ok = success;
+        response = result;
+        error = err;
+      },
+    });
+
+    expect(uninstallSkillFromClawHubMock).toHaveBeenCalledWith({
+      workspaceDir: "/tmp/workspace",
+      slug: "calendar",
+    });
+    expect(ok).toBe(true);
+    expect(error).toBeUndefined();
+    expect(response).toMatchObject({
+      ok: true,
+      message: "Uninstalled calendar",
+      slug: "calendar",
+      removed: true,
     });
   });
 

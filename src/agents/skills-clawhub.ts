@@ -59,6 +59,15 @@ export type UpdateClawHubSkillResult =
     }
   | { ok: false; error: string };
 
+export type UninstallClawHubSkillResult =
+  | {
+      ok: true;
+      slug: string;
+      targetDir: string;
+      removed: boolean;
+    }
+  | { ok: false; error: string };
+
 type Logger = {
   info?: (message: string) => void;
 };
@@ -460,6 +469,41 @@ export async function updateSkillsFromClawHub(params: {
     });
   }
   return results;
+}
+
+export async function uninstallSkillFromClawHub(params: {
+  workspaceDir: string;
+  slug: string;
+}): Promise<UninstallClawHubSkillResult> {
+  try {
+    const slug = normalizeTrackedSlug(params.slug);
+    const targetDir = resolveSkillInstallDir(params.workspaceDir, slug);
+    const lock = await readClawHubSkillsLockfile(params.workspaceDir);
+    const origin = await readClawHubSkillOrigin(targetDir);
+    if (!origin && !lock.skills[slug]) {
+      return {
+        ok: false,
+        error: `Skill "${slug}" is not tracked as a ClawHub install.`,
+      };
+    }
+    const removed = await fileExists(targetDir);
+    if (removed) {
+      await fs.rm(targetDir, { recursive: true, force: true });
+    }
+    delete lock.skills[slug];
+    await writeClawHubSkillsLockfile(params.workspaceDir, lock);
+    return {
+      ok: true,
+      slug,
+      targetDir,
+      removed,
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: formatErrorMessage(err),
+    };
+  }
 }
 
 export async function readTrackedClawHubSkillSlugs(workspaceDir: string): Promise<string[]> {

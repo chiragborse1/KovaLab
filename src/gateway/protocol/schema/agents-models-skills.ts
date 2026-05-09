@@ -225,6 +225,14 @@ export const SkillsInstallParamsSchema = Type.Union([
   ),
 ]);
 
+export const SkillsUninstallParamsSchema = Type.Object(
+  {
+    source: Type.Literal("clawhub"),
+    slug: NonEmptyString,
+  },
+  { additionalProperties: false },
+);
+
 export const SkillsUpdateParamsSchema = Type.Union([
   Type.Object(
     {

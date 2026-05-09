@@ -33,8 +33,12 @@ vi.mock("../infra/archive.js", () => ({
   fileExists: fileExistsMock,
 }));
 
-const { installSkillFromClawHub, searchSkillsFromClawHub, updateSkillsFromClawHub } =
-  await import("./skills-clawhub.js");
+const {
+  installSkillFromClawHub,
+  searchSkillsFromClawHub,
+  uninstallSkillFromClawHub,
+  updateSkillsFromClawHub,
+} = await import("./skills-clawhub.js");
 
 describe("skills-clawhub", () => {
   beforeEach(() => {
@@ -102,6 +106,68 @@ describe("skills-clawhub", () => {
       targetDir: "/tmp/workspace/skills/agentreceipt",
     });
     expect(archiveCleanupMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uninstalls tracked ClawHub skills and updates the lockfile", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-skills-clawhub-"));
+    const skillDir = path.join(workspaceDir, "skills", "github");
+    await fs.mkdir(path.join(skillDir, ".clawhub"), { recursive: true });
+    await fs.mkdir(path.join(workspaceDir, ".clawhub"), { recursive: true });
+    await fs.writeFile(path.join(skillDir, "SKILL.md"), "# GitHub\n", "utf8");
+    await fs.writeFile(
+      path.join(skillDir, ".clawhub", "origin.json"),
+      `${JSON.stringify(
+        {
+          version: 1,
+          registry: "https://clawhub.ai",
+          slug: "github",
+          installedVersion: "1.0.0",
+          installedAt: 123,
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(workspaceDir, ".clawhub", "lock.json"),
+      `${JSON.stringify(
+        {
+          version: 1,
+          skills: {
+            github: {
+              version: "1.0.0",
+              installedAt: 123,
+            },
+          },
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    fileExistsMock.mockImplementation(async (input: string) => input === skillDir);
+
+    try {
+      const result = await uninstallSkillFromClawHub({
+        workspaceDir,
+        slug: "github",
+      });
+
+      expect(result).toMatchObject({
+        ok: true,
+        slug: "github",
+        targetDir: skillDir,
+        removed: true,
+      });
+      await expect(fs.stat(skillDir)).rejects.toThrow();
+      const lock = JSON.parse(
+        await fs.readFile(path.join(workspaceDir, ".clawhub", "lock.json"), "utf8"),
+      );
+      expect(lock.skills).toEqual({});
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
   });
 
   describe("legacy tracked slugs remain updatable", () => {

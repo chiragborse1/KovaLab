@@ -266,6 +266,8 @@ import {
   SkillsDetailResultSchema,
   type SkillsInstallParams,
   SkillsInstallParamsSchema,
+  type SkillsUninstallParams,
+  SkillsUninstallParamsSchema,
   type SkillsSearchParams,
   SkillsSearchParamsSchema,
   type SkillsSearchResult,
@@ -482,6 +484,9 @@ export const validateToolsEffectiveParams = ajv.compile<ToolsEffectiveParams>(
 export const validateSkillsBinsParams = ajv.compile<SkillsBinsParams>(SkillsBinsParamsSchema);
 export const validateSkillsInstallParams =
   ajv.compile<SkillsInstallParams>(SkillsInstallParamsSchema);
+export const validateSkillsUninstallParams = ajv.compile<SkillsUninstallParams>(
+  SkillsUninstallParamsSchema,
+);
 export const validateSkillsUpdateParams = ajv.compile<SkillsUpdateParams>(SkillsUpdateParamsSchema);
 export const validateSkillsSearchParams = ajv.compile<SkillsSearchParams>(SkillsSearchParamsSchema);
 export const validateSkillsDetailParams = ajv.compile<SkillsDetailParams>(SkillsDetailParamsSchema);
@@ -691,6 +696,7 @@ export {
   ToolsCatalogParamsSchema,
   ToolsEffectiveParamsSchema,
   SkillsInstallParamsSchema,
+  SkillsUninstallParamsSchema,
   SkillsSearchParamsSchema,
   SkillsSearchResultSchema,
   SkillsDetailParamsSchema,
@@ -806,6 +812,7 @@ export type {
   SkillsDetailParams,
   SkillsDetailResult,
   SkillsInstallParams,
+  SkillsUninstallParams,
   SkillsUpdateParams,
   NodePairRejectParams,
   NodePairRemoveParams,
