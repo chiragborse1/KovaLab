@@ -133,11 +133,15 @@ describe("renderSkills", () => {
     const grid = container.querySelector(".skills-grid");
     const cards = Array.from(container.querySelectorAll(".skill-card"));
     const statusBar = container.querySelector(".skills-status-bar");
+    const categoryNav = container.querySelector(".skills-group-nav");
 
     expect(grid).toBeTruthy();
     expect(cards).toHaveLength(3);
     expect(statusBar?.querySelector('input[name="skills-filter"]')).toBeTruthy();
     expect(statusBar?.querySelector('input[name="clawhub-search"]')).toBeTruthy();
+    expect(categoryNav).toBeTruthy();
+    expect(normalizeText(categoryNav!)).toContain("Workspace Skills");
+    expect(normalizeText(categoryNav!)).toContain("Other Skills");
     const repoCard = cards.find((card) => normalizeText(card).includes("Repo Skill"));
     const needsSetupCard = cards.find((card) => normalizeText(card).includes("Needs Setup"));
     const marketplaceCard = cards.find((card) => normalizeText(card).includes("Marketplace Skill"));

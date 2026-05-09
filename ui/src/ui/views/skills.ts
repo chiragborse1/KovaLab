@@ -239,9 +239,10 @@ export function renderSkills(props: SkillsProps) {
             `
           : html`
               <div class="agent-skills-groups" style="margin-top: 16px;">
+                ${renderSkillGroupNav(groups)}
                 ${groups.map((group) => {
                   return html`
-                    <details class="agent-skills-group" open>
+                    <details class="agent-skills-group" id=${skillGroupElementId(group.id)} open>
                       <summary class="agent-skills-header">
                         <span>${group.label}</span>
                         <span class="muted">${group.skills.length}</span>
@@ -259,6 +260,39 @@ export function renderSkills(props: SkillsProps) {
 
     ${detailSkill ? renderSkillDetail(detailSkill, props) : nothing}
     ${props.clawhubDetailSlug ? renderClawHubDetailDialog(props) : nothing}
+  `;
+}
+
+function skillGroupElementId(groupId: string): string {
+  return `skills-group-${groupId}`;
+}
+
+function renderSkillGroupNav(groups: ReturnType<typeof groupSkills>) {
+  if (groups.length <= 1) {
+    return nothing;
+  }
+  return html`
+    <nav class="skills-group-nav" aria-label="Skill categories">
+      <span class="skills-group-nav__label">Categories</span>
+      <div class="skills-group-nav__chips">
+        ${groups.map(
+          (group) => html`
+            <button
+              type="button"
+              class="skills-group-nav__chip"
+              @click=${() => {
+                document
+                  .getElementById(skillGroupElementId(group.id))
+                  ?.scrollIntoView({ block: "start", behavior: "smooth" });
+              }}
+            >
+              <span>${group.label}</span>
+              <span class="skills-group-nav__count">${group.skills.length}</span>
+            </button>
+          `,
+        )}
+      </div>
+    </nav>
   `;
 }
 
