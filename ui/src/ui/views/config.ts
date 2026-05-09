@@ -18,6 +18,7 @@ import {
   type JsonSchema,
 } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
+import { renderMcpSettings } from "./mcp-settings.ts";
 
 const BORDER_RADIUS_LABELS: Record<BorderRadiusStop, string> = {
   0: "None",
@@ -1313,6 +1314,18 @@ function renderGuidedSection(params: {
       hints: params.props.uiHints,
       max: 17,
     }).length > controls.length;
+
+  if (params.scope.id === "infrastructure" && params.section === "mcp") {
+    return renderMcpSettings({
+      config: params.props.formValue,
+      disabled: params.props.loading || !params.props.formValue,
+      advancedOpen: params.advancedOpen,
+      onAdvancedToggle: params.onAdvancedToggle,
+      onPatch: params.props.onFormPatch,
+      renderExactConfig: params.renderAdvanced,
+    });
+  }
+
   return html`
     <div class="config-section-guide">
       <section class="config-section-guide__summary">

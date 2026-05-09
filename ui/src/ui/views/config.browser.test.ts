@@ -489,6 +489,85 @@ describe("config view", () => {
     );
   });
 
+  it("renders a custom MCP manager instead of raw server objects", () => {
+    const onFormPatch = vi.fn();
+    const originalPrompt = globalThis.prompt;
+    globalThis.prompt = vi.fn(() => "context7");
+    try {
+      const { container } = renderConfigView({
+        navRootLabel: "Infrastructure",
+        includeSections: ["mcp", "browser"],
+        activeSection: "mcp",
+        onFormPatch,
+        schema: {
+          type: "object",
+          properties: {
+            mcp: {
+              type: "object",
+              properties: {
+                sessionIdleTtlMs: { type: "number" },
+                servers: {
+                  type: "object",
+                  properties: {},
+                },
+              },
+            },
+            browser: {
+              type: "object",
+              properties: {
+                enabled: { type: "boolean" },
+              },
+            },
+          },
+        },
+        formValue: {
+          commands: { mcp: false },
+          browser: { enabled: true },
+          tools: { fs: { workspaceOnly: true } },
+          mcp: {
+            sessionIdleTtlMs: 600000,
+            servers: {
+              github: {
+                command: "npx",
+                args: ["-y", "github-mcp"],
+                env: { GITHUB_TOKEN: "env:GITHUB_TOKEN" },
+              },
+            },
+          },
+        },
+        originalValue: {},
+      });
+
+      expect(container.querySelector(".mcp-settings")).not.toBeNull();
+      expect(container.querySelector(".config-simple-panel")).toBeNull();
+      expect(normalizedText(container)).toContain("MCP Manager");
+      expect(normalizedText(container)).toContain("GitHub");
+      expect(normalizedText(container)).toContain("github");
+      expect(normalizedText(container)).toContain("stdio");
+      expect(container.querySelector(".config-form--modern")).toBeNull();
+
+      const toggles = container.querySelectorAll<HTMLInputElement>(
+        ".mcp-toggle-card input[type='checkbox']",
+      );
+      expect(toggles.length).toBeGreaterThanOrEqual(4);
+      toggles[0]!.checked = true;
+      toggles[0]!.dispatchEvent(new Event("change"));
+      expect(onFormPatch).toHaveBeenCalledWith(["commands", "mcp"], true);
+
+      const addButton = Array.from(container.querySelectorAll("button")).find(
+        (button) => button.textContent?.trim() === "Add custom server",
+      );
+      expect(addButton).toBeTruthy();
+      addButton?.click();
+      expect(onFormPatch).toHaveBeenCalledWith(["mcp", "servers", "context7"], {
+        command: "",
+        args: [],
+      });
+    } finally {
+      globalThis.prompt = originalPrompt;
+    }
+  });
+
   it("renders and wires the search field controls", () => {
     const container = document.createElement("div");
     const onSearchChange = vi.fn();

@@ -102,6 +102,11 @@ The Control UI can localize itself on first load based on your browser locale. T
     - Nodes: list + caps (`node.list`).
     - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`).
   </Accordion>
+  <Accordion title="MCP manager">
+    - Infrastructure → MCP uses a dedicated manager UI before the exact config fallback.
+    - Basic controls cover `/mcp`, idle cleanup, browser access, and workspace filesystem guardrails.
+    - Server cards expose transport, command, args, remote URL, headers, env, and timeout fields without requiring raw object editing.
+  </Accordion>
   <Accordion title="Config">
     - View/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`).
     - Apply + restart with validation (`config.apply`) and wake the last active session.

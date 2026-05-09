@@ -668,6 +668,395 @@
   gap: 16px;
 }
 
+.mcp-settings {
+  display: grid;
+  gap: 16px;
+}
+
+.mcp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 12%),
+      var(--card)
+    );
+}
+
+.mcp-hero__eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mcp-hero h3 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  font-weight: 780;
+  letter-spacing: -0.04em;
+}
+
+.mcp-hero p:not(.mcp-hero__eyebrow) {
+  max-width: 780px;
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.mcp-hero__stats {
+  min-width: 132px;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--card) 82%, var(--accent) 18%);
+}
+
+.mcp-hero__stats strong {
+  color: var(--text-strong);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.mcp-hero__stats span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mcp-panel {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.mcp-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 62%, var(--card) 38%);
+}
+
+.mcp-panel__header h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.96rem;
+  font-weight: 760;
+}
+
+.mcp-panel__header p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.mcp-panel button,
+.mcp-server-editor button {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 720;
+  padding: 8px 10px;
+}
+
+.mcp-panel button:hover,
+.mcp-panel button:focus-visible,
+.mcp-server-editor button:hover,
+.mcp-server-editor button:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border) 48%);
+  color: var(--accent);
+  outline: none;
+}
+
+.mcp-panel button:disabled,
+.mcp-server-editor button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.mcp-toggle-grid,
+.mcp-integration-grid,
+.mcp-advanced-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 1px;
+  background: color-mix(in srgb, var(--border) 42%, transparent);
+}
+
+.mcp-toggle-card {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.mcp-toggle-card__copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.mcp-toggle-card__title {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.mcp-toggle-card__detail {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.mcp-toggle-card__state {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mcp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
+  border-radius: var(--radius-full);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mcp-pill--ok {
+  border-color: color-mix(in srgb, var(--ok) 42%, transparent);
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, transparent);
+}
+
+.mcp-integration-card {
+  min-height: 148px;
+  display: grid;
+  align-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--card);
+}
+
+.mcp-integration-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mcp-integration-card h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 760;
+}
+
+.mcp-integration-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.mcp-empty {
+  display: grid;
+  gap: 5px;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mcp-empty strong {
+  color: var(--text-strong);
+  font-size: 0.92rem;
+}
+
+.mcp-server-list {
+  display: grid;
+}
+
+.mcp-server-editor {
+  border-top: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
+}
+
+.mcp-server-editor:first-child {
+  border-top: 0;
+}
+
+.mcp-server-editor summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mcp-server-editor summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcp-server-editor summary span:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mcp-server-editor summary strong {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+.mcp-server-editor summary small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-server-editor__body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.mcp-server-editor__mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mcp-server-editor__mode button.active {
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.mcp-field {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(220px, 1.1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 54%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+}
+
+.mcp-field--stacked {
+  grid-template-columns: 1fr;
+}
+
+.mcp-field span {
+  display: grid;
+  gap: 4px;
+}
+
+.mcp-field strong {
+  color: var(--text-strong);
+  font-size: 0.82rem;
+}
+
+.mcp-field small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.mcp-field input,
+.mcp-field select,
+.mcp-field textarea {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 74%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 8px 10px;
+}
+
+.mcp-field textarea {
+  min-height: 84px;
+  resize: vertical;
+  font-family: var(--mono);
+}
+
+.mcp-server-editor__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mcp-server-editor__footer .danger {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--border) 58%);
+  color: var(--danger);
+}
+
+@media (max-width: 760px) {
+  .mcp-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .mcp-hero__stats {
+    place-items: start;
+  }
+
+  .mcp-field {
+    grid-template-columns: 1fr;
+  }
+
+  .mcp-toggle-card,
+  .mcp-server-editor summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .config-simple-panel {
   border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
   border-radius: var(--radius-lg);
