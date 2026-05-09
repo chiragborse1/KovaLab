@@ -19,6 +19,10 @@
   gap: 16px;
 }
 
+.tasks-header__main--compact {
+  align-items: center;
+}
+
 .tasks-header h1 {
   margin: 0;
   font-size: 28px;
@@ -50,6 +54,11 @@
   overflow-x: auto;
   margin-top: 18px;
   padding-bottom: 2px;
+}
+
+.tasks-header__main--compact .tasks-filter-row {
+  flex: 1;
+  margin-top: 0;
 }
 
 .tasks-filter-pill,

@@ -316,10 +316,19 @@ class KovaTasksPage extends LitElement {
     ];
     return html`
       <section class="tasks-header">
-        <div class="tasks-header__main">
-          <div>
-            <h1>Tasks</h1>
-            <p>Execution queue and agent job tracker</p>
+        <div class="tasks-header__main tasks-header__main--compact">
+          <div class="tasks-filter-row">
+            ${filters.map(
+              (filter) => html`
+                <button
+                  class=${`tasks-filter-pill ${this.activeFilter === filter.id ? "is-active" : ""}`}
+                  @click=${() => (this.activeFilter = filter.id)}
+                >
+                  ${filter.label}
+                  <span>${this.statusCount(filter.id)}</span>
+                </button>
+              `,
+            )}
           </div>
           <div class="tasks-header__actions">
             <div class="tasks-view-toggle" aria-label="View mode">
@@ -340,19 +349,6 @@ class KovaTasksPage extends LitElement {
             </div>
             <button class="btn primary" @click=${() => this.openNewTask()}>+ New Task</button>
           </div>
-        </div>
-        <div class="tasks-filter-row">
-          ${filters.map(
-            (filter) => html`
-              <button
-                class=${`tasks-filter-pill ${this.activeFilter === filter.id ? "is-active" : ""}`}
-                @click=${() => (this.activeFilter = filter.id)}
-              >
-                ${filter.label}
-                <span>${this.statusCount(filter.id)}</span>
-              </button>
-            `,
-          )}
         </div>
       </section>
     `;
