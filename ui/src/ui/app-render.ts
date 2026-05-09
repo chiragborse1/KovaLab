@@ -148,27 +148,12 @@ import { renderDreamingRestartConfirmation } from "./views/dreaming-restart-conf
 import { renderDreaming } from "./views/dreaming.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
-import { renderHubPage, type HubTab } from "./views/hub.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
 import { renderOverview } from "./views/overview.ts";
 
 let _pendingUpdate: (() => void) | undefined;
 
 const notifyLazyViewChanged = () => _pendingUpdate?.();
-const HUB_TABS = new Set<string>([
-  "files",
-  "terminal",
-  "tasks",
-  "conductor",
-  "operations",
-  "memory",
-  "mcp",
-  "profiles",
-]);
-
-function isHubTab(tab: string): tab is HubTab {
-  return HUB_TABS.has(tab);
-}
 
 // Lazy-loaded view modules are deferred so the initial bundle stays small.
 // The shared loader renders visible fallback states instead of leaving a tab blank.
@@ -1601,13 +1586,6 @@ export function renderApp(state: AppViewState) {
               onRefresh: () => state.loadOverview({ refresh: true }),
               onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
-            })
-          : nothing}
-        ${isHubTab(state.tab)
-          ? renderHubPage({
-              tab: state.tab,
-              basePath: state.basePath,
-              onNavigate: (tab) => state.setTab(tab),
             })
           : nothing}
         ${state.tab === "channels"

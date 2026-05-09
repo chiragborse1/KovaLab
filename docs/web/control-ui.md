@@ -84,13 +84,6 @@ The Control UI can localize itself on first load based on your browser locale. T
 
 ## What it can do (today)
 
-The sidebar is organized around operator workflows instead of implementation details:
-
-- **Main**: Dashboard, Chat, Files, Terminal, Jobs, Tasks, Conductor, Operations, and Sessions.
-- **Knowledge**: Memory, Skills, MCP, and Profiles.
-
-Some entries are hub pages that group existing Control UI surfaces behind clearer workflow names. Older direct routes such as `/channels`, `/config`, `/logs`, `/cron`, and `/dreaming` continue to work.
-
 <AccordionGroup>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).

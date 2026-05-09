@@ -3,21 +3,25 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
+  { label: "chat", tabs: ["chat"] },
   {
-    label: "main",
+    label: "control",
+    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+  },
+  { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
+  {
+    label: "settings",
     tabs: [
-      "overview",
-      "chat",
-      "files",
-      "terminal",
-      "cron",
-      "tasks",
-      "conductor",
-      "operations",
-      "sessions",
+      "config",
+      "communications",
+      "appearance",
+      "automation",
+      "infrastructure",
+      "aiAgents",
+      "debug",
+      "logs",
     ],
   },
-  { label: "knowledge", tabs: ["memory", "skills", "mcp", "profiles"] },
 ] as const;
 
 export type Tab =
@@ -31,14 +35,6 @@ export type Tab =
   | "skills"
   | "nodes"
   | "chat"
-  | "files"
-  | "terminal"
-  | "tasks"
-  | "conductor"
-  | "operations"
-  | "memory"
-  | "mcp"
-  | "profiles"
   | "config"
   | "communications"
   | "appearance"
@@ -60,14 +56,6 @@ const TAB_PATHS: Record<Tab, string> = {
   skills: "/skills",
   nodes: "/nodes",
   chat: "/chat",
-  files: "/files",
-  terminal: "/terminal",
-  tasks: "/tasks",
-  conductor: "/conductor",
-  operations: "/operations",
-  memory: "/memory",
-  mcp: "/mcp",
-  profiles: "/profiles",
   config: "/config",
   communications: "/communications",
   appearance: "/appearance",
@@ -80,8 +68,6 @@ const TAB_PATHS: Record<Tab, string> = {
 };
 
 const PATH_ALIASES: Record<string, Tab> = {
-  "/dashboard": "overview",
-  "/jobs": "cron",
   "/dreams": "dreams",
 };
 
@@ -177,22 +163,6 @@ export function iconForTab(tab: Tab): IconName {
       return "messageSquare";
     case "overview":
       return "barChart";
-    case "files":
-      return "folder";
-    case "terminal":
-      return "terminal";
-    case "tasks":
-      return "fileText";
-    case "conductor":
-      return "brain";
-    case "operations":
-      return "settings";
-    case "memory":
-      return "book";
-    case "mcp":
-      return "plug";
-    case "profiles":
-      return "spark";
     case "channels":
       return "link";
     case "instances":
