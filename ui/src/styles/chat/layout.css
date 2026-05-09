@@ -585,6 +585,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: nowrap;
   width: 100%;
   min-width: 0;
 }
@@ -1145,10 +1146,6 @@
   .chat-controls__model {
     min-width: 140px;
     max-width: none;
-  }
-
-  .agent-chat__composer-controls .chat-controls__model-thinking {
-    flex-wrap: wrap;
   }
 
   .chat-controls {
