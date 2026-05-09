@@ -1369,21 +1369,26 @@ export function renderApp(state: AppViewState) {
         <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
           <div class="sidebar-shell">
             <div class="sidebar-shell__header">
-              <button
-                type="button"
-                class="nav-collapse-toggle"
-                @click=${() =>
-                  state.applySettings({
-                    ...state.settings,
-                    navCollapsed: !state.settings.navCollapsed,
-                  })}
-                title="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
-                aria-label="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
-              >
-                <span class="nav-collapse-toggle__icon" aria-hidden="true"
-                  >${navCollapsed ? icons.panelLeftOpen : icons.panelLeftClose}</span
+              <div class="sidebar-top-actions">
+                <div class="sidebar-pinned-chat">
+                  ${renderTab(state, "chat", { collapsed: navCollapsed })}
+                </div>
+                <button
+                  type="button"
+                  class="nav-collapse-toggle"
+                  @click=${() =>
+                    state.applySettings({
+                      ...state.settings,
+                      navCollapsed: !state.settings.navCollapsed,
+                    })}
+                  title="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
+                  aria-label="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
                 >
-              </button>
+                  <span class="nav-collapse-toggle__icon" aria-hidden="true"
+                    >${navCollapsed ? icons.panelLeftOpen : icons.panelLeftClose}</span
+                  >
+                </button>
+              </div>
             </div>
             <div class="sidebar-shell__body">
               <nav class="sidebar-nav">
