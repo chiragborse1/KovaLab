@@ -118,7 +118,6 @@ import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
-import "./components/dashboard-header.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import {
   buildAgentMainSessionKey,
@@ -1344,9 +1343,7 @@ export function renderApp(state: AppViewState) {
           >
             <span class="nav-collapse-toggle__icon" aria-hidden="true">${icons.menu}</span>
           </button>
-          <div class="topnav-shell__content">
-            <dashboard-header .tab=${state.tab}></dashboard-header>
-          </div>
+          <div class="topnav-shell__content"></div>
           <div class="topnav-shell__actions">
             <button
               class="topbar-search"
