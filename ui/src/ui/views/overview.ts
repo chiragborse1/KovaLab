@@ -19,14 +19,12 @@ import type {
 import { renderConnectCommand } from "./connect-command.ts";
 import { renderOverviewAttention } from "./overview-attention.ts";
 import { renderOverviewCards } from "./overview-cards.ts";
-import { renderOverviewEventLog } from "./overview-event-log.ts";
 import {
   resolveAuthHintKind,
   type PairingHint,
   resolvePairingHint,
   shouldShowInsecureContextHint,
 } from "./overview-hints.ts";
-import { renderOverviewLogTail } from "./overview-log-tail.ts";
 
 export type OverviewProps = {
   connected: boolean;
@@ -445,17 +443,5 @@ export function renderOverview(props: OverviewProps) {
       onNavigate: props.onNavigate,
     })}
     ${renderOverviewAttention({ items: props.attentionItems })}
-
-    <div class="ov-section-divider"></div>
-
-    <div class="ov-bottom-grid">
-      ${renderOverviewEventLog({
-        events: props.eventLog,
-      })}
-      ${renderOverviewLogTail({
-        lines: props.overviewLogLines,
-        onRefreshLogs: props.onRefreshLogs,
-      })}
-    </div>
   `;
 }

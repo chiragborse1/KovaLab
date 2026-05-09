@@ -123,4 +123,20 @@ describe("overview view rendering", () => {
     expect(container.textContent).toContain("kova devices list");
     expect(container.textContent).not.toContain("kova devices approve --latest");
   });
+
+  it("does not render dashboard event or gateway log panels", async () => {
+    const container = document.createElement("div");
+    const props = createOverviewProps({
+      eventLog: [{ id: "event-1", ts: Date.now(), level: "info", message: "dashboard event" }],
+      overviewLogLines: ["gateway log line"],
+    });
+
+    render(renderOverview(props), container);
+    await Promise.resolve();
+
+    expect(container.textContent).not.toContain("Event Logs");
+    expect(container.textContent).not.toContain("Gateway Logs");
+    expect(container.textContent).not.toContain("dashboard event");
+    expect(container.textContent).not.toContain("gateway log line");
+  });
 });
