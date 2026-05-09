@@ -3584,6 +3584,26 @@ td.data-table-key-col {
   border-bottom: 1px solid var(--border);
 }
 
+.skills-page {
+  display: grid;
+  gap: 12px;
+}
+
+.skills-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skills-status-bar .agent-tabs {
+  flex: 1 1 auto;
+}
+
+.skills-content-card {
+  margin-top: 0;
+}
+
 .agent-tab {
   border: 1px solid transparent;
   border-radius: var(--radius-sm);

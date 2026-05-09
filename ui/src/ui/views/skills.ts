@@ -142,11 +142,19 @@ export function renderSkills(props: SkillsProps) {
     : null;
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Skills</div>
-          <div class="card-sub">Installed skills and their status.</div>
+    <div class="skills-page">
+      <div class="skills-status-bar">
+        <div class="agent-tabs">
+          ${STATUS_TABS.map(
+            (tab) => html`
+              <button
+                class="agent-tab ${props.statusFilter === tab.id ? "active" : ""}"
+                @click=${() => props.onStatusFilterChange(tab.id)}
+              >
+                ${tab.label}<span class="agent-tab-count">${statusCounts[tab.id]}</span>
+              </button>
+            `,
+          )}
         </div>
         <button
           class="btn"
@@ -157,100 +165,91 @@ export function renderSkills(props: SkillsProps) {
         </button>
       </div>
 
-      <div class="agent-tabs" style="margin-top: 14px;">
-        ${STATUS_TABS.map(
-          (tab) => html`
-            <button
-              class="agent-tab ${props.statusFilter === tab.id ? "active" : ""}"
-              @click=${() => props.onStatusFilterChange(tab.id)}
-            >
-              ${tab.label}<span class="agent-tab-count">${statusCounts[tab.id]}</span>
-            </button>
-          `,
-        )}
-      </div>
-
-      <div
-        class="filters"
-        style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px;"
-      >
-        <label class="field" style="flex: 1; min-width: 180px;">
-          <input
-            .value=${props.filter}
-            @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
-            placeholder="Filter installed skills"
-            autocomplete="off"
-            name="skills-filter"
-          />
-        </label>
-        <div class="muted">${filtered.length} shown</div>
-      </div>
-
-      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <div style="font-weight: 600;">ClawHub</div>
-          <div class="muted" style="font-size: 13px;">
-            Search and install skills from the registry
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <section class="card skills-content-card">
+        <div
+          class="filters"
+          style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;"
+        >
           <label class="field" style="flex: 1; min-width: 180px;">
             <input
-              .value=${props.clawhubQuery}
-              @input=${(e: Event) =>
-                props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
-              placeholder="Search ClawHub skills…"
+              .value=${props.filter}
+              @input=${(e: Event) => props.onFilterChange((e.target as HTMLInputElement).value)}
+              placeholder="Filter installed skills"
               autocomplete="off"
-              name="clawhub-search"
+              name="skills-filter"
             />
           </label>
-          ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
+          <div class="muted">${filtered.length} shown</div>
         </div>
-        ${props.clawhubSearchError
-          ? html`<div class="callout danger" style="margin-top: 8px;">
-              ${props.clawhubSearchError}
-            </div>`
-          : nothing}
-        ${props.clawhubInstallMessage
-          ? html`<div
-              class="callout ${props.clawhubInstallMessage.kind === "error" ? "danger" : "success"}"
-              style="margin-top: 8px;"
-            >
-              ${props.clawhubInstallMessage.text}
-            </div>`
-          : nothing}
-        ${renderClawHubResults(props)}
-      </div>
 
-      ${props.error
-        ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
-        : nothing}
-      ${filtered.length === 0
-        ? html`
-            <div class="muted" style="margin-top: 16px">
-              ${!props.connected && !props.report
-                ? "Not connected to gateway."
-                : "No skills found."}
+        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="font-weight: 600;">ClawHub</div>
+            <div class="muted" style="font-size: 13px;">
+              Search and install skills from the registry
             </div>
-          `
-        : html`
-            <div class="agent-skills-groups" style="margin-top: 16px;">
-              ${groups.map((group) => {
-                return html`
-                  <details class="agent-skills-group" open>
-                    <summary class="agent-skills-header">
-                      <span>${group.label}</span>
-                      <span class="muted">${group.skills.length}</span>
-                    </summary>
-                    <div class="skills-grid">
-                      ${group.skills.map((skill) => renderSkill(skill, props))}
-                    </div>
-                  </details>
-                `;
-              })}
-            </div>
-          `}
-    </section>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <label class="field" style="flex: 1; min-width: 180px;">
+              <input
+                .value=${props.clawhubQuery}
+                @input=${(e: Event) =>
+                  props.onClawHubQueryChange((e.target as HTMLInputElement).value)}
+                placeholder="Search ClawHub skills…"
+                autocomplete="off"
+                name="clawhub-search"
+              />
+            </label>
+            ${props.clawhubSearchLoading ? html`<span class="muted">Searching…</span>` : nothing}
+          </div>
+          ${props.clawhubSearchError
+            ? html`<div class="callout danger" style="margin-top: 8px;">
+                ${props.clawhubSearchError}
+              </div>`
+            : nothing}
+          ${props.clawhubInstallMessage
+            ? html`<div
+                class="callout ${props.clawhubInstallMessage.kind === "error"
+                  ? "danger"
+                  : "success"}"
+                style="margin-top: 8px;"
+              >
+                ${props.clawhubInstallMessage.text}
+              </div>`
+            : nothing}
+          ${renderClawHubResults(props)}
+        </div>
+
+        ${props.error
+          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
+          : nothing}
+        ${filtered.length === 0
+          ? html`
+              <div class="muted" style="margin-top: 16px">
+                ${!props.connected && !props.report
+                  ? "Not connected to gateway."
+                  : "No skills found."}
+              </div>
+            `
+          : html`
+              <div class="agent-skills-groups" style="margin-top: 16px;">
+                ${groups.map((group) => {
+                  return html`
+                    <details class="agent-skills-group" open>
+                      <summary class="agent-skills-header">
+                        <span>${group.label}</span>
+                        <span class="muted">${group.skills.length}</span>
+                      </summary>
+                      <div class="skills-grid">
+                        ${group.skills.map((skill) => renderSkill(skill, props))}
+                      </div>
+                    </details>
+                  `;
+                })}
+              </div>
+            `}
+      </section>
+    </div>
 
     ${detailSkill ? renderSkillDetail(detailSkill, props) : nothing}
     ${props.clawhubDetailSlug ? renderClawHubDetailDialog(props) : nothing}
