@@ -85,12 +85,6 @@ The Control UI can localize itself on first load based on your browser locale. T
 ## What it can do (today)
 
 <AccordionGroup>
-  <Accordion title="Navigation structure">
-    - Main: Dashboard, Chat, Agents, Files, Jobs, Sessions, and Operations.
-    - Knowledge: Memory, Skills, MCP, and Profiles.
-    - System: Channels, Instances, Nodes, Usage, Config, Appearance, Logs, and Debug.
-    - Files is a first-class agent workspace file editor backed by `agents.files.*`; MCP and Profiles are focused config views over the real `mcp`, `agents`, `models`, and `session` sections.
-  </Accordion>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).
     - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway mints a short-lived Realtime client secret with `talk.realtime.session`; the browser sends microphone audio directly to OpenAI and relays `openclaw_agent_consult` tool calls back through `chat.send` for the larger configured Kova model.
