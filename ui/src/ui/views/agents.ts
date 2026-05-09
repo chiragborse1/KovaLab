@@ -376,7 +376,7 @@ function renderAgentProfiles(params: {
                 return html`
                   <article
                     class="agent-profile-card ${selected ? "is-selected" : ""}"
-                    @click=${() => params.onSelectAgent(agent.id)}
+                    @click=${() => params.onOpenDetails(agent.id)}
                     aria-current=${selected ? "true" : "false"}
                   >
                     <div class="agent-profile-card__top">
