@@ -600,7 +600,9 @@ describe("chat session controls", () => {
       composerControls: renderChatModelThinkingControls(state),
     });
 
-    const composer = container.querySelector(".agent-chat__composer-controls");
+    const toolbarLeft = container.querySelector(".agent-chat__toolbar-left");
+    const composer = toolbarLeft?.querySelector(".agent-chat__composer-controls");
+    expect(toolbarLeft).not.toBeNull();
     expect(composer).not.toBeNull();
     expect(composer?.querySelector('select[data-chat-model-select="true"]')).not.toBeNull();
     expect(composer?.querySelector('select[data-chat-thinking-select="true"]')).not.toBeNull();

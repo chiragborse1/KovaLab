@@ -1146,10 +1146,6 @@ export function renderChat(props: ChatProps) {
               </div>
             `
           : nothing}
-        ${props.composerControls
-          ? html`<div class="agent-chat__composer-controls">${props.composerControls}</div>`
-          : nothing}
-
         <textarea
           ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
           .value=${props.draft}
@@ -1244,6 +1240,9 @@ export function renderChat(props: ChatProps) {
                     ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
                   </button>
                 `
+              : nothing}
+            ${props.composerControls
+              ? html`<div class="agent-chat__composer-controls">${props.composerControls}</div>`
               : nothing}
             ${tokens ? html`<span class="agent-chat__token-count">${tokens}</span>` : nothing}
           </div>

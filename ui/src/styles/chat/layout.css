@@ -577,7 +577,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 10px 0;
+  min-width: 0;
+  max-width: min(520px, 48vw);
 }
 
 .agent-chat__composer-controls .chat-controls__model-thinking {
@@ -590,15 +591,18 @@
 
 .agent-chat__composer-controls .chat-controls__model,
 .agent-chat__composer-controls .chat-controls__thinking-select {
-  flex: 1 1 0;
-  min-width: 150px;
-  max-width: none;
+  flex: 1 1 140px;
+  min-width: 120px;
+  max-width: 220px;
 }
 
 .agent-chat__composer-controls .chat-controls__model select,
 .agent-chat__composer-controls .chat-controls__thinking-select select {
   width: 100%;
   max-width: none;
+  height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
 }
 
 .agent-chat__stt-interim {
@@ -622,6 +626,15 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+}
+
+.agent-chat__toolbar-left {
+  flex: 1 1 auto;
+}
+
+.agent-chat__toolbar-right {
+  flex: 0 0 auto;
 }
 
 .agent-chat__input-btn,
