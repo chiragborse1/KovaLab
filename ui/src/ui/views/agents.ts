@@ -20,7 +20,14 @@ import {
 } from "./agents-panels-status-files.ts";
 export type { AgentsPanel } from "./agents.types.ts";
 import { renderAgentTools, renderAgentSkills } from "./agents-panels-tools-skills.ts";
-import { agentBadgeText, buildAgentContext, normalizeAgentLabel } from "./agents-utils.ts";
+import {
+  agentAvatarHue,
+  agentBadgeText,
+  buildAgentContext,
+  normalizeAgentLabel,
+  resolveAgentAvatarUrl,
+  resolveAgentEmoji,
+} from "./agents-utils.ts";
 import type { AgentsPanel } from "./agents.types.ts";
 
 export type ConfigState = {
@@ -97,6 +104,7 @@ export type AgentsProps = {
   onRefresh: () => void;
   onSelectAgent: (agentId: string) => void;
   onSelectPanel: (panel: AgentsPanel) => void;
+  onNavigate: (tab: string) => void;
   onLoadFiles: (agentId: string) => void;
   onSelectFile: (name: string) => void;
   onFileDraftChange: (name: string, content: string) => void;
@@ -125,6 +133,18 @@ export function renderAgents(props: AgentsProps) {
   const selectedId = props.selectedAgentId ?? defaultId ?? agents[0]?.id ?? null;
   const selectedAgent = selectedId
     ? (agents.find((agent) => agent.id === selectedId) ?? null)
+    : null;
+  const selectedIdentity = selectedAgent
+    ? (props.agentIdentityById[selectedAgent.id] ?? null)
+    : null;
+  const selectedContext = selectedAgent
+    ? buildAgentContext(
+        selectedAgent,
+        props.config.form,
+        props.agentFiles.list,
+        defaultId,
+        selectedIdentity,
+      )
     : null;
   const selectedSkillCount =
     selectedId && props.agentSkills.agentId === selectedId
@@ -169,29 +189,6 @@ export function renderAgents(props: AgentsProps) {
             </select>
           </div>
           <div class="agents-toolbar-actions">
-            ${selectedAgent
-              ? html`
-                  <button
-                    type="button"
-                    class="btn btn--sm btn--ghost"
-                    @click=${() => void navigator.clipboard.writeText(selectedAgent.id)}
-                    title="Copy agent ID to clipboard"
-                  >
-                    Copy ID
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn--sm btn--ghost"
-                    ?disabled=${Boolean(defaultId && selectedAgent.id === defaultId)}
-                    @click=${() => props.onSetDefault(selectedAgent.id)}
-                    title=${defaultId && selectedAgent.id === defaultId
-                      ? "Already the default agent"
-                      : "Set as the default agent"}
-                  >
-                    ${defaultId && selectedAgent.id === defaultId ? "Default" : "Set Default"}
-                  </button>
-                `
-              : nothing}
             <button
               class="btn btn--sm agents-refresh-btn"
               ?disabled=${props.loading}
@@ -214,6 +211,16 @@ export function renderAgents(props: AgentsProps) {
               </div>
             `
           : html`
+              ${renderAgentStickyHeader({
+                agent: selectedAgent,
+                context: selectedContext,
+                defaultId,
+                identity: selectedIdentity,
+                runtimeSessionMatchesSelectedAgent: props.runtimeSessionMatchesSelectedAgent,
+                onSelectPanel: props.onSelectPanel,
+                onSetDefault: props.onSetDefault,
+                onRefresh: props.onRefresh,
+              })}
               ${renderAgentTabs(
                 props.activePanel,
                 (panel) => props.onSelectPanel(panel),
@@ -301,31 +308,17 @@ export function renderAgents(props: AgentsProps) {
                 : nothing}
               ${props.activePanel === "channels"
                 ? renderAgentChannels({
-                    context: buildAgentContext(
-                      selectedAgent,
-                      props.config.form,
-                      props.agentFiles.list,
-                      defaultId,
-                      props.agentIdentityById[selectedAgent.id] ?? null,
-                    ),
                     configForm: props.config.form,
                     snapshot: props.channels.snapshot,
                     loading: props.channels.loading,
                     error: props.channels.error,
                     lastSuccess: props.channels.lastSuccess,
                     onRefresh: props.onChannelsRefresh,
-                    onSelectPanel: props.onSelectPanel,
+                    onAddChannel: () => props.onNavigate("channels"),
                   })
                 : nothing}
               ${props.activePanel === "cron"
                 ? renderAgentCron({
-                    context: buildAgentContext(
-                      selectedAgent,
-                      props.config.form,
-                      props.agentFiles.list,
-                      defaultId,
-                      props.agentIdentityById[selectedAgent.id] ?? null,
-                    ),
                     agentId: selectedAgent.id,
                     jobs: props.cron.jobs,
                     status: props.cron.status,
@@ -333,12 +326,99 @@ export function renderAgents(props: AgentsProps) {
                     error: props.cron.error,
                     onRefresh: props.onCronRefresh,
                     onRunNow: props.onCronRunNow,
-                    onSelectPanel: props.onSelectPanel,
+                    onScheduleJob: () => props.onNavigate("cron"),
                   })
                 : nothing}
             `}
       </section>
     </div>
+  `;
+}
+
+function renderAgentAvatar(params: {
+  agent: AgentsListResult["agents"][number];
+  identity: AgentIdentityResult | null;
+}) {
+  const avatarUrl = resolveAgentAvatarUrl(params.agent, params.identity);
+  const emoji = resolveAgentEmoji(params.agent, params.identity);
+  const label = normalizeAgentLabel(params.agent);
+  const fallback = emoji || label.slice(0, 1).toUpperCase() || params.agent.id.slice(0, 1);
+  return html`
+    <span
+      class="agent-avatar agent-avatar--lg"
+      style="--agent-hue: ${agentAvatarHue(params.agent.id)}deg"
+    >
+      ${avatarUrl
+        ? html`<img src=${avatarUrl} alt="" />`
+        : html`<span aria-hidden="true">${fallback}</span>`}
+    </span>
+  `;
+}
+
+function renderAgentStickyHeader(params: {
+  agent: AgentsListResult["agents"][number];
+  context: ReturnType<typeof buildAgentContext> | null;
+  defaultId: string | null;
+  identity: AgentIdentityResult | null;
+  runtimeSessionMatchesSelectedAgent: boolean;
+  onSelectPanel: (panel: AgentsPanel) => void;
+  onSetDefault: (agentId: string) => void;
+  onRefresh: () => void;
+}) {
+  const name = params.context?.identityName || normalizeAgentLabel(params.agent);
+  const status = params.runtimeSessionMatchesSelectedAgent ? "Active" : "Idle";
+  const model = params.context?.model || "-";
+  const workspace = params.context?.workspace || params.agent.workspace || "default";
+  const isDefault = Boolean(params.defaultId && params.agent.id === params.defaultId);
+  return html`
+    <section class="agent-sticky-header">
+      ${renderAgentAvatar({
+        agent: params.agent,
+        identity: params.identity,
+      })}
+      <div class="agent-sticky-header__main">
+        <div class="agent-sticky-header__title-row">
+          <span class="agent-sticky-header__title">${name}</span>
+          <span class="agent-pill">${params.agent.id}</span>
+          ${isDefault ? html`<span class="agent-pill">Default</span>` : nothing}
+        </div>
+        <div class="agent-sticky-header__meta">
+          <span
+            class="agent-status-dot ${params.runtimeSessionMatchesSelectedAgent ? "is-active" : ""}"
+          ></span>
+          <span>${status}</span>
+          <span aria-hidden="true">·</span>
+          <span class="mono">${model}</span>
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            class="workspace-link workspace-link--button"
+            @click=${() => params.onSelectPanel("files")}
+            title="Open workspace files"
+          >
+            ${workspace}
+          </button>
+        </div>
+      </div>
+      <div class="agent-sticky-header__actions">
+        <button
+          type="button"
+          class="btn btn--sm btn--ghost"
+          @click=${() => void navigator.clipboard.writeText(params.agent.id)}
+        >
+          Copy ID
+        </button>
+        <button
+          type="button"
+          class="btn btn--sm btn--ghost"
+          ?disabled=${isDefault}
+          @click=${() => params.onSetDefault(params.agent.id)}
+        >
+          ${isDefault ? "Default" : "Set Default"}
+        </button>
+        <button type="button" class="btn btn--sm" @click=${params.onRefresh}>Refresh</button>
+      </div>
+    </section>
   `;
 }
 

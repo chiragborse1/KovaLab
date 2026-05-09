@@ -19,8 +19,7 @@ import type {
   CronJob,
   CronStatus,
 } from "../types.ts";
-import { formatBytes, type AgentContext } from "./agents-utils.ts";
-import type { AgentsPanel } from "./agents.types.ts";
+import { formatBytes } from "./agents-utils.ts";
 import { resolveChannelExtras as resolveChannelExtrasFromConfig } from "./channel-config-extras.ts";
 
 function countWords(text: string) {
@@ -83,54 +82,6 @@ function setPreviewExpandButtonState(button: Element | null | undefined, isFulls
   button.setAttribute("aria-pressed", String(isFullscreen));
   button.setAttribute("aria-label", label);
   button.setAttribute("title", label);
-}
-
-function renderAgentContextCard(
-  context: AgentContext,
-  subtitle: string,
-  onSelectPanel: (panel: AgentsPanel) => void,
-) {
-  return html`
-    <section class="card">
-      <div class="card-title">Agent Context</div>
-      <div class="card-sub">${subtitle}</div>
-      <div class="agents-overview-grid" style="margin-top: 16px;">
-        <div class="agent-kv">
-          <div class="label">Workspace</div>
-          <div>
-            <button
-              type="button"
-              class="workspace-link mono"
-              @click=${() => onSelectPanel("files")}
-              title="Open Files tab"
-            >
-              ${context.workspace}
-            </button>
-          </div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Primary Model</div>
-          <div class="mono">${context.model}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Identity Name</div>
-          <div>${context.identityName}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Identity Avatar</div>
-          <div>${context.identityAvatar}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Skills Filter</div>
-          <div>${context.skillsLabel}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Default</div>
-          <div>${context.isDefault ? "yes" : "no"}</div>
-        </div>
-      </div>
-    </section>
-  `;
 }
 
 type ChannelSummaryEntry = {
@@ -211,104 +162,128 @@ function summarizeChannelAccounts(accounts: ChannelAccountSnapshot[]) {
 }
 
 export function renderAgentChannels(params: {
-  context: AgentContext;
   configForm: Record<string, unknown> | null;
   snapshot: ChannelsStatusSnapshot | null;
   loading: boolean;
   error: string | null;
   lastSuccess: number | null;
   onRefresh: () => void;
-  onSelectPanel: (panel: AgentsPanel) => void;
+  onAddChannel: () => void;
 }) {
   const entries = resolveChannelEntries(params.snapshot);
   const lastSuccessLabel = params.lastSuccess
     ? formatRelativeTimestamp(params.lastSuccess)
     : "never";
   return html`
-    <section class="grid grid-cols-2">
-      ${renderAgentContextCard(
-        params.context,
-        "Workspace, identity, and model configuration.",
-        params.onSelectPanel,
-      )}
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
-          <div>
-            <div class="card-title">Channels</div>
-            <div class="card-sub">Gateway-wide channel status snapshot.</div>
-          </div>
+    <section class="card">
+      <div class="agent-section-header">
+        <div>
+          <div class="card-title">Channels</div>
+          <div class="card-sub">Gateway-wide channel status snapshot.</div>
+        </div>
+        <div class="agent-section-header__actions">
+          <button class="btn btn--sm primary" type="button" @click=${params.onAddChannel}>
+            + Add Channel
+          </button>
           <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
             ${params.loading ? t("common.refreshing") : t("common.refresh")}
           </button>
         </div>
-        <div class="muted" style="margin-top: 8px;">Last refresh: ${lastSuccessLabel}</div>
-        ${params.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-          : nothing}
-        ${!params.snapshot
-          ? html`
-              <div class="callout info" style="margin-top: 12px">
-                Load channels to see live status.
+      </div>
+      <div class="muted" style="margin-top: 8px;">Last refresh: ${lastSuccessLabel}</div>
+      ${params.error
+        ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
+        : nothing}
+      ${!params.snapshot
+        ? html`
+            <div class="callout info" style="margin-top: 12px">
+              Load channels to see live status.
+            </div>
+          `
+        : nothing}
+      ${entries.length === 0
+        ? html`
+            <div class="agent-empty-state">
+              <div class="agent-empty-state__title">No channels found</div>
+              <div class="agent-empty-state__body">
+                Add Telegram, Discord, Slack, or another channel to receive messages here.
               </div>
-            `
-          : nothing}
-        ${entries.length === 0
-          ? html` <div class="muted" style="margin-top: 16px">No channels found.</div> `
-          : html`
-              <div class="list" style="margin-top: 16px;">
-                ${entries.map((entry) => {
-                  const summary = summarizeChannelAccounts(entry.accounts);
-                  const status = summary.total
-                    ? `${summary.connected}/${summary.total} connected`
-                    : "no accounts";
-                  const configLabel = summary.configured
-                    ? `${summary.configured} configured`
-                    : "not configured";
-                  const enabled = summary.total ? `${summary.enabled} enabled` : "disabled";
-                  const extras = resolveChannelExtrasFromConfig({
-                    configForm: params.configForm,
-                    channelId: entry.id,
-                    fields: CHANNEL_EXTRA_FIELDS,
-                  });
-                  return html`
-                    <div class="list-item">
-                      <div class="list-main">
+              <button class="btn btn--sm primary" type="button" @click=${params.onAddChannel}>
+                + Add Channel
+              </button>
+            </div>
+          `
+        : html`
+            <div class="agent-channel-grid">
+              ${entries.map((entry) => {
+                const summary = summarizeChannelAccounts(entry.accounts);
+                const connected = summary.connected > 0;
+                const extras = resolveChannelExtrasFromConfig({
+                  configForm: params.configForm,
+                  channelId: entry.id,
+                  fields: CHANNEL_EXTRA_FIELDS,
+                });
+                return html`
+                  <article class="agent-channel-card">
+                    <div class="agent-channel-card__main">
+                      <span class="agent-channel-card__icon">${entry.label.slice(0, 1)}</span>
+                      <div>
                         <div class="list-title">${entry.label}</div>
                         <div class="list-sub mono">${entry.id}</div>
                       </div>
-                      <div class="list-meta">
-                        <div>${status}</div>
-                        <div>${configLabel}</div>
-                        <div>${enabled}</div>
-                        ${summary.configured === 0
-                          ? html`
-                              <div>
-                                <a
-                                  href="https://docs.neuralstudio.in/channels"
-                                  target="_blank"
-                                  rel="noopener"
-                                  style="color: var(--accent); font-size: 12px"
-                                  >Setup guide</a
-                                >
-                              </div>
-                            `
-                          : nothing}
-                        ${extras.length > 0
-                          ? extras.map((extra) => html`<div>${extra.label}: ${extra.value}</div>`)
-                          : nothing}
-                      </div>
                     </div>
-                  `;
-                })}
-              </div>
-            `}
-      </section>
+                    <div class="agent-channel-card__status">
+                      <span class="agent-status-dot ${connected ? "is-active" : ""}"></span>
+                      <span>${connected ? "Connected" : "Disconnected"}</span>
+                    </div>
+                    <dl class="agent-channel-card__facts">
+                      <div>
+                        <dt>Accounts</dt>
+                        <dd>${summary.connected}/${summary.total} connected</dd>
+                      </div>
+                      <div>
+                        <dt>Configured</dt>
+                        <dd>${summary.configured}</dd>
+                      </div>
+                      <div>
+                        <dt>Enabled</dt>
+                        <dd>${summary.enabled}</dd>
+                      </div>
+                      ${extras.map(
+                        (extra) => html`
+                          <div>
+                            <dt>${extra.label}</dt>
+                            <dd>${extra.value}</dd>
+                          </div>
+                        `,
+                      )}
+                    </dl>
+                    <div class="agent-channel-card__recent">
+                      Recent messages are available in channel history when configured.
+                    </div>
+                    <div class="agent-channel-card__actions">
+                      <button class="btn btn--sm" type="button" @click=${params.onAddChannel}>
+                        Settings
+                      </button>
+                      <button
+                        class="btn btn--sm btn--ghost"
+                        type="button"
+                        disabled
+                        title="Disconnect is managed from the full Channels page."
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </article>
+                `;
+              })}
+            </div>
+          `}
     </section>
   `;
 }
 
 export function renderAgentCron(params: {
-  context: AgentContext;
   agentId: string;
   jobs: CronJob[];
   status: CronStatus | null;
@@ -316,16 +291,11 @@ export function renderAgentCron(params: {
   error: string | null;
   onRefresh: () => void;
   onRunNow: (jobId: string) => void;
-  onSelectPanel: (panel: AgentsPanel) => void;
+  onScheduleJob: () => void;
 }) {
   const jobs = params.jobs.filter((job) => job.agentId === params.agentId);
   return html`
     <section class="grid grid-cols-2">
-      ${renderAgentContextCard(
-        params.context,
-        "Workspace and scheduling targets.",
-        params.onSelectPanel,
-      )}
       <section class="card">
         <div class="row" style="justify-content: space-between;">
           <div>
@@ -353,7 +323,11 @@ export function renderAgentCron(params: {
           </div>
           <div class="stat">
             <div class="stat-label">Next wake</div>
-            <div class="stat-value">${formatNextRun(params.status?.nextWakeAtMs ?? null)}</div>
+            <div class="stat-value">
+              ${params.status?.nextWakeAtMs
+                ? formatNextRun(params.status.nextWakeAtMs)
+                : "No jobs scheduled"}
+            </div>
           </div>
         </div>
         ${params.error
@@ -365,7 +339,17 @@ export function renderAgentCron(params: {
       <div class="card-title">Agent Cron Jobs</div>
       <div class="card-sub">Scheduled jobs targeting this agent.</div>
       ${jobs.length === 0
-        ? html` <div class="muted" style="margin-top: 16px">No jobs assigned.</div> `
+        ? html`
+            <div class="agent-empty-state">
+              <div class="agent-empty-state__title">No jobs scheduled</div>
+              <div class="agent-empty-state__body">
+                Create a recurring check, reminder, or background workflow for this agent.
+              </div>
+              <button class="btn btn--sm primary" type="button" @click=${params.onScheduleJob}>
+                + Schedule Job
+              </button>
+            </div>
+          `
         : html`
             <div class="list" style="margin-top: 16px;">
               ${jobs.map(
@@ -493,6 +477,9 @@ export function renderAgentFiles(params: {
                 ${files.map((file) => {
                   const isActive = active === file.name;
                   const label = file.name.replace(/\.md$/i, "");
+                  const fileBase = params.agentFileContents[file.name] ?? file.content ?? "";
+                  const fileDraft = params.agentFileDrafts[file.name] ?? fileBase;
+                  const fileDirty = fileDraft !== fileBase;
                   return html`
                     <button
                       class="agent-tab ${isActive ? "active" : ""} ${file.missing
@@ -500,7 +487,12 @@ export function renderAgentFiles(params: {
                         : ""}"
                       @click=${() => params.onSelectFile(file.name)}
                     >
-                      ${label}${file.missing
+                      <span class="agent-tab-icon">${icons.fileText}</span>
+                      <span>${label}</span>
+                      ${fileDirty
+                        ? html`<span class="agent-tab-dirty" title="Unsaved changes"></span>`
+                        : nothing}
+                      ${file.missing
                         ? html` <span class="agent-tab-badge">missing</span> `
                         : nothing}
                     </button>
@@ -513,6 +505,10 @@ export function renderAgentFiles(params: {
                     <div class="agent-file-header" style="margin-top: 14px;">
                       <div>
                         <div class="agent-file-sub mono">${activeEntry.path}</div>
+                        <div class="agent-file-sub">
+                          ${draftLineCount} lines · ${draftWordCount} words · ${draftByteSize} ·
+                          ${estimateReadingTimeLabel(draftWordCount)}
+                        </div>
                       </div>
                       <div class="agent-file-actions">
                         <button
@@ -527,20 +523,6 @@ export function renderAgentFiles(params: {
                           }}
                         >
                           ${icons.eye} Preview
-                        </button>
-                        <button
-                          class="btn btn--sm"
-                          ?disabled=${!isDirty}
-                          @click=${() => params.onFileReset(activeEntry.name)}
-                        >
-                          Reset
-                        </button>
-                        <button
-                          class="btn btn--sm primary"
-                          ?disabled=${params.agentFileSaving || !isDirty}
-                          @click=${() => params.onFileSave(activeEntry.name)}
-                        >
-                          ${params.agentFileSaving ? "Saving…" : "Save"}
                         </button>
                       </div>
                     </div>
@@ -561,6 +543,14 @@ export function renderAgentFiles(params: {
                             activeEntry.name,
                             (e.target as HTMLTextAreaElement).value,
                           )}
+                        @keydown=${(e: KeyboardEvent) => {
+                          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+                            e.preventDefault();
+                            if (isDirty && !params.agentFileSaving) {
+                              params.onFileSave(activeEntry.name);
+                            }
+                          }
+                        }}
                       ></textarea>
                     </label>
                     <dialog
@@ -676,6 +666,28 @@ export function renderAgentFiles(params: {
                         </div>
                       </div>
                     </dialog>
+                    <div class="agent-file-savebar">
+                      <div class="agent-file-savebar__meta">
+                        <span>${isDirty ? "Unsaved changes" : "Saved"}</span>
+                        <span class="mono">Ctrl+S to save</span>
+                      </div>
+                      <div class="agent-file-savebar__actions">
+                        <button
+                          class="btn btn--sm"
+                          ?disabled=${!isDirty}
+                          @click=${() => params.onFileReset(activeEntry.name)}
+                        >
+                          Reset
+                        </button>
+                        <button
+                          class="btn btn--sm primary"
+                          ?disabled=${params.agentFileSaving || !isDirty}
+                          @click=${() => params.onFileSave(activeEntry.name)}
+                        >
+                          ${params.agentFileSaving ? "Saving…" : "Save"}
+                        </button>
+                      </div>
+                    </div>
                   `}
             `}
     </section>

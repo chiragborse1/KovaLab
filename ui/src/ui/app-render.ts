@@ -2063,6 +2063,7 @@ export function renderApp(state: AppViewState) {
                   }
                   refreshAgentsPanelSupplementalData(panel);
                 },
+                onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
                 onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
                 onSelectFile: (name) => {
                   state.agentFileActive = name;

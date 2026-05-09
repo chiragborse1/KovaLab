@@ -98,6 +98,7 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     onRefresh: () => undefined,
     onSelectAgent: () => undefined,
     onSelectPanel: () => undefined,
+    onNavigate: () => undefined,
     onLoadFiles: () => undefined,
     onSelectFile: () => undefined,
     onFileDraftChange: () => undefined,
