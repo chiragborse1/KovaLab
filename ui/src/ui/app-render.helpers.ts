@@ -127,6 +127,9 @@ export function renderTab(state: AppViewState, tab: Tab, opts?: { collapsed?: bo
             void state.loadAssistantIdentity();
           }
         }
+        if (tab === "agents") {
+          state.agentsDetailOpen = false;
+        }
         state.setTab(tab);
       }}
       title=${titleForTab(tab)}

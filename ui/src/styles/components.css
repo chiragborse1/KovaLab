@@ -3773,7 +3773,6 @@ td.data-table-key-col {
   background: var(--bg-elevated);
   color: var(--text);
   text-align: left;
-  cursor: pointer;
   transition:
     border-color var(--duration-fast) ease,
     background var(--duration-fast) ease,
@@ -3850,6 +3849,15 @@ td.data-table-key-col {
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--secondary);
+}
+
+.agent-profile-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 2px;
 }
 
 .agent-profiles-empty {

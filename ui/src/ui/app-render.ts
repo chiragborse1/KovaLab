@@ -1309,6 +1309,9 @@ export function renderApp(state: AppViewState) {
         state.paletteActiveIndex = i;
       },
       onNavigate: (tab) => {
+        if (tab === "agents") {
+          state.agentsDetailOpen = false;
+        }
         state.setTab(tab as import("./navigation.ts").Tab);
       },
       onSlashCommand: (cmd) => {
@@ -1638,7 +1641,12 @@ export function renderApp(state: AppViewState) {
               },
               onConnect: () => state.connect(),
               onRefresh: () => state.loadOverview({ refresh: true }),
-              onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
+              onNavigate: (tab) => {
+                if (tab === "agents") {
+                  state.agentsDetailOpen = false;
+                }
+                state.setTab(tab as import("./navigation.ts").Tab);
+              },
               onOpenSessionChat: (sessionKey) => {
                 state.setTab("chat");
                 switchChatSession(state, sessionKey);
@@ -1816,7 +1824,12 @@ export function renderApp(state: AppViewState) {
               cronJobs: state.cronJobs,
               skills: state.skillsReport,
               channels: state.channelsSnapshot,
-              onNavigate: (tab) => state.setTab(tab),
+              onNavigate: (tab) => {
+                if (tab === "agents") {
+                  state.agentsDetailOpen = false;
+                }
+                state.setTab(tab);
+              },
             })
           : nothing}
         ${state.tab === "operations"
@@ -1957,6 +1970,7 @@ export function renderApp(state: AppViewState) {
                 error: state.agentsError,
                 agentsList: state.agentsList,
                 selectedAgentId: resolvedAgentId,
+                detailOpen: state.agentsDetailOpen,
                 activePanel: state.agentsPanel,
                 config: {
                   form: configValue,
@@ -2022,9 +2036,44 @@ export function renderApp(state: AppViewState) {
                     return;
                   }
                   state.agentsSelectedId = agentId;
+                  state.agentsDetailOpen = false;
                   resetAgentSelectionPanelState();
                   void loadAgentIdentity(state, agentId);
                   loadAgentPanelDataForSelectedAgent(agentId);
+                },
+                onOpenDetails: (agentId) => {
+                  if (state.agentsSelectedId !== agentId) {
+                    state.agentsSelectedId = agentId;
+                    resetAgentSelectionPanelState();
+                    void loadAgentIdentity(state, agentId);
+                    loadAgentPanelDataForSelectedAgent(agentId);
+                  }
+                  state.agentsDetailOpen = true;
+                },
+                onDeleteAgent: async (agentId) => {
+                  if (!state.client) {
+                    return;
+                  }
+                  const confirmed = window.confirm(
+                    `Delete agent "${agentId}"?\n\nThis removes the agent profile and archives its workspace/state.`,
+                  );
+                  if (!confirmed) {
+                    return;
+                  }
+                  try {
+                    await state.client.request("agents.delete", { agentId });
+                    if (state.agentsSelectedId === agentId) {
+                      state.agentsDetailOpen = false;
+                      resetAgentSelectionPanelState();
+                    }
+                    await loadAgents(state);
+                    const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
+                    if (agentIds.length > 0) {
+                      void loadAgentIdentities(state, agentIds);
+                    }
+                  } catch (err) {
+                    state.agentsError = String(err);
+                  }
                 },
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
@@ -2478,6 +2527,7 @@ export function renderApp(state: AppViewState) {
               },
               onNavigateToAgent: () => {
                 state.agentsSelectedId = resolvedAgentId;
+                state.agentsDetailOpen = false;
                 state.setTab("agents" as import("./navigation.ts").Tab);
               },
               onSessionSelect: (key: string) => {

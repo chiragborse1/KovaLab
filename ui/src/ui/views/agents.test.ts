@@ -44,6 +44,7 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
       agents: [{ id: "alpha", name: "Alpha" } as never, { id: "beta", name: "Beta" } as never],
     },
     selectedAgentId: "beta",
+    detailOpen: true,
     activePanel: "overview",
     config: {
       form: null,
@@ -97,6 +98,8 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     modelCatalog: [],
     onRefresh: () => undefined,
     onSelectAgent: () => undefined,
+    onOpenDetails: () => undefined,
+    onDeleteAgent: () => undefined,
     onSelectPanel: () => undefined,
     onNavigate: () => undefined,
     onLoadFiles: () => undefined,
@@ -124,6 +127,16 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
 }
 
 describe("renderAgents", () => {
+  it("shows only profile cards until details are opened", async () => {
+    const container = document.createElement("div");
+    render(renderAgents(createProps({ detailOpen: false })), container);
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Agent profiles");
+    expect(container.textContent).toContain("Details");
+    expect(container.querySelector(".agent-tabs")).toBeNull();
+  });
+
   it("shows the skills count only for the selected agent's report", async () => {
     const container = document.createElement("div");
     render(
