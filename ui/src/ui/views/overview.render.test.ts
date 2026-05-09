@@ -61,40 +61,6 @@ function createOverviewProps(overrides: Partial<OverviewProps> = {}): OverviewPr
 }
 
 describe("overview view rendering", () => {
-  it("renders the redesigned dashboard command center", async () => {
-    const container = document.createElement("div");
-    const props = createOverviewProps({
-      connected: true,
-      hello: {
-        type: "hello-ok",
-        protocol: 1,
-        server: { version: "2.0.0-beta.3" },
-        auth: { role: "admin", scopes: ["*"] },
-        snapshot: { uptimeMs: 42_000, authMode: "token" },
-        policy: { tickIntervalMs: 30_000 },
-      },
-      sessionsCount: 9,
-      cronEnabled: true,
-      attentionItems: [
-        {
-          severity: "warning",
-          icon: "!",
-          title: "Needs attention",
-          description: "Check one gateway setting",
-        },
-      ],
-    });
-
-    render(renderOverview(props), container);
-    await Promise.resolve();
-
-    expect(container.textContent).toContain("Command center");
-    expect(container.textContent).toContain("Kova Gateway");
-    expect(container.textContent).toContain("v2.0.0-beta.3");
-    expect(container.querySelector(".ov-hero")).not.toBeNull();
-    expect(container.querySelector(".ov-command-grid")).not.toBeNull();
-  });
-
   it("keeps the persisted overview locale selected before i18n hydration finishes", async () => {
     const container = document.createElement("div");
     const props = createOverviewProps({

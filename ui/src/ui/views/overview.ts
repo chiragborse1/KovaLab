@@ -101,29 +101,6 @@ export function renderOverview(props: OverviewProps) {
     : t("common.na");
   const authMode = snapshot?.authMode;
   const isTrustedProxy = authMode === "trusted-proxy";
-  const gatewayVersion = props.hello?.server?.version
-    ? `v${props.hello.server.version}`
-    : t("common.na");
-  const authModeLabel = authMode ? authMode.replace("-", " ") : t("common.na");
-  const lastChannelsRefresh = props.lastChannelsRefresh
-    ? formatRelativeTimestamp(props.lastChannelsRefresh)
-    : t("common.na");
-  const sessionsValue =
-    props.sessionsCount == null ? t("common.na") : props.sessionsCount.toLocaleString();
-  const readySkills =
-    props.skillsReport?.skills.filter(
-      (skill) => skill.eligible && !skill.disabled && !skill.blockedByAllowlist,
-    ).length ?? null;
-  const totalSkills = props.skillsReport?.skills.length ?? null;
-  const skillsValue =
-    readySkills == null || totalSkills == null ? t("common.na") : `${readySkills}/${totalSkills}`;
-  const cronValue =
-    props.cronEnabled == null
-      ? t("common.na")
-      : props.cronEnabled
-        ? t("common.enabled")
-        : t("common.disabled");
-  const attentionValue = props.attentionItems.length.toLocaleString();
 
   const pairingHint = (() => {
     const pairingState = resolvePairingHint(props.connected, props.lastError, props.lastErrorCode);
@@ -274,257 +251,197 @@ export function renderOverview(props: OverviewProps) {
     : i18n.getLocale();
 
   return html`
-    <div class="ov-dashboard">
-      <section class="ov-hero">
-        <div class="ov-hero__copy">
-          <div class="ov-hero__eyebrow">Command center</div>
-          <h2>Kova Gateway</h2>
-          <p>
-            One clean surface for access, runtime health, sessions, scheduled work, skills, and
-            operator attention.
-          </p>
-          <div class="ov-hero__actions">
-            <button class="btn primary" @click=${() => props.onConnect()}>
-              ${props.connected ? "Reconnect" : t("common.connect")}
-            </button>
-            <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
-          </div>
-        </div>
-
-        <div class="ov-hero__status-card">
-          <div class="ov-hero__status-line">
-            <span class="statusDot ${props.connected ? "ok" : "warn"}"></span>
-            <span>${props.connected ? t("common.online") : t("common.offline")}</span>
-            <strong>${gatewayVersion}</strong>
-          </div>
-          <div class="ov-hero__facts">
-            <div>
-              <span>Auth</span>
-              <strong>${authModeLabel}</strong>
-            </div>
-            <div>
-              <span>Uptime</span>
-              <strong>${uptime}</strong>
-            </div>
-            <div>
-              <span>Sessions</span>
-              <strong>${sessionsValue}</strong>
-            </div>
-            <div>
-              <span>Attention</span>
-              <strong>${attentionValue}</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="ov-command-grid">
-        <div class="card ov-panel ov-panel--access">
-          <div class="ov-panel__header">
-            <div>
-              <div class="card-title">${t("overview.access.title")}</div>
-              <div class="card-sub">${t("overview.access.subtitle")}</div>
-            </div>
-            <span class="ov-panel__badge">${isTrustedProxy ? "Proxy auth" : "Shared secret"}</span>
-          </div>
-          <div class="ov-access-grid">
-            <label class="field ov-access-grid__full">
-              <span>${t("overview.access.wsUrl")}</span>
-              <input
-                .value=${props.settings.gatewayUrl}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onSettingsChange({
-                    ...props.settings,
-                    gatewayUrl: v,
-                    token:
-                      v.trim() === props.settings.gatewayUrl.trim() ? props.settings.token : "",
-                  });
-                }}
-                placeholder="ws://100.x.y.z:18789"
-              />
-            </label>
-            ${isTrustedProxy
-              ? ""
-              : html`
-                  <label class="field">
-                    <span>${t("overview.access.token")}</span>
-                    <div class="ov-access-secret-row">
-                      <input
-                        type=${props.showGatewayToken ? "text" : "password"}
-                        autocomplete="off"
-                        .value=${props.settings.token}
-                        @input=${(e: Event) => {
-                          const v = (e.target as HTMLInputElement).value;
-                          props.onSettingsChange({ ...props.settings, token: v });
-                        }}
-                        placeholder="KOVA_GATEWAY_TOKEN"
-                      />
-                      <button
-                        type="button"
-                        class="btn btn--icon ${props.showGatewayToken ? "active" : ""}"
-                        title=${props.showGatewayToken
-                          ? t("overview.access.hideToken")
-                          : t("overview.access.showToken")}
-                        aria-label=${t("overview.access.toggleTokenVisibility")}
-                        aria-pressed=${props.showGatewayToken}
-                        @click=${props.onToggleGatewayTokenVisibility}
-                      >
-                        ${props.showGatewayToken ? icons.eye : icons.eyeOff}
-                      </button>
-                    </div>
-                  </label>
-                  <label class="field">
-                    <span>${t("overview.access.password")}</span>
-                    <div class="ov-access-secret-row">
-                      <input
-                        type=${props.showGatewayPassword ? "text" : "password"}
-                        autocomplete="off"
-                        .value=${props.password}
-                        @input=${(e: Event) => {
-                          const v = (e.target as HTMLInputElement).value;
-                          props.onPasswordChange(v);
-                        }}
-                        placeholder=${t("overview.access.passwordPlaceholder")}
-                      />
-                      <button
-                        type="button"
-                        class="btn btn--icon ${props.showGatewayPassword ? "active" : ""}"
-                        title=${props.showGatewayPassword
-                          ? t("overview.access.hidePassword")
-                          : t("overview.access.showPassword")}
-                        aria-label=${t("overview.access.togglePasswordVisibility")}
-                        aria-pressed=${props.showGatewayPassword}
-                        @click=${props.onToggleGatewayPasswordVisibility}
-                      >
-                        ${props.showGatewayPassword ? icons.eye : icons.eyeOff}
-                      </button>
-                    </div>
-                  </label>
-                `}
-            <label class="field">
-              <span>${t("overview.access.sessionKey")}</span>
-              <input
-                .value=${props.settings.sessionKey}
-                @input=${(e: Event) => {
-                  const v = (e.target as HTMLInputElement).value;
-                  props.onSessionKeyChange(v);
-                }}
-              />
-            </label>
-            <label class="field">
-              <span>${t("overview.access.language")}</span>
-              <select
-                .value=${currentLocale}
-                @change=${(e: Event) => {
-                  const v = (e.target as HTMLSelectElement).value as Locale;
-                  void i18n.setLocale(v);
-                  props.onSettingsChange({ ...props.settings, locale: v });
-                }}
-              >
-                ${SUPPORTED_LOCALES.map((loc) => {
-                  const key = loc.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
-                  return html`<option value=${loc} ?selected=${currentLocale === loc}>
-                    ${t(`languages.${key}`)}
-                  </option>`;
-                })}
-              </select>
-            </label>
-          </div>
-          <div class="ov-access-actions">
-            <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>
-            <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
-            <span class="muted"
-              >${isTrustedProxy
-                ? t("overview.access.trustedProxy")
-                : t("overview.access.connectHint")}</span
-            >
-          </div>
-          ${!props.connected
-            ? html`
-                <div class="ov-access-note">
-                  <div>
-                    <strong>${t("overview.connection.title")}</strong>
-                    <span>${t("overview.connection.step2")}</span>
-                  </div>
-                  ${renderConnectCommand("kova dashboard")}
-                  <div class="ov-access-note__links">
-                    <a
-                      class="session-link"
-                      href="https://docs.neuralstudio.in/web/dashboard"
-                      target="_blank"
-                      rel="noreferrer"
-                      >${t("overview.connection.docsLink")}</a
-                    >
-                  </div>
-                </div>
-              `
-            : nothing}
-        </div>
-
-        <div class="card ov-panel ov-panel--runtime">
-          <div class="ov-panel__header">
-            <div>
-              <div class="card-title">${t("overview.snapshot.title")}</div>
-              <div class="card-sub">${t("overview.snapshot.subtitle")}</div>
-            </div>
-            <span class="ov-panel__badge">${tick}</span>
-          </div>
-          <div class="ov-runtime-grid">
-            <div class="ov-runtime-tile">
-              <span>${t("overview.snapshot.status")}</span>
-              <strong class="${props.connected ? "ok" : "warn"}">
-                ${props.connected ? t("common.ok") : t("common.offline")}
-              </strong>
-            </div>
-            <div class="ov-runtime-tile">
-              <span>${t("overview.snapshot.uptime")}</span>
-              <strong>${uptime}</strong>
-            </div>
-            <div class="ov-runtime-tile">
-              <span>${t("overview.snapshot.lastChannelsRefresh")}</span>
-              <strong>${lastChannelsRefresh}</strong>
-            </div>
-            <div class="ov-runtime-tile">
-              <span>Cron</span>
-              <strong>${cronValue}</strong>
-            </div>
-            <div class="ov-runtime-tile">
-              <span>Skills ready</span>
-              <strong>${skillsValue}</strong>
-            </div>
-            <div class="ov-runtime-tile">
-              <span>${t("overview.snapshot.tickInterval")}</span>
-              <strong>${tick}</strong>
-            </div>
-          </div>
-          ${props.lastError
-            ? html`<div class="callout danger" style="margin-top: 14px;">
-                <div>${props.lastError}</div>
-                ${pairingHint ?? ""} ${authHint ?? ""} ${insecureContextHint ?? ""}
-                ${queryTokenHint ?? ""}
-              </div>`
+    <section class="grid">
+      <div class="card">
+        <div class="card-title">${t("overview.access.title")}</div>
+        <div class="card-sub">${t("overview.access.subtitle")}</div>
+        <div class="ov-access-grid">
+          <label class="field ov-access-grid__full">
+            <span>${t("overview.access.wsUrl")}</span>
+            <input
+              .value=${props.settings.gatewayUrl}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({
+                  ...props.settings,
+                  gatewayUrl: v,
+                  token: v.trim() === props.settings.gatewayUrl.trim() ? props.settings.token : "",
+                });
+              }}
+              placeholder="ws://100.x.y.z:18789"
+            />
+          </label>
+          ${isTrustedProxy
+            ? ""
             : html`
-                <div class="callout" style="margin-top: 14px">
-                  ${t("overview.snapshot.channelsHint")}
-                </div>
+                <label class="field">
+                  <span>${t("overview.access.token")}</span>
+                  <div class="ov-access-secret-row">
+                    <input
+                      type=${props.showGatewayToken ? "text" : "password"}
+                      autocomplete="off"
+                      .value=${props.settings.token}
+                      @input=${(e: Event) => {
+                        const v = (e.target as HTMLInputElement).value;
+                        props.onSettingsChange({ ...props.settings, token: v });
+                      }}
+                      placeholder="KOVA_GATEWAY_TOKEN"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn--icon ${props.showGatewayToken ? "active" : ""}"
+                      title=${props.showGatewayToken
+                        ? t("overview.access.hideToken")
+                        : t("overview.access.showToken")}
+                      aria-label=${t("overview.access.toggleTokenVisibility")}
+                      aria-pressed=${props.showGatewayToken}
+                      @click=${props.onToggleGatewayTokenVisibility}
+                    >
+                      ${props.showGatewayToken ? icons.eye : icons.eyeOff}
+                    </button>
+                  </div>
+                </label>
+                <label class="field">
+                  <span>${t("overview.access.password")}</span>
+                  <div class="ov-access-secret-row">
+                    <input
+                      type=${props.showGatewayPassword ? "text" : "password"}
+                      autocomplete="off"
+                      .value=${props.password}
+                      @input=${(e: Event) => {
+                        const v = (e.target as HTMLInputElement).value;
+                        props.onPasswordChange(v);
+                      }}
+                      placeholder=${t("overview.access.passwordPlaceholder")}
+                    />
+                    <button
+                      type="button"
+                      class="btn btn--icon ${props.showGatewayPassword ? "active" : ""}"
+                      title=${props.showGatewayPassword
+                        ? t("overview.access.hidePassword")
+                        : t("overview.access.showPassword")}
+                      aria-label=${t("overview.access.togglePasswordVisibility")}
+                      aria-pressed=${props.showGatewayPassword}
+                      @click=${props.onToggleGatewayPasswordVisibility}
+                    >
+                      ${props.showGatewayPassword ? icons.eye : icons.eyeOff}
+                    </button>
+                  </div>
+                </label>
               `}
+          <label class="field">
+            <span>${t("overview.access.sessionKey")}</span>
+            <input
+              .value=${props.settings.sessionKey}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSessionKeyChange(v);
+              }}
+            />
+          </label>
+          <label class="field">
+            <span>${t("overview.access.language")}</span>
+            <select
+              .value=${currentLocale}
+              @change=${(e: Event) => {
+                const v = (e.target as HTMLSelectElement).value as Locale;
+                void i18n.setLocale(v);
+                props.onSettingsChange({ ...props.settings, locale: v });
+              }}
+            >
+              ${SUPPORTED_LOCALES.map((loc) => {
+                const key = loc.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
+                return html`<option value=${loc} ?selected=${currentLocale === loc}>
+                  ${t(`languages.${key}`)}
+                </option>`;
+              })}
+            </select>
+          </label>
         </div>
-      </section>
+        <div class="ov-access-actions">
+          <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>
+          <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
+          <span class="muted"
+            >${isTrustedProxy
+              ? t("overview.access.trustedProxy")
+              : t("overview.access.connectHint")}</span
+          >
+        </div>
+        ${!props.connected
+          ? html`
+              <div class="ov-access-note">
+                <div>
+                  <strong>${t("overview.connection.title")}</strong>
+                  <span>${t("overview.connection.step2")}</span>
+                </div>
+                ${renderConnectCommand("kova dashboard")}
+                <div class="ov-access-note__links">
+                  <a
+                    class="session-link"
+                    href="https://docs.neuralstudio.in/web/dashboard"
+                    target="_blank"
+                    rel="noreferrer"
+                    >${t("overview.connection.docsLink")}</a
+                  >
+                </div>
+              </div>
+            `
+          : nothing}
+      </div>
 
-      <div class="ov-section-divider"></div>
+      <div class="card">
+        <div class="card-title">${t("overview.snapshot.title")}</div>
+        <div class="card-sub">${t("overview.snapshot.subtitle")}</div>
+        <div class="stat-grid" style="margin-top: 16px;">
+          <div class="stat">
+            <div class="stat-label">${t("overview.snapshot.status")}</div>
+            <div class="stat-value ${props.connected ? "ok" : "warn"}">
+              ${props.connected ? t("common.ok") : t("common.offline")}
+            </div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">${t("overview.snapshot.uptime")}</div>
+            <div class="stat-value">${uptime}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">${t("overview.snapshot.tickInterval")}</div>
+            <div class="stat-value">${tick}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">${t("overview.snapshot.lastChannelsRefresh")}</div>
+            <div class="stat-value">
+              ${props.lastChannelsRefresh
+                ? formatRelativeTimestamp(props.lastChannelsRefresh)
+                : t("common.na")}
+            </div>
+          </div>
+        </div>
+        ${props.lastError
+          ? html`<div class="callout danger" style="margin-top: 14px;">
+              <div>${props.lastError}</div>
+              ${pairingHint ?? ""} ${authHint ?? ""} ${insecureContextHint ?? ""}
+              ${queryTokenHint ?? ""}
+            </div>`
+          : html`
+              <div class="callout" style="margin-top: 14px">
+                ${t("overview.snapshot.channelsHint")}
+              </div>
+            `}
+      </div>
+    </section>
 
-      ${renderOverviewCards({
-        usageResult: props.usageResult,
-        sessionsResult: props.sessionsResult,
-        skillsReport: props.skillsReport,
-        cronJobs: props.cronJobs,
-        cronStatus: props.cronStatus,
-        modelAuthStatus: props.modelAuthStatus,
-        presenceCount: props.presenceCount,
-        onNavigate: props.onNavigate,
-      })}
-      ${renderOverviewAttention({ items: props.attentionItems })}
-    </div>
+    <div class="ov-section-divider"></div>
+
+    ${renderOverviewCards({
+      usageResult: props.usageResult,
+      sessionsResult: props.sessionsResult,
+      skillsReport: props.skillsReport,
+      cronJobs: props.cronJobs,
+      cronStatus: props.cronStatus,
+      modelAuthStatus: props.modelAuthStatus,
+      presenceCount: props.presenceCount,
+      onNavigate: props.onNavigate,
+    })}
+    ${renderOverviewAttention({ items: props.attentionItems })}
   `;
 }
