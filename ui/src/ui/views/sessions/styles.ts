@@ -264,7 +264,7 @@ export const sessionStyles = html`
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) 112px;
       gap: 10px;
-      align-items: center;
+      align-items: start;
       border: 1px solid var(--border);
       border-radius: 8px;
       background: color-mix(in srgb, var(--card) 94%, transparent);
@@ -318,7 +318,6 @@ export const sessionStyles = html`
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
       min-width: 0;
     }
 
@@ -328,26 +327,6 @@ export const sessionStyles = html`
       letter-spacing: 0.12em;
       color: var(--muted);
       text-transform: uppercase;
-    }
-
-    .session-source-chat {
-      border-left: 1px solid color-mix(in srgb, var(--muted) 28%, transparent);
-      color: var(--accent);
-      font-size: 8px;
-      font-weight: 850;
-      letter-spacing: 0.1em;
-      line-height: 1;
-      padding-left: 5px;
-      text-decoration: none;
-      text-transform: uppercase;
-    }
-
-    .session-source-chat:hover,
-    .session-source-chat:focus-visible {
-      color: var(--accent-hover);
-      outline: none;
-      text-decoration: underline;
-      text-underline-offset: 2px;
     }
 
     .source-direct {
@@ -447,19 +426,6 @@ export const sessionStyles = html`
       stroke-linejoin: round;
     }
 
-    .session-secondary > .sessions-icon-btn {
-      width: 24px;
-      height: 24px;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .session-row:hover .session-secondary > .sessions-icon-btn,
-    .session-row:focus-within .session-secondary > .sessions-icon-btn {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
     .sessions-link-btn {
       display: inline-flex;
       align-items: center;
@@ -479,23 +445,11 @@ export const sessionStyles = html`
     }
 
     .session-row-actions {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      z-index: 2;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
-      transform: translateY(-50%);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 150ms ease;
-    }
-
-    .session-row:hover .session-row-actions,
-    .session-row:focus-within .session-row-actions {
-      opacity: 1;
-      pointer-events: auto;
+      justify-self: start;
+      margin-top: 2px;
     }
 
     .session-meta {
@@ -504,12 +458,7 @@ export const sessionStyles = html`
       gap: 4px;
       color: var(--muted);
       font-size: 11px;
-      transition: opacity 150ms ease;
-    }
-
-    .session-row:hover .session-meta,
-    .session-row:focus-within .session-meta {
-      opacity: 0;
+      padding-top: 2px;
     }
 
     .session-token-bar {

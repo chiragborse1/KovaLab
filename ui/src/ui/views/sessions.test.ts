@@ -100,6 +100,36 @@ describe("sessions view", () => {
     expect(detectSource("agent:main:discord:abc")).toBe("discord");
   });
 
+  it("keeps row actions in the session body instead of the source/meta columns", async () => {
+    const container = document.createElement("div");
+    const onNavigateToChat = vi.fn();
+    await renderView(container, {
+      ...buildProps(
+        buildResult({
+          key: "agent:main:main",
+          kind: "direct",
+          updatedAt: Date.now(),
+        }),
+      ),
+      onNavigateToChat,
+    });
+
+    expect(container.querySelector(".session-source-chat")).toBeNull();
+
+    const row = container.querySelector(".session-row") as HTMLElement | null;
+    const main = row?.querySelector(".session-main");
+    const actions = row?.querySelector(".session-row-actions");
+    const meta = row?.querySelector(".session-meta");
+    expect(main?.contains(actions ?? null)).toBe(true);
+    expect(meta?.contains(actions ?? null)).toBe(false);
+
+    const chatButton = actions?.querySelector<HTMLAnchorElement>('[title="Open in Chat"]');
+    chatButton?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }),
+    );
+    expect(onNavigateToChat).toHaveBeenCalledWith("agent:main:main");
+  });
+
   it("renders and patches provider-owned thinking ids in the detail panel", async () => {
     const container = document.createElement("div");
     const onPatch = vi.fn();

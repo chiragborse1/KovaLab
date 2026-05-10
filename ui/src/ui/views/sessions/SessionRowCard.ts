@@ -96,30 +96,6 @@ export function renderSessionRowCard(params: {
           >
           <span class="session-source-label-row">
             <span class="session-source-label">${session.source}</span>
-            ${session.source === "direct"
-              ? html`<a
-                  class="session-source-chat"
-                  href=${chatUrl}
-                  @click=${(event: MouseEvent) => {
-                    event.stopPropagation();
-                    if (
-                      event.defaultPrevented ||
-                      event.button !== 0 ||
-                      event.metaKey ||
-                      event.ctrlKey ||
-                      event.shiftKey ||
-                      event.altKey
-                    ) {
-                      return;
-                    }
-                    if (props.onNavigateToChat) {
-                      event.preventDefault();
-                      props.onNavigateToChat(session.key);
-                    }
-                  }}
-                  >Chat</a
-                >`
-              : nothing}
           </span>
         </div>
       </div>
@@ -145,16 +121,6 @@ export function renderSessionRowCard(params: {
             : labelUsed
               ? html`<span class="mono" title=${session.key}>${truncateMiddle(session.key)}</span>`
               : html`<span class="mono" title=${session.key}>${truncateMiddle(session.key)}</span>`}
-          <button
-            class="sessions-icon-btn"
-            title="Copy key"
-            @click=${(event: MouseEvent) => {
-              event.stopPropagation();
-              params.onCopy();
-            }}
-          >
-            ${icons.copy}
-          </button>
         </div>
         <div class="sessions-chip-row">
           <span class="session-kind-badge">${session.kind}</span>
