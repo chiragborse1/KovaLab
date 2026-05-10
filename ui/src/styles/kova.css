@@ -1,28 +1,28 @@
 :root {
-  --k-bg: var(--bg, #0e1015);
-  --k-rule: var(--border, #1e2028);
-  --k-rule-strong: var(--border-strong, #2e3040);
-  --k-control-bg: var(--card, #161920);
-  --k-control-bg-hover: var(--bg-hover, #1f2330);
-  --k-text-1: var(--text-strong, #f4f4f5);
-  --k-text-2: var(--text, #d4d4d8);
-  --k-text-3: var(--muted, #838387);
-  --k-accent: var(--accent, #ff8a1f);
-  --k-green: var(--ok, #22c55e);
-  --k-amber: var(--warn, #f59e0b);
-  --k-red: var(--danger, #ef4444);
-  --k-blue: var(--info, #3b82f6);
-  --k-purple: var(--accent-2, #14b8a6);
-  --k-cyan: var(--accent-2, #14b8a6);
-  --k-display-font: var(--font-body, Inter, -apple-system, BlinkMacSystemFont, sans-serif);
-  --k-body-font: var(--font-body, Inter, -apple-system, BlinkMacSystemFont, sans-serif);
+  --k-bg: #0a0a0a;
+  --k-rule: #171717;
+  --k-rule-strong: #242424;
+  --k-control-bg: #181818;
+  --k-control-bg-hover: #202020;
+  --k-text-1: #e8e8e8;
+  --k-text-2: #666666;
+  --k-text-3: #333333;
+  --k-accent: #c8a96e;
+  --k-green: #4ade80;
+  --k-amber: #fbbf24;
+  --k-red: #f87171;
+  --k-blue: #60a5fa;
+  --k-purple: #c084fc;
+  --k-cyan: #22d3ee;
+  --k-display-font: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --k-body-font: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Compatibility aliases for Kova helpers and legacy transition surfaces. */
   --kova-base: var(--k-bg);
-  --kova-surface-1: var(--panel, var(--k-bg));
-  --kova-surface-2: var(--card, var(--k-control-bg));
-  --kova-surface-3: var(--bg-elevated, var(--k-control-bg));
-  --kova-surface-4: var(--bg-hover, var(--k-control-bg-hover));
+  --kova-surface-1: var(--k-bg);
+  --kova-surface-2: var(--k-bg);
+  --kova-surface-3: var(--k-bg);
+  --kova-surface-4: var(--k-bg);
   --kova-border-1: var(--k-rule);
   --kova-border-2: var(--k-rule);
   --kova-border-3: var(--k-rule-strong);
@@ -56,21 +56,21 @@
 }
 
 :root[data-theme-mode="light"] {
-  --k-bg: var(--bg, #f8f9fa);
-  --k-rule: var(--border, #e5e5ea);
-  --k-rule-strong: var(--border-strong, #c7c7cc);
-  --k-control-bg: var(--card, #ffffff);
-  --k-control-bg-hover: var(--bg-hover, #eceef0);
-  --k-text-1: var(--text-strong, #1a1a1e);
-  --k-text-2: var(--text, #3c3c43);
-  --k-text-3: var(--muted, #6e6e73);
-  --k-accent: var(--accent, #ff8a1f);
-  --k-green: var(--ok, #16a34a);
-  --k-amber: var(--warn, #d97706);
-  --k-red: var(--danger, #dc2626);
-  --k-blue: var(--info, #2563eb);
-  --k-purple: var(--accent-2, #0f766e);
-  --k-cyan: var(--accent-2, #0891b2);
+  --k-bg: #f7f4ec;
+  --k-rule: #ded6c8;
+  --k-rule-strong: #c7bba7;
+  --k-control-bg: #fffaf0;
+  --k-control-bg-hover: #f1eadc;
+  --k-text-1: #171411;
+  --k-text-2: #625848;
+  --k-text-3: #9a8f7c;
+  --k-accent: #8a6726;
+  --k-green: #15803d;
+  --k-amber: #b45309;
+  --k-red: #dc2626;
+  --k-blue: #2563eb;
+  --k-purple: #7e22ce;
+  --k-cyan: #0891b2;
 }
 
 * {
@@ -129,6 +129,13 @@ textarea {
   color: var(--k-text-2);
 }
 
+.kova-app,
+.kova-app * {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  background-image: none !important;
+}
+
 .kova-app {
   height: 100vh;
   max-height: 100vh;
@@ -136,8 +143,8 @@ textarea {
   background: var(--k-bg);
   color: var(--k-text-1);
   display: grid;
-  grid-template-columns: 220px 1fr;
-  grid-template-rows: 44px minmax(0, 1fr);
+  grid-template-columns: 180px 1fr;
+  grid-template-rows: 36px minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -145,27 +152,33 @@ textarea {
   grid-template-columns: 64px 1fr;
 }
 
+.kova-app :is(.card, .panel, .surface, .callout, .stat-card, .settings-card, .config-card),
+.kova-detail-pane *,
+.kova-list-pane *,
+.kova-sidebar *,
+.kova-topbar * {
+  background-color: transparent !important;
+}
+
 .kova-topbar {
   grid-column: 1 / -1;
-  height: 44px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--k-control-bg) 94%, transparent), var(--k-bg)),
-    var(--k-bg);
+  gap: 20px;
+  padding: 0 20px;
+  background: var(--k-bg);
   border-bottom: 1px solid var(--k-rule-strong);
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.25));
 }
 
 .kova-topbar__brand {
   display: flex;
   gap: 6px;
   font-family: var(--k-display-font);
-  font-size: 14px;
-  letter-spacing: 0.03em;
+  font-size: 13px;
+  letter-spacing: 0.1em;
   line-height: 1;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -175,7 +188,7 @@ textarea {
 }
 
 .kova-topbar__brand-sub {
-  color: var(--k-accent);
+  color: var(--k-text-3);
   font-weight: 400;
 }
 
@@ -185,11 +198,13 @@ textarea {
 
 .kova-topbar__search {
   width: min(280px, 28vw);
-  height: 30px;
-  color: var(--k-text-2);
-  font-family: var(--k-body-font);
-  font-size: 12px;
+  height: 24px;
+  color: var(--k-text-3);
+  font-family: var(--k-display-font);
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-align: left;
+  text-transform: uppercase;
 }
 
 .kova-topbar__status {
@@ -198,8 +213,9 @@ textarea {
   gap: 6px;
   color: var(--k-text-2);
   font-family: var(--k-display-font);
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -251,16 +267,14 @@ textarea {
   min-height: 0;
   overflow: hidden;
   overscroll-behavior: contain;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--k-control-bg) 92%, transparent), var(--k-bg)),
-    var(--k-bg);
+  background: var(--k-bg);
   border-right: 1px solid var(--k-rule);
   display: flex;
   flex-direction: column;
 }
 
 .kova-sidebar__header {
-  height: 44px;
+  height: 36px;
   border-bottom: 1px solid var(--k-rule);
   display: flex;
   align-items: center;
@@ -272,8 +286,7 @@ textarea {
   width: 28px;
   height: 28px;
   border: 1px solid var(--k-rule-strong);
-  border-radius: var(--radius-md);
-  background: var(--k-control-bg);
+  background: transparent;
   color: var(--k-text-3);
   cursor: pointer;
   display: inline-flex;
@@ -306,17 +319,18 @@ textarea {
 }
 
 .kova-nav-section__label {
-  padding: 18px 16px 6px;
+  padding: 20px 16px 6px;
   color: var(--k-text-3);
   font-family: var(--k-display-font);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .kova-nav-item {
-  width: calc(100% - 16px);
-  border: 1px solid transparent;
+  width: 100%;
+  border: 0;
+  border-left: 2px solid transparent;
   background: transparent;
   color: var(--k-text-2);
   cursor: pointer;
@@ -324,15 +338,13 @@ textarea {
   align-items: center;
   gap: 8px;
   min-height: 32px;
-  margin: 2px 8px;
-  padding: 6px 10px;
-  border-radius: var(--radius-md);
+  padding: 5px 16px 5px 14px;
   text-align: left;
   font-family: var(--k-display-font);
-  font-size: 12px;
-  letter-spacing: 0.01em;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   transition:
-    background 100ms ease,
     color 100ms ease,
     border-color 100ms ease;
 }
@@ -362,16 +374,13 @@ textarea {
 }
 
 .kova-nav-item:hover {
-  background: color-mix(in srgb, var(--k-control-bg-hover) 78%, transparent);
-  border-color: color-mix(in srgb, var(--k-rule-strong) 72%, transparent);
   color: var(--k-text-1);
 }
 
 .kova-nav-item--active {
-  background: color-mix(in srgb, var(--k-accent) 13%, var(--k-control-bg));
-  border-color: color-mix(in srgb, var(--k-accent) 42%, var(--k-rule-strong));
-  color: var(--k-text-1);
-  font-weight: 700;
+  border-left-color: var(--k-accent);
+  color: var(--k-accent);
+  font-weight: 500;
 }
 
 .kova-sidebar__status {
@@ -379,7 +388,6 @@ textarea {
   padding: 12px 16px;
   display: grid;
   gap: 6px;
-  background: color-mix(in srgb, var(--k-control-bg) 76%, transparent);
 }
 
 .kova-sidebar__status-row {
@@ -508,7 +516,7 @@ textarea {
 
 .kova-list-pane {
   min-height: 0;
-  background: var(--k-control-bg);
+  background: var(--k-bg);
   border-right: 1px solid var(--k-rule);
   display: flex;
   flex-direction: column;
@@ -580,24 +588,18 @@ textarea {
   width: 100%;
   border: 0;
   border-bottom: 1px solid var(--k-rule);
+  border-left: 2px solid transparent;
   background: transparent;
   color: inherit;
   cursor: pointer;
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto;
   gap: 8px;
-  margin: 4px 8px;
-  padding: 12px;
-  border-radius: var(--radius-md);
+  padding: 12px 16px 12px 14px;
   text-align: left;
   transition:
-    background 100ms ease,
     color 100ms ease,
     border-color 100ms ease;
-}
-
-.kova-list-item:hover {
-  background: var(--k-control-bg-hover);
 }
 
 .kova-list-item:hover .kova-list-item__title {
@@ -605,8 +607,7 @@ textarea {
 }
 
 .kova-list-item--selected {
-  background: color-mix(in srgb, var(--k-accent) 12%, var(--k-control-bg));
-  border: 1px solid color-mix(in srgb, var(--k-accent) 34%, var(--k-rule));
+  border-left-color: var(--k-accent);
 }
 
 .kova-list-item__main {
@@ -708,7 +709,7 @@ textarea {
 .kova-detail-pane--chat .kova-detail-pane__body,
 .kova-detail-pane--chat .chat,
 .kova-detail-pane--chat .chat-thread {
-  background-color: var(--bg, var(--k-bg)) !important;
+  background-color: var(--k-bg) !important;
 }
 
 .kova-detail-pane--chat .agent-chat__input {
@@ -840,16 +841,24 @@ textarea {
 
 .kova-badge {
   display: inline-block;
-  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, currentColor 10%, transparent) !important;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  background: transparent !important;
   color: var(--k-text-3);
   font-family: var(--k-display-font);
   font-size: 10px;
   letter-spacing: 0.08em;
   line-height: 1.35;
-  padding: 2px 7px;
+  padding: 1px 5px;
   text-transform: uppercase;
+}
+
+.kova-badge::before {
+  content: "[";
+}
+
+.kova-badge::after {
+  content: "]";
 }
 
 .kova-badge--live,
@@ -883,11 +892,11 @@ textarea {
 }
 
 .kova-btn {
-  height: 32px;
+  height: 28px;
   padding: 0 14px;
   border: 1px solid var(--k-rule-strong);
-  border-radius: var(--radius-md);
-  background: var(--k-control-bg);
+  border-radius: 0;
+  background: transparent;
   color: var(--k-text-2);
   cursor: pointer;
   font-family: var(--k-display-font);
@@ -901,7 +910,6 @@ textarea {
 
 .kova-btn:hover {
   border-color: var(--k-text-3);
-  background: var(--k-control-bg-hover);
   color: var(--k-text-1);
 }
 
@@ -915,8 +923,8 @@ textarea {
 .kova-select,
 .kova-textarea {
   border: 1px solid var(--k-rule-strong);
-  border-radius: var(--radius-md);
-  background: var(--k-control-bg) !important;
+  border-radius: 0;
+  background: var(--k-bg) !important;
   color: var(--k-text-1);
   font-family: var(--k-body-font);
   font-size: 13px;
@@ -949,7 +957,7 @@ textarea {
   height: 16px;
   border: 1px solid var(--k-rule-strong);
   border-radius: var(--k-radius-full, var(--radius-full));
-  background: var(--k-control-bg);
+  background: transparent;
   padding: 1px;
   display: inline-flex;
   justify-content: flex-start;
@@ -977,15 +985,12 @@ textarea {
 }
 
 .kova-token-bar__track {
-  height: 4px;
-  border-radius: var(--radius-full);
+  height: 2px;
   background: var(--k-rule-strong) !important;
-  overflow: hidden;
 }
 
 .kova-token-bar__fill {
-  height: 4px;
-  border-radius: var(--radius-full);
+  height: 2px;
   background: var(--k-green) !important;
 }
 
