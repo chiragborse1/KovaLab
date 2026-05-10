@@ -1,7 +1,8 @@
-// Kova's npm tarball should stay comfortably below a 50 MiB unpacked budget.
+// Kova's npm tarball should stay comfortably below a 60 MiB unpacked budget.
 // This still leaves room for staged runtime dependencies while catching pack
-// bloat quickly during release validation.
-export const NPM_PACK_UNPACKED_SIZE_BUDGET_BYTES = 50 * 1024 * 1024;
+// bloat quickly during release validation. The diff viewer runtime is a
+// packaged browser asset and currently accounts for roughly 10 MiB.
+export const NPM_PACK_UNPACKED_SIZE_BUDGET_BYTES = 60 * 1024 * 1024;
 
 export function formatMiB(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;

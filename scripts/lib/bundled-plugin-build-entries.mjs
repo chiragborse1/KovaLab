@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   BUNDLED_PLUGIN_ROOT_DIR,
   bundledDistPluginFile,
@@ -8,8 +9,37 @@ import {
 import { shouldBuildBundledCluster } from "./optional-bundled-clusters.mjs";
 
 const TOP_LEVEL_PUBLIC_SURFACE_EXTENSIONS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
-export const NON_PACKAGED_BUNDLED_PLUGIN_DIRS = new Set(["qa-channel", "qa-lab", "qa-matrix"]);
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const toPosixPath = (value) => value.replaceAll("\\", "/");
+
+function readOfficialExternalPluginIds(catalogFileName, entryAccessor) {
+  try {
+    const catalog = JSON.parse(fs.readFileSync(path.join(moduleDir, catalogFileName), "utf8"));
+    return (Array.isArray(catalog?.entries) ? catalog.entries : [])
+      .map(entryAccessor)
+      .filter((id) => typeof id === "string" && id.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+export const OFFICIAL_EXTERNAL_BUNDLED_PLUGIN_DIRS = new Set([
+  ...readOfficialExternalPluginIds(
+    "official-external-channel-catalog.json",
+    (entry) => entry?.openclaw?.channel?.id,
+  ),
+  ...readOfficialExternalPluginIds(
+    "official-external-plugin-catalog.json",
+    (entry) => entry?.openclaw?.plugin?.id,
+  ),
+]);
+
+export const NON_PACKAGED_BUNDLED_PLUGIN_DIRS = new Set([
+  "qa-channel",
+  "qa-lab",
+  "qa-matrix",
+  ...OFFICIAL_EXTERNAL_BUNDLED_PLUGIN_DIRS,
+]);
 
 function readBundledPluginPackageJson(packageJsonPath) {
   if (!fs.existsSync(packageJsonPath)) {

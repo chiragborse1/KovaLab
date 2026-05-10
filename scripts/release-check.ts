@@ -30,6 +30,7 @@ import {
   type ExtensionPackageJson as PackageJson,
 } from "./lib/bundled-extension-manifest.ts";
 import { listBundledPluginPackArtifacts } from "./lib/bundled-plugin-build-entries.mjs";
+import { OFFICIAL_EXTERNAL_BUNDLED_PLUGIN_DIRS } from "./lib/bundled-plugin-build-entries.mjs";
 import {
   collectBuiltBundledPluginStagedRuntimeDependencyErrors,
   collectBundledPluginRootRuntimeMirrorErrors,
@@ -450,7 +451,7 @@ function runPackedBundledPluginActivationSmoke(packageRoot: string, tmpRoot: str
   const lazyDeps = [
     { pluginId: "browser", dependencyName: "playwright-core" },
     { pluginId: "feishu", dependencyName: "@larksuiteoapi/node-sdk" },
-  ] as const;
+  ].filter(({ pluginId }) => !OFFICIAL_EXTERNAL_BUNDLED_PLUGIN_DIRS.has(pluginId));
 
   const homeDir = join(tmpRoot, "activation-home");
   mkdirSync(homeDir, { recursive: true });

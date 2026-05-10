@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/memory-wiki",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.4",
   "private": true,
   "description": "Kova persistent wiki plugin",
   "type": "module",
@@ -13,7 +13,7 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0"
+    "openclaw": ">=2.0.0-beta.4"
   },
   "peerDependenciesMeta": {
     "openclaw": {

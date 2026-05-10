@@ -140,7 +140,7 @@ describe("collectBundledExtensionManifestErrors", () => {
         },
       ]),
     ).toEqual([
-      "bundled extension 'broken' manifest invalid | openclaw.install.minHostVersion must use a semver floor in the form \">=x.y.z\"",
+      'bundled extension \'broken\' manifest invalid | plugin install.minHostVersion must use a semver floor in the form ">=x.y.z" or ">=x.y.z-prerelease"',
     ]);
   });
 
@@ -545,10 +545,9 @@ describe("collectMissingPackPaths", () => {
         bundledDistPluginFile("matrix", "thread-bindings-runtime.js"),
         bundledDistPluginFile("matrix", "openclaw.plugin.json"),
         bundledDistPluginFile("matrix", "package.json"),
-        bundledDistPluginFile("whatsapp", "light-runtime-api.js"),
-        bundledDistPluginFile("whatsapp", "runtime-api.js"),
-        bundledDistPluginFile("whatsapp", "openclaw.plugin.json"),
-        bundledDistPluginFile("whatsapp", "package.json"),
+        bundledDistPluginFile("telegram", "runtime-api.js"),
+        bundledDistPluginFile("telegram", "openclaw.plugin.json"),
+        bundledDistPluginFile("telegram", "package.json"),
       ]),
     );
   });
@@ -581,8 +580,8 @@ describe("collectMissingPackPaths", () => {
         bundledDistPluginFile("matrix", "helper-api.js"),
         bundledDistPluginFile("matrix", "runtime-api.js"),
         bundledDistPluginFile("matrix", "thread-bindings-runtime.js"),
-        bundledDistPluginFile("whatsapp", "light-runtime-api.js"),
-        bundledDistPluginFile("whatsapp", "runtime-api.js"),
+        bundledDistPluginFile("telegram", "runtime-api.js"),
+        bundledDistPluginFile("slack", "runtime-api.js"),
       ]),
     );
   });
@@ -623,9 +622,9 @@ describe("collectPackUnpackedSizeErrors", () => {
 
   it("flags oversized pack results that risk low-memory startup failures", () => {
     expect(
-      collectPackUnpackedSizeErrors([makePackResult("getkova-0.2.0.tgz", 60_000_000)]),
+      collectPackUnpackedSizeErrors([makePackResult("getkova-0.2.0.tgz", 65_000_000)]),
     ).toEqual([
-      "getkova-0.2.0.tgz unpackedSize 60000000 bytes (57.2 MiB) exceeds budget 52428800 bytes (50.0 MiB). Investigate duplicate channel shims, copied extension trees, or other accidental pack bloat before release.",
+      "getkova-0.2.0.tgz unpackedSize 65000000 bytes (62.0 MiB) exceeds budget 62914560 bytes (60.0 MiB). Investigate duplicate channel shims, copied extension trees, or other accidental pack bloat before release.",
     ]);
   });
 

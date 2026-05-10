@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/stepfun-provider",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.4",
   "private": true,
   "description": "Kova StepFun provider plugin",
   "type": "module",

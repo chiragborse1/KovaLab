@@ -7195,6 +7195,10 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       exclusiveMinimum: 0,
                       maximum: 9007199254740991,
                     },
+                    visibleReplies: {
+                      type: "string",
+                      enum: ["automatic", "message_tool"],
+                    },
                   },
                   additionalProperties: false,
                 },
@@ -18835,6 +18839,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 description:
                   "Maximum number of prior group messages loaded as context per turn for group sessions. Use higher values for richer continuity, or lower values for faster and cheaper responses.",
               },
+              visibleReplies: {
+                type: "string",
+                enum: ["automatic", "message_tool"],
+                title: "Group Visible Replies",
+                description:
+                  'Controls how group/channel turns produce visible room replies: "message_tool" keeps automatic replies private and expects the message tool for visible output, while "automatic" preserves legacy auto-posting.',
+              },
             },
             additionalProperties: false,
             title: "Group Chat Rules",
@@ -22300,6 +22311,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 description:
                   "Resets Tailscale Serve/Funnel state on gateway exit to avoid stale published routes after shutdown. Keep enabled unless another controller manages publish lifecycle outside the gateway.",
               },
+              preserveFunnel: {
+                type: "boolean",
+                title: "Gateway Tailscale Preserve External Funnel",
+                description:
+                  "When mode='serve' and an externally configured Tailscale Funnel route already covers the gateway port, skip re-applying tailscale serve on startup. Lets operators keep Funnel exposure managed outside Kova without losing it across gateway restarts.",
+              },
             },
             additionalProperties: false,
             title: "Gateway Tailscale",
@@ -24565,6 +24582,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "gateway.tailscale.resetOnExit": {
       label: "Gateway Tailscale Reset on Exit",
       help: "Resets Tailscale Serve/Funnel state on gateway exit to avoid stale published routes after shutdown. Keep enabled unless another controller manages publish lifecycle outside the gateway.",
+      tags: ["network"],
+    },
+    "gateway.tailscale.preserveFunnel": {
+      label: "Gateway Tailscale Preserve External Funnel",
+      help: "When mode='serve' and an externally configured Tailscale Funnel route already covers the gateway port, skip re-applying tailscale serve on startup. Lets operators keep Funnel exposure managed outside Kova without losing it across gateway restarts.",
       tags: ["network"],
     },
     "gateway.remote": {
@@ -28005,6 +28027,11 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: "Maximum number of prior group messages loaded as context per turn for group sessions. Use higher values for richer continuity, or lower values for faster and cheaper responses.",
       tags: ["performance"],
     },
+    "messages.groupChat.visibleReplies": {
+      label: "Group Visible Replies",
+      help: 'Controls how group/channel turns produce visible room replies: "message_tool" keeps automatic replies private and expects the message tool for visible output, while "automatic" preserves legacy auto-posting.',
+      tags: ["advanced"],
+    },
     "messages.queue": {
       label: "Inbound Queue",
       help: "Inbound message queue strategy used to buffer bursts before processing turns. Tune this for busy channels where sequential processing or batching behavior matters.",
@@ -28754,6 +28781,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "0.2.0",
+  version: "2.0.0-beta.4",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };

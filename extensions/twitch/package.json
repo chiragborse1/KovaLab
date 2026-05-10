@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/twitch",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.4",
   "description": "Kova Twitch channel plugin",
   "type": "module",
   "dependencies": {
@@ -17,7 +17,7 @@
     ],
     "setupEntry": "./setup-entry.ts",
     "install": {
-      "minHostVersion": ">=2.0.0"
+      "minHostVersion": ">=2.0.0-beta.4"
     },
     "channel": {
       "id": "twitch",

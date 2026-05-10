@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/feishu",
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0-beta.4",
   "description": "Kova Feishu/Lark channel plugin (community maintained by @m1heng)",
   "type": "module",
   "dependencies": {
@@ -35,10 +35,10 @@
       "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.3"
+      "pluginApi": ">=2.0.0-beta.4"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.3"
+      "openclawVersion": "2.0.0-beta.4"
     },
     "bundle": {
       "stageRuntimeDependencies": true

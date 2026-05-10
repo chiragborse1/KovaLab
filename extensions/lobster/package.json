@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/lobster",
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0-beta.4",
   "description": "Lobster workflow tool plugin (typed pipelines + resumable approvals)",
   "type": "module",
   "dependencies": {
@@ -21,10 +21,10 @@
       "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.3"
+      "pluginApi": ">=2.0.0-beta.4"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.3"
+      "openclawVersion": "2.0.0-beta.4"
     },
     "release": {
       "publishToClawHub": true,

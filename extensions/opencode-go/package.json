@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/opencode-go-provider",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.4",
   "private": true,
   "description": "Kova OpenCode Go provider plugin",
   "type": "module",

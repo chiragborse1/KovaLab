@@ -31,16 +31,20 @@ function syncKovaDependencyRange(
   deps: Record<string, string> | undefined,
   targetVersion: string,
 ): boolean {
-  const current = deps?.getkova;
-  if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
-    return false;
+  let changed = false;
+  for (const dependencyName of ["getkova", "openclaw"] as const) {
+    const current = deps?.[dependencyName];
+    if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
+      continue;
+    }
+    const next = dependencyName === "getkova" ? `^${targetVersion}` : `>=${targetVersion}`;
+    if (current === next) {
+      continue;
+    }
+    deps[dependencyName] = next;
+    changed = true;
   }
-  const next = `^${targetVersion}`;
-  if (current === next) {
-    return false;
-  }
-  deps.getkova = next;
-  return true;
+  return changed;
 }
 
 function syncPluginApiVersion(pkg: PackageJson, targetVersion: string): boolean {

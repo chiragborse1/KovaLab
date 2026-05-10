@@ -11,6 +11,7 @@ export type BundledPluginBuildEntryParams = {
 };
 
 export const NON_PACKAGED_BUNDLED_PLUGIN_DIRS: Set<string>;
+export const OFFICIAL_EXTERNAL_BUNDLED_PLUGIN_DIRS: Set<string>;
 export function collectBundledPluginBuildEntries(
   params?: BundledPluginBuildEntryParams,
 ): BundledPluginBuildEntry[];

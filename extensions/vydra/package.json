@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/vydra-provider",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.4",
   "private": true,
   "description": "Kova Vydra media provider plugin",
   "type": "module",
