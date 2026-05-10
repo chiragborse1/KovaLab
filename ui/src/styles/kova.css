@@ -143,6 +143,10 @@ textarea {
   overflow: hidden;
 }
 
+.kova-app--sidebar-minimized {
+  grid-template-columns: 64px 1fr;
+}
+
 .kova-app :is(.card, .panel, .surface, .callout, .stat-card, .settings-card, .config-card),
 .kova-detail-pane *,
 .kova-list-pane *,
@@ -264,6 +268,44 @@ textarea {
   flex-direction: column;
 }
 
+.kova-sidebar__header {
+  height: 36px;
+  border-bottom: 1px solid var(--k-rule);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 12px;
+}
+
+.kova-sidebar-toggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--k-rule-strong);
+  background: transparent;
+  color: var(--k-text-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    color 100ms ease,
+    border-color 100ms ease;
+}
+
+.kova-sidebar-toggle:hover {
+  border-color: var(--k-text-3);
+  color: var(--k-text-1);
+}
+
+.kova-sidebar-toggle svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5px;
+}
+
 .kova-sidebar__nav {
   flex: 1;
   overflow: auto;
@@ -287,7 +329,9 @@ textarea {
   background: transparent;
   color: var(--k-text-2);
   cursor: pointer;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 7px 16px 7px 14px;
   text-align: left;
   font-family: var(--k-display-font);
@@ -297,6 +341,30 @@ textarea {
   transition:
     color 100ms ease,
     border-color 100ms ease;
+}
+
+.kova-nav-item__icon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.kova-nav-item__icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5px;
+}
+
+.kova-nav-item__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kova-nav-item:hover {
@@ -331,6 +399,62 @@ textarea {
   color: var(--k-text-2);
   font-weight: 400;
   text-transform: uppercase;
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__header {
+  justify-content: center;
+  padding: 0;
+}
+
+.kova-app--sidebar-minimized .kova-nav-section__label,
+.kova-app--sidebar-minimized .kova-nav-item__label,
+.kova-app--sidebar-minimized .kova-sidebar__status-row span,
+.kova-app--sidebar-minimized .kova-sidebar__status-row strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.kova-app--sidebar-minimized .kova-nav-section {
+  padding-top: 8px;
+}
+
+.kova-app--sidebar-minimized .kova-nav-item {
+  justify-content: center;
+  gap: 0;
+  padding: 9px 0 9px 0;
+}
+
+.kova-app--sidebar-minimized .kova-nav-item--active {
+  padding-left: 0;
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__status {
+  padding: 12px 0;
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__status-row {
+  justify-content: center;
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__status-row::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50% !important;
+  background: var(--k-text-3);
+  content: "";
+  display: block;
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__status-row--live::before {
+  background: var(--k-green);
+}
+
+.kova-app--sidebar-minimized .kova-sidebar__status-row--down::before {
+  background: var(--k-red);
 }
 
 .kova-main {

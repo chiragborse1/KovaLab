@@ -1318,7 +1318,14 @@ export function renderApp(state: AppViewState) {
       gatewayUrl: state.settings.gatewayUrl,
       version: state.hello?.server?.version ?? "",
       sessionsCount,
+      sidebarMinimized: state.settings.navCollapsed,
       topbarActions: renderTopbarThemeModeToggle(state),
+      onToggleSidebarMinimized: () => {
+        state.applySettings({
+          ...state.settings,
+          navCollapsed: !state.settings.navCollapsed,
+        });
+      },
       onSearch: () => {
         state.paletteOpen = !state.paletteOpen;
       },
