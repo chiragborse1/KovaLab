@@ -8,7 +8,6 @@ export type KovaShellOptions = {
   gatewayUrl: string;
   version: string;
   sessionsCount: number | null;
-  listPane: TemplateResult | null;
   content: TemplateResult;
   topbarActions?: TemplateResult;
   onNavigate: (tab: Tab) => void;
@@ -16,11 +15,9 @@ export type KovaShellOptions = {
 };
 
 export function renderKovaShell(options: KovaShellOptions) {
-  const hasListPane = options.listPane !== null;
   return html`<div class="kova-app">
     ${renderKovaTopbar(options)} ${renderKovaSidebar(options)}
-    <main class="kova-main ${hasListPane ? "" : "kova-main--no-list"}">
-      ${options.listPane}
+    <main class="kova-main">
       <section
         class="kova-detail-pane ${options.activeTab === "chat" ? "kova-detail-pane--chat" : ""}"
       >
@@ -83,66 +80,6 @@ export function renderKovaSidebar(
       </div>
     </div>
   </aside>`;
-}
-
-export function renderKovaListPane(options: {
-  title: string;
-  count?: number | null;
-  filters?: string[];
-  activeFilter?: string;
-  body: TemplateResult;
-}) {
-  return html`<section class="kova-list-pane">
-    <div class="kova-list-pane__header">
-      <div class="kova-list-pane__title">${options.title}</div>
-      ${options.count == null
-        ? nothing
-        : html`<div class="kova-list-pane__count">${options.count} items</div>`}
-    </div>
-    ${options.filters?.length
-      ? html`<div class="kova-list-pane__filters">
-          ${options.filters.map(
-            (filter) => html`<button
-              class="kova-filter-pill ${filter === options.activeFilter
-                ? "kova-filter-pill--active"
-                : ""}"
-              type="button"
-            >
-              ${filter}
-            </button>`,
-          )}
-        </div>`
-      : nothing}
-    <div class="kova-list-pane__body">${options.body}</div>
-  </section>`;
-}
-
-export function renderKovaListItem(options: {
-  title: string;
-  secondary?: string;
-  meta?: string;
-  selected?: boolean;
-  dot?: "live" | "idle" | "dead" | "error" | "running";
-  badges?: TemplateResult[];
-  onClick?: () => void;
-}) {
-  return html`<button
-    class="kova-list-item ${options.selected ? "kova-list-item--selected" : ""}"
-    type="button"
-    @click=${() => options.onClick?.()}
-  >
-    <span style="padding-top: 8px">${renderKovaStatusDot(options.dot ?? "dead")}</span>
-    <span class="kova-list-item__main">
-      <span class="kova-list-item__title">${options.title}</span>
-      ${options.secondary
-        ? html`<span class="kova-list-item__secondary kova-mono">${options.secondary}</span>`
-        : nothing}
-      ${options.badges?.length
-        ? html`<span class="kova-list-item__badges">${options.badges}</span>`
-        : nothing}
-    </span>
-    ${options.meta ? html`<span class="kova-list-item__meta">${options.meta}</span>` : nothing}
-  </button>`;
 }
 
 function renderNavItem(tab: Tab, options: Pick<KovaShellOptions, "activeTab" | "onNavigate">) {
