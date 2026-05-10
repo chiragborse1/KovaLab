@@ -57,6 +57,7 @@ body {
   font-family: var(--k-body-font);
   font-size: 14px;
   line-height: 1.5;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -111,6 +112,8 @@ textarea {
 }
 
 .kova-app {
+  height: 100vh;
+  max-height: 100vh;
   min-height: 100vh;
   background: var(--k-bg);
   color: var(--k-text-1);
@@ -233,6 +236,8 @@ textarea {
   grid-row: 2;
   grid-column: 1;
   min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: var(--k-bg);
   border-right: 1px solid var(--k-rule);
   display: flex;
@@ -242,6 +247,7 @@ textarea {
 .kova-sidebar__nav {
   flex: 1;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 0;
 }
 
@@ -312,6 +318,8 @@ textarea {
   grid-column: 2;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   background: var(--k-bg);
@@ -459,6 +467,7 @@ textarea {
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   background: var(--k-bg);
 }
 
