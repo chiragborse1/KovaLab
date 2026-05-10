@@ -37,7 +37,11 @@ const aggregates = {
   byProvider: [],
   byAgent: [],
   byChannel: [],
-  daily: [],
+  daily: [
+    { date: "2026-05-08", tokens: 120, cost: 0.01, messages: 2, toolCalls: 0, errors: 0 },
+    { date: "2026-05-09", tokens: 320, cost: 0.03, messages: 4, toolCalls: 1, errors: 0 },
+    { date: "2026-05-10", tokens: 180, cost: 0.02, messages: 3, toolCalls: 0, errors: 0 },
+  ],
 } as unknown as UsageAggregates;
 
 describe("renderUsageInsights", () => {
@@ -65,5 +69,7 @@ describe("renderUsageInsights", () => {
     expect(container.textContent).toContain("30.0%");
     expect(container.textContent).toContain("300 cached");
     expect(container.textContent).toContain("1.0K prompt");
+    expect(container.querySelector(".usage-wave-card")).not.toBeNull();
+    expect(container.querySelector(".usage-wave-line")).not.toBeNull();
   });
 });

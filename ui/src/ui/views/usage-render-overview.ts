@@ -443,6 +443,90 @@ function renderPeakErrorList(
   `;
 }
 
+function buildWavePath(points: Array<{ x: number; y: number }>): string {
+  if (points.length === 0) {
+    return "";
+  }
+  return points
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
+    .join(" ");
+}
+
+function renderUsageWaveGraph(aggregates: UsageAggregates) {
+  const daily = aggregates.daily.filter((day) => day.tokens > 0 || day.cost > 0).slice(-21);
+  if (daily.length < 2) {
+    return nothing;
+  }
+
+  const width = 720;
+  const height = 172;
+  const padX = 18;
+  const padTop = 18;
+  const padBottom = 28;
+  const chartWidth = width - padX * 2;
+  const chartHeight = height - padTop - padBottom;
+  const maxTokens = Math.max(...daily.map((day) => day.tokens), 1);
+  const totalTokens = daily.reduce((sum, day) => sum + day.tokens, 0);
+  const totalCost = daily.reduce((sum, day) => sum + day.cost, 0);
+  const peak = daily.reduce((best, day) => (day.tokens > best.tokens ? day : best), daily[0]);
+  const points = daily.map((day, index) => {
+    const x = padX + (daily.length === 1 ? chartWidth : (index / (daily.length - 1)) * chartWidth);
+    const ratio = day.tokens / maxTokens;
+    const y = padTop + chartHeight - Math.max(0, Math.min(1, ratio)) * chartHeight;
+    return { x, y, day };
+  });
+  const linePath = buildWavePath(points);
+  const areaPath = `${linePath} L ${points[points.length - 1]?.x.toFixed(1)} ${(
+    height - padBottom
+  ).toFixed(1)} L ${points[0]?.x.toFixed(1)} ${(height - padBottom).toFixed(1)} Z`;
+
+  return html`
+    <div class="usage-wave-card">
+      <div class="usage-wave-header">
+        <div>
+          <div class="usage-wave-kicker">Activity Wave</div>
+          <div class="usage-wave-title">
+            ${formatTokens(totalTokens)} across ${daily.length} days
+          </div>
+        </div>
+        <div class="usage-wave-meta">
+          <span>${formatCost(totalCost)}</span>
+          <span>Peak ${formatDayLabel(peak.date)}</span>
+        </div>
+      </div>
+      <svg
+        class="usage-wave-chart"
+        viewBox="0 0 ${width} ${height}"
+        role="img"
+        aria-label="Daily usage wave"
+      >
+        <defs>
+          <linearGradient id="usage-wave-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.34"></stop>
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.03"></stop>
+          </linearGradient>
+        </defs>
+        <path class="usage-wave-area" d=${areaPath}></path>
+        <path class="usage-wave-line" d=${linePath}></path>
+        ${points.map(
+          (point) => html`
+            <circle class="usage-wave-point" cx=${point.x} cy=${point.y} r="3.5">
+              <title>
+                ${formatFullDate(point.day.date)} · ${formatTokens(point.day.tokens)} ·
+                ${formatCost(point.day.cost)}
+              </title>
+            </circle>
+          `,
+        )}
+      </svg>
+      <div class="usage-wave-axis">
+        <span>${formatDayLabel(daily[0].date)}</span>
+        <span>${formatDayLabel(daily[daily.length - 1].date)}</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderSummaryStat(params: {
   title: string;
   hint: string;
@@ -638,6 +722,7 @@ function renderUsageInsights(
             className: "usage-summary-card--compact",
           })}
         </div>
+        ${renderUsageWaveGraph(aggregates)}
         <div class="usage-insights-grid">
           ${renderInsightList(
             t("usage.overview.topModels"),
@@ -954,5 +1039,6 @@ export {
   renderInsightList,
   renderPeakErrorList,
   renderSessionsCard,
+  renderUsageWaveGraph,
   renderUsageInsights,
 };

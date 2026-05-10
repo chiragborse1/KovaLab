@@ -749,6 +749,95 @@ details.usage-filter-select summary::-webkit-details-marker,
   opacity: 1;
 }
 
+.usage-wave-card {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-height: 238px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      color-mix(in srgb, var(--accent) 18%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card) 94%, var(--bg-elevated)) 0%,
+      color-mix(in srgb, var(--card) 82%, var(--bg-muted)) 100%
+    );
+  box-shadow: var(--shadow-sm);
+}
+
+.usage-wave-header,
+.usage-wave-axis {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usage-wave-kicker,
+.usage-wave-meta,
+.usage-wave-axis {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.usage-wave-title {
+  margin-top: 4px;
+  color: var(--text-strong);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-wave-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.usage-wave-meta span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+}
+
+.usage-wave-chart {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+}
+
+.usage-wave-area {
+  fill: url("#usage-wave-fill");
+}
+
+.usage-wave-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 26%, transparent));
+}
+
+.usage-wave-point {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
 .usage-insights-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
 }
