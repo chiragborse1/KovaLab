@@ -4,7 +4,6 @@ import { render } from "lit";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppViewState } from "../app-view-state.ts";
 import {
-  createMainSessionRow,
   createModelCatalog,
   createSessionsListResult,
   DEFAULT_CHAT_MODEL_CATALOG,
@@ -397,43 +396,6 @@ afterEach(() => {
 });
 
 describe("chat loading skeleton", () => {
-  it("renders a clickable recent session rail in chat", () => {
-    const onSessionSelect = vi.fn();
-    const sessions = createSessionsListResult();
-    sessions.count = 3;
-    sessions.sessions = [
-      createMainSessionRow({ key: "main", updatedAt: Date.now() - 60_000 }),
-      createMainSessionRow({
-        key: "agent:main:telegram:direct:7634012849",
-        label: "Telegram Chirag",
-        updatedAt: Date.now() - 120_000,
-      }),
-      createMainSessionRow({
-        key: "agent:main:cron:daily",
-        label: "Daily Cron",
-        updatedAt: Date.now(),
-      }),
-    ];
-
-    const container = renderChatView({
-      sessionKey: "main",
-      sessions,
-      onSessionSelect,
-    });
-
-    expect(container.querySelector(".chat-session-rail")).not.toBeNull();
-    expect(container.textContent).toContain("Telegram Chirag");
-    expect(container.textContent).not.toContain("Daily Cron");
-
-    const telegramButton = Array.from(
-      container.querySelectorAll<HTMLButtonElement>(".chat-session-rail__item"),
-    ).find((button) => button.textContent?.includes("Telegram Chirag"));
-
-    telegramButton?.click();
-
-    expect(onSessionSelect).toHaveBeenCalledWith("agent:main:telegram:direct:7634012849");
-  });
-
   it("shows the skeleton while the initial history load has no rendered content", () => {
     const container = renderChatView({ loading: true });
 

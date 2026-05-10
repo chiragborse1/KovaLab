@@ -129,127 +129,6 @@ export type ChatProps = {
 const pinnedMessagesMap = new Map<string, PinnedMessages>();
 const deletedMessagesMap = new Map<string, DeletedMessages>();
 
-function deriveChatSessionTitle(row: SessionsListResult["sessions"][number]): string {
-  const explicit =
-    row.label || row.displayName || row.derivedTitle || row.subject || row.room || row.space;
-  if (explicit?.trim()) {
-    return explicit.trim();
-  }
-  if (row.key === "main" || row.key === "agent:main:main") {
-    return "Main Session";
-  }
-  if (row.key.includes(":telegram:")) {
-    return `Telegram · @${row.key.split(":").at(-1) ?? "chat"}`;
-  }
-  if (row.key.includes(":discord:")) {
-    return "Discord Session";
-  }
-  if (row.key.includes(":cron:")) {
-    return "Cron Session";
-  }
-  if (row.key.includes("dreaming-narrative-rem")) {
-    return "Memory Dream · rem";
-  }
-  if (row.key.includes("dreaming-narrative-light")) {
-    return "Memory Dream · light";
-  }
-  if (row.key.includes(":tui-")) {
-    return "TUI Session";
-  }
-  const fallback = row.key.split(":").filter(Boolean).at(-1) ?? row.key;
-  return fallback.length > 36 ? `${fallback.slice(0, 33)}...` : fallback;
-}
-
-function resolveChatSessionSource(row: SessionsListResult["sessions"][number]): string {
-  if (row.channel?.trim()) {
-    return row.channel.trim();
-  }
-  if (row.key.includes(":telegram:")) {
-    return "telegram";
-  }
-  if (row.key.includes(":discord:")) {
-    return "discord";
-  }
-  if (row.key.includes(":cron:")) {
-    return "cron";
-  }
-  return row.kind || "direct";
-}
-
-function formatChatSessionTime(updatedAt: number | null | undefined): string {
-  if (!updatedAt) {
-    return "unknown";
-  }
-  const ageMs = Date.now() - updatedAt;
-  if (ageMs < 60_000) {
-    return "now";
-  }
-  if (ageMs < 60 * 60_000) {
-    return `${Math.max(1, Math.floor(ageMs / 60_000))}m`;
-  }
-  if (ageMs < 24 * 60 * 60_000) {
-    return `${Math.floor(ageMs / (60 * 60_000))}h`;
-  }
-  return `${Math.floor(ageMs / (24 * 60 * 60_000))}d`;
-}
-
-function resolveChatSessionRows(
-  sessions: SessionsListResult | null,
-  currentSessionKey: string,
-): SessionsListResult["sessions"] {
-  const rows = [...(sessions?.sessions ?? [])].sort(
-    (a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0),
-  );
-  const visible = rows.filter((row) => !row.key.includes(":cron:")).slice(0, 12);
-  const current = rows.find((row) => row.key === currentSessionKey);
-  if (current && !visible.some((row) => row.key === currentSessionKey)) {
-    return [current, ...visible].slice(0, 12);
-  }
-  return visible;
-}
-
-function renderChatSessionRail(props: ChatProps): TemplateResult | typeof nothing {
-  const rows = resolveChatSessionRows(props.sessions, props.sessionKey);
-  if (rows.length === 0 || !props.onSessionSelect) {
-    return nothing;
-  }
-  return html`
-    <aside class="chat-session-rail" aria-label="Chat sessions">
-      <div class="chat-session-rail__header">
-        <span>Sessions</span>
-        <button type="button" @click=${props.onNewSession}>New</button>
-      </div>
-      <div class="chat-session-rail__list">
-        ${rows.map((row) => {
-          const active = row.key === props.sessionKey;
-          return html`
-            <button
-              class="chat-session-rail__item ${active ? "chat-session-rail__item--active" : ""}"
-              type="button"
-              title=${row.key}
-              @click=${() => {
-                if (!active) {
-                  props.onSessionSelect?.(row.key);
-                }
-              }}
-            >
-              <span class="chat-session-rail__item-top">
-                <span>${deriveChatSessionTitle(row)}</span>
-                <span>${formatChatSessionTime(row.updatedAt)}</span>
-              </span>
-              <span class="chat-session-rail__item-key">${row.key}</span>
-              <span class="chat-session-rail__item-meta">
-                <span>${resolveChatSessionSource(row)}</span>
-                ${row.model ? html`<span>${row.model}</span>` : nothing}
-              </span>
-            </button>
-          `;
-        })}
-      </div>
-    </aside>
-  `;
-}
-
 function getPinnedMessages(sessionKey: string): PinnedMessages {
   return getOrCreateSessionCacheValue(
     pinnedMessagesMap,
@@ -1178,214 +1057,209 @@ export function renderChat(props: ChatProps) {
             </button>
           `
         : nothing}
-      <div class="chat-workspace">
-        ${renderChatSessionRail(props)}
-        <div class="chat-workspace__main">
-          ${renderSearchBar(requestUpdate)} ${renderPinnedSection(props, pinned, requestUpdate)}
+      ${renderSearchBar(requestUpdate)} ${renderPinnedSection(props, pinned, requestUpdate)}
 
-          <div class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}">
-            <div
-              class="chat-main"
-              style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
-            >
-              ${thread}
-            </div>
+      <div class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}">
+        <div
+          class="chat-main"
+          style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
+        >
+          ${thread}
+        </div>
 
-            ${sidebarOpen
-              ? html`
-                  <resizable-divider
-                    .splitRatio=${splitRatio}
-                    @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
-                  ></resizable-divider>
-                  <div class="chat-sidebar">
-                    ${renderMarkdownSidebar({
-                      content: props.sidebarContent ?? null,
-                      error: props.sidebarError ?? null,
-                      canvasHostUrl: props.canvasHostUrl,
-                      embedSandboxMode: props.embedSandboxMode ?? "scripts",
-                      allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
-                      onClose: props.onCloseSidebar!,
-                      onViewRawText: () => {
-                        if (!props.onOpenSidebar) {
-                          return;
-                        }
-                        const rawContent = buildRawSidebarContent(props.sidebarContent);
-                        if (rawContent) {
-                          props.onOpenSidebar(rawContent);
-                        }
-                      },
-                    })}
-                  </div>
-                `
-              : nothing}
-          </div>
+        ${sidebarOpen
+          ? html`
+              <resizable-divider
+                .splitRatio=${splitRatio}
+                @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
+              ></resizable-divider>
+              <div class="chat-sidebar">
+                ${renderMarkdownSidebar({
+                  content: props.sidebarContent ?? null,
+                  error: props.sidebarError ?? null,
+                  canvasHostUrl: props.canvasHostUrl,
+                  embedSandboxMode: props.embedSandboxMode ?? "scripts",
+                  allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
+                  onClose: props.onCloseSidebar!,
+                  onViewRawText: () => {
+                    if (!props.onOpenSidebar) {
+                      return;
+                    }
+                    const rawContent = buildRawSidebarContent(props.sidebarContent);
+                    if (rawContent) {
+                      props.onOpenSidebar(rawContent);
+                    }
+                  },
+                })}
+              </div>
+            `
+          : nothing}
+      </div>
 
-          ${renderChatQueue({
-            queue: props.queue,
-            canAbort: props.canAbort,
-            onQueueSteer: props.onQueueSteer,
-            onQueueRemove: props.onQueueRemove,
-          })}
-          ${renderSideResult(props.sideResult, props.onDismissSideResult)}
-          ${renderFallbackIndicator(props.fallbackStatus)}
-          ${renderCompactionIndicator(props.compactionStatus)}
-          ${renderContextNotice(activeSession, props.sessions?.defaults?.contextTokens ?? null, {
-            compactBusy,
-            compactDisabled: !props.connected || isBusy || Boolean(props.canAbort),
-            onCompact: props.onCompact,
-          })}
-          ${props.showNewMessages
-            ? html`
-                <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
-                  ${icons.arrowDown} New messages
-                </button>
-              `
-            : nothing}
+      ${renderChatQueue({
+        queue: props.queue,
+        canAbort: props.canAbort,
+        onQueueSteer: props.onQueueSteer,
+        onQueueRemove: props.onQueueRemove,
+      })}
+      ${renderSideResult(props.sideResult, props.onDismissSideResult)}
+      ${renderFallbackIndicator(props.fallbackStatus)}
+      ${renderCompactionIndicator(props.compactionStatus)}
+      ${renderContextNotice(activeSession, props.sessions?.defaults?.contextTokens ?? null, {
+        compactBusy,
+        compactDisabled: !props.connected || isBusy || Boolean(props.canAbort),
+        onCompact: props.onCompact,
+      })}
+      ${props.showNewMessages
+        ? html`
+            <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
+              ${icons.arrowDown} New messages
+            </button>
+          `
+        : nothing}
 
-          <!-- Input bar -->
-          <div class="agent-chat__input">
-            ${renderSlashMenu(requestUpdate, props)} ${renderAttachmentPreview(props)}
+      <!-- Input bar -->
+      <div class="agent-chat__input">
+        ${renderSlashMenu(requestUpdate, props)} ${renderAttachmentPreview(props)}
 
-            <input
-              type="file"
-              accept=${CHAT_ATTACHMENT_ACCEPT}
-              multiple
-              class="agent-chat__file-input"
-              @change=${(e: Event) => handleFileSelect(e, props)}
-            />
+        <input
+          type="file"
+          accept=${CHAT_ATTACHMENT_ACCEPT}
+          multiple
+          class="agent-chat__file-input"
+          @change=${(e: Event) => handleFileSelect(e, props)}
+        />
 
-            ${vs.sttRecording && vs.sttInterimText
-              ? html`<div class="agent-chat__stt-interim">${vs.sttInterimText}</div>`
-              : nothing}
-            ${props.realtimeTalkActive || props.realtimeTalkDetail || props.realtimeTalkTranscript
-              ? html`
-                  <div class="agent-chat__stt-interim agent-chat__talk-status">
-                    ${props.realtimeTalkDetail ??
-                    props.realtimeTalkTranscript ??
-                    (props.realtimeTalkStatus === "thinking"
-                      ? "Asking Kova..."
-                      : props.realtimeTalkStatus === "connecting"
-                        ? "Connecting Talk..."
-                        : "Talk live")}
-                  </div>
-                `
-              : nothing}
-            <textarea
-              ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
-              .value=${props.draft}
-              dir=${detectTextDirection(props.draft)}
+        ${vs.sttRecording && vs.sttInterimText
+          ? html`<div class="agent-chat__stt-interim">${vs.sttInterimText}</div>`
+          : nothing}
+        ${props.realtimeTalkActive || props.realtimeTalkDetail || props.realtimeTalkTranscript
+          ? html`
+              <div class="agent-chat__stt-interim agent-chat__talk-status">
+                ${props.realtimeTalkDetail ??
+                props.realtimeTalkTranscript ??
+                (props.realtimeTalkStatus === "thinking"
+                  ? "Asking Kova..."
+                  : props.realtimeTalkStatus === "connecting"
+                    ? "Connecting Talk..."
+                    : "Talk live")}
+              </div>
+            `
+          : nothing}
+        <textarea
+          ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
+          .value=${props.draft}
+          dir=${detectTextDirection(props.draft)}
+          ?disabled=${!props.connected}
+          @keydown=${handleKeyDown}
+          @input=${handleInput}
+          @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
+          placeholder=${vs.sttRecording ? "Listening..." : placeholder}
+          rows="1"
+        ></textarea>
+
+        <div class="agent-chat__toolbar">
+          <div class="agent-chat__toolbar-left">
+            <button
+              class="agent-chat__input-btn"
+              @click=${() => {
+                document.querySelector<HTMLInputElement>(".agent-chat__file-input")?.click();
+              }}
+              title="Attach file"
+              aria-label="Attach file"
               ?disabled=${!props.connected}
-              @keydown=${handleKeyDown}
-              @input=${handleInput}
-              @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
-              placeholder=${vs.sttRecording ? "Listening..." : placeholder}
-              rows="1"
-            ></textarea>
+            >
+              ${icons.paperclip}
+            </button>
 
-            <div class="agent-chat__toolbar">
-              <div class="agent-chat__toolbar-left">
-                <button
-                  class="agent-chat__input-btn"
-                  @click=${() => {
-                    document.querySelector<HTMLInputElement>(".agent-chat__file-input")?.click();
-                  }}
-                  title="Attach file"
-                  aria-label="Attach file"
-                  ?disabled=${!props.connected}
-                >
-                  ${icons.paperclip}
-                </button>
-
-                ${isSttSupported()
-                  ? html`
-                      <button
-                        class="agent-chat__input-btn ${vs.sttRecording
-                          ? "agent-chat__input-btn--recording"
-                          : ""}"
-                        @click=${() => {
-                          if (vs.sttRecording) {
-                            stopStt();
+            ${isSttSupported()
+              ? html`
+                  <button
+                    class="agent-chat__input-btn ${vs.sttRecording
+                      ? "agent-chat__input-btn--recording"
+                      : ""}"
+                    @click=${() => {
+                      if (vs.sttRecording) {
+                        stopStt();
+                        vs.sttRecording = false;
+                        vs.sttInterimText = "";
+                        requestUpdate();
+                      } else {
+                        const started = startStt({
+                          onTranscript: (text, isFinal) => {
+                            if (isFinal) {
+                              const current = getDraft();
+                              const sep = current && !current.endsWith(" ") ? " " : "";
+                              props.onDraftChange(current + sep + text);
+                              vs.sttInterimText = "";
+                            } else {
+                              vs.sttInterimText = text;
+                            }
+                            requestUpdate();
+                          },
+                          onStart: () => {
+                            vs.sttRecording = true;
+                            requestUpdate();
+                          },
+                          onEnd: () => {
                             vs.sttRecording = false;
                             vs.sttInterimText = "";
                             requestUpdate();
-                          } else {
-                            const started = startStt({
-                              onTranscript: (text, isFinal) => {
-                                if (isFinal) {
-                                  const current = getDraft();
-                                  const sep = current && !current.endsWith(" ") ? " " : "";
-                                  props.onDraftChange(current + sep + text);
-                                  vs.sttInterimText = "";
-                                } else {
-                                  vs.sttInterimText = text;
-                                }
-                                requestUpdate();
-                              },
-                              onStart: () => {
-                                vs.sttRecording = true;
-                                requestUpdate();
-                              },
-                              onEnd: () => {
-                                vs.sttRecording = false;
-                                vs.sttInterimText = "";
-                                requestUpdate();
-                              },
-                              onError: () => {
-                                vs.sttRecording = false;
-                                vs.sttInterimText = "";
-                                requestUpdate();
-                              },
-                            });
-                            if (started) {
-                              vs.sttRecording = true;
-                              requestUpdate();
-                            }
-                          }
-                        }}
-                        title=${vs.sttRecording ? "Stop recording" : "Voice input"}
-                        aria-label=${vs.sttRecording ? "Stop recording" : "Voice input"}
-                        ?disabled=${!props.connected}
-                      >
-                        ${vs.sttRecording ? icons.micOff : icons.mic}
-                      </button>
-                    `
-                  : nothing}
-                ${props.onToggleRealtimeTalk
-                  ? html`
-                      <button
-                        class="agent-chat__input-btn ${props.realtimeTalkActive
-                          ? "agent-chat__input-btn--talk"
-                          : ""}"
-                        @click=${props.onToggleRealtimeTalk}
-                        title=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
-                        aria-label=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
-                        ?disabled=${!props.connected}
-                      >
-                        ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
-                      </button>
-                    `
-                  : nothing}
-                ${props.composerControls
-                  ? html`<div class="agent-chat__composer-controls">${props.composerControls}</div>`
-                  : nothing}
-                ${tokens ? html`<span class="agent-chat__token-count">${tokens}</span>` : nothing}
-              </div>
-
-              ${renderChatRunControls({
-                canAbort,
-                connected: props.connected,
-                draft: props.draft,
-                hasMessages: props.messages.length > 0,
-                isBusy,
-                sending: props.sending,
-                onAbort: props.onAbort,
-                onExport: () => exportMarkdown(props),
-                onNewSession: props.onNewSession,
-                onSend: props.onSend,
-                onStoreDraft: () => {},
-              })}
-            </div>
+                          },
+                          onError: () => {
+                            vs.sttRecording = false;
+                            vs.sttInterimText = "";
+                            requestUpdate();
+                          },
+                        });
+                        if (started) {
+                          vs.sttRecording = true;
+                          requestUpdate();
+                        }
+                      }
+                    }}
+                    title=${vs.sttRecording ? "Stop recording" : "Voice input"}
+                    aria-label=${vs.sttRecording ? "Stop recording" : "Voice input"}
+                    ?disabled=${!props.connected}
+                  >
+                    ${vs.sttRecording ? icons.micOff : icons.mic}
+                  </button>
+                `
+              : nothing}
+            ${props.onToggleRealtimeTalk
+              ? html`
+                  <button
+                    class="agent-chat__input-btn ${props.realtimeTalkActive
+                      ? "agent-chat__input-btn--talk"
+                      : ""}"
+                    @click=${props.onToggleRealtimeTalk}
+                    title=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
+                    aria-label=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
+                    ?disabled=${!props.connected}
+                  >
+                    ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
+                  </button>
+                `
+              : nothing}
+            ${props.composerControls
+              ? html`<div class="agent-chat__composer-controls">${props.composerControls}</div>`
+              : nothing}
+            ${tokens ? html`<span class="agent-chat__token-count">${tokens}</span>` : nothing}
           </div>
+
+          ${renderChatRunControls({
+            canAbort,
+            connected: props.connected,
+            draft: props.draft,
+            hasMessages: props.messages.length > 0,
+            isBusy,
+            sending: props.sending,
+            onAbort: props.onAbort,
+            onExport: () => exportMarkdown(props),
+            onNewSession: props.onNewSession,
+            onSend: props.onSend,
+            onStoreDraft: () => {},
+          })}
         </div>
       </div>
     </section>
