@@ -663,7 +663,7 @@ importers:
         specifier: 10.6.2
         version: 10.6.2
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       zod:
         specifier: ^4.3.6
@@ -740,7 +740,7 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
@@ -815,7 +815,7 @@ importers:
         specifier: ^11.12.3
         version: 11.12.3
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -831,7 +831,7 @@ importers:
   extensions/mattermost:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       ws:
         specifier: ^8.20.0
@@ -860,7 +860,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -892,7 +892,7 @@ importers:
   extensions/memory-wiki:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -927,7 +927,7 @@ importers:
   extensions/migrate-claude:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
@@ -940,7 +940,7 @@ importers:
   extensions/migrate-hermes:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       yaml:
         specifier: ^2.8.3
@@ -1113,7 +1113,7 @@ importers:
   extensions/qa-channel:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -1135,7 +1135,7 @@ importers:
         specifier: 1.29.0
         version: 1.29.0(zod@4.3.6)
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       playwright-core:
         specifier: 1.59.1
@@ -1157,7 +1157,7 @@ importers:
   extensions/qa-matrix:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
       undici:
         specifier: 7.25.0
@@ -1353,7 +1353,7 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       openclaw:
-        specifier: '>=2.0.0'
+        specifier: '>=2.0.0-beta.4'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
