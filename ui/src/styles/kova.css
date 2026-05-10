@@ -1,9 +1,9 @@
 :root {
-  --k-bg: #11100e;
-  --k-rule: #201d18;
-  --k-rule-strong: #2b261f;
-  --k-control-bg: #171512;
-  --k-control-bg-hover: #1f1b16;
+  --k-bg: #0a0a0a;
+  --k-rule: #171717;
+  --k-rule-strong: #242424;
+  --k-control-bg: #181818;
+  --k-control-bg-hover: #202020;
   --k-text-1: #e8e8e8;
   --k-text-2: #666666;
   --k-text-3: #333333;
@@ -760,8 +760,8 @@ textarea {
     .usage-insight-card,
     .ov-card
   ) {
-  background-color: color-mix(in srgb, var(--k-control-bg) 56%, var(--k-bg) 44%) !important;
-  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 62%, var(--k-bg) 38%) !important;
+  background-color: color-mix(in srgb, var(--k-control-bg) 82%, var(--k-bg) 18%) !important;
+  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 85%, var(--k-bg) 15%) !important;
   border-radius: 4px !important;
 }
 

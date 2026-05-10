@@ -3,10 +3,11 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("kova shell theme tokens", () => {
-  it("keeps dark mode off pure black", () => {
+  it("keeps the shell black while lifting boxes off the background", () => {
     const css = readFileSync(resolve(process.cwd(), "src/styles/kova.css"), "utf8");
 
-    expect(css).toContain("--k-bg: #11100e;");
-    expect(css).not.toContain("--k-bg: #0a0a0a;");
+    expect(css).toContain("--k-bg: #0a0a0a;");
+    expect(css).toContain("--k-control-bg: #181818;");
+    expect(css).toContain("var(--k-control-bg) 82%");
   });
 });
