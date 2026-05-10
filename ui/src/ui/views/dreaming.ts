@@ -141,6 +141,7 @@ export type DreamingProps = {
   onResetDiary: () => void;
   onResetGroundedShortTerm: () => void;
   onRepairDreamingArtifacts: () => void;
+  onToggleEnabled?: (enabled: boolean) => void;
   onRequestUpdate?: () => void;
 };
 
@@ -246,7 +247,11 @@ const STARS: {
   { top: 88, left: 18, size: 2, delay: 2.3, hue: "neutral" },
 ];
 
-const sleepingKova = html`<img class="dreams__mascot-image" src="Kova_logo.png" alt="Kova dreaming" />`;
+const sleepingKova = html`<img
+  class="dreams__mascot-image"
+  src="Kova_logo.png"
+  alt="Kova dreaming"
+/>`;
 
 export function renderDreaming(props: DreamingProps) {
   const idle = !props.active;
@@ -256,33 +261,60 @@ export function renderDreaming(props: DreamingProps) {
     <div class="dreams-page">
       <!-- ── Sub-tab bar ── -->
       <nav class="dreams__tabs">
-        <button
-          class="dreams__tab ${_subTab === "scene" ? "dreams__tab--active" : ""}"
-          @click=${() => {
-            _subTab = "scene";
-            props.onRequestUpdate?.();
-          }}
-        >
-          ${t("dreaming.tabs.scene")}
-        </button>
-        <button
-          class="dreams__tab ${_subTab === "diary" ? "dreams__tab--active" : ""}"
-          @click=${() => {
-            _subTab = "diary";
-            props.onRequestUpdate?.();
-          }}
-        >
-          ${t("dreaming.tabs.diary")}
-        </button>
-        <button
-          class="dreams__tab ${_subTab === "advanced" ? "dreams__tab--active" : ""}"
-          @click=${() => {
-            _subTab = "advanced";
-            props.onRequestUpdate?.();
-          }}
-        >
-          ${t("dreaming.tabs.advanced")}
-        </button>
+        <div class="dreams__tab-list">
+          <button
+            class="dreams__tab ${_subTab === "scene" ? "dreams__tab--active" : ""}"
+            @click=${() => {
+              _subTab = "scene";
+              props.onRequestUpdate?.();
+            }}
+          >
+            ${t("dreaming.tabs.scene")}
+          </button>
+          <button
+            class="dreams__tab ${_subTab === "diary" ? "dreams__tab--active" : ""}"
+            @click=${() => {
+              _subTab = "diary";
+              props.onRequestUpdate?.();
+            }}
+          >
+            ${t("dreaming.tabs.diary")}
+          </button>
+          <button
+            class="dreams__tab ${_subTab === "advanced" ? "dreams__tab--active" : ""}"
+            @click=${() => {
+              _subTab = "advanced";
+              props.onRequestUpdate?.();
+            }}
+          >
+            ${t("dreaming.tabs.advanced")}
+          </button>
+        </div>
+        <div class="dreams__tab-actions">
+          <button
+            class="btn btn--subtle btn--sm"
+            ?disabled=${props.statusLoading || props.dreamDiaryLoading}
+            @click=${props.onRefresh}
+          >
+            ${props.statusLoading || props.dreamDiaryLoading
+              ? t("dreaming.header.refreshing")
+              : t("dreaming.header.refresh")}
+          </button>
+          ${props.onToggleEnabled
+            ? html`
+                <button
+                  class="dreams__phase-toggle ${props.active ? "dreams__phase-toggle--on" : ""}"
+                  ?disabled=${props.modeSaving || props.statusLoading}
+                  @click=${() => props.onToggleEnabled?.(!props.active)}
+                >
+                  <span class="dreams__phase-toggle-dot"></span>
+                  <span class="dreams__phase-toggle-label">
+                    ${props.active ? t("dreaming.header.on") : t("dreaming.header.off")}
+                  </span>
+                </button>
+              `
+            : nothing}
+        </div>
       </nav>
 
       ${_subTab === "scene"

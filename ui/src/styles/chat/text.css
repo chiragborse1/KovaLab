@@ -19,8 +19,13 @@
 }
 
 .chat-text {
+  font-family: var(--font-body);
   font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
   line-height: 1.5;
+  text-transform: none;
+  color: var(--chat-text);
   word-wrap: break-word;
   overflow-wrap: break-word;
 }

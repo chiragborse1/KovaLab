@@ -32,8 +32,8 @@ describe("chat layout styles", () => {
   it("keeps the chat composer compact without an internal divider", () => {
     const css = readLayoutCss();
 
-    expect(css).toContain("width: min(calc(100% - 36px), 980px);");
-    expect(css).toContain("min-height: 52px;");
+    expect(css).toContain("width: min(calc(100% - 30px), 1040px);");
+    expect(css).toContain("min-height: 64px;");
     expect(css).not.toContain(
       ".agent-chat__toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 6px 10px;\n  border-top:",
     );

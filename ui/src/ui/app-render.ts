@@ -2489,6 +2489,7 @@ export function renderApp(state: AppViewState) {
               onResetDiary: () => resetDreamDiary(state),
               onResetGroundedShortTerm: () => resetGroundedShortTerm(state),
               onRepairDreamingArtifacts: () => repairDreamingArtifacts(state),
+              onToggleEnabled: applyDreamingEnabled,
               onRequestUpdate: requestHostUpdate,
             })
           : nothing}

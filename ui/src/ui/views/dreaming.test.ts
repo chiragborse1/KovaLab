@@ -199,7 +199,10 @@ function renderInto(props: DreamingProps): HTMLDivElement {
 
 describe("dreaming view", () => {
   it("renders the active dream scene chrome and status", () => {
-    const container = renderInto(buildProps({ dreamingOf: "reindexing old chats\u2026" }));
+    const onToggleEnabled = vi.fn();
+    const container = renderInto(
+      buildProps({ dreamingOf: "reindexing old chats\u2026", onToggleEnabled }),
+    );
 
     const mascot = container.querySelector(".dreams__mascot img");
     expect(mascot).not.toBeNull();
@@ -238,6 +241,11 @@ describe("dreaming view", () => {
     expect(tabs[0]?.textContent).toContain("Scene");
     expect(tabs[1]?.textContent).toContain("Diary");
     expect(tabs[2]?.textContent).toContain("Advanced");
+
+    const toggle = container.querySelector<HTMLButtonElement>(".dreams__phase-toggle");
+    expect(toggle?.textContent).toContain("On");
+    toggle?.click();
+    expect(onToggleEnabled).toHaveBeenCalledWith(false);
   });
 
   it("renders idle and unavailable scene states", () => {
