@@ -154,12 +154,12 @@ export const sessionStyles = html`
 
     .sessions-list {
       display: grid;
-      gap: 12px;
+      gap: 8px;
     }
 
     .session-group {
       display: grid;
-      gap: 8px;
+      gap: 5px;
     }
 
     .session-group-header {
@@ -223,9 +223,9 @@ export const sessionStyles = html`
     .session-override-chip,
     .session-status-badge {
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 2px 6px;
     }
 
     .session-kind-badge {
@@ -262,38 +262,34 @@ export const sessionStyles = html`
     .session-row {
       position: relative;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) 132px;
-      gap: 12px;
+      grid-template-columns: auto minmax(0, 1fr) 112px;
+      gap: 10px;
       align-items: center;
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-radius: 8px;
       background: color-mix(in srgb, var(--card) 94%, transparent);
-      min-height: 64px;
-      padding: 12px 16px;
+      min-height: 52px;
+      padding: 8px 12px;
       transition:
         border-color 150ms ease,
-        background 150ms ease,
-        transform 150ms ease,
-        box-shadow 150ms ease;
+        background 150ms ease;
     }
 
     .session-row:hover {
       border-color: var(--border-strong);
       background: color-mix(in srgb, var(--card) 84%, var(--muted) 16%);
-      transform: translateY(-1px);
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
     }
 
     .session-row-left {
       display: grid;
-      grid-template-columns: auto 48px;
-      gap: 10px;
+      grid-template-columns: auto 40px;
+      gap: 8px;
       align-items: center;
     }
 
     .session-source-mark {
       display: grid;
-      gap: 3px;
+      gap: 2px;
       justify-items: center;
       color: var(--text);
     }
@@ -301,16 +297,16 @@ export const sessionStyles = html`
     .session-source-icon {
       display: grid;
       place-items: center;
-      width: 32px;
-      height: 32px;
+      width: 26px;
+      height: 26px;
       border-radius: 999px;
       border: 1px solid var(--border);
       background: color-mix(in srgb, var(--card) 70%, black 30%);
     }
 
     .session-source-icon svg {
-      width: 16px;
-      height: 16px;
+      width: 13px;
+      height: 13px;
       fill: none;
       stroke: currentColor;
       stroke-width: 2;
@@ -387,7 +383,7 @@ export const sessionStyles = html`
     .session-main {
       min-width: 0;
       display: grid;
-      gap: 5px;
+      gap: 3px;
     }
 
     .session-title-btn {
@@ -398,7 +394,7 @@ export const sessionStyles = html`
       text-align: left;
       font: inherit;
       font-weight: 760;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -409,10 +405,10 @@ export const sessionStyles = html`
     .session-secondary {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .session-secondary .mono {
@@ -434,16 +430,16 @@ export const sessionStyles = html`
     .sessions-icon-btn {
       display: inline-grid;
       place-items: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
       padding: 0;
       cursor: pointer;
     }
 
     .sessions-icon-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       fill: none;
       stroke: currentColor;
       stroke-width: 2;
@@ -484,7 +480,7 @@ export const sessionStyles = html`
 
     .session-row-actions {
       position: absolute;
-      right: 12px;
+      right: 10px;
       top: 50%;
       z-index: 2;
       display: flex;
@@ -505,9 +501,9 @@ export const sessionStyles = html`
     .session-meta {
       display: grid;
       justify-items: end;
-      gap: 6px;
+      gap: 4px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       transition: opacity 150ms ease;
     }
 
@@ -517,9 +513,9 @@ export const sessionStyles = html`
     }
 
     .session-token-bar {
-      width: 120px;
+      width: 104px;
       display: grid;
-      gap: 4px;
+      gap: 3px;
       text-align: right;
     }
 

@@ -760,9 +760,9 @@ textarea {
     .usage-insight-card,
     .ov-card
   ) {
-  background-color: color-mix(in srgb, var(--k-control-bg) 72%, var(--k-bg) 28%) !important;
-  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 72%, var(--k-bg) 28%) !important;
-  border-radius: 6px !important;
+  background-color: color-mix(in srgb, var(--k-control-bg) 56%, var(--k-bg) 44%) !important;
+  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 62%, var(--k-bg) 38%) !important;
+  border-radius: 4px !important;
 }
 
 .kova-detail-pane
