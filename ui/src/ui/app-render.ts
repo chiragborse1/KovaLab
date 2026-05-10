@@ -7,12 +7,8 @@ import { renderUsageTab } from "./app-render-usage-tab.ts";
 import {
   renderChatControls,
   renderChatModelThinkingControls,
-  renderChatMobileToggle,
   renderChatSessionSelect,
-  renderTab,
   resolveAssistantAttachmentAuthToken,
-  renderSidebarConnectionStatus,
-  renderTopbarThemeModeToggle,
   switchChatSession,
 } from "./app-render.helpers.ts";
 import { warnQueryToken } from "./app-settings.ts";
@@ -115,10 +111,11 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
-import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
+import { renderKovaBadge } from "./kova/primitives.ts";
+import { renderKovaListItem, renderKovaListPane, renderKovaShell } from "./kova/shell.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import { normalizeBasePath, subtitleForTab, titleForTab } from "./navigation.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import {
   buildAgentMainSessionKey,
@@ -127,7 +124,6 @@ import {
 } from "./session-key.ts";
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { isRenderableControlUiAvatarUrl } from "./views/agents-utils.ts";
-import { agentLogoUrl } from "./views/agents-utils.ts";
 import {
   resolveAgentConfig,
   resolveConfiguredCronModelSuggestions,
@@ -616,6 +612,236 @@ function renderCronQuickCreateForTab(
   });
 }
 
+function renderKovaAppListPane(
+  state: AppViewState,
+  options: {
+    resolvedAgentId: string | null;
+    onSelectAgent: (agentId: string) => void;
+    onOpenSessionChat: (sessionKey: string) => void;
+    onNavigate: (tab: import("./navigation.ts").Tab) => void;
+  },
+) {
+  const tabTitle = titleForTab(state.tab);
+  switch (state.tab) {
+    case "overview":
+      return renderKovaListPane({
+        title: "Dashboard",
+        count: null,
+        body: html`
+          <div class="kova-section-title">System Status</div>
+          ${renderKovaListItem({
+            title: "Gateway",
+            secondary: state.connected ? "Local websocket connected" : "Disconnected",
+            meta: state.connected ? "Running" : "Down",
+            dot: state.connected ? "live" : "error",
+            selected: true,
+          })}
+          ${renderKovaListItem({
+            title: "Sessions",
+            secondary: `${state.sessionsResult?.count ?? 0} active sessions`,
+            meta: "Live",
+            dot: "live",
+          })}
+          ${renderKovaListItem({
+            title: "Models",
+            secondary: `${state.chatModelCatalog?.length ?? 0} configured entries`,
+            meta: "Auth",
+            dot: state.modelAuthStatusResult ? "live" : "idle",
+          })}
+          <div class="kova-section-title">Quick Navigation</div>
+          ${(["agents", "sessions", "tasks", "dreams"] as const).map((tab) =>
+            renderKovaListItem({
+              title: titleForTab(tab),
+              secondary: "Open surface",
+              meta: "→",
+              dot: tab === state.tab ? "live" : "dead",
+              onClick: () => options.onNavigate(tab),
+            }),
+          )}
+        `,
+      });
+    case "agents": {
+      const agents = state.agentsList?.agents ?? [];
+      return renderKovaListPane({
+        title: "Agents",
+        count: agents.length,
+        filters: ["All", "Active"],
+        activeFilter: "All",
+        body: html`${agents.map((agent) =>
+          renderKovaListItem({
+            title: agent.name ?? agent.identity?.name ?? agent.id,
+            secondary: agent.workspace ?? "No workspace",
+            meta: agent.model?.primary ?? "Default",
+            dot: "live",
+            selected: agent.id === options.resolvedAgentId,
+            badges: [
+              renderKovaBadge(agent.id === state.agentsList?.defaultId ? "Default" : "Agent"),
+            ],
+            onClick: () => options.onSelectAgent(agent.id),
+          }),
+        )}`,
+      });
+    }
+    case "sessions": {
+      const sessions = state.sessionsResult?.sessions ?? [];
+      return renderKovaListPane({
+        title: "Sessions",
+        count: sessions.length,
+        filters: ["All", "Direct", "Telegram", "Cron"],
+        activeFilter: "All",
+        body: html`${sessions.slice(0, 80).map((session) =>
+          renderKovaListItem({
+            title: deriveKovaSessionTitle(session.key, session.label ?? null),
+            secondary: session.key,
+            meta: formatRelativeTime(session.updatedAt),
+            dot: deriveKovaSessionDot(session.updatedAt),
+            selected: session.key === state.sessionKey,
+            badges: [
+              renderKovaBadge(session.channel ?? session.surface ?? session.kind ?? "direct"),
+              session.model ? renderKovaBadge(session.model) : renderKovaBadge("default"),
+            ],
+            onClick: () => options.onOpenSessionChat(session.key),
+          }),
+        )}`,
+      });
+    }
+    case "tasks":
+      return renderKovaListPane({
+        title: "Tasks",
+        count: null,
+        filters: ["All", "Queued", "Running", "Completed", "Failed", "Needs Approval"],
+        activeFilter: "All",
+        body: html`
+          ${renderKovaListItem({
+            title: "Execution queue",
+            secondary: "Tracked gateway tasks and agent runs",
+            meta: "Open",
+            dot: "running",
+            selected: true,
+          })}
+          ${renderKovaListItem({
+            title: "Approvals",
+            secondary: "Human-in-the-loop waits",
+            meta: "Review",
+            dot: "idle",
+          })}
+        `,
+      });
+    case "cron":
+      return renderKovaListPane({
+        title: "Jobs",
+        count: state.cronJobs.length,
+        filters: ["All", "Enabled", "Paused"],
+        activeFilter: "All",
+        body: html`${state.cronJobs.map((job) =>
+          renderKovaListItem({
+            title: job.name || job.id,
+            secondary: job.schedule?.kind ?? "Schedule",
+            meta: job.enabled === false ? "Paused" : "Enabled",
+            dot: job.enabled === false ? "idle" : "live",
+          }),
+        )}`,
+      });
+    case "skills": {
+      const skills = state.skillsReport?.skills ?? [];
+      return renderKovaListPane({
+        title: "Skills",
+        count: skills.length,
+        filters: ["All", "Enabled", "Blocked"],
+        activeFilter: "All",
+        body: html`${skills.slice(0, 120).map((skill) =>
+          renderKovaListItem({
+            title: skill.name,
+            secondary: skill.description ?? "Skill",
+            meta: skill.disabled ? "Off" : "On",
+            dot: skill.disabled ? "dead" : skill.eligible ? "live" : "idle",
+            badges: [
+              renderKovaBadge(
+                String(skill.source ?? "kova-bundled")
+                  .replaceAll("openclaw-bundled", "kova-bundled")
+                  .replaceAll("openclaw-extra", "kova-extra"),
+              ),
+            ],
+          }),
+        )}`,
+      });
+    }
+    default:
+      return renderKovaListPane({
+        title: tabTitle,
+        count: null,
+        body: html`
+          ${renderKovaListItem({
+            title: tabTitle,
+            secondary: subtitleForTab(state.tab),
+            meta: "Selected",
+            dot: "live",
+            selected: true,
+          })}
+        `,
+      });
+  }
+}
+
+function deriveKovaSessionTitle(key: string, label: string | null): string {
+  if (label?.trim()) {
+    return label.trim();
+  }
+  if (key === "agent:main:main") {
+    return "Main Session";
+  }
+  if (key.includes(":telegram:")) {
+    const target = key.split(":").at(-1) ?? "unknown";
+    return `Telegram · @${target}`;
+  }
+  if (key.includes(":cron:")) {
+    return "Cron Job";
+  }
+  if (key.includes("dreaming-narrative-rem")) {
+    return "Memory Dream · rem";
+  }
+  if (key.includes("dreaming-narrative-light")) {
+    return "Memory Dream · light";
+  }
+  if (key.includes(":tui-")) {
+    return "TUI Session";
+  }
+  return key.split(":").at(-1)?.slice(0, 40) || key.slice(0, 40);
+}
+
+function deriveKovaSessionDot(updatedAt: number | null | undefined): "live" | "idle" | "dead" {
+  if (!updatedAt) {
+    return "dead";
+  }
+  const ageMs = Date.now() - updatedAt;
+  if (ageMs < 60 * 60 * 1000) {
+    return "live";
+  }
+  if (ageMs < 24 * 60 * 60 * 1000) {
+    return "idle";
+  }
+  return "dead";
+}
+
+function formatRelativeTime(value: number | null | undefined): string {
+  if (!value) {
+    return "n/a";
+  }
+  const ageMs = Math.max(0, Date.now() - value);
+  const minutes = Math.floor(ageMs / 60_000);
+  if (minutes < 1) {
+    return "now";
+  }
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+  return `${Math.floor(hours / 24)}d`;
+}
+
 export function renderApp(state: AppViewState) {
   const updatableState = state as AppViewState & { requestUpdate?: () => void };
   const requestHostUpdate =
@@ -635,10 +861,7 @@ export function renderApp(state: AppViewState) {
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
-  const isSkills = state.tab === "skills";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
-  const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
-  const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
@@ -769,7 +992,6 @@ export function renderApp(state: AppViewState) {
       }
     })();
   };
-  const basePath = normalizeBasePath(state.basePath ?? "");
   const resolveSelectedAgentId = () =>
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
@@ -1320,201 +1542,46 @@ export function renderApp(state: AppViewState) {
         state.handleChatDraftChange(cmd.endsWith(" ") ? cmd : `${cmd} `);
       },
     })}
-    <div
-      class="shell ${isChat ? "shell--chat" : ""} ${chatFocus
-        ? "shell--chat-focus"
-        : ""} ${navCollapsed ? "shell--nav-collapsed" : ""} ${navDrawerOpen
-        ? "shell--nav-drawer-open"
-        : ""} ${state.onboarding ? "shell--onboarding" : ""}"
-    >
-      <button
-        type="button"
-        class="shell-nav-backdrop"
-        aria-label="${t("nav.collapse")}"
-        @click=${() => {
-          state.navDrawerOpen = false;
-        }}
-      ></button>
-      <header class="topbar">
-        <div class="topnav-shell">
-          <button
-            type="button"
-            class="topbar-nav-toggle"
-            @click=${() => {
-              state.navDrawerOpen = !navDrawerOpen;
-            }}
-            title="${navDrawerOpen ? t("nav.collapse") : t("nav.expand")}"
-            aria-label="${navDrawerOpen ? t("nav.collapse") : t("nav.expand")}"
-            aria-expanded=${navDrawerOpen}
-          >
-            <span class="nav-collapse-toggle__icon" aria-hidden="true">${icons.menu}</span>
-          </button>
-          <div class="topnav-shell__content"></div>
-          <div class="topnav-shell__actions">
-            <button
-              class="topbar-search"
-              @click=${() => {
-                state.paletteOpen = !state.paletteOpen;
-              }}
-              title="Search or jump to… (⌘K)"
-              aria-label="Open command palette"
-            >
-              <span class="topbar-search__label">${t("common.search")}</span>
-              <kbd class="topbar-search__kbd">⌘K</kbd>
-            </button>
-            <div class="topbar-status">
-              ${isChat ? renderChatMobileToggle(state) : nothing}
-              ${renderTopbarThemeModeToggle(state)}
-            </div>
-          </div>
-        </div>
-      </header>
-      <div class="shell-nav">
-        <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
-          <div class="sidebar-shell">
-            <div class="sidebar-shell__header">
-              <div class="sidebar-menu-header">
-                ${!navCollapsed
-                  ? html`
-                      <span class="sidebar-menu-header__brand">
-                        <img
-                          class="sidebar-menu-header__logo"
-                          src="${agentLogoUrl(basePath)}"
-                          alt=""
-                        />
-                        <span class="sidebar-menu-header__label">Kova Forge</span>
-                      </span>
-                    `
-                  : nothing}
-                <button
-                  type="button"
-                  class="nav-collapse-toggle"
-                  @click=${() =>
-                    state.applySettings({
-                      ...state.settings,
-                      navCollapsed: !state.settings.navCollapsed,
-                    })}
-                  title="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
-                  aria-label="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
-                >
-                  <span class="nav-collapse-toggle__icon" aria-hidden="true"
-                    >${navCollapsed ? icons.chevronRight : icons.chevronLeft}</span
-                  >
-                </button>
-              </div>
-            </div>
-            <div class="sidebar-shell__body">
-              <nav class="sidebar-nav">
-                <section class="nav-section nav-section--standalone">
-                  <div class="nav-section__items">
-                    ${renderTab(state, "chat", { collapsed: navCollapsed })}
-                  </div>
-                </section>
-                ${TAB_GROUPS.map((group) => {
-                  const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
-                  const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
-                  const showItems = navCollapsed || hasActiveTab || !isGroupCollapsed;
-
-                  return html`
-                    <section class="nav-section ${!showItems ? "nav-section--collapsed" : ""}">
-                      ${!navCollapsed
-                        ? html`
-                            <button
-                              class="nav-section__label"
-                              @click=${() => {
-                                const next = { ...state.settings.navGroupsCollapsed };
-                                next[group.label] = !isGroupCollapsed;
-                                state.applySettings({
-                                  ...state.settings,
-                                  navGroupsCollapsed: next,
-                                });
-                              }}
-                              aria-expanded=${showItems}
-                            >
-                              <span class="nav-section__label-text"
-                                >${t(`nav.${group.label}`)}</span
-                              >
-                              <span class="nav-section__chevron"> ${icons.chevronDown} </span>
-                            </button>
-                          `
-                        : nothing}
-                      <div class="nav-section__items">
-                        ${group.tabs.map((tab) =>
-                          renderTab(state, tab, { collapsed: navCollapsed }),
-                        )}
-                      </div>
-                    </section>
-                  `;
-                })}
-              </nav>
-            </div>
-            <div class="sidebar-shell__footer">
-              <div class="sidebar-utility-group">
-                ${(() => {
-                  const version = state.hello?.server?.version ?? "";
-                  return navCollapsed
-                    ? html`
-                        <a
-                          class="sidebar-brand sidebar-brand--footer sidebar-brand--compact-link sidebar-utility-link"
-                          href="https://docs.neuralstudio.in"
-                          target=${EXTERNAL_LINK_TARGET}
-                          rel=${buildExternalLinkRel()}
-                          title="${t("common.docs")} (opens in new tab)"
-                        >
-                          <img
-                            class="sidebar-brand__logo"
-                            src="${agentLogoUrl(basePath)}"
-                            alt="Kova"
-                          />
-                          ${renderSidebarConnectionStatus(state)}
-                        </a>
-                      `
-                    : html`
-                        <div
-                          class="sidebar-brand sidebar-brand--footer"
-                          title=${version ? `Kova v${version}` : "Kova"}
-                        >
-                          <span class="sidebar-brand__mark">
-                            <img
-                              class="sidebar-brand__logo"
-                              src="${agentLogoUrl(basePath)}"
-                              alt="Kova"
-                            />
-                          </span>
-                          <span class="sidebar-brand__copy">
-                            <span class="sidebar-brand__title">Kova</span>
-                            ${version
-                              ? html`
-                                  <span class="sidebar-brand__version">
-                                    <span>${t("common.version")}</span>
-                                    <strong>v${version}</strong>
-                                  </span>
-                                `
-                              : nothing}
-                            <span class="sidebar-brand__footer-row">
-                              <a
-                                class="sidebar-brand__docs sidebar-utility-link"
-                                href="https://docs.neuralstudio.in"
-                                target=${EXTERNAL_LINK_TARGET}
-                                rel=${buildExternalLinkRel()}
-                                title="${t("common.docs")} (opens in new tab)"
-                              >
-                                <span>${t("common.docs")}</span>
-                              </a>
-                              <span class="sidebar-brand__surface">Web UI</span>
-                            </span>
-                          </span>
-                          ${renderSidebarConnectionStatus(state)}
-                        </div>
-                      `;
-                })()}
-                <div class="sidebar-mode-switch">${renderTopbarThemeModeToggle(state)}</div>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </div>
-      <main class="content ${isChat ? "content--chat" : ""} ${isSkills ? "content--skills" : ""}">
+    ${renderKovaShell({
+      activeTab: state.tab,
+      connected: state.connected,
+      gatewayUrl: state.settings.gatewayUrl,
+      version: state.hello?.server?.version ?? "",
+      sessionsCount,
+      onSearch: () => {
+        state.paletteOpen = !state.paletteOpen;
+      },
+      onNavigate: (tab) => {
+        if (tab === "agents") {
+          state.agentsDetailOpen = false;
+        }
+        state.setTab(tab);
+      },
+      listPane: renderKovaAppListPane(state, {
+        resolvedAgentId,
+        onSelectAgent: (agentId) => {
+          if (state.agentsSelectedId !== agentId) {
+            state.agentsSelectedId = agentId;
+            state.agentsDetailOpen = true;
+            resetAgentSelectionPanelState();
+            void loadAgentIdentity(state, agentId);
+            loadAgentPanelDataForSelectedAgent(agentId);
+          } else {
+            state.agentsDetailOpen = true;
+          }
+        },
+        onOpenSessionChat: (sessionKey) => {
+          switchChatSession(state, sessionKey);
+          state.setTab("chat");
+        },
+        onNavigate: (tab) => {
+          if (tab === "agents") {
+            state.agentsDetailOpen = false;
+          }
+          state.setTab(tab);
+        },
+      }),
+      content: html`
         ${state.updateStatusBanner
           ? html`<div class="callout ${state.updateStatusBanner.tone}" role="alert">
               ${state.updateStatusBanner.text}
@@ -2671,16 +2738,16 @@ export function renderApp(state: AppViewState) {
               onRequestUpdate: requestHostUpdate,
             })
           : nothing}
-      </main>
-      ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}
-      ${renderDreamingRestartConfirmation({
-        open: state.dreamingRestartConfirmOpen,
-        loading: state.dreamingRestartConfirmLoading,
-        onConfirm: confirmDreamingRestart,
-        onCancel: cancelDreamingRestart,
-        hasError: Boolean(state.dreamingStatusError),
-      })}
-      ${nothing}
-    </div>
+      `,
+    })}
+    ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}
+    ${renderDreamingRestartConfirmation({
+      open: state.dreamingRestartConfirmOpen,
+      loading: state.dreamingRestartConfirmLoading,
+      onConfirm: confirmDreamingRestart,
+      onCancel: cancelDreamingRestart,
+      hasError: Boolean(state.dreamingStatusError),
+    })}
+    ${nothing}
   `;
 }
