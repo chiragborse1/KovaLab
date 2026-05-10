@@ -345,23 +345,17 @@ textarea {
 }
 
 .kova-nav-item__icon {
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--k-rule-strong);
-  background: var(--k-control-bg) !important;
+  width: 14px;
+  height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  transition:
-    background 100ms ease,
-    border-color 100ms ease,
-    color 100ms ease;
 }
 
 .kova-nav-item__icon svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5px;
@@ -378,19 +372,10 @@ textarea {
   color: var(--k-text-1);
 }
 
-.kova-nav-item:hover .kova-nav-item__icon {
-  background: var(--k-control-bg-hover) !important;
-  border-color: var(--k-text-3);
-}
-
 .kova-nav-item--active {
   border-left-color: var(--k-accent);
   color: var(--k-accent);
   font-weight: 500;
-}
-
-.kova-nav-item--active .kova-nav-item__icon {
-  border-color: var(--k-accent);
 }
 
 .kova-sidebar__status {
