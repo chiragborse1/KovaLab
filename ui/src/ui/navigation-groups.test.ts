@@ -5,15 +5,7 @@ describe("TAB_GROUPS", () => {
   it("publishes the focused main and knowledge menus", () => {
     const main = TAB_GROUPS.find((group) => group.label === "main");
     const knowledge = TAB_GROUPS.find((group) => group.label === "knowledge");
-    expect(main?.tabs).toEqual([
-      "overview",
-      "agents",
-      "cron",
-      "tasks",
-      "conductor",
-      "operations",
-      "sessions",
-    ]);
+    expect(main?.tabs).toEqual(["overview", "agents", "cron", "tasks", "sessions"]);
     expect(knowledge?.tabs).toEqual(["dreams", "skills", "mcp"]);
   });
 

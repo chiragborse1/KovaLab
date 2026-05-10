@@ -318,12 +318,40 @@ export const sessionStyles = html`
       stroke-linejoin: round;
     }
 
+    .session-source-label-row {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
     .session-source-label {
       font-size: 8px;
       font-weight: 800;
       letter-spacing: 0.12em;
       color: var(--muted);
       text-transform: uppercase;
+    }
+
+    .session-source-chat {
+      border-left: 1px solid color-mix(in srgb, var(--muted) 28%, transparent);
+      color: var(--accent);
+      font-size: 8px;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      line-height: 1;
+      padding-left: 5px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .session-source-chat:hover,
+    .session-source-chat:focus-visible {
+      color: var(--accent-hover);
+      outline: none;
+      text-decoration: underline;
+      text-underline-offset: 2px;
     }
 
     .source-direct {
