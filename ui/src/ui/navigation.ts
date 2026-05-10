@@ -17,7 +17,6 @@ export const TAB_GROUPS = [
       "instances",
       "nodes",
       "usage",
-      "appearance",
       "automation",
       "infrastructure",
       "aiAgents",
