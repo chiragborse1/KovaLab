@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync(path.join(process.cwd(), "ui/src/styles/config-quick.css"), "utf8");
+const uiRoot = process.cwd().endsWith(`${path.sep}ui`)
+  ? process.cwd()
+  : path.join(process.cwd(), "ui");
+const css = readFileSync(path.join(uiRoot, "src/styles/config-quick.css"), "utf8");
 
 describe("config-quick styles", () => {
   it("includes the local user identity quick-settings styles", () => {
@@ -43,5 +46,11 @@ describe("config-quick styles", () => {
 
   it("avoids transition-all in the quick settings surface", () => {
     expect(css).not.toContain("transition: all");
+  });
+
+  it("uses the success token for enabled toggle state", () => {
+    expect(css).toContain(".qs-toggle input:checked + .qs-toggle__track");
+    expect(css).toContain("background: var(--ok);");
+    expect(css).toContain("border-color: var(--ok);");
   });
 });

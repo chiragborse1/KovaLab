@@ -606,7 +606,7 @@
 }
 
 .skill-toggle:checked {
-  background: var(--accent);
+  background: var(--ok);
 }
 
 .skill-toggle:checked::after {

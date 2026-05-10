@@ -466,12 +466,24 @@ export function applyBorderRadius(value: number) {
   }
   const root = document.documentElement;
   const scale = value / 50;
-  root.style.setProperty("--radius-sm", `${Math.round(BASE_RADII.sm * scale)}px`);
-  root.style.setProperty("--radius-md", `${Math.round(BASE_RADII.md * scale)}px`);
-  root.style.setProperty("--radius-lg", `${Math.round(BASE_RADII.lg * scale)}px`);
-  root.style.setProperty("--radius-xl", `${Math.round(BASE_RADII.xl * scale)}px`);
-  root.style.setProperty("--radius-full", `${Math.round(BASE_RADII.full * scale)}px`);
-  root.style.setProperty("--radius", `${Math.round(BASE_RADII.default * scale)}px`);
+  const sm = `${Math.round(BASE_RADII.sm * scale)}px`;
+  const md = `${Math.round(BASE_RADII.md * scale)}px`;
+  const lg = `${Math.round(BASE_RADII.lg * scale)}px`;
+  const xl = `${Math.round(BASE_RADII.xl * scale)}px`;
+  const full = `${Math.round(BASE_RADII.full * scale)}px`;
+  const base = `${Math.round(BASE_RADII.default * scale)}px`;
+  root.style.setProperty("--radius-sm", sm);
+  root.style.setProperty("--radius-md", md);
+  root.style.setProperty("--radius-lg", lg);
+  root.style.setProperty("--radius-xl", xl);
+  root.style.setProperty("--radius-full", full);
+  root.style.setProperty("--radius", base);
+  root.style.setProperty("--k-radius-sm", sm);
+  root.style.setProperty("--k-radius-md", md);
+  root.style.setProperty("--k-radius-lg", lg);
+  root.style.setProperty("--k-radius-xl", xl);
+  root.style.setProperty("--k-radius-full", full);
+  root.style.setProperty("--k-radius", base);
 }
 
 export function applyResolvedTheme(host: SettingsHost, resolved: ResolvedTheme) {

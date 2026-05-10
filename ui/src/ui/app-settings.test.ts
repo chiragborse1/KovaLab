@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStorageMock } from "../test-helpers/storage.ts";
 import {
+  applyBorderRadius,
   applyResolvedTheme,
   applySettings,
   applySettingsFromUrl,
@@ -372,6 +373,22 @@ describe("setTabFromRoute", () => {
     expect(host.themeResolved).toBe("custom-light");
     expect(root.dataset.theme).toBe("custom-light");
     expect(root.style.colorScheme).toBe("light");
+  });
+
+  it("applies border radius settings to legacy and kova shell tokens", () => {
+    const setProperty = vi.fn();
+    vi.stubGlobal("document", {
+      documentElement: { style: { setProperty } },
+    } as unknown as Document);
+
+    applyBorderRadius(25);
+
+    expect(setProperty).toHaveBeenCalledWith("--radius-sm", "3px");
+    expect(setProperty).toHaveBeenCalledWith("--radius-md", "5px");
+    expect(setProperty).toHaveBeenCalledWith("--radius-full", "5000px");
+    expect(setProperty).toHaveBeenCalledWith("--k-radius-sm", "3px");
+    expect(setProperty).toHaveBeenCalledWith("--k-radius-md", "5px");
+    expect(setProperty).toHaveBeenCalledWith("--k-radius-full", "5000px");
   });
 });
 

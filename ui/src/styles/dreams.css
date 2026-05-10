@@ -393,7 +393,8 @@
 
 .dreams__phase-toggle--on {
   color: var(--text);
-  border-color: color-mix(in oklab, var(--ok) 20%, var(--border));
+  border-color: color-mix(in oklab, var(--ok) 46%, var(--border));
+  background: color-mix(in oklab, var(--ok-subtle) 78%, var(--panel));
 }
 
 .dreams__phase-toggle-label {
