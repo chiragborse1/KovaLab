@@ -705,6 +705,13 @@ textarea {
   min-height: 0;
 }
 
+.kova-detail-pane--chat,
+.kova-detail-pane--chat .kova-detail-pane__body,
+.kova-detail-pane--chat .chat,
+.kova-detail-pane--chat .chat-thread {
+  background-color: var(--k-bg) !important;
+}
+
 .kova-detail-pane--chat .agent-chat__input {
   flex: 0 0 auto;
   margin-bottom: 16px;
@@ -714,88 +721,6 @@ textarea {
 .kova-detail-pane:not(.kova-detail-pane--chat) .page-title,
 .kova-detail-pane:not(.kova-detail-pane--chat) .page-sub {
   display: none !important;
-}
-
-.kova-detail-pane :is(section, article, header, main, aside, div):not(
-    .card,
-    .panel,
-    .surface,
-    .callout,
-    .empty-state,
-    .metric-card,
-    .skill-card,
-    .agent-profile-card,
-    .agent-tool-card,
-    .task-card,
-    .template-card,
-    .sessions-meta-card,
-    .sessions-checkpoint-card,
-    .mcp-toggle-card,
-    .mcp-integration-card,
-    .config-scope-card,
-    .config-section-card,
-    .account-card,
-    .usage-summary-card,
-    .usage-insight-card,
-    .ov-card
-  ) {
-  background-color: transparent !important;
-}
-
-.kova-detail-pane
-  :is(
-    .card,
-    .panel,
-    .surface,
-    .callout,
-    .empty-state,
-    .metric-card,
-    .skill-card,
-    .agent-profile-card,
-    .agent-tool-card,
-    .task-card,
-    .template-card,
-    .sessions-meta-card,
-    .sessions-checkpoint-card,
-    .mcp-toggle-card,
-    .mcp-integration-card,
-    .config-scope-card,
-    .config-section-card,
-    .account-card,
-    .usage-summary-card,
-    .usage-insight-card,
-    .ov-card
-  ) {
-  background-color: color-mix(in srgb, var(--k-control-bg) 82%, var(--k-bg) 18%) !important;
-  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 85%, var(--k-bg) 15%) !important;
-  border-radius: var(--k-radius-sm, var(--radius-sm)) !important;
-}
-
-.kova-detail-pane
-  :is(
-    .card,
-    .panel,
-    .surface,
-    .callout,
-    .empty-state,
-    .metric-card,
-    .skill-card,
-    .agent-profile-card,
-    .agent-tool-card,
-    .task-card,
-    .template-card,
-    .sessions-meta-card,
-    .sessions-checkpoint-card,
-    .mcp-toggle-card,
-    .mcp-integration-card,
-    .config-scope-card,
-    .config-section-card,
-    .account-card,
-    .usage-summary-card,
-    .usage-insight-card,
-    .ov-card
-  ):hover {
-  border-color: var(--k-rule-strong) !important;
 }
 
 .kova-detail-header {
