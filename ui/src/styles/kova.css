@@ -760,9 +760,9 @@ textarea {
     .usage-insight-card,
     .ov-card
   ) {
-  background-color: var(--k-control-bg) !important;
-  border: 1px solid var(--k-rule-strong) !important;
-  border-radius: 10px !important;
+  background-color: color-mix(in srgb, var(--k-control-bg) 72%, var(--k-bg) 28%) !important;
+  border: 1px solid color-mix(in srgb, var(--k-rule-strong) 72%, var(--k-bg) 28%) !important;
+  border-radius: 6px !important;
 }
 
 .kova-detail-pane
@@ -789,7 +789,7 @@ textarea {
     .usage-insight-card,
     .ov-card
   ):hover {
-  border-color: color-mix(in srgb, var(--k-rule-strong) 72%, var(--k-text-3) 28%) !important;
+  border-color: var(--k-rule-strong) !important;
 }
 
 .kova-detail-header {
