@@ -304,6 +304,33 @@ export const icons = {
       <path d="M22 2 11 13" />
     </svg>
   `,
+  hash: html`
+    <svg viewBox="0 0 24 24">
+      <line x1="4" x2="20" y1="9" y2="9" />
+      <line x1="4" x2="20" y1="15" y2="15" />
+      <line x1="10" x2="8" y1="3" y2="21" />
+      <line x1="16" x2="14" y1="3" y2="21" />
+    </svg>
+  `,
+  clock: html`
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  `,
+  helpCircle: html`
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 1 1 5.83 1c-.5 1-1.5 1.5-2.4 2.12-.52.36-.52.88-.52 1.38" />
+      <path d="M12 17h.01" />
+    </svg>
+  `,
+  tag: html`
+    <svg viewBox="0 0 24 24">
+      <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z" />
+      <path d="M7 7h.01" />
+    </svg>
+  `,
   stop: html` <svg viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="1" /></svg> `,
   pin: html`
     <svg viewBox="0 0 24 24">

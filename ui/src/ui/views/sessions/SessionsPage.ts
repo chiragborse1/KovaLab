@@ -398,11 +398,12 @@ class KovaSessionsPage extends LitElement {
                 }
               }}
             />
-            <span>Select page</span>
           </label>
           <div class="sessions-filter-group">
             <button
-              class=${`sessions-pill ${this.props.sortColumn === "updated" ? "is-active" : ""}`}
+              class=${`sessions-sort-control ${
+                this.props.sortColumn === "updated" ? "is-active" : ""
+              }`}
               @click=${() =>
                 this.props.onSortChange(
                   "updated",
@@ -411,10 +412,14 @@ class KovaSessionsPage extends LitElement {
                     : "desc",
                 )}
             >
-              Updated ${this.props.sortColumn === "updated" ? this.props.sortDir : ""}
+              Updated
+              <span>${this.props.sortColumn === "updated" ? this.props.sortDir : ""}</span>
+              ${icons.arrowUpDown}
             </button>
             <button
-              class=${`sessions-pill ${this.props.sortColumn === "tokens" ? "is-active" : ""}`}
+              class=${`sessions-sort-control ${
+                this.props.sortColumn === "tokens" ? "is-active" : ""
+              }`}
               @click=${() =>
                 this.props.onSortChange(
                   "tokens",
@@ -423,7 +428,9 @@ class KovaSessionsPage extends LitElement {
                     : "desc",
                 )}
             >
-              Tokens ${this.props.sortColumn === "tokens" ? this.props.sortDir : ""}
+              Tokens
+              <span>${this.props.sortColumn === "tokens" ? this.props.sortDir : ""}</span>
+              ${icons.arrowUpDown}
             </button>
           </div>
         </div>

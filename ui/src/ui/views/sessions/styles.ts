@@ -104,6 +104,7 @@ export const sessionStyles = html`
 
     .sessions-pill,
     .sessions-icon-btn,
+    .sessions-sort-control,
     .sessions-tab,
     .sessions-link-btn {
       border: 1px solid var(--border);
@@ -167,22 +168,54 @@ export const sessionStyles = html`
       align-items: center;
       justify-content: space-between;
       border: 0;
-      border-radius: var(--radius-md);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
       background: transparent;
       color: var(--text);
-      padding: 7px 4px;
+      padding: 8px 2px 9px;
       cursor: pointer;
     }
 
     .session-group-header__left {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
       font-size: 12px;
       font-weight: 750;
       letter-spacing: 0.02em;
       text-transform: uppercase;
       color: var(--muted);
+    }
+
+    .session-group-chevron {
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      transition: transform 150ms ease;
+    }
+
+    .session-group-chevron.is-collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .session-group-chevron svg,
+    .session-group-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .session-group-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
     }
 
     .session-group-count,
@@ -195,9 +228,14 @@ export const sessionStyles = html`
       padding: 3px 8px;
     }
 
-    .session-group-count,
     .session-kind-badge {
       color: color-mix(in srgb, var(--text) 78%, var(--muted) 22%);
+      background: color-mix(in srgb, var(--muted) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+    }
+
+    .session-group-count {
+      color: var(--muted);
       background: color-mix(in srgb, var(--muted) 12%, transparent);
       border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
     }
@@ -222,14 +260,16 @@ export const sessionStyles = html`
     }
 
     .session-row {
+      position: relative;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) minmax(150px, 190px);
-      gap: 14px;
+      grid-template-columns: auto minmax(0, 1fr) 132px;
+      gap: 12px;
       align-items: center;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       background: color-mix(in srgb, var(--card) 94%, transparent);
-      padding: 14px;
+      min-height: 64px;
+      padding: 12px 16px;
       transition:
         border-color 150ms ease,
         background 150ms ease,
@@ -246,14 +286,14 @@ export const sessionStyles = html`
 
     .session-row-left {
       display: grid;
-      grid-template-columns: auto 52px;
-      gap: 12px;
+      grid-template-columns: auto 48px;
+      gap: 10px;
       align-items: center;
     }
 
     .session-source-mark {
       display: grid;
-      gap: 4px;
+      gap: 3px;
       justify-items: center;
       color: var(--text);
     }
@@ -261,28 +301,65 @@ export const sessionStyles = html`
     .session-source-icon {
       display: grid;
       place-items: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
       border: 1px solid var(--border);
       background: color-mix(in srgb, var(--card) 70%, black 30%);
     }
 
     .session-source-icon svg {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .session-source-label {
-      font-size: 10px;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
       color: var(--muted);
-      text-transform: lowercase;
+      text-transform: uppercase;
+    }
+
+    .source-direct {
+      color: #60a5fa;
+      background: color-mix(in srgb, #3b82f6 14%, transparent);
+      border-color: color-mix(in srgb, #3b82f6 28%, transparent);
+    }
+
+    .source-telegram {
+      color: #38bdf8;
+      background: color-mix(in srgb, #0ea5e9 14%, transparent);
+      border-color: color-mix(in srgb, #0ea5e9 28%, transparent);
+    }
+
+    .source-discord {
+      color: #a78bfa;
+      background: color-mix(in srgb, #8b5cf6 14%, transparent);
+      border-color: color-mix(in srgb, #8b5cf6 28%, transparent);
+    }
+
+    .source-cron {
+      color: #818cf8;
+      background: color-mix(in srgb, #6366f1 14%, transparent);
+      border-color: color-mix(in srgb, #6366f1 28%, transparent);
+    }
+
+    .source-other {
+      color: var(--muted);
+      background: color-mix(in srgb, var(--muted) 12%, transparent);
+      border-color: color-mix(in srgb, var(--muted) 22%, transparent);
     }
 
     .session-main {
       min-width: 0;
       display: grid;
-      gap: 7px;
+      gap: 5px;
     }
 
     .session-title-btn {
@@ -339,6 +416,24 @@ export const sessionStyles = html`
     .sessions-icon-btn svg {
       width: 16px;
       height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .session-secondary > .sessions-icon-btn {
+      width: 24px;
+      height: 24px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .session-row:hover .session-secondary > .sessions-icon-btn,
+    .session-row:focus-within .session-secondary > .sessions-icon-btn {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .sessions-link-btn {
@@ -360,6 +455,14 @@ export const sessionStyles = html`
     }
 
     .session-row-actions {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transform: translateY(-50%);
       opacity: 0;
       pointer-events: none;
       transition: opacity 150ms ease;
@@ -374,19 +477,26 @@ export const sessionStyles = html`
     .session-meta {
       display: grid;
       justify-items: end;
-      gap: 8px;
+      gap: 6px;
       color: var(--muted);
       font-size: 12px;
+      transition: opacity 150ms ease;
+    }
+
+    .session-row:hover .session-meta,
+    .session-row:focus-within .session-meta {
+      opacity: 0;
     }
 
     .session-token-bar {
       width: 120px;
       display: grid;
       gap: 4px;
+      text-align: right;
     }
 
     .session-token-track {
-      height: 6px;
+      height: 3px;
       overflow: hidden;
       border-radius: 999px;
       background: color-mix(in srgb, var(--muted) 13%, transparent);
@@ -412,6 +522,71 @@ export const sessionStyles = html`
 
     .session-updated.recent {
       color: #f59e0b;
+    }
+
+    .session-updated-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .session-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--muted);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--muted) 14%, transparent);
+    }
+
+    .session-status-dot.active {
+      background: #22c55e;
+      box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 14%, transparent);
+    }
+
+    .session-status-dot.idle {
+      background: #f59e0b;
+      box-shadow: 0 0 0 3px color-mix(in srgb, #f59e0b 14%, transparent);
+    }
+
+    .session-status-dot.stale {
+      background: color-mix(in srgb, var(--muted) 74%, transparent);
+    }
+
+    .sessions-sort-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 4px 2px;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .sessions-sort-control svg {
+      width: 13px;
+      height: 13px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sessions-sort-control span {
+      min-width: 24px;
+      color: color-mix(in srgb, var(--muted) 70%, transparent);
+      font-weight: 650;
+    }
+
+    .sessions-sort-control:hover,
+    .sessions-sort-control.is-active {
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 4px;
     }
 
     .sessions-drawer-backdrop,

@@ -2,7 +2,7 @@ import { html, nothing } from "lit";
 import { icons } from "../../icons.ts";
 import { pathForTab } from "../../navigation.ts";
 import { sourceIcon } from "./SessionGroupHeader.ts";
-import { isOverrideNonDefault, truncateMiddle } from "./sessionUtils.ts";
+import { formatTokenCount, isOverrideNonDefault, truncateMiddle } from "./sessionUtils.ts";
 import type { Session, SessionsProps } from "./types.ts";
 
 function tokenFillClass(percent: number | null): string {
@@ -16,6 +16,20 @@ function tokenFillClass(percent: number | null): string {
     return "warn";
   }
   return "";
+}
+
+function statusDotClass(updatedAtMs: number | null): string {
+  if (!updatedAtMs) {
+    return "stale";
+  }
+  const age = Date.now() - updatedAtMs;
+  if (age < 60 * 60 * 1000) {
+    return "active";
+  }
+  if (age < 24 * 60 * 60 * 1000) {
+    return "idle";
+  }
+  return "stale";
 }
 
 function updatedClass(updatedAtMs: number | null): string {
@@ -44,7 +58,7 @@ export function renderSessionTokenBar(session: Session, wide = false) {
           style=${`width: ${Math.max(1, Math.min(100, session.tokenPercent))}%`}
         ></div>
       </div>
-      <span>${session.tokens}</span>
+      <span>${formatTokenCount(session.tokensUsed)} / ${formatTokenCount(session.tokenLimit)}</span>
     </div>
   `;
 }
@@ -77,7 +91,9 @@ export function renderSessionRowCard(params: {
           @change=${() => props.onToggleSelect(session.key)}
         />
         <div class="session-source-mark">
-          <span class="session-source-icon">${sourceIcon(session.source)}</span>
+          <span class=${`session-source-icon source-${session.source}`}
+            >${sourceIcon(session.source)}</span
+          >
           <span class="session-source-label">${session.source}</span>
         </div>
       </div>
@@ -102,18 +118,7 @@ export function renderSessionRowCard(params: {
               `
             : labelUsed
               ? html`<span class="mono" title=${session.key}>${truncateMiddle(session.key)}</span>`
-              : html`
-                  <button
-                    class="session-add-label"
-                    @click=${(event: MouseEvent) => {
-                      event.stopPropagation();
-                      params.onEditLabel();
-                    }}
-                  >
-                    No label
-                  </button>
-                  <span class="mono" title=${session.key}>${truncateMiddle(session.key)}</span>
-                `}
+              : html`<span class="mono" title=${session.key}>${truncateMiddle(session.key)}</span>`}
           <button
             class="sessions-icon-btn"
             title="Copy key"
@@ -129,9 +134,10 @@ export function renderSessionRowCard(params: {
           <span class="session-kind-badge">${session.kind}</span>
           ${overrides ? html`<span class="session-override-chip">overrides</span>` : nothing}
         </div>
-        <div class="session-row-actions">
+        <div class="session-row-actions" aria-label="Session actions">
           <a
-            class="sessions-link-btn"
+            class="sessions-icon-btn"
+            title="Open in Chat"
             href=${chatUrl}
             @click=${(event: MouseEvent) => {
               event.stopPropagation();
@@ -151,42 +157,48 @@ export function renderSessionRowCard(params: {
               }
             }}
           >
-            ${icons.messageSquare} Open in Chat
+            ${icons.messageSquare}
           </a>
           <button
-            class="sessions-link-btn"
+            class="sessions-icon-btn"
+            title="Label"
             @click=${(event: MouseEvent) => {
               event.stopPropagation();
               params.onEditLabel();
             }}
           >
-            ${icons.penLine} Label
+            ${icons.tag}
           </button>
           <button
-            class="sessions-link-btn"
+            class="sessions-icon-btn"
+            title="Copy key"
             @click=${(event: MouseEvent) => {
               event.stopPropagation();
               params.onCopy();
             }}
           >
-            ${icons.copy} Copy key
+            ${icons.copy}
           </button>
           <button
-            class="sessions-link-btn danger"
+            class="sessions-icon-btn danger"
+            title="Delete"
             @click=${(event: MouseEvent) => {
               event.stopPropagation();
               params.onDelete();
             }}
           >
-            ${icons.trash} Delete
+            ${icons.trash}
           </button>
         </div>
       </div>
       <div class="session-meta">
         ${renderSessionTokenBar(session)}
-        <span class=${`session-updated ${updatedClass(session.updatedAtMs)}`}
-          >${session.updatedAt}</span
-        >
+        <span class="session-updated-wrap">
+          <span class=${`session-status-dot ${statusDotClass(session.updatedAtMs)}`}></span>
+          <span class=${`session-updated ${updatedClass(session.updatedAtMs)}`}
+            >${session.updatedAt}</span
+          >
+        </span>
       </div>
     </article>
   `;
