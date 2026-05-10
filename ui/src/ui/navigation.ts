@@ -5,7 +5,7 @@ import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 export const TAB_GROUPS = [
   {
     label: "main",
-    tabs: ["overview", "agents", "cron", "tasks", "sessions"],
+    tabs: ["overview", "agents", "cron", "tasks", "sessions", "usage"],
   },
   { label: "knowledge", tabs: ["dreams", "skills", "mcp"] },
   {
@@ -16,7 +16,6 @@ export const TAB_GROUPS = [
       "communications",
       "instances",
       "nodes",
-      "usage",
       "automation",
       "infrastructure",
       "aiAgents",
