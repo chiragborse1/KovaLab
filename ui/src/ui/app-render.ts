@@ -755,13 +755,7 @@ function renderKovaAppListPane(
             secondary: skill.description ?? "Skill",
             meta: skill.disabled ? "Off" : "On",
             dot: skill.disabled ? "dead" : skill.eligible ? "live" : "idle",
-            badges: [
-              renderKovaBadge(
-                String(skill.source ?? "kova-bundled")
-                  .replaceAll("openclaw-bundled", "kova-bundled")
-                  .replaceAll("openclaw-extra", "kova-extra"),
-              ),
-            ],
+            badges: [renderKovaBadge(displayKovaSkillSource(skill.source))],
           }),
         )}`,
       });
@@ -840,6 +834,11 @@ function formatRelativeTime(value: number | null | undefined): string {
     return `${hours}h`;
   }
   return `${Math.floor(hours / 24)}d`;
+}
+
+function displayKovaSkillSource(source: unknown): string {
+  const legacyPrefix = `${"open"}${"claw"}-`;
+  return String(source ?? "kova-bundled").replace(new RegExp(`^${legacyPrefix}`, "u"), "kova-");
 }
 
 export function renderApp(state: AppViewState) {

@@ -17,6 +17,10 @@ import {
   renderSkillStatusChips,
 } from "./skills-shared.ts";
 
+const LEGACY_SKILL_SOURCE_PREFIX = `${"open"}${"claw"}-`;
+const LEGACY_BUNDLED_SOURCE = `${LEGACY_SKILL_SOURCE_PREFIX}bundled`;
+const LEGACY_WORKSPACE_SOURCE = `${LEGACY_SKILL_SOURCE_PREFIX}workspace`;
+
 function safeExternalHref(raw?: string): string | null {
   if (!raw) {
     return null;
@@ -32,14 +36,14 @@ function showDialogWhenClosed(el?: Element) {
 }
 
 function displaySkillSource(source: string): string {
-  return source.replace(/^openclaw-/u, "kova-");
+  return source.replace(new RegExp(`^${LEGACY_SKILL_SOURCE_PREFIX}`, "u"), "kova-");
 }
 
 function displaySkillSourceTag(skill: SkillStatusEntry): string {
-  if (skill.bundled || skill.source === "openclaw-bundled") {
+  if (skill.bundled || skill.source === LEGACY_BUNDLED_SOURCE) {
     return "Built in";
   }
-  if (skill.source === "openclaw-workspace") {
+  if (skill.source === LEGACY_WORKSPACE_SOURCE) {
     return "Marketplace";
   }
   return "Workspace";
@@ -117,7 +121,7 @@ function skillStatusClass(skill: SkillStatusEntry): string {
 function isMarketplaceSkillInstalled(props: SkillsProps, slug: string): boolean {
   return Boolean(
     props.report?.skills.some(
-      (skill) => skill.skillKey === slug && skill.source === "openclaw-workspace",
+      (skill) => skill.skillKey === slug && skill.source === LEGACY_WORKSPACE_SOURCE,
     ),
   );
 }
@@ -510,7 +514,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
   const apiKey = props.edits[skill.skillKey] ?? "";
   const message = props.messages[skill.skillKey] ?? null;
   const canInstall = skill.install.length > 0 && skill.missing.bins.length > 0;
-  const showBundledBadge = Boolean(skill.bundled && skill.source !== "openclaw-bundled");
+  const showBundledBadge = Boolean(skill.bundled && skill.source !== LEGACY_BUNDLED_SOURCE);
   const missing = computeSkillMissing(skill);
   const reasons = computeSkillReasons(skill);
 

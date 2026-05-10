@@ -17,14 +17,17 @@ export type KovaBadgeVariant =
 
 export type KovaDotVariant = "live" | "idle" | "dead" | "error" | "running";
 
+/** Render a square CLI-style badge with semantic text/border color only. */
 export function renderKovaBadge(label: string, variant: KovaBadgeVariant = "neutral") {
   return html`<span class="kova-badge kova-badge--${variant}">${label}</span>`;
 }
 
+/** Render a 5px status dot for list rows and connection indicators. */
 export function renderKovaStatusDot(variant: KovaDotVariant, label?: string) {
   return html`<span class="kova-dot kova-dot--${variant}" title=${label ?? variant}></span>`;
 }
 
+/** Render a ruled metadata row using uppercase mono key text and body value text. */
 export function renderKovaMetaRow(key: string, value: unknown) {
   return html`<div class="kova-meta-row">
     <div class="kova-meta-row__key">${key}</div>
@@ -32,10 +35,12 @@ export function renderKovaMetaRow(key: string, value: unknown) {
   </div>`;
 }
 
+/** Render a full-width ruled section divider. */
 export function renderKovaDivider() {
   return html`<div class="kova-section-title"></div>`;
 }
 
+/** Render the minimal Kova empty state: text only, no illustration or card. */
 export function renderKovaEmptyState(title: string, body: string, action?: TemplateResult) {
   return html`<div class="kova-empty-state">
     <div>
@@ -46,6 +51,7 @@ export function renderKovaEmptyState(title: string, body: string, action?: Templ
   </div>`;
 }
 
+/** Render a flat uppercase action button. Primary is the only filled action style. */
 export function renderKovaButton(
   label: string,
   options: {
@@ -67,6 +73,7 @@ export function renderKovaButton(
   </button>`;
 }
 
+/** Render a flat full-width-compatible input using Kova rules/type styling. */
 export function renderKovaInput(
   value: string,
   options: {
@@ -86,6 +93,7 @@ export function renderKovaInput(
   />`;
 }
 
+/** Render a native select styled as a flat Kova field. */
 export function renderKovaSelect(
   value: string,
   entries: Array<{ value: string; label: string }>,
@@ -100,6 +108,7 @@ export function renderKovaSelect(
   </select>`;
 }
 
+/** Render a compact square-edged switch without surface fills. */
 export function renderKovaToggle(checked: boolean, onToggle: (checked: boolean) => void) {
   return html`<button
     class="kova-toggle"
@@ -112,6 +121,7 @@ export function renderKovaToggle(checked: boolean, onToggle: (checked: boolean) 
   </button>`;
 }
 
+/** Render underline-style tabs. Active state is accent text plus a 1px rule. */
 export function renderKovaTabs<T extends string>(
   tabs: Array<{ id: T; label: string }>,
   active: T,
@@ -130,6 +140,7 @@ export function renderKovaTabs<T extends string>(
   </div>`;
 }
 
+/** Render a 2px token usage bar with semantic threshold color. */
 export function renderKovaTokenBar(used: number | null, limit: number | null) {
   if (!used || !limit || !Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) {
     return html`<span class="kova-muted">n/a</span>`;

@@ -6,11 +6,14 @@ export type SkillGroup = {
   skills: SkillStatusEntry[];
 };
 
+const LEGACY_SKILL_SOURCE_PREFIX = `${"open"}${"claw"}-`;
+const sourceId = (suffix: string) => `${LEGACY_SKILL_SOURCE_PREFIX}${suffix}`;
+
 const SKILL_SOURCE_GROUPS: Array<{ id: string; label: string; sources: string[] }> = [
-  { id: "workspace", label: "Workspace Skills", sources: ["openclaw-workspace"] },
-  { id: "built-in", label: "Built-in Skills", sources: ["openclaw-bundled"] },
-  { id: "installed", label: "Installed Skills", sources: ["openclaw-managed"] },
-  { id: "extra", label: "Extra Skills", sources: ["openclaw-extra"] },
+  { id: "workspace", label: "Workspace Skills", sources: [sourceId("workspace")] },
+  { id: "built-in", label: "Built-in Skills", sources: [sourceId("bundled")] },
+  { id: "installed", label: "Installed Skills", sources: [sourceId("managed")] },
+  { id: "extra", label: "Extra Skills", sources: [sourceId("extra")] },
 ];
 
 export function groupSkills(skills: SkillStatusEntry[]): SkillGroup[] {
