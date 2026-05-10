@@ -47,6 +47,22 @@
   --kova-body-font: var(--k-body-font);
 }
 
+:root[data-theme-mode="light"] {
+  --k-bg: #f7f4ec;
+  --k-rule: #ded6c8;
+  --k-rule-strong: #c7bba7;
+  --k-text-1: #171411;
+  --k-text-2: #625848;
+  --k-text-3: #9a8f7c;
+  --k-accent: #8a6726;
+  --k-green: #15803d;
+  --k-amber: #b45309;
+  --k-red: #dc2626;
+  --k-blue: #2563eb;
+  --k-purple: #7e22ce;
+  --k-cyan: #0891b2;
+}
+
 * {
   box-sizing: border-box;
 }
