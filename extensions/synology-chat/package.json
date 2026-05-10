@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/synology-chat",
-  "version": "2.0.0-beta.4",
+  "version": "2.0.0-beta.5",
   "description": "Synology Chat channel plugin for Kova",
   "type": "module",
   "dependencies": {

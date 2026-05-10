@@ -663,7 +663,7 @@ importers:
         specifier: 10.6.2
         version: 10.6.2
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       zod:
         specifier: ^4.3.6
@@ -740,7 +740,7 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
@@ -815,7 +815,7 @@ importers:
         specifier: ^11.12.3
         version: 11.12.3
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -831,7 +831,7 @@ importers:
   extensions/mattermost:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       ws:
         specifier: ^8.20.0
@@ -860,7 +860,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -892,7 +892,7 @@ importers:
   extensions/memory-wiki:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -927,7 +927,7 @@ importers:
   extensions/migrate-claude:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
@@ -940,7 +940,7 @@ importers:
   extensions/migrate-hermes:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       yaml:
         specifier: ^2.8.3
@@ -1113,7 +1113,7 @@ importers:
   extensions/qa-channel:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       typebox:
         specifier: 1.1.33
@@ -1135,7 +1135,7 @@ importers:
         specifier: 1.29.0
         version: 1.29.0(zod@4.3.6)
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       playwright-core:
         specifier: 1.59.1
@@ -1157,7 +1157,7 @@ importers:
   extensions/qa-matrix:
     dependencies:
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       undici:
         specifier: 7.25.0
@@ -1353,7 +1353,7 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       openclaw:
-        specifier: '>=2.0.0-beta.4'
+        specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
     devDependencies:
       '@openclaw/plugin-sdk':
@@ -3050,6 +3050,7 @@ packages:
   '@mariozechner/pi-agent-core@0.73.0':
     resolution: {integrity: sha512-ugcpvq0X9fr9fTSK29/3S4+KU/eeVMrBb7ZU3HqiF3xD7I1GlgumLj4FYmDrYSEA6+rzgNWlJUKwjKh9o0Z6AA==}
     engines: {node: '>=20.0.0'}
+    deprecated: please use @earendil-works/pi-agent-core instead going forward
 
   '@mariozechner/pi-ai@0.70.2':
     resolution: {integrity: sha512-+30LRPjXsXF+oI96DvGWMbdPGeqoLJvadh6UPev7wx2DzhC9FEqXkQcoMZ0usbCm7E9pl8ua8a9s/pQ5ikaUbg==}
@@ -3059,6 +3060,7 @@ packages:
   '@mariozechner/pi-ai@0.73.0':
     resolution: {integrity: sha512-phKOpcde/ssz6UYszkmaGJ9LF9mgt/AP8LrtSwsfap+kMSeFfSQ2/mCSBT1mLJ2BqVuff9uXs1/+op1aQeaafQ==}
     engines: {node: '>=20.0.0'}
+    deprecated: please use @earendil-works/pi-ai instead going forward
     hasBin: true
 
   '@mariozechner/pi-coding-agent@0.70.2':
@@ -3078,6 +3080,7 @@ packages:
   '@mariozechner/pi-tui@0.73.0':
     resolution: {integrity: sha512-St1W+tMPKHatfK+lblsKfL+SsFyFVMK2tW6xHpBfCiMuevbOCRo/CMatso7mu1642UO04ncmfCrrpUK5L9aoog==}
     engines: {node: '>=20.0.0'}
+    deprecated: please use @earendil-works/pi-tui instead going forward
 
   '@matrix-org/matrix-sdk-crypto-nodejs@0.5.1':
     resolution: {integrity: sha512-m1nTFhUJv8AZCvuVmZ0wgYsFaseVNMhl3Jqu18KoHs7TQa+mmAW4q3xY6MuVApd75Zu9E0ooQeA5obUZdQ24OA==}
@@ -10760,7 +10763,7 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.7.0(@opentelemetry/api@1.9.1)
-      yaml: 2.8.3
+      yaml: 2.8.4
 
   '@opentelemetry/context-async-hooks@2.7.0(@opentelemetry/api@1.9.1)':
     dependencies:

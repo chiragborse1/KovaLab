@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/zalo",
-  "version": "2.0.0-beta.4",
+  "version": "2.0.0-beta.5",
   "description": "Kova Zalo channel plugin",
   "type": "module",
   "dependencies": {
@@ -34,10 +34,10 @@
       "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.4"
+      "pluginApi": ">=2.0.0-beta.5"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.4"
+      "openclawVersion": "2.0.0-beta.5"
     },
     "release": {
       "publishToClawHub": true,

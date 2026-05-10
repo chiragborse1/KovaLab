@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/qwen-provider",
-  "version": "2.0.0-beta.4",
+  "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Qwen Cloud provider plugin",
   "type": "module",
