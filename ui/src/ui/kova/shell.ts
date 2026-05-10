@@ -8,18 +8,21 @@ export type KovaShellOptions = {
   gatewayUrl: string;
   version: string;
   sessionsCount: number | null;
-  listPane: TemplateResult;
+  listPane: TemplateResult | null;
   content: TemplateResult;
   onNavigate: (tab: Tab) => void;
   onSearch: () => void;
 };
 
 export function renderKovaShell(options: KovaShellOptions) {
+  const hasListPane = options.listPane !== null;
   return html`<div class="kova-app">
     ${renderKovaTopbar(options)} ${renderKovaSidebar(options)}
-    <main class="kova-main">
+    <main class="kova-main ${hasListPane ? "" : "kova-main--no-list"}">
       ${options.listPane}
-      <section class="kova-detail-pane">
+      <section
+        class="kova-detail-pane ${options.activeTab === "chat" ? "kova-detail-pane--chat" : ""}"
+      >
         <div class="kova-detail-pane__body">${options.content}</div>
       </section>
     </main>

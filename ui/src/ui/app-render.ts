@@ -1556,30 +1556,33 @@ export function renderApp(state: AppViewState) {
         }
         state.setTab(tab);
       },
-      listPane: renderKovaAppListPane(state, {
-        resolvedAgentId,
-        onSelectAgent: (agentId) => {
-          if (state.agentsSelectedId !== agentId) {
-            state.agentsSelectedId = agentId;
-            state.agentsDetailOpen = true;
-            resetAgentSelectionPanelState();
-            void loadAgentIdentity(state, agentId);
-            loadAgentPanelDataForSelectedAgent(agentId);
-          } else {
-            state.agentsDetailOpen = true;
-          }
-        },
-        onOpenSessionChat: (sessionKey) => {
-          switchChatSession(state, sessionKey);
-          state.setTab("chat");
-        },
-        onNavigate: (tab) => {
-          if (tab === "agents") {
-            state.agentsDetailOpen = false;
-          }
-          state.setTab(tab);
-        },
-      }),
+      listPane:
+        state.tab === "chat"
+          ? null
+          : renderKovaAppListPane(state, {
+              resolvedAgentId,
+              onSelectAgent: (agentId) => {
+                if (state.agentsSelectedId !== agentId) {
+                  state.agentsSelectedId = agentId;
+                  state.agentsDetailOpen = true;
+                  resetAgentSelectionPanelState();
+                  void loadAgentIdentity(state, agentId);
+                  loadAgentPanelDataForSelectedAgent(agentId);
+                } else {
+                  state.agentsDetailOpen = true;
+                }
+              },
+              onOpenSessionChat: (sessionKey) => {
+                switchChatSession(state, sessionKey);
+                state.setTab("chat");
+              },
+              onNavigate: (tab) => {
+                if (tab === "agents") {
+                  state.agentsDetailOpen = false;
+                }
+                state.setTab(tab);
+              },
+            }),
       content: html`
         ${state.updateStatusBanner
           ? html`<div class="callout ${state.updateStatusBanner.tone}" role="alert">

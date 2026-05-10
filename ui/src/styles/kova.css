@@ -275,6 +275,10 @@ textarea {
   background: var(--k-bg);
 }
 
+.kova-main--no-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .kova-list-pane {
   min-height: 0;
   background: var(--k-bg);
@@ -425,9 +429,9 @@ textarea {
   padding: 0;
 }
 
-.kova-detail-pane .content-header,
-.kova-detail-pane .page-title,
-.kova-detail-pane .page-sub {
+.kova-detail-pane:not(.kova-detail-pane--chat) .content-header,
+.kova-detail-pane:not(.kova-detail-pane--chat) .page-title,
+.kova-detail-pane:not(.kova-detail-pane--chat) .page-sub {
   display: none !important;
 }
 
