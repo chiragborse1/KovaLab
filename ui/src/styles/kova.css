@@ -2,6 +2,8 @@
   --k-bg: #0a0a0a;
   --k-rule: #121212;
   --k-rule-strong: #1c1c1c;
+  --k-control-bg: #101010;
+  --k-control-bg-hover: #151515;
   --k-text-1: #e8e8e8;
   --k-text-2: #666666;
   --k-text-3: #333333;
@@ -51,6 +53,8 @@
   --k-bg: #f7f4ec;
   --k-rule: #ded6c8;
   --k-rule-strong: #c7bba7;
+  --k-control-bg: #fffaf0;
+  --k-control-bg-hover: #f1eadc;
   --k-text-1: #171411;
   --k-text-2: #625848;
   --k-text-3: #9a8f7c;
@@ -871,6 +875,64 @@ textarea {
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.kova-detail-pane
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .chat-control-select summary,
+    .chat-control-select__menu,
+    .slash-menu,
+    .usage-filter-popover,
+    .usage-export-popover,
+    .cron-filter-dropdown__panel,
+    .theme-orb__menu
+  ) {
+  background-color: var(--k-control-bg) !important;
+  color: var(--k-text-1);
+}
+
+.kova-detail-pane
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .chat-control-select summary,
+    .chat-control-select__menu,
+    .slash-menu
+  ) {
+  border-color: var(--k-rule-strong);
+}
+
+.kova-detail-pane
+  :is(
+    input:not([type="checkbox"]):not([type="radio"]):focus,
+    select:focus,
+    textarea:focus,
+    .chat-control-select[open] summary,
+    .chat-control-select summary:hover,
+    .chat-control-select summary:focus-visible
+  ) {
+  border-color: var(--k-accent);
+}
+
+.kova-detail-pane
+  :is(
+    .chat-control-select__option:hover,
+    .chat-control-select__option:focus-visible,
+    .chat-control-select__option--active,
+    .slash-menu-item:hover,
+    .slash-menu-item--active,
+    .cron-filter-dropdown__option:hover
+  ) {
+  background-color: var(--k-control-bg-hover) !important;
+}
+
+.kova-detail-pane :is(.chat-controls__thinking, .agent-chat__input) {
+  background-color: var(--k-control-bg) !important;
+  border-color: var(--k-rule-strong);
 }
 
 @media (max-width: 900px) {
