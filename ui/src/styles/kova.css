@@ -332,7 +332,8 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 16px 7px 14px;
+  min-height: 32px;
+  padding: 5px 16px 5px 14px;
   text-align: left;
   font-family: var(--k-display-font);
   font-size: 10px;
@@ -344,17 +345,23 @@ textarea {
 }
 
 .kova-nav-item__icon {
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--k-rule-strong);
+  background: var(--k-control-bg) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  transition:
+    background 100ms ease,
+    border-color 100ms ease,
+    color 100ms ease;
 }
 
 .kova-nav-item__icon svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5px;
@@ -371,10 +378,19 @@ textarea {
   color: var(--k-text-1);
 }
 
+.kova-nav-item:hover .kova-nav-item__icon {
+  background: var(--k-control-bg-hover) !important;
+  border-color: var(--k-text-3);
+}
+
 .kova-nav-item--active {
   border-left-color: var(--k-accent);
   color: var(--k-accent);
   font-weight: 500;
+}
+
+.kova-nav-item--active .kova-nav-item__icon {
+  border-color: var(--k-accent);
 }
 
 .kova-sidebar__status {
@@ -425,7 +441,7 @@ textarea {
 .kova-app--sidebar-minimized .kova-nav-item {
   justify-content: center;
   gap: 0;
-  padding: 9px 0 9px 0;
+  padding: 5px 0;
 }
 
 .kova-app--sidebar-minimized .kova-nav-item--active {
