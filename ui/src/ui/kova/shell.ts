@@ -10,6 +10,7 @@ export type KovaShellOptions = {
   sessionsCount: number | null;
   listPane: TemplateResult | null;
   content: TemplateResult;
+  topbarActions?: TemplateResult;
   onNavigate: (tab: Tab) => void;
   onSearch: () => void;
 };
@@ -30,7 +31,7 @@ export function renderKovaShell(options: KovaShellOptions) {
 }
 
 export function renderKovaTopbar(
-  options: Pick<KovaShellOptions, "connected" | "gatewayUrl" | "onSearch">,
+  options: Pick<KovaShellOptions, "connected" | "gatewayUrl" | "topbarActions" | "onSearch">,
 ) {
   return html`<header class="kova-topbar">
     <div class="kova-topbar__brand" title="Kova Forge">
@@ -45,6 +46,9 @@ export function renderKovaTopbar(
       ${renderKovaStatusDot(options.connected ? "live" : "error")}
       <span>${options.connected ? "Connected" : "Disconnected"}</span>
     </div>
+    ${options.topbarActions
+      ? html`<div class="kova-topbar__actions">${options.topbarActions}</div>`
+      : nothing}
   </header>`;
 }
 

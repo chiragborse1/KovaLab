@@ -8,6 +8,7 @@ import {
   renderChatControls,
   renderChatModelThinkingControls,
   renderChatSessionSelect,
+  renderTopbarThemeModeToggle,
   resolveAssistantAttachmentAuthToken,
   switchChatSession,
 } from "./app-render.helpers.ts";
@@ -1547,6 +1548,7 @@ export function renderApp(state: AppViewState) {
       gatewayUrl: state.settings.gatewayUrl,
       version: state.hello?.server?.version ?? "",
       sessionsCount,
+      topbarActions: renderTopbarThemeModeToggle(state),
       onSearch: () => {
         state.paletteOpen = !state.paletteOpen;
       },
