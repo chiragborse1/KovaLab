@@ -21,8 +21,6 @@ export const TAB_GROUPS = [
       "automation",
       "infrastructure",
       "aiAgents",
-      "debug",
-      "logs",
     ],
   },
 ] as const;

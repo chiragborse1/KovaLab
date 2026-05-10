@@ -7,7 +7,6 @@ describe("TAB_GROUPS", () => {
     const knowledge = TAB_GROUPS.find((group) => group.label === "knowledge");
     expect(main?.tabs).toEqual([
       "overview",
-      "chat",
       "agents",
       "cron",
       "tasks",
@@ -31,8 +30,6 @@ describe("TAB_GROUPS", () => {
       "automation",
       "infrastructure",
       "aiAgents",
-      "debug",
-      "logs",
     ]);
   });
 
