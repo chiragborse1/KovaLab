@@ -227,6 +227,114 @@ describe("retryAsync", () => {
       vi.useRealTimers();
     }
   });
+
+  it("never schedules below retryAfterMs at the low end of jitter", async () => {
+    randomMocks.generateSecureFraction.mockReturnValue(0);
+    vi.useFakeTimers();
+    const delays: number[] = [];
+    const fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error("429 retry-after"))
+      .mockResolvedValueOnce("ok");
+
+    try {
+      const promise = retryAsync(fn, {
+        attempts: 2,
+        minDelayMs: 1,
+        maxDelayMs: 60_000,
+        jitter: 0.5,
+        retryAfterMs: () => 1_000,
+        onRetry: (info) => delays.push(info.delayMs),
+      });
+      await vi.runAllTimersAsync();
+      await expect(promise).resolves.toBe("ok");
+      expect(delays).toEqual([1_000]);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it("honors retryAfterMs at the maxDelayMs boundary without undercutting it", async () => {
+    randomMocks.generateSecureFraction.mockReturnValue(0);
+    vi.useFakeTimers();
+    const delays: number[] = [];
+    const fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error("429 retry-after at cap"))
+      .mockResolvedValueOnce("ok");
+
+    try {
+      const promise = retryAsync(fn, {
+        attempts: 2,
+        minDelayMs: 1,
+        maxDelayMs: 1_000,
+        jitter: 0.5,
+        retryAfterMs: () => 1_000,
+        onRetry: (info) => delays.push(info.delayMs),
+      });
+      await vi.runAllTimersAsync();
+      await expect(promise).resolves.toBe("ok");
+      expect(delays).toEqual([1_000]);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps symmetric jitter when retryAfterMs exceeds maxDelayMs", async () => {
+    randomMocks.generateSecureFraction.mockReturnValue(0);
+    vi.useFakeTimers();
+    const delays: number[] = [];
+    const fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error("429 retry-after too large"))
+      .mockResolvedValueOnce("ok");
+
+    try {
+      const promise = retryAsync(fn, {
+        attempts: 2,
+        minDelayMs: 1,
+        maxDelayMs: 1_000,
+        jitter: 0.5,
+        retryAfterMs: () => 10_000,
+        onRetry: (info) => delays.push(info.delayMs),
+      });
+      await vi.runAllTimersAsync();
+      await expect(promise).resolves.toBe("ok");
+      expect(delays).toEqual([500]);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not round a non-integer retryAfterMs below its lower bound", async () => {
+    randomMocks.generateSecureFraction.mockReturnValue(0);
+    vi.useFakeTimers();
+    const delays: number[] = [];
+    const fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error("429 non-integer retry-after"))
+      .mockResolvedValueOnce("ok");
+
+    try {
+      const promise = retryAsync(fn, {
+        attempts: 2,
+        minDelayMs: 0,
+        maxDelayMs: 10,
+        jitter: 0.5,
+        retryAfterMs: () => 1.4,
+        onRetry: (info) => delays.push(info.delayMs),
+      });
+      await vi.runAllTimersAsync();
+      await expect(promise).resolves.toBe("ok");
+      expect(delays).toEqual([2]);
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("resolveRetryConfig", () => {

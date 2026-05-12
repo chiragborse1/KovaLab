@@ -58,12 +58,16 @@ export function resolveRetryConfig(
   return { attempts, minDelayMs, maxDelayMs, jitter };
 }
 
-function applyJitter(delayMs: number, jitter: number): number {
+type JitterMode = "symmetric" | "positive";
+
+function applyJitter(delayMs: number, jitter: number, mode: JitterMode = "symmetric"): number {
   if (jitter <= 0) {
     return delayMs;
   }
-  const offset = (generateSecureFraction() * 2 - 1) * jitter;
-  return Math.max(0, Math.round(delayMs * (1 + offset)));
+  const fraction = generateSecureFraction();
+  const offset = mode === "positive" ? fraction * jitter : (fraction * 2 - 1) * jitter;
+  const raw = delayMs * (1 + offset);
+  return Math.max(0, mode === "positive" ? Math.ceil(raw) : Math.round(raw));
 }
 
 export async function retryAsync<T>(
@@ -117,7 +121,9 @@ export async function retryAsync<T>(
         ? Math.max(retryAfterMs, minDelayMs)
         : minDelayMs * 2 ** (attempt - 1);
       let delay = Math.min(baseDelay, maxDelayMs);
-      delay = applyJitter(delay, jitter);
+      const canHonorRetryAfter =
+        hasRetryAfter && typeof retryAfterMs === "number" && retryAfterMs <= maxDelayMs;
+      delay = applyJitter(delay, jitter, canHonorRetryAfter ? "positive" : "symmetric");
       delay = Math.min(Math.max(delay, minDelayMs), maxDelayMs);
 
       options.onRetry?.({
