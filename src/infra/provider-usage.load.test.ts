@@ -133,6 +133,40 @@ describe("provider-usage.load", () => {
     }
   });
 
+  it("keeps successful provider usage when another provider fetch fails", async () => {
+    resolveProviderUsageSnapshotWithPluginMock.mockImplementation(
+      async ({ provider }): Promise<ProviderUsageSnapshot | null> => {
+        if (provider === "anthropic") {
+          throw new Error("anthropic usage unavailable");
+        }
+        if (provider === "openai") {
+          return {
+            provider,
+            displayName: "OpenAI",
+            windows: [{ label: "Day", usedPercent: 12 }],
+          };
+        }
+        return null;
+      },
+    );
+    const mockFetch = createProviderUsageFetch(async () => {
+      throw new Error("legacy fetch should not run");
+    });
+
+    const summary = await loadUsageWithAuth(
+      loadProviderUsageSummary,
+      [
+        { provider: "anthropic", token: "token-a" },
+        { provider: "openai", token: "token-o" },
+      ],
+      mockFetch,
+    );
+
+    expect(summary.providers.map((provider) => provider.provider)).toEqual(["anthropic", "openai"]);
+    expect(summary.providers[0]?.error).toBe("anthropic usage unavailable");
+    expect(summary.providers[1]?.windows).toEqual([{ label: "Day", usedPercent: 12 }]);
+  });
+
   it("throws when fetch is unavailable", async () => {
     const previousFetch = globalThis.fetch;
     vi.stubGlobal("fetch", undefined);

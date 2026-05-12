@@ -85,6 +85,7 @@ describe("resolveProviderAuths plugin boundary", () => {
       },
     ]);
     expect(ensureAuthProfileStoreMock).not.toHaveBeenCalled();
+    expect(hasAnyAuthProfileStoreSourceMock).not.toHaveBeenCalled();
   });
 
   it("skips plugin usage auth when requested and no direct credential source exists", async () => {
