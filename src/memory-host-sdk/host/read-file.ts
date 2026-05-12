@@ -3,13 +3,42 @@ import path from "node:path";
 import { resolveAgentContextLimits, resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../../agents/memory-search.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
-import { isFileMissingError, statRegularFile } from "./fs-utils.js";
+import {
+  assertNoSymlinkParents,
+  isFileMissingError,
+  isPathInside,
+  isPathInsideWithRealpath,
+  statRegularFile,
+} from "./fs-utils.js";
 import { isMemoryPath, normalizeExtraMemoryPaths } from "./internal.js";
 import {
   buildMemoryReadResult,
   DEFAULT_MEMORY_READ_LINES,
   type MemoryReadResult,
 } from "./read-file-shared.js";
+
+async function isAllowedAdditionalDirectoryPath(
+  additionalPath: string,
+  absPath: string,
+): Promise<boolean> {
+  if (!isPathInside(additionalPath, absPath)) {
+    return false;
+  }
+  try {
+    await assertNoSymlinkParents({ rootDir: additionalPath, targetPath: absPath });
+  } catch {
+    return false;
+  }
+  if (!(await isPathInsideWithRealpath(additionalPath, absPath))) {
+    try {
+      await fs.lstat(absPath);
+    } catch (err) {
+      return isFileMissingError(err);
+    }
+    return false;
+  }
+  return true;
+}
 
 export async function readMemoryFile(params: {
   workspaceDir: string;
@@ -40,7 +69,10 @@ export async function readMemoryFile(params: {
           continue;
         }
         if (stat.isDirectory()) {
-          if (absPath === additionalPath || absPath.startsWith(`${additionalPath}${path.sep}`)) {
+          if (
+            absPath === additionalPath ||
+            (await isAllowedAdditionalDirectoryPath(additionalPath, absPath))
+          ) {
             allowedAdditional = true;
             break;
           }
