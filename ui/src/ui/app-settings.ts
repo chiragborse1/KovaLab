@@ -341,7 +341,6 @@ export async function refreshActiveTab(host: SettingsHost) {
     case "automation":
     case "infrastructure":
     case "aiAgents":
-    case "mcp":
       await loadConfigSchema(app);
       await loadConfig(app);
       return;
@@ -356,27 +355,6 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "usage":
       await loadUsage(app);
-      return;
-    case "operations":
-      await Promise.all([
-        loadChannels(app, false),
-        loadCron(host),
-        loadNodes(app),
-        loadLogs(app, { reset: true }),
-      ]);
-      return;
-    case "tasks":
-      await loadDebug(app);
-      host.eventLog = host.eventLogBuffer;
-      return;
-    case "conductor":
-      await Promise.all([
-        loadAgents(app),
-        loadSessions(app),
-        loadCron(host),
-        loadSkills(app),
-        loadChannels(app, false),
-      ]);
       return;
     case "sessions":
       await loadSessions(app);
@@ -466,24 +444,12 @@ export function applyBorderRadius(value: number) {
   }
   const root = document.documentElement;
   const scale = value / 50;
-  const sm = `${Math.round(BASE_RADII.sm * scale)}px`;
-  const md = `${Math.round(BASE_RADII.md * scale)}px`;
-  const lg = `${Math.round(BASE_RADII.lg * scale)}px`;
-  const xl = `${Math.round(BASE_RADII.xl * scale)}px`;
-  const full = `${Math.round(BASE_RADII.full * scale)}px`;
-  const base = `${Math.round(BASE_RADII.default * scale)}px`;
-  root.style.setProperty("--radius-sm", sm);
-  root.style.setProperty("--radius-md", md);
-  root.style.setProperty("--radius-lg", lg);
-  root.style.setProperty("--radius-xl", xl);
-  root.style.setProperty("--radius-full", full);
-  root.style.setProperty("--radius", base);
-  root.style.setProperty("--k-radius-sm", sm);
-  root.style.setProperty("--k-radius-md", md);
-  root.style.setProperty("--k-radius-lg", lg);
-  root.style.setProperty("--k-radius-xl", xl);
-  root.style.setProperty("--k-radius-full", full);
-  root.style.setProperty("--k-radius", base);
+  root.style.setProperty("--radius-sm", `${Math.round(BASE_RADII.sm * scale)}px`);
+  root.style.setProperty("--radius-md", `${Math.round(BASE_RADII.md * scale)}px`);
+  root.style.setProperty("--radius-lg", `${Math.round(BASE_RADII.lg * scale)}px`);
+  root.style.setProperty("--radius-xl", `${Math.round(BASE_RADII.xl * scale)}px`);
+  root.style.setProperty("--radius-full", `${Math.round(BASE_RADII.full * scale)}px`);
+  root.style.setProperty("--radius", `${Math.round(BASE_RADII.default * scale)}px`);
 }
 
 export function applyResolvedTheme(host: SettingsHost, resolved: ResolvedTheme) {

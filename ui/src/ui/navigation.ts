@@ -3,22 +3,23 @@ import type { IconName } from "./icons.js";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 
 export const TAB_GROUPS = [
+  { label: "chat", tabs: ["chat"] },
   {
-    label: "main",
-    tabs: ["overview", "agents", "cron", "tasks", "sessions", "usage"],
+    label: "control",
+    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
   },
-  { label: "knowledge", tabs: ["dreams", "skills", "mcp"] },
+  { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
   {
-    label: "advanced",
+    label: "settings",
     tabs: [
       "config",
-      "channels",
       "communications",
-      "instances",
-      "nodes",
+      "appearance",
       "automation",
       "infrastructure",
       "aiAgents",
+      "debug",
+      "logs",
     ],
   },
 ] as const;
@@ -26,10 +27,6 @@ export const TAB_GROUPS = [
 export type Tab =
   | "agents"
   | "overview"
-  | "tasks"
-  | "conductor"
-  | "operations"
-  | "mcp"
   | "channels"
   | "instances"
   | "sessions"
@@ -51,10 +48,6 @@ export type Tab =
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
   overview: "/overview",
-  tasks: "/tasks",
-  conductor: "/conductor",
-  operations: "/operations",
-  mcp: "/mcp",
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
@@ -75,9 +68,6 @@ const TAB_PATHS: Record<Tab, string> = {
 };
 
 const PATH_ALIASES: Record<string, Tab> = {
-  "/dashboard": "overview",
-  "/jobs": "cron",
-  "/memory": "dreams",
   "/dreams": "dreams",
 };
 
@@ -169,14 +159,6 @@ export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
       return "folder";
-    case "tasks":
-      return "check";
-    case "conductor":
-      return "spark";
-    case "operations":
-      return "radio";
-    case "mcp":
-      return "link";
     case "chat":
       return "messageSquare";
     case "overview":

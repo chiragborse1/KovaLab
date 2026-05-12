@@ -1,7 +1,6 @@
 import { html, nothing } from "lit";
 import { normalizeToolName } from "../../../../src/agents/tool-policy-shared.js";
 import { t } from "../../i18n/index.ts";
-import { icons } from "../icons.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
 import type {
   SkillStatusEntry,
@@ -174,51 +173,6 @@ function handleRuntimeToolJump(event: Event, anchorId: string) {
     });
     target.querySelector<HTMLElement>("summary")?.focus();
   });
-}
-
-function handleToolSearch(event: Event) {
-  const input = event.currentTarget as HTMLInputElement;
-  const root = input.closest(".card");
-  const query = normalizeLowercaseStringOrEmpty(input.value);
-  if (!root) {
-    return;
-  }
-  for (const card of root.querySelectorAll<HTMLElement>(".agent-tool-card")) {
-    const haystack = normalizeLowercaseStringOrEmpty(card.dataset.search ?? card.textContent ?? "");
-    card.hidden = Boolean(query) && !haystack.includes(query);
-  }
-  for (const group of root.querySelectorAll<HTMLDetailsElement>(".agent-tools-group")) {
-    const visible = Array.from(group.querySelectorAll<HTMLElement>(".agent-tool-card")).some(
-      (card) => !card.hidden,
-    );
-    group.hidden = Boolean(query) && !visible;
-    if (query && visible) {
-      group.open = true;
-    }
-  }
-}
-
-function resolveToolGroupIcon(section: AgentToolSection) {
-  const id = normalizeLowercaseStringOrEmpty(section.id || section.label);
-  if (id.includes("file") || id === "fs") {
-    return icons.fileText;
-  }
-  if (id.includes("runtime") || id.includes("exec")) {
-    return icons.terminal;
-  }
-  if (id.includes("web")) {
-    return icons.globe;
-  }
-  if (id.includes("memory")) {
-    return icons.brain;
-  }
-  if (id.includes("messag") || id.includes("channel")) {
-    return icons.messageSquare;
-  }
-  if (id.includes("automation") || id.includes("cron")) {
-    return icons.loader;
-  }
-  return icons.wrench;
 }
 
 function renderEffectiveToolBadge(tool: {
@@ -520,13 +474,10 @@ export function renderAgentTools(params: {
               ${profileOptions.map(
                 (option) => html`
                   <button
-                    class="btn btn--sm agent-tools-preset ${profile === option.id
-                      ? "is-active"
-                      : ""}"
+                    class="btn btn--sm ${profile === option.id ? "active" : ""}"
                     ?disabled=${!editable}
                     @click=${() => params.onProfileChange(params.agentId, option.id, true)}
                   >
-                    ${profile === option.id ? html`<span aria-hidden="true">✓</span>` : nothing}
                     ${option.label}
                   </button>
                 `,
@@ -568,16 +519,6 @@ export function renderAgentTools(params: {
         </div>
       </div>
 
-      <label class="field agent-tools-search">
-        <span>Search tools</span>
-        <input
-          type="search"
-          placeholder="Find exec, browser, web…"
-          autocomplete="off"
-          @input=${handleToolSearch}
-        />
-      </label>
-
       <div class="agent-tools-grid">
         ${toolSections.map((section) => {
           const sortedTools = sortSectionTools(section.tools);
@@ -594,7 +535,6 @@ export function renderAgentTools(params: {
               <summary class="agent-tools-group__summary">
                 <span class="agent-tools-group__summary-main">
                   <span class="agent-tools-group__title">
-                    <span class="agent-tools-group__icon">${resolveToolGroupIcon(section)}</span>
                     ${section.label}
                     ${section.source === "plugin" && section.pluginId
                       ? html`<span class="agent-pill">Plugin: ${section.pluginId}</span>`
@@ -637,11 +577,7 @@ export function renderAgentTools(params: {
                     runtimeSessionMatchesSelectedAgent: params.runtimeSessionMatchesSelectedAgent,
                   });
                   return html`
-                    <details
-                      class="agent-tool-card"
-                      id=${anchorId}
-                      data-search=${`${tool.id} ${tool.label} ${tool.description} ${section.label}`}
-                    >
+                    <details class="agent-tool-card" id=${anchorId}>
                       <summary class="agent-tool-summary">
                         <div class="agent-tool-summary__main">
                           <div class="agent-tool-summary__title-row">
@@ -940,13 +876,7 @@ function renderAgentSkillRow(
         <div class="list-sub">${skill.description}</div>
         ${renderSkillStatusChips({ skill })}
         ${missing.length > 0
-          ? html`
-              <div class="agent-skill-missing" title="Why blocked">
-                ${missing.map(
-                  (entry) => html`<span class="chip chip-warn">Missing ${entry}</span>`,
-                )}
-              </div>
-            `
+          ? html`<div class="muted" style="margin-top: 6px;">Missing: ${missing.join(", ")}</div>`
           : nothing}
         ${reasons.length > 0
           ? html`<div class="muted" style="margin-top: 6px;">Reason: ${reasons.join(", ")}</div>`

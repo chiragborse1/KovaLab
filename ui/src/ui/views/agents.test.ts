@@ -1,5 +1,5 @@
 import { render } from "lit";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { renderAgentFiles } from "./agents-panels-status-files.ts";
 import { renderAgents, type AgentsProps } from "./agents.ts";
 
@@ -44,7 +44,6 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
       agents: [{ id: "alpha", name: "Alpha" } as never, { id: "beta", name: "Beta" } as never],
     },
     selectedAgentId: "beta",
-    detailOpen: true,
     activePanel: "overview",
     config: {
       form: null,
@@ -98,10 +97,7 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     modelCatalog: [],
     onRefresh: () => undefined,
     onSelectAgent: () => undefined,
-    onOpenDetails: () => undefined,
-    onDeleteAgent: () => undefined,
     onSelectPanel: () => undefined,
-    onNavigate: () => undefined,
     onLoadFiles: () => undefined,
     onSelectFile: () => undefined,
     onFileDraftChange: () => undefined,
@@ -127,32 +123,6 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
 }
 
 describe("renderAgents", () => {
-  it("shows only profile cards until details are opened", async () => {
-    const container = document.createElement("div");
-    render(renderAgents(createProps({ detailOpen: false })), container);
-    await Promise.resolve();
-
-    expect(container.textContent).toContain("Agent profiles");
-    expect(container.textContent).toContain("Details");
-    expect(container.querySelector(".agent-tabs")).toBeNull();
-  });
-
-  it("opens details when the agent card is clicked", async () => {
-    const container = document.createElement("div");
-    const onOpenDetails = vi.fn();
-    const onSelectAgent = vi.fn();
-    render(
-      renderAgents(createProps({ detailOpen: false, onOpenDetails, onSelectAgent })),
-      container,
-    );
-    await Promise.resolve();
-
-    container.querySelector<HTMLElement>(".agent-profile-card")?.click();
-
-    expect(onOpenDetails).toHaveBeenCalledWith("alpha");
-    expect(onSelectAgent).not.toHaveBeenCalled();
-  });
-
   it("shows the skills count only for the selected agent's report", async () => {
     const container = document.createElement("div");
     render(

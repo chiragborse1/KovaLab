@@ -6,10 +6,12 @@ import { DEFAULT_CRON_FORM } from "./app-defaults.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
 import {
   renderChatControls,
-  renderChatModelThinkingControls,
+  renderChatMobileToggle,
   renderChatSessionSelect,
-  renderTopbarThemeModeToggle,
+  renderTab,
   resolveAssistantAttachmentAuthToken,
+  renderSidebarConnectionStatus,
+  renderTopbarThemeModeToggle,
   switchChatSession,
 } from "./app-render.helpers.ts";
 import { warnQueryToken } from "./app-settings.ts";
@@ -108,14 +110,14 @@ import {
   saveSkillApiKey,
   searchClawHub,
   setClawHubSearchQuery,
-  uninstallFromClawHub,
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
+import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
-import { renderKovaShell } from "./kova/shell.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
-import { normalizeBasePath, subtitleForTab, titleForTab } from "./navigation.ts";
+import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import "./components/dashboard-header.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
 import {
   buildAgentMainSessionKey,
@@ -124,6 +126,7 @@ import {
 } from "./session-key.ts";
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { isRenderableControlUiAvatarUrl } from "./views/agents-utils.ts";
+import { agentLogoUrl } from "./views/agents-utils.ts";
 import {
   resolveAgentConfig,
   resolveConfiguredCronModelSuggestions,
@@ -136,7 +139,6 @@ import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById } from "./views/config-presets.ts";
 import { renderQuickSettings, type QuickSettingsChannel } from "./views/config-quick.ts";
 import { renderConfig, type ConfigProps } from "./views/config.ts";
-import { renderConductorSurface } from "./views/control-surfaces.ts";
 import {
   renderCronQuickCreate,
   createDefaultDraft,
@@ -162,10 +164,8 @@ const lazyDebug = createLazyView(() => import("./views/debug.ts"), notifyLazyVie
 const lazyInstances = createLazyView(() => import("./views/instances.ts"), notifyLazyViewChanged);
 const lazyLogs = createLazyView(() => import("./views/logs.ts"), notifyLazyViewChanged);
 const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyViewChanged);
-const lazyOperations = createLazyView(() => import("./views/operations.ts"), notifyLazyViewChanged);
 const lazySessions = createLazyView(() => import("./views/sessions.ts"), notifyLazyViewChanged);
 const lazySkills = createLazyView(() => import("./views/skills.ts"), notifyLazyViewChanged);
-const lazyTasks = createLazyView(() => import("./views/tasks/TasksPage.ts"), notifyLazyViewChanged);
 
 function formatDreamNextCycle(nextRunAtMs: number | undefined): string | null {
   if (typeof nextRunAtMs !== "number" || !Number.isFinite(nextRunAtMs)) {
@@ -632,6 +632,8 @@ export function renderApp(state: AppViewState) {
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
+  const navDrawerOpen = state.navDrawerOpen && !chatFocus && !state.onboarding;
+  const navCollapsed = state.settings.navCollapsed && !navDrawerOpen;
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
@@ -762,6 +764,7 @@ export function renderApp(state: AppViewState) {
       }
     })();
   };
+  const basePath = normalizeBasePath(state.basePath ?? "");
   const resolveSelectedAgentId = () =>
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
@@ -1012,7 +1015,7 @@ export function renderApp(state: AppViewState) {
               requestHostUpdate?.();
             },
             onConfigureMcp: () => {
-              state.tab = "mcp" as import("./navigation.ts").Tab;
+              state.tab = "infrastructure" as import("./navigation.ts").Tab;
               state.infrastructureActiveSection = "mcp";
               requestHostUpdate?.();
             },
@@ -1200,22 +1203,6 @@ export function renderApp(state: AppViewState) {
           navRootLabel: "Infrastructure",
           includeSections: [...INFRASTRUCTURE_SECTION_KEYS],
         });
-      case "mcp":
-        return renderConfigTab({
-          formMode: state.infrastructureFormMode,
-          searchQuery: state.infrastructureSearchQuery,
-          activeSection: "mcp",
-          activeSubsection: null,
-          onFormModeChange: (mode) => (state.infrastructureFormMode = mode),
-          onSearchChange: (query) => (state.infrastructureSearchQuery = query),
-          onSectionChange: (section) => {
-            state.infrastructureActiveSection = section;
-            state.infrastructureActiveSubsection = null;
-          },
-          onSubsectionChange: (section) => (state.infrastructureActiveSubsection = section),
-          navRootLabel: "Infrastructure",
-          includeSections: ["mcp", "commands", "browser", "tools"],
-        });
       case "aiAgents":
         return renderConfigTab({
           formMode: state.aiAgentsFormMode,
@@ -1302,9 +1289,6 @@ export function renderApp(state: AppViewState) {
         state.paletteActiveIndex = i;
       },
       onNavigate: (tab) => {
-        if (tab === "agents") {
-          state.agentsDetailOpen = false;
-        }
         state.setTab(tab as import("./navigation.ts").Tab);
       },
       onSlashCommand: (cmd) => {
@@ -1312,30 +1296,168 @@ export function renderApp(state: AppViewState) {
         state.handleChatDraftChange(cmd.endsWith(" ") ? cmd : `${cmd} `);
       },
     })}
-    ${renderKovaShell({
-      activeTab: state.tab,
-      connected: state.connected,
-      gatewayUrl: state.settings.gatewayUrl,
-      version: state.hello?.server?.version ?? "",
-      sessionsCount,
-      sidebarMinimized: state.settings.navCollapsed,
-      topbarActions: renderTopbarThemeModeToggle(state),
-      onToggleSidebarMinimized: () => {
-        state.applySettings({
-          ...state.settings,
-          navCollapsed: !state.settings.navCollapsed,
-        });
-      },
-      onSearch: () => {
-        state.paletteOpen = !state.paletteOpen;
-      },
-      onNavigate: (tab) => {
-        if (tab === "agents") {
-          state.agentsDetailOpen = false;
-        }
-        state.setTab(tab);
-      },
-      content: html`
+    <div
+      class="shell ${isChat ? "shell--chat" : ""} ${chatFocus
+        ? "shell--chat-focus"
+        : ""} ${navCollapsed ? "shell--nav-collapsed" : ""} ${navDrawerOpen
+        ? "shell--nav-drawer-open"
+        : ""} ${state.onboarding ? "shell--onboarding" : ""}"
+    >
+      <button
+        type="button"
+        class="shell-nav-backdrop"
+        aria-label="${t("nav.collapse")}"
+        @click=${() => {
+          state.navDrawerOpen = false;
+        }}
+      ></button>
+      <header class="topbar">
+        <div class="topnav-shell">
+          <button
+            type="button"
+            class="topbar-nav-toggle"
+            @click=${() => {
+              state.navDrawerOpen = !navDrawerOpen;
+            }}
+            title="${navDrawerOpen ? t("nav.collapse") : t("nav.expand")}"
+            aria-label="${navDrawerOpen ? t("nav.collapse") : t("nav.expand")}"
+            aria-expanded=${navDrawerOpen}
+          >
+            <span class="nav-collapse-toggle__icon" aria-hidden="true">${icons.menu}</span>
+          </button>
+          <div class="topnav-shell__content">
+            <dashboard-header .tab=${state.tab}></dashboard-header>
+          </div>
+          <div class="topnav-shell__actions">
+            <button
+              class="topbar-search"
+              @click=${() => {
+                state.paletteOpen = !state.paletteOpen;
+              }}
+              title="Search or jump to… (⌘K)"
+              aria-label="Open command palette"
+            >
+              <span class="topbar-search__label">${t("common.search")}</span>
+              <kbd class="topbar-search__kbd">⌘K</kbd>
+            </button>
+            <div class="topbar-status">
+              ${isChat ? renderChatMobileToggle(state) : nothing}
+              ${renderTopbarThemeModeToggle(state)}
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="shell-nav">
+        <aside class="sidebar ${navCollapsed ? "sidebar--collapsed" : ""}">
+          <div class="sidebar-shell">
+            <div class="sidebar-shell__header">
+              <div class="sidebar-brand">
+                ${navCollapsed
+                  ? nothing
+                  : html`
+                      <img class="sidebar-brand__logo" src="${agentLogoUrl(basePath)}" alt="Kova" />
+                      <span class="sidebar-brand__copy">
+                        <span class="sidebar-brand__eyebrow">${t("nav.control")}</span>
+                        <span class="sidebar-brand__title">Kova</span>
+                      </span>
+                    `}
+              </div>
+              <button
+                type="button"
+                class="nav-collapse-toggle"
+                @click=${() =>
+                  state.applySettings({
+                    ...state.settings,
+                    navCollapsed: !state.settings.navCollapsed,
+                  })}
+                title="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
+                aria-label="${navCollapsed ? t("nav.expand") : t("nav.collapse")}"
+              >
+                <span class="nav-collapse-toggle__icon" aria-hidden="true"
+                  >${navCollapsed ? icons.panelLeftOpen : icons.panelLeftClose}</span
+                >
+              </button>
+            </div>
+            <div class="sidebar-shell__body">
+              <nav class="sidebar-nav">
+                ${TAB_GROUPS.map((group) => {
+                  const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
+                  const hasActiveTab = group.tabs.some((tab) => tab === state.tab);
+                  const showItems = navCollapsed || hasActiveTab || !isGroupCollapsed;
+
+                  return html`
+                    <section class="nav-section ${!showItems ? "nav-section--collapsed" : ""}">
+                      ${!navCollapsed
+                        ? html`
+                            <button
+                              class="nav-section__label"
+                              @click=${() => {
+                                const next = { ...state.settings.navGroupsCollapsed };
+                                next[group.label] = !isGroupCollapsed;
+                                state.applySettings({
+                                  ...state.settings,
+                                  navGroupsCollapsed: next,
+                                });
+                              }}
+                              aria-expanded=${showItems}
+                            >
+                              <span class="nav-section__label-text"
+                                >${t(`nav.${group.label}`)}</span
+                              >
+                              <span class="nav-section__chevron"> ${icons.chevronDown} </span>
+                            </button>
+                          `
+                        : nothing}
+                      <div class="nav-section__items">
+                        ${group.tabs.map((tab) =>
+                          renderTab(state, tab, { collapsed: navCollapsed }),
+                        )}
+                      </div>
+                    </section>
+                  `;
+                })}
+              </nav>
+            </div>
+            <div class="sidebar-shell__footer">
+              <div class="sidebar-utility-group">
+                <a
+                  class="nav-item nav-item--external sidebar-utility-link"
+                  href="https://docs.neuralstudio.in"
+                  target=${EXTERNAL_LINK_TARGET}
+                  rel=${buildExternalLinkRel()}
+                  title="${t("common.docs")} (opens in new tab)"
+                >
+                  <span class="nav-item__icon" aria-hidden="true">${icons.book}</span>
+                  ${!navCollapsed
+                    ? html`
+                        <span class="nav-item__text">${t("common.docs")}</span>
+                        <span class="nav-item__external-icon">${icons.externalLink}</span>
+                      `
+                    : nothing}
+                </a>
+                <div class="sidebar-mode-switch">${renderTopbarThemeModeToggle(state)}</div>
+                ${(() => {
+                  const version = state.hello?.server?.version ?? "";
+                  return version
+                    ? html`
+                        <div class="sidebar-version" title=${`v${version}`}>
+                          ${!navCollapsed
+                            ? html`
+                                <span class="sidebar-version__label">${t("common.version")}</span>
+                                <span class="sidebar-version__text">v${version}</span>
+                                ${renderSidebarConnectionStatus(state)}
+                              `
+                            : html` ${renderSidebarConnectionStatus(state)} `}
+                        </div>
+                      `
+                    : nothing;
+                })()}
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+      <main class="content ${isChat ? "content--chat" : ""}">
         ${state.updateStatusBanner
           ? html`<div class="callout ${state.updateStatusBanner.tone}" role="alert">
               ${state.updateStatusBanner.text}
@@ -1368,7 +1490,7 @@ export function renderApp(state: AppViewState) {
               </button>
             </div>`
           : nothing}
-        ${state.tab === "config" || state.tab === "skills"
+        ${state.tab === "config"
           ? nothing
           : html`<section class="content-header">
               <div>
@@ -1415,7 +1537,6 @@ export function renderApp(state: AppViewState) {
           ? renderOverview({
               connected: state.connected,
               hello: state.hello,
-              userName: state.userName ?? null,
               settings: state.settings,
               password: state.password,
               lastError: state.lastError,
@@ -1463,16 +1584,7 @@ export function renderApp(state: AppViewState) {
               },
               onConnect: () => state.connect(),
               onRefresh: () => state.loadOverview({ refresh: true }),
-              onNavigate: (tab) => {
-                if (tab === "agents") {
-                  state.agentsDetailOpen = false;
-                }
-                state.setTab(tab as import("./navigation.ts").Tab);
-              },
-              onOpenSessionChat: (sessionKey) => {
-                state.setTab("chat");
-                switchChatSession(state, sessionKey);
-              },
+              onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
             })
           : nothing}
@@ -1528,8 +1640,6 @@ export function renderApp(state: AppViewState) {
         ${state.tab === "sessions"
           ? renderLazyView(lazySessions, (m) =>
               m.renderSessions({
-                client: state.client,
-                connected: state.connected,
                 loading: state.sessionsLoading,
                 result: state.sessionsResult,
                 error: state.sessionsError,
@@ -1611,9 +1721,6 @@ export function renderApp(state: AppViewState) {
                     state.sessionsSelectedKeys = next;
                   }
                 },
-                onDeleteSession: async (key) => {
-                  await deleteSessionsAndRefresh(state, [key]);
-                },
                 onNavigateToChat: (sessionKey) => {
                   switchChatSession(state, sessionKey);
                   state.setTab("chat" as import("./navigation.ts").Tab);
@@ -1637,57 +1744,6 @@ export function renderApp(state: AppViewState) {
             )
           : nothing}
         ${renderUsageTab(state)}
-        ${state.tab === "tasks"
-          ? renderLazyView(lazyTasks, (m) =>
-              m.renderTasksPage({
-                client: state.client,
-                sessionKey: state.sessionKey,
-                agentsList: state.agentsList,
-                sessionsResult: state.sessionsResult,
-                modelCatalog: state.chatModelCatalog,
-                onNavigateToCron: () => state.setTab("cron" as import("./navigation.ts").Tab),
-              }),
-            )
-          : nothing}
-        ${state.tab === "conductor"
-          ? renderConductorSurface({
-              agents: state.agentsList,
-              sessions: state.sessionsResult,
-              cronJobs: state.cronJobs,
-              skills: state.skillsReport,
-              channels: state.channelsSnapshot,
-              onNavigate: (tab) => {
-                if (tab === "agents") {
-                  state.agentsDetailOpen = false;
-                }
-                state.setTab(tab);
-              },
-            })
-          : nothing}
-        ${state.tab === "operations"
-          ? renderLazyView(lazyOperations, (m) =>
-              m.renderOperations({
-                connected: state.connected,
-                channelsSnapshot: state.channelsSnapshot,
-                channelsLoading: state.channelsLoading,
-                channelsError: state.channelsError,
-                cronStatus: state.cronStatus,
-                cronJobs: state.cronJobs,
-                cronLoading: state.cronLoading,
-                nodes: state.nodes,
-                nodesLoading: state.nodesLoading,
-                logsEntries: state.logsEntries,
-                logsLoading: state.logsLoading,
-                logsError: state.logsError,
-                onRefresh: () => {
-                  void loadChannels(state, false);
-                  void state.loadCron();
-                  void loadNodes(state);
-                  void loadLogs(state, { reset: true });
-                },
-              }),
-            )
-          : nothing}
         ${state.tab === "cron" ? renderCronQuickCreateForTab(state, requestHostUpdate) : nothing}
         ${state.tab === "cron"
           ? renderLazyView(lazyCron, (m) =>
@@ -1802,7 +1858,6 @@ export function renderApp(state: AppViewState) {
                 error: state.agentsError,
                 agentsList: state.agentsList,
                 selectedAgentId: resolvedAgentId,
-                detailOpen: state.agentsDetailOpen,
                 activePanel: state.agentsPanel,
                 config: {
                   form: configValue,
@@ -1868,44 +1923,9 @@ export function renderApp(state: AppViewState) {
                     return;
                   }
                   state.agentsSelectedId = agentId;
-                  state.agentsDetailOpen = false;
                   resetAgentSelectionPanelState();
                   void loadAgentIdentity(state, agentId);
                   loadAgentPanelDataForSelectedAgent(agentId);
-                },
-                onOpenDetails: (agentId) => {
-                  if (state.agentsSelectedId !== agentId) {
-                    state.agentsSelectedId = agentId;
-                    resetAgentSelectionPanelState();
-                    void loadAgentIdentity(state, agentId);
-                    loadAgentPanelDataForSelectedAgent(agentId);
-                  }
-                  state.agentsDetailOpen = true;
-                },
-                onDeleteAgent: async (agentId) => {
-                  if (!state.client) {
-                    return;
-                  }
-                  const confirmed = window.confirm(
-                    `Delete agent "${agentId}"?\n\nThis removes the agent profile and archives its workspace/state.`,
-                  );
-                  if (!confirmed) {
-                    return;
-                  }
-                  try {
-                    await state.client.request("agents.delete", { agentId });
-                    if (state.agentsSelectedId === agentId) {
-                      state.agentsDetailOpen = false;
-                      resetAgentSelectionPanelState();
-                    }
-                    await loadAgents(state);
-                    const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
-                    if (agentIds.length > 0) {
-                      void loadAgentIdentities(state, agentIds);
-                    }
-                  } catch (err) {
-                    state.agentsError = String(err);
-                  }
                 },
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
@@ -1947,7 +1967,6 @@ export function renderApp(state: AppViewState) {
                   }
                   refreshAgentsPanelSupplementalData(panel);
                 },
-                onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
                 onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
                 onSelectFile: (name) => {
                   state.agentFileActive = name;
@@ -2189,7 +2208,6 @@ export function renderApp(state: AppViewState) {
                 onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
                 onClawHubInstall: (slug) => installFromClawHub(state, slug),
-                onClawHubUninstall: (slug) => uninstallFromClawHub(state, slug),
               }),
             )
           : nothing}
@@ -2291,7 +2309,6 @@ export function renderApp(state: AppViewState) {
               streamSegments: state.chatStreamSegments,
               stream: state.chatStream,
               streamStartedAt: state.chatStreamStartedAt,
-              composerControls: renderChatModelThinkingControls(state),
               draft: state.chatMessage,
               queue: state.chatQueue,
               realtimeTalkActive: state.realtimeTalkActive,
@@ -2359,7 +2376,6 @@ export function renderApp(state: AppViewState) {
               },
               onNavigateToAgent: () => {
                 state.agentsSelectedId = resolvedAgentId;
-                state.agentsDetailOpen = false;
                 state.setTab("agents" as import("./navigation.ts").Tab);
               },
               onSessionSelect: (key: string) => {
@@ -2489,20 +2505,19 @@ export function renderApp(state: AppViewState) {
               onResetDiary: () => resetDreamDiary(state),
               onResetGroundedShortTerm: () => resetGroundedShortTerm(state),
               onRepairDreamingArtifacts: () => repairDreamingArtifacts(state),
-              onToggleEnabled: applyDreamingEnabled,
               onRequestUpdate: requestHostUpdate,
             })
           : nothing}
-      `,
-    })}
-    ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}
-    ${renderDreamingRestartConfirmation({
-      open: state.dreamingRestartConfirmOpen,
-      loading: state.dreamingRestartConfirmLoading,
-      onConfirm: confirmDreamingRestart,
-      onCancel: cancelDreamingRestart,
-      hasError: Boolean(state.dreamingStatusError),
-    })}
-    ${nothing}
+      </main>
+      ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}
+      ${renderDreamingRestartConfirmation({
+        open: state.dreamingRestartConfirmOpen,
+        loading: state.dreamingRestartConfirmLoading,
+        onConfirm: confirmDreamingRestart,
+        onCancel: cancelDreamingRestart,
+        hasError: Boolean(state.dreamingStatusError),
+      })}
+      ${nothing}
+    </div>
   `;
 }

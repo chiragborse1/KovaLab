@@ -15,23 +15,9 @@
 .dreams__tabs {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 2px;
   padding: 6px 8px;
   flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.dreams__tab-list,
-.dreams__tab-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.dreams__tab-actions {
-  justify-content: flex-end;
 }
 
 .dreams__tab {
@@ -393,8 +379,7 @@
 
 .dreams__phase-toggle--on {
   color: var(--text);
-  border-color: color-mix(in oklab, var(--ok) 46%, var(--border));
-  background: color-mix(in oklab, var(--ok-subtle) 78%, var(--panel));
+  border-color: color-mix(in oklab, var(--ok) 20%, var(--border));
 }
 
 .dreams__phase-toggle-label {

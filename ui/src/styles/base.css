@@ -33,21 +33,17 @@
   --border-strong: #2e3040;
   --border-hover: #3e4050;
   --input: #1e2028;
-  --ring: #ff8a1f;
+  --ring: #ff5c5c;
 
-  /* Accent - Kova logo orange */
-  --accent: #ff8a1f;
-  --accent-hover: #ffa23d;
-  --accent-muted: #ff8a1f;
-  --accent-subtle: rgba(255, 138, 31, 0.12);
+  /* Accent - Punchy signature red */
+  --accent: #ff5c5c;
+  --accent-hover: #ff7070;
+  --accent-muted: #ff5c5c;
+  --accent-subtle: rgba(255, 92, 92, 0.1);
   --accent-foreground: #fafafa;
-  --accent-glow: rgba(255, 138, 31, 0.24);
-  --primary: #ff8a1f;
+  --accent-glow: rgba(255, 92, 92, 0.2);
+  --primary: #ff5c5c;
   --primary-foreground: #ffffff;
-  --kova-accent: #ff8a1f;
-  --kova-accent-hover: #ffa23d;
-  --kova-accent-subtle: rgba(255, 138, 31, 0.14);
-  --kova-accent-glow: rgba(255, 138, 31, 0.28);
 
   /* Secondary */
   --secondary: #161920;
@@ -146,20 +142,15 @@
   --border-strong: #d1d1d6;
   --border-hover: #aeaeb2;
   --input: #e5e5ea;
-  --ring: #f97316;
 
-  --accent: #f97316;
-  --accent-hover: #ea580c;
-  --accent-muted: #f97316;
-  --accent-subtle: rgba(249, 115, 22, 0.1);
+  --accent: #dc2626;
+  --accent-hover: #ef4444;
+  --accent-muted: #dc2626;
+  --accent-subtle: rgba(220, 38, 38, 0.08);
   --accent-foreground: #ffffff;
-  --accent-glow: rgba(249, 115, 22, 0.14);
-  --primary: #f97316;
+  --accent-glow: rgba(220, 38, 38, 0.1);
+  --primary: #dc2626;
   --primary-foreground: #ffffff;
-  --kova-accent: #f97316;
-  --kova-accent-hover: #ea580c;
-  --kova-accent-subtle: rgba(249, 115, 22, 0.1);
-  --kova-accent-glow: rgba(249, 115, 22, 0.16);
 
   --secondary: #f1f3f5;
   --secondary-foreground: #3c3c43;
@@ -558,18 +549,6 @@ textarea,
 select {
   font: inherit;
   color: inherit;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 ::selection {

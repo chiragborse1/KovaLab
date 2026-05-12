@@ -485,7 +485,7 @@
   height: 22px;
   background: color-mix(in srgb, var(--bg) 70%, var(--border) 30%);
   border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-  border-radius: var(--radius-full);
+  border-radius: 11px;
   transition:
     background var(--duration-normal) var(--ease-out),
     border-color var(--duration-normal) var(--ease-out);
@@ -507,8 +507,8 @@
 }
 
 .qs-toggle input:checked + .qs-toggle__track {
-  background: var(--ok);
-  border-color: var(--ok);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .qs-toggle input:checked + .qs-toggle__track::after {

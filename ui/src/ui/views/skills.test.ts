@@ -86,7 +86,6 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     onClawHubDetailOpen: () => undefined,
     onClawHubDetailClose: () => undefined,
     onClawHubInstall: () => undefined,
-    onClawHubUninstall: () => undefined,
     ...overrides,
   };
 }
@@ -99,68 +98,6 @@ describe("renderSkills", () => {
     }
   });
 
-  it("renders installed skills as aligned rectangular cards", () => {
-    const container = document.createElement("div");
-    const onClawHubUninstall = vi.fn();
-
-    render(
-      renderSkills(
-        createProps({
-          report: {
-            workspaceDir: "/tmp/workspace",
-            managedSkillsDir: "/tmp/skills",
-            skills: [
-              createSkill({ name: "Repo Skill", skillKey: "repo-skill", source: "workspace" }),
-              createSkill({
-                name: "Needs Setup",
-                skillKey: "needs-setup",
-                eligible: false,
-                missing: { bins: ["gh"], env: [], config: [], os: [] },
-              }),
-              createSkill({
-                name: "Marketplace Skill",
-                skillKey: "marketplace-skill",
-                source: "openclaw-workspace",
-              }),
-            ],
-          },
-          onClawHubUninstall,
-        }),
-      ),
-      container,
-    );
-
-    const grid = container.querySelector(".skills-grid");
-    const cards = Array.from(container.querySelectorAll(".skill-card"));
-    const statusBar = container.querySelector(".skills-status-bar");
-    const categoryNav = container.querySelector(".skills-group-nav");
-
-    expect(grid).toBeTruthy();
-    expect(cards).toHaveLength(3);
-    expect(statusBar?.querySelector('input[name="skills-filter"]')).toBeTruthy();
-    expect(statusBar?.querySelector('input[name="clawhub-search"]')).toBeTruthy();
-    expect(categoryNav).toBeTruthy();
-    expect(normalizeText(categoryNav!)).toContain("Workspace Skills");
-    expect(normalizeText(categoryNav!)).toContain("Other Skills");
-    const repoCard = cards.find((card) => normalizeText(card).includes("Repo Skill"));
-    const needsSetupCard = cards.find((card) => normalizeText(card).includes("Needs Setup"));
-    const marketplaceCard = cards.find((card) => normalizeText(card).includes("Marketplace Skill"));
-    expect(repoCard).toBeTruthy();
-    expect(needsSetupCard).toBeTruthy();
-    expect(marketplaceCard).toBeTruthy();
-    expect(normalizeText(repoCard!)).toContain("Ready");
-    expect(normalizeText(repoCard!)).toContain("Workspace");
-    expect(normalizeText(needsSetupCard!)).toContain("Needs setup");
-    expect(normalizeText(needsSetupCard!)).not.toContain("1 missing");
-    expect(normalizeText(marketplaceCard!)).toContain("Marketplace");
-    expect(normalizeText(container)).not.toContain("shown");
-
-    marketplaceCard?.querySelector<HTMLButtonElement>(".skill-card__actions .btn.danger")?.click();
-
-    expect(onClawHubUninstall).toHaveBeenCalledTimes(1);
-    expect(onClawHubUninstall).toHaveBeenCalledWith("marketplace-skill");
-  });
-
   it("opens detail dialogs and routes ClawHub actions", async () => {
     const container = document.createElement("div");
     const onDetailClose = vi.fn();
@@ -169,7 +106,6 @@ describe("renderSkills", () => {
     });
     const onClawHubDetailOpen = vi.fn();
     const onClawHubInstall = vi.fn();
-    const onClawHubUninstall = vi.fn();
 
     installDialogMethod("showModal", showModal);
     installDialogMethod("close", function (this: HTMLDialogElement) {
@@ -232,45 +168,6 @@ describe("renderSkills", () => {
     expect(onClawHubInstall).toHaveBeenCalledWith("github");
 
     onClawHubInstall.mockClear();
-    onClawHubDetailOpen.mockClear();
-    showModal.mockClear();
-
-    render(
-      renderSkills(
-        createProps({
-          report: {
-            workspaceDir: "/tmp/workspace",
-            managedSkillsDir: "/tmp/skills",
-            skills: [createSkill({ skillKey: "github", source: "openclaw-workspace" })],
-          },
-          clawhubQuery: "git",
-          clawhubResults: [
-            {
-              score: 0.95,
-              slug: "github",
-              displayName: "GitHub",
-              summary: "GitHub integration for OpenClaw",
-              version: "1.2.3",
-            },
-          ],
-          onClawHubDetailOpen,
-          onClawHubInstall,
-          onClawHubUninstall,
-        }),
-      ),
-      container,
-    );
-    await Promise.resolve();
-
-    container
-      .querySelector<HTMLButtonElement>(".list-item .btn.btn--sm")
-      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    expect(onClawHubInstall).not.toHaveBeenCalled();
-    expect(onClawHubUninstall).toHaveBeenCalledTimes(1);
-    expect(onClawHubUninstall).toHaveBeenCalledWith("github");
-
-    onClawHubUninstall.mockClear();
     showModal.mockClear();
 
     render(
@@ -301,7 +198,6 @@ describe("renderSkills", () => {
             },
           },
           onClawHubInstall,
-          onClawHubUninstall,
         }),
       ),
       container,

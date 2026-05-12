@@ -18,8 +18,6 @@ import {
 } from "../thinking.ts";
 import type { GatewayThinkingLevelOption, SessionsListResult } from "../types.ts";
 
-let chatControlOutsideCloseInstalled = false;
-
 type ChatSessionSwitchHandler = (state: AppViewState, nextSessionKey: string) => void;
 
 export function renderChatSessionSelect(
@@ -27,6 +25,8 @@ export function renderChatSessionSelect(
   onSwitchSession: ChatSessionSwitchHandler = () => undefined,
 ) {
   const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
+  const modelSelect = renderChatModelSelect(state);
+  const thinkingSelect = renderChatThinkingSelect(state);
   const selectedSessionLabel =
     sessionGroups.flatMap((group) => group.options).find((entry) => entry.key === state.sessionKey)
       ?.label ?? state.sessionKey;
@@ -66,14 +66,7 @@ export function renderChatSessionSelect(
           )}
         </select>
       </label>
-    </div>
-  `;
-}
-
-export function renderChatModelThinkingControls(state: AppViewState) {
-  return html`
-    <div class="chat-controls__model-thinking">
-      ${renderChatModelSelect(state)} ${renderChatThinkingSelect(state)}
+      ${modelSelect} ${thinkingSelect}
     </div>
   `;
 }
@@ -101,14 +94,9 @@ function renderChatModelSelect(state: AppViewState) {
     currentOverride === ""
       ? defaultLabel
       : (options.find((entry) => entry.value === currentOverride)?.label ?? currentOverride);
-  const dropdownOptions: ChatControlOption[] = [
-    { value: "", label: defaultLabel },
-    ...options.map((entry) => ({ value: entry.value, label: entry.label })),
-  ];
   return html`
     <label class="field chat-controls__session chat-controls__model">
       <select
-        class="chat-native-select"
         data-chat-model-select="true"
         aria-label="Chat model"
         title=${selectedLabel}
@@ -128,22 +116,9 @@ function renderChatModelSelect(state: AppViewState) {
             </option>`,
         )}
       </select>
-      ${renderChatControlDropdown({
-        ariaLabel: "Chat model",
-        disabled,
-        options: dropdownOptions,
-        selectedLabel,
-        selectedValue: currentOverride,
-        onSelect: async (next) => switchChatModel(state, next),
-      })}
     </label>
   `;
 }
-
-type ChatControlOption = {
-  value: string;
-  label: string;
-};
 
 type ChatThinkingSelectOption = {
   value: string;
@@ -260,14 +235,9 @@ export function renderChatThinkingSelect(state: AppViewState) {
     currentOverride === ""
       ? defaultLabel
       : (options.find((entry) => entry.value === currentOverride)?.label ?? currentOverride);
-  const dropdownOptions: ChatControlOption[] = [
-    { value: "", label: defaultLabel },
-    ...options.map((entry) => ({ value: entry.value, label: entry.label })),
-  ];
   return html`
     <label class="field chat-controls__session chat-controls__thinking-select">
       <select
-        class="chat-native-select"
         data-chat-thinking-select="true"
         aria-label="Chat thinking level"
         title=${selectedLabel}
@@ -287,115 +257,8 @@ export function renderChatThinkingSelect(state: AppViewState) {
             </option>`,
         )}
       </select>
-      ${renderChatControlDropdown({
-        ariaLabel: "Chat thinking level",
-        disabled,
-        options: dropdownOptions,
-        selectedLabel,
-        selectedValue: currentOverride,
-        onSelect: async (next) => switchChatThinkingLevel(state, next),
-      })}
     </label>
   `;
-}
-
-function renderChatControlDropdown(params: {
-  ariaLabel: string;
-  disabled: boolean;
-  options: ChatControlOption[];
-  selectedLabel: string;
-  selectedValue: string;
-  onSelect: (value: string) => Promise<void>;
-}) {
-  installChatControlOutsideClose();
-
-  if (params.disabled) {
-    return html`
-      <button class="chat-control-select" type="button" disabled aria-label=${params.ariaLabel}>
-        <span class="chat-control-select__label">${params.selectedLabel}</span>
-        <span class="chat-control-select__chevron" aria-hidden="true">▾</span>
-      </button>
-    `;
-  }
-
-  return html`
-    <details
-      class="chat-control-select"
-      @toggle=${(e: Event) => closeSiblingChatControlDropdowns(e)}
-    >
-      <summary aria-label=${params.ariaLabel} title=${params.selectedLabel}>
-        <span class="chat-control-select__label">${params.selectedLabel}</span>
-        <span class="chat-control-select__chevron" aria-hidden="true">▾</span>
-      </summary>
-      <div class="chat-control-select__menu" role="listbox" aria-label=${params.ariaLabel}>
-        ${repeat(
-          params.options,
-          (option) => option.value,
-          (option) => html`
-            <button
-              type="button"
-              class="chat-control-select__option ${option.value === params.selectedValue
-                ? "chat-control-select__option--active"
-                : ""}"
-              role="option"
-              aria-selected=${option.value === params.selectedValue}
-              @click=${async (e: Event) => {
-                const details = (e.currentTarget as HTMLElement).closest("details");
-                details?.removeAttribute("open");
-                await params.onSelect(option.value);
-              }}
-            >
-              <span>${option.label}</span>
-              ${option.value === params.selectedValue
-                ? html`<span class="chat-control-select__check" aria-hidden="true">✓</span>`
-                : ""}
-            </button>
-          `,
-        )}
-      </div>
-    </details>
-  `;
-}
-
-function installChatControlOutsideClose() {
-  if (chatControlOutsideCloseInstalled || typeof document === "undefined") {
-    return;
-  }
-  chatControlOutsideCloseInstalled = true;
-  document.addEventListener("pointerdown", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element) || target.closest(".chat-control-select")) {
-      return;
-    }
-    closeAllChatControlDropdowns();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closeAllChatControlDropdowns();
-    }
-  });
-}
-
-function closeAllChatControlDropdowns() {
-  for (const dropdown of document.querySelectorAll<HTMLDetailsElement>(
-    ".chat-control-select[open]",
-  )) {
-    dropdown.removeAttribute("open");
-  }
-}
-
-function closeSiblingChatControlDropdowns(event: Event) {
-  const current = event.currentTarget;
-  if (!(current instanceof HTMLDetailsElement) || !current.open) {
-    return;
-  }
-  const root = current.closest(".chat-controls__model-thinking") ?? current.parentElement;
-  const openDropdowns = root?.querySelectorAll<HTMLDetailsElement>(".chat-control-select[open]");
-  for (const dropdown of openDropdowns ?? []) {
-    if (dropdown !== current) {
-      dropdown.removeAttribute("open");
-    }
-  }
 }
 
 async function switchChatModel(state: AppViewState, nextModel: string) {

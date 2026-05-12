@@ -28,17 +28,4 @@ describe("chat layout styles", () => {
     expect(css).toContain("font-size: 20px;");
     expect(css).toContain("place-items: center;");
   });
-
-  it("keeps the chat composer compact without an internal divider", () => {
-    const css = readLayoutCss();
-
-    expect(css).toContain("width: min(calc(100% - 30px), 1040px);");
-    expect(css).toContain("min-height: 64px;");
-    expect(css).toContain("overflow: hidden;");
-    expect(css).toContain("background: transparent !important;");
-    expect(css).toContain("border-radius: var(--radius-lg) var(--radius-lg) 0 0;");
-    expect(css).not.toContain(
-      ".agent-chat__toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 6px 10px;\n  border-top:",
-    );
-  });
 });

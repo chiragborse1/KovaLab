@@ -5,9 +5,9 @@ import { syncUrlWithSessionKey } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import {
   isCronSessionKey,
-  renderChatModelThinkingControls as renderChatModelThinkingControlsBase,
   parseSessionKey,
   renderChatSessionSelect as renderChatSessionSelectBase,
+  renderChatThinkingSelect,
   resolveSessionDisplayName,
   resolveSessionOptionGroups,
 } from "./chat/session-controls.ts";
@@ -127,9 +127,6 @@ export function renderTab(state: AppViewState, tab: Tab, opts?: { collapsed?: bo
             void state.loadAssistantIdentity();
           }
         }
-        if (tab === "agents") {
-          state.agentsDetailOpen = false;
-        }
         state.setTab(tab);
       }}
       title=${titleForTab(tab)}
@@ -180,10 +177,6 @@ function renderCronFilterIcon(hiddenCount: number) {
 
 export function renderChatSessionSelect(state: AppViewState) {
   return renderChatSessionSelectBase(state, switchChatSession);
-}
-
-export function renderChatModelThinkingControls(state: AppViewState) {
-  return renderChatModelThinkingControlsBase(state);
 }
 
 export function renderChatControls(state: AppViewState) {
@@ -480,6 +473,7 @@ export function renderChatMobileToggle(state: AppViewState) {
               )}
             </select>
           </label>
+          ${renderChatThinkingSelect(state)}
           <div class="chat-controls__thinking">
             <button
               class="btn btn--sm btn--icon ${showThinking ? "active" : ""}"
