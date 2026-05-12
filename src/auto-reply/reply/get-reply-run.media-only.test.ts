@@ -339,6 +339,43 @@ describe("runPreparedReply media-only handling", () => {
     expect(call?.followupRun.prompt).toContain("[User sent media without caption]");
   });
 
+  it("passes message-tool-only delivery mode to inbound context", async () => {
+    const result = await runPreparedReply(
+      baseParams({
+        opts: { sourceReplyDeliveryMode: "message_tool_only" },
+        ctx: {
+          Body: "",
+          RawBody: "",
+          CommandBody: "",
+          ThreadHistoryBody: "Earlier direct message",
+          OriginatingChannel: "telegram",
+          OriginatingTo: "telegram-direct-test-id",
+          ChatType: "direct",
+        },
+        sessionCtx: {
+          Body: "",
+          BodyStripped: "",
+          ThreadHistoryBody: "Earlier direct message",
+          MediaPath: "/tmp/input.png",
+          Provider: "telegram",
+          ChatType: "direct",
+          OriginatingChannel: "telegram",
+          OriginatingTo: "telegram-direct-test-id",
+        },
+      }),
+    );
+    expect(result).toEqual({ text: "ok" });
+    expect(buildInboundUserContextPrefix).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ChatType: "direct",
+        OriginatingChannel: "telegram",
+        OriginatingTo: "telegram-direct-test-id",
+      }),
+      expect.anything(),
+      { sourceReplyDeliveryMode: "message_tool_only" },
+    );
+  });
+
   it("keeps thread history context on follow-up turns", async () => {
     const result = await runPreparedReply(
       baseParams({
