@@ -13,7 +13,8 @@ import {
 import { normalizeOptionalSecretInput } from "../utils/normalize-secret-input.js";
 import { normalizeAlias } from "./models/alias-name.js";
 
-const DEFAULT_CONTEXT_WINDOW = CONTEXT_WINDOW_HARD_MIN_TOKENS;
+export const CUSTOM_PROVIDER_DEFAULT_CONTEXT_WINDOW_TOKENS = 32_768;
+const DEFAULT_CONTEXT_WINDOW = CUSTOM_PROVIDER_DEFAULT_CONTEXT_WINDOW_TOKENS;
 const DEFAULT_MAX_TOKENS = 4096;
 // Azure OpenAI uses the Responses API which supports larger defaults
 const AZURE_DEFAULT_CONTEXT_WINDOW = 400_000;
@@ -21,7 +22,13 @@ const AZURE_DEFAULT_MAX_TOKENS = 16_384;
 
 function normalizeContextWindowForCustomModel(value: unknown): number {
   const parsed = typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : 0;
-  return parsed >= CONTEXT_WINDOW_HARD_MIN_TOKENS ? parsed : CONTEXT_WINDOW_HARD_MIN_TOKENS;
+  if (parsed >= CUSTOM_PROVIDER_DEFAULT_CONTEXT_WINDOW_TOKENS) {
+    return parsed;
+  }
+  if (parsed >= CONTEXT_WINDOW_HARD_MIN_TOKENS && parsed !== CONTEXT_WINDOW_HARD_MIN_TOKENS) {
+    return parsed;
+  }
+  return CUSTOM_PROVIDER_DEFAULT_CONTEXT_WINDOW_TOKENS;
 }
 
 function isAzureFoundryUrl(baseUrl: string): boolean {
