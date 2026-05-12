@@ -275,8 +275,12 @@ export function scheduleFollowupDrain(
     } finally {
       queue.draining = false;
       if (queue.items.length === 0 && queue.droppedCount === 0) {
-        FOLLOWUP_QUEUES.delete(key);
-        clearFollowupDrainCallback(key);
+        // clearSessionQueues can replace this key while an older drain is
+        // still unwinding. Do not orphan the replacement queue.
+        if (FOLLOWUP_QUEUES.get(key) === queue) {
+          FOLLOWUP_QUEUES.delete(key);
+          clearFollowupDrainCallback(key);
+        }
       } else {
         scheduleFollowupDrain(key, effectiveRunFollowup);
       }
