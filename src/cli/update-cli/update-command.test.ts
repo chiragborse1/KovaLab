@@ -5,6 +5,7 @@ import {
   resolveGatewayInstallEntrypoint,
 } from "../../daemon/gateway-entrypoint.js";
 import {
+  resolvePostCoreUpdateChildStdio,
   shouldPrepareUpdatedInstallRestart,
   shouldUseLegacyProcessRestartAfterUpdate,
 } from "./update-command.js";
@@ -93,5 +94,16 @@ describe("shouldUseLegacyProcessRestartAfterUpdate", () => {
   it("keeps the in-process restart path for non-package updates", () => {
     expect(shouldUseLegacyProcessRestartAfterUpdate({ updateMode: "git" })).toBe(true);
     expect(shouldUseLegacyProcessRestartAfterUpdate({ updateMode: "unknown" })).toBe(true);
+  });
+});
+
+describe("resolvePostCoreUpdateChildStdio", () => {
+  it('returns "pipe" on Windows so the child never inherits the parent console handles', () => {
+    expect(resolvePostCoreUpdateChildStdio("win32")).toBe("pipe");
+  });
+
+  it('returns "inherit" on non-Windows platforms', () => {
+    expect(resolvePostCoreUpdateChildStdio("linux")).toBe("inherit");
+    expect(resolvePostCoreUpdateChildStdio("darwin")).toBe("inherit");
   });
 });

@@ -1086,6 +1086,21 @@ async function readPostCorePluginUpdateResultFile(
   return undefined;
 }
 
+/**
+ * Returns the stdio mode for the post-core-update child process.
+ *
+ * Windows shells wait for all processes that hold inherited console handles to
+ * exit before returning the prompt. Using "pipe" on Windows prevents the child
+ * and grandchildren from inheriting the parent console handles.
+ *
+ * @internal exported for testing
+ */
+export function resolvePostCoreUpdateChildStdio(
+  platform: NodeJS.Platform = process.platform,
+): "inherit" | "pipe" {
+  return platform === "win32" ? "pipe" : "inherit";
+}
+
 async function continuePostCoreUpdateInFreshProcess(params: {
   root: string;
   channel: "stable" | "beta" | "dev";
@@ -1116,8 +1131,9 @@ async function continuePostCoreUpdateInFreshProcess(params: {
 
   try {
     await writePostCorePluginInstallRecordsFile(installRecordsPath, params.pluginInstallRecords);
+    const childStdio = resolvePostCoreUpdateChildStdio();
     const child = spawn(resolveNodeRunner(), argv, {
-      stdio: "inherit",
+      stdio: childStdio,
       env: {
         ...process.env,
         [POST_CORE_UPDATE_ENV]: "1",
@@ -1126,6 +1142,10 @@ async function continuePostCoreUpdateInFreshProcess(params: {
         [POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV]: installRecordsPath,
       },
     });
+    if (childStdio === "pipe") {
+      child.stdout?.pipe(process.stdout);
+      child.stderr?.pipe(process.stderr);
+    }
 
     const exitCode = await new Promise<number>((resolve, reject) => {
       child.once("error", reject);
