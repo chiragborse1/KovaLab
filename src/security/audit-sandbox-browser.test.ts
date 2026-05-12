@@ -104,7 +104,7 @@ describe("security audit sandbox browser findings", () => {
     );
   });
 
-  it("does not warn about cdpSourceRange since runtime auto-derives it", () => {
+  it("does not warn about cdpSourceRange since the CDP relay is authenticated", () => {
     const findings = collectSandboxDangerousConfigFindings({
       agents: {
         defaults: {

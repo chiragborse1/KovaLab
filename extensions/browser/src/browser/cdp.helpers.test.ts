@@ -19,7 +19,7 @@ vi.mock("openclaw/plugin-sdk/ssrf-runtime", async (importOriginal) => {
   };
 });
 
-import { assertCdpEndpointAllowed, fetchJson, fetchOk } from "./cdp.helpers.js";
+import { assertCdpEndpointAllowed, fetchJson, fetchOk, redactCdpUrl } from "./cdp.helpers.js";
 
 describe("cdp helpers", () => {
   afterEach(() => {
@@ -115,6 +115,41 @@ describe("cdp helpers", () => {
       }),
     );
     expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends URL credentials as Basic auth without passing credentials to SSRF fetch", async () => {
+    const release = vi.fn(async () => {});
+    fetchWithSsrFGuardMock.mockResolvedValueOnce({
+      response: {
+        ok: true,
+        status: 200,
+      },
+      release,
+    });
+
+    await expect(
+      fetchOk("http://openclaw:secret-token@127.0.0.1:9222/json/version", 250, undefined, {
+        dangerouslyAllowPrivateNetwork: false,
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(fetchWithSsrFGuardMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "http://127.0.0.1:9222/json/version",
+        init: expect.objectContaining({
+          headers: {
+            Authorization: `Basic ${Buffer.from("openclaw:secret-token").toString("base64")}`,
+          },
+        }),
+      }),
+    );
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it("redacts credentials from CDP URLs before exposing them", () => {
+    expect(redactCdpUrl("http://openclaw:secret-token@127.0.0.1:9222/json/version")).toBe(
+      "http://127.0.0.1:9222/json/version",
+    );
   });
 
   it("preserves hostname allowlist while allowing exact loopback CDP fetches", async () => {

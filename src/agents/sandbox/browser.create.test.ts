@@ -12,8 +12,6 @@ const dockerMocks = vi.hoisted(() => ({
   execDocker: vi.fn(),
   readDockerContainerEnvVar: vi.fn(),
   readDockerContainerLabel: vi.fn(),
-  readDockerNetworkDriver: vi.fn(),
-  readDockerNetworkGateway: vi.fn(),
   readDockerPort: vi.fn(),
 }));
 
@@ -35,8 +33,6 @@ vi.mock("./docker.js", async () => {
     execDocker: dockerMocks.execDocker,
     readDockerContainerEnvVar: dockerMocks.readDockerContainerEnvVar,
     readDockerContainerLabel: dockerMocks.readDockerContainerLabel,
-    readDockerNetworkDriver: dockerMocks.readDockerNetworkDriver,
-    readDockerNetworkGateway: dockerMocks.readDockerNetworkGateway,
     readDockerPort: dockerMocks.readDockerPort,
   };
 });
@@ -60,14 +56,18 @@ vi.mock("../../plugin-sdk/browser-profiles.js", () => ({
     resolved: { cdpHost: string; cdpIsLoopback: boolean; profiles?: Record<string, unknown> },
     profileName: string,
   ) => {
-    const profile = resolved.profiles?.[profileName] as { cdpPort?: number; color?: string };
+    const profile = resolved.profiles?.[profileName] as {
+      cdpPort?: number;
+      cdpUrl?: string;
+      color?: string;
+    };
     if (typeof profile?.cdpPort !== "number") {
       return null;
     }
     return {
       name: profileName,
       cdpPort: profile.cdpPort,
-      cdpUrl: `http://${resolved.cdpHost}:${profile.cdpPort}`,
+      cdpUrl: profile.cdpUrl ?? `http://${resolved.cdpHost}:${profile.cdpPort}`,
       cdpHost: resolved.cdpHost,
       cdpIsLoopback: resolved.cdpIsLoopback,
       color: profile.color ?? "#FF4500",
@@ -154,8 +154,6 @@ describe("ensureSandboxBrowser create args", () => {
     dockerMocks.execDocker.mockClear();
     dockerMocks.readDockerContainerEnvVar.mockClear();
     dockerMocks.readDockerContainerLabel.mockClear();
-    dockerMocks.readDockerNetworkDriver.mockClear();
-    dockerMocks.readDockerNetworkGateway.mockClear();
     dockerMocks.readDockerPort.mockClear();
     registryMocks.readBrowserRegistry.mockClear();
     registryMocks.updateBrowserRegistry.mockClear();
@@ -165,14 +163,12 @@ describe("ensureSandboxBrowser create args", () => {
     dockerMocks.dockerContainerState.mockResolvedValue({ exists: false, running: false });
     dockerMocks.execDocker.mockImplementation(async (args: string[]) => {
       if (args[0] === "image" && args[1] === "inspect") {
-        return { stdout: "[]", stderr: "", code: 0 };
+        return { stdout: "2026-05-12-cdp-relay-auth\n", stderr: "", code: 0 };
       }
       return { stdout: "", stderr: "", code: 0 };
     });
     dockerMocks.readDockerContainerLabel.mockResolvedValue(null);
     dockerMocks.readDockerContainerEnvVar.mockResolvedValue(null);
-    dockerMocks.readDockerNetworkDriver.mockResolvedValue("bridge");
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue("172.21.0.1");
     dockerMocks.readDockerPort.mockImplementation(async (_containerName: string, port: number) => {
       if (port === 9222) {
         return 49100;
@@ -215,7 +211,14 @@ describe("ensureSandboxBrowser create args", () => {
     const passwordEntry = envEntries.find((entry) =>
       entry.startsWith("OPENCLAW_BROWSER_NOVNC_PASSWORD="),
     );
+    const cdpTokenEntry = envEntries.find((entry) =>
+      entry.startsWith("OPENCLAW_BROWSER_CDP_AUTH_TOKEN="),
+    );
     expect(passwordEntry).toMatch(/^OPENCLAW_BROWSER_NOVNC_PASSWORD=[A-Za-z0-9]{8}$/);
+    expect(cdpTokenEntry).toMatch(/^OPENCLAW_BROWSER_CDP_AUTH_TOKEN=[a-f0-9]{48}$/);
+    expect(envEntries.some((entry) => entry.startsWith("OPENCLAW_BROWSER_CDP_SOURCE_RANGE="))).toBe(
+      false,
+    );
     expect(result?.noVncUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/sandbox\/novnc\?token=/);
     expect(result?.noVncUrl).not.toContain("password=");
   });
@@ -288,6 +291,7 @@ describe("ensureSandboxBrowser create args", () => {
           profiles: {
             openclaw: {
               cdpPort: 49100,
+              cdpUrl: "http://openclaw:test-cdp-token@127.0.0.1:49100",
               color: "#FF4500",
             },
           },
@@ -301,6 +305,12 @@ describe("ensureSandboxBrowser create args", () => {
       authToken: "test-bridge-token",
     });
     dockerMocks.dockerContainerState.mockResolvedValue({ exists: true, running: true });
+    dockerMocks.readDockerContainerEnvVar.mockImplementation(async (_containerName, envKey) => {
+      if (envKey === "OPENCLAW_BROWSER_CDP_AUTH_TOKEN") {
+        return "test-cdp-token";
+      }
+      return null;
+    });
 
     await ensureTestSandboxBrowser({
       scopeKey: "session:test",
@@ -403,9 +413,7 @@ describe("ensureSandboxBrowser create args", () => {
     );
   });
 
-  it("auto-derives CDP source range from Docker network gateway", async () => {
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue("172.21.0.1");
-
+  it("does not inject a CDP source range unless configured", async () => {
     await ensureTestSandboxBrowser({
       scopeKey: "session:test",
       workspaceDir: "/tmp/workspace",
@@ -415,11 +423,12 @@ describe("ensureSandboxBrowser create args", () => {
 
     const createArgs = findDockerArgsCall(dockerMocks.execDocker.mock.calls, "create");
     const envEntries = collectDockerFlagValues(createArgs ?? [], "-e");
-    expect(envEntries).toContain("OPENCLAW_BROWSER_CDP_SOURCE_RANGE=172.21.0.1/32");
+    expect(envEntries.some((entry) => entry.startsWith("OPENCLAW_BROWSER_CDP_SOURCE_RANGE="))).toBe(
+      false,
+    );
   });
 
-  it("uses explicit cdpSourceRange over auto-derived gateway", async () => {
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue("172.21.0.1");
+  it("uses explicit cdpSourceRange as an additional relay allowlist", async () => {
     const cfg = buildConfig(false);
     cfg.browser.cdpSourceRange = "10.0.0.0/24";
 
@@ -433,11 +442,15 @@ describe("ensureSandboxBrowser create args", () => {
     const createArgs = findDockerArgsCall(dockerMocks.execDocker.mock.calls, "create");
     const envEntries = collectDockerFlagValues(createArgs ?? [], "-e");
     expect(envEntries).toContain("OPENCLAW_BROWSER_CDP_SOURCE_RANGE=10.0.0.0/24");
-    expect(dockerMocks.readDockerNetworkGateway).not.toHaveBeenCalled();
   });
 
-  it("rejects IPv6-only gateway (relay binds IPv4)", async () => {
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue("fd12::1");
+  it("rejects stale sandbox browser images without the current relay contract", async () => {
+    dockerMocks.execDocker.mockImplementation(async (args: string[]) => {
+      if (args[0] === "image" && args[1] === "inspect") {
+        return { stdout: "<no value>\n", stderr: "", code: 0 };
+      }
+      return { stdout: "", stderr: "", code: 0 };
+    });
 
     await expect(
       ensureTestSandboxBrowser({
@@ -446,53 +459,29 @@ describe("ensureSandboxBrowser create args", () => {
         agentWorkspaceDir: "/tmp/workspace",
         cfg: buildConfig(false),
       }),
-    ).rejects.toThrow(/Cannot derive CDP source range/);
+    ).rejects.toThrow(/stale or incompatible/);
   });
 
-  it("throws when CDP source range cannot be derived", async () => {
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue(null);
-
-    await expect(
-      ensureTestSandboxBrowser({
-        scopeKey: "session:test",
-        workspaceDir: "/tmp/workspace",
-        agentWorkspaceDir: "/tmp/workspace",
-        cfg: buildConfig(false),
-      }),
-    ).rejects.toThrow(/Cannot derive CDP source range/);
-  });
-
-  it("requires explicit cdpSourceRange for non-bridge network drivers", async () => {
-    dockerMocks.readDockerNetworkDriver.mockResolvedValue("macvlan");
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue("172.21.0.1");
-
-    await expect(
-      ensureTestSandboxBrowser({
-        scopeKey: "session:test",
-        workspaceDir: "/tmp/workspace",
-        agentWorkspaceDir: "/tmp/workspace",
-        cfg: buildConfig(false),
-      }),
-    ).rejects.toThrow(/Cannot derive CDP source range/);
-    // Gateway helper should not have been called for non-bridge networks.
-    expect(dockerMocks.readDockerNetworkGateway).not.toHaveBeenCalled();
-  });
-
-  it("uses loopback range for network=none (no IPAM gateway, no peer risk)", async () => {
-    dockerMocks.readDockerNetworkGateway.mockResolvedValue(null);
-    const cfg = buildConfig(false);
-    cfg.browser.network = "none";
+  it("recreates existing containers that lack a CDP auth token", async () => {
+    dockerMocks.dockerContainerState.mockResolvedValue({ exists: true, running: true });
+    dockerMocks.readDockerContainerEnvVar.mockResolvedValue(null);
 
     const result = await ensureTestSandboxBrowser({
       scopeKey: "session:test",
       workspaceDir: "/tmp/workspace",
       agentWorkspaceDir: "/tmp/workspace",
-      cfg,
+      cfg: buildConfig(false),
     });
 
     expect(result).toBeDefined();
+    expect(dockerMocks.execDocker).toHaveBeenCalledWith(
+      ["rm", "-f", expect.stringMatching(/^openclaw-sbx-browser-session-test-/)],
+      { allowFailure: true },
+    );
     const createArgs = findDockerArgsCall(dockerMocks.execDocker.mock.calls, "create");
     const envEntries = collectDockerFlagValues(createArgs ?? [], "-e");
-    expect(envEntries).toContain("OPENCLAW_BROWSER_CDP_SOURCE_RANGE=127.0.0.1/32");
+    expect(envEntries.some((entry) => entry.startsWith("OPENCLAW_BROWSER_CDP_AUTH_TOKEN="))).toBe(
+      true,
+    );
   });
 });

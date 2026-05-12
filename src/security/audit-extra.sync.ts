@@ -848,8 +848,9 @@ export function collectSandboxDangerousConfigFindings(cfg: OpenClawConfig): Secu
     }
   }
 
-  // CDP source range is now auto-derived at runtime from the Docker network gateway
-  // for all bridge-like networks, so an unset cdpSourceRange is no longer a security gap.
+  // The sandbox browser CDP relay is authenticated by default, so an unset
+  // cdpSourceRange is no longer a security gap. Operators can still configure
+  // cdpSourceRange as an extra container-edge ingress allowlist.
 
   return findings;
 }

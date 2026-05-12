@@ -21,7 +21,8 @@ This is not a perfect security boundary, but it materially limits filesystem and
   <Accordion title="Sandboxed browser details">
     - By default, the sandbox browser auto-starts (ensures CDP is reachable) when the browser tool needs it. Configure via `agents.defaults.sandbox.browser.autoStart` and `agents.defaults.sandbox.browser.autoStartTimeoutMs`.
     - By default, sandbox browser containers use a dedicated Docker network (`openclaw-sandbox-browser`) instead of the global `bridge` network. Configure with `agents.defaults.sandbox.browser.network`.
-    - Optional `agents.defaults.sandbox.browser.cdpSourceRange` restricts container-edge CDP ingress with a CIDR allowlist (for example `172.21.0.1/32`).
+    - The sandbox browser CDP relay is authenticated by default; Kova generates a per-container token and rebuilds/recreates stale images or containers that do not support the current auth contract.
+    - Optional `agents.defaults.sandbox.browser.cdpSourceRange` adds a container-edge CDP ingress CIDR allowlist (for example `172.21.0.1/32`) on top of relay authentication.
     - noVNC observer access is password-protected by default; Kova emits a short-lived token URL that serves a local bootstrap page and opens noVNC with password in URL fragment (not query/header logs).
     - `agents.defaults.sandbox.browser.allowHostControl` lets sandboxed sessions target the host browser explicitly.
     - Optional allowlists gate `target: "custom"`: `allowedControlUrls`, `allowedControlHosts`, `allowedControlPorts`.

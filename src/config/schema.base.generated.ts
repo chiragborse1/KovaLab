@@ -5994,9 +5994,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       },
                       cdpSourceRange: {
                         type: "string",
-                        title: "Sandbox Browser CDP Source Port Range",
+                        title: "Sandbox Browser CDP Source Range",
                         description:
-                          "Optional CIDR allowlist for container-edge CDP ingress (for example 172.21.0.1/32).",
+                          "Optional extra CIDR allowlist for authenticated container-edge CDP ingress (for example 172.21.0.1/32).",
                       },
                       vncPort: {
                         type: "integer",
@@ -7737,8 +7737,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         },
                         cdpSourceRange: {
                           type: "string",
-                          title: "Agent Sandbox Browser CDP Source Port Range",
-                          description: "Per-agent override for CDP source CIDR allowlist.",
+                          title: "Agent Sandbox Browser CDP Source Range",
+                          description:
+                            "Per-agent override for the optional CDP source CIDR allowlist.",
                         },
                         vncPort: {
                           type: "integer",
@@ -27123,8 +27124,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["storage"],
     },
     "agents.defaults.sandbox.browser.cdpSourceRange": {
-      label: "Sandbox Browser CDP Source Port Range",
-      help: "Optional CIDR allowlist for container-edge CDP ingress (for example 172.21.0.1/32).",
+      label: "Sandbox Browser CDP Source Range",
+      help: "Optional extra CIDR allowlist for authenticated container-edge CDP ingress (for example 172.21.0.1/32).",
       tags: ["storage"],
     },
     "agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin": {
@@ -28256,8 +28257,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["storage"],
     },
     "agents.list[].sandbox.browser.cdpSourceRange": {
-      label: "Agent Sandbox Browser CDP Source Port Range",
-      help: "Per-agent override for CDP source CIDR allowlist.",
+      label: "Agent Sandbox Browser CDP Source Range",
+      help: "Per-agent override for the optional CDP source CIDR allowlist.",
       tags: ["storage"],
     },
     "agents.list[].sandbox.docker.dangerouslyAllowContainerNamespaceJoin": {

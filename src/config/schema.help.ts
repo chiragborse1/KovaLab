@@ -425,9 +425,9 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.list[].sandbox.docker.dangerouslyAllowContainerNamespaceJoin":
     "Per-agent DANGEROUS override for container namespace joins in sandbox Docker network mode.",
   "agents.defaults.sandbox.browser.cdpSourceRange":
-    "Optional CIDR allowlist for container-edge CDP ingress (for example 172.21.0.1/32).",
+    "Optional extra CIDR allowlist for authenticated container-edge CDP ingress (for example 172.21.0.1/32).",
   "agents.list[].sandbox.browser.cdpSourceRange":
-    "Per-agent override for CDP source CIDR allowlist.",
+    "Per-agent override for the optional CDP source CIDR allowlist.",
   "gateway.controlUi.basePath":
     "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
   "gateway.controlUi.root":
