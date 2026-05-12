@@ -12,6 +12,7 @@ const probeGatewayReachable = vi.hoisted(() =>
 const waitForGatewayReachable = vi.hoisted(() =>
   vi.fn<() => Promise<{ ok: boolean; detail?: string }>>(async () => ({ ok: true })),
 );
+const healthCommand = vi.hoisted(() => vi.fn(async () => {}));
 const setupWizardShellCompletion = vi.hoisted(() => vi.fn(async () => {}));
 const buildGatewayInstallPlan = vi.hoisted(() =>
   vi.fn(async () => ({
@@ -86,7 +87,7 @@ vi.mock("../commands/health-format.js", () => ({
 }));
 
 vi.mock("../commands/health.js", () => ({
-  healthCommand: vi.fn(async () => {}),
+  healthCommand,
 }));
 
 vi.mock("../commands/onboard-search.js", () => ({
@@ -242,6 +243,7 @@ describe("finalizeSetupWizard", () => {
     probeGatewayReachable.mockClear();
     waitForGatewayReachable.mockReset();
     waitForGatewayReachable.mockResolvedValue({ ok: true });
+    healthCommand.mockClear();
     setupWizardShellCompletion.mockClear();
     buildGatewayInstallPlan.mockClear();
     gatewayServiceInstall.mockClear();
@@ -343,7 +345,67 @@ describe("finalizeSetupWizard", () => {
       local: true,
       deliver: false,
       message: undefined,
+      timeoutMs: 300_000,
     });
+  });
+
+  it("passes setup auth through health reachability checks", async () => {
+    resolveSetupSecretInputString.mockResolvedValueOnce("resolved-gateway-password");
+    const prompter = buildWizardPrompter({
+      select: vi.fn(async () => "later") as never,
+      confirm: vi.fn(async () => false),
+    });
+    const runtime = createRuntime();
+
+    await finalizeSetupWizard({
+      flow: "quickstart",
+      opts: {
+        acceptRisk: true,
+        authChoice: "skip",
+        installDaemon: false,
+        skipHealth: false,
+        skipUi: true,
+      },
+      baseConfig: {},
+      nextConfig: {
+        gateway: {
+          auth: {
+            mode: "password",
+            password: {
+              source: "env",
+              provider: "default",
+              id: "OPENCLAW_GATEWAY_PASSWORD",
+            },
+          },
+        },
+      },
+      workspaceDir: "/tmp",
+      settings: {
+        port: 18789,
+        bind: "loopback",
+        authMode: "password",
+        gatewayToken: undefined,
+        tailscaleMode: "off",
+        tailscaleResetOnExit: false,
+      },
+      prompter,
+      runtime,
+    });
+
+    expect(waitForGatewayReachable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "ws://127.0.0.1:18789",
+        password: "resolved-gateway-password", // pragma: allowlist secret
+      }),
+    );
+    expect(healthCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        json: false,
+        timeoutMs: 10_000,
+        password: "resolved-gateway-password", // pragma: allowlist secret
+      }),
+      runtime,
+    );
   });
 
   it("restores terminal state after failed TUI hatch", async () => {
