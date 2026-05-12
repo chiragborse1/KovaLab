@@ -444,79 +444,84 @@ export async function runSetupWizard(
 
   const localPort = resolveGatewayPort(baseConfig);
   const localUrl = `ws://127.0.0.1:${localPort}`;
-  let localGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
-  try {
-    const resolvedGatewayToken = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.auth?.token,
-      path: "gateway.auth.token",
-      env: process.env,
-    });
-    if (resolvedGatewayToken) {
-      localGatewayToken = resolvedGatewayToken;
-    }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.auth.token SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
-  }
-  let localGatewayPassword = process.env.OPENCLAW_GATEWAY_PASSWORD;
-  try {
-    const resolvedGatewayPassword = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.auth?.password,
-      path: "gateway.auth.password",
-      env: process.env,
-    });
-    if (resolvedGatewayPassword) {
-      localGatewayPassword = resolvedGatewayPassword;
-    }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.auth.password SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
-  }
-
-  const localProbe = await onboardHelpers.probeGatewayReachable({
-    url: localUrl,
-    token: localGatewayToken,
-    password: localGatewayPassword,
-  });
   const remoteUrl = baseConfig.gateway?.remote?.url?.trim() ?? "";
-  let remoteGatewayToken = normalizeSecretInputString(baseConfig.gateway?.remote?.token);
-  try {
-    const resolvedRemoteGatewayToken = await resolveSetupSecretInputString({
-      config: baseConfig,
-      value: baseConfig.gateway?.remote?.token,
-      path: "gateway.remote.token",
-      env: process.env,
-    });
-    if (resolvedRemoteGatewayToken) {
-      remoteGatewayToken = resolvedRemoteGatewayToken;
+  const needsModeProbe = flow !== "quickstart" || opts.mode !== undefined;
+  let localProbe: Awaited<ReturnType<typeof onboardHelpers.probeGatewayReachable>> | null = null;
+  let remoteProbe: Awaited<ReturnType<typeof onboardHelpers.probeGatewayReachable>> | null = null;
+  if (needsModeProbe) {
+    let localGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+    try {
+      const resolvedGatewayToken = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.auth?.token,
+        path: "gateway.auth.token",
+        env: process.env,
+      });
+      if (resolvedGatewayToken) {
+        localGatewayToken = resolvedGatewayToken;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.auth.token SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
     }
-  } catch (error) {
-    await prompter.note(
-      [
-        "Could not resolve gateway.remote.token SecretRef for setup probe.",
-        formatErrorMessage(error),
-      ].join("\n"),
-      "Gateway auth",
-    );
+    let localGatewayPassword = process.env.OPENCLAW_GATEWAY_PASSWORD;
+    try {
+      const resolvedGatewayPassword = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.auth?.password,
+        path: "gateway.auth.password",
+        env: process.env,
+      });
+      if (resolvedGatewayPassword) {
+        localGatewayPassword = resolvedGatewayPassword;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.auth.password SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
+    }
+
+    localProbe = await onboardHelpers.probeGatewayReachable({
+      url: localUrl,
+      token: localGatewayToken,
+      password: localGatewayPassword,
+    });
+    let remoteGatewayToken = normalizeSecretInputString(baseConfig.gateway?.remote?.token);
+    try {
+      const resolvedRemoteGatewayToken = await resolveSetupSecretInputString({
+        config: baseConfig,
+        value: baseConfig.gateway?.remote?.token,
+        path: "gateway.remote.token",
+        env: process.env,
+      });
+      if (resolvedRemoteGatewayToken) {
+        remoteGatewayToken = resolvedRemoteGatewayToken;
+      }
+    } catch (error) {
+      await prompter.note(
+        [
+          "Could not resolve gateway.remote.token SecretRef for setup probe.",
+          formatErrorMessage(error),
+        ].join("\n"),
+        "Gateway auth",
+      );
+    }
+    remoteProbe = remoteUrl
+      ? await onboardHelpers.probeGatewayReachable({
+          url: remoteUrl,
+          token: remoteGatewayToken,
+        })
+      : null;
   }
-  const remoteProbe = remoteUrl
-    ? await onboardHelpers.probeGatewayReachable({
-        url: remoteUrl,
-        token: remoteGatewayToken,
-      })
-    : null;
 
   const mode =
     opts.mode ??
@@ -528,7 +533,7 @@ export async function runSetupWizard(
             {
               value: "local",
               label: "This machine",
-              hint: localProbe.ok
+              hint: localProbe?.ok
                 ? `Gateway reachable (${localUrl})`
                 : `No gateway detected (${localUrl})`,
             },

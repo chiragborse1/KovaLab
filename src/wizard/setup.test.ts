@@ -470,6 +470,7 @@ describe("runSetupWizard", () => {
 
   it("does not scan migration providers during normal quick setup", async () => {
     detectSetupMigrationSources.mockClear();
+    probeGatewayReachable.mockClear();
 
     await runSetupWizard(
       {
@@ -488,6 +489,7 @@ describe("runSetupWizard", () => {
     );
 
     expect(detectSetupMigrationSources).not.toHaveBeenCalled();
+    expect(probeGatewayReachable).not.toHaveBeenCalled();
   });
 
   it("persists skipBootstrap and skips workspace bootstrap creation when requested", async () => {
