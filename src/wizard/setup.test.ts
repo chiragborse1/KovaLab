@@ -93,6 +93,8 @@ const setupInternalHooks = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 
 const setupChannels = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const setupSkills = vi.hoisted(() => vi.fn(async (cfg) => cfg));
+const detectSetupMigrationSources = vi.hoisted(() => vi.fn(async () => []));
+const runSetupMigrationImport = vi.hoisted(() => vi.fn(async () => {}));
 
 function providerPluginStub(
   overrides: Partial<ProviderPlugin> & Pick<ProviderPlugin, "id">,
@@ -157,6 +159,11 @@ vi.mock("../commands/onboard-channels.js", () => ({
 
 vi.mock("../commands/onboard-skills.js", () => ({
   setupSkills,
+}));
+
+vi.mock("./setup.migration-import.js", () => ({
+  detectSetupMigrationSources,
+  runSetupMigrationImport,
 }));
 
 vi.mock("../agents/auth-profiles.js", () => ({
@@ -459,6 +466,28 @@ describe("runSetupWizard", () => {
     expect(setupSkills).not.toHaveBeenCalled();
     expect(healthCommand).not.toHaveBeenCalled();
     expect(runTui).not.toHaveBeenCalled();
+  });
+
+  it("does not scan migration providers during normal quick setup", async () => {
+    detectSetupMigrationSources.mockClear();
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "quickstart",
+        authChoice: "skip",
+        installDaemon: false,
+        skipProviders: true,
+        skipSkills: true,
+        skipSearch: true,
+        skipHealth: true,
+        skipUi: true,
+      },
+      createRuntime(),
+      buildWizardPrompter({}),
+    );
+
+    expect(detectSetupMigrationSources).not.toHaveBeenCalled();
   });
 
   it("persists skipBootstrap and skips workspace bootstrap creation when requested", async () => {

@@ -148,6 +148,36 @@ function windowsPathExtensions(): string[] {
 let cachedHasBinaryPath: string | undefined;
 let cachedHasBinaryPathExt: string | undefined;
 const hasBinaryCache = new Map<string, boolean>();
+let cachedPathSearchEntries:
+  | Array<{
+      dir: string;
+      names?: Set<string>;
+    }>
+  | undefined;
+
+function readPathDirectoryNames(dir: string): Set<string> | undefined {
+  try {
+    const entries = fs.readdirSync(dir);
+    const names = new Set<string>();
+    for (const entry of entries) {
+      names.add(process.platform === "win32" ? entry.toLowerCase() : entry);
+    }
+    return names;
+  } catch {
+    return undefined;
+  }
+}
+
+function resolvePathSearchEntries(pathEnv: string) {
+  cachedPathSearchEntries ??= pathEnv
+    .split(path.delimiter)
+    .filter(Boolean)
+    .map((dir) => ({
+      dir,
+      names: readPathDirectoryNames(dir),
+    }));
+  return cachedPathSearchEntries;
+}
 
 export function hasBinary(bin: string): boolean {
   const pathEnv = process.env.PATH ?? "";
@@ -156,16 +186,21 @@ export function hasBinary(bin: string): boolean {
     cachedHasBinaryPath = pathEnv;
     cachedHasBinaryPathExt = pathExt;
     hasBinaryCache.clear();
+    cachedPathSearchEntries = undefined;
   }
   if (hasBinaryCache.has(bin)) {
     return hasBinaryCache.get(bin)!;
   }
 
-  const parts = pathEnv.split(path.delimiter).filter(Boolean);
   const extensions = process.platform === "win32" ? windowsPathExtensions() : [""];
-  for (const part of parts) {
+  for (const entry of resolvePathSearchEntries(pathEnv)) {
     for (const ext of extensions) {
-      const candidate = path.join(part, bin + ext);
+      const filename = bin + ext;
+      const lookupName = process.platform === "win32" ? filename.toLowerCase() : filename;
+      if (entry.names && !entry.names.has(lookupName)) {
+        continue;
+      }
+      const candidate = path.join(entry.dir, filename);
       try {
         fs.accessSync(candidate, fs.constants.X_OK);
         hasBinaryCache.set(bin, true);

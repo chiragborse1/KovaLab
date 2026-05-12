@@ -235,15 +235,6 @@ export async function runSetupWizard(
 
   const quickstartHint = `Fast local setup. Change details later with ${formatCliCommand("kova configure")}.`;
   const manualHint = "Choose workspace, network, auth, service, and channel details yourself.";
-  const migrationDetections = await detectSetupMigrationSources({ config: baseConfig, runtime });
-  const firstMigrationDetection = migrationDetections[0];
-  const importOption = firstMigrationDetection
-    ? {
-        value: "import" as const,
-        label: `Import from ${firstMigrationDetection.label}`,
-        ...(firstMigrationDetection.source ? { hint: firstMigrationDetection.source } : {}),
-      }
-    : undefined;
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;
   if (
@@ -262,6 +253,20 @@ export async function runSetupWizard(
     normalizedExplicitFlow === "import"
       ? normalizedExplicitFlow
       : undefined;
+  let migrationDetections: Awaited<ReturnType<typeof detectSetupMigrationSources>> = [];
+  let migrationDetectionsLoaded = false;
+  const loadMigrationDetections = async () => {
+    if (!migrationDetectionsLoaded) {
+      migrationDetections = await detectSetupMigrationSources({ config: baseConfig, runtime });
+      migrationDetectionsLoaded = true;
+    }
+    return migrationDetections;
+  };
+  const importOption = {
+    value: "import" as const,
+    label: "Import from another setup",
+    hint: "Detects supported agent homes only if selected",
+  };
   let flow: SetupFlowChoice =
     explicitFlow ??
     (await prompter.select({
@@ -269,7 +274,7 @@ export async function runSetupWizard(
       options: [
         { value: "quickstart", label: "Quick setup", hint: quickstartHint },
         { value: "advanced", label: "Custom setup", hint: manualHint },
-        ...(importOption ? [importOption] : []),
+        importOption,
       ],
       initialValue: "quickstart",
     }));
@@ -319,10 +324,11 @@ export async function runSetupWizard(
   }
 
   if (opts.importFrom || flow === "import") {
+    const detections = await loadMigrationDetections();
     await runSetupMigrationImport({
       opts,
       baseConfig,
-      detections: migrationDetections,
+      detections,
       prompter,
       runtime,
       commitConfigFile: writeWizardConfigFile,
