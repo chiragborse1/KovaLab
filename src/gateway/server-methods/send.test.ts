@@ -162,6 +162,16 @@ async function runPollWithClient(
   return { respond };
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 async function runMessageActionRequest(
   params: Record<string, unknown>,
   client?: { connect?: { scopes?: string[] } } | null,
@@ -228,6 +238,207 @@ describe("gateway send mirroring", () => {
     });
     mocks.sendPoll.mockResolvedValue({ messageId: "poll-1" });
     mocks.getChannelPlugin.mockReturnValue({ outbound: { sendPoll: mocks.sendPoll } });
+  });
+
+  it("dedupes concurrent send requests while inflight", async () => {
+    const context = makeContext();
+    const firstRespond = vi.fn();
+    const secondRespond = vi.fn();
+    const deliveryDeferred = createDeferred<Array<{ messageId: string; channel: string }>>();
+    mocks.deliverOutboundPayloads.mockReturnValueOnce(deliveryDeferred.promise);
+
+    const firstRequest = sendHandlers.send({
+      params: {
+        to: "channel:C1",
+        message: "hi",
+        channel: "slack",
+        idempotencyKey: "idem-send-concurrent",
+      } as never,
+      respond: firstRespond,
+      context,
+      req: { type: "req", id: "1", method: "send" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    const secondRequest = sendHandlers.send({
+      params: {
+        to: "channel:C1",
+        message: "hi",
+        channel: "slack",
+        idempotencyKey: "idem-send-concurrent",
+      } as never,
+      respond: secondRespond,
+      context,
+      req: { type: "req", id: "2", method: "send" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    await vi.waitFor(() => {
+      expect(mocks.deliverOutboundPayloads).toHaveBeenCalledTimes(1);
+    });
+
+    deliveryDeferred.resolve([{ messageId: "m-concurrent", channel: "slack" }]);
+    await Promise.all([firstRequest, secondRequest]);
+
+    expect(mocks.deliverOutboundPayloads).toHaveBeenCalledTimes(1);
+    expect(firstRespond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ messageId: "m-concurrent", runId: "idem-send-concurrent" }),
+      undefined,
+      expect.objectContaining({ channel: "slack" }),
+    );
+    expect(secondRespond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ messageId: "m-concurrent", runId: "idem-send-concurrent" }),
+      undefined,
+      expect.objectContaining({ channel: "slack", cached: true }),
+    );
+  });
+
+  it("dedupes concurrent poll requests while inflight", async () => {
+    const context = makeContext();
+    const firstRespond = vi.fn();
+    const secondRespond = vi.fn();
+    const pollDeferred = createDeferred<{ messageId: string; pollId: string }>();
+    mocks.sendPoll.mockReturnValueOnce(pollDeferred.promise);
+
+    const firstRequest = sendHandlers.poll({
+      params: {
+        to: "channel:C1",
+        question: "Q?",
+        options: ["A", "B"],
+        channel: "slack",
+        idempotencyKey: "idem-poll-concurrent",
+      } as never,
+      respond: firstRespond,
+      context,
+      req: { type: "req", id: "1", method: "poll" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    const secondRequest = sendHandlers.poll({
+      params: {
+        to: "channel:C1",
+        question: "Q?",
+        options: ["A", "B"],
+        channel: "slack",
+        idempotencyKey: "idem-poll-concurrent",
+      } as never,
+      respond: secondRespond,
+      context,
+      req: { type: "req", id: "2", method: "poll" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    await vi.waitFor(() => {
+      expect(mocks.sendPoll).toHaveBeenCalledTimes(1);
+    });
+
+    pollDeferred.resolve({ messageId: "poll-concurrent", pollId: "poll-1" });
+    await Promise.all([firstRequest, secondRequest]);
+
+    expect(mocks.sendPoll).toHaveBeenCalledTimes(1);
+    expect(firstRespond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        messageId: "poll-concurrent",
+        pollId: "poll-1",
+        runId: "idem-poll-concurrent",
+      }),
+      undefined,
+      expect.objectContaining({ channel: "slack" }),
+    );
+    expect(secondRespond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        messageId: "poll-concurrent",
+        pollId: "poll-1",
+        runId: "idem-poll-concurrent",
+      }),
+      undefined,
+      expect.objectContaining({ channel: "slack", cached: true }),
+    );
+  });
+
+  it("dedupes concurrent message action requests while inflight", async () => {
+    const context = makeContext();
+    const firstRespond = vi.fn();
+    const secondRespond = vi.fn();
+    const actionDeferred = createDeferred<ReturnType<typeof jsonResult>>();
+    const actionPlugin: ChannelPlugin = {
+      id: "whatsapp",
+      meta: {
+        id: "whatsapp",
+        label: "WhatsApp",
+        selectionLabel: "WhatsApp",
+        docsPath: "/channels/whatsapp",
+        blurb: "WhatsApp action dedupe test plugin.",
+      },
+      capabilities: { chatTypes: ["direct"], reactions: true },
+      config: {
+        listAccountIds: () => ["default"],
+        resolveAccount: () => ({ enabled: true }),
+        isConfigured: () => true,
+      },
+      actions: {
+        describeMessageTool: () => ({ actions: ["react"] }),
+        handleAction: async () => await actionDeferred.promise,
+      },
+    };
+    mocks.getChannelPlugin.mockReturnValue(actionPlugin);
+    setActivePluginRegistry(
+      createTestRegistry([{ pluginId: "whatsapp", source: "test", plugin: actionPlugin }]),
+      "send-test-message-action-dedupe",
+    );
+
+    const firstRequest = sendHandlers["message.action"]({
+      params: {
+        channel: "whatsapp",
+        action: "react",
+        params: { messageId: "wamid.1", emoji: "✅" },
+        idempotencyKey: "idem-action-concurrent",
+      } as never,
+      respond: firstRespond,
+      context,
+      req: { type: "req", id: "1", method: "message.action" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    const secondRequest = sendHandlers["message.action"]({
+      params: {
+        channel: "whatsapp",
+        action: "react",
+        params: { messageId: "wamid.1", emoji: "✅" },
+        idempotencyKey: "idem-action-concurrent",
+      } as never,
+      respond: secondRespond,
+      context,
+      req: { type: "req", id: "2", method: "message.action" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    await Promise.resolve();
+    actionDeferred.resolve(jsonResult({ ok: true, messageId: "wamid.1" }));
+    await Promise.all([firstRequest, secondRequest]);
+
+    expect(firstRespond).toHaveBeenCalledWith(
+      true,
+      { ok: true, messageId: "wamid.1" },
+      undefined,
+      expect.objectContaining({ channel: "whatsapp" }),
+    );
+    expect(secondRespond).toHaveBeenCalledWith(
+      true,
+      { ok: true, messageId: "wamid.1" },
+      undefined,
+      expect.objectContaining({ channel: "whatsapp", cached: true }),
+    );
   });
 
   it("accepts media-only sends without message", async () => {
@@ -358,6 +569,7 @@ describe("gateway send mirroring", () => {
       expect.objectContaining({
         message: expect.stringContaining("unsupported channel: webchat"),
       }),
+      undefined,
     );
     expect(respond).toHaveBeenCalledWith(
       false,
@@ -365,6 +577,7 @@ describe("gateway send mirroring", () => {
       expect.objectContaining({
         message: expect.stringContaining("Use `chat.send`"),
       }),
+      undefined,
     );
   });
 
@@ -435,6 +648,7 @@ describe("gateway send mirroring", () => {
       expect.objectContaining({
         message: expect.stringContaining("Channel is required"),
       }),
+      undefined,
     );
   });
 
@@ -545,6 +759,7 @@ describe("gateway send mirroring", () => {
       expect.objectContaining({
         message: expect.stringContaining("Channel is required"),
       }),
+      undefined,
     );
   });
 
