@@ -52,7 +52,7 @@ jobs:
 
       # Keep the package tarball as a workflow artifact for debugging failed release uploads.
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kova-npm-package
           path: getkova-*.tgz
@@ -60,7 +60,7 @@ jobs:
 
       # Create the GitHub Release with auto-generated notes and attach build artifacts.
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-beta') }}
