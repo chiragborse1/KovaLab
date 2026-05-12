@@ -85,7 +85,7 @@ function hasConfiguredSafeBins(cfg: OpenClawConfig): boolean {
   });
 }
 
-type VisibleReplyPolicyProvenance = "default" | "global-explicit" | "group-explicit";
+type VisibleReplyPolicyProvenance = "default" | "group-explicit";
 
 function resolveMessageToolAvailability(params: {
   globalTools?: ToolsConfig;
@@ -123,7 +123,7 @@ function collectMessageToolUnavailableTargets(cfg: OpenClawConfig): string[] {
 }
 
 function resolveGroupVisibleReplyProvenance(cfg: OpenClawConfig): {
-  path: "messages.groupChat.visibleReplies" | "messages.visibleReplies";
+  path: "messages.groupChat.visibleReplies";
   provenance: VisibleReplyPolicyProvenance;
   value: "automatic" | "message_tool";
 } {
@@ -133,14 +133,6 @@ function resolveGroupVisibleReplyProvenance(cfg: OpenClawConfig): {
       path: "messages.groupChat.visibleReplies",
       provenance: "group-explicit",
       value: groupVisibleReplies,
-    };
-  }
-  const globalVisibleReplies = cfg.messages?.visibleReplies;
-  if (globalVisibleReplies) {
-    return {
-      path: "messages.visibleReplies",
-      provenance: "global-explicit",
-      value: globalVisibleReplies,
     };
   }
   return {
@@ -180,14 +172,6 @@ export function collectVisibleReplyToolPolicyWarnings(cfg: OpenClawConfig): stri
     }
   }
 
-  const globalVisibleReplies = cfg.messages?.visibleReplies;
-  if (globalVisibleReplies === "message_tool" && groupPolicy.path !== "messages.visibleReplies") {
-    warnings.push(
-      `- messages.visibleReplies is set to "message_tool", but the message tool is unavailable for ${formatTargets(
-        targets,
-      )}; Kova falls back to automatic direct-chat replies, so normal replies may post to the source chat. Enable the message tool or set messages.visibleReplies to "automatic".`,
-    );
-  }
   return warnings;
 }
 

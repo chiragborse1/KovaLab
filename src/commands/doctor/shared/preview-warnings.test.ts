@@ -188,13 +188,6 @@ function expectSingleWarningContaining(warnings: string[], text: string): string
   return warning;
 }
 
-function expectWarningsContaining(warnings: string[], texts: string[]): void {
-  expect(warnings).toHaveLength(texts.length);
-  texts.forEach((text, index) => {
-    expect(warnings[index]).toContain(text);
-  });
-}
-
 describe("doctor preview warnings", () => {
   beforeEach(() => {
     manifestState.plugins = [manifest("discord")];
@@ -417,45 +410,6 @@ describe("doctor preview warnings", () => {
     );
     expect(warning).toContain("normal replies may post to the source chat");
     expect(warning).toContain('set messages.groupChat.visibleReplies to "automatic"');
-  });
-
-  it("warns for direct chats when global visible replies are tool-only but groups override automatic", () => {
-    const warnings = collectVisibleReplyToolPolicyWarnings({
-      messages: {
-        visibleReplies: "message_tool",
-        groupChat: {
-          visibleReplies: "automatic",
-        },
-      },
-      tools: {
-        allow: ["read"],
-      },
-    });
-
-    const warning = expectSingleWarningContaining(
-      warnings,
-      'messages.visibleReplies is set to "message_tool"',
-    );
-    expect(warning).toContain("automatic direct-chat replies");
-  });
-
-  it("warns separately for explicit global and group visible reply policy mismatches", () => {
-    const warnings = collectVisibleReplyToolPolicyWarnings({
-      messages: {
-        visibleReplies: "message_tool",
-        groupChat: {
-          visibleReplies: "message_tool",
-        },
-      },
-      tools: {
-        allow: ["read"],
-      },
-    });
-
-    expectWarningsContaining(warnings, [
-      'messages.groupChat.visibleReplies is set to "message_tool"',
-      'messages.visibleReplies is set to "message_tool"',
-    ]);
   });
 
   it("skips visible reply tool warnings when the message tool is available or default groups are unused", () => {
