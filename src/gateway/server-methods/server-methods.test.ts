@@ -928,6 +928,33 @@ describe("exec approval handlers", () => {
     );
   });
 
+  it("rejects approval requests when the command display would be truncated", async () => {
+    const { handlers, broadcasts, respond, context } = createExecApprovalFixture();
+    await requestExecApproval({
+      handlers,
+      respond,
+      context,
+      params: {
+        command: `printf visible # ${"A".repeat(18 * 1024)}\nprintf hidden`,
+        host: "gateway",
+        nodeId: undefined,
+        systemRunPlan: undefined,
+      },
+    });
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        message: "command exceeds exec approval display limit",
+        details: expect.objectContaining({
+          reason: "EXEC_APPROVAL_COMMAND_DISPLAY_LIMIT",
+        }),
+      }),
+    );
+    expect(broadcasts).toEqual([]);
+  });
+
   it("returns pending approval details for exec.approval.get", async () => {
     const { handlers, broadcasts, respond, context } = createExecApprovalFixture();
 

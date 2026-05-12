@@ -30,11 +30,21 @@ function escapeInvisibles(text: string): string {
   return text.replace(EXEC_APPROVAL_INVISIBLE_CHAR_REGEX, formatCodePointEscape);
 }
 
-function truncateForDisplay(text: string): string {
+export type SanitizedExecApprovalDisplayText = {
+  text: string;
+  truncated: boolean;
+  oversized: boolean;
+};
+
+function truncateForDisplay(text: string): SanitizedExecApprovalDisplayText {
   if (text.length <= EXEC_APPROVAL_MAX_OUTPUT) {
-    return text;
+    return { text, truncated: false, oversized: false };
   }
-  return text.slice(0, EXEC_APPROVAL_MAX_OUTPUT) + EXEC_APPROVAL_TRUNCATION_MARKER;
+  return {
+    text: text.slice(0, EXEC_APPROVAL_MAX_OUTPUT) + EXEC_APPROVAL_TRUNCATION_MARKER,
+    truncated: true,
+    oversized: false,
+  };
 }
 
 // Build a boolean bitmap of positions in `text` that ANY redaction pattern would match.
@@ -81,11 +91,17 @@ function buildStrippedView(original: string): { stripped: string; strippedToOrig
   return { stripped: strippedChars.join(""), strippedToOrig };
 }
 
-export function sanitizeExecApprovalDisplayText(commandText: string): string {
+function sanitizeExecApprovalDisplayTextInternal(
+  commandText: string,
+): SanitizedExecApprovalDisplayText {
   if (commandText.length > EXEC_APPROVAL_MAX_INPUT) {
     // Refuse to display inputs above the hard cap; anything larger must be approved through
     // another channel. Running redaction on a multi-megabyte payload would be a DoS vector.
-    return EXEC_APPROVAL_OVERSIZED_MARKER;
+    return {
+      text: EXEC_APPROVAL_OVERSIZED_MARKER,
+      truncated: false,
+      oversized: true,
+    };
   }
   const rawRedacted = redactSensitiveText(commandText, { mode: "tools" });
   const { stripped, strippedToOrig } = buildStrippedView(commandText);
@@ -148,6 +164,16 @@ export function sanitizeExecApprovalDisplayText(commandText: string): string {
     i += cp.length;
   }
   return truncateForDisplay(out);
+}
+
+export function sanitizeExecApprovalDisplayText(commandText: string): string {
+  return sanitizeExecApprovalDisplayTextInternal(commandText).text;
+}
+
+export function sanitizeExecApprovalDisplayTextWithStatus(
+  commandText: string,
+): SanitizedExecApprovalDisplayText {
+  return sanitizeExecApprovalDisplayTextInternal(commandText);
 }
 
 function normalizePreview(commandText: string, commandPreview?: string | null): string | null {

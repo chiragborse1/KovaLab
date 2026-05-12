@@ -1,6 +1,7 @@
 import {
   resolveExecApprovalCommandDisplay,
   sanitizeExecApprovalDisplayText,
+  sanitizeExecApprovalDisplayTextWithStatus,
 } from "../../infra/exec-approval-command-display.js";
 import type { ExecApprovalForwarder } from "../../infra/exec-approval-forwarder.js";
 import {
@@ -222,8 +223,22 @@ export function createExecApprovalHandlers(
         );
         return;
       }
+      const sanitizedCommandDisplay =
+        sanitizeExecApprovalDisplayTextWithStatus(effectiveCommandText);
+      if (sanitizedCommandDisplay.truncated || sanitizedCommandDisplay.oversized) {
+        respond(
+          false,
+          undefined,
+          errorShape(ErrorCodes.INVALID_REQUEST, "command exceeds exec approval display limit", {
+            details: {
+              reason: "EXEC_APPROVAL_COMMAND_DISPLAY_LIMIT",
+            },
+          }),
+        );
+        return;
+      }
       const request = {
-        command: sanitizeExecApprovalDisplayText(effectiveCommandText),
+        command: sanitizedCommandDisplay.text,
         commandPreview:
           host === "node" || !approvalContext.commandPreview
             ? undefined
