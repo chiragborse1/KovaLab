@@ -190,9 +190,10 @@ export class MessageApi {
     interactionId: string,
     creds: Credentials,
     code: 0 | 1 | 2 | 3 | 4 | 5 = 0,
+    data?: Record<string, unknown>,
   ): Promise<void> {
     const token = await this.tokenManager.getAccessToken(creds.appId, creds.clientSecret);
-    await this.client.request(token, "PUT", interactionPath(interactionId), { code });
+    await this.client.request(token, "PUT", interactionPath(interactionId), { code, ...data });
   }
 
   // ---- Gateway ----
