@@ -12,6 +12,7 @@ import { createReplyDispatcher } from "../../auto-reply/reply/reply-dispatcher.j
 import type { MsgContext } from "../../auto-reply/templating.js";
 import { extractCanvasFromText } from "../../chat/canvas-render.js";
 import { resolveSessionFilePath } from "../../config/sessions.js";
+import { streamSessionTranscriptLines } from "../../config/sessions/transcript-stream.js";
 import { jsonUtf8Bytes } from "../../infra/json-utf8-bytes.js";
 import { normalizeReplyPayloadsForDelivery } from "../../infra/outbound/payloads.js";
 import { getSessionBindingService } from "../../infra/outbound/session-binding-service.js";
@@ -1116,16 +1117,19 @@ function ensureTranscriptFile(params: { transcriptPath: string; sessionId: strin
   }
 }
 
-function transcriptHasIdempotencyKey(transcriptPath: string, idempotencyKey: string): boolean {
+async function transcriptHasIdempotencyKey(
+  transcriptPath: string,
+  idempotencyKey: string,
+): Promise<boolean> {
   try {
-    const lines = fs.readFileSync(transcriptPath, "utf-8").split(/\r?\n/);
-    for (const line of lines) {
-      if (!line.trim()) {
+    for await (const line of streamSessionTranscriptLines(transcriptPath)) {
+      try {
+        const parsed = JSON.parse(line) as { message?: { idempotencyKey?: unknown } };
+        if (parsed?.message?.idempotencyKey === idempotencyKey) {
+          return true;
+        }
+      } catch {
         continue;
-      }
-      const parsed = JSON.parse(line) as { message?: { idempotencyKey?: unknown } };
-      if (parsed?.message?.idempotencyKey === idempotencyKey) {
-        return true;
       }
     }
     return false;
@@ -1134,7 +1138,7 @@ function transcriptHasIdempotencyKey(transcriptPath: string, idempotencyKey: str
   }
 }
 
-function appendAssistantTranscriptMessage(params: {
+async function appendAssistantTranscriptMessage(params: {
   message: string;
   label?: string;
   content?: Array<Record<string, unknown>>;
@@ -1149,7 +1153,7 @@ function appendAssistantTranscriptMessage(params: {
     origin: AbortOrigin;
     runId: string;
   };
-}): TranscriptAppendResult {
+}): Promise<TranscriptAppendResult> {
   const transcriptPath = resolveTranscriptPath({
     sessionId: params.sessionId,
     storePath: params.storePath,
@@ -1173,7 +1177,10 @@ function appendAssistantTranscriptMessage(params: {
     }
   }
 
-  if (params.idempotencyKey && transcriptHasIdempotencyKey(transcriptPath, params.idempotencyKey)) {
+  if (
+    params.idempotencyKey &&
+    (await transcriptHasIdempotencyKey(transcriptPath, params.idempotencyKey))
+  ) {
     return { ok: true };
   }
 
@@ -1212,18 +1219,18 @@ function collectSessionAbortPartials(params: {
   return out;
 }
 
-function persistAbortedPartials(params: {
+async function persistAbortedPartials(params: {
   context: Pick<GatewayRequestContext, "logGateway">;
   sessionKey: string;
   snapshots: AbortedPartialSnapshot[];
-}) {
+}): Promise<void> {
   if (params.snapshots.length === 0) {
     return;
   }
   const { storePath, entry } = loadSessionEntry(params.sessionKey);
   for (const snapshot of params.snapshots) {
     const sessionId = entry?.sessionId ?? snapshot.sessionId ?? snapshot.runId;
-    const appended = appendAssistantTranscriptMessage({
+    const appended = await appendAssistantTranscriptMessage({
       message: snapshot.text,
       sessionId,
       storePath,
@@ -1354,14 +1361,14 @@ function resolveAuthorizedRunIdsForSession(params: {
   };
 }
 
-function abortChatRunsForSessionKeyWithPartials(params: {
+async function abortChatRunsForSessionKeyWithPartials(params: {
   context: GatewayRequestContext;
   ops: ChatAbortOps;
   sessionKey: string;
   abortOrigin: AbortOrigin;
   stopReason?: string;
   requester: ChatAbortRequester;
-}) {
+}): Promise<{ aborted: boolean; runIds: string[]; unauthorized: boolean }> {
   const { matchedSessionRuns, authorizedRunIds } = resolveAuthorizedRunIdsForSession({
     chatAbortControllers: params.context.chatAbortControllers,
     sessionKey: params.sessionKey,
@@ -1394,7 +1401,7 @@ function abortChatRunsForSessionKeyWithPartials(params: {
   }
   const res = { aborted: runIds.length > 0, runIds, unauthorized: false };
   if (res.aborted) {
-    persistAbortedPartials({
+    await persistAbortedPartials({
       context: params.context,
       sessionKey: params.sessionKey,
       snapshots,
@@ -1558,7 +1565,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       verboseLevel,
     });
   },
-  "chat.abort": ({ params, respond, context, client }) => {
+  "chat.abort": async ({ params, respond, context, client }) => {
     if (!validateChatAbortParams(params)) {
       respond(
         false,
@@ -1579,7 +1586,7 @@ export const chatHandlers: GatewayRequestHandlers = {
     const requester = resolveChatAbortRequester(client);
 
     if (!runId) {
-      const res = abortChatRunsForSessionKeyWithPartials({
+      const res = await abortChatRunsForSessionKeyWithPartials({
         context,
         ops,
         sessionKey: rawSessionKey,
@@ -1620,7 +1627,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       stopReason: "rpc",
     });
     if (res.aborted && partialText && partialText.trim()) {
-      persistAbortedPartials({
+      await persistAbortedPartials({
         context,
         sessionKey: rawSessionKey,
         snapshots: [
@@ -1771,7 +1778,7 @@ export const chatHandlers: GatewayRequestHandlers = {
     }
 
     if (stopCommand) {
-      const res = abortChatRunsForSessionKeyWithPartials({
+      const res = await abortChatRunsForSessionKeyWithPartials({
         context,
         ops: createChatAbortOps(context),
         sessionKey: rawSessionKey,
@@ -2057,7 +2064,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         if (!transcriptReply && !persistedAssistantContent?.length && !assistantContent?.length) {
           return;
         }
-        const appended = appendAssistantTranscriptMessage({
+        const appended = await appendAssistantTranscriptMessage({
           message: transcriptReply,
           ...(persistedContentForAppend?.length ? { content: persistedContentForAppend } : {}),
           sessionId,
@@ -2260,7 +2267,7 @@ export const chatHandlers: GatewayRequestHandlers = {
                 persistedContentForAppend?.length ||
                 assistantContent?.length
               ) {
-                const appended = appendAssistantTranscriptMessage({
+                const appended = await appendAssistantTranscriptMessage({
                   message: transcriptReply,
                   ...(persistedContentForAppend?.length
                     ? { content: persistedContentForAppend }
@@ -2416,7 +2423,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const appended = appendAssistantTranscriptMessage({
+    const appended = await appendAssistantTranscriptMessage({
       message: p.message,
       label: p.label,
       sessionId,
