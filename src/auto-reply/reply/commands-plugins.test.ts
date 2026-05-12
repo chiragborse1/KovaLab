@@ -101,10 +101,17 @@ function buildCfg(): OpenClawConfig {
   };
 }
 
-function buildPluginsParams(commandBodyNormalized: string, cfg: OpenClawConfig) {
+const WRITE_GATEWAY_SCOPES = ["operator.admin", "operator.write", "operator.pairing"];
+
+function buildPluginsParams(
+  commandBodyNormalized: string,
+  cfg: OpenClawConfig,
+  options?: { gatewayClientScopes?: string[] },
+) {
   return buildPluginsCommandParams({
     commandBodyNormalized,
     cfg,
+    gatewayClientScopes: options?.gatewayClientScopes,
   });
 }
 
@@ -207,7 +214,9 @@ describe("handlePluginsCommand", () => {
   it("enables and disables a discovered plugin", async () => {
     validateConfigObjectWithPluginsMock.mockImplementation((next) => ({ ok: true, config: next }));
 
-    const enableParams = buildPluginsParams("/plugins enable superpowers", buildCfg());
+    const enableParams = buildPluginsParams("/plugins enable superpowers", buildCfg(), {
+      gatewayClientScopes: WRITE_GATEWAY_SCOPES,
+    });
     enableParams.command.senderIsOwner = true;
 
     const enableResult = await handlePluginsCommand(enableParams, true);
@@ -237,7 +246,9 @@ describe("handlePluginsCommand", () => {
       }),
     );
 
-    const disableParams = buildPluginsParams("/plugins disable superpowers", buildCfg());
+    const disableParams = buildPluginsParams("/plugins disable superpowers", buildCfg(), {
+      gatewayClientScopes: WRITE_GATEWAY_SCOPES,
+    });
     disableParams.command.senderIsOwner = true;
 
     const disableResult = await handlePluginsCommand(disableParams, true);
@@ -283,7 +294,9 @@ describe("handlePluginsCommand", () => {
     });
     validateConfigObjectWithPluginsMock.mockImplementation((next) => ({ ok: true, config: next }));
 
-    const params = buildPluginsParams("/plugins enable Super Powers", buildCfg());
+    const params = buildPluginsParams("/plugins enable Super Powers", buildCfg(), {
+      gatewayClientScopes: WRITE_GATEWAY_SCOPES,
+    });
     params.command.senderIsOwner = true;
 
     const result = await handlePluginsCommand(params, true);
