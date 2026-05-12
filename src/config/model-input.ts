@@ -79,3 +79,16 @@ export function normalizeAgentModelRefForConfig(model: string): string {
   const normalizedModel = normalizeGooglePreviewModelId(trimmed.slice(slash + 1));
   return modelKeyForConfig(provider, normalizedModel);
 }
+
+export function normalizeGooglePreviewModelIdForConfig(provider: string, model: string): string {
+  const normalizedProvider = normalizeProviderId(provider);
+  if (!GOOGLE_CONFIG_MODEL_PROVIDERS.has(normalizedProvider)) {
+    return model;
+  }
+  const trimmed = model.trim();
+  const prefix = `${normalizedProvider}/`;
+  const modelId = normalizeLowercaseStringOrEmpty(trimmed).startsWith(prefix)
+    ? trimmed.slice(prefix.length)
+    : trimmed;
+  return normalizeGooglePreviewModelId(modelId);
+}
