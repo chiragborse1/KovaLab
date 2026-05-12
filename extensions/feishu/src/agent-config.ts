@@ -1,6 +1,9 @@
 import type { ClawdbotConfig } from "./bot-runtime-api.js";
 
 type ReasoningDefault = "on" | "stream" | "off";
+type ReasoningDefaultsConfig = {
+  reasoningDefault?: ReasoningDefault;
+};
 
 const DEFAULT_AGENT_ID = "main";
 
@@ -17,5 +20,6 @@ export function resolveFeishuConfigReasoningDefault(
   const agentDefault = cfg.agents?.list?.find(
     (entry) => normalizeAgentId(entry?.id) === id,
   )?.reasoningDefault;
-  return agentDefault ?? cfg.agents?.defaults?.reasoningDefault ?? "off";
+  const defaults = cfg.agents?.defaults as ReasoningDefaultsConfig | undefined;
+  return agentDefault ?? defaults?.reasoningDefault ?? "off";
 }
