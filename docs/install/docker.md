@@ -51,6 +51,7 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
 
     - prompt for provider API keys
     - generate a gateway token and write it to `.env`
+    - create the auth-profile secret key directory
     - start the gateway via Docker Compose
 
     During setup, pre-start onboarding and config writes run through
@@ -122,23 +123,24 @@ and setup-time config writes through `openclaw-gateway` with
 
 The setup script accepts these optional environment variables:
 
-| Variable                                   | Purpose                                                         |
-| ------------------------------------------ | --------------------------------------------------------------- |
-| `OPENCLAW_IMAGE`                           | Use a remote image instead of building locally                  |
-| `OPENCLAW_DOCKER_APT_PACKAGES`             | Install extra apt packages during build (space-separated)       |
-| `OPENCLAW_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)   |
-| `OPENCLAW_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`) |
-| `OPENCLAW_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                   |
-| `OPENCLAW_SANDBOX`                         | Opt in to sandbox bootstrap (`1`, `true`, `yes`, `on`)          |
-| `OPENCLAW_DOCKER_SOCKET`                   | Override Docker socket path                                     |
-| `OPENCLAW_DISABLE_BONJOUR`                 | Disable Bonjour/mDNS advertising (defaults to `1` for Docker)   |
-| `OPENCLAW_DISABLE_BUNDLED_SOURCE_OVERLAYS` | Disable bundled plugin source bind-mount overlays               |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`              | Shared OTLP/HTTP collector endpoint for OpenTelemetry export    |
-| `OTEL_EXPORTER_OTLP_*_ENDPOINT`            | Signal-specific OTLP endpoints for traces, metrics, or logs     |
-| `OTEL_EXPORTER_OTLP_PROTOCOL`              | OTLP protocol override. Only `http/protobuf` is supported today |
-| `OTEL_SERVICE_NAME`                        | Service name used for OpenTelemetry resources                   |
-| `OTEL_SEMCONV_STABILITY_OPT_IN`            | Opt in to latest experimental GenAI semantic attributes         |
-| `OPENCLAW_OTEL_PRELOADED`                  | Skip starting a second OpenTelemetry SDK when one is preloaded  |
+| Variable                                   | Purpose                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `OPENCLAW_IMAGE`                           | Use a remote image instead of building locally                     |
+| `OPENCLAW_DOCKER_APT_PACKAGES`             | Install extra apt packages during build (space-separated)          |
+| `OPENCLAW_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)      |
+| `OPENCLAW_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`)    |
+| `OPENCLAW_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                      |
+| `OPENCLAW_AUTH_PROFILE_SECRET_DIR`         | Persist auth-profile encryption keys outside `OPENCLAW_CONFIG_DIR` |
+| `OPENCLAW_SANDBOX`                         | Opt in to sandbox bootstrap (`1`, `true`, `yes`, `on`)             |
+| `OPENCLAW_DOCKER_SOCKET`                   | Override Docker socket path                                        |
+| `OPENCLAW_DISABLE_BONJOUR`                 | Disable Bonjour/mDNS advertising (defaults to `1` for Docker)      |
+| `OPENCLAW_DISABLE_BUNDLED_SOURCE_OVERLAYS` | Disable bundled plugin source bind-mount overlays                  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`              | Shared OTLP/HTTP collector endpoint for OpenTelemetry export       |
+| `OTEL_EXPORTER_OTLP_*_ENDPOINT`            | Signal-specific OTLP endpoints for traces, metrics, or logs        |
+| `OTEL_EXPORTER_OTLP_PROTOCOL`              | OTLP protocol override. Only `http/protobuf` is supported today    |
+| `OTEL_SERVICE_NAME`                        | Service name used for OpenTelemetry resources                      |
+| `OTEL_SEMCONV_STABILITY_OPT_IN`            | Opt in to latest experimental GenAI semantic attributes            |
+| `OPENCLAW_OTEL_PRELOADED`                  | Skip starting a second OpenTelemetry SDK when one is preloaded     |
 
 Maintainers can test bundled plugin source against a packaged image by mounting
 one plugin source directory over its packaged source path, for example
@@ -257,15 +259,23 @@ For gotchas and troubleshooting, see [Bonjour discovery](/gateway/bonjour).
 
 ### Storage and persistence
 
-Docker Compose bind-mounts `OPENCLAW_CONFIG_DIR` to `/home/node/.openclaw` and
-`OPENCLAW_WORKSPACE_DIR` to `/home/node/.openclaw/workspace`, so those paths
-survive container replacement.
+Docker Compose bind-mounts `OPENCLAW_CONFIG_DIR` to `/home/node/.openclaw`,
+`OPENCLAW_WORKSPACE_DIR` to `/home/node/.openclaw/workspace`, and
+`OPENCLAW_AUTH_PROFILE_SECRET_DIR` to `/home/node/.config/openclaw`, so those
+paths survive container replacement. When any variable is unset, the bundled
+`docker-compose.yml` falls back under `${HOME}`, or `/tmp` when `HOME` itself is
+also missing. That keeps `docker compose up` from emitting an empty-source
+volume spec on bare environments.
 
 That mounted config directory is where Kova keeps:
 
 - `openclaw.json` for behavior config
 - `agents/<agentId>/agent/auth-profiles.json` for stored provider OAuth/API-key auth
 - `.env` for env-backed runtime secrets such as `OPENCLAW_GATEWAY_TOKEN`
+
+The auth-profile secret key directory stores the local encryption key used for
+OAuth-backed auth profile token material. Keep it with your Docker host state,
+but separate from `OPENCLAW_CONFIG_DIR`.
 
 For full persistence details on VM deployments, see
 [Docker VM Runtime - What persists where](/install/docker-vm-runtime#what-persists-where).
