@@ -12,7 +12,7 @@ import {
 } from "./provider-openai-codex-oauth-tls.js";
 
 const manualInputPromptMessage = "Paste the authorization code (or full redirect URL):";
-const openAICodexOAuthOriginator = "openclaw";
+const openAICodexOAuthOriginator = "kova";
 const localManualFallbackDelayMs = 15_000;
 const localManualFallbackGraceMs = 1_000;
 
