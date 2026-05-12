@@ -417,6 +417,7 @@ describe("emitExecSystemEvent", () => {
         to: "telegram:-100123:topic:47",
         threadId: 47,
       },
+      trusted: false,
     });
     expect(requestHeartbeatNowMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -436,6 +437,8 @@ describe("emitExecSystemEvent", () => {
     expect(enqueueSystemEventMock).toHaveBeenCalledWith("Exec finished", {
       sessionKey: "global",
       contextKey: "exec:run-global",
+      deliveryContext: undefined,
+      trusted: false,
     });
     expect(requestHeartbeatNowMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -452,6 +455,21 @@ describe("emitExecSystemEvent", () => {
     });
 
     expect(enqueueSystemEventMock).not.toHaveBeenCalled();
+    expect(requestHeartbeatNowMock).not.toHaveBeenCalled();
+  });
+
+  it("skips heartbeat wake for subagent session keys", () => {
+    emitExecSystemEvent("Exec finished", {
+      sessionKey: "agent:main:subagent:abc-123",
+      contextKey: "exec:run-sub",
+    });
+
+    expect(enqueueSystemEventMock).toHaveBeenCalledWith("Exec finished", {
+      sessionKey: "agent:main:subagent:abc-123",
+      contextKey: "exec:run-sub",
+      deliveryContext: undefined,
+      trusted: false,
+    });
     expect(requestHeartbeatNowMock).not.toHaveBeenCalled();
   });
 });

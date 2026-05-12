@@ -6,6 +6,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- Exec: skip heartbeat wakes for subagent sessions after exec events so subagent result polling does not spuriously wake the main session. Thanks @pgondhi987.
 - Exec: harden safe-bin argument validation so allowlisted shell wrappers cannot smuggle unliteralized shell expansion payloads. Thanks @pgondhi987.
 - Plugins/Nix: allow externally configured plugin roots under `/nix/store` to load in `KOVA_NIX_MODE=1` or `OPENCLAW_NIX_MODE=1` while keeping normal external plugin hardlink rejection unchanged. Thanks @joshp123.
 - Browser: keep user-owned tabs open when read-only browser operations hit an SSRF policy denial, while still closing tabs created by Kova-owned navigation flows. Thanks @scotthuang.
