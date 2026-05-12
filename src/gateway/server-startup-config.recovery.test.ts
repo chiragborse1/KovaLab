@@ -125,7 +125,7 @@ describe("gateway startup config recovery", () => {
         log: { info: vi.fn(), warn: vi.fn() },
       }),
     ).rejects.toThrow(
-      `Invalid config at ${configPath}.\ngateway.mode: Expected 'local' or 'remote'\nRun "openclaw doctor --fix" to repair, then retry.`,
+      `Invalid config at ${configPath}.\ngateway.mode: Expected 'local' or 'remote'\nRun "kova doctor --fix" to repair, then retry.`,
     );
 
     expect(recoveryNotice.enqueueConfigRecoveryNotice).not.toHaveBeenCalled();
@@ -190,9 +190,52 @@ describe("gateway startup config recovery", () => {
     expect(configIo.recoverConfigFromLastKnownGood).not.toHaveBeenCalled();
     expect(configIo.recoverConfigFromJsonRootSuffix).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
-      `gateway: skipped plugin config validation issue at plugins.entries.feishu: plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load. Run "openclaw doctor --fix" to quarantine the plugin config.`,
+      `gateway: skipped plugin config validation issue at plugins.entries.feishu: plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load. Run "kova doctor --fix" to quarantine the plugin config.`,
+    );
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "gateway: config warnings:\n- plugins.entries.feishu: plugin feishu: plugin requires OpenClaw >=2026.4.23",
+      ),
     );
     expect(recoveryNotice.enqueueConfigRecoveryNotice).not.toHaveBeenCalled();
+  });
+
+  it("logs config warnings without failing startup", async () => {
+    const snapshot = buildTestConfigSnapshot({
+      path: configPath,
+      exists: true,
+      raw: `${JSON.stringify(validConfig)}\n`,
+      parsed: validConfig,
+      valid: true,
+      config: validConfig,
+      issues: [],
+      warnings: [
+        {
+          path: "channels.acme-chat",
+          message:
+            'channel plugin is not available: acme-chat (install or enable plugin "acme-chat", then run kova doctor --fix)',
+        },
+      ],
+      legacyIssues: [],
+    });
+    vi.mocked(configIo.readConfigFileSnapshot).mockResolvedValueOnce(snapshot);
+    const log = { info: vi.fn(), warn: vi.fn() };
+
+    await expect(
+      loadGatewayStartupConfigSnapshot({
+        minimalTestGateway: true,
+        log,
+      }),
+    ).resolves.toEqual({
+      snapshot,
+      wroteConfig: false,
+    });
+
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'channels.acme-chat: channel plugin is not available: acme-chat (install or enable plugin "acme-chat", then run kova doctor --fix)',
+      ),
+    );
   });
 
   it("keeps mixed plugin and core startup invalidity fatal", async () => {
@@ -321,7 +364,7 @@ describe("gateway startup config recovery", () => {
     expect(configIo.recoverConfigFromLastKnownGood).not.toHaveBeenCalled();
     expect(configIo.writeConfigFile).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
-      'gateway: skipped model provider openrouter; configured provider api is invalid. Run "openclaw doctor --fix" to repair the config.',
+      'gateway: skipped model provider openrouter; configured provider api is invalid. Run "kova doctor --fix" to repair the config.',
     );
   });
 
