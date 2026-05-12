@@ -744,7 +744,7 @@ describe("createTelegramBot", () => {
       const pairingText = String(sendMessageSpy.mock.calls[0]?.[1]);
       expect(pairingText, testCase.name).toContain(`Your Telegram user id: ${senderId}`);
       expect(pairingText, testCase.name).toContain("Pairing code:");
-      expect(pairingText, testCase.name).toContain("openclaw pairing approve telegram");
+      expect(pairingText, testCase.name).toContain("kova pairing approve telegram");
       expect(sendMessageSpy.mock.calls[0]?.[2], testCase.name).toEqual(
         expect.objectContaining({ parse_mode: "HTML" }),
       );
@@ -2231,7 +2231,8 @@ describe("createTelegramBot", () => {
 
     expect(replySpy).toHaveBeenCalledTimes(1);
     const payload = replySpy.mock.calls[0][0];
-    expect(payload.Body).toContain("[Replying to Ada id:9001]");
+    expect(payload.Body).toContain("[Reply chain - nearest first]");
+    expect(payload.Body).toContain("[1. Ada id:9001]");
     expect(payload.Body).toContain("Can you summarize this?");
     expect(payload.ReplyToId).toBe("9001");
     expect(payload.ReplyToBody).toBe("Can you summarize this?");
@@ -2701,7 +2702,7 @@ describe("createTelegramBot", () => {
     }
   });
   it("honors routed group activation from session store", async () => {
-    const storePath = "/tmp/openclaw-telegram-group-activation.json";
+    const storePath = "/tmp/kova-telegram-group-activation.json";
     const routedGroupEntry = {
       sessionId: "agent:ops:telegram:group:123",
       updatedAt: 0,

@@ -14,6 +14,7 @@ import {
   type TelegramMediaRef,
 } from "./bot-message-context.js";
 import type { TelegramMessageContextOptions } from "./bot-message-context.types.js";
+import type { TelegramPromptContextEntry } from "./bot-message-context.types.js";
 import { dispatchTelegramMessage } from "./bot-message-dispatch.js";
 import type { TelegramBotOptions } from "./bot.types.js";
 import { buildTelegramThreadParams } from "./bot/helpers.js";
@@ -84,6 +85,7 @@ export const createTelegramMessageProcessor = (deps: TelegramMessageProcessorDep
     options?: TelegramMessageContextOptions,
     replyMedia?: TelegramMediaRef[],
     replyChain?: TelegramReplyChainEntry[],
+    promptContext?: TelegramPromptContextEntry[],
   ) => {
     const ingressReceivedAtMs =
       typeof options?.receivedAtMs === "number" && Number.isFinite(options.receivedAtMs)
@@ -97,6 +99,7 @@ export const createTelegramMessageProcessor = (deps: TelegramMessageProcessorDep
       allMedia,
       replyMedia,
       replyChain,
+      promptContext,
       storeAllowFrom,
       options,
       bot,
