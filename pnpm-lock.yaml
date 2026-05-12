@@ -134,8 +134,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
       web-push:
         specifier: ^3.6.7
         version: 3.6.7
@@ -352,8 +352,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
       ws:
         specifier: ^8.20.0
         version: 8.20.0
@@ -522,8 +522,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
       ws:
         specifier: ^8.20.0
         version: 8.20.0
@@ -1160,8 +1160,8 @@ importers:
         specifier: '>=2.0.0-beta.5'
         version: 2026.5.5(@types/express@5.0.6)
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
     devDependencies:
       '@openclaw/matrix':
         specifier: workspace:*
@@ -1325,8 +1325,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -1500,8 +1500,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -1541,8 +1541,8 @@ importers:
   extensions/zalo:
     dependencies:
       undici:
-        specifier: 7.25.0
-        version: 7.25.0
+        specifier: 8.2.0
+        version: 8.2.0
     devDependencies:
       '@openclaw/plugin-sdk':
         specifier: workspace:*
@@ -4365,12 +4365,12 @@ packages:
     resolution: {integrity: sha512-3nQ2mdyzPRKpBHjd3QiKZDwNzw1F7fBN+rSq8Xms2gg+JWZR4SY2Zdf+doqTyXdyVjG4Y0QM7IA4U42zT9xxzw==}
     engines: {node: '>=18.0.0'}
 
-  '@thi.ng/bitstream@2.4.46':
-    resolution: {integrity: sha512-p2cZshqkY/YX8EtNZEw29wbNF2vAJfi6A+yTkLUzERMpYIIdQz6bIt8rSJFyPqZcB5cI+tauXWwBXFbbsXuqKg==}
+  '@thi.ng/bitstream@2.4.48':
+    resolution: {integrity: sha512-s17d5i8xlPC8+/YEyFVzwTNSvaQxr/QCpqUtGVtrDnp+cKQnb7HMXnOvrLGUYCpWtweSVFzFCWp20xjU9xh2IA==}
     engines: {node: '>=18'}
 
-  '@thi.ng/errors@2.6.8':
-    resolution: {integrity: sha512-npKV69U8JYpMLZiqhUWf9dmd9Esjy36o7CxxGUgoLRS4ZmTLuIKqKfFnZuLrx6D5Mmb+D9ARCDR7qXO1QJV8DQ==}
+  '@thi.ng/errors@2.6.10':
+    resolution: {integrity: sha512-UYgdHPjJOaEct0kfURpaSzlyU18VDMg+HQ2csG3O+eBWyh/lUq3X1+gxN7/5y1xjp4pHyNd7iVvLklJZTFkTqA==}
     engines: {node: '>=18'}
 
   '@tloncorp/tlon-skill-darwin-arm64@0.3.5':
@@ -4510,6 +4510,9 @@ packages:
 
   '@types/node@20.19.39':
     resolution: {integrity: sha512-orrrD74MBUyK8jOAD/r0+lfa1I2MO6I+vAkmAWzMYbCcgrN4lCrmK52gRFQq/JRxfYPfonkr4b0jcY7Olqdqbw==}
+
+  '@types/node@20.19.41':
+    resolution: {integrity: sha512-ECymXOukMnOoVkC2bb1Vc/w/836DXncOg5m8Xj1RH7xSHZJWNYY6Zh7EH477vcnD5egKNNfy2RpNOmuChhFPgQ==}
 
   '@types/node@24.12.2':
     resolution: {integrity: sha512-A1sre26ke7HDIuY/M23nd9gfB+nrmhtYyMINbjI1zHJxYteKR6qSMX56FsmjMcDb3SMcjJg5BiRRgOCC/yBD0g==}
@@ -11826,12 +11829,12 @@ snapshots:
     dependencies:
       qrcode-terminal: 0.12.0
 
-  '@thi.ng/bitstream@2.4.46':
+  '@thi.ng/bitstream@2.4.48':
     dependencies:
-      '@thi.ng/errors': 2.6.8
+      '@thi.ng/errors': 2.6.10
     optional: true
 
-  '@thi.ng/errors@2.6.8':
+  '@thi.ng/errors@2.6.10':
     optional: true
 
   '@tloncorp/tlon-skill-darwin-arm64@0.3.5':
@@ -12005,6 +12008,10 @@ snapshots:
   '@types/node@16.9.1': {}
 
   '@types/node@20.19.39':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@20.19.41':
     dependencies:
       undici-types: 6.21.0
 
@@ -12356,7 +12363,7 @@ snapshots:
       '@swc/helpers': 0.5.21
       '@types/command-line-args': 5.2.3
       '@types/command-line-usage': 5.0.4
-      '@types/node': 20.19.39
+      '@types/node': 20.19.41
       command-line-args: 5.2.1
       command-line-usage: 7.0.4
       flatbuffers: 24.12.23
@@ -15134,7 +15141,7 @@ snapshots:
 
   qoa-format@1.0.1:
     dependencies:
-      '@thi.ng/bitstream': 2.4.46
+      '@thi.ng/bitstream': 2.4.48
     optional: true
 
   qrcode-terminal@0.12.0: {}
