@@ -2,8 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import JSON5 from "json5";
-import { NON_PACKAGED_BUNDLED_PLUGIN_DIRS } from "./lib/bundled-plugin-build-entries.mjs";
-import { shouldBuildBundledCluster } from "./lib/optional-bundled-clusters.mjs";
+import {
+  collectBundledPluginBuildEntries,
+  NON_PACKAGED_BUNDLED_PLUGIN_DIRS,
+} from "./lib/bundled-plugin-build-entries.mjs";
+import {
+  hasReleasedBundledInstall,
+  shouldBuildBundledCluster,
+} from "./lib/optional-bundled-clusters.mjs";
 import {
   removeFileIfExists,
   removePathIfExists,
@@ -16,7 +22,33 @@ const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA_PATH =
 const TRANSIENT_COPY_ERROR_CODES = new Set(["EEXIST", "ENOENT", "ENOTEMPTY", "EBUSY"]);
 const COPY_RETRY_DELAYS_MS = [10, 25, 50];
 
-function shouldCopyBundledPluginMetadata(id, env) {
+function collectRootPackageExcludedExtensionDirs(repoRoot) {
+  const packageJsonPath = path.join(repoRoot, "package.json");
+  if (!fs.existsSync(packageJsonPath)) {
+    return new Set();
+  }
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    return new Set(
+      (Array.isArray(packageJson.files) ? packageJson.files : [])
+        .map((entry) =>
+          typeof entry === "string" ? /^!dist\/extensions\/([^/]+)\/\*\*$/u.exec(entry) : null,
+        )
+        .map((match) => match?.[1])
+        .filter((entry) => typeof entry === "string" && entry.length > 0),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+function shouldCopyBundledPluginMetadata(id, env, buildablePluginDirs, packageJson) {
+  if (!buildablePluginDirs.has(id)) {
+    return false;
+  }
+  if (hasReleasedBundledInstall(packageJson)) {
+    return true;
+  }
   if (!NON_PACKAGED_BUNDLED_PLUGIN_DIRS.has(id)) {
     return true;
   }
@@ -316,6 +348,12 @@ export function copyBundledPluginMetadata(params = {}) {
     return;
   }
 
+  const excludedPackageDirs = collectRootPackageExcludedExtensionDirs(repoRoot);
+  const buildablePluginDirs = new Set(
+    collectBundledPluginBuildEntries({ cwd: repoRoot, env })
+      .map((entry) => entry.id)
+      .filter((id) => !excludedPackageDirs.has(id)),
+  );
   const generatedChannelConfigsByPlugin = readGeneratedBundledChannelConfigs(repoRoot);
   const sourcePluginDirs = new Set();
   for (const dirent of fs.readdirSync(extensionsRoot, { withFileTypes: true })) {
@@ -331,7 +369,7 @@ export function copyBundledPluginMetadata(params = {}) {
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
       : undefined;
     const topLevelPublicSurfaceEntries = collectTopLevelPublicSurfaceEntries(pluginDir);
-    if (!shouldCopyBundledPluginMetadata(dirent.name, env)) {
+    if (!shouldCopyBundledPluginMetadata(dirent.name, env, buildablePluginDirs, packageJson)) {
       removePathIfExists(distPluginDir);
       continue;
     }
