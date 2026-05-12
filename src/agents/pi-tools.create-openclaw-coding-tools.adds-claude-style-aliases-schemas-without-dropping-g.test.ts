@@ -130,4 +130,27 @@ describe("createOpenClawCodingTools read behavior", () => {
     });
     expect(details?.truncation).not.toHaveProperty("content");
   });
+
+  it("treats read offsets beyond eof as empty output", async () => {
+    const baseRead: AgentTool = {
+      name: "read",
+      label: "read",
+      description: "test read",
+      parameters: Type.Object({
+        path: Type.String(),
+        offset: Type.Optional(Type.Number()),
+        limit: Type.Optional(Type.Number()),
+      }),
+      execute: vi.fn(async () => {
+        throw new Error("Offset 99 is beyond end of file (5 lines total)");
+      }),
+    };
+
+    const wrapped = createOpenClawReadTool(
+      baseRead as unknown as Parameters<typeof createOpenClawReadTool>[0],
+    );
+    const result = await wrapped.execute("read-eof-1", { path: "demo.txt", offset: 99 });
+
+    expect(extractToolText(result)).toBe("");
+  });
 });
