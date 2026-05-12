@@ -15,6 +15,61 @@ export const DEFAULT_LLM_IDLE_TIMEOUT_MS = DEFAULT_LLM_IDLE_TIMEOUT_SECONDS * 10
  */
 const MAX_SAFE_TIMEOUT_MS = 2_147_000_000;
 
+function isLocalProviderBaseUrl(baseUrl: string): boolean {
+  let host: string;
+  try {
+    host = new URL(baseUrl).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  if (host.startsWith("[") && host.endsWith("]")) {
+    host = host.slice(1, -1);
+  }
+  if (
+    host === "localhost" ||
+    host === "0.0.0.0" ||
+    host === "::1" ||
+    host === "::ffff:7f00:1" ||
+    host === "::ffff:127.0.0.1" ||
+    host.endsWith(".local")
+  ) {
+    return true;
+  }
+  if (/^f[cd][0-9a-f]{2}:/.test(host) || /^fe[89ab][0-9a-f]:/.test(host)) {
+    return true;
+  }
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+    return false;
+  }
+  const octets = host.split(".").map((part) => Number.parseInt(part, 10));
+  if (octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return false;
+  }
+  const [a, b] = octets;
+  return (
+    a === 127 ||
+    a === 10 ||
+    (a === 172 && b !== undefined && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b !== undefined && b >= 64 && b <= 127)
+  );
+}
+
+function isOllamaCloudModel(model: { id?: string; provider?: string } | undefined): boolean {
+  const rawModelId = model?.id;
+  if (typeof rawModelId !== "string") {
+    return false;
+  }
+  const provider = model?.provider?.trim().toLowerCase();
+  if (provider && !provider.startsWith("ollama")) {
+    return false;
+  }
+  const modelId = rawModelId.trim().toLowerCase();
+  const slashIndex = modelId.indexOf("/");
+  const bareModelId = slashIndex >= 0 ? modelId.slice(slashIndex + 1) : modelId;
+  return bareModelId.endsWith(":cloud");
+}
+
 /**
  * Resolves the LLM idle timeout from configuration.
  * @returns Idle timeout in milliseconds, or 0 to disable
@@ -24,6 +79,7 @@ export function resolveLlmIdleTimeoutMs(params?: {
   trigger?: EmbeddedRunTrigger;
   runTimeoutMs?: number;
   modelRequestTimeoutMs?: number;
+  model?: { baseUrl?: string; id?: string; provider?: string };
 }): number {
   const clampTimeoutMs = (valueMs: number) => Math.min(Math.floor(valueMs), MAX_SAFE_TIMEOUT_MS);
   const clampImplicitTimeoutMs = (valueMs: number) =>
@@ -50,6 +106,9 @@ export function resolveLlmIdleTimeoutMs(params?: {
       value > 0 &&
       value < MAX_SAFE_TIMEOUT_MS,
   );
+  const baseUrl = params?.model?.baseUrl;
+  const isLocalProvider =
+    typeof baseUrl === "string" && baseUrl.length > 0 && isLocalProviderBaseUrl(baseUrl);
 
   const modelRequestTimeoutMs = params?.modelRequestTimeoutMs;
   if (
@@ -57,10 +116,17 @@ export function resolveLlmIdleTimeoutMs(params?: {
     Number.isFinite(modelRequestTimeoutMs) &&
     modelRequestTimeoutMs > 0
   ) {
-    return clampTimeoutMs(Math.min(modelRequestTimeoutMs, ...timeoutBounds));
+    const boundedTimeoutMs = Math.min(modelRequestTimeoutMs, ...timeoutBounds);
+    if (params?.trigger === "cron" || isLocalProvider) {
+      return clampTimeoutMs(boundedTimeoutMs);
+    }
+    return clampImplicitTimeoutMs(boundedTimeoutMs);
   }
 
   if (typeof runTimeoutMs === "number" && Number.isFinite(runTimeoutMs) && runTimeoutMs > 0) {
+    if (params?.trigger === "cron") {
+      return clampTimeoutMs(runTimeoutMs);
+    }
     return clampImplicitTimeoutMs(runTimeoutMs);
   }
 
@@ -69,6 +135,10 @@ export function resolveLlmIdleTimeoutMs(params?: {
   }
 
   if (params?.trigger === "cron") {
+    return 0;
+  }
+
+  if (isLocalProvider && !isOllamaCloudModel(params?.model)) {
     return 0;
   }
 
@@ -90,7 +160,62 @@ export function streamWithIdleTimeout(
   onIdleTimeout?: (error: Error) => void,
 ): StreamFn {
   return (model, context, options) => {
-    const maybeStream = baseFn(model, context, options);
+    const createIdleTimeoutError = () =>
+      new Error(`LLM idle timeout (${Math.floor(timeoutMs / 1000)}s): no response from model`);
+
+    const streamAbortController = new AbortController();
+    const sourceSignal = options?.signal;
+    const abortStream = (reason?: unknown) => {
+      if (!streamAbortController.signal.aborted) {
+        streamAbortController.abort(reason);
+      }
+    };
+    const abortFromSourceSignal = () => abortStream(sourceSignal?.reason);
+    if (sourceSignal?.aborted) {
+      abortFromSourceSignal();
+    } else {
+      sourceSignal?.addEventListener("abort", abortFromSourceSignal, { once: true });
+    }
+    const cleanupSourceSignal = () => {
+      sourceSignal?.removeEventListener("abort", abortFromSourceSignal);
+    };
+    const wrappedOptions = {
+      ...options,
+      signal: streamAbortController.signal,
+    } as typeof options;
+    const existingRequestTimeoutMs =
+      typeof (model as { requestTimeoutMs?: unknown })?.requestTimeoutMs === "number" &&
+      Number.isFinite((model as { requestTimeoutMs?: number }).requestTimeoutMs) &&
+      (model as { requestTimeoutMs?: number }).requestTimeoutMs! > 0
+        ? Math.floor((model as { requestTimeoutMs?: number }).requestTimeoutMs!)
+        : timeoutMs;
+    const wrappedModel =
+      typeof model === "object" && model !== null
+        ? ({
+            ...model,
+            requestTimeoutMs: Math.min(existingRequestTimeoutMs, timeoutMs),
+          } as typeof model)
+        : model;
+
+    const createTimeoutPromise = (setTimer: (timer: NodeJS.Timeout) => void): Promise<never> =>
+      new Promise((_, reject) => {
+        const timer = setTimeout(() => {
+          const error = createIdleTimeoutError();
+          abortStream(error);
+          onIdleTimeout?.(error);
+          reject(error);
+        }, timeoutMs);
+        timer.unref?.();
+        setTimer(timer);
+      });
+
+    let maybeStream: ReturnType<StreamFn>;
+    try {
+      maybeStream = baseFn(wrappedModel, context, wrappedOptions);
+    } catch (error) {
+      cleanupSourceSignal();
+      throw error;
+    }
 
     const wrapStream = (stream: ReturnType<typeof streamSimple>) => {
       const originalAsyncIterator = stream[Symbol.asyncIterator].bind(stream);
@@ -98,18 +223,6 @@ export function streamWithIdleTimeout(
         function () {
           const iterator = originalAsyncIterator();
           let idleTimer: NodeJS.Timeout | null = null;
-
-          const createTimeoutPromise = (): Promise<never> => {
-            return new Promise((_, reject) => {
-              idleTimer = setTimeout(() => {
-                const error = new Error(
-                  `LLM idle timeout (${Math.floor(timeoutMs / 1000)}s): no response from model`,
-                );
-                onIdleTimeout?.(error);
-                reject(error);
-              }, timeoutMs);
-            });
-          };
 
           const clearTimer = () => {
             if (idleTimer) {
@@ -125,10 +238,16 @@ export function streamWithIdleTimeout(
 
               try {
                 // Race between the actual next() and the timeout
-                const result = await Promise.race([streamIterator.next(), createTimeoutPromise()]);
+                const result = await Promise.race([
+                  streamIterator.next(),
+                  createTimeoutPromise((timer) => {
+                    idleTimer = timer;
+                  }),
+                ]);
 
                 if (result.done) {
                   clearTimer();
+                  cleanupSourceSignal();
                   return result;
                 }
 
@@ -141,10 +260,12 @@ export function streamWithIdleTimeout(
             },
             onReturn(streamIterator) {
               clearTimer();
+              cleanupSourceSignal();
               return streamIterator.return?.() ?? Promise.resolve({ done: true, value: undefined });
             },
             onThrow(streamIterator, error) {
               clearTimer();
+              cleanupSourceSignal();
               return streamIterator.throw?.(error) ?? Promise.reject(error);
             },
           });
@@ -154,7 +275,29 @@ export function streamWithIdleTimeout(
     };
 
     if (maybeStream && typeof maybeStream === "object" && "then" in maybeStream) {
-      return Promise.resolve(maybeStream).then(wrapStream);
+      let streamPromiseTimer: NodeJS.Timeout | null = null;
+      const clearStreamPromiseTimer = () => {
+        if (streamPromiseTimer) {
+          clearTimeout(streamPromiseTimer);
+          streamPromiseTimer = null;
+        }
+      };
+      return Promise.race([
+        Promise.resolve(maybeStream),
+        createTimeoutPromise((timer) => {
+          streamPromiseTimer = timer;
+        }),
+      ]).then(
+        (stream) => {
+          clearStreamPromiseTimer();
+          return wrapStream(stream);
+        },
+        (error) => {
+          clearStreamPromiseTimer();
+          cleanupSourceSignal();
+          throw error;
+        },
+      );
     }
     return wrapStream(maybeStream);
   };

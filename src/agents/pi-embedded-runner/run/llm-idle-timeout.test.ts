@@ -38,12 +38,16 @@ describe("resolveLlmIdleTimeoutMs", () => {
     expect(resolveLlmIdleTimeoutMs({ runTimeoutMs: 2_147_000_000 })).toBe(0);
   });
 
-  it("uses the provider request timeout as the model idle watchdog", () => {
-    expect(resolveLlmIdleTimeoutMs({ modelRequestTimeoutMs: 300_000 })).toBe(300_000);
+  it("caps cloud provider request timeout at the default idle watchdog", () => {
+    expect(resolveLlmIdleTimeoutMs({ modelRequestTimeoutMs: 300_000 })).toBe(
+      DEFAULT_LLM_IDLE_TIMEOUT_MS,
+    );
   });
 
-  it("caps provider request timeout at the max safe timeout", () => {
-    expect(resolveLlmIdleTimeoutMs({ modelRequestTimeoutMs: 10_000_000_000 })).toBe(2_147_000_000);
+  it("caps cron provider request timeout at the max safe timeout", () => {
+    expect(
+      resolveLlmIdleTimeoutMs({ trigger: "cron", modelRequestTimeoutMs: 10_000_000_000 }),
+    ).toBe(2_147_000_000);
   });
 
   it("ignores invalid provider request timeout values", () => {
@@ -72,6 +76,26 @@ describe("resolveLlmIdleTimeoutMs", () => {
     expect(resolveLlmIdleTimeoutMs({ trigger: "cron", modelRequestTimeoutMs: 300_000 })).toBe(
       300_000,
     );
+  });
+
+  it("disables the default idle timeout for local providers", () => {
+    expect(
+      resolveLlmIdleTimeoutMs({
+        model: { baseUrl: "http://127.0.0.1:11434/v1", id: "llama3", provider: "ollama" },
+      }),
+    ).toBe(0);
+  });
+
+  it("keeps the default idle timeout for Ollama cloud models", () => {
+    expect(
+      resolveLlmIdleTimeoutMs({
+        model: {
+          baseUrl: "http://127.0.0.1:11434/v1",
+          id: "gpt-oss:cloud",
+          provider: "ollama",
+        },
+      }),
+    ).toBe(DEFAULT_LLM_IDLE_TIMEOUT_MS);
   });
 
   it("disables the default idle timeout for cron when no timeout is configured", () => {
@@ -142,7 +166,32 @@ describe("streamWithIdleTimeout", () => {
 
     void wrapped(model, context, options);
 
-    expect(baseFn).toHaveBeenCalledWith(model, context, options);
+    expect(baseFn).toHaveBeenCalledWith(
+      expect.objectContaining({ api: "openai", requestTimeoutMs: 1000 }),
+      context,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it("times out async stream setup before the stream object exists", async () => {
+    vi.useFakeTimers();
+    const baseFn = vi.fn(
+      (_model: unknown, _context: unknown, options?: { signal?: AbortSignal }) =>
+        new Promise<AsyncIterable<unknown>>((_resolve) => {
+          options?.signal?.addEventListener("abort", () => undefined);
+        }),
+    );
+    const onIdleTimeout = vi.fn();
+    const wrapped = streamWithIdleTimeout(baseFn as never, 50, onIdleTimeout);
+
+    const streamPromise = wrapped({}, {}, {}) as Promise<AsyncIterable<unknown>>;
+    const result = expect(streamPromise).rejects.toThrow(/LLM idle timeout/);
+
+    await vi.advanceTimersByTimeAsync(50);
+    await result;
+    expect(onIdleTimeout).toHaveBeenCalledTimes(1);
+    const passedOptions = baseFn.mock.calls[0]?.[2] as { signal?: AbortSignal } | undefined;
+    expect(passedOptions?.signal?.aborted).toBe(true);
   });
 
   it("throws on idle timeout", async () => {
