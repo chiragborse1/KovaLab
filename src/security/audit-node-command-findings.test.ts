@@ -87,6 +87,9 @@ describe("security audit node command findings", () => {
         expect(finding, testCase.name).toBeUndefined();
         continue;
       }
+      if (!("detailIncludes" in testCase)) {
+        throw new Error(`expected detailIncludes for ${testCase.name}`);
+      }
       expect(finding?.severity, testCase.name).toBe("warn");
       expectDetailText({
         detail: finding?.detail,

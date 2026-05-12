@@ -184,7 +184,11 @@ describe("streamWithIdleTimeout", () => {
     const onIdleTimeout = vi.fn();
     const wrapped = streamWithIdleTimeout(baseFn as never, 50, onIdleTimeout);
 
-    const streamPromise = wrapped({}, {}, {}) as Promise<AsyncIterable<unknown>>;
+    const streamPromise = wrapped(
+      {} as Parameters<typeof wrapped>[0],
+      {} as Parameters<typeof wrapped>[1],
+      {} as Parameters<typeof wrapped>[2],
+    ) as Promise<AsyncIterable<unknown>>;
     const result = expect(streamPromise).rejects.toThrow(/LLM idle timeout/);
 
     await vi.advanceTimersByTimeAsync(50);

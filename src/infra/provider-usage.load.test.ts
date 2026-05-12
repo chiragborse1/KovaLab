@@ -15,6 +15,7 @@ import type { ProviderUsageSnapshot } from "./provider-usage.types.js";
 
 type ProviderAuth = ProviderUsageAuth<typeof loadProviderUsageSummary>;
 const googleGeminiCliProvider = "google-gemini-cli" as unknown as ProviderAuth["provider"];
+const openaiProvider = "openai" as unknown as ProviderAuth["provider"];
 const resolveProviderUsageSnapshotWithPluginMock = getProviderUsageSnapshotWithPluginMock();
 
 describe("provider-usage.load", () => {
@@ -139,7 +140,7 @@ describe("provider-usage.load", () => {
         if (provider === "anthropic") {
           throw new Error("anthropic usage unavailable");
         }
-        if (provider === "openai") {
+        if (provider === openaiProvider) {
           return {
             provider,
             displayName: "OpenAI",
@@ -157,7 +158,7 @@ describe("provider-usage.load", () => {
       loadProviderUsageSummary,
       [
         { provider: "anthropic", token: "token-a" },
-        { provider: "openai", token: "token-o" },
+        { provider: openaiProvider, token: "token-o" },
       ],
       mockFetch,
     );
