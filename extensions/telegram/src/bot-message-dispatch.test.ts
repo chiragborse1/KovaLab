@@ -1044,7 +1044,9 @@ describe("dispatchTelegramMessage draft streaming", () => {
       }),
       cfg: {
         agents: {
-          defaults: { reasoningDefault: "off" },
+          defaults: { reasoningDefault: "off" } as unknown as NonNullable<
+            NonNullable<OpenClawConfig["agents"]>["defaults"]
+          >,
           list: [{ id: "Ops", reasoningDefault: "stream" }],
         },
       },

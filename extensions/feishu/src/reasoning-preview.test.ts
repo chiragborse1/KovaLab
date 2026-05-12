@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveFeishuReasoningPreviewEnabled } from "./reasoning-preview.js";
 
+type ReasoningPreviewConfig = Parameters<typeof resolveFeishuReasoningPreviewEnabled>[0]["cfg"];
+
 const { loadSessionStoreMock } = vi.hoisted(() => ({
   loadSessionStoreMock: vi.fn(),
 }));
@@ -75,7 +77,7 @@ describe("resolveFeishuReasoningPreviewEnabled", () => {
             defaults: { reasoningDefault: "off" },
             list: [{ id: "Ops", reasoningDefault: "stream" }],
           },
-        },
+        } as ReasoningPreviewConfig,
         agentId: "ops",
         storePath: "/tmp/feishu-sessions.json",
         sessionKey: "agent:ops:feishu:dm:ou_sender_1",
@@ -88,7 +90,7 @@ describe("resolveFeishuReasoningPreviewEnabled", () => {
             defaults: { reasoningDefault: "stream" },
             list: [{ id: "Ops", reasoningDefault: "off" }],
           },
-        },
+        } as ReasoningPreviewConfig,
         agentId: "ops",
         storePath: "/tmp/feishu-sessions.json",
       }),
