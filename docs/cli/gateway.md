@@ -493,7 +493,7 @@ Wide-Area discovery records include (TXT):
 - `sshPort` (optional; clients default SSH targets to `22` when it is absent)
 - `tailnetDns` (MagicDNS hostname, when available)
 - `gatewayTls` / `gatewayTlsSha256` (TLS enabled + cert fingerprint)
-- `cliPath` (remote-install hint written to the wide-area zone)
+- `cliPath` (remote-install hint written only when discovery mDNS mode is `full`)
 
 ### `gateway discover`
 
@@ -518,7 +518,7 @@ kova gateway discover --json | jq '.beacons[].wsUrl'
 <Note>
 - The CLI scans `local.` plus the configured wide-area domain when one is enabled.
 - `wsUrl` in JSON output is derived from the resolved service endpoint, not from TXT-only hints such as `lanHost` or `tailnetDns`.
-- On `local.` mDNS, `sshPort` and `cliPath` are only broadcast when `discovery.mdns.mode` is `full`. Wide-area DNS-SD still writes `cliPath`; `sshPort` stays optional there too.
+- On `local.` mDNS and wide-area DNS-SD, `sshPort` and `cliPath` are only broadcast when `discovery.mdns.mode` is `full`; `sshPort` stays optional.
 </Note>
 
 ## Related

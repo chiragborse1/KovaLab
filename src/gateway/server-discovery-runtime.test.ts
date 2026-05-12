@@ -71,6 +71,7 @@ describe("startGatewayDiscovery", () => {
   it("starts registered local discovery services with gateway advertisement context", async () => {
     process.env.NODE_ENV = "development";
     delete process.env.VITEST;
+    delete process.env.OPENCLAW_DISABLE_BONJOUR;
     process.env.OPENCLAW_SSH_PORT = "2222";
 
     const stopped: string[] = [];
@@ -123,6 +124,7 @@ describe("startGatewayDiscovery", () => {
   it("skips local discovery services when mDNS mode is off", async () => {
     process.env.NODE_ENV = "development";
     delete process.env.VITEST;
+    delete process.env.OPENCLAW_DISABLE_BONJOUR;
 
     const service = makeDiscoveryService({ id: "bonjour" });
     const result = await startGatewayDiscovery({
@@ -192,5 +194,34 @@ describe("startGatewayDiscovery", () => {
     );
     expect(logs.info).toHaveBeenCalledWith(expect.stringContaining("wide-area DNS-SD updated"));
     expect(result.bonjourStop).toBeNull();
+  });
+
+  it("omits the CLI path from wide-area DNS-SD in minimal mode", async () => {
+    process.env.NODE_ENV = "development";
+    delete process.env.VITEST;
+
+    const logs = makeLogs();
+
+    await startGatewayDiscovery({
+      machineDisplayName: "Lab Mac",
+      port: 18789,
+      gatewayTls: { enabled: false },
+      wideAreaDiscoveryEnabled: true,
+      wideAreaDiscoveryDomain: "openclaw.internal.",
+      tailscaleMode: "serve",
+      mdnsMode: "minimal",
+      gatewayDiscoveryServices: [],
+      logDiscovery: logs,
+    });
+
+    const zoneCalls = mocks.writeWideAreaGatewayZone.mock.calls as unknown as Array<
+      [{ cliPath?: string }]
+    >;
+    const zoneParams = zoneCalls.at(-1)?.[0];
+    if (zoneParams === undefined) {
+      throw new Error("Expected wide-area gateway zone to be written");
+    }
+    expect(zoneParams.cliPath).toBeUndefined();
+    expect(mocks.resolveBonjourCliPath).not.toHaveBeenCalled();
   });
 });

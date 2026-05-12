@@ -102,7 +102,7 @@ The Gateway advertises small non‑secret hints to make UI flows convenient:
 - `transport=gateway`
 - `tailnetDns=<magicdns>` (mDNS full mode only, optional hint when Tailnet is available)
 - `sshPort=<port>` (mDNS full mode only; wide-area DNS-SD may omit it)
-- `cliPath=<path>` (mDNS full mode only; wide-area DNS-SD still writes it as a remote-install hint)
+- `cliPath=<path>` (mDNS full mode only; wide-area DNS-SD omits it in minimal mode)
 
 Security notes:
 
