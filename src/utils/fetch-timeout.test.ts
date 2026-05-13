@@ -133,6 +133,27 @@ describe("buildTimeoutAbortSignal", () => {
     cleanup();
   });
 
+  it("redacts Telegram bot tokens embedded in timeout URL paths", async () => {
+    const { cleanup } = buildTimeoutAbortSignal({
+      timeoutMs: 25,
+      operation: "unit-test",
+      url: "https://api.telegram.org/bot123456:ABC-secret-token/getMe",
+    });
+
+    await vi.advanceTimersByTimeAsync(25);
+
+    expect(warn).toHaveBeenCalledWith(
+      "fetch timeout reached; aborting operation",
+      expect.objectContaining({
+        url: "https://api.telegram.org/bot***/getMe",
+        consoleMessage: expect.stringContaining("url=https://api.telegram.org/bot***/getMe"),
+      }),
+    );
+    expect(JSON.stringify(warn.mock.calls)).not.toContain("ABC-secret-token");
+
+    cleanup();
+  });
+
   it("does not log when a parent signal aborts first", async () => {
     const parent = new AbortController();
     const { signal, cleanup } = buildTimeoutAbortSignal({

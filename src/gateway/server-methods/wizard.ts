@@ -47,6 +47,16 @@ export const wizardHandlers: GatewayRequestHandlers = {
     }
     const running = context.findRunningWizard();
     if (running) {
+      const session = context.wizardSessions.get(running);
+      if (session) {
+        const result = await session.next();
+        if (result.done) {
+          context.purgeWizardSession(running);
+        }
+        respond(true, { sessionId: running, ...result }, undefined);
+        return;
+      }
+      context.wizardSessions.delete(running);
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "wizard already running"));
       return;
     }

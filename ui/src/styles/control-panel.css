@@ -483,6 +483,23 @@
   font-size: 12px;
 }
 
+.control-panel-inline-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.control-panel-inline-progress span {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  animation: control-panel-pulse 800ms ease-in-out infinite alternate;
+}
+
 .control-panel-action-step {
   display: grid;
   gap: 12px;
@@ -520,6 +537,16 @@
 
   100% {
     left: 100%;
+  }
+}
+
+@keyframes control-panel-pulse {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 

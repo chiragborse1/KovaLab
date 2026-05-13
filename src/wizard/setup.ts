@@ -805,16 +805,6 @@ export async function runSetupWizard(
     deferConfigReload: opts.deferConfigReload,
   });
 
-  if (opts.deferConfigReload) {
-    await prompter.note(
-      [
-        "Setup changes were saved without restarting the active Gateway.",
-        "Restart the Gateway after finishing this browser setup to apply auth, bind, or plugin reload-sensitive changes.",
-      ].join("\n"),
-      "Restart required",
-    );
-  }
-
   const { finalizeSetupWizard } = await import("./setup.finalize.js");
   const { launchedTui } = await finalizeSetupWizard({
     flow: wizardFlow,

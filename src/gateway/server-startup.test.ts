@@ -116,6 +116,25 @@ describe("gateway startup primary model warmup", () => {
     expect(resolveModelMock).not.toHaveBeenCalled();
   });
 
+  it("skips warmup for auto model aliases", async () => {
+    await prewarmConfiguredPrimaryModel({
+      cfg: {
+        agents: {
+          defaults: {
+            model: {
+              primary: "openrouter/auto",
+            },
+          },
+        },
+      } as OpenClawConfig,
+      log: { warn: vi.fn() },
+    });
+
+    expect(selectAgentHarnessMock).not.toHaveBeenCalled();
+    expect(ensureOpenClawModelsJsonMock).not.toHaveBeenCalled();
+    expect(resolveModelMock).not.toHaveBeenCalled();
+  });
+
   it("skips static warmup for configured CLI backends", async () => {
     await prewarmConfiguredPrimaryModel({
       cfg: {

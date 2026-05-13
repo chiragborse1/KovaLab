@@ -372,6 +372,13 @@ module.exports = {
         }>("wizard.start", { mode: "local" });
         const sessionId = start.sessionId;
         expect(typeof sessionId).toBe("string");
+        const duplicateStart = await client.request<{
+          sessionId?: string;
+          done: boolean;
+          status: "running" | "done" | "cancelled" | "error";
+        }>("wizard.start", { mode: "local" });
+        expect(duplicateStart.sessionId).toBe(sessionId);
+        expect(duplicateStart.status).toBe("running");
 
         let next = start;
         let didSendToken = false;

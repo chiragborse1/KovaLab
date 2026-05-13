@@ -3,6 +3,7 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 const log = createSubsystemLogger("fetch-timeout");
 const LOG_URL_MAX_CHARS = 500;
 const URL_SECRET_SUFFIX_PATTERN = /[?#]/;
+const TELEGRAM_BOT_TOKEN_PATH_PATTERN = /\/bot\d+:[^/?#/]*/g;
 
 type TimeoutAbortSignalParams = {
   timeoutMs?: number;
@@ -33,6 +34,7 @@ function sanitizeTimeoutLogUrl(rawUrl: string | undefined): string | undefined {
     const parsed = new URL(trimmed);
     parsed.username = "";
     parsed.password = "";
+    parsed.pathname = parsed.pathname.replace(TELEGRAM_BOT_TOKEN_PATH_PATTERN, "/bot***");
     parsed.search = "";
     parsed.hash = "";
     const value = parsed.toString();

@@ -398,6 +398,19 @@ function renderWizardEscapeActions(props: ControlPanelProps) {
 function renderCurrentWizardStep(props: ControlPanelProps) {
   const step = props.wizardStep;
   if (!step) {
+    if (props.wizardLoading) {
+      return html`
+        <div class="control-panel-wizard-step">
+          ${renderProgressStep({
+            id: "starting",
+            type: "progress",
+            title: "Working",
+            message:
+              "Kova is preparing the next setup step. Long plugin installs can take a few minutes.",
+          })}
+        </div>
+      `;
+    }
     if (props.wizardStatus === "done") {
       return html`
         <div class="control-panel-wizard-empty is-done">
@@ -426,6 +439,14 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
         <span>${step.type}</span>
         ${step.sensitive ? html`<span>secret input</span>` : nothing}
       </div>
+      ${props.wizardLoading && step.type !== "progress"
+        ? html`
+            <div class="control-panel-inline-progress" role="status" aria-live="polite">
+              <span></span>
+              Applying this step. Keep this page open.
+            </div>
+          `
+        : nothing}
       ${step.title ? html`<h3>${step.title}</h3>` : nothing}
       ${step.message ? html`<p>${step.message}</p>` : nothing}
       ${step.type === "text"

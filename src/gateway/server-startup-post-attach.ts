@@ -108,6 +108,17 @@ function isConfiguredCliBackendPrimary(params: {
   );
 }
 
+function isAutoModelRef(value: string): boolean {
+  const slashIndex = value.indexOf("/");
+  return (
+    slashIndex > 0 &&
+    value
+      .slice(slashIndex + 1)
+      .trim()
+      .toLowerCase() === "auto"
+  );
+}
+
 async function hasGatewayStartupInternalHookListeners(): Promise<boolean> {
   const { hasInternalHookListeners } = await import("../hooks/internal-hooks.js");
   return hasInternalHookListeners("gateway", "startup");
@@ -147,6 +158,9 @@ async function prewarmConfiguredPrimaryModel(params: {
   const { resolveAgentModelPrimaryValue } = await import("../config/model-input.js");
   const explicitPrimary = resolveAgentModelPrimaryValue(params.cfg.agents?.defaults?.model)?.trim();
   if (!explicitPrimary) {
+    return;
+  }
+  if (isAutoModelRef(explicitPrimary)) {
     return;
   }
   const { normalizeProviderId } = await import("../agents/provider-id.js");
