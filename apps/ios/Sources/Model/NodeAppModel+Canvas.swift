@@ -16,7 +16,7 @@ extension NodeAppModel {
         if let host = base.host, LoopbackHost.isLoopback(host) {
             return nil
         }
-        return base.appendingPathComponent("__openclaw__/canvas/").absoluteString
+        return base.appendingPathComponent("__kova__/canvas/").absoluteString
     }
 
     func _test_resolveA2UIHostURL() async -> String? {
@@ -30,7 +30,7 @@ extension NodeAppModel {
         if let host = base.host, LoopbackHost.isLoopback(host) {
             return nil
         }
-        return base.appendingPathComponent("__openclaw__/a2ui/").absoluteString + "?platform=ios"
+        return base.appendingPathComponent("__kova__/a2ui/").absoluteString + "?platform=ios"
     }
 
     /// Normalize a URL string for trust comparison: lowercase scheme/host and strip fragment.

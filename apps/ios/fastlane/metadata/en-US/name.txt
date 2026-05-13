@@ -1,1 +1,1 @@
-OpenClaw - iOS Client
+Kova - iOS Client

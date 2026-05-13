@@ -22,9 +22,9 @@ enum OpenClawAppModelRegistry {
 
 @MainActor
 final class OpenClawAppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UNUserNotificationCenterDelegate {
-    private let logger = Logger(subsystem: "ai.openclaw.ios", category: "Push")
-    private let backgroundWakeLogger = Logger(subsystem: "ai.openclaw.ios", category: "BackgroundWake")
-    private static let wakeRefreshTaskIdentifier = "ai.openclaw.ios.bgrefresh"
+    private let logger = Logger(subsystem: "ai.kova.ios", category: "Push")
+    private let backgroundWakeLogger = Logger(subsystem: "ai.kova.ios", category: "BackgroundWake")
+    private static let wakeRefreshTaskIdentifier = "ai.kova.ios.bgrefresh"
     private var backgroundWakeTask: Task<Bool, Never>?
     private var pendingAPNsDeviceToken: Data?
     private var pendingWatchPromptActions: [PendingWatchPromptAction] = []
@@ -369,20 +369,20 @@ final class OpenClawAppDelegate: NSObject, UIApplicationDelegate, @preconcurrenc
 }
 
 enum WatchPromptNotificationBridge {
-    static let typeKey = "openclaw.type"
+    static let typeKey = "kova.type"
     static let typeValue = "watch.prompt"
-    static let promptIDKey = "openclaw.watch.promptId"
-    static let sessionKeyKey = "openclaw.watch.sessionKey"
-    static let actionPrimaryIDKey = "openclaw.watch.action.primary.id"
-    static let actionPrimaryLabelKey = "openclaw.watch.action.primary.label"
-    static let actionSecondaryIDKey = "openclaw.watch.action.secondary.id"
-    static let actionSecondaryLabelKey = "openclaw.watch.action.secondary.label"
-    static let actionPrimaryIdentifier = "openclaw.watch.action.primary"
-    static let actionSecondaryIdentifier = "openclaw.watch.action.secondary"
-    static let actionIdentifierPrefix = "openclaw.watch.action."
-    static let actionIDKeyPrefix = "openclaw.watch.action.id."
-    static let actionLabelKeyPrefix = "openclaw.watch.action.label."
-    static let categoryPrefix = "openclaw.watch.prompt.category."
+    static let promptIDKey = "kova.watch.promptId"
+    static let sessionKeyKey = "kova.watch.sessionKey"
+    static let actionPrimaryIDKey = "kova.watch.action.primary.id"
+    static let actionPrimaryLabelKey = "kova.watch.action.primary.label"
+    static let actionSecondaryIDKey = "kova.watch.action.secondary.id"
+    static let actionSecondaryLabelKey = "kova.watch.action.secondary.label"
+    static let actionPrimaryIdentifier = "kova.watch.action.primary"
+    static let actionSecondaryIdentifier = "kova.watch.action.secondary"
+    static let actionIdentifierPrefix = "kova.watch.action."
+    static let actionIDKeyPrefix = "kova.watch.action.id."
+    static let actionLabelKeyPrefix = "kova.watch.action.label."
+    static let categoryPrefix = "kova.watch.prompt.category."
 
     @MainActor
     static func scheduleMirroredWatchPromptNotificationIfNeeded(

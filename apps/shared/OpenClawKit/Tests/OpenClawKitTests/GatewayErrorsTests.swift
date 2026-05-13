@@ -25,8 +25,8 @@ import Testing
             titleOverride: "Additional permissions required",
             userMessageOverride: "Approve the requested permissions on the gateway, then reconnect.",
             actionLabel: "Approve on gateway",
-            actionCommand: "openclaw devices approve req-123",
-            docsURLString: "https://docs.openclaw.ai/gateway/pairing",
+            actionCommand: "kova devices approve req-123",
+            docsURLString: "https://docs.neuralstudio.in/gateway/pairing",
             retryableOverride: false,
             pauseReconnectOverride: true)
 
@@ -34,8 +34,8 @@ import Testing
         #expect(error.detailsReason == "scope-upgrade")
         #expect(error.ownerRaw == "gateway")
         #expect(error.titleOverride == "Additional permissions required")
-        #expect(error.actionCommand == "openclaw devices approve req-123")
-        #expect(error.docsURLString == "https://docs.openclaw.ai/gateway/pairing")
+        #expect(error.actionCommand == "kova devices approve req-123")
+        #expect(error.docsURLString == "https://docs.neuralstudio.in/gateway/pairing")
         #expect(error.pauseReconnectOverride == true)
     }
 
@@ -52,7 +52,7 @@ import Testing
         #expect(problem?.kind == .pairingScopeUpgradeRequired)
         #expect(problem?.requestId == "req-123")
         #expect(problem?.pauseReconnect == true)
-        #expect(problem?.actionCommand == "openclaw devices approve req-123")
+        #expect(problem?.actionCommand == "kova devices approve req-123")
     }
 
     @Test func cancelledTransportDoesNotReplaceStructuredPairingProblem() {

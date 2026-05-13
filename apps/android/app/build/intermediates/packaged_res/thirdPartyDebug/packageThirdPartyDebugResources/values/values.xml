@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ask_kova_query_patterns">
+        <item>ask Kova $prompt</item>
+        <item>tell Kova to $prompt</item>
+        <item>open Kova and ask $prompt</item>
+    </string-array>
+    <color name="ic_launcher_background">#DD1A08</color>
+    <string name="app_name">Kova Node</string>
+    <style name="Theme.KovaNode" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

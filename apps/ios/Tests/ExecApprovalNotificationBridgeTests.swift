@@ -40,7 +40,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
             actionIdentifier: UNNotificationDefaultActionIdentifier,
             userInfo: [
-                "openclaw": [
+                "kova": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-123",
                 ],
@@ -53,7 +53,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
             actionIdentifier: ExecApprovalNotificationBridge.reviewActionIdentifier,
             userInfo: [
-                "openclaw": [
+                "kova": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-456",
                 ],
@@ -66,7 +66,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
             actionIdentifier: "openclaw.exec-approval.allow-once",
             userInfo: [
-                "openclaw": [
+                "kova": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,
                     "approvalId": "approval-789",
                 ],
@@ -81,7 +81,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
             NotificationSnapshot(
                 identifier: "remote-approval-1",
                 userInfo: [
-                    "openclaw": [
+                    "kova": [
                         "kind": ExecApprovalNotificationBridge.requestedKind,
                         "approvalId": "approval-123",
                     ],
@@ -89,7 +89,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
             NotificationSnapshot(
                 identifier: "remote-other",
                 userInfo: [
-                    "openclaw": [
+                    "kova": [
                         "kind": ExecApprovalNotificationBridge.requestedKind,
                         "approvalId": "approval-999",
                     ],
@@ -98,7 +98,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
 
         let handled = await ExecApprovalNotificationBridge.handleResolvedPushIfNeeded(
             userInfo: [
-                "openclaw": [
+                "kova": [
                     "kind": ExecApprovalNotificationBridge.resolvedKind,
                     "approvalId": "approval-123",
                 ],

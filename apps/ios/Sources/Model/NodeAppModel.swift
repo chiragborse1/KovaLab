@@ -88,14 +88,14 @@ final class NodeAppModel {
         var pendingApprovalIDs: [String]?
     }
 
-    private let deepLinkLogger = Logger(subsystem: "ai.openclaw.ios", category: "DeepLink")
-    private let pushWakeLogger = Logger(subsystem: "ai.openclaw.ios", category: "PushWake")
-    private let pendingActionLogger = Logger(subsystem: "ai.openclaw.ios", category: "PendingAction")
-    private let locationWakeLogger = Logger(subsystem: "ai.openclaw.ios", category: "LocationWake")
-    private let watchReplyLogger = Logger(subsystem: "ai.openclaw.ios", category: "WatchReply")
-    private let watchExecApprovalLogger = Logger(subsystem: "ai.openclaw.ios", category: "WatchExecApproval")
+    private let deepLinkLogger = Logger(subsystem: "ai.kova.ios", category: "DeepLink")
+    private let pushWakeLogger = Logger(subsystem: "ai.kova.ios", category: "PushWake")
+    private let pendingActionLogger = Logger(subsystem: "ai.kova.ios", category: "PendingAction")
+    private let locationWakeLogger = Logger(subsystem: "ai.kova.ios", category: "LocationWake")
+    private let watchReplyLogger = Logger(subsystem: "ai.kova.ios", category: "WatchReply")
+    private let watchExecApprovalLogger = Logger(subsystem: "ai.kova.ios", category: "WatchExecApproval")
     private let execApprovalNotificationLogger = Logger(
-        subsystem: "ai.openclaw.ios",
+        subsystem: "ai.kova.ios",
         category: "ExecApprovalNotification")
     enum CameraHUDKind {
         case photo
@@ -1000,8 +1000,8 @@ final class NodeAppModel {
             }
             let json = try await self.screen.eval(javaScript: """
             (() => {
-              const host = globalThis.openclawA2UI;
-              if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
+              const host = globalThis.kovaA2UI || globalThis.openclawA2UI;
+              if (!host) return JSON.stringify({ ok: false, error: "missing kovaA2UI" });
               return JSON.stringify(host.reset());
             })()
             """)
@@ -1046,8 +1046,8 @@ final class NodeAppModel {
             let js = """
             (() => {
               try {
-                const host = globalThis.openclawA2UI;
-                if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
+                const host = globalThis.kovaA2UI || globalThis.openclawA2UI;
+                if (!host) return JSON.stringify({ ok: false, error: "missing kovaA2UI" });
                 const messages = \(messagesJSON);
                 return JSON.stringify(host.applyMessages(messages));
               } catch (e) {
@@ -2514,8 +2514,8 @@ extension NodeAppModel {
         self.recordShareEvent("Share self-test running…")
 
         let payload = SharedContentPayload(
-            title: "OpenClaw Share Self-Test",
-            url: URL(string: "https://openclaw.ai/share-self-test"),
+            title: "Kova Share Self-Test",
+            url: URL(string: "https://getkova.ai/share-self-test"),
             text: "Validate iOS share->deep-link->gateway forwarding.")
         guard let deepLink = ShareToAgentDeepLink.buildURL(
             from: payload,
@@ -3273,13 +3273,13 @@ extension NodeAppModel {
     }
 
     private static func openclawPushKind(_ userInfo: [AnyHashable: Any]) -> String {
-        if let payload = userInfo["openclaw"] as? [String: Any],
+        if let payload = userInfo["kova"] as? [String: Any],
            let kind = payload["kind"] as? String
         {
             let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { return trimmed }
         }
-        if let payload = userInfo["openclaw"] as? [AnyHashable: Any],
+        if let payload = userInfo["kova"] as? [AnyHashable: Any],
            let kind = payload["kind"] as? String
         {
             let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -3525,7 +3525,7 @@ extension NodeAppModel {
         guard connected else {
             self.execApprovalNotificationLogger.error(
                 "Exec approval action failed id=\(normalizedApprovalID, privacy: .public): operator not connected")
-            return .failed(message: "OpenClaw couldn't connect to the gateway operator session.")
+            return .failed(message: "Kova couldn't connect to the gateway operator session.")
         }
 
         do {
@@ -3565,7 +3565,7 @@ extension NodeAppModel {
                 "Exec approval action failed id=\(normalizedApprovalID) error=\(error.localizedDescription)"
             self.execApprovalNotificationLogger.error("\(logMessage, privacy: .public)")
             return .failed(
-                message: "OpenClaw couldn't resolve this approval right now. Try again.")
+                message: "Kova couldn't resolve this approval right now. Try again.")
         }
     }
 

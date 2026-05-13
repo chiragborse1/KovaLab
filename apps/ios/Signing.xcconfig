@@ -4,17 +4,17 @@
 
 #include "Config/Version.xcconfig"
 
-OPENCLAW_CODE_SIGN_STYLE = Manual
-OPENCLAW_DEVELOPMENT_TEAM = Y5PE65HELJ
+KOVA_CODE_SIGN_STYLE = Manual
+KOVA_DEVELOPMENT_TEAM = Y5PE65HELJ
 
-OPENCLAW_APP_BUNDLE_ID = ai.openclaw.client
-OPENCLAW_SHARE_BUNDLE_ID = ai.openclaw.client.share
-OPENCLAW_WATCH_APP_BUNDLE_ID = ai.openclaw.client.watchkitapp
-OPENCLAW_WATCH_EXTENSION_BUNDLE_ID = ai.openclaw.client.watchkitapp.extension
-OPENCLAW_ACTIVITY_WIDGET_BUNDLE_ID = ai.openclaw.client.activitywidget
+KOVA_APP_BUNDLE_ID = ai.kova.client
+KOVA_SHARE_BUNDLE_ID = ai.kova.client.share
+KOVA_WATCH_APP_BUNDLE_ID = ai.kova.client.watchkitapp
+KOVA_WATCH_EXTENSION_BUNDLE_ID = ai.kova.client.watchkitapp.extension
+KOVA_ACTIVITY_WIDGET_BUNDLE_ID = ai.kova.client.activitywidget
 
-OPENCLAW_APP_PROFILE = ai.openclaw.client Development
-OPENCLAW_SHARE_PROFILE = ai.openclaw.client.share Development
+KOVA_APP_PROFILE = ai.kova.client Development
+KOVA_SHARE_PROFILE = ai.kova.client.share Development
 
 // Keep local includes after defaults: xcconfig is evaluated top-to-bottom,
 // so later assignments in local files override the defaults above.

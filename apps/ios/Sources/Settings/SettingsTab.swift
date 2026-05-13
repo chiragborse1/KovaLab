@@ -58,7 +58,7 @@ struct SettingsTab: View {
     @State private var activeFeatureHelp: FeatureHelp?
     @State private var suppressCredentialPersist: Bool = false
 
-    private let gatewayLogger = Logger(subsystem: "ai.openclaw.ios", category: "GatewaySettings")
+    private let gatewayLogger = Logger(subsystem: "ai.kova.ios", category: "GatewaySettings")
 
     var body: some View {
         NavigationStack {
@@ -301,7 +301,7 @@ struct SettingsTab: View {
                             "Allow Camera",
                             isOn: self.$cameraEnabled,
                             help: "Allows the gateway to request photos or short video clips "
-                                + "while OpenClaw is foregrounded."
+                                + "while Kova is foregrounded."
                         )
 
                         HStack(spacing: 8) {
@@ -333,7 +333,7 @@ struct SettingsTab: View {
                         self.featureToggle(
                             "Prevent Sleep",
                             isOn: self.$preventSleep,
-                            help: "Keeps the screen awake while OpenClaw is open.")
+                            help: "Keeps the screen awake while Kova is open.")
 
                         DisclosureGroup("Advanced") {
                             VStack(alignment: .leading, spacing: 8) {
@@ -948,7 +948,7 @@ struct SettingsTab: View {
         guard !trimmed.isEmpty else { return nil }
         let lower = trimmed.lowercased()
         if lower.contains("pairing required") {
-            return "Pairing required. Go back to your OpenClaw chat and run /pair approve, then tap Connect again."
+            return "Pairing required. Go back to your Kova chat and run /pair approve, then tap Connect again."
         }
         if lower.contains("device nonce required") || lower.contains("device nonce mismatch") {
             return "Secure handshake failed. Make sure Tailscale is connected, then tap Connect again."

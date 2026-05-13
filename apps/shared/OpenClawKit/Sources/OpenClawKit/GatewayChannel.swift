@@ -163,7 +163,7 @@ private enum GatewayConnectErrorCodes {
 }
 
 public actor GatewayChannelActor {
-    private let logger = Logger(subsystem: "ai.openclaw", category: "gateway")
+    private let logger = Logger(subsystem: "ai.kova", category: "gateway")
     private var task: WebSocketTaskBox?
     private var pending: [String: CheckedContinuation<GatewayFrame, Error>] = [:]
     private var connected = false

@@ -495,7 +495,7 @@
         <div class="hero">
           <div class="eyebrow">
             <span class="eyebrow-dot"></span>
-            <span id="openclaw-home-eyebrow">Welcome to OpenClaw</span>
+            <span id="openclaw-home-eyebrow">Welcome to Kova</span>
           </div>
           <h1 id="openclaw-home-title">Your phone stays quiet until it is needed</h1>
           <p id="openclaw-home-subtitle">
@@ -641,7 +641,7 @@
 
           document.body.dataset.state = state.gatewayState || 'offline';
           home.root.style.display = 'flex';
-          home.eyebrow.textContent = state.eyebrow || 'Welcome to OpenClaw';
+          home.eyebrow.textContent = state.eyebrow || 'Welcome to Kova';
           home.title.textContent = state.title || 'OpenClaw';
           home.subtitle.textContent = state.subtitle || '';
           home.gateway.textContent = state.gatewayLabel || 'Gateway';
@@ -678,13 +678,14 @@
           statusEl.style.display = 'none';
         }
 
-        window.__openclaw = {
+        window.__kova = {
           canvas,
           ctx,
           setDebugStatusEnabled,
           setStatus,
           renderHome
         };
+        window.__openclaw = window.__kova;
       })();
     </script>
   </body>

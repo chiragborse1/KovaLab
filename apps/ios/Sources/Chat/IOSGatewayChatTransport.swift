@@ -5,7 +5,7 @@ import Foundation
 import OSLog
 
 struct IOSGatewayChatTransport: OpenClawChatTransport, Sendable {
-    private static let logger = Logger(subsystem: "ai.openclaw", category: "ios.chat.transport")
+    private static let logger = Logger(subsystem: "ai.kova", category: "ios.chat.transport")
     private let gateway: GatewayNodeSession
 
     init(gateway: GatewayNodeSession) {

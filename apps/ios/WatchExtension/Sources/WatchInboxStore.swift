@@ -602,7 +602,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
         content.title = title
         content.body = body
         content.sound = .default
-        content.threadIdentifier = "openclaw-watch"
+        content.threadIdentifier = "kova-watch"
 
         let request = UNNotificationRequest(
             identifier: identifier,
