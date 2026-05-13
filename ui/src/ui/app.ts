@@ -81,6 +81,7 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
+import type { ControlWizardStatus, ControlWizardStep } from "./controllers/wizard.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -119,6 +120,7 @@ import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.
 
 declare global {
   interface Window {
+    __KOVA_CONTROL_UI_BASE_PATH__?: string;
     __OPENCLAW_CONTROL_UI_BASE_PATH__?: string;
   }
 }
@@ -516,6 +518,13 @@ export class OpenClawApp extends LitElement {
   @state() modelAuthStatusLoading = false;
   @state() modelAuthStatusResult: ModelAuthStatusResult | null = null;
   @state() modelAuthStatusError: string | null = null;
+
+  @state() controlWizardLoading = false;
+  @state() controlWizardSessionId: string | null = null;
+  @state() controlWizardStep: ControlWizardStep | null = null;
+  @state() controlWizardStatus: ControlWizardStatus | null = null;
+  @state() controlWizardError: string | null = null;
+  @state() controlWizardAnswerValue: unknown = null;
 
   @state() debugLoading = false;
   @state() debugStatus: StatusSummary | null = null;

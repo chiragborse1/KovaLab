@@ -10,6 +10,34 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     thinkingLevel: "off",
     fastMode: false,
     onModelChange: vi.fn(),
+    modelCatalog: [
+      {
+        id: "auto",
+        name: "Auto",
+        provider: "openrouter",
+        alias: "OpenRouter Auto",
+      },
+      {
+        id: "gpt-5.5",
+        name: "GPT-5.5",
+        provider: "openai-codex",
+      },
+    ],
+    modelAuthStatus: {
+      ts: 1,
+      providers: [
+        {
+          provider: "openrouter",
+          displayName: "OpenRouter",
+          status: "static",
+          profiles: [],
+        },
+      ],
+    },
+    modelAuthStatusLoading: false,
+    modelAuthStatusError: null,
+    onModelSelect: vi.fn(),
+    onRefreshModelAuth: vi.fn(),
     onThinkingChange: vi.fn(),
     onFastModeToggle: vi.fn(),
     channels: [],
@@ -76,6 +104,34 @@ describe("renderQuickSettings", () => {
     expect(container.querySelector(".qs-side-stack .qs-card--automations")).not.toBeNull();
     expect(container.querySelector(".qs-card--personal")).not.toBeNull();
     expect(container.querySelectorAll(".qs-card--span-all")).toHaveLength(1);
+  });
+
+  it("lets users switch model provider and model from quick settings", () => {
+    const onModelSelect = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderQuickSettings(
+        createProps({
+          currentModel: "openrouter/auto",
+          onModelSelect,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Model & Provider");
+    expect(container.textContent).toContain("OpenRouter");
+    expect(container.textContent).toContain("OpenAI Codex");
+    expect(container.textContent).toContain("Changes save automatically.");
+
+    const providerButton = Array.from(container.querySelectorAll(".qs-model-provider")).find(
+      (button) => button.textContent?.includes("OpenAI Codex"),
+    ) as HTMLButtonElement | undefined;
+    expect(providerButton).not.toBeUndefined();
+    providerButton?.click();
+
+    expect(onModelSelect).toHaveBeenCalledWith("openai-codex/gpt-5.5");
   });
 
   it("keeps the local user name fixed and shows the assistant identity", () => {

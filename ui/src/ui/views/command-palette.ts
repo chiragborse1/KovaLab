@@ -56,6 +56,13 @@ function getPaletteBaseItems(): PaletteItem[] {
       action: "nav:skills",
     },
     {
+      id: "nav-control-panel",
+      label: "Control Panel",
+      icon: "settings",
+      category: "navigation",
+      action: "nav:controlPanel",
+    },
+    {
       id: "nav-config",
       label: t("overview.palette.items.settings"),
       icon: "settings",

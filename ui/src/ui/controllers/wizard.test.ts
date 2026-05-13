@@ -1,0 +1,64 @@
+import { describe, expect, it, vi } from "vitest";
+import {
+  cancelControlWizard,
+  startControlWizard,
+  submitControlWizardStep,
+  type ControlWizardState,
+} from "./wizard.ts";
+
+function createState(request: ReturnType<typeof vi.fn>): ControlWizardState {
+  return {
+    client: { request } as never,
+    connected: true,
+    controlWizardAnswerValue: "ok",
+    controlWizardError: null,
+    controlWizardLoading: false,
+    controlWizardSessionId: "wiz_1",
+    controlWizardStatus: "running",
+    controlWizardStep: { id: "step_1", type: "text", message: "Token" },
+  };
+}
+
+describe("control wizard controller", () => {
+  it("starts focused configure sections through wizard.start", async () => {
+    const request = vi.fn(async () => ({ sessionId: "wiz_2", done: true, status: "done" }));
+    const state = createState(request);
+    state.controlWizardSessionId = null;
+    state.controlWizardStep = null;
+
+    await startControlWizard(state, { flow: "configure", section: "channels" });
+
+    expect(request).toHaveBeenCalledWith("wizard.start", {
+      flow: "configure",
+      section: "channels",
+    });
+    expect(state.controlWizardStatus).toBe("done");
+  });
+
+  it("clears stale sessions when the gateway reports wizard not found", async () => {
+    const request = vi.fn(async () => {
+      throw new Error("wizard not found");
+    });
+    const state = createState(request);
+
+    await submitControlWizardStep(state);
+
+    expect(state.controlWizardSessionId).toBeNull();
+    expect(state.controlWizardStep).toBeNull();
+    expect(state.controlWizardStatus).toBe("error");
+    expect(state.controlWizardError).toContain("gateway restart");
+  });
+
+  it("also clears stale sessions during cancel", async () => {
+    const request = vi.fn(async () => {
+      throw new Error("wizard not found");
+    });
+    const state = createState(request);
+
+    await cancelControlWizard(state);
+
+    expect(state.controlWizardSessionId).toBeNull();
+    expect(state.controlWizardStep).toBeNull();
+    expect(state.controlWizardStatus).toBe("error");
+  });
+});

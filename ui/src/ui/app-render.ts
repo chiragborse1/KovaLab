@@ -37,6 +37,7 @@ import {
   findAgentConfigEntryIndex,
   loadConfig,
   openConfigFile,
+  patchConfig,
   resetConfigPendingChanges,
   runUpdate,
   saveConfig,
@@ -91,6 +92,7 @@ import {
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
 import { loadLogs } from "./controllers/logs.ts";
+import { loadModelAuthStatusState } from "./controllers/model-auth-status.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import {
@@ -113,6 +115,12 @@ import {
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
+import {
+  cancelControlWizard,
+  refreshControlWizard,
+  startControlWizard,
+  submitControlWizardStep,
+} from "./controllers/wizard.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { icons } from "./icons.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
@@ -139,6 +147,7 @@ import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById } from "./views/config-presets.ts";
 import { renderQuickSettings, type QuickSettingsChannel } from "./views/config-quick.ts";
 import { renderConfig, type ConfigProps } from "./views/config.ts";
+import { renderControlPanel } from "./views/control-panel.ts";
 import {
   renderCronQuickCreate,
   createDefaultDraft,
@@ -196,6 +205,7 @@ function resolveDreamingNextCycle(
 }
 
 let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let controlWizardProgressTimer: ReturnType<typeof setTimeout> | null = null;
 
 const UPDATE_BANNER_DISMISS_KEY = "openclaw:control-ui:update-banner-dismissed:v1";
 const CRON_THINKING_SUGGESTIONS = ["off", "minimal", "low", "medium", "high"];
@@ -620,6 +630,24 @@ export function renderApp(state: AppViewState) {
       : undefined;
   _pendingUpdate = requestHostUpdate;
 
+  if (
+    state.connected &&
+    state.tab === "controlPanel" &&
+    state.controlWizardSessionId &&
+    state.controlWizardStep?.type === "progress" &&
+    !state.controlWizardLoading
+  ) {
+    controlWizardProgressTimer ??= setTimeout(() => {
+      controlWizardProgressTimer = null;
+      void refreshControlWizard(state).then(() => {
+        requestHostUpdate?.();
+      });
+    }, 900);
+  } else if (controlWizardProgressTimer) {
+    clearTimeout(controlWizardProgressTimer);
+    controlWizardProgressTimer = null;
+  }
+
   // Gate: require successful gateway connection before showing the dashboard.
   // The gateway URL confirmation overlay is always rendered so URL-param flows still work.
   if (!state.connected) {
@@ -962,9 +990,7 @@ export function renderApp(state: AppViewState) {
           const currentModel =
             typeof activeSession?.model === "string"
               ? activeSession.model
-              : typeof agentsDefaults.model === "string"
-                ? agentsDefaults.model
-                : "default";
+              : (resolveModelPrimary(agentsDefaults.model) ?? "default");
           const thinkingLevel =
             typeof activeSession?.thinkingLevel === "string"
               ? activeSession.thinkingLevel
@@ -977,6 +1003,22 @@ export function renderApp(state: AppViewState) {
               : agentsDefaults.fastMode === true;
           return renderQuickSettings({
             currentModel,
+            modelCatalog: state.chatModelCatalog ?? [],
+            modelAuthStatus: state.modelAuthStatusResult,
+            modelAuthStatusLoading: state.modelAuthStatusLoading,
+            modelAuthStatusError: state.modelAuthStatusError,
+            onModelSelect: (modelRef) => {
+              void patchConfig(
+                state,
+                { agents: { defaults: { model: { primary: modelRef } } } },
+                { note: "control-ui quick model selection" },
+              ).then(() => requestHostUpdate?.());
+            },
+            onRefreshModelAuth: () => {
+              void loadModelAuthStatusState(state, { refresh: true }).then(() =>
+                requestHostUpdate?.(),
+              );
+            },
             thinkingLevel,
             fastMode,
             onModelChange: () => {
@@ -1586,6 +1628,51 @@ export function renderApp(state: AppViewState) {
               onRefresh: () => state.loadOverview({ refresh: true }),
               onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
               onRefreshLogs: () => state.loadOverview({ refresh: true }),
+            })
+          : nothing}
+        ${state.tab === "controlPanel"
+          ? renderControlPanel({
+              configPath: state.configSnapshot?.path ?? null,
+              connected: state.connected,
+              gatewayUrl: state.settings.gatewayUrl,
+              assistantName: state.assistantName,
+              version: state.hello?.server?.version ?? "",
+              wizardLoading: state.controlWizardLoading,
+              wizardSessionId: state.controlWizardSessionId,
+              wizardStep: state.controlWizardStep,
+              wizardStatus: state.controlWizardStatus,
+              wizardError: state.controlWizardError,
+              wizardAnswerValue: state.controlWizardAnswerValue,
+              onWizardStart: (mode) => {
+                void startControlWizard(state, { mode }).then(() => {
+                  void loadConfig(state).then(() => requestHostUpdate?.());
+                });
+              },
+              onWizardStartSection: (section) => {
+                void (async () => {
+                  if (state.controlWizardSessionId) {
+                    await cancelControlWizard(state);
+                  }
+                  await startControlWizard(state, { flow: "configure", section });
+                  await loadConfig(state);
+                  requestHostUpdate?.();
+                })();
+              },
+              onWizardAnswerChange: (value) => {
+                state.controlWizardAnswerValue = value;
+                requestHostUpdate?.();
+              },
+              onWizardSubmit: (value) => {
+                void submitControlWizardStep(state, value).then(() => {
+                  void loadConfig(state).then(() => requestHostUpdate?.());
+                });
+              },
+              onWizardCancel: () => {
+                void cancelControlWizard(state).then(() => requestHostUpdate?.());
+              },
+              onWizardRefresh: () => {
+                void refreshControlWizard(state).then(() => requestHostUpdate?.());
+              },
             })
           : nothing}
         ${state.tab === "channels"

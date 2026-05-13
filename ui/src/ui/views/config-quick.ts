@@ -11,6 +11,11 @@ import type { BorderRadiusStop } from "../storage.ts";
 import { normalizeOptionalString } from "../string-coerce.ts";
 import type { ThemeTransitionContext } from "../theme-transition.ts";
 import type { ThemeMode, ThemeName } from "../theme.ts";
+import type {
+  ModelAuthStatusProvider,
+  ModelAuthStatusResult,
+  ModelCatalogEntry,
+} from "../types.ts";
 import {
   normalizeLocalUserIdentity,
   resolveLocalUserAvatarText,
@@ -55,6 +60,12 @@ export type QuickSettingsProps = {
   thinkingLevel: string;
   fastMode: boolean;
   onModelChange?: () => void;
+  modelCatalog?: ModelCatalogEntry[];
+  modelAuthStatus?: ModelAuthStatusResult | null;
+  modelAuthStatusLoading?: boolean;
+  modelAuthStatusError?: string | null;
+  onModelSelect?: (modelRef: string) => void;
+  onRefreshModelAuth?: () => void;
   onThinkingChange?: (level: string) => void;
   onFastModeToggle?: () => void;
 
@@ -362,6 +373,73 @@ function renderProfileStat(params: {
 
 // ── Card renderers ──
 
+function formatProviderLabel(provider: string): string {
+  const trimmed = provider.trim();
+  if (!trimmed) {
+    return "Unknown";
+  }
+  const labels: Record<string, string> = {
+    "openai-codex": "OpenAI Codex",
+    openai: "OpenAI",
+    openrouter: "OpenRouter",
+    anthropic: "Anthropic",
+    google: "Google",
+    gemini: "Gemini",
+    ollama: "Ollama",
+    minimax: "MiniMax",
+    zai: "Z.ai",
+    kimi: "Kimi",
+  };
+  return labels[trimmed] ?? trimmed.replaceAll("-", " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
+function modelRef(entry: ModelCatalogEntry): string {
+  const id = entry.id.trim();
+  const provider = entry.provider?.trim();
+  if (!provider || id.startsWith(`${provider}/`)) {
+    return id;
+  }
+  return `${provider}/${id}`;
+}
+
+function modelLabel(entry: ModelCatalogEntry): string {
+  return entry.alias?.trim() || entry.name?.trim() || entry.id;
+}
+
+function providerFromModelRef(ref: string): string | null {
+  const trimmed = ref.trim();
+  const slash = trimmed.indexOf("/");
+  if (slash <= 0) {
+    return null;
+  }
+  return trimmed.slice(0, slash);
+}
+
+function authStatusClass(provider?: ModelAuthStatusProvider | null): string {
+  switch (provider?.status) {
+    case "ok":
+    case "static":
+      return "qs-model-provider--ok";
+    case "expiring":
+      return "qs-model-provider--warn";
+    case "expired":
+    case "missing":
+      return "qs-model-provider--danger";
+    default:
+      return "";
+  }
+}
+
+function authStatusLabel(provider?: ModelAuthStatusProvider | null): string {
+  if (!provider) {
+    return "unknown";
+  }
+  if (provider.status === "static") {
+    return "api key";
+  }
+  return provider.status;
+}
+
 function renderCardHeader(icon: TemplateResult, title: string, action?: TemplateResult) {
   return html`
     <div class="qs-card__header">
@@ -375,17 +453,117 @@ function renderCardHeader(icon: TemplateResult, title: string, action?: Template
 }
 
 function renderModelCard(props: QuickSettingsProps) {
+  const catalog = props.modelCatalog ?? [];
+  const authProviders = props.modelAuthStatus?.providers ?? [];
+  const authByProvider = new Map(authProviders.map((provider) => [provider.provider, provider]));
+  const activeProvider = providerFromModelRef(props.currentModel);
+  const modelsByProvider = new Map<string, ModelCatalogEntry[]>();
+  for (const entry of catalog) {
+    const provider = entry.provider?.trim() || providerFromModelRef(entry.id) || "custom";
+    modelsByProvider.set(provider, [...(modelsByProvider.get(provider) ?? []), entry]);
+  }
+  const providerIds = Array.from(
+    new Set([
+      ...Array.from(modelsByProvider.keys()),
+      ...authProviders.map((provider) => provider.provider),
+      ...(activeProvider ? [activeProvider] : []),
+    ]),
+  ).filter(Boolean);
+  const selectedProvider =
+    activeProvider && providerIds.includes(activeProvider)
+      ? activeProvider
+      : (providerIds[0] ?? null);
+  const visibleModels =
+    (selectedProvider ? modelsByProvider.get(selectedProvider) : undefined) ?? catalog.slice(0, 8);
+  const canSelectModel = Boolean(props.onModelSelect);
+
   return html`
     <div class="qs-card qs-card--model">
-      ${renderCardHeader(icons.brain, "Model & Thinking")}
+      ${renderCardHeader(
+        icons.brain,
+        "Model & Provider",
+        props.onRefreshModelAuth
+          ? html`<button
+              class="qs-link-btn"
+              ?disabled=${props.modelAuthStatusLoading}
+              @click=${props.onRefreshModelAuth}
+            >
+              ${props.modelAuthStatusLoading ? "Checking…" : "Refresh"}
+            </button>`
+          : undefined,
+      )}
       <div class="qs-card__body">
         <div class="qs-row">
-          <span class="qs-row__label">Model</span>
+          <span class="qs-row__label">Active model</span>
           <button class="qs-row__value qs-row__value--action" @click=${props.onModelChange}>
             <code>${props.currentModel || "default"}</code>
             <span class="qs-row__chevron">${icons.chevronRight}</span>
           </button>
         </div>
+        ${providerIds.length > 0
+          ? html`
+              <div class="qs-model-section">
+                <div class="qs-model-section__label">Provider</div>
+                <div class="qs-model-providers">
+                  ${providerIds.map((providerId) => {
+                    const provider = authByProvider.get(providerId);
+                    const entries = modelsByProvider.get(providerId) ?? [];
+                    const firstModel = entries[0] ? modelRef(entries[0]) : null;
+                    const active = providerId === activeProvider;
+                    return html`
+                      <button
+                        class="qs-model-provider ${active
+                          ? "qs-model-provider--active"
+                          : ""} ${authStatusClass(provider)}"
+                        ?disabled=${!firstModel || !canSelectModel}
+                        @click=${() => {
+                          if (firstModel) {
+                            props.onModelSelect?.(firstModel);
+                          }
+                        }}
+                      >
+                        <span class="qs-model-provider__name"
+                          >${provider?.displayName ?? formatProviderLabel(providerId)}</span
+                        >
+                        <span class="qs-model-provider__meta"
+                          >${entries.length} model${entries.length === 1 ? "" : "s"} ·
+                          ${authStatusLabel(provider)}</span
+                        >
+                      </button>
+                    `;
+                  })}
+                </div>
+              </div>
+            `
+          : props.modelAuthStatusError
+            ? html`<div class="qs-empty muted">${props.modelAuthStatusError}</div>`
+            : nothing}
+        ${visibleModels.length > 0
+          ? html`
+              <div class="qs-model-section">
+                <div class="qs-model-section__label">Models</div>
+                <div class="qs-model-chips">
+                  ${visibleModels.slice(0, 10).map((entry) => {
+                    const ref = modelRef(entry);
+                    const active = ref === props.currentModel || entry.id === props.currentModel;
+                    return html`
+                      <button
+                        class="qs-model-chip ${active ? "qs-model-chip--active" : ""}"
+                        ?disabled=${!canSelectModel || active}
+                        title=${ref}
+                        @click=${() => props.onModelSelect?.(ref)}
+                      >
+                        ${modelLabel(entry)}
+                      </button>
+                    `;
+                  })}
+                </div>
+                ${canSelectModel
+                  ? html`<div class="qs-model-save-note muted">Changes save automatically.</div>`
+                  : nothing}
+              </div>
+            `
+          : nothing}
         <div class="qs-row">
           <span class="qs-row__label">Thinking</span>
           <div class="qs-segmented">

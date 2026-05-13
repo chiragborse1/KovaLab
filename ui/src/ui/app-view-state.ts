@@ -12,6 +12,7 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
+import type { ControlWizardStatus, ControlWizardStep } from "./controllers/wizard.ts";
 import type { EmbedSandboxMode } from "./embed-sandbox.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -367,6 +368,12 @@ export type AppViewState = {
     modelAuthStatusLoading: boolean;
     modelAuthStatusResult: ModelAuthStatusResult | null;
     modelAuthStatusError: string | null;
+    controlWizardLoading: boolean;
+    controlWizardSessionId: string | null;
+    controlWizardStep: ControlWizardStep | null;
+    controlWizardStatus: ControlWizardStatus | null;
+    controlWizardError: string | null;
+    controlWizardAnswerValue: unknown;
     debugLoading: boolean;
     debugStatus: StatusSummary | null;
     debugHealth: HealthSummary | null;

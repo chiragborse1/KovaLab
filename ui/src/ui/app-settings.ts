@@ -39,6 +39,7 @@ import {
   loadModelAuthStatusState,
   type ModelAuthStatusState,
 } from "./controllers/model-auth-status.ts";
+import { loadModels } from "./controllers/models.ts";
 import { loadNodes, type NodesState } from "./controllers/nodes.ts";
 import { loadPresence, type PresenceState } from "./controllers/presence.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
@@ -63,7 +64,7 @@ import {
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode, type ThemeName } from "./theme.ts";
-import type { AgentsListResult, AttentionItem } from "./types.ts";
+import type { AgentsListResult, AttentionItem, ModelCatalogEntry } from "./types.ts";
 import { normalizeLocalUserIdentity } from "./user-identity.ts";
 import { resetChatViewState } from "./views/chat.ts";
 
@@ -85,6 +86,8 @@ type SettingsHost = {
   logsAtBottom: boolean;
   eventLog: unknown[];
   eventLogBuffer: unknown[];
+  chatModelCatalog?: ModelCatalogEntry[];
+  chatModelsLoading?: boolean;
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
@@ -335,6 +338,9 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
 export async function refreshActiveTab(host: SettingsHost) {
   const app = host as unknown as SettingsAppHost;
   switch (host.tab) {
+    case "controlPanel":
+      await loadConfig(app);
+      return;
     case "config":
     case "communications":
     case "appearance":
@@ -343,6 +349,18 @@ export async function refreshActiveTab(host: SettingsHost) {
     case "aiAgents":
       await loadConfigSchema(app);
       await loadConfig(app);
+      if ((host.tab === "config" || host.tab === "aiAgents") && host.connected && app.client) {
+        host.chatModelsLoading = true;
+        try {
+          const [models] = await Promise.all([
+            loadModels(app.client),
+            loadModelAuthStatusState(app, { refresh: true }),
+          ]);
+          host.chatModelCatalog = models;
+        } finally {
+          host.chatModelsLoading = false;
+        }
+      }
       return;
     case "overview":
       await loadOverview(host);
@@ -406,7 +424,8 @@ export function inferBasePath() {
   if (typeof window === "undefined") {
     return "";
   }
-  const configured = window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
+  const configured =
+    window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
   const normalizedConfigured = normalizeOptionalString(configured);
   if (normalizedConfigured) {
     return normalizeBasePath(normalizedConfigured);

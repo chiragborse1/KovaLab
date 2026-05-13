@@ -759,7 +759,7 @@ describe("loadChatHistory", () => {
         .mockRejectedValueOnce(
           new GatewayRequestError({
             code: "UNAVAILABLE",
-            message: "chat.history unavailable during gateway startup",
+            message: "chat.history temporarily unavailable",
             details: { method: "chat.history" },
             retryable: true,
             retryAfterMs: 250,

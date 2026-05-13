@@ -151,8 +151,7 @@ function resolveUpdateStatusBanner(params: { status?: string; reason?: string })
     {
       dirty: "Commit or stash changes, then retry.",
       "no-upstream": "Set an upstream branch, then retry.",
-      "not-git-install":
-        "Not a git checkout. Reinstall from the Kova CLI with `kova update`.",
+      "not-git-install": "Not a git checkout. Reinstall from the Kova CLI with `kova update`.",
       "not-openclaw-root":
         "Run the update from a Kova checkout or use the CLI global reinstall path.",
       "deps-install-failed": "Dependency install failed. Fix the install error and retry.",
@@ -221,6 +220,36 @@ export async function applyConfig(state: ConfigState) {
   await submitConfigChange(state, "config.apply", "configApplying", {
     sessionKey: state.applySessionKey,
   });
+}
+
+export async function patchConfig(
+  state: ConfigState,
+  patch: Record<string, unknown>,
+  opts: { note?: string; restartDelayMs?: number } = {},
+) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  state.configSaving = true;
+  state.lastError = null;
+  try {
+    const baseHash = state.configSnapshot?.hash;
+    if (!baseHash) {
+      state.lastError = "Config hash missing; reload and retry.";
+      return;
+    }
+    await state.client.request("config.patch", {
+      raw: JSON.stringify(patch),
+      baseHash,
+      ...opts,
+    });
+    state.configFormDirty = false;
+    await loadConfig(state);
+  } catch (err) {
+    state.lastError = String(err);
+  } finally {
+    state.configSaving = false;
+  }
 }
 
 export async function runUpdate(state: ConfigState) {

@@ -4,6 +4,7 @@ import {
   applyConfig,
   ensureAgentConfigEntry,
   findAgentConfigEntryIndex,
+  patchConfig,
   resetConfigPendingChanges,
   runUpdate,
   saveConfig,
@@ -526,6 +527,33 @@ describe("saveConfig", () => {
     };
     expect(parsed.gateway.port).toBe("18789");
     expect(params.baseHash).toBe("hash-save-2");
+  });
+});
+
+describe("patchConfig", () => {
+  it("sends config.patch as a JSON merge patch and reloads config", async () => {
+    const request = createRequestWithConfigGet();
+    const state = createState();
+    state.connected = true;
+    state.client = { request } as unknown as ConfigState["client"];
+    state.configSnapshot = { hash: "hash-patch-1" };
+
+    await patchConfig(
+      state,
+      { agents: { defaults: { model: { primary: "openrouter/auto" } } } },
+      { note: "test patch" },
+    );
+
+    expect(request.mock.calls[0]?.[0]).toBe("config.patch");
+    expect(request.mock.calls[0]?.[1]).toEqual({
+      raw: JSON.stringify({
+        agents: { defaults: { model: { primary: "openrouter/auto" } } },
+      }),
+      baseHash: "hash-patch-1",
+      note: "test patch",
+    });
+    expect(request).toHaveBeenCalledWith("config.get", {});
+    expect(state.configSaving).toBe(false);
   });
 });
 
