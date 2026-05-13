@@ -1097,7 +1097,7 @@ export type ProviderOAuthProfileIdRepair = {
   /**
    * Legacy OAuth profile id to migrate away from.
    *
-   * When omitted, OpenClaw falls back to `<provider>:default`.
+   * When omitted, Kova falls back to `<provider>:default`.
    */
   legacyProfileId?: string;
   /**
@@ -1710,7 +1710,7 @@ export type ProviderPlugin = {
    *
    * Return true when a stored profile API key is only a provider-owned
    * synthetic placeholder and should yield to env/config-backed auth before
-   * OpenClaw falls back to that stored profile.
+   * Kova falls back to that stored profile.
    */
   shouldDeferSyntheticProfileAuth?: (
     ctx: ProviderDeferSyntheticProfileAuthContext,

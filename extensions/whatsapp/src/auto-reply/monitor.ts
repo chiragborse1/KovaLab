@@ -469,7 +469,7 @@ export async function monitorWebChannel(
 
         if (decision.healthState === "logged-out") {
           runtime.error(
-            `WhatsApp session logged out. Run \`${formatCliCommand("openclaw channels login --channel web")}\` to relink.`,
+            `WhatsApp session logged out. Run \`${formatCliCommand("kova channels login --channel web")}\` to relink.`,
           );
         } else if (decision.healthState === "conflict") {
           reconnectLogger.warn(
@@ -481,7 +481,7 @@ export async function monitorWebChannel(
             "web reconnect: non-retryable close status; stopping monitor",
           );
           runtime.error(
-            `WhatsApp Web connection closed (status ${decision.normalized.statusLabel}: session conflict). Resolve conflicting WhatsApp Web sessions, then relink with \`${formatCliCommand("openclaw channels login --channel web")}\`. Stopping web monitoring.`,
+            `WhatsApp Web connection closed (status ${decision.normalized.statusLabel}: session conflict). Resolve conflicting WhatsApp Web sessions, then relink with \`${formatCliCommand("kova channels login --channel web")}\`. Stopping web monitoring.`,
           );
         } else {
           reconnectLogger.warn(

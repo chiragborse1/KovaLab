@@ -16,6 +16,7 @@ type GatewayProgramArgs = {
 
 type GatewayRuntimePreference = "auto" | "node" | "bun";
 
+export const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
 export const OPENCLAW_WRAPPER_ENV_KEY = "OPENCLAW_WRAPPER";
 
 async function resolveCliEntrypointPathForService(): Promise<string> {
@@ -197,7 +198,7 @@ export async function resolveOpenClawWrapperPath(
   } catch (error) {
     const detail = error instanceof Error ? ` (${error.message})` : "";
     throw new Error(
-      `${OPENCLAW_WRAPPER_ENV_KEY} must point to an executable file: ${resolved}${detail}`,
+      `${KOVA_WRAPPER_ENV_KEY} must point to an executable file: ${resolved}${detail}`,
       { cause: error },
     );
   }

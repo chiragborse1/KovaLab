@@ -30,7 +30,7 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
         : {};
     const defaults = {
       model: { primary: "anthropic/claude-opus-4-6" },
-      workspace: path.join(os.tmpdir(), "openclaw-gateway-test"),
+      workspace: path.join(os.tmpdir(), "kova-gateway-test"),
       ...fileDefaults,
       ...testState.agentConfig,
     };

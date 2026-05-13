@@ -21,6 +21,7 @@ type SetupPrompter = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0][
 type SetupRuntime = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0]["runtime"];
 type WhatsAppConfig = NonNullable<NonNullable<OpenClawConfig["channels"]>["whatsapp"]>;
 type WhatsAppAccountConfig = NonNullable<NonNullable<WhatsAppConfig["accounts"]>[string]>;
+type WhatsAppQrAction = "primary" | "secondary" | "cancel";
 
 function trimPromptText(value: string | null | undefined): string {
   return value?.trim() ?? "";
@@ -168,7 +169,7 @@ async function promptWhatsAppOwnerAllowFrom(params: {
   const { prompter, existingAllowFrom } = params;
 
   await prompter.note(
-    "We need the sender/owner number so OpenClaw can allowlist you.",
+    "We need the sender/owner number so Kova can allowlist you.",
     "WhatsApp number",
   );
   const entry = await prompter.text({
@@ -383,6 +384,88 @@ async function promptWhatsAppDmAccess(params: {
   return setWhatsAppAllowFrom(next, accountId, parsed.entries);
 }
 
+async function promptWebUiWhatsAppLink(params: {
+  accountId: string;
+  force: boolean;
+  prompter: SetupPrompter;
+  runtime: SetupRuntime;
+}): Promise<boolean> {
+  if (!params.prompter.action) {
+    return false;
+  }
+
+  const { startWebLoginWithQr, waitForWebLogin } = await import("../login-qr-api.js");
+  const start = await startWebLoginWithQr({
+    accountId: params.accountId,
+    force: params.force,
+    runtime: params.runtime,
+    timeoutMs: 45_000,
+  });
+  if (!start.qrDataUrl) {
+    await params.prompter.note(start.message, "WhatsApp linking");
+    return true;
+  }
+
+  let currentQrDataUrl = start.qrDataUrl;
+  let message = start.message;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const choice = (await params.prompter.action({
+      title: "WhatsApp linking",
+      message: [
+        message,
+        "Open WhatsApp on your phone, go to Linked Devices, scan the QR, then check the scan here.",
+      ].join("\n"),
+      imageDataUrl: currentQrDataUrl,
+      primaryLabel: "Check scan",
+      secondaryLabel: "Refresh QR",
+      dangerLabel: "Skip linking",
+    })) as WhatsAppQrAction;
+
+    if (choice === "cancel") {
+      await params.prompter.note(
+        `Run \`${formatCliCommand("kova channels login")}\` later to link WhatsApp.`,
+        "WhatsApp",
+      );
+      return true;
+    }
+
+    if (choice === "secondary") {
+      const refreshed = await startWebLoginWithQr({
+        accountId: params.accountId,
+        force: true,
+        runtime: params.runtime,
+        timeoutMs: 45_000,
+      });
+      if (refreshed.qrDataUrl) {
+        currentQrDataUrl = refreshed.qrDataUrl;
+      }
+      message = refreshed.message;
+      continue;
+    }
+
+    const result = await waitForWebLogin({
+      accountId: params.accountId,
+      currentQrDataUrl,
+      runtime: params.runtime,
+      timeoutMs: 15_000,
+    });
+    if (result.connected) {
+      await params.prompter.note(result.message, "WhatsApp linked");
+      return true;
+    }
+    if (result.qrDataUrl) {
+      currentQrDataUrl = result.qrDataUrl;
+    }
+    message = result.message;
+  }
+
+  await params.prompter.note(
+    "WhatsApp linking is still waiting for a QR scan. You can retry from Control Panel or run `kova channels login` later.",
+    "WhatsApp linking",
+  );
+  return true;
+}
+
 export async function finalizeWhatsAppSetup(params: {
   cfg: OpenClawConfig;
   accountId: string;
@@ -423,8 +506,16 @@ export async function finalizeWhatsAppSetup(params: {
   });
   if (wantsLink) {
     try {
-      const { loginWeb } = await import("./login.js");
-      await loginWeb(false, undefined, params.runtime, accountId);
+      const handledInBrowser = await promptWebUiWhatsAppLink({
+        accountId,
+        force: linked,
+        prompter: params.prompter,
+        runtime: params.runtime,
+      });
+      if (!handledInBrowser) {
+        const { loginWeb } = await import("./login.js");
+        await loginWeb(false, undefined, params.runtime, accountId);
+      }
     } catch (error) {
       params.runtime.error(`WhatsApp login failed: ${String(error)}`);
       await params.prompter.note(
@@ -434,7 +525,7 @@ export async function finalizeWhatsAppSetup(params: {
     }
   } else if (!linked) {
     await params.prompter.note(
-      `Run \`${formatCliCommand("openclaw channels login")}\` later to link WhatsApp.`,
+      `Run \`${formatCliCommand("kova channels login")}\` later to link WhatsApp.`,
       "WhatsApp",
     );
   }

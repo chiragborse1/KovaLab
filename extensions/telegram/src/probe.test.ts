@@ -196,6 +196,18 @@ describe("probeTelegram retry logic", () => {
     });
   });
 
+  it("can skip webhook info for startup probes", async () => {
+    const fetchMock = installFetchMock();
+    mockGetMeSuccess(fetchMock);
+
+    const result = await probeTelegram(token, timeoutMs, { includeWebhookInfo: false });
+
+    expect(result.ok).toBe(true);
+    expect(result.bot?.username).toBe("test_bot");
+    expect(result.webhook).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("reuses probe fetcher across repeated probes for the same account transport settings", async () => {
     const fetchMock = installFetchMock();
     vi.stubEnv("VITEST", "");

@@ -12,7 +12,9 @@ import type { OpenClawConfig } from "./types.js";
  * - Config is managed externally (read-only from Nix perspective)
  */
 export function resolveIsNixMode(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.KOVA_NIX_MODE === "1" || env.OPENCLAW_NIX_MODE === "1";
+  return (
+    env.KOVA_NIX_MODE === "1" || (resolveOpenClawCompatMode(env) && env.OPENCLAW_NIX_MODE === "1")
+  );
 }
 
 export const isNixMode = resolveIsNixMode();
@@ -23,19 +25,31 @@ const NEW_STATE_DIRNAME = ".kova";
 const CONFIG_FILENAME = "kova.json";
 const LEGACY_CONFIG_FILENAMES = ["openclaw.json", "clawdbot.json"] as const;
 
+function normalizeCompatFlag(value: string | undefined): string | undefined {
+  const trimmed = value?.trim().toLowerCase();
+  return trimmed || undefined;
+}
+
+export function resolveOpenClawCompatMode(env: NodeJS.ProcessEnv = process.env): boolean {
+  const value =
+    normalizeCompatFlag(env.KOVA_ALLOW_OPENCLAW_COMPAT) ??
+    normalizeCompatFlag(env.KOVA_OPENCLAW_COMPAT);
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
 function readPrimaryEnv(env: NodeJS.ProcessEnv, key: string): string | undefined {
   const modern = env[`KOVA_${key}`]?.trim();
   if (modern) {
     return modern;
   }
-  return env[`OPENCLAW_${key}`]?.trim();
+  return resolveOpenClawCompatMode(env) ? env[`OPENCLAW_${key}`]?.trim() : undefined;
 }
 
 function resolveDefaultHomeDir(): string {
   return resolveRequiredHomeDir(process.env, os.homedir);
 }
 
-/** Build a homedir thunk that respects KOVA_HOME/OPENCLAW_HOME for the given env. */
+/** Build a homedir thunk that respects KOVA_HOME for the given env. */
 function envHomedir(env: NodeJS.ProcessEnv): () => string {
   return () => resolveRequiredHomeDir(env, os.homedir);
 }
@@ -62,7 +76,7 @@ export function resolveNewStateDir(homedir: () => string = resolveDefaultHomeDir
 
 /**
  * State directory for mutable data (sessions, logs, caches).
- * Can be overridden via KOVA_STATE_DIR or OPENCLAW_STATE_DIR.
+ * Can be overridden via KOVA_STATE_DIR.
  * Default: ~/.kova
  */
 export function resolveStateDir(
@@ -75,23 +89,21 @@ export function resolveStateDir(
     return resolveUserPath(override, env, effectiveHomedir);
   }
   const newDir = newStateDir(effectiveHomedir);
-  if (env.OPENCLAW_TEST_FAST === "1") {
-    return newDir;
-  }
-  const legacyDirs = legacyStateDirs(effectiveHomedir);
-  const hasNew = fs.existsSync(newDir);
-  if (hasNew) {
-    return newDir;
-  }
-  const existingLegacy = legacyDirs.find((dir) => {
-    try {
-      return fs.existsSync(dir);
-    } catch {
-      return false;
+  if (resolveOpenClawCompatMode(env)) {
+    const hasNew = fs.existsSync(newDir);
+    if (hasNew) {
+      return newDir;
     }
-  });
-  if (existingLegacy) {
-    return existingLegacy;
+    const existingLegacy = legacyStateDirs(effectiveHomedir).find((dir) => {
+      try {
+        return fs.existsSync(dir);
+      } catch {
+        return false;
+      }
+    });
+    if (existingLegacy) {
+      return existingLegacy;
+    }
   }
   return newDir;
 }
@@ -108,7 +120,7 @@ export const STATE_DIR = resolveStateDir();
 
 /**
  * Config file path (JSON or JSON5).
- * Can be overridden via KOVA_CONFIG_PATH or OPENCLAW_CONFIG_PATH.
+ * Can be overridden via KOVA_CONFIG_PATH.
  * Default: ~/.kova/kova.json (or $KOVA_STATE_DIR/kova.json)
  */
 export function resolveCanonicalConfigPath(
@@ -130,9 +142,6 @@ export function resolveConfigPathCandidate(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = envHomedir(env),
 ): string {
-  if (env.OPENCLAW_TEST_FAST === "1") {
-    return resolveCanonicalConfigPath(env, resolveStateDir(env, homedir));
-  }
   const candidates = resolveDefaultConfigCandidates(env, homedir);
   const existing = candidates.find((candidate) => {
     try {
@@ -159,13 +168,12 @@ export function resolveConfigPath(
   if (override) {
     return resolveUserPath(override, env, homedir);
   }
-  if (env.OPENCLAW_TEST_FAST === "1") {
-    return path.join(stateDir, CONFIG_FILENAME);
-  }
   const stateOverride = readPrimaryEnv(env, "STATE_DIR");
   const candidates = [
     path.join(stateDir, CONFIG_FILENAME),
-    ...LEGACY_CONFIG_FILENAMES.map((name) => path.join(stateDir, name)),
+    ...(resolveOpenClawCompatMode(env)
+      ? LEGACY_CONFIG_FILENAMES.map((name) => path.join(stateDir, name))
+      : []),
   ];
   const existing = candidates.find((candidate) => {
     try {
@@ -211,24 +219,28 @@ export function resolveDefaultConfigCandidates(
     candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(resolved, name)));
   }
 
-  const defaultDirs = [newStateDir(effectiveHomedir), ...legacyStateDirs(effectiveHomedir)];
+  const defaultDirs = resolveOpenClawCompatMode(env)
+    ? [newStateDir(effectiveHomedir), ...legacyStateDirs(effectiveHomedir)]
+    : [newStateDir(effectiveHomedir)];
   for (const dir of defaultDirs) {
     candidates.push(path.join(dir, CONFIG_FILENAME));
-    candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(dir, name)));
+    if (resolveOpenClawCompatMode(env)) {
+      candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(dir, name)));
+    }
   }
   return candidates;
 }
 
-export const DEFAULT_GATEWAY_PORT = 18789;
+export const DEFAULT_GATEWAY_PORT = 18790;
 
 /**
  * Gateway lock directory (ephemeral).
- * Default: os.tmpdir()/openclaw-<uid> (uid suffix when available).
+ * Default: os.tmpdir()/kova-<uid> (uid suffix when available).
  */
 export function resolveGatewayLockDir(tmpdir: () => string = os.tmpdir): string {
   const base = tmpdir();
   const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
-  const suffix = uid != null ? `openclaw-${uid}` : "openclaw";
+  const suffix = uid != null ? `kova-${uid}` : "kova";
   return path.join(base, suffix);
 }
 
@@ -238,7 +250,7 @@ const OAUTH_FILENAME = "oauth.json";
  * OAuth credentials storage directory.
  *
  * Precedence:
- * - `KOVA_OAUTH_DIR` / `OPENCLAW_OAUTH_DIR` (explicit override)
+ * - `KOVA_OAUTH_DIR` (explicit override)
  * - `$*_STATE_DIR/credentials` (canonical server/default)
  */
 export function resolveOAuthDir(
@@ -294,7 +306,9 @@ export function resolveGatewayPort(
   cfg?: OpenClawConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): number {
-  const envRaw = env.KOVA_GATEWAY_PORT?.trim() || env.OPENCLAW_GATEWAY_PORT?.trim();
+  const envRaw =
+    env.KOVA_GATEWAY_PORT?.trim() ||
+    (resolveOpenClawCompatMode(env) ? env.OPENCLAW_GATEWAY_PORT?.trim() : undefined);
   const envPort = parseGatewayPortEnvValue(envRaw);
   if (envPort !== null) {
     return envPort;

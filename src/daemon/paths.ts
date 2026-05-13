@@ -32,7 +32,7 @@ export function resolveUserPathWithHome(input: string, home?: string): string {
 }
 
 export function resolveGatewayStateDir(env: Record<string, string | undefined>): string {
-  const override = normalizeOptionalString(env.KOVA_STATE_DIR ?? env.OPENCLAW_STATE_DIR);
+  const override = normalizeOptionalString(env.KOVA_STATE_DIR);
   if (override) {
     const home = override.startsWith("~") ? resolveHomeDir(env) : undefined;
     return resolveUserPathWithHome(override, home);

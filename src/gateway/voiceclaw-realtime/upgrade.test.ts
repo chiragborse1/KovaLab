@@ -62,7 +62,7 @@ describe("VoiceClaw realtime gateway upgrade", () => {
         await waitForOpen(ws);
         await expect(waitForClose(ws)).resolves.toMatchObject({
           code: 1000,
-          reason: "handshake timeout",
+          reason: "handshake-timeout",
         });
       } finally {
         await closeWebSocket(ws);

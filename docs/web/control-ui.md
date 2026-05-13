@@ -10,7 +10,7 @@ sidebarTitle: "Control UI"
 The Control UI is a small **Vite + Lit** single-page app served by the Gateway:
 
 - default: `http://<host>:18789/`
-- optional prefix: set `gateway.controlUi.basePath` (e.g. `/openclaw`)
+- optional prefix: set `gateway.controlUi.basePath` (e.g. `/kova`)
 
 It speaks **directly to the Gateway WebSocket** on the same port.
 
@@ -87,6 +87,7 @@ The Control UI can localize itself on first load based on your browser locale. T
 The sidebar is grouped by operating intent:
 
 - **Main**: Dashboard, Chat, Agents, Jobs, Tasks, Conductor, Operations, and Sessions.
+- **Control**: Overview, Control Panel, channels, instances, sessions, usage, and cron jobs.
 - **Knowledge**: Memory, Skills, and MCP.
 - **Advanced**: the full legacy control/config surfaces for channels, instances, nodes, usage, appearance, automation, infrastructure, AI agents, debug, and logs.
 
@@ -115,6 +116,8 @@ The sidebar is grouped by operating intent:
   </Accordion>
   <Accordion title="Config">
     - View/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`).
+    - Quick Settings exposes Model & Provider cards backed by `models.list`, `models.authStatus`, and `config.patch`, so the default agent model can be changed without opening the raw config editor.
+    - Control Panel runs the gateway onboarding wizard in the browser, covering the same setup flow as `kova onboard`: model/provider auth, workspace, gateway, channels, web search, daemon/service, skills, and health checks.
     - Apply + restart with validation (`config.apply`) and wake the last active session.
     - Writes include a base-hash guard to prevent clobbering concurrent edits.
     - Writes (`config.set`/`config.apply`/`config.patch`) preflight active SecretRef resolution for refs in the submitted config payload; unresolved active submitted refs are rejected before write.
@@ -320,7 +323,7 @@ Documented exceptions:
     ```
 
     <Warning>
-    `dangerouslyDisableDeviceAuth` disables Control UI device identity checks and is a severe security downgrade. Revert quickly after emergency use.
+    `dangerouslyDisableDeviceAuth` disables web console device identity checks and is a severe security downgrade. Revert quickly after emergency use.
     </Warning>
 
   </Accordion>
@@ -367,7 +370,7 @@ pnpm ui:build
 Optional absolute base (when you want fixed asset URLs):
 
 ```bash
-OPENCLAW_CONTROL_UI_BASE_PATH=/openclaw/ pnpm ui:build
+OPENCLAW_CONTROL_UI_BASE_PATH=/kova/ pnpm ui:build
 ```
 
 For local development (separate dev server):

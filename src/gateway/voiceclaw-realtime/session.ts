@@ -73,7 +73,7 @@ export class VoiceClawRealtimeSession {
     this.handshakeTimer = setTimeout(() => {
       if (!this.config && !this.closed) {
         log.warn(`session ${this.id} handshake timed out`);
-        this.ws.close(1000, "handshake timeout");
+        this.ws.close(1000, "handshake-timeout");
       }
     }, getPreauthHandshakeTimeoutMsFromEnv());
 

@@ -221,7 +221,7 @@ export async function resolveLmstudioRuntimeApiKey(params: {
       [
         "LM Studio API key is required.",
         `Set models.providers.lmstudio.apiKey (for example "${envMarker}")`,
-        'or run "openclaw models auth lmstudio".',
+        'or run "kova models auth lmstudio".',
       ].join(" "),
     );
   };

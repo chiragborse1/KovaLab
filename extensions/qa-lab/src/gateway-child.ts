@@ -237,6 +237,7 @@ export function buildQaRuntimeEnv(params: {
 function isRetryableGatewayCallError(details: string): boolean {
   return (
     details.includes("handshake timeout") ||
+    details.includes("preauth handshake timed out") ||
     details.includes("gateway closed (1000") ||
     details.includes("gateway closed (1012)") ||
     details.includes("gateway closed (1006") ||
@@ -443,6 +444,7 @@ function isRetryableRpcStartupError(error: unknown) {
   return (
     details.includes("gateway timeout after") ||
     details.includes("handshake timeout") ||
+    details.includes("preauth handshake timed out") ||
     details.includes("gateway token mismatch") ||
     details.includes("token mismatch") ||
     details.includes("gateway closed (1000") ||

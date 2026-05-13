@@ -153,7 +153,7 @@ describe("registerQrCli", () => {
   }
 
   function expectLoggedLocalSetupCode() {
-    expectLoggedSetupCode("ws://127.0.0.1:18789");
+    expectLoggedSetupCode("ws://127.0.0.1:18790");
   }
 
   function mockTailscaleStatusLookup() {
@@ -167,8 +167,8 @@ describe("registerQrCli", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetRuntimeCapture();
-    vi.stubEnv("OPENCLAW_GATEWAY_TOKEN", "");
-    vi.stubEnv("OPENCLAW_GATEWAY_PASSWORD", "");
+    vi.stubEnv("KOVA_GATEWAY_TOKEN", "");
+    vi.stubEnv("KOVA_GATEWAY_PASSWORD", "");
     runtimeExit.mockImplementation(() => {
       throw new Error("exit");
     });
@@ -190,7 +190,7 @@ describe("registerQrCli", () => {
     await runQr(["--setup-code-only"]);
 
     const expected = encodePairingSetupCode({
-      url: "ws://127.0.0.1:18789",
+      url: "ws://127.0.0.1:18790",
       bootstrapToken: "bootstrap-123",
     });
     expect(runtime.log).toHaveBeenCalledWith(expected);
@@ -244,7 +244,7 @@ describe("registerQrCli", () => {
 
     await runQr(["--setup-code-only"]);
 
-    expectLoggedSetupCode("ws://192.168.1.8:18789");
+    expectLoggedSetupCode("ws://192.168.1.8:18790");
   });
 
   it("allows android emulator cleartext override urls", async () => {
@@ -299,8 +299,8 @@ describe("registerQrCli", () => {
     expect(resolveCommandSecretRefsViaGateway).not.toHaveBeenCalled();
   });
 
-  it("uses OPENCLAW_GATEWAY_PASSWORD without resolving local password SecretRef", async () => {
-    vi.stubEnv("OPENCLAW_GATEWAY_PASSWORD", "password-from-env");
+  it("uses KOVA_GATEWAY_PASSWORD without resolving local password SecretRef", async () => {
+    vi.stubEnv("KOVA_GATEWAY_PASSWORD", "password-from-env");
     loadConfig.mockReturnValue(
       createLocalGatewayConfigWithAuth(
         createLocalGatewayPasswordRefAuth("MISSING_LOCAL_GATEWAY_PASSWORD"),

@@ -10,6 +10,7 @@ import { resolveUserPath } from "../utils.js";
 import { detectBundleManifestFormat, loadBundleManifest } from "./bundle-manifest.js";
 import { resolvePackagedBundledLoadPathAlias } from "./bundled-load-path-aliases.js";
 import { listBundledSourceOverlayDirs } from "./bundled-source-overlays.js";
+import { readPluginCacheEnv } from "./cache-controls.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import type { PluginBundleFormat, PluginDiagnostic, PluginFormat } from "./manifest-types.js";
 import {
@@ -84,7 +85,11 @@ export function clearPluginDiscoveryCache(): void {
 }
 
 function resolveDiscoveryCacheMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS?.trim();
+  const raw = readPluginCacheEnv(
+    env,
+    "KOVA_PLUGIN_DISCOVERY_CACHE_MS",
+    "OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS",
+  )?.trim();
   if (raw === "" || raw === "0") {
     return 0;
   }

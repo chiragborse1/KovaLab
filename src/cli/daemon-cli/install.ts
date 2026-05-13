@@ -31,6 +31,8 @@ import {
 } from "./shared.js";
 import type { DaemonInstallOptions } from "./types.js";
 
+const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
+
 function mergeInstallInvocationEnv(params: {
   env: NodeJS.ProcessEnv;
   existingServiceEnv?: Record<string, string>;
@@ -45,10 +47,10 @@ function mergeInstallInvocationEnv(params: {
       continue;
     }
     const upper = key.toUpperCase();
-    if (upper === OPENCLAW_WRAPPER_ENV_KEY) {
+    if (upper === KOVA_WRAPPER_ENV_KEY || upper === OPENCLAW_WRAPPER_ENV_KEY) {
       const value = rawValue.trim();
       if (value) {
-        preservedServiceEnv[OPENCLAW_WRAPPER_ENV_KEY] = value;
+        preservedServiceEnv[KOVA_WRAPPER_ENV_KEY] = value;
       }
       continue;
     }
@@ -143,9 +145,11 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
   });
   if (!wrapperPath) {
     try {
-      wrapperPath = await resolveOpenClawWrapperPath(installEnv[OPENCLAW_WRAPPER_ENV_KEY]);
+      wrapperPath = await resolveOpenClawWrapperPath(
+        installEnv[KOVA_WRAPPER_ENV_KEY] ?? installEnv[OPENCLAW_WRAPPER_ENV_KEY],
+      );
     } catch (err) {
-      fail(`Invalid ${OPENCLAW_WRAPPER_ENV_KEY}: ${String(err)}`);
+      fail(`Invalid ${KOVA_WRAPPER_ENV_KEY}: ${String(err)}`);
       return;
     }
   }
@@ -176,9 +180,7 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
         });
         if (!json) {
           defaultRuntime.log(`Gateway service already ${service.loadedText}.`);
-          defaultRuntime.log(
-            `Reinstall with: ${formatCliCommand("openclaw gateway install --force")}`,
-          );
+          defaultRuntime.log(`Reinstall with: ${formatCliCommand("kova gateway install --force")}`);
         }
         return;
       }
@@ -267,14 +269,18 @@ async function getGatewayServiceAutoRefreshMessage(params: {
         config: params.config,
       });
       const plannedEmbeddedToken = normalizeOptionalString(
-        plannedInstall.environment.OPENCLAW_GATEWAY_TOKEN,
+        plannedInstall.environment.KOVA_GATEWAY_TOKEN ??
+          plannedInstall.environment.OPENCLAW_GATEWAY_TOKEN,
       );
       if (currentEmbeddedToken !== plannedEmbeddedToken) {
-        return "Gateway service OPENCLAW_GATEWAY_TOKEN differs from the current install plan; refreshing the install.";
+        return "Gateway service KOVA_GATEWAY_TOKEN differs from the current install plan; refreshing the install.";
       }
     }
     const wrapperRequested = Boolean(
-      params.wrapperPath || normalizeOptionalString(params.installEnv[OPENCLAW_WRAPPER_ENV_KEY]),
+      params.wrapperPath ||
+      normalizeOptionalString(
+        params.installEnv[KOVA_WRAPPER_ENV_KEY] ?? params.installEnv[OPENCLAW_WRAPPER_ENV_KEY],
+      ),
     );
     if (wrapperRequested) {
       const plannedInstall = await buildGatewayInstallPlan({
@@ -293,13 +299,15 @@ async function getGatewayServiceAutoRefreshMessage(params: {
         return "Gateway service command differs from the current wrapper install plan; refreshing the install.";
       }
       const plannedWrapperPath = normalizeOptionalString(
-        plannedInstall.environment[OPENCLAW_WRAPPER_ENV_KEY],
+        plannedInstall.environment[KOVA_WRAPPER_ENV_KEY] ??
+          plannedInstall.environment[OPENCLAW_WRAPPER_ENV_KEY],
       );
       const currentWrapperPath = normalizeOptionalString(
-        currentCommand.environment?.[OPENCLAW_WRAPPER_ENV_KEY],
+        currentCommand.environment?.[KOVA_WRAPPER_ENV_KEY] ??
+          currentCommand.environment?.[OPENCLAW_WRAPPER_ENV_KEY],
       );
       if (plannedWrapperPath !== currentWrapperPath) {
-        return `Gateway service ${OPENCLAW_WRAPPER_ENV_KEY} differs from the current wrapper install plan; refreshing the install.`;
+        return `Gateway service ${KOVA_WRAPPER_ENV_KEY} differs from the current wrapper install plan; refreshing the install.`;
       }
     }
     const currentExecPath = currentCommand.programArguments[0]?.trim();

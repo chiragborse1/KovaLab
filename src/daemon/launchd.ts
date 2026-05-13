@@ -47,11 +47,14 @@ function assertValidLaunchAgentLabel(label: string): string {
 }
 
 function resolveLaunchAgentLabel(args?: { env?: Record<string, string | undefined> }): string {
-  const envLabel = args?.env?.OPENCLAW_LAUNCHD_LABEL?.trim();
+  const envLabel =
+    args?.env?.KOVA_LAUNCHD_LABEL?.trim() ?? args?.env?.OPENCLAW_LAUNCHD_LABEL?.trim();
   if (envLabel) {
     return assertValidLaunchAgentLabel(envLabel);
   }
-  return assertValidLaunchAgentLabel(resolveGatewayLaunchAgentLabel(args?.env?.OPENCLAW_PROFILE));
+  return assertValidLaunchAgentLabel(
+    resolveGatewayLaunchAgentLabel(args?.env?.KOVA_PROFILE ?? args?.env?.OPENCLAW_PROFILE),
+  );
 }
 
 async function launchAgentPlistExistsForLabel(
@@ -69,7 +72,7 @@ async function launchAgentPlistExistsForLabel(
 function resolveLaunchAgentCandidateLabels(env: GatewayServiceEnv): string[] {
   return [
     resolveLaunchAgentLabel({ env }),
-    ...resolveLegacyGatewayLaunchAgentLabels(env.OPENCLAW_PROFILE),
+    ...resolveLegacyGatewayLaunchAgentLabels(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE),
   ];
 }
 
@@ -605,7 +608,9 @@ async function writeLaunchAgentPlist({
 
   const domain = resolveGuiDomain();
   const label = resolveLaunchAgentLabel({ env });
-  for (const legacyLabel of resolveLegacyGatewayLaunchAgentLabels(env.OPENCLAW_PROFILE)) {
+  for (const legacyLabel of resolveLegacyGatewayLaunchAgentLabels(
+    env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE,
+  )) {
     const legacyPlistPath = resolveLaunchAgentPlistPathForLabel(env, legacyLabel);
     await execLaunchctl(["bootout", domain, legacyPlistPath]);
     await execLaunchctl(["unload", legacyPlistPath]);

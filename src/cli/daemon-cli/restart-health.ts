@@ -1,6 +1,7 @@
 import type { PluginHealthErrorSummary } from "../../commands/health.types.js";
 import type { GatewayServiceRuntime } from "../../daemon/service-runtime.js";
 import type { GatewayService } from "../../daemon/service.js";
+import { readGatewayCredentialEnv } from "../../gateway/credentials.js";
 import { probeGateway } from "../../gateway/probe.js";
 import {
   classifyPortListener,
@@ -226,8 +227,16 @@ async function confirmGatewayReachable(params: {
   port: number;
   includeHealthDetails?: boolean;
 }): Promise<GatewayReachability> {
-  const token = normalizeOptionalString(process.env.OPENCLAW_GATEWAY_TOKEN);
-  const password = normalizeOptionalString(process.env.OPENCLAW_GATEWAY_PASSWORD);
+  const token = readGatewayCredentialEnv(
+    process.env,
+    "KOVA_GATEWAY_TOKEN",
+    "OPENCLAW_GATEWAY_TOKEN",
+  );
+  const password = readGatewayCredentialEnv(
+    process.env,
+    "KOVA_GATEWAY_PASSWORD",
+    "OPENCLAW_GATEWAY_PASSWORD",
+  );
   const probe = await probeGateway({
     url: `ws://127.0.0.1:${params.port}`,
     auth: token || password ? { token, password } : undefined,

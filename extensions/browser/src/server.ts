@@ -98,7 +98,7 @@ export async function startBrowserControlServerFromConfig(): Promise<BrowserServ
   setBridgeAuthForPort(port, browserAuth);
 
   const authMode = browserAuth.token ? "token" : browserAuth.password ? "password" : "off";
-  logServer.info(`Browser control listening on http://127.0.0.1:${port}/ (auth=${authMode})`);
+  logServer.info(`browser bridge online http://127.0.0.1:${port}/ (auth=${authMode})`);
   return state;
 }
 

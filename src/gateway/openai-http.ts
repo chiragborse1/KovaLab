@@ -548,7 +548,7 @@ export async function handleOpenAiHttpRequest(
   const payload = coerceRequest(handled.body);
   const stream = Boolean(payload.stream);
   const streamIncludeUsage = stream && resolveIncludeUsageForStreaming(payload);
-  const model = typeof payload.model === "string" ? payload.model : "openclaw";
+  const model = typeof payload.model === "string" ? payload.model : "kova";
   const user = typeof payload.user === "string" ? payload.user : undefined;
   const maxTokens =
     typeof payload.max_completion_tokens === "number"

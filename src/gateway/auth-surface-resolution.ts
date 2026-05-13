@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/types.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
+import { readGatewayCredentialEnv } from "./credential-planner.js";
 import { trimToUndefined, type ExplicitGatewayAuth } from "./credentials.js";
 import { resolveConfiguredSecretInputString } from "./resolve-configured-secret-input-string.js";
 
@@ -79,8 +80,12 @@ export async function resolveGatewayProbeSurfaceAuth(params: {
     return {};
   }
 
-  const envToken = trimToUndefined(env.OPENCLAW_GATEWAY_TOKEN);
-  const envPassword = trimToUndefined(env.OPENCLAW_GATEWAY_PASSWORD);
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const envPassword = readGatewayCredentialEnv(
+    env,
+    "KOVA_GATEWAY_PASSWORD",
+    "OPENCLAW_GATEWAY_PASSWORD",
+  );
 
   if (authMode === "token") {
     const token = await resolveGatewayCredential({
@@ -158,10 +163,10 @@ export async function resolveGatewayInteractiveSurfaceAuth(params: {
   const explicitPassword = trimToUndefined(params.explicitAuth?.password);
   const envToken = params.suppressEnvAuthFallback
     ? undefined
-    : trimToUndefined(env.OPENCLAW_GATEWAY_TOKEN);
+    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
   const envPassword = params.suppressEnvAuthFallback
     ? undefined
-    : trimToUndefined(env.OPENCLAW_GATEWAY_PASSWORD);
+    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD");
 
   if (params.surface === "remote") {
     const remoteToken = explicitToken

@@ -1,10 +1,12 @@
 import os from "node:os";
 import path from "node:path";
 import { isMainThread, threadId } from "node:worker_threads";
-import { resolveStateDir } from "../config/paths.js";
+import { resolveOpenClawCompatMode, resolveStateDir } from "../config/paths.js";
 
 export function resolveTaskStateDir(env: NodeJS.ProcessEnv = process.env): string {
-  const explicit = env.OPENCLAW_STATE_DIR?.trim();
+  const explicit =
+    env.KOVA_STATE_DIR?.trim() ||
+    (resolveOpenClawCompatMode(env) ? env.OPENCLAW_STATE_DIR?.trim() : undefined);
   if (explicit) {
     return resolveStateDir(env);
   }

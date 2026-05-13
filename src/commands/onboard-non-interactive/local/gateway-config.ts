@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../../../config/types.openclaw.js";
 import { isValidEnvSecretRefId, resolveSecretInputRef } from "../../../config/types.secrets.js";
+import { readGatewayCredentialEnv } from "../../../gateway/credentials.js";
 import type { RuntimeEnv } from "../../../runtime.js";
 import { resolveDefaultSecretProviderAlias } from "../../../secrets/ref-contract.js";
 import { normalizeOptionalString } from "../../../shared/string-coerce.js";
@@ -52,7 +53,9 @@ export function applyNonInteractiveGatewayConfig(params: {
 
   let nextConfig = params.nextConfig;
   const explicitGatewayToken = normalizeGatewayTokenInput(opts.gatewayToken);
-  const envGatewayToken = normalizeGatewayTokenInput(process.env.OPENCLAW_GATEWAY_TOKEN);
+  const envGatewayToken = normalizeGatewayTokenInput(
+    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+  );
   const existingTokenInput = nextConfig.gateway?.auth?.token;
   const existingTokenRef = resolveSecretInputRef({
     value: existingTokenInput,
@@ -60,7 +63,7 @@ export function applyNonInteractiveGatewayConfig(params: {
   }).ref;
   const existingPlaintextToken = normalizeGatewayTokenInput(existingTokenInput);
   // Resolution order on re-onboard: explicit --gateway-token > persisted
-  // plaintext > ambient OPENCLAW_GATEWAY_TOKEN > randomToken(). Ambient env
+  // plaintext > ambient KOVA_GATEWAY_TOKEN > randomToken(). Ambient env
   // must not rotate a token already written to disk — a stale shell or
   // launchd env var otherwise breaks already-paired clients.
   let gatewayToken = explicitGatewayToken || existingPlaintextToken || envGatewayToken || undefined;
@@ -70,7 +73,7 @@ export function applyNonInteractiveGatewayConfig(params: {
     if (gatewayTokenRefEnv) {
       if (!isValidEnvSecretRefId(gatewayTokenRefEnv)) {
         runtime.error(
-          "Invalid --gateway-token-ref-env (use env var name like OPENCLAW_GATEWAY_TOKEN).",
+          "Invalid --gateway-token-ref-env (use env var name like KOVA_GATEWAY_TOKEN).",
         );
         runtime.exit(1);
         return null;
@@ -106,7 +109,7 @@ export function applyNonInteractiveGatewayConfig(params: {
       };
     } else if (!explicitGatewayToken && existingTokenRef) {
       // Preserve an already-configured SecretRef on re-onboard. Without this
-      // branch, an ambient OPENCLAW_GATEWAY_TOKEN (or randomToken() fallback)
+      // branch, an ambient KOVA_GATEWAY_TOKEN (or randomToken() fallback)
       // would silently overwrite {source, provider, id} with a plaintext
       // literal, de-secretref-ing the gateway.
       nextConfig = {

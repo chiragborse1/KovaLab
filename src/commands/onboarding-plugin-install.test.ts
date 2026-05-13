@@ -25,8 +25,12 @@ vi.mock("../plugins/bundled-sources.js", () => ({
 }));
 
 const installPluginFromNpmSpec = vi.hoisted(() => vi.fn());
+const resolvePluginInstallDir = vi.hoisted(() =>
+  vi.fn((pluginId: string) => `/tmp/kova-test-extensions/${pluginId}`),
+);
 vi.mock("../plugins/install.js", () => ({
   installPluginFromNpmSpec,
+  resolvePluginInstallDir,
 }));
 
 const enablePluginInConfig = vi.hoisted(() =>
@@ -69,6 +73,9 @@ describe("ensureOnboardingPluginInstalled", () => {
     vi.clearAllMocks();
     withTimeout.mockImplementation(async <T>(promise: Promise<T>) => await promise);
     refreshPluginRegistryAfterConfigMutation.mockResolvedValue(undefined);
+    resolvePluginInstallDir.mockImplementation(
+      (pluginId: string) => `/tmp/kova-test-extensions/${pluginId}`,
+    );
   });
 
   it("passes npm specs and optional expected integrity to npm installs with progress", async () => {
@@ -122,6 +129,7 @@ describe("ensureOnboardingPluginInstalled", () => {
     expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
       expect.objectContaining({
         spec: "@wecom/wecom-openclaw-plugin@1.2.3",
+        mode: "update",
         expectedIntegrity: "sha512-wecom",
         timeoutMs: 300_000,
       }),
@@ -190,7 +198,7 @@ describe("ensureOnboardingPluginInstalled", () => {
     );
   });
 
-  it("offers registry npm specs without requiring an exact version or integrity pin", async () => {
+  it("offers registry npm specs with the beta tag during beta Kova installs", async () => {
     let captured:
       | {
           options: Array<{ value: "npm" | "local" | "skip"; label: string; hint?: string }>;
@@ -217,11 +225,40 @@ describe("ensureOnboardingPluginInstalled", () => {
     });
 
     expect(captured?.options).toEqual([
-      { value: "npm", label: "Download from npm (@demo/plugin)" },
+      { value: "npm", label: "Download from npm (@demo/plugin@beta)" },
       { value: "skip", label: "Skip for now" },
     ]);
     expect(captured?.initialValue).toBe("npm");
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
+  });
+
+  it("keeps explicit npm versions unchanged during beta Kova installs", async () => {
+    installPluginFromNpmSpec.mockResolvedValueOnce({
+      ok: true,
+      pluginId: "demo-plugin",
+      targetDir: "/tmp/demo-plugin",
+      version: "1.2.3",
+    });
+
+    await ensureOnboardingPluginInstalled({
+      cfg: { update: { channel: "beta" } },
+      entry: {
+        pluginId: "demo-plugin",
+        label: "Demo Plugin",
+        install: {
+          npmSpec: "@demo/plugin@1.2.3",
+        },
+      },
+      prompter: {
+        select: vi.fn(async () => "npm"),
+        progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+      } as never,
+      runtime: {} as never,
+    });
+
+    expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
+      expect.objectContaining({ spec: "@demo/plugin@1.2.3" }),
+    );
   });
 
   it("does not offer local installs when the workspace only has a spoofed .git marker", async () => {
@@ -340,7 +377,7 @@ describe("ensureOnboardingPluginInstalled", () => {
       enablePluginInConfig.mockReturnValueOnce({
         config: {},
         enabled: false,
-        reason: "blocked by allowlist",
+        reason: "blocked by denylist",
       });
       const note = vi.fn(async () => {});
       const error = vi.fn();
@@ -369,12 +406,105 @@ describe("ensureOnboardingPluginInstalled", () => {
         status: "failed",
       });
       expect(note).toHaveBeenCalledWith(
-        "Cannot enable Demo Plugin: blocked by allowlist.",
+        "Cannot enable Demo Plugin: blocked by denylist.",
         "Plugin install",
       );
       expect(error).toHaveBeenCalledWith(
-        "Plugin install failed: demo-plugin is disabled (blocked by allowlist).",
+        "Plugin install failed: demo-plugin is disabled (blocked by denylist).",
       );
+    });
+  });
+
+  it("adds selected plugins to restrictive allowlists during onboarding", async () => {
+    installPluginFromNpmSpec.mockResolvedValueOnce({
+      ok: true,
+      pluginId: "whatsapp",
+      targetDir: "/tmp/whatsapp",
+      version: "2.0.0-beta.3",
+    });
+    enablePluginInConfig
+      .mockReturnValueOnce({
+        config: { plugins: { allow: ["telegram"] } },
+        enabled: false,
+        reason: "blocked by allowlist",
+      })
+      .mockImplementationOnce((cfg: OpenClawConfig) => ({
+        config: {
+          ...cfg,
+          plugins: {
+            ...cfg.plugins,
+            entries: {
+              ...cfg.plugins?.entries,
+              whatsapp: { enabled: true },
+            },
+          },
+        },
+        enabled: true,
+      }));
+    const note = vi.fn(async () => {});
+    const result = await ensureOnboardingPluginInstalled({
+      cfg: { plugins: { allow: ["telegram"] } },
+      entry: {
+        pluginId: "whatsapp",
+        label: "WhatsApp",
+        install: {
+          npmSpec: "@kovaai/whatsapp@beta",
+        },
+      },
+      prompter: {
+        select: vi.fn(async () => "npm"),
+        note,
+        progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+      } as never,
+      runtime: {} as never,
+      promptInstall: false,
+    });
+
+    expect(result.installed).toBe(true);
+    expect(result.cfg.plugins?.allow).toEqual(["telegram", "whatsapp"]);
+    expect(note).toHaveBeenCalledWith(
+      "Added whatsapp to plugins.allow and enabled it.",
+      "Plugin install",
+    );
+  });
+
+  it("uses an existing installed plugin instead of reinstalling from npm during onboarding", async () => {
+    await withTempDir({ prefix: "openclaw-onboarding-existing-plugin-" }, async (temp) => {
+      const existingPluginDir = path.join(temp, "extensions", "existing-plugin");
+      await fs.mkdir(existingPluginDir, { recursive: true });
+      resolvePluginInstallDir.mockReturnValueOnce(existingPluginDir);
+      const note = vi.fn(async () => {});
+
+      const result = await ensureOnboardingPluginInstalled({
+        cfg: {},
+        entry: {
+          pluginId: "existing-plugin",
+          label: "Existing Plugin",
+          install: {
+            npmSpec: "@demo/existing-plugin@beta",
+          },
+        },
+        prompter: {
+          select: vi.fn(async () => "npm"),
+          note,
+          progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+        } as never,
+        runtime: {} as never,
+        promptInstall: false,
+      });
+
+      expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
+      expect(result.installed).toBe(true);
+      expect(note).toHaveBeenCalledWith(
+        `Using existing Existing Plugin plugin install at ${existingPluginDir}.`,
+        "Plugin install",
+      );
+      expect(recordPluginInstall).toHaveBeenCalledWith(expect.anything(), {
+        pluginId: "existing-plugin",
+        source: "npm",
+        spec: "@demo/existing-plugin@beta",
+        installPath: existingPluginDir,
+      });
     });
   });
 

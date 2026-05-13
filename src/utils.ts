@@ -131,11 +131,11 @@ export function resolveConfigDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
 ): string {
-  const override = env.KOVA_STATE_DIR?.trim() || env.OPENCLAW_STATE_DIR?.trim();
+  const override = env.KOVA_STATE_DIR?.trim();
   if (override) {
     return resolveUserPath(override, env, homedir);
   }
-  const configPath = env.KOVA_CONFIG_PATH?.trim() || env.OPENCLAW_CONFIG_PATH?.trim();
+  const configPath = env.KOVA_CONFIG_PATH?.trim();
   if (configPath) {
     return path.dirname(resolveUserPath(configPath, env, homedir));
   }
@@ -145,15 +145,6 @@ export function resolveConfigDir(
     const hasNew = fs.existsSync(newDir);
     if (hasNew) {
       return newDir;
-    }
-  } catch {
-    // best-effort
-  }
-  const legacyDir = path.join(homeDir, ".openclaw");
-  try {
-    const hasLegacy = fs.existsSync(legacyDir);
-    if (hasLegacy) {
-      return legacyDir;
     }
   } catch {
     // best-effort
@@ -170,9 +161,9 @@ function resolveHomeDisplayPrefix(): { home: string; prefix: string } | undefine
   if (!home) {
     return undefined;
   }
-  const explicitHome = process.env.KOVA_HOME?.trim() || process.env.OPENCLAW_HOME?.trim();
+  const explicitHome = process.env.KOVA_HOME?.trim();
   if (explicitHome) {
-    return { home, prefix: process.env.KOVA_HOME?.trim() ? "$KOVA_HOME" : "$OPENCLAW_HOME" };
+    return { home, prefix: "$KOVA_HOME" };
   }
   return { home, prefix: "~" };
 }
@@ -214,5 +205,5 @@ export function displayString(input: string): string {
   return shortenHomeInString(input);
 }
 
-// Configuration root; can be overridden via KOVA_STATE_DIR or OPENCLAW_STATE_DIR.
+// Configuration root; can be overridden via KOVA_STATE_DIR.
 export const CONFIG_DIR = resolveConfigDir();

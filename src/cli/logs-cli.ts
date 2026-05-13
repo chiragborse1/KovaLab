@@ -213,7 +213,7 @@ async function emitGatewayError(
 ) {
   const runtime = await loadLogsCliRuntime();
   const message = "Gateway not reachable. Is it running and accessible?";
-  const hint = `Hint: run \`${formatCliCommand("openclaw doctor")}\`.`;
+  const hint = `Hint: run \`${formatCliCommand("kova doctor")}\`.`;
   const errorText = formatErrorMessage(err);
 
   const details = runtime.buildGatewayConnectionDetails({ url: opts.url });

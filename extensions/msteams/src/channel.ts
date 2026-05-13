@@ -1078,7 +1078,7 @@ export const msteamsPlugin: ChannelPlugin<ResolvedMSTeamsAccount, ProbeMSTeamsRe
           const { monitorMSTeamsProvider } = await import("./index.js");
           const port = ctx.cfg.channels?.msteams?.webhook?.port ?? 3978;
           ctx.setStatus({ accountId: ctx.accountId, port });
-          ctx.log?.info(`starting provider (port ${port})`);
+          ctx.log?.info(`connector online (port ${port})`);
           return monitorMSTeamsProvider({
             cfg: ctx.cfg,
             runtime: ctx.runtime,

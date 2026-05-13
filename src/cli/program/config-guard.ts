@@ -120,9 +120,7 @@ export async function ensureConfigReady(params: {
     params.runtime.error(legacyIssues.map((issue) => `  ${error(issue)}`).join("\n"));
   }
   params.runtime.error("");
-  params.runtime.error(
-    `${muted("Run:")} ${commandText(formatCliCommand("openclaw doctor --fix"))}`,
-  );
+  params.runtime.error(`${muted("Run:")} ${commandText(formatCliCommand("kova doctor --fix"))}`);
   if (!allowInvalid) {
     params.runtime.exit(1);
   }

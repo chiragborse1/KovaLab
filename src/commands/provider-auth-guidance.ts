@@ -37,7 +37,7 @@ export function resolveProviderAuthLoginCommand(params: {
   if (!choice) {
     return undefined;
   }
-  return formatCliCommand(`openclaw models auth login --provider ${choice.providerId}`);
+  return formatCliCommand(`kova models auth login --provider ${choice.providerId}`);
 }
 
 export function buildProviderAuthRecoveryHint(params: {
@@ -54,13 +54,13 @@ export function buildProviderAuthRecoveryHint(params: {
     parts.push(`Run \`${loginCommand}\``);
   }
   if (params.includeConfigure !== false) {
-    parts.push(`\`${formatCliCommand("openclaw configure")}\``);
+    parts.push(`\`${formatCliCommand("kova configure")}\``);
   }
   if (params.includeEnvVar) {
     parts.push("set an API key env var");
   }
   if (parts.length === 0) {
-    return `Run \`${formatCliCommand("openclaw configure")}\`.`;
+    return `Run \`${formatCliCommand("kova configure")}\`.`;
   }
   if (parts.length === 1) {
     return `${parts[0]}.`;

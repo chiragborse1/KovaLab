@@ -53,7 +53,7 @@ function resolveBraveApiKey(searchConfig?: SearchConfigRecord): string | undefin
 function missingBraveKeyPayload() {
   return {
     error: "missing_brave_api_key",
-    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
+    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("kova configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment.`,
     docs: "https://docs.neuralstudio.in/tools/web",
   };
 }

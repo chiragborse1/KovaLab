@@ -76,17 +76,18 @@ type ConfigSetOperation = {
 const GATEWAY_AUTH_MODE_PATH: PathSegment[] = ["gateway", "auth", "mode"];
 const SECRET_PROVIDER_PATH_PREFIX: PathSegment[] = ["secrets", "providers"];
 const PLUGIN_INSTALL_RECORD_PATH_PREFIX: PathSegment[] = ["plugins", "installs"];
+const AUTO_MANAGED_META_KEYS = new Set(["lastTouchedAt", "lastTouchedVersion"]);
 const CONFIG_SET_EXAMPLE_VALUE = formatCliCommand(
-  "openclaw config set gateway.port 19001 --strict-json",
+  "kova config set gateway.port 19001 --strict-json",
 );
 const CONFIG_SET_EXAMPLE_REF = formatCliCommand(
-  "openclaw config set channels.discord.token --ref-provider default --ref-source env --ref-id DISCORD_BOT_TOKEN",
+  "kova config set channels.discord.token --ref-provider default --ref-source env --ref-id DISCORD_BOT_TOKEN",
 );
 const CONFIG_SET_EXAMPLE_PROVIDER = formatCliCommand(
-  "openclaw config set secrets.providers.vault --provider-source file --provider-path /etc/kova/secrets.json --provider-mode json",
+  "kova config set secrets.providers.vault --provider-source file --provider-path /etc/kova/secrets.json --provider-mode json",
 );
 const CONFIG_SET_EXAMPLE_BATCH = formatCliCommand(
-  "openclaw config set --batch-file ./config-set.batch.json --dry-run",
+  "kova config set --batch-file ./config-set.batch.json --dry-run",
 );
 const CONFIG_SET_DESCRIPTION = [
   "Set config values by path (value mode, ref/provider builder mode, or batch JSON mode).",
@@ -206,7 +207,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function formatDoctorHint(message: string): string {
-  return `Run \`${formatCliCommand("openclaw doctor")}\` ${message}`;
+  return `Run \`${formatCliCommand("kova doctor")}\` ${message}`;
 }
 
 function formatUnsupportedSecretRefPolicyFailureMessage(issues: string[]): string {
@@ -516,6 +517,39 @@ function pathEquals(path: PathSegment[], expected: PathSegment[]): boolean {
   return (
     path.length === expected.length && path.every((segment, index) => segment === expected[index])
   );
+}
+
+function pathTargetsAutoManagedMetaKey(path: readonly PathSegment[]): boolean {
+  return path[0] === "meta" && path[1] !== undefined && AUTO_MANAGED_META_KEYS.has(path[1]);
+}
+
+function valueContainsAutoManagedMetaKey(value: unknown): boolean {
+  if (!isPlainRecord(value)) {
+    return false;
+  }
+  return [...AUTO_MANAGED_META_KEYS].some((key) => hasOwnPathKey(value, key));
+}
+
+function operationMutatesAutoManagedMeta(operation: ConfigSetOperation): boolean {
+  if (
+    pathTargetsAutoManagedMetaKey(operation.requestedPath) ||
+    pathTargetsAutoManagedMetaKey(operation.setPath)
+  ) {
+    return true;
+  }
+  if (pathEquals(operation.setPath, ["meta"]) && valueContainsAutoManagedMetaKey(operation.value)) {
+    return true;
+  }
+  return false;
+}
+
+function unsetPathMutatesAutoManagedMeta(path: readonly PathSegment[]): boolean {
+  return path[0] === "meta" && (path.length === 1 || pathTargetsAutoManagedMetaKey(path));
+}
+
+function formatAutoManagedMetaMutationError(path: readonly PathSegment[]): string {
+  const label = path.length > 0 ? toDotPath([...path]) : "meta";
+  return `${label} is auto-managed by the config writer and cannot be edited with config set/unset.`;
 }
 
 function pruneInactiveGatewayAuthCredentials(params: {
@@ -1098,9 +1132,9 @@ function formatPluginInstallConfigSetError(): string {
     "plugins.installs is managed by the plugin index and cannot be edited with config set.",
     "",
     "Use plugin commands instead:",
-    `  ${formatCliCommand("openclaw plugins install <spec>")}`,
-    `  ${formatCliCommand("openclaw plugins update <plugin-id>")}`,
-    `  ${formatCliCommand("openclaw plugins uninstall <plugin-id>")}`,
+    `  ${formatCliCommand("kova plugins install <spec>")}`,
+    `  ${formatCliCommand("kova plugins update <plugin-id>")}`,
+    `  ${formatCliCommand("kova plugins uninstall <plugin-id>")}`,
   ].join("\n");
 }
 
@@ -1208,6 +1242,10 @@ export async function runConfigSet(opts: {
           value: opts.value,
           opts: opts.cliOptions,
         });
+    const autoManagedMetaOperation = operations.find(operationMutatesAutoManagedMeta);
+    if (autoManagedMetaOperation) {
+      throw new Error(formatAutoManagedMetaMutationError(autoManagedMetaOperation.requestedPath));
+    }
     if (
       operations.some((operation) =>
         pathStartsWith(operation.requestedPath, PLUGIN_INSTALL_RECORD_PATH_PREFIX),
@@ -1417,6 +1455,9 @@ export async function runConfigUnset(opts: { path: string; runtime?: RuntimeEnv 
   const runtime = opts.runtime ?? defaultRuntime;
   try {
     const parsedPath = parseRequiredPath(opts.path);
+    if (unsetPathMutatesAutoManagedMeta(parsedPath)) {
+      throw new Error(formatAutoManagedMetaMutationError(parsedPath));
+    }
     const snapshot = await loadValidConfig(runtime);
     // Use snapshot.resolved (config after $include and ${ENV} resolution, but BEFORE runtime defaults)
     // instead of snapshot.config (runtime-merged with defaults).

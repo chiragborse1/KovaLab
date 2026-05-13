@@ -295,7 +295,7 @@ function assertGatewayConfigMutationAllowed(params: {
   }
 
   // Block writes that newly enable any dangerous config flag.
-  // Uses the same flag enumeration as `openclaw security audit`.
+  // Uses the same flag enumeration as `kova security audit`.
   const currentFlags = new Set(
     collectEnabledInsecureOrDangerousFlags(params.currentConfig as OpenClawConfig),
   );

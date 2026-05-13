@@ -45,9 +45,27 @@ type GatewaySecretDefaults = NonNullable<OpenClawConfig["secrets"]>["defaults"];
 
 export const trimToUndefined = normalizeOptionalString;
 
+function allowLegacyGatewayEnv(env: NodeJS.ProcessEnv): boolean {
+  const value = trimToUndefined(
+    env.KOVA_ALLOW_OPENCLAW_COMPAT ?? env.KOVA_OPENCLAW_COMPAT,
+  )?.toLowerCase();
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
+export function readGatewayCredentialEnv(
+  env: NodeJS.ProcessEnv,
+  modernKey: "KOVA_GATEWAY_TOKEN" | "KOVA_GATEWAY_PASSWORD",
+  legacyKey: "OPENCLAW_GATEWAY_TOKEN" | "OPENCLAW_GATEWAY_PASSWORD",
+): string | undefined {
+  return (
+    trimToUndefined(env[modernKey]) ??
+    (allowLegacyGatewayEnv(env) ? trimToUndefined(env[legacyKey]) : undefined)
+  );
+}
+
 /**
  * Like trimToUndefined but also rejects unresolved env var placeholders (e.g. `${VAR}`).
- * This prevents literal placeholder strings like `${OPENCLAW_GATEWAY_TOKEN}` from being
+ * This prevents literal placeholder strings like `${KOVA_GATEWAY_TOKEN}` from being
  * accepted as valid credentials when the referenced env var is missing.
  * Note: legitimate credential values containing literal `${UPPER_CASE}` patterns will
  * also be rejected, but this is an extremely unlikely edge case.
@@ -61,11 +79,13 @@ export function trimCredentialToUndefined(value: unknown): string | undefined {
 }
 
 export function hasGatewayTokenEnvCandidate(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(trimToUndefined(env.OPENCLAW_GATEWAY_TOKEN));
+  return Boolean(readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"));
 }
 
 export function hasGatewayPasswordEnvCandidate(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(trimToUndefined(env.OPENCLAW_GATEWAY_PASSWORD));
+  return Boolean(
+    readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD"),
+  );
 }
 
 function resolveConfiguredGatewayCredentialInput(params: {
@@ -96,8 +116,12 @@ export function createGatewayCredentialPlan(params: {
   const remote = gateway?.remote;
   const defaults = params.defaults ?? params.config.secrets?.defaults;
   const authMode = gateway?.auth?.mode;
-  const envToken = trimToUndefined(env.OPENCLAW_GATEWAY_TOKEN);
-  const envPassword = trimToUndefined(env.OPENCLAW_GATEWAY_PASSWORD);
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const envPassword = readGatewayCredentialEnv(
+    env,
+    "KOVA_GATEWAY_PASSWORD",
+    "OPENCLAW_GATEWAY_PASSWORD",
+  );
 
   const localToken = resolveConfiguredGatewayCredentialInput({
     value: gateway?.auth?.token,

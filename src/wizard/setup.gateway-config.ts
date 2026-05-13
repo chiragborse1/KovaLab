@@ -11,6 +11,7 @@ import {
   resolveSecretInputRef,
   type SecretInput,
 } from "../config/types.secrets.js";
+import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import {
   maybeAddTailnetOriginToControlUiAllowedOrigins,
   TAILSCALE_DOCS_LINES,
@@ -194,10 +195,10 @@ export async function configureGatewayForSetup(
           provider: "gateway-auth-token",
           config: nextConfig,
           prompter,
-          preferredEnvVar: "OPENCLAW_GATEWAY_TOKEN",
+          preferredEnvVar: "KOVA_GATEWAY_TOKEN",
           copy: {
             sourceMessage: "Where should Kova read the Gateway token from?",
-            envVarPlaceholder: "OPENCLAW_GATEWAY_TOKEN",
+            envVarPlaceholder: "KOVA_GATEWAY_TOKEN",
           },
         });
         gatewayTokenInput = resolved.ref;
@@ -205,7 +206,10 @@ export async function configureGatewayForSetup(
       }
     } else if (flow === "quickstart") {
       gatewayToken =
-        (quickstartTokenString ?? normalizeGatewayTokenInput(process.env.OPENCLAW_GATEWAY_TOKEN)) ||
+        (quickstartTokenString ??
+          normalizeGatewayTokenInput(
+            readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+          )) ||
         randomToken();
       gatewayTokenInput = gatewayToken;
     } else {
@@ -214,7 +218,9 @@ export async function configureGatewayForSetup(
         placeholder: "Needed for multi-machine or non-loopback access",
         initialValue:
           quickstartTokenString ??
-          normalizeGatewayTokenInput(process.env.OPENCLAW_GATEWAY_TOKEN) ??
+          normalizeGatewayTokenInput(
+            readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+          ) ??
           "",
       });
       gatewayToken = normalizeGatewayTokenInput(tokenInput) || randomToken();
@@ -240,10 +246,10 @@ export async function configureGatewayForSetup(
           provider: "gateway-auth-password",
           config: nextConfig,
           prompter,
-          preferredEnvVar: "OPENCLAW_GATEWAY_PASSWORD",
+          preferredEnvVar: "KOVA_GATEWAY_PASSWORD",
           copy: {
             sourceMessage: "Where should Kova read the Gateway password from?",
-            envVarPlaceholder: "OPENCLAW_GATEWAY_PASSWORD",
+            envVarPlaceholder: "KOVA_GATEWAY_PASSWORD",
           },
         });
         password = resolved.ref;

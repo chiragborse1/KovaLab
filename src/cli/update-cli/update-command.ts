@@ -175,10 +175,10 @@ export function shouldUseLegacyProcessRestartAfterUpdate(params: {
 function isRunningInsideGatewayService(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  if (!isGatewayServiceMarker(env.OPENCLAW_SERVICE_MARKER?.trim())) {
+  if (!isGatewayServiceMarker((env.KOVA_SERVICE_MARKER ?? env.OPENCLAW_SERVICE_MARKER)?.trim())) {
     return false;
   }
-  const serviceKind = env.OPENCLAW_SERVICE_KIND?.trim();
+  const serviceKind = (env.KOVA_SERVICE_KIND ?? env.OPENCLAW_SERVICE_KIND)?.trim();
   return !serviceKind || serviceKind === GATEWAY_SERVICE_KIND;
 }
 
@@ -415,7 +415,7 @@ async function tryInstallShellCompletion(opts: {
       if (!opts.skipPrompt) {
         defaultRuntime.log(
           theme.muted(
-            `Skipped. Run \`${replaceCliName(formatCliCommand("openclaw completion --install"), CLI_NAME)}\` later to enable.`,
+            `Skipped. Run \`${replaceCliName(formatCliCommand("kova completion --install"), CLI_NAME)}\` later to enable.`,
           ),
         );
       }
@@ -881,7 +881,7 @@ async function maybeRestartService(params: {
       "Gateway did not become healthy after restart.",
       ...renderRestartDiagnostics(health),
       `Restart log: ${resolveGatewayRestartLogPath(process.env)}`,
-      `Run \`${replaceCliName(formatCliCommand("openclaw gateway status --deep"), CLI_NAME)}\` for details.`,
+      `Run \`${replaceCliName(formatCliCommand("kova gateway status --deep"), CLI_NAME)}\` for details.`,
     ];
     if (params.opts.json) {
       defaultRuntime.error(diagnosticLines.join("\n"));
@@ -988,7 +988,7 @@ async function maybeRestartService(params: {
         defaultRuntime.log(theme.warn(`Daemon restart failed: ${String(err)}`));
         defaultRuntime.log(
           theme.muted(
-            `You may need to restart the service manually: ${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}`,
+            `You may need to restart the service manually: ${replaceCliName(formatCliCommand("kova gateway restart"), CLI_NAME)}`,
           ),
         );
       }
@@ -1004,13 +1004,13 @@ async function maybeRestartService(params: {
     if (params.result.mode === "npm" || params.result.mode === "pnpm") {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\`, then \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${replaceCliName(formatCliCommand("kova doctor"), CLI_NAME)}\`, then \`${replaceCliName(formatCliCommand("kova gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
         ),
       );
     } else {
       defaultRuntime.log(
         theme.muted(
-          `Tip: Run \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
+          `Tip: Run \`${replaceCliName(formatCliCommand("kova gateway restart"), CLI_NAME)}\` to apply updates to a running gateway.`,
         ),
       );
     }
@@ -1394,7 +1394,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
       [
         "Package updates cannot run from inside the gateway service process.",
         "That path replaces the active Kova dist tree while the live gateway may still lazy-load old chunks.",
-        `Run \`${replaceCliName(formatCliCommand("openclaw update"), CLI_NAME)}\` from a shell outside the gateway service, or stop the gateway service first and then update.`,
+        `Run \`${replaceCliName(formatCliCommand("kova update"), CLI_NAME)}\` from a shell outside the gateway service, or stop the gateway service first and then update.`,
       ].join("\n"),
     );
     defaultRuntime.exit(1);
@@ -1507,7 +1507,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     if (result.reason === "not-git-install") {
       defaultRuntime.log(
         theme.warn(
-          `Skipped: this Kova install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("openclaw doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("openclaw gateway restart"), CLI_NAME)}\`.`,
+          `Skipped: this Kova install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${replaceCliName(formatCliCommand("kova doctor"), CLI_NAME)}\` and \`${replaceCliName(formatCliCommand("kova gateway restart"), CLI_NAME)}\`.`,
         ),
       );
       defaultRuntime.log(

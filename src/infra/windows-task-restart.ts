@@ -14,11 +14,11 @@ const TASK_RESTART_RETRY_LIMIT = 12;
 const TASK_RESTART_RETRY_DELAY_SEC = 1;
 
 function resolveWindowsTaskName(env: NodeJS.ProcessEnv): string {
-  const override = env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
+  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
   if (override) {
     return override;
   }
-  return resolveGatewayWindowsTaskName(env.OPENCLAW_PROFILE);
+  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
 }
 
 function buildScheduledTaskRestartScript(params: {
@@ -33,7 +33,7 @@ function buildScheduledTaskRestartScript(params: {
     "@echo off",
     "setlocal",
     ...setupLines,
-    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart attempt source=windows-task-handoff target=${quotedTaskName}`,
+    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] kova restart attempt source=windows-task-handoff target=${quotedTaskName}`,
     `schtasks /Query /TN ${quotedTaskName} >> ${quotedLogPath} 2>&1`,
     "if errorlevel 1 goto fallback",
     "set /a attempts=0",
@@ -45,7 +45,7 @@ function buildScheduledTaskRestartScript(params: {
     `if %attempts% GEQ ${TASK_RESTART_RETRY_LIMIT} goto fallback`,
     "goto retry",
     ":fallback",
-    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart fallback source=windows-task-handoff`,
+    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] kova restart fallback source=windows-task-handoff`,
   ];
   if (taskScriptPath) {
     const quotedScript = quoteCmdScriptArg(taskScriptPath);
@@ -53,7 +53,7 @@ function buildScheduledTaskRestartScript(params: {
   }
   lines.push(
     ":cleanup",
-    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] openclaw restart finished source=windows-task-handoff`,
+    `>> ${quotedLogPath} 2>&1 echo [%DATE% %TIME%] kova restart finished source=windows-task-handoff`,
     'del "%~f0" >nul 2>&1',
   );
   return lines.join("\r\n");
@@ -64,7 +64,7 @@ export function relaunchGatewayScheduledTask(env: NodeJS.ProcessEnv = process.en
   const taskScriptPath = resolveTaskScriptPath(env);
   const scriptPath = path.join(
     resolvePreferredOpenClawTmpDir(),
-    `openclaw-schtasks-restart-${randomUUID()}.cmd`,
+    `kova-schtasks-restart-${randomUUID()}.cmd`,
   );
   const quotedScriptPath = quoteCmdScriptArg(scriptPath);
   const restartLog = renderCmdRestartLogSetup({ ...process.env, ...env });

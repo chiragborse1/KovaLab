@@ -14,8 +14,8 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
     return changes;
   }
 
-  const targetDir = path.join(home, ".openclaw");
-  const targetPath = path.join(targetDir, "openclaw.json");
+  const targetDir = path.join(home, ".kova");
+  const targetPath = path.join(targetDir, "kova.json");
   try {
     await fs.access(targetPath);
     return changes;
@@ -88,7 +88,7 @@ export async function runDoctorConfigPreflight(
     !snapshot.valid &&
     (await recoverConfigFromJsonRootSuffix(snapshot))
   ) {
-    note("Removed non-JSON prefix from openclaw.json; original saved as .clobbered.*.", "Config");
+    note("Removed non-JSON prefix from kova.json; original saved as .clobbered.*.", "Config");
     snapshot = await readConfigFileSnapshot();
   }
   const invalidConfigNote =

@@ -292,7 +292,7 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> =
           const account = ctx.account;
           const { e164, jid } = (await loadWhatsAppChannelRuntime()).readWebSelfId(account.authDir);
           const identity = e164 ? e164 : jid ? `jid ${jid}` : "unknown";
-          ctx.log?.info(`[${account.accountId}] starting provider (${identity})`);
+          ctx.log?.info(`[${account.accountId}] connector online (${identity})`);
           return (await loadWhatsAppChannelRuntime()).monitorWebChannel(
             getWhatsAppRuntime().logging.shouldLogVerbose(),
             undefined,

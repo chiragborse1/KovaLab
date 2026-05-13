@@ -36,15 +36,15 @@ export function registerMigrateCommand(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw migrate list", "Show available migration providers."],
-          ["openclaw migrate hermes", "Preview Hermes migration, then prompt before applying."],
-          ["openclaw migrate hermes --dry-run", "Preview Hermes migration only."],
+          ["kova migrate list", "Show available migration providers."],
+          ["kova migrate hermes", "Preview Hermes migration, then prompt before applying."],
+          ["kova migrate hermes --dry-run", "Preview Hermes migration only."],
           [
-            "openclaw migrate apply hermes --yes",
+            "kova migrate apply hermes --yes",
             "Apply Hermes migration non-interactively after writing a verified backup.",
           ],
           [
-            "openclaw migrate apply hermes --include-secrets --yes",
+            "kova migrate apply hermes --include-secrets --yes",
             "Include supported credentials in the migration.",
           ],
         ])}`,

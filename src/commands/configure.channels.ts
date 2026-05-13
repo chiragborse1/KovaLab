@@ -78,7 +78,7 @@ export async function removeChannelConfigWizard(
       note(
         [
           "No channel config found in kova.json.",
-          `Tip: \`${formatCliCommand("openclaw channels status")}\` shows what is configured and enabled.`,
+          `Tip: \`${formatCliCommand("kova channels status")}\` shows what is configured and enabled.`,
         ].join("\n"),
         "Remove channel",
       );

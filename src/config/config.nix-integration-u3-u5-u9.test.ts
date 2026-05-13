@@ -22,20 +22,27 @@ describe("Nix integration (U3, U5, U9)", () => {
   });
 
   describe("U3: isNixMode env var detection", () => {
-    it("isNixMode is false when OPENCLAW_NIX_MODE is not set", () => {
-      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: undefined }))).toBe(false);
+    it("isNixMode is false when KOVA_NIX_MODE is not set", () => {
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: undefined }))).toBe(false);
     });
 
-    it("isNixMode is false when OPENCLAW_NIX_MODE is empty", () => {
-      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: "" }))).toBe(false);
+    it("isNixMode is false when KOVA_NIX_MODE is empty", () => {
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "" }))).toBe(false);
     });
 
-    it("isNixMode is false when OPENCLAW_NIX_MODE is not '1'", () => {
-      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: "true" }))).toBe(false);
+    it("isNixMode is false when KOVA_NIX_MODE is not '1'", () => {
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "true" }))).toBe(false);
     });
 
-    it("isNixMode is true when OPENCLAW_NIX_MODE=1", () => {
-      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: "1" }))).toBe(true);
+    it("isNixMode is true when KOVA_NIX_MODE=1", () => {
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "1" }))).toBe(true);
+    });
+
+    it("requires explicit compatibility mode for legacy nix env", () => {
+      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: "1" }))).toBe(false);
+      expect(
+        resolveIsNixMode(envWith({ KOVA_ALLOW_OPENCLAW_COMPAT: "1", OPENCLAW_NIX_MODE: "1" })),
+      ).toBe(true);
     });
   });
 
@@ -57,15 +64,22 @@ describe("Nix integration (U3, U5, U9)", () => {
     it("STATE_DIR respects KOVA_STATE_DIR override", () => {
       expect(
         resolveStateDir(
-          envWith({ KOVA_STATE_DIR: "/custom/kova-state/dir", OPENCLAW_STATE_DIR: "/custom/state/dir" }),
+          envWith({
+            KOVA_STATE_DIR: "/custom/kova-state/dir",
+            OPENCLAW_STATE_DIR: "/custom/state/dir",
+          }),
         ),
       ).toBe(path.resolve("/custom/kova-state/dir"));
     });
 
-    it("STATE_DIR respects OPENCLAW_STATE_DIR override when KOVA_STATE_DIR is unset", () => {
-      expect(resolveStateDir(envWith({ KOVA_STATE_DIR: undefined, OPENCLAW_STATE_DIR: "/custom/state/dir" }))).toBe(
-        path.resolve("/custom/state/dir"),
-      );
+    it("STATE_DIR ignores OPENCLAW_STATE_DIR override when KOVA_STATE_DIR is unset", () => {
+      const home = path.join(path.sep, "custom", "home");
+      expect(
+        resolveStateDir(
+          envWith({ KOVA_STATE_DIR: undefined, OPENCLAW_STATE_DIR: "/custom/state/dir" }),
+          () => home,
+        ),
+      ).toBe(path.join(path.resolve(home), ".kova"));
     });
 
     it("STATE_DIR respects KOVA_HOME when state override is unset", () => {
@@ -141,21 +155,15 @@ describe("Nix integration (U3, U5, U9)", () => {
       );
     });
 
-    it("prefers OPENCLAW_GATEWAY_PORT over config", () => {
+    it("prefers KOVA_GATEWAY_PORT over config", () => {
       expect(
-        resolveGatewayPort(
-          { gateway: { port: 19002 } },
-          envWith({ OPENCLAW_GATEWAY_PORT: "19001" }),
-        ),
+        resolveGatewayPort({ gateway: { port: 19002 } }, envWith({ KOVA_GATEWAY_PORT: "19001" })),
       ).toBe(19001);
     });
 
     it("falls back to config when env is invalid", () => {
       expect(
-        resolveGatewayPort(
-          { gateway: { port: 19003 } },
-          envWith({ OPENCLAW_GATEWAY_PORT: "nope" }),
-        ),
+        resolveGatewayPort({ gateway: { port: 19003 } }, envWith({ KOVA_GATEWAY_PORT: "nope" })),
       ).toBe(19003);
     });
   });

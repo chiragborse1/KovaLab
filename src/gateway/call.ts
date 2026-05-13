@@ -21,6 +21,7 @@ import { VERSION } from "../version.js";
 import { GatewayClient, type GatewayClientOptions } from "./client.js";
 import {
   buildGatewayConnectionDetailsWithResolvers,
+  readGatewayUrlEnv,
   type GatewayConnectionDetails,
 } from "./connection-details.js";
 import { resolveGatewayCredentialsWithSecretInputs } from "./credentials-secret-inputs.js";
@@ -330,10 +331,8 @@ function resolveGatewayCallTimeout(timeoutValue: unknown): {
 function resolveGatewayCallContext(opts: CallGatewayBaseOptions): ResolvedGatewayCallContext {
   const cliUrlOverride = trimToUndefined(opts.url);
   const explicitAuth = resolveExplicitGatewayAuth({ token: opts.token, password: opts.password });
-  const envUrlOverride = cliUrlOverride
-    ? undefined
-    : trimToUndefined(process.env.OPENCLAW_GATEWAY_URL);
-  const urlOverride = cliUrlOverride ?? envUrlOverride;
+  const envUrlOverride = cliUrlOverride ? undefined : readGatewayUrlEnv(process.env);
+  const urlOverride = cliUrlOverride ?? envUrlOverride?.url;
   const urlOverrideSource = cliUrlOverride ? "cli" : envUrlOverride ? "env" : undefined;
   const canSkipConfigLoad = canSkipGatewayConfigLoad({
     config: opts.config,

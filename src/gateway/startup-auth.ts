@@ -16,6 +16,7 @@ import { resolveGatewayAuth, type ResolvedGatewayAuth } from "./auth.js";
 import {
   hasGatewayPasswordEnvCandidate,
   hasGatewayTokenEnvCandidate,
+  readGatewayCredentialEnv,
   trimToUndefined,
 } from "./credentials.js";
 import { assertGatewayAuthNotKnownWeak } from "./known-weak-gateway-secrets.js";
@@ -111,7 +112,11 @@ function hasGatewayTokenCandidate(params: {
   env: NodeJS.ProcessEnv;
   authOverride?: GatewayAuthConfig;
 }): boolean {
-  const envToken = trimToUndefined(params.env.OPENCLAW_GATEWAY_TOKEN);
+  const envToken = readGatewayCredentialEnv(
+    params.env,
+    "KOVA_GATEWAY_TOKEN",
+    "OPENCLAW_GATEWAY_TOKEN",
+  );
   if (envToken) {
     return true;
   }

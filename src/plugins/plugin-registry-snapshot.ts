@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
+import { readPluginCacheEnv } from "./cache-controls.js";
 import {
   inspectPersistedInstalledPluginIndex,
   readPersistedInstalledPluginIndexSync,
@@ -57,7 +58,8 @@ export function clearPluginRegistrySnapshotCache(): void {
   derivedSnapshotCache.clear();
 }
 
-export const DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV = "OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY";
+export const DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV = "KOVA_DISABLE_PERSISTED_PLUGIN_REGISTRY";
+const LEGACY_DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV = "OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY";
 
 function formatDeprecatedPersistedRegistryDisableWarning(): string {
   return `${DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV} is a deprecated break-glass compatibility switch; use \`kova plugins registry --refresh\` or \`kova doctor --fix\` to repair registry state.`;
@@ -154,8 +156,15 @@ function resolveDerivedSnapshotCacheKey(
     roots,
     loadPaths,
     hostContractVersion: resolveCompatibilityHostVersion(env),
-    disablePersisted: env[DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV] ?? "",
-    disableBundled: env.OPENCLAW_DISABLE_BUNDLED_PLUGINS ?? "",
+    disablePersisted:
+      readPluginCacheEnv(
+        env,
+        DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV,
+        LEGACY_DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV,
+      ) ?? "",
+    disableBundled:
+      readPluginCacheEnv(env, "KOVA_DISABLE_BUNDLED_PLUGINS", "OPENCLAW_DISABLE_BUNDLED_PLUGINS") ??
+      "",
     vitest: env.VITEST ?? "",
   });
 }
@@ -174,7 +183,16 @@ export function loadPluginRegistrySnapshotWithMetadata(
   const env = params.env ?? process.env;
   const diagnostics: PluginRegistrySnapshotDiagnostic[] = [];
   const disabledByCaller = params.preferPersisted === false;
-  const disabledByEnv = hasEnvFlag(env, DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV);
+  const disabledByEnv = hasEnvFlag(
+    {
+      [DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV]: readPluginCacheEnv(
+        env,
+        DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV,
+        LEGACY_DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV,
+      ),
+    } as NodeJS.ProcessEnv,
+    DISABLE_PERSISTED_PLUGIN_REGISTRY_ENV,
+  );
   const persistedReadsEnabled = !disabledByCaller && !disabledByEnv;
   const persistedInstallRecordReadsEnabled = !disabledByEnv;
   const derivedCacheKey = persistedReadsEnabled

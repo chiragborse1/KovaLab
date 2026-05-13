@@ -287,10 +287,10 @@ describe("config cli", () => {
 
       expect(mockWriteConfigFile).not.toHaveBeenCalled();
       expect(mockError).toHaveBeenCalledWith(
-        expect.stringContaining("openclaw plugins install <spec>"),
+        expect.stringContaining("kova plugins install <spec>"),
       );
       expect(mockError).toHaveBeenCalledWith(
-        expect.stringContaining("openclaw plugins update <plugin-id>"),
+        expect.stringContaining("kova plugins update <plugin-id>"),
       );
     });
 
@@ -744,14 +744,12 @@ describe("config cli", () => {
       expect(helpText).toContain("--batch-json");
       expect(helpText).toContain("--dry-run");
       expect(helpText).toContain("--allow-exec");
-      expect(helpText).toContain("openclaw config set gateway.port 19001 --strict-json");
+      expect(helpText).toContain("kova config set gateway.port 19001 --strict-json");
       expect(helpText).toContain(
-        "openclaw config set channels.discord.token --ref-provider default --ref-source",
+        "kova config set channels.discord.token --ref-provider default --ref-source",
       );
       expect(helpText).toContain("--ref-id DISCORD_BOT_TOKEN");
-      expect(helpText).toContain(
-        "openclaw config set --batch-file ./config-set.batch.json --dry-run",
-      );
+      expect(helpText).toContain("kova config set --batch-file ./config-set.batch.json --dry-run");
     });
   });
 
@@ -1758,6 +1756,54 @@ describe("config cli", () => {
 
       expect(mockReadConfigFileSnapshot).not.toHaveBeenCalled();
       expect(mockWriteConfigFile).not.toHaveBeenCalled();
+    });
+
+    it("rejects direct config set writes to auto-managed metadata", async () => {
+      await expect(
+        runConfigCommand([
+          "config",
+          "set",
+          "meta.lastTouchedVersion",
+          '"2.0.0-beta.5"',
+          "--strict-json",
+          "--dry-run",
+        ]),
+      ).rejects.toThrow("__exit__:1");
+
+      expect(mockReadConfigFileSnapshot).not.toHaveBeenCalled();
+      expect(mockWriteConfigFile).not.toHaveBeenCalled();
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining("meta.lastTouchedVersion is auto-managed"),
+      );
+    });
+
+    it("rejects parent metadata payloads that contain auto-managed keys", async () => {
+      await expect(
+        runConfigCommand([
+          "config",
+          "set",
+          "meta",
+          '{"lastTouchedAt":"2026-05-13T00:00:00.000Z"}',
+          "--strict-json",
+          "--dry-run",
+        ]),
+      ).rejects.toThrow("__exit__:1");
+
+      expect(mockReadConfigFileSnapshot).not.toHaveBeenCalled();
+      expect(mockWriteConfigFile).not.toHaveBeenCalled();
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining("meta is auto-managed"));
+    });
+
+    it("rejects config unset attempts for auto-managed metadata", async () => {
+      await expect(runConfigCommand(["config", "unset", "meta.lastTouchedAt"])).rejects.toThrow(
+        "__exit__:1",
+      );
+
+      expect(mockReadConfigFileSnapshot).not.toHaveBeenCalled();
+      expect(mockWriteConfigFile).not.toHaveBeenCalled();
+      expect(mockError).toHaveBeenCalledWith(
+        expect.stringContaining("meta.lastTouchedAt is auto-managed"),
+      );
     });
   });
 

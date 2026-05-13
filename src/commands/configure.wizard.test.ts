@@ -639,4 +639,42 @@ describe("runConfigureWizard", () => {
       },
     });
   });
+
+  it("runs targeted sections through an injected wizard prompter and defers reload", async () => {
+    setupBaseWizardState();
+    mocks.replaceConfigFile.mockImplementation(async (params: { nextConfig: unknown }) => {
+      await mocks.writeConfigFile(params.nextConfig);
+    });
+    const prompter = {
+      intro: vi.fn(async () => {}),
+      outro: vi.fn(async () => {}),
+      note: vi.fn(async () => {}),
+      select: vi.fn(async () => "workspace"),
+      multiselect: vi.fn(async () => []),
+      text: vi.fn(async () => "~/browser-kova"),
+      confirm: vi.fn(async () => true),
+      progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+    };
+
+    await runConfigureWizard(
+      { command: "configure", sections: ["workspace"], deferConfigReload: true },
+      createRuntime(),
+      prompter,
+    );
+
+    expect(prompter.intro).toHaveBeenCalledWith("Kova configure");
+    expect(prompter.text).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Workspace directory" }),
+    );
+    expect(mocks.replaceConfigFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        writeOptions: expect.objectContaining({
+          afterWrite: {
+            mode: "none",
+            reason: "browser configure wizard is still running",
+          },
+        }),
+      }),
+    );
+  });
 });

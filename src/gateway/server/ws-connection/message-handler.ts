@@ -1351,7 +1351,7 @@ export function attachGatewayWsMessageHandler(params: {
 
         if (isWebchatConnect(connectParams)) {
           logWsControl.info(
-            `webchat connected conn=${connId} remote=${remoteAddr ?? "?"} client=${clientLabel} ${connectParams.client.mode} v${connectParams.client.version}`,
+            `console connected conn=${connId} remote=${remoteAddr ?? "?"} client=${clientLabel} ${connectParams.client.mode} v${connectParams.client.version}`,
           );
         }
 

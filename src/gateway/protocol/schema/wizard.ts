@@ -10,7 +10,21 @@ const WizardRunStatusSchema = Type.Union([
 
 export const WizardStartParamsSchema = Type.Object(
   {
+    flow: Type.Optional(Type.Union([Type.Literal("onboard"), Type.Literal("configure")])),
     mode: Type.Optional(Type.Union([Type.Literal("local"), Type.Literal("remote")])),
+    section: Type.Optional(
+      Type.Union([
+        Type.Literal("workspace"),
+        Type.Literal("model"),
+        Type.Literal("web"),
+        Type.Literal("gateway"),
+        Type.Literal("daemon"),
+        Type.Literal("channels"),
+        Type.Literal("plugins"),
+        Type.Literal("skills"),
+        Type.Literal("health"),
+      ]),
+    ),
     workspace: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
@@ -70,6 +84,10 @@ export const WizardStepSchema = Type.Object(
     initialValue: Type.Optional(Type.Unknown()),
     placeholder: Type.Optional(Type.String()),
     sensitive: Type.Optional(Type.Boolean()),
+    imageDataUrl: Type.Optional(Type.String()),
+    primaryLabel: Type.Optional(Type.String()),
+    secondaryLabel: Type.Optional(Type.String()),
+    dangerLabel: Type.Optional(Type.String()),
     executor: Type.Optional(Type.Union([Type.Literal("gateway"), Type.Literal("client")])),
   },
   { additionalProperties: false },

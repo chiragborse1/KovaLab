@@ -4,6 +4,7 @@ import type { OpenClawConfig } from "../config/types.js";
 import { normalizeSecretInputString, resolveSecretInputRef } from "../config/types.secrets.js";
 import { materializeGatewayAuthSecretRefs } from "../gateway/auth-config-utils.js";
 import { assertExplicitGatewayAuthModeWhenBothConfigured } from "../gateway/auth-mode-policy.js";
+import { readGatewayCredentialEnv } from "../gateway/credential-planner.js";
 import { isLoopbackHost, isSecureWebSocketUrl } from "../gateway/net.js";
 import { issueDeviceBootstrapToken } from "../infra/device-bootstrap.js";
 import {
@@ -218,8 +219,12 @@ function resolvePairingSetupAuthLabel(
     value: cfg.gateway?.auth?.password,
     defaults,
   }).ref;
-  const envToken = normalizeOptionalString(env.OPENCLAW_GATEWAY_TOKEN);
-  const envPassword = normalizeOptionalString(env.OPENCLAW_GATEWAY_PASSWORD);
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const envPassword = readGatewayCredentialEnv(
+    env,
+    "KOVA_GATEWAY_PASSWORD",
+    "OPENCLAW_GATEWAY_PASSWORD",
+  );
   const token =
     envToken || (tokenRef ? undefined : normalizeSecretInputString(cfg.gateway?.auth?.token));
   const password =
@@ -325,8 +330,12 @@ export async function resolvePairingSetupFromConfig(
     cfg,
     env,
     mode: cfg.gateway?.auth?.mode,
-    hasTokenCandidate: Boolean(normalizeOptionalString(env.OPENCLAW_GATEWAY_TOKEN)),
-    hasPasswordCandidate: Boolean(normalizeOptionalString(env.OPENCLAW_GATEWAY_PASSWORD)),
+    hasTokenCandidate: Boolean(
+      readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+    ),
+    hasPasswordCandidate: Boolean(
+      readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD"),
+    ),
   });
   const authLabel = resolvePairingSetupAuthLabel(cfgForAuth, env);
   if (authLabel.error) {

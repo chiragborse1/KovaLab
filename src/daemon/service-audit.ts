@@ -231,8 +231,8 @@ function auditGatewayToken(
   }
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenEmbedded,
-    message: "Gateway service embeds OPENCLAW_GATEWAY_TOKEN and should be reinstalled.",
-    detail: `Run \`${formatCliCommand("openclaw gateway install --force")}\` to remove embedded service token.`,
+    message: "Gateway service embeds KOVA_GATEWAY_TOKEN and should be reinstalled.",
+    detail: `Run \`${formatCliCommand("kova gateway install --force")}\` to remove embedded service token.`,
     level: "recommended",
   });
   const expectedToken = normalizeOptionalString(expectedGatewayToken);
@@ -241,8 +241,7 @@ function auditGatewayToken(
   }
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenMismatch,
-    message:
-      "Gateway service OPENCLAW_GATEWAY_TOKEN does not match gateway.auth.token in openclaw.json",
+    message: "Gateway service KOVA_GATEWAY_TOKEN does not match gateway.auth.token in kova.json",
     detail: "service token is stale",
     level: "recommended",
   });
@@ -329,10 +328,17 @@ export function readEmbeddedGatewayToken(command: GatewayServiceCommand): string
   if (!command) {
     return undefined;
   }
-  if (isEnvironmentFileOnlySource(command.environmentValueSources?.OPENCLAW_GATEWAY_TOKEN)) {
+  const envSources = command.environmentValueSources ?? {};
+  if (
+    isEnvironmentFileOnlySource(envSources.KOVA_GATEWAY_TOKEN) ||
+    isEnvironmentFileOnlySource(envSources.OPENCLAW_GATEWAY_TOKEN)
+  ) {
     return undefined;
   }
-  return normalizeOptionalString(command.environment?.OPENCLAW_GATEWAY_TOKEN);
+  return (
+    normalizeOptionalString(command.environment?.KOVA_GATEWAY_TOKEN) ||
+    normalizeOptionalString(command.environment?.OPENCLAW_GATEWAY_TOKEN)
+  );
 }
 
 function getPathModule(platform: NodeJS.Platform) {
@@ -508,7 +514,7 @@ export function checkTokenDrift(params: {
       code: SERVICE_AUDIT_CODES.gatewayTokenDrift,
       message:
         "Config token differs from service token. The daemon will use the old token after restart.",
-      detail: `Run \`${formatCliCommand("openclaw gateway install --force")}\` to sync the token.`,
+      detail: `Run \`${formatCliCommand("kova gateway install --force")}\` to sync the token.`,
       level: "recommended",
     };
   }

@@ -57,7 +57,12 @@ export function resolveCliContainerTarget(
   if (!parsed.ok) {
     throw new Error(parsed.error);
   }
-  return parsed.container ?? normalizeOptionalString(env.OPENCLAW_CONTAINER) ?? null;
+  return (
+    parsed.container ??
+    normalizeOptionalString(env.KOVA_CONTAINER) ??
+    normalizeOptionalString(env.OPENCLAW_CONTAINER) ??
+    null
+  );
 }
 
 function isContainerRunning(params: {
@@ -137,9 +142,9 @@ function buildContainerExecArgs(params: {
     "exec",
     ...interactiveFlags,
     envFlag,
-    `OPENCLAW_CONTAINER_HINT=${params.containerName}`,
+    `KOVA_CONTAINER_HINT=${params.containerName}`,
     envFlag,
-    "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+    "KOVA_CLI_CONTAINER_BYPASS=1",
     params.containerName,
     "kova",
     ...params.argv,
@@ -160,10 +165,13 @@ function buildContainerExecEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   delete next.OPENCLAW_GATEWAY_URL;
   delete next.OPENCLAW_GATEWAY_TOKEN;
   delete next.OPENCLAW_GATEWAY_PASSWORD;
+  delete next.KOVA_CONTAINER;
+  delete next.OPENCLAW_CONTAINER_HINT;
+  delete next.OPENCLAW_CONTAINER;
+  delete next.OPENCLAW_CLI_CONTAINER_BYPASS;
   // The child CLI should render container-aware follow-up commands via
-  // OPENCLAW_CONTAINER_HINT, but it should not treat itself as still
+  // KOVA_CONTAINER_HINT, but it should not treat itself as still
   // container-targeted for validation/routing.
-  next.OPENCLAW_CONTAINER = "";
   return next;
 }
 
@@ -202,7 +210,10 @@ export function maybeRunCliInContainer(
     stdoutIsTTY: deps?.stdoutIsTTY ?? process.stdout.isTTY,
   };
 
-  if (resolvedDeps.env.OPENCLAW_CLI_CONTAINER_BYPASS === "1") {
+  if (
+    resolvedDeps.env.KOVA_CLI_CONTAINER_BYPASS === "1" ||
+    resolvedDeps.env.OPENCLAW_CLI_CONTAINER_BYPASS === "1"
+  ) {
     return { handled: false, argv };
   }
 

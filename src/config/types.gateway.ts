@@ -83,12 +83,12 @@ export type TalkConfigResponse = TalkConfig & {
 export type GatewayControlUiConfig = {
   /** If false, the Gateway will not serve the Control UI (default /). */
   enabled?: boolean;
-  /** Optional base path prefix for the Control UI (e.g. "/openclaw"). */
+  /** Optional base path prefix for the web console (e.g. "/kova"). */
   basePath?: string;
-  /** Optional filesystem root for Control UI assets (defaults to dist/control-ui). */
+  /** Optional filesystem root for web console assets (defaults to dist/control-ui). */
   root?: string;
   /**
-   * Embed sandbox mode for hosted Control UI previews.
+   * Embed sandbox mode for hosted web console previews.
    * - strict: no script execution inside embeds
    * - scripts: allow scripts while keeping embeds origin-isolated (default)
    * - trusted: allow scripts and same-origin privileges
@@ -96,10 +96,10 @@ export type GatewayControlUiConfig = {
   embedSandbox?: "strict" | "scripts" | "trusted";
   /**
    * DANGEROUS: Allow hosted embeds to load absolute external http(s) URLs.
-   * Default off; prefer hosted /__openclaw__/canvas or /__openclaw__/a2ui content.
+   * Default off; prefer hosted /__kova__/canvas or /__kova__/a2ui content.
    */
   allowExternalEmbedUrls?: boolean;
-  /** Allowed browser origins for Control UI/WebChat websocket connections. */
+  /** Allowed browser origins for web console websocket connections. */
   allowedOrigins?: string[];
   /**
    * DANGEROUS: Keep Host-header origin fallback behavior.

@@ -222,7 +222,7 @@ export async function monitorMSTeamsProvider(
   const conversationStore = opts.conversationStore ?? createMSTeamsConversationStoreFs();
   const pollStore = opts.pollStore ?? createMSTeamsPollStoreFs();
 
-  log.info(`starting provider (port ${port})`);
+  log.info(`connector online (port ${port})`);
 
   // Dynamic import to avoid loading SDK when provider is disabled
   const express = await import("express");

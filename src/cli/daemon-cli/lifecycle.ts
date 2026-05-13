@@ -1,6 +1,7 @@
 import { isRestartEnabled } from "../../config/commands.flags.js";
 import { readBestEffortConfig, resolveGatewayPort } from "../../config/config.js";
 import { resolveGatewayService } from "../../daemon/service.js";
+import { readGatewayCredentialEnv } from "../../gateway/credentials.js";
 import { probeGateway } from "../../gateway/probe.js";
 import {
   findVerifiedGatewayListenerPidsOnPortSync,
@@ -8,7 +9,6 @@ import {
   signalVerifiedGatewayPidSync,
 } from "../../infra/gateway-processes.js";
 import { defaultRuntime } from "../../runtime.js";
-import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { theme } from "../../terminal/theme.js";
 import { formatCliCommand } from "../command-format.js";
 import { recoverInstalledLaunchAgent } from "./launchd-recovery.js";
@@ -85,8 +85,12 @@ async function assertUnmanagedGatewayRestartEnabled(port: number): Promise<void>
   const probe = await probeGateway({
     url: `${scheme}://127.0.0.1:${port}`,
     auth: {
-      token: normalizeOptionalString(process.env.OPENCLAW_GATEWAY_TOKEN),
-      password: normalizeOptionalString(process.env.OPENCLAW_GATEWAY_PASSWORD),
+      token: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+      password: readGatewayCredentialEnv(
+        process.env,
+        "KOVA_GATEWAY_PASSWORD",
+        "OPENCLAW_GATEWAY_PASSWORD",
+      ),
     },
     timeoutMs: 1_000,
   }).catch(() => null);
@@ -129,7 +133,7 @@ async function restartGatewayWithoutServiceManager(port: number) {
   }
   if (pids.length > 1) {
     throw new Error(
-      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "${formatCliCommand("openclaw gateway status --deep")}" before retrying restart`,
+      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "${formatCliCommand("kova gateway status --deep")}" before retrying restart`,
     );
   }
   signalVerifiedGatewayPidSync(pids[0], "SIGUSR1");
@@ -238,8 +242,8 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
         }
 
         fail(`Gateway restart timed out after ${restartWaitSeconds}s waiting for health checks.`, [
-          formatCliCommand("openclaw gateway status --deep"),
-          formatCliCommand("openclaw doctor"),
+          formatCliCommand("kova gateway status --deep"),
+          formatCliCommand("kova doctor"),
         ]);
         throw new Error("unreachable after gateway restart health failure");
       }
@@ -305,8 +309,8 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
       }
 
       fail(failure.failMessage, [
-        formatCliCommand("openclaw gateway status --deep"),
-        formatCliCommand("openclaw doctor"),
+        formatCliCommand("kova gateway status --deep"),
+        formatCliCommand("kova doctor"),
       ]);
       throw new Error("unreachable after gateway restart failure");
     },

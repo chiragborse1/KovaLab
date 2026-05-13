@@ -30,7 +30,7 @@ describe("gateway startup log", () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("gateway.controlUi.dangerouslyDisableDeviceAuth=true"),
     );
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("openclaw security audit"));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("kova security audit"));
   });
 
   it("does not warn when dangerous config flags are disabled", () => {
@@ -69,9 +69,9 @@ describe("gateway startup log", () => {
 
     const listeningMessages = info.mock.calls
       .map((call) => call[0])
-      .filter((message) => message.startsWith("http server listening ("));
+      .filter((message) => message.startsWith("control plane online ("));
     expect(listeningMessages).toEqual([
-      "http server listening (3 plugins: alpha, beta, delta; 16.0s)",
+      "control plane online (3 plugins: alpha, beta, delta; 16.0s)",
     ]);
   });
 });

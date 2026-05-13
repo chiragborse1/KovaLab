@@ -23,19 +23,19 @@ export function logGatewayStartup(params: {
     defaultModel: DEFAULT_MODEL,
   });
   const modelRef = `${agentProvider}/${agentModel}`;
-  params.log.info(`agent model: ${modelRef}`, {
-    consoleMessage: `agent model: ${chalk.whiteBright(modelRef)}`,
+  params.log.info(`runtime model: ${modelRef}`, {
+    consoleMessage: `runtime model: ${chalk.whiteBright(modelRef)}`,
   });
   const startupDurationMs =
     typeof params.startupStartedAt === "number" ? Date.now() - params.startupStartedAt : null;
   const startupDurationLabel =
     startupDurationMs == null ? null : `${(startupDurationMs / 1000).toFixed(1)}s`;
   params.log.info(
-    `http server listening (${formatReadyDetails(params.loadedPluginIds, startupDurationLabel)})`,
+    `control plane online (${formatReadyDetails(params.loadedPluginIds, startupDurationLabel)})`,
   );
-  params.log.info(`log file: ${getResolvedLoggerSettings().file}`);
+  params.log.info(`operator log: ${getResolvedLoggerSettings().file}`);
   if (params.isNixMode) {
-    params.log.info("gateway: running in Nix mode (config managed externally)");
+    params.log.info("runtime: running in Nix mode (config managed externally)");
   }
 
   const enabledDangerousFlags = collectEnabledInsecureOrDangerousFlags(params.cfg);

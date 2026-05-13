@@ -100,7 +100,7 @@ describe("status-all format", () => {
           },
         },
       }),
-    ).toBe("http://127.0.0.1:18789/ui/");
+    ).toBe("http://127.0.0.1:18790/ui/");
     expect(
       resolveStatusDashboardUrl({
         cfg: {
@@ -110,7 +110,7 @@ describe("status-all format", () => {
           },
         },
       }),
-    ).toBe("https://127.0.0.1:18789/");
+    ).toBe("https://127.0.0.1:18790/");
     expect(
       resolveStatusDashboardUrl({
         cfg: {
@@ -234,7 +234,7 @@ describe("status-all format", () => {
         decorateWarn: (value) => `warn(${value})`,
       }),
     ).toEqual({
-      dashboardUrl: "http://127.0.0.1:18789/",
+      dashboardUrl: "http://127.0.0.1:18790/",
       gatewayValue:
         "remote · wss://gateway.example.com (config) · ok(reachable 123ms) · auth token · gateway app 1.2.3",
       gatewaySelfValue: "gateway app 1.2.3",
@@ -291,7 +291,7 @@ describe("status-all format", () => {
         updateValue: "up to date",
         gatewayValue: "local · reachable",
         gatewayAuthWarning: "warning",
-        middleRows: [{ Item: "Security", Value: "Run: openclaw security audit --deep" }],
+        middleRows: [{ Item: "Security", Value: "Run: kova security audit --deep" }],
         gatewaySelfValue: "gateway-host",
         gatewayServiceValue: "launchd loaded",
         nodeServiceValue: "node loaded",
@@ -307,7 +307,7 @@ describe("status-all format", () => {
       { Item: "Update", Value: "up to date" },
       { Item: "Gateway", Value: "local · reachable" },
       { Item: "Gateway auth warning", Value: "warning" },
-      { Item: "Security", Value: "Run: openclaw security audit --deep" },
+      { Item: "Security", Value: "Run: kova security audit --deep" },
       { Item: "Gateway self", Value: "gateway-host" },
       { Item: "Gateway service", Value: "launchd loaded" },
       { Item: "Node service", Value: "node loaded" },
@@ -372,7 +372,7 @@ describe("status-all format", () => {
       }),
     ).toEqual([
       { Item: "Version", Value: "1.0.0" },
-      { Item: "Dashboard", Value: "http://127.0.0.1:18789/" },
+      { Item: "Dashboard", Value: "http://127.0.0.1:18790/" },
       { Item: "Tailscale exposure", Value: "serve · box.tail.ts.net · https://box.tail.ts.net" },
       { Item: "Channel", Value: "stable (config)" },
       { Item: "Git", Value: "main · tag v1.2.3" },

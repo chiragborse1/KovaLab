@@ -167,7 +167,7 @@ export function collectGatewayConfigFindings(
       severity: exposed ? "critical" : "warn",
       title: "Control UI allowed origins contains wildcard",
       detail:
-        'gateway.controlUi.allowedOrigins includes "*" which means allow any browser origin for Control UI/WebChat requests. This disables origin allowlisting and should be treated as an intentional allow-all policy.',
+        'gateway.controlUi.allowedOrigins includes "*" which means allow any browser origin for web console requests. This disables origin allowlisting and should be treated as an intentional allow-all policy.',
       remediation:
         'Replace wildcard origins with explicit trusted origins (for example https://control.example.com). Do not use "*" outside tightly controlled local testing.',
     });
@@ -180,7 +180,7 @@ export function collectGatewayConfigFindings(
       title: "DANGEROUS: Host-header origin fallback enabled",
       detail:
         "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true enables Host-header origin fallback " +
-        "for Control UI/WebChat websocket checks and weakens DNS rebinding protections.",
+        "for web console websocket checks and weakens DNS rebinding protections.",
       remediation:
         "Disable gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback and configure explicit gateway.controlUi.allowedOrigins.",
     });
@@ -240,9 +240,9 @@ export function collectGatewayConfigFindings(
     findings.push({
       checkId: "gateway.control_ui.insecure_auth",
       severity: "warn",
-      title: "Control UI insecure auth toggle enabled",
+      title: "Web console insecure auth toggle enabled",
       detail:
-        "gateway.controlUi.allowInsecureAuth=true does not bypass secure context or device identity checks; only dangerouslyDisableDeviceAuth disables Control UI device identity checks.",
+        "gateway.controlUi.allowInsecureAuth=true does not bypass secure context or device identity checks; only dangerouslyDisableDeviceAuth disables web console device identity checks.",
       remediation: "Disable it or switch to HTTPS (Tailscale Serve) or localhost.",
     });
   }
@@ -251,9 +251,9 @@ export function collectGatewayConfigFindings(
     findings.push({
       checkId: "gateway.control_ui.device_auth_disabled",
       severity: "critical",
-      title: "DANGEROUS: Control UI device auth disabled",
+      title: "DANGEROUS: web console device auth disabled",
       detail:
-        "gateway.controlUi.dangerouslyDisableDeviceAuth=true disables device identity checks for the Control UI.",
+        "gateway.controlUi.dangerouslyDisableDeviceAuth=true disables device identity checks for the web console.",
       remediation: "Disable it unless you are in a short-lived break-glass scenario.",
     });
   }

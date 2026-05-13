@@ -1,19 +1,21 @@
 import fs from "node:fs";
 import path from "node:path";
+import { normalizeChatChannelId } from "../channels/ids.js";
 import { resolveBundledInstallPlanForCatalogEntry } from "../cli/plugin-install-plan.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
+import { isPrereleaseSemverVersion, parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import {
   findBundledPluginSourceInMap,
   resolveBundledPluginSources,
 } from "../plugins/bundled-sources.js";
 import { enablePluginInConfig, type PluginEnableResult } from "../plugins/enable.js";
-import { installPluginFromNpmSpec } from "../plugins/install.js";
+import { installPluginFromNpmSpec, resolvePluginInstallDir } from "../plugins/install.js";
 import { buildNpmResolutionInstallFields, recordPluginInstall } from "../plugins/installs.js";
 import type { PluginPackageInstall } from "../plugins/manifest.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { sanitizeTerminalText } from "../terminal/safe-text.js";
 import { withTimeout } from "../utils/with-timeout.js";
+import { VERSION } from "../version.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 
 type InstallChoice = "npm" | "local" | "skip";
@@ -239,13 +241,38 @@ function resolveBundledLocalPath(params: {
   );
 }
 
-function resolveNpmSpecForOnboarding(install: PluginPackageInstall): string | null {
+function resolveExistingInstalledPluginDir(pluginId: string): string | null {
+  try {
+    const targetDir = resolvePluginInstallDir(pluginId);
+    return fs.existsSync(targetDir) && fs.statSync(targetDir).isDirectory() ? targetDir : null;
+  } catch {
+    return null;
+  }
+}
+
+function shouldUseBetaPluginSpec(cfg: OpenClawConfig): boolean {
+  return cfg.update?.channel === "beta" || isPrereleaseSemverVersion(VERSION);
+}
+
+function resolveNpmSpecForOnboarding(
+  install: PluginPackageInstall,
+  cfg: OpenClawConfig,
+): string | null {
   const npmSpec = install.npmSpec?.trim();
   if (!npmSpec) {
     return null;
   }
   const parsed = parseRegistryNpmSpec(npmSpec);
-  return parsed ? npmSpec : null;
+  if (!parsed) {
+    return null;
+  }
+  if (
+    shouldUseBetaPluginSpec(cfg) &&
+    (parsed.selectorKind === "none" || parsed.selector === "latest")
+  ) {
+    return `${parsed.name}@beta`;
+  }
+  return npmSpec;
 }
 
 function resolveInstallDefaultChoice(params: {
@@ -283,12 +310,13 @@ function resolveInstallDefaultChoice(params: {
 }
 
 async function promptInstallChoice(params: {
+  cfg: OpenClawConfig;
   entry: OnboardingPluginInstallEntry;
   localPath?: string | null;
   defaultChoice: InstallChoice;
   prompter: WizardPrompter;
 }): Promise<InstallChoice> {
-  const npmSpec = resolveNpmSpecForOnboarding(params.entry.install);
+  const npmSpec = resolveNpmSpecForOnboarding(params.entry.install, params.cfg);
   const safeLabel = sanitizeTerminalText(params.entry.label);
   const safeNpmSpec = npmSpec ? sanitizeTerminalText(npmSpec) : null;
   const safeLocalPath = params.localPath ? sanitizeTerminalText(params.localPath) : null;
@@ -352,7 +380,31 @@ async function applyPluginEnablement(params: {
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
 }): Promise<PluginEnableResult> {
-  const enableResult = enablePluginInConfig(params.cfg, params.pluginId);
+  let enableResult = enablePluginInConfig(params.cfg, params.pluginId);
+  if (!enableResult.enabled && enableResult.reason === "blocked by allowlist") {
+    const resolvedId = normalizeChatChannelId(params.pluginId) ?? params.pluginId;
+    const allow = params.cfg.plugins?.allow;
+    if (Array.isArray(allow) && allow.length > 0) {
+      const nextAllow = Array.from(new Set([...allow, params.pluginId, resolvedId]));
+      enableResult = enablePluginInConfig(
+        {
+          ...params.cfg,
+          plugins: {
+            ...params.cfg.plugins,
+            allow: nextAllow,
+          },
+        },
+        params.pluginId,
+      );
+      if (enableResult.enabled) {
+        await params.prompter.note(
+          `Added ${sanitizeTerminalText(resolvedId)} to plugins.allow and enabled it.`,
+          "Plugin install",
+        );
+        return enableResult;
+      }
+    }
+  }
   if (enableResult.enabled) {
     return enableResult;
   }
@@ -391,6 +443,7 @@ async function installPluginFromNpmSpecWithProgress(params: {
     const result = await withTimeout(
       installPluginFromNpmSpec({
         spec: params.npmSpec,
+        mode: "update",
         timeoutMs: ONBOARDING_PLUGIN_INSTALL_TIMEOUT_MS,
         expectedIntegrity: params.entry.install.expectedIntegrity,
         logger: {
@@ -448,7 +501,7 @@ export async function ensureOnboardingPluginInstalled(params: {
       workspaceDir,
       allowLocal,
     });
-  const npmSpec = resolveNpmSpecForOnboarding(entry.install);
+  const npmSpec = resolveNpmSpecForOnboarding(entry.install, next);
   const defaultChoice = resolveInstallDefaultChoice({
     cfg: next,
     entry,
@@ -468,6 +521,7 @@ export async function ensureOnboardingPluginInstalled(params: {
         : params.autoConfirmSingleSource && installSources.length === 1
           ? installSources[0]
           : await promptInstallChoice({
+              cfg: next,
               entry,
               localPath,
               defaultChoice,
@@ -530,6 +584,41 @@ export async function ensureOnboardingPluginInstalled(params: {
       installed: false,
       pluginId: entry.pluginId,
       status: "failed",
+    };
+  }
+
+  const existingInstallPath = resolveExistingInstalledPluginDir(entry.pluginId);
+  if (existingInstallPath) {
+    const enableResult = await applyPluginEnablement({
+      cfg: next,
+      pluginId: entry.pluginId,
+      label: entry.label,
+      prompter,
+      runtime,
+    });
+    if (!enableResult.enabled) {
+      return {
+        cfg: enableResult.config,
+        installed: false,
+        pluginId: entry.pluginId,
+        status: "failed",
+      };
+    }
+    await prompter.note(
+      `Using existing ${sanitizeTerminalText(entry.label)} plugin install at ${sanitizeTerminalText(existingInstallPath)}.`,
+      "Plugin install",
+    );
+    next = recordPluginInstall(enableResult.config, {
+      pluginId: entry.pluginId,
+      source: "npm",
+      spec: npmSpec,
+      installPath: existingInstallPath,
+    });
+    return {
+      cfg: next,
+      installed: true,
+      pluginId: entry.pluginId,
+      status: "installed",
     };
   }
 

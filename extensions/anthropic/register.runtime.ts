@@ -70,7 +70,7 @@ const ANTHROPIC_SETUP_TOKEN_NOTE_LINES = [
   "Anthropic setup-token auth is supported in OpenClaw.",
   "OpenClaw prefers Claude CLI reuse when it is available on the host.",
   "Anthropic staff told us this OpenClaw path is allowed again.",
-  `If you want a direct API billing path instead, use ${formatCliCommand("openclaw models auth login --provider anthropic --method api-key --set-default")} or ${formatCliCommand("openclaw models auth login --provider anthropic --method cli --set-default")}.`,
+  `If you want a direct API billing path instead, use ${formatCliCommand("kova models auth login --provider anthropic --method api-key --set-default")} or ${formatCliCommand("kova models auth login --provider anthropic --method cli --set-default")}.`,
 ] as const;
 
 const CLAUDE_CLI_CANONICAL_ALLOWLIST_REFS = CLAUDE_CLI_DEFAULT_ALLOWLIST_REFS.map((ref) =>

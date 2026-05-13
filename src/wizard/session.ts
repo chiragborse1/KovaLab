@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { WizardCancelledError, type WizardProgress, type WizardPrompter } from "./prompts.js";
+import {
+  WizardCancelledError,
+  type WizardActionParams,
+  type WizardProgress,
+  type WizardPrompter,
+} from "./prompts.js";
 
 export type WizardStepOption = {
   value: unknown;
@@ -16,6 +21,10 @@ export type WizardStep = {
   initialValue?: unknown;
   placeholder?: string;
   sensitive?: boolean;
+  imageDataUrl?: string;
+  primaryLabel?: string;
+  secondaryLabel?: string;
+  dangerLabel?: string;
   executor?: "gateway" | "client";
 };
 
@@ -42,6 +51,16 @@ function createDeferred<T>(): Deferred<T> {
     reject = rej;
   });
   return { promise, resolve, reject };
+}
+
+function isSensitiveTextPrompt(params: { message: string; placeholder?: string }): boolean {
+  const text = `${params.message} ${params.placeholder ?? ""}`.toLowerCase();
+  return (
+    text.includes("api key") ||
+    text.includes("token") ||
+    text.includes("password") ||
+    text.includes("secret")
+  );
 }
 
 class WizardSessionPrompter implements WizardPrompter {
@@ -118,6 +137,7 @@ class WizardSessionPrompter implements WizardPrompter {
       message: params.message,
       initialValue: params.initialValue,
       placeholder: params.placeholder,
+      sensitive: isSensitiveTextPrompt(params),
       executor: "client",
     });
     const value =
@@ -145,10 +165,36 @@ class WizardSessionPrompter implements WizardPrompter {
     return Boolean(res);
   }
 
+  async action(params: WizardActionParams): Promise<string> {
+    const res = await this.prompt({
+      type: "action",
+      title: params.title,
+      message: params.message,
+      imageDataUrl: params.imageDataUrl,
+      primaryLabel: params.primaryLabel,
+      secondaryLabel: params.secondaryLabel,
+      dangerLabel: params.dangerLabel,
+      executor: "client",
+    });
+    return typeof res === "string" ? res : "primary";
+  }
+
   progress(_label: string): WizardProgress {
+    const stepId = randomUUID();
+    this.session.pushStep({
+      id: stepId,
+      type: "progress",
+      title: _label,
+      message: _label,
+      executor: "gateway",
+    });
     return {
-      update: (_message) => {},
-      stop: (_message) => {},
+      update: (message) => {
+        this.session.updateProgressStep(stepId, message);
+      },
+      stop: (message) => {
+        this.session.stopProgressStep(stepId, message);
+      },
     };
   }
 
@@ -221,6 +267,30 @@ export class WizardSession {
   pushStep(step: WizardStep) {
     this.currentStep = step;
     this.resolveStep(step);
+  }
+
+  updateProgressStep(stepId: string, message: string) {
+    if (this.currentStep?.id !== stepId || this.currentStep.type !== "progress") {
+      return;
+    }
+    this.currentStep = {
+      ...this.currentStep,
+      message,
+    };
+    this.resolveStep(this.currentStep);
+  }
+
+  stopProgressStep(stepId: string, message?: string) {
+    if (this.currentStep?.id !== stepId || this.currentStep.type !== "progress") {
+      return;
+    }
+    if (message) {
+      this.currentStep = {
+        ...this.currentStep,
+        message,
+      };
+    }
+    this.currentStep = null;
   }
 
   private async run(prompter: WizardPrompter) {

@@ -78,7 +78,6 @@ import {
   prepareGatewayStartupConfig,
 } from "./server-startup-config.js";
 import { prepareGatewayPluginBootstrap } from "./server-startup-plugins.js";
-import { STARTUP_UNAVAILABLE_GATEWAY_METHODS } from "./server-startup-unavailable-methods.js";
 import { startGatewayEarlyRuntime, startGatewayPostAttachRuntime } from "./server-startup.js";
 import { createWizardSessionTracker } from "./server-wizard-sessions.js";
 import { attachGatewayWsHandlers } from "./server-ws-runtime.js";
@@ -135,13 +134,15 @@ const logCron = log.child("cron");
 const logReload = log.child("reload");
 const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
-const logWsControl = log.child("ws");
+const logWsControl = log.child("rpc");
 const logSecrets = log.child("secrets");
 const gatewayRuntime = runtimeForLogger(log);
 const canvasRuntime = runtimeForLogger(logCanvas);
 
 function createGatewayStartupTrace() {
-  const enabled = isTruthyEnvValue(process.env.OPENCLAW_GATEWAY_STARTUP_TRACE);
+  const enabled = isTruthyEnvValue(
+    process.env.KOVA_GATEWAY_STARTUP_TRACE ?? process.env.OPENCLAW_GATEWAY_STARTUP_TRACE,
+  );
   const eventLoopDelay = enabled ? monitorEventLoopDelay({ resolution: 10 }) : undefined;
   eventLoopDelay?.enable();
   const started = performance.now();
@@ -271,8 +272,8 @@ export type GatewayServerOptions = {
     prompter: import("../wizard/prompts.js").WizardPrompter,
   ) => Promise<void>;
   /**
-   * Let post-listen sidecars (channels, plugin services) finish in the background.
-   * Defaults to false so gateway startup waits until sidecars are ready.
+   * Let post-listen connectors and plugin services finish in the background.
+   * Defaults to true so the control plane is usable before connectors finish warming.
    */
   deferStartupSidecars?: boolean;
   /**
@@ -538,7 +539,6 @@ export async function startGatewayServer(
     throw new Error(gatewayTls.error ?? "gateway tls: failed to enable");
   }
   const serverStartedAt = Date.now();
-  let startupSidecarsReady = minimalTestGateway;
   const channelManager = createChannelManager({
     getRuntimeConfig: () =>
       applyPluginAutoEnable({
@@ -552,9 +552,8 @@ export async function startGatewayServer(
   const getReadiness = createReadinessChecker({
     channelManager,
     startedAt: serverStartedAt,
-    getStartupPending: () => !startupSidecarsReady,
   });
-  log.info("starting HTTP server...");
+  log.info("control plane: binding http listener");
   const {
     canvasHost,
     releasePluginRouteRegistry,
@@ -782,9 +781,7 @@ export async function startGatewayServer(
 
     const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
-    const unavailableGatewayMethods = new Set<string>(
-      minimalTestGateway ? [] : STARTUP_UNAVAILABLE_GATEWAY_METHODS,
-    );
+    const unavailableGatewayMethods = new Set<string>();
     const gatewayRequestContext = createGatewayRequestContext({
       deps,
       runtimeState,
@@ -925,11 +922,8 @@ export async function startGatewayServer(
         onPluginServices: (pluginServices) => {
           runtimeState.pluginServices = pluginServices;
         },
-        onSidecarsReady: () => {
-          startupSidecarsReady = true;
-        },
         startupTrace,
-        deferSidecars: opts.deferStartupSidecars === true,
+        deferSidecars: opts.deferStartupSidecars !== false,
       }),
     ));
     startupTrace.mark("ready");

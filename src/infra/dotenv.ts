@@ -27,6 +27,44 @@ const BLOCKED_WORKSPACE_DOTENV_KEYS = new Set([
   "MINIMAX_API_HOST",
   "NODE_TLS_REJECT_UNAUTHORIZED",
   "NO_PROXY",
+  "KOVA_AGENT_DIR",
+  "KOVA_ALLOW_INSECURE_PRIVATE_WS",
+  "KOVA_ALLOW_PROJECT_LOCAL_BIN",
+  "KOVA_BROWSER_CONTROL_MODULE",
+  "KOVA_BROWSER_EXECUTABLE_PATH",
+  "KOVA_BUNDLED_HOOKS_DIR",
+  "KOVA_BUNDLED_PLUGINS_DIR",
+  "KOVA_BUNDLED_SKILLS_DIR",
+  "KOVA_CACHE_TRACE",
+  "KOVA_CACHE_TRACE_FILE",
+  "KOVA_CACHE_TRACE_MESSAGES",
+  "KOVA_CACHE_TRACE_PROMPT",
+  "KOVA_CACHE_TRACE_SYSTEM",
+  "KOVA_CONFIG_PATH",
+  "KOVA_GATEWAY_PASSWORD",
+  "KOVA_GATEWAY_PORT",
+  "KOVA_GATEWAY_SECRET",
+  "KOVA_GATEWAY_TOKEN",
+  "KOVA_GATEWAY_URL",
+  "KOVA_HOME",
+  "KOVA_LIVE_ANTHROPIC_KEY",
+  "KOVA_LIVE_ANTHROPIC_KEYS",
+  "KOVA_LIVE_GEMINI_KEY",
+  "KOVA_LIVE_OPENAI_KEY",
+  "KOVA_MPM_CATALOG_PATHS",
+  "KOVA_NODE_EXEC_FALLBACK",
+  "KOVA_NODE_EXEC_HOST",
+  "KOVA_OAUTH_DIR",
+  "KOVA_PINNED_PYTHON",
+  "KOVA_PINNED_WRITE_PYTHON",
+  "KOVA_PLUGIN_CATALOG_PATHS",
+  "KOVA_PROFILE",
+  "KOVA_RAW_STREAM",
+  "KOVA_RAW_STREAM_PATH",
+  "KOVA_SHOW_SECRETS",
+  "KOVA_SKIP_BROWSER_CONTROL_SERVER",
+  "KOVA_STATE_DIR",
+  "KOVA_TEST_TAILSCALE_BINARY",
   "OPENAI_API_KEY",
   "OPENAI_API_KEYS",
   "OPENCLAW_AGENT_DIR",
@@ -84,6 +122,11 @@ const BLOCKED_WORKSPACE_DOTENV_PREFIXES = [
   "OPENAI_API_KEY_",
   // Workspace .env is untrusted; reserve the full OpenClaw runtime namespace
   // for shell/global config so new OPENCLAW_* controls are fail-closed by default.
+  "KOVA_",
+  "KOVA_CLAWHUB_",
+  "KOVA_DISABLE_",
+  "KOVA_SKIP_",
+  "KOVA_UPDATE_",
   "OPENCLAW_",
   "OPENCLAW_CLAWHUB_",
   "OPENCLAW_DISABLE_",
@@ -96,7 +139,7 @@ function shouldBlockWorkspaceRuntimeDotEnvKey(key: string): boolean {
 }
 
 function shouldBlockRuntimeDotEnvKey(key: string): boolean {
-  // The global ~/.openclaw/.env (or OPENCLAW_STATE_DIR/.env) is a trusted
+  // The global ~/.kova/.env (or KOVA_STATE_DIR/.env) is a trusted
   // operator-controlled runtime surface. Workspace .env is untrusted and gets
   // the strict blocklist, but the trusted global fallback is allowed to set
   // runtime vars like proxy/base-url/auth values.
@@ -247,11 +290,11 @@ export function loadGlobalRuntimeDotEnvFiles(opts?: { quiet?: boolean; stateEnvP
   const stateEnvPath = opts?.stateEnvPath ?? path.join(resolveConfigDir(process.env), ".env");
   const defaultStateEnvPath = path.join(
     resolveRequiredHomeDir(process.env, os.homedir),
-    ".openclaw",
+    ".kova",
     ".env",
   );
   const hasExplicitNonDefaultStateDir =
-    process.env.OPENCLAW_STATE_DIR?.trim() !== undefined &&
+    process.env.KOVA_STATE_DIR?.trim() !== undefined &&
     path.resolve(stateEnvPath) !== path.resolve(defaultStateEnvPath);
   const parsedFiles = [
     readDotEnvFile({
@@ -266,7 +309,7 @@ export function loadGlobalRuntimeDotEnvFiles(opts?: { quiet?: boolean; stateEnvP
         filePath: path.join(
           resolveRequiredHomeDir(process.env, os.homedir),
           ".config",
-          "openclaw",
+          "kova",
           "gateway.env",
         ),
         shouldBlockKey: shouldBlockRuntimeDotEnvKey,
@@ -283,7 +326,7 @@ export function loadDotEnv(opts?: { quiet?: boolean }) {
   const cwdEnvPath = path.join(process.cwd(), ".env");
   loadWorkspaceDotEnvFile(cwdEnvPath, { quiet });
 
-  // Then load global fallback: ~/.openclaw/.env (or OPENCLAW_STATE_DIR/.env),
+  // Then load global fallback: ~/.kova/.env (or KOVA_STATE_DIR/.env),
   // without overriding any env vars already present.
   loadGlobalRuntimeDotEnvFiles({ quiet });
 }

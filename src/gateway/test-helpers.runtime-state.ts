@@ -163,7 +163,7 @@ export const sessionStoreSaveDelayMs = gatewayTestHoisted.sessionStoreSaveDelayM
 export const embeddedRunMock = gatewayTestHoisted.embeddedRunMock;
 
 export const testConfigRoot = resolveGlobalSingleton(GATEWAY_TEST_CONFIG_ROOT_KEY, () => ({
-  value: path.join(os.tmpdir(), `openclaw-gateway-test-${process.pid}-${crypto.randomUUID()}`),
+  value: path.join(os.tmpdir(), `kova-gateway-test-${process.pid}-${crypto.randomUUID()}`),
 }));
 
 export function setTestConfigRoot(root: string): void {

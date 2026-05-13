@@ -26,5 +26,7 @@ export type TelegramBotOptions = {
   };
   /** Pre-resolved Telegram transport to reuse across bot instances. If not provided, creates a new one. */
   telegramTransport?: TelegramTransport;
+  /** Minimum grammY client timeout required by caller-owned startup/control operations. */
+  minimumClientTimeoutSeconds?: number;
   telegramDeps?: TelegramBotDeps;
 };

@@ -9,6 +9,7 @@ import { sanitizeForLog } from "../terminal/ansi.js";
 import { resolveUserPath } from "../utils.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { loadBundleManifest } from "./bundle-manifest.js";
+import { readPluginCacheEnv } from "./cache-controls.js";
 import {
   normalizePluginsConfigWithResolver,
   type NormalizedPluginsConfig,
@@ -183,7 +184,11 @@ const DEFAULT_MANIFEST_CACHE_MS = 1000;
 export { clearPluginManifestRegistryCache } from "./manifest-registry-state.js";
 
 function resolveManifestCacheMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.OPENCLAW_PLUGIN_MANIFEST_CACHE_MS?.trim();
+  const raw = readPluginCacheEnv(
+    env,
+    "KOVA_PLUGIN_MANIFEST_CACHE_MS",
+    "OPENCLAW_PLUGIN_MANIFEST_CACHE_MS",
+  )?.trim();
   if (raw === "" || raw === "0") {
     return 0;
   }

@@ -73,7 +73,7 @@ export async function startIMessageGatewayAccount(
     dbPath: dbPath ?? null,
   });
   ctx.log?.info?.(
-    `[${account.accountId}] starting provider (${cliPath}${dbPath ? ` db=${dbPath}` : ""})`,
+    `[${account.accountId}] connector online (${cliPath}${dbPath ? ` db=${dbPath}` : ""})`,
   );
   return await monitorIMessageProvider({
     accountId: account.accountId,

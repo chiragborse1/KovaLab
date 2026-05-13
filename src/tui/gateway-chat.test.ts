@@ -172,19 +172,31 @@ describe("resolveGatewayConnection", () => {
   it("uses config auth token for local mode when both config and env tokens are set", async () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local", auth: { token: "config-token" } } });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+    await withEnvAsync({ KOVA_GATEWAY_TOKEN: "env-token" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.token).toBe("config-token");
     });
   });
 
-  it("falls back to OPENCLAW_GATEWAY_TOKEN when config token is missing", async () => {
+  it("falls back to KOVA_GATEWAY_TOKEN when config token is missing", async () => {
     loadConfig.mockReturnValue({ gateway: { mode: "local" } });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+    await withEnvAsync({ KOVA_GATEWAY_TOKEN: "env-token" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.token).toBe("env-token");
     });
+  });
+
+  it("falls back to OPENCLAW_GATEWAY_TOKEN only when legacy compat is enabled", async () => {
+    loadConfig.mockReturnValue({ gateway: { mode: "local" } });
+
+    await withEnvAsync(
+      { KOVA_ALLOW_OPENCLAW_COMPAT: "1", OPENCLAW_GATEWAY_TOKEN: "env-token" },
+      async () => {
+        const result = await resolveGatewayConnection({});
+        expect(result.token).toBe("env-token");
+      },
+    );
   });
 
   it("uses local password auth when gateway.auth.mode is unset and password-only is configured", async () => {
@@ -213,7 +225,7 @@ describe("resolveGatewayConnection", () => {
       },
     });
 
-    await withEnvAsync({ OPENCLAW_GATEWAY_PASSWORD: "env-password" }, async () => {
+    await withEnvAsync({ KOVA_GATEWAY_PASSWORD: "env-password" }, async () => {
       const result = await resolveGatewayConnection({});
       expect(result.password).toBe("env-password");
     });
@@ -318,7 +330,7 @@ describe("resolveGatewayConnection", () => {
     );
   });
 
-  it("prefers OPENCLAW_GATEWAY_PASSWORD over remote password fallback", async () => {
+  it("prefers KOVA_GATEWAY_PASSWORD over remote password fallback", async () => {
     loadConfig.mockReturnValue({
       gateway: {
         mode: "remote",
@@ -326,7 +338,7 @@ describe("resolveGatewayConnection", () => {
       },
     });
 
-    const gatewayPasswordEnv = "OPENCLAW_GATEWAY_PASSWORD"; // pragma: allowlist secret
+    const gatewayPasswordEnv = "KOVA_GATEWAY_PASSWORD"; // pragma: allowlist secret
     const gatewayPassword = "env-pass"; // pragma: allowlist secret
     await withEnvAsync({ [gatewayPasswordEnv]: gatewayPassword }, async () => {
       const result = await resolveGatewayConnection({});
@@ -534,7 +546,7 @@ describe("GatewayChatClient", () => {
       .mockRejectedValueOnce(
         new GatewayClientRequestError({
           code: "UNAVAILABLE",
-          message: "chat.history unavailable during gateway startup",
+          message: "chat.history temporarily unavailable",
           details: { method: "chat.history" },
           retryable: true,
           retryAfterMs: 250,

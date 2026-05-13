@@ -80,6 +80,8 @@ export type OnboardOptions = OnboardDynamicProviderOptions & {
   skipSearch?: boolean;
   skipHealth?: boolean;
   skipUi?: boolean;
+  /** Internal: browser-hosted wizard should not trigger a gateway restart mid-session. */
+  deferConfigReload?: boolean;
   nodeManager?: NodeManagerChoice;
   remoteUrl?: string;
   remoteToken?: string;

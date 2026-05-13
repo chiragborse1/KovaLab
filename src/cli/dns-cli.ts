@@ -105,7 +105,8 @@ export function registerDnsCli(program: Command) {
     .description("DNS helpers for wide-area discovery (Tailscale + CoreDNS)")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dns", "docs.neuralstudio.in/cli/dns")}\n`,
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dns", "docs.neuralstudio.in/cli/dns")}\n`,
     );
 
   dns
@@ -154,9 +155,7 @@ export function registerDnsCli(program: Command) {
       );
       defaultRuntime.log("");
       defaultRuntime.log(
-        theme.heading(
-          "Recommended config ($OPENCLAW_CONFIG_PATH, default ~/.kova/kova.json):",
-        ),
+        theme.heading("Recommended config ($KOVA_CONFIG_PATH, default ~/.kova/kova.json):"),
       );
       defaultRuntime.writeJson({
         gateway: { bind: "auto" },
@@ -252,7 +251,7 @@ export function registerDnsCli(program: Command) {
         defaultRuntime.log("");
         defaultRuntime.log(
           theme.muted(
-            "Note: enable discovery.wideArea.enabled in the active Kova config ($OPENCLAW_CONFIG_PATH, default ~/.kova/kova.json) on the gateway and restart the gateway so it writes the DNS-SD zone.",
+            "Note: enable discovery.wideArea.enabled in the active Kova config ($KOVA_CONFIG_PATH, default ~/.kova/kova.json) on the gateway and restart the gateway so it writes the DNS-SD zone.",
           ),
         );
       }

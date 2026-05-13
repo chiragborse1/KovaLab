@@ -30,6 +30,14 @@ const hoisted = vi.hoisted(() => ({
     async () => false,
   ),
   loginWeb: vi.fn(async () => {}),
+  startWebLoginWithQr: vi.fn(async () => ({
+    qrDataUrl: "data:image/png;base64,qr",
+    message: "Scan this QR in WhatsApp → Linked Devices.",
+  })),
+  waitForWebLogin: vi.fn(async () => ({
+    connected: true,
+    message: "✅ Linked! WhatsApp is ready.",
+  })),
   pathExists: vi.fn(async () => false),
   readWebAuthState: vi.fn<(authDir: string) => Promise<"linked" | "not-linked" | "unstable">>(
     async () => "not-linked",
@@ -43,6 +51,11 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("./login.js", () => ({
   loginWeb: hoisted.loginWeb,
+}));
+
+vi.mock("../login-qr-api.js", () => ({
+  startWebLoginWithQr: hoisted.startWebLoginWithQr,
+  waitForWebLogin: hoisted.waitForWebLogin,
 }));
 
 vi.mock("./setup-finalize.js", async () => {
@@ -144,6 +157,16 @@ describe("whatsapp setup wizard", () => {
     hoisted.detectWhatsAppLinked.mockReset();
     hoisted.detectWhatsAppLinked.mockResolvedValue(false);
     hoisted.loginWeb.mockReset();
+    hoisted.startWebLoginWithQr.mockReset();
+    hoisted.startWebLoginWithQr.mockResolvedValue({
+      qrDataUrl: "data:image/png;base64,qr",
+      message: "Scan this QR in WhatsApp → Linked Devices.",
+    });
+    hoisted.waitForWebLogin.mockReset();
+    hoisted.waitForWebLogin.mockResolvedValue({
+      connected: true,
+      message: "✅ Linked! WhatsApp is ready.",
+    });
     hoisted.pathExists.mockReset();
     hoisted.pathExists.mockResolvedValue(false);
     hoisted.readWebAuthState.mockReset();
@@ -336,6 +359,41 @@ describe("whatsapp setup wizard", () => {
     });
 
     expect(hoisted.loginWeb).toHaveBeenCalledWith(false, undefined, runtime, DEFAULT_ACCOUNT_ID);
+  });
+
+  it("shows WhatsApp QR in browser wizard instead of printing terminal QR", async () => {
+    hoisted.pathExists.mockResolvedValue(false);
+    const harness = createWhatsAppLinkingHarness(createQueuedWizardPrompter);
+    const action = vi.fn(async () => "primary");
+    harness.prompter.action = action;
+    const runtime = createRuntime();
+
+    await runFinalizeWithHarness({
+      harness,
+      runtime,
+    });
+
+    expect(hoisted.loginWeb).not.toHaveBeenCalled();
+    expect(hoisted.startWebLoginWithQr).toHaveBeenCalledWith({
+      accountId: DEFAULT_ACCOUNT_ID,
+      force: false,
+      runtime,
+      timeoutMs: 45_000,
+    });
+    expect(action).toHaveBeenCalledWith(
+      expect.objectContaining({
+        imageDataUrl: "data:image/png;base64,qr",
+        primaryLabel: "Check scan",
+        secondaryLabel: "Refresh QR",
+        dangerLabel: "Skip linking",
+      }),
+    );
+    expect(hoisted.waitForWebLogin).toHaveBeenCalledWith({
+      accountId: DEFAULT_ACCOUNT_ID,
+      currentQrDataUrl: "data:image/png;base64,qr",
+      runtime,
+      timeoutMs: 15_000,
+    });
   });
 
   it("skips relink note when already linked and relink is declined", async () => {

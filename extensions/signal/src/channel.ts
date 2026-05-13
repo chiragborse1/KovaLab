@@ -331,7 +331,7 @@ export const signalPlugin: ChannelPlugin<ResolvedSignalAccount, SignalProbe> =
             accountId: account.accountId,
             baseUrl: account.baseUrl,
           });
-          ctx.log?.info(`[${account.accountId}] starting provider (${account.baseUrl})`);
+          ctx.log?.info(`[${account.accountId}] connector online (${account.baseUrl})`);
           const { monitorSignalProvider } = await loadSignalMonitorModule();
           return await monitorSignalProvider({
             accountId: account.accountId,

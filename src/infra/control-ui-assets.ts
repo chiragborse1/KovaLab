@@ -302,8 +302,8 @@ export async function ensureControlUiAssetsBuilt(
   const repoRoot = resolveControlUiRepoRoot(process.argv[1]);
   if (!repoRoot) {
     const hint = indexFromDist
-      ? `Missing Control UI assets at ${indexFromDist}`
-      : "Missing Control UI assets";
+      ? `Missing web console assets at ${indexFromDist}`
+      : "Missing web console assets";
     return {
       ok: false,
       built: false,
@@ -321,11 +321,11 @@ export async function ensureControlUiAssetsBuilt(
     return {
       ok: false,
       built: false,
-      message: `Control UI assets missing but ${uiScript} is unavailable.`,
+      message: `Web console assets missing but ${uiScript} is unavailable.`,
     };
   }
 
-  runtime.log("Control UI assets missing; building (ui:build, auto-installs UI deps)…");
+  runtime.log("Web console assets missing; building (ui:build, auto-installs UI deps)…");
 
   const build = await runCommandWithTimeout([process.execPath, uiScript, "build"], {
     cwd: repoRoot,

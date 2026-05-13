@@ -390,21 +390,21 @@ describe("buildServiceEnvironment", () => {
       expect(env.PATH).toContain("/usr/bin");
     }
     expect(env.KOVA_GATEWAY_PORT).toBe("18789");
-    expect(env.OPENCLAW_GATEWAY_PORT).toBe("18789");
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.OPENCLAW_GATEWAY_PORT).toBeUndefined();
+    expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
     expect(env.KOVA_STATE_DIR).toBe(path.join("/home/user", ".kova"));
     expect(env.KOVA_CONFIG_PATH).toBe(path.join("/home/user", ".kova", "kova.json"));
-    expect(env.OPENCLAW_SERVICE_MARKER).toBe("kova");
-    expect(env.OPENCLAW_SERVICE_KIND).toBe("gateway");
-    expect(typeof env.OPENCLAW_SERVICE_VERSION).toBe("string");
-    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("kova-gateway.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("Kova Gateway");
+    expect(env.KOVA_SERVICE_MARKER).toBe("kova");
+    expect(env.KOVA_SERVICE_KIND).toBe("gateway");
+    expect(typeof env.KOVA_SERVICE_VERSION).toBe("string");
+    expect(env.KOVA_SYSTEMD_UNIT).toBe("kova-gateway.service");
+    expect(env.KOVA_WINDOWS_TASK_NAME).toBe("Kova Gateway");
     if (process.platform === "darwin") {
-      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.kova.gateway");
+      expect(env.KOVA_LAUNCHD_LABEL).toBe("ai.kova.gateway");
     }
   });
 
-  it("passes through OPENCLAW_WRAPPER for gateway services", () => {
+  it("passes through legacy OPENCLAW_WRAPPER into KOVA_WRAPPER for gateway services", () => {
     const env = buildServiceEnvironment({
       env: {
         HOME: "/home/user",
@@ -413,7 +413,8 @@ describe("buildServiceEnvironment", () => {
       port: 18789,
     });
 
-    expect(env.OPENCLAW_WRAPPER).toBe("/usr/local/bin/openclaw-doppler");
+    expect(env.KOVA_WRAPPER).toBe("/usr/local/bin/openclaw-doppler");
+    expect(env.OPENCLAW_WRAPPER).toBeUndefined();
   });
 
   it("forwards TMPDIR from the host environment on Linux", () => {
@@ -449,10 +450,10 @@ describe("buildServiceEnvironment", () => {
       port: 18789,
     });
     expect(env.KOVA_PROFILE).toBe("work");
-    expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("kova-gateway-work.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("Kova Gateway (work)");
+    expect(env.KOVA_SYSTEMD_UNIT).toBe("kova-gateway-work.service");
+    expect(env.KOVA_WINDOWS_TASK_NAME).toBe("Kova Gateway (work)");
     if (process.platform === "darwin") {
-      expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.kova.work");
+      expect(env.KOVA_LAUNCHD_LABEL).toBe("ai.kova.work");
     }
   });
 
@@ -487,7 +488,7 @@ describe("buildServiceEnvironment", () => {
     });
 
     expect(env).not.toHaveProperty("PATH");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("Kova Gateway");
+    expect(env.KOVA_WINDOWS_TASK_NAME).toBe("Kova Gateway");
   });
 
   it("prepends extra runtime directories to the gateway service PATH", () => {
@@ -512,30 +513,30 @@ describe("buildNodeServiceEnvironment", () => {
     expect(env.HOME).toBe("/home/user");
   });
 
-  it("passes through OPENCLAW_GATEWAY_TOKEN for node services", () => {
+  it("passes through legacy OPENCLAW_GATEWAY_TOKEN for node services", () => {
     const env = buildNodeServiceEnvironment({
       env: { HOME: "/home/user", OPENCLAW_GATEWAY_TOKEN: " node-token " },
     });
     expect(env.KOVA_GATEWAY_TOKEN).toBe("node-token");
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBe("node-token");
+    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
   });
 
-  it("passes through OPENCLAW_ALLOW_INSECURE_PRIVATE_WS for node services", () => {
+  it("passes through legacy OPENCLAW_ALLOW_INSECURE_PRIVATE_WS for node services", () => {
     const env = buildNodeServiceEnvironment({
       env: { HOME: "/home/user", OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: " 1 " },
     });
     expect(env.KOVA_ALLOW_INSECURE_PRIVATE_WS).toBe("1");
-    expect(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS).toBe("1");
+    expect(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS).toBeUndefined();
   });
 
-  it("omits OPENCLAW_GATEWAY_TOKEN when the env var is empty", () => {
+  it("omits KOVA_GATEWAY_TOKEN when the env var is empty", () => {
     const env = buildNodeServiceEnvironment({
       env: {
         HOME: "/home/user",
         OPENCLAW_GATEWAY_TOKEN: "   ",
       },
     });
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
   });
 
   it("does not persist ambient proxy environment variables for node services", () => {

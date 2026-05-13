@@ -33,8 +33,10 @@ const randomTokenMock = vi.hoisted(() => vi.fn(() => "generated-token"));
 const createInstallPlanFixture = vi.hoisted(() => {
   return async (params?: { wrapperPath?: string; env?: Record<string, string | undefined> }) => {
     const environment: Record<string, string | undefined> = {};
-    if (params?.wrapperPath || params?.env?.OPENCLAW_WRAPPER) {
-      environment.OPENCLAW_WRAPPER = params.wrapperPath ?? params.env?.OPENCLAW_WRAPPER;
+    const requestedWrapper =
+      params?.wrapperPath ?? params?.env?.KOVA_WRAPPER ?? params?.env?.OPENCLAW_WRAPPER;
+    if (requestedWrapper) {
+      environment.KOVA_WRAPPER = requestedWrapper;
     }
     return {
       programArguments: params?.wrapperPath
@@ -385,7 +387,7 @@ describe("runDaemonInstall", () => {
 
     expect(installDaemonServiceAndEmitMock).toHaveBeenCalledTimes(1);
     expect(actionState.warnings).toContain(
-      "Gateway service OPENCLAW_GATEWAY_TOKEN differs from the current install plan; refreshing the install.",
+      "Gateway service KOVA_GATEWAY_TOKEN differs from the current install plan; refreshing the install.",
     );
   });
 
@@ -401,7 +403,7 @@ describe("runDaemonInstall", () => {
       programArguments: ["openclaw", "gateway", "run"],
       workingDirectory: "/tmp",
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "durable-token",
+        KOVA_GATEWAY_TOKEN: "durable-token",
       },
     });
 
@@ -432,7 +434,7 @@ describe("runDaemonInstall", () => {
           OPENCLAW_WRAPPER: "/usr/local/bin/openclaw-doppler",
         }),
         env: expect.objectContaining({
-          OPENCLAW_WRAPPER: "/usr/local/bin/openclaw-doppler",
+          KOVA_WRAPPER: "/usr/local/bin/openclaw-doppler",
         }),
       }),
     );
@@ -453,7 +455,7 @@ describe("runDaemonInstall", () => {
 
     expect(installDaemonServiceAndEmitMock).toHaveBeenCalledTimes(1);
     expect(actionState.warnings).toContain(
-      "Gateway service OPENCLAW_WRAPPER differs from the current wrapper install plan; refreshing the install.",
+      "Gateway service KOVA_WRAPPER differs from the current wrapper install plan; refreshing the install.",
     );
   });
 
@@ -469,7 +471,7 @@ describe("runDaemonInstall", () => {
       programArguments: ["openclaw", "gateway", "run"],
       workingDirectory: "/tmp",
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "fresh-token",
+        KOVA_GATEWAY_TOKEN: "fresh-token",
       },
     });
 
@@ -477,7 +479,7 @@ describe("runDaemonInstall", () => {
 
     expect(installDaemonServiceAndEmitMock).toHaveBeenCalledTimes(1);
     expect(actionState.warnings).toContain(
-      "Gateway service OPENCLAW_GATEWAY_TOKEN differs from the current install plan; refreshing the install.",
+      "Gateway service KOVA_GATEWAY_TOKEN differs from the current install plan; refreshing the install.",
     );
   });
 

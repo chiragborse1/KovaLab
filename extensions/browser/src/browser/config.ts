@@ -115,7 +115,8 @@ export type ResolvedBrowserProfile = {
 
 const DEFAULT_BROWSER_CDP_PORT_RANGE_START = 18800;
 const MAX_BROWSER_STARTUP_TIMEOUT_MS = 120_000;
-export const OPENCLAW_BROWSER_HEADLESS_ENV = "OPENCLAW_BROWSER_HEADLESS";
+export const OPENCLAW_BROWSER_HEADLESS_ENV = "KOVA_BROWSER_HEADLESS";
+const LEGACY_BROWSER_HEADLESS_ENV = "OPENCLAW_BROWSER_HEADLESS";
 
 export type ManagedBrowserHeadlessSource =
   | "request"
@@ -545,7 +546,9 @@ export function resolveManagedBrowserHeadlessMode(
 
   const env = params.env ?? process.env;
   const platform = params.platform ?? process.platform;
-  const envHeadless = parseBooleanValue(env[OPENCLAW_BROWSER_HEADLESS_ENV]);
+  const envHeadless = parseBooleanValue(
+    env[OPENCLAW_BROWSER_HEADLESS_ENV] ?? env[LEGACY_BROWSER_HEADLESS_ENV],
+  );
   if (envHeadless !== undefined) {
     return { headless: envHeadless, source: "env" };
   }

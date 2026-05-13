@@ -27,6 +27,7 @@ function hasDurableGatewayPasswordEnvForInstall(
 ): boolean {
   const durableServiceEnv = collectDurableServiceEnvVars({ env, config: cfg });
   return Boolean(
+    normalizeOptionalString(durableServiceEnv.KOVA_GATEWAY_PASSWORD) ||
     normalizeOptionalString(durableServiceEnv.OPENCLAW_GATEWAY_PASSWORD) ||
     normalizeOptionalString(durableServiceEnv.CLAWDBOT_GATEWAY_PASSWORD),
   );

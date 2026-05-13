@@ -65,13 +65,13 @@ vi.mock("../../gateway/auth.js", () => ({
     const token =
       (typeof params.authOverride?.token === "string" ? params.authOverride.token : undefined) ??
       (typeof params.authConfig?.token === "string" ? params.authConfig.token : undefined) ??
-      params.env?.OPENCLAW_GATEWAY_TOKEN;
+      params.env?.KOVA_GATEWAY_TOKEN;
     const password =
       (typeof params.authOverride?.password === "string"
         ? params.authOverride.password
         : undefined) ??
       (typeof params.authConfig?.password === "string" ? params.authConfig.password : undefined) ??
-      params.env?.OPENCLAW_GATEWAY_PASSWORD;
+      params.env?.KOVA_GATEWAY_PASSWORD;
     return {
       mode,
       token,
@@ -297,13 +297,13 @@ describe("gateway run option collisions", () => {
     );
   });
 
-  it("logs when first startup will build missing Control UI assets", async () => {
+  it("logs when first startup will build missing web console assets", async () => {
     controlUiState.root = null;
 
     await runGatewayCli(["gateway", "run", "--allow-unconfigured"]);
 
     expect(gatewayLogMessages).toContain(
-      "Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.",
+      "web console assets are missing; first startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
     );
   });
 
@@ -340,7 +340,7 @@ describe("gateway run option collisions", () => {
     await expect(runGatewayCli(["gateway", "run"])).rejects.toThrow("__exit__:78");
 
     expect(runtimeErrors).toContain(
-      "Gateway start blocked: existing config is missing gateway.mode. Treat this as suspicious or clobbered config. Re-run `openclaw onboard --mode local` or `openclaw setup`, set gateway.mode=local manually, or pass --allow-unconfigured.",
+      "Gateway start blocked: existing config is missing gateway.mode. Treat this as suspicious or clobbered config. Re-run `kova onboard --mode local` or `kova setup`, set gateway.mode=local manually, or pass --allow-unconfigured.",
     );
     expect(runtimeErrors).toContain(
       `Config write audit: ${path.join("/tmp", "logs", "config-audit.jsonl")}`,
@@ -535,7 +535,7 @@ describe("gateway run option collisions", () => {
       }),
     );
     expect(runtimeErrors).not.toContain(
-      "Warning: --password can be exposed via process listings. Prefer --password-file or OPENCLAW_GATEWAY_PASSWORD.",
+      "Warning: --password can be exposed via process listings. Prefer --password-file or KOVA_GATEWAY_PASSWORD.",
     );
   });
 
@@ -551,7 +551,7 @@ describe("gateway run option collisions", () => {
     ]);
 
     expect(runtimeErrors).toContain(
-      "Warning: --password can be exposed via process listings. Prefer --password-file or OPENCLAW_GATEWAY_PASSWORD.",
+      "Warning: --password can be exposed via process listings. Prefer --password-file or KOVA_GATEWAY_PASSWORD.",
     );
   });
 

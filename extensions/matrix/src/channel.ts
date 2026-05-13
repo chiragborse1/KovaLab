@@ -482,7 +482,7 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount, MatrixProbe> =
             baseUrl: account.homeserver,
           });
           ctx.log?.info(
-            `[${account.accountId}] starting provider (${account.homeserver ?? "matrix"})`,
+            `[${account.accountId}] connector online (${account.homeserver ?? "matrix"})`,
           );
 
           // Serialize startup: wait for any previous startup to complete import phase.

@@ -51,11 +51,11 @@ function resolveSystemdUnitPathForName(env: GatewayServiceEnv, name: string): st
 }
 
 function resolveSystemdServiceName(env: GatewayServiceEnv): string {
-  const override = env.OPENCLAW_SYSTEMD_UNIT?.trim();
+  const override = env.KOVA_SYSTEMD_UNIT?.trim() ?? env.OPENCLAW_SYSTEMD_UNIT?.trim();
   if (override) {
     return override.endsWith(".service") ? override.slice(0, -".service".length) : override;
   }
-  return resolveGatewaySystemdServiceName(env.OPENCLAW_PROFILE);
+  return resolveGatewaySystemdServiceName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
 }
 
 async function hasSystemdUnitPath(unitPath: string): Promise<boolean> {
@@ -70,7 +70,7 @@ async function hasSystemdUnitPath(unitPath: string): Promise<boolean> {
 function resolveSystemdServiceCandidates(env: GatewayServiceEnv): string[] {
   return [
     resolveSystemdServiceName(env),
-    ...resolveLegacyGatewaySystemdServiceNames(env.OPENCLAW_PROFILE),
+    ...resolveLegacyGatewaySystemdServiceNames(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE),
   ].filter((name, index, values) => values.indexOf(name) === index);
 }
 
@@ -908,7 +908,9 @@ async function isSystemctlAvailable(env: GatewayServiceEnv): Promise<boolean> {
 export async function findLegacySystemdUnits(env: GatewayServiceEnv): Promise<LegacySystemdUnit[]> {
   const results: LegacySystemdUnit[] = [];
   const systemctlAvailable = await isSystemctlAvailable(env);
-  for (const name of resolveLegacyGatewaySystemdServiceNames(env.OPENCLAW_PROFILE)) {
+  for (const name of resolveLegacyGatewaySystemdServiceNames(
+    env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE,
+  )) {
     const unitPath = resolveSystemdUnitPathForName(env, name);
     let exists = false;
     try {

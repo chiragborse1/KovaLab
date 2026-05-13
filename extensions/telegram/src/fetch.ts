@@ -460,6 +460,11 @@ export type TelegramTransport = {
   sourceFetch: typeof fetch;
   dispatcherAttempts?: TelegramDispatcherAttempt[];
   /**
+   * Promote this transport to its next fallback dispatcher before the next
+   * request. Returns false when no fallback path exists.
+   */
+  forceFallback?: (reason: string) => boolean;
+  /**
    * Release all dispatchers owned by this transport and the TCP sockets they
    * hold. Safe to call multiple times; subsequent calls resolve immediately.
    *
@@ -628,13 +633,14 @@ export function resolveTelegramTransport(
     primaryProbeDue = false;
   };
 
-  const promoteStickyAttempt = (nextIndex: number, err: unknown): boolean => {
+  const promoteStickyAttempt = (nextIndex: number, err: unknown, reason?: string): boolean => {
     if (nextIndex <= stickyAttemptIndex || nextIndex >= transportAttempts.length) {
       return false;
     }
     const nextAttempt = transportAttempts[nextIndex];
     if (nextAttempt.logMessage) {
-      const logLine = `${nextAttempt.logMessage} (codes=${formatErrorCodes(err)})`;
+      const reasonText = reason ? `, reason=${reason}` : "";
+      const logLine = `${nextAttempt.logMessage} (codes=${formatErrorCodes(err)}${reasonText})`;
       if (nextAttempt.logLevel === "debug") {
         log.debug(logLine);
       } else {
@@ -645,6 +651,9 @@ export function resolveTelegramTransport(
     resetStickyRecoveryProbe();
     return true;
   };
+
+  const forceFallback = (reason: string): boolean =>
+    promoteStickyAttempt(stickyAttemptIndex + 1, new Error(reason), reason);
 
   const recordSuccessfulAttempt = (attemptIndex: number): void => {
     if (stickyAttemptIndex === 0) {
@@ -757,6 +766,7 @@ export function resolveTelegramTransport(
     fetch: resolvedFetch,
     sourceFetch,
     dispatcherAttempts: transportAttempts.map((attempt) => attempt.exportAttempt),
+    forceFallback,
     close,
   };
 }

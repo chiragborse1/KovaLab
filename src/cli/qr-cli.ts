@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import { getRuntimeConfig } from "../config/config.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
-import { trimToUndefined } from "../gateway/credentials.js";
+import { readGatewayCredentialEnv, trimToUndefined } from "../gateway/credentials.js";
 import { resolveRequiredConfiguredSecretRefInputString } from "../gateway/resolve-configured-secret-input-string.js";
 import { renderQrTerminal } from "../media/qr-terminal.ts";
 import { resolvePairingSetupFromConfig, encodePairingSetupCode } from "../pairing/setup-code.js";
@@ -41,7 +41,7 @@ function shouldResolveLocalGatewayPasswordSecret(
   cfg: OpenClawConfig,
   env: NodeJS.ProcessEnv,
 ): boolean {
-  if (trimToUndefined(env.OPENCLAW_GATEWAY_PASSWORD)) {
+  if (readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD")) {
     return false;
   }
   const authMode = cfg.gateway?.auth?.mode;
@@ -51,7 +51,7 @@ function shouldResolveLocalGatewayPasswordSecret(
   if (authMode === "token" || authMode === "none" || authMode === "trusted-proxy") {
     return false;
   }
-  const envToken = trimToUndefined(env.OPENCLAW_GATEWAY_TOKEN);
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
   const configTokenConfigured = hasConfiguredSecretInput(
     cfg.gateway?.auth?.token,
     cfg.secrets?.defaults,
@@ -96,7 +96,8 @@ export function registerQrCli(program: Command) {
     .description("Generate a mobile pairing QR code and setup code")
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/qr", "docs.neuralstudio.in/cli/qr")}\n`,
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/qr", "docs.neuralstudio.in/cli/qr")}\n`,
     )
     .option(
       "--remote",
@@ -243,8 +244,8 @@ export function registerQrCli(program: Command) {
           `${theme.muted("Source:")} ${resolved.urlSource}`,
           "",
           "Approve after scan with:",
-          `  ${theme.command(formatCliCommand("openclaw devices list"))}`,
-          `  ${theme.command(formatCliCommand("openclaw devices approve <requestId>"))}`,
+          `  ${theme.command(formatCliCommand("kova devices list"))}`,
+          `  ${theme.command(formatCliCommand("kova devices approve <requestId>"))}`,
         );
 
         defaultRuntime.log(lines.join("\n"));

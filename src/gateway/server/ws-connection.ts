@@ -325,13 +325,13 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
           ? logWsControl.debug
           : logWsControl.warn;
         logFn(
-          `closed before connect conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"} fwd=${logForwardedFor || "n/a"} origin=${logOrigin || "n/a"} host=${logHost || "n/a"} ua=${logUserAgent || "n/a"} code=${code ?? "n/a"} reason=${logReason || "n/a"}`,
+          `preauth socket closed conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"} fwd=${logForwardedFor || "n/a"} origin=${logOrigin || "n/a"} host=${logHost || "n/a"} ua=${logUserAgent || "n/a"} code=${code ?? "n/a"} reason=${logReason || "n/a"}`,
           closeContext,
         );
       }
       if (client && isWebchatClient(client.connect.client)) {
         logWsControl.info(
-          `webchat disconnected code=${code} reason=${logReason || "n/a"} conn=${connId}`,
+          `console disconnected code=${code} reason=${logReason || "n/a"} conn=${connId}`,
         );
       }
       const context = buildRequestContext();
@@ -376,7 +376,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
           endpoint,
         });
         logWsControl.warn(
-          `handshake timeout conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"}`,
+          `preauth handshake timed out conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"}`,
         );
         close();
       }

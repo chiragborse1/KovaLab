@@ -15,7 +15,7 @@ Restart the Gateway after enabling.
 ## Authenticate
 
 ```bash
-openclaw models auth login --provider copilot-proxy --set-default
+kova models auth login --provider copilot-proxy --set-default
 ```
 
 ## Notes

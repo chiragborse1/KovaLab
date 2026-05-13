@@ -90,22 +90,19 @@ describe("createReadinessChecker", () => {
     });
   });
 
-  it("keeps readiness red while startup sidecars are pending", () => {
+  it("keeps readiness green while connectors are still warming", () => {
     withReadinessClock(() => {
-      const { readiness } = createReadinessHarness({
+      const { manager, readiness } = createReadinessHarness({
         startedAgoMs: 5 * 60_000,
         accounts: {},
         getStartupPending: () => true,
       });
-      expect(readiness()).toEqual({
-        ready: false,
-        failing: ["startup-sidecars"],
-        uptimeMs: 300_000,
-      });
+      expect(readiness()).toEqual({ ready: true, failing: [], uptimeMs: 300_000 });
+      expect(manager.getRuntimeSnapshot).toHaveBeenCalledTimes(1);
     });
   });
 
-  it("does not cache startup-pending readiness", () => {
+  it("caches connector-warmup readiness normally", () => {
     withReadinessClock(() => {
       let startupPending = true;
       const { manager, readiness } = createReadinessHarness({
@@ -114,12 +111,8 @@ describe("createReadinessChecker", () => {
         getStartupPending: () => startupPending,
         cacheTtlMs: 1_000,
       });
-      expect(readiness()).toEqual({
-        ready: false,
-        failing: ["startup-sidecars"],
-        uptimeMs: 300_000,
-      });
-      expect(manager.getRuntimeSnapshot).not.toHaveBeenCalled();
+      expect(readiness()).toEqual({ ready: true, failing: [], uptimeMs: 300_000 });
+      expect(manager.getRuntimeSnapshot).toHaveBeenCalledTimes(1);
 
       startupPending = false;
       expect(readiness()).toEqual({ ready: true, failing: [], uptimeMs: 300_000 });

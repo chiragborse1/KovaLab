@@ -75,7 +75,7 @@ export async function startZaloGatewayAccount(
     accountId: ctx.accountId,
     setStatus: ctx.setStatus,
   });
-  ctx.log?.info(`[${account.accountId}] starting provider${zaloBotLabel} mode=${mode}`);
+  ctx.log?.info(`[${account.accountId}] connector online${zaloBotLabel} mode=${mode}`);
   const { monitorZaloProvider } = await import("./monitor.js");
   return monitorZaloProvider({
     token,

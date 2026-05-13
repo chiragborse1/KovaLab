@@ -84,7 +84,7 @@ export async function maybeRepairBundledPluginRuntimeDeps(params: {
       [
         "Bundled plugin runtime deps use conflicting versions.",
         ...conflictLines,
-        `Update bundled plugins and rerun ${formatCliCommand("openclaw doctor")}.`,
+        `Update bundled plugins and rerun ${formatCliCommand("kova doctor")}.`,
       ].join("\n"),
       "Bundled plugins",
     );
@@ -107,7 +107,7 @@ export async function maybeRepairBundledPluginRuntimeDeps(params: {
     [
       "Bundled plugin runtime deps are missing.",
       ...missing.map((dep) => `- ${dep.name}@${dep.version} (used by ${dep.pluginIds.join(", ")})`),
-      `Fix: run ${formatCliCommand("openclaw doctor --fix")} to install them.`,
+      `Fix: run ${formatCliCommand("kova doctor --fix")} to install them.`,
     ].join("\n"),
     "Bundled plugins",
   );

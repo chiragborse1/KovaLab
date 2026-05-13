@@ -243,7 +243,7 @@ export async function handleOpenAiEmbeddingsHttpRequest(
   if (requestModel !== OPENCLAW_MODEL_ID && !resolveAgentIdFromModel(requestModel, cfg)) {
     sendJson(res, 400, {
       error: {
-        message: "Invalid `model`. Use `openclaw` or `openclaw/<agentId>`.",
+        message: "Invalid `model`. Use `kova` or `kova/<agentId>`.",
         type: "invalid_request_error",
       },
     });
@@ -273,6 +273,7 @@ export async function handleOpenAiEmbeddingsHttpRequest(
   const memorySearch = resolveMemorySearchConfig(cfg, agentId);
   const configuredProvider = memorySearch?.provider ?? "openai";
   const overrideModel =
+    normalizeOptionalString(getHeader(req, "x-kova-model")) ||
     normalizeOptionalString(getHeader(req, "x-openclaw-model")) ||
     normalizeOptionalString(memorySearch?.model) ||
     "";

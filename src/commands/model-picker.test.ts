@@ -86,8 +86,8 @@ const OPENROUTER_CATALOG = [
   },
 ] as const;
 
-function expectRouterModelFiltering(options: Array<{ value: string }>) {
-  expect(options.some((opt) => opt.value === "openrouter/auto")).toBe(false);
+function expectRouterModelVisibility(options: Array<{ value: string }>) {
+  expect(options.some((opt) => opt.value === "openrouter/auto")).toBe(true);
   expect(options.some((opt) => opt.value === "openrouter/meta-llama/llama-3.3-70b:free")).toBe(
     true,
   );
@@ -821,8 +821,8 @@ describe("runtime model picker visibility", () => {
   });
 });
 
-describe("router model filtering", () => {
-  it("filters internal router models in both default and allowlist prompts", async () => {
+describe("router model visibility", () => {
+  it("shows OpenRouter Auto in both default and allowlist prompts", async () => {
     loadModelCatalog.mockResolvedValue(OPENROUTER_CATALOG);
 
     const select = vi.fn(async (params) => {
@@ -844,10 +844,10 @@ describe("router model filtering", () => {
     await promptModelAllowlist({ config, prompter: allowlistPrompter });
 
     const defaultOptions = select.mock.calls[0]?.[0]?.options ?? [];
-    expectRouterModelFiltering(defaultOptions);
+    expectRouterModelVisibility(defaultOptions);
 
     const allowlistCall = multiselect.mock.calls[0]?.[0];
-    expectRouterModelFiltering(allowlistCall?.options as Array<{ value: string }>);
+    expectRouterModelVisibility(allowlistCall?.options as Array<{ value: string }>);
     expect(allowlistCall?.searchable).toBe(true);
     expect(runProviderPluginAuthMethod).not.toHaveBeenCalled();
   });

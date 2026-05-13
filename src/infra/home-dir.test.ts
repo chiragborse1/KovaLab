@@ -12,7 +12,7 @@ import {
 describe("resolveEffectiveHomeDir", () => {
   it.each([
     {
-      name: "prefers KOVA_HOME over OPENCLAW_HOME, HOME and USERPROFILE",
+      name: "prefers KOVA_HOME over legacy home, HOME and USERPROFILE",
       env: {
         KOVA_HOME: " /srv/kova-home ",
         OPENCLAW_HOME: " /srv/openclaw-home ",
@@ -21,6 +21,25 @@ describe("resolveEffectiveHomeDir", () => {
       } as NodeJS.ProcessEnv,
       homedir: () => "/fallback",
       expected: "/srv/kova-home",
+    },
+    {
+      name: "ignores legacy home without compatibility mode",
+      env: {
+        OPENCLAW_HOME: " /srv/openclaw-home ",
+        HOME: "/home/alice",
+      } as NodeJS.ProcessEnv,
+      homedir: () => "/fallback",
+      expected: "/home/alice",
+    },
+    {
+      name: "uses legacy home only with compatibility mode",
+      env: {
+        KOVA_ALLOW_OPENCLAW_COMPAT: "1",
+        OPENCLAW_HOME: " /srv/openclaw-home ",
+        HOME: "/home/alice",
+      } as NodeJS.ProcessEnv,
+      homedir: () => "/fallback",
+      expected: "/srv/openclaw-home",
     },
     {
       name: "falls back to HOME",
@@ -113,7 +132,7 @@ describe("resolveRequiredHomeDir", () => {
 });
 
 describe("resolveOsHomeDir", () => {
-  it("ignores KOVA_HOME and OPENCLAW_HOME and uses HOME", () => {
+  it("ignores product home env and uses HOME", () => {
     expect(
       resolveOsHomeDir(
         {
@@ -204,7 +223,7 @@ describe("resolveHomeRelativePath", () => {
 });
 
 describe("resolveOsHomeRelativePath", () => {
-  it("expands tilde paths using the OS home instead of KOVA_HOME/OPENCLAW_HOME", () => {
+  it("expands tilde paths using the OS home instead of product home env", () => {
     expect(
       resolveOsHomeRelativePath("~/docs", {
         env: {

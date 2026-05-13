@@ -129,8 +129,6 @@ vi.mock("./server-tailscale.js", () => ({
 
 const { startGatewayPostAttachRuntime, startGatewaySidecars } =
   await import("./server-startup-post-attach.js");
-const { STARTUP_UNAVAILABLE_GATEWAY_METHODS } =
-  await import("./server-startup-unavailable-methods.js");
 
 type PostAttachParams = Parameters<typeof startGatewayPostAttachRuntime>[0];
 type PostAttachRuntimeDeps = NonNullable<Parameters<typeof startGatewayPostAttachRuntime>[1]>;
@@ -179,7 +177,7 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(hoisted.logGatewayStartup).toHaveBeenCalledWith(
       expect.objectContaining({ loadedPluginIds: ["beta", "alpha"] }),
     );
-    expect(log.info).toHaveBeenCalledWith("gateway ready");
+    expect(log.info).toHaveBeenCalledWith("connectors: ready");
     expect(hoisted.startGatewayMemoryBackend).not.toHaveBeenCalled();
   });
 
@@ -195,6 +193,42 @@ describe("startGatewayPostAttachRuntime", () => {
     await vi.waitFor(() => {
       expect(hoisted.startGatewayMemoryBackend).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("does not block channel startup on primary model prewarm", async () => {
+    let finishPrewarm!: () => void;
+    const prewarmPrimaryModel = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPrewarm = resolve;
+        }),
+    );
+    const startChannels = vi.fn(async () => undefined);
+
+    await startGatewaySidecars({
+      cfg: {
+        hooks: { internal: { enabled: false } },
+      } as never,
+      pluginRegistry: createPostAttachParams().pluginRegistry,
+      defaultWorkspaceDir: "/tmp/openclaw-workspace",
+      deps: {} as never,
+      startChannels,
+      prewarmPrimaryModel,
+      log: { warn: vi.fn() },
+      logHooks: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      },
+      logChannels: {
+        info: vi.fn(),
+        error: vi.fn(),
+      },
+    });
+
+    expect(startChannels).toHaveBeenCalledTimes(1);
+    expect(prewarmPrimaryModel).toHaveBeenCalledTimes(1);
+    finishPrewarm();
   });
 
   it("waits for sidecars by default before returning", async () => {
@@ -225,7 +259,7 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(returned).toBe(true);
   });
 
-  it("keeps startup-gated methods unavailable while sidecars are still resuming", async () => {
+  it("keeps startup-gated methods available while connectors are resuming", async () => {
     let resumeSidecars!: () => void;
     const sidecarsReady = new Promise<{ pluginServices: null }>((resolve) => {
       resumeSidecars = () => resolve({ pluginServices: null });
@@ -233,7 +267,7 @@ describe("startGatewayPostAttachRuntime", () => {
     const startGatewaySidecars = vi.fn(async () => {
       return await sidecarsReady;
     });
-    const unavailableGatewayMethods = new Set<string>(STARTUP_UNAVAILABLE_GATEWAY_METHODS);
+    const unavailableGatewayMethods = new Set<string>();
 
     await startGatewayPostAttachRuntime(
       {
@@ -251,7 +285,7 @@ describe("startGatewayPostAttachRuntime", () => {
       { timeout: 10_000 },
     );
 
-    expect([...unavailableGatewayMethods]).toEqual([...STARTUP_UNAVAILABLE_GATEWAY_METHODS]);
+    expect([...unavailableGatewayMethods]).toEqual([]);
     expect(hoisted.startPluginServices).not.toHaveBeenCalled();
 
     resumeSidecars();

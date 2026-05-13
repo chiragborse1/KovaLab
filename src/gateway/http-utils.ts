@@ -33,11 +33,13 @@ export {
   type GatewayHttpRequestAuthCheckResult,
 } from "./http-auth-utils.js";
 
-export const OPENCLAW_MODEL_ID = "openclaw";
-export const OPENCLAW_DEFAULT_MODEL_ID = "openclaw/default";
+export const OPENCLAW_MODEL_ID = "kova";
+export const OPENCLAW_DEFAULT_MODEL_ID = "kova/default";
 
 export function resolveAgentIdFromHeader(req: IncomingMessage): string | undefined {
   const raw =
+    normalizeOptionalString(getHeader(req, "x-kova-agent-id")) ||
+    normalizeOptionalString(getHeader(req, "x-kova-agent")) ||
     normalizeOptionalString(getHeader(req, "x-openclaw-agent-id")) ||
     normalizeOptionalString(getHeader(req, "x-openclaw-agent")) ||
     "";
@@ -61,6 +63,7 @@ export function resolveAgentIdFromModel(
   }
 
   const m =
+    raw.match(/^kova[:/](?<agentId>[a-z0-9][a-z0-9_-]{0,63})$/i) ??
     raw.match(/^openclaw[:/](?<agentId>[a-z0-9][a-z0-9_-]{0,63})$/i) ??
     raw.match(/^agent:(?<agentId>[a-z0-9][a-z0-9_-]{0,63})$/i);
   const agentId = m?.groups?.agentId;
@@ -78,11 +81,13 @@ export async function resolveOpenAiCompatModelOverride(params: {
   const requestModel = params.model?.trim();
   if (requestModel && !resolveAgentIdFromModel(requestModel)) {
     return {
-      errorMessage: "Invalid `model`. Use `openclaw` or `openclaw/<agentId>`.",
+      errorMessage: "Invalid `model`. Use `kova` or `kova/<agentId>`.",
     };
   }
 
-  const raw = getHeader(params.req, "x-openclaw-model")?.trim();
+  const raw =
+    getHeader(params.req, "x-kova-model")?.trim() ??
+    getHeader(params.req, "x-openclaw-model")?.trim();
   if (!raw) {
     return {};
   }
@@ -92,7 +97,7 @@ export async function resolveOpenAiCompatModelOverride(params: {
   const defaultProvider = defaultModelRef.provider;
   const parsed = parseModelRef(raw, defaultProvider);
   if (!parsed) {
-    return { errorMessage: "Invalid `x-openclaw-model`." };
+    return { errorMessage: "Invalid `x-kova-model`." };
   }
 
   const catalog = await loadGatewayModelCatalog();

@@ -264,7 +264,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount, BlueBu
           statusSink({
             baseUrl: account.baseUrl,
           });
-          ctx.log?.info(`[${account.accountId}] starting provider (webhook=${webhookPath})`);
+          ctx.log?.info(`[${account.accountId}] connector online (webhook=${webhookPath})`);
           try {
             return await runtime.monitorBlueBubblesProvider({
               account,

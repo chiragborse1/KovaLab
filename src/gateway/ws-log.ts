@@ -25,7 +25,7 @@ const wsInflightCompact = new Map<string, WsInflightEntry>();
 let wsLastCompactConnId: string | undefined;
 const wsInflightOptimized = new Map<string, number>();
 const wsInflightSince = new Map<string, number>();
-const wsLog = createSubsystemLogger("gateway/ws");
+const wsLog = createSubsystemLogger("control/rpc");
 
 const WS_META_SKIP_KEYS = new Set(["connId", "id", "method", "ok", "event"]);
 
@@ -87,7 +87,7 @@ function logWsInfoLine(params: {
 }
 
 export function shouldLogWs(): boolean {
-  return shouldLogSubsystemToConsole("gateway/ws");
+  return shouldLogSubsystemToConsole("control/rpc");
 }
 
 export function shortId(value: string): string {
@@ -258,7 +258,7 @@ export function summarizeAgentEventForWsLog(payload: unknown): Record<string, un
 }
 
 export function logWs(direction: "in" | "out", kind: string, meta?: Record<string, unknown>) {
-  if (!shouldLogSubsystemToConsole("gateway/ws")) {
+  if (!shouldLogWs()) {
     return;
   }
   const style = getGatewayWsLogStyle();
@@ -369,7 +369,7 @@ function logWsOptimized(direction: "in" | "out", kind: string, meta?: Record<str
   const restMeta = collectWsRestMeta(meta);
 
   logWsInfoLine({
-    prefix: `${chalk.yellowBright("⇄")} ${chalk.bold("res")}`,
+    prefix: `${chalk.yellowBright("rpc")} ${chalk.bold("reply")}`,
     statusToken,
     headline: method ? chalk.bold(method) : undefined,
     durationToken,
@@ -396,7 +396,7 @@ function logWsCompact(direction: "in" | "out", kind: string, meta?: Record<strin
 
   const compactArrow = (() => {
     if (kind === "req" || kind === "res") {
-      return "⇄";
+      return "rpc";
     }
     return direction === "in" ? "←" : "→";
   })();

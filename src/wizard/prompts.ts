@@ -30,6 +30,15 @@ export type WizardConfirmParams = {
   initialValue?: boolean;
 };
 
+export type WizardActionParams = {
+  title?: string;
+  message: string;
+  imageDataUrl?: string;
+  primaryLabel?: string;
+  secondaryLabel?: string;
+  dangerLabel?: string;
+};
+
 export type WizardProgress = {
   update: (message: string) => void;
   stop: (message?: string) => void;
@@ -43,6 +52,7 @@ export type WizardPrompter = {
   multiselect: <T>(params: WizardMultiSelectParams<T>) => Promise<T[]>;
   text: (params: WizardTextParams) => Promise<string>;
   confirm: (params: WizardConfirmParams) => Promise<boolean>;
+  action?: (params: WizardActionParams) => Promise<string>;
   progress: (label: string) => WizardProgress;
 };
 

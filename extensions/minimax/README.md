@@ -22,13 +22,13 @@ openclaw gateway restart
 OAuth:
 
 ```bash
-openclaw models auth login --provider minimax-portal --set-default
+kova models auth login --provider minimax-portal --set-default
 ```
 
 API key:
 
 ```bash
-openclaw setup --wizard --auth-choice minimax-global-api
+kova setup --wizard --auth-choice minimax-global-api
 ```
 
 ## Notes

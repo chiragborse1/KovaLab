@@ -54,10 +54,10 @@ describe("OpenAI-compatible models HTTP API (e2e)", () => {
     expect(json.object).toBe("list");
     expect(Array.isArray(json.data)).toBe(true);
     expect((json.data?.length ?? 0) > 0).toBe(true);
-    expect(json.data?.map((entry) => entry.id)).toContain("openclaw");
-    expect(json.data?.map((entry) => entry.id)).toContain("openclaw/default");
+    expect(json.data?.map((entry) => entry.id)).toContain("kova");
+    expect(json.data?.map((entry) => entry.id)).toContain("kova/default");
     expect(
-      json.data?.every((entry) => typeof entry.id === "string" && entry.id?.startsWith("openclaw")),
+      json.data?.every((entry) => typeof entry.id === "string" && entry.id?.startsWith("kova")),
     ).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe("OpenAI-compatible models HTTP API (e2e)", () => {
       expect(res.status).toBe(200);
       const json = (await res.json()) as { object?: string; data?: Array<{ id?: string }> };
       expect(json.object).toBe("list");
-      expect(json.data?.map((entry) => entry.id)).toContain("openclaw/default");
+      expect(json.data?.map((entry) => entry.id)).toContain("kova/default");
     } finally {
       await server.close({ reason: "models token auth compat test done" });
     }

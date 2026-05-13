@@ -45,9 +45,9 @@ export function createReadinessChecker(deps: {
   return (): ReadinessResult => {
     const now = Date.now();
     const uptimeMs = now - startedAt;
-    if (deps.getStartupPending?.()) {
-      return { ready: false, failing: ["startup-sidecars"], uptimeMs };
-    }
+    // Connector startup is intentionally non-blocking: the control plane is
+    // ready once HTTP/WebSocket handling is live, even if integrations are
+    // still warming in the background.
     if (cachedState && now - cachedAt < cacheTtlMs) {
       return { ...cachedState, uptimeMs };
     }

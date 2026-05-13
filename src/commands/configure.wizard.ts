@@ -8,6 +8,7 @@ import { readConfigFileSnapshot, resolveGatewayPort } from "../config/config.js"
 import { logConfigUpdated } from "../config/logging.js";
 import { ConfigMutationConflictError } from "../config/mutate.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
 import { resolvePluginContributionOwners } from "../plugins/plugin-registry.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -16,7 +17,7 @@ import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { note } from "../terminal/note.js";
 import { isPlainObject, resolveUserPath } from "../utils.js";
 import { createClackPrompter } from "../wizard/clack-prompter.js";
-import { WizardCancelledError } from "../wizard/prompts.js";
+import { WizardCancelledError, type WizardPrompter } from "../wizard/prompts.js";
 import { resolveSetupSecretInputString } from "../wizard/setup.secret-input.js";
 import { removeChannelConfigWizard } from "./configure.channels.js";
 import { maybeInstallDaemon } from "./configure.daemon.js";
@@ -34,6 +35,7 @@ import {
   outro,
   select,
   text,
+  withConfigurePrompter,
 } from "./configure.shared.js";
 import { formatHealthCheckFailure } from "./health-format.js";
 import { healthCommand } from "./health.js";
@@ -137,8 +139,12 @@ async function runGatewayHealthCheck(params: {
     value: params.cfg.gateway?.auth?.password,
     path: "gateway.auth.password",
   });
-  const token = process.env.OPENCLAW_GATEWAY_TOKEN ?? configuredToken;
-  const password = process.env.OPENCLAW_GATEWAY_PASSWORD ?? configuredPassword;
+  const token =
+    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
+    configuredToken;
+  const password =
+    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD") ??
+    configuredPassword;
 
   await waitForGatewayReachable({
     url: wsUrl,
@@ -196,7 +202,7 @@ async function promptChannelMode(runtime: RuntimeEnv): Promise<ChannelsWizardMod
         {
           value: "remove",
           label: "Remove channel config",
-          hint: "Delete channel tokens/settings from openclaw.json",
+          hint: "Delete channel tokens/settings from kova.json",
         },
       ],
       initialValue: "configure",
@@ -376,468 +382,513 @@ async function promptWebToolsConfig(
 export async function runConfigureWizard(
   opts: ConfigureWizardParams,
   runtime: RuntimeEnv = defaultRuntime,
+  injectedPrompter?: WizardPrompter,
 ) {
-  try {
-    intro(opts.command === "update" ? "Kova update wizard" : "Kova configure");
-    const prompter = createClackPrompter();
+  const prompter = injectedPrompter ?? createClackPrompter();
+  const run = async () => {
+    try {
+      await intro(opts.command === "update" ? "Kova update wizard" : "Kova configure");
 
-    const snapshot = await readConfigFileSnapshot();
-    let currentBaseHash = snapshot.hash;
-    const baseConfig: OpenClawConfig = snapshot.valid
-      ? (snapshot.sourceConfig ?? snapshot.config)
-      : {};
+      const snapshot = await readConfigFileSnapshot();
+      let currentBaseHash = snapshot.hash;
+      const baseConfig: OpenClawConfig = snapshot.valid
+        ? (snapshot.sourceConfig ?? snapshot.config)
+        : {};
 
-    if (snapshot.exists) {
-      const title = snapshot.valid ? "Existing config detected" : "Invalid config";
-      note(summarizeExistingConfig(baseConfig), title);
-      if (!snapshot.valid && snapshot.issues.length > 0) {
-        note(
-          [
-            ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
-            "",
-            "Docs: https://docs.neuralstudio.in/gateway/configuration",
-          ].join("\n"),
-          "Config issues",
-        );
-      }
-      if (!snapshot.valid) {
-        outro(
-          `Config invalid. Run \`${formatCliCommand("openclaw doctor")}\` to repair it, then re-run configure.`,
-        );
-        runtime.exit(1);
-        return;
-      }
-    }
-
-    const targetedSections = opts.sections !== undefined;
-    let mode: "local" | "remote" = baseConfig.gateway?.mode === "remote" ? "remote" : "local";
-
-    if (!targetedSections) {
-      const localUrl = "ws://127.0.0.1:18789";
-      const remoteUrl = normalizeOptionalString(baseConfig.gateway?.remote?.url) ?? "";
-      const localProbePromise = (async () => {
-        const [baseLocalProbeToken, baseLocalProbePassword] = await Promise.all([
-          resolveGatewaySecretInputForWizard({
-            cfg: baseConfig,
-            value: baseConfig.gateway?.auth?.token,
-            path: "gateway.auth.token",
-          }),
-          resolveGatewaySecretInputForWizard({
-            cfg: baseConfig,
-            value: baseConfig.gateway?.auth?.password,
-            path: "gateway.auth.password",
-          }),
-        ]);
-        return probeGatewayReachable({
-          url: localUrl,
-          token: process.env.OPENCLAW_GATEWAY_TOKEN ?? baseLocalProbeToken,
-          password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? baseLocalProbePassword,
-          timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
-        });
-      })();
-      const remoteProbePromise = remoteUrl
-        ? (async () => {
-            const baseRemoteProbeToken = await resolveGatewaySecretInputForWizard({
-              cfg: baseConfig,
-              value: baseConfig.gateway?.remote?.token,
-              path: "gateway.remote.token",
-            });
-            return probeGatewayReachable({
-              url: remoteUrl,
-              token: baseRemoteProbeToken,
-              timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
-            });
-          })()
-        : Promise.resolve(null);
-      const [localProbe, remoteProbe] = await Promise.all([localProbePromise, remoteProbePromise]);
-
-      mode = guardCancel(
-        await select({
-          message: "Where will the Gateway run?",
-          options: [
-            {
-              value: "local",
-              label: "Local (this machine)",
-              hint: localProbe.ok
-                ? `Gateway reachable (${localUrl})`
-                : `No gateway detected (${localUrl})`,
-            },
-            {
-              value: "remote",
-              label: "Remote (info-only)",
-              hint: !remoteUrl
-                ? "No remote URL configured yet"
-                : remoteProbe?.ok
-                  ? `Gateway reachable (${remoteUrl})`
-                  : `Configured but unreachable (${remoteUrl})`,
-            },
-          ],
-        }),
-        runtime,
-      );
-    }
-
-    if (!targetedSections && mode === "remote") {
-      let remoteConfig = await promptRemoteGatewayConfig(baseConfig, prompter);
-      remoteConfig = applyWizardMetadata(remoteConfig, {
-        command: opts.command,
-        mode,
-      });
-      const committed = await commitConfigWithPendingPluginInstalls({
-        nextConfig: remoteConfig,
-        ...(currentBaseHash !== undefined ? { baseHash: currentBaseHash } : {}),
-      });
-      remoteConfig = committed.config;
-      currentBaseHash = undefined;
-      logConfigUpdated(runtime);
-      outro("Remote gateway configured.");
-      return;
-    }
-
-    let nextConfig = { ...baseConfig };
-    let mergeBaseConfig = structuredClone(baseConfig);
-    let didSetGatewayMode = false;
-    if (mode === "local" && nextConfig.gateway?.mode !== "local") {
-      nextConfig = {
-        ...nextConfig,
-        gateway: {
-          ...nextConfig.gateway,
-          mode: "local",
-        },
-      };
-      didSetGatewayMode = true;
-    }
-    let workspaceDir = resolveWorkspaceWizardDefault(
-      nextConfig.agents?.defaults?.workspace ?? baseConfig.agents?.defaults?.workspace,
-    );
-    let gatewayPort = resolveGatewayPort(baseConfig);
-
-    const persistConfig = async () => {
-      nextConfig = applyWizardMetadata(nextConfig, {
-        command: opts.command,
-        mode,
-      });
-
-      // Retry loop: if config was mutated by a plugin, re-read and merge before retry
-      const maxRetries = 3;
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          const committed = await commitConfigWithPendingPluginInstalls({
-            nextConfig,
-            ...(currentBaseHash !== undefined ? { baseHash: currentBaseHash } : {}),
-          });
-          nextConfig = committed.config;
-
-          // After successful write, re-read the snapshot to get the new hash
-          const freshSnapshot = await readConfigFileSnapshot();
-          currentBaseHash = freshSnapshot.hash ?? undefined;
-          mergeBaseConfig = structuredClone(nextConfig);
-
-          logConfigUpdated(runtime);
-          return;
-        } catch (err) {
-          if (err instanceof ConfigMutationConflictError && attempt < maxRetries - 1) {
-            // Config was mutated externally (e.g. plugin wrote token during auth setup).
-            // Re-read the on-disk config and merge plugin changes into nextConfig so
-            // the retry won't silently overwrite them.
-            const freshSnapshot = await readConfigFileSnapshot();
-            currentBaseHash = freshSnapshot.hash ?? undefined;
-            const diskConfig = freshSnapshot.valid
-              ? (freshSnapshot.sourceConfig ?? freshSnapshot.config)
-              : {};
-            nextConfig = mergeWizardConfigOntoLatest(
-              diskConfig,
-              mergeBaseConfig,
-              nextConfig,
-            ) as OpenClawConfig;
-            continue;
-          }
-          throw err;
-        }
-      }
-    };
-
-    const configureWorkspace = async () => {
-      const workspaceInput = guardCancel(
-        await text({
-          message: "Workspace directory",
-          initialValue: workspaceDir,
-        }),
-        runtime,
-      );
-      workspaceDir = resolveUserPath(
-        normalizeOptionalString(workspaceInput ?? "") || DEFAULT_WORKSPACE,
-      );
-      if (!snapshot.exists) {
-        const indicators = ["MEMORY.md", "memory", ".git"].map((name) =>
-          nodePath.join(workspaceDir, name),
-        );
-        const hasExistingContent = (
-          await Promise.all(
-            indicators.map(async (candidate) => {
-              try {
-                await fsPromises.access(candidate);
-                return true;
-              } catch {
-                return false;
-              }
-            }),
-          )
-        ).some(Boolean);
-        if (hasExistingContent) {
+      if (snapshot.exists) {
+        const title = snapshot.valid ? "Existing config detected" : "Invalid config";
+        note(summarizeExistingConfig(baseConfig), title);
+        if (!snapshot.valid && snapshot.issues.length > 0) {
           note(
             [
-              `Existing workspace detected at ${workspaceDir}`,
-              "Existing files are preserved. Missing templates may be created, never overwritten.",
+              ...snapshot.issues.map((iss) => `- ${iss.path}: ${iss.message}`),
+              "",
+              "Docs: https://docs.neuralstudio.in/gateway/configuration",
             ].join("\n"),
-            "Existing workspace",
+            "Config issues",
           );
         }
+        if (!snapshot.valid) {
+          await outro(
+            `Config invalid. Run \`${formatCliCommand("kova doctor")}\` to repair it, then re-run configure.`,
+          );
+          runtime.exit(1);
+          return;
+        }
       }
-      nextConfig = {
-        ...nextConfig,
-        agents: {
-          ...nextConfig.agents,
-          defaults: {
-            ...nextConfig.agents?.defaults,
-            workspace: workspaceDir,
-          },
-        },
-      };
-      await ensureWorkspaceAndSessions(workspaceDir, runtime);
-    };
 
-    const configureChannelsSection = async () => {
-      const channelMode = await promptChannelMode(runtime);
-      if (channelMode === "configure") {
-        nextConfig = await setupChannels(nextConfig, runtime, prompter, {
-          allowDisable: true,
-          allowSignalInstall: true,
-          deferStatusUntilSelection: true,
-          skipConfirm: true,
-          skipStatusNote: true,
+      const targetedSections = opts.sections !== undefined;
+      let mode: "local" | "remote" = baseConfig.gateway?.mode === "remote" ? "remote" : "local";
+
+      if (!targetedSections) {
+        const localUrl = "ws://127.0.0.1:18789";
+        const remoteUrl = normalizeOptionalString(baseConfig.gateway?.remote?.url) ?? "";
+        const localProbePromise = (async () => {
+          const [baseLocalProbeToken, baseLocalProbePassword] = await Promise.all([
+            resolveGatewaySecretInputForWizard({
+              cfg: baseConfig,
+              value: baseConfig.gateway?.auth?.token,
+              path: "gateway.auth.token",
+            }),
+            resolveGatewaySecretInputForWizard({
+              cfg: baseConfig,
+              value: baseConfig.gateway?.auth?.password,
+              path: "gateway.auth.password",
+            }),
+          ]);
+          return probeGatewayReachable({
+            url: localUrl,
+            token:
+              readGatewayCredentialEnv(
+                process.env,
+                "KOVA_GATEWAY_TOKEN",
+                "OPENCLAW_GATEWAY_TOKEN",
+              ) ?? baseLocalProbeToken,
+            password:
+              readGatewayCredentialEnv(
+                process.env,
+                "KOVA_GATEWAY_PASSWORD",
+                "OPENCLAW_GATEWAY_PASSWORD",
+              ) ?? baseLocalProbePassword,
+            timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
+          });
+        })();
+        const remoteProbePromise = remoteUrl
+          ? (async () => {
+              const baseRemoteProbeToken = await resolveGatewaySecretInputForWizard({
+                cfg: baseConfig,
+                value: baseConfig.gateway?.remote?.token,
+                path: "gateway.remote.token",
+              });
+              return probeGatewayReachable({
+                url: remoteUrl,
+                token: baseRemoteProbeToken,
+                timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
+              });
+            })()
+          : Promise.resolve(null);
+        const [localProbe, remoteProbe] = await Promise.all([
+          localProbePromise,
+          remoteProbePromise,
+        ]);
+
+        mode = guardCancel(
+          await select({
+            message: "Where will the Gateway run?",
+            options: [
+              {
+                value: "local",
+                label: "Local (this machine)",
+                hint: localProbe.ok
+                  ? `Gateway reachable (${localUrl})`
+                  : `No gateway detected (${localUrl})`,
+              },
+              {
+                value: "remote",
+                label: "Remote (info-only)",
+                hint: !remoteUrl
+                  ? "No remote URL configured yet"
+                  : remoteProbe?.ok
+                    ? `Gateway reachable (${remoteUrl})`
+                    : `Configured but unreachable (${remoteUrl})`,
+              },
+            ],
+          }),
+          runtime,
+        );
+      }
+
+      if (!targetedSections && mode === "remote") {
+        let remoteConfig = await promptRemoteGatewayConfig(baseConfig, prompter);
+        remoteConfig = applyWizardMetadata(remoteConfig, {
+          command: opts.command,
+          mode,
         });
-      } else {
-        nextConfig = await removeChannelConfigWizard(nextConfig, runtime);
-      }
-    };
-
-    const promptDaemonPort = async () => {
-      const portInput = guardCancel(
-        await text({
-          message: "Gateway port for service install",
-          initialValue: String(gatewayPort),
-          validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
-        }),
-        runtime,
-      );
-      gatewayPort = Number.parseInt(portInput, 10);
-    };
-
-    if (opts.sections) {
-      const selected = opts.sections;
-      if (!selected || selected.length === 0) {
-        outro("No changes selected.");
+        const committed = await commitConfigWithPendingPluginInstalls({
+          nextConfig: remoteConfig,
+          ...(currentBaseHash !== undefined ? { baseHash: currentBaseHash } : {}),
+          ...(opts.deferConfigReload
+            ? {
+                writeOptions: {
+                  afterWrite: {
+                    mode: "none",
+                    reason: "browser configure wizard is still running",
+                  },
+                },
+              }
+            : {}),
+        });
+        remoteConfig = committed.config;
+        currentBaseHash = undefined;
+        logConfigUpdated(runtime);
+        await outro("Remote gateway configured.");
         return;
       }
 
-      if (selected.includes("workspace")) {
-        await configureWorkspace();
+      let nextConfig = { ...baseConfig };
+      let mergeBaseConfig = structuredClone(baseConfig);
+      let didSetGatewayMode = false;
+      if (mode === "local" && nextConfig.gateway?.mode !== "local") {
+        nextConfig = {
+          ...nextConfig,
+          gateway: {
+            ...nextConfig.gateway,
+            mode: "local",
+          },
+        };
+        didSetGatewayMode = true;
       }
+      let workspaceDir = resolveWorkspaceWizardDefault(
+        nextConfig.agents?.defaults?.workspace ?? baseConfig.agents?.defaults?.workspace,
+      );
+      let gatewayPort = resolveGatewayPort(baseConfig);
 
-      if (selected.includes("model")) {
-        nextConfig = await promptAuthConfig(nextConfig, runtime, prompter);
-      }
-
-      if (selected.includes("web")) {
-        nextConfig = await promptWebToolsConfig(nextConfig, runtime, prompter);
-      }
-
-      if (selected.includes("gateway")) {
-        const gateway = await promptGatewayConfig(nextConfig, runtime);
-        nextConfig = gateway.config;
-        gatewayPort = gateway.port;
-      }
-
-      if (selected.includes("channels")) {
-        await configureChannelsSection();
-      }
-
-      if (selected.includes("plugins")) {
-        const { configurePluginConfig } = await loadSetupPluginConfigModule();
-        nextConfig = await configurePluginConfig({
-          config: nextConfig,
-          prompter,
-          workspaceDir: resolveUserPath(workspaceDir),
+      const persistConfig = async () => {
+        nextConfig = applyWizardMetadata(nextConfig, {
+          command: opts.command,
+          mode,
         });
-      }
 
-      if (selected.includes("skills")) {
-        const wsDir = resolveUserPath(workspaceDir);
-        nextConfig = await setupSkills(nextConfig, wsDir, runtime, prompter);
-      }
+        // Retry loop: if config was mutated by a plugin, re-read and merge before retry
+        const maxRetries = 3;
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+          try {
+            const committed = await commitConfigWithPendingPluginInstalls({
+              nextConfig,
+              ...(currentBaseHash !== undefined ? { baseHash: currentBaseHash } : {}),
+              ...(opts.deferConfigReload
+                ? {
+                    writeOptions: {
+                      afterWrite: {
+                        mode: "none",
+                        reason: "browser configure wizard is still running",
+                      },
+                    },
+                  }
+                : {}),
+            });
+            nextConfig = committed.config;
 
-      await persistConfig();
+            // After successful write, re-read the snapshot to get the new hash
+            const freshSnapshot = await readConfigFileSnapshot();
+            currentBaseHash = freshSnapshot.hash ?? undefined;
+            mergeBaseConfig = structuredClone(nextConfig);
 
-      if (selected.includes("daemon")) {
-        if (!selected.includes("gateway")) {
-          await promptDaemonPort();
+            logConfigUpdated(runtime);
+            return;
+          } catch (err) {
+            if (err instanceof ConfigMutationConflictError && attempt < maxRetries - 1) {
+              // Config was mutated externally (e.g. plugin wrote token during auth setup).
+              // Re-read the on-disk config and merge plugin changes into nextConfig so
+              // the retry won't silently overwrite them.
+              const freshSnapshot = await readConfigFileSnapshot();
+              currentBaseHash = freshSnapshot.hash ?? undefined;
+              const diskConfig = freshSnapshot.valid
+                ? (freshSnapshot.sourceConfig ?? freshSnapshot.config)
+                : {};
+              nextConfig = mergeWizardConfigOntoLatest(
+                diskConfig,
+                mergeBaseConfig,
+                nextConfig,
+              ) as OpenClawConfig;
+              continue;
+            }
+            throw err;
+          }
+        }
+      };
+
+      const configureWorkspace = async () => {
+        const workspaceInput = guardCancel(
+          await text({
+            message: "Workspace directory",
+            initialValue: workspaceDir,
+          }),
+          runtime,
+        );
+        workspaceDir = resolveUserPath(
+          normalizeOptionalString(workspaceInput ?? "") || DEFAULT_WORKSPACE,
+        );
+        if (!snapshot.exists) {
+          const indicators = ["MEMORY.md", "memory", ".git"].map((name) =>
+            nodePath.join(workspaceDir, name),
+          );
+          const hasExistingContent = (
+            await Promise.all(
+              indicators.map(async (candidate) => {
+                try {
+                  await fsPromises.access(candidate);
+                  return true;
+                } catch {
+                  return false;
+                }
+              }),
+            )
+          ).some(Boolean);
+          if (hasExistingContent) {
+            note(
+              [
+                `Existing workspace detected at ${workspaceDir}`,
+                "Existing files are preserved. Missing templates may be created, never overwritten.",
+              ].join("\n"),
+              "Existing workspace",
+            );
+          }
+        }
+        nextConfig = {
+          ...nextConfig,
+          agents: {
+            ...nextConfig.agents,
+            defaults: {
+              ...nextConfig.agents?.defaults,
+              workspace: workspaceDir,
+            },
+          },
+        };
+        await ensureWorkspaceAndSessions(workspaceDir, runtime);
+      };
+
+      const configureChannelsSection = async () => {
+        const channelMode = await promptChannelMode(runtime);
+        if (channelMode === "configure") {
+          nextConfig = await setupChannels(nextConfig, runtime, prompter, {
+            allowDisable: true,
+            allowSignalInstall: true,
+            deferStatusUntilSelection: true,
+            skipConfirm: true,
+            skipStatusNote: true,
+          });
+        } else {
+          nextConfig = await removeChannelConfigWizard(nextConfig, runtime);
+        }
+      };
+
+      const promptDaemonPort = async () => {
+        const portInput = guardCancel(
+          await text({
+            message: "Gateway port for service install",
+            initialValue: String(gatewayPort),
+            validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
+          }),
+          runtime,
+        );
+        gatewayPort = Number.parseInt(portInput, 10);
+      };
+
+      if (opts.sections) {
+        const selected = opts.sections;
+        if (!selected || selected.length === 0) {
+          await outro("No changes selected.");
+          return;
         }
 
-        await maybeInstallDaemon({ runtime, port: gatewayPort });
-      }
-
-      if (selected.includes("health")) {
-        await runGatewayHealthCheck({ cfg: nextConfig, runtime, port: gatewayPort });
-      }
-    } else {
-      let ranSection = false;
-      let didConfigureGateway = false;
-
-      while (true) {
-        const choice = await promptConfigureSection(runtime, ranSection);
-        if (choice === "__continue") {
-          break;
-        }
-        ranSection = true;
-
-        if (choice === "workspace") {
+        if (selected.includes("workspace")) {
           await configureWorkspace();
-          await persistConfig();
         }
 
-        if (choice === "model") {
+        if (selected.includes("model")) {
           nextConfig = await promptAuthConfig(nextConfig, runtime, prompter);
-          await persistConfig();
         }
 
-        if (choice === "web") {
+        if (selected.includes("web")) {
           nextConfig = await promptWebToolsConfig(nextConfig, runtime, prompter);
-          await persistConfig();
         }
 
-        if (choice === "gateway") {
+        if (selected.includes("gateway")) {
           const gateway = await promptGatewayConfig(nextConfig, runtime);
           nextConfig = gateway.config;
           gatewayPort = gateway.port;
-          didConfigureGateway = true;
-          await persistConfig();
         }
 
-        if (choice === "channels") {
+        if (selected.includes("channels")) {
           await configureChannelsSection();
-          await persistConfig();
         }
 
-        if (choice === "plugins") {
+        if (selected.includes("plugins")) {
           const { configurePluginConfig } = await loadSetupPluginConfigModule();
           nextConfig = await configurePluginConfig({
             config: nextConfig,
             prompter,
             workspaceDir: resolveUserPath(workspaceDir),
           });
-          await persistConfig();
         }
 
-        if (choice === "skills") {
+        if (selected.includes("skills")) {
           const wsDir = resolveUserPath(workspaceDir);
           nextConfig = await setupSkills(nextConfig, wsDir, runtime, prompter);
-          await persistConfig();
         }
 
-        if (choice === "daemon") {
-          if (!didConfigureGateway) {
+        await persistConfig();
+
+        if (selected.includes("daemon")) {
+          if (!selected.includes("gateway")) {
             await promptDaemonPort();
           }
-          await maybeInstallDaemon({
-            runtime,
-            port: gatewayPort,
-          });
+
+          await maybeInstallDaemon({ runtime, port: gatewayPort });
         }
 
-        if (choice === "health") {
+        if (selected.includes("health")) {
           await runGatewayHealthCheck({ cfg: nextConfig, runtime, port: gatewayPort });
         }
-      }
+      } else {
+        let ranSection = false;
+        let didConfigureGateway = false;
 
-      if (!ranSection) {
-        if (didSetGatewayMode) {
-          await persistConfig();
-          outro("Gateway mode set to local.");
+        while (true) {
+          const choice = await promptConfigureSection(runtime, ranSection);
+          if (choice === "__continue") {
+            break;
+          }
+          ranSection = true;
+
+          if (choice === "workspace") {
+            await configureWorkspace();
+            await persistConfig();
+          }
+
+          if (choice === "model") {
+            nextConfig = await promptAuthConfig(nextConfig, runtime, prompter);
+            await persistConfig();
+          }
+
+          if (choice === "web") {
+            nextConfig = await promptWebToolsConfig(nextConfig, runtime, prompter);
+            await persistConfig();
+          }
+
+          if (choice === "gateway") {
+            const gateway = await promptGatewayConfig(nextConfig, runtime);
+            nextConfig = gateway.config;
+            gatewayPort = gateway.port;
+            didConfigureGateway = true;
+            await persistConfig();
+          }
+
+          if (choice === "channels") {
+            await configureChannelsSection();
+            await persistConfig();
+          }
+
+          if (choice === "plugins") {
+            const { configurePluginConfig } = await loadSetupPluginConfigModule();
+            nextConfig = await configurePluginConfig({
+              config: nextConfig,
+              prompter,
+              workspaceDir: resolveUserPath(workspaceDir),
+            });
+            await persistConfig();
+          }
+
+          if (choice === "skills") {
+            const wsDir = resolveUserPath(workspaceDir);
+            nextConfig = await setupSkills(nextConfig, wsDir, runtime, prompter);
+            await persistConfig();
+          }
+
+          if (choice === "daemon") {
+            if (!didConfigureGateway) {
+              await promptDaemonPort();
+            }
+            await maybeInstallDaemon({
+              runtime,
+              port: gatewayPort,
+            });
+          }
+
+          if (choice === "health") {
+            await runGatewayHealthCheck({ cfg: nextConfig, runtime, port: gatewayPort });
+          }
+        }
+
+        if (!ranSection) {
+          if (didSetGatewayMode) {
+            await persistConfig();
+            await outro("Gateway mode set to local.");
+            return;
+          }
+          await outro("No changes selected.");
           return;
         }
-        outro("No changes selected.");
-        return;
       }
-    }
 
-    const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-    if (!controlUiAssets.ok && controlUiAssets.message) {
-      runtime.error(controlUiAssets.message);
-    }
+      const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
+      if (!controlUiAssets.ok && controlUiAssets.message) {
+        runtime.error(controlUiAssets.message);
+      }
 
-    const bind = nextConfig.gateway?.bind ?? "loopback";
-    const links = resolveControlUiLinks({
-      bind,
-      port: gatewayPort,
-      customBindHost: nextConfig.gateway?.customBindHost,
-      basePath: nextConfig.gateway?.controlUi?.basePath,
-      tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
-    });
-    const newPassword =
-      process.env.OPENCLAW_GATEWAY_PASSWORD ??
-      (await resolveGatewaySecretInputForWizard({
-        cfg: nextConfig,
-        value: nextConfig.gateway?.auth?.password,
-        path: "gateway.auth.password",
-      }));
-    const oldPassword =
-      process.env.OPENCLAW_GATEWAY_PASSWORD ??
-      (await resolveGatewaySecretInputForWizard({
-        cfg: baseConfig,
-        value: baseConfig.gateway?.auth?.password,
-        path: "gateway.auth.password",
-      }));
-    const token =
-      process.env.OPENCLAW_GATEWAY_TOKEN ??
-      (await resolveGatewaySecretInputForWizard({
-        cfg: nextConfig,
-        value: nextConfig.gateway?.auth?.token,
-        path: "gateway.auth.token",
-      }));
+      const bind = nextConfig.gateway?.bind ?? "loopback";
+      const links = resolveControlUiLinks({
+        bind,
+        port: gatewayPort,
+        customBindHost: nextConfig.gateway?.customBindHost,
+        basePath: nextConfig.gateway?.controlUi?.basePath,
+        tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
+      });
+      const newPassword =
+        readGatewayCredentialEnv(
+          process.env,
+          "KOVA_GATEWAY_PASSWORD",
+          "OPENCLAW_GATEWAY_PASSWORD",
+        ) ??
+        (await resolveGatewaySecretInputForWizard({
+          cfg: nextConfig,
+          value: nextConfig.gateway?.auth?.password,
+          path: "gateway.auth.password",
+        }));
+      const oldPassword =
+        readGatewayCredentialEnv(
+          process.env,
+          "KOVA_GATEWAY_PASSWORD",
+          "OPENCLAW_GATEWAY_PASSWORD",
+        ) ??
+        (await resolveGatewaySecretInputForWizard({
+          cfg: baseConfig,
+          value: baseConfig.gateway?.auth?.password,
+          path: "gateway.auth.password",
+        }));
+      const token =
+        readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
+        (await resolveGatewaySecretInputForWizard({
+          cfg: nextConfig,
+          value: nextConfig.gateway?.auth?.token,
+          path: "gateway.auth.token",
+        }));
 
-    let gatewayProbe = await probeGatewayReachable({
-      url: links.wsUrl,
-      token,
-      password: newPassword,
-    });
-    if (!gatewayProbe.ok && newPassword !== oldPassword && oldPassword) {
-      gatewayProbe = await probeGatewayReachable({
+      let gatewayProbe = await probeGatewayReachable({
         url: links.wsUrl,
         token,
-        password: oldPassword,
+        password: newPassword,
       });
-    }
-    const gatewayStatusLine = gatewayProbe.ok
-      ? "Gateway: reachable"
-      : `Gateway: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
+      if (!gatewayProbe.ok && newPassword !== oldPassword && oldPassword) {
+        gatewayProbe = await probeGatewayReachable({
+          url: links.wsUrl,
+          token,
+          password: oldPassword,
+        });
+      }
+      const gatewayStatusLine = gatewayProbe.ok
+        ? "Gateway: reachable"
+        : `Gateway: not detected${gatewayProbe.detail ? ` (${gatewayProbe.detail})` : ""}`;
 
-    note(
-      [
-        `Web UI: ${links.httpUrl}`,
-        `Gateway WS: ${links.wsUrl}`,
-        gatewayStatusLine,
-        "Docs: https://docs.neuralstudio.in/web/control-ui",
-      ].join("\n"),
-      "Control UI",
-    );
+      note(
+        [
+          `Web UI: ${links.httpUrl}`,
+          `Gateway WS: ${links.wsUrl}`,
+          gatewayStatusLine,
+          "Docs: https://docs.neuralstudio.in/web/control-ui",
+        ].join("\n"),
+        "Control UI",
+      );
 
-    outro("Configure complete.");
-  } catch (err) {
-    if (err instanceof WizardCancelledError) {
-      runtime.exit(1);
-      return;
+      await outro("Configure complete.");
+    } catch (err) {
+      if (err instanceof WizardCancelledError) {
+        runtime.exit(1);
+        return;
+      }
+      throw err;
     }
-    throw err;
-  }
+  };
+  return injectedPrompter ? await withConfigurePrompter(prompter, run) : await run();
 }

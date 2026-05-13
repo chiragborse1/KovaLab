@@ -5,6 +5,7 @@ import {
   resolveLinuxSystemCaBundle,
 } from "../bootstrap/node-extra-ca-certs.js";
 import { resolveNodeStartupTlsEnvironment } from "../bootstrap/node-startup-env.js";
+import { resolveOpenClawCompatMode } from "../config/paths.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { VERSION } from "../version.js";
 import {
@@ -27,7 +28,12 @@ function readEnvAlias(
   modernKey: string,
   legacyKey: string,
 ): string | undefined {
-  return normalizeOptionalString(env[modernKey]) ?? normalizeOptionalString(env[legacyKey]);
+  return (
+    normalizeOptionalString(env[modernKey]) ??
+    (resolveOpenClawCompatMode(env as NodeJS.ProcessEnv)
+      ? normalizeOptionalString(env[legacyKey])
+      : undefined)
+  );
 }
 
 export { isNodeVersionManagerRuntime, resolveLinuxSystemCaBundle };
@@ -299,16 +305,14 @@ export function buildServiceEnvironment(params: {
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
     KOVA_PROFILE: profile,
-    OPENCLAW_PROFILE: profile,
-    OPENCLAW_WRAPPER: wrapperPath,
+    KOVA_WRAPPER: wrapperPath,
     KOVA_GATEWAY_PORT: String(port),
-    OPENCLAW_GATEWAY_PORT: String(port),
-    OPENCLAW_LAUNCHD_LABEL: resolvedLaunchdLabel,
-    OPENCLAW_SYSTEMD_UNIT: systemdUnit,
-    OPENCLAW_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
-    OPENCLAW_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: GATEWAY_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    KOVA_LAUNCHD_LABEL: resolvedLaunchdLabel,
+    KOVA_SYSTEMD_UNIT: systemdUnit,
+    KOVA_WINDOWS_TASK_NAME: resolveGatewayWindowsTaskName(profile),
+    KOVA_SERVICE_MARKER: GATEWAY_SERVICE_MARKER,
+    KOVA_SERVICE_KIND: GATEWAY_SERVICE_KIND,
+    KOVA_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -336,16 +340,14 @@ export function buildNodeServiceEnvironment(params: {
     ...buildCommonServiceEnvironment(env, sharedEnv),
     KOVA_GATEWAY_TOKEN: gatewayToken,
     KOVA_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
-    OPENCLAW_GATEWAY_TOKEN: gatewayToken,
-    OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: allowInsecurePrivateWs,
-    OPENCLAW_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
-    OPENCLAW_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
-    OPENCLAW_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
-    OPENCLAW_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
-    OPENCLAW_LOG_PREFIX: "node",
-    OPENCLAW_SERVICE_MARKER: NODE_SERVICE_MARKER,
-    OPENCLAW_SERVICE_KIND: NODE_SERVICE_KIND,
-    OPENCLAW_SERVICE_VERSION: VERSION,
+    KOVA_LAUNCHD_LABEL: resolveNodeLaunchAgentLabel(),
+    KOVA_SYSTEMD_UNIT: resolveNodeSystemdServiceName(),
+    KOVA_WINDOWS_TASK_NAME: resolveNodeWindowsTaskName(),
+    KOVA_TASK_SCRIPT_NAME: NODE_WINDOWS_TASK_SCRIPT_NAME,
+    KOVA_LOG_PREFIX: "node",
+    KOVA_SERVICE_MARKER: NODE_SERVICE_MARKER,
+    KOVA_SERVICE_KIND: NODE_SERVICE_KIND,
+    KOVA_SERVICE_VERSION: VERSION,
   };
 }
 
@@ -360,8 +362,6 @@ function buildCommonServiceEnvironment(
     NODE_USE_SYSTEM_CA: sharedEnv.nodeUseSystemCa,
     KOVA_STATE_DIR: sharedEnv.stateDir,
     KOVA_CONFIG_PATH: sharedEnv.configPath,
-    OPENCLAW_STATE_DIR: sharedEnv.stateDir,
-    OPENCLAW_CONFIG_PATH: sharedEnv.configPath,
   };
   if (sharedEnv.minimalPath) {
     serviceEnv.PATH = sharedEnv.minimalPath;

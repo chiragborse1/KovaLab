@@ -242,7 +242,7 @@ export async function runServiceStart(params: {
       fail(
         preflight.hints
           ? `${params.serviceNoun} start blocked: ${preflight.message}`
-          : `${params.serviceNoun} aborted: config is invalid.\n${preflight.message}\nFix the config and retry, or run "${formatCliCommand("openclaw doctor")}" to repair.`,
+          : `${params.serviceNoun} aborted: config is invalid.\n${preflight.message}\nFix the config and retry, or run "${formatCliCommand("kova doctor")}" to repair.`,
         preflight.hints,
       );
       return;
@@ -435,7 +435,7 @@ export async function runServiceRestart(params: {
       fail(
         preflight.hints
           ? `${params.serviceNoun} restart blocked: ${preflight.message}`
-          : `${params.serviceNoun} aborted: config is invalid.\n${preflight.message}\nFix the config and retry, or run "${formatCliCommand("openclaw doctor")}" to repair.`,
+          : `${params.serviceNoun} aborted: config is invalid.\n${preflight.message}\nFix the config and retry, or run "${formatCliCommand("kova doctor")}" to repair.`,
         preflight.hints,
       );
       return false;
@@ -470,7 +470,8 @@ export async function runServiceRestart(params: {
     // Check for token drift before restart (service token vs config token)
     try {
       const command = await params.service.readCommand(process.env);
-      const serviceToken = command?.environment?.OPENCLAW_GATEWAY_TOKEN;
+      const serviceToken =
+        command?.environment?.KOVA_GATEWAY_TOKEN ?? command?.environment?.OPENCLAW_GATEWAY_TOKEN;
       const cfg = await readBestEffortConfig();
       const driftEnv = {
         ...process.env,

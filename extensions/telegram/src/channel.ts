@@ -885,6 +885,7 @@ export const telegramPlugin = createChatChannelPlugin({
             proxyUrl: account.config.proxy,
             network: account.config.network,
             apiRoot: account.config.apiRoot,
+            includeWebhookInfo: false,
           });
           const username = probe.ok ? probe.bot?.username?.trim() : null;
           if (username) {
@@ -895,7 +896,7 @@ export const telegramPlugin = createChatChannelPlugin({
             ctx.log?.debug?.(`[${account.accountId}] bot probe failed: ${String(err)}`);
           }
         }
-        ctx.log?.info(`[${account.accountId}] starting provider${telegramBotLabel}`);
+        ctx.log?.info(`[${account.accountId}] connector online${telegramBotLabel}`);
         const setStatus = createAccountStatusSink({
           accountId: account.accountId,
           setStatus: ctx.setStatus,

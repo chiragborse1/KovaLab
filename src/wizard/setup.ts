@@ -11,6 +11,7 @@ import type {
 import { createConfigIO, replaceConfigFile, resolveGatewayPort } from "../config/config.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { normalizeSecretInputString } from "../config/types.secrets.js";
+import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import {
   buildPluginCompatibilitySnapshotNotices,
@@ -54,14 +55,19 @@ function loadModelPickerModule(): Promise<ModelPickerModule> {
   return modelPickerModulePromise;
 }
 
-async function writeWizardConfigFile(config: OpenClawConfig): Promise<OpenClawConfig> {
+async function writeWizardConfigFile(
+  config: OpenClawConfig,
+  opts: { deferConfigReload?: boolean } = {},
+): Promise<OpenClawConfig> {
   const committed = await commitConfigWriteWithPendingPluginInstalls({
     nextConfig: config,
     commit: async (nextConfig, writeOptions) => {
       await replaceConfigFile({
         nextConfig,
         ...(writeOptions ? { writeOptions } : {}),
-        afterWrite: { mode: "auto" },
+        afterWrite: opts.deferConfigReload
+          ? { mode: "none", reason: "browser setup wizard is still running" }
+          : { mode: "auto" },
       });
     },
   });
@@ -449,7 +455,11 @@ export async function runSetupWizard(
   let localProbe: Awaited<ReturnType<typeof onboardHelpers.probeGatewayReachable>> | null = null;
   let remoteProbe: Awaited<ReturnType<typeof onboardHelpers.probeGatewayReachable>> | null = null;
   if (needsModeProbe) {
-    let localGatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN;
+    let localGatewayToken = readGatewayCredentialEnv(
+      process.env,
+      "KOVA_GATEWAY_TOKEN",
+      "OPENCLAW_GATEWAY_TOKEN",
+    );
     try {
       const resolvedGatewayToken = await resolveSetupSecretInputString({
         config: baseConfig,
@@ -469,7 +479,11 @@ export async function runSetupWizard(
         "Gateway auth",
       );
     }
-    let localGatewayPassword = process.env.OPENCLAW_GATEWAY_PASSWORD;
+    let localGatewayPassword = readGatewayCredentialEnv(
+      process.env,
+      "KOVA_GATEWAY_PASSWORD",
+      "OPENCLAW_GATEWAY_PASSWORD",
+    );
     try {
       const resolvedGatewayPassword = await resolveSetupSecretInputString({
         config: baseConfig,
@@ -746,7 +760,9 @@ export async function runSetupWizard(
     });
   }
 
-  nextConfig = await writeWizardConfigFile(nextConfig);
+  nextConfig = await writeWizardConfigFile(nextConfig, {
+    deferConfigReload: opts.deferConfigReload,
+  });
   const { logConfigUpdated } = await loadConfigLoggingModule();
   logConfigUpdated(runtime);
   await onboardHelpers.ensureWorkspaceAndSessions(workspaceDir, runtime, {
@@ -785,7 +801,19 @@ export async function runSetupWizard(
   nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
-  nextConfig = await writeWizardConfigFile(nextConfig);
+  nextConfig = await writeWizardConfigFile(nextConfig, {
+    deferConfigReload: opts.deferConfigReload,
+  });
+
+  if (opts.deferConfigReload) {
+    await prompter.note(
+      [
+        "Setup changes were saved without restarting the active Gateway.",
+        "Restart the Gateway after finishing this browser setup to apply auth, bind, or plugin reload-sensitive changes.",
+      ].join("\n"),
+      "Restart required",
+    );
+  }
 
   const { finalizeSetupWizard } = await import("./setup.finalize.js");
   const { launchedTui } = await finalizeSetupWizard({

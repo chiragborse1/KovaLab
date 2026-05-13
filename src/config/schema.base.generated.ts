@@ -321,7 +321,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "string",
                 title: "Cache Trace File Path",
                 description:
-                  "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+                  "JSONL output path for cache trace logs (default: $KOVA_STATE_DIR/logs/cache-trace.jsonl).",
               },
               includeMessages: {
                 type: "boolean",
@@ -3271,7 +3271,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 additionalProperties: false,
                 title: "Default Legacy Embedded Harness Settings",
                 description:
-                  "Legacy input for agents.defaults.agentRuntime. Run openclaw doctor --fix to rewrite it to agentRuntime.",
+                  "Legacy input for agents.defaults.agentRuntime. Run kova doctor --fix to rewrite it to agentRuntime.",
               },
               model: {
                 anyOf: [
@@ -4496,7 +4496,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         type: "string",
                         title: "Memory Search Index Path",
                         description:
-                          "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+                          "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.kova/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
                       },
                       fts: {
                         type: "object",
@@ -6122,7 +6122,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   additionalProperties: false,
                   title: "Agent Legacy Embedded Harness",
                   description:
-                    "Legacy input for agents.list.*.agentRuntime. Run openclaw doctor --fix to rewrite it to agentRuntime.",
+                    "Legacy input for agents.list.*.agentRuntime. Run kova doctor --fix to rewrite it to agentRuntime.",
                 },
                 model: {
                   anyOf: [
@@ -18759,7 +18759,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 title: "Audio Transcription Command",
                 description:
-                  'Executable + args used to transcribe audio (first token must be a safe binary/path), for example `["whisper-cli", "--model", "small", "{{MediaPath}}"]`. Deprecated `{input}` placeholders are migrated to `{{MediaPath}}` by `openclaw doctor --fix`.',
+                  'Executable + args used to transcribe audio (first token must be a safe binary/path), for example `["whisper-cli", "--model", "small", "{{MediaPath}}"]`. Deprecated `{input}` placeholders are migrated to `{{MediaPath}}` by `kova doctor --fix`.',
               },
               timeoutSeconds: {
                 type: "integer",
@@ -21916,13 +21916,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
               basePath: {
                 type: "string",
                 title: "Control UI Base Path",
-                description: "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
+                description: "Optional URL prefix where the web console is served (e.g. /kova).",
               },
               root: {
                 type: "string",
                 title: "Control UI Assets Root",
                 description:
-                  "Optional filesystem root for Control UI assets (defaults to dist/control-ui).",
+                  "Optional filesystem root for web console assets (defaults to dist/control-ui).",
               },
               embedSandbox: {
                 anyOf: [
@@ -21941,13 +21941,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 ],
                 title: "Control UI Embed Sandbox Mode",
                 description:
-                  'Iframe sandbox policy for hosted Control UI embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
+                  'Iframe sandbox policy for hosted web console embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
               },
               allowExternalEmbedUrls: {
                 type: "boolean",
                 title: "Allow External Control UI Embed URLs",
                 description:
-                  "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__openclaw__/canvas and /__openclaw__/a2ui documents do not need it.",
+                  "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your web console intentionally embeds trusted third-party pages; hosted /__kova__/canvas and /__kova__/a2ui documents do not need it.",
               },
               allowedOrigins: {
                 type: "array",
@@ -21956,25 +21956,25 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 title: "Control UI Allowed Origins",
                 description:
-                  'Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
+                  'Allowed browser origins for web console websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback web console deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
               },
               dangerouslyAllowHostHeaderOriginFallback: {
                 type: "boolean",
                 title: "Dangerously Allow Host-Header Origin Fallback",
                 description:
-                  "DANGEROUS toggle that enables Host-header based origin fallback for Control UI/WebChat websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
+                  "DANGEROUS toggle that enables Host-header based origin fallback for web console websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
               },
               allowInsecureAuth: {
                 type: "boolean",
                 title: "Insecure Control UI Auth Toggle",
                 description:
-                  "Loosens strict browser auth checks for Control UI when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
+                  "Loosens strict browser auth checks for the web console when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
               },
               dangerouslyDisableDeviceAuth: {
                 type: "boolean",
                 title: "Dangerously Disable Control UI Device Auth",
                 description:
-                  "Disables Control UI device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
+                  "Disables web console device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
               },
             },
             additionalProperties: false,
@@ -22944,7 +22944,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 },
                 title: "Gateway Node Allowlist (Extra Commands)",
                 description:
-                  "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+                  "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `kova security audit`.",
               },
               denyCommands: {
                 type: "array",
@@ -24267,7 +24267,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "diagnostics.cacheTrace.filePath": {
       label: "Cache Trace File Path",
-      help: "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+      help: "JSONL output path for cache trace logs (default: $KOVA_STATE_DIR/logs/cache-trace.jsonl).",
       tags: ["observability", "storage"],
     },
     "diagnostics.cacheTrace.includeMessages": {
@@ -24392,7 +24392,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.embeddedHarness": {
       label: "Default Legacy Embedded Harness Settings",
-      help: "Legacy input for agents.defaults.agentRuntime. Run openclaw doctor --fix to rewrite it to agentRuntime.",
+      help: "Legacy input for agents.defaults.agentRuntime. Run kova doctor --fix to rewrite it to agentRuntime.",
       tags: ["advanced"],
     },
     "agents.defaults.embeddedHarness.runtime": {
@@ -24462,7 +24462,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.list.*.embeddedHarness": {
       label: "Agent Legacy Embedded Harness",
-      help: "Legacy input for agents.list.*.agentRuntime. Run openclaw doctor --fix to rewrite it to agentRuntime.",
+      help: "Legacy input for agents.list.*.agentRuntime. Run kova doctor --fix to rewrite it to agentRuntime.",
       tags: ["advanced"],
     },
     "agents.list.*.embeddedHarness.runtime": {
@@ -25571,45 +25571,45 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.controlUi.basePath": {
       label: "Control UI Base Path",
-      help: "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
-      placeholder: "/openclaw",
+      help: "Optional URL prefix where the web console is served (e.g. /kova).",
+      placeholder: "/kova",
       tags: ["network", "storage"],
     },
     "gateway.controlUi.root": {
       label: "Control UI Assets Root",
-      help: "Optional filesystem root for Control UI assets (defaults to dist/control-ui).",
+      help: "Optional filesystem root for web console assets (defaults to dist/control-ui).",
       placeholder: "dist/control-ui",
       tags: ["network"],
     },
     "gateway.controlUi.embedSandbox": {
       label: "Control UI Embed Sandbox Mode",
-      help: 'Iframe sandbox policy for hosted Control UI embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
+      help: 'Iframe sandbox policy for hosted web console embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
       tags: ["security", "access", "advanced"],
     },
     "gateway.controlUi.allowExternalEmbedUrls": {
       label: "Allow External Control UI Embed URLs",
-      help: "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your Control UI intentionally embeds trusted third-party pages; hosted /__openclaw__/canvas and /__openclaw__/a2ui documents do not need it.",
+      help: "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your web console intentionally embeds trusted third-party pages; hosted /__kova__/canvas and /__kova__/a2ui documents do not need it.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.controlUi.allowedOrigins": {
       label: "Control UI Allowed Origins",
-      help: 'Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
+      help: 'Allowed browser origins for web console websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback web console deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
       placeholder: "https://control.example.com",
       tags: ["access", "network"],
     },
     "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback": {
       label: "Dangerously Allow Host-Header Origin Fallback",
-      help: "DANGEROUS toggle that enables Host-header based origin fallback for Control UI/WebChat websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
+      help: "DANGEROUS toggle that enables Host-header based origin fallback for web console websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.controlUi.allowInsecureAuth": {
       label: "Insecure Control UI Auth Toggle",
-      help: "Loosens strict browser auth checks for Control UI when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
+      help: "Loosens strict browser auth checks for the web console when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.controlUi.dangerouslyDisableDeviceAuth": {
       label: "Dangerously Disable Control UI Device Auth",
-      help: "Disables Control UI device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
+      help: "Disables web console device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.push": {
@@ -25730,7 +25730,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.nodes.allowCommands": {
       label: "Gateway Node Allowlist (Extra Commands)",
-      help: "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+      help: "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `kova security audit`.",
       tags: ["access", "network"],
     },
     "gateway.nodes.denyCommands": {
@@ -25780,7 +25780,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "audio.transcription.command": {
       label: "Audio Transcription Command",
-      help: 'Executable + args used to transcribe audio (first token must be a safe binary/path), for example `["whisper-cli", "--model", "small", "{{MediaPath}}"]`. Deprecated `{input}` placeholders are migrated to `{{MediaPath}}` by `openclaw doctor --fix`.',
+      help: 'Executable + args used to transcribe audio (first token must be a safe binary/path), for example `["whisper-cli", "--model", "small", "{{MediaPath}}"]`. Deprecated `{input}` placeholders are migrated to `{{MediaPath}}` by `kova doctor --fix`.',
       tags: ["media"],
     },
     "audio.transcription.timeoutSeconds": {
@@ -26171,7 +26171,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.memorySearch.store.path": {
       label: "Memory Search Index Path",
-      help: "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+      help: "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.kova/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
       tags: ["storage"],
     },
     "agents.defaults.memorySearch.store.vector.enabled": {

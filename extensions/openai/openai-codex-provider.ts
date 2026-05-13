@@ -430,7 +430,7 @@ function buildOpenAICodexAuthDoctorHint(ctx: { profileId?: string }) {
   if (ctx.profileId !== CODEX_CLI_PROFILE_ID) {
     return undefined;
   }
-  return "Deprecated profile. Run `openclaw models auth login --provider openai-codex` or `openclaw configure`.";
+  return "Deprecated profile. Run `kova models auth login --provider openai-codex` or `kova configure`.";
 }
 
 export function buildOpenAICodexProviderPlugin(): ProviderPlugin {

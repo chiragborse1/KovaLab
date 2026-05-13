@@ -6,10 +6,10 @@ export const GATEWAY_SYSTEMD_SERVICE_NAME = "kova-gateway";
 export const GATEWAY_WINDOWS_TASK_NAME = "Kova Gateway";
 export const GATEWAY_SERVICE_MARKER = "kova";
 export const GATEWAY_SERVICE_KIND = "gateway";
-export const NODE_LAUNCH_AGENT_LABEL = "ai.openclaw.node";
-export const NODE_SYSTEMD_SERVICE_NAME = "openclaw-node";
-export const NODE_WINDOWS_TASK_NAME = "OpenClaw Node";
-export const NODE_SERVICE_MARKER = "openclaw";
+export const NODE_LAUNCH_AGENT_LABEL = "ai.kova.node";
+export const NODE_SYSTEMD_SERVICE_NAME = "kova-node";
+export const NODE_WINDOWS_TASK_NAME = "Kova Node";
+export const NODE_SERVICE_MARKER = "kova";
 export const NODE_SERVICE_KIND = "node";
 export const NODE_WINDOWS_TASK_SCRIPT_NAME = "node.cmd";
 export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = [
@@ -134,7 +134,7 @@ export function resolveNodeWindowsTaskName(): string {
 export function formatNodeServiceDescription(params?: { version?: string }): string {
   const version = params?.version?.trim();
   if (!version) {
-    return "OpenClaw Node Host";
+    return "Kova Node Host";
   }
-  return `OpenClaw Node Host (v${version})`;
+  return `Kova Node Host (v${version})`;
 }

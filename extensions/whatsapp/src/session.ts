@@ -159,7 +159,7 @@ export async function createWaSocket(
     version,
     logger,
     printQRInTerminal: false,
-    browser: ["openclaw", "cli", VERSION],
+    browser: ["kova", "cli", VERSION],
     syncFullHistory: false,
     markOnlineOnConnect: false,
     agent,
@@ -188,7 +188,7 @@ export async function createWaSocket(
           if (status === LOGGED_OUT_STATUS) {
             console.error(
               danger(
-                `WhatsApp session logged out. Run: ${formatCliCommand("openclaw channels login")}`,
+                `WhatsApp session logged out. Run: ${formatCliCommand("kova channels login")}`,
               ),
             );
           }

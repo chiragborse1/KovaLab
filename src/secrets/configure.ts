@@ -233,6 +233,10 @@ function configureCandidateKey(candidate: {
   return `openclaw:${candidate.path}`;
 }
 
+function displayConfigFileName(configFile: "openclaw.json" | "auth-profiles.json"): string {
+  return configFile === "auth-profiles.json" ? "auth-profiles.json" : "kova.json";
+}
+
 function hasSourceChoice(
   sourceChoices: Array<{ value: SecretRefSource; label: string }>,
   source: SecretRefSource,
@@ -791,7 +795,7 @@ export async function runSecretsConfigureInteractive(
         value: configureCandidateKey(candidate),
         label: candidate.label,
         hint: [
-          candidate.configFile === "auth-profiles.json" ? "auth-profiles.json" : "openclaw.json",
+          displayConfigFileName(candidate.configFile),
           candidate.isDerived === true ? "derived" : undefined,
         ]
           .filter(Boolean)

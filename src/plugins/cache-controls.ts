@@ -1,20 +1,52 @@
+import { resolveOpenClawCompatMode } from "../config/paths.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
 export const DEFAULT_PLUGIN_DISCOVERY_CACHE_MS = 1000;
 export const DEFAULT_PLUGIN_MANIFEST_CACHE_MS = 1000;
 
+export function readPluginCacheEnv(
+  env: NodeJS.ProcessEnv,
+  modernKey: string,
+  legacyKey: string,
+): string | undefined {
+  return (
+    normalizeOptionalString(env[modernKey]) ??
+    (resolveOpenClawCompatMode(env) ? normalizeOptionalString(env[legacyKey]) : undefined)
+  );
+}
+
 export function shouldUsePluginSnapshotCache(env: NodeJS.ProcessEnv): boolean {
-  if (normalizeOptionalString(env.OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE)) {
+  if (
+    readPluginCacheEnv(
+      env,
+      "KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE",
+      "OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE",
+    )
+  ) {
     return false;
   }
-  if (normalizeOptionalString(env.OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE)) {
+  if (
+    readPluginCacheEnv(
+      env,
+      "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE",
+      "OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE",
+    )
+  ) {
     return false;
   }
-  const discoveryCacheMs = normalizeOptionalString(env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS);
+  const discoveryCacheMs = readPluginCacheEnv(
+    env,
+    "KOVA_PLUGIN_DISCOVERY_CACHE_MS",
+    "OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS",
+  );
   if (discoveryCacheMs === "0") {
     return false;
   }
-  const manifestCacheMs = normalizeOptionalString(env.OPENCLAW_PLUGIN_MANIFEST_CACHE_MS);
+  const manifestCacheMs = readPluginCacheEnv(
+    env,
+    "KOVA_PLUGIN_MANIFEST_CACHE_MS",
+    "OPENCLAW_PLUGIN_MANIFEST_CACHE_MS",
+  );
   if (manifestCacheMs === "0") {
     return false;
   }
@@ -38,11 +70,11 @@ export function resolvePluginCacheMs(rawValue: string | undefined, defaultMs: nu
 
 export function resolvePluginSnapshotCacheTtlMs(env: NodeJS.ProcessEnv): number {
   const discoveryCacheMs = resolvePluginCacheMs(
-    env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS,
+    readPluginCacheEnv(env, "KOVA_PLUGIN_DISCOVERY_CACHE_MS", "OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS"),
     DEFAULT_PLUGIN_DISCOVERY_CACHE_MS,
   );
   const manifestCacheMs = resolvePluginCacheMs(
-    env.OPENCLAW_PLUGIN_MANIFEST_CACHE_MS,
+    readPluginCacheEnv(env, "KOVA_PLUGIN_MANIFEST_CACHE_MS", "OPENCLAW_PLUGIN_MANIFEST_CACHE_MS"),
     DEFAULT_PLUGIN_MANIFEST_CACHE_MS,
   );
   return Math.min(discoveryCacheMs, manifestCacheMs);
@@ -50,14 +82,19 @@ export function resolvePluginSnapshotCacheTtlMs(env: NodeJS.ProcessEnv): number 
 
 export function buildPluginSnapshotCacheEnvKey(env: NodeJS.ProcessEnv): string {
   return JSON.stringify({
-    OPENCLAW_BUNDLED_PLUGINS_DIR: env.OPENCLAW_BUNDLED_PLUGINS_DIR ?? "",
-    OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: env.OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE ?? "",
-    OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: env.OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE ?? "",
-    OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS: env.OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS ?? "",
-    OPENCLAW_PLUGIN_MANIFEST_CACHE_MS: env.OPENCLAW_PLUGIN_MANIFEST_CACHE_MS ?? "",
-    OPENCLAW_HOME: env.OPENCLAW_HOME ?? "",
-    OPENCLAW_STATE_DIR: env.OPENCLAW_STATE_DIR ?? "",
-    OPENCLAW_CONFIG_PATH: env.OPENCLAW_CONFIG_PATH ?? "",
+    KOVA_BUNDLED_PLUGINS_DIR: env.KOVA_BUNDLED_PLUGINS_DIR ?? "",
+    KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: env.KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE ?? "",
+    KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: env.KOVA_DISABLE_PLUGIN_MANIFEST_CACHE ?? "",
+    KOVA_PLUGIN_DISCOVERY_CACHE_MS: env.KOVA_PLUGIN_DISCOVERY_CACHE_MS ?? "",
+    KOVA_PLUGIN_MANIFEST_CACHE_MS: env.KOVA_PLUGIN_MANIFEST_CACHE_MS ?? "",
+    KOVA_HOME: env.KOVA_HOME ?? "",
+    KOVA_STATE_DIR: env.KOVA_STATE_DIR ?? "",
+    KOVA_CONFIG_PATH: env.KOVA_CONFIG_PATH ?? "",
+    OPENCLAW_COMPAT: resolveOpenClawCompatMode(env) ? "1" : "",
+    OPENCLAW_BUNDLED_PLUGINS_DIR: resolveOpenClawCompatMode(env)
+      ? (env.OPENCLAW_BUNDLED_PLUGINS_DIR ?? "")
+      : "",
+    OPENCLAW_HOME: resolveOpenClawCompatMode(env) ? (env.OPENCLAW_HOME ?? "") : "",
     HOME: env.HOME ?? "",
     USERPROFILE: env.USERPROFILE ?? "",
     VITEST: env.VITEST ?? "",

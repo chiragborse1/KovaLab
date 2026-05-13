@@ -38,7 +38,7 @@ export async function maybeRepairUiProtocolFreshness(
     ]);
 
     if (schemaStats && !uiStats) {
-      note(["- Control UI assets are missing.", "- Run: pnpm ui:build"].join("\n"), "UI");
+      note(["- Web console assets are missing.", "- Run: pnpm ui:build"].join("\n"), "UI");
 
       // In slim/docker environments we may not have the UI source tree. Trying
       // to build would fail (and spam logs), so skip the interactive repair.
@@ -50,12 +50,12 @@ export async function maybeRepairUiProtocolFreshness(
       }
 
       const shouldRepair = await prompter.confirmAutoFix({
-        message: "Build Control UI assets now?",
+        message: "Build web console assets now?",
         initialValue: true,
       });
 
       if (shouldRepair) {
-        note("Building Control UI assets... (this may take a moment)", "UI");
+        note("Building web console assets... (this may take a moment)", "UI");
         const uiScriptPath = path.join(root, "scripts/ui.js");
         const buildResult = await runCommandWithTimeout([process.execPath, uiScriptPath, "build"], {
           cwd: root,

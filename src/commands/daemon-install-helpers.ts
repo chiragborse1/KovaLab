@@ -7,6 +7,7 @@ import type { OpenClawConfig } from "../config/types.js";
 import { resolveGatewayLaunchAgentLabel } from "../daemon/constants.js";
 import { resolveGatewayStateDir } from "../daemon/paths.js";
 import {
+  KOVA_WRAPPER_ENV_KEY,
   OPENCLAW_WRAPPER_ENV_KEY,
   resolveGatewayProgramArguments,
   resolveOpenClawWrapperPath,
@@ -282,10 +283,10 @@ export async function buildGatewayInstallPlan(params: {
     nodePath: params.nodePath,
   });
   const wrapperPath = await resolveOpenClawWrapperPath(
-    params.wrapperPath ?? params.env[OPENCLAW_WRAPPER_ENV_KEY],
+    params.wrapperPath ?? params.env[KOVA_WRAPPER_ENV_KEY] ?? params.env[OPENCLAW_WRAPPER_ENV_KEY],
   );
   const serviceInputEnv: Record<string, string | undefined> = wrapperPath
-    ? { ...params.env, [OPENCLAW_WRAPPER_ENV_KEY]: wrapperPath }
+    ? { ...params.env, [KOVA_WRAPPER_ENV_KEY]: wrapperPath }
     : params.env;
   const { programArguments, workingDirectory } = await resolveGatewayProgramArguments({
     port: params.port,
@@ -306,7 +307,9 @@ export async function buildGatewayInstallPlan(params: {
     port: params.port,
     launchdLabel:
       platform === "darwin"
-        ? resolveGatewayLaunchAgentLabel(serviceInputEnv.OPENCLAW_PROFILE)
+        ? resolveGatewayLaunchAgentLabel(
+            serviceInputEnv.KOVA_PROFILE ?? serviceInputEnv.OPENCLAW_PROFILE,
+          )
         : undefined,
     platform,
     extraPathDirs: resolveDaemonNodeBinDir(nodePath),
@@ -334,5 +337,5 @@ export async function buildGatewayInstallPlan(params: {
 export function gatewayInstallErrorHint(platform = process.platform): string {
   return platform === "win32"
     ? "Tip: native Windows now falls back to a per-user Startup-folder login item when Scheduled Task creation is denied; if install still fails, rerun from an elevated PowerShell or skip service install."
-    : `Tip: rerun \`${formatCliCommand("openclaw gateway install")}\` after fixing the error.`;
+    : `Tip: rerun \`${formatCliCommand("kova gateway install")}\` after fixing the error.`;
 }

@@ -11,6 +11,7 @@ import { readConfigFileSnapshot } from "../config/config.js";
 import { mutateConfigFile } from "../config/mutate.js";
 import type { AgentModelConfig } from "../config/types.agents-shared.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
@@ -496,8 +497,12 @@ async function resolveSettingsStatusSnapshot(cfg: OpenClawConfig): Promise<Setti
   const gatewayStartedAt = Date.now();
   const gateway = await probeGatewayReachable({
     url: gatewayUrl,
-    token: process.env.OPENCLAW_GATEWAY_TOKEN ?? gatewayToken,
-    password: process.env.OPENCLAW_GATEWAY_PASSWORD ?? gatewayPassword,
+    token:
+      readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
+      gatewayToken,
+    password:
+      readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD") ??
+      gatewayPassword,
     timeoutMs: 350,
   });
   const gatewayLatencyMs = Date.now() - gatewayStartedAt;

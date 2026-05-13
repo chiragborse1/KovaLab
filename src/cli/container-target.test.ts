@@ -92,14 +92,14 @@ describe("parseCliContainerArgs", () => {
 });
 
 describe("resolveCliContainerTarget", () => {
-  it("uses argv first and falls back to OPENCLAW_CONTAINER", () => {
+  it("uses argv first and falls back to KOVA_CONTAINER", () => {
     expect(
       resolveCliContainerTarget(["node", "openclaw", "--container", "demo", "status"], {}),
     ).toBe("demo");
     expect(resolveCliContainerTarget(["node", "openclaw", "status"], {})).toBeNull();
     expect(
       resolveCliContainerTarget(["node", "openclaw", "status"], {
-        OPENCLAW_CONTAINER: "demo",
+        KOVA_CONTAINER: "demo",
       } as NodeJS.ProcessEnv),
     ).toBe("demo");
   });
@@ -113,7 +113,7 @@ describe("maybeRunCliInContainer", () => {
     });
   });
 
-  it("uses OPENCLAW_CONTAINER when the flag is absent", () => {
+  it("uses KOVA_CONTAINER when the flag is absent", () => {
     const spawnSync = vi
       .fn()
       .mockReturnValueOnce({
@@ -131,7 +131,7 @@ describe("maybeRunCliInContainer", () => {
 
     expect(
       maybeRunCliInContainer(["node", "openclaw", "status"], {
-        env: { OPENCLAW_CONTAINER: "demo" } as NodeJS.ProcessEnv,
+        env: { KOVA_CONTAINER: "demo" } as NodeJS.ProcessEnv,
         spawnSync,
       }),
     ).toEqual({
@@ -146,18 +146,16 @@ describe("maybeRunCliInContainer", () => {
         "exec",
         "-i",
         "--env",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "--env",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "status",
       ],
       {
         stdio: "inherit",
-        env: {
-          OPENCLAW_CONTAINER: "",
-        },
+        env: {},
       },
     );
   });
@@ -180,7 +178,7 @@ describe("maybeRunCliInContainer", () => {
 
     maybeRunCliInContainer(["node", "openclaw", "status"], {
       env: {
-        OPENCLAW_CONTAINER: "demo",
+        KOVA_CONTAINER: "demo",
         OPENCLAW_PROFILE: "work",
         OPENCLAW_GATEWAY_PORT: "19001",
         OPENCLAW_GATEWAY_URL: "ws://127.0.0.1:18789",
@@ -197,18 +195,16 @@ describe("maybeRunCliInContainer", () => {
         "exec",
         "-i",
         "--env",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "--env",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "status",
       ],
       {
         stdio: "inherit",
-        env: {
-          OPENCLAW_CONTAINER: "",
-        },
+        env: {},
       },
     );
   });
@@ -252,16 +248,16 @@ describe("maybeRunCliInContainer", () => {
         "exec",
         "-i",
         "--env",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "--env",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "status",
       ],
       {
         stdio: "inherit",
-        env: { OPENCLAW_CONTAINER: "" },
+        env: {},
       },
     );
   });
@@ -305,16 +301,16 @@ describe("maybeRunCliInContainer", () => {
         "exec",
         "-i",
         "-e",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "-e",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "health",
       ],
       {
         stdio: "inherit",
-        env: { USER: "openclaw", OPENCLAW_CONTAINER: "" },
+        env: { USER: "openclaw" },
       },
     );
   });
@@ -368,16 +364,16 @@ describe("maybeRunCliInContainer", () => {
         "exec",
         "-i",
         "-e",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "-e",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "status",
       ],
       {
         stdio: "inherit",
-        env: { USER: "somalley", OPENCLAW_CONTAINER: "" },
+        env: { USER: "somalley" },
       },
     );
     expect(spawnSync).toHaveBeenCalledTimes(3);
@@ -474,21 +470,21 @@ describe("maybeRunCliInContainer", () => {
         "-i",
         "-t",
         "--env",
-        "OPENCLAW_CONTAINER_HINT=demo",
+        "KOVA_CONTAINER_HINT=demo",
         "--env",
-        "OPENCLAW_CLI_CONTAINER_BYPASS=1",
+        "KOVA_CLI_CONTAINER_BYPASS=1",
         "demo",
         "kova",
         "setup",
       ],
       {
         stdio: "inherit",
-        env: { OPENCLAW_CONTAINER: "" },
+        env: {},
       },
     );
   });
 
-  it("prefers --container over OPENCLAW_CONTAINER", () => {
+  it("prefers --container over KOVA_CONTAINER", () => {
     const spawnSync = vi
       .fn()
       .mockReturnValueOnce({
@@ -506,7 +502,7 @@ describe("maybeRunCliInContainer", () => {
 
     expect(
       maybeRunCliInContainer(["node", "openclaw", "--container", "flag-demo", "health"], {
-        env: { OPENCLAW_CONTAINER: "env-demo" } as NodeJS.ProcessEnv,
+        env: { KOVA_CONTAINER: "env-demo" } as NodeJS.ProcessEnv,
         spawnSync,
       }),
     ).toEqual({
@@ -539,7 +535,7 @@ describe("maybeRunCliInContainer", () => {
   it("skips recursion when the bypass env is set", () => {
     expect(
       maybeRunCliInContainer(["node", "openclaw", "--container", "demo", "status"], {
-        env: { OPENCLAW_CLI_CONTAINER_BYPASS: "1" } as NodeJS.ProcessEnv,
+        env: { KOVA_CLI_CONTAINER_BYPASS: "1" } as NodeJS.ProcessEnv,
       }),
     ).toEqual({
       handled: false,

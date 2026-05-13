@@ -36,9 +36,6 @@ const MANUAL_VALUE = "__manual__";
 const BROWSE_VALUE = "__browse__";
 const PROVIDER_FILTER_THRESHOLD = 30;
 
-// Internal router models are valid defaults during auth/setup but not manual API targets.
-const HIDDEN_ROUTER_MODELS = new Set(["openrouter/auto"]);
-
 export type PromptDefaultModelParams = {
   config: OpenClawConfig;
   prompter: WizardPrompter;
@@ -196,11 +193,7 @@ function addModelSelectOption(params: {
   hasAuth: (provider: string) => boolean;
 }) {
   const key = modelKey(params.entry.provider, params.entry.id);
-  if (
-    params.seen.has(key) ||
-    HIDDEN_ROUTER_MODELS.has(key) ||
-    !isModelPickerVisibleProvider(params.entry.provider)
-  ) {
+  if (params.seen.has(key) || !isModelPickerVisibleProvider(params.entry.provider)) {
     return;
   }
   const hints: string[] = [];

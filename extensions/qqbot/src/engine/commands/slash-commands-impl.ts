@@ -779,12 +779,12 @@ registerCommand({
         ``,
         `\`\`\`shell`,
         `# 开启审批（白名单模式）`,
-        `openclaw config set tools.exec.security allowlist`,
-        `openclaw config set tools.exec.ask on-miss`,
+        `kova config set tools.exec.security allowlist`,
+        `kova config set tools.exec.ask on-miss`,
         ``,
         `# 关闭审批`,
-        `openclaw config set tools.exec.security full`,
-        `openclaw config set tools.exec.ask off`,
+        `kova config set tools.exec.security full`,
+        `kova config set tools.exec.ask off`,
         `\`\`\``,
       ].join("\n");
     }

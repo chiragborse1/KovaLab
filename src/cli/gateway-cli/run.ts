@@ -132,7 +132,9 @@ const GATEWAY_AUTH_MODES: readonly GatewayAuthMode[] = [
 const GATEWAY_TAILSCALE_MODES: readonly GatewayTailscaleMode[] = ["off", "serve", "funnel"];
 
 function createGatewayCliStartupTrace() {
-  const enabled = isTruthyEnvValue(process.env.OPENCLAW_GATEWAY_STARTUP_TRACE);
+  const enabled = isTruthyEnvValue(
+    process.env.KOVA_GATEWAY_STARTUP_TRACE ?? process.env.OPENCLAW_GATEWAY_STARTUP_TRACE,
+  );
   const started = performance.now();
   let last = started;
   const emit = (name: string, durationMs: number, totalMs: number) => {
@@ -163,7 +165,7 @@ function createGatewayCliStartupTrace() {
 
 function warnInlinePasswordFlag() {
   defaultRuntime.error(
-    "Warning: --password can be exposed via process listings. Prefer --password-file or OPENCLAW_GATEWAY_PASSWORD.",
+    "Warning: --password can be exposed via process listings. Prefer --password-file or KOVA_GATEWAY_PASSWORD.",
   );
 }
 
@@ -224,7 +226,7 @@ function maybeLogPendingControlUiBuild(cfg: OpenClawConfig): void {
     return;
   }
   gatewayLog.info(
-    "Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.",
+    "web console assets are missing; first startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
   );
 }
 
@@ -239,7 +241,7 @@ function getGatewayStartGuardErrors(params: {
   }
   if (!params.configExists) {
     return [
-      `Missing config. Run \`${formatCliCommand("openclaw setup")}\` or set gateway.mode=local (or pass --allow-unconfigured).`,
+      `Missing config. Run \`${formatCliCommand("kova setup")}\` or set gateway.mode=local (or pass --allow-unconfigured).`,
     ];
   }
   if (params.mode === undefined) {
@@ -247,7 +249,7 @@ function getGatewayStartGuardErrors(params: {
       [
         "Gateway start blocked: existing config is missing gateway.mode.",
         "Treat this as suspicious or clobbered config.",
-        `Re-run \`${formatCliCommand("openclaw onboard --mode local")}\` or \`${formatCliCommand("openclaw setup")}\`, set gateway.mode=local manually, or pass --allow-unconfigured.`,
+        `Re-run \`${formatCliCommand("kova onboard --mode local")}\` or \`${formatCliCommand("kova setup")}\`, set gateway.mode=local manually, or pass --allow-unconfigured.`,
       ].join(" "),
       `Config write audit: ${params.configAuditPath}`,
     ];
@@ -364,7 +366,9 @@ function maybeWriteGatewayStartupFailureBundle(err: unknown): void {
 }
 
 async function runGatewayCommand(opts: GatewayRunOpts) {
-  const isDevProfile = normalizeOptionalLowercaseString(process.env.OPENCLAW_PROFILE) === "dev";
+  const isDevProfile =
+    normalizeOptionalLowercaseString(process.env.KOVA_PROFILE ?? process.env.OPENCLAW_PROFILE) ===
+    "dev";
   const devMode = Boolean(opts.dev) || isDevProfile;
   if (opts.reset && !devMode) {
     defaultRuntime.error("Use --reset with --dev.");
@@ -406,7 +410,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   // progress instead of a silent 15-20 s pause (especially on Windows/NTFS).
   const { startGatewayServer } = await startupTrace.measure("cli.server-import", () =>
     withProgress(
-      { label: "Loading gateway modules…", indeterminate: true },
+      { label: "Loading Kova runtime modules…", indeterminate: true },
       async () => import("../../gateway/server.js"),
     ),
   );
@@ -419,7 +423,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     );
   }
 
-  gatewayLog.info("loading configuration…");
+  gatewayLog.info("config: loading runtime profile");
   const { cfg, snapshot } = await readGatewayStartupConfig({ startupTrace });
   maybeLogPendingControlUiBuild(cfg);
   const portOverride = parsePort(opts.port);
@@ -436,7 +440,10 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     action: "start the gateway service",
     snapshot,
   });
-  if (futureStartupBlock && process.env.OPENCLAW_SERVICE_MARKER?.trim()) {
+  if (
+    futureStartupBlock &&
+    (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.OPENCLAW_SERVICE_MARKER?.trim())
+  ) {
     defaultRuntime.error(formatFutureConfigActionBlock(futureStartupBlock));
     defaultRuntime.exit(78);
     return;
@@ -465,7 +472,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     return;
   }
   const bindExplicitRaw = bindExplicitRawStr as GatewayBindMode | undefined;
-  if (process.env.OPENCLAW_SERVICE_MARKER?.trim()) {
+  if (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.OPENCLAW_SERVICE_MARKER?.trim()) {
     const stale = cleanStaleGatewayProcessesSync(port);
     if (stale.length > 0) {
       gatewayLog.info(
@@ -521,7 +528,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   if (opts.token) {
     const token = toOptionString(opts.token);
     if (token) {
-      process.env.OPENCLAW_GATEWAY_TOKEN = token;
+      process.env.KOVA_GATEWAY_TOKEN = token;
     }
   }
   const authModeRaw = toOptionString(opts.auth);
@@ -562,7 +569,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   }
   const tokenRaw = toOptionString(opts.token);
 
-  gatewayLog.info("resolving authentication…");
+  gatewayLog.info("access: resolving control-plane policy");
   const configExists = snapshot?.exists ?? fs.existsSync(CONFIG_PATH);
   const configAuditPath = path.join(resolveStateDir(process.env), "logs", "config-audit.jsonl");
   const effectiveCfg = snapshot?.valid ? snapshot.config : cfg;
@@ -631,7 +638,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     defaultRuntime.error(
       [
         "Gateway auth is set to password, but no password is configured.",
-        "Set gateway.auth.password (or OPENCLAW_GATEWAY_PASSWORD), or pass --password.",
+        "Set gateway.auth.password (or KOVA_GATEWAY_PASSWORD), or pass --password.",
         ...authHints,
       ]
         .filter(Boolean)
@@ -642,7 +649,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   }
   if (resolvedAuthMode === "none") {
     gatewayLog.warn(
-      "Gateway auth mode=none explicitly configured; all gateway connections are unauthenticated.",
+      "access: auth mode=none explicitly configured; all control-plane connections are unauthenticated.",
     );
   }
   if (
@@ -653,14 +660,14 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   ) {
     defaultRuntime.error(
       [
-        `Refusing to bind gateway to ${bind} without auth.`,
+        `Refusing to bind Kova control plane to ${bind} without auth.`,
         ...(isContainerEnvironment()
           ? [
-              "Container environment detected \u2014 the gateway defaults to bind=auto (0.0.0.0) for port-forwarding compatibility.",
-              "Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD, or pass --token/--password to start with auth.",
+              "Container environment detected \u2014 Kova defaults to bind=auto (0.0.0.0) for port-forwarding compatibility.",
+              "Set KOVA_GATEWAY_TOKEN or KOVA_GATEWAY_PASSWORD, or pass --token/--password to start with auth.",
             ]
           : [
-              "Set gateway.auth.token/password (or OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD) or pass --token/--password.",
+              "Set gateway.auth.token/password (or KOVA_GATEWAY_TOKEN/KOVA_GATEWAY_PASSWORD) or pass --token/--password.",
             ]),
         ...authHints,
       ]
@@ -678,7 +685,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
         }
       : undefined;
 
-  gatewayLog.info("starting...");
+  gatewayLog.info("launch: binding control plane");
   startupTrace.mark("cli.gateway-loop");
   const startLoop = async () =>
     await runGatewayLoop({
@@ -709,7 +716,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
           throw err;
         }
         gatewayLog.warn(
-          `gateway already running under ${supervisor}; waiting ${SUPERVISED_GATEWAY_LOCK_RETRY_MS}ms before retrying startup`,
+          `control plane already running under ${supervisor}; waiting ${SUPERVISED_GATEWAY_LOCK_RETRY_MS}ms before retrying startup`,
         );
         await new Promise((resolve) => setTimeout(resolve, SUPERVISED_GATEWAY_LOCK_RETRY_MS));
       }
@@ -718,7 +725,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     if (isGatewayLockError(err)) {
       const errMessage = formatErrorMessage(err);
       defaultRuntime.error(
-        `Gateway failed to start: ${errMessage}\nIf the gateway is supervised, stop it with: ${formatCliCommand("openclaw gateway stop")}`,
+        `Kova failed to start: ${errMessage}\nIf the control plane is supervised, stop it with: ${formatCliCommand("kova gateway stop")}`,
       );
       try {
         const diagnostics = await inspectPortUsage(port);
@@ -749,7 +756,7 @@ export function addGatewayRunCommand(cmd: Command): Command {
     )
     .option(
       "--token <token>",
-      "Shared token required in connect.params.auth.token (default: OPENCLAW_GATEWAY_TOKEN env if set)",
+      "Shared token required in connect.params.auth.token (default: KOVA_GATEWAY_TOKEN env if set)",
     )
     .option("--auth <mode>", `Gateway auth mode (${formatModeChoices(GATEWAY_AUTH_MODES)})`)
     .option("--password <password>", "Password for auth mode=password")

@@ -749,7 +749,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount, DiscordProbe> 
               ctx.log?.debug?.(`[${account.accountId}] bot probe failed: ${String(err)}`);
             }
           }
-          ctx.log?.info(`[${account.accountId}] starting provider${discordBotLabel}`);
+          ctx.log?.info(`[${account.accountId}] connector online${discordBotLabel}`);
           return (await loadDiscordProviderRuntime()).monitorDiscordProvider({
             token,
             accountId: account.accountId,

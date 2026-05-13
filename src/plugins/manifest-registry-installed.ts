@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { readPluginCacheEnv } from "./cache-controls.js";
 import type { PluginCandidate } from "./discovery.js";
 import { hashJson } from "./installed-plugin-index-hash.js";
 import { resolveInstalledPluginIndexPolicyHash } from "./installed-plugin-index-policy.js";
@@ -67,10 +68,20 @@ function shouldUseInstalledManifestRegistryCache(params: {
   if (params.bundledChannelConfigCollector) {
     return false;
   }
-  if (params.env.OPENCLAW_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE?.trim()) {
+  if (
+    readPluginCacheEnv(
+      params.env,
+      "KOVA_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE",
+      "OPENCLAW_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE",
+    )
+  ) {
     return false;
   }
-  return !params.env.OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE?.trim();
+  return !readPluginCacheEnv(
+    params.env,
+    "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE",
+    "OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE",
+  );
 }
 
 function buildInstalledManifestRegistryCacheKey(params: {

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { CONFIGURE_WIZARD_SECTIONS, type WizardSection } from "../../commands/configure.shared.js";
+import { runConfigureWizard } from "../../commands/configure.wizard.js";
 import { defaultRuntime } from "../../runtime.js";
 import { readStringValue } from "../../shared/string-coerce.js";
 import { WizardSession } from "../../wizard/session.js";
@@ -19,6 +21,10 @@ function readWizardStatus(session: WizardSession) {
     status: session.getStatus(),
     error: session.getError(),
   };
+}
+
+function isWizardSection(value: string | undefined): value is WizardSection {
+  return Boolean(value && CONFIGURE_WIZARD_SECTIONS.includes(value as WizardSection));
 }
 
 function findWizardSessionOrRespond(params: {
@@ -44,14 +50,48 @@ export const wizardHandlers: GatewayRequestHandlers = {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, "wizard already running"));
       return;
     }
+    const flow = params.flow ?? "onboard";
     const sessionId = randomUUID();
-    const opts = {
-      mode: params.mode,
-      workspace: readStringValue(params.workspace),
-    };
-    const session = new WizardSession((prompter) =>
-      context.wizardRunner(opts, defaultRuntime, prompter),
-    );
+    const session =
+      flow === "configure"
+        ? (() => {
+            const section = readStringValue(params.section);
+            if (!isWizardSection(section)) {
+              respond(
+                false,
+                undefined,
+                errorShape(ErrorCodes.INVALID_REQUEST, "configure wizard requires a valid section"),
+              );
+              return null;
+            }
+            return new WizardSession((prompter) =>
+              runConfigureWizard(
+                {
+                  command: "configure",
+                  sections: [section],
+                  deferConfigReload: true,
+                },
+                defaultRuntime,
+                prompter,
+              ),
+            );
+          })()
+        : new WizardSession((prompter) =>
+            context.wizardRunner(
+              {
+                mode: params.mode,
+                workspace: readStringValue(params.workspace),
+                deferConfigReload: true,
+                skipHealth: true,
+                skipUi: true,
+              },
+              defaultRuntime,
+              prompter,
+            ),
+          );
+    if (!session) {
+      return;
+    }
     context.wizardSessions.set(sessionId, session);
     const result = await session.next();
     if (result.done) {

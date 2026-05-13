@@ -178,7 +178,7 @@ export function createAcpxRuntimeService(
         runtime,
         ...(shouldRunStartupProbe() ? { healthy: () => runtime?.isHealthy() ?? false } : {}),
       });
-      ctx.logger.info(`embedded acpx runtime backend registered (cwd: ${pluginConfig.cwd})`);
+      ctx.logger.info(`embedded ACP runtime online (cwd: ${pluginConfig.cwd})`);
 
       if (!shouldRunStartupProbe() || process.env.OPENCLAW_SKIP_ACPX_RUNTIME_PROBE === "1") {
         return;

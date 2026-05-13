@@ -84,10 +84,7 @@ export function registerCompletionCli(program: Command) {
       ),
     )
     .option("-i, --install", "Install completion script to shell profile")
-    .option(
-      "--write-state",
-      "Write completion scripts to $OPENCLAW_STATE_DIR/completions (no stdout)",
-    )
+    .option("--write-state", "Write completion scripts to $KOVA_STATE_DIR/completions (no stdout)")
     .option("-y, --yes", "Skip confirmation (non-interactive)", false)
     .action(async (options) => {
       // Route logs to stderr so plugin loading messages do not corrupt
