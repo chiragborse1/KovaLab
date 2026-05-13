@@ -30,6 +30,22 @@ export {
   waitProviderOperationPollInterval,
 } from "../media-understanding/shared.js";
 export type { ProviderOperationDeadline } from "../media-understanding/shared.js";
+export {
+  defaultTransientProviderRetryForStage,
+  executeProviderOperationWithRetry,
+  isTransientProviderOperationError,
+  providerOperationRetryConfig,
+  resolveTransientProviderAttempts,
+  resolveTransientProviderDelayMs,
+  resolveTransientProviderRetryOptions,
+  shouldRetrySameKeyProviderOperation,
+} from "../provider-runtime/operation-retry.js";
+export type {
+  ProviderOperationRetryStage,
+  TransientProviderRetryConfig,
+  TransientProviderRetryOptions,
+  TransientProviderRetryParams,
+} from "../provider-runtime/operation-retry.js";
 export type {
   ProviderAttributionPolicy,
   ProviderRequestCapabilities,
