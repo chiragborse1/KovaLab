@@ -61,7 +61,7 @@ describe("renderControlPanel", () => {
     expect(onWizardStartSection).toHaveBeenCalledWith("model");
   });
 
-  it("keeps setup timeline steps clickable while another wizard step is open", () => {
+  it("locks setup timeline steps while another wizard step is open", () => {
     const onWizardStartSection = vi.fn();
     const container = document.createElement("div");
 
@@ -80,10 +80,10 @@ describe("renderControlPanel", () => {
     const channelsStep = Array.from(container.querySelectorAll(".control-panel-step")).find(
       (button) => button.textContent?.includes("Channels"),
     ) as HTMLButtonElement | undefined;
-    expect(channelsStep?.disabled).toBe(false);
+    expect(channelsStep?.disabled).toBe(true);
     channelsStep?.click();
 
-    expect(onWizardStartSection).toHaveBeenCalledWith("channels");
+    expect(onWizardStartSection).not.toHaveBeenCalled();
     expect(container.textContent).not.toContain("Browser setup saves config");
   });
 

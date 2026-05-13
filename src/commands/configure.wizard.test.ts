@@ -132,6 +132,7 @@ vi.mock("../config/mutate.js", async () => {
 
 import { ConfigMutationConflictError } from "../config/mutate.js";
 import { WizardCancelledError } from "../wizard/prompts.js";
+import { maybeInstallDaemon } from "./configure.daemon.js";
 import { runConfigureWizard } from "./configure.wizard.js";
 
 const EMPTY_CONFIG_SNAPSHOT = {
@@ -675,6 +676,40 @@ describe("runConfigureWizard", () => {
           },
         }),
       }),
+    );
+  });
+
+  it("does not run service actions when browser configure disables them", async () => {
+    setupBaseWizardState();
+    const prompter = {
+      intro: vi.fn(async () => {}),
+      outro: vi.fn(async () => {}),
+      note: vi.fn(async () => {}),
+      select: vi.fn(async () => "workspace"),
+      multiselect: vi.fn(async () => []),
+      text: vi.fn(async () => "18789"),
+      confirm: vi.fn(async () => true),
+      progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+    };
+
+    await runConfigureWizard(
+      {
+        command: "configure",
+        sections: ["daemon"],
+        deferConfigReload: true,
+        allowServiceActions: false,
+      },
+      createRuntime(),
+      prompter,
+    );
+
+    expect(maybeInstallDaemon).not.toHaveBeenCalled();
+    expect(prompter.text).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Gateway port for service install" }),
+    );
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("disabled from the browser setup flow"),
+      "Gateway service",
     );
   });
 });

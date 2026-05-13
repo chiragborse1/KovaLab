@@ -45,6 +45,7 @@ export type ConfigureWizardParams = {
   command: "configure" | "update";
   sections?: WizardSection[];
   deferConfigReload?: boolean;
+  allowServiceActions?: boolean;
 };
 
 export const CONFIGURE_SECTION_OPTIONS: Array<{

@@ -663,6 +663,16 @@ export async function runConfigureWizard(
         }
       };
 
+      const noteServiceActionsDisabled = async () => {
+        await prompter.note(
+          [
+            "Service install, restart, and uninstall actions are disabled from the browser setup flow so the active Gateway stays online.",
+            `Use ${formatCliCommand("kova configure --section daemon")} from a terminal when you want to manage the background service.`,
+          ].join("\n"),
+          "Gateway service",
+        );
+      };
+
       const promptDaemonPort = async () => {
         const portInput = guardCancel(
           await text({
@@ -721,11 +731,15 @@ export async function runConfigureWizard(
         await persistConfig();
 
         if (selected.includes("daemon")) {
-          if (!selected.includes("gateway")) {
-            await promptDaemonPort();
-          }
+          if (opts.allowServiceActions === false) {
+            await noteServiceActionsDisabled();
+          } else {
+            if (!selected.includes("gateway")) {
+              await promptDaemonPort();
+            }
 
-          await maybeInstallDaemon({ runtime, port: gatewayPort });
+            await maybeInstallDaemon({ runtime, port: gatewayPort });
+          }
         }
 
         if (selected.includes("health")) {
@@ -787,13 +801,17 @@ export async function runConfigureWizard(
           }
 
           if (choice === "daemon") {
-            if (!didConfigureGateway) {
-              await promptDaemonPort();
+            if (opts.allowServiceActions === false) {
+              await noteServiceActionsDisabled();
+            } else {
+              if (!didConfigureGateway) {
+                await promptDaemonPort();
+              }
+              await maybeInstallDaemon({
+                runtime,
+                port: gatewayPort,
+              });
             }
-            await maybeInstallDaemon({
-              runtime,
-              port: gatewayPort,
-            });
           }
 
           if (choice === "health") {

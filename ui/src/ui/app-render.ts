@@ -1651,7 +1651,10 @@ export function renderApp(state: AppViewState) {
               onWizardStartSection: (section) => {
                 void (async () => {
                   if (state.controlWizardSessionId) {
-                    await cancelControlWizard(state);
+                    state.controlWizardError =
+                      "Finish or cancel the current setup step before opening another setup section.";
+                    requestHostUpdate?.();
+                    return;
                   }
                   await startControlWizard(state, { flow: "configure", section });
                   await loadConfig(state);

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { CONFIGURE_WIZARD_SECTIONS, type WizardSection } from "../../commands/configure.shared.js";
 import { runConfigureWizard } from "../../commands/configure.wizard.js";
-import { defaultRuntime } from "../../runtime.js";
+import { createNonExitingRuntime } from "../../runtime.js";
 import { readStringValue } from "../../shared/string-coerce.js";
 import { WizardSession } from "../../wizard/session.js";
 import {
@@ -80,8 +80,9 @@ export const wizardHandlers: GatewayRequestHandlers = {
                   command: "configure",
                   sections: [section],
                   deferConfigReload: true,
+                  allowServiceActions: false,
                 },
-                defaultRuntime,
+                createNonExitingRuntime(),
                 prompter,
               ),
             );
@@ -95,7 +96,7 @@ export const wizardHandlers: GatewayRequestHandlers = {
                 skipHealth: true,
                 skipUi: true,
               },
-              defaultRuntime,
+              createNonExitingRuntime(),
               prompter,
             ),
           );

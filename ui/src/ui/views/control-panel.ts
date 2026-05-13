@@ -91,6 +91,7 @@ function renderGatewayStatus(props: ControlPanelProps) {
 }
 
 function renderSetupTimeline(props: ControlPanelProps) {
+  const hasActiveWizard = Boolean(props.wizardSessionId);
   return html`
     <aside class="control-panel-nav" aria-label="Setup steps">
       <div class="control-panel-nav__title">Onboarding flow</div>
@@ -98,7 +99,10 @@ function renderSetupTimeline(props: ControlPanelProps) {
         (step, index) => html`
           <button
             class="control-panel-step"
-            ?disabled=${!props.connected || props.wizardLoading}
+            title=${hasActiveWizard
+              ? "Finish or cancel the current setup step before opening another section."
+              : ""}
+            ?disabled=${!props.connected || props.wizardLoading || hasActiveWizard}
             @click=${() => props.onWizardStartSection(step.section)}
           >
             <span class="control-panel-step__index">${index + 1}</span>
