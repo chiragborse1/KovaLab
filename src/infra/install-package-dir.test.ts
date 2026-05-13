@@ -332,6 +332,69 @@ describe("installPackageDir", () => {
     );
   });
 
+  it("reports periodic progress while plugin npm install is still running", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-13T00:00:00.000Z"));
+    vi.mocked(runCommandWithTimeout).mockReset();
+    await fixtureRootTracker.setup();
+    const fixtureRoot = await fixtureRootTracker.make("case");
+    const sourceDir = path.join(fixtureRoot, "source");
+    const targetDir = path.join(fixtureRoot, "plugins", "demo");
+    const logs: string[] = [];
+    await fs.mkdir(sourceDir, { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, "package.json"),
+      JSON.stringify({
+        name: "demo-plugin",
+        version: "1.0.0",
+        dependencies: {
+          zod: "^4.0.0",
+        },
+      }),
+      "utf-8",
+    );
+
+    let finishInstall!: () => void;
+    vi.mocked(runCommandWithTimeout).mockImplementation(
+      async () =>
+        await new Promise((resolve) => {
+          finishInstall = () =>
+            resolve({
+              stdout: "",
+              stderr: "",
+              code: 0,
+              signal: null,
+              killed: false,
+              termination: "exit",
+            });
+        }),
+    );
+
+    const installPromise = installPackageDir({
+      sourceDir,
+      targetDir,
+      mode: "install",
+      timeoutMs: 1_000,
+      copyErrorPrefix: "failed to copy plugin",
+      hasDeps: true,
+      depsLogMessage: "Installing deps…",
+      logger: { info: (message) => logs.push(message) },
+    });
+
+    await vi.waitFor(() => {
+      expect(logs).toContain("Installing deps…");
+    });
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(logs).toContain("npm install still running (5s elapsed)");
+
+    finishInstall();
+    await expect(installPromise).resolves.toEqual({ ok: true });
+    const previousLogCount = logs.length;
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(logs).toHaveLength(previousLogCount);
+    vi.useRealTimers();
+  });
+
   it("hides the staged project .npmrc while npm install runs and restores it afterward", async () => {
     await fixtureRootTracker.setup();
     const fixtureRoot = await fixtureRootTracker.make("case");

@@ -12,6 +12,7 @@ const INSTALL_BASE_CHANGED_BACKUP_WARNING =
   "Install base directory changed before backup cleanup; leaving backup in place.";
 const STAGED_NPM_PROJECT_CONFIG_NAME = ".npmrc";
 const STAGED_NPM_PROJECT_CONFIG_PREFIX = ".openclaw-install-hidden-npmrc-";
+const NPM_INSTALL_PROGRESS_INTERVAL_MS = 5_000;
 
 type HiddenProjectConfigFile = {
   hiddenDir: string;
@@ -91,6 +92,52 @@ async function restoreProjectNpmConfigAfterInstall(
   }
   await fs.rename(hiddenConfig.hiddenPath, hiddenConfig.originalPath);
   await fs.rm(hiddenConfig.hiddenDir, { recursive: true, force: true });
+}
+
+function formatNpmInstallElapsed(elapsedMs: number): string {
+  const seconds = Math.max(1, Math.round(elapsedMs / 1000));
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return remainder === 0 ? `${minutes}m` : `${minutes}m ${remainder}s`;
+}
+
+async function runNpmInstallWithProgress(params: {
+  stageDir: string;
+  timeoutMs: number;
+  logger?: { info?: (message: string) => void };
+}) {
+  const startedAt = Date.now();
+  const progressTimer = params.logger?.info
+    ? setInterval(() => {
+        params.logger?.info?.(
+          `npm install still running (${formatNpmInstallElapsed(Date.now() - startedAt)} elapsed)`,
+        );
+      }, NPM_INSTALL_PROGRESS_INTERVAL_MS)
+    : null;
+  progressTimer?.unref?.();
+  try {
+    return await runCommandWithTimeout(
+      // Plugins install into isolated directories, so omitting peer deps can strip
+      // runtime requirements that npm would otherwise materialize for the package.
+      ["npm", "install", "--omit=dev", "--silent", "--ignore-scripts"],
+      {
+        timeoutMs: Math.max(params.timeoutMs, 300_000),
+        cwd: params.stageDir,
+        env: {
+          ...createNpmProjectInstallEnv(process.env),
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+          NPM_CONFIG_IGNORE_SCRIPTS: "true",
+        },
+      },
+    );
+  } finally {
+    if (progressTimer) {
+      clearInterval(progressTimer);
+    }
+  }
 }
 
 async function assertInstallBoundaryPaths(params: {
@@ -243,20 +290,11 @@ export async function installPackageDir(params: {
       params.logger?.info?.(params.depsLogMessage);
       const npmRes = await (async () => {
         try {
-          return await runCommandWithTimeout(
-            // Plugins install into isolated directories, so omitting peer deps can strip
-            // runtime requirements that npm would otherwise materialize for the package.
-            ["npm", "install", "--omit=dev", "--silent", "--ignore-scripts"],
-            {
-              timeoutMs: Math.max(params.timeoutMs, 300_000),
-              cwd: stageDir,
-              env: {
-                ...createNpmProjectInstallEnv(process.env),
-                COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
-                NPM_CONFIG_IGNORE_SCRIPTS: "true",
-              },
-            },
-          );
+          return await runNpmInstallWithProgress({
+            stageDir,
+            timeoutMs: params.timeoutMs,
+            logger: params.logger,
+          });
         } finally {
           await restoreProjectNpmConfigAfterInstall(hiddenProjectNpmConfig);
         }
