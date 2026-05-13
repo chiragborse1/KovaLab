@@ -1,4 +1,5 @@
 import {
+  getCachedModelCatalog,
   loadModelCatalog,
   type ModelCatalogEntry,
   resetModelCatalogCacheForTest,
@@ -18,4 +19,8 @@ export async function loadGatewayModelCatalog(params?: {
   getConfig?: () => ReturnType<typeof getRuntimeConfig>;
 }): Promise<GatewayModelChoice[]> {
   return await loadModelCatalog({ config: (params?.getConfig ?? getRuntimeConfig)() });
+}
+
+export function getCachedGatewayModelCatalog(): GatewayModelChoice[] | undefined {
+  return getCachedModelCatalog();
 }

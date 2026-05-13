@@ -85,6 +85,7 @@ import {
 } from "../protocol/index.js";
 import { CHAT_SEND_SESSION_KEY_MAX_LENGTH } from "../protocol/schema/primitives.js";
 import { getMaxChatHistoryMessagesBytes } from "../server-constants.js";
+import { getCachedGatewayModelCatalog } from "../server-model-catalog.js";
 import {
   capArrayByJsonBytes,
   loadSessionEntry,
@@ -1547,12 +1548,12 @@ export const chatHandlers: GatewayRequestHandlers = {
     }
     let thinkingLevel = entry?.thinkingLevel;
     if (!thinkingLevel) {
-      const catalog = await context.loadGatewayModelCatalog();
+      const catalog = getCachedGatewayModelCatalog();
       thinkingLevel = resolveThinkingDefault({
         cfg,
         provider: resolvedSessionModel.provider,
         model: resolvedSessionModel.model,
-        catalog,
+        ...(catalog ? { catalog } : {}),
       });
     }
     const verboseLevel = entry?.verboseLevel ?? cfg.agents?.defaults?.verboseDefault;

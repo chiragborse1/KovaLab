@@ -37,6 +37,7 @@ type PiRegistryClassLike = {
 };
 
 let modelCatalogPromise: Promise<ModelCatalogEntry[]> | null = null;
+let cachedModelCatalog: ModelCatalogEntry[] | null = null;
 let hasLoggedModelCatalogError = false;
 const defaultImportPiSdk = () => import("./pi-model-discovery-runtime.js");
 let importPiSdk = defaultImportPiSdk;
@@ -53,6 +54,7 @@ function loadModelSuppression() {
 
 export function resetModelCatalogCache() {
   modelCatalogPromise = null;
+  cachedModelCatalog = null;
   hasLoggedModelCatalogError = false;
   importPiSdk = defaultImportPiSdk;
 }
@@ -64,6 +66,10 @@ export function resetModelCatalogCacheForTest() {
 // Test-only escape hatch: allow mocking the dynamic import to simulate transient failures.
 export function __setModelCatalogImportForTest(loader?: () => Promise<PiSdkModule>) {
   importPiSdk = loader ?? defaultImportPiSdk;
+}
+
+export function getCachedModelCatalog(): ModelCatalogEntry[] | undefined {
+  return cachedModelCatalog ? [...cachedModelCatalog] : undefined;
 }
 
 function instantiatePiModelRegistry(
@@ -195,6 +201,9 @@ export async function loadModelCatalog(params?: {
       }
 
       const sorted = sortModels(models);
+      if (!readOnly) {
+        cachedModelCatalog = sorted;
+      }
       logStage("complete", `entries=${sorted.length}`);
       return sorted;
     } catch (error) {

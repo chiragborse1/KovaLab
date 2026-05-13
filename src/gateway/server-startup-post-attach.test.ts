@@ -17,6 +17,7 @@ const hoisted = vi.hoisted(() => {
   const scheduleGatewayUpdateCheck = vi.fn(() => () => {});
   const startGatewayTailscaleExposure = vi.fn(async () => null);
   const logGatewayStartup = vi.fn();
+  const loadGatewayModelCatalog = vi.fn(async () => []);
   const scheduleSubagentOrphanRecovery = vi.fn();
   const shouldWakeFromRestartSentinel = vi.fn(() => false);
   const scheduleRestartSentinelWake = vi.fn();
@@ -40,6 +41,7 @@ const hoisted = vi.hoisted(() => {
     scheduleGatewayUpdateCheck,
     startGatewayTailscaleExposure,
     logGatewayStartup,
+    loadGatewayModelCatalog,
     scheduleSubagentOrphanRecovery,
     shouldWakeFromRestartSentinel,
     scheduleRestartSentinelWake,
@@ -119,6 +121,10 @@ vi.mock("./server-startup-log.js", () => ({
   logGatewayStartup: hoisted.logGatewayStartup,
 }));
 
+vi.mock("./server-model-catalog.js", () => ({
+  loadGatewayModelCatalog: hoisted.loadGatewayModelCatalog,
+}));
+
 vi.mock("../infra/update-startup.js", () => ({
   scheduleGatewayUpdateCheck: hoisted.scheduleGatewayUpdateCheck,
 }));
@@ -147,6 +153,7 @@ describe("startGatewayPostAttachRuntime", () => {
     hoisted.scheduleGatewayUpdateCheck.mockClear();
     hoisted.startGatewayTailscaleExposure.mockClear();
     hoisted.logGatewayStartup.mockClear();
+    hoisted.loadGatewayModelCatalog.mockClear();
     hoisted.scheduleSubagentOrphanRecovery.mockClear();
     hoisted.shouldWakeFromRestartSentinel.mockReturnValue(false);
     hoisted.scheduleRestartSentinelWake.mockClear();
@@ -179,6 +186,9 @@ describe("startGatewayPostAttachRuntime", () => {
     );
     expect(log.info).toHaveBeenCalledWith("connectors: ready");
     expect(hoisted.startGatewayMemoryBackend).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(hoisted.loadGatewayModelCatalog).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("starts the qmd memory backend only when configured", async () => {

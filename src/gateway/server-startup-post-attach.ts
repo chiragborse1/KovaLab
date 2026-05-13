@@ -26,6 +26,10 @@ const SKIP_STARTUP_MODEL_PREWARM_ENVS = [
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
   "OPENCLAW_SKIP_STARTUP_MODEL_PREWARM",
 ] as const;
+const SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS = [
+  "KOVA_SKIP_STARTUP_MODEL_CATALOG_PREWARM",
+  "OPENCLAW_SKIP_STARTUP_MODEL_CATALOG_PREWARM",
+] as const;
 
 type Awaitable<T> = T | Promise<T>;
 
@@ -47,11 +51,20 @@ function shouldCheckRestartSentinel(env: NodeJS.ProcessEnv = process.env): boole
 }
 
 function shouldSkipStartupModelPrewarm(env: NodeJS.ProcessEnv = process.env): boolean {
-  const raw = SKIP_STARTUP_MODEL_PREWARM_ENVS.map((key) => env[key])
+  return hasTruthyEnv(SKIP_STARTUP_MODEL_PREWARM_ENVS, env);
+}
+
+function hasTruthyEnv(keys: readonly string[], env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = keys
+    .map((key) => env[key])
     .find((value) => value?.trim())
     ?.trim()
     .toLowerCase();
   return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
+function shouldSkipStartupModelCatalogPrewarm(env: NodeJS.ProcessEnv = process.env): boolean {
+  return hasTruthyEnv(SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS, env);
 }
 
 function shouldStartGatewayMemoryBackend(cfg: OpenClawConfig): boolean {
@@ -91,6 +104,25 @@ function schedulePostReadySidecarTask(params: {
     });
   });
   handle.unref?.();
+}
+
+function scheduleModelCatalogPrewarm(params: {
+  startupTrace?: GatewayStartupTrace;
+  log: { warn: (msg: string) => void };
+  getConfig: () => OpenClawConfig;
+}): void {
+  if (shouldSkipStartupModelCatalogPrewarm()) {
+    return;
+  }
+  schedulePostReadySidecarTask({
+    startupTrace: params.startupTrace,
+    name: "post-attach.model-catalog-prewarm",
+    log: params.log,
+    run: async () => {
+      const { loadGatewayModelCatalog } = await import("./server-model-catalog.js");
+      await loadGatewayModelCatalog({ getConfig: params.getConfig });
+    },
+  });
 }
 
 function isConfiguredCliBackendPrimary(params: {
@@ -640,6 +672,12 @@ export async function startGatewayPostAttachRuntime(
       startupStartedAt: params.startupStartedAt,
     }),
   );
+
+  scheduleModelCatalogPrewarm({
+    startupTrace: params.startupTrace,
+    log: params.log,
+    getConfig: () => params.gatewayPluginConfigAtStart,
+  });
 
   const stopGatewayUpdateCheckPromise = params.minimalTestGateway
     ? Promise.resolve(() => {})

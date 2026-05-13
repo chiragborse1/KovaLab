@@ -6,6 +6,7 @@ type PiSdkModule = typeof import("./pi-model-discovery.js");
 
 let __setModelCatalogImportForTest: typeof import("./model-catalog.js").__setModelCatalogImportForTest;
 let findModelInCatalog: typeof import("./model-catalog.js").findModelInCatalog;
+let getCachedModelCatalog: typeof import("./model-catalog.js").getCachedModelCatalog;
 let loadModelCatalog: typeof import("./model-catalog.js").loadModelCatalog;
 let resetModelCatalogCacheForTest: typeof import("./model-catalog.js").resetModelCatalogCacheForTest;
 let augmentCatalogMock: ReturnType<typeof vi.fn>;
@@ -74,6 +75,7 @@ describe("loadModelCatalog", () => {
     ({
       __setModelCatalogImportForTest,
       findModelInCatalog,
+      getCachedModelCatalog,
       loadModelCatalog,
       resetModelCatalogCacheForTest,
     } = await import("./model-catalog.js"));
@@ -169,6 +171,18 @@ describe("loadModelCatalog", () => {
     expect(result).toEqual([{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }]);
     expect(ensureOpenClawModelsJsonMock).not.toHaveBeenCalled();
     expect(discoverAuthStorage).toHaveBeenCalledWith("/tmp/openclaw", { readOnly: true });
+  });
+
+  it("exposes only successfully warmed non-readonly catalog cache", async () => {
+    mockSingleOpenAiCatalogModel();
+
+    expect(getCachedModelCatalog()).toBeUndefined();
+
+    await loadModelCatalog({ config: {} as OpenClawConfig, readOnly: true });
+    expect(getCachedModelCatalog()).toBeUndefined();
+
+    const loaded = await loadModelCatalog({ config: {} as OpenClawConfig });
+    expect(getCachedModelCatalog()).toEqual(loaded);
   });
 
   it("does not synthesize stale openai-codex/gpt-5.3-codex-spark entries from gpt-5.4", async () => {
