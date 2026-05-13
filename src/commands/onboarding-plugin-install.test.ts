@@ -508,6 +508,53 @@ describe("ensureOnboardingPluginInstalled", () => {
     });
   });
 
+  it("reuses the installer-reported existing plugin path instead of failing", async () => {
+    await withTempDir(
+      { prefix: "openclaw-onboarding-installer-existing-plugin-" },
+      async (temp) => {
+        const existingPluginDir = path.join(temp, "extensions", "whatsapp");
+        await fs.mkdir(existingPluginDir, { recursive: true });
+        resolvePluginInstallDir.mockReturnValueOnce(path.join(temp, "missing", "whatsapp"));
+        installPluginFromNpmSpec.mockResolvedValueOnce({
+          ok: false,
+          error: `plugin already exists: ${existingPluginDir} (delete it first)`,
+        });
+        const note = vi.fn(async () => {});
+
+        const result = await ensureOnboardingPluginInstalled({
+          cfg: {},
+          entry: {
+            pluginId: "whatsapp",
+            label: "WhatsApp",
+            install: {
+              npmSpec: "@kovaai/whatsapp@beta",
+            },
+          },
+          prompter: {
+            select: vi.fn(async () => "npm"),
+            note,
+            progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
+          } as never,
+          runtime: {} as never,
+          promptInstall: false,
+        });
+
+        expect(result.installed).toBe(true);
+        expect(result.status).toBe("installed");
+        expect(note).toHaveBeenCalledWith(
+          `Using existing WhatsApp plugin install at ${existingPluginDir}.`,
+          "Plugin install",
+        );
+        expect(recordPluginInstall).toHaveBeenCalledWith(expect.anything(), {
+          pluginId: "whatsapp",
+          source: "npm",
+          spec: "@kovaai/whatsapp@beta",
+          installPath: existingPluginDir,
+        });
+      },
+    );
+  });
+
   it("allows local installs for linked git worktrees", async () => {
     await withTempDir({ prefix: "openclaw-onboarding-install-worktree-" }, async (temp) => {
       const workspaceDir = path.join(temp, "workspace");

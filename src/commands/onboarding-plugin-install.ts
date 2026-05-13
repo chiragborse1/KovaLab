@@ -369,6 +369,14 @@ function summarizeInstallError(message: string): string {
   return cleaned.length > 180 ? `${cleaned.slice(0, 179)}…` : cleaned;
 }
 
+function resolvePluginAlreadyExistsInstallPath(error: string): string | null {
+  const match = /^plugin already exists:\s+(.+?)\s+\(delete it first\)$/i.exec(error.trim());
+  if (!match?.[1]) {
+    return null;
+  }
+  return resolveRealDirectory(match[1]);
+}
+
 function isTimeoutError(error: unknown): boolean {
   return error instanceof Error && error.message === "timeout";
 }
@@ -415,6 +423,47 @@ async function applyPluginEnablement(params: {
     `Plugin install failed: ${sanitizeTerminalText(params.pluginId)} is disabled (${reason}).`,
   );
   return enableResult;
+}
+
+async function reuseExistingNpmPluginInstall(params: {
+  cfg: OpenClawConfig;
+  entry: OnboardingPluginInstallEntry;
+  npmSpec: string;
+  existingInstallPath: string;
+  prompter: WizardPrompter;
+  runtime: RuntimeEnv;
+}): Promise<OnboardingPluginInstallResult> {
+  const enableResult = await applyPluginEnablement({
+    cfg: params.cfg,
+    pluginId: params.entry.pluginId,
+    label: params.entry.label,
+    prompter: params.prompter,
+    runtime: params.runtime,
+  });
+  if (!enableResult.enabled) {
+    return {
+      cfg: enableResult.config,
+      installed: false,
+      pluginId: params.entry.pluginId,
+      status: "failed",
+    };
+  }
+  await params.prompter.note(
+    `Using existing ${sanitizeTerminalText(params.entry.label)} plugin install at ${sanitizeTerminalText(params.existingInstallPath)}.`,
+    "Plugin install",
+  );
+  const next = recordPluginInstall(enableResult.config, {
+    pluginId: params.entry.pluginId,
+    source: "npm",
+    spec: params.npmSpec,
+    installPath: params.existingInstallPath,
+  });
+  return {
+    cfg: next,
+    installed: true,
+    pluginId: params.entry.pluginId,
+    status: "installed",
+  };
 }
 
 async function installPluginFromNpmSpecWithProgress(params: {
@@ -589,37 +638,14 @@ export async function ensureOnboardingPluginInstalled(params: {
 
   const existingInstallPath = resolveExistingInstalledPluginDir(entry.pluginId);
   if (existingInstallPath) {
-    const enableResult = await applyPluginEnablement({
+    return await reuseExistingNpmPluginInstall({
       cfg: next,
-      pluginId: entry.pluginId,
-      label: entry.label,
+      entry,
+      npmSpec,
+      existingInstallPath,
       prompter,
       runtime,
     });
-    if (!enableResult.enabled) {
-      return {
-        cfg: enableResult.config,
-        installed: false,
-        pluginId: entry.pluginId,
-        status: "failed",
-      };
-    }
-    await prompter.note(
-      `Using existing ${sanitizeTerminalText(entry.label)} plugin install at ${sanitizeTerminalText(existingInstallPath)}.`,
-      "Plugin install",
-    );
-    next = recordPluginInstall(enableResult.config, {
-      pluginId: entry.pluginId,
-      source: "npm",
-      spec: npmSpec,
-      installPath: existingInstallPath,
-    });
-    return {
-      cfg: next,
-      installed: true,
-      pluginId: entry.pluginId,
-      status: "installed",
-    };
   }
 
   const installOutcome = await installPluginFromNpmSpecWithProgress({
@@ -682,6 +708,18 @@ export async function ensureOnboardingPluginInstalled(params: {
       pluginId: result.pluginId,
       status: "installed",
     };
+  }
+
+  const existingInstallPathFromError = resolvePluginAlreadyExistsInstallPath(result.error);
+  if (existingInstallPathFromError) {
+    return await reuseExistingNpmPluginInstall({
+      cfg: next,
+      entry,
+      npmSpec,
+      existingInstallPath: existingInstallPathFromError,
+      prompter,
+      runtime,
+    });
   }
 
   await prompter.note(
