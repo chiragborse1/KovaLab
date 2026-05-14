@@ -16,7 +16,7 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
         token: "",
         sessionKey: "agent:main:main",
         lastActiveSessionKey: "agent:main:main",
-        theme: "system",
+        theme: "claw",
         themeMode: "system",
         chatFocusMode: false,
         chatShowThinking: true,
