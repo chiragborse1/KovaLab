@@ -59,6 +59,18 @@
   color: var(--text);
 }
 
+.control-panel-step.is-active {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.control-panel-step.is-active .control-panel-step__index {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast, #050505);
+}
+
 .control-panel-nav a span {
   width: 16px;
   height: 16px;
@@ -417,16 +429,18 @@
 }
 
 .control-panel-completed-flow {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .control-panel-completed-step {
-  display: grid;
+  display: inline-grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  padding: 10px 12px;
+  gap: 8px;
+  align-items: center;
+  max-width: min(100%, 360px);
+  padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
@@ -436,12 +450,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   color: var(--accent);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -454,14 +468,14 @@
 
 .control-panel-completed-step strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .control-panel-completed-step small {
-  margin-top: 2px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .control-panel-wizard-empty strong,
@@ -501,6 +515,12 @@
   gap: 10px;
 }
 
+.control-panel-field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .control-panel-progress {
   display: grid;
   gap: 8px;
@@ -529,6 +549,35 @@
   color: var(--muted);
   font-family: var(--mono);
   font-size: 12px;
+}
+
+.control-panel-progress__meta {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.control-panel-summary {
+  gap: 14px;
+}
+
+.control-panel-summary__status {
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.control-panel-summary__status.is-ok {
+  border-color: color-mix(in srgb, var(--success, #22c55e) 40%, var(--border));
+  color: var(--success, #22c55e);
+}
+
+.control-panel-summary__status.is-warn {
+  border-color: color-mix(in srgb, var(--warning, #f7b955) 40%, var(--border));
+  color: var(--warning, #f7b955);
 }
 
 .control-panel-inline-progress {

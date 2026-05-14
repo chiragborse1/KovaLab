@@ -14,6 +14,7 @@ import type {
 } from "./controllers/skills.ts";
 import type {
   ControlWizardCompletedStep,
+  ControlWizardSection,
   ControlWizardStatus,
   ControlWizardStep,
 } from "./controllers/wizard.ts";
@@ -379,6 +380,8 @@ export type AppViewState = {
     controlWizardError: string | null;
     controlWizardAnswerValue: unknown;
     controlWizardCompletedSteps: ControlWizardCompletedStep[];
+    controlWizardActiveSection: ControlWizardSection | null;
+    controlWizardStepStartedAt: number | null;
     debugLoading: boolean;
     debugStatus: StatusSummary | null;
     debugHealth: HealthSummary | null;

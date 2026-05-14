@@ -17,6 +17,8 @@ function createState(request: ReturnType<typeof vi.fn>): ControlWizardState {
     controlWizardStatus: "running",
     controlWizardStep: { id: "step_1", type: "text", message: "Token" },
     controlWizardCompletedSteps: [],
+    controlWizardActiveSection: null,
+    controlWizardStepStartedAt: null,
   };
 }
 
@@ -34,6 +36,7 @@ describe("control wizard controller", () => {
       section: "channels",
     });
     expect(state.controlWizardStatus).toBe("done");
+    expect(state.controlWizardActiveSection).toBe("channels");
   });
 
   it("auto-advances passive note steps after starting a focused section", async () => {
@@ -66,6 +69,8 @@ describe("control wizard controller", () => {
       answer: { stepId: "intro", value: null },
     });
     expect(state.controlWizardStep?.id).toBe("provider");
+    expect(state.controlWizardActiveSection).toBe("model");
+    expect(state.controlWizardStepStartedAt).toEqual(expect.any(Number));
   });
 
   it("records completed interactive steps before showing the next prompt", async () => {
@@ -90,6 +95,7 @@ describe("control wizard controller", () => {
       value: "openrouter",
     });
     expect(state.controlWizardStep?.id).toBe("api-key");
+    expect(state.controlWizardStepStartedAt).toEqual(expect.any(Number));
   });
 
   it("clears stale sessions when the gateway reports wizard not found", async () => {
@@ -104,6 +110,8 @@ describe("control wizard controller", () => {
     expect(state.controlWizardStep).toBeNull();
     expect(state.controlWizardStatus).toBe("error");
     expect(state.controlWizardError).toContain("gateway restart");
+    expect(state.controlWizardActiveSection).toBeNull();
+    expect(state.controlWizardStepStartedAt).toBeNull();
   });
 
   it("also clears stale sessions during cancel", async () => {
@@ -117,5 +125,7 @@ describe("control wizard controller", () => {
     expect(state.controlWizardSessionId).toBeNull();
     expect(state.controlWizardStep).toBeNull();
     expect(state.controlWizardStatus).toBe("error");
+    expect(state.controlWizardActiveSection).toBeNull();
+    expect(state.controlWizardStepStartedAt).toBeNull();
   });
 });

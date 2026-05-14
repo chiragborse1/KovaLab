@@ -1644,6 +1644,8 @@ export function renderApp(state: AppViewState) {
               wizardError: state.controlWizardError,
               wizardAnswerValue: state.controlWizardAnswerValue,
               wizardCompletedSteps: state.controlWizardCompletedSteps,
+              wizardActiveSection: state.controlWizardActiveSection,
+              wizardStepStartedAt: state.controlWizardStepStartedAt,
               onWizardStart: (mode) => {
                 void startControlWizard(state, { mode }).then(() => {
                   void loadConfig(state).then(() => requestHostUpdate?.());

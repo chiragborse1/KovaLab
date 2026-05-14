@@ -21,6 +21,8 @@ export type ControlPanelProps = {
   wizardError: string | null;
   wizardAnswerValue: unknown;
   wizardCompletedSteps: ControlWizardCompletedStep[];
+  wizardActiveSection: ControlWizardSection | null;
+  wizardStepStartedAt: number | null;
   onWizardStart: (mode: "local" | "remote") => void;
   onWizardStartSection: (section: ControlWizardSection) => void;
   onWizardAnswerChange: (value: unknown) => void;
@@ -91,7 +93,9 @@ function renderSetupTimeline(props: ControlPanelProps) {
       ${SETUP_STEPS.map(
         (step, index) => html`
           <button
-            class="control-panel-step"
+            class="control-panel-step ${props.wizardActiveSection === step.section
+              ? "is-active"
+              : ""}"
             title=${hasActiveWizard
               ? "Finish or cancel the current setup step before opening another section."
               : ""}
@@ -163,6 +167,20 @@ function renderCompletedWizardSteps(steps: ControlWizardCompletedStep[]) {
       )}
     </div>
   `;
+}
+
+function setupSummaryRequiresRestart(steps: ControlWizardCompletedStep[]): boolean {
+  return steps.some(({ step }) => {
+    const text = `${step.title ?? ""} ${step.message ?? ""}`.toLowerCase();
+    return (
+      text.includes("gateway") ||
+      text.includes("auth") ||
+      text.includes("bind") ||
+      text.includes("port") ||
+      text.includes("service") ||
+      text.includes("daemon")
+    );
+  });
 }
 
 function renderSectionHeader(params: { icon: TemplateResult; title: string; detail: string }) {
@@ -270,6 +288,7 @@ function renderOptionButton(params: {
 
 function renderTextStep(props: ControlPanelProps, step: ControlWizardStep) {
   const value = typeof props.wizardAnswerValue === "string" ? props.wizardAnswerValue : "";
+  const hint = textStepHint(step, value);
   return html`
     <form
       class="control-panel-wizard-form"
@@ -287,6 +306,7 @@ function renderTextStep(props: ControlPanelProps, step: ControlWizardStep) {
         @input=${(event: InputEvent) =>
           props.onWizardAnswerChange((event.currentTarget as HTMLInputElement).value)}
       />
+      ${hint ? html`<div class="control-panel-field-hint">${hint}</div>` : nothing}
       <div class="control-panel-actions">
         <button class="btn btn--primary" ?disabled=${props.wizardLoading}>
           ${props.wizardLoading ? "Saving..." : "Save"}
@@ -294,6 +314,22 @@ function renderTextStep(props: ControlPanelProps, step: ControlWizardStep) {
       </div>
     </form>
   `;
+}
+
+function textStepHint(step: ControlWizardStep, value: string): string | null {
+  const text = `${step.title ?? ""} ${step.message ?? ""} ${step.placeholder ?? ""}`.toLowerCase();
+  if (step.sensitive) {
+    if (!value.trim()) {
+      return text.includes("api key")
+        ? "Enter a new key, or choose the existing-key option if one was offered."
+        : "Secret input is not persisted in the browser.";
+    }
+    return "This value is sent to the gateway and stored in the configured credential store.";
+  }
+  if (!value.trim() && text.includes("required")) {
+    return "This field is required before saving.";
+  }
+  return null;
 }
 
 function renderSelectStep(props: ControlPanelProps, step: ControlWizardStep) {
@@ -372,13 +408,39 @@ function renderConfirmStep(props: ControlPanelProps) {
   `;
 }
 
-function renderProgressStep(step: ControlWizardStep) {
+function formatElapsed(startedAt: number | null): string {
+  if (!startedAt) {
+    return "0s";
+  }
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+  if (elapsedSeconds < 60) {
+    return `${elapsedSeconds}s`;
+  }
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
+
+function lastProgressLine(step: ControlWizardStep): string {
+  const text = step.message ?? step.title ?? "Working...";
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return lines.at(-1) ?? "Working...";
+}
+
+function renderProgressStep(step: ControlWizardStep, startedAt?: number | null) {
   return html`
     <div class="control-panel-progress" role="status" aria-live="polite">
       <div class="control-panel-progress__bar">
         <span></span>
       </div>
-      <div class="control-panel-progress__label">${step.message ?? step.title ?? "Working..."}</div>
+      <div class="control-panel-progress__label">${step.title ?? "Working..."}</div>
+      <div class="control-panel-progress__meta">
+        <span>Elapsed ${formatElapsed(startedAt ?? null)}</span>
+        <span>Last update: ${lastProgressLine(step)}</span>
+      </div>
     </div>
   `;
 }
@@ -447,23 +509,31 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
     if (props.wizardLoading) {
       return html`
         <div class="control-panel-wizard-step">
-          ${renderProgressStep({
-            id: "starting",
-            type: "progress",
-            title: "Working",
-            message:
-              "Kova is preparing the next setup step. Long plugin installs can take a few minutes.",
-          })}
+          ${renderProgressStep(
+            {
+              id: "starting",
+              type: "progress",
+              title: "Working",
+              message:
+                "Kova is preparing the next setup step. Long plugin installs can take a few minutes.",
+            },
+            props.wizardStepStartedAt,
+          )}
         </div>
       `;
     }
     if (props.wizardStatus === "done") {
+      const requiresRestart = setupSummaryRequiresRestart(props.wizardCompletedSteps);
       return html`
-        <div class="control-panel-wizard-empty is-done">
+        <div class="control-panel-wizard-empty is-done control-panel-summary">
           <strong>Setup complete</strong>
-          <span
-            >The gateway accepted the onboarding flow. Refresh status if you changed services.</span
-          >
+          <span>The gateway accepted the setup flow.</span>
+          ${renderCompletedWizardSteps(props.wizardCompletedSteps)}
+          <div class="control-panel-summary__status ${requiresRestart ? "is-warn" : "is-ok"}">
+            ${requiresRestart
+              ? "Restart may be required because this setup touched gateway, auth, or service settings."
+              : "No restart-sensitive setup changes were detected in this browser flow."}
+          </div>
         </div>
       `;
     }
@@ -505,7 +575,7 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
             : step.type === "confirm"
               ? renderConfirmStep(props)
               : step.type === "progress"
-                ? renderProgressStep(step)
+                ? renderProgressStep(step, props.wizardStepStartedAt)
                 : step.type === "action"
                   ? renderActionStep(props, step)
                   : html`

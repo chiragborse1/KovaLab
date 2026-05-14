@@ -83,6 +83,7 @@ import type {
 } from "./controllers/skills.ts";
 import type {
   ControlWizardCompletedStep,
+  ControlWizardSection,
   ControlWizardStatus,
   ControlWizardStep,
 } from "./controllers/wizard.ts";
@@ -530,6 +531,8 @@ export class OpenClawApp extends LitElement {
   @state() controlWizardError: string | null = null;
   @state() controlWizardAnswerValue: unknown = null;
   @state() controlWizardCompletedSteps: ControlWizardCompletedStep[] = [];
+  @state() controlWizardActiveSection: ControlWizardSection | null = null;
+  @state() controlWizardStepStartedAt: number | null = null;
 
   @state() debugLoading = false;
   @state() debugStatus: StatusSummary | null = null;

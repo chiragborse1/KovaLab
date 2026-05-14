@@ -18,6 +18,8 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     wizardError: null,
     wizardAnswerValue: null,
     wizardCompletedSteps: [],
+    wizardActiveSection: null,
+    wizardStepStartedAt: null,
     onWizardStart: vi.fn(),
     onWizardStartSection: vi.fn(),
     onWizardAnswerChange: vi.fn(),
@@ -60,6 +62,18 @@ describe("renderControlPanel", () => {
     modelStep?.click();
 
     expect(onWizardStartSection).toHaveBeenCalledWith("model");
+  });
+
+  it("marks the active setup section in the side menu", () => {
+    const container = document.createElement("div");
+
+    render(renderControlPanel(createProps({ wizardActiveSection: "model" })), container);
+
+    const modelStep = Array.from(container.querySelectorAll(".control-panel-step")).find((button) =>
+      button.textContent?.includes("Model provider"),
+    ) as HTMLButtonElement | undefined;
+
+    expect(modelStep?.classList.contains("is-active")).toBe(true);
   });
 
   it("locks setup timeline steps while another wizard step is open", () => {
@@ -200,6 +214,29 @@ describe("renderControlPanel", () => {
     const form = container.querySelector("form") as HTMLFormElement | null;
     form?.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
     expect(onWizardSubmit).toHaveBeenCalledWith("sk-test");
+    expect(container.textContent).toContain("stored in the configured credential store");
+  });
+
+  it("shows a helper hint for empty API key prompts", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          wizardStep: {
+            id: "step_2",
+            type: "text",
+            message: "Enter OpenRouter API key",
+            sensitive: true,
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Enter a new key");
   });
 
   it("renders progress steps as a loading bar without a continue button", () => {
@@ -214,8 +251,9 @@ describe("renderControlPanel", () => {
             id: "step_progress",
             type: "progress",
             title: "Installing WhatsApp plugin...",
-            message: "Downloading @kovaai/whatsapp@beta...",
+            message: "Resolving package...\nDownloading @kovaai/whatsapp@beta...",
           },
+          wizardStepStartedAt: Date.now() - 65_000,
         }),
       ),
       container,
@@ -223,6 +261,8 @@ describe("renderControlPanel", () => {
 
     expect(container.querySelector(".control-panel-progress")).not.toBeNull();
     expect(container.textContent).toContain("Downloading @kovaai/whatsapp@beta");
+    expect(container.textContent).toContain("Elapsed 1m");
+    expect(container.textContent).toContain("Last update: Downloading @kovaai/whatsapp@beta");
     expect(container.textContent).not.toContain("Continue");
   });
 
@@ -303,5 +343,32 @@ describe("renderControlPanel", () => {
     expect(container.textContent).toContain("Model/auth provider");
     expect(container.textContent).toContain("OpenRouter");
     expect(container.textContent).toContain("Use existing OPENROUTER_API_KEY?");
+  });
+
+  it("renders a final setup summary and restart guidance", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardStatus: "done",
+          wizardCompletedSteps: [
+            {
+              step: {
+                id: "gateway-auth",
+                type: "confirm",
+                message: "Enable gateway password auth?",
+              },
+              value: true,
+            },
+          ],
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Setup complete");
+    expect(container.textContent).toContain("Enable gateway password auth?");
+    expect(container.textContent).toContain("Restart may be required");
   });
 });

@@ -68,6 +68,8 @@ export type ControlWizardState = {
   controlWizardError: string | null;
   controlWizardAnswerValue: unknown;
   controlWizardCompletedSteps: ControlWizardCompletedStep[];
+  controlWizardActiveSection: ControlWizardSection | null;
+  controlWizardStepStartedAt: number | null;
 };
 
 function initialAnswerForStep(step: ControlWizardStep | null): unknown {
@@ -90,15 +92,20 @@ function applyWizardResult(
   state: ControlWizardState,
   result: WizardResult & { sessionId?: string },
 ) {
+  const previousStepId = state.controlWizardStep?.id ?? null;
   if (result.sessionId) {
     state.controlWizardSessionId = result.sessionId;
   }
   state.controlWizardStatus = result.status ?? null;
   state.controlWizardError = result.error ?? null;
   state.controlWizardStep = result.done ? null : (result.step ?? null);
+  const nextStepId = state.controlWizardStep?.id ?? null;
+  state.controlWizardStepStartedAt =
+    nextStepId && nextStepId !== previousStepId ? Date.now() : state.controlWizardStepStartedAt;
   state.controlWizardAnswerValue = initialAnswerForStep(state.controlWizardStep);
   if (result.done) {
     state.controlWizardSessionId = null;
+    state.controlWizardStepStartedAt = null;
   }
 }
 
@@ -145,8 +152,18 @@ function resetMissingWizardSession(state: ControlWizardState) {
   state.controlWizardStatus = "error";
   state.controlWizardAnswerValue = null;
   state.controlWizardCompletedSteps = [];
+  state.controlWizardActiveSection = null;
+  state.controlWizardStepStartedAt = null;
   state.controlWizardError =
     "Setup session was interrupted by a gateway restart. Start the setup again; saved changes were already written to config.";
+}
+
+function resolveActiveSection(
+  params:
+    | { flow?: "onboard"; mode?: "local" | "remote"; workspace?: string }
+    | { flow: "configure"; section: ControlWizardSection },
+): ControlWizardSection | null {
+  return params.flow === "configure" ? params.section : null;
 }
 
 export async function startControlWizard(
@@ -161,6 +178,8 @@ export async function startControlWizard(
   state.controlWizardLoading = true;
   state.controlWizardError = null;
   state.controlWizardCompletedSteps = [];
+  state.controlWizardActiveSection = resolveActiveSection(params);
+  state.controlWizardStepStartedAt = null;
   try {
     const result = await state.client.request<WizardStartResult>("wizard.start", params);
     await applyWizardResultAndAutoAdvance(state, result);
@@ -248,6 +267,8 @@ export async function cancelControlWizard(state: ControlWizardState) {
     state.controlWizardStep = null;
     state.controlWizardStatus = "cancelled";
     state.controlWizardCompletedSteps = [];
+    state.controlWizardActiveSection = null;
+    state.controlWizardStepStartedAt = null;
     return;
   }
   state.controlWizardLoading = true;
@@ -263,6 +284,8 @@ export async function cancelControlWizard(state: ControlWizardState) {
     state.controlWizardStep = null;
     state.controlWizardAnswerValue = null;
     state.controlWizardCompletedSteps = [];
+    state.controlWizardActiveSection = null;
+    state.controlWizardStepStartedAt = null;
   } catch (err) {
     if (isWizardNotFoundError(err)) {
       resetMissingWizardSession(state);
