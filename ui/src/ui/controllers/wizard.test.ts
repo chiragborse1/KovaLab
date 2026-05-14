@@ -60,7 +60,6 @@ describe("control wizard controller", () => {
       });
     const state = createState(request);
     state.controlWizardSessionId = null;
-    state.controlWizardStep = null;
 
     await startControlWizard(state, { flow: "configure", section: "model" });
 
