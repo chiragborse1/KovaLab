@@ -288,7 +288,7 @@ enumeration of `src/gateway/server-methods/*.ts`.
   </Accordion>
 
   <Accordion title="Models and usage">
-    - `models.list` returns the runtime-allowed model catalog.
+    - `models.list` returns the runtime-allowed model catalog. Browser clients may pass `{ "preferCached": true }` to get cached/configured models immediately while the Gateway refreshes the full catalog in the background; such responses include `partial: true`.
     - `usage.status` returns provider usage windows/remaining quota summaries.
     - `usage.cost` returns aggregated cost usage summaries for a date range.
     - `doctor.memory.status` returns vector-memory / cached embedding readiness for the active default agent workspace. Pass `{ "probe": true }` or `{ "deep": true }` only when the caller explicitly wants a live embedding provider ping.

@@ -39,7 +39,7 @@ import {
   loadModelAuthStatusState,
   type ModelAuthStatusState,
 } from "./controllers/model-auth-status.ts";
-import { loadModels } from "./controllers/models.ts";
+import { loadModelsResult } from "./controllers/models.ts";
 import { loadNodes, type NodesState } from "./controllers/nodes.ts";
 import { loadPluginsStatusState, type PluginsStatusState } from "./controllers/plugins.ts";
 import { loadPresence, type PresenceState } from "./controllers/presence.ts";
@@ -47,6 +47,7 @@ import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
 import { loadUsage, type UsageState } from "./controllers/usage.ts";
 import { syncCustomThemeStyleTag } from "./custom-theme.ts";
+import type { GatewayBrowserClient } from "./gateway.ts";
 import { isMonitoredAuthProvider } from "./model-auth-helpers.ts";
 import {
   inferBasePathFromPathname,
@@ -131,6 +132,7 @@ type SettingsAppHost = SettingsHost &
   ModelAuthStatusState &
   PluginsStatusState &
   UsageState & {
+    client: GatewayBrowserClient | null;
     overviewLogCursor: number | null;
     overviewLogLines: string[];
     attentionItems: AttentionItem[];
@@ -337,6 +339,23 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
   }
 }
 
+const SETTINGS_MODEL_CATALOG_RETRY_MS = 3500;
+
+function scheduleSettingsModelCatalogRetry(host: SettingsAppHost, client: GatewayBrowserClient) {
+  window.setTimeout(async () => {
+    if (!host.connected || host.client !== client) {
+      return;
+    }
+    host.chatModelsLoading = true;
+    try {
+      const result = await loadModelsResult(client, { preferCached: false });
+      host.chatModelCatalog = result.models;
+    } finally {
+      host.chatModelsLoading = false;
+    }
+  }, SETTINGS_MODEL_CATALOG_RETRY_MS);
+}
+
 export async function refreshActiveTab(host: SettingsHost) {
   const app = host as unknown as SettingsAppHost;
   switch (host.tab) {
@@ -345,12 +364,15 @@ export async function refreshActiveTab(host: SettingsHost) {
       if (host.connected && app.client) {
         host.chatModelsLoading = true;
         try {
-          const [models] = await Promise.all([
-            loadModels(app.client),
+          const [modelsResult] = await Promise.all([
+            loadModelsResult(app.client),
             loadModelAuthStatusState(app, { refresh: true }),
             loadPluginsStatusState(app),
           ]);
-          host.chatModelCatalog = models;
+          host.chatModelCatalog = modelsResult.models;
+          if (modelsResult.partial) {
+            scheduleSettingsModelCatalogRetry(app, app.client);
+          }
         } finally {
           host.chatModelsLoading = false;
         }
@@ -367,11 +389,14 @@ export async function refreshActiveTab(host: SettingsHost) {
       if ((host.tab === "config" || host.tab === "aiAgents") && host.connected && app.client) {
         host.chatModelsLoading = true;
         try {
-          const [models] = await Promise.all([
-            loadModels(app.client),
+          const [modelsResult] = await Promise.all([
+            loadModelsResult(app.client),
             loadModelAuthStatusState(app, { refresh: true }),
           ]);
-          host.chatModelCatalog = models;
+          host.chatModelCatalog = modelsResult.models;
+          if (modelsResult.partial) {
+            scheduleSettingsModelCatalogRetry(app, app.client);
+          }
         } finally {
           host.chatModelsLoading = false;
         }

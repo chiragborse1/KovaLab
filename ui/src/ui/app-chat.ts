@@ -23,7 +23,7 @@ import {
   sendSteerChatMessage,
   type ChatState,
 } from "./controllers/chat.ts";
-import { loadModels } from "./controllers/models.ts";
+import { loadModelsResult } from "./controllers/models.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { normalizeBasePath } from "./navigation.ts";
@@ -66,6 +66,7 @@ export type ChatHost = ChatInputHistoryState & {
 };
 
 export const CHAT_SESSIONS_ACTIVE_MINUTES = 120;
+const CHAT_MODEL_CATALOG_RETRY_MS = 3500;
 export {
   handleChatDraftChange,
   handleChatInputHistoryKey,
@@ -558,15 +559,27 @@ export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: bool
   }
 }
 
-async function refreshChatModels(host: ChatHost) {
+async function refreshChatModels(
+  host: ChatHost,
+  opts?: { preferCached?: boolean; retryPartial?: boolean },
+) {
   if (!host.client || !host.connected) {
     host.chatModelsLoading = false;
     host.chatModelCatalog = [];
     return;
   }
+  const client = host.client;
   host.chatModelsLoading = true;
   try {
-    host.chatModelCatalog = await loadModels(host.client);
+    const result = await loadModelsResult(client, { preferCached: opts?.preferCached });
+    host.chatModelCatalog = result.models;
+    if (result.partial && opts?.retryPartial !== false) {
+      window.setTimeout(() => {
+        if (host.client === client && host.connected) {
+          void refreshChatModels(host, { preferCached: false, retryPartial: false });
+        }
+      }, CHAT_MODEL_CATALOG_RETRY_MS);
+    }
   } finally {
     host.chatModelsLoading = false;
   }
