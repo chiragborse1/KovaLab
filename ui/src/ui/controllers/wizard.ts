@@ -118,13 +118,11 @@ function shouldRecordCompletedStep(step: ControlWizardStep): boolean {
 }
 
 async function autoAdvancePassiveWizardSteps(state: ControlWizardState) {
-  while (
-    state.client &&
-    state.connected &&
-    state.controlWizardSessionId &&
-    shouldAutoAdvanceStep(state.controlWizardStep)
-  ) {
+  while (state.client && state.connected && state.controlWizardSessionId) {
     const step = state.controlWizardStep;
+    if (!shouldAutoAdvanceStep(step)) {
+      break;
+    }
     const result = await state.client.request<WizardResult>("wizard.next", {
       sessionId: state.controlWizardSessionId,
       answer: { stepId: step.id, value: null },
