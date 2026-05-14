@@ -112,6 +112,10 @@ export type AppViewState = {
   chatModelOverrides: Record<string, ChatModelOverride | null>;
   chatModelsLoading: boolean;
   chatModelCatalog: ModelCatalogEntry[];
+  controlPanelModelSaving: boolean;
+  controlPanelModelError: string | null;
+  controlPanelModelSearch: string;
+  controlPanelManualModel: string;
   chatQueue: ChatQueueItem[];
   chatLocalInputHistoryBySession: Record<string, Array<{ text: string; ts: number }>>;
   chatInputHistorySessionKey: string | null;

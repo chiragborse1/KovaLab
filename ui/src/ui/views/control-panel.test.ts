@@ -23,6 +23,10 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     modelCatalog: [],
     modelsLoading: false,
     currentModel: null,
+    modelSaving: false,
+    modelError: null,
+    modelSearch: "",
+    manualModel: "",
     onWizardStart: vi.fn(),
     onWizardStartSection: vi.fn(),
     onWizardAnswerChange: vi.fn(),
@@ -30,6 +34,9 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     onWizardCancel: vi.fn(),
     onWizardRefresh: vi.fn(),
     onModelSelect: vi.fn(),
+    onModelSearchChange: vi.fn(),
+    onManualModelChange: vi.fn(),
+    onManualModelSubmit: vi.fn(),
     ...overrides,
   };
 }
@@ -445,6 +452,91 @@ describe("renderControlPanel", () => {
     deepseek?.click();
 
     expect(onModelSelect).toHaveBeenCalledWith("openrouter/deepseek/deepseek-chat");
+  });
+
+  it("filters catalog models and submits manual model IDs", () => {
+    const onModelSearchChange = vi.fn();
+    const onManualModelChange = vi.fn();
+    const onManualModelSubmit = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "model",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          currentModel: "openrouter/auto",
+          modelSearch: "deepseek",
+          manualModel: "openrouter/custom-model",
+          modelCatalog: [
+            { id: "openrouter/auto", name: "OpenRouter Auto", provider: "openrouter" },
+            { id: "deepseek/deepseek-chat", name: "DeepSeek Chat", provider: "openrouter" },
+          ],
+          wizardStep: {
+            id: "provider",
+            type: "select",
+            message: "Model/auth provider",
+            options: [{ label: "OpenRouter", value: "openrouter" }],
+          },
+          onModelSearchChange,
+          onManualModelChange,
+          onManualModelSubmit,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("DeepSeek Chat");
+    expect(container.textContent).not.toContain("OpenRouter Auto");
+
+    const search = container.querySelector('input[type="search"]') as HTMLInputElement | null;
+    search!.value = "auto";
+    search!.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(onModelSearchChange).toHaveBeenCalledWith("auto");
+
+    const manual = Array.from(container.querySelectorAll("input")).find(
+      (input) => input.placeholder === "provider/model",
+    ) as HTMLInputElement | undefined;
+    manual!.value = "openrouter/manual-next";
+    manual!.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(onManualModelChange).toHaveBeenCalledWith("openrouter/manual-next");
+
+    const form = manual?.closest("form") as HTMLFormElement | null;
+    form?.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    expect(onManualModelSubmit).toHaveBeenCalled();
+  });
+
+  it("shows model save and error states", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "model",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          currentModel: "openrouter/auto",
+          modelSaving: true,
+          modelError: "Config write failed",
+          wizardStep: {
+            id: "provider",
+            type: "select",
+            message: "Model/auth provider",
+            options: [{ label: "OpenRouter", value: "openrouter" }],
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Saving default model");
+    expect(container.textContent).toContain("Config write failed");
+    expect(
+      Array.from(container.querySelectorAll(".control-panel-model-picker button")).every(
+        (button) => (button as HTMLButtonElement).disabled,
+      ),
+    ).toBe(true);
   });
 
   it("uses the appended setup flow for non-model sections too", () => {

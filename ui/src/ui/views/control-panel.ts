@@ -28,6 +28,10 @@ export type ControlPanelProps = {
   modelCatalog: ModelCatalogEntry[];
   modelsLoading: boolean;
   currentModel: string | null;
+  modelSaving: boolean;
+  modelError: string | null;
+  modelSearch: string;
+  manualModel: string;
   onWizardStart: (mode: "local" | "remote") => void;
   onWizardStartSection: (section: ControlWizardSection) => void;
   onWizardAnswerChange: (value: unknown) => void;
@@ -35,6 +39,9 @@ export type ControlPanelProps = {
   onWizardCancel: () => void;
   onWizardRefresh: () => void;
   onModelSelect: (modelRef: string) => void;
+  onModelSearchChange: (value: string) => void;
+  onManualModelChange: (value: string) => void;
+  onManualModelSubmit: () => void;
 };
 
 const SETUP_STEPS = [
@@ -432,59 +439,112 @@ function modelCatalogForPicker(props: ControlPanelProps): ModelCatalogEntry[] {
   const catalog =
     props.modelCatalog.length > 0 ? props.modelCatalog : fallbackModelEntries(props.currentModel);
   const selectedProvider = detectSelectedProvider(props);
-  if (!selectedProvider) {
-    return catalog;
+  const providerFiltered = selectedProvider
+    ? catalog.filter((entry) => modelMatchesProvider(entry, selectedProvider))
+    : catalog;
+  const base = providerFiltered.length > 0 ? providerFiltered : catalog;
+  const search = props.modelSearch.trim().toLowerCase();
+  if (!search) {
+    return base;
   }
-  const filtered = catalog.filter((entry) => modelMatchesProvider(entry, selectedProvider));
-  return filtered.length > 0 ? filtered : catalog;
+  return base.filter((entry) =>
+    [entry.id, entry.name, entry.provider, entry.alias]
+      .filter((value): value is string => typeof value === "string")
+      .some((value) => value.toLowerCase().includes(search)),
+  );
 }
 
 function renderModelPicker(props: ControlPanelProps) {
   const catalog = modelCatalogForPicker(props);
+  const manualModel = props.manualModel.trim();
   return html`
     <div class="control-panel-flow-card control-panel-model-picker">
       <div class="control-panel-flow-card__head">
         <span>Model</span>
         <strong>Default model picker</strong>
-        <em>${props.currentModel ?? "Not set"}</em>
+        <em>${props.modelSaving ? "Saving..." : (props.currentModel ?? "Not set")}</em>
       </div>
       <p>
         Pick the model Kova should use by default. This saves immediately to the same default model
         config used by Quick Settings.
       </p>
+      <div class="control-panel-model-picker__controls">
+        <label>
+          <span>Search models</span>
+          <input
+            class="input"
+            type="search"
+            placeholder="Filter by provider, model, alias..."
+            .value=${props.modelSearch}
+            @input=${(event: InputEvent) =>
+              props.onModelSearchChange((event.currentTarget as HTMLInputElement).value)}
+          />
+        </label>
+        <form
+          @submit=${(event: SubmitEvent) => {
+            event.preventDefault();
+            props.onManualModelSubmit();
+          }}
+        >
+          <label>
+            <span>Manual model ID</span>
+            <input
+              class="input"
+              type="text"
+              placeholder="provider/model"
+              .value=${props.manualModel}
+              @input=${(event: InputEvent) =>
+                props.onManualModelChange((event.currentTarget as HTMLInputElement).value)}
+            />
+          </label>
+          <button class="btn" ?disabled=${props.modelSaving || manualModel.length === 0}>
+            Use manual model
+          </button>
+        </form>
+      </div>
       ${props.modelsLoading
         ? html`<div class="control-panel-field-hint">Loading available models...</div>`
         : nothing}
+      ${props.modelSaving
+        ? html`<div class="control-panel-field-hint">Saving default model...</div>`
+        : nothing}
+      ${props.modelError ? html`<div class="callout danger">${props.modelError}</div>` : nothing}
       <div class="control-panel-model-picker__grid">
-        ${catalog.map((entry) => {
-          const option = buildChatModelOption(entry, catalog);
-          const active = props.currentModel === option.value;
-          const logo = providerLogoForOption({
-            label: entry.provider,
-            value: entry.provider,
-          });
-          return html`
-            <button
-              class="control-panel-option control-panel-option--model ${active ? "active" : ""}"
-              ?disabled=${props.modelsLoading}
-              @click=${() => props.onModelSelect(option.value)}
-            >
-              ${logo
-                ? html`<span
-                    class="control-panel-provider-logo control-panel-provider-logo--${logo.className}"
-                    >${logo.label}</span
-                  >`
-                : nothing}
-              <span class="control-panel-option__content">
-                <strong>${option.label}</strong>
-                <small>${option.value}</small>
-              </span>
-              ${active
-                ? html`<span class="control-panel-option__selected">Current</span>`
-                : nothing}
-            </button>
-          `;
-        })}
+        ${catalog.length > 0
+          ? catalog.map((entry) => {
+              const option = buildChatModelOption(entry, catalog);
+              const active = props.currentModel === option.value;
+              const logo = providerLogoForOption({
+                label: entry.provider,
+                value: entry.provider,
+              });
+              return html`
+                <button
+                  class="control-panel-option control-panel-option--model ${active ? "active" : ""}"
+                  ?disabled=${props.modelsLoading || props.modelSaving}
+                  @click=${() => props.onModelSelect(option.value)}
+                >
+                  ${logo
+                    ? html`<span
+                        class="control-panel-provider-logo control-panel-provider-logo--${logo.className}"
+                        >${logo.label}</span
+                      >`
+                    : nothing}
+                  <span class="control-panel-option__content">
+                    <strong>${option.label}</strong>
+                    <small>${option.value}</small>
+                  </span>
+                  ${active
+                    ? html`<span class="control-panel-option__selected">Current</span>`
+                    : nothing}
+                </button>
+              `;
+            })
+          : html`
+              <div class="control-panel-empty">
+                No catalog models match this filter. Use the manual model ID field above.
+              </div>
+            `}
       </div>
       ${props.modelCatalog.length === 0
         ? html`

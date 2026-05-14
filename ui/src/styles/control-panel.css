@@ -557,6 +557,31 @@
   padding-right: 4px;
 }
 
+.control-panel-model-picker__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 10px;
+}
+
+.control-panel-model-picker__controls label,
+.control-panel-model-picker__controls form {
+  display: grid;
+  gap: 6px;
+}
+
+.control-panel-model-picker__controls label span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-panel-model-picker__controls form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
 .control-panel-readonly-field {
   display: grid;
   gap: 4px;

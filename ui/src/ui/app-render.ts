@@ -1654,6 +1654,10 @@ export function renderApp(state: AppViewState) {
                 modelCatalog: state.chatModelCatalog ?? [],
                 modelsLoading: state.chatModelsLoading,
                 currentModel,
+                modelSaving: state.controlPanelModelSaving,
+                modelError: state.controlPanelModelError,
+                modelSearch: state.controlPanelModelSearch,
+                manualModel: state.controlPanelManualModel,
                 onWizardStart: (mode) => {
                   void startControlWizard(state, { mode }).then(() => {
                     void loadConfig(state).then(() => requestHostUpdate?.());
@@ -1688,13 +1692,60 @@ export function renderApp(state: AppViewState) {
                   void refreshControlWizard(state).then(() => requestHostUpdate?.());
                 },
                 onModelSelect: (modelRef) => {
+                  if (!modelRef.trim()) {
+                    return;
+                  }
+                  state.controlPanelModelSaving = true;
+                  state.controlPanelModelError = null;
+                  requestHostUpdate?.();
+                  void patchConfig(
+                    state,
+                    { agents: { defaults: { model: { primary: modelRef.trim() } } } },
+                    { note: "control-panel default model selection" },
+                  )
+                    .then(() => loadConfig(state))
+                    .catch((err: unknown) => {
+                      state.controlPanelModelError =
+                        err instanceof Error ? err.message : String(err);
+                    })
+                    .finally(() => {
+                      state.controlPanelModelSaving = false;
+                      requestHostUpdate?.();
+                    });
+                },
+                onModelSearchChange: (value) => {
+                  state.controlPanelModelSearch = value;
+                  requestHostUpdate?.();
+                },
+                onManualModelChange: (value) => {
+                  state.controlPanelManualModel = value;
+                  requestHostUpdate?.();
+                },
+                onManualModelSubmit: () => {
+                  const modelRef = state.controlPanelManualModel.trim();
+                  if (!modelRef) {
+                    return;
+                  }
+                  state.controlPanelModelSaving = true;
+                  state.controlPanelModelError = null;
+                  requestHostUpdate?.();
                   void patchConfig(
                     state,
                     { agents: { defaults: { model: { primary: modelRef } } } },
-                    { note: "control-panel default model selection" },
-                  ).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
+                    { note: "control-panel manual model selection" },
+                  )
+                    .then(() => {
+                      state.controlPanelManualModel = "";
+                      return loadConfig(state);
+                    })
+                    .catch((err: unknown) => {
+                      state.controlPanelModelError =
+                        err instanceof Error ? err.message : String(err);
+                    })
+                    .finally(() => {
+                      state.controlPanelModelSaving = false;
+                      requestHostUpdate?.();
+                    });
                 },
               });
             })()

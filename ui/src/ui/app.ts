@@ -217,6 +217,10 @@ export class OpenClawApp extends LitElement {
   @state() chatModelOverrides: Record<string, ChatModelOverride | null> = {};
   @state() chatModelsLoading = false;
   @state() chatModelCatalog: ModelCatalogEntry[] = [];
+  @state() controlPanelModelSaving = false;
+  @state() controlPanelModelError: string | null = null;
+  @state() controlPanelModelSearch = "";
+  @state() controlPanelManualModel = "";
   @state() chatQueue: ChatQueueItem[] = [];
   @state() chatAttachments: ChatAttachment[] = [];
   @state() realtimeTalkActive = false;
