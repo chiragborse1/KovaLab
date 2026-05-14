@@ -220,10 +220,10 @@ describe("plugins.status", () => {
     });
   });
 
-  it("returns a serialisable plugin registry snapshot", () => {
+  it("returns a serialisable plugin registry snapshot", async () => {
     const opts = createOptions();
 
-    handler(opts);
+    await handler(opts);
 
     expect(mocks.buildPluginRegistrySnapshotReport).toHaveBeenCalledWith({
       config: { plugins: { enabled: true } },
@@ -258,10 +258,31 @@ describe("plugins.status", () => {
     ]);
   });
 
-  it("rejects unexpected params", () => {
+  it("marks plugins installed from persisted install records", async () => {
+    mocks.loadInstalledPluginIndexInstallRecords.mockResolvedValue({
+      telegram: {
+        source: "npm",
+        spec: "@kovaai/telegram",
+        installPath: "/tmp/telegram",
+      },
+    });
+    const opts = createOptions();
+
+    await handler(opts);
+
+    const [, payload] = opts.respond.mock.calls[0] ?? [];
+    const result = payload as PluginsStatusResult;
+    expect(result.plugins.find((plugin) => plugin.id === "telegram")).toMatchObject({
+      installed: true,
+      configured: false,
+      removable: true,
+    });
+  });
+
+  it("rejects unexpected params", async () => {
     const opts = createOptions({ loadModules: true });
 
-    handler(opts);
+    await handler(opts);
 
     expect(mocks.buildPluginRegistrySnapshotReport).not.toHaveBeenCalled();
     expect(opts.respond).toHaveBeenCalledWith(

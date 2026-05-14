@@ -8,6 +8,7 @@ import { commitPluginInstallRecordsWithConfig } from "../../cli/plugins-install-
 import { refreshPluginRegistryAfterConfigMutation } from "../../cli/plugins-registry-refresh.js";
 import { readConfigFileSnapshot, replaceConfigFile } from "../../config/config.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { parseClawHubPluginSpec } from "../../infra/clawhub.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { installPluginFromClawHub } from "../../plugins/clawhub.js";
@@ -109,8 +110,15 @@ function sortStrings(values: readonly string[] | undefined): string[] {
   return [...(values ?? [])].sort((a, b) => a.localeCompare(b));
 }
 
-function summarizePlugin(plugin: PluginRecord, config: OpenClawConfig): PluginStatusSummary {
-  const installed = Object.hasOwn(config.plugins?.installs ?? {}, plugin.id);
+function summarizePlugin(params: {
+  plugin: PluginRecord;
+  config: OpenClawConfig;
+  installRecords: Record<string, PluginInstallRecord>;
+}): PluginStatusSummary {
+  const { config, installRecords, plugin } = params;
+  const installed =
+    Object.hasOwn(installRecords, plugin.id) ||
+    Object.hasOwn(config.plugins?.installs ?? {}, plugin.id);
   const configured = Object.hasOwn(config.plugins?.entries ?? {}, plugin.id);
   return {
     id: plugin.id,
@@ -160,10 +168,17 @@ function summarizeDiagnostics(params: {
   ];
 }
 
-export function createPluginsStatusResult(config: OpenClawConfig): PluginsStatusResult {
+export function createPluginsStatusResult(
+  config: OpenClawConfig,
+  options: { installRecords?: Record<string, PluginInstallRecord> } = {},
+): PluginsStatusResult {
+  const installRecords = {
+    ...(options.installRecords ?? {}),
+    ...(config.plugins?.installs ?? {}),
+  };
   const report = buildPluginRegistrySnapshotReport({ config });
   const plugins = report.plugins
-    .map((plugin) => summarizePlugin(plugin, config))
+    .map((plugin) => summarizePlugin({ plugin, config, installRecords }))
     .sort((a, b) => a.id.localeCompare(b.id));
   const totals = plugins.reduce<PluginsStatusResult["totals"]>(
     (acc, plugin) => {
@@ -279,7 +294,12 @@ async function installPluginFromSpec(params: {
   force?: boolean;
   pin?: boolean;
   dangerouslyForceUnsafeInstall?: boolean;
-}): Promise<{ pluginId: string; config: OpenClawConfig; logs: string[] }> {
+}): Promise<{
+  pluginId: string;
+  config: OpenClawConfig;
+  installRecords: Record<string, PluginInstallRecord>;
+  logs: string[];
+}> {
   const logs: string[] = [];
   const mode = params.force ? "update" : "install";
   const logger = createPluginInstallLogger(logs);
@@ -375,6 +395,7 @@ async function installPluginFromSpec(params: {
   return {
     pluginId: install.pluginId,
     config: next,
+    installRecords: nextInstallRecords,
     logs: [...logs, ...slotResult.warnings],
   };
 }
@@ -390,7 +411,7 @@ function pluginMutationMessage(pluginId: string, enabled: boolean, reason?: stri
 }
 
 export const pluginsHandlers: GatewayRequestHandlers = {
-  "plugins.status": ({ params, respond, context }) => {
+  "plugins.status": async ({ params, respond, context }) => {
     if (!validatePluginsStatusParams(params)) {
       respond(
         false,
@@ -403,7 +424,12 @@ export const pluginsHandlers: GatewayRequestHandlers = {
       return;
     }
     try {
-      respond(true, createPluginsStatusResult(context.getRuntimeConfig()), undefined);
+      const installRecords = await loadInstalledPluginIndexInstallRecords();
+      respond(
+        true,
+        createPluginsStatusResult(context.getRuntimeConfig(), { installRecords }),
+        undefined,
+      );
     } catch (err) {
       respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatErrorMessage(err)));
     }
@@ -426,6 +452,7 @@ export const pluginsHandlers: GatewayRequestHandlers = {
         pluginId: params.pluginId,
         enabled: params.enabled,
       });
+      const installRecords = await loadInstalledPluginIndexInstallRecords();
       const effectiveEnabled = params.enabled ? result.enabled : false;
       respond(
         true,
@@ -435,7 +462,7 @@ export const pluginsHandlers: GatewayRequestHandlers = {
           message: pluginMutationMessage(params.pluginId, effectiveEnabled, result.reason),
           restartRequired: true,
           warnings: result.warnings,
-          status: createPluginsStatusResult(result.config),
+          status: createPluginsStatusResult(result.config, { installRecords }),
         } satisfies PluginsMutationResult,
         undefined,
       );
@@ -497,7 +524,7 @@ export const pluginsHandlers: GatewayRequestHandlers = {
           message: `Uninstalled plugin "${params.pluginId}". Restart the gateway to apply runtime changes.`,
           restartRequired: true,
           warnings: directory.warnings,
-          status: createPluginsStatusResult(nextConfig),
+          status: createPluginsStatusResult(nextConfig, { installRecords: nextInstallRecords }),
         } satisfies PluginsMutationResult,
         undefined,
       );
@@ -536,7 +563,9 @@ export const pluginsHandlers: GatewayRequestHandlers = {
           message: `Installed plugin "${result.pluginId}". Restart the gateway to load it. If the package already exists, use ${formatCliCommand("kova plugins update")} or install with force.`,
           restartRequired: true,
           logs: result.logs,
-          status: createPluginsStatusResult(result.config),
+          status: createPluginsStatusResult(result.config, {
+            installRecords: result.installRecords,
+          }),
         } satisfies PluginsInstallResult,
         undefined,
       );
