@@ -109,10 +109,6 @@ function applyWizardResult(
   }
 }
 
-function shouldAutoAdvanceStep(step: ControlWizardStep | null): boolean {
-  return step?.type === "note";
-}
-
 function shouldRecordCompletedStep(step: ControlWizardStep): boolean {
   return step.type !== "note" && step.type !== "progress";
 }
@@ -120,7 +116,7 @@ function shouldRecordCompletedStep(step: ControlWizardStep): boolean {
 async function autoAdvancePassiveWizardSteps(state: ControlWizardState) {
   while (state.client && state.connected && state.controlWizardSessionId) {
     const step = state.controlWizardStep;
-    if (!shouldAutoAdvanceStep(step)) {
+    if (step?.type !== "note") {
       break;
     }
     const result = await state.client.request<WizardResult>("wizard.next", {
