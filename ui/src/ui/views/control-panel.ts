@@ -169,6 +169,65 @@ function renderCompletedWizardSteps(steps: ControlWizardCompletedStep[]) {
   `;
 }
 
+function renderReadonlyTextStep(step: ControlWizardStep, value: unknown) {
+  const formatted = formatCompletedValue(step, value);
+  return html`
+    <div class="control-panel-readonly-field">
+      <span>${step.sensitive ? "Saved value" : "Saved answer"}</span>
+      <strong>${formatted}</strong>
+    </div>
+  `;
+}
+
+function renderReadonlySelectStep(step: ControlWizardStep, value: unknown) {
+  const selectedValues = Array.isArray(value) ? value : [value];
+  return html`
+    <div
+      class="control-panel-option-grid ${optionKindForStep(step) === "provider"
+        ? "is-provider-list"
+        : ""}"
+    >
+      ${(step.options ?? []).map((option) =>
+        renderOptionButton({
+          option,
+          active: selectedValues.some((entry) => valuesEqual(entry, option.value)),
+          disabled: true,
+          kind: optionKindForStep(step),
+          onClick: () => {},
+        }),
+      )}
+    </div>
+  `;
+}
+
+function renderReadonlyConfirmStep(step: ControlWizardStep, value: unknown) {
+  return html`
+    <div class="control-panel-actions">
+      <button class="btn ${value === true ? "btn--primary" : ""}" disabled>Yes</button>
+      <button class="btn ${value === false ? "btn--primary" : ""}" disabled>No</button>
+    </div>
+  `;
+}
+
+function renderReadonlyWizardStep(entry: ControlWizardCompletedStep, index: number) {
+  const { step, value } = entry;
+  return html`
+    <div class="control-panel-flow-card is-complete">
+      <div class="control-panel-flow-card__head">
+        <span>Step ${index + 1}</span>
+        <strong>${completedStepTitle(step)}</strong>
+        <em>Saved</em>
+      </div>
+      ${step.message && step.title ? html`<p>${step.message}</p>` : nothing}
+      ${step.type === "select" || step.type === "multiselect"
+        ? renderReadonlySelectStep(step, value)
+        : step.type === "confirm"
+          ? renderReadonlyConfirmStep(step, value)
+          : renderReadonlyTextStep(step, value)}
+    </div>
+  `;
+}
+
 function setupSummaryRequiresRestart(steps: ControlWizardCompletedStep[]): boolean {
   return steps.some(({ step }) => {
     const text = `${step.title ?? ""} ${step.message ?? ""}`.toLowerCase();
@@ -503,6 +562,107 @@ function renderWizardEscapeActions(props: ControlPanelProps) {
   `;
 }
 
+function renderWizardStepBody(props: ControlPanelProps, step: ControlWizardStep) {
+  return step.type === "text"
+    ? renderTextStep(props, step)
+    : step.type === "select"
+      ? renderSelectStep(props, step)
+      : step.type === "multiselect"
+        ? renderMultiselectStep(props, step)
+        : step.type === "confirm"
+          ? renderConfirmStep(props)
+          : step.type === "progress"
+            ? renderProgressStep(step, props.wizardStepStartedAt)
+            : step.type === "action"
+              ? renderActionStep(props, step)
+              : html`
+                  <div class="control-panel-actions">
+                    <button
+                      class="btn btn--primary"
+                      ?disabled=${props.wizardLoading}
+                      @click=${() => props.onWizardSubmit(null)}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                `;
+}
+
+function renderLiveWizardStep(props: ControlPanelProps, step: ControlWizardStep) {
+  return html`
+    <div class="control-panel-wizard-step">
+      <div class="control-panel-wizard-step__meta">
+        <span>Current step</span>
+        <span>${step.type}</span>
+        ${step.sensitive ? html`<span>secret input</span>` : nothing}
+      </div>
+      ${props.wizardLoading && step.type !== "progress"
+        ? html`
+            <div class="control-panel-inline-progress" role="status" aria-live="polite">
+              <span></span>
+              Applying this step. Keep this page open.
+            </div>
+          `
+        : nothing}
+      ${step.title ? html`<h3>${step.title}</h3>` : nothing}
+      ${step.message ? html`<p>${step.message}</p>` : nothing} ${renderWizardStepBody(props, step)}
+    </div>
+  `;
+}
+
+function renderModelSetupFlow(props: ControlPanelProps, step: ControlWizardStep | null) {
+  const hasContent = props.wizardCompletedSteps.length > 0 || step;
+  return html`
+    <div class="control-panel-model-flow">
+      <div class="control-panel-model-flow__intro">
+        <strong>Model provider setup</strong>
+        <span>
+          Choose a provider, then complete each revealed field below. Previous choices stay visible
+          on this page so the setup does not feel like a screen-by-screen wizard.
+        </span>
+      </div>
+      ${hasContent
+        ? html`
+            ${props.wizardCompletedSteps.map((entry, index) =>
+              renderReadonlyWizardStep(entry, index),
+            )}
+            ${step
+              ? html`
+                  <div class="control-panel-flow-card is-current">
+                    <div class="control-panel-flow-card__head">
+                      <span>Step ${props.wizardCompletedSteps.length + 1}</span>
+                      <strong>${step.title ?? step.message ?? "Model setup"}</strong>
+                      <em>Needs input</em>
+                    </div>
+                    ${step.message && step.title ? html`<p>${step.message}</p>` : nothing}
+                    ${props.wizardLoading && step.type !== "progress"
+                      ? html`
+                          <div
+                            class="control-panel-inline-progress"
+                            role="status"
+                            aria-live="polite"
+                          >
+                            <span></span>
+                            Applying this step. Keep this page open.
+                          </div>
+                        `
+                      : nothing}
+                    ${renderWizardStepBody(props, step)}
+                  </div>
+                `
+              : nothing}
+          `
+        : html`
+            <div class="control-panel-wizard-empty">
+              <strong>Loading model setup</strong>
+              <span>The gateway is preparing the provider list.</span>
+            </div>
+          `}
+      ${renderWizardEscapeActions(props)}
+    </div>
+  `;
+}
+
 function renderCurrentWizardStep(props: ControlPanelProps) {
   const step = props.wizardStep;
   if (!step) {
@@ -548,49 +708,13 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
     `;
   }
 
+  if (props.wizardActiveSection === "model") {
+    return renderModelSetupFlow(props, step);
+  }
+
   return html`
-    ${renderCompletedWizardSteps(props.wizardCompletedSteps)}
-    <div class="control-panel-wizard-step">
-      <div class="control-panel-wizard-step__meta">
-        <span>Current step</span>
-        <span>${step.type}</span>
-        ${step.sensitive ? html`<span>secret input</span>` : nothing}
-      </div>
-      ${props.wizardLoading && step.type !== "progress"
-        ? html`
-            <div class="control-panel-inline-progress" role="status" aria-live="polite">
-              <span></span>
-              Applying this step. Keep this page open.
-            </div>
-          `
-        : nothing}
-      ${step.title ? html`<h3>${step.title}</h3>` : nothing}
-      ${step.message ? html`<p>${step.message}</p>` : nothing}
-      ${step.type === "text"
-        ? renderTextStep(props, step)
-        : step.type === "select"
-          ? renderSelectStep(props, step)
-          : step.type === "multiselect"
-            ? renderMultiselectStep(props, step)
-            : step.type === "confirm"
-              ? renderConfirmStep(props)
-              : step.type === "progress"
-                ? renderProgressStep(step, props.wizardStepStartedAt)
-                : step.type === "action"
-                  ? renderActionStep(props, step)
-                  : html`
-                      <div class="control-panel-actions">
-                        <button
-                          class="btn btn--primary"
-                          ?disabled=${props.wizardLoading}
-                          @click=${() => props.onWizardSubmit(null)}
-                        >
-                          Continue
-                        </button>
-                      </div>
-                    `}
-      ${renderWizardEscapeActions(props)}
-    </div>
+    ${renderCompletedWizardSteps(props.wizardCompletedSteps)} ${renderLiveWizardStep(props, step)}
+    ${renderWizardEscapeActions(props)}
   `;
 }
 

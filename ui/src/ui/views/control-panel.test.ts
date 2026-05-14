@@ -345,6 +345,54 @@ describe("renderControlPanel", () => {
     expect(container.textContent).toContain("Use existing OPENROUTER_API_KEY?");
   });
 
+  it("renders model setup as one appended page instead of replacing provider choices", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "model",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          wizardCompletedSteps: [
+            {
+              step: {
+                id: "provider",
+                type: "select",
+                message: "Model/auth provider",
+                options: [
+                  { label: "OpenAI Codex", value: "openai-codex" },
+                  { label: "OpenRouter", value: "openrouter" },
+                ],
+              },
+              value: "openrouter",
+            },
+          ],
+          wizardStep: {
+            id: "api-key",
+            type: "text",
+            message: "Enter OpenRouter API key",
+            sensitive: true,
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.querySelector(".control-panel-model-flow")).not.toBeNull();
+    expect(container.querySelector(".control-panel-completed-flow")).toBeNull();
+    expect(container.textContent).toContain("Model provider setup");
+    expect(container.textContent).toContain("OpenAI Codex");
+    expect(container.textContent).toContain("OpenRouter");
+    expect(container.textContent).toContain("Enter OpenRouter API key");
+
+    const openRouter = Array.from(container.querySelectorAll(".control-panel-option")).find(
+      (button) => button.textContent?.includes("OpenRouter"),
+    ) as HTMLButtonElement | undefined;
+    expect(openRouter?.classList.contains("active")).toBe(true);
+    expect(openRouter?.disabled).toBe(true);
+  });
+
   it("renders a final setup summary and restart guidance", () => {
     const container = document.createElement("div");
 
