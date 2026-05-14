@@ -1642,6 +1642,7 @@ export function renderApp(state: AppViewState) {
                 gatewayUrl: state.settings.gatewayUrl,
                 assistantName: state.assistantName,
                 version: state.hello?.server?.version ?? "",
+                config: configObj,
                 wizardLoading: state.controlWizardLoading,
                 wizardSessionId: state.controlWizardSessionId,
                 wizardStep: state.controlWizardStep,
@@ -1652,6 +1653,9 @@ export function renderApp(state: AppViewState) {
                 wizardActiveSection: state.controlWizardActiveSection,
                 wizardStepStartedAt: state.controlWizardStepStartedAt,
                 modelCatalog: state.chatModelCatalog ?? [],
+                modelAuthStatus: state.modelAuthStatusResult,
+                modelAuthStatusLoading: state.modelAuthStatusLoading,
+                modelAuthStatusError: state.modelAuthStatusError,
                 modelsLoading: state.chatModelsLoading,
                 currentModel,
                 modelSaving: state.controlPanelModelSaving,
@@ -1690,6 +1694,11 @@ export function renderApp(state: AppViewState) {
                 },
                 onWizardRefresh: () => {
                   void refreshControlWizard(state).then(() => requestHostUpdate?.());
+                },
+                onRefreshModelAuth: () => {
+                  void loadModelAuthStatusState(state, { refresh: true }).then(() =>
+                    requestHostUpdate?.(),
+                  );
                 },
                 onModelSelect: (modelRef) => {
                   if (!modelRef.trim()) {

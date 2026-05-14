@@ -11,6 +11,7 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     assistantName: "Kova",
     version: "2.0.0-beta.5",
     configPath: "/home/user/.kova/kova.json",
+    config: {},
     wizardLoading: false,
     wizardSessionId: null,
     wizardStep: null,
@@ -21,6 +22,9 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     wizardActiveSection: null,
     wizardStepStartedAt: null,
     modelCatalog: [],
+    modelAuthStatus: null,
+    modelAuthStatusLoading: false,
+    modelAuthStatusError: null,
     modelsLoading: false,
     currentModel: null,
     modelSaving: false,
@@ -33,6 +37,7 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     onWizardSubmit: vi.fn(),
     onWizardCancel: vi.fn(),
     onWizardRefresh: vi.fn(),
+    onRefreshModelAuth: vi.fn(),
     onModelSelect: vi.fn(),
     onModelSearchChange: vi.fn(),
     onManualModelChange: vi.fn(),
@@ -454,6 +459,39 @@ describe("renderControlPanel", () => {
     expect(onModelSelect).toHaveBeenCalledWith("openrouter/deepseek/deepseek-chat");
   });
 
+  it("does not filter the model picker by the current default before a provider is selected", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "model",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          currentModel: "openrouter/auto",
+          modelCatalog: [
+            { id: "openrouter/auto", name: "OpenRouter Auto", provider: "openrouter" },
+            { id: "gpt-5.5", name: "GPT-5.5", provider: "openai-codex" },
+          ],
+          wizardStep: {
+            id: "provider",
+            type: "select",
+            message: "Model/auth provider",
+            options: [
+              { label: "OpenRouter", value: "openrouter" },
+              { label: "OpenAI Codex", value: "openai-codex" },
+            ],
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("OpenRouter Auto");
+    expect(container.textContent).toContain("GPT-5.5");
+    expect(container.textContent).toContain("Current default");
+  });
+
   it("filters catalog models and submits manual model IDs", () => {
     const onModelSearchChange = vi.fn();
     const onManualModelChange = vi.fn();
@@ -601,5 +639,94 @@ describe("renderControlPanel", () => {
     expect(container.textContent).toContain("Setup complete");
     expect(container.textContent).toContain("Enable gateway password auth?");
     expect(container.textContent).toContain("Restart may be required");
+  });
+
+  it("renders provider auth health and refresh action", () => {
+    const onRefreshModelAuth = vi.fn();
+    const onWizardStartSection = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          currentModel: "openrouter/auto",
+          modelAuthStatus: {
+            ts: Date.now(),
+            providers: [
+              {
+                provider: "openrouter",
+                displayName: "OpenRouter",
+                status: "static",
+                profiles: [{ profileId: "openrouter:manual", type: "api_key", status: "static" }],
+              },
+              {
+                provider: "openai-codex",
+                displayName: "OpenAI Codex",
+                status: "missing",
+                profiles: [],
+              },
+            ],
+          },
+          onRefreshModelAuth,
+          onWizardStartSection,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Provider & auth");
+    expect(container.textContent).toContain("Auth attention");
+    expect(container.textContent).toContain("OpenRouter");
+    expect(container.textContent).toContain("OpenAI Codex");
+
+    const refresh = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Refresh auth"),
+    ) as HTMLButtonElement | undefined;
+    refresh?.click();
+    expect(onRefreshModelAuth).toHaveBeenCalled();
+
+    const configure = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Configure provider"),
+    ) as HTMLButtonElement | undefined;
+    configure?.click();
+    expect(onWizardStartSection).toHaveBeenCalledWith("model");
+  });
+
+  it("renders setup diagnostics from the config snapshot", () => {
+    const onWizardStartSection = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          config: {
+            gateway: { mode: "local", bind: "loopback", port: 18789, auth: { mode: "password" } },
+            channels: { telegram: { enabled: true }, whatsapp: { enabled: false } },
+            plugins: {
+              allow: ["telegram"],
+              deny: ["debug-plugin"],
+              entries: { telegram: { enabled: true }, browser: { enabled: true } },
+              installs: { telegram: { source: "npm" } },
+            },
+            models: { providers: { openrouter: {} } },
+            agents: { list: [{ id: "main" }] },
+          },
+          onWizardStartSection,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Setup diagnostics");
+    expect(container.textContent).toContain("local / loopback");
+    expect(container.textContent).toContain("password / 18789");
+    expect(container.textContent).toContain("telegram");
+    expect(container.textContent).toContain("1 allowlisted · 1 denied");
+
+    const plugins = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Configure plugins"),
+    ) as HTMLButtonElement | undefined;
+    plugins?.click();
+    expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
   });
 });

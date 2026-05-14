@@ -557,6 +557,32 @@
   padding-right: 4px;
 }
 
+.control-panel-current-model {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.control-panel-current-model span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-panel-current-model code {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
 .control-panel-model-picker__controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
@@ -726,6 +752,103 @@
 .control-panel-action-step {
   display: grid;
   gap: 12px;
+}
+
+.control-panel-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.control-panel-ops-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.control-panel-ops-card span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-panel-ops-card strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control-panel-ops-card code {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.control-panel-ops-card.is-ok {
+  border-color: color-mix(in srgb, var(--success, #22c55e) 35%, var(--border));
+}
+
+.control-panel-ops-card.is-warn {
+  border-color: color-mix(in srgb, var(--warning, #f7b955) 35%, var(--border));
+}
+
+.control-panel-ops-card.is-danger {
+  border-color: color-mix(in srgb, var(--danger, #ff6b78) 35%, var(--border));
+}
+
+.control-panel-provider-status-list {
+  display: grid;
+  gap: 8px;
+}
+
+.control-panel-provider-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.control-panel-provider-status.is-ok {
+  border-color: color-mix(in srgb, var(--success, #22c55e) 28%, var(--border));
+}
+
+.control-panel-provider-status.is-warn {
+  border-color: color-mix(in srgb, var(--warning, #f7b955) 28%, var(--border));
+}
+
+.control-panel-provider-status.is-danger {
+  border-color: color-mix(in srgb, var(--danger, #ff6b78) 28%, var(--border));
+}
+
+.control-panel-provider-status strong,
+.control-panel-provider-status small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.control-panel-provider-status strong {
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.control-panel-provider-status small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .control-panel-qr {
@@ -995,6 +1118,7 @@
   .control-panel-model-grid,
   .control-panel-metrics,
   .control-panel-split,
+  .control-panel-ops-grid,
   .control-panel-option-grid {
     grid-template-columns: 1fr;
   }

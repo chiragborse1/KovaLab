@@ -8,7 +8,11 @@ import type {
   ControlWizardStepOption,
 } from "../controllers/wizard.ts";
 import { icons } from "../icons.ts";
-import type { ModelCatalogEntry } from "../types.ts";
+import type {
+  ModelAuthStatusProvider,
+  ModelAuthStatusResult,
+  ModelCatalogEntry,
+} from "../types.ts";
 
 export type ControlPanelProps = {
   connected: boolean;
@@ -16,6 +20,7 @@ export type ControlPanelProps = {
   assistantName: string;
   version: string;
   configPath?: string | null;
+  config: unknown;
   wizardLoading: boolean;
   wizardSessionId: string | null;
   wizardStep: ControlWizardStep | null;
@@ -26,6 +31,9 @@ export type ControlPanelProps = {
   wizardActiveSection: ControlWizardSection | null;
   wizardStepStartedAt: number | null;
   modelCatalog: ModelCatalogEntry[];
+  modelAuthStatus: ModelAuthStatusResult | null;
+  modelAuthStatusLoading: boolean;
+  modelAuthStatusError: string | null;
   modelsLoading: boolean;
   currentModel: string | null;
   modelSaving: boolean;
@@ -38,6 +46,7 @@ export type ControlPanelProps = {
   onWizardSubmit: (value?: unknown) => void;
   onWizardCancel: () => void;
   onWizardRefresh: () => void;
+  onRefreshModelAuth: () => void;
   onModelSelect: (modelRef: string) => void;
   onModelSearchChange: (value: string) => void;
   onManualModelChange: (value: string) => void;
@@ -136,6 +145,71 @@ function renderGatewayStatus(props: ControlPanelProps) {
       ${props.connected ? "Gateway connected" : "Gateway disconnected"}
     </div>
   `;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function recordAt(
+  record: Record<string, unknown> | null,
+  key: string,
+): Record<string, unknown> | null {
+  return asRecord(record?.[key]);
+}
+
+function stringAt(record: Record<string, unknown> | null, key: string): string | null {
+  const value = record?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function numberAt(record: Record<string, unknown> | null, key: string): number | null {
+  const value = record?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function enabledObjectKeys(record: Record<string, unknown> | null): string[] {
+  if (!record) {
+    return [];
+  }
+  return Object.entries(record)
+    .filter(([, value]) => asRecord(value)?.enabled !== false)
+    .map(([key]) => key)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function arrayLength(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function resolveRuntimeSummary(config: unknown) {
+  const root = asRecord(config);
+  const gateway = recordAt(root, "gateway");
+  const gatewayAuth = recordAt(gateway, "auth");
+  const plugins = recordAt(root, "plugins");
+  const pluginEntries = recordAt(plugins, "entries");
+  const pluginInstalls = recordAt(plugins, "installs");
+  const channels = recordAt(root, "channels");
+  const models = recordAt(root, "models");
+  const modelProviders = recordAt(models, "providers");
+  const agents = recordAt(root, "agents");
+  const agentList = Array.isArray(agents?.list) ? agents.list : [];
+
+  return {
+    gatewayMode: stringAt(gateway, "mode") ?? "local",
+    gatewayBind: stringAt(gateway, "bind") ?? "loopback",
+    gatewayAuthMode: stringAt(gatewayAuth, "mode") ?? "auto",
+    gatewayPort: numberAt(gateway, "port"),
+    allowCount: arrayLength(plugins?.allow),
+    denyCount: arrayLength(plugins?.deny),
+    configuredChannels: enabledObjectKeys(channels),
+    enabledPluginCount: enabledObjectKeys(pluginEntries).length,
+    installedPluginCount: pluginInstalls ? Object.keys(pluginInstalls).length : 0,
+    modelProviderCount: modelProviders ? Object.keys(modelProviders).length : 0,
+    agentCount: agentList.length,
+  };
 }
 
 function renderSetupTimeline(props: ControlPanelProps) {
@@ -373,11 +447,7 @@ function optionKindForStep(step: ControlWizardStep): WizardOptionKind {
 }
 
 function detectSelectedProvider(props: ControlPanelProps): string | null {
-  const values = [
-    ...props.wizardCompletedSteps.map(({ value }) => value),
-    props.wizardAnswerValue,
-    props.currentModel,
-  ];
+  const values = [...props.wizardCompletedSteps.map(({ value }) => value), props.wizardAnswerValue];
   for (const value of values) {
     if (typeof value !== "string") {
       continue;
@@ -465,9 +535,18 @@ function renderModelPicker(props: ControlPanelProps) {
         <em>${props.modelSaving ? "Saving..." : (props.currentModel ?? "Not set")}</em>
       </div>
       <p>
-        Pick the model Kova should use by default. This saves immediately to the same default model
-        config used by Quick Settings.
+        Pick the model Kova should use by default. The list stays visible while provider auth steps
+        continue below, so you can choose <code>openrouter/auto</code> or any catalog model without
+        leaving this setup page.
       </p>
+      ${props.currentModel
+        ? html`
+            <div class="control-panel-current-model">
+              <span>Current default</span>
+              <code>${props.currentModel}</code>
+            </div>
+          `
+        : nothing}
       <div class="control-panel-model-picker__controls">
         <label>
           <span>Search models</span>
@@ -555,6 +634,117 @@ function renderModelPicker(props: ControlPanelProps) {
           `
         : nothing}
     </div>
+  `;
+}
+
+function modelAuthClass(provider: ModelAuthStatusProvider): string {
+  switch (provider.status) {
+    case "ok":
+    case "static":
+      return "is-ok";
+    case "expiring":
+      return "is-warn";
+    case "expired":
+    case "missing":
+      return "is-danger";
+    default:
+      return "";
+  }
+}
+
+function modelAuthLabel(provider: ModelAuthStatusProvider): string {
+  if (provider.status === "static") {
+    return "api key";
+  }
+  return provider.status;
+}
+
+function renderProviderAuthSection(props: ControlPanelProps) {
+  const providers = props.modelAuthStatus?.providers ?? [];
+  const visibleProviders = providers.slice(0, 10);
+  const okCount = providers.filter((provider) => ["ok", "static"].includes(provider.status)).length;
+  const attentionCount = Math.max(0, providers.length - okCount);
+  return html`
+    <section class="control-panel-section">
+      ${renderSectionHeader({
+        icon: icons.brain,
+        title: "Provider & auth",
+        detail:
+          "Verify the active model, provider credentials, and auth health before running agents.",
+      })}
+      <div class="control-panel-section__body">
+        <div class="control-panel-ops-grid">
+          <div class="control-panel-ops-card">
+            <span>Current model</span>
+            <strong><code>${props.currentModel ?? "not set"}</code></strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Providers</span>
+            <strong>${providers.length || "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card ${attentionCount > 0 ? "is-warn" : "is-ok"}">
+            <span>Auth attention</span>
+            <strong>${attentionCount}</strong>
+          </div>
+        </div>
+        <div class="control-panel-actions">
+          <button
+            class="btn"
+            ?disabled=${props.modelAuthStatusLoading || !props.connected}
+            @click=${props.onRefreshModelAuth}
+          >
+            ${props.modelAuthStatusLoading ? "Checking..." : "Refresh auth"}
+          </button>
+          <button
+            class="btn"
+            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
+            @click=${() => props.onWizardStartSection("model")}
+          >
+            Configure provider
+          </button>
+        </div>
+        ${props.modelAuthStatusError
+          ? html`<div class="callout danger">${props.modelAuthStatusError}</div>`
+          : nothing}
+        ${visibleProviders.length > 0
+          ? html`
+              <div class="control-panel-provider-status-list">
+                ${visibleProviders.map(
+                  (provider) => html`
+                    <div class="control-panel-provider-status ${modelAuthClass(provider)}">
+                      <span
+                        class="control-panel-provider-logo control-panel-provider-logo--${providerLogoForOption(
+                          {
+                            label: provider.displayName,
+                            value: provider.provider,
+                          },
+                        )?.className ?? "custom"}"
+                        >${providerLogoForOption({
+                          label: provider.displayName,
+                          value: provider.provider,
+                        })?.label ?? provider.provider.slice(0, 2).toUpperCase()}</span
+                      >
+                      <div>
+                        <strong>${provider.displayName}</strong>
+                        <small>
+                          ${modelAuthLabel(provider)}
+                          ${provider.expiry ? ` · expires ${provider.expiry.label}` : ""}
+                          ${provider.usage?.plan ? ` · ${provider.usage.plan}` : ""}
+                        </small>
+                      </div>
+                    </div>
+                  `,
+                )}
+              </div>
+            `
+          : html`
+              <div class="control-panel-empty">
+                Auth status is not loaded yet. Refresh auth to see configured providers and key
+                health.
+              </div>
+            `}
+      </div>
+    </section>
   `;
 }
 
@@ -1016,6 +1206,98 @@ function renderWizardSection(props: ControlPanelProps) {
   `;
 }
 
+function renderSetupDiagnosticsSection(props: ControlPanelProps) {
+  const summary = resolveRuntimeSummary(props.config);
+  const channelPreview =
+    summary.configuredChannels.length > 0
+      ? summary.configuredChannels.slice(0, 4).join(", ")
+      : "none configured";
+  return html`
+    <section class="control-panel-section">
+      ${renderSectionHeader({
+        icon: icons.loader,
+        title: "Setup diagnostics",
+        detail:
+          "A compact readout of the parts that usually explain startup, plugin, or channel issues.",
+      })}
+      <div class="control-panel-section__body">
+        <div class="control-panel-ops-grid">
+          <div class="control-panel-ops-card ${props.connected ? "is-ok" : "is-danger"}">
+            <span>Gateway</span>
+            <strong>${props.connected ? "connected" : "offline"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Mode / bind</span>
+            <strong>${summary.gatewayMode} / ${summary.gatewayBind}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Auth / port</span>
+            <strong>${summary.gatewayAuthMode} / ${summary.gatewayPort ?? "default"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Plugin entries</span>
+            <strong>${summary.enabledPluginCount}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Plugin installs</span>
+            <strong>${summary.installedPluginCount}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Channels</span>
+            <strong>${summary.configuredChannels.length}</strong>
+          </div>
+        </div>
+        <div class="control-panel-meta-row">
+          <span class="control-panel-meta-row__label">Channel preview</span>
+          <span class="control-panel-meta-row__value">${channelPreview}</span>
+        </div>
+        <div class="control-panel-meta-row">
+          <span class="control-panel-meta-row__label">Plugin policy</span>
+          <span class="control-panel-meta-row__value">
+            ${summary.allowCount} allowlisted · ${summary.denyCount} denied
+          </span>
+        </div>
+        <div class="control-panel-meta-row">
+          <span class="control-panel-meta-row__label">Models / agents</span>
+          <span class="control-panel-meta-row__value">
+            ${summary.modelProviderCount} provider
+            config${summary.modelProviderCount === 1 ? "" : "s"} · ${summary.agentCount} configured
+            agent${summary.agentCount === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div class="control-panel-actions">
+          <button
+            class="btn"
+            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
+            @click=${() => props.onWizardStartSection("health")}
+          >
+            Run health setup
+          </button>
+          <button
+            class="btn"
+            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
+            @click=${() => props.onWizardStartSection("plugins")}
+          >
+            Configure plugins
+          </button>
+          <button
+            class="btn"
+            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
+            @click=${() => props.onWizardStartSection("channels")}
+          >
+            Configure channels
+          </button>
+        </div>
+        <div class="control-panel-field-hint">
+          For deeper startup timings, start the gateway with
+          <code>KOVA_GATEWAY_STARTUP_TRACE=1</code>. Plugin installs shown through setup use the
+          wizard progress bar and can take a few minutes on slow npm or Windows/WSL filesystems.
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function renderInfoSection(props: ControlPanelProps) {
   return html`
     <section class="control-panel-section">
@@ -1064,7 +1346,8 @@ export function renderControlPanel(props: ControlPanelProps) {
           </div>
           ${renderGatewayStatus(props)}
         </section>
-        ${renderWizardSection(props)} ${renderInfoSection(props)}
+        ${renderWizardSection(props)} ${renderProviderAuthSection(props)}
+        ${renderSetupDiagnosticsSection(props)} ${renderInfoSection(props)}
       </main>
     </div>
   `;

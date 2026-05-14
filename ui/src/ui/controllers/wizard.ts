@@ -151,11 +151,9 @@ function resetMissingWizardSession(state: ControlWizardState) {
   state.controlWizardStep = null;
   state.controlWizardStatus = "error";
   state.controlWizardAnswerValue = null;
-  state.controlWizardCompletedSteps = [];
-  state.controlWizardActiveSection = null;
   state.controlWizardStepStartedAt = null;
   state.controlWizardError =
-    "Setup session was interrupted by a gateway restart. Start the setup again; saved changes were already written to config.";
+    "Setup session was interrupted by a gateway restart. Saved changes were already written to config; restart this section to continue from the current config.";
 }
 
 function resolveActiveSection(

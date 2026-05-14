@@ -103,6 +103,13 @@ describe("control wizard controller", () => {
       throw new Error("wizard not found");
     });
     const state = createState(request);
+    state.controlWizardActiveSection = "model";
+    state.controlWizardCompletedSteps = [
+      {
+        step: { id: "provider", type: "select", message: "Model/auth provider" },
+        value: "openrouter",
+      },
+    ];
 
     await submitControlWizardStep(state);
 
@@ -110,7 +117,8 @@ describe("control wizard controller", () => {
     expect(state.controlWizardStep).toBeNull();
     expect(state.controlWizardStatus).toBe("error");
     expect(state.controlWizardError).toContain("gateway restart");
-    expect(state.controlWizardActiveSection).toBeNull();
+    expect(state.controlWizardActiveSection).toBe("model");
+    expect(state.controlWizardCompletedSteps).toHaveLength(1);
     expect(state.controlWizardStepStartedAt).toBeNull();
   });
 
@@ -119,13 +127,21 @@ describe("control wizard controller", () => {
       throw new Error("wizard not found");
     });
     const state = createState(request);
+    state.controlWizardActiveSection = "channels";
+    state.controlWizardCompletedSteps = [
+      {
+        step: { id: "channel", type: "select", message: "Channel" },
+        value: "telegram",
+      },
+    ];
 
     await cancelControlWizard(state);
 
     expect(state.controlWizardSessionId).toBeNull();
     expect(state.controlWizardStep).toBeNull();
     expect(state.controlWizardStatus).toBe("error");
-    expect(state.controlWizardActiveSection).toBeNull();
+    expect(state.controlWizardActiveSection).toBe("channels");
+    expect(state.controlWizardCompletedSteps).toHaveLength(1);
     expect(state.controlWizardStepStartedAt).toBeNull();
   });
 });
