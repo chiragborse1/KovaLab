@@ -48,9 +48,9 @@ export type PluginStatusSummary = {
   enabled: boolean;
   status: "loaded" | "disabled" | "error";
   origin: string;
-  format: string;
+  format?: string;
   bundleFormat?: string;
-  kind?: string;
+  kind?: string | string[];
   version?: string;
   description?: string;
   channelIds: string[];
@@ -126,7 +126,7 @@ function summarizePlugin(params: {
     enabled: plugin.enabled,
     status: plugin.status,
     origin: plugin.origin,
-    format: plugin.format,
+    ...(plugin.format ? { format: plugin.format } : {}),
     ...(plugin.bundleFormat ? { bundleFormat: plugin.bundleFormat } : {}),
     ...(plugin.kind ? { kind: plugin.kind } : {}),
     ...(plugin.version ? { version: plugin.version } : {}),
@@ -274,13 +274,12 @@ function resolveInstallRecord(params: {
   version?: string;
   npmResolution?: Extract<InstallPluginResult, { ok: true }>["npmResolution"];
   pin?: boolean;
-}) {
+}): PluginInstallRecord {
   const resolved = buildNpmResolutionInstallFields(params.npmResolution);
-  const spec =
-    params.pin && resolved.resolvedSpec ? resolved.resolvedSpec : params.npmResolution?.rawSpec;
+  const spec = params.pin && resolved.resolvedSpec ? resolved.resolvedSpec : params.spec;
   return {
     source: "npm" as const,
-    spec: spec ?? params.spec,
+    spec,
     installPath: params.targetDir,
     ...(params.version ? { version: params.version } : {}),
     ...resolved,
@@ -308,7 +307,7 @@ async function installPluginFromSpec(params: {
 
   let install:
     | (Extract<InstallPluginResult, { ok: true }> & {
-        installRecord: ReturnType<typeof resolveInstallRecord>;
+        installRecord: PluginInstallRecord;
       })
     | null = null;
 
