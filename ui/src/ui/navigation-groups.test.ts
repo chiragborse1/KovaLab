@@ -6,15 +6,8 @@ describe("TAB_GROUPS", () => {
     const control = TAB_GROUPS.find((group) => group.label === "control");
     const settings = TAB_GROUPS.find((group) => group.label === "settings");
 
-    expect(control?.tabs).toEqual([
-      "overview",
-      "controlPanel",
-      "instances",
-      "sessions",
-      "usage",
-      "cron",
-    ]);
-    expect(settings?.tabs).toEqual(["config", "appearance"]);
+    expect(control?.tabs).toEqual(["overview", "instances", "sessions", "usage", "cron"]);
+    expect(settings?.tabs).toEqual(["controlPanel", "config"]);
   });
 
   it("keeps legacy advanced routes addressable", () => {
