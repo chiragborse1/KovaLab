@@ -235,6 +235,7 @@ function optionKindForStep(step: ControlWizardStep): WizardOptionKind {
 function renderOptionButton(params: {
   option: ControlWizardStepOption;
   active: boolean;
+  disabled?: boolean;
   kind: WizardOptionKind;
   onClick: () => void;
 }) {
@@ -247,6 +248,7 @@ function renderOptionButton(params: {
       class="control-panel-option ${params.active
         ? "active"
         : ""} control-panel-option--${params.kind}"
+      ?disabled=${params.disabled === true}
       @click=${params.onClick}
     >
       ${logo
@@ -287,7 +289,7 @@ function renderTextStep(props: ControlPanelProps, step: ControlWizardStep) {
       />
       <div class="control-panel-actions">
         <button class="btn btn--primary" ?disabled=${props.wizardLoading}>
-          ${props.wizardLoading ? "Saving..." : "Continue"}
+          ${props.wizardLoading ? "Saving..." : "Save"}
         </button>
       </div>
     </form>
@@ -304,20 +306,14 @@ function renderSelectStep(props: ControlPanelProps, step: ControlWizardStep) {
         renderOptionButton({
           option,
           active: valuesEqual(selected, option.value),
+          disabled: props.wizardLoading,
           kind,
-          onClick: () => props.onWizardAnswerChange(option.value),
+          onClick: () => {
+            props.onWizardAnswerChange(option.value);
+            props.onWizardSubmit(option.value);
+          },
         }),
       )}
-    </div>
-    <div class="control-panel-next-bar">
-      <span>${selected === null || selected === undefined ? "Select an option" : "Ready"}</span>
-      <button
-        class="btn btn--primary"
-        ?disabled=${props.wizardLoading || selected === null || selected === undefined}
-        @click=${() => props.onWizardSubmit(selected)}
-      >
-        ${props.wizardLoading ? "Working..." : "Continue"}
-      </button>
     </div>
   `;
 }
@@ -336,6 +332,7 @@ function renderMultiselectStep(props: ControlPanelProps, step: ControlWizardStep
         renderOptionButton({
           option,
           active: selected.some((value) => valuesEqual(value, option.value)),
+          disabled: props.wizardLoading,
           kind: optionKindForStep(step),
           onClick: () => toggle(option),
         }),
@@ -348,7 +345,7 @@ function renderMultiselectStep(props: ControlPanelProps, step: ControlWizardStep
         ?disabled=${props.wizardLoading}
         @click=${() => props.onWizardSubmit(selected)}
       >
-        Continue
+        Apply selected
       </button>
     </div>
   `;

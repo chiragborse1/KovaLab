@@ -130,10 +130,10 @@ describe("renderControlPanel", () => {
 
     expect(container.querySelector(".control-panel-provider-logo")).not.toBeNull();
     expect(onWizardAnswerChange).toHaveBeenCalledWith("openrouter");
-    expect(onWizardSubmit).not.toHaveBeenCalled();
+    expect(onWizardSubmit).toHaveBeenCalledWith("openrouter");
   });
 
-  it("submits the selected wizard option from the visible continue bar", () => {
+  it("does not render a continue bar for single-choice wizard options", () => {
     const onWizardSubmit = vi.fn();
     const container = document.createElement("div");
 
@@ -158,11 +158,12 @@ describe("renderControlPanel", () => {
       container,
     );
 
-    const continueButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Continue"),
-    ) as HTMLButtonElement | undefined;
-    continueButton?.click();
+    expect(container.querySelector(".control-panel-next-bar")).toBeNull();
 
+    const openRouterAuto = Array.from(container.querySelectorAll(".control-panel-option")).find(
+      (button) => button.textContent?.includes("OpenRouter Auto"),
+    ) as HTMLButtonElement | undefined;
+    openRouterAuto?.click();
     expect(onWizardSubmit).toHaveBeenCalledWith("openrouter/auto");
   });
 
