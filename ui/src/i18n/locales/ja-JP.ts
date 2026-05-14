@@ -160,6 +160,7 @@ export const ja_JP: TranslationMap = {
   tabs: {
     agents: "エージェント",
     overview: "概要",
+    controlPanel: "Control Panel",
     channels: "チャンネル",
     instances: "インスタンス",
     sessions: "セッション",
@@ -181,6 +182,7 @@ export const ja_JP: TranslationMap = {
   subtitles: {
     agents: "ワークスペース、ツール、ID。",
     overview: "ステータス、エントリーポイント、健全性。",
+    controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "チャンネルと設定。",
     instances: "接続されたクライアントとノード。",
     sessions: "アクティブなセッションとデフォルト。",

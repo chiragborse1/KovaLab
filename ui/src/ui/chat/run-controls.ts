@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+import { html } from "lit";
 import { icons } from "../icons.ts";
 
 export type ChatRunControlsProps = {
@@ -9,8 +9,6 @@ export type ChatRunControlsProps = {
   isBusy: boolean;
   sending: boolean;
   onAbort?: () => void;
-  onExport: () => void;
-  onNewSession: () => void;
   onSend: () => void;
   onStoreDraft: (draft: string) => void;
 };
@@ -18,28 +16,6 @@ export type ChatRunControlsProps = {
 export function renderChatRunControls(props: ChatRunControlsProps) {
   return html`
     <div class="agent-chat__toolbar-right">
-      ${props.canAbort
-        ? nothing
-        : html`
-            <button
-              class="btn btn--ghost"
-              @click=${props.onNewSession}
-              title="New session"
-              aria-label="New session"
-            >
-              ${icons.plus}
-            </button>
-          `}
-      <button
-        class="btn btn--ghost"
-        @click=${props.onExport}
-        title="Export"
-        aria-label="Export chat"
-        ?disabled=${!props.hasMessages}
-      >
-        ${icons.download}
-      </button>
-
       ${props.canAbort
         ? html`
             <button

@@ -2,7 +2,11 @@
 
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
-import { renderQuickSettings, type QuickSettingsProps } from "./config-quick.ts";
+import {
+  renderPersonalCard,
+  renderQuickSettings,
+  type QuickSettingsProps,
+} from "./config-quick.ts";
 
 function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettingsProps {
   return {
@@ -138,7 +142,7 @@ describe("renderQuickSettings", () => {
     const container = document.createElement("div");
 
     render(
-      renderQuickSettings(
+      renderPersonalCard(
         createProps({
           assistantName: "Nova",
           assistantAvatar: "assets/avatars/nova-portrait.png",
@@ -166,7 +170,7 @@ describe("renderQuickSettings", () => {
     const container = document.createElement("div");
 
     render(
-      renderQuickSettings(
+      renderPersonalCard(
         createProps({
           assistantName: "Nova",
           assistantAvatar: "/avatar/main",
@@ -187,7 +191,7 @@ describe("renderQuickSettings", () => {
     const container = document.createElement("div");
 
     render(
-      renderQuickSettings(
+      renderPersonalCard(
         createProps({
           assistantName: "Nova",
           assistantAvatar: "/avatar/main",
@@ -244,7 +248,7 @@ describe("renderQuickSettings", () => {
     try {
       const container = document.createElement("div");
       render(
-        renderQuickSettings(
+        renderPersonalCard(
           createProps({
             assistantAvatarSource: "assets/avatars/nova-portrait.png",
             assistantAvatarStatus: "none",
@@ -284,7 +288,7 @@ describe("renderQuickSettings", () => {
     const container = document.createElement("div");
 
     render(
-      renderQuickSettings(
+      renderPersonalCard(
         createProps({
           assistantAvatar: "data:image/png;base64,b3ZlcnJpZGU=",
           assistantAvatarUrl: "data:image/png;base64,b3ZlcnJpZGU=",
@@ -316,7 +320,7 @@ describe("renderQuickSettings", () => {
 
     try {
       const container = document.createElement("div");
-      render(renderQuickSettings(createProps({ onUserAvatarChange })), container);
+      render(renderPersonalCard(createProps({ onUserAvatarChange })), container);
 
       const input = Array.from(container.querySelectorAll('input[type="file"]')).find(
         (node) => !node.closest(".qs-identity-card--assistant"),

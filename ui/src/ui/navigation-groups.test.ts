@@ -2,21 +2,23 @@ import { describe, expect, it } from "vitest";
 import { TAB_GROUPS, tabFromPath } from "./navigation.ts";
 
 describe("TAB_GROUPS", () => {
-  it("does not expose unfinished settings slices in the sidebar", () => {
+  it("keeps advanced setup slices out of the sidebar", () => {
+    const control = TAB_GROUPS.find((group) => group.label === "control");
     const settings = TAB_GROUPS.find((group) => group.label === "settings");
-    expect(settings?.tabs).toEqual([
-      "config",
-      "communications",
-      "appearance",
-      "automation",
-      "infrastructure",
-      "aiAgents",
-      "debug",
-      "logs",
+
+    expect(control?.tabs).toEqual([
+      "overview",
+      "controlPanel",
+      "instances",
+      "sessions",
+      "usage",
+      "cron",
     ]);
+    expect(settings?.tabs).toEqual(["config", "appearance"]);
   });
 
-  it("routes every published settings slice", () => {
+  it("keeps legacy advanced routes addressable", () => {
+    expect(tabFromPath("/channels")).toBe("channels");
     expect(tabFromPath("/communications")).toBe("communications");
     expect(tabFromPath("/appearance")).toBe("appearance");
     expect(tabFromPath("/automation")).toBe("automation");

@@ -29,8 +29,6 @@ function createProps(overrides: Partial<ChatRunControlsProps> = {}): ChatRunCont
     isBusy: false,
     sending: false,
     onAbort: () => undefined,
-    onExport: () => undefined,
-    onNewSession: () => undefined,
     onSend: () => undefined,
     onStoreDraft: () => undefined,
     ...overrides,
@@ -66,7 +64,6 @@ describe("chat run controls", () => {
     expect(onAbort).toHaveBeenCalledTimes(1);
     expect(container.textContent).not.toContain("New session");
 
-    const onNewSession = vi.fn();
     const onSend = vi.fn();
     const onStoreDraft = vi.fn();
     render(
@@ -74,7 +71,6 @@ describe("chat run controls", () => {
         createProps({
           draft: " run this ",
           hasMessages: true,
-          onNewSession,
           onSend,
           onStoreDraft,
         }),
@@ -82,12 +78,7 @@ describe("chat run controls", () => {
       container,
     );
 
-    const newSessionButton = container.querySelector<HTMLButtonElement>(
-      'button[title="New session"]',
-    );
-    expect(newSessionButton).not.toBeNull();
-    newSessionButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onNewSession).toHaveBeenCalledTimes(1);
+    expect(container.querySelector<HTMLButtonElement>('button[title="New session"]')).toBeNull();
 
     const sendButton = container.querySelector<HTMLButtonElement>('button[title="Send"]');
     expect(sendButton).not.toBeNull();

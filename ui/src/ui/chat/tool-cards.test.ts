@@ -42,6 +42,7 @@ describe("tool-cards", () => {
     expect(container.textContent).toContain("Tool output");
     expect(container.textContent).toContain("https://example.com");
     expect(container.textContent).toContain("Opened page");
+    expect(container.querySelector(".chat-tool-detail__header")).toBeNull();
   });
 
   it("renders expanded tool calls without an inline output block when no output is present", () => {
@@ -178,6 +179,8 @@ describe("tool-cards", () => {
     sidebarButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(sidebarButton).not.toBeNull();
+    expect(container.querySelector(".chat-tool-detail__header")).toBeNull();
+    expect(container.querySelector(".chat-tool-detail__actions-only")).not.toBeNull();
     expect(onOpenSidebar).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: "canvas",

@@ -12,6 +12,10 @@ import { formatToolOutputForSidebar, getTruncatedPreview } from "./tool-helpers.
 
 export type ToolPreview = NonNullable<ToolCard["preview"]>;
 
+type ExpandedToolCardContentOptions = {
+  hideHeader?: boolean;
+};
+
 function resolveCanvasPreviewSandbox(preview: ToolPreview): string {
   return resolveEmbedSandbox(preview.kind === "canvas" ? "scripts" : "scripts");
 }
@@ -461,6 +465,7 @@ export function renderToolCard(
                 opts.canvasHostUrl,
                 opts.embedSandboxMode ?? "scripts",
                 opts.allowExternalEmbedUrls ?? false,
+                { hideHeader: true },
               )}
             </div>
           `
@@ -475,6 +480,7 @@ export function renderExpandedToolCardContent(
   canvasHostUrl?: string | null,
   embedSandboxMode: EmbedSandboxMode = "scripts",
   allowExternalEmbedUrls = false,
+  options: ExpandedToolCardContentOptions = {},
 ) {
   const display = resolveToolDisplay({ name: card.name, args: card.args });
   const detail = formatToolDetail(display);
@@ -496,29 +502,36 @@ export function renderExpandedToolCardContent(
         allowExternalEmbedUrls,
       })
     : nothing;
+  const openAction = canOpenSidebar
+    ? html`
+        <button
+          class="chat-tool-detail__action"
+          type="button"
+          @click=${() => onOpenSidebar?.(sidebarActionContent)}
+          title="Open in the side panel"
+          aria-label="Open tool details in side panel"
+        >
+          <span class="chat-tool-card__action-icon">${icons.panelRightOpen}</span>
+          Open
+        </button>
+      `
+    : nothing;
 
   return html`
     <div class="chat-tool-detail">
-      <div class="chat-tool-detail__header">
-        <div class="chat-tool-detail__title">
-          <span class="chat-tool-detail__name">${display.name}</span>
-          ${detail ? html`<span class="chat-tool-detail__detail">${detail}</span>` : nothing}
-        </div>
-        ${canOpenSidebar
-          ? html`
-              <button
-                class="chat-tool-detail__action"
-                type="button"
-                @click=${() => onOpenSidebar?.(sidebarActionContent)}
-                title="Open in the side panel"
-                aria-label="Open tool details in side panel"
-              >
-                <span class="chat-tool-card__action-icon">${icons.panelRightOpen}</span>
-                Open
-              </button>
-            `
-          : nothing}
-      </div>
+      ${options.hideHeader
+        ? canOpenSidebar
+          ? html`<div class="chat-tool-detail__actions-only">${openAction}</div>`
+          : nothing
+        : html`
+            <div class="chat-tool-detail__header">
+              <div class="chat-tool-detail__title">
+                <span class="chat-tool-detail__name">${display.name}</span>
+                ${detail ? html`<span class="chat-tool-detail__detail">${detail}</span>` : nothing}
+              </div>
+              ${openAction}
+            </div>
+          `}
       ${hasInput
         ? renderToolDataBlock({
             label: "Tool input",

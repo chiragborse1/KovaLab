@@ -67,6 +67,10 @@ export type ChatProps = {
   assistantAvatarUrl?: string | null;
   draft: string;
   queue: ChatQueueItem[];
+  composerControls?: TemplateResult;
+  sessionControls?: TemplateResult;
+  actionControls?: TemplateResult;
+  viewControls?: TemplateResult;
   realtimeTalkActive?: boolean;
   realtimeTalkStatus?: RealtimeTalkStatus;
   realtimeTalkDetail?: string | null;
@@ -108,7 +112,6 @@ export type ChatProps = {
   onQueueRemove: (id: string) => void;
   onQueueSteer?: (id: string) => void;
   onDismissSideResult?: () => void;
-  onNewSession: () => void;
   onClearHistory?: () => void;
   agentsList: {
     agents: Array<{ id: string; name?: string; identity?: { name?: string; avatarUrl?: string } }>;
@@ -157,6 +160,7 @@ interface ChatEphemeralState {
   searchOpen: boolean;
   searchQuery: string;
   pinnedExpanded: boolean;
+  controlSectionsCollapsed: Record<"actions" | "view" | "sessions", boolean>;
 }
 
 function createChatEphemeralState(): ChatEphemeralState {
@@ -173,6 +177,11 @@ function createChatEphemeralState(): ChatEphemeralState {
     searchOpen: false,
     searchQuery: "",
     pinnedExpanded: false,
+    controlSectionsCollapsed: {
+      actions: false,
+      view: false,
+      sessions: false,
+    },
   };
 }
 
@@ -594,6 +603,91 @@ function renderPinnedSection(
   `;
 }
 
+function renderChatControlSection(params: {
+  id: "actions" | "view" | "sessions";
+  title: string;
+  body: TemplateResult | typeof nothing;
+  requestUpdate?: () => void;
+  className?: string;
+}) {
+  const collapsed = vs.controlSectionsCollapsed[params.id] ?? false;
+  return html`
+    <section
+      class="chat-control-sidebar__section ${params.className ?? ""} ${collapsed
+        ? "chat-control-sidebar__section--collapsed"
+        : ""}"
+    >
+      <button
+        type="button"
+        class="chat-control-sidebar__heading"
+        aria-expanded=${String(!collapsed)}
+        @click=${(event: Event) => {
+          const nextCollapsed = !collapsed;
+          vs.controlSectionsCollapsed[params.id] = nextCollapsed;
+          const button = event.currentTarget as HTMLButtonElement;
+          const section = button.closest(".chat-control-sidebar__section");
+          section?.classList.toggle("chat-control-sidebar__section--collapsed", nextCollapsed);
+          button.setAttribute("aria-expanded", String(!nextCollapsed));
+          section
+            ?.querySelector<HTMLElement>(".chat-control-sidebar__section-body")
+            ?.toggleAttribute("hidden", nextCollapsed);
+          section
+            ?.querySelector<HTMLElement>(".chat-control-sidebar__chevron")
+            ?.classList.toggle("chat-control-sidebar__chevron--collapsed", nextCollapsed);
+        }}
+      >
+        <span
+          class="chat-control-sidebar__chevron ${collapsed
+            ? "chat-control-sidebar__chevron--collapsed"
+            : ""}"
+          aria-hidden="true"
+          >${icons.chevronDown}</span
+        >
+        <span>${params.title}</span>
+      </button>
+      <div class="chat-control-sidebar__section-body" ?hidden=${collapsed}>${params.body}</div>
+    </section>
+  `;
+}
+
+function renderChatControlSidebar(props: ChatProps) {
+  return html`
+    <aside class="chat-control-sidebar" aria-label="Chat controls">
+      ${renderChatControlSection({
+        id: "actions",
+        title: "Actions",
+        requestUpdate: props.onRequestUpdate,
+        body: html`
+          ${props.actionControls ?? nothing}
+          <button
+            type="button"
+            class="btn btn--sm chat-sidebar-export"
+            @click=${() => exportMarkdown(props)}
+            title="Export"
+            aria-label="Export chat"
+            ?disabled=${props.messages.length === 0}
+          >
+            ${icons.download} Export
+          </button>
+        `,
+      })}
+      ${renderChatControlSection({
+        id: "view",
+        title: "View",
+        requestUpdate: props.onRequestUpdate,
+        body: props.viewControls ?? nothing,
+      })}
+      ${renderChatControlSection({
+        id: "sessions",
+        title: "Sessions",
+        className: "chat-control-sidebar__section--sessions",
+        requestUpdate: props.onRequestUpdate,
+        body: props.sessionControls ?? nothing,
+      })}
+    </aside>
+  `;
+}
+
 function renderSlashMenu(
   requestUpdate: () => void,
   props: ChatProps,
@@ -735,7 +829,6 @@ export function renderChat(props: ChatProps) {
   const deleted = getDeletedMessages(props.sessionKey);
   const hasAttachments = (props.attachments?.length ?? 0) > 0;
   const tokens = tokenEstimate(props.draft);
-
   const placeholder = props.connected
     ? hasAttachments
       ? "Add a message or paste more images..."
@@ -1041,224 +1134,213 @@ export function renderChat(props: ChatProps) {
       @drop=${(e: DragEvent) => handleDrop(e, props)}
       @dragover=${(e: DragEvent) => e.preventDefault()}
     >
-      ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
-      ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
-      ${props.focusMode
-        ? html`
-            <button
-              class="chat-focus-exit"
-              type="button"
-              @click=${props.onToggleFocusMode}
-              aria-label="Exit focus mode"
-              title="Exit focus mode"
-            >
-              ${icons.x}
-            </button>
-          `
-        : nothing}
-      ${renderSearchBar(requestUpdate)} ${renderPinnedSection(props, pinned, requestUpdate)}
+      <div class="chat-workspace-main">
+        ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
+        ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
+        ${renderSearchBar(requestUpdate)} ${renderPinnedSection(props, pinned, requestUpdate)}
 
-      <div class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}">
-        <div
-          class="chat-main"
-          style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
-        >
-          ${thread}
-        </div>
-
-        ${sidebarOpen
-          ? html`
-              <resizable-divider
-                .splitRatio=${splitRatio}
-                @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
-              ></resizable-divider>
-              <div class="chat-sidebar">
-                ${renderMarkdownSidebar({
-                  content: props.sidebarContent ?? null,
-                  error: props.sidebarError ?? null,
-                  canvasHostUrl: props.canvasHostUrl,
-                  embedSandboxMode: props.embedSandboxMode ?? "scripts",
-                  allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
-                  onClose: props.onCloseSidebar!,
-                  onViewRawText: () => {
-                    if (!props.onOpenSidebar) {
-                      return;
-                    }
-                    const rawContent = buildRawSidebarContent(props.sidebarContent);
-                    if (rawContent) {
-                      props.onOpenSidebar(rawContent);
-                    }
-                  },
-                })}
-              </div>
-            `
-          : nothing}
-      </div>
-
-      ${renderChatQueue({
-        queue: props.queue,
-        canAbort: props.canAbort,
-        onQueueSteer: props.onQueueSteer,
-        onQueueRemove: props.onQueueRemove,
-      })}
-      ${renderSideResult(props.sideResult, props.onDismissSideResult)}
-      ${renderFallbackIndicator(props.fallbackStatus)}
-      ${renderCompactionIndicator(props.compactionStatus)}
-      ${renderContextNotice(activeSession, props.sessions?.defaults?.contextTokens ?? null, {
-        compactBusy,
-        compactDisabled: !props.connected || isBusy || Boolean(props.canAbort),
-        onCompact: props.onCompact,
-      })}
-      ${props.showNewMessages
-        ? html`
-            <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
-              ${icons.arrowDown} New messages
-            </button>
-          `
-        : nothing}
-
-      <!-- Input bar -->
-      <div class="agent-chat__input">
-        ${renderSlashMenu(requestUpdate, props)} ${renderAttachmentPreview(props)}
-
-        <input
-          type="file"
-          accept=${CHAT_ATTACHMENT_ACCEPT}
-          multiple
-          class="agent-chat__file-input"
-          @change=${(e: Event) => handleFileSelect(e, props)}
-        />
-
-        ${vs.sttRecording && vs.sttInterimText
-          ? html`<div class="agent-chat__stt-interim">${vs.sttInterimText}</div>`
-          : nothing}
-        ${props.realtimeTalkActive || props.realtimeTalkDetail || props.realtimeTalkTranscript
-          ? html`
-              <div class="agent-chat__stt-interim agent-chat__talk-status">
-                ${props.realtimeTalkDetail ??
-                props.realtimeTalkTranscript ??
-                (props.realtimeTalkStatus === "thinking"
-                  ? "Asking Kova..."
-                  : props.realtimeTalkStatus === "connecting"
-                    ? "Connecting Talk..."
-                    : "Talk live")}
-              </div>
-            `
-          : nothing}
-
-        <textarea
-          ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
-          .value=${props.draft}
-          dir=${detectTextDirection(props.draft)}
-          ?disabled=${!props.connected}
-          @keydown=${handleKeyDown}
-          @input=${handleInput}
-          @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
-          placeholder=${vs.sttRecording ? "Listening..." : placeholder}
-          rows="1"
-        ></textarea>
-
-        <div class="agent-chat__toolbar">
-          <div class="agent-chat__toolbar-left">
-            <button
-              class="agent-chat__input-btn"
-              @click=${() => {
-                document.querySelector<HTMLInputElement>(".agent-chat__file-input")?.click();
-              }}
-              title="Attach file"
-              aria-label="Attach file"
-              ?disabled=${!props.connected}
-            >
-              ${icons.paperclip}
-            </button>
-
-            ${isSttSupported()
-              ? html`
-                  <button
-                    class="agent-chat__input-btn ${vs.sttRecording
-                      ? "agent-chat__input-btn--recording"
-                      : ""}"
-                    @click=${() => {
-                      if (vs.sttRecording) {
-                        stopStt();
-                        vs.sttRecording = false;
-                        vs.sttInterimText = "";
-                        requestUpdate();
-                      } else {
-                        const started = startStt({
-                          onTranscript: (text, isFinal) => {
-                            if (isFinal) {
-                              const current = getDraft();
-                              const sep = current && !current.endsWith(" ") ? " " : "";
-                              props.onDraftChange(current + sep + text);
-                              vs.sttInterimText = "";
-                            } else {
-                              vs.sttInterimText = text;
-                            }
-                            requestUpdate();
-                          },
-                          onStart: () => {
-                            vs.sttRecording = true;
-                            requestUpdate();
-                          },
-                          onEnd: () => {
-                            vs.sttRecording = false;
-                            vs.sttInterimText = "";
-                            requestUpdate();
-                          },
-                          onError: () => {
-                            vs.sttRecording = false;
-                            vs.sttInterimText = "";
-                            requestUpdate();
-                          },
-                        });
-                        if (started) {
-                          vs.sttRecording = true;
-                          requestUpdate();
-                        }
-                      }
-                    }}
-                    title=${vs.sttRecording ? "Stop recording" : "Voice input"}
-                    aria-label=${vs.sttRecording ? "Stop recording" : "Voice input"}
-                    ?disabled=${!props.connected}
-                  >
-                    ${vs.sttRecording ? icons.micOff : icons.mic}
-                  </button>
-                `
-              : nothing}
-            ${props.onToggleRealtimeTalk
-              ? html`
-                  <button
-                    class="agent-chat__input-btn ${props.realtimeTalkActive
-                      ? "agent-chat__input-btn--talk"
-                      : ""}"
-                    @click=${props.onToggleRealtimeTalk}
-                    title=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
-                    aria-label=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
-                    ?disabled=${!props.connected}
-                  >
-                    ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
-                  </button>
-                `
-              : nothing}
-            ${tokens ? html`<span class="agent-chat__token-count">${tokens}</span>` : nothing}
+        <div class="chat-split-container ${sidebarOpen ? "chat-split-container--open" : ""}">
+          <div
+            class="chat-main"
+            style="flex: ${sidebarOpen ? `0 0 ${splitRatio * 100}%` : "1 1 100%"}"
+          >
+            ${thread}
           </div>
 
-          ${renderChatRunControls({
-            canAbort,
-            connected: props.connected,
-            draft: props.draft,
-            hasMessages: props.messages.length > 0,
-            isBusy,
-            sending: props.sending,
-            onAbort: props.onAbort,
-            onExport: () => exportMarkdown(props),
-            onNewSession: props.onNewSession,
-            onSend: props.onSend,
-            onStoreDraft: () => {},
-          })}
+          ${sidebarOpen
+            ? html`
+                <resizable-divider
+                  .splitRatio=${splitRatio}
+                  @resize=${(e: CustomEvent) => props.onSplitRatioChange?.(e.detail.splitRatio)}
+                ></resizable-divider>
+                <div class="chat-sidebar">
+                  ${renderMarkdownSidebar({
+                    content: props.sidebarContent ?? null,
+                    error: props.sidebarError ?? null,
+                    canvasHostUrl: props.canvasHostUrl,
+                    embedSandboxMode: props.embedSandboxMode ?? "scripts",
+                    allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
+                    onClose: props.onCloseSidebar!,
+                    onViewRawText: () => {
+                      if (!props.onOpenSidebar) {
+                        return;
+                      }
+                      const rawContent = buildRawSidebarContent(props.sidebarContent);
+                      if (rawContent) {
+                        props.onOpenSidebar(rawContent);
+                      }
+                    },
+                  })}
+                </div>
+              `
+            : nothing}
+        </div>
+
+        ${renderChatQueue({
+          queue: props.queue,
+          canAbort: props.canAbort,
+          onQueueSteer: props.onQueueSteer,
+          onQueueRemove: props.onQueueRemove,
+        })}
+        ${renderSideResult(props.sideResult, props.onDismissSideResult)}
+        ${renderFallbackIndicator(props.fallbackStatus)}
+        ${renderCompactionIndicator(props.compactionStatus)}
+        ${renderContextNotice(activeSession, props.sessions?.defaults?.contextTokens ?? null, {
+          compactBusy,
+          compactDisabled: !props.connected || isBusy || Boolean(props.canAbort),
+          onCompact: props.onCompact,
+        })}
+        ${props.showNewMessages
+          ? html`
+              <button class="chat-new-messages" type="button" @click=${props.onScrollToBottom}>
+                ${icons.arrowDown} New messages
+              </button>
+            `
+          : nothing}
+
+        <!-- Input bar -->
+        <div class="agent-chat__input">
+          ${renderSlashMenu(requestUpdate, props)} ${renderAttachmentPreview(props)}
+
+          <input
+            type="file"
+            accept=${CHAT_ATTACHMENT_ACCEPT}
+            multiple
+            class="agent-chat__file-input"
+            @change=${(e: Event) => handleFileSelect(e, props)}
+          />
+
+          ${vs.sttRecording && vs.sttInterimText
+            ? html`<div class="agent-chat__stt-interim">${vs.sttInterimText}</div>`
+            : nothing}
+          ${props.realtimeTalkActive || props.realtimeTalkDetail || props.realtimeTalkTranscript
+            ? html`
+                <div class="agent-chat__stt-interim agent-chat__talk-status">
+                  ${props.realtimeTalkDetail ??
+                  props.realtimeTalkTranscript ??
+                  (props.realtimeTalkStatus === "thinking"
+                    ? "Asking Kova..."
+                    : props.realtimeTalkStatus === "connecting"
+                      ? "Connecting Talk..."
+                      : "Talk live")}
+                </div>
+              `
+            : nothing}
+
+          <textarea
+            ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
+            .value=${props.draft}
+            dir=${detectTextDirection(props.draft)}
+            ?disabled=${!props.connected}
+            @keydown=${handleKeyDown}
+            @input=${handleInput}
+            @paste=${(e: ClipboardEvent) => handlePaste(e, props)}
+            placeholder=${vs.sttRecording ? "Listening..." : placeholder}
+            rows="1"
+          ></textarea>
+
+          <div class="agent-chat__toolbar">
+            <div class="agent-chat__toolbar-left">
+              <button
+                class="agent-chat__input-btn"
+                @click=${() => {
+                  document.querySelector<HTMLInputElement>(".agent-chat__file-input")?.click();
+                }}
+                title="Attach file"
+                aria-label="Attach file"
+                ?disabled=${!props.connected}
+              >
+                ${icons.paperclip}
+              </button>
+
+              ${isSttSupported()
+                ? html`
+                    <button
+                      class="agent-chat__input-btn ${vs.sttRecording
+                        ? "agent-chat__input-btn--recording"
+                        : ""}"
+                      @click=${() => {
+                        if (vs.sttRecording) {
+                          stopStt();
+                          vs.sttRecording = false;
+                          vs.sttInterimText = "";
+                          requestUpdate();
+                        } else {
+                          const started = startStt({
+                            onTranscript: (text, isFinal) => {
+                              if (isFinal) {
+                                const current = getDraft();
+                                const sep = current && !current.endsWith(" ") ? " " : "";
+                                props.onDraftChange(current + sep + text);
+                                vs.sttInterimText = "";
+                              } else {
+                                vs.sttInterimText = text;
+                              }
+                              requestUpdate();
+                            },
+                            onStart: () => {
+                              vs.sttRecording = true;
+                              requestUpdate();
+                            },
+                            onEnd: () => {
+                              vs.sttRecording = false;
+                              vs.sttInterimText = "";
+                              requestUpdate();
+                            },
+                            onError: () => {
+                              vs.sttRecording = false;
+                              vs.sttInterimText = "";
+                              requestUpdate();
+                            },
+                          });
+                          if (started) {
+                            vs.sttRecording = true;
+                            requestUpdate();
+                          }
+                        }
+                      }}
+                      title=${vs.sttRecording ? "Stop recording" : "Voice input"}
+                      aria-label=${vs.sttRecording ? "Stop recording" : "Voice input"}
+                      ?disabled=${!props.connected}
+                    >
+                      ${vs.sttRecording ? icons.micOff : icons.mic}
+                    </button>
+                  `
+                : nothing}
+              ${props.onToggleRealtimeTalk
+                ? html`
+                    <button
+                      class="agent-chat__input-btn ${props.realtimeTalkActive
+                        ? "agent-chat__input-btn--talk"
+                        : ""}"
+                      @click=${props.onToggleRealtimeTalk}
+                      title=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
+                      aria-label=${props.realtimeTalkActive ? "Stop Talk" : "Start Talk"}
+                      ?disabled=${!props.connected}
+                    >
+                      ${props.realtimeTalkActive ? icons.volume2 : icons.radio}
+                    </button>
+                  `
+                : nothing}
+              ${props.composerControls ?? nothing}
+              ${tokens ? html`<span class="agent-chat__token-count">${tokens}</span>` : nothing}
+            </div>
+
+            ${renderChatRunControls({
+              canAbort,
+              connected: props.connected,
+              draft: props.draft,
+              hasMessages: props.messages.length > 0,
+              isBusy,
+              sending: props.sending,
+              onAbort: props.onAbort,
+              onSend: props.onSend,
+              onStoreDraft: () => {},
+            })}
+          </div>
         </div>
       </div>
+      ${renderChatControlSidebar(props)}
     </section>
   `;
 }

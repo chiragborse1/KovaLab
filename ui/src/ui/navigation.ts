@@ -6,21 +6,12 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "controlPanel", "channels", "instances", "sessions", "usage", "cron"],
+    tabs: ["overview", "controlPanel", "instances", "sessions", "usage", "cron"],
   },
   { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
   {
     label: "settings",
-    tabs: [
-      "config",
-      "communications",
-      "appearance",
-      "automation",
-      "infrastructure",
-      "aiAgents",
-      "debug",
-      "logs",
-    ],
+    tabs: ["config", "appearance"],
   },
 ] as const;
 

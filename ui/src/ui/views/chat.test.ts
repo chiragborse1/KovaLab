@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { render } from "lit";
+import { html, render } from "lit";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppViewState } from "../app-view-state.ts";
 import {
@@ -11,11 +11,11 @@ import {
 import { renderChatQueue } from "../chat/chat-queue.ts";
 import { buildRawSidebarContent } from "../chat/chat-sidebar-raw.ts";
 import { renderWelcomeState } from "../chat/chat-welcome.ts";
-import { renderChatSessionSelect } from "../chat/session-controls.ts";
+import { renderChatSessionList, renderChatSessionSelect } from "../chat/session-controls.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ModelCatalogEntry } from "../types.ts";
 import type { ChatQueueItem } from "../ui-types.ts";
-import { renderChat } from "./chat.ts";
+import { renderChat, resetChatViewState } from "./chat.ts";
 
 const refreshVisibleToolsEffectiveForCurrentSessionMock = vi.hoisted(() =>
   vi.fn(async (state: AppViewState) => {
@@ -366,7 +366,6 @@ function renderChatView(overrides: Partial<Parameters<typeof renderChat>[0]> = {
       onQueueRemove: () => undefined,
       onQueueSteer: () => undefined,
       onDismissSideResult: () => undefined,
-      onNewSession: () => undefined,
       onClearHistory: () => undefined,
       agentsList: null,
       currentAgentId: "main",
@@ -386,12 +385,83 @@ function renderChatView(overrides: Partial<Parameters<typeof renderChat>[0]> = {
 }
 
 afterEach(() => {
+  resetChatViewState();
   loadSessionsMock.mockClear();
   refreshVisibleToolsEffectiveForCurrentSessionMock.mockClear();
   vi.unstubAllGlobals();
 });
 
 describe("chat loading skeleton", () => {
+  it("renders chat controls in the right rail without personal identity controls", () => {
+    const container = renderChatView({
+      sessionControls: html`<label class="field chat-controls__session"
+        ><select>
+          <option>Main</option>
+        </select></label
+      >`,
+      actionControls: html`<div class="chat-controls--actions"><button>Refresh</button></div>`,
+      viewControls: html`<div class="chat-view-controls"><button>Thinking</button></div>`,
+    });
+
+    const rail = container.querySelector(".chat-control-sidebar");
+
+    expect(rail).not.toBeNull();
+    expect(rail?.textContent).toContain("Sessions");
+    expect(rail?.textContent).toContain("Actions");
+    expect(rail?.textContent).toContain("View");
+    expect(rail?.textContent).toContain("Export");
+    expect(container.querySelector<HTMLButtonElement>(".chat-sidebar-export")?.disabled).toBe(true);
+    expect(rail?.textContent).not.toContain("Personal");
+    expect(container.querySelector(".chat-workspace-main")).not.toBeNull();
+  });
+
+  it("collapses right rail sections from their heading controls", () => {
+    const requestUpdate = vi.fn();
+    const container = renderChatView({
+      onRequestUpdate: requestUpdate,
+      sessionControls: html`<div class="chat-session-list">Session row</div>`,
+      viewControls: html`<div class="chat-view-controls">View toggles</div>`,
+    });
+
+    const viewToggle = [
+      ...container.querySelectorAll<HTMLButtonElement>(".chat-control-sidebar__heading"),
+    ].find((button) => button.textContent?.includes("View"));
+    expect(viewToggle).not.toBeUndefined();
+
+    viewToggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(requestUpdate).not.toHaveBeenCalled();
+    expect(viewToggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      container.querySelector<HTMLElement>(".chat-view-controls")?.closest("[hidden]"),
+    ).not.toBeNull();
+    expect(
+      viewToggle?.querySelector(".chat-control-sidebar__chevron")?.nextElementSibling?.textContent,
+    ).toBe("View");
+    const collapsed = renderChatView({
+      onRequestUpdate: requestUpdate,
+      sessionControls: html`<div class="chat-session-list">Session row</div>`,
+      viewControls: html`<div class="chat-view-controls">View toggles</div>`,
+    });
+    const collapsedViewToggle = [
+      ...collapsed.querySelectorAll<HTMLButtonElement>(".chat-control-sidebar__heading"),
+    ].find((button) => button.textContent?.includes("View"));
+
+    expect(collapsedViewToggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      collapsed.querySelector<HTMLElement>(".chat-view-controls")?.closest("[hidden]"),
+    ).not.toBeNull();
+    expect(collapsed.querySelector(".chat-session-list")).not.toBeNull();
+
+    collapsedViewToggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(requestUpdate).not.toHaveBeenCalled();
+    expect(collapsedViewToggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      collapsed.querySelector<HTMLElement>(".chat-view-controls")?.closest("[hidden]"),
+    ).toBeNull();
+  });
+
   it("shows the skeleton while the initial history load has no rendered content", () => {
     const container = renderChatView({ loading: true });
 
@@ -584,6 +654,17 @@ describe("chat welcome", () => {
 });
 
 describe("chat session controls", () => {
+  it("renders sessions as a right-rail list instead of a select", () => {
+    const { state } = createChatHeaderState();
+    const container = document.createElement("div");
+    render(renderChatSessionList(state), container);
+
+    expect(container.querySelector(".chat-session-list")).not.toBeNull();
+    expect(container.querySelector("select")).toBeNull();
+    expect(container.querySelector(".chat-session-list__group-title")).toBeNull();
+    expect(container.textContent).toContain("Main Session");
+  });
+
   it("patches the current session model and refreshes active tool visibility", async () => {
     const { state, request } = createChatHeaderState();
     state.agentsPanel = "tools";
@@ -744,5 +825,30 @@ describe("chat session controls", () => {
     expect(thinkingSelect?.value).toBe("");
     expect(thinkingSelect?.options[0]?.textContent?.trim()).toBe("Default (adaptive)");
     expect(thinkingSelect?.title).toBe("Default (adaptive)");
+  });
+
+  it("closes the custom model dropdown on outside click", async () => {
+    const { state } = createChatHeaderState();
+    const container = document.createElement("div");
+    document.body.append(container);
+
+    try {
+      render(renderChatSessionSelect(state), container);
+
+      const details = container.querySelector<HTMLDetailsElement>(
+        'details[data-chat-model-dropdown="true"]',
+      );
+      expect(details).not.toBeNull();
+
+      details!.open = true;
+      details!.dispatchEvent(new Event("toggle"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      document.body.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+
+      expect(details!.open).toBe(false);
+    } finally {
+      container.remove();
+    }
   });
 });

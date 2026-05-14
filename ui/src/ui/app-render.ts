@@ -5,9 +5,11 @@ import { refreshChat } from "./app-chat.ts";
 import { DEFAULT_CRON_FORM } from "./app-defaults.ts";
 import { renderUsageTab } from "./app-render-usage-tab.ts";
 import {
+  renderChatComposerControls,
   renderChatControls,
+  renderChatViewControls,
   renderChatMobileToggle,
-  renderChatSessionSelect,
+  renderChatSessionList,
   renderTab,
   resolveAssistantAttachmentAuthToken,
   renderSidebarConnectionStatus,
@@ -1538,14 +1540,12 @@ export function renderApp(state: AppViewState) {
               </button>
             </div>`
           : nothing}
-        ${state.tab === "config"
+        ${state.tab === "config" || isChat
           ? nothing
           : html`<section class="content-header">
               <div>
-                ${isChat
-                  ? renderChatSessionSelect(state)
-                  : html`<div class="page-title">${titleForTab(state.tab)}</div>`}
-                ${isChat ? nothing : html`<div class="page-sub">${subtitleForTab(state.tab)}</div>`}
+                <div class="page-title">${titleForTab(state.tab)}</div>
+                <div class="page-sub">${subtitleForTab(state.tab)}</div>
               </div>
               <div class="page-meta">
                 ${state.tab === "dreams"
@@ -1578,7 +1578,6 @@ export function renderApp(state: AppViewState) {
                 ${state.lastError
                   ? html`<div class="pill danger">${state.lastError}</div>`
                   : nothing}
-                ${isChat ? renderChatControls(state) : nothing}
               </div>
             </section>`}
         ${state.tab === "overview"
@@ -2515,6 +2514,10 @@ export function renderApp(state: AppViewState) {
               streamStartedAt: state.chatStreamStartedAt,
               draft: state.chatMessage,
               queue: state.chatQueue,
+              composerControls: renderChatComposerControls(state),
+              sessionControls: renderChatSessionList(state),
+              actionControls: renderChatControls(state),
+              viewControls: renderChatViewControls(state),
               realtimeTalkActive: state.realtimeTalkActive,
               realtimeTalkStatus: state.realtimeTalkStatus,
               realtimeTalkDetail: state.realtimeTalkDetail,
@@ -2557,7 +2560,6 @@ export function renderApp(state: AppViewState) {
               onDismissSideResult: () => {
                 state.chatSideResult = null;
               },
-              onNewSession: () => state.handleSendChat("/new", { restoreDraft: true }),
               onClearHistory: async () => {
                 if (!state.client || !state.connected) {
                   return;

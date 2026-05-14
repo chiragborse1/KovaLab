@@ -6,7 +6,9 @@ import type { AppViewState } from "./app-view-state.ts";
 import {
   isCronSessionKey,
   parseSessionKey,
-  renderChatSessionSelect as renderChatSessionSelectBase,
+  renderChatComposerControls as renderChatComposerControlsBase,
+  renderChatSessionList as renderChatSessionListBase,
+  renderChatSessionPicker as renderChatSessionPickerBase,
   renderChatThinkingSelect,
   resolveSessionDisplayName,
   resolveSessionOptionGroups,
@@ -160,7 +162,7 @@ function renderCronFilterIcon(hiddenCount: number) {
               position: absolute;
               top: -5px;
               right: -6px;
-              background: var(--color-accent, #6366f1);
+              background: var(--accent, #ff8a1d);
               color: #fff;
               border-radius: var(--radius-full);
               font-size: 9px;
@@ -176,36 +178,22 @@ function renderCronFilterIcon(hiddenCount: number) {
 }
 
 export function renderChatSessionSelect(state: AppViewState) {
-  return renderChatSessionSelectBase(state, switchChatSession);
+  return renderChatSessionPickerBase(state, switchChatSession);
 }
 
-export function renderChatControls(state: AppViewState) {
-  const hideCron = state.sessionsHideCron ?? true;
-  const hiddenCronCount = hideCron
-    ? countHiddenCronSessions(state.sessionKey, state.sessionsResult)
-    : 0;
-  const disableThinkingToggle = state.onboarding;
-  const disableFocusToggle = state.onboarding;
-  const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
-  const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
-  const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
-  const refreshLabel = t("chat.refreshTitle");
-  const thinkingLabel = disableThinkingToggle
-    ? t("chat.onboardingDisabled")
-    : t("chat.thinkingToggle");
-  const toolCallsLabel = disableThinkingToggle
-    ? t("chat.onboardingDisabled")
-    : t("chat.toolCallsToggle");
-  const focusLabel = disableFocusToggle ? t("chat.onboardingDisabled") : t("chat.focusToggle");
-  const cronLabel = hideCron
-    ? hiddenCronCount > 0
-      ? t("chat.showCronSessionsHidden", { count: String(hiddenCronCount) })
-      : t("chat.showCronSessions")
-    : t("chat.hideCronSessions");
-  const toolCallsIcon = html`
+export function renderChatSessionList(state: AppViewState) {
+  return renderChatSessionListBase(state, switchChatSession);
+}
+
+export function renderChatComposerControls(state: AppViewState) {
+  return renderChatComposerControlsBase(state);
+}
+
+function renderToolCallsIcon(size = 18) {
+  return html`
     <svg
-      width="18"
-      height="18"
+      width=${String(size)}
+      height=${String(size)}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -218,7 +206,10 @@ export function renderChatControls(state: AppViewState) {
       ></path>
     </svg>
   `;
-  const refreshIcon = html`
+}
+
+function renderRefreshIcon() {
+  return html`
     <svg
       width="18"
       height="18"
@@ -233,7 +224,10 @@ export function renderChatControls(state: AppViewState) {
       <path d="M21 3v5h-5"></path>
     </svg>
   `;
-  const focusIcon = html`
+}
+
+function renderFocusIcon() {
+  return html`
     <svg
       width="18"
       height="18"
@@ -251,73 +245,45 @@ export function renderChatControls(state: AppViewState) {
       <circle cx="12" cy="12" r="3"></circle>
     </svg>
   `;
+}
+
+function refreshChatFromControls(state: AppViewState) {
+  return async () => {
+    const app = state as unknown as ChatRefreshHost;
+    app.chatManualRefreshInFlight = true;
+    app.chatNewMessagesBelow = false;
+    await app.updateComplete;
+    app.resetToolStream();
+    try {
+      await refreshChat(state as unknown as Parameters<typeof refreshChat>[0], {
+        scheduleScroll: false,
+      });
+      app.scrollToBottom({ smooth: true });
+    } finally {
+      requestAnimationFrame(() => {
+        app.chatManualRefreshInFlight = false;
+        app.chatNewMessagesBelow = false;
+      });
+    }
+  };
+}
+
+export function renderChatControls(state: AppViewState) {
+  const disableFocusToggle = state.onboarding;
+  const focusActive = state.onboarding ? true : state.settings.chatFocusMode;
+  const refreshLabel = t("chat.refreshTitle");
+  const focusLabel = disableFocusToggle ? t("chat.onboardingDisabled") : t("chat.focusToggle");
   return html`
-    <div class="chat-controls">
+    <div class="chat-controls chat-controls--actions">
       <button
         class="btn btn--sm btn--icon"
         ?disabled=${state.chatLoading || !state.connected}
-        @click=${async () => {
-          const app = state as unknown as ChatRefreshHost;
-          app.chatManualRefreshInFlight = true;
-          app.chatNewMessagesBelow = false;
-          await app.updateComplete;
-          app.resetToolStream();
-          try {
-            await refreshChat(state as unknown as Parameters<typeof refreshChat>[0], {
-              scheduleScroll: false,
-            });
-            app.scrollToBottom({ smooth: true });
-          } finally {
-            requestAnimationFrame(() => {
-              app.chatManualRefreshInFlight = false;
-              app.chatNewMessagesBelow = false;
-            });
-          }
-        }}
+        @click=${refreshChatFromControls(state)}
         title=${refreshLabel}
         aria-label=${refreshLabel}
         data-tooltip=${refreshLabel}
       >
-        ${refreshIcon}
-      </button>
-      <span class="chat-controls__separator">|</span>
-      <button
-        class="btn btn--sm btn--icon ${showThinking ? "active" : ""}"
-        ?disabled=${disableThinkingToggle}
-        @click=${() => {
-          if (disableThinkingToggle) {
-            return;
-          }
-          state.applySettings({
-            ...state.settings,
-            chatShowThinking: !state.settings.chatShowThinking,
-          });
-        }}
-        aria-pressed=${showThinking}
-        title=${thinkingLabel}
-        aria-label=${thinkingLabel}
-        data-tooltip=${thinkingLabel}
-      >
-        ${icons.brain}
-      </button>
-      <button
-        class="btn btn--sm btn--icon ${showToolCalls ? "active" : ""}"
-        ?disabled=${disableThinkingToggle}
-        @click=${() => {
-          if (disableThinkingToggle) {
-            return;
-          }
-          state.applySettings({
-            ...state.settings,
-            chatShowToolCalls: !state.settings.chatShowToolCalls,
-          });
-        }}
-        aria-pressed=${showToolCalls}
-        title=${toolCallsLabel}
-        aria-label=${toolCallsLabel}
-        data-tooltip=${toolCallsLabel}
-      >
-        ${toolCallsIcon}
+        ${renderRefreshIcon()}
       </button>
       <button
         class="btn btn--sm btn--icon ${focusActive ? "active" : ""}"
@@ -336,19 +302,87 @@ export function renderChatControls(state: AppViewState) {
         aria-label=${focusLabel}
         data-tooltip=${focusLabel}
       >
-        ${focusIcon}
+        ${renderFocusIcon()}
+      </button>
+    </div>
+  `;
+}
+
+export function renderChatViewControls(state: AppViewState) {
+  const hideCron = state.sessionsHideCron ?? true;
+  const hiddenCronCount = hideCron
+    ? countHiddenCronSessions(state.sessionKey, state.sessionsResult)
+    : 0;
+  const disableThinkingToggle = state.onboarding;
+  const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
+  const showToolCalls = state.onboarding ? true : state.settings.chatShowToolCalls;
+  const thinkingLabel = disableThinkingToggle
+    ? t("chat.onboardingDisabled")
+    : t("chat.thinkingToggle");
+  const toolCallsLabel = disableThinkingToggle
+    ? t("chat.onboardingDisabled")
+    : t("chat.toolCallsToggle");
+  const cronLabel = hideCron
+    ? hiddenCronCount > 0
+      ? t("chat.showCronSessionsHidden", { count: String(hiddenCronCount) })
+      : t("chat.showCronSessions")
+    : t("chat.hideCronSessions");
+  return html`
+    <div class="chat-view-controls">
+      <button
+        type="button"
+        class="chat-view-control ${showThinking ? "active" : ""}"
+        ?disabled=${disableThinkingToggle}
+        @click=${() => {
+          if (disableThinkingToggle) {
+            return;
+          }
+          state.applySettings({
+            ...state.settings,
+            chatShowThinking: !state.settings.chatShowThinking,
+          });
+        }}
+        aria-pressed=${showThinking}
+        title=${thinkingLabel}
+      >
+        <span class="chat-view-control__icon chat-view-control__icon--thinking"
+          >${icons.brain}</span
+        >
+        <span>Thinking</span>
+        <span class="chat-view-switch" aria-hidden="true"><span></span></span>
       </button>
       <button
-        class="btn btn--sm btn--icon ${hideCron ? "active" : ""}"
+        type="button"
+        class="chat-view-control ${showToolCalls ? "active" : ""}"
+        ?disabled=${disableThinkingToggle}
+        @click=${() => {
+          if (disableThinkingToggle) {
+            return;
+          }
+          state.applySettings({
+            ...state.settings,
+            chatShowToolCalls: !state.settings.chatShowToolCalls,
+          });
+        }}
+        aria-pressed=${showToolCalls}
+        title=${toolCallsLabel}
+      >
+        <span class="chat-view-control__icon">${renderToolCallsIcon(16)}</span>
+        <span>Tool calls</span>
+        <span class="chat-view-switch" aria-hidden="true"><span></span></span>
+      </button>
+      <button
+        type="button"
+        class="chat-view-control ${hideCron ? "active" : ""}"
         @click=${() => {
           state.sessionsHideCron = !hideCron;
         }}
         aria-pressed=${hideCron}
         title=${cronLabel}
-        aria-label=${cronLabel}
-        data-tooltip=${cronLabel}
       >
-        ${renderCronFilterIcon(hiddenCronCount)}
+        <span class="chat-view-control__icon">${renderCronFilterIcon(hiddenCronCount)}</span>
+        <span>Cron sessions</span>
+        <span class="chat-view-switch" aria-hidden="true"><span></span></span>
       </button>
     </div>
   `;
@@ -565,12 +599,52 @@ function countHiddenCronSessions(sessionKey: string, sessions: SessionsListResul
   return sessions.sessions.filter((s) => isCronSessionKey(s.key) && s.key !== sessionKey).length;
 }
 
-type ThemeModeOption = { id: ThemeMode; label: string; short: string };
+type ThemeModeOption = { id: ThemeMode; label: string };
 const THEME_MODE_OPTIONS: ThemeModeOption[] = [
-  { id: "system", label: "System", short: "SYS" },
-  { id: "light", label: "Light", short: "LIGHT" },
-  { id: "dark", label: "Dark", short: "DARK" },
+  { id: "system", label: "System" },
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
 ];
+
+const detailsOutsideClose = new WeakMap<HTMLDetailsElement, () => void>();
+
+function closeDetailsOnOutsideToggle(e: Event) {
+  const details = e.currentTarget as HTMLDetailsElement;
+  detailsOutsideClose.get(details)?.();
+  if (!details.open) {
+    return;
+  }
+  let cleanup = () => undefined;
+  const close = (event: Event) => {
+    const target = event.target;
+    if (target instanceof Node && details.contains(target)) {
+      return;
+    }
+    details.open = false;
+    cleanup();
+  };
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key !== "Escape") {
+      return;
+    }
+    details.open = false;
+    cleanup();
+  };
+  cleanup = () => {
+    document.removeEventListener("pointerdown", close, true);
+    document.removeEventListener("keydown", closeOnEscape, true);
+    detailsOutsideClose.delete(details);
+  };
+  detailsOutsideClose.set(details, cleanup);
+  setTimeout(() => {
+    if (!details.open) {
+      cleanup();
+      return;
+    }
+    document.addEventListener("pointerdown", close, true);
+    document.addEventListener("keydown", closeOnEscape, true);
+  }, 0);
+}
 
 export function renderTopbarThemeModeToggle(state: AppViewState) {
   const modeIcon = (mode: ThemeMode) => {
@@ -584,31 +658,50 @@ export function renderTopbarThemeModeToggle(state: AppViewState) {
   };
 
   const applyMode = (mode: ThemeMode, e: Event) => {
-    if (mode === state.themeMode) {
+    const details = (e.currentTarget as HTMLElement).closest("details");
+    if (mode !== state.themeMode) {
+      state.setThemeMode(mode, { element: e.currentTarget as HTMLElement });
+      details?.removeAttribute("open");
       return;
     }
-    state.setThemeMode(mode, { element: e.currentTarget as HTMLElement });
+    details?.removeAttribute("open");
   };
 
+  const active =
+    THEME_MODE_OPTIONS.find((opt) => opt.id === state.themeMode) ?? THEME_MODE_OPTIONS[0];
+
   return html`
-    <div class="topbar-theme-mode" role="group" aria-label="Color mode">
-      ${THEME_MODE_OPTIONS.map(
-        (opt) => html`
-          <button
-            type="button"
-            class="topbar-theme-mode__btn ${opt.id === state.themeMode
-              ? "topbar-theme-mode__btn--active"
-              : ""}"
-            title=${opt.label}
-            aria-label="Color mode: ${opt.label}"
-            aria-pressed=${opt.id === state.themeMode}
-            @click=${(e: Event) => applyMode(opt.id, e)}
-          >
-            ${modeIcon(opt.id)}
-          </button>
-        `,
-      )}
-    </div>
+    <details class="topbar-theme-mode" @toggle=${closeDetailsOnOutsideToggle}>
+      <summary
+        class="topbar-theme-mode__trigger"
+        title="Color mode: ${active.label}"
+        aria-label="Color mode: ${active.label}"
+      >
+        ${modeIcon(active.id)}
+        <span>${active.label}</span>
+        <span class="topbar-theme-mode__chevron" aria-hidden="true">${icons.chevronDown}</span>
+      </summary>
+      <div class="topbar-theme-mode__menu">
+        ${THEME_MODE_OPTIONS.map(
+          (opt) => html`
+            <button
+              type="button"
+              class="topbar-theme-mode__option ${opt.id === state.themeMode
+                ? "topbar-theme-mode__option--active"
+                : ""}"
+              aria-pressed=${opt.id === state.themeMode}
+              @click=${(e: Event) => applyMode(opt.id, e)}
+            >
+              <span>${modeIcon(opt.id)}</span>
+              <span>${opt.label}</span>
+              ${opt.id === state.themeMode
+                ? html`<strong class="topbar-theme-mode__active-label">Active</strong>`
+                : nothing}
+            </button>
+          `,
+        )}
+      </div>
+    </details>
   `;
 }
 

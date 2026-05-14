@@ -1,4 +1,4 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import type { AppViewState } from "../app-view-state.ts";
 import { createChatModelOverride } from "../chat-model-ref.ts";
@@ -8,6 +8,7 @@ import {
 } from "../chat-model-select-state.ts";
 import { refreshVisibleToolsEffectiveForCurrentSession } from "../controllers/agents.ts";
 import { loadSessions } from "../controllers/sessions.ts";
+import { icons } from "../icons.ts";
 import { pushUniqueTrimmedSelectOption } from "../select-options.ts";
 import { parseAgentSessionKey } from "../session-key.ts";
 import { normalizeLowercaseStringOrEmpty, normalizeOptionalString } from "../string-coerce.ts";
@@ -19,54 +20,252 @@ import {
 import type { GatewayThinkingLevelOption, SessionsListResult } from "../types.ts";
 
 type ChatSessionSwitchHandler = (state: AppViewState, nextSessionKey: string) => void;
+type ChatComposerSelectKind = "model" | "thinking";
+type ChatComposerSelectOption = {
+  value: string;
+  label: string;
+};
+
+const chatSelectOutsideClose = new WeakMap<HTMLDetailsElement, () => void>();
+
+function closeChatSelectOnOutsideToggle(e: Event) {
+  const details = e.currentTarget as HTMLDetailsElement;
+  chatSelectOutsideClose.get(details)?.();
+  if (!details.open) {
+    return;
+  }
+  let cleanup = () => undefined;
+  const close = (event: Event) => {
+    const target = event.target;
+    if (target instanceof Node && details.contains(target)) {
+      return;
+    }
+    details.open = false;
+    cleanup();
+  };
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key !== "Escape") {
+      return;
+    }
+    details.open = false;
+    cleanup();
+  };
+  cleanup = () => {
+    document.removeEventListener("pointerdown", close, true);
+    document.removeEventListener("keydown", closeOnEscape, true);
+    chatSelectOutsideClose.delete(details);
+  };
+  chatSelectOutsideClose.set(details, cleanup);
+  setTimeout(() => {
+    if (!details.open) {
+      cleanup();
+      return;
+    }
+    document.addEventListener("pointerdown", close, true);
+    document.addEventListener("keydown", closeOnEscape, true);
+  }, 0);
+}
+
+function closeChatSelectFromEvent(e: Event) {
+  (e.currentTarget as HTMLElement).closest("details")?.removeAttribute("open");
+}
+
+function renderChatComposerSelect(params: {
+  kind: ChatComposerSelectKind;
+  label: string;
+  ariaLabel: string;
+  selectedValue: string;
+  selectedLabel: string;
+  disabled: boolean;
+  options: ChatComposerSelectOption[];
+  onChange: (value: string) => void | Promise<void>;
+}) {
+  const controlClass =
+    params.kind === "thinking" ? "chat-controls__thinking-select" : "chat-controls__model";
+  return html`
+    <label
+      class="field chat-controls__session ${controlClass} chat-select-control chat-select-control--${params.kind}"
+    >
+      <span class="chat-controls__label">${params.label}</span>
+      <select
+        class="chat-select__native"
+        data-chat-model-select=${params.kind === "model" ? "true" : nothing}
+        data-chat-thinking-select=${params.kind === "thinking" ? "true" : nothing}
+        aria-hidden="true"
+        aria-label=${params.ariaLabel}
+        title=${params.selectedLabel}
+        tabindex="-1"
+        .value=${params.selectedValue}
+        ?disabled=${params.disabled}
+        @change=${async (e: Event) => {
+          const next = (e.target as HTMLSelectElement).value.trim();
+          await params.onChange(next);
+        }}
+      >
+        ${repeat(
+          params.options,
+          (entry) => entry.value,
+          (entry) =>
+            html`<option value=${entry.value} ?selected=${entry.value === params.selectedValue}>
+              ${entry.label}
+            </option>`,
+        )}
+      </select>
+      <details
+        class="chat-select ${params.disabled ? "chat-select--disabled" : ""}"
+        data-chat-model-dropdown=${params.kind === "model" ? "true" : nothing}
+        data-chat-thinking-dropdown=${params.kind === "thinking" ? "true" : nothing}
+        @toggle=${closeChatSelectOnOutsideToggle}
+      >
+        <summary
+          class="chat-select__trigger"
+          aria-label=${params.ariaLabel}
+          title=${params.selectedLabel}
+          @click=${(e: MouseEvent) => {
+            if (params.disabled) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <span class="chat-select__value">${params.selectedLabel}</span>
+          <span class="chat-select__chevron" aria-hidden="true">${icons.chevronDown}</span>
+        </summary>
+        <div class="chat-select__menu" role="listbox" aria-label=${params.ariaLabel}>
+          ${repeat(
+            params.options,
+            (entry) => entry.value,
+            (entry) =>
+              html`<button
+                type="button"
+                class="chat-select__option ${entry.value === params.selectedValue
+                  ? "chat-select__option--active"
+                  : ""}"
+                role="option"
+                aria-selected=${entry.value === params.selectedValue}
+                title=${entry.label}
+                @click=${async (e: Event) => {
+                  closeChatSelectFromEvent(e);
+                  if (entry.value === params.selectedValue) {
+                    return;
+                  }
+                  await params.onChange(entry.value);
+                }}
+              >
+                <span>${entry.label}</span>
+              </button>`,
+          )}
+        </div>
+      </details>
+    </label>
+  `;
+}
 
 export function renderChatSessionSelect(
   state: AppViewState,
   onSwitchSession: ChatSessionSwitchHandler = () => undefined,
 ) {
+  return html`
+    <div class="chat-controls__session-row">
+      ${renderChatSessionPicker(state, onSwitchSession)} ${renderChatComposerControls(state)}
+    </div>
+  `;
+}
+
+export function renderChatSessionPicker(
+  state: AppViewState,
+  onSwitchSession: ChatSessionSwitchHandler = () => undefined,
+) {
   const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
-  const modelSelect = renderChatModelSelect(state);
-  const thinkingSelect = renderChatThinkingSelect(state);
   const selectedSessionLabel =
     sessionGroups.flatMap((group) => group.options).find((entry) => entry.key === state.sessionKey)
       ?.label ?? state.sessionKey;
   return html`
-    <div class="chat-controls__session-row">
-      <label class="field chat-controls__session">
-        <select
-          .value=${state.sessionKey}
-          title=${selectedSessionLabel}
-          ?disabled=${!state.connected || sessionGroups.length === 0}
-          @change=${(e: Event) => {
-            const next = (e.target as HTMLSelectElement).value;
-            if (state.sessionKey === next) {
-              return;
-            }
-            onSwitchSession(state, next);
-          }}
-        >
-          ${repeat(
-            sessionGroups,
-            (group) => group.id,
-            (group) =>
-              html`<optgroup label=${group.label}>
-                ${repeat(
-                  group.options,
-                  (entry) => entry.key,
-                  (entry) =>
-                    html`<option
-                      value=${entry.key}
-                      title=${entry.title}
-                      ?selected=${entry.key === state.sessionKey}
-                    >
-                      ${entry.label}
-                    </option>`,
-                )}
-              </optgroup>`,
-          )}
-        </select>
-      </label>
-      ${modelSelect} ${thinkingSelect}
+    <label class="field chat-controls__session">
+      <span class="chat-controls__label">Session</span>
+      <select
+        .value=${state.sessionKey}
+        title=${selectedSessionLabel}
+        ?disabled=${!state.connected || sessionGroups.length === 0}
+        @change=${(e: Event) => {
+          const next = (e.target as HTMLSelectElement).value;
+          if (state.sessionKey === next) {
+            return;
+          }
+          onSwitchSession(state, next);
+        }}
+      >
+        ${repeat(
+          sessionGroups,
+          (group) => group.id,
+          (group) =>
+            html`<optgroup label=${group.label}>
+              ${repeat(
+                group.options,
+                (entry) => entry.key,
+                (entry) =>
+                  html`<option
+                    value=${entry.key}
+                    title=${entry.title}
+                    ?selected=${entry.key === state.sessionKey}
+                  >
+                    ${entry.label}
+                  </option>`,
+              )}
+            </optgroup>`,
+        )}
+      </select>
+    </label>
+  `;
+}
+
+export function renderChatSessionList(
+  state: AppViewState,
+  onSwitchSession: ChatSessionSwitchHandler = () => undefined,
+) {
+  const sessionGroups = resolveSessionOptionGroups(state, state.sessionKey, state.sessionsResult);
+  if (sessionGroups.length === 0) {
+    return html`<div class="chat-session-list__empty">No sessions available</div>`;
+  }
+  return html`
+    <div class="chat-session-list" role="list" aria-label="Chat sessions">
+      ${repeat(
+        sessionGroups,
+        (group) => group.id,
+        (group) => html`
+          <section class="chat-session-list__group" aria-label=${group.label}>
+            ${repeat(
+              group.options,
+              (entry) => entry.key,
+              (entry) => {
+                const active = entry.key === state.sessionKey;
+                const title =
+                  entry.key === "main" || entry.key === "agent:main:main"
+                    ? resolveSessionDisplayName(entry.key)
+                    : entry.label;
+                return html`
+                  <button
+                    type="button"
+                    class="chat-session-list__item ${active ? "active" : ""}"
+                    role="listitem"
+                    title=${entry.title}
+                    aria-current=${active ? "page" : nothing}
+                    ?disabled=${!state.connected || active}
+                    @click=${() => {
+                      if (active || !state.connected) {
+                        return;
+                      }
+                      onSwitchSession(state, entry.key);
+                    }}
+                  >
+                    <span class="chat-session-list__item-title">${title}</span>
+                    <span class="chat-session-list__item-meta">${entry.scopeLabel}</span>
+                  </button>
+                `;
+              },
+            )}
+          </section>
+        `,
+      )}
     </div>
   `;
 }
@@ -84,6 +283,14 @@ async function refreshVisibleToolsEffectiveForCurrentSessionLazy(state: AppViewS
   return refreshVisibleToolsEffectiveForCurrentSession(state);
 }
 
+export function renderChatComposerControls(state: AppViewState) {
+  return html`
+    <div class="agent-chat__composer-controls">
+      ${renderChatModelSelect(state)} ${renderChatThinkingSelect(state)}
+    </div>
+  `;
+}
+
 function renderChatModelSelect(state: AppViewState) {
   const { currentOverride, defaultLabel, options } = resolveChatModelSelectState(state);
   const busy =
@@ -94,30 +301,16 @@ function renderChatModelSelect(state: AppViewState) {
     currentOverride === ""
       ? defaultLabel
       : (options.find((entry) => entry.value === currentOverride)?.label ?? currentOverride);
-  return html`
-    <label class="field chat-controls__session chat-controls__model">
-      <select
-        data-chat-model-select="true"
-        aria-label="Chat model"
-        title=${selectedLabel}
-        ?disabled=${disabled}
-        @change=${async (e: Event) => {
-          const next = (e.target as HTMLSelectElement).value.trim();
-          await switchChatModel(state, next);
-        }}
-      >
-        <option value="" ?selected=${currentOverride === ""}>${defaultLabel}</option>
-        ${repeat(
-          options,
-          (entry) => entry.value,
-          (entry) =>
-            html`<option value=${entry.value} ?selected=${entry.value === currentOverride}>
-              ${entry.label}
-            </option>`,
-        )}
-      </select>
-    </label>
-  `;
+  return renderChatComposerSelect({
+    kind: "model",
+    label: "Model",
+    ariaLabel: "Chat model",
+    selectedValue: currentOverride,
+    selectedLabel,
+    disabled,
+    options: [{ value: "", label: defaultLabel }, ...options],
+    onChange: (next) => switchChatModel(state, next.trim()),
+  });
 }
 
 type ChatThinkingSelectOption = {
@@ -235,30 +428,16 @@ export function renderChatThinkingSelect(state: AppViewState) {
     currentOverride === ""
       ? defaultLabel
       : (options.find((entry) => entry.value === currentOverride)?.label ?? currentOverride);
-  return html`
-    <label class="field chat-controls__session chat-controls__thinking-select">
-      <select
-        data-chat-thinking-select="true"
-        aria-label="Chat thinking level"
-        title=${selectedLabel}
-        ?disabled=${disabled}
-        @change=${async (e: Event) => {
-          const next = (e.target as HTMLSelectElement).value.trim();
-          await switchChatThinkingLevel(state, next);
-        }}
-      >
-        <option value="" ?selected=${currentOverride === ""}>${defaultLabel}</option>
-        ${repeat(
-          options,
-          (entry) => entry.value,
-          (entry) =>
-            html`<option value=${entry.value} ?selected=${entry.value === currentOverride}>
-              ${entry.label}
-            </option>`,
-        )}
-      </select>
-    </label>
-  `;
+  return renderChatComposerSelect({
+    kind: "thinking",
+    label: "Thinking",
+    ariaLabel: "Chat thinking level",
+    selectedValue: currentOverride,
+    selectedLabel,
+    disabled,
+    options: [{ value: "", label: defaultLabel }, ...options],
+    onChange: (next) => switchChatThinkingLevel(state, next.trim()),
+  });
 }
 
 async function switchChatModel(state: AppViewState, nextModel: string) {

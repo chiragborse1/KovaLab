@@ -471,6 +471,26 @@ describe("grouped chat rendering", () => {
     expect(container.textContent).toContain("Opened page");
   });
 
+  it("renders assistant copy action without the open-in-canvas action", () => {
+    const container = document.createElement("div");
+    renderAssistantMessage(
+      container,
+      {
+        id: "assistant-copy",
+        role: "assistant",
+        content: "Here is the answer.",
+        timestamp: Date.now(),
+      },
+      {
+        onOpenSidebar: vi.fn(),
+      },
+    );
+
+    expect(container.querySelector(".chat-copy-btn")).not.toBeNull();
+    expect(container.querySelector(".chat-expand-btn")).toBeNull();
+    expect(container.querySelector(".chat-bubble")?.classList.contains("has-copy")).toBe(true);
+  });
+
   it("renders expanded standalone tool-call rows", () => {
     const container = document.createElement("div");
     const message = {

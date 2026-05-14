@@ -1051,6 +1051,12 @@
   border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
 }
 
+.chat-tool-detail__actions-only {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 16px;
+}
+
 .chat-tool-detail__title {
   display: flex;
   align-items: baseline;

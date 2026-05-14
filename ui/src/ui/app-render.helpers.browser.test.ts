@@ -1,7 +1,7 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
 import { t } from "../i18n/index.ts";
-import { renderChatControls } from "./app-render.helpers.ts";
+import { renderChatControls, renderChatViewControls } from "./app-render.helpers.ts";
 import type { AppViewState } from "./app-view-state.ts";
 
 function createState(overrides: Partial<AppViewState> = {}) {
@@ -50,20 +50,30 @@ describe("chat header controls (browser)", () => {
       container.querySelectorAll<HTMLButtonElement>(".chat-controls .btn--icon[data-tooltip]"),
     );
 
-    expect(buttons).toHaveLength(5);
+    expect(buttons).toHaveLength(2);
 
     const labels = buttons.map((button) => button.getAttribute("data-tooltip"));
-    expect(labels).toEqual([
-      t("chat.refreshTitle"),
-      t("chat.thinkingToggle"),
-      t("chat.toolCallsToggle"),
-      t("chat.focusToggle"),
-      t("chat.showCronSessions"),
-    ]);
+    expect(labels).toEqual([t("chat.refreshTitle"), t("chat.focusToggle")]);
 
     for (const button of buttons) {
       expect(button.getAttribute("title")).toBe(button.getAttribute("data-tooltip"));
       expect(button.getAttribute("aria-label")).toBe(button.getAttribute("data-tooltip"));
     }
+
+    expect(container.querySelector<HTMLElement>(".chat-controls-menu")).toBeNull();
+  });
+
+  it("renders the persistent chat view controls for the right rail", async () => {
+    const container = document.createElement("div");
+    render(renderChatViewControls(createState()), container);
+    await Promise.resolve();
+
+    const items = Array.from(container.querySelectorAll<HTMLButtonElement>(".chat-view-control"));
+    expect(items.map((item) => item.textContent?.replace(/\s+/g, " ").trim())).toEqual([
+      "Thinking",
+      "Tool calls",
+      "Cron sessions",
+    ]);
+    expect(container.querySelectorAll(".chat-view-switch")).toHaveLength(3);
   });
 });

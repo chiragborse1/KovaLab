@@ -1304,20 +1304,6 @@ function jsonSummaryLabel(parsed: unknown): string {
   return "JSON";
 }
 
-function renderExpandButton(markdown: string, onOpenSidebar: (content: SidebarContent) => void) {
-  return html`
-    <button
-      class="btn btn--xs chat-expand-btn"
-      type="button"
-      title="Open in canvas"
-      aria-label="Open in canvas"
-      @click=${() => onOpenSidebar({ kind: "markdown", content: markdown })}
-    >
-      <span class="chat-expand-btn__icon" aria-hidden="true">${icons.panelRightOpen}</span>
-    </button>
-  `;
-}
-
 function renderGroupedMessage(
   message: unknown,
   messageKey: string,
@@ -1383,7 +1369,6 @@ function renderGroupedMessage(
   const reasoningMarkdown = extractedThinking ? formatReasoningMarkdown(extractedThinking) : null;
   const markdown = markdownBase;
   const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
-  const canExpand = role === "assistant" && Boolean(onOpenSidebar && markdown?.trim());
 
   // Detect pure-JSON messages and render as collapsible block
   const jsonResult = markdown && !opts.isStreaming ? detectJson(markdown) : null;
@@ -1392,6 +1377,7 @@ function renderGroupedMessage(
   const bubbleClasses = [
     "chat-bubble",
     isToolMessage ? "chat-bubble--tool-shell" : "",
+    canCopyMarkdown ? "has-copy" : "",
     opts.isStreaming ? "streaming" : "",
     "fade-in",
   ]
@@ -1428,16 +1414,11 @@ function renderGroupedMessage(
         : "Action"
       : "Activity";
 
-  const hasActions = canCopyMarkdown || canExpand;
-
   return html`
     <div class="${bubbleClasses}">
       ${renderReplyPill(normalizedMessage.replyTarget)}
-      ${hasActions
-        ? html`<div class="chat-bubble-actions">
-            ${canExpand ? renderExpandButton(markdown!, onOpenSidebar!) : nothing}
-            ${canCopyMarkdown ? renderCopyAsMarkdownButton(markdown!) : nothing}
-          </div>`
+      ${canCopyMarkdown
+        ? html`<div class="chat-bubble-actions">${renderCopyAsMarkdownButton(markdown!)}</div>`
         : nothing}
       ${isToolMessage
         ? html`
@@ -1506,6 +1487,7 @@ function renderGroupedMessage(
                               opts.canvasHostUrl,
                               opts.embedSandboxMode ?? "scripts",
                               opts.allowExternalEmbedUrls ?? false,
+                              { hideHeader: true },
                             )
                           : renderInlineToolCards(toolCards, {
                               messageKey,

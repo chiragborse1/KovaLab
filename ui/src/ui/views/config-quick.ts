@@ -129,6 +129,24 @@ export type QuickSettingsProps = {
   version: string;
 };
 
+export type QuickSettingsPersonalProps = Pick<
+  QuickSettingsProps,
+  | "userAvatar"
+  | "onUserAvatarChange"
+  | "assistantName"
+  | "assistantAvatar"
+  | "assistantAvatarUrl"
+  | "assistantAvatarSource"
+  | "assistantAvatarStatus"
+  | "assistantAvatarReason"
+  | "assistantAvatarOverride"
+  | "assistantAvatarUploadBusy"
+  | "assistantAvatarUploadError"
+  | "onAssistantAvatarOverrideChange"
+  | "onAssistantAvatarClearOverride"
+  | "basePath"
+>;
+
 // ── Theme options ──
 
 type ThemeOption = { id: ThemeName; label: string };
@@ -181,7 +199,7 @@ function renderLocalUserAvatarPreview(avatar: string | null | undefined) {
   `;
 }
 
-function resolveAssistantPreviewAvatarUrl(props: QuickSettingsProps): string | null {
+function resolveAssistantPreviewAvatarUrl(props: QuickSettingsPersonalProps): string | null {
   if (props.assistantAvatarStatus === "none" && props.assistantAvatarReason === "missing") {
     return null;
   }
@@ -206,7 +224,7 @@ function formatAssistantAvatarSource(value: string | null | undefined): string |
 }
 
 function formatAssistantAvatarIssue(
-  status: QuickSettingsProps["assistantAvatarStatus"],
+  status: QuickSettingsPersonalProps["assistantAvatarStatus"],
   reason: string | null | undefined,
   _rendered: boolean,
 ): string | null {
@@ -228,7 +246,7 @@ function formatAssistantAvatarIssue(
   return reason ? "Cannot render avatar" : null;
 }
 
-function renderAssistantAvatarPreview(props: QuickSettingsProps) {
+function renderAssistantAvatarPreview(props: QuickSettingsPersonalProps) {
   const assistantName = normalizeOptionalString(props.assistantName) ?? "Assistant";
   const assistantAvatarUrl = resolveAssistantPreviewAvatarUrl(props);
   if (assistantAvatarUrl) {
@@ -252,7 +270,7 @@ function renderAssistantAvatarPreview(props: QuickSettingsProps) {
   `;
 }
 
-function handleLocalUserAvatarFileSelect(e: Event, props: QuickSettingsProps) {
+function handleLocalUserAvatarFileSelect(e: Event, props: QuickSettingsPersonalProps) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   const onUserAvatarChange = props.onUserAvatarChange;
@@ -276,7 +294,7 @@ function handleLocalUserAvatarFileSelect(e: Event, props: QuickSettingsProps) {
   input.value = "";
 }
 
-function handleAssistantAvatarFileSelect(e: Event, props: QuickSettingsProps) {
+function handleAssistantAvatarFileSelect(e: Event, props: QuickSettingsPersonalProps) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   const onAssistantAvatarOverrideChange = props.onAssistantAvatarOverrideChange;
@@ -779,7 +797,7 @@ function renderAppearanceCard(props: QuickSettingsProps) {
   `;
 }
 
-function renderPersonalCard(props: QuickSettingsProps) {
+export function renderPersonalCard(props: QuickSettingsPersonalProps) {
   const identity = normalizeLocalUserIdentity({
     name: null,
     avatar: props.userAvatar ?? null,
