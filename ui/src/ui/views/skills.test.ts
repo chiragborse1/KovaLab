@@ -5,8 +5,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SkillStatusEntry, SkillStatusReport } from "../types.ts";
 import { renderSkills, type SkillsProps } from "./skills.ts";
 
-const dialogRestores: Array<() => void> = [];
-
 function normalizeText(node: Element | DocumentFragment): string {
   return node.textContent?.replace(/\s+/g, " ").trim() ?? "";
 }
@@ -15,9 +13,9 @@ function createSkill(overrides: Partial<SkillStatusEntry> = {}): SkillStatusEntr
   return {
     name: "Repo Skill",
     description: "Skill description",
-    source: "workspace",
-    filePath: "/tmp/skill",
-    baseDir: "/tmp",
+    source: "openclaw-workspace",
+    filePath: "/tmp/skill/SKILL.md",
+    baseDir: "/tmp/skill",
     skillKey: "repo-skill",
     bundled: false,
     primaryEnv: "OPENAI_API_KEY",
@@ -49,7 +47,30 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
   const report: SkillStatusReport = {
     workspaceDir: "/tmp/workspace",
     managedSkillsDir: "/tmp/skills",
-    skills: [createSkill()],
+    skills: [
+      createSkill(),
+      createSkill({
+        name: "Browser Skill",
+        description: "Needs browser binary",
+        source: "openclaw-bundled",
+        skillKey: "browser-skill",
+        bundled: true,
+        eligible: false,
+        primaryEnv: undefined,
+        requirements: { bins: ["chromium"], env: [], config: [], os: [] },
+        missing: { bins: ["chromium"], env: [], config: [], os: [] },
+        install: [
+          { id: "brew-chromium", kind: "brew", label: "Install Chromium", bins: ["chromium"] },
+        ],
+      }),
+      createSkill({
+        name: "Disabled Skill",
+        source: "openclaw-managed",
+        skillKey: "disabled-skill",
+        disabled: true,
+        primaryEnv: undefined,
+      }),
+    ],
   };
 
   return {
@@ -59,6 +80,8 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     error: null,
     filter: "",
     statusFilter: "all",
+    sourceFilter: "all",
+    selectedKeys: [],
     edits: {},
     busyKey: null,
     messages: {},
@@ -75,6 +98,8 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     clawhubInstallMessage: null,
     onFilterChange: () => undefined,
     onStatusFilterChange: () => undefined,
+    onSourceFilterChange: () => undefined,
+    onSelectionChange: () => undefined,
     onRefresh: () => undefined,
     onToggle: () => undefined,
     onEdit: () => undefined,
@@ -93,43 +118,186 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
 describe("renderSkills", () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    while (dialogRestores.length > 0) {
-      dialogRestores.pop()?.();
-    }
   });
 
-  it("opens detail dialogs and routes ClawHub actions", async () => {
+  it("renders the management console with filters, source groups, and setup queue", () => {
     const container = document.createElement("div");
-    const onDetailClose = vi.fn();
-    const showModal = vi.fn(function (this: HTMLDialogElement) {
-      this.setAttribute("open", "");
-    });
-    const onClawHubDetailOpen = vi.fn();
-    const onClawHubInstall = vi.fn();
+    const onStatusFilterChange = vi.fn();
+    const onSourceFilterChange = vi.fn();
+    const onFilterChange = vi.fn();
 
-    installDialogMethod("showModal", showModal);
-    installDialogMethod("close", function (this: HTMLDialogElement) {
-      this.removeAttribute("open");
-      this.dispatchEvent(new Event("close"));
-    });
+    render(
+      renderSkills(
+        createProps({
+          onStatusFilterChange,
+          onSourceFilterChange,
+          onFilterChange,
+        }),
+      ),
+      container,
+    );
+
+    const text = normalizeText(container);
+    expect(text).toContain(
+      "Manage local skills, missing requirements, API keys, and ClawHub installs.",
+    );
+    expect(text).toContain("Ready");
+    expect(text).toContain("Needs setup");
+    expect(text).toContain("Workspace Skills");
+    expect(text).toContain("Built-in Skills");
+    expect(text).toContain("Setup Queue");
+    expect(text).toContain("Browser Skill");
+    expect(text).toContain("bin:chromium");
+    expect(text).toContain("kova-workspace");
+    expect(text).not.toContain("openclaw-workspace");
+
+    const needsSetupTab = Array.from(container.querySelectorAll(".skills-filter-tab")).find((tab) =>
+      tab.textContent?.includes("Needs Setup"),
+    );
+    needsSetupTab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onStatusFilterChange).toHaveBeenCalledWith("needs-setup");
+
+    const builtInTab = Array.from(container.querySelectorAll(".skills-filter-tab")).find((tab) =>
+      tab.textContent?.includes("Built-in"),
+    );
+    builtInTab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onSourceFilterChange).toHaveBeenCalledWith("built-in");
+
+    const search = container.querySelector<HTMLInputElement>('input[name="skills-filter"]');
+    expect(search).not.toBeNull();
+    search!.value = "browser";
+    search!.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onFilterChange).toHaveBeenCalledWith("browser");
+  });
+
+  it("opens the inspector, toggles skills, saves API keys, and installs missing dependencies", () => {
+    const container = document.createElement("div");
+    const onDetailOpen = vi.fn();
+    const onDetailClose = vi.fn();
+    const onToggle = vi.fn();
+    const onEdit = vi.fn();
+    const onSaveKey = vi.fn();
+    const onInstall = vi.fn();
 
     render(
       renderSkills(
         createProps({
           detailKey: "repo-skill",
+          edits: { "repo-skill": "sk-test" },
+          onDetailOpen,
           onDetailClose,
+          onToggle,
+          onEdit,
+          onSaveKey,
+          onInstall,
         }),
       ),
       container,
     );
-    await Promise.resolve();
 
-    expect(showModal).toHaveBeenCalledTimes(1);
-    expect(container.querySelector("dialog")?.hasAttribute("open")).toBe(true);
+    const row = Array.from(container.querySelectorAll(".skills-row")).find((item) =>
+      item.textContent?.includes("Browser Skill"),
+    );
+    row?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onDetailOpen).toHaveBeenCalledWith("browser-skill");
 
-    container.querySelector<HTMLButtonElement>(".md-preview-dialog__header .btn")?.click();
+    const inspector = container.querySelector(".skills-inspector");
+    expect(inspector?.textContent).toContain("OPENAI_API_KEY");
+    expect(inspector?.textContent).toContain("/tmp/skill/SKILL.md");
+    expect(inspector?.textContent).toContain("https://example.com");
 
+    const apiInput = inspector?.querySelector<HTMLInputElement>('input[type="password"]');
+    expect(apiInput).not.toBeNull();
+    apiInput!.value = "sk-next";
+    apiInput!.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onEdit).toHaveBeenCalledWith("repo-skill", "sk-next");
+
+    const saveButton = Array.from(inspector?.querySelectorAll("button") ?? []).find((button) =>
+      button.textContent?.includes("Save key"),
+    );
+    saveButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onSaveKey).toHaveBeenCalledWith("repo-skill");
+
+    const closeButton = Array.from(inspector?.querySelectorAll("button") ?? []).find((button) =>
+      button.textContent?.includes("Close"),
+    );
+    closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onDetailClose).toHaveBeenCalledTimes(1);
+
+    const toggle = row?.querySelector<HTMLInputElement>(".skill-toggle");
+    toggle?.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(onToggle).toHaveBeenCalledWith("browser-skill", false);
+
+    render(
+      renderSkills(
+        createProps({
+          detailKey: "browser-skill",
+          onInstall,
+        }),
+      ),
+      container,
+    );
+
+    const installButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(".skills-inspector button"),
+    ).find((button) => button.textContent?.includes("Install Chromium"));
+    installButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onInstall).toHaveBeenCalledWith("browser-skill", "Browser Skill", "brew-chromium");
+  });
+
+  it("supports selection bulk actions", () => {
+    const container = document.createElement("div");
+    const onSelectionChange = vi.fn();
+    const onToggle = vi.fn();
+    const onInstall = vi.fn();
+
+    render(
+      renderSkills(
+        createProps({
+          selectedKeys: ["browser-skill", "disabled-skill"],
+          onSelectionChange,
+          onToggle,
+          onInstall,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("2 selected");
+
+    const clearButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Clear"),
+    );
+    clearButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+
+    const enableButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Enable",
+    );
+    enableButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onToggle).toHaveBeenCalledWith("browser-skill", true);
+    expect(onToggle).toHaveBeenCalledWith("disabled-skill", true);
+
+    const disableButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Disable",
+    );
+    disableButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onToggle).toHaveBeenCalledWith("browser-skill", false);
+    expect(onToggle).toHaveBeenCalledWith("disabled-skill", false);
+
+    const installButton = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Install missing deps"),
+    );
+    installButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onInstall).toHaveBeenCalledWith("browser-skill", "Browser Skill", "brew-chromium");
+  });
+
+  it("routes ClawHub search, detail, and install actions through the existing callbacks", () => {
+    const container = document.createElement("div");
+    const onClawHubQueryChange = vi.fn();
+    const onClawHubDetailOpen = vi.fn();
+    const onClawHubDetailClose = vi.fn();
+    const onClawHubInstall = vi.fn();
 
     render(
       renderSkills(
@@ -144,35 +312,6 @@ describe("renderSkills", () => {
               version: "1.2.3",
             },
           ],
-          onClawHubDetailOpen,
-          onClawHubInstall,
-        }),
-      ),
-      container,
-    );
-    await Promise.resolve();
-
-    let text = normalizeText(container);
-    expect(text).toContain("GitHub");
-    expect(text).toContain("GitHub integration for OpenClaw");
-    expect(text).toContain("v1.2.3");
-
-    container.querySelector<HTMLElement>(".list-item")?.click();
-    container
-      .querySelector<HTMLButtonElement>(".list-item .btn.btn--sm")
-      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    expect(onClawHubDetailOpen).toHaveBeenCalledTimes(1);
-    expect(onClawHubDetailOpen).toHaveBeenCalledWith("github");
-    expect(onClawHubInstall).toHaveBeenCalledTimes(1);
-    expect(onClawHubInstall).toHaveBeenCalledWith("github");
-
-    onClawHubInstall.mockClear();
-    showModal.mockClear();
-
-    render(
-      renderSkills(
-        createProps({
           clawhubSearchError: "rate limited",
           clawhubInstallMessage: { kind: "success", text: "Installed github" },
           clawhubDetailSlug: "github",
@@ -197,47 +336,48 @@ describe("renderSkills", () => {
               handle: "openclaw",
             },
           },
+          onClawHubQueryChange,
+          onClawHubDetailOpen,
+          onClawHubDetailClose,
           onClawHubInstall,
         }),
       ),
       container,
     );
-    await Promise.resolve();
 
-    expect(showModal).toHaveBeenCalledTimes(1);
-    text = normalizeText(container);
+    const search = container.querySelector<HTMLInputElement>('input[name="clawhub-search"]');
+    expect(search).not.toBeNull();
+    search!.value = "calendar";
+    search!.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onClawHubQueryChange).toHaveBeenCalledWith("calendar");
+
+    const text = normalizeText(container);
     expect(text).toContain("rate limited");
     expect(text).toContain("Installed github");
-    expect(text).toContain("By OpenClaw (@openclaw)");
-    expect(text).toContain("Latest: v1.2.3");
-    expect(text).toContain("Platforms: macos, linux");
+    expect(text).toContain("GitHub integration for OpenClaw");
+    expect(text).toContain("Owner OpenClaw (@openclaw)");
+    expect(text).toContain("Latest");
+    expect(text).toContain("v1.2.3");
+    expect(text).toContain("Platforms");
+    expect(text).toContain("macos, linux");
     expect(text).toContain("Added search support");
 
     container
-      .querySelector<HTMLButtonElement>(".md-preview-dialog__body .btn.primary")
+      .querySelector<HTMLElement>(".skills-clawhub-row")
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onClawHubDetailOpen).toHaveBeenCalledWith("github");
 
-    expect(onClawHubInstall).toHaveBeenCalledTimes(1);
+    const installButtons = Array.from(container.querySelectorAll("button")).filter((button) =>
+      button.textContent?.includes("Install"),
+    );
+    installButtons[0]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    installButtons.at(-1)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onClawHubInstall).toHaveBeenCalledWith("github");
+
+    const closeButton = Array.from(container.querySelectorAll(".skills-inspector button")).find(
+      (button) => button.textContent?.includes("Close"),
+    );
+    closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onClawHubDetailClose).toHaveBeenCalledTimes(1);
   });
 });
-
-function installDialogMethod(
-  name: "showModal" | "close",
-  value: (this: HTMLDialogElement) => void,
-) {
-  const proto = HTMLDialogElement.prototype as HTMLDialogElement & Record<string, unknown>;
-  const original = Object.getOwnPropertyDescriptor(proto, name);
-  Object.defineProperty(proto, name, {
-    configurable: true,
-    writable: true,
-    value,
-  });
-  dialogRestores.push(() => {
-    if (original) {
-      Object.defineProperty(proto, name, original);
-      return;
-    }
-    delete proto[name];
-  });
-}

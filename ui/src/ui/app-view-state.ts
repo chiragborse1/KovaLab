@@ -359,6 +359,8 @@ export type AppViewState = {
     skillsError: string | null;
     skillsFilter: string;
     skillsStatusFilter: "all" | "ready" | "needs-setup" | "disabled";
+    skillsSourceFilter: "all" | "workspace" | "built-in" | "installed" | "extra" | "other";
+    skillsSelectedKeys: string[];
     skillEdits: Record<string, string>;
     skillMessages: Record<string, SkillMessage>;
     skillsBusyKey: string | null;

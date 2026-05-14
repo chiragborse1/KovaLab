@@ -1,6 +1,16 @@
 import { html, nothing } from "lit";
 import type { SkillStatusEntry } from "../types.ts";
 
+function displaySkillSource(source: string): string {
+  if (source === "workspace") {
+    return "kova-workspace";
+  }
+  if (source === "managed") {
+    return "kova-managed";
+  }
+  return source.replace(/^openclaw-/u, "kova-");
+}
+
 export function computeSkillMissing(skill: SkillStatusEntry): string[] {
   return [
     ...skill.missing.bins.map((b) => `bin:${b}`),
@@ -29,7 +39,7 @@ export function renderSkillStatusChips(params: {
   const showBundledBadge = Boolean(params.showBundledBadge);
   return html`
     <div class="chip-row" style="margin-top: 6px;">
-      <span class="chip">${skill.source}</span>
+      <span class="chip">${displaySkillSource(skill.source)}</span>
       ${showBundledBadge ? html` <span class="chip">bundled</span> ` : nothing}
       <span class="chip ${skill.eligible ? "chip-ok" : "chip-warn"}">
         ${skill.eligible ? "eligible" : "blocked"}

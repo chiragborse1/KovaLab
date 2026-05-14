@@ -507,6 +507,9 @@ export class OpenClawApp extends LitElement {
   @state() skillsError: string | null = null;
   @state() skillsFilter = "";
   @state() skillsStatusFilter: "all" | "ready" | "needs-setup" | "disabled" = "all";
+  @state() skillsSourceFilter: "all" | "workspace" | "built-in" | "installed" | "extra" | "other" =
+    "all";
+  @state() skillsSelectedKeys: string[] = [];
   @state() skillEdits: Record<string, string> = {};
   @state() skillsBusyKey: string | null = null;
   @state() skillMessages: Record<string, SkillMessage> = {};
