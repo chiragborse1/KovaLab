@@ -4,6 +4,10 @@ Docs: https://docs.openclaw.ai
 
 ## Unreleased
 
+### Changes
+
+- Control UI: expose manifest-level plugin inventory and registry diagnostics in Control Panel through a read-only Gateway status method that avoids loading plugin runtimes. Thanks @chiragborse1.
+
 ### Fixes
 
 - Exec: skip heartbeat wakes for subagent sessions after exec events so subagent result polling does not spuriously wake the main session. Thanks @pgondhi987.

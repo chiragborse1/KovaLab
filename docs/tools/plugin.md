@@ -92,9 +92,9 @@ External plugins and custom load paths must still be installed through
 
 Kova recognizes two plugin formats:
 
-| Format     | How it works                                                       | Examples                                               |
-| ---------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
-| **Native** | `openclaw.plugin.json` + runtime module; executes in-process       | Official plugins, community npm packages               |
+| Format     | How it works                                                   | Examples                                               |
+| ---------- | -------------------------------------------------------------- | ------------------------------------------------------ |
+| **Native** | `openclaw.plugin.json` + runtime module; executes in-process   | Official plugins, community npm packages               |
 | **Bundle** | Codex/Claude/Cursor-compatible layout; mapped to Kova features | `.codex-plugin/`, `.claude-plugin/`, `.cursor-plugin/` |
 
 Both show up under `kova plugins list`. See [Plugin Bundles](/plugins/bundles) for bundle details.
@@ -204,6 +204,12 @@ plugin to participate. It does not prove that an already-running remote Gateway
 child has restarted into the same plugin code. On VPS/container setups with
 wrapper processes, send restarts to the actual `kova gateway run` process,
 or use `kova gateway restart` against the running Gateway.
+
+The browser Control Panel exposes the same manifest-level inventory through the
+read-only `plugins.status` Gateway method. It is intentionally a cold registry
+snapshot: it shows installed/bundled plugin visibility, enablement, capabilities,
+and registry diagnostics without importing plugin runtime modules or probing live
+plugin services.
 
 <Accordion title="Plugin states: disabled vs missing vs invalid">
   - **Disabled**: plugin exists but enablement rules turned it off. Config is preserved.

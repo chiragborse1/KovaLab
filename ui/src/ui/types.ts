@@ -753,6 +753,12 @@ export type ModelAuthStatusProvider =
   import("../../../src/gateway/server-methods/models-auth-status.js").ModelAuthStatusProvider;
 export type ModelAuthStatusResult =
   import("../../../src/gateway/server-methods/models-auth-status.js").ModelAuthStatusResult;
+export type PluginStatusSummary =
+  import("../../../src/gateway/server-methods/plugins.js").PluginStatusSummary;
+export type PluginStatusDiagnostic =
+  import("../../../src/gateway/server-methods/plugins.js").PluginStatusDiagnostic;
+export type PluginsStatusResult =
+  import("../../../src/gateway/server-methods/plugins.js").PluginsStatusResult;
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 

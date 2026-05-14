@@ -109,6 +109,7 @@ import type {
   LogLevel,
   ModelAuthStatusResult,
   ModelCatalogEntry,
+  PluginsStatusResult,
   PresenceEntry,
   ChannelsStatusSnapshot,
   SessionCompactionCheckpoint,
@@ -527,6 +528,9 @@ export class OpenClawApp extends LitElement {
   @state() modelAuthStatusLoading = false;
   @state() modelAuthStatusResult: ModelAuthStatusResult | null = null;
   @state() modelAuthStatusError: string | null = null;
+  @state() pluginsStatusLoading = false;
+  @state() pluginsStatusResult: PluginsStatusResult | null = null;
+  @state() pluginsStatusError: string | null = null;
 
   @state() controlWizardLoading = false;
   @state() controlWizardSessionId: string | null = null;

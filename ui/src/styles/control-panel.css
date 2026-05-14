@@ -851,6 +851,100 @@
   line-height: 1.35;
 }
 
+.control-panel-plugin-list,
+.control-panel-diagnostic-list {
+  display: grid;
+  gap: 8px;
+}
+
+.control-panel-plugin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.control-panel-plugin-row.is-ok {
+  border-color: color-mix(in srgb, var(--success, #22c55e) 24%, var(--border));
+}
+
+.control-panel-plugin-row.is-danger {
+  border-color: color-mix(in srgb, var(--danger, #ff6b78) 28%, var(--border));
+}
+
+.control-panel-plugin-row.is-muted {
+  opacity: 0.72;
+}
+
+.control-panel-plugin-row__main,
+.control-panel-plugin-row__meta {
+  min-width: 0;
+}
+
+.control-panel-plugin-row strong,
+.control-panel-plugin-row small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.control-panel-plugin-row strong {
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.control-panel-plugin-row small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.control-panel-plugin-row__meta {
+  text-align: right;
+}
+
+.control-panel-plugin-row__meta span {
+  display: block;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-panel-diagnostic-row {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.control-panel-diagnostic-row strong {
+  color: var(--text);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-panel-diagnostic-row.is-error {
+  border-color: color-mix(in srgb, var(--danger, #ff6b78) 28%, var(--border));
+}
+
+.control-panel-diagnostic-row.is-warn {
+  border-color: color-mix(in srgb, var(--warning, #f7b955) 28%, var(--border));
+}
+
 .control-panel-qr {
   display: inline-flex;
   width: fit-content;

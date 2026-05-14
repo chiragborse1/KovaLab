@@ -157,6 +157,12 @@ import {
   PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParamsSchema,
 } from "./plugin-approvals.js";
+import {
+  PluginStatusDiagnosticSchema,
+  PluginStatusSummarySchema,
+  PluginsStatusParamsSchema,
+  PluginsStatusResultSchema,
+} from "./plugins.js";
 import { PushTestParamsSchema, PushTestResultSchema } from "./push.js";
 import {
   SecretsReloadParamsSchema,
@@ -383,6 +389,10 @@ export const ProtocolSchemas = {
   ExecApprovalResolveParams: ExecApprovalResolveParamsSchema,
   PluginApprovalRequestParams: PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParams: PluginApprovalResolveParamsSchema,
+  PluginsStatusParams: PluginsStatusParamsSchema,
+  PluginStatusSummary: PluginStatusSummarySchema,
+  PluginStatusDiagnostic: PluginStatusDiagnosticSchema,
+  PluginsStatusResult: PluginsStatusResultSchema,
   DevicePairListParams: DevicePairListParamsSchema,
   DevicePairApproveParams: DevicePairApproveParamsSchema,
   DevicePairRejectParams: DevicePairRejectParamsSchema,

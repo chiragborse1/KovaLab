@@ -12,6 +12,8 @@ import type {
   ModelAuthStatusProvider,
   ModelAuthStatusResult,
   ModelCatalogEntry,
+  PluginStatusSummary,
+  PluginsStatusResult,
 } from "../types.ts";
 
 export type ControlPanelProps = {
@@ -34,6 +36,9 @@ export type ControlPanelProps = {
   modelAuthStatus: ModelAuthStatusResult | null;
   modelAuthStatusLoading: boolean;
   modelAuthStatusError: string | null;
+  pluginsStatus: PluginsStatusResult | null;
+  pluginsStatusLoading: boolean;
+  pluginsStatusError: string | null;
   modelsLoading: boolean;
   currentModel: string | null;
   modelSaving: boolean;
@@ -47,6 +52,7 @@ export type ControlPanelProps = {
   onWizardCancel: () => void;
   onWizardRefresh: () => void;
   onRefreshModelAuth: () => void;
+  onRefreshPlugins: () => void;
   onModelSelect: (modelRef: string) => void;
   onModelSearchChange: (value: string) => void;
   onManualModelChange: (value: string) => void;
@@ -748,6 +754,128 @@ function renderProviderAuthSection(props: ControlPanelProps) {
   `;
 }
 
+function pluginStatusClass(plugin: PluginStatusSummary): string {
+  if (plugin.status === "error") {
+    return "is-danger";
+  }
+  return plugin.enabled ? "is-ok" : "is-muted";
+}
+
+function summarizePluginCapabilities(plugin: PluginStatusSummary): string {
+  const parts = [
+    plugin.channelIds.length > 0 ? `${plugin.channelIds.length} channel` : "",
+    plugin.providerIds.length > 0 ? `${plugin.providerIds.length} provider` : "",
+    plugin.toolNames.length > 0 ? `${plugin.toolNames.length} tool` : "",
+    plugin.gatewayMethods.length > 0 ? `${plugin.gatewayMethods.length} rpc` : "",
+    plugin.services.length > 0 ? `${plugin.services.length} service` : "",
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : "manifest only";
+}
+
+function renderPluginInventorySection(props: ControlPanelProps) {
+  const status = props.pluginsStatus;
+  const plugins = status?.plugins ?? [];
+  const visiblePlugins = plugins.slice(0, 12);
+  const diagnostics = status?.diagnostics ?? [];
+  return html`
+    <section class="control-panel-section">
+      ${renderSectionHeader({
+        icon: icons.puzzle,
+        title: "Plugin inventory",
+        detail:
+          "Manifest-level plugin visibility without loading plugin runtimes or delaying gateway startup.",
+      })}
+      <div class="control-panel-section__body">
+        <div class="control-panel-ops-grid">
+          <div class="control-panel-ops-card">
+            <span>Registry</span>
+            <strong>${status?.registrySource ?? "not loaded"}</strong>
+          </div>
+          <div class="control-panel-ops-card ${status?.totals.errors ? "is-danger" : "is-ok"}">
+            <span>Enabled / total</span>
+            <strong
+              >${status ? `${status.totals.enabled} / ${status.totals.total}` : "unknown"}</strong
+            >
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Channels</span>
+            <strong>${status?.totals.channels ?? "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Providers</span>
+            <strong>${status?.totals.providers ?? "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card ${diagnostics.length > 0 ? "is-warn" : "is-ok"}">
+            <span>Diagnostics</span>
+            <strong>${diagnostics.length}</strong>
+          </div>
+        </div>
+        <div class="control-panel-actions">
+          <button
+            class="btn"
+            ?disabled=${props.pluginsStatusLoading || !props.connected}
+            @click=${props.onRefreshPlugins}
+          >
+            ${props.pluginsStatusLoading ? "Checking..." : "Refresh plugins"}
+          </button>
+          <button
+            class="btn"
+            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
+            @click=${() => props.onWizardStartSection("plugins")}
+          >
+            Configure plugins
+          </button>
+        </div>
+        ${props.pluginsStatusError
+          ? html`<div class="callout danger">${props.pluginsStatusError}</div>`
+          : nothing}
+        ${visiblePlugins.length > 0
+          ? html`
+              <div class="control-panel-plugin-list">
+                ${visiblePlugins.map(
+                  (plugin) => html`
+                    <div class="control-panel-plugin-row ${pluginStatusClass(plugin)}">
+                      <div class="control-panel-plugin-row__main">
+                        <strong>${plugin.name}</strong>
+                        <small>
+                          <code>${plugin.id}</code> · ${plugin.origin} · ${plugin.format}
+                          ${plugin.version ? ` · ${plugin.version}` : ""}
+                        </small>
+                      </div>
+                      <div class="control-panel-plugin-row__meta">
+                        <span>${plugin.status}</span>
+                        <small>${summarizePluginCapabilities(plugin)}</small>
+                      </div>
+                    </div>
+                  `,
+                )}
+              </div>
+            `
+          : html`
+              <div class="control-panel-empty">
+                Plugin inventory is not loaded yet. Refresh plugins to inspect installed and bundled
+                plugin visibility.
+              </div>
+            `}
+        ${diagnostics.length > 0
+          ? html`
+              <div class="control-panel-diagnostic-list">
+                ${diagnostics.slice(0, 4).map(
+                  (entry) => html`
+                    <div class="control-panel-diagnostic-row is-${entry.level}">
+                      <strong>${entry.level}</strong>
+                      <span> ${entry.pluginId ? `${entry.pluginId}: ` : ""}${entry.message} </span>
+                    </div>
+                  `,
+                )}
+              </div>
+            `
+          : nothing}
+      </div>
+    </section>
+  `;
+}
+
 function renderOptionButton(params: {
   option: ControlWizardStepOption;
   active: boolean;
@@ -1347,7 +1475,8 @@ export function renderControlPanel(props: ControlPanelProps) {
           ${renderGatewayStatus(props)}
         </section>
         ${renderWizardSection(props)} ${renderProviderAuthSection(props)}
-        ${renderSetupDiagnosticsSection(props)} ${renderInfoSection(props)}
+        ${renderPluginInventorySection(props)} ${renderSetupDiagnosticsSection(props)}
+        ${renderInfoSection(props)}
       </main>
     </div>
   `;

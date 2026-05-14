@@ -94,6 +94,7 @@ import {
 import { loadLogs } from "./controllers/logs.ts";
 import { loadModelAuthStatusState } from "./controllers/model-auth-status.ts";
 import { loadNodes } from "./controllers/nodes.ts";
+import { loadPluginsStatusState } from "./controllers/plugins.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import {
   branchSessionFromCheckpoint,
@@ -1656,6 +1657,9 @@ export function renderApp(state: AppViewState) {
                 modelAuthStatus: state.modelAuthStatusResult,
                 modelAuthStatusLoading: state.modelAuthStatusLoading,
                 modelAuthStatusError: state.modelAuthStatusError,
+                pluginsStatus: state.pluginsStatusResult,
+                pluginsStatusLoading: state.pluginsStatusLoading,
+                pluginsStatusError: state.pluginsStatusError,
                 modelsLoading: state.chatModelsLoading,
                 currentModel,
                 modelSaving: state.controlPanelModelSaving,
@@ -1699,6 +1703,9 @@ export function renderApp(state: AppViewState) {
                   void loadModelAuthStatusState(state, { refresh: true }).then(() =>
                     requestHostUpdate?.(),
                   );
+                },
+                onRefreshPlugins: () => {
+                  void loadPluginsStatusState(state).then(() => requestHostUpdate?.());
                 },
                 onModelSelect: (modelRef) => {
                   if (!modelRef.trim()) {

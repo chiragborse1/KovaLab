@@ -41,6 +41,7 @@ import {
 } from "./controllers/model-auth-status.ts";
 import { loadModels } from "./controllers/models.ts";
 import { loadNodes, type NodesState } from "./controllers/nodes.ts";
+import { loadPluginsStatusState, type PluginsStatusState } from "./controllers/plugins.ts";
 import { loadPresence, type PresenceState } from "./controllers/presence.ts";
 import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import { loadSkills, type SkillsState } from "./controllers/skills.ts";
@@ -128,6 +129,7 @@ type SettingsAppHost = SettingsHost &
   SessionsState &
   SkillsState &
   ModelAuthStatusState &
+  PluginsStatusState &
   UsageState & {
     overviewLogCursor: number | null;
     overviewLogLines: string[];
@@ -343,7 +345,12 @@ export async function refreshActiveTab(host: SettingsHost) {
       if (host.connected && app.client) {
         host.chatModelsLoading = true;
         try {
-          host.chatModelCatalog = await loadModels(app.client);
+          const [models] = await Promise.all([
+            loadModels(app.client),
+            loadModelAuthStatusState(app, { refresh: true }),
+            loadPluginsStatusState(app),
+          ]);
+          host.chatModelCatalog = models;
         } finally {
           host.chatModelsLoading = false;
         }

@@ -25,6 +25,9 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     modelAuthStatus: null,
     modelAuthStatusLoading: false,
     modelAuthStatusError: null,
+    pluginsStatus: null,
+    pluginsStatusLoading: false,
+    pluginsStatusError: null,
     modelsLoading: false,
     currentModel: null,
     modelSaving: false,
@@ -38,6 +41,7 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     onWizardCancel: vi.fn(),
     onWizardRefresh: vi.fn(),
     onRefreshModelAuth: vi.fn(),
+    onRefreshPlugins: vi.fn(),
     onModelSelect: vi.fn(),
     onModelSearchChange: vi.fn(),
     onManualModelChange: vi.fn(),
@@ -727,6 +731,93 @@ describe("renderControlPanel", () => {
       button.textContent?.includes("Configure plugins"),
     ) as HTMLButtonElement | undefined;
     plugins?.click();
+    expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
+  });
+
+  it("renders plugin inventory from the gateway status snapshot", () => {
+    const onRefreshPlugins = vi.fn();
+    const onWizardStartSection = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          pluginsStatus: {
+            registrySource: "persisted",
+            totals: {
+              total: 2,
+              enabled: 1,
+              disabled: 1,
+              errors: 1,
+              channels: 1,
+              providers: 1,
+            },
+            plugins: [
+              {
+                id: "telegram",
+                name: "Telegram",
+                enabled: true,
+                status: "loaded",
+                origin: "bundled",
+                format: "openclaw",
+                version: "2.0.0",
+                channelIds: ["telegram"],
+                providerIds: [],
+                toolNames: [],
+                gatewayMethods: [],
+                services: [],
+                commands: [],
+                configSchema: true,
+              },
+              {
+                id: "broken",
+                name: "Broken",
+                enabled: false,
+                status: "error",
+                origin: "external",
+                format: "openclaw",
+                channelIds: [],
+                providerIds: ["broken-provider"],
+                toolNames: [],
+                gatewayMethods: [],
+                services: [],
+                commands: [],
+                configSchema: false,
+                error: "failed",
+              },
+            ],
+            diagnostics: [
+              {
+                level: "error",
+                pluginId: "broken",
+                message: "manifest failed",
+              },
+            ],
+          },
+          onRefreshPlugins,
+          onWizardStartSection,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Plugin inventory");
+    expect(container.textContent).toContain("persisted");
+    expect(container.textContent).toContain("1 / 2");
+    expect(container.textContent).toContain("Telegram");
+    expect(container.textContent).toContain("Broken");
+    expect(container.textContent).toContain("broken: manifest failed");
+
+    const refresh = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Refresh plugins"),
+    ) as HTMLButtonElement | undefined;
+    refresh?.click();
+    expect(onRefreshPlugins).toHaveBeenCalled();
+
+    const configure = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Configure plugins"),
+    ) as HTMLButtonElement | undefined;
+    configure?.click();
     expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
   });
 });

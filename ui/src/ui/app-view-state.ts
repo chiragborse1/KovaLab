@@ -40,6 +40,7 @@ import type {
   ModelAuthStatusResult,
   ModelCatalogEntry,
   NostrProfile,
+  PluginsStatusResult,
   PresenceEntry,
   SessionsUsageResult,
   CostUsageSummary,
@@ -377,6 +378,9 @@ export type AppViewState = {
     modelAuthStatusLoading: boolean;
     modelAuthStatusResult: ModelAuthStatusResult | null;
     modelAuthStatusError: string | null;
+    pluginsStatusLoading: boolean;
+    pluginsStatusResult: PluginsStatusResult | null;
+    pluginsStatusError: string | null;
     controlWizardLoading: boolean;
     controlWizardSessionId: string | null;
     controlWizardStep: ControlWizardStep | null;
