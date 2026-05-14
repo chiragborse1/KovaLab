@@ -362,6 +362,7 @@ export class OpenClawApp extends LitElement {
   @state() agentFilesLoading = false;
   @state() agentFilesError: string | null = null;
   @state() agentFilesList: AgentsFilesListResult | null = null;
+  agentFilesRequestVersion = 0;
   @state() agentFileContents: Record<string, string> = {};
   @state() agentFileDrafts: Record<string, string> = {};
   @state() agentFileActive: string | null = null;

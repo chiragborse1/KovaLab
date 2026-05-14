@@ -18,7 +18,12 @@ import {
 } from "./app-render.helpers.ts";
 import { warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
-import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
+import {
+  cancelAgentFilesRequests,
+  loadAgentFileContent,
+  loadAgentFiles,
+  saveAgentFile,
+} from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
 import {
@@ -1323,6 +1328,7 @@ export function renderApp(state: AppViewState) {
     }
   };
   const resetAgentFilesState = (clearLoading = false) => {
+    cancelAgentFilesRequests(state);
     state.agentFilesList = null;
     state.agentFilesError = null;
     state.agentFileActive = null;
@@ -2449,9 +2455,10 @@ export function renderApp(state: AppViewState) {
                     removeConfigFormValue(state, ["tools", "exec", "node"]);
                   }
                 },
-                onBindAgent: (agentIndex, nodeId) => {
+                onBindAgent: (agentIndex, agentId, nodeId) => {
                   const basePath = ["agents", "list", agentIndex, "tools", "exec", "node"];
                   if (nodeId) {
+                    updateConfigFormValue(state, ["agents", "list", agentIndex, "id"], agentId);
                     updateConfigFormValue(state, basePath, nodeId);
                   } else {
                     removeConfigFormValue(state, basePath);

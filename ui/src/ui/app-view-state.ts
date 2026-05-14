@@ -247,6 +247,7 @@ export type AppViewState = {
   agentFilesLoading: boolean;
   agentFilesError: string | null;
   agentFilesList: AgentsFilesListResult | null;
+  agentFilesRequestVersion: number;
   agentFileContents: Record<string, string>;
   agentFileDrafts: Record<string, string>;
   agentFileActive: string | null;

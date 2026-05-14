@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import { render } from "lit";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderNodes, type NodesProps } from "./nodes.ts";
 
 function baseProps(overrides: Partial<NodesProps> = {}): NodesProps {
@@ -160,6 +160,31 @@ describe("nodes devices pending rendering", () => {
 
     expect(text).toContain("requested: roles: node, operator");
     expect(text).toContain("scopes: operator.read");
+  });
+});
+
+describe("nodes execution routing", () => {
+  it("passes the fallback main agent id when binding an agent exec node", () => {
+    const onBindAgent = vi.fn();
+    const container = document.createElement("div");
+    render(
+      renderNodes(
+        baseProps({
+          configForm: {},
+          nodes: [{ nodeId: "node-1", displayName: "Node One", commands: ["system.run"] }],
+          onBindAgent,
+        }),
+      ),
+      container,
+    );
+
+    const selects = container.querySelectorAll("select");
+    const agentSelect = selects[1];
+    expect(agentSelect).toBeTruthy();
+    agentSelect.value = "node-1";
+    agentSelect.dispatchEvent(new Event("change"));
+
+    expect(onBindAgent).toHaveBeenCalledWith(0, "main", "node-1");
   });
 });
 

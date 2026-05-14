@@ -585,7 +585,7 @@ type BindingState = {
   agents: BindingAgent[];
   nodes: BindingNode[];
   onBindDefault: (nodeId: string | null) => void;
-  onBindAgent: (agentIndex: number, nodeId: string | null) => void;
+  onBindAgent: (agentIndex: number, agentId: string, nodeId: string | null) => void;
   onSave: () => void;
   onLoadConfig: () => void;
   formMode: "form" | "raw";
@@ -714,7 +714,7 @@ function renderAgentBinding(agent: BindingAgent, state: BindingState) {
             @change=${(event: Event) => {
               const target = event.target as HTMLSelectElement;
               const value = target.value.trim();
-              state.onBindAgent(agent.index, value === "__default__" ? null : value);
+              state.onBindAgent(agent.index, agent.id, value === "__default__" ? null : value);
             }}
           >
             <option value="__default__" ?selected=${bindingValue === "__default__"}>

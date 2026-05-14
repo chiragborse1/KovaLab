@@ -12,6 +12,7 @@ export type AgentFilesState = {
   agentFilesLoading: boolean;
   agentFilesError: string | null;
   agentFilesList: AgentsFilesListResult | null;
+  agentFilesRequestVersion: number;
   agentFileContents: Record<string, string>;
   agentFileDrafts: Record<string, string>;
   agentFileActive: string | null;
@@ -32,16 +33,26 @@ function mergeFileEntry(
   return { ...list, files: nextFiles };
 }
 
+export function cancelAgentFilesRequests(state: AgentFilesState) {
+  state.agentFilesRequestVersion += 1;
+  state.agentFilesLoading = false;
+}
+
 export async function loadAgentFiles(state: AgentFilesState, agentId: string) {
   if (!state.client || !state.connected || state.agentFilesLoading) {
     return;
   }
+  state.agentFilesRequestVersion += 1;
+  const requestVersion = state.agentFilesRequestVersion;
   state.agentFilesLoading = true;
   state.agentFilesError = null;
   try {
     const res = await state.client.request<AgentsFilesListResult | null>("agents.files.list", {
       agentId,
     });
+    if (state.agentFilesRequestVersion !== requestVersion || res?.agentId !== agentId) {
+      return;
+    }
     if (res) {
       state.agentFilesList = res;
       if (state.agentFileActive && !res.files.some((file) => file.name === state.agentFileActive)) {
@@ -49,9 +60,13 @@ export async function loadAgentFiles(state: AgentFilesState, agentId: string) {
       }
     }
   } catch (err) {
-    state.agentFilesError = String(err);
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesError = String(err);
+    }
   } finally {
-    state.agentFilesLoading = false;
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesLoading = false;
+    }
   }
 }
 
@@ -67,6 +82,8 @@ export async function loadAgentFileContent(
   if (!opts?.force && Object.hasOwn(state.agentFileContents, name)) {
     return;
   }
+  state.agentFilesRequestVersion += 1;
+  const requestVersion = state.agentFilesRequestVersion;
   state.agentFilesLoading = true;
   state.agentFilesError = null;
   try {
@@ -74,6 +91,14 @@ export async function loadAgentFileContent(
       agentId,
       name,
     });
+    if (
+      state.agentFilesRequestVersion !== requestVersion ||
+      res?.agentId !== agentId ||
+      res.file.name !== name ||
+      state.agentFileActive !== name
+    ) {
+      return;
+    }
     if (res?.file) {
       const content = res.file.content ?? "";
       const previousBase = state.agentFileContents[name] ?? "";
@@ -90,9 +115,13 @@ export async function loadAgentFileContent(
       }
     }
   } catch (err) {
-    state.agentFilesError = String(err);
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesError = String(err);
+    }
   } finally {
-    state.agentFilesLoading = false;
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesLoading = false;
+    }
   }
 }
 
@@ -113,10 +142,16 @@ export async function saveAgentFile(
       name,
       content,
     });
+    if (res?.agentId !== agentId || res.file.name !== name) {
+      return;
+    }
     if (res?.file) {
-      state.agentFilesList = mergeFileEntry(state.agentFilesList, res.file);
-      state.agentFileContents = { ...state.agentFileContents, [name]: content };
-      state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+      const activeListAgent = state.agentFilesList?.agentId ?? null;
+      if (activeListAgent === agentId) {
+        state.agentFilesList = mergeFileEntry(state.agentFilesList, res.file);
+        state.agentFileContents = { ...state.agentFileContents, [name]: content };
+        state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+      }
     }
   } catch (err) {
     state.agentFilesError = String(err);
