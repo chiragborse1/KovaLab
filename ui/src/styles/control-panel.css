@@ -549,6 +549,14 @@
   line-height: 1.5;
 }
 
+.control-panel-model-picker__grid {
+  display: grid;
+  max-height: 360px;
+  overflow: auto;
+  gap: 8px;
+  padding-right: 4px;
+}
+
 .control-panel-readonly-field {
   display: grid;
   gap: 4px;

@@ -20,12 +20,16 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     wizardCompletedSteps: [],
     wizardActiveSection: null,
     wizardStepStartedAt: null,
+    modelCatalog: [],
+    modelsLoading: false,
+    currentModel: null,
     onWizardStart: vi.fn(),
     onWizardStartSection: vi.fn(),
     onWizardAnswerChange: vi.fn(),
     onWizardSubmit: vi.fn(),
     onWizardCancel: vi.fn(),
     onWizardRefresh: vi.fn(),
+    onModelSelect: vi.fn(),
     ...overrides,
   };
 }
@@ -137,9 +141,12 @@ describe("renderControlPanel", () => {
       container,
     );
 
-    const openRouter = Array.from(container.querySelectorAll(".control-panel-option")).find(
-      (button) => button.textContent?.includes("OpenRouter"),
-    ) as HTMLButtonElement | undefined;
+    const currentStep = container.querySelector(
+      ".control-panel-flow-card.is-current",
+    ) as HTMLElement | null;
+    const openRouter = Array.from(
+      currentStep?.querySelectorAll(".control-panel-option") ?? [],
+    ).find((button) => button.textContent?.includes("OpenRouter")) as HTMLButtonElement | undefined;
     openRouter?.click();
 
     expect(container.querySelector(".control-panel-provider-logo")).not.toBeNull();
@@ -345,7 +352,7 @@ describe("renderControlPanel", () => {
     expect(container.textContent).toContain("Use existing OPENROUTER_API_KEY?");
   });
 
-  it("renders model setup as one appended page instead of replacing provider choices", () => {
+  it("renders setup sections as one appended page instead of replacing previous choices", () => {
     const container = document.createElement("div");
 
     render(
@@ -354,6 +361,11 @@ describe("renderControlPanel", () => {
           wizardActiveSection: "model",
           wizardSessionId: "wiz_1",
           wizardStatus: "running",
+          currentModel: "openrouter/auto",
+          modelCatalog: [
+            { id: "openrouter/auto", name: "OpenRouter Auto", provider: "openrouter" },
+            { id: "gpt-5.5", name: "GPT-5.5", provider: "openai" },
+          ],
           wizardCompletedSteps: [
             {
               step: {
@@ -382,15 +394,94 @@ describe("renderControlPanel", () => {
     expect(container.querySelector(".control-panel-model-flow")).not.toBeNull();
     expect(container.querySelector(".control-panel-completed-flow")).toBeNull();
     expect(container.textContent).toContain("Model provider setup");
+    expect(container.textContent).toContain("Default model picker");
+    expect(container.textContent).toContain("OpenRouter Auto");
     expect(container.textContent).toContain("OpenAI Codex");
     expect(container.textContent).toContain("OpenRouter");
     expect(container.textContent).toContain("Enter OpenRouter API key");
 
-    const openRouter = Array.from(container.querySelectorAll(".control-panel-option")).find(
-      (button) => button.textContent?.includes("OpenRouter"),
-    ) as HTMLButtonElement | undefined;
+    const completedProviderCard = container.querySelector(
+      ".control-panel-flow-card.is-complete",
+    ) as HTMLElement | null;
+    const openRouter = Array.from(
+      completedProviderCard?.querySelectorAll(".control-panel-option") ?? [],
+    ).find((button) => button.textContent?.includes("OpenRouter")) as HTMLButtonElement | undefined;
     expect(openRouter?.classList.contains("active")).toBe(true);
     expect(openRouter?.disabled).toBe(true);
+  });
+
+  it("saves selected catalog models from the model picker", () => {
+    const onModelSelect = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "model",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          currentModel: "openrouter/auto",
+          modelCatalog: [
+            { id: "openrouter/auto", name: "OpenRouter Auto", provider: "openrouter" },
+            { id: "deepseek/deepseek-chat", name: "DeepSeek Chat", provider: "openrouter" },
+          ],
+          wizardStep: {
+            id: "provider",
+            type: "select",
+            message: "Model/auth provider",
+            options: [{ label: "OpenRouter", value: "openrouter" }],
+          },
+          onModelSelect,
+        }),
+      ),
+      container,
+    );
+
+    const deepseek = Array.from(
+      container.querySelectorAll(".control-panel-model-picker button"),
+    ).find((button) => button.textContent?.includes("DeepSeek Chat")) as
+      | HTMLButtonElement
+      | undefined;
+    deepseek?.click();
+
+    expect(onModelSelect).toHaveBeenCalledWith("openrouter/deepseek/deepseek-chat");
+  });
+
+  it("uses the appended setup flow for non-model sections too", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardActiveSection: "channels",
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          wizardCompletedSteps: [
+            {
+              step: {
+                id: "channel",
+                type: "select",
+                message: "Channel to configure",
+                options: [{ label: "Telegram", value: "telegram" }],
+              },
+              value: "telegram",
+            },
+          ],
+          wizardStep: {
+            id: "token",
+            type: "text",
+            message: "Telegram bot token",
+            sensitive: true,
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.querySelector(".control-panel-completed-flow")).toBeNull();
+    expect(container.textContent).toContain("Channels setup");
+    expect(container.textContent).toContain("Channel to configure");
+    expect(container.textContent).toContain("Telegram bot token");
   });
 
   it("renders a final setup summary and restart guidance", () => {

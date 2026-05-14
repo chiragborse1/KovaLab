@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 
@@ -114,6 +114,11 @@ async function runPromptAuthConfigWithAllowlist(includeMinimaxProvider = false) 
 }
 
 describe("promptAuthConfig", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.promptDefaultModel.mockResolvedValue({});
+  });
+
   it("keeps Kilo provider models while applying allowlist defaults", async () => {
     const result = await runPromptAuthConfigWithAllowlist();
     expect(result.models?.providers?.kilocode?.models?.map((model) => model.id)).toEqual([
@@ -257,10 +262,20 @@ describe("promptAuthConfig", () => {
         preferredProvider: "openai",
       }),
     );
+    expect(mocks.applyAuthChoice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        setDefaultModel: false,
+      }),
+    );
+    expect(mocks.promptDefaultModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        preferredProvider: "openai",
+        loadCatalog: true,
+      }),
+    );
   });
 
   it("returns to auth selection when plugin install onboarding asks for a retry", async () => {
-    vi.clearAllMocks();
     mocks.promptAuthChoiceGrouped
       .mockResolvedValueOnce("provider-plugin:wecom:default")
       .mockResolvedValueOnce("kilocode-api-key");
@@ -278,6 +293,21 @@ describe("promptAuthConfig", () => {
 
     expect(mocks.promptAuthChoiceGrouped).toHaveBeenCalledTimes(2);
     expect(mocks.applyAuthChoice).toHaveBeenCalledTimes(2);
+    expect(mocks.promptDefaultModel).toHaveBeenCalledTimes(1);
     expect(mocks.promptModelAllowlist).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies the selected default model after provider auth setup", async () => {
+    mocks.promptAuthChoiceGrouped.mockResolvedValue("openrouter-api-key");
+    mocks.resolvePreferredProviderForAuthChoice.mockResolvedValue("openrouter");
+    mocks.applyAuthChoice.mockResolvedValue({ config: {} });
+    mocks.promptDefaultModel.mockResolvedValue({ model: "openrouter/deepseek/deepseek-chat" });
+    mocks.promptModelAllowlist.mockResolvedValue({ models: undefined });
+
+    const result = await promptAuthConfig({}, makeRuntime(), noopPrompter);
+
+    expect(result.agents?.defaults?.model).toEqual({
+      primary: "openrouter/deepseek/deepseek-chat",
+    });
   });
 });

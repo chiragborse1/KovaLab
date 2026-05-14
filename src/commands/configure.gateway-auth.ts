@@ -153,12 +153,29 @@ export async function promptAuthConfig(
       config: next,
       prompter,
       runtime,
-      setDefaultModel: true,
+      setDefaultModel: false,
       preserveExistingDefaultModel: true,
     });
     next = applied.config;
     if (applied.retrySelection) {
       continue;
+    }
+    const modelSelection = await promptDefaultModel({
+      config: next,
+      prompter,
+      allowKeep: true,
+      ignoreAllowlist: true,
+      includeProviderPluginSetups: false,
+      loadCatalog: true,
+      preferredProvider,
+      workspaceDir: resolveDefaultAgentWorkspaceDir(),
+      runtime,
+    });
+    if (modelSelection.config) {
+      next = modelSelection.config;
+    }
+    if (modelSelection.model) {
+      next = applyPrimaryModel(next, modelSelection.model);
     }
     break;
   }

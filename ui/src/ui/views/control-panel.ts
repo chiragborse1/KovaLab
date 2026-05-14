@@ -1,4 +1,5 @@
 import { html, nothing, type TemplateResult } from "lit";
+import { buildChatModelOption } from "../chat-model-ref.ts";
 import type {
   ControlWizardCompletedStep,
   ControlWizardSection,
@@ -7,6 +8,7 @@ import type {
   ControlWizardStepOption,
 } from "../controllers/wizard.ts";
 import { icons } from "../icons.ts";
+import type { ModelCatalogEntry } from "../types.ts";
 
 export type ControlPanelProps = {
   connected: boolean;
@@ -23,12 +25,16 @@ export type ControlPanelProps = {
   wizardCompletedSteps: ControlWizardCompletedStep[];
   wizardActiveSection: ControlWizardSection | null;
   wizardStepStartedAt: number | null;
+  modelCatalog: ModelCatalogEntry[];
+  modelsLoading: boolean;
+  currentModel: string | null;
   onWizardStart: (mode: "local" | "remote") => void;
   onWizardStartSection: (section: ControlWizardSection) => void;
   onWizardAnswerChange: (value: unknown) => void;
   onWizardSubmit: (value?: unknown) => void;
   onWizardCancel: () => void;
   onWizardRefresh: () => void;
+  onModelSelect: (modelRef: string) => void;
 };
 
 const SETUP_STEPS = [
@@ -74,6 +80,46 @@ type WizardOptionKind = "provider" | "model" | "default";
 type ProviderLogo = {
   label: string;
   className: string;
+};
+
+const SECTION_DETAILS: Record<ControlWizardSection, { title: string; detail: string }> = {
+  health: {
+    title: "Existing config",
+    detail: "Review the detected workspace and current setup before changing anything.",
+  },
+  model: {
+    title: "Model provider setup",
+    detail:
+      "Choose a provider, pick the default model, then complete auth fields without losing context.",
+  },
+  workspace: {
+    title: "Workspace setup",
+    detail: "Choose where Kova stores project files, memory, sessions, and generated artifacts.",
+  },
+  gateway: {
+    title: "Gateway setup",
+    detail: "Configure local or remote gateway access, bind mode, auth, and operator controls.",
+  },
+  channels: {
+    title: "Channels setup",
+    detail: "Install and configure messaging channels such as Telegram, WhatsApp, or Discord.",
+  },
+  web: {
+    title: "Web search setup",
+    detail: "Configure browser and search providers used by Kova tools.",
+  },
+  daemon: {
+    title: "Service setup",
+    detail: "Configure startup services and background gateway behavior.",
+  },
+  plugins: {
+    title: "Plugin setup",
+    detail: "Install and enable optional Kova plugins.",
+  },
+  skills: {
+    title: "Skills & health",
+    detail: "Check installed skills, missing dependencies, and setup health.",
+  },
 };
 
 function renderGatewayStatus(props: ControlPanelProps) {
@@ -228,6 +274,16 @@ function renderReadonlyWizardStep(entry: ControlWizardCompletedStep, index: numb
   `;
 }
 
+function sectionDetailFor(section: ControlWizardSection | null) {
+  return section
+    ? SECTION_DETAILS[section]
+    : {
+        title: "Guided setup",
+        detail:
+          "Complete each revealed setup field below. Previous answers stay visible on this page.",
+      };
+}
+
 function setupSummaryRequiresRestart(steps: ControlWizardCompletedStep[]): boolean {
   return steps.some(({ step }) => {
     const text = `${step.title ?? ""} ${step.message ?? ""}`.toLowerCase();
@@ -307,6 +363,139 @@ function optionKindForStep(step: ControlWizardStep): WizardOptionKind {
     return "model";
   }
   return "default";
+}
+
+function detectSelectedProvider(props: ControlPanelProps): string | null {
+  const values = [
+    ...props.wizardCompletedSteps.map(({ value }) => value),
+    props.wizardAnswerValue,
+    props.currentModel,
+  ];
+  for (const value of values) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const normalized = value.toLowerCase();
+    const provider = [
+      "openrouter",
+      "openai-codex",
+      "openai",
+      "anthropic",
+      "google",
+      "github",
+      "ollama",
+      "groq",
+      "mistral",
+      "together",
+      "xai",
+      "zai",
+      "moonshot",
+      "byteplus",
+      "volcengine",
+      "chutes",
+    ].find((candidate) => normalized.includes(candidate));
+    if (provider) {
+      return provider;
+    }
+    const slashProvider = normalized.split("/")[0]?.trim();
+    if (slashProvider) {
+      return slashProvider;
+    }
+  }
+  return null;
+}
+
+function modelMatchesProvider(entry: ModelCatalogEntry, provider: string): boolean {
+  const normalizedProvider = provider.toLowerCase();
+  return (
+    entry.provider.toLowerCase() === normalizedProvider ||
+    entry.provider.toLowerCase().includes(normalizedProvider)
+  );
+}
+
+function fallbackModelEntries(currentModel: string | null): ModelCatalogEntry[] {
+  const entries: ModelCatalogEntry[] = [
+    { id: "openrouter/auto", name: "OpenRouter Auto", provider: "openrouter" },
+  ];
+  if (currentModel && currentModel !== "openrouter/auto") {
+    const [provider, ...rest] = currentModel.split("/");
+    entries.unshift({
+      id: rest.length > 0 ? rest.join("/") : currentModel,
+      name: currentModel,
+      provider: provider || "custom",
+    });
+  }
+  return entries;
+}
+
+function modelCatalogForPicker(props: ControlPanelProps): ModelCatalogEntry[] {
+  const catalog =
+    props.modelCatalog.length > 0 ? props.modelCatalog : fallbackModelEntries(props.currentModel);
+  const selectedProvider = detectSelectedProvider(props);
+  if (!selectedProvider) {
+    return catalog;
+  }
+  const filtered = catalog.filter((entry) => modelMatchesProvider(entry, selectedProvider));
+  return filtered.length > 0 ? filtered : catalog;
+}
+
+function renderModelPicker(props: ControlPanelProps) {
+  const catalog = modelCatalogForPicker(props);
+  return html`
+    <div class="control-panel-flow-card control-panel-model-picker">
+      <div class="control-panel-flow-card__head">
+        <span>Model</span>
+        <strong>Default model picker</strong>
+        <em>${props.currentModel ?? "Not set"}</em>
+      </div>
+      <p>
+        Pick the model Kova should use by default. This saves immediately to the same default model
+        config used by Quick Settings.
+      </p>
+      ${props.modelsLoading
+        ? html`<div class="control-panel-field-hint">Loading available models...</div>`
+        : nothing}
+      <div class="control-panel-model-picker__grid">
+        ${catalog.map((entry) => {
+          const option = buildChatModelOption(entry, catalog);
+          const active = props.currentModel === option.value;
+          const logo = providerLogoForOption({
+            label: entry.provider,
+            value: entry.provider,
+          });
+          return html`
+            <button
+              class="control-panel-option control-panel-option--model ${active ? "active" : ""}"
+              ?disabled=${props.modelsLoading}
+              @click=${() => props.onModelSelect(option.value)}
+            >
+              ${logo
+                ? html`<span
+                    class="control-panel-provider-logo control-panel-provider-logo--${logo.className}"
+                    >${logo.label}</span
+                  >`
+                : nothing}
+              <span class="control-panel-option__content">
+                <strong>${option.label}</strong>
+                <small>${option.value}</small>
+              </span>
+              ${active
+                ? html`<span class="control-panel-option__selected">Current</span>`
+                : nothing}
+            </button>
+          `;
+        })}
+      </div>
+      ${props.modelCatalog.length === 0
+        ? html`
+            <div class="control-panel-field-hint">
+              The live model catalog is not loaded yet, so Kova is showing safe defaults and the
+              current configured model.
+            </div>
+          `
+        : nothing}
+    </div>
+  `;
 }
 
 function renderOptionButton(params: {
@@ -610,22 +799,22 @@ function renderLiveWizardStep(props: ControlPanelProps, step: ControlWizardStep)
   `;
 }
 
-function renderModelSetupFlow(props: ControlPanelProps, step: ControlWizardStep | null) {
+function renderSetupFlow(props: ControlPanelProps, step: ControlWizardStep | null) {
   const hasContent = props.wizardCompletedSteps.length > 0 || step;
+  const detail = sectionDetailFor(props.wizardActiveSection);
+  const modelPicker = props.wizardActiveSection === "model" ? renderModelPicker(props) : nothing;
   return html`
     <div class="control-panel-model-flow">
       <div class="control-panel-model-flow__intro">
-        <strong>Model provider setup</strong>
-        <span>
-          Choose a provider, then complete each revealed field below. Previous choices stay visible
-          on this page so the setup does not feel like a screen-by-screen wizard.
-        </span>
+        <strong>${detail.title}</strong>
+        <span>${detail.detail}</span>
       </div>
       ${hasContent
         ? html`
             ${props.wizardCompletedSteps.map((entry, index) =>
               renderReadonlyWizardStep(entry, index),
             )}
+            ${props.wizardCompletedSteps.length > 0 ? modelPicker : nothing}
             ${step
               ? html`
                   <div class="control-panel-flow-card is-current">
@@ -651,6 +840,7 @@ function renderModelSetupFlow(props: ControlPanelProps, step: ControlWizardStep 
                   </div>
                 `
               : nothing}
+            ${props.wizardCompletedSteps.length === 0 ? modelPicker : nothing}
           `
         : html`
             <div class="control-panel-wizard-empty">
@@ -708,14 +898,7 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
     `;
   }
 
-  if (props.wizardActiveSection === "model") {
-    return renderModelSetupFlow(props, step);
-  }
-
-  return html`
-    ${renderCompletedWizardSteps(props.wizardCompletedSteps)} ${renderLiveWizardStep(props, step)}
-    ${renderWizardEscapeActions(props)}
-  `;
+  return renderSetupFlow(props, step);
 }
 
 function renderWizardSection(props: ControlPanelProps) {

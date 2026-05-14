@@ -1631,55 +1631,73 @@ export function renderApp(state: AppViewState) {
             })
           : nothing}
         ${state.tab === "controlPanel"
-          ? renderControlPanel({
-              configPath: state.configSnapshot?.path ?? null,
-              connected: state.connected,
-              gatewayUrl: state.settings.gatewayUrl,
-              assistantName: state.assistantName,
-              version: state.hello?.server?.version ?? "",
-              wizardLoading: state.controlWizardLoading,
-              wizardSessionId: state.controlWizardSessionId,
-              wizardStep: state.controlWizardStep,
-              wizardStatus: state.controlWizardStatus,
-              wizardError: state.controlWizardError,
-              wizardAnswerValue: state.controlWizardAnswerValue,
-              wizardCompletedSteps: state.controlWizardCompletedSteps,
-              wizardActiveSection: state.controlWizardActiveSection,
-              wizardStepStartedAt: state.controlWizardStepStartedAt,
-              onWizardStart: (mode) => {
-                void startControlWizard(state, { mode }).then(() => {
-                  void loadConfig(state).then(() => requestHostUpdate?.());
-                });
-              },
-              onWizardStartSection: (section) => {
-                void (async () => {
-                  if (state.controlWizardSessionId) {
-                    state.controlWizardError =
-                      "Finish or cancel the current setup step before opening another setup section.";
+          ? (() => {
+              const configObj = state.configForm ?? state.configSnapshot?.config ?? {};
+              const agentsDefaults = ((configObj.agents as Record<string, unknown> | undefined)
+                ?.defaults ?? {}) as Record<string, unknown>;
+              const currentModel = resolveModelPrimary(agentsDefaults.model);
+              return renderControlPanel({
+                configPath: state.configSnapshot?.path ?? null,
+                connected: state.connected,
+                gatewayUrl: state.settings.gatewayUrl,
+                assistantName: state.assistantName,
+                version: state.hello?.server?.version ?? "",
+                wizardLoading: state.controlWizardLoading,
+                wizardSessionId: state.controlWizardSessionId,
+                wizardStep: state.controlWizardStep,
+                wizardStatus: state.controlWizardStatus,
+                wizardError: state.controlWizardError,
+                wizardAnswerValue: state.controlWizardAnswerValue,
+                wizardCompletedSteps: state.controlWizardCompletedSteps,
+                wizardActiveSection: state.controlWizardActiveSection,
+                wizardStepStartedAt: state.controlWizardStepStartedAt,
+                modelCatalog: state.chatModelCatalog ?? [],
+                modelsLoading: state.chatModelsLoading,
+                currentModel,
+                onWizardStart: (mode) => {
+                  void startControlWizard(state, { mode }).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
+                },
+                onWizardStartSection: (section) => {
+                  void (async () => {
+                    if (state.controlWizardSessionId) {
+                      state.controlWizardError =
+                        "Finish or cancel the current setup step before opening another setup section.";
+                      requestHostUpdate?.();
+                      return;
+                    }
+                    await startControlWizard(state, { flow: "configure", section });
+                    await loadConfig(state);
                     requestHostUpdate?.();
-                    return;
-                  }
-                  await startControlWizard(state, { flow: "configure", section });
-                  await loadConfig(state);
+                  })();
+                },
+                onWizardAnswerChange: (value) => {
+                  state.controlWizardAnswerValue = value;
                   requestHostUpdate?.();
-                })();
-              },
-              onWizardAnswerChange: (value) => {
-                state.controlWizardAnswerValue = value;
-                requestHostUpdate?.();
-              },
-              onWizardSubmit: (value) => {
-                void submitControlWizardStep(state, value).then(() => {
-                  void loadConfig(state).then(() => requestHostUpdate?.());
-                });
-              },
-              onWizardCancel: () => {
-                void cancelControlWizard(state).then(() => requestHostUpdate?.());
-              },
-              onWizardRefresh: () => {
-                void refreshControlWizard(state).then(() => requestHostUpdate?.());
-              },
-            })
+                },
+                onWizardSubmit: (value) => {
+                  void submitControlWizardStep(state, value).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
+                },
+                onWizardCancel: () => {
+                  void cancelControlWizard(state).then(() => requestHostUpdate?.());
+                },
+                onWizardRefresh: () => {
+                  void refreshControlWizard(state).then(() => requestHostUpdate?.());
+                },
+                onModelSelect: (modelRef) => {
+                  void patchConfig(
+                    state,
+                    { agents: { defaults: { model: { primary: modelRef } } } },
+                    { note: "control-panel default model selection" },
+                  ).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
+                },
+              });
+            })()
           : nothing}
         ${state.tab === "channels"
           ? renderLazyView(lazyChannels, (m) =>

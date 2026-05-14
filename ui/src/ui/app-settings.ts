@@ -340,6 +340,14 @@ export async function refreshActiveTab(host: SettingsHost) {
   switch (host.tab) {
     case "controlPanel":
       await loadConfig(app);
+      if (host.connected && app.client) {
+        host.chatModelsLoading = true;
+        try {
+          host.chatModelCatalog = await loadModels(app.client);
+        } finally {
+          host.chatModelsLoading = false;
+        }
+      }
       return;
     case "config":
     case "communications":
