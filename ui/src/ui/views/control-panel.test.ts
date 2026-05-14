@@ -28,6 +28,8 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     pluginsStatus: null,
     pluginsStatusLoading: false,
     pluginsStatusError: null,
+    pluginsOperation: null,
+    pluginsInstallSpec: "",
     modelsLoading: false,
     currentModel: null,
     modelSaving: false,
@@ -42,6 +44,10 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     onWizardRefresh: vi.fn(),
     onRefreshModelAuth: vi.fn(),
     onRefreshPlugins: vi.fn(),
+    onPluginInstallSpecChange: vi.fn(),
+    onPluginInstall: vi.fn(),
+    onPluginSetEnabled: vi.fn(),
+    onPluginUninstall: vi.fn(),
     onModelSelect: vi.fn(),
     onModelSearchChange: vi.fn(),
     onManualModelChange: vi.fn(),
@@ -768,6 +774,9 @@ describe("renderControlPanel", () => {
                 services: [],
                 commands: [],
                 configSchema: true,
+                installed: false,
+                configured: true,
+                removable: true,
               },
               {
                 id: "broken",
@@ -783,6 +792,9 @@ describe("renderControlPanel", () => {
                 services: [],
                 commands: [],
                 configSchema: false,
+                installed: true,
+                configured: false,
+                removable: true,
                 error: "failed",
               },
             ],
@@ -819,5 +831,103 @@ describe("renderControlPanel", () => {
     ) as HTMLButtonElement | undefined;
     configure?.click();
     expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
+  });
+
+  it("renders plugin install and row actions", () => {
+    const onPluginInstallSpecChange = vi.fn();
+    const onPluginInstall = vi.fn();
+    const onPluginSetEnabled = vi.fn();
+    const onPluginUninstall = vi.fn();
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          pluginsInstallSpec: "@kovaai/whatsapp@beta",
+          pluginsStatus: {
+            registrySource: "persisted",
+            totals: {
+              total: 1,
+              enabled: 0,
+              disabled: 1,
+              errors: 0,
+              channels: 1,
+              providers: 0,
+            },
+            plugins: [
+              {
+                id: "whatsapp",
+                name: "WhatsApp",
+                enabled: false,
+                status: "disabled",
+                origin: "external",
+                format: "openclaw",
+                channelIds: ["whatsapp"],
+                providerIds: [],
+                toolNames: [],
+                gatewayMethods: [],
+                services: [],
+                commands: [],
+                configSchema: true,
+                installed: true,
+                configured: true,
+                removable: true,
+              },
+            ],
+            diagnostics: [],
+          },
+          onPluginInstallSpecChange,
+          onPluginInstall,
+          onPluginSetEnabled,
+          onPluginUninstall,
+        }),
+      ),
+      container,
+    );
+
+    const input = container.querySelector(
+      ".control-panel-plugin-install-form input",
+    ) as HTMLInputElement | null;
+    input!.value = "@kovaai/discord@beta";
+    input!.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    expect(onPluginInstallSpecChange).toHaveBeenCalledWith("@kovaai/discord@beta");
+
+    const installForm = container.querySelector(
+      ".control-panel-plugin-install-form",
+    ) as HTMLFormElement | null;
+    installForm?.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
+    expect(onPluginInstall).toHaveBeenCalled();
+
+    const enable = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Enable",
+    ) as HTMLButtonElement | undefined;
+    enable?.click();
+    expect(onPluginSetEnabled).toHaveBeenCalledWith("whatsapp", true);
+
+    const remove = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Remove",
+    ) as HTMLButtonElement | undefined;
+    remove?.click();
+    expect(onPluginUninstall).toHaveBeenCalledWith("whatsapp");
+  });
+
+  it("shows plugin operation progress while a plugin action is running", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          pluginsOperation: {
+            kind: "install",
+            label: "Installing @kovaai/whatsapp@beta",
+            startedAt: Date.now() - 2_000,
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.querySelector(".control-panel-progress.is-compact")).not.toBeNull();
+    expect(container.textContent).toContain("Installing @kovaai/whatsapp@beta");
   });
 });

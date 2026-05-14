@@ -165,11 +165,19 @@ import {
   PluginApprovalRequestParamsSchema,
   type PluginApprovalResolveParams,
   PluginApprovalResolveParamsSchema,
+  type PluginsInstallParams,
+  PluginsInstallParamsSchema,
+  type PluginsInstallResult,
+  type PluginsMutationResult,
+  type PluginsSetEnabledParams,
+  PluginsSetEnabledParamsSchema,
   type PluginStatusDiagnostic,
   type PluginStatusSummary,
   type PluginsStatusParams,
   PluginsStatusParamsSchema,
   type PluginsStatusResult,
+  type PluginsUninstallParams,
+  PluginsUninstallParamsSchema,
   ErrorCodes,
   type ErrorShape,
   ErrorShapeSchema,
@@ -573,6 +581,15 @@ export const validatePluginApprovalResolveParams = ajv.compile<PluginApprovalRes
 );
 export const validatePluginsStatusParams =
   ajv.compile<PluginsStatusParams>(PluginsStatusParamsSchema);
+export const validatePluginsSetEnabledParams = ajv.compile<PluginsSetEnabledParams>(
+  PluginsSetEnabledParamsSchema,
+);
+export const validatePluginsUninstallParams = ajv.compile<PluginsUninstallParams>(
+  PluginsUninstallParamsSchema,
+);
+export const validatePluginsInstallParams = ajv.compile<PluginsInstallParams>(
+  PluginsInstallParamsSchema,
+);
 export const validateExecApprovalsNodeGetParams = ajv.compile<ExecApprovalsNodeGetParams>(
   ExecApprovalsNodeGetParamsSchema,
 );
@@ -908,10 +925,15 @@ export type {
   ExecApprovalResolveParams,
   LogsTailParams,
   LogsTailResult,
+  PluginsInstallParams,
+  PluginsInstallResult,
+  PluginsMutationResult,
+  PluginsSetEnabledParams,
   PluginStatusDiagnostic,
   PluginStatusSummary,
   PluginsStatusParams,
   PluginsStatusResult,
+  PluginsUninstallParams,
   PollParams,
   WebPushVapidPublicKeyParams,
   WebPushSubscribeParams,

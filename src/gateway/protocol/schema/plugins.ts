@@ -3,6 +3,32 @@ import { NonEmptyString } from "./primitives.js";
 
 export const PluginsStatusParamsSchema = Type.Object({}, { additionalProperties: false });
 
+export const PluginsSetEnabledParamsSchema = Type.Object(
+  {
+    pluginId: NonEmptyString,
+    enabled: Type.Boolean(),
+  },
+  { additionalProperties: false },
+);
+
+export const PluginsUninstallParamsSchema = Type.Object(
+  {
+    pluginId: NonEmptyString,
+    deleteFiles: Type.Optional(Type.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
+export const PluginsInstallParamsSchema = Type.Object(
+  {
+    spec: NonEmptyString,
+    force: Type.Optional(Type.Boolean()),
+    pin: Type.Optional(Type.Boolean()),
+    dangerouslyForceUnsafeInstall: Type.Optional(Type.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
 export const PluginStatusSummarySchema = Type.Object(
   {
     id: NonEmptyString,
@@ -58,6 +84,30 @@ export const PluginsStatusResultSchema = Type.Object(
       },
       { additionalProperties: false },
     ),
+  },
+  { additionalProperties: false },
+);
+
+export const PluginsMutationResultSchema = Type.Object(
+  {
+    ok: Type.Boolean(),
+    pluginId: NonEmptyString,
+    message: Type.String(),
+    restartRequired: Type.Boolean(),
+    warnings: Type.Array(Type.String()),
+    status: PluginsStatusResultSchema,
+  },
+  { additionalProperties: false },
+);
+
+export const PluginsInstallResultSchema = Type.Object(
+  {
+    ok: Type.Boolean(),
+    pluginId: NonEmptyString,
+    message: Type.String(),
+    restartRequired: Type.Boolean(),
+    logs: Type.Array(Type.String()),
+    status: PluginsStatusResultSchema,
   },
   { additionalProperties: false },
 );

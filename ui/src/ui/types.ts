@@ -759,6 +759,10 @@ export type PluginStatusDiagnostic =
   import("../../../src/gateway/server-methods/plugins.js").PluginStatusDiagnostic;
 export type PluginsStatusResult =
   import("../../../src/gateway/server-methods/plugins.js").PluginsStatusResult;
+export type PluginsMutationResult =
+  import("../../../src/gateway/server-methods/plugins.js").PluginsMutationResult;
+export type PluginsInstallResult =
+  import("../../../src/gateway/server-methods/plugins.js").PluginsInstallResult;
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 

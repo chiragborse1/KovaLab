@@ -7,6 +7,7 @@ import type { CronModelSuggestionsState, CronState } from "./controllers/cron.ts
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import type { PluginOperationState } from "./controllers/plugins.ts";
 import type {
   ClawHubSearchResult,
   ClawHubSkillDetail,
@@ -381,6 +382,8 @@ export type AppViewState = {
     pluginsStatusLoading: boolean;
     pluginsStatusResult: PluginsStatusResult | null;
     pluginsStatusError: string | null;
+    pluginsOperation: PluginOperationState | null;
+    pluginsInstallSpec: string;
     controlWizardLoading: boolean;
     controlWizardSessionId: string | null;
     controlWizardStep: ControlWizardStep | null;

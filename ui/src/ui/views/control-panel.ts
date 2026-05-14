@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { buildChatModelOption } from "../chat-model-ref.ts";
+import type { PluginOperationState } from "../controllers/plugins.ts";
 import type {
   ControlWizardCompletedStep,
   ControlWizardSection,
@@ -39,6 +40,8 @@ export type ControlPanelProps = {
   pluginsStatus: PluginsStatusResult | null;
   pluginsStatusLoading: boolean;
   pluginsStatusError: string | null;
+  pluginsOperation: PluginOperationState | null;
+  pluginsInstallSpec: string;
   modelsLoading: boolean;
   currentModel: string | null;
   modelSaving: boolean;
@@ -53,6 +56,10 @@ export type ControlPanelProps = {
   onWizardRefresh: () => void;
   onRefreshModelAuth: () => void;
   onRefreshPlugins: () => void;
+  onPluginInstallSpecChange: (value: string) => void;
+  onPluginInstall: () => void;
+  onPluginSetEnabled: (pluginId: string, enabled: boolean) => void;
+  onPluginUninstall: (pluginId: string) => void;
   onModelSelect: (modelRef: string) => void;
   onModelSearchChange: (value: string) => void;
   onManualModelChange: (value: string) => void;
@@ -772,11 +779,58 @@ function summarizePluginCapabilities(plugin: PluginStatusSummary): string {
   return parts.length > 0 ? parts.join(" · ") : "manifest only";
 }
 
+function renderPluginOperation(props: ControlPanelProps) {
+  const operation = props.pluginsOperation;
+  if (!operation) {
+    return nothing;
+  }
+  return html`
+    <div class="control-panel-progress is-compact" role="status" aria-live="polite">
+      <div class="control-panel-progress__bar">
+        <span></span>
+      </div>
+      <div class="control-panel-progress__label">${operation.label}</div>
+      <div class="control-panel-progress__meta">
+        <span>Elapsed ${formatElapsed(operation.startedAt)}</span>
+        <span>Keep this page open while Kova updates plugin config.</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderPluginActions(props: ControlPanelProps, plugin: PluginStatusSummary) {
+  const busy = Boolean(props.pluginsOperation) || props.pluginsStatusLoading || !props.connected;
+  return html`
+    <div class="control-panel-plugin-row__actions">
+      <button
+        class="btn"
+        ?disabled=${busy}
+        @click=${() => props.onPluginSetEnabled(plugin.id, !plugin.enabled)}
+      >
+        ${plugin.enabled ? "Disable" : "Enable"}
+      </button>
+      ${plugin.removable
+        ? html`
+            <button
+              class="btn danger"
+              title="Remove plugin config and installed files when Kova manages this plugin."
+              ?disabled=${busy}
+              @click=${() => props.onPluginUninstall(plugin.id)}
+            >
+              Remove
+            </button>
+          `
+        : nothing}
+    </div>
+  `;
+}
+
 function renderPluginInventorySection(props: ControlPanelProps) {
   const status = props.pluginsStatus;
   const plugins = status?.plugins ?? [];
   const visiblePlugins = plugins.slice(0, 12);
   const diagnostics = status?.diagnostics ?? [];
+  const installSpec = props.pluginsInstallSpec.trim();
   return html`
     <section class="control-panel-section">
       ${renderSectionHeader({
@@ -813,7 +867,9 @@ function renderPluginInventorySection(props: ControlPanelProps) {
         <div class="control-panel-actions">
           <button
             class="btn"
-            ?disabled=${props.pluginsStatusLoading || !props.connected}
+            ?disabled=${props.pluginsStatusLoading ||
+            !props.connected ||
+            Boolean(props.pluginsOperation)}
             @click=${props.onRefreshPlugins}
           >
             ${props.pluginsStatusLoading ? "Checking..." : "Refresh plugins"}
@@ -826,6 +882,35 @@ function renderPluginInventorySection(props: ControlPanelProps) {
             Configure plugins
           </button>
         </div>
+        <form
+          class="control-panel-plugin-install-form"
+          @submit=${(event: SubmitEvent) => {
+            event.preventDefault();
+            props.onPluginInstall();
+          }}
+        >
+          <label>
+            <span>Install plugin package</span>
+            <input
+              class="input"
+              type="text"
+              placeholder="@kovaai/whatsapp@beta or npm:@scope/plugin"
+              .value=${props.pluginsInstallSpec}
+              ?disabled=${Boolean(props.pluginsOperation)}
+              @input=${(event: InputEvent) =>
+                props.onPluginInstallSpecChange((event.currentTarget as HTMLInputElement).value)}
+            />
+          </label>
+          <button
+            class="btn btn--primary"
+            ?disabled=${!props.connected ||
+            Boolean(props.pluginsOperation) ||
+            installSpec.length === 0}
+          >
+            Install
+          </button>
+        </form>
+        ${renderPluginOperation(props)}
         ${props.pluginsStatusError
           ? html`<div class="callout danger">${props.pluginsStatusError}</div>`
           : nothing}
@@ -846,6 +931,7 @@ function renderPluginInventorySection(props: ControlPanelProps) {
                         <span>${plugin.status}</span>
                         <small>${summarizePluginCapabilities(plugin)}</small>
                       </div>
+                      ${renderPluginActions(props, plugin)}
                     </div>
                   `,
                 )}

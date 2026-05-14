@@ -158,10 +158,15 @@ import {
   PluginApprovalResolveParamsSchema,
 } from "./plugin-approvals.js";
 import {
+  PluginsInstallParamsSchema,
+  PluginsInstallResultSchema,
+  PluginsMutationResultSchema,
+  PluginsSetEnabledParamsSchema,
   PluginStatusDiagnosticSchema,
   PluginStatusSummarySchema,
   PluginsStatusParamsSchema,
   PluginsStatusResultSchema,
+  PluginsUninstallParamsSchema,
 } from "./plugins.js";
 import { PushTestParamsSchema, PushTestResultSchema } from "./push.js";
 import {
@@ -390,9 +395,14 @@ export const ProtocolSchemas = {
   PluginApprovalRequestParams: PluginApprovalRequestParamsSchema,
   PluginApprovalResolveParams: PluginApprovalResolveParamsSchema,
   PluginsStatusParams: PluginsStatusParamsSchema,
+  PluginsSetEnabledParams: PluginsSetEnabledParamsSchema,
+  PluginsUninstallParams: PluginsUninstallParamsSchema,
+  PluginsInstallParams: PluginsInstallParamsSchema,
   PluginStatusSummary: PluginStatusSummarySchema,
   PluginStatusDiagnostic: PluginStatusDiagnosticSchema,
   PluginsStatusResult: PluginsStatusResultSchema,
+  PluginsMutationResult: PluginsMutationResultSchema,
+  PluginsInstallResult: PluginsInstallResultSchema,
   DevicePairListParams: DevicePairListParamsSchema,
   DevicePairApproveParams: DevicePairApproveParamsSchema,
   DevicePairRejectParams: DevicePairRejectParamsSchema,

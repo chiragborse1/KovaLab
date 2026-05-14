@@ -196,7 +196,7 @@ describe("skill mutations", () => {
       },
       expectedRequest: ["skills.update", { skillKey: "github", apiKey: "sk-test" }],
       expectedMessage:
-        "API key saved — stored in the Kova config file (openclaw.json → skills.entries.github)",
+        "API key saved — stored in the Kova config file (kova.json -> skills.entries.github)",
     },
     {
       name: "installs skills and uses server success messages",

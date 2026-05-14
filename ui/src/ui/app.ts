@@ -76,6 +76,7 @@ import type {
 } from "./controllers/dreaming.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import type { PluginOperationState } from "./controllers/plugins.ts";
 import type {
   ClawHubSearchResult,
   ClawHubSkillDetail,
@@ -531,6 +532,8 @@ export class OpenClawApp extends LitElement {
   @state() pluginsStatusLoading = false;
   @state() pluginsStatusResult: PluginsStatusResult | null = null;
   @state() pluginsStatusError: string | null = null;
+  @state() pluginsOperation: PluginOperationState | null = null;
+  @state() pluginsInstallSpec = "";
 
   @state() controlWizardLoading = false;
   @state() controlWizardSessionId: string | null = null;

@@ -94,7 +94,12 @@ import {
 import { loadLogs } from "./controllers/logs.ts";
 import { loadModelAuthStatusState } from "./controllers/model-auth-status.ts";
 import { loadNodes } from "./controllers/nodes.ts";
-import { loadPluginsStatusState } from "./controllers/plugins.ts";
+import {
+  installPluginState,
+  loadPluginsStatusState,
+  setPluginEnabledState,
+  uninstallPluginState,
+} from "./controllers/plugins.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import {
   branchSessionFromCheckpoint,
@@ -1660,6 +1665,8 @@ export function renderApp(state: AppViewState) {
                 pluginsStatus: state.pluginsStatusResult,
                 pluginsStatusLoading: state.pluginsStatusLoading,
                 pluginsStatusError: state.pluginsStatusError,
+                pluginsOperation: state.pluginsOperation,
+                pluginsInstallSpec: state.pluginsInstallSpec,
                 modelsLoading: state.chatModelsLoading,
                 currentModel,
                 modelSaving: state.controlPanelModelSaving,
@@ -1706,6 +1713,25 @@ export function renderApp(state: AppViewState) {
                 },
                 onRefreshPlugins: () => {
                   void loadPluginsStatusState(state).then(() => requestHostUpdate?.());
+                },
+                onPluginInstallSpecChange: (value) => {
+                  state.pluginsInstallSpec = value;
+                  requestHostUpdate?.();
+                },
+                onPluginInstall: () => {
+                  void installPluginState(state).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
+                },
+                onPluginSetEnabled: (pluginId, enabled) => {
+                  void setPluginEnabledState(state, pluginId, enabled).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
+                },
+                onPluginUninstall: (pluginId) => {
+                  void uninstallPluginState(state, pluginId).then(() => {
+                    void loadConfig(state).then(() => requestHostUpdate?.());
+                  });
                 },
                 onModelSelect: (modelRef) => {
                   if (!modelRef.trim()) {
