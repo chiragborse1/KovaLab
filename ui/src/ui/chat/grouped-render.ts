@@ -1233,7 +1233,16 @@ function renderInlineToolCards(
   },
 ) {
   return html`
-    <div class="chat-tools-inline">
+    <div
+      class="chat-tools-inline chat-tool-timeline"
+      aria-label=${`${toolCards.length} tool ${toolCards.length === 1 ? "action" : "actions"}`}
+    >
+      ${toolCards.length > 1
+        ? html`<div class="chat-tool-timeline__header">
+            <span>Activity</span>
+            <span>${toolCards.length} actions</span>
+          </div>`
+        : nothing}
       ${toolCards.map((card, index) =>
         renderToolCard(card, {
           expanded: opts.isToolExpanded?.(`${opts.messageKey}:toolcard:${index}`) ?? false,
@@ -1415,9 +1424,9 @@ function renderGroupedMessage(
   const toolMessageLabel =
     singleToolCard && !markdown && !hasImages
       ? singleToolCard.outputText?.trim()
-        ? "Tool output"
-        : "Tool call"
-      : "Tool output";
+        ? "Activity"
+        : "Action"
+      : "Activity";
 
   const hasActions = canCopyMarkdown || canExpand;
 
@@ -1444,12 +1453,16 @@ function renderGroupedMessage(
                 @click=${() => opts.onToggleToolMessageExpanded?.(toolMessageDisclosureId)}
               >
                 <span class="chat-tool-msg-summary__icon">${icons.zap}</span>
+                <span class="chat-tool-msg-summary__chevron">${icons.chevronDown}</span>
                 <span class="chat-tool-msg-summary__label">${toolMessageLabel}</span>
                 ${toolSummaryLabel
                   ? html`<span class="chat-tool-msg-summary__names">${toolSummaryLabel}</span>`
                   : toolPreview
                     ? html`<span class="chat-tool-msg-summary__preview">${toolPreview}</span>`
                     : nothing}
+                <span class="chat-tool-msg-summary__state"
+                  >${toolMessageExpanded ? "Hide" : "Open"}</span
+                >
               </button>
               ${toolMessageExpanded
                 ? html`

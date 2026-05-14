@@ -378,13 +378,37 @@ function renderToolDataBlock(params: {
   `;
 }
 
+function formatToolActivityMeta(card: ToolCard): string {
+  if (card.preview) {
+    return "Preview";
+  }
+  if (card.outputText?.trim()) {
+    return "Done";
+  }
+  if (card.inputText?.trim()) {
+    return "Called";
+  }
+  return "Complete";
+}
+
+function resolveToolActivity(card: ToolCard) {
+  const display = resolveToolDisplay({ name: card.name, args: card.args });
+  return {
+    display,
+    verb: (display.verb || display.label || card.name).trim(),
+    target: (display.detail || display.name || card.name).trim(),
+    meta: formatToolActivityMeta(card),
+  };
+}
+
 function renderCollapsedToolSummary(params: {
   label: string;
   name: string;
+  meta?: string;
   expanded: boolean;
   onToggleExpanded: () => void;
 }) {
-  const { label, name, expanded, onToggleExpanded } = params;
+  const { label, name, meta, expanded, onToggleExpanded } = params;
   return html`
     <button
       class="chat-tool-msg-summary"
@@ -393,8 +417,11 @@ function renderCollapsedToolSummary(params: {
       @click=${() => onToggleExpanded()}
     >
       <span class="chat-tool-msg-summary__icon">${icons.zap}</span>
+      <span class="chat-tool-msg-summary__chevron">${icons.chevronDown}</span>
       <span class="chat-tool-msg-summary__label">${label}</span>
       <span class="chat-tool-msg-summary__names">${name}</span>
+      ${meta ? html`<span class="chat-tool-msg-summary__meta">${meta}</span>` : nothing}
+      <span class="chat-tool-msg-summary__state">${expanded ? "Hide" : "Open"}</span>
     </button>
   `;
 }
@@ -410,8 +437,7 @@ export function renderToolCard(
     allowExternalEmbedUrls?: boolean;
   },
 ) {
-  const hasOutput = Boolean(card.outputText?.trim());
-  const previewLabel = hasOutput ? "Tool output" : "Tool call";
+  const activity = resolveToolActivity(card);
 
   return html`
     <div
@@ -420,8 +446,9 @@ export function renderToolCard(
         : ""}"
     >
       ${renderCollapsedToolSummary({
-        label: previewLabel,
-        name: card.name,
+        label: activity.verb,
+        name: activity.target,
+        meta: activity.meta,
         expanded: opts.expanded,
         onToggleExpanded: () => opts.onToggleExpanded(card.id),
       })}
@@ -471,29 +498,27 @@ export function renderExpandedToolCardContent(
     : nothing;
 
   return html`
-    <div class="chat-tool-card chat-tool-card--expanded">
-      <div class="chat-tool-card__header">
-        <div class="chat-tool-card__title">
-          <span class="chat-tool-card__icon">${icons[display.icon]}</span>
-          <span>${display.label}</span>
+    <div class="chat-tool-detail">
+      <div class="chat-tool-detail__header">
+        <div class="chat-tool-detail__title">
+          <span class="chat-tool-detail__name">${display.name}</span>
+          ${detail ? html`<span class="chat-tool-detail__detail">${detail}</span>` : nothing}
         </div>
         ${canOpenSidebar
           ? html`
-              <div class="chat-tool-card__actions">
-                <button
-                  class="chat-tool-card__action-btn"
-                  type="button"
-                  @click=${() => onOpenSidebar?.(sidebarActionContent)}
-                  title="Open in the side panel"
-                  aria-label="Open tool details in side panel"
-                >
-                  <span class="chat-tool-card__action-icon">${icons.panelRightOpen}</span>
-                </button>
-              </div>
+              <button
+                class="chat-tool-detail__action"
+                type="button"
+                @click=${() => onOpenSidebar?.(sidebarActionContent)}
+                title="Open in the side panel"
+                aria-label="Open tool details in side panel"
+              >
+                <span class="chat-tool-card__action-icon">${icons.panelRightOpen}</span>
+                Open
+              </button>
             `
           : nothing}
       </div>
-      ${detail ? html`<div class="chat-tool-card__detail">${detail}</div>` : nothing}
       ${hasInput
         ? renderToolDataBlock({
             label: "Tool input",
@@ -559,9 +584,9 @@ export function renderToolCardSidebar(
           <span>${display.label}</span>
         </div>
         ${canClick
-          ? html`<span class="chat-tool-card__action"
-              >${hasText || hasPreview ? "View" : ""} ${icons.check}</span
-            >`
+          ? html`<span class="chat-tool-card__action">
+              ${hasText || hasPreview ? "Open" : "Details"} ${icons.panelRightOpen}
+            </span>`
           : nothing}
         ${isEmpty && !canClick
           ? html`<span class="chat-tool-card__status">${icons.check}</span>`

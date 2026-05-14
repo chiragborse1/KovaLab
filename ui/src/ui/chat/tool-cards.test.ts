@@ -80,7 +80,8 @@ describe("tool-cards", () => {
       container,
     );
 
-    expect(container.textContent).toContain("Tool call");
+    expect(container.textContent).toContain("Sessions Spawn");
+    expect(container.textContent).toContain("Called");
     expect(container.textContent).not.toContain("Tool input");
     const summaryButton = container.querySelector("button.chat-tool-msg-summary");
     expect(summaryButton).not.toBeNull();
@@ -173,7 +174,7 @@ describe("tool-cards", () => {
       container,
     );
 
-    const sidebarButton = container.querySelector<HTMLButtonElement>(".chat-tool-card__action-btn");
+    const sidebarButton = container.querySelector<HTMLButtonElement>(".chat-tool-detail__action");
     sidebarButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(sidebarButton).not.toBeNull();

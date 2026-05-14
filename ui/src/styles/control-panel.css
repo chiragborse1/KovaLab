@@ -3,6 +3,23 @@
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 18px;
   min-height: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: normal;
+}
+
+.control-panel button,
+.control-panel input,
+.control-panel select,
+.control-panel textarea {
+  font-family: inherit;
+}
+
+.control-panel code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
 }
 
 .control-panel-nav {
@@ -1222,6 +1239,130 @@
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+/* Typography pass: keep content readable and reserve mono for system labels. */
+.control-panel-nav__title,
+.control-panel-eyebrow,
+.control-panel-label,
+.control-panel-meta-row__label,
+.control-panel-current-model span,
+.control-panel-model-picker__controls label span,
+.control-panel-readonly-field span,
+.control-panel-wizard-step__meta span,
+.control-panel-flow-card__head span,
+.control-panel-flow-card__head em,
+.control-panel-ops-card span,
+.control-panel-plugin-install-form span,
+.control-panel-plugin-row__meta span,
+.control-panel-diagnostic-row strong,
+.control-panel-option__selected,
+.control-panel-metrics small,
+.control-panel-next-bar span,
+.control-panel-progress__label,
+.control-panel-inline-progress,
+.control-panel-hero__status {
+  font-family: var(--mono);
+  font-weight: 650;
+}
+
+.control-panel-nav a,
+.control-panel-step {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.control-panel-step__index,
+.control-panel-completed-step__index {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.control-panel-step strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.control-panel-hero h1 {
+  color: var(--text-strong, var(--text));
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.control-panel-hero p,
+.control-panel-section__head p,
+.control-panel-flow-card p,
+.control-panel-model-flow__intro span,
+.control-panel-wizard-empty span,
+.control-panel-wizard-step p,
+.control-panel-field-hint,
+.control-panel-option small,
+.control-panel-plugin-row small,
+.control-panel-provider-status small {
+  line-height: 1.5;
+}
+
+.control-panel-section__head h2,
+.control-panel-wizard-empty strong,
+.control-panel-wizard-step h3 {
+  color: var(--text-strong, var(--text));
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+.control-panel-model-flow__intro strong,
+.control-panel-flow-card__head strong {
+  color: var(--text-strong, var(--text));
+  font-weight: 650;
+}
+
+.control-panel-provider__label,
+.control-panel-option strong,
+.control-panel-plugin-row strong,
+.control-panel-provider-status strong,
+.control-panel-readonly-field strong {
+  font-weight: 650;
+}
+
+.control-panel-chip,
+.control-panel-segmented button,
+.control-panel-toggle,
+.control-panel-summary__status,
+.control-panel-next-bar span,
+.control-panel-metrics small {
+  font-weight: 600;
+}
+
+.control-panel-ops-card strong {
+  color: var(--text-strong, var(--text));
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.control-panel-metrics span {
+  color: var(--text-strong, var(--text));
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.control-panel .btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: normal;
+}
+
+.control-panel .input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 @media (max-width: 980px) {

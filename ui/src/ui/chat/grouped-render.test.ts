@@ -493,7 +493,8 @@ describe("grouped chat rendering", () => {
 
     expect(container.querySelector(".chat-bubble--tool-shell")).not.toBeNull();
     const summary = container.querySelector<HTMLElement>(".chat-tool-msg-summary");
-    expect(summary?.textContent).toContain("Tool call");
+    expect(summary?.textContent).toContain("Action");
+    expect(summary?.textContent).toContain("sessions_spawn");
     expect(container.textContent).not.toContain('"thread": true');
 
     renderAssistantMessage(container, message, {
@@ -657,7 +658,7 @@ describe("grouped chat rendering", () => {
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
     ).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
     );
 
     container = renderUserMedia({
@@ -671,7 +672,7 @@ describe("grouped chat rendering", () => {
     expect(
       container.querySelector<HTMLImageElement>(".chat-message-image")?.getAttribute("src"),
     ).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fuser-upload.png&token=session-token",
     );
 
     container = renderUserMedia({
@@ -687,8 +688,8 @@ describe("grouped chat rendering", () => {
         image.getAttribute("src"),
       ),
     ).toEqual([
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ffirst.png&token=session-token",
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fsecond.jpg&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ffirst.png&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Fsecond.jpg&token=session-token",
     ]);
 
     const assistantContainer = document.createElement("div");
@@ -747,7 +748,7 @@ describe("grouped chat rendering", () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       const headers = init?.headers as Headers;
       expect(headers.get("Authorization")).toBe("Bearer session-token");
-      expect(headers.get("x-openclaw-requester-session-key")).toBe("agent:main:main");
+      expect(headers.get("x-kova-requester-session-key")).toBe("agent:main:main");
       return {
         ok: true,
         blob: async () => new Blob(["png"], { type: "image/png" }),
@@ -927,7 +928,7 @@ describe("grouped chat rendering", () => {
     await flushAssistantAttachmentAvailabilityChecks();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token&meta=1",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
 
@@ -936,10 +937,10 @@ describe("grouped chat rendering", () => {
       ".chat-assistant-attachment-card__link",
     );
     expect(image?.getAttribute("src")).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=session-token",
     );
     expect(docLink?.getAttribute("href")).toBe(
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest-doc.pdf&token=session-token",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest-doc.pdf&token=session-token",
     );
     expect(container.textContent).not.toContain("test image.png");
     vi.unstubAllGlobals();
@@ -987,12 +988,12 @@ describe("grouped chat rendering", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&meta=1",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "/openclaw/__openclaw__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=fresh-token&meta=1",
+      "/openclaw/__kova__/assistant-media?source=%2Ftmp%2Fopenclaw%2Ftest+image.png&token=fresh-token&meta=1",
       expect.objectContaining({ credentials: "same-origin", method: "GET" }),
     );
     expect(container.querySelector(".chat-message-image")).not.toBeNull();
@@ -1088,7 +1089,7 @@ describe("grouped chat rendering", () => {
           timestamp: Date.now(),
         },
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=%2FC%3A%2Ftmp%2Fopenclaw%2Ftest%2520image.png&meta=1",
+          "/openclaw/__kova__/assistant-media?source=%2FC%3A%2Ftmp%2Fopenclaw%2Ftest%2520image.png&meta=1",
       }),
       renderCase({
         roots: ["c:\\users\\test\\pictures"],
@@ -1099,7 +1100,7 @@ describe("grouped chat rendering", () => {
           timestamp: Date.now(),
         },
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=C%3A%5CUsers%5CTest%5CPictures%5Ctest+image.png&meta=1",
+          "/openclaw/__kova__/assistant-media?source=C%3A%5CUsers%5CTest%5CPictures%5Ctest+image.png&meta=1",
       }),
       renderCase({
         roots: ["/Users/test/Pictures"],
@@ -1121,7 +1122,7 @@ describe("grouped chat rendering", () => {
           timestamp: Date.now(),
         }),
         expectedUrl:
-          "/openclaw/__openclaw__/assistant-media?source=%7E%2FPictures%2Ftest+image.png&meta=1",
+          "/openclaw/__kova__/assistant-media?source=%7E%2FPictures%2Ftest+image.png&meta=1",
       }),
     ];
 
@@ -1414,7 +1415,7 @@ describe("grouped chat rendering", () => {
       },
     );
 
-    const sidebarButton = container.querySelector<HTMLButtonElement>(".chat-tool-card__action-btn");
+    const sidebarButton = container.querySelector<HTMLButtonElement>(".chat-tool-detail__action");
     sidebarButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(container.querySelector(".chat-tool-card__preview-frame")).toBeNull();
