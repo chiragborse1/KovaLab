@@ -16,10 +16,12 @@ import type {
   PluginStatusSummary,
   PluginsStatusResult,
 } from "../types.ts";
+import { renderConnectionPanel, type ConnectionPanelProps } from "./connection-panel.ts";
 
 export type ControlPanelProps = {
   connected: boolean;
   gatewayUrl: string;
+  connection: ConnectionPanelProps;
   assistantName: string;
   version: string;
   configPath?: string | null;
@@ -1560,9 +1562,9 @@ export function renderControlPanel(props: ControlPanelProps) {
           </div>
           ${renderGatewayStatus(props)}
         </section>
-        ${renderWizardSection(props)} ${renderProviderAuthSection(props)}
-        ${renderPluginInventorySection(props)} ${renderSetupDiagnosticsSection(props)}
-        ${renderInfoSection(props)}
+        ${renderConnectionPanel(props.connection)} ${renderWizardSection(props)}
+        ${renderProviderAuthSection(props)} ${renderPluginInventorySection(props)}
+        ${renderSetupDiagnosticsSection(props)} ${renderInfoSection(props)}
       </main>
     </div>
   `;

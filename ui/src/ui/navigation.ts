@@ -6,7 +6,7 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "instances", "sessions", "usage", "cron"],
+    tabs: ["instances", "sessions", "usage", "cron"],
   },
   { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
   {
@@ -62,6 +62,7 @@ const TAB_PATHS: Record<Tab, string> = {
 
 const PATH_ALIASES: Record<string, Tab> = {
   "/dreams": "dreams",
+  "/overview": "controlPanel",
 };
 
 const PATH_TO_TAB = new Map<string, Tab>([

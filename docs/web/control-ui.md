@@ -75,7 +75,7 @@ The Control UI fetches its runtime settings from `/__openclaw/control-ui-config.
 
 ## Language support
 
-The Control UI can localize itself on first load based on your browser locale. To override it later, open **Overview -> Gateway Access -> Language**. The locale picker lives in the Gateway Access card, not under Appearance.
+The Control UI can localize itself on first load based on your browser locale. To override it later, open **Control Panel -> Gateway Access -> Language**. The locale picker lives in the Gateway Access card, not under Appearance.
 
 - Supported locales: `en`, `zh-CN`, `zh-TW`, `pt-BR`, `de`, `es`, `ja-JP`, `ko`, `fr`, `tr`, `uk`, `id`, `pl`, `th`
 - Non-English translations are lazy-loaded in the browser.
@@ -86,10 +86,10 @@ The Control UI can localize itself on first load based on your browser locale. T
 
 The sidebar is grouped by operating intent:
 
-- **Main**: Dashboard, Chat, Agents, Jobs, Tasks, Conductor, Operations, and Sessions.
-- **Control**: Overview, Control Panel, channels, instances, sessions, usage, and cron jobs.
-- **Knowledge**: Memory, Skills, and MCP.
-- **Advanced**: the full legacy control/config surfaces for channels, instances, nodes, usage, appearance, automation, infrastructure, AI agents, debug, and logs.
+- **Chat**: chat and session continuation.
+- **Control**: instances, sessions, usage, and cron jobs.
+- **Agent**: agents, skills, nodes, and dreams.
+- **Settings**: Control Panel and config.
 
 <AccordionGroup>
   <Accordion title="Chat and Talk">
@@ -117,7 +117,7 @@ The sidebar is grouped by operating intent:
   <Accordion title="Config">
     - View/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`).
     - Quick Settings exposes Model & Provider cards backed by `models.list`, `models.authStatus`, and `config.patch`, so the default agent model can be changed without opening the raw config editor.
-    - Control Panel runs the gateway onboarding wizard in the browser, covering the same setup flow as `kova onboard`: model/provider auth, workspace, gateway, channels, web search, daemon/service, skills, and health checks. Setup answers stay visible as the next prompt appears, and the model step includes catalog search plus manual `provider/model` entry backed by `models.list` and `config.patch`.
+    - Control Panel owns gateway connection settings plus the browser onboarding wizard, covering the same setup flow as `kova onboard`: model/provider auth, workspace, gateway, channels, web search, daemon/service, skills, and health checks. Setup answers stay visible as the next prompt appears, and the model step includes catalog search plus manual `provider/model` entry backed by `models.list` and `config.patch`.
     - Control Panel also shows provider/auth health from `models.authStatus`, current default model, read-only plugin inventory from `plugins.status`, plugin/channel setup counts from the loaded config snapshot, and setup diagnostics that point operators at health, plugin, and channel reconfiguration without opening raw JSON.
     - Apply + restart with validation (`config.apply`) and wake the last active session.
     - Writes include a base-hash guard to prevent clobbering concurrent edits.

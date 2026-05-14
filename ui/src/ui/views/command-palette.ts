@@ -28,13 +28,6 @@ function buildSlashPaletteItems(): PaletteItem[] {
 function getPaletteBaseItems(): PaletteItem[] {
   return [
     {
-      id: "nav-overview",
-      label: t("overview.palette.items.overview"),
-      icon: "barChart",
-      category: "navigation",
-      action: "nav:overview",
-    },
-    {
       id: "nav-sessions",
       label: t("overview.palette.items.sessions"),
       icon: "fileText",

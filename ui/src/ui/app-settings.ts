@@ -266,7 +266,7 @@ export function applySettingsFromUrl(host: SettingsHost) {
 }
 
 export function setTab(host: SettingsHost, next: Tab) {
-  applyTabSelection(host, next, { refreshPolicy: "always", syncUrl: true });
+  applyTabSelection(host, visibleTabFor(next), { refreshPolicy: "always", syncUrl: true });
 }
 
 function applyThemeTransition(
@@ -586,7 +586,11 @@ export function onPopState(host: SettingsHost) {
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
-  applyTabSelection(host, next, { refreshPolicy: "connected" });
+  applyTabSelection(host, visibleTabFor(next), { refreshPolicy: "connected" });
+}
+
+function visibleTabFor(next: Tab): Tab {
+  return next === "overview" ? "controlPanel" : next;
 }
 
 function updateBrowserHistory(url: URL, replace: boolean) {

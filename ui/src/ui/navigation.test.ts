@@ -27,7 +27,7 @@ describe("iconForTab", () => {
 
   it("returns stable icons for known tabs", () => {
     expect(iconForTab("chat")).toBe("messageSquare");
-    expect(iconForTab("overview")).toBe("barChart");
+    expect(iconForTab("controlPanel")).toBe("settings");
     expect(iconForTab("instances")).toBe("radio");
     expect(iconForTab("sessions")).toBe("fileText");
     expect(iconForTab("cron")).toBe("loader");
@@ -54,7 +54,7 @@ describe("titleForTab", () => {
 
   it("returns expected titles", () => {
     expect(titleForTab("chat")).toBe("Chat");
-    expect(titleForTab("overview")).toBe("Overview");
+    expect(titleForTab("controlPanel")).toBe("Control Panel");
     expect(titleForTab("cron")).toBe("Cron Jobs");
   });
 });
@@ -113,7 +113,7 @@ describe("normalizePath", () => {
 describe("pathForTab", () => {
   it("returns correct path without base", () => {
     expect(pathForTab("chat")).toBe("/chat");
-    expect(pathForTab("overview")).toBe("/overview");
+    expect(pathForTab("controlPanel")).toBe("/control-panel");
   });
 
   it("prepends base path", () => {
@@ -125,7 +125,8 @@ describe("pathForTab", () => {
 describe("tabFromPath", () => {
   it("returns tab for valid path", () => {
     expect(tabFromPath("/chat")).toBe("chat");
-    expect(tabFromPath("/overview")).toBe("overview");
+    expect(tabFromPath("/overview")).toBe("controlPanel");
+    expect(tabFromPath("/control-panel")).toBe("controlPanel");
     expect(tabFromPath("/sessions")).toBe("sessions");
     expect(tabFromPath("/dreaming")).toBe("dreams");
     expect(tabFromPath("/dreams")).toBe("dreams");
@@ -146,7 +147,7 @@ describe("tabFromPath", () => {
 
   it("is case-insensitive", () => {
     expect(tabFromPath("/CHAT")).toBe("chat");
-    expect(tabFromPath("/Overview")).toBe("overview");
+    expect(tabFromPath("/Overview")).toBe("controlPanel");
   });
 });
 
@@ -158,6 +159,7 @@ describe("inferBasePathFromPathname", () => {
   it("returns empty string for direct tab path", () => {
     expect(inferBasePathFromPathname("/chat")).toBe("");
     expect(inferBasePathFromPathname("/overview")).toBe("");
+    expect(inferBasePathFromPathname("/control-panel")).toBe("");
     expect(inferBasePathFromPathname("/dreaming")).toBe("");
     expect(inferBasePathFromPathname("/dreams")).toBe("");
   });

@@ -166,7 +166,6 @@ import { renderDreaming } from "./views/dreaming.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
-import { renderOverview } from "./views/overview.ts";
 
 let _pendingUpdate: (() => void) | undefined;
 
@@ -662,9 +661,6 @@ export function renderApp(state: AppViewState) {
     return html` ${renderLoginGate(state)} ${renderGatewayUrlConfirmation(state)} `;
   }
 
-  const presenceCount = state.presenceEntries.length;
-  const sessionsCount = state.sessionsResult?.count ?? null;
-  const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
@@ -694,6 +690,29 @@ export function renderApp(state: AppViewState) {
       ? buildAssistantAvatarRoute(state.basePath, state.assistantAgentId)
       : (state.chatAvatarUrl ??
         (configAssistantAvatarMissing ? null : (assistantAvatarUrl ?? null)));
+  const gatewayAuthMode = (
+    state.hello?.snapshot as
+      | {
+          authMode?: "none" | "token" | "password" | "trusted-proxy";
+        }
+      | undefined
+  )?.authMode;
+  const applyConnectionSessionKey = (next: string) => {
+    state.sessionKey = next;
+    state.chatMessage = "";
+    state.resetChatInputHistoryNavigation();
+    state.chatMessages = [];
+    state.chatToolMessages = [];
+    state.chatStream = null;
+    state.chatRunId = null;
+    state.chatQueue = [];
+    state.resetToolStream();
+    state.applySettings({
+      ...state.settings,
+      sessionKey: next,
+      lastActiveSessionKey: next,
+    });
+  };
   const configValue =
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);
   const configuredDreaming = resolveConfiguredDreaming(configValue);
@@ -1580,61 +1599,6 @@ export function renderApp(state: AppViewState) {
                   : nothing}
               </div>
             </section>`}
-        ${state.tab === "overview"
-          ? renderOverview({
-              connected: state.connected,
-              hello: state.hello,
-              settings: state.settings,
-              password: state.password,
-              lastError: state.lastError,
-              lastErrorCode: state.lastErrorCode,
-              presenceCount,
-              sessionsCount,
-              cronEnabled: state.cronStatus?.enabled ?? null,
-              cronNext,
-              lastChannelsRefresh: state.channelsLastSuccess,
-              warnQueryToken,
-              modelAuthStatus: state.modelAuthStatusResult,
-              usageResult: state.usageResult,
-              sessionsResult: state.sessionsResult,
-              skillsReport: state.skillsReport,
-              cronJobs: state.cronJobs,
-              cronStatus: state.cronStatus,
-              attentionItems: state.attentionItems,
-              eventLog: state.eventLog,
-              overviewLogLines: state.overviewLogLines,
-              showGatewayToken: state.overviewShowGatewayToken,
-              showGatewayPassword: state.overviewShowGatewayPassword,
-              onSettingsChange: (next) => state.applySettings(next),
-              onPasswordChange: (next) => (state.password = next),
-              onSessionKeyChange: (next) => {
-                state.sessionKey = next;
-                state.chatMessage = "";
-                state.resetChatInputHistoryNavigation();
-                state.chatMessages = [];
-                state.chatToolMessages = [];
-                state.chatStream = null;
-                state.chatRunId = null;
-                state.chatQueue = [];
-                state.resetToolStream();
-                state.applySettings({
-                  ...state.settings,
-                  sessionKey: next,
-                  lastActiveSessionKey: next,
-                });
-              },
-              onToggleGatewayTokenVisibility: () => {
-                state.overviewShowGatewayToken = !state.overviewShowGatewayToken;
-              },
-              onToggleGatewayPasswordVisibility: () => {
-                state.overviewShowGatewayPassword = !state.overviewShowGatewayPassword;
-              },
-              onConnect: () => state.connect(),
-              onRefresh: () => state.loadOverview({ refresh: true }),
-              onNavigate: (tab) => state.setTab(tab as import("./navigation.ts").Tab),
-              onRefreshLogs: () => state.loadOverview({ refresh: true }),
-            })
-          : nothing}
         ${state.tab === "controlPanel"
           ? (() => {
               const configObj = state.configForm ?? state.configSnapshot?.config ?? {};
@@ -1645,6 +1609,28 @@ export function renderApp(state: AppViewState) {
                 configPath: state.configSnapshot?.path ?? null,
                 connected: state.connected,
                 gatewayUrl: state.settings.gatewayUrl,
+                connection: {
+                  connected: state.connected,
+                  authMode: gatewayAuthMode,
+                  settings: state.settings,
+                  password: state.password,
+                  lastError: state.lastError,
+                  lastErrorCode: state.lastErrorCode,
+                  warnQueryToken,
+                  showGatewayToken: state.overviewShowGatewayToken,
+                  showGatewayPassword: state.overviewShowGatewayPassword,
+                  onSettingsChange: (next) => state.applySettings(next),
+                  onPasswordChange: (next) => (state.password = next),
+                  onSessionKeyChange: applyConnectionSessionKey,
+                  onToggleGatewayTokenVisibility: () => {
+                    state.overviewShowGatewayToken = !state.overviewShowGatewayToken;
+                  },
+                  onToggleGatewayPasswordVisibility: () => {
+                    state.overviewShowGatewayPassword = !state.overviewShowGatewayPassword;
+                  },
+                  onConnect: () => state.connect(),
+                  onRefresh: () => state.loadOverview({ refresh: true }),
+                },
                 assistantName: state.assistantName,
                 version: state.hello?.server?.version ?? "",
                 config: configObj,

@@ -6,7 +6,7 @@ describe("TAB_GROUPS", () => {
     const control = TAB_GROUPS.find((group) => group.label === "control");
     const settings = TAB_GROUPS.find((group) => group.label === "settings");
 
-    expect(control?.tabs).toEqual(["overview", "instances", "sessions", "usage", "cron"]);
+    expect(control?.tabs).toEqual(["instances", "sessions", "usage", "cron"]);
     expect(settings?.tabs).toEqual(["controlPanel", "config"]);
   });
 

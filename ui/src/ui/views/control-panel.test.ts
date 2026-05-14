@@ -8,6 +8,39 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
   return {
     connected: true,
     gatewayUrl: "ws://127.0.0.1:18789",
+    connection: {
+      connected: true,
+      authMode: "token",
+      settings: {
+        gatewayUrl: "ws://127.0.0.1:18789",
+        token: "",
+        sessionKey: "agent:main:main",
+        lastActiveSessionKey: "agent:main:main",
+        theme: "system",
+        themeMode: "system",
+        chatFocusMode: false,
+        chatShowThinking: true,
+        chatShowToolCalls: true,
+        splitRatio: 0.6,
+        navCollapsed: false,
+        navWidth: 280,
+        navGroupsCollapsed: {},
+        borderRadius: 50,
+      },
+      password: "",
+      lastError: null,
+      lastErrorCode: null,
+      warnQueryToken: false,
+      showGatewayToken: false,
+      showGatewayPassword: false,
+      onSettingsChange: vi.fn(),
+      onPasswordChange: vi.fn(),
+      onSessionKeyChange: vi.fn(),
+      onToggleGatewayTokenVisibility: vi.fn(),
+      onToggleGatewayPasswordVisibility: vi.fn(),
+      onConnect: vi.fn(),
+      onRefresh: vi.fn(),
+    },
     assistantName: "Kova",
     version: "2.0.0-beta.5",
     configPath: "/home/user/.kova/kova.json",
@@ -234,13 +267,15 @@ describe("renderControlPanel", () => {
       container,
     );
 
-    const input = container.querySelector("input") as HTMLInputElement | null;
+    const input = container.querySelector(
+      ".control-panel-wizard-form input",
+    ) as HTMLInputElement | null;
     expect(input?.type).toBe("password");
     input!.value = "sk-next";
     input!.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(onWizardAnswerChange).toHaveBeenCalledWith("sk-next");
 
-    const form = container.querySelector("form") as HTMLFormElement | null;
+    const form = container.querySelector(".control-panel-wizard-form") as HTMLFormElement | null;
     form?.dispatchEvent(new SubmitEvent("submit", { bubbles: true, cancelable: true }));
     expect(onWizardSubmit).toHaveBeenCalledWith("sk-test");
     expect(container.textContent).toContain("stored in the configured credential store");

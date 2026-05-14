@@ -567,11 +567,11 @@ describe("control UI routing", () => {
     expect(JSON.parse(localStorage.getItem("openclaw.control.settings.v1") ?? "{}").token).toBe(
       undefined,
     );
-    expect(window.location.pathname).toBe("/ui/overview");
+    expect(window.location.pathname).toBe("/ui/control-panel");
     expect(window.location.hash).toBe("");
     app.remove();
 
-    const refreshed = mountApp("/ui/overview");
+    const refreshed = mountApp("/ui/control-panel");
     await refreshed.updateComplete;
 
     expect(refreshed.settings.token).toBe("abc123");
