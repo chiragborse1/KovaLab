@@ -17,6 +17,7 @@ function createProps(overrides: Partial<ControlPanelProps> = {}): ControlPanelPr
     wizardStatus: null,
     wizardError: null,
     wizardAnswerValue: null,
+    wizardCompletedSteps: [],
     onWizardStart: vi.fn(),
     onWizardStartSection: vi.fn(),
     onWizardAnswerChange: vi.fn(),
@@ -85,6 +86,15 @@ describe("renderControlPanel", () => {
 
     expect(onWizardStartSection).not.toHaveBeenCalled();
     expect(container.textContent).not.toContain("Browser setup saves config");
+  });
+
+  it("renders sidebar setup items without summary copy", () => {
+    const container = document.createElement("div");
+
+    render(renderControlPanel(createProps()), container);
+
+    expect(container.querySelector(".control-panel-step small")).toBeNull();
+    expect(container.textContent).not.toContain("Detect current workspace");
   });
 
   it("renders provider choices from the live wizard step", () => {
@@ -252,10 +262,45 @@ describe("renderControlPanel", () => {
     checkScan?.click();
     expect(onWizardSubmit).toHaveBeenCalledWith("primary");
 
-    const back = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Back to setup steps"),
+    expect(container.textContent).not.toContain("Back to setup steps");
+    const cancel = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Cancel setup"),
     ) as HTMLButtonElement | undefined;
-    back?.click();
+    cancel?.click();
     expect(onWizardCancel).toHaveBeenCalled();
+  });
+
+  it("keeps completed wizard answers above the current step", () => {
+    const container = document.createElement("div");
+
+    render(
+      renderControlPanel(
+        createProps({
+          wizardSessionId: "wiz_1",
+          wizardStatus: "running",
+          wizardCompletedSteps: [
+            {
+              step: {
+                id: "provider",
+                type: "select",
+                message: "Model/auth provider",
+                options: [{ label: "OpenRouter", value: "openrouter" }],
+              },
+              value: "openrouter",
+            },
+          ],
+          wizardStep: {
+            id: "use-existing",
+            type: "confirm",
+            message: "Use existing OPENROUTER_API_KEY?",
+          },
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Model/auth provider");
+    expect(container.textContent).toContain("OpenRouter");
+    expect(container.textContent).toContain("Use existing OPENROUTER_API_KEY?");
   });
 });

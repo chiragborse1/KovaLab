@@ -42,6 +42,11 @@ export type ControlWizardStep = {
   executor?: "gateway" | "client";
 };
 
+export type ControlWizardCompletedStep = {
+  step: ControlWizardStep;
+  value: unknown;
+};
+
 type WizardResult = {
   done: boolean;
   step?: ControlWizardStep;
@@ -62,6 +67,7 @@ export type ControlWizardState = {
   controlWizardStatus: ControlWizardStatus | null;
   controlWizardError: string | null;
   controlWizardAnswerValue: unknown;
+  controlWizardCompletedSteps: ControlWizardCompletedStep[];
 };
 
 function initialAnswerForStep(step: ControlWizardStep | null): unknown {
@@ -96,6 +102,38 @@ function applyWizardResult(
   }
 }
 
+function shouldAutoAdvanceStep(step: ControlWizardStep | null): boolean {
+  return step?.type === "note";
+}
+
+function shouldRecordCompletedStep(step: ControlWizardStep): boolean {
+  return step.type !== "note" && step.type !== "progress";
+}
+
+async function autoAdvancePassiveWizardSteps(state: ControlWizardState) {
+  while (
+    state.client &&
+    state.connected &&
+    state.controlWizardSessionId &&
+    shouldAutoAdvanceStep(state.controlWizardStep)
+  ) {
+    const step = state.controlWizardStep;
+    const result = await state.client.request<WizardResult>("wizard.next", {
+      sessionId: state.controlWizardSessionId,
+      answer: { stepId: step.id, value: null },
+    });
+    applyWizardResult(state, result);
+  }
+}
+
+async function applyWizardResultAndAutoAdvance(
+  state: ControlWizardState,
+  result: WizardResult & { sessionId?: string },
+) {
+  applyWizardResult(state, result);
+  await autoAdvancePassiveWizardSteps(state);
+}
+
 function isWizardNotFoundError(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
   return /wizard not found/i.test(message);
@@ -106,6 +144,7 @@ function resetMissingWizardSession(state: ControlWizardState) {
   state.controlWizardStep = null;
   state.controlWizardStatus = "error";
   state.controlWizardAnswerValue = null;
+  state.controlWizardCompletedSteps = [];
   state.controlWizardError =
     "Setup session was interrupted by a gateway restart. Start the setup again; saved changes were already written to config.";
 }
@@ -121,9 +160,10 @@ export async function startControlWizard(
   }
   state.controlWizardLoading = true;
   state.controlWizardError = null;
+  state.controlWizardCompletedSteps = [];
   try {
     const result = await state.client.request<WizardStartResult>("wizard.start", params);
-    applyWizardResult(state, result);
+    await applyWizardResultAndAutoAdvance(state, result);
   } catch (err) {
     if (isWizardNotFoundError(err)) {
       resetMissingWizardSession(state);
@@ -152,7 +192,13 @@ export async function submitControlWizardStep(state: ControlWizardState, value?:
       sessionId,
       answer: { stepId: step.id, value: answerValue },
     });
-    applyWizardResult(state, result);
+    if (shouldRecordCompletedStep(step)) {
+      state.controlWizardCompletedSteps = [
+        ...state.controlWizardCompletedSteps,
+        { step, value: answerValue },
+      ];
+    }
+    await applyWizardResultAndAutoAdvance(state, result);
   } catch (err) {
     if (isWizardNotFoundError(err)) {
       resetMissingWizardSession(state);
@@ -179,7 +225,7 @@ export async function refreshControlWizard(state: ControlWizardState) {
     const result = await state.client.request<WizardResult>("wizard.next", {
       sessionId: state.controlWizardSessionId,
     });
-    applyWizardResult(state, result);
+    await applyWizardResultAndAutoAdvance(state, result);
   } catch (err) {
     if (isWizardNotFoundError(err)) {
       resetMissingWizardSession(state);
@@ -201,6 +247,7 @@ export async function cancelControlWizard(state: ControlWizardState) {
     state.controlWizardSessionId = null;
     state.controlWizardStep = null;
     state.controlWizardStatus = "cancelled";
+    state.controlWizardCompletedSteps = [];
     return;
   }
   state.controlWizardLoading = true;
@@ -215,6 +262,7 @@ export async function cancelControlWizard(state: ControlWizardState) {
     state.controlWizardSessionId = null;
     state.controlWizardStep = null;
     state.controlWizardAnswerValue = null;
+    state.controlWizardCompletedSteps = [];
   } catch (err) {
     if (isWizardNotFoundError(err)) {
       resetMissingWizardSession(state);

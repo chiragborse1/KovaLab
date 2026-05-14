@@ -1643,6 +1643,7 @@ export function renderApp(state: AppViewState) {
               wizardStatus: state.controlWizardStatus,
               wizardError: state.controlWizardError,
               wizardAnswerValue: state.controlWizardAnswerValue,
+              wizardCompletedSteps: state.controlWizardCompletedSteps,
               onWizardStart: (mode) => {
                 void startControlWizard(state, { mode }).then(() => {
                   void loadConfig(state).then(() => requestHostUpdate?.());

@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import type {
+  ControlWizardCompletedStep,
   ControlWizardSection,
   ControlWizardStatus,
   ControlWizardStep,
@@ -19,6 +20,7 @@ export type ControlPanelProps = {
   wizardStatus: ControlWizardStatus | null;
   wizardError: string | null;
   wizardAnswerValue: unknown;
+  wizardCompletedSteps: ControlWizardCompletedStep[];
   onWizardStart: (mode: "local" | "remote") => void;
   onWizardStartSection: (section: ControlWizardSection) => void;
   onWizardAnswerChange: (value: unknown) => void;
@@ -30,47 +32,38 @@ export type ControlPanelProps = {
 const SETUP_STEPS = [
   {
     label: "Existing config",
-    detail: "Detect current workspace, gateway mode, and saved model defaults.",
     section: "health",
   },
   {
     label: "Model provider",
-    detail: "Choose from the backend provider catalog and enter OAuth/API-key credentials.",
     section: "model",
   },
   {
     label: "Workspace",
-    detail: "Pick where Kova stores agent files and boots the working directory.",
     section: "workspace",
   },
   {
     label: "Gateway",
-    detail: "Configure bind mode, port, auth token, and Control UI access.",
     section: "gateway",
   },
   {
     label: "Channels",
-    detail: "Set up Telegram, Discord, Slack, WhatsApp, Matrix, and other plugin channels.",
     section: "channels",
   },
   {
     label: "Web search",
-    detail: "Enable the selected search provider and collect provider keys when required.",
     section: "web",
   },
   {
     label: "Service",
-    detail: "Install or skip daemon/service startup depending on platform support.",
     section: "daemon",
   },
   {
     label: "Skills & health",
-    detail: "Finalize skills, run health checks, and show the resulting web UI endpoint.",
     section: "skills",
   },
 ] as const satisfies ReadonlyArray<{
   label: string;
-  detail: string;
   section: ControlWizardSection;
 }>;
 
@@ -108,12 +101,67 @@ function renderSetupTimeline(props: ControlPanelProps) {
             <span class="control-panel-step__index">${index + 1}</span>
             <span>
               <strong>${step.label}</strong>
-              <small>${step.detail}</small>
             </span>
           </button>
         `,
       )}
     </aside>
+  `;
+}
+
+function formatCompletedValue(step: ControlWizardStep, value: unknown): string {
+  if (step.sensitive) {
+    return value === null || value === undefined || value === "" ? "Not set" : "Saved securely";
+  }
+  if (step.type === "confirm") {
+    return value ? "Yes" : "No";
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return "None";
+    }
+    const labels = value.map((entry) => optionLabelForValue(step, entry));
+    return labels.join(", ");
+  }
+  return optionLabelForValue(step, value);
+}
+
+function optionLabelForValue(step: ControlWizardStep, value: unknown): string {
+  const option = (step.options ?? []).find((candidate) => valuesEqual(candidate.value, value));
+  if (option) {
+    return option.label;
+  }
+  if (value === null || value === undefined || value === "") {
+    return "Empty";
+  }
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return valueKey(value);
+}
+
+function completedStepTitle(step: ControlWizardStep): string {
+  return step.title ?? step.message ?? "Setup step";
+}
+
+function renderCompletedWizardSteps(steps: ControlWizardCompletedStep[]) {
+  if (steps.length === 0) {
+    return nothing;
+  }
+  return html`
+    <div class="control-panel-completed-flow" aria-label="Completed setup answers">
+      ${steps.map(
+        ({ step, value }, index) => html`
+          <div class="control-panel-completed-step">
+            <span class="control-panel-completed-step__index">${index + 1}</span>
+            <div>
+              <strong>${completedStepTitle(step)}</strong>
+              <small>${formatCompletedValue(step, value)}</small>
+            </div>
+          </div>
+        `,
+      )}
+    </div>
   `;
 }
 
@@ -389,9 +437,6 @@ function renderWizardEscapeActions(props: ControlPanelProps) {
   }
   return html`
     <div class="control-panel-wizard-step__footer">
-      <button class="btn" ?disabled=${props.wizardLoading} @click=${props.onWizardCancel}>
-        Back to setup steps
-      </button>
       <button class="btn danger" ?disabled=${props.wizardLoading} @click=${props.onWizardCancel}>
         Cancel setup
       </button>
@@ -437,6 +482,7 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
   }
 
   return html`
+    ${renderCompletedWizardSteps(props.wizardCompletedSteps)}
     <div class="control-panel-wizard-step">
       <div class="control-panel-wizard-step__meta">
         <span>Current step</span>
@@ -482,6 +528,7 @@ function renderCurrentWizardStep(props: ControlPanelProps) {
 }
 
 function renderWizardSection(props: ControlPanelProps) {
+  const showStartActions = !props.wizardSessionId && props.wizardStatus !== "done";
   return html`
     <section class="control-panel-section" id="control-panel-guided-setup">
       ${renderSectionHeader({
@@ -490,23 +537,29 @@ function renderWizardSection(props: ControlPanelProps) {
         detail: "Run the real Kova onboarding and settings flow from the browser.",
       })}
       <div class="control-panel-section__body">
-        <div class="control-panel-wizard-toolbar">
-          <button
-            class="btn btn--primary"
-            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
-            @click=${() => props.onWizardStart("local")}
-          >
-            ${props.wizardLoading && !props.wizardSessionId ? "Starting..." : "Start local setup"}
-          </button>
-          <button
-            class="btn"
-            ?disabled=${!props.connected || props.wizardLoading || Boolean(props.wizardSessionId)}
-            @click=${() => props.onWizardStart("remote")}
-          >
-            Start remote setup
-          </button>
-          ${props.wizardSessionId
-            ? html`
+        ${showStartActions
+          ? html`
+              <div class="control-panel-wizard-toolbar">
+                <button
+                  class="btn btn--primary"
+                  ?disabled=${!props.connected || props.wizardLoading}
+                  @click=${() => props.onWizardStart("local")}
+                >
+                  ${props.wizardLoading ? "Starting..." : "Start local setup"}
+                </button>
+                <button
+                  class="btn"
+                  ?disabled=${!props.connected || props.wizardLoading}
+                  @click=${() => props.onWizardStart("remote")}
+                >
+                  Start remote setup
+                </button>
+              </div>
+            `
+          : nothing}
+        ${props.wizardSessionId
+          ? html`
+              <div class="control-panel-wizard-toolbar">
                 <button
                   class="btn"
                   ?disabled=${props.wizardLoading}
@@ -514,16 +567,9 @@ function renderWizardSection(props: ControlPanelProps) {
                 >
                   Refresh step
                 </button>
-                <button
-                  class="btn danger"
-                  ?disabled=${props.wizardLoading}
-                  @click=${props.onWizardCancel}
-                >
-                  Cancel setup
-                </button>
-              `
-            : nothing}
-        </div>
+              </div>
+            `
+          : nothing}
         ${props.wizardError
           ? html`<div class="callout danger">${props.wizardError}</div>`
           : nothing}

@@ -81,7 +81,11 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
-import type { ControlWizardStatus, ControlWizardStep } from "./controllers/wizard.ts";
+import type {
+  ControlWizardCompletedStep,
+  ControlWizardStatus,
+  ControlWizardStep,
+} from "./controllers/wizard.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
@@ -525,6 +529,7 @@ export class OpenClawApp extends LitElement {
   @state() controlWizardStatus: ControlWizardStatus | null = null;
   @state() controlWizardError: string | null = null;
   @state() controlWizardAnswerValue: unknown = null;
+  @state() controlWizardCompletedSteps: ControlWizardCompletedStep[] = [];
 
   @state() debugLoading = false;
   @state() debugStatus: StatusSummary | null = null;

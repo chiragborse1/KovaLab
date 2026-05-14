@@ -16,6 +16,7 @@ function createState(request: ReturnType<typeof vi.fn>): ControlWizardState {
     controlWizardSessionId: "wiz_1",
     controlWizardStatus: "running",
     controlWizardStep: { id: "step_1", type: "text", message: "Token" },
+    controlWizardCompletedSteps: [],
   };
 }
 
@@ -33,6 +34,62 @@ describe("control wizard controller", () => {
       section: "channels",
     });
     expect(state.controlWizardStatus).toBe("done");
+  });
+
+  it("auto-advances passive note steps after starting a focused section", async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce({
+        sessionId: "wiz_2",
+        done: false,
+        status: "running",
+        step: { id: "intro", type: "note", title: "Kova configure" },
+      })
+      .mockResolvedValueOnce({
+        done: false,
+        status: "running",
+        step: {
+          id: "provider",
+          type: "select",
+          message: "Model/auth provider",
+          options: [{ label: "OpenRouter", value: "openrouter" }],
+        },
+      });
+    const state = createState(request);
+    state.controlWizardSessionId = null;
+    state.controlWizardStep = null;
+
+    await startControlWizard(state, { flow: "configure", section: "model" });
+
+    expect(request).toHaveBeenNthCalledWith(2, "wizard.next", {
+      sessionId: "wiz_2",
+      answer: { stepId: "intro", value: null },
+    });
+    expect(state.controlWizardStep?.id).toBe("provider");
+  });
+
+  it("records completed interactive steps before showing the next prompt", async () => {
+    const request = vi.fn(async () => ({
+      done: false,
+      status: "running",
+      step: { id: "api-key", type: "text", message: "Enter API key" },
+    }));
+    const state = createState(request);
+    state.controlWizardStep = {
+      id: "provider",
+      type: "select",
+      message: "Model/auth provider",
+      options: [{ label: "OpenRouter", value: "openrouter" }],
+    };
+
+    await submitControlWizardStep(state, "openrouter");
+
+    expect(state.controlWizardCompletedSteps).toHaveLength(1);
+    expect(state.controlWizardCompletedSteps[0]).toMatchObject({
+      step: { id: "provider" },
+      value: "openrouter",
+    });
+    expect(state.controlWizardStep?.id).toBe("api-key");
   });
 
   it("clears stale sessions when the gateway reports wizard not found", async () => {
