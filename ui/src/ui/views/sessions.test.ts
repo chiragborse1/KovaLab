@@ -90,7 +90,9 @@ describe("sessions view", () => {
     );
     await Promise.resolve();
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector(
+      'select[data-session-control="thinking"]',
+    ) as HTMLSelectElement | null;
     expect(thinking?.value).toBe("adaptive");
     expect(Array.from(thinking?.options ?? []).map((option) => option.value)).toEqual([
       "",
@@ -131,7 +133,9 @@ describe("sessions view", () => {
     );
     await Promise.resolve();
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector(
+      'select[data-session-control="thinking"]',
+    ) as HTMLSelectElement | null;
     expect(thinking?.value).toBe("");
     expect(thinking?.options[0]?.textContent?.trim()).toBe("Default (adaptive)");
   });
@@ -156,7 +160,9 @@ describe("sessions view", () => {
     );
     await Promise.resolve();
 
-    const thinking = container.querySelector("tbody select") as HTMLSelectElement | null;
+    const thinking = container.querySelector(
+      'select[data-session-control="thinking"]',
+    ) as HTMLSelectElement | null;
     expect(thinking?.value).toBe("low");
     expect(
       Array.from(thinking?.options ?? [])
@@ -197,6 +203,9 @@ describe("sessions view", () => {
     const keyCell = container.querySelector(".session-key-cell");
     expect(keyCell?.textContent).toContain("📊 Data Expert (dingtalk)");
     expect(keyCell?.getAttribute("title")).toBe("📊 Data Expert (dingtalk)");
+    expect(container.querySelector(".sessions-card__key")?.textContent).toContain(
+      "agent:data-expert:dingtalk:cidzg6sF43NZMy52Rnk8EN",
+    );
   });
 
   it("keeps raw keys when identity data is unavailable", async () => {
@@ -216,8 +225,11 @@ describe("sessions view", () => {
     await Promise.resolve();
 
     const keyCell = container.querySelector(".session-key-cell");
-    expect(keyCell?.textContent).toContain("agent:unknown-agent:telegram:abc123");
+    expect(keyCell?.textContent).toContain("Telegram · @abc123");
     expect(keyCell?.getAttribute("title")).toBe("agent:unknown-agent:telegram:abc123");
+    expect(container.querySelector(".sessions-card__key")?.textContent).toContain(
+      "agent:unknown-agent:telegram:abc123",
+    );
   });
 
   it("keeps raw keys for inherited identity object properties", async () => {
@@ -237,8 +249,11 @@ describe("sessions view", () => {
     await Promise.resolve();
 
     const text = container.querySelector(".session-key-cell")?.textContent ?? "";
-    expect(text).toContain("agent:constructor:telegram:abc123");
+    expect(text).toContain("Telegram · @abc123");
     expect(text).not.toContain("Object (telegram)");
+    expect(container.querySelector(".sessions-card__key")?.textContent).toContain(
+      "agent:constructor:telegram:abc123",
+    );
   });
 
   it("filters rows by agent identity name", async () => {
@@ -297,10 +312,15 @@ describe("sessions view", () => {
     );
     await Promise.resolve();
 
-    const selects = container.querySelectorAll("select");
-    const fast = selects[1] as HTMLSelectElement | undefined;
-    const verbose = selects[2] as HTMLSelectElement | undefined;
-    const reasoning = selects[3] as HTMLSelectElement | undefined;
+    const fast = container.querySelector(
+      'select[data-session-control="fast"]',
+    ) as HTMLSelectElement | null;
+    const verbose = container.querySelector(
+      'select[data-session-control="verbose"]',
+    ) as HTMLSelectElement | null;
+    const reasoning = container.querySelector(
+      'select[data-session-control="reasoning"]',
+    ) as HTMLSelectElement | null;
     expect(fast?.value).toBe("on");
     expect(verbose?.value).toBe("full");
     expect(Array.from(verbose?.options ?? []).some((option) => option.value === "full")).toBe(true);
@@ -338,7 +358,9 @@ describe("sessions view", () => {
     );
     await Promise.resolve();
 
-    const headerCheckbox = container.querySelector("thead input[type=checkbox]");
+    const headerCheckbox = container.querySelector(
+      'input[aria-label="Select all sessions on page"]',
+    );
     headerCheckbox?.dispatchEvent(new Event("change", { bubbles: true }));
 
     expect(onDeselectPage).toHaveBeenCalledWith(["page-0"]);

@@ -162,3 +162,41 @@ describe("nodes devices pending rendering", () => {
     expect(text).toContain("scopes: operator.read");
   });
 });
+
+describe("nodes fleet rendering", () => {
+  it("summarizes connected nodes and advertised capabilities", () => {
+    const text = renderNodesText({
+      nodes: [
+        {
+          nodeId: "node-build-1",
+          displayName: "Build Box",
+          connected: true,
+          paired: true,
+          platform: "linux",
+          version: "2.0.0-beta.5",
+          remoteIp: "192.168.1.42",
+          connectedAtMs: Date.now(),
+          approvedAtMs: Date.now(),
+          caps: ["camera"],
+          commands: ["browser.proxy.open", "system.run"],
+          permissions: { exec: true },
+        },
+      ],
+    });
+
+    expect(text).toContain("Node fleet");
+    expect(text).toContain("Build Box");
+    expect(text).toContain("node-build-1");
+    expect(text).toContain("system.run");
+    expect(text).toContain("browser.proxy.open");
+    expect(text).toContain("exec: on");
+  });
+
+  it("shows setup guidance when no nodes are paired", () => {
+    const text = renderNodesText({ nodes: [] });
+
+    expect(text).toContain("No nodes found");
+    expect(text).toContain("kova node run --host 127.0.0.1 --port 18789");
+    expect(text).toContain("kova devices list");
+  });
+});
