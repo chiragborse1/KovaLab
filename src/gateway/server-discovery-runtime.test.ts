@@ -10,6 +10,13 @@ const mocks = vi.hoisted(() => ({
     zonePath: "/tmp/openclaw.internal.db",
   })),
   formatBonjourInstanceName: vi.fn((name: string) => `${name} (Kova)`),
+  readDiscoveryEnv: vi.fn((env: NodeJS.ProcessEnv, key: string) => {
+    const modern = env[`KOVA_${key}`]?.trim();
+    if (modern) {
+      return modern;
+    }
+    return env.KOVA_ALLOW_OPENCLAW_COMPAT === "1" ? env[`OPENCLAW_${key}`]?.trim() : undefined;
+  }),
   resolveBonjourCliPath: vi.fn(() => "/usr/local/bin/openclaw"),
   resolveTailnetDnsHint: vi.fn(async () => "gateway.tailnet.example.ts.net"),
 }));
@@ -26,6 +33,7 @@ vi.mock("../infra/widearea-dns.js", () => ({
 
 vi.mock("./server-discovery.js", () => ({
   formatBonjourInstanceName: mocks.formatBonjourInstanceName,
+  readDiscoveryEnv: mocks.readDiscoveryEnv,
   resolveBonjourCliPath: mocks.resolveBonjourCliPath,
   resolveTailnetDnsHint: mocks.resolveTailnetDnsHint,
 }));
@@ -71,8 +79,8 @@ describe("startGatewayDiscovery", () => {
   it("starts registered local discovery services with gateway advertisement context", async () => {
     process.env.NODE_ENV = "development";
     delete process.env.VITEST;
-    delete process.env.OPENCLAW_DISABLE_BONJOUR;
-    process.env.OPENCLAW_SSH_PORT = "2222";
+    delete process.env.KOVA_DISABLE_BONJOUR;
+    process.env.KOVA_SSH_PORT = "2222";
 
     const stopped: string[] = [];
     const bonjour = makeDiscoveryService({
@@ -124,7 +132,7 @@ describe("startGatewayDiscovery", () => {
   it("skips local discovery services when mDNS mode is off", async () => {
     process.env.NODE_ENV = "development";
     delete process.env.VITEST;
-    delete process.env.OPENCLAW_DISABLE_BONJOUR;
+    delete process.env.KOVA_DISABLE_BONJOUR;
 
     const service = makeDiscoveryService({ id: "bonjour" });
     const result = await startGatewayDiscovery({
@@ -142,10 +150,10 @@ describe("startGatewayDiscovery", () => {
     expect(result.bonjourStop).toBeNull();
   });
 
-  it("skips local discovery services for truthy OPENCLAW_DISABLE_BONJOUR values", async () => {
+  it("skips local discovery services for truthy KOVA_DISABLE_BONJOUR values", async () => {
     process.env.NODE_ENV = "development";
     delete process.env.VITEST;
-    process.env.OPENCLAW_DISABLE_BONJOUR = "yes";
+    process.env.KOVA_DISABLE_BONJOUR = "yes";
 
     const service = makeDiscoveryService({ id: "bonjour" });
     const result = await startGatewayDiscovery({

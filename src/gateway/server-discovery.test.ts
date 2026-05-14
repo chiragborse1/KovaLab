@@ -4,7 +4,11 @@ const getTailnetHostname = vi.hoisted(() => vi.fn());
 
 vi.mock("../infra/tailscale.js", () => ({ getTailnetHostname }));
 
-import { formatBonjourInstanceName, resolveTailnetDnsHint } from "./server-discovery.js";
+import {
+  formatBonjourInstanceName,
+  resolveBonjourCliPath,
+  resolveTailnetDnsHint,
+} from "./server-discovery.js";
 
 describe("formatBonjourInstanceName", () => {
   test("defaults to Kova branding and preserves explicit branded names", () => {
@@ -16,27 +20,53 @@ describe("formatBonjourInstanceName", () => {
 });
 
 describe("resolveTailnetDnsHint", () => {
-  const prevTailnetDns = { value: undefined as string | undefined };
+  const prevEnv = {
+    kovaTailnetDns: undefined as string | undefined,
+    legacyTailnetDns: undefined as string | undefined,
+    compat: undefined as string | undefined,
+  };
 
   beforeEach(() => {
-    prevTailnetDns.value = process.env.OPENCLAW_TAILNET_DNS;
+    prevEnv.kovaTailnetDns = process.env.KOVA_TAILNET_DNS;
+    prevEnv.legacyTailnetDns = process.env.OPENCLAW_TAILNET_DNS;
+    prevEnv.compat = process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
+    delete process.env.KOVA_TAILNET_DNS;
     delete process.env.OPENCLAW_TAILNET_DNS;
+    delete process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
     getTailnetHostname.mockClear();
   });
 
   afterEach(() => {
-    if (prevTailnetDns.value === undefined) {
+    if (prevEnv.kovaTailnetDns === undefined) {
+      delete process.env.KOVA_TAILNET_DNS;
+    } else {
+      process.env.KOVA_TAILNET_DNS = prevEnv.kovaTailnetDns;
+    }
+    if (prevEnv.legacyTailnetDns === undefined) {
       delete process.env.OPENCLAW_TAILNET_DNS;
     } else {
-      process.env.OPENCLAW_TAILNET_DNS = prevTailnetDns.value;
+      process.env.OPENCLAW_TAILNET_DNS = prevEnv.legacyTailnetDns;
+    }
+    if (prevEnv.compat === undefined) {
+      delete process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
+    } else {
+      process.env.KOVA_ALLOW_OPENCLAW_COMPAT = prevEnv.compat;
     }
   });
 
   test("returns env hint when disabled", async () => {
-    process.env.OPENCLAW_TAILNET_DNS = "studio.tailnet.ts.net.";
+    process.env.KOVA_TAILNET_DNS = "studio.tailnet.ts.net.";
     const value = await resolveTailnetDnsHint({ enabled: false });
     expect(value).toBe("studio.tailnet.ts.net");
     expect(getTailnetHostname).not.toHaveBeenCalled();
+  });
+
+  test("ignores legacy env hint unless OpenClaw compatibility is explicit", async () => {
+    process.env.OPENCLAW_TAILNET_DNS = "legacy.tailnet.ts.net.";
+    await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBeUndefined();
+
+    process.env.KOVA_ALLOW_OPENCLAW_COMPAT = "1";
+    await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBe("legacy.tailnet.ts.net");
   });
 
   test("skips tailscale lookup when disabled", async () => {
@@ -50,5 +80,41 @@ describe("resolveTailnetDnsHint", () => {
     const value = await resolveTailnetDnsHint({ enabled: true });
     expect(value).toBe("host.tailnet.ts.net");
     expect(getTailnetHostname).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("resolveBonjourCliPath", () => {
+  const statSync = (candidate: string) =>
+    ({
+      isFile: () => candidate === "/bin/kova" || candidate === "/bin/openclaw",
+    }) as import("node:fs").Stats;
+
+  test("prefers Kova CLI path overrides", () => {
+    expect(
+      resolveBonjourCliPath({ env: { KOVA_CLI_PATH: "/bin/kova" } as NodeJS.ProcessEnv, statSync }),
+    ).toBe("/bin/kova");
+  });
+
+  test("ignores legacy CLI path overrides unless compatibility is explicit", () => {
+    const env = { OPENCLAW_CLI_PATH: "/bin/openclaw" } as NodeJS.ProcessEnv;
+    expect(
+      resolveBonjourCliPath({
+        env,
+        statSync,
+        execPath: "/missing/node",
+        argv: [],
+        cwd: "/missing",
+      }),
+    ).toBeUndefined();
+
+    expect(
+      resolveBonjourCliPath({
+        env: { ...env, KOVA_ALLOW_OPENCLAW_COMPAT: "1" } as NodeJS.ProcessEnv,
+        statSync,
+        execPath: "/missing/node",
+        argv: [],
+        cwd: "/missing",
+      }),
+    ).toBe("/bin/openclaw");
   });
 });

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveOpenClawCompatMode } from "../config/paths.js";
 import { getTailnetHostname } from "../infra/tailscale.js";
 import { runExec } from "../process/exec.js";
 
@@ -22,9 +23,23 @@ export function formatBonjourInstanceName(displayName: string) {
   return `${trimmed} (Kova)`;
 }
 
+export function readDiscoveryEnv(
+  env: NodeJS.ProcessEnv,
+  key: "CLI_PATH" | "DISABLE_BONJOUR" | "SSH_PORT" | "TAILNET_DNS",
+): string | undefined {
+  const modern = env[`KOVA_${key}`]?.trim();
+  if (modern) {
+    return modern;
+  }
+  if (!resolveOpenClawCompatMode(env)) {
+    return undefined;
+  }
+  return env[`OPENCLAW_${key}`]?.trim() || undefined;
+}
+
 export function resolveBonjourCliPath(opts: ResolveBonjourCliPathOptions = {}): string | undefined {
   const env = opts.env ?? process.env;
-  const envPath = env.OPENCLAW_CLI_PATH?.trim();
+  const envPath = readDiscoveryEnv(env, "CLI_PATH");
   if (envPath) {
     return envPath;
   }
@@ -70,7 +85,7 @@ export async function resolveTailnetDnsHint(opts?: {
   enabled?: boolean;
 }): Promise<string | undefined> {
   const env = opts?.env ?? process.env;
-  const envRaw = env.OPENCLAW_TAILNET_DNS?.trim();
+  const envRaw = readDiscoveryEnv(env, "TAILNET_DNS");
   const envValue = envRaw && envRaw.length > 0 ? envRaw.replace(/\.$/, "") : "";
   if (envValue) {
     return envValue;

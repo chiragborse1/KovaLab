@@ -253,10 +253,17 @@ async function resolveTailnetHost(): Promise<string | null> {
 function resolveAuthLabel(cfg: OpenClawPluginApi["config"]): ResolveAuthLabelResult {
   const mode = cfg.gateway?.auth?.mode;
   const token =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_TOKEN, cfg.gateway?.auth?.token]) ?? undefined;
+    pickFirstDefined([
+      process.env.KOVA_GATEWAY_TOKEN,
+      process.env.OPENCLAW_GATEWAY_TOKEN,
+      cfg.gateway?.auth?.token,
+    ]) ?? undefined;
   const password =
-    pickFirstDefined([process.env.OPENCLAW_GATEWAY_PASSWORD, cfg.gateway?.auth?.password]) ??
-    undefined;
+    pickFirstDefined([
+      process.env.KOVA_GATEWAY_PASSWORD,
+      process.env.OPENCLAW_GATEWAY_PASSWORD,
+      cfg.gateway?.auth?.password,
+    ]) ?? undefined;
 
   if (mode === "token" || mode === "password") {
     return resolveRequiredAuthLabel(mode, { token, password });

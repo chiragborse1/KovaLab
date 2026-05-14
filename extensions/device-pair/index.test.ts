@@ -70,6 +70,7 @@ type ApprovedPairingDevice = ApprovedPairingResult["device"];
 const INTERNAL_PAIRING_SCOPES = ["operator.write", "operator.pairing"];
 
 function createApi(params?: {
+  config?: OpenClawPluginApi["config"];
   runtime?: OpenClawPluginApi["runtime"];
   pluginConfig?: Record<string, unknown>;
   registerCommand?: (command: OpenClawPluginCommandDefinition) => void;
@@ -78,7 +79,7 @@ function createApi(params?: {
     id: "device-pair",
     name: "device-pair",
     source: "test",
-    config: {
+    config: params?.config ?? {
       gateway: {
         auth: {
           mode: "token",
@@ -96,6 +97,7 @@ function createApi(params?: {
 }
 
 function registerPairCommand(params?: {
+  config?: OpenClawPluginApi["config"];
   runtime?: OpenClawPluginApi["runtime"];
   pluginConfig?: Record<string, unknown>;
 }): OpenClawPluginCommandDefinition {
@@ -237,7 +239,14 @@ function expectApproveCalledWithInternalPairingScopes() {
 }
 
 describe("device-pair /pair qr", () => {
+  const prevGatewayEnv = {
+    token: undefined as string | undefined,
+    password: undefined as string | undefined,
+  };
+
   beforeEach(async () => {
+    prevGatewayEnv.token = process.env.KOVA_GATEWAY_TOKEN;
+    prevGatewayEnv.password = process.env.KOVA_GATEWAY_PASSWORD;
     vi.clearAllMocks();
     pluginApiMocks.issueDeviceBootstrapToken.mockResolvedValue({
       token: "boot-token",
@@ -247,6 +256,16 @@ describe("device-pair /pair qr", () => {
   });
 
   afterEach(async () => {
+    if (prevGatewayEnv.token === undefined) {
+      delete process.env.KOVA_GATEWAY_TOKEN;
+    } else {
+      process.env.KOVA_GATEWAY_TOKEN = prevGatewayEnv.token;
+    }
+    if (prevGatewayEnv.password === undefined) {
+      delete process.env.KOVA_GATEWAY_PASSWORD;
+    } else {
+      process.env.KOVA_GATEWAY_PASSWORD = prevGatewayEnv.password;
+    }
     await fs.rm(pluginApiMocks.resolvePreferredOpenClawTmpDir(), { recursive: true, force: true });
   });
 
@@ -275,6 +294,29 @@ describe("device-pair /pair qr", () => {
     expect(text).toContain("**Important:** Run `/pair cleanup` after pairing finishes.");
     expect(text).toContain("If this QR code leaks, run `/pair cleanup` immediately.");
     expect(text).not.toContain("![OpenClaw pairing QR]");
+  });
+
+  it("uses Kova gateway auth env when config omits the token", async () => {
+    process.env.KOVA_GATEWAY_TOKEN = "env-gateway-token";
+    const command = registerPairCommand({
+      config: {
+        gateway: {
+          auth: {
+            mode: "token",
+          },
+        },
+      },
+    });
+
+    const result = await command.handler(
+      createCommandContext({
+        channel: "webchat",
+        gatewayClientScopes: ["operator.write", "operator.pairing"],
+      }),
+    );
+
+    expect(pluginApiMocks.issueDeviceBootstrapToken).toHaveBeenCalledTimes(1);
+    expect(requireText(result)).toContain("Scan this QR code with the OpenClaw iOS app:");
   });
 
   it("rejects qr setup for internal gateway callers without operator.pairing", async () => {

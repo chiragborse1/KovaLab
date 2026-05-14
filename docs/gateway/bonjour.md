@@ -264,13 +264,14 @@ sequences (e.g. spaces become `\032`).
 
 - `kova plugins disable bonjour` disables LAN multicast advertising by disabling the bundled plugin.
 - `kova plugins enable bonjour` restores the default LAN discovery plugin.
-- `OPENCLAW_DISABLE_BONJOUR=1` disables LAN multicast advertising without changing plugin config; accepted truthy values are `1`, `true`, `yes`, and `on` (legacy: `OPENCLAW_DISABLE_BONJOUR`).
-- `OPENCLAW_DISABLE_BONJOUR=0` forces LAN multicast advertising on, including inside detected containers; accepted falsy values are `0`, `false`, `no`, and `off`.
-- When `OPENCLAW_DISABLE_BONJOUR` is unset, Bonjour advertises on normal hosts and auto-disables inside detected containers.
-- `gateway.bind` in `~/.openclaw/openclaw.json` controls the Gateway bind mode.
-- `OPENCLAW_SSH_PORT` overrides the SSH port when `sshPort` is advertised (legacy: `OPENCLAW_SSH_PORT`).
-- `OPENCLAW_TAILNET_DNS` publishes a MagicDNS hint in TXT when mDNS full mode is enabled (legacy: `OPENCLAW_TAILNET_DNS`).
-- `OPENCLAW_CLI_PATH` overrides the advertised CLI path (legacy: `OPENCLAW_CLI_PATH`).
+- `KOVA_DISABLE_BONJOUR=1` disables LAN multicast advertising without changing plugin config; accepted truthy values are `1`, `true`, `yes`, and `on`.
+- `KOVA_DISABLE_BONJOUR=0` forces LAN multicast advertising on, including inside detected containers; accepted falsy values are `0`, `false`, `no`, and `off`.
+- When `KOVA_DISABLE_BONJOUR` is unset, Bonjour advertises on normal hosts and auto-disables inside detected containers.
+- `gateway.bind` in `~/.kova/kova.json` controls the Gateway bind mode.
+- `KOVA_SSH_PORT` overrides the SSH port when `sshPort` is advertised.
+- `KOVA_TAILNET_DNS` publishes a MagicDNS hint in TXT when mDNS full mode is enabled.
+- `KOVA_CLI_PATH` overrides the advertised CLI path.
+- Legacy `OPENCLAW_*` discovery environment variables are honored only when `KOVA_ALLOW_OPENCLAW_COMPAT=1`.
 
 ## Related docs
 
