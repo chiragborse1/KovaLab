@@ -443,6 +443,8 @@ function renderMetricCell(params: {
 
 function renderCronSummary(props: CronProps, stats: CronJobStats) {
   const nextWake = formatNextRun(props.status?.nextWakeAtMs ?? null);
+  const failedJobs = props.jobs.filter((job) => job.state?.lastStatus === "error");
+  const failedEnabledJobs = failedJobs.filter((job) => job.enabled);
   return html`
     <section class="card cron-summary-strip cron-command-center">
       <div class="cron-command-center__head">
@@ -453,6 +455,36 @@ function renderCronSummary(props: CronProps, stats: CronJobStats) {
           </div>
         </div>
         <div class="cron-summary-strip__actions">
+          ${failedJobs.length > 0
+            ? html`
+                <button
+                  class="btn"
+                  ?disabled=${props.busy}
+                  @click=${() => {
+                    for (const job of failedJobs) {
+                      props.onRun(job, "force");
+                    }
+                  }}
+                >
+                  Retry failed
+                </button>
+              `
+            : nothing}
+          ${failedEnabledJobs.length > 0
+            ? html`
+                <button
+                  class="btn danger"
+                  ?disabled=${props.busy}
+                  @click=${() => {
+                    for (const job of failedEnabledJobs) {
+                      props.onToggle(job, false);
+                    }
+                  }}
+                >
+                  Pause failed
+                </button>
+              `
+            : nothing}
           ${props.onQuickCreate
             ? html`<button class="btn btn--primary" @click=${props.onQuickCreate}>+ New</button>`
             : nothing}
@@ -528,10 +560,82 @@ function renderTemplateRail(props: CronProps) {
   return html`
     <div class="cron-template-rail">
       ${renderTemplateButton({
+        title: "Morning briefing",
+        detail: "7 AM daily agent brief",
+        props,
+        patch: {
+          name: "Morning briefing",
+          description: "Daily briefing from recent workspace and channel context.",
+          scheduleKind: "cron",
+          cronExpr: "0 7 * * *",
+          sessionTarget: "isolated",
+          payloadKind: "agentTurn",
+          payloadText: "Prepare a concise morning briefing with priorities, risks, and follow-ups.",
+          deliveryMode: "announce",
+          wakeMode: "now",
+          deleteAfterRun: false,
+        },
+      })}
+      ${renderTemplateButton({
+        title: "Weekly cost report",
+        detail: "Monday 9 AM usage audit",
+        props,
+        patch: {
+          name: "Weekly cost report",
+          description: "Weekly cost, token, and model usage summary.",
+          scheduleKind: "cron",
+          cronExpr: "0 9 * * 1",
+          sessionTarget: "isolated",
+          payloadKind: "agentTurn",
+          payloadText:
+            "Generate a weekly cost report with model spend, token usage, anomalies, and recommended savings.",
+          deliveryMode: "announce",
+          wakeMode: "now",
+          deleteAfterRun: false,
+        },
+      })}
+      ${renderTemplateButton({
+        title: "Memory dreaming",
+        detail: "Nightly memory promotion",
+        props,
+        patch: {
+          name: "Memory dreaming",
+          description: "Promote durable memory from recent work.",
+          scheduleKind: "cron",
+          cronExpr: "30 2 * * *",
+          sessionTarget: "isolated",
+          payloadKind: "agentTurn",
+          payloadText:
+            "Review recent sessions and promote durable insights, preferences, and project facts into memory.",
+          deliveryMode: "none",
+          wakeMode: "now",
+          deleteAfterRun: false,
+        },
+      })}
+      ${renderTemplateButton({
+        title: "Channel digest",
+        detail: "6 PM channel summary",
+        props,
+        patch: {
+          name: "Channel digest",
+          description: "Summarize unread channel activity.",
+          scheduleKind: "cron",
+          cronExpr: "0 18 * * *",
+          sessionTarget: "isolated",
+          payloadKind: "agentTurn",
+          payloadText:
+            "Summarize important channel activity, unanswered messages, decisions, and follow-up tasks.",
+          deliveryMode: "announce",
+          wakeMode: "now",
+          deleteAfterRun: false,
+        },
+      })}
+      ${renderTemplateButton({
         title: "Reminder",
         detail: "Main timeline wakeup",
         props,
         patch: {
+          name: "Reminder",
           scheduleKind: "at",
           sessionTarget: "main",
           payloadKind: "systemEvent",
@@ -541,32 +645,263 @@ function renderTemplateRail(props: CronProps) {
         },
       })}
       ${renderTemplateButton({
-        title: "Digest",
-        detail: "Recurring agent report",
-        props,
-        patch: {
-          scheduleKind: "cron",
-          cronExpr: "0 7 * * *",
-          sessionTarget: "isolated",
-          payloadKind: "agentTurn",
-          deliveryMode: "announce",
-          wakeMode: "now",
-          deleteAfterRun: false,
-        },
-      })}
-      ${renderTemplateButton({
         title: "Webhook",
         detail: "POST result payload",
         props,
         patch: {
+          name: "Webhook report",
           scheduleKind: "cron",
+          cronExpr: "0 8 * * *",
           sessionTarget: "isolated",
           payloadKind: "agentTurn",
+          payloadText:
+            "Run the scheduled task and POST the result payload to the configured webhook.",
           deliveryMode: "webhook",
           wakeMode: "now",
           deleteAfterRun: false,
         },
       })}
+    </div>
+  `;
+}
+
+type SchedulePreview = {
+  rows: string[];
+  warnings: string[];
+};
+
+type CronFieldMatcher = (value: number) => boolean;
+
+function formatPreviewDate(date: Date): string {
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function parseEveryAmount(value: string): number | null {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function everyUnitMs(unit: CronFormState["everyUnit"]): number {
+  if (unit === "days") {
+    return 24 * 60 * 60 * 1000;
+  }
+  if (unit === "hours") {
+    return 60 * 60 * 1000;
+  }
+  return 60 * 1000;
+}
+
+function isWildcardCronField(field: string): boolean {
+  const trimmed = field.trim();
+  return trimmed === "*" || trimmed === "?";
+}
+
+function parseCronNumber(raw: string, min: number, max: number): number | null {
+  if (!/^\d+$/.test(raw)) {
+    return null;
+  }
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= min && value <= max ? value : null;
+}
+
+function parseCronFieldMatcher(field: string, min: number, max: number): CronFieldMatcher | null {
+  const segments = field
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (segments.length === 0) {
+    return null;
+  }
+  const ranges: Array<{ start: number; end: number; step: number }> = [];
+  for (const segment of segments) {
+    const parts = segment.split("/");
+    if (parts.length > 2) {
+      return null;
+    }
+    const rangeRaw = parts[0] ?? "";
+    const step = parts[1] ? parseCronNumber(parts[1], 1, max - min + 1) : 1;
+    if (step == null) {
+      return null;
+    }
+    let start: number;
+    let end: number;
+    if (rangeRaw === "*" || rangeRaw === "?") {
+      start = min;
+      end = max;
+    } else if (rangeRaw.includes("-")) {
+      const [startRaw, endRaw] = rangeRaw.split("-");
+      if (!startRaw || !endRaw) {
+        return null;
+      }
+      const parsedStart = parseCronNumber(startRaw, min, max);
+      const parsedEnd = parseCronNumber(endRaw, min, max);
+      if (parsedStart == null || parsedEnd == null || parsedStart > parsedEnd) {
+        return null;
+      }
+      start = parsedStart;
+      end = parsedEnd;
+    } else {
+      const parsed = parseCronNumber(rangeRaw, min, max);
+      if (parsed == null) {
+        return null;
+      }
+      start = parsed;
+      end = parsed;
+    }
+    ranges.push({ start, end, step });
+  }
+  return (value: number) =>
+    ranges.some(
+      ({ start, end, step }) => value >= start && value <= end && (value - start) % step === 0,
+    );
+}
+
+function isKnownTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function buildCronExpressionPreview(form: CronFormState, now: Date): SchedulePreview {
+  const warnings: string[] = [];
+  const rawFields = form.cronExpr.trim().split(/\s+/).filter(Boolean);
+  const fields = rawFields.length === 6 ? rawFields.slice(1) : rawFields;
+  if (fields.length !== 5) {
+    return {
+      rows: [],
+      warnings: form.cronExpr.trim()
+        ? [
+            "Preview supports common 5-field cron expressions. The gateway will validate the full expression when saving.",
+          ]
+        : [],
+    };
+  }
+
+  const [minuteRaw, hourRaw, dayOfMonthRaw, monthRaw, dayOfWeekRaw] = fields;
+  const minute = parseCronFieldMatcher(minuteRaw, 0, 59);
+  const hour = parseCronFieldMatcher(hourRaw, 0, 23);
+  const dayOfMonth = parseCronFieldMatcher(dayOfMonthRaw, 1, 31);
+  const month = parseCronFieldMatcher(monthRaw, 1, 12);
+  const dayOfWeek = parseCronFieldMatcher(dayOfWeekRaw, 0, 7);
+  if (!minute || !hour || !dayOfMonth || !month || !dayOfWeek) {
+    return {
+      rows: [],
+      warnings: [
+        "Preview could not parse this expression locally. The gateway will still validate it with the scheduler.",
+      ],
+    };
+  }
+
+  const dayOfMonthWildcard = isWildcardCronField(dayOfMonthRaw);
+  const dayOfWeekWildcard = isWildcardCronField(dayOfWeekRaw);
+  if (!dayOfMonthWildcard && !dayOfWeekWildcard) {
+    warnings.push(
+      "Day-of-month and day-of-week are both set. Cron uses OR behavior here, so either field can trigger a run.",
+    );
+  }
+  const timezone = form.cronTz.trim();
+  if (timezone && !isKnownTimeZone(timezone)) {
+    warnings.push(
+      "Timezone is not recognized by this browser. The gateway will validate it when saving.",
+    );
+  } else if (timezone) {
+    const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (browserZone && timezone !== browserZone) {
+      warnings.push(
+        `Preview is shown in browser local time (${browserZone}); the gateway will schedule in ${timezone}.`,
+      );
+    }
+  }
+
+  const rows: string[] = [];
+  const cursor = new Date(now.getTime());
+  cursor.setSeconds(0, 0);
+  cursor.setMinutes(cursor.getMinutes() + 1);
+  for (let i = 0; i < 200_000 && rows.length < 5; i += 1) {
+    const cronDayOfWeek = cursor.getDay();
+    const matchesDayOfWeek = dayOfWeek(cronDayOfWeek) || (cronDayOfWeek === 0 && dayOfWeek(7));
+    const matchesDayOfMonth = dayOfMonth(cursor.getDate());
+    const matchesDay =
+      !dayOfMonthWildcard && !dayOfWeekWildcard
+        ? matchesDayOfMonth || matchesDayOfWeek
+        : matchesDayOfMonth && matchesDayOfWeek;
+    if (
+      minute(cursor.getMinutes()) &&
+      hour(cursor.getHours()) &&
+      month(cursor.getMonth() + 1) &&
+      matchesDay
+    ) {
+      rows.push(formatPreviewDate(cursor));
+    }
+    cursor.setMinutes(cursor.getMinutes() + 1);
+  }
+  if (rows.length === 0) {
+    warnings.push("No local preview matches were found in the next 138 days.");
+  }
+  return { rows, warnings };
+}
+
+function buildSchedulePreview(form: CronFormState, now = new Date()): SchedulePreview {
+  if (form.scheduleKind === "at") {
+    if (!form.scheduleAt.trim()) {
+      return { rows: [], warnings: [] };
+    }
+    const date = new Date(form.scheduleAt);
+    if (Number.isNaN(date.getTime())) {
+      return { rows: [], warnings: ["Run-at value is not a valid date yet."] };
+    }
+    return { rows: [formatPreviewDate(date)], warnings: [] };
+  }
+  if (form.scheduleKind === "every") {
+    const amount = parseEveryAmount(form.everyAmount);
+    if (amount == null) {
+      return { rows: [], warnings: [] };
+    }
+    const intervalMs = amount * everyUnitMs(form.everyUnit);
+    return {
+      rows: Array.from({ length: 5 }, (_, index) =>
+        formatPreviewDate(new Date(now.getTime() + intervalMs * (index + 1))),
+      ),
+      warnings: [],
+    };
+  }
+  return buildCronExpressionPreview(form, now);
+}
+
+function renderSchedulePreview(form: CronFormState) {
+  const preview = buildSchedulePreview(form);
+  if (preview.rows.length === 0 && preview.warnings.length === 0) {
+    return nothing;
+  }
+  return html`
+    <div class="cron-schedule-preview">
+      <div class="cron-schedule-preview__head">
+        <span>Schedule preview</span>
+        ${preview.rows.length > 1 ? html`<small>Next ${preview.rows.length}</small>` : nothing}
+      </div>
+      ${preview.rows.length > 0
+        ? html`
+            <ol class="cron-schedule-preview__list">
+              ${preview.rows.map((row) => html`<li>${row}</li>`)}
+            </ol>
+          `
+        : nothing}
+      ${preview.warnings.length > 0
+        ? html`
+            <ul class="cron-schedule-preview__warnings">
+              ${preview.warnings.map((warning) => html`<li>${warning}</li>`)}
+            </ul>
+          `
+        : nothing}
     </div>
   `;
 }
@@ -642,6 +977,7 @@ function renderSelectedJobPanel(job: CronJob | undefined, props: CronProps) {
         >
           ${job.enabled ? t("cron.jobList.disable") : t("cron.jobList.enable")}
         </button>
+        ${renderRemoveConfirmation(job, props, (action) => action())}
       </div>
     </section>
   `;
@@ -1050,7 +1386,7 @@ export function renderCron(props: CronProps) {
                 </select>
               </label>
             </div>
-            ${renderScheduleFields(props)}
+            ${renderScheduleFields(props)} ${renderSchedulePreview(props.form)}
           </section>
 
           <section class="cron-form-section">
@@ -1731,6 +2067,31 @@ function renderFieldError(message?: string, id?: string) {
   return html`<div id=${ifDefined(id)} class="cron-help cron-error">${t(message)}</div>`;
 }
 
+function renderRemoveConfirmation(
+  job: CronJob,
+  props: CronProps,
+  selectAnd: (action: () => void) => void,
+) {
+  return html`
+    <details class="cron-danger-confirm" @click=${(event: Event) => event.stopPropagation()}>
+      <summary class="btn danger">${t("cron.jobList.remove")}</summary>
+      <div class="cron-danger-confirm__panel">
+        <span>Delete this cron job? This cannot be undone.</span>
+        <button
+          class="btn danger"
+          ?disabled=${props.busy}
+          @click=${(event: Event) => {
+            event.stopPropagation();
+            selectAnd(() => props.onRemove(job));
+          }}
+        >
+          Confirm delete
+        </button>
+      </div>
+    </details>
+  `;
+}
+
 function renderJob(job: CronJob, props: CronProps) {
   const isSelected = props.runsJobId === job.id;
   const itemClass = `list-item list-item-clickable cron-job${isSelected ? " list-item-selected" : ""}`;
@@ -1829,16 +2190,7 @@ function renderJob(job: CronJob, props: CronProps) {
           >
             ${t("cron.jobList.history")}
           </button>
-          <button
-            class="btn danger"
-            ?disabled=${props.busy}
-            @click=${(event: Event) => {
-              event.stopPropagation();
-              selectAnd(() => props.onRemove(job));
-            }}
-          >
-            ${t("cron.jobList.remove")}
-          </button>
+          ${renderRemoveConfirmation(job, props, selectAnd)}
         </div>
       </div>
     </div>
@@ -1971,6 +2323,29 @@ function runDeliveryLabel(value: string): string {
   }
 }
 
+function buildRunDetailPayload(entry: CronRunLogEntry): Record<string, unknown> {
+  const details: Record<string, unknown> = {
+    jobId: entry.jobId,
+    jobName: entry.jobName ?? null,
+    action: entry.action ?? null,
+    status: entry.status ?? null,
+    timestamp: formatMs(entry.ts),
+    runAt: typeof entry.runAtMs === "number" ? formatMs(entry.runAtMs) : null,
+    nextRunAt: typeof entry.nextRunAtMs === "number" ? formatMs(entry.nextRunAtMs) : null,
+    durationMs: entry.durationMs ?? null,
+    delivered: entry.delivered ?? null,
+    deliveryStatus: entry.deliveryStatus ?? null,
+    deliveryError: entry.deliveryError ?? null,
+    sessionId: entry.sessionId ?? null,
+    sessionKey: entry.sessionKey ?? null,
+    model: entry.model ?? null,
+    provider: entry.provider ?? null,
+    usage: entry.usage ?? null,
+    error: entry.error ?? null,
+  };
+  return details;
+}
+
 function renderRun(
   entry: CronRunLogEntry,
   basePath: string,
@@ -2047,6 +2422,10 @@ function renderRun(
       <div class="cron-run-entry__body chat-text">
         ${unsafeHTML(toSanitizedMarkdownHtml(bodySource))}
       </div>
+      <details class="cron-run-details">
+        <summary>Run details</summary>
+        <pre>${JSON.stringify(buildRunDetailPayload(entry), null, 2)}</pre>
+      </details>
     </div>
   `;
 }

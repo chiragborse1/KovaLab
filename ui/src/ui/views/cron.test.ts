@@ -514,6 +514,46 @@ describe("cron view", () => {
     expect(container.textContent).not.toContain("Best effort delivery");
   });
 
+  it("previews schedules, warns about cron OR semantics, and applies real templates", () => {
+    const container = document.createElement("div");
+    const onFormChange = vi.fn();
+    render(
+      renderCron(
+        createProps({
+          form: {
+            ...DEFAULT_CRON_FORM,
+            scheduleKind: "cron",
+            cronExpr: "0 9 15 * 1",
+            cronTz: "UTC",
+          },
+          onFormChange,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Schedule preview");
+    expect(container.textContent).toContain("Day-of-month and day-of-week are both set");
+
+    const previewRows = container.querySelectorAll(".cron-schedule-preview__list li");
+    expect(previewRows.length).toBeGreaterThan(0);
+    expect(previewRows.length).toBeLessThanOrEqual(5);
+
+    const template = Array.from(container.querySelectorAll(".cron-template")).find((button) =>
+      button.textContent?.includes("Weekly cost report"),
+    );
+    expect(template).not.toBeUndefined();
+    template?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(onFormChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Weekly cost report",
+        cronExpr: "0 9 * * 1",
+        payloadKind: "agentTurn",
+      }),
+    );
+  });
+
   it("renders inline validation errors, disabled submit, and required aria bindings", () => {
     const container = document.createElement("div");
     render(
@@ -623,9 +663,15 @@ describe("cron view", () => {
     expect(runDueButton).not.toBeUndefined();
     runDueButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    const removeButton = getButtonByText(container, "Remove");
-    expect(removeButton).not.toBeUndefined();
-    removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const removeSummary = Array.from(container.querySelectorAll("summary")).find(
+      (summary) => summary.textContent?.trim() === "Remove",
+    );
+    expect(removeSummary).not.toBeUndefined();
+    removeSummary?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const confirmDelete = getButtonByText(container, "Confirm delete");
+    expect(confirmDelete).not.toBeUndefined();
+    confirmDelete?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(onClone).toHaveBeenCalledWith(actionJob);
     expect(onToggle).toHaveBeenCalledWith(actionJob, false);
@@ -638,6 +684,68 @@ describe("cron view", () => {
     expect(actionLoadRuns).toHaveBeenNthCalledWith(3, "job-actions");
     expect(actionLoadRuns).toHaveBeenNthCalledWith(4, "job-actions");
     expect(actionLoadRuns).toHaveBeenNthCalledWith(5, "job-actions");
+  });
+
+  it("bulk retries and pauses failed jobs from the command center", () => {
+    const container = document.createElement("div");
+    const onRun = vi.fn();
+    const onToggle = vi.fn();
+    const failedJob = {
+      ...createJob("failed-job"),
+      state: { lastStatus: "error" as const, lastRunAtMs: 1 },
+    };
+    render(
+      renderCron(
+        createProps({
+          jobs: [failedJob],
+          onRun,
+          onToggle,
+        }),
+      ),
+      container,
+    );
+
+    getButtonByText(container, "Retry failed")?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true }),
+    );
+    getButtonByText(container, "Pause failed")?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true }),
+    );
+
+    expect(onRun).toHaveBeenCalledWith(failedJob, "force");
+    expect(onToggle).toHaveBeenCalledWith(failedJob, false);
+  });
+
+  it("shows expandable run details with delivery and model metadata", () => {
+    const container = document.createElement("div");
+    render(
+      renderCron(
+        createProps({
+          runs: [
+            {
+              ts: 2,
+              jobId: "job-detail",
+              jobName: "Cost report",
+              status: "error",
+              error: "Provider timeout",
+              deliveryStatus: "not-delivered",
+              deliveryError: "Webhook 500",
+              model: "gpt-5.4",
+              provider: "openai",
+              durationMs: 1234,
+              usage: { input_tokens: 10, output_tokens: 20, total_tokens: 30 },
+            },
+          ],
+        }),
+      ),
+      container,
+    );
+
+    const details = container.querySelector(".cron-run-details pre");
+    expect(details?.textContent).toContain('"jobName": "Cost report"');
+    expect(details?.textContent).toContain('"model": "gpt-5.4"');
+    expect(details?.textContent).toContain('"deliveryError": "Webhook 500"');
+    expect(details?.textContent).toContain('"total_tokens": 30');
   });
 
   it("renders suggestion datalists for agent/model/thinking/timezone", () => {

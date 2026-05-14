@@ -133,11 +133,15 @@ The sidebar is grouped by operating intent:
     - Update: run a package/git update + restart (`update.run`) with a restart report, then poll `update.status` after reconnect to verify the running gateway version.
   </Accordion>
   <Accordion title="Cron jobs panel notes">
+    - Command Center summarizes scheduler health and exposes bulk Retry failed / Pause failed actions when jobs need attention.
+    - Template shortcuts cover reminders, morning briefings, weekly cost reports, memory dreaming, channel digests, and webhook reports.
+    - Schedule fields show a browser-side next-run preview. Cron expressions also warn about timezone display differences and day-of-month/day-of-week OR matching.
     - For isolated jobs, delivery defaults to announce summary. You can switch to none if you want internal-only runs.
     - Channel/target fields appear when announce is selected.
     - Webhook mode uses `delivery.mode = "webhook"` with `delivery.to` set to a valid HTTP(S) webhook URL.
     - For main-session jobs, webhook and none delivery modes are available.
     - Advanced edit controls include delete-after-run, clear agent override, cron exact/stagger options, agent model/thinking overrides, and best-effort delivery toggles.
+    - Run history entries include an expandable details block with selected metadata for debugging delivery, model, usage, and session routing.
     - Form validation is inline with field-level errors; invalid values disable the save button until fixed.
     - Set `cron.webhookToken` to send a dedicated bearer token, if omitted the webhook is sent without an auth header.
     - Deprecated fallback: stored legacy jobs with `notify: true` can still use `cron.webhook` until migrated.
