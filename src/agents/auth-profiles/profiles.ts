@@ -11,6 +11,45 @@ import {
 import type { AuthProfileCredential, AuthProfileStore } from "./types.js";
 export { dedupeProfileIds, listProfilesForProvider } from "./profile-list.js";
 
+function normalizeAuthProfileCredential(credential: AuthProfileCredential): AuthProfileCredential {
+  return credential.type === "api_key"
+    ? {
+        ...credential,
+        ...(typeof credential.key === "string"
+          ? { key: normalizeSecretInput(credential.key) }
+          : {}),
+      }
+    : credential.type === "token"
+      ? { ...credential, token: normalizeSecretInput(credential.token) }
+      : credential;
+}
+
+function authProfileCredentialChanged(
+  existing: AuthProfileCredential | undefined,
+  next: AuthProfileCredential,
+): boolean {
+  return JSON.stringify(existing ?? null) !== JSON.stringify(next);
+}
+
+function clearAuthProfileRuntimeState(store: AuthProfileStore, profileId: string): void {
+  if (store.usageStats?.[profileId]) {
+    delete store.usageStats[profileId];
+    if (Object.keys(store.usageStats).length === 0) {
+      store.usageStats = undefined;
+    }
+  }
+  if (store.lastGood) {
+    for (const [provider, lastGoodProfileId] of Object.entries(store.lastGood)) {
+      if (lastGoodProfileId === profileId) {
+        delete store.lastGood[provider];
+      }
+    }
+    if (Object.keys(store.lastGood).length === 0) {
+      store.lastGood = undefined;
+    }
+  }
+}
+
 export async function setAuthProfileOrder(params: {
   agentDir?: string;
   provider: string;
@@ -46,18 +85,11 @@ export function upsertAuthProfile(params: {
   credential: AuthProfileCredential;
   agentDir?: string;
 }): void {
-  const credential =
-    params.credential.type === "api_key"
-      ? {
-          ...params.credential,
-          ...(typeof params.credential.key === "string"
-            ? { key: normalizeSecretInput(params.credential.key) }
-            : {}),
-        }
-      : params.credential.type === "token"
-        ? { ...params.credential, token: normalizeSecretInput(params.credential.token) }
-        : params.credential;
+  const credential = normalizeAuthProfileCredential(params.credential);
   const store = ensureAuthProfileStoreForLocalUpdate(params.agentDir);
+  if (authProfileCredentialChanged(store.profiles[params.profileId], credential)) {
+    clearAuthProfileRuntimeState(store, params.profileId);
+  }
   store.profiles[params.profileId] = credential;
   saveAuthProfileStore(store, params.agentDir, {
     filterExternalAuthProfiles: false,
@@ -70,10 +102,14 @@ export async function upsertAuthProfileWithLock(params: {
   credential: AuthProfileCredential;
   agentDir?: string;
 }): Promise<AuthProfileStore | null> {
+  const credential = normalizeAuthProfileCredential(params.credential);
   return await updateAuthProfileStoreWithLock({
     agentDir: params.agentDir,
     updater: (store) => {
-      store.profiles[params.profileId] = params.credential;
+      if (authProfileCredentialChanged(store.profiles[params.profileId], credential)) {
+        clearAuthProfileRuntimeState(store, params.profileId);
+      }
+      store.profiles[params.profileId] = credential;
       return true;
     },
   });

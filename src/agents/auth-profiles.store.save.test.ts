@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { resolveAuthStatePath, resolveAuthStorePath } from "./auth-profiles/paths.js";
+import { upsertAuthProfile } from "./auth-profiles/profiles.js";
 import {
   clearRuntimeAuthProfileStoreSnapshots,
   ensureAuthProfileStore,
@@ -180,6 +181,102 @@ describe("saveAuthProfileStore", () => {
       expect(authState.lastGood?.anthropic).toBe("anthropic:default");
       expect(authState.usageStats?.["anthropic:default"]?.lastUsed).toBe(123);
     } finally {
+      await fs.rm(agentDir, { recursive: true, force: true });
+    }
+  });
+
+  it("clears stale runtime state when replacing an api key profile", async () => {
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-replace-key-"));
+    try {
+      saveAuthProfileStore(
+        {
+          version: 1,
+          profiles: {
+            "openrouter:default": {
+              type: "api_key",
+              provider: "openrouter",
+              key: "sk-old",
+            },
+          },
+          lastGood: {
+            openrouter: "openrouter:default",
+          },
+          usageStats: {
+            "openrouter:default": {
+              lastUsed: 123,
+              cooldownUntil: 456,
+              cooldownReason: "billing",
+              errorCount: 2,
+            },
+          },
+        },
+        agentDir,
+      );
+
+      upsertAuthProfile({
+        profileId: "openrouter:default",
+        credential: {
+          type: "api_key",
+          provider: "openrouter",
+          key: "sk-new",
+        },
+        agentDir,
+      });
+
+      const store = ensureAuthProfileStore(agentDir);
+      expect(store.profiles["openrouter:default"]).toMatchObject({
+        type: "api_key",
+        provider: "openrouter",
+        key: "sk-new",
+      });
+      expect(store.lastGood?.openrouter).toBeUndefined();
+      expect(store.usageStats?.["openrouter:default"]).toBeUndefined();
+    } finally {
+      clearRuntimeAuthProfileStoreSnapshots();
+      await fs.rm(agentDir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps runtime state when re-saving the same api key profile", async () => {
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-same-key-"));
+    try {
+      saveAuthProfileStore(
+        {
+          version: 1,
+          profiles: {
+            "openrouter:default": {
+              type: "api_key",
+              provider: "openrouter",
+              key: "sk-same",
+            },
+          },
+          lastGood: {
+            openrouter: "openrouter:default",
+          },
+          usageStats: {
+            "openrouter:default": {
+              lastUsed: 123,
+            },
+          },
+        },
+        agentDir,
+      );
+
+      upsertAuthProfile({
+        profileId: "openrouter:default",
+        credential: {
+          type: "api_key",
+          provider: "openrouter",
+          key: "sk-same",
+        },
+        agentDir,
+      });
+
+      const store = ensureAuthProfileStore(agentDir);
+      expect(store.lastGood?.openrouter).toBe("openrouter:default");
+      expect(store.usageStats?.["openrouter:default"]?.lastUsed).toBe(123);
+    } finally {
+      clearRuntimeAuthProfileStoreSnapshots();
       await fs.rm(agentDir, { recursive: true, force: true });
     }
   });
