@@ -334,12 +334,13 @@ export function renderAgentTools(params: {
   };
 
   return html`
-    <section class="card">
+    <section class="card agent-tools-console">
       <div class="agent-tools-header">
         <div class="agent-tools-header__intro">
+          <div class="agents-eyebrow">Capability matrix</div>
           <div class="card-title">Tool Access</div>
           <div class="card-sub">
-            Profile + per-tool overrides for this agent.
+            Runtime tools, preset policy, and per-tool overrides for this agent.
             <span class="mono">${enabledCount}/${toolIds.length}</span> enabled.
           </div>
         </div>
@@ -403,10 +404,10 @@ export function renderAgentTools(params: {
           `
         : nothing}
 
-      <div class="agent-tools-overview">
+      <div class="agent-tools-overview agent-tools-overview--matrix">
         <div class="agent-tools-overview__primary">
           <div class="agent-tools-pane">
-            <div class="label">Available Right Now</div>
+            <div class="agents-eyebrow">Available Right Now</div>
             <div class="card-sub">
               What this agent can use in the current chat session.
               <span class="mono">${params.runtimeSessionKey || "no session"}</span>
@@ -469,7 +470,7 @@ export function renderAgentTools(params: {
           </div>
 
           <div class="agent-tools-pane">
-            <div class="label">Quick Presets</div>
+            <div class="agents-eyebrow">Quick Presets</div>
             <div class="agent-tools-buttons">
               ${profileOptions.map(
                 (option) => html`
@@ -493,7 +494,7 @@ export function renderAgentTools(params: {
           </div>
         </div>
 
-        <div class="agent-tools-facts">
+        <div class="agent-tools-facts agent-tools-facts--radar">
           <div class="agent-tools-fact">
             <div class="label">Profile</div>
             <div class="mono">${profile}</div>
@@ -519,7 +520,7 @@ export function renderAgentTools(params: {
         </div>
       </div>
 
-      <div class="agent-tools-grid">
+      <div class="agent-tools-grid agent-tools-grid--matrix">
         ${toolSections.map((section) => {
           const sortedTools = sortSectionTools(section.tools);
           const enabledSectionCount = section.tools.filter(
@@ -703,9 +704,10 @@ export function renderAgentSkills(params: {
   const totalCount = rawSkills.length;
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between; flex-wrap: wrap;">
+    <section class="card agent-skills-console">
+      <div class="agent-skills-command">
         <div style="min-width: 0;">
+          <div class="agents-eyebrow">Skill loadout</div>
           <div class="card-title">Skills</div>
           <div class="card-sub">
             Per-agent skill allowlist and workspace skills.
@@ -714,11 +716,8 @@ export function renderAgentSkills(params: {
               : nothing}
           </div>
         </div>
-        <div class="row" style="gap: 8px; flex-wrap: wrap;">
-          <div
-            class="row"
-            style="gap: 4px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2px;"
-          >
+        <div class="agent-skills-actions">
+          <div class="agent-skills-action-pack">
             <button
               class="btn btn--sm"
               ?disabled=${!editable}
@@ -762,6 +761,13 @@ export function renderAgentSkills(params: {
         </div>
       </div>
 
+      <div class="agent-skills-metrics">
+        ${renderAgentSkillsMetric("Total", String(totalCount), "discovered")}
+        ${renderAgentSkillsMetric("Enabled", String(enabledCount), "usable by agent")}
+        ${renderAgentSkillsMetric("Mode", usingAllowlist ? "Custom" : "All", "allowlist")}
+        ${renderAgentSkillsMetric("Shown", String(filtered.length), "after filter")}
+      </div>
+
       ${!params.configForm
         ? html`
             <div class="callout info" style="margin-top: 12px">
@@ -791,7 +797,7 @@ export function renderAgentSkills(params: {
         ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
         : nothing}
 
-      <div class="filters" style="margin-top: 14px;">
+      <div class="filters agent-skills-filterbar">
         <label class="field" style="flex: 1;">
           <span>Filter</span>
           <input
@@ -808,7 +814,7 @@ export function renderAgentSkills(params: {
       ${filtered.length === 0
         ? html` <div class="muted" style="margin-top: 16px">No skills found.</div> `
         : html`
-            <div class="agent-skills-groups" style="margin-top: 16px;">
+            <div class="agent-skills-groups">
               ${groups.map((group) =>
                 renderAgentSkillGroup(group, {
                   agentId: params.agentId,
@@ -821,6 +827,16 @@ export function renderAgentSkills(params: {
             </div>
           `}
     </section>
+  `;
+}
+
+function renderAgentSkillsMetric(label: string, value: string, note: string) {
+  return html`
+    <div class="agent-skills-metric">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <small>${note}</small>
+    </div>
   `;
 }
 

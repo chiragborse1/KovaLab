@@ -8,6 +8,7 @@ import type {
 } from "../types.ts";
 import {
   buildModelOptions,
+  normalizeAgentLabel,
   normalizeModelValue,
   parseFallbackList,
   resolveAgentConfig,
@@ -99,125 +100,163 @@ export function renderAgentOverview(params: {
   };
 
   return html`
-    <section class="card">
-      <div class="card-title">Overview</div>
-      <div class="card-sub">Workspace paths and identity metadata.</div>
-
-      <div class="agents-overview-grid" style="margin-top: 16px;">
-        <div class="agent-kv">
-          <div class="label">Workspace</div>
-          <div>
-            <button
-              type="button"
-              class="workspace-link mono"
-              @click=${() => onSelectPanel("files")}
-              title="Open Files tab"
-            >
-              ${workspace}
-            </button>
-          </div>
+    <section class="agent-overview-console">
+      <div class="agent-overview-hero card">
+        <div class="agent-overview-hero__main">
+          <div class="agents-eyebrow">Runtime identity</div>
+          <h3>${params.agentIdentity?.name ?? normalizeAgentLabel(agent)}</h3>
+          <p>
+            ${params.agentIdentityLoading
+              ? "Resolving runtime identity…"
+              : params.agentIdentityError
+                ? params.agentIdentityError
+                : "This is the active personality, model chain, workspace, and skill surface for the selected agent."}
+          </p>
         </div>
-        <div class="agent-kv">
-          <div class="label">Primary Model</div>
-          <div class="mono">${model}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Skills Filter</div>
-          <div>${skillFilter ? `${skillCount} selected` : "all skills"}</div>
+        <div class="agent-overview-status-grid">
+          ${renderOverviewMetric("Default", isDefault ? "Yes" : "No", agent.id)}
+          ${renderOverviewMetric("Model", model, defaultModel)}
+          ${renderOverviewMetric(
+            "Skills",
+            skillFilter ? `${skillCount} selected` : "All",
+            "visibility filter",
+          )}
+          ${renderOverviewMetric("Config", configDirty ? "Unsaved" : "Synced", "gateway config")}
         </div>
       </div>
 
       ${configDirty
-        ? html`
-            <div class="callout warn" style="margin-top: 16px">
-              You have unsaved config changes.
-            </div>
-          `
+        ? html`<div class="callout warn">You have unsaved agent config changes.</div>`
         : nothing}
 
-      <div class="agent-model-select" style="margin-top: 20px;">
-        <div class="label">Model Selection</div>
-        <div class="agent-model-fields">
-          <label class="field">
-            <span>Primary model${isDefault ? " (default)" : ""}</span>
-            <select
-              .value=${isDefault ? (effectivePrimary ?? "") : (entryPrimary ?? "")}
-              ?disabled=${disabled}
-              @change=${(e: Event) =>
-                onModelChange(agent.id, (e.target as HTMLSelectElement).value || null)}
-            >
-              ${isDefault
-                ? html` <option value="">Not set</option> `
-                : html`
-                    <option value="">
-                      ${defaultPrimary ? `Inherit default (${defaultPrimary})` : "Inherit default"}
-                    </option>
-                  `}
-              ${buildModelOptions(configForm, effectivePrimary ?? undefined, params.modelCatalog)}
-            </select>
-          </label>
-          <div class="field">
-            <span>Fallbacks</span>
-            <div
-              class="agent-chip-input"
-              @click=${(e: Event) => {
-                const container = e.currentTarget as HTMLElement;
-                const input = container.querySelector("input");
-                if (input) {
-                  input.focus();
-                }
-              }}
-            >
-              ${fallbackChips.map(
-                (chip, i) => html`
-                  <span class="chip">
-                    ${chip}
-                    <button
-                      type="button"
-                      class="chip-remove"
-                      ?disabled=${disabled}
-                      @click=${() => removeChip(i)}
-                    >
-                      &times;
-                    </button>
-                  </span>
-                `,
-              )}
-              <input
-                ?disabled=${disabled}
-                placeholder=${fallbackChips.length === 0 ? "provider/model" : ""}
-                @keydown=${handleChipKeydown}
-                @blur=${(e: Event) => {
-                  const input = e.target as HTMLInputElement;
-                  const parsed = parseFallbackList(input.value);
-                  if (parsed.length > 0) {
-                    onModelFallbacksChange(agent.id, [...fallbackChips, ...parsed]);
-                    input.value = "";
-                  }
-                }}
-              />
+      <div class="agent-overview-systems">
+        <section class="card agent-system-card agent-system-card--workspace">
+          <div class="agent-system-card__head">
+            <div>
+              <div class="card-title">Workspace Core</div>
+              <div class="card-sub">Files, memory instructions, and local operating context.</div>
+            </div>
+            <button class="btn btn--sm" type="button" @click=${() => onSelectPanel("files")}>
+              Open Files
+            </button>
+          </div>
+          <button
+            type="button"
+            class="agent-workspace-orbit mono"
+            @click=${() => onSelectPanel("files")}
+            title="Open Files tab"
+          >
+            ${workspace}
+          </button>
+          <div class="agent-system-strip">
+            <span>AGENTS.md</span>
+            <span>SOUL.md</span>
+            <span>IDENTITY.md</span>
+            <span>USER.md</span>
+          </div>
+        </section>
+
+        <section class="card agent-system-card agent-system-card--model">
+          <div class="agent-system-card__head">
+            <div>
+              <div class="card-title">Model Chain</div>
+              <div class="card-sub">Primary model and fallback runway for this agent.</div>
+            </div>
+            <div class="agent-model-actions">
+              <button
+                type="button"
+                class="btn btn--sm"
+                ?disabled=${configLoading}
+                @click=${onConfigReload}
+              >
+                ${t("common.reloadConfig")}
+              </button>
+              <button
+                type="button"
+                class="btn btn--sm primary"
+                ?disabled=${configSaving || !configDirty}
+                @click=${onConfigSave}
+              >
+                ${configSaving ? "Saving…" : "Save"}
+              </button>
             </div>
           </div>
-        </div>
-        <div class="agent-model-actions">
-          <button
-            type="button"
-            class="btn btn--sm"
-            ?disabled=${configLoading}
-            @click=${onConfigReload}
-          >
-            ${t("common.reloadConfig")}
-          </button>
-          <button
-            type="button"
-            class="btn btn--sm primary"
-            ?disabled=${configSaving || !configDirty}
-            @click=${onConfigSave}
-          >
-            ${configSaving ? "Saving…" : "Save"}
-          </button>
-        </div>
+          <div class="agent-model-control-grid">
+            <label class="field">
+              <span>Primary model${isDefault ? " (default)" : ""}</span>
+              <select
+                .value=${isDefault ? (effectivePrimary ?? "") : (entryPrimary ?? "")}
+                ?disabled=${disabled}
+                @change=${(e: Event) =>
+                  onModelChange(agent.id, (e.target as HTMLSelectElement).value || null)}
+              >
+                ${isDefault
+                  ? html` <option value="">Not set</option> `
+                  : html`
+                      <option value="">
+                        ${defaultPrimary
+                          ? `Inherit default (${defaultPrimary})`
+                          : "Inherit default"}
+                      </option>
+                    `}
+                ${buildModelOptions(configForm, effectivePrimary ?? undefined, params.modelCatalog)}
+              </select>
+            </label>
+            <div class="field">
+              <span>Fallback runway</span>
+              <div
+                class="agent-chip-input agent-chip-input--runway"
+                @click=${(e: Event) => {
+                  const container = e.currentTarget as HTMLElement;
+                  const input = container.querySelector("input");
+                  if (input) {
+                    input.focus();
+                  }
+                }}
+              >
+                ${fallbackChips.map(
+                  (chip, i) => html`
+                    <span class="chip">
+                      ${chip}
+                      <button
+                        type="button"
+                        class="chip-remove"
+                        ?disabled=${disabled}
+                        @click=${() => removeChip(i)}
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  `,
+                )}
+                <input
+                  ?disabled=${disabled}
+                  placeholder=${fallbackChips.length === 0 ? "provider/model" : ""}
+                  @keydown=${handleChipKeydown}
+                  @blur=${(e: Event) => {
+                    const input = e.target as HTMLInputElement;
+                    const parsed = parseFallbackList(input.value);
+                    if (parsed.length > 0) {
+                      onModelFallbacksChange(agent.id, [...fallbackChips, ...parsed]);
+                      input.value = "";
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
+  `;
+}
+
+function renderOverviewMetric(label: string, value: string, note: string) {
+  return html`
+    <div class="agent-overview-metric">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <small>${note}</small>
+    </div>
   `;
 }

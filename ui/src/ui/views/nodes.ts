@@ -105,10 +105,11 @@ function resolveNodeView(node: Record<string, unknown>): NodeView {
     version:
       normalizeOptionalString(node.version) ??
       normalizeOptionalString(node.coreVersion) ??
-      normalizeOptionalString(node.uiVersion),
-    remoteIp: normalizeOptionalString(node.remoteIp),
-    deviceFamily: normalizeOptionalString(node.deviceFamily),
-    modelIdentifier: normalizeOptionalString(node.modelIdentifier),
+      normalizeOptionalString(node.uiVersion) ??
+      null,
+    remoteIp: normalizeOptionalString(node.remoteIp) ?? null,
+    deviceFamily: normalizeOptionalString(node.deviceFamily) ?? null,
+    modelIdentifier: normalizeOptionalString(node.modelIdentifier) ?? null,
     paired: Boolean(node.paired),
     connected,
     status: connected ? "connected" : "offline",

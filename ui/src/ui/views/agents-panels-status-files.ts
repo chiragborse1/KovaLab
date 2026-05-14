@@ -91,45 +91,37 @@ function renderAgentContextCard(
   onSelectPanel: (panel: AgentsPanel) => void,
 ) {
   return html`
-    <section class="card">
-      <div class="card-title">Agent Context</div>
+    <section class="card agent-context-matrix">
+      <div class="agents-eyebrow">Agent context</div>
+      <div class="card-title">${context.identityName}</div>
       <div class="card-sub">${subtitle}</div>
-      <div class="agents-overview-grid" style="margin-top: 16px;">
-        <div class="agent-kv">
-          <div class="label">Workspace</div>
-          <div>
-            <button
-              type="button"
-              class="workspace-link mono"
-              @click=${() => onSelectPanel("files")}
-              title="Open Files tab"
-            >
-              ${context.workspace}
-            </button>
-          </div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Primary Model</div>
-          <div class="mono">${context.model}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Identity Name</div>
-          <div>${context.identityName}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Identity Avatar</div>
-          <div>${context.identityAvatar}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Skills Filter</div>
-          <div>${context.skillsLabel}</div>
-        </div>
-        <div class="agent-kv">
-          <div class="label">Default</div>
-          <div>${context.isDefault ? "yes" : "no"}</div>
-        </div>
+      <div class="agent-context-matrix__grid">
+        ${renderContextCell("Workspace", context.workspace, "files", () => onSelectPanel("files"))}
+        ${renderContextCell("Model", context.model)}
+        ${renderContextCell("Avatar", context.identityAvatar)}
+        ${renderContextCell("Skills", context.skillsLabel)}
+        ${renderContextCell("Default", context.isDefault ? "yes" : "no")}
       </div>
     </section>
+  `;
+}
+
+function renderContextCell(
+  label: string,
+  value: string,
+  actionLabel?: string,
+  action?: () => void,
+) {
+  return html`
+    <div class="agent-context-cell">
+      <span>${label}</span>
+      ${action
+        ? html`
+            <button class="workspace-link mono" type="button" @click=${action}>${value}</button>
+          `
+        : html`<strong class="mono">${value}</strong>`}
+      ${actionLabel ? html`<small>${actionLabel}</small>` : nothing}
+    </div>
   `;
 }
 
@@ -225,37 +217,35 @@ export function renderAgentChannels(params: {
     ? formatRelativeTimestamp(params.lastSuccess)
     : "never";
   return html`
-    <section class="grid grid-cols-2">
+    <section class="agent-channels-console">
       ${renderAgentContextCard(
         params.context,
         "Workspace, identity, and model configuration.",
         params.onSelectPanel,
       )}
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
+      <section class="card agent-channel-command">
+        <div class="agent-system-card__head">
           <div>
+            <div class="agents-eyebrow">Channel routing matrix</div>
             <div class="card-title">Channels</div>
-            <div class="card-sub">Gateway-wide channel status snapshot.</div>
+            <div class="card-sub">Gateway-wide channel status snapshot for this agent context.</div>
           </div>
           <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
             ${params.loading ? t("common.refreshing") : t("common.refresh")}
           </button>
         </div>
-        <div class="muted" style="margin-top: 8px;">Last refresh: ${lastSuccessLabel}</div>
-        ${params.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-          : nothing}
+        <div class="agent-channel-meta">
+          <span>Last refresh</span>
+          <strong>${lastSuccessLabel}</strong>
+        </div>
+        ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
         ${!params.snapshot
-          ? html`
-              <div class="callout info" style="margin-top: 12px">
-                Load channels to see live status.
-              </div>
-            `
+          ? html`<div class="callout info">Load channels to see live status.</div>`
           : nothing}
         ${entries.length === 0
-          ? html` <div class="muted" style="margin-top: 16px">No channels found.</div> `
+          ? html` <div class="muted">No channels found.</div> `
           : html`
-              <div class="list" style="margin-top: 16px;">
+              <div class="agent-channel-grid">
                 ${entries.map((entry) => {
                   const summary = summarizeChannelAccounts(entry.accounts);
                   const status = summary.total
@@ -271,33 +261,34 @@ export function renderAgentChannels(params: {
                     fields: CHANNEL_EXTRA_FIELDS,
                   });
                   return html`
-                    <div class="list-item">
-                      <div class="list-main">
+                    <article class="agent-channel-card">
+                      <div class="agent-channel-card__signal">
+                        <span class=${summary.connected > 0 ? "is-live" : ""}></span>
+                      </div>
+                      <div class="agent-channel-card__body">
                         <div class="list-title">${entry.label}</div>
                         <div class="list-sub mono">${entry.id}</div>
+                        <div class="agent-channel-card__facts">
+                          <span>${status}</span>
+                          <span>${configLabel}</span>
+                          <span>${enabled}</span>
+                          ${extras.map(
+                            (extra) => html`<span>${extra.label}: ${extra.value}</span>`,
+                          )}
+                        </div>
                       </div>
-                      <div class="list-meta">
-                        <div>${status}</div>
-                        <div>${configLabel}</div>
-                        <div>${enabled}</div>
-                        ${summary.configured === 0
-                          ? html`
-                              <div>
-                                <a
-                                  href="https://docs.neuralstudio.in/channels"
-                                  target="_blank"
-                                  rel="noopener"
-                                  style="color: var(--accent); font-size: 12px"
-                                  >Setup guide</a
-                                >
-                              </div>
-                            `
-                          : nothing}
-                        ${extras.length > 0
-                          ? extras.map((extra) => html`<div>${extra.label}: ${extra.value}</div>`)
-                          : nothing}
-                      </div>
-                    </div>
+                      ${summary.configured === 0
+                        ? html`
+                            <a
+                              class="agent-channel-card__link"
+                              href="https://docs.neuralstudio.in/channels"
+                              target="_blank"
+                              rel="noopener"
+                              >Setup</a
+                            >
+                          `
+                        : nothing}
+                    </article>
                   `;
                 })}
               </div>
@@ -320,87 +311,92 @@ export function renderAgentCron(params: {
 }) {
   const jobs = params.jobs.filter((job) => job.agentId === params.agentId);
   return html`
-    <section class="grid grid-cols-2">
-      ${renderAgentContextCard(
-        params.context,
-        "Workspace and scheduling targets.",
-        params.onSelectPanel,
-      )}
-      <section class="card">
-        <div class="row" style="justify-content: space-between;">
+    <section class="agent-cron-console">
+      <div class="agent-cron-topology">
+        ${renderAgentContextCard(
+          params.context,
+          "Workspace and scheduling targets.",
+          params.onSelectPanel,
+        )}
+        <section class="card agent-cron-scheduler">
+          <div class="agent-system-card__head">
+            <div>
+              <div class="agents-eyebrow">Scheduler pulse</div>
+              <div class="card-title">Scheduler</div>
+              <div class="card-sub">Gateway cron status and next wake for this agent fleet.</div>
+            </div>
+            <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
+              ${params.loading ? t("common.refreshing") : t("common.refresh")}
+            </button>
+          </div>
+          <div class="agent-cron-radar">
+            <div>
+              <span>${t("common.enabled")}</span>
+              <strong>
+                ${params.status
+                  ? params.status.enabled
+                    ? t("common.yes")
+                    : t("common.no")
+                  : t("common.na")}
+              </strong>
+            </div>
+            <div>
+              <span>Jobs</span>
+              <strong>${params.status?.jobs ?? t("common.na")}</strong>
+            </div>
+            <div>
+              <span>Next wake</span>
+              <strong>${formatNextRun(params.status?.nextWakeAtMs ?? null)}</strong>
+            </div>
+          </div>
+          ${params.error ? html`<div class="callout danger">${params.error}</div>` : nothing}
+        </section>
+      </div>
+      <section class="card agent-cron-board">
+        <div class="agent-system-card__head">
           <div>
-            <div class="card-title">Scheduler</div>
-            <div class="card-sub">Gateway cron status.</div>
+            <div class="card-title">Agent Cron Jobs</div>
+            <div class="card-sub">Scheduled jobs targeting this agent.</div>
           </div>
-          <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
-            ${params.loading ? t("common.refreshing") : t("common.refresh")}
-          </button>
+          <span class="agent-pill">${jobs.length} jobs</span>
         </div>
-        <div class="stat-grid" style="margin-top: 16px;">
-          <div class="stat">
-            <div class="stat-label">${t("common.enabled")}</div>
-            <div class="stat-value">
-              ${params.status
-                ? params.status.enabled
-                  ? t("common.yes")
-                  : t("common.no")
-                : t("common.na")}
-            </div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Jobs</div>
-            <div class="stat-value">${params.status?.jobs ?? t("common.na")}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Next wake</div>
-            <div class="stat-value">${formatNextRun(params.status?.nextWakeAtMs ?? null)}</div>
-          </div>
-        </div>
-        ${params.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${params.error}</div>`
-          : nothing}
-      </section>
-    </section>
-    <section class="card">
-      <div class="card-title">Agent Cron Jobs</div>
-      <div class="card-sub">Scheduled jobs targeting this agent.</div>
-      ${jobs.length === 0
-        ? html` <div class="muted" style="margin-top: 16px">No jobs assigned.</div> `
-        : html`
-            <div class="list" style="margin-top: 16px;">
-              ${jobs.map(
-                (job) => html`
-                  <div class="list-item">
-                    <div class="list-main">
-                      <div class="list-title">${job.name}</div>
-                      ${job.description
-                        ? html`<div class="list-sub">${job.description}</div>`
-                        : nothing}
-                      <div class="chip-row" style="margin-top: 6px;">
-                        <span class="chip">${formatCronSchedule(job)}</span>
-                        <span class="chip ${job.enabled ? "chip-ok" : "chip-warn"}">
-                          ${job.enabled ? "enabled" : "disabled"}
-                        </span>
-                        <span class="chip">${job.sessionTarget}</span>
+        ${jobs.length === 0
+          ? html` <div class="agent-files-empty">No jobs assigned.</div> `
+          : html`
+              <div class="agent-cron-lanes">
+                ${jobs.map(
+                  (job) => html`
+                    <article class="agent-cron-card ${job.enabled ? "is-enabled" : "is-paused"}">
+                      <div class="agent-cron-card__main">
+                        <div class="list-title">${job.name}</div>
+                        ${job.description
+                          ? html`<div class="list-sub">${job.description}</div>`
+                          : nothing}
+                        <div class="chip-row">
+                          <span class="chip">${formatCronSchedule(job)}</span>
+                          <span class="chip ${job.enabled ? "chip-ok" : "chip-warn"}">
+                            ${job.enabled ? "enabled" : "disabled"}
+                          </span>
+                          <span class="chip">${job.sessionTarget}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div class="list-meta">
-                      <div class="mono">${formatCronState(job)}</div>
-                      <div class="muted">${formatCronPayload(job)}</div>
-                      <button
-                        class="btn btn--sm"
-                        style="margin-top: 6px;"
-                        ?disabled=${!job.enabled}
-                        @click=${() => params.onRunNow(job.id)}
-                      >
-                        Run Now
-                      </button>
-                    </div>
-                  </div>
-                `,
-              )}
-            </div>
-          `}
+                      <div class="agent-cron-card__side">
+                        <strong class="mono">${formatCronState(job)}</strong>
+                        <span>${formatCronPayload(job)}</span>
+                        <button
+                          class="btn btn--sm"
+                          ?disabled=${!job.enabled}
+                          @click=${() => params.onRunNow(job.id)}
+                        >
+                          Run Now
+                        </button>
+                      </div>
+                    </article>
+                  `,
+                )}
+              </div>
+            `}
+      </section>
     </section>
   `;
 }
@@ -456,227 +452,244 @@ export function renderAgentFiles(params: {
       : "Updated Unknown";
 
   return html`
-    <section class="card">
-      <div class="row" style="justify-content: space-between;">
+    <section class="agent-files-console">
+      <section class="card agent-files-hero">
         <div>
+          <div class="agents-eyebrow">Workspace blackbox</div>
           <div class="card-title">Core Files</div>
-          <div class="card-sub">Bootstrap persona, identity, and tool guidance.</div>
+          <div class="card-sub">Bootstrap persona, identity, user profile, and tool guidance.</div>
         </div>
-        <button
-          class="btn btn--sm"
-          ?disabled=${params.agentFilesLoading}
-          @click=${() => params.onLoadFiles(params.agentId)}
-        >
-          ${params.agentFilesLoading ? t("common.loading") : t("common.refresh")}
-        </button>
-      </div>
+        <div class="agent-file-actions">
+          <button
+            class="btn btn--sm"
+            ?disabled=${params.agentFilesLoading}
+            @click=${() => params.onLoadFiles(params.agentId)}
+          >
+            ${params.agentFilesLoading ? t("common.loading") : t("common.refresh")}
+          </button>
+        </div>
+      </section>
       ${list
-        ? html`<div class="muted mono" style="margin-top: 8px;">
-            Workspace: <span>${list.workspace}</span>
-          </div>`
+        ? html`
+            <div class="agent-files-workspace mono">
+              <span>Workspace</span>
+              <strong>${list.workspace}</strong>
+            </div>
+          `
         : nothing}
       ${params.agentFilesError
-        ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${params.agentFilesError}
-          </div>`
+        ? html`<div class="callout danger">${params.agentFilesError}</div>`
         : nothing}
       ${!list
         ? html`
-            <div class="callout info" style="margin-top: 12px">
-              Load the agent workspace files to edit core instructions.
-            </div>
+            <section class="card agent-files-empty">
+              <strong>Workspace files not loaded</strong>
+              <span>Load the agent workspace files to edit core instructions.</span>
+            </section>
           `
         : files.length === 0
-          ? html` <div class="muted" style="margin-top: 16px">No files found.</div> `
+          ? html` <section class="card agent-files-empty">No files found.</section> `
           : html`
-              <div class="agent-tabs" style="margin-top: 14px;">
-                ${files.map((file) => {
-                  const isActive = active === file.name;
-                  const label = file.name.replace(/\.md$/i, "");
-                  return html`
-                    <button
-                      class="agent-tab ${isActive ? "active" : ""} ${file.missing
-                        ? "agent-tab--missing"
-                        : ""}"
-                      @click=${() => params.onSelectFile(file.name)}
-                    >
-                      ${label}${file.missing
-                        ? html` <span class="agent-tab-badge">missing</span> `
-                        : nothing}
-                    </button>
-                  `;
-                })}
-              </div>
-              ${!activeEntry
-                ? html` <div class="muted" style="margin-top: 16px">Select a file to edit.</div> `
-                : html`
-                    <div class="agent-file-header" style="margin-top: 14px;">
-                      <div>
-                        <div class="agent-file-sub mono">${activeEntry.path}</div>
-                      </div>
-                      <div class="agent-file-actions">
-                        <button
-                          class="btn btn--sm"
-                          title="Preview rendered markdown"
-                          @click=${(e: Event) => {
-                            const btn = e.currentTarget as HTMLElement;
-                            const dialog = btn.closest(".card")?.querySelector("dialog");
-                            if (dialog) {
-                              dialog.showModal();
-                            }
-                          }}
-                        >
-                          ${icons.eye} Preview
-                        </button>
-                        <button
-                          class="btn btn--sm"
-                          ?disabled=${!isDirty}
-                          @click=${() => params.onFileReset(activeEntry.name)}
-                        >
-                          Reset
-                        </button>
-                        <button
-                          class="btn btn--sm primary"
-                          ?disabled=${params.agentFileSaving || !isDirty}
-                          @click=${() => params.onFileSave(activeEntry.name)}
-                        >
-                          ${params.agentFileSaving ? "Saving…" : "Save"}
-                        </button>
-                      </div>
-                    </div>
-                    ${activeEntry.missing
-                      ? html`
-                          <div class="callout info" style="margin-top: 10px">
-                            This file is missing. Saving will create it in the agent workspace.
+              <section class="card agent-file-workbench">
+                <div class="agent-file-switchboard">
+                  ${files.map((file) => {
+                    const isActive = active === file.name;
+                    const label = file.name.replace(/\.md$/i, "");
+                    return html`
+                      <button
+                        class="agent-file-tab ${isActive ? "active" : ""} ${file.missing
+                          ? "agent-file-tab--missing"
+                          : ""}"
+                        @click=${() => params.onSelectFile(file.name)}
+                      >
+                        <span>${label}</span>
+                        <small>${file.missing ? "missing" : formatBytes(file.size)}</small>
+                      </button>
+                    `;
+                  })}
+                </div>
+                ${!activeEntry
+                  ? html` <div class="muted">Select a file to edit.</div> `
+                  : html`
+                      <div class="agent-file-stage">
+                        <div class="agent-file-header">
+                          <div>
+                            <div class="agents-eyebrow">${previewStatusLabel}</div>
+                            <div class="agent-file-sub mono">${activeEntry.path}</div>
                           </div>
-                        `
-                      : nothing}
-                    <label class="field agent-file-field" style="margin-top: 12px;">
-                      <span>Content</span>
-                      <textarea
-                        class="agent-file-textarea"
-                        .value=${draft}
-                        @input=${(e: Event) =>
-                          params.onFileDraftChange(
-                            activeEntry.name,
-                            (e.target as HTMLTextAreaElement).value,
-                          )}
-                      ></textarea>
-                    </label>
-                    <dialog
-                      class="md-preview-dialog"
-                      aria-labelledby=${previewTitleId}
-                      @click=${(e: Event) => {
-                        const dialog = e.currentTarget as HTMLDialogElement;
-                        if (e.target === dialog) {
-                          dialog.close();
-                        }
-                      }}
-                      @close=${(e: Event) => {
-                        const dialog = e.currentTarget as HTMLElement;
-                        dialog
-                          .querySelector(".md-preview-dialog__panel")
-                          ?.classList.remove("fullscreen");
-                        setPreviewExpandButtonState(
-                          dialog.querySelector(".md-preview-expand-btn"),
-                          false,
-                        );
-                      }}
-                    >
-                      <div class="md-preview-dialog__panel">
-                        <div class="md-preview-dialog__header">
-                          <div class="md-preview-dialog__header-main">
-                            <div class="md-preview-dialog__eyebrow">
-                              ${icons.scrollText}
-                              <span>${getExtensionLabel(activeEntry.name)}</span>
-                            </div>
-                            <div class="md-preview-dialog__title-wrap">
-                              <div
-                                id=${previewTitleId}
-                                class="md-preview-dialog__title"
-                                translate="no"
-                              >
-                                ${activeEntry.name}
-                              </div>
-                              <div class="md-preview-dialog__path mono" translate="no">
-                                ${activePathLabel}
-                              </div>
-                            </div>
-                          </div>
-                          <div class="md-preview-dialog__actions">
+                          <div class="agent-file-actions">
                             <button
-                              type="button"
-                              class="btn btn--sm md-preview-icon-btn md-preview-expand-btn"
-                              title="Expand preview"
-                              aria-label="Expand preview"
-                              aria-pressed="false"
+                              class="btn btn--sm"
+                              title="Preview rendered markdown"
                               @click=${(e: Event) => {
                                 const btn = e.currentTarget as HTMLElement;
-                                const panel = btn.closest(".md-preview-dialog__panel");
-                                if (!panel) {
-                                  return;
+                                const dialog = btn
+                                  .closest(".agent-file-workbench")
+                                  ?.querySelector("dialog");
+                                if (dialog) {
+                                  dialog.showModal();
                                 }
-                                const isFullscreen = panel.classList.toggle("fullscreen");
-                                setPreviewExpandButtonState(btn, isFullscreen);
                               }}
                             >
-                              <span class="when-normal" aria-hidden="true">${icons.maximize}</span
-                              ><span class="when-fullscreen" aria-hidden="true"
-                                >${icons.minimize}</span
-                              >
+                              ${icons.eye} Preview
                             </button>
                             <button
-                              type="button"
-                              class="btn btn--sm md-preview-icon-btn"
-                              title="Edit file"
-                              aria-label="Edit file"
-                              @click=${(e: Event) => {
-                                (e.currentTarget as HTMLElement).closest("dialog")?.close();
-                                const textarea =
-                                  document.querySelector<HTMLElement>(".agent-file-textarea");
-                                textarea?.focus();
-                              }}
+                              class="btn btn--sm"
+                              ?disabled=${!isDirty}
+                              @click=${() => params.onFileReset(activeEntry.name)}
                             >
-                              <span aria-hidden="true">${icons.edit}</span>
+                              Reset
                             </button>
                             <button
-                              type="button"
-                              class="btn btn--sm md-preview-icon-btn"
-                              title="Close preview"
-                              aria-label="Close preview"
-                              @click=${(e: Event) => {
-                                (e.currentTarget as HTMLElement).closest("dialog")?.close();
-                              }}
+                              class="btn btn--sm primary"
+                              ?disabled=${params.agentFileSaving || !isDirty}
+                              @click=${() => params.onFileSave(activeEntry.name)}
                             >
-                              <span aria-hidden="true">${icons.x}</span>
+                              ${params.agentFileSaving ? "Saving…" : "Save"}
                             </button>
                           </div>
                         </div>
-                        <div class="md-preview-dialog__meta">
-                          <div class="md-preview-dialog__chip ${previewStatusClass}">
-                            <strong>${previewStatusLabel}</strong>
-                          </div>
-                          <div class="md-preview-dialog__chip">
-                            <strong>${estimateReadingTimeLabel(draftWordCount)}</strong>
-                            <span>${draftWordCount} words</span>
-                          </div>
-                          <div class="md-preview-dialog__chip">
-                            <strong>${draftLineCount}</strong>
-                            <span>lines</span>
-                          </div>
-                          <div class="md-preview-dialog__chip">
-                            <strong>${draftByteSize}</strong>
-                            <span>${previewUpdatedLabel}</span>
-                          </div>
+                        <div class="agent-file-telemetry">
+                          <span>${draftWordCount} words</span>
+                          <span>${draftLineCount} lines</span>
+                          <span>${draftByteSize}</span>
+                          <span>${previewUpdatedLabel}</span>
                         </div>
-                        <div class="md-preview-dialog__body">
-                          <article class="md-preview-dialog__reader sidebar-markdown">
-                            ${unsafeHTML(previewHtml)}
-                          </article>
-                        </div>
+                        ${activeEntry.missing
+                          ? html`
+                              <div class="callout info">
+                                This file is missing. Saving will create it in the agent workspace.
+                              </div>
+                            `
+                          : nothing}
+                        <label class="field agent-file-field">
+                          <span>Content</span>
+                          <textarea
+                            class="agent-file-textarea"
+                            .value=${draft}
+                            @input=${(e: Event) =>
+                              params.onFileDraftChange(
+                                activeEntry.name,
+                                (e.target as HTMLTextAreaElement).value,
+                              )}
+                          ></textarea>
+                        </label>
                       </div>
-                    </dialog>
-                  `}
+                      <dialog
+                        class="md-preview-dialog"
+                        aria-labelledby=${previewTitleId}
+                        @click=${(e: Event) => {
+                          const dialog = e.currentTarget as HTMLDialogElement;
+                          if (e.target === dialog) {
+                            dialog.close();
+                          }
+                        }}
+                        @close=${(e: Event) => {
+                          const dialog = e.currentTarget as HTMLElement;
+                          dialog
+                            .querySelector(".md-preview-dialog__panel")
+                            ?.classList.remove("fullscreen");
+                          setPreviewExpandButtonState(
+                            dialog.querySelector(".md-preview-expand-btn"),
+                            false,
+                          );
+                        }}
+                      >
+                        <div class="md-preview-dialog__panel">
+                          <div class="md-preview-dialog__header">
+                            <div class="md-preview-dialog__header-main">
+                              <div class="md-preview-dialog__eyebrow">
+                                ${icons.scrollText}
+                                <span>${getExtensionLabel(activeEntry.name)}</span>
+                              </div>
+                              <div class="md-preview-dialog__title-wrap">
+                                <div
+                                  id=${previewTitleId}
+                                  class="md-preview-dialog__title"
+                                  translate="no"
+                                >
+                                  ${activeEntry.name}
+                                </div>
+                                <div class="md-preview-dialog__path mono" translate="no">
+                                  ${activePathLabel}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="md-preview-dialog__actions">
+                              <button
+                                type="button"
+                                class="btn btn--sm md-preview-icon-btn md-preview-expand-btn"
+                                title="Expand preview"
+                                aria-label="Expand preview"
+                                aria-pressed="false"
+                                @click=${(e: Event) => {
+                                  const btn = e.currentTarget as HTMLElement;
+                                  const panel = btn.closest(".md-preview-dialog__panel");
+                                  if (!panel) {
+                                    return;
+                                  }
+                                  const isFullscreen = panel.classList.toggle("fullscreen");
+                                  setPreviewExpandButtonState(btn, isFullscreen);
+                                }}
+                              >
+                                <span class="when-normal" aria-hidden="true">${icons.maximize}</span
+                                ><span class="when-fullscreen" aria-hidden="true"
+                                  >${icons.minimize}</span
+                                >
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn--sm md-preview-icon-btn"
+                                title="Edit file"
+                                aria-label="Edit file"
+                                @click=${(e: Event) => {
+                                  (e.currentTarget as HTMLElement).closest("dialog")?.close();
+                                  const textarea =
+                                    document.querySelector<HTMLElement>(".agent-file-textarea");
+                                  textarea?.focus();
+                                }}
+                              >
+                                <span aria-hidden="true">${icons.edit}</span>
+                              </button>
+                              <button
+                                type="button"
+                                class="btn btn--sm md-preview-icon-btn"
+                                title="Close preview"
+                                aria-label="Close preview"
+                                @click=${(e: Event) => {
+                                  (e.currentTarget as HTMLElement).closest("dialog")?.close();
+                                }}
+                              >
+                                <span aria-hidden="true">${icons.x}</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div class="md-preview-dialog__meta">
+                            <div class="md-preview-dialog__chip ${previewStatusClass}">
+                              <strong>${previewStatusLabel}</strong>
+                            </div>
+                            <div class="md-preview-dialog__chip">
+                              <strong>${estimateReadingTimeLabel(draftWordCount)}</strong>
+                              <span>${draftWordCount} words</span>
+                            </div>
+                            <div class="md-preview-dialog__chip">
+                              <strong>${draftLineCount}</strong>
+                              <span>lines</span>
+                            </div>
+                            <div class="md-preview-dialog__chip">
+                              <strong>${draftByteSize}</strong>
+                              <span>${previewUpdatedLabel}</span>
+                            </div>
+                          </div>
+                          <div class="md-preview-dialog__body">
+                            <article class="md-preview-dialog__reader sidebar-markdown">
+                              ${unsafeHTML(previewHtml)}
+                            </article>
+                          </div>
+                        </div>
+                      </dialog>
+                    `}
+              </section>
             `}
     </section>
   `;
