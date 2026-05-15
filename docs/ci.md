@@ -298,6 +298,7 @@ The automatic CI concurrency key is versioned (`CI-v7-*`) so a GitHub-side zombi
 ```bash
 pnpm changed:lanes   # inspect the local changed-lane classifier for origin/main...HEAD
 pnpm check:changed   # smart local check gate: changed typecheck/lint/guards by boundary lane
+pnpm check:branding  # lightweight Kova-facing legacy branding guard
 pnpm check          # fast local gate: production tsgo + sharded lint + parallel fast guards
 pnpm check:test-types
 pnpm check:timed    # same gate with per-stage timings

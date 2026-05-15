@@ -54,6 +54,7 @@ export function createChangedCheckPlan(result, options = {}) {
   const addLint = (name, args) => add(name, args, baseEnv);
 
   add("conflict markers", ["check:no-conflict-markers"]);
+  add("branding guard", ["check:branding"]);
 
   if (result.docsOnly) {
     return {

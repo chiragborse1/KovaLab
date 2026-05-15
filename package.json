@@ -1354,6 +1354,7 @@
     "check": "node scripts/check.mjs",
     "check:architecture": "pnpm check:import-cycles && pnpm check:madge-import-cycles && pnpm check:deprecated-internal-config-api",
     "check:base-config-schema": "node --import tsx scripts/generate-base-config-schema.ts --check",
+    "check:branding": "node scripts/check-branding.mjs",
     "check:bundled-channel-config-metadata": "node --import tsx scripts/generate-bundled-channel-config-metadata.ts --check",
     "check:changed": "node scripts/check-changed.mjs",
     "check:deprecated-internal-config-api": "node scripts/check-deprecated-internal-config-api.mjs",
