@@ -54,6 +54,15 @@ describe("bundled plugin build entries", () => {
     });
   });
 
+  it("keeps the Telegram polling ingress worker as a stable packaged entry", () => {
+    const entries = listBundledPluginBuildEntries();
+
+    expect(entries).toMatchObject({
+      "extensions/telegram/telegram-ingress-worker.runtime":
+        "extensions/telegram/telegram-ingress-worker.runtime.ts",
+    });
+  });
+
   it("packs runtime core support packages without requiring plugin manifests", () => {
     const artifacts = listBundledPluginPackArtifacts();
 
@@ -70,6 +79,12 @@ describe("bundled plugin build entries", () => {
     const artifacts = listBundledPluginPackArtifacts();
 
     expect(artifacts).toContain("dist/extensions/matrix/plugin-entry.handlers.runtime.js");
+  });
+
+  it("packs the Telegram polling ingress worker stable entry", () => {
+    const artifacts = listBundledPluginPackArtifacts();
+
+    expect(artifacts).toContain("dist/extensions/telegram/telegram-ingress-worker.runtime.js");
   });
 
   it("keeps private QA bundles out of required npm pack artifacts", () => {
