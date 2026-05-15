@@ -51,6 +51,7 @@ function operationLabel(kind: PluginOperationKind, target: string): string {
     case "uninstall":
       return `Removing ${target}`;
   }
+  return target;
 }
 
 function beginPluginOperation(

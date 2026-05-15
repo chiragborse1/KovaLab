@@ -102,19 +102,6 @@ export function formatCliBannerArt(options: BannerOptions = {}): string {
     return LOBSTER_ASCII.join("\n");
   }
 
-  const colorChar = (ch: string) => {
-    if (ch === "█") {
-      return theme.accentBright(ch);
-    }
-    if (ch === "░") {
-      return theme.accentDim(ch);
-    }
-    if (ch === "▀") {
-      return theme.accent(ch);
-    }
-    return theme.muted(ch);
-  };
-
   const colored = LOBSTER_ASCII.map((line) => {
     if (line.includes("KOVA")) {
       return (

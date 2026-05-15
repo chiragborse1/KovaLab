@@ -105,7 +105,7 @@ function normalizeProviderConfigModelIdsForAuthResult(
       return model;
     }
     mutated = true;
-    return { ...model, id };
+    return Object.assign({}, model, { id });
   });
   return mutated ? { ...providerConfig, models: nextModels } : providerConfig;
 }

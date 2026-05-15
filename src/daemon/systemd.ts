@@ -134,10 +134,10 @@ async function resolveExistingSystemdServiceName(env: GatewayServiceEnv): Promis
       return configured;
     }
     if (existingCandidates.length === 1) {
-      return existingCandidates[0]!;
+      return existingCandidates[0];
     }
 
-    let preferred = existingCandidates[0]!;
+    let preferred = existingCandidates[0];
     let bestScore = -1;
     for (const name of existingCandidates) {
       const score = await scoreExistingSystemdServiceCandidate(env, name);

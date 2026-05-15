@@ -192,7 +192,7 @@ function enabledObjectKeys(record: Record<string, unknown> | null): string[] {
   return Object.entries(record)
     .filter(([, value]) => asRecord(value)?.enabled !== false)
     .map(([key]) => key)
-    .sort((a, b) => a.localeCompare(b));
+    .toSorted((a, b) => a.localeCompare(b));
 }
 
 function arrayLength(value: unknown): number {
@@ -1241,28 +1241,6 @@ function renderWizardStepBody(props: ControlPanelProps, step: ControlWizardStep)
                     </button>
                   </div>
                 `;
-}
-
-function renderLiveWizardStep(props: ControlPanelProps, step: ControlWizardStep) {
-  return html`
-    <div class="control-panel-wizard-step">
-      <div class="control-panel-wizard-step__meta">
-        <span>Current step</span>
-        <span>${step.type}</span>
-        ${step.sensitive ? html`<span>secret input</span>` : nothing}
-      </div>
-      ${props.wizardLoading && step.type !== "progress"
-        ? html`
-            <div class="control-panel-inline-progress" role="status" aria-live="polite">
-              <span></span>
-              Applying this step. Keep this page open.
-            </div>
-          `
-        : nothing}
-      ${step.title ? html`<h3>${step.title}</h3>` : nothing}
-      ${step.message ? html`<p>${step.message}</p>` : nothing} ${renderWizardStepBody(props, step)}
-    </div>
-  `;
 }
 
 function renderSetupFlow(props: ControlPanelProps, step: ControlWizardStep | null) {

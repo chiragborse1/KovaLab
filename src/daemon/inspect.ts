@@ -17,7 +17,7 @@ export type ExtraGatewayService = {
   label: string;
   detail: string;
   scope: "user" | "system";
-  marker?: "kova" | "kova" | "kova";
+  marker?: "kova";
   legacy?: boolean;
 };
 
@@ -25,7 +25,7 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-type Marker = "kova" | "kova" | "kova";
+type Marker = "kova";
 
 const EXTRA_MARKERS: readonly Marker[] = [
   GATEWAY_SERVICE_MARKER as Marker,

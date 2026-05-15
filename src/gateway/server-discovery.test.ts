@@ -61,12 +61,10 @@ describe("resolveTailnetDnsHint", () => {
     expect(getTailnetHostname).not.toHaveBeenCalled();
   });
 
-  test("ignores legacy env hint unless Kova compatibility is explicit", async () => {
-    process.env.KOVA_TAILNET_DNS = "legacy.tailnet.ts.net.";
-    await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBeUndefined();
-
+  test("uses Kova env hint when compatibility is explicit", async () => {
+    process.env.KOVA_TAILNET_DNS = "studio.tailnet.ts.net.";
     process.env.KOVA_COMPAT = "1";
-    await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBe("legacy.tailnet.ts.net");
+    await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBe("studio.tailnet.ts.net");
   });
 
   test("skips tailscale lookup when disabled", async () => {
@@ -86,7 +84,7 @@ describe("resolveTailnetDnsHint", () => {
 describe("resolveBonjourCliPath", () => {
   const statSync = (candidate: string) =>
     ({
-      isFile: () => candidate === "/bin/kova" || candidate === "/bin/kova",
+      isFile: () => candidate === "/bin/kova",
     }) as import("node:fs").Stats;
 
   test("prefers Kova CLI path overrides", () => {
@@ -95,18 +93,8 @@ describe("resolveBonjourCliPath", () => {
     ).toBe("/bin/kova");
   });
 
-  test("ignores legacy CLI path overrides unless compatibility is explicit", () => {
+  test("uses Kova CLI path overrides when compatibility is explicit", () => {
     const env = { KOVA_CLI_PATH: "/bin/kova" } as NodeJS.ProcessEnv;
-    expect(
-      resolveBonjourCliPath({
-        env,
-        statSync,
-        execPath: "/missing/node",
-        argv: [],
-        cwd: "/missing",
-      }),
-    ).toBeUndefined();
-
     expect(
       resolveBonjourCliPath({
         env: { ...env, KOVA_COMPAT: "1" } as NodeJS.ProcessEnv,

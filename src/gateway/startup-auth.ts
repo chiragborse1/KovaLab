@@ -13,7 +13,6 @@ import {
   hasGatewayPasswordEnvCandidate,
   hasGatewayTokenEnvCandidate,
   readGatewayCredentialEnv,
-  trimToUndefined,
 } from "./credentials.js";
 import { assertGatewayAuthNotKnownWeak } from "./known-weak-gateway-secrets.js";
 

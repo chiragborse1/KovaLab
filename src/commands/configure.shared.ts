@@ -108,7 +108,7 @@ export const outro = (message: string) => {
 export const text = (params: Parameters<typeof clackText>[0]) => {
   if (activeConfigurePrompter) {
     return activeConfigurePrompter.text({
-      message: String(params.message),
+      message: params.message,
       ...(typeof params.initialValue === "string" ? { initialValue: params.initialValue } : {}),
       ...(typeof params.placeholder === "string" ? { placeholder: params.placeholder } : {}),
       ...(params.validate
@@ -125,7 +125,7 @@ export const text = (params: Parameters<typeof clackText>[0]) => {
 export const confirm = (params: Parameters<typeof clackConfirm>[0]) => {
   if (activeConfigurePrompter) {
     return activeConfigurePrompter.confirm({
-      message: String(params.message),
+      message: params.message,
       ...(typeof params.initialValue === "boolean" ? { initialValue: params.initialValue } : {}),
     });
   }
@@ -138,13 +138,13 @@ export const confirm = (params: Parameters<typeof clackConfirm>[0]) => {
 export const select = <T>(params: Parameters<typeof clackSelect<T>>[0]) => {
   if (activeConfigurePrompter) {
     return activeConfigurePrompter.select<T>({
-      message: String(params.message),
+      message: params.message,
       options: params.options.map((opt) => {
         const base: WizardSelectOption<T> = {
           value: opt.value,
           label: opt.label ?? String(opt.value),
         };
-        return opt.hint === undefined ? base : { ...base, hint: String(opt.hint) };
+        return opt.hint === undefined ? base : { ...base, hint: opt.hint };
       }),
       ...(params.initialValue !== undefined ? { initialValue: params.initialValue } : {}),
     });

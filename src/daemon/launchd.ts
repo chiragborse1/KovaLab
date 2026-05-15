@@ -84,7 +84,7 @@ async function resolveInstalledLaunchAgentLabel(
     }
   }
   if (installedCandidates.length === 1) {
-    return installedCandidates[0]!;
+    return installedCandidates[0];
   }
   if (installedCandidates.length > 1) {
     const domain = resolveGuiDomain();
@@ -94,7 +94,7 @@ async function resolveInstalledLaunchAgentLabel(
         return candidate;
       }
     }
-    return installedCandidates[0]!;
+    return installedCandidates[0];
   }
   const configured = resolveLaunchAgentLabel({ env });
   return {

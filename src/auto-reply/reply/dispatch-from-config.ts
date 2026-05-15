@@ -197,7 +197,7 @@ function isExplicitSourceReplyCommand(ctx: FinalizedMsgContext): boolean {
   if (ctx.CommandSource === "native") {
     return true;
   }
-  return ctx.CommandSource === "text" && ctx.CommandAuthorized === true;
+  return ctx.CommandSource === "text" && ctx.CommandAuthorized;
 }
 
 function resolveSourceReplyDeliveryMode(params: {

@@ -103,7 +103,7 @@ describe("renderControlPanel", () => {
 
     const start = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Start local setup"),
-    ) as HTMLButtonElement | undefined;
+    );
     start?.click();
 
     expect(onWizardStart).toHaveBeenCalledWith("local");
@@ -363,14 +363,14 @@ describe("renderControlPanel", () => {
 
     const checkScan = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Check scan"),
-    ) as HTMLButtonElement | undefined;
+    );
     checkScan?.click();
     expect(onWizardSubmit).toHaveBeenCalledWith("primary");
 
     expect(container.textContent).not.toContain("Back to setup steps");
     const cancel = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Cancel setup"),
-    ) as HTMLButtonElement | undefined;
+    );
     cancel?.click();
     expect(onWizardCancel).toHaveBeenCalled();
   });
@@ -580,7 +580,7 @@ describe("renderControlPanel", () => {
 
     const manual = Array.from(container.querySelectorAll("input")).find(
       (input) => input.placeholder === "provider/model",
-    ) as HTMLInputElement | undefined;
+    );
     manual!.value = "openrouter/manual-next";
     manual!.dispatchEvent(new InputEvent("input", { bubbles: true }));
     expect(onManualModelChange).toHaveBeenCalledWith("openrouter/manual-next");
@@ -726,13 +726,13 @@ describe("renderControlPanel", () => {
 
     const refresh = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Refresh auth"),
-    ) as HTMLButtonElement | undefined;
+    );
     refresh?.click();
     expect(onRefreshModelAuth).toHaveBeenCalled();
 
     const configure = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Configure provider"),
-    ) as HTMLButtonElement | undefined;
+    );
     configure?.click();
     expect(onWizardStartSection).toHaveBeenCalledWith("model");
   });
@@ -770,7 +770,7 @@ describe("renderControlPanel", () => {
 
     const plugins = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Configure plugins"),
-    ) as HTMLButtonElement | undefined;
+    );
     plugins?.click();
     expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
   });
@@ -857,13 +857,13 @@ describe("renderControlPanel", () => {
 
     const refresh = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Refresh plugins"),
-    ) as HTMLButtonElement | undefined;
+    );
     refresh?.click();
     expect(onRefreshPlugins).toHaveBeenCalled();
 
     const configure = Array.from(container.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Configure plugins"),
-    ) as HTMLButtonElement | undefined;
+    );
     configure?.click();
     expect(onWizardStartSection).toHaveBeenCalledWith("plugins");
   });
@@ -935,13 +935,13 @@ describe("renderControlPanel", () => {
 
     const enable = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.trim() === "Enable",
-    ) as HTMLButtonElement | undefined;
+    );
     enable?.click();
     expect(onPluginSetEnabled).toHaveBeenCalledWith("whatsapp", true);
 
     const remove = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.trim() === "Remove",
-    ) as HTMLButtonElement | undefined;
+    );
     remove?.click();
     expect(onPluginUninstall).toHaveBeenCalledWith("whatsapp");
   });

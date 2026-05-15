@@ -590,7 +590,7 @@ export function applySettingsToggle(cfg: KovaConfig, toggle: SettingsToggle): Ko
 }
 
 function stripAnsi(input: string): string {
-  return input.replace(/\x1b\[[0-9;]*m/g, "");
+  return input.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
 }
 
 function padRight(input: string, width: number): string {
@@ -645,7 +645,7 @@ export function renderSettingsDashboard(params: {
   lines.push(`╭${"─".repeat(18)} Kova Settings ${"─".repeat(inner - 33)}╮`);
   lines.push(`│${" ".repeat(inner)}│`);
   for (let index = 0; index < params.rows.length; index++) {
-    const row = params.rows[index]!;
+    const row = params.rows[index];
     const selected = index === params.selectedIndex;
     const cursor = selected ? theme.accent("›") : " ";
     const label = selected ? theme.heading(row.label) : row.label;
@@ -669,7 +669,7 @@ export function renderSettingsDashboard(params: {
     );
     const visible = params.palette.commands.slice(start, start + 6);
     for (let index = 0; index < visible.length; index++) {
-      const command = visible[index]!;
+      const command = visible[index];
       const selected = start + index === params.palette.selectedIndex;
       const cursor = selected ? theme.accent("›") : " ";
       const label = selected ? theme.heading(command.label) : command.label;

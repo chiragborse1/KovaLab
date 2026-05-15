@@ -210,10 +210,7 @@ export function maybeRunCliInContainer(
     stdoutIsTTY: deps?.stdoutIsTTY ?? process.stdout.isTTY,
   };
 
-  if (
-    resolvedDeps.env.KOVA_CLI_CONTAINER_BYPASS === "1" ||
-    resolvedDeps.env.KOVA_CLI_CONTAINER_BYPASS === "1"
-  ) {
+  if (resolvedDeps.env.KOVA_CLI_CONTAINER_BYPASS === "1") {
     return { handled: false, argv };
   }
 

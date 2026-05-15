@@ -18,7 +18,7 @@ export function resolveLegacyDefaultAgentWorkspaceDir(
 }
 
 function resolveAgentWorkspaceDirForStateDir(
-  stateDirName: ".kova" | ".kova",
+  stateDirName: ".kova",
   env: NodeJS.ProcessEnv,
   homedir: () => string,
 ): string {

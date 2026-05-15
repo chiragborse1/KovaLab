@@ -334,6 +334,7 @@ function sourceLabel(source: SessionSource): string {
     case "other":
       return "Other";
   }
+  return "Other";
 }
 
 function sourceIcon(source: SessionSource): TemplateResult {
@@ -351,6 +352,7 @@ function sourceIcon(source: SessionSource): TemplateResult {
     case "other":
       return icons.circle;
   }
+  return icons.circle;
 }
 
 function deriveSessionTitle(key: string, source: SessionSource): string {
@@ -378,7 +380,7 @@ function deriveSessionTitle(key: string, source: SessionSource): string {
   if (lower.includes("tui-")) {
     return "TUI Session";
   }
-  const last = normalized.split(":").filter(Boolean).at(-1) ?? normalized;
+  const last = normalized.split(":").findLast(Boolean) ?? normalized;
   return last.length > 44 ? `${last.slice(0, 43)}…` : last;
 }
 

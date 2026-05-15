@@ -11,7 +11,7 @@ export type KovaHeroTool = {
 export type KovaHeroToolGroup = {
   id: string;
   label: string;
-  source: "core" | "plugin" | string;
+  source: string;
   tools: KovaHeroTool[];
 };
 

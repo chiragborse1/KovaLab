@@ -107,7 +107,7 @@ export type PluginsInstallResult = {
 };
 
 function sortStrings(values: readonly string[] | undefined): string[] {
-  return [...(values ?? [])].sort((a, b) => a.localeCompare(b));
+  return (values ?? []).toSorted((a, b) => a.localeCompare(b));
 }
 
 function summarizePlugin(params: {
@@ -173,13 +173,13 @@ export function createPluginsStatusResult(
   options: { installRecords?: Record<string, PluginInstallRecord> } = {},
 ): PluginsStatusResult {
   const installRecords = {
-    ...(options.installRecords ?? {}),
-    ...(config.plugins?.installs ?? {}),
+    ...options.installRecords,
+    ...config.plugins?.installs,
   };
   const report = buildPluginRegistrySnapshotReport({ config });
   const plugins = report.plugins
     .map((plugin) => summarizePlugin({ plugin, config, installRecords }))
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .toSorted((a, b) => a.id.localeCompare(b.id));
   const totals = plugins.reduce<PluginsStatusResult["totals"]>(
     (acc, plugin) => {
       acc.total += 1;

@@ -764,7 +764,7 @@ function parseCronFieldMatcher(field: string, min: number, max: number): CronFie
 
 function isKnownTimeZone(value: string): boolean {
   try {
-    new Intl.DateTimeFormat("en-US", { timeZone: value });
+    Intl.DateTimeFormat("en-US", { timeZone: value });
     return true;
   } catch {
     return false;
@@ -823,7 +823,7 @@ function buildCronExpressionPreview(form: CronFormState, now: Date): SchedulePre
   }
 
   const rows: string[] = [];
-  const cursor = new Date(now.getTime());
+  const cursor = new Date(now);
   cursor.setSeconds(0, 0);
   cursor.setMinutes(cursor.getMinutes() + 1);
   for (let i = 0; i < 200_000 && rows.length < 5; i += 1) {

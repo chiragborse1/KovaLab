@@ -75,7 +75,7 @@ function buildRuntimeContextMessageContent(params: {
 }
 
 function sanitizeCurrentTurnContextString(value: string): string {
-  return value.replace(/\u0000/g, "").slice(0, 4000);
+  return value.replaceAll(String.fromCharCode(0), "").slice(0, 4000);
 }
 
 export function buildCurrentTurnPromptContextSuffix(

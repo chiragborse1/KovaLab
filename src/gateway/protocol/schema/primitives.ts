@@ -7,11 +7,7 @@ import {
 } from "../../../secrets/ref-contract.js";
 import { INPUT_PROVENANCE_KIND_VALUES } from "../../../sessions/input-provenance.js";
 import { SESSION_LABEL_MAX_LENGTH } from "../../../sessions/session-label.js";
-import {
-  ACCEPTED_GATEWAY_CLIENT_ID_VALUES,
-  GATEWAY_CLIENT_IDS,
-  GATEWAY_CLIENT_MODES,
-} from "../client-info.js";
+import { ACCEPTED_GATEWAY_CLIENT_ID_VALUES, GATEWAY_CLIENT_MODES } from "../client-info.js";
 
 export const NonEmptyString = Type.String({ minLength: 1 });
 export const CHAT_SEND_SESSION_KEY_MAX_LENGTH = 512;

@@ -39,7 +39,7 @@ function buildConfiguredFallbackCatalog(cfg: KovaConfig): ModelCatalogEntry[] {
   if (!seen.has(catalogKey(current))) {
     catalog.push(current);
   }
-  return catalog.sort((a, b) => {
+  return catalog.toSorted((a, b) => {
     const provider = a.provider.localeCompare(b.provider);
     return provider === 0 ? a.name.localeCompare(b.name) : provider;
   });

@@ -32,10 +32,10 @@ async function invokeTaskHandler(method: keyof typeof tasksHandlers, params: unk
   const respond = vi.fn();
   const handler = tasksHandlers[method];
   if (!handler) {
-    throw new Error(`Missing handler: ${String(method)}`);
+    throw new Error(`Missing handler: ${method}`);
   }
   await handler({
-    req: { type: "req", id: "1", method: String(method) },
+    req: { type: "req", id: "1", method },
     params: (params ?? {}) as Record<string, unknown>,
     client: null,
     isWebchatConnect: () => false,
