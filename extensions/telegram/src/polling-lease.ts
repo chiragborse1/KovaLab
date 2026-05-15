@@ -28,6 +28,12 @@ type AcquireTelegramPollingLeaseOpts = {
   waitMs?: number;
 };
 
+type ReleaseStoppedTelegramPollingLeaseOpts = {
+  token: string;
+  accountId: string;
+  waitMs?: number;
+};
+
 type WaitForPreviousResult = "released" | "timeout" | "aborted";
 
 function pollingLeaseRegistry(): TelegramPollingLeaseRegistry {
@@ -61,6 +67,9 @@ async function waitForPreviousRelease(params: {
 }): Promise<WaitForPreviousResult> {
   if (params.signal?.aborted) {
     return "aborted";
+  }
+  if (params.waitMs <= 0) {
+    return "timeout";
   }
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -186,6 +195,33 @@ export async function acquireTelegramPollingLease(
       replacedStoppingPrevious: true,
     });
   }
+}
+
+export async function releaseStoppedTelegramPollingLease(
+  opts: ReleaseStoppedTelegramPollingLeaseOpts,
+): Promise<boolean> {
+  const registry = pollingLeaseRegistry();
+  const fingerprint = tokenFingerprint(opts.token);
+  const existing = registry.get(fingerprint);
+  if (!existing || existing.accountId !== opts.accountId) {
+    return false;
+  }
+
+  if (!existing.abortSignal?.aborted) {
+    return false;
+  }
+
+  const waitResult = await waitForPreviousRelease({
+    done: existing.done,
+    waitMs: opts.waitMs ?? DEFAULT_TELEGRAM_POLLING_LEASE_WAIT_MS,
+  });
+  if (waitResult === "released" || registry.get(fingerprint) !== existing) {
+    return false;
+  }
+
+  registry.delete(fingerprint);
+  existing.resolveDone();
+  return true;
 }
 
 export function resetTelegramPollingLeasesForTests(): void {
