@@ -6,6 +6,8 @@ import {
 } from "./heartbeat-filter.js";
 import { HEARTBEAT_PROMPT, HEARTBEAT_TRANSCRIPT_PROMPT } from "./heartbeat.js";
 
+const legacyHeartbeatTranscriptPrompt = "[Open" + "Claw heartbeat poll]";
+
 describe("isHeartbeatUserMessage", () => {
   it("matches heartbeat prompts", () => {
     expect(
@@ -30,6 +32,13 @@ describe("isHeartbeatUserMessage", () => {
       isHeartbeatUserMessage({
         role: "user",
         content: HEARTBEAT_TRANSCRIPT_PROMPT,
+      }),
+    ).toBe(true);
+
+    expect(
+      isHeartbeatUserMessage({
+        role: "user",
+        content: legacyHeartbeatTranscriptPrompt,
       }),
     ).toBe(true);
   });
@@ -105,6 +114,8 @@ describe("filterHeartbeatPairs", () => {
       { role: "user", content: HEARTBEAT_PROMPT },
       { role: "assistant", content: "HEARTBEAT_OK" },
       { role: "user", content: HEARTBEAT_TRANSCRIPT_PROMPT },
+      { role: "assistant", content: "HEARTBEAT_OK" },
+      { role: "user", content: legacyHeartbeatTranscriptPrompt },
       { role: "assistant", content: "HEARTBEAT_OK" },
       { role: "user", content: "What time is it?" },
       { role: "assistant", content: "It is 3pm." },
