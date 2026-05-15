@@ -1,4 +1,4 @@
-import { normalizeProviderId } from "../agents/model-selection.js";
+import { normalizeProviderId } from "../agents/provider-id.js";
 import type { ModelProviderConfig } from "../config/types.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import {
