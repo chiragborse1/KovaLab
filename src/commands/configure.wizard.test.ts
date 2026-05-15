@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
-import type { WizardPrompter } from "../wizard/prompts.js";
+import type { WizardPrompter, WizardSelectParams } from "../wizard/prompts.js";
 
 const mocks = vi.hoisted(() => {
   const writeConfigFile = vi.fn();
@@ -33,6 +33,19 @@ const mocks = vi.hoisted(() => {
     setupChannels: vi.fn(async (cfg: KovaConfig) => cfg),
   };
 });
+
+async function selectWorkspaceOption<T>(params: WizardSelectParams<T>): Promise<T> {
+  const selected =
+    params.options.find((option) => (option.value as unknown) === "workspace") ?? params.options[0];
+  if (!selected) {
+    throw new Error("Expected wizard select options");
+  }
+  return selected.value;
+}
+
+async function selectNoOptions<T>(): Promise<T[]> {
+  return [];
+}
 
 vi.mock("@clack/prompts", () => ({
   intro: mocks.clackIntro,
@@ -651,8 +664,8 @@ describe("runConfigureWizard", () => {
       intro: vi.fn(async () => {}),
       outro: vi.fn(async () => {}),
       note: vi.fn(async () => {}),
-      select: vi.fn(async <T>() => "workspace" as T),
-      multiselect: vi.fn(async <T>() => [] as T[]),
+      select: selectWorkspaceOption,
+      multiselect: selectNoOptions,
       text: vi.fn(async () => "~/browser-kova"),
       confirm: vi.fn(async () => true),
       progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
@@ -686,8 +699,8 @@ describe("runConfigureWizard", () => {
       intro: vi.fn(async () => {}),
       outro: vi.fn(async () => {}),
       note: vi.fn(async () => {}),
-      select: vi.fn(async <T>() => "workspace" as T),
-      multiselect: vi.fn(async <T>() => [] as T[]),
+      select: selectWorkspaceOption,
+      multiselect: selectNoOptions,
       text: vi.fn(async () => "18789"),
       confirm: vi.fn(async () => true),
       progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),

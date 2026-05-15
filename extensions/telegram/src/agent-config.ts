@@ -17,5 +17,5 @@ export function resolveTelegramConfigReasoningDefault(
   const agentDefault = cfg.agents?.list?.find(
     (entry) => normalizeAgentId(entry?.id) === id,
   )?.reasoningDefault;
-  return agentDefault ?? cfg.agents?.defaults?.reasoningDefault ?? "off";
+  return agentDefault ?? "off";
 }
