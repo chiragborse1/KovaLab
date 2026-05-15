@@ -50,12 +50,6 @@ jobs:
           echo "base=${base}" >> "$GITHUB_OUTPUT"
           echo "Using changed base: ${base}"
 
-      - name: Build runtime
-        run: pnpm build
-
-      - name: Build Control UI
-        run: pnpm ui:build
-
       - name: Check changed lanes
         run: pnpm check:changed -- --base "${{ steps.changed-base.outputs.base }}" --head HEAD
 
@@ -63,3 +57,9 @@ jobs:
         env:
           OPENCLAW_VITEST_MAX_WORKERS: "1"
         run: node scripts/test-projects.mjs --changed "${{ steps.changed-base.outputs.base }}"
+
+      - name: Build runtime
+        run: pnpm build
+
+      - name: Build Control UI
+        run: pnpm ui:build
