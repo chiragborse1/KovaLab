@@ -569,6 +569,14 @@ function normalizeFinalAssistantMessage(message: unknown): Record<string, unknow
   });
 }
 
+function buildAssistantErrorMessage(error: string): Record<string, unknown> {
+  return {
+    role: "assistant",
+    content: [{ type: "text", text: "Error: " + error }],
+    timestamp: Date.now(),
+  };
+}
+
 export async function sendChatMessage(
   state: ChatState,
   message: string,
@@ -647,14 +655,7 @@ export async function sendChatMessage(
     state.chatStream = null;
     state.chatStreamStartedAt = null;
     state.lastError = error;
-    state.chatMessages = [
-      ...state.chatMessages,
-      {
-        role: "assistant",
-        content: [{ type: "text", text: "Error: " + error }],
-        timestamp: Date.now(),
-      },
-    ];
+    state.chatMessages = [...state.chatMessages, buildAssistantErrorMessage(error)];
     return null;
   } finally {
     state.chatSending = false;
@@ -798,10 +799,12 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     state.chatStreamStartedAt = null;
   } else if (payload.state === "error") {
     rememberHandledTerminalChatEvent(state, payload);
+    const error = payload.errorMessage?.trim() || "chat error";
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
-    state.lastError = payload.errorMessage ?? "chat error";
+    state.lastError = error;
+    state.chatMessages = [...state.chatMessages, buildAssistantErrorMessage(error)];
   }
   return payload.state;
 }

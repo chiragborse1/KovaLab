@@ -430,6 +430,58 @@ describe("handleChatEvent", () => {
     expect(state.chatMessages).toEqual([existingMessage]);
   });
 
+  it("shows an assistant error message when an active run fails before text arrives", () => {
+    const existingMessage = {
+      role: "user",
+      content: [{ type: "text", text: "Do a web search" }],
+      timestamp: 1,
+    };
+    const state = createState({
+      sessionKey: "main",
+      chatRunId: "run-1",
+      chatStream: "",
+      chatStreamStartedAt: 100,
+      chatMessages: [existingMessage],
+    });
+    const payload: ChatEventPayload = {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "error",
+      errorMessage: "LLM request timed out.",
+    };
+
+    expect(handleChatEvent(state, payload)).toBe("error");
+    expect(state.chatRunId).toBe(null);
+    expect(state.chatStream).toBe(null);
+    expect(state.chatStreamStartedAt).toBe(null);
+    expect(state.lastError).toBe("LLM request timed out.");
+    expect(state.chatMessages).toHaveLength(2);
+    expect(state.chatMessages[0]).toEqual(existingMessage);
+    expect(state.chatMessages[1]).toMatchObject({
+      role: "assistant",
+      content: [{ type: "text", text: "Error: LLM request timed out." }],
+    });
+  });
+
+  it("does not duplicate assistant error messages for repeated terminal error events", () => {
+    const state = createState({
+      sessionKey: "main",
+      chatRunId: "run-1",
+      chatStream: "",
+      chatStreamStartedAt: 100,
+    });
+    const payload: ChatEventPayload = {
+      runId: "run-1",
+      sessionKey: "main",
+      state: "error",
+      errorMessage: "LLM request timed out.",
+    };
+
+    expect(handleChatEvent(state, payload)).toBe("error");
+    expect(handleChatEvent(state, payload)).toBe(null);
+    expect(state.chatMessages).toHaveLength(1);
+  });
+
   it("drops NO_REPLY final payload from another run", () => {
     const state = createActiveStreamingState();
     const payload = createOtherRunNoReplyFinalPayload();
