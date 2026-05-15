@@ -4,7 +4,10 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { Readable, Writable } from "node:stream";
 import { pathToFileURL } from "node:url";
-import { installLobsterAjvCompileCache } from "./lobster-ajv-cache.js";
+import {
+  installLobsterAjvCompileCache,
+  installLobsterPackageAjvCompileCache,
+} from "./lobster-ajv-cache.js";
 
 export type LobsterEnvelope =
   | {
@@ -121,7 +124,7 @@ function findLobsterPackageRoot(resolvedEntryPath: string): string {
     const packageJsonPath = path.join(dir, "package.json");
     try {
       const parsed = JSON.parse(readFileSync(packageJsonPath, "utf8")) as { name?: string };
-      if (parsed.name === "@kova/lobster") {
+      if (parsed.name === "@kova/lobster" || parsed.name === "@clawdbot/lobster") {
         return dir;
       }
     } catch {
@@ -304,6 +307,8 @@ export async function loadEmbeddedToolRuntimeFromPackage(
     (async (specifier: string) => (await import(specifier)) as Partial<EmbeddedToolRuntime>);
   const resolvePackageEntry =
     options.resolvePackageEntry ?? ((specifier: string) => lobsterRequire.resolve(specifier));
+
+  installLobsterPackageAjvCompileCache(() => resolvePackageEntry("@kova/lobster"));
 
   let coreLoadError: unknown;
   try {

@@ -69,6 +69,6 @@ Notes:
 
 ## Security
 
-- Runs Lobster in process via the published `@kova/lobster/core` runtime.
+- Runs Lobster in process via the `@kova/lobster/core` runtime alias.
 - Does not manage OAuth/tokens.
 - Uses timeouts, stdout caps, and strict JSON envelope parsing.

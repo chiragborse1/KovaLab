@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 import AjvPkg, { type AnySchema, type ValidateFunction } from "ajv";
 
 const installedSymbol = Symbol.for("kova.lobster.ajv-compile-cache.installed");
@@ -12,10 +13,12 @@ type CompileCacheEntry = {
   validate: ValidateFunction;
 };
 
-const AjvCtor = AjvPkg as unknown as {
+type AjvConstructor = {
   new (opts?: object): AjvInstance;
   prototype: AjvInstance;
 };
+
+const AjvCtor = AjvPkg as unknown as AjvConstructor;
 
 type AjvWithCompileCache = AjvInstance & {
   [cacheSymbol]?: Map<string, CompileCacheEntry>;
@@ -93,8 +96,8 @@ function rememberCompiledValidator(params: {
   cache.set(key, { schema, validate });
 }
 
-export function installLobsterAjvCompileCache() {
-  const proto = AjvCtor.prototype as unknown as AjvPrototypePatch;
+function installAjvCompileCache(AjvImpl: AjvConstructor) {
+  const proto = AjvImpl.prototype as unknown as AjvPrototypePatch;
   if (proto[installedSymbol]) {
     return;
   }
@@ -139,4 +142,22 @@ export function installLobsterAjvCompileCache() {
     this[cacheSymbol]?.clear();
     return originalRemoveSchema.call(this, schemaKeyRef);
   };
+}
+
+export function installLobsterAjvCompileCache() {
+  installAjvCompileCache(AjvCtor);
+}
+
+export function installLobsterPackageAjvCompileCache(resolvePackageEntry: () => string) {
+  try {
+    const packageEntryPath = resolvePackageEntry();
+    const packageRequire = createRequire(packageEntryPath);
+    const packageAjv = packageRequire("ajv") as { default?: unknown };
+    const packageAjvCtor = (packageAjv.default ?? packageAjv) as AjvConstructor;
+    if (typeof packageAjvCtor === "function") {
+      installAjvCompileCache(packageAjvCtor);
+    }
+  } catch {
+    // Optional package-runtime optimization; the fallback loader will report real load failures.
+  }
 }

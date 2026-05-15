@@ -14,10 +14,10 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "kova": ">=2.0.0-beta.5"
+    "getkova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "kova": {
+    "getkova": {
       "optional": true
     }
   },
