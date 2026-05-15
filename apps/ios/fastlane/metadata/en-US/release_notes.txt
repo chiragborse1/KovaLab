@@ -1,1 +1,1 @@
-Maintenance update for the current Kova development release.
+Maintenance update for the current Kova release.
