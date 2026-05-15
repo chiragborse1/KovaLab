@@ -1,9 +1,9 @@
-import type { ModelDefinitionConfig } from "openclaw/plugin-sdk/provider-model-shared";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
+import type { ModelDefinitionConfig } from "getkova/plugin-sdk/provider-model-shared";
+import { createSubsystemLogger } from "getkova/plugin-sdk/runtime-env";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 
 const log = createSubsystemLogger("chutes-models");
 

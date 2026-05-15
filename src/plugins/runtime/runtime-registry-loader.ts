@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { withActivatedPluginIds } from "../activation-context.js";
 import {
   resolveChannelPluginIds,
   resolveConfiguredChannelPluginIds,
 } from "../channel-plugin-ids.js";
-import { loadOpenClawPlugins, resolveRuntimePluginRegistry } from "../loader.js";
+import { loadKovaPlugins, resolveRuntimePluginRegistry } from "../loader.js";
 import {
   hasExplicitPluginIdScope,
   hasNonEmptyPluginIdScope,
@@ -74,19 +74,19 @@ function shouldForwardChannelScope(params: {
 }
 
 function resolveOrLoadRuntimePluginRegistry(
-  loadOptions: Parameters<typeof loadOpenClawPlugins>[0],
+  loadOptions: Parameters<typeof loadKovaPlugins>[0],
 ): void {
   // Prefer the runtime resolver so broad ensures can reuse compatible active
   // registries, including gateway-bindable startup registries.
   if (!resolveRuntimePluginRegistry(loadOptions)) {
-    loadOpenClawPlugins(loadOptions);
+    loadKovaPlugins(loadOptions);
   }
 }
 
 export function ensurePluginRegistryLoaded(options?: {
   scope?: PluginRegistryScope;
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config?: KovaConfig;
+  activationSourceConfig?: KovaConfig;
   env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
   onlyPluginIds?: string[];

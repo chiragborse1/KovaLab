@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { encodeQuery, formatFeishuApiError } from "./comment-shared.js";
@@ -99,7 +99,7 @@ function formatCommentReactionFailure(error: unknown): string {
 }
 
 async function requestCommentTypingReaction(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   fileToken: string;
   fileType: CommentFileType;
   replyId: string;
@@ -204,7 +204,7 @@ export async function cleanupAmbientCommentTypingReaction(params: {
 }
 
 export function createCommentTypingReactionLifecycle(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   fileToken: string;
   fileType: CommentFileType;
   replyId?: string;

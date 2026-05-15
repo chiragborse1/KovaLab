@@ -1,7 +1,7 @@
 import {
   createProviderHttpError,
   formatProviderHttpErrorMessage,
-} from "openclaw/plugin-sdk/provider-http";
+} from "getkova/plugin-sdk/provider-http";
 import {
   buildSearchCacheKey,
   buildUnsupportedSearchFilterResponse,
@@ -19,7 +19,7 @@ import {
   withTrustedWebSearchEndpoint,
   wrapWebContent,
   writeCachedSearchPayload,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "getkova/plugin-sdk/provider-web-search";
 import { DEFAULT_GOOGLE_API_BASE_URL } from "../api.js";
 import {
   resolveGeminiConfig,

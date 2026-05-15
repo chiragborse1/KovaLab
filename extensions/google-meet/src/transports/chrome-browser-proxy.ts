@@ -1,4 +1,4 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk/plugin-runtime";
+import type { PluginRuntime } from "getkova/plugin-sdk/plugin-runtime";
 
 type BrowserProxyResult = {
   result?: unknown;

@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Message } from "@grammyjs/types";
-import { formatLocationText } from "openclaw/plugin-sdk/channel-inbound";
-import type { MsgContext } from "openclaw/plugin-sdk/reply-runtime";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import { formatLocationText } from "getkova/plugin-sdk/channel-inbound";
+import type { MsgContext } from "getkova/plugin-sdk/reply-runtime";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
 import { resolveTelegramPrimaryMedia } from "./bot/body-helpers.js";
 import {
   buildSenderName,

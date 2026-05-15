@@ -1,6 +1,6 @@
 import { listChannelPlugins } from "../../channels/plugins/index.js";
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { defaultRuntime } from "../../runtime.js";
 import {
   listDeliverableMessageChannels,
@@ -38,7 +38,7 @@ function resolveKnownChannel(value?: string | null): MessageChannelId | undefine
 }
 
 function resolveAvailableKnownChannel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   value?: string | null;
 }): MessageChannelId | undefined {
   const normalized = resolveKnownChannel(params.value);
@@ -80,7 +80,7 @@ function logChannelSelectionError(params: {
   );
 }
 
-async function isPluginConfigured(plugin: ChannelPlugin, cfg: OpenClawConfig): Promise<boolean> {
+async function isPluginConfigured(plugin: ChannelPlugin, cfg: KovaConfig): Promise<boolean> {
   const accountIds = plugin.config.listAccountIds(cfg);
   if (accountIds.length === 0) {
     return false;
@@ -128,9 +128,7 @@ async function isPluginConfigured(plugin: ChannelPlugin, cfg: OpenClawConfig): P
   return false;
 }
 
-export async function listConfiguredMessageChannels(
-  cfg: OpenClawConfig,
-): Promise<MessageChannelId[]> {
+export async function listConfiguredMessageChannels(cfg: KovaConfig): Promise<MessageChannelId[]> {
   const channels: MessageChannelId[] = [];
   for (const plugin of listChannelPlugins()) {
     if (!isKnownChannel(plugin.id)) {
@@ -144,7 +142,7 @@ export async function listConfiguredMessageChannels(
 }
 
 export async function resolveMessageChannelSelection(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel?: string | null;
   fallbackChannel?: string | null;
 }): Promise<{

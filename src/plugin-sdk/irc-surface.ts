@@ -1,7 +1,7 @@
 // Manual facade. Keep loader boundary explicit.
 import type { ChannelSetupWizard } from "../channels/plugins/setup-wizard-types.js";
 import type { ChannelSetupAdapter } from "../channels/plugins/types.adapters.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import {
   createLazyFacadeObjectValue,
   loadBundledPluginPublicSurfaceModuleSync,
@@ -41,12 +41,9 @@ type ResolvedIrcAccount = {
 type FacadeModule = {
   ircSetupAdapter: ChannelSetupAdapter;
   ircSetupWizard: ChannelSetupWizard;
-  listIrcAccountIds: (cfg: OpenClawConfig) => string[];
-  resolveDefaultIrcAccountId: (cfg: OpenClawConfig) => string;
-  resolveIrcAccount: (params: {
-    cfg: OpenClawConfig;
-    accountId?: string | null;
-  }) => ResolvedIrcAccount;
+  listIrcAccountIds: (cfg: KovaConfig) => string[];
+  resolveDefaultIrcAccountId: (cfg: KovaConfig) => string;
+  resolveIrcAccount: (params: { cfg: KovaConfig; accountId?: string | null }) => ResolvedIrcAccount;
 };
 
 function loadFacadeModule(): FacadeModule {

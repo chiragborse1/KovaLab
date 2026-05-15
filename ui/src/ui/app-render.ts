@@ -117,14 +117,14 @@ import {
   toggleSessionCompactionCheckpoints,
 } from "./controllers/sessions.ts";
 import {
-  closeClawHubDetail,
-  installFromClawHub,
+  closeKovaHubDetail,
+  installFromKovaHub,
   installSkill,
-  loadClawHubDetail,
+  loadKovaHubDetail,
   loadSkills,
   saveSkillApiKey,
-  searchClawHub,
-  setClawHubSearchQuery,
+  searchKovaHub,
+  setKovaHubSearchQuery,
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
@@ -216,10 +216,10 @@ function resolveDreamingNextCycle(
   return formatDreamNextCycle(nextRunAtMs);
 }
 
-let clawhubSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let kovahubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let controlWizardProgressTimer: ReturnType<typeof setTimeout> | null = null;
 
-const UPDATE_BANNER_DISMISS_KEY = "openclaw:control-ui:update-banner-dismissed:v1";
+const UPDATE_BANNER_DISMISS_KEY = "kova:control-ui:update-banner-dismissed:v1";
 const CRON_THINKING_SUGGESTIONS = ["off", "minimal", "low", "medium", "high"];
 const CRON_TIMEZONE_SUGGESTIONS = [
   "UTC",
@@ -2375,16 +2375,16 @@ export function renderApp(state: AppViewState) {
                 messages: state.skillMessages,
                 busyKey: state.skillsBusyKey,
                 detailKey: state.skillsDetailKey,
-                clawhubQuery: state.clawhubSearchQuery,
-                clawhubResults: state.clawhubSearchResults,
-                clawhubSearchLoading: state.clawhubSearchLoading,
-                clawhubSearchError: state.clawhubSearchError,
-                clawhubDetail: state.clawhubDetail,
-                clawhubDetailSlug: state.clawhubDetailSlug,
-                clawhubDetailLoading: state.clawhubDetailLoading,
-                clawhubDetailError: state.clawhubDetailError,
-                clawhubInstallSlug: state.clawhubInstallSlug,
-                clawhubInstallMessage: state.clawhubInstallMessage,
+                kovahubQuery: state.kovahubSearchQuery,
+                kovahubResults: state.kovahubSearchResults,
+                kovahubSearchLoading: state.kovahubSearchLoading,
+                kovahubSearchError: state.kovahubSearchError,
+                kovahubDetail: state.kovahubDetail,
+                kovahubDetailSlug: state.kovahubDetailSlug,
+                kovahubDetailLoading: state.kovahubDetailLoading,
+                kovahubDetailError: state.kovahubDetailError,
+                kovahubInstallSlug: state.kovahubInstallSlug,
+                kovahubInstallMessage: state.kovahubInstallMessage,
                 onFilterChange: (next) => (state.skillsFilter = next),
                 onStatusFilterChange: (next) => (state.skillsStatusFilter = next),
                 onSourceFilterChange: (next) => (state.skillsSourceFilter = next),
@@ -2397,16 +2397,16 @@ export function renderApp(state: AppViewState) {
                   installSkill(state, skillKey, name, installId),
                 onDetailOpen: (key) => (state.skillsDetailKey = key),
                 onDetailClose: () => (state.skillsDetailKey = null),
-                onClawHubQueryChange: (query) => {
-                  setClawHubSearchQuery(state, query);
-                  if (clawhubSearchTimer) {
-                    clearTimeout(clawhubSearchTimer);
+                onKovaHubQueryChange: (query) => {
+                  setKovaHubSearchQuery(state, query);
+                  if (kovahubSearchTimer) {
+                    clearTimeout(kovahubSearchTimer);
                   }
-                  clawhubSearchTimer = setTimeout(() => searchClawHub(state, query), 300);
+                  kovahubSearchTimer = setTimeout(() => searchKovaHub(state, query), 300);
                 },
-                onClawHubDetailOpen: (slug) => loadClawHubDetail(state, slug),
-                onClawHubDetailClose: () => closeClawHubDetail(state),
-                onClawHubInstall: (slug) => installFromClawHub(state, slug),
+                onKovaHubDetailOpen: (slug) => loadKovaHubDetail(state, slug),
+                onKovaHubDetailClose: () => closeKovaHubDetail(state),
+                onKovaHubInstall: (slug) => installFromKovaHub(state, slug),
               }),
             )
           : nothing}

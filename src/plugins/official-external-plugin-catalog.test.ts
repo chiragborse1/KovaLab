@@ -24,7 +24,7 @@ describe("official external plugin catalog", () => {
   it("deduplicates entries by plugin kind and id", () => {
     const entries = listOfficialExternalPluginCatalogEntries();
     const keys = entries.map((entry) => {
-      const manifest = entry.openclaw;
+      const manifest = entry.kova;
       return `${entry.kind ?? "plugin"}:${manifest?.plugin?.id ?? manifest?.channel?.id}`;
     });
 

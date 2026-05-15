@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resetLogger, setLoggerOverride } from "openclaw/plugin-sdk/runtime-env";
+import { resetLogger, setLoggerOverride } from "getkova/plugin-sdk/runtime-env";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { enqueueCredsSave } from "./creds-persistence.js";
 import { baileys, getLastSocket, resetBaileysMocks, resetLoadConfigMock } from "./test-helpers.js";
@@ -85,7 +85,7 @@ function mockFsOpenForCredsWrites(params?: {
 }
 
 function mockCredsJsonSpies(readContents: string) {
-  const credsSuffix = path.join("/tmp", "openclaw-oauth", "whatsapp", "default", "creds.json");
+  const credsSuffix = path.join("/tmp", "kova-oauth", "whatsapp", "default", "creds.json");
   const copySpy = vi.spyOn(fsSync, "copyFileSync").mockImplementation(() => {});
   const existsSpy = vi.spyOn(fsSync, "existsSync").mockImplementation((p) => {
     if (typeof p !== "string") {
@@ -165,7 +165,7 @@ describe("web session", () => {
   });
 
   it("creates WA socket with QR handler", async () => {
-    const authDir = createTempAuthDir("openclaw-wa-creds-test");
+    const authDir = createTempAuthDir("kova-wa-creds-test");
     const openMock = mockFsOpenForCredsWrites();
 
     await createWaSocket(true, false, { authDir });
@@ -350,7 +350,7 @@ describe("web session", () => {
       release = resolve;
     });
 
-    const authDir = createTempAuthDir("openclaw-wa-queue");
+    const authDir = createTempAuthDir("kova-wa-queue");
     const openMock = mockFsOpenForCredsWrites({
       onTempWrite: async (filePath) => {
         if (filePath.startsWith(authDir)) {
@@ -396,8 +396,8 @@ describe("web session", () => {
       releaseB = resolve;
     });
 
-    const authDirA = createTempAuthDir("openclaw-wa-a");
-    const authDirB = createTempAuthDir("openclaw-wa-b");
+    const authDirA = createTempAuthDir("kova-wa-a");
+    const authDirB = createTempAuthDir("kova-wa-b");
     const onError = vi.fn();
 
     enqueueCredsSave(
@@ -439,13 +439,7 @@ describe("web session", () => {
   it("rotates creds backup when creds.json is valid JSON", async () => {
     const creds = mockCredsJsonSpies("{}");
     const openMock = mockFsOpenForCredsWrites();
-    const backupSuffix = path.join(
-      "/tmp",
-      "openclaw-oauth",
-      "whatsapp",
-      "default",
-      "creds.json.bak",
-    );
+    const backupSuffix = path.join("/tmp", "kova-oauth", "whatsapp", "default", "creds.json.bak");
 
     await createWaSocket(false, false);
     await emitCredsUpdate();
@@ -466,7 +460,7 @@ describe("web session", () => {
     const rmSpy = vi.spyOn(fs, "rm").mockResolvedValue(undefined);
     const chmodSpy = vi.spyOn(fs, "chmod").mockResolvedValue(undefined);
 
-    await writeCredsJsonAtomically("/tmp/openclaw-oauth/whatsapp/default", {
+    await writeCredsJsonAtomically("/tmp/kova-oauth/whatsapp/default", {
       me: { id: "123@s.whatsapp.net" },
     });
 
@@ -484,7 +478,7 @@ describe("web session", () => {
     expect(typeof writePath).toBe("string");
     expect(writePath).toContain(".creds.");
     expect(String(renameArgs[1] ?? "")).toContain(
-      path.join("/tmp", "openclaw-oauth", "whatsapp", "default", "creds.json"),
+      path.join("/tmp", "kova-oauth", "whatsapp", "default", "creds.json"),
     );
 
     openMock.restore();
@@ -494,7 +488,7 @@ describe("web session", () => {
   });
 
   it("keeps the previous creds.json valid if the atomic rename fails", async () => {
-    const authDir = createTempAuthDir("openclaw-wa-creds-atomic");
+    const authDir = createTempAuthDir("kova-wa-creds-atomic");
     const credsPath = path.join(authDir, "creds.json");
     const originalCreds = { me: { id: "old@s.whatsapp.net" } };
     const nextCreds = { me: { id: "new@s.whatsapp.net" } };

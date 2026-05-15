@@ -3,14 +3,14 @@ import path from "node:path";
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { collectDurableServiceEnvVars } from "../config/state-dir-dotenv.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { resolveGatewayLaunchAgentLabel } from "../daemon/constants.js";
 import { resolveGatewayStateDir } from "../daemon/paths.js";
 import {
   KOVA_WRAPPER_ENV_KEY,
-  OPENCLAW_WRAPPER_ENV_KEY,
+  KOVA_WRAPPER_ENV_KEY,
   resolveGatewayProgramArguments,
-  resolveOpenClawWrapperPath,
+  resolveKovaWrapperPath,
 } from "../daemon/program-args.js";
 import { buildServiceEnvironment } from "../daemon/service-env.js";
 import {
@@ -183,12 +183,7 @@ function collectPreservedExistingServiceEnvVars(
       continue;
     }
     const upper = key.toUpperCase();
-    if (
-      upper === "HOME" ||
-      upper === "PATH" ||
-      upper === "TMPDIR" ||
-      upper.startsWith("OPENCLAW_")
-    ) {
+    if (upper === "HOME" || upper === "PATH" || upper === "TMPDIR" || upper.startsWith("KOVA_")) {
       continue;
     }
     if (managedServiceEnvKeys.has(upper)) {
@@ -222,7 +217,7 @@ function resolveGatewayInstallWorkingDirectory(params: {
 
 async function buildGatewayInstallEnvironment(params: {
   env: Record<string, string | undefined>;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   authStore?: AuthProfileStore;
   warn?: DaemonInstallWarnFn;
   serviceEnvironment: Record<string, string | undefined>;
@@ -272,7 +267,7 @@ export async function buildGatewayInstallPlan(params: {
   platform?: NodeJS.Platform;
   warn?: DaemonInstallWarnFn;
   /** Full config to extract env vars from (env vars + inline env keys). */
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   authStore?: AuthProfileStore;
 }): Promise<GatewayInstallPlan> {
   const platform = params.platform ?? process.platform;
@@ -282,8 +277,8 @@ export async function buildGatewayInstallPlan(params: {
     devMode: params.devMode,
     nodePath: params.nodePath,
   });
-  const wrapperPath = await resolveOpenClawWrapperPath(
-    params.wrapperPath ?? params.env[KOVA_WRAPPER_ENV_KEY] ?? params.env[OPENCLAW_WRAPPER_ENV_KEY],
+  const wrapperPath = await resolveKovaWrapperPath(
+    params.wrapperPath ?? params.env[KOVA_WRAPPER_ENV_KEY],
   );
   const serviceInputEnv: Record<string, string | undefined> = wrapperPath
     ? { ...params.env, [KOVA_WRAPPER_ENV_KEY]: wrapperPath }
@@ -307,9 +302,7 @@ export async function buildGatewayInstallPlan(params: {
     port: params.port,
     launchdLabel:
       platform === "darwin"
-        ? resolveGatewayLaunchAgentLabel(
-            serviceInputEnv.KOVA_PROFILE ?? serviceInputEnv.OPENCLAW_PROFILE,
-          )
+        ? resolveGatewayLaunchAgentLabel(serviceInputEnv.KOVA_PROFILE)
         : undefined,
     platform,
     extraPathDirs: resolveDaemonNodeBinDir(nodePath),

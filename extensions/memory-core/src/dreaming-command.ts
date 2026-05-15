@@ -1,15 +1,15 @@
-import type { OpenClawConfig, OpenClawPluginApi } from "openclaw/plugin-sdk/memory-core";
-import { resolveMemoryDreamingConfig } from "openclaw/plugin-sdk/memory-core-host-status";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { KovaConfig, KovaPluginApi } from "getkova/plugin-sdk/memory-core";
+import { resolveMemoryDreamingConfig } from "getkova/plugin-sdk/memory-core-host-status";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 import { asRecord } from "./dreaming-shared.js";
 import { resolveShortTermPromotionDreamingConfig } from "./dreaming.js";
 
-function resolveMemoryCorePluginConfig(cfg: OpenClawConfig): Record<string, unknown> {
+function resolveMemoryCorePluginConfig(cfg: KovaConfig): Record<string, unknown> {
   const entry = asRecord(cfg.plugins?.entries?.["memory-core"]);
   return asRecord(entry?.config) ?? {};
 }
 
-function updateDreamingEnabledInConfig(cfg: OpenClawConfig, enabled: boolean): OpenClawConfig {
+function updateDreamingEnabledInConfig(cfg: KovaConfig, enabled: boolean): KovaConfig {
   const entries = { ...cfg.plugins?.entries };
   const existingEntry = asRecord(entries["memory-core"]) ?? {};
   const existingConfig = asRecord(existingEntry.config) ?? {};
@@ -46,7 +46,7 @@ function formatPhaseGuide(): string {
   ].join("\n");
 }
 
-function formatStatus(cfg: OpenClawConfig): string {
+function formatStatus(cfg: KovaConfig): string {
   const pluginConfig = resolveMemoryCorePluginConfig(cfg);
   const dreaming = resolveMemoryDreamingConfig({
     pluginConfig,
@@ -79,7 +79,7 @@ function requiresAdminToMutateDreaming(gatewayClientScopes?: readonly string[]):
   return Array.isArray(gatewayClientScopes) && !gatewayClientScopes.includes("operator.admin");
 }
 
-export function registerDreamingCommand(api: OpenClawPluginApi): void {
+export function registerDreamingCommand(api: KovaPluginApi): void {
   api.registerCommand({
     name: "dreaming",
     description: "Enable or disable memory dreaming.",
@@ -90,7 +90,7 @@ export function registerDreamingCommand(api: OpenClawPluginApi): void {
         .split(/\s+/)
         .filter(Boolean)
         .map((token) => normalizeLowercaseStringOrEmpty(token));
-      const currentConfig = api.runtime.config.current() as OpenClawConfig;
+      const currentConfig = api.runtime.config.current() as KovaConfig;
 
       if (
         !firstToken ||

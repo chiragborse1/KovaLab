@@ -1,4 +1,4 @@
-export type ThemeName = "claw" | "knot" | "dash" | "custom";
+export type ThemeName = "kova" | "knot" | "dash" | "custom";
 export type ThemeMode = "system" | "light" | "dark";
 export type ResolvedTheme =
   | "dark"
@@ -10,23 +10,23 @@ export type ResolvedTheme =
   | "custom"
   | "custom-light";
 
-export const VALID_THEME_NAMES = new Set<ThemeName>(["claw", "knot", "dash", "custom"]);
+export const VALID_THEME_NAMES = new Set<ThemeName>(["kova", "knot", "dash", "custom"]);
 export const VALID_THEME_MODES = new Set<ThemeMode>(["system", "light", "dark"]);
 
 type ThemeSelection = { theme: ThemeName; mode: ThemeMode };
 
 const LEGACY_MAP: Record<string, ThemeSelection> = {
-  defaultTheme: { theme: "claw", mode: "dark" },
-  docsTheme: { theme: "claw", mode: "light" },
+  defaultTheme: { theme: "kova", mode: "dark" },
+  docsTheme: { theme: "kova", mode: "light" },
   lightTheme: { theme: "knot", mode: "dark" },
   landingTheme: { theme: "knot", mode: "dark" },
   newTheme: { theme: "knot", mode: "dark" },
-  dark: { theme: "claw", mode: "dark" },
-  light: { theme: "claw", mode: "light" },
+  dark: { theme: "kova", mode: "dark" },
+  light: { theme: "kova", mode: "light" },
   openknot: { theme: "knot", mode: "dark" },
   fieldmanual: { theme: "dash", mode: "dark" },
-  clawdash: { theme: "dash", mode: "light" },
-  system: { theme: "claw", mode: "system" },
+  dashLight: { theme: "dash", mode: "light" },
+  system: { theme: "kova", mode: "system" },
 };
 
 export function prefersLightScheme(): boolean {
@@ -49,7 +49,7 @@ export function parseThemeSelection(
 
   const normalizedTheme = VALID_THEME_NAMES.has(theme as ThemeName)
     ? (theme as ThemeName)
-    : (LEGACY_MAP[theme]?.theme ?? "claw");
+    : (LEGACY_MAP[theme]?.theme ?? "kova");
   const normalizedMode = VALID_THEME_MODES.has(mode as ThemeMode)
     ? (mode as ThemeMode)
     : (LEGACY_MAP[theme]?.mode ?? "system");
@@ -66,7 +66,7 @@ function resolveMode(mode: ThemeMode): "light" | "dark" {
 
 export function resolveTheme(theme: ThemeName, mode: ThemeMode): ResolvedTheme {
   const resolvedMode = resolveMode(mode);
-  if (theme === "claw") {
+  if (theme === "kova") {
     return resolvedMode === "light" ? "light" : "dark";
   }
   if (theme === "knot") {

@@ -4,61 +4,61 @@ export {
   PAIRING_APPROVED_MESSAGE,
   projectCredentialSnapshotFields,
   resolveConfiguredFromCredentialStatuses,
-} from "openclaw/plugin-sdk/channel-status";
+} from "getkova/plugin-sdk/channel-status";
 export { buildChannelConfigSchema, DiscordConfigSchema } from "../config-api.js";
 export type {
   ChannelMessageActionAdapter,
   ChannelMessageActionContext,
   ChannelMessageActionName,
-} from "openclaw/plugin-sdk/channel-contract";
+} from "getkova/plugin-sdk/channel-contract";
 export type {
   ChannelPlugin,
-  OpenClawPluginApi,
+  KovaPluginApi,
   PluginRuntime,
-} from "openclaw/plugin-sdk/channel-plugin-common";
+} from "getkova/plugin-sdk/channel-plugin-common";
 export type {
   DiscordAccountConfig,
   DiscordActionConfig,
   DiscordConfig,
-  OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
+  KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
 export {
   jsonResult,
   readNumberParam,
   readStringArrayParam,
   readStringParam,
   resolvePollMaxSelections,
-} from "openclaw/plugin-sdk/channel-actions";
-export type { ActionGate } from "openclaw/plugin-sdk/channel-actions";
-export { readBooleanParam } from "openclaw/plugin-sdk/boolean-param";
+} from "getkova/plugin-sdk/channel-actions";
+export type { ActionGate } from "getkova/plugin-sdk/channel-actions";
+export { readBooleanParam } from "getkova/plugin-sdk/boolean-param";
 export {
   assertMediaNotDataUrl,
   parseAvailableTags,
   readReactionParams,
   withNormalizedTimestamp,
-} from "openclaw/plugin-sdk/channel-actions";
+} from "getkova/plugin-sdk/channel-actions";
 export {
   createHybridChannelConfigAdapter,
   createScopedChannelConfigAdapter,
   createScopedAccountConfigAccessors,
   createScopedChannelConfigBase,
   createTopLevelChannelConfigAdapter,
-} from "openclaw/plugin-sdk/channel-config-helpers";
+} from "getkova/plugin-sdk/channel-config-helpers";
 export {
   createAccountActionGate,
   createAccountListHelpers,
-} from "openclaw/plugin-sdk/account-helpers";
-export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "openclaw/plugin-sdk/account-id";
+} from "getkova/plugin-sdk/account-helpers";
+export { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "getkova/plugin-sdk/account-id";
 export {
   emptyPluginConfigSchema,
   formatPairingApproveHint,
-} from "openclaw/plugin-sdk/channel-plugin-common";
-export { loadOutboundMediaFromUrl } from "openclaw/plugin-sdk/outbound-media";
-export { resolveAccountEntry } from "openclaw/plugin-sdk/routing";
+} from "getkova/plugin-sdk/channel-plugin-common";
+export { loadOutboundMediaFromUrl } from "getkova/plugin-sdk/outbound-media";
+export { resolveAccountEntry } from "getkova/plugin-sdk/routing";
 export {
   hasConfiguredSecretInput,
   normalizeResolvedSecretInputString,
   normalizeSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/secret-input";
 export { getChatChannelMeta } from "./channel-api.js";
 export { resolveDiscordOutboundSessionRoute } from "./outbound-session-route.js";

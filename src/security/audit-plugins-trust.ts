@@ -5,7 +5,7 @@ import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import { inspectReadOnlyChannelAccount } from "../channels/read-only-account-inspect.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { resolveNativeSkillsEnabled } from "../config/commands.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { AgentToolsConfig } from "../config/types.tools.js";
 import { readInstalledPackageVersion } from "../infra/package-update-utils.js";
 import { normalizePluginsConfig } from "../plugins/config-state.js";
@@ -47,11 +47,11 @@ async function loadPluginTrustPolicyDeps(): Promise<PluginTrustPolicyDeps> {
 }
 
 function readChannelCommandSetting(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   channelId: string,
   key: "native" | "nativeSkills",
 ): unknown {
-  const channelCfg = cfg.channels?.[channelId as keyof NonNullable<OpenClawConfig["channels"]>];
+  const channelCfg = cfg.channels?.[channelId as keyof NonNullable<KovaConfig["channels"]>];
   if (!channelCfg || typeof channelCfg !== "object" || Array.isArray(channelCfg)) {
     return undefined;
   }
@@ -62,10 +62,7 @@ function readChannelCommandSetting(
   return (commands as Record<string, unknown>)[key];
 }
 
-async function isChannelPluginConfigured(
-  cfg: OpenClawConfig,
-  plugin: ChannelPlugin,
-): Promise<boolean> {
+async function isChannelPluginConfigured(cfg: KovaConfig, plugin: ChannelPlugin): Promise<boolean> {
   const accountIds = plugin.config.listAccountIds(cfg);
   const candidates = accountIds.length > 0 ? accountIds : [undefined];
   for (const accountId of candidates) {
@@ -153,7 +150,7 @@ async function listInstalledPluginDirs(params: {
 }
 
 function resolveToolPolicies(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   deps: PluginTrustPolicyDeps;
   agentTools?: AgentToolsConfig;
   sandboxMode?: "off" | "non-main" | "all";
@@ -183,7 +180,7 @@ function normalizePluginIdSet(entries: string[]): Set<string> {
 }
 
 function resolveEnabledExtensionPluginIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   pluginDirs: string[];
 }): string[] {
   const normalized = normalizePluginsConfig(params.cfg.plugins);
@@ -278,7 +275,7 @@ function isPinnedRegistrySpec(spec: string): boolean {
 }
 
 export async function collectPluginsTrustFindings(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   stateDir: string;
 }): Promise<SecurityAuditFinding[]> {
   const findings: SecurityAuditFinding[] = [];
@@ -402,7 +399,7 @@ export async function collectPluginsTrustFindings(params: {
           sandboxMode,
           agentId: context.agentId,
         });
-        const broadPolicy = deps.isToolAllowedByPolicies("__openclaw_plugin_probe__", policies);
+        const broadPolicy = deps.isToolAllowedByPolicies("__kova_plugin_probe__", policies);
         const explicitPluginAllow =
           !restrictiveProfile &&
           (hasExplicitPluginAllow({

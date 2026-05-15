@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { DeviceIdentity } from "../infra/device-identity.js";
 import { captureEnv } from "../test-utils/env.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
@@ -144,9 +144,9 @@ function resetGatewayCallMocks() {
   closeCode = 1006;
   closeReason = "";
   helloMethods = ["health", "secrets.resolve"];
-  const loadConfigForTests = getRuntimeConfig as unknown as () => OpenClawConfig;
+  const loadConfigForTests = getRuntimeConfig as unknown as () => KovaConfig;
   const resolveGatewayPortForTests = resolveGatewayPort as unknown as (
-    cfg?: OpenClawConfig,
+    cfg?: KovaConfig,
     env?: NodeJS.ProcessEnv,
   ) => number;
   __testing.setDepsForTests({
@@ -187,21 +187,21 @@ function makeRemotePasswordGatewayConfig(remotePassword: string, localPassword =
 describe("callGateway url resolution", () => {
   const envSnapshot = captureEnv([
     "KOVA_ALLOW_INSECURE_PRIVATE_WS",
-    "OPENCLAW_CONFIG_PATH",
-    "OPENCLAW_GATEWAY_PORT",
+    "KOVA_CONFIG_PATH",
+    "KOVA_GATEWAY_PORT",
     "KOVA_GATEWAY_URL",
     "KOVA_GATEWAY_TOKEN",
-    "OPENCLAW_STATE_DIR",
+    "KOVA_STATE_DIR",
   ]);
 
   beforeEach(() => {
     envSnapshot.restore();
     delete process.env.KOVA_ALLOW_INSECURE_PRIVATE_WS;
-    delete process.env.OPENCLAW_CONFIG_PATH;
-    delete process.env.OPENCLAW_GATEWAY_PORT;
+    delete process.env.KOVA_CONFIG_PATH;
+    delete process.env.KOVA_GATEWAY_PORT;
     delete process.env.KOVA_GATEWAY_URL;
     delete process.env.KOVA_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.KOVA_STATE_DIR;
     resetGatewayCallMocks();
   });
 
@@ -416,7 +416,7 @@ describe("callGateway url resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
     resolveGatewayPort.mockReturnValue(18789);
     pickPrimaryTailnetIPv4.mockReturnValue(undefined);
     process.env.KOVA_GATEWAY_URL = "wss://gateway-in-container.internal:9443/ws";
@@ -572,10 +572,10 @@ describe("callGateway url resolution", () => {
           },
           stop() {},
         }) as never,
-      getRuntimeConfig: getRuntimeConfig as unknown as () => OpenClawConfig,
+      getRuntimeConfig: getRuntimeConfig as unknown as () => KovaConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: KovaConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -695,9 +695,9 @@ describe("buildGatewayConnectionDetails", () => {
   });
 
   it("falls back to the default config loader when test deps drift", () => {
-    const tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-gateway-call-"));
-    process.env.OPENCLAW_STATE_DIR = tempStateDir;
-    process.env.OPENCLAW_CONFIG_PATH = path.join(tempStateDir, "missing-config.json");
+    const tempStateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-gateway-call-"));
+    process.env.KOVA_STATE_DIR = tempStateDir;
+    process.env.KOVA_CONFIG_PATH = path.join(tempStateDir, "missing-config.json");
     try {
       getRuntimeConfig.mockReturnValue({ gateway: { mode: "local", bind: "loopback" } });
       resolveGatewayPort.mockReturnValue(18800);
@@ -763,14 +763,14 @@ describe("buildGatewayConnectionDetails", () => {
       gateway: {
         mode: "remote",
         bind: "loopback",
-        remote: { url: "ws://openclaw-gateway.ai:18789" },
+        remote: { url: "ws://kova-gateway.ai:18789" },
       },
     });
     resolveGatewayPort.mockReturnValue(18789);
 
     const details = buildGatewayConnectionDetails();
 
-    expect(details.url).toBe("ws://openclaw-gateway.ai:18789");
+    expect(details.url).toBe("ws://kova-gateway.ai:18789");
     expect(details.urlSource).toBe("config gateway.remote.url");
   });
 
@@ -906,10 +906,10 @@ describe("callGateway error details", () => {
             });
           },
         }) as never,
-      getRuntimeConfig: getRuntimeConfig as unknown as () => OpenClawConfig,
+      getRuntimeConfig: getRuntimeConfig as unknown as () => KovaConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: KovaConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -964,10 +964,10 @@ describe("callGateway error details", () => {
             });
           },
         }) as never,
-      getRuntimeConfig: getRuntimeConfig as unknown as () => OpenClawConfig,
+      getRuntimeConfig: getRuntimeConfig as unknown as () => KovaConfig,
       loadOrCreateDeviceIdentity: () => deviceIdentityState.value,
       resolveGatewayPort: resolveGatewayPort as unknown as (
-        cfg?: OpenClawConfig,
+        cfg?: KovaConfig,
         env?: NodeJS.ProcessEnv,
       ) => number,
     });
@@ -1161,7 +1161,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1184,7 +1184,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1207,7 +1207,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1230,7 +1230,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1257,7 +1257,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await expect(callGateway({ method: "health" })).rejects.toThrow("gateway.auth.token");
   });
@@ -1279,7 +1279,7 @@ describe("callGateway password resolution", () => {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig);
+      } as unknown as KovaConfig);
 
       await callGateway({ method: "health" });
 
@@ -1307,7 +1307,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1331,7 +1331,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1355,7 +1355,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1379,7 +1379,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1405,7 +1405,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1430,7 +1430,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1455,7 +1455,7 @@ describe("callGateway password resolution", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     await callGateway({ method: "health" });
 
@@ -1482,7 +1482,7 @@ describe("callGateway password resolution", () => {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig);
+      } as unknown as KovaConfig);
 
       await callGateway({ method: "health" });
 

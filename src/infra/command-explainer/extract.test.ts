@@ -196,14 +196,14 @@ describe("command explainer tree-sitter runtime", () => {
   it("reports missing parser packages and wasm files with explainer context", () => {
     expect(() =>
       resolvePackageFileForCommandExplanation(
-        "definitely-missing-openclaw-parser-package",
+        "definitely-missing-kova-parser-package",
         "parser.wasm",
       ),
-    ).toThrow("Unable to resolve definitely-missing-openclaw-parser-package");
+    ).toThrow("Unable to resolve definitely-missing-kova-parser-package");
 
     expect(() =>
-      resolvePackageFileForCommandExplanation("web-tree-sitter", "missing-openclaw-parser.wasm"),
-    ).toThrow("Unable to locate missing-openclaw-parser.wasm in web-tree-sitter");
+      resolvePackageFileForCommandExplanation("web-tree-sitter", "missing-kova-parser.wasm"),
+    ).toThrow("Unable to locate missing-kova-parser.wasm in web-tree-sitter");
   });
 
   it("reports parser progress cancellation as a timeout", async () => {
@@ -595,7 +595,7 @@ describe("command explainer tree-sitter runtime", () => {
   });
 
   it("detects eval, source, aliases, and carrier shell wrappers", async () => {
-    const evalCommand = await explainShellCommand('eval "$OPENCLAW_CMD"');
+    const evalCommand = await explainShellCommand('eval "$KOVA_CMD"');
     expectRisk(evalCommand.risks, { kind: "eval" });
 
     const builtinEval = await explainShellCommand("builtin eval 'echo hi'");

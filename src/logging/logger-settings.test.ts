@@ -11,7 +11,7 @@ vi.mock("./config.js", () => ({
 }));
 
 let originalTestFileLog: string | undefined;
-let originalOpenClawLogLevel: string | undefined;
+let originalKovaLogLevel: string | undefined;
 let logging: typeof import("../logging.js");
 
 beforeAll(async () => {
@@ -19,9 +19,9 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  originalTestFileLog = process.env.OPENCLAW_TEST_FILE_LOG;
-  originalOpenClawLogLevel = process.env.KOVA_LOG_LEVEL;
-  delete process.env.OPENCLAW_TEST_FILE_LOG;
+  originalTestFileLog = process.env.KOVA_TEST_FILE_LOG;
+  originalKovaLogLevel = process.env.KOVA_LOG_LEVEL;
+  delete process.env.KOVA_TEST_FILE_LOG;
   delete process.env.KOVA_LOG_LEVEL;
   readLoggingConfigMock.mockReset();
   readLoggingConfigMock.mockReturnValue(undefined);
@@ -33,14 +33,14 @@ beforeEach(() => {
 
 afterEach(() => {
   if (originalTestFileLog === undefined) {
-    delete process.env.OPENCLAW_TEST_FILE_LOG;
+    delete process.env.KOVA_TEST_FILE_LOG;
   } else {
-    process.env.OPENCLAW_TEST_FILE_LOG = originalTestFileLog;
+    process.env.KOVA_TEST_FILE_LOG = originalTestFileLog;
   }
-  if (originalOpenClawLogLevel === undefined) {
+  if (originalKovaLogLevel === undefined) {
     delete process.env.KOVA_LOG_LEVEL;
   } else {
-    process.env.KOVA_LOG_LEVEL = originalOpenClawLogLevel;
+    process.env.KOVA_LOG_LEVEL = originalKovaLogLevel;
   }
   logging.resetLogger();
   logging.setLoggerOverride(null);
@@ -55,10 +55,10 @@ describe("getResolvedLoggerSettings", () => {
   });
 
   it("reads logging config when test file logging is explicitly enabled", () => {
-    process.env.OPENCLAW_TEST_FILE_LOG = "1";
+    process.env.KOVA_TEST_FILE_LOG = "1";
     readLoggingConfigMock.mockReturnValue({
       level: "debug",
-      file: "/tmp/openclaw-configured.log",
+      file: "/tmp/kova-configured.log",
       maxFileBytes: 2048,
     });
 
@@ -66,13 +66,13 @@ describe("getResolvedLoggerSettings", () => {
 
     expect(settings).toMatchObject({
       level: "debug",
-      file: "/tmp/openclaw-configured.log",
+      file: "/tmp/kova-configured.log",
       maxFileBytes: 2048,
     });
   });
 
   it("uses defaults when config schema skips logging config reads", () => {
-    process.env.OPENCLAW_TEST_FILE_LOG = "1";
+    process.env.KOVA_TEST_FILE_LOG = "1";
     shouldSkipMutatingLoggingConfigReadMock.mockReturnValue(true);
 
     const settings = logging.getResolvedLoggerSettings();

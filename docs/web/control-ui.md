@@ -71,7 +71,7 @@ The same browser-local pattern applies to the assistant avatar override. Uploade
 
 ## Runtime config endpoint
 
-The Control UI fetches its runtime settings from `/__openclaw/control-ui-config.json`. That endpoint is gated by the same gateway auth as the rest of the HTTP surface: unauthenticated browsers cannot fetch it, and a successful fetch requires either an already valid gateway token/password, Tailscale Serve identity, or a trusted-proxy identity.
+The Control UI fetches its runtime settings from `/__kova/control-ui-config.json`. That endpoint is gated by the same gateway auth as the rest of the HTTP surface: unauthenticated browsers cannot fetch it, and a successful fetch requires either an already valid gateway token/password, Tailscale Serve identity, or a trusted-proxy identity.
 
 ## Language support
 
@@ -94,7 +94,7 @@ The sidebar is grouped by operating intent:
 <AccordionGroup>
   <Accordion title="Chat and Talk">
     - Chat with the model via Gateway WS (`chat.history`, `chat.send`, `chat.abort`, `chat.inject`).
-    - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway mints a short-lived Realtime client secret with `talk.realtime.session`; the browser sends microphone audio directly to OpenAI and relays `openclaw_agent_consult` tool calls back through `chat.send` for the larger configured Kova model.
+    - Talk to OpenAI Realtime directly from the browser via WebRTC. The Gateway mints a short-lived Realtime client secret with `talk.realtime.session`; the browser sends microphone audio directly to OpenAI and relays `kova_agent_consult` tool calls back through `chat.send` for the larger configured Kova model.
     - Stream tool calls + live tool output cards in Chat (agent events).
   </Accordion>
   <Accordion title="Channels, instances, sessions, dreams">
@@ -105,7 +105,7 @@ The sidebar is grouped by operating intent:
   </Accordion>
   <Accordion title="Cron, skills, nodes, exec approvals">
     - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`).
-    - Skills: command-center summary, status/source filters, setup queue, in-page inspector, enable/disable, dependency install, API key updates, bulk actions, and ClawHub search/detail/install (`skills.*`).
+    - Skills: command-center summary, status/source filters, setup queue, in-page inspector, enable/disable, dependency install, API key updates, bulk actions, and KovaHub search/detail/install (`skills.*`).
     - Nodes: list + caps (`node.list`).
     - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`).
   </Accordion>
@@ -115,7 +115,7 @@ The sidebar is grouped by operating intent:
     - Server cards expose transport, command, args, remote URL, headers, env, and timeout fields without requiring raw object editing.
   </Accordion>
   <Accordion title="Config">
-    - View/edit `~/.openclaw/openclaw.json` (`config.get`, `config.set`).
+    - View/edit `~/.chiragborse1/KovaLab.json` (`config.get`, `config.set`).
     - Quick Settings exposes Model & Provider cards backed by `models.list`, `models.authStatus`, and `config.patch`, so the default agent model can be changed without opening the raw config editor.
     - Control Panel owns gateway connection settings plus the browser onboarding wizard, covering the same setup flow as `kova onboard`: model/provider auth, workspace, gateway, channels, web search, daemon/service, skills, and health checks. Setup answers stay visible as the next prompt appears, and the model step includes catalog search plus manual `provider/model` entry backed by `models.list` and `config.patch`.
     - Control Panel also shows provider/auth health from `models.authStatus`, current default model, read-only plugin inventory from `plugins.status`, plugin/channel setup counts from the loaded config snapshot, and setup diagnostics that point operators at health, plugin, and channel reconfiguration without opening raw JSON.
@@ -196,9 +196,9 @@ The Control UI ships a `manifest.webmanifest` and a service worker, so modern br
 
 Override the VAPID keypair through env vars on the Gateway process when you want to pin keys (for multi-host deployments, secrets rotation, or tests):
 
-- `OPENCLAW_VAPID_PUBLIC_KEY`
-- `OPENCLAW_VAPID_PRIVATE_KEY`
-- `OPENCLAW_VAPID_SUBJECT` (defaults to `mailto:openclaw@localhost`)
+- `KOVA_VAPID_PUBLIC_KEY`
+- `KOVA_VAPID_PRIVATE_KEY`
+- `KOVA_VAPID_SUBJECT` (defaults to `mailto:kova@localhost`)
 
 The Control UI uses these scope-gated Gateway methods to register and test browser subscriptions:
 
@@ -375,7 +375,7 @@ pnpm ui:build
 Optional absolute base (when you want fixed asset URLs):
 
 ```bash
-OPENCLAW_CONTROL_UI_BASE_PATH=/kova/ pnpm ui:build
+KOVA_CONTROL_UI_BASE_PATH=/kova/ pnpm ui:build
 ```
 
 For local development (separate dev server):

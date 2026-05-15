@@ -44,20 +44,20 @@ describe("formatPluginLine", () => {
     expect(output.match(/activation reason:/g)).toHaveLength(1);
   });
 
-  it("hides legacy OpenClaw package names for bundled plugins", () => {
+  it("hides legacy Kova package names for bundled plugins", () => {
     const output = formatPluginLine(
       createPluginRecord({
         id: "telegram",
-        name: "@openclaw/telegram",
+        name: "@kovaai/telegram",
         origin: "bundled",
-        format: "openclaw",
+        format: "kova",
       }),
       true,
     );
 
     expect(output).toContain("Kova Telegram (telegram) enabled");
     expect(output).toContain("format: kova");
-    expect(output).not.toContain("@openclaw/telegram");
-    expect(output).not.toContain("format: openclaw");
+    expect(output).not.toContain("@kovaai/telegram");
+    expect(output).not.toContain("format: kova");
   });
 });

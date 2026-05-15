@@ -72,9 +72,9 @@ is detected but not yet wired.
 
 | Feature       | How it maps                                                                                 | Applies to     |
 | ------------- | ------------------------------------------------------------------------------------------- | -------------- |
-| Skill content | Bundle skill roots load as normal Kova skills                                           | All formats    |
+| Skill content | Bundle skill roots load as normal Kova skills                                               | All formats    |
 | Commands      | `commands/` and `.cursor/commands/` treated as skill roots                                  | Claude, Cursor |
-| Hook packs    | Kova-style `HOOK.md` + `handler.ts` layouts                                             | Codex          |
+| Hook packs    | Kova-style `HOOK.md` + `handler.ts` layouts                                                 | Codex          |
 | MCP tools     | Bundle MCP config merged into embedded Pi settings; supported stdio and HTTP servers loaded | All formats    |
 | LSP servers   | Claude `.lsp.json` and manifest-declared `lspServers` merged into embedded Pi LSP defaults  | Claude         |
 | Settings      | Claude `settings.json` imported as embedded Pi defaults                                     | Claude         |
@@ -247,7 +247,7 @@ These are recognized and shown in diagnostics, but Kova does not run them:
 
 Kova checks for native plugin format first:
 
-1. `openclaw.plugin.json` or valid `package.json` with `openclaw.extensions` — treated as **native plugin**
+1. `kova.plugin.json` or valid `package.json` with `kova.extensions` — treated as **native plugin**
 2. Bundle markers (`.codex-plugin/`, `.claude-plugin/`, or default Claude/Cursor layout) — treated as **bundle**
 
 If a directory contains both, Kova uses the native path. This prevents

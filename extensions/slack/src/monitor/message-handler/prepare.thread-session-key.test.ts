@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import type { ResolvedSlackAccount } from "../../accounts.js";
 import type { SlackMessageEvent } from "../../types.js";
@@ -11,7 +11,7 @@ function buildCtx(overrides?: { replyToMode?: "all" | "first" | "off" | "batched
       channels: {
         slack: { enabled: true, replyToMode },
       },
-    } as OpenClawConfig,
+    } as KovaConfig,
     teamId: "T1",
     threadInheritParent: false,
     threadHistoryScope: "thread",
@@ -231,7 +231,7 @@ describe("thread-level session keys", () => {
       account,
       message: buildChannelMessage({
         channel: "C0AHZFCAS1K",
-        text: "https://github.com/openclaw/openclaw/issues/50621",
+        text: "https://github.com/chiragborse1/KovaLab/issues/50621",
         ts: "1777244714.000100",
         thread_ts: rootTs,
         parent_user_id: "U1",
@@ -274,7 +274,7 @@ describe("thread-level session keys", () => {
       account,
       message: buildChannelMessage({
         channel: "C0AHZFCAS1K",
-        text: "https://github.com/openclaw/openclaw/issues/50621",
+        text: "https://github.com/chiragborse1/KovaLab/issues/50621",
         ts: "1777244714.000100",
         thread_ts: rootTs,
       }),

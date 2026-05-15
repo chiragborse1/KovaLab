@@ -74,7 +74,7 @@ run_remote_bash() {
     /bin/bash "$tmp"
 }
 
-GUM_VERSION="${OPENCLAW_GUM_VERSION:-0.17.0}"
+GUM_VERSION="${KOVA_GUM_VERSION:-0.17.0}"
 GUM=""
 GUM_STATUS="skipped"
 GUM_REASON=""
@@ -356,7 +356,7 @@ show_install_plan() {
     ui_section "Install plan"
     ui_kv "OS" "$OS"
     ui_kv "Install method" "$INSTALL_METHOD"
-    ui_kv "Requested version" "$OPENCLAW_VERSION"
+    ui_kv "Requested version" "$KOVA_VERSION"
     if [[ "$USE_BETA" == "1" ]]; then
         ui_kv "Beta channel" "enabled"
     fi
@@ -376,7 +376,7 @@ show_install_plan() {
 }
 
 show_footer_links() {
-    local faq_url="https://docs.openclaw.ai/start/faq"
+    local faq_url="https://docs.neuralstudio.in/start/faq"
     if [[ -n "$GUM" ]]; then
         local content
         content="$(printf '%s\n%s' "Need help?" "FAQ: ${faq_url}")"
@@ -498,16 +498,16 @@ cleanup_legacy_submodules() {
     fi
 }
 
-cleanup_npm_openclaw_paths() {
+cleanup_npm_kova_paths() {
     local npm_root=""
     npm_root="$(npm root -g 2>/dev/null || true)"
     if [[ -z "$npm_root" || "$npm_root" != *node_modules* ]]; then
         return 1
     fi
-    rm -rf "$npm_root"/.openclaw-* "$npm_root"/openclaw 2>/dev/null || true
+    rm -rf "$npm_root"/.kova-* "$npm_root"/kova 2>/dev/null || true
 }
 
-extract_openclaw_conflict_path() {
+extract_kova_conflict_path() {
     local log="$1"
     local path=""
     path="$(sed -n 's/.*File exists: //p' "$log" | head -n1)"
@@ -521,16 +521,16 @@ extract_openclaw_conflict_path() {
     return 1
 }
 
-cleanup_openclaw_bin_conflict() {
+cleanup_kova_bin_conflict() {
     local bin_path="$1"
     if [[ -z "$bin_path" || ( ! -e "$bin_path" && ! -L "$bin_path" ) ]]; then
         return 1
     fi
     local npm_bin=""
     npm_bin="$(npm_global_bin_dir 2>/dev/null || true)"
-    if [[ -n "$npm_bin" && "$bin_path" != "$npm_bin/openclaw" ]]; then
+    if [[ -n "$npm_bin" && "$bin_path" != "$npm_bin/kova" ]]; then
         case "$bin_path" in
-            "/opt/homebrew/bin/openclaw"|"/usr/local/bin/openclaw")
+            "/opt/homebrew/bin/kova"|"/usr/local/bin/kova")
                 ;;
             *)
                 return 1
@@ -540,9 +540,9 @@ cleanup_openclaw_bin_conflict() {
     if [[ -L "$bin_path" ]]; then
         local target=""
         target="$(readlink "$bin_path" 2>/dev/null || true)"
-        if [[ "$target" == *"/node_modules/getkova/"* || "$target" == *"/node_modules/openclaw/"* ]]; then
+        if [[ "$target" == *"/node_modules/getkova/"* || "$target" == *"/node_modules/kova/"* ]]; then
             rm -f "$bin_path"
-            ui_info "Removed stale openclaw symlink at ${bin_path}"
+            ui_info "Removed stale kova symlink at ${bin_path}"
             return 0
         fi
         return 1
@@ -550,7 +550,7 @@ cleanup_openclaw_bin_conflict() {
     local backup=""
     backup="${bin_path}.bak-$(date +%Y%m%d-%H%M%S)"
     if mv "$bin_path" "$backup"; then
-        ui_info "Moved existing openclaw binary to ${backup}"
+        ui_info "Moved existing kova binary to ${backup}"
         return 0
     fi
     return 1
@@ -819,7 +819,7 @@ print_npm_failure_diagnostics() {
     fi
 }
 
-install_openclaw_npm() {
+install_kova_npm() {
     local spec="$1"
     local log
     log="$(mktempfile)"
@@ -845,9 +845,9 @@ install_openclaw_npm() {
             tail -n 80 "$log" >&2 || true
         fi
 
-        if grep -q "ENOTEMPTY: directory not empty, rename .*openclaw" "$log"; then
+        if grep -q "ENOTEMPTY: directory not empty, rename .*kova" "$log"; then
             ui_warn "npm left stale directory; cleaning and retrying"
-            cleanup_npm_openclaw_paths
+            cleanup_npm_kova_paths
             if run_npm_global_install "$spec" "$log"; then
                 ui_success "Kova npm package installed"
                 return 0
@@ -856,15 +856,15 @@ install_openclaw_npm() {
         fi
         if grep -q "EEXIST" "$log"; then
             local conflict=""
-            conflict="$(extract_openclaw_conflict_path "$log" || true)"
-            if [[ -n "$conflict" ]] && cleanup_openclaw_bin_conflict "$conflict"; then
+            conflict="$(extract_kova_conflict_path "$log" || true)"
+            if [[ -n "$conflict" ]] && cleanup_kova_bin_conflict "$conflict"; then
                 if run_npm_global_install "$spec" "$log"; then
                     ui_success "Kova npm package installed"
                     return 0
                 fi
                 return 1
             fi
-            ui_error "npm failed because an openclaw binary already exists"
+            ui_error "npm failed because an kova binary already exists"
             if [[ -n "$conflict" ]]; then
                 ui_info "Remove or move ${conflict}, then retry"
             fi
@@ -877,7 +877,7 @@ install_openclaw_npm() {
 }
 
 TAGLINES=()
-TAGLINES+=("Your terminal just grew claws—type something and let the bot pinch the busywork.")
+TAGLINES+=("Your terminal just got sharper; type something and let the bot handle the busywork.")
 TAGLINES+=("Welcome to the command line: where dreams compile and confidence segfaults.")
 TAGLINES+=("I run on caffeine, JSON5, and the audacity of \"it worked on my machine.\"")
 TAGLINES+=("Gateway online—please keep hands, feet, and appendages inside the shell at all times.")
@@ -894,7 +894,7 @@ TAGLINES+=("I can grep it, git blame it, and gently roast it—pick your coping 
 TAGLINES+=("Hot reload for config, cold sweat for deploys.")
 TAGLINES+=("I'm the assistant your terminal demanded, not the one your sleep schedule requested.")
 TAGLINES+=("I keep secrets like a vault... unless you print them in debug logs again.")
-TAGLINES+=("Automation with claws: minimal fuss, maximal pinch.")
+TAGLINES+=("Automation with edge: minimal fuss, maximum lift.")
 TAGLINES+=("I'm basically a Swiss Army knife, but with more opinions and fewer sharp edges.")
 TAGLINES+=("If you're lost, run doctor; if you're brave, run prod; if you're wise, run tests.")
 TAGLINES+=("Your task has been queued; your dignity has been deprecated.")
@@ -913,7 +913,7 @@ TAGLINES+=("If you can describe it, I can probably automate it—or at least mak
 TAGLINES+=("Your config is valid, your assumptions are not.")
 TAGLINES+=("I don't just autocomplete—I auto-commit (emotionally), then ask you to review (logically).")
 TAGLINES+=("Less clicking, more shipping, fewer \"where did that file go\" moments.")
-TAGLINES+=("Claws out, commit in—let's ship something mildly responsible.")
+TAGLINES+=("Kova up, commit in—let's ship something mildly responsible.")
 TAGLINES+=("I'll butter your workflow like a lobster roll: messy, delicious, effective.")
 TAGLINES+=("Shell yeah—I'm here to pinch the toil and leave you the glory.")
 TAGLINES+=("If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.")
@@ -945,7 +945,7 @@ TAGLINES+=("Ah, the fruit tree company! 🍎")
 
 HOLIDAY_NEW_YEAR="New Year's Day: New year, new config—same old EADDRINUSE, but this time we resolve it like grown-ups."
 HOLIDAY_LUNAR_NEW_YEAR="Lunar New Year: May your builds be lucky, your branches prosperous, and your merge conflicts chased away with fireworks."
-HOLIDAY_CHRISTMAS="Christmas: Ho ho ho—Santa's little claw-sistant is here to ship joy, roll back chaos, and stash the keys safely."
+HOLIDAY_CHRISTMAS="Christmas: Ho ho ho—Santa's little Kova assistant is here to ship joy, roll back chaos, and stash the keys safely."
 HOLIDAY_EID="Eid al-Fitr: Celebration mode: queues cleared, tasks completed, and good vibes committed to main with clean history."
 HOLIDAY_DIWALI="Diwali: Let the logs sparkle and the bugs flee—today we light up the terminal and ship with pride."
 HOLIDAY_EASTER="Easter: I found your missing environment variable—consider it a tiny CLI egg hunt with fewer jellybeans."
@@ -984,9 +984,9 @@ pick_tagline() {
         echo "$DEFAULT_TAGLINE"
         return
     fi
-    if [[ -n "${OPENCLAW_TAGLINE_INDEX:-}" ]]; then
-        if [[ "${OPENCLAW_TAGLINE_INDEX}" =~ ^[0-9]+$ ]]; then
-            local idx=$((OPENCLAW_TAGLINE_INDEX % count))
+    if [[ -n "${KOVA_TAGLINE_INDEX:-}" ]]; then
+        if [[ "${KOVA_TAGLINE_INDEX}" =~ ^[0-9]+$ ]]; then
+            local idx=$((KOVA_TAGLINE_INDEX % count))
             echo "${TAGLINES[$idx]}"
             return
         fi
@@ -997,21 +997,21 @@ pick_tagline() {
 
 TAGLINE=$(pick_tagline)
 
-NO_ONBOARD=${OPENCLAW_NO_ONBOARD:-0}
-NO_PROMPT=${OPENCLAW_NO_PROMPT:-0}
-DRY_RUN=${OPENCLAW_DRY_RUN:-0}
-INSTALL_METHOD=${OPENCLAW_INSTALL_METHOD:-}
-OPENCLAW_VERSION=${OPENCLAW_VERSION:-latest}
-USE_BETA=${OPENCLAW_BETA:-0}
-GIT_DIR_DEFAULT="${HOME}/openclaw"
-GIT_DIR=${OPENCLAW_GIT_DIR:-$GIT_DIR_DEFAULT}
-GIT_UPDATE=${OPENCLAW_GIT_UPDATE:-1}
+NO_ONBOARD=${KOVA_NO_ONBOARD:-0}
+NO_PROMPT=${KOVA_NO_PROMPT:-0}
+DRY_RUN=${KOVA_DRY_RUN:-0}
+INSTALL_METHOD=${KOVA_INSTALL_METHOD:-}
+KOVA_VERSION=${KOVA_VERSION:-latest}
+USE_BETA=${KOVA_BETA:-0}
+GIT_DIR_DEFAULT="${HOME}/kova"
+GIT_DIR=${KOVA_GIT_DIR:-$GIT_DIR_DEFAULT}
+GIT_UPDATE=${KOVA_GIT_UPDATE:-1}
 SHARP_IGNORE_GLOBAL_LIBVIPS="${SHARP_IGNORE_GLOBAL_LIBVIPS:-1}"
-NPM_LOGLEVEL="${OPENCLAW_NPM_LOGLEVEL:-error}"
+NPM_LOGLEVEL="${KOVA_NPM_LOGLEVEL:-error}"
 NPM_SILENT_FLAG="--silent"
-VERBOSE="${OPENCLAW_VERBOSE:-0}"
-VERIFY_INSTALL="${OPENCLAW_VERIFY_INSTALL:-0}"
-OPENCLAW_BIN=""
+VERBOSE="${KOVA_VERBOSE:-0}"
+VERIFY_INSTALL="${KOVA_VERIFY_INSTALL:-0}"
+KOVA_BIN=""
 PNPM_CMD=()
 HELP=0
 
@@ -1028,7 +1028,7 @@ Options:
   --git, --github                     Shortcut for --install-method git
   --version <version|dist-tag|spec>    npm install target (default: latest; use "main" for GitHub main)
   --beta                               Use beta if available, else latest
-  --git-dir, --dir <path>             Checkout directory (default: ~/openclaw)
+  --git-dir, --dir <path>             Checkout directory (default: ~/kova)
   --no-git-update                      Skip git pull for existing checkout
   --no-onboard                          Skip onboarding (non-interactive)
   --no-prompt                           Disable prompts (required in CI/automation)
@@ -1038,17 +1038,17 @@ Options:
   --help, -h                            Show this help
 
 Environment variables:
-  OPENCLAW_INSTALL_METHOD=git|npm
-  OPENCLAW_VERSION=latest|next|main|<semver>|<spec>
-  OPENCLAW_BETA=0|1
-  OPENCLAW_GIT_DIR=...
-  OPENCLAW_GIT_UPDATE=0|1
-  OPENCLAW_NO_PROMPT=1
-  OPENCLAW_VERIFY_INSTALL=1
-  OPENCLAW_DRY_RUN=1
-  OPENCLAW_NO_ONBOARD=1
-  OPENCLAW_VERBOSE=1
-  OPENCLAW_NPM_LOGLEVEL=error|warn|notice  Default: error (hide npm deprecation noise)
+  KOVA_INSTALL_METHOD=git|npm
+  KOVA_VERSION=latest|next|main|<semver>|<spec>
+  KOVA_BETA=0|1
+  KOVA_GIT_DIR=...
+  KOVA_GIT_UPDATE=0|1
+  KOVA_NO_PROMPT=1
+  KOVA_VERIFY_INSTALL=1
+  KOVA_DRY_RUN=1
+  KOVA_NO_ONBOARD=1
+  KOVA_VERBOSE=1
+  KOVA_NPM_LOGLEVEL=error|warn|notice  Default: error (hide npm deprecation noise)
   SHARP_IGNORE_GLOBAL_LIBVIPS=0|1    Default: 1 (avoid sharp building against global libvips)
 
 Examples:
@@ -1096,7 +1096,7 @@ parse_args() {
                 shift 2
                 ;;
             --version)
-                OPENCLAW_VERSION="$2"
+                KOVA_VERSION="$2"
                 shift 2
                 ;;
             --beta)
@@ -1212,7 +1212,7 @@ EOF
     return 1
 }
 
-detect_openclaw_checkout() {
+detect_kova_checkout() {
     local dir="$1"
     if [[ ! -f "$dir/package.json" ]]; then
         return 1
@@ -1220,7 +1220,7 @@ detect_openclaw_checkout() {
     if [[ ! -f "$dir/pnpm-workspace.yaml" ]]; then
         return 1
     fi
-    if ! grep -q '"name"[[:space:]]*:[[:space:]]*"openclaw"' "$dir/package.json" 2>/dev/null; then
+    if ! grep -q '"name"[[:space:]]*:[[:space:]]*"kova"' "$dir/package.json" 2>/dev/null; then
         return 1
     fi
     echo "$dir"
@@ -1649,7 +1649,7 @@ fix_npm_permissions() {
     ui_success "npm configured for user installs"
 }
 
-ensure_openclaw_bin_link() {
+ensure_kova_bin_link() {
     local npm_root=""
     npm_root="$(npm root -g 2>/dev/null || true)"
     if [[ -z "$npm_root" || ! -d "$npm_root/getkova" ]]; then
@@ -1665,16 +1665,16 @@ ensure_openclaw_bin_link() {
         ln -sf "$npm_root/getkova/kova.mjs" "${npm_bin}/kova"
         ui_info "Created kova bin link at ${npm_bin}/kova"
     fi
-    if [[ -e "${npm_bin}/openclaw" ]]; then
-        rm -f "${npm_bin}/openclaw"
-        ui_info "Removed legacy openclaw alias at ${npm_bin}/openclaw"
+    if [[ -e "${npm_bin}/kova" ]]; then
+        rm -f "${npm_bin}/kova"
+        ui_info "Removed legacy kova alias at ${npm_bin}/kova"
     fi
     return 0
 }
 
 # Check for existing Kova installation
-check_existing_openclaw() {
-    if [[ -n "$(type -P kova 2>/dev/null || true)" || -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
+check_existing_kova() {
+    if [[ -n "$(type -P kova 2>/dev/null || true)" || -n "$(type -P kova 2>/dev/null || true)" ]]; then
         ui_info "Existing Kova installation detected, upgrading"
         return 0
     fi
@@ -1840,7 +1840,7 @@ canonicalize_dir() {
     (cd "$dir" 2>/dev/null && pwd -P) || return 1
 }
 
-openclaw_package_version() {
+kova_package_version() {
     local package_json="$1"
     if [[ ! -f "$package_json" ]]; then
         echo "unknown"
@@ -1864,7 +1864,7 @@ emit_npm_root_candidate() {
     fi
 }
 
-collect_openclaw_npm_root_candidates() {
+collect_kova_npm_root_candidates() {
     local root=""
     root="$(npm root -g 2>/dev/null || true)"
     emit_npm_root_candidate "$root"
@@ -1879,7 +1879,7 @@ collect_openclaw_npm_root_candidates() {
     local extra_root=""
     local old_ifs="$IFS"
     IFS=":"
-    for extra_root in ${OPENCLAW_INSTALL_EXTRA_NPM_ROOTS:-}; do
+    for extra_root in ${KOVA_INSTALL_EXTRA_NPM_ROOTS:-}; do
         emit_npm_root_candidate "$extra_root"
     done
     IFS="$old_ifs"
@@ -1912,12 +1912,12 @@ collect_openclaw_npm_root_candidates() {
     done
 }
 
-find_openclaw_global_installs() {
+find_kova_global_installs() {
     local seen="|"
     local npm_root=""
     while IFS= read -r npm_root; do
         [[ -n "$npm_root" ]] || continue
-        local package_dir="${npm_root%/}/openclaw"
+        local package_dir="${npm_root%/}/kova"
         local package_json="${package_dir}/package.json"
         [[ -f "$package_json" ]] || continue
 
@@ -1930,17 +1930,17 @@ find_openclaw_global_installs() {
         seen="${seen}${real_package_dir}|"
 
         local version=""
-        version="$(openclaw_package_version "$package_json")"
+        version="$(kova_package_version "$package_json")"
         printf '%s\t%s\t%s\n' "$version" "$real_package_dir" "$npm_root"
-    done < <(collect_openclaw_npm_root_candidates)
+    done < <(collect_kova_npm_root_candidates)
 }
 
-warn_duplicate_openclaw_global_installs() {
+warn_duplicate_kova_global_installs() {
     local installs=()
     local line=""
     while IFS= read -r line; do
         [[ -n "$line" ]] && installs+=("$line")
-    done < <(find_openclaw_global_installs)
+    done < <(find_kova_global_installs)
 
     if [[ "${#installs[@]}" -le 1 ]]; then
         return 0
@@ -1949,16 +1949,16 @@ warn_duplicate_openclaw_global_installs() {
     ui_warn "Multiple Kova global installs detected"
     echo "  Different Node/npm environments can run different Kova versions."
 
-    local active_node active_npm active_openclaw
+    local active_node active_npm active_kova
     active_node="$(command -v node 2>/dev/null || true)"
     active_npm="$(command -v npm 2>/dev/null || true)"
-    active_openclaw="${OPENCLAW_BIN:-}"
-    if [[ -z "$active_openclaw" ]]; then
-        active_openclaw="$(type -P openclaw 2>/dev/null || true)"
+    active_kova="${KOVA_BIN:-}"
+    if [[ -z "$active_kova" ]]; then
+        active_kova="$(type -P kova 2>/dev/null || true)"
     fi
     echo -e "  Active node: ${INFO}${active_node:-none}${NC}"
     echo -e "  Active npm: ${INFO}${active_npm:-none}${NC}"
-    echo -e "  Active kova/openclaw: ${INFO}${active_openclaw:-none}${NC}"
+    echo -e "  Active kova/kova: ${INFO}${active_kova:-none}${NC}"
     echo ""
     echo "  Found installs:"
 
@@ -1971,7 +1971,7 @@ warn_duplicate_openclaw_global_installs() {
 
     echo ""
     echo "  Keep one install source, then remove stale installs with that environment's npm:"
-    echo "    npm uninstall -g openclaw"
+    echo "    npm uninstall -g kova"
 }
 
 refresh_shell_command_cache() {
@@ -2021,7 +2021,7 @@ maybe_nodenv_rehash() {
     fi
 }
 
-warn_openclaw_not_found() {
+warn_kova_not_found() {
     ui_warn "Installed, but kova is not discoverable on PATH in this shell"
     echo "  Try: hash -r (bash) or rehash (zsh), then retry."
     local t=""
@@ -2046,7 +2046,7 @@ warn_openclaw_not_found() {
     fi
 }
 
-resolve_openclaw_bin() {
+resolve_kova_bin() {
     refresh_shell_command_cache
     local resolved=""
     resolved="$(type -P kova 2>/dev/null || true)"
@@ -2054,7 +2054,7 @@ resolve_openclaw_bin() {
         echo "$resolved"
         return 0
     fi
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P kova 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -2067,7 +2067,7 @@ resolve_openclaw_bin() {
         echo "$resolved"
         return 0
     fi
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P kova 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -2079,8 +2079,8 @@ resolve_openclaw_bin() {
         echo "${npm_bin}/kova"
         return 0
     fi
-    if [[ -n "$npm_bin" && -x "${npm_bin}/openclaw" ]]; then
-        echo "${npm_bin}/openclaw"
+    if [[ -n "$npm_bin" && -x "${npm_bin}/kova" ]]; then
+        echo "${npm_bin}/kova"
         return 0
     fi
 
@@ -2091,7 +2091,7 @@ resolve_openclaw_bin() {
         echo "$resolved"
         return 0
     fi
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P kova 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -2101,8 +2101,8 @@ resolve_openclaw_bin() {
         echo "${npm_bin}/kova"
         return 0
     fi
-    if [[ -n "$npm_bin" && -x "${npm_bin}/openclaw" ]]; then
-        echo "${npm_bin}/openclaw"
+    if [[ -n "$npm_bin" && -x "${npm_bin}/kova" ]]; then
+        echo "${npm_bin}/kova"
         return 0
     fi
 
@@ -2110,9 +2110,9 @@ resolve_openclaw_bin() {
     return 1
 }
 
-install_openclaw_from_git() {
+install_kova_from_git() {
     local repo_dir="$1"
-    local repo_url="https://github.com/openclaw/openclaw.git"
+    local repo_url="https://github.com/chiragborse1/KovaLab.git"
 
     if [[ -d "$repo_dir/.git" ]]; then
         ui_info "Installing Kova from git checkout: ${repo_dir}"
@@ -2155,7 +2155,7 @@ install_openclaw_from_git() {
 set -euo pipefail
 exec node "${repo_dir}/kova.mjs" "\$@"
 EOF
-    rm -f "$HOME/.local/bin/openclaw"
+    rm -f "$HOME/.local/bin/kova"
     chmod +x "$HOME/.local/bin/kova"
     ui_success "Kova wrapper installed to \$HOME/.local/bin/kova"
     ui_info "This checkout uses pnpm — run pnpm install (or corepack pnpm install) for deps"
@@ -2217,52 +2217,52 @@ resolve_package_install_spec() {
     echo "${package_name}@${value}"
 }
 
-install_openclaw() {
+install_kova() {
     local package_name="getkova"
     if [[ "$USE_BETA" == "1" ]]; then
         local beta_version=""
         beta_version="$(resolve_beta_version || true)"
         if [[ -n "$beta_version" ]]; then
-            OPENCLAW_VERSION="$beta_version"
+            KOVA_VERSION="$beta_version"
             ui_info "Beta tag detected (${beta_version})"
             package_name="getkova"
         else
-            OPENCLAW_VERSION="latest"
+            KOVA_VERSION="latest"
             ui_info "No beta tag found; using latest"
         fi
     fi
 
-    if [[ -z "${OPENCLAW_VERSION}" ]]; then
-        OPENCLAW_VERSION="latest"
+    if [[ -z "${KOVA_VERSION}" ]]; then
+        KOVA_VERSION="latest"
     fi
 
     local resolved_version=""
-    if can_resolve_registry_package_version "${OPENCLAW_VERSION}"; then
-        resolved_version="$(npm view "${package_name}@${OPENCLAW_VERSION}" version 2>/dev/null || true)"
+    if can_resolve_registry_package_version "${KOVA_VERSION}"; then
+        resolved_version="$(npm view "${package_name}@${KOVA_VERSION}" version 2>/dev/null || true)"
     fi
     if [[ -n "$resolved_version" ]]; then
         ui_info "Installing Kova v${resolved_version}"
     else
-        ui_info "Installing Kova (${OPENCLAW_VERSION})"
+        ui_info "Installing Kova (${KOVA_VERSION})"
     fi
     local install_spec=""
-    install_spec="$(resolve_package_install_spec "${package_name}" "${OPENCLAW_VERSION}")"
+    install_spec="$(resolve_package_install_spec "${package_name}" "${KOVA_VERSION}")"
 
-    if ! install_openclaw_npm "${install_spec}"; then
+    if ! install_kova_npm "${install_spec}"; then
         ui_warn "npm install failed; retrying"
-        cleanup_npm_openclaw_paths
-        install_openclaw_npm "${install_spec}"
+        cleanup_npm_kova_paths
+        install_kova_npm "${install_spec}"
     fi
 
-    if [[ "${OPENCLAW_VERSION}" == "latest" && "${package_name}" == "getkova" ]]; then
-        if ! resolve_openclaw_bin &> /dev/null; then
+    if [[ "${KOVA_VERSION}" == "latest" && "${package_name}" == "getkova" ]]; then
+        if ! resolve_kova_bin &> /dev/null; then
             ui_warn "npm install getkova@latest failed; retrying getkova@next"
-            cleanup_npm_openclaw_paths
-            install_openclaw_npm "getkova@next"
+            cleanup_npm_kova_paths
+            install_kova_npm "getkova@next"
         fi
     fi
 
-    ensure_openclaw_bin_link || true
+    ensure_kova_bin_link || true
 
     ui_success "Kova installed"
 }
@@ -2270,35 +2270,35 @@ install_openclaw() {
 # Run doctor for migrations (safe, non-interactive)
 run_doctor() {
     ui_info "Running doctor to migrate settings"
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]]; then
-        claw="$(resolve_openclaw_bin || true)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]]; then
+        kova_bin="$(resolve_kova_bin || true)"
     fi
-    if [[ -z "$claw" ]]; then
+    if [[ -z "$kova_bin" ]]; then
         ui_info "Skipping doctor (kova not on PATH yet)"
-        warn_openclaw_not_found
+        warn_kova_not_found
         return 0
     fi
-    run_quiet_step "Running doctor" "$claw" doctor --non-interactive || true
+    run_quiet_step "Running doctor" "$kova_bin" doctor --non-interactive || true
     ui_success "Doctor complete"
 }
 
 maybe_open_dashboard() {
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]]; then
-        claw="$(resolve_openclaw_bin || true)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]]; then
+        kova_bin="$(resolve_kova_bin || true)"
     fi
-    if [[ -z "$claw" ]]; then
+    if [[ -z "$kova_bin" ]]; then
         return 0
     fi
-    if ! "$claw" dashboard --help >/dev/null 2>&1; then
+    if ! "$kova_bin" dashboard --help >/dev/null 2>&1; then
         return 0
     fi
-    "$claw" dashboard || true
+    "$kova_bin" dashboard || true
 }
 
 resolve_workspace_dir() {
-    local profile="${KOVA_PROFILE:-${OPENCLAW_PROFILE:-default}}"
+    local profile="${KOVA_PROFILE:-default}"
     if [[ "${profile}" != "default" ]]; then
         echo "${HOME}/.kova/workspace-${profile}"
     else
@@ -2311,8 +2311,8 @@ run_bootstrap_onboarding_if_needed() {
         return
     fi
 
-    local config_path="${KOVA_CONFIG_PATH:-${OPENCLAW_CONFIG_PATH:-$HOME/.kova/kova.json}}"
-    if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
+    local config_path="${KOVA_CONFIG_PATH:-$HOME/.kova/kova.json}"
+    if [[ -f "${config_path}" || -f "$HOME/.chiragborse1/KovaLab.json" || -f "$HOME/.kova/kova.json" ]]; then
         return
     fi
 
@@ -2330,17 +2330,17 @@ run_bootstrap_onboarding_if_needed() {
     fi
 
     ui_info "BOOTSTRAP.md found; starting onboarding"
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]]; then
-        claw="$(resolve_openclaw_bin || true)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]]; then
+        kova_bin="$(resolve_kova_bin || true)"
     fi
-    if [[ -z "$claw" ]]; then
+    if [[ -z "$kova_bin" ]]; then
         ui_info "BOOTSTRAP.md found but kova not on PATH; skipping onboarding"
-        warn_openclaw_not_found
+        warn_kova_not_found
         return
     fi
 
-    "$claw" onboard || {
+    "$kova_bin" onboard || {
         ui_error "Onboarding failed; run kova onboard to retry"
         return
     }
@@ -2363,9 +2363,9 @@ load_install_version_helpers() {
 
 load_install_version_helpers
 
-if ! declare -F extract_openclaw_semver >/dev/null 2>&1; then
+if ! declare -F extract_kova_semver >/dev/null 2>&1; then
 # Inline fallback when version-parse.sh could not be sourced (for example, stdin install).
-extract_openclaw_semver() {
+extract_kova_semver() {
     local raw="${1:-}"
     raw="${raw//$'\r'/}"
     if [[ "$raw" =~ v?([0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?(\+[0-9A-Za-z.-]+)?) ]]; then
@@ -2374,21 +2374,18 @@ extract_openclaw_semver() {
 }
 fi
 
-resolve_openclaw_version() {
+resolve_kova_version() {
     local version=""
     local raw_version_output=""
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]] && command -v kova &> /dev/null; then
-        claw="$(command -v kova)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]] && command -v kova &> /dev/null; then
+        kova_bin="$(command -v kova)"
     fi
-    if [[ -z "$claw" ]] && command -v openclaw &> /dev/null; then
-        claw="$(command -v openclaw)"
-    fi
-    if [[ -n "$claw" ]]; then
-        raw_version_output=$("$claw" --version 2>/dev/null || true)
+    if [[ -n "$kova_bin" ]]; then
+        raw_version_output=$("$kova_bin" --version 2>/dev/null || true)
         raw_version_output="${raw_version_output%%$'\n'*}"
         raw_version_output="${raw_version_output//$'\r'/}"
-        version="$(extract_openclaw_semver "$raw_version_output")"
+        version="$(extract_kova_semver "$raw_version_output")"
         if [[ -z "$version" ]]; then
             version="$raw_version_output"
         fi
@@ -2404,13 +2401,13 @@ resolve_openclaw_version() {
 }
 
 is_gateway_daemon_loaded() {
-    local claw="$1"
-    if [[ -z "$claw" ]]; then
+    local kova_bin="$1"
+    if [[ -z "$kova_bin" ]]; then
         return 1
     fi
 
     local status_json=""
-    status_json="$("$claw" daemon status --json 2>/dev/null || true)"
+    status_json="$("$kova_bin" daemon status --json 2>/dev/null || true)"
     if [[ -z "$status_json" ]]; then
         return 1
     fi
@@ -2429,34 +2426,34 @@ try {
 }
 
 refresh_gateway_service_if_loaded() {
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]]; then
-        claw="$(resolve_openclaw_bin || true)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]]; then
+        kova_bin="$(resolve_kova_bin || true)"
     fi
-    if [[ -z "$claw" ]]; then
+    if [[ -z "$kova_bin" ]]; then
         return 0
     fi
 
-    if ! is_gateway_daemon_loaded "$claw"; then
+    if ! is_gateway_daemon_loaded "$kova_bin"; then
         return 0
     fi
 
     ui_info "Refreshing loaded gateway service"
-    if run_quiet_step "Refreshing gateway service" "$claw" gateway install --force; then
+    if run_quiet_step "Refreshing gateway service" "$kova_bin" gateway install --force; then
         ui_success "Gateway service metadata refreshed"
     else
         ui_warn "Gateway service refresh failed; continuing"
         return 0
     fi
 
-    if run_quiet_step "Restarting gateway service" "$claw" gateway restart; then
+    if run_quiet_step "Restarting gateway service" "$kova_bin" gateway restart; then
         ui_success "Gateway service restarted"
     else
         ui_warn "Gateway service restart failed; continuing"
         return 0
     fi
 
-    run_quiet_step "Probing gateway service" "$claw" gateway status --deep || true
+    run_quiet_step "Probing gateway service" "$kova_bin" gateway status --deep || true
 }
 
 verify_installation() {
@@ -2465,20 +2462,20 @@ verify_installation() {
     fi
 
     ui_stage "Verifying installation"
-    local claw="${OPENCLAW_BIN:-}"
-    if [[ -z "$claw" ]]; then
-        claw="$(resolve_openclaw_bin || true)"
+    local kova_bin="${KOVA_BIN:-}"
+    if [[ -z "$kova_bin" ]]; then
+        kova_bin="$(resolve_kova_bin || true)"
     fi
-    if [[ -z "$claw" ]]; then
+    if [[ -z "$kova_bin" ]]; then
         ui_error "Install verify failed: kova not on PATH yet"
-        warn_openclaw_not_found
+        warn_kova_not_found
         return 1
     fi
 
-    run_quiet_step "Checking Kova version" "$claw" --version || return 1
+    run_quiet_step "Checking Kova version" "$kova_bin" --version || return 1
 
-    if is_gateway_daemon_loaded "$claw"; then
-        run_quiet_step "Checking gateway service" "$claw" gateway status --deep || {
+    if is_gateway_daemon_loaded "$kova_bin"; then
+        run_quiet_step "Checking gateway service" "$kova_bin" gateway status --deep || {
             ui_error "Install verify failed: gateway service unhealthy"
             ui_info "Run: kova gateway status --deep"
             return 1
@@ -2510,7 +2507,7 @@ main() {
     fi
 
     local detected_checkout=""
-    detected_checkout="$(detect_openclaw_checkout "$PWD" || true)"
+    detected_checkout="$(detect_kova_checkout "$PWD" || true)"
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
         if ! is_promptable; then
@@ -2525,7 +2522,7 @@ main() {
                     ;;
                 *)
                     ui_error "no install method selected"
-                    echo "Re-run with: --install-method git|npm (or set OPENCLAW_INSTALL_METHOD)."
+                    echo "Re-run with: --install-method git|npm (or set KOVA_INSTALL_METHOD)."
                     exit 2
                     ;;
             esac
@@ -2551,7 +2548,7 @@ main() {
 
     # Check for existing installation
     local is_upgrade=false
-    if check_existing_openclaw; then
+    if check_existing_kova; then
         is_upgrade=true
     fi
     local should_open_dashboard=false
@@ -2576,9 +2573,9 @@ main() {
     local final_git_dir=""
     if [[ "$INSTALL_METHOD" == "git" ]]; then
         # Clean up npm global install if switching to git
-        if npm list -g openclaw &>/dev/null; then
+        if npm list -g kova &>/dev/null; then
             ui_info "Removing npm global install (switching to git)"
-            npm uninstall -g openclaw 2>/dev/null || true
+            npm uninstall -g kova 2>/dev/null || true
             ui_success "npm global install removed"
         fi
 
@@ -2587,7 +2584,7 @@ main() {
             repo_dir="$detected_checkout"
         fi
         final_git_dir="$repo_dir"
-        install_openclaw_from_git "$repo_dir"
+        install_kova_from_git "$repo_dir"
     else
         # Clean up git wrapper if switching to npm
         if [[ -x "$HOME/.local/bin/kova" ]]; then
@@ -2595,8 +2592,8 @@ main() {
             rm -f "$HOME/.local/bin/kova"
             ui_success "git wrapper removed"
         fi
-        if [[ -x "$HOME/.local/bin/openclaw" ]]; then
-            rm -f "$HOME/.local/bin/openclaw"
+        if [[ -x "$HOME/.local/bin/kova" ]]; then
+            rm -f "$HOME/.local/bin/kova"
             ui_success "legacy git alias removed"
         fi
 
@@ -2609,13 +2606,13 @@ main() {
         fix_npm_permissions
 
         # Step 5: Kova
-        install_openclaw
+        install_kova
     fi
 
     ui_stage "Finalizing setup"
 
-    OPENCLAW_BIN="$(resolve_openclaw_bin || true)"
-    warn_duplicate_openclaw_global_installs || true
+    KOVA_BIN="$(resolve_kova_bin || true)"
+    warn_duplicate_kova_global_installs || true
 
     # PATH warning: installs can succeed while the user's login shell still lacks npm's global bin dir.
     local npm_bin=""
@@ -2624,7 +2621,7 @@ main() {
         warn_shell_path_missing_dir "$npm_bin" "npm global bin dir"
     fi
     if [[ "$INSTALL_METHOD" == "git" ]]; then
-        if [[ -x "$HOME/.local/bin/openclaw" ]]; then
+        if [[ -x "$HOME/.local/bin/kova" ]]; then
             warn_shell_path_missing_dir "$HOME/.local/bin" "user-local bin dir (~/.local/bin)"
         fi
     fi
@@ -2645,7 +2642,7 @@ main() {
     run_bootstrap_onboarding_if_needed
 
     local installed_version
-    installed_version=$(resolve_openclaw_version)
+    installed_version=$(resolve_kova_version)
 
     echo ""
     if [[ -n "$installed_version" ]]; then
@@ -2663,7 +2660,7 @@ main() {
             "I've evolved. Try to keep up. 🦞"
             "New version, who dis? Oh right, still me but shinier."
             "Patched, polished, and ready to pinch. Let's go."
-            "The lobster has molted. Harder shell, sharper claws."
+            "Fresh build installed. Cleaner edges, fewer rough spots."
             "Update done! Check the changelog or just trust me, it's good."
             "Reborn from the boiling waters of npm. Stronger now."
             "I went away and came back smarter. You should try it sometime."
@@ -2688,7 +2685,7 @@ main() {
             "Settled in. Time to automate your life whether you're ready or not."
             "Cozy. I've already read your calendar. We need to talk."
             "Finally unpacked. Now point me at your problems."
-            "cracks claws Alright, what are we building?"
+            "Cracks knuckles. Alright, what are we building?"
             "The lobster has landed. Your terminal will never be the same."
             "All done! I promise to only judge your code a little bit."
         )
@@ -2702,19 +2699,19 @@ main() {
         ui_section "Source install details"
         ui_kv "Checkout" "$final_git_dir"
         ui_kv "Wrapper" "$HOME/.local/bin/kova"
-        ui_kv "Legacy alias" "$HOME/.local/bin/openclaw"
+        ui_kv "Legacy alias" "$HOME/.local/bin/kova"
         ui_kv "Update command" "kova update"
         ui_kv "Switch to npm" "curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --install-method npm"
     elif [[ "$is_upgrade" == "true" ]]; then
         ui_info "Upgrade complete"
         if [[ -r /dev/tty && -w /dev/tty ]]; then
-            local claw="${OPENCLAW_BIN:-}"
-            if [[ -z "$claw" ]]; then
-                claw="$(resolve_openclaw_bin || true)"
+            local kova_bin="${KOVA_BIN:-}"
+            if [[ -z "$kova_bin" ]]; then
+                kova_bin="$(resolve_kova_bin || true)"
             fi
-            if [[ -z "$claw" ]]; then
+            if [[ -z "$kova_bin" ]]; then
                 ui_info "Skipping doctor (kova not on PATH yet)"
-                warn_openclaw_not_found
+                warn_kova_not_found
                 return 0
             fi
             local -a doctor_args=()
@@ -2724,13 +2721,13 @@ main() {
             ui_info "Running kova doctor"
             local doctor_ok=0
             if (( ${#doctor_args[@]} )); then
-                OPENCLAW_UPDATE_IN_PROGRESS=1 "$claw" doctor "${doctor_args[@]}" </dev/null && doctor_ok=1
+                KOVA_UPDATE_IN_PROGRESS=1 "$kova_bin" doctor "${doctor_args[@]}" </dev/null && doctor_ok=1
             else
-                OPENCLAW_UPDATE_IN_PROGRESS=1 "$claw" doctor </dev/tty && doctor_ok=1
+                KOVA_UPDATE_IN_PROGRESS=1 "$kova_bin" doctor </dev/tty && doctor_ok=1
             fi
             if (( doctor_ok )); then
                 ui_info "Updating plugins"
-                OPENCLAW_UPDATE_IN_PROGRESS=1 "$claw" plugins update --all || true
+                KOVA_UPDATE_IN_PROGRESS=1 "$kova_bin" plugins update --all || true
             else
                 ui_warn "Doctor failed; skipping plugin updates"
             fi
@@ -2741,8 +2738,8 @@ main() {
         if [[ "$NO_ONBOARD" == "1" || "$skip_onboard" == "true" ]]; then
             ui_info "Skipping onboard (requested); run kova onboard later"
         else
-            local config_path="${KOVA_CONFIG_PATH:-${OPENCLAW_CONFIG_PATH:-$HOME/.kova/kova.json}}"
-            if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.clawdbot/clawdbot.json" ]]; then
+            local config_path="${KOVA_CONFIG_PATH:-$HOME/.kova/kova.json}"
+            if [[ -f "${config_path}" || -f "$HOME/.chiragborse1/KovaLab.json" || -f "$HOME/.kova/kova.json" ]]; then
                 ui_info "Config already present; running doctor"
                 run_doctor
                 should_open_dashboard=true
@@ -2752,34 +2749,34 @@ main() {
             ui_info "Starting setup"
             echo ""
             if [[ -r /dev/tty && -w /dev/tty ]]; then
-                local claw="${OPENCLAW_BIN:-}"
-                if [[ -z "$claw" ]]; then
-                    claw="$(resolve_openclaw_bin || true)"
+                local kova_bin="${KOVA_BIN:-}"
+                if [[ -z "$kova_bin" ]]; then
+                    kova_bin="$(resolve_kova_bin || true)"
                 fi
-                if [[ -z "$claw" ]]; then
+                if [[ -z "$kova_bin" ]]; then
                     ui_info "Skipping onboarding (kova not on PATH yet)"
-                    warn_openclaw_not_found
+                    warn_kova_not_found
                     return 0
                 fi
                 exec </dev/tty
-                exec "$claw" onboard
+                exec "$kova_bin" onboard
             fi
             ui_info "No TTY; run kova onboard to finish setup"
             return 0
         fi
     fi
 
-    if command -v kova &> /dev/null || command -v openclaw &> /dev/null; then
-        local claw="${OPENCLAW_BIN:-}"
-        if [[ -z "$claw" ]]; then
-            claw="$(resolve_openclaw_bin || true)"
+    if command -v kova &> /dev/null || command -v kova &> /dev/null; then
+        local kova_bin="${KOVA_BIN:-}"
+        if [[ -z "$kova_bin" ]]; then
+            kova_bin="$(resolve_kova_bin || true)"
         fi
-        if [[ -n "$claw" ]] && is_gateway_daemon_loaded "$claw"; then
+        if [[ -n "$kova_bin" ]] && is_gateway_daemon_loaded "$kova_bin"; then
             if [[ "$DRY_RUN" == "1" ]]; then
                 ui_info "Gateway daemon detected; would restart (kova daemon restart)"
             else
                 ui_info "Gateway daemon detected; restarting"
-                if OPENCLAW_UPDATE_IN_PROGRESS=1 "$claw" daemon restart >/dev/null 2>&1; then
+                if KOVA_UPDATE_IN_PROGRESS=1 "$kova_bin" daemon restart >/dev/null 2>&1; then
                     ui_success "Gateway restarted"
                 else
                     ui_warn "Gateway restart failed; try: kova daemon restart"
@@ -2799,7 +2796,7 @@ main() {
     show_footer_links
 }
 
-if [[ "${OPENCLAW_INSTALL_SH_NO_RUN:-0}" != "1" ]]; then
+if [[ "${KOVA_INSTALL_SH_NO_RUN:-0}" != "1" ]]; then
     parse_args "$@"
     configure_verbose
     main

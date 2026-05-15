@@ -12,10 +12,7 @@ export {
   normalizeModelCatalogProviderRows,
   normalizeModelCatalogRows,
 } from "./normalize.js";
-export {
-  loadOpenClawProviderIndex,
-  normalizeOpenClawProviderIndex,
-} from "./provider-index/index.js";
+export { loadKovaProviderIndex, normalizeKovaProviderIndex } from "./provider-index/index.js";
 export { planManifestModelCatalogRows } from "./manifest-planner.js";
 export { planProviderIndexModelCatalogRows } from "./provider-index-planner.js";
 export type {
@@ -44,9 +41,9 @@ export type {
   NormalizedModelCatalogRow,
 } from "./types.js";
 export type {
-  OpenClawProviderIndex,
-  OpenClawProviderIndexPluginInstall,
-  OpenClawProviderIndexPlugin,
-  OpenClawProviderIndexProviderAuthChoice,
-  OpenClawProviderIndexProvider,
+  KovaProviderIndex,
+  KovaProviderIndexPluginInstall,
+  KovaProviderIndexPlugin,
+  KovaProviderIndexProviderAuthChoice,
+  KovaProviderIndexProvider,
 } from "./provider-index/index.js";

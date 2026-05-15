@@ -1,6 +1,6 @@
 import { normalizeProviderId } from "../agents/model-selection.js";
 import { normalizeAgentModelRefForConfig } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
@@ -138,13 +138,13 @@ function normalizeAgentModelMapForWrite(value: unknown): unknown {
   return next;
 }
 
-function normalizeConfigModelRefsForWrite(cfg: OpenClawConfig): OpenClawConfig {
+function normalizeConfigModelRefsForWrite(cfg: KovaConfig): KovaConfig {
   const defaults = cfg.agents?.defaults;
   if (!defaults) {
     return cfg;
   }
 
-  const nextDefaults: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> = {
+  const nextDefaults: NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> = {
     ...defaults,
   };
   if (defaults.model !== undefined) {
@@ -164,10 +164,10 @@ function normalizeConfigModelRefsForWrite(cfg: OpenClawConfig): OpenClawConfig {
 }
 
 export function applyProviderAuthConfigPatch(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   patch: unknown,
   options?: { replaceDefaultModels?: boolean },
-): OpenClawConfig {
+): KovaConfig {
   const merged = normalizeConfigModelRefsForWrite(mergeConfigPatch(cfg, patch));
   if (!options?.replaceDefaultModels || !isPlainRecord(patch)) {
     return merged;
@@ -187,7 +187,7 @@ export function applyProviderAuthConfigPatch(
         ...merged.agents?.defaults,
         // Opt-in replacement for migrations that rename/remove model keys.
         models: sanitizeConfigPatchValue(patchModels) as NonNullable<
-          NonNullable<OpenClawConfig["agents"]>["defaults"]
+          NonNullable<KovaConfig["agents"]>["defaults"]
         >["models"],
       },
     },
@@ -195,10 +195,10 @@ export function applyProviderAuthConfigPatch(
 }
 
 export function applyDefaultModel(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   model: string,
   opts?: { preserveExistingPrimary?: boolean },
-): OpenClawConfig {
+): KovaConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[model] = models[model] ?? {};
 

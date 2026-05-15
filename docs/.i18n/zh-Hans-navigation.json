@@ -22,7 +22,7 @@
         },
         {
           "group": "指南",
-          "pages": ["zh-CN/start/openclaw"]
+          "pages": ["zh-CN/start/kova"]
         }
       ]
     },
@@ -204,7 +204,7 @@
             "zh-CN/tools/slash-commands",
             "zh-CN/tools/skills",
             "zh-CN/tools/skills-config",
-            "zh-CN/tools/clawhub",
+            "zh-CN/tools/kovahub",
             "zh-CN/tools/plugin"
           ]
         },

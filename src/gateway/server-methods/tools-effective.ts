@@ -1,5 +1,5 @@
 import type { EffectiveToolInventoryResult } from "../../agents/tools-effective-inventory.types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { logDebug, logWarn } from "../../logger.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { ADMIN_SCOPE } from "../method-scopes.js";
@@ -31,7 +31,7 @@ const TOOLS_EFFECTIVE_CACHE_LIMIT = 128;
 let nowForToolsEffectiveCache = () => Date.now();
 
 type TrustedToolsEffectiveContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   sessionKey: string;
   senderIsOwner: boolean;
@@ -57,7 +57,7 @@ const toolsEffectiveInflight = new Map<string, Promise<EffectiveToolInventoryRes
 
 function resolveRequestedAgentIdOrRespondError(params: {
   rawAgentId: unknown;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   respond: RespondFn;
 }) {
   const knownAgents = listAgentIds(params.cfg);

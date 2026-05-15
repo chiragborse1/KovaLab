@@ -1,5 +1,5 @@
 import { mergeMissing } from "../../../config/legacy.shared.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import {
   loadPluginManifestRegistryForPluginRegistry,
   resolveManifestContractOwnerPluginId,
@@ -255,7 +255,7 @@ function normalizeLegacyWebSearchConfigRecord<T extends JsonRecord>(
 }
 
 export function resolvePluginWebSearchConfig(
-  config: OpenClawConfig | undefined,
+  config: KovaConfig | undefined,
   pluginId: string,
 ): Record<string, unknown> | undefined {
   const pluginConfig = config?.plugins?.entries?.[pluginId]?.config;

@@ -288,14 +288,14 @@ Internal Kova runtime code has the same direction: load config once at the CLI, 
     const isVoice = api.runtime.media.isVoiceCompatibleAudio(filePath);
     const metadata = await api.runtime.media.getImageMetadata(filePath);
     const resized = await api.runtime.media.resizeToJpeg(buffer, { maxWidth: 800 });
-    const terminalQr = await api.runtime.media.renderQrTerminal("https://openclaw.ai");
-    const pngQr = await api.runtime.media.renderQrPngBase64("https://openclaw.ai", {
+    const terminalQr = await api.runtime.media.renderQrTerminal("https://www.neuralstudio.in");
+    const pngQr = await api.runtime.media.renderQrPngBase64("https://www.neuralstudio.in", {
       scale: 6, // 1-12
       marginModules: 4, // 0-16
     });
-    const pngQrDataUrl = await api.runtime.media.renderQrPngDataUrl("https://openclaw.ai");
-    const tmpRoot = resolvePreferredOpenClawTmpDir();
-    const pngQrFile = await api.runtime.media.writeQrPngTempFile("https://openclaw.ai", {
+    const pngQrDataUrl = await api.runtime.media.renderQrPngDataUrl("https://www.neuralstudio.in");
+    const tmpRoot = resolvePreferredKovaTmpDir();
+    const pngQrFile = await api.runtime.media.writeQrPngTempFile("https://www.neuralstudio.in", {
       tmpRoot,
       dirPrefix: "my-plugin-qr-",
       fileName: "qr.png",
@@ -437,8 +437,8 @@ Use `createPluginRuntimeStore` to store the runtime reference for use outside th
 <Steps>
   <Step title="Create the store">
     ```typescript
-    import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
-    import type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+    import { createPluginRuntimeStore } from "getkova/plugin-sdk/runtime-store";
+    import type { PluginRuntime } from "getkova/plugin-sdk/runtime-store";
 
     const store = createPluginRuntimeStore<PluginRuntime>({
       pluginId: "my-plugin",
@@ -486,7 +486,7 @@ Beyond `api.runtime`, the API object also provides:
 <ParamField path="api.name" type="string">
   Plugin display name.
 </ParamField>
-<ParamField path="api.config" type="OpenClawConfig">
+<ParamField path="api.config" type="KovaConfig">
   Current config snapshot (active in-memory runtime snapshot when available).
 </ParamField>
 <ParamField path="api.pluginConfig" type="Record<string, unknown>">

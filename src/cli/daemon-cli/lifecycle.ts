@@ -85,12 +85,8 @@ async function assertUnmanagedGatewayRestartEnabled(port: number): Promise<void>
   const probe = await probeGateway({
     url: `${scheme}://127.0.0.1:${port}`,
     auth: {
-      token: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
-      password: readGatewayCredentialEnv(
-        process.env,
-        "KOVA_GATEWAY_PASSWORD",
-        "OPENCLAW_GATEWAY_PASSWORD",
-      ),
+      token: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN"),
+      password: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD"),
     },
     timeoutMs: 1_000,
   }).catch(() => null);

@@ -1,19 +1,19 @@
 import fs from "node:fs";
 import { collectChannelDoctorStaleConfigMutations } from "../commands/doctor/shared/channel-doctor.js";
 import { readConfigFileSnapshot } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { installHooksFromNpmSpec, installHooksFromPath } from "../hooks/install.js";
 import { resolveArchiveKind } from "../infra/archive.js";
-import { parseClawHubPluginSpec } from "../infra/clawhub.js";
 import { formatErrorMessage } from "../infra/errors.js";
+import { parseKovaHubPluginSpec } from "../infra/kovahub.js";
 import { type BundledPluginSource, findBundledPluginSource } from "../plugins/bundled-sources.js";
-import { installPluginFromClawHub } from "../plugins/clawhub.js";
 import type { InstallSafetyOverrides } from "../plugins/install-security-scan.js";
 import {
   PLUGIN_INSTALL_ERROR_CODE,
   installPluginFromNpmSpec,
   installPluginFromPath,
 } from "../plugins/install.js";
+import { installPluginFromKovaHub } from "../plugins/kovahub.js";
 import { clearPluginManifestRegistryCache } from "../plugins/manifest-registry.js";
 import {
   installPluginFromMarketplace,
@@ -37,10 +37,10 @@ import {
   resolveBundledInstallPlanForNpmFailure,
 } from "./plugin-install-plan.js";
 import {
-  buildPreferredClawHubSpec,
+  buildPreferredKovaHubSpec,
   createHookPackInstallLogger,
   createPluginInstallLogger,
-  decidePreferredClawHubFallback,
+  decidePreferredKovaHubFallback,
   formatPluginInstallWithHookFallbackError,
   parseNpmPrefixSpec,
 } from "./plugins-command-helpers.js";
@@ -90,10 +90,7 @@ function hasValidBundledPluginConfig(params: {
   }).ok;
 }
 
-function prepareConfigForDisabledBundledInstall(
-  config: OpenClawConfig,
-  pluginId: string,
-): OpenClawConfig {
+function prepareConfigForDisabledBundledInstall(config: KovaConfig, pluginId: string): KovaConfig {
   const entries = config.plugins?.entries ?? {};
   const { [pluginId]: _removedEntry, ...nextEntries } = entries;
   return {
@@ -661,9 +658,9 @@ export async function runPluginInstallCommand(params: {
     return;
   }
 
-  const clawhubSpec = parseClawHubPluginSpec(raw);
-  if (clawhubSpec) {
-    const result = await installPluginFromClawHub({
+  const kovahubSpec = parseKovaHubPluginSpec(raw);
+  if (kovahubSpec) {
+    const result = await installPluginFromKovaHub({
       ...safetyOverrides,
       mode: installMode,
       spec: raw,
@@ -679,51 +676,51 @@ export async function runPluginInstallCommand(params: {
       snapshot,
       pluginId: result.pluginId,
       install: {
-        source: "clawhub",
+        source: "kovahub",
         spec: raw,
         installPath: result.targetDir,
         version: result.version,
-        integrity: result.clawhub.integrity,
-        resolvedAt: result.clawhub.resolvedAt,
-        clawhubUrl: result.clawhub.clawhubUrl,
-        clawhubPackage: result.clawhub.clawhubPackage,
-        clawhubFamily: result.clawhub.clawhubFamily,
-        clawhubChannel: result.clawhub.clawhubChannel,
+        integrity: result.kovahub.integrity,
+        resolvedAt: result.kovahub.resolvedAt,
+        kovahubUrl: result.kovahub.kovahubUrl,
+        kovahubPackage: result.kovahub.kovahubPackage,
+        kovahubFamily: result.kovahub.kovahubFamily,
+        kovahubChannel: result.kovahub.kovahubChannel,
       },
     });
     return;
   }
 
-  const preferredClawHubSpec = buildPreferredClawHubSpec(raw);
-  if (preferredClawHubSpec) {
-    const clawhubResult = await installPluginFromClawHub({
+  const preferredKovaHubSpec = buildPreferredKovaHubSpec(raw);
+  if (preferredKovaHubSpec) {
+    const kovahubResult = await installPluginFromKovaHub({
       ...safetyOverrides,
       mode: installMode,
-      spec: preferredClawHubSpec,
+      spec: preferredKovaHubSpec,
       logger: createPluginInstallLogger(),
     });
-    if (clawhubResult.ok) {
+    if (kovahubResult.ok) {
       clearPluginManifestRegistryCache();
       await persistPluginInstall({
         snapshot,
-        pluginId: clawhubResult.pluginId,
+        pluginId: kovahubResult.pluginId,
         install: {
-          source: "clawhub",
-          spec: preferredClawHubSpec,
-          installPath: clawhubResult.targetDir,
-          version: clawhubResult.version,
-          integrity: clawhubResult.clawhub.integrity,
-          resolvedAt: clawhubResult.clawhub.resolvedAt,
-          clawhubUrl: clawhubResult.clawhub.clawhubUrl,
-          clawhubPackage: clawhubResult.clawhub.clawhubPackage,
-          clawhubFamily: clawhubResult.clawhub.clawhubFamily,
-          clawhubChannel: clawhubResult.clawhub.clawhubChannel,
+          source: "kovahub",
+          spec: preferredKovaHubSpec,
+          installPath: kovahubResult.targetDir,
+          version: kovahubResult.version,
+          integrity: kovahubResult.kovahub.integrity,
+          resolvedAt: kovahubResult.kovahub.resolvedAt,
+          kovahubUrl: kovahubResult.kovahub.kovahubUrl,
+          kovahubPackage: kovahubResult.kovahub.kovahubPackage,
+          kovahubFamily: kovahubResult.kovahub.kovahubFamily,
+          kovahubChannel: kovahubResult.kovahub.kovahubChannel,
         },
       });
       return;
     }
-    if (decidePreferredClawHubFallback(clawhubResult) !== "fallback_to_npm") {
-      defaultRuntime.error(clawhubResult.error);
+    if (decidePreferredKovaHubFallback(kovahubResult) !== "fallback_to_npm") {
+      defaultRuntime.error(kovahubResult.error);
       return defaultRuntime.exit(1);
     }
   }

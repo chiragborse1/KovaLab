@@ -9,7 +9,7 @@ import {
 
 async function withStateDirFixture(run: (root: string) => Promise<void>): Promise<void> {
   try {
-    await withTempDir({ prefix: "openclaw-state-dir-" }, async (root) => {
+    await withTempDir({ prefix: "kova-state-dir-" }, async (root) => {
       await run(root);
     });
   } finally {
@@ -20,7 +20,7 @@ async function withStateDirFixture(run: (root: string) => Promise<void>): Promis
 describe("legacy state dir auto-migration", () => {
   it("skips a legacy symlinked state dir when it points outside supported legacy roots", async () => {
     await withStateDirFixture(async (root) => {
-      const legacySymlink = path.join(root, ".clawdbot");
+      const legacySymlink = path.join(root, ".kova");
       const legacyDir = path.join(root, "legacy-state-source");
 
       fs.mkdirSync(legacyDir, { recursive: true });
@@ -41,17 +41,17 @@ describe("legacy state dir auto-migration", () => {
       expect(fs.readFileSync(path.join(root, "legacy-state-source", "marker.txt"), "utf-8")).toBe(
         "ok",
       );
-      expect(fs.readFileSync(path.join(root, ".clawdbot", "marker.txt"), "utf-8")).toBe("ok");
+      expect(fs.readFileSync(path.join(root, ".kova", "marker.txt"), "utf-8")).toBe("ok");
     });
   });
 
-  it("skips state-dir migration when OPENCLAW_STATE_DIR is explicitly set", async () => {
+  it("skips state-dir migration when KOVA_STATE_DIR is explicitly set", async () => {
     await withStateDirFixture(async (root) => {
-      const legacyDir = path.join(root, ".clawdbot");
+      const legacyDir = path.join(root, ".kova");
       fs.mkdirSync(legacyDir, { recursive: true });
 
       const result = await autoMigrateLegacyStateDir({
-        env: { OPENCLAW_STATE_DIR: path.join(root, "custom-state") } as NodeJS.ProcessEnv,
+        env: { KOVA_STATE_DIR: path.join(root, "custom-state") } as NodeJS.ProcessEnv,
         homedir: () => root,
       });
 
@@ -67,7 +67,7 @@ describe("legacy state dir auto-migration", () => {
 
   it("only runs once per process until reset", async () => {
     await withStateDirFixture(async (root) => {
-      const legacyDir = path.join(root, ".clawdbot");
+      const legacyDir = path.join(root, ".kova");
       fs.mkdirSync(legacyDir, { recursive: true });
       fs.writeFileSync(path.join(legacyDir, "marker.txt"), "ok", "utf-8");
 

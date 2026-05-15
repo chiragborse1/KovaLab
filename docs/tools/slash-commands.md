@@ -77,7 +77,7 @@ There are two related systems:
   Controls how long bash waits before switching to background mode (`0` backgrounds immediately).
 </ParamField>
 <ParamField path="commands.config" type="boolean" default="false">
-  Enables `/config` (reads/writes `openclaw.json`).
+  Enables `/config` (reads/writes `kova.json`).
 </ParamField>
 <ParamField path="commands.mcp" type="boolean" default="false">
   Enables `/mcp` (reads/writes Kova-managed MCP config under `mcp.servers`).
@@ -171,7 +171,7 @@ Current source-of-truth:
     - `/steer <id|#> <message>` sends steering to a running sub-agent. Alias: `/tell`.
   </Accordion>
   <Accordion title="Owner-only writes and admin">
-    - `/config show|get|set|unset` reads or writes `openclaw.json`. Owner-only. Requires `commands.config: true`.
+    - `/config show|get|set|unset` reads or writes `kova.json`. Owner-only. Requires `commands.config: true`.
     - `/mcp show|get|set|unset` reads or writes Kova-managed MCP server config under `mcp.servers`. Owner-only. Requires `commands.mcp: true`.
     - `/plugins list|inspect|show|get|install|enable|disable` inspects or mutates plugin state. `/plugin` is an alias. Owner-only for writes. Requires `commands.plugins: true`.
     - `/debug show|set|unset|reset` manages runtime-only config overrides. Owner-only. Requires `commands.debug: true`.
@@ -230,7 +230,7 @@ User-invocable skills are also exposed as slash commands:
     - In multi-account channels, config-targeted `/allowlist --account <id>` and `/config set channels.<provider>.accounts.<id>...` also honor the target account's `configWrites`.
     - `/usage` controls the per-response usage footer; `/usage cost` prints a local cost summary from Kova session logs.
     - `/restart` is enabled by default; set `commands.restart: false` to disable it.
-    - `/plugins install <spec>` accepts the same plugin specs as `kova plugins install`: local path/archive, npm package, or `clawhub:<pkg>`.
+    - `/plugins install <spec>` accepts the same plugin specs as `kova plugins install`: local path/archive, npm package, or `kovahub:<pkg>`.
     - `/plugins enable|disable` updates plugin config and may prompt for a restart.
   </Accordion>
   <Accordion title="Channel-specific behavior">
@@ -321,14 +321,14 @@ Examples:
 
 ```
 /debug show
-/debug set messages.responsePrefix="[openclaw]"
+/debug set messages.responsePrefix="[kova]"
 /debug set channels.whatsapp.allowFrom=["+1555","+4477"]
 /debug unset messages.responsePrefix
 /debug reset
 ```
 
 <Note>
-Overrides apply immediately to new config reads, but do **not** write to `openclaw.json`. Use `/debug reset` to clear all overrides and return to the on-disk config.
+Overrides apply immediately to new config reads, but do **not** write to `kova.json`. Use `/debug reset` to clear all overrides and return to the on-disk config.
 </Note>
 
 ## Plugin trace output
@@ -354,7 +354,7 @@ Notes:
 
 ## Config updates
 
-`/config` writes to your on-disk config (`openclaw.json`). Owner-only. Disabled by default; enable with `commands.config: true`.
+`/config` writes to your on-disk config (`kova.json`). Owner-only. Disabled by default; enable with `commands.config: true`.
 
 Examples:
 
@@ -362,7 +362,7 @@ Examples:
 /config show
 /config show messages.responsePrefix
 /config get messages.responsePrefix
-/config set messages.responsePrefix="[openclaw]"
+/config set messages.responsePrefix="[kova]"
 /config unset messages.responsePrefix
 ```
 
@@ -419,7 +419,7 @@ Examples:
     - **`/stop`** targets the active chat session so it can abort the current run.
   </Accordion>
   <Accordion title="Slack specifics">
-    `channels.slack.slashCommand` is still supported for a single `/openclaw`-style command. If you enable `commands.native`, you must create one Slack slash command per built-in command (same names as `/help`). Command argument menus for Slack are delivered as ephemeral Block Kit buttons.
+    `channels.slack.slashCommand` is still supported for a single `/kova`-style command. If you enable `commands.native`, you must create one Slack slash command per built-in command (same names as `/help`). Command argument menus for Slack are delivered as ephemeral Block Kit buttons.
 
     Slack native exception: register `/agentstatus` (not `/status`) because Slack reserves `/status`. Text `/status` still works in Slack messages.
 

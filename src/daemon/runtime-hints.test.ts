@@ -7,16 +7,16 @@ describe("buildPlatformRuntimeLogHints", () => {
       buildPlatformRuntimeLogHints({
         platform: "darwin",
         env: {
-          OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
-          OPENCLAW_LOG_PREFIX: "gateway",
+          KOVA_STATE_DIR: "/tmp/kova-state",
+          KOVA_LOG_PREFIX: "gateway",
         },
         systemdServiceName: "kova-gateway",
         windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
-      "Launchd stdout (if installed): /tmp/openclaw-state/logs/gateway.log",
-      "Launchd stderr (if installed): /tmp/openclaw-state/logs/gateway.err.log",
-      "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
+      "Launchd stdout (if installed): /tmp/kova-state/logs/gateway.log",
+      "Launchd stderr (if installed): /tmp/kova-state/logs/gateway.err.log",
+      "Restart attempts: /tmp/kova-state/logs/gateway-restart.log",
     ]);
   });
 
@@ -25,27 +25,27 @@ describe("buildPlatformRuntimeLogHints", () => {
       buildPlatformRuntimeLogHints({
         platform: "linux",
         env: {
-          OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
+          KOVA_STATE_DIR: "/tmp/kova-state",
         },
         systemdServiceName: "kova-gateway",
         windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
       "Logs: journalctl --user -u kova-gateway.service -n 200 --no-pager",
-      "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
+      "Restart attempts: /tmp/kova-state/logs/gateway-restart.log",
     ]);
     expect(
       buildPlatformRuntimeLogHints({
         platform: "win32",
         env: {
-          OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
+          KOVA_STATE_DIR: "/tmp/kova-state",
         },
         systemdServiceName: "kova-gateway",
         windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
       'Logs: schtasks /Query /TN "Kova Gateway" /V /FO LIST',
-      "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
+      "Restart attempts: /tmp/kova-state/logs/gateway-restart.log",
     ]);
   });
 });
@@ -55,29 +55,29 @@ describe("buildPlatformServiceStartHints", () => {
     expect(
       buildPlatformServiceStartHints({
         platform: "darwin",
-        installCommand: "openclaw gateway install",
-        startCommand: "openclaw gateway",
-        launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
+        installCommand: "kova gateway install",
+        startCommand: "kova gateway",
+        launchAgentPlistPath: "~/Library/LaunchAgents/com.kova.gateway.plist",
         systemdServiceName: "kova-gateway",
         windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
-      "openclaw gateway install",
-      "openclaw gateway",
-      "launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.openclaw.gateway.plist",
+      "kova gateway install",
+      "kova gateway",
+      "launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.kova.gateway.plist",
     ]);
     expect(
       buildPlatformServiceStartHints({
         platform: "linux",
-        installCommand: "openclaw gateway install",
-        startCommand: "openclaw gateway",
-        launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
+        installCommand: "kova gateway install",
+        startCommand: "kova gateway",
+        launchAgentPlistPath: "~/Library/LaunchAgents/com.kova.gateway.plist",
         systemdServiceName: "kova-gateway",
         windowsTaskName: "Kova Gateway",
       }),
     ).toEqual([
-      "openclaw gateway install",
-      "openclaw gateway",
+      "kova gateway install",
+      "kova gateway",
       "systemctl --user start kova-gateway.service",
     ]);
   });

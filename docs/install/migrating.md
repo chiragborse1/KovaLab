@@ -26,16 +26,16 @@ The CLI entry point is [`kova migrate`](/cli/migrate). Onboarding can also offer
 
 ## Move Kova to a new machine
 
-Copy the **state directory** (`~/.openclaw/` by default) and your **workspace** to preserve:
+Copy the **state directory** (`~/.kova/` by default) and your **workspace** to preserve:
 
-- **Config** — `openclaw.json` and all gateway settings.
+- **Config** — `kova.json` and all gateway settings.
 - **Auth** — per-agent `auth-profiles.json` (API keys plus OAuth), plus any channel or provider state under `credentials/`.
 - **Sessions** — conversation history and agent state.
 - **Channel state** — WhatsApp login, Telegram session, and similar.
 - **Workspace files** — `MEMORY.md`, `USER.md`, skills, and prompts.
 
 <Tip>
-Run `kova status` on the old machine to confirm your state directory path. Custom profiles use `~/.openclaw-<profile>/` or a path set via `OPENCLAW_STATE_DIR`.
+Run `kova status` on the old machine to confirm your state directory path. Custom profiles use `~/.kova-<profile>/` or a path set via `KOVA_STATE_DIR`.
 </Tip>
 
 ### Migration steps
@@ -47,15 +47,15 @@ Run `kova status` on the old machine to confirm your state directory path. Custo
     ```bash
     kova gateway stop
     cd ~
-    tar -czf openclaw-state.tgz .openclaw
+    tar -czf kova-state.tgz .kova
     ```
 
-    If you use multiple profiles (for example `~/.openclaw-work`), archive each separately.
+    If you use multiple profiles (for example `~/.kova-work`), archive each separately.
 
   </Step>
 
   <Step title="Install Kova on the new machine">
-    [Install](/install) the CLI (and Node if needed) on the new machine. It is fine if onboarding creates a fresh `~/.openclaw/`. You will overwrite it next.
+    [Install](/install) the CLI (and Node if needed) on the new machine. It is fine if onboarding creates a fresh `~/.kova/`. You will overwrite it next.
   </Step>
 
   <Step title="Copy state directory and workspace">
@@ -63,7 +63,7 @@ Run `kova status` on the old machine to confirm your state directory path. Custo
 
     ```bash
     cd ~
-    tar -xzf openclaw-state.tgz
+    tar -xzf kova-state.tgz
     ```
 
     Ensure hidden directories were included and file ownership matches the user that will run the gateway.
@@ -86,10 +86,10 @@ Run `kova status` on the old machine to confirm your state directory path. Custo
 
 <AccordionGroup>
   <Accordion title="Profile or state-dir mismatch">
-    If the old gateway used `--profile` or `OPENCLAW_STATE_DIR` and the new one does not, channels will appear logged out and sessions will be empty. Launch the gateway with the **same** profile or state-dir you migrated, then rerun `kova doctor`.
+    If the old gateway used `--profile` or `KOVA_STATE_DIR` and the new one does not, channels will appear logged out and sessions will be empty. Launch the gateway with the **same** profile or state-dir you migrated, then rerun `kova doctor`.
   </Accordion>
 
-  <Accordion title="Copying only openclaw.json">
+  <Accordion title="Copying only kova.json">
     The config file alone is not enough. Model auth profiles live under `agents/<agentId>/agent/auth-profiles.json`, and channel and provider state lives under `credentials/`. Always migrate the **entire** state directory.
   </Accordion>
 

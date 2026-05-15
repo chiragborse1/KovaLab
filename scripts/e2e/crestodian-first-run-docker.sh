@@ -5,9 +5,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-crestodian-first-run-e2e" OPENCLAW_CRESTODIAN_FIRST_RUN_E2E_IMAGE)"
-CONTAINER_NAME="openclaw-crestodian-first-run-e2e-$$"
-RUN_LOG="$(mktemp -t openclaw-crestodian-first-run-log.XXXXXX)"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-crestodian-first-run-e2e" KOVA_CRESTODIAN_FIRST_RUN_E2E_IMAGE)"
+CONTAINER_NAME="kova-crestodian-first-run-e2e-$$"
+RUN_LOG="$(mktemp -t kova-crestodian-first-run-log.XXXXXX)"
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -23,8 +23,8 @@ echo "Running in-container Crestodian first-run smoke..."
 set +e
 docker run --rm \
   --name "$CONTAINER_NAME" \
-  -e "OPENCLAW_STATE_DIR=/tmp/openclaw-state" \
-  -e "OPENCLAW_CONFIG_PATH=/tmp/openclaw-state/openclaw.json" \
+  -e "KOVA_STATE_DIR=/tmp/kova-state" \
+  -e "KOVA_CONFIG_PATH=/tmp/kova-state/kova.json" \
   "${DOCKER_E2E_HARNESS_ARGS[@]}" \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail

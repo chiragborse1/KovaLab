@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 
 const callGateway = vi.hoisted(() => vi.fn());
 
@@ -17,7 +17,7 @@ vi.mock("./health.js", () => ({
 import { probeGatewayMemoryStatus } from "./doctor-gateway-health.js";
 
 describe("probeGatewayMemoryStatus", () => {
-  const cfg = {} as OpenClawConfig;
+  const cfg = {} as KovaConfig;
 
   beforeEach(() => {
     callGateway.mockReset();

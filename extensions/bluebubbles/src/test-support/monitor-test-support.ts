@@ -1,5 +1,5 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk/core";
-import type { HistoryEntry } from "openclaw/plugin-sdk/reply-history";
+import type { PluginRuntime } from "getkova/plugin-sdk/core";
+import type { HistoryEntry } from "getkova/plugin-sdk/reply-history";
 import { vi } from "vitest";
 import { createPluginRuntimeMock } from "../../../../test/helpers/plugins/plugin-runtime-mock.js";
 import { _resetBlueBubblesInboundDedupForTest } from "../inbound-dedupe.js";

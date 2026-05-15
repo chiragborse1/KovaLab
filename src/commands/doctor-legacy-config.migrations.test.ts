@@ -2,11 +2,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { normalizeCompatibilityConfigValues } from "./doctor-legacy-config.js";
 
 vi.mock("../plugins/setup-registry.js", () => ({
-  runPluginSetupConfigMigrations: ({ config }: { config: OpenClawConfig }) => ({
+  runPluginSetupConfigMigrations: ({ config }: { config: KovaConfig }) => ({
     config,
     changes: [],
   }),
@@ -41,7 +41,7 @@ vi.mock("../plugins/manifest-registry.js", () => ({
 }));
 
 vi.mock("./doctor/shared/channel-legacy-config-migrate.js", () => ({
-  applyChannelDoctorCompatibilityMigrations: (cfg: OpenClawConfig) => ({
+  applyChannelDoctorCompatibilityMigrations: (cfg: KovaConfig) => ({
     next: cfg,
     changes: [],
   }),
@@ -51,7 +51,7 @@ vi.mock("../secrets/target-registry.js", () => {
   const entry = {
     id: "channels.discord.token",
     targetType: "channels.discord.token",
-    configFile: "openclaw.json",
+    configFile: "kova.json",
     pathPattern: "channels.discord.token",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -66,7 +66,7 @@ vi.mock("../secrets/target-registry.js", () => {
       : null;
 
   return {
-    discoverConfigSecretTargets: (cfg: OpenClawConfig) => {
+    discoverConfigSecretTargets: (cfg: KovaConfig) => {
       const targets: Array<{
         entry: typeof entry;
         path: string;
@@ -124,9 +124,9 @@ describe("normalizeCompatibilityConfigValues", () => {
   };
 
   beforeAll(() => {
-    previousOauthDir = process.env.OPENCLAW_OAUTH_DIR;
-    tempOauthDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-oauth-"));
-    process.env.OPENCLAW_OAUTH_DIR = tempOauthDir;
+    previousOauthDir = process.env.KOVA_OAUTH_DIR;
+    tempOauthDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-oauth-"));
+    process.env.KOVA_OAUTH_DIR = tempOauthDir;
   });
 
   beforeEach(() => {
@@ -136,9 +136,9 @@ describe("normalizeCompatibilityConfigValues", () => {
 
   afterAll(() => {
     if (previousOauthDir === undefined) {
-      delete process.env.OPENCLAW_OAUTH_DIR;
+      delete process.env.KOVA_OAUTH_DIR;
     } else {
-      process.env.OPENCLAW_OAUTH_DIR = previousOauthDir;
+      process.env.KOVA_OAUTH_DIR = previousOauthDir;
     }
     fs.rmSync(tempOauthDir, { recursive: true, force: true });
   });
@@ -190,7 +190,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.channels?.discord?.token).toBeUndefined();
     expect(res.config.channels?.discord?.accounts?.default?.token).toEqual({
@@ -218,7 +218,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           token: "secretref-env:not-valid",
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.channels?.discord?.token).toBe("secretref-env:not-valid");
     expect(res.changes).toEqual([]);
@@ -265,7 +265,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           allowedHostnames: ["localhost"],
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(
       (res.config.browser?.ssrfPolicy as Record<string, unknown> | undefined)?.allowPrivateNetwork,
@@ -285,7 +285,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           dangerouslyAllowPrivateNetwork: false,
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(
       (res.config.browser?.ssrfPolicy as Record<string, unknown> | undefined)?.allowPrivateNetwork,
@@ -334,7 +334,7 @@ describe("normalizeCompatibilityConfigValues", () => {
         text: true,
         modelsWrite: false,
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.commands).toEqual({ text: true });
     expect(res.changes).toContain(
@@ -364,7 +364,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.models?.providers?.openrouter?.api).toBe("openai-completions");
     expect(res.config.models?.providers?.openrouter?.models?.[0]?.api).toBe("openai-completions");
@@ -399,7 +399,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.models?.providers?.["openai-codex"]?.models?.[0]).toMatchObject({
       id: "gpt-5.5",
@@ -433,7 +433,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config).toEqual({
       models: {
@@ -483,7 +483,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         ],
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.agents?.defaults?.model).toEqual({
       primary: "openai/gpt-5.5",
@@ -524,7 +524,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     const res = normalizeCompatibilityConfigValues(input);
 
@@ -546,7 +546,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.agents?.defaults?.model).toEqual({
       primary: "anthropic/claude-opus-4-7",
@@ -572,7 +572,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.agents?.defaults?.model).toEqual({
       primary: "openai/gpt-5.5",
@@ -598,7 +598,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.agents?.defaults?.model).toEqual({
       primary: "google/gemini-3.1-pro-preview",
@@ -625,7 +625,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     const res = normalizeCompatibilityConfigValues(input);
 
@@ -837,7 +837,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(res.config.plugins?.entries?.firecrawl).toEqual({
       enabled: true,
@@ -865,7 +865,7 @@ describe("normalizeCompatibilityConfigValues", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig);
+    } as unknown as KovaConfig);
 
     expect(res.config.talk).toEqual({
       provider: "elevenlabs",

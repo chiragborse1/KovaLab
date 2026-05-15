@@ -1,12 +1,12 @@
-import { resolveAckReaction } from "openclaw/plugin-sdk/channel-feedback";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { resolveAckReaction } from "getkova/plugin-sdk/channel-feedback";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import type { CoreConfig } from "../../types.js";
 import { resolveMatrixAccountConfig } from "../account-config.js";
 
 type MatrixAckReactionScope = "group-mentions" | "group-all" | "direct" | "all" | "none" | "off";
 
 export function resolveMatrixAckReactionConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   accountId?: string | null;
 }): { ackReaction: string; ackReactionScope: MatrixAckReactionScope } {

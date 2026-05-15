@@ -109,7 +109,7 @@ export VOLCENGINE_TTS_API_KEY="byteplus_seed_speech_api_key"
 export VOLCENGINE_TTS_RESOURCE_ID="seed-tts-1.0"
 ```
 
-Then enable it in `openclaw.json`:
+Then enable it in `kova.json`:
 
 ```json5
 {
@@ -172,7 +172,7 @@ export VOLCENGINE_TTS_CLUSTER="volcano_tts"
     env vars such as `VOLCANO_ENGINE_API_KEY`, `VOLCENGINE_TTS_API_KEY`,
     `BYTEPLUS_SEED_SPEECH_API_KEY`, `VOLCENGINE_TTS_APPID`, and
     `VOLCENGINE_TTS_TOKEN` are available to that process (for example, in
-    `~/.openclaw/.env` or via `env.shellEnv`).
+    `~/.kova/.env` or via `env.shellEnv`).
   </Accordion>
 </AccordionGroup>
 

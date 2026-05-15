@@ -1,7 +1,7 @@
 import {
   createWebSearchProviderContractFields,
   type WebSearchProviderPlugin,
-} from "openclaw/plugin-sdk/provider-web-search-config-contract";
+} from "getkova/plugin-sdk/provider-web-search-config-contract";
 
 export function createKimiWebSearchProvider(): WebSearchProviderPlugin {
   const credentialPath = "plugins.entries.moonshot.config.webSearch.apiKey";

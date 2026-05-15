@@ -15,15 +15,15 @@ fi
 # shellcheck source=../install-sh-common/version-parse.sh
 source "$VERIFY_HELPER_PATH"
 
-INSTALL_URL="${OPENCLAW_INSTALL_URL:-https://www.neuralstudio.in/install.sh}"
-MODELS_MODE="${OPENCLAW_E2E_MODELS:-both}" # both|openai|anthropic
-INSTALL_TAG="${OPENCLAW_INSTALL_TAG:-latest}"
-E2E_PREVIOUS_VERSION="${OPENCLAW_INSTALL_E2E_PREVIOUS:-}"
-SKIP_PREVIOUS="${OPENCLAW_INSTALL_E2E_SKIP_PREVIOUS:-0}"
+INSTALL_URL="${KOVA_INSTALL_URL:-https://www.neuralstudio.in/install.sh}"
+MODELS_MODE="${KOVA_E2E_MODELS:-both}" # both|openai|anthropic
+INSTALL_TAG="${KOVA_INSTALL_TAG:-latest}"
+E2E_PREVIOUS_VERSION="${KOVA_INSTALL_E2E_PREVIOUS:-}"
+SKIP_PREVIOUS="${KOVA_INSTALL_E2E_SKIP_PREVIOUS:-0}"
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
 ANTHROPIC_API_TOKEN="${ANTHROPIC_API_TOKEN:-}"
-AGENT_TURN_TIMEOUT_SECONDS="${OPENCLAW_INSTALL_E2E_AGENT_TURN_TIMEOUT_SECONDS:-600}"
+AGENT_TURN_TIMEOUT_SECONDS="${KOVA_INSTALL_E2E_AGENT_TURN_TIMEOUT_SECONDS:-600}"
 
 # This image runs as a non-root user, so seed a user-local npm prefix before we
 # preinstall an older global version to exercise the upgrade path.
@@ -32,24 +32,24 @@ mkdir -p "$NPM_CONFIG_PREFIX"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
 if [[ "$MODELS_MODE" != "both" && "$MODELS_MODE" != "openai" && "$MODELS_MODE" != "anthropic" ]]; then
-  echo "ERROR: OPENCLAW_E2E_MODELS must be one of: both|openai|anthropic" >&2
+  echo "ERROR: KOVA_E2E_MODELS must be one of: both|openai|anthropic" >&2
   exit 2
 fi
 
 if [[ "$MODELS_MODE" == "both" ]]; then
   if [[ -z "$OPENAI_API_KEY" ]]; then
-    echo "ERROR: OPENCLAW_E2E_MODELS=both requires OPENAI_API_KEY." >&2
+    echo "ERROR: KOVA_E2E_MODELS=both requires OPENAI_API_KEY." >&2
     exit 2
   fi
   if [[ -z "$ANTHROPIC_API_TOKEN" && -z "$ANTHROPIC_API_KEY" ]]; then
-    echo "ERROR: OPENCLAW_E2E_MODELS=both requires ANTHROPIC_API_TOKEN or ANTHROPIC_API_KEY." >&2
+    echo "ERROR: KOVA_E2E_MODELS=both requires ANTHROPIC_API_TOKEN or ANTHROPIC_API_KEY." >&2
     exit 2
   fi
 elif [[ "$MODELS_MODE" == "openai" && -z "$OPENAI_API_KEY" ]]; then
-  echo "ERROR: OPENCLAW_E2E_MODELS=openai requires OPENAI_API_KEY." >&2
+  echo "ERROR: KOVA_E2E_MODELS=openai requires OPENAI_API_KEY." >&2
   exit 2
 elif [[ "$MODELS_MODE" == "anthropic" && -z "$ANTHROPIC_API_TOKEN" && -z "$ANTHROPIC_API_KEY" ]]; then
-  echo "ERROR: OPENCLAW_E2E_MODELS=anthropic requires ANTHROPIC_API_TOKEN or ANTHROPIC_API_KEY." >&2
+  echo "ERROR: KOVA_E2E_MODELS=anthropic requires ANTHROPIC_API_TOKEN or ANTHROPIC_API_KEY." >&2
   exit 2
 fi
 
@@ -72,7 +72,7 @@ fi
 echo "expected=$EXPECTED_VERSION previous=$PREVIOUS_VERSION"
 
 if [[ "$SKIP_PREVIOUS" == "1" ]]; then
-  echo "==> Skip preinstall previous (OPENCLAW_INSTALL_E2E_SKIP_PREVIOUS=1)"
+  echo "==> Skip preinstall previous (KOVA_INSTALL_E2E_SKIP_PREVIOUS=1)"
 else
   echo "==> Preinstall previous (forces installer upgrade path; avoids read() prompt)"
   quiet_npm install -g "getkova@${PREVIOUS_VERSION}"
@@ -80,16 +80,16 @@ fi
 
 echo "==> Run official installer one-liner"
 if [[ "$INSTALL_TAG" == "beta" ]]; then
-  curl -fsSL "$INSTALL_URL" | OPENCLAW_BETA=1 bash
+  curl -fsSL "$INSTALL_URL" | KOVA_BETA=1 bash
 elif [[ "$INSTALL_TAG" != "latest" ]]; then
-  curl -fsSL "$INSTALL_URL" | OPENCLAW_VERSION="$INSTALL_TAG" bash
+  curl -fsSL "$INSTALL_URL" | KOVA_VERSION="$INSTALL_TAG" bash
 else
   curl -fsSL "$INSTALL_URL" | bash
 fi
 
 echo "==> Verify installed version"
 INSTALLED_VERSION="$(kova --version 2>/dev/null | head -n 1 | tr -d '\r')"
-INSTALLED_VERSION="$(extract_openclaw_semver "$INSTALLED_VERSION")"
+INSTALLED_VERSION="$(extract_kova_semver "$INSTALLED_VERSION")"
 echo "installed=$INSTALLED_VERSION expected=$EXPECTED_VERSION"
 if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "ERROR: expected getkova@$EXPECTED_VERSION, got getkova@$INSTALLED_VERSION" >&2
@@ -203,7 +203,7 @@ run_agent_turn() {
   # in the isolated container and already covered by gateway-specific lanes.
   set +e
   timeout --kill-after=15s "${AGENT_TURN_TIMEOUT_SECONDS}s" \
-    openclaw --profile "$profile" agent \
+    kova --profile "$profile" agent \
     --local \
     --session-id "$session_id" \
     --message "$prompt" \
@@ -277,14 +277,14 @@ dump_profile_debug() {
     fi
   fi
 
-  echo "---- openclaw processes ($profile) ----"
+  echo "---- kova processes ($profile) ----"
   for cmdline in /proc/[0-9]*/cmdline; do
     [[ -r "$cmdline" ]] || continue
     local pid
     pid="$(basename "$(dirname "$cmdline")")"
     local command
     command="$(tr '\0' ' ' <"$cmdline" | sed 's/[[:space:]]*$//')"
-    if [[ "$command" == *openclaw* || "$command" == *node* ]]; then
+    if [[ "$command" == *kova* || "$command" == *node* ]]; then
       echo "$pid $command"
     fi
   done
@@ -441,7 +441,7 @@ NODE
 session_jsonl_path() {
   local profile="$1"
   local session_id="$2"
-  echo "$HOME/.openclaw-${profile}/agents/main/sessions/${session_id}.jsonl"
+  echo "$HOME/.kova-${profile}/agents/main/sessions/${session_id}.jsonl"
 }
 
 run_profile() {
@@ -452,7 +452,7 @@ run_profile() {
 
 	  echo "==> Onboard ($profile)"
 	  if [[ "$agent_model_provider" == "openai" ]]; then
-	    openclaw --profile "$profile" onboard \
+	    kova --profile "$profile" onboard \
 	      --non-interactive \
 	      --accept-risk \
 	      --flow quickstart \
@@ -464,7 +464,7 @@ run_profile() {
       --workspace "$workspace" \
       --skip-health
 	  elif [[ -n "$ANTHROPIC_API_KEY" ]]; then
-	    openclaw --profile "$profile" onboard \
+	    kova --profile "$profile" onboard \
 	      --non-interactive \
 	      --accept-risk \
 	      --flow quickstart \
@@ -476,7 +476,7 @@ run_profile() {
       --workspace "$workspace" \
       --skip-health
 	  elif [[ -n "$ANTHROPIC_API_TOKEN" ]]; then
-	    openclaw --profile "$profile" onboard \
+	    kova --profile "$profile" onboard \
 	      --non-interactive \
 	      --accept-risk \
 	      --flow quickstart \
@@ -489,7 +489,7 @@ run_profile() {
       --workspace "$workspace" \
       --skip-health
 	  else
-	    openclaw --profile "$profile" onboard \
+	    kova --profile "$profile" onboard \
 	      --non-interactive \
 	      --accept-risk \
 	      --flow quickstart \
@@ -551,7 +551,7 @@ run_profile() {
 
   echo "==> Start gateway ($profile)"
   GATEWAY_LOG="$workspace/gateway.log"
-  openclaw --profile "$profile" gateway --port "$port" --bind loopback >"$GATEWAY_LOG" 2>&1 &
+  kova --profile "$profile" gateway --port "$port" --bind loopback >"$GATEWAY_LOG" 2>&1 &
   GATEWAY_PID="$!"
   cleanup_profile() {
     if kill -0 "$GATEWAY_PID" 2>/dev/null; then
@@ -571,12 +571,12 @@ run_profile() {
 
   echo "==> Wait for health ($profile)"
   for _ in $(seq 1 240); do
-    if openclaw --profile "$profile" health --timeout 5000 --json >/dev/null 2>&1; then
+    if kova --profile "$profile" health --timeout 5000 --json >/dev/null 2>&1; then
       break
     fi
     sleep 0.25
   done
-  if ! openclaw --profile "$profile" health --timeout 60000 --json >"$HEALTH_JSON" 2>&1; then
+  if ! kova --profile "$profile" health --timeout 60000 --json >"$HEALTH_JSON" 2>&1; then
     echo "ERROR: gateway health failed ($profile, output=$HEALTH_JSON)" >&2
     dump_profile_debug "$profile" "$HEALTH_JSON" >&2 || true
     return 1
@@ -683,11 +683,11 @@ run_profile() {
 }
 
 if [[ "$MODELS_MODE" == "openai" || "$MODELS_MODE" == "both" ]]; then
-  run_profile "e2e-openai" "18789" "/tmp/openclaw-e2e-openai" "openai"
+  run_profile "e2e-openai" "18789" "/tmp/kova-e2e-openai" "openai"
 fi
 
 if [[ "$MODELS_MODE" == "anthropic" || "$MODELS_MODE" == "both" ]]; then
-  run_profile "e2e-anthropic" "18799" "/tmp/openclaw-e2e-anthropic" "anthropic"
+  run_profile "e2e-anthropic" "18799" "/tmp/kova-e2e-anthropic" "anthropic"
 fi
 
 echo "OK"

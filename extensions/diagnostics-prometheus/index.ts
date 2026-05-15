@@ -1,4 +1,4 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
 import { createDiagnosticsPrometheusExporter } from "./src/service.js";
 
 const exporter = createDiagnosticsPrometheusExporter();

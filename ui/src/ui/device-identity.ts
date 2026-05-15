@@ -16,7 +16,7 @@ export type DeviceIdentity = {
 };
 
 const STORAGE_KEY = "kova-device-identity-v1";
-const LEGACY_STORAGE_KEY = "openclaw-device-identity-v1";
+const LEGACY_STORAGE_KEY = "kova-device-identity-v1";
 
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = "";

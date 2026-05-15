@@ -51,7 +51,7 @@ kova plugins marketplace list <marketplace> --json
 <Note>
 Bundled plugins ship with Kova. Some are enabled by default (for example bundled model providers, bundled speech providers, and the bundled browser plugin); others require `plugins enable`.
 
-Native Kova plugins must ship `openclaw.plugin.json` with an inline JSON Schema (`configSchema`, even if empty). Compatible bundles use their own bundle manifests instead.
+Native Kova plugins must ship `kova.plugin.json` with an inline JSON Schema (`configSchema`, even if empty). Compatible bundles use their own bundle manifests instead.
 
 `plugins list` shows `Format: kova` or `Format: bundle`. Verbose list/info output also shows the bundle subtype (`codex`, `claude`, or `cursor`) plus detected bundle capabilities.
 </Note>
@@ -59,8 +59,8 @@ Native Kova plugins must ship `openclaw.plugin.json` with an inline JSON Schema 
 ### Install
 
 ```bash
-kova plugins install <package>                      # ClawHub first, then npm
-kova plugins install clawhub:<package>              # ClawHub only
+kova plugins install <package>                      # KovaHub first, then npm
+kova plugins install kovahub:<package>              # KovaHub only
 kova plugins install npm:<package>                  # npm only
 kova plugins install <package> --force              # overwrite existing install
 kova plugins install <package> --pin                # pin version
@@ -72,18 +72,18 @@ kova plugins install <plugin> --marketplace https://github.com/<owner>/<repo>
 ```
 
 <Warning>
-Bare package names are checked against ClawHub first, then npm. Treat plugin installs like running code. Prefer pinned versions.
+Bare package names are checked against KovaHub first, then npm. Treat plugin installs like running code. Prefer pinned versions.
 </Warning>
 
 <AccordionGroup>
   <Accordion title="Config includes and invalid-config recovery">
-    If your `plugins` section is backed by a single-file `$include`, `plugins install/update/enable/disable/uninstall` write through to that included file and leave `openclaw.json` untouched. Root includes, include arrays, and includes with sibling overrides fail closed instead of flattening. See [Config includes](/gateway/configuration) for the supported shapes.
+    If your `plugins` section is backed by a single-file `$include`, `plugins install/update/enable/disable/uninstall` write through to that included file and leave `kova.json` untouched. Root includes, include arrays, and includes with sibling overrides fail closed instead of flattening. See [Config includes](/gateway/configuration) for the supported shapes.
 
-    If config is invalid during install, `plugins install` normally fails closed and tells you to run `kova doctor --fix` first. During Gateway startup, invalid config for one plugin is isolated to that plugin so other channels and plugins can keep running; `kova doctor --fix` can quarantine the invalid plugin entry. The only documented install-time exception is a narrow bundled-plugin recovery path for plugins that explicitly opt into `openclaw.install.allowInvalidConfigRecovery`.
+    If config is invalid during install, `plugins install` normally fails closed and tells you to run `kova doctor --fix` first. During Gateway startup, invalid config for one plugin is isolated to that plugin so other channels and plugins can keep running; `kova doctor --fix` can quarantine the invalid plugin entry. The only documented install-time exception is a narrow bundled-plugin recovery path for plugins that explicitly opt into `kova.install.allowInvalidConfigRecovery`.
 
   </Accordion>
   <Accordion title="--force and reinstall vs update">
-    `--force` reuses the existing install target and overwrites an already-installed plugin or hook pack in place. Use it when you are intentionally reinstalling the same id from a new local path, archive, ClawHub package, or npm artifact. For routine upgrades of an already tracked npm plugin, prefer `kova plugins update <id-or-npm-spec>`.
+    `--force` reuses the existing install target and overwrites an already-installed plugin or hook pack in place. Use it when you are intentionally reinstalling the same id from a new local path, archive, KovaHub package, or npm artifact. For routine upgrades of an already tracked npm plugin, prefer `kova plugins update <id-or-npm-spec>`.
 
     If you run `plugins install` for a plugin id that is already installed, Kova stops and points you at `plugins update <id-or-npm-spec>` for a normal upgrade, or at `plugins install <package> --force` when you genuinely want to overwrite the current install from a different source.
 
@@ -94,15 +94,15 @@ Bare package names are checked against ClawHub first, then npm. Treat plugin ins
   <Accordion title="--dangerously-force-unsafe-install">
     `--dangerously-force-unsafe-install` is a break-glass option for false positives in the built-in dangerous-code scanner. It allows the install to continue even when the built-in scanner reports `critical` findings, but it does **not** bypass plugin `before_install` hook policy blocks and does **not** bypass scan failures.
 
-    This CLI flag applies to plugin install/update flows. Gateway-backed skill dependency installs use the matching `dangerouslyForceUnsafeInstall` request override, while `kova skills install` remains a separate ClawHub skill download/install flow.
+    This CLI flag applies to plugin install/update flows. Gateway-backed skill dependency installs use the matching `dangerouslyForceUnsafeInstall` request override, while `kova skills install` remains a separate KovaHub skill download/install flow.
 
   </Accordion>
   <Accordion title="Hook packs and npm specs">
-    `plugins install` is also the install surface for hook packs that expose `openclaw.hooks` in `package.json`. Use `kova hooks` for filtered hook visibility and per-hook enablement, not package installation.
+    `plugins install` is also the install surface for hook packs that expose `kova.hooks` in `package.json`. Use `kova hooks` for filtered hook visibility and per-hook enablement, not package installation.
 
     Npm specs are **registry-only** (package name + optional **exact version** or **dist-tag**). Git/URL/file specs and semver ranges are rejected. Dependency installs run project-local with `--ignore-scripts` for safety, even when your shell has global npm install settings.
 
-    Use `npm:<package>` when you want to skip ClawHub lookup and install directly from npm. Bare package specs still prefer ClawHub and only fall back to npm when ClawHub does not have that package or version.
+    Use `npm:<package>` when you want to skip KovaHub lookup and install directly from npm. Bare package specs still prefer KovaHub and only fall back to npm when KovaHub does not have that package or version.
 
     Bare specs and `@latest` stay on the stable track. If npm resolves either of those to a prerelease, Kova stops and asks you to opt in explicitly with a prerelease tag such as `@beta`/`@rc` or an exact prerelease version such as `@1.2.3-beta.4`.
 
@@ -110,35 +110,35 @@ Bare package names are checked against ClawHub first, then npm. Treat plugin ins
 
   </Accordion>
   <Accordion title="Archives">
-    Supported archives: `.zip`, `.tgz`, `.tar.gz`, `.tar`. Native Kova plugin archives must contain a valid `openclaw.plugin.json` at the extracted plugin root; archives that only contain `package.json` are rejected before Kova writes install records.
+    Supported archives: `.zip`, `.tgz`, `.tar.gz`, `.tar`. Native Kova plugin archives must contain a valid `kova.plugin.json` at the extracted plugin root; archives that only contain `package.json` are rejected before Kova writes install records.
 
     Claude marketplace installs are also supported.
 
   </Accordion>
 </AccordionGroup>
 
-ClawHub installs use an explicit `clawhub:<package>` locator:
+KovaHub installs use an explicit `kovahub:<package>` locator:
 
 ```bash
-kova plugins install clawhub:openclaw-codex-app-server
-kova plugins install clawhub:openclaw-codex-app-server@1.2.3
+kova plugins install kovahub:kova-codex-app-server
+kova plugins install kovahub:kova-codex-app-server@1.2.3
 ```
 
-Kova now also prefers ClawHub for bare npm-safe plugin specs. It only falls back to npm if ClawHub does not have that package or version:
+Kova now also prefers KovaHub for bare npm-safe plugin specs. It only falls back to npm if KovaHub does not have that package or version:
 
 ```bash
-kova plugins install openclaw-codex-app-server
+kova plugins install kova-codex-app-server
 ```
 
-Use `npm:` to force npm-only resolution, for example when ClawHub is unreachable or you know the package exists only on npm:
+Use `npm:` to force npm-only resolution, for example when KovaHub is unreachable or you know the package exists only on npm:
 
 ```bash
-kova plugins install npm:openclaw-codex-app-server
+kova plugins install npm:kova-codex-app-server
 kova plugins install npm:@scope/plugin-name@1.0.1
 ```
 
-Kova downloads the package archive from ClawHub, checks the advertised plugin API / minimum gateway compatibility, then installs it through the normal archive path. Recorded installs keep their ClawHub source metadata for later updates.
-Unversioned ClawHub installs keep an unversioned recorded spec so `kova plugins update` can follow newer ClawHub releases; explicit version or tag selectors such as `clawhub:pkg@1.2.3` and `clawhub:pkg@beta` remain pinned to that selector.
+Kova downloads the package archive from KovaHub, checks the advertised plugin API / minimum gateway compatibility, then installs it through the normal archive path. Recorded installs keep their KovaHub source metadata for later updates.
+Unversioned KovaHub installs keep an unversioned recorded spec so `kova plugins update` can follow newer KovaHub releases; explicit version or tag selectors such as `kovahub:pkg@1.2.3` and `kovahub:pkg@beta` remain pinned to that selector.
 
 #### Marketplace shorthand
 
@@ -173,7 +173,7 @@ kova plugins install <plugin-name> --marketplace ./my-marketplace
 
 For local paths and archives, Kova auto-detects:
 
-- native Kova plugins (`openclaw.plugin.json`)
+- native Kova plugins (`kova.plugin.json`)
 - Codex-compatible bundles (`.codex-plugin/plugin.json`)
 - Claude-compatible bundles (`.claude-plugin/plugin.json` or the default Claude component layout)
 - Cursor-compatible bundles (`.cursor-plugin/plugin.json`)
@@ -255,8 +255,8 @@ kova plugins uninstall <id> --keep-files
 kova plugins update <id-or-npm-spec>
 kova plugins update --all
 kova plugins update <id-or-npm-spec> --dry-run
-kova plugins update @openclaw/voice-call@beta
-kova plugins update openclaw-codex-app-server --dangerously-force-unsafe-install
+kova plugins update @kovaai/voice-call@beta
+kova plugins update kova-codex-app-server --dangerously-force-unsafe-install
 ```
 
 Updates apply to tracked plugin installs in the managed plugin index and tracked hook-pack installs in `hooks.internal.installs`.
@@ -271,7 +271,7 @@ Updates apply to tracked plugin installs in the managed plugin index and tracked
 
   </Accordion>
   <Accordion title="Version checks and integrity drift">
-    Before a live npm update, Kova checks the installed package version against the npm registry metadata. If the installed version and recorded artifact identity already match the resolved target, the update is skipped without downloading, reinstalling, or rewriting `openclaw.json`.
+    Before a live npm update, Kova checks the installed package version against the npm registry metadata. If the installed version and recorded artifact identity already match the resolved target, the update is skipped without downloading, reinstalling, or rewriting `kova.json`.
 
     When a stored integrity hash exists and the fetched artifact hash changes, Kova treats that as npm artifact drift. The interactive `kova plugins update` command prints the expected and actual hashes and asks for confirmation before proceeding. Non-interactive update helpers fail closed unless the caller supplies an explicit continuation policy.
 
@@ -311,7 +311,7 @@ kova plugins doctor
 
 `doctor` reports plugin load errors, manifest/discovery diagnostics, and compatibility notices. When everything is clean it prints `No plugin issues detected.`
 
-For module-shape failures such as missing `register`/`activate` exports, rerun with `OPENCLAW_PLUGIN_LOAD_DEBUG=1` to include a compact export-shape summary in the diagnostic output.
+For module-shape failures such as missing `register`/`activate` exports, rerun with `KOVA_PLUGIN_LOAD_DEBUG=1` to include a compact export-shape summary in the diagnostic output.
 
 ### Registry
 
@@ -326,7 +326,7 @@ The local plugin registry is Kova's persisted cold read model for installed plug
 Use `plugins registry` to inspect whether the persisted registry is present, current, or stale. Use `--refresh` to rebuild it from the persisted plugin index, config policy, and manifest/package metadata. This is a repair path, not a runtime activation path.
 
 <Warning>
-`OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY=1` is a deprecated break-glass compatibility switch for registry read failures. Prefer `plugins registry --refresh` or `kova doctor --fix`; the env fallback is only for emergency startup recovery while the migration rolls out.
+`KOVA_DISABLE_PERSISTED_PLUGIN_REGISTRY=1` is a deprecated break-glass compatibility switch for registry read failures. Prefer `plugins registry --refresh` or `kova doctor --fix`; the env fallback is only for emergency startup recovery while the migration rolls out.
 </Warning>
 
 ### Marketplace

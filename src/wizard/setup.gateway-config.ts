@@ -4,7 +4,7 @@ import {
   validateGatewayPasswordInput,
 } from "../commands/onboard-helpers.js";
 import type { GatewayAuthChoice, SecretInputMode } from "../commands/onboard-types.js";
-import type { GatewayBindMode, GatewayTailscaleMode, OpenClawConfig } from "../config/config.js";
+import type { GatewayBindMode, GatewayTailscaleMode, KovaConfig } from "../config/config.js";
 import { ensureControlUiAllowedOriginsForNonLoopbackBind } from "../config/gateway-control-ui-origins.js";
 import {
   normalizeSecretInputString,
@@ -34,8 +34,8 @@ import type {
 
 type ConfigureGatewayOptions = {
   flow: WizardFlow;
-  baseConfig: OpenClawConfig;
-  nextConfig: OpenClawConfig;
+  baseConfig: KovaConfig;
+  nextConfig: KovaConfig;
   localPort: number;
   quickstartGateway: QuickstartGatewayDefaults;
   secretInputMode?: SecretInputMode;
@@ -44,7 +44,7 @@ type ConfigureGatewayOptions = {
 };
 
 type ConfigureGatewayResult = {
-  nextConfig: OpenClawConfig;
+  nextConfig: KovaConfig;
   settings: GatewayWizardSettings;
 };
 
@@ -208,7 +208,7 @@ export async function configureGatewayForSetup(
       gatewayToken =
         (quickstartTokenString ??
           normalizeGatewayTokenInput(
-            readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+            readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN"),
           )) ||
         randomToken();
       gatewayTokenInput = gatewayToken;
@@ -218,9 +218,7 @@ export async function configureGatewayForSetup(
         placeholder: "Needed for multi-machine or non-loopback access",
         initialValue:
           quickstartTokenString ??
-          normalizeGatewayTokenInput(
-            readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
-          ) ??
+          normalizeGatewayTokenInput(readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN")) ??
           "",
       });
       gatewayToken = normalizeGatewayTokenInput(tokenInput) || randomToken();

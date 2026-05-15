@@ -32,14 +32,14 @@ export type PluginInstallLocalSourceInfo = {
   path: string;
 };
 
-export type PluginInstallClawHubSourceInfo = {
+export type PluginInstallKovaHubSourceInfo = {
   spec: string;
 };
 
 export type PluginInstallSourceInfo = {
   defaultChoice?: PluginPackageInstall["defaultChoice"];
   npm?: PluginInstallNpmSourceInfo;
-  clawhub?: PluginInstallClawHubSourceInfo;
+  kovahub?: PluginInstallKovaHubSourceInfo;
   local?: PluginInstallLocalSourceInfo;
   warnings: readonly PluginInstallSourceWarning[];
 };
@@ -59,7 +59,7 @@ function resolveNpmPinState(params: {
 }
 
 function resolveDefaultChoice(value: unknown): PluginPackageInstall["defaultChoice"] | undefined {
-  return value === "npm" || value === "clawhub" || value === "local" ? value : undefined;
+  return value === "npm" || value === "kovahub" || value === "local" ? value : undefined;
 }
 
 function normalizeExpectedPackageName(value: string | null | undefined): string | undefined {
@@ -75,7 +75,7 @@ export function describePluginInstallSource(
   options?: DescribePluginInstallSourceOptions,
 ): PluginInstallSourceInfo {
   const npmSpec = normalizeOptionalString(install.npmSpec);
-  const clawhubSpec = normalizeOptionalString(install.clawhubSpec);
+  const kovahubSpec = normalizeOptionalString(install.kovahubSpec);
   const localPath = normalizeOptionalString(install.localPath);
   const defaultChoice = resolveDefaultChoice(install.defaultChoice);
   const expectedIntegrity = normalizeOptionalString(install.expectedIntegrity);
@@ -120,7 +120,7 @@ export function describePluginInstallSource(
   if (defaultChoice === "npm" && !npm) {
     warnings.push("default-choice-missing-source");
   }
-  if (defaultChoice === "clawhub" && !clawhubSpec) {
+  if (defaultChoice === "kovahub" && !kovahubSpec) {
     warnings.push("default-choice-missing-source");
   }
   if (defaultChoice === "local" && !localPath) {
@@ -133,7 +133,7 @@ export function describePluginInstallSource(
   return {
     ...(defaultChoice ? { defaultChoice } : {}),
     ...(npm ? { npm } : {}),
-    ...(clawhubSpec ? { clawhub: { spec: clawhubSpec } } : {}),
+    ...(kovahubSpec ? { kovahub: { spec: kovahubSpec } } : {}),
     ...(localPath ? { local: { path: localPath } } : {}),
     warnings,
   };

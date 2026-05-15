@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import type { KovaPluginApi } from "getkova/plugin-sdk/plugin-entry";
 import { vi } from "vitest";
 import { createTestPluginApi } from "../../../../test/helpers/plugins/plugin-api.ts";
 
 type GoogleMeetTestPluginEntry = {
-  register(api: OpenClawPluginApi): void;
+  register(api: KovaPluginApi): void;
 };
 
 export const noopLogger = {
@@ -150,7 +150,7 @@ export function setupGoogleMeetPlugin(
         list: nodesList,
         invoke: nodesInvoke,
       },
-    } as unknown as OpenClawPluginApi["runtime"],
+    } as unknown as KovaPluginApi["runtime"],
     logger: noopLogger,
     registerGatewayMethod: (method: string, handler: unknown) => methods.set(method, handler),
     registerTool: (tool: unknown) => tools.push(tool),

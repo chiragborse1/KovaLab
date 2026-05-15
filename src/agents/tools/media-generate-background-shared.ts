@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
 import { SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { parseAgentSessionKey } from "../../sessions/session-key-utils.js";
@@ -54,7 +54,7 @@ type FailMediaGenerationTaskRunParams = {
 };
 
 type WakeMediaGenerationTaskCompletionParams = {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   handle: MediaGenerationTaskHandle | null;
   status: "ok" | "error";
   statusLabel: string;
@@ -198,7 +198,7 @@ function buildMediaGenerationReplyInstruction(params: {
   ].join(" ");
 }
 
-function isAsyncMediaDirectSendEnabled(config: OpenClawConfig | undefined): boolean {
+function isAsyncMediaDirectSendEnabled(config: KovaConfig | undefined): boolean {
   return config?.tools?.media?.asyncCompletion?.directSend === true;
 }
 
@@ -241,7 +241,7 @@ async function maybeDeliverMediaGenerationResultDirectly(params: {
 }
 
 export async function wakeMediaGenerationTaskCompletion(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   handle: MediaGenerationTaskHandle | null;
   status: "ok" | "error";
   statusLabel: string;

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveOpenClawCompatMode } from "../config/paths.js";
+import { resolveKovaCompatMode } from "../config/paths.js";
 import { getTailnetHostname } from "../infra/tailscale.js";
 import { runExec } from "../process/exec.js";
 
@@ -17,7 +17,7 @@ export function formatBonjourInstanceName(displayName: string) {
   if (!trimmed) {
     return "Kova";
   }
-  if (/(?:openclaw|kova)/i.test(trimmed)) {
+  if (/(?:kova|kova)/i.test(trimmed)) {
     return trimmed;
   }
   return `${trimmed} (Kova)`;
@@ -31,10 +31,10 @@ export function readDiscoveryEnv(
   if (modern) {
     return modern;
   }
-  if (!resolveOpenClawCompatMode(env)) {
+  if (!resolveKovaCompatMode(env)) {
     return undefined;
   }
-  return env[`OPENCLAW_${key}`]?.trim() || undefined;
+  return env[`KOVA_${key}`]?.trim() || undefined;
 }
 
 export function resolveBonjourCliPath(opts: ResolveBonjourCliPathOptions = {}): string | undefined {
@@ -55,7 +55,7 @@ export function resolveBonjourCliPath(opts: ResolveBonjourCliPathOptions = {}): 
 
   const execPath = opts.execPath ?? process.execPath;
   const execDir = path.dirname(execPath);
-  const siblingCli = path.join(execDir, "openclaw");
+  const siblingCli = path.join(execDir, "kova");
   if (isFile(siblingCli)) {
     return siblingCli;
   }
@@ -71,7 +71,7 @@ export function resolveBonjourCliPath(opts: ResolveBonjourCliPathOptions = {}): 
   if (isFile(distCli)) {
     return distCli;
   }
-  const binCli = path.join(cwd, "bin", "openclaw");
+  const binCli = path.join(cwd, "bin", "kova");
   if (isFile(binCli)) {
     return binCli;
   }

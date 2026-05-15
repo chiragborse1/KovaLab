@@ -181,7 +181,7 @@ export function collectDeprecatedInternalConfigApiViolations({
     const guards = [
       {
         pattern:
-          /\b(?:import|export)\s+(?:type\s+)?\{[^}]*\bloadConfig\b[^}]*\}\s+from\s+["']openclaw\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core)["']/,
+          /\b(?:import|export)\s+(?:type\s+)?\{[^}]*\bloadConfig\b[^}]*\}\s+from\s+["']kova\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core)["']/,
         replacement:
           "use getRuntimeConfig(), runtime.config.current(), or pass the already loaded config",
       },
@@ -221,14 +221,14 @@ export function collectDeprecatedInternalConfigApiViolations({
     const guards = [
       {
         pattern:
-          /\b(?:import|export)\s+(?:type\s+)?\{[\s\S]*?\b(?:loadConfig|writeConfigFile)\b[\s\S]*?\}\s+from\s+["']openclaw\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core|memory-core)["']/,
+          /\b(?:import|export)\s+(?:type\s+)?\{[\s\S]*?\b(?:loadConfig|writeConfigFile)\b[\s\S]*?\}\s+from\s+["']kova\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core|memory-core)["']/,
         replacement:
           "use getRuntimeConfig(), runtime.config.current(), or mutation helpers with afterWrite",
       },
       {
         pattern:
-          /ReturnType<typeof import\(["']openclaw\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core|memory-core)["']\)\.(?:loadConfig|writeConfigFile)>/,
-        replacement: "use OpenClawConfig or the explicit mutation helper type",
+          /ReturnType<typeof import\(["']kova\/plugin-sdk\/(?:browser-config-runtime|config-runtime|memory-core-host-runtime-core|memory-core)["']\)\.(?:loadConfig|writeConfigFile)>/,
+        replacement: "use KovaConfig or the explicit mutation helper type",
       },
     ];
     for (const guard of guards) {

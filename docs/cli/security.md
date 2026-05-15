@@ -35,7 +35,7 @@ It also warns when sandbox Docker settings are configured while sandbox mode is 
 It also flags `gateway.allowRealIpFallback=true` (header-spoofing risk if proxies are misconfigured) and `discovery.mdns.mode="full"` (metadata leakage via mDNS TXT records).
 Sandbox browser CDP relay access is authenticated by default; `sandbox.browser.cdpSourceRange` is an optional extra container-edge allowlist rather than a required bridge-network control.
 It also flags dangerous sandbox Docker network modes (including `host` and `container:*` namespace joins).
-It also warns when existing sandbox browser Docker containers have missing/stale hash labels (for example pre-migration containers missing `openclaw.browserConfigEpoch`) and recommends `kova sandbox recreate --browser --all`.
+It also warns when existing sandbox browser Docker containers have missing/stale hash labels (for example pre-migration containers missing `kova.browserConfigEpoch`) and recommends `kova sandbox recreate --browser --all`.
 It also warns when npm-based plugin/hook install records are unpinned, missing integrity metadata, or drift from currently installed package versions.
 It warns when channel allowlists rely on mutable names/emails/tags instead of stable IDs (Discord, Slack, Google Chat, Microsoft Teams, Mattermost, IRC scopes where applicable).
 It warns when `gateway.auth.mode="none"` leaves Gateway HTTP APIs reachable without a shared secret (`/tools/invoke` plus any enabled `/v1/*` endpoint).
@@ -75,7 +75,7 @@ kova security audit --fix --json | jq '{fix: .fix.ok, summary: .report.summary}'
 - tightens permissions for state/config and common sensitive files
   (`credentials/*.json`, `auth-profiles.json`, `sessions.json`, session
   `*.jsonl`)
-- also tightens config include files referenced from `openclaw.json`
+- also tightens config include files referenced from `kova.json`
 - uses `chmod` on POSIX hosts and `icacls` resets on Windows
 
 `--fix` does **not**:

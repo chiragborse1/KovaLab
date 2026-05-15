@@ -15,7 +15,7 @@ builds do not need a separate install.
 If you are on an older build or a custom install that excludes Zalo, install it
 manually:
 
-- Install via CLI: `kova plugins install @openclaw/zalo`
+- Install via CLI: `kova plugins install @kovaai/zalo`
 - Or from a source checkout: `kova plugins install ./path/to/local/zalo-plugin`
 - Details: [Plugins](/tools/plugin)
 

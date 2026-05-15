@@ -1,17 +1,17 @@
-import { transcodeAudioBufferToOpus } from "openclaw/plugin-sdk/media-runtime";
+import { transcodeAudioBufferToOpus } from "getkova/plugin-sdk/media-runtime";
 import {
   isProviderAuthProfileConfigured,
-  type OpenClawConfig,
+  type KovaConfig,
   resolveProviderAuthProfileApiKey,
-} from "openclaw/plugin-sdk/provider-auth";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/provider-auth";
+import { normalizeResolvedSecretInputString } from "getkova/plugin-sdk/secret-input";
 import type {
   SpeechDirectiveTokenParseContext,
   SpeechProviderConfig,
   SpeechProviderOverrides,
   SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech-core";
-import { asFiniteNumber, asObject, trimToUndefined } from "openclaw/plugin-sdk/speech-core";
+} from "getkova/plugin-sdk/speech-core";
+import { asFiniteNumber, asObject, trimToUndefined } from "getkova/plugin-sdk/speech-core";
 import {
   DEFAULT_MINIMAX_TTS_BASE_URL,
   MINIMAX_TTS_MODELS,
@@ -45,7 +45,7 @@ type MinimaxTtsProviderOverrides = {
   pitch?: number;
 };
 
-function resolveConfiguredPortalTtsBaseUrl(cfg: OpenClawConfig | undefined): string | undefined {
+function resolveConfiguredPortalTtsBaseUrl(cfg: KovaConfig | undefined): string | undefined {
   const providers = asObject(asObject(cfg?.models)?.providers);
   const portalProvider = asObject(providers?.[MINIMAX_PORTAL_PROVIDER_ID]);
   const portalBaseUrl = trimToUndefined(portalProvider?.baseUrl);
@@ -63,7 +63,7 @@ function resolveMinimaxTokenPlanEnvKey(): string | undefined {
 }
 
 async function resolveMinimaxPortalProfileToken(
-  cfg: OpenClawConfig | undefined,
+  cfg: KovaConfig | undefined,
 ): Promise<string | undefined> {
   return await resolveProviderAuthProfileApiKey({
     cfg,
@@ -72,7 +72,7 @@ async function resolveMinimaxPortalProfileToken(
 }
 
 async function resolveMinimaxTtsApiKey(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: KovaConfig | undefined;
   configApiKey?: string;
 }): Promise<string | undefined> {
   return (
@@ -85,7 +85,7 @@ async function resolveMinimaxTtsApiKey(params: {
 
 function normalizeMinimaxProviderConfig(
   rawConfig: Record<string, unknown>,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): MinimaxTtsProviderConfig {
   const providers = asObject(rawConfig.providers);
   const raw = asObject(providers?.minimax) ?? asObject(rawConfig.minimax);
@@ -116,7 +116,7 @@ function normalizeMinimaxProviderConfig(
 
 function readMinimaxProviderConfig(
   config: SpeechProviderConfig,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): MinimaxTtsProviderConfig {
   const normalized = normalizeMinimaxProviderConfig({}, cfg);
   return {

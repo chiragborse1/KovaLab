@@ -47,7 +47,7 @@ Honcho registers tools that the agent can use during conversation:
 Install the plugin and run setup:
 
 ```bash
-kova plugins install @honcho-ai/openclaw-honcho
+kova plugins install @honcho-ai/kova-honcho
 kova honcho setup
 kova gateway --force
 ```
@@ -63,16 +63,16 @@ option.
 
 ## Configuration
 
-Settings live under `plugins.entries["openclaw-honcho"].config`:
+Settings live under `plugins.entries["kova-honcho"].config`:
 
 ```json5
 {
   plugins: {
     entries: {
-      "openclaw-honcho": {
+      "kova-honcho": {
         config: {
           apiKey: "your-api-key", // omit for self-hosted
-          workspaceId: "openclaw", // memory isolation
+          workspaceId: "kova", // memory isolation
           baseUrl: "https://api.honcho.dev",
         },
       },
@@ -131,9 +131,9 @@ kova honcho search <query> [-k N] [-d D] # Semantic search over memory
 
 ## Further reading
 
-- [Plugin source code](https://github.com/plastic-labs/openclaw-honcho)
+- [Plugin source code](https://github.com/plastic-labs/kova-honcho)
 - [Honcho documentation](https://docs.honcho.dev)
-- [Honcho Kova integration guide](https://docs.honcho.dev/v3/guides/integrations/openclaw)
+- [Honcho Kova integration guide](https://docs.honcho.dev/v3/guides/integrations/kova)
 - [Memory](/concepts/memory) -- Kova memory overview
 - [Context Engines](/concepts/context-engine) -- how plugin context engines work
 

@@ -26,13 +26,12 @@ function killGatewayListeners(port: number): PortProcess[] {
 
 function runTests() {
   const isolatedLock =
-    process.env.OPENCLAW_GATEWAY_LOCK ??
-    path.join(os.tmpdir(), `openclaw-gateway.lock.test.${Date.now()}`);
+    process.env.KOVA_GATEWAY_LOCK ?? path.join(os.tmpdir(), `kova-gateway.lock.test.${Date.now()}`);
   const result = spawnSync(process.execPath, ["scripts/test-projects.mjs"], {
     stdio: "inherit",
     env: {
       ...process.env,
-      OPENCLAW_GATEWAY_LOCK: isolatedLock,
+      KOVA_GATEWAY_LOCK: isolatedLock,
     },
   });
   if (result.error) {

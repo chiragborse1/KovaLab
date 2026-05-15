@@ -1,6 +1,6 @@
 services:
-  openclaw-gateway:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
+  kova-gateway:
+    image: ${KOVA_IMAGE:-kova:local}
     build: .
     env_file:
       - path: .env
@@ -11,16 +11,16 @@ services:
       # Pin container-side workspace and config paths so host values written to
       # `.env` (used by Compose for the bind-mount source below) cannot leak
       # into runtime code that resolves these env vars inside the container.
-      # Without this override, a macOS host path like /Users/<you>/.openclaw/...
+      # Without this override, a macOS host path like /Users/<you>/.kova/...
       # imported from .env caused first-reply `mkdir '/Users'` EACCES failures
       # in Linux Docker.
-      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
-      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
-      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
+      KOVA_CONFIG_DIR: /home/node/.kova
+      KOVA_WORKSPACE_DIR: /home/node/.kova/workspace
+      KOVA_GATEWAY_TOKEN: ${KOVA_GATEWAY_TOKEN:-}
+      KOVA_ALLOW_INSECURE_PRIVATE_WS: ${KOVA_ALLOW_INSECURE_PRIVATE_WS:-}
       # Empty means auto: Bonjour disables itself in detected containers.
       # Set 0 only on host/macvlan/mDNS-capable networks; set 1 to force off.
-      OPENCLAW_DISABLE_BONJOUR: ${OPENCLAW_DISABLE_BONJOUR:-}
+      KOVA_DISABLE_BONJOUR: ${KOVA_DISABLE_BONJOUR:-}
       # OpenTelemetry export is outbound OTLP/HTTP from the Gateway. Prometheus
       # uses the existing authenticated Gateway route; it does not need a port.
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
@@ -30,19 +30,19 @@ services:
       OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-}
       OTEL_SEMCONV_STABILITY_OPT_IN: ${OTEL_SEMCONV_STABILITY_OPT_IN:-}
-      OPENCLAW_OTEL_PRELOADED: ${OPENCLAW_OTEL_PRELOADED:-}
+      KOVA_OTEL_PRELOADED: ${KOVA_OTEL_PRELOADED:-}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
-      TZ: ${OPENCLAW_TZ:-UTC}
+      TZ: ${KOVA_TZ:-UTC}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR:-${HOME:-/tmp}/.openclaw}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR:-${HOME:-/tmp}/.openclaw/workspace}:/home/node/.openclaw/workspace
-      - ${OPENCLAW_AUTH_PROFILE_SECRET_DIR:-${HOME:-/tmp}/.openclaw-auth-profile-secrets}:/home/node/.config/openclaw
+      - ${KOVA_CONFIG_DIR:-${HOME:-/tmp}/.kova}:/home/node/.kova
+      - ${KOVA_WORKSPACE_DIR:-${HOME:-/tmp}/.kova/workspace}:/home/node/.kova/workspace
+      - ${KOVA_AUTH_PROFILE_SECRET_DIR:-${HOME:-/tmp}/.kova-auth-profile-secrets}:/home/node/.config/kova
       ## Uncomment the lines below to enable sandbox isolation
       ## (agents.defaults.sandbox). Requires Docker CLI in the image
-      ## (build with --build-arg OPENCLAW_INSTALL_DOCKER_CLI=1) or use
-      ## scripts/docker/setup.sh with OPENCLAW_SANDBOX=1 for automated setup.
+      ## (build with --build-arg KOVA_INSTALL_DOCKER_CLI=1) or use
+      ## scripts/docker/setup.sh with KOVA_SANDBOX=1 for automated setup.
       ## Set DOCKER_GID to the host's docker group GID (run: stat -c '%g' /var/run/docker.sock).
       # - /var/run/docker.sock:/var/run/docker.sock
     # group_add:
@@ -58,8 +58,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
-      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+      - "${KOVA_GATEWAY_PORT:-18789}:18789"
+      - "${KOVA_BRIDGE_PORT:-18790}:18790"
     init: true
     restart: unless-stopped
     command:
@@ -68,7 +68,7 @@ services:
         "dist/index.js",
         "gateway",
         "--bind",
-        "${OPENCLAW_GATEWAY_BIND:-lan}",
+        "${KOVA_GATEWAY_BIND:-lan}",
         "--port",
         "18789",
       ]
@@ -85,9 +85,9 @@ services:
       retries: 5
       start_period: 20s
 
-  openclaw-cli:
-    image: ${OPENCLAW_IMAGE:-openclaw:local}
-    network_mode: "service:openclaw-gateway"
+  kova-cli:
+    image: ${KOVA_IMAGE:-kova:local}
+    network_mode: "service:kova-gateway"
     env_file:
       - path: .env
         required: false
@@ -101,22 +101,22 @@ services:
       TERM: xterm-256color
       # Pin container-side workspace and config paths so host values written to
       # `.env` cannot leak into runtime code via the env_file import.
-      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
-      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
-      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-}
+      KOVA_CONFIG_DIR: /home/node/.kova
+      KOVA_WORKSPACE_DIR: /home/node/.kova/workspace
+      KOVA_GATEWAY_TOKEN: ${KOVA_GATEWAY_TOKEN:-}
+      KOVA_ALLOW_INSECURE_PRIVATE_WS: ${KOVA_ALLOW_INSECURE_PRIVATE_WS:-}
       BROWSER: echo
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
-      TZ: ${OPENCLAW_TZ:-UTC}
+      TZ: ${KOVA_TZ:-UTC}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR:-${HOME:-/tmp}/.openclaw}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR:-${HOME:-/tmp}/.openclaw/workspace}:/home/node/.openclaw/workspace
-      - ${OPENCLAW_AUTH_PROFILE_SECRET_DIR:-${HOME:-/tmp}/.openclaw-auth-profile-secrets}:/home/node/.config/openclaw
+      - ${KOVA_CONFIG_DIR:-${HOME:-/tmp}/.kova}:/home/node/.kova
+      - ${KOVA_WORKSPACE_DIR:-${HOME:-/tmp}/.kova/workspace}:/home/node/.kova/workspace
+      - ${KOVA_AUTH_PROFILE_SECRET_DIR:-${HOME:-/tmp}/.kova-auth-profile-secrets}:/home/node/.config/kova
     stdin_open: true
     tty: true
     init: true
     entrypoint: ["node", "dist/index.js"]
     depends_on:
-      - openclaw-gateway
+      - kova-gateway

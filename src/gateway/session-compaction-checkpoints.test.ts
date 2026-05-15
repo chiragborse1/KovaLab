@@ -5,7 +5,7 @@ import path from "node:path";
 import type { AssistantMessage, UserMessage } from "@mariozechner/pi-ai";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import { afterEach, describe, expect, test } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   captureCompactionCheckpointSnapshot,
   cleanupCompactionCheckpointSnapshot,
@@ -21,7 +21,7 @@ afterEach(async () => {
 
 describe("session-compaction-checkpoints", () => {
   test("capture stores the copied pre-compaction transcript path and cleanup removes only the copy", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-checkpoint-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-checkpoint-"));
     tempDirs.push(dir);
 
     const session = SessionManager.create(dir, dir);
@@ -86,7 +86,7 @@ describe("session-compaction-checkpoints", () => {
   });
 
   test("capture skips oversized pre-compaction transcripts", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-checkpoint-oversized-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-checkpoint-oversized-"));
     tempDirs.push(dir);
 
     const session = SessionManager.create(dir, dir);
@@ -111,7 +111,7 @@ describe("session-compaction-checkpoints", () => {
   });
 
   test("persist trims old checkpoint metadata and removes trimmed snapshot files", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-checkpoint-trim-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-checkpoint-trim-"));
     tempDirs.push(dir);
 
     const storePath = path.join(dir, "sessions.json");
@@ -162,7 +162,7 @@ describe("session-compaction-checkpoints", () => {
       cfg: {
         session: { store: storePath },
         agents: { list: [{ id: "main", default: true }] },
-      } as OpenClawConfig,
+      } as KovaConfig,
       sessionKey: "main",
       sessionId,
       reason: "manual",

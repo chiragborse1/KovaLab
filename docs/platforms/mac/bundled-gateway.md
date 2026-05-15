@@ -28,12 +28,12 @@ detected package manager. Node remains the recommended Gateway runtime.
 
 Label:
 
-- `ai.openclaw.gateway` (or `ai.openclaw.<profile>`; legacy `com.openclaw.*` may remain)
+- `ai.kova.gateway` (or `ai.kova.<profile>`; legacy `com.kova.*` may remain)
 
 Plist location (per‑user):
 
-- `~/Library/LaunchAgents/ai.openclaw.gateway.plist`
-  (or `~/Library/LaunchAgents/ai.openclaw.<profile>.plist`)
+- `~/Library/LaunchAgents/ai.kova.gateway.plist`
+  (or `~/Library/LaunchAgents/ai.kova.<profile>.plist`)
 
 Manager:
 
@@ -49,7 +49,7 @@ Behavior:
 
 Logging:
 
-- launchd stdout/err: `/tmp/openclaw/openclaw-gateway.log`
+- launchd stdout/err: `/tmp/chiragborse1/KovaLab-gateway.log`
 
 ## Version compatibility
 
@@ -61,8 +61,8 @@ incompatible, update the global CLI to match the app version.
 ```bash
 kova --version
 
-OPENCLAW_SKIP_CHANNELS=1 \
-OPENCLAW_SKIP_CANVAS_HOST=1 \
+KOVA_SKIP_CHANNELS=1 \
+KOVA_SKIP_CANVAS_HOST=1 \
 kova gateway --port 18999 --bind loopback
 ```
 

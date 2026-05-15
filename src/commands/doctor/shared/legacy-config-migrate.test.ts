@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../../config/types.js";
+import type { KovaConfig } from "../../../config/types.js";
 import { LEGACY_CONFIG_MIGRATIONS } from "./legacy-config-migrations.js";
 
 function migrateLegacyConfigForTest(raw: unknown): {
-  config: OpenClawConfig | null;
+  config: KovaConfig | null;
   changes: string[];
 } {
   if (!raw || typeof raw !== "object") {
@@ -14,9 +14,7 @@ function migrateLegacyConfigForTest(raw: unknown): {
   for (const migration of LEGACY_CONFIG_MIGRATIONS) {
     migration.apply(next, changes);
   }
-  return changes.length === 0
-    ? { config: null, changes }
-    : { config: next as OpenClawConfig, changes };
+  return changes.length === 0 ? { config: null, changes } : { config: next as KovaConfig, changes };
 }
 
 describe("legacy migrate audio transcription", () => {
@@ -263,7 +261,7 @@ describe("legacy migrate sandbox scope aliases", () => {
 });
 
 describe("legacy migrate MCP server type aliases", () => {
-  it("moves CLI-native http type to OpenClaw streamable HTTP transport", () => {
+  it("moves CLI-native http type to Kova streamable HTTP transport", () => {
     const res = migrateLegacyConfigForTest({
       mcp: {
         servers: {

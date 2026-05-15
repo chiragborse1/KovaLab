@@ -1,6 +1,6 @@
 import { normalizeProviderId } from "../agents/model-selection.js";
 import type { ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   listPluginContributionIds,
   loadPluginRegistrySnapshot,
@@ -35,7 +35,7 @@ function isSafeProviderConfigKey(value: string): boolean {
 }
 
 export type ResolveRuntimePluginDiscoveryProvidersParams = {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
@@ -143,7 +143,7 @@ export function normalizePluginDiscoveryResult(params: {
 
 export function runProviderCatalog(params: {
   provider: ProviderPlugin;
-  config: OpenClawConfig;
+  config: KovaConfig;
   agentDir?: string;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
@@ -174,7 +174,7 @@ export function runProviderCatalog(params: {
 
 export function runProviderStaticCatalog(params: {
   provider: ProviderPlugin;
-  config: OpenClawConfig;
+  config: KovaConfig;
   agentDir?: string;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;

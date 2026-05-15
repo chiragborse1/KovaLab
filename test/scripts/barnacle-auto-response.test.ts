@@ -47,8 +47,8 @@ function file(filename: string, status = "modified") {
 function barnacleContext(pullRequest: Record<string, unknown>, labels: string[] = []) {
   return {
     repo: {
-      owner: "openclaw",
-      repo: "openclaw",
+      owner: "kova",
+      repo: "kova",
     },
     payload: {
       action: "opened",
@@ -119,12 +119,12 @@ function barnacleGithub(files: ReturnType<typeof file>[]) {
 }
 
 describe("barnacle-auto-response", () => {
-  it("keeps Barnacle-owned labels documented and ClawHub spelled correctly", () => {
-    expect(managedLabelSpecs["r: skill"].description).toContain("ClawHub");
-    expect(managedLabelSpecs["r: skill"].description).not.toContain("Clawdhub");
+  it("keeps Barnacle-owned labels documented and KovaHub spelled correctly", () => {
+    expect(managedLabelSpecs["r: skill"].description).toContain("KovaHub");
+    expect(managedLabelSpecs["r: skill"].description).not.toContain("Kovahub");
     expect(managedLabelSpecs.dirty.description).toContain("dirty/unrelated");
     expect(managedLabelSpecs["r: support"].description).toContain("support requests");
-    expect(managedLabelSpecs["r: third-party-extension"].description).toContain("ClawHub");
+    expect(managedLabelSpecs["r: third-party-extension"].description).toContain("KovaHub");
     expect(managedLabelSpecs["r: too-many-prs"].description).toContain("ten active PRs");
 
     for (const label of Object.values(candidateLabels)) {

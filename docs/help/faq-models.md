@@ -53,7 +53,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     - `/model` in chat (quick, per-session)
     - `kova models set ...` (updates just model config)
     - `kova configure --section model` (interactive)
-    - edit `agents.defaults.model` in `~/.openclaw/openclaw.json`
+    - edit `agents.defaults.model` in `~/.chiragborse1/KovaLab.json`
 
     Avoid `config.apply` with a partial object unless you intend to replace the whole config.
     For RPC edits, inspect with `config.schema.lookup` first and prefer `config.patch`. The lookup payload gives you the normalized path, shallow schema docs/constraints, and immediate child summaries.
@@ -336,7 +336,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     stored in:
 
     ```
-    ~/.openclaw/agents/<agentId>/agent/auth-profiles.json
+    ~/.kova/agents/<agentId>/agent/auth-profiles.json
     ```
 
     Fix options:
@@ -404,10 +404,10 @@ troubleshooting, see the main [FAQ](/help/faq).
     **Fix checklist:**
 
     - **Confirm where auth profiles live** (new vs legacy paths)
-      - Current: `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`
-      - Legacy: `~/.openclaw/agent/*` (migrated by `kova doctor`)
+      - Current: `~/.kova/agents/<agentId>/agent/auth-profiles.json`
+      - Legacy: `~/.kova/agent/*` (migrated by `kova doctor`)
     - **Confirm your env var is loaded by the Gateway**
-      - If you set `ANTHROPIC_API_KEY` in your shell but run the Gateway via systemd/launchd, it may not inherit it. Put it in `~/.openclaw/.env` or enable `env.shellEnv`.
+      - If you set `ANTHROPIC_API_KEY` in your shell but run the Gateway via systemd/launchd, it may not inherit it. Put it in `~/.kova/.env` or enable `env.shellEnv`.
     - **Make sure you're editing the correct agent**
       - Multi-agent setups mean there can be multiple `auth-profiles.json` files.
     - **Sanity-check model/auth status**
@@ -421,7 +421,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     - **Use Claude CLI**
       - Run `kova models auth login --provider anthropic --method cli --set-default` on the gateway host.
     - **If you want to use an API key instead**
-      - Put `ANTHROPIC_API_KEY` in `~/.openclaw/.env` on the **gateway host**.
+      - Put `ANTHROPIC_API_KEY` in `~/.kova/.env` on the **gateway host**.
       - Clear any pinned order that forces a missing profile:
 
         ```bash
@@ -457,7 +457,7 @@ Related: [/concepts/oauth](/concepts/oauth) (OAuth flows, token storage, multi-a
     An auth profile is a named credential record (OAuth or API key) tied to a provider. Profiles live in:
 
     ```
-    ~/.openclaw/agents/<agentId>/agent/auth-profiles.json
+    ~/.kova/agents/<agentId>/agent/auth-profiles.json
     ```
 
   </Accordion>

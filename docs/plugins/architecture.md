@@ -117,7 +117,7 @@ Kova's plugin system has four layers:
 
 <Steps>
   <Step title="Manifest + discovery">
-    Kova finds candidate plugins from configured paths, workspace roots, global plugin roots, and bundled plugins. Discovery reads native `openclaw.plugin.json` manifests plus supported bundle manifests first.
+    Kova finds candidate plugins from configured paths, workspace roots, global plugin roots, and bundled plugins. Discovery reads native `kova.plugin.json` manifests plus supported bundle manifests first.
   </Step>
   <Step title="Enablement + validation">
     Core decides whether a discovered plugin is enabled, disabled, blocked, or selected for an exclusive slot such as memory.
@@ -210,7 +210,7 @@ For channel-owned execution helpers, bundled plugins should keep the execution r
 
 The same boundary applies to provider-named SDK seams in general: core should not import channel-specific convenience barrels for Slack, Discord, Signal, WhatsApp, or similar extensions. If core needs a behavior, either consume the bundled plugin's own `api.ts` / `runtime-api.ts` barrel or promote the need into a narrow generic capability in the shared SDK.
 
-Bundled plugins follow the same rule. A bundled plugin's `runtime-api.ts` should not re-export its own branded `openclaw/plugin-sdk/<plugin-id>` facade. Those branded facades remain compatibility shims for external plugins and older consumers, but bundled plugins should use local exports plus narrow generic SDK subpaths such as `openclaw/plugin-sdk/channel-policy`, `openclaw/plugin-sdk/runtime-store`, or `openclaw/plugin-sdk/webhook-ingress`. New code should not add plugin-id-specific SDK facades unless the compatibility boundary for an existing external ecosystem requires it.
+Bundled plugins follow the same rule. A bundled plugin's `runtime-api.ts` should not re-export its own branded `getkova/plugin-sdk/<plugin-id>` facade. Those branded facades remain compatibility shims for external plugins and older consumers, but bundled plugins should use local exports plus narrow generic SDK subpaths such as `getkova/plugin-sdk/channel-policy`, `getkova/plugin-sdk/runtime-store`, or `getkova/plugin-sdk/webhook-ingress`. New code should not add plugin-id-specific SDK facades unless the compatibility boundary for an existing external ecosystem requires it.
 
 For polls specifically, there are two execution paths:
 
@@ -304,13 +304,13 @@ That same pattern should be preferred for future capabilities.
 A company plugin should feel cohesive from the outside. If Kova has shared contracts for models, speech, realtime transcription, realtime voice, media understanding, image generation, video generation, web fetch, and web search, a vendor can own all of its surfaces in one place:
 
 ```ts
-import type { OpenClawPluginDefinition } from "openclaw/plugin-sdk/plugin-entry";
+import type { KovaPluginDefinition } from "getkova/plugin-sdk/plugin-entry";
 import {
   describeImageWithModel,
   transcribeOpenAiCompatibleAudio,
-} from "openclaw/plugin-sdk/media-understanding";
+} from "getkova/plugin-sdk/media-understanding";
 
-const plugin: OpenClawPluginDefinition = {
+const plugin: KovaPluginDefinition = {
   id: "exampleai",
   name: "ExampleAI",
   register(api) {
@@ -386,7 +386,7 @@ Need a concrete rollout checklist? See [Capability Cookbook](/tools/capability-c
 
 ## Contracts and enforcement
 
-The plugin API surface is intentionally typed and centralized in `OpenClawPluginApi`. That contract defines the supported registration points and the runtime helpers a plugin may rely on.
+The plugin API surface is intentionally typed and centralized in `KovaPluginApi`. That contract defines the supported registration points and the runtime helpers a plugin may rely on.
 
 Why this matters:
 
@@ -423,7 +423,7 @@ The practical effect is that Kova knows, up front, which plugin owns which surfa
     - vendor-specific policy hidden in core
     - one-off plugin escape hatches that bypass the registry
     - channel code reaching straight into a vendor implementation
-    - ad hoc runtime objects that are not part of `OpenClawPluginApi` or `api.runtime`
+    - ad hoc runtime objects that are not part of `KovaPluginApi` or `api.runtime`
   </Tab>
 </Tabs>
 
@@ -445,7 +445,7 @@ Compatible bundles are safer by default because Kova currently treats them as me
 
 Use allowlists and explicit install/load paths for non-bundled plugins. Treat workspace plugins as development-time code, not production defaults.
 
-For bundled workspace package names, keep the plugin id anchored in the npm name: `@openclaw/<id>` by default, or an approved typed suffix such as `-provider`, `-plugin`, `-speech`, `-sandbox`, or `-media-understanding` when the package intentionally exposes a narrower plugin role.
+For bundled workspace package names, keep the plugin id anchored in the npm name: `@kovaai/<id>` by default, or an approved typed suffix such as `-provider`, `-plugin`, `-speech`, `-sandbox`, or `-media-understanding` when the package intentionally exposes a narrower plugin role.
 
 <Note>
 **Trust note:**

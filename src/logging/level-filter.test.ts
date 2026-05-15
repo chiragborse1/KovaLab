@@ -23,7 +23,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  delete process.env.OPENCLAW_TEST_FILE_LOG;
+  delete process.env.KOVA_TEST_FILE_LOG;
   delete process.env.KOVA_LOG_LEVEL;
   readLoggingConfigMock.mockClear();
   shouldSkipMutatingLoggingConfigReadMock.mockReset();
@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.OPENCLAW_TEST_FILE_LOG;
+  delete process.env.KOVA_TEST_FILE_LOG;
   delete process.env.KOVA_LOG_LEVEL;
   logging.resetLogger();
   logging.setLoggerOverride(null);

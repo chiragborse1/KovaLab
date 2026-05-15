@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { readPluginCacheEnv } from "./cache-controls.js";
 import type { PluginCandidate } from "./discovery.js";
 import { hashJson } from "./installed-plugin-index-hash.js";
@@ -12,7 +12,7 @@ import type { BundledChannelConfigCollector } from "./manifest-registry.js";
 import {
   DEFAULT_PLUGIN_ENTRY_CANDIDATES,
   getPackageManifestMetadata,
-  type OpenClawPackageManifest,
+  type KovaPackageManifest,
   type PackageManifest,
 } from "./manifest.js";
 
@@ -68,25 +68,15 @@ function shouldUseInstalledManifestRegistryCache(params: {
   if (params.bundledChannelConfigCollector) {
     return false;
   }
-  if (
-    readPluginCacheEnv(
-      params.env,
-      "KOVA_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE",
-      "OPENCLAW_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE",
-    )
-  ) {
+  if (readPluginCacheEnv(params.env, "KOVA_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE")) {
     return false;
   }
-  return !readPluginCacheEnv(
-    params.env,
-    "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE",
-    "OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE",
-  );
+  return !readPluginCacheEnv(params.env, "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE");
 }
 
 function buildInstalledManifestRegistryCacheKey(params: {
   index: InstalledPluginIndex;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
   pluginIds?: readonly string[];
@@ -136,7 +126,7 @@ function buildInstalledManifestRegistryCacheKey(params: {
       includeDisabled: params.includeDisabled === true,
       configPolicyHash: resolveInstalledPluginIndexPolicyHash(params.config),
       env: {
-        OPENCLAW_VERSION: params.env.OPENCLAW_VERSION,
+        KOVA_VERSION: params.env.KOVA_VERSION,
         HOME: params.env.HOME,
         USERPROFILE: params.env.USERPROFILE,
       },
@@ -202,7 +192,7 @@ function resolveFallbackPluginSource(record: InstalledPluginIndexRecord): string
 
 function resolveInstalledPackageManifest(
   record: InstalledPluginIndexRecord,
-): OpenClawPackageManifest | undefined {
+): KovaPackageManifest | undefined {
   if (!record.packageChannel) {
     return undefined;
   }
@@ -256,7 +246,7 @@ function toPluginCandidate(record: InstalledPluginIndexRecord): PluginCandidate 
 
 export function loadPluginManifestRegistryForInstalledIndex(params: {
   index: InstalledPluginIndex;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   pluginIds?: readonly string[];

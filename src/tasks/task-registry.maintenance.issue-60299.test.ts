@@ -150,7 +150,7 @@ function createTaskRegistryMaintenanceHarness(params: {
       return next;
     },
     isCronRuntimeAuthoritative: () => params.cronRuntimeAuthoritative ?? true,
-    resolveCronStorePath: () => "/tmp/openclaw-test-cron/jobs.json",
+    resolveCronStorePath: () => "/tmp/kova-test-cron/jobs.json",
     loadCronStoreSync: () => params.cronStore ?? { version: 1, jobs: [] },
     resolveCronRunLogPath: ({ jobId }) => jobId,
     readCronRunLogEntriesSync: (jobId) => cronRunLogEntries[jobId] ?? [],

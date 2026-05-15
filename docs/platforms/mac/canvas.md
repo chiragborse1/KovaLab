@@ -19,13 +19,13 @@ Canvas state is stored under Application Support:
 
 The Canvas panel serves those files via a **custom URL scheme**:
 
-- `openclaw-canvas://<session>/<path>`
+- `kova-canvas://<session>/<path>`
 
 Examples:
 
-- `openclaw-canvas://main/` → `<canvasRoot>/main/index.html`
-- `openclaw-canvas://main/assets/app.css` → `<canvasRoot>/main/assets/app.css`
-- `openclaw-canvas://main/widgets/todo/` → `<canvasRoot>/main/widgets/todo/index.html`
+- `kova-canvas://main/` → `<canvasRoot>/main/index.html`
+- `kova-canvas://main/assets/app.css` → `<canvasRoot>/main/assets/app.css`
+- `kova-canvas://main/widgets/todo/` → `<canvasRoot>/main/widgets/todo/index.html`
 
 If no `index.html` exists at the root, the app shows a **built‑in scaffold page**.
 
@@ -71,7 +71,7 @@ A2UI host page on first open.
 Default A2UI host URL:
 
 ```
-http://<gateway-host>:18789/__openclaw__/a2ui/
+http://<gateway-host>:18789/__kova__/a2ui/
 ```
 
 ### A2UI commands (v0.8)
@@ -106,12 +106,12 @@ kova nodes canvas a2ui push --node <id> --text "Hello from A2UI"
 
 Canvas can trigger new agent runs via deep links:
 
-- `openclaw://agent?...`
+- `kova://agent?...`
 
 Example (in JS):
 
 ```js
-window.location.href = "openclaw://agent?message=Review%20this%20design";
+window.location.href = "kova://agent?message=Review%20this%20design";
 ```
 
 The app prompts for confirmation unless a valid key is provided.

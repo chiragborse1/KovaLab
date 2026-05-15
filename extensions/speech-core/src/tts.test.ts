@@ -3,14 +3,14 @@ import path from "node:path";
 import {
   clearRuntimeConfigSnapshot,
   setRuntimeConfigSnapshot,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
+  type KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
+import type { ReplyPayload } from "getkova/plugin-sdk/reply-payload";
 import type {
   SpeechProviderPlugin,
   SpeechProviderPrepareSynthesisContext,
   SpeechSynthesisRequest,
-} from "openclaw/plugin-sdk/speech-core";
+} from "getkova/plugin-sdk/speech-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 type MockSpeechSynthesisResult = Awaited<ReturnType<SpeechProviderPlugin["synthesize"]>>;
@@ -32,7 +32,7 @@ const prepareSynthesisMock = vi.hoisted(() =>
 const listSpeechProvidersMock = vi.hoisted(() => vi.fn());
 const getSpeechProviderMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/channel-targets", () => ({
+vi.mock("getkova/plugin-sdk/channel-targets", () => ({
   normalizeChannelId: (channel: string | undefined) => channel?.trim().toLowerCase() ?? null,
   resolveChannelTtsVoiceDelivery: (channel: string | undefined) => {
     const normalized = channel?.trim().toLowerCase();
@@ -119,7 +119,7 @@ function installSpeechProviders(providers: SpeechProviderPlugin[]): void {
   );
 }
 
-function createTtsConfig(prefsName: string): OpenClawConfig {
+function createTtsConfig(prefsName: string): KovaConfig {
   return {
     messages: {
       tts: {
@@ -185,7 +185,7 @@ describe("speech-core native voice-note routing", () => {
   it("marks Discord auto TTS replies as native voice messages", async () => {
     await expectTtsPayloadResult({
       channel: "discord",
-      prefsName: "openclaw-speech-core-tts-test",
+      prefsName: "kova-speech-core-tts-test",
       text: "This Discord reply should be delivered as a native voice note.",
       target: "voice-note",
       audioAsVoice: true,
@@ -195,7 +195,7 @@ describe("speech-core native voice-note routing", () => {
   it("keeps BlueBubbles synthesis on mp3 audio-file output but delivers it as a voice memo", async () => {
     await expectTtsPayloadResult({
       channel: "bluebubbles",
-      prefsName: "openclaw-speech-core-tts-bluebubbles-mp3-test",
+      prefsName: "kova-speech-core-tts-bluebubbles-mp3-test",
       text: "This BlueBubbles reply should be delivered as an iMessage voice memo.",
       target: "audio-file",
       audioAsVoice: true,
@@ -212,7 +212,7 @@ describe("speech-core native voice-note routing", () => {
   it("does not mark unsupported BlueBubbles audio-file output as a voice memo", async () => {
     await expectTtsPayloadResult({
       channel: "bluebubbles",
-      prefsName: "openclaw-speech-core-tts-bluebubbles-ogg-test",
+      prefsName: "kova-speech-core-tts-bluebubbles-ogg-test",
       text: "This BlueBubbles reply should stay a regular audio attachment.",
       target: "audio-file",
       audioAsVoice: undefined,
@@ -232,7 +232,7 @@ describe("speech-core native voice-note routing", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
     const runtimeConfig = {
       messages: {
         tts: {
@@ -245,7 +245,7 @@ describe("speech-core native voice-note routing", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
     installSpeechProviders([
       createMockSpeechProvider("mock", {
         isConfigured: ({ providerConfig }) => providerConfig.apiKey === "resolved-minimax-key",
@@ -282,7 +282,7 @@ describe("speech-core native voice-note routing", () => {
       expect(_test.supportsTranscodedVoiceNoteTts(channel)).toBe(true);
       await expectTtsPayloadResult({
         channel,
-        prefsName: `openclaw-speech-core-tts-${channel}-mp3-test`,
+        prefsName: `kova-speech-core-tts-${channel}-mp3-test`,
         text: `This ${channel} reply should be transcoded by the channel.`,
         target: "voice-note",
         audioAsVoice: true,
@@ -300,7 +300,7 @@ describe("speech-core native voice-note routing", () => {
   it("keeps non-native voice-note channels as regular audio files", async () => {
     await expectTtsPayloadResult({
       channel: "slack",
-      prefsName: "openclaw-speech-core-tts-slack-test",
+      prefsName: "kova-speech-core-tts-slack-test",
       text: "Slack replies should be delivered as regular audio attachments.",
       target: "audio-file",
       audioAsVoice: undefined,
@@ -308,7 +308,7 @@ describe("speech-core native voice-note routing", () => {
   });
 
   it("selects persona preferred provider before config fallback", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       messages: {
         tts: {
           enabled: true,
@@ -329,19 +329,19 @@ describe("speech-core native voice-note routing", () => {
       },
     };
     const config = resolveTtsConfig(cfg);
-    const prefsPath = "/tmp/openclaw-speech-core-persona-provider.json";
+    const prefsPath = "/tmp/kova-speech-core-persona-provider.json";
 
     expect(getTtsPersona(config, prefsPath)?.id).toBe("alfred");
     expect(getTtsProvider(config, prefsPath)).toBe("mock");
   });
 
   it("merges active persona provider binding into synthesis config", async () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       messages: {
         tts: {
           enabled: true,
           provider: "mock",
-          prefsPath: "/tmp/openclaw-speech-core-persona-merge.json",
+          prefsPath: "/tmp/kova-speech-core-persona-merge.json",
           providers: {
             mock: {
               model: "base-model",
@@ -601,7 +601,7 @@ describe("speech-core per-agent TTS config", () => {
           },
         ],
       },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const resolved = resolveTtsConfig(cfg, "reader");
 
@@ -666,7 +666,7 @@ describe("speech-core per-agent TTS config", () => {
           },
         ],
       },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     let mediaDir: string | undefined;
     try {
@@ -718,7 +718,7 @@ describe("speech-core per-agent TTS config", () => {
           },
         ],
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const resolved = resolveTtsConfig(cfg, "reader");
 

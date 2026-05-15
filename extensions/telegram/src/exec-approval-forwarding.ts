@@ -2,14 +2,14 @@ import {
   buildExecApprovalPendingReplyPayload,
   resolveExecApprovalRequestAllowedDecisions,
   resolveExecApprovalCommandDisplay,
-} from "openclaw/plugin-sdk/approval-reply-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ExecApprovalRequest } from "openclaw/plugin-sdk/infra-runtime";
-import { normalizeMessageChannel } from "openclaw/plugin-sdk/routing";
+} from "getkova/plugin-sdk/approval-reply-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { ExecApprovalRequest } from "getkova/plugin-sdk/infra-runtime";
+import { normalizeMessageChannel } from "getkova/plugin-sdk/routing";
 import { isTelegramExecApprovalClientEnabled } from "./exec-approvals.js";
 
 export function shouldSuppressTelegramExecApprovalForwardingFallback(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   target: { channel: string; accountId?: string | null };
   request: ExecApprovalRequest;
 }): boolean {

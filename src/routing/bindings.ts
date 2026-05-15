@@ -1,18 +1,18 @@
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { listRouteBindings } from "../config/bindings.js";
 import type { AgentRouteBinding } from "../config/types.agents.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   normalizeRouteBindingChannelId,
   resolveNormalizedRouteBindingMatch,
 } from "./binding-scope.js";
 import { normalizeAgentId } from "./session-key.js";
 
-export function listBindings(cfg: OpenClawConfig): AgentRouteBinding[] {
+export function listBindings(cfg: KovaConfig): AgentRouteBinding[] {
   return listRouteBindings(cfg);
 }
 
-export function listBoundAccountIds(cfg: OpenClawConfig, channelId: string): string[] {
+export function listBoundAccountIds(cfg: KovaConfig, channelId: string): string[] {
   const normalizedChannel = normalizeRouteBindingChannelId(channelId);
   if (!normalizedChannel) {
     return [];
@@ -29,7 +29,7 @@ export function listBoundAccountIds(cfg: OpenClawConfig, channelId: string): str
 }
 
 export function resolveDefaultAgentBoundAccountId(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   channelId: string,
 ): string | null {
   const normalizedChannel = normalizeRouteBindingChannelId(channelId);
@@ -51,7 +51,7 @@ export function resolveDefaultAgentBoundAccountId(
   return null;
 }
 
-export function buildChannelAccountBindings(cfg: OpenClawConfig) {
+export function buildChannelAccountBindings(cfg: KovaConfig) {
   const map = new Map<string, Map<string, string[]>>();
   for (const binding of listBindings(cfg)) {
     const resolved = resolveNormalizedRouteBindingMatch(binding);

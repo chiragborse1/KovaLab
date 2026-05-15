@@ -13,11 +13,11 @@ Kova pulls environment variables from multiple sources. The rule is **never over
 
 1. **Process environment** (what the Gateway process already has from the parent shell/daemon).
 2. **`.env` in the current working directory** (dotenv default; does not override).
-3. **Global `.env`** at `~/.openclaw/.env` (aka `$OPENCLAW_STATE_DIR/.env`; does not override).
-4. **Config `env` block** in `~/.openclaw/openclaw.json` (applied only if missing).
-5. **Optional login-shell import** (`env.shellEnv.enabled` or `OPENCLAW_LOAD_SHELL_ENV=1`), applied only for missing expected keys.
+3. **Global `.env`** at `~/.kova/.env` (aka `$KOVA_STATE_DIR/.env`; does not override).
+4. **Config `env` block** in `~/.chiragborse1/KovaLab.json` (applied only if missing).
+5. **Optional login-shell import** (`env.shellEnv.enabled` or `KOVA_LOAD_SHELL_ENV=1`), applied only for missing expected keys.
 
-On Ubuntu fresh installs that use the default state dir, Kova also treats `~/.config/openclaw/gateway.env` as a compatibility fallback after the global `.env`. If both files exist and disagree, Kova keeps `~/.openclaw/.env` and prints a warning.
+On Ubuntu fresh installs that use the default state dir, Kova also treats `~/.config/kova/gateway.env` as a compatibility fallback after the global `.env`. If both files exist and disagree, Kova keeps `~/.kova/.env` and prints a warning.
 
 If the config file is missing entirely, step 4 is skipped; shell import still runs if enabled.
 
@@ -53,25 +53,25 @@ Two equivalent ways to set inline env vars (both are non-overriding):
 
 Env var equivalents:
 
-- `OPENCLAW_LOAD_SHELL_ENV=1`
-- `OPENCLAW_SHELL_ENV_TIMEOUT_MS=15000`
+- `KOVA_LOAD_SHELL_ENV=1`
+- `KOVA_SHELL_ENV_TIMEOUT_MS=15000`
 
 ## Runtime-injected env vars
 
 Kova also injects context markers into spawned child processes:
 
-- `OPENCLAW_SHELL=exec`: set for commands run through the `exec` tool.
-- `OPENCLAW_SHELL=acp`: set for ACP runtime backend process spawns (for example `acpx`).
-- `OPENCLAW_SHELL=acp-client`: set for `kova acp client` when it spawns the ACP bridge process.
-- `OPENCLAW_SHELL=tui-local`: set for local TUI `!` shell commands.
+- `KOVA_SHELL=exec`: set for commands run through the `exec` tool.
+- `KOVA_SHELL=acp`: set for ACP runtime backend process spawns (for example `acpx`).
+- `KOVA_SHELL=acp-client`: set for `kova acp client` when it spawns the ACP bridge process.
+- `KOVA_SHELL=tui-local`: set for local TUI `!` shell commands.
 
 These are runtime markers (not required user config). They can be used in shell/profile logic
 to apply context-specific rules.
 
 ## UI env vars
 
-- `OPENCLAW_THEME=light`: force the light TUI palette when your terminal has a light background.
-- `OPENCLAW_THEME=dark`: force the dark TUI palette.
+- `KOVA_THEME=light`: force the light TUI palette when your terminal has a light background.
+- `KOVA_THEME=dark`: force the dark TUI palette.
 - `COLORFGBG`: if your terminal exports it, Kova uses the background color hint to auto-pick the TUI palette.
 
 ## Env var substitution in config
@@ -103,35 +103,35 @@ Both resolve from process env at activation time. SecretRef details are document
 
 ## Path-related env vars
 
-| Variable               | Purpose                                                                                                                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_HOME`        | Override the home directory used for all internal path resolution (`~/.openclaw/`, agent dirs, sessions, credentials). Useful when running Kova as a dedicated service user. |
-| `OPENCLAW_STATE_DIR`   | Override the state directory (default `~/.openclaw`).                                                                                                                            |
-| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                             |
+| Variable           | Purpose                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `KOVA_HOME`        | Override the home directory used for all internal path resolution (`~/.kova/`, agent dirs, sessions, credentials). Useful when running Kova as a dedicated service user. |
+| `KOVA_STATE_DIR`   | Override the state directory (default `~/.kova`).                                                                                                                        |
+| `KOVA_CONFIG_PATH` | Override the config file path (default `~/.chiragborse1/KovaLab.json`).                                                                                                  |
 
 ## Logging
 
-| Variable             | Purpose                                                                                                                                                                                      |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_LOG_LEVEL` | Override log level for both file and console (e.g. `debug`, `trace`). Takes precedence over `logging.level` and `logging.consoleLevel` in config. Invalid values are ignored with a warning. |
+| Variable         | Purpose                                                                                                                                                                                      |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KOVA_LOG_LEVEL` | Override log level for both file and console (e.g. `debug`, `trace`). Takes precedence over `logging.level` and `logging.consoleLevel` in config. Invalid values are ignored with a warning. |
 
-### `OPENCLAW_HOME`
+### `KOVA_HOME`
 
-When set, `OPENCLAW_HOME` replaces the system home directory (`$HOME` / `os.homedir()`) for all internal path resolution. This enables full filesystem isolation for headless service accounts.
+When set, `KOVA_HOME` replaces the system home directory (`$HOME` / `os.homedir()`) for all internal path resolution. This enables full filesystem isolation for headless service accounts.
 
-**Precedence:** `OPENCLAW_HOME` > `$HOME` > `USERPROFILE` > `os.homedir()`
+**Precedence:** `KOVA_HOME` > `$HOME` > `USERPROFILE` > `os.homedir()`
 
 **Example** (macOS LaunchDaemon):
 
 ```xml
 <key>EnvironmentVariables</key>
 <dict>
-  <key>OPENCLAW_HOME</key>
+  <key>KOVA_HOME</key>
   <string>/Users/user</string>
 </dict>
 ```
 
-`OPENCLAW_HOME` can also be set to a tilde path (e.g. `~/svc`), which gets expanded using `$HOME` before use.
+`KOVA_HOME` can also be set to a tilde path (e.g. `~/svc`), which gets expanded using `$HOME` before use.
 
 ## nvm users: web_fetch TLS failures
 
@@ -153,7 +153,7 @@ export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 kova gateway run
 ```
 
-Do not rely on writing only to `~/.openclaw/.env` for this variable; Node reads
+Do not rely on writing only to `~/.kova/.env` for this variable; Node reads
 `NODE_EXTRA_CA_CERTS` at process startup.
 
 ## Related

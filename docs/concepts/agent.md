@@ -14,7 +14,7 @@ injected, and how sessions bootstrap against it.
 
 Kova uses a single agent workspace directory (`agents.defaults.workspace`) as the agent’s **only** working directory (`cwd`) for tools and context.
 
-Recommended: use `kova setup` to create `~/.openclaw/openclaw.json` if missing and initialize the workspace files.
+Recommended: use `kova setup` to create `~/.chiragborse1/KovaLab.json` if missing and initialize the workspace files.
 
 Full workspace layout + backup guide: [Agent workspace](/concepts/agent-workspace)
 
@@ -61,7 +61,7 @@ Kova loads skills from these locations (highest precedence first):
 - Workspace: `<workspace>/skills`
 - Project agent skills: `<workspace>/.agents/skills`
 - Personal agent skills: `~/.agents/skills`
-- Managed/local: `~/.openclaw/skills`
+- Managed/local: `~/.kova/skills`
 - Bundled (shipped with the install)
 - Extra skill folders: `skills.load.extraDirs`
 
@@ -77,7 +77,7 @@ delivery are Kova-owned layers on top of that core.
 
 Session transcripts are stored as JSONL at:
 
-- `~/.openclaw/agents/<agentId>/sessions/<SessionId>.jsonl`
+- `~/.kova/agents/<agentId>/sessions/<SessionId>.jsonl`
 
 The session ID is stable and chosen by Kova.
 Legacy session folders from other tools are not read.

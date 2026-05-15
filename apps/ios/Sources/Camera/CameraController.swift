@@ -1,5 +1,5 @@
 import AVFoundation
-import OpenClawKit
+import KovaKit
 import Foundation
 import os
 
@@ -37,7 +37,7 @@ actor CameraController {
         }
     }
 
-    func snap(params: OpenClawCameraSnapParams) async throws -> (
+    func snap(params: KovaCameraSnapParams) async throws -> (
         format: String,
         base64: String,
         width: Int,
@@ -87,7 +87,7 @@ actor CameraController {
             height: res.heightPx)
     }
 
-    func clip(params: OpenClawCameraClipParams) async throws -> (
+    func clip(params: KovaCameraClipParams) async throws -> (
         format: String,
         base64: String,
         durationMs: Int,
@@ -158,7 +158,7 @@ actor CameraController {
     }
 
     private nonisolated static func pickCamera(
-        facing: OpenClawCameraFacing,
+        facing: KovaCameraFacing,
         deviceId: String?) -> AVCaptureDevice?
     {
         if let deviceId, !deviceId.isEmpty {

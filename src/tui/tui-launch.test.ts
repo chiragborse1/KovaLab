@@ -136,8 +136,8 @@ describe("launchTuiCli", () => {
       ["/repo/kova.mjs", "tui"],
       expect.objectContaining({
         env: expect.objectContaining({
-          OPENCLAW_GATEWAY_URL: "ws://127.0.0.1:18789",
-          OPENCLAW_TUI_SETUP_AUTH_SOURCE: "config",
+          KOVA_GATEWAY_URL: "ws://127.0.0.1:18789",
+          KOVA_TUI_SETUP_AUTH_SOURCE: "config",
         }),
       }),
     );

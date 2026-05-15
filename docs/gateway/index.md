@@ -63,7 +63,7 @@ of live probe output.
 </Steps>
 
 <Note>
-Gateway config reload watches the active config file path (resolved from profile/state defaults, or `OPENCLAW_CONFIG_PATH` when set).
+Gateway config reload watches the active config file path (resolved from profile/state defaults, or `KOVA_CONFIG_PATH` when set).
 Default mode is `gateway.reload.mode="hybrid"`.
 After the first successful load, the running process serves the active in-memory config snapshot; successful reload swaps that snapshot atomically.
 </Note>
@@ -78,7 +78,7 @@ After the first successful load, the running process serves the active in-memory
 - Default bind mode: `loopback`.
 - Auth is required by default. Shared-secret setups use
   `gateway.auth.token` / `gateway.auth.password` (or
-  `OPENCLAW_GATEWAY_TOKEN` / `OPENCLAW_GATEWAY_PASSWORD`), and non-loopback
+  `KOVA_GATEWAY_TOKEN` / `KOVA_GATEWAY_PASSWORD`), and non-loopback
   reverse-proxy setups can use `gateway.auth.mode: "trusted-proxy"`.
 
 ## OpenAI-compatible endpoints
@@ -99,18 +99,18 @@ Why this set matters:
 
 Planning note:
 
-- `/v1/models` is agent-first: it returns `kova`, `openclaw/default`, and `openclaw/<agentId>`.
-- `openclaw/default` is the stable alias that always maps to the configured default agent.
-- Use `x-openclaw-model` when you want a backend provider/model override; otherwise the selected agent's normal model and embedding setup stays in control.
+- `/v1/models` is agent-first: it returns `kova`, `kova/default`, and `kova/<agentId>`.
+- `kova/default` is the stable alias that always maps to the configured default agent.
+- Use `x-kova-model` when you want a backend provider/model override; otherwise the selected agent's normal model and embedding setup stays in control.
 
 All of these run on the main Gateway port and use the same trusted operator auth boundary as the rest of the Gateway HTTP API.
 
 ### Port and bind precedence
 
-| Setting      | Resolution order                                              |
-| ------------ | ------------------------------------------------------------- |
-| Gateway port | `--port` → `OPENCLAW_GATEWAY_PORT` → `gateway.port` → `18789` |
-| Bind mode    | CLI/override → `gateway.bind` → `loopback`                    |
+| Setting      | Resolution order                                          |
+| ------------ | --------------------------------------------------------- |
+| Gateway port | `--port` → `KOVA_GATEWAY_PORT` → `gateway.port` → `18789` |
+| Bind mode    | CLI/override → `gateway.bind` → `loopback`                |
 
 Gateway startup uses the same effective port and bind when it seeds local
 Control UI origins for non-loopback binds. For example, `--bind lan --port 3000`
@@ -169,23 +169,23 @@ What to expect:
 Checklist per instance:
 
 - Unique `gateway.port`
-- Unique `OPENCLAW_CONFIG_PATH`
-- Unique `OPENCLAW_STATE_DIR`
+- Unique `KOVA_CONFIG_PATH`
+- Unique `KOVA_STATE_DIR`
 - Unique `agents.defaults.workspace`
 
 Example:
 
 ```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json OPENCLAW_STATE_DIR=~/.openclaw-a kova gateway --port 19001
-OPENCLAW_CONFIG_PATH=~/.openclaw/b.json OPENCLAW_STATE_DIR=~/.openclaw-b kova gateway --port 19002
+KOVA_CONFIG_PATH=~/.kova/a.json KOVA_STATE_DIR=~/.kova-a kova gateway --port 19001
+KOVA_CONFIG_PATH=~/.kova/b.json KOVA_STATE_DIR=~/.kova-b kova gateway --port 19002
 ```
 
 Detailed setup: [/gateway/multiple-gateways](/gateway/multiple-gateways).
 
-## VoiceClaw real-time brain endpoint
+## VoiceKova real-time brain endpoint
 
-Kova exposes a VoiceClaw-compatible real-time WebSocket endpoint at
-`/voiceclaw/realtime`. Use it when a VoiceClaw desktop client should talk
+Kova exposes a VoiceKova-compatible real-time WebSocket endpoint at
+`/voicekova/realtime`. Use it when a VoiceKova desktop client should talk
 directly to a real-time Kova brain instead of going through a separate relay
 process.
 
@@ -205,17 +205,17 @@ For an isolated test gateway, run a separate instance with its own port, config,
 and state:
 
 ```bash
-OPENCLAW_CONFIG_PATH=/path/to/openclaw-realtime/openclaw.json \
-OPENCLAW_STATE_DIR=/path/to/openclaw-realtime/state \
-OPENCLAW_SKIP_CHANNELS=1 \
+KOVA_CONFIG_PATH=/path/to/kova-realtime/kova.json \
+KOVA_STATE_DIR=/path/to/kova-realtime/state \
+KOVA_SKIP_CHANNELS=1 \
 GEMINI_API_KEY=... \
 kova gateway --port 19789
 ```
 
-Then configure VoiceClaw to use:
+Then configure VoiceKova to use:
 
 ```text
-ws://127.0.0.1:19789/voiceclaw/realtime
+ws://127.0.0.1:19789/voicekova/realtime
 ```
 
 ## Remote access
@@ -253,7 +253,7 @@ kova gateway stop
 
 Use `kova gateway restart` for restarts. Do not chain `kova gateway stop` and `kova gateway start`; on macOS, `gateway stop` intentionally disables the LaunchAgent before stopping it.
 
-LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>` (named profile). `kova doctor` audits and repairs service config drift.
+LaunchAgent labels are `ai.kova.gateway` (default) or `ai.kova.<profile>` (named profile). `kova doctor` audits and repairs service config drift.
 
   </Tab>
 
@@ -261,7 +261,7 @@ LaunchAgent labels are `ai.openclaw.gateway` (default) or `ai.openclaw.<profile>
 
 ```bash
 kova gateway install
-systemctl --user enable --now openclaw-gateway[-<profile>].service
+systemctl --user enable --now kova-gateway[-<profile>].service
 kova gateway status
 ```
 
@@ -280,7 +280,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/openclaw gateway --port 18789
+ExecStart=/usr/local/bin/kova gateway --port 18789
 Restart=always
 RestartSec=5
 TimeoutStopSec=30
@@ -316,11 +316,11 @@ Use a system unit for multi-user/always-on hosts.
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now openclaw-gateway[-<profile>].service
+sudo systemctl enable --now kova-gateway[-<profile>].service
 ```
 
 Use the same service body as the user unit, but install it under
-`/etc/systemd/system/openclaw-gateway[-<profile>].service` and adjust
+`/etc/systemd/system/kova-gateway[-<profile>].service` and adjust
 `ExecStart=` if your `kova` binary lives elsewhere.
 
   </Tab>

@@ -1,7 +1,4 @@
-import {
-  expectChannelInboundContextContract,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/testing";
+import { expectChannelInboundContextContract, type KovaConfig } from "getkova/plugin-sdk/testing";
 import { describe, it } from "vitest";
 import { buildTelegramMessageContextForTest } from "./bot-message-context.test-harness.js";
 
@@ -20,7 +17,7 @@ describe("Telegram inbound context contract", () => {
             groups: { "*": { requireMention: false } },
           },
         },
-      } satisfies OpenClawConfig,
+      } satisfies KovaConfig,
       message: {
         chat: { id: 42, type: "group", title: "Ops" },
         text: "hello",

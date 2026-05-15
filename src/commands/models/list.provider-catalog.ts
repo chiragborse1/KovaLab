@@ -1,7 +1,7 @@
 import type { Api, Model } from "@mariozechner/pi-ai";
 import { normalizeProviderId } from "../../agents/provider-id.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ModelProviderConfig } from "../../config/types.models.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
@@ -41,7 +41,7 @@ function collectMatchingContributionOwners(
   index: PluginRegistrySnapshot,
   contribution: "providers" | "cliBackends",
   providerFilter: string,
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   options: { includeDisabled?: boolean } = {},
 ): string[] {
   if (contribution === "providers") {
@@ -66,7 +66,7 @@ function collectMatchingContributionOwners(
 }
 
 function resolveInstalledIndexPluginIdsForProviderFilter(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
   providerFilter: string;
 }): string[] | undefined {
@@ -98,7 +98,7 @@ function resolveInstalledIndexPluginIdsForProviderFilter(params: {
 }
 
 export async function resolveProviderCatalogPluginIdsForFilter(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
   providerFilter: string;
 }): Promise<string[] | undefined> {
@@ -132,7 +132,7 @@ export async function resolveProviderCatalogPluginIdsForFilter(params: {
 }
 
 export async function hasProviderStaticCatalogForFilter(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
   providerFilter: string;
 }): Promise<boolean> {
@@ -195,7 +195,7 @@ function modelFromProviderCatalog(params: {
 }
 
 export async function loadProviderCatalogModelsForList(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentDir: string;
   env?: NodeJS.ProcessEnv;
   providerFilter?: string;

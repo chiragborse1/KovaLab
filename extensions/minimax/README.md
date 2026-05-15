@@ -1,4 +1,4 @@
-# MiniMax (OpenClaw plugin)
+# MiniMax (Kova plugin)
 
 Bundled MiniMax plugin for both:
 
@@ -8,13 +8,13 @@ Bundled MiniMax plugin for both:
 ## Enable
 
 ```bash
-openclaw plugins enable minimax
+kova plugins enable minimax
 ```
 
 Restart the Gateway after enabling.
 
 ```bash
-openclaw gateway restart
+kova gateway restart
 ```
 
 ## Authenticate

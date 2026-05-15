@@ -13,17 +13,17 @@ import {
 
 describe("route-args", () => {
   it("parses health and status route args", () => {
-    expect(
-      parseHealthRouteArgs(["node", "openclaw", "health", "--json", "--timeout", "5000"]),
-    ).toEqual({
-      json: true,
-      verbose: false,
-      timeoutMs: 5000,
-    });
+    expect(parseHealthRouteArgs(["node", "kova", "health", "--json", "--timeout", "5000"])).toEqual(
+      {
+        json: true,
+        verbose: false,
+        timeoutMs: 5000,
+      },
+    );
     expect(
       parseStatusRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "status",
         "--json",
         "--deep",
@@ -40,14 +40,14 @@ describe("route-args", () => {
       verbose: false,
       timeoutMs: 5000,
     });
-    expect(parseStatusRouteArgs(["node", "openclaw", "status", "--timeout"])).toBeNull();
+    expect(parseStatusRouteArgs(["node", "kova", "status", "--timeout"])).toBeNull();
   });
 
   it("parses gateway status route args and rejects probe-only ssh flags", () => {
     expect(
       parseGatewayStatusRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "gateway",
         "status",
         "--url",
@@ -75,10 +75,10 @@ describe("route-args", () => {
       json: true,
     });
     expect(
-      parseGatewayStatusRouteArgs(["node", "openclaw", "gateway", "status", "--ssh", "host"]),
+      parseGatewayStatusRouteArgs(["node", "kova", "gateway", "status", "--ssh", "host"]),
     ).toBeNull();
     expect(
-      parseGatewayStatusRouteArgs(["node", "openclaw", "gateway", "status", "--ssh-auto"]),
+      parseGatewayStatusRouteArgs(["node", "kova", "gateway", "status", "--ssh-auto"]),
     ).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe("route-args", () => {
     expect(
       parseSessionsRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "sessions",
         "--json",
         "--all-agents",
@@ -104,9 +104,9 @@ describe("route-args", () => {
       store: "sqlite",
       active: "true",
     });
-    expect(parseSessionsRouteArgs(["node", "openclaw", "sessions", "--agent"])).toBeNull();
+    expect(parseSessionsRouteArgs(["node", "kova", "sessions", "--agent"])).toBeNull();
     expect(
-      parseAgentsListRouteArgs(["node", "openclaw", "agents", "list", "--json", "--bindings"]),
+      parseAgentsListRouteArgs(["node", "kova", "agents", "list", "--json", "--bindings"]),
     ).toEqual({
       json: true,
       bindings: true,
@@ -117,7 +117,7 @@ describe("route-args", () => {
     expect(
       parseConfigGetRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "--log-level",
         "debug",
         "config",
@@ -132,7 +132,7 @@ describe("route-args", () => {
     expect(
       parseConfigUnsetRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "config",
         "unset",
         "--profile",
@@ -142,14 +142,14 @@ describe("route-args", () => {
     ).toEqual({
       path: "update.channel",
     });
-    expect(parseConfigGetRouteArgs(["node", "openclaw", "config", "get", "--json"])).toBeNull();
+    expect(parseConfigGetRouteArgs(["node", "kova", "config", "get", "--json"])).toBeNull();
   });
 
   it("parses models list and models status route args", () => {
     expect(
       parseModelsListRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "models",
         "list",
         "--provider",
@@ -169,7 +169,7 @@ describe("route-args", () => {
     expect(
       parseModelsStatusRouteArgs([
         "node",
-        "openclaw",
+        "kova",
         "models",
         "status",
         "--probe-provider",
@@ -204,7 +204,7 @@ describe("route-args", () => {
       probe: true,
     });
     expect(
-      parseModelsStatusRouteArgs(["node", "openclaw", "models", "status", "--probe-profile"]),
+      parseModelsStatusRouteArgs(["node", "kova", "models", "status", "--probe-profile"]),
     ).toBeNull();
   });
 });

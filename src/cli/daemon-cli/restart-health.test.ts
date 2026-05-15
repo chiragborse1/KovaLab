@@ -138,7 +138,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 7001, ppid: 7000, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 7001, ppid: 7000, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -153,7 +153,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 9000, ppid: 8999, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 9000, ppid: 8999, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -232,7 +232,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 9100, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 9100, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -309,7 +309,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -338,7 +338,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -360,7 +360,7 @@ describe("inspectGatewayRestart", () => {
     inspectPortUsage.mockResolvedValue({
       port: 18789,
       status: "busy",
-      listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+      listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
       hints: [],
     });
 
@@ -415,7 +415,7 @@ describe("inspectGatewayRestart", () => {
       portUsage: {
         port: 18789,
         status: "busy",
-        listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+        listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
         hints: [],
       },
     });
@@ -464,7 +464,7 @@ describe("inspectGatewayRestart", () => {
     inspectPortUsage.mockResolvedValue({
       port: 18789,
       status: "busy",
-      listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+      listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
       hints: [],
     });
 
@@ -502,7 +502,7 @@ describe("inspectGatewayRestart", () => {
     inspectPortUsage.mockResolvedValue({
       port: 18789,
       status: "busy",
-      listeners: [{ pid: 8000, commandLine: "openclaw-gateway" }],
+      listeners: [{ pid: 8000, commandLine: "kova-gateway" }],
       hints: [],
     });
 

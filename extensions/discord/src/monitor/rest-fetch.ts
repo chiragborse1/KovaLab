@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { wrapFetchWithAbortSignal } from "openclaw/plugin-sdk/fetch-runtime";
+import { wrapFetchWithAbortSignal } from "getkova/plugin-sdk/fetch-runtime";
 import {
   captureHttpExchange,
   resolveEffectiveDebugProxyUrl,
-} from "openclaw/plugin-sdk/proxy-capture";
-import { resolveRequestUrl } from "openclaw/plugin-sdk/request-url";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/proxy-capture";
+import { resolveRequestUrl } from "getkova/plugin-sdk/request-url";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import { ProxyAgent, fetch as undiciFetch } from "undici";
 import { withValidatedDiscordProxy } from "../proxy-fetch.js";
 

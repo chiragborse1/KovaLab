@@ -16,11 +16,11 @@ import {
   withTrustedWebSearchEndpoint,
   wrapWebContent,
   writeCachedSearchPayload,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "getkova/plugin-sdk/provider-web-search";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 
 const EXA_SEARCH_ENDPOINT = "https://api.exa.ai/search";
 const EXA_SEARCH_TYPES = ["auto", "neural", "fast", "deep", "deep-reasoning", "instant"] as const;
@@ -350,7 +350,7 @@ async function runExaSearch(params: {
           Accept: "application/json",
           "Content-Type": "application/json",
           "x-api-key": params.apiKey,
-          "x-exa-integration": "openclaw",
+          "x-exa-integration": "kova",
         },
         body: JSON.stringify(body),
       },

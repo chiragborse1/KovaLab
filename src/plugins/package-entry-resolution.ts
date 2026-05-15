@@ -23,8 +23,8 @@ function runtimeExtensionsLengthMismatchMessage(params: {
   extensionsLength: number;
 }): string {
   return (
-    `package.json openclaw.runtimeExtensions length (${params.runtimeExtensionsLength}) ` +
-    `must match openclaw.extensions length (${params.extensionsLength})`
+    `package.json kova.runtimeExtensions length (${params.runtimeExtensionsLength}) ` +
+    `must match kova.extensions length (${params.extensionsLength})`
   );
 }
 

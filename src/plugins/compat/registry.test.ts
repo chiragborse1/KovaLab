@@ -13,7 +13,7 @@ const knownDeprecatedSurfaceMarkers = [
   {
     code: "legacy-extension-api-import",
     file: "src/extensionAPI.ts",
-    marker: "openclaw/extension-api is deprecated",
+    marker: "getkova/extension-api is deprecated",
   },
   {
     code: "memory-split-registration",

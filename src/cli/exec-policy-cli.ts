@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { Command } from "commander";
 import { readConfigFileSnapshot, replaceConfigFile } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { sanitizeExecApprovalDisplayText } from "../infra/exec-approval-command-display.js";
 import {
   collectExecPolicyScopeSnapshots,
@@ -212,10 +212,7 @@ function applyApprovalsDefaults(
   return next;
 }
 
-function buildNextExecPolicyConfig(
-  config: OpenClawConfig,
-  policy: ExecPolicyResolved,
-): OpenClawConfig {
+function buildNextExecPolicyConfig(config: KovaConfig, policy: ExecPolicyResolved): KovaConfig {
   const draft = structuredClone(config);
   applyConfigExecPolicy(draft as Record<string, unknown>, policy);
   return draft;

@@ -13,7 +13,7 @@ import { buildCliRespawnPlan } from "./entry.respawn.js";
 import { tryHandleRootVersionFastPath } from "./entry.version-fast-path.js";
 import { isTruthyEnvValue, normalizeEnv } from "./infra/env.js";
 import { isMainModule } from "./infra/is-main.js";
-import { ensureOpenClawExecMarkerOnProcess } from "./infra/openclaw-exec-env.js";
+import { ensureKovaExecMarkerOnProcess } from "./infra/kova-exec-env.js";
 import { installProcessWarningFilter } from "./infra/warning-filter.js";
 import { attachChildProcessBridge } from "./process/child-process-bridge.js";
 
@@ -57,7 +57,7 @@ if (
   process.title = resolveProcessTitle(process.argv[1]);
   const cliLogPrefix = resolveCliLogPrefix(process.argv[1]);
   applyKovaEnvAliases(process.env);
-  ensureOpenClawExecMarkerOnProcess();
+  ensureKovaExecMarkerOnProcess();
   installProcessWarningFilter();
   normalizeEnv();
   if (!isTruthyEnvValue(process.env.NODE_DISABLE_COMPILE_CACHE)) {
@@ -69,7 +69,7 @@ if (
   }
 
   if (shouldForceReadOnlyAuthStore(process.argv)) {
-    process.env.OPENCLAW_AUTH_STORE_READONLY = "1";
+    process.env.KOVA_AUTH_STORE_READONLY = "1";
   }
 
   if (process.argv.includes("--no-color")) {

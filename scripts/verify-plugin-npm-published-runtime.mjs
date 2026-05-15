@@ -74,13 +74,13 @@ export function collectPluginNpmPublishedRuntimeErrors(params) {
   const errors = [];
   const extensionsResult = readPackageStringList(
     packageLabel,
-    "openclaw.extensions",
-    packageJson.openclaw?.extensions,
+    "kova.extensions",
+    packageJson.kova?.extensions,
   );
   const runtimeExtensionsResult = readPackageStringList(
     packageLabel,
-    "openclaw.runtimeExtensions",
-    packageJson.openclaw?.runtimeExtensions,
+    "kova.runtimeExtensions",
+    packageJson.kova?.runtimeExtensions,
   );
   errors.push(...extensionsResult.errors, ...runtimeExtensionsResult.errors);
   if (errors.length > 0) {
@@ -95,7 +95,7 @@ export function collectPluginNpmPublishedRuntimeErrors(params) {
 
   if (runtimeExtensions.length > 0 && runtimeExtensions.length !== extensions.length) {
     errors.push(
-      `${packageLabel} package.json openclaw.runtimeExtensions length (${runtimeExtensions.length}) must match openclaw.extensions length (${extensions.length})`,
+      `${packageLabel} package.json kova.runtimeExtensions length (${runtimeExtensions.length}) must match kova.extensions length (${extensions.length})`,
     );
     return errors;
   }

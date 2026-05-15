@@ -17,7 +17,7 @@ export type ExtraGatewayService = {
   label: string;
   detail: string;
   scope: "user" | "system";
-  marker?: "kova" | "openclaw" | "clawdbot";
+  marker?: "kova" | "kova" | "kova";
   legacy?: boolean;
 };
 
@@ -25,18 +25,18 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-type Marker = "kova" | "openclaw" | "clawdbot";
+type Marker = "kova" | "kova" | "kova";
 
 const EXTRA_MARKERS: readonly Marker[] = [
   GATEWAY_SERVICE_MARKER as Marker,
   ...(LEGACY_GATEWAY_SERVICE_MARKERS as readonly Marker[]),
-  "clawdbot",
+  "kova",
 ] as const;
 
 export function renderGatewayServiceCleanupHints(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string[] {
-  const profile = env.OPENCLAW_PROFILE;
+  const profile = env.KOVA_PROFILE;
   switch (process.platform) {
     case "darwin": {
       const label = resolveGatewayLaunchAgentLabel(profile);
@@ -86,8 +86,8 @@ export function detectMarkerLineWithGateway(contents: string): Marker | null {
 
 function hasGatewayServiceMarker(content: string): boolean {
   const lower = normalizeLowercaseStringOrEmpty(content);
-  const markerKeys = ["openclaw_service_marker", "kova_service_marker"];
-  const kindKeys = ["openclaw_service_kind", "kova_service_kind"];
+  const markerKeys = ["kova_service_marker", "kova_service_marker"];
+  const kindKeys = ["kova_service_kind", "kova_service_kind"];
   const markerValues = [
     normalizeLowercaseStringOrEmpty(GATEWAY_SERVICE_MARKER),
     ...LEGACY_GATEWAY_SERVICE_MARKERS.map((value) => normalizeLowercaseStringOrEmpty(value)),
@@ -103,7 +103,7 @@ function hasGatewayServiceMarker(content: string): boolean {
   );
 }
 
-function isOpenClawGatewayLaunchdService(label: string, contents: string): boolean {
+function isKovaGatewayLaunchdService(label: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) {
     return true;
   }
@@ -111,20 +111,20 @@ function isOpenClawGatewayLaunchdService(label: string, contents: string): boole
   if (!lowerContents.includes("gateway")) {
     return false;
   }
-  return label.startsWith("ai.kova.") || label.startsWith("ai.openclaw.");
+  return label.startsWith("ai.kova.") || label.startsWith("ai.kova.");
 }
 
-function isOpenClawGatewaySystemdService(name: string, contents: string): boolean {
+function isKovaGatewaySystemdService(name: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) {
     return true;
   }
-  if (!name.startsWith("kova-gateway") && !name.startsWith("openclaw-gateway")) {
+  if (!name.startsWith("kova-gateway") && !name.startsWith("kova-gateway")) {
     return false;
   }
   return normalizeLowercaseStringOrEmpty(contents).includes("gateway");
 }
 
-function isOpenClawGatewayTaskName(name: string): boolean {
+function isKovaGatewayTaskName(name: string): boolean {
   const normalized = normalizeLowercaseStringOrEmpty(name);
   if (!normalized) {
     return false;
@@ -132,7 +132,7 @@ function isOpenClawGatewayTaskName(name: string): boolean {
   const defaultName = normalizeLowercaseStringOrEmpty(resolveGatewayWindowsTaskName());
   return (
     normalized === defaultName ||
-    normalized.startsWith("openclaw gateway") ||
+    normalized.startsWith("kova gateway") ||
     normalized.startsWith("kova gateway")
   );
 }
@@ -155,7 +155,7 @@ function isIgnoredSystemdName(name: string): boolean {
 
 function isLegacyLabel(label: string): boolean {
   const lower = normalizeLowercaseStringOrEmpty(label);
-  return lower.includes("clawdbot");
+  return lower.includes("kova");
 }
 
 async function readDirEntries(dir: string): Promise<string[]> {
@@ -230,7 +230,7 @@ async function scanLaunchdDir(params: {
         label,
         detail: `plist: ${fullPath}`,
         scope: params.scope,
-        marker: "clawdbot",
+        marker: "kova",
         legacy: true,
       });
       continue;
@@ -239,8 +239,8 @@ async function scanLaunchdDir(params: {
       continue;
     }
     if (
-      (marker === GATEWAY_SERVICE_MARKER || marker === "openclaw") &&
-      isOpenClawGatewayLaunchdService(label, contents)
+      (marker === GATEWAY_SERVICE_MARKER || marker === "kova") &&
+      isKovaGatewayLaunchdService(label, contents)
     ) {
       continue;
     }
@@ -274,8 +274,8 @@ async function scanSystemdDir(params: {
       continue;
     }
     if (
-      (marker === GATEWAY_SERVICE_MARKER || marker === "openclaw") &&
-      isOpenClawGatewaySystemdService(name, contents)
+      (marker === GATEWAY_SERVICE_MARKER || marker === "kova") &&
+      isKovaGatewaySystemdService(name, contents)
     ) {
       continue;
     }
@@ -429,7 +429,7 @@ export async function findExtraGatewayServices(
       if (!name) {
         continue;
       }
-      if (isOpenClawGatewayTaskName(name)) {
+      if (isKovaGatewayTaskName(name)) {
         continue;
       }
       const lowerName = normalizeLowercaseStringOrEmpty(name);

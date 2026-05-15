@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildCliRespawnPlan,
   EXPERIMENTAL_WARNING_FLAG,
-  OPENCLAW_NODE_EXTRA_CA_CERTS_READY,
-  OPENCLAW_NODE_OPTIONS_READY,
+  KOVA_NODE_EXTRA_CA_CERTS_READY,
+  KOVA_NODE_OPTIONS_READY,
   resolveCliRespawnCommand,
 } from "./entry.respawn.js";
 
@@ -26,7 +26,7 @@ describe("buildCliRespawnPlan", () => {
 
     expect(
       buildCliRespawnPlan({
-        argv: ["node", "openclaw", "status"],
+        argv: ["node", "kova", "status"],
         env: {},
         execArgv: [],
         autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
@@ -36,7 +36,7 @@ describe("buildCliRespawnPlan", () => {
 
   it("adds NODE_EXTRA_CA_CERTS and warning suppression in one respawn", () => {
     const plan = buildCliRespawnPlan({
-      argv: ["node", "openclaw", "gateway", "run"],
+      argv: ["node", "kova", "gateway", "run"],
       env: {},
       execArgv: [],
       autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
@@ -46,13 +46,13 @@ describe("buildCliRespawnPlan", () => {
     expect(plan?.command).toBe(process.execPath);
     expect(plan?.argv[0]).toBe(EXPERIMENTAL_WARNING_FLAG);
     expect(plan?.env.NODE_EXTRA_CA_CERTS).toBe("/etc/ssl/certs/ca-certificates.crt");
-    expect(plan?.env[OPENCLAW_NODE_EXTRA_CA_CERTS_READY]).toBe("1");
-    expect(plan?.env[OPENCLAW_NODE_OPTIONS_READY]).toBe("1");
+    expect(plan?.env[KOVA_NODE_EXTRA_CA_CERTS_READY]).toBe("1");
+    expect(plan?.env[KOVA_NODE_OPTIONS_READY]).toBe("1");
   });
 
   it("does not overwrite an existing NODE_EXTRA_CA_CERTS value", () => {
     const plan = buildCliRespawnPlan({
-      argv: ["node", "openclaw", "gateway", "run"],
+      argv: ["node", "kova", "gateway", "run"],
       env: { NODE_EXTRA_CA_CERTS: "/custom/ca.pem" },
       execArgv: [],
       autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
@@ -64,10 +64,10 @@ describe("buildCliRespawnPlan", () => {
   it("returns null when both respawn guards are already satisfied", () => {
     expect(
       buildCliRespawnPlan({
-        argv: ["node", "openclaw", "gateway", "run"],
+        argv: ["node", "kova", "gateway", "run"],
         env: {
-          [OPENCLAW_NODE_EXTRA_CA_CERTS_READY]: "1",
-          [OPENCLAW_NODE_OPTIONS_READY]: "1",
+          [KOVA_NODE_EXTRA_CA_CERTS_READY]: "1",
+          [KOVA_NODE_OPTIONS_READY]: "1",
         },
         execArgv: [EXPERIMENTAL_WARNING_FLAG],
         autoNodeExtraCaCerts: "/etc/ssl/certs/ca-certificates.crt",
@@ -80,7 +80,7 @@ describe("buildCliRespawnPlan", () => {
       buildCliRespawnPlan({
         argv: [
           "node",
-          "C:\\Users\\alice\\AppData\\Roaming\\npm\\node_modules\\openclaw\\openclaw.mjs",
+          "C:\\Users\\alice\\AppData\\Roaming\\npm\\node_modules\\kova\\kova.mjs",
           "onboard",
         ],
         env: {},
@@ -93,7 +93,7 @@ describe("buildCliRespawnPlan", () => {
 
   it("respawns Volta shims through node so the shim is not called directly", () => {
     const plan = buildCliRespawnPlan({
-      argv: ["/home/alice/.volta/bin/volta-shim", "/usr/local/bin/openclaw", "status"],
+      argv: ["/home/alice/.volta/bin/volta-shim", "/usr/local/bin/kova", "status"],
       env: { PATH: "/home/alice/.volta/bin:/usr/bin:/bin" },
       execArgv: [],
       execPath: "/home/alice/.volta/bin/volta-shim",
@@ -102,7 +102,7 @@ describe("buildCliRespawnPlan", () => {
     });
 
     expect(plan?.command).toBe("node");
-    expect(plan?.argv).toEqual([EXPERIMENTAL_WARNING_FLAG, "/usr/local/bin/openclaw", "status"]);
+    expect(plan?.argv).toEqual([EXPERIMENTAL_WARNING_FLAG, "/usr/local/bin/kova", "status"]);
   });
 });
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { KovaConfig } from "../runtime-api.js";
 import { expectFirstSentCardUsesFillWidthOnly } from "./card-test-helpers.js";
 import { createFeishuBotMenuHandler } from "./monitor.bot-menu-handler.js";
 
@@ -8,7 +8,7 @@ const parseFeishuMessageEventMock = vi.hoisted(() => vi.fn());
 const sendCardFeishuMock = vi.hoisted(() => vi.fn(async () => ({ messageId: "m1", chatId: "c1" })));
 const getMessageFeishuMock = vi.hoisted(() => vi.fn());
 
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalStateDir = process.env.KOVA_STATE_DIR;
 
 vi.mock("./bot.js", () => {
   return {
@@ -40,7 +40,7 @@ function createBotMenuEvent(params: { eventKey: string; timestamp: string }) {
 
 async function registerHandlers() {
   return createFeishuBotMenuHandler({
-    cfg: {} as ClawdbotConfig,
+    cfg: {} as KovaConfig,
     accountId: "default",
     runtime: {
       log: vi.fn(),
@@ -57,15 +57,15 @@ async function registerHandlers() {
 describe("Feishu bot menu handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.OPENCLAW_STATE_DIR = `/tmp/openclaw-feishu-bot-menu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    process.env.KOVA_STATE_DIR = `/tmp/kova-feishu-bot-menu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   });
 
   afterEach(() => {
     if (originalStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
       return;
     }
-    process.env.OPENCLAW_STATE_DIR = originalStateDir;
+    process.env.KOVA_STATE_DIR = originalStateDir;
   });
 
   it("opens the quick-action launcher card at the webhook/event layer", async () => {

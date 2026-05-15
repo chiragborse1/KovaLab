@@ -190,8 +190,8 @@ def build_beta_release(context)
   archive_path = File.join(output_directory, "Kova-#{version}.xcarchive")
 
   build_app(
-    project: "OpenClaw.xcodeproj",
-    scheme: "OpenClaw",
+    project: "Kova.xcodeproj",
+    scheme: "Kova",
     configuration: "Release",
     export_method: "app-store",
     clean: true,

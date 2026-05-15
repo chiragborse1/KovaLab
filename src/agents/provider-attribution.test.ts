@@ -87,20 +87,20 @@ import {
 } from "./provider-attribution.js";
 
 describe("provider attribution", () => {
-  it("resolves the canonical OpenClaw product and runtime version", () => {
+  it("resolves the canonical Kova product and runtime version", () => {
     const identity = resolveProviderAttributionIdentity({
-      OPENCLAW_VERSION: "2026.3.99",
+      KOVA_VERSION: "2026.3.99",
     });
 
     expect(identity).toEqual({
-      product: "OpenClaw",
+      product: "Kova",
       version: "2026.3.99",
     });
   });
 
   it("returns a documented OpenRouter attribution policy", () => {
     const policy = resolveProviderAttributionPolicy("openrouter", {
-      OPENCLAW_VERSION: "2026.3.22",
+      KOVA_VERSION: "2026.3.22",
     });
 
     expect(policy).toEqual({
@@ -109,12 +109,12 @@ describe("provider attribution", () => {
       verification: "vendor-documented",
       hook: "request-headers",
       docsUrl: "https://openrouter.ai/docs/app-attribution",
-      reviewNote: "Documented app attribution headers. Verified in OpenClaw runtime wrapper.",
-      product: "OpenClaw",
+      reviewNote: "Documented app attribution headers. Verified in Kova runtime wrapper.",
+      product: "Kova",
       version: "2026.3.22",
       headers: {
-        "HTTP-Referer": "https://openclaw.ai",
-        "X-OpenRouter-Title": "OpenClaw",
+        "HTTP-Referer": "https://www.neuralstudio.in",
+        "X-OpenRouter-Title": "Kova",
         "X-OpenRouter-Categories": "cli-agent",
       },
     });
@@ -123,61 +123,61 @@ describe("provider attribution", () => {
   it("normalizes aliases when resolving provider headers", () => {
     expect(
       resolveProviderAttributionHeaders("OpenRouter", {
-        OPENCLAW_VERSION: "2026.3.22",
+        KOVA_VERSION: "2026.3.22",
       }),
     ).toEqual({
-      "HTTP-Referer": "https://openclaw.ai",
-      "X-OpenRouter-Title": "OpenClaw",
+      "HTTP-Referer": "https://www.neuralstudio.in",
+      "X-OpenRouter-Title": "Kova",
       "X-OpenRouter-Categories": "cli-agent",
     });
   });
 
   it("returns a hidden-spec OpenAI attribution policy", () => {
-    expect(resolveProviderAttributionPolicy("openai", { OPENCLAW_VERSION: "2026.3.22" })).toEqual({
+    expect(resolveProviderAttributionPolicy("openai", { KOVA_VERSION: "2026.3.22" })).toEqual({
       provider: "openai",
       enabledByDefault: true,
       verification: "vendor-hidden-api-spec",
       hook: "request-headers",
       reviewNote:
         "OpenAI native traffic supports hidden originator/User-Agent attribution. Verified against the Codex wire contract.",
-      product: "OpenClaw",
+      product: "Kova",
       version: "2026.3.22",
       headers: {
-        originator: "openclaw",
+        originator: "kova",
         version: "2026.3.22",
-        "User-Agent": "openclaw/2026.3.22",
+        "User-Agent": "kova/2026.3.22",
       },
     });
-    expect(resolveProviderAttributionHeaders("openai", { OPENCLAW_VERSION: "2026.3.22" })).toEqual({
-      originator: "openclaw",
+    expect(resolveProviderAttributionHeaders("openai", { KOVA_VERSION: "2026.3.22" })).toEqual({
+      originator: "kova",
       version: "2026.3.22",
-      "User-Agent": "openclaw/2026.3.22",
+      "User-Agent": "kova/2026.3.22",
     });
   });
 
   it("returns a hidden-spec OpenAI Codex attribution policy", () => {
-    expect(
-      resolveProviderAttributionPolicy("openai-codex", { OPENCLAW_VERSION: "2026.3.22" }),
-    ).toEqual({
-      provider: "openai-codex",
-      enabledByDefault: true,
-      verification: "vendor-hidden-api-spec",
-      hook: "request-headers",
-      reviewNote:
-        "OpenAI Codex ChatGPT-backed traffic supports the same hidden originator/User-Agent attribution contract.",
-      product: "OpenClaw",
-      version: "2026.3.22",
-      headers: {
-        originator: "openclaw",
+    expect(resolveProviderAttributionPolicy("openai-codex", { KOVA_VERSION: "2026.3.22" })).toEqual(
+      {
+        provider: "openai-codex",
+        enabledByDefault: true,
+        verification: "vendor-hidden-api-spec",
+        hook: "request-headers",
+        reviewNote:
+          "OpenAI Codex ChatGPT-backed traffic supports the same hidden originator/User-Agent attribution contract.",
+        product: "Kova",
         version: "2026.3.22",
-        "User-Agent": "openclaw/2026.3.22",
+        headers: {
+          originator: "kova",
+          version: "2026.3.22",
+          "User-Agent": "kova/2026.3.22",
+        },
       },
-    });
+    );
   });
 
   it("lists the current attribution support matrix", () => {
     expect(
-      listProviderAttributionPolicies({ OPENCLAW_VERSION: "2026.3.22" }).map((policy) => [
+      listProviderAttributionPolicies({ KOVA_VERSION: "2026.3.22" }).map((policy) => [
         policy.provider,
         policy.enabledByDefault,
         policy.verification,
@@ -205,7 +205,7 @@ describe("provider attribution", () => {
           transport: "stream",
           capability: "llm",
         },
-        { OPENCLAW_VERSION: "2026.3.22" },
+        { KOVA_VERSION: "2026.3.22" },
       ),
     ).toMatchObject({
       endpointClass: "openai-public",
@@ -225,7 +225,7 @@ describe("provider attribution", () => {
           transport: "stream",
           capability: "llm",
         },
-        { OPENCLAW_VERSION: "2026.3.22" },
+        { KOVA_VERSION: "2026.3.22" },
       ),
     ).toMatchObject({
       endpointClass: "custom",

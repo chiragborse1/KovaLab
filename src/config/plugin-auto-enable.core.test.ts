@@ -378,7 +378,7 @@ describe("applyPluginAutoEnable core", () => {
   it("auto-enables an opt-in plugin when an agent harness runtime is forced by env", () => {
     const result = applyPluginAutoEnable({
       config: {},
-      env: makeIsolatedEnv({ OPENCLAW_AGENT_RUNTIME: "codex" }),
+      env: makeIsolatedEnv({ KOVA_AGENT_RUNTIME: "codex" }),
       manifestRegistry: makeRegistry([
         {
           id: "codex",
@@ -483,7 +483,7 @@ describe("applyPluginAutoEnable core", () => {
     const result = materializePluginAutoEnableCandidates({
       config: {
         plugins: {
-          allow: ["glueclaw"],
+          allow: ["gluekova"],
           entries: {
             discord: {
               config: {
@@ -498,7 +498,7 @@ describe("applyPluginAutoEnable core", () => {
       manifestRegistry: makeRegistry([{ id: "discord", channels: [] }]),
     });
 
-    expect(result.config.plugins?.allow).toEqual(["glueclaw", "discord"]);
+    expect(result.config.plugins?.allow).toEqual(["gluekova", "discord"]);
     expect(result.changes).toContain("discord plugin config present, added to plugin allowlist.");
   });
 
@@ -506,7 +506,7 @@ describe("applyPluginAutoEnable core", () => {
     const result = materializePluginAutoEnableCandidates({
       config: {
         plugins: {
-          allow: ["glueclaw"],
+          allow: ["gluekova"],
           entries: {
             "missing-plugin": {
               config: {
@@ -521,7 +521,7 @@ describe("applyPluginAutoEnable core", () => {
       manifestRegistry: makeRegistry([]),
     });
 
-    expect(result.config.plugins?.allow).toEqual(["glueclaw"]);
+    expect(result.config.plugins?.allow).toEqual(["gluekova"]);
     expect(result.changes).toEqual([]);
   });
 
@@ -595,7 +595,7 @@ describe("applyPluginAutoEnable core", () => {
       env: {
         ...makeIsolatedEnv(),
         IRC_HOST: "irc.libera.chat",
-        IRC_NICK: "openclaw-bot",
+        IRC_NICK: "kova-bot",
       },
     });
 

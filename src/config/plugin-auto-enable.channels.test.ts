@@ -53,8 +53,8 @@ describe("applyPluginAutoEnable channels", () => {
       JSON.stringify({
         entries: [
           {
-            name: "@openclaw/env-secondary",
-            openclaw: {
+            name: "@kovaai/env-secondary",
+            kova: {
               channel: {
                 id: "env-secondary",
                 label: "Env Secondary",
@@ -64,7 +64,7 @@ describe("applyPluginAutoEnable channels", () => {
                 preferOver: ["env-primary"],
               },
               install: {
-                npmSpec: "@openclaw/env-secondary",
+                npmSpec: "@kovaai/env-secondary",
               },
             },
           },
@@ -94,8 +94,8 @@ describe("applyPluginAutoEnable channels", () => {
       ],
       env: {
         ...makeIsolatedEnv(),
-        OPENCLAW_STATE_DIR: stateDir,
-        OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+        KOVA_STATE_DIR: stateDir,
+        KOVA_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
       },
       manifestRegistry: makeRegistry([]),
     });
@@ -113,8 +113,8 @@ describe("applyPluginAutoEnable channels", () => {
       JSON.stringify({
         entries: [
           {
-            name: "@openclaw/env-primary",
-            openclaw: {
+            name: "@kovaai/env-primary",
+            kova: {
               channel: {
                 id: "env-primary",
                 label: "Env Primary",
@@ -123,13 +123,13 @@ describe("applyPluginAutoEnable channels", () => {
                 blurb: "Env primary entry",
               },
               install: {
-                npmSpec: "@openclaw/env-primary",
+                npmSpec: "@kovaai/env-primary",
               },
             },
           },
           {
-            name: "@openclaw/env-secondary",
-            openclaw: {
+            name: "@kovaai/env-secondary",
+            kova: {
               channel: {
                 id: "env-secondary",
                 label: "Env Secondary",
@@ -139,7 +139,7 @@ describe("applyPluginAutoEnable channels", () => {
                 preferOver: ["env-primary"],
               },
               install: {
-                npmSpec: "@openclaw/env-secondary",
+                npmSpec: "@kovaai/env-secondary",
               },
             },
           },
@@ -165,8 +165,8 @@ describe("applyPluginAutoEnable channels", () => {
         })),
         env: {
           ...makeIsolatedEnv(),
-          OPENCLAW_STATE_DIR: stateDir,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
+          KOVA_STATE_DIR: stateDir,
+          KOVA_BUNDLED_PLUGINS_DIR: "/nonexistent/bundled/plugins",
         },
         manifestRegistry: makeRegistry([]),
       });
@@ -216,7 +216,7 @@ describe("applyPluginAutoEnable channels", () => {
         manifestRegistry: makeRegistry([
           { id: "qqbot", channels: ["qqbot"] },
           {
-            id: "openclaw-qqbot",
+            id: "kova-qqbot",
             channels: ["qqbot"],
             channelConfigs: {
               qqbot: {
@@ -228,7 +228,7 @@ describe("applyPluginAutoEnable channels", () => {
         ]),
       });
 
-      expect(result.config.plugins?.entries?.["openclaw-qqbot"]?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.["kova-qqbot"]?.enabled).toBe(true);
       expect(result.config.plugins?.entries?.qqbot?.enabled).toBe(false);
       expect(result.changes.join("\n")).toContain("QQ Bot configured, enabled automatically.");
     });
@@ -237,13 +237,13 @@ describe("applyPluginAutoEnable channels", () => {
       const result = applyPluginAutoEnable({
         config: {
           channels: { qqbot: { appId: "app", clientSecret: "secret" } },
-          plugins: { entries: { "openclaw-qqbot": { enabled: false } } },
+          plugins: { entries: { "kova-qqbot": { enabled: false } } },
         },
         env: makeIsolatedEnv(),
         manifestRegistry: makeRegistry([
           { id: "qqbot", channels: ["qqbot"] },
           {
-            id: "openclaw-qqbot",
+            id: "kova-qqbot",
             channels: ["qqbot"],
             channelConfigs: {
               qqbot: {
@@ -255,7 +255,7 @@ describe("applyPluginAutoEnable channels", () => {
         ]),
       });
 
-      expect(result.config.plugins?.entries?.["openclaw-qqbot"]?.enabled).toBe(false);
+      expect(result.config.plugins?.entries?.["kova-qqbot"]?.enabled).toBe(false);
       expect(result.config.plugins?.entries?.qqbot).toBeUndefined();
       expect(result.config.channels?.qqbot?.enabled).toBe(true);
       expect(result.changes.join("\n")).toContain("QQ Bot configured, enabled automatically.");
@@ -275,7 +275,7 @@ describe("applyPluginAutoEnable channels", () => {
         manifestRegistry: makeRegistry([
           { id: "qqbot", channels: ["qqbot"] },
           {
-            id: "openclaw-qqbot",
+            id: "kova-qqbot",
             channels: ["qqbot"],
             channelConfigs: {
               qqbot: {
@@ -287,7 +287,7 @@ describe("applyPluginAutoEnable channels", () => {
         ]),
       });
 
-      expect(result.config.plugins?.entries?.["openclaw-qqbot"]?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.["kova-qqbot"]?.enabled).toBe(true);
       expect(result.config.plugins?.entries?.qqbot?.enabled).toBe(true);
     });
 

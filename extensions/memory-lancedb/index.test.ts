@@ -33,7 +33,7 @@ type MemoryPluginTestConfig = {
 };
 
 const TEST_RUNTIME_MANIFEST = {
-  name: "openclaw-memory-lancedb-runtime",
+  name: "kova-memory-lancedb-runtime",
   private: true as const,
   type: "module" as const,
   dependencies: {
@@ -78,7 +78,7 @@ function createRuntimeLoader(
     env: overrides.env ?? ({} as NodeJS.ProcessEnv),
     platform: overrides.platform,
     arch: overrides.arch,
-    resolveStateDir: () => "/tmp/openclaw-state",
+    resolveStateDir: () => "/tmp/kova-state",
     runtimeManifest: TEST_RUNTIME_MANIFEST,
     importBundled:
       overrides.importBundled ??
@@ -95,7 +95,7 @@ function createRuntimeLoader(
 }
 
 describe("memory plugin e2e", () => {
-  const { getDbPath } = installTmpDirHarness({ prefix: "openclaw-memory-test-" });
+  const { getDbPath } = installTmpDirHarness({ prefix: "kova-memory-test-" });
 
   function parseConfig(overrides: Record<string, unknown> = {}) {
     return memoryPlugin.configSchema?.parse?.({
@@ -325,7 +325,7 @@ describe("memory plugin e2e", () => {
     }));
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -398,7 +398,7 @@ describe("memory plugin e2e", () => {
       );
       expect(logger.info).toHaveBeenCalledWith("memory-lancedb: injecting 1 memories into context");
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -454,7 +454,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -543,7 +543,7 @@ describe("memory plugin e2e", () => {
       });
       expect(logger.info).toHaveBeenCalledWith("memory-lancedb: injecting 1 memories into context");
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -585,7 +585,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -666,7 +666,7 @@ describe("memory plugin e2e", () => {
       expect(embeddingsCreate).not.toHaveBeenCalled();
       expect(loadLanceDbModule).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -708,7 +708,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -777,7 +777,7 @@ describe("memory plugin e2e", () => {
       expect(embeddingsCreate).not.toHaveBeenCalled();
       expect(loadLanceDbModule).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -807,7 +807,7 @@ describe("memory plugin e2e", () => {
     }));
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -886,7 +886,7 @@ describe("memory plugin e2e", () => {
         }),
       ]);
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -933,7 +933,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1026,7 +1026,7 @@ describe("memory plugin e2e", () => {
         }),
       ]);
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -1069,7 +1069,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1151,7 +1151,7 @@ describe("memory plugin e2e", () => {
       expect(loadLanceDbModule).not.toHaveBeenCalled();
       expect(add).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -1194,7 +1194,7 @@ describe("memory plugin e2e", () => {
     };
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1264,7 +1264,7 @@ describe("memory plugin e2e", () => {
       expect(loadLanceDbModule).not.toHaveBeenCalled();
       expect(add).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -1299,7 +1299,7 @@ describe("memory plugin e2e", () => {
     }));
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1361,7 +1361,7 @@ describe("memory plugin e2e", () => {
   }
 
   async function cleanupAutoCaptureCursorHarness() {
-    vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+    vi.doUnmock("getkova/plugin-sdk/runtime-env");
     vi.doUnmock("openai");
     vi.doUnmock("./lancedb-runtime.js");
     vi.resetModules();
@@ -1518,7 +1518,7 @@ describe("memory plugin e2e", () => {
     }));
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1583,7 +1583,7 @@ describe("memory plugin e2e", () => {
         dimensions: 1024,
       });
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -1614,7 +1614,7 @@ describe("memory plugin e2e", () => {
       });
 
     vi.resetModules();
-    vi.doMock("openclaw/plugin-sdk/runtime-env", () => ({
+    vi.doMock("getkova/plugin-sdk/runtime-env", () => ({
       ensureGlobalUndiciEnvProxyDispatcher,
     }));
     vi.doMock("openai", () => ({
@@ -1677,7 +1677,7 @@ describe("memory plugin e2e", () => {
       expect(loadLanceDbModule).toHaveBeenCalledTimes(2);
       expect(embeddingsCreate).toHaveBeenCalledTimes(2);
     } finally {
-      vi.doUnmock("openclaw/plugin-sdk/runtime-env");
+      vi.doUnmock("getkova/plugin-sdk/runtime-env");
       vi.doUnmock("openai");
       vi.doUnmock("./lancedb-runtime.js");
       vi.resetModules();
@@ -1830,7 +1830,7 @@ describe("lancedb runtime loader", () => {
     const importBundled = vi.fn(async () => bundledModule);
     const importResolved = vi.fn(async () => createMockModule());
     const resolveRuntimeEntry = vi.fn(() => null);
-    const installRuntime = vi.fn(async () => "/tmp/openclaw-state/plugin-runtimes/lancedb.js");
+    const installRuntime = vi.fn(async () => "/tmp/kova-state/plugin-runtimes/lancedb.js");
     const loader = createRuntimeLoader({
       importBundled,
       importResolved,
@@ -1849,10 +1849,10 @@ describe("lancedb runtime loader", () => {
     const runtimeModule = createMockModule();
     const importResolved = vi.fn(async () => runtimeModule);
     const resolveRuntimeEntry = vi.fn(
-      () => "/tmp/openclaw-state/plugin-runtimes/memory-lancedb/runtime-entry.js",
+      () => "/tmp/kova-state/plugin-runtimes/memory-lancedb/runtime-entry.js",
     );
     const installRuntime = vi.fn(
-      async () => "/tmp/openclaw-state/plugin-runtimes/memory-lancedb/runtime-entry.js",
+      async () => "/tmp/kova-state/plugin-runtimes/memory-lancedb/runtime-entry.js",
     );
     const loader = createRuntimeLoader({
       importResolved,
@@ -1864,7 +1864,7 @@ describe("lancedb runtime loader", () => {
 
     expect(resolveRuntimeEntry).toHaveBeenCalledWith(
       expect.objectContaining({
-        runtimeDir: "/tmp/openclaw-state/plugin-runtimes/memory-lancedb/lancedb",
+        runtimeDir: "/tmp/kova-state/plugin-runtimes/memory-lancedb/lancedb",
       }),
     );
     expect(installRuntime).not.toHaveBeenCalled();
@@ -1892,13 +1892,13 @@ describe("lancedb runtime loader", () => {
 
     expect(installRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
-        runtimeDir: "/tmp/openclaw-state/plugin-runtimes/memory-lancedb/lancedb",
+        runtimeDir: "/tmp/kova-state/plugin-runtimes/memory-lancedb/lancedb",
         manifest: TEST_RUNTIME_MANIFEST,
       }),
     );
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        "installing runtime deps under /tmp/openclaw-state/plugin-runtimes/memory-lancedb/lancedb",
+        "installing runtime deps under /tmp/kova-state/plugin-runtimes/memory-lancedb/lancedb",
       ),
     );
   });
@@ -1909,7 +1909,7 @@ describe("lancedb runtime loader", () => {
         `${runtimeDir}/node_modules/@lancedb/lancedb/index.js`,
     );
     const loader = createRuntimeLoader({
-      env: { OPENCLAW_NIX_MODE: "1" } as NodeJS.ProcessEnv,
+      env: { KOVA_NIX_MODE: "1" } as NodeJS.ProcessEnv,
       installRuntime,
     });
 
@@ -1942,7 +1942,7 @@ describe("lancedb runtime loader", () => {
       .fn()
       .mockRejectedValueOnce(new Error("network down"))
       .mockResolvedValueOnce(
-        "/tmp/openclaw-state/plugin-runtimes/memory-lancedb/lancedb/node_modules/@lancedb/lancedb/index.js",
+        "/tmp/kova-state/plugin-runtimes/memory-lancedb/lancedb/node_modules/@lancedb/lancedb/index.js",
       );
     const importResolved = vi.fn(async () => runtimeModule);
     const loader = createRuntimeLoader({

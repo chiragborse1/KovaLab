@@ -2,7 +2,7 @@
 summary: "CLI reference for `kova dns` (wide-area discovery helpers)"
 read_when:
   - You want wide-area discovery (DNS-SD) via Tailscale + CoreDNS
-  - You’re setting up split DNS for a custom discovery domain (example: openclaw.internal)
+  - You’re setting up split DNS for a custom discovery domain (example: kova.internal)
 title: "DNS"
 ---
 
@@ -19,7 +19,7 @@ Related:
 
 ```bash
 kova dns setup
-kova dns setup --domain openclaw.internal
+kova dns setup --domain kova.internal
 kova dns setup --apply
 ```
 
@@ -29,7 +29,7 @@ Plan or apply CoreDNS setup for unicast DNS-SD discovery.
 
 Options:
 
-- `--domain <domain>`: wide-area discovery domain (for example `openclaw.internal`)
+- `--domain <domain>`: wide-area discovery domain (for example `kova.internal`)
 - `--apply`: install or update CoreDNS config and restart the service (requires sudo; macOS only)
 
 What it shows:
@@ -37,7 +37,7 @@ What it shows:
 - resolved discovery domain
 - zone file path
 - current tailnet IPs
-- recommended `openclaw.json` discovery config
+- recommended `kova.json` discovery config
 - the Tailscale Split DNS nameserver/domain values to set
 
 Notes:

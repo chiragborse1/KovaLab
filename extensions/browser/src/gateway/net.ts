@@ -1,1 +1,1 @@
-export { isLoopbackHost } from "openclaw/plugin-sdk/browser-config-support";
+export { isLoopbackHost } from "getkova/plugin-sdk/browser-config-support";

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { applyMergePatch } from "../config/merge-patch.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isRecord } from "../utils.js";
 import {
@@ -283,7 +283,7 @@ export function inspectBundleMcpRuntimeSupport(params: {
 
 export function loadEnabledBundleMcpConfig(params: {
   workspaceDir: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): EnabledBundleMcpConfigResult {
   return loadEnabledBundleConfig({
     workspaceDir: params.workspaceDir,

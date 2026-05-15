@@ -1723,7 +1723,7 @@ private fun FinalStep(
                   if (pairingRequired) {
                     "Approve this phone on the gateway host, or copy the report below."
                   } else {
-                    "Copy this report and give it to your Claw."
+                    "Copy this report and give it to Kova."
                   },
                   style = onboardingCalloutStyle,
                   color = onboardingTextSecondary,
@@ -1747,7 +1747,7 @@ private fun FinalStep(
           if (showDiagnostics) {
             Text("Error", style = onboardingCaption1Style.copy(fontWeight = FontWeight.Bold), color = onboardingTextSecondary)
             Text(
-              "Kova Android ${openClawAndroidVersionLabel()}",
+              "Kova Android ${kovaAndroidVersionLabel()}",
               style = onboardingCaption1Style,
               color = onboardingTextSecondary,
             )
@@ -1767,7 +1767,7 @@ private fun FinalStep(
             ) {
               Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
               Spacer(modifier = Modifier.width(8.dp))
-              Text("Copy Report for Claw", style = onboardingCalloutStyle.copy(fontWeight = FontWeight.Bold))
+              Text("Copy Report for Kova", style = onboardingCalloutStyle.copy(fontWeight = FontWeight.Bold))
             }
           }
           if (pairingRequired) {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 
 const { getMemorySearchManagerMock } = vi.hoisted(() => ({
   getMemorySearchManagerMock: vi.fn(),
@@ -11,11 +11,11 @@ vi.mock("../plugins/memory-runtime.js", () => ({
 
 import { startGatewayMemoryBackend } from "./server-startup-memory.js";
 
-function createQmdConfig(agents: OpenClawConfig["agents"]): OpenClawConfig {
+function createQmdConfig(agents: KovaConfig["agents"]): KovaConfig {
   return {
     agents,
     memory: { backend: "qmd", qmd: {} },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function createGatewayLogMock() {
@@ -31,7 +31,7 @@ describe("startGatewayMemoryBackend", () => {
     const cfg = {
       agents: { list: [{ id: "main", default: true }] },
       memory: { backend: "builtin" },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const log = { info: vi.fn(), warn: vi.fn() };
 
     await startGatewayMemoryBackend({ cfg, log });
@@ -137,7 +137,7 @@ describe("startGatewayMemoryBackend", () => {
           update: { onBoot: false, interval: "0s", embedInterval: "0s" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const log = createGatewayLogMock();
 
     await startGatewayMemoryBackend({ cfg, log });

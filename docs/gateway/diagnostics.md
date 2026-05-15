@@ -20,7 +20,7 @@ kova gateway diagnostics export
 The command prints the written zip path. To choose a path:
 
 ```bash
-kova gateway diagnostics export --output openclaw-diagnostics.zip
+kova gateway diagnostics export --output kova-diagnostics.zip
 ```
 
 For automation:
@@ -92,13 +92,13 @@ Create a diagnostics zip from the newest persisted bundle:
 kova gateway stability --bundle latest --export
 ```
 
-Persisted bundles live under `~/.openclaw/logs/stability/` when events exist.
+Persisted bundles live under `~/.kova/logs/stability/` when events exist.
 
 ## Useful options
 
 ```bash
 kova gateway diagnostics export \
-  --output openclaw-diagnostics.zip \
+  --output kova-diagnostics.zip \
   --log-lines 5000 \
   --log-bytes 1000000
 ```

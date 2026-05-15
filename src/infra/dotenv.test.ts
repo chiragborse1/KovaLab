@@ -517,9 +517,9 @@ describe("loadCliDotEnv", () => {
     await withIsolatedEnvAndCwd(async () => {
       const base = await fs.mkdtemp(path.join(os.tmpdir(), "kova-dotenv-legacy-"));
       const cwdDir = path.join(base, "cwd");
-      const legacyStateDir = path.join(base, ".openclaw");
+      const legacyStateDir = path.join(base, ".kova");
       process.env.HOME = base;
-      process.env.KOVA_ALLOW_OPENCLAW_COMPAT = "1";
+      process.env.KOVA_COMPAT = "1";
       delete process.env.KOVA_STATE_DIR;
       await fs.mkdir(cwdDir, { recursive: true });
       await writeEnvFile(path.join(legacyStateDir, ".env"), "LEGACY_ONLY=from-legacy\n");
@@ -598,22 +598,22 @@ describe("workspace .env blocklist completeness", () => {
     await withIsolatedEnvAndCwd(async () => {
       await withDotEnvFixture(async ({ cwdDir }) => {
         const runtimeControlKeys = [
-          "OPENCLAW_GIT_DIR",
-          "OPENCLAW_WORKSPACE_DIR",
-          "OPENCLAW_MDNS_HOSTNAME",
-          "OPENCLAW_SESSION_CACHE_TTL_MS",
-          "OPENCLAW_UPDATE_PACKAGE_SPEC",
-          "OPENCLAW_GATEWAY_PORT",
-          "OPENCLAW_GATEWAY_URL",
-          "OPENCLAW_CLAWHUB_URL",
-          "CLAWHUB_URL",
-          "OPENCLAW_CLAWHUB_TOKEN",
-          "CLAWHUB_TOKEN",
-          "CLAWHUB_AUTH_TOKEN",
-          "CLAWHUB_CONFIG_PATH",
-          "OPENCLAW_DISABLE_BUNDLED_PLUGINS",
-          "OPENCLAW_ALLOW_INSECURE_PRIVATE_WS",
-          "OPENCLAW_BROWSER_EXECUTABLE_PATH",
+          "KOVA_GIT_DIR",
+          "KOVA_WORKSPACE_DIR",
+          "KOVA_MDNS_HOSTNAME",
+          "KOVA_SESSION_CACHE_TTL_MS",
+          "KOVA_UPDATE_PACKAGE_SPEC",
+          "KOVA_GATEWAY_PORT",
+          "KOVA_GATEWAY_URL",
+          "KOVA_KOVAHUB_URL",
+          "KOVAHUB_URL",
+          "KOVA_KOVAHUB_TOKEN",
+          "KOVAHUB_TOKEN",
+          "KOVAHUB_AUTH_TOKEN",
+          "KOVAHUB_CONFIG_PATH",
+          "KOVA_DISABLE_BUNDLED_PLUGINS",
+          "KOVA_ALLOW_INSECURE_PRIVATE_WS",
+          "KOVA_BROWSER_EXECUTABLE_PATH",
           "EXAMPLE_API_HOST",
           "IRC_HOST",
           "MATTERMOST_URL",
@@ -621,22 +621,22 @@ describe("workspace .env blocklist completeness", () => {
           "MINIMAX_API_HOST",
           "BROWSER_EXECUTABLE_PATH",
           "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH",
-          "OPENCLAW_SKIP_CHANNELS",
-          "OPENCLAW_SKIP_PROVIDERS",
-          "OPENCLAW_SKIP_CRON",
-          "OPENCLAW_RAW_STREAM",
-          "OPENCLAW_RAW_STREAM_PATH",
-          "OPENCLAW_CACHE_TRACE",
-          "OPENCLAW_CACHE_TRACE_FILE",
-          "OPENCLAW_CACHE_TRACE_MESSAGES",
-          "OPENCLAW_CACHE_TRACE_PROMPT",
-          "OPENCLAW_CACHE_TRACE_SYSTEM",
-          "OPENCLAW_SHOW_SECRETS",
-          "OPENCLAW_PLUGIN_CATALOG_PATHS",
-          "OPENCLAW_MPM_CATALOG_PATHS",
-          "OPENCLAW_NODE_EXEC_HOST",
-          "OPENCLAW_NODE_EXEC_FALLBACK",
-          "OPENCLAW_ALLOW_PROJECT_LOCAL_BIN",
+          "KOVA_SKIP_CHANNELS",
+          "KOVA_SKIP_PROVIDERS",
+          "KOVA_SKIP_CRON",
+          "KOVA_RAW_STREAM",
+          "KOVA_RAW_STREAM_PATH",
+          "KOVA_CACHE_TRACE",
+          "KOVA_CACHE_TRACE_FILE",
+          "KOVA_CACHE_TRACE_MESSAGES",
+          "KOVA_CACHE_TRACE_PROMPT",
+          "KOVA_CACHE_TRACE_SYSTEM",
+          "KOVA_SHOW_SECRETS",
+          "KOVA_PLUGIN_CATALOG_PATHS",
+          "KOVA_MPM_CATALOG_PATHS",
+          "KOVA_NODE_EXEC_HOST",
+          "KOVA_NODE_EXEC_FALLBACK",
+          "KOVA_ALLOW_PROJECT_LOCAL_BIN",
           "SYNOLOGY_CHAT_INCOMING_URL",
           "SYNOLOGY_NAS_HOST",
         ];
@@ -664,7 +664,7 @@ describe("workspace .env blocklist completeness", () => {
       await withDotEnvFixture(async ({ cwdDir }) => {
         await writeEnvFile(
           path.join(cwdDir, ".env"),
-          "MY_APP_KEY=user-value\nAPP_GITHUB_REPO=openclaw/openclaw\nDATABASE_URL_CUSTOM=pg://localhost\n",
+          "MY_APP_KEY=user-value\nAPP_GITHUB_REPO=chiragborse1/KovaLab\nDATABASE_URL_CUSTOM=pg://localhost\n",
         );
 
         delete process.env.MY_APP_KEY;
@@ -674,7 +674,7 @@ describe("workspace .env blocklist completeness", () => {
         loadWorkspaceDotEnvFile(path.join(cwdDir, ".env"), { quiet: true });
 
         expect(process.env.MY_APP_KEY).toBe("user-value");
-        expect(process.env.APP_GITHUB_REPO).toBe("openclaw/openclaw");
+        expect(process.env.APP_GITHUB_REPO).toBe("chiragborse1/KovaLab");
         expect(process.env.DATABASE_URL_CUSTOM).toBe("pg://localhost");
       });
     });

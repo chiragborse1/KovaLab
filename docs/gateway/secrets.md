@@ -50,7 +50,7 @@ SecretRefs are validated only on effectively active surfaces.
       - In local mode without those remote surfaces:
         - `gateway.remote.token` is active when token auth can win and no env/auth token is configured.
         - `gateway.remote.password` is active only when password auth can win and no env/auth password is configured.
-    - `gateway.auth.token` SecretRef is inactive for startup auth resolution when `OPENCLAW_GATEWAY_TOKEN` is set, because env token input wins for that runtime.
+    - `gateway.auth.token` SecretRef is inactive for startup auth resolution when `KOVA_GATEWAY_TOKEN` is set, because env token input wins for that runtime.
   </Accordion>
 </AccordionGroup>
 
@@ -130,12 +130,12 @@ Define providers under `secrets.providers`:
       default: { source: "env" },
       filemain: {
         source: "file",
-        path: "~/.openclaw/secrets.json",
+        path: "~/.kova/secrets.json",
         mode: "json", // or "singleValue"
       },
       vault: {
         source: "exec",
-        command: "/usr/local/bin/openclaw-vault-resolver",
+        command: "/usr/local/bin/kova-vault-resolver",
         args: ["--profile", "prod"],
         passEnv: ["PATH", "VAULT_ADDR"],
         jsonOnly: true,
@@ -241,7 +241,7 @@ Define providers under `secrets.providers`:
             command: "/opt/homebrew/bin/vault",
             allowSymlinkCommand: true, // required for Homebrew symlinked binaries
             trustedDirs: ["/opt/homebrew"],
-            args: ["kv", "get", "-field=OPENAI_API_KEY", "secret/openclaw"],
+            args: ["kv", "get", "-field=OPENAI_API_KEY", "secret/kova"],
             passEnv: ["VAULT_ADDR", "VAULT_TOKEN"],
             jsonOnly: false,
           },
@@ -366,12 +366,12 @@ Runtime-minted or rotating credentials and OAuth refresh material are intentiona
 - Field without a ref: unchanged.
 - Field with a ref: required on active surfaces during activation.
 - If both plaintext and ref are present, ref takes precedence on supported precedence paths.
-- The redaction sentinel `__OPENCLAW_REDACTED__` is reserved for internal config redaction/restore and is rejected as literal submitted config data.
+- The redaction sentinel `__KOVA_REDACTED__` is reserved for internal config redaction/restore and is rejected as literal submitted config data.
 
 Warning and audit signals:
 
 - `SECRETS_REF_OVERRIDES_PLAINTEXT` (runtime warning)
-- `REF_SHADOWED` (audit finding when `auth-profiles.json` credentials take precedence over `openclaw.json` refs)
+- `REF_SHADOWED` (audit finding when `auth-profiles.json` credentials take precedence over `kova.json` refs)
 
 Google Chat compatibility behavior:
 
@@ -466,10 +466,10 @@ Default operator flow:
   <Accordion title="secrets audit">
     Findings include:
 
-    - plaintext values at rest (`openclaw.json`, `auth-profiles.json`, `.env`, and generated `agents/*/agent/models.json`)
+    - plaintext values at rest (`kova.json`, `auth-profiles.json`, `.env`, and generated `agents/*/agent/models.json`)
     - plaintext sensitive provider header residues in generated `models.json` entries
     - unresolved refs
-    - precedence shadowing (`auth-profiles.json` taking priority over `openclaw.json` refs)
+    - precedence shadowing (`auth-profiles.json` taking priority over `kova.json` refs)
     - legacy residues (`auth.json`, OAuth reminders)
 
     Exec note:
@@ -486,7 +486,7 @@ Default operator flow:
     Interactive helper that:
 
     - configures `secrets.providers` first (`env`/`file`/`exec`, add/edit/remove)
-    - lets you select supported secret-bearing fields in `openclaw.json` plus `auth-profiles.json` for one agent scope
+    - lets you select supported secret-bearing fields in `kova.json` plus `auth-profiles.json` for one agent scope
     - can create a new `auth-profiles.json` mapping directly in the target picker
     - captures SecretRef details (`source`, `provider`, `id`)
     - runs preflight resolution
@@ -514,10 +514,10 @@ Default operator flow:
     Apply a saved plan:
 
     ```bash
-    kova secrets apply --from /tmp/openclaw-secrets-plan.json
-    kova secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
-    kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-    kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
+    kova secrets apply --from /tmp/kova-secrets-plan.json
+    kova secrets apply --from /tmp/kova-secrets-plan.json --allow-exec
+    kova secrets apply --from /tmp/kova-secrets-plan.json --dry-run
+    kova secrets apply --from /tmp/kova-secrets-plan.json --dry-run --allow-exec
     ```
 
     Exec note:

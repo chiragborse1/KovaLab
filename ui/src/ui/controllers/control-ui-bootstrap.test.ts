@@ -9,7 +9,7 @@ describe("loadControlUiBootstrapConfig", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        basePath: "/openclaw",
+        basePath: "/kova",
         assistantName: "Ops",
         assistantAvatar: "O",
         assistantAvatarSource: "avatars/ops.png",
@@ -17,7 +17,7 @@ describe("loadControlUiBootstrapConfig", () => {
         assistantAvatarReason: "missing",
         assistantAgentId: "main",
         serverVersion: "2026.3.7",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        localMediaPreviewRoots: ["/tmp/kova"],
         embedSandbox: "scripts",
         allowExternalEmbedUrls: true,
       }),
@@ -25,7 +25,7 @@ describe("loadControlUiBootstrapConfig", () => {
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const state = {
-      basePath: "/openclaw",
+      basePath: "/kova",
       assistantName: "Assistant",
       assistantAvatar: null,
       assistantAvatarSource: null,
@@ -41,7 +41,7 @@ describe("loadControlUiBootstrapConfig", () => {
     await loadControlUiBootstrapConfig(state);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `/openclaw${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
+      `/kova${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
       expect.objectContaining({ method: "GET" }),
     );
     expect(state.assistantName).toBe("Ops");
@@ -51,7 +51,7 @@ describe("loadControlUiBootstrapConfig", () => {
     expect(state.assistantAvatarReason).toBe("missing");
     expect(state.assistantAgentId).toBe("main");
     expect(state.serverVersion).toBe("2026.3.7");
-    expect(state.localMediaPreviewRoots).toEqual(["/tmp/openclaw"]);
+    expect(state.localMediaPreviewRoots).toEqual(["/tmp/kova"]);
     expect(state.embedSandboxMode).toBe("scripts");
     expect(state.allowExternalEmbedUrls).toBe(true);
 
@@ -67,7 +67,7 @@ describe("loadControlUiBootstrapConfig", () => {
         assistantAvatar: "M",
         assistantAgentId: "main",
         serverVersion: "2026.4.27",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        localMediaPreviewRoots: ["/tmp/kova"],
         embedSandbox: "trusted",
         allowExternalEmbedUrls: true,
       }),
@@ -94,7 +94,7 @@ describe("loadControlUiBootstrapConfig", () => {
     expect(state.assistantAvatar).toBe("W");
     expect(state.assistantAgentId).toBe("worker");
     expect(state.serverVersion).toBe("2026.4.27");
-    expect(state.localMediaPreviewRoots).toEqual(["/tmp/openclaw"]);
+    expect(state.localMediaPreviewRoots).toEqual(["/tmp/kova"]);
     expect(state.embedSandboxMode).toBe("trusted");
     expect(state.allowExternalEmbedUrls).toBe(true);
 
@@ -110,7 +110,7 @@ describe("loadControlUiBootstrapConfig", () => {
         assistantAvatar: "M",
         assistantAgentId: "main",
         serverVersion: "2026.4.27",
-        localMediaPreviewRoots: ["/tmp/openclaw"],
+        localMediaPreviewRoots: ["/tmp/kova"],
         embedSandbox: "trusted",
         allowExternalEmbedUrls: true,
       }),
@@ -138,7 +138,7 @@ describe("loadControlUiBootstrapConfig", () => {
     expect(state.assistantAvatar).toBe("D");
     expect(state.assistantAgentId).toBe("fs-daying");
     expect(state.serverVersion).toBe("2026.4.27");
-    expect(state.localMediaPreviewRoots).toEqual(["/tmp/openclaw"]);
+    expect(state.localMediaPreviewRoots).toEqual(["/tmp/kova"]);
     expect(state.embedSandboxMode).toBe("trusted");
     expect(state.allowExternalEmbedUrls).toBe(true);
 
@@ -226,7 +226,7 @@ describe("loadControlUiBootstrapConfig", () => {
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const state = {
-      basePath: "/openclaw/",
+      basePath: "/kova/",
       assistantName: "Assistant",
       assistantAvatar: null,
       assistantAgentId: null,
@@ -239,7 +239,7 @@ describe("loadControlUiBootstrapConfig", () => {
     await loadControlUiBootstrapConfig(state);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `/openclaw${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
+      `/kova${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
       expect.objectContaining({ method: "GET" }),
     );
 
@@ -251,7 +251,7 @@ describe("loadControlUiBootstrapConfig", () => {
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
 
     const state = {
-      basePath: "/openclaw",
+      basePath: "/kova",
       assistantName: "Assistant",
       assistantAvatar: null,
       assistantAgentId: null,
@@ -265,7 +265,7 @@ describe("loadControlUiBootstrapConfig", () => {
     await loadControlUiBootstrapConfig(state);
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `/openclaw${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
+      `/kova${CONTROL_UI_BOOTSTRAP_CONFIG_PATH}`,
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({

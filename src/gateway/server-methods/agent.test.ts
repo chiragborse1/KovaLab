@@ -17,7 +17,7 @@ import { chatHandlers } from "./chat.js";
 import { expectSubagentFollowupReactivation } from "./subagent-followup.test-helpers.js";
 import type { GatewayRequestContext } from "./types.js";
 
-const ORIGINAL_STATE_DIR = process.env.OPENCLAW_STATE_DIR;
+const ORIGINAL_STATE_DIR = process.env.KOVA_STATE_DIR;
 
 const mocks = vi.hoisted(() => ({
   loadSessionEntry: vi.fn(),
@@ -358,9 +358,9 @@ async function invokeAgentIdentityGet(
 describe("gateway agent handler", () => {
   afterEach(() => {
     if (ORIGINAL_STATE_DIR === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = ORIGINAL_STATE_DIR;
+      process.env.KOVA_STATE_DIR = ORIGINAL_STATE_DIR;
     }
     resetDetachedTaskLifecycleRuntimeForTests();
     resetTaskRegistryForTests();
@@ -1007,8 +1007,8 @@ describe("gateway agent handler", () => {
     await invokeAgent(
       {
         message: [
-          "[Mon 2026-04-06 02:42 GMT+1] <<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>",
-          "OpenClaw runtime context (internal):",
+          "[Mon 2026-04-06 02:42 GMT+1] <<<BEGIN_KOVA_INTERNAL_CONTEXT>>>",
+          "Kova runtime context (internal):",
           "This context is runtime-generated, not user-authored. Keep internal details private.",
         ].join("\n"),
         sessionKey: "agent:main:main",
@@ -1121,8 +1121,8 @@ describe("gateway agent handler", () => {
   });
 
   it("terminalizes successful async gateway agent runs in the shared task registry", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-task-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-task-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
 
@@ -1147,8 +1147,8 @@ describe("gateway agent handler", () => {
   });
 
   it("terminalizes failed async gateway agent runs in the shared task registry", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-task-error-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-task-error-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
       mocks.agentCommand.mockRejectedValueOnce(new Error("agent unavailable"));
@@ -1174,8 +1174,8 @@ describe("gateway agent handler", () => {
   });
 
   it("preserves aborted async gateway agent runs as timed out", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-task-aborted-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-task-aborted-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
       mocks.agentCommand.mockResolvedValueOnce({
@@ -1204,8 +1204,8 @@ describe("gateway agent handler", () => {
   });
 
   it("classifies aborted async gateway agent rejections as timed out", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-task-abort-error-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-task-abort-error-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
       const abortError = new Error("This operation was aborted");
@@ -1233,8 +1233,8 @@ describe("gateway agent handler", () => {
   });
 
   it("does not overwrite operator-cancelled async gateway agent tasks after late completion", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-task-cancelled-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-task-cancelled-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
       let resolveRun: (value: {
@@ -1504,8 +1504,8 @@ describe("gateway agent handler", () => {
   });
 
   it("dispatches async gateway agent task creation through the detached task runtime seam", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-agent-seam-" }, async (root) => {
-      process.env.OPENCLAW_STATE_DIR = root;
+    await withTempDir({ prefix: "kova-gateway-agent-seam-" }, async (root) => {
+      process.env.KOVA_STATE_DIR = root;
       resetTaskRegistryForTests();
       primeMainAgentRun();
 
@@ -1972,7 +1972,7 @@ describe("gateway agent handler", () => {
   });
 
   it("prepends runtime-loaded startup memory to bare /new agent runs", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-reset-startup-" }, async (workspaceDir) => {
+    await withTempDir({ prefix: "kova-gateway-reset-startup-" }, async (workspaceDir) => {
       await fs.mkdir(`${workspaceDir}/memory`, { recursive: true });
       await fs.writeFile(`${workspaceDir}/memory/2026-01-28.md`, "today gateway note", "utf-8");
       await fs.writeFile(`${workspaceDir}/memory/2026-01-27.md`, "yesterday gateway note", "utf-8");
@@ -2012,7 +2012,7 @@ describe("gateway agent handler", () => {
   });
 
   it("uses shared bootstrap reset wording for bare /new when workspace bootstrap is pending", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-reset-bootstrap-" }, async (workspaceDir) => {
+    await withTempDir({ prefix: "kova-gateway-reset-bootstrap-" }, async (workspaceDir) => {
       await fs.writeFile(`${workspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
       mocks.loadConfigReturn = {
         agents: {
@@ -2045,65 +2045,59 @@ describe("gateway agent handler", () => {
   });
 
   it("resolves bare /new bootstrap state from the effective spawned workspace", async () => {
-    await withTempDir(
-      { prefix: "openclaw-gateway-reset-default-" },
-      async (defaultWorkspaceDir) => {
-        await withTempDir(
-          { prefix: "openclaw-gateway-reset-spawned-" },
-          async (spawnedWorkspaceDir) => {
-            await fs.writeFile(`${spawnedWorkspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
-            mocks.loadConfigReturn = {
-              agents: {
-                defaults: {
-                  workspace: defaultWorkspaceDir,
-                },
-              },
-            };
-            mockSessionResetSuccess({ reason: "new" });
-            mocks.loadSessionEntry.mockReturnValue({
-              cfg: mocks.loadConfigReturn,
-              storePath: "/tmp/sessions.json",
-              entry: {
-                sessionId: "reset-session-id",
-                updatedAt: Date.now(),
-                spawnedBy: "agent:main:controller",
-                spawnedWorkspaceDir,
-              },
-              canonicalKey: "agent:main:main",
-            });
-            mocks.updateSessionStore.mockResolvedValue(undefined);
-            mocks.agentCommand.mockResolvedValue({
-              payloads: [{ text: "ok" }],
-              meta: { durationMs: 100 },
-            });
+    await withTempDir({ prefix: "kova-gateway-reset-default-" }, async (defaultWorkspaceDir) => {
+      await withTempDir({ prefix: "kova-gateway-reset-spawned-" }, async (spawnedWorkspaceDir) => {
+        await fs.writeFile(`${spawnedWorkspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
+        mocks.loadConfigReturn = {
+          agents: {
+            defaults: {
+              workspace: defaultWorkspaceDir,
+            },
+          },
+        };
+        mockSessionResetSuccess({ reason: "new" });
+        mocks.loadSessionEntry.mockReturnValue({
+          cfg: mocks.loadConfigReturn,
+          storePath: "/tmp/sessions.json",
+          entry: {
+            sessionId: "reset-session-id",
+            updatedAt: Date.now(),
+            spawnedBy: "agent:main:controller",
+            spawnedWorkspaceDir,
+          },
+          canonicalKey: "agent:main:main",
+        });
+        mocks.updateSessionStore.mockResolvedValue(undefined);
+        mocks.agentCommand.mockResolvedValue({
+          payloads: [{ text: "ok" }],
+          meta: { durationMs: 100 },
+        });
 
-            await invokeAgent(
-              {
-                message: "/new",
-                sessionKey: "agent:main:main",
-                idempotencyKey: "test-idem-new-bootstrap-spawned-workspace",
-              },
-              {
-                reqId: "4-bootstrap-spawned",
-                client: { connect: { scopes: ["operator.admin"] } } as AgentHandlerArgs["client"],
-              },
-            );
-
-            await waitForAssertion(() => expect(mocks.agentCommand).toHaveBeenCalled());
-            const call = readLastAgentCommandCall();
-            expect(call?.message).toContain("while bootstrap is still pending for this workspace");
-            expect(call?.message).toContain(
-              "cannot safely complete the full BOOTSTRAP.md workflow here",
-            );
-            expect(call?.message).toContain("switching to a primary interactive run");
+        await invokeAgent(
+          {
+            message: "/new",
+            sessionKey: "agent:main:main",
+            idempotencyKey: "test-idem-new-bootstrap-spawned-workspace",
+          },
+          {
+            reqId: "4-bootstrap-spawned",
+            client: { connect: { scopes: ["operator.admin"] } } as AgentHandlerArgs["client"],
           },
         );
-      },
-    );
+
+        await waitForAssertion(() => expect(mocks.agentCommand).toHaveBeenCalled());
+        const call = readLastAgentCommandCall();
+        expect(call?.message).toContain("while bootstrap is still pending for this workspace");
+        expect(call?.message).toContain(
+          "cannot safely complete the full BOOTSTRAP.md workflow here",
+        );
+        expect(call?.message).toContain("switching to a primary interactive run");
+      });
+    });
   });
 
   it("suppresses full bootstrap wording for bare /new on subagent sessions", async () => {
-    await withTempDir({ prefix: "openclaw-gateway-reset-subagent-" }, async (workspaceDir) => {
+    await withTempDir({ prefix: "kova-gateway-reset-subagent-" }, async (workspaceDir) => {
       await fs.writeFile(`${workspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
       mocks.loadConfigReturn = {
         agents: {
@@ -2178,48 +2172,45 @@ describe("gateway agent handler", () => {
   });
 
   it("uses request model override when resolving bare /new bootstrap file access", async () => {
-    await withTempDir(
-      { prefix: "openclaw-gateway-reset-model-override-" },
-      async (workspaceDir) => {
-        await fs.writeFile(`${workspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
-        mocks.loadConfigReturn = {
-          agents: {
-            defaults: {
-              workspace: workspaceDir,
-            },
+    await withTempDir({ prefix: "kova-gateway-reset-model-override-" }, async (workspaceDir) => {
+      await fs.writeFile(`${workspaceDir}/BOOTSTRAP.md`, "bootstrap ritual", "utf-8");
+      mocks.loadConfigReturn = {
+        agents: {
+          defaults: {
+            workspace: workspaceDir,
           },
-        };
-        mockSessionResetSuccess({ reason: "new" });
-        primeMainAgentRun({ sessionId: "reset-session-id", cfg: mocks.loadConfigReturn });
+        },
+      };
+      mockSessionResetSuccess({ reason: "new" });
+      primeMainAgentRun({ sessionId: "reset-session-id", cfg: mocks.loadConfigReturn });
 
-        await invokeAgent(
-          {
-            message: "/new",
-            sessionKey: "agent:main:main",
-            provider: "openai",
-            model: "gpt-5.4-mini",
-            idempotencyKey: "test-idem-new-bootstrap-model-override",
-          },
-          {
-            reqId: "4-bootstrap-model-override",
-            client: {
-              connect: { scopes: ["operator.admin"] },
-              internal: { allowModelOverride: true },
-            } as AgentHandlerArgs["client"],
-          },
-        );
+      await invokeAgent(
+        {
+          message: "/new",
+          sessionKey: "agent:main:main",
+          provider: "openai",
+          model: "gpt-5.4-mini",
+          idempotencyKey: "test-idem-new-bootstrap-model-override",
+        },
+        {
+          reqId: "4-bootstrap-model-override",
+          client: {
+            connect: { scopes: ["operator.admin"] },
+            internal: { allowModelOverride: true },
+          } as AgentHandlerArgs["client"],
+        },
+      );
 
-        await waitForAssertion(() =>
-          expect(mocks.resolveBareResetBootstrapFileAccess).toHaveBeenCalled(),
-        );
-        expect(mocks.resolveBareResetBootstrapFileAccess).toHaveBeenCalledWith(
-          expect.objectContaining({
-            modelProvider: "openai",
-            modelId: "gpt-5.4-mini",
-          }),
-        );
-      },
-    );
+      await waitForAssertion(() =>
+        expect(mocks.resolveBareResetBootstrapFileAccess).toHaveBeenCalled(),
+      );
+      expect(mocks.resolveBareResetBootstrapFileAccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          modelProvider: "openai",
+          modelId: "gpt-5.4-mini",
+        }),
+      );
+    });
   });
 
   it("rejects malformed agent session keys early in agent handler", async () => {

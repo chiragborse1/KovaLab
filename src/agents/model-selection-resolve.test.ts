@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { resolveAllowedModelRef, resolveConfiguredModelRef } from "./model-selection-resolve.js";
 
 describe("model-selection-resolve OpenRouter compat aliases", () => {
@@ -10,7 +10,7 @@ describe("model-selection-resolve OpenRouter compat aliases", () => {
           model: { primary: "openrouter:auto" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(
       resolveConfiguredModelRef({
@@ -30,7 +30,7 @@ describe("model-selection-resolve OpenRouter compat aliases", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const catalog = [
       {

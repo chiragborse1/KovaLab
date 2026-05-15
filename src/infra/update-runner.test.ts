@@ -13,7 +13,7 @@ import { runGatewayUpdate } from "./update-runner.js";
 type CommandResponse = { stdout?: string; stderr?: string; code?: number | null };
 type CommandResult = { stdout: string; stderr: string; code: number | null };
 const WHATSAPP_LIGHT_RUNTIME_API = bundledDistPluginFile("whatsapp", "light-runtime-api.js");
-const fixtureRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-update-" });
+const fixtureRootTracker = createSuiteTempRootTracker({ prefix: "kova-update-" });
 
 function toCommandResult(response?: CommandResponse): CommandResult {
   return {
@@ -34,7 +34,7 @@ function createRunner(responses: Record<string, CommandResponse>) {
 }
 
 describe("runGatewayUpdate", () => {
-  const preflightPrefixPattern = /(?:openclaw-update-preflight-|ocu-pf-)/;
+  const preflightPrefixPattern = /(?:kova-update-preflight-|ocu-pf-)/;
 
   let tempDir: string;
 
@@ -116,7 +116,7 @@ describe("runGatewayUpdate", () => {
 
   async function setupGitCheckout(options?: { packageManager?: string }) {
     await fs.mkdir(path.join(tempDir, ".git"));
-    const pkg: Record<string, string> = { name: "openclaw", version: "1.0.0" };
+    const pkg: Record<string, string> = { name: "kova", version: "1.0.0" };
     if (options?.packageManager) {
       pkg.packageManager = options.packageManager;
     }
@@ -239,7 +239,7 @@ describe("runGatewayUpdate", () => {
     await fs.mkdir(pkgRoot, { recursive: true });
     await fs.writeFile(
       path.join(pkgRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version }),
+      JSON.stringify({ name: "kova", version }),
       "utf-8",
     );
     await writeBundledRuntimeSidecars(pkgRoot);
@@ -249,7 +249,7 @@ describe("runGatewayUpdate", () => {
   async function writeGlobalPackageVersion(pkgRoot: string, version = "2.0.0") {
     await fs.writeFile(
       path.join(pkgRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version }),
+      JSON.stringify({ name: "kova", version }),
       "utf-8",
     );
     await writeBundledRuntimeSidecars(pkgRoot);
@@ -266,7 +266,7 @@ describe("runGatewayUpdate", () => {
 
   async function createGlobalPackageFixture(rootDir: string) {
     const nodeModules = path.join(rootDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "openclaw");
+    const pkgRoot = path.join(nodeModules, "kova");
     await seedGlobalPackageRoot(pkgRoot);
     return { nodeModules, pkgRoot };
   }
@@ -406,7 +406,7 @@ describe("runGatewayUpdate", () => {
       onCommand: (key, options) => {
         if (key === "pnpm --version") {
           const envPath = options?.env?.PATH ?? options?.env?.Path ?? "";
-          if (envPath.includes("openclaw-update-pnpm-")) {
+          if (envPath.includes("kova-update-pnpm-")) {
             return { stdout: "10.0.0" };
           }
           throw new Error("spawn pnpm ENOENT");
@@ -516,7 +516,7 @@ describe("runGatewayUpdate", () => {
       }
       if (key === "pnpm --version") {
         const envPath = options?.env?.PATH ?? options?.env?.Path ?? "";
-        if (envPath.includes("openclaw-update-pnpm-")) {
+        if (envPath.includes("kova-update-pnpm-")) {
           pnpmEnvPaths.push(envPath);
           return { stdout: "10.0.0", stderr: "", code: 0 };
         }
@@ -585,7 +585,7 @@ describe("runGatewayUpdate", () => {
     expect(calls).toContain("pnpm build");
     expect(calls).toContain("pnpm lint");
     expect(calls).toContain("pnpm ui:build");
-    expect(pnpmEnvPaths.some((value) => value.includes("openclaw-update-pnpm-"))).toBe(true);
+    expect(pnpmEnvPaths.some((value) => value.includes("kova-update-pnpm-"))).toBe(true);
   });
 
   it("retries windows pnpm git installs with --ignore-scripts for dev updates", async () => {
@@ -650,7 +650,7 @@ describe("runGatewayUpdate", () => {
           return { stdout: "", stderr: "", code: 0 };
         }
         if (key === "pnpm install") {
-          if (options?.cwd && /(?:openclaw-update-preflight-|ocu-pf-)/.test(options.cwd)) {
+          if (options?.cwd && /(?:kova-update-preflight-|ocu-pf-)/.test(options.cwd)) {
             preflightInstallAttempts += 1;
             return preflightInstallAttempts === 1
               ? { stdout: "", stderr: "sharp: Please add node-gyp to your dependencies", code: 1 }
@@ -664,7 +664,7 @@ describe("runGatewayUpdate", () => {
           }
         }
         if (key === "pnpm install --ignore-scripts") {
-          if (options?.cwd && /(?:openclaw-update-preflight-|ocu-pf-)/.test(options.cwd)) {
+          if (options?.cwd && /(?:kova-update-preflight-|ocu-pf-)/.test(options.cwd)) {
             preflightIgnoreScriptsAttempts += 1;
           }
           return { stdout: "", stderr: "", code: 0 };
@@ -1304,7 +1304,7 @@ describe("runGatewayUpdate", () => {
   it("skips update when no git root", async () => {
     await fs.writeFile(
       path.join(tempDir, "package.json"),
-      JSON.stringify({ name: "openclaw", packageManager: "pnpm@8.0.0" }),
+      JSON.stringify({ name: "kova", packageManager: "pnpm@8.0.0" }),
       "utf-8",
     );
     await fs.writeFile(path.join(tempDir, "pnpm-lock.yaml"), "", "utf-8");
@@ -1328,7 +1328,7 @@ describe("runGatewayUpdate", () => {
     tag?: string;
   }): Promise<{ calls: string[]; result: Awaited<ReturnType<typeof runGatewayUpdate>> }> {
     const nodeModules = path.join(tempDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "openclaw");
+    const pkgRoot = path.join(nodeModules, "kova");
     await seedGlobalPackageRoot(pkgRoot);
 
     const { calls, runCommand } = createGlobalInstallHarness({
@@ -1338,7 +1338,7 @@ describe("runGatewayUpdate", () => {
       onInstall: async () => {
         await fs.writeFile(
           path.join(pkgRoot, "package.json"),
-          JSON.stringify({ name: "openclaw", version: "2.0.0" }),
+          JSON.stringify({ name: "kova", version: "2.0.0" }),
           "utf-8",
         );
       },
@@ -1450,8 +1450,8 @@ describe("runGatewayUpdate", () => {
 
   it("cleans stale npm rename dirs before global update", async () => {
     const nodeModules = path.join(tempDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "openclaw");
-    const staleDir = path.join(nodeModules, ".openclaw-stale");
+    const pkgRoot = path.join(nodeModules, "kova");
+    const staleDir = path.join(nodeModules, ".kova-stale");
     await fs.mkdir(staleDir, { recursive: true });
     await seedGlobalPackageRoot(pkgRoot);
 
@@ -1474,7 +1474,7 @@ describe("runGatewayUpdate", () => {
 
   it("retries global npm update with --omit=optional when initial install fails", async () => {
     const nodeModules = path.join(tempDir, "node_modules");
-    const pkgRoot = path.join(nodeModules, "openclaw");
+    const pkgRoot = path.join(nodeModules, "kova");
     await seedGlobalPackageRoot(pkgRoot);
 
     let firstAttempt = true;
@@ -1527,7 +1527,7 @@ describe("runGatewayUpdate", () => {
       onInstall: async () => {
         await fs.writeFile(
           path.join(pkgRoot, "package.json"),
-          JSON.stringify({ name: "openclaw", version: "2.0.0" }),
+          JSON.stringify({ name: "kova", version: "2.0.0" }),
           "utf-8",
         );
         await writeBundledRuntimeSidecars(pkgRoot);
@@ -1550,20 +1550,13 @@ describe("runGatewayUpdate", () => {
     const localAppData = path.join(tempDir, "local-app-data");
     const portableGitMingw = path.join(
       localAppData,
-      "OpenClaw",
+      "Kova",
       "deps",
       "portable-git",
       "mingw64",
       "bin",
     );
-    const portableGitUsr = path.join(
-      localAppData,
-      "OpenClaw",
-      "deps",
-      "portable-git",
-      "usr",
-      "bin",
-    );
+    const portableGitUsr = path.join(localAppData, "Kova", "deps", "portable-git", "usr", "bin");
     await fs.mkdir(portableGitMingw, { recursive: true });
     await fs.mkdir(portableGitUsr, { recursive: true });
 
@@ -1595,10 +1588,10 @@ describe("runGatewayUpdate", () => {
     expect(installEnv?.NODE_LLAMA_CPP_SKIP_DOWNLOAD).toBe("1");
   });
 
-  it("uses OPENCLAW_UPDATE_PACKAGE_SPEC for global package updates", async () => {
+  it("uses KOVA_UPDATE_PACKAGE_SPEC for global package updates", async () => {
     const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir);
     const expectedInstallCommand =
-      "npm i -g http://10.211.55.2:8138/openclaw-next.tgz --no-fund --no-audit --loglevel=error";
+      "npm i -g http://10.211.55.2:8138/kova-next.tgz --no-fund --no-audit --loglevel=error";
     const { calls, runCommand } = createGlobalInstallHarness({
       pkgRoot,
       npmRootOutput: nodeModules,
@@ -1607,7 +1600,7 @@ describe("runGatewayUpdate", () => {
     });
 
     await withEnvAsync(
-      { OPENCLAW_UPDATE_PACKAGE_SPEC: "http://10.211.55.2:8138/openclaw-next.tgz" },
+      { KOVA_UPDATE_PACKAGE_SPEC: "http://10.211.55.2:8138/kova-next.tgz" },
       async () => {
         const result = await runWithCommand(runCommand, { cwd: pkgRoot });
         expect(result.status).toBe("ok");
@@ -1642,7 +1635,7 @@ describe("runGatewayUpdate", () => {
     });
   });
 
-  it("rejects git roots that are not a openclaw checkout", async () => {
+  it("rejects git roots that are not a kova checkout", async () => {
     await fs.mkdir(path.join(tempDir, ".git"));
     const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue(tempDir);
     const { runner, calls } = createRunner({
@@ -1654,7 +1647,7 @@ describe("runGatewayUpdate", () => {
     cwdSpy.mockRestore();
 
     expect(result.status).toBe("error");
-    expect(result.reason).toBe("not-openclaw-root");
+    expect(result.reason).toBe("not-kova-root");
     expect(calls.some((call) => call.includes("status --porcelain"))).toBe(false);
   });
 

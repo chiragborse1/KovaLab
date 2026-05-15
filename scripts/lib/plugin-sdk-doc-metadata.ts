@@ -116,5 +116,5 @@ export const pluginSdkDocEntrypoints = Object.keys(
 ) as PluginSdkDocEntrypoint[];
 
 export function resolvePluginSdkDocImportSpecifier(entrypoint: PluginSdkDocEntrypoint): string {
-  return entrypoint === "index" ? "openclaw/plugin-sdk" : `openclaw/plugin-sdk/${entrypoint}`;
+  return entrypoint === "index" ? "getkova/plugin-sdk" : `getkova/plugin-sdk/${entrypoint}`;
 }

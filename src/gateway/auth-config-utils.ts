@@ -1,5 +1,5 @@
 import type { GatewayAuthConfig } from "../config/types.gateway.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { resolveRequiredConfiguredSecretRefInputString } from "./resolve-configured-secret-input-string.js";
 import {
@@ -14,7 +14,7 @@ export type GatewayAuthSecretInputPath = Extract<
 >;
 
 export type GatewayAuthSecretRefResolutionParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   mode?: GatewayAuthConfig["mode"];
   hasPasswordCandidate: boolean;
@@ -22,7 +22,7 @@ export type GatewayAuthSecretRefResolutionParams = {
 };
 
 export function hasConfiguredGatewayAuthSecretInput(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   path: GatewayAuthSecretInputPath,
 ): boolean {
   return hasConfiguredSecretInput(readGatewaySecretInputValue(cfg, path), cfg.secrets?.defaults);
@@ -74,7 +74,7 @@ export function shouldResolveGatewayPasswordSecretRef(
 }
 
 export async function resolveGatewayAuthSecretRefValue(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   path: GatewayAuthSecretInputPath;
   shouldResolve: boolean;
@@ -117,11 +117,11 @@ export async function resolveGatewayPasswordSecretRefValue(
 }
 
 export async function resolveGatewayAuthSecretRef(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   path: GatewayAuthSecretInputPath;
   shouldResolve: boolean;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const value = await resolveGatewayAuthSecretRefValue(params);
   if (!value) {
     return params.cfg;
@@ -138,12 +138,12 @@ export async function resolveGatewayAuthSecretRef(params: {
 }
 
 export async function resolveGatewayPasswordSecretRef(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   mode?: GatewayAuthConfig["mode"];
   hasPasswordCandidate: boolean;
   hasTokenCandidate: boolean;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   return resolveGatewayAuthSecretRef({
     cfg: params.cfg,
     env: params.env,
@@ -154,7 +154,7 @@ export async function resolveGatewayPasswordSecretRef(params: {
 
 export async function materializeGatewayAuthSecretRefs(
   params: GatewayAuthSecretRefResolutionParams,
-): Promise<OpenClawConfig> {
+): Promise<KovaConfig> {
   const cfgWithToken = await resolveGatewayAuthSecretRef({
     cfg: params.cfg,
     env: params.env,

@@ -1,4 +1,4 @@
-import { createWebSearchProviderContractFields } from "openclaw/plugin-sdk/provider-web-search-contract";
+import { createWebSearchProviderContractFields } from "getkova/plugin-sdk/provider-web-search-contract";
 
 export function createDuckDuckGoWebSearchProviderBase() {
   return {

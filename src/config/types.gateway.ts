@@ -17,7 +17,7 @@ export type GatewayTlsConfig = {
 
 export type WideAreaDiscoveryConfig = {
   enabled?: boolean;
-  /** Optional unicast DNS-SD domain (e.g. "openclaw.internal"). */
+  /** Optional unicast DNS-SD domain (e.g. "kova.internal"). */
   domain?: string;
 };
 
@@ -120,7 +120,7 @@ export type GatewayAuthMode = "none" | "token" | "password" | "trusted-proxy";
 
 /**
  * Configuration for trusted reverse proxy authentication.
- * Used when Clawdbot runs behind an identity-aware proxy (Pomerium, Caddy + OAuth, etc.)
+ * Used when Kova runs behind an identity-aware proxy (Pomerium, Caddy + OAuth, etc.)
  * that handles authentication and passes user identity via headers.
  */
 export type GatewayTrustedProxyConfig = {
@@ -219,7 +219,7 @@ export type GatewayReloadConfig = {
    * before forcing a restart. Absent or 0 waits indefinitely and logs periodic
    * still-pending warnings.
    * Lower positive values risk aborting active subagent LLM calls.
-   * @see https://github.com/openclaw/openclaw/issues/65485
+   * @see https://github.com/chiragborse1/KovaLab/issues/65485
    */
   deferralTimeoutMs?: number;
 };

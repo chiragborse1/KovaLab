@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   createTaskRecord,
   resetTaskRegistryDeliveryRuntimeForTests,
@@ -9,14 +9,14 @@ import { withTempDir } from "../../test-helpers/temp-dir.js";
 import { tasksHandlers } from "./tasks.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
-const ORIGINAL_STATE_DIR = process.env.OPENCLAW_STATE_DIR;
+const ORIGINAL_STATE_DIR = process.env.KOVA_STATE_DIR;
 
 type GatewayHandler = NonNullable<GatewayRequestHandlers[string]>;
 type GatewayHandlerOptions = Parameters<GatewayHandler>[0];
 
 async function withTaskState(run: () => Promise<void>): Promise<void> {
   await withTempDir({ prefix: "kova-gateway-tasks-" }, async (root) => {
-    process.env.OPENCLAW_STATE_DIR = root;
+    process.env.KOVA_STATE_DIR = root;
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });
     try {
@@ -41,7 +41,7 @@ async function invokeTaskHandler(method: keyof typeof tasksHandlers, params: unk
     isWebchatConnect: () => false,
     respond: respond as GatewayHandlerOptions["respond"],
     context: {
-      getRuntimeConfig: () => ({}) as OpenClawConfig,
+      getRuntimeConfig: () => ({}) as KovaConfig,
     } as GatewayHandlerOptions["context"],
   });
   return respond;
@@ -50,9 +50,9 @@ async function invokeTaskHandler(method: keyof typeof tasksHandlers, params: unk
 describe("tasks gateway handlers", () => {
   afterEach(() => {
     if (ORIGINAL_STATE_DIR === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = ORIGINAL_STATE_DIR;
+      process.env.KOVA_STATE_DIR = ORIGINAL_STATE_DIR;
     }
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });

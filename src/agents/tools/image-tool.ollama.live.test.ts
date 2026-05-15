@@ -2,17 +2,15 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { createImageTool } from "./image-tool.js";
 
-const LIVE =
-  process.env.OPENCLAW_LIVE_TEST === "1" && process.env.OPENCLAW_LIVE_OLLAMA_IMAGE === "1";
-const OLLAMA_BASE_URL =
-  process.env.OPENCLAW_LIVE_OLLAMA_BASE_URL?.trim() || "http://127.0.0.1:11434";
-const OLLAMA_IMAGE_MODEL = process.env.OPENCLAW_LIVE_OLLAMA_IMAGE_MODEL?.trim() || "qwen2.5vl:7b";
+const LIVE = process.env.KOVA_LIVE_TEST === "1" && process.env.KOVA_LIVE_OLLAMA_IMAGE === "1";
+const OLLAMA_BASE_URL = process.env.KOVA_LIVE_OLLAMA_BASE_URL?.trim() || "http://127.0.0.1:11434";
+const OLLAMA_IMAGE_MODEL = process.env.KOVA_LIVE_OLLAMA_IMAGE_MODEL?.trim() || "qwen2.5vl:7b";
 
 function resolveLiveNumCtx(): number {
-  const parsed = Number.parseInt(process.env.OPENCLAW_LIVE_OLLAMA_IMAGE_NUM_CTX ?? "2048", 10);
+  const parsed = Number.parseInt(process.env.KOVA_LIVE_OLLAMA_IMAGE_NUM_CTX ?? "2048", 10);
   return Number.isFinite(parsed) ? Math.max(512, parsed) : 2048;
 }
 
@@ -24,7 +22,7 @@ const VALID_RED_PNG_B64 =
 async function withLiveImageWorkspace<T>(
   run: (ctx: { agentDir: string; workspaceDir: string; imagePath: string }) => Promise<T>,
 ) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-ollama-image-live-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "kova-ollama-image-live-"));
   try {
     const agentDir = path.join(root, "agent");
     const workspaceDir = path.join(root, "workspace");
@@ -42,7 +40,7 @@ describe.skipIf(!LIVE)("image tool Ollama live", () => {
   it("describes a local image through the explicit image tool", async () => {
     process.env.OLLAMA_API_KEY ||= "ollama-local";
     await withLiveImageWorkspace(async ({ agentDir, workspaceDir, imagePath }) => {
-      const cfg: OpenClawConfig = {
+      const cfg: KovaConfig = {
         agents: {
           defaults: {
             imageModel: { primary: `ollama/${OLLAMA_IMAGE_MODEL}` },

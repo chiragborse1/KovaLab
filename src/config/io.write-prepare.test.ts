@@ -8,7 +8,7 @@ import {
   resolveWriteEnvSnapshotForPath,
   unsetPathForWrite,
 } from "./io.write-prepare.js";
-import type { OpenClawConfig } from "./types.js";
+import type { KovaConfig } from "./types.js";
 
 describe("config io write prepare", () => {
   it("persists caller changes onto resolved config without leaking runtime defaults", () => {
@@ -51,11 +51,11 @@ describe("config io write prepare", () => {
           plugins: {
             entries: {},
             installs: {
-              "openclaw-web-search": {
+              "kova-web-search": {
                 source: "npm",
-                spec: "@ollama/openclaw-web-search",
-                installPath: "/tmp/openclaw-web-search",
-                resolvedName: "@ollama/openclaw-web-search",
+                spec: "@ollama/kova-web-search",
+                installPath: "/tmp/kova-web-search",
+                resolvedName: "@ollama/kova-web-search",
                 resolvedVersion: "0.2.2",
               },
             },
@@ -65,17 +65,17 @@ describe("config io write prepare", () => {
           plugins: {
             entries: {},
             installs: {
-              "openclaw-web-search": {
+              "kova-web-search": {
                 source: "npm",
-                spec: "@ollama/openclaw-web-search@0.2.2",
-                installPath: "/tmp/openclaw-web-search",
-                resolvedName: "@ollama/openclaw-web-search",
+                spec: "@ollama/kova-web-search@0.2.2",
+                installPath: "/tmp/kova-web-search",
+                resolvedName: "@ollama/kova-web-search",
                 resolvedVersion: "0.2.2",
               },
             },
           },
         },
-      }) as OpenClawConfig,
+      }) as KovaConfig,
       [["plugins", "installs"]],
     ) as {
       plugins?: {
@@ -165,10 +165,10 @@ describe("config io write prepare", () => {
   });
 
   it("does not mutate caller config when unsetting existing config objects", () => {
-    const input: OpenClawConfig = {
+    const input: KovaConfig = {
       gateway: { mode: "local" },
       commands: { ownerDisplay: "hash" },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const next = unsetPathForWrite(input, ["commands", "ownerDisplay"]);
 
@@ -180,10 +180,10 @@ describe("config io write prepare", () => {
   });
 
   it("keeps caller arrays immutable when unsetting array entries", () => {
-    const input: OpenClawConfig = {
+    const input: KovaConfig = {
       gateway: { mode: "local" },
       tools: { alsoAllow: ["exec", "fetch", "read"] },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const next = unsetPathForWrite(input, ["tools", "alsoAllow", "1"]);
 
@@ -195,10 +195,10 @@ describe("config io write prepare", () => {
   });
 
   it("treats missing unset paths as no-op without mutating caller config", () => {
-    const input: OpenClawConfig = {
+    const input: KovaConfig = {
       gateway: { mode: "local" },
       commands: { ownerDisplay: "hash" },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const next = unsetPathForWrite(input, ["commands", "missingKey"]);
 
@@ -211,10 +211,10 @@ describe("config io write prepare", () => {
   });
 
   it("ignores blocked prototype-key unset path segments", () => {
-    const input: OpenClawConfig = {
+    const input: KovaConfig = {
       gateway: { mode: "local" },
       commands: { ownerDisplay: "hash" },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const blocked = [
       ["commands", "__proto__"],
@@ -356,8 +356,8 @@ describe("config io write prepare", () => {
     const snapshot = { OPENAI_API_KEY: "sk-secret" };
     expect(
       resolveWriteEnvSnapshotForPath({
-        actualConfigPath: "/tmp/openclaw.json",
-        expectedConfigPath: "/tmp/openclaw.json",
+        actualConfigPath: "/tmp/kova.json",
+        expectedConfigPath: "/tmp/kova.json",
         envSnapshotForRestore: snapshot,
       }),
     ).toBe(snapshot);
@@ -366,7 +366,7 @@ describe("config io write prepare", () => {
   it("drops the read-time env snapshot when writing a different config path", () => {
     expect(
       resolveWriteEnvSnapshotForPath({
-        actualConfigPath: "/tmp/openclaw.json",
+        actualConfigPath: "/tmp/kova.json",
         expectedConfigPath: "/tmp/other.json",
         envSnapshotForRestore: { OPENAI_API_KEY: "sk-secret" },
       }),
@@ -382,9 +382,9 @@ describe("config io write prepare", () => {
           password: "test-password",
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
-    const runtimeConfig: OpenClawConfig = {
+    const runtimeConfig: KovaConfig = {
       gateway: { port: 18789 },
       channels: {
         bluebubbles: {
@@ -393,9 +393,9 @@ describe("config io write prepare", () => {
           enrichGroupParticipantsFromContacts: true,
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
-    const nextConfig: OpenClawConfig = structuredClone(runtimeConfig);
+    const nextConfig: KovaConfig = structuredClone(runtimeConfig);
     nextConfig.gateway = {
       ...nextConfig.gateway,
       auth: { mode: "token" },
@@ -419,7 +419,7 @@ describe("config io write prepare", () => {
   });
 
   it("does not reintroduce legacy nested dm.policy defaults in the persisted candidate", () => {
-    const sourceConfig: OpenClawConfig = {
+    const sourceConfig: KovaConfig = {
       channels: {
         discord: {
           dmPolicy: "pairing",
@@ -431,7 +431,7 @@ describe("config io write prepare", () => {
         },
       },
       gateway: { port: 18789 },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const nextConfig = structuredClone(sourceConfig);
     delete (nextConfig.channels?.discord?.dm as { enabled?: boolean; policy?: string } | undefined)
@@ -485,9 +485,9 @@ describe("config io write prepare", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       ...structuredClone(sourceConfig),
       gateway: {
         auth: { mode: "token" },
@@ -520,26 +520,26 @@ describe("config io write prepare", () => {
   });
 
   it("preserves root $schema during unrelated partial writes", () => {
-    const sourceConfig: OpenClawConfig = {
-      $schema: "https://openclaw.ai/config.json",
+    const sourceConfig: KovaConfig = {
+      $schema: "https://www.neuralstudio.in/config.json",
       gateway: { mode: "local" },
-    } satisfies OpenClawConfig;
+    } satisfies KovaConfig;
 
     const persisted = resolvePersistCandidateForWrite({
       runtimeConfig: sourceConfig,
       sourceConfig,
       nextConfig: {
         gateway: { mode: "local", port: 18789 },
-      } satisfies OpenClawConfig,
-    }) as OpenClawConfig;
+      } satisfies KovaConfig,
+    }) as KovaConfig;
 
-    expect(persisted.$schema).toBe("https://openclaw.ai/config.json");
+    expect(persisted.$schema).toBe("https://www.neuralstudio.in/config.json");
     expect(persisted.gateway).toEqual({ mode: "local", port: 18789 });
   });
 
   it("rejects writes that would flatten a root include", () => {
     const sourceConfig = {
-      $schema: "https://openclaw.ai/config-from-include.json",
+      $schema: "https://www.neuralstudio.in/config-from-include.json",
       gateway: { mode: "local" },
     };
 
@@ -560,7 +560,7 @@ describe("config io write prepare", () => {
 
   it("does not restore root $schema when the next config explicitly clears it", () => {
     const sourceConfig = {
-      $schema: "https://openclaw.ai/config.json",
+      $schema: "https://www.neuralstudio.in/config.json",
       gateway: { mode: "local" },
     };
 
@@ -579,7 +579,7 @@ describe("config io write prepare", () => {
 
   it("does not restore root $schema when the next config sets an invalid value", () => {
     const sourceConfig = {
-      $schema: "https://openclaw.ai/config.json",
+      $schema: "https://www.neuralstudio.in/config.json",
       gateway: { mode: "local" },
     };
 

@@ -1,6 +1,6 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth-api-key";
-import { ensureModelAllowlistEntry } from "openclaw/plugin-sdk/provider-onboard";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
+import { createProviderApiKeyAuthMethod } from "getkova/plugin-sdk/provider-auth-api-key";
+import { ensureModelAllowlistEntry } from "getkova/plugin-sdk/provider-onboard";
 import { DOUBAO_CODING_MODEL_CATALOG, DOUBAO_MODEL_CATALOG } from "./models.js";
 import { buildDoubaoCodingProvider, buildDoubaoProvider } from "./provider-catalog.js";
 import { buildVolcengineSpeechProvider } from "./speech-provider.js";

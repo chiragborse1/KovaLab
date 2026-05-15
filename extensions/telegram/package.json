@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/telegram",
+  "name": "@kovaai/telegram",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Telegram channel plugin",
@@ -12,9 +12,9 @@
     "undici": "8.2.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -35,7 +35,7 @@
       "selectionDocsPrefix": "",
       "selectionDocsOmitLabel": true,
       "selectionExtras": [
-        "https://openclaw.ai"
+        "https://www.neuralstudio.in"
       ],
       "markdownCapable": true,
       "commands": {

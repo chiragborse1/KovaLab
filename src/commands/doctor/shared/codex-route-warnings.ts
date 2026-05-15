@@ -2,7 +2,7 @@ import type {
   AgentModelConfig,
   AgentRuntimePolicyConfig,
 } from "../../../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 
 type CodexPiRouteHit = {
   path: string;
@@ -27,7 +27,7 @@ function isOpenAICodexModelRef(model: string | undefined): model is string {
   return normalizeString(model)?.startsWith("openai-codex/") === true;
 }
 
-function isCodexPluginEnabled(cfg: OpenClawConfig): boolean {
+function isCodexPluginEnabled(cfg: KovaConfig): boolean {
   const plugins = cfg.plugins;
   if (plugins?.enabled === false) {
     return false;
@@ -48,7 +48,7 @@ function resolveRuntime(params: {
   defaultsRuntime?: AgentRuntimePolicyConfig;
 }): string {
   return (
-    normalizeString(params.env?.OPENCLAW_AGENT_RUNTIME) ??
+    normalizeString(params.env?.KOVA_AGENT_RUNTIME) ??
     normalizeString(params.agentRuntime?.id) ??
     normalizeString(params.defaultsRuntime?.id) ??
     "pi"
@@ -56,7 +56,7 @@ function resolveRuntime(params: {
 }
 
 function collectOpenAICodexPiRouteHits(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): CodexPiRouteHit[] {
   const defaults = cfg.agents?.defaults;
@@ -89,7 +89,7 @@ function collectOpenAICodexPiRouteHits(
 }
 
 export function collectCodexRouteWarnings(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
 }): string[] {
   if (!isCodexPluginEnabled(params.cfg)) {
@@ -101,7 +101,7 @@ export function collectCodexRouteWarnings(params: {
   }
   return [
     [
-      "- Codex plugin is enabled, but `openai-codex/*` model refs still use the OpenClaw PI runner unless `agentRuntime.id` is `codex`.",
+      "- Codex plugin is enabled, but `openai-codex/*` model refs still use the Kova PI runner unless `agentRuntime.id` is `codex`.",
       ...hits.map(
         (hit) => `- ${hit.path}: ${hit.model} currently resolves with runtime "${hit.runtime}".`,
       ),

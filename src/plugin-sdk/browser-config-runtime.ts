@@ -24,7 +24,7 @@ export {
   writeConfigFile,
   type BrowserConfig,
   type BrowserProfileConfig,
-  type OpenClawConfig,
+  type KovaConfig,
 } from "../config/config.js";
 export { mutateConfigFile, replaceConfigFile } from "../config/mutate.js";
 export { resolveConfigPath, resolveGatewayPort } from "../config/paths.js";

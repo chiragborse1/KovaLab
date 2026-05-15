@@ -20,7 +20,7 @@ If you are on an older build or a custom install that excludes Mattermost, insta
 <Tabs>
   <Tab title="npm registry">
     ```bash
-    kova plugins install @openclaw/mattermost
+    kova plugins install @kovaai/mattermost
     ```
   </Tab>
   <Tab title="Local checkout">
@@ -426,7 +426,7 @@ The gateway verifies button clicks with HMAC-SHA256. External scripts must gener
 
 <Steps>
   <Step title="Derive the secret from the bot token">
-    `HMAC-SHA256(key="openclaw-mattermost-interactions", data=botToken)`
+    `HMAC-SHA256(key="kova-mattermost-interactions", data=botToken)`
   </Step>
   <Step title="Build the context object">
     Build the context object with all fields **except** `_token`.
@@ -448,7 +448,7 @@ Python example:
 import hmac, hashlib, json
 
 secret = hmac.new(
-    b"openclaw-mattermost-interactions",
+    b"kova-mattermost-interactions",
     bot_token.encode(), hashlib.sha256
 ).hexdigest()
 

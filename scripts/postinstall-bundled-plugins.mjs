@@ -2,7 +2,7 @@
 // Runs after install to keep packaged dist safe and compatible.
 // Bundled extension runtime dependencies are extension-owned. Do not install
 // every bundled extension dependency during core package install unless the
-// legacy eager-install escape hatch is explicitly enabled; `openclaw doctor
+// legacy eager-install escape hatch is explicitly enabled; `kova doctor
 // --fix` owns the repair path for extensions that are actually used.
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -32,9 +32,9 @@ export const BUNDLED_PLUGIN_INSTALL_TARGETS = [];
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_EXTENSIONS_DIR = join(__dirname, "..", "dist", "extensions");
 const DEFAULT_PACKAGE_ROOT = join(__dirname, "..");
-const DISABLE_POSTINSTALL_ENV = "OPENCLAW_DISABLE_BUNDLED_PLUGIN_POSTINSTALL";
-const DISABLE_PLUGIN_REGISTRY_MIGRATION_ENV = "OPENCLAW_DISABLE_PLUGIN_REGISTRY_MIGRATION";
-const EAGER_BUNDLED_PLUGIN_DEPS_ENV = "OPENCLAW_EAGER_BUNDLED_PLUGIN_DEPS";
+const DISABLE_POSTINSTALL_ENV = "KOVA_DISABLE_BUNDLED_PLUGIN_POSTINSTALL";
+const DISABLE_PLUGIN_REGISTRY_MIGRATION_ENV = "KOVA_DISABLE_PLUGIN_REGISTRY_MIGRATION";
+const EAGER_BUNDLED_PLUGIN_DEPS_ENV = "KOVA_EAGER_BUNDLED_PLUGIN_DEPS";
 const DIST_INVENTORY_PATH = "dist/postinstall-inventory.json";
 const BAILEYS_MEDIA_FILE = join(
   "node_modules",
@@ -105,7 +105,7 @@ const BAILEYS_MEDIA_DISPATCHER_HEADER_REPLACEMENT = [
 const BAILEYS_MEDIA_ONCE_IMPORT_RE = /import\s+\{\s*once\s*\}\s+from\s+['"]events['"]/u;
 const BAILEYS_MEDIA_ASYNC_CONTEXT_RE =
   /async\s+function\s+encryptedStream|encryptedStream\s*=\s*async/u;
-const LEGACY_PACKAGE_ALIAS_NAME = "openclaw";
+const LEGACY_PACKAGE_ALIAS_NAME = "kova";
 const CANONICAL_PACKAGE_NAME = "getkova";
 
 function hasEnvFlag(env, key) {
@@ -179,7 +179,7 @@ function assertSafeInstalledDistPath(relativePath, params) {
 }
 
 function isStagedRuntimeDependencyPath(relativePath) {
-  return /^dist\/extensions\/[^/]+\/(?:node_modules|\.openclaw-install-stage(?:-[^/]+)?)(?:\/|$)/u.test(
+  return /^dist\/extensions\/[^/]+\/(?:node_modules|\.kova-install-stage(?:-[^/]+)?)(?:\/|$)/u.test(
     normalizeRelativePath(relativePath),
   );
 }
@@ -484,7 +484,7 @@ export function applyBaileysEncryptedStreamFinishHotfix(params = {}) {
     ((unsafeTargetPath) =>
       join(
         dirname(unsafeTargetPath),
-        `.${basename(unsafeTargetPath)}.openclaw-hotfix-${randomUUID()}`,
+        `.${basename(unsafeTargetPath)}.kova-hotfix-${randomUUID()}`,
       ));
   const writeFile =
     params.writeFileSync ?? ((filePath, value) => writeFileSync(filePath, value, "utf8"));
@@ -756,7 +756,7 @@ export function ensureInstalledLegacyPackageAlias(params = {}) {
   const targetPath = process.platform === "win32" ? packageRoot : "..";
   try {
     createSymlink(targetPath, aliasPath, process.platform === "win32" ? "junction" : "dir");
-    log.log("[postinstall] created legacy openclaw package alias for getkova.");
+    log.log("[postinstall] created legacy kova package alias for getkova.");
   } catch (error) {
     log.warn(`[postinstall] could not create legacy package alias: ${String(error)}`);
   }

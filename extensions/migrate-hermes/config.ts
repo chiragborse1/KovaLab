@@ -4,8 +4,8 @@ import {
   markMigrationItemError,
   markMigrationItemSkipped,
   MIGRATION_REASON_TARGET_EXISTS,
-} from "openclaw/plugin-sdk/migration";
-import type { MigrationItem, MigrationProviderContext } from "openclaw/plugin-sdk/plugin-entry";
+} from "getkova/plugin-sdk/migration";
+import type { MigrationItem, MigrationProviderContext } from "getkova/plugin-sdk/plugin-entry";
 import { childRecord, isRecord, readString, readStringArray } from "./helpers.js";
 
 type HermesProviderConfig = {
@@ -282,7 +282,7 @@ export function buildConfigItems(params: {
         target: "memory",
         path: ["memory"],
         value: { backend: "builtin" },
-        message: "Use OpenClaw built-in file memory for imported Hermes memory files.",
+        message: "Use Kova built-in file memory for imported Hermes memory files.",
         conflict:
           !params.ctx.overwrite &&
           hasPatchConflict(params.ctx.config, ["memory"], { backend: true }),
@@ -294,7 +294,7 @@ export function buildConfigItems(params: {
         target: "plugins.slots",
         path: ["plugins", "slots"],
         value: { memory: "memory-core" },
-        message: "Select the default OpenClaw memory plugin for imported file memory.",
+        message: "Select the default Kova memory plugin for imported file memory.",
         conflict:
           !params.ctx.overwrite &&
           hasPatchConflict(params.ctx.config, ["plugins", "slots"], { memory: true }),
@@ -326,7 +326,7 @@ export function buildConfigItems(params: {
         id: "manual:memory-provider:honcho",
         source: "config.yaml:memory.provider",
         message:
-          "Hermes used Honcho memory. OpenClaw keeps built-in memory selected until the matching plugin is installed and reviewed.",
+          "Hermes used Honcho memory. Kova keeps built-in memory selected until the matching plugin is installed and reviewed.",
         recommendation:
           "Install or review the Honcho memory plugin before selecting it for plugins.slots.memory.",
       }),
@@ -336,8 +336,8 @@ export function buildConfigItems(params: {
       createManualItem({
         id: `manual:memory-provider:${memoryProvider}`,
         source: "config.yaml:memory.provider",
-        message: `Hermes memory provider "${memoryProvider}" does not have a known OpenClaw mapping.`,
-        recommendation: "Install or configure an equivalent OpenClaw memory plugin manually.",
+        message: `Hermes memory provider "${memoryProvider}" does not have a known Kova mapping.`,
+        recommendation: "Install or configure an equivalent Kova memory plugin manually.",
       }),
     );
   }

@@ -78,9 +78,9 @@ describe("parseFeishuMessageEvent – mentionedBot", () => {
 
   it("returns mentionedBot=true when bot mention name differs from configured botName", () => {
     const event = makeEvent("group", [
-      { key: "@_user_1", name: "OpenClaw Bot (Alias)", id: { open_id: BOT_OPEN_ID } },
+      { key: "@_user_1", name: "Kova Bot (Alias)", id: { open_id: BOT_OPEN_ID } },
     ]);
-    const ctx = parseFeishuMessageEvent(event, BOT_OPEN_ID, "OpenClaw Bot");
+    const ctx = parseFeishuMessageEvent(event, BOT_OPEN_ID, "Kova Bot");
     expect(ctx.mentionedBot).toBe(true);
   });
 
@@ -171,7 +171,7 @@ describe("parseFeishuMessageEvent – mentionedBot", () => {
     const BOT_OPEN_ID = "ou_bot_123";
     const event = makePostEvent({
       content: [
-        [{ tag: "at", user_id: BOT_OPEN_ID, user_name: "claw" }],
+        [{ tag: "at", user_id: BOT_OPEN_ID, user_name: "kova" }],
         [{ tag: "text", text: "What does this document say" }],
       ],
     });
@@ -223,7 +223,7 @@ describe("parseFeishuMessageEvent – mentionedBot", () => {
         [
           { tag: "at", user_id: "all", user_name: "all" },
           { tag: "text", text: " " },
-          { tag: "at", user_id: BOT_OPEN_ID, user_name: "claw" },
+          { tag: "at", user_id: BOT_OPEN_ID, user_name: "kova" },
         ],
       ],
     });

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { loadBundledPluginPublicSurfaceModuleSync } from "../plugin-sdk/facade-loader.js";
 import { note } from "../terminal/note.js";
 
@@ -16,7 +16,7 @@ type BrowserDoctorDeps = {
 };
 
 type BrowserDoctorSurface = {
-  noteChromeMcpBrowserReadiness: (cfg: OpenClawConfig, deps?: BrowserDoctorDeps) => Promise<void>;
+  noteChromeMcpBrowserReadiness: (cfg: KovaConfig, deps?: BrowserDoctorDeps) => Promise<void>;
 };
 
 function loadBrowserDoctorSurface(): BrowserDoctorSurface {
@@ -26,7 +26,7 @@ function loadBrowserDoctorSurface(): BrowserDoctorSurface {
   });
 }
 
-export async function noteChromeMcpBrowserReadiness(cfg: OpenClawConfig, deps?: BrowserDoctorDeps) {
+export async function noteChromeMcpBrowserReadiness(cfg: KovaConfig, deps?: BrowserDoctorDeps) {
   try {
     await loadBrowserDoctorSurface().noteChromeMcpBrowserReadiness(cfg, deps);
   } catch (error) {

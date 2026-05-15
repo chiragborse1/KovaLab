@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { resolveCompatibilityHostVersion } from "../version.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-state.js";
 import { normalizeInstallRecordMap } from "./installed-plugin-index-install-records.js";
@@ -90,7 +90,7 @@ export function listInstalledPluginRecords(
 
 export function listEnabledInstalledPluginRecords(
   index: InstalledPluginIndex,
-  config?: OpenClawConfig,
+  config?: KovaConfig,
 ): readonly InstalledPluginIndexRecord[] {
   if (!config) {
     return index.plugins.filter((plugin) => plugin.enabled);
@@ -118,7 +118,7 @@ export function getInstalledPluginRecord(
 export function isInstalledPluginEnabled(
   index: InstalledPluginIndex,
   pluginId: string,
-  config?: OpenClawConfig,
+  config?: KovaConfig,
 ): boolean {
   const record = getInstalledPluginRecord(index, pluginId);
   if (!record) {

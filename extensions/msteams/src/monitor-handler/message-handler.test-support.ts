@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { OpenClawConfig, RuntimeEnv } from "../../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../../runtime-api.js";
 import type { MSTeamsMessageHandlerDeps } from "../monitor-handler.js";
 import { installMSTeamsTestRuntime } from "../monitor-handler.test-helpers.js";
 
@@ -13,10 +13,7 @@ type MessageHandlerDepsOptions = {
   resolveAgentRoute?: (params: { peer: { kind: string; id: string } }) => unknown;
 };
 
-export function createMessageHandlerDeps(
-  cfg: OpenClawConfig,
-  options: MessageHandlerDepsOptions = {},
-) {
+export function createMessageHandlerDeps(cfg: KovaConfig, options: MessageHandlerDepsOptions = {}) {
   const enqueueSystemEvent = options.enqueueSystemEvent ?? vi.fn();
   const readAllowFromStore = options.readAllowFromStore ?? vi.fn(async () => []);
   const upsertPairingRequest = options.upsertPairingRequest ?? vi.fn(async () => null);

@@ -34,9 +34,7 @@ describe("buildStatusCommandReportData", () => {
       Item: "OS",
       Value: "macOS · node " + process.versions.node,
     });
-    expect(result.taskMaintenanceHint).toBe(
-      "Task maintenance: cmd:openclaw tasks maintenance --apply",
-    );
+    expect(result.taskMaintenanceHint).toBe("Task maintenance: cmd:kova tasks maintenance --apply");
     expect(result.pluginCompatibilityLines).toEqual(["  warn(WARN) legacy"]);
     expect(result.pairingRecoveryLines[0]).toBe("warn(Gateway pairing approval required.)");
     expect(result.channelsRows[0]?.Channel).toBe("QuietChat");
@@ -46,6 +44,6 @@ describe("buildStatusCommandReportData", () => {
       Status: "ok(reachable)",
       Detail: "42ms",
     });
-    expect(result.footerLines.at(-1)).toBe("  Need to test channels? cmd:openclaw status --deep");
+    expect(result.footerLines.at(-1)).toBe("  Need to test channels? cmd:kova status --deep");
   });
 });

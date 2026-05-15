@@ -23,8 +23,8 @@ Recommended operator loop:
 ```bash
 kova secrets audit --check
 kova secrets configure
-kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-kova secrets apply --from /tmp/openclaw-secrets-plan.json
+kova secrets apply --from /tmp/kova-secrets-plan.json --dry-run
+kova secrets apply --from /tmp/kova-secrets-plan.json
 kova secrets audit --check
 kova secrets reload
 ```
@@ -71,7 +71,7 @@ Scan Kova state for:
 
 - plaintext secret storage
 - unresolved refs
-- precedence drift (`auth-profiles.json` credentials shadowing `openclaw.json` refs)
+- precedence drift (`auth-profiles.json` credentials shadowing `kova.json` refs)
 - generated `agents/*/agent/models.json` residues (provider `apiKey` values and sensitive provider headers)
 - legacy residues (legacy auth store entries, OAuth reminders)
 
@@ -108,7 +108,7 @@ Build provider and SecretRef changes interactively, run preflight, and optionall
 
 ```bash
 kova secrets configure
-kova secrets configure --plan-out /tmp/openclaw-secrets-plan.json
+kova secrets configure --plan-out /tmp/kova-secrets-plan.json
 kova secrets configure --apply --yes
 kova secrets configure --providers-only
 kova secrets configure --skip-provider-setup
@@ -133,7 +133,7 @@ Notes:
 
 - Requires an interactive TTY.
 - You cannot combine `--providers-only` with `--skip-provider-setup`.
-- `configure` targets secret-bearing fields in `openclaw.json` plus `auth-profiles.json` for the selected agent scope.
+- `configure` targets secret-bearing fields in `kova.json` plus `auth-profiles.json` for the selected agent scope.
 - `configure` supports creating new `auth-profiles.json` mappings directly in the picker flow.
 - Canonical supported surface: [SecretRef Credential Surface](/reference/secretref-credential-surface).
 - It performs preflight resolution before apply.
@@ -155,11 +155,11 @@ Exec provider safety note:
 Apply or preflight a plan generated previously:
 
 ```bash
-kova secrets apply --from /tmp/openclaw-secrets-plan.json
-kova secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
-kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
-kova secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
-kova secrets apply --from /tmp/openclaw-secrets-plan.json --json
+kova secrets apply --from /tmp/kova-secrets-plan.json
+kova secrets apply --from /tmp/kova-secrets-plan.json --allow-exec
+kova secrets apply --from /tmp/kova-secrets-plan.json --dry-run
+kova secrets apply --from /tmp/kova-secrets-plan.json --dry-run --allow-exec
+kova secrets apply --from /tmp/kova-secrets-plan.json --json
 ```
 
 Exec behavior:
@@ -175,10 +175,10 @@ Plan contract details (allowed target paths, validation rules, and failure seman
 
 What `apply` may update:
 
-- `openclaw.json` (SecretRef targets + provider upserts/deletes)
+- `kova.json` (SecretRef targets + provider upserts/deletes)
 - `auth-profiles.json` (provider-target scrubbing)
 - legacy `auth.json` residues
-- `~/.openclaw/.env` known secret keys whose values were migrated
+- `~/.kova/.env` known secret keys whose values were migrated
 
 ## Why no rollback backups
 

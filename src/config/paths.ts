@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { resolveHomeRelativePath, resolveRequiredHomeDir } from "../infra/home-dir.js";
-import type { OpenClawConfig } from "./types.js";
+import type { KovaConfig } from "./types.js";
 
 /**
  * Nix mode detection: When KOVA_NIX_MODE=1, the gateway is running under Nix.
@@ -12,28 +12,24 @@ import type { OpenClawConfig } from "./types.js";
  * - Config is managed externally (read-only from Nix perspective)
  */
 export function resolveIsNixMode(env: NodeJS.ProcessEnv = process.env): boolean {
-  return (
-    env.KOVA_NIX_MODE === "1" || (resolveOpenClawCompatMode(env) && env.OPENCLAW_NIX_MODE === "1")
-  );
+  return env.KOVA_NIX_MODE === "1";
 }
 
 export const isNixMode = resolveIsNixMode();
 
 // Support legacy state dirs/config filenames from prior brands.
-const LEGACY_STATE_DIRNAMES = [".openclaw", ".clawdbot"] as const;
+const LEGACY_STATE_DIRNAMES: readonly string[] = [];
 const NEW_STATE_DIRNAME = ".kova";
 const CONFIG_FILENAME = "kova.json";
-const LEGACY_CONFIG_FILENAMES = ["openclaw.json", "clawdbot.json"] as const;
+const LEGACY_CONFIG_FILENAMES: readonly string[] = [];
 
 function normalizeCompatFlag(value: string | undefined): string | undefined {
   const trimmed = value?.trim().toLowerCase();
   return trimmed || undefined;
 }
 
-export function resolveOpenClawCompatMode(env: NodeJS.ProcessEnv = process.env): boolean {
-  const value =
-    normalizeCompatFlag(env.KOVA_ALLOW_OPENCLAW_COMPAT) ??
-    normalizeCompatFlag(env.KOVA_OPENCLAW_COMPAT);
+export function resolveKovaCompatMode(env: NodeJS.ProcessEnv = process.env): boolean {
+  const value = normalizeCompatFlag(env.KOVA_COMPAT);
   return value === "1" || value === "true" || value === "yes" || value === "on";
 }
 
@@ -42,7 +38,7 @@ function readPrimaryEnv(env: NodeJS.ProcessEnv, key: string): string | undefined
   if (modern) {
     return modern;
   }
-  return resolveOpenClawCompatMode(env) ? env[`OPENCLAW_${key}`]?.trim() : undefined;
+  return undefined;
 }
 
 function resolveDefaultHomeDir(): string {
@@ -89,7 +85,7 @@ export function resolveStateDir(
     return resolveUserPath(override, env, effectiveHomedir);
   }
   const newDir = newStateDir(effectiveHomedir);
-  if (resolveOpenClawCompatMode(env)) {
+  if (resolveKovaCompatMode(env)) {
     const hasNew = fs.existsSync(newDir);
     if (hasNew) {
       return newDir;
@@ -171,7 +167,7 @@ export function resolveConfigPath(
   const stateOverride = readPrimaryEnv(env, "STATE_DIR");
   const candidates = [
     path.join(stateDir, CONFIG_FILENAME),
-    ...(resolveOpenClawCompatMode(env)
+    ...(resolveKovaCompatMode(env)
       ? LEGACY_CONFIG_FILENAMES.map((name) => path.join(stateDir, name))
       : []),
   ];
@@ -219,12 +215,12 @@ export function resolveDefaultConfigCandidates(
     candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(resolved, name)));
   }
 
-  const defaultDirs = resolveOpenClawCompatMode(env)
+  const defaultDirs = resolveKovaCompatMode(env)
     ? [newStateDir(effectiveHomedir), ...legacyStateDirs(effectiveHomedir)]
     : [newStateDir(effectiveHomedir)];
   for (const dir of defaultDirs) {
     candidates.push(path.join(dir, CONFIG_FILENAME));
-    if (resolveOpenClawCompatMode(env)) {
+    if (resolveKovaCompatMode(env)) {
       candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(dir, name)));
     }
   }
@@ -302,13 +298,10 @@ function parseGatewayPortEnvValue(raw: string | undefined): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
-export function resolveGatewayPort(
-  cfg?: OpenClawConfig,
-  env: NodeJS.ProcessEnv = process.env,
-): number {
+export function resolveGatewayPort(cfg?: KovaConfig, env: NodeJS.ProcessEnv = process.env): number {
   const envRaw =
     env.KOVA_GATEWAY_PORT?.trim() ||
-    (resolveOpenClawCompatMode(env) ? env.OPENCLAW_GATEWAY_PORT?.trim() : undefined);
+    (resolveKovaCompatMode(env) ? env.KOVA_GATEWAY_PORT?.trim() : undefined);
   const envPort = parseGatewayPortEnvValue(envRaw);
   if (envPort !== null) {
     return envPort;

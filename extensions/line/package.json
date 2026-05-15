@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/line",
+  "name": "@kovaai/line",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova LINE channel plugin",
@@ -8,18 +8,18 @@
     "@line/bot-sdk": "^11.0.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -37,7 +37,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/line",
+      "npmSpec": "@kovaai/line",
       "defaultChoice": "npm",
       "minHostVersion": ">=2.0.0-beta.4"
     }

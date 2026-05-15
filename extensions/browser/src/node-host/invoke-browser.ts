@@ -1,7 +1,7 @@
 import fsPromises from "node:fs/promises";
-import { getRuntimeConfig } from "openclaw/plugin-sdk/browser-config-runtime";
-import { withTimeout } from "openclaw/plugin-sdk/browser-node-runtime";
-import { detectMime } from "openclaw/plugin-sdk/browser-setup-tools";
+import { getRuntimeConfig } from "getkova/plugin-sdk/browser-config-runtime";
+import { withTimeout } from "getkova/plugin-sdk/browser-node-runtime";
+import { detectMime } from "getkova/plugin-sdk/browser-setup-tools";
 import { redactCdpUrl } from "../browser/cdp.helpers.js";
 import { resolveBrowserConfig } from "../browser/config.js";
 import {

@@ -2,7 +2,7 @@
  * Deprecated bundled-channel compatibility surface.
  *
  * New plugins should define plugin-local schemas and import primitives from
- * openclaw/plugin-sdk/channel-config-schema instead of depending on these
+ * getkova/plugin-sdk/channel-config-schema instead of depending on these
  * bundled channel schemas.
  */
 export {

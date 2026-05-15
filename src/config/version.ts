@@ -3,7 +3,7 @@ import {
   normalizeLegacyDotBetaVersion,
 } from "../infra/semver-compare.js";
 
-export type OpenClawVersion = {
+export type KovaVersion = {
   major: number;
   minor: number;
   patch: number;
@@ -15,7 +15,7 @@ const VERSION_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 const LEGACY_CALVER_MAJOR_THRESHOLD = 2000;
 const MODERN_SEMVER_MAJOR_THRESHOLD = 100;
 
-export function parseOpenClawVersion(raw: string | null | undefined): OpenClawVersion | null {
+export function parseKovaVersion(raw: string | null | undefined): KovaVersion | null {
   if (!raw) {
     return null;
   }
@@ -35,20 +35,20 @@ export function parseOpenClawVersion(raw: string | null | undefined): OpenClawVe
   };
 }
 
-export function normalizeOpenClawVersionBase(raw: string | null | undefined): string | null {
-  const parsed = parseOpenClawVersion(raw);
+export function normalizeKovaVersionBase(raw: string | null | undefined): string | null {
+  const parsed = parseKovaVersion(raw);
   if (!parsed) {
     return null;
   }
   return `${parsed.major}.${parsed.minor}.${parsed.patch}`;
 }
 
-export function isSameOpenClawStableFamily(
+export function isSameKovaStableFamily(
   a: string | null | undefined,
   b: string | null | undefined,
 ): boolean {
-  const parsedA = parseOpenClawVersion(a);
-  const parsedB = parseOpenClawVersion(b);
+  const parsedA = parseKovaVersion(a);
+  const parsedB = parseKovaVersion(b);
   if (!parsedA || !parsedB) {
     return false;
   }
@@ -62,12 +62,12 @@ export function isSameOpenClawStableFamily(
   );
 }
 
-export function compareOpenClawVersions(
+export function compareKovaVersions(
   a: string | null | undefined,
   b: string | null | undefined,
 ): number | null {
-  const parsedA = parseOpenClawVersion(a);
-  const parsedB = parseOpenClawVersion(b);
+  const parsedA = parseKovaVersion(a);
+  const parsedB = parseKovaVersion(b);
   if (!parsedA || !parsedB) {
     return null;
   }
@@ -116,8 +116,8 @@ export function shouldWarnOnTouchedVersion(
   current: string | null | undefined,
   touched: string | null | undefined,
 ): boolean {
-  const parsedCurrent = parseOpenClawVersion(current);
-  const parsedTouched = parseOpenClawVersion(touched);
+  const parsedCurrent = parseKovaVersion(current);
+  const parsedTouched = parseKovaVersion(touched);
   if (
     parsedCurrent &&
     parsedTouched &&
@@ -128,14 +128,14 @@ export function shouldWarnOnTouchedVersion(
   ) {
     return false;
   }
-  if (isSameOpenClawStableFamily(current, touched)) {
+  if (isSameKovaStableFamily(current, touched)) {
     return false;
   }
-  const cmp = compareOpenClawVersions(current, touched);
+  const cmp = compareKovaVersions(current, touched);
   return cmp !== null && cmp < 0;
 }
 
-function releaseRank(version: OpenClawVersion): number {
+function releaseRank(version: KovaVersion): number {
   if (version.prerelease?.length) {
     return 0;
   }
@@ -145,7 +145,7 @@ function releaseRank(version: OpenClawVersion): number {
   return 1;
 }
 
-function classifyVersionScheme(version: OpenClawVersion): "legacy-calver" | "modern-semver" {
+function classifyVersionScheme(version: KovaVersion): "legacy-calver" | "modern-semver" {
   if (version.major >= LEGACY_CALVER_MAJOR_THRESHOLD) {
     return "legacy-calver";
   }

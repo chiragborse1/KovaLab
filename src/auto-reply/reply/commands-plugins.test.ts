@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import { handlePluginsCommand } from "./commands-plugins.js";
 import { buildPluginsCommandParams } from "./commands.test-harness.js";
 
@@ -18,9 +18,9 @@ vi.mock("../../cli/npm-resolution.js", () => ({
 }));
 
 vi.mock("../../cli/plugins-command-helpers.js", () => ({
-  buildPreferredClawHubSpec: vi.fn(() => null),
+  buildPreferredKovaHubSpec: vi.fn(() => null),
   createPluginInstallLogger: vi.fn(() => ({})),
-  decidePreferredClawHubFallback: vi.fn(() => "fallback_to_npm"),
+  decidePreferredKovaHubFallback: vi.fn(() => "fallback_to_npm"),
   resolveFileNpmSpecToLocalPath: vi.fn(() => null),
 }));
 
@@ -42,12 +42,12 @@ vi.mock("../../infra/archive.js", () => ({
   resolveArchiveKind: vi.fn(() => null),
 }));
 
-vi.mock("../../infra/clawhub.js", () => ({
-  parseClawHubPluginSpec: vi.fn(() => null),
+vi.mock("../../infra/kovahub.js", () => ({
+  parseKovaHubPluginSpec: vi.fn(() => null),
 }));
 
-vi.mock("../../plugins/clawhub.js", () => ({
-  installPluginFromClawHub: vi.fn(),
+vi.mock("../../plugins/kovahub.js", () => ({
+  installPluginFromKovaHub: vi.fn(),
 }));
 
 vi.mock("../../plugins/install.js", () => ({
@@ -74,7 +74,7 @@ vi.mock("../../plugins/status.js", () => ({
 }));
 
 vi.mock("../../plugins/toggle-config.js", () => ({
-  setPluginEnabledInConfig: vi.fn((config: OpenClawConfig, id: string, enabled: boolean) => ({
+  setPluginEnabledInConfig: vi.fn((config: KovaConfig, id: string, enabled: boolean) => ({
     ...config,
     plugins: {
       ...config.plugins,
@@ -94,7 +94,7 @@ vi.mock("../../utils.js", async () => {
   };
 });
 
-function buildCfg(): OpenClawConfig {
+function buildCfg(): KovaConfig {
   return {
     plugins: { enabled: true },
     commands: { text: true, plugins: true },
@@ -105,7 +105,7 @@ const WRITE_GATEWAY_SCOPES = ["operator.admin", "operator.write", "operator.pair
 
 function buildPluginsParams(
   commandBodyNormalized: string,
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   options?: { gatewayClientScopes?: string[] },
 ) {
   return buildPluginsCommandParams({
@@ -120,7 +120,7 @@ describe("handlePluginsCommand", () => {
     vi.clearAllMocks();
     readConfigFileSnapshotMock.mockResolvedValue({
       valid: true,
-      path: "/tmp/openclaw.json",
+      path: "/tmp/kova.json",
       sourceConfig: buildCfg(),
       resolved: buildCfg(),
       hash: "config-1",
@@ -137,7 +137,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "superpowers",
           status: "disabled",
-          format: "openclaw",
+          format: "kova",
           bundleFormat: "claude",
         },
       ],
@@ -149,7 +149,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "superpowers",
           status: "disabled",
-          format: "openclaw",
+          format: "kova",
           bundleFormat: "claude",
         },
       ],
@@ -287,7 +287,7 @@ describe("handlePluginsCommand", () => {
           id: "superpowers",
           name: "Super Powers",
           status: "disabled",
-          format: "openclaw",
+          format: "kova",
           bundleFormat: "claude",
         },
       ],

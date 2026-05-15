@@ -12,7 +12,7 @@ import {
 import { withTempDir } from "../test-helpers/temp-dir.js";
 import { tasksAuditJsonCommand, tasksListJsonCommand } from "./tasks-json.js";
 
-const ORIGINAL_STATE_DIR = process.env.OPENCLAW_STATE_DIR;
+const ORIGINAL_STATE_DIR = process.env.KOVA_STATE_DIR;
 
 function createRuntime(): RuntimeEnv {
   return {
@@ -27,8 +27,8 @@ function readJsonLog(runtime: RuntimeEnv): unknown {
 }
 
 async function withTaskJsonStateDir(run: () => Promise<void>): Promise<void> {
-  await withTempDir({ prefix: "openclaw-tasks-json-command-" }, async (root) => {
-    process.env.OPENCLAW_STATE_DIR = root;
+  await withTempDir({ prefix: "kova-tasks-json-command-" }, async (root) => {
+    process.env.KOVA_STATE_DIR = root;
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });
     resetTaskFlowRegistryForTests({ persist: false });
@@ -50,9 +50,9 @@ describe("tasks JSON commands", () => {
   afterEach(() => {
     vi.useRealTimers();
     if (ORIGINAL_STATE_DIR === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = ORIGINAL_STATE_DIR;
+      process.env.KOVA_STATE_DIR = ORIGINAL_STATE_DIR;
     }
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });

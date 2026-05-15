@@ -15,7 +15,7 @@ describe("formatBonjourInstanceName", () => {
     expect(formatBonjourInstanceName("")).toBe("Kova");
     expect(formatBonjourInstanceName("Mac Studio")).toBe("Mac Studio (Kova)");
     expect(formatBonjourInstanceName("Lab Mac (Kova)")).toBe("Lab Mac (Kova)");
-    expect(formatBonjourInstanceName("Lab Mac (OpenClaw)")).toBe("Lab Mac (OpenClaw)");
+    expect(formatBonjourInstanceName("Lab Mac (Kova)")).toBe("Lab Mac (Kova)");
   });
 });
 
@@ -28,11 +28,11 @@ describe("resolveTailnetDnsHint", () => {
 
   beforeEach(() => {
     prevEnv.kovaTailnetDns = process.env.KOVA_TAILNET_DNS;
-    prevEnv.legacyTailnetDns = process.env.OPENCLAW_TAILNET_DNS;
-    prevEnv.compat = process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
+    prevEnv.legacyTailnetDns = process.env.KOVA_TAILNET_DNS;
+    prevEnv.compat = process.env.KOVA_COMPAT;
     delete process.env.KOVA_TAILNET_DNS;
-    delete process.env.OPENCLAW_TAILNET_DNS;
-    delete process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
+    delete process.env.KOVA_TAILNET_DNS;
+    delete process.env.KOVA_COMPAT;
     getTailnetHostname.mockClear();
   });
 
@@ -43,14 +43,14 @@ describe("resolveTailnetDnsHint", () => {
       process.env.KOVA_TAILNET_DNS = prevEnv.kovaTailnetDns;
     }
     if (prevEnv.legacyTailnetDns === undefined) {
-      delete process.env.OPENCLAW_TAILNET_DNS;
+      delete process.env.KOVA_TAILNET_DNS;
     } else {
-      process.env.OPENCLAW_TAILNET_DNS = prevEnv.legacyTailnetDns;
+      process.env.KOVA_TAILNET_DNS = prevEnv.legacyTailnetDns;
     }
     if (prevEnv.compat === undefined) {
-      delete process.env.KOVA_ALLOW_OPENCLAW_COMPAT;
+      delete process.env.KOVA_COMPAT;
     } else {
-      process.env.KOVA_ALLOW_OPENCLAW_COMPAT = prevEnv.compat;
+      process.env.KOVA_COMPAT = prevEnv.compat;
     }
   });
 
@@ -61,11 +61,11 @@ describe("resolveTailnetDnsHint", () => {
     expect(getTailnetHostname).not.toHaveBeenCalled();
   });
 
-  test("ignores legacy env hint unless OpenClaw compatibility is explicit", async () => {
-    process.env.OPENCLAW_TAILNET_DNS = "legacy.tailnet.ts.net.";
+  test("ignores legacy env hint unless Kova compatibility is explicit", async () => {
+    process.env.KOVA_TAILNET_DNS = "legacy.tailnet.ts.net.";
     await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBeUndefined();
 
-    process.env.KOVA_ALLOW_OPENCLAW_COMPAT = "1";
+    process.env.KOVA_COMPAT = "1";
     await expect(resolveTailnetDnsHint({ enabled: false })).resolves.toBe("legacy.tailnet.ts.net");
   });
 
@@ -86,7 +86,7 @@ describe("resolveTailnetDnsHint", () => {
 describe("resolveBonjourCliPath", () => {
   const statSync = (candidate: string) =>
     ({
-      isFile: () => candidate === "/bin/kova" || candidate === "/bin/openclaw",
+      isFile: () => candidate === "/bin/kova" || candidate === "/bin/kova",
     }) as import("node:fs").Stats;
 
   test("prefers Kova CLI path overrides", () => {
@@ -96,7 +96,7 @@ describe("resolveBonjourCliPath", () => {
   });
 
   test("ignores legacy CLI path overrides unless compatibility is explicit", () => {
-    const env = { OPENCLAW_CLI_PATH: "/bin/openclaw" } as NodeJS.ProcessEnv;
+    const env = { KOVA_CLI_PATH: "/bin/kova" } as NodeJS.ProcessEnv;
     expect(
       resolveBonjourCliPath({
         env,
@@ -109,12 +109,12 @@ describe("resolveBonjourCliPath", () => {
 
     expect(
       resolveBonjourCliPath({
-        env: { ...env, KOVA_ALLOW_OPENCLAW_COMPAT: "1" } as NodeJS.ProcessEnv,
+        env: { ...env, KOVA_COMPAT: "1" } as NodeJS.ProcessEnv,
         statSync,
         execPath: "/missing/node",
         argv: [],
         cwd: "/missing",
       }),
-    ).toBe("/bin/openclaw");
+    ).toBe("/bin/kova");
   });
 });

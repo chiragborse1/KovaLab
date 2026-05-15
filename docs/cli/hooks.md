@@ -90,10 +90,10 @@ kova hooks info session-memory
 Save session context to memory when /new or /reset command is issued
 
 Details:
-  Source: openclaw-bundled
-  Path: /path/to/openclaw/hooks/bundled/session-memory/HOOK.md
-  Handler: /path/to/openclaw/hooks/bundled/session-memory/handler.ts
-  Homepage: https://docs.openclaw.ai/automation/hooks#session-memory
+  Source: kova-bundled
+  Path: /path/to/kova/hooks/bundled/session-memory/HOOK.md
+  Handler: /path/to/kova/hooks/bundled/session-memory/handler.ts
+  Homepage: https://docs.neuralstudio.in/automation/hooks#session-memory
   Events: command:new, command:reset
 
 Requirements:
@@ -128,7 +128,7 @@ Not ready: 0
 kova hooks enable <name>
 ```
 
-Enable a specific hook by adding it to your config (`~/.openclaw/openclaw.json` by default).
+Enable a specific hook by adding it to your config (`~/.chiragborse1/KovaLab.json` by default).
 
 **Note:** Workspace hooks are disabled by default until enabled here or in config. Hooks managed by plugins show `plugin:<id>` in `kova hooks list` and can’t be enabled/disabled here. Enable/disable the plugin instead.
 
@@ -197,7 +197,7 @@ kova hooks disable command-logger
 ## Install hook packs
 
 ```bash
-kova plugins install <package>        # ClawHub first, then npm
+kova plugins install <package>        # KovaHub first, then npm
 kova plugins install npm:<package>    # npm only
 kova plugins install <package> --pin  # pin version
 kova plugins install <path>           # local path
@@ -219,7 +219,7 @@ prerelease tag such as `@beta`/`@rc` or an exact prerelease version.
 
 **What it does:**
 
-- Copies the hook pack into `~/.openclaw/hooks/<id>`
+- Copies the hook pack into `~/.kova/hooks/<id>`
 - Enables the installed hooks in `hooks.internal.entries.*`
 - Records the install under `hooks.internal.installs`
 
@@ -240,7 +240,7 @@ kova plugins install ./my-hook-pack
 kova plugins install ./my-hook-pack.zip
 
 # NPM package
-kova plugins install @openclaw/my-hook-pack
+kova plugins install @kovaai/my-hook-pack
 
 # Link a local directory without copying
 kova plugins install -l ./my-hook-pack
@@ -282,7 +282,7 @@ Saves session context to memory when you issue `/new` or `/reset`.
 kova hooks enable session-memory
 ```
 
-**Output:** `~/.openclaw/workspace/memory/YYYY-MM-DD-slug.md`
+**Output:** `~/.kova/workspace/memory/YYYY-MM-DD-slug.md`
 
 **See:** [session-memory documentation](/automation/hooks#session-memory)
 
@@ -308,19 +308,19 @@ Logs all command events to a centralized audit file.
 kova hooks enable command-logger
 ```
 
-**Output:** `~/.openclaw/logs/commands.log`
+**Output:** `~/.kova/logs/commands.log`
 
 **View logs:**
 
 ```bash
 # Recent commands
-tail -n 20 ~/.openclaw/logs/commands.log
+tail -n 20 ~/.kova/logs/commands.log
 
 # Pretty-print
-cat ~/.openclaw/logs/commands.log | jq .
+cat ~/.kova/logs/commands.log | jq .
 
 # Filter by action
-grep '"action":"new"' ~/.openclaw/logs/commands.log | jq .
+grep '"action":"new"' ~/.kova/logs/commands.log | jq .
 ```
 
 **See:** [command-logger documentation](/automation/hooks#command-logger)

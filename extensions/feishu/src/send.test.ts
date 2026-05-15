@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { KovaConfig } from "../runtime-api.js";
 import { buildMarkdownCard } from "./send.js";
 
 const {
@@ -24,12 +24,12 @@ const {
   mockRuntimeResolveMarkdownTableMode: vi.fn(() => "preserve"),
 }));
 
-vi.mock("openclaw/plugin-sdk/config-runtime", () => ({
+vi.mock("getkova/plugin-sdk/config-runtime", () => ({
   resolveMarkdownTableMode: mockResolveMarkdownTableMode,
 }));
 
-vi.mock("openclaw/plugin-sdk/text-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/text-runtime")>();
+vi.mock("getkova/plugin-sdk/text-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("getkova/plugin-sdk/text-runtime")>();
   return {
     ...actual,
     convertMarkdownTables: mockConvertMarkdownTables,
@@ -118,7 +118,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await sendMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       to: "oc_send",
       text: "hello",
     });
@@ -154,7 +154,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_1",
     });
 
@@ -203,7 +203,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_i18n_card",
     });
 
@@ -243,7 +243,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_post_card",
     });
 
@@ -280,7 +280,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_post",
     });
 
@@ -312,7 +312,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_file",
     });
 
@@ -340,7 +340,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await getMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_single",
     });
 
@@ -399,7 +399,7 @@ describe("getMessageFeishu", () => {
     });
 
     const result = await listFeishuThreadMessages({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       threadId: "omt_1",
       rootMessageId: "om_root",
     });
@@ -445,7 +445,7 @@ describe("editMessageFeishu", () => {
     mockClientPatch.mockResolvedValueOnce({ code: 0 });
 
     const result = await editMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_edit",
       text: "updated body",
     });
@@ -474,7 +474,7 @@ describe("editMessageFeishu", () => {
     mockClientPatch.mockResolvedValueOnce({ code: 0 });
 
     const result = await editMessageFeishu({
-      cfg: {} as ClawdbotConfig,
+      cfg: {} as KovaConfig,
       messageId: "om_card",
       card: { schema: "2.0" },
     });

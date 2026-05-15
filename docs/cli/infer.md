@@ -15,7 +15,7 @@ It intentionally exposes capability families, not raw gateway RPC names and not 
 Copy and paste this to an agent:
 
 ```text
-Read https://docs.openclaw.ai/cli/infer, then create a skill that routes my common workflows to `kova infer`.
+Read https://docs.neuralstudio.in/cli/infer, then create a skill that routes my common workflows to `kova infer`.
 Focus on model runs, image generation, video generation, audio transcription, TTS, web search, and embeddings.
 ```
 
@@ -107,8 +107,8 @@ and the shared capability runtime before the provider request is made.
 
 This table maps common inference tasks to the corresponding infer command.
 
-| Task                    | Command                                                                | Notes                                                 |
-| ----------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------- |
+| Task                    | Command                                                            | Notes                                                 |
+| ----------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
 | Run a text/model prompt | `kova infer model run --prompt "..." --json`                       | Uses the normal local path by default                 |
 | Generate an image       | `kova infer image generate --prompt "..." --json`                  | Use `image edit` when starting from an existing file  |
 | Describe an image file  | `kova infer image describe --file ./image.png --json`              | `--model` must be an image-capable `<provider/model>` |
@@ -185,7 +185,7 @@ Notes:
   kova infer image generate \
     --model google/gemini-3.1-flash-image-preview \
     --prompt "Minimal flat test image: one blue square on a white background, no text." \
-    --output ./openclaw-infer-image-smoke.png \
+    --output ./kova-infer-image-smoke.png \
     --json
   ```
 
@@ -216,7 +216,7 @@ Notes:
 Use `tts` for speech synthesis and TTS provider state.
 
 ```bash
-kova infer tts convert --text "hello from openclaw" --output ./hello.mp3 --json
+kova infer tts convert --text "hello from kova" --output ./hello.mp3 --json
 kova infer tts convert --text "Your build is complete" --output ./build-complete.mp3 --json
 kova infer tts providers --json
 kova infer tts status --json
@@ -250,7 +250,7 @@ Use `web` for search and fetch workflows.
 ```bash
 kova infer web search --query "Kova docs" --json
 kova infer web search --query "Kova infer web providers" --json
-kova infer web fetch --url https://docs.openclaw.ai/cli/infer --json
+kova infer web fetch --url https://docs.neuralstudio.in/cli/infer --json
 kova infer web providers --json
 ```
 

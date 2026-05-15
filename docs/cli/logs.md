@@ -50,7 +50,7 @@ kova logs --no-color
 kova logs --limit 500
 kova logs --local-time
 kova logs --follow --local-time
-kova logs --url ws://127.0.0.1:18789 --token "$OPENCLAW_GATEWAY_TOKEN"
+kova logs --url ws://127.0.0.1:18789 --token "$KOVA_GATEWAY_TOKEN"
 ```
 
 ## Notes

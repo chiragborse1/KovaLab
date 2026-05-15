@@ -1,8 +1,8 @@
-import { createRunStateMachine } from "openclaw/plugin-sdk/channel-lifecycle";
-import { KeyedAsyncQueue } from "openclaw/plugin-sdk/keyed-async-queue";
-import type { ClaimableDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
-import { danger, formatDurationSeconds } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { createRunStateMachine } from "getkova/plugin-sdk/channel-lifecycle";
+import { KeyedAsyncQueue } from "getkova/plugin-sdk/keyed-async-queue";
+import type { ClaimableDedupe } from "getkova/plugin-sdk/persistent-dedupe";
+import { danger, formatDurationSeconds } from "getkova/plugin-sdk/runtime-env";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   commitDiscordInboundReplay,
   createDiscordInboundReplayGuard,

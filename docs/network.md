@@ -21,7 +21,7 @@ Most operations flow through the Gateway (`kova gateway`), a single long-running
   token/password auth, or a correctly configured non-loopback
   `trusted-proxy` deployment.
 - **One Gateway per host** is recommended. For isolation, run multiple gateways with isolated profiles and ports ([Multiple Gateways](/gateway/multiple-gateways)).
-- **Canvas host** is served on the same port as the Gateway (`/__openclaw__/canvas/`, `/__openclaw__/a2ui/`), protected by Gateway auth when bound beyond loopback.
+- **Canvas host** is served on the same port as the Gateway (`/__kova__/canvas/`, `/__kova__/a2ui/`), protected by Gateway auth when bound beyond loopback.
 - **Remote access** is typically SSH tunnel or Tailscale VPN ([Remote Access](/gateway/remote)).
 
 Key references:

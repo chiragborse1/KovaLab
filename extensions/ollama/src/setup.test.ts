@@ -1,5 +1,5 @@
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import type { WizardPrompter } from "openclaw/plugin-sdk/setup";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import type { WizardPrompter } from "getkova/plugin-sdk/setup";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { jsonResponse, requestBodyText, requestUrl } from "../../../src/test-helpers/http.js";
 import { resetOllamaModelShowInfoCacheForTest } from "./provider-models.js";
@@ -21,16 +21,16 @@ const fetchWithSsrFGuardMock = vi.hoisted(() =>
   })),
 );
 
-vi.mock("openclaw/plugin-sdk/provider-auth", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/provider-auth")>();
+vi.mock("getkova/plugin-sdk/provider-auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("getkova/plugin-sdk/provider-auth")>();
   return {
     ...actual,
     upsertAuthProfileWithLock,
   };
 });
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/ssrf-runtime")>();
+vi.mock("getkova/plugin-sdk/ssrf-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("getkova/plugin-sdk/ssrf-runtime")>();
   return {
     ...actual,
     fetchWithSsrFGuard: (...args: Parameters<typeof actual.fetchWithSsrFGuard>) =>
@@ -135,7 +135,7 @@ describe("ollama setup", () => {
   });
 
   it("Docker setup defaults to the host Ollama endpoint", async () => {
-    vi.stubEnv("OPENCLAW_DOCKER_SETUP", "1");
+    vi.stubEnv("KOVA_DOCKER_SETUP", "1");
     const prompter = {
       select: vi.fn().mockResolvedValueOnce("local-only"),
       text: vi.fn().mockResolvedValueOnce("http://host.docker.internal:11434"),

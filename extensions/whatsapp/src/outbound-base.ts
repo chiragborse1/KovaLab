@@ -3,15 +3,15 @@ import {
   listCombinedAccountIds,
   normalizeOptionalAccountId,
   resolveListedDefaultAccountId,
-} from "openclaw/plugin-sdk/account-core";
+} from "getkova/plugin-sdk/account-core";
 import {
   createAttachedChannelResultAdapter,
   type ChannelOutboundAdapter,
-} from "openclaw/plugin-sdk/channel-send-result";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { sanitizeForPlainText } from "openclaw/plugin-sdk/outbound-runtime";
-import { resolveOutboundSendDep } from "openclaw/plugin-sdk/outbound-send-deps";
-import { sendTextMediaPayload } from "openclaw/plugin-sdk/reply-payload";
+} from "getkova/plugin-sdk/channel-send-result";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { sanitizeForPlainText } from "getkova/plugin-sdk/outbound-runtime";
+import { resolveOutboundSendDep } from "getkova/plugin-sdk/outbound-send-deps";
+import { sendTextMediaPayload } from "getkova/plugin-sdk/reply-payload";
 import {
   normalizeWhatsAppOutboundPayload,
   normalizeWhatsAppPayloadText,
@@ -23,7 +23,7 @@ import { toWhatsappJid } from "./text-runtime.js";
 type WhatsAppChunker = NonNullable<ChannelOutboundAdapter["chunker"]>;
 type WhatsAppSendTextOptions = {
   verbose: boolean;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   mediaUrl?: string;
   mediaAccess?: {
     localRoots?: readonly string[];
@@ -51,7 +51,7 @@ type WhatsAppSendMessage = (
 type WhatsAppSendPoll = (
   to: string,
   poll: Parameters<NonNullable<ChannelOutboundAdapter["sendPoll"]>>[0]["poll"],
-  options: { verbose: boolean; accountId?: string; cfg: OpenClawConfig },
+  options: { verbose: boolean; accountId?: string; cfg: KovaConfig },
 ) => Promise<{ messageId: string; toJid: string }>;
 
 type CreateWhatsAppOutboundBaseParams = {
@@ -64,7 +64,7 @@ type CreateWhatsAppOutboundBaseParams = {
   skipEmptyText?: boolean;
 };
 
-function resolveQuoteLookupAccountId(cfg?: OpenClawConfig, accountId?: string | null): string {
+function resolveQuoteLookupAccountId(cfg?: KovaConfig, accountId?: string | null): string {
   const explicitAccountId = normalizeOptionalAccountId(accountId);
   if (explicitAccountId) {
     return explicitAccountId;

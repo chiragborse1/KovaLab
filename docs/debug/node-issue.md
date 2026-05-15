@@ -13,7 +13,7 @@ title: "Node + tsx crash"
 Running Kova via Node with `tsx` fails at startup with:
 
 ```
-[openclaw] Failed to start CLI: TypeError: __name is not a function
+[kova] Failed to start CLI: TypeError: __name is not a function
     at createSubsystemLogger (.../src/logging/subsystem.ts:203:25)
     at .../src/agents/auth-profiles/constants.ts:25:20
 ```
@@ -65,7 +65,7 @@ node --import tsx scripts/repro/tsx-name-repro.ts
 
   ```bash
   pnpm tsgo
-  node openclaw.mjs status
+  node kova.mjs status
   ```
 
 - Historical note: `tsc` was used here while debugging this Node/tsx issue, but repo type-check lanes now use `tsgo`.

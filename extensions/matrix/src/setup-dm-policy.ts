@@ -1,5 +1,5 @@
-import type { DmPolicy } from "openclaw/plugin-sdk/config-runtime";
-import { addWildcardAllowFrom, normalizeAllowFromEntries } from "openclaw/plugin-sdk/setup";
+import type { DmPolicy } from "getkova/plugin-sdk/config-runtime";
+import { addWildcardAllowFrom, normalizeAllowFromEntries } from "getkova/plugin-sdk/setup";
 import type { MatrixConfig } from "./types.js";
 
 type MatrixDmAllowFrom = NonNullable<MatrixConfig["dm"]>["allowFrom"];

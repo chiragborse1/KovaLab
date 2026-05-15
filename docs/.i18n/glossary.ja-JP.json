@@ -8,8 +8,8 @@
     "target": "Active Memory"
   },
   {
-    "source": "ClawHub",
-    "target": "ClawHub"
+    "source": "KovaHub",
+    "target": "KovaHub"
   },
   {
     "source": "Compaction",
@@ -52,8 +52,8 @@
     "target": "オンボーディング"
   },
   {
-    "source": "OpenClaw",
-    "target": "OpenClaw"
+    "source": "Kova",
+    "target": "Kova"
   },
   {
     "source": "Pi",

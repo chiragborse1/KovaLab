@@ -1,9 +1,9 @@
-import type { BaseProbeResult } from "openclaw/plugin-sdk/channel-contract";
-import { getRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { runCommandWithTimeout } from "openclaw/plugin-sdk/process-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { detectBinary } from "openclaw/plugin-sdk/setup";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { BaseProbeResult } from "getkova/plugin-sdk/channel-contract";
+import { getRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
+import { runCommandWithTimeout } from "getkova/plugin-sdk/process-runtime";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { detectBinary } from "getkova/plugin-sdk/setup";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 import { createIMessageRpcClient } from "./client.js";
 import { DEFAULT_IMESSAGE_PROBE_TIMEOUT_MS } from "./constants.js";
 

@@ -5,7 +5,7 @@ import type { BrowserConfig } from "../config/config.js";
 import { resolveUserPath } from "../utils.js";
 import {
   getManagedBrowserMissingDisplayError,
-  OPENCLAW_BROWSER_HEADLESS_ENV,
+  KOVA_BROWSER_HEADLESS_ENV,
   resolveBrowserConfig,
   resolveManagedBrowserHeadlessMode,
   resolveProfile,
@@ -50,14 +50,14 @@ describe("browser config", () => {
     expect(resolved.cdpProtocol).toBe("http");
     const profile = resolveProfile(resolved, resolved.defaultProfile);
     expect(profile?.name).toBe("kova");
-    expect(profile?.driver).toBe("openclaw");
+    expect(profile?.driver).toBe("kova");
     expect(profile?.cdpPort).toBe(18801);
     expect(profile?.cdpUrl).toBe("http://127.0.0.1:18801");
 
-    const openclaw = resolveProfile(resolved, "kova");
-    expect(openclaw?.driver).toBe("openclaw");
-    expect(openclaw?.cdpPort).toBe(18801);
-    expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:18801");
+    const kova = resolveProfile(resolved, "kova");
+    expect(kova?.driver).toBe("kova");
+    expect(kova?.cdpPort).toBe(18801);
+    expect(kova?.cdpUrl).toBe("http://127.0.0.1:18801");
     const user = resolveProfile(resolved, "user");
     expect(user?.driver).toBe("existing-session");
     expect(user?.cdpPort).toBe(0);
@@ -82,9 +82,9 @@ describe("browser config", () => {
       expect(resolved.controlPort).toBe(19003);
       expect(resolveProfile(resolved, "chrome-relay")).toBe(null);
 
-      const openclaw = resolveProfile(resolved, "kova");
-      expect(openclaw?.cdpPort).toBe(19012);
-      expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19012");
+      const kova = resolveProfile(resolved, "kova");
+      expect(kova?.cdpPort).toBe(19012);
+      expect(kova?.cdpUrl).toBe("http://127.0.0.1:19012");
     });
   });
 
@@ -94,9 +94,9 @@ describe("browser config", () => {
       expect(resolved.controlPort).toBe(19013);
       expect(resolveProfile(resolved, "chrome-relay")).toBe(null);
 
-      const openclaw = resolveProfile(resolved, "kova");
-      expect(openclaw?.cdpPort).toBe(19022);
-      expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19022");
+      const kova = resolveProfile(resolved, "kova");
+      expect(kova?.cdpPort).toBe(19022);
+      expect(kova?.cdpUrl).toBe("http://127.0.0.1:19022");
     });
   });
 
@@ -104,10 +104,10 @@ describe("browser config", () => {
     const resolved = resolveBrowserConfig({
       cdpPortRangeStart: 19000,
     });
-    const openclaw = resolveProfile(resolved, "kova");
+    const kova = resolveProfile(resolved, "kova");
     expect(resolved.cdpPortRangeStart).toBe(19000);
-    expect(openclaw?.cdpPort).toBe(19000);
-    expect(openclaw?.cdpUrl).toBe("http://127.0.0.1:19000");
+    expect(kova?.cdpPort).toBe(19000);
+    expect(kova?.cdpUrl).toBe("http://127.0.0.1:19000");
   });
 
   it("rejects cdpPortRangeStart values that overflow the CDP range window", () => {
@@ -326,7 +326,7 @@ describe("browser config", () => {
     const noDisplayEnv = {
       DISPLAY: undefined,
       WAYLAND_DISPLAY: undefined,
-      [OPENCLAW_BROWSER_HEADLESS_ENV]: undefined,
+      [KOVA_BROWSER_HEADLESS_ENV]: undefined,
     };
 
     it("falls back to headless for local managed Linux profiles without display", () => {
@@ -386,7 +386,7 @@ describe("browser config", () => {
       ).toEqual({ headless: false, source: "config" });
     });
 
-    it("lets OPENCLAW_BROWSER_HEADLESS override profile/global config", () => {
+    it("lets KOVA_BROWSER_HEADLESS override profile/global config", () => {
       const resolved = resolveBrowserConfig({
         profiles: {
           kova: { cdpPort: 18800, color: "#FF4500", headless: false },
@@ -397,7 +397,7 @@ describe("browser config", () => {
       expect(
         resolveManagedBrowserHeadlessMode(resolved, profile, {
           platform: "linux",
-          env: { ...noDisplayEnv, [OPENCLAW_BROWSER_HEADLESS_ENV]: "1" },
+          env: { ...noDisplayEnv, [KOVA_BROWSER_HEADLESS_ENV]: "1" },
         }),
       ).toEqual({ headless: true, source: "env" });
     });
@@ -415,7 +415,7 @@ describe("browser config", () => {
         resolveManagedBrowserHeadlessMode(resolved, profile, {
           headlessOverride: true,
           platform: "linux",
-          env: { ...noDisplayEnv, [OPENCLAW_BROWSER_HEADLESS_ENV]: "0" },
+          env: { ...noDisplayEnv, [KOVA_BROWSER_HEADLESS_ENV]: "0" },
         }),
       ).toEqual({ headless: true, source: "request" });
     });
@@ -795,7 +795,7 @@ describe("browser config", () => {
   });
 
   describe("default profile preference", () => {
-    it("defaults to openclaw profile when defaultProfile is not configured", () => {
+    it("defaults to kova profile when defaultProfile is not configured", () => {
       const resolved = resolveBrowserConfig({
         headless: false,
         noSandbox: false,
@@ -803,21 +803,21 @@ describe("browser config", () => {
       expect(resolved.defaultProfile).toBe("kova");
     });
 
-    it("keeps openclaw default when headless=true", () => {
+    it("keeps kova default when headless=true", () => {
       const resolved = resolveBrowserConfig({
         headless: true,
       });
       expect(resolved.defaultProfile).toBe("kova");
     });
 
-    it("keeps openclaw default when noSandbox=true", () => {
+    it("keeps kova default when noSandbox=true", () => {
       const resolved = resolveBrowserConfig({
         noSandbox: true,
       });
       expect(resolved.defaultProfile).toBe("kova");
     });
 
-    it("keeps openclaw default when both headless and noSandbox are true", () => {
+    it("keeps kova default when both headless and noSandbox are true", () => {
       const resolved = resolveBrowserConfig({
         headless: true,
         noSandbox: true,

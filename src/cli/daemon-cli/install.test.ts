@@ -34,14 +34,14 @@ const createInstallPlanFixture = vi.hoisted(() => {
   return async (params?: { wrapperPath?: string; env?: Record<string, string | undefined> }) => {
     const environment: Record<string, string | undefined> = {};
     const requestedWrapper =
-      params?.wrapperPath ?? params?.env?.KOVA_WRAPPER ?? params?.env?.OPENCLAW_WRAPPER;
+      params?.wrapperPath ?? params?.env?.KOVA_WRAPPER ?? params?.env?.KOVA_WRAPPER;
     if (requestedWrapper) {
       environment.KOVA_WRAPPER = requestedWrapper;
     }
     return {
       programArguments: params?.wrapperPath
         ? [params.wrapperPath, "gateway", "run"]
-        : ["openclaw", "gateway", "run"],
+        : ["kova", "gateway", "run"],
       workingDirectory: "/tmp",
       environment,
     };
@@ -80,7 +80,7 @@ vi.mock("../../config/io.js", () => ({
   loadConfig: loadConfigMock,
   readConfigFileSnapshotForWrite: vi.fn(async () => ({
     snapshot: await readConfigFileSnapshotMock(),
-    writeOptions: { expectedConfigPath: "/tmp/openclaw.json" },
+    writeOptions: { expectedConfigPath: "/tmp/kova.json" },
   })),
 }));
 
@@ -93,7 +93,7 @@ vi.mock("../../commands/gateway-install-token.persist.runtime.js", () => ({
   readConfigFileSnapshot: readConfigFileSnapshotMock,
   readConfigFileSnapshotForWrite: vi.fn(async () => ({
     snapshot: await readConfigFileSnapshotMock(),
-    writeOptions: { expectedConfigPath: "/tmp/openclaw.json" },
+    writeOptions: { expectedConfigPath: "/tmp/kova.json" },
   })),
   replaceConfigFile: replaceConfigFileMock,
 }));
@@ -120,8 +120,8 @@ vi.mock("../../commands/daemon-install-helpers.js", () => ({
 }));
 
 vi.mock("../../daemon/program-args.js", () => ({
-  OPENCLAW_WRAPPER_ENV_KEY: "OPENCLAW_WRAPPER",
-  resolveOpenClawWrapperPath: async (value: string | undefined) => value?.trim() || undefined,
+  KOVA_WRAPPER_ENV_KEY: "KOVA_WRAPPER",
+  resolveKovaWrapperPath: async (value: string | undefined) => value?.trim() || undefined,
 }));
 
 vi.mock("./shared.js", () => ({
@@ -176,10 +176,10 @@ function expectFirstInstallPlanCallOmitsToken() {
 
 function mockResolvedGatewayTokenSecretRef() {
   resolveSecretInputRefMock.mockReturnValue({
-    ref: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+    ref: { source: "env", provider: "default", id: "KOVA_GATEWAY_TOKEN" },
   });
   resolveSecretRefValuesMock.mockResolvedValue(
-    new Map([["env:default:OPENCLAW_GATEWAY_TOKEN", "resolved-from-secretref"]]),
+    new Map([["env:default:KOVA_GATEWAY_TOKEN", "resolved-from-secretref"]]),
   );
 }
 
@@ -239,7 +239,7 @@ describe("runDaemonInstall", () => {
       NODE_EXTRA_CA_CERTS: undefined,
       NODE_USE_SYSTEM_CA: undefined,
     });
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
+    delete process.env.KOVA_GATEWAY_TOKEN;
   });
 
   afterEach(() => {
@@ -248,7 +248,7 @@ describe("runDaemonInstall", () => {
 
   it("fails install when token auth requires an unresolved token SecretRef", async () => {
     resolveSecretInputRefMock.mockReturnValue({
-      ref: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_TOKEN" },
+      ref: { source: "env", provider: "default", id: "KOVA_GATEWAY_TOKEN" },
     });
     resolveSecretRefValuesMock.mockRejectedValue(new Error("secret unavailable"));
 
@@ -278,7 +278,7 @@ describe("runDaemonInstall", () => {
 
   it("does not treat env-template gateway.auth.token as plaintext during install", async () => {
     loadConfigMock.mockReturnValue({
-      gateway: { auth: { mode: "token", token: "${OPENCLAW_GATEWAY_TOKEN}" } },
+      gateway: { auth: { mode: "token", token: "${KOVA_GATEWAY_TOKEN}" } },
     });
     mockResolvedGatewayTokenSecretRef();
 
@@ -362,7 +362,7 @@ describe("runDaemonInstall", () => {
       NODE_USE_SYSTEM_CA: undefined,
     });
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
         NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/ca-certificates.crt",
       },
@@ -374,12 +374,12 @@ describe("runDaemonInstall", () => {
     expect(actionState.emitted.at(-1)).toMatchObject({ result: "already-installed" });
   });
 
-  it("reinstalls when the loaded service still embeds OPENCLAW_GATEWAY_TOKEN", async () => {
+  it("reinstalls when the loaded service still embeds KOVA_GATEWAY_TOKEN", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "stale-service-token",
+        KOVA_GATEWAY_TOKEN: "stale-service-token",
       },
     } as never);
 
@@ -394,13 +394,13 @@ describe("runDaemonInstall", () => {
   it("returns already-installed when the embedded gateway token matches the install plan", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "durable-token",
+        KOVA_GATEWAY_TOKEN: "durable-token",
       },
     } as never);
     buildGatewayInstallPlanMock.mockResolvedValueOnce({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       workingDirectory: "/tmp",
       environment: {
         KOVA_GATEWAY_TOKEN: "durable-token",
@@ -418,9 +418,9 @@ describe("runDaemonInstall", () => {
   it("preserves wrapper env from an installed but unloaded service during forced reinstall", async () => {
     service.isLoaded.mockResolvedValue(false);
     service.readCommand.mockResolvedValue({
-      programArguments: ["/usr/local/bin/openclaw-doppler", "gateway", "run"],
+      programArguments: ["/usr/local/bin/kova-doppler", "gateway", "run"],
       environment: {
-        OPENCLAW_WRAPPER: "/usr/local/bin/openclaw-doppler",
+        KOVA_WRAPPER: "/usr/local/bin/kova-doppler",
       },
     } as never);
 
@@ -429,12 +429,12 @@ describe("runDaemonInstall", () => {
     expect(service.readCommand).toHaveBeenCalledTimes(1);
     expect(buildGatewayInstallPlanMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        wrapperPath: "/usr/local/bin/openclaw-doppler",
+        wrapperPath: "/usr/local/bin/kova-doppler",
         existingEnvironment: expect.objectContaining({
-          OPENCLAW_WRAPPER: "/usr/local/bin/openclaw-doppler",
+          KOVA_WRAPPER: "/usr/local/bin/kova-doppler",
         }),
         env: expect.objectContaining({
-          KOVA_WRAPPER: "/usr/local/bin/openclaw-doppler",
+          KOVA_WRAPPER: "/usr/local/bin/kova-doppler",
         }),
       }),
     );
@@ -444,13 +444,13 @@ describe("runDaemonInstall", () => {
   it("reinstalls when wrapper command matches but wrapper env is missing", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["/usr/local/bin/openclaw-doppler", "gateway", "run"],
+      programArguments: ["/usr/local/bin/kova-doppler", "gateway", "run"],
       environment: {},
     } as never);
 
     await runDaemonInstall({
       json: true,
-      wrapper: "/usr/local/bin/openclaw-doppler",
+      wrapper: "/usr/local/bin/kova-doppler",
     });
 
     expect(installDaemonServiceAndEmitMock).toHaveBeenCalledTimes(1);
@@ -462,13 +462,13 @@ describe("runDaemonInstall", () => {
   it("reinstalls when the embedded gateway token differs from the install plan", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "stale-service-token",
+        KOVA_GATEWAY_TOKEN: "stale-service-token",
       },
     } as never);
     buildGatewayInstallPlanMock.mockResolvedValueOnce({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       workingDirectory: "/tmp",
       environment: {
         KOVA_GATEWAY_TOKEN: "fresh-token",
@@ -483,15 +483,15 @@ describe("runDaemonInstall", () => {
     );
   });
 
-  it("does not reinstall when OPENCLAW_GATEWAY_TOKEN comes from an env file", async () => {
+  it("does not reinstall when KOVA_GATEWAY_TOKEN comes from an env file", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "env-file-token",
+        KOVA_GATEWAY_TOKEN: "env-file-token",
       },
       environmentValueSources: {
-        OPENCLAW_GATEWAY_TOKEN: "file",
+        KOVA_GATEWAY_TOKEN: "file",
       },
     } as never);
 
@@ -508,7 +508,7 @@ describe("runDaemonInstall", () => {
       NODE_USE_SYSTEM_CA: undefined,
     });
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {},
     } as never);
 
@@ -544,7 +544,7 @@ describe("runDaemonInstall", () => {
   it("reuses env-backed service secrets during forced reinstall when the current shell is missing them", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
         OPENAI_API_KEY: "service-openai-key",
       },
@@ -574,11 +574,11 @@ describe("runDaemonInstall", () => {
   it("does not reuse stale service control env during forced reinstall", async () => {
     service.isLoaded.mockResolvedValue(true);
     service.readCommand.mockResolvedValue({
-      programArguments: ["openclaw", "gateway", "run"],
+      programArguments: ["kova", "gateway", "run"],
       environment: {
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-doctor-manual",
-        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-doctor-manual/openclaw.json",
-        OPENCLAW_GATEWAY_TOKEN: "stale-service-token",
+        KOVA_STATE_DIR: "/tmp/kova-doctor-manual",
+        KOVA_CONFIG_PATH: "/tmp/kova-doctor-manual/kova.json",
+        KOVA_GATEWAY_TOKEN: "stale-service-token",
         PATH: "/tmp/doctor-bin:/usr/bin",
         NODE_OPTIONS: "--require /tmp/evil.js",
         OPENAI_API_KEY: "service-openai-key",
@@ -601,9 +601,9 @@ describe("runDaemonInstall", () => {
         (buildGatewayInstallPlanMock.mock.calls.at(0) as [Record<string, unknown>] | undefined) ??
         [];
       const env = firstArg?.env as Record<string, string | undefined>;
-      expect(env.OPENCLAW_STATE_DIR).toBeUndefined();
-      expect(env.OPENCLAW_CONFIG_PATH).toBeUndefined();
-      expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+      expect(env.KOVA_STATE_DIR).toBeUndefined();
+      expect(env.KOVA_CONFIG_PATH).toBeUndefined();
+      expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
       expect(env.NODE_OPTIONS).toBeUndefined();
       expect(env.PATH).not.toContain("/tmp/doctor-bin");
       expect(installDaemonServiceAndEmitMock).toHaveBeenCalledTimes(1);

@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../../test-support/browser-security-runtime.mock.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { BrowserDispatchResponse } from "./routes/dispatcher.js";
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/ssrf-runtime")>(
-    "openclaw/plugin-sdk/ssrf-runtime",
+vi.mock("getkova/plugin-sdk/ssrf-runtime", async () => {
+  const actual = await vi.importActual<typeof import("getkova/plugin-sdk/ssrf-runtime")>(
+    "getkova/plugin-sdk/ssrf-runtime",
   );
   return {
     ...actual,
@@ -29,7 +29,7 @@ function okDispatchResponse(): BrowserDispatchResponse {
 }
 
 const mocks = vi.hoisted(() => ({
-  loadConfig: vi.fn<() => OpenClawConfig>(() => ({
+  loadConfig: vi.fn<() => KovaConfig>(() => ({
     gateway: {
       auth: {
         token: "loopback-token",

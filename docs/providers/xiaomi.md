@@ -159,10 +159,10 @@ Opus with `ffmpeg` before delivery.
 
   <Accordion title="Troubleshooting">
     - If models do not appear, confirm `XIAOMI_API_KEY` is set and valid.
-    - When the Gateway runs as a daemon, ensure the key is available to that process (for example in `~/.openclaw/.env` or via `env.shellEnv`).
+    - When the Gateway runs as a daemon, ensure the key is available to that process (for example in `~/.kova/.env` or via `env.shellEnv`).
 
     <Warning>
-    Keys set only in your interactive shell are not visible to daemon-managed gateway processes. Use `~/.openclaw/.env` or `env.shellEnv` config for persistent availability.
+    Keys set only in your interactive shell are not visible to daemon-managed gateway processes. Use `~/.kova/.env` or `env.shellEnv` config for persistent availability.
     </Warning>
 
   </Accordion>

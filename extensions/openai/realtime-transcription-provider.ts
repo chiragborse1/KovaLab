@@ -5,8 +5,8 @@ import {
   type RealtimeTranscriptionSession,
   type RealtimeTranscriptionSessionCreateRequest,
   type RealtimeTranscriptionWebSocketTransport,
-} from "openclaw/plugin-sdk/realtime-transcription";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/realtime-transcription";
+import { normalizeResolvedSecretInputString } from "getkova/plugin-sdk/secret-input";
 import {
   asFiniteNumber,
   readRealtimeErrorDetail,

@@ -1,9 +1,9 @@
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBundledBrowserPluginFixture } from "../../test/helpers/browser-bundled-plugin-fixture.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { clearPluginDiscoveryCache } from "./discovery.js";
-import { clearPluginLoaderCache, loadOpenClawPlugins } from "./loader.js";
+import { clearPluginLoaderCache, loadKovaPlugins } from "./loader.js";
 import { clearPluginManifestRegistryCache } from "./manifest-registry.js";
 import { resetPluginRuntimeStateForTest } from "./runtime.js";
 
@@ -19,7 +19,7 @@ describe("registerPluginCliCommands browser plugin integration", () => {
 
   beforeEach(() => {
     bundledFixture = createBundledBrowserPluginFixture();
-    vi.stubEnv("OPENCLAW_BUNDLED_PLUGINS_DIR", bundledFixture.rootDir);
+    vi.stubEnv("KOVA_BUNDLED_PLUGINS_DIR", bundledFixture.rootDir);
     resetPluginState();
   });
 
@@ -31,18 +31,17 @@ describe("registerPluginCliCommands browser plugin integration", () => {
   });
 
   it("registers the browser command from the bundled browser plugin", () => {
-    const registry = loadOpenClawPlugins({
+    const registry = loadKovaPlugins({
       config: {
         plugins: {
           allow: ["browser"],
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       cache: false,
       env: {
         ...process.env,
-        OPENCLAW_DISABLE_BUNDLED_PLUGINS: undefined,
-        OPENCLAW_BUNDLED_PLUGINS_DIR:
-          bundledFixture?.rootDir ?? path.join(process.cwd(), "extensions"),
+        KOVA_DISABLE_BUNDLED_PLUGINS: undefined,
+        KOVA_BUNDLED_PLUGINS_DIR: bundledFixture?.rootDir ?? path.join(process.cwd(), "extensions"),
       } as NodeJS.ProcessEnv,
     });
 
@@ -50,7 +49,7 @@ describe("registerPluginCliCommands browser plugin integration", () => {
   });
 
   it("omits the browser command when the bundled browser plugin is disabled", () => {
-    const registry = loadOpenClawPlugins({
+    const registry = loadKovaPlugins({
       config: {
         plugins: {
           allow: ["browser"],
@@ -60,13 +59,12 @@ describe("registerPluginCliCommands browser plugin integration", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       cache: false,
       env: {
         ...process.env,
-        OPENCLAW_DISABLE_BUNDLED_PLUGINS: undefined,
-        OPENCLAW_BUNDLED_PLUGINS_DIR:
-          bundledFixture?.rootDir ?? path.join(process.cwd(), "extensions"),
+        KOVA_DISABLE_BUNDLED_PLUGINS: undefined,
+        KOVA_BUNDLED_PLUGINS_DIR: bundledFixture?.rootDir ?? path.join(process.cwd(), "extensions"),
       } as NodeJS.ProcessEnv,
     });
 

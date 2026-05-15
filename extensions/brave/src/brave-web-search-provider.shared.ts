@@ -1,7 +1,7 @@
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import { Type } from "typebox";
 
 export type BraveConfig = {

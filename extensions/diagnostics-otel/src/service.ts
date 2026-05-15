@@ -19,7 +19,7 @@ import type {
   DiagnosticEventMetadata,
   DiagnosticEventPayload,
   DiagnosticTraceContext,
-  OpenClawPluginService,
+  KovaPluginService,
 } from "../api.js";
 import {
   isValidDiagnosticSpanId,
@@ -49,7 +49,7 @@ const LOG_RECORD_EXPORT_FAILURE_REPORT_INTERVAL_MS = 60_000;
 const OTEL_LOG_RAW_ATTRIBUTE_KEY_RE = /^[A-Za-z0-9_.:-]{1,64}$/u;
 const OTEL_LOG_ATTRIBUTE_KEY_RE = /^[A-Za-z0-9_.:-]{1,96}$/u;
 const BLOCKED_OTEL_LOG_ATTRIBUTE_KEYS = new Set(["__proto__", "prototype", "constructor"]);
-const PRELOADED_OTEL_SDK_ENV = "OPENCLAW_OTEL_PRELOADED";
+const PRELOADED_OTEL_SDK_ENV = "KOVA_OTEL_PRELOADED";
 const OTEL_EXPORTER_OTLP_ENDPOINT_ENV = "OTEL_EXPORTER_OTLP_ENDPOINT";
 const OTEL_EXPORTER_OTLP_TRACES_ENDPOINT_ENV = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT";
 const OTEL_EXPORTER_OTLP_METRICS_ENDPOINT_ENV = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT";
@@ -237,11 +237,7 @@ function assignModelCallSizeTimingAttrs(
 ): void {
   assignPositiveNumberAttr(attrs, "kova.model_call.request_bytes", evt.requestPayloadBytes);
   assignPositiveNumberAttr(attrs, "kova.model_call.response_bytes", evt.responseStreamBytes);
-  assignPositiveNumberAttr(
-    attrs,
-    "kova.model_call.time_to_first_byte_ms",
-    evt.timeToFirstByteMs,
-  );
+  assignPositiveNumberAttr(attrs, "kova.model_call.time_to_first_byte_ms", evt.timeToFirstByteMs);
 }
 
 function assignGenAiSpanIdentityAttrs(
@@ -359,11 +355,7 @@ function assignOtelModelContentAttributes(
     assignOtelContentAttribute(attributes, "kova.content.input_messages", event.inputMessages);
   }
   if (policy.outputMessages) {
-    assignOtelContentAttribute(
-      attributes,
-      "kova.content.output_messages",
-      event.outputMessages,
-    );
+    assignOtelContentAttribute(attributes, "kova.content.output_messages", event.outputMessages);
   }
   if (policy.systemPrompt) {
     assignOtelContentAttribute(attributes, "kova.content.system_prompt", event.systemPrompt);
@@ -511,7 +503,7 @@ function addTraceAttributes(
   }
 }
 
-export function createDiagnosticsOtelService(): OpenClawPluginService {
+export function createDiagnosticsOtelService(): KovaPluginService {
   let sdk: NodeSDK | null = null;
   let logProvider: LoggerProvider | null = null;
   let unsubscribe: (() => void) | null = null;
@@ -693,8 +685,8 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         FATAL: 21 as SeverityNumber,
       };
 
-      const meter = metrics.getMeter("openclaw");
-      const tracer = trace.getTracer("openclaw");
+      const meter = metrics.getMeter("kova");
+      const tracer = trace.getTracer("kova");
       const activeTrustedSpans = new Map<string, ReturnType<typeof tracer.startSpan>>();
       const activeTrustedSpanAliases = new Map<string, ReturnType<typeof tracer.startSpan>>();
       const pendingTrustedRunFinalizers = new Map<string, ReturnType<typeof setImmediate>>();
@@ -775,13 +767,10 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         unit: "ms",
         description: "Message processing duration",
       });
-      const messageDeliveryStartedCounter = meter.createCounter(
-        "kova.message.delivery.started",
-        {
-          unit: "1",
-          description: "Outbound message delivery attempts started",
-        },
-      );
+      const messageDeliveryStartedCounter = meter.createCounter("kova.message.delivery.started", {
+        unit: "1",
+        description: "Outbound message delivery attempts started",
+      });
       const messageDeliveryDurationHistogram = meter.createHistogram(
         "kova.message.delivery.duration_ms",
         {
@@ -877,13 +866,10 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
         unit: "By",
         description: "External memory bytes reported by diagnostic memory samples",
       });
-      const memoryArrayBuffersHistogram = meter.createHistogram(
-        "kova.memory.array_buffers_bytes",
-        {
-          unit: "By",
-          description: "ArrayBuffer bytes reported by diagnostic memory samples",
-        },
-      );
+      const memoryArrayBuffersHistogram = meter.createHistogram("kova.memory.array_buffers_bytes", {
+        unit: "By",
+        description: "ArrayBuffer bytes reported by diagnostic memory samples",
+      });
       const memoryPressureCounter = meter.createCounter("kova.memory.pressure", {
         unit: "1",
         description: "Diagnostic memory pressure events",
@@ -915,7 +901,7 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
           resource,
           processors: [logProcessor],
         });
-        const otelLogger = logProvider.getLogger("openclaw");
+        const otelLogger = logProvider.getLogger("kova");
         recordLogRecord = (evt, metadata) => {
           try {
             const logLevelName = evt.level || "INFO";
@@ -2182,5 +2168,5 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
     async stop() {
       await stopStarted();
     },
-  } satisfies OpenClawPluginService;
+  } satisfies KovaPluginService;
 }

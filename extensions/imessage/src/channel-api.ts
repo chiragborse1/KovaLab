@@ -1,20 +1,20 @@
-import { formatTrimmedAllowFromEntries } from "openclaw/plugin-sdk/channel-config-helpers";
-import type { ChannelStatusIssue } from "openclaw/plugin-sdk/channel-contract";
-import { PAIRING_APPROVED_MESSAGE } from "openclaw/plugin-sdk/channel-status";
+import { formatTrimmedAllowFromEntries } from "getkova/plugin-sdk/channel-config-helpers";
+import type { ChannelStatusIssue } from "getkova/plugin-sdk/channel-contract";
+import { PAIRING_APPROVED_MESSAGE } from "getkova/plugin-sdk/channel-status";
 import {
   DEFAULT_ACCOUNT_ID,
   getChatChannelMeta,
   type ChannelPlugin,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/core";
-import { resolveChannelMediaMaxBytes } from "openclaw/plugin-sdk/media-runtime";
-import { collectStatusIssuesFromLastError } from "openclaw/plugin-sdk/status-helpers";
+  type KovaConfig,
+} from "getkova/plugin-sdk/core";
+import { resolveChannelMediaMaxBytes } from "getkova/plugin-sdk/media-runtime";
+import { collectStatusIssuesFromLastError } from "getkova/plugin-sdk/status-helpers";
 import {
   resolveIMessageConfigAllowFrom,
   resolveIMessageConfigDefaultTo,
 } from "./config-accessors.js";
 import { looksLikeIMessageTargetId, normalizeIMessageMessagingTarget } from "./normalize.js";
-export { chunkTextForOutbound } from "openclaw/plugin-sdk/text-chunking";
+export { chunkTextForOutbound } from "getkova/plugin-sdk/text-chunking";
 
 export {
   collectStatusIssuesFromLastError,
@@ -29,4 +29,4 @@ export {
   resolveIMessageConfigDefaultTo,
 };
 
-export type { ChannelPlugin, ChannelStatusIssue, OpenClawConfig };
+export type { ChannelPlugin, ChannelStatusIssue, KovaConfig };

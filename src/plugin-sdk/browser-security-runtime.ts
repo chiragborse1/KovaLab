@@ -19,7 +19,7 @@ export { normalizeHostname } from "../infra/net/hostname.js";
 export { isNotFoundPathError, isPathInside } from "../infra/path-guards.js";
 export { ensurePortAvailable } from "../infra/ports.js";
 export { generateSecureToken } from "../infra/secure-random.js";
-export { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+export { resolvePreferredKovaTmpDir } from "../infra/tmp-kova-dir.js";
 export { createSubsystemLogger } from "../logging/subsystem.js";
 export { redactSensitiveText } from "../logging/redact.js";
 export { wrapExternalContent } from "../security/external-content.js";

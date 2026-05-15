@@ -39,7 +39,7 @@ export function extractGatewayMiskeys(parsed: unknown): {
 }
 
 export function renderGatewayServiceStopHints(env: NodeJS.ProcessEnv = process.env): string[] {
-  const profile = env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE;
+  const profile = env.KOVA_PROFILE ?? env.KOVA_PROFILE;
   switch (process.platform) {
     case "darwin":
       return [

@@ -71,7 +71,7 @@ curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 apt install -y nodejs
 
 # Install Kova
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://www.neuralstudio.in/install.sh | bash
 
 # Verify
 kova --version
@@ -97,10 +97,10 @@ The wizard will walk you through:
 kova status
 
 # Check service
-systemctl --user status openclaw-gateway.service
+systemctl --user status kova-gateway.service
 
 # View logs
-journalctl --user -u openclaw-gateway.service -f
+journalctl --user -u kova-gateway.service -f
 ```
 
 ## 6) Access the Dashboard
@@ -198,8 +198,8 @@ htop
 
 All state lives in:
 
-- `~/.openclaw/` — `openclaw.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
-- `~/.openclaw/workspace/` — workspace (SOUL.md, memory, etc.)
+- `~/.kova/` — `kova.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
+- `~/.kova/workspace/` — workspace (SOUL.md, memory, etc.)
 
 These survive reboots. Back them up periodically:
 
@@ -236,7 +236,7 @@ For the full setup guide, see [Oracle Cloud](/platforms/oracle). For signup tips
 ```bash
 kova gateway status
 kova doctor --non-interactive
-journalctl --user -u openclaw-gateway.service --no-pager -n 50
+journalctl --user -u kova-gateway.service --no-pager -n 50
 ```
 
 ### Port already in use

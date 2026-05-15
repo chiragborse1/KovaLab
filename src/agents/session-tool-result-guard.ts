@@ -66,7 +66,7 @@ function truncatePersistedDetailString(
   if (value.length <= maxChars) {
     return value;
   }
-  return `${value.slice(0, maxChars)}\n\n[OpenClaw persisted detail truncated: ${
+  return `${value.slice(0, maxChars)}\n\n[Kova persisted detail truncated: ${
     value.length - maxChars
   } chars omitted]`;
 }

@@ -176,14 +176,14 @@ Choose your preferred setup method and mode.
 
 When you set `OLLAMA_API_KEY` (or an auth profile) and **do not** define `models.providers.ollama` or another custom remote provider with `api: "ollama"`, Kova discovers models from the local Ollama instance at `http://127.0.0.1:11434`.
 
-| Behavior             | Detail                                                                                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalog query        | Queries `/api/tags`                                                                                                                                                 |
-| Capability detection | Uses best-effort `/api/show` lookups to read `contextWindow`, expanded `num_ctx` Modelfile parameters, and capabilities including vision/tools                      |
+| Behavior             | Detail                                                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog query        | Queries `/api/tags`                                                                                                                                             |
+| Capability detection | Uses best-effort `/api/show` lookups to read `contextWindow`, expanded `num_ctx` Modelfile parameters, and capabilities including vision/tools                  |
 | Vision models        | Models with a `vision` capability reported by `/api/show` are marked as image-capable (`input: ["text", "image"]`), so Kova auto-injects images into the prompt |
-| Reasoning detection  | Marks `reasoning` with a model-name heuristic (`r1`, `reasoning`, `think`)                                                                                          |
+| Reasoning detection  | Marks `reasoning` with a model-name heuristic (`r1`, `reasoning`, `think`)                                                                                      |
 | Token limits         | Sets `maxTokens` to the default Ollama max-token cap used by Kova                                                                                               |
-| Costs                | Sets all costs to `0`                                                                                                                                               |
+| Costs                | Sets all costs to `0`                                                                                                                                           |
 
 This avoids manual model entries while keeping the catalog aligned with the local Ollama instance.
 
@@ -275,7 +275,7 @@ This timeout applies to inbound image understanding and to the explicit `image` 
 Live-verify the explicit image tool against local Ollama with:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_OLLAMA_IMAGE=1 \
+KOVA_LIVE_TEST=1 KOVA_LIVE_OLLAMA_IMAGE=1 \
   pnpm test:live -- src/agents/tools/image-tool.ollama.live.test.ts
 ```
 

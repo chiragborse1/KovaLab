@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/moonshot-provider",
+  "name": "@kovaai/moonshot-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Moonshot provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

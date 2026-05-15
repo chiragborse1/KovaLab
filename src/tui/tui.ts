@@ -13,7 +13,7 @@ import {
   TUI,
 } from "@mariozechner/pi-tui";
 import { resolveAgentIdByWorkspacePath, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import { getRuntimeConfig, type OpenClawConfig } from "../config/config.js";
+import { getRuntimeConfig, type KovaConfig } from "../config/config.js";
 import { setConsoleSubsystemFilter } from "../logging/console.js";
 import { loggingState } from "../logging/state.js";
 import {
@@ -60,20 +60,18 @@ export {
   shouldEnableWindowsGitBashPasteFallback,
 } from "./tui-submit.js";
 
-const OPENCLAW_CLI_WRAPPER_PATH = fileURLToPath(new URL("../../kova.mjs", import.meta.url));
-const OPENCLAW_RUN_NODE_SCRIPT_PATH = fileURLToPath(
+const KOVA_CLI_WRAPPER_PATH = fileURLToPath(new URL("../../kova.mjs", import.meta.url));
+const KOVA_RUN_NODE_SCRIPT_PATH = fileURLToPath(
   new URL("../../scripts/run-node.mjs", import.meta.url),
 );
-const OPENCLAW_DIST_ENTRY_JS_PATH = fileURLToPath(new URL("../../dist/entry.js", import.meta.url));
-const OPENCLAW_DIST_ENTRY_MJS_PATH = fileURLToPath(
-  new URL("../../dist/entry.mjs", import.meta.url),
-);
+const KOVA_DIST_ENTRY_JS_PATH = fileURLToPath(new URL("../../dist/entry.js", import.meta.url));
+const KOVA_DIST_ENTRY_MJS_PATH = fileURLToPath(new URL("../../dist/entry.mjs", import.meta.url));
 
 const OPENAI_CODEX_PROVIDER = "openai-codex";
 
 type RunTuiOptions = TuiOptions & {
   backend?: TuiBackend;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   title?: string;
 };
 
@@ -98,11 +96,11 @@ export function resolveLocalAuthCliInvocation(params?: {
 }): { command: string; args: string[] } {
   const hasDistEntry =
     params?.hasDistEntry ??
-    (existsSync(OPENCLAW_DIST_ENTRY_JS_PATH) || existsSync(OPENCLAW_DIST_ENTRY_MJS_PATH));
-  const hasRunNodeScript = params?.hasRunNodeScript ?? existsSync(OPENCLAW_RUN_NODE_SCRIPT_PATH);
+    (existsSync(KOVA_DIST_ENTRY_JS_PATH) || existsSync(KOVA_DIST_ENTRY_MJS_PATH));
+  const hasRunNodeScript = params?.hasRunNodeScript ?? existsSync(KOVA_RUN_NODE_SCRIPT_PATH);
   const command = params?.execPath ?? process.execPath;
-  const wrapperPath = params?.wrapperPath ?? OPENCLAW_CLI_WRAPPER_PATH;
-  const runNodePath = params?.runNodePath ?? OPENCLAW_RUN_NODE_SCRIPT_PATH;
+  const wrapperPath = params?.wrapperPath ?? KOVA_CLI_WRAPPER_PATH;
+  const runNodePath = params?.runNodePath ?? KOVA_RUN_NODE_SCRIPT_PATH;
 
   // Prefer the packaged wrapper when build output exists, but keep source-tree
   // auth working in unbuilt checkouts that only have scripts/run-node.mjs.
@@ -163,7 +161,7 @@ export function resolveTuiSessionKey(params: {
 }
 
 export function resolveInitialTuiAgentId(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   fallbackAgentId: string;
   initialSessionInput?: string;
   cwd?: string;
@@ -533,7 +531,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       : null
     : null;
   if (isLocalMode) {
-    setConsoleSubsystemFilter(["__openclaw_tui_quiet__"]);
+    setConsoleSubsystemFilter(["__kova_tui_quiet__"]);
   }
 
   const tui = new TUI(new ProcessTerminal());
@@ -855,7 +853,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return await work();
     } finally {
       if (isLocalMode) {
-        setConsoleSubsystemFilter(["__openclaw_tui_quiet__"]);
+        setConsoleSubsystemFilter(["__kova_tui_quiet__"]);
       }
       tui.start();
       tui.setFocus(editor);

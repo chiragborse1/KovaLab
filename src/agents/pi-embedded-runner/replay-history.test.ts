@@ -33,12 +33,12 @@ function userMessage(text: string): AgentMessage {
   return { role: "user", content: text, timestamp: 0 } as unknown as AgentMessage;
 }
 
-function openclawTranscriptAssistant(model: "delivery-mirror" | "gateway-injected"): AgentMessage {
+function kovaTranscriptAssistant(model: "delivery-mirror" | "gateway-injected"): AgentMessage {
   return {
     role: "assistant",
     content: [{ type: "text", text: "channel mirror" }],
     api: "openai-responses",
-    provider: "openclaw",
+    provider: "kova",
     model,
     usage: {
       input: 0,
@@ -134,12 +134,12 @@ describe("normalizeAssistantReplayContent", () => {
     expect(wrapped.content).toEqual([{ type: "text", text: "plain string content" }]);
   });
 
-  it("filters openclaw delivery-mirror and gateway-injected assistant messages from replay", () => {
+  it("filters kova delivery-mirror and gateway-injected assistant messages from replay", () => {
     const messages = [
       userMessage("hello"),
-      openclawTranscriptAssistant("delivery-mirror"),
+      kovaTranscriptAssistant("delivery-mirror"),
       bedrockAssistant([{ type: "text", text: "real reply" }]),
-      openclawTranscriptAssistant("gateway-injected"),
+      kovaTranscriptAssistant("gateway-injected"),
     ];
     const out = normalizeAssistantReplayContent(messages);
     expect(out).toHaveLength(2);

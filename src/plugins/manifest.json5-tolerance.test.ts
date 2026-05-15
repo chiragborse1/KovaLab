@@ -7,7 +7,7 @@ import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fi
 const tempDirs: string[] = [];
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-manifest-json5", tempDirs);
+  return makeTrackedTempDir("kova-manifest-json5", tempDirs);
 }
 
 afterEach(() => {
@@ -22,7 +22,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
       configSchema: { type: "object" },
     };
     fs.writeFileSync(
-      path.join(dir, "openclaw.plugin.json"),
+      path.join(dir, "kova.plugin.json"),
       JSON.stringify(manifest, null, 2),
       "utf-8",
     );
@@ -44,7 +44,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
     },
   },
 }`;
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), json5Content, "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), json5Content, "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -59,7 +59,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
   "id": "commented-plugin",
   "configSchema": { "type": "object" }
 }`;
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), json5Content, "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), json5Content, "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -73,7 +73,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
   id: "unquoted-keys",
   configSchema: { type: "object" }
 }`;
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), json5Content, "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), json5Content, "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -91,7 +91,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
   },
   configSchema: { type: "object" }
 }`;
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), json5Content, "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), json5Content, "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -125,7 +125,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
   },
   configSchema: { type: "object" }
 }`;
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), json5Content, "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), json5Content, "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -154,7 +154,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
 
   it("still rejects completely invalid syntax", () => {
     const dir = makeTempDir();
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), "not json at all {{{}}", "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), "not json at all {{{}}", "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -164,7 +164,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
 
   it("rejects JSON5 values that parse but are not objects", () => {
     const dir = makeTempDir();
-    fs.writeFileSync(path.join(dir, "openclaw.plugin.json"), "'just a string'", "utf-8");
+    fs.writeFileSync(path.join(dir, "kova.plugin.json"), "'just a string'", "utf-8");
     const result = loadPluginManifest(dir, false);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -175,7 +175,7 @@ describe("loadPluginManifest JSON5 tolerance", () => {
   it("rejects oversized manifests before parsing", () => {
     const dir = makeTempDir();
     fs.writeFileSync(
-      path.join(dir, "openclaw.plugin.json"),
+      path.join(dir, "kova.plugin.json"),
       JSON.stringify({
         id: "too-large",
         configSchema: { type: "object" },

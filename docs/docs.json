@@ -36,17 +36,17 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/openclaw/openclaw",
+        "href": "https://github.com/chiragborse1/KovaLab",
         "icon": "github"
       },
       {
         "label": "Releases",
-        "href": "https://github.com/openclaw/openclaw/releases",
+        "href": "https://github.com/chiragborse1/KovaLab/releases",
         "icon": "package"
       },
       {
         "label": "Discord",
-        "href": "https://discord.com/invite/clawd",
+        "href": "https://discord.com/invite/kova",
         "icon": "discord"
       }
     ]
@@ -373,32 +373,32 @@
       "destination": "/nodes/camera"
     },
     {
-      "source": "/clawd",
-      "destination": "/start/openclaw"
+      "source": "/kova",
+      "destination": "/start/kova"
     },
     {
-      "source": "/start/clawd",
-      "destination": "/start/openclaw"
+      "source": "/start/kova",
+      "destination": "/start/kova"
     },
     {
-      "source": "/start/clawd/",
-      "destination": "/start/openclaw"
+      "source": "/start/kova/",
+      "destination": "/start/kova"
     },
     {
       "source": "/start/pairing",
       "destination": "/channels/pairing"
     },
     {
-      "source": "/clawhub",
-      "destination": "/tools/clawhub"
+      "source": "/kovahub",
+      "destination": "/tools/kovahub"
     },
     {
-      "source": "/clawdhub",
-      "destination": "/tools/clawhub"
+      "source": "/kovahub",
+      "destination": "/tools/kovahub"
     },
     {
-      "source": "/tools/clawdhub",
-      "destination": "/tools/clawhub"
+      "source": "/tools/kovahub",
+      "destination": "/tools/kovahub"
     },
     {
       "source": "/configuration",
@@ -481,7 +481,7 @@
       "destination": "/channels/telegram"
     },
     {
-      "source": "/channels/openclaw-weixin",
+      "source": "/channels/kova-weixin",
       "destination": "/channels/wechat"
     },
     {
@@ -921,10 +921,6 @@
       "destination": "/gateway/trusted-proxy-auth"
     },
     {
-      "source": "/automation/clawflow",
-      "destination": "/automation/taskflow"
-    },
-    {
       "source": "/automation/poll",
       "destination": "/cli/message"
     },
@@ -972,11 +968,7 @@
               },
               {
                 "group": "Guides",
-                "pages": [
-                  "start/openclaw",
-                  "start/wizard-cli-reference",
-                  "start/wizard-cli-automation"
-                ]
+                "pages": ["start/kova", "start/wizard-cli-reference", "start/wizard-cli-automation"]
               }
             ]
           },
@@ -1008,7 +1000,7 @@
                 "pages": [
                   "install/ansible",
                   "install/bun",
-                  "install/clawdock",
+                  "install/kovadock",
                   "install/docker",
                   "install/nix",
                   "install/podman"
@@ -1220,7 +1212,7 @@
                   "tools/creating-skills",
                   "tools/skills-config",
                   "tools/slash-commands",
-                  "tools/clawhub",
+                  "tools/kovahub",
                   "prose"
                 ]
               },
@@ -1629,7 +1621,7 @@
                     "group": "Utility",
                     "pages": [
                       "cli/acp",
-                      "cli/clawbot",
+                      "cli/kova",
                       "cli/completion",
                       "cli/dns",
                       "cli/docs",

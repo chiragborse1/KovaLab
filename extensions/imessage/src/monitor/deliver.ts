@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import {
   deliverTextOrMediaReply,
   resolveSendableOutboundReplyParts,
-} from "openclaw/plugin-sdk/reply-payload";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/reply-payload";
+import type { ReplyPayload } from "getkova/plugin-sdk/reply-runtime";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import type { createIMessageRpcClient } from "../client.js";
 import { sendMessageIMessage } from "../send.js";
 import {
@@ -17,7 +17,7 @@ import type { SentMessageCache } from "./echo-cache.js";
 import { sanitizeOutboundText } from "./sanitize-outbound.js";
 
 export async function deliverReplies(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   replies: ReplyPayload[];
   target: string;
   client: Awaited<ReturnType<typeof createIMessageRpcClient>>;

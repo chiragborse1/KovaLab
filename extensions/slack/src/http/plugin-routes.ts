@@ -1,10 +1,10 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/channel-plugin-common";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/account-id";
+import type { KovaPluginApi } from "getkova/plugin-sdk/channel-plugin-common";
 import { listSlackAccountIds, mergeSlackAccountConfig } from "../accounts.js";
 import { normalizeSlackWebhookPath } from "./paths.js";
 import { handleSlackHttpRequest } from "./registry.js";
 
-export function registerSlackPluginHttpRoutes(api: OpenClawPluginApi): void {
+export function registerSlackPluginHttpRoutes(api: KovaPluginApi): void {
   const accountIds = new Set<string>([DEFAULT_ACCOUNT_ID, ...listSlackAccountIds(api.config)]);
   const registeredPaths = new Set<string>();
   for (const accountId of accountIds) {

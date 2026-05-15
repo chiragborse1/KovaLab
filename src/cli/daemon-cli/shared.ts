@@ -110,11 +110,11 @@ const SAFE_DAEMON_ENV_KEYS = [
   "KOVA_STATE_DIR",
   "KOVA_CONFIG_PATH",
   "KOVA_GATEWAY_PORT",
-  "OPENCLAW_PROFILE",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
-  "OPENCLAW_GATEWAY_PORT",
-  "OPENCLAW_NIX_MODE",
+  "KOVA_PROFILE",
+  "KOVA_STATE_DIR",
+  "KOVA_CONFIG_PATH",
+  "KOVA_GATEWAY_PORT",
+  "KOVA_NIX_MODE",
 ];
 
 export function filterDaemonEnv(env: Record<string, string> | undefined): Record<string, string> {
@@ -123,8 +123,8 @@ export function filterDaemonEnv(env: Record<string, string> | undefined): Record
   }
   const filtered: Record<string, string> = {};
   for (const key of SAFE_DAEMON_ENV_KEYS) {
-    if (key.startsWith("OPENCLAW_")) {
-      const kovaKey = key.replace(/^OPENCLAW_/u, "KOVA_");
+    if (key.startsWith("KOVA_")) {
+      const kovaKey = key.replace(/^KOVA_/u, "KOVA_");
       if (env[kovaKey]?.trim()) {
         continue;
       }
@@ -186,10 +186,8 @@ export function renderRuntimeHints(
     hints.push(
       ...buildPlatformRuntimeLogHints({
         env,
-        systemdServiceName: resolveGatewaySystemdServiceName(
-          env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE,
-        ),
-        windowsTaskName: resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE),
+        systemdServiceName: resolveGatewaySystemdServiceName(env.KOVA_PROFILE ?? env.KOVA_PROFILE),
+        windowsTaskName: resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.KOVA_PROFILE),
       }),
     );
   }
@@ -197,7 +195,7 @@ export function renderRuntimeHints(
 }
 
 export function renderGatewayServiceStartHints(env: NodeJS.ProcessEnv = process.env): string[] {
-  const profile = env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE;
+  const profile = env.KOVA_PROFILE ?? env.KOVA_PROFILE;
   const container = resolveDaemonContainerContext(env);
   const hints = buildPlatformServiceStartHints({
     installCommand: formatCliCommand("kova gateway install", env),

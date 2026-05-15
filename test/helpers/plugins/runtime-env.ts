@@ -1,4 +1,4 @@
-import type { OutputRuntimeEnv } from "openclaw/plugin-sdk/runtime";
+import type { OutputRuntimeEnv } from "getkova/plugin-sdk/runtime";
 import { vi } from "vitest";
 
 export function createRuntimeEnv(options?: { throwOnExit?: boolean }): OutputRuntimeEnv {

@@ -1,10 +1,10 @@
 {
-  "name": "@openclaw/speech-core",
+  "name": "@kovaai/speech-core",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova speech runtime package",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/setup";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/setup";
 import { describe, expect, it, vi } from "vitest";
 import {
   buildTelegramDmAccessWarningLines,
@@ -116,7 +116,7 @@ describe("telegramSetupDmPolicy", () => {
   });
 
   it("uses configured defaultAccount for omitted DM policy account context", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       channels: {
         telegram: {
           defaultAccount: "alerts",
@@ -144,7 +144,7 @@ describe("telegramSetupDmPolicy", () => {
   });
 
   it('writes open policy state to the named account and preserves inherited allowFrom with "*"', () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       channels: {
         telegram: {
           allowFrom: ["123"],

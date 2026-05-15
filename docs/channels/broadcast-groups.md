@@ -205,7 +205,7 @@ In group `120363403215116621@g.us` with agents `["alfred", "baerbel"]`:
     ```
     Session: agent:alfred:whatsapp:group:120363403215116621@g.us
     History: [user message, alfred's previous responses]
-    Workspace: /Users/user/openclaw-alfred/
+    Workspace: /Users/user/kova-alfred/
     Tools: read, write, exec
     ```
   </Tab>
@@ -213,7 +213,7 @@ In group `120363403215116621@g.us` with agents `["alfred", "baerbel"]`:
     ```
     Session: agent:baerbel:whatsapp:group:120363403215116621@g.us
     History: [user message, baerbel's previous responses]
-    Workspace: /Users/user/openclaw-baerbel/
+    Workspace: /Users/user/kova-baerbel/
     Tools: read only
     ```
   </Tab>
@@ -335,7 +335,7 @@ Broadcast groups work alongside existing routing:
     **Debug:**
 
     ```bash
-    tail -f ~/.openclaw/logs/gateway.log | grep broadcast
+    tail -f ~/.kova/logs/gateway.log | grep broadcast
     ```
 
   </Accordion>
@@ -427,7 +427,7 @@ Broadcast groups work alongside existing routing:
 ### Config schema
 
 ```typescript
-interface OpenClawConfig {
+interface KovaConfig {
   broadcast?: {
     strategy?: "parallel" | "sequential";
     [peerId: string]: string[];

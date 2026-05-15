@@ -16,7 +16,7 @@ const DEFAULT_FAST_LOCAL_CHECK_MIN_CPUS = 12;
 const SLEEP_BUFFER = new Int32Array(new SharedArrayBuffer(4));
 
 export function isLocalCheckEnabled(env) {
-  const raw = env.OPENCLAW_LOCAL_CHECK?.trim().toLowerCase();
+  const raw = env.KOVA_LOCAL_CHECK?.trim().toLowerCase();
   return raw !== "0" && raw !== "false";
 }
 
@@ -31,7 +31,7 @@ export function resolveLocalHeavyCheckEnv(env = process.env) {
 
   return {
     ...env,
-    OPENCLAW_LOCAL_CHECK: "1",
+    KOVA_LOCAL_CHECK: "1",
   };
 }
 
@@ -57,7 +57,7 @@ export function applyLocalTsgoPolicy(args, env, hostResources) {
     insertBeforeSeparator(
       nextArgs,
       "--tsBuildInfoFile",
-      nextEnv.OPENCLAW_TSGO_BUILD_INFO_FILE ?? DEFAULT_LOCAL_TSGO_BUILD_INFO_FILE,
+      nextEnv.KOVA_TSGO_BUILD_INFO_FILE ?? DEFAULT_LOCAL_TSGO_BUILD_INFO_FILE,
     );
   }
 
@@ -72,8 +72,8 @@ export function applyLocalTsgoPolicy(args, env, hostResources) {
       nextEnv.GOMEMLIMIT = DEFAULT_LOCAL_GO_MEMORY_LIMIT;
     }
   }
-  if (nextEnv.OPENCLAW_TSGO_PPROF_DIR && !hasFlag(nextArgs, "--pprofDir")) {
-    insertBeforeSeparator(nextArgs, "--pprofDir", nextEnv.OPENCLAW_TSGO_PPROF_DIR);
+  if (nextEnv.KOVA_TSGO_PPROF_DIR && !hasFlag(nextArgs, "--pprofDir")) {
+    insertBeforeSeparator(nextArgs, "--pprofDir", nextEnv.KOVA_TSGO_PPROF_DIR);
   }
 
   return { env: nextEnv, args: nextArgs };
@@ -103,7 +103,7 @@ export function shouldAcquireLocalHeavyCheckLockForOxlint(
   args,
   { cwd = process.cwd(), env = process.env } = {},
 ) {
-  if (env.OPENCLAW_OXLINT_FORCE_LOCK === "1") {
+  if (env.KOVA_OXLINT_FORCE_LOCK === "1") {
     return true;
   }
 
@@ -145,7 +145,7 @@ export function shouldAcquireLocalHeavyCheckLockForOxlint(
 }
 
 export function shouldAcquireLocalHeavyCheckLockForTsgo(args, env = process.env) {
-  if (env.OPENCLAW_TSGO_FORCE_LOCK === "1") {
+  if (env.KOVA_TSGO_FORCE_LOCK === "1") {
     return true;
   }
 
@@ -188,22 +188,16 @@ export function acquireLocalHeavyCheckLockSync(params) {
   }
 
   const commonDir = resolveGitCommonDir(params.cwd);
-  const locksDir = path.join(commonDir, "openclaw-local-checks");
+  const locksDir = path.join(commonDir, "kova-local-checks");
   const lockDir = path.join(locksDir, `${params.lockName ?? "heavy-check"}.lock`);
   const ownerPath = path.join(lockDir, "owner.json");
-  const timeoutMs = readPositiveInt(
-    env.OPENCLAW_HEAVY_CHECK_LOCK_TIMEOUT_MS,
-    DEFAULT_LOCK_TIMEOUT_MS,
-  );
-  const pollMs = readPositiveInt(env.OPENCLAW_HEAVY_CHECK_LOCK_POLL_MS, DEFAULT_LOCK_POLL_MS);
+  const timeoutMs = readPositiveInt(env.KOVA_HEAVY_CHECK_LOCK_TIMEOUT_MS, DEFAULT_LOCK_TIMEOUT_MS);
+  const pollMs = readPositiveInt(env.KOVA_HEAVY_CHECK_LOCK_POLL_MS, DEFAULT_LOCK_POLL_MS);
   const progressMs = readPositiveInt(
-    env.OPENCLAW_HEAVY_CHECK_LOCK_PROGRESS_MS,
+    env.KOVA_HEAVY_CHECK_LOCK_PROGRESS_MS,
     DEFAULT_LOCK_PROGRESS_MS,
   );
-  const staleLockMs = readPositiveInt(
-    env.OPENCLAW_HEAVY_CHECK_STALE_LOCK_MS,
-    DEFAULT_STALE_LOCK_MS,
-  );
+  const staleLockMs = readPositiveInt(env.KOVA_HEAVY_CHECK_STALE_LOCK_MS, DEFAULT_STALE_LOCK_MS);
   const startedAt = Date.now();
   let waitingLogged = false;
   let lastProgressAt = 0;
@@ -314,7 +308,7 @@ function insertBeforeSeparator(args, ...items) {
 }
 
 function readLocalCheckMode(env, defaultMode) {
-  const raw = env.OPENCLAW_LOCAL_CHECK_MODE?.trim().toLowerCase();
+  const raw = env.KOVA_LOCAL_CHECK_MODE?.trim().toLowerCase();
   if (raw === "throttled" || raw === "low-memory") {
     return "throttled";
   }

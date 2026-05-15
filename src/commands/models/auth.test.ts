@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import type { ProviderPlugin } from "../../plugins/types.js";
 import type { RuntimeEnv } from "../../runtime.js";
 
@@ -41,7 +41,7 @@ vi.mock("../../agents/auth-profiles/usage.js", () => ({
 
 vi.mock("../../plugins/provider-auth-helpers.js", () => ({
   applyAuthProfileConfig: (
-    cfg: OpenClawConfig,
+    cfg: KovaConfig,
     params: {
       profileId: string;
       provider: string;
@@ -49,7 +49,7 @@ vi.mock("../../plugins/provider-auth-helpers.js", () => ({
       email?: string;
       displayName?: string;
     },
-  ): OpenClawConfig => ({
+  ): KovaConfig => ({
     ...cfg,
     auth: {
       ...cfg.auth,
@@ -163,7 +163,7 @@ vi.mock("../provider-auth-helpers.js", () => {
       );
     }),
     applyProviderAuthConfigPatch: vi.fn(
-      (cfg: OpenClawConfig, patch: unknown, options?: { replaceDefaultModels?: boolean }) => {
+      (cfg: KovaConfig, patch: unknown, options?: { replaceDefaultModels?: boolean }) => {
         const merged = mergePatch(cfg, patch);
         if (!options?.replaceDefaultModels) {
           return merged;
@@ -184,7 +184,7 @@ vi.mock("../provider-auth-helpers.js", () => {
           : merged;
       },
     ),
-    applyDefaultModel: vi.fn((cfg: OpenClawConfig, model: string) => ({
+    applyDefaultModel: vi.fn((cfg: KovaConfig, model: string) => ({
       ...cfg,
       agents: {
         ...cfg.agents,
@@ -261,8 +261,8 @@ function createProvider(params: {
 
 describe("modelsAuthLoginCommand", () => {
   let restoreStdin: (() => void) | null = null;
-  let currentConfig: OpenClawConfig;
-  let lastUpdatedConfig: OpenClawConfig | null;
+  let currentConfig: KovaConfig;
+  let lastUpdatedConfig: KovaConfig | null;
   let runProviderAuth: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -280,18 +280,16 @@ describe("modelsAuthLoginCommand", () => {
     mocks.upsertAuthProfile.mockReset();
 
     mocks.resolveDefaultAgentId.mockReturnValue("main");
-    mocks.resolveAgentDir.mockReturnValue("/tmp/openclaw/agents/main");
-    mocks.resolveAgentWorkspaceDir.mockReturnValue("/tmp/openclaw/workspace");
-    mocks.resolveDefaultAgentWorkspaceDir.mockReturnValue("/tmp/openclaw/workspace");
+    mocks.resolveAgentDir.mockReturnValue("/tmp/kova/agents/main");
+    mocks.resolveAgentWorkspaceDir.mockReturnValue("/tmp/kova/workspace");
+    mocks.resolveDefaultAgentWorkspaceDir.mockReturnValue("/tmp/kova/workspace");
     mocks.isRemoteEnvironment.mockReturnValue(false);
     mocks.loadValidConfigOrThrow.mockImplementation(async () => currentConfig);
-    mocks.updateConfig.mockImplementation(
-      async (mutator: (cfg: OpenClawConfig) => OpenClawConfig) => {
-        lastUpdatedConfig = mutator(currentConfig);
-        currentConfig = lastUpdatedConfig;
-        return lastUpdatedConfig;
-      },
-    );
+    mocks.updateConfig.mockImplementation(async (mutator: (cfg: KovaConfig) => KovaConfig) => {
+      lastUpdatedConfig = mutator(currentConfig);
+      currentConfig = lastUpdatedConfig;
+      return lastUpdatedConfig;
+    });
     mocks.createClackPrompter.mockReturnValue({
       note: vi.fn(async () => {}),
       select: vi.fn(),
@@ -332,15 +330,15 @@ describe("modelsAuthLoginCommand", () => {
   function useCoderAgentConfig() {
     currentConfig = {
       agents: {
-        list: [{ id: "main" }, { id: "coder", workspace: "/tmp/openclaw/workspaces/coder" }],
+        list: [{ id: "main" }, { id: "coder", workspace: "/tmp/kova/workspaces/coder" }],
       },
     };
     const originalConfig = currentConfig;
-    mocks.resolveAgentDir.mockImplementation((_cfg: OpenClawConfig, agentId: string) =>
-      agentId === "coder" ? "/tmp/openclaw/agents/coder" : "/tmp/openclaw/agents/main",
+    mocks.resolveAgentDir.mockImplementation((_cfg: KovaConfig, agentId: string) =>
+      agentId === "coder" ? "/tmp/kova/agents/coder" : "/tmp/kova/agents/main",
     );
-    mocks.resolveAgentWorkspaceDir.mockImplementation((_cfg: OpenClawConfig, agentId: string) =>
-      agentId === "coder" ? "/tmp/openclaw/workspaces/coder" : "/tmp/openclaw/workspace",
+    mocks.resolveAgentWorkspaceDir.mockImplementation((_cfg: KovaConfig, agentId: string) =>
+      agentId === "coder" ? "/tmp/kova/workspaces/coder" : "/tmp/kova/workspace",
     );
     return originalConfig;
   }
@@ -367,11 +365,11 @@ describe("modelsAuthLoginCommand", () => {
 
     await modelsAuthLoginCommand({ provider: "openai-codex" }, runtime);
 
-    expect(mocks.loadAuthProfileStoreForRuntime).toHaveBeenCalledWith("/tmp/openclaw/agents/main");
+    expect(mocks.loadAuthProfileStoreForRuntime).toHaveBeenCalledWith("/tmp/kova/agents/main");
     expect(mocks.clearAuthProfileCooldown).toHaveBeenCalledWith({
       store: fakeStore,
       profileId: "openai-codex:user@example.com",
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
     expect(mocks.clearAuthProfileCooldown.mock.invocationCallOrder[0]).toBeLessThan(
       runProviderAuth.mock.invocationCallOrder[0],
@@ -383,7 +381,7 @@ describe("modelsAuthLoginCommand", () => {
         type: "oauth",
         provider: "openai-codex",
       }),
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
     expect(lastUpdatedConfig?.auth?.profiles?.["openai-codex:user@example.com"]).toMatchObject({
       provider: "openai-codex",
@@ -418,15 +416,15 @@ describe("modelsAuthLoginCommand", () => {
 
     expect(mocks.resolveDefaultAgentId).not.toHaveBeenCalled();
     expect(mocks.resolveAgentDir).toHaveBeenCalledWith(originalConfig, "coder");
-    expect(mocks.loadAuthProfileStoreForRuntime).toHaveBeenCalledWith("/tmp/openclaw/agents/coder");
+    expect(mocks.loadAuthProfileStoreForRuntime).toHaveBeenCalledWith("/tmp/kova/agents/coder");
     expect(runProviderAuth).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentDir: "/tmp/openclaw/agents/coder",
-        workspaceDir: "/tmp/openclaw/workspaces/coder",
+        agentDir: "/tmp/kova/agents/coder",
+        workspaceDir: "/tmp/kova/workspaces/coder",
       }),
     );
     expect(mocks.upsertAuthProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ agentDir: "/tmp/openclaw/agents/coder" }),
+      expect.objectContaining({ agentDir: "/tmp/kova/agents/coder" }),
     );
   });
 
@@ -473,7 +471,7 @@ describe("modelsAuthLoginCommand", () => {
     expect(mocks.resolvePluginProviders).toHaveBeenCalledWith(
       expect.objectContaining({
         config: {},
-        workspaceDir: "/tmp/openclaw/workspace",
+        workspaceDir: "/tmp/kova/workspace",
         bundledProviderAllowlistCompat: true,
         bundledProviderVitestCompat: true,
         includeUntrustedWorkspacePlugins: false,
@@ -517,8 +515,8 @@ describe("modelsAuthLoginCommand", () => {
     const runApiKeyAuth = vi.fn();
     const runClaudeCliMigration = vi.fn().mockImplementation(async (ctx) => {
       expect(ctx.config).toEqual(currentConfig);
-      expect(ctx.agentDir).toBe("/tmp/openclaw/agents/main");
-      expect(ctx.workspaceDir).toBe("/tmp/openclaw/workspace");
+      expect(ctx.agentDir).toBe("/tmp/kova/agents/main");
+      expect(ctx.workspaceDir).toBe("/tmp/kova/workspace");
       expect(ctx.prompter).toMatchObject({ note, select: expect.any(Function) });
       expect(ctx.runtime).toBe(runtime);
       expect(ctx.env).toBe(process.env);
@@ -606,12 +604,12 @@ describe("modelsAuthLoginCommand", () => {
     expect(mocks.clearAuthProfileCooldown).toHaveBeenNthCalledWith(1, {
       store: fakeStore,
       profileId: "anthropic:claude-cli",
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
     expect(mocks.clearAuthProfileCooldown).toHaveBeenNthCalledWith(2, {
       store: fakeStore,
       profileId: "anthropic:legacy",
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
     expect(
       mocks.clearAuthProfileCooldown.mock.invocationCallOrder.every(
@@ -752,11 +750,9 @@ describe("modelsAuthLoginCommand", () => {
         provider: "anthropic",
         token: `sk-ant-oat01-${"a".repeat(80)}`,
       },
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
-    expect(runtime.log).toHaveBeenCalledWith(
-      "Anthropic setup-token auth is supported in Kova.",
-    );
+    expect(runtime.log).toHaveBeenCalledWith("Anthropic setup-token auth is supported in Kova.");
     expect(runtime.log).toHaveBeenCalledWith(
       "Kova prefers Claude CLI reuse when it is available on the host.",
     );
@@ -780,7 +776,7 @@ describe("modelsAuthLoginCommand", () => {
         provider: "openai",
         token: "openai-token",
       },
-      agentDir: "/tmp/openclaw/agents/coder",
+      agentDir: "/tmp/kova/agents/coder",
     });
   });
 
@@ -838,7 +834,7 @@ describe("modelsAuthLoginCommand", () => {
         provider: "moonshot",
         token: "moonshot-token",
       },
-      agentDir: "/tmp/openclaw/agents/main",
+      agentDir: "/tmp/kova/agents/main",
     });
   });
 
@@ -877,12 +873,12 @@ describe("modelsAuthLoginCommand", () => {
     expect(mocks.resolveDefaultAgentId).not.toHaveBeenCalled();
     expect(runTokenAuth).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentDir: "/tmp/openclaw/agents/coder",
-        workspaceDir: "/tmp/openclaw/workspaces/coder",
+        agentDir: "/tmp/kova/agents/coder",
+        workspaceDir: "/tmp/kova/workspaces/coder",
       }),
     );
     expect(mocks.upsertAuthProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ agentDir: "/tmp/openclaw/agents/coder" }),
+      expect.objectContaining({ agentDir: "/tmp/kova/agents/coder" }),
     );
   });
 
@@ -922,12 +918,12 @@ describe("modelsAuthLoginCommand", () => {
     expect(mocks.resolveDefaultAgentId).not.toHaveBeenCalled();
     expect(runTokenAuth).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentDir: "/tmp/openclaw/agents/coder",
-        workspaceDir: "/tmp/openclaw/workspaces/coder",
+        agentDir: "/tmp/kova/agents/coder",
+        workspaceDir: "/tmp/kova/workspaces/coder",
       }),
     );
     expect(mocks.upsertAuthProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ agentDir: "/tmp/openclaw/agents/coder" }),
+      expect.objectContaining({ agentDir: "/tmp/kova/agents/coder" }),
     );
   });
 
@@ -952,7 +948,7 @@ describe("modelsAuthLoginCommand", () => {
         provider: "openai",
         token: "openai-token",
       },
-      agentDir: "/tmp/openclaw/agents/coder",
+      agentDir: "/tmp/kova/agents/coder",
     });
   });
 });

@@ -13,13 +13,13 @@ Debugging helpers for streaming output, especially when a provider mixes reasoni
 
 Use `/debug` in chat to set **runtime-only** config overrides (memory, not disk).
 `/debug` is disabled by default; enable with `commands.debug: true`.
-This is handy when you need to toggle obscure settings without editing `openclaw.json`.
+This is handy when you need to toggle obscure settings without editing `kova.json`.
 
 Examples:
 
 ```
 /debug show
-/debug set messages.responsePrefix="[openclaw]"
+/debug set messages.responsePrefix="[kova]"
 /debug unset messages.responsePrefix
 /debug reset
 ```
@@ -95,7 +95,7 @@ Guidelines:
 Readable mode is best for live debugging:
 
 ```bash
-OPENCLAW_DEBUG_TIMING=1 pnpm kova models list --all --provider moonshot
+KOVA_DEBUG_TIMING=1 pnpm kova models list --all --provider moonshot
 ```
 
 Example output from a temporary `models list` investigation:
@@ -146,7 +146,7 @@ production paths.
 Use JSON mode when you want to save or compare timing data:
 
 ```bash
-OPENCLAW_DEBUG_TIMING=json pnpm kova models list --all --provider moonshot \
+KOVA_DEBUG_TIMING=json pnpm kova models list --all --provider moonshot \
   2> .artifacts/models-list-timing.jsonl
 ```
 
@@ -197,7 +197,7 @@ node scripts/watch-node.mjs gateway --force
 ```
 
 The watcher restarts on build-relevant files under `src/`, extension source files,
-extension `package.json` and `openclaw.plugin.json` metadata, `tsconfig.json`,
+extension `package.json` and `kova.plugin.json` metadata, `tsconfig.json`,
 `package.json`, and `tsdown.config.ts`. Extension metadata changes restart the
 gateway without forcing a `tsdown` rebuild; source and config changes still
 rebuild `dist` first.
@@ -211,7 +211,7 @@ replaces the older watcher instead of leaving duplicate watcher parents behind.
 Use the dev profile to isolate state and spin up a safe, disposable setup for
 debugging. There are **two** `--dev` flags:
 
-- **Global `--dev` (profile):** isolates state under `~/.openclaw-dev` and
+- **Global `--dev` (profile):** isolates state under `~/.kova-dev` and
   defaults the gateway port to `19001` (derived ports shift with it).
 - **`gateway --dev`: tells the Gateway to auto-create a default config +
   workspace** when missing (and skip BOOTSTRAP.md).
@@ -220,7 +220,7 @@ Recommended flow (dev profile + dev bootstrap):
 
 ```bash
 pnpm gateway:dev
-OPENCLAW_PROFILE=dev kova tui
+KOVA_PROFILE=dev kova tui
 ```
 
 If you don’t have a global install yet, run the CLI via `pnpm kova ...`.
@@ -228,10 +228,10 @@ If you don’t have a global install yet, run the CLI via `pnpm kova ...`.
 What this does:
 
 1. **Profile isolation** (global `--dev`)
-   - `OPENCLAW_PROFILE=dev`
-   - `OPENCLAW_STATE_DIR=~/.openclaw-dev`
-   - `OPENCLAW_CONFIG_PATH=~/.openclaw-dev/openclaw.json`
-   - `OPENCLAW_GATEWAY_PORT=19001` (browser/canvas shift accordingly)
+   - `KOVA_PROFILE=dev`
+   - `KOVA_STATE_DIR=~/.kova-dev`
+   - `KOVA_CONFIG_PATH=~/.kova-dev/kova.json`
+   - `KOVA_GATEWAY_PORT=19001` (browser/canvas shift accordingly)
 
 2. **Dev bootstrap** (`gateway --dev`)
    - Writes a minimal config if missing (`gateway.mode=local`, bind loopback).
@@ -240,7 +240,7 @@ What this does:
    - Seeds the workspace files if missing:
      `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`, `HEARTBEAT.md`.
    - Default identity: **C3‑PO** (protocol droid).
-   - Skips channel providers in dev mode (`OPENCLAW_SKIP_CHANNELS=1`).
+   - Skips channel providers in dev mode (`KOVA_SKIP_CHANNELS=1`).
 
 Reset flow (fresh start):
 
@@ -252,7 +252,7 @@ pnpm gateway:dev:reset
 `--dev` is a **global** profile flag and gets eaten by some runners. If you need to spell it out, use the env var form:
 
 ```bash
-OPENCLAW_PROFILE=dev kova gateway --dev --reset
+KOVA_PROFILE=dev kova gateway --dev --reset
 ```
 
 </Note>
@@ -284,19 +284,19 @@ pnpm gateway:watch --raw-stream
 Optional path override:
 
 ```bash
-pnpm gateway:watch --raw-stream --raw-stream-path ~/.openclaw/logs/raw-stream.jsonl
+pnpm gateway:watch --raw-stream --raw-stream-path ~/.kova/logs/raw-stream.jsonl
 ```
 
 Equivalent env vars:
 
 ```bash
-OPENCLAW_RAW_STREAM=1
-OPENCLAW_RAW_STREAM_PATH=~/.openclaw/logs/raw-stream.jsonl
+KOVA_RAW_STREAM=1
+KOVA_RAW_STREAM_PATH=~/.kova/logs/raw-stream.jsonl
 ```
 
 Default file:
 
-`~/.openclaw/logs/raw-stream.jsonl`
+`~/.kova/logs/raw-stream.jsonl`
 
 ## Raw chunk logging (pi-mono)
 

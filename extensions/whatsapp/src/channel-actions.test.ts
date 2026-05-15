@@ -3,15 +3,15 @@ import {
   describeWhatsAppMessageActions,
   resolveWhatsAppAgentReactionGuidance,
 } from "./channel-actions.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { KovaConfig } from "./runtime-api.js";
 
 const hoisted = vi.hoisted(() => ({
-  listWhatsAppAccountIds: vi.fn((cfg: OpenClawConfig) => {
+  listWhatsAppAccountIds: vi.fn((cfg: KovaConfig) => {
     const accountIds = Object.keys(cfg.channels?.whatsapp?.accounts ?? {});
     return accountIds.length > 0 ? accountIds : ["default"];
   }),
   resolveWhatsAppAccount: vi.fn(
-    ({ cfg, accountId }: { cfg: OpenClawConfig; accountId?: string | null }) => ({
+    ({ cfg, accountId }: { cfg: KovaConfig; accountId?: string | null }) => ({
       enabled:
         accountId == null ? true : cfg.channels?.whatsapp?.accounts?.[accountId]?.enabled !== false,
     }),
@@ -31,13 +31,7 @@ vi.mock("./channel-actions.runtime.js", async () => {
       }
       return true;
     },
-    resolveWhatsAppReactionLevel: ({
-      cfg,
-      accountId,
-    }: {
-      cfg: OpenClawConfig;
-      accountId?: string;
-    }) => {
+    resolveWhatsAppReactionLevel: ({ cfg, accountId }: { cfg: KovaConfig; accountId?: string }) => {
       const accountLevel =
         accountId == null
           ? undefined
@@ -65,7 +59,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(resolveWhatsAppAgentReactionGuidance({ cfg, accountId: "default" })).toBe("minimal");
   });
@@ -73,7 +67,7 @@ describe("whatsapp channel action helpers", () => {
   it("omits reaction guidance when WhatsApp is not configured", () => {
     expect(
       resolveWhatsAppAgentReactionGuidance({
-        cfg: {} as OpenClawConfig,
+        cfg: {} as KovaConfig,
         accountId: "default",
       }),
     ).toBeUndefined();
@@ -87,7 +81,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(resolveWhatsAppAgentReactionGuidance({ cfg, accountId: "default" })).toBe("minimal");
   });
@@ -100,7 +94,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(resolveWhatsAppAgentReactionGuidance({ cfg, accountId: "default" })).toBeUndefined();
   });
@@ -113,7 +107,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(resolveWhatsAppAgentReactionGuidance({ cfg, accountId: "default" })).toBeUndefined();
   });
@@ -125,7 +119,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(describeWhatsAppMessageActions({ cfg, accountId: "default" })?.actions).toEqual([
       "react",
@@ -135,7 +129,7 @@ describe("whatsapp channel action helpers", () => {
 
   it("returns null when WhatsApp is not configured", () => {
     expect(
-      describeWhatsAppMessageActions({ cfg: {} as OpenClawConfig, accountId: "default" }),
+      describeWhatsAppMessageActions({ cfg: {} as KovaConfig, accountId: "default" }),
     ).toBeNull();
   });
 
@@ -147,7 +141,7 @@ describe("whatsapp channel action helpers", () => {
           allowFrom: ["*"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(describeWhatsAppMessageActions({ cfg, accountId: "default" })?.actions).toEqual([
       "poll",
@@ -167,7 +161,7 @@ describe("whatsapp channel action helpers", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(describeWhatsAppMessageActions({ cfg, accountId: "work" })?.actions).toEqual([
       "react",
@@ -188,7 +182,7 @@ describe("whatsapp channel action helpers", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     hoisted.listWhatsAppAccountIds.mockReturnValue(["default", "work"]);
 
     expect(describeWhatsAppMessageActions({ cfg })?.actions).toEqual(["react", "poll"]);
@@ -208,7 +202,7 @@ describe("whatsapp channel action helpers", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     hoisted.listWhatsAppAccountIds.mockReturnValue(["default", "work"]);
 
     expect(describeWhatsAppMessageActions({ cfg })?.actions).toEqual(["poll"]);

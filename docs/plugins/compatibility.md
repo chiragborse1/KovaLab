@@ -52,7 +52,7 @@ contracts.
 The day-one CLI should be:
 
 ```sh
-openclaw-plugin-inspector ./my-plugin
+kova-plugin-inspector ./my-plugin
 ```
 
 It should emit:
@@ -92,14 +92,14 @@ instead.
 
 Current compatibility records include:
 
-- legacy broad SDK imports such as `openclaw/plugin-sdk/compat`
+- legacy broad SDK imports such as `getkova/plugin-sdk/compat`
 - legacy hook-only plugin shapes and `before_agent_start`
 - legacy `activate(api)` plugin entrypoints while plugins migrate to
   `register(api)`
-- legacy SDK aliases such as `openclaw/extension-api`,
-  `openclaw/plugin-sdk/channel-runtime`, `openclaw/plugin-sdk/command-auth`
-  status builders, `openclaw/plugin-sdk/test-utils`, and the `ClawdbotConfig` /
-  `OpenClawSchemaType` type aliases
+- legacy SDK aliases such as `getkova/extension-api`,
+  `getkova/plugin-sdk/channel-runtime`, `getkova/plugin-sdk/command-auth`
+  status builders, `getkova/plugin-sdk/test-utils`, and the `KovaConfig` /
+  `KovaSchemaType` type aliases
 - bundled plugin allowlist and enablement behavior
 - legacy provider/channel env-var manifest metadata
 - legacy provider plugin hooks and type aliases while providers move to
@@ -116,7 +116,7 @@ Current compatibility records include:
 - provider `discovery` hooks while provider catalog hooks move to
   `catalog.run(...)`
 - channel `showConfigured` / `showInSetup` metadata while channel packages move
-  to `openclaw.channel.exposure`
+  to `kova.channel.exposure`
 - legacy runtime-policy config keys while doctor migrates operators to
   `agentRuntime`
 - generated bundled channel config metadata fallback while registry-first

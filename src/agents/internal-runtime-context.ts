@@ -1,11 +1,11 @@
-export const INTERNAL_RUNTIME_CONTEXT_BEGIN = "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>";
-export const INTERNAL_RUNTIME_CONTEXT_END = "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>";
+export const INTERNAL_RUNTIME_CONTEXT_BEGIN = "<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>";
+export const INTERNAL_RUNTIME_CONTEXT_END = "<<<END_KOVA_INTERNAL_CONTEXT>>>";
 
-const ESCAPED_INTERNAL_RUNTIME_CONTEXT_BEGIN = "[[OPENCLAW_INTERNAL_CONTEXT_BEGIN]]";
-const ESCAPED_INTERNAL_RUNTIME_CONTEXT_END = "[[OPENCLAW_INTERNAL_CONTEXT_END]]";
+const ESCAPED_INTERNAL_RUNTIME_CONTEXT_BEGIN = "[[KOVA_INTERNAL_CONTEXT_BEGIN]]";
+const ESCAPED_INTERNAL_RUNTIME_CONTEXT_END = "[[KOVA_INTERNAL_CONTEXT_END]]";
 
 export const KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE = "kova.runtime-context";
-export const LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE = "openclaw.runtime-context";
+export const LEGACY_KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE = "kova.runtime-context";
 
 const INTERNAL_CONTEXT_HEADER =
   [
@@ -15,7 +15,7 @@ const INTERNAL_CONTEXT_HEADER =
   ].join("\n") + "\n";
 const LEGACY_INTERNAL_CONTEXT_HEADER =
   [
-    "OpenClaw runtime context (internal):",
+    "Kova runtime context (internal):",
     "This context is runtime-generated, not user-authored. Keep internal details private.",
     "",
   ].join("\n") + "\n";
@@ -197,7 +197,7 @@ function isRuntimeContextCustomMessage(message: unknown): boolean {
   return (
     candidate.role === "custom" &&
     (candidate.customType === KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE ||
-      candidate.customType === LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE)
+      candidate.customType === LEGACY_KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE)
   );
 }
 

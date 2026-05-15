@@ -24,15 +24,15 @@ function setControlUiBasePath(value: string | undefined) {
       "window",
       value == null
         ? ({} as Window & typeof globalThis)
-        : ({ __OPENCLAW_CONTROL_UI_BASE_PATH__: value } as Window & typeof globalThis),
+        : ({ __KOVA_CONTROL_UI_BASE_PATH__: value } as Window & typeof globalThis),
     );
     return;
   }
   if (value == null) {
-    delete window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
+    delete window.__KOVA_CONTROL_UI_BASE_PATH__;
     return;
   }
-  Object.defineProperty(window, "__OPENCLAW_CONTROL_UI_BASE_PATH__", {
+  Object.defineProperty(window, "__KOVA_CONTROL_UI_BASE_PATH__", {
     value,
     writable: true,
     configurable: true,
@@ -126,19 +126,19 @@ describe("loadSettings default gateway URL derivation", () => {
       host: "gateway.example:8443",
       pathname: "/ignored/path",
     });
-    setControlUiBasePath(" /openclaw/ ");
+    setControlUiBasePath(" /kova/ ");
 
-    expect(loadSettings().gatewayUrl).toBe(expectedGatewayUrl("/openclaw"));
+    expect(loadSettings().gatewayUrl).toBe(expectedGatewayUrl("/kova"));
   });
 
   it("infers base path from nested pathname when configured base path is not set", async () => {
     setTestLocation({
       protocol: "http:",
       host: "gateway.example:18789",
-      pathname: "/apps/openclaw/chat",
+      pathname: "/apps/kova/chat",
     });
 
-    expect(loadSettings().gatewayUrl).toBe(expectedGatewayUrl("/apps/openclaw"));
+    expect(loadSettings().gatewayUrl).toBe(expectedGatewayUrl("/apps/kova"));
   });
 
   it("skips node sessionStorage accessors that warn without a storage file", async () => {
@@ -170,25 +170,25 @@ describe("loadSettings default gateway URL derivation", () => {
       host: "gateway.example:8443",
       pathname: "/",
     });
-    sessionStorage.setItem("openclaw.control.token.v1", "legacy-session-token");
+    sessionStorage.setItem("kova.control.token.v1", "legacy-session-token");
     localStorage.setItem(
-      "openclaw.control.settings.v1",
+      "kova.control.settings.v1",
       JSON.stringify({
-        gatewayUrl: "wss://gateway.example:8443/openclaw",
+        gatewayUrl: "wss://gateway.example:8443/kova",
         token: "persisted-token",
         sessionKey: "agent",
       }),
     );
 
     expect(loadSettings()).toMatchObject({
-      gatewayUrl: "wss://gateway.example:8443/openclaw",
+      gatewayUrl: "wss://gateway.example:8443/kova",
       token: "",
       sessionKey: "agent",
     });
-    const scopedKey = "kova.control.settings.v1:wss://gateway.example:8443/openclaw";
+    const scopedKey = "kova.control.settings.v1:wss://gateway.example:8443/kova";
     expect(JSON.parse(localStorage.getItem(scopedKey) ?? "{}")).toEqual({
-      gatewayUrl: "wss://gateway.example:8443/openclaw",
-      theme: "claw",
+      gatewayUrl: "wss://gateway.example:8443/kova",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -199,7 +199,7 @@ describe("loadSettings default gateway URL derivation", () => {
       navGroupsCollapsed: {},
       borderRadius: 50,
       sessionsByGateway: {
-        "wss://gateway.example:8443/openclaw": {
+        "wss://gateway.example:8443/kova": {
           sessionKey: "agent",
           lastActiveSessionKey: "agent",
         },
@@ -221,7 +221,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "session-token",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -253,7 +253,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "gateway-a-token",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -270,7 +270,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -301,7 +301,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "memory-only-token",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -320,7 +320,7 @@ describe("loadSettings default gateway URL derivation", () => {
     const scopedKey = `kova.control.settings.v1:${gwUrl}`;
     expect(JSON.parse(localStorage.getItem(scopedKey) ?? "{}")).toEqual({
       gatewayUrl: gwUrl,
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -353,7 +353,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "stale-token",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -369,7 +369,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -454,7 +454,7 @@ describe("loadSettings default gateway URL derivation", () => {
     });
   });
 
-  it("falls back to claw when persisted custom theme data is invalid", async () => {
+  it("falls back to kova when persisted custom theme data is invalid", async () => {
     setTestLocation({
       protocol: "https:",
       host: "gateway.example:8443",
@@ -494,7 +494,7 @@ describe("loadSettings default gateway URL derivation", () => {
     );
 
     expect(loadSettings()).toMatchObject({
-      theme: "claw",
+      theme: "kova",
       themeMode: "dark",
     });
   });
@@ -512,7 +512,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "",
       sessionKey: "agent:test_old:main",
       lastActiveSessionKey: "agent:test_old:main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,
@@ -557,7 +557,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "",
       sessionKey: "agent:current:main",
       lastActiveSessionKey: "agent:current:main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "system",
       chatFocusMode: false,
       chatShowThinking: true,

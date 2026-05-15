@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/voyage-provider",
+  "name": "@kovaai/voyage-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Voyage embedding provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

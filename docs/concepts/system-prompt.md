@@ -202,13 +202,13 @@ as `memory_get`, live tool results, and post-compaction AGENTS.md refreshes.
 The system prompt includes a **Documentation** section. When local docs are available, it
 points to the local Kova docs directory (`docs/` in a Git checkout or the bundled npm
 package docs). If local docs are unavailable, it falls back to
-[https://docs.openclaw.ai](https://docs.openclaw.ai).
+[https://docs.neuralstudio.in](https://docs.neuralstudio.in).
 
 The same section also includes the Kova source location. Git checkouts expose the local
 source root so the agent can inspect code directly. Package installs include the GitHub
 source URL and tell the agent to review source there whenever the docs are incomplete or
-stale. The prompt also notes the public docs mirror, community Discord, and ClawHub
-([https://clawhub.ai](https://clawhub.ai)) for skills discovery. It tells the model to
+stale. The prompt also notes the public docs mirror, community Discord, and KovaHub
+([https://kovahub.ai](https://kovahub.ai)) for skills discovery. It tells the model to
 consult docs first for Kova behavior, commands, configuration, or architecture, and to
 run `kova status` itself when possible (asking the user only when it lacks access).
 For configuration specifically, it points agents to the `gateway` tool action

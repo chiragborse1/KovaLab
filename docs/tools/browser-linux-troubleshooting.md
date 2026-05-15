@@ -9,7 +9,7 @@ title: "Browser troubleshooting"
 Kova's browser control server fails to launch Chrome/Brave/Edge/Chromium with the error:
 
 ```
-{"error":"Error: Failed to start Chrome CDP on port 18800 for profile \"openclaw\"."}
+{"error":"Error: Failed to start Chrome CDP on port 18800 for profile \"kova\"."}
 ```
 
 ### Root cause
@@ -34,9 +34,9 @@ Other common Linux launch failures:
 - `Missing X server or $DISPLAY` means a visible browser was explicitly
   requested on a host without a desktop session. By default, local managed
   profiles now fall back to headless mode on Linux when `DISPLAY` and
-  `WAYLAND_DISPLAY` are both unset. If you set `OPENCLAW_BROWSER_HEADLESS=0`,
+  `WAYLAND_DISPLAY` are both unset. If you set `KOVA_BROWSER_HEADLESS=0`,
   `browser.headless: false`, or `browser.profiles.<name>.headless: false`,
-  remove that headed override, set `OPENCLAW_BROWSER_HEADLESS=1`, start `Xvfb`,
+  remove that headed override, set `KOVA_BROWSER_HEADLESS=1`, start `Xvfb`,
   run `kova browser start --headless` for a one-shot managed launch, or run
   Kova in a real desktop session.
 
@@ -50,7 +50,7 @@ sudo dpkg -i google-chrome-stable_current_amd64.deb
 sudo apt --fix-broken install -y  # if there are dependency errors
 ```
 
-Then update your Kova config (`~/.openclaw/openclaw.json`):
+Then update your Kova config (`~/.chiragborse1/KovaLab.json`):
 
 ```json
 {
@@ -85,20 +85,20 @@ If you must use snap Chromium, configure Kova to attach to a manually-started br
 ```bash
 chromium-browser --headless --no-sandbox --disable-gpu \
   --remote-debugging-port=18800 \
-  --user-data-dir=$HOME/.openclaw/browser/openclaw/user-data \
+  --user-data-dir=$HOME/.kova/browser/kova/user-data \
   about:blank &
 ```
 
 3. Optionally create a systemd user service to auto-start Chrome:
 
 ```ini
-# ~/.config/systemd/user/openclaw-browser.service
+# ~/.config/systemd/user/kova-browser.service
 [Unit]
 Description=Kova Browser (Chrome CDP)
 After=network.target
 
 [Service]
-ExecStart=/snap/bin/chromium --headless --no-sandbox --disable-gpu --remote-debugging-port=18800 --user-data-dir=%h/.openclaw/browser/openclaw/user-data about:blank
+ExecStart=/snap/bin/chromium --headless --no-sandbox --disable-gpu --remote-debugging-port=18800 --user-data-dir=%h/.kova/browser/kova/user-data about:blank
 Restart=on-failure
 RestartSec=5
 
@@ -106,7 +106,7 @@ RestartSec=5
 WantedBy=default.target
 ```
 
-Enable with: `systemctl --user enable --now openclaw-browser.service`
+Enable with: `systemctl --user enable --now kova-browser.service`
 
 ### Verifying the Browser Works
 
@@ -130,7 +130,7 @@ curl -s http://127.0.0.1:18791/tabs
 | `browser.enabled`                | Enable browser control                                               | `true`                                                      |
 | `browser.executablePath`         | Path to a Chromium-based browser binary (Chrome/Brave/Edge/Chromium) | auto-detected (prefers default browser when Chromium-based) |
 | `browser.headless`               | Run without GUI                                                      | `false`                                                     |
-| `OPENCLAW_BROWSER_HEADLESS`      | Per-process override for local managed browser headless mode         | unset                                                       |
+| `KOVA_BROWSER_HEADLESS`          | Per-process override for local managed browser headless mode         | unset                                                       |
 | `browser.noSandbox`              | Add `--no-sandbox` flag (needed for some Linux setups)               | `false`                                                     |
 | `browser.attachOnly`             | Don't launch browser, only attach to existing                        | `false`                                                     |
 | `browser.cdpPort`                | Chrome DevTools Protocol port                                        | `18800`                                                     |
@@ -151,7 +151,7 @@ but there are no open tabs available to attach to.
 Fix options:
 
 1. **Use the managed browser:** `kova browser start --browser-profile kova`
-   (or set `browser.defaultProfile: "openclaw"`).
+   (or set `browser.defaultProfile: "kova"`).
 2. **Use Chrome MCP:** make sure local Chrome is running with at least one open tab, then retry with `--browser-profile user`.
 
 Notes:

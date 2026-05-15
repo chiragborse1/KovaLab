@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizePluginsConfig } from "./config-state.js";
 import { resolveRuntimePluginRegistry } from "./loader.js";
 import { getMemoryRuntime } from "./memory-state.js";
@@ -7,12 +7,12 @@ import {
   resolvePluginRuntimeLoadContext,
 } from "./runtime/load-context.js";
 
-function resolveMemoryRuntimePluginIds(config: OpenClawConfig): string[] {
+function resolveMemoryRuntimePluginIds(config: KovaConfig): string[] {
   const memorySlot = normalizePluginsConfig(config.plugins).slots.memory;
   return typeof memorySlot === "string" && memorySlot.trim().length > 0 ? [memorySlot] : [];
 }
 
-function ensureMemoryRuntime(cfg?: OpenClawConfig) {
+function ensureMemoryRuntime(cfg?: KovaConfig) {
   const current = getMemoryRuntime();
   if (current || !cfg) {
     return current;
@@ -31,7 +31,7 @@ function ensureMemoryRuntime(cfg?: OpenClawConfig) {
 }
 
 export async function getActiveMemorySearchManager(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   purpose?: "default" | "status";
 }) {
@@ -42,11 +42,11 @@ export async function getActiveMemorySearchManager(params: {
   return await runtime.getMemorySearchManager(params);
 }
 
-export function resolveActiveMemoryBackendConfig(params: { cfg: OpenClawConfig; agentId: string }) {
+export function resolveActiveMemoryBackendConfig(params: { cfg: KovaConfig; agentId: string }) {
   return ensureMemoryRuntime(params.cfg)?.resolveMemoryBackendConfig(params) ?? null;
 }
 
-export async function closeActiveMemorySearchManagers(cfg?: OpenClawConfig): Promise<void> {
+export async function closeActiveMemorySearchManagers(cfg?: KovaConfig): Promise<void> {
   void cfg;
   const runtime = getMemoryRuntime();
   await runtime?.closeAllMemorySearchManagers?.();

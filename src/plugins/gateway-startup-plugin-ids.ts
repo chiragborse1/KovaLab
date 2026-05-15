@@ -1,6 +1,6 @@
 import { collectConfiguredAgentHarnessRuntimes } from "../agents/harness-runtimes.js";
 import { listPotentialConfiguredChannelIds } from "../channels/config-presence.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   DEFAULT_MEMORY_DREAMING_PLUGIN_ID,
   resolveMemoryDreamingConfig,
@@ -20,7 +20,7 @@ import {
 } from "./plugin-registry-contributions.js";
 import { loadPluginRegistrySnapshot } from "./plugin-registry-snapshot.js";
 
-function listDisabledChannelIds(config: OpenClawConfig): Set<string> {
+function listDisabledChannelIds(config: KovaConfig): Set<string> {
   const channels = config.channels;
   if (!channels || typeof channels !== "object" || Array.isArray(channels)) {
     return new Set();
@@ -54,7 +54,7 @@ function isConfigActivationValueEnabled(value: unknown): boolean {
   return true;
 }
 
-function listPotentialEnabledChannelIds(config: OpenClawConfig, env: NodeJS.ProcessEnv): string[] {
+function listPotentialEnabledChannelIds(config: KovaConfig, env: NodeJS.ProcessEnv): string[] {
   const disabled = listDisabledChannelIds(config);
   return listPotentialConfiguredChannelIds(config, env, { includePersistedAuthState: false })
     .map((id) => normalizeOptionalLowercaseString(id) ?? "")
@@ -69,7 +69,7 @@ function isGatewayStartupSidecar(plugin: InstalledPluginIndexRecord): boolean {
   return plugin.startup.sidecar;
 }
 
-function resolveGatewayStartupDreamingPluginIds(config: OpenClawConfig): Set<string> {
+function resolveGatewayStartupDreamingPluginIds(config: KovaConfig): Set<string> {
   const dreamingConfig = resolveMemoryDreamingConfig({
     pluginConfig: resolveMemoryDreamingPluginConfig(config),
     cfg: config,
@@ -81,7 +81,7 @@ function resolveGatewayStartupDreamingPluginIds(config: OpenClawConfig): Set<str
 }
 
 function resolveMemorySlotStartupPluginId(params: {
-  activationSourceConfig: OpenClawConfig;
+  activationSourceConfig: KovaConfig;
   activationSourcePlugins: ReturnType<typeof normalizePluginsConfigWithRegistry>;
   normalizePluginId: (pluginId: string) => string;
 }): string | undefined {
@@ -149,7 +149,7 @@ function findManifestPlugin(
 
 function hasConfiguredActivationPath(params: {
   manifest: PluginManifestRecord | undefined;
-  config: OpenClawConfig;
+  config: KovaConfig;
 }): boolean {
   const paths = params.manifest?.activation?.onConfigPaths;
   if (!paths?.length) {
@@ -166,7 +166,7 @@ function hasConfiguredActivationPath(params: {
 function canStartConfiguredRootPlugin(params: {
   plugin: InstalledPluginIndexRecord;
   manifest: PluginManifestRecord | undefined;
-  config: OpenClawConfig;
+  config: KovaConfig;
   pluginsConfig: ReturnType<typeof normalizePluginsConfigWithRegistry>;
   activationSourcePlugins: ReturnType<typeof normalizePluginsConfigWithRegistry>;
 }): boolean {
@@ -196,11 +196,11 @@ function canStartConfiguredRootPlugin(params: {
 
 function canStartConfiguredChannelPlugin(params: {
   plugin: InstalledPluginIndexRecord;
-  config: OpenClawConfig;
+  config: KovaConfig;
   pluginsConfig: ReturnType<typeof normalizePluginsConfigWithRegistry>;
   activationSource: {
     plugins: ReturnType<typeof normalizePluginsConfigWithRegistry>;
-    rootConfig?: OpenClawConfig;
+    rootConfig?: KovaConfig;
   };
   manifestRegistry: PluginManifestRegistry;
 }): boolean {
@@ -243,7 +243,7 @@ function canStartConfiguredChannelPlugin(params: {
 }
 
 export function resolveChannelPluginIds(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {
@@ -272,7 +272,7 @@ export function resolveChannelPluginIdsFromRegistry(params: {
 }
 
 export function resolveConfiguredDeferredChannelPluginIdsFromRegistry(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env: NodeJS.ProcessEnv;
   index: ReturnType<typeof loadPluginRegistrySnapshot>;
   manifestRegistry: PluginManifestRegistry;
@@ -309,7 +309,7 @@ export function resolveConfiguredDeferredChannelPluginIdsFromRegistry(params: {
 }
 
 export function resolveConfiguredDeferredChannelPluginIds(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {
@@ -334,8 +334,8 @@ export function resolveConfiguredDeferredChannelPluginIds(params: {
 }
 
 export function resolveGatewayStartupPluginIdsFromRegistry(params: {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: KovaConfig;
+  activationSourceConfig?: KovaConfig;
   env: NodeJS.ProcessEnv;
   index: ReturnType<typeof loadPluginRegistrySnapshot>;
   manifestRegistry: PluginManifestRegistry;
@@ -439,8 +439,8 @@ export function resolveGatewayStartupPluginIdsFromRegistry(params: {
 }
 
 export function resolveGatewayStartupPluginIds(params: {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: KovaConfig;
+  activationSourceConfig?: KovaConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
 }): string[] {

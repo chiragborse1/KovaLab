@@ -9,7 +9,7 @@ import { resolveModelRefFromString } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { DEFAULT_AGENT_WORKSPACE_DIR, ensureAgentWorkspace } from "../../agents/workspace.js";
 import { resolveChannelModelOverride } from "../../channels/model-overrides.js";
-import { type OpenClawConfig, getRuntimeConfig } from "../../config/config.js";
+import { type KovaConfig, getRuntimeConfig } from "../../config/config.js";
 import { logVerbose } from "../../globals.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -133,7 +133,7 @@ function hasLinkCandidate(ctx: MsgContext): boolean {
 
 async function applyMediaUnderstandingIfNeeded(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentDir?: string;
   activeModel: { provider: string; model: string };
 }): Promise<boolean> {
@@ -155,7 +155,7 @@ async function applyMediaUnderstandingIfNeeded(params: {
 
 async function applyLinkUnderstandingIfNeeded(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): Promise<boolean> {
   if (!hasLinkCandidate(params.ctx)) {
     return false;
@@ -176,9 +176,9 @@ async function applyLinkUnderstandingIfNeeded(params: {
 export async function getReplyFromConfig(
   ctx: MsgContext,
   opts?: GetReplyOptions,
-  configOverride?: OpenClawConfig,
+  configOverride?: KovaConfig,
 ): Promise<ReplyPayload | ReplyPayload[] | undefined> {
-  const isFastTestEnv = process.env.OPENCLAW_TEST_FAST === "1";
+  const isFastTestEnv = process.env.KOVA_TEST_FAST === "1";
   const cfg = resolveGetReplyConfig({
     getRuntimeConfig,
     isFastTestEnv,

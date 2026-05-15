@@ -36,12 +36,12 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
     This builds the gateway image locally. To use a pre-built image instead:
 
     ```bash
-    export OPENCLAW_IMAGE="ghcr.io/openclaw/openclaw:latest"
+    export KOVA_IMAGE="ghcr.io/chiragborse1/KovaLab:latest"
     ./scripts/docker/setup.sh
     ```
 
     Pre-built images are published at the
-    [GitHub Container Registry](https://github.com/openclaw/openclaw/pkgs/container/openclaw).
+    [GitHub Container Registry](https://github.com/chiragborse1/KovaLab/pkgs/container/kova).
     Common tags: `main`, `latest`, `<version>` (e.g. `2026.2.26`).
 
   </Step>
@@ -55,7 +55,7 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
     - start the gateway via Docker Compose
 
     During setup, pre-start onboarding and config writes run through
-    `openclaw-gateway` directly. `openclaw-cli` is for commands you run after
+    `kova-gateway` directly. `kova-cli` is for commands you run after
     the gateway container already exists.
 
   </Step>
@@ -69,7 +69,7 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
     Need the URL again?
 
     ```bash
-    docker compose run --rm openclaw-cli dashboard --no-open
+    docker compose run --rm kova-cli dashboard --no-open
     ```
 
   </Step>
@@ -79,13 +79,13 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
 
     ```bash
     # WhatsApp (QR)
-    docker compose run --rm openclaw-cli channels login
+    docker compose run --rm kova-cli channels login
 
     # Telegram
-    docker compose run --rm openclaw-cli channels add --channel telegram --token "<token>"
+    docker compose run --rm kova-cli channels add --channel telegram --token "<token>"
 
     # Discord
-    docker compose run --rm openclaw-cli channels add --channel discord --token "<token>"
+    docker compose run --rm kova-cli channels add --channel discord --token "<token>"
     ```
 
     Docs: [WhatsApp](/channels/whatsapp), [Telegram](/channels/telegram), [Discord](/channels/discord)
@@ -98,24 +98,24 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
 If you prefer to run each step yourself instead of using the setup script:
 
 ```bash
-docker build -t openclaw:local -f Dockerfile .
-docker compose run --rm --no-deps --entrypoint node openclaw-gateway \
+docker build -t kova:local -f Dockerfile .
+docker compose run --rm --no-deps --entrypoint node kova-gateway \
   dist/index.js onboard --mode local --no-install-daemon
-docker compose run --rm --no-deps --entrypoint node openclaw-gateway \
+docker compose run --rm --no-deps --entrypoint node kova-gateway \
   dist/index.js config set --batch-json '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"},{"path":"gateway.controlUi.allowedOrigins","value":["http://localhost:18789","http://127.0.0.1:18789"]}]'
-docker compose up -d openclaw-gateway
+docker compose up -d kova-gateway
 ```
 
 <Note>
-Run `docker compose` from the repo root. If you enabled `OPENCLAW_EXTRA_MOUNTS`
-or `OPENCLAW_HOME_VOLUME`, the setup script writes `docker-compose.extra.yml`;
+Run `docker compose` from the repo root. If you enabled `KOVA_EXTRA_MOUNTS`
+or `KOVA_HOME_VOLUME`, the setup script writes `docker-compose.extra.yml`;
 include it with `-f docker-compose.yml -f docker-compose.extra.yml`.
 </Note>
 
 <Note>
-Because `openclaw-cli` shares `openclaw-gateway`'s network namespace, it is a
-post-start tool. Before `docker compose up -d openclaw-gateway`, run onboarding
-and setup-time config writes through `openclaw-gateway` with
+Because `kova-cli` shares `kova-gateway`'s network namespace, it is a
+post-start tool. Before `docker compose up -d kova-gateway`, run onboarding
+and setup-time config writes through `kova-gateway` with
 `--no-deps --entrypoint node`.
 </Note>
 
@@ -123,28 +123,28 @@ and setup-time config writes through `openclaw-gateway` with
 
 The setup script accepts these optional environment variables:
 
-| Variable                                   | Purpose                                                            |
-| ------------------------------------------ | ------------------------------------------------------------------ |
-| `OPENCLAW_IMAGE`                           | Use a remote image instead of building locally                     |
-| `OPENCLAW_DOCKER_APT_PACKAGES`             | Install extra apt packages during build (space-separated)          |
-| `OPENCLAW_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)      |
-| `OPENCLAW_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`)    |
-| `OPENCLAW_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                      |
-| `OPENCLAW_AUTH_PROFILE_SECRET_DIR`         | Persist auth-profile encryption keys outside `OPENCLAW_CONFIG_DIR` |
-| `OPENCLAW_SANDBOX`                         | Opt in to sandbox bootstrap (`1`, `true`, `yes`, `on`)             |
-| `OPENCLAW_DOCKER_SOCKET`                   | Override Docker socket path                                        |
-| `OPENCLAW_DISABLE_BONJOUR`                 | Disable Bonjour/mDNS advertising (defaults to `1` for Docker)      |
-| `OPENCLAW_DISABLE_BUNDLED_SOURCE_OVERLAYS` | Disable bundled plugin source bind-mount overlays                  |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`              | Shared OTLP/HTTP collector endpoint for OpenTelemetry export       |
-| `OTEL_EXPORTER_OTLP_*_ENDPOINT`            | Signal-specific OTLP endpoints for traces, metrics, or logs        |
-| `OTEL_EXPORTER_OTLP_PROTOCOL`              | OTLP protocol override. Only `http/protobuf` is supported today    |
-| `OTEL_SERVICE_NAME`                        | Service name used for OpenTelemetry resources                      |
-| `OTEL_SEMCONV_STABILITY_OPT_IN`            | Opt in to latest experimental GenAI semantic attributes            |
-| `OPENCLAW_OTEL_PRELOADED`                  | Skip starting a second OpenTelemetry SDK when one is preloaded     |
+| Variable                               | Purpose                                                         |
+| -------------------------------------- | --------------------------------------------------------------- |
+| `KOVA_IMAGE`                           | Use a remote image instead of building locally                  |
+| `KOVA_DOCKER_APT_PACKAGES`             | Install extra apt packages during build (space-separated)       |
+| `KOVA_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)   |
+| `KOVA_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`) |
+| `KOVA_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                   |
+| `KOVA_AUTH_PROFILE_SECRET_DIR`         | Persist auth-profile encryption keys outside `KOVA_CONFIG_DIR`  |
+| `KOVA_SANDBOX`                         | Opt in to sandbox bootstrap (`1`, `true`, `yes`, `on`)          |
+| `KOVA_DOCKER_SOCKET`                   | Override Docker socket path                                     |
+| `KOVA_DISABLE_BONJOUR`                 | Disable Bonjour/mDNS advertising (defaults to `1` for Docker)   |
+| `KOVA_DISABLE_BUNDLED_SOURCE_OVERLAYS` | Disable bundled plugin source bind-mount overlays               |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`          | Shared OTLP/HTTP collector endpoint for OpenTelemetry export    |
+| `OTEL_EXPORTER_OTLP_*_ENDPOINT`        | Signal-specific OTLP endpoints for traces, metrics, or logs     |
+| `OTEL_EXPORTER_OTLP_PROTOCOL`          | OTLP protocol override. Only `http/protobuf` is supported today |
+| `OTEL_SERVICE_NAME`                    | Service name used for OpenTelemetry resources                   |
+| `OTEL_SEMCONV_STABILITY_OPT_IN`        | Opt in to latest experimental GenAI semantic attributes         |
+| `KOVA_OTEL_PRELOADED`                  | Skip starting a second OpenTelemetry SDK when one is preloaded  |
 
 Maintainers can test bundled plugin source against a packaged image by mounting
 one plugin source directory over its packaged source path, for example
-`OPENCLAW_EXTRA_MOUNTS=/path/to/fork/extensions/synology-chat:/app/extensions/synology-chat:ro`.
+`KOVA_EXTRA_MOUNTS=/path/to/fork/extensions/synology-chat:/app/extensions/synology-chat:ro`.
 That mounted source directory overrides the matching compiled
 `/app/dist/extensions/synology-chat` bundle for the same plugin id.
 
@@ -156,9 +156,9 @@ locally and want the bundled OpenTelemetry exporter available inside the image,
 include its runtime dependencies:
 
 ```bash
-export OPENCLAW_EXTENSIONS="diagnostics-otel"
+export KOVA_EXTENSIONS="diagnostics-otel"
 export OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4318"
-export OTEL_SERVICE_NAME="openclaw-gateway"
+export OTEL_SERVICE_NAME="kova-gateway"
 ./scripts/docker/setup.sh
 ```
 
@@ -200,12 +200,12 @@ orchestration systems can restart or replace it.
 Authenticated deep health snapshot:
 
 ```bash
-docker compose exec openclaw-gateway node dist/index.js health --token "$OPENCLAW_GATEWAY_TOKEN"
+docker compose exec kova-gateway node dist/index.js health --token "$KOVA_GATEWAY_TOKEN"
 ```
 
 ### LAN vs loopback
 
-`scripts/docker/setup.sh` defaults `OPENCLAW_GATEWAY_BIND=lan` so host access to
+`scripts/docker/setup.sh` defaults `KOVA_GATEWAY_BIND=lan` so host access to
 `http://127.0.0.1:18789` works with Docker port publishing.
 
 - `lan` (default): host browser and host CLI can reach the published gateway port.
@@ -248,20 +248,20 @@ mapping yourself, for example
 
 Docker bridge networking usually does not forward Bonjour/mDNS multicast
 (`224.0.0.251:5353`) reliably. The bundled Compose setup therefore defaults
-`OPENCLAW_DISABLE_BONJOUR=1` so the Gateway does not crash-loop or repeatedly
+`KOVA_DISABLE_BONJOUR=1` so the Gateway does not crash-loop or repeatedly
 restart advertising when the bridge drops multicast traffic.
 
 Use the published Gateway URL, Tailscale, or wide-area DNS-SD for Docker hosts.
-Set `OPENCLAW_DISABLE_BONJOUR=0` only when running with host networking, macvlan,
+Set `KOVA_DISABLE_BONJOUR=0` only when running with host networking, macvlan,
 or another network where mDNS multicast is known to work.
 
 For gotchas and troubleshooting, see [Bonjour discovery](/gateway/bonjour).
 
 ### Storage and persistence
 
-Docker Compose bind-mounts `OPENCLAW_CONFIG_DIR` to `/home/node/.openclaw`,
-`OPENCLAW_WORKSPACE_DIR` to `/home/node/.openclaw/workspace`, and
-`OPENCLAW_AUTH_PROFILE_SECRET_DIR` to `/home/node/.config/openclaw`, so those
+Docker Compose bind-mounts `KOVA_CONFIG_DIR` to `/home/node/.kova`,
+`KOVA_WORKSPACE_DIR` to `/home/node/.kova/workspace`, and
+`KOVA_AUTH_PROFILE_SECRET_DIR` to `/home/node/.config/kova`, so those
 paths survive container replacement. When any variable is unset, the bundled
 `docker-compose.yml` falls back under `${HOME}`, or `/tmp` when `HOME` itself is
 also missing. That keeps `docker compose up` from emitting an empty-source
@@ -269,47 +269,47 @@ volume spec on bare environments.
 
 That mounted config directory is where Kova keeps:
 
-- `openclaw.json` for behavior config
+- `kova.json` for behavior config
 - `agents/<agentId>/agent/auth-profiles.json` for stored provider OAuth/API-key auth
-- `.env` for env-backed runtime secrets such as `OPENCLAW_GATEWAY_TOKEN`
+- `.env` for env-backed runtime secrets such as `KOVA_GATEWAY_TOKEN`
 
 The auth-profile secret key directory stores the local encryption key used for
 OAuth-backed auth profile token material. Keep it with your Docker host state,
-but separate from `OPENCLAW_CONFIG_DIR`.
+but separate from `KOVA_CONFIG_DIR`.
 
 For full persistence details on VM deployments, see
 [Docker VM Runtime - What persists where](/install/docker-vm-runtime#what-persists-where).
 
 **Disk growth hotspots:** watch `media/`, session JSONL files, `cron/runs/*.jsonl`,
-and rolling file logs under `/tmp/openclaw/`.
+and rolling file logs under `/tmp/kova/`.
 
 ### Shell helpers (optional)
 
-For easier day-to-day Docker management, install `ClawDock`:
+For easier day-to-day Docker management, install `KovaDock`:
 
 ```bash
-mkdir -p ~/.clawdock && curl -sL https://raw.githubusercontent.com/openclaw/openclaw/main/scripts/clawdock/clawdock-helpers.sh -o ~/.clawdock/clawdock-helpers.sh
-echo 'source ~/.clawdock/clawdock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
+mkdir -p ~/.kovadock && curl -sL https://raw.githubusercontent.com/chiragborse1/KovaLab/main/scripts/kovadock/kovadock-helpers.sh -o ~/.kovadock/kovadock-helpers.sh
+echo 'source ~/.kovadock/kovadock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
 ```
 
-If you installed ClawDock from the older `scripts/shell-helpers/clawdock-helpers.sh` raw path, rerun the install command above so your local helper file tracks the new location.
+If you installed KovaDock from the older `scripts/shell-helpers/kovadock-helpers.sh` raw path, rerun the install command above so your local helper file tracks the new location.
 
-Then use `clawdock-start`, `clawdock-stop`, `clawdock-dashboard`, etc. Run
-`clawdock-help` for all commands.
-See [ClawDock](/install/clawdock) for the full helper guide.
+Then use `kovadock-start`, `kovadock-stop`, `kovadock-dashboard`, etc. Run
+`kovadock-help` for all commands.
+See [KovaDock](/install/kovadock) for the full helper guide.
 
 <AccordionGroup>
   <Accordion title="Enable agent sandbox for Docker gateway">
     ```bash
-    export OPENCLAW_SANDBOX=1
+    export KOVA_SANDBOX=1
     ./scripts/docker/setup.sh
     ```
 
     Custom socket path (e.g. rootless Docker):
 
     ```bash
-    export OPENCLAW_SANDBOX=1
-    export OPENCLAW_DOCKER_SOCKET=/run/user/1000/docker.sock
+    export KOVA_SANDBOX=1
+    export KOVA_DOCKER_SOCKET=/run/user/1000/docker.sock
     ./scripts/docker/setup.sh
     ```
 
@@ -323,25 +323,25 @@ See [ClawDock](/install/clawdock) for the full helper guide.
     Disable Compose pseudo-TTY allocation with `-T`:
 
     ```bash
-    docker compose run -T --rm openclaw-cli gateway probe
-    docker compose run -T --rm openclaw-cli devices list --json
+    docker compose run -T --rm kova-cli gateway probe
+    docker compose run -T --rm kova-cli devices list --json
     ```
 
   </Accordion>
 
   <Accordion title="Shared-network security note">
-    `openclaw-cli` uses `network_mode: "service:openclaw-gateway"` so CLI
+    `kova-cli` uses `network_mode: "service:kova-gateway"` so CLI
     commands can reach the gateway over `127.0.0.1`. Treat this as a shared
     trust boundary. The compose config drops `NET_RAW`/`NET_ADMIN` and enables
-    `no-new-privileges` on both `openclaw-gateway` and `openclaw-cli`.
+    `no-new-privileges` on both `kova-gateway` and `kova-cli`.
   </Accordion>
 
   <Accordion title="Permissions and EACCES">
     The image runs as `node` (uid 1000). If you see permission errors on
-    `/home/node/.openclaw`, make sure your host bind mounts are owned by uid 1000:
+    `/home/node/.kova`, make sure your host bind mounts are owned by uid 1000:
 
     ```bash
-    sudo chown -R 1000:1000 /path/to/openclaw-config /path/to/openclaw-workspace
+    sudo chown -R 1000:1000 /path/to/kova-config /path/to/kova-workspace
     ```
 
   </Accordion>
@@ -374,16 +374,16 @@ See [ClawDock](/install/clawdock) for the full helper guide.
     The default image is security-first and runs as non-root `node`. For a more
     full-featured container:
 
-    1. **Persist `/home/node`**: `export OPENCLAW_HOME_VOLUME="openclaw_home"`
-    2. **Bake system deps**: `export OPENCLAW_DOCKER_APT_PACKAGES="git curl jq"`
+    1. **Persist `/home/node`**: `export KOVA_HOME_VOLUME="kova_home"`
+    2. **Bake system deps**: `export KOVA_DOCKER_APT_PACKAGES="git curl jq"`
     3. **Install Playwright browsers**:
        ```bash
-       docker compose run --rm openclaw-cli \
+       docker compose run --rm kova-cli \
          node /app/node_modules/playwright-core/cli.js install chromium
        ```
     4. **Persist browser downloads**: set
        `PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright` and use
-       `OPENCLAW_HOME_VOLUME` or `OPENCLAW_EXTRA_MOUNTS`.
+       `KOVA_HOME_VOLUME` or `KOVA_EXTRA_MOUNTS`.
 
   </Accordion>
 
@@ -454,7 +454,7 @@ scripts/sandbox-setup.sh
 <AccordionGroup>
   <Accordion title="Image missing or sandbox container not starting">
     Build the sandbox image with
-    [`scripts/sandbox-setup.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/sandbox-setup.sh)
+    [`scripts/sandbox-setup.sh`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/sandbox-setup.sh)
     or set `agents.defaults.sandbox.docker.image` to your custom image.
     Containers are auto-created per session on demand.
   </Accordion>
@@ -478,9 +478,9 @@ scripts/sandbox-setup.sh
     Fetch a fresh dashboard link and approve the browser device:
 
     ```bash
-    docker compose run --rm openclaw-cli dashboard --no-open
-    docker compose run --rm openclaw-cli devices list
-    docker compose run --rm openclaw-cli devices approve <requestId>
+    docker compose run --rm kova-cli dashboard --no-open
+    docker compose run --rm kova-cli devices list
+    docker compose run --rm kova-cli devices approve <requestId>
     ```
 
     More detail: [Dashboard](/web/dashboard), [Devices](/cli/devices).
@@ -491,8 +491,8 @@ scripts/sandbox-setup.sh
     Reset gateway mode and bind:
 
     ```bash
-    docker compose run --rm openclaw-cli config set --batch-json '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"}]'
-    docker compose run --rm openclaw-cli devices list --url ws://127.0.0.1:18789
+    docker compose run --rm kova-cli config set --batch-json '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"}]'
+    docker compose run --rm kova-cli devices list --url ws://127.0.0.1:18789
     ```
 
   </Accordion>
@@ -502,6 +502,6 @@ scripts/sandbox-setup.sh
 
 - [Install Overview](/install) — all installation methods
 - [Podman](/install/podman) — Podman alternative to Docker
-- [ClawDock](/install/clawdock) — Docker Compose community setup
+- [KovaDock](/install/kovadock) — Docker Compose community setup
 - [Updating](/install/updating) — keeping Kova up to date
 - [Configuration](/gateway/configuration) — gateway configuration after install

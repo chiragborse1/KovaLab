@@ -7,8 +7,8 @@
  * injected by the framework at startup).
  */
 
-import { resolveRuntimeServiceVersion } from "openclaw/plugin-sdk/cli-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { resolveRuntimeServiceVersion } from "getkova/plugin-sdk/cli-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import {
   registerVersionResolver,
   registerPluginVersion,
@@ -41,7 +41,7 @@ registerVersionResolver(resolveRuntimeServiceVersion);
 const _pluginVersion = resolveQQBotPluginVersion(import.meta.url);
 initSender({
   pluginVersion: _pluginVersion,
-  openclawVersion: resolveRuntimeServiceVersion(),
+  kovaVersion: resolveRuntimeServiceVersion(),
 });
 registerPluginVersion(_pluginVersion);
 
@@ -77,7 +77,7 @@ registerOutboundAudioAdapterFactory(() => {
 export interface GatewayContext {
   account: ResolvedQQBotAccount;
   abortSignal: AbortSignal;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   onReady?: (data: unknown) => void;
   onResumed?: (data: unknown) => void;
   onError?: (error: Error) => void;

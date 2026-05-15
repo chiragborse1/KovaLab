@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/synology-chat",
+  "name": "@kovaai/synology-chat",
   "version": "2.0.0-beta.5",
   "description": "Synology Chat channel plugin for Kova",
   "type": "module",
@@ -7,9 +7,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -24,7 +24,7 @@
       "order": 90
     },
     "install": {
-      "npmSpec": "@openclaw/synology-chat",
+      "npmSpec": "@kovaai/synology-chat",
       "defaultChoice": "npm",
       "minHostVersion": ">=2.0.0-beta.4"
     }

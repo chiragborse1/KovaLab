@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizePluginsConfig, resolveEffectivePluginActivationState } from "./config-state.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 
@@ -51,7 +51,7 @@ export function passesManifestOwnerBasePolicy(params: {
 export function isActivatedManifestOwner(params: {
   plugin: OwnerPlugin;
   normalizedConfig: NormalizedPluginsConfig;
-  rootConfig?: OpenClawConfig;
+  rootConfig?: KovaConfig;
 }): boolean {
   return resolveEffectivePluginActivationState({
     id: params.plugin.id,

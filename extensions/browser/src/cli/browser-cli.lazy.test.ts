@@ -58,9 +58,9 @@ describe("registerBrowserCli lazy browser subcommands", () => {
 
   it("registers browser placeholders without loading handlers for help", () => {
     const program = new Command();
-    program.name("openclaw");
+    program.name("kova");
 
-    registerBrowserCli(program, ["node", "openclaw", "browser", "--help"]);
+    registerBrowserCli(program, ["node", "kova", "browser", "--help"]);
 
     const browser = program.commands.find((command) => command.name() === "browser");
     expect(browser?.commands.map((command) => command.name())).toContain("status");
@@ -75,9 +75,9 @@ describe("registerBrowserCli lazy browser subcommands", () => {
 
   it("registers only the requested browser group before dispatch", async () => {
     const program = new Command();
-    program.name("openclaw");
+    program.name("kova");
 
-    registerBrowserCli(program, ["node", "openclaw", "browser", "status"]);
+    registerBrowserCli(program, ["node", "kova", "browser", "status"]);
 
     const browser = program.commands.find((command) => command.name() === "browser");
     expect(browser?.commands.map((command) => command.name())).toEqual(["status"]);
@@ -91,9 +91,9 @@ describe("registerBrowserCli lazy browser subcommands", () => {
 
   it("loads browser doctor from the manage group so --deep is available", async () => {
     const program = new Command();
-    program.name("openclaw");
+    program.name("kova");
 
-    registerBrowserCli(program, ["node", "openclaw", "browser", "doctor", "--deep"]);
+    registerBrowserCli(program, ["node", "kova", "browser", "doctor", "--deep"]);
 
     await program.parseAsync(["browser", "doctor", "--deep"], { from: "user" });
 
@@ -104,11 +104,11 @@ describe("registerBrowserCli lazy browser subcommands", () => {
   });
 
   it("can eagerly register all browser groups for compatibility", async () => {
-    vi.stubEnv("OPENCLAW_DISABLE_LAZY_SUBCOMMANDS", "1");
+    vi.stubEnv("KOVA_DISABLE_LAZY_SUBCOMMANDS", "1");
     const program = new Command();
-    program.name("openclaw");
+    program.name("kova");
 
-    registerBrowserCli(program, ["node", "openclaw", "browser", "--help"]);
+    registerBrowserCli(program, ["node", "kova", "browser", "--help"]);
 
     await vi.waitFor(() =>
       expect(manageMocks.registerBrowserManageCommands).toHaveBeenCalledTimes(1),

@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/lmstudio-provider",
+  "name": "@kovaai/lmstudio-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova LM Studio provider plugin",
@@ -7,7 +7,7 @@
   "dependencies": {
     "@mariozechner/pi-ai": "0.70.2"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

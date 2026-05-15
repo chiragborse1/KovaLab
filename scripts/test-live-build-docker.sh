@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-build.sh"
-IMAGE_NAME="${OPENCLAW_IMAGE:-openclaw:local}"
-LIVE_IMAGE_NAME="${OPENCLAW_LIVE_IMAGE:-${IMAGE_NAME}-live}"
-DOCKER_BUILD_EXTENSIONS="${OPENCLAW_DOCKER_BUILD_EXTENSIONS:-${OPENCLAW_EXTENSIONS:-}}"
+IMAGE_NAME="${KOVA_IMAGE:-kova:local}"
+LIVE_IMAGE_NAME="${KOVA_LIVE_IMAGE:-${IMAGE_NAME}-live}"
+DOCKER_BUILD_EXTENSIONS="${KOVA_DOCKER_BUILD_EXTENSIONS:-${KOVA_EXTENSIONS:-}}"
 
 case " ${DOCKER_BUILD_EXTENSIONS} " in
   *" matrix "*)
@@ -17,10 +17,10 @@ esac
 
 DOCKER_BUILD_ARGS=()
 if [[ -n "${DOCKER_BUILD_EXTENSIONS}" ]]; then
-  DOCKER_BUILD_ARGS+=(--build-arg "OPENCLAW_EXTENSIONS=${DOCKER_BUILD_EXTENSIONS}")
+  DOCKER_BUILD_ARGS+=(--build-arg "KOVA_EXTENSIONS=${DOCKER_BUILD_EXTENSIONS}")
 fi
 
-if [[ "${OPENCLAW_SKIP_DOCKER_BUILD:-}" == "1" ]]; then
+if [[ "${KOVA_SKIP_DOCKER_BUILD:-}" == "1" ]]; then
   echo "==> Reuse live-test image: $LIVE_IMAGE_NAME"
   if docker image inspect "$LIVE_IMAGE_NAME" >/dev/null 2>&1; then
     exit 0
@@ -31,10 +31,10 @@ if [[ "${OPENCLAW_SKIP_DOCKER_BUILD:-}" == "1" ]]; then
   fi
   if ! docker_build_on_missing_enabled; then
     echo "Live-test image not found: $LIVE_IMAGE_NAME" >&2
-    echo "Build it first or unset OPENCLAW_SKIP_DOCKER_BUILD." >&2
+    echo "Build it first or unset KOVA_SKIP_DOCKER_BUILD." >&2
     exit 1
   fi
-  echo "==> Live-test image not available; building because OPENCLAW_DOCKER_BUILD_ON_MISSING/OPENCLAW_TESTBOX allows fallback."
+  echo "==> Live-test image not available; building because KOVA_DOCKER_BUILD_ON_MISSING/KOVA_TESTBOX allows fallback."
 fi
 
 echo "==> Build live-test image: $LIVE_IMAGE_NAME (target=build)"

@@ -1,8 +1,8 @@
 import {
   createDefaultModelPresetAppliers,
   type ModelDefinitionConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/provider-onboard";
+  type KovaConfig,
+} from "getkova/plugin-sdk/provider-onboard";
 
 export const LITELLM_BASE_URL = "http://localhost:4000";
 export const LITELLM_DEFAULT_MODEL_ID = "claude-opus-4-6";
@@ -30,7 +30,7 @@ export function buildLitellmModelDefinition(): ModelDefinitionConfig {
 
 const litellmPresetAppliers = createDefaultModelPresetAppliers({
   primaryModelRef: LITELLM_DEFAULT_MODEL_REF,
-  resolveParams: (cfg: OpenClawConfig) => {
+  resolveParams: (cfg: KovaConfig) => {
     const existingProvider = cfg.models?.providers?.litellm as { baseUrl?: unknown } | undefined;
     const resolvedBaseUrl =
       typeof existingProvider?.baseUrl === "string" ? existingProvider.baseUrl.trim() : "";
@@ -46,10 +46,10 @@ const litellmPresetAppliers = createDefaultModelPresetAppliers({
   },
 });
 
-export function applyLitellmProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyLitellmProviderConfig(cfg: KovaConfig): KovaConfig {
   return litellmPresetAppliers.applyProviderConfig(cfg);
 }
 
-export function applyLitellmConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyLitellmConfig(cfg: KovaConfig): KovaConfig {
   return litellmPresetAppliers.applyConfig(cfg);
 }

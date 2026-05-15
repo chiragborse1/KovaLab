@@ -21,7 +21,7 @@ docker_e2e_run_log() {
   local label="$1"
   local tmp_dir="${TMPDIR:-/tmp}"
   tmp_dir="${tmp_dir%/}"
-  mktemp "$tmp_dir/openclaw-${label}.XXXXXX"
+  mktemp "$tmp_dir/kova-${label}.XXXXXX"
 }
 
 docker_e2e_print_log() {

@@ -17,7 +17,7 @@ const { planCrestodianCommandWithConfiguredModel } = await import("./assistant.j
 describe("Crestodian configured-model planner", () => {
   it("skips the configured model path when no config file exists", async () => {
     readConfigFileSnapshotMock.mockResolvedValue({
-      path: "/tmp/openclaw.json",
+      path: "/tmp/kova.json",
       exists: false,
       raw: null,
       parsed: {},
@@ -35,7 +35,7 @@ describe("Crestodian configured-model planner", () => {
         input: "please set up my model",
         overview: {
           config: {
-            path: "/tmp/openclaw.json",
+            path: "/tmp/kova.json",
             exists: false,
             valid: true,
             issues: [],
@@ -54,8 +54,8 @@ describe("Crestodian configured-model planner", () => {
             reachable: false,
           },
           references: {
-            docsUrl: "https://docs.openclaw.ai",
-            sourceUrl: "https://github.com/openclaw/openclaw",
+            docsUrl: "https://docs.neuralstudio.in",
+            sourceUrl: "https://github.com/chiragborse1/KovaLab",
           },
         },
       }),

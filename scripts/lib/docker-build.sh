@@ -7,7 +7,7 @@ if ! declare -F run_logged >/dev/null 2>&1; then
 fi
 
 docker_build_on_missing_enabled() {
-  case "${OPENCLAW_DOCKER_BUILD_ON_MISSING:-}" in
+  case "${KOVA_DOCKER_BUILD_ON_MISSING:-}" in
     1 | true | TRUE | yes | YES)
       return 0
       ;;
@@ -16,18 +16,18 @@ docker_build_on_missing_enabled() {
       ;;
   esac
 
-  [ "${OPENCLAW_TESTBOX:-0}" = "1" ]
+  [ "${KOVA_TESTBOX:-0}" = "1" ]
 }
 
 docker_build_exec() {
   local build_cmd=(docker build)
-  if [ "${OPENCLAW_DOCKER_BUILD_USE_BUILDX:-0}" = "1" ]; then
+  if [ "${KOVA_DOCKER_BUILD_USE_BUILDX:-0}" = "1" ]; then
     build_cmd=(docker buildx build --load)
-    if [ -n "${OPENCLAW_DOCKER_BUILD_CACHE_FROM:-}" ]; then
-      build_cmd+=(--cache-from "${OPENCLAW_DOCKER_BUILD_CACHE_FROM}")
+    if [ -n "${KOVA_DOCKER_BUILD_CACHE_FROM:-}" ]; then
+      build_cmd+=(--cache-from "${KOVA_DOCKER_BUILD_CACHE_FROM}")
     fi
-    if [ -n "${OPENCLAW_DOCKER_BUILD_CACHE_TO:-}" ]; then
-      build_cmd+=(--cache-to "${OPENCLAW_DOCKER_BUILD_CACHE_TO}")
+    if [ -n "${KOVA_DOCKER_BUILD_CACHE_TO:-}" ]; then
+      build_cmd+=(--cache-to "${KOVA_DOCKER_BUILD_CACHE_TO}")
     fi
   fi
 
@@ -39,13 +39,13 @@ docker_build_run() {
   shift
 
   local build_cmd=(docker build)
-  if [ "${OPENCLAW_DOCKER_BUILD_USE_BUILDX:-0}" = "1" ]; then
+  if [ "${KOVA_DOCKER_BUILD_USE_BUILDX:-0}" = "1" ]; then
     build_cmd=(docker buildx build --load)
-    if [ -n "${OPENCLAW_DOCKER_BUILD_CACHE_FROM:-}" ]; then
-      build_cmd+=(--cache-from "${OPENCLAW_DOCKER_BUILD_CACHE_FROM}")
+    if [ -n "${KOVA_DOCKER_BUILD_CACHE_FROM:-}" ]; then
+      build_cmd+=(--cache-from "${KOVA_DOCKER_BUILD_CACHE_FROM}")
     fi
-    if [ -n "${OPENCLAW_DOCKER_BUILD_CACHE_TO:-}" ]; then
-      build_cmd+=(--cache-to "${OPENCLAW_DOCKER_BUILD_CACHE_TO}")
+    if [ -n "${KOVA_DOCKER_BUILD_CACHE_TO:-}" ]; then
+      build_cmd+=(--cache-to "${KOVA_DOCKER_BUILD_CACHE_TO}")
     fi
   fi
 

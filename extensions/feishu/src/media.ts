@@ -2,14 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import { mediaKindFromMime } from "openclaw/plugin-sdk/media-mime";
-import { MEDIA_FFMPEG_MAX_AUDIO_DURATION_SECS, runFfmpeg } from "openclaw/plugin-sdk/media-runtime";
-import {
-  resolvePreferredOpenClawTmpDir,
-  withTempDownloadPath,
-} from "openclaw/plugin-sdk/temp-path";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import { mediaKindFromMime } from "getkova/plugin-sdk/media-mime";
+import { MEDIA_FFMPEG_MAX_AUDIO_DURATION_SECS, runFfmpeg } from "getkova/plugin-sdk/media-runtime";
+import { resolvePreferredKovaTmpDir, withTempDownloadPath } from "getkova/plugin-sdk/temp-path";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
+import type { KovaConfig } from "../runtime-api.js";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { normalizeFeishuExternalKey } from "./external-keys.js";
@@ -48,7 +45,7 @@ export type DownloadMessageResourceResult = {
   fileName?: string;
 };
 
-function createConfiguredFeishuMediaClient(params: { cfg: ClawdbotConfig; accountId?: string }): {
+function createConfiguredFeishuMediaClient(params: { cfg: KovaConfig; accountId?: string }): {
   account: ReturnType<typeof resolveFeishuRuntimeAccount>;
   client: ReturnType<typeof createFeishuClient>;
 } {
@@ -267,7 +264,7 @@ async function readFeishuResponseBuffer(params: {
  * Used for downloading images sent in messages.
  */
 export async function downloadImageFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   imageKey: string;
   accountId?: string;
 }): Promise<DownloadImageResult> {
@@ -284,7 +281,7 @@ export async function downloadImageFeishu(params: {
 
   const buffer = await readFeishuResponseBuffer({
     response,
-    tmpDirPrefix: "openclaw-feishu-img-",
+    tmpDirPrefix: "kova-feishu-img-",
     errorPrefix: "Feishu image download failed",
   });
   const meta = extractFeishuDownloadMetadata(response);
@@ -296,7 +293,7 @@ export async function downloadImageFeishu(params: {
  * Used for downloading files, audio, and video from messages.
  */
 export async function downloadMessageResourceFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   messageId: string;
   fileKey: string;
   type: "image" | "file";
@@ -316,7 +313,7 @@ export async function downloadMessageResourceFeishu(params: {
 
   const buffer = await readFeishuResponseBuffer({
     response,
-    tmpDirPrefix: "openclaw-feishu-resource-",
+    tmpDirPrefix: "kova-feishu-resource-",
     errorPrefix: "Feishu message resource download failed",
   });
   return { buffer, ...extractFeishuDownloadMetadata(response) };
@@ -340,7 +337,7 @@ export type SendMediaResult = {
  * Supports: JPEG, PNG, WEBP, GIF, TIFF, BMP, ICO
  */
 export async function uploadImageFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   image: Buffer | string; // Buffer or file path
   imageType?: "message" | "avatar";
   accountId?: string;
@@ -387,7 +384,7 @@ export function sanitizeFileNameForUpload(fileName: string): string {
  * Max file size: 30MB
  */
 export async function uploadFileFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   file: Buffer | string; // Buffer or file path
   fileName: string;
   fileType: "opus" | "mp4" | "pdf" | "doc" | "xls" | "ppt" | "stream";
@@ -425,7 +422,7 @@ export async function uploadFileFeishu(params: {
  * Send an image message using an image_key
  */
 export async function sendImageFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   to: string;
   imageKey: string;
   replyToMessageId?: string;
@@ -469,7 +466,7 @@ export async function sendImageFeishu(params: {
  * Send a file message using a file_key
  */
 export async function sendFileFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   to: string;
   fileKey: string;
   /** Use "audio" for audio, "media" for video (mp4), "file" for documents */
@@ -609,7 +606,7 @@ async function transcodeToFeishuVoiceOpus(params: {
   fileName: string;
   contentType?: string;
 }): Promise<{ buffer: Buffer; fileName: string; contentType: string }> {
-  const tempRoot = resolvePreferredOpenClawTmpDir();
+  const tempRoot = resolvePreferredKovaTmpDir();
   await fs.promises.mkdir(tempRoot, { recursive: true, mode: 0o700 });
   const tempDir = await fs.promises.mkdtemp(path.join(tempRoot, "feishu-voice-"));
   try {
@@ -679,7 +676,7 @@ async function prepareFeishuVoiceMedia(params: {
  * must be passed so loadWebMedia allows the path (post CVE-2026-26321).
  */
 export async function sendMediaFeishu(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   to: string;
   mediaUrl?: string;
   mediaBuffer?: Buffer;

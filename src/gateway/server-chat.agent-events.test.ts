@@ -222,11 +222,11 @@ describe("agent event handler", () => {
       [
         "Visible before.",
         "",
-        "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>",
-        "OpenClaw runtime context (internal):",
+        "<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>",
+        "Kova runtime context (internal):",
         "[Internal task completion event]",
         "secret child result",
-        "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>",
+        "<<<END_KOVA_INTERNAL_CONTEXT>>>",
         "",
         "Visible after.",
       ].join("\n"),
@@ -238,7 +238,7 @@ describe("agent event handler", () => {
       message?: { content?: Array<{ text?: string }> };
     };
     expect(payload.message?.content?.[0]?.text).toBe("Visible before.\n\nVisible after.");
-    expect(payload.message?.content?.[0]?.text).not.toContain("BEGIN_OPENCLAW_INTERNAL_CONTEXT");
+    expect(payload.message?.content?.[0]?.text).not.toContain("BEGIN_KOVA_INTERNAL_CONTEXT");
     expect(payload.message?.content?.[0]?.text).not.toContain("secret child result");
     expect(sessionChatCalls(nodeSendToSession)).toHaveLength(1);
     nowSpy?.mockRestore();

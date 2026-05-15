@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { registerPlatformAdapter, type PlatformAdapter } from "../adapter/index.js";
 import type { InteractionEvent } from "../types.js";
@@ -31,7 +31,7 @@ const account: GatewayAccount = {
   config: {},
 };
 
-function makeRestrictedCfg(approvers: string[]): OpenClawConfig {
+function makeRestrictedCfg(approvers: string[]): KovaConfig {
   return {
     channels: {
       qqbot: {
@@ -43,10 +43,10 @@ function makeRestrictedCfg(approvers: string[]): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
-function makeUnrestrictedCfg(): OpenClawConfig {
+function makeUnrestrictedCfg(): KovaConfig {
   return {
     channels: {
       qqbot: {
@@ -54,7 +54,7 @@ function makeUnrestrictedCfg(): OpenClawConfig {
         clientSecret: "secret",
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function makeApprovalEvent(overrides: Partial<InteractionEvent> = {}): InteractionEvent {

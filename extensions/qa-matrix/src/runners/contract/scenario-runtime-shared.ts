@@ -56,7 +56,7 @@ export type MatrixQaScenarioContext = {
 };
 
 export const NO_REPLY_WINDOW_MS = 8_000;
-const NO_REPLY_WINDOW_ENV = "OPENCLAW_QA_MATRIX_NO_REPLY_WINDOW_MS";
+const NO_REPLY_WINDOW_ENV = "KOVA_QA_MATRIX_NO_REPLY_WINDOW_MS";
 
 export function resolveMatrixQaNoReplyWindowMs(timeoutMs: number) {
   const raw = process.env[NO_REPLY_WINDOW_ENV];

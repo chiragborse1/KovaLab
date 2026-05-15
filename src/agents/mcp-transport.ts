@@ -9,7 +9,7 @@ import { retainSafeHeadersForCrossOriginRedirect } from "../infra/net/redirect-h
 import { loadUndiciRuntimeDeps } from "../infra/net/undici-runtime.js";
 import { logDebug } from "../logger.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
-import { OpenClawStdioClientTransport } from "./mcp-stdio-transport.js";
+import { KovaStdioClientTransport } from "./mcp-stdio-transport.js";
 import { resolveMcpTransportConfig } from "./mcp-transport-config.js";
 
 export type ResolvedMcpTransport = {
@@ -20,7 +20,7 @@ export type ResolvedMcpTransport = {
   detachStderr?: () => void;
 };
 
-function attachStderrLogging(serverName: string, transport: OpenClawStdioClientTransport) {
+function attachStderrLogging(serverName: string, transport: KovaStdioClientTransport) {
   const stderr = transport.stderr;
   if (!stderr || typeof stderr.on !== "function") {
     return undefined;
@@ -192,7 +192,7 @@ export function resolveMcpTransport(
     return null;
   }
   if (resolved.kind === "stdio") {
-    const transport = new OpenClawStdioClientTransport({
+    const transport = new KovaStdioClientTransport({
       command: resolved.command,
       args: resolved.args,
       env: resolved.env,

@@ -4,14 +4,14 @@
   "description": "Lobster workflow tool plugin (typed pipelines + resumable approvals)",
   "type": "module",
   "dependencies": {
-    "@clawdbot/lobster": "2026.4.6",
+    "@kova/lobster": "2026.4.6",
     "ajv": "^8.18.0",
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -24,10 +24,10 @@
       "pluginApi": ">=2.0.0-beta.5"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.5"
     },
     "release": {
-      "publishToClawHub": true,
+      "publishToKovaHub": true,
       "publishToNpm": true
     }
   }

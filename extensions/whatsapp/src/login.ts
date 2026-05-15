@@ -1,8 +1,8 @@
-import { formatCliCommand } from "openclaw/plugin-sdk/cli-runtime";
-import { getRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { danger, success } from "openclaw/plugin-sdk/runtime-env";
-import { defaultRuntime, type RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { logInfo } from "openclaw/plugin-sdk/text-runtime";
+import { formatCliCommand } from "getkova/plugin-sdk/cli-runtime";
+import { getRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
+import { danger, success } from "getkova/plugin-sdk/runtime-env";
+import { defaultRuntime, type RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { logInfo } from "getkova/plugin-sdk/text-runtime";
 import { resolveWhatsAppAccount } from "./accounts.js";
 import { restoreCredsFromBackupIfNeeded } from "./auth-store.js";
 import { closeWaSocketSoon, waitForWhatsAppLoginResult } from "./connection-controller.js";

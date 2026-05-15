@@ -743,9 +743,7 @@ export function resolveProviderRequestHeaders(params: {
   }).headers;
 }
 
-const MODEL_PROVIDER_REQUEST_TRANSPORT_SYMBOL = Symbol.for(
-  "openclaw.modelProviderRequestTransport",
-);
+const MODEL_PROVIDER_REQUEST_TRANSPORT_SYMBOL = Symbol.for("kova.modelProviderRequestTransport");
 
 type ModelWithProviderRequestTransport = {
   [MODEL_PROVIDER_REQUEST_TRANSPORT_SYMBOL]?: ModelProviderRequestTransportOverrides;

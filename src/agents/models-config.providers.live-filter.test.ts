@@ -17,8 +17,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: liveFilterEnv({
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_PROVIDERS: "claude-cli",
+          KOVA_LIVE_TEST: "1",
+          KOVA_LIVE_PROVIDERS: "claude-cli",
         }),
         resolveOwners,
       }),
@@ -29,8 +29,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: liveFilterEnv({
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_GATEWAY_PROVIDERS: "claude-cli",
+          KOVA_LIVE_TEST: "1",
+          KOVA_LIVE_GATEWAY_PROVIDERS: "claude-cli",
         }),
         resolveOwners,
       }),
@@ -41,8 +41,8 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
     expect(
       resolveProviderDiscoveryFilterForTest({
         env: liveFilterEnv({
-          OPENCLAW_LIVE_TEST: "1",
-          OPENCLAW_LIVE_PROVIDERS: "openrouter",
+          KOVA_LIVE_TEST: "1",
+          KOVA_LIVE_PROVIDERS: "openrouter",
         }),
         resolveOwners,
       }),

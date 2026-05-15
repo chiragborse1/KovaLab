@@ -22,8 +22,8 @@ describe("bundled package channel metadata", () => {
     const root = makeTempRepoRoot(tempDirs, "bpcm-");
     const extensionsRoot = path.join(root, "dist", "extensions");
     writeJsonFile(path.join(extensionsRoot, "matrix", "package.json"), {
-      name: "@openclaw/matrix",
-      openclaw: {
+      name: "@kovaai/matrix",
+      kova: {
         channel: {
           id: "matrix",
           label: "Matrix",

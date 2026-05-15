@@ -28,7 +28,7 @@ vi.mock("./overview.js", () => ({
     defaultAgentId: "main",
     defaultModel: "openai/gpt-5.5",
     agents: [{ id: "main", isDefault: true, model: "openai/gpt-5.5" }],
-    config: { path: "/tmp/openclaw.json", exists: true, valid: true, issues: [], hash: null },
+    config: { path: "/tmp/kova.json", exists: true, valid: true, issues: [], hash: null },
     tools: {
       codex: { command: "codex", found: false, error: "not found" },
       claude: { command: "claude", found: false, error: "not found" },
@@ -41,8 +41,8 @@ vi.mock("./overview.js", () => ({
       error: "offline",
     },
     references: {
-      docsUrl: "https://docs.openclaw.ai",
-      sourceUrl: "https://github.com/openclaw/openclaw",
+      docsUrl: "https://docs.neuralstudio.in",
+      sourceUrl: "https://github.com/chiragborse1/KovaLab",
     },
   })),
 }));
@@ -61,7 +61,7 @@ function createRuntime(): RuntimeEnv {
 
 describe("runCrestodianTui", () => {
   beforeEach(() => {
-    vi.stubEnv("OPENCLAW_TEST_FAST", "1");
+    vi.stubEnv("KOVA_TEST_FAST", "1");
   });
 
   afterEach(() => {
@@ -71,8 +71,8 @@ describe("runCrestodianTui", () => {
 
   it("runs Crestodian inside the shared TUI shell", async () => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "crestodian-tui-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", tempDir);
-    vi.stubEnv("OPENCLAW_CONFIG_PATH", path.join(tempDir, "openclaw.json"));
+    vi.stubEnv("KOVA_STATE_DIR", tempDir);
+    vi.stubEnv("KOVA_CONFIG_PATH", path.join(tempDir, "kova.json"));
 
     await runCrestodianTui({}, createRuntime());
 

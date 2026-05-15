@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createOllamaWebSearchProvider as createContractOllamaWebSearchProvider } from "../web-search-contract-api.js";
 import {
@@ -11,7 +11,7 @@ const { fetchWithSsrFGuardMock } = vi.hoisted(() => ({
   fetchWithSsrFGuardMock: vi.fn(),
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("getkova/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchWithSsrFGuardMock,
 }));
 
@@ -21,11 +21,11 @@ type OllamaProviderConfigOverride = Partial<{
   baseUrl: string;
   baseURL: string;
   models: NonNullable<
-    NonNullable<NonNullable<OpenClawConfig["models"]>["providers"]>[string]
+    NonNullable<NonNullable<KovaConfig["models"]>["providers"]>[string]
   >["models"];
 }>;
 
-function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): OpenClawConfig {
+function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): KovaConfig {
   return {
     models: {
       providers: {
@@ -40,7 +40,7 @@ function createOllamaConfig(provider: OllamaProviderConfigOverride = {}): OpenCl
   };
 }
 
-function createOllamaConfigWithWebSearchBaseUrl(baseUrl: string): OpenClawConfig {
+function createOllamaConfigWithWebSearchBaseUrl(baseUrl: string): KovaConfig {
   return {
     ...createOllamaConfig(),
     plugins: {
@@ -144,8 +144,8 @@ describe("ollama web search provider", () => {
         JSON.stringify({
           results: [
             {
-              title: "OpenClaw",
-              url: "https://openclaw.ai/docs",
+              title: "Kova",
+              url: "https://www.neuralstudio.in/docs",
               content: "Gateway docs and setup details",
             },
           ],
@@ -165,7 +165,7 @@ describe("ollama web search provider", () => {
     if (!tool) {
       throw new Error("Expected tool definition");
     }
-    const result = await tool.execute({ query: "openclaw docs", count: 3 });
+    const result = await tool.execute({ query: "kova docs", count: 3 });
 
     expect(fetchWithSsrFGuardMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -184,14 +184,14 @@ describe("ollama web search provider", () => {
         ),
       ),
     ).toEqual({
-      query: "openclaw docs",
+      query: "kova docs",
       max_results: 3,
     });
     expect(result).toMatchObject({
-      query: "openclaw docs",
+      query: "kova docs",
       provider: "ollama",
       count: 1,
-      results: [{ url: "https://openclaw.ai/docs" }],
+      results: [{ url: "https://www.neuralstudio.in/docs" }],
     });
     expect(release).toHaveBeenCalledTimes(1);
   });
@@ -216,7 +216,7 @@ describe("ollama web search provider", () => {
       });
 
     await expect(
-      runOllamaWebSearch({ config: createOllamaConfig(), query: "openclaw" }),
+      runOllamaWebSearch({ config: createOllamaConfig(), query: "kova" }),
     ).resolves.toMatchObject({
       count: 1,
       results: [{ url: "https://example.com" }],
@@ -248,7 +248,7 @@ describe("ollama web search provider", () => {
           baseUrl: "https://ollama.com",
           apiKey: "cloud-config-secret",
         }),
-        query: "openclaw",
+        query: "kova",
       }),
     ).resolves.toMatchObject({ count: 1 });
 
@@ -286,7 +286,7 @@ describe("ollama web search provider", () => {
         });
 
       await expect(
-        runOllamaWebSearch({ config: createOllamaConfig(), query: "openclaw" }),
+        runOllamaWebSearch({ config: createOllamaConfig(), query: "kova" }),
       ).resolves.toMatchObject({
         count: 1,
       });
@@ -322,7 +322,7 @@ describe("ollama web search provider", () => {
       release: vi.fn(async () => {}),
     });
 
-    await expect(runOllamaWebSearch({ query: "latest openclaw release" })).rejects.toThrow(
+    await expect(runOllamaWebSearch({ query: "latest kova release" })).rejects.toThrow(
       "ollama signin",
     );
   });

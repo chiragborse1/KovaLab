@@ -67,10 +67,10 @@ vi.mock("../config/paths.js", async () => {
   const actual = await vi.importActual<typeof import("../config/paths.js")>("../config/paths.js");
   return {
     ...actual,
-    STATE_DIR: "/tmp/openclaw-state",
-    resolveConfigPath: vi.fn(() => "/tmp/openclaw-state/openclaw.json"),
+    STATE_DIR: "/tmp/kova-state",
+    resolveConfigPath: vi.fn(() => "/tmp/kova-state/kova.json"),
     resolveGatewayPort: vi.fn(() => 18789),
-    resolveStateDir: vi.fn(() => "/tmp/openclaw-state"),
+    resolveStateDir: vi.fn(() => "/tmp/kova-state"),
   };
 });
 
@@ -220,7 +220,7 @@ describe("startGatewayPostAttachRuntime", () => {
         hooks: { internal: { enabled: false } },
       } as never,
       pluginRegistry: createPostAttachParams().pluginRegistry,
-      defaultWorkspaceDir: "/tmp/openclaw-workspace",
+      defaultWorkspaceDir: "/tmp/kova-workspace",
       deps: {} as never,
       startChannels,
       prewarmPrimaryModel,
@@ -316,7 +316,7 @@ describe("startGatewayPostAttachRuntime", () => {
       await startGatewaySidecars({
         cfg,
         pluginRegistry: createPostAttachParams().pluginRegistry,
-        defaultWorkspaceDir: "/tmp/openclaw-workspace",
+        defaultWorkspaceDir: "/tmp/kova-workspace",
         deps,
         startChannels: vi.fn(async () => undefined),
         log: { warn: vi.fn() },
@@ -343,7 +343,7 @@ describe("startGatewayPostAttachRuntime", () => {
         {
           cfg,
           deps,
-          workspaceDir: "/tmp/openclaw-workspace",
+          workspaceDir: "/tmp/kova-workspace",
         },
       );
       expect(hoisted.triggerInternalHook).toHaveBeenCalledWith(hoisted.startupHookEvent);
@@ -366,7 +366,7 @@ describe("startGatewayPostAttachRuntime", () => {
         acp: { enabled: true, backend: "acpx" },
       } as never,
       pluginRegistry: createPostAttachParams().pluginRegistry,
-      defaultWorkspaceDir: "/tmp/openclaw-workspace",
+      defaultWorkspaceDir: "/tmp/kova-workspace",
       deps: {} as never,
       startChannels: vi.fn(async () => undefined),
       log: { warn: vi.fn() },
@@ -429,7 +429,7 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(ctx).toMatchObject({
       port: 18789,
       config: params.gatewayPluginConfigAtStart,
-      workspaceDir: "/tmp/openclaw-workspace",
+      workspaceDir: "/tmp/kova-workspace",
     });
     expect(typeof ctx.getCron).toBe("function");
     const getCron = ctx.getCron;
@@ -487,7 +487,7 @@ function createPostAttachParams(overrides: Partial<PostAttachParams> = {}): Post
         { id: "broken", status: "error" },
       ],
     } as never,
-    defaultWorkspaceDir: "/tmp/openclaw-workspace",
+    defaultWorkspaceDir: "/tmp/kova-workspace",
     deps: {} as never,
     startChannels: vi.fn(async () => undefined),
     logHooks: {

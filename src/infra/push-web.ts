@@ -37,7 +37,7 @@ const WEB_PUSH_STATE_FILENAME = "push/web-push-subscriptions.json";
 const VAPID_KEYS_FILENAME = "push/vapid-keys.json";
 const MAX_ENDPOINT_LENGTH = 2048;
 const MAX_KEY_LENGTH = 512;
-const DEFAULT_VAPID_SUBJECT = "mailto:openclaw@localhost";
+const DEFAULT_VAPID_SUBJECT = "mailto:kova@localhost";
 
 const withLock = createAsyncLock();
 
@@ -127,15 +127,15 @@ export async function resolveVapidKeys(baseDir?: string): Promise<VapidKeyPair> 
 }
 
 function resolveVapidSubjectFromEnv(): string {
-  return process.env.OPENCLAW_VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
+  return process.env.KOVA_VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
 }
 
 export function resolveVapidPublicKeyFromEnv(): string | undefined {
-  return process.env.OPENCLAW_VAPID_PUBLIC_KEY || undefined;
+  return process.env.KOVA_VAPID_PUBLIC_KEY || undefined;
 }
 
 export function resolveVapidPrivateKeyFromEnv(): string | undefined {
-  return process.env.OPENCLAW_VAPID_PRIVATE_KEY || undefined;
+  return process.env.KOVA_VAPID_PRIVATE_KEY || undefined;
 }
 
 // --- Subscription CRUD ---

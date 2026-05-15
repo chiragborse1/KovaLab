@@ -8,17 +8,17 @@ import { renderCmdRestartLogSetup } from "../daemon/restart-logs.js";
 import { resolveTaskScriptPath } from "../daemon/schtasks.js";
 import { formatErrorMessage } from "./errors.js";
 import type { RestartAttempt } from "./restart.types.js";
-import { resolvePreferredOpenClawTmpDir } from "./tmp-openclaw-dir.js";
+import { resolvePreferredKovaTmpDir } from "./tmp-kova-dir.js";
 
 const TASK_RESTART_RETRY_LIMIT = 12;
 const TASK_RESTART_RETRY_DELAY_SEC = 1;
 
 function resolveWindowsTaskName(env: NodeJS.ProcessEnv): string {
-  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
+  const override = env.KOVA_WINDOWS_TASK_NAME?.trim();
   if (override) {
     return override;
   }
-  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
+  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE);
 }
 
 function buildScheduledTaskRestartScript(params: {
@@ -63,7 +63,7 @@ export function relaunchGatewayScheduledTask(env: NodeJS.ProcessEnv = process.en
   const taskName = resolveWindowsTaskName(env);
   const taskScriptPath = resolveTaskScriptPath(env);
   const scriptPath = path.join(
-    resolvePreferredOpenClawTmpDir(),
+    resolvePreferredKovaTmpDir(),
     `kova-schtasks-restart-${randomUUID()}.cmd`,
   );
   const quotedScriptPath = quoteCmdScriptArg(scriptPath);

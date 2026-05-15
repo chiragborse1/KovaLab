@@ -1,5 +1,5 @@
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginConfigUiHint } from "../plugins/types.js";
 import { getPath, setPathCreateStrict } from "../secrets/path-utils.js";
 import type { JsonSchemaObject } from "../shared/json-schema.types.js";
@@ -53,10 +53,7 @@ function resolveJsonSchemaProperty(
   return cursor && typeof cursor === "object" ? (cursor as JsonSchemaProperty) : undefined;
 }
 
-function getExistingPluginConfig(
-  config: OpenClawConfig,
-  pluginId: string,
-): Record<string, unknown> {
+function getExistingPluginConfig(config: KovaConfig, pluginId: string): Record<string, unknown> {
   return (config.plugins?.entries?.[pluginId]?.config as Record<string, unknown>) ?? {};
 }
 
@@ -130,7 +127,7 @@ export function discoverUnconfiguredPlugins(params: {
     configSchema?: Record<string, unknown>;
     enabled?: boolean;
   }>;
-  config: OpenClawConfig;
+  config: KovaConfig;
 }): ConfigurablePlugin[] {
   const all = discoverConfigurablePlugins(params);
   return all.filter((plugin) => {
@@ -148,11 +145,11 @@ export function discoverUnconfiguredPlugins(params: {
  */
 async function promptPluginFields(params: {
   plugin: ConfigurablePlugin;
-  config: OpenClawConfig;
+  config: KovaConfig;
   prompter: WizardPrompter;
   /** When true, show all fields including already-configured ones (for configure flow). */
   showConfigured?: boolean;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const { plugin, config, prompter } = params;
   const existing = getExistingPluginConfig(config, plugin.id);
   const updatedConfig = structuredClone(existing);
@@ -297,10 +294,10 @@ async function promptPluginFields(params: {
  * Shows unconfigured plugin fields and prompts the user.
  */
 export async function setupPluginConfig(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   prompter: WizardPrompter;
   workspaceDir?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const { loadPluginManifestRegistryForPluginRegistry } = await loadPluginRegistryModule();
   const registry = loadPluginManifestRegistryForPluginRegistry({
     config: params.config,
@@ -360,10 +357,10 @@ export async function setupPluginConfig(params: {
  * Shows all configurable plugins and all their non-advanced fields.
  */
 export async function configurePluginConfig(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   prompter: WizardPrompter;
   workspaceDir?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const { loadPluginManifestRegistryForPluginRegistry } = await loadPluginRegistryModule();
   const registry = loadPluginManifestRegistryForPluginRegistry({
     config: params.config,

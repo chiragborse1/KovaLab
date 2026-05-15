@@ -1,14 +1,14 @@
 import type {
-  OpenClawPluginCommandDefinition,
+  KovaPluginCommandDefinition,
   PluginCommandContext,
   PluginCommandResult,
-} from "openclaw/plugin-sdk/plugin-entry";
+} from "getkova/plugin-sdk/plugin-entry";
 import type { CodexCommandDeps } from "./command-handlers.js";
 
 export function createCodexCommand(options: {
   pluginConfig?: unknown;
   deps?: Partial<CodexCommandDeps>;
-}): OpenClawPluginCommandDefinition {
+}): KovaPluginCommandDefinition {
   return {
     name: "codex",
     description: "Inspect and control the Codex app-server harness",

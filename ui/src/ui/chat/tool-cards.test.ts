@@ -101,7 +101,7 @@ describe("tool-cards", () => {
             view: {
               backend: "canvas",
               id: "cv_counter",
-              url: "/__openclaw__/canvas/documents/cv_counter/index.html",
+              url: "/__kova__/canvas/documents/cv_counter/index.html",
               title: "Counter demo",
               preferred_height: 480,
             },
@@ -115,7 +115,7 @@ describe("tool-cards", () => {
             render: "url",
             viewId: "cv_counter",
             title: "Counter demo",
-            url: "/__openclaw__/canvas/documents/cv_counter/index.html",
+            url: "/__kova__/canvas/documents/cv_counter/index.html",
             preferredHeight: 480,
           },
         },
@@ -152,7 +152,7 @@ describe("tool-cards", () => {
             view: {
               backend: "canvas",
               id: "cv_sidebar",
-              url: "/__openclaw__/canvas/documents/cv_sidebar/index.html",
+              url: "/__kova__/canvas/documents/cv_sidebar/index.html",
               title: "Player",
               preferred_height: 360,
             },
@@ -165,7 +165,7 @@ describe("tool-cards", () => {
             surface: "assistant_message",
             render: "url",
             viewId: "cv_sidebar",
-            url: "/__openclaw__/canvas/documents/cv_sidebar/index.html",
+            url: "/__kova__/canvas/documents/cv_sidebar/index.html",
             title: "Player",
             preferredHeight: 360,
           },
@@ -185,7 +185,7 @@ describe("tool-cards", () => {
       expect.objectContaining({
         kind: "canvas",
         docId: "cv_sidebar",
-        entryUrl: "/__openclaw__/canvas/documents/cv_sidebar/index.html",
+        entryUrl: "/__kova__/canvas/documents/cv_sidebar/index.html",
       }),
     );
   });

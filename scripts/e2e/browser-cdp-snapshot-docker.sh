@@ -4,15 +4,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-BASE_IMAGE="$(docker_e2e_resolve_image "openclaw-browser-cdp-base-e2e" OPENCLAW_BROWSER_CDP_BASE_E2E_IMAGE)"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-browser-cdp-snapshot-e2e" OPENCLAW_BROWSER_CDP_SNAPSHOT_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_BROWSER_CDP_SNAPSHOT_E2E_SKIP_BUILD:-0}"
+BASE_IMAGE="$(docker_e2e_resolve_image "kova-browser-cdp-base-e2e" KOVA_BROWSER_CDP_BASE_E2E_IMAGE)"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-browser-cdp-snapshot-e2e" KOVA_BROWSER_CDP_SNAPSHOT_E2E_IMAGE)"
+SKIP_BUILD="${KOVA_BROWSER_CDP_SNAPSHOT_E2E_SKIP_BUILD:-0}"
 PORT="18789"
 CDP_PORT="19222"
 FIXTURE_PORT="18080"
 TOKEN="browser-cdp-e2e-token"
-CONTAINER_NAME="openclaw-browser-cdp-e2e-$$"
-DOCKER_COMMAND_TIMEOUT="${OPENCLAW_BROWSER_CDP_SNAPSHOT_DOCKER_COMMAND_TIMEOUT:-900s}"
+CONTAINER_NAME="kova-browser-cdp-e2e-$$"
+DOCKER_COMMAND_TIMEOUT="${KOVA_BROWSER_CDP_SNAPSHOT_DOCKER_COMMAND_TIMEOUT:-900s}"
 
 docker_cmd() {
   timeout "$DOCKER_COMMAND_TIMEOUT" "$@"
@@ -23,12 +23,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [ "${OPENCLAW_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$SKIP_BUILD" = "1" ]; then
+if [ "${KOVA_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$SKIP_BUILD" = "1" ]; then
   echo "Reusing Docker image: $IMAGE_NAME"
   docker_cmd docker image inspect "$IMAGE_NAME" >/dev/null
 else
   docker_e2e_build_or_reuse "$BASE_IMAGE" browser-cdp-base "$ROOT_DIR/scripts/e2e/Dockerfile" "$ROOT_DIR" "" "0"
-  build_dir="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-browser-cdp-build.XXXXXX")"
+  build_dir="$(mktemp -d "${TMPDIR:-/tmp}/kova-browser-cdp-build.XXXXXX")"
   trap 'cleanup; rm -rf "$build_dir"' EXIT
   cat >"$build_dir/Dockerfile" <<EOF
 FROM $BASE_IMAGE
@@ -46,20 +46,20 @@ echo "Starting browser CDP snapshot container..."
 docker_cmd docker run -d \
   --name "$CONTAINER_NAME" \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
-  -e OPENCLAW_DISABLE_BONJOUR=1 \
-  -e OPENCLAW_SKIP_CHANNELS=1 \
-  -e OPENCLAW_SKIP_PROVIDERS=1 \
-  -e OPENCLAW_SKIP_GMAIL_WATCHER=1 \
-  -e OPENCLAW_SKIP_CRON=1 \
-  -e OPENCLAW_SKIP_CANVAS_HOST=1 \
+  -e KOVA_GATEWAY_TOKEN="$TOKEN" \
+  -e KOVA_DISABLE_BONJOUR=1 \
+  -e KOVA_SKIP_CHANNELS=1 \
+  -e KOVA_SKIP_PROVIDERS=1 \
+  -e KOVA_SKIP_GMAIL_WATCHER=1 \
+  -e KOVA_SKIP_CRON=1 \
+  -e KOVA_SKIP_CANVAS_HOST=1 \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail
 entry=dist/index.mjs
 [ -f \"\$entry\" ] || entry=dist/index.js
-mkdir -p \"\$HOME/.openclaw\" /tmp/openclaw-browser-cdp/chrome
-find dist -maxdepth 1 -type f -name 'pw-ai-*.js' ! -name 'pw-ai-state-*' -exec mv {} /tmp/openclaw-browser-cdp/ \;
-cat > \"\$HOME/.openclaw/openclaw.json\" <<'JSON'
+mkdir -p \"\$HOME/.kova\" /tmp/kova-browser-cdp/chrome
+find dist -maxdepth 1 -type f -name 'pw-ai-*.js' ! -name 'pw-ai-state-*' -exec mv {} /tmp/kova-browser-cdp/ \;
+cat > \"\$HOME/.chiragborse1/KovaLab.json\" <<'JSON'
 {
   \"gateway\": {
     \"port\": $PORT,
@@ -87,7 +87,7 @@ JSON
 chromium --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \\
   --remote-debugging-address=127.0.0.1 \\
   --remote-debugging-port=$CDP_PORT \\
-  --user-data-dir=/tmp/openclaw-browser-cdp/chrome \\
+  --user-data-dir=/tmp/kova-browser-cdp/chrome \\
   about:blank >/tmp/browser-cdp-chromium.log 2>&1 &
 node --input-type=module - <<'NODE' >/tmp/browser-cdp-fixture.log 2>&1 &
 import http from 'node:http';
@@ -96,7 +96,7 @@ const html = \`<!doctype html>
   <body>
     <main>
       <button>Save</button>
-      <a href=\"https://docs.openclaw.ai/browser-cdp-live\">Docs</a>
+      <a href=\"https://docs.neuralstudio.in/browser-cdp-live\">Docs</a>
       <div id=\"card\" onclick=\"window.__clicked = true\" style=\"cursor: pointer\">Clickable Card</div>
       <iframe title=\"Child\" srcdoc='<button>Inside</button>'></iframe>
     </main>
@@ -156,7 +156,7 @@ const snapshot = fs.readFileSync('/tmp/browser-cdp-snapshot.txt', 'utf8');
 for (const needle of [
   'button \"Save\"',
   'link \"Docs\"',
-  'https://docs.openclaw.ai/browser-cdp-live',
+  'https://docs.neuralstudio.in/browser-cdp-live',
   'generic \"Clickable Card\"',
   'cursor:pointer',
   'Iframe \"Child\"',

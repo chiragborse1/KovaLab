@@ -1,9 +1,7 @@
-import { normalizeOpenClawProviderIndex } from "./normalize.js";
-import { OPENCLAW_PROVIDER_INDEX } from "./openclaw-provider-index.js";
-import type { OpenClawProviderIndex } from "./types.js";
+import { KOVA_PROVIDER_INDEX } from "./kova-provider-index.js";
+import { normalizeKovaProviderIndex } from "./normalize.js";
+import type { KovaProviderIndex } from "./types.js";
 
-export function loadOpenClawProviderIndex(
-  source: unknown = OPENCLAW_PROVIDER_INDEX,
-): OpenClawProviderIndex {
-  return normalizeOpenClawProviderIndex(source) ?? { version: 1, providers: {} };
+export function loadKovaProviderIndex(source: unknown = KOVA_PROVIDER_INDEX): KovaProviderIndex {
+  return normalizeKovaProviderIndex(source) ?? { version: 1, providers: {} };
 }

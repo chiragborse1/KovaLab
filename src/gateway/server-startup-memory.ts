@@ -1,6 +1,6 @@
 import { listAgentEntries, listAgentIds, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   resolveMemoryBackendConfig,
   type ResolvedQmdConfig,
@@ -12,14 +12,14 @@ function shouldStartQmdBackgroundWork(qmd: ResolvedQmdConfig): boolean {
   return qmd.update.onBoot || qmd.update.intervalMs > 0 || qmd.update.embedIntervalMs > 0;
 }
 
-function hasExplicitAgentMemorySearchConfig(cfg: OpenClawConfig, agentId: string): boolean {
+function hasExplicitAgentMemorySearchConfig(cfg: KovaConfig, agentId: string): boolean {
   return listAgentEntries(cfg).some(
     (entry) => normalizeAgentId(entry.id) === agentId && entry.memorySearch != null,
   );
 }
 
 function shouldEagerlyStartAgentMemory(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   agentCount: number;
 }): boolean {
@@ -36,7 +36,7 @@ function shouldEagerlyStartAgentMemory(params: {
 }
 
 export async function startGatewayMemoryBackend(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   log: { info?: (msg: string) => void; warn: (msg: string) => void };
 }): Promise<void> {
   const agentIds = listAgentIds(params.cfg);

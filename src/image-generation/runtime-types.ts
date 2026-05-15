@@ -1,6 +1,6 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type {
   GeneratedImageAsset,
   ImageGenerationBackground,
@@ -15,7 +15,7 @@ import type {
 } from "./types.js";
 
 export type GenerateImageParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   prompt: string;
   agentDir?: string;
   authStore?: AuthProfileStore;
@@ -44,7 +44,7 @@ export type GenerateImageRuntimeResult = {
 };
 
 export type ListRuntimeImageGenerationProvidersParams = {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 };
 
 export type RuntimeImageGenerationProvider = ImageGenerationProvider;

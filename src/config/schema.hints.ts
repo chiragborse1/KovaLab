@@ -89,7 +89,7 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
   "gateway.controlUi.allowedOrigins": "https://control.example.com",
   "gateway.push.apns.relay.baseUrl": "https://relay.example.com",
   "channels.mattermost.baseUrl": "https://chat.example.com",
-  "agents.list[].identity.avatar": "avatars/openclaw.png",
+  "agents.list[].identity.avatar": "avatars/kova.png",
 };
 
 const CHANNEL_NAMESPACE_PREFIX = "channels.";

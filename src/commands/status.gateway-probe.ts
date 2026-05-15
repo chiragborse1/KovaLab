@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   resolveGatewayProbeAuthSafeWithSecretInputs,
   resolveGatewayProbeTarget,
 } from "../gateway/probe-auth.js";
 export { pickGatewaySelfPresence } from "./gateway-presence.js";
 
-export async function resolveGatewayProbeAuthResolution(cfg: OpenClawConfig): Promise<{
+export async function resolveGatewayProbeAuthResolution(cfg: KovaConfig): Promise<{
   auth: {
     token?: string;
     password?: string;
@@ -20,7 +20,7 @@ export async function resolveGatewayProbeAuthResolution(cfg: OpenClawConfig): Pr
   });
 }
 
-export async function resolveGatewayProbeAuth(cfg: OpenClawConfig): Promise<{
+export async function resolveGatewayProbeAuth(cfg: KovaConfig): Promise<{
   token?: string;
   password?: string;
 }> {

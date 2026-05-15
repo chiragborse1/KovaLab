@@ -1,10 +1,10 @@
-import type { MigrationItem } from "openclaw/plugin-sdk/migration";
+import type { MigrationItem } from "getkova/plugin-sdk/migration";
 import {
   createMigrationItem,
   markMigrationItemConflict,
   markMigrationItemError,
   markMigrationItemSkipped,
-} from "openclaw/plugin-sdk/migration";
+} from "getkova/plugin-sdk/migration";
 import { readString } from "./helpers.js";
 
 export type HermesModelDetails = {

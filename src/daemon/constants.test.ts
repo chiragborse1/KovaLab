@@ -116,7 +116,7 @@ describe("resolveGatewayServiceDescription", () => {
   it("prefers explicit description override", () => {
     expect(
       resolveGatewayServiceDescription({
-        env: { OPENCLAW_PROFILE: "work", OPENCLAW_SERVICE_VERSION: "1.0.0" },
+        env: { KOVA_PROFILE: "work", KOVA_SERVICE_VERSION: "1.0.0" },
         description: "Custom",
       }),
     ).toBe("Custom");
@@ -125,8 +125,8 @@ describe("resolveGatewayServiceDescription", () => {
   it("resolves version from explicit environment map", () => {
     expect(
       resolveGatewayServiceDescription({
-        env: { OPENCLAW_PROFILE: "work", OPENCLAW_SERVICE_VERSION: "local" },
-        environment: { OPENCLAW_SERVICE_VERSION: "remote" },
+        env: { KOVA_PROFILE: "work", KOVA_SERVICE_VERSION: "local" },
+        environment: { KOVA_SERVICE_VERSION: "remote" },
       }),
     ).toBe("Kova Gateway (profile: work, vremote)");
   });
@@ -134,22 +134,22 @@ describe("resolveGatewayServiceDescription", () => {
 
 describe("LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES", () => {
   it("includes known pre-rebrand gateway unit names", () => {
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("openclaw-gateway");
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("clawdbot-gateway");
+    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("kova-gateway");
+    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("kova-gateway");
   });
 });
 
 describe("resolveLegacyGatewaySystemdServiceNames", () => {
-  it("returns profile-aware legacy OpenClaw systemd names", () => {
-    expect(resolveLegacyGatewaySystemdServiceNames()).toContain("openclaw-gateway");
-    expect(resolveLegacyGatewaySystemdServiceNames("work")).toEqual(["openclaw-gateway-work"]);
+  it("returns profile-aware legacy Kova systemd names", () => {
+    expect(resolveLegacyGatewaySystemdServiceNames()).toContain("kova-gateway");
+    expect(resolveLegacyGatewaySystemdServiceNames("work")).toEqual(["kova-gateway-work"]);
   });
 });
 
 describe("isGatewayServiceMarker", () => {
-  it("accepts Kova and legacy OpenClaw markers", () => {
+  it("accepts Kova and legacy Kova markers", () => {
     expect(isGatewayServiceMarker("kova")).toBe(true);
-    expect(isGatewayServiceMarker("openclaw")).toBe(true);
-    expect(isGatewayServiceMarker("clawdbot")).toBe(false);
+    expect(isGatewayServiceMarker("kova")).toBe(true);
+    expect(isGatewayServiceMarker("kova")).toBe(false);
   });
 });

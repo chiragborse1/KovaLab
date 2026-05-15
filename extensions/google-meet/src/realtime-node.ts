@@ -1,13 +1,13 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { PluginRuntime, RuntimeLogger } from "openclaw/plugin-sdk/plugin-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import type { PluginRuntime, RuntimeLogger } from "getkova/plugin-sdk/plugin-runtime";
 import {
   createRealtimeVoiceBridgeSession,
   type RealtimeVoiceBridgeSession,
   type RealtimeVoiceProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "getkova/plugin-sdk/realtime-voice";
 import {
-  consultOpenClawAgentForGoogleMeet,
+  consultKovaAgentForGoogleMeet,
   GOOGLE_MEET_AGENT_CONSULT_TOOL_NAME,
   resolveGoogleMeetRealtimeTools,
   submitGoogleMeetConsultWorkingResponse,
@@ -41,7 +41,7 @@ function readString(value: unknown): string | undefined {
 
 export async function startNodeRealtimeAudioBridge(params: {
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: KovaConfig;
   runtime: PluginRuntime;
   meetingSessionId: string;
   nodeId: string;
@@ -163,7 +163,7 @@ export async function startNodeRealtimeAudioBridge(params: {
         return;
       }
       submitGoogleMeetConsultWorkingResponse(session, event.callId || event.itemId);
-      void consultOpenClawAgentForGoogleMeet({
+      void consultKovaAgentForGoogleMeet({
         config: params.config,
         fullConfig: params.fullConfig,
         runtime: params.runtime,

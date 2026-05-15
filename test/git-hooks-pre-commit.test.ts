@@ -59,7 +59,7 @@ afterEach(() => {
 
 describe("git-hooks/pre-commit (integration)", () => {
   it("does not treat staged filenames as git-add flags (e.g. --all)", () => {
-    const dir = makeTempRepoRoot(tempDirs, "openclaw-pre-commit-");
+    const dir = makeTempRepoRoot(tempDirs, "kova-pre-commit-");
     run(dir, "git", ["init", "-q", "--initial-branch=main"]);
 
     // Use the real hook script and lightweight helper stubs.
@@ -81,7 +81,7 @@ describe("git-hooks/pre-commit (integration)", () => {
   });
 
   it("does not run the changed-scope check for non-doc staged changes", () => {
-    const dir = makeTempRepoRoot(tempDirs, "openclaw-pre-commit-no-check-changed-");
+    const dir = makeTempRepoRoot(tempDirs, "kova-pre-commit-no-check-changed-");
     run(dir, "git", ["init", "-q", "--initial-branch=main"]);
 
     const fakeBinDir = installPreCommitFixture(dir);
@@ -104,31 +104,31 @@ describe("git-hooks/pre-commit (integration)", () => {
   });
 
   it("does not re-add staged paths that are ignored by the current .gitignore", () => {
-    const dir = makeTempRepoRoot(tempDirs, "openclaw-pre-commit-ignored-staged-");
+    const dir = makeTempRepoRoot(tempDirs, "kova-pre-commit-ignored-staged-");
     run(dir, "git", ["init", "-q", "--initial-branch=main"]);
 
     const fakeBinDir = installPreCommitFixture(dir);
-    mkdirSync(path.join(dir, ".agents", "skills", "discord-clawd"), { recursive: true });
-    writeFileSync(path.join(dir, ".gitignore"), ".agents/skills/discord-clawd/\n", "utf8");
+    mkdirSync(path.join(dir, ".agents", "skills", "discord-kova"), { recursive: true });
+    writeFileSync(path.join(dir, ".gitignore"), ".agents/skills/discord-kova/\n", "utf8");
     writeFileSync(
-      path.join(dir, ".agents", "skills", "discord-clawd", "SKILL.md"),
-      "# Discord Clawd\n",
+      path.join(dir, ".agents", "skills", "discord-kova", "SKILL.md"),
+      "# Discord Kova\n",
       "utf8",
     );
 
     run(dir, "git", ["add", "--", ".gitignore"]);
-    run(dir, "git", ["add", "-f", "--", ".agents/skills/discord-clawd/SKILL.md"]);
+    run(dir, "git", ["add", "-f", "--", ".agents/skills/discord-kova/SKILL.md"]);
 
     run(dir, "bash", ["git-hooks/pre-commit"], {
       PATH: `${fakeBinDir}:${process.env.PATH ?? ""}`,
     });
 
     const staged = run(dir, "git", ["diff", "--cached", "--name-only"]).split("\n").filter(Boolean);
-    expect(staged).toEqual([".agents/skills/discord-clawd/SKILL.md", ".gitignore"]);
+    expect(staged).toEqual([".agents/skills/discord-kova/SKILL.md", ".gitignore"]);
   });
 
   it("ignores FAST_COMMIT because the hook is already formatting-only", () => {
-    const dir = makeTempRepoRoot(tempDirs, "openclaw-pre-commit-fast-");
+    const dir = makeTempRepoRoot(tempDirs, "kova-pre-commit-fast-");
     run(dir, "git", ["init", "-q", "--initial-branch=main"]);
 
     const fakeBinDir = installPreCommitFixture(dir);

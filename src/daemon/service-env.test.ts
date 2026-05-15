@@ -390,7 +390,7 @@ describe("buildServiceEnvironment", () => {
       expect(env.PATH).toContain("/usr/bin");
     }
     expect(env.KOVA_GATEWAY_PORT).toBe("18789");
-    expect(env.OPENCLAW_GATEWAY_PORT).toBeUndefined();
+    expect(env.KOVA_GATEWAY_PORT).toBeUndefined();
     expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
     expect(env.KOVA_STATE_DIR).toBe(path.join("/home/user", ".kova"));
     expect(env.KOVA_CONFIG_PATH).toBe(path.join("/home/user", ".kova", "kova.json"));
@@ -404,17 +404,17 @@ describe("buildServiceEnvironment", () => {
     }
   });
 
-  it("passes through legacy OPENCLAW_WRAPPER into KOVA_WRAPPER for gateway services", () => {
+  it("passes through legacy KOVA_WRAPPER into KOVA_WRAPPER for gateway services", () => {
     const env = buildServiceEnvironment({
       env: {
         HOME: "/home/user",
-        OPENCLAW_WRAPPER: " /usr/local/bin/openclaw-doppler ",
+        KOVA_WRAPPER: " /usr/local/bin/kova-doppler ",
       },
       port: 18789,
     });
 
-    expect(env.KOVA_WRAPPER).toBe("/usr/local/bin/openclaw-doppler");
-    expect(env.OPENCLAW_WRAPPER).toBeUndefined();
+    expect(env.KOVA_WRAPPER).toBe("/usr/local/bin/kova-doppler");
+    expect(env.KOVA_WRAPPER).toBeUndefined();
   });
 
   it("forwards TMPDIR from the host environment on Linux", () => {
@@ -513,27 +513,27 @@ describe("buildNodeServiceEnvironment", () => {
     expect(env.HOME).toBe("/home/user");
   });
 
-  it("passes through legacy OPENCLAW_GATEWAY_TOKEN for node services", () => {
+  it("passes through legacy KOVA_GATEWAY_TOKEN for node services", () => {
     const env = buildNodeServiceEnvironment({
-      env: { HOME: "/home/user", OPENCLAW_GATEWAY_TOKEN: " node-token " },
+      env: { HOME: "/home/user", KOVA_GATEWAY_TOKEN: " node-token " },
     });
     expect(env.KOVA_GATEWAY_TOKEN).toBe("node-token");
-    expect(env.OPENCLAW_GATEWAY_TOKEN).toBeUndefined();
+    expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
   });
 
-  it("passes through legacy OPENCLAW_ALLOW_INSECURE_PRIVATE_WS for node services", () => {
+  it("passes through legacy KOVA_ALLOW_INSECURE_PRIVATE_WS for node services", () => {
     const env = buildNodeServiceEnvironment({
-      env: { HOME: "/home/user", OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: " 1 " },
+      env: { HOME: "/home/user", KOVA_ALLOW_INSECURE_PRIVATE_WS: " 1 " },
     });
     expect(env.KOVA_ALLOW_INSECURE_PRIVATE_WS).toBe("1");
-    expect(env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS).toBeUndefined();
+    expect(env.KOVA_ALLOW_INSECURE_PRIVATE_WS).toBeUndefined();
   });
 
   it("omits KOVA_GATEWAY_TOKEN when the env var is empty", () => {
     const env = buildNodeServiceEnvironment({
       env: {
         HOME: "/home/user",
-        OPENCLAW_GATEWAY_TOKEN: "   ",
+        KOVA_GATEWAY_TOKEN: "   ",
       },
     });
     expect(env.KOVA_GATEWAY_TOKEN).toBeUndefined();
@@ -654,7 +654,6 @@ describe("resolveGatewayStateDir", () => {
     const env = {
       HOME: "/Users/test",
       KOVA_STATE_DIR: "/var/lib/kova",
-      OPENCLAW_STATE_DIR: "/var/lib/openclaw",
     };
     expect(resolveGatewayStateDir(env)).toBe(path.resolve("/var/lib/kova"));
   });

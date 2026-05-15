@@ -149,7 +149,7 @@ const PACKED_TEST_CARGO_DIRECTORY_SEGMENTS = new Set([
 ]);
 const PACKED_TEST_CARGO_FILE_RE = /(?:^|\/)[^/]+\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/u;
 const NPM_PACK_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
-const skipPackValidationEnv = "OPENCLAW_NPM_RELEASE_SKIP_PACK_CHECK";
+const skipPackValidationEnv = "KOVA_NPM_RELEASE_SKIP_PACK_CHECK";
 
 function normalizePackedPath(packedPath: string): string {
   return packedPath.replace(/\\/g, "/");

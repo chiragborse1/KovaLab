@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../src/config/types.openclaw.js";
+import type { KovaConfig } from "../../../src/config/types.kova.js";
 import type { ProviderSystemPromptContributionContext } from "../../../src/plugins/types.js";
 
 export const GPT5_CONTRACT_MODEL_ID = "gpt-5.4";
@@ -9,7 +9,7 @@ export const OPENAI_CODEX_CONTRACT_PROVIDER_ID = "openai-codex";
 export const CODEX_CONTRACT_PROVIDER_ID = "codex";
 export const NON_OPENAI_CONTRACT_PROVIDER_ID = "openrouter";
 
-export function openAiPluginPersonalityConfig(personality: "friendly" | "off"): OpenClawConfig {
+export function openAiPluginPersonalityConfig(personality: "friendly" | "off"): KovaConfig {
   return {
     plugins: {
       entries: {
@@ -18,10 +18,10 @@ export function openAiPluginPersonalityConfig(personality: "friendly" | "off"): 
         },
       },
     },
-  } satisfies OpenClawConfig;
+  } satisfies KovaConfig;
 }
 
-export function sharedGpt5PersonalityConfig(personality: "friendly" | "off"): OpenClawConfig {
+export function sharedGpt5PersonalityConfig(personality: "friendly" | "off"): KovaConfig {
   return {
     agents: {
       defaults: {
@@ -30,19 +30,19 @@ export function sharedGpt5PersonalityConfig(personality: "friendly" | "off"): Op
         },
       },
     },
-  } satisfies OpenClawConfig;
+  } satisfies KovaConfig;
 }
 
 export function codexPromptOverlayContext(params?: {
   modelId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): ProviderSystemPromptContributionContext {
   return {
     provider: CODEX_CONTRACT_PROVIDER_ID,
     modelId: params?.modelId ?? GPT5_CONTRACT_MODEL_ID,
     promptMode: "full",
-    agentDir: "/tmp/openclaw-codex-prompt-contract-agent",
-    workspaceDir: "/tmp/openclaw-codex-prompt-contract-workspace",
+    agentDir: "/tmp/kova-codex-prompt-contract-agent",
+    workspaceDir: "/tmp/kova-codex-prompt-contract-workspace",
     ...(params?.config ? { config: params.config } : {}),
   };
 }

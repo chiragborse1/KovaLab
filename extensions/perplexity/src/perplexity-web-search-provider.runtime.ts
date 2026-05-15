@@ -2,7 +2,7 @@ import {
   readNumberParam,
   readStringArrayParam,
   readStringParam,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "getkova/plugin-sdk/provider-web-search";
 import {
   buildSearchCacheKey,
   DEFAULT_SEARCH_COUNT,
@@ -21,8 +21,8 @@ import {
   withTrustedWebSearchEndpoint,
   wrapWebContent,
   writeCachedSearchPayload,
-} from "openclaw/plugin-sdk/provider-web-search";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/provider-web-search";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   DEFAULT_PERPLEXITY_BASE_URL,
   inferPerplexityBaseUrlFromApiKey,
@@ -134,7 +134,7 @@ function buildPerplexityRequestHeaders(apiKey: string, acceptJson = false): Reco
     "Content-Type": "application/json",
     ...(acceptJson ? { Accept: "application/json" } : {}),
     Authorization: `Bearer ${apiKey}`,
-    "HTTP-Referer": "https://openclaw.ai",
+    "HTTP-Referer": "https://www.neuralstudio.in",
     "X-Title": "Kova Web Search",
   };
 }

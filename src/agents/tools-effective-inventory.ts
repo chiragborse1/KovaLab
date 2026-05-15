@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { extractModelCompat } from "../plugins/provider-model-compat.js";
 import { getPluginToolMeta } from "../plugins/tools.js";
 import {
@@ -8,7 +8,7 @@ import {
 import { resolveAgentDir, resolveAgentWorkspaceDir, resolveSessionAgentId } from "./agent-scope.js";
 import { getChannelAgentToolMeta } from "./channel-tools.js";
 import { normalizeStaticProviderModelId } from "./model-ref-shared.js";
-import { createOpenClawCodingTools } from "./pi-tools.js";
+import { createKovaCodingTools } from "./pi-tools.js";
 import { resolveEffectiveToolPolicy } from "./pi-tools.policy.js";
 import { findNormalizedProviderValue, normalizeProviderId } from "./provider-id.js";
 import { summarizeToolDescriptionText } from "./tool-description-summary.js";
@@ -85,16 +85,16 @@ function policyDeniesTool(policy: { deny?: string[] } | undefined, toolName: str
   return (
     listIncludesTool(policy?.deny, toolName) ||
     listIncludesTool(policy?.deny, "group:ui") ||
-    listIncludesTool(policy?.deny, "group:openclaw")
+    listIncludesTool(policy?.deny, "group:kova")
   );
 }
 
-function hasExplicitBrowserIntent(cfg: OpenClawConfig): boolean {
+function hasExplicitBrowserIntent(cfg: KovaConfig): boolean {
   return cfg.browser?.enabled !== false && Boolean(cfg.browser || cfg.plugins?.entries?.browser);
 }
 
 function buildToolInventoryNotices(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   profile: string;
   entries: EffectiveToolInventoryEntry[];
   effectivePolicy: ReturnType<typeof resolveEffectiveToolPolicy>;
@@ -164,7 +164,7 @@ function disambiguateLabels(entries: EffectiveToolInventoryEntry[]): EffectiveTo
 }
 
 function resolveEffectiveModelCompat(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   modelProvider?: string;
   modelId?: string;
 }) {
@@ -205,7 +205,7 @@ export function resolveEffectiveToolInventory(
     modelId: params.modelId,
   });
 
-  const effectiveTools = createOpenClawCodingTools({
+  const effectiveTools = createKovaCodingTools({
     agentId,
     sessionKey: params.sessionKey,
     workspaceDir,

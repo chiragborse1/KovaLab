@@ -10,11 +10,11 @@ Upgrade from the previous public `matrix` plugin to the current implementation.
 
 For most users, the upgrade is in place:
 
-- the plugin stays `@openclaw/matrix`
+- the plugin stays `@kovaai/matrix`
 - the channel stays `matrix`
 - your config stays under `channels.matrix`
-- cached credentials stay under `~/.openclaw/credentials/matrix/`
-- runtime state stays under `~/.openclaw/matrix/`
+- cached credentials stay under `~/.kova/credentials/matrix/`
+- runtime state stays under `~/.kova/matrix/`
 
 You do not need to rename config keys or reinstall the plugin under a new name.
 
@@ -31,7 +31,7 @@ When you use `kova update`, the exact trigger depends on how Kova is installed:
 
 Automatic migration covers:
 
-- creating or reusing a pre-migration snapshot under `~/Backups/openclaw-migrations/`
+- creating or reusing a pre-migration snapshot under `~/Backups/kova-migrations/`
 - reusing your cached Matrix credentials
 - keeping the same account selection and `channels.matrix` config
 - moving the oldest flat Matrix sync store into the current account-scoped location
@@ -43,14 +43,14 @@ Automatic migration covers:
 
 Snapshot details:
 
-- Kova writes a marker file at `~/.openclaw/matrix/migration-snapshot.json` after a successful snapshot so later startup and repair passes can reuse the same archive.
+- Kova writes a marker file at `~/.kova/matrix/migration-snapshot.json` after a successful snapshot so later startup and repair passes can reuse the same archive.
 - These automatic Matrix migration snapshots back up config + state only (`includeWorkspace: false`).
 - If Matrix only has warning-only migration state, for example because `userId` or `accessToken` is still missing, Kova does not create the snapshot yet because no Matrix mutation is actionable.
 - If the snapshot step fails, Kova skips Matrix migration for that run instead of mutating state without a recovery point.
 
 About multi-account upgrades:
 
-- the oldest flat Matrix store (`~/.openclaw/matrix/bot-storage.json` and `~/.openclaw/matrix/crypto/`) came from a single-store layout, so Kova can only migrate it into one resolved Matrix account target
+- the oldest flat Matrix store (`~/.kova/matrix/bot-storage.json` and `~/.kova/matrix/crypto/`) came from a single-store layout, so Kova can only migrate it into one resolved Matrix account target
 - already account-scoped legacy Matrix stores are detected and prepared per configured Matrix account
 
 ## What the migration cannot do automatically
@@ -207,12 +207,12 @@ If the old store reports room keys that were never backed up, Kova warns instead
 - Meaning: Kova detected old Matrix state, but the migration is still blocked on missing identity or credential data.
 - What to do: finish Matrix login or config setup, then rerun `kova doctor --fix` or restart the gateway.
 
-`Legacy Matrix encrypted state was detected, but the Matrix plugin helper is unavailable. Install or repair @openclaw/matrix so Kova can inspect the old rust crypto store before upgrading.`
+`Legacy Matrix encrypted state was detected, but the Matrix plugin helper is unavailable. Install or repair @kovaai/matrix so Kova can inspect the old rust crypto store before upgrading.`
 
 - Meaning: Kova found old encrypted Matrix state, but it could not load the helper entrypoint from the Matrix plugin that normally inspects that store.
-- What to do: reinstall or repair the Matrix plugin (`kova plugins install @openclaw/matrix`, or `kova plugins install ./path/to/local/matrix-plugin` for a repo checkout), then rerun `kova doctor --fix` or restart the gateway.
+- What to do: reinstall or repair the Matrix plugin (`kova plugins install @kovaai/matrix`, or `kova plugins install ./path/to/local/matrix-plugin` for a repo checkout), then rerun `kova doctor --fix` or restart the gateway.
 
-`Matrix plugin helper path is unsafe: ... Reinstall @openclaw/matrix and try again.`
+`Matrix plugin helper path is unsafe: ... Reinstall @kovaai/matrix and try again.`
 
 - Meaning: Kova found a helper file path that escapes the plugin root or fails plugin boundary checks, so it refused to import it.
 - What to do: reinstall the Matrix plugin from a trusted path, then rerun `kova doctor --fix` or restart the gateway.
@@ -232,7 +232,7 @@ If the old store reports room keys that were never backed up, Kova warns instead
 `Matrix is installed from a custom path: ...`
 
 - Meaning: Matrix is pinned to a path install, so mainline updates do not automatically replace it with the repo's standard Matrix package.
-- What to do: reinstall with `kova plugins install @openclaw/matrix` when you want to return to the default Matrix plugin.
+- What to do: reinstall with `kova plugins install @kovaai/matrix` when you want to return to the default Matrix plugin.
 
 ### Encrypted-state recovery messages
 
@@ -335,7 +335,7 @@ new backup key can load correctly after restart.
 `Matrix is installed from a custom path that no longer exists: ...`
 
 - Meaning: your plugin install record points at a local path that is gone.
-- What to do: reinstall with `kova plugins install @openclaw/matrix`, or if you are running from a repo checkout, `kova plugins install ./path/to/local/matrix-plugin`.
+- What to do: reinstall with `kova plugins install @kovaai/matrix`, or if you are running from a repo checkout, `kova plugins install ./path/to/local/matrix-plugin`.
 
 ## If encrypted history still does not come back
 

@@ -1,8 +1,8 @@
 import Foundation
 import Network
-import OpenClawKit
+import KovaKit
 import Testing
-@testable import OpenClaw
+@testable import Kova
 
 @Suite(.serialized) struct GatewayConnectionSecurityTests {
     @MainActor
@@ -107,7 +107,7 @@ import Testing
         let controller = makeController()
 
         #expect(controller._test_resolveManualUseTLS(host: "gateway.example.com", useTLS: false) == true)
-        #expect(controller._test_resolveManualUseTLS(host: "openclaw.local", useTLS: false) == true)
+        #expect(controller._test_resolveManualUseTLS(host: "kova.local", useTLS: false) == true)
         #expect(controller._test_resolveManualUseTLS(host: "127.attacker.example", useTLS: false) == true)
 
         #expect(controller._test_resolveManualUseTLS(host: "localhost", useTLS: false) == false)

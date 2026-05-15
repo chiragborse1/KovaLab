@@ -77,7 +77,7 @@ The download URLs above are for x86_64 (amd64). For ARM-based VMs (e.g. Hetzner 
 
 ```bash
 docker compose build
-docker compose up -d openclaw-gateway
+docker compose up -d kova-gateway
 ```
 
 If build fails with `Killed` or `exit code 137` during `pnpm install --frozen-lockfile`, the VM is out of memory.
@@ -86,9 +86,9 @@ Use a larger machine class before retrying.
 Verify binaries:
 
 ```bash
-docker compose exec openclaw-gateway which gog
-docker compose exec openclaw-gateway which goplaces
-docker compose exec openclaw-gateway which wacli
+docker compose exec kova-gateway which gog
+docker compose exec kova-gateway which goplaces
+docker compose exec kova-gateway which wacli
 ```
 
 Expected output:
@@ -102,7 +102,7 @@ Expected output:
 Verify Gateway:
 
 ```bash
-docker compose logs -f openclaw-gateway
+docker compose logs -f kova-gateway
 ```
 
 Expected output:
@@ -116,18 +116,18 @@ Expected output:
 Kova runs in Docker, but Docker is not the source of truth.
 All long-lived state must survive restarts, rebuilds, and reboots.
 
-| Component           | Location                          | Persistence mechanism  | Notes                                                         |
-| ------------------- | --------------------------------- | ---------------------- | ------------------------------------------------------------- |
-| Gateway config      | `/home/node/.openclaw/`           | Host volume mount      | Includes `openclaw.json`, `.env`                              |
-| Model auth profiles | `/home/node/.openclaw/agents/`    | Host volume mount      | `agents/<agentId>/agent/auth-profiles.json` (OAuth, API keys) |
-| Skill configs       | `/home/node/.openclaw/skills/`    | Host volume mount      | Skill-level state                                             |
-| Agent workspace     | `/home/node/.openclaw/workspace/` | Host volume mount      | Code and agent artifacts                                      |
-| WhatsApp session    | `/home/node/.openclaw/`           | Host volume mount      | Preserves QR login                                            |
-| Gmail keyring       | `/home/node/.openclaw/`           | Host volume + password | Requires `GOG_KEYRING_PASSWORD`                               |
-| External binaries   | `/usr/local/bin/`                 | Docker image           | Must be baked at build time                                   |
-| Node runtime        | Container filesystem              | Docker image           | Rebuilt every image build                                     |
-| OS packages         | Container filesystem              | Docker image           | Do not install at runtime                                     |
-| Docker container    | Ephemeral                         | Restartable            | Safe to destroy                                               |
+| Component           | Location                      | Persistence mechanism  | Notes                                                         |
+| ------------------- | ----------------------------- | ---------------------- | ------------------------------------------------------------- |
+| Gateway config      | `/home/node/.kova/`           | Host volume mount      | Includes `kova.json`, `.env`                                  |
+| Model auth profiles | `/home/node/.kova/agents/`    | Host volume mount      | `agents/<agentId>/agent/auth-profiles.json` (OAuth, API keys) |
+| Skill configs       | `/home/node/.kova/skills/`    | Host volume mount      | Skill-level state                                             |
+| Agent workspace     | `/home/node/.kova/workspace/` | Host volume mount      | Code and agent artifacts                                      |
+| WhatsApp session    | `/home/node/.kova/`           | Host volume mount      | Preserves QR login                                            |
+| Gmail keyring       | `/home/node/.kova/`           | Host volume + password | Requires `GOG_KEYRING_PASSWORD`                               |
+| External binaries   | `/usr/local/bin/`             | Docker image           | Must be baked at build time                                   |
+| Node runtime        | Container filesystem          | Docker image           | Rebuilt every image build                                     |
+| OS packages         | Container filesystem          | Docker image           | Do not install at runtime                                     |
+| Docker container    | Ephemeral                     | Restartable            | Safe to destroy                                               |
 
 ## Updates
 
@@ -143,4 +143,4 @@ docker compose up -d
 
 - [Docker](/install/docker)
 - [Podman](/install/podman)
-- [ClawDock](/install/clawdock)
+- [KovaDock](/install/kovadock)

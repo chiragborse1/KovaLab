@@ -64,11 +64,11 @@ If no pushers come back, fix normal Matrix push delivery for this account before
   </Step>
 
   <Step title="Install the override push rule">
-    Kova marks finalized text-only preview edits with `content["com.openclaw.finalized_preview"] = true`. Install a rule that matches that marker plus the bot MXID as sender:
+    Kova marks finalized text-only preview edits with `content["com.kova.finalized_preview"] = true`. Install a rule that matches that marker plus the bot MXID as sender:
 
 ```bash
 curl -sS -X PUT \
-  "https://matrix.example.org/_matrix/client/v3/pushrules/global/override/openclaw-finalized-preview-botname" \
+  "https://matrix.example.org/_matrix/client/v3/pushrules/global/override/kova-finalized-preview-botname" \
   -H "Authorization: Bearer $USER_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   --data '{
@@ -81,7 +81,7 @@ curl -sS -X PUT \
       },
       {
         "kind": "event_property_is",
-        "key": "content.com\\.openclaw\\.finalized_preview",
+        "key": "content.com\\.kova\\.finalized_preview",
         "value": true
       },
       { "kind": "event_match", "key": "sender", "pattern": "@bot:example.org" }
@@ -98,7 +98,7 @@ curl -sS -X PUT \
 
     - `https://matrix.example.org`: your homeserver base URL
     - `$USER_ACCESS_TOKEN`: the recipient user's access token
-    - `openclaw-finalized-preview-botname`: a rule ID unique per bot per recipient (pattern: `openclaw-finalized-preview-<botname>`)
+    - `kova-finalized-preview-botname`: a rule ID unique per bot per recipient (pattern: `kova-finalized-preview-<botname>`)
     - `@bot:example.org`: your Kova bot MXID, not the recipient's
 
   </Step>
@@ -108,7 +108,7 @@ curl -sS -X PUT \
 ```bash
 curl -sS \
   -H "Authorization: Bearer $USER_ACCESS_TOKEN" \
-  "https://matrix.example.org/_matrix/client/v3/pushrules/global/override/openclaw-finalized-preview-botname"
+  "https://matrix.example.org/_matrix/client/v3/pushrules/global/override/kova-finalized-preview-botname"
 ```
 
 Then test a streamed reply. In quiet mode the room shows a quiet draft preview and notifies once the block or turn finishes.

@@ -39,10 +39,8 @@ describe("Nix integration (U3, U5, U9)", () => {
     });
 
     it("requires explicit compatibility mode for legacy nix env", () => {
-      expect(resolveIsNixMode(envWith({ OPENCLAW_NIX_MODE: "1" }))).toBe(false);
-      expect(
-        resolveIsNixMode(envWith({ KOVA_ALLOW_OPENCLAW_COMPAT: "1", OPENCLAW_NIX_MODE: "1" })),
-      ).toBe(true);
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "1" }))).toBe(false);
+      expect(resolveIsNixMode(envWith({ KOVA_COMPAT: "1", KOVA_NIX_MODE: "1" }))).toBe(true);
     });
   });
 
@@ -54,7 +52,6 @@ describe("Nix integration (U3, U5, U9)", () => {
           envWith({
             KOVA_HOME: home,
             KOVA_STATE_DIR: undefined,
-            OPENCLAW_STATE_DIR: undefined,
           }),
           () => home,
         ),
@@ -66,27 +63,23 @@ describe("Nix integration (U3, U5, U9)", () => {
         resolveStateDir(
           envWith({
             KOVA_STATE_DIR: "/custom/kova-state/dir",
-            OPENCLAW_STATE_DIR: "/custom/state/dir",
           }),
         ),
       ).toBe(path.resolve("/custom/kova-state/dir"));
     });
 
-    it("STATE_DIR ignores OPENCLAW_STATE_DIR override when KOVA_STATE_DIR is unset", () => {
+    it("STATE_DIR ignores KOVA_STATE_DIR override when KOVA_STATE_DIR is unset", () => {
       const home = path.join(path.sep, "custom", "home");
-      expect(
-        resolveStateDir(
-          envWith({ KOVA_STATE_DIR: undefined, OPENCLAW_STATE_DIR: "/custom/state/dir" }),
-          () => home,
-        ),
-      ).toBe(path.join(path.resolve(home), ".kova"));
+      expect(resolveStateDir(envWith({ KOVA_STATE_DIR: undefined }), () => home)).toBe(
+        path.join(path.resolve(home), ".kova"),
+      );
     });
 
     it("STATE_DIR respects KOVA_HOME when state override is unset", () => {
       const customHome = path.join(path.sep, "custom", "home");
-      expect(
-        resolveStateDir(envWith({ KOVA_HOME: customHome, OPENCLAW_STATE_DIR: undefined })),
-      ).toBe(path.join(path.resolve(customHome), ".kova"));
+      expect(resolveStateDir(envWith({ KOVA_HOME: customHome, KOVA_STATE_DIR: undefined }))).toBe(
+        path.join(path.resolve(customHome), ".kova"),
+      );
     });
 
     it("CONFIG_PATH defaults to KOVA_HOME/.kova/kova.json", () => {
@@ -95,8 +88,8 @@ describe("Nix integration (U3, U5, U9)", () => {
         resolveConfigPathCandidate(
           envWith({
             KOVA_HOME: customHome,
-            OPENCLAW_CONFIG_PATH: undefined,
-            OPENCLAW_STATE_DIR: undefined,
+            KOVA_CONFIG_PATH: undefined,
+            KOVA_STATE_DIR: undefined,
           }),
         ),
       ).toBe(path.join(path.resolve(customHome), ".kova", "kova.json"));
@@ -108,8 +101,8 @@ describe("Nix integration (U3, U5, U9)", () => {
         resolveConfigPathCandidate(
           envWith({
             KOVA_HOME: home,
-            OPENCLAW_CONFIG_PATH: undefined,
-            OPENCLAW_STATE_DIR: undefined,
+            KOVA_CONFIG_PATH: undefined,
+            KOVA_STATE_DIR: undefined,
           }),
           () => home,
         ),
@@ -121,7 +114,6 @@ describe("Nix integration (U3, U5, U9)", () => {
         resolveConfigPathCandidate(
           envWith({
             KOVA_CONFIG_PATH: "/nix/store/abc/kova.json",
-            OPENCLAW_CONFIG_PATH: "/nix/store/abc/openclaw.json",
           }),
         ),
       ).toBe(path.resolve("/nix/store/abc/kova.json"));
@@ -141,8 +133,8 @@ describe("Nix integration (U3, U5, U9)", () => {
     it("CONFIG_PATH uses STATE_DIR when only state dir is overridden", () => {
       expect(
         resolveConfigPathCandidate(
-          envWith({ KOVA_STATE_DIR: "/custom/state", OPENCLAW_TEST_FAST: "1" }),
-          () => path.join(path.sep, "tmp", "openclaw-config-home"),
+          envWith({ KOVA_STATE_DIR: "/custom/state", KOVA_TEST_FAST: "1" }),
+          () => path.join(path.sep, "tmp", "kova-config-home"),
         ),
       ).toBe(path.join(path.resolve("/custom/state"), "kova.json"));
     });
@@ -150,7 +142,7 @@ describe("Nix integration (U3, U5, U9)", () => {
 
   describe("U6: gateway port resolution", () => {
     it("uses default when env and config are unset", () => {
-      expect(resolveGatewayPort({}, envWith({ OPENCLAW_GATEWAY_PORT: undefined }))).toBe(
+      expect(resolveGatewayPort({}, envWith({ KOVA_GATEWAY_PORT: undefined }))).toBe(
         DEFAULT_GATEWAY_PORT,
       );
     });

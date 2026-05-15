@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { requireRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { requireRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "getkova/plugin-sdk/string-coerce-runtime";
 import type { CoreConfig } from "../../types.js";
 import { formatMatrixEncryptionUnavailableError } from "../encryption-guidance.js";
 import type { MatrixDeviceVerificationStatus, MatrixOwnDeviceVerificationStatus } from "../sdk.js";

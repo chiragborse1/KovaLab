@@ -28,7 +28,7 @@ let resolveExecApprovalsSocketPath: ExecApprovalsModule["resolveExecApprovalsSoc
 let saveExecApprovals: ExecApprovalsModule["saveExecApprovals"];
 
 const tempDirs: string[] = [];
-const originalOpenClawHome = process.env.OPENCLAW_HOME;
+const originalKovaHome = process.env.KOVA_HOME;
 
 beforeAll(async () => {
   ({
@@ -54,10 +54,10 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  if (originalOpenClawHome === undefined) {
-    delete process.env.OPENCLAW_HOME;
+  if (originalKovaHome === undefined) {
+    delete process.env.KOVA_HOME;
   } else {
-    process.env.OPENCLAW_HOME = originalOpenClawHome;
+    process.env.KOVA_HOME = originalKovaHome;
   }
   for (const dir of tempDirs.splice(0)) {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -67,7 +67,7 @@ afterEach(() => {
 function createHomeDir(): string {
   const dir = makeTempDir();
   tempDirs.push(dir);
-  process.env.OPENCLAW_HOME = dir;
+  process.env.KOVA_HOME = dir;
   return dir;
 }
 
@@ -187,12 +187,12 @@ describe("exec approvals store helpers", () => {
     expect(fs.readFileSync(targetPath, "utf8")).toBe('{"sentinel":true}\n');
   });
 
-  it("accepts a symlinked OPENCLAW_HOME as the trusted approvals root", () => {
+  it("accepts a symlinked KOVA_HOME as the trusted approvals root", () => {
     const realHome = makeTempDir();
     const linkedHome = `${realHome}-link`;
     tempDirs.push(realHome, linkedHome);
     fs.symlinkSync(realHome, linkedHome, "dir");
-    process.env.OPENCLAW_HOME = linkedHome;
+    process.env.KOVA_HOME = linkedHome;
 
     saveExecApprovals({ version: 1, defaults: { security: "full" }, agents: {} });
 
@@ -209,7 +209,7 @@ describe("exec approvals store helpers", () => {
     fs.mkdirSync(linkedStateTarget, { recursive: true });
     fs.symlinkSync(realHome, linkedHome, "dir");
     fs.symlinkSync(linkedStateTarget, path.join(realHome, ".kova"), "dir");
-    process.env.OPENCLAW_HOME = linkedHome;
+    process.env.KOVA_HOME = linkedHome;
 
     expect(() =>
       saveExecApprovals({ version: 1, defaults: { security: "full" }, agents: {} }),

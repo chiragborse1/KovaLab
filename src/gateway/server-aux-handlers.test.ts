@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   activateSecretsRuntimeSnapshot,
   clearSecretsRuntimeSnapshot,
@@ -9,8 +9,8 @@ import {
 import type { GatewayReloadPlan } from "./config-reload.js";
 import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): KovaConfig {
+  return value as KovaConfig;
 }
 
 function createReloadPlan(overrides?: Partial<GatewayReloadPlan>): GatewayReloadPlan {
@@ -30,7 +30,7 @@ function createReloadPlan(overrides?: Partial<GatewayReloadPlan>): GatewayReload
   };
 }
 
-function createSnapshot(config: OpenClawConfig): PreparedSecretsRuntimeSnapshot {
+function createSnapshot(config: KovaConfig): PreparedSecretsRuntimeSnapshot {
   return {
     sourceConfig: asConfig({}),
     config,
@@ -61,20 +61,20 @@ async function invokeSecretsReload(params: {
 }
 
 // Other gateway test helpers (e.g. test-helpers.mocks.ts, test-helpers.server.ts)
-// set OPENCLAW_SKIP_CHANNELS / OPENCLAW_SKIP_PROVIDERS at module load. When a
+// set KOVA_SKIP_CHANNELS / KOVA_SKIP_PROVIDERS at module load. When a
 // shared vitest worker imports those helpers before this file's tests run,
 // the leaked env vars route the secrets.reload skip-mode branch and prevent
 // the channel restart loop from firing. Reset them before every test so this
 // suite is independent of worker import order.
 beforeEach(() => {
-  delete process.env.OPENCLAW_SKIP_CHANNELS;
-  delete process.env.OPENCLAW_SKIP_PROVIDERS;
+  delete process.env.KOVA_SKIP_CHANNELS;
+  delete process.env.KOVA_SKIP_PROVIDERS;
 });
 
 afterEach(() => {
   clearSecretsRuntimeSnapshot();
-  delete process.env.OPENCLAW_SKIP_CHANNELS;
-  delete process.env.OPENCLAW_SKIP_PROVIDERS;
+  delete process.env.KOVA_SKIP_CHANNELS;
+  delete process.env.KOVA_SKIP_PROVIDERS;
 });
 
 describe("gateway aux handlers", () => {
@@ -414,7 +414,7 @@ describe("gateway aux handlers", () => {
       createReloadPlan({
         restartChannels: new Set(["slack"]),
       });
-    process.env.OPENCLAW_SKIP_CHANNELS = "1";
+    process.env.KOVA_SKIP_CHANNELS = "1";
     activateSecretsRuntimeSnapshot(
       createSnapshot(
         asConfig({

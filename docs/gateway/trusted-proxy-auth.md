@@ -189,8 +189,8 @@ Use one TLS termination point and apply HSTS there.
 
     ```yaml
     routes:
-      - from: https://openclaw.example.com
-        to: http://openclaw-gateway:18789
+      - from: https://kova.example.com
+        to: http://kova-gateway:18789
         policy:
           - allow:
               or:
@@ -221,11 +221,11 @@ Use one TLS termination point and apply HSTS there.
     Caddyfile snippet:
 
     ```
-    openclaw.example.com {
+    kova.example.com {
         authenticate with oauth2_provider
         authorize with policy1
 
-        reverse_proxy openclaw:18789 {
+        reverse_proxy kova:18789 {
             header_up X-Forwarded-User {http.auth.user.email}
         }
     }
@@ -257,7 +257,7 @@ Use one TLS termination point and apply HSTS there.
         auth_request /oauth2/auth;
         auth_request_set $user $upstream_http_x_auth_request_email;
 
-        proxy_pass http://openclaw:18789;
+        proxy_pass http://kova:18789;
         proxy_set_header X-Auth-Request-Email $user;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -286,7 +286,7 @@ Use one TLS termination point and apply HSTS there.
 
 ## Mixed token configuration
 
-Kova rejects ambiguous configurations where both a `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`) and `trusted-proxy` mode are active at the same time. Mixed token configs can cause loopback requests to silently authenticate on the wrong auth path.
+Kova rejects ambiguous configurations where both a `gateway.auth.token` (or `KOVA_GATEWAY_TOKEN`) and `trusted-proxy` mode are active at the same time. Mixed token configs can cause loopback requests to silently authenticate on the wrong auth path.
 
 If you see a `mixed_trusted_proxy_token` error on startup:
 
@@ -297,23 +297,23 @@ Loopback trusted-proxy auth also fails closed: same-host callers must supply the
 
 ## Operator scopes header
 
-Trusted-proxy auth is an **identity-bearing** HTTP mode, so callers may optionally declare operator scopes with `x-openclaw-scopes`.
+Trusted-proxy auth is an **identity-bearing** HTTP mode, so callers may optionally declare operator scopes with `x-kova-scopes`.
 
 Examples:
 
-- `x-openclaw-scopes: operator.read`
-- `x-openclaw-scopes: operator.read,operator.write`
-- `x-openclaw-scopes: operator.admin,operator.write`
+- `x-kova-scopes: operator.read`
+- `x-kova-scopes: operator.read,operator.write`
+- `x-kova-scopes: operator.admin,operator.write`
 
 Behavior:
 
 - When the header is present, Kova honors the declared scope set.
 - When the header is present but empty, the request declares **no** operator scopes.
 - When the header is absent, normal identity-bearing HTTP APIs fall back to the standard operator default scope set.
-- Gateway-auth **plugin HTTP routes** are narrower by default: when `x-openclaw-scopes` is absent, their runtime scope falls back to `operator.write`.
+- Gateway-auth **plugin HTTP routes** are narrower by default: when `x-kova-scopes` is absent, their runtime scope falls back to `operator.write`.
 - Browser-origin HTTP requests still have to pass `gateway.controlUi.allowedOrigins` (or deliberate Host-header fallback mode) even after trusted-proxy auth succeeds.
 
-Practical rule: send `x-openclaw-scopes` explicitly when you want a trusted-proxy request to be narrower than the defaults, or when a gateway-auth plugin route needs something stronger than write scope.
+Practical rule: send `x-kova-scopes` explicitly when you want a trusted-proxy request to be narrower than the defaults, or when a gateway-auth plugin route needs something stronger than write scope.
 
 ## Security checklist
 

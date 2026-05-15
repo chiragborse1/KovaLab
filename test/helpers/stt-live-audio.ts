@@ -1,7 +1,7 @@
 import type {
   RealtimeTranscriptionProviderConfig,
   RealtimeTranscriptionProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-transcription";
+} from "getkova/plugin-sdk/realtime-transcription";
 import { expect } from "vitest";
 
 const DEFAULT_ELEVENLABS_BASE_URL = "https://api.elevenlabs.io";
@@ -14,7 +14,7 @@ export function normalizeTranscriptForMatch(value: string): string {
 
 type ExpectedTranscriptMatch = RegExp | string;
 
-const DEFAULT_OPENCLAW_TRANSCRIPT_MATCH = /open(?:claw|flaw)/;
+const DEFAULT_KOVA_TRANSCRIPT_MATCH = /kova/;
 
 export async function waitForLiveExpectation(expectation: () => void, timeoutMs = 30_000) {
   const started = Date.now();
@@ -99,7 +99,7 @@ export async function runRealtimeSttLiveTest(params: {
   const transcripts: string[] = [];
   const partials: string[] = [];
   const errors: Error[] = [];
-  const expected = params.expectedNormalizedText ?? DEFAULT_OPENCLAW_TRANSCRIPT_MATCH;
+  const expected = params.expectedNormalizedText ?? DEFAULT_KOVA_TRANSCRIPT_MATCH;
   const session = params.provider.createSession({
     providerConfig: params.providerConfig,
     onPartial: (partial) => partials.push(partial),

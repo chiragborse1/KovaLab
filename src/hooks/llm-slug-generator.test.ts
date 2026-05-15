@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 
 const runEmbeddedPiAgentMock = vi.fn();
 
 vi.mock("../agents/agent-scope.js", () => ({
   resolveDefaultAgentId: vi.fn(() => "main"),
-  resolveAgentWorkspaceDir: vi.fn(() => "/tmp/openclaw-agent"),
-  resolveAgentDir: vi.fn(() => "/tmp/openclaw-agent/.openclaw-agent"),
-  resolveAgentEffectiveModelPrimary: vi.fn((cfg: OpenClawConfig) => {
+  resolveAgentWorkspaceDir: vi.fn(() => "/tmp/kova-agent"),
+  resolveAgentDir: vi.fn(() => "/tmp/kova-agent/.kova-agent"),
+  resolveAgentEffectiveModelPrimary: vi.fn((cfg: KovaConfig) => {
     const model = cfg.agents?.defaults?.model;
     if (typeof model === "string") {
       return model;
@@ -33,7 +33,7 @@ describe("generateSlugViaLLM", () => {
   it("keeps the helper default timeout when no agent timeout is configured", async () => {
     await generateSlugViaLLM({
       sessionContent: "hello",
-      cfg: {} as OpenClawConfig,
+      cfg: {} as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledOnce();
@@ -54,7 +54,7 @@ describe("generateSlugViaLLM", () => {
             timeoutSeconds: 500,
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledOnce();
@@ -92,7 +92,7 @@ describe("generateSlugViaLLM", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledOnce();

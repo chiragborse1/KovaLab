@@ -116,7 +116,7 @@ async function walkDir(
       continue;
     }
     if (entry.isDirectory()) {
-      if (entry.name === ".openclaw-repair") {
+      if (entry.name === ".kova-repair") {
         continue;
       }
       await walkDir(full, files, multimodal, shouldSkipPath);

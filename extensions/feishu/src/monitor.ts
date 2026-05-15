@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import { listEnabledFeishuAccounts, resolveFeishuRuntimeAccount } from "./accounts.js";
 import { fetchBotIdentityForMonitor } from "./monitor.startup.js";
 import {
@@ -9,7 +9,7 @@ import {
 } from "./monitor.state.js";
 
 export type MonitorFeishuOpts = {
-  config?: ClawdbotConfig;
+  config?: KovaConfig;
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;
   accountId?: string;

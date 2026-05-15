@@ -1,5 +1,5 @@
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { DEFAULT_ACCOUNT_ID, type OpenClawConfig } from "openclaw/plugin-sdk/setup";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { DEFAULT_ACCOUNT_ID, type KovaConfig } from "getkova/plugin-sdk/setup";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createPluginSetupWizardStatus,
@@ -26,7 +26,7 @@ import {
 } from "./setup-test-helpers.js";
 
 const hoisted = vi.hoisted(() => ({
-  detectWhatsAppLinked: vi.fn<(cfg: OpenClawConfig, accountId: string) => Promise<boolean>>(
+  detectWhatsAppLinked: vi.fn<(cfg: KovaConfig, accountId: string) => Promise<boolean>>(
     async () => false,
   ),
   loginWeb: vi.fn(async () => {}),
@@ -43,9 +43,9 @@ const hoisted = vi.hoisted(() => ({
     async () => "not-linked",
   ),
   resolveWhatsAppAuthDir: vi.fn<
-    (params: { cfg: OpenClawConfig; accountId: string }) => { authDir: string }
+    (params: { cfg: KovaConfig; accountId: string }) => { authDir: string }
   >(() => ({
-    authDir: "/tmp/openclaw-whatsapp-test",
+    authDir: "/tmp/kova-whatsapp-test",
   })),
 }));
 
@@ -66,9 +66,9 @@ vi.mock("./setup-finalize.js", async () => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/setup", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/setup")>(
-    "openclaw/plugin-sdk/setup",
+vi.mock("getkova/plugin-sdk/setup", async () => {
+  const actual = await vi.importActual<typeof import("getkova/plugin-sdk/setup")>(
+    "getkova/plugin-sdk/setup",
   );
   return {
     ...actual,
@@ -129,13 +129,13 @@ function createSeparatePhoneHarness(params: { selectValues: string[]; textValues
 }
 
 function expectFinalizeResult(result: Awaited<ReturnType<typeof runFinalizeWithHarness>>): {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 } {
   expect(result).toBeDefined();
   if (!result || typeof result !== "object" || !("cfg" in result) || !result.cfg) {
     throw new Error("Expected WhatsApp finalize result with cfg");
   }
-  return result as { cfg: OpenClawConfig };
+  return result as { cfg: KovaConfig };
 }
 
 async function runSeparatePhoneFlow(params: { selectValues: string[]; textValues?: string[] }) {
@@ -172,7 +172,7 @@ describe("whatsapp setup wizard", () => {
     hoisted.readWebAuthState.mockReset();
     hoisted.readWebAuthState.mockResolvedValue("not-linked");
     hoisted.resolveWhatsAppAuthDir.mockReset();
-    hoisted.resolveWhatsAppAuthDir.mockReturnValue({ authDir: "/tmp/openclaw-whatsapp-test" });
+    hoisted.resolveWhatsAppAuthDir.mockReturnValue({ authDir: "/tmp/kova-whatsapp-test" });
   });
 
   it("applies owner allowlist when forceAllowFrom is enabled", async () => {
@@ -207,7 +207,7 @@ describe("whatsapp setup wizard", () => {
       await runFinalizeWithHarness({
         harness,
         accountId: "work",
-        cfg: createWhatsAppWorkAccountConfig() as OpenClawConfig,
+        cfg: createWhatsAppWorkAccountConfig() as KovaConfig,
       }),
     );
 
@@ -227,7 +227,7 @@ describe("whatsapp setup wizard", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       accountOverrides: {
         whatsapp: "work",
       },
@@ -260,7 +260,7 @@ describe("whatsapp setup wizard", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       accountOverrides: {},
     });
 
@@ -285,7 +285,7 @@ describe("whatsapp setup wizard", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       accountOverrides: {
         whatsapp: "work",
       },
@@ -305,7 +305,7 @@ describe("whatsapp setup wizard", () => {
       await runFinalizeWithHarness({
         harness,
         accountId: "",
-        cfg: createWhatsAppWorkAccountConfig({ defaultAccount: "work" }) as OpenClawConfig,
+        cfg: createWhatsAppWorkAccountConfig({ defaultAccount: "work" }) as KovaConfig,
       }),
     );
 
@@ -341,7 +341,7 @@ describe("whatsapp setup wizard", () => {
     const result = expectFinalizeResult(
       await runFinalizeWithHarness({
         harness,
-        cfg: createWhatsAppRootAllowFromConfig() as OpenClawConfig,
+        cfg: createWhatsAppRootAllowFromConfig() as KovaConfig,
       }),
     );
 

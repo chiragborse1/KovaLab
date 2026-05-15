@@ -19,13 +19,13 @@
     "types": ["node"],
     "useDefineForClassFields": false,
     "paths": {
-      "openclaw/extension-api": ["./src/extensionAPI.ts"],
-      "openclaw/plugin-sdk": ["./src/plugin-sdk/index.ts"],
-      "openclaw/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
-      "@openclaw/plugin-sdk": ["./src/plugin-sdk/index.ts"],
-      "@openclaw/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
-      "openclaw/plugin-sdk/account-id": ["./src/plugin-sdk/account-id.ts"],
-      "@openclaw/*": ["./extensions/*"]
+      "getkova/extension-api": ["./src/extensionAPI.ts"],
+      "getkova/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+      "getkova/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+      "@getkova/plugin-sdk": ["./src/plugin-sdk/index.ts"],
+      "@getkova/plugin-sdk/*": ["./src/plugin-sdk/*.ts"],
+      "getkova/plugin-sdk/account-id": ["./src/plugin-sdk/account-id.ts"],
+      "@kovaai/*": ["./extensions/*"]
     }
   },
   "include": ["src/**/*", "ui/**/*", "extensions/**/*", "packages/**/*"],

@@ -3,42 +3,42 @@ set -euo pipefail
 
 cd /repo
 
-export OPENCLAW_STATE_DIR="/tmp/openclaw-test"
-export OPENCLAW_CONFIG_PATH="${OPENCLAW_STATE_DIR}/openclaw.json"
+export KOVA_STATE_DIR="/tmp/kova-test"
+export KOVA_CONFIG_PATH="${KOVA_STATE_DIR}/kova.json"
 
 echo "==> Build"
-if ! pnpm build >/tmp/openclaw-cleanup-build.log 2>&1; then
-  cat /tmp/openclaw-cleanup-build.log
+if ! pnpm build >/tmp/kova-cleanup-build.log 2>&1; then
+  cat /tmp/kova-cleanup-build.log
   exit 1
 fi
 
 echo "==> Seed state"
-mkdir -p "${OPENCLAW_STATE_DIR}/credentials"
-mkdir -p "${OPENCLAW_STATE_DIR}/agents/main/sessions"
-echo '{}' >"${OPENCLAW_CONFIG_PATH}"
-echo 'creds' >"${OPENCLAW_STATE_DIR}/credentials/marker.txt"
-echo 'session' >"${OPENCLAW_STATE_DIR}/agents/main/sessions/sessions.json"
+mkdir -p "${KOVA_STATE_DIR}/credentials"
+mkdir -p "${KOVA_STATE_DIR}/agents/main/sessions"
+echo '{}' >"${KOVA_CONFIG_PATH}"
+echo 'creds' >"${KOVA_STATE_DIR}/credentials/marker.txt"
+echo 'session' >"${KOVA_STATE_DIR}/agents/main/sessions/sessions.json"
 
 echo "==> Reset (config+creds+sessions)"
-if ! pnpm openclaw reset --scope config+creds+sessions --yes --non-interactive >/tmp/openclaw-cleanup-reset.log 2>&1; then
-  cat /tmp/openclaw-cleanup-reset.log
+if ! pnpm kova reset --scope config+creds+sessions --yes --non-interactive >/tmp/kova-cleanup-reset.log 2>&1; then
+  cat /tmp/kova-cleanup-reset.log
   exit 1
 fi
 
-test ! -f "${OPENCLAW_CONFIG_PATH}"
-test ! -d "${OPENCLAW_STATE_DIR}/credentials"
-test ! -d "${OPENCLAW_STATE_DIR}/agents/main/sessions"
+test ! -f "${KOVA_CONFIG_PATH}"
+test ! -d "${KOVA_STATE_DIR}/credentials"
+test ! -d "${KOVA_STATE_DIR}/agents/main/sessions"
 
 echo "==> Recreate minimal config"
-mkdir -p "${OPENCLAW_STATE_DIR}/credentials"
-echo '{}' >"${OPENCLAW_CONFIG_PATH}"
+mkdir -p "${KOVA_STATE_DIR}/credentials"
+echo '{}' >"${KOVA_CONFIG_PATH}"
 
 echo "==> Uninstall (state only)"
-if ! pnpm openclaw uninstall --state --yes --non-interactive >/tmp/openclaw-cleanup-uninstall.log 2>&1; then
-  cat /tmp/openclaw-cleanup-uninstall.log
+if ! pnpm kova uninstall --state --yes --non-interactive >/tmp/kova-cleanup-uninstall.log 2>&1; then
+  cat /tmp/kova-cleanup-uninstall.log
   exit 1
 fi
 
-test ! -d "${OPENCLAW_STATE_DIR}"
+test ! -d "${KOVA_STATE_DIR}"
 
 echo "OK"

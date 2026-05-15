@@ -1,1 +1,1 @@
-export { resolveGatewayPort } from "openclaw/plugin-sdk/browser-config-support";
+export { resolveGatewayPort } from "getkova/plugin-sdk/browser-config-support";

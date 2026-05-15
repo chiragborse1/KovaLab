@@ -13,7 +13,7 @@
  */
 
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { authorizeQQBotApprovalAction } from "../../exec-approvals.js";
 import { getPlatformAdapter } from "../adapter/index.js";
 import { parseApprovalButtonData } from "../approval/index.js";
@@ -165,7 +165,7 @@ export async function startGateway(ctx: CoreGatewayContext): Promise<void> {
 
   // ---- 7. Interaction handler ----
   const handleInteraction = createApprovalInteractionHandler(account, log, {
-    getActiveCfg: () => ctx.cfg as OpenClawConfig,
+    getActiveCfg: () => ctx.cfg as KovaConfig,
   });
 
   // ---- 8. Start connection ----
@@ -258,7 +258,7 @@ async function startTypingForEvent(
 export function createApprovalInteractionHandler(
   account: GatewayAccount,
   log?: EngineLogger,
-  options?: { getActiveCfg?: () => OpenClawConfig },
+  options?: { getActiveCfg?: () => KovaConfig },
 ): (event: InteractionEvent) => void {
   return (event) => {
     const creds = accountToCreds(account);
@@ -285,7 +285,7 @@ async function handleApprovalButtonInteraction(params: {
   accountId: string;
   creds: { appId: string; clientSecret: string };
   event: InteractionEvent;
-  getActiveCfg?: () => OpenClawConfig;
+  getActiveCfg?: () => KovaConfig;
   log?: EngineLogger;
   parsed: { approvalId: string; decision: "allow-once" | "allow-always" | "deny" };
 }): Promise<void> {
@@ -297,7 +297,7 @@ async function handleApprovalButtonInteraction(params: {
     return;
   }
 
-  let cfg: OpenClawConfig;
+  let cfg: KovaConfig;
   try {
     cfg = params.getActiveCfg();
   } catch (err) {
@@ -366,7 +366,7 @@ async function acknowledgeApprovalInteraction(
 }
 
 function authorizeApprovalButtonActor(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   event: InteractionEvent;
   approvalKind: "exec" | "plugin";

@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 import type * as Lark from "@larksuiteoapi/node-sdk";
-import type { ClawdbotConfig, RuntimeEnv, HistoryEntry } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv, HistoryEntry } from "../runtime-api.js";
 import { raceWithTimeoutAndAbort } from "./async.js";
 import {
   handleFeishuMessage,
@@ -49,7 +49,7 @@ export type FeishuReactionDeletedEvent = FeishuReactionCreatedEvent & {
 };
 
 type ResolveReactionSyntheticEventParams = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   accountId: string;
   event: FeishuReactionCreatedEvent;
   botOpenId?: string;
@@ -162,7 +162,7 @@ function normalizeFeishuChatType(value: unknown): FeishuChatType | undefined {
 }
 
 type RegisterEventHandlersContext = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   accountId: string;
   runtime?: RuntimeEnv;
   chatHistories: Map<string, HistoryEntry[]>;
@@ -406,7 +406,7 @@ export type BotOpenIdSource =
   | { kind: "fetch" };
 
 export type MonitorSingleAccountParams = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   account: ResolvedFeishuAccount;
   runtime?: RuntimeEnv;
   abortSignal?: AbortSignal;

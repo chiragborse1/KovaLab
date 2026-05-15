@@ -1,7 +1,7 @@
 import path from "node:path";
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { resolveOpenClawPackageRootSync } from "../infra/openclaw-root.js";
+import type { KovaConfig } from "../config/types.kova.js";
+import { resolveKovaPackageRootSync } from "../infra/kova-root.js";
 import {
   createBundledRuntimeDepsWritableInstallSpecs,
   repairBundledRuntimeDepsInstallRootAsync,
@@ -36,7 +36,7 @@ function logRuntimeDepsInstallProgress(runtime: RuntimeEnv, message: string): vo
 export async function maybeRepairBundledPluginRuntimeDeps(params: {
   runtime: RuntimeEnv;
   prompter: DoctorPrompter;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   env?: NodeJS.ProcessEnv;
   packageRoot?: string | null;
   includeConfiguredChannels?: boolean;
@@ -44,7 +44,7 @@ export async function maybeRepairBundledPluginRuntimeDeps(params: {
 }): Promise<void> {
   const packageRoot =
     params.packageRoot ??
-    resolveOpenClawPackageRootSync({
+    resolveKovaPackageRootSync({
       argv1: process.argv[1],
       cwd: process.cwd(),
       moduleUrl: import.meta.url,
@@ -60,7 +60,7 @@ export async function maybeRepairBundledPluginRuntimeDeps(params: {
         config: params.config,
         env: {
           ...env,
-          OPENCLAW_BUNDLED_PLUGINS_DIR: bundledPluginsDir,
+          KOVA_BUNDLED_PLUGINS_DIR: bundledPluginsDir,
         },
       })
     : undefined;
@@ -130,7 +130,7 @@ export async function maybeRepairBundledPluginRuntimeDeps(params: {
     progress = createCliProgress({
       label: `Installing bundled plugin runtime deps (${missingSpecs.length})`,
       indeterminate: true,
-      enabled: process.env.VITEST !== "true" || process.env.OPENCLAW_TEST_RUNTIME_LOG === "1",
+      enabled: process.env.VITEST !== "true" || process.env.KOVA_TEST_RUNTIME_LOG === "1",
     });
     const installStartedAt = Date.now();
     logRuntimeDepsInstallProgress(

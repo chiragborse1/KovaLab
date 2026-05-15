@@ -59,10 +59,10 @@ pnpm qa:otel:smoke
 That script starts a local OTLP/HTTP trace receiver, runs the
 `otel-trace-smoke` QA scenario with the `diagnostics-otel` plugin enabled, then
 decodes the exported protobuf spans and asserts the release-critical shape:
-`openclaw.run`, `openclaw.harness.run`, `openclaw.model.call`,
-`openclaw.context.assembled`, and `openclaw.message.delivery` must be present;
+`kova.run`, `kova.harness.run`, `kova.model.call`,
+`kova.context.assembled`, and `kova.message.delivery` must be present;
 model calls must not export `StreamAbandoned` on successful turns; raw diagnostic IDs and
-`openclaw.content.*` attributes must stay out of the trace. It writes
+`kova.content.*` attributes must stay out of the trace. It writes
 `otel-smoke-summary.json` next to the QA suite artifacts.
 
 Observability QA stays source-checkout only. The npm tarball intentionally omits
@@ -83,15 +83,15 @@ the child config scoped to the transport under test, so Matrix runs without
 `qa-channel` in the child config. It writes the structured report artifacts and
 a combined stdout/stderr log into the selected Matrix QA output directory. To
 capture the outer `scripts/run-node.mjs` build/launcher output too, set
-`OPENCLAW_RUN_NODE_OUTPUT_LOG=<path>` to a repo-local log file.
+`KOVA_RUN_NODE_OUTPUT_LOG=<path>` to a repo-local log file.
 Matrix progress is printed by default. The CLI default profile is `all`, so
 plain `pnpm kova qa matrix` still runs the full catalog. Use `--profile
 fast` for the release-critical transport contract, or shard full coverage with
 `transport`, `media`, `e2ee-smoke`, `e2ee-deep`, and `e2ee-cli`. `--fail-fast`
 stops after the first failed scenario when you want a release gate instead of a
-full inventory. `OPENCLAW_QA_MATRIX_TIMEOUT_MS` bounds the full run,
-`OPENCLAW_QA_MATRIX_NO_REPLY_WINDOW_MS` can shorten no-reply quiet windows for
-CI, and `OPENCLAW_QA_MATRIX_CLEANUP_TIMEOUT_MS` bounds cleanup so a stuck
+full inventory. `KOVA_QA_MATRIX_TIMEOUT_MS` bounds the full run,
+`KOVA_QA_MATRIX_NO_REPLY_WINDOW_MS` can shorten no-reply quiet windows for
+CI, and `KOVA_QA_MATRIX_CLEANUP_TIMEOUT_MS` bounds cleanup so a stuck
 Docker teardown reports the exact recovery command instead of hanging.
 
 For a transport-real Telegram smoke lane, run:
@@ -101,9 +101,9 @@ pnpm kova qa telegram
 ```
 
 That lane targets one real private Telegram group instead of provisioning a
-disposable server. It requires `OPENCLAW_QA_TELEGRAM_GROUP_ID`,
-`OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN`, and
-`OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN`, plus two distinct bots in the same
+disposable server. It requires `KOVA_QA_TELEGRAM_GROUP_ID`,
+`KOVA_QA_TELEGRAM_DRIVER_BOT_TOKEN`, and
+`KOVA_QA_TELEGRAM_SUT_BOT_TOKEN`, plus two distinct bots in the same
 private group. The SUT bot must have a Telegram username, and bot-to-bot
 observation works best when both bots have Bot-to-Bot Communication Mode
 enabled in `@BotFather`.
@@ -131,9 +131,9 @@ pnpm kova qa discord
 That lane targets one real private Discord guild channel with two bots: a
 driver bot controlled by the harness and a SUT bot started by the child
 Kova gateway through the bundled Discord plugin. It requires
-`OPENCLAW_QA_DISCORD_GUILD_ID`, `OPENCLAW_QA_DISCORD_CHANNEL_ID`,
-`OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN`, `OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN`,
-and `OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID` when using env credentials.
+`KOVA_QA_DISCORD_GUILD_ID`, `KOVA_QA_DISCORD_CHANNEL_ID`,
+`KOVA_QA_DISCORD_DRIVER_BOT_TOKEN`, `KOVA_QA_DISCORD_SUT_BOT_TOKEN`,
+and `KOVA_QA_DISCORD_SUT_APPLICATION_ID` when using env credentials.
 The lane verifies channel mention handling and checks that the SUT bot has
 registered the native `/help` command with Discord.
 The command exits non-zero when any scenario fails. Use `--allow-failures` when

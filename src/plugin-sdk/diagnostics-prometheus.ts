@@ -8,8 +8,8 @@ export type {
 export { redactSensitiveText } from "../logging/redact.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export type {
-  OpenClawPluginApi,
-  OpenClawPluginHttpRouteHandler,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  KovaPluginApi,
+  KovaPluginHttpRouteHandler,
+  KovaPluginService,
+  KovaPluginServiceContext,
 } from "../plugins/types.js";

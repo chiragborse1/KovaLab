@@ -116,7 +116,7 @@ The plugin initializes a vault like this:
   reports/
   _attachments/
   _views/
-  .openclaw-wiki/
+  .kova-wiki/
 ```
 
 Managed content stays inside generated blocks. Human note blocks are preserved.
@@ -159,8 +159,8 @@ dump. Claims can be tracked, scored, contested, and resolved back to sources.
 The compile step reads wiki pages, normalizes summaries, and emits stable
 machine-facing artifacts under:
 
-- `.openclaw-wiki/cache/agent-digest.json`
-- `.openclaw-wiki/cache/claims.jsonl`
+- `.kova-wiki/cache/agent-digest.json`
+- `.kova-wiki/cache/claims.jsonl`
 
 These digests exist so agents and runtime code do not have to scrape Markdown
 pages.
@@ -271,7 +271,7 @@ Put config under `plugins.entries.memory-wiki.config`:
         config: {
           vaultMode: "isolated",
           vault: {
-            path: "~/.openclaw/wiki/main",
+            path: "~/.kova/wiki/main",
             renderMode: "obsidian",
           },
           obsidian: {

@@ -1,8 +1,8 @@
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
 import {
   registerUncaughtExceptionHandler,
   registerUnhandledRejectionHandler,
-} from "openclaw/plugin-sdk/runtime";
+} from "getkova/plugin-sdk/runtime";
 import { startGatewayBonjourAdvertiser } from "./src/advertiser.js";
 
 function formatBonjourInstanceName(displayName: string) {
@@ -10,7 +10,7 @@ function formatBonjourInstanceName(displayName: string) {
   if (!trimmed) {
     return "Kova";
   }
-  if (/openclaw/i.test(trimmed)) {
+  if (/kova/i.test(trimmed)) {
     return trimmed;
   }
   return `${trimmed} (Kova)`;

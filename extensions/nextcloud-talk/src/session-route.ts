@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { buildOutboundBaseSessionKey } from "openclaw/plugin-sdk/routing";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { buildOutboundBaseSessionKey } from "getkova/plugin-sdk/routing";
 import { stripNextcloudTalkTargetPrefix } from "./normalize.js";
 
 type NextcloudTalkOutboundSessionRouteParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   accountId?: string | null;
   target: string;

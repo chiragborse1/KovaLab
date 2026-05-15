@@ -12,7 +12,7 @@ vi.mock("./schtasks-exec.js", () => ({
   execSchtasks: (...args: unknown[]) => execSchtasksMock(...args),
 }));
 
-// Real content from the openclaw-gateway.service unit file (the canonical gateway unit).
+// Real content from the kova-gateway.service unit file (the canonical gateway unit).
 const GATEWAY_SERVICE_CONTENTS = `\
 [Unit]
 Description=Kova Gateway (v2026.3.8)
@@ -20,20 +20,20 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/node /home/openclaw/.npm-global/lib/node_modules/openclaw/dist/entry.js gateway --port 18789
+ExecStart=/usr/bin/node /home/kova/.npm-global/lib/node_modules/kova/dist/entry.js gateway --port 18789
 Restart=always
-Environment=OPENCLAW_SERVICE_MARKER=openclaw
-Environment=OPENCLAW_SERVICE_KIND=gateway
-Environment=OPENCLAW_SERVICE_VERSION=2026.3.8
+Environment=KOVA_SERVICE_MARKER=kova
+Environment=KOVA_SERVICE_KIND=gateway
+Environment=KOVA_SERVICE_VERSION=2026.3.8
 
 [Install]
 WantedBy=default.target
 `;
 
-// Real content from the openclaw-test.service unit file (a non-gateway openclaw service).
+// Real content from the kova-test.service unit file (a non-gateway kova service).
 const TEST_SERVICE_CONTENTS = `\
 [Unit]
-Description=OpenClaw test service
+Description=Kova test service
 After=default.target
 
 [Service]
@@ -45,16 +45,16 @@ Restart=on-failure
 WantedBy=default.target
 `;
 
-const CLAWDBOT_GATEWAY_CONTENTS = `\
+const KOVA_GATEWAY_CONTENTS = `\
 [Unit]
-Description=Clawdbot Gateway
+Description=Kova Gateway
 [Service]
-ExecStart=/usr/bin/node /opt/clawdbot/dist/entry.js gateway --port 18789
-Environment=HOME=/home/clawdbot
+ExecStart=/usr/bin/node /opt/kova/dist/entry.js gateway --port 18789
+Environment=HOME=/home/kova
 `;
 
 describe("detectMarkerLineWithGateway", () => {
-  it("returns null for openclaw-test.service (openclaw only in description, no gateway on same line)", () => {
+  it("returns null for kova-test.service (kova only in description, no gateway on same line)", () => {
     expect(detectMarkerLineWithGateway(TEST_SERVICE_CONTENTS)).toBeNull();
   });
 
@@ -62,13 +62,13 @@ describe("detectMarkerLineWithGateway", () => {
     expect(detectMarkerLineWithGateway(GATEWAY_SERVICE_CONTENTS)).toBe("kova");
   });
 
-  it("returns clawdbot for a clawdbot gateway unit", () => {
-    expect(detectMarkerLineWithGateway(CLAWDBOT_GATEWAY_CONTENTS)).toBe("clawdbot");
+  it("returns kova for a kova gateway unit", () => {
+    expect(detectMarkerLineWithGateway(KOVA_GATEWAY_CONTENTS)).toBe("kova");
   });
 
   it("handles line continuations — marker and gateway split across physical lines", () => {
-    const contents = `[Service]\nExecStart=/usr/bin/node /opt/openclaw/dist/entry.js \\\n  gateway --port 18789\n`;
-    expect(detectMarkerLineWithGateway(contents)).toBe("openclaw");
+    const contents = `[Service]\nExecStart=/usr/bin/node /opt/kova/dist/entry.js \\\n  gateway --port 18789\n`;
+    expect(detectMarkerLineWithGateway(contents)).toBe("kova");
   });
 });
 
@@ -78,12 +78,12 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
   // Only runs on Linux/macOS where the linux branch of findExtraGatewayServices is active.
   const isLinux = process.platform === "linux";
 
-  it.skipIf(!isLinux)("does not report openclaw-test.service as a gateway service", async () => {
-    const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-test-"));
+  it.skipIf(!isLinux)("does not report kova-test.service as a gateway service", async () => {
+    const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "kova-test-"));
     const systemdDir = path.join(tmpHome, ".config", "systemd", "user");
     try {
       await fs.mkdir(systemdDir, { recursive: true });
-      await fs.writeFile(path.join(systemdDir, "openclaw-test.service"), TEST_SERVICE_CONTENTS);
+      await fs.writeFile(path.join(systemdDir, "kova-test.service"), TEST_SERVICE_CONTENTS);
       const result = await findExtraGatewayServices({ HOME: tmpHome });
       expect(result).toEqual([]);
     } finally {
@@ -92,16 +92,13 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
   });
 
   it.skipIf(!isLinux)(
-    "does not report the canonical openclaw-gateway.service as an extra service",
+    "does not report the canonical kova-gateway.service as an extra service",
     async () => {
-      const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-test-"));
+      const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "kova-test-"));
       const systemdDir = path.join(tmpHome, ".config", "systemd", "user");
       try {
         await fs.mkdir(systemdDir, { recursive: true });
-        await fs.writeFile(
-          path.join(systemdDir, "openclaw-gateway.service"),
-          GATEWAY_SERVICE_CONTENTS,
-        );
+        await fs.writeFile(path.join(systemdDir, "kova-gateway.service"), GATEWAY_SERVICE_CONTENTS);
         const result = await findExtraGatewayServices({ HOME: tmpHome });
         expect(result).toEqual([]);
       } finally {
@@ -111,22 +108,22 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
   );
 
   it.skipIf(!isLinux)(
-    "reports a legacy clawdbot-gateway service as an extra gateway service",
+    "reports a legacy kova-gateway service as an extra gateway service",
     async () => {
-      const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-test-"));
+      const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "kova-test-"));
       const systemdDir = path.join(tmpHome, ".config", "systemd", "user");
-      const unitPath = path.join(systemdDir, "clawdbot-gateway.service");
+      const unitPath = path.join(systemdDir, "kova-gateway.service");
       try {
         await fs.mkdir(systemdDir, { recursive: true });
-        await fs.writeFile(unitPath, CLAWDBOT_GATEWAY_CONTENTS);
+        await fs.writeFile(unitPath, KOVA_GATEWAY_CONTENTS);
         const result = await findExtraGatewayServices({ HOME: tmpHome });
         expect(result).toEqual([
           {
             platform: "linux",
-            label: "clawdbot-gateway.service",
+            label: "kova-gateway.service",
             detail: `unit: ${unitPath}`,
             scope: "user",
-            marker: "clawdbot",
+            marker: "kova",
             legacy: true,
           },
         ]);
@@ -172,15 +169,15 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([]);
   });
 
-  it("collects only non-openclaw marker tasks from schtasks output", async () => {
+  it("collects only non-kova marker tasks from schtasks output", async () => {
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
         "TaskName: Kova Gateway",
-        "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
+        "Task To Run: C:\\Program Files\\Kova\\kova.exe gateway run",
         "",
-        "TaskName: Clawdbot Legacy",
-        "Task To Run: C:\\clawdbot\\clawdbot.exe run",
+        "TaskName: Kova Legacy",
+        "Task To Run: C:\\kova\\kova.exe run",
         "",
         "TaskName: Other Task",
         "Task To Run: C:\\tools\\helper.exe",
@@ -193,10 +190,10 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([
       {
         platform: "win32",
-        label: "Clawdbot Legacy",
-        detail: "task: Clawdbot Legacy, run: C:\\clawdbot\\clawdbot.exe run",
+        label: "Kova Legacy",
+        detail: "task: Kova Legacy, run: C:\\kova\\kova.exe run",
         scope: "system",
-        marker: "clawdbot",
+        marker: "kova",
         legacy: true,
       },
     ]);

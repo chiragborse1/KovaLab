@@ -71,7 +71,7 @@ setup. The full service guidance lives in the [Gateway runbook](/gateway).
 
 Minimal setup:
 
-Create `~/.config/systemd/user/openclaw-gateway[-<profile>].service`:
+Create `~/.config/systemd/user/kova-gateway[-<profile>].service`:
 
 ```
 [Unit]
@@ -80,7 +80,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/openclaw gateway --port 18789
+ExecStart=/usr/local/bin/kova gateway --port 18789
 Restart=always
 RestartSec=5
 TimeoutStopSec=30
@@ -95,7 +95,7 @@ WantedBy=default.target
 Enable it:
 
 ```
-systemctl --user enable --now openclaw-gateway[-<profile>].service
+systemctl --user enable --now kova-gateway[-<profile>].service
 ```
 
 ## Memory pressure and OOM kills
@@ -118,7 +118,7 @@ Covered child process surfaces include:
 - Kova-launched browser/Chrome processes.
 
 The wrapper is Linux-only and is skipped when `/bin/sh` is unavailable. It is
-also skipped if the child env sets `OPENCLAW_CHILD_OOM_SCORE_ADJ=0`, `false`,
+also skipped if the child env sets `KOVA_CHILD_OOM_SCORE_ADJ=0`, `false`,
 `no`, or `off`.
 
 To verify a child process:

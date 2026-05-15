@@ -17,7 +17,7 @@ kova backup create --dry-run --json
 kova backup create --verify
 kova backup create --no-include-workspace
 kova backup create --only-config
-kova backup verify ./2026-03-09T00-00-00.000Z-openclaw-backup.tar.gz
+kova backup verify ./2026-03-09T00-00-00.000Z-kova-backup.tar.gz
 ```
 
 ## Notes
@@ -35,7 +35,7 @@ kova backup verify ./2026-03-09T00-00-00.000Z-openclaw-backup.tar.gz
 
 `kova backup create` plans backup sources from your local Kova install:
 
-- The state directory returned by Kova's local state resolver, usually `~/.openclaw`
+- The state directory returned by Kova's local state resolver, usually `~/.kova`
 - The active config file path
 - The resolved `credentials/` directory when it exists outside the state directory
 - Workspace directories discovered from the current config, unless you pass `--no-include-workspace`

@@ -116,7 +116,7 @@ the maintainer-only release runbook.
   Example: `gh workflow run package-acceptance.yml --ref main -f workflow_ref=main -f source=npm -f package_spec=getkova@beta -f suite_profile=product -f telegram_mode=mock-openai`
   Common profiles:
   - `smoke`: install/channel/agent, gateway network, and config reload lanes
-  - `package`: artifact-native package/update/plugin lanes without OpenWebUI or live ClawHub
+  - `package`: artifact-native package/update/plugin lanes without OpenWebUI or live KovaHub
   - `product`: package profile plus MCP channels, cron/subagent cleanup,
     OpenAI web search, and OpenWebUI
   - `full`: Docker release-path chunks with OpenWebUI
@@ -144,7 +144,7 @@ the maintainer-only release runbook.
 - Cross-OS install and upgrade runtime validation is part of public
   `Kova Release Checks` and `Full Release Validation`, which call the
   reusable workflow
-  `.github/workflows/openclaw-cross-os-release-checks-reusable.yml` directly
+  `.github/workflows/kova-cross-os-release-checks-reusable.yml` directly
 - This split is intentional: keep the real npm release path short,
   deterministic, and artifact-focused, while slower live checks stay in their
   own lane so they do not stall or block publish
@@ -162,7 +162,7 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   runners, while the non-mutating validation path can use the larger
   Blacksmith Linux runners
 - That workflow runs
-  `OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_CACHE_TEST=1 pnpm test:live:cache`
+  `KOVA_LIVE_TEST=1 KOVA_LIVE_CACHE_TEST=1 pnpm test:live:cache`
   using both `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` workflow secrets
 - npm release preflight no longer waits on the separate release checks lane
 - Run `RELEASE_TAG=v0.2.0 node --import tsx scripts/kova-npm-release-check.ts`
@@ -171,11 +171,11 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   `node --import tsx scripts/kova-npm-postpublish-verify.ts 0.2.0`
   (or the matching beta version) to verify the published registry
   install path in a fresh temp prefix
-- After a beta publish, run `OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=getkova@0.2.0-beta.N OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
+- After a beta publish, run `KOVA_NPM_TELEGRAM_PACKAGE_SPEC=getkova@0.2.0-beta.N KOVA_NPM_TELEGRAM_CREDENTIAL_SOURCE=convex KOVA_NPM_TELEGRAM_CREDENTIAL_ROLE=ci pnpm test:docker:npm-telegram-live`
   to verify installed-package onboarding, Telegram setup, and real Telegram E2E
   against the published npm package using the shared leased Telegram credential
   pool. Local maintainer one-offs may omit the Convex vars and pass the three
-  `OPENCLAW_QA_TELEGRAM_*` env credentials directly.
+  `KOVA_QA_TELEGRAM_*` env credentials directly.
 - Maintainers can run the same post-publish check from GitHub Actions via the
   manual `NPM Telegram Beta E2E` workflow. It is intentionally manual-only and
   does not run on every merge.
@@ -186,7 +186,7 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   - stable npm releases default to `beta`
   - stable npm publish can target `latest` explicitly via workflow input
   - token-based npm dist-tag mutation now lives in
-    `openclaw/releases-private/.github/workflows/openclaw-npm-dist-tags.yml`
+    `kova/releases-private/.github/workflows/kova-npm-dist-tags.yml`
     for security, because `npm dist-tag add` still needs `NPM_TOKEN` while the
     public repo keeps OIDC-only publish
   - public `macOS Release` is validation-only
@@ -310,7 +310,7 @@ gh workflow run ci.yml --ref main -f target_ref=release/0.2.0
 ### Docker
 
 The Docker box lives in `Kova Release Checks` through
-`openclaw-live-and-e2e-checks-reusable.yml`, plus the release-mode
+`kova-live-and-e2e-checks-reusable.yml`, plus the release-mode
 `install-smoke` workflow. It validates the release candidate through packaged
 Docker environments instead of only source-level tests.
 
@@ -360,7 +360,7 @@ manual sharded QA-Lab run rather than the default release-critical lane.
 
 The Package box is the installable-product gate. It is backed by
 `Package Acceptance` and the resolver
-`scripts/resolve-openclaw-package-candidate.mjs`. The resolver normalizes a
+`scripts/resolve-kova-package-candidate.mjs`. The resolver normalizes a
 candidate into the `package-under-test` tarball consumed by Docker E2E, validates
 the package inventory, records the package version and SHA-256, and keeps the
 workflow harness ref separate from the package source ref.
@@ -411,7 +411,7 @@ Common package profiles:
 
 - `smoke`: quick package install/channel/agent, gateway network, and config
   reload lanes
-- `package`: install/update/plugin package contracts without live ClawHub; this is the release-check
+- `package`: install/update/plugin package contracts without live KovaHub; this is the release-check
   default
 - `product`: `package` plus MCP channels, cron/subagent cleanup, OpenAI web
   search, and OpenWebUI
@@ -471,7 +471,7 @@ When cutting a stable npm release:
 6. Run `Kova NPM Release` again with `preflight_only=false`, the same
    `tag`, the same `npm_dist_tag`, and the saved `preflight_run_id`
 7. If the release landed on `beta`, use the private
-   `openclaw/releases-private/.github/workflows/openclaw-npm-dist-tags.yml`
+   `kova/releases-private/.github/workflows/kova-npm-dist-tags.yml`
    workflow to promote that stable version from `beta` to `latest`
 8. If the release intentionally published directly to `latest` and `beta`
    should follow the same stable build immediately, use that same private
@@ -491,18 +491,18 @@ alerts, and OTP handling observable and prevents repeated host alerts.
 
 ## Public references
 
-- [`.github/workflows/full-release-validation.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/full-release-validation.yml)
-- [`.github/workflows/package-acceptance.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/package-acceptance.yml)
-- [`.github/workflows/openclaw-npm-release.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-npm-release.yml)
-- [`.github/workflows/openclaw-release-checks.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-release-checks.yml)
-- [`.github/workflows/openclaw-cross-os-release-checks-reusable.yml`](https://github.com/openclaw/openclaw/blob/main/.github/workflows/openclaw-cross-os-release-checks-reusable.yml)
-- [`scripts/resolve-openclaw-package-candidate.mjs`](https://github.com/openclaw/openclaw/blob/main/scripts/resolve-openclaw-package-candidate.mjs)
+- [`.github/workflows/full-release-validation.yml`](https://github.com/chiragborse1/KovaLab/blob/main/.github/workflows/full-release-validation.yml)
+- [`.github/workflows/package-acceptance.yml`](https://github.com/chiragborse1/KovaLab/blob/main/.github/workflows/package-acceptance.yml)
+- [`.github/workflows/kova-npm-release.yml`](https://github.com/chiragborse1/KovaLab/blob/main/.github/workflows/kova-npm-release.yml)
+- [`.github/workflows/kova-release-checks.yml`](https://github.com/chiragborse1/KovaLab/blob/main/.github/workflows/kova-release-checks.yml)
+- [`.github/workflows/kova-cross-os-release-checks-reusable.yml`](https://github.com/chiragborse1/KovaLab/blob/main/.github/workflows/kova-cross-os-release-checks-reusable.yml)
+- [`scripts/resolve-kova-package-candidate.mjs`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/resolve-kova-package-candidate.mjs)
 - [`scripts/kova-npm-release-check.ts`](https://github.com/chiragborse1/KovaLab/blob/dev/scripts/kova-npm-release-check.ts)
-- [`scripts/package-mac-dist.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/package-mac-dist.sh)
-- [`scripts/make_appcast.sh`](https://github.com/openclaw/openclaw/blob/main/scripts/make_appcast.sh)
+- [`scripts/package-mac-dist.sh`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/package-mac-dist.sh)
+- [`scripts/make_appcast.sh`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/make_appcast.sh)
 
 Maintainers use the private release docs in
-[`openclaw/maintainers/release/README.md`](https://github.com/openclaw/maintainers/blob/main/release/README.md)
+[`kova/maintainers/release/README.md`](https://github.com/kova/maintainers/blob/main/release/README.md)
 for the actual runbook.
 
 ## Related

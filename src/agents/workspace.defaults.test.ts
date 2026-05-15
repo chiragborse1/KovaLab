@@ -9,7 +9,7 @@ afterEach(() => {
 describe("DEFAULT_AGENT_WORKSPACE_DIR", () => {
   it("uses ~/.kova/workspace by default", () => {
     vi.stubEnv("KOVA_HOME", undefined);
-    vi.stubEnv("OPENCLAW_HOME", undefined);
+    vi.stubEnv("KOVA_HOME", undefined);
     vi.stubEnv("HOME", path.join(path.sep, "home", "chirag"));
 
     expect(resolveDefaultAgentWorkspaceDir()).toBe(
@@ -29,9 +29,9 @@ describe("DEFAULT_AGENT_WORKSPACE_DIR", () => {
 
   it("keeps profile workspaces under ~/.kova", () => {
     vi.stubEnv("KOVA_HOME", undefined);
-    vi.stubEnv("OPENCLAW_HOME", undefined);
+    vi.stubEnv("KOVA_HOME", undefined);
     vi.stubEnv("HOME", path.join(path.sep, "home", "chirag"));
-    vi.stubEnv("OPENCLAW_PROFILE", "work");
+    vi.stubEnv("KOVA_PROFILE", "work");
 
     expect(resolveDefaultAgentWorkspaceDir()).toBe(
       path.join(path.sep, "home", "chirag", ".kova", "workspace-work"),

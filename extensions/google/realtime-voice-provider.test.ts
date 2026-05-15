@@ -1,4 +1,4 @@
-import { REALTIME_VOICE_AUDIO_FORMAT_PCM16_24KHZ } from "openclaw/plugin-sdk/realtime-voice";
+import { REALTIME_VOICE_AUDIO_FORMAT_PCM16_24KHZ } from "getkova/plugin-sdk/realtime-voice";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildGoogleRealtimeVoiceProvider } from "./realtime-voice-provider.js";
 
@@ -134,8 +134,8 @@ describe("buildGoogleRealtimeVoiceProvider", () => {
         },
         {
           type: "function",
-          name: "openclaw_agent_consult",
-          description: "Ask OpenClaw",
+          name: "kova_agent_consult",
+          description: "Ask Kova",
           parameters: {
             type: "object",
             properties: {
@@ -189,8 +189,8 @@ describe("buildGoogleRealtimeVoiceProvider", () => {
                 },
               },
               {
-                name: "openclaw_agent_consult",
-                description: "Ask OpenClaw",
+                name: "kova_agent_consult",
+                description: "Ask Kova",
                 parametersJsonSchema: {
                   type: "object",
                   properties: {
@@ -487,9 +487,7 @@ describe("buildGoogleRealtimeVoiceProvider", () => {
     lastConnectParams().callbacks.onmessage({
       setupComplete: { sessionId: "session-1" },
       toolCall: {
-        functionCalls: [
-          { id: "consult-call", name: "openclaw_agent_consult", args: { prompt: "hi" } },
-        ],
+        functionCalls: [{ id: "consult-call", name: "kova_agent_consult", args: { prompt: "hi" } }],
       },
     });
 
@@ -504,7 +502,7 @@ describe("buildGoogleRealtimeVoiceProvider", () => {
       functionResponses: [
         {
           id: "consult-call",
-          name: "openclaw_agent_consult",
+          name: "kova_agent_consult",
           scheduling: "WHEN_IDLE",
           willContinue: true,
           response: { status: "working", message: "Tell the participant you are checking." },
@@ -515,7 +513,7 @@ describe("buildGoogleRealtimeVoiceProvider", () => {
       functionResponses: [
         {
           id: "consult-call",
-          name: "openclaw_agent_consult",
+          name: "kova_agent_consult",
           scheduling: "WHEN_IDLE",
           response: { text: "The meeting starts at 3." },
         },

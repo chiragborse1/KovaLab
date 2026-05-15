@@ -149,7 +149,7 @@ will be sent to the configured proxy host.
       -H "Authorization: Bearer $LITELLM_MASTER_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "key_alias": "openclaw",
+        "key_alias": "kova",
         "max_budget": 50.00,
         "budget_duration": "monthly"
       }'

@@ -23,7 +23,7 @@ manually:
 Install via CLI (npm registry):
 
 ```bash
-kova plugins install @openclaw/tlon
+kova plugins install @kovaai/tlon
 ```
 
 Local checkout (when running from a git repo):

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { RunEmbeddedPiAgentParams } from "../agents/pi-embedded-runner/run/params.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { RuntimeLogger, PluginRuntimeCore } from "../plugins/runtime/types-core.js";
 import {
   buildRealtimeVoiceAgentConsultPrompt,
@@ -24,7 +24,7 @@ function resolveRealtimeVoiceAgentSandboxSessionKey(agentId: string, sessionKey:
 }
 
 export async function consultRealtimeVoiceAgent(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentRuntime: RealtimeVoiceAgentConsultRuntime;
   logger: Pick<RuntimeLogger, "warn">;
   sessionKey: string;

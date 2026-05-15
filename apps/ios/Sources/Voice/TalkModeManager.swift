@@ -1,7 +1,7 @@
 import AVFAudio
-import OpenClawChatUI
-import OpenClawKit
-import OpenClawProtocol
+import KovaChatUI
+import KovaKit
+import KovaProtocol
 import Foundation
 import Observation
 import OSLog
@@ -58,7 +58,7 @@ final class TalkModeManager: NSObject {
     private var resumeContinuousAfterPTT: Bool = false
     private var activePTTCaptureId: String?
     private var pttAutoStopEnabled: Bool = false
-    private var pttCompletion: CheckedContinuation<OpenClawTalkPTTStopPayload, Never>?
+    private var pttCompletion: CheckedContinuation<KovaTalkPTTStopPayload, Never>?
     private var pttTimeoutTask: Task<Void, Never>?
 
     private let allowSimulatorCapture: Bool
@@ -227,7 +227,7 @@ final class TalkModeManager: NSObject {
         self.pttTimeoutTask = nil
         self.pttAutoStopEnabled = false
         if pendingPTT {
-            let payload = OpenClawTalkPTTStopPayload(
+            let payload = KovaTalkPTTStopPayload(
                 captureId: pendingCaptureId,
                 transcript: nil,
                 status: "cancelled")
@@ -289,7 +289,7 @@ final class TalkModeManager: NSObject {
         self.stopSpeaking()
     }
 
-    func beginPushToTalk() async throws -> OpenClawTalkPTTStartPayload {
+    func beginPushToTalk() async throws -> KovaTalkPTTStartPayload {
         guard self.gatewayConnected else {
             self.statusText = "Offline"
             throw NSError(domain: "TalkMode", code: 7, userInfo: [
@@ -297,7 +297,7 @@ final class TalkModeManager: NSObject {
             ])
         }
         if self.isPushToTalkActive, let captureId = self.activePTTCaptureId {
-            return OpenClawTalkPTTStartPayload(captureId: captureId)
+            return KovaTalkPTTStartPayload(captureId: captureId)
         }
 
         self.stopSpeaking(storeInterruption: false)
@@ -351,13 +351,13 @@ final class TalkModeManager: NSObject {
             throw error
         }
 
-        return OpenClawTalkPTTStartPayload(captureId: captureId)
+        return KovaTalkPTTStartPayload(captureId: captureId)
     }
 
-    func endPushToTalk() async -> OpenClawTalkPTTStopPayload {
+    func endPushToTalk() async -> KovaTalkPTTStopPayload {
         let captureId = self.activePTTCaptureId ?? UUID().uuidString
         guard self.isPushToTalkActive else {
-            let payload = OpenClawTalkPTTStopPayload(
+            let payload = KovaTalkPTTStopPayload(
                 captureId: captureId,
                 transcript: nil,
                 status: "idle")
@@ -384,7 +384,7 @@ final class TalkModeManager: NSObject {
             }
             self.resumeContinuousAfterPTT = false
             self.activePTTCaptureId = nil
-            let payload = OpenClawTalkPTTStopPayload(
+            let payload = KovaTalkPTTStopPayload(
                 captureId: captureId,
                 transcript: nil,
                 status: "empty")
@@ -399,7 +399,7 @@ final class TalkModeManager: NSObject {
             }
             self.resumeContinuousAfterPTT = false
             self.activePTTCaptureId = nil
-            let payload = OpenClawTalkPTTStopPayload(
+            let payload = KovaTalkPTTStopPayload(
                 captureId: captureId,
                 transcript: transcript,
                 status: "offline")
@@ -413,7 +413,7 @@ final class TalkModeManager: NSObject {
         }
         self.resumeContinuousAfterPTT = false
         self.activePTTCaptureId = nil
-        let payload = OpenClawTalkPTTStopPayload(
+        let payload = KovaTalkPTTStopPayload(
             captureId: captureId,
             transcript: transcript,
             status: "queued")
@@ -421,14 +421,14 @@ final class TalkModeManager: NSObject {
         return payload
     }
 
-    func runPushToTalkOnce(maxDurationSeconds: TimeInterval = 12) async throws -> OpenClawTalkPTTStopPayload {
+    func runPushToTalkOnce(maxDurationSeconds: TimeInterval = 12) async throws -> KovaTalkPTTStopPayload {
         if self.pttCompletion != nil {
             _ = await self.cancelPushToTalk()
         }
 
         if self.isPushToTalkActive {
             let captureId = self.activePTTCaptureId ?? UUID().uuidString
-            return OpenClawTalkPTTStopPayload(
+            return KovaTalkPTTStopPayload(
                 captureId: captureId,
                 transcript: nil,
                 status: "busy")
@@ -444,10 +444,10 @@ final class TalkModeManager: NSObject {
         }
     }
 
-    func cancelPushToTalk() async -> OpenClawTalkPTTStopPayload {
+    func cancelPushToTalk() async -> KovaTalkPTTStopPayload {
         let captureId = self.activePTTCaptureId ?? UUID().uuidString
         guard self.isPushToTalkActive else {
-            let payload = OpenClawTalkPTTStopPayload(
+            let payload = KovaTalkPTTStopPayload(
                 captureId: captureId,
                 transcript: nil,
                 status: "idle")
@@ -474,7 +474,7 @@ final class TalkModeManager: NSObject {
         self.activePTTCaptureId = nil
         self.statusText = "Ready"
 
-        let payload = OpenClawTalkPTTStopPayload(
+        let payload = KovaTalkPTTStopPayload(
             captureId: captureId,
             transcript: nil,
             status: "cancelled")
@@ -755,7 +755,7 @@ final class TalkModeManager: NSObject {
         _ = await self.endPushToTalk()
     }
 
-    private func finishPTTOnce(_ payload: OpenClawTalkPTTStopPayload) {
+    private func finishPTTOnce(_ payload: KovaTalkPTTStopPayload) {
         guard let continuation = self.pttCompletion else { return }
         self.pttCompletion = nil
         continuation.resume(returning: payload)
@@ -1467,7 +1467,7 @@ final class TalkModeManager: NSObject {
             guard evt.event == "agent", let payload = evt.payload else { continue }
             guard let agentEvent = try? GatewayPayloadDecoding.decode(
                 payload,
-                as: OpenClawAgentEventPayload.self
+                as: KovaAgentEventPayload.self
             ) else {
                 continue
             }

@@ -8,7 +8,7 @@ import type {
   CliBackendPreparedExecution,
 } from "../../plugins/cli-backend.types.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
-import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { resolveKovaAgentDir } from "../agent-paths.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import { loadAuthProfileStoreForRuntime } from "../auth-profiles/store.js";
 import type { AuthProfileCredential } from "../auth-profiles/types.js";
@@ -55,9 +55,9 @@ const prepareDeps = {
   getActiveMcpLoopbackRuntime,
   ensureMcpLoopbackServer,
   createMcpLoopbackServerConfig,
-  resolveOpenClawReferencePaths: async (
-    params: Parameters<typeof import("../docs-path.js").resolveOpenClawReferencePaths>[0],
-  ) => (await import("../docs-path.js")).resolveOpenClawReferencePaths(params),
+  resolveKovaReferencePaths: async (
+    params: Parameters<typeof import("../docs-path.js").resolveKovaReferencePaths>[0],
+  ) => (await import("../docs-path.js")).resolveKovaReferencePaths(params),
 };
 
 export function setCliRunnerPrepareTestDeps(overrides: Partial<typeof prepareDeps>): void {
@@ -105,7 +105,7 @@ export async function prepareCliRunContext(
   if (!backendResolved) {
     throw new Error(`Unknown CLI backend: ${params.provider}`);
   }
-  const agentDir = resolveOpenClawAgentDir();
+  const agentDir = resolveKovaAgentDir();
   const requestedAuthProfileId = params.authProfileId?.trim() || undefined;
   const effectiveAuthProfileId =
     requestedAuthProfileId ?? backendResolved.defaultAuthProfileId?.trim() ?? undefined;
@@ -185,14 +185,14 @@ export async function prepareCliRunContext(
       : undefined,
     env: mcpLoopbackRuntime
       ? {
-          OPENCLAW_MCP_TOKEN:
+          KOVA_MCP_TOKEN:
             params.senderIsOwner === true
               ? mcpLoopbackRuntime.ownerToken
               : mcpLoopbackRuntime.nonOwnerToken,
-          OPENCLAW_MCP_AGENT_ID: sessionAgentId ?? "",
-          OPENCLAW_MCP_ACCOUNT_ID: params.agentAccountId ?? "",
-          OPENCLAW_MCP_SESSION_KEY: params.sessionKey ?? "",
-          OPENCLAW_MCP_MESSAGE_CHANNEL: params.messageChannel ?? params.messageProvider ?? "",
+          KOVA_MCP_AGENT_ID: sessionAgentId ?? "",
+          KOVA_MCP_ACCOUNT_ID: params.agentAccountId ?? "",
+          KOVA_MCP_SESSION_KEY: params.sessionKey ?? "",
+          KOVA_MCP_MESSAGE_CHANNEL: params.messageChannel ?? params.messageProvider ?? "",
         }
       : undefined,
     warn: (message) => cliBackendLog.warn(message),
@@ -263,23 +263,23 @@ export async function prepareCliRunContext(
       `cli session reset: provider=${params.provider} reason=${reusableCliSession.invalidatedReason}`,
     );
   }
-  let openClawHistoryMessages: unknown[] | undefined;
-  const loadOpenClawHistoryMessages = () => {
-    openClawHistoryMessages ??= loadCliSessionHistoryMessages({
+  let kovaHistoryMessages: unknown[] | undefined;
+  const loadKovaHistoryMessages = () => {
+    kovaHistoryMessages ??= loadCliSessionHistoryMessages({
       sessionId: params.sessionId,
       sessionFile: params.sessionFile,
       sessionKey: params.sessionKey,
       agentId: params.agentId,
       config: params.config,
     });
-    return openClawHistoryMessages;
+    return kovaHistoryMessages;
   };
   const heartbeatPrompt = resolveHeartbeatPromptForSystemPrompt({
     config: params.config,
     agentId: sessionAgentId,
     defaultAgentId,
   });
-  const openClawReferences = await prepareDeps.resolveOpenClawReferencePaths({
+  const kovaReferences = await prepareDeps.resolveKovaReferencePaths({
     workspaceDir,
     argv1: process.argv[1],
     cwd: process.cwd(),
@@ -303,8 +303,8 @@ export async function prepareCliRunContext(
       extraSystemPrompt,
       ownerNumbers: params.ownerNumbers,
       heartbeatPrompt,
-      docsPath: openClawReferences.docsPath ?? undefined,
-      sourcePath: openClawReferences.sourcePath ?? undefined,
+      docsPath: kovaReferences.docsPath ?? undefined,
+      sourcePath: kovaReferences.sourcePath ?? undefined,
       skillsPrompt,
       tools: [],
       contextFiles,
@@ -328,7 +328,7 @@ export async function prepareCliRunContext(
     try {
       const hookResult = await resolvePromptBuildHookResult({
         prompt: params.prompt,
-        messages: loadOpenClawHistoryMessages(),
+        messages: loadKovaHistoryMessages(),
         hookCtx: {
           runId: params.runId,
           agentId: sessionAgentId,
@@ -364,7 +364,7 @@ export async function prepareCliRunContext(
       cliBackendLog.warn(`cli prompt-build hook preparation failed: ${String(error)}`);
     }
   }
-  const openClawHistoryPrompt = reusableCliSession.sessionId
+  const kovaHistoryPrompt = reusableCliSession.sessionId
     ? undefined
     : buildCliSessionHistoryPrompt({
         messages: loadCliSessionReseedMessages({
@@ -413,7 +413,7 @@ export async function prepareCliRunContext(
     systemPrompt,
     systemPromptReport,
     bootstrapPromptWarningLines: bootstrapPromptWarning.lines,
-    ...(openClawHistoryPrompt ? { openClawHistoryPrompt } : {}),
+    ...(kovaHistoryPrompt ? { kovaHistoryPrompt } : {}),
     heartbeatPrompt,
     authEpoch,
     authEpochVersion: CLI_AUTH_EPOCH_VERSION,

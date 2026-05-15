@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { RestartSentinelPayload } from "../../infra/restart-sentinel.js";
 import {
   createConfigHandlerHarness,
@@ -27,7 +27,7 @@ vi.mock("../../config/config.js", async () => {
     await vi.importActual<typeof import("../../config/config.js")>("../../config/config.js");
   return {
     ...actual,
-    createConfigIO: () => ({ configPath: "/tmp/openclaw.json" }),
+    createConfigIO: () => ({ configPath: "/tmp/kova.json" }),
     readConfigFileSnapshotForWrite: readConfigFileSnapshotForWriteMock,
     validateConfigObjectWithPlugins: validateConfigObjectWithPluginsMock,
     writeConfigFile: writeConfigFileMock,
@@ -65,7 +65,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
-  validateConfigObjectWithPluginsMock.mockImplementation((config: OpenClawConfig) => ({
+  validateConfigObjectWithPluginsMock.mockImplementation((config: KovaConfig) => ({
     ok: true,
     config,
   }));
@@ -75,7 +75,7 @@ beforeEach(() => {
 
 describe("config shared auth disconnects", () => {
   it("does not disconnect shared-auth clients for config.set auth writes without restart", async () => {
-    const prevConfig: OpenClawConfig = {
+    const prevConfig: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
@@ -83,7 +83,7 @@ describe("config shared auth disconnects", () => {
         },
       },
     };
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
@@ -110,7 +110,7 @@ describe("config shared auth disconnects", () => {
   });
 
   it("lets the config reloader own hybrid-mode auth restarts", async () => {
-    const prevConfig: OpenClawConfig = {
+    const prevConfig: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
@@ -137,7 +137,7 @@ describe("config shared auth disconnects", () => {
   });
 
   it("does not disconnect shared-auth clients when config.patch changes only inactive password auth", async () => {
-    const prevConfig: OpenClawConfig = {
+    const prevConfig: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
@@ -164,7 +164,7 @@ describe("config shared auth disconnects", () => {
   });
 
   it("still schedules a direct restart for hot mode when the reloader cannot apply the change", async () => {
-    const prevConfig: OpenClawConfig = {
+    const prevConfig: KovaConfig = {
       gateway: {
         reload: {
           mode: "hot",
@@ -189,7 +189,7 @@ describe("config shared auth disconnects", () => {
   });
 
   it("does not add an agent continuation from generic control-plane sessionKey params", async () => {
-    const prevConfig: OpenClawConfig = {
+    const prevConfig: KovaConfig = {
       gateway: {
         reload: {
           mode: "hot",

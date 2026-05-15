@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import { createServer, type IncomingMessage } from "node:http";
 import path from "node:path";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
 import {
   acquireDebugProxyCaptureStore,
   resolveDebugProxySettings,
-} from "openclaw/plugin-sdk/proxy-capture";
+} from "getkova/plugin-sdk/proxy-capture";
 import { closeQaHttpServer, handleQaBusRequest, writeError, writeJson } from "./bus-server.js";
 import { createQaBusState, type QaBusState } from "./bus-state.js";
 import { createQaRunnerRuntime } from "./harness-runtime.js";
@@ -38,7 +38,7 @@ import {
   createQaRunOutputDir,
   normalizeQaRunSelection,
 } from "./run-config.js";
-import { qaChannelPlugin, setQaChannelRuntime, type OpenClawConfig } from "./runtime-api.js";
+import { qaChannelPlugin, setQaChannelRuntime, type KovaConfig } from "./runtime-api.js";
 import { readQaBootstrapScenarioCatalog } from "./scenario-catalog.js";
 import { runQaSelfCheckAgainstState, type QaSelfCheckResult } from "./self-check.js";
 
@@ -120,7 +120,7 @@ function createBootstrapDefaults(autoKickoffTarget?: string): QaLabBootstrapDefa
   };
 }
 
-function createQaLabConfig(baseUrl: string): OpenClawConfig {
+function createQaLabConfig(baseUrl: string): KovaConfig {
   return createQaChannelGatewayConfig({ baseUrl });
 }
 
@@ -189,7 +189,7 @@ export async function startQaLabServer(
   let controlUiToken = params?.controlUiToken?.trim() || null;
   let gateway:
     | {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         stop: () => Promise<void>;
       }
     | undefined;

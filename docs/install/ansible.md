@@ -9,10 +9,10 @@ title: "Ansible"
 
 # Ansible Installation
 
-Deploy Kova to production servers with **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)** -- an automated installer with security-first architecture.
+Deploy Kova to production servers with **[kova-ansible](https://github.com/chiragborse1/KovaLab-ansible)** -- an automated installer with security-first architecture.
 
 <Info>
-The [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) repo is the source of truth for Ansible deployment. This page is a quick overview.
+The [kova-ansible](https://github.com/chiragborse1/KovaLab-ansible) repo is the source of truth for Ansible deployment. This page is a quick overview.
 </Info>
 
 ## Prerequisites
@@ -38,7 +38,7 @@ The [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) repo is the
 One-command install:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/openclaw/openclaw-ansible/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chiragborse1/KovaLab-ansible/main/install.sh | bash
 ```
 
 ## What gets installed
@@ -134,8 +134,8 @@ If you prefer manual control over the automation:
   </Step>
   <Step title="Clone the repository">
     ```bash
-    git clone https://github.com/openclaw/openclaw-ansible.git
-    cd openclaw-ansible
+    git clone https://github.com/chiragborse1/KovaLab-ansible.git
+    cd kova-ansible
     ```
   </Step>
   <Step title="Install Ansible collections">
@@ -151,7 +151,7 @@ If you prefer manual control over the automation:
     Alternatively, run directly and then manually execute the setup script afterward:
     ```bash
     ansible-playbook playbook.yml --ask-become-pass
-    # Then run: /tmp/openclaw-setup.sh
+    # Then run: /tmp/kova-setup.sh
     ```
 
   </Step>
@@ -164,7 +164,7 @@ The Ansible installer sets up Kova for manual updates. See [Updating](/install/u
 To re-run the Ansible playbook (for example, for configuration changes):
 
 ```bash
-cd openclaw-ansible
+cd kova-ansible
 ./run-playbook.sh
 ```
 
@@ -184,11 +184,11 @@ This is idempotent and safe to run multiple times.
     sudo journalctl -u kova -n 100
 
     # Verify permissions
-    sudo ls -la /opt/openclaw
+    sudo ls -la /opt/kova
 
     # Test manual start
     sudo -i -u kova
-    cd ~/openclaw
+    cd ~/kova
     kova gateway run
     ```
 
@@ -199,10 +199,10 @@ This is idempotent and safe to run multiple times.
     sudo systemctl status docker
 
     # Check sandbox image
-    sudo docker images | grep openclaw-sandbox
+    sudo docker images | grep kova-sandbox
 
     # Build sandbox image if missing
-    cd /opt/openclaw/openclaw
+    cd /opt/chiragborse1/KovaLab
     sudo -u kova ./scripts/sandbox-setup.sh
     ```
 
@@ -218,15 +218,15 @@ This is idempotent and safe to run multiple times.
 
 ## Advanced configuration
 
-For detailed security architecture and troubleshooting, see the openclaw-ansible repo:
+For detailed security architecture and troubleshooting, see the kova-ansible repo:
 
-- [Security Architecture](https://github.com/openclaw/openclaw-ansible/blob/main/docs/security.md)
-- [Technical Details](https://github.com/openclaw/openclaw-ansible/blob/main/docs/architecture.md)
-- [Troubleshooting Guide](https://github.com/openclaw/openclaw-ansible/blob/main/docs/troubleshooting.md)
+- [Security Architecture](https://github.com/chiragborse1/KovaLab-ansible/blob/main/docs/security.md)
+- [Technical Details](https://github.com/chiragborse1/KovaLab-ansible/blob/main/docs/architecture.md)
+- [Troubleshooting Guide](https://github.com/chiragborse1/KovaLab-ansible/blob/main/docs/troubleshooting.md)
 
 ## Related
 
-- [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) -- full deployment guide
+- [kova-ansible](https://github.com/chiragborse1/KovaLab-ansible) -- full deployment guide
 - [Docker](/install/docker) -- containerized gateway setup
 - [Sandboxing](/gateway/sandboxing) -- agent sandbox configuration
 - [Multi-Agent Sandbox and Tools](/tools/multi-agent-sandbox-tools) -- per-agent isolation

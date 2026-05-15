@@ -1,9 +1,9 @@
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { kindFromMime } from "openclaw/plugin-sdk/media-runtime";
-import { resolveOutboundAttachmentFromUrl } from "openclaw/plugin-sdk/media-runtime";
-import { convertMarkdownTables } from "openclaw/plugin-sdk/text-runtime";
-import { stripInlineDirectiveTagsForDelivery } from "openclaw/plugin-sdk/text-runtime";
+import { requireRuntimeConfig, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { resolveMarkdownTableMode } from "getkova/plugin-sdk/config-runtime";
+import { kindFromMime } from "getkova/plugin-sdk/media-runtime";
+import { resolveOutboundAttachmentFromUrl } from "getkova/plugin-sdk/media-runtime";
+import { convertMarkdownTables } from "getkova/plugin-sdk/text-runtime";
+import { stripInlineDirectiveTagsForDelivery } from "getkova/plugin-sdk/text-runtime";
 import { resolveIMessageAccount, type ResolvedIMessageAccount } from "./accounts.js";
 import { createIMessageRpcClient, type IMessageRpcClient } from "./client.js";
 import { formatIMessageChatTarget, type IMessageService, parseIMessageTarget } from "./targets.js";
@@ -22,7 +22,7 @@ export type IMessageSendOpts = {
   timeoutMs?: number;
   chatId?: number;
   client?: IMessageRpcClient;
-  config: OpenClawConfig;
+  config: KovaConfig;
   account?: ResolvedIMessageAccount;
   resolveAttachmentImpl?: (
     mediaUrl: string,

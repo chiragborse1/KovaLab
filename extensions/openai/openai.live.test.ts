@@ -3,10 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { getModel, type Api, type Model } from "@mariozechner/pi-ai";
 import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
+import type { ResolvedTtsConfig } from "getkova/plugin-sdk/agent-runtime";
+import { getRuntimeConfig, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { encodePngRgba, fillPixel } from "getkova/plugin-sdk/media-runtime";
 import OpenAI from "openai";
-import type { ResolvedTtsConfig } from "openclaw/plugin-sdk/agent-runtime";
-import { getRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { encodePngRgba, fillPixel } from "openclaw/plugin-sdk/media-runtime";
 import { describe, expect, it } from "vitest";
 import {
   registerProviderPlugin,
@@ -16,10 +16,10 @@ import { runRealtimeSttLiveTest } from "../../test/helpers/stt-live-audio.js";
 import plugin from "./index.js";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "";
-const LIVE_MODEL_ID = process.env.OPENCLAW_LIVE_OPENAI_PLUGIN_MODEL?.trim() || "gpt-5.5";
-const LIVE_IMAGE_MODEL = process.env.OPENCLAW_LIVE_OPENAI_IMAGE_MODEL?.trim() || "gpt-image-2";
-const LIVE_VISION_MODEL = process.env.OPENCLAW_LIVE_OPENAI_VISION_MODEL?.trim() || "gpt-4.1-mini";
-const liveEnabled = OPENAI_API_KEY.trim().length > 0 && process.env.OPENCLAW_LIVE_TEST === "1";
+const LIVE_MODEL_ID = process.env.KOVA_LIVE_OPENAI_PLUGIN_MODEL?.trim() || "gpt-5.5";
+const LIVE_IMAGE_MODEL = process.env.KOVA_LIVE_OPENAI_IMAGE_MODEL?.trim() || "gpt-image-2";
+const LIVE_VISION_MODEL = process.env.KOVA_LIVE_OPENAI_VISION_MODEL?.trim() || "gpt-4.1-mini";
+const liveEnabled = OPENAI_API_KEY.trim().length > 0 && process.env.KOVA_LIVE_TEST === "1";
 const describeLive = liveEnabled ? describe : describe.skip;
 const EMPTY_AUTH_STORE = { version: 1, profiles: {} } as const;
 const ModelRegistryCtor = ModelRegistry as unknown as {
@@ -98,7 +98,7 @@ function createReferencePng(): Buffer {
   return encodePngRgba(buf, width, height);
 }
 
-function createLiveConfig(): OpenClawConfig {
+function createLiveConfig(): KovaConfig {
   const cfg = getRuntimeConfig();
   return {
     ...cfg,
@@ -113,7 +113,7 @@ function createLiveConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function createLiveTtsConfig(): ResolvedTtsConfig {
@@ -243,7 +243,7 @@ describeLive("openai plugin live", () => {
     const ttsConfig = createLiveTtsConfig();
 
     const audioFile = await speechProvider.synthesize({
-      text: "OpenClaw integration test OK.",
+      text: "Kova integration test OK.",
       cfg,
       providerConfig: ttsConfig.providerConfigs.openai ?? {},
       target: "audio-file",
@@ -273,7 +273,7 @@ describeLive("openai plugin live", () => {
     const ttsConfig = createLiveTtsConfig();
 
     const synthesized = await speechProvider.synthesize({
-      text: "OpenClaw integration test OK.",
+      text: "Kova integration test OK.",
       cfg,
       providerConfig: ttsConfig.providerConfigs.openai ?? {},
       target: "audio-file",
@@ -291,7 +291,7 @@ describeLive("openai plugin live", () => {
     const text = (transcription?.text ?? "").toLowerCase();
     const collapsedText = text.replace(/[\s-]+/g, "");
     expect(text.length).toBeGreaterThan(0);
-    expect(collapsedText).toContain("openclaw");
+    expect(collapsedText).toContain("kova");
     expect(text).toMatch(/\bok\b/);
   }, 45_000);
 
@@ -323,7 +323,7 @@ describeLive("openai plugin live", () => {
     const speechProvider = requireRegisteredProvider(speechProviders, "openai");
     const cfg = createLiveConfig();
     const ttsConfig = createLiveTtsConfig();
-    const phrase = "Testing OpenClaw OpenAI realtime transcription integration test OK.";
+    const phrase = "Testing Kova OpenAI realtime transcription integration test OK.";
 
     const telephony = await speechProvider.synthesizeTelephony?.({
       text: phrase,

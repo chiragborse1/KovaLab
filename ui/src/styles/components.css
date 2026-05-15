@@ -7068,13 +7068,13 @@ td.data-table-key-col {
 }
 
 .skills-setup-list,
-.skills-clawhub-results {
+.skills-kovahub-results {
   display: grid;
   gap: 8px;
 }
 
 .skills-setup-row,
-.skills-clawhub-row {
+.skills-kovahub-row {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--secondary);
@@ -7088,25 +7088,25 @@ td.data-table-key-col {
   cursor: pointer;
 }
 
-.skills-clawhub-row {
+.skills-kovahub-row {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .skills-setup-row:hover,
-.skills-clawhub-row:hover {
+.skills-kovahub-row:hover {
   border-color: var(--border-strong);
   background: var(--bg-hover);
 }
 
 .skills-setup-row strong,
-.skills-clawhub-row strong {
+.skills-kovahub-row strong {
   color: var(--text-strong);
   display: block;
   font-size: 13px;
 }
 
 .skills-setup-row small,
-.skills-clawhub-row small {
+.skills-kovahub-row small {
   color: var(--muted);
   display: block;
   font-size: 12px;
@@ -7115,7 +7115,7 @@ td.data-table-key-col {
 }
 
 .skills-setup-row__action,
-.skills-clawhub-row__meta {
+.skills-kovahub-row__meta {
   color: var(--muted);
   display: inline-flex;
   align-items: center;

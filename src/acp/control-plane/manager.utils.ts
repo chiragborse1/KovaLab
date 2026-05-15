@@ -3,7 +3,7 @@ import {
   resolveMainSessionKey,
 } from "../../config/sessions/main-session.js";
 import type { SessionAcpMeta } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   normalizeAgentId,
   normalizeMainKey,
@@ -51,10 +51,7 @@ export function normalizeSessionKey(sessionKey: string): string {
   return sessionKey.trim();
 }
 
-export function canonicalizeAcpSessionKey(params: {
-  cfg: OpenClawConfig;
-  sessionKey: string;
-}): string {
+export function canonicalizeAcpSessionKey(params: { cfg: KovaConfig; sessionKey: string }): string {
   const normalized = normalizeSessionKey(params.sessionKey);
   if (!normalized) {
     return "";
@@ -105,7 +102,7 @@ export function createUnsupportedControlError(params: {
   );
 }
 
-export function resolveRuntimeIdleTtlMs(cfg: OpenClawConfig): number {
+export function resolveRuntimeIdleTtlMs(cfg: KovaConfig): number {
   const ttlMinutes = cfg.acp?.runtime?.ttlMinutes;
   if (typeof ttlMinutes !== "number" || !Number.isFinite(ttlMinutes) || ttlMinutes <= 0) {
     return 0;

@@ -68,19 +68,19 @@ provider and tool contracts. Capabilities that don't fit the shared contract
 (for example streaming TTS and realtime voice) are not exposed — see the table
 below.
 
-| xAI capability             | Kova surface                          | Status                                                              |
-| -------------------------- | ----------------------------------------- | ------------------------------------------------------------------- |
-| Chat / Responses           | `xai/<model>` model provider              | Yes                                                                 |
-| Server-side web search     | `web_search` provider `grok`              | Yes                                                                 |
-| Server-side X search       | `x_search` tool                           | Yes                                                                 |
-| Server-side code execution | `code_execution` tool                     | Yes                                                                 |
-| Images                     | `image_generate`                          | Yes                                                                 |
-| Videos                     | `video_generate`                          | Yes                                                                 |
-| Batch text-to-speech       | `messages.tts.provider: "xai"` / `tts`    | Yes                                                                 |
+| xAI capability             | Kova surface                              | Status                                                          |
+| -------------------------- | ----------------------------------------- | --------------------------------------------------------------- |
+| Chat / Responses           | `xai/<model>` model provider              | Yes                                                             |
+| Server-side web search     | `web_search` provider `grok`              | Yes                                                             |
+| Server-side X search       | `x_search` tool                           | Yes                                                             |
+| Server-side code execution | `code_execution` tool                     | Yes                                                             |
+| Images                     | `image_generate`                          | Yes                                                             |
+| Videos                     | `video_generate`                          | Yes                                                             |
+| Batch text-to-speech       | `messages.tts.provider: "xai"` / `tts`    | Yes                                                             |
 | Streaming TTS              | —                                         | Not exposed; Kova's TTS contract returns complete audio buffers |
-| Batch speech-to-text       | `tools.media.audio` / media understanding | Yes                                                                 |
-| Streaming speech-to-text   | Voice Call `streaming.provider: "xai"`    | Yes                                                                 |
-| Realtime voice             | —                                         | Not exposed yet; different session/WebSocket contract               |
+| Batch speech-to-text       | `tools.media.audio` / media understanding | Yes                                                             |
+| Streaming speech-to-text   | Voice Call `streaming.provider: "xai"`    | Yes                                                             |
+| Realtime voice             | —                                         | Not exposed yet; different session/WebSocket contract           |
 | Files / batches            | Generic model API compatibility only      | Not a first-class Kova tool                                     |
 
 <Note>
@@ -443,8 +443,8 @@ probing `XAI_API_KEY`.
 
 ```bash
 pnpm test extensions/xai
-OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_TEST_QUIET=1 pnpm test:live -- extensions/xai/xai.live.test.ts
-OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_TEST_QUIET=1 OPENCLAW_LIVE_IMAGE_GENERATION_PROVIDERS=xai pnpm test:live -- test/image-generation.runtime.live.test.ts
+KOVA_LIVE_TEST=1 KOVA_LIVE_TEST_QUIET=1 pnpm test:live -- extensions/xai/xai.live.test.ts
+KOVA_LIVE_TEST=1 KOVA_LIVE_TEST_QUIET=1 KOVA_LIVE_IMAGE_GENERATION_PROVIDERS=xai pnpm test:live -- test/image-generation.runtime.live.test.ts
 ```
 
 The provider-specific live file synthesizes normal TTS, telephony-friendly PCM

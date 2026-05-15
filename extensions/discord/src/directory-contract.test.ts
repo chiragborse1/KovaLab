@@ -1,5 +1,5 @@
-import type { BaseProbeResult, BaseTokenResolution } from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/testing";
+import type { BaseProbeResult, BaseTokenResolution } from "getkova/plugin-sdk/channel-contract";
+import type { KovaConfig } from "getkova/plugin-sdk/testing";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { expectDirectoryIds } from "../../../test/helpers/channels/directory-ids.js";
 import {
@@ -35,7 +35,7 @@ describe("Discord directory contract", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     await expectDirectoryIds(
       listDiscordDirectoryPeersFromConfig,
@@ -71,7 +71,7 @@ describe("Discord directory contract", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     await expectDirectoryIds(listDiscordDirectoryPeersFromConfig, cfg, ["user:111"]);
     await expectDirectoryIds(listDiscordDirectoryGroupsFromConfig, cfg, ["channel:555"]);
@@ -93,7 +93,7 @@ describe("Discord directory contract", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     const groups = await listDiscordDirectoryGroupsFromConfig({
       cfg,

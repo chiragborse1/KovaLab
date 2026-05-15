@@ -1,5 +1,5 @@
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
-import type { OpenClawConfig } from "../runtime-api.js";
+import { normalizeOptionalLowercaseString } from "getkova/plugin-sdk/text-runtime";
+import type { KovaConfig } from "../runtime-api.js";
 import {
   createChannelReplyPipeline,
   resolveInboundRouteEnvelopeBuilderWithRuntime,
@@ -83,7 +83,7 @@ async function processGoogleChatEvent(event: GoogleChatEvent, target: WebhookTar
 function resolveBotDisplayName(params: {
   accountName?: string;
   agentId: string;
-  config: OpenClawConfig;
+  config: KovaConfig;
 }): string {
   const { accountName, agentId, config } = params;
   if (accountName?.trim()) {
@@ -99,7 +99,7 @@ function resolveBotDisplayName(params: {
 async function processMessageWithPipeline(params: {
   event: GoogleChatEvent;
   account: ResolvedGoogleChatAccount;
-  config: OpenClawConfig;
+  config: KovaConfig;
   runtime: GoogleChatRuntimeEnv;
   core: GoogleChatCoreRuntime;
   statusSink?: (patch: { lastInboundAt?: number; lastOutboundAt?: number }) => void;

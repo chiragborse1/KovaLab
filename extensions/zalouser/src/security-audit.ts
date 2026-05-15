@@ -1,4 +1,4 @@
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/dangerous-name-runtime";
+import { isDangerousNameMatchingEnabled } from "getkova/plugin-sdk/dangerous-name-runtime";
 import type { ResolvedZalouserAccount } from "./accounts.js";
 
 export function isZalouserMutableGroupEntry(raw: string): boolean {

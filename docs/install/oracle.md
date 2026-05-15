@@ -67,13 +67,13 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
     sudo tailscale up --ssh --hostname=kova
     ```
 
-    From now on, connect via Tailscale: `ssh ubuntu@openclaw`.
+    From now on, connect via Tailscale: `ssh ubuntu@kovaai`.
 
   </Step>
 
   <Step title="Install Kova">
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash
     source ~/.bashrc
     ```
 
@@ -91,7 +91,7 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
     kova config set gateway.tailscale.mode serve
     kova config set gateway.trustedProxies '["127.0.0.1"]'
 
-    systemctl --user restart openclaw-gateway.service
+    systemctl --user restart kova-gateway.service
     ```
 
     `gateway.trustedProxies=["127.0.0.1"]` here is only for the local Tailscale Serve proxy's forwarded-IP/local-client handling. It is **not** `gateway.auth.mode: "trusted-proxy"`. Diff viewer routes keep fail-closed behavior in this setup: raw `127.0.0.1` viewer requests without forwarded proxy headers can return `Diff not found`. Use `mode=file` / `mode=both` for attachments, or intentionally enable remote viewers and set `plugins.entries.diffs.config.viewerBaseUrl` (or pass a proxy `baseUrl`) if you need shareable viewer links.
@@ -113,7 +113,7 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
   <Step title="Verify">
     ```bash
     kova --version
-    systemctl --user status openclaw-gateway.service
+    systemctl --user status kova-gateway.service
     tailscale serve status
     curl http://localhost:18789
     ```
@@ -121,7 +121,7 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
     Access the Control UI from any device on your tailnet:
 
     ```
-    https://openclaw.<tailnet-name>.ts.net/
+    https://kova.<tailnet-name>.ts.net/
     ```
 
     Replace `<tailnet-name>` with your tailnet name (visible in `tailscale status`).
@@ -134,7 +134,7 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
 If Tailscale Serve is not working, use an SSH tunnel from your local machine:
 
 ```bash
-ssh -L 18789:127.0.0.1:18789 ubuntu@openclaw
+ssh -L 18789:127.0.0.1:18789 ubuntu@kovaai
 ```
 
 Then open `http://localhost:18789`.
@@ -145,7 +145,7 @@ Then open `http://localhost:18789`.
 
 **Tailscale will not connect** -- Run `sudo tailscale up --ssh --hostname=kova --reset` to re-authenticate.
 
-**Gateway will not start** -- Run `kova doctor --non-interactive` and check logs with `journalctl --user -u openclaw-gateway.service -n 50`.
+**Gateway will not start** -- Run `kova doctor --non-interactive` and check logs with `journalctl --user -u kova-gateway.service -n 50`.
 
 **ARM binary issues** -- Most npm packages work on ARM64. For native binaries, look for `linux-arm64` or `aarch64` releases. Verify architecture with `uname -m`.
 

@@ -13,11 +13,6 @@ function normalize(value: string | undefined): string | undefined {
   return trimmed;
 }
 
-function allowOpenClawCompat(env: NodeJS.ProcessEnv): boolean {
-  const value = normalize(env.KOVA_ALLOW_OPENCLAW_COMPAT) ?? normalize(env.KOVA_OPENCLAW_COMPAT);
-  return value === "1" || value === "true" || value === "yes" || value === "on";
-}
-
 export function resolveEffectiveHomeDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
@@ -35,9 +30,7 @@ export function resolveOsHomeDir(
 }
 
 function resolveRawHomeDir(env: NodeJS.ProcessEnv, homedir: () => string): string | undefined {
-  const explicitHome =
-    normalize(env.KOVA_HOME) ??
-    (allowOpenClawCompat(env) ? normalize(env.OPENCLAW_HOME) : undefined);
+  const explicitHome = normalize(env.KOVA_HOME);
   if (explicitHome) {
     if (explicitHome === "~" || explicitHome.startsWith("~/") || explicitHome.startsWith("~\\")) {
       const fallbackHome = resolveRawOsHomeDir(env, homedir);

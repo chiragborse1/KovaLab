@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/qa-matrix",
+  "name": "@kovaai/qa-matrix",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Matrix QA runner plugin",
@@ -8,19 +8,19 @@
     "undici": "8.2.0"
   },
   "devDependencies": {
-    "@openclaw/matrix": "workspace:*",
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
+    "@kovaai/matrix": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],

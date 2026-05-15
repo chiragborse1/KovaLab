@@ -1,15 +1,15 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveRequiredConfiguredSecretRefInputString } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { resolveRequiredConfiguredSecretRefInputString } from "getkova/plugin-sdk/config-runtime";
 import {
   coerceSecretRef,
   ensureAuthProfileStore,
   listProfilesForProvider,
-} from "openclaw/plugin-sdk/provider-auth";
+} from "getkova/plugin-sdk/provider-auth";
 import { PROVIDER_ID } from "./models.js";
 
 export async function resolveFirstGithubToken(params: {
   agentDir?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   env: NodeJS.ProcessEnv;
 }): Promise<{
   githubToken: string;

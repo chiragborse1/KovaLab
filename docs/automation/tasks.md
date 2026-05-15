@@ -90,13 +90,13 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
 
 ## What creates a task
 
-| Source                 | Runtime type | When a task record is created                          | Default notify policy |
-| ---------------------- | ------------ | ------------------------------------------------------ | --------------------- |
-| ACP background runs    | `acp`        | Spawning a child ACP session                           | `done_only`           |
-| Subagent orchestration | `subagent`   | Spawning a subagent via `sessions_spawn`               | `done_only`           |
-| Cron jobs (all types)  | `cron`       | Every cron execution (main-session and isolated)       | `silent`              |
+| Source                 | Runtime type | When a task record is created                      | Default notify policy |
+| ---------------------- | ------------ | -------------------------------------------------- | --------------------- |
+| ACP background runs    | `acp`        | Spawning a child ACP session                       | `done_only`           |
+| Subagent orchestration | `subagent`   | Spawning a subagent via `sessions_spawn`           | `done_only`           |
+| Cron jobs (all types)  | `cron`       | Every cron execution (main-session and isolated)   | `silent`              |
 | CLI operations         | `cli`        | `kova agent` commands that run through the gateway | `silent`              |
-| Agent media jobs       | `cli`        | Session-backed `video_generate` runs                   | `silent`              |
+| Agent media jobs       | `cli`        | Session-backed `video_generate` runs               | `silent`              |
 
 <AccordionGroup>
   <Accordion title="Notify defaults for cron and media">
@@ -136,7 +136,7 @@ stateDiagram-v2
 | `succeeded` | Completed successfully                                                     |
 | `failed`    | Completed with an error                                                    |
 | `timed_out` | Exceeded the configured timeout                                            |
-| `cancelled` | Stopped by the operator via `kova tasks cancel`                        |
+| `cancelled` | Stopped by the operator via `kova tasks cancel`                            |
 | `lost`      | The runtime lost authoritative backing state after a 5-minute grace period |
 
 Transitions happen automatically — when the associated agent run ends, the task status updates to match.
@@ -301,7 +301,7 @@ Both `/status` and the `session_status` tool use a cleanup-aware task snapshot: 
 Task records persist in SQLite at:
 
 ```
-$OPENCLAW_STATE_DIR/tasks/runs.sqlite
+$KOVA_STATE_DIR/tasks/runs.sqlite
 ```
 
 The registry loads into memory at gateway start and syncs writes to SQLite for durability across restarts.
@@ -338,7 +338,7 @@ A sweeper runs every **60 seconds** and handles three things:
 
   </Accordion>
   <Accordion title="Tasks and cron">
-    A cron job **definition** lives in `~/.openclaw/cron/jobs.json`; runtime execution state lives beside it in `~/.openclaw/cron/jobs-state.json`. **Every** cron execution creates a task record — both main-session and isolated. Main-session cron tasks default to `silent` notify policy so they track without generating notifications.
+    A cron job **definition** lives in `~/.kova/cron/jobs.json`; runtime execution state lives beside it in `~/.kova/cron/jobs-state.json`. **Every** cron execution creates a task record — both main-session and isolated. Main-session cron tasks default to `silent` notify policy so they track without generating notifications.
 
     See [Cron Jobs](/automation/cron-jobs).
 

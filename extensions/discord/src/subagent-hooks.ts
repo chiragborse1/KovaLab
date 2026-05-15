@@ -1,8 +1,8 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/channel-plugin-common";
+import type { KovaPluginApi } from "getkova/plugin-sdk/channel-plugin-common";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalStringifiedId,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import { resolveDiscordAccount } from "./accounts.js";
 import {
   autoBindSpawnedDiscordSubagent,
@@ -76,7 +76,7 @@ function normalizeThreadBindingTargetKind(raw?: string): ThreadBindingTargetKind
   return undefined;
 }
 
-function resolveThreadBindingFlags(api: OpenClawPluginApi, accountId?: string) {
+function resolveThreadBindingFlags(api: KovaPluginApi, accountId?: string) {
   const account = resolveDiscordAccount({
     cfg: api.config,
     accountId,
@@ -98,7 +98,7 @@ function resolveThreadBindingFlags(api: OpenClawPluginApi, accountId?: string) {
 }
 
 export async function handleDiscordSubagentSpawning(
-  api: OpenClawPluginApi,
+  api: KovaPluginApi,
   event: DiscordSubagentSpawningEvent,
 ): Promise<DiscordSubagentSpawningResult> {
   if (!event.threadRequested) {

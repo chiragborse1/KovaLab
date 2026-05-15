@@ -12,8 +12,8 @@ export async function doctorCommand(runtime?: RuntimeEnv, options: DoctorOptions
   const prompter = createDoctorPrompter({ runtime: effectiveRuntime, options });
   intro("Kova doctor");
 
-  const { resolveOpenClawPackageRoot } = await import("../infra/openclaw-root.js");
-  const root = await resolveOpenClawPackageRoot({
+  const { resolveKovaPackageRoot } = await import("../infra/kova-root.js");
+  const root = await resolveKovaPackageRoot({
     moduleUrl: import.meta.url,
     argv1: process.argv[1],
     cwd: process.cwd(),

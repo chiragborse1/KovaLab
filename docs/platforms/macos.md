@@ -34,15 +34,15 @@ capabilities to the agent as a node.
 
 ## Launchd control
 
-The app manages a per‑user LaunchAgent labeled `ai.openclaw.gateway`
-(or `ai.openclaw.<profile>` when using `--profile`/`OPENCLAW_PROFILE`; legacy `com.openclaw.*` still unloads).
+The app manages a per‑user LaunchAgent labeled `ai.kova.gateway`
+(or `ai.kova.<profile>` when using `--profile`/`KOVA_PROFILE`; legacy `com.kova.*` still unloads).
 
 ```bash
-launchctl kickstart -k gui/$UID/ai.openclaw.gateway
-launchctl bootout gui/$UID/ai.openclaw.gateway
+launchctl kickstart -k gui/$UID/ai.kova.gateway
+launchctl bootout gui/$UID/ai.kova.gateway
 ```
 
-Replace the label with `ai.openclaw.<profile>` when running a named profile.
+Replace the label with `ai.kova.<profile>` when running a named profile.
 
 If the LaunchAgent isn’t installed, enable it from the app or run
 `kova gateway install`.
@@ -78,7 +78,7 @@ Gateway -> Node Service (WS)
 Security + ask + allowlist are stored locally on the Mac in:
 
 ```
-~/.openclaw/exec-approvals.json
+~/.kova/exec-approvals.json
 ```
 
 Example:
@@ -111,14 +111,14 @@ Notes:
 
 ## Deep links
 
-The app registers the `openclaw://` URL scheme for local actions.
+The app registers the `kova://` URL scheme for local actions.
 
-### `openclaw://agent`
+### `kova://agent`
 
 Triggers a Gateway `agent` request.
 
 ```bash
-open 'openclaw://agent?message=Hello%20from%20deep%20link'
+open 'kova://agent?message=Hello%20from%20deep%20link'
 ```
 
 Query parameters:
@@ -152,7 +152,7 @@ sessions and credentials.
 Prefer a local non-synced state path such as:
 
 ```bash
-OPENCLAW_STATE_DIR=~/.openclaw
+KOVA_STATE_DIR=~/.kova
 ```
 
 If `kova doctor` detects state under:
@@ -175,8 +175,8 @@ logic that the macOS app uses, without launching the app.
 
 ```bash
 cd apps/macos
-swift run openclaw-mac connect --json
-swift run openclaw-mac discover --timeout 3000 --json
+swift run kova-mac connect --json
+swift run kova-mac discover --timeout 3000 --json
 ```
 
 Connect options:

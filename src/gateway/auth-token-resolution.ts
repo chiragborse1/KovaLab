@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import { readGatewayCredentialEnv } from "./credential-planner.js";
 import { trimToUndefined } from "./credentials.js";
@@ -11,7 +11,7 @@ export type GatewayAuthTokenResolutionSource = "explicit" | "config" | "secretRe
 export type GatewayAuthTokenEnvFallback = "never" | "no-secret-ref" | "always";
 
 export async function resolveGatewayAuthToken(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   explicitToken?: string;
   envFallback?: GatewayAuthTokenEnvFallback;
@@ -37,11 +37,7 @@ export async function resolveGatewayAuthToken(params: {
     defaults: params.cfg.secrets?.defaults,
   }).ref;
   const envFallback = params.envFallback ?? "always";
-  const envToken = readGatewayCredentialEnv(
-    params.env,
-    "KOVA_GATEWAY_TOKEN",
-    "OPENCLAW_GATEWAY_TOKEN",
-  );
+  const envToken = readGatewayCredentialEnv(params.env, "KOVA_GATEWAY_TOKEN");
 
   if (!tokenRef) {
     const configToken = trimToUndefined(tokenInput);

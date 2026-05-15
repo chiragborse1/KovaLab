@@ -26,13 +26,10 @@ export type FireAndForgetBoundedHookOptions = {
 };
 
 const getFireAndForgetHookState = () =>
-  resolveGlobalSingleton<FireAndForgetHookState>(
-    Symbol.for("openclaw.fireAndForgetHookState"),
-    () => ({
-      active: 0,
-      queue: [],
-    }),
-  );
+  resolveGlobalSingleton<FireAndForgetHookState>(Symbol.for("kova.fireAndForgetHookState"), () => ({
+    active: 0,
+    queue: [],
+  }));
 
 function positiveIntegerOrDefault(value: number | undefined, fallback: number): number {
   return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : fallback;

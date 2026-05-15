@@ -1,17 +1,16 @@
 import { formatCliCommand } from "../../cli/command-format.js";
 import {
   applySlotSelectionForPlugin,
-  buildPreferredClawHubSpec,
+  buildPreferredKovaHubSpec,
   parseNpmPrefixSpec,
 } from "../../cli/plugins-command-helpers.js";
 import { commitPluginInstallRecordsWithConfig } from "../../cli/plugins-install-record-commit.js";
 import { refreshPluginRegistryAfterConfigMutation } from "../../cli/plugins-registry-refresh.js";
 import { readConfigFileSnapshot, replaceConfigFile } from "../../config/config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { PluginInstallRecord } from "../../config/types.plugins.js";
-import { parseClawHubPluginSpec } from "../../infra/clawhub.js";
 import { formatErrorMessage } from "../../infra/errors.js";
-import { installPluginFromClawHub } from "../../plugins/clawhub.js";
+import { parseKovaHubPluginSpec } from "../../infra/kovahub.js";
 import { enablePluginInConfig } from "../../plugins/enable.js";
 import { installPluginFromNpmSpec, type InstallPluginResult } from "../../plugins/install.js";
 import {
@@ -21,6 +20,7 @@ import {
   withPluginInstallRecords,
 } from "../../plugins/installed-plugin-index-records.js";
 import { buildNpmResolutionInstallFields, recordPluginInstall } from "../../plugins/installs.js";
+import { installPluginFromKovaHub } from "../../plugins/kovahub.js";
 import type { PluginDiagnostic } from "../../plugins/manifest-types.js";
 import { resolveOfficialExternalPluginNpmSpec } from "../../plugins/official-external-plugin-catalog.js";
 import type { PluginRegistrySnapshotDiagnostic } from "../../plugins/plugin-registry.js";
@@ -112,7 +112,7 @@ function sortStrings(values: readonly string[] | undefined): string[] {
 
 function summarizePlugin(params: {
   plugin: PluginRecord;
-  config: OpenClawConfig;
+  config: KovaConfig;
   installRecords: Record<string, PluginInstallRecord>;
 }): PluginStatusSummary {
   const { config, installRecords, plugin } = params;
@@ -169,7 +169,7 @@ function summarizeDiagnostics(params: {
 }
 
 export function createPluginsStatusResult(
-  config: OpenClawConfig,
+  config: KovaConfig,
   options: { installRecords?: Record<string, PluginInstallRecord> } = {},
 ): PluginsStatusResult {
   const installRecords = {
@@ -220,10 +220,10 @@ export function createPluginsStatusResult(
 }
 
 async function persistPluginEnablement(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   pluginId: string;
   enabled: boolean;
-}): Promise<{ config: OpenClawConfig; enabled: boolean; warnings: string[]; reason?: string }> {
+}): Promise<{ config: KovaConfig; enabled: boolean; warnings: string[]; reason?: string }> {
   if (params.enabled) {
     const enableResult = enablePluginInConfig(params.config, params.pluginId);
     const slotResult = applySlotSelectionForPlugin(enableResult.config, params.pluginId);
@@ -287,7 +287,7 @@ function resolveInstallRecord(params: {
 }
 
 async function installPluginFromSpec(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   baseHash?: string;
   rawSpec: string;
   force?: boolean;
@@ -295,7 +295,7 @@ async function installPluginFromSpec(params: {
   dangerouslyForceUnsafeInstall?: boolean;
 }): Promise<{
   pluginId: string;
-  config: OpenClawConfig;
+  config: KovaConfig;
   installRecords: Record<string, PluginInstallRecord>;
   logs: string[];
 }> {
@@ -311,37 +311,37 @@ async function installPluginFromSpec(params: {
       })
     | null = null;
 
-  const clawhubSpec = parseClawHubPluginSpec(spec) ? spec : buildPreferredClawHubSpec(spec);
-  if (clawhubSpec) {
-    logs.push(`Trying ClawHub package ${clawhubSpec}...`);
-    const clawhubResult = await installPluginFromClawHub({
+  const kovahubSpec = parseKovaHubPluginSpec(spec) ? spec : buildPreferredKovaHubSpec(spec);
+  if (kovahubSpec) {
+    logs.push(`Trying KovaHub package ${kovahubSpec}...`);
+    const kovahubResult = await installPluginFromKovaHub({
       dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
       mode,
-      spec: clawhubSpec,
+      spec: kovahubSpec,
       logger,
     });
-    if (clawhubResult.ok) {
+    if (kovahubResult.ok) {
       install = {
-        ...clawhubResult,
+        ...kovahubResult,
         installRecord: {
-          source: "clawhub" as const,
-          spec: clawhubSpec,
-          installPath: clawhubResult.targetDir,
-          ...(clawhubResult.version ? { version: clawhubResult.version } : {}),
-          integrity: clawhubResult.clawhub.integrity,
-          resolvedAt: clawhubResult.clawhub.resolvedAt,
-          clawhubUrl: clawhubResult.clawhub.clawhubUrl,
-          clawhubPackage: clawhubResult.clawhub.clawhubPackage,
-          clawhubFamily: clawhubResult.clawhub.clawhubFamily,
-          ...(clawhubResult.clawhub.clawhubChannel
-            ? { clawhubChannel: clawhubResult.clawhub.clawhubChannel }
+          source: "kovahub" as const,
+          spec: kovahubSpec,
+          installPath: kovahubResult.targetDir,
+          ...(kovahubResult.version ? { version: kovahubResult.version } : {}),
+          integrity: kovahubResult.kovahub.integrity,
+          resolvedAt: kovahubResult.kovahub.resolvedAt,
+          kovahubUrl: kovahubResult.kovahub.kovahubUrl,
+          kovahubPackage: kovahubResult.kovahub.kovahubPackage,
+          kovahubFamily: kovahubResult.kovahub.kovahubFamily,
+          ...(kovahubResult.kovahub.kovahubChannel
+            ? { kovahubChannel: kovahubResult.kovahub.kovahubChannel }
             : {}),
         },
       };
-    } else if (parseClawHubPluginSpec(spec)) {
-      throw new Error(clawhubResult.error);
+    } else if (parseKovaHubPluginSpec(spec)) {
+      throw new Error(kovahubResult.error);
     } else {
-      logs.push(`ClawHub fallback unavailable: ${clawhubResult.error}`);
+      logs.push(`KovaHub fallback unavailable: ${kovahubResult.error}`);
     }
   }
 
@@ -484,7 +484,7 @@ export const pluginsHandlers: GatewayRequestHandlers = {
     try {
       const snapshot = await readConfigFileSnapshot();
       const installRecords = await loadInstalledPluginIndexInstallRecords();
-      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as OpenClawConfig;
+      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as KovaConfig;
       const config = withPluginInstallRecords(sourceConfig, installRecords);
       const report = buildPluginRegistrySnapshotReport({ config });
       const plugin = report.plugins.find((entry) => entry.id === params.pluginId);
@@ -545,7 +545,7 @@ export const pluginsHandlers: GatewayRequestHandlers = {
     }
     try {
       const snapshot = await readConfigFileSnapshot();
-      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as OpenClawConfig;
+      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as KovaConfig;
       const result = await installPluginFromSpec({
         config: sourceConfig,
         ...(snapshot.hash !== undefined ? { baseHash: snapshot.hash } : {}),

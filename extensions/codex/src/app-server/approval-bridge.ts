@@ -2,7 +2,7 @@ import {
   type AgentApprovalEventData,
   formatApprovalDisplayPath,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "getkova/plugin-sdk/agent-harness-runtime";
 import {
   approvalRequestExplicitlyUnavailable,
   mapExecDecisionToOutcome,
@@ -304,7 +304,7 @@ function requestedPermissions(requestParams: JsonObject | undefined): JsonObject
 function unsupportedApprovalResponse(): JsonValue {
   return {
     decision: "decline",
-    reason: "OpenClaw codex app-server bridge does not grant native approvals yet.",
+    reason: "Kova codex app-server bridge does not grant native approvals yet.",
   };
 }
 

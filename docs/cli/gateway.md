@@ -38,7 +38,7 @@ kova gateway run
 
 <AccordionGroup>
   <Accordion title="Startup behavior">
-    - By default, the Gateway refuses to start unless `gateway.mode=local` is set in `~/.openclaw/openclaw.json`. Use `--allow-unconfigured` for ad-hoc/dev runs.
+    - By default, the Gateway refuses to start unless `gateway.mode=local` is set in `~/.chiragborse1/KovaLab.json`. Use `--allow-unconfigured` for ad-hoc/dev runs.
     - `kova onboard --mode local` and `kova setup` are expected to write `gateway.mode=local`. If the file exists but `gateway.mode` is missing, treat that as a broken or clobbered config and repair it instead of assuming local mode implicitly.
     - If the file exists and `gateway.mode` is missing, the Gateway treats that as suspicious config damage and refuses to "guess local" for you.
     - Binding beyond loopback without auth is blocked (safety guardrail).
@@ -59,7 +59,7 @@ kova gateway run
   Auth mode override.
 </ParamField>
 <ParamField path="--token <token>" type="string">
-  Token override (also sets `OPENCLAW_GATEWAY_TOKEN` for the process).
+  Token override (also sets `KOVA_GATEWAY_TOKEN` for the process).
 </ParamField>
 <ParamField path="--password <password>" type="string">
   Password override.
@@ -110,7 +110,7 @@ Inline `--password` can be exposed in local process listings. Prefer `--password
 
 ### Startup profiling
 
-- Set `OPENCLAW_GATEWAY_STARTUP_TRACE=1` to log phase timings during Gateway startup, including per-phase `eventLoopMax` delay and plugin lookup-table timings for installed-index, manifest registry, startup planning, and owner-map work.
+- Set `KOVA_GATEWAY_STARTUP_TRACE=1` to log phase timings during Gateway startup, including per-phase `eventLoopMax` delay and plugin lookup-table timings for installed-index, manifest registry, startup planning, and owner-map work.
 - Run `pnpm test:startup:gateway -- --runs 5 --warmup 1` to benchmark Gateway startup. The benchmark records first process output, `/healthz`, `/readyz`, startup trace timings, event-loop delay, and plugin lookup-table timing details.
 
 ## Query a running Gateway
@@ -192,7 +192,7 @@ kova gateway stability --json
 <AccordionGroup>
   <Accordion title="Privacy and bundle behavior">
     - Records keep operational metadata: event names, counts, byte sizes, memory readings, queue/session state, channel/plugin names, and redacted session summaries. They do not keep chat text, webhook bodies, tool outputs, raw request or response bodies, tokens, cookies, secret values, hostnames, or raw session ids. Set `diagnostics.enabled: false` to disable the recorder entirely.
-    - On fatal Gateway exits, shutdown timeouts, and restart startup failures, Kova writes the same diagnostic snapshot to `~/.openclaw/logs/stability/openclaw-stability-*.json` when the recorder has events. Inspect the newest bundle with `kova gateway stability --bundle latest`; `--limit`, `--type`, and `--since-seq` also apply to bundle output.
+    - On fatal Gateway exits, shutdown timeouts, and restart startup failures, Kova writes the same diagnostic snapshot to `~/.kova/logs/stability/kova-stability-*.json` when the recorder has events. Inspect the newest bundle with `kova gateway stability --bundle latest`; `--limit`, `--type`, and `--since-seq` also apply to bundle output.
   </Accordion>
 </AccordionGroup>
 
@@ -202,7 +202,7 @@ Write a local diagnostics zip that is designed to attach to bug reports. For the
 
 ```bash
 kova gateway diagnostics export
-kova gateway diagnostics export --output openclaw-diagnostics.zip
+kova gateway diagnostics export --output kova-diagnostics.zip
 kova gateway diagnostics export --json
 ```
 
@@ -429,31 +429,31 @@ secrets manager shim or a run-as helper. The wrapper receives the normal Gateway
 responsible for eventually exec'ing `kova` or Node with those args.
 
 ```bash
-cat > ~/.local/bin/openclaw-doppler <<'EOF'
+cat > ~/.local/bin/kova-doppler <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 exec doppler run --project my-project --config production -- kova "$@"
 EOF
-chmod +x ~/.local/bin/openclaw-doppler
+chmod +x ~/.local/bin/kova-doppler
 
-kova gateway install --wrapper ~/.local/bin/openclaw-doppler --force
+kova gateway install --wrapper ~/.local/bin/kova-doppler --force
 kova gateway restart
 ```
 
 You can also set the wrapper through the environment. `gateway install` validates that the path is
 an executable file, writes the wrapper into service `ProgramArguments`, and persists
-`OPENCLAW_WRAPPER` in the service environment for later forced reinstalls, updates, and doctor
+`KOVA_WRAPPER` in the service environment for later forced reinstalls, updates, and doctor
 repairs.
 
 ```bash
-OPENCLAW_WRAPPER="$HOME/.local/bin/openclaw-doppler" kova gateway install --force
+KOVA_WRAPPER="$HOME/.local/bin/kova-doppler" kova gateway install --force
 kova doctor
 ```
 
-To remove a persisted wrapper, clear `OPENCLAW_WRAPPER` while reinstalling:
+To remove a persisted wrapper, clear `KOVA_WRAPPER` while reinstalling:
 
 ```bash
-OPENCLAW_WRAPPER= kova gateway install --force
+KOVA_WRAPPER= kova gateway install --force
 kova gateway restart
 ```
 
@@ -470,18 +470,18 @@ kova gateway restart
   <Accordion title="Auth and SecretRefs at install time">
     - When token auth requires a token and `gateway.auth.token` is SecretRef-managed, `gateway install` validates that the SecretRef is resolvable but does not persist the resolved token into service environment metadata.
     - If token auth requires a token and the configured token SecretRef is unresolved, install fails closed instead of persisting fallback plaintext.
-    - For password auth on `gateway run`, prefer `OPENCLAW_GATEWAY_PASSWORD`, `--password-file`, or a SecretRef-backed `gateway.auth.password` over inline `--password`.
-    - In inferred auth mode, shell-only `OPENCLAW_GATEWAY_PASSWORD` does not relax install token requirements; use durable config (`gateway.auth.password` or config `env`) when installing a managed service.
+    - For password auth on `gateway run`, prefer `KOVA_GATEWAY_PASSWORD`, `--password-file`, or a SecretRef-backed `gateway.auth.password` over inline `--password`.
+    - In inferred auth mode, shell-only `KOVA_GATEWAY_PASSWORD` does not relax install token requirements; use durable config (`gateway.auth.password` or config `env`) when installing a managed service.
     - If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, install is blocked until mode is set explicitly.
   </Accordion>
 </AccordionGroup>
 
 ## Discover gateways (Bonjour)
 
-`gateway discover` scans for Gateway beacons (`_openclaw-gw._tcp`).
+`gateway discover` scans for Gateway beacons (`_kova-gw._tcp`).
 
 - Multicast DNS-SD: `local.`
-- Unicast DNS-SD (Wide-Area Bonjour): choose a domain (example: `openclaw.internal.`) and set up split DNS + a DNS server; see [Bonjour](/gateway/bonjour).
+- Unicast DNS-SD (Wide-Area Bonjour): choose a domain (example: `kova.internal.`) and set up split DNS + a DNS server; see [Bonjour](/gateway/bonjour).
 
 Only gateways with Bonjour discovery enabled (default) advertise the beacon.
 

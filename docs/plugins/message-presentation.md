@@ -33,7 +33,7 @@ Plugin authors import the public contract from:
 import type {
   MessagePresentation,
   ReplyPayloadDelivery,
-} from "openclaw/plugin-sdk/interactive-runtime";
+} from "getkova/plugin-sdk/interactive-runtime";
 ```
 
 Shape:
@@ -281,7 +281,7 @@ helpers. It supports:
 - URL-only buttons
 - generic delivery metadata through `ReplyPayload.delivery`
 
-Use helpers from `openclaw/plugin-sdk/interactive-runtime` when bridging older
+Use helpers from `getkova/plugin-sdk/interactive-runtime` when bridging older
 code:
 
 ```ts
@@ -290,7 +290,7 @@ import {
   normalizeMessagePresentation,
   presentationToInteractiveReply,
   renderMessagePresentationFallbackText,
-} from "openclaw/plugin-sdk/interactive-runtime";
+} from "getkova/plugin-sdk/interactive-runtime";
 ```
 
 New code should accept or produce `MessagePresentation` directly.

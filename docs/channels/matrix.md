@@ -16,7 +16,7 @@ Current packaged Kova releases ship the Matrix plugin in the box. You do not nee
 For older builds or custom installs that exclude Matrix, install manually first:
 
 ```bash
-kova plugins install @openclaw/matrix
+kova plugins install @kovaai/matrix
 # or, from a local checkout
 kova plugins install ./path/to/local/matrix-plugin
 ```
@@ -115,7 +115,7 @@ The wizard converts a friendly name into a normalized account ID. For example, `
 
 ### Cached credentials
 
-Matrix stores cached credentials under `~/.openclaw/credentials/matrix/`:
+Matrix stores cached credentials under `~/.kova/credentials/matrix/`:
 
 - default account: `credentials.json`
 - named accounts: `credentials-<account>.json`
@@ -380,8 +380,8 @@ Sends a verification request from this Kova account. `--own-user` requests self-
 
 For lower-level lifecycle handling — typically while shadowing inbound requests from another client — these commands act on a specific request `<id>` (printed by `verify list` and `verify request`):
 
-| Command                                    | Purpose                                                             |
-| ------------------------------------------ | ------------------------------------------------------------------- |
+| Command                                | Purpose                                                             |
+| -------------------------------------- | ------------------------------------------------------------------- |
 | `kova matrix verify accept <id>`       | Accept an inbound request                                           |
 | `kova matrix verify start <id>`        | Start the SAS flow                                                  |
 | `kova matrix verify sas <id>`          | Print the SAS emoji or decimals                                     |
@@ -452,7 +452,7 @@ kova matrix devices prune-stale
   <Accordion title="Crypto store">
     Matrix E2EE uses the official `matrix-js-sdk` Rust crypto path with `fake-indexeddb` as the IndexedDB shim. Crypto state persists to `crypto-idb-snapshot.json` (restrictive file permissions).
 
-    Encrypted runtime state lives under `~/.openclaw/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, Kova reuses the best existing root so prior state remains visible.
+    Encrypted runtime state lives under `~/.kova/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, Kova reuses the best existing root so prior state remains visible.
 
   </Accordion>
 </AccordionGroup>

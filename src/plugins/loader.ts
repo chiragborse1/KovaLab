@@ -8,7 +8,7 @@ import {
 } from "../agents/harness/registry.js";
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import { isChannelConfigured } from "../config/channel-configured.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
@@ -64,7 +64,7 @@ import {
   type NormalizedPluginsConfig,
   type PluginActivationState,
 } from "./config-state.js";
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverKovaPlugins } from "./discovery.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import { getGlobalHookRunner, initializeGlobalHookRunner } from "./hook-runner-global.js";
 import { toSafeImportPath } from "./import-specifier.js";
@@ -131,9 +131,9 @@ import {
 } from "./sdk-alias.js";
 import { hasKind, kindsEqual } from "./slots.js";
 import type {
-  OpenClawPluginApi,
-  OpenClawPluginDefinition,
-  OpenClawPluginModule,
+  KovaPluginApi,
+  KovaPluginDefinition,
+  KovaPluginModule,
   PluginLogger,
   PluginRegistrationMode,
 } from "./types.js";
@@ -142,8 +142,8 @@ export type PluginLoadResult = PluginRegistry;
 export { PluginLoadReentryError } from "./loader-cache-state.js";
 
 export type PluginLoadOptions = {
-  config?: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config?: KovaConfig;
+  activationSourceConfig?: KovaConfig;
   autoEnabledReasons?: Readonly<Record<string, string[]>>;
   workspaceDir?: string;
   // Allows callers to resolve plugin roots and load paths against an explicit env
@@ -180,7 +180,7 @@ const CLI_METADATA_ENTRY_BASENAMES = [
 ] as const;
 
 function resolveDreamingSidecarEngineId(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   memorySlot: string | null | undefined;
 }): string | null {
   const normalizedMemorySlot = normalizeLowercaseStringOrEmpty(params.memorySlot);
@@ -264,7 +264,7 @@ export function clearPluginLoaderCache(): void {
 }
 
 const defaultLogger = () => createSubsystemLogger("plugins");
-const BUNDLED_RUNTIME_MIRROR_LOCK_DIR = ".openclaw-runtime-mirror.lock";
+const BUNDLED_RUNTIME_MIRROR_LOCK_DIR = ".kova-runtime-mirror.lock";
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return (
@@ -389,8 +389,8 @@ function restorePluginRegistry(registry: PluginRegistry, snapshot: PluginRegistr
   registry.gatewayMethodScopes = snapshot.gatewayMethodScopes;
 }
 
-function createGuardedPluginRegistrationApi(api: OpenClawPluginApi): {
-  api: OpenClawPluginApi;
+function createGuardedPluginRegistrationApi(api: KovaPluginApi): {
+  api: KovaPluginApi;
   close: () => void;
 } {
   let closed = false;
@@ -416,8 +416,8 @@ function createGuardedPluginRegistrationApi(api: OpenClawPluginApi): {
 }
 
 function runPluginRegisterSync(
-  register: NonNullable<OpenClawPluginDefinition["register"]>,
-  api: Parameters<NonNullable<OpenClawPluginDefinition["register"]>>[0],
+  register: NonNullable<KovaPluginDefinition["register"]>,
+  api: Parameters<NonNullable<KovaPluginDefinition["register"]>>[0],
 ): void {
   const guarded = createGuardedPluginRegistrationApi(api);
   try {
@@ -741,7 +741,7 @@ function prepareBundledPluginRuntimeDistMirror(params: {
       sourceRuntimeDistRoot: sourceDistRoot,
     });
   }
-  ensureOpenClawPluginSdkAlias(mirrorDistRoot);
+  ensureKovaPluginSdkAlias(mirrorDistRoot);
   return mirrorExtensionsRoot;
 }
 
@@ -812,7 +812,7 @@ function mirrorCanonicalBundledRuntimeDistRoot(params: {
     sourceDistRoot: sourceCanonicalDistRoot,
     mirrorDistRoot: targetCanonicalDistRoot,
   });
-  ensureOpenClawPluginSdkAlias(targetCanonicalDistRoot);
+  ensureKovaPluginSdkAlias(targetCanonicalDistRoot);
 
   const pluginId = path.basename(params.pluginRoot);
   const sourceCanonicalPluginRoot = path.join(sourceCanonicalDistRoot, "extensions", pluginId);
@@ -918,16 +918,16 @@ function writeRuntimeModuleWrapper(sourcePath: string, targetPath: string): void
   fs.writeFileSync(targetPath, content, "utf8");
 }
 
-function ensureOpenClawPluginSdkAlias(distRoot: string): void {
+function ensureKovaPluginSdkAlias(distRoot: string): void {
   const pluginSdkDir = path.join(distRoot, "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(distRoot, "extensions", "node_modules", "openclaw");
+  const aliasDir = path.join(distRoot, "extensions", "node_modules", "kova");
   const pluginSdkAliasDir = path.join(aliasDir, "plugin-sdk");
   writeRuntimeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "openclaw",
+    name: "kova",
     type: "module",
     exports: {
       "./plugin-sdk": "./plugin-sdk/index.js",
@@ -979,7 +979,7 @@ export const __testing = {
   resolvePluginSdkAliasCandidateOrder,
   resolvePluginSdkAliasFile,
   resolvePluginRuntimeModulePath,
-  ensureOpenClawPluginSdkAlias,
+  ensureKovaPluginSdkAlias,
   shouldLoadChannelPluginInSetupRuntime,
   shouldPreferNativeJiti,
   toSafeImportPath,
@@ -1172,7 +1172,7 @@ function resolvePluginRegistrationPlan(params: {
   validateOnly: boolean;
   shouldActivate: boolean;
   manifestRecord: PluginManifestRecord;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   preferSetupRuntimeForChannelPlugins: boolean;
 }): PluginRegistrationPlan | null {
@@ -1407,12 +1407,12 @@ export function resolveRuntimePluginRegistry(
     return compatible;
   }
   // Helper/runtime callers should not recurse into the same snapshot load while
-  // plugin registration is still in flight. Let direct loadOpenClawPlugins(...)
+  // plugin registration is still in flight. Let direct loadKovaPlugins(...)
   // callers surface the hard error instead.
   if (isPluginRegistryLoadInFlight(options)) {
     return undefined;
   }
-  return loadOpenClawPlugins(options);
+  return loadKovaPlugins(options);
 }
 
 export function resolvePluginRegistryLoadCacheKey(options: PluginLoadOptions = {}): string {
@@ -1455,8 +1455,8 @@ function validatePluginConfig(params: {
 }
 
 function resolvePluginModuleExport(moduleExport: unknown): {
-  definition?: OpenClawPluginDefinition;
-  register?: OpenClawPluginDefinition["register"];
+  definition?: KovaPluginDefinition;
+  register?: KovaPluginDefinition["register"];
 } {
   const seen = new Set<unknown>();
   const candidates: unknown[] = [unwrapDefaultModuleExport(moduleExport), moduleExport];
@@ -1468,11 +1468,11 @@ function resolvePluginModuleExport(moduleExport: unknown): {
     seen.add(resolved);
     if (typeof resolved === "function") {
       return {
-        register: resolved as OpenClawPluginDefinition["register"],
+        register: resolved as KovaPluginDefinition["register"],
       };
     }
     if (resolved && typeof resolved === "object") {
-      const def = resolved as OpenClawPluginDefinition;
+      const def = resolved as KovaPluginDefinition;
       const register = def.register ?? def.activate;
       if (typeof register === "function") {
         return { definition: def, register };
@@ -1487,11 +1487,11 @@ function resolvePluginModuleExport(moduleExport: unknown): {
   const resolved = candidates[0];
   if (typeof resolved === "function") {
     return {
-      register: resolved as OpenClawPluginDefinition["register"],
+      register: resolved as KovaPluginDefinition["register"],
     };
   }
   if (resolved && typeof resolved === "object") {
-    const def = resolved as OpenClawPluginDefinition;
+    const def = resolved as KovaPluginDefinition;
     const register = def.register ?? def.activate;
     return { definition: def, register };
   }
@@ -1499,7 +1499,7 @@ function resolvePluginModuleExport(moduleExport: unknown): {
 }
 
 function isPluginLoadDebugEnabled(env: NodeJS.ProcessEnv): boolean {
-  const normalized = normalizeLowercaseStringOrEmpty(env.OPENCLAW_PLUGIN_LOAD_DEBUG);
+  const normalized = normalizeLowercaseStringOrEmpty(env.KOVA_PLUGIN_LOAD_DEBUG);
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
@@ -1731,7 +1731,7 @@ function shouldLoadChannelPluginInSetupRuntime(params: {
   manifestChannels: string[];
   setupSource?: string;
   startupDeferConfiguredChannelFullLoadUntilAfterListen?: boolean;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   preferSetupRuntimeForChannelPlugins?: boolean;
 }): boolean {
@@ -1782,7 +1782,7 @@ function createPluginRecord(params: {
     name: params.name ?? params.id,
     description: params.description,
     version: params.version,
-    format: params.format ?? "openclaw",
+    format: params.format ?? "kova",
     bundleFormat: params.bundleFormat,
     bundleCapabilities: params.bundleCapabilities,
     source: params.source,
@@ -1855,7 +1855,7 @@ function recordPluginError(params: {
   diagnosticMessagePrefix: string;
 }) {
   const errorText =
-    process.env.OPENCLAW_PLUGIN_LOADER_DEBUG_STACKS === "1" &&
+    process.env.KOVA_PLUGIN_LOADER_DEBUG_STACKS === "1" &&
     params.error instanceof Error &&
     typeof params.error.stack === "string"
       ? params.error.stack
@@ -1962,7 +1962,7 @@ function matchesPathMatcher(matcher: PathMatcher, sourcePath: string): boolean {
 }
 
 function buildProvenanceIndex(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   normalizedLoadPaths: string[];
   env: NodeJS.ProcessEnv;
 }): PluginProvenanceIndex {
@@ -2028,7 +2028,7 @@ function matchesExplicitInstallRule(params: {
 }
 
 function resolveCandidateDuplicateRank(params: {
-  candidate: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
+  candidate: ReturnType<typeof discoverKovaPlugins>["candidates"][number];
   manifestByRoot: Map<string, ReturnType<typeof loadPluginManifestRegistry>["plugins"][number]>;
   provenance: PluginProvenanceIndex;
   env: NodeJS.ProcessEnv;
@@ -2062,8 +2062,8 @@ function resolveCandidateDuplicateRank(params: {
 }
 
 function compareDuplicateCandidateOrder(params: {
-  left: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
-  right: ReturnType<typeof discoverOpenClawPlugins>["candidates"][number];
+  left: ReturnType<typeof discoverKovaPlugins>["candidates"][number];
+  right: ReturnType<typeof discoverKovaPlugins>["candidates"][number];
   manifestByRoot: Map<string, ReturnType<typeof loadPluginManifestRegistry>["plugins"][number]>;
   provenance: PluginProvenanceIndex;
   env: NodeJS.ProcessEnv;
@@ -2192,7 +2192,7 @@ function activatePluginRegistry(
   }
 }
 
-export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegistry {
+export function loadKovaPlugins(options: PluginLoadOptions = {}): PluginRegistry {
   const {
     env,
     cfg,
@@ -2356,7 +2356,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       activateGlobalSideEffects: shouldActivate,
     });
 
-    const discovery = discoverOpenClawPlugins({
+    const discovery = discoverKovaPlugins({
       workspaceDir: options.workspaceDir,
       extraPaths: normalized.loadPaths,
       cache: options.cache,
@@ -2642,7 +2642,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
               mirroredRoot: runtimePluginRoot,
             });
           } else {
-            ensureOpenClawPluginSdkAlias(path.dirname(path.dirname(pluginRoot)));
+            ensureKovaPluginSdkAlias(path.dirname(path.dirname(pluginRoot)));
           }
         } catch (error) {
           if (shouldActivate && runtimeDepsInstallStartedAt !== null) {
@@ -2819,7 +2819,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       fs.closeSync(opened.fd);
       const safeImportSource = toSafeImportPath(safeSource);
 
-      let mod: OpenClawPluginModule | null = null;
+      let mod: KovaPluginModule | null = null;
       try {
         // Track the plugin as imported once module evaluation begins. Top-level
         // code may have already executed even if evaluation later throws.
@@ -2827,7 +2827,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
         mod = withProfile(
           { pluginId: record.id, source: safeSource },
           registrationMode,
-          () => getJiti(safeSource)(safeImportSource) as OpenClawPluginModule,
+          () => getJiti(safeSource)(safeImportSource) as KovaPluginModule,
         );
       } catch (err) {
         recordPluginError({
@@ -2906,12 +2906,12 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
             const safeRuntimeSource = runtimeOpened.path;
             fs.closeSync(runtimeOpened.fd);
             const safeRuntimeImportSource = toSafeImportPath(safeRuntimeSource);
-            let runtimeMod: OpenClawPluginModule | null = null;
+            let runtimeMod: KovaPluginModule | null = null;
             try {
               runtimeMod = withProfile(
                 { pluginId: record.id, source: safeRuntimeSource },
                 "load-setup-runtime-entry",
-                () => getJiti(safeRuntimeSource)(safeRuntimeImportSource) as OpenClawPluginModule,
+                () => getJiti(safeRuntimeSource)(safeRuntimeImportSource) as KovaPluginModule,
               );
             } catch (err) {
               recordPluginError({
@@ -3244,7 +3244,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
   }
 }
 
-export async function loadOpenClawPluginCliRegistry(
+export async function loadKovaPluginCliRegistry(
   options: PluginLoadOptions = {},
 ): Promise<PluginRegistry> {
   const {
@@ -3274,7 +3274,7 @@ export async function loadOpenClawPluginCliRegistry(
     activateGlobalSideEffects: false,
   });
 
-  const discovery = discoverOpenClawPlugins({
+  const discovery = discoverKovaPlugins({
     workspaceDir: options.workspaceDir,
     extraPaths: normalized.loadPaths,
     cache: false,
@@ -3486,12 +3486,12 @@ export async function loadOpenClawPluginCliRegistry(
     fs.closeSync(opened.fd);
     const safeImportSource = toSafeImportPath(safeSource);
 
-    let mod: OpenClawPluginModule | null = null;
+    let mod: KovaPluginModule | null = null;
     try {
       mod = withProfile(
         { pluginId: record.id, source: safeSource },
         "cli-metadata",
-        () => getJiti(safeSource)(safeImportSource) as OpenClawPluginModule,
+        () => getJiti(safeSource)(safeImportSource) as KovaPluginModule,
       );
     } catch (err) {
       recordPluginError({

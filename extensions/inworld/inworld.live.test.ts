@@ -40,7 +40,7 @@ describeLive("inworld plugin live", () => {
     };
 
     const audioFile = await provider.synthesize({
-      text: "OpenClaw Inworld text to speech integration test OK.",
+      text: "Kova Inworld text to speech integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig,
       target: "audio-file",
@@ -54,7 +54,7 @@ describeLive("inworld plugin live", () => {
     expect(audioFile.audioBuffer.subarray(0, 4).toString("ascii")).not.toBe("RIFF");
 
     const voiceNote = await provider.synthesize({
-      text: "OpenClaw Inworld voice note integration test OK.",
+      text: "Kova Inworld voice note integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig,
       target: "voice-note",
@@ -68,7 +68,7 @@ describeLive("inworld plugin live", () => {
     expect(voiceNote.audioBuffer.subarray(0, 4).toString("ascii")).toBe("OggS");
 
     const telephony = await provider.synthesizeTelephony?.({
-      text: "OpenClaw Inworld telephony check OK.",
+      text: "Kova Inworld telephony check OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig,
       timeoutMs: 90_000,

@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/codex",
+  "name": "@kovaai/codex",
   "version": "2.0.0-beta.5",
   "description": "Kova Codex harness and model provider plugin",
   "type": "module",
@@ -11,9 +11,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],

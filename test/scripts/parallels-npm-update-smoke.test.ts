@@ -19,16 +19,12 @@ describe("parallels npm update smoke", () => {
     expect(script).toContain("scrub_future_plugin_entries");
     expect(script).toContain("delete entries.feishu");
     expect(script).toContain("delete entries.whatsapp");
-    expect(script).toContain("Remove-FuturePluginEntries\n  Stop-OpenClawGatewayProcesses");
-    expect(script).toContain("scrub_future_plugin_entries\nstop_openclaw_gateway_processes");
-    expect(script).toContain("$env:OPENCLAW_DISABLE_BUNDLED_PLUGINS = '1'");
-    expect(script).toContain(
-      "OPENCLAW_DISABLE_BUNDLED_PLUGINS=1 /opt/homebrew/bin/openclaw update",
-    );
-    expect(script).toContain("OPENCLAW_DISABLE_BUNDLED_PLUGINS=1 openclaw update");
-    expect(script).toContain(
-      "OPENCLAW_DISABLE_BUNDLED_PLUGINS=1 /opt/homebrew/bin/openclaw gateway stop",
-    );
-    expect(script).toContain("OPENCLAW_DISABLE_BUNDLED_PLUGINS=1 openclaw gateway stop");
+    expect(script).toContain("Remove-FuturePluginEntries\n  Stop-KovaGatewayProcesses");
+    expect(script).toContain("scrub_future_plugin_entries\nstop_kova_gateway_processes");
+    expect(script).toContain("$env:KOVA_DISABLE_BUNDLED_PLUGINS = '1'");
+    expect(script).toContain("KOVA_DISABLE_BUNDLED_PLUGINS=1 /opt/homebrew/bin/kova update");
+    expect(script).toContain("KOVA_DISABLE_BUNDLED_PLUGINS=1 kova update");
+    expect(script).toContain("KOVA_DISABLE_BUNDLED_PLUGINS=1 /opt/homebrew/bin/kova gateway stop");
+    expect(script).toContain("KOVA_DISABLE_BUNDLED_PLUGINS=1 kova gateway stop");
   });
 });

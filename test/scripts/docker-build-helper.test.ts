@@ -56,8 +56,8 @@ describe("docker build helper", () => {
     const liveCliBackend = readFileSync(LIVE_CLI_BACKEND_DOCKER_PATH, "utf8");
 
     expect(helper).toContain("docker_build_on_missing_enabled()");
-    expect(helper).toContain("OPENCLAW_DOCKER_BUILD_ON_MISSING");
-    expect(helper).toContain("OPENCLAW_TESTBOX");
+    expect(helper).toContain("KOVA_DOCKER_BUILD_ON_MISSING");
+    expect(helper).toContain("KOVA_TESTBOX");
     expect(e2eImageHelper).toContain("docker_build_on_missing_enabled");
     expect(e2eImageHelper).toContain("Docker image not available; building");
     expect(liveBuild).toContain("docker image inspect");
@@ -65,7 +65,7 @@ describe("docker build helper", () => {
     expect(liveBuild).toContain("Live-test image not available; building");
     expect(liveCliBackend).toContain('"$ROOT_DIR/scripts/test-live-build-docker.sh"');
     expect(liveCliBackend).not.toContain(
-      'echo "==> Reuse live-test image: $LIVE_IMAGE_NAME (OPENCLAW_SKIP_DOCKER_BUILD=1)"',
+      'echo "==> Reuse live-test image: $LIVE_IMAGE_NAME (KOVA_SKIP_DOCKER_BUILD=1)"',
     );
   });
 
@@ -77,14 +77,14 @@ describe("docker build helper", () => {
     expect(scheduler).toContain("path.dirname(process.execPath)");
     expect(scheduler).toContain("env.PATH = [...new Set(pathEntries)].join(path.delimiter)");
     expect(scheduler).toContain("withResolvedPnpmCommand");
-    expect(scheduler).toContain("OPENCLAW_DOCKER_ALL_PNPM_COMMAND");
+    expect(scheduler).toContain("KOVA_DOCKER_ALL_PNPM_COMMAND");
   });
 
   it("runs release installer E2E against the npm beta tag", () => {
     const scenarios = readFileSync(DOCKER_E2E_SCENARIOS_PATH, "utf8");
 
     expect(scenarios).toContain(
-      '"OPENCLAW_INSTALL_TAG=beta OPENCLAW_E2E_MODELS=both pnpm test:install:e2e"',
+      '"KOVA_INSTALL_TAG=beta KOVA_E2E_MODELS=both pnpm test:install:e2e"',
     );
   });
 
@@ -94,7 +94,7 @@ describe("docker build helper", () => {
     expect(scenarios).toContain('"plugins-offline"');
     expect(scenarios).toContain("`bundled-plugin-install-uninstall-${index}`");
     expect(scenarios).toContain("pnpm test:docker:bundled-plugin-install-uninstall");
-    expect(scenarios).toContain("OPENCLAW_PLUGINS_E2E_CLAWHUB=0");
+    expect(scenarios).toContain("KOVA_PLUGINS_E2E_KOVAHUB=0");
     expect(scenarios).toContain('"bundled-channel-deps-compat"');
     expect(scenarios).toContain("test:docker:bundled-channel-deps:fast");
   });
@@ -119,7 +119,7 @@ describe("docker build helper", () => {
     for (const script of scripts) {
       expect(script).toContain("2026, 4, 25");
     }
-    expect(scripts.join("\n")).toContain("OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT");
+    expect(scripts.join("\n")).toContain("KOVA_PACKAGE_ACCEPTANCE_LEGACY_COMPAT");
     expect(scripts.join("\n")).toContain(
       "Package $package_version must support gateway install --wrapper.",
     );
@@ -132,12 +132,12 @@ describe("docker build helper", () => {
   it("keeps bundled plugin install/uninstall sweep chunkable", () => {
     const runner = readFileSync(BUNDLED_PLUGIN_INSTALL_UNINSTALL_E2E_PATH, "utf8");
 
-    expect(runner).toContain("OPENCLAW_BUNDLED_PLUGIN_SWEEP_TOTAL");
-    expect(runner).toContain("OPENCLAW_BUNDLED_PLUGIN_SWEEP_INDEX");
-    expect(runner).toContain('"openclaw.plugin.json"');
+    expect(runner).toContain("KOVA_BUNDLED_PLUGIN_SWEEP_TOTAL");
+    expect(runner).toContain("KOVA_BUNDLED_PLUGIN_SWEEP_INDEX");
+    expect(runner).toContain('"kova.plugin.json"');
     expect(runner).toContain("read -r plugin_id plugin_dir requires_config");
-    expect(runner).toContain('node "$OPENCLAW_ENTRY" plugins install "$plugin_id"');
-    expect(runner).toContain('node "$OPENCLAW_ENTRY" plugins uninstall "$plugin_id" --force');
+    expect(runner).toContain('node "$KOVA_ENTRY" plugins install "$plugin_id"');
+    expect(runner).toContain('node "$KOVA_ENTRY" plugins uninstall "$plugin_id" --force');
     expect(runner).toContain("assert_installed");
     expect(runner).toContain("assert_uninstalled");
   });
@@ -145,12 +145,10 @@ describe("docker build helper", () => {
   it("passes installer tag env to bash, not curl", () => {
     const runner = readFileSync(INSTALL_E2E_RUNNER_PATH, "utf8");
 
-    expect(runner).toContain('curl -fsSL "$INSTALL_URL" | OPENCLAW_BETA=1 bash');
-    expect(runner).toContain('curl -fsSL "$INSTALL_URL" | OPENCLAW_VERSION="$INSTALL_TAG" bash');
-    expect(runner).not.toContain('OPENCLAW_BETA=1 curl -fsSL "$INSTALL_URL" | bash');
-    expect(runner).not.toContain(
-      'OPENCLAW_VERSION="$INSTALL_TAG" curl -fsSL "$INSTALL_URL" | bash',
-    );
+    expect(runner).toContain('curl -fsSL "$INSTALL_URL" | KOVA_BETA=1 bash');
+    expect(runner).toContain('curl -fsSL "$INSTALL_URL" | KOVA_VERSION="$INSTALL_TAG" bash');
+    expect(runner).not.toContain('KOVA_BETA=1 curl -fsSL "$INSTALL_URL" | bash');
+    expect(runner).not.toContain('KOVA_VERSION="$INSTALL_TAG" curl -fsSL "$INSTALL_URL" | bash');
   });
 
   it("keeps installer E2E agent turns out of the interactive bootstrap ritual", () => {
@@ -179,12 +177,12 @@ describe("docker build helper", () => {
     expect(runner).not.toContain('"agent.wait"');
   });
 
-  it("keeps ClawHub plugin Docker smoke hermetic by default", () => {
+  it("keeps KovaHub plugin Docker smoke hermetic by default", () => {
     const runner = readFileSync(PLUGINS_DOCKER_E2E_PATH, "utf8");
 
-    expect(runner).toContain("start_clawhub_fixture_server()");
-    expect(runner).toContain('OPENCLAW_CLAWHUB_URL="http://127.0.0.1:');
-    expect(runner).toContain("live ClawHub can rate-limit CI");
-    expect(runner).toContain('[[ -z "${OPENCLAW_CLAWHUB_URL:-}" && -z "${CLAWHUB_URL:-}" ]]');
+    expect(runner).toContain("start_kovahub_fixture_server()");
+    expect(runner).toContain('KOVA_KOVAHUB_URL="http://127.0.0.1:');
+    expect(runner).toContain("live KovaHub can rate-limit CI");
+    expect(runner).toContain('[[ -z "${KOVA_KOVAHUB_URL:-}" && -z "${KOVAHUB_URL:-}" ]]');
   });
 });

@@ -1,12 +1,12 @@
-import { resolveApprovalOverGateway } from "openclaw/plugin-sdk/approval-gateway-runtime";
-import type { ExecApprovalReplyDecision } from "openclaw/plugin-sdk/approval-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { isApprovalNotFoundError } from "openclaw/plugin-sdk/error-runtime";
+import { resolveApprovalOverGateway } from "getkova/plugin-sdk/approval-gateway-runtime";
+import type { ExecApprovalReplyDecision } from "getkova/plugin-sdk/approval-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { isApprovalNotFoundError } from "getkova/plugin-sdk/error-runtime";
 
 export { isApprovalNotFoundError };
 
 export async function resolveMatrixApproval(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   approvalId: string;
   decision: ExecApprovalReplyDecision;
   senderId?: string | null;

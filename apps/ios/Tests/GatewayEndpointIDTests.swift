@@ -1,12 +1,12 @@
-import OpenClawKit
+import KovaKit
 import Network
 import Testing
-@testable import OpenClaw
+@testable import Kova
 
 @Suite struct GatewayEndpointIDTests {
     @Test func stableIDForServiceDecodesAndNormalizesName() {
         let endpoint = NWEndpoint.service(
-            name: "OpenClaw\\032Gateway   \\032  Node\n",
+            name: "Kova\\032Gateway   \\032  Node\n",
             type: "_kova-gw._tcp",
             domain: "local.",
             interface: nil)
@@ -21,7 +21,7 @@ import Testing
 
     @Test func prettyDescriptionDecodesBonjourEscapes() {
         let endpoint = NWEndpoint.service(
-            name: "OpenClaw\\032Gateway",
+            name: "Kova\\032Gateway",
             type: "_kova-gw._tcp",
             domain: "local.",
             interface: nil)

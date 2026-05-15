@@ -3,7 +3,7 @@ export type ExternalizedBundledPluginBridge = {
   bundledPluginId: string;
   /** Plugin id declared by the external package. Defaults to bundledPluginId. */
   pluginId?: string;
-  /** npm spec OpenClaw should install when migrating the bundled plugin out. */
+  /** npm spec Kova should install when migrating the bundled plugin out. */
   npmSpec: string;
   /** Bundled directory name, when it differs from bundledPluginId. */
   bundledDirName?: string;

@@ -4,12 +4,12 @@ description: "Inject additional workspace bootstrap files via glob/path patterns
 homepage: https://docs.neuralstudio.in/automation/hooks#bootstrap-extra-files
 metadata:
   {
-    "openclaw":
+    "kova":
       {
         "emoji": "📎",
         "events": ["agent:bootstrap"],
         "requires": { "config": ["workspace.dir"] },
-        "install": [{ "id": "bundled", "kind": "bundled", "label": "Bundled with OpenClaw" }],
+        "install": [{ "id": "bundled", "kind": "bundled", "label": "Bundled with Kova" }],
       },
   }
 ---

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { normalizeChatChannelId } from "../channels/ids.js";
 import { resolveBundledInstallPlanForCatalogEntry } from "../cli/plugin-install-plan.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { isPrereleaseSemverVersion, parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import {
   findBundledPluginSourceInMap,
@@ -31,7 +31,7 @@ export type OnboardingPluginInstallEntry = {
 export type OnboardingPluginInstallStatus = "installed" | "skipped" | "failed" | "timed_out";
 
 export type OnboardingPluginInstallResult = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   installed: boolean;
   pluginId: string;
   status: OnboardingPluginInstallStatus;
@@ -103,7 +103,7 @@ function hasGitWorkspace(workspaceDir?: string): boolean {
   return roots.some((root) => hasTrustedGitWorkspace(root));
 }
 
-function addPluginLoadPath(cfg: OpenClawConfig, pluginPath: string): OpenClawConfig {
+function addPluginLoadPath(cfg: KovaConfig, pluginPath: string): KovaConfig {
   const existing = cfg.plugins?.load?.paths ?? [];
   const merged = Array.from(new Set([...existing, pluginPath]));
   return {
@@ -150,12 +150,12 @@ function formatPortableLocalPath(localPath: string, workspaceDir?: string): stri
 }
 
 async function recordLocalPluginInstall(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: OnboardingPluginInstallEntry;
   localPath: string;
   npmSpec?: string | null;
   workspaceDir?: string;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const sourcePath = formatPortableLocalPath(params.localPath, params.workspaceDir);
   const install = {
     pluginId: params.entry.pluginId,
@@ -250,13 +250,13 @@ function resolveExistingInstalledPluginDir(pluginId: string): string | null {
   }
 }
 
-function shouldUseBetaPluginSpec(cfg: OpenClawConfig): boolean {
+function shouldUseBetaPluginSpec(cfg: KovaConfig): boolean {
   return cfg.update?.channel === "beta" || isPrereleaseSemverVersion(VERSION);
 }
 
 function resolveNpmSpecForOnboarding(
   install: PluginPackageInstall,
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
 ): string | null {
   const npmSpec = install.npmSpec?.trim();
   if (!npmSpec) {
@@ -276,7 +276,7 @@ function resolveNpmSpecForOnboarding(
 }
 
 function resolveInstallDefaultChoice(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: OnboardingPluginInstallEntry;
   localPath?: string | null;
   bundledLocalPath?: string | null;
@@ -310,7 +310,7 @@ function resolveInstallDefaultChoice(params: {
 }
 
 async function promptInstallChoice(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: OnboardingPluginInstallEntry;
   localPath?: string | null;
   defaultChoice: InstallChoice;
@@ -382,7 +382,7 @@ function isTimeoutError(error: unknown): boolean {
 }
 
 async function applyPluginEnablement(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   pluginId: string;
   label: string;
   prompter: WizardPrompter;
@@ -426,7 +426,7 @@ async function applyPluginEnablement(params: {
 }
 
 async function reuseExistingNpmPluginInstall(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: OnboardingPluginInstallEntry;
   npmSpec: string;
   existingInstallPath: string;
@@ -531,7 +531,7 @@ async function installPluginFromNpmSpecWithProgress(params: {
 }
 
 export async function ensureOnboardingPluginInstalled(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: OnboardingPluginInstallEntry;
   prompter: WizardPrompter;
   runtime: RuntimeEnv;

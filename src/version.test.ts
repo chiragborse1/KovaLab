@@ -14,7 +14,7 @@ import {
   resolveVersionFromModuleUrl,
 } from "./version.js";
 
-const versionFixtureRoot = createSuiteTempRootTracker({ prefix: "openclaw-version-" });
+const versionFixtureRoot = createSuiteTempRootTracker({ prefix: "kova-version-" });
 
 beforeAll(async () => {
   await versionFixtureRoot.setup();
@@ -88,7 +88,7 @@ describe("version resolution", () => {
     });
   });
 
-  it("ignores non-openclaw package and blank build-info versions", async () => {
+  it("ignores non-kova package and blank build-info versions", async () => {
     await withVersionFixtureDir(async (root) => {
       await writeJsonFixture(root, "package.json", { name: "other-package", version: "9.9.9" });
       await writeJsonFixture(root, "build-info.json", { version: "  " });
@@ -139,36 +139,36 @@ describe("version resolution", () => {
     });
   });
 
-  it("still accepts legacy openclaw package metadata", async () => {
+  it("still accepts legacy kova package metadata", async () => {
     await withVersionFixtureDir(async (root) => {
-      await writeJsonFixture(root, "package.json", { name: "openclaw", version: "3.4.5" });
+      await writeJsonFixture(root, "package.json", { name: "kova", version: "3.4.5" });
       const moduleUrl = await ensureModuleFixture(root);
       expect(readVersionFromPackageJsonForModuleUrl(moduleUrl)).toBe("3.4.5");
     });
   });
 
-  it("prefers OPENCLAW_VERSION over service and package versions", () => {
+  it("prefers KOVA_VERSION over service and package versions", () => {
     expect(
       resolveRuntimeServiceVersion({
-        OPENCLAW_VERSION: "9.9.9",
-        OPENCLAW_SERVICE_VERSION: "2.2.2",
+        KOVA_VERSION: "9.9.9",
+        KOVA_SERVICE_VERSION: "2.2.2",
         npm_package_version: "1.1.1",
       }),
     ).toBe("9.9.9");
   });
 
-  it("prefers runtime VERSION over stale OPENCLAW_VERSION for compatibility checks", () => {
-    const previous = process.env.OPENCLAW_VERSION;
-    const previousService = process.env.OPENCLAW_SERVICE_VERSION;
+  it("prefers runtime VERSION over stale KOVA_VERSION for compatibility checks", () => {
+    const previous = process.env.KOVA_VERSION;
+    const previousService = process.env.KOVA_SERVICE_VERSION;
     const previousPackage = process.env.npm_package_version;
     try {
-      process.env.OPENCLAW_VERSION = "2026.3.25";
-      process.env.OPENCLAW_SERVICE_VERSION = "2026.3.25-service";
+      process.env.KOVA_VERSION = "2026.3.25";
+      process.env.KOVA_SERVICE_VERSION = "2026.3.25-service";
       process.env.npm_package_version = "2026.3.25-package";
       expect(resolveCompatibilityHostVersion()).toBe(VERSION);
     } finally {
-      process.env.OPENCLAW_VERSION = previous;
-      process.env.OPENCLAW_SERVICE_VERSION = previousService;
+      process.env.KOVA_VERSION = previous;
+      process.env.KOVA_SERVICE_VERSION = previousService;
       process.env.npm_package_version = previousPackage;
     }
   });
@@ -176,8 +176,8 @@ describe("version resolution", () => {
   it("keeps explicit env-object overrides for compatibility checks in tests", () => {
     expect(
       resolveCompatibilityHostVersion({
-        OPENCLAW_VERSION: "2026.3.99",
-        OPENCLAW_SERVICE_VERSION: "2026.3.98",
+        KOVA_VERSION: "2026.3.99",
+        KOVA_SERVICE_VERSION: "2026.3.98",
         npm_package_version: "2026.3.97",
       }),
     ).toBe("2026.3.99");
@@ -186,9 +186,9 @@ describe("version resolution", () => {
   it("prefers explicit compatibility host overrides over runtime and stale env versions", () => {
     expect(
       resolveCompatibilityHostVersion({
-        OPENCLAW_COMPATIBILITY_HOST_VERSION: "2026.4.8",
-        OPENCLAW_VERSION: "2026.3.99",
-        OPENCLAW_SERVICE_VERSION: "2026.3.98",
+        KOVA_COMPATIBILITY_HOST_VERSION: "2026.4.8",
+        KOVA_VERSION: "2026.3.99",
+        KOVA_SERVICE_VERSION: "2026.3.98",
         npm_package_version: "2026.3.97",
       }),
     ).toBe("2026.4.8");
@@ -207,16 +207,16 @@ describe("version resolution", () => {
   it("prefers runtime VERSION over service/package markers and ignores blank env values", () => {
     expect(
       resolveRuntimeServiceVersion({
-        OPENCLAW_VERSION: "   ",
-        OPENCLAW_SERVICE_VERSION: "  2.0.0  ",
+        KOVA_VERSION: "   ",
+        KOVA_SERVICE_VERSION: "  2.0.0  ",
         npm_package_version: "1.0.0",
       }),
     ).toBe(VERSION);
 
     expect(
       resolveRuntimeServiceVersion({
-        OPENCLAW_VERSION: " ",
-        OPENCLAW_SERVICE_VERSION: "\t",
+        KOVA_VERSION: " ",
+        KOVA_SERVICE_VERSION: "\t",
         npm_package_version: " 1.0.0-package ",
       }),
     ).toBe(VERSION);
@@ -224,8 +224,8 @@ describe("version resolution", () => {
     expect(
       resolveRuntimeServiceVersion(
         {
-          OPENCLAW_VERSION: "",
-          OPENCLAW_SERVICE_VERSION: " ",
+          KOVA_VERSION: "",
+          KOVA_SERVICE_VERSION: " ",
           npm_package_version: "",
         },
         "fallback",

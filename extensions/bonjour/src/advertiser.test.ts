@@ -37,9 +37,9 @@ function enableAdvertiserUnitMode(hostname = "test-host") {
   // Allow advertiser to run in unit tests.
   delete process.env.VITEST;
   process.env.NODE_ENV = "development";
-  process.env.OPENCLAW_DISABLE_BONJOUR = "0";
+  process.env.KOVA_DISABLE_BONJOUR = "0";
   vi.spyOn(os, "hostname").mockReturnValue(hostname);
-  process.env.OPENCLAW_MDNS_HOSTNAME = hostname;
+  process.env.KOVA_MDNS_HOSTNAME = hostname;
 }
 
 function mockCiaoService(params?: {
@@ -147,7 +147,7 @@ describe("gateway bonjour advertiser", () => {
       gatewayPort: 18789,
       sshPort: 2222,
       tailnetDns: "host.tailnet.ts.net",
-      cliPath: "/opt/homebrew/bin/openclaw",
+      cliPath: "/opt/homebrew/bin/kova",
       minimal: false,
     });
 
@@ -166,7 +166,7 @@ describe("gateway bonjour advertiser", () => {
       "host.tailnet.ts.net",
     );
     expect((gatewayCall?.[0]?.txt as Record<string, string>)?.cliPath).toBe(
-      "/opt/homebrew/bin/openclaw",
+      "/opt/homebrew/bin/kova",
     );
     expect((gatewayCall?.[0]?.txt as Record<string, string>)?.transport).toBe("gateway");
 
@@ -190,7 +190,7 @@ describe("gateway bonjour advertiser", () => {
     const started = await startAdvertiser({
       gatewayPort: 18789,
       sshPort: 2222,
-      cliPath: "/opt/homebrew/bin/openclaw",
+      cliPath: "/opt/homebrew/bin/kova",
       tailnetDns: "host.tailnet.ts.net",
       minimal: true,
     });
@@ -203,9 +203,9 @@ describe("gateway bonjour advertiser", () => {
     await started.stop();
   });
 
-  it("honors truthy OPENCLAW_DISABLE_BONJOUR values", async () => {
+  it("honors truthy KOVA_DISABLE_BONJOUR values", async () => {
     enableAdvertiserUnitMode();
-    process.env.OPENCLAW_DISABLE_BONJOUR = "true";
+    process.env.KOVA_DISABLE_BONJOUR = "true";
 
     const started = await startAdvertiser({
       gatewayPort: 18789,
@@ -218,7 +218,7 @@ describe("gateway bonjour advertiser", () => {
 
   it("auto-disables Bonjour in detected containers", async () => {
     enableAdvertiserUnitMode();
-    delete process.env.OPENCLAW_DISABLE_BONJOUR;
+    delete process.env.KOVA_DISABLE_BONJOUR;
     vi.spyOn(fs, "existsSync").mockImplementation((filePath) => String(filePath) === "/.dockerenv");
 
     const started = await startAdvertiser({
@@ -232,7 +232,7 @@ describe("gateway bonjour advertiser", () => {
 
   it("honors explicit Bonjour opt-in inside detected containers", async () => {
     enableAdvertiserUnitMode();
-    process.env.OPENCLAW_DISABLE_BONJOUR = "0";
+    process.env.KOVA_DISABLE_BONJOUR = "0";
     vi.spyOn(fs, "existsSync").mockImplementation((filePath) => String(filePath) === "/.dockerenv");
 
     const destroy = vi.fn().mockResolvedValue(undefined);
@@ -489,7 +489,7 @@ describe("gateway bonjour advertiser", () => {
       });
 
       console.log(
-        "[test._openclaw-gw._tcp.local.] failed probing with reason: Error: Can't probe for a service which is announced already. Received announcing for service test._openclaw-gw._tcp.local.. Trying again in 2 seconds!",
+        "[test._kova-gw._tcp.local.] failed probing with reason: Error: Can't probe for a service which is announced already. Received announcing for service test._kova-gw._tcp.local.. Trying again in 2 seconds!",
       );
       console.log("ordinary console line");
 
@@ -713,7 +713,7 @@ describe("gateway bonjour advertiser", () => {
 
   it("falls back to kova when system hostname is invalid for DNS", async () => {
     enableAdvertiserUnitMode();
-    delete process.env.OPENCLAW_MDNS_HOSTNAME;
+    delete process.env.KOVA_MDNS_HOSTNAME;
     vi.spyOn(os, "hostname").mockReturnValue("My_Lobster Host");
 
     const destroy = vi.fn().mockResolvedValue(undefined);
@@ -732,9 +732,9 @@ describe("gateway bonjour advertiser", () => {
     await started.stop();
   });
 
-  it("uses system hostname when OPENCLAW_MDNS_HOSTNAME is unset", async () => {
+  it("uses system hostname when KOVA_MDNS_HOSTNAME is unset", async () => {
     enableAdvertiserUnitMode();
-    delete process.env.OPENCLAW_MDNS_HOSTNAME;
+    delete process.env.KOVA_MDNS_HOSTNAME;
     vi.spyOn(os, "hostname").mockReturnValue("Lobster");
 
     const destroy = vi.fn().mockResolvedValue(undefined);

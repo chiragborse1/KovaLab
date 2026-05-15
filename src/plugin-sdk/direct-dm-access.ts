@@ -1,5 +1,5 @@
 import type { ChannelId } from "../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   readStoreAllowFromForDmPolicy,
   resolveDmGroupAccessWithLists,
@@ -7,7 +7,7 @@ import {
 } from "../security/dm-policy-shared.js";
 
 export type DirectDmCommandAuthorizationRuntime = {
-  shouldComputeCommandAuthorized: (rawBody: string, cfg: OpenClawConfig) => boolean;
+  shouldComputeCommandAuthorized: (rawBody: string, cfg: KovaConfig) => boolean;
   resolveCommandAuthorizedFromAuthorizers: (params: {
     useAccessGroups: boolean;
     authorizers: Array<{ configured: boolean; allowed: boolean }>;
@@ -29,7 +29,7 @@ export type ResolvedInboundDirectDmAccess = {
 
 /** Resolve direct-DM policy, effective allowlists, and optional command auth in one place. */
 export async function resolveInboundDirectDmAccessWithRuntime(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: ChannelId;
   accountId: string;
   dmPolicy?: string | null;

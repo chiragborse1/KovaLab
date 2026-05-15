@@ -43,12 +43,12 @@ describe("AgentRuntimePlan tool policy helpers", () => {
         provider: "openai",
         modelId: "gpt-5.4",
         modelApi: "openai-responses",
-        workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+        workspaceDir: "/tmp/kova-runtime-plan-tools",
         model,
       }),
     ).toBe(normalized);
     expect(normalize).toHaveBeenCalledWith(tools, {
-      workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+      workspaceDir: "/tmp/kova-runtime-plan-tools",
       modelApi: "openai-responses",
       model,
     });
@@ -92,7 +92,7 @@ describe("AgentRuntimePlan tool policy helpers", () => {
       provider: "openai",
       modelId: "gpt-5.4",
       modelApi: "openai-responses",
-      workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+      workspaceDir: "/tmp/kova-runtime-plan-tools",
       model: createNativeOpenAIResponsesModel() as never,
     });
 
@@ -102,7 +102,7 @@ describe("AgentRuntimePlan tool policy helpers", () => {
         provider: "openai",
         modelId: "gpt-5.4",
         modelApi: "openai-responses",
-        workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+        workspaceDir: "/tmp/kova-runtime-plan-tools",
       }),
     );
   });
@@ -124,12 +124,12 @@ describe("AgentRuntimePlan tool policy helpers", () => {
       provider: "openai",
       modelId: "gpt-5.4",
       modelApi: "openai-responses",
-      workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+      workspaceDir: "/tmp/kova-runtime-plan-tools",
       model,
     });
 
     expect(logDiagnostics).toHaveBeenCalledWith(tools, {
-      workspaceDir: "/tmp/openclaw-runtime-plan-tools",
+      workspaceDir: "/tmp/kova-runtime-plan-tools",
       modelApi: "openai-responses",
       model,
     });

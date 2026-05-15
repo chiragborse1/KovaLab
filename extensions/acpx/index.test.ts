@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import type { KovaPluginApi } from "getkova/plugin-sdk/plugin-entry";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.js";
 import setupPlugin from "./setup-api.js";
@@ -18,7 +18,7 @@ vi.mock("./runtime-api.js", () => ({
 
 import plugin from "./index.js";
 
-type AcpxAutoEnableProbe = Parameters<OpenClawPluginApi["registerAutoEnableProbe"]>[0];
+type AcpxAutoEnableProbe = Parameters<KovaPluginApi["registerAutoEnableProbe"]>[0];
 
 function registerAcpxAutoEnableProbe(): AcpxAutoEnableProbe {
   const probes: AcpxAutoEnableProbe[] = [];

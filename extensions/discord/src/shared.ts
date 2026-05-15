@@ -1,8 +1,8 @@
-import { describeAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { formatAllowFromLowercase } from "openclaw/plugin-sdk/allow-from";
-import { adaptScopedAccountAccessor } from "openclaw/plugin-sdk/channel-config-helpers";
-import { createScopedChannelConfigAdapter } from "openclaw/plugin-sdk/channel-config-helpers";
-import type { ChannelDoctorAdapter } from "openclaw/plugin-sdk/channel-contract";
+import { describeAccountSnapshot } from "getkova/plugin-sdk/account-helpers";
+import { formatAllowFromLowercase } from "getkova/plugin-sdk/allow-from";
+import { adaptScopedAccountAccessor } from "getkova/plugin-sdk/channel-config-helpers";
+import { createScopedChannelConfigAdapter } from "getkova/plugin-sdk/channel-config-helpers";
+import type { ChannelDoctorAdapter } from "getkova/plugin-sdk/channel-contract";
 import { inspectDiscordAccount } from "./account-inspect.js";
 import {
   listDiscordAccountIds,

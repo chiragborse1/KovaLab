@@ -21,7 +21,7 @@ export type ChildAdapter = SpawnProcessAdapter<NodeJS.Signals | null>;
 
 function isServiceManagedRuntime(): boolean {
   return Boolean(
-    process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.OPENCLAW_SERVICE_MARKER?.trim(),
+    process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.KOVA_SERVICE_MARKER?.trim(),
   );
 }
 

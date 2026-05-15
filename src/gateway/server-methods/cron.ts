@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { resolveCronDeliveryPreviews } from "../../cron/delivery-preview.js";
 import { normalizeCronJobCreate, normalizeCronJobPatch } from "../../cron/normalize.js";
 import {
@@ -28,7 +28,7 @@ import {
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
 
-function listConfiguredAnnounceChannelIds(cfg: OpenClawConfig): string[] {
+function listConfiguredAnnounceChannelIds(cfg: KovaConfig): string[] {
   return listConfiguredAnnounceChannelIdsForConfig({
     config: cfg,
     env: process.env,
@@ -37,7 +37,7 @@ function listConfiguredAnnounceChannelIds(cfg: OpenClawConfig): string[] {
 }
 
 function assertConfiguredAnnounceChannel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel?: string;
   field: "delivery.channel" | "delivery.failureDestination.channel";
 }) {
@@ -67,7 +67,7 @@ function assertConfiguredAnnounceChannel(params: {
   throw new Error(`${params.field} must be one of: ${configuredChannels.join(", ")}`);
 }
 
-function assertValidCronAnnounceDelivery(params: { cfg: OpenClawConfig; delivery?: CronDelivery }) {
+function assertValidCronAnnounceDelivery(params: { cfg: KovaConfig; delivery?: CronDelivery }) {
   if (params.delivery?.mode === "announce") {
     assertConfiguredAnnounceChannel({
       cfg: params.cfg,
@@ -86,7 +86,7 @@ function assertValidCronAnnounceDelivery(params: { cfg: OpenClawConfig; delivery
   }
 }
 
-function assertValidCronCreateDelivery(cfg: OpenClawConfig, jobCreate: CronJobCreate) {
+function assertValidCronCreateDelivery(cfg: KovaConfig, jobCreate: CronJobCreate) {
   assertValidCronAnnounceDelivery({
     cfg,
     delivery: jobCreate.delivery,
@@ -94,7 +94,7 @@ function assertValidCronCreateDelivery(cfg: OpenClawConfig, jobCreate: CronJobCr
 }
 
 function assertValidCronUpdateDelivery(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   defaultAgentId?: string;
   currentJob: CronJob | undefined;
   patch: CronJobPatch;

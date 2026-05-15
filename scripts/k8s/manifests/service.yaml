@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: openclaw
+  name: kova
   labels:
-    app: openclaw
+    app: kova
 spec:
   type: ClusterIP
   selector:
-    app: openclaw
+    app: kova
   ports:
     - name: gateway
       port: 18789

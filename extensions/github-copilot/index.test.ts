@@ -27,7 +27,7 @@ afterEach(async () => {
 });
 
 async function createAgentDir() {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-github-copilot-test-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-github-copilot-test-"));
   tempDirs.push(dir);
   return dir;
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginRegistry } from "./registry-types.js";
 import { createEmptyPluginRegistry } from "./registry.js";
 
@@ -35,13 +35,13 @@ const mocks = vi.hoisted(() => ({
   ),
   loadPluginRegistrySnapshot: vi.fn<() => MockPluginIndex>(() => createMockPluginIndex([])),
   withBundledPluginAllowlistCompat: vi.fn(
-    ({ config }: { config?: OpenClawConfig; pluginIds: string[] }) => config,
+    ({ config }: { config?: KovaConfig; pluginIds: string[] }) => config,
   ),
   withBundledPluginEnablementCompat: vi.fn(
-    ({ config }: { config?: OpenClawConfig; pluginIds: string[] }) => config,
+    ({ config }: { config?: KovaConfig; pluginIds: string[] }) => config,
   ),
   withBundledPluginVitestCompat: vi.fn(
-    ({ config }: { config?: OpenClawConfig; pluginIds: string[] }) => config,
+    ({ config }: { config?: KovaConfig; pluginIds: string[] }) => config,
   ),
 }));
 
@@ -89,7 +89,7 @@ describe("migration provider runtime", () => {
   it("loads configured external migration-provider plugins from manifest contracts", () => {
     const cfg = {
       plugins: { entries: { "external-migration": { enabled: true } } },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const provider = createMigrationProvider("external-import");
     const active = createEmptyPluginRegistry();
     const loaded = createEmptyPluginRegistry();

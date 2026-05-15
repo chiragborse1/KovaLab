@@ -12,7 +12,7 @@ import {
   type AnyAgentTool,
   type MessagingToolSend,
   wrapToolWithBeforeToolCallHook,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "getkova/plugin-sdk/agent-harness-runtime";
 import {
   type CodexDynamicToolCallOutputContentItem,
   type CodexDynamicToolCallParams,

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { warnIfModelConfigLooksOff } from "./auth-choice.model-check.js";
 import { makePrompter } from "./setup/__tests__/test-utils.js";
 
@@ -40,7 +40,7 @@ describe("warnIfModelConfigLooksOff", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await warnIfModelConfigLooksOff(config, prompter, { validateCatalog: false });
 
@@ -84,7 +84,7 @@ describe("warnIfModelConfigLooksOff", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await warnIfModelConfigLooksOff(config, prompter, { validateCatalog: false });
 
@@ -117,7 +117,7 @@ describe("warnIfModelConfigLooksOff", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await warnIfModelConfigLooksOff(config, prompter, { validateCatalog: false });
 
@@ -137,7 +137,7 @@ describe("warnIfModelConfigLooksOff", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await warnIfModelConfigLooksOff(config, prompter);
 

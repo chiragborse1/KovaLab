@@ -47,7 +47,7 @@ export function emitDaemonActionJson(payload: DaemonActionResponse) {
 
 function classifyDaemonHintText(text: string): DaemonHintKind {
   if (
-    /(openclaw|kova) gateway install\b/.test(text) ||
+    /(kova|kova) gateway install\b/.test(text) ||
     text.startsWith("Service not installed. Run:")
   ) {
     return "install";

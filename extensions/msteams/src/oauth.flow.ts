@@ -1,10 +1,10 @@
-import { generateHexPkceVerifierChallenge } from "openclaw/plugin-sdk/provider-auth";
+import { generateHexPkceVerifierChallenge } from "getkova/plugin-sdk/provider-auth";
 import {
   generateOAuthState,
   parseOAuthCallbackInput,
   waitForLocalOAuthCallback,
-} from "openclaw/plugin-sdk/provider-auth-runtime";
-import { isWSL2Sync } from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/provider-auth-runtime";
+import { isWSL2Sync } from "getkova/plugin-sdk/runtime-env";
 import {
   MSTEAMS_DEFAULT_DELEGATED_SCOPES,
   MSTEAMS_OAUTH_CALLBACK_PATH,

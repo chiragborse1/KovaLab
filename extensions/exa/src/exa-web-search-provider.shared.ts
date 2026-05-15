@@ -1,4 +1,4 @@
-import { createWebSearchProviderContractFields } from "openclaw/plugin-sdk/provider-web-search-contract";
+import { createWebSearchProviderContractFields } from "getkova/plugin-sdk/provider-web-search-contract";
 
 const EXA_CREDENTIAL_PATH = "plugins.entries.exa.config.webSearch.apiKey";
 const EXA_ONBOARDING_SCOPES: Array<"text-inference"> = ["text-inference"];

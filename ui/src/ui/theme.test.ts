@@ -25,7 +25,7 @@ describe("resolveSystemTheme", () => {
 describe("parseThemeSelection", () => {
   it("maps legacy stored values onto theme + mode", () => {
     expect(parseThemeSelection("system", undefined)).toEqual({
-      theme: "claw",
+      theme: "kova",
       mode: "system",
     });
     expect(parseThemeSelection("fieldmanual", undefined)).toEqual({

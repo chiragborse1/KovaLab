@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/diffs",
+  "name": "@kovaai/diffs",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova diff viewer plugin",
@@ -14,9 +14,9 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

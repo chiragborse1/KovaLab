@@ -1,4 +1,4 @@
 export {
   buildChannelConfigSchema,
   IMessageConfigSchema,
-} from "openclaw/plugin-sdk/channel-config-schema-legacy";
+} from "getkova/plugin-sdk/channel-config-schema-legacy";

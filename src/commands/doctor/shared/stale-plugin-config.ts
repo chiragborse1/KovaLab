@@ -1,6 +1,6 @@
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../../agents/agent-scope.js";
 import { CHANNEL_IDS } from "../../../channels/ids.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import { normalizePluginId } from "../../../plugins/config-state.js";
 import { loadInstalledPluginIndexInstallRecordsSync } from "../../../plugins/installed-plugin-index-records.js";
 import { loadPluginManifestRegistryForPluginRegistry } from "../../../plugins/plugin-registry.js";
@@ -25,7 +25,7 @@ type StalePluginRegistryState = {
 };
 
 function collectPluginRegistryState(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): StalePluginRegistryState {
   const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
@@ -70,22 +70,19 @@ function collectPluginRegistryState(
   };
 }
 
-export function isStalePluginAutoRepairBlocked(
-  cfg: OpenClawConfig,
-  env?: NodeJS.ProcessEnv,
-): boolean {
+export function isStalePluginAutoRepairBlocked(cfg: KovaConfig, env?: NodeJS.ProcessEnv): boolean {
   return collectPluginRegistryState(cfg, env).hasDiscoveryErrors;
 }
 
 export function scanStalePluginConfig(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): StalePluginConfigHit[] {
   return scanStalePluginConfigWithState(cfg, collectPluginRegistryState(cfg, env));
 }
 
 function scanStalePluginConfigWithState(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   registryState: StalePluginRegistryState,
 ): StalePluginConfigHit[] {
   const plugins = asObjectRecord(cfg.plugins);
@@ -146,7 +143,7 @@ function scanStalePluginConfigWithState(
 }
 
 function collectDanglingChannelIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   registryState: StalePluginRegistryState;
   staleEvidenceIds: ReadonlySet<string>;
 }): string[] {
@@ -176,7 +173,7 @@ function collectDanglingChannelIds(params: {
 }
 
 function collectDependentChannelConfigHits(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   channelIds: readonly string[],
 ): StalePluginConfigHit[] {
   if (channelIds.length === 0) {
@@ -262,10 +259,10 @@ export function collectStalePluginConfigWarnings(params: {
 }
 
 export function maybeRepairStalePluginConfig(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): {
-  config: OpenClawConfig;
+  config: KovaConfig;
   changes: string[];
 } {
   const registryState = collectPluginRegistryState(cfg, env);
@@ -339,7 +336,7 @@ export function maybeRepairStalePluginConfig(
   return { config: next, changes };
 }
 
-function removeDanglingChannelReferences(config: OpenClawConfig, channelIds: readonly string[]) {
+function removeDanglingChannelReferences(config: KovaConfig, channelIds: readonly string[]) {
   const staleChannelIds = new Set(channelIds.map((channelId) => normalizePluginId(channelId)));
   const channels = asObjectRecord(config.channels);
   if (channels) {

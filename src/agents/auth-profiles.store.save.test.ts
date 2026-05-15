@@ -19,7 +19,7 @@ vi.mock("./auth-profiles/external-auth.js", () => ({
 
 describe("saveAuthProfileStore", () => {
   it("strips plaintext when keyRef/tokenRef are present", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-save-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-save-"));
     try {
       const store: AuthProfileStore = {
         version: 1,
@@ -74,7 +74,7 @@ describe("saveAuthProfileStore", () => {
   });
 
   it("refreshes the runtime snapshot when a saved store rotates oauth tokens", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-save-runtime-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-save-runtime-"));
     try {
       replaceRuntimeAuthProfileStoreSnapshots([
         {
@@ -133,7 +133,7 @@ describe("saveAuthProfileStore", () => {
   });
 
   it("writes runtime scheduling state to auth-state.json only", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-save-state-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-save-state-"));
     try {
       const store: AuthProfileStore = {
         version: 1,
@@ -186,7 +186,7 @@ describe("saveAuthProfileStore", () => {
   });
 
   it("clears stale runtime state when replacing an api key profile", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-replace-key-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-replace-key-"));
     try {
       saveAuthProfileStore(
         {
@@ -238,7 +238,7 @@ describe("saveAuthProfileStore", () => {
   });
 
   it("keeps runtime state when re-saving the same api key profile", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-same-key-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-same-key-"));
     try {
       saveAuthProfileStore(
         {

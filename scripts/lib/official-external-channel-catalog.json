@@ -5,7 +5,7 @@
       "description": "Kova BlueBubbles channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "bluebubbles",
           "label": "BlueBubbles",
@@ -31,7 +31,7 @@
       "description": "Kova Discord channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "discord",
           "label": "Discord",
@@ -57,7 +57,7 @@
       "description": "Kova Feishu/Lark channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "feishu",
           "label": "Feishu",
@@ -81,7 +81,7 @@
       "description": "Kova Microsoft Teams channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "msteams",
           "label": "Microsoft Teams",
@@ -104,7 +104,7 @@
       "description": "Kova Nextcloud Talk channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "nextcloud-talk",
           "label": "Nextcloud Talk",
@@ -128,7 +128,7 @@
       "description": "Kova Nostr channel plugin for encrypted DMs",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "nostr",
           "label": "Nostr",
@@ -151,7 +151,7 @@
       "description": "Kova QQ Bot channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "qqbot",
           "label": "QQ Bot",
@@ -174,7 +174,7 @@
       "description": "Kova WhatsApp channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "whatsapp",
           "label": "WhatsApp",
@@ -197,7 +197,7 @@
       "description": "Kova Zalo channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "zalo",
           "label": "Zalo",
@@ -221,7 +221,7 @@
       "description": "Kova Zalo Personal Account channel plugin",
       "source": "official",
       "kind": "channel",
-      "openclaw": {
+      "kova": {
         "channel": {
           "id": "zalouser",
           "label": "Zalo Personal",

@@ -62,7 +62,7 @@ read_when:
 
 <Warning>
 If the Gateway runs as a daemon (launchd/systemd), make sure `DEEPSEEK_API_KEY`
-is available to that process (for example, in `~/.openclaw/.env` or via
+is available to that process (for example, in `~/.kova/.env` or via
 `env.shellEnv`).
 </Warning>
 
@@ -111,8 +111,8 @@ The direct live model suite includes DeepSeek V4 in the modern model set. To
 run only the DeepSeek V4 direct-model checks:
 
 ```bash
-OPENCLAW_LIVE_PROVIDERS=deepseek \
-OPENCLAW_LIVE_MODELS="deepseek/deepseek-v4-flash,deepseek/deepseek-v4-pro" \
+KOVA_LIVE_PROVIDERS=deepseek \
+KOVA_LIVE_MODELS="deepseek/deepseek-v4-flash,deepseek/deepseek-v4-pro" \
 pnpm test:live src/agents/models.profiles.live.test.ts
 ```
 

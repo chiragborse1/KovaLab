@@ -8,7 +8,7 @@ import {
   expectedForwardedAuthProfile,
 } from "../../test/helpers/agents/auth-profile-runtime-contract.js";
 import type { SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type * as ManifestRegistryModule from "../plugins/manifest-registry.js";
 import { runAgentAttempt } from "./command/attempt-execution.js";
 import type { EmbeddedPiRunResult } from "./pi-embedded.js";
@@ -130,10 +130,10 @@ async function runAuthContractAttempt(params: {
   providerOverride: string;
   authProfileProvider: string;
   authProfileOverride: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   sessionHasHistory?: boolean;
 }) {
-  const cfg = params.cfg ?? ({} as OpenClawConfig);
+  const cfg = params.cfg ?? ({} as KovaConfig);
   const sessionEntry: SessionEntry = {
     sessionId: AUTH_PROFILE_RUNTIME_CONTRACT.sessionId,
     updatedAt: Date.now(),
@@ -187,7 +187,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
   let storePath: string;
 
   beforeEach(async () => {
-    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-contract-"));
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-contract-"));
     storePath = path.join(tmpDir, "sessions.json");
     loadPluginManifestRegistry.mockReset().mockReturnValue(createAuthAliasManifestRegistry());
     runCliAgentMock.mockReset();
@@ -219,7 +219,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
     (provider, expectedAuthProvider) => {
       expect(
         resolveProviderIdForAuth(provider, {
-          config: {} as OpenClawConfig,
+          config: {} as KovaConfig,
           workspaceDir: tmpDir,
         }),
       ).toBe(expectedAuthProvider);
@@ -305,7 +305,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             agentRuntime: { id: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runCliAgentMock).toHaveBeenCalledTimes(1);
@@ -388,7 +388,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             agentRuntime: { id: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
@@ -411,7 +411,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             agentRuntime: { id: "codex", fallback: "none" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
@@ -438,7 +438,7 @@ describe("Auth profile runtime contract - Pi and CLI adapter", () => {
             },
           ],
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);

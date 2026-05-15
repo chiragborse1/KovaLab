@@ -2,8 +2,8 @@ import type { ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
-import type { PluginLogger } from "openclaw/plugin-sdk/plugin-entry";
-import { isTruthyEnvValue } from "openclaw/plugin-sdk/runtime-env";
+import type { PluginLogger } from "getkova/plugin-sdk/plugin-entry";
+import { isTruthyEnvValue } from "getkova/plugin-sdk/runtime-env";
 import { classifyCiaoProcessError, type CiaoProcessErrorClassification } from "./ciao.js";
 import { formatBonjourError } from "./errors.js";
 
@@ -104,7 +104,7 @@ async function loadCiaoModule(): Promise<CiaoModule> {
 }
 
 function readBonjourDisableOverride(): boolean | null {
-  const raw = process.env.OPENCLAW_DISABLE_BONJOUR;
+  const raw = process.env.KOVA_DISABLE_BONJOUR;
   const normalized = raw?.trim().toLowerCase();
   if (!normalized) {
     return null;
@@ -352,7 +352,7 @@ export async function startGatewayBonjourAdvertiser(
     cleanupUncaughtException = deps.registerUncaughtExceptionHandler?.(handleCiaoProcessError);
 
     const hostnameRaw =
-      process.env.OPENCLAW_MDNS_HOSTNAME?.trim() || resolveSystemMdnsHostname() || "kova";
+      process.env.KOVA_MDNS_HOSTNAME?.trim() || resolveSystemMdnsHostname() || "kova";
     const hostname =
       hostnameRaw
         .replace(/\.local$/i, "")
@@ -520,7 +520,7 @@ export async function startGatewayBonjourAdvertiser(
         if (consecutiveRestarts > MAX_CONSECUTIVE_RESTARTS) {
           disabled = true;
           logger.warn(
-            `bonjour: disabling advertiser after ${MAX_CONSECUTIVE_RESTARTS} failed restarts (${reason}); set discovery.mdns.mode="off" or OPENCLAW_DISABLE_BONJOUR=1 to disable mDNS discovery`,
+            `bonjour: disabling advertiser after ${MAX_CONSECUTIVE_RESTARTS} failed restarts (${reason}); set discovery.mdns.mode="off" or KOVA_DISABLE_BONJOUR=1 to disable mDNS discovery`,
           );
           const previous = cycle;
           cycle = null;

@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/fireworks-provider",
+  "name": "@kovaai/fireworks-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Fireworks provider plugin",
@@ -8,9 +8,9 @@
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

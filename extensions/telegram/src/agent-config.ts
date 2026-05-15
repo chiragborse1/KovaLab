@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-types";
+import type { KovaConfig } from "getkova/plugin-sdk/config-types";
 
 type ReasoningDefault = "on" | "stream" | "off";
 
@@ -10,7 +10,7 @@ function normalizeAgentId(value: string | undefined | null): string {
 }
 
 export function resolveTelegramConfigReasoningDefault(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   agentId: string,
 ): ReasoningDefault {
   const id = normalizeAgentId(agentId);

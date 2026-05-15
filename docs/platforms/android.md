@@ -8,7 +8,7 @@ title: "Android app"
 ---
 
 <Note>
-The Android app has not been publicly released yet. The source code is available in the [Kova repository](https://github.com/openclaw/openclaw) under `apps/android`. You can build it yourself using Java 17 and the Android SDK (`./gradlew :app:assemblePlayDebug`). See [apps/android/README.md](https://github.com/openclaw/openclaw/blob/main/apps/android/README.md) for build instructions.
+The Android app has not been publicly released yet. The source code is available in the [Kova repository](https://github.com/chiragborse1/KovaLab) under `apps/android`. You can build it yourself using Java 17 and the Android SDK (`./gradlew :app:assemblePlayDebug`). See [apps/android/README.md](https://github.com/chiragborse1/KovaLab/blob/main/apps/android/README.md) for build instructions.
 </Note>
 
 ## Support snapshot
@@ -68,7 +68,7 @@ This gives Android a secure `wss://` / `https://` endpoint. A plain `gateway.bin
 From the gateway machine:
 
 ```bash
-dns-sd -B _openclaw-gw._tcp local.
+dns-sd -B _kova-gw._tcp local.
 ```
 
 More debugging notes: [Bonjour](/gateway/bonjour).
@@ -88,7 +88,7 @@ Android NSD/mDNS discovery won’t cross networks. If your Android node and the 
 
 Discovery alone is not sufficient for tailnet/public Android pairing. The discovered route still needs a secure endpoint (`wss://` or Tailscale Serve):
 
-1. Set up a DNS-SD zone (example `openclaw.internal.`) on the gateway host and publish `_openclaw-gw._tcp` records.
+1. Set up a DNS-SD zone (example `kova.internal.`) on the gateway host and publish `_kova-gw._tcp` records.
 2. Configure Tailscale split DNS for your chosen domain pointing at that DNS server.
 
 Details and example CoreDNS config: [Bonjour](/gateway/bonjour).
@@ -176,18 +176,18 @@ If you want the node to show real HTML/CSS/JS that the agent can edit on disk, p
 Nodes load canvas from the Gateway HTTP server (same port as `gateway.port`, default `18789`).
 </Note>
 
-1. Create `~/.openclaw/workspace/canvas/index.html` on the gateway host.
+1. Create `~/.kova/workspace/canvas/index.html` on the gateway host.
 
 2. Navigate the node to it (LAN):
 
 ```bash
-kova nodes invoke --node "<Android Node>" --command canvas.navigate --params '{"url":"http://<gateway-hostname>.local:18789/__openclaw__/canvas/"}'
+kova nodes invoke --node "<Android Node>" --command canvas.navigate --params '{"url":"http://<gateway-hostname>.local:18789/__kova__/canvas/"}'
 ```
 
-Tailnet (optional): if both devices are on Tailscale, use a MagicDNS name or tailnet IP instead of `.local`, e.g. `http://<gateway-magicdns>:18789/__openclaw__/canvas/`.
+Tailnet (optional): if both devices are on Tailscale, use a MagicDNS name or tailnet IP instead of `.local`, e.g. `http://<gateway-magicdns>:18789/__kova__/canvas/`.
 
 This server injects a live-reload client into HTML and reloads on file changes.
-The A2UI host lives at `http://<gateway-host>:18789/__openclaw__/a2ui/`.
+The A2UI host lives at `http://<gateway-host>:18789/__kova__/a2ui/`.
 
 Canvas commands (foreground only):
 

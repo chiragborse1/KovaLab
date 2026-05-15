@@ -1,6 +1,6 @@
 import type { Mock } from "vitest";
 import { vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { createTestRuntime } from "./test-runtime-config-helpers.js";
 
 type ReplaceConfigFileResult = Awaited<
@@ -12,10 +12,10 @@ export const writeConfigFileMock: Mock<(...args: unknown[]) => Promise<unknown>>
   .fn()
   .mockResolvedValue(undefined);
 export const replaceConfigFileMock: Mock<(...args: unknown[]) => Promise<unknown>> = vi.fn(
-  async (params: { nextConfig: OpenClawConfig }): Promise<ReplaceConfigFileResult> => {
+  async (params: { nextConfig: KovaConfig }): Promise<ReplaceConfigFileResult> => {
     await writeConfigFileMock(params.nextConfig);
     return {
-      path: "/tmp/openclaw.json",
+      path: "/tmp/kova.json",
       previousHash: null,
       snapshot: {} as never,
       nextConfig: params.nextConfig,
@@ -35,7 +35,7 @@ vi.mock("./agents.command-shared.js", () => ({
   createQuietRuntime: <T>(runtime: T) => runtime,
   requireValidConfig: async () => {
     const snapshot = (await readConfigFileSnapshotMock()) as
-      | { config?: OpenClawConfig; sourceConfig?: OpenClawConfig }
+      | { config?: KovaConfig; sourceConfig?: KovaConfig }
       | undefined;
     return snapshot?.sourceConfig ?? snapshot?.config ?? null;
   },

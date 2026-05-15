@@ -1,8 +1,8 @@
 import {
   definePluginEntry,
-  type OpenClawPluginApi,
+  type KovaPluginApi,
   type ProviderAuthMethodNonInteractiveContext,
-} from "openclaw/plugin-sdk/plugin-entry";
+} from "getkova/plugin-sdk/plugin-entry";
 import {
   buildVllmProvider,
   VLLM_DEFAULT_API_KEY_ENV_VAR,
@@ -15,14 +15,14 @@ import { wrapVllmProviderStream } from "./stream.js";
 const PROVIDER_ID = "vllm";
 
 async function loadProviderSetup() {
-  return await import("openclaw/plugin-sdk/provider-setup");
+  return await import("getkova/plugin-sdk/provider-setup");
 }
 
 export default definePluginEntry({
   id: "vllm",
   name: "vLLM Provider",
   description: "Bundled vLLM provider plugin",
-  register(api: OpenClawPluginApi) {
+  register(api: KovaPluginApi) {
     api.registerProvider({
       id: PROVIDER_ID,
       label: "vLLM",

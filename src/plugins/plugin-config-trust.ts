@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 
-type PluginEntriesConfig = NonNullable<NonNullable<OpenClawConfig["plugins"]>["entries"]>;
+type PluginEntriesConfig = NonNullable<NonNullable<KovaConfig["plugins"]>["entries"]>;
 
 export function normalizePluginConfigId(id: unknown): string {
   return normalizeOptionalLowercaseString(id) ?? "";
@@ -31,7 +31,7 @@ function findPluginConfigEntry(
 }
 
 export function isWorkspacePluginAllowedByConfig(params: {
-  config: OpenClawConfig | undefined;
+  config: KovaConfig | undefined;
   isImplicitlyAllowed?: (pluginId: string) => boolean;
   plugin: PluginManifestRecord;
 }): boolean {

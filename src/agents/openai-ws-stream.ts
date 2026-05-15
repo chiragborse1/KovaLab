@@ -223,9 +223,8 @@ function resolveWsSessionPoolConfig(env: NodeJS.ProcessEnv = process.env): {
   enabled: boolean;
   idleMs: number;
 } {
-  const enabled =
-    env.OPENCLAW_OPENAI_WS_POOL === "1" || env.OPENCLAW_OPENAI_WS_SESSION_POOL === "1";
-  const rawIdleMs = Number(env.OPENCLAW_OPENAI_WS_SESSION_POOL_IDLE_MS);
+  const enabled = env.KOVA_OPENAI_WS_POOL === "1" || env.KOVA_OPENAI_WS_SESSION_POOL === "1";
+  const rawIdleMs = Number(env.KOVA_OPENAI_WS_SESSION_POOL_IDLE_MS);
   const idleMs = Number.isFinite(rawIdleMs)
     ? Math.min(300_000, Math.max(1_000, Math.trunc(rawIdleMs)))
     : 30_000;
@@ -479,7 +478,7 @@ function resolveNativeOpenAISessionHeaders(params: {
   }
   return {
     "x-client-request-id": sessionId,
-    "x-openclaw-session-id": sessionId,
+    "x-kova-session-id": sessionId,
   };
 }
 
@@ -504,14 +503,14 @@ function resolveNativeOpenAITransportTurnState(params: {
   return {
     headers: {
       ...sessionHeaders,
-      "x-openclaw-turn-id": turnId,
-      "x-openclaw-turn-attempt": attempt,
+      "x-kova-turn-id": turnId,
+      "x-kova-turn-attempt": attempt,
     },
     metadata: {
-      openclaw_session_id: sessionHeaders["x-openclaw-session-id"] ?? "",
-      openclaw_turn_id: turnId,
-      openclaw_turn_attempt: attempt,
-      openclaw_transport: params.transport,
+      kova_session_id: sessionHeaders["x-kova-session-id"] ?? "",
+      kova_turn_id: turnId,
+      kova_turn_attempt: attempt,
+      kova_transport: params.transport,
     },
   };
 }

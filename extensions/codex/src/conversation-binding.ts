@@ -1,10 +1,10 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/agent-harness-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/agent-harness-runtime";
 import type {
   PluginConversationBindingResolvedEvent,
   PluginHookInboundClaimContext,
   PluginHookInboundClaimEvent,
-} from "openclaw/plugin-sdk/plugin-entry";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
+} from "getkova/plugin-sdk/plugin-entry";
+import type { ReplyPayload } from "getkova/plugin-sdk/reply-payload";
 import { CODEX_CONTROL_METHODS } from "./app-server/capabilities.js";
 import {
   codexSandboxPolicyForTurn,
@@ -65,7 +65,7 @@ type CodexConversationGlobalState = {
   queues: Map<string, Promise<void>>;
 };
 
-const CODEX_CONVERSATION_GLOBAL_STATE = Symbol.for("openclaw.codex.conversationBinding");
+const CODEX_CONVERSATION_GLOBAL_STATE = Symbol.for("kova.codex.conversationBinding");
 
 function getGlobalState(): CodexConversationGlobalState {
   const globalState = globalThis as typeof globalThis & {

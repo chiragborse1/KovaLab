@@ -14,7 +14,7 @@ describe("Parallels smoke model selection", () => {
       const script = readFileSync(scriptPath, "utf8");
 
       expect(script, scriptPath).toContain(
-        'MODEL_ID="${OPENCLAW_PARALLELS_OPENAI_MODEL:-openai/gpt-5.5}"',
+        'MODEL_ID="${KOVA_PARALLELS_OPENAI_MODEL:-openai/gpt-5.5}"',
       );
       expect(script, scriptPath).toContain("--model <provider/model>");
       expect(script, scriptPath).toContain("MODEL_ID_EXPLICIT=1");

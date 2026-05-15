@@ -14,7 +14,7 @@ AUTH_CHOICE=""
 AUTH_KEY_FLAG=""
 MODEL_ID=""
 MODEL_ID_EXPLICIT=0
-INSTALL_URL="https://openclaw.ai/install.sh"
+INSTALL_URL="https://www.neuralstudio.in/install.sh"
 HOST_PORT="18425"
 HOST_PORT_EXPLICIT=0
 HOST_IP=""
@@ -31,8 +31,8 @@ DISCORD_CHANNEL_ID=""
 SNAPSHOT_ID=""
 SNAPSHOT_STATE=""
 SNAPSHOT_NAME=""
-GUEST_OPENCLAW_BIN="/opt/homebrew/bin/openclaw"
-GUEST_OPENCLAW_ENTRY="/opt/homebrew/lib/node_modules/openclaw/openclaw.mjs"
+GUEST_KOVA_BIN="/opt/homebrew/bin/kova"
+GUEST_KOVA_ENTRY="/opt/homebrew/lib/node_modules/chiragborse1/KovaLab.mjs"
 GUEST_NODE_BIN="/opt/homebrew/bin/node"
 GUEST_NPM_BIN="/opt/homebrew/bin/npm"
 GUEST_CURRENT_USER=""
@@ -43,17 +43,17 @@ MAIN_TGZ_PATH=""
 PACKED_MAIN_COMMIT_SHORT=""
 TARGET_EXPECT_VERSION=""
 SERVER_PID=""
-RUN_DIR="$(mktemp -d /tmp/openclaw-parallels-smoke.XXXXXX)"
-BUILD_LOCK_DIR="${TMPDIR:-/tmp}/openclaw-parallels-build.lock"
+RUN_DIR="$(mktemp -d /tmp/kova-parallels-smoke.XXXXXX)"
+BUILD_LOCK_DIR="${TMPDIR:-/tmp}/kova-parallels-build.lock"
 
 TIMEOUT_INSTALL_SITE_S=420
 TIMEOUT_INSTALL_TGZ_S=420
 TIMEOUT_INSTALL_REGISTRY_S=420
-TIMEOUT_UPDATE_DEV_S="${OPENCLAW_PARALLELS_MACOS_UPDATE_DEV_TIMEOUT_S:-1200}"
+TIMEOUT_UPDATE_DEV_S="${KOVA_PARALLELS_MACOS_UPDATE_DEV_TIMEOUT_S:-1200}"
 TIMEOUT_VERIFY_S=60
 TIMEOUT_ONBOARD_S=180
 TIMEOUT_GATEWAY_S=180
-TIMEOUT_AGENT_S="${OPENCLAW_PARALLELS_MACOS_AGENT_TIMEOUT_S:-240}"
+TIMEOUT_AGENT_S="${KOVA_PARALLELS_MACOS_AGENT_TIMEOUT_S:-240}"
 TIMEOUT_PERMISSION_S=60
 TIMEOUT_DASHBOARD_S=180
 TIMEOUT_SNAPSHOT_S=360
@@ -148,7 +148,7 @@ Options:
   --api-key-env <var>        Host env var name for provider API key.
                              Default: OPENAI_API_KEY for openai, ANTHROPIC_API_KEY for anthropic
   --openai-api-key-env <var> Alias for --api-key-env (backward compatible)
-  --install-url <url>        Installer URL for latest release. Default: https://openclaw.ai/install.sh
+  --install-url <url>        Installer URL for latest release. Default: https://www.neuralstudio.in/install.sh
   --host-port <port>         Host HTTP port for current-main tgz. Default: 18425
   --host-ip <ip>             Override Parallels host IP.
   --latest-version <ver>     Override npm latest version lookup.
@@ -266,19 +266,19 @@ case "$PROVIDER" in
   openai)
     AUTH_CHOICE="openai-api-key"
     AUTH_KEY_FLAG="openai-api-key"
-    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${OPENCLAW_PARALLELS_OPENAI_MODEL:-openai/gpt-5.5}"
+    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${KOVA_PARALLELS_OPENAI_MODEL:-openai/gpt-5.5}"
     [[ -n "$API_KEY_ENV" ]] || API_KEY_ENV="OPENAI_API_KEY"
     ;;
   anthropic)
     AUTH_CHOICE="apiKey"
     AUTH_KEY_FLAG="anthropic-api-key"
-    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${OPENCLAW_PARALLELS_ANTHROPIC_MODEL:-anthropic/claude-sonnet-4-6}"
+    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${KOVA_PARALLELS_ANTHROPIC_MODEL:-anthropic/claude-sonnet-4-6}"
     [[ -n "$API_KEY_ENV" ]] || API_KEY_ENV="ANTHROPIC_API_KEY"
     ;;
   minimax)
     AUTH_CHOICE="minimax-global-api"
     AUTH_KEY_FLAG="minimax-api-key"
-    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${OPENCLAW_PARALLELS_MINIMAX_MODEL:-minimax/MiniMax-M2.7}"
+    [[ "$MODEL_ID_EXPLICIT" -eq 1 ]] || MODEL_ID="${KOVA_PARALLELS_MINIMAX_MODEL:-minimax/MiniMax-M2.7}"
     [[ -n "$API_KEY_ENV" ]] || API_KEY_ENV="MINIMAX_API_KEY"
     ;;
   *)
@@ -721,10 +721,10 @@ resolve_guest_current_user_home() {
   parallels_macos_resolve_desktop_home "$VM_NAME" "$user_name"
 }
 
-resolve_guest_git_openclaw_entry() {
+resolve_guest_git_kova_entry() {
   local guest_home
   guest_home="$(resolve_guest_current_user_home)"
-  printf '%s/openclaw/openclaw.mjs\n' "$guest_home"
+  printf '%s/chiragborse1/KovaLab.mjs\n' "$guest_home"
 }
 
 guest_current_user_cli() {
@@ -754,25 +754,25 @@ if {$mode eq "current-user"} {
 }
 
 spawn {*}$cmd
-send -- "printf '__OPENCLAW_READY__\\n'\r"
-expect "__OPENCLAW_READY__"
+send -- "printf '__KOVA_READY__\\n'\r"
+expect "__KOVA_READY__"
 log_user 0
 send -- "export PS1='' PROMPT='' PROMPT2='' RPROMPT=''\r"
 send -- "stty -echo\r"
 
-send -- "cat >/tmp/openclaw-prl.sh <<'__OPENCLAW_SCRIPT__'\r"
+send -- "cat >/tmp/kova-prl.sh <<'__KOVA_SCRIPT__'\r"
 send -- $script
 if {![string match "*\n" $script]} {
   send -- "\r"
 }
-send -- "__OPENCLAW_SCRIPT__\r"
-send -- "/bin/bash /tmp/openclaw-prl.sh; rc=\$?; rm -f /tmp/openclaw-prl.sh; printf '__OPENCLAW_RC__:%s\\n' \"\$rc\"; exit \"\$rc\"\r"
+send -- "__KOVA_SCRIPT__\r"
+send -- "/bin/bash /tmp/kova-prl.sh; rc=\$?; rm -f /tmp/kova-prl.sh; printf '__KOVA_RC__:%s\\n' \"\$rc\"; exit \"\$rc\"\r"
 log_user 1
 
 set rc 1
 set saw_rc 0
 expect {
-  -re {__OPENCLAW_RC__:(-?[0-9]+)} {
+  -re {__KOVA_RC__:(-?[0-9]+)} {
     set rc $expect_out(1,string)
     set saw_rc 1
   }
@@ -801,7 +801,7 @@ guest_current_user_sh() {
   script+=$'cd "$HOME"\n'
   script+="$1"
   if headless_guest_fallback; then
-    script_path="/tmp/openclaw-prl-${BASHPID:-$$}-$RANDOM.sh"
+    script_path="/tmp/kova-prl-${BASHPID:-$$}-$RANDOM.sh"
     local guest_home
     guest_home="$(parallels_macos_resolve_desktop_home "$VM_NAME" "$GUEST_CURRENT_USER")"
     printf '%s' "$script" | /usr/bin/base64 | prlctl exec "$VM_NAME" \
@@ -883,7 +883,7 @@ if not path.exists():
 markers = [
     line.strip()
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines()
-    if line.startswith("__OPENCLAW_RC__:")
+    if line.startswith("__KOVA_RC__:")
 ]
 if not markers:
     raise SystemExit(1)
@@ -952,22 +952,22 @@ status=0
   cd "\$HOME"
   $script
 ) || status=\$?
-printf '__OPENCLAW_RC__:%s\n' "\$status"
+printf '__KOVA_RC__:%s\n' "\$status"
 printf '%s\n' "\$status" > "$done_path"
 exit "\$status"
 EOF
 )"
   write_runner_cmd="/bin/rm -f $(shell_quote "$runner_path")"$'\n'
-  write_runner_cmd+="cat > $(shell_quote "$runner_path") <<'__OPENCLAW_RUNNER__'"$'\n'
+  write_runner_cmd+="cat > $(shell_quote "$runner_path") <<'__KOVA_RUNNER__'"$'\n'
   write_runner_cmd+="$runner_body"$'\n'
-  write_runner_cmd+="__OPENCLAW_RUNNER__"$'\n'
+  write_runner_cmd+="__KOVA_RUNNER__"$'\n'
   write_runner_cmd+="/bin/chmod +x $(shell_quote "$runner_path")"$'\n'
   write_runner_cmd+="(/bin/bash $(shell_quote "$runner_path") > $(shell_quote "$log_path") 2>&1 < /dev/null & printf '%s\n' \"\$!\" > $(shell_quote "$runner_pid_path")) >/dev/null 2>&1"
   guest_current_user_sh "$write_runner_cmd"
   guest_home="$(resolve_guest_current_user_home)"
-  guest_log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-guest-log-state.XXXXXX")"
-  latest_npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-guest-npm-log-state.XXXXXX")"
-  npm_state_path="$(mktemp "${TMPDIR:-/tmp}/openclaw-guest-npm-log-path.XXXXXX")"
+  guest_log_state_path="$(mktemp "${TMPDIR:-/tmp}/kova-guest-log-state.XXXXXX")"
+  latest_npm_log_state_path="$(mktemp "${TMPDIR:-/tmp}/kova-guest-npm-log-state.XXXXXX")"
+  npm_state_path="$(mktemp "${TMPDIR:-/tmp}/kova-guest-npm-log-path.XXXXXX")"
   : >"$guest_log_state_path"
   : >"$latest_npm_log_state_path"
   : >"$npm_state_path"
@@ -985,7 +985,7 @@ if not path.exists():
     raise SystemExit(1)
 
 text = path.read_text(encoding="utf-8", errors="replace")
-matches = re.findall(r"^__OPENCLAW_RC__:(-?\d+)$", text, flags=re.MULTILINE)
+matches = re.findall(r"^__KOVA_RC__:(-?\d+)$", text, flags=re.MULTILINE)
 if not matches:
     raise SystemExit(1)
 print(matches[-1])
@@ -1069,7 +1069,7 @@ resolve_latest_version() {
     printf '%s\n' "$LATEST_VERSION"
     return
   fi
-  npm view openclaw version --userconfig "$(mktemp)"
+  npm view kova version --userconfig "$(mktemp)"
 }
 
 install_latest_release() {
@@ -1078,17 +1078,17 @@ install_latest_release() {
   version_to_install="${INSTALL_VERSION:-$LATEST_VERSION}"
   version_arg_q=" --version $(shell_quote "$version_to_install")"
   guest_current_user_sh "$(cat <<EOF
-export OPENCLAW_NO_ONBOARD=1
-curl -fsSL $install_url_q -o /tmp/openclaw-install.sh
-bash /tmp/openclaw-install.sh${version_arg_q}
-$GUEST_OPENCLAW_BIN --version
+export KOVA_NO_ONBOARD=1
+curl -fsSL $install_url_q -o /tmp/kova-install.sh
+bash /tmp/kova-install.sh${version_arg_q}
+$GUEST_KOVA_BIN --version
 EOF
 )"
 }
 
 ensure_guest_pnpm_for_dev_update() {
   local bootstrap_root bootstrap_bin
-  bootstrap_root="/tmp/openclaw-smoke-pnpm-bootstrap"
+  bootstrap_root="/tmp/kova-smoke-pnpm-bootstrap"
   bootstrap_bin="$bootstrap_root/node_modules/.bin"
   if guest_current_user_exec /bin/test -x "$bootstrap_bin/pnpm"; then
     printf 'bootstrap-pnpm: reuse\n'
@@ -1109,9 +1109,9 @@ ensure_guest_pnpm_for_dev_update() {
 
 repair_legacy_dev_source_checkout_if_needed() {
   local bootstrap_bin update_root update_entry
-  bootstrap_bin="/tmp/openclaw-smoke-pnpm-bootstrap/node_modules/.bin"
-  update_root="$(resolve_guest_current_user_home)/openclaw"
-  update_entry="$update_root/openclaw.mjs"
+  bootstrap_bin="/tmp/kova-smoke-pnpm-bootstrap/node_modules/.bin"
+  update_root="$(resolve_guest_current_user_home)/kova"
+  update_entry="$update_root/kova.mjs"
   if guest_current_user_exec /bin/test -e "$update_root/.git"; then
     return 0
   fi
@@ -1125,7 +1125,7 @@ repair_legacy_dev_source_checkout_if_needed() {
   ensure_guest_pnpm_for_dev_update
   guest_current_user_exec /bin/rm -rf "$update_root"
   guest_current_user_exec /usr/bin/git clone --depth 1 --branch main \
-    https://github.com/openclaw/openclaw.git "$update_root"
+    https://github.com/chiragborse1/KovaLab.git "$update_root"
   guest_current_user_exec_path "$bootstrap_bin:$GUEST_EXEC_PATH" \
     "$bootstrap_bin/pnpm" --dir "$update_root" install
   guest_current_user_exec_path "$bootstrap_bin:$GUEST_EXEC_PATH" \
@@ -1137,11 +1137,11 @@ repair_legacy_dev_source_checkout_if_needed() {
 
 run_dev_channel_update() {
   local bootstrap_bin update_root update_log update_done update_runner update_rc
-  bootstrap_bin="/tmp/openclaw-smoke-pnpm-bootstrap/node_modules/.bin"
-  update_root="$(resolve_guest_current_user_home)/openclaw"
-  update_log="/tmp/openclaw-smoke-update-dev.log"
-  update_done="/tmp/openclaw-smoke-update-dev.done"
-  update_runner="/tmp/openclaw-smoke-update-dev.sh"
+  bootstrap_bin="/tmp/kova-smoke-pnpm-bootstrap/node_modules/.bin"
+  update_root="$(resolve_guest_current_user_home)/kova"
+  update_log="/tmp/kova-smoke-update-dev.log"
+  update_done="/tmp/kova-smoke-update-dev.done"
+  update_runner="/tmp/kova-smoke-update-dev.sh"
   ensure_guest_pnpm_for_dev_update
   printf 'update-dev: run\n'
   set +e
@@ -1149,8 +1149,8 @@ run_dev_channel_update() {
 rm -rf $(shell_quote "$update_root")
 export PATH=$(shell_quote "$bootstrap_bin:$GUEST_EXEC_PATH")
 /usr/bin/env NODE_OPTIONS=--max-old-space-size=4096 \
-  OPENCLAW_DISABLE_BUNDLED_PLUGINS=1 \
-  $GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY update --channel dev --yes --json
+  KOVA_DISABLE_BUNDLED_PLUGINS=1 \
+  $GUEST_NODE_BIN $GUEST_KOVA_ENTRY update --channel dev --yes --json
 EOF
 )" "$update_log" "$update_done" "$TIMEOUT_UPDATE_DEV_S" "$update_runner"
   update_rc=$?
@@ -1161,14 +1161,14 @@ EOF
   fi
   repair_legacy_dev_source_checkout_if_needed
   printf 'update-dev: git-version\n'
-  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_OPENCLAW_ENTRY" --version
+  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_KOVA_ENTRY" --version
   printf 'update-dev: git-status\n'
-  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_OPENCLAW_ENTRY" update status --json
+  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_KOVA_ENTRY" update status --json
 }
 
 verify_dev_channel_update() {
   local status_json
-  status_json="$(guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_OPENCLAW_ENTRY" update status --json)"
+  status_json="$(guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_KOVA_ENTRY" update status --json)"
   printf '%s\n' "$status_json"
   printf '%s\n' "$status_json" | grep -F '"installKind": "git"'
   printf '%s\n' "$status_json" | grep -F '"value": "dev"'
@@ -1179,7 +1179,7 @@ verify_version_contains() {
   local needle="$1"
   local version
   version="$(
-    guest_current_user_exec "$GUEST_OPENCLAW_BIN" --version 2>&1
+    guest_current_user_exec "$GUEST_KOVA_BIN" --version 2>&1
   )"
   printf '%s\n' "$version"
   case "$version" in
@@ -1223,7 +1223,7 @@ pack_main_tgz() {
   acquire_build_lock
   set +e
   {
-    OPENCLAW_PARALLELS_BUILD_LOCK_HELD=1 ensure_current_build &&
+    KOVA_PARALLELS_BUILD_LOCK_HELD=1 ensure_current_build &&
       write_package_dist_inventory &&
       stage_pack_runtime_deps &&
       short_head="$(git rev-parse --short HEAD)" &&
@@ -1236,7 +1236,7 @@ pack_main_tgz() {
   set -e
   release_build_lock
   [[ $rc -eq 0 ]] || return "$rc"
-  MAIN_TGZ_PATH="$MAIN_TGZ_DIR/openclaw-main-$short_head.tgz"
+  MAIN_TGZ_PATH="$MAIN_TGZ_DIR/kova-main-$short_head.tgz"
   cp "$MAIN_TGZ_DIR/$pkg" "$MAIN_TGZ_PATH"
   packed_commit="$(extract_package_build_commit_from_tgz "$MAIN_TGZ_PATH")"
   [[ -n "$packed_commit" ]] || die "failed to read packed build commit from $MAIN_TGZ_PATH"
@@ -1273,7 +1273,7 @@ release_build_lock() {
 ensure_current_build() {
   local head build_commit rc lock_owned
   lock_owned=0
-  if [[ "${OPENCLAW_PARALLELS_BUILD_LOCK_HELD:-0}" != "1" ]]; then
+  if [[ "${KOVA_PARALLELS_BUILD_LOCK_HELD:-0}" != "1" ]]; then
     acquire_build_lock
     lock_owned=1
   fi
@@ -1328,7 +1328,7 @@ start_server() {
   (
     cd "$MAIN_TGZ_DIR"
     exec python3 -m http.server "$HOST_PORT" --bind 0.0.0.0
-  ) >/tmp/openclaw-parallels-http.log 2>&1 &
+  ) >/tmp/kova-parallels-http.log 2>&1 &
   SERVER_PID=$!
   sleep 1
   kill -0 "$SERVER_PID" >/dev/null 2>&1 || die "failed to start host HTTP server"
@@ -1381,12 +1381,12 @@ check_path() {
     exit 1
   fi
 }
-check_path "\$root/openclaw"
-check_path "\$root/openclaw/extensions"
-if [ -d "\$root/openclaw/extensions" ]; then
+check_path "\$root/kova"
+check_path "\$root/kova/extensions"
+if [ -d "\$root/kova/extensions" ]; then
   while IFS= read -r -d '' extension_dir; do
     check_path "\$extension_dir"
-  done < <(/usr/bin/find "\$root/openclaw/extensions" -mindepth 1 -maxdepth 1 -type d -print0)
+  done < <(/usr/bin/find "\$root/kova/extensions" -mindepth 1 -maxdepth 1 -type d -print0)
 fi
 EOF
 )"
@@ -1400,7 +1400,7 @@ run_ref_onboard() {
   fi
   guest_current_user_cli \
     /usr/bin/env "$API_KEY_ENV=$API_KEY_VALUE" \
-    "$GUEST_OPENCLAW_BIN" onboard \
+    "$GUEST_KOVA_BIN" onboard \
     --non-interactive \
     --mode local \
     --auth-choice "$AUTH_CHOICE" \
@@ -1420,27 +1420,27 @@ start_manual_gateway_if_needed() {
   local gateway_log guest_gateway_log guest_home launch_cmd runner_log done_path runner_path
   guest_home="$(parallels_macos_resolve_desktop_home "$VM_NAME" "$GUEST_CURRENT_USER")"
   gateway_log="$RUN_DIR/macos-gateway-prlctl.log"
-  guest_gateway_log="/tmp/openclaw-parallels-macos-gateway.log"
-  runner_log="/tmp/openclaw-parallels-gateway-start.log"
-  done_path="/tmp/openclaw-parallels-gateway-start.done"
-  runner_path="/tmp/openclaw-parallels-gateway-start.sh"
+  guest_gateway_log="/tmp/kova-parallels-macos-gateway.log"
+  runner_log="/tmp/kova-parallels-gateway-start.log"
+  done_path="/tmp/kova-parallels-gateway-start.done"
+  runner_path="/tmp/kova-parallels-gateway-start.sh"
   printf 'manual gateway launch transport=%s user=%s\n' "$GUEST_CURRENT_USER_TRANSPORT" "$GUEST_CURRENT_USER"
   launch_cmd="$(cat <<EOF
 set -euo pipefail
 trap '' HUP
-/usr/bin/pkill -f 'openclaw.*gateway run' >/dev/null 2>&1 || true
-/usr/bin/pkill -f 'openclaw-gateway' >/dev/null 2>&1 || true
-/usr/bin/pkill -f 'openclaw.mjs gateway' >/dev/null 2>&1 || true
+/usr/bin/pkill -f 'kova.*gateway run' >/dev/null 2>&1 || true
+/usr/bin/pkill -f 'kova-gateway' >/dev/null 2>&1 || true
+/usr/bin/pkill -f 'kova.mjs gateway' >/dev/null 2>&1 || true
 /usr/bin/env \\
   HOME=$(shell_quote "$guest_home") \\
   USER=$(shell_quote "$GUEST_CURRENT_USER") \\
   LOGNAME=$(shell_quote "$GUEST_CURRENT_USER") \\
   PATH=$(shell_quote "$GUEST_EXEC_PATH") \\
   $(shell_quote "$API_KEY_ENV=$API_KEY_VALUE") \\
-  OPENCLAW_HOME=$(shell_quote "$guest_home") \\
-  OPENCLAW_STATE_DIR=$(shell_quote "$guest_home/.openclaw") \\
-  OPENCLAW_CONFIG_PATH=$(shell_quote "$guest_home/.openclaw/openclaw.json") \\
-  $(shell_quote "$GUEST_NODE_BIN") $(shell_quote "$GUEST_OPENCLAW_ENTRY") gateway run --bind loopback --port 18789 --force \\
+  KOVA_HOME=$(shell_quote "$guest_home") \\
+  KOVA_STATE_DIR=$(shell_quote "$guest_home/.kova") \\
+  KOVA_CONFIG_PATH=$(shell_quote "$guest_home/.chiragborse1/KovaLab.json") \\
+  $(shell_quote "$GUEST_NODE_BIN") $(shell_quote "$GUEST_KOVA_ENTRY") gateway run --bind loopback --port 18789 --force \\
   < /dev/null >$(shell_quote "$guest_gateway_log") 2>&1 &
 gateway_pid="\$!"
 printf 'guest gateway pid %s\n' "\$gateway_pid"
@@ -1462,7 +1462,7 @@ EOF
 verify_gateway() {
   local attempt
   for attempt in 1 2 3 4 5 6 7 8; do
-    if guest_current_user_exec "$GUEST_OPENCLAW_BIN" gateway status --deep --require-rpc --timeout 15000; then
+    if guest_current_user_exec "$GUEST_KOVA_BIN" gateway status --deep --require-rpc --timeout 15000; then
       return 0
     fi
     if (( attempt < 8 )); then
@@ -1474,27 +1474,27 @@ verify_gateway() {
 }
 
 show_gateway_status_compat() {
-  if guest_current_user_exec "$GUEST_OPENCLAW_BIN" gateway status --help | grep -Fq -- "--require-rpc"; then
-    guest_current_user_exec "$GUEST_OPENCLAW_BIN" gateway status --deep --require-rpc
+  if guest_current_user_exec "$GUEST_KOVA_BIN" gateway status --help | grep -Fq -- "--require-rpc"; then
+    guest_current_user_exec "$GUEST_KOVA_BIN" gateway status --deep --require-rpc
     return
   fi
-  guest_current_user_exec "$GUEST_OPENCLAW_BIN" gateway status --deep
+  guest_current_user_exec "$GUEST_KOVA_BIN" gateway status --deep
 }
 
 verify_turn() {
-  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_OPENCLAW_ENTRY" models set "$MODEL_ID"
-  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_OPENCLAW_ENTRY" config set agents.defaults.skipBootstrap true --strict-json
+  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_KOVA_ENTRY" models set "$MODEL_ID"
+  guest_current_user_exec "$GUEST_NODE_BIN" "$GUEST_KOVA_ENTRY" config set agents.defaults.skipBootstrap true --strict-json
   guest_current_user_sh "$(cat <<EOF
 export PATH=$(shell_quote "$GUEST_EXEC_PATH")
-workspace="\${OPENCLAW_WORKSPACE_DIR:-\$HOME/.openclaw/workspace}"
-mkdir -p "\$workspace/.openclaw"
+workspace="\${KOVA_WORKSPACE_DIR:-\$HOME/.kova/workspace}"
+mkdir -p "\$workspace/.kova"
 cat > "\$workspace/IDENTITY.md" <<'IDENTITY_EOF'
 # Identity
 
-- Name: OpenClaw
+- Name: Kova
 - Purpose: Parallels macOS smoke test assistant.
 IDENTITY_EOF
-cat > "\$workspace/.openclaw/workspace-state.json" <<'STATE_EOF'
+cat > "\$workspace/.kova/workspace-state.json" <<'STATE_EOF'
 {
   "version": 1,
   "setupCompletedAt": "2026-01-01T00:00:00.000Z"
@@ -1502,7 +1502,7 @@ cat > "\$workspace/.openclaw/workspace-state.json" <<'STATE_EOF'
 STATE_EOF
 rm -f "\$workspace/BOOTSTRAP.md"
 exec /usr/bin/env $(shell_quote "$API_KEY_ENV=$API_KEY_VALUE") \
-  $(shell_quote "$GUEST_NODE_BIN") $(shell_quote "$GUEST_OPENCLAW_ENTRY") agent \
+  $(shell_quote "$GUEST_NODE_BIN") $(shell_quote "$GUEST_KOVA_ENTRY") agent \
   --agent main \
   --session-id parallels-macos-smoke \
   --message $(shell_quote "Reply with exact ASCII text OK only.") \
@@ -1514,13 +1514,13 @@ EOF
 resolve_dashboard_url() {
   local dashboard_url
   dashboard_url="$(
-    guest_current_user_cli "$GUEST_OPENCLAW_BIN" dashboard --no-open \
+    guest_current_user_cli "$GUEST_KOVA_BIN" dashboard --no-open \
       | awk '/^Dashboard URL: / { sub(/^Dashboard URL: /, ""); print; exit }'
   )"
   dashboard_url="${dashboard_url//$'\r'/}"
   dashboard_url="${dashboard_url//$'\n'/}"
   [[ -n "$dashboard_url" ]] || {
-    echo "failed to resolve dashboard URL from openclaw dashboard --no-open" >&2
+    echo "failed to resolve dashboard URL from kova dashboard --no-open" >&2
     return 1
   }
   printf '%s\n' "$dashboard_url"
@@ -1528,7 +1528,7 @@ resolve_dashboard_url() {
 
 verify_dashboard_load() {
   local dashboard_url dashboard_http_url dashboard_url_q dashboard_http_url_q cmd headless_flag
-  # `openclaw dashboard --no-open` can hang under the Tahoe Parallels transport
+  # `kova dashboard --no-open` can hang under the Tahoe Parallels transport
   # even when the dashboard itself is healthy. Probe the local dashboard URL
   # directly so the smoke still validates HTML readiness and browser reachability.
   dashboard_url="http://127.0.0.1:18789/"
@@ -1555,9 +1555,9 @@ fi
 deadline=\$((SECONDS + 120))
 dashboard_ready=0
 while [ \$SECONDS -lt \$deadline ]; do
-  if curl -fsSL --connect-timeout 2 --max-time 5 "\$dashboard_http_url" >/tmp/openclaw-dashboard-smoke.html 2>/dev/null; then
-    if grep -F '<title>OpenClaw Control</title>' /tmp/openclaw-dashboard-smoke.html >/dev/null; then
-      if grep -F '<openclaw-app></openclaw-app>' /tmp/openclaw-dashboard-smoke.html >/dev/null; then
+  if curl -fsSL --connect-timeout 2 --max-time 5 "\$dashboard_http_url" >/tmp/kova-dashboard-smoke.html 2>/dev/null; then
+    if grep -F '<title>Kova Control</title>' /tmp/kova-dashboard-smoke.html >/dev/null; then
+      if grep -F '<kova-app></kova-app>' /tmp/kova-dashboard-smoke.html >/dev/null; then
         dashboard_ready=1
         break
       fi
@@ -1569,8 +1569,8 @@ done
   echo "dashboard HTML did not become ready at \$dashboard_http_url" >&2
   exit 1
 }
-grep -F '<title>OpenClaw Control</title>' /tmp/openclaw-dashboard-smoke.html >/dev/null
-grep -F '<openclaw-app></openclaw-app>' /tmp/openclaw-dashboard-smoke.html >/dev/null
+grep -F '<title>Kova Control</title>' /tmp/kova-dashboard-smoke.html >/dev/null
+grep -F '<kova-app></kova-app>' /tmp/kova-dashboard-smoke.html >/dev/null
 echo "dashboard HTML ready at \$dashboard_http_url"
 if [ "\$headless_flag" = "1" ]; then
   exit 0
@@ -1620,27 +1620,27 @@ print(
 PY
   )"
   script="$(cat <<EOF
-cat >/tmp/openclaw-discord-token <<'__OPENCLAW_TOKEN__'
+cat >/tmp/kova-discord-token <<'__KOVA_TOKEN__'
 $DISCORD_TOKEN_VALUE
-__OPENCLAW_TOKEN__
-cat >/tmp/openclaw-discord-guilds.json <<'__OPENCLAW_GUILDS__'
+__KOVA_TOKEN__
+cat >/tmp/kova-discord-guilds.json <<'__KOVA_GUILDS__'
 $guilds_json
-__OPENCLAW_GUILDS__
-token="\$(tr -d '\n' </tmp/openclaw-discord-token)"
-guilds_json="\$(cat /tmp/openclaw-discord-guilds.json)"
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY config set channels.discord.token "\$token"
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY config set channels.discord.enabled true
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY config set channels.discord.groupPolicy allowlist
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY config set channels.discord.guilds "\$guilds_json" --strict-json
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY gateway restart
+__KOVA_GUILDS__
+token="\$(tr -d '\n' </tmp/kova-discord-token)"
+guilds_json="\$(cat /tmp/kova-discord-guilds.json)"
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY config set channels.discord.token "\$token"
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY config set channels.discord.enabled true
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY config set channels.discord.groupPolicy allowlist
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY config set channels.discord.guilds "\$guilds_json" --strict-json
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY gateway restart
 for _ in 1 2 3 4 5 6 7 8; do
-  if $GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY gateway status --deep --require-rpc >/dev/null 2>&1; then
+  if $GUEST_NODE_BIN $GUEST_KOVA_ENTRY gateway status --deep --require-rpc >/dev/null 2>&1; then
     break
   fi
   sleep 2
 done
-$GUEST_NODE_BIN $GUEST_OPENCLAW_ENTRY channels status --probe --json
-rm -f /tmp/openclaw-discord-token /tmp/openclaw-discord-guilds.json
+$GUEST_NODE_BIN $GUEST_KOVA_ENTRY channels status --probe --json
+rm -f /tmp/kova-discord-token /tmp/kova-discord-guilds.json
 EOF
 )"
   guest_current_user_sh "$script"
@@ -1732,7 +1732,7 @@ wait_for_guest_discord_readback() {
     set +e
     response="$(
       guest_current_user_exec \
-      "$GUEST_OPENCLAW_BIN" \
+      "$GUEST_KOVA_BIN" \
       message read \
       --channel discord \
       --target "channel:$DISCORD_CHANNEL_ID" \
@@ -1765,7 +1765,7 @@ run_discord_roundtrip_smoke() {
 
   printf 'discord: guest-send\n'
   guest_current_user_exec \
-    "$GUEST_OPENCLAW_BIN" \
+    "$GUEST_KOVA_BIN" \
     message send \
     --channel discord \
     --target "channel:$DISCORD_CHANNEL_ID" \
@@ -1803,7 +1803,7 @@ import re
 import sys
 
 text = pathlib.Path(sys.argv[1]).read_text(errors="replace")
-matches = re.findall(r"OpenClaw [^\r\n]+ \([0-9a-f]{7,}\)", text)
+matches = re.findall(r"Kova [^\r\n]+ \([0-9a-f]{7,}\)", text)
 print(matches[-1] if matches else "")
 PY
 }
@@ -1944,7 +1944,7 @@ run_fresh_main_lane() {
   local snapshot_id="$1"
   local host_ip="$2"
   phase_run "fresh.restore-snapshot" "$TIMEOUT_SNAPSHOT_S" restore_snapshot "$snapshot_id"
-  phase_run "fresh.install-main" "$(install_main_timeout)" install_main_tgz "$host_ip" "openclaw-main-fresh.tgz"
+  phase_run "fresh.install-main" "$(install_main_timeout)" install_main_tgz "$host_ip" "kova-main-fresh.tgz"
   FRESH_MAIN_VERSION="$(extract_last_version "$(phase_log_path fresh.install-main)")"
   phase_run "fresh.verify-main-version" "$TIMEOUT_VERIFY_S" verify_target_version
   if [[ -z "$FRESH_MAIN_VERSION" ]]; then
@@ -1984,7 +1984,7 @@ run_upgrade_lane() {
     UPGRADE_PRECHECK_STATUS="skipped"
   fi
   if upgrade_uses_host_tgz; then
-    phase_run "upgrade.install-main" "$(install_main_timeout)" install_main_tgz "$host_ip" "openclaw-main-upgrade.tgz"
+    phase_run "upgrade.install-main" "$(install_main_timeout)" install_main_tgz "$host_ip" "kova-main-upgrade.tgz"
     UPGRADE_MAIN_VERSION="$(extract_last_version "$(phase_log_path upgrade.install-main)")"
     phase_run "upgrade.verify-main-version" "$TIMEOUT_VERIFY_S" verify_target_version
     if [[ -z "$UPGRADE_MAIN_VERSION" ]]; then

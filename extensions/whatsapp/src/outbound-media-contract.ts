@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { MEDIA_FFMPEG_MAX_AUDIO_DURATION_SECS, runFfmpeg } from "openclaw/plugin-sdk/media-runtime";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+import { MEDIA_FFMPEG_MAX_AUDIO_DURATION_SECS, runFfmpeg } from "getkova/plugin-sdk/media-runtime";
+import { resolvePreferredKovaTmpDir } from "getkova/plugin-sdk/temp-path";
 import { formatError } from "./session-errors.js";
 import { sleep } from "./text-runtime.js";
 
@@ -149,7 +149,7 @@ async function transcodeToWhatsAppVoiceOpus(params: {
   buffer: Buffer;
   fileName: string;
 }): Promise<Buffer> {
-  const tempRoot = resolvePreferredOpenClawTmpDir();
+  const tempRoot = resolvePreferredKovaTmpDir();
   await fs.mkdir(tempRoot, { recursive: true, mode: 0o700 });
   const tempDir = await fs.mkdtemp(path.join(tempRoot, "whatsapp-voice-"));
   try {

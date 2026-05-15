@@ -3,8 +3,8 @@ summary: "Migrate from the legacy backwards-compatibility layer to the modern pl
 title: "Plugin SDK migration"
 sidebarTitle: "Migrate to SDK"
 read_when:
-  - You see the OPENCLAW_PLUGIN_SDK_COMPAT_DEPRECATED warning
-  - You see the OPENCLAW_EXTENSION_API_DEPRECATED warning
+  - You see the KOVA_PLUGIN_SDK_COMPAT_DEPRECATED warning
+  - You see the KOVA_EXTENSION_API_DEPRECATED warning
   - You used api.registerEmbeddedExtensionFactory before Kova 2026.4.25
   - You are updating a plugin to the modern plugin architecture
   - You maintain an external Kova plugin
@@ -19,10 +19,10 @@ the new architecture, this guide helps you migrate.
 The old plugin system provided two wide-open surfaces that let plugins import
 anything they needed from a single entry point:
 
-- **`openclaw/plugin-sdk/compat`** — a single import that re-exported dozens of
+- **`getkova/plugin-sdk/compat`** — a single import that re-exported dozens of
   helpers. It was introduced to keep older hook-based plugins working while the
   new plugin architecture was being built.
-- **`openclaw/extension-api`** — a bridge that gave plugins direct access to
+- **`getkova/extension-api`** — a bridge that gave plugins direct access to
   host-side helpers like the embedded agent runner.
 - **`api.registerEmbeddedExtensionFactory(...)`** — a removed Pi-only bundled
   extension hook that could observe embedded-runner events such as
@@ -53,7 +53,7 @@ The old approach caused problems:
 - **Circular dependencies** — broad re-exports made it easy to create import cycles
 - **Unclear API surface** — no way to tell which exports were stable vs internal
 
-The modern plugin SDK fixes this: each import path (`openclaw/plugin-sdk/\<subpath\>`)
+The modern plugin SDK fixes this: each import path (`getkova/plugin-sdk/\<subpath\>`)
 is a small, self-contained module with a clear purpose and documented contract.
 
 Legacy provider convenience seams for bundled channels are also gone.
@@ -172,7 +172,7 @@ releases.
     - `plugin.auth` remains for channel login/logout flows only; approval auth
       hooks there are no longer read by core
     - Register channel-owned runtime objects such as clients, tokens, or Bolt
-      apps through `openclaw/plugin-sdk/channel-runtime-context`
+      apps through `getkova/plugin-sdk/channel-runtime-context`
     - Do not send plugin-owned reroute notices from native approval handlers;
       core now owns routed-elsewhere notices from actual delivery results
     - When passing `channelRuntime` into `createChannelManager(...)`, provide a
@@ -184,7 +184,7 @@ releases.
   </Step>
 
   <Step title="Audit Windows wrapper fallback behavior">
-    If your plugin uses `openclaw/plugin-sdk/windows-spawn`, unresolved Windows
+    If your plugin uses `getkova/plugin-sdk/windows-spawn`, unresolved Windows
     `.cmd`/`.bat` wrappers now fail closed unless you explicitly pass
     `allowShellFallback: true`.
 
@@ -211,7 +211,7 @@ releases.
 
     ```bash
     grep -r "plugin-sdk/compat" my-plugin/
-    grep -r "openclaw/extension-api" my-plugin/
+    grep -r "getkova/extension-api" my-plugin/
     ```
 
   </Step>
@@ -225,12 +225,12 @@ releases.
       createChannelReplyPipeline,
       createPluginRuntimeStore,
       resolveControlCommandGate,
-    } from "openclaw/plugin-sdk/compat";
+    } from "getkova/plugin-sdk/compat";
 
     // After (modern focused imports)
-    import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
-    import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
-    import { resolveControlCommandGate } from "openclaw/plugin-sdk/command-auth";
+    import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
+    import { createPluginRuntimeStore } from "getkova/plugin-sdk/runtime-store";
+    import { resolveControlCommandGate } from "getkova/plugin-sdk/command-auth";
     ```
 
     For host-side helpers, use the injected plugin runtime instead of importing
@@ -238,7 +238,7 @@ releases.
 
     ```typescript
     // Before (deprecated extension-api bridge)
-    import { runEmbeddedPiAgent } from "openclaw/extension-api";
+    import { runEmbeddedPiAgent } from "getkova/extension-api";
     const result = await runEmbeddedPiAgent({ sessionId, prompt });
 
     // After (injected runtime)
@@ -274,7 +274,7 @@ releases.
   | --- | --- | --- |
   | `plugin-sdk/plugin-entry` | Canonical plugin entry helper | `definePluginEntry` |
   | `plugin-sdk/core` | Legacy umbrella re-export for channel entry definitions/builders | `defineChannelPluginEntry`, `createChatChannelPlugin` |
-  | `plugin-sdk/config-schema` | Root config schema export | `OpenClawSchema` |
+  | `plugin-sdk/config-schema` | Root config schema export | `KovaSchema` |
   | `plugin-sdk/provider-entry` | Single-provider entry helper | `defineSingleProviderPluginEntry` |
   | `plugin-sdk/channel-core` | Focused channel entry definitions and builders | `defineChannelPluginEntry`, `defineSetupPluginEntry`, `createChatChannelPlugin`, `createChannelPluginBase` |
   | `plugin-sdk/setup` | Shared setup wizard helpers | Allowlist prompts, setup status builders |
@@ -476,19 +476,19 @@ canonical replacement.
 
 <AccordionGroup>
   <Accordion title="command-auth help builders → command-status">
-    **Old (`openclaw/plugin-sdk/command-auth`)**: `buildCommandsMessage`,
+    **Old (`getkova/plugin-sdk/command-auth`)**: `buildCommandsMessage`,
     `buildCommandsMessagePaginated`, `buildHelpMessage`.
 
-    **New (`openclaw/plugin-sdk/command-status`)**: same signatures, same
+    **New (`getkova/plugin-sdk/command-status`)**: same signatures, same
     exports — just imported from the narrower subpath. `command-auth`
     re-exports them as compat stubs.
 
     ```typescript
     // Before
-    import { buildHelpMessage } from "openclaw/plugin-sdk/command-auth";
+    import { buildHelpMessage } from "getkova/plugin-sdk/command-auth";
 
     // After
-    import { buildHelpMessage } from "openclaw/plugin-sdk/command-status";
+    import { buildHelpMessage } from "getkova/plugin-sdk/command-status";
     ```
 
   </Accordion>
@@ -496,8 +496,8 @@ canonical replacement.
   <Accordion title="Mention gating helpers → resolveInboundMentionDecision">
     **Old**: `resolveInboundMentionRequirement({ facts, policy })` and
     `shouldDropInboundForMention(...)` from
-    `openclaw/plugin-sdk/channel-inbound` or
-    `openclaw/plugin-sdk/channel-mention-gating`.
+    `getkova/plugin-sdk/channel-inbound` or
+    `getkova/plugin-sdk/channel-mention-gating`.
 
     **New**: `resolveInboundMentionDecision({ facts, policy })` — returns a
     single decision object instead of two split calls.
@@ -508,12 +508,12 @@ canonical replacement.
   </Accordion>
 
   <Accordion title="Channel runtime shim and channel actions helpers">
-    `openclaw/plugin-sdk/channel-runtime` is a compatibility shim for older
+    `getkova/plugin-sdk/channel-runtime` is a compatibility shim for older
     channel plugins. Do not import it from new code; use
-    `openclaw/plugin-sdk/channel-runtime-context` for registering runtime
+    `getkova/plugin-sdk/channel-runtime-context` for registering runtime
     objects.
 
-    `channelActions*` helpers in `openclaw/plugin-sdk/channel-actions` are
+    `channelActions*` helpers in `getkova/plugin-sdk/channel-actions` are
     deprecated alongside raw "actions" channel exports. Expose capabilities
     through the semantic `presentation` surface instead — channel plugins
     declare what they render (cards, buttons, selects) rather than which raw
@@ -522,7 +522,7 @@ canonical replacement.
   </Accordion>
 
   <Accordion title="Web search provider tool() helper → createTool() on the plugin">
-    **Old**: `tool()` factory from `openclaw/plugin-sdk/provider-web-search`.
+    **Old**: `tool()` factory from `getkova/plugin-sdk/provider-web-search`.
 
     **New**: implement `createTool(...)` directly on the provider plugin.
     Kova no longer needs the SDK helper to register the tool wrapper.
@@ -662,15 +662,15 @@ canonical replacement.
     list in `contracts.agentToolResultMiddleware`.
   </Accordion>
 
-  <Accordion title="OpenClawSchemaType alias → OpenClawConfig">
-    `OpenClawSchemaType` re-exported from `openclaw/plugin-sdk` is now a
-    one-line alias for `OpenClawConfig`. Prefer the canonical name.
+  <Accordion title="KovaSchemaType alias → KovaConfig">
+    `KovaSchemaType` re-exported from `getkova/plugin-sdk` is now a
+    one-line alias for `KovaConfig`. Prefer the canonical name.
 
     ```typescript
     // Before
-    import type { OpenClawSchemaType } from "openclaw/plugin-sdk";
+    import type { KovaSchemaType } from "getkova/plugin-sdk";
     // After
-    import type { OpenClawConfig } from "openclaw/plugin-sdk/config-schema";
+    import type { KovaConfig } from "getkova/plugin-sdk/config-schema";
     ```
 
   </Accordion>
@@ -699,8 +699,8 @@ before the next major release.
 Set these environment variables while you work on migrating:
 
 ```bash
-OPENCLAW_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING=1 kova gateway run
-OPENCLAW_SUPPRESS_EXTENSION_API_WARNING=1 kova gateway run
+KOVA_SUPPRESS_PLUGIN_SDK_COMPAT_WARNING=1 kova gateway run
+KOVA_SUPPRESS_EXTENSION_API_WARNING=1 kova gateway run
 ```
 
 This is a temporary escape hatch, not a permanent solution.

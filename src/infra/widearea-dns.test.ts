@@ -12,7 +12,7 @@ import {
 } from "./widearea-dns.js";
 
 const baseZoneOpts: WideAreaGatewayZoneOpts = {
-  domain: "openclaw.internal.",
+  domain: "kova.internal.",
   gatewayPort: 18789,
   displayName: "Mac Studio (Kova)",
   tailnetIPv4: "100.123.224.76",
@@ -44,9 +44,9 @@ afterEach(() => {
 
 describe("wide-area DNS discovery domain helpers", () => {
   it.each([
-    { value: "openclaw.internal", expected: "openclaw.internal." },
-    { value: "openclaw.internal.", expected: "openclaw.internal." },
-    { value: "  openclaw.internal  ", expected: "openclaw.internal." },
+    { value: "kova.internal", expected: "kova.internal." },
+    { value: "kova.internal.", expected: "kova.internal." },
+    { value: "  kova.internal  ", expected: "kova.internal." },
     { value: "", expected: null },
     { value: "   ", expected: null },
     { value: null, expected: null },
@@ -59,7 +59,7 @@ describe("wide-area DNS discovery domain helpers", () => {
     {
       name: "prefers config domain over env",
       params: {
-        env: { OPENCLAW_WIDE_AREA_DOMAIN: "env.internal" } as NodeJS.ProcessEnv,
+        env: { KOVA_WIDE_AREA_DOMAIN: "env.internal" } as NodeJS.ProcessEnv,
         configDomain: "config.internal",
       },
       expected: "config.internal.",
@@ -67,14 +67,14 @@ describe("wide-area DNS discovery domain helpers", () => {
     {
       name: "falls back to env domain",
       params: {
-        env: { OPENCLAW_WIDE_AREA_DOMAIN: "env.internal" } as NodeJS.ProcessEnv,
+        env: { KOVA_WIDE_AREA_DOMAIN: "env.internal" } as NodeJS.ProcessEnv,
       },
       expected: "env.internal.",
     },
     {
       name: "returns null when both sources are blank",
       params: {
-        env: { OPENCLAW_WIDE_AREA_DOMAIN: "   " } as NodeJS.ProcessEnv,
+        env: { KOVA_WIDE_AREA_DOMAIN: "   " } as NodeJS.ProcessEnv,
         configDomain: " ",
       },
       expected: null,
@@ -84,8 +84,8 @@ describe("wide-area DNS discovery domain helpers", () => {
   });
 
   it("builds the default zone path from the normalized domain", () => {
-    expect(getWideAreaZonePath("openclaw.internal.")).toBe(
-      path.join(utils.CONFIG_DIR, "dns", "openclaw.internal.db"),
+    expect(getWideAreaZonePath("kova.internal.")).toBe(
+      path.join(utils.CONFIG_DIR, "dns", "kova.internal.db"),
     );
   });
 });
@@ -95,11 +95,11 @@ describe("wide-area DNS-SD zone rendering", () => {
     const txt = renderZoneText({
       tailnetIPv6: "fd7a:115c:a1e0::8801:e04c",
       sshPort: 22,
-      cliPath: "/opt/homebrew/bin/openclaw",
+      cliPath: "/opt/homebrew/bin/kova",
     });
 
     expectZoneRecords(txt, [
-      `$ORIGIN openclaw.internal.`,
+      `$ORIGIN kova.internal.`,
       `studio-london IN A 100.123.224.76`,
       `studio-london IN AAAA fd7a:115c:a1e0::8801:e04c`,
       `_kova-gw._tcp IN PTR studio-london._kova-gw._tcp`,
@@ -107,7 +107,7 @@ describe("wide-area DNS-SD zone rendering", () => {
       `displayName=Mac Studio (Kova)`,
       `gatewayPort=18789`,
       `sshPort=22`,
-      `cliPath=/opt/homebrew/bin/openclaw`,
+      `cliPath=/opt/homebrew/bin/kova`,
     ]);
   });
 
@@ -120,24 +120,24 @@ describe("wide-area DNS-SD zone rendering", () => {
     {
       name: "includes gateway TLS TXT fields and trims display metadata",
       overrides: {
-        domain: "openclaw.internal",
+        domain: "kova.internal",
         displayName: "  Mac Studio (Kova)  ",
         hostLabel: " Studio London ",
         instanceLabel: " Studio London ",
         gatewayTlsEnabled: true,
         gatewayTlsFingerprintSha256: "abc123",
         tailnetDns: " tailnet.ts.net ",
-        cliPath: " /opt/homebrew/bin/openclaw ",
+        cliPath: " /opt/homebrew/bin/kova ",
       },
       records: [
-        `$ORIGIN openclaw.internal.`,
+        `$ORIGIN kova.internal.`,
         `studio-london IN A 100.123.224.76`,
         `studio-london._kova-gw._tcp IN TXT`,
         `displayName=Mac Studio (Kova)`,
         `gatewayTls=1`,
         `gatewayTlsSha256=abc123`,
         `tailnetDns=tailnet.ts.net`,
-        `cliPath=/opt/homebrew/bin/openclaw`,
+        `cliPath=/opt/homebrew/bin/kova`,
       ],
     },
   ])("$name", ({ overrides, records }) => {
@@ -161,7 +161,7 @@ describe("wide-area DNS zone writes", () => {
     const result = await writeWideAreaGatewayZone(makeZoneOpts());
 
     expect(result).toEqual({
-      zonePath: getWideAreaZonePath("openclaw.internal."),
+      zonePath: getWideAreaZonePath("kova.internal."),
       changed: false,
     });
     expect(writeSpy).not.toHaveBeenCalled();
@@ -181,11 +181,11 @@ describe("wide-area DNS zone writes", () => {
     );
 
     expect(result).toEqual({
-      zonePath: getWideAreaZonePath("openclaw.internal."),
+      zonePath: getWideAreaZonePath("kova.internal."),
       changed: true,
     });
     expect(writeSpy).toHaveBeenCalledWith(
-      getWideAreaZonePath("openclaw.internal."),
+      getWideAreaZonePath("kova.internal."),
       expect.stringContaining("@ IN SOA ns1 hostmaster 2026031305 7200 3600 1209600 60"),
       "utf-8",
     );

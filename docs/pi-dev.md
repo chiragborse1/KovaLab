@@ -31,7 +31,7 @@ pnpm test \
 To include the live provider exercise:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 pnpm test src/agents/pi-embedded-runner-extraparams.live.test.ts
+KOVA_LIVE_TEST=1 pnpm test src/agents/pi-embedded-runner-extraparams.live.test.ts
 ```
 
 This covers the main Pi unit suites:
@@ -58,11 +58,11 @@ For tool call behavior, prompt for a `read` or `exec` action so you can see tool
 
 ## Clean slate reset
 
-State lives under the Kova state directory. Default is `~/.openclaw`. If `OPENCLAW_STATE_DIR` is set, use that directory instead.
+State lives under the Kova state directory. Default is `~/.kova`. If `KOVA_STATE_DIR` is set, use that directory instead.
 
 To reset everything:
 
-- `openclaw.json` for config
+- `kova.json` for config
 - `agents/<agentId>/agent/auth-profiles.json` for model auth profiles (API keys + OAuth)
 - `credentials/` for provider/channel state that still lives outside the auth profile store
 - `agents/<agentId>/sessions/` for agent session history

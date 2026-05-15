@@ -8,18 +8,18 @@ title: "Community plugins"
 
 Community plugins are third-party packages that extend Kova with new
 channels, tools, providers, or other capabilities. They are built and maintained
-by the community, published on [ClawHub](/tools/clawhub) or npm, and
+by the community, published on [KovaHub](/tools/kovahub) or npm, and
 installable with a single command.
 
-ClawHub is the canonical discovery surface for community plugins. Do not open
+KovaHub is the canonical discovery surface for community plugins. Do not open
 docs-only PRs just to add your plugin here for discoverability; publish it on
-ClawHub instead.
+KovaHub instead.
 
 ```bash
 kova plugins install <package-name>
 ```
 
-Kova checks ClawHub first and falls back to npm automatically.
+Kova checks KovaHub first and falls back to npm automatically.
 
 ## Listed plugins
 
@@ -29,11 +29,11 @@ Scrape data from any website with 20,000+ ready-made scrapers. Let your agent
 extract data from Instagram, Facebook, TikTok, YouTube, Google Maps, Google
 Search, e-commerce sites, and more — just by asking.
 
-- **npm:** `@apify/apify-openclaw-plugin`
-- **repo:** [github.com/apify/apify-openclaw-plugin](https://github.com/apify/apify-openclaw-plugin)
+- **npm:** `@apify/apify-kova-plugin`
+- **repo:** [github.com/apify/apify-kova-plugin](https://github.com/apify/apify-kova-plugin)
 
 ```bash
-kova plugins install @apify/apify-openclaw-plugin
+kova plugins install @apify/apify-kova-plugin
 ```
 
 ### Codex App Server Bridge
@@ -42,11 +42,11 @@ Independent Kova bridge for Codex App Server conversations. Bind a chat to
 a Codex thread, talk to it with plain text, and control it with chat-native
 commands for resume, planning, review, model selection, compaction, and more.
 
-- **npm:** `openclaw-codex-app-server`
-- **repo:** [github.com/pwrdrvr/openclaw-codex-app-server](https://github.com/pwrdrvr/openclaw-codex-app-server)
+- **npm:** `kova-codex-app-server`
+- **repo:** [github.com/pwrdrvr/kova-codex-app-server](https://github.com/pwrdrvr/kova-codex-app-server)
 
 ```bash
-kova plugins install openclaw-codex-app-server
+kova plugins install kova-codex-app-server
 ```
 
 ### DingTalk
@@ -55,7 +55,7 @@ Enterprise robot integration using Stream mode. Supports text, images, and
 file messages via any DingTalk client.
 
 - **npm:** `@largezhou/ddingtalk`
-- **repo:** [github.com/largezhou/openclaw-dingtalk](https://github.com/largezhou/openclaw-dingtalk)
+- **repo:** [github.com/largezhou/kova-dingtalk](https://github.com/largezhou/kova-dingtalk)
 
 ```bash
 kova plugins install @largezhou/ddingtalk
@@ -79,11 +79,11 @@ kova plugins install @martian-engineering/lossless-claw
 Official plugin that exports agent traces to Opik. Monitor agent behavior,
 cost, tokens, errors, and more.
 
-- **npm:** `@opik/opik-openclaw`
-- **repo:** [github.com/comet-ml/opik-openclaw](https://github.com/comet-ml/opik-openclaw)
+- **npm:** `@opik/opik-kova`
+- **repo:** [github.com/comet-ml/opik-kova](https://github.com/comet-ml/opik-kova)
 
 ```bash
-kova plugins install @opik/opik-openclaw
+kova plugins install @opik/opik-kova
 ```
 
 ### Prometheus Avatar
@@ -92,11 +92,11 @@ Give your Kova agent a Live2D avatar with real-time lip-sync, emotion
 expressions, and text-to-speech. Includes creator tools for AI asset generation
 and one-click deployment to the Prometheus Marketplace. Currently in alpha.
 
-- **npm:** `@prometheusavatar/openclaw-plugin`
+- **npm:** `@prometheusavatar/kova-plugin`
 - **repo:** [github.com/myths-labs/prometheus-avatar](https://github.com/myths-labs/prometheus-avatar)
 
 ```bash
-kova plugins install @prometheusavatar/openclaw-plugin
+kova plugins install @prometheusavatar/kova-plugin
 ```
 
 ### QQbot
@@ -109,11 +109,11 @@ Current Kova releases bundle QQ Bot. Use the bundled setup in
 [QQ Bot](/channels/qqbot) for normal installs; install this external plugin only
 when you intentionally want the Tencent-maintained standalone package.
 
-- **npm:** `@tencent-connect/openclaw-qqbot`
-- **repo:** [github.com/tencent-connect/openclaw-qqbot](https://github.com/tencent-connect/openclaw-qqbot)
+- **npm:** `@tencent-connect/kova-qqbot`
+- **repo:** [github.com/tencent-connect/kova-qqbot](https://github.com/tencent-connect/kova-qqbot)
 
 ```bash
-kova plugins install @tencent-connect/openclaw-qqbot
+kova plugins install @tencent-connect/kova-qqbot
 ```
 
 ### wecom
@@ -123,11 +123,11 @@ WeCom Bot WebSocket persistent connections, it supports direct messages & group
 chats, streaming replies, proactive messaging, image/file processing, Markdown
 formatting, built-in access control, and document/meeting/messaging skills.
 
-- **npm:** `@wecom/wecom-openclaw-plugin`
-- **repo:** [github.com/WecomTeam/wecom-openclaw-plugin](https://github.com/WecomTeam/wecom-openclaw-plugin)
+- **npm:** `@wecom/wecom-kova-plugin`
+- **repo:** [github.com/WecomTeam/wecom-kova-plugin](https://github.com/WecomTeam/wecom-kova-plugin)
 
 ```bash
-kova plugins install @wecom/wecom-openclaw-plugin
+kova plugins install @wecom/wecom-kova-plugin
 ```
 
 ## Submit your plugin
@@ -135,9 +135,9 @@ kova plugins install @wecom/wecom-openclaw-plugin
 We welcome community plugins that are useful, documented, and safe to operate.
 
 <Steps>
-  <Step title="Publish to ClawHub or npm">
+  <Step title="Publish to KovaHub or npm">
     Your plugin must be installable via `kova plugins install \<package-name\>`.
-    Publish to [ClawHub](/tools/clawhub) (preferred) or npm.
+    Publish to [KovaHub](/tools/kovahub) (preferred) or npm.
     See [Building Plugins](/plugins/building-plugins) for the full guide.
 
   </Step>
@@ -150,7 +150,7 @@ We welcome community plugins that are useful, documented, and safe to operate.
 
   <Step title="Use docs PRs only for source-doc changes">
     You do not need a docs PR just to make your plugin discoverable. Publish it
-    on ClawHub instead.
+    on KovaHub instead.
 
     Open a docs PR only when Kova's source docs need an actual content
     change, such as correcting install guidance or adding cross-repo
@@ -161,12 +161,12 @@ We welcome community plugins that are useful, documented, and safe to operate.
 
 ## Quality bar
 
-| Requirement                 | Why                                           |
-| --------------------------- | --------------------------------------------- |
-| Published on ClawHub or npm | Users need `kova plugins install` to work |
-| Public GitHub repo          | Source review, issue tracking, transparency   |
-| Setup and usage docs        | Users need to know how to configure it        |
-| Active maintenance          | Recent updates or responsive issue handling   |
+| Requirement                 | Why                                         |
+| --------------------------- | ------------------------------------------- |
+| Published on KovaHub or npm | Users need `kova plugins install` to work   |
+| Public GitHub repo          | Source review, issue tracking, transparency |
+| Setup and usage docs        | Users need to know how to configure it      |
+| Active maintenance          | Recent updates or responsive issue handling |
 
 Low-effort wrappers, unclear ownership, or unmaintained packages may be declined.
 

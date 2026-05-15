@@ -1,9 +1,9 @@
-import { createMigrationItem, summarizeMigrationItems } from "openclaw/plugin-sdk/migration";
+import { createMigrationItem, summarizeMigrationItems } from "getkova/plugin-sdk/migration";
 import type {
   MigrationItem,
   MigrationPlan,
   MigrationProviderContext,
-} from "openclaw/plugin-sdk/plugin-entry";
+} from "getkova/plugin-sdk/plugin-entry";
 import { buildConfigItems } from "./config.js";
 import { buildMemoryItems } from "./memory.js";
 import { buildSkillItems } from "./skills.js";
@@ -95,7 +95,7 @@ export async function buildClaudePlan(ctx: MigrationProviderContext): Promise<Mi
     summary: summarizeMigrationItems(items),
     items,
     warnings,
-    nextSteps: ["Run openclaw doctor after applying the migration."],
+    nextSteps: ["Run kova doctor after applying the migration."],
     metadata: { agentDir: targets.agentDir },
   };
 }

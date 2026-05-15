@@ -1,7 +1,7 @@
 import "./lifecycle.test-support.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createNonExitingRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import { FeishuConfigSchema } from "./config-schema.js";
 import {
   getFeishuLifecycleTestMocks,
@@ -31,9 +31,9 @@ const {
 
 let handlersByAccount = new Map<string, Record<string, (data: unknown) => Promise<void>>>();
 let runtimesByAccount = new Map<string, RuntimeEnv>();
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalStateDir = process.env.KOVA_STATE_DIR;
 
-function createLifecycleConfig(): ClawdbotConfig {
+function createLifecycleConfig(): KovaConfig {
   return {
     broadcast: {
       oc_broadcast_group: ["susan", "main"],
@@ -87,7 +87,7 @@ function createLifecycleConfig(): ClawdbotConfig {
         },
       },
     },
-  } as ClawdbotConfig;
+  } as KovaConfig;
 }
 
 function createLifecycleAccount(accountId: "account-A" | "account-B"): ResolvedFeishuAccount {
@@ -138,7 +138,7 @@ describe("Feishu broadcast reply-once lifecycle", () => {
     resetFeishuLifecycleTestMocks();
     handlersByAccount = new Map();
     runtimesByAccount = new Map();
-    setFeishuLifecycleStateDir("openclaw-feishu-broadcast");
+    setFeishuLifecycleStateDir("kova-feishu-broadcast");
 
     createFeishuReplyDispatcherMock.mockReturnValue(createFeishuLifecycleReplyDispatcher());
 

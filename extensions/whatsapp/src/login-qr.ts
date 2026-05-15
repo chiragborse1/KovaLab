@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { getRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { danger, info, success } from "openclaw/plugin-sdk/runtime-env";
-import { defaultRuntime, type RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { logInfo } from "openclaw/plugin-sdk/text-runtime";
+import { getRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
+import { danger, info, success } from "getkova/plugin-sdk/runtime-env";
+import { defaultRuntime, type RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { logInfo } from "getkova/plugin-sdk/text-runtime";
 import { resolveWhatsAppAccount } from "./accounts.js";
 import {
   closeWaSocket,

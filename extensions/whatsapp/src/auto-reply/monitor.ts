@@ -1,19 +1,19 @@
-import { resolveAccountEntry } from "openclaw/plugin-sdk/account-core";
-import { resolveInboundDebounceMs } from "openclaw/plugin-sdk/channel-inbound-debounce";
-import { formatCliCommand } from "openclaw/plugin-sdk/cli-runtime";
-import { hasControlCommand } from "openclaw/plugin-sdk/command-detection";
-import { drainPendingDeliveries } from "openclaw/plugin-sdk/infra-runtime";
-import { enqueueSystemEvent } from "openclaw/plugin-sdk/infra-runtime";
-import { DEFAULT_GROUP_HISTORY_LIMIT } from "openclaw/plugin-sdk/reply-history";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { registerUnhandledRejectionHandler } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
+import { resolveAccountEntry } from "getkova/plugin-sdk/account-core";
+import { resolveInboundDebounceMs } from "getkova/plugin-sdk/channel-inbound-debounce";
+import { formatCliCommand } from "getkova/plugin-sdk/cli-runtime";
+import { hasControlCommand } from "getkova/plugin-sdk/command-detection";
+import { drainPendingDeliveries } from "getkova/plugin-sdk/infra-runtime";
+import { enqueueSystemEvent } from "getkova/plugin-sdk/infra-runtime";
+import { DEFAULT_GROUP_HISTORY_LIMIT } from "getkova/plugin-sdk/reply-history";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
+import { registerUnhandledRejectionHandler } from "getkova/plugin-sdk/runtime-env";
+import { getChildLogger } from "getkova/plugin-sdk/runtime-env";
 import {
   defaultRuntime,
   formatDurationPrecise,
   type RuntimeEnv,
-} from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/runtime-env";
 import { resolveWhatsAppAccount, resolveWhatsAppMediaMaxBytes } from "../accounts.js";
 import { WHATSAPP_AUTH_UNSTABLE_CODE, WhatsAppAuthUnstableError } from "../auth-store.js";
 import {

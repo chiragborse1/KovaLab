@@ -8,44 +8,44 @@ import {
 
 describe("command-registration-policy", () => {
   it("matches primary command registration policy", () => {
-    expect(shouldRegisterPrimaryCommandOnly(["node", "openclaw", "status"])).toBe(true);
-    expect(shouldRegisterPrimaryCommandOnly(["node", "openclaw", "status", "--help"])).toBe(true);
-    expect(shouldRegisterPrimaryCommandOnly(["node", "openclaw", "-V"])).toBe(false);
-    expect(shouldRegisterPrimaryCommandOnly(["node", "openclaw", "acp", "-v"])).toBe(true);
+    expect(shouldRegisterPrimaryCommandOnly(["node", "kova", "status"])).toBe(true);
+    expect(shouldRegisterPrimaryCommandOnly(["node", "kova", "status", "--help"])).toBe(true);
+    expect(shouldRegisterPrimaryCommandOnly(["node", "kova", "-V"])).toBe(false);
+    expect(shouldRegisterPrimaryCommandOnly(["node", "kova", "acp", "-v"])).toBe(true);
   });
 
   it("matches plugin registration skip policy", () => {
     expect(
       shouldSkipPluginCommandRegistration({
-        argv: ["node", "openclaw", "--help"],
+        argv: ["node", "kova", "--help"],
         primary: null,
         hasBuiltinPrimary: false,
       }),
     ).toBe(true);
     expect(
       shouldSkipPluginCommandRegistration({
-        argv: ["node", "openclaw", "config", "--help"],
+        argv: ["node", "kova", "config", "--help"],
         primary: "config",
         hasBuiltinPrimary: true,
       }),
     ).toBe(true);
     expect(
       shouldSkipPluginCommandRegistration({
-        argv: ["node", "openclaw", "voicecall", "--help"],
+        argv: ["node", "kova", "voicecall", "--help"],
         primary: "voicecall",
         hasBuiltinPrimary: false,
       }),
     ).toBe(false);
     expect(
       shouldSkipPluginCommandRegistration({
-        argv: ["node", "openclaw", "help", "--help"],
+        argv: ["node", "kova", "help", "--help"],
         primary: "help",
         hasBuiltinPrimary: false,
       }),
     ).toBe(true);
     expect(
       shouldSkipPluginCommandRegistration({
-        argv: ["node", "openclaw", "help", "voicecall"],
+        argv: ["node", "kova", "help", "voicecall"],
         primary: "help",
         hasBuiltinPrimary: false,
       }),
@@ -53,15 +53,13 @@ describe("command-registration-policy", () => {
   });
 
   it("matches lazy subcommand registration policy", () => {
-    expect(shouldEagerRegisterSubcommands({ OPENCLAW_DISABLE_LAZY_SUBCOMMANDS: "1" })).toBe(true);
-    expect(shouldEagerRegisterSubcommands({ OPENCLAW_DISABLE_LAZY_SUBCOMMANDS: "0" })).toBe(false);
-    expect(shouldRegisterPrimarySubcommandOnly(["node", "openclaw", "acp"], {})).toBe(true);
-    expect(shouldRegisterPrimarySubcommandOnly(["node", "openclaw", "acp", "--help"], {})).toBe(
-      true,
-    );
+    expect(shouldEagerRegisterSubcommands({ KOVA_DISABLE_LAZY_SUBCOMMANDS: "1" })).toBe(true);
+    expect(shouldEagerRegisterSubcommands({ KOVA_DISABLE_LAZY_SUBCOMMANDS: "0" })).toBe(false);
+    expect(shouldRegisterPrimarySubcommandOnly(["node", "kova", "acp"], {})).toBe(true);
+    expect(shouldRegisterPrimarySubcommandOnly(["node", "kova", "acp", "--help"], {})).toBe(true);
     expect(
-      shouldRegisterPrimarySubcommandOnly(["node", "openclaw", "acp"], {
-        OPENCLAW_DISABLE_LAZY_SUBCOMMANDS: "1",
+      shouldRegisterPrimarySubcommandOnly(["node", "kova", "acp"], {
+        KOVA_DISABLE_LAZY_SUBCOMMANDS: "1",
       }),
     ).toBe(false);
   });

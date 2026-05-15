@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import type { ProviderSystemPromptContribution } from "./system-prompt-contribution.js";
 
@@ -106,7 +106,7 @@ export function normalizeGpt5PromptOverlayMode(value: unknown): Gpt5PromptOverla
 }
 
 export function resolveGpt5PromptOverlayMode(
-  config?: OpenClawConfig,
+  config?: KovaConfig,
   legacyPluginConfig?: Record<string, unknown>,
   params?: { providerId?: string },
 ): Gpt5PromptOverlayMode {
@@ -129,7 +129,7 @@ export function isGpt5ModelId(modelId?: string): boolean {
 }
 
 export function resolveGpt5SystemPromptContribution(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   providerId?: string;
   modelId?: string;
   legacyPluginConfig?: Record<string, unknown>;
@@ -149,7 +149,7 @@ export function resolveGpt5SystemPromptContribution(params: {
 }
 
 export function renderGpt5PromptOverlay(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   providerId?: string;
   modelId?: string;
   legacyPluginConfig?: Record<string, unknown>;

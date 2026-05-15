@@ -5,9 +5,9 @@ import {
   listMemoryEmbeddingProviders,
   listRegisteredMemoryEmbeddingProviderAdapters,
   type MemoryEmbeddingProviderAdapter,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
-import { resolveUserPath } from "openclaw/plugin-sdk/memory-core-host-engine-foundation";
-import { getProviderEnvVars } from "openclaw/plugin-sdk/provider-env-vars";
+} from "getkova/plugin-sdk/memory-core-host-engine-embeddings";
+import { resolveUserPath } from "getkova/plugin-sdk/memory-core-host-engine-foundation";
+import { getProviderEnvVars } from "getkova/plugin-sdk/provider-env-vars";
 import { formatErrorMessage } from "../dreaming-shared.js";
 import { filterUnregisteredMemoryEmbeddingProviderAdapters } from "./provider-adapter-registration.js";
 

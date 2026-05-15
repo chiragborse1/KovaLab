@@ -23,7 +23,7 @@ All `system` subcommands use Gateway RPC and accept the shared client flags:
 
 ```bash
 kova system event --text "Check for urgent follow-ups" --mode now
-kova system event --text "Check for urgent follow-ups" --url ws://127.0.0.1:18789 --token "$OPENCLAW_GATEWAY_TOKEN"
+kova system event --text "Check for urgent follow-ups" --url ws://127.0.0.1:18789 --token "$KOVA_GATEWAY_TOKEN"
 kova system heartbeat enable
 kova system heartbeat last
 kova system presence

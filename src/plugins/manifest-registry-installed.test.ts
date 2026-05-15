@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-installed-manifest-registry", tempDirs);
+  return makeTrackedTempDir("kova-installed-manifest-registry", tempDirs);
 }
 
 function writePlugin(rootDir: string, pluginId: string, modelPrefix: string) {
@@ -31,7 +31,7 @@ function writePlugin(rootDir: string, pluginId: string, modelPrefix: string) {
     "utf8",
   );
   fs.writeFileSync(
-    path.join(rootDir, "openclaw.plugin.json"),
+    path.join(rootDir, "kova.plugin.json"),
     JSON.stringify({
       id: pluginId,
       configSchema: { type: "object" },
@@ -56,7 +56,7 @@ function createIndex(rootDir: string): InstalledPluginIndex {
     plugins: [
       {
         pluginId: "installed",
-        manifestPath: path.join(rootDir, "openclaw.plugin.json"),
+        manifestPath: path.join(rootDir, "kova.plugin.json"),
         manifestHash: "manifest-hash",
         source: path.join(rootDir, "index.ts"),
         rootDir,
@@ -82,7 +82,7 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
     const index = createIndex(rootDir);
     const readFileSync = vi.spyOn(fs, "readFileSync");
     const env = {
-      OPENCLAW_VERSION: "2026.4.25",
+      KOVA_VERSION: "2026.4.25",
       VITEST: "true",
     };
 
@@ -104,11 +104,11 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
 
   it("refreshes the installed-index manifest registry cache when manifest files change", () => {
     const rootDir = makeTempDir();
-    const manifestPath = path.join(rootDir, "openclaw.plugin.json");
+    const manifestPath = path.join(rootDir, "kova.plugin.json");
     writePlugin(rootDir, "installed", "installed-");
     const index = createIndex(rootDir);
     const env = {
-      OPENCLAW_VERSION: "2026.4.25",
+      KOVA_VERSION: "2026.4.25",
       VITEST: "true",
     };
 
@@ -143,8 +143,8 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
     const index = createIndex(rootDir);
     const readFileSync = vi.spyOn(fs, "readFileSync");
     const env = {
-      OPENCLAW_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE: "1",
-      OPENCLAW_VERSION: "2026.4.25",
+      KOVA_DISABLE_INSTALLED_PLUGIN_MANIFEST_REGISTRY_CACHE: "1",
+      KOVA_VERSION: "2026.4.25",
       VITEST: "true",
     };
 
@@ -173,9 +173,9 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
     const registry = loadPluginManifestRegistryForInstalledIndex({
       index: createIndex(installedRoot),
       env: {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-        OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-        OPENCLAW_VERSION: "2026.4.25",
+        KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+        KOVA_VERSION: "2026.4.25",
         VITEST: "true",
       },
       includeDisabled: true,
@@ -216,9 +216,9 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
         ],
       },
       env: {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-        OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-        OPENCLAW_VERSION: "2026.4.25",
+        KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+        KOVA_VERSION: "2026.4.25",
         VITEST: "true",
       },
       includeDisabled: true,
@@ -241,7 +241,7 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
     fs.writeFileSync(
       path.join(rootDir, "package.json"),
       JSON.stringify({
-        openclaw: {
+        kova: {
           channel: {
             id: "installed",
             label: "Installed",
@@ -274,9 +274,9 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
         ],
       },
       env: {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-        OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-        OPENCLAW_VERSION: "2026.4.25",
+        KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+        KOVA_VERSION: "2026.4.25",
         VITEST: "true",
       },
       includeDisabled: true,
@@ -337,9 +337,9 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
     const registry = loadPluginManifestRegistryForInstalledIndex({
       index: persisted,
       env: {
-        OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-        OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-        OPENCLAW_VERSION: "2026.4.25",
+        KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+        KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+        KOVA_VERSION: "2026.4.25",
         VITEST: "true",
       },
       includeDisabled: true,

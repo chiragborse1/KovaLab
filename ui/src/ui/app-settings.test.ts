@@ -134,7 +134,7 @@ const createHost = (tab: Tab): SettingsHost => ({
     token: "",
     sessionKey: "main",
     lastActiveSessionKey: "main",
-    theme: "claw",
+    theme: "kova",
     themeMode: "system",
     chatFocusMode: false,
     chatShowThinking: true,
@@ -145,7 +145,7 @@ const createHost = (tab: Tab): SettingsHost => ({
     navGroupsCollapsed: {},
     borderRadius: 50,
   },
-  theme: "claw" as unknown as ThemeName & ThemeMode,
+  theme: "kova" as unknown as ThemeName & ThemeMode,
   themeMode: "system",
   themeResolved: "dark",
   applySessionKey: "main",
@@ -304,15 +304,15 @@ describe("setTabFromRoute", () => {
     expect(host.themeResolved).toBe("dash-light");
   });
 
-  it("falls back to claw when custom is selected without a stored custom theme", () => {
+  it("falls back to kova when custom is selected without a stored custom theme", () => {
     const host = createHost("chat");
     host.settings.theme = "custom";
     host.settings.themeMode = "dark";
 
     syncThemeWithSettings(host);
 
-    expect(host.theme).toBe("claw");
-    expect(host.settings.theme).toBe("claw");
+    expect(host.theme).toBe("kova");
+    expect(host.settings.theme).toBe("kova");
     expect(host.themeResolved).toBe("dark");
   });
 
@@ -391,13 +391,13 @@ describe("applySettingsFromUrl", () => {
   it("hydrates query token params and strips them from the URL", () => {
     setTestWindowUrl("https://control.example/ui/overview?token=abc123&password=sekret");
     const host = createHost("overview");
-    host.settings.gatewayUrl = "wss://control.example/openclaw";
+    host.settings.gatewayUrl = "wss://control.example/kova";
 
     applySettingsFromUrl(host);
 
     expect(host.settings.token).toBe("abc123");
     expect(window.location.search).toBe("");
-    expect(JSON.parse(localStorage.getItem("openclaw.control.settings.v1") ?? "{}").token).toBe(
+    expect(JSON.parse(localStorage.getItem("kova.control.settings.v1") ?? "{}").token).toBe(
       undefined,
     );
   });
@@ -405,7 +405,7 @@ describe("applySettingsFromUrl", () => {
   it("prefers fragment tokens over legacy query tokens when both are present", () => {
     setTestWindowUrl("https://control.example/ui/overview?token=query-token#token=hash-token");
     const host = createHost("overview");
-    host.settings.gatewayUrl = "wss://control.example/openclaw";
+    host.settings.gatewayUrl = "wss://control.example/kova";
 
     applySettingsFromUrl(host);
 

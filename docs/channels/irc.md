@@ -11,7 +11,7 @@ IRC ships as a bundled plugin, but it is configured in the main config under `ch
 
 ## Quick start
 
-1. Enable IRC config in `~/.openclaw/openclaw.json`.
+1. Enable IRC config in `~/.chiragborse1/KovaLab.json`.
 2. Set at least:
 
 ```json5
@@ -22,8 +22,8 @@ IRC ships as a bundled plugin, but it is configured in the main config under `ch
       host: "irc.example.com",
       port: 6697,
       tls: true,
-      nick: "openclaw-bot",
-      channels: ["#openclaw"],
+      nick: "kova-bot",
+      channels: ["#kova"],
     },
   },
 }

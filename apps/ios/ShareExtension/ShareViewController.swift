@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import KovaKit
 import os
 import UIKit
 import UniformTypeIdentifiers
@@ -199,7 +199,7 @@ final class ShareViewController: UIViewController {
                     BridgeInvokeResponse(
                         id: req.id,
                         ok: false,
-                        error: OpenClawNodeError(
+                        error: KovaNodeError(
                             code: .invalidRequest,
                             message: "share extension does not support node invoke"))
                 })
@@ -219,7 +219,7 @@ final class ShareViewController: UIViewController {
                     BridgeInvokeResponse(
                         id: req.id,
                         ok: false,
-                        error: OpenClawNodeError(
+                        error: KovaNodeError(
                             code: .invalidRequest,
                             message: "share extension does not support node invoke"))
                 })

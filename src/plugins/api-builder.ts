@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginRuntime } from "./runtime/types.js";
-import type { OpenClawPluginApi, PluginLogger } from "./types.js";
+import type { KovaPluginApi, PluginLogger } from "./types.js";
 
 export type BuildPluginApiParams = {
   id: string;
@@ -9,15 +9,15 @@ export type BuildPluginApiParams = {
   description?: string;
   source: string;
   rootDir?: string;
-  registrationMode: OpenClawPluginApi["registrationMode"];
-  config: OpenClawConfig;
+  registrationMode: KovaPluginApi["registrationMode"];
+  config: KovaConfig;
   pluginConfig?: Record<string, unknown>;
   runtime: PluginRuntime;
   logger: PluginLogger;
   resolvePath: (input: string) => string;
   handlers?: Partial<
     Pick<
-      OpenClawPluginApi,
+      KovaPluginApi,
       | "registerTool"
       | "registerHook"
       | "registerHttpRoute"
@@ -65,65 +65,63 @@ export type BuildPluginApiParams = {
   >;
 };
 
-const noopRegisterTool: OpenClawPluginApi["registerTool"] = () => {};
-const noopRegisterHook: OpenClawPluginApi["registerHook"] = () => {};
-const noopRegisterHttpRoute: OpenClawPluginApi["registerHttpRoute"] = () => {};
-const noopRegisterChannel: OpenClawPluginApi["registerChannel"] = () => {};
-const noopRegisterGatewayMethod: OpenClawPluginApi["registerGatewayMethod"] = () => {};
-const noopRegisterCli: OpenClawPluginApi["registerCli"] = () => {};
-const noopRegisterReload: OpenClawPluginApi["registerReload"] = () => {};
-const noopRegisterNodeHostCommand: OpenClawPluginApi["registerNodeHostCommand"] = () => {};
-const noopRegisterSecurityAuditCollector: OpenClawPluginApi["registerSecurityAuditCollector"] =
+const noopRegisterTool: KovaPluginApi["registerTool"] = () => {};
+const noopRegisterHook: KovaPluginApi["registerHook"] = () => {};
+const noopRegisterHttpRoute: KovaPluginApi["registerHttpRoute"] = () => {};
+const noopRegisterChannel: KovaPluginApi["registerChannel"] = () => {};
+const noopRegisterGatewayMethod: KovaPluginApi["registerGatewayMethod"] = () => {};
+const noopRegisterCli: KovaPluginApi["registerCli"] = () => {};
+const noopRegisterReload: KovaPluginApi["registerReload"] = () => {};
+const noopRegisterNodeHostCommand: KovaPluginApi["registerNodeHostCommand"] = () => {};
+const noopRegisterSecurityAuditCollector: KovaPluginApi["registerSecurityAuditCollector"] =
   () => {};
-const noopRegisterService: OpenClawPluginApi["registerService"] = () => {};
-const noopRegisterGatewayDiscoveryService: OpenClawPluginApi["registerGatewayDiscoveryService"] =
+const noopRegisterService: KovaPluginApi["registerService"] = () => {};
+const noopRegisterGatewayDiscoveryService: KovaPluginApi["registerGatewayDiscoveryService"] =
   () => {};
-const noopRegisterCliBackend: OpenClawPluginApi["registerCliBackend"] = () => {};
-const noopRegisterTextTransforms: OpenClawPluginApi["registerTextTransforms"] = () => {};
-const noopRegisterConfigMigration: OpenClawPluginApi["registerConfigMigration"] = () => {};
-const noopRegisterMigrationProvider: OpenClawPluginApi["registerMigrationProvider"] = () => {};
-const noopRegisterAutoEnableProbe: OpenClawPluginApi["registerAutoEnableProbe"] = () => {};
-const noopRegisterProvider: OpenClawPluginApi["registerProvider"] = () => {};
-const noopRegisterSpeechProvider: OpenClawPluginApi["registerSpeechProvider"] = () => {};
-const noopRegisterRealtimeTranscriptionProvider: OpenClawPluginApi["registerRealtimeTranscriptionProvider"] =
+const noopRegisterCliBackend: KovaPluginApi["registerCliBackend"] = () => {};
+const noopRegisterTextTransforms: KovaPluginApi["registerTextTransforms"] = () => {};
+const noopRegisterConfigMigration: KovaPluginApi["registerConfigMigration"] = () => {};
+const noopRegisterMigrationProvider: KovaPluginApi["registerMigrationProvider"] = () => {};
+const noopRegisterAutoEnableProbe: KovaPluginApi["registerAutoEnableProbe"] = () => {};
+const noopRegisterProvider: KovaPluginApi["registerProvider"] = () => {};
+const noopRegisterSpeechProvider: KovaPluginApi["registerSpeechProvider"] = () => {};
+const noopRegisterRealtimeTranscriptionProvider: KovaPluginApi["registerRealtimeTranscriptionProvider"] =
   () => {};
-const noopRegisterRealtimeVoiceProvider: OpenClawPluginApi["registerRealtimeVoiceProvider"] =
+const noopRegisterRealtimeVoiceProvider: KovaPluginApi["registerRealtimeVoiceProvider"] = () => {};
+const noopRegisterMediaUnderstandingProvider: KovaPluginApi["registerMediaUnderstandingProvider"] =
   () => {};
-const noopRegisterMediaUnderstandingProvider: OpenClawPluginApi["registerMediaUnderstandingProvider"] =
+const noopRegisterImageGenerationProvider: KovaPluginApi["registerImageGenerationProvider"] =
   () => {};
-const noopRegisterImageGenerationProvider: OpenClawPluginApi["registerImageGenerationProvider"] =
+const noopRegisterVideoGenerationProvider: KovaPluginApi["registerVideoGenerationProvider"] =
   () => {};
-const noopRegisterVideoGenerationProvider: OpenClawPluginApi["registerVideoGenerationProvider"] =
+const noopRegisterMusicGenerationProvider: KovaPluginApi["registerMusicGenerationProvider"] =
   () => {};
-const noopRegisterMusicGenerationProvider: OpenClawPluginApi["registerMusicGenerationProvider"] =
+const noopRegisterWebFetchProvider: KovaPluginApi["registerWebFetchProvider"] = () => {};
+const noopRegisterWebSearchProvider: KovaPluginApi["registerWebSearchProvider"] = () => {};
+const noopRegisterInteractiveHandler: KovaPluginApi["registerInteractiveHandler"] = () => {};
+const noopOnConversationBindingResolved: KovaPluginApi["onConversationBindingResolved"] = () => {};
+const noopRegisterCommand: KovaPluginApi["registerCommand"] = () => {};
+const noopRegisterContextEngine: KovaPluginApi["registerContextEngine"] = () => {};
+const noopRegisterCompactionProvider: KovaPluginApi["registerCompactionProvider"] = () => {};
+const noopRegisterAgentHarness: KovaPluginApi["registerAgentHarness"] = () => {};
+const noopRegisterCodexAppServerExtensionFactory: KovaPluginApi["registerCodexAppServerExtensionFactory"] =
   () => {};
-const noopRegisterWebFetchProvider: OpenClawPluginApi["registerWebFetchProvider"] = () => {};
-const noopRegisterWebSearchProvider: OpenClawPluginApi["registerWebSearchProvider"] = () => {};
-const noopRegisterInteractiveHandler: OpenClawPluginApi["registerInteractiveHandler"] = () => {};
-const noopOnConversationBindingResolved: OpenClawPluginApi["onConversationBindingResolved"] =
+const noopRegisterAgentToolResultMiddleware: KovaPluginApi["registerAgentToolResultMiddleware"] =
   () => {};
-const noopRegisterCommand: OpenClawPluginApi["registerCommand"] = () => {};
-const noopRegisterContextEngine: OpenClawPluginApi["registerContextEngine"] = () => {};
-const noopRegisterCompactionProvider: OpenClawPluginApi["registerCompactionProvider"] = () => {};
-const noopRegisterAgentHarness: OpenClawPluginApi["registerAgentHarness"] = () => {};
-const noopRegisterCodexAppServerExtensionFactory: OpenClawPluginApi["registerCodexAppServerExtensionFactory"] =
+const noopRegisterDetachedTaskRuntime: KovaPluginApi["registerDetachedTaskRuntime"] = () => {};
+const noopRegisterMemoryCapability: KovaPluginApi["registerMemoryCapability"] = () => {};
+const noopRegisterMemoryPromptSection: KovaPluginApi["registerMemoryPromptSection"] = () => {};
+const noopRegisterMemoryPromptSupplement: KovaPluginApi["registerMemoryPromptSupplement"] =
   () => {};
-const noopRegisterAgentToolResultMiddleware: OpenClawPluginApi["registerAgentToolResultMiddleware"] =
+const noopRegisterMemoryCorpusSupplement: KovaPluginApi["registerMemoryCorpusSupplement"] =
   () => {};
-const noopRegisterDetachedTaskRuntime: OpenClawPluginApi["registerDetachedTaskRuntime"] = () => {};
-const noopRegisterMemoryCapability: OpenClawPluginApi["registerMemoryCapability"] = () => {};
-const noopRegisterMemoryPromptSection: OpenClawPluginApi["registerMemoryPromptSection"] = () => {};
-const noopRegisterMemoryPromptSupplement: OpenClawPluginApi["registerMemoryPromptSupplement"] =
+const noopRegisterMemoryFlushPlan: KovaPluginApi["registerMemoryFlushPlan"] = () => {};
+const noopRegisterMemoryRuntime: KovaPluginApi["registerMemoryRuntime"] = () => {};
+const noopRegisterMemoryEmbeddingProvider: KovaPluginApi["registerMemoryEmbeddingProvider"] =
   () => {};
-const noopRegisterMemoryCorpusSupplement: OpenClawPluginApi["registerMemoryCorpusSupplement"] =
-  () => {};
-const noopRegisterMemoryFlushPlan: OpenClawPluginApi["registerMemoryFlushPlan"] = () => {};
-const noopRegisterMemoryRuntime: OpenClawPluginApi["registerMemoryRuntime"] = () => {};
-const noopRegisterMemoryEmbeddingProvider: OpenClawPluginApi["registerMemoryEmbeddingProvider"] =
-  () => {};
-const noopOn: OpenClawPluginApi["on"] = () => {};
+const noopOn: KovaPluginApi["on"] = () => {};
 
-export function buildPluginApi(params: BuildPluginApiParams): OpenClawPluginApi {
+export function buildPluginApi(params: BuildPluginApiParams): KovaPluginApi {
   const handlers = params.handlers ?? {};
   return {
     id: params.id,

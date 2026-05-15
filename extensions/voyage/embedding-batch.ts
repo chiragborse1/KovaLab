@@ -19,7 +19,7 @@ import {
   type ProviderBatchOutputLine,
   uploadBatchJsonlFile,
   withRemoteHttpResponse,
-} from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+} from "getkova/plugin-sdk/memory-core-host-engine-embeddings";
 import type { VoyageEmbeddingClient } from "./embedding-provider.js";
 
 /**
@@ -110,7 +110,7 @@ async function submitVoyageBatch(params: {
         input_type: "document",
       },
       metadata: {
-        source: "clawdbot-memory",
+        source: "kova-memory",
         agent: params.agentId,
       },
     },

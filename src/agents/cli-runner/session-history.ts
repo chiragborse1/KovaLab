@@ -5,7 +5,7 @@ import {
   resolveSessionFilePath,
   resolveSessionFilePathOptions,
 } from "../../config/sessions/paths.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { resolveSessionAgentIds } from "../agent-scope.js";
 import {
   limitAgentHookHistoryMessages,
@@ -118,7 +118,7 @@ function resolveSafeCliSessionFile(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): { sessionFile: string; sessionsDir: string } {
   const { defaultAgentId, sessionAgentId } = resolveSessionAgentIds({
     sessionKey: params.sessionKey,
@@ -145,7 +145,7 @@ function loadCliSessionEntries(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): unknown[] {
   try {
     const { sessionFile, sessionsDir } = resolveSafeCliSessionFile(params);
@@ -173,7 +173,7 @@ export function loadCliSessionHistoryMessages(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): unknown[] {
   const history = loadCliSessionEntries(params).flatMap((entry) => {
     const candidate = entry as HistoryEntry;
@@ -187,7 +187,7 @@ export function loadCliSessionReseedMessages(params: {
   sessionFile: string;
   sessionKey?: string;
   agentId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): unknown[] {
   const entries = loadCliSessionEntries(params);
   const latestCompactionIndex = entries.findLastIndex((entry) => {

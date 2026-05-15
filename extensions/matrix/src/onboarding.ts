@@ -1,7 +1,7 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
-import type { DmPolicy } from "openclaw/plugin-sdk/config-runtime";
-import type { WizardPrompter } from "openclaw/plugin-sdk/matrix-runtime-shared";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/account-id";
+import type { DmPolicy } from "getkova/plugin-sdk/config-runtime";
+import type { WizardPrompter } from "getkova/plugin-sdk/matrix-runtime-shared";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime";
 import {
   type ChannelSetupDmPolicy,
   type ChannelSetupWizardAdapter,
@@ -12,13 +12,13 @@ import {
   promptAccountId,
   promptChannelAccessConfig,
   splitSetupEntries,
-} from "openclaw/plugin-sdk/setup";
-import { isPrivateNetworkOptInEnabled } from "openclaw/plugin-sdk/ssrf-policy";
+} from "getkova/plugin-sdk/setup";
+import { isPrivateNetworkOptInEnabled } from "getkova/plugin-sdk/ssrf-policy";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
   normalizeStringifiedOptionalString,
-} from "openclaw/plugin-sdk/string-coerce-runtime";
+} from "getkova/plugin-sdk/string-coerce-runtime";
 import { requiresExplicitMatrixDefaultAccount } from "./account-selection.js";
 import {
   listMatrixAccountIds,

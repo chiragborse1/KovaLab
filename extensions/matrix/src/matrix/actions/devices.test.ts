@@ -70,7 +70,7 @@ describe("matrix device actions", () => {
 
     const result = await getMatrixDeviceHealth({ accountId: "poe" });
 
-    expect(result.staleOpenClawDevices).toEqual([
+    expect(result.staleKovaDevices).toEqual([
       expect.objectContaining({
         deviceId: "old123",
       }),

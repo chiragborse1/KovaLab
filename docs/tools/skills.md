@@ -23,7 +23,7 @@ Kova loads skills from these sources, **highest precedence first**:
 | 1   | Workspace skills      | `<workspace>/skills`             |
 | 2   | Project agent skills  | `<workspace>/.agents/skills`     |
 | 3   | Personal agent skills | `~/.agents/skills`               |
-| 4   | Managed/local skills  | `~/.openclaw/skills`             |
+| 4   | Managed/local skills  | `~/.kova/skills`                 |
 | 5   | Bundled skills        | shipped with the install         |
 | 6   | Extra skill folders   | `skills.load.extraDirs` (config) |
 
@@ -38,7 +38,7 @@ In **multi-agent** setups each agent has its own workspace:
 | Per-agent            | `<workspace>/skills`                        | Only that agent             |
 | Project-agent        | `<workspace>/.agents/skills`                | Only that workspace's agent |
 | Personal-agent       | `~/.agents/skills`                          | All agents on that machine  |
-| Shared managed/local | `~/.openclaw/skills`                        | All agents on that machine  |
+| Shared managed/local | `~/.kova/skills`                            | All agents on that machine  |
 | Shared extra dirs    | `skills.load.extraDirs` (lowest precedence) | All agents on that machine  |
 
 Same name in multiple places → highest source wins. Workspace beats
@@ -81,7 +81,7 @@ allowlists decide which skills an agent can actually use.
 ## Plugins and skills
 
 Plugins can ship their own skills by listing `skills` directories in
-`openclaw.plugin.json` (paths relative to the plugin root). Plugin skills
+`kova.plugin.json` (paths relative to the plugin root). Plugin skills
 load when the plugin is enabled. This is the right place for tool-specific
 operating guides that are too long for the tool description but should be
 available whenever the plugin is installed — for example, the browser
@@ -90,7 +90,7 @@ plugin ships a `browser-automation` skill for multi-step browser control.
 Plugin skill directories are merged into the same low-precedence path as
 `skills.load.extraDirs`, so a same-named bundled, managed, agent, or
 workspace skill overrides them. You can gate them via
-`metadata.openclaw.requires.config` on the plugin's config entry.
+`metadata.kova.requires.config` on the plugin's config entry.
 
 See [Plugins](/tools/plugin) for discovery/config and [Tools](/tools) for
 the tool surface those skills teach.
@@ -112,21 +112,21 @@ hard-won workflows such as media QA checklists. Start with pending
 approval; use automatic writes only in trusted workspaces after reviewing
 its proposals. Full guide: [Skill Workshop plugin](/plugins/skill-workshop).
 
-## ClawHub (install and sync)
+## KovaHub (install and sync)
 
-[ClawHub](https://clawhub.ai) is the public skills registry for Kova.
+[KovaHub](https://kovahub.ai) is the public skills registry for Kova.
 Use native `kova skills` commands for discover/install/update, or the
-separate `clawhub` CLI for publish/sync workflows. Full guide:
-[ClawHub](/tools/clawhub).
+separate `kovahub` CLI for publish/sync workflows. Full guide:
+[KovaHub](/tools/kovahub).
 
-| Action                             | Command                                |
-| ---------------------------------- | -------------------------------------- |
+| Action                             | Command                            |
+| ---------------------------------- | ---------------------------------- |
 | Install a skill into the workspace | `kova skills install <skill-slug>` |
 | Update all installed skills        | `kova skills update --all`         |
-| Sync (scan + publish updates)      | `clawhub sync --all`                   |
+| Sync (scan + publish updates)      | `kovahub sync --all`               |
 
 Native `kova skills install` installs into the active workspace
-`skills/` directory. The separate `clawhub` CLI also installs into
+`skills/` directory. The separate `kovahub` CLI also installs into
 `./skills` under your current working directory (or falls back to the
 configured Kova workspace). Kova picks that up as
 `<workspace>/skills` on the next session.
@@ -141,7 +141,7 @@ Prefer sandboxed runs for untrusted inputs and risky tools. See
 
 - Workspace and extra-dir skill discovery only accepts skill roots and `SKILL.md` files whose resolved realpath stays inside the configured root.
 - Gateway-backed skill dependency installs (`skills.install`, onboarding, and the Skills settings UI) run the built-in dangerous-code scanner before executing installer metadata. `critical` findings block by default unless the caller explicitly sets the dangerous override; suspicious findings still warn only.
-- `kova skills install <slug>` is different — it downloads a ClawHub skill folder into the workspace and does not use the installer-metadata path above.
+- `kova skills install <slug>` is different — it downloads a KovaHub skill folder into the workspace and does not use the installer-metadata path above.
 - `skills.entries.*.env` and `skills.entries.*.apiKey` inject secrets into the **host** process for that agent turn (not the sandbox). Keep secrets out of prompts and logs.
 
 For a broader threat model and checklists, see [Security](/gateway/security).
@@ -165,7 +165,7 @@ instructions to reference the skill folder path.
 ### Optional frontmatter keys
 
 <ParamField path="homepage" type="string">
-  URL surfaced as "Website" in the macOS Skills UI. Also supported via `metadata.openclaw.homepage`.
+  URL surfaced as "Website" in the macOS Skills UI. Also supported via `metadata.kova.homepage`.
 </ParamField>
 <ParamField path="user-invocable" type="boolean" default="true">
   When `true`, the skill is exposed as a user slash command.
@@ -193,7 +193,7 @@ name: image-lab
 description: Generate or edit images via a provider-backed image workflow
 metadata:
   {
-    "openclaw":
+    "kova":
       {
         "requires": { "bins": ["uv"], "env": ["GEMINI_API_KEY"], "config": ["browser.enabled"] },
         "primaryEnv": "GEMINI_API_KEY",
@@ -202,7 +202,7 @@ metadata:
 ---
 ```
 
-Fields under `metadata.openclaw`:
+Fields under `metadata.kova`:
 
 <ParamField path="always" type="boolean">
   When `true`, always include the skill (skip other gates).
@@ -226,7 +226,7 @@ Fields under `metadata.openclaw`:
   Env var must exist or be provided in config.
 </ParamField>
 <ParamField path="requires.config" type="string[]">
-  List of `openclaw.json` paths that must be truthy.
+  List of `kova.json` paths that must be truthy.
 </ParamField>
 <ParamField path="primaryEnv" type="string">
   Env var name associated with `skills.entries.<name>.apiKey`.
@@ -235,14 +235,14 @@ Fields under `metadata.openclaw`:
   Optional installer specs used by the macOS Skills UI (brew/node/go/uv/download).
 </ParamField>
 
-If no `metadata.openclaw` is present, the skill is always eligible (unless
+If no `metadata.kova` is present, the skill is always eligible (unless
 disabled in config or blocked by `skills.allowBundled` for bundled skills).
 
 <Note>
-Legacy `metadata.clawdbot` blocks are still accepted when
-`metadata.openclaw` is absent, so older installed skills keep their
+Legacy `metadata.kova` blocks are still accepted when
+`metadata.kova` is absent, so older installed skills keep their
 dependency gates and installer hints. New and updated skills should use
-`metadata.openclaw`.
+`metadata.kova`.
 </Note>
 
 ### Sandboxing notes
@@ -259,7 +259,7 @@ name: gemini
 description: Use Gemini CLI for coding assistance and Google search lookups.
 metadata:
   {
-    "openclaw":
+    "kova":
       {
         "emoji": "♊️",
         "requires": { "bins": ["gemini"] },
@@ -283,20 +283,20 @@ metadata:
     - If multiple installers are listed, the gateway picks a single preferred option (brew when available, otherwise node).
     - If all installers are `download`, Kova lists each entry so you can see the available artifacts.
     - Installer specs can include `os: ["darwin"|"linux"|"win32"]` to filter options by platform.
-    - Node installs honor `skills.install.nodeManager` in `openclaw.json` (default: npm; options: npm/pnpm/yarn/bun). This only affects skill installs; the Gateway runtime should still be Node — Bun is not recommended for WhatsApp/Telegram.
+    - Node installs honor `skills.install.nodeManager` in `kova.json` (default: npm; options: npm/pnpm/yarn/bun). This only affects skill installs; the Gateway runtime should still be Node — Bun is not recommended for WhatsApp/Telegram.
     - Gateway-backed installer selection is preference-driven: when install specs mix kinds, Kova prefers Homebrew when `skills.install.preferBrew` is enabled and `brew` exists, then `uv`, then the configured node manager, then other fallbacks like `go` or `download`.
     - If every install spec is `download`, Kova surfaces all download options instead of collapsing to one preferred installer.
   </Accordion>
   <Accordion title="Per-installer details">
     - **Go installs:** if `go` is missing and `brew` is available, the gateway installs Go via Homebrew first and sets `GOBIN` to Homebrew's `bin` when possible.
-    - **Download installs:** `url` (required), `archive` (`tar.gz` | `tar.bz2` | `zip`), `extract` (default: auto when archive detected), `stripComponents`, `targetDir` (default: `~/.openclaw/tools/<skillKey>`).
+    - **Download installs:** `url` (required), `archive` (`tar.gz` | `tar.bz2` | `zip`), `extract` (default: auto when archive detected), `stripComponents`, `targetDir` (default: `~/.kova/tools/<skillKey>`).
   </Accordion>
 </AccordionGroup>
 
 ## Config overrides
 
 Bundled and managed skills can be toggled and supplied with env values
-under `skills.entries` in `~/.openclaw/openclaw.json`:
+under `skills.entries` in `~/.chiragborse1/KovaLab.json`:
 
 ```json5
 {
@@ -324,7 +324,7 @@ under `skills.entries` in `~/.openclaw/openclaw.json`:
   `false` disables the skill even if it is bundled or installed.
 </ParamField>
 <ParamField path="apiKey" type='string | { source, provider, id }'>
-  Convenience for skills that declare `metadata.openclaw.primaryEnv`. Supports plaintext or SecretRef.
+  Convenience for skills that declare `metadata.kova.primaryEnv`. Supports plaintext or SecretRef.
 </ParamField>
 <ParamField path="env" type="Record<string, string>">
   Injected only if the variable is not already set in the process.
@@ -338,7 +338,7 @@ under `skills.entries` in `~/.openclaw/openclaw.json`:
 
 If the skill name contains hyphens, quote the key (JSON5 allows quoted
 keys). Config keys match the **skill name** by default — if a skill
-defines `metadata.openclaw.skillKey`, use that key under `skills.entries`.
+defines `metadata.kova.skillKey`, use that key under `skills.entries`.
 
 <Note>
 For stock image generation/editing inside Kova, use the core
@@ -438,19 +438,19 @@ skill plus your actual field lengths.
 ## Managed skills lifecycle
 
 Kova ships a baseline set of skills as **bundled skills** with the
-install (npm package or Kova.app). `~/.openclaw/skills` exists for
+install (npm package or Kova.app). `~/.kova/skills` exists for
 local overrides — for example, pinning or patching a skill without
 changing the bundled copy. Workspace skills are user-owned and override
 both on name conflicts.
 
 ## Looking for more skills?
 
-Browse [https://clawhub.ai](https://clawhub.ai). Full configuration
+Browse [https://kovahub.ai](https://kovahub.ai). Full configuration
 schema: [Skills config](/tools/skills-config).
 
 ## Related
 
-- [ClawHub](/tools/clawhub) — public skills registry
+- [KovaHub](/tools/kovahub) — public skills registry
 - [Creating skills](/tools/creating-skills) — building custom skills
 - [Plugins](/tools/plugin) — plugin system overview
 - [Skill Workshop plugin](/plugins/skill-workshop) — generate skills from agent work

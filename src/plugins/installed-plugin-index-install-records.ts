@@ -38,10 +38,10 @@ function normalizeInstallRecord(
   setInstallStringField(normalized, "shasum", record.shasum);
   setInstallStringField(normalized, "resolvedAt", record.resolvedAt);
   setInstallStringField(normalized, "installedAt", record.installedAt);
-  setInstallStringField(normalized, "clawhubUrl", record.clawhubUrl);
-  setInstallStringField(normalized, "clawhubPackage", record.clawhubPackage);
-  setInstallStringField(normalized, "clawhubFamily", record.clawhubFamily);
-  setInstallStringField(normalized, "clawhubChannel", record.clawhubChannel);
+  setInstallStringField(normalized, "kovahubUrl", record.kovahubUrl);
+  setInstallStringField(normalized, "kovahubPackage", record.kovahubPackage);
+  setInstallStringField(normalized, "kovahubFamily", record.kovahubFamily);
+  setInstallStringField(normalized, "kovahubChannel", record.kovahubChannel);
   setInstallStringField(normalized, "marketplaceName", record.marketplaceName);
   setInstallStringField(normalized, "marketplaceSource", record.marketplaceSource);
   setInstallStringField(normalized, "marketplacePlugin", record.marketplacePlugin);

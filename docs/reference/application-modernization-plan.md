@@ -152,7 +152,7 @@ This gives high user value with limited architecture risk.
 
 Use this section to update the frontend-focused `SKILL.md` supplied with the
 modernization task. If adopting this guidance as a repo-local Kova skill,
-create `.agents/skills/openclaw-frontend/SKILL.md` first, keep the frontmatter
+create `.agents/skills/kova-frontend/SKILL.md` first, keep the frontmatter
 that belongs in that target skill, then add or replace the body guidance with
 the following content.
 

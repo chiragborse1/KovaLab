@@ -1,10 +1,10 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveOpenClawPackageRootSync } from "../../infra/openclaw-root.js";
+import { resolveKovaPackageRootSync } from "../../infra/kova-root.js";
 import { resolveBundledPluginsDir } from "../../plugins/bundled-dir.js";
 
-const OPENCLAW_PACKAGE_ROOT =
-  resolveOpenClawPackageRootSync({
+const KOVA_PACKAGE_ROOT =
+  resolveKovaPackageRootSync({
     argv1: process.argv[1],
     cwd: process.cwd(),
     moduleUrl: import.meta.url.startsWith("file:") ? import.meta.url : undefined,
@@ -34,8 +34,8 @@ export function resolveBundledChannelRootScope(
   const bundledPluginsDir = resolveBundledPluginsDir(env);
   if (!bundledPluginsDir) {
     return {
-      packageRoot: OPENCLAW_PACKAGE_ROOT,
-      cacheKey: OPENCLAW_PACKAGE_ROOT,
+      packageRoot: KOVA_PACKAGE_ROOT,
+      cacheKey: KOVA_PACKAGE_ROOT,
     };
   }
   const resolvedPluginsDir = path.resolve(bundledPluginsDir);

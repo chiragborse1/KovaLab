@@ -1,4 +1,4 @@
-import { resolveChannelGroupPolicy } from "openclaw/plugin-sdk/config-runtime";
+import { resolveChannelGroupPolicy } from "getkova/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import {
   resolveIrcGroupAccessGate,

@@ -59,8 +59,8 @@ type CliOptions = {
 const DEFAULT_RUNS = 5;
 const DEFAULT_WARMUP = 1;
 const DEFAULT_TIMEOUT_MS = 30_000;
-const DEFAULT_ENTRY = "openclaw.mjs";
-const MAX_RSS_MARKER = "__OPENCLAW_MAX_RSS_KB__=";
+const DEFAULT_ENTRY = "kova.mjs";
+const MAX_RSS_MARKER = "__KOVA_MAX_RSS_KB__=";
 
 const COMMAND_CASES: readonly CommandCase[] = [
   { id: "version", name: "--version", args: ["--version"], presets: ["startup"] },
@@ -326,7 +326,7 @@ function runCase(params: {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        OPENCLAW_HIDE_BANNER: "1",
+        KOVA_HIDE_BANNER: "1",
       },
       stdio: ["ignore", "ignore", "pipe"],
       encoding: "utf8",
@@ -443,7 +443,7 @@ function parseOptions(): CliOptions {
 }
 
 function printUsage(): void {
-  console.log(`OpenClaw CLI benchmark
+  console.log(`Kova CLI benchmark
 
 Usage:
   pnpm tsx scripts/bench-cli-startup.ts [options]
@@ -451,7 +451,7 @@ Usage:
 Options:
   --preset <startup|real|all>  Command preset to run (default: startup)
   --case <id>                  Specific case id to run; repeatable
-  --entry <path>               Primary entry file (default: openclaw.mjs)
+  --entry <path>               Primary entry file (default: kova.mjs)
   --entry-secondary <path>     Secondary entry file for avg delta comparison
   --runs <n>                   Measured runs per case (default: ${DEFAULT_RUNS})
   --warmup <n>                 Warmup runs per case (default: ${DEFAULT_WARMUP})
@@ -474,7 +474,7 @@ async function main(): Promise<void> {
   }
 
   const options = parseOptions();
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-bench-"));
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), "kova-cli-bench-"));
   const rssHookPath = buildRssHook(tmpDir);
   try {
     const primary = buildSuiteResult({

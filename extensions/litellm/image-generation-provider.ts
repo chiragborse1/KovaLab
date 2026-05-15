@@ -1,14 +1,14 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ImageGenerationProvider } from "openclaw/plugin-sdk/image-generation";
-import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { ImageGenerationProvider } from "getkova/plugin-sdk/image-generation";
+import { isProviderApiKeyConfigured } from "getkova/plugin-sdk/provider-auth";
+import { resolveApiKeyForProvider } from "getkova/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
   sanitizeConfiguredModelProviderRequest,
-} from "openclaw/plugin-sdk/provider-http";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/provider-http";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { LITELLM_BASE_URL } from "./onboard.js";
 
 const DEFAULT_OUTPUT_MIME = "image/png";
@@ -29,17 +29,15 @@ const LITELLM_SUPPORTED_SIZES = [
 ] as const;
 const LITELLM_MAX_INPUT_IMAGES = 5;
 
-type LitellmProviderConfig = NonNullable<
-  NonNullable<OpenClawConfig["models"]>["providers"]
->[string];
+type LitellmProviderConfig = NonNullable<NonNullable<KovaConfig["models"]>["providers"]>[string];
 
 function resolveLitellmProviderConfig(
-  cfg: OpenClawConfig | undefined,
+  cfg: KovaConfig | undefined,
 ): LitellmProviderConfig | undefined {
   return cfg?.models?.providers?.litellm;
 }
 
-function resolveConfiguredLitellmBaseUrl(cfg: OpenClawConfig | undefined): string {
+function resolveConfiguredLitellmBaseUrl(cfg: KovaConfig | undefined): string {
   return normalizeOptionalString(resolveLitellmProviderConfig(cfg)?.baseUrl) ?? LITELLM_BASE_URL;
 }
 

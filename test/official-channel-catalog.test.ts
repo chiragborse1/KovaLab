@@ -26,12 +26,12 @@ afterEach(() => {
 
 describe("buildOfficialChannelCatalog", () => {
   it("includes publishable official channel plugins and skips non-publishable entries", () => {
-    const repoRoot = makeRepoRoot("openclaw-official-channel-catalog-");
+    const repoRoot = makeRepoRoot("kova-official-channel-catalog-");
     writeJson(path.join(repoRoot, "extensions", "whatsapp", "package.json"), {
-      name: "@openclaw/whatsapp",
+      name: "@kovaai/whatsapp",
       version: "2026.3.23",
-      description: "OpenClaw WhatsApp channel plugin",
-      openclaw: {
+      description: "Kova WhatsApp channel plugin",
+      kova: {
         channel: {
           id: "whatsapp",
           label: "WhatsApp",
@@ -41,7 +41,7 @@ describe("buildOfficialChannelCatalog", () => {
           blurb: "works with your own number; recommend a separate phone + eSIM.",
         },
         install: {
-          npmSpec: "@openclaw/whatsapp",
+          npmSpec: "@kovaai/whatsapp",
           localPath: bundledPluginRoot("whatsapp"),
           defaultChoice: "npm",
         },
@@ -51,8 +51,8 @@ describe("buildOfficialChannelCatalog", () => {
       },
     });
     writeJson(path.join(repoRoot, "extensions", "local-only", "package.json"), {
-      name: "@openclaw/local-only",
-      openclaw: {
+      name: "@kovaai/local-only",
+      kova: {
         channel: {
           id: "local-only",
           label: "Local Only",
@@ -72,14 +72,14 @@ describe("buildOfficialChannelCatalog", () => {
     expect(buildOfficialChannelCatalog({ repoRoot }).entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: "@wecom/wecom-openclaw-plugin",
-          openclaw: expect.objectContaining({
+          name: "@wecom/wecom-kova-plugin",
+          kova: expect.objectContaining({
             channel: expect.objectContaining({
               id: "wecom",
               label: "WeCom",
             }),
             install: {
-              npmSpec: "@wecom/wecom-openclaw-plugin@2026.4.23",
+              npmSpec: "@wecom/wecom-kova-plugin@2026.4.23",
               defaultChoice: "npm",
               expectedIntegrity:
                 "sha512-bnzfdIEEu1/LFvcdyjaTkyxt27w6c7dqhkPezU62OWaqmcdFsUGR3T55USK/O9pIKsNcnL1Tnu1pqKYCWHFgWQ==",
@@ -87,10 +87,10 @@ describe("buildOfficialChannelCatalog", () => {
           }),
         }),
         {
-          name: "@openclaw/whatsapp",
+          name: "@kovaai/whatsapp",
           version: "2026.3.23",
-          description: "OpenClaw WhatsApp channel plugin",
-          openclaw: {
+          description: "Kova WhatsApp channel plugin",
+          kova: {
             channel: {
               id: "whatsapp",
               label: "WhatsApp",
@@ -100,7 +100,7 @@ describe("buildOfficialChannelCatalog", () => {
               blurb: "works with your own number; recommend a separate phone + eSIM.",
             },
             install: {
-              npmSpec: "@openclaw/whatsapp",
+              npmSpec: "@kovaai/whatsapp",
               defaultChoice: "npm",
             },
           },
@@ -110,24 +110,24 @@ describe("buildOfficialChannelCatalog", () => {
   });
 
   it("keeps official external catalog npm sources exactly pinned", () => {
-    const repoRoot = makeRepoRoot("openclaw-official-channel-catalog-policy-");
+    const repoRoot = makeRepoRoot("kova-official-channel-catalog-policy-");
     const entries = buildOfficialChannelCatalog({ repoRoot }).entries.filter(
       (entry) => entry.source === "external",
     );
 
     expect(entries.length).toBeGreaterThan(0);
     for (const entry of entries) {
-      const installSource = describePluginInstallSource(entry.openclaw?.install ?? {});
+      const installSource = describePluginInstallSource(entry.kova?.install ?? {});
       expect(installSource.warnings).toEqual([]);
       expect(installSource.npm?.pinState).toBe("exact-with-integrity");
     }
   });
 
   it("writes the official catalog under dist", () => {
-    const repoRoot = makeRepoRoot("openclaw-official-channel-catalog-write-");
+    const repoRoot = makeRepoRoot("kova-official-channel-catalog-write-");
     writeJson(path.join(repoRoot, "extensions", "whatsapp", "package.json"), {
-      name: "@openclaw/whatsapp",
-      openclaw: {
+      name: "@kovaai/whatsapp",
+      kova: {
         channel: {
           id: "whatsapp",
           label: "WhatsApp",
@@ -136,7 +136,7 @@ describe("buildOfficialChannelCatalog", () => {
           blurb: "wa",
         },
         install: {
-          npmSpec: "@openclaw/whatsapp",
+          npmSpec: "@kovaai/whatsapp",
         },
         release: {
           publishToNpm: true,
@@ -151,11 +151,11 @@ describe("buildOfficialChannelCatalog", () => {
     expect(JSON.parse(fs.readFileSync(outputPath, "utf8")).entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: "@wecom/wecom-openclaw-plugin",
+          name: "@wecom/wecom-kova-plugin",
         }),
         {
-          name: "@openclaw/whatsapp",
-          openclaw: {
+          name: "@kovaai/whatsapp",
+          kova: {
             channel: {
               id: "whatsapp",
               label: "WhatsApp",
@@ -164,7 +164,7 @@ describe("buildOfficialChannelCatalog", () => {
               blurb: "wa",
             },
             install: {
-              npmSpec: "@openclaw/whatsapp",
+              npmSpec: "@kovaai/whatsapp",
             },
           },
         },

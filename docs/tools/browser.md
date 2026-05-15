@@ -20,7 +20,7 @@ Beginner view:
 
 ## What you get
 
-- A separate browser profile named **openclaw** (orange accent by default).
+- A separate browser profile named **kova** (orange accent by default).
 - Deterministic tab control (list/open/focus/close).
 - Agent actions (click/type/drag/select), snapshots, screenshots, PDFs.
 - A bundled `browser-automation` skill that teaches agents the snapshot,
@@ -129,11 +129,11 @@ For agent browser tool calls:
   is at the computer to click/approve any attach prompt.
 - `profile` is the explicit override when you want a specific browser mode.
 
-Set `browser.defaultProfile: "openclaw"` if you want managed mode by default.
+Set `browser.defaultProfile: "kova"` if you want managed mode by default.
 
 ## Configuration
 
-Browser settings live in `~/.openclaw/openclaw.json`.
+Browser settings live in `~/.chiragborse1/KovaLab.json`.
 
 ```json5
 {
@@ -157,14 +157,14 @@ Browser settings live in `~/.openclaw/openclaw.json`.
       maxTabsPerSession: 8, // set 0 to disable the per-session cap
       sweepMinutes: 5,
     },
-    defaultProfile: "openclaw",
+    defaultProfile: "kova",
     color: "#FF4500",
     headless: false,
     noSandbox: false,
     attachOnly: false,
     executablePath: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
     profiles: {
-      openclaw: { cdpPort: 18800, color: "#FF4500" },
+      kova: { cdpPort: 18800, color: "#FF4500" },
       work: {
         cdpPort: 18801,
         color: "#0066CC",
@@ -192,7 +192,7 @@ Browser settings live in `~/.openclaw/openclaw.json`.
 
 <Accordion title="Ports and reachability">
 
-- Control service binds to loopback on a port derived from `gateway.port` (default `18791` = gateway + 2). Overriding `gateway.port` or `OPENCLAW_GATEWAY_PORT` shifts the derived ports in the same family.
+- Control service binds to loopback on a port derived from `gateway.port` (default `18791` = gateway + 2). Overriding `gateway.port` or `KOVA_GATEWAY_PORT` shifts the derived ports in the same family.
 - Local `kova` profiles auto-assign `cdpPort`/`cdpUrl`; set those only for remote CDP. `cdpUrl` defaults to the managed local CDP port when unset.
 - `remoteCdpTimeoutMs` applies to remote and `attachOnly` CDP HTTP reachability
   checks and tab-opening HTTP requests; `remoteCdpHandshakeTimeoutMs` applies to
@@ -238,8 +238,8 @@ Browser settings live in `~/.openclaw/openclaw.json`.
   config explicitly chooses headed mode. `kova browser status --json`
   reports `headlessSource` as `env`, `profile`, `config`,
   `request`, `linux-display-fallback`, or `default`.
-- `OPENCLAW_BROWSER_HEADLESS=1` forces local managed launches headless for the
-  current process. `OPENCLAW_BROWSER_HEADLESS=0` forces headed mode for ordinary
+- `KOVA_BROWSER_HEADLESS=1` forces local managed launches headless for the
+  current process. `KOVA_BROWSER_HEADLESS=0` forces headed mode for ordinary
   starts and returns an actionable error on Linux hosts without a display server;
   an explicit `start --headless` request still wins for that one launch.
 - `executablePath` can be set globally or per local managed profile. Per-profile values override `browser.executablePath`, so different managed profiles can launch different Chromium-based browsers. Both forms accept `~` for your OS home directory.
@@ -483,7 +483,7 @@ Key ideas:
 
 - Browser control is loopback-only; access flows through the Gateway’s auth or node pairing.
 - The standalone loopback browser HTTP API uses **shared-secret auth only**:
-  gateway token bearer auth, `x-openclaw-password`, or HTTP Basic auth with the
+  gateway token bearer auth, `x-kova-password`, or HTTP Basic auth with the
   configured gateway password.
 - Tailscale Serve identity headers and `gateway.auth.mode: "trusted-proxy"` do
   **not** authenticate this standalone loopback browser API.
@@ -503,7 +503,7 @@ Remote CDP tips:
 
 Kova supports multiple named profiles (routing configs). Profiles can be:
 
-- **openclaw-managed**: a dedicated Chromium-based browser instance with its own user data directory + CDP port
+- **kova-managed**: a dedicated Chromium-based browser instance with its own user data directory + CDP port
 - **remote**: an explicit CDP URL (Chromium-based browser running elsewhere)
 - **existing session**: your existing Chrome profile via Chrome DevTools MCP auto-connect
 
@@ -702,7 +702,7 @@ These are different failure classes and they point to different code paths.
 Common examples:
 
 - CDP startup or readiness failure:
-  - `Chrome CDP websocket for profile "openclaw" is not reachable after start`
+  - `Chrome CDP websocket for profile "kova" is not reachable after start`
   - `Remote CDP for profile "<name>" is not reachable at <cdpUrl>`
   - `Port <port> is in use for profile "<name>" but not by kova` when a
     loopback external CDP service is configured without `attachOnly: true`
@@ -749,7 +749,7 @@ How it maps:
 - `browser screenshot` captures pixels (full page, element, or labeled refs).
 - `browser doctor` checks Gateway, plugin, profile, browser, and tab readiness.
 - `browser` accepts:
-  - `profile` to choose a named browser profile (openclaw, chrome, or remote CDP).
+  - `profile` to choose a named browser profile (kova, chrome, or remote CDP).
   - `target` (`sandbox` | `host` | `node`) to select where the browser lives.
   - In sandboxed sessions, `target: "host"` requires `agents.defaults.sandbox.browser.allowHostControl=true`.
   - If `target` is omitted: sandboxed sessions default to `sandbox`, non-sandbox sessions default to `host`.

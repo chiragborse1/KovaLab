@@ -71,10 +71,10 @@ const mocks = vi.hoisted(() => {
     loadConfigMock: vi.fn(() => ({})),
     resolveDefaultAgentIdMock: vi.fn(() => "main"),
     resolveAgentWorkspaceDirMock: vi.fn(() => "/tmp/workspace"),
-    searchSkillsFromClawHubMock: vi.fn(),
-    installSkillFromClawHubMock: vi.fn(),
-    updateSkillsFromClawHubMock: vi.fn(),
-    readTrackedClawHubSkillSlugsMock: vi.fn(),
+    searchSkillsFromKovaHubMock: vi.fn(),
+    installSkillFromKovaHubMock: vi.fn(),
+    updateSkillsFromKovaHubMock: vi.fn(),
+    readTrackedKovaHubSkillSlugsMock: vi.fn(),
     buildWorkspaceSkillStatusMock,
     skillStatusReportFixture,
     defaultRuntime,
@@ -88,10 +88,10 @@ const {
   loadConfigMock,
   resolveDefaultAgentIdMock,
   resolveAgentWorkspaceDirMock,
-  searchSkillsFromClawHubMock,
-  installSkillFromClawHubMock,
-  updateSkillsFromClawHubMock,
-  readTrackedClawHubSkillSlugsMock,
+  searchSkillsFromKovaHubMock,
+  installSkillFromKovaHubMock,
+  updateSkillsFromKovaHubMock,
+  readTrackedKovaHubSkillSlugsMock,
   buildWorkspaceSkillStatusMock,
   skillStatusReportFixture,
   defaultRuntime,
@@ -114,12 +114,12 @@ vi.mock("../agents/agent-scope.js", () => ({
   resolveAgentWorkspaceDir: () => mocks.resolveAgentWorkspaceDirMock(),
 }));
 
-vi.mock("../agents/skills-clawhub.js", () => ({
-  searchSkillsFromClawHub: (...args: unknown[]) => mocks.searchSkillsFromClawHubMock(...args),
-  installSkillFromClawHub: (...args: unknown[]) => mocks.installSkillFromClawHubMock(...args),
-  updateSkillsFromClawHub: (...args: unknown[]) => mocks.updateSkillsFromClawHubMock(...args),
-  readTrackedClawHubSkillSlugs: (...args: unknown[]) =>
-    mocks.readTrackedClawHubSkillSlugsMock(...args),
+vi.mock("../agents/skills-kovahub.js", () => ({
+  searchSkillsFromKovaHub: (...args: unknown[]) => mocks.searchSkillsFromKovaHubMock(...args),
+  installSkillFromKovaHub: (...args: unknown[]) => mocks.installSkillFromKovaHubMock(...args),
+  updateSkillsFromKovaHub: (...args: unknown[]) => mocks.updateSkillsFromKovaHubMock(...args),
+  readTrackedKovaHubSkillSlugs: (...args: unknown[]) =>
+    mocks.readTrackedKovaHubSkillSlugsMock(...args),
 }));
 
 vi.mock("../agents/skills-status.js", () => ({
@@ -144,22 +144,22 @@ describe("skills cli commands", () => {
     loadConfigMock.mockReset();
     resolveDefaultAgentIdMock.mockReset();
     resolveAgentWorkspaceDirMock.mockReset();
-    searchSkillsFromClawHubMock.mockReset();
-    installSkillFromClawHubMock.mockReset();
-    updateSkillsFromClawHubMock.mockReset();
-    readTrackedClawHubSkillSlugsMock.mockReset();
+    searchSkillsFromKovaHubMock.mockReset();
+    installSkillFromKovaHubMock.mockReset();
+    updateSkillsFromKovaHubMock.mockReset();
+    readTrackedKovaHubSkillSlugsMock.mockReset();
     buildWorkspaceSkillStatusMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
     resolveDefaultAgentIdMock.mockReturnValue("main");
     resolveAgentWorkspaceDirMock.mockReturnValue("/tmp/workspace");
-    searchSkillsFromClawHubMock.mockResolvedValue([]);
-    installSkillFromClawHubMock.mockResolvedValue({
+    searchSkillsFromKovaHubMock.mockResolvedValue([]);
+    installSkillFromKovaHubMock.mockResolvedValue({
       ok: false,
       error: "install disabled in test",
     });
-    updateSkillsFromClawHubMock.mockResolvedValue([]);
-    readTrackedClawHubSkillSlugsMock.mockResolvedValue([]);
+    updateSkillsFromKovaHubMock.mockResolvedValue([]);
+    readTrackedKovaHubSkillSlugsMock.mockResolvedValue([]);
     buildWorkspaceSkillStatusMock.mockReturnValue(skillStatusReportFixture);
     defaultRuntime.log.mockClear();
     defaultRuntime.error.mockClear();
@@ -168,8 +168,8 @@ describe("skills cli commands", () => {
     defaultRuntime.exit.mockClear();
   });
 
-  it("searches ClawHub skills from the native CLI", async () => {
-    searchSkillsFromClawHubMock.mockResolvedValue([
+  it("searches KovaHub skills from the native CLI", async () => {
+    searchSkillsFromKovaHubMock.mockResolvedValue([
       {
         slug: "calendar",
         displayName: "Calendar",
@@ -180,15 +180,15 @@ describe("skills cli commands", () => {
 
     await runCommand(["skills", "search", "calendar"]);
 
-    expect(searchSkillsFromClawHubMock).toHaveBeenCalledWith({
+    expect(searchSkillsFromKovaHubMock).toHaveBeenCalledWith({
       query: "calendar",
       limit: undefined,
     });
     expect(runtimeLogs.some((line) => line.includes("calendar v1.2.3  Calendar"))).toBe(true);
   });
 
-  it("installs a skill from ClawHub into the active workspace", async () => {
-    installSkillFromClawHubMock.mockResolvedValue({
+  it("installs a skill from KovaHub into the active workspace", async () => {
+    installSkillFromKovaHubMock.mockResolvedValue({
       ok: true,
       slug: "calendar",
       version: "1.2.3",
@@ -197,7 +197,7 @@ describe("skills cli commands", () => {
 
     await runCommand(["skills", "install", "calendar", "--version", "1.2.3"]);
 
-    expect(installSkillFromClawHubMock).toHaveBeenCalledWith({
+    expect(installSkillFromKovaHubMock).toHaveBeenCalledWith({
       workspaceDir: "/tmp/workspace",
       slug: "calendar",
       version: "1.2.3",
@@ -211,9 +211,9 @@ describe("skills cli commands", () => {
     ).toBe(true);
   });
 
-  it("updates all tracked ClawHub skills", async () => {
-    readTrackedClawHubSkillSlugsMock.mockResolvedValue(["calendar"]);
-    updateSkillsFromClawHubMock.mockResolvedValue([
+  it("updates all tracked KovaHub skills", async () => {
+    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
+    updateSkillsFromKovaHubMock.mockResolvedValue([
       {
         ok: true,
         slug: "calendar",
@@ -226,8 +226,8 @@ describe("skills cli commands", () => {
 
     await runCommand(["skills", "update", "--all"]);
 
-    expect(readTrackedClawHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/workspace");
-    expect(updateSkillsFromClawHubMock).toHaveBeenCalledWith({
+    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/workspace");
+    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
       workspaceDir: "/tmp/workspace",
       slug: undefined,
       logger: expect.any(Object),
@@ -290,6 +290,6 @@ describe("skills cli commands", () => {
     expect(defaultRuntime.log).not.toHaveBeenCalled();
     expect(runtimeErrors).toEqual([]);
     expect(runtimeStdout.at(-1)).toContain("calendar");
-    expect(runtimeStdout.at(-1)).toContain("openclaw skills search");
+    expect(runtimeStdout.at(-1)).toContain("kova skills search");
   });
 });

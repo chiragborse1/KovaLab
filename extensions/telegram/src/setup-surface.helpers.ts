@@ -3,11 +3,11 @@ import {
   applySetupAccountConfigPatch,
   type ChannelSetupDmPolicy,
   DEFAULT_ACCOUNT_ID,
-  type OpenClawConfig,
+  type KovaConfig,
   patchChannelConfigForAccount,
-} from "openclaw/plugin-sdk/setup";
-import { formatCliCommand, formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/setup";
+import { formatCliCommand, formatDocsLink } from "getkova/plugin-sdk/setup-tools";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   mergeTelegramAccountConfig,
   resolveDefaultTelegramAccountId,
@@ -18,9 +18,9 @@ import { promptTelegramAllowFromForAccount } from "./setup-core.js";
 const channel = "telegram" as const;
 
 export function ensureTelegramDefaultGroupMentionGate(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   accountId: string,
-): OpenClawConfig {
+): KovaConfig {
   const resolved = resolveTelegramAccount({ cfg, accountId });
   const wildcardGroup = resolved.config.groups?.["*"];
   if (wildcardGroup?.requireMention !== undefined) {
@@ -42,7 +42,7 @@ export function ensureTelegramDefaultGroupMentionGate(
   });
 }
 
-export function shouldShowTelegramDmAccessWarning(cfg: OpenClawConfig, accountId: string): boolean {
+export function shouldShowTelegramDmAccessWarning(cfg: KovaConfig, accountId: string): boolean {
   const merged = mergeTelegramAccountConfig(cfg, accountId);
   const policy = merged.dmPolicy ?? "pairing";
   const hasAllowFrom =

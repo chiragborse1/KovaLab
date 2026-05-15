@@ -286,15 +286,15 @@ function startLocalOtlpTraceReceiver() {
   };
 }
 
-function openClawEntryArgs(): string[] {
+function kovaEntryArgs(): string[] {
   if (existsSync(path.join(process.cwd(), "scripts", "run-node.mjs"))) {
     return ["scripts/run-node.mjs"];
   }
   return ["kova.mjs"];
 }
 
-function spawnOpenClaw(args: string[], env: NodeJS.ProcessEnv): ChildProcess {
-  return spawn(process.execPath, [...openClawEntryArgs(), ...args], {
+function spawnKova(args: string[], env: NodeJS.ProcessEnv): ChildProcess {
+  return spawn(process.execPath, [...kovaEntryArgs(), ...args], {
     env,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -316,7 +316,7 @@ function buildQaEnv(port: number): NodeJS.ProcessEnv {
   env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = `http://127.0.0.1:${port}/v1/traces`;
   env.OTEL_SERVICE_NAME = "kova-qa-lab-otel-smoke";
   env.OTEL_SEMCONV_STABILITY_OPT_IN = "gen_ai_latest_experimental";
-  env.OPENCLAW_QA_SUITE_PROGRESS = env.OPENCLAW_QA_SUITE_PROGRESS ?? "1";
+  env.KOVA_QA_SUITE_PROGRESS = env.KOVA_QA_SUITE_PROGRESS ?? "1";
   return env;
 }
 
@@ -434,7 +434,7 @@ async function main() {
 
   let childExitCode = 1;
   try {
-    const child = spawnOpenClaw(buildQaArgs(options), buildQaEnv(port));
+    const child = spawnKova(buildQaArgs(options), buildQaEnv(port));
     child.stdout?.on("data", (chunk) => process.stdout.write(chunk));
     child.stderr?.on("data", (chunk) => process.stderr.write(chunk));
     childExitCode = await waitForChild(child);

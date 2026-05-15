@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { normalizeMediaProviderId } from "./provider-id.js";
 
 type ConfigProvider = NonNullable<
-  NonNullable<NonNullable<OpenClawConfig["models"]>["providers"]>[string]
+  NonNullable<NonNullable<KovaConfig["models"]>["providers"]>[string]
 >;
 
 type ConfigProviderModel = NonNullable<ConfigProvider["models"]>[number];
@@ -14,7 +14,7 @@ function hasImageCapableModel(providerCfg: ConfigProvider): boolean {
   );
 }
 
-export function resolveImageCapableConfigProviderIds(cfg?: OpenClawConfig): string[] {
+export function resolveImageCapableConfigProviderIds(cfg?: KovaConfig): string[] {
   const configProviders = cfg?.models?.providers;
   if (!configProviders || typeof configProviders !== "object") {
     return [];

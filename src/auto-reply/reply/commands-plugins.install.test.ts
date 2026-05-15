@@ -6,10 +6,10 @@ import { createCommandWorkspaceHarness } from "./commands-filesystem.test-suppor
 import { handlePluginsCommand } from "./commands-plugins.js";
 import { buildPluginsCommandParams } from "./commands.test-harness.js";
 
-const { installPluginFromPathMock, installPluginFromClawHubMock, persistPluginInstallMock } =
+const { installPluginFromPathMock, installPluginFromKovaHubMock, persistPluginInstallMock } =
   vi.hoisted(() => ({
     installPluginFromPathMock: vi.fn(),
-    installPluginFromClawHubMock: vi.fn(),
+    installPluginFromKovaHubMock: vi.fn(),
     persistPluginInstallMock: vi.fn(),
   }));
 
@@ -23,13 +23,13 @@ vi.mock("../../plugins/install.js", async () => {
   };
 });
 
-vi.mock("../../plugins/clawhub.js", async () => {
-  const actual = await vi.importActual<typeof import("../../plugins/clawhub.js")>(
-    "../../plugins/clawhub.js",
+vi.mock("../../plugins/kovahub.js", async () => {
+  const actual = await vi.importActual<typeof import("../../plugins/kovahub.js")>(
+    "../../plugins/kovahub.js",
   );
   return {
     ...actual,
-    installPluginFromClawHub: installPluginFromClawHubMock,
+    installPluginFromKovaHub: installPluginFromKovaHubMock,
   };
 });
 
@@ -37,7 +37,7 @@ vi.mock("../../cli/plugins-install-persist.js", () => ({
   persistPluginInstall: persistPluginInstallMock,
 }));
 
-const workspaceHarness = createCommandWorkspaceHarness("openclaw-command-plugins-install-");
+const workspaceHarness = createCommandWorkspaceHarness("kova-command-plugins-install-");
 
 function buildPluginsParams(commandBodyNormalized: string, workspaceDir: string) {
   return buildPluginsCommandParams({
@@ -50,7 +50,7 @@ function buildPluginsParams(commandBodyNormalized: string, workspaceDir: string)
 describe("handleCommands /plugins install", () => {
   afterEach(async () => {
     installPluginFromPathMock.mockReset();
-    installPluginFromClawHubMock.mockReset();
+    installPluginFromKovaHubMock.mockReset();
     persistPluginInstallMock.mockReset();
     await workspaceHarness.cleanupWorkspaces();
   });
@@ -65,7 +65,7 @@ describe("handleCommands /plugins install", () => {
     });
     persistPluginInstallMock.mockResolvedValue({});
 
-    await withTempHome("openclaw-command-plugins-home-", async () => {
+    await withTempHome("kova-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const pluginDir = path.join(workspaceDir, "fixtures", "path-install-plugin");
       await fs.mkdir(pluginDir, { recursive: true });
@@ -95,20 +95,20 @@ describe("handleCommands /plugins install", () => {
     });
   });
 
-  it("installs from an explicit clawhub: spec", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+  it("installs from an explicit kovahub: spec", async () => {
+    installPluginFromKovaHubMock.mockResolvedValue({
       ok: true,
-      pluginId: "clawhub-demo",
-      targetDir: "/tmp/clawhub-demo",
+      pluginId: "kovahub-demo",
+      targetDir: "/tmp/kovahub-demo",
       version: "1.2.3",
       extensions: ["index.js"],
-      packageName: "@openclaw/clawhub-demo",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "@openclaw/clawhub-demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      packageName: "@chiragborse1/kovahub-demo",
+      kovahub: {
+        source: "kovahub",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "@chiragborse1/kovahub-demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
         version: "1.2.3",
         integrity: "sha512-demo",
         resolvedAt: "2026-03-22T12:00:00.000Z",
@@ -116,33 +116,33 @@ describe("handleCommands /plugins install", () => {
     });
     persistPluginInstallMock.mockResolvedValue({});
 
-    await withTempHome("openclaw-command-plugins-home-", async () => {
+    await withTempHome("kova-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildPluginsParams(
-        "/plugins install clawhub:@openclaw/clawhub-demo@1.2.3",
+        "/plugins install kovahub:@chiragborse1/kovahub-demo@1.2.3",
         workspaceDir,
       );
       const result = await handlePluginsCommand(params, true);
       if (result === null) {
         throw new Error("expected plugin install result");
       }
-      expect(result.reply?.text).toContain('Installed plugin "clawhub-demo"');
-      expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+      expect(result.reply?.text).toContain('Installed plugin "kovahub-demo"');
+      expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          spec: "clawhub:@openclaw/clawhub-demo@1.2.3",
+          spec: "kovahub:@chiragborse1/kovahub-demo@1.2.3",
         }),
       );
       expect(persistPluginInstallMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          pluginId: "clawhub-demo",
+          pluginId: "kovahub-demo",
           install: expect.objectContaining({
-            source: "clawhub",
-            spec: "clawhub:@openclaw/clawhub-demo@1.2.3",
-            installPath: "/tmp/clawhub-demo",
+            source: "kovahub",
+            spec: "kovahub:@chiragborse1/kovahub-demo@1.2.3",
+            installPath: "/tmp/kovahub-demo",
             version: "1.2.3",
             integrity: "sha512-demo",
-            clawhubPackage: "@openclaw/clawhub-demo",
-            clawhubChannel: "official",
+            kovahubPackage: "@chiragborse1/kovahub-demo",
+            kovahubChannel: "official",
           }),
         }),
       );
@@ -150,19 +150,19 @@ describe("handleCommands /plugins install", () => {
   });
 
   it("treats /plugin add as an install alias", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+    installPluginFromKovaHubMock.mockResolvedValue({
       ok: true,
       pluginId: "alias-demo",
       targetDir: "/tmp/alias-demo",
       version: "1.0.0",
       extensions: ["index.js"],
-      packageName: "@openclaw/alias-demo",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "@openclaw/alias-demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      packageName: "@kovaai/alias-demo",
+      kovahub: {
+        source: "kovahub",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "@kovaai/alias-demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
         version: "1.0.0",
         integrity: "sha512-alias",
         resolvedAt: "2026-03-23T12:00:00.000Z",
@@ -170,10 +170,10 @@ describe("handleCommands /plugins install", () => {
     });
     persistPluginInstallMock.mockResolvedValue({});
 
-    await withTempHome("openclaw-command-plugins-home-", async () => {
+    await withTempHome("kova-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildPluginsParams(
-        "/plugin add clawhub:@openclaw/alias-demo@1.0.0",
+        "/plugin add kovahub:@kovaai/alias-demo@1.0.0",
         workspaceDir,
       );
       const result = await handlePluginsCommand(params, true);
@@ -181,9 +181,9 @@ describe("handleCommands /plugins install", () => {
         throw new Error("expected plugin install result");
       }
       expect(result.reply?.text).toContain('Installed plugin "alias-demo"');
-      expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+      expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          spec: "clawhub:@openclaw/alias-demo@1.0.0",
+          spec: "kovahub:@kovaai/alias-demo@1.0.0",
         }),
       );
     });

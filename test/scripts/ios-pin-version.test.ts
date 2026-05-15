@@ -22,13 +22,13 @@ describe("pinIosVersion", () => {
   it("pins an explicit iOS release version and syncs generated artifacts", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: `# OpenClaw iOS Changelog
+      changelog: `# Kova iOS Changelog
 
 ## Unreleased
 
 - Draft release notes.
 `,
-      prefix: "openclaw-ios-pin-",
+      prefix: "kova-ios-pin-",
     });
 
     const result = pinIosVersion({
@@ -47,7 +47,7 @@ describe("pinIosVersion", () => {
     );
     expect(
       fs.readFileSync(path.join(rootDir, "apps", "ios", "Config", "Version.xcconfig"), "utf8"),
-    ).toContain("OPENCLAW_MARKETING_VERSION = 0.2.1");
+    ).toContain("KOVA_MARKETING_VERSION = 0.2.1");
     expect(
       fs.readFileSync(
         path.join(rootDir, "apps", "ios", "fastlane", "metadata", "en-US", "release_notes.txt"),
@@ -61,13 +61,13 @@ describe("pinIosVersion", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
       packageVersion: "0.2.3-beta.3",
-      changelog: `# OpenClaw iOS Changelog
+      changelog: `# Kova iOS Changelog
 
 ## Unreleased
 
 - Candidate release notes.
 `,
-      prefix: "openclaw-ios-pin-",
+      prefix: "kova-ios-pin-",
     });
 
     const result = pinIosVersion({
@@ -86,7 +86,7 @@ describe("pinIosVersion", () => {
   it("can skip syncing checked-in artifacts when requested", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: `# OpenClaw iOS Changelog
+      changelog: `# Kova iOS Changelog
 
 ## Unreleased
 
@@ -94,7 +94,7 @@ describe("pinIosVersion", () => {
 `,
       versionXcconfig: "stale\n",
       releaseNotes: "stale\n",
-      prefix: "openclaw-ios-pin-",
+      prefix: "kova-ios-pin-",
     });
 
     const result = pinIosVersion({

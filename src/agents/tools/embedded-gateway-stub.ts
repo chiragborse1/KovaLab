@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { CallGatewayOptions } from "../../gateway/call.js";
 import type { SessionsListParams, SessionsResolveParams } from "../../gateway/protocol/index.js";
 import type { SessionsListResult } from "../../gateway/session-utils.types.js";
@@ -7,8 +7,8 @@ import type { SessionsResolveResult } from "../../gateway/sessions-resolve.js";
 type EmbeddedCallGateway = <T = Record<string, unknown>>(opts: CallGatewayOptions) => Promise<T>;
 
 interface EmbeddedGatewayRuntime {
-  resolveSessionAgentId: (opts: { sessionKey: string; config: OpenClawConfig }) => string;
-  getRuntimeConfig: () => OpenClawConfig;
+  resolveSessionAgentId: (opts: { sessionKey: string; config: KovaConfig }) => string;
+  getRuntimeConfig: () => KovaConfig;
   augmentChatHistoryWithCliSessionImports: (opts: {
     entry: unknown;
     provider: string | undefined;
@@ -24,34 +24,34 @@ interface EmbeddedGatewayRuntime {
     messages: unknown[];
     maxSingleMessageBytes: number;
   }) => { messages: unknown[] };
-  resolveEffectiveChatHistoryMaxChars: (cfg: OpenClawConfig) => number;
+  resolveEffectiveChatHistoryMaxChars: (cfg: KovaConfig) => number;
   projectRecentChatDisplayMessages: (
     msgs: unknown[],
     opts?: { maxChars?: number; maxMessages?: number },
   ) => unknown[];
   capArrayByJsonBytes: (items: unknown[], maxBytes: number) => { items: unknown[] };
   listSessionsFromStore: (opts: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     storePath: string;
     store: unknown;
     opts: SessionsListParams;
   }) => SessionsListResult;
-  loadCombinedSessionStoreForGateway: (cfg: OpenClawConfig) => {
+  loadCombinedSessionStoreForGateway: (cfg: KovaConfig) => {
     storePath: string;
     store: unknown;
   };
   resolveSessionKeyFromResolveParams: (opts: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     p: SessionsResolveParams;
   }) => Promise<SessionsResolveResult>;
   loadSessionEntry: (sessionKey: string) => {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     storePath: string | undefined;
     entry: Record<string, unknown> | undefined;
   };
   readSessionMessages: (sessionId: string, storePath: string, sessionFile?: string) => unknown[];
   resolveSessionModelRef: (
-    cfg: OpenClawConfig,
+    cfg: KovaConfig,
     entry: unknown,
     sessionAgentId: string,
   ) => { provider: string | undefined };

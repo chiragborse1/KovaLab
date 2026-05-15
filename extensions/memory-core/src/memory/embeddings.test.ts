@@ -1,13 +1,13 @@
-import type { MemoryEmbeddingProviderAdapter } from "openclaw/plugin-sdk/memory-core-host-engine-embeddings";
+import type { MemoryEmbeddingProviderAdapter } from "getkova/plugin-sdk/memory-core-host-engine-embeddings";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../../../src/config/types.openclaw.js";
+import type { KovaConfig } from "../../../../src/config/types.kova.js";
 import { createEmbeddingProvider } from "./embeddings.js";
 
 const mockEmbeddingRegistry = vi.hoisted(() => ({
   adapters: [] as MemoryEmbeddingProviderAdapter[],
 }));
 
-vi.mock("openclaw/plugin-sdk/memory-core-host-engine-embeddings", () => ({
+vi.mock("getkova/plugin-sdk/memory-core-host-engine-embeddings", () => ({
   DEFAULT_LOCAL_MODEL: "nomic-embed-text",
   createLocalEmbeddingProvider: async () => {
     throw new Error("local embedding provider is not used by these tests");
@@ -40,8 +40,8 @@ function createOptions(provider: string) {
           "voyage",
         ],
       },
-    } as OpenClawConfig,
-    agentDir: "/tmp/openclaw-agent",
+    } as KovaConfig,
+    agentDir: "/tmp/kova-agent",
     provider,
     fallback: "none",
     model: "",

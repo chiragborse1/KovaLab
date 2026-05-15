@@ -331,13 +331,13 @@ export function readEmbeddedGatewayToken(command: GatewayServiceCommand): string
   const envSources = command.environmentValueSources ?? {};
   if (
     isEnvironmentFileOnlySource(envSources.KOVA_GATEWAY_TOKEN) ||
-    isEnvironmentFileOnlySource(envSources.OPENCLAW_GATEWAY_TOKEN)
+    isEnvironmentFileOnlySource(envSources.KOVA_GATEWAY_TOKEN)
   ) {
     return undefined;
   }
   return (
     normalizeOptionalString(command.environment?.KOVA_GATEWAY_TOKEN) ||
-    normalizeOptionalString(command.environment?.OPENCLAW_GATEWAY_TOKEN)
+    normalizeOptionalString(command.environment?.KOVA_GATEWAY_TOKEN)
   );
 }
 

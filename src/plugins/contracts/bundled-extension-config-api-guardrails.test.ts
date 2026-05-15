@@ -36,7 +36,7 @@ const BUNDLED_EXTENSION_CONFIG_IMPORT_GUARDS = [
     allowedSpecifier: "../runtime-api.js",
   },
   // Teams keeps a package-local config barrel so production code does not
-  // self-import via openclaw/plugin-sdk/msteams from inside the same extension.
+  // self-import via getkova/plugin-sdk/msteams from inside the same extension.
   {
     path: "extensions/msteams/src/config-schema.ts",
     allowedSpecifier: "../config-api.js",
@@ -48,7 +48,7 @@ describe("bundled extension config api guardrails", () => {
     it(`keeps ${entry.path} off the generic concrete-schema barrel`, () => {
       const source = readFileSync(resolve(REPO_ROOT, entry.path), "utf8");
       expect(source).toContain(entry.allowedSpecifier);
-      expect(source).not.toContain("openclaw/plugin-sdk/channel-config-schema");
+      expect(source).not.toContain("getkova/plugin-sdk/channel-config-schema");
     });
   }
 });

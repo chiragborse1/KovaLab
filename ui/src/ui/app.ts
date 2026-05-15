@@ -78,8 +78,8 @@ import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { PluginOperationState } from "./controllers/plugins.ts";
 import type {
-  ClawHubSearchResult,
-  ClawHubSkillDetail,
+  KovaHubSearchResult,
+  KovaHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
 import type {
@@ -128,7 +128,7 @@ import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.
 declare global {
   interface Window {
     __KOVA_CONTROL_UI_BASE_PATH__?: string;
-    __OPENCLAW_CONTROL_UI_BASE_PATH__?: string;
+    __KOVA_CONTROL_UI_BASE_PATH__?: string;
   }
 }
 
@@ -149,7 +149,7 @@ function resolveOnboardingMode(): boolean {
 }
 
 @customElement("kova-app")
-export class OpenClawApp extends LitElement {
+export class KovaApp extends LitElement {
   private i18nController = new I18nController(this);
   clientInstanceId = generateUUID();
   connectGeneration = 0;
@@ -166,7 +166,7 @@ export class OpenClawApp extends LitElement {
   @state() tab: Tab = "chat";
   @state() onboarding = resolveOnboardingMode();
   @state() connected = false;
-  @state() theme: ThemeName = this.settings.theme ?? "claw";
+  @state() theme: ThemeName = this.settings.theme ?? "kova";
   @state() themeMode: ThemeMode = this.settings.themeMode ?? "system";
   @state() themeResolved: ResolvedTheme = "dark";
   @state() themeOrder: ThemeName[] = this.buildThemeOrder(this.theme);
@@ -515,16 +515,16 @@ export class OpenClawApp extends LitElement {
   @state() skillsBusyKey: string | null = null;
   @state() skillMessages: Record<string, SkillMessage> = {};
   @state() skillsDetailKey: string | null = null;
-  @state() clawhubSearchQuery = "";
-  @state() clawhubSearchResults: ClawHubSearchResult[] | null = null;
-  @state() clawhubSearchLoading = false;
-  @state() clawhubSearchError: string | null = null;
-  @state() clawhubDetail: ClawHubSkillDetail | null = null;
-  @state() clawhubDetailSlug: string | null = null;
-  @state() clawhubDetailLoading = false;
-  @state() clawhubDetailError: string | null = null;
-  @state() clawhubInstallSlug: string | null = null;
-  @state() clawhubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
+  @state() kovahubSearchQuery = "";
+  @state() kovahubSearchResults: KovaHubSearchResult[] | null = null;
+  @state() kovahubSearchLoading = false;
+  @state() kovahubSearchError: string | null = null;
+  @state() kovahubDetail: KovaHubSkillDetail | null = null;
+  @state() kovahubDetailSlug: string | null = null;
+  @state() kovahubDetailLoading = false;
+  @state() kovahubDetailError: string | null = null;
+  @state() kovahubInstallSlug: string | null = null;
+  @state() kovahubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
 
   @state() healthLoading = false;
   @state() healthResult: HealthSummary | null = null;
@@ -780,7 +780,7 @@ export class OpenClawApp extends LitElement {
   }
 
   clearCustomTheme() {
-    const nextTheme = this.theme === "custom" ? "claw" : this.theme;
+    const nextTheme = this.theme === "custom" ? "kova" : this.theme;
     this.customThemeImportExpanded = true;
     applySettingsInternal(this as unknown as Parameters<typeof applySettingsInternal>[0], {
       ...this.settings,
@@ -1125,6 +1125,6 @@ export class OpenClawApp extends LitElement {
   }
 }
 
-if (!customElements.get("openclaw-app")) {
-  customElements.define("openclaw-app", class LegacyOpenClawApp extends OpenClawApp {});
+if (!customElements.get("kova-app")) {
+  customElements.define("kova-app", class LegacyKovaApp extends KovaApp {});
 }

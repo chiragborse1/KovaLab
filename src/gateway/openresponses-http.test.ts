@@ -88,9 +88,9 @@ async function startTokenServer(port: number, opts?: { openResponsesEnabled?: bo
 }
 
 async function writeGatewayConfig(config: Record<string, unknown>) {
-  const configPath = process.env.OPENCLAW_CONFIG_PATH;
+  const configPath = process.env.KOVA_CONFIG_PATH;
   if (!configPath) {
-    throw new Error("OPENCLAW_CONFIG_PATH is required for gateway config tests");
+    throw new Error("KOVA_CONFIG_PATH is required for gateway config tests");
   }
   await fs.mkdir(path.dirname(configPath), { recursive: true });
   await fs.writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
@@ -101,7 +101,7 @@ async function postResponses(port: number, body: unknown, headers?: Record<strin
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-openclaw-scopes": "operator.write",
+      "x-kova-scopes": "operator.write",
       ...headers,
     },
     body: JSON.stringify(body),
@@ -286,7 +286,7 @@ describe("OpenResponses HTTP API (e2e)", () => {
       const resChannelHeader = await postResponses(
         port,
         { model: "kova", input: "hi" },
-        { "x-openclaw-message-channel": "custom-client-channel" },
+        { "x-kova-message-channel": "custom-client-channel" },
       );
       expect(resChannelHeader.status).toBe(200);
       const optsChannelHeader = (agentCommand.mock.calls[0] as unknown[] | undefined)?.[0];
@@ -781,7 +781,7 @@ describe("OpenResponses HTTP API (e2e)", () => {
     const adminScopeResponse = await postResponses(
       port,
       { model: "kova", input: "hi" },
-      { "x-openclaw-scopes": "operator.admin, operator.write" },
+      { "x-kova-scopes": "operator.admin, operator.write" },
     );
     expect(adminScopeResponse.status).toBe(200);
     const adminScopeOpts = (agentCommand.mock.calls[0] as unknown[] | undefined)?.[0] as
@@ -802,7 +802,7 @@ describe("OpenResponses HTTP API (e2e)", () => {
     const streamingResponse = await postResponses(
       port,
       { stream: true, model: "kova", input: "hi" },
-      { "x-openclaw-scopes": "operator.admin, operator.write" },
+      { "x-kova-scopes": "operator.admin, operator.write" },
     );
     expect(streamingResponse.status).toBe(200);
     const streamingOpts = (agentCommand.mock.calls[0] as unknown[] | undefined)?.[0] as
@@ -825,7 +825,7 @@ describe("OpenResponses HTTP API (e2e)", () => {
         headers: {
           authorization: "Bearer secret",
           "content-type": "application/json",
-          "x-openclaw-scopes": "operator.approvals",
+          "x-kova-scopes": "operator.approvals",
         },
         body: JSON.stringify({
           model: "kova",

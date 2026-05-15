@@ -1,17 +1,17 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { canResolveEnvSecretRefInReadOnlyPath } from "openclaw/plugin-sdk/extension-shared";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { canResolveEnvSecretRefInReadOnlyPath } from "getkova/plugin-sdk/extension-shared";
 import {
   coerceSecretRef,
   resolveNonEnvSecretRefApiKeyMarker,
-} from "openclaw/plugin-sdk/provider-auth";
+} from "getkova/plugin-sdk/provider-auth";
 import {
   readProviderEnvValue,
   resolveProviderWebSearchPluginConfig,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "getkova/plugin-sdk/provider-web-search";
 import {
   normalizeSecretInputString,
   resolveSecretInputString,
-} from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/secret-input";
 
 export type XaiFallbackAuth = {
   apiKey: string;
@@ -33,7 +33,7 @@ function readConfiguredOrManagedApiKey(value: unknown): string | undefined {
   return ref ? resolveNonEnvSecretRefApiKeyMarker(ref.source) : undefined;
 }
 
-function readLegacyGrokFallbackAuth(cfg?: OpenClawConfig): XaiFallbackAuth | undefined {
+function readLegacyGrokFallbackAuth(cfg?: KovaConfig): XaiFallbackAuth | undefined {
   const search = cfg?.tools?.web?.search;
   if (!search || typeof search !== "object") {
     return undefined;
@@ -48,7 +48,7 @@ function readLegacyGrokFallbackAuth(cfg?: OpenClawConfig): XaiFallbackAuth | und
 function readConfiguredRuntimeApiKey(
   value: unknown,
   path: string,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): ConfiguredRuntimeApiKeyResolution {
   const resolved = resolveSecretInputString({
     value,
@@ -82,7 +82,7 @@ function readConfiguredRuntimeApiKey(
   return envValue ? { status: "available", value: envValue } : { status: "missing" };
 }
 
-function readLegacyGrokApiKeyResult(cfg?: OpenClawConfig): ConfiguredRuntimeApiKeyResolution {
+function readLegacyGrokApiKeyResult(cfg?: KovaConfig): ConfiguredRuntimeApiKeyResolution {
   const search = cfg?.tools?.web?.search;
   if (!search || typeof search !== "object") {
     return { status: "missing" };
@@ -95,14 +95,12 @@ function readLegacyGrokApiKeyResult(cfg?: OpenClawConfig): ConfiguredRuntimeApiK
   );
 }
 
-export function readLegacyGrokApiKey(cfg?: OpenClawConfig): string | undefined {
+export function readLegacyGrokApiKey(cfg?: KovaConfig): string | undefined {
   const resolved = readLegacyGrokApiKeyResult(cfg);
   return resolved.status === "available" ? resolved.value : undefined;
 }
 
-function readPluginXaiWebSearchApiKeyResult(
-  cfg?: OpenClawConfig,
-): ConfiguredRuntimeApiKeyResolution {
+function readPluginXaiWebSearchApiKeyResult(cfg?: KovaConfig): ConfiguredRuntimeApiKeyResolution {
   return readConfiguredRuntimeApiKey(
     resolveProviderWebSearchPluginConfig(cfg as Record<string, unknown> | undefined, "xai")?.apiKey,
     "plugins.entries.xai.config.webSearch.apiKey",
@@ -110,12 +108,12 @@ function readPluginXaiWebSearchApiKeyResult(
   );
 }
 
-export function readPluginXaiWebSearchApiKey(cfg?: OpenClawConfig): string | undefined {
+export function readPluginXaiWebSearchApiKey(cfg?: KovaConfig): string | undefined {
   const resolved = readPluginXaiWebSearchApiKeyResult(cfg);
   return resolved.status === "available" ? resolved.value : undefined;
 }
 
-export function resolveFallbackXaiAuth(cfg?: OpenClawConfig): XaiFallbackAuth | undefined {
+export function resolveFallbackXaiAuth(cfg?: KovaConfig): XaiFallbackAuth | undefined {
   const pluginApiKey = readConfiguredOrManagedApiKey(
     resolveProviderWebSearchPluginConfig(cfg as Record<string, unknown> | undefined, "xai")?.apiKey,
   );
@@ -128,7 +126,7 @@ export function resolveFallbackXaiAuth(cfg?: OpenClawConfig): XaiFallbackAuth | 
   return readLegacyGrokFallbackAuth(cfg);
 }
 
-export function resolveFallbackXaiApiKey(cfg?: OpenClawConfig): string | undefined {
+export function resolveFallbackXaiApiKey(cfg?: KovaConfig): string | undefined {
   const plugin = readPluginXaiWebSearchApiKeyResult(cfg);
   if (plugin.status === "available") {
     return plugin.value;
@@ -141,8 +139,8 @@ export function resolveFallbackXaiApiKey(cfg?: OpenClawConfig): string | undefin
 }
 
 export function resolveXaiToolApiKey(params: {
-  runtimeConfig?: OpenClawConfig;
-  sourceConfig?: OpenClawConfig;
+  runtimeConfig?: KovaConfig;
+  sourceConfig?: KovaConfig;
 }): string | undefined {
   const runtimePlugin = readPluginXaiWebSearchApiKeyResult(params.runtimeConfig);
   if (runtimePlugin.status === "available") {
@@ -177,8 +175,8 @@ export function resolveXaiToolApiKey(params: {
 
 export function isXaiToolEnabled(params: {
   enabled?: boolean;
-  runtimeConfig?: OpenClawConfig;
-  sourceConfig?: OpenClawConfig;
+  runtimeConfig?: KovaConfig;
+  sourceConfig?: KovaConfig;
 }): boolean {
   if (params.enabled === false) {
     return false;

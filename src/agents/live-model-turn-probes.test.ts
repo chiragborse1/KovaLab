@@ -16,18 +16,15 @@ import {
 
 describe("live model turn probes", () => {
   it("defaults probes on and accepts common opt-out values", () => {
-    expect(isLiveModelProbeEnabled({}, "OPENCLAW_LIVE_MODEL_IMAGE_PROBE")).toBe(true);
+    expect(isLiveModelProbeEnabled({}, "KOVA_LIVE_MODEL_IMAGE_PROBE")).toBe(true);
     expect(
       isLiveModelProbeEnabled(
-        { OPENCLAW_LIVE_MODEL_IMAGE_PROBE: "false" },
-        "OPENCLAW_LIVE_MODEL_IMAGE_PROBE",
+        { KOVA_LIVE_MODEL_IMAGE_PROBE: "false" },
+        "KOVA_LIVE_MODEL_IMAGE_PROBE",
       ),
     ).toBe(false);
     expect(
-      isLiveModelProbeEnabled(
-        { OPENCLAW_LIVE_MODEL_IMAGE_PROBE: "1" },
-        "OPENCLAW_LIVE_MODEL_IMAGE_PROBE",
-      ),
+      isLiveModelProbeEnabled({ KOVA_LIVE_MODEL_IMAGE_PROBE: "1" }, "KOVA_LIVE_MODEL_IMAGE_PROBE"),
     ).toBe(true);
   });
 

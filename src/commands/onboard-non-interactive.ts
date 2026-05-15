@@ -1,6 +1,6 @@
 import { formatCliCommand } from "../cli/command-format.js";
 import { readConfigFileSnapshot } from "../config/io.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { runNonInteractiveLocalSetup } from "./onboard-non-interactive/local.js";
@@ -20,7 +20,7 @@ export async function runNonInteractiveSetup(
     return;
   }
 
-  const baseConfig: OpenClawConfig = snapshot.valid
+  const baseConfig: KovaConfig = snapshot.valid
     ? snapshot.exists
       ? (snapshot.sourceConfig ?? snapshot.config)
       : {}

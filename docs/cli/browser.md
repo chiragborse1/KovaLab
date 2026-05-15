@@ -76,14 +76,14 @@ Notes:
   `browser.headless` or profile config, and it is a no-op for an already-running
   browser.
 - On Linux hosts without `DISPLAY` or `WAYLAND_DISPLAY`, local managed profiles
-  run headless automatically unless `OPENCLAW_BROWSER_HEADLESS=0`,
+  run headless automatically unless `KOVA_BROWSER_HEADLESS=0`,
   `browser.headless=false`, or `browser.profiles.<name>.headless=false`
   explicitly requests a visible browser.
 
 ## If the command is missing
 
 If `kova browser` is an unknown command, check `plugins.allow` in
-`~/.openclaw/openclaw.json`.
+`~/.chiragborse1/KovaLab.json`.
 
 When `plugins.allow` is present, list the bundled browser plugin explicitly
 unless the config already has a root `browser` block:
@@ -132,7 +132,7 @@ kova browser tab new --label docs
 kova browser tab label t1 docs
 kova browser tab select 2
 kova browser tab close 2
-kova browser open https://docs.openclaw.ai --label docs
+kova browser open https://docs.neuralstudio.in --label docs
 kova browser focus docs
 kova browser close t1
 ```
@@ -200,14 +200,14 @@ store and pass `suggestedTargetId`/labels for long-lived workflows.
 File + dialog helpers:
 
 ```bash
-kova browser upload /tmp/openclaw/uploads/file.pdf --ref <ref>
+kova browser upload /tmp/kova/uploads/file.pdf --ref <ref>
 kova browser waitfordownload
 kova browser download <ref> report.pdf
 kova browser dialog --accept
 ```
 
 Managed Chrome profiles save ordinary click-triggered downloads into the Kova
-downloads directory (`/tmp/openclaw/downloads` by default, or the configured temp
+downloads directory (`/tmp/kova/downloads` by default, or the configured temp
 root). Use `waitfordownload` or `download` when the agent needs to wait for a
 specific file and return its path; those explicit waiters own the next download.
 

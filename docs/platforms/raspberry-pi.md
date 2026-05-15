@@ -112,14 +112,14 @@ sudo sysctl -p
 ### Option A: standard install (recommended)
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://www.neuralstudio.in/install.sh | bash
 ```
 
 ### Option B: hackable install (for tinkering)
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/chiragborse1/KovaLab.git
+cd kova
 npm install
 npm run build
 npm link
@@ -147,10 +147,10 @@ Follow the wizard:
 kova status
 
 # Check service (standard install = systemd user unit)
-systemctl --user status openclaw-gateway.service
+systemctl --user status kova-gateway.service
 
 # View logs
-journalctl --user -u openclaw-gateway.service -f
+journalctl --user -u kova-gateway.service -f
 ```
 
 ## 9) Access the Kova Dashboard
@@ -177,7 +177,7 @@ Then open the printed Dashboard URL in your local browser.
 
 If the UI asks for shared-secret auth, paste the configured token or password
 into Control UI settings. For token auth, use `gateway.auth.token` (or
-`OPENCLAW_GATEWAY_TOKEN`).
+`KOVA_GATEWAY_TOKEN`).
 
 For always-on remote access, see [Tailscale](/gateway/tailscale).
 
@@ -201,10 +201,10 @@ See [Pi USB boot guide](https://www.raspberrypi.com/documentation/computers/rasp
 On lower-power Pi hosts, enable Node's module compile cache so repeated CLI runs are faster:
 
 ```bash
-grep -q 'NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache' ~/.bashrc || cat >> ~/.bashrc <<'EOF' # pragma: allowlist secret
-export NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
-mkdir -p /var/tmp/openclaw-compile-cache
-export OPENCLAW_NO_RESPAWN=1
+grep -q 'NODE_COMPILE_CACHE=/var/tmp/kova-compile-cache' ~/.bashrc || cat >> ~/.bashrc <<'EOF' # pragma: allowlist secret
+export NODE_COMPILE_CACHE=/var/tmp/kova-compile-cache
+mkdir -p /var/tmp/kova-compile-cache
+export KOVA_NO_RESPAWN=1
 EOF
 source ~/.bashrc
 ```
@@ -213,7 +213,7 @@ Notes:
 
 - `NODE_COMPILE_CACHE` speeds up subsequent runs (`status`, `health`, `--help`).
 - `/var/tmp` survives reboots better than `/tmp`.
-- `OPENCLAW_NO_RESPAWN=1` avoids extra startup cost from CLI self-respawn.
+- `KOVA_NO_RESPAWN=1` avoids extra startup cost from CLI self-respawn.
 - First run warms the cache; later runs benefit most.
 
 ### systemd startup tuning (optional)
@@ -222,13 +222,13 @@ If this Pi is mostly running Kova, add a service drop-in to reduce restart
 jitter and keep startup env stable:
 
 ```bash
-systemctl --user edit openclaw-gateway.service
+systemctl --user edit kova-gateway.service
 ```
 
 ```ini
 [Service]
-Environment=OPENCLAW_NO_RESPAWN=1
-Environment=NODE_COMPILE_CACHE=/var/tmp/openclaw-compile-cache
+Environment=KOVA_NO_RESPAWN=1
+Environment=NODE_COMPILE_CACHE=/var/tmp/kova-compile-cache
 Restart=always
 RestartSec=2
 TimeoutStartSec=90
@@ -238,7 +238,7 @@ Then apply:
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user restart openclaw-gateway.service
+systemctl --user restart kova-gateway.service
 ```
 
 If possible, keep Kova state/cache on SSD-backed storage to avoid SD-card
@@ -333,13 +333,13 @@ Onboarding sets this up, but to verify:
 
 ```bash
 # Check service is enabled
-systemctl --user is-enabled openclaw-gateway.service
+systemctl --user is-enabled kova-gateway.service
 
 # Enable if not
-systemctl --user enable openclaw-gateway.service
+systemctl --user enable kova-gateway.service
 
 # Start on boot
-systemctl --user start openclaw-gateway.service
+systemctl --user start kova-gateway.service
 ```
 
 ---
@@ -366,12 +366,12 @@ free -h
 
 ```bash
 # Check logs
-journalctl --user -u openclaw-gateway.service --no-pager -n 100
+journalctl --user -u kova-gateway.service --no-pager -n 100
 
 # Common fix: rebuild
-cd ~/openclaw  # if using hackable install
+cd ~/kova  # if using hackable install
 npm run build
-systemctl --user restart openclaw-gateway.service
+systemctl --user restart kova-gateway.service
 ```
 
 ### ARM Binary Issues

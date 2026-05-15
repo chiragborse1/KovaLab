@@ -19,7 +19,7 @@ plugins.
 
 ## Test utilities
 
-**Import:** `openclaw/plugin-sdk/testing`
+**Import:** `getkova/plugin-sdk/testing`
 
 The testing subpath exports a narrow set of helpers for plugin authors:
 
@@ -28,7 +28,7 @@ import {
   installCommonResolveTargetErrorCases,
   shouldAckReaction,
   removeAckReactionAfterReply,
-} from "openclaw/plugin-sdk/testing";
+} from "getkova/plugin-sdk/testing";
 ```
 
 ### Available exports
@@ -47,11 +47,11 @@ The testing subpath also re-exports types useful in test files:
 import type {
   ChannelAccountSnapshot,
   ChannelGatewayContext,
-  OpenClawConfig,
+  KovaConfig,
   PluginRuntime,
   RuntimeEnv,
   MockFn,
-} from "openclaw/plugin-sdk/testing";
+} from "getkova/plugin-sdk/testing";
 ```
 
 ## Testing target resolution
@@ -61,7 +61,7 @@ channel target resolution:
 
 ```typescript
 import { describe } from "vitest";
-import { installCommonResolveTargetErrorCases } from "openclaw/plugin-sdk/testing";
+import { installCommonResolveTargetErrorCases } from "getkova/plugin-sdk/testing";
 
 describe("my-channel target resolution", () => {
   installCommonResolveTargetErrorCases({
@@ -171,8 +171,8 @@ describe("my-provider plugin", () => {
 For code that uses `createPluginRuntimeStore`, mock the runtime in tests:
 
 ```typescript
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
-import type { PluginRuntime } from "openclaw/plugin-sdk/runtime-store";
+import { createPluginRuntimeStore } from "getkova/plugin-sdk/runtime-store";
+import type { PluginRuntime } from "getkova/plugin-sdk/runtime-store";
 
 const store = createPluginRuntimeStore<PluginRuntime>({
   pluginId: "test-plugin",
@@ -247,7 +247,7 @@ pnpm test -- src/plugins/contracts/runtime.contract.test.ts
 
 Three rules are enforced by `pnpm check` for in-repo plugins:
 
-1. **No monolithic root imports** -- `openclaw/plugin-sdk` root barrel is rejected
+1. **No monolithic root imports** -- `getkova/plugin-sdk` root barrel is rejected
 2. **No direct `src/` imports** -- plugins cannot import `../../src/` directly
 3. **No self-imports** -- plugins cannot import their own `plugin-sdk/<name>` subpath
 
@@ -275,7 +275,7 @@ pnpm test:coverage
 If local runs cause memory pressure:
 
 ```bash
-OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test
+KOVA_VITEST_MAX_WORKERS=1 pnpm test
 ```
 
 ## Related

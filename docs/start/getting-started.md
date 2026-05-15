@@ -29,7 +29,7 @@ Need to install Node? See [Node setup](/install/node).
     <Tabs>
       <Tab title="macOS / Linux">
         ```bash
-        curl -fsSL https://openclaw.ai/install.sh | bash
+        curl -fsSL https://www.neuralstudio.in/install.sh | bash
         ```
         <img
   src="/assets/install-script.svg"
@@ -39,7 +39,7 @@ Need to install Node? See [Node setup](/install/node).
       </Tab>
       <Tab title="Windows (PowerShell)">
         ```powershell
-        iwr -useb https://openclaw.ai/install.ps1 | iex
+        iwr -useb https://www.neuralstudio.in/install.ps1 | iex
         ```
       </Tab>
     </Tabs>
@@ -92,7 +92,7 @@ Need to install Node? See [Node setup](/install/node).
   assets and `index.html`.
 
 ```bash
-mkdir -p "$HOME/.openclaw/control-ui-custom"
+mkdir -p "$HOME/.kova/control-ui-custom"
 # Copy your built static files into that directory.
 ```
 
@@ -103,7 +103,7 @@ Then set:
   "gateway": {
     "controlUi": {
       "enabled": true,
-      "root": "$HOME/.openclaw/control-ui-custom"
+      "root": "$HOME/.kova/control-ui-custom"
     }
   }
 }
@@ -138,9 +138,9 @@ kova dashboard
 <Accordion title="Advanced: environment variables">
   If you run Kova as a service account or want custom paths:
 
-- `OPENCLAW_HOME` — home directory for internal path resolution
-- `OPENCLAW_STATE_DIR` — override the state directory
-- `OPENCLAW_CONFIG_PATH` — override the config file path
+- `KOVA_HOME` — home directory for internal path resolution
+- `KOVA_STATE_DIR` — override the state directory
+- `KOVA_CONFIG_PATH` — override the config file path
 
 Full reference: [Environment variables](/help/environment).
 </Accordion>

@@ -37,7 +37,7 @@ function resolveAgentRuntimeMetadata(
   cfg: ReturnType<typeof getRuntimeConfig>,
   agentId: string,
 ): NonNullable<AgentListEntry["agentRuntime"]> {
-  const envRuntime = normalizeRuntimeValue(process.env.OPENCLAW_AGENT_RUNTIME);
+  const envRuntime = normalizeRuntimeValue(process.env.KOVA_AGENT_RUNTIME);
   if (envRuntime) {
     return {
       id: envRuntime,

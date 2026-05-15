@@ -29,7 +29,7 @@ describe("scripts/run-vitest", () => {
   it("allows opting back into Maglev explicitly", () => {
     expect(
       resolveVitestNodeArgs({
-        OPENCLAW_VITEST_ENABLE_MAGLEV: "1",
+        KOVA_VITEST_ENABLE_MAGLEV: "1",
         PATH: "/usr/bin",
       }),
     ).toEqual([]);
@@ -37,12 +37,8 @@ describe("scripts/run-vitest", () => {
 
   it("parses the optional no-output timeout env", () => {
     expect(resolveVitestNoOutputTimeoutMs({})).toBeNull();
-    expect(resolveVitestNoOutputTimeoutMs({ OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS: "2500" })).toBe(
-      2500,
-    );
-    expect(
-      resolveVitestNoOutputTimeoutMs({ OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS: "0" }),
-    ).toBeNull();
+    expect(resolveVitestNoOutputTimeoutMs({ KOVA_VITEST_NO_OUTPUT_TIMEOUT_MS: "2500" })).toBe(2500);
+    expect(resolveVitestNoOutputTimeoutMs({ KOVA_VITEST_NO_OUTPUT_TIMEOUT_MS: "0" })).toBeNull();
   });
 
   it("spawns vitest in a detached process group on Unix hosts", () => {
@@ -62,13 +58,13 @@ describe("scripts/run-vitest", () => {
     expect(
       resolveVitestSpawnParams(
         {
-          OPENCLAW_LOCAL_CHECK: "0",
+          KOVA_LOCAL_CHECK: "0",
           PATH: "/usr/bin",
         },
         "darwin",
       ).env,
     ).toMatchObject({
-      OPENCLAW_LOCAL_CHECK: "1",
+      KOVA_LOCAL_CHECK: "1",
       PATH: "/usr/bin",
     });
   });
@@ -78,14 +74,14 @@ describe("scripts/run-vitest", () => {
       resolveVitestSpawnParams(
         {
           CI: "true",
-          OPENCLAW_LOCAL_CHECK: "0",
+          KOVA_LOCAL_CHECK: "0",
           PATH: "/usr/bin",
         },
         "linux",
       ).env,
     ).toMatchObject({
       CI: "true",
-      OPENCLAW_LOCAL_CHECK: "0",
+      KOVA_LOCAL_CHECK: "0",
       PATH: "/usr/bin",
     });
   });
@@ -94,13 +90,13 @@ describe("scripts/run-vitest", () => {
     expect(
       resolveVitestSpawnParams(
         {
-          OPENCLAW_TEST_PROJECTS_SERIAL: "1",
+          KOVA_TEST_PROJECTS_SERIAL: "1",
           PATH: "/usr/bin",
         },
         "darwin",
       ).env,
     ).toMatchObject({
-      OPENCLAW_TEST_PROJECTS_SERIAL: "1",
+      KOVA_TEST_PROJECTS_SERIAL: "1",
       RAYON_NUM_THREADS: "1",
       TOKIO_WORKER_THREADS: "1",
     });
@@ -110,7 +106,7 @@ describe("scripts/run-vitest", () => {
     expect(
       resolveVitestSpawnParams(
         {
-          OPENCLAW_VITEST_MAX_WORKERS: "2",
+          KOVA_VITEST_MAX_WORKERS: "2",
           PATH: "/usr/bin",
           RAYON_NUM_THREADS: "8",
           TOKIO_WORKER_THREADS: "6",
@@ -118,7 +114,7 @@ describe("scripts/run-vitest", () => {
         "darwin",
       ).env,
     ).toMatchObject({
-      OPENCLAW_VITEST_MAX_WORKERS: "2",
+      KOVA_VITEST_MAX_WORKERS: "2",
       RAYON_NUM_THREADS: "8",
       TOKIO_WORKER_THREADS: "6",
     });

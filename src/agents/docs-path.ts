@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
+import { resolveKovaPackageRoot } from "../infra/kova-root.js";
 
-export const OPENCLAW_DOCS_URL = "https://docs.neuralstudio.in";
-export const OPENCLAW_SOURCE_URL = "https://github.com/openclaw/openclaw";
+export const KOVA_DOCS_URL = "https://docs.neuralstudio.in";
+export const KOVA_SOURCE_URL = "https://github.com/chiragborse1/KovaLab";
 
-type ResolveOpenClawReferencePathParams = {
+type ResolveKovaReferencePathParams = {
   workspaceDir?: string;
   argv1?: string;
   cwd?: string;
@@ -20,7 +20,7 @@ function isGitCheckout(rootDir: string): boolean {
   return fs.existsSync(path.join(rootDir, ".git"));
 }
 
-export async function resolveOpenClawDocsPath(params: {
+export async function resolveKovaDocsPath(params: {
   workspaceDir?: string;
   argv1?: string;
   cwd?: string;
@@ -34,7 +34,7 @@ export async function resolveOpenClawDocsPath(params: {
     }
   }
 
-  const packageRoot = await resolveOpenClawPackageRoot({
+  const packageRoot = await resolveKovaPackageRoot({
     cwd: params.cwd,
     argv1: params.argv1,
     moduleUrl: params.moduleUrl,
@@ -47,10 +47,10 @@ export async function resolveOpenClawDocsPath(params: {
   return isUsableDocsDir(packageDocs) ? packageDocs : null;
 }
 
-export async function resolveOpenClawSourcePath(
-  params: ResolveOpenClawReferencePathParams,
+export async function resolveKovaSourcePath(
+  params: ResolveKovaReferencePathParams,
 ): Promise<string | null> {
-  const packageRoot = await resolveOpenClawPackageRoot({
+  const packageRoot = await resolveKovaPackageRoot({
     cwd: params.cwd,
     argv1: params.argv1,
     moduleUrl: params.moduleUrl,
@@ -61,15 +61,13 @@ export async function resolveOpenClawSourcePath(
   return packageRoot;
 }
 
-export async function resolveOpenClawReferencePaths(
-  params: ResolveOpenClawReferencePathParams,
-): Promise<{
+export async function resolveKovaReferencePaths(params: ResolveKovaReferencePathParams): Promise<{
   docsPath: string | null;
   sourcePath: string | null;
 }> {
   const [docsPath, sourcePath] = await Promise.all([
-    resolveOpenClawDocsPath(params),
-    resolveOpenClawSourcePath(params),
+    resolveKovaDocsPath(params),
+    resolveKovaSourcePath(params),
   ]);
   return { docsPath, sourcePath };
 }

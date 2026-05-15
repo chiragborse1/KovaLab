@@ -3,7 +3,7 @@ summary: "FAQ: quick-start and first-run setup — install, onboard, auth, subsc
 read_when:
   - New install, onboarding stuck, or first-run errors
   - Choosing auth and provider subscriptions
-  - Cannot access docs.openclaw.ai, cannot open dashboard, install stuck
+  - Cannot access docs.kova.ai, cannot open dashboard, install stuck
 title: "FAQ: first-run setup"
 sidebarTitle: "First-run FAQ"
 ---
@@ -27,7 +27,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     the hackable (git) install:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method git
     ```
 
     This installs Kova **from a git checkout**, so the agent can read the code + docs and
@@ -38,8 +38,8 @@ and troubleshooting see the main [FAQ](/help/faq).
     necessary commands. That keeps changes small and easier to audit.
 
     If you discover a real bug or fix, please file a GitHub issue or send a PR:
-    [https://github.com/openclaw/openclaw/issues](https://github.com/openclaw/openclaw/issues)
-    [https://github.com/openclaw/openclaw/pulls](https://github.com/openclaw/openclaw/pulls)
+    [https://github.com/chiragborse1/KovaLab/issues](https://github.com/chiragborse1/KovaLab/issues)
+    [https://github.com/chiragborse1/KovaLab/pulls](https://github.com/chiragborse1/KovaLab/pulls)
 
     Start with these commands (share outputs when asking for help):
 
@@ -82,7 +82,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     The repo recommends running from source and using onboarding:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash
     kova onboard --install-daemon
     ```
 
@@ -91,8 +91,8 @@ and troubleshooting see the main [FAQ](/help/faq).
     From source (contributors/dev):
 
     ```bash
-    git clone https://github.com/openclaw/openclaw.git
-    cd openclaw
+    git clone https://github.com/chiragborse1/KovaLab.git
+    cd kova
     pnpm install
     pnpm build
     pnpm ui:build
@@ -112,8 +112,8 @@ and troubleshooting see the main [FAQ](/help/faq).
 
     - Open `http://127.0.0.1:18789/`.
     - If it asks for shared-secret auth, paste the configured token or password into Control UI settings.
-    - Token source: `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`).
-    - Password source: `gateway.auth.password` (or `OPENCLAW_GATEWAY_PASSWORD`).
+    - Token source: `gateway.auth.token` (or `KOVA_GATEWAY_TOKEN`).
+    - Password source: `gateway.auth.password` (or `KOVA_GATEWAY_PASSWORD`).
     - If no shared secret is configured yet, generate a token with `kova doctor --generate-gateway-token`.
 
     **Not on localhost:**
@@ -215,8 +215,8 @@ and troubleshooting see the main [FAQ](/help/faq).
     state) as long as you copy **both** locations:
 
     1. Install Kova on the new machine.
-    2. Copy `$OPENCLAW_STATE_DIR` (default: `~/.openclaw`) from the old machine.
-    3. Copy your workspace (default: `~/.openclaw/workspace`).
+    2. Copy `$KOVA_STATE_DIR` (default: `~/.kova`) from the old machine.
+    3. Copy your workspace (default: `~/.kova/workspace`).
     4. Run `kova doctor` and restart the Gateway service.
 
     That preserves config, auth profiles, WhatsApp creds, sessions, and memory. If you're in
@@ -224,7 +224,7 @@ and troubleshooting see the main [FAQ](/help/faq).
 
     **Important:** if you only commit/push your workspace to GitHub, you're backing
     up **memory + bootstrap files**, but **not** session history or auth. Those live
-    under `~/.openclaw/` (for example `~/.openclaw/agents/<agentId>/sessions/`).
+    under `~/.kova/` (for example `~/.kova/agents/<agentId>/sessions/`).
 
     Related: [Migrating](/install/migrating), [Where things live on disk](#where-things-live-on-disk),
     [Agent workspace](/concepts/agent-workspace), [Doctor](/gateway/doctor),
@@ -234,7 +234,7 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   <Accordion title="Where do I see what is new in the latest version?">
     Check the GitHub changelog:
-    [https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md](https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md)
+    [https://github.com/chiragborse1/KovaLab/blob/main/CHANGELOG.md](https://github.com/chiragborse1/KovaLab/blob/main/CHANGELOG.md)
 
     Newest entries are at the top. If the top section is marked **Unreleased**, the next dated
     section is the latest shipped version. Entries are grouped by **Highlights**, **Changes**, and
@@ -242,13 +242,13 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   </Accordion>
 
-  <Accordion title="Cannot access docs.openclaw.ai (SSL error)">
-    Some Comcast/Xfinity connections incorrectly block `docs.openclaw.ai` via Xfinity
-    Advanced Security. Disable it or allowlist `docs.openclaw.ai`, then retry.
+  <Accordion title="Cannot access docs.kova.ai (SSL error)">
+    Some Comcast/Xfinity connections incorrectly block `docs.kova.ai` via Xfinity
+    Advanced Security. Disable it or allowlist `docs.kova.ai`, then retry.
     Please help us unblock it by reporting here: [https://spa.xfinity.com/check_url_status](https://spa.xfinity.com/check_url_status).
 
     If you still can't reach the site, the docs are mirrored on GitHub:
-    [https://github.com/openclaw/openclaw/tree/main/docs](https://github.com/openclaw/openclaw/tree/main/docs)
+    [https://github.com/chiragborse1/KovaLab/tree/main/docs](https://github.com/chiragborse1/KovaLab/tree/main/docs)
 
   </Accordion>
 
@@ -264,7 +264,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     point at the **same version** after promotion.
 
     See what changed:
-    [https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md](https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md)
+    [https://github.com/chiragborse1/KovaLab/blob/main/CHANGELOG.md](https://github.com/chiragborse1/KovaLab/blob/main/CHANGELOG.md)
 
     For install one-liners and the difference between beta and dev, see the accordion below.
 
@@ -277,15 +277,15 @@ and troubleshooting see the main [FAQ](/help/faq).
     One-liners (macOS/Linux):
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --beta
+    curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --beta
     ```
 
     ```bash
-    curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL --proto '=https' --tlsv1.2 https://www.neuralstudio.in/install.sh | bash -s -- --install-method git
     ```
 
     Windows installer (PowerShell):
-    [https://openclaw.ai/install.ps1](https://openclaw.ai/install.ps1)
+    [https://www.neuralstudio.in/install.ps1](https://www.neuralstudio.in/install.ps1)
 
     More detail: [Development channels](/install/development-channels) and [Installer flags](/install/installer).
 
@@ -305,7 +305,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     2. **Hackable install (from the installer site):**
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method git
     ```
 
     That gives you a local repo you can edit, then update via git.
@@ -313,8 +313,8 @@ and troubleshooting see the main [FAQ](/help/faq).
     If you prefer a clean clone manually, use:
 
     ```bash
-    git clone https://github.com/openclaw/openclaw.git
-    cd openclaw
+    git clone https://github.com/chiragborse1/KovaLab.git
+    cd kova
     pnpm install
     pnpm build
     ```
@@ -339,19 +339,19 @@ and troubleshooting see the main [FAQ](/help/faq).
     Re-run the installer with **verbose output**:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --verbose
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --verbose
     ```
 
     Beta install with verbose:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --beta --verbose
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --beta --verbose
     ```
 
     For a hackable (git) install:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git --verbose
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method git --verbose
     ```
 
     Windows (PowerShell) equivalent:
@@ -359,7 +359,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     ```powershell
     # install.ps1 has no dedicated -Verbose flag yet.
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
 
@@ -417,7 +417,7 @@ and troubleshooting see the main [FAQ](/help/faq).
 
     If you still reproduce this on latest Kova, track/report it in:
 
-    - [Issue #30640](https://github.com/openclaw/openclaw/issues/30640)
+    - [Issue #30640](https://github.com/chiragborse1/KovaLab/issues/30640)
 
   </Accordion>
 
@@ -426,7 +426,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     your bot (or Claude/Codex) _from that folder_ so it can read the repo and answer precisely.
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method git
     ```
 
     More detail: [Install](/install) and [Installer flags](/install/installer).
@@ -639,7 +639,7 @@ and troubleshooting see the main [FAQ](/help/faq).
   </Accordion>
 
   <Accordion title="How do I set up Gemini CLI OAuth?">
-    Gemini CLI uses a **plugin auth flow**, not a client id or secret in `openclaw.json`.
+    Gemini CLI uses a **plugin auth flow**, not a client id or secret in `kova.json`.
 
     Steps:
 
@@ -768,7 +768,7 @@ and troubleshooting see the main [FAQ](/help/faq).
   <Accordion title="Can I switch between npm and git installs later?">
     Yes. Use `kova update --channel ...` when Kova is already installed.
     This **does not delete your data** - it only changes the Kova code install.
-    Your state (`~/.openclaw`) and workspace (`~/.openclaw/workspace`) stay untouched.
+    Your state (`~/.kova`) and workspace (`~/.kova/workspace`) stay untouched.
 
     From npm to git:
 
@@ -789,8 +789,8 @@ and troubleshooting see the main [FAQ](/help/faq).
     The installer can force either mode too:
 
     ```bash
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method git
-    curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method npm
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method git
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method npm
     ```
 
     Backup tips: see [Backup strategy](#where-things-live-on-disk).

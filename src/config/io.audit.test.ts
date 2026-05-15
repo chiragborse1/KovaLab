@@ -40,7 +40,7 @@ function createAuditRecordBase(configPath: string) {
 
 function createRenameAuditRecord(home: string) {
   return finalizeConfigWriteAuditRecord({
-    base: createAuditRecordBase(path.join(home, ".openclaw", "openclaw.json")),
+    base: createAuditRecordBase(path.join(home, ".kova", "kova.json")),
     result: "rename",
     nextMetadata: {
       dev: "12",
@@ -63,7 +63,7 @@ function readAuditLog(home: string): unknown[] {
 }
 
 describe("config io audit helpers", () => {
-  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "openclaw-config-audit-" });
+  const suiteRootTracker = createSuiteTempRootTracker({ prefix: "kova-config-audit-" });
 
   beforeAll(async () => {
     await suiteRootTracker.setup();
@@ -79,7 +79,7 @@ describe("config io audit helpers", () => {
       {
         HOME: "undefined",
         USERPROFILE: "null",
-        OPENCLAW_HOME: "undefined",
+        KOVA_HOME: "undefined",
       } as NodeJS.ProcessEnv,
       () => home,
     );
@@ -90,13 +90,13 @@ describe("config io audit helpers", () => {
   it("formats overwrite warnings with hash transition and backup path", () => {
     expect(
       formatConfigOverwriteLogMessage({
-        configPath: "/tmp/openclaw.json",
+        configPath: "/tmp/kova.json",
         previousHash: "prev-hash",
         nextHash: "next-hash",
         changedPathCount: 3,
       }),
     ).toBe(
-      "Config overwrite: /tmp/openclaw.json (sha256 prev-hash -> next-hash, backup=/tmp/openclaw.json.bak, changedPaths=3)",
+      "Config overwrite: /tmp/kova.json (sha256 prev-hash -> next-hash, backup=/tmp/kova.json.bak, changedPaths=3)",
     );
   });
 
@@ -147,11 +147,11 @@ describe("config io audit helpers", () => {
 
   it("captures watch markers and next stat metadata for successful writes", () => {
     const base = createConfigWriteAuditRecordBase({
-      configPath: "/tmp/openclaw.json",
+      configPath: "/tmp/kova.json",
       env: {
-        OPENCLAW_WATCH_MODE: "1",
-        OPENCLAW_WATCH_SESSION: "watch-session-1",
-        OPENCLAW_WATCH_COMMAND: "gateway --force",
+        KOVA_WATCH_MODE: "1",
+        KOVA_WATCH_SESSION: "watch-session-1",
+        KOVA_WATCH_COMMAND: "gateway --force",
       } as NodeJS.ProcessEnv,
       existsBefore: true,
       previousHash: "prev-hash",
@@ -177,7 +177,7 @@ describe("config io audit helpers", () => {
         pid: 101,
         ppid: 99,
         cwd: "/work",
-        argv: ["node", "openclaw"],
+        argv: ["node", "kova"],
         execArgv: ["--loader"],
       },
     });
@@ -206,7 +206,7 @@ describe("config io audit helpers", () => {
 
   it("redacts and caps caller-supplied process argv before audit persistence", () => {
     const base = createConfigWriteAuditRecordBase({
-      configPath: "/tmp/openclaw.json",
+      configPath: "/tmp/kova.json",
       env: {} as NodeJS.ProcessEnv,
       existsBefore: true,
       previousHash: "prev-hash",
@@ -262,7 +262,7 @@ describe("config io audit helpers", () => {
   });
 
   it("drops next-file metadata and preserves error details for failed writes", () => {
-    const base = createAuditRecordBase("/tmp/openclaw.json");
+    const base = createAuditRecordBase("/tmp/kova.json");
     const err = Object.assign(new Error("disk full"), { code: "ENOSPC" });
     const record = finalizeConfigWriteAuditRecord({
       base,

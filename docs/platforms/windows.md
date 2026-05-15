@@ -131,8 +131,8 @@ wsl --list --verbose
 After a reboot (before Windows sign-in), check from WSL:
 
 ```bash
-systemctl --user is-enabled openclaw-gateway.service
-systemctl --user status openclaw-gateway.service --no-pager
+systemctl --user is-enabled kova-gateway.service
+systemctl --user status kova-gateway.service --no-pager
 ```
 
 ## Advanced: expose WSL services over LAN (portproxy)
@@ -223,8 +223,8 @@ systemctl --user status
 For a normal first-time setup inside WSL, follow the Linux Getting Started flow:
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
+git clone https://github.com/chiragborse1/KovaLab.git
+cd kova
 pnpm install
 pnpm build
 pnpm ui:build

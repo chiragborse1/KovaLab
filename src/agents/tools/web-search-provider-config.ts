@@ -1,11 +1,11 @@
 import { resolvePluginWebSearchConfig } from "../../config/plugin-web-search-config.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 
 type ConfiguredWebSearchProvider = NonNullable<
-  NonNullable<NonNullable<OpenClawConfig["tools"]>["web"]>["search"]
+  NonNullable<NonNullable<KovaConfig["tools"]>["web"]>["search"]
 >["provider"];
 
-export type WebSearchConfig = NonNullable<OpenClawConfig["tools"]>["web"] extends infer Web
+export type WebSearchConfig = NonNullable<KovaConfig["tools"]>["web"] extends infer Web
   ? Web extends { search?: infer Search }
     ? Search
     : undefined
@@ -20,9 +20,9 @@ function cloneWithDescriptors<T extends object>(value: T | undefined): T {
 }
 
 export function withForcedProvider(
-  config: OpenClawConfig | undefined,
+  config: KovaConfig | undefined,
   provider: ConfiguredWebSearchProvider,
-): OpenClawConfig {
+): KovaConfig {
   const next = cloneWithDescriptors(config ?? {});
   const tools = cloneWithDescriptors(next.tools ?? {});
   const web = cloneWithDescriptors(tools.web ?? {});
@@ -102,7 +102,7 @@ export function mergeScopedSearchConfig(
   return next;
 }
 
-export function resolveSearchConfig(cfg?: OpenClawConfig): WebSearchConfig {
+export function resolveSearchConfig(cfg?: KovaConfig): WebSearchConfig {
   const search = cfg?.tools?.web?.search;
   if (!search || typeof search !== "object") {
     return undefined;
@@ -111,7 +111,7 @@ export function resolveSearchConfig(cfg?: OpenClawConfig): WebSearchConfig {
 }
 
 export function resolveProviderWebSearchPluginConfig(
-  config: OpenClawConfig | undefined,
+  config: KovaConfig | undefined,
   pluginId: string,
 ): Record<string, unknown> | undefined {
   return resolvePluginWebSearchConfig(config, pluginId);
@@ -128,7 +128,7 @@ function ensureObject(target: Record<string, unknown>, key: string): Record<stri
 }
 
 export function setProviderWebSearchPluginConfigValue(
-  configTarget: OpenClawConfig,
+  configTarget: KovaConfig,
   pluginId: string,
   key: string,
   value: unknown,

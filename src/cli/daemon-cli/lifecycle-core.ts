@@ -471,7 +471,7 @@ export async function runServiceRestart(params: {
     try {
       const command = await params.service.readCommand(process.env);
       const serviceToken =
-        command?.environment?.KOVA_GATEWAY_TOKEN ?? command?.environment?.OPENCLAW_GATEWAY_TOKEN;
+        command?.environment?.KOVA_GATEWAY_TOKEN ?? command?.environment?.KOVA_GATEWAY_TOKEN;
       const cfg = await readBestEffortConfig();
       const driftEnv = {
         ...process.env,

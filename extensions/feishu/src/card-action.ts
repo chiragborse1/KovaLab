@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { handleFeishuMessage, type FeishuMessageEvent } from "./bot.js";
 import { decodeFeishuCardAction, buildFeishuCardActionTextFallback } from "./card-interaction.js";
@@ -139,7 +139,7 @@ function resolveCallbackTarget(event: FeishuCardActionEvent): string {
 }
 
 async function dispatchSyntheticCommand(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   event: FeishuCardActionEvent;
   command: string;
   account: ReturnType<typeof resolveFeishuRuntimeAccount>;
@@ -264,7 +264,7 @@ async function resolveCardActionChatType(params: {
 }
 
 async function sendInvalidInteractionNotice(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   event: FeishuCardActionEvent;
   reason: "malformed" | "stale" | "wrong_user" | "wrong_conversation";
   accountId?: string;
@@ -287,7 +287,7 @@ async function sendInvalidInteractionNotice(params: {
 }
 
 export async function handleFeishuCardAction(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   event: FeishuCardActionEvent;
   botOpenId?: string;
   runtime?: RuntimeEnv;

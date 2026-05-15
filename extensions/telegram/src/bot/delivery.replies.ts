@@ -1,29 +1,29 @@
-import { type Bot, GrammyError, InputFile } from "grammy";
-import type { ReplyToMode } from "openclaw/plugin-sdk/config-runtime";
-import type { MarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { fireAndForgetHook } from "openclaw/plugin-sdk/hook-runtime";
-import { createInternalHookEvent, triggerInternalHook } from "openclaw/plugin-sdk/hook-runtime";
+import type { ReplyToMode } from "getkova/plugin-sdk/config-runtime";
+import type { MarkdownTableMode } from "getkova/plugin-sdk/config-runtime";
+import { fireAndForgetHook } from "getkova/plugin-sdk/hook-runtime";
+import { createInternalHookEvent, triggerInternalHook } from "getkova/plugin-sdk/hook-runtime";
 import {
   buildCanonicalSentMessageHookContext,
   toInternalMessageSentContext,
   toPluginMessageContext,
   toPluginMessageSentEvent,
-} from "openclaw/plugin-sdk/hook-runtime";
-import type { ReplyPayloadDelivery } from "openclaw/plugin-sdk/interactive-runtime";
-import { buildOutboundMediaLoadOptions } from "openclaw/plugin-sdk/media-runtime";
-import { isGifMedia, kindFromMime } from "openclaw/plugin-sdk/media-runtime";
+} from "getkova/plugin-sdk/hook-runtime";
+import type { ReplyPayloadDelivery } from "getkova/plugin-sdk/interactive-runtime";
+import { buildOutboundMediaLoadOptions } from "getkova/plugin-sdk/media-runtime";
+import { isGifMedia, kindFromMime } from "getkova/plugin-sdk/media-runtime";
 import {
   createOutboundPayloadPlan,
   projectOutboundPayloadPlanForDelivery,
-} from "openclaw/plugin-sdk/outbound-runtime";
-import { getGlobalHookRunner } from "openclaw/plugin-sdk/plugin-runtime";
-import { chunkMarkdownTextWithMode, type ChunkMode } from "openclaw/plugin-sdk/reply-chunking";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-payload";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { danger, logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
-import { loadWebMedia } from "openclaw/plugin-sdk/web-media";
+} from "getkova/plugin-sdk/outbound-runtime";
+import { getGlobalHookRunner } from "getkova/plugin-sdk/plugin-runtime";
+import { chunkMarkdownTextWithMode, type ChunkMode } from "getkova/plugin-sdk/reply-chunking";
+import type { ReplyPayload } from "getkova/plugin-sdk/reply-payload";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { danger, logVerbose } from "getkova/plugin-sdk/runtime-env";
+import { createSubsystemLogger } from "getkova/plugin-sdk/runtime-env";
+import { formatErrorMessage } from "getkova/plugin-sdk/ssrf-runtime";
+import { loadWebMedia } from "getkova/plugin-sdk/web-media";
+import { type Bot, GrammyError, InputFile } from "grammy";
 import type { TelegramInlineButtons } from "../button-types.js";
 import { splitTelegramCaption } from "../caption.js";
 import {
@@ -661,7 +661,7 @@ export function emitTelegramMessageSentHooks(params: EmitMessageSentHookParams):
 
 export async function deliverReplies(params: {
   replies: ReplyPayload[];
-  cfg?: import("openclaw/plugin-sdk/config-runtime").OpenClawConfig;
+  cfg?: import("getkova/plugin-sdk/config-runtime").KovaConfig;
   chatId: string;
   accountId?: string;
   sessionKeyForInternalHooks?: string;

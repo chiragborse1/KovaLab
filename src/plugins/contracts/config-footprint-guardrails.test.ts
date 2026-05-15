@@ -197,6 +197,6 @@ describe("config footprint guardrails", () => {
       expect(source).not.toContain(schemaName);
     }
     expect(legacySource).toContain("Deprecated bundled-channel compatibility surface");
-    expect(legacySource).toContain("openclaw/plugin-sdk/channel-config-schema");
+    expect(legacySource).toContain("getkova/plugin-sdk/channel-config-schema");
   });
 });

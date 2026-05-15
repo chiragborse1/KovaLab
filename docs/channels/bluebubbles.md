@@ -494,7 +494,7 @@ If the flag is on and split-sends still arrive as two turns, check each layer:
 <AccordionGroup>
   <Accordion title="Config actually loaded">
     ```
-    grep coalesceSameSenderDms ~/.openclaw/openclaw.json
+    grep coalesceSameSenderDms ~/.chiragborse1/KovaLab.json
     ```
 
     Then `kova gateway restart` — the flag is read at debouncer-registry creation.
@@ -511,10 +511,10 @@ If the flag is on and split-sends still arrive as two turns, check each layer:
 
   </Accordion>
   <Accordion title="Session JSONL timestamps ≠ webhook arrival">
-    Session event timestamps (`~/.openclaw/agents/<id>/sessions/*.jsonl`) reflect when the gateway hands a message to the agent, **not** when the webhook arrived. A queued-second message tagged `[Queued messages while agent was busy]` means the first turn was still running when the second webhook arrived — the coalesce bucket had already flushed. Tune the window against the BB server log, not the session log.
+    Session event timestamps (`~/.kova/agents/<id>/sessions/*.jsonl`) reflect when the gateway hands a message to the agent, **not** when the webhook arrived. A queued-second message tagged `[Queued messages while agent was busy]` means the first turn was still running when the second webhook arrived — the coalesce bucket had already flushed. Tune the window against the BB server log, not the session log.
   </Accordion>
   <Accordion title="Memory pressure slowing reply dispatch">
-    On smaller machines (8 GB), agent turns can take long enough that the coalesce bucket flushes before the reply completes, and the URL lands as a queued second turn. Check `memory_pressure` and `ps -o rss -p $(pgrep openclaw-gateway)`; if the gateway is over ~500 MB RSS and the compressor is active, close other heavy processes or bump to a larger host.
+    On smaller machines (8 GB), agent turns can take long enough that the coalesce bucket flushes before the reply completes, and the URL lands as a queued second turn. Check `memory_pressure` and `ps -o rss -p $(pgrep kova-gateway)`; if the gateway is over ~500 MB RSS and the compressor is active, close other heavy processes or bump to a larger host.
   </Accordion>
   <Accordion title="Reply-quote sends are a different path">
     If the user tapped `Dump` as a **reply** to an existing URL-balloon (iMessage shows a "1 Reply" badge on the Dump bubble), the URL lives in `replyToBody`, not in a second webhook. Coalescing does not apply — that's a skill/prompt concern, not a debouncer concern.

@@ -1,5 +1,5 @@
 import { createAcpxRuntimeService } from "./register.runtime.js";
-import { tryDispatchAcpReplyHook, type OpenClawPluginApi } from "./runtime-api.js";
+import { tryDispatchAcpReplyHook, type KovaPluginApi } from "./runtime-api.js";
 import { createAcpxPluginConfigSchema } from "./src/config-schema.js";
 
 const plugin = {
@@ -7,7 +7,7 @@ const plugin = {
   name: "ACPX Runtime",
   description: "Embedded ACP runtime backend with plugin-owned session and transport management.",
   configSchema: () => createAcpxPluginConfigSchema(),
-  register(api: OpenClawPluginApi) {
+  register(api: KovaPluginApi) {
     api.registerService(
       createAcpxRuntimeService({
         pluginConfig: api.pluginConfig,

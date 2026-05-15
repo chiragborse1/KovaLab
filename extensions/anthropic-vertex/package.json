@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/anthropic-vertex-provider",
+  "name": "@kovaai/anthropic-vertex-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Anthropic Vertex provider plugin",
@@ -10,9 +10,9 @@
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

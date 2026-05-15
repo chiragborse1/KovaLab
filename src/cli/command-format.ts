@@ -1,12 +1,12 @@
 import { replaceCliName, resolveDisplayCliName } from "./cli-name.js";
 import { normalizeProfileName } from "./profile-utils.js";
 
-const CLI_PREFIX_RE = /^(?:pnpm|npm|bunx|npx)\s+(?:openclaw|kova)\b|^(?:openclaw|kova)\b/;
+const CLI_PREFIX_RE = /^(?:pnpm|npm|bunx|npx)\s+(?:kova|kova)\b|^(?:kova|kova)\b/;
 const CONTAINER_FLAG_RE = /(?:^|\s)--container(?:\s|=|$)/;
 const PROFILE_FLAG_RE = /(?:^|\s)--profile(?:\s|=|$)/;
 const DEV_FLAG_RE = /(?:^|\s)--dev(?:\s|$)/;
 const UPDATE_COMMAND_RE =
-  /^(?:pnpm|npm|bunx|npx)\s+(?:openclaw|kova)\b.*(?:^|\s)update(?:\s|$)|^(?:openclaw|kova)\b.*(?:^|\s)update(?:\s|$)/;
+  /^(?:pnpm|npm|bunx|npx)\s+(?:kova|kova)\b.*(?:^|\s)update(?:\s|$)|^(?:kova|kova)\b.*(?:^|\s)update(?:\s|$)/;
 const CONTAINER_HINT_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/;
 
 export function formatCliCommand(
@@ -15,9 +15,9 @@ export function formatCliCommand(
 ): string {
   const cliName = resolveDisplayCliName();
   const normalizedCommand = replaceCliName(command, cliName);
-  const rawContainer = env.KOVA_CONTAINER_HINT?.trim() ?? env.OPENCLAW_CONTAINER_HINT?.trim();
+  const rawContainer = env.KOVA_CONTAINER_HINT?.trim() ?? env.KOVA_CONTAINER_HINT?.trim();
   const container = rawContainer && CONTAINER_HINT_RE.test(rawContainer) ? rawContainer : undefined;
-  const profile = normalizeProfileName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
+  const profile = normalizeProfileName(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
   if (!container && !profile) {
     return normalizedCommand;
   }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-profile_path="${1:-${RUNNER_TEMP:-/tmp}/openclaw-live.profile}"
+profile_path="${1:-${RUNNER_TEMP:-/tmp}/kova-live.profile}"
 
 mkdir -p "$(dirname "$profile_path")"
 : >"$profile_path"
@@ -45,11 +45,11 @@ for env_key in \
   MINIMAX_API_KEY \
   OPENCODE_API_KEY \
   OPENCODE_ZEN_API_KEY \
-  OPENCLAW_LIVE_BROWSER_CDP_URL \
-  OPENCLAW_LIVE_SETUP_TOKEN \
-  OPENCLAW_LIVE_SETUP_TOKEN_MODEL \
-  OPENCLAW_LIVE_SETUP_TOKEN_PROFILE \
-  OPENCLAW_LIVE_SETUP_TOKEN_VALUE \
+  KOVA_LIVE_BROWSER_CDP_URL \
+  KOVA_LIVE_SETUP_TOKEN \
+  KOVA_LIVE_SETUP_TOKEN_MODEL \
+  KOVA_LIVE_SETUP_TOKEN_PROFILE \
+  KOVA_LIVE_SETUP_TOKEN_VALUE \
   GEMINI_API_KEY \
   GOOGLE_API_KEY \
   OPENROUTER_API_KEY \
@@ -70,16 +70,16 @@ do
   append_profile_env "$env_key"
 done
 
-write_secret_file "$HOME/.codex/auth.json" OPENCLAW_CODEX_AUTH_JSON
-write_secret_file "$HOME/.codex/config.toml" OPENCLAW_CODEX_CONFIG_TOML
-write_secret_file "$HOME/.claude.json" OPENCLAW_CLAUDE_JSON
-write_secret_file "$HOME/.claude/.credentials.json" OPENCLAW_CLAUDE_CREDENTIALS_JSON
-write_secret_file "$HOME/.claude/settings.json" OPENCLAW_CLAUDE_SETTINGS_JSON
-write_secret_file "$HOME/.claude/settings.local.json" OPENCLAW_CLAUDE_SETTINGS_LOCAL_JSON
-write_secret_file "$HOME/.gemini/settings.json" OPENCLAW_GEMINI_SETTINGS_JSON
+write_secret_file "$HOME/.codex/auth.json" KOVA_CODEX_AUTH_JSON
+write_secret_file "$HOME/.codex/config.toml" KOVA_CODEX_CONFIG_TOML
+write_secret_file "$HOME/.claude.json" KOVA_CLAUDE_JSON
+write_secret_file "$HOME/.claude/.credentials.json" KOVA_CLAUDE_CREDENTIALS_JSON
+write_secret_file "$HOME/.claude/settings.json" KOVA_CLAUDE_SETTINGS_JSON
+write_secret_file "$HOME/.claude/settings.local.json" KOVA_CLAUDE_SETTINGS_LOCAL_JSON
+write_secret_file "$HOME/.gemini/settings.json" KOVA_GEMINI_SETTINGS_JSON
 
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   {
-    echo "OPENCLAW_PROFILE_FILE=$profile_path"
+    echo "KOVA_PROFILE_FILE=$profile_path"
   } >>"$GITHUB_ENV"
 fi

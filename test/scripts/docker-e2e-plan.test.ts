@@ -176,7 +176,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
     expect(plan.lanes).toHaveLength(8);
     expect(plan.lanes[0]).toEqual(
       expect.objectContaining({
-        command: expect.stringContaining("OPENCLAW_BUNDLED_PLUGIN_SWEEP_INDEX=0"),
+        command: expect.stringContaining("KOVA_BUNDLED_PLUGIN_SWEEP_INDEX=0"),
         imageKind: "functional",
         live: false,
         name: "bundled-plugin-install-uninstall-0",
@@ -185,7 +185,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
     );
     expect(plan.lanes[7]).toEqual(
       expect.objectContaining({
-        command: expect.stringContaining("OPENCLAW_BUNDLED_PLUGIN_SWEEP_INDEX=7"),
+        command: expect.stringContaining("KOVA_BUNDLED_PLUGIN_SWEEP_INDEX=7"),
         imageKind: "functional",
         live: false,
         name: "bundled-plugin-install-uninstall-7",
@@ -200,7 +200,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
 
   it("rejects unknown selected lanes with the available lane names", () => {
     expect(() => planFor({ selectedLaneNames: ["missing-lane"] })).toThrow(
-      /OPENCLAW_DOCKER_ALL_LANES unknown lane\(s\): missing-lane/u,
+      /KOVA_DOCKER_ALL_LANES unknown lane\(s\): missing-lane/u,
     );
   });
 });

@@ -37,7 +37,7 @@ describe("managed Codex app-server binary", () => {
   });
 
   it("resolves the plugin-local bundled Codex binary", async () => {
-    const pluginRoot = path.join("/tmp", "openclaw", "extensions", "codex");
+    const pluginRoot = path.join("/tmp", "kova", "extensions", "codex");
     const paths = resolveManagedCodexAppServerPaths({ platform: "darwin", pluginRoot });
     const pathExists = vi.fn(async (filePath: string) => filePath === paths.commandPath);
 
@@ -56,7 +56,7 @@ describe("managed Codex app-server binary", () => {
   });
 
   it("resolves Windows Codex command shims", () => {
-    const pluginRoot = path.win32.join("C:\\", "OpenClaw", "dist", "extensions", "codex");
+    const pluginRoot = path.win32.join("C:\\", "Kova", "dist", "extensions", "codex");
     const paths = resolveManagedCodexAppServerPaths({ platform: "win32", pluginRoot });
 
     expect(paths.commandPath.endsWith(path.win32.join("node_modules", ".bin", "codex.cmd"))).toBe(
@@ -65,7 +65,7 @@ describe("managed Codex app-server binary", () => {
   });
 
   it("finds Codex in the external runtime-deps install root used by packaged plugins", async () => {
-    const installRoot = path.join("/tmp", "openclaw-runtime-deps", "codex");
+    const installRoot = path.join("/tmp", "kova-runtime-deps", "codex");
     const pluginRoot = path.join(installRoot, "dist", "extensions", "codex");
     const installedCommand = managedCommandPath(installRoot, "linux");
     const pathExists = vi.fn(async (filePath: string) => filePath === installedCommand);
@@ -87,7 +87,7 @@ describe("managed Codex app-server binary", () => {
     await expect(
       resolveManagedCodexAppServerStartOptions(startOptions("managed"), {
         platform: "darwin",
-        pluginRoot: path.join("/tmp", "openclaw", "extensions", "codex"),
+        pluginRoot: path.join("/tmp", "kova", "extensions", "codex"),
         pathExists: vi.fn(async () => false),
       }),
     ).rejects.toThrow("Managed Codex app-server binary was not found");

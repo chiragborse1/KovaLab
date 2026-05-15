@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 
 const resolveDefaultAgentId = vi.hoisted(() => vi.fn(() => "main"));
 const resolveAgentWorkspaceDir = vi.hoisted(() =>
-  vi.fn((_cfg: OpenClawConfig, agentId: string) => `/workspace/${agentId}`),
+  vi.fn((_cfg: KovaConfig, agentId: string) => `/workspace/${agentId}`),
 );
 
 vi.mock("../agents/agent-scope.js", () => ({
@@ -103,7 +103,7 @@ describe("memory dreaming host helpers", () => {
           userTimezone: "America/Los_Angeles",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const resolved = resolveMemoryDreamingConfig({
       pluginConfig: {},
@@ -164,7 +164,7 @@ describe("memory dreaming host helpers", () => {
   });
 
   it("dedupes shared workspaces across all configured agents", () => {
-    resolveAgentWorkspaceDir.mockImplementation((_cfg: OpenClawConfig, agentId: string) => {
+    resolveAgentWorkspaceDir.mockImplementation((_cfg: KovaConfig, agentId: string) => {
       if (agentId === "alpha") {
         return "/workspace/shared";
       }
@@ -178,7 +178,7 @@ describe("memory dreaming host helpers", () => {
       agents: {
         list: [{ id: "alpha" }, { id: "beta" }, { id: "gamma" }],
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(resolveMemoryDreamingWorkspaces(cfg)).toEqual([
       {
@@ -194,7 +194,7 @@ describe("memory dreaming host helpers", () => {
 
   it("uses default agent fallback and timezone-aware day helpers", () => {
     resolveDefaultAgentId.mockReturnValue("fallback");
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
 
     expect(resolveMemoryDreamingWorkspaces(cfg)).toEqual([
       {
@@ -220,11 +220,11 @@ describe("memory dreaming host helpers", () => {
       resolveMemoryDreamingPluginId({
         plugins: {
           slots: {
-            memory: "memos-local-openclaw-plugin",
+            memory: "memos-local-kova-plugin",
           },
         },
-      } as OpenClawConfig),
-    ).toBe("memos-local-openclaw-plugin");
+      } as KovaConfig),
+    ).toBe("memos-local-kova-plugin");
   });
 
   it("reads dreaming config from the configured memory-slot owner", () => {
@@ -232,10 +232,10 @@ describe("memory dreaming host helpers", () => {
       resolveMemoryDreamingPluginConfig({
         plugins: {
           slots: {
-            memory: "memos-local-openclaw-plugin",
+            memory: "memos-local-kova-plugin",
           },
           entries: {
-            "memos-local-openclaw-plugin": {
+            "memos-local-kova-plugin": {
               config: {
                 dreaming: {
                   enabled: true,
@@ -244,7 +244,7 @@ describe("memory dreaming host helpers", () => {
             },
           },
         },
-      } as OpenClawConfig),
+      } as KovaConfig),
     ).toEqual({
       dreaming: {
         enabled: true,
@@ -270,7 +270,7 @@ describe("memory dreaming host helpers", () => {
             },
           },
         },
-      } as OpenClawConfig),
+      } as KovaConfig),
     ).toEqual({
       dreaming: {
         enabled: true,
@@ -293,7 +293,7 @@ describe("memory dreaming host helpers", () => {
             },
           },
         },
-      } as OpenClawConfig),
+      } as KovaConfig),
     ).toEqual({
       dreaming: {
         enabled: true,
@@ -309,7 +309,7 @@ describe("memory dreaming host helpers", () => {
             memory: "none",
           },
         },
-      } as OpenClawConfig),
+      } as KovaConfig),
     ).toBe("memory-core");
 
     expect(
@@ -328,7 +328,7 @@ describe("memory dreaming host helpers", () => {
             },
           },
         },
-      } as OpenClawConfig),
+      } as KovaConfig),
     ).toEqual({
       dreaming: {
         enabled: true,

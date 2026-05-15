@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { bundledPluginRootAt } from "../../test/helpers/bundled-plugin-paths.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { PluginNpmIntegrityDriftParams } from "./install.js";
 
 const APP_ROOT = "/app";
@@ -14,7 +14,7 @@ function appBundledPluginRoot(pluginId: string): string {
 
 const installPluginFromNpmSpecMock = vi.fn();
 const installPluginFromMarketplaceMock = vi.fn();
-const installPluginFromClawHubMock = vi.fn();
+const installPluginFromKovaHubMock = vi.fn();
 const resolveBundledPluginSourcesMock = vi.fn();
 const runCommandWithTimeoutMock = vi.fn();
 const tempDirs: string[] = [];
@@ -32,8 +32,8 @@ vi.mock("./marketplace.js", () => ({
   installPluginFromMarketplace: (...args: unknown[]) => installPluginFromMarketplaceMock(...args),
 }));
 
-vi.mock("./clawhub.js", () => ({
-  installPluginFromClawHub: (...args: unknown[]) => installPluginFromClawHubMock(...args),
+vi.mock("./kovahub.js", () => ({
+  installPluginFromKovaHub: (...args: unknown[]) => installPluginFromKovaHubMock(...args),
 }));
 
 vi.mock("./bundled-sources.js", () => ({
@@ -58,8 +58,8 @@ function createSuccessfulNpmUpdateResult(params?: {
 }) {
   return {
     ok: true,
-    pluginId: params?.pluginId ?? "opik-openclaw",
-    targetDir: params?.targetDir ?? "/tmp/opik-openclaw",
+    pluginId: params?.pluginId ?? "opik-kova",
+    targetDir: params?.targetDir ?? "/tmp/opik-kova",
     version: params?.version ?? "0.2.6",
     extensions: ["index.ts"],
     ...(params?.npmResolution ? { npmResolution: params.npmResolution } : {}),
@@ -100,7 +100,7 @@ function createMarketplaceInstallConfig(params: {
   marketplaceSource: string;
   marketplacePlugin: string;
   marketplaceName?: string;
-}): OpenClawConfig {
+}): KovaConfig {
   return {
     plugins: {
       installs: {
@@ -116,25 +116,25 @@ function createMarketplaceInstallConfig(params: {
   };
 }
 
-function createClawHubInstallConfig(params: {
+function createKovaHubInstallConfig(params: {
   pluginId: string;
   installPath: string;
-  clawhubUrl: string;
-  clawhubPackage: string;
-  clawhubFamily: "bundle-plugin" | "code-plugin";
-  clawhubChannel: "community" | "official" | "private";
-}): OpenClawConfig {
+  kovahubUrl: string;
+  kovahubPackage: string;
+  kovahubFamily: "bundle-plugin" | "code-plugin";
+  kovahubChannel: "community" | "official" | "private";
+}): KovaConfig {
   return {
     plugins: {
       installs: {
         [params.pluginId]: {
-          source: "clawhub" as const,
-          spec: `clawhub:${params.clawhubPackage}`,
+          source: "kovahub" as const,
+          spec: `kovahub:${params.kovahubPackage}`,
           installPath: params.installPath,
-          clawhubUrl: params.clawhubUrl,
-          clawhubPackage: params.clawhubPackage,
-          clawhubFamily: params.clawhubFamily,
-          clawhubChannel: params.clawhubChannel,
+          kovahubUrl: params.kovahubUrl,
+          kovahubPackage: params.kovahubPackage,
+          kovahubFamily: params.kovahubFamily,
+          kovahubChannel: params.kovahubChannel,
         },
       },
     },
@@ -146,7 +146,7 @@ function createBundledPathInstallConfig(params: {
   installPath: string;
   sourcePath?: string;
   spec?: string;
-}): OpenClawConfig {
+}): KovaConfig {
   return {
     plugins: {
       load: { paths: params.loadPaths },
@@ -170,10 +170,10 @@ function createCodexAppServerInstallConfig(params: {
   return {
     plugins: {
       installs: {
-        "openclaw-codex-app-server": {
+        "kova-codex-app-server": {
           source: "npm" as const,
           spec: params.spec,
-          installPath: "/tmp/openclaw-codex-app-server",
+          installPath: "/tmp/kova-codex-app-server",
           ...(params.resolvedName ? { resolvedName: params.resolvedName } : {}),
           ...(params.resolvedSpec ? { resolvedSpec: params.resolvedSpec } : {}),
         },
@@ -183,7 +183,7 @@ function createCodexAppServerInstallConfig(params: {
 }
 
 function createInstalledPackageDir(params: { name?: string; version: string }): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-update-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-plugin-update-test-"));
   tempDirs.push(dir);
   fs.writeFileSync(
     path.join(dir, "package.json"),
@@ -231,7 +231,7 @@ function createBundledSource(params?: { pluginId?: string; localPath?: string; n
   return {
     pluginId,
     localPath: params?.localPath ?? appBundledPluginRoot(pluginId),
-    npmSpec: params?.npmSpec ?? `@openclaw/${pluginId}`,
+    npmSpec: params?.npmSpec ?? `@kovaai/${pluginId}`,
   };
 }
 
@@ -261,10 +261,10 @@ function expectCodexAppServerInstallState(params: {
   version: string;
   resolvedSpec?: string;
 }) {
-  expect(params.result.config.plugins?.installs?.["openclaw-codex-app-server"]).toMatchObject({
+  expect(params.result.config.plugins?.installs?.["kova-codex-app-server"]).toMatchObject({
     source: "npm",
     spec: params.spec,
-    installPath: "/tmp/openclaw-codex-app-server",
+    installPath: "/tmp/kova-codex-app-server",
     version: params.version,
     ...(params.resolvedSpec ? { resolvedSpec: params.resolvedSpec } : {}),
   });
@@ -274,7 +274,7 @@ describe("updateNpmInstalledPlugins", () => {
   beforeEach(() => {
     installPluginFromNpmSpecMock.mockReset();
     installPluginFromMarketplaceMock.mockReset();
-    installPluginFromClawHubMock.mockReset();
+    installPluginFromKovaHubMock.mockReset();
     resolveBundledPluginSourcesMock.mockReset();
     runCommandWithTimeoutMock.mockReset();
   });
@@ -290,52 +290,52 @@ describe("updateNpmInstalledPlugins", () => {
     {
       name: "skips integrity drift checks for unpinned npm specs during dry-run updates",
       config: createNpmInstallConfig({
-        pluginId: "opik-openclaw",
-        spec: "@opik/opik-openclaw",
+        pluginId: "opik-kova",
+        spec: "@opik/opik-kova",
         integrity: "sha512-old",
-        installPath: "/tmp/opik-openclaw",
+        installPath: "/tmp/opik-kova",
       }),
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-kova"],
       dryRun: true,
       expectedCall: {
-        spec: "@opik/opik-openclaw",
+        spec: "@opik/opik-kova",
         expectedIntegrity: undefined,
       },
     },
     {
       name: "keeps integrity drift checks for exact-version npm specs during dry-run updates",
       config: createNpmInstallConfig({
-        pluginId: "opik-openclaw",
-        spec: "@opik/opik-openclaw@0.2.5",
+        pluginId: "opik-kova",
+        spec: "@opik/opik-kova@0.2.5",
         integrity: "sha512-old",
-        installPath: "/tmp/opik-openclaw",
+        installPath: "/tmp/opik-kova",
       }),
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-kova"],
       dryRun: true,
       expectedCall: {
-        spec: "@opik/opik-openclaw@0.2.5",
+        spec: "@opik/opik-kova@0.2.5",
         expectedIntegrity: "sha512-old",
       },
     },
     {
       name: "skips recorded integrity checks when an explicit npm version override changes the spec",
       config: createNpmInstallConfig({
-        pluginId: "openclaw-codex-app-server",
-        spec: "openclaw-codex-app-server@0.2.0-beta.3",
+        pluginId: "kova-codex-app-server",
+        spec: "kova-codex-app-server@0.2.0-beta.3",
         integrity: "sha512-old",
-        installPath: "/tmp/openclaw-codex-app-server",
+        installPath: "/tmp/kova-codex-app-server",
       }),
-      pluginIds: ["openclaw-codex-app-server"],
+      pluginIds: ["kova-codex-app-server"],
       specOverrides: {
-        "openclaw-codex-app-server": "openclaw-codex-app-server@0.2.0-beta.4",
+        "kova-codex-app-server": "kova-codex-app-server@0.2.0-beta.4",
       },
       installerResult: createSuccessfulNpmUpdateResult({
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "kova-codex-app-server",
+        targetDir: "/tmp/kova-codex-app-server",
         version: "0.2.0-beta.4",
       }),
       expectedCall: {
-        spec: "openclaw-codex-app-server@0.2.0-beta.4",
+        spec: "kova-codex-app-server@0.2.0-beta.4",
         expectedIntegrity: undefined,
       },
     },
@@ -411,7 +411,7 @@ describe("updateNpmInstalledPlugins", () => {
       shasum: "same",
     });
     installPluginFromNpmSpecMock.mockRejectedValue(new Error("installer should not run"));
-    const config: OpenClawConfig = {
+    const config: KovaConfig = {
       plugins: {
         installs: {
           "lossless-claw": {
@@ -510,9 +510,9 @@ describe("updateNpmInstalledPlugins", () => {
   });
 
   it("expands home-relative install paths before checking installed npm versions", async () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-update-home-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "kova-plugin-update-home-"));
     tempDirs.push(home);
-    const installPath = path.join(home, ".openclaw", "extensions", "lossless-claw");
+    const installPath = path.join(home, ".kova", "extensions", "lossless-claw");
     fs.mkdirSync(installPath, { recursive: true });
     fs.writeFileSync(
       path.join(installPath, "package.json"),
@@ -531,7 +531,7 @@ describe("updateNpmInstalledPlugins", () => {
       config: createNpmInstallConfig({
         pluginId: "lossless-claw",
         spec: "@martian-engineering/lossless-claw",
-        installPath: "~/.openclaw/extensions/lossless-claw",
+        installPath: "~/.kova/extensions/lossless-claw",
         resolvedName: "@martian-engineering/lossless-claw",
         resolvedVersion: "0.9.0",
         resolvedSpec: "@martian-engineering/lossless-claw@0.9.0",
@@ -652,14 +652,14 @@ describe("updateNpmInstalledPlugins", () => {
           actualIntegrity: "sha512-new",
           resolution: {
             integrity: "sha512-new",
-            resolvedSpec: "@opik/opik-openclaw@0.2.5",
+            resolvedSpec: "@opik/opik-kova@0.2.5",
             version: "0.2.5",
           },
         });
         if (proceed === false) {
           return {
             ok: false,
-            error: "aborted: npm package integrity drift detected for @opik/opik-openclaw@0.2.5",
+            error: "aborted: npm package integrity drift detected for @opik/opik-kova@0.2.5",
           };
         }
         return createSuccessfulNpmUpdateResult();
@@ -667,28 +667,28 @@ describe("updateNpmInstalledPlugins", () => {
     );
 
     const config = createNpmInstallConfig({
-      pluginId: "opik-openclaw",
-      spec: "@opik/opik-openclaw@0.2.5",
+      pluginId: "opik-kova",
+      spec: "@opik/opik-kova@0.2.5",
       integrity: "sha512-old",
-      installPath: "/tmp/opik-openclaw",
+      installPath: "/tmp/opik-kova",
     });
     const result = await updateNpmInstalledPlugins({
       config,
-      pluginIds: ["opik-openclaw"],
+      pluginIds: ["opik-kova"],
       logger: { warn },
     });
 
     expect(warn).toHaveBeenCalledWith(
-      'Integrity drift for "opik-openclaw" (@opik/opik-openclaw@0.2.5): expected sha512-old, got sha512-new',
+      'Integrity drift for "opik-kova" (@opik/opik-kova@0.2.5): expected sha512-old, got sha512-new',
     );
     expect(result.changed).toBe(false);
     expect(result.config).toBe(config);
     expect(result.outcomes).toEqual([
       {
-        pluginId: "opik-openclaw",
+        pluginId: "opik-kova",
         status: "error",
         message:
-          "Failed to update opik-openclaw: aborted: npm package integrity drift detected for @opik/opik-openclaw@0.2.5",
+          "Failed to update opik-kova: aborted: npm package integrity drift detected for @opik/opik-kova@0.2.5",
       },
     ]);
   });
@@ -699,15 +699,15 @@ describe("updateNpmInstalledPlugins", () => {
       installerResult: {
         ok: false,
         code: "npm_package_not_found",
-        error: "Package not found on npm: @openclaw/missing.",
+        error: "Package not found on npm: @kovaai/missing.",
       },
       config: createNpmInstallConfig({
         pluginId: "missing",
-        spec: "@openclaw/missing",
+        spec: "@kovaai/missing",
         installPath: "/tmp/missing",
       }),
       pluginId: "missing",
-      expectedMessage: "Failed to check missing: npm package not found for @openclaw/missing.",
+      expectedMessage: "Failed to check missing: npm package not found for @kovaai/missing.",
     },
     {
       name: "falls back to raw installer error for unknown error codes",
@@ -747,42 +747,42 @@ describe("updateNpmInstalledPlugins", () => {
       name: "reuses a recorded npm dist-tag spec for id-based updates",
       installerResult: {
         ok: true,
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "kova-codex-app-server",
+        targetDir: "/tmp/kova-codex-app-server",
         version: "0.2.0-beta.4",
         extensions: ["index.ts"],
       },
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server@beta",
-        resolvedName: "openclaw-codex-app-server",
-        resolvedSpec: "openclaw-codex-app-server@0.2.0-beta.3",
+        spec: "kova-codex-app-server@beta",
+        resolvedName: "kova-codex-app-server",
+        resolvedSpec: "kova-codex-app-server@0.2.0-beta.3",
       }),
-      expectedSpec: "openclaw-codex-app-server@beta",
+      expectedSpec: "kova-codex-app-server@beta",
       expectedVersion: "0.2.0-beta.4",
     },
     {
       name: "uses and persists an explicit npm spec override during updates",
       installerResult: {
         ok: true,
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "kova-codex-app-server",
+        targetDir: "/tmp/kova-codex-app-server",
         version: "0.2.0-beta.4",
         extensions: ["index.ts"],
         npmResolution: {
-          name: "openclaw-codex-app-server",
+          name: "kova-codex-app-server",
           version: "0.2.0-beta.4",
-          resolvedSpec: "openclaw-codex-app-server@0.2.0-beta.4",
+          resolvedSpec: "kova-codex-app-server@0.2.0-beta.4",
         },
       },
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server",
+        spec: "kova-codex-app-server",
       }),
       specOverrides: {
-        "openclaw-codex-app-server": "openclaw-codex-app-server@beta",
+        "kova-codex-app-server": "kova-codex-app-server@beta",
       },
-      expectedSpec: "openclaw-codex-app-server@beta",
+      expectedSpec: "kova-codex-app-server@beta",
       expectedVersion: "0.2.0-beta.4",
-      expectedResolvedSpec: "openclaw-codex-app-server@0.2.0-beta.4",
+      expectedResolvedSpec: "kova-codex-app-server@0.2.0-beta.4",
     },
   ] as const)(
     "$name",
@@ -798,13 +798,13 @@ describe("updateNpmInstalledPlugins", () => {
 
       const result = await updateNpmInstalledPlugins({
         config,
-        pluginIds: ["openclaw-codex-app-server"],
+        pluginIds: ["kova-codex-app-server"],
         ...(specOverrides ? { specOverrides } : {}),
       });
 
       expectNpmUpdateCall({
         spec: expectedSpec,
-        expectedPluginId: "openclaw-codex-app-server",
+        expectedPluginId: "kova-codex-app-server",
       });
       expectCodexAppServerInstallState({
         result,
@@ -815,53 +815,53 @@ describe("updateNpmInstalledPlugins", () => {
     },
   );
 
-  it("updates ClawHub-installed plugins via recorded package metadata", async () => {
-    installPluginFromClawHubMock.mockResolvedValue({
+  it("updates KovaHub-installed plugins via recorded package metadata", async () => {
+    installPluginFromKovaHubMock.mockResolvedValue({
       ok: true,
       pluginId: "demo",
       targetDir: "/tmp/demo",
       version: "1.2.4",
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      kovahub: {
+        source: "kovahub",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
         integrity: "sha256-next",
         resolvedAt: "2026-03-22T00:00:00.000Z",
       },
     });
 
     const result = await updateNpmInstalledPlugins({
-      config: createClawHubInstallConfig({
+      config: createKovaHubInstallConfig({
         pluginId: "demo",
         installPath: "/tmp/demo",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
       }),
       pluginIds: ["demo"],
       timeoutMs: 1_800_000,
     });
 
-    expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
-        baseUrl: "https://clawhub.ai",
+        spec: "kovahub:demo",
+        baseUrl: "https://kovahub.ai",
         expectedPluginId: "demo",
         mode: "update",
         timeoutMs: 1_800_000,
       }),
     );
     expect(result.config.plugins?.installs?.demo).toMatchObject({
-      source: "clawhub",
-      spec: "clawhub:demo",
+      source: "kovahub",
+      spec: "kovahub:demo",
       installPath: "/tmp/demo",
       version: "1.2.4",
-      clawhubPackage: "demo",
-      clawhubFamily: "code-plugin",
-      clawhubChannel: "official",
+      kovahubPackage: "demo",
+      kovahubFamily: "code-plugin",
+      kovahubChannel: "official",
       integrity: "sha256-next",
     });
   });
@@ -869,8 +869,8 @@ describe("updateNpmInstalledPlugins", () => {
   it("migrates legacy unscoped install keys when a scoped npm package updates", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue({
       ok: true,
-      pluginId: "@openclaw/voice-call",
-      targetDir: "/tmp/openclaw-voice-call",
+      pluginId: "@kovaai/voice-call",
+      targetDir: "/tmp/kova-voice-call",
       version: "0.0.2",
       extensions: ["index.ts"],
     });
@@ -890,7 +890,7 @@ describe("updateNpmInstalledPlugins", () => {
           installs: {
             "voice-call": {
               source: "npm",
-              spec: "@openclaw/voice-call",
+              spec: "@kovaai/voice-call",
               installPath: "/tmp/voice-call",
             },
           },
@@ -901,22 +901,22 @@ describe("updateNpmInstalledPlugins", () => {
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "@openclaw/voice-call",
+        spec: "@kovaai/voice-call",
         expectedPluginId: "voice-call",
       }),
     );
-    expect(result.config.plugins?.allow).toEqual(["@openclaw/voice-call"]);
-    expect(result.config.plugins?.deny).toEqual(["@openclaw/voice-call"]);
-    expect(result.config.plugins?.slots?.memory).toBe("@openclaw/voice-call");
-    expect(result.config.plugins?.entries?.["@openclaw/voice-call"]).toEqual({
+    expect(result.config.plugins?.allow).toEqual(["@kovaai/voice-call"]);
+    expect(result.config.plugins?.deny).toEqual(["@kovaai/voice-call"]);
+    expect(result.config.plugins?.slots?.memory).toBe("@kovaai/voice-call");
+    expect(result.config.plugins?.entries?.["@kovaai/voice-call"]).toEqual({
       enabled: false,
       hooks: { allowPromptInjection: false },
     });
     expect(result.config.plugins?.entries?.["voice-call"]).toBeUndefined();
-    expect(result.config.plugins?.installs?.["@openclaw/voice-call"]).toMatchObject({
+    expect(result.config.plugins?.installs?.["@kovaai/voice-call"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/voice-call",
-      installPath: "/tmp/openclaw-voice-call",
+      spec: "@kovaai/voice-call",
+      installPath: "/tmp/kova-voice-call",
       version: "0.0.2",
     });
     expect(result.config.plugins?.installs?.["voice-call"]).toBeUndefined();
@@ -925,8 +925,8 @@ describe("updateNpmInstalledPlugins", () => {
   it("migrates context engine slot when a plugin id changes during update", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue({
       ok: true,
-      pluginId: "@openclaw/context-engine",
-      targetDir: "/tmp/openclaw-context-engine",
+      pluginId: "@kovaai/context-engine",
+      targetDir: "/tmp/kova-context-engine",
       version: "0.0.2",
       extensions: ["index.ts"],
     });
@@ -938,20 +938,20 @@ describe("updateNpmInstalledPlugins", () => {
           installs: {
             "context-engine": {
               source: "npm",
-              spec: "@openclaw/context-engine",
+              spec: "@kovaai/context-engine",
               installPath: "/tmp/context-engine",
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       pluginIds: ["context-engine"],
     });
 
-    expect(result.config.plugins?.slots?.contextEngine).toBe("@openclaw/context-engine");
-    expect(result.config.plugins?.installs?.["@openclaw/context-engine"]).toMatchObject({
+    expect(result.config.plugins?.slots?.contextEngine).toBe("@kovaai/context-engine");
+    expect(result.config.plugins?.installs?.["@kovaai/context-engine"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/context-engine",
-      installPath: "/tmp/openclaw-context-engine",
+      spec: "@kovaai/context-engine",
+      installPath: "/tmp/kova-context-engine",
       version: "0.0.2",
     });
     expect(result.config.plugins?.installs?.["context-engine"]).toBeUndefined();
@@ -1037,32 +1037,32 @@ describe("updateNpmInstalledPlugins", () => {
   it("forwards dangerous force unsafe install to plugin update installers", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue(
       createSuccessfulNpmUpdateResult({
-        pluginId: "openclaw-codex-app-server",
-        targetDir: "/tmp/openclaw-codex-app-server",
+        pluginId: "kova-codex-app-server",
+        targetDir: "/tmp/kova-codex-app-server",
         version: "0.2.0-beta.4",
       }),
     );
 
     await updateNpmInstalledPlugins({
       config: createCodexAppServerInstallConfig({
-        spec: "openclaw-codex-app-server@beta",
+        spec: "kova-codex-app-server@beta",
       }),
-      pluginIds: ["openclaw-codex-app-server"],
+      pluginIds: ["kova-codex-app-server"],
       dangerouslyForceUnsafeInstall: true,
     });
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "openclaw-codex-app-server@beta",
+        spec: "kova-codex-app-server@beta",
         dangerouslyForceUnsafeInstall: true,
-        expectedPluginId: "openclaw-codex-app-server",
+        expectedPluginId: "kova-codex-app-server",
       }),
     );
   });
 
   it("reuses the recorded managed extensions root when updating external plugins", async () => {
-    const installPath = "/var/openclaw/extensions/demo";
-    const extensionsDir = "/var/openclaw/extensions";
+    const installPath = "/var/kova/extensions/demo";
+    const extensionsDir = "/var/kova/extensions";
     installPluginFromNpmSpecMock.mockResolvedValue(
       createSuccessfulNpmUpdateResult({
         pluginId: "demo",
@@ -1070,18 +1070,18 @@ describe("updateNpmInstalledPlugins", () => {
         version: "1.2.0",
       }),
     );
-    installPluginFromClawHubMock.mockResolvedValue({
+    installPluginFromKovaHubMock.mockResolvedValue({
       ok: true,
       pluginId: "demo",
       targetDir: installPath,
       version: "1.2.0",
       extensions: ["index.ts"],
-      clawhub: {
-        source: "clawhub",
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+      kovahub: {
+        source: "kovahub",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
         integrity: "sha256-next",
         resolvedAt: "2026-03-22T00:00:00.000Z",
       },
@@ -1105,13 +1105,13 @@ describe("updateNpmInstalledPlugins", () => {
       pluginIds: ["demo"],
     });
     await updateNpmInstalledPlugins({
-      config: createClawHubInstallConfig({
+      config: createKovaHubInstallConfig({
         pluginId: "demo",
         installPath,
-        clawhubUrl: "https://clawhub.ai",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        kovahubUrl: "https://kovahub.ai",
+        kovahubPackage: "demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
       }),
       pluginIds: ["demo"],
     });
@@ -1128,7 +1128,7 @@ describe("updateNpmInstalledPlugins", () => {
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({ extensionsDir }),
     );
-    expect(installPluginFromClawHubMock).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
       expect.objectContaining({ extensionsDir }),
     );
     expect(installPluginFromMarketplaceMock).toHaveBeenCalledWith(
@@ -1149,7 +1149,7 @@ describe("syncPluginsForUpdateChannel", () => {
       config: createBundledPathInstallConfig({
         loadPaths: [appBundledPluginRoot("feishu")],
         installPath: appBundledPluginRoot("feishu"),
-        spec: "@openclaw/feishu",
+        spec: "@kovaai/feishu",
       }),
       expectedChanged: false,
       expectedLoadPaths: [appBundledPluginRoot("feishu")],
@@ -1160,7 +1160,7 @@ describe("syncPluginsForUpdateChannel", () => {
       config: createBundledPathInstallConfig({
         loadPaths: [],
         installPath: "/tmp/old-feishu",
-        spec: "@openclaw/feishu",
+        spec: "@kovaai/feishu",
       }),
       expectedChanged: true,
       expectedLoadPaths: [appBundledPluginRoot("feishu")],
@@ -1184,14 +1184,14 @@ describe("syncPluginsForUpdateChannel", () => {
         install: result.config.plugins?.installs?.feishu,
         sourcePath: appBundledPluginRoot("feishu"),
         installPath: expectedInstallPath,
-        spec: "@openclaw/feishu",
+        spec: "@kovaai/feishu",
       });
     },
   );
 
   it("forwards an explicit env to bundled plugin source resolution", async () => {
     resolveBundledPluginSourcesMock.mockReturnValue(new Map());
-    const env = { OPENCLAW_HOME: "/srv/openclaw-home" } as NodeJS.ProcessEnv;
+    const env = { KOVA_HOME: "/srv/kova-home" } as NodeJS.ProcessEnv;
 
     await syncPluginsForUpdateChannel({
       channel: "beta",
@@ -1207,7 +1207,7 @@ describe("syncPluginsForUpdateChannel", () => {
   });
 
   it("uses the provided env when matching bundled load and install paths", async () => {
-    const bundledHome = "/tmp/openclaw-home";
+    const bundledHome = "/tmp/kova-home";
     mockBundledSources(
       createBundledSource({
         localPath: `${bundledHome}/plugins/feishu`,
@@ -1221,7 +1221,7 @@ describe("syncPluginsForUpdateChannel", () => {
         channel: "beta",
         env: {
           ...process.env,
-          OPENCLAW_HOME: bundledHome,
+          KOVA_HOME: bundledHome,
           HOME: "/tmp/ignored-home",
         },
         config: {
@@ -1232,7 +1232,7 @@ describe("syncPluginsForUpdateChannel", () => {
                 source: "path",
                 sourcePath: "~/plugins/feishu",
                 installPath: "~/plugins/feishu",
-                spec: "@openclaw/feishu",
+                spec: "@kovaai/feishu",
               },
             },
           },
@@ -1260,12 +1260,12 @@ describe("syncPluginsForUpdateChannel", () => {
     installPluginFromNpmSpecMock.mockResolvedValue(
       createSuccessfulNpmUpdateResult({
         pluginId: "legacy-chat",
-        targetDir: "/tmp/openclaw-plugins/legacy-chat",
+        targetDir: "/tmp/kova-plugins/legacy-chat",
         version: "2.0.0",
         npmResolution: {
-          name: "@openclaw/legacy-chat",
+          name: "@kovaai/legacy-chat",
           version: "2.0.0",
-          resolvedSpec: "@openclaw/legacy-chat@2.0.0",
+          resolvedSpec: "@kovaai/legacy-chat@2.0.0",
         },
       }),
     );
@@ -1275,7 +1275,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1300,7 +1300,7 @@ describe("syncPluginsForUpdateChannel", () => {
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "@openclaw/legacy-chat",
+        spec: "@kovaai/legacy-chat",
         mode: "update",
         expectedPluginId: "legacy-chat",
       }),
@@ -1311,12 +1311,12 @@ describe("syncPluginsForUpdateChannel", () => {
     expect(result.config.plugins?.load?.paths).toEqual([]);
     expect(result.config.plugins?.installs?.["legacy-chat"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/legacy-chat",
-      installPath: "/tmp/openclaw-plugins/legacy-chat",
+      spec: "@kovaai/legacy-chat",
+      installPath: "/tmp/kova-plugins/legacy-chat",
       version: "2.0.0",
-      resolvedName: "@openclaw/legacy-chat",
+      resolvedName: "@kovaai/legacy-chat",
       resolvedVersion: "2.0.0",
-      resolvedSpec: "@openclaw/legacy-chat@2.0.0",
+      resolvedSpec: "@kovaai/legacy-chat@2.0.0",
     });
   });
 
@@ -1325,7 +1325,7 @@ describe("syncPluginsForUpdateChannel", () => {
     installPluginFromNpmSpecMock.mockResolvedValue(
       createSuccessfulNpmUpdateResult({
         pluginId: "default-chat",
-        targetDir: "/tmp/openclaw-plugins/default-chat",
+        targetDir: "/tmp/kova-plugins/default-chat",
         version: "2.0.0",
       }),
     );
@@ -1336,7 +1336,7 @@ describe("syncPluginsForUpdateChannel", () => {
         {
           bundledPluginId: "default-chat",
           enabledByDefault: true,
-          npmSpec: "@openclaw/default-chat",
+          npmSpec: "@kovaai/default-chat",
           channelIds: ["default-chat"],
         },
       ],
@@ -1345,7 +1345,7 @@ describe("syncPluginsForUpdateChannel", () => {
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "@openclaw/default-chat",
+        spec: "@kovaai/default-chat",
         mode: "update",
         expectedPluginId: "default-chat",
       }),
@@ -1354,8 +1354,8 @@ describe("syncPluginsForUpdateChannel", () => {
     expect(result.summary.switchedToNpm).toEqual(["default-chat"]);
     expect(result.config.plugins?.installs?.["default-chat"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/default-chat",
-      installPath: "/tmp/openclaw-plugins/default-chat",
+      spec: "@kovaai/default-chat",
+      installPath: "/tmp/kova-plugins/default-chat",
       version: "2.0.0",
     });
   });
@@ -1368,7 +1368,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1404,7 +1404,7 @@ describe("syncPluginsForUpdateChannel", () => {
       ok: false,
       error: "package unavailable",
     });
-    const config: OpenClawConfig = {
+    const config: KovaConfig = {
       channels: {
         "legacy-chat": {
           enabled: true,
@@ -1427,7 +1427,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1447,7 +1447,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1491,7 +1491,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1529,7 +1529,7 @@ describe("syncPluginsForUpdateChannel", () => {
       externalizedBundledPluginBridges: [
         {
           bundledPluginId: "legacy-chat",
-          npmSpec: "@openclaw/legacy-chat",
+          npmSpec: "@kovaai/legacy-chat",
           channelIds: ["legacy-chat"],
         },
       ],
@@ -1546,8 +1546,8 @@ describe("syncPluginsForUpdateChannel", () => {
           installs: {
             "legacy-chat": {
               source: "npm",
-              spec: "@openclaw/legacy-chat",
-              installPath: "/tmp/openclaw-plugins/legacy-chat",
+              spec: "@kovaai/legacy-chat",
+              installPath: "/tmp/kova-plugins/legacy-chat",
             },
           },
         },
@@ -1559,7 +1559,7 @@ describe("syncPluginsForUpdateChannel", () => {
     expect(result.config.plugins?.load?.paths).toEqual(["/workspace/plugins/other"]);
     expect(result.config.plugins?.installs?.["legacy-chat"]).toMatchObject({
       source: "npm",
-      spec: "@openclaw/legacy-chat",
+      spec: "@kovaai/legacy-chat",
     });
   });
 });

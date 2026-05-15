@@ -20,15 +20,15 @@ afterAll(() => {
 beforeEach(() => {
   tmpDir = path.join(fixtureRoot, `case-${fixtureId++}`);
   fsSync.mkdirSync(tmpDir, { recursive: true });
-  originalStateDir = process.env.OPENCLAW_STATE_DIR;
-  process.env.OPENCLAW_STATE_DIR = tmpDir;
+  originalStateDir = process.env.KOVA_STATE_DIR;
+  process.env.KOVA_STATE_DIR = tmpDir;
 });
 
 afterEach(() => {
   if (originalStateDir === undefined) {
-    delete process.env.OPENCLAW_STATE_DIR;
+    delete process.env.KOVA_STATE_DIR;
   } else {
-    process.env.OPENCLAW_STATE_DIR = originalStateDir;
+    process.env.KOVA_STATE_DIR = originalStateDir;
   }
 });
 
@@ -98,7 +98,7 @@ describe("buildSessionEntry", () => {
     // Line 7: user message
     const jsonlLines = [
       JSON.stringify({ type: "custom", customType: "model-snapshot", data: {} }),
-      JSON.stringify({ type: "custom", customType: "openclaw.cache-ttl", data: {} }),
+      JSON.stringify({ type: "custom", customType: "kova.cache-ttl", data: {} }),
       JSON.stringify({ type: "session-meta", agentId: "test" }),
       JSON.stringify({ type: "message", message: { role: "user", content: "Hello world" } }),
       JSON.stringify({ type: "custom", customType: "tool-result", data: {} }),
@@ -194,7 +194,7 @@ describe("buildSessionEntry", () => {
     // to the actual user text. Without stripping, the JSON envelope dominates
     // the corpus entry and the user's real words get truncated by the
     // SESSION_INGESTION_MAX_SNIPPET_CHARS cap downstream.
-    // See: https://github.com/openclaw/openclaw/issues/63921
+    // See: https://github.com/chiragborse1/KovaLab/issues/63921
     const envelopedUserText = [
       "Conversation info (untrusted metadata):",
       "```json",
@@ -360,7 +360,7 @@ describe("buildSessionEntry", () => {
     const jsonlLines = [
       JSON.stringify({
         type: "custom",
-        customType: "openclaw:bootstrap-context:full",
+        customType: "kova:bootstrap-context:full",
         data: {
           runId: "dreaming-narrative-light-1775894400455",
           sessionId: "sid-1",
@@ -582,13 +582,13 @@ describe("buildSessionEntry", () => {
             message: {
               role: "user",
               content: [
-                "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>",
-                "OpenClaw runtime context (internal):",
+                "<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>",
+                "Kova runtime context (internal):",
                 "This context is runtime-generated, not user-authored. Keep internal details private.",
                 "",
                 "[Internal task completion event]",
                 "source: subagent",
-                "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>",
+                "<<<END_KOVA_INTERNAL_CONTEXT>>>",
               ].join("\n"),
             },
           },

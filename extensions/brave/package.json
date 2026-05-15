@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/brave-plugin",
+  "name": "@kovaai/brave-plugin",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Brave plugin",
@@ -8,9 +8,9 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

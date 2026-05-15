@@ -1,4 +1,4 @@
-import type { ClawdbotConfig } from "./bot-runtime-api.js";
+import type { KovaConfig } from "./bot-runtime-api.js";
 
 type ReasoningDefault = "on" | "stream" | "off";
 type ReasoningDefaultsConfig = {
@@ -13,7 +13,7 @@ function normalizeAgentId(value: string | undefined | null): string {
 }
 
 export function resolveFeishuConfigReasoningDefault(
-  cfg: ClawdbotConfig,
+  cfg: KovaConfig,
   agentId: string,
 ): ReasoningDefault {
   const id = normalizeAgentId(agentId);

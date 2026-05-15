@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../runtime-api.js";
+import type { KovaPluginApi } from "../runtime-api.js";
 import type { LobsterEnvelope, LobsterRunner, LobsterRunnerParams } from "./lobster-runner.js";
 
 type JsonLike =
@@ -11,9 +11,7 @@ type JsonLike =
       [key: string]: JsonLike;
     };
 
-type BoundTaskFlow = ReturnType<
-  NonNullable<OpenClawPluginApi["runtime"]>["taskFlow"]["bindSession"]
->;
+type BoundTaskFlow = ReturnType<NonNullable<KovaPluginApi["runtime"]>["taskFlow"]["bindSession"]>;
 
 type FlowRecord = ReturnType<BoundTaskFlow["createManaged"]>;
 type MutationResult = ReturnType<BoundTaskFlow["setWaiting"]>;

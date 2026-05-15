@@ -52,8 +52,9 @@ export function registerPluginVersion(version: string): void {
   }
 }
 
-const QQBOT_PLUGIN_GITHUB_URL = "https://github.com/openclaw/openclaw/tree/main/extensions/qqbot";
-const QQBOT_UPGRADE_GUIDE_URL = "https://q.qq.com/qqbot/openclaw/upgrade.html";
+const QQBOT_PLUGIN_GITHUB_URL =
+  "https://github.com/chiragborse1/KovaLab/tree/main/extensions/qqbot";
+const QQBOT_UPGRADE_GUIDE_URL = "https://q.qq.com/qqbot/kova/upgrade.html";
 
 // ============ Module-level registry instance ============
 
@@ -80,15 +81,15 @@ export function getFrameworkCommands(): QQBotFrameworkCommand[] {
 // ============ Built-in commands ============
 
 /**
- * /bot-ping — test current network latency between OpenClaw and QQ.
+ * /bot-ping — test current network latency between Kova and QQ.
  */
 registerCommand({
   name: "bot-ping",
-  description: "测试 OpenClaw 与 QQ 之间的网络延迟",
+  description: "测试 Kova 与 QQ 之间的网络延迟",
   usage: [
     `/bot-ping`,
     ``,
-    `测试当前 OpenClaw 宿主机与 QQ 服务器之间的网络延迟。`,
+    `测试当前 Kova 宿主机与 QQ 服务器之间的网络延迟。`,
     `返回网络传输耗时和插件处理耗时。`,
   ].join("\n"),
   handler: (ctx) => {
@@ -112,8 +113,8 @@ registerCommand({
 });
 
 /**
- * /bot-version — show both the QQBot plugin version and the OpenClaw
- * framework version. Aligned with the standalone `openclaw-qqbot`
+ * /bot-version — show both the QQBot plugin version and the Kova
+ * framework version. Aligned with the standalone `kova-qqbot`
  * build so users see the same identification regardless of which
  * distribution they run.
  *
@@ -181,7 +182,7 @@ registerCommand({
 function getConfiguredLogFiles(): string[] {
   const homeDir = getHomeDir();
   const files: string[] = [];
-  for (const cli of ["openclaw", "clawdbot", "moltbot"]) {
+  for (const cli of ["kova", "kova", "moltbot"]) {
     try {
       const cfgPath = path.join(homeDir, `.${cli}`, `${cli}.json`);
       if (!fs.existsSync(cfgPath)) {
@@ -229,12 +230,12 @@ function collectCandidateLogDirs(): string[] {
     if (!value) {
       continue;
     }
-    if (/STATE_DIR$/i.test(key) && /(OPENCLAW|CLAWDBOT|MOLTBOT)/i.test(key)) {
+    if (/STATE_DIR$/i.test(key) && /(KOVA|KOVA|MOLTBOT)/i.test(key)) {
       pushStateDir(value);
     }
   }
 
-  for (const name of [".openclaw", ".clawdbot", ".moltbot", "openclaw", "clawdbot", "moltbot"]) {
+  for (const name of [".kova", ".kova", ".moltbot", "kova", "kova", "moltbot"]) {
     pushDir(path.join(homeDir, name));
     pushDir(path.join(homeDir, name, "logs"));
   }
@@ -254,7 +255,7 @@ function collectCandidateLogDirs(): string[] {
         if (!entry.isDirectory()) {
           continue;
         }
-        if (!/(openclaw|clawdbot|moltbot)/i.test(entry.name)) {
+        if (!/(kova|kova|moltbot)/i.test(entry.name)) {
           continue;
         }
         const base = path.join(root, entry.name);
@@ -268,7 +269,7 @@ function collectCandidateLogDirs(): string[] {
 
   // Common Linux log directories under /var/log.
   if (!isWindows()) {
-    for (const name of ["openclaw", "clawdbot", "moltbot"]) {
+    for (const name of ["kova", "kova", "moltbot"]) {
       pushDir(path.join("/var/log", name));
     }
   }
@@ -291,7 +292,7 @@ function collectCandidateLogDirs(): string[] {
     tmpRoots.add("/tmp");
   }
   for (const tmpRoot of tmpRoots) {
-    for (const name of ["openclaw", "clawdbot", "moltbot"]) {
+    for (const name of ["kova", "kova", "moltbot"]) {
       pushDir(path.join(tmpRoot, name));
     }
   }
@@ -334,8 +335,8 @@ function collectRecentLogFiles(logDirs: string[]): LogCandidate[] {
   for (const dir of logDirs) {
     pushFile(path.join(dir, "gateway.log"), dir);
     pushFile(path.join(dir, "gateway.err.log"), dir);
-    pushFile(path.join(dir, "openclaw.log"), dir);
-    pushFile(path.join(dir, "clawdbot.log"), dir);
+    pushFile(path.join(dir, "kova.log"), dir);
+    pushFile(path.join(dir, "kova.log"), dir);
     pushFile(path.join(dir, "moltbot.log"), dir);
 
     try {
@@ -347,7 +348,7 @@ function collectRecentLogFiles(logDirs: string[]): LogCandidate[] {
         if (!/\.(log|txt)$/i.test(entry.name)) {
           continue;
         }
-        if (!/(gateway|openclaw|clawdbot|moltbot)/i.test(entry.name)) {
+        if (!/(gateway|kova|kova|moltbot)/i.test(entry.name)) {
           continue;
         }
         pushFile(path.join(dir, entry.name), dir);
@@ -516,7 +517,7 @@ registerCommand({
   usage: [
     `/bot-logs`,
     ``,
-    `导出最近的 OpenClaw 日志文件（最多 4 个文件）。`,
+    `导出最近的 Kova 日志文件（最多 4 个文件）。`,
     `每个文件只保留最后 1000 行，并作为附件返回。`,
   ].join("\n"),
   handler: (ctx) => {
@@ -627,8 +628,8 @@ registerCommand({
     }
 
     const isForce = ctx.args.trim() === "--force";
-    const targetDir = path.join(getHomeDir(), ".openclaw", "media", "qqbot", "downloads", appId);
-    const displayDir = `~/.openclaw/media/qqbot/downloads/${appId}`;
+    const targetDir = path.join(getHomeDir(), ".kova", "media", "qqbot", "downloads", appId);
+    const displayDir = `~/.kova/media/qqbot/downloads/${appId}`;
 
     if (!isForce) {
       // Step 1: scan and display file list with a confirmation button.
@@ -660,7 +661,7 @@ registerCommand({
         ``,
         `---`,
         ``,
-        `确认清理后，上述保存在 OpenClaw 运行主机磁盘上的文件将永久删除，后续对话过程中 AI 无法再找回相关文件。`,
+        `确认清理后，上述保存在 Kova 运行主机磁盘上的文件将永久删除，后续对话过程中 AI 无法再找回相关文件。`,
         `‼️ 点击指令确认删除`,
         `<qqbot-cmd-enter text="/bot-clear-storage --force" />`,
       );
@@ -744,7 +745,7 @@ export function registerApproveRuntimeGetter(
 /**
  * /bot-approve — 管理命令执行审批配置
  *
- * 修改 openclaw.json 中 tools.exec.security / tools.exec.ask 字段。
+ * 修改 kova.json 中 tools.exec.security / tools.exec.ask 字段。
  *
  * security: deny | allowlist | full
  * ask: off | on-miss | always

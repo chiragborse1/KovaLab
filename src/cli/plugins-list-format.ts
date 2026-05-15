@@ -5,8 +5,8 @@ import { shortenHomeInString } from "../utils.js";
 
 function humanizeKovaPackageName(packageName: string): string {
   return packageName
-    .replace(/^@openclaw\//u, "")
-    .replace(/^openclaw[-_]?/u, "")
+    .replace(/^@kovaai\//u, "")
+    .replace(/^kova[-_]?/u, "")
     .replace(/[-_]provider$/u, " provider")
     .replace(/[-_]+/gu, " ")
     .replace(/\b\w/gu, (letter) => letter.toUpperCase());
@@ -16,14 +16,14 @@ export function formatPluginDisplayName(
   plugin: Pick<PluginRecord, "id" | "name" | "origin">,
 ): string {
   const name = plugin.name || plugin.id;
-  if (plugin.origin === "bundled" && name.startsWith("@openclaw/")) {
+  if (plugin.origin === "bundled" && name.startsWith("@kovaai/")) {
     return `Kova ${humanizeKovaPackageName(name)}`;
   }
   return name;
 }
 
 function formatPluginFormat(format: string): string {
-  return format === "openclaw" ? "kova" : format;
+  return format === "kova" ? "kova" : format;
 }
 
 export function formatPluginLine(plugin: PluginRecord, verbose = false): string {
@@ -43,7 +43,7 @@ export function formatPluginLine(plugin: PluginRecord, verbose = false): string 
           : plugin.description,
       )
     : theme.muted("(no description)");
-  const format = formatPluginFormat(plugin.format ?? "openclaw");
+  const format = formatPluginFormat(plugin.format ?? "kova");
 
   if (!verbose) {
     return `${name}${idSuffix} ${status} ${theme.muted(`[${format}]`)} - ${desc}`;

@@ -1,6 +1,6 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
+import { resolvePreferredKovaTmpDir } from "getkova/plugin-sdk/temp-path";
 
 export async function writeQrDataUrlToTempFile(
   qrDataUrl: string,
@@ -13,10 +13,7 @@ export async function writeQrDataUrlToTempFile(
     return null;
   }
   const safeProfile = profile.replace(/[^a-zA-Z0-9_-]+/g, "-") || "default";
-  const filePath = path.join(
-    resolvePreferredOpenClawTmpDir(),
-    `openclaw-zalouser-qr-${safeProfile}.png`,
-  );
+  const filePath = path.join(resolvePreferredKovaTmpDir(), `kova-zalouser-qr-${safeProfile}.png`);
   await fsp.writeFile(filePath, Buffer.from(base64, "base64"));
   return filePath;
 }

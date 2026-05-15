@@ -2,14 +2,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { ChannelType, type AutocompleteInteraction } from "@buape/carbon";
-import {
-  clearSessionStoreCacheForTest,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
+import { clearSessionStoreCacheForTest, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createNoopThreadBindingManager } from "./thread-bindings.js";
 
-type ConversationRuntimeModule = typeof import("openclaw/plugin-sdk/conversation-binding-runtime");
+type ConversationRuntimeModule = typeof import("getkova/plugin-sdk/conversation-binding-runtime");
 type ResolveConfiguredBindingRoute = ConversationRuntimeModule["resolveConfiguredBindingRoute"];
 type ConfiguredBindingRouteResult = ReturnType<ResolveConfiguredBindingRoute>;
 type EnsureConfiguredBindingRouteReady =
@@ -75,26 +72,26 @@ function createConfiguredRouteResult(
   };
 }
 
-vi.mock("openclaw/plugin-sdk/conversation-binding-runtime", async () => {
+vi.mock("getkova/plugin-sdk/conversation-binding-runtime", async () => {
   const { createConfiguredBindingConversationRuntimeModuleMock } =
     await import("../test-support/configured-binding-runtime.js");
   return await createConfiguredBindingConversationRuntimeModuleMock<
-    typeof import("openclaw/plugin-sdk/conversation-binding-runtime")
+    typeof import("getkova/plugin-sdk/conversation-binding-runtime")
   >(
     {
       ensureConfiguredBindingRouteReadyMock,
       resolveConfiguredBindingRouteMock,
     },
     () =>
-      vi.importActual<typeof import("openclaw/plugin-sdk/conversation-binding-runtime")>(
-        "openclaw/plugin-sdk/conversation-binding-runtime",
+      vi.importActual<typeof import("getkova/plugin-sdk/conversation-binding-runtime")>(
+        "getkova/plugin-sdk/conversation-binding-runtime",
       ),
   );
 });
 
-vi.mock("openclaw/plugin-sdk/agent-runtime", () => ({
+vi.mock("getkova/plugin-sdk/agent-runtime", () => ({
   normalizeProviderId: (value: string) => value.trim().toLowerCase(),
-  resolveDefaultModelForAgent: (params: { cfg: OpenClawConfig }) => {
+  resolveDefaultModelForAgent: (params: { cfg: KovaConfig }) => {
     const configuredModel = params.cfg.agents?.defaults?.model;
     const primary =
       typeof configuredModel === "string"
@@ -114,17 +111,14 @@ vi.mock("openclaw/plugin-sdk/agent-runtime", () => ({
   },
 }));
 
-vi.mock("openclaw/plugin-sdk/models-provider-runtime", () => ({
+vi.mock("getkova/plugin-sdk/models-provider-runtime", () => ({
   buildModelsProviderData: buildModelsProviderDataMock,
 }));
 
-const STORE_PATH = path.join(
-  os.tmpdir(),
-  `openclaw-discord-think-autocomplete-${process.pid}.json`,
-);
+const STORE_PATH = path.join(os.tmpdir(), `kova-discord-think-autocomplete-${process.pid}.json`);
 const SESSION_KEY = "agent:main:main";
-let findCommandByNativeName: typeof import("openclaw/plugin-sdk/command-auth").findCommandByNativeName;
-let resolveCommandArgChoices: typeof import("openclaw/plugin-sdk/command-auth").resolveCommandArgChoices;
+let findCommandByNativeName: typeof import("getkova/plugin-sdk/command-auth").findCommandByNativeName;
+let resolveCommandArgChoices: typeof import("getkova/plugin-sdk/command-auth").resolveCommandArgChoices;
 let resolveDiscordNativeChoiceContext: typeof import("./native-command-ui.js").resolveDiscordNativeChoiceContext;
 
 async function loadDiscordThinkAutocompleteModulesForTest() {
@@ -135,7 +129,7 @@ async function loadDiscordThinkAutocompleteModulesForTest() {
     resolveProviderThinkingProfile: providerThinkingMocks.resolveProviderThinkingProfile,
     resolveProviderXHighThinking: providerThinkingMocks.resolveProviderXHighThinking,
   }));
-  const commandAuth = await import("openclaw/plugin-sdk/command-auth");
+  const commandAuth = await import("getkova/plugin-sdk/command-auth");
   const nativeCommandUi = await import("./native-command-ui.js");
   return {
     findCommandByNativeName: commandAuth.findCommandByNativeName,
@@ -218,7 +212,7 @@ describe("discord native /think autocomplete", () => {
       session: {
         store: STORE_PATH,
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
   }
 
   it("uses the session override context for /think choices", async () => {

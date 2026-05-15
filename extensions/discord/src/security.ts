@@ -1,5 +1,5 @@
-import { createScopedDmSecurityResolver } from "openclaw/plugin-sdk/channel-config-helpers";
-import { createOpenProviderConfiguredRouteWarningCollector } from "openclaw/plugin-sdk/channel-policy";
+import { createScopedDmSecurityResolver } from "getkova/plugin-sdk/channel-config-helpers";
+import { createOpenProviderConfiguredRouteWarningCollector } from "getkova/plugin-sdk/channel-policy";
 import type { ResolvedDiscordAccount } from "./accounts.js";
 import type { ChannelPlugin } from "./channel-api.js";
 

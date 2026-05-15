@@ -1,4 +1,4 @@
-import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
+import type { ProviderRuntimeModel } from "getkova/plugin-sdk/plugin-entry";
 import { describe, expect, it } from "vitest";
 import {
   resolveOpenAITransportTurnState,
@@ -40,15 +40,15 @@ describe("openai transport policy", () => {
     ).toMatchObject({
       headers: {
         "x-client-request-id": "session-123",
-        "x-openclaw-session-id": "session-123",
-        "x-openclaw-turn-id": "turn-123",
-        "x-openclaw-turn-attempt": "2",
+        "x-kova-session-id": "session-123",
+        "x-kova-turn-id": "turn-123",
+        "x-kova-turn-attempt": "2",
       },
       metadata: {
-        openclaw_session_id: "session-123",
-        openclaw_turn_id: "turn-123",
-        openclaw_turn_attempt: "2",
-        openclaw_transport: "websocket",
+        kova_session_id: "session-123",
+        kova_turn_id: "turn-123",
+        kova_turn_attempt: "2",
+        kova_transport: "websocket",
       },
     });
   });
@@ -78,7 +78,7 @@ describe("openai transport policy", () => {
     ).toMatchObject({
       headers: {
         "x-client-request-id": "session-123",
-        "x-openclaw-session-id": "session-123",
+        "x-kova-session-id": "session-123",
       },
       degradeCooldownMs: 60_000,
     });
@@ -99,7 +99,7 @@ describe("openai transport policy", () => {
     ).toMatchObject({
       headers: {
         "x-client-request-id": "session-123",
-        "x-openclaw-session-id": "session-123",
+        "x-kova-session-id": "session-123",
       },
       degradeCooldownMs: 60_000,
     });
@@ -121,7 +121,7 @@ describe("openai transport policy", () => {
     ).toMatchObject({
       headers: {
         "x-client-request-id": "session-123",
-        "x-openclaw-session-id": "session-123",
+        "x-kova-session-id": "session-123",
       },
       degradeCooldownMs: 60_000,
     });

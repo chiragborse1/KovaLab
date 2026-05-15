@@ -3,9 +3,9 @@ export {
   resolveMarkdownTableMode,
   resolveSessionStoreEntry,
   resolveStorePath,
-} from "openclaw/plugin-sdk/config-runtime";
-export { getAgentScopedMediaLocalRoots } from "openclaw/plugin-sdk/media-runtime";
-export { resolveChunkMode } from "openclaw/plugin-sdk/reply-dispatch-runtime";
+} from "getkova/plugin-sdk/config-runtime";
+export { getAgentScopedMediaLocalRoots } from "getkova/plugin-sdk/media-runtime";
+export { resolveChunkMode } from "getkova/plugin-sdk/reply-dispatch-runtime";
 export {
   generateTelegramTopicLabel as generateTopicLabel,
   resolveAutoTopicLabelConfig,

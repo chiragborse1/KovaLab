@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { createEmptyPluginRegistry } from "./registry.js";
 
 type MockManifestRegistry = {
@@ -20,14 +20,14 @@ const mocks = vi.hoisted(() => ({
   ),
   loadPluginRegistrySnapshot: vi.fn(() => ({ plugins: [] })),
   withBundledPluginAllowlistCompat: vi.fn(
-    ({ config, pluginIds }: { config?: OpenClawConfig; pluginIds: string[] }) =>
+    ({ config, pluginIds }: { config?: KovaConfig; pluginIds: string[] }) =>
       ({
         ...config,
         plugins: {
           ...config?.plugins,
           allow: Array.from(new Set([...(config?.plugins?.allow ?? []), ...pluginIds])),
         },
-      }) as OpenClawConfig,
+      }) as KovaConfig,
   ),
   withBundledPluginEnablementCompat: vi.fn(({ config }) => config),
   withBundledPluginVitestCompat: vi.fn(({ config }) => config),
@@ -75,8 +75,8 @@ function expectNoResolvedCapabilityProviders(providers: Array<{ id: string }>) {
 }
 
 function expectBundledCompatLoadPath(params: {
-  cfg: OpenClawConfig;
-  allowlistCompat: OpenClawConfig;
+  cfg: KovaConfig;
+  allowlistCompat: KovaConfig;
   enablementCompat: {
     plugins: {
       allow?: string[];
@@ -104,12 +104,12 @@ function expectBundledCompatLoadPath(params: {
 }
 
 function createCompatChainConfig() {
-  const cfg = { plugins: { allow: ["custom-plugin"] } } as OpenClawConfig;
+  const cfg = { plugins: { allow: ["custom-plugin"] } } as KovaConfig;
   const allowlistCompat = {
     plugins: {
       allow: ["custom-plugin", "openai"],
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
   const enablementCompat = {
     plugins: {
       allow: ["custom-plugin", "openai"],
@@ -148,8 +148,8 @@ function expectCompatChainApplied(params: {
     | "videoGenerationProviders"
     | "musicGenerationProviders";
   contractKey: string;
-  cfg: OpenClawConfig;
-  allowlistCompat: OpenClawConfig;
+  cfg: KovaConfig;
+  allowlistCompat: KovaConfig;
   enablementCompat: {
     plugins: {
       allow?: string[];
@@ -181,14 +181,14 @@ describe("resolvePluginCapabilityProviders", () => {
     mocks.loadPluginManifestRegistry.mockReturnValue(createEmptyMockManifestRegistry());
     mocks.withBundledPluginAllowlistCompat.mockClear();
     mocks.withBundledPluginAllowlistCompat.mockImplementation(
-      ({ config, pluginIds }: { config?: OpenClawConfig; pluginIds: string[] }) =>
+      ({ config, pluginIds }: { config?: KovaConfig; pluginIds: string[] }) =>
         ({
           ...config,
           plugins: {
             ...config?.plugins,
             allow: Array.from(new Set([...(config?.plugins?.allow ?? []), ...pluginIds])),
           },
-        }) as OpenClawConfig,
+        }) as KovaConfig,
     );
     mocks.withBundledPluginEnablementCompat.mockReset();
     mocks.withBundledPluginEnablementCompat.mockImplementation(({ config }) => config);
@@ -244,7 +244,7 @@ describe("resolvePluginCapabilityProviders", () => {
             models: [{ provider: "deepgram" }],
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expectResolvedCapabilityProviderIds(providers, ["deepgram"]);
@@ -278,7 +278,7 @@ describe("resolvePluginCapabilityProviders", () => {
       cfg: {
         plugins: { entries: { microsoft: { enabled: true } } },
         messages: { tts: { provider: "edge" } },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expectResolvedCapabilityProviderIds(providers, ["microsoft"]);
@@ -318,7 +318,7 @@ describe("resolvePluginCapabilityProviders", () => {
 
     const providers = resolvePluginCapabilityProviders({
       key: "speechProviders",
-      cfg: { messages: { tts: { provider: "acme" } } } as OpenClawConfig,
+      cfg: { messages: { tts: { provider: "acme" } } } as KovaConfig,
     });
 
     expectResolvedCapabilityProviderIds(providers, ["acme"]);
@@ -383,7 +383,7 @@ describe("resolvePluginCapabilityProviders", () => {
       cfg: {
         plugins: { allow: ["openai", "microsoft"] },
         messages: { tts: { provider: "edge" } },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expectResolvedCapabilityProviderIds(providers, ["openai", "microsoft"]);
@@ -476,7 +476,7 @@ describe("resolvePluginCapabilityProviders", () => {
       cfg: {
         plugins: { allow: ["openai", "microsoft", "elevenlabs"] },
         messages: { tts: { provider: "edge" } },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expectResolvedCapabilityProviderIds(providers, ["openai", "microsoft"]);
@@ -529,7 +529,7 @@ describe("resolvePluginCapabilityProviders", () => {
 
     const providers = resolvePluginCapabilityProviders({
       key: "mediaUnderstandingProviders",
-      cfg: {} as OpenClawConfig,
+      cfg: {} as KovaConfig,
     });
 
     expectNoResolvedCapabilityProviders(providers);
@@ -546,7 +546,7 @@ describe("resolvePluginCapabilityProviders", () => {
         allow: ["google"],
         entries: { google: { enabled: true } },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const loaded = createEmptyPluginRegistry();
     loaded.mediaUnderstandingProviders.push({
       pluginId: "google",
@@ -583,12 +583,12 @@ describe("resolvePluginCapabilityProviders", () => {
   });
 
   it("loads only the bundled owner plugin for a targeted provider lookup", () => {
-    const cfg = { plugins: { allow: ["custom-plugin"] } } as OpenClawConfig;
+    const cfg = { plugins: { allow: ["custom-plugin"] } } as KovaConfig;
     const allowlistCompat = {
       plugins: {
         allow: ["custom-plugin", "google"],
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enablementCompat = {
       plugins: {
         allow: ["custom-plugin", "google"],

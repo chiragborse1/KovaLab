@@ -1,2 +1,2 @@
-/** Root OpenClaw configuration Zod schema — the full `openclaw.json` shape. */
-export { OpenClawSchema } from "../config/zod-schema.js";
+/** Root Kova configuration Zod schema — the full `kova.json` shape. */
+export { KovaSchema } from "../config/zod-schema.js";

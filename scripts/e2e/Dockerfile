@@ -2,7 +2,7 @@
 #
 # Shared Docker E2E image.
 # `bare` is a clean Node/Git runner for install/update lanes. `functional`
-# installs the prepared OpenClaw npm tarball into /app for built-app lanes.
+# installs the prepared Kova npm tarball into /app for built-app lanes.
 
 FROM node:24-bookworm-slim@sha256:e8e2e91b1378f83c5b2dd15f0247f34110e2fe895f6ca7719dbb780f929368eb AS e2e-runner
 
@@ -24,7 +24,7 @@ ENV PATH="/home/appuser/.local/bin:${PATH}"
 ENV NODE_OPTIONS="--disable-warning=ExperimentalWarning"
 # Docker E2E lanes start many loopback gateways concurrently; mDNS advertising
 # is unrelated to those checks and can flap under container CPU/network load.
-ENV OPENCLAW_DISABLE_BONJOUR="1"
+ENV KOVA_DISABLE_BONJOUR="1"
 
 USER appuser
 WORKDIR /app
@@ -41,16 +41,16 @@ FROM bare AS functional
 
 # The app under test enters through the named BuildKit context, not by copying
 # checkout sources into the image.
-COPY --from=openclaw_package --chown=appuser:appuser openclaw-current.tgz /tmp/openclaw-current.tgz
-# Preserve package self-reference imports such as openclaw/plugin-sdk/* after
+COPY --from=kova_package --chown=appuser:appuser kova-current.tgz /tmp/kova-current.tgz
+# Preserve package self-reference imports such as getkova/plugin-sdk/* after
 # copying the installed package out of npm's global node_modules tree.
-RUN npm install -g --prefix /tmp/openclaw-prefix /tmp/openclaw-current.tgz --no-fund --no-audit \
- && cp -a /tmp/openclaw-prefix/lib/node_modules/getkova/. /app/ \
+RUN npm install -g --prefix /tmp/kova-prefix /tmp/kova-current.tgz --no-fund --no-audit \
+ && cp -a /tmp/kova-prefix/lib/node_modules/getkova/. /app/ \
  && mkdir -p "$HOME/.local/bin" \
  && ln -sf /app/kova.mjs "$HOME/.local/bin/kova" \
  && mkdir -p /app/node_modules \
- && ln -sf /app /app/node_modules/openclaw \
+ && ln -sf /app /app/node_modules/kova \
  && ln -sf /app /app/node_modules/getkova \
- && rm -rf /tmp/openclaw-prefix /tmp/openclaw-current.tgz
+ && rm -rf /tmp/kova-prefix /tmp/kova-current.tgz
 
 CMD ["bash"]

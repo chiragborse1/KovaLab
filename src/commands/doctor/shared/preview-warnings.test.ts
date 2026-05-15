@@ -109,8 +109,8 @@ vi.mock("./stale-plugin-config.js", () => ({
     const hits = [...(cfg.plugins?.allow ?? []), ...Object.keys(cfg.plugins?.entries ?? {})]
       .filter((id) => !knownIds.has(id))
       .map((id) => ({ id, surface: "plugin" }));
-    if (cfg.channels?.["openclaw-weixin"]) {
-      hits.push({ id: "openclaw-weixin", surface: "channel" });
+    if (cfg.channels?.["kova-weixin"]) {
+      hits.push({ id: "kova-weixin", surface: "channel" });
     }
     return hits.filter(
       (hit, index) => hits.findIndex((candidate) => candidate.id === hit.id) === index,
@@ -210,7 +210,7 @@ describe("doctor preview warnings", () => {
           },
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(
@@ -237,7 +237,7 @@ describe("doctor preview warnings", () => {
           },
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
@@ -250,14 +250,14 @@ describe("doctor preview warnings", () => {
   it("includes stale plugin config warnings", async () => {
     const warnings = await collectDoctorPreviewWarnings({
       cfg: stalePluginConfig(),
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
       expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
     ]);
     expect(warnings[0]).toContain("plugins.entries.acpx");
-    expect(warnings[0]).toContain('Run "openclaw doctor --fix"');
+    expect(warnings[0]).toContain('Run "kova doctor --fix"');
     expect(warnings[0]).not.toContain("Auto-removal is paused");
   });
 
@@ -265,21 +265,21 @@ describe("doctor preview warnings", () => {
     const warnings = await collectDoctorPreviewWarnings({
       cfg: {
         channels: {
-          "openclaw-weixin": {
+          "kova-weixin": {
             enabled: true,
           },
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
-      expect.stringContaining("channels.openclaw-weixin: dangling channel config"),
+      expect.stringContaining("channels.kova-weixin: dangling channel config"),
     ]);
   });
 
   it("includes bundled plugin load path migration warnings", async () => {
-    const packageRoot = path.resolve("app-node-modules", "openclaw");
+    const packageRoot = path.resolve("app-node-modules", "kova");
     const legacyPath = path.join(packageRoot, "extensions", "feishu");
     manifestState.plugins = [manifest("feishu")];
 
@@ -291,13 +291,13 @@ describe("doctor preview warnings", () => {
           },
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
       expect.stringContaining(`plugins.load.paths: legacy bundled plugin path "${legacyPath}"`),
     ]);
-    expect(warnings[0]).toContain('Run "openclaw doctor --fix"');
+    expect(warnings[0]).toContain('Run "kova doctor --fix"');
   });
 
   it("warns but skips auto-removal when plugin discovery has errors", async () => {
@@ -308,14 +308,14 @@ describe("doctor preview warnings", () => {
 
     const warnings = await collectDoctorPreviewWarnings({
       cfg: stalePluginConfig(),
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
       expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
     ]);
     expect(warnings[0]).toContain("Auto-removal is paused");
-    expect(warnings[0]).toContain('rerun "openclaw doctor --fix"');
+    expect(warnings[0]).toContain('rerun "kova doctor --fix"');
   });
 
   it("warns when a configured channel plugin is disabled explicitly", async () => {
@@ -337,7 +337,7 @@ describe("doctor preview warnings", () => {
           },
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
@@ -363,7 +363,7 @@ describe("doctor preview warnings", () => {
           enabled: false,
         },
       },
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([

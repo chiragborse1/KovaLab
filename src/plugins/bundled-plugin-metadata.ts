@@ -14,14 +14,14 @@ import {
 import {
   getPackageManifestMetadata,
   loadPluginManifest,
-  type OpenClawPackageManifest,
+  type KovaPackageManifest,
   type PackageManifest,
   type PluginManifest,
 } from "./manifest.js";
 import { isOfficialExternalPluginId } from "./official-external-plugin-catalog.js";
 import { resolveLoaderPackageRoot } from "./sdk-alias.js";
 
-const OPENCLAW_PACKAGE_ROOT =
+const KOVA_PACKAGE_ROOT =
   resolveLoaderPackageRoot({
     modulePath: fileURLToPath(import.meta.url),
     moduleUrl: import.meta.url,
@@ -46,7 +46,7 @@ export type BundledPluginMetadata = {
   packageName?: string;
   packageVersion?: string;
   packageDescription?: string;
-  packageManifest?: OpenClawPackageManifest;
+  packageManifest?: KovaPackageManifest;
   manifest: PluginManifest;
 };
 
@@ -191,7 +191,7 @@ export function listBundledPluginMetadata(params?: {
   includeChannelConfigs?: boolean;
   includeSyntheticChannelConfigs?: boolean;
 }): readonly BundledPluginMetadata[] {
-  const rootDir = path.resolve(params?.rootDir ?? OPENCLAW_PACKAGE_ROOT);
+  const rootDir = path.resolve(params?.rootDir ?? KOVA_PACKAGE_ROOT);
   const scanDir = params?.scanDir ? path.resolve(params.scanDir) : undefined;
   const includeChannelConfigs = params?.includeChannelConfigs ?? !RUNNING_FROM_BUILT_ARTIFACT;
   const includeSyntheticChannelConfigs =

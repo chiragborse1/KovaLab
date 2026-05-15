@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   resolvePluginCapabilityProvider,
   resolvePluginCapabilityProviders,
@@ -14,9 +14,7 @@ export { listRegisteredMemoryEmbeddingProviders };
 export function listRegisteredMemoryEmbeddingProviderAdapters(): MemoryEmbeddingProviderAdapter[] {
   return listRegisteredMemoryEmbeddingProviders().map((entry) => entry.adapter);
 }
-export function listMemoryEmbeddingProviders(
-  cfg?: OpenClawConfig,
-): MemoryEmbeddingProviderAdapter[] {
+export function listMemoryEmbeddingProviders(cfg?: KovaConfig): MemoryEmbeddingProviderAdapter[] {
   const registered = listRegisteredMemoryEmbeddingProviderAdapters();
   const merged = new Map(registered.map((adapter) => [adapter.id, adapter]));
   for (const adapter of resolvePluginCapabilityProviders({
@@ -32,7 +30,7 @@ export function listMemoryEmbeddingProviders(
 
 export function getMemoryEmbeddingProvider(
   id: string,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): MemoryEmbeddingProviderAdapter | undefined {
   const registered = getRegisteredMemoryEmbeddingProvider(id);
   if (registered) {

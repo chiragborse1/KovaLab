@@ -28,11 +28,11 @@ import type {
 } from "./service-types.js";
 
 function resolveTaskName(env: GatewayServiceEnv): string {
-  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
+  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.KOVA_WINDOWS_TASK_NAME?.trim();
   if (override) {
     return override;
   }
-  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
+  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
 }
 
 function shouldFallbackToStartupEntry(params: { code: number; detail: string }): boolean {
@@ -45,12 +45,12 @@ function shouldFallbackToStartupEntry(params: { code: number; detail: string }):
 }
 
 export function resolveTaskScriptPath(env: GatewayServiceEnv): string {
-  const override = env.KOVA_TASK_SCRIPT?.trim() ?? env.OPENCLAW_TASK_SCRIPT?.trim();
+  const override = env.KOVA_TASK_SCRIPT?.trim() ?? env.KOVA_TASK_SCRIPT?.trim();
   if (override) {
     return override;
   }
   const scriptName =
-    env.KOVA_TASK_SCRIPT_NAME?.trim() ?? env.OPENCLAW_TASK_SCRIPT_NAME?.trim() ?? "gateway.cmd";
+    env.KOVA_TASK_SCRIPT_NAME?.trim() ?? env.KOVA_TASK_SCRIPT_NAME?.trim() ?? "gateway.cmd";
   const stateDir = resolveGatewayStateDir(env);
   return path.join(stateDir, scriptName);
 }
@@ -349,7 +349,7 @@ async function launchFallbackTaskScript(env: GatewayServiceEnv): Promise<void> {
 }
 
 function resolveConfiguredGatewayPort(env: GatewayServiceEnv): number | null {
-  const raw = env.KOVA_GATEWAY_PORT?.trim() || env.OPENCLAW_GATEWAY_PORT?.trim();
+  const raw = env.KOVA_GATEWAY_PORT?.trim() || env.KOVA_GATEWAY_PORT?.trim();
   if (!raw) {
     return null;
   }
@@ -394,7 +394,7 @@ async function resolveScheduledTaskPort(env: GatewayServiceEnv): Promise<number 
   return (
     parsePortFromProgramArguments(command?.programArguments) ??
     parsePositivePort(command?.environment?.KOVA_GATEWAY_PORT) ??
-    parsePositivePort(command?.environment?.OPENCLAW_GATEWAY_PORT) ??
+    parsePositivePort(command?.environment?.KOVA_GATEWAY_PORT) ??
     resolveConfiguredGatewayPort(env)
   );
 }

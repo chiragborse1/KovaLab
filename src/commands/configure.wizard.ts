@@ -7,7 +7,7 @@ import { commitConfigWithPendingPluginInstalls } from "../cli/plugins-install-re
 import { readConfigFileSnapshot, resolveGatewayPort } from "../config/config.js";
 import { logConfigUpdated } from "../config/logging.js";
 import { ConfigMutationConflictError } from "../config/mutate.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
 import { resolvePluginContributionOwners } from "../plugins/plugin-registry.js";
@@ -99,7 +99,7 @@ function mergeWizardConfigOntoLatest(current: unknown, base: unknown, next: unkn
 }
 
 async function resolveGatewaySecretInputForWizard(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   value: unknown;
   path: string;
 }): Promise<string | undefined> {
@@ -116,7 +116,7 @@ async function resolveGatewaySecretInputForWizard(params: {
 }
 
 async function runGatewayHealthCheck(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   runtime: RuntimeEnv;
   port: number;
 }): Promise<void> {
@@ -139,12 +139,9 @@ async function runGatewayHealthCheck(params: {
     value: params.cfg.gateway?.auth?.password,
     path: "gateway.auth.password",
   });
-  const token =
-    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
-    configuredToken;
+  const token = readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN") ?? configuredToken;
   const password =
-    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD") ??
-    configuredPassword;
+    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD") ?? configuredPassword;
 
   await waitForGatewayReachable({
     url: wsUrl,
@@ -212,11 +209,11 @@ async function promptChannelMode(runtime: RuntimeEnv): Promise<ChannelsWizardMod
 }
 
 async function promptWebToolsConfig(
-  nextConfig: OpenClawConfig,
+  nextConfig: KovaConfig,
   runtime: RuntimeEnv,
   prompter: ReturnType<typeof createClackPrompter>,
-): Promise<OpenClawConfig> {
-  type WebSearchConfig = NonNullable<NonNullable<OpenClawConfig["tools"]>["web"]>["search"];
+): Promise<KovaConfig> {
+  type WebSearchConfig = NonNullable<NonNullable<KovaConfig["tools"]>["web"]>["search"];
   const existingSearch = nextConfig.tools?.web?.search;
   const existingFetch = nextConfig.tools?.web?.fetch;
   const { isCodexNativeWebSearchRelevant } = await import("../agents/codex-native-web-search.js");
@@ -391,7 +388,7 @@ export async function runConfigureWizard(
 
       const snapshot = await readConfigFileSnapshot();
       let currentBaseHash = snapshot.hash;
-      const baseConfig: OpenClawConfig = snapshot.valid
+      const baseConfig: KovaConfig = snapshot.valid
         ? (snapshot.sourceConfig ?? snapshot.config)
         : {};
 
@@ -439,17 +436,10 @@ export async function runConfigureWizard(
           return probeGatewayReachable({
             url: localUrl,
             token:
-              readGatewayCredentialEnv(
-                process.env,
-                "KOVA_GATEWAY_TOKEN",
-                "OPENCLAW_GATEWAY_TOKEN",
-              ) ?? baseLocalProbeToken,
+              readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN") ?? baseLocalProbeToken,
             password:
-              readGatewayCredentialEnv(
-                process.env,
-                "KOVA_GATEWAY_PASSWORD",
-                "OPENCLAW_GATEWAY_PASSWORD",
-              ) ?? baseLocalProbePassword,
+              readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD") ??
+              baseLocalProbePassword,
             timeoutMs: GATEWAY_HINT_PROBE_TIMEOUT_MS,
           });
         })();
@@ -590,7 +580,7 @@ export async function runConfigureWizard(
                 diskConfig,
                 mergeBaseConfig,
                 nextConfig,
-              ) as OpenClawConfig;
+              ) as KovaConfig;
               continue;
             }
             throw err;
@@ -844,29 +834,21 @@ export async function runConfigureWizard(
         tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
       });
       const newPassword =
-        readGatewayCredentialEnv(
-          process.env,
-          "KOVA_GATEWAY_PASSWORD",
-          "OPENCLAW_GATEWAY_PASSWORD",
-        ) ??
+        readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD") ??
         (await resolveGatewaySecretInputForWizard({
           cfg: nextConfig,
           value: nextConfig.gateway?.auth?.password,
           path: "gateway.auth.password",
         }));
       const oldPassword =
-        readGatewayCredentialEnv(
-          process.env,
-          "KOVA_GATEWAY_PASSWORD",
-          "OPENCLAW_GATEWAY_PASSWORD",
-        ) ??
+        readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD") ??
         (await resolveGatewaySecretInputForWizard({
           cfg: baseConfig,
           value: baseConfig.gateway?.auth?.password,
           path: "gateway.auth.password",
         }));
       const token =
-        readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
+        readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN") ??
         (await resolveGatewaySecretInputForWizard({
           cfg: nextConfig,
           value: nextConfig.gateway?.auth?.token,

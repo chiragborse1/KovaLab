@@ -1,5 +1,5 @@
 import { containsEnvVarReference } from "../config/env-substitution.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { hasConfiguredSecretInput, resolveSecretInputRef } from "../config/types.secrets.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
@@ -41,26 +41,15 @@ export type GatewayCredentialPlan = {
   remotePasswordActive: boolean;
 };
 
-type GatewaySecretDefaults = NonNullable<OpenClawConfig["secrets"]>["defaults"];
+type GatewaySecretDefaults = NonNullable<KovaConfig["secrets"]>["defaults"];
 
 export const trimToUndefined = normalizeOptionalString;
-
-function allowLegacyGatewayEnv(env: NodeJS.ProcessEnv): boolean {
-  const value = trimToUndefined(
-    env.KOVA_ALLOW_OPENCLAW_COMPAT ?? env.KOVA_OPENCLAW_COMPAT,
-  )?.toLowerCase();
-  return value === "1" || value === "true" || value === "yes" || value === "on";
-}
 
 export function readGatewayCredentialEnv(
   env: NodeJS.ProcessEnv,
   modernKey: "KOVA_GATEWAY_TOKEN" | "KOVA_GATEWAY_PASSWORD",
-  legacyKey: "OPENCLAW_GATEWAY_TOKEN" | "OPENCLAW_GATEWAY_PASSWORD",
 ): string | undefined {
-  return (
-    trimToUndefined(env[modernKey]) ??
-    (allowLegacyGatewayEnv(env) ? trimToUndefined(env[legacyKey]) : undefined)
-  );
+  return trimToUndefined(env[modernKey]);
 }
 
 /**
@@ -79,13 +68,11 @@ export function trimCredentialToUndefined(value: unknown): string | undefined {
 }
 
 export function hasGatewayTokenEnvCandidate(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"));
+  return Boolean(readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN"));
 }
 
 export function hasGatewayPasswordEnvCandidate(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(
-    readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD"),
-  );
+  return Boolean(readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD"));
 }
 
 function resolveConfiguredGatewayCredentialInput(params: {
@@ -107,7 +94,7 @@ function resolveConfiguredGatewayCredentialInput(params: {
 }
 
 export function createGatewayCredentialPlan(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env?: NodeJS.ProcessEnv;
   defaults?: GatewaySecretDefaults;
 }): GatewayCredentialPlan {
@@ -116,12 +103,8 @@ export function createGatewayCredentialPlan(params: {
   const remote = gateway?.remote;
   const defaults = params.defaults ?? params.config.secrets?.defaults;
   const authMode = gateway?.auth?.mode;
-  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
-  const envPassword = readGatewayCredentialEnv(
-    env,
-    "KOVA_GATEWAY_PASSWORD",
-    "OPENCLAW_GATEWAY_PASSWORD",
-  );
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN");
+  const envPassword = readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD");
 
   const localToken = resolveConfiguredGatewayCredentialInput({
     value: gateway?.auth?.token,

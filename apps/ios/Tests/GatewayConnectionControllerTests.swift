@@ -1,8 +1,8 @@
-import OpenClawKit
+import KovaKit
 import Foundation
 import Testing
 import UIKit
-@testable import OpenClaw
+@testable import Kova
 
 @Suite(.serialized) struct GatewayConnectionControllerTests {
     @Test @MainActor func resolvedDisplayNameSetsDefaultWhenMissing() {
@@ -24,49 +24,49 @@ import UIKit
             "node.instanceId": "ios-test",
             "node.displayName": "Test Node",
             "camera.enabled": true,
-            "location.enabledMode": OpenClawLocationMode.always.rawValue,
+            "location.enabledMode": KovaLocationMode.always.rawValue,
             VoiceWakePreferences.enabledKey: true,
         ]) {
             let appModel = NodeAppModel()
             let controller = GatewayConnectionController(appModel: appModel, startDiscovery: false)
             let caps = Set(controller._test_currentCaps())
 
-            #expect(caps.contains(OpenClawCapability.canvas.rawValue))
-            #expect(caps.contains(OpenClawCapability.screen.rawValue))
-            #expect(caps.contains(OpenClawCapability.camera.rawValue))
-            #expect(caps.contains(OpenClawCapability.location.rawValue))
-            #expect(caps.contains(OpenClawCapability.voiceWake.rawValue))
+            #expect(caps.contains(KovaCapability.canvas.rawValue))
+            #expect(caps.contains(KovaCapability.screen.rawValue))
+            #expect(caps.contains(KovaCapability.camera.rawValue))
+            #expect(caps.contains(KovaCapability.location.rawValue))
+            #expect(caps.contains(KovaCapability.voiceWake.rawValue))
         }
     }
 
     @Test @MainActor func currentCommandsIncludeLocationWhenEnabled() {
         withUserDefaults([
             "node.instanceId": "ios-test",
-            "location.enabledMode": OpenClawLocationMode.whileUsing.rawValue,
+            "location.enabledMode": KovaLocationMode.whileUsing.rawValue,
         ]) {
             let appModel = NodeAppModel()
             let controller = GatewayConnectionController(appModel: appModel, startDiscovery: false)
             let commands = Set(controller._test_currentCommands())
 
-            #expect(commands.contains(OpenClawLocationCommand.get.rawValue))
+            #expect(commands.contains(KovaLocationCommand.get.rawValue))
         }
     }
     @Test @MainActor func currentCommandsExcludeDangerousSystemExecCommands() {
         withUserDefaults([
             "node.instanceId": "ios-test",
             "camera.enabled": true,
-            "location.enabledMode": OpenClawLocationMode.whileUsing.rawValue,
+            "location.enabledMode": KovaLocationMode.whileUsing.rawValue,
         ]) {
             let appModel = NodeAppModel()
             let controller = GatewayConnectionController(appModel: appModel, startDiscovery: false)
             let commands = Set(controller._test_currentCommands())
 
             // iOS should expose notify, but not host shell/exec-approval commands.
-            #expect(commands.contains(OpenClawSystemCommand.notify.rawValue))
-            #expect(!commands.contains(OpenClawSystemCommand.run.rawValue))
-            #expect(!commands.contains(OpenClawSystemCommand.which.rawValue))
-            #expect(!commands.contains(OpenClawSystemCommand.execApprovalsGet.rawValue))
-            #expect(!commands.contains(OpenClawSystemCommand.execApprovalsSet.rawValue))
+            #expect(commands.contains(KovaSystemCommand.notify.rawValue))
+            #expect(!commands.contains(KovaSystemCommand.run.rawValue))
+            #expect(!commands.contains(KovaSystemCommand.which.rawValue))
+            #expect(!commands.contains(KovaSystemCommand.execApprovalsGet.rawValue))
+            #expect(!commands.contains(KovaSystemCommand.execApprovalsSet.rawValue))
         }
     }
 
@@ -74,11 +74,11 @@ import UIKit
         let appModel = NodeAppModel()
         let withoutApprovalScope = appModel._test_makeOperatorConnectOptions(
             clientId: "kova-ios",
-            displayName: "OpenClaw iOS",
+            displayName: "Kova iOS",
             includeApprovalScope: false)
         let withApprovalScope = appModel._test_makeOperatorConnectOptions(
             clientId: "kova-ios",
-            displayName: "OpenClaw iOS",
+            displayName: "Kova iOS",
             includeApprovalScope: true)
 
         #expect(withoutApprovalScope.role == "operator")

@@ -6,5 +6,5 @@ export {
   optimizeImageToJpeg,
   optimizeImageToPng,
   type WebMediaResult,
-} from "openclaw/plugin-sdk/web-media";
-export type { LocalMediaAccessErrorCode } from "openclaw/plugin-sdk/web-media";
+} from "getkova/plugin-sdk/web-media";
+export type { LocalMediaAccessErrorCode } from "getkova/plugin-sdk/web-media";

@@ -1,4 +1,3 @@
-import { resolveOpenClawCompatMode } from "../config/paths.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
 export const DEFAULT_PLUGIN_DISCOVERY_CACHE_MS = 1000;
@@ -7,46 +6,23 @@ export const DEFAULT_PLUGIN_MANIFEST_CACHE_MS = 1000;
 export function readPluginCacheEnv(
   env: NodeJS.ProcessEnv,
   modernKey: string,
-  legacyKey: string,
+  _legacyKey?: string,
 ): string | undefined {
-  return (
-    normalizeOptionalString(env[modernKey]) ??
-    (resolveOpenClawCompatMode(env) ? normalizeOptionalString(env[legacyKey]) : undefined)
-  );
+  return normalizeOptionalString(env[modernKey]);
 }
 
 export function shouldUsePluginSnapshotCache(env: NodeJS.ProcessEnv): boolean {
-  if (
-    readPluginCacheEnv(
-      env,
-      "KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE",
-      "OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE",
-    )
-  ) {
+  if (readPluginCacheEnv(env, "KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE")) {
     return false;
   }
-  if (
-    readPluginCacheEnv(
-      env,
-      "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE",
-      "OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE",
-    )
-  ) {
+  if (readPluginCacheEnv(env, "KOVA_DISABLE_PLUGIN_MANIFEST_CACHE")) {
     return false;
   }
-  const discoveryCacheMs = readPluginCacheEnv(
-    env,
-    "KOVA_PLUGIN_DISCOVERY_CACHE_MS",
-    "OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS",
-  );
+  const discoveryCacheMs = readPluginCacheEnv(env, "KOVA_PLUGIN_DISCOVERY_CACHE_MS");
   if (discoveryCacheMs === "0") {
     return false;
   }
-  const manifestCacheMs = readPluginCacheEnv(
-    env,
-    "KOVA_PLUGIN_MANIFEST_CACHE_MS",
-    "OPENCLAW_PLUGIN_MANIFEST_CACHE_MS",
-  );
+  const manifestCacheMs = readPluginCacheEnv(env, "KOVA_PLUGIN_MANIFEST_CACHE_MS");
   if (manifestCacheMs === "0") {
     return false;
   }
@@ -70,11 +46,11 @@ export function resolvePluginCacheMs(rawValue: string | undefined, defaultMs: nu
 
 export function resolvePluginSnapshotCacheTtlMs(env: NodeJS.ProcessEnv): number {
   const discoveryCacheMs = resolvePluginCacheMs(
-    readPluginCacheEnv(env, "KOVA_PLUGIN_DISCOVERY_CACHE_MS", "OPENCLAW_PLUGIN_DISCOVERY_CACHE_MS"),
+    readPluginCacheEnv(env, "KOVA_PLUGIN_DISCOVERY_CACHE_MS"),
     DEFAULT_PLUGIN_DISCOVERY_CACHE_MS,
   );
   const manifestCacheMs = resolvePluginCacheMs(
-    readPluginCacheEnv(env, "KOVA_PLUGIN_MANIFEST_CACHE_MS", "OPENCLAW_PLUGIN_MANIFEST_CACHE_MS"),
+    readPluginCacheEnv(env, "KOVA_PLUGIN_MANIFEST_CACHE_MS"),
     DEFAULT_PLUGIN_MANIFEST_CACHE_MS,
   );
   return Math.min(discoveryCacheMs, manifestCacheMs);
@@ -90,11 +66,7 @@ export function buildPluginSnapshotCacheEnvKey(env: NodeJS.ProcessEnv): string {
     KOVA_HOME: env.KOVA_HOME ?? "",
     KOVA_STATE_DIR: env.KOVA_STATE_DIR ?? "",
     KOVA_CONFIG_PATH: env.KOVA_CONFIG_PATH ?? "",
-    OPENCLAW_COMPAT: resolveOpenClawCompatMode(env) ? "1" : "",
-    OPENCLAW_BUNDLED_PLUGINS_DIR: resolveOpenClawCompatMode(env)
-      ? (env.OPENCLAW_BUNDLED_PLUGINS_DIR ?? "")
-      : "",
-    OPENCLAW_HOME: resolveOpenClawCompatMode(env) ? (env.OPENCLAW_HOME ?? "") : "",
+    KOVA_COMPAT: resolveKovaCompatMode(env) ? "1" : "",
     HOME: env.HOME ?? "",
     USERPROFILE: env.USERPROFILE ?? "",
     VITEST: env.VITEST ?? "",

@@ -131,7 +131,7 @@ vi.mock("../controllers/sessions.ts", () => ({
 vi.mock("./agents-utils.ts", () => ({
   isRenderableControlUiAvatarUrl: (value: string) =>
     /^data:image\//i.test(value) || (value.startsWith("/") && !value.startsWith("//")),
-  agentLogoUrl: () => "/openclaw-logo.svg",
+  agentLogoUrl: () => "/kova-logo.svg",
   assistantAvatarFallbackUrl: () => "apple-touch-icon.png",
   resolveChatAvatarRenderUrl: (
     candidate: string | null | undefined,
@@ -258,7 +258,7 @@ function createChatHeaderState(
       locale: "en",
       sessionKey: "main",
       lastActiveSessionKey: "main",
-      theme: "claw",
+      theme: "kova",
       themeMode: "dark",
       splitRatio: 0.6,
       navCollapsed: false,

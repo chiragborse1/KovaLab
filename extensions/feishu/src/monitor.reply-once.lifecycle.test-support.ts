@@ -30,7 +30,7 @@ const {
 let lastRuntime: ReturnType<typeof createRuntimeEnv> | null = null;
 let lifecycleCore: ReturnType<typeof installFeishuLifecycleReplyRuntime>;
 const handleMessageMock = vi.fn();
-const originalStateDir = process.env.OPENCLAW_STATE_DIR;
+const originalStateDir = process.env.KOVA_STATE_DIR;
 const lifecycleConfig = createFeishuLifecycleConfig({
   accountId: "acct-lifecycle",
   appId: "cli_test",
@@ -68,7 +68,7 @@ describe("Feishu reply-once lifecycle", () => {
     resetFeishuLifecycleTestMocks();
     handleMessageMock.mockReset();
     lastRuntime = null;
-    setFeishuLifecycleStateDir("openclaw-feishu-lifecycle");
+    setFeishuLifecycleStateDir("kova-feishu-lifecycle");
 
     createFeishuReplyDispatcherMock.mockReturnValue(createFeishuLifecycleReplyDispatcher());
 

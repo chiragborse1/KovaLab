@@ -9,8 +9,8 @@ import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { PluginOperationState } from "./controllers/plugins.ts";
 import type {
-  ClawHubSearchResult,
-  ClawHubSkillDetail,
+  KovaHubSearchResult,
+  KovaHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
 import type {
@@ -366,16 +366,16 @@ export type AppViewState = {
     skillMessages: Record<string, SkillMessage>;
     skillsBusyKey: string | null;
     skillsDetailKey: string | null;
-    clawhubSearchQuery: string;
-    clawhubSearchResults: ClawHubSearchResult[] | null;
-    clawhubSearchLoading: boolean;
-    clawhubSearchError: string | null;
-    clawhubDetail: ClawHubSkillDetail | null;
-    clawhubDetailSlug: string | null;
-    clawhubDetailLoading: boolean;
-    clawhubDetailError: string | null;
-    clawhubInstallSlug: string | null;
-    clawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
+    kovahubSearchQuery: string;
+    kovahubSearchResults: KovaHubSearchResult[] | null;
+    kovahubSearchLoading: boolean;
+    kovahubSearchError: string | null;
+    kovahubDetail: KovaHubSkillDetail | null;
+    kovahubDetailSlug: string | null;
+    kovahubDetailLoading: boolean;
+    kovahubDetailError: string | null;
+    kovahubInstallSlug: string | null;
+    kovahubInstallMessage: { kind: "success" | "error"; text: string } | null;
     healthLoading: boolean;
     healthResult: HealthSummary | null;
     healthError: string | null;

@@ -77,7 +77,7 @@ Core ACP baseline:
       "kilocode",
       "kimi",
       "kiro",
-      "openclaw",
+      "kova",
       "opencode",
       "pi",
       "qwen",
@@ -159,7 +159,7 @@ Then verify backend health:
 
 By default, the bundled `acpx` plugin registers the embedded ACP backend without
 spawning an ACP agent during Gateway startup. Run `/acp doctor` for an explicit
-live probe. Set `OPENCLAW_ACPX_RUNTIME_STARTUP_PROBE=1` only when you need the
+live probe. Set `KOVA_ACPX_RUNTIME_STARTUP_PROBE=1` only when you need the
 Gateway to probe the configured agent at startup.
 
 Override the command or version in plugin config:
@@ -207,7 +207,7 @@ kova config set plugins.entries.acpx.config.pluginToolsMcpBridge true
 
 What this does:
 
-- Injects a built-in MCP server named `openclaw-plugin-tools` into ACPX session
+- Injects a built-in MCP server named `kova-plugin-tools` into ACPX session
   bootstrap.
 - Exposes plugin tools already registered by installed and enabled Kova
   plugins.
@@ -231,12 +231,12 @@ MCP. Enable the separate core-tools bridge when an ACP agent needs selected
 built-in tools such as `cron`:
 
 ```bash
-kova config set plugins.entries.acpx.config.openClawToolsMcpBridge true
+kova config set plugins.entries.acpx.config.kovaToolsMcpBridge true
 ```
 
 What this does:
 
-- Injects a built-in MCP server named `openclaw-tools` into ACPX session
+- Injects a built-in MCP server named `kova-tools` into ACPX session
   bootstrap.
 - Exposes selected built-in Kova tools. The initial server exposes `cron`.
 - Keeps core-tool exposure explicit and default-off.

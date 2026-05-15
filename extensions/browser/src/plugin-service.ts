@@ -1,8 +1,8 @@
 import {
   startLazyPluginServiceModule,
   type LazyPluginServiceHandle,
-  type OpenClawPluginService,
-} from "openclaw/plugin-sdk/browser-node-runtime";
+  type KovaPluginService,
+} from "getkova/plugin-sdk/browser-node-runtime";
 
 type BrowserControlHandle = LazyPluginServiceHandle | null;
 const UNSAFE_BROWSER_CONTROL_OVERRIDE_SPECIFIER = /^(?:data|http|https|node):/i;
@@ -15,7 +15,7 @@ function validateBrowserControlOverrideSpecifier(specifier: string): string {
   return trimmed;
 }
 
-export function createBrowserPluginService(): OpenClawPluginService {
+export function createBrowserPluginService(): KovaPluginService {
   let handle: BrowserControlHandle = null;
 
   return {

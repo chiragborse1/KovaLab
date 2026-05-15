@@ -15,7 +15,7 @@ Kova is the product name used across the gateway, Control UI, and docs.
 
 - **Peter Steinberger** ([@steipete](https://x.com/steipete)) - Creator
 - **Mario Zechner** ([@badlogicc](https://x.com/badlogicgames)) - Pi creator, security pen tester
-- **Clawd** - Earlier internal character name from the pre-Kova era
+- **Kova** - Earlier internal character name from the pre-Kova era
 
 ## Core contributors
 

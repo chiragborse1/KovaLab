@@ -19,21 +19,21 @@ logs live, how to read them, and how to configure log levels and formats.
 
 By default, the Gateway writes a rolling log file under:
 
-`/tmp/openclaw/openclaw-YYYY-MM-DD.log`
+`/tmp/chiragborse1/KovaLab-YYYY-MM-DD.log`
 
 The date uses the gateway host's local timezone.
 
 Each file rotates when it reaches `logging.maxFileBytes` (default: 100 MB).
 Kova keeps up to five numbered archives beside the active file, such as
-`openclaw-YYYY-MM-DD.1.log`, and keeps writing to a fresh active log instead of
+`kova-YYYY-MM-DD.1.log`, and keeps writing to a fresh active log instead of
 suppressing diagnostics.
 
-You can override this in `~/.openclaw/openclaw.json`:
+You can override this in `~/.chiragborse1/KovaLab.json`:
 
 ```json
 {
   "logging": {
-    "file": "/path/to/openclaw.log"
+    "file": "/path/to/kova.log"
   }
 }
 ```
@@ -144,13 +144,13 @@ kova gateway --verbose --ws-log full
 
 ## Configuring logging
 
-All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
+All logging configuration lives under `logging` in `~/.chiragborse1/KovaLab.json`.
 
 ```json
 {
   "logging": {
     "level": "info",
-    "file": "/tmp/openclaw/openclaw-YYYY-MM-DD.log",
+    "file": "/tmp/chiragborse1/KovaLab-YYYY-MM-DD.log",
     "consoleLevel": "info",
     "consoleStyle": "pretty",
     "redactSensitive": "tools",
@@ -164,7 +164,7 @@ All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
 - `logging.level`: **file logs** (JSONL) level.
 - `logging.consoleLevel`: **console** verbosity level.
 
-You can override both via the **`OPENCLAW_LOG_LEVEL`** environment variable (e.g. `OPENCLAW_LOG_LEVEL=debug`). The env var takes precedence over the config file, so you can raise verbosity for a single run without editing `openclaw.json`. You can also pass the global CLI option **`--log-level <level>`** (for example, `kova --log-level debug gateway run`), which overrides the environment variable for that command.
+You can override both via the **`KOVA_LOG_LEVEL`** environment variable (e.g. `KOVA_LOG_LEVEL=debug`). The env var takes precedence over the config file, so you can raise verbosity for a single run without editing `kova.json`. You can also pass the global CLI option **`--log-level <level>`** (for example, `kova --log-level debug gateway run`), which overrides the environment variable for that command.
 
 `--verbose` only affects console output and WS log verbosity; it does not change
 file log levels.
@@ -234,7 +234,7 @@ Two adjacent surfaces:
 - **Diagnostics flags** — targeted debug-log flags that route extra logs to
   `logging.file` without raising `logging.level`. Flags are case-insensitive
   and support wildcards (`telegram.*`, `*`). Configure under `diagnostics.flags`
-  or via the `OPENCLAW_DIAGNOSTICS=...` env override. Full guide:
+  or via the `KOVA_DIAGNOSTICS=...` env override. Full guide:
   [Diagnostics flags](/diagnostics/flags).
 
 To enable diagnostics events for plugins or custom sinks without OTLP export:

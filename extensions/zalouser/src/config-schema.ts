@@ -5,8 +5,8 @@ import {
   GroupPolicySchema,
   MarkdownConfigSchema,
   ToolPolicySchema,
-} from "openclaw/plugin-sdk/channel-config-schema";
-import { z } from "openclaw/plugin-sdk/zod";
+} from "getkova/plugin-sdk/channel-config-schema";
+import { z } from "getkova/plugin-sdk/zod";
 
 const groupConfigSchema = z.object({
   enabled: z.boolean().optional(),

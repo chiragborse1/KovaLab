@@ -2,17 +2,17 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ChannelType } from "discord-api-types/v10";
-import * as commandRegistryModule from "openclaw/plugin-sdk/command-auth";
-import type { ChatCommandDefinition, CommandArgsParsing } from "openclaw/plugin-sdk/command-auth";
-import type { ModelsProviderData } from "openclaw/plugin-sdk/command-auth";
+import * as commandRegistryModule from "getkova/plugin-sdk/command-auth";
+import type { ChatCommandDefinition, CommandArgsParsing } from "getkova/plugin-sdk/command-auth";
+import type { ModelsProviderData } from "getkova/plugin-sdk/command-auth";
 import {
   loadSessionStore,
   resolveStorePath,
   saveSessionStore,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import * as globalsModule from "openclaw/plugin-sdk/runtime-env";
-import * as commandTextModule from "openclaw/plugin-sdk/text-runtime";
+  type KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
+import * as globalsModule from "getkova/plugin-sdk/runtime-env";
+import * as commandTextModule from "getkova/plugin-sdk/text-runtime";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineThrowingDiscordChannelGetter } from "../test-support/partial-channel.js";
 import { resolveDiscordChannelContext } from "./agent-components-helpers.js";
@@ -82,7 +82,7 @@ function createModelPickerContext(): ModelPickerContext {
         },
       },
     },
-  } as unknown as OpenClawConfig;
+  } as unknown as KovaConfig;
 
   return {
     cfg,
@@ -278,7 +278,7 @@ function createBoundThreadBindingManager(params: {
 
 describe("Discord model picker interactions", () => {
   beforeEach(async () => {
-    tempDir = await mkdtemp(path.join(os.tmpdir(), "openclaw-discord-model-picker-"));
+    tempDir = await mkdtemp(path.join(os.tmpdir(), "kova-discord-model-picker-"));
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
@@ -430,8 +430,8 @@ describe("Discord model picker interactions", () => {
         [
           {
             id: "pi",
-            label: "OpenClaw Pi Default",
-            description: "Use the built-in OpenClaw Pi runtime.",
+            label: "Kova Pi Default",
+            description: "Use the built-in Kova Pi runtime.",
           },
           {
             id: "codex",

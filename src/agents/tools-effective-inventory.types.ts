@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 
 export type EffectiveToolSource = "core" | "plugin" | "channel";
 
@@ -33,7 +33,7 @@ export type EffectiveToolInventoryResult = {
 };
 
 export type ResolveEffectiveToolInventoryParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId?: string;
   sessionKey?: string;
   workspaceDir?: string;

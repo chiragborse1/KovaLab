@@ -7,11 +7,10 @@ type TestMock<TArgs extends unknown[] = unknown[], TResult = unknown> = Mock<
 export const loadConfigMock: TestMock = vi.fn();
 export const resolveGatewayPortMock: TestMock = vi.fn();
 export const resolveStateDirMock: TestMock<[NodeJS.ProcessEnv], string> = vi.fn(
-  (env: NodeJS.ProcessEnv) => env.OPENCLAW_STATE_DIR ?? "/tmp/openclaw",
+  (env: NodeJS.ProcessEnv) => env.KOVA_STATE_DIR ?? "/tmp/kova",
 );
 export const resolveConfigPathMock: TestMock<[NodeJS.ProcessEnv, string], string> = vi.fn(
-  (env: NodeJS.ProcessEnv, stateDir: string) =>
-    env.OPENCLAW_CONFIG_PATH ?? `${stateDir}/openclaw.json`,
+  (env: NodeJS.ProcessEnv, stateDir: string) => env.KOVA_CONFIG_PATH ?? `${stateDir}/kova.json`,
 );
 export const pickPrimaryTailnetIPv4Mock: TestMock = vi.fn();
 export const pickPrimaryLanIPv4Mock: TestMock = vi.fn();

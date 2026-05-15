@@ -1,7 +1,7 @@
-import type { BaseProbeResult } from "openclaw/plugin-sdk/channel-contract";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { resolveFetch } from "openclaw/plugin-sdk/fetch-runtime";
-import { fetchWithTimeout } from "openclaw/plugin-sdk/text-runtime";
+import type { BaseProbeResult } from "getkova/plugin-sdk/channel-contract";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { resolveFetch } from "getkova/plugin-sdk/fetch-runtime";
+import { fetchWithTimeout } from "getkova/plugin-sdk/text-runtime";
 import { normalizeDiscordToken } from "./token.js";
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";

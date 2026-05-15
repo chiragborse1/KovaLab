@@ -1,4 +1,4 @@
-declare module "@clawdbot/lobster/core" {
+declare module "@kova/lobster/core" {
   type LobsterApprovalRequest = {
     type: "approval_request";
     prompt: string;

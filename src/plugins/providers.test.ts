@@ -1,12 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { PluginAutoEnableResult } from "../config/plugin-auto-enable.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 import { createEmptyPluginRegistry } from "./registry-empty.js";
 import type { ProviderPlugin } from "./types.js";
 
 type ResolveRuntimePluginRegistry = typeof import("./loader.js").resolveRuntimePluginRegistry;
-type LoadOpenClawPlugins = typeof import("./loader.js").loadOpenClawPlugins;
+type LoadKovaPlugins = typeof import("./loader.js").loadKovaPlugins;
 type IsPluginRegistryLoadInFlight = typeof import("./loader.js").isPluginRegistryLoadInFlight;
 type LoadPluginManifestRegistry =
   typeof import("./manifest-registry.js").loadPluginManifestRegistry;
@@ -14,7 +14,7 @@ type ApplyPluginAutoEnable = typeof import("../config/plugin-auto-enable.js").ap
 type SetActivePluginRegistry = typeof import("./runtime.js").setActivePluginRegistry;
 
 const resolveRuntimePluginRegistryMock = vi.fn<ResolveRuntimePluginRegistry>();
-const loadOpenClawPluginsMock = vi.fn<LoadOpenClawPlugins>();
+const loadKovaPluginsMock = vi.fn<LoadKovaPlugins>();
 const isPluginRegistryLoadInFlightMock = vi.fn<IsPluginRegistryLoadInFlight>((_) => false);
 const loadPluginManifestRegistryMock = vi.fn<LoadPluginManifestRegistry>();
 const applyPluginAutoEnableMock = vi.fn<ApplyPluginAutoEnable>();
@@ -57,7 +57,7 @@ function createManifestProviderPlugin(params: {
     origin: params.origin ?? "bundled",
     rootDir: `/tmp/${params.id}`,
     source: params.origin ?? "bundled",
-    manifestPath: `/tmp/${params.id}/openclaw.plugin.json`,
+    manifestPath: `/tmp/${params.id}/kova.plugin.json`,
   };
 }
 
@@ -158,7 +158,7 @@ function expectLastSetupRegistryLoad(params?: {
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
 }) {
-  expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+  expect(loadKovaPluginsMock).toHaveBeenCalledWith(
     expect.objectContaining({
       cache: false,
       activate: false,
@@ -180,7 +180,7 @@ function getLastResolvedPluginConfig() {
 }
 
 function getLastSetupLoadedPluginConfig() {
-  const call = loadOpenClawPluginsMock.mock.calls.at(-1)?.[0];
+  const call = loadKovaPluginsMock.mock.calls.at(-1)?.[0];
   expect(call).toBeDefined();
   return (call?.config ?? undefined) as
     | {
@@ -205,10 +205,10 @@ function createBundledProviderCompatOptions(params?: { onlyPluginIds?: readonly 
 }
 
 function createAutoEnabledProviderConfig() {
-  const rawConfig: OpenClawConfig = {
+  const rawConfig: KovaConfig = {
     plugins: {},
   };
-  const autoEnabledConfig: OpenClawConfig = {
+  const autoEnabledConfig: KovaConfig = {
     ...rawConfig,
     plugins: {
       entries: {
@@ -276,8 +276,7 @@ describe("resolvePluginProviders", () => {
       diagnostics: [],
     });
     vi.doMock("./loader.js", () => ({
-      loadOpenClawPlugins: (...args: Parameters<LoadOpenClawPlugins>) =>
-        loadOpenClawPluginsMock(...args),
+      loadKovaPlugins: (...args: Parameters<LoadKovaPlugins>) => loadKovaPluginsMock(...args),
       isPluginRegistryLoadInFlight: (...args: Parameters<IsPluginRegistryLoadInFlight>) =>
         isPluginRegistryLoadInFlightMock(...args),
       resolveRuntimePluginRegistry: (...args: Parameters<ResolveRuntimePluginRegistry>) =>
@@ -324,7 +323,7 @@ describe("resolvePluginProviders", () => {
     clearPluginRegistrySnapshotCache();
     setActivePluginRegistry(createEmptyPluginRegistry());
     resolveRuntimePluginRegistryMock.mockReset();
-    loadOpenClawPluginsMock.mockReset();
+    loadKovaPluginsMock.mockReset();
     isPluginRegistryLoadInFlightMock.mockReset();
     isPluginRegistryLoadInFlightMock.mockReturnValue(false);
     const provider: ProviderPlugin = {
@@ -335,12 +334,12 @@ describe("resolvePluginProviders", () => {
     const registry = createEmptyPluginRegistry();
     registry.providers.push({ pluginId: "google", provider, source: "bundled" });
     resolveRuntimePluginRegistryMock.mockReturnValue(registry);
-    loadOpenClawPluginsMock.mockReturnValue(registry);
+    loadKovaPluginsMock.mockReturnValue(registry);
     loadPluginManifestRegistryMock.mockReset();
     applyPluginAutoEnableMock.mockReset();
     applyPluginAutoEnableMock.mockImplementation(
       (params): PluginAutoEnableResult => ({
-        config: params.config ?? ({} as OpenClawConfig),
+        config: params.config ?? ({} as KovaConfig),
         changes: [],
         autoEnabledReasons: {},
       }),
@@ -375,7 +374,7 @@ describe("resolvePluginProviders", () => {
   });
 
   it("forwards an explicit env to plugin loading", () => {
-    const env = { OPENCLAW_HOME: "/srv/openclaw-home" } as NodeJS.ProcessEnv;
+    const env = { KOVA_HOME: "/srv/kova-home" } as NodeJS.ProcessEnv;
 
     const providers = resolvePluginProviders({
       workspaceDir: "/workspace/explicit",
@@ -827,7 +826,7 @@ describe("resolvePluginProviders", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       providerRefs: ["ollama-spark"],
       activate: true,
     });
@@ -970,7 +969,7 @@ describe("resolvePluginProviders", () => {
       mode: "setup",
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadKovaPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         onlyPluginIds: ["setup-owned-provider"],
         activate: true,
@@ -1008,7 +1007,7 @@ describe("resolvePluginProviders", () => {
       mode: "setup",
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadKovaPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
           plugins: expect.objectContaining({
@@ -1044,7 +1043,7 @@ describe("resolvePluginProviders", () => {
       mode: "setup",
     });
 
-    expect(loadOpenClawPluginsMock).toHaveBeenCalledWith(
+    expect(loadKovaPluginsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         config: expect.objectContaining({
           plugins: expect.objectContaining({
@@ -1079,7 +1078,7 @@ describe("resolvePluginProviders", () => {
     });
 
     expect(providers).toEqual([]);
-    expect(loadOpenClawPluginsMock).not.toHaveBeenCalled();
+    expect(loadKovaPluginsMock).not.toHaveBeenCalled();
   });
 
   it("does not auto-activate untrusted workspace runtime owners when requested", () => {

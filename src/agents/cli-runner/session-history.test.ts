@@ -65,9 +65,9 @@ describe("loadCliSessionHistoryMessages", () => {
   });
 
   it("reads the canonical session transcript instead of an arbitrary external path", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-outside-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-outside-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     createSessionTranscript({
       rootDir: stateDir,
       sessionId: "session-test",
@@ -96,8 +96,8 @@ describe("loadCliSessionHistoryMessages", () => {
   });
 
   it("keeps only the newest bounded history window", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const sessionFile = createSessionTranscript({
       rootDir: stateDir,
       sessionId: "session-bounded",
@@ -126,9 +126,9 @@ describe("loadCliSessionHistoryMessages", () => {
   });
 
   it("rejects symlinked transcripts instead of following them outside the sessions directory", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-outside-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-outside-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const canonicalSessionFile = path.join(
       stateDir,
       "agents",
@@ -161,8 +161,8 @@ describe("loadCliSessionHistoryMessages", () => {
   });
 
   it("drops oversized transcript files instead of loading them into hook payloads", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const sessionFile = path.join(
       stateDir,
       "agents",
@@ -188,9 +188,9 @@ describe("loadCliSessionHistoryMessages", () => {
   });
 
   it("honors custom session store roots when resolving hook history transcripts", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    const customStoreDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-store-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    const customStoreDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-store-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const storePath = path.join(customStoreDir, "sessions.json");
     fs.writeFileSync(storePath, "{}", "utf-8");
     const sessionFile = createSessionTranscript({
@@ -227,8 +227,8 @@ describe("loadCliSessionReseedMessages", () => {
   });
 
   it("does not reseed fresh CLI sessions from raw transcript history before compaction", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const sessionFile = createSessionTranscript({
       rootDir: stateDir,
       sessionId: "session-no-compaction",
@@ -250,8 +250,8 @@ describe("loadCliSessionReseedMessages", () => {
   });
 
   it("reseeds fresh CLI sessions from the latest compaction summary and post-compaction tail", () => {
-    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-cli-state-"));
-    vi.stubEnv("OPENCLAW_STATE_DIR", stateDir);
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-cli-state-"));
+    vi.stubEnv("KOVA_STATE_DIR", stateDir);
     const sessionFile = createSessionTranscript({
       rootDir: stateDir,
       sessionId: "session-compacted",
@@ -307,7 +307,7 @@ describe("loadCliSessionReseedMessages", () => {
 });
 
 describe("buildCliSessionHistoryPrompt", () => {
-  it("renders OpenClaw transcript history around the next user message", () => {
+  it("renders Kova transcript history around the next user message", () => {
     const prompt = buildCliSessionHistoryPrompt({
       messages: [
         { role: "user", content: "old ask" },

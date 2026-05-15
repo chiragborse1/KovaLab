@@ -1,6 +1,6 @@
 import { formatCliCommand } from "../cli/command-format.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverKovaPlugins } from "./discovery.js";
 import { loadPluginManifest } from "./manifest.js";
 
 export type BundledPluginSource = {
@@ -39,7 +39,7 @@ export function resolveBundledPluginSources(params: {
   /** Use an explicit env when bundled roots should resolve independently from process.env. */
   env?: NodeJS.ProcessEnv;
 }): Map<string, BundledPluginSource> {
-  const discovery = discoverOpenClawPlugins({
+  const discovery = discoverKovaPlugins({
     workspaceDir: params.workspaceDir,
     env: params.env,
   });

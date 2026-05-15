@@ -8,7 +8,7 @@ import {
   updateSessionStore,
   type SessionEntry,
 } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { defaultRuntime } from "../runtime.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { withSubagentOutcomeTiming } from "./subagent-announce-output.js";
@@ -346,7 +346,7 @@ export function reconcileOrphanedRestoredRuns(params: {
   return changed;
 }
 
-export function resolveArchiveAfterMs(cfg?: OpenClawConfig) {
+export function resolveArchiveAfterMs(cfg?: KovaConfig) {
   const config = cfg ?? getRuntimeConfig();
   const minutes = config.agents?.defaults?.subagents?.archiveAfterMinutes ?? 60;
   if (!Number.isFinite(minutes) || minutes < 0) {

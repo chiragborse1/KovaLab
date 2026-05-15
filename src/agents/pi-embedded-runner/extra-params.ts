@@ -3,7 +3,7 @@ import type { SimpleStreamOptions } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import type { SettingsManager } from "@mariozechner/pi-coding-agent";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   prepareProviderExtraParams as prepareProviderExtraParamsRuntime,
   resolveProviderExtraParamsForTransport as resolveProviderExtraParamsForTransportRuntime,
@@ -66,7 +66,7 @@ export const __testing = {
  * @internal Exported for testing only
  */
 export function resolveExtraParams(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: KovaConfig | undefined;
   provider: string;
   modelId: string;
   agentId?: string;
@@ -132,7 +132,7 @@ function hasExplicitTransportSetting(settings: { transport?: unknown }): boolean
 }
 
 export function resolvePreparedExtraParams(params: {
-  cfg: OpenClawConfig | undefined;
+  cfg: KovaConfig | undefined;
   provider: string;
   modelId: string;
   agentDir?: string;
@@ -507,7 +507,7 @@ function createOpenAICompletionsExtraBodyWrapper(
 
 type ApplyExtraParamsContext = {
   agent: { streamFn?: StreamFn };
-  cfg: OpenClawConfig | undefined;
+  cfg: KovaConfig | undefined;
   provider: string;
   modelId: string;
   agentDir?: string;
@@ -625,7 +625,7 @@ function applyPostPluginStreamWrappers(
  */
 export function applyExtraParamsToAgent(
   agent: { streamFn?: StreamFn },
-  cfg: OpenClawConfig | undefined,
+  cfg: KovaConfig | undefined,
   provider: string,
   modelId: string,
   extraParamsOverride?: Record<string, unknown>,

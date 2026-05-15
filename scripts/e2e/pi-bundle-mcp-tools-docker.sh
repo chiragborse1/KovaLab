@@ -5,9 +5,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-pi-bundle-mcp-tools-e2e" OPENCLAW_IMAGE)"
-CONTAINER_NAME="openclaw-pi-bundle-mcp-tools-e2e-$$"
-RUN_LOG="$(mktemp -t openclaw-pi-bundle-mcp-tools-log.XXXXXX)"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-pi-bundle-mcp-tools-e2e" KOVA_IMAGE)"
+CONTAINER_NAME="kova-pi-bundle-mcp-tools-e2e-$$"
+RUN_LOG="$(mktemp -t kova-pi-bundle-mcp-tools-log.XXXXXX)"
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -23,7 +23,7 @@ echo "Running in-container Pi bundle MCP tool availability smoke..."
 set +e
 docker run --rm \
   --name "$CONTAINER_NAME" \
-  -e "OPENCLAW_STATE_DIR=/tmp/openclaw-state" \
+  -e "KOVA_STATE_DIR=/tmp/kova-state" \
   "${DOCKER_E2E_HARNESS_ARGS[@]}" \
   "$IMAGE_NAME" \
   bash -lc "set -euo pipefail

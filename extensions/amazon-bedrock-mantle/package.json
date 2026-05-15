@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/amazon-bedrock-mantle-provider",
+  "name": "@kovaai/amazon-bedrock-mantle-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Amazon Bedrock Mantle (OpenAI-compatible) provider plugin",
@@ -10,9 +10,9 @@
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

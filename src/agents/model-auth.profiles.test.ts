@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { Api, Model } from "@mariozechner/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import {
   clearRuntimeAuthProfileStoreSnapshots,
@@ -22,7 +22,7 @@ async function expectVertexAdcEnvApiKey(params: {
   env?: NodeJS.ProcessEnv;
   tempPrefix?: string;
 }) {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), params.tempPrefix ?? "openclaw-adc-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), params.tempPrefix ?? "kova-adc-"));
   const credentialsPath = path.join(tempDir, "adc.json");
   await fs.writeFile(credentialsPath, params.credentialsJson, "utf8");
 
@@ -235,7 +235,7 @@ function buildDemoLocalStore(keys: string[]) {
   };
 }
 
-function buildDemoLocalProviderCfg(apiKey: string): OpenClawConfig {
+function buildDemoLocalProviderCfg(apiKey: string): KovaConfig {
   return {
     models: {
       providers: {
@@ -268,14 +268,14 @@ async function resolveDemoLocalApiKey(params: {
 
 describe("getApiKeyForModel", () => {
   it("reads oauth auth-profiles entries from auth-profiles.json via explicit profile", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-oauth-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-oauth-"));
 
     try {
       const agentDir = path.join(tempDir, "agent");
       await withEnvAsync(
         {
-          OPENCLAW_STATE_DIR: tempDir,
-          OPENCLAW_AGENT_DIR: agentDir,
+          KOVA_STATE_DIR: tempDir,
+          KOVA_AGENT_DIR: agentDir,
           PI_CODING_AGENT_DIR: agentDir,
         },
         async () => {
@@ -306,14 +306,14 @@ describe("getApiKeyForModel", () => {
             api: "openai-codex-responses",
           } as Model<Api>;
 
-          const store = ensureAuthProfileStore(process.env.OPENCLAW_AGENT_DIR, {
+          const store = ensureAuthProfileStore(process.env.KOVA_AGENT_DIR, {
             allowKeychainPrompt: false,
           });
           const apiKey = await getApiKeyForModel({
             model,
             profileId: "openai-codex:default",
             store,
-            agentDir: process.env.OPENCLAW_AGENT_DIR,
+            agentDir: process.env.KOVA_AGENT_DIR,
           });
           expect(apiKey.apiKey).toBe(oauthFixture.access);
         },
@@ -324,15 +324,15 @@ describe("getApiKeyForModel", () => {
   });
 
   it("suggests openai-codex when only Codex OAuth is configured", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-auth-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-"));
 
     try {
       const agentDir = path.join(tempDir, "agent");
       await withEnvAsync(
         {
           OPENAI_API_KEY: undefined,
-          OPENCLAW_STATE_DIR: tempDir,
-          OPENCLAW_AGENT_DIR: agentDir,
+          KOVA_STATE_DIR: tempDir,
+          KOVA_AGENT_DIR: agentDir,
           PI_CODING_AGENT_DIR: agentDir,
         },
         async () => {
@@ -853,7 +853,7 @@ describe("getApiKeyForModel", () => {
     await expectVertexAdcEnvApiKey({
       provider: "google-vertex",
       credentialsJson: "{}",
-      tempPrefix: "openclaw-google-adc-",
+      tempPrefix: "kova-google-adc-",
       env: {
         GOOGLE_CLOUD_LOCATION: "us-central1",
         GOOGLE_CLOUD_PROJECT: "vertex-project",

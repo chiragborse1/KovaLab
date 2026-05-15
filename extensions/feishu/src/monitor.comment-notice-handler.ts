@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import { handleFeishuCommentEvent } from "./comment-handler.js";
 import {
   claimUnprocessedFeishuMessage,
@@ -22,7 +22,7 @@ function buildCommentNoticeQueueKey(event: {
 }
 
 export function createFeishuDriveCommentNoticeHandler(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   accountId: string;
   runtime?: RuntimeEnv;
   fireAndForget?: boolean;

@@ -63,7 +63,7 @@ kova doctor
 If you want to review changes before writing, open the config file first:
 
 ```bash
-cat ~/.openclaw/openclaw.json
+cat ~/.chiragborse1/KovaLab.json
 ```
 
 ## What it does (summary)
@@ -93,7 +93,7 @@ cat ~/.openclaw/openclaw.json
     - State integrity and permissions checks (sessions, transcripts, state dir).
     - Config file permission checks (chmod 600) when running locally.
     - Model auth health: checks OAuth expiry, can refresh expiring tokens, and reports auth-profile cooldown/disabled states.
-    - Extra workspace dir detection (`~/openclaw`).
+    - Extra workspace dir detection (`~/kova`).
   </Accordion>
   <Accordion title="Gateway, services, and supervisors">
     - Sandbox image repair when sandboxing is enabled.
@@ -164,7 +164,7 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     - Explain which legacy keys were found.
     - Show the migration it applied.
-    - Rewrite `~/.openclaw/openclaw.json` with the updated schema.
+    - Rewrite `~/.chiragborse1/KovaLab.json` with the updated schema.
 
     The Gateway also auto-runs doctor migrations on startup when it detects a legacy config format, so stale configs are repaired without manual intervention. Cron job store migrations are handled by `kova doctor --fix`.
 
@@ -241,7 +241,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     If you previously added legacy OpenAI transport settings under `models.providers.openai-codex`, they can shadow the built-in Codex OAuth provider path that newer releases use automatically. Doctor warns when it sees those old transport settings alongside Codex OAuth so you can remove or rewrite the stale transport override and get the built-in routing/fallback behavior back. Custom proxies and header-only overrides are still supported and do not trigger this warning.
   </Accordion>
   <Accordion title="2f. Codex plugin route warnings">
-    When the bundled Codex plugin is enabled, doctor also checks whether `openai-codex/*` primary model refs still resolve through the default PI runner. That combination is valid when you want Codex OAuth/subscription auth through PI, but it is easy to confuse with the native Codex app-server harness. Doctor warns and points to the explicit app-server shape: `openai/*` plus `agentRuntime.id: "codex"` or `OPENCLAW_AGENT_RUNTIME=codex`.
+    When the bundled Codex plugin is enabled, doctor also checks whether `openai-codex/*` primary model refs still resolve through the default PI runner. That combination is valid when you want Codex OAuth/subscription auth through PI, but it is easy to confuse with the native Codex app-server harness. Doctor warns and points to the explicit app-server shape: `openai/*` plus `agentRuntime.id: "codex"` or `KOVA_AGENT_RUNTIME=codex`.
 
     Doctor does not repair this automatically because both routes are valid:
 
@@ -257,12 +257,12 @@ That stages grounded durable candidates into the short-term dreaming store while
     Doctor can migrate older on-disk layouts into the current structure:
 
     - Sessions store + transcripts:
-      - from `~/.openclaw/sessions/` to `~/.openclaw/agents/<agentId>/sessions/`
+      - from `~/.kova/sessions/` to `~/.kova/agents/<agentId>/sessions/`
     - Agent dir:
-      - from `~/.openclaw/agent/` to `~/.openclaw/agents/<agentId>/agent/`
+      - from `~/.kova/agent/` to `~/.kova/agents/<agentId>/agent/`
     - WhatsApp auth state (Baileys):
-      - from legacy `~/.openclaw/credentials/*.json` (except `oauth.json`)
-      - to `~/.openclaw/credentials/whatsapp/<accountId>/...` (default account id: `default`)
+      - from legacy `~/.kova/credentials/*.json` (except `oauth.json`)
+      - to `~/.kova/credentials/whatsapp/<accountId>/...` (default account id: `default`)
 
     These migrations are best-effort and idempotent; doctor will emit warnings when it leaves any legacy folders behind as backups. The Gateway/CLI also auto-migrates the legacy sessions + agent dir on startup so history/auth/models land in the per-agent path without a manual doctor run. WhatsApp auth is intentionally only migrated via `kova doctor`. Talk provider/provider-map normalization now compares by structural equality, so key-order-only diffs no longer trigger repeat no-op `doctor --fix` changes.
 
@@ -271,7 +271,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     Doctor scans all installed plugin manifests for deprecated top-level capability keys (`speechProviders`, `realtimeTranscriptionProviders`, `realtimeVoiceProviders`, `mediaUnderstandingProviders`, `imageGenerationProviders`, `videoGenerationProviders`, `webFetchProviders`, `webSearchProviders`). When found, it offers to move them into the `contracts` object and rewrite the manifest file in-place. This migration is idempotent; if the `contracts` key already has the same values, the legacy key is removed without duplicating the data.
   </Accordion>
   <Accordion title="3b. Legacy cron store migrations">
-    Doctor also checks the cron job store (`~/.openclaw/cron/jobs.json` by default, or `cron.store` when overridden) for old job shapes that the scheduler still accepts for compatibility.
+    Doctor also checks the cron job store (`~/.kova/cron/jobs.json` by default, or `cron.store` when overridden) for old job shapes that the scheduler still accepts for compatibility.
 
     Current cron cleanups include:
 
@@ -303,9 +303,9 @@ That stages grounded durable candidates into the short-term dreaming store while
     - **Session dirs missing**: `sessions/` and the session store directory are required to persist history and avoid `ENOENT` crashes.
     - **Transcript mismatch**: warns when recent session entries have missing transcript files.
     - **Main session "1-line JSONL"**: flags when the main transcript has only one line (history is not accumulating).
-    - **Multiple state dirs**: warns when multiple `~/.openclaw` folders exist across home directories or when `OPENCLAW_STATE_DIR` points elsewhere (history can split between installs).
+    - **Multiple state dirs**: warns when multiple `~/.kova` folders exist across home directories or when `KOVA_STATE_DIR` points elsewhere (history can split between installs).
     - **Remote mode reminder**: if `gateway.mode=remote`, doctor reminds you to run it on the remote host (the state lives there).
-    - **Config file permissions**: warns if `~/.openclaw/openclaw.json` is group/world readable and offers to tighten to `600`.
+    - **Config file permissions**: warns if `~/.chiragborse1/KovaLab.json` is group/world readable and offers to tighten to `600`.
 
   </Accordion>
   <Accordion title="5. Model auth health (OAuth expiry)">
@@ -370,7 +370,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     Doctor prints a summary of the workspace state for the default agent:
 
     - **Skills status**: counts eligible, missing-requirements, and allowlist-blocked skills.
-    - **Legacy workspace dirs**: warns when `~/openclaw` or other legacy workspace directories exist alongside the current workspace.
+    - **Legacy workspace dirs**: warns when `~/kova` or other legacy workspace directories exist alongside the current workspace.
     - **Plugin status**: counts enabled/disabled/errored plugins; lists plugin IDs for any errors; reports bundle plugin capabilities.
     - **Plugin compatibility warnings**: flags plugins that have compatibility issues with the current runtime.
     - **Plugin diagnostics**: surfaces any load-time warnings or errors emitted by the plugin registry.
@@ -436,7 +436,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     - `kova doctor --yes` accepts the default repair prompts.
     - `kova doctor --repair` applies recommended fixes without prompts.
     - `kova doctor --repair --force` overwrites custom supervisor configs.
-    - `OPENCLAW_SERVICE_REPAIR_POLICY=external` keeps doctor read-only for gateway service lifecycle. It still reports service health and runs non-service repairs, but skips service install/start/restart/bootstrap, supervisor config rewrites, and legacy service cleanup because an external supervisor owns that lifecycle.
+    - `KOVA_SERVICE_REPAIR_POLICY=external` keeps doctor read-only for gateway service lifecycle. It still reports service health and runs non-service repairs, but skips service install/start/restart/bootstrap, supervisor config rewrites, and legacy service cleanup because an external supervisor owns that lifecycle.
     - If token auth requires a token and `gateway.auth.token` is SecretRef-managed, doctor service install/repair validates the SecretRef but does not persist resolved plaintext token values into supervisor service environment metadata.
     - Doctor detects managed `.env`/SecretRef-backed service environment values that older LaunchAgent, systemd, or Windows Scheduled Task installs embedded inline and rewrites the service metadata so those values load from the runtime source instead of the supervisor definition.
     - If token auth requires a token and the configured token SecretRef is unresolved, doctor blocks the install/repair path with actionable guidance.

@@ -41,7 +41,7 @@ works without code changes. For local file logs and how to read them, see
       enabled: true,
       endpoint: "http://otel-collector:4318",
       protocol: "http/protobuf",
-      serviceName: "openclaw-gateway",
+      serviceName: "kova-gateway",
       traces: true,
       metrics: true,
       logs: true,
@@ -86,7 +86,7 @@ when `diagnostics.otel.enabled` is true.
       metricsEndpoint: "http://otel-collector:4318/v1/metrics",
       logsEndpoint: "http://otel-collector:4318/v1/logs",
       protocol: "http/protobuf", // grpc is ignored
-      serviceName: "openclaw-gateway",
+      serviceName: "kova-gateway",
       headers: { "x-collector-token": "..." },
       traces: true,
       metrics: true,
@@ -115,7 +115,7 @@ when `diagnostics.otel.enabled` is true.
 | `OTEL_SERVICE_NAME`                                                                                               | Override `diagnostics.otel.serviceName`.                                                                                                                                                                                                   |
 | `OTEL_EXPORTER_OTLP_PROTOCOL`                                                                                     | Override the wire protocol (only `http/protobuf` is honored today).                                                                                                                                                                        |
 | `OTEL_SEMCONV_STABILITY_OPT_IN`                                                                                   | Set to `gen_ai_latest_experimental` to emit the latest experimental GenAI span attribute (`gen_ai.provider.name`) instead of the legacy `gen_ai.system`. GenAI metrics always use bounded, low-cardinality semantic attributes regardless. |
-| `OPENCLAW_OTEL_PRELOADED`                                                                                         | Set to `1` when another preload or host process already registered the global OpenTelemetry SDK. The plugin then skips its own NodeSDK lifecycle but still wires diagnostic listeners and honors `traces`/`metrics`/`logs`.                |
+| `KOVA_OTEL_PRELOADED`                                                                                             | Set to `1` when another preload or host process already registered the global OpenTelemetry SDK. The plugin then skips its own NodeSDK lifecycle but still wires diagnostic listeners and honors `traces`/`metrics`/`logs`.                |
 
 ## Privacy and content capture
 
@@ -140,7 +140,7 @@ text. Each subkey is opt-in independently:
 - `systemPrompt` — assembled system/developer prompt.
 
 When any subkey is enabled, model and tool spans get bounded, redacted
-`openclaw.content.*` attributes for that class only.
+`kova.content.*` attributes for that class only.
 
 ## Sampling and flushing
 
@@ -163,97 +163,97 @@ When any subkey is enabled, model and tool spans get bounded, redacted
 
 ### Model usage
 
-- `openclaw.tokens` (counter, attrs: `openclaw.token`, `openclaw.channel`, `openclaw.provider`, `openclaw.model`, `openclaw.agent`)
-- `openclaw.cost.usd` (counter, attrs: `openclaw.channel`, `openclaw.provider`, `openclaw.model`)
-- `openclaw.run.duration_ms` (histogram, attrs: `openclaw.channel`, `openclaw.provider`, `openclaw.model`)
-- `openclaw.context.tokens` (histogram, attrs: `openclaw.context`, `openclaw.channel`, `openclaw.provider`, `openclaw.model`)
+- `kova.tokens` (counter, attrs: `kova.token`, `kova.channel`, `kova.provider`, `kova.model`, `kova.agent`)
+- `kova.cost.usd` (counter, attrs: `kova.channel`, `kova.provider`, `kova.model`)
+- `kova.run.duration_ms` (histogram, attrs: `kova.channel`, `kova.provider`, `kova.model`)
+- `kova.context.tokens` (histogram, attrs: `kova.context`, `kova.channel`, `kova.provider`, `kova.model`)
 - `gen_ai.client.token.usage` (histogram, GenAI semantic-conventions metric, attrs: `gen_ai.token.type` = `input`/`output`, `gen_ai.provider.name`, `gen_ai.operation.name`, `gen_ai.request.model`)
 - `gen_ai.client.operation.duration` (histogram, seconds, GenAI semantic-conventions metric, attrs: `gen_ai.provider.name`, `gen_ai.operation.name`, `gen_ai.request.model`, optional `error.type`)
-- `openclaw.model_call.duration_ms` (histogram, attrs: `openclaw.provider`, `openclaw.model`, `openclaw.api`, `openclaw.transport`, plus `openclaw.errorCategory` and `openclaw.failureKind` on classified errors)
-- `openclaw.model_call.request_bytes` (histogram, UTF-8 byte size of the final model request payload; no raw payload content)
-- `openclaw.model_call.response_bytes` (histogram, UTF-8 byte size of streamed model response events; no raw response content)
-- `openclaw.model_call.time_to_first_byte_ms` (histogram, elapsed time before the first streamed response event)
+- `kova.model_call.duration_ms` (histogram, attrs: `kova.provider`, `kova.model`, `kova.api`, `kova.transport`, plus `kova.errorCategory` and `kova.failureKind` on classified errors)
+- `kova.model_call.request_bytes` (histogram, UTF-8 byte size of the final model request payload; no raw payload content)
+- `kova.model_call.response_bytes` (histogram, UTF-8 byte size of streamed model response events; no raw response content)
+- `kova.model_call.time_to_first_byte_ms` (histogram, elapsed time before the first streamed response event)
 
 ### Message flow
 
-- `openclaw.webhook.received` (counter, attrs: `openclaw.channel`, `openclaw.webhook`)
-- `openclaw.webhook.error` (counter, attrs: `openclaw.channel`, `openclaw.webhook`)
-- `openclaw.webhook.duration_ms` (histogram, attrs: `openclaw.channel`, `openclaw.webhook`)
-- `openclaw.message.queued` (counter, attrs: `openclaw.channel`, `openclaw.source`)
-- `openclaw.message.processed` (counter, attrs: `openclaw.channel`, `openclaw.outcome`)
-- `openclaw.message.duration_ms` (histogram, attrs: `openclaw.channel`, `openclaw.outcome`)
-- `openclaw.message.delivery.started` (counter, attrs: `openclaw.channel`, `openclaw.delivery.kind`)
-- `openclaw.message.delivery.duration_ms` (histogram, attrs: `openclaw.channel`, `openclaw.delivery.kind`, `openclaw.outcome`, `openclaw.errorCategory`)
+- `kova.webhook.received` (counter, attrs: `kova.channel`, `kova.webhook`)
+- `kova.webhook.error` (counter, attrs: `kova.channel`, `kova.webhook`)
+- `kova.webhook.duration_ms` (histogram, attrs: `kova.channel`, `kova.webhook`)
+- `kova.message.queued` (counter, attrs: `kova.channel`, `kova.source`)
+- `kova.message.processed` (counter, attrs: `kova.channel`, `kova.outcome`)
+- `kova.message.duration_ms` (histogram, attrs: `kova.channel`, `kova.outcome`)
+- `kova.message.delivery.started` (counter, attrs: `kova.channel`, `kova.delivery.kind`)
+- `kova.message.delivery.duration_ms` (histogram, attrs: `kova.channel`, `kova.delivery.kind`, `kova.outcome`, `kova.errorCategory`)
 
 ### Queues and sessions
 
-- `openclaw.queue.lane.enqueue` (counter, attrs: `openclaw.lane`)
-- `openclaw.queue.lane.dequeue` (counter, attrs: `openclaw.lane`)
-- `openclaw.queue.depth` (histogram, attrs: `openclaw.lane` or `openclaw.channel=heartbeat`)
-- `openclaw.queue.wait_ms` (histogram, attrs: `openclaw.lane`)
-- `openclaw.session.state` (counter, attrs: `openclaw.state`, `openclaw.reason`)
-- `openclaw.session.stuck` (counter, attrs: `openclaw.state`)
-- `openclaw.session.stuck_age_ms` (histogram, attrs: `openclaw.state`)
-- `openclaw.run.attempt` (counter, attrs: `openclaw.attempt`)
+- `kova.queue.lane.enqueue` (counter, attrs: `kova.lane`)
+- `kova.queue.lane.dequeue` (counter, attrs: `kova.lane`)
+- `kova.queue.depth` (histogram, attrs: `kova.lane` or `kova.channel=heartbeat`)
+- `kova.queue.wait_ms` (histogram, attrs: `kova.lane`)
+- `kova.session.state` (counter, attrs: `kova.state`, `kova.reason`)
+- `kova.session.stuck` (counter, attrs: `kova.state`)
+- `kova.session.stuck_age_ms` (histogram, attrs: `kova.state`)
+- `kova.run.attempt` (counter, attrs: `kova.attempt`)
 
 ### Harness lifecycle
 
-- `openclaw.harness.duration_ms` (histogram, attrs: `openclaw.harness.id`, `openclaw.harness.plugin`, `openclaw.outcome`, `openclaw.harness.phase` on errors)
+- `kova.harness.duration_ms` (histogram, attrs: `kova.harness.id`, `kova.harness.plugin`, `kova.outcome`, `kova.harness.phase` on errors)
 
 ### Exec
 
-- `openclaw.exec.duration_ms` (histogram, attrs: `openclaw.exec.target`, `openclaw.exec.mode`, `openclaw.outcome`, `openclaw.failureKind`)
+- `kova.exec.duration_ms` (histogram, attrs: `kova.exec.target`, `kova.exec.mode`, `kova.outcome`, `kova.failureKind`)
 
 ### Diagnostics internals (memory and tool loop)
 
-- `openclaw.memory.heap_used_bytes` (histogram, attrs: `openclaw.memory.kind`)
-- `openclaw.memory.rss_bytes` (histogram)
-- `openclaw.memory.pressure` (counter, attrs: `openclaw.memory.level`)
-- `openclaw.tool.loop.iterations` (counter, attrs: `openclaw.toolName`, `openclaw.outcome`)
-- `openclaw.tool.loop.duration_ms` (histogram, attrs: `openclaw.toolName`, `openclaw.outcome`)
+- `kova.memory.heap_used_bytes` (histogram, attrs: `kova.memory.kind`)
+- `kova.memory.rss_bytes` (histogram)
+- `kova.memory.pressure` (counter, attrs: `kova.memory.level`)
+- `kova.tool.loop.iterations` (counter, attrs: `kova.toolName`, `kova.outcome`)
+- `kova.tool.loop.duration_ms` (histogram, attrs: `kova.toolName`, `kova.outcome`)
 
 ## Exported spans
 
-- `openclaw.model.usage`
-  - `openclaw.channel`, `openclaw.provider`, `openclaw.model`
-  - `openclaw.tokens.*` (input/output/cache_read/cache_write/total)
+- `kova.model.usage`
+  - `kova.channel`, `kova.provider`, `kova.model`
+  - `kova.tokens.*` (input/output/cache_read/cache_write/total)
   - `gen_ai.system` by default, or `gen_ai.provider.name` when the latest GenAI semantic conventions are opted in
   - `gen_ai.request.model`, `gen_ai.operation.name`, `gen_ai.usage.*`
-- `openclaw.run`
-  - `openclaw.outcome`, `openclaw.channel`, `openclaw.provider`, `openclaw.model`, `openclaw.errorCategory`
-- `openclaw.model.call`
+- `kova.run`
+  - `kova.outcome`, `kova.channel`, `kova.provider`, `kova.model`, `kova.errorCategory`
+- `kova.model.call`
   - `gen_ai.system` by default, or `gen_ai.provider.name` when the latest GenAI semantic conventions are opted in
-  - `gen_ai.request.model`, `gen_ai.operation.name`, `openclaw.provider`, `openclaw.model`, `openclaw.api`, `openclaw.transport`
-  - `openclaw.errorCategory` and optional `openclaw.failureKind` on errors
-  - `openclaw.model_call.request_bytes`, `openclaw.model_call.response_bytes`, `openclaw.model_call.time_to_first_byte_ms`
-  - `openclaw.provider.request_id_hash` (bounded SHA-based hash of the upstream provider request id; raw ids are not exported)
-- `openclaw.harness.run`
-  - `openclaw.harness.id`, `openclaw.harness.plugin`, `openclaw.outcome`, `openclaw.provider`, `openclaw.model`, `openclaw.channel`
-  - On completion: `openclaw.harness.result_classification`, `openclaw.harness.yield_detected`, `openclaw.harness.items.started`, `openclaw.harness.items.completed`, `openclaw.harness.items.active`
-  - On error: `openclaw.harness.phase`, `openclaw.errorCategory`, optional `openclaw.harness.cleanup_failed`
-- `openclaw.tool.execution`
-  - `gen_ai.tool.name`, `openclaw.toolName`, `openclaw.errorCategory`, `openclaw.tool.params.*`
-- `openclaw.exec`
-  - `openclaw.exec.target`, `openclaw.exec.mode`, `openclaw.outcome`, `openclaw.failureKind`, `openclaw.exec.command_length`, `openclaw.exec.exit_code`, `openclaw.exec.timed_out`
-- `openclaw.webhook.processed`
-  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`
-- `openclaw.webhook.error`
-  - `openclaw.channel`, `openclaw.webhook`, `openclaw.chatId`, `openclaw.error`
-- `openclaw.message.processed`
-  - `openclaw.channel`, `openclaw.outcome`, `openclaw.chatId`, `openclaw.messageId`, `openclaw.reason`
-- `openclaw.message.delivery`
-  - `openclaw.channel`, `openclaw.delivery.kind`, `openclaw.outcome`, `openclaw.errorCategory`, `openclaw.delivery.result_count`
-- `openclaw.session.stuck`
-  - `openclaw.state`, `openclaw.ageMs`, `openclaw.queueDepth`
-- `openclaw.context.assembled`
-  - `openclaw.prompt.size`, `openclaw.history.size`, `openclaw.context.tokens`, `openclaw.errorCategory` (no prompt, history, response, or session-key content)
-- `openclaw.tool.loop`
-  - `openclaw.toolName`, `openclaw.outcome`, `openclaw.iterations`, `openclaw.errorCategory` (no loop messages, params, or tool output)
-- `openclaw.memory.pressure`
-  - `openclaw.memory.level`, `openclaw.memory.heap_used_bytes`, `openclaw.memory.rss_bytes`
+  - `gen_ai.request.model`, `gen_ai.operation.name`, `kova.provider`, `kova.model`, `kova.api`, `kova.transport`
+  - `kova.errorCategory` and optional `kova.failureKind` on errors
+  - `kova.model_call.request_bytes`, `kova.model_call.response_bytes`, `kova.model_call.time_to_first_byte_ms`
+  - `kova.provider.request_id_hash` (bounded SHA-based hash of the upstream provider request id; raw ids are not exported)
+- `kova.harness.run`
+  - `kova.harness.id`, `kova.harness.plugin`, `kova.outcome`, `kova.provider`, `kova.model`, `kova.channel`
+  - On completion: `kova.harness.result_classification`, `kova.harness.yield_detected`, `kova.harness.items.started`, `kova.harness.items.completed`, `kova.harness.items.active`
+  - On error: `kova.harness.phase`, `kova.errorCategory`, optional `kova.harness.cleanup_failed`
+- `kova.tool.execution`
+  - `gen_ai.tool.name`, `kova.toolName`, `kova.errorCategory`, `kova.tool.params.*`
+- `kova.exec`
+  - `kova.exec.target`, `kova.exec.mode`, `kova.outcome`, `kova.failureKind`, `kova.exec.command_length`, `kova.exec.exit_code`, `kova.exec.timed_out`
+- `kova.webhook.processed`
+  - `kova.channel`, `kova.webhook`, `kova.chatId`
+- `kova.webhook.error`
+  - `kova.channel`, `kova.webhook`, `kova.chatId`, `kova.error`
+- `kova.message.processed`
+  - `kova.channel`, `kova.outcome`, `kova.chatId`, `kova.messageId`, `kova.reason`
+- `kova.message.delivery`
+  - `kova.channel`, `kova.delivery.kind`, `kova.outcome`, `kova.errorCategory`, `kova.delivery.result_count`
+- `kova.session.stuck`
+  - `kova.state`, `kova.ageMs`, `kova.queueDepth`
+- `kova.context.assembled`
+  - `kova.prompt.size`, `kova.history.size`, `kova.context.tokens`, `kova.errorCategory` (no prompt, history, response, or session-key content)
+- `kova.tool.loop`
+  - `kova.toolName`, `kova.outcome`, `kova.iterations`, `kova.errorCategory` (no loop messages, params, or tool output)
+- `kova.memory.pressure`
+  - `kova.memory.level`, `kova.memory.heap_used_bytes`, `kova.memory.rss_bytes`
 
 When content capture is explicitly enabled, model and tool spans can also
-include bounded, redacted `openclaw.content.*` attributes for the specific
+include bounded, redacted `kova.content.*` attributes for the specific
 content classes you opted into.
 
 ## Diagnostic event catalog
@@ -321,7 +321,7 @@ flags. Flags are case-insensitive and support wildcards (e.g. `telegram.*` or
 Or as a one-off env override:
 
 ```bash
-OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload kova gateway
+KOVA_DIAGNOSTICS=telegram.http,telegram.payload kova gateway
 ```
 
 Flag output goes to the standard log file (`logging.file`) and is still

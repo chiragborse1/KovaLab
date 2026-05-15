@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { ModelCatalogEntry } from "../../agents/model-catalog.types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { modelsHandlers } from "./models.js";
 import type { GatewayRequestContext, RespondFn } from "./types.js";
 
@@ -9,7 +9,7 @@ vi.mock("../server-model-catalog.js", () => ({
 }));
 
 function createHandlerContext(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   loadGatewayModelCatalog: () => Promise<ModelCatalogEntry[]>;
 }): GatewayRequestContext {
   return {
@@ -32,7 +32,7 @@ describe("models.list handler", () => {
           model: { primary: "openrouter/auto" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const loadGatewayModelCatalog = vi.fn(() => new Promise<ModelCatalogEntry[]>(() => undefined));
     const responses: Array<{
       ok: boolean;

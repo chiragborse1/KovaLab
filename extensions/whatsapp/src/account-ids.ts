@@ -1,4 +1,4 @@
-import { createAccountListHelpers } from "openclaw/plugin-sdk/account-core";
+import { createAccountListHelpers } from "getkova/plugin-sdk/account-core";
 
 const {
   listConfiguredAccountIds,

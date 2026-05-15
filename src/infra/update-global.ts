@@ -32,7 +32,7 @@ export type ResolvedGlobalInstallTarget = ResolvedGlobalInstallCommand & {
 };
 
 const PRIMARY_PACKAGE_NAME = "getkova";
-const LEGACY_PACKAGE_NAMES = ["openclaw"] as const;
+const LEGACY_PACKAGE_NAMES = ["kova"] as const;
 const ALL_PACKAGE_NAMES = [PRIMARY_PACKAGE_NAME, ...LEGACY_PACKAGE_NAMES] as const;
 const GLOBAL_RENAME_PREFIX = ".";
 export const KOVA_MAIN_PACKAGE_SPEC = "github:chiragborse1/KovaLab#main";
@@ -205,7 +205,7 @@ async function collectCriticalInstalledPackageDistPaths(packageRoot: string): Pr
       }
       if (
         (await pathExists(path.join(packageRoot, pluginRoot, "package.json"))) ||
-        (await pathExists(path.join(packageRoot, pluginRoot, "openclaw.plugin.json")))
+        (await pathExists(path.join(packageRoot, pluginRoot, "kova.plugin.json")))
       ) {
         expectedFiles.add(relativePath);
       }
@@ -266,7 +266,7 @@ async function resolvePortableGitPathPrepend(
   if (!localAppData) {
     return [];
   }
-  const portableGitRoot = path.join(localAppData, "OpenClaw", "deps", "portable-git");
+  const portableGitRoot = path.join(localAppData, "Kova", "deps", "portable-git");
   const candidates = [
     path.join(portableGitRoot, "mingw64", "bin"),
     path.join(portableGitRoot, "usr", "bin"),
@@ -307,8 +307,8 @@ export function resolveGlobalInstallSpec(params: {
   const override =
     params.env?.KOVA_UPDATE_PACKAGE_SPEC?.trim() ||
     process.env.KOVA_UPDATE_PACKAGE_SPEC?.trim() ||
-    params.env?.OPENCLAW_UPDATE_PACKAGE_SPEC?.trim() ||
-    process.env.OPENCLAW_UPDATE_PACKAGE_SPEC?.trim();
+    params.env?.KOVA_UPDATE_PACKAGE_SPEC?.trim() ||
+    process.env.KOVA_UPDATE_PACKAGE_SPEC?.trim();
   if (override) {
     return override;
   }

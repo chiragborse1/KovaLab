@@ -30,12 +30,12 @@ directly to existing Kova channel conversations, use
 
 ## Which page do I want?
 
-| You want to…                                                                                    | Use this                              | Notes                                                                                                                                                                                         |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bind or control Codex in the current conversation                                               | `/codex bind`, `/codex threads`       | Native Codex app-server path when the `codex` plugin is enabled; includes bound chat replies, image forwarding, model/fast/permissions, stop, and steer controls. ACP is an explicit fallback |
+| You want to…                                                                                | Use this                              | Notes                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bind or control Codex in the current conversation                                           | `/codex bind`, `/codex threads`       | Native Codex app-server path when the `codex` plugin is enabled; includes bound chat replies, image forwarding, model/fast/permissions, stop, and steer controls. ACP is an explicit fallback |
 | Run Claude Code, Gemini CLI, explicit Codex ACP, or another external harness _through_ Kova | This page                             | Chat-bound sessions, `/acp spawn`, `sessions_spawn({ runtime: "acp" })`, background tasks, runtime controls                                                                                   |
-| Expose an Kova Gateway session _as_ an ACP server for an editor or client                   | [`kova acp`](/cli/acp)            | Bridge mode. IDE/client talks ACP to Kova over stdio/WebSocket                                                                                                                            |
-| Reuse a local AI CLI as a text-only fallback model                                              | [CLI Backends](/gateway/cli-backends) | Not ACP. No Kova tools, no ACP controls, no harness runtime                                                                                                                               |
+| Expose an Kova Gateway session _as_ an ACP server for an editor or client                   | [`kova acp`](/cli/acp)                | Bridge mode. IDE/client talks ACP to Kova over stdio/WebSocket                                                                                                                                |
+| Reuse a local AI CLI as a text-only fallback model                                          | [CLI Backends](/gateway/cli-backends) | Not ACP. No Kova tools, no ACP controls, no harness runtime                                                                                                                                   |
 
 ## Does this work out of the box?
 
@@ -86,22 +86,22 @@ should call those tools directly.
 With the bundled `acpx` backend, use these harness ids as `/acp spawn <id>`
 or `sessions_spawn({ runtime: "acp", agentId: "<id>" })` targets:
 
-| Harness id | Typical backend                                | Notes                                                                               |
-| ---------- | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `claude`   | Claude Code ACP adapter                        | Requires Claude Code auth on the host.                                              |
-| `codex`    | Codex ACP adapter                              | Explicit ACP fallback only when native `/codex` is unavailable or ACP is requested. |
-| `copilot`  | GitHub Copilot ACP adapter                     | Requires Copilot CLI/runtime auth.                                                  |
-| `cursor`   | Cursor CLI ACP (`cursor-agent acp`)            | Override the acpx command if a local install exposes a different ACP entrypoint.    |
-| `droid`    | Factory Droid CLI                              | Requires Factory/Droid auth or `FACTORY_API_KEY` in the harness environment.        |
-| `gemini`   | Gemini CLI ACP adapter                         | Requires Gemini CLI auth or API key setup.                                          |
-| `iflow`    | iFlow CLI                                      | Adapter availability and model control depend on the installed CLI.                 |
-| `kilocode` | Kilo Code CLI                                  | Adapter availability and model control depend on the installed CLI.                 |
-| `kimi`     | Kimi/Moonshot CLI                              | Requires Kimi/Moonshot auth on the host.                                            |
-| `kiro`     | Kiro CLI                                       | Adapter availability and model control depend on the installed CLI.                 |
-| `opencode` | OpenCode ACP adapter                           | Requires OpenCode CLI/provider auth.                                                |
-| `kova` | Kova Gateway bridge through `kova acp` | Lets an ACP-aware harness talk back to an Kova Gateway session.                 |
-| `pi`       | Pi/embedded Kova runtime                   | Used for Kova-native harness experiments.                                       |
-| `qwen`     | Qwen Code / Qwen CLI                           | Requires Qwen-compatible auth on the host.                                          |
+| Harness id | Typical backend                        | Notes                                                                               |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| `claude`   | Claude Code ACP adapter                | Requires Claude Code auth on the host.                                              |
+| `codex`    | Codex ACP adapter                      | Explicit ACP fallback only when native `/codex` is unavailable or ACP is requested. |
+| `copilot`  | GitHub Copilot ACP adapter             | Requires Copilot CLI/runtime auth.                                                  |
+| `cursor`   | Cursor CLI ACP (`cursor-agent acp`)    | Override the acpx command if a local install exposes a different ACP entrypoint.    |
+| `droid`    | Factory Droid CLI                      | Requires Factory/Droid auth or `FACTORY_API_KEY` in the harness environment.        |
+| `gemini`   | Gemini CLI ACP adapter                 | Requires Gemini CLI auth or API key setup.                                          |
+| `iflow`    | iFlow CLI                              | Adapter availability and model control depend on the installed CLI.                 |
+| `kilocode` | Kilo Code CLI                          | Adapter availability and model control depend on the installed CLI.                 |
+| `kimi`     | Kimi/Moonshot CLI                      | Requires Kimi/Moonshot auth on the host.                                            |
+| `kiro`     | Kiro CLI                               | Adapter availability and model control depend on the installed CLI.                 |
+| `opencode` | OpenCode ACP adapter                   | Requires OpenCode CLI/provider auth.                                                |
+| `kova`     | Kova Gateway bridge through `kova acp` | Lets an ACP-aware harness talk back to an Kova Gateway session.                     |
+| `pi`       | Pi/embedded Kova runtime               | Used for Kova-native harness experiments.                                           |
+| `qwen`     | Qwen Code / Qwen CLI                   | Requires Qwen-compatible auth on the host.                                          |
 
 Custom acpx agent aliases can be configured in acpx itself, but Kova
 policy still checks `acp.allowedAgents` and any
@@ -211,7 +211,7 @@ delegated runs.
 
 | Area          | ACP session                           | Sub-agent run                      |
 | ------------- | ------------------------------------- | ---------------------------------- |
-| Runtime       | ACP backend plugin (for example acpx) | Kova native sub-agent runtime  |
+| Runtime       | ACP backend plugin (for example acpx) | Kova native sub-agent runtime      |
 | Session key   | `agent:<agentId>:acp:<uuid>`          | `agent:<agentId>:subagent:<uuid>`  |
 | Main commands | `/acp ...`                            | `/subagents ...`                   |
 | Spawn tool    | `sessions_spawn` with `runtime:"acp"` | `sessions_spawn` (default runtime) |
@@ -367,7 +367,7 @@ Use `agents.list[].runtime` to define ACP defaults once per agent:
             agent: "codex",
             backend: "acpx",
             mode: "persistent",
-            cwd: "/workspace/openclaw",
+            cwd: "/workspace/kova",
           },
         },
       },
@@ -609,7 +609,7 @@ background work. The delivery path depends on that shape.
 
     - Normal bound follow-ups are sent as prompt text, plus attachments only when the harness/backend supports them.
     - `/acp` management commands and local Gateway commands are intercepted before ACP dispatch.
-    - Runtime-generated completion events are materialized per target. Kova agents get Kova's internal runtime-context envelope; external ACP harnesses get a plain prompt with the child result and instruction. The raw `<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>` envelope should never be sent to external harnesses or persisted as ACP user transcript text.
+    - Runtime-generated completion events are materialized per target. Kova agents get Kova's internal runtime-context envelope; external ACP harnesses get a plain prompt with the child result and instruction. The raw `<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>` envelope should never be sent to external harnesses or persisted as ACP user transcript text.
     - ACP transcript entries use the user-visible trigger text or the plain completion prompt. Internal event metadata stays structured in Kova where possible and is not treated as user-authored chat content.
 
   </Accordion>
@@ -769,15 +769,15 @@ roots.
 `/acp` has convenience commands and a generic setter. Equivalent
 operations:
 
-| Command                      | Maps to                              | Notes                                                                                                                                                                          |
-| ---------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Command                      | Maps to                              | Notes                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/acp model <id>`            | runtime config key `model`           | For Codex ACP, Kova normalizes `openai-codex/<model>` to the adapter model id and maps slash reasoning suffixes such as `openai-codex/gpt-5.4/high` to `reasoning_effort`. |
 | `/acp set thinking <level>`  | runtime config key `thinking`        | For Codex ACP, Kova sends the corresponding `reasoning_effort` where the adapter supports one.                                                                             |
-| `/acp permissions <profile>` | runtime config key `approval_policy` | —                                                                                                                                                                              |
-| `/acp timeout <seconds>`     | runtime config key `timeout`         | —                                                                                                                                                                              |
-| `/acp cwd <path>`            | runtime cwd override                 | Direct update.                                                                                                                                                                 |
-| `/acp set <key> <value>`     | generic                              | `key=cwd` uses the cwd override path.                                                                                                                                          |
-| `/acp reset-options`         | clears all runtime overrides         | —                                                                                                                                                                              |
+| `/acp permissions <profile>` | runtime config key `approval_policy` | —                                                                                                                                                                          |
+| `/acp timeout <seconds>`     | runtime config key `timeout`         | —                                                                                                                                                                          |
+| `/acp cwd <path>`            | runtime cwd override                 | Direct update.                                                                                                                                                             |
+| `/acp set <key> <value>`     | generic                              | `key=cwd` uses the cwd override path.                                                                                                                                      |
+| `/acp reset-options`         | clears all runtime overrides         | —                                                                                                                                                                          |
 
 ## acpx harness, plugin setup, and permissions
 
@@ -797,7 +797,7 @@ permission modes, see
 | `/acp doctor` reports backend not ready right after startup                 | Plugin dependency probe or self-repair is still running.                        | Wait briefly and rerun `/acp doctor`; if it stays unhealthy, inspect the backend install error and plugin allow/deny policy.                                             |
 | Harness command not found                                                   | Adapter CLI is not installed or first-run `npx` fetch failed.                   | Install/prewarm the adapter on the Gateway host, or configure the acpx agent command explicitly.                                                                         |
 | Model-not-found from the harness                                            | Model id is valid for another provider/harness but not this ACP target.         | Use a model listed by that harness, configure the model in the harness, or omit the override.                                                                            |
-| Vendor auth error from the harness                                          | Kova is healthy, but the target CLI/provider is not logged in.              | Log in or provide the required provider key on the Gateway host environment.                                                                                             |
+| Vendor auth error from the harness                                          | Kova is healthy, but the target CLI/provider is not logged in.                  | Log in or provide the required provider key on the Gateway host environment.                                                                                             |
 | `Unable to resolve session target: ...`                                     | Bad key/id/label token.                                                         | Run `/acp sessions`, copy exact key/label, retry.                                                                                                                        |
 | `--bind here requires running /acp spawn inside an active ... conversation` | `--bind here` used without an active bindable conversation.                     | Move to the target chat/channel and retry, or use unbound spawn.                                                                                                         |
 | `Conversation bindings are unavailable for <channel>.`                      | Adapter lacks current-conversation ACP binding capability.                      | Use `/acp spawn ... --thread ...` where supported, configure top-level `bindings[]`, or move to a supported channel.                                                     |
@@ -811,7 +811,7 @@ permission modes, see
 | `AcpRuntimeError: Permission prompt unavailable in non-interactive mode`    | `permissionMode` blocks writes/exec in non-interactive ACP session.             | Set `plugins.entries.acpx.config.permissionMode` to `approve-all` and restart gateway. See [Permission configuration](/tools/acp-agents-setup#permission-configuration). |
 | ACP session fails early with little output                                  | Permission prompts are blocked by `permissionMode`/`nonInteractivePermissions`. | Check gateway logs for `AcpRuntimeError`. For full permissions, set `permissionMode=approve-all`; for graceful degradation, set `nonInteractivePermissions=deny`.        |
 | ACP session stalls indefinitely after completing work                       | Harness process finished but ACP session did not report completion.             | Monitor with `ps aux \| grep acpx`; kill stale processes manually.                                                                                                       |
-| Harness sees `<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>`                        | Internal event envelope leaked across the ACP boundary.                         | Update Kova and rerun the completion flow; external harnesses should receive plain completion prompts only.                                                          |
+| Harness sees `<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>`                            | Internal event envelope leaked across the ACP boundary.                         | Update Kova and rerun the completion flow; external harnesses should receive plain completion prompts only.                                                              |
 
 ## Related
 

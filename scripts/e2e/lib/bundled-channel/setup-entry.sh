@@ -14,12 +14,12 @@ run_setup_entry_scenario() {
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-setup-entry.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/kova-bundled-channel-setup-entry.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_PLUGIN_STAGE_DIR="$HOME/.openclaw/plugin-runtime-deps"
-mkdir -p "$OPENCLAW_PLUGIN_STAGE_DIR"
+export KOVA_NO_ONBOARD=1
+export KOVA_PLUGIN_STAGE_DIR="$HOME/.kova/plugin-runtime-deps"
+mkdir -p "$KOVA_PLUGIN_STAGE_DIR"
 
 declare -A SETUP_ENTRY_DEP_SENTINELS=(
   [feishu]="@larksuiteoapi/node-sdk"
@@ -27,12 +27,12 @@ declare -A SETUP_ENTRY_DEP_SENTINELS=(
 )
 
 package_root() {
-  printf "%s/openclaw" "$(npm root -g)"
+  printf "%s/kova" "$(npm root -g)"
 }
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-setup-entry-install.log 2>&1
+echo "Installing mounted Kova package..."
+package_tgz="${KOVA_CURRENT_PACKAGE_TGZ:?missing KOVA_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/kova-setup-entry-install.log 2>&1
 
 root="$(package_root)"
 for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
@@ -93,22 +93,22 @@ for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
     echo "setup-entry discovery installed $channel deps into bundled plugin tree before channel configuration" >&2
     exit 1
   fi
-  if find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
+  if find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
     echo "setup-entry discovery installed $channel external staged deps before channel configuration" >&2
-    find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+    find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
     exit 1
   fi
 done
 
 echo "Running packaged guided WhatsApp setup; runtime deps should be staged before finalize..."
-OPENCLAW_PACKAGE_ROOT="$root" node --input-type=module - <<'NODE'
+KOVA_PACKAGE_ROOT="$root" node --input-type=module - <<'NODE'
 import path from "node:path";
 import { readdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-const root = process.env.OPENCLAW_PACKAGE_ROOT;
+const root = process.env.KOVA_PACKAGE_ROOT;
 if (!root) {
-  throw new Error("missing OPENCLAW_PACKAGE_ROOT");
+  throw new Error("missing KOVA_PACKAGE_ROOT");
 }
 const distDir = path.join(root, "dist");
 const onboardChannelFiles = (await readdir(distDir))
@@ -196,9 +196,9 @@ if [ -e "$root/dist/extensions/whatsapp/node_modules/@whiskeysockets/baileys/pac
   echo "expected guided WhatsApp setup deps to be installed externally, not into bundled plugin tree" >&2
   exit 1
 fi
-if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/@whiskeysockets/baileys/package.json" -type f | grep -q .; then
+if ! find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/@whiskeysockets/baileys/package.json" -type f | grep -q .; then
   echo "guided WhatsApp setup did not stage @whiskeysockets/baileys before finalize" >&2
-  find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+  find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
   exit 1
 fi
 
@@ -207,7 +207,7 @@ node - <<'NODE'
 const fs = require("node:fs");
 const path = require("node:path");
 
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".kova", "kova.json");
 fs.mkdirSync(path.dirname(configPath), { recursive: true });
 const config = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
@@ -232,7 +232,7 @@ config.channels = {
 fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 NODE
 
-openclaw doctor --non-interactive >/tmp/openclaw-setup-entry-doctor.log 2>&1
+kova doctor --non-interactive >/tmp/kova-setup-entry-doctor.log 2>&1
 
 for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
   dep_sentinel="${SETUP_ENTRY_DEP_SENTINELS[$channel]}"
@@ -240,10 +240,10 @@ for channel in "${!SETUP_ENTRY_DEP_SENTINELS[@]}"; do
     echo "expected configured $channel deps to be installed externally, not into bundled plugin tree" >&2
     exit 1
   fi
-  if ! find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
+  if ! find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -path "*/node_modules/$dep_sentinel/package.json" -type f | grep -q .; then
     echo "missing external staged dependency sentinel for configured $channel: $dep_sentinel" >&2
-    cat /tmp/openclaw-setup-entry-doctor.log >&2
-    find "$OPENCLAW_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
+    cat /tmp/kova-setup-entry-doctor.log >&2
+    find "$KOVA_PLUGIN_STAGE_DIR" -maxdepth 12 -type f | sort | head -160 >&2 || true
     exit 1
   fi
 done

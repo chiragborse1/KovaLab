@@ -4,8 +4,8 @@ import path from "node:path";
 import {
   resolveAgentEffectiveModelPrimary,
   resolveDefaultModelForAgent,
-} from "openclaw/plugin-sdk/agent-runtime";
-import type { OpenClawPluginApi } from "../api.js";
+} from "getkova/plugin-sdk/agent-runtime";
+import type { KovaPluginApi } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
 import { normalizeSkillName } from "./skills.js";
 import { compactWhitespace, extractTranscriptText } from "./text.js";
@@ -38,7 +38,7 @@ type ReviewerJson = {
   newText?: string;
 };
 
-function resolveReviewerFallbackModel(params: { api: OpenClawPluginApi; agentId: string }): {
+function resolveReviewerFallbackModel(params: { api: KovaPluginApi; agentId: string }): {
   provider: string;
   model: string;
 } {
@@ -233,7 +233,7 @@ async function buildReviewPrompt(params: {
 }
 
 export async function reviewTranscriptForProposal(params: {
-  api: OpenClawPluginApi;
+  api: KovaPluginApi;
   config: SkillWorkshopConfig;
   ctx: ReviewContext;
   messages: unknown[];

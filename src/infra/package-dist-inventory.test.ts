@@ -14,7 +14,7 @@ import {
 
 describe("package dist inventory", () => {
   it("tracks missing and stale dist files", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-" }, async (packageRoot) => {
       const currentFile = path.join(packageRoot, "dist", "current-BR6xv1a1.js");
       await fs.mkdir(path.dirname(currentFile), { recursive: true });
       await fs.writeFile(currentFile, "export {};\n", "utf8");
@@ -39,7 +39,7 @@ describe("package dist inventory", () => {
   });
 
   it("keeps npm-omitted dist artifacts out of the inventory", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-pack-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-pack-" }, async (packageRoot) => {
       const packagedQaChannelRuntime = path.join(
         packageRoot,
         "dist",
@@ -90,14 +90,14 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "discord",
-        ".openclaw-runtime-deps-stamp.json",
+        ".kova-runtime-deps-stamp.json",
       );
       const omittedRuntimeDepsTempFile = path.join(
         packageRoot,
         "dist",
         "extensions",
         "discord",
-        ".openclaw-runtime-deps-backup-node_modules-old",
+        ".kova-runtime-deps-backup-node_modules-old",
         "left-pad",
         "index.js",
       );
@@ -106,7 +106,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "amazon-bedrock",
-        ".openclaw-runtime-deps-copy-KZmXaz",
+        ".kova-runtime-deps-copy-KZmXaz",
         "node_modules",
         ".bin",
         "fxparser",
@@ -125,7 +125,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "node_modules",
-        "openclaw",
+        "kova",
         "plugin-sdk",
       );
       const omittedMap = path.join(packageRoot, "dist", "feature.runtime.js.map");
@@ -169,7 +169,7 @@ describe("package dist inventory", () => {
 
   it("ignores omitted extension node_modules symlink roots", async () => {
     await withTempDir(
-      { prefix: "openclaw-dist-inventory-node-modules-symlink-" },
+      { prefix: "kova-dist-inventory-node-modules-symlink-" },
       async (packageRoot) => {
         const pluginDir = path.join(packageRoot, "dist", "extensions", "anthropic");
         const stagedDepsDir = path.join(packageRoot, "staged-deps");
@@ -184,7 +184,7 @@ describe("package dist inventory", () => {
   });
 
   it("ignores runtime-created install staging dirs during installed dist verification", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-stage-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-stage-" }, async (packageRoot) => {
       const realFile = path.join(packageRoot, "dist", "real-AbC123.js");
       await fs.mkdir(path.dirname(realFile), { recursive: true });
       await fs.writeFile(realFile, "export {};\n", "utf8");
@@ -195,7 +195,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "brave",
-        ".openclaw-install-stage",
+        ".kova-install-stage",
         "node_modules",
         "typebox",
         "build",
@@ -207,7 +207,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "browser",
-        ".openclaw-install-stage-AbC123",
+        ".kova-install-stage-AbC123",
         "node_modules",
         "playwright-core",
         "package.json",
@@ -224,37 +224,35 @@ describe("package dist inventory", () => {
   it("matches install-stage paths case-insensitively across path segments", () => {
     expect(
       isBundledRuntimeDepsInstallStagePath(
-        "dist/extensions/brave/.openclaw-install-stage/node_modules/typebox/package.json",
+        "dist/extensions/brave/.kova-install-stage/node_modules/typebox/package.json",
       ),
     ).toBe(true);
     expect(
       isBundledRuntimeDepsInstallStagePath(
-        "dist/Extensions/browser/.OPENCLAW-INSTALL-STAGE-AbC123/node_modules/playwright-core/package.json",
+        "dist/Extensions/browser/.KOVA-INSTALL-STAGE-AbC123/node_modules/playwright-core/package.json",
       ),
     ).toBe(true);
     expect(
       isBundledRuntimeDepsInstallStagePath(
-        "Dist/Extensions/browser/.OpenClaw-Install-Stage/package.json",
+        "Dist/Extensions/browser/.Kova-Install-Stage/package.json",
       ),
     ).toBe(true);
     expect(
       isBundledRuntimeDepsInstallStagePath(
-        "dist/extensions/browser/.openclaw-runtime-deps-copy-AbC123/package.json",
+        "dist/extensions/browser/.kova-runtime-deps-copy-AbC123/package.json",
       ),
     ).toBe(false);
-    expect(isBundledRuntimeDepsInstallStagePath("dist/extensions/.openclaw-install-stage")).toBe(
-      false,
-    );
+    expect(isBundledRuntimeDepsInstallStagePath("dist/extensions/.kova-install-stage")).toBe(false);
   });
 
   it("rejects pre-populated install-stage debris at publish time", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-stage-publish-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-stage-publish-" }, async (packageRoot) => {
       const seededStagePackageJson = path.join(
         packageRoot,
         "dist",
         "extensions",
         "evil",
-        ".openclaw-install-stage",
+        ".kova-install-stage",
         "package.json",
       );
       const suffixedSeed = path.join(
@@ -262,7 +260,7 @@ describe("package dist inventory", () => {
         "dist",
         "extensions",
         "browser",
-        ".openclaw-install-stage-AbC123",
+        ".kova-install-stage-AbC123",
         "node_modules",
         "playwright-core",
         "package.json",
@@ -273,8 +271,8 @@ describe("package dist inventory", () => {
       await fs.writeFile(suffixedSeed, "{}", "utf8");
 
       await expect(collectBundledRuntimeDepsStagingDebrisPaths(packageRoot)).resolves.toEqual([
-        "dist/extensions/browser/.openclaw-install-stage-AbC123",
-        "dist/extensions/evil/.openclaw-install-stage",
+        "dist/extensions/browser/.kova-install-stage-AbC123",
+        "dist/extensions/evil/.kova-install-stage",
       ]);
       await expect(assertNoBundledRuntimeDepsStagingDebris(packageRoot)).rejects.toThrow(
         /unexpected bundled-runtime-deps install staging debris/,
@@ -287,21 +285,21 @@ describe("package dist inventory", () => {
 
   it("rejects mixed-case install-stage debris on case-sensitive release builders", async () => {
     await withTempDir(
-      { prefix: "openclaw-dist-inventory-stage-extensions-case-" },
+      { prefix: "kova-dist-inventory-stage-extensions-case-" },
       async (packageRoot) => {
         const mixedCaseStage = path.join(
           packageRoot,
           "dist",
           "Extensions",
           "evil",
-          ".OpenClaw-Install-Stage",
+          ".Kova-Install-Stage",
           "package.json",
         );
         await fs.mkdir(path.dirname(mixedCaseStage), { recursive: true });
         await fs.writeFile(mixedCaseStage, "{}", "utf8");
 
         await expect(collectBundledRuntimeDepsStagingDebrisPaths(packageRoot)).resolves.toEqual([
-          "dist/Extensions/evil/.OpenClaw-Install-Stage",
+          "dist/Extensions/evil/.Kova-Install-Stage",
         ]);
         await expect(writePackageDistInventory(packageRoot)).rejects.toThrow(
           /unexpected bundled-runtime-deps install staging debris/,
@@ -309,32 +307,29 @@ describe("package dist inventory", () => {
       },
     );
 
-    await withTempDir(
-      { prefix: "openclaw-dist-inventory-stage-root-case-" },
-      async (packageRoot) => {
-        const mixedCaseStage = path.join(
-          packageRoot,
-          "Dist",
-          "Extensions",
-          "browser",
-          ".OPENCLAW-INSTALL-STAGE-AbC123",
-          "package.json",
-        );
-        await fs.mkdir(path.dirname(mixedCaseStage), { recursive: true });
-        await fs.writeFile(mixedCaseStage, "{}", "utf8");
+    await withTempDir({ prefix: "kova-dist-inventory-stage-root-case-" }, async (packageRoot) => {
+      const mixedCaseStage = path.join(
+        packageRoot,
+        "Dist",
+        "Extensions",
+        "browser",
+        ".KOVA-INSTALL-STAGE-AbC123",
+        "package.json",
+      );
+      await fs.mkdir(path.dirname(mixedCaseStage), { recursive: true });
+      await fs.writeFile(mixedCaseStage, "{}", "utf8");
 
-        await expect(collectBundledRuntimeDepsStagingDebrisPaths(packageRoot)).resolves.toEqual([
-          "Dist/Extensions/browser/.OPENCLAW-INSTALL-STAGE-AbC123",
-        ]);
-        await expect(writePackageDistInventory(packageRoot)).rejects.toThrow(
-          /unexpected bundled-runtime-deps install staging debris/,
-        );
-      },
-    );
+      await expect(collectBundledRuntimeDepsStagingDebrisPaths(packageRoot)).resolves.toEqual([
+        "Dist/Extensions/browser/.KOVA-INSTALL-STAGE-AbC123",
+      ]);
+      await expect(writePackageDistInventory(packageRoot)).rejects.toThrow(
+        /unexpected bundled-runtime-deps install staging debris/,
+      );
+    });
   });
 
   it("treats a missing dist/extensions tree as no staging debris", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-no-extensions-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-no-extensions-" }, async (packageRoot) => {
       await fs.mkdir(path.join(packageRoot, "dist"), { recursive: true });
       await expect(collectBundledRuntimeDepsStagingDebrisPaths(packageRoot)).resolves.toEqual([]);
       await expect(assertNoBundledRuntimeDepsStagingDebris(packageRoot)).resolves.toBeUndefined();
@@ -342,7 +337,7 @@ describe("package dist inventory", () => {
   });
 
   it("fails closed when the inventory is missing", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-missing-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-missing-" }, async (packageRoot) => {
       await fs.mkdir(path.join(packageRoot, "dist"), { recursive: true });
       await expect(collectPackageDistInventoryErrors(packageRoot)).resolves.toEqual([
         `missing package dist inventory ${PACKAGE_DIST_INVENTORY_RELATIVE_PATH}`,
@@ -351,7 +346,7 @@ describe("package dist inventory", () => {
   });
 
   it("rejects symlinked dist entries", async () => {
-    await withTempDir({ prefix: "openclaw-dist-inventory-symlink-" }, async (packageRoot) => {
+    await withTempDir({ prefix: "kova-dist-inventory-symlink-" }, async (packageRoot) => {
       const distDir = path.join(packageRoot, "dist");
       await fs.mkdir(distDir, { recursive: true });
       await fs.writeFile(path.join(packageRoot, "escape.js"), "export {};\n", "utf8");

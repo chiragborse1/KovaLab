@@ -1,4 +1,4 @@
-import * as conversationRuntime from "openclaw/plugin-sdk/conversation-runtime";
+import * as conversationRuntime from "getkova/plugin-sdk/conversation-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const ensureConfiguredBindingRouteReadyMock = vi.hoisted(() => vi.fn());
@@ -19,7 +19,7 @@ vi.mock("../../../../src/channels/plugins/binding-routing.js", async () => {
   );
 });
 
-import { __testing as sessionBindingTesting } from "openclaw/plugin-sdk/conversation-runtime";
+import { __testing as sessionBindingTesting } from "getkova/plugin-sdk/conversation-runtime";
 import { preflightDiscordMessage } from "./message-handler.preflight.js";
 import {
   createDiscordMessage,
@@ -151,7 +151,7 @@ function createBasePreflightParams(overrides?: Record<string, unknown>) {
       discordConfig: {
         allowBots: true,
       } as NonNullable<
-        import("openclaw/plugin-sdk/config-runtime").OpenClawConfig["channels"]
+        import("getkova/plugin-sdk/config-runtime").KovaConfig["channels"]
       >["discord"],
       data: createGuildEvent({
         channelId: CHANNEL_ID,
@@ -164,9 +164,7 @@ function createBasePreflightParams(overrides?: Record<string, unknown>) {
     }),
     discordConfig: {
       allowBots: true,
-    } as NonNullable<
-      import("openclaw/plugin-sdk/config-runtime").OpenClawConfig["channels"]
-    >["discord"],
+    } as NonNullable<import("getkova/plugin-sdk/config-runtime").KovaConfig["channels"]>["discord"],
     ...overrides,
   } satisfies Parameters<typeof preflightDiscordMessage>[0];
 }

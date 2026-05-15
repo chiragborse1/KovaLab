@@ -1,9 +1,9 @@
 const A2UI_PATH = "/__kova__/a2ui";
-const LEGACY_A2UI_PATH = "/__openclaw__/a2ui";
+const LEGACY_A2UI_PATH = "/__kova__/a2ui";
 const CANVAS_HOST_PATH = "/__kova__/canvas";
-const LEGACY_CANVAS_HOST_PATH = "/__openclaw__/canvas";
+const LEGACY_CANVAS_HOST_PATH = "/__kova__/canvas";
 const CANVAS_CAPABILITY_PATH_PREFIX = "/__kova__/cap";
-const LEGACY_CANVAS_CAPABILITY_PATH_PREFIX = "/__openclaw__/cap";
+const LEGACY_CANVAS_CAPABILITY_PATH_PREFIX = "/__kova__/cap";
 
 function isPathUnder(pathname: string, basePath: string): boolean {
   return pathname === basePath || pathname.startsWith(`${basePath}/`);

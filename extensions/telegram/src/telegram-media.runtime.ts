@@ -3,4 +3,4 @@ export {
   getAgentScopedMediaLocalRoots,
   MediaFetchError,
   saveMediaBuffer,
-} from "openclaw/plugin-sdk/media-runtime";
+} from "getkova/plugin-sdk/media-runtime";

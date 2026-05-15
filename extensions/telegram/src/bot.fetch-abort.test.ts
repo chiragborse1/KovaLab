@@ -16,7 +16,7 @@ const createTelegramBot = (opts: import("./bot.types.js").TelegramBotOptions) =>
 
 function createWrappedTelegramClientFetch(
   proxyFetch: typeof fetch,
-  config?: import("openclaw/plugin-sdk/config-runtime").OpenClawConfig,
+  config?: import("getkova/plugin-sdk/config-runtime").KovaConfig,
 ) {
   const shutdown = new AbortController();
   botCtorSpy.mockClear();

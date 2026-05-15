@@ -89,7 +89,7 @@ describe("resolveIrcAccount", () => {
             accounts: {
               "Ops Team": {
                 host: "irc.example.com",
-                nick: "claw",
+                nick: "kova",
               },
             },
           },
@@ -100,7 +100,7 @@ describe("resolveIrcAccount", () => {
 
     expect(account.accountId).toBe("ops-team");
     expect(account.host).toBe("irc.example.com");
-    expect(account.nick).toBe("claw");
+    expect(account.nick).toBe("kova");
     expect(account.configured).toBe(true);
   });
 
@@ -114,7 +114,7 @@ describe("resolveIrcAccount", () => {
           channels: {
             irc: {
               host: "irc.example.com",
-              nick: "claw",
+              nick: "kova",
             },
           },
         }),
@@ -131,7 +131,7 @@ describe("resolveIrcAccount", () => {
   });
 
   it.runIf(process.platform !== "win32")("rejects symlinked password files", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-irc-account-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-irc-account-"));
     const passwordFile = path.join(dir, "password.txt");
     const passwordLink = path.join(dir, "password-link.txt");
     fs.writeFileSync(passwordFile, "secret-pass\n", "utf8");
@@ -141,7 +141,7 @@ describe("resolveIrcAccount", () => {
       channels: {
         irc: {
           host: "irc.example.com",
-          nick: "claw",
+          nick: "kova",
           passwordFile: passwordLink,
         },
       },
@@ -159,7 +159,7 @@ describe("resolveIrcAccount", () => {
         channels: {
           irc: {
             host: "irc.example.com",
-            nick: "claw",
+            nick: "kova",
             nickserv: {
               service: "NickServ",
             },

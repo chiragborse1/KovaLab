@@ -1,5 +1,5 @@
-import { assertOkOrThrowProviderError, postJsonRequest } from "openclaw/plugin-sdk/provider-http";
-import { trimToUndefined } from "openclaw/plugin-sdk/speech";
+import { assertOkOrThrowProviderError, postJsonRequest } from "getkova/plugin-sdk/provider-http";
+import { trimToUndefined } from "getkova/plugin-sdk/speech";
 import { XAI_BASE_URL } from "./api.js";
 export { XAI_BASE_URL };
 

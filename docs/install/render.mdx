@@ -17,7 +17,7 @@ Deploy Kova on Render using Infrastructure as Code. The included `render.yaml` B
 
 ## Deploy with a Render Blueprint
 
-[Deploy to Render](https://render.com/deploy?repo=https://github.com/openclaw/openclaw)
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/chiragborse1/KovaLab)
 
 Clicking this link will:
 
@@ -39,16 +39,16 @@ services:
     plan: starter
     healthCheckPath: /health
     envVars:
-      - key: OPENCLAW_GATEWAY_PORT
+      - key: KOVA_GATEWAY_PORT
         value: "8080"
-      - key: OPENCLAW_STATE_DIR
-        value: /data/.openclaw
-      - key: OPENCLAW_WORKSPACE_DIR
+      - key: KOVA_STATE_DIR
+        value: /data/.kova
+      - key: KOVA_WORKSPACE_DIR
         value: /data/workspace
-      - key: OPENCLAW_GATEWAY_TOKEN
+      - key: KOVA_GATEWAY_TOKEN
         generateValue: true # auto-generates a secure token
     disk:
-      name: openclaw-data
+      name: kova-data
       mountPath: /data
       sizeGB: 1
 ```
@@ -81,7 +81,7 @@ resets on each deploy).
 The web dashboard is available at `https://<your-service>.onrender.com/`.
 
 Connect using the configured shared secret. This deploy template auto-generates
-`OPENCLAW_GATEWAY_TOKEN` (find it in **Dashboard → your service →
+`KOVA_GATEWAY_TOKEN` (find it in **Dashboard → your service →
 Environment**); if you replace it with password auth, use that password
 instead.
 
@@ -141,8 +141,8 @@ workspace. See [Backup](/cli/backup) for details.
 
 Check the deploy logs in the Render Dashboard. Common issues:
 
-- Missing `OPENCLAW_GATEWAY_TOKEN` — verify it is set in **Dashboard → Environment**
-- Port mismatch — ensure `OPENCLAW_GATEWAY_PORT=8080` is set so the gateway binds to the port Render expects
+- Missing `KOVA_GATEWAY_TOKEN` — verify it is set in **Dashboard → Environment**
+- Port mismatch — ensure `KOVA_GATEWAY_PORT=8080` is set so the gateway binds to the port Render expects
 
 ### Slow cold starts (free tier)
 

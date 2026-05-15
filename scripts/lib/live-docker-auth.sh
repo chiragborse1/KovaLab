@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-OPENCLAW_DOCKER_LIVE_AUTH_ALL=(.factory .gemini .minimax)
-OPENCLAW_DOCKER_LIVE_AUTH_FILES_ALL=(
+KOVA_DOCKER_LIVE_AUTH_ALL=(.factory .gemini .minimax)
+KOVA_DOCKER_LIVE_AUTH_FILES_ALL=(
   .codex/auth.json
   .codex/config.toml
   .claude.json
@@ -11,16 +11,16 @@ OPENCLAW_DOCKER_LIVE_AUTH_FILES_ALL=(
   .gemini/settings.json
 )
 
-openclaw_live_trim() {
+kova_live_trim() {
   local value="${1:-}"
   value="${value#"${value%%[![:space:]]*}"}"
   value="${value%"${value##*[![:space:]]}"}"
   printf '%s' "$value"
 }
 
-openclaw_live_validate_relative_home_path() {
+kova_live_validate_relative_home_path() {
   local value
-  value="$(openclaw_live_trim "${1:-}")"
+  value="$(kova_live_trim "${1:-}")"
   [[ -n "$value" ]] || {
     echo "ERROR: empty auth path." >&2
     return 1
@@ -34,20 +34,20 @@ openclaw_live_validate_relative_home_path() {
   printf '%s' "$value"
 }
 
-openclaw_live_normalize_auth_dir() {
+kova_live_normalize_auth_dir() {
   local value
-  value="$(openclaw_live_trim "${1:-}")"
+  value="$(kova_live_trim "${1:-}")"
   [[ -n "$value" ]] || return 1
   if [[ "$value" != .* ]]; then
     value=".$value"
   fi
-  value="$(openclaw_live_validate_relative_home_path "$value")" || return 1
+  value="$(kova_live_validate_relative_home_path "$value")" || return 1
   printf '%s' "$value"
 }
 
-openclaw_live_should_include_auth_dir_for_provider() {
+kova_live_should_include_auth_dir_for_provider() {
   local provider
-  provider="$(openclaw_live_trim "${1:-}")"
+  provider="$(kova_live_trim "${1:-}")"
   case "$provider" in
     droid | factory | factory-droid)
       printf '%s\n' ".factory"
@@ -61,9 +61,9 @@ openclaw_live_should_include_auth_dir_for_provider() {
   esac
 }
 
-openclaw_live_should_include_auth_file_for_provider() {
+kova_live_should_include_auth_file_for_provider() {
   local provider
-  provider="$(openclaw_live_trim "${1:-}")"
+  provider="$(kova_live_trim "${1:-}")"
   case "$provider" in
     codex-cli | openai-codex)
       printf '%s\n' ".codex/auth.json"
@@ -78,25 +78,25 @@ openclaw_live_should_include_auth_file_for_provider() {
   esac
 }
 
-openclaw_live_collect_auth_dirs_from_csv() {
+kova_live_collect_auth_dirs_from_csv() {
   local raw="${1:-}"
   local token normalized
-  [[ -n "$(openclaw_live_trim "$raw")" ]] || return 0
+  [[ -n "$(kova_live_trim "$raw")" ]] || return 0
   IFS=',' read -r -a tokens <<<"$raw"
   for token in "${tokens[@]}"; do
     while IFS= read -r normalized; do
       printf '%s\n' "$normalized"
-    done < <(openclaw_live_should_include_auth_dir_for_provider "$token")
+    done < <(kova_live_should_include_auth_dir_for_provider "$token")
   done | awk 'NF && !seen[$0]++'
 }
 
-openclaw_live_collect_auth_dirs_from_override() {
+kova_live_collect_auth_dirs_from_override() {
   local raw token normalized
-  raw="$(openclaw_live_trim "${OPENCLAW_DOCKER_AUTH_DIRS:-}")"
+  raw="$(kova_live_trim "${KOVA_DOCKER_AUTH_DIRS:-}")"
   [[ -n "$raw" ]] || return 1
   case "$raw" in
     all)
-      printf '%s\n' "${OPENCLAW_DOCKER_LIVE_AUTH_ALL[@]}"
+      printf '%s\n' "${KOVA_DOCKER_LIVE_AUTH_ALL[@]}"
       return 0
       ;;
     none)
@@ -105,38 +105,38 @@ openclaw_live_collect_auth_dirs_from_override() {
   esac
   IFS=',' read -r -a tokens <<<"$raw"
   for token in "${tokens[@]}"; do
-    normalized="$(openclaw_live_normalize_auth_dir "$token")" || continue
+    normalized="$(kova_live_normalize_auth_dir "$token")" || continue
     printf '%s\n' "$normalized"
   done | awk '!seen[$0]++'
   return 0
 }
 
-openclaw_live_collect_auth_dirs() {
-  if openclaw_live_collect_auth_dirs_from_override; then
+kova_live_collect_auth_dirs() {
+  if kova_live_collect_auth_dirs_from_override; then
     return 0
   fi
-  printf '%s\n' "${OPENCLAW_DOCKER_LIVE_AUTH_ALL[@]}"
+  printf '%s\n' "${KOVA_DOCKER_LIVE_AUTH_ALL[@]}"
 }
 
-openclaw_live_collect_auth_files_from_csv() {
+kova_live_collect_auth_files_from_csv() {
   local raw="${1:-}"
   local token normalized
-  [[ -n "$(openclaw_live_trim "$raw")" ]] || return 0
+  [[ -n "$(kova_live_trim "$raw")" ]] || return 0
   IFS=',' read -r -a tokens <<<"$raw"
   for token in "${tokens[@]}"; do
     while IFS= read -r normalized; do
       printf '%s\n' "$normalized"
-    done < <(openclaw_live_should_include_auth_file_for_provider "$token")
+    done < <(kova_live_should_include_auth_file_for_provider "$token")
   done | awk 'NF && !seen[$0]++'
 }
 
-openclaw_live_collect_auth_files_from_override() {
+kova_live_collect_auth_files_from_override() {
   local raw
-  raw="$(openclaw_live_trim "${OPENCLAW_DOCKER_AUTH_DIRS:-}")"
+  raw="$(kova_live_trim "${KOVA_DOCKER_AUTH_DIRS:-}")"
   [[ -n "$raw" ]] || return 1
   case "$raw" in
     all)
-      printf '%s\n' "${OPENCLAW_DOCKER_LIVE_AUTH_FILES_ALL[@]}"
+      printf '%s\n' "${KOVA_DOCKER_LIVE_AUTH_FILES_ALL[@]}"
       return 0
       ;;
     none)
@@ -146,14 +146,14 @@ openclaw_live_collect_auth_files_from_override() {
   return 0
 }
 
-openclaw_live_collect_auth_files() {
-  if openclaw_live_collect_auth_files_from_override; then
+kova_live_collect_auth_files() {
+  if kova_live_collect_auth_files_from_override; then
     return 0
   fi
-  printf '%s\n' "${OPENCLAW_DOCKER_LIVE_AUTH_FILES_ALL[@]}"
+  printf '%s\n' "${KOVA_DOCKER_LIVE_AUTH_FILES_ALL[@]}"
 }
 
-openclaw_live_join_csv() {
+kova_live_join_csv() {
   local first=1 value
   for value in "$@"; do
     [[ -n "$value" ]] || continue
@@ -166,7 +166,7 @@ openclaw_live_join_csv() {
   done
 }
 
-openclaw_live_append_array() {
+kova_live_append_array() {
   local target_array="${1:?target array required}"
   local source_array="${2:?source array required}"
   local count
@@ -178,7 +178,7 @@ openclaw_live_append_array() {
   eval "$target_array+=(\"\${$source_array[@]}\")"
 }
 
-openclaw_live_stage_auth_into_home() {
+kova_live_stage_auth_into_home() {
   local dest_home="${1:?destination home directory required}"
   shift
 
@@ -197,7 +197,7 @@ openclaw_live_stage_auth_into_home() {
         ;;
     esac
 
-    relative_path="$(openclaw_live_validate_relative_home_path "$1")" || return 1
+    relative_path="$(kova_live_validate_relative_home_path "$1")" || return 1
     source_path="$HOME/$relative_path"
     dest_path="$dest_home/$relative_path"
 

@@ -134,11 +134,11 @@ import {
   onInternalDiagnosticEvent,
   resetDiagnosticEventsForTest,
 } from "../../../src/infra/diagnostic-events.js";
-import type { OpenClawPluginServiceContext } from "../api.js";
+import type { KovaPluginServiceContext } from "../api.js";
 import { emitDiagnosticEvent } from "../api.js";
 import { createDiagnosticsOtelService } from "./service.js";
 
-const OTEL_TEST_STATE_DIR = "/tmp/openclaw-diagnostics-otel-test";
+const OTEL_TEST_STATE_DIR = "/tmp/kova-diagnostics-otel-test";
 const OTEL_TEST_ENDPOINT = "http://otel-collector:4318";
 const OTEL_TEST_PROTOCOL = "http/protobuf";
 const TRACE_ID = "4bf92f3577b34da6a3ce929d0e0e4736";
@@ -149,7 +149,7 @@ const TOOL_SPAN_ID = "3333333333333333";
 const PROTO_KEY = "__proto__";
 const MAX_TEST_OTEL_CONTENT_ATTRIBUTE_CHARS = 4096;
 const OTEL_TRUNCATED_SUFFIX_MAX_CHARS = 20;
-const ORIGINAL_OPENCLAW_OTEL_PRELOADED = process.env.OPENCLAW_OTEL_PRELOADED;
+const ORIGINAL_KOVA_OTEL_PRELOADED = process.env.KOVA_OTEL_PRELOADED;
 const ORIGINAL_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT;
 const ORIGINAL_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT =
   process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT;
@@ -170,13 +170,13 @@ type OtelContextFlags = {
   metrics?: boolean;
   logs?: boolean;
   captureContent?: NonNullable<
-    NonNullable<OpenClawPluginServiceContext["config"]["diagnostics"]>["otel"]
+    NonNullable<KovaPluginServiceContext["config"]["diagnostics"]>["otel"]
   >["captureContent"];
 };
 function createOtelContext(
   endpoint: string,
   { traces = false, metrics = false, logs = false, captureContent }: OtelContextFlags = {},
-): OpenClawPluginServiceContext {
+): KovaPluginServiceContext {
   return {
     config: {
       diagnostics: {
@@ -201,7 +201,7 @@ function createOtelContext(
   };
 }
 
-function createTraceOnlyContext(endpoint: string): OpenClawPluginServiceContext {
+function createTraceOnlyContext(endpoint: string): KovaPluginServiceContext {
   return createOtelContext(endpoint, { traces: true });
 }
 
@@ -231,7 +231,7 @@ function flushDiagnosticEvents() {
 describe("diagnostics-otel service", () => {
   beforeEach(() => {
     resetDiagnosticEventsForTest();
-    delete process.env.OPENCLAW_OTEL_PRELOADED;
+    delete process.env.KOVA_OTEL_PRELOADED;
     delete process.env.OTEL_SEMCONV_STABILITY_OPT_IN;
     telemetryState.counters.clear();
     telemetryState.histograms.clear();
@@ -254,10 +254,10 @@ describe("diagnostics-otel service", () => {
 
   afterEach(() => {
     resetDiagnosticEventsForTest();
-    if (ORIGINAL_OPENCLAW_OTEL_PRELOADED === undefined) {
-      delete process.env.OPENCLAW_OTEL_PRELOADED;
+    if (ORIGINAL_KOVA_OTEL_PRELOADED === undefined) {
+      delete process.env.KOVA_OTEL_PRELOADED;
     } else {
-      process.env.OPENCLAW_OTEL_PRELOADED = ORIGINAL_OPENCLAW_OTEL_PRELOADED;
+      process.env.KOVA_OTEL_PRELOADED = ORIGINAL_KOVA_OTEL_PRELOADED;
     }
     if (ORIGINAL_OTEL_SEMCONV_STABILITY_OPT_IN === undefined) {
       delete process.env.OTEL_SEMCONV_STABILITY_OPT_IN;
@@ -328,19 +328,13 @@ describe("diagnostics-otel service", () => {
     });
 
     expect(telemetryState.counters.get("kova.webhook.received")?.add).toHaveBeenCalled();
-    expect(
-      telemetryState.histograms.get("kova.webhook.duration_ms")?.record,
-    ).toHaveBeenCalled();
+    expect(telemetryState.histograms.get("kova.webhook.duration_ms")?.record).toHaveBeenCalled();
     expect(telemetryState.counters.get("kova.message.queued")?.add).toHaveBeenCalled();
     expect(telemetryState.counters.get("kova.message.processed")?.add).toHaveBeenCalled();
-    expect(
-      telemetryState.histograms.get("kova.message.duration_ms")?.record,
-    ).toHaveBeenCalled();
+    expect(telemetryState.histograms.get("kova.message.duration_ms")?.record).toHaveBeenCalled();
     expect(telemetryState.histograms.get("kova.queue.wait_ms")?.record).toHaveBeenCalled();
     expect(telemetryState.counters.get("kova.session.stuck")?.add).toHaveBeenCalled();
-    expect(
-      telemetryState.histograms.get("kova.session.stuck_age_ms")?.record,
-    ).toHaveBeenCalled();
+    expect(telemetryState.histograms.get("kova.session.stuck_age_ms")?.record).toHaveBeenCalled();
     expect(telemetryState.counters.get("kova.run.attempt")?.add).toHaveBeenCalled();
 
     const spanNames = telemetryState.tracer.startSpan.mock.calls.map((call) => call[0]);
@@ -393,7 +387,7 @@ describe("diagnostics-otel service", () => {
   });
 
   test("uses a preloaded OpenTelemetry SDK without dropping diagnostic listeners", async () => {
-    process.env.OPENCLAW_OTEL_PRELOADED = "1";
+    process.env.KOVA_OTEL_PRELOADED = "1";
     const service = createDiagnosticsOtelService();
     const ctx = createOtelContext(OTEL_TEST_ENDPOINT, { traces: true, metrics: true, logs: true });
     await service.start(ctx);
@@ -479,14 +473,15 @@ describe("diagnostics-otel service", () => {
         }),
       ]),
     );
-    expect(
-      telemetryState.counters.get("kova.telemetry.exporter.events")?.add,
-    ).toHaveBeenCalledWith(1, {
-      "kova.exporter": "diagnostics-otel",
-      "kova.signal": "logs",
-      "kova.status": "started",
-      "kova.reason": "configured",
-    });
+    expect(telemetryState.counters.get("kova.telemetry.exporter.events")?.add).toHaveBeenCalledWith(
+      1,
+      {
+        "kova.exporter": "diagnostics-otel",
+        "kova.signal": "logs",
+        "kova.status": "started",
+        "kova.reason": "configured",
+      },
+    );
 
     unsubscribe();
     await service.stop?.(ctx);
@@ -525,15 +520,16 @@ describe("diagnostics-otel service", () => {
         }),
       ]),
     );
-    expect(
-      telemetryState.counters.get("kova.telemetry.exporter.events")?.add,
-    ).toHaveBeenCalledWith(1, {
-      "kova.exporter": "diagnostics-otel",
-      "kova.signal": "logs",
-      "kova.status": "failure",
-      "kova.reason": "emit_failed",
-      "kova.errorCategory": "TypeError",
-    });
+    expect(telemetryState.counters.get("kova.telemetry.exporter.events")?.add).toHaveBeenCalledWith(
+      1,
+      {
+        "kova.exporter": "diagnostics-otel",
+        "kova.signal": "logs",
+        "kova.status": "failure",
+        "kova.reason": "emit_failed",
+        "kova.errorCategory": "TypeError",
+      },
+    );
 
     unsubscribe();
     await service.stop?.(ctx);
@@ -561,7 +557,7 @@ describe("diagnostics-otel service", () => {
   });
 
   test("honors disabled traces when an OpenTelemetry SDK is preloaded", async () => {
-    process.env.OPENCLAW_OTEL_PRELOADED = "1";
+    process.env.KOVA_OTEL_PRELOADED = "1";
     const service = createDiagnosticsOtelService();
     const ctx = createOtelContext(OTEL_TEST_ENDPOINT, { traces: false, metrics: true });
     await service.start(ctx);
@@ -801,10 +797,10 @@ describe("diagnostics-otel service", () => {
       message: "x".repeat(6000),
       attributes,
       code: {
-        filepath: "/Users/alice/openclaw/src/private.ts",
+        filepath: "/Users/alice/kova/src/private.ts",
         line: 42,
         functionName: "handler",
-        location: "/Users/alice/openclaw/src/private.ts:42",
+        location: "/Users/alice/kova/src/private.ts:42",
       },
     } as Parameters<typeof emitDiagnosticEvent>[0]);
     await flushDiagnosticEvents();
@@ -1353,9 +1349,7 @@ describe("diagnostics-otel service", () => {
         "kova.runId": expect.anything(),
       }),
     );
-    expect(
-      telemetryState.histograms.get("kova.harness.duration_ms")?.record,
-    ).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.harness.duration_ms")?.record).toHaveBeenCalledWith(
       90,
       expect.objectContaining({
         "kova.harness.id": "codex",
@@ -1363,9 +1357,7 @@ describe("diagnostics-otel service", () => {
         "kova.outcome": "completed",
       }),
     );
-    expect(
-      telemetryState.histograms.get("kova.harness.duration_ms")?.record,
-    ).toHaveBeenCalledWith(
+    expect(telemetryState.histograms.get("kova.harness.duration_ms")?.record).toHaveBeenCalledWith(
       90,
       expect.not.objectContaining({
         "kova.runId": expect.anything(),
@@ -1764,9 +1756,7 @@ describe("diagnostics-otel service", () => {
         "kova.memory.window_ms": 60_000,
       },
     });
-    const pressureSpan = telemetryState.spans.find(
-      (span) => span.name === "kova.memory.pressure",
-    );
+    const pressureSpan = telemetryState.spans.find((span) => span.name === "kova.memory.pressure");
     expect(pressureSpan?.setStatus).toHaveBeenCalledWith({
       code: 2,
       message: "rss_growth",
@@ -2172,9 +2162,7 @@ describe("diagnostics-otel service", () => {
       telemetryState.tracer.startSpan.mock.calls.filter((call) => call[0] === "kova.run"),
     ).toHaveLength(1);
     expect(
-      telemetryState.tracer.startSpan.mock.calls.filter(
-        (call) => call[0] === "kova.model.call",
-      ),
+      telemetryState.tracer.startSpan.mock.calls.filter((call) => call[0] === "kova.model.call"),
     ).toHaveLength(1);
     expect(
       telemetryState.tracer.startSpan.mock.calls.filter(
@@ -2182,9 +2170,7 @@ describe("diagnostics-otel service", () => {
       ),
     ).toHaveLength(1);
     expect(
-      telemetryState.tracer.startSpan.mock.calls.filter(
-        (call) => call[0] === "kova.harness.run",
-      ),
+      telemetryState.tracer.startSpan.mock.calls.filter((call) => call[0] === "kova.harness.run"),
     ).toHaveLength(1);
     await service.stop?.(ctx);
   });
@@ -2279,12 +2265,13 @@ describe("diagnostics-otel service", () => {
     });
     await flushDiagnosticEvents();
 
-    expect(
-      telemetryState.counters.get("kova.message.delivery.started")?.add,
-    ).toHaveBeenCalledWith(1, {
-      "kova.channel": "matrix",
-      "kova.delivery.kind": "text",
-    });
+    expect(telemetryState.counters.get("kova.message.delivery.started")?.add).toHaveBeenCalledWith(
+      1,
+      {
+        "kova.channel": "matrix",
+        "kova.delivery.kind": "text",
+      },
+    );
     expect(
       telemetryState.histograms.get("kova.message.delivery.duration_ms")?.record,
     ).toHaveBeenCalledWith(

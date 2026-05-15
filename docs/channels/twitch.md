@@ -19,7 +19,7 @@ If you are on an older build or a custom install that excludes Twitch, install i
 <Tabs>
   <Tab title="npm registry">
     ```bash
-    kova plugins install @openclaw/twitch
+    kova plugins install @kovaai/twitch
     ```
   </Tab>
   <Tab title="Local checkout">
@@ -52,7 +52,7 @@ Details: [Plugins](/tools/plugin)
     Use [https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/](https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/) to convert a username to a Twitch user ID.
   </Step>
   <Step title="Configure the token">
-    - Env: `OPENCLAW_TWITCH_ACCESS_TOKEN=...` (default account only)
+    - Env: `KOVA_TWITCH_ACCESS_TOKEN=...` (default account only)
     - Or config: `channels.twitch.accessToken`
 
     If both are set, config takes precedence (env fallback is default-account only).
@@ -74,8 +74,8 @@ Minimal config:
   channels: {
     twitch: {
       enabled: true,
-      username: "openclaw", // Bot's Twitch account
-      accessToken: "oauth:abc123...", // OAuth Access Token (or use OPENCLAW_TWITCH_ACCESS_TOKEN env var)
+      username: "kova", // Bot's Twitch account
+      accessToken: "oauth:abc123...", // OAuth Access Token (or use KOVA_TWITCH_ACCESS_TOKEN env var)
       clientId: "xyz789...", // Client ID from Token Generator
       channel: "vevisk", // Which Twitch channel's chat to join (required)
       allowFrom: ["123456789"], // (recommended) Your Twitch user ID only - get it from https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/
@@ -110,7 +110,7 @@ No manual app registration needed. Tokens expire after several hours.
 <Tabs>
   <Tab title="Env var (default account only)">
     ```bash
-    OPENCLAW_TWITCH_ACCESS_TOKEN=oauth:abc123...
+    KOVA_TWITCH_ACCESS_TOKEN=oauth:abc123...
     ```
   </Tab>
   <Tab title="Config">
@@ -119,7 +119,7 @@ No manual app registration needed. Tokens expire after several hours.
       channels: {
         twitch: {
           enabled: true,
-          username: "openclaw",
+          username: "kova",
           accessToken: "oauth:abc123...",
           clientId: "xyz789...",
           channel: "vevisk",
@@ -185,13 +185,13 @@ Example (one bot account in two channels):
     twitch: {
       accounts: {
         channel1: {
-          username: "openclaw",
+          username: "kova",
           accessToken: "oauth:abc123...",
           clientId: "xyz789...",
           channel: "vevisk",
         },
         channel2: {
-          username: "openclaw",
+          username: "kova",
           accessToken: "oauth:def456...",
           clientId: "uvw012...",
           channel: "secondchannel",
@@ -357,7 +357,7 @@ Full example:
   channels: {
     twitch: {
       enabled: true,
-      username: "openclaw",
+      username: "kova",
       accessToken: "oauth:abc123...",
       clientId: "xyz789...",
       channel: "vevisk",

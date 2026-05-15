@@ -1,11 +1,8 @@
 import type { SlackActionMiddlewareArgs } from "@slack/bolt";
 import type { Block, KnownBlock } from "@slack/web-api";
-import { resolveApprovalOverGateway } from "openclaw/plugin-sdk/approval-gateway-runtime";
-import {
-  enqueueSystemEvent,
-  parseExecApprovalCommandText,
-} from "openclaw/plugin-sdk/infra-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { resolveApprovalOverGateway } from "getkova/plugin-sdk/approval-gateway-runtime";
+import { enqueueSystemEvent, parseExecApprovalCommandText } from "getkova/plugin-sdk/infra-runtime";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { isSlackApprovalAuthorizedSender } from "../../approval-auth.js";
 import { isSlackExecApprovalAuthorizedSender } from "../../exec-approvals.js";
 import { dispatchSlackPluginInteractiveHandler } from "../../interactive-dispatch.js";

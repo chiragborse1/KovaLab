@@ -9,8 +9,8 @@ import {
 } from "../../agents/model-auth.js";
 import { shouldSuppressBuiltInModel } from "../../agents/model-suppression.js";
 import { normalizeProviderId } from "../../agents/provider-id.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ModelDefinitionConfig, ModelProviderConfig } from "../../config/types.models.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import type { NormalizedModelCatalogRow } from "../../model-catalog/index.js";
 import type { ListRowModel } from "./list.model-row.js";
 import { toModelRow } from "./list.model-row.js";
@@ -30,7 +30,7 @@ type RowFilter = {
 };
 
 export type RowBuilderContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentDir: string;
   authStore: AuthProfileStore;
   availableKeys?: Set<string>;
@@ -83,7 +83,7 @@ function matchesRowFilter(filter: RowFilter, model: { provider: string; baseUrl?
 
 async function hasAuthForProvider(params: {
   provider: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   authStore: AuthProfileStore;
 }): Promise<boolean> {
   const { listProfilesForProvider } = await loadProfileListModule();
@@ -222,7 +222,7 @@ function shouldListConfiguredProviderModel(params: {
 }
 
 function findConfiguredProviderModel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   provider: string;
   modelId: string;
 }): ListRowModel | undefined {
@@ -238,7 +238,7 @@ function findConfiguredProviderModel(params: {
   });
 }
 
-function toFallbackConfiguredListModel(entry: ConfiguredEntry, cfg: OpenClawConfig): ListRowModel {
+function toFallbackConfiguredListModel(entry: ConfiguredEntry, cfg: KovaConfig): ListRowModel {
   return (
     findConfiguredProviderModel({
       cfg,

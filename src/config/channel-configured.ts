@@ -5,10 +5,10 @@ import {
   hasMeaningfulChannelConfigShallow,
   resolveChannelConfigRecord,
 } from "./channel-configured-shared.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 
 export function isChannelConfigured(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   channelId: string,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {

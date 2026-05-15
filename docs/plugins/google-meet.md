@@ -211,20 +211,20 @@ If `<gateway-host>` is a LAN IP and you are not using TLS, the node refuses the
 plaintext WebSocket unless you opt in for that trusted private network:
 
 ```bash
-OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
+KOVA_ALLOW_INSECURE_PRIVATE_WS=1 \
   kova node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
 ```
 
 Use the same environment variable when installing the node as a LaunchAgent:
 
 ```bash
-OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
+KOVA_ALLOW_INSECURE_PRIVATE_WS=1 \
   kova node install --host <gateway-lan-ip> --port 18789 --display-name parallels-macos --force
 kova node restart
 ```
 
-`OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1` is process environment, not an
-`openclaw.json` setting. `kova node install` stores it in the LaunchAgent
+`KOVA_ALLOW_INSECURE_PRIVATE_WS=1` is process environment, not an
+`kova.json` setting. `kova node install` stores it in the LaunchAgent
 environment when it is present on the install command.
 
 Approve the node from the Gateway host:
@@ -403,7 +403,7 @@ Enable the Voice Call plugin on the Gateway host, not on the Chrome node:
 ```
 
 Provide Twilio credentials through environment or config. Environment keeps
-secrets out of `openclaw.json`:
+secrets out of `kova.json`:
 
 ```bash
 export TWILIO_ACCOUNT_SID=AC...
@@ -450,7 +450,7 @@ space resolution, or Meet Media API preflight checks.
 Google Meet API access uses user OAuth: create a Google Cloud OAuth client,
 request the required scopes, authorize a Google account, then store the
 resulting refresh token in the Google Meet plugin config or provide the
-`OPENCLAW_GOOGLE_MEET_*` environment variables.
+`KOVA_GOOGLE_MEET_*` environment variables.
 
 OAuth does not replace the Chrome join path. Chrome and Chrome-node transports
 still join through a signed-in Chrome profile, BlackHole/SoX, and a connected
@@ -504,16 +504,16 @@ copy/paste flow with `--manual`.
 Examples:
 
 ```bash
-OPENCLAW_GOOGLE_MEET_CLIENT_ID="your-client-id" \
-OPENCLAW_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
+KOVA_GOOGLE_MEET_CLIENT_ID="your-client-id" \
+KOVA_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
 kova googlemeet auth login --json
 ```
 
 Use manual mode when the browser cannot reach the local callback:
 
 ```bash
-OPENCLAW_GOOGLE_MEET_CLIENT_ID="your-client-id" \
-OPENCLAW_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
+KOVA_GOOGLE_MEET_CLIENT_ID="your-client-id" \
+KOVA_GOOGLE_MEET_CLIENT_SECRET="your-client-secret" \
 kova googlemeet auth login --json --manual
 ```
 
@@ -617,14 +617,14 @@ Kova config.
 
 These environment variables are accepted as fallbacks:
 
-- `OPENCLAW_GOOGLE_MEET_CLIENT_ID` or `GOOGLE_MEET_CLIENT_ID`
-- `OPENCLAW_GOOGLE_MEET_CLIENT_SECRET` or `GOOGLE_MEET_CLIENT_SECRET`
-- `OPENCLAW_GOOGLE_MEET_REFRESH_TOKEN` or `GOOGLE_MEET_REFRESH_TOKEN`
-- `OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN` or `GOOGLE_MEET_ACCESS_TOKEN`
-- `OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT` or
+- `KOVA_GOOGLE_MEET_CLIENT_ID` or `GOOGLE_MEET_CLIENT_ID`
+- `KOVA_GOOGLE_MEET_CLIENT_SECRET` or `GOOGLE_MEET_CLIENT_SECRET`
+- `KOVA_GOOGLE_MEET_REFRESH_TOKEN` or `GOOGLE_MEET_REFRESH_TOKEN`
+- `KOVA_GOOGLE_MEET_ACCESS_TOKEN` or `GOOGLE_MEET_ACCESS_TOKEN`
+- `KOVA_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT` or
   `GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT`
-- `OPENCLAW_GOOGLE_MEET_DEFAULT_MEETING` or `GOOGLE_MEET_DEFAULT_MEETING`
-- `OPENCLAW_GOOGLE_MEET_PREVIEW_ACK` or `GOOGLE_MEET_PREVIEW_ACK`
+- `KOVA_GOOGLE_MEET_DEFAULT_MEETING` or `GOOGLE_MEET_DEFAULT_MEETING`
+- `KOVA_GOOGLE_MEET_PREVIEW_ACK` or `GOOGLE_MEET_PREVIEW_ACK`
 
 Resolve a Meet URL, code, or `spaces/{id}` through `spaces.get`:
 
@@ -734,24 +734,24 @@ Set `"dryRun": true` to return only the export manifest and skip file writes.
 Run the guarded live smoke against a real retained meeting:
 
 ```bash
-OPENCLAW_LIVE_TEST=1 \
-OPENCLAW_GOOGLE_MEET_LIVE_MEETING=https://meet.google.com/abc-defg-hij \
+KOVA_LIVE_TEST=1 \
+KOVA_GOOGLE_MEET_LIVE_MEETING=https://meet.google.com/abc-defg-hij \
 pnpm test:live -- extensions/google-meet/google-meet.live.test.ts
 ```
 
 Live smoke environment:
 
-- `OPENCLAW_LIVE_TEST=1` enables guarded live tests.
-- `OPENCLAW_GOOGLE_MEET_LIVE_MEETING` points at a retained Meet URL, code, or
+- `KOVA_LIVE_TEST=1` enables guarded live tests.
+- `KOVA_GOOGLE_MEET_LIVE_MEETING` points at a retained Meet URL, code, or
   `spaces/{id}`.
-- `OPENCLAW_GOOGLE_MEET_CLIENT_ID` or `GOOGLE_MEET_CLIENT_ID` provides the OAuth
+- `KOVA_GOOGLE_MEET_CLIENT_ID` or `GOOGLE_MEET_CLIENT_ID` provides the OAuth
   client id.
-- `OPENCLAW_GOOGLE_MEET_REFRESH_TOKEN` or `GOOGLE_MEET_REFRESH_TOKEN` provides
+- `KOVA_GOOGLE_MEET_REFRESH_TOKEN` or `GOOGLE_MEET_REFRESH_TOKEN` provides
   the refresh token.
-- Optional: `OPENCLAW_GOOGLE_MEET_CLIENT_SECRET`,
-  `OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN`, and
-  `OPENCLAW_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT` use the same fallback names
-  without the `OPENCLAW_` prefix.
+- Optional: `KOVA_GOOGLE_MEET_CLIENT_SECRET`,
+  `KOVA_GOOGLE_MEET_ACCESS_TOKEN`, and
+  `KOVA_GOOGLE_MEET_ACCESS_TOKEN_EXPIRES_AT` use the same fallback names
+  without the `KOVA_` prefix.
 
 The base artifact/attendance live smoke needs
 `https://www.googleapis.com/auth/meetings.space.readonly` and
@@ -899,11 +899,11 @@ Defaults:
 - `realtime.provider: "openai"`
 - `realtime.toolPolicy: "safe-read-only"`
 - `realtime.instructions`: brief spoken replies, with
-  `openclaw_agent_consult` for deeper answers
+  `kova_agent_consult` for deeper answers
 - `realtime.introMessage`: short spoken readiness check when the realtime bridge
   connects; set it to `""` to join silently
 - `realtime.agentId`: optional Kova agent id for
-  `openclaw_agent_consult`; defaults to `main`
+  `kova_agent_consult`; defaults to `main`
 
 Optional overrides:
 
@@ -913,7 +913,7 @@ Optional overrides:
     meeting: "https://meet.google.com/abc-defg-hij",
   },
   browser: {
-    defaultProfile: "openclaw",
+    defaultProfile: "kova",
   },
   chrome: {
     guestName: "Kova Agent",
@@ -972,7 +972,7 @@ Agents can use the `google_meet` tool:
 
 Use `transport: "chrome"` when Chrome runs on the Gateway host. Use
 `transport: "chrome-node"` when Chrome runs on a paired node such as a Parallels
-VM. In both cases the realtime model and `openclaw_agent_consult` run on the
+VM. In both cases the realtime model and `kova_agent_consult` run on the
 Gateway host, so model credentials stay there.
 
 Use `action: "status"` to list active sessions or inspect a session ID. Use
@@ -1004,7 +1004,7 @@ report it. Use `action: "leave"` to mark a session ended.
 Chrome realtime mode is optimized for a live voice loop. The realtime voice
 provider hears the meeting audio and speaks through the configured audio bridge.
 When the realtime model needs deeper reasoning, current information, or normal
-Kova tools, it can call `openclaw_agent_consult`.
+Kova tools, it can call `kova_agent_consult`.
 
 The consult tool runs the regular Kova agent behind the scenes with recent
 meeting transcript context and returns a concise spoken answer to the realtime
@@ -1119,7 +1119,7 @@ On the node host, run:
 ```bash
 kova plugins enable google-meet
 kova plugins enable browser
-OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
+KOVA_ALLOW_INSECURE_PRIVATE_WS=1 \
   kova node run --host <gateway-lan-ip> --port 18789 --display-name parallels-macos
 ```
 
@@ -1149,7 +1149,7 @@ If `googlemeet setup` fails `chrome-node-connected` or the Gateway log reports
 token. For a LAN Gateway this usually means:
 
 ```bash
-OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1 \
+KOVA_ALLOW_INSECURE_PRIVATE_WS=1 \
   kova node install \
   --host <gateway-lan-ip> \
   --port 18789 \
@@ -1192,7 +1192,7 @@ when OAuth credentials are configured. Without OAuth credentials it falls back
 to the pinned Chrome node browser. Confirm:
 
 - For API creation: `oauth.clientId` and `oauth.refreshToken` are configured,
-  or matching `OPENCLAW_GOOGLE_MEET_*` environment variables are present.
+  or matching `KOVA_GOOGLE_MEET_*` environment variables are present.
 - For API creation: the refresh token was minted after create support was
   added. Older tokens may be missing the `meetings.space.created` scope; rerun
   `kova googlemeet auth login --json` and update plugin config.

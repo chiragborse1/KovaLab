@@ -5,7 +5,7 @@ export type JsonObject = Record<string, unknown>;
 
 export type ExternalPluginCompatibility = {
   pluginApiRange?: string;
-  builtWithOpenClawVersion?: string;
+  builtWithKovaVersion?: string;
   pluginSdkVersion?: string;
   minGatewayVersion?: string;
 };
@@ -21,23 +21,23 @@ export type ExternalCodePluginValidationResult = {
 };
 
 export const EXTERNAL_CODE_PLUGIN_REQUIRED_FIELD_PATHS = [
-  "openclaw.compat.pluginApi",
-  "openclaw.build.openclawVersion",
+  "kova.compat.pluginApi",
+  "kova.build.kovaVersion",
 ] as const;
 
-function readOpenClawBlock(packageJson: unknown) {
+function readKovaBlock(packageJson: unknown) {
   const root = isRecord(packageJson) ? packageJson : undefined;
-  const openclaw = isRecord(root?.openclaw) ? root.openclaw : undefined;
-  const compat = isRecord(openclaw?.compat) ? openclaw.compat : undefined;
-  const build = isRecord(openclaw?.build) ? openclaw.build : undefined;
-  const install = isRecord(openclaw?.install) ? openclaw.install : undefined;
-  return { root, openclaw, compat, build, install };
+  const kova = isRecord(root?.kova) ? root.kova : undefined;
+  const compat = isRecord(kova?.compat) ? kova.compat : undefined;
+  const build = isRecord(kova?.build) ? kova.build : undefined;
+  const install = isRecord(kova?.install) ? kova.install : undefined;
+  return { root, kova, compat, build, install };
 }
 
 export function normalizeExternalPluginCompatibility(
   packageJson: unknown,
 ): ExternalPluginCompatibility | undefined {
-  const { root, compat, build, install } = readOpenClawBlock(packageJson);
+  const { root, compat, build, install } = readKovaBlock(packageJson);
   const version = normalizeOptionalString(root?.version);
   const minHostVersion = normalizeOptionalString(install?.minHostVersion);
   const compatibility: ExternalPluginCompatibility = {};
@@ -52,9 +52,9 @@ export function normalizeExternalPluginCompatibility(
     compatibility.minGatewayVersion = minGatewayVersion;
   }
 
-  const builtWithOpenClawVersion = normalizeOptionalString(build?.openclawVersion) ?? version;
-  if (builtWithOpenClawVersion) {
-    compatibility.builtWithOpenClawVersion = builtWithOpenClawVersion;
+  const builtWithKovaVersion = normalizeOptionalString(build?.kovaVersion) ?? version;
+  if (builtWithKovaVersion) {
+    compatibility.builtWithKovaVersion = builtWithKovaVersion;
   }
 
   const pluginSdkVersion = normalizeOptionalString(build?.pluginSdkVersion);
@@ -66,13 +66,13 @@ export function normalizeExternalPluginCompatibility(
 }
 
 export function listMissingExternalCodePluginFieldPaths(packageJson: unknown): string[] {
-  const { compat, build } = readOpenClawBlock(packageJson);
+  const { compat, build } = readKovaBlock(packageJson);
   const missing: string[] = [];
   if (!normalizeOptionalString(compat?.pluginApi)) {
-    missing.push("openclaw.compat.pluginApi");
+    missing.push("kova.compat.pluginApi");
   }
-  if (!normalizeOptionalString(build?.openclawVersion)) {
-    missing.push("openclaw.build.openclawVersion");
+  if (!normalizeOptionalString(build?.kovaVersion)) {
+    missing.push("kova.build.kovaVersion");
   }
   return missing;
 }
@@ -82,7 +82,7 @@ export function validateExternalCodePluginPackageJson(
 ): ExternalCodePluginValidationResult {
   const issues = listMissingExternalCodePluginFieldPaths(packageJson).map((fieldPath) => ({
     fieldPath,
-    message: `${fieldPath} is required for external code plugins published to ClawHub.`,
+    message: `${fieldPath} is required for external code plugins published to KovaHub.`,
   }));
   return {
     compatibility: normalizeExternalPluginCompatibility(packageJson),

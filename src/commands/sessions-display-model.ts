@@ -1,6 +1,6 @@
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 
 type SessionDisplayModelRow = {
   key: string;
@@ -30,7 +30,7 @@ function parseModelRef(raw: string, defaultProvider: string): { provider: string
 }
 
 function resolveAgentPrimaryModel(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   agentId: string | undefined,
 ): string | undefined {
   if (!agentId) {
@@ -60,7 +60,7 @@ function normalizeStoredOverrideModel(params: {
 }
 
 function resolveDefaultModelRef(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   agentId?: string,
 ): { provider: string; model: string } {
   const primary =
@@ -71,7 +71,7 @@ function resolveDefaultModelRef(
 }
 
 export function resolveSessionDisplayDefaults(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   agentId?: string,
 ): SessionDisplayDefaults {
   return {
@@ -79,10 +79,7 @@ export function resolveSessionDisplayDefaults(
   };
 }
 
-export function resolveSessionDisplayModel(
-  cfg: OpenClawConfig,
-  row: SessionDisplayModelRow,
-): string {
+export function resolveSessionDisplayModel(cfg: KovaConfig, row: SessionDisplayModelRow): string {
   const agentId = row.key.startsWith("agent:") ? row.key.split(":")[1] : undefined;
   const defaultRef = resolveDefaultModelRef(cfg, agentId);
   const normalizedOverride = normalizeStoredOverrideModel({

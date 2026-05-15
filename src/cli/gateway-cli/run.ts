@@ -21,7 +21,7 @@ import {
   formatFutureConfigActionBlock,
   resolveFutureConfigActionBlock,
 } from "../../config/future-version-guard.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { hasConfiguredSecretInput } from "../../config/types.secrets.js";
 import { resolveGatewayAuth } from "../../gateway/auth.js";
 import {
@@ -133,7 +133,7 @@ const GATEWAY_TAILSCALE_MODES: readonly GatewayTailscaleMode[] = ["off", "serve"
 
 function createGatewayCliStartupTrace() {
   const enabled = isTruthyEnvValue(
-    process.env.KOVA_GATEWAY_STARTUP_TRACE ?? process.env.OPENCLAW_GATEWAY_STARTUP_TRACE,
+    process.env.KOVA_GATEWAY_STARTUP_TRACE ?? process.env.KOVA_GATEWAY_STARTUP_TRACE,
   );
   const started = performance.now();
   let last = started;
@@ -209,7 +209,7 @@ function formatModeErrorList(modes: readonly string[]): string {
   return `${quoted.slice(0, -1).join(", ")}, or ${quoted[quoted.length - 1]}`;
 }
 
-function maybeLogPendingControlUiBuild(cfg: OpenClawConfig): void {
+function maybeLogPendingControlUiBuild(cfg: KovaConfig): void {
   if (cfg.gateway?.controlUi?.enabled === false) {
     return;
   }
@@ -262,7 +262,7 @@ function getGatewayStartGuardErrors(params: {
 
 async function readGatewayStartupConfig(params: {
   startupTrace: ReturnType<typeof createGatewayCliStartupTrace>;
-}): Promise<{ cfg: OpenClawConfig; snapshot: ConfigFileSnapshot | null }> {
+}): Promise<{ cfg: KovaConfig; snapshot: ConfigFileSnapshot | null }> {
   let cfg = await params.startupTrace.measure("cli.config-load", () => readBestEffortConfig());
   let snapshot: ConfigFileSnapshot | null = await params.startupTrace.measure(
     "cli.config-snapshot",
@@ -367,7 +367,7 @@ function maybeWriteGatewayStartupFailureBundle(err: unknown): void {
 
 async function runGatewayCommand(opts: GatewayRunOpts) {
   const isDevProfile =
-    normalizeOptionalLowercaseString(process.env.KOVA_PROFILE ?? process.env.OPENCLAW_PROFILE) ===
+    normalizeOptionalLowercaseString(process.env.KOVA_PROFILE ?? process.env.KOVA_PROFILE) ===
     "dev";
   const devMode = Boolean(opts.dev) || isDevProfile;
   if (opts.reset && !devMode) {
@@ -379,7 +379,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   setVerbose(Boolean(opts.verbose));
   if (opts.cliBackendLogs || opts.claudeCliLogs) {
     setConsoleSubsystemFilter(["agent/cli-backend"]);
-    process.env.OPENCLAW_CLI_BACKEND_LOG_OUTPUT = "1";
+    process.env.KOVA_CLI_BACKEND_LOG_OUTPUT = "1";
   }
   const wsLogRaw = (opts.compact ? "compact" : opts.wsLog) as string | undefined;
   const wsLogStyle: GatewayWsLogStyle =
@@ -396,11 +396,11 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   setGatewayWsLogStyle(wsLogStyle);
 
   if (opts.rawStream) {
-    process.env.OPENCLAW_RAW_STREAM = "1";
+    process.env.KOVA_RAW_STREAM = "1";
   }
   const rawStreamPath = toOptionString(opts.rawStreamPath);
   if (rawStreamPath) {
-    process.env.OPENCLAW_RAW_STREAM_PATH = rawStreamPath;
+    process.env.KOVA_RAW_STREAM_PATH = rawStreamPath;
   }
 
   const startupTrace = createGatewayCliStartupTrace();
@@ -442,7 +442,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   });
   if (
     futureStartupBlock &&
-    (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.OPENCLAW_SERVICE_MARKER?.trim())
+    (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.KOVA_SERVICE_MARKER?.trim())
   ) {
     defaultRuntime.error(formatFutureConfigActionBlock(futureStartupBlock));
     defaultRuntime.exit(78);
@@ -472,7 +472,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     return;
   }
   const bindExplicitRaw = bindExplicitRawStr as GatewayBindMode | undefined;
-  if (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.OPENCLAW_SERVICE_MARKER?.trim()) {
+  if (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.KOVA_SERVICE_MARKER?.trim()) {
     const stale = cleanStaleGatewayProcessesSync(port);
     if (stale.length > 0) {
       gatewayLog.info(

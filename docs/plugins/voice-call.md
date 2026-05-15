@@ -29,7 +29,7 @@ the Gateway, then restart the Gateway to load it.
     <Tabs>
       <Tab title="From npm (recommended)">
         ```bash
-        kova plugins install @openclaw/voice-call
+        kova plugins install @kovaai/voice-call
         ```
       </Tab>
       <Tab title="From a local folder (dev)">
@@ -203,7 +203,7 @@ Current runtime behaviour:
 - `realtime.provider` is optional. If unset, Voice Call uses the first registered realtime voice provider.
 - Bundled realtime voice providers: Google Gemini Live (`google`) and OpenAI (`openai`), registered by their provider plugins.
 - Provider-owned raw config lives under `realtime.providers.<providerId>`.
-- Voice Call exposes the shared `openclaw_agent_consult` realtime tool by default. The realtime model can call it when the caller asks for deeper reasoning, current information, or normal Kova tools.
+- Voice Call exposes the shared `kova_agent_consult` realtime tool by default. The realtime model can call it when the caller asks for deeper reasoning, current information, or normal Kova tools.
 - If `realtime.provider` points at an unregistered provider, or no realtime voice provider is registered at all, Voice Call logs a warning and skips realtime media instead of failing the whole plugin.
 - Consult session keys reuse the existing voice session when available, then fall back to the caller/callee phone number so follow-up consult calls keep context during the call.
 
@@ -237,7 +237,7 @@ Current runtime behaviour:
               realtime: {
                 enabled: true,
                 provider: "google",
-                instructions: "Speak briefly. Call openclaw_agent_consult before using deeper tools.",
+                instructions: "Speak briefly. Call kova_agent_consult before using deeper tools.",
                 toolPolicy: "safe-read-only",
                 providers: {
                   google: {

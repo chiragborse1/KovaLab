@@ -70,13 +70,13 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Agent invocation reflects the installed skill instructions.
   - Per-agent allowlist behavior is respected.
 - Docs: `docs/tools/skills.md`, `docs/gateway/protocol.md`, `docs/gateway/configuration.md`
-- Code: `.agents/skills/openclaw-qa-testing/SKILL.md`, `docs/gateway/protocol.md`
+- Code: `.agents/skills/kova-qa-testing/SKILL.md`, `docs/gateway/protocol.md`
 
 ## 6. Skill install and hot availability
 
 - Goal: verify a newly installed skill becomes usable without a broken intermediate state.
 - Flow:
-  - Install a ClawHub or gateway-managed skill.
+  - Install a KovaHub or gateway-managed skill.
   - Re-check skill inventory.
   - Ask the agent to perform the skill-backed task.
 - Pass:
@@ -98,7 +98,7 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Generation succeeds with the configured provider/model.
   - Output is attached and the agent summarizes what it created.
 - Docs: `docs/tools/image-generation.md`, `docs/providers/openai.md`
-- Code: `src/agents/openclaw-tools.image-generation.test.ts`, `src/image-generation/runtime.ts`
+- Code: `src/agents/kova-tools.image-generation.test.ts`, `src/image-generation/runtime.ts`
 
 ## 8. Config patch skill disable
 

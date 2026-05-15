@@ -16,7 +16,7 @@ JavaScript when available:
 
 ```json
 {
-  "openclaw": {
+  "kova": {
     "extensions": ["./src/index.ts"],
     "runtimeExtensions": ["./dist/index.js"],
     "setupEntry": "./src/setup-entry.ts",
@@ -43,13 +43,13 @@ and inferred built JavaScript peers do not make an escaping `extensions` or
 
 ## `definePluginEntry`
 
-**Import:** `openclaw/plugin-sdk/plugin-entry`
+**Import:** `getkova/plugin-sdk/plugin-entry`
 
 For provider plugins, tool plugins, hook plugins, and anything that is **not**
 a messaging channel.
 
 ```typescript
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
 
 export default definePluginEntry({
   id: "my-plugin",
@@ -66,16 +66,16 @@ export default definePluginEntry({
 });
 ```
 
-| Field          | Type                                                             | Required | Default             |
-| -------------- | ---------------------------------------------------------------- | -------- | ------------------- |
-| `id`           | `string`                                                         | Yes      | —                   |
-| `name`         | `string`                                                         | Yes      | —                   |
-| `description`  | `string`                                                         | Yes      | —                   |
-| `kind`         | `string`                                                         | No       | —                   |
-| `configSchema` | `OpenClawPluginConfigSchema \| () => OpenClawPluginConfigSchema` | No       | Empty object schema |
-| `register`     | `(api: OpenClawPluginApi) => void`                               | Yes      | —                   |
+| Field          | Type                                                     | Required | Default             |
+| -------------- | -------------------------------------------------------- | -------- | ------------------- |
+| `id`           | `string`                                                 | Yes      | —                   |
+| `name`         | `string`                                                 | Yes      | —                   |
+| `description`  | `string`                                                 | Yes      | —                   |
+| `kind`         | `string`                                                 | No       | —                   |
+| `configSchema` | `KovaPluginConfigSchema \| () => KovaPluginConfigSchema` | No       | Empty object schema |
+| `register`     | `(api: KovaPluginApi) => void`                           | Yes      | —                   |
 
-- `id` must match your `openclaw.plugin.json` manifest.
+- `id` must match your `kova.plugin.json` manifest.
 - `kind` is for exclusive slots: `"memory"` or `"context-engine"`.
 - `configSchema` can be a function for lazy evaluation.
 - Kova resolves and memoizes that schema on first access, so expensive schema
@@ -83,14 +83,14 @@ export default definePluginEntry({
 
 ## `defineChannelPluginEntry`
 
-**Import:** `openclaw/plugin-sdk/channel-core`
+**Import:** `getkova/plugin-sdk/channel-core`
 
 Wraps `definePluginEntry` with channel-specific wiring. Automatically calls
 `api.registerChannel({ plugin })`, exposes an optional root-help CLI metadata
 seam, and gates `registerFull` on registration mode.
 
 ```typescript
-import { defineChannelPluginEntry } from "openclaw/plugin-sdk/channel-core";
+import { defineChannelPluginEntry } from "getkova/plugin-sdk/channel-core";
 
 export default defineChannelPluginEntry({
   id: "my-channel",
@@ -107,16 +107,16 @@ export default defineChannelPluginEntry({
 });
 ```
 
-| Field                 | Type                                                             | Required | Default             |
-| --------------------- | ---------------------------------------------------------------- | -------- | ------------------- |
-| `id`                  | `string`                                                         | Yes      | —                   |
-| `name`                | `string`                                                         | Yes      | —                   |
-| `description`         | `string`                                                         | Yes      | —                   |
-| `plugin`              | `ChannelPlugin`                                                  | Yes      | —                   |
-| `configSchema`        | `OpenClawPluginConfigSchema \| () => OpenClawPluginConfigSchema` | No       | Empty object schema |
-| `setRuntime`          | `(runtime: PluginRuntime) => void`                               | No       | —                   |
-| `registerCliMetadata` | `(api: OpenClawPluginApi) => void`                               | No       | —                   |
-| `registerFull`        | `(api: OpenClawPluginApi) => void`                               | No       | —                   |
+| Field                 | Type                                                     | Required | Default             |
+| --------------------- | -------------------------------------------------------- | -------- | ------------------- |
+| `id`                  | `string`                                                 | Yes      | —                   |
+| `name`                | `string`                                                 | Yes      | —                   |
+| `description`         | `string`                                                 | Yes      | —                   |
+| `plugin`              | `ChannelPlugin`                                          | Yes      | —                   |
+| `configSchema`        | `KovaPluginConfigSchema \| () => KovaPluginConfigSchema` | No       | Empty object schema |
+| `setRuntime`          | `(runtime: PluginRuntime) => void`                       | No       | —                   |
+| `registerCliMetadata` | `(api: KovaPluginApi) => void`                           | No       | —                   |
+| `registerFull`        | `(api: KovaPluginApi) => void`                           | No       | —                   |
 
 - `setRuntime` is called during registration so you can store the runtime reference
   (typically via `createPluginRuntimeStore`). It is skipped during CLI metadata
@@ -146,13 +146,13 @@ export default defineChannelPluginEntry({
 
 ## `defineSetupPluginEntry`
 
-**Import:** `openclaw/plugin-sdk/channel-core`
+**Import:** `getkova/plugin-sdk/channel-core`
 
 For the lightweight `setup-entry.ts` file. Returns just `{ plugin }` with no
 runtime or CLI wiring.
 
 ```typescript
-import { defineSetupPluginEntry } from "openclaw/plugin-sdk/channel-core";
+import { defineSetupPluginEntry } from "getkova/plugin-sdk/channel-core";
 
 export default defineSetupPluginEntry(myChannelPlugin);
 ```
@@ -164,23 +164,23 @@ unconfigured, or when deferred loading is enabled. See
 In practice, pair `defineSetupPluginEntry(...)` with the narrow setup helper
 families:
 
-- `openclaw/plugin-sdk/setup-runtime` for runtime-safe setup helpers such as
+- `getkova/plugin-sdk/setup-runtime` for runtime-safe setup helpers such as
   import-safe setup patch adapters, lookup-note output,
   `promptResolvedAllowFrom`, `splitSetupEntries`, and delegated setup proxies
-- `openclaw/plugin-sdk/channel-setup` for optional-install setup surfaces
-- `openclaw/plugin-sdk/setup-tools` for setup/install CLI/archive/docs helpers
+- `getkova/plugin-sdk/channel-setup` for optional-install setup surfaces
+- `getkova/plugin-sdk/setup-tools` for setup/install CLI/archive/docs helpers
 
 Keep heavy SDKs, CLI registration, and long-lived runtime services in the full
 entry.
 
 Bundled workspace channels that split setup and runtime surfaces can use
 `defineBundledChannelSetupEntry(...)` from
-`openclaw/plugin-sdk/channel-entry-contract` instead. That contract lets the
+`getkova/plugin-sdk/channel-entry-contract` instead. That contract lets the
 setup entry keep setup-safe plugin/secrets exports while still exposing a
 runtime setter:
 
 ```typescript
-import { defineBundledChannelSetupEntry } from "openclaw/plugin-sdk/channel-entry-contract";
+import { defineBundledChannelSetupEntry } from "getkova/plugin-sdk/channel-entry-contract";
 
 export default defineBundledChannelSetupEntry({
   importMetaUrl: import.meta.url,

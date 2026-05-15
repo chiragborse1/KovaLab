@@ -225,7 +225,7 @@ describe("exec approvals safe bins", () => {
     },
     {
       name: "blocks POSIX parameter expansion in safe-bin value tokens",
-      argv: ["head", "-c${IFS}16${IFS}${OPENCLAW_CONFIG_PATH}"],
+      argv: ["head", "-c${IFS}16${IFS}${KOVA_CONFIG_PATH}"],
       resolvedPath: "/usr/bin/head",
       expected: false,
       safeBins: ["head"],

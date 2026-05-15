@@ -12867,7 +12867,7 @@ export const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA = [
       },
       execApprovals: {
         label: "Slack Exec Approvals",
-        help: "Slack-native exec approval routing and approver authorization. When unset, OpenClaw auto-enables DM-first native approvals if approvers can be resolved for this workspace account.",
+        help: "Slack-native exec approval routing and approver authorization. When unset, Kova auto-enables DM-first native approvals if approvers can be resolved for this workspace account.",
       },
       "execApprovals.enabled": {
         label: "Slack Exec Approvals Enabled",
@@ -15176,7 +15176,7 @@ export const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA = [
       },
       execApprovals: {
         label: "Telegram Exec Approvals",
-        help: "Telegram-native exec approval routing and approver authorization. When unset, OpenClaw auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.",
+        help: "Telegram-native exec approval routing and approver authorization. When unset, Kova auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.",
       },
       "execApprovals.enabled": {
         label: "Telegram Exec Approvals Enabled",

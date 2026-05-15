@@ -1,13 +1,13 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import type { CliDeps } from "../cli/deps.types.js";
 import type { GatewayTailscaleMode } from "../config/types.gateway.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { hasConfiguredInternalHooks } from "../hooks/configured.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
 import type { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import type { PluginHookGatewayCronService } from "../plugins/hook-types.js";
-import type { loadOpenClawPlugins } from "../plugins/loader.js";
+import type { loadKovaPlugins } from "../plugins/loader.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import {
   GATEWAY_EVENT_UPDATE_AVAILABLE,
@@ -24,11 +24,11 @@ const ACP_BACKEND_READY_POLL_MS = 50;
 const PRIMARY_MODEL_PREWARM_TIMEOUT_MS = 5_000;
 const SKIP_STARTUP_MODEL_PREWARM_ENVS = [
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
-  "OPENCLAW_SKIP_STARTUP_MODEL_PREWARM",
+  "KOVA_SKIP_STARTUP_MODEL_PREWARM",
 ] as const;
 const SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS = [
   "KOVA_SKIP_STARTUP_MODEL_CATALOG_PREWARM",
-  "OPENCLAW_SKIP_STARTUP_MODEL_CATALOG_PREWARM",
+  "KOVA_SKIP_STARTUP_MODEL_CATALOG_PREWARM",
 ] as const;
 
 type Awaitable<T> = T | Promise<T>;
@@ -67,7 +67,7 @@ function shouldSkipStartupModelCatalogPrewarm(env: NodeJS.ProcessEnv = process.e
   return hasTruthyEnv(SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS, env);
 }
 
-function shouldStartGatewayMemoryBackend(cfg: OpenClawConfig): boolean {
+function shouldStartGatewayMemoryBackend(cfg: KovaConfig): boolean {
   return cfg.memory?.backend === "qmd";
 }
 
@@ -109,7 +109,7 @@ function schedulePostReadySidecarTask(params: {
 function scheduleModelCatalogPrewarm(params: {
   startupTrace?: GatewayStartupTrace;
   log: { warn: (msg: string) => void };
-  getConfig: () => OpenClawConfig;
+  getConfig: () => KovaConfig;
 }): void {
   if (shouldSkipStartupModelCatalogPrewarm()) {
     return;
@@ -126,7 +126,7 @@ function scheduleModelCatalogPrewarm(params: {
 }
 
 function isConfiguredCliBackendPrimary(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   explicitPrimary: string;
   normalizeProviderId: (provider: string) => string;
 }): boolean {
@@ -184,7 +184,7 @@ async function waitForAcpRuntimeBackendReady(params: {
 }
 
 async function prewarmConfiguredPrimaryModel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   log: { warn: (msg: string) => void };
 }): Promise<void> {
   const { resolveAgentModelPrimaryValue } = await import("../config/model-input.js");
@@ -206,11 +206,11 @@ async function prewarmConfiguredPrimaryModel(params: {
     return;
   }
   const [
-    { resolveOpenClawAgentDir },
+    { resolveKovaAgentDir },
     { DEFAULT_MODEL, DEFAULT_PROVIDER },
     { selectAgentHarness },
     { isCliProvider, resolveConfiguredModelRef },
-    { ensureOpenClawModelsJson },
+    { ensureKovaModelsJson },
     { resolveModel, resolveModelAsync },
     { resolveEmbeddedAgentRuntime },
   ] = await Promise.all([
@@ -237,9 +237,9 @@ async function prewarmConfiguredPrimaryModel(params: {
   if (selectAgentHarness({ provider, modelId: model, config: params.cfg }).id !== "pi") {
     return;
   }
-  const agentDir = resolveOpenClawAgentDir();
+  const agentDir = resolveKovaAgentDir();
   try {
-    await ensureOpenClawModelsJson(params.cfg, agentDir);
+    await ensureKovaModelsJson(params.cfg, agentDir);
     const resolved = resolveModel(provider, model, agentDir, params.cfg, {
       skipProviderRuntimeHooks: true,
     });
@@ -258,7 +258,7 @@ async function prewarmConfiguredPrimaryModel(params: {
 
 async function prewarmConfiguredPrimaryModelWithTimeout(
   params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     log: { warn: (msg: string) => void };
     timeoutMs?: number;
   },
@@ -286,7 +286,7 @@ async function prewarmConfiguredPrimaryModelWithTimeout(
 
 function schedulePrimaryModelPrewarm(
   params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     log: { warn: (msg: string) => void };
     startupTrace?: GatewayStartupTrace;
   },
@@ -309,8 +309,8 @@ function schedulePrimaryModelPrewarm(
 }
 
 export async function startGatewaySidecars(params: {
-  cfg: OpenClawConfig;
-  pluginRegistry: ReturnType<typeof loadOpenClawPlugins>;
+  cfg: KovaConfig;
+  pluginRegistry: ReturnType<typeof loadKovaPlugins>;
   defaultWorkspaceDir: string;
   deps: CliDeps;
   startChannels: () => Promise<void>;
@@ -400,8 +400,8 @@ export async function startGatewaySidecars(params: {
   });
 
   const skipChannels =
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_CHANNELS) ||
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_PROVIDERS);
+    isTruthyEnvValue(process.env.KOVA_SKIP_CHANNELS) ||
+    isTruthyEnvValue(process.env.KOVA_SKIP_PROVIDERS);
   await measureStartup(params.startupTrace, "sidecars.channels", async () => {
     if (!skipChannels) {
       try {
@@ -421,7 +421,7 @@ export async function startGatewaySidecars(params: {
       }
     } else {
       params.logChannels.info(
-        "skipping channel start (OPENCLAW_SKIP_CHANNELS=1 or OPENCLAW_SKIP_PROVIDERS=1)",
+        "skipping channel start (KOVA_SKIP_CHANNELS=1 or KOVA_SKIP_PROVIDERS=1)",
       );
     }
   });
@@ -610,7 +610,7 @@ const defaultGatewayPostAttachRuntimeDeps: GatewayPostAttachRuntimeDeps = {
 export async function startGatewayPostAttachRuntime(
   params: {
     minimalTestGateway: boolean;
-    cfgAtStart: OpenClawConfig;
+    cfgAtStart: KovaConfig;
     bindHost: string;
     bindHosts: string[];
     port: number;
@@ -632,8 +632,8 @@ export async function startGatewayPostAttachRuntime(
       error: (msg: string) => void;
       debug?: (msg: string) => void;
     };
-    gatewayPluginConfigAtStart: OpenClawConfig;
-    pluginRegistry: ReturnType<typeof loadOpenClawPlugins>;
+    gatewayPluginConfigAtStart: KovaConfig;
+    pluginRegistry: ReturnType<typeof loadKovaPlugins>;
     defaultWorkspaceDir: string;
     deps: CliDeps;
     startChannels: () => Promise<void>;

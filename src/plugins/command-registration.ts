@@ -11,7 +11,7 @@ import {
   pluginCommands,
   type RegisteredPluginCommand,
 } from "./command-registry-state.js";
-import type { OpenClawPluginCommandDefinition } from "./types.js";
+import type { KovaPluginCommandDefinition } from "./types.js";
 
 /**
  * Reserved command names that plugins cannot override (built-in commands).
@@ -88,7 +88,7 @@ export function validateCommandName(name: string): string | null {
  * Shared by both the global registration path and snapshot (non-activating) loads.
  */
 export function validatePluginCommandDefinition(
-  command: OpenClawPluginCommandDefinition,
+  command: KovaPluginCommandDefinition,
 ): string | null {
   if (typeof command.handler !== "function") {
     return "Command handler must be a function";
@@ -137,7 +137,7 @@ export function validatePluginCommandDefinition(
   return null;
 }
 
-export function listPluginInvocationKeys(command: OpenClawPluginCommandDefinition): string[] {
+export function listPluginInvocationKeys(command: KovaPluginCommandDefinition): string[] {
   const keys = new Set<string>();
   const push = (value: string | undefined) => {
     const normalized = normalizeOptionalLowercaseString(value);
@@ -159,7 +159,7 @@ export function listPluginInvocationKeys(command: OpenClawPluginCommandDefinitio
 
 export function registerPluginCommand(
   pluginId: string,
-  command: OpenClawPluginCommandDefinition,
+  command: KovaPluginCommandDefinition,
   opts?: { pluginName?: string; pluginRoot?: string },
 ): CommandRegistrationResult {
   // Prevent registration while commands are being processed

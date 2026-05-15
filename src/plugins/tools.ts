@@ -11,7 +11,7 @@ import {
   buildPluginRuntimeLoadOptions,
   resolvePluginRuntimeLoadContext,
 } from "./runtime/load-context.js";
-import type { OpenClawPluginToolContext } from "./types.js";
+import type { KovaPluginToolContext } from "./types.js";
 
 export type PluginToolMeta = {
   pluginId: string;
@@ -102,7 +102,7 @@ function resolvePluginToolRegistry(params: {
 }
 
 export function resolvePluginTools(params: {
-  context: OpenClawPluginToolContext;
+  context: KovaPluginToolContext;
   existingToolNames?: Set<string>;
   toolAllowlist?: string[];
   suppressNameConflicts?: boolean;

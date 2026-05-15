@@ -1,4 +1,4 @@
-import { stopOpenClawChrome } from "./chrome.js";
+import { stopKovaChrome } from "./chrome.js";
 import type { ResolvedBrowserConfig } from "./config.js";
 import {
   type BrowserServerState,
@@ -32,7 +32,7 @@ export async function stopKnownBrowserProfiles(params: {
       try {
         const runtime = current.profiles.get(name);
         if (runtime?.running) {
-          await stopOpenClawChrome(runtime.running);
+          await stopKovaChrome(runtime.running);
           runtime.running = null;
           continue;
         }

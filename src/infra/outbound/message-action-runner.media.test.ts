@@ -5,14 +5,14 @@ import { Type } from "typebox";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResult } from "../../agents/tools/common.js";
 import type { ChannelPlugin } from "../../channels/plugins/types.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import { loadWebMedia } from "../../media/web-media.js";
 import { getActivePluginRegistry, setActivePluginRegistry } from "../../plugins/runtime.js";
 import {
   createChannelTestPluginBase,
   createTestRegistry,
 } from "../../test-utils/channel-plugins.js";
-import { resolvePreferredOpenClawTmpDir } from "../tmp-openclaw-dir.js";
+import { resolvePreferredKovaTmpDir } from "../tmp-kova-dir.js";
 import { runMessageAction } from "./message-action-runner.js";
 
 const onePixelPng = Buffer.from(
@@ -64,7 +64,7 @@ const workspaceConfig = {
       appToken: "xapp-test",
     },
   },
-} as OpenClawConfig;
+} as KovaConfig;
 
 async function withSandbox(test: (sandboxDir: string) => Promise<void>) {
   const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), "msg-sandbox-"));
@@ -76,7 +76,7 @@ async function withSandbox(test: (sandboxDir: string) => Promise<void>) {
 }
 
 const runDrySend = (params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   actionParams: Record<string, unknown>;
   sandboxRoot?: string;
 }) =>
@@ -120,7 +120,7 @@ async function expectSandboxMediaRewrite(params: {
 }
 
 async function runAttachmentRemoteMediaAction(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   action: "sendAttachment" | "upload-file";
 }) {
   return runMessageAction({
@@ -242,7 +242,7 @@ describe("runMessageAction media behavior", () => {
           password: "test-password",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const attachmentPlugin: ChannelPlugin = {
       id: "attachmentchat",
       meta: {
@@ -304,7 +304,7 @@ describe("runMessageAction media behavior", () => {
     }
 
     async function expectRejectsLocalAbsolutePathWithoutSandbox(params: {
-      cfg?: OpenClawConfig;
+      cfg?: KovaConfig;
       action: "sendAttachment" | "setGroupIcon";
       target: string;
       mediaField?: "media" | "mediaUrl" | "fileUrl";
@@ -579,7 +579,7 @@ describe("runMessageAction media behavior", () => {
     it("rewrites plugin-owned sandbox media params and preserves mxc URLs", async () => {
       await withSandbox(async (sandboxDir) => {
         const result = await runMessageAction({
-          cfg: {} as OpenClawConfig,
+          cfg: {} as KovaConfig,
           action: "set-profile",
           params: {
             channel: "profile-demo",
@@ -607,7 +607,7 @@ describe("runMessageAction media behavior", () => {
         const result = await runMessageAction({
           cfg: {
             tools: { fs: { workspaceOnly: false } },
-          } as OpenClawConfig,
+          } as KovaConfig,
           action: "set-profile",
           params: {
             channel: "profile-demo",
@@ -628,7 +628,7 @@ describe("runMessageAction media behavior", () => {
       await withSandbox(async (sandboxDir) => {
         const avatarUrl = "data:text/plain;base64,SGVsbG8=";
         const result = await runMessageAction({
-          cfg: {} as OpenClawConfig,
+          cfg: {} as KovaConfig,
           action: "send",
           dryRun: true,
           params: {
@@ -822,8 +822,8 @@ describe("runMessageAction media behavior", () => {
       },
     );
 
-    it("allows media paths under preferred OpenClaw tmp root", async () => {
-      const tmpRoot = resolvePreferredOpenClawTmpDir();
+    it("allows media paths under preferred Kova tmp root", async () => {
+      const tmpRoot = resolvePreferredKovaTmpDir();
       await fs.mkdir(tmpRoot, { recursive: true });
       const sandboxDir = await fs.mkdtemp(path.join(os.tmpdir(), "msg-sandbox-"));
       try {
@@ -846,7 +846,7 @@ describe("runMessageAction media behavior", () => {
           throw new Error("expected send result");
         }
         expect(result.sendResult?.mediaUrl).toBe(path.resolve(tmpFile));
-        const hostTmpOutsideOpenClaw = path.join(os.tmpdir(), "outside-openclaw", "test-media.png");
+        const hostTmpOutsideKova = path.join(os.tmpdir(), "outside-kova", "test-media.png");
         await expect(
           runMessageAction({
             cfg: workspaceConfig,
@@ -854,7 +854,7 @@ describe("runMessageAction media behavior", () => {
             params: {
               channel: "workspace",
               target: "12345678",
-              media: hostTmpOutsideOpenClaw,
+              media: hostTmpOutsideKova,
               message: "",
             },
             sandboxRoot: sandboxDir,

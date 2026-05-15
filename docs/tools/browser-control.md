@@ -36,7 +36,7 @@ that override because Kova does not launch those browser processes.
 If shared-secret gateway auth is configured, browser HTTP routes require auth too:
 
 - `Authorization: Bearer <gateway token>`
-- `x-openclaw-password: <gateway password>` or HTTP Basic auth with that password
+- `x-kova-password: <gateway password>` or HTTP Basic auth with that password
 
 Notes:
 
@@ -106,13 +106,13 @@ If your Gateway runs in Docker, avoid `npx playwright` (npm override conflicts).
 Use the bundled CLI instead:
 
 ```bash
-docker compose run --rm openclaw-cli \
+docker compose run --rm kova-cli \
   node /app/node_modules/playwright-core/cli.js install chromium
 ```
 
 To persist browser downloads, set `PLAYWRIGHT_BROWSERS_PATH` (for example,
 `/home/node/.cache/ms-playwright`) and make sure `/home/node` is persisted via
-`OPENCLAW_HOME_VOLUME` or a bind mount. See [Docker](/install/docker).
+`KOVA_HOME_VOLUME` or a bind mount. See [Docker](/install/docker).
 
 ## How it works (internal)
 
@@ -182,7 +182,7 @@ kova browser drag 10 11
 kova browser select 9 OptionA OptionB
 kova browser download e12 report.pdf
 kova browser waitfordownload report.pdf
-kova browser upload /tmp/openclaw/uploads/file.pdf
+kova browser upload /tmp/kova/uploads/file.pdf
 kova browser fill --fields '[{"ref":"1","type":"text","value":"Ada"}]'
 kova browser dialog --accept
 kova browser wait --text "Done"
@@ -222,7 +222,7 @@ Notes:
 
 - `upload` and `dialog` are **arming** calls; run them before the click/press that triggers the chooser/dialog.
 - `click`/`type`/etc require a `ref` from `snapshot` (numeric `12`, role ref `e12`, or actionable ARIA ref `ax12`). CSS selectors are intentionally not supported for actions. Use `click-coords` when the visible viewport position is the only reliable target.
-- Download, trace, and upload paths are constrained to Kova temp roots: `/tmp/openclaw{,/downloads,/uploads}` (fallback: `${os.tmpdir()}/openclaw/...`).
+- Download, trace, and upload paths are constrained to Kova temp roots: `/tmp/kova{,/downloads,/uploads}` (fallback: `${os.tmpdir()}/kova/...`).
 - `upload` can also set file inputs directly via `--input-ref` or `--element`.
 
 Stable tab ids and labels survive Chromium raw-target replacement when Kova

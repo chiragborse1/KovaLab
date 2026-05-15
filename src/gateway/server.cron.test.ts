@@ -61,7 +61,7 @@ let cronSuiteCaseId = 0;
 
 async function getCronSuiteTempRoot(): Promise<string> {
   if (!cronSuiteTempRootPromise) {
-    cronSuiteTempRootPromise = fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-cron-suite-"));
+    cronSuiteTempRootPromise = fs.mkdtemp(path.join(os.tmpdir(), "kova-gw-cron-suite-"));
   }
   return await cronSuiteTempRootPromise;
 }
@@ -130,10 +130,10 @@ async function cleanupCronTestRun(params: {
   }
   testState.cronEnabled = undefined;
   if (params.prevSkipCron === undefined) {
-    delete process.env.OPENCLAW_SKIP_CRON;
+    delete process.env.KOVA_SKIP_CRON;
     return;
   }
-  process.env.OPENCLAW_SKIP_CRON = params.prevSkipCron;
+  process.env.KOVA_SKIP_CRON = params.prevSkipCron;
 }
 
 async function setupCronTestRun(params: {
@@ -142,8 +142,8 @@ async function setupCronTestRun(params: {
   sessionConfig?: { mainKey: string };
   jobs?: unknown[];
 }): Promise<{ prevSkipCron: string | undefined; dir: string }> {
-  const prevSkipCron = process.env.OPENCLAW_SKIP_CRON;
-  process.env.OPENCLAW_SKIP_CRON = "0";
+  const prevSkipCron = process.env.KOVA_SKIP_CRON;
+  process.env.KOVA_SKIP_CRON = "0";
   const { dir, storePath } = await createCronCasePaths(params.tempPrefix);
   testState.cronStorePath = storePath;
   testState.sessionConfig = params.sessionConfig;
@@ -158,7 +158,7 @@ async function setupCronTestRun(params: {
 type DirectCronState = {
   cron: { stop: () => void };
   storePath: string;
-  getRuntimeConfig: () => import("../config/types.openclaw.js").OpenClawConfig;
+  getRuntimeConfig: () => import("../config/types.kova.js").KovaConfig;
 };
 
 async function createDirectCronState(): Promise<DirectCronState> {
@@ -259,7 +259,7 @@ async function addWebhookCronJob(params: {
 }
 
 async function writeCronConfig(config: unknown) {
-  const configPath = process.env.OPENCLAW_CONFIG_PATH;
+  const configPath = process.env.KOVA_CONFIG_PATH;
   expect(typeof configPath).toBe("string");
   await fs.mkdir(path.dirname(configPath as string), { recursive: true });
   await fs.writeFile(configPath as string, JSON.stringify(config, null, 2), "utf-8");
@@ -317,7 +317,7 @@ describe("gateway server cron", () => {
 
   test("handles cron CRUD, normalization, and patch semantics", { timeout: 45_000 }, async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-",
+      tempPrefix: "kova-gw-cron-",
       sessionConfig: { mainKey: "primary" },
       cronEnabled: false,
     });
@@ -556,7 +556,7 @@ describe("gateway server cron", () => {
 
   test("rejects unsafe custom session ids on add and update", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-bad-session-target-",
+      tempPrefix: "kova-gw-cron-bad-session-target-",
       cronEnabled: false,
     });
 
@@ -601,7 +601,7 @@ describe("gateway server cron", () => {
 
   test("keeps delivery updates valid for main jobs owned by an explicit default agent", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-main-default-agent-delivery-",
+      tempPrefix: "kova-gw-cron-main-default-agent-delivery-",
       cronEnabled: false,
     });
 
@@ -654,7 +654,7 @@ describe("gateway server cron", () => {
 
   test("accepts implicit announce delivery when extra configured channels are disabled", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-disabled-channel-ambiguity-",
+      tempPrefix: "kova-gw-cron-disabled-channel-ambiguity-",
       cronEnabled: false,
     });
 
@@ -698,7 +698,7 @@ describe("gateway server cron", () => {
 
   test("keeps delivery updates valid after gateway config changes the default agent", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-main-default-agent-drift-",
+      tempPrefix: "kova-gw-cron-main-default-agent-drift-",
       cronEnabled: false,
     });
 
@@ -784,7 +784,7 @@ describe("gateway server cron", () => {
     vi.stubEnv("SLACK_BOT_TOKEN", "xoxb-ambient");
     vi.stubEnv("TELEGRAM_BOT_TOKEN", "ambient-telegram");
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-ambient-disabled-delivery-",
+      tempPrefix: "kova-gw-cron-ambient-disabled-delivery-",
       cronEnabled: false,
     });
 
@@ -818,7 +818,7 @@ describe("gateway server cron", () => {
 
   test("writes cron run history and auto-runs due jobs", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-log-",
+      tempPrefix: "kova-gw-cron-log-",
     });
 
     const { server, ws } = await startServerWithClient();
@@ -916,7 +916,7 @@ describe("gateway server cron", () => {
   test("fails closed for persisted unsafe custom session ids", async () => {
     const now = Date.now();
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-persisted-bad-session-target-",
+      tempPrefix: "kova-gw-cron-persisted-bad-session-target-",
       cronEnabled: false,
       jobs: [
         {
@@ -953,7 +953,7 @@ describe("gateway server cron", () => {
 
   test("returns from cron.run immediately while isolated work continues in background", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-run-detached-",
+      tempPrefix: "kova-gw-cron-run-detached-",
       cronEnabled: false,
     });
 
@@ -1021,7 +1021,7 @@ describe("gateway server cron", () => {
     );
 
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-run-busy-",
+      tempPrefix: "kova-gw-cron-run-busy-",
       cronEnabled: false,
       jobs: [
         {
@@ -1075,7 +1075,7 @@ describe("gateway server cron", () => {
   test("returns not-due without starting background work", async () => {
     const now = Date.now();
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-run-not-due-",
+      tempPrefix: "kova-gw-cron-run-not-due-",
       cronEnabled: false,
       jobs: [
         {
@@ -1125,7 +1125,7 @@ describe("gateway server cron", () => {
       state: {},
     };
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-webhook-",
+      tempPrefix: "kova-gw-cron-webhook-",
       cronEnabled: false,
       jobs: [legacyNotifyJob],
     });
@@ -1289,7 +1289,7 @@ describe("gateway server cron", () => {
 
   test("falls back to the primary delivery channel on job failure and preserves sessionKey", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-failure-primary-fallback-",
+      tempPrefix: "kova-gw-cron-failure-primary-fallback-",
       cronEnabled: false,
     });
 
@@ -1344,7 +1344,7 @@ describe("gateway server cron", () => {
 
   test("prefers sessionTarget session context for failure announcements over creator sessionKey", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-failure-session-target-",
+      tempPrefix: "kova-gw-cron-failure-session-target-",
       cronEnabled: false,
     });
 
@@ -1404,7 +1404,7 @@ describe("gateway server cron", () => {
 
   test("ignores non-string cron.webhookToken values without crashing webhook delivery", async () => {
     const { prevSkipCron } = await setupCronTestRun({
-      tempPrefix: "openclaw-gw-cron-webhook-secretinput-",
+      tempPrefix: "kova-gw-cron-webhook-secretinput-",
       cronEnabled: false,
     });
 

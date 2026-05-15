@@ -4,7 +4,7 @@ import path from "node:path";
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../test/helpers/plugins/plugin-api.ts";
-import type { OpenClawPluginApi } from "./api.js";
+import type { KovaPluginApi } from "./api.js";
 import type { VoiceCallRuntime } from "./runtime-entry.js";
 
 let runtimeStub: VoiceCallRuntime;
@@ -26,7 +26,7 @@ const noopLogger = {
 type Registered = {
   methods: Map<string, unknown>;
   tools: unknown[];
-  service?: Parameters<OpenClawPluginApi["registerService"]>[0];
+  service?: Parameters<KovaPluginApi["registerService"]>[0];
 };
 type RegisterVoiceCall = (api: Record<string, unknown>) => void;
 type RegisterCliContext = {
@@ -91,7 +91,7 @@ function setup(config: Record<string, unknown>): Registered {
     source: "test",
     config: {},
     pluginConfig: config,
-    runtime: { tts: { textToSpeechTelephony: vi.fn() } } as unknown as OpenClawPluginApi["runtime"],
+    runtime: { tts: { textToSpeechTelephony: vi.fn() } } as unknown as KovaPluginApi["runtime"],
     logger: noopLogger,
     registerGatewayMethod: (method: string, handler: unknown) => methods.set(method, handler),
     registerTool: (tool: unknown) => tools.push(tool),
@@ -150,12 +150,12 @@ describe("voice-call plugin", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
-    delete (globalThis as Record<PropertyKey, unknown>)[Symbol.for("openclaw.voice-call.runtime")];
+    delete (globalThis as Record<PropertyKey, unknown>)[Symbol.for("kova.voice-call.runtime")];
     delete (globalThis as Record<PropertyKey, unknown>)[
-      Symbol.for("openclaw.voice-call.runtimePromise")
+      Symbol.for("kova.voice-call.runtimePromise")
     ];
     delete (globalThis as Record<PropertyKey, unknown>)[
-      Symbol.for("openclaw.voice-call.runtimeStopPromise")
+      Symbol.for("kova.voice-call.runtimeStopPromise")
     ];
   });
 
@@ -354,7 +354,7 @@ describe("voice-call plugin", () => {
       },
     });
     expect(noopLogger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Run "openclaw doctor --fix"'),
+      expect.stringContaining('Run "kova doctor --fix"'),
     );
   });
 
@@ -532,7 +532,7 @@ describe("voice-call plugin", () => {
         from: "user",
       });
       expect(runtimeStub.manager.initiateCall).toHaveBeenCalledWith("+15550009999", undefined, {
-        message: "OpenClaw voice call smoke test.",
+        message: "Kova voice call smoke test.",
         mode: "notify",
       });
       expect(stdout.output()).toContain("live-call: started call-1");

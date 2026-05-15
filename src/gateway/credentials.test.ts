@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import {
   resolveGatewayCredentialsFromConfig,
   resolveGatewayCredentialsFromValues,
 } from "./credentials.js";
 
-function cfg(input: Partial<OpenClawConfig>): OpenClawConfig {
-  return input as OpenClawConfig;
+function cfg(input: Partial<KovaConfig>): KovaConfig {
+  return input as KovaConfig;
 }
 
 type ResolveFromConfigInput = Parameters<typeof resolveGatewayCredentialsFromConfig>[0];
-type GatewayConfig = NonNullable<OpenClawConfig["gateway"]>;
+type GatewayConfig = NonNullable<KovaConfig["gateway"]>;
 
 const DEFAULT_GATEWAY_AUTH = { token: "config-token", password: "config-password" }; // pragma: allowlist secret
 const DEFAULT_REMOTE_AUTH = { token: "remote-token", password: "remote-password" }; // pragma: allowlist secret
@@ -65,7 +65,7 @@ function resolveLocalModeWithUnresolvedPassword(mode: "none" | "trusted-proxy") 
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig,
+    } as unknown as KovaConfig,
     env: {} as NodeJS.ProcessEnv,
   });
 }
@@ -100,7 +100,7 @@ function expectUnresolvedLocalAuthSecretRefFailure(params: {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig,
+      } as unknown as KovaConfig,
       env: {} as NodeJS.ProcessEnv,
     }),
   ).toThrow(params.errorPath);
@@ -397,7 +397,7 @@ describe("resolveGatewayCredentialsFromConfig", () => {
               default: { source: "env" },
             },
           },
-        } as unknown as OpenClawConfig,
+        } as unknown as KovaConfig,
         env: {} as NodeJS.ProcessEnv,
         remoteTokenFallback: "remote-only",
       }),
@@ -421,7 +421,7 @@ describe("resolveGatewayCredentialsFromConfig", () => {
           default: { source: "env" },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
   }
 
   it("ignores unresolved local token ref in remote-only mode when local auth mode is token", () => {
@@ -465,7 +465,7 @@ describe("resolveGatewayCredentialsFromConfig", () => {
             default: { source: "env" },
           },
         },
-      } as unknown as OpenClawConfig,
+      } as unknown as KovaConfig,
       env: {} as NodeJS.ProcessEnv,
     });
     expect(resolved).toEqual({
@@ -491,7 +491,7 @@ describe("resolveGatewayCredentialsFromConfig", () => {
               default: { source: "env" },
             },
           },
-        } as unknown as OpenClawConfig,
+        } as unknown as KovaConfig,
         env: {} as NodeJS.ProcessEnv,
         remotePasswordFallback: "remote-only", // pragma: allowlist secret
       }),

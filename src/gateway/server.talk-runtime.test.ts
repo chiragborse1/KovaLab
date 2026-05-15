@@ -28,7 +28,7 @@ async function setTalkConfig(talk: Record<string, unknown>) {
   const { setRuntimeConfigSnapshot } = await import("../config/config.js");
   const config = {
     commands: {
-      ownerDisplaySecret: "openclaw-test-owner-display-secret",
+      ownerDisplaySecret: "kova-test-owner-display-secret",
     },
     talk,
   };
@@ -53,7 +53,7 @@ async function setElevenLabsTalkConfig() {
       elevenlabs: {
         voiceId: "stub-default-voice",
         voiceAliases: {
-          Clawd: ALIAS_STUB_VOICE_ID,
+          Kova: ALIAS_STUB_VOICE_ID,
         },
       },
     },
@@ -213,7 +213,7 @@ describe("gateway talk runtime", () => {
 
         const res = await invokeTalkSpeakDirect({
           text: "Hello from talk mode.",
-          voiceId: "clawd",
+          voiceId: "kova",
           outputFormat: "pcm_44100",
           latencyTier: 3,
         });

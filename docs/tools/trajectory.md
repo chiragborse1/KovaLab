@@ -37,7 +37,7 @@ Alias:
 Kova writes the bundle under the workspace:
 
 ```text
-.openclaw/trajectory-exports/openclaw-trajectory-<session>-<timestamp>/
+.kova/trajectory-exports/kova-trajectory-<session>-<timestamp>/
 ```
 
 You can choose a relative output directory name:
@@ -46,7 +46,7 @@ You can choose a relative output directory name:
 /export-trajectory bug-1234
 ```
 
-The custom path is resolved inside `.openclaw/trajectory-exports/`. Absolute
+The custom path is resolved inside `.kova/trajectory-exports/`. Absolute
 paths and `~` paths are rejected.
 
 ## Access
@@ -82,7 +82,7 @@ Events are written as JSON Lines with this schema marker:
 
 ```json
 {
-  "traceSchema": "openclaw-trajectory",
+  "traceSchema": "kova-trajectory",
   "schemaVersion": 1
 }
 ```
@@ -96,7 +96,7 @@ An exported bundle can contain:
 | `manifest.json`       | Bundle schema, source files, event counts, and generated file list                             |
 | `events.jsonl`        | Ordered runtime and transcript timeline                                                        |
 | `session-branch.json` | Redacted active transcript branch and session header                                           |
-| `metadata.json`       | Kova version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata     |
+| `metadata.json`       | Kova version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata         |
 | `artifacts.json`      | Final status, errors, usage, prompt cache, compaction count, assistant text, and tool metadata |
 | `prompts.json`        | Submitted prompts and selected prompt-building details                                         |
 | `system-prompt.txt`   | Latest compiled system prompt, when captured                                                   |
@@ -119,11 +119,11 @@ Kova also writes a best-effort pointer file beside the session:
 <session>.trajectory-path.json
 ```
 
-Set `OPENCLAW_TRAJECTORY_DIR` to store runtime trajectory sidecars in a
+Set `KOVA_TRAJECTORY_DIR` to store runtime trajectory sidecars in a
 dedicated directory:
 
 ```bash
-export OPENCLAW_TRAJECTORY_DIR=/var/lib/openclaw/trajectories
+export KOVA_TRAJECTORY_DIR=/var/lib/kova/trajectories
 ```
 
 When this variable is set, Kova writes one JSONL file per session id in that
@@ -131,10 +131,10 @@ directory.
 
 ## Disable capture
 
-Set `OPENCLAW_TRAJECTORY=0` before starting Kova:
+Set `KOVA_TRAJECTORY=0` before starting Kova:
 
 ```bash
-export OPENCLAW_TRAJECTORY=0
+export KOVA_TRAJECTORY=0
 ```
 
 This disables runtime trajectory capture. `/export-trajectory` can still export
@@ -167,8 +167,8 @@ and cannot know every application-specific secret.
 
 If the export has no runtime events:
 
-- confirm Kova was started without `OPENCLAW_TRAJECTORY=0`
-- check whether `OPENCLAW_TRAJECTORY_DIR` points to a writable directory
+- confirm Kova was started without `KOVA_TRAJECTORY=0`
+- check whether `KOVA_TRAJECTORY_DIR` points to a writable directory
 - run another message in the session, then export again
 - inspect `manifest.json` for `runtimeEventCount`
 
@@ -176,7 +176,7 @@ If the command rejects the output path:
 
 - use a relative name like `bug-1234`
 - do not pass `/tmp/...` or `~/...`
-- keep the export inside `.openclaw/trajectory-exports/`
+- keep the export inside `.kova/trajectory-exports/`
 
 If the export fails with a size error, the session or sidecar exceeded the
 export safety limits. Start a new session or export a smaller reproduction.

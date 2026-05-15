@@ -30,10 +30,10 @@ See [Security](/gateway/security) and [VPS hosting](/vps).
 - Rent a small Linux server (Hetzner VPS)
 - Install Docker (isolated app runtime)
 - Start the Kova Gateway in Docker
-- Persist `~/.openclaw` + `~/.openclaw/workspace` on the host (survives restarts/rebuilds)
+- Persist `~/.kova` + `~/.kova/workspace` on the host (survives restarts/rebuilds)
 - Access the Control UI from your laptop via an SSH tunnel
 
-That mounted `~/.openclaw` state includes `openclaw.json`, per-agent
+That mounted `~/.kova` state includes `kova.json`, per-agent
 `agents/<agentId>/agent/auth-profiles.json`, and `.env`.
 
 The Gateway can be accessed via:
@@ -108,8 +108,8 @@ For the generic Docker flow, see [Docker](/install/docker).
 
   <Step title="Clone the Kova repository">
     ```bash
-    git clone https://github.com/openclaw/openclaw.git
-    cd openclaw
+    git clone https://github.com/chiragborse1/KovaLab.git
+    cd kova
     ```
 
     This guide assumes you will build a custom image to guarantee binary persistence.
@@ -121,10 +121,10 @@ For the generic Docker flow, see [Docker](/install/docker).
     All long-lived state must live on the host.
 
     ```bash
-    mkdir -p /root/.openclaw/workspace
+    mkdir -p /root/.kova/workspace
 
     # Set ownership to the container user (uid 1000):
-    chown -R 1000:1000 /root/.openclaw
+    chown -R 1000:1000 /root/.kova
     ```
 
   </Step>
@@ -133,19 +133,19 @@ For the generic Docker flow, see [Docker](/install/docker).
     Create `.env` in the repository root.
 
     ```bash
-    OPENCLAW_IMAGE=openclaw:latest
-    OPENCLAW_GATEWAY_TOKEN=
-    OPENCLAW_GATEWAY_BIND=lan
-    OPENCLAW_GATEWAY_PORT=18789
+    KOVA_IMAGE=kova:latest
+    KOVA_GATEWAY_TOKEN=
+    KOVA_GATEWAY_BIND=lan
+    KOVA_GATEWAY_PORT=18789
 
-    OPENCLAW_CONFIG_DIR=/root/.openclaw
-    OPENCLAW_WORKSPACE_DIR=/root/.openclaw/workspace
+    KOVA_CONFIG_DIR=/root/.kova
+    KOVA_WORKSPACE_DIR=/root/.kova/workspace
 
     GOG_KEYRING_PASSWORD=
-    XDG_CONFIG_HOME=/home/node/.openclaw
+    XDG_CONFIG_HOME=/home/node/.kova
     ```
 
-    Leave `OPENCLAW_GATEWAY_TOKEN` blank unless you explicitly want to
+    Leave `KOVA_GATEWAY_TOKEN` blank unless you explicitly want to
     manage it through `.env`; Kova writes a random gateway token to
     config on first start. Generate a keyring password and paste it into
     `GOG_KEYRING_PASSWORD`:
@@ -156,9 +156,9 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     **Do not commit this file.**
 
-    This `.env` file is for container/runtime env such as `OPENCLAW_GATEWAY_TOKEN`.
+    This `.env` file is for container/runtime env such as `KOVA_GATEWAY_TOKEN`.
     Stored provider OAuth/API-key auth lives in the mounted
-    `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+    `~/.kova/agents/<agentId>/agent/auth-profiles.json`.
 
   </Step>
 
@@ -167,8 +167,8 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     ```yaml
     services:
-      openclaw-gateway:
-        image: ${OPENCLAW_IMAGE}
+      kova-gateway:
+        image: ${KOVA_IMAGE}
         build: .
         restart: unless-stopped
         env_file:
@@ -177,28 +177,28 @@ For the generic Docker flow, see [Docker](/install/docker).
           - HOME=/home/node
           - NODE_ENV=production
           - TERM=xterm-256color
-          - OPENCLAW_GATEWAY_BIND=${OPENCLAW_GATEWAY_BIND}
-          - OPENCLAW_GATEWAY_PORT=${OPENCLAW_GATEWAY_PORT}
-          - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+          - KOVA_GATEWAY_BIND=${KOVA_GATEWAY_BIND}
+          - KOVA_GATEWAY_PORT=${KOVA_GATEWAY_PORT}
+          - KOVA_GATEWAY_TOKEN=${KOVA_GATEWAY_TOKEN}
           - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
           - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
           - PATH=/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         volumes:
-          - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-          - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+          - ${KOVA_CONFIG_DIR}:/home/node/.kova
+          - ${KOVA_WORKSPACE_DIR}:/home/node/.kova/workspace
         ports:
           # Recommended: keep the Gateway loopback-only on the VPS; access via SSH tunnel.
           # To expose it publicly, remove the `127.0.0.1:` prefix and firewall accordingly.
-          - "127.0.0.1:${OPENCLAW_GATEWAY_PORT}:18789"
+          - "127.0.0.1:${KOVA_GATEWAY_PORT}:18789"
         command:
           [
             "node",
             "dist/index.js",
             "gateway",
             "--bind",
-            "${OPENCLAW_GATEWAY_BIND}",
+            "${KOVA_GATEWAY_BIND}",
             "--port",
-            "${OPENCLAW_GATEWAY_PORT}",
+            "${KOVA_GATEWAY_PORT}",
             "--allow-unconfigured",
           ]
     ```
@@ -248,8 +248,8 @@ For teams preferring infrastructure-as-code workflows, a community-maintained Te
 
 **Repositories:**
 
-- Infrastructure: [openclaw-terraform-hetzner](https://github.com/andreesg/openclaw-terraform-hetzner)
-- Docker config: [openclaw-docker-config](https://github.com/andreesg/openclaw-docker-config)
+- Infrastructure: [kova-terraform-hetzner](https://github.com/andreesg/kova-terraform-hetzner)
+- Docker config: [kova-docker-config](https://github.com/andreesg/kova-docker-config)
 
 This approach complements the Docker setup above with reproducible deployments, version-controlled infrastructure, and automated disaster recovery.
 

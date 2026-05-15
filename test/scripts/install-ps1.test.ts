@@ -70,11 +70,11 @@ describe("install.ps1 failure handling", () => {
     const completeInstallBody = extractFunctionBody(source, "Complete-Install");
     expect(completeInstallBody).toMatch(/\$PSCommandPath/);
     expect(completeInstallBody).toMatch(/\bexit \$script:InstallExitCode\b/);
-    expect(completeInstallBody).toMatch(/\bthrow "OpenClaw installation failed with exit code/);
+    expect(completeInstallBody).toMatch(/\bthrow "Kova installation failed with exit code/);
   });
 
   runIfPowerShell("exits non-zero when run as a script file", () => {
-    const tempDir = harness.createTempDir("openclaw-install-ps1-");
+    const tempDir = harness.createTempDir("kova-install-ps1-");
     const scriptPath = join(tempDir, "install.ps1");
     writeFileSync(scriptPath, createFailingNodeFixture(source));
     chmodSync(scriptPath, 0o755);
@@ -89,7 +89,7 @@ describe("install.ps1 failure handling", () => {
   });
 
   runIfPowerShell("throws without killing the caller when run as a scriptblock", () => {
-    const tempDir = harness.createTempDir("openclaw-install-ps1-");
+    const tempDir = harness.createTempDir("kova-install-ps1-");
     const scriptPath = join(tempDir, "install.ps1");
     writeFileSync(scriptPath, createFailingNodeFixture(source));
     chmodSync(scriptPath, 0o755);
@@ -107,12 +107,12 @@ describe("install.ps1 failure handling", () => {
     });
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("caught=OpenClaw installation failed with exit code 1.");
+    expect(result.stdout).toContain("caught=Kova installation failed with exit code 1.");
     expect(result.stdout).toContain("alive-after-install");
   });
 
   runIfPowerShell("keeps npm chatter out of Main's success return value", () => {
-    const tempDir = harness.createTempDir("openclaw-install-ps1-");
+    const tempDir = harness.createTempDir("kova-install-ps1-");
     const scriptPath = join(tempDir, "install.ps1");
     const scriptWithoutEntryPoint = source.replace(
       /\r?\n\$installSucceeded = Main\r?\nComplete-Install -Succeeded:\$installSucceeded\s*$/m,

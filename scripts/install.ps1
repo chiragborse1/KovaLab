@@ -6,7 +6,7 @@ param(
     [ValidateSet("npm", "git")]
     [string]$InstallMethod = "npm",
     [string]$Tag = "latest",
-    [string]$GitDir = "$env:USERPROFILE\openclaw",
+    [string]$GitDir = "$env:USERPROFILE\kova",
     [switch]$NoOnboard,
     [switch]$NoGitUpdate,
     [switch]$DryRun
@@ -312,7 +312,7 @@ function Install-KovaGit {
     
     if (!(Test-Path $RepoDir)) {
         Write-Host "  Cloning repository..." -Level info
-        git clone https://github.com/openclaw/openclaw.git $RepoDir 2>&1
+        git clone https://github.com/chiragborse1/KovaLab.git $RepoDir 2>&1
     } elseif ($Update) {
         Write-Host "  Updating repository..." -Level info
         git -C $RepoDir pull --rebase 2>&1
@@ -343,7 +343,7 @@ function Install-KovaGit {
 @echo off
 node "$entryPath" %*
 "@ | Out-File -FilePath "$wrapperDir\kova.cmd" -Encoding ASCII -Force
-    Remove-Item -LiteralPath "$wrapperDir\openclaw.cmd" -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath "$wrapperDir\kova.cmd" -Force -ErrorAction SilentlyContinue
     Add-ToPath -Path $wrapperDir
     
     Write-Host "Kova installed" -Level success
@@ -437,7 +437,7 @@ function Main {
             Write-Host "[DRY RUN] Would install Kova from git to $GitDir" -Level info
         } else {
             try {
-                npm uninstall -g openclaw 2>$null | Out-Null
+                npm uninstall -g kova 2>$null | Out-Null
             } catch { }
             if (!(Install-KovaGit -RepoDir $GitDir -Update:(-not $NoGitUpdate))) {
                 return (Fail-Install)
@@ -457,10 +457,10 @@ function Main {
                 Remove-Item -Force $gitWrapper
                 Write-Host "Removed git wrapper (switching to npm)" -Level info
             }
-            $legacyGitWrapper = "$env:USERPROFILE\.local\bin\openclaw.cmd"
+            $legacyGitWrapper = "$env:USERPROFILE\.local\bin\kova.cmd"
             if (Test-Path $legacyGitWrapper) {
                 Remove-Item -Force $legacyGitWrapper
-                Write-Host "Removed legacy openclaw alias" -Level info
+                Write-Host "Removed legacy kova alias" -Level info
             }
             if (!(Install-KovaNpm -Target $Tag)) {
                 return (Fail-Install)

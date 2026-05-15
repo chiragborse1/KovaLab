@@ -1,10 +1,10 @@
-import { assertOkOrThrowProviderError } from "openclaw/plugin-sdk/provider-http";
-import type { SpeechVoiceOption } from "openclaw/plugin-sdk/speech-core";
-import { trimToUndefined } from "openclaw/plugin-sdk/speech-core";
+import { assertOkOrThrowProviderError } from "getkova/plugin-sdk/provider-http";
+import type { SpeechVoiceOption } from "getkova/plugin-sdk/speech-core";
+import { trimToUndefined } from "getkova/plugin-sdk/speech-core";
 import {
   fetchWithSsrFGuard,
   ssrfPolicyFromHttpBaseUrlAllowedHostname,
-} from "openclaw/plugin-sdk/ssrf-runtime";
+} from "getkova/plugin-sdk/ssrf-runtime";
 
 export const DEFAULT_AZURE_SPEECH_VOICE = "en-US-JennyNeural";
 export const DEFAULT_AZURE_SPEECH_LANG = "en-US";

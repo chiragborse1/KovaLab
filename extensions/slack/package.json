@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/slack",
+  "name": "@kovaai/slack",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Slack channel plugin",
@@ -11,9 +11,9 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],

@@ -1,4 +1,4 @@
-import { isRecord } from "openclaw/plugin-sdk/text-runtime";
+import { isRecord } from "getkova/plugin-sdk/text-runtime";
 
 type JsonRecord = Record<string, unknown>;
 

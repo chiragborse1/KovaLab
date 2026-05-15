@@ -60,13 +60,13 @@ describe("formatWizardBootScreen", () => {
     expect(output).toContain("Setup");
     expect(output).toContain("set up your local AI agent");
     expect(output).not.toContain("Initializing environment");
-    expect(output).not.toContain("OpenClaw");
-    expect(output).not.toContain("OPENCLAW");
+    expect(output).not.toContain("Kova");
+    expect(output).not.toContain("KOVA");
   });
 });
 
 describe("resolveOnboardWorkspaceDefault", () => {
-  it("replaces the legacy OpenClaw default workspace with the Kova default", () => {
+  it("replaces the legacy Kova default workspace with the Kova default", () => {
     expect(
       resolveOnboardWorkspaceDefault({
         agents: { defaults: { workspace: LEGACY_DEFAULT_WORKSPACE } },
@@ -85,10 +85,10 @@ describe("resolveOnboardWorkspaceDefault", () => {
 
 describe("handleReset", () => {
   it("uses active profile paths for destructive reset targets", async () => {
-    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-reset-profile-"));
-    const profileStateDir = path.join(homeDir, ".openclaw-work");
-    const defaultStateDir = path.join(homeDir, ".openclaw");
-    const profileConfigPath = path.join(profileStateDir, "openclaw.json");
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-reset-profile-"));
+    const profileStateDir = path.join(homeDir, ".kova-work");
+    const defaultStateDir = path.join(homeDir, ".kova");
+    const profileConfigPath = path.join(profileStateDir, "kova.json");
     const profileCredentialsDir = path.join(profileStateDir, "credentials");
     const profileSessionsDir = path.join(profileStateDir, "agents", "main", "sessions");
     const workspaceDir = path.join(profileStateDir, "workspace");
@@ -101,10 +101,10 @@ describe("handleReset", () => {
     fs.writeFileSync(profileConfigPath, "{}\n");
 
     vi.stubEnv("HOME", homeDir);
-    vi.stubEnv("OPENCLAW_HOME", homeDir);
-    vi.stubEnv("OPENCLAW_PROFILE", "work");
-    vi.stubEnv("OPENCLAW_STATE_DIR", profileStateDir);
-    vi.stubEnv("OPENCLAW_CONFIG_PATH", profileConfigPath);
+    vi.stubEnv("KOVA_HOME", homeDir);
+    vi.stubEnv("KOVA_PROFILE", "work");
+    vi.stubEnv("KOVA_STATE_DIR", profileStateDir);
+    vi.stubEnv("KOVA_CONFIG_PATH", profileConfigPath);
 
     const runtime = { log: vi.fn() } as unknown as RuntimeEnv;
 

@@ -82,8 +82,8 @@ Choose your provider and follow the setup steps.
         tracking without touching your normal sessions:
 
         ```bash
-        OPENCLAW_CONFIG_PATH=/tmp/openclaw-kimi/openclaw.json \
-        OPENCLAW_STATE_DIR=/tmp/openclaw-kimi \
+        KOVA_CONFIG_PATH=/tmp/kova-kimi/kova.json \
+        KOVA_STATE_DIR=/tmp/kova-kimi \
         kova agent --local \
           --session-id live-kimi-cost \
           --message 'Reply exactly: KIMI_LIVE_OK' \

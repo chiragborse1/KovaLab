@@ -13,7 +13,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { slackPlugin } from "./channel.js";
-import type { OpenClawConfig } from "./runtime-api.js";
+import type { KovaConfig } from "./runtime-api.js";
 import { setSlackRuntime } from "./runtime.js";
 
 // --- Hoisted mocks for lazy seams ------------------------------------------------
@@ -30,7 +30,7 @@ vi.mock("./scopes.js", () => ({
   fetchSlackScopes: fetchSlackScopesMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/target-resolver-runtime", async (orig) => {
+vi.mock("getkova/plugin-sdk/target-resolver-runtime", async (orig) => {
   // Preserve any sibling exports so importers that touch unrelated helpers
   // do not break; only override the function the channel actually calls.
   const original = (await orig()) as Record<string, unknown>;
@@ -40,7 +40,7 @@ vi.mock("openclaw/plugin-sdk/target-resolver-runtime", async (orig) => {
   };
 });
 
-vi.mock("openclaw/plugin-sdk/extension-shared", async (orig) => {
+vi.mock("getkova/plugin-sdk/extension-shared", async (orig) => {
   const original = (await orig()) as Record<string, unknown>;
   return {
     ...original,
@@ -58,9 +58,7 @@ beforeEach(() => {
   setSlackRuntime({ channel: { slack: {} } } as never);
 });
 
-function makeMinimalSlackConfig(
-  opts: { botToken?: string; userToken?: string } = {},
-): OpenClawConfig {
+function makeMinimalSlackConfig(opts: { botToken?: string; userToken?: string } = {}): KovaConfig {
   const slack: Record<string, unknown> = {};
   if (opts.botToken !== undefined) {
     slack.botToken = opts.botToken;
@@ -68,7 +66,7 @@ function makeMinimalSlackConfig(
   if (opts.userToken !== undefined) {
     slack.userToken = opts.userToken;
   }
-  return { channels: { slack } } as OpenClawConfig;
+  return { channels: { slack } } as KovaConfig;
 }
 
 // --- Status: buildChannelSummary -------------------------------------------------

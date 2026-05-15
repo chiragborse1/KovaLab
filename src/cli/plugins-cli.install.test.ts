@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { installedPluginRoot } from "../../test/helpers/bundled-plugin-paths.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import {
   applyExclusiveSlotSelection,
   buildPluginDiagnosticsReport,
@@ -11,13 +11,13 @@ import {
   enablePluginInConfig,
   installHooksFromNpmSpec,
   installHooksFromPath,
-  installPluginFromClawHub,
+  installPluginFromKovaHub,
   installPluginFromMarketplace,
   installPluginFromNpmSpec,
   installPluginFromPath,
   loadConfig,
   readConfigFileSnapshot,
-  parseClawHubPluginSpec,
+  parseKovaHubPluginSpec,
   recordHookInstall,
   recordPluginInstall,
   resetPluginsCliTestState,
@@ -29,13 +29,13 @@ import {
   writePersistedInstalledPluginIndexInstallRecords,
 } from "./plugins-cli-test-helpers.js";
 
-const CLI_STATE_ROOT = "/tmp/openclaw-state";
+const CLI_STATE_ROOT = "/tmp/kova-state";
 
 function cliInstallPath(pluginId: string): string {
   return installedPluginRoot(CLI_STATE_ROOT, pluginId);
 }
 
-function createEnabledPluginConfig(pluginId: string): OpenClawConfig {
+function createEnabledPluginConfig(pluginId: string): KovaConfig {
   return {
     plugins: {
       entries: {
@@ -44,35 +44,35 @@ function createEnabledPluginConfig(pluginId: string): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
-function createEmptyPluginConfig(): OpenClawConfig {
+function createEmptyPluginConfig(): KovaConfig {
   return {
     plugins: {
       entries: {},
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
-function createClawHubInstallResult(params: {
+function createKovaHubInstallResult(params: {
   pluginId: string;
   packageName: string;
   version: string;
   channel: string;
-}): Awaited<ReturnType<typeof installPluginFromClawHub>> {
+}): Awaited<ReturnType<typeof installPluginFromKovaHub>> {
   return {
     ok: true,
     pluginId: params.pluginId,
     targetDir: cliInstallPath(params.pluginId),
     version: params.version,
     packageName: params.packageName,
-    clawhub: {
-      source: "clawhub",
-      clawhubUrl: "https://clawhub.ai",
-      clawhubPackage: params.packageName,
-      clawhubFamily: "code-plugin",
-      clawhubChannel: params.channel,
+    kovahub: {
+      source: "kovahub",
+      kovahubUrl: "https://kovahub.ai",
+      kovahubPackage: params.packageName,
+      kovahubFamily: "code-plugin",
+      kovahubChannel: params.channel,
       version: params.version,
       integrity: "sha256-abc",
       resolvedAt: "2026-03-22T00:00:00.000Z",
@@ -96,10 +96,10 @@ function createNpmPluginInstallResult(
   };
 }
 
-function mockClawHubPackageNotFound(packageName: string) {
-  installPluginFromClawHub.mockResolvedValue({
+function mockKovaHubPackageNotFound(packageName: string) {
+  installPluginFromKovaHub.mockResolvedValue({
     ok: false,
-    error: `ClawHub /api/v1/packages/${packageName} failed (404): Package not found`,
+    error: `KovaHub /api/v1/packages/${packageName} failed (404): Package not found`,
     code: "package_not_found",
   });
 }
@@ -109,7 +109,7 @@ function primeNpmPluginFallback(pluginId = "demo") {
   const enabledCfg = createEnabledPluginConfig(pluginId);
 
   loadConfig.mockReturnValue(cfg);
-  mockClawHubPackageNotFound(pluginId);
+  mockKovaHubPackageNotFound(pluginId);
   installPluginFromNpmSpec.mockResolvedValue(createNpmPluginInstallResult(pluginId));
   enablePluginInConfig.mockReturnValue({ config: enabledCfg });
   recordPluginInstall.mockReturnValue(enabledCfg);
@@ -121,7 +121,7 @@ function primeNpmPluginFallback(pluginId = "demo") {
   return { cfg, enabledCfg };
 }
 
-function createPathHookPackInstalledConfig(tmpRoot: string): OpenClawConfig {
+function createPathHookPackInstalledConfig(tmpRoot: string): KovaConfig {
   return {
     hooks: {
       internal: {
@@ -134,10 +134,10 @@ function createPathHookPackInstalledConfig(tmpRoot: string): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
-function createNpmHookPackInstalledConfig(): OpenClawConfig {
+function createNpmHookPackInstalledConfig(): KovaConfig {
   return {
     hooks: {
       internal: {
@@ -149,7 +149,7 @@ function createNpmHookPackInstalledConfig(): OpenClawConfig {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function createHookPackInstallResult(targetDir: string): {
@@ -169,14 +169,14 @@ function createHookPackInstallResult(targetDir: string): {
 }
 
 function primeHookPackNpmFallback() {
-  const cfg = {} as OpenClawConfig;
+  const cfg = {} as KovaConfig;
   const installedCfg = createNpmHookPackInstalledConfig();
 
   loadConfig.mockReturnValue(cfg);
-  mockClawHubPackageNotFound("@acme/demo-hooks");
+  mockKovaHubPackageNotFound("@acme/demo-hooks");
   installPluginFromNpmSpec.mockResolvedValue({
     ok: false,
-    error: "package.json missing openclaw.plugin.json",
+    error: "package.json missing kova.plugin.json",
   });
   installHooksFromNpmSpec.mockResolvedValue({
     ...createHookPackInstallResult("/tmp/hooks/demo-hooks"),
@@ -196,8 +196,8 @@ function primeBlockedNpmPluginInstall(params: {
   pluginId: string;
   code?: "security_scan_blocked" | "security_scan_failed";
 }) {
-  loadConfig.mockReturnValue({} as OpenClawConfig);
-  mockClawHubPackageNotFound(params.spec);
+  loadConfig.mockReturnValue({} as KovaConfig);
+  mockKovaHubPackageNotFound(params.spec);
   installPluginFromNpmSpec.mockResolvedValue({
     ok: false,
     error: `Plugin "${params.pluginId}" installation blocked: dangerous code patterns detected: finding details`,
@@ -208,10 +208,10 @@ function primeBlockedNpmPluginInstall(params: {
 function primeHookPackPathFallback(params: {
   tmpRoot: string;
   pluginInstallError: string;
-}): OpenClawConfig {
+}): KovaConfig {
   const installedCfg = createPathHookPackInstalledConfig(params.tmpRoot);
 
-  loadConfig.mockReturnValue({} as OpenClawConfig);
+  loadConfig.mockReturnValue({} as KovaConfig);
   installPluginFromPath.mockResolvedValueOnce({
     ok: false,
     error: params.pluginInstallError,
@@ -282,7 +282,7 @@ describe("plugins cli install", () => {
       throw invalidConfigErr;
     });
     readConfigFileSnapshot.mockResolvedValue({
-      path: "/tmp/openclaw-config.json5",
+      path: "/tmp/kova-config.json5",
       exists: true,
       raw: '{ "models": { "default": 123 } }',
       parsed: { models: { default: 123 } },
@@ -298,7 +298,7 @@ describe("plugins cli install", () => {
     await expect(runPluginsCommand(["plugins", "install", "alpha"])).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors.at(-1)).toContain(
-      "Config invalid; run `openclaw doctor --fix` before installing plugins.",
+      "Config invalid; run `kova doctor --fix` before installing plugins.",
     );
     expect(installPluginFromMarketplace).not.toHaveBeenCalled();
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
@@ -310,7 +310,7 @@ describe("plugins cli install", () => {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = {
       plugins: {
         entries: {
@@ -319,7 +319,7 @@ describe("plugins cli install", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     loadConfig.mockReturnValue(cfg);
     installPluginFromMarketplace.mockResolvedValue({
       ok: true,
@@ -375,17 +375,17 @@ describe("plugins cli install", () => {
     );
   });
 
-  it("installs ClawHub plugins and persists source metadata", async () => {
+  it("installs KovaHub plugins and persists source metadata", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
     loadConfig.mockReturnValue(cfg);
-    parseClawHubPluginSpec.mockReturnValue({ name: "demo" });
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    parseKovaHubPluginSpec.mockReturnValue({ name: "demo" });
+    installPluginFromKovaHub.mockResolvedValue(
+      createKovaHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -398,22 +398,22 @@ describe("plugins cli install", () => {
       warnings: [],
     });
 
-    await runPluginsCommand(["plugins", "install", "clawhub:demo"]);
+    await runPluginsCommand(["plugins", "install", "kovahub:demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "kovahub:demo",
       }),
     );
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
-        source: "clawhub",
-        spec: "clawhub:demo",
+        source: "kovahub",
+        spec: "kovahub:demo",
         installPath: cliInstallPath("demo"),
         version: "1.2.3",
-        clawhubPackage: "demo",
-        clawhubFamily: "code-plugin",
-        clawhubChannel: "official",
+        kovahubPackage: "demo",
+        kovahubFamily: "code-plugin",
+        kovahubChannel: "official",
       }),
     });
     expect(writeConfigFile).toHaveBeenCalledWith(enabledCfg);
@@ -435,12 +435,12 @@ describe("plugins cli install", () => {
           paths: ["/existing/plugin"],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     loadConfig.mockReturnValue(cfg);
 
     await runPluginsCommand(["plugins", "install", "memory-lancedb"]);
 
-    const writtenConfig = writeConfigFile.mock.calls.at(-1)?.[0] as OpenClawConfig;
+    const writtenConfig = writeConfigFile.mock.calls.at(-1)?.[0] as KovaConfig;
     expect(writtenConfig.plugins?.entries?.["memory-lancedb"]).toBeUndefined();
     expect(writtenConfig.plugins?.load?.paths).toEqual(
       expect.arrayContaining(["/existing/plugin", expect.stringContaining("memory-lancedb")]),
@@ -457,18 +457,18 @@ describe("plugins cli install", () => {
     expect(runtimeLogs.some((line) => line.includes("requires configuration first"))).toBe(true);
   });
 
-  it("passes force through as overwrite mode for ClawHub installs", async () => {
+  it("passes force through as overwrite mode for KovaHub installs", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
 
     loadConfig.mockReturnValue(cfg);
-    parseClawHubPluginSpec.mockReturnValue({ name: "demo" });
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    parseKovaHubPluginSpec.mockReturnValue({ name: "demo" });
+    installPluginFromKovaHub.mockResolvedValue(
+      createKovaHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -482,28 +482,28 @@ describe("plugins cli install", () => {
       warnings: [],
     });
 
-    await runPluginsCommand(["plugins", "install", "clawhub:demo", "--force"]);
+    await runPluginsCommand(["plugins", "install", "kovahub:demo", "--force"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "kovahub:demo",
         mode: "update",
       }),
     );
   });
 
-  it("keeps explicit ClawHub versions pinned in install records", async () => {
+  it("keeps explicit KovaHub versions pinned in install records", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
 
     loadConfig.mockReturnValue(cfg);
-    parseClawHubPluginSpec.mockReturnValue({ name: "demo", version: "1.2.3" });
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    parseKovaHubPluginSpec.mockReturnValue({ name: "demo", version: "1.2.3" });
+    installPluginFromKovaHub.mockResolvedValue(
+      createKovaHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -516,34 +516,34 @@ describe("plugins cli install", () => {
       warnings: [],
     });
 
-    await runPluginsCommand(["plugins", "install", "clawhub:demo@1.2.3"]);
+    await runPluginsCommand(["plugins", "install", "kovahub:demo@1.2.3"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo@1.2.3",
+        spec: "kovahub:demo@1.2.3",
       }),
     );
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
-        source: "clawhub",
-        spec: "clawhub:demo@1.2.3",
+        source: "kovahub",
+        spec: "kovahub:demo@1.2.3",
         installPath: cliInstallPath("demo"),
         version: "1.2.3",
-        clawhubPackage: "demo",
+        kovahubPackage: "demo",
       }),
     });
   });
 
-  it("prefers ClawHub before npm for bare plugin specs", async () => {
+  it("prefers KovaHub before npm for bare plugin specs", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    installPluginFromKovaHub.mockResolvedValue(
+      createKovaHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3",
@@ -558,34 +558,34 @@ describe("plugins cli install", () => {
 
     await runPluginsCommand(["plugins", "install", "demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "kovahub:demo",
       }),
     );
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
-        source: "clawhub",
-        spec: "clawhub:demo",
+        source: "kovahub",
+        spec: "kovahub:demo",
         installPath: cliInstallPath("demo"),
         version: "1.2.3",
-        clawhubPackage: "demo",
+        kovahubPackage: "demo",
       }),
     });
     expect(writeConfigFile).toHaveBeenCalledWith(enabledCfg);
   });
 
-  it("keeps explicit bare ClawHub selectors in install records", async () => {
+  it("keeps explicit bare KovaHub selectors in install records", async () => {
     const cfg = {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue(
-      createClawHubInstallResult({
+    installPluginFromKovaHub.mockResolvedValue(
+      createKovaHubInstallResult({
         pluginId: "demo",
         packageName: "demo",
         version: "1.2.3-beta.1",
@@ -600,29 +600,29 @@ describe("plugins cli install", () => {
 
     await runPluginsCommand(["plugins", "install", "demo@beta"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo@beta",
+        spec: "kovahub:demo@beta",
       }),
     );
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
-        source: "clawhub",
-        spec: "clawhub:demo@beta",
+        source: "kovahub",
+        spec: "kovahub:demo@beta",
         version: "1.2.3-beta.1",
-        clawhubPackage: "demo",
+        kovahubPackage: "demo",
       }),
     });
   });
 
-  it("falls back to npm when ClawHub does not have the package", async () => {
+  it("falls back to npm when KovaHub does not have the package", async () => {
     primeNpmPluginFallback();
 
     await runPluginsCommand(["plugins", "install", "demo"]);
 
-    expect(installPluginFromClawHub).toHaveBeenCalledWith(
+    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
       expect.objectContaining({
-        spec: "clawhub:demo",
+        spec: "kovahub:demo",
       }),
     );
     expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
@@ -653,7 +653,7 @@ describe("plugins cli install", () => {
         mode: "install",
       }),
     );
-    expect(installPluginFromClawHub).not.toHaveBeenCalled();
+    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
         source: "npm",
@@ -664,7 +664,7 @@ describe("plugins cli install", () => {
     expect(writeConfigFile).toHaveBeenCalledWith(enabledCfg);
   });
 
-  it("passes npm: prefix installs through npm options without ClawHub lookup", async () => {
+  it("passes npm: prefix installs through npm options without KovaHub lookup", async () => {
     const cfg = createEmptyPluginConfig();
     const enabledCfg = createEnabledPluginConfig("demo");
 
@@ -688,30 +688,30 @@ describe("plugins cli install", () => {
         dangerouslyForceUnsafeInstall: true,
       }),
     );
-    expect(installPluginFromClawHub).not.toHaveBeenCalled();
+    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
   });
 
-  it("reports npm install failures without trying ClawHub when npm: prefix is used", async () => {
-    loadConfig.mockReturnValue({} as OpenClawConfig);
+  it("reports npm install failures without trying KovaHub when npm: prefix is used", async () => {
+    loadConfig.mockReturnValue({} as KovaConfig);
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: "npm install failed",
     });
     installHooksFromNpmSpec.mockResolvedValue({
       ok: false,
-      error: "package.json missing openclaw.hooks",
+      error: "package.json missing kova.hooks",
     });
 
     await expect(runPluginsCommand(["plugins", "install", "npm:demo"])).rejects.toThrow(
       "__exit__:1",
     );
 
-    expect(installPluginFromClawHub).not.toHaveBeenCalled();
+    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("npm install failed");
   });
 
   it("does not resolve npm: prefixed bundled plugin ids through bundled installs", async () => {
-    loadConfig.mockReturnValue({ plugins: { load: { paths: [] } } } as OpenClawConfig);
+    loadConfig.mockReturnValue({ plugins: { load: { paths: [] } } } as KovaConfig);
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: "Package not found on npm: memory-lancedb.",
@@ -719,7 +719,7 @@ describe("plugins cli install", () => {
     });
     installHooksFromNpmSpec.mockResolvedValue({
       ok: false,
-      error: "package.json missing openclaw.hooks",
+      error: "package.json missing kova.hooks",
     });
 
     await expect(runPluginsCommand(["plugins", "install", "npm:memory-lancedb"])).rejects.toThrow(
@@ -731,18 +731,18 @@ describe("plugins cli install", () => {
         spec: "memory-lancedb",
       }),
     );
-    expect(installPluginFromClawHub).not.toHaveBeenCalled();
+    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(writeConfigFile).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("Package not found on npm: memory-lancedb.");
   });
 
   it("rejects empty npm: prefix installs before resolver lookup", async () => {
-    loadConfig.mockReturnValue({} as OpenClawConfig);
+    loadConfig.mockReturnValue({} as KovaConfig);
 
     await expect(runPluginsCommand(["plugins", "install", "npm:"])).rejects.toThrow("__exit__:1");
 
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
-    expect(installPluginFromClawHub).not.toHaveBeenCalled();
+    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("unsupported npm: spec: missing package");
   });
 
@@ -785,9 +785,9 @@ describe("plugins cli install", () => {
       plugins: {
         entries: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-link-"));
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-plugin-link-"));
 
     loadConfig.mockReturnValue(cfg);
     installPluginFromPath.mockResolvedValueOnce({
@@ -826,7 +826,7 @@ describe("plugins cli install", () => {
   });
 
   it("passes dangerous force unsafe install to linked hook-pack probe fallback", async () => {
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-hook-link-"));
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-hook-link-"));
     primeHookPackPathFallback({
       tmpRoot,
       pluginInstallError: "plugin install probe failed",
@@ -854,10 +854,10 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for linked path when a no-flag security scan blocks", async () => {
-    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-link-plugin-"));
+    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-link-plugin-"));
     const pluginInstallError = "plugin blocked by security scan";
 
-    loadConfig.mockReturnValue({} as OpenClawConfig);
+    loadConfig.mockReturnValue({} as KovaConfig);
     installPluginFromPath.mockResolvedValue({
       ok: false,
       error: pluginInstallError,
@@ -878,7 +878,7 @@ describe("plugins cli install", () => {
   });
 
   it("passes dangerous force unsafe install to local hook-pack fallback installs", async () => {
-    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-hook-install-"));
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-hook-install-"));
     primeHookPackPathFallback({
       tmpRoot,
       pluginInstallError: "plugin install failed",
@@ -917,16 +917,15 @@ describe("plugins cli install", () => {
   });
 
   it("suggests update or --force when npm plugin install target already exists", async () => {
-    loadConfig.mockReturnValue({} as OpenClawConfig);
-    mockClawHubPackageNotFound("@example/lossless-claw");
+    loadConfig.mockReturnValue({} as KovaConfig);
+    mockKovaHubPackageNotFound("@example/lossless-claw");
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
-      error:
-        "plugin already exists: /home/openclaw/.openclaw/extensions/lossless-claw (delete it first)",
+      error: "plugin already exists: /home/kova/.kova/extensions/lossless-claw (delete it first)",
     });
     installHooksFromNpmSpec.mockResolvedValue({
       ok: false,
-      error: "package.json missing openclaw.hooks",
+      error: "package.json missing kova.hooks",
     });
 
     await expect(
@@ -934,13 +933,13 @@ describe("plugins cli install", () => {
     ).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors.at(-1)).toContain(
-      "Use `openclaw plugins update <id-or-npm-spec>` to upgrade the tracked plugin, or rerun install with `--force` to replace it.",
+      "Use `kova plugins update <id-or-npm-spec>` to upgrade the tracked plugin, or rerun install with `--force` to replace it.",
     );
     expect(runtimeErrors.at(-1)).not.toContain("Also not a valid hook pack");
   });
 
   it("passes the install logger to the --link dry-run probe", async () => {
-    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-link-plugin-"));
+    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-link-plugin-"));
     const cfg = {
       plugins: {
         entries: {},
@@ -948,7 +947,7 @@ describe("plugins cli install", () => {
           paths: [],
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const enabledCfg = createEnabledPluginConfig("demo");
 
     loadConfig.mockReturnValue(cfg);
@@ -1012,10 +1011,10 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for local path when a no-flag security scan fails", async () => {
-    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-local-plugin-"));
+    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-local-plugin-"));
     const pluginInstallError = "plugin security scan failed";
 
-    loadConfig.mockReturnValue({} as OpenClawConfig);
+    loadConfig.mockReturnValue({} as KovaConfig);
     installPluginFromPath.mockResolvedValue({
       ok: false,
       error: pluginInstallError,
@@ -1036,8 +1035,8 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for local path when dangerous force unsafe install is set", async () => {
-    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-local-plugin-"));
-    const cfg = {} as OpenClawConfig;
+    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-local-plugin-"));
+    const cfg = {} as KovaConfig;
     const pluginInstallError = "plugin blocked by security scan";
 
     loadConfig.mockReturnValue(cfg);
@@ -1065,8 +1064,8 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for local path when security scan fails under dangerous force unsafe install", async () => {
-    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-local-plugin-"));
-    const cfg = {} as OpenClawConfig;
+    const localPluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-local-plugin-"));
+    const cfg = {} as KovaConfig;
     const pluginInstallError = "plugin security scan failed";
 
     loadConfig.mockReturnValue(cfg);
@@ -1094,13 +1093,13 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for npm installs when dangerous force unsafe install is set", async () => {
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
     const pluginInstallError = "plugin blocked by security scan";
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue({
+    installPluginFromKovaHub.mockResolvedValue({
       ok: false,
-      error: "ClawHub /api/v1/packages/demo failed (404): Package not found",
+      error: "KovaHub /api/v1/packages/demo failed (404): Package not found",
       code: "package_not_found",
     });
     installPluginFromNpmSpec.mockResolvedValue({
@@ -1133,13 +1132,13 @@ describe("plugins cli install", () => {
   });
 
   it("does not fall back to hook pack for npm installs when security scan fails under dangerous force unsafe install", async () => {
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
     const pluginInstallError = "plugin security scan failed";
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue({
+    installPluginFromKovaHub.mockResolvedValue({
       ok: false,
-      error: "ClawHub /api/v1/packages/demo failed (404): Package not found",
+      error: "KovaHub /api/v1/packages/demo failed (404): Package not found",
       code: "package_not_found",
     });
     installPluginFromNpmSpec.mockResolvedValue({
@@ -1157,8 +1156,8 @@ describe("plugins cli install", () => {
   });
 
   it("still falls back to local hook pack when dangerous force unsafe install is set for non-security errors", async () => {
-    const localHookDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-local-hook-pack-"));
-    const cfg = {} as OpenClawConfig;
+    const localHookDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-local-hook-pack-"));
+    const cfg = {} as KovaConfig;
     const installedCfg = {
       hooks: {
         internal: {
@@ -1170,13 +1169,13 @@ describe("plugins cli install", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     loadConfig.mockReturnValue(cfg);
     installPluginFromPath.mockResolvedValue({
       ok: false,
-      error: "package.json missing openclaw.plugin.json",
-      code: "missing_openclaw_extensions",
+      error: "package.json missing kova.plugin.json",
+      code: "missing_kova_extensions",
     });
     installHooksFromPath.mockResolvedValue({
       ok: true,
@@ -1207,7 +1206,7 @@ describe("plugins cli install", () => {
   });
 
   it("still falls back to npm hook pack when dangerous force unsafe install is set for non-security errors", async () => {
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
     const installedCfg = {
       hooks: {
         internal: {
@@ -1219,18 +1218,18 @@ describe("plugins cli install", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromClawHub.mockResolvedValue({
+    installPluginFromKovaHub.mockResolvedValue({
       ok: false,
-      error: "ClawHub /api/v1/packages/@acme/demo-hooks failed (404): Package not found",
+      error: "KovaHub /api/v1/packages/@acme/demo-hooks failed (404): Package not found",
       code: "package_not_found",
     });
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
-      error: "package.json missing openclaw.plugin.json",
-      code: "missing_openclaw_extensions",
+      error: "package.json missing kova.plugin.json",
+      code: "missing_kova_extensions",
     });
     installHooksFromNpmSpec.mockResolvedValue({
       ok: true,
@@ -1261,17 +1260,17 @@ describe("plugins cli install", () => {
     expect(runtimeLogs.some((line) => line.includes("Installed hook pack: demo-hooks"))).toBe(true);
   });
 
-  it("does not fall back to npm when ClawHub rejects a real package", async () => {
-    installPluginFromClawHub.mockResolvedValue({
+  it("does not fall back to npm when KovaHub rejects a real package", async () => {
+    installPluginFromKovaHub.mockResolvedValue({
       ok: false,
-      error: 'Use "openclaw skills install demo" instead.',
+      error: 'Use "kova skills install demo" instead.',
       code: "skill_package",
     });
 
     await expect(runPluginsCommand(["plugins", "install", "demo"])).rejects.toThrow("__exit__:1");
 
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
-    expect(runtimeErrors.at(-1)).toContain('Use "openclaw skills install demo" instead.');
+    expect(runtimeErrors.at(-1)).toContain('Use "kova skills install demo" instead.');
   });
 
   it("falls back to installing hook packs from npm specs", async () => {

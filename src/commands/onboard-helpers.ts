@@ -10,7 +10,7 @@ import {
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import { resolveConfigPath } from "../config/paths.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveControlUiLinks } from "../gateway/control-ui-links.js";
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
 import { probeGateway } from "../gateway/probe.js";
@@ -49,7 +49,7 @@ export function guardCancel<T>(value: T | symbol, runtime: RuntimeEnv): T {
   return value;
 }
 
-export function summarizeExistingConfig(config: OpenClawConfig): string {
+export function summarizeExistingConfig(config: KovaConfig): string {
   const rows: string[] = [];
   const defaults = config.agents?.defaults;
   if (defaults?.workspace) {
@@ -136,9 +136,9 @@ export function formatWizardBootScreen(): string {
 }
 
 export function applyWizardMetadata(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   params: { command: string; mode: OnboardMode },
-): OpenClawConfig {
+): KovaConfig {
   const commit =
     normalizeOptionalString(process.env.GIT_COMMIT) ?? normalizeOptionalString(process.env.GIT_SHA);
   return {
@@ -326,7 +326,7 @@ function isLegacyDefaultWorkspace(value: string): boolean {
   );
 }
 
-export function resolveOnboardWorkspaceDefault(config: OpenClawConfig): string {
+export function resolveOnboardWorkspaceDefault(config: KovaConfig): string {
   const configured = config.agents?.defaults?.workspace?.trim();
   if (configured && !isLegacyDefaultWorkspace(configured)) {
     return configured;

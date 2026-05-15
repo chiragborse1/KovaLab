@@ -1,10 +1,10 @@
-import { ToolAuthorizationError } from "openclaw/plugin-sdk/channel-actions";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import { ToolAuthorizationError } from "getkova/plugin-sdk/channel-actions";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { resolveWhatsAppAccount } from "./accounts.js";
 import { resolveWhatsAppOutboundTarget } from "./resolve-outbound-target.js";
 
 export function resolveAuthorizedWhatsAppOutboundTarget(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   chatJid: string;
   accountId?: string;
   actionLabel: string;

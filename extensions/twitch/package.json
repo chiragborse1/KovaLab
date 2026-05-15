@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/twitch",
+  "name": "@kovaai/twitch",
   "version": "2.0.0-beta.5",
   "description": "Kova Twitch channel plugin",
   "type": "module",
@@ -9,9 +9,9 @@
     "@twurple/chat": "^8.1.3"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],

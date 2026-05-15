@@ -59,7 +59,7 @@ Client → Gateway:
     "permissions": {},
     "auth": { "token": "…" },
     "locale": "en-US",
-    "userAgent": "openclaw-cli/1.2.3",
+    "userAgent": "kova-cli/1.2.3",
     "device": {
       "id": "device_fingerprint",
       "publicKey": "…",
@@ -183,7 +183,7 @@ roles still need scopes under their own role prefix.
     "permissions": { "camera.capture": true, "screen.record": false },
     "auth": { "token": "…" },
     "locale": "en-US",
-    "userAgent": "openclaw-ios/1.2.3",
+    "userAgent": "kova-ios/1.2.3",
     "device": {
       "id": "device_fingerprint",
       "publicKey": "…",
@@ -453,14 +453,14 @@ enumeration of `src/gateway/server-methods/*.ts`.
   - The response includes eligibility, missing requirements, config checks, and
     sanitized install options without exposing raw secret values.
 - Operators may call `skills.search` and `skills.detail` (`operator.read`) for
-  ClawHub discovery metadata.
+  KovaHub discovery metadata.
 - Operators may call `skills.install` (`operator.admin`) in two modes:
-  - ClawHub mode: `{ source: "clawhub", slug, version?, force? }` installs a
+  - KovaHub mode: `{ source: "kovahub", slug, version?, force? }` installs a
     skill folder into the default agent workspace `skills/` directory.
   - Gateway installer mode: `{ name, installId, dangerouslyForceUnsafeInstall?, timeoutMs? }`
-    runs a declared `metadata.openclaw.install` action on the gateway host.
+    runs a declared `metadata.kova.install` action on the gateway host.
 - Operators may call `skills.update` (`operator.admin`) in two modes:
-  - ClawHub mode updates one tracked slug or all tracked ClawHub installs in
+  - KovaHub mode updates one tracked slug or all tracked KovaHub installs in
     the default agent workspace.
   - Config mode patches `skills.entries.<skillKey>` values such as `enabled`,
     `apiKey`, and `env`.

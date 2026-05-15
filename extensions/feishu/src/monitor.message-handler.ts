@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, HistoryEntry, PluginRuntime, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, HistoryEntry, PluginRuntime, RuntimeEnv } from "../runtime-api.js";
 import type { FeishuMessageEvent } from "./event-types.js";
 import { isMentionForwardRequest } from "./mention.js";
 import {
@@ -17,14 +17,14 @@ function readString(value: unknown): string | undefined {
 }
 
 type FeishuMessageReceiveHandlerContext = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   core: PluginRuntime;
   accountId: string;
   runtime?: RuntimeEnv;
   chatHistories: Map<string, HistoryEntry[]>;
   fireAndForget?: boolean;
   handleMessage: (params: {
-    cfg: ClawdbotConfig;
+    cfg: KovaConfig;
     event: FeishuMessageEvent;
     botOpenId?: string;
     botName?: string;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import { isValidEnvSecretRefId, resolveSecretInputRef } from "../../../config/types.secrets.js";
 import { readGatewayCredentialEnv } from "../../../gateway/credentials.js";
 import type { RuntimeEnv } from "../../../runtime.js";
@@ -8,12 +8,12 @@ import { normalizeGatewayTokenInput, randomToken } from "../../onboard-helpers.j
 import type { OnboardOptions } from "../../onboard-types.js";
 
 export function applyNonInteractiveGatewayConfig(params: {
-  nextConfig: OpenClawConfig;
+  nextConfig: KovaConfig;
   opts: OnboardOptions;
   runtime: RuntimeEnv;
   defaultPort: number;
 }): {
-  nextConfig: OpenClawConfig;
+  nextConfig: KovaConfig;
   port: number;
   bind: string;
   authMode: string;
@@ -54,7 +54,7 @@ export function applyNonInteractiveGatewayConfig(params: {
   let nextConfig = params.nextConfig;
   const explicitGatewayToken = normalizeGatewayTokenInput(opts.gatewayToken);
   const envGatewayToken = normalizeGatewayTokenInput(
-    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN"),
+    readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN"),
   );
   const existingTokenInput = nextConfig.gateway?.auth?.token;
   const existingTokenRef = resolveSecretInputRef({

@@ -28,7 +28,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
       ttlMs: 10_000,
       command: {
-        executable: "/opt/Open Claw/openclaw.mjs",
+        executable: "/opt/Kova/kova.mjs",
         nodeExecutable: "/usr/local/bin/node",
         timeoutMs: 1234,
       },
@@ -41,7 +41,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
     });
     expect(relay.commandForEvent("pre_tool_use")).toBe(
-      "/usr/local/bin/node '/opt/Open Claw/openclaw.mjs' hooks relay --provider codex --relay-id " +
+      "/usr/local/bin/node '/opt/Kova/kova.mjs' hooks relay --provider codex --relay-id " +
         `${relay.relayId} --event pre_tool_use --timeout 1234`,
     );
   });
@@ -348,7 +348,7 @@ describe("native hook relay registry", () => {
     expect(__testing.getNativeHookRelayRegistrationForTests(relay.relayId)).toBeUndefined();
   });
 
-  it("uses the Codex no-op output when no OpenClaw hook decides", async () => {
+  it("uses the Codex no-op output when no Kova hook decides", async () => {
     const relay = registerNativeHookRelay({
       provider: "codex",
       sessionId: "session-1",
@@ -367,7 +367,7 @@ describe("native hook relay registry", () => {
     }
   });
 
-  it("maps Codex PreToolUse to OpenClaw before_tool_call and blocks before execution", async () => {
+  it("maps Codex PreToolUse to Kova before_tool_call and blocks before execution", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "repo policy blocks this command",
@@ -452,7 +452,7 @@ describe("native hook relay registry", () => {
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
   });
 
-  it("maps Codex PostToolUse to OpenClaw after_tool_call observation", async () => {
+  it("maps Codex PostToolUse to Kova after_tool_call observation", async () => {
     const afterToolCall = vi.fn();
     initializeGlobalHookRunner(
       createMockPluginRegistry([{ hookName: "after_tool_call", handler: afterToolCall }]),
@@ -498,7 +498,7 @@ describe("native hook relay registry", () => {
     );
   });
 
-  it("maps Codex MCP PreToolUse to OpenClaw before_tool_call and can block", async () => {
+  it("maps Codex MCP PreToolUse to Kova before_tool_call and can block", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "MCP writes require review",
@@ -525,7 +525,7 @@ describe("native hook relay registry", () => {
         tool_name: "mcp__memory__create_entities",
         tool_use_id: "mcp-call-1",
         tool_input: {
-          entities: [{ name: "OpenClaw", entityType: "project", observations: ["test"] }],
+          entities: [{ name: "Kova", entityType: "project", observations: ["test"] }],
         },
       },
     });
@@ -541,7 +541,7 @@ describe("native hook relay registry", () => {
       expect.objectContaining({
         toolName: "mcp__memory__create_entities",
         params: {
-          entities: [{ name: "OpenClaw", entityType: "project", observations: ["test"] }],
+          entities: [{ name: "Kova", entityType: "project", observations: ["test"] }],
         },
         runId: "run-1",
         toolCallId: "mcp-call-1",
@@ -585,7 +585,7 @@ describe("native hook relay registry", () => {
         tool_name: "mcp__shell__run_command",
         tool_use_id: "mcp-call-security",
         tool_input: {
-          command: "rm -rf /tmp/openclaw-important-state",
+          command: "rm -rf /tmp/kova-important-state",
         },
       },
     });
@@ -601,7 +601,7 @@ describe("native hook relay registry", () => {
       expect.objectContaining({
         toolName: "mcp__shell__run_command",
         params: {
-          command: "rm -rf /tmp/openclaw-important-state",
+          command: "rm -rf /tmp/kova-important-state",
         },
         toolCallId: "mcp-call-security",
       }),
@@ -612,7 +612,7 @@ describe("native hook relay registry", () => {
     );
   });
 
-  it("maps Codex MCP PostToolUse to OpenClaw after_tool_call observation", async () => {
+  it("maps Codex MCP PostToolUse to Kova after_tool_call observation", async () => {
     const afterToolCall = vi.fn();
     initializeGlobalHookRunner(
       createMockPluginRegistry([{ hookName: "after_tool_call", handler: afterToolCall }]),
@@ -635,7 +635,7 @@ describe("native hook relay registry", () => {
         tool_use_id: "mcp-call-2",
         tool_input: { path: "/repo/package.json" },
         tool_response: {
-          content: [{ type: "text", text: '{ "name": "openclaw" }' }],
+          content: [{ type: "text", text: '{ "name": "kova" }' }],
           structuredContent: { bytes: 22 },
         },
       },
@@ -649,7 +649,7 @@ describe("native hook relay registry", () => {
         runId: "run-1",
         toolCallId: "mcp-call-2",
         result: {
-          content: [{ type: "text", text: '{ "name": "openclaw" }' }],
+          content: [{ type: "text", text: '{ "name": "kova" }' }],
           structuredContent: { bytes: 22 },
         },
       }),
@@ -660,7 +660,7 @@ describe("native hook relay registry", () => {
     );
   });
 
-  it("routes Codex MCP PermissionRequest payloads through OpenClaw approval policy", async () => {
+  it("routes Codex MCP PermissionRequest payloads through Kova approval policy", async () => {
     const relay = registerNativeHookRelay({
       provider: "codex",
       agentId: "agent-1",
@@ -682,8 +682,8 @@ describe("native hook relay registry", () => {
         tool_name: "mcp__github__create_issue",
         tool_use_id: "mcp-call-3",
         tool_input: {
-          owner: "openclaw",
-          repo: "openclaw",
+          owner: "kova",
+          repo: "kova",
           title: "Test issue",
         },
       },
@@ -701,8 +701,8 @@ describe("native hook relay registry", () => {
         toolName: "mcp__github__create_issue",
         toolCallId: "mcp-call-3",
         toolInput: {
-          owner: "openclaw",
-          repo: "openclaw",
+          owner: "kova",
+          repo: "kova",
           title: "Test issue",
         },
       }),
@@ -875,7 +875,7 @@ describe("native hook relay registry", () => {
     );
   });
 
-  it("defers PermissionRequest when OpenClaw approval does not decide", async () => {
+  it("defers PermissionRequest when Kova approval does not decide", async () => {
     __testing.setNativeHookRelayPermissionApprovalRequesterForTests(
       vi.fn(async () => "defer" as const),
     );
@@ -986,7 +986,7 @@ describe("native hook relay registry", () => {
         hook_event_name: "PermissionRequest",
         tool_name: "Bash",
         tool_use_id: "reused-call-id",
-        tool_input: { command: "rm -rf /tmp/openclaw-important-state" },
+        tool_input: { command: "rm -rf /tmp/kova-important-state" },
       },
     });
 
@@ -1199,10 +1199,10 @@ describe("native hook relay command builder", () => {
         provider: "codex",
         relayId: "relay-1",
         event: "permission_request",
-        executable: "openclaw",
+        executable: "kova",
       }),
     ).toBe(
-      "openclaw hooks relay --provider codex --relay-id relay-1 --event permission_request --timeout 5000",
+      "kova hooks relay --provider codex --relay-id relay-1 --event permission_request --timeout 5000",
     );
   });
 });

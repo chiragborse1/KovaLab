@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-runtime";
+import type { KovaPluginApi } from "getkova/plugin-sdk/plugin-runtime";
 import {
   jsonResult,
   readNumberParam,
   readStringParam,
-} from "openclaw/plugin-sdk/provider-web-search";
+} from "getkova/plugin-sdk/provider-web-search";
 import { Type } from "typebox";
 import { runTavilySearch } from "./tavily-client.js";
 import { optionalStringEnum } from "./tavily-tool-schema.js";
@@ -46,7 +46,7 @@ const TavilySearchToolSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export function createTavilySearchTool(api: OpenClawPluginApi) {
+export function createTavilySearchTool(api: KovaPluginApi) {
   return {
     name: "tavily_search",
     label: "Tavily Search",

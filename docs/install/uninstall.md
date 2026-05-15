@@ -43,15 +43,15 @@ kova gateway uninstall
 3. Delete state + config:
 
 ```bash
-rm -rf "${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+rm -rf "${KOVA_STATE_DIR:-$HOME/.kova}"
 ```
 
-If you set `OPENCLAW_CONFIG_PATH` to a custom location outside the state dir, delete that file too.
+If you set `KOVA_CONFIG_PATH` to a custom location outside the state dir, delete that file too.
 
 4. Delete your workspace (optional, removes agent files):
 
 ```bash
-rm -rf ~/.openclaw/workspace
+rm -rf ~/.kova/workspace
 ```
 
 5. Remove the CLI install (pick the one you used):
@@ -70,7 +70,7 @@ rm -rf /Applications/Kova.app
 
 Notes:
 
-- If you used profiles (`--profile` / `OPENCLAW_PROFILE`), repeat step 3 for each state dir (defaults are `~/.openclaw-<profile>`).
+- If you used profiles (`--profile` / `KOVA_PROFILE`), repeat step 3 for each state dir (defaults are `~/.kova-<profile>`).
 - In remote mode, the state dir lives on the **gateway host**, so run steps 1-4 there too.
 
 ## Manual service removal (CLI not installed)
@@ -79,22 +79,22 @@ Use this if the gateway service keeps running but `kova` is missing.
 
 ### macOS (launchd)
 
-Default label is `ai.openclaw.gateway` (or `ai.openclaw.<profile>`; legacy `com.openclaw.*` may still exist):
+Default label is `ai.kova.gateway` (or `ai.kova.<profile>`; legacy `com.kova.*` may still exist):
 
 ```bash
-launchctl bootout gui/$UID/ai.openclaw.gateway
-rm -f ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+launchctl bootout gui/$UID/ai.kova.gateway
+rm -f ~/Library/LaunchAgents/ai.kova.gateway.plist
 ```
 
-If you used a profile, replace the label and plist name with `ai.openclaw.<profile>`. Remove any legacy `com.openclaw.*` plists if present.
+If you used a profile, replace the label and plist name with `ai.kova.<profile>`. Remove any legacy `com.kova.*` plists if present.
 
 ### Linux (systemd user unit)
 
-Default unit name is `openclaw-gateway.service` (or `openclaw-gateway-<profile>.service`):
+Default unit name is `kova-gateway.service` (or `kova-gateway-<profile>.service`):
 
 ```bash
-systemctl --user disable --now openclaw-gateway.service
-rm -f ~/.config/systemd/user/openclaw-gateway.service
+systemctl --user disable --now kova-gateway.service
+rm -f ~/.config/systemd/user/kova-gateway.service
 systemctl --user daemon-reload
 ```
 
@@ -105,10 +105,10 @@ The task script lives under your state dir.
 
 ```powershell
 schtasks /Delete /F /TN "Kova Gateway"
-Remove-Item -Force "$env:USERPROFILE\.openclaw\gateway.cmd"
+Remove-Item -Force "$env:USERPROFILE\.kova\gateway.cmd"
 ```
 
-If you used a profile, delete the matching task name and `~\.openclaw-<profile>\gateway.cmd`.
+If you used a profile, delete the matching task name and `~\.kova-<profile>\gateway.cmd`.
 
 ## Normal install vs source checkout
 

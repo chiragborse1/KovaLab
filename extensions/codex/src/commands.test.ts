@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { PluginCommandContext } from "openclaw/plugin-sdk/plugin-entry";
+import type { PluginCommandContext } from "getkova/plugin-sdk/plugin-entry";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CODEX_CONTROL_METHODS } from "./app-server/capabilities.js";
 import type { CodexComputerUseStatus } from "./app-server/computer-use.js";
@@ -53,7 +53,7 @@ function createDeps(overrides: Partial<CodexCommandDeps> = {}): Partial<CodexCom
 
 describe("codex command", () => {
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-command-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-codex-command-"));
   });
 
   afterEach(async () => {
@@ -80,7 +80,7 @@ describe("codex command", () => {
     await expect(
       handleCodexCommand(createContext("resume thread-123", sessionFile), { deps }),
     ).resolves.toEqual({
-      text: "Attached this OpenClaw session to Codex thread thread-123.",
+      text: "Attached this Kova session to Codex thread thread-123.",
     });
 
     expect(requests).toEqual([
@@ -309,7 +309,7 @@ describe("codex command", () => {
     await expect(
       handleCodexCommand(createContext("compact", sessionFile), { deps: createDeps() }),
     ).resolves.toEqual({
-      text: "No Codex thread is attached to this OpenClaw session yet.",
+      text: "No Codex thread is attached to this Kova session yet.",
     });
   });
 

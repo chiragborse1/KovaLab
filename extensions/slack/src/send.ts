@@ -1,20 +1,20 @@
 import { type Block, type KnownBlock, type WebClient } from "@slack/web-api";
-import { requireRuntimeConfig, type OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveMarkdownTableMode } from "openclaw/plugin-sdk/config-runtime";
-import { withTrustedEnvProxyGuardedFetchMode } from "openclaw/plugin-sdk/fetch-runtime";
+import { requireRuntimeConfig, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { resolveMarkdownTableMode } from "getkova/plugin-sdk/config-runtime";
+import { withTrustedEnvProxyGuardedFetchMode } from "getkova/plugin-sdk/fetch-runtime";
 import {
   chunkMarkdownTextWithMode,
   isSilentReplyText,
   resolveChunkMode,
   resolveTextChunkLimit,
-} from "openclaw/plugin-sdk/reply-chunking";
-import { resolveTextChunksWithFallback } from "openclaw/plugin-sdk/reply-payload";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+} from "getkova/plugin-sdk/reply-chunking";
+import { resolveTextChunksWithFallback } from "getkova/plugin-sdk/reply-payload";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
+import { fetchWithSsrFGuard } from "getkova/plugin-sdk/ssrf-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import type { SlackTokenSource } from "./accounts.js";
 import { resolveSlackAccount } from "./accounts.js";
 import { buildSlackBlocksFallbackText } from "./blocks-fallback.js";
@@ -50,7 +50,7 @@ export type SlackSendIdentity = {
 };
 
 type SlackSendOpts = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   token?: string;
   accountId?: string;
   mediaUrl?: string;
@@ -394,7 +394,7 @@ export async function sendMessageSlack(
 async function sendMessageSlackQueued(params: {
   trimmedMessage: string;
   opts: SlackSendOpts;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   account: ReturnType<typeof resolveSlackAccount>;
   token: string;
   recipient: SlackRecipient;

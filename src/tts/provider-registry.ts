@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import {
   resolvePluginCapabilityProvider,
   resolvePluginCapabilityProviders,
@@ -16,27 +16,27 @@ export function normalizeSpeechProviderId(
   return normalizeCapabilityProviderId(providerId);
 }
 
-function resolveSpeechProviderPluginEntries(cfg?: OpenClawConfig): SpeechProviderPlugin[] {
+function resolveSpeechProviderPluginEntries(cfg?: KovaConfig): SpeechProviderPlugin[] {
   return resolvePluginCapabilityProviders({
     key: "speechProviders",
     cfg,
   });
 }
 
-function buildProviderMaps(cfg?: OpenClawConfig): {
+function buildProviderMaps(cfg?: KovaConfig): {
   canonical: Map<string, SpeechProviderPlugin>;
   aliases: Map<string, SpeechProviderPlugin>;
 } {
   return buildCapabilityProviderMaps(resolveSpeechProviderPluginEntries(cfg));
 }
 
-export function listSpeechProviders(cfg?: OpenClawConfig): SpeechProviderPlugin[] {
+export function listSpeechProviders(cfg?: KovaConfig): SpeechProviderPlugin[] {
   return [...buildProviderMaps(cfg).canonical.values()];
 }
 
 export function getSpeechProvider(
   providerId: string | undefined,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): SpeechProviderPlugin | undefined {
   const normalized = normalizeSpeechProviderId(providerId);
   if (!normalized) {
@@ -53,7 +53,7 @@ export function getSpeechProvider(
 
 export function canonicalizeSpeechProviderId(
   providerId: string | undefined,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): SpeechProviderId | undefined {
   const normalized = normalizeSpeechProviderId(providerId);
   if (!normalized) {

@@ -62,7 +62,7 @@ Troubleshooting and beacon details: [Bonjour](/gateway/bonjour).
 #### Service beacon details
 
 - Service types:
-  - `_openclaw-gw._tcp` (gateway transport beacon)
+  - `_kova-gw._tcp` (gateway transport beacon)
 - TXT keys (non-secret):
   - `role=gateway`
   - `transport=gateway`
@@ -93,7 +93,7 @@ Disable/override:
 - `KOVA_SSH_PORT` overrides the SSH port advertised when `sshPort` is emitted.
 - `KOVA_TAILNET_DNS` publishes a `tailnetDns` hint (MagicDNS).
 - `KOVA_CLI_PATH` overrides the advertised CLI path.
-- Legacy `OPENCLAW_*` discovery environment variables are honored only when `KOVA_ALLOW_OPENCLAW_COMPAT=1`.
+- Legacy `KOVA_*` discovery environment variables are honored only when `KOVA_COMPAT=1`.
 
 ### 2) Tailnet (cross-network)
 

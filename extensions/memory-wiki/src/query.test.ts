@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../api.js";
+import type { KovaConfig } from "../api.js";
 import { compileMemoryWikiVault } from "./compile.js";
 import type { MemoryWikiPluginConfig } from "./config.js";
 import { renderWikiMarkdown } from "./markdown.js";
@@ -18,11 +18,11 @@ const { getActiveMemorySearchManagerMock, resolveDefaultAgentIdMock, resolveSess
     ),
   }));
 
-vi.mock("openclaw/plugin-sdk/memory-host-search", () => ({
+vi.mock("getkova/plugin-sdk/memory-host-search", () => ({
   getActiveMemorySearchManager: getActiveMemorySearchManagerMock,
 }));
 
-vi.mock("openclaw/plugin-sdk/memory-host-core", () => ({
+vi.mock("getkova/plugin-sdk/memory-host-core", () => ({
   resolveDefaultAgentId: resolveDefaultAgentIdMock,
   resolveSessionAgentId: resolveSessionAgentIdMock,
 }));
@@ -60,12 +60,12 @@ async function createQueryVault(options?: {
   });
 }
 
-function createAppConfig(): OpenClawConfig {
+function createAppConfig(): KovaConfig {
   return {
     agents: {
       list: [{ id: "main", default: true }],
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function createMemoryManager(overrides?: {

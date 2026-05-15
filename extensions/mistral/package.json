@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/mistral-provider",
+  "name": "@kovaai/mistral-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Mistral provider plugin",
@@ -8,9 +8,9 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

@@ -67,7 +67,7 @@ describe("docker build cache layout", () => {
         dockerfile,
         `${path} should use a shared pnpm store cache under the active user's home`,
       ).toMatch(
-        /--mount=type=cache,id=openclaw-pnpm-store,target=\/(?:root|home\/appuser)\/\.local\/share\/pnpm\/store,sharing=locked/,
+        /--mount=type=cache,id=kova-pnpm-store,target=\/(?:root|home\/appuser)\/\.local\/share\/pnpm\/store,sharing=locked/,
       );
     }
   });
@@ -108,10 +108,10 @@ describe("docker build cache layout", () => {
     expect(dockerfile).not.toContain("pnpm install --frozen-lockfile");
     expect(dockerfile).not.toContain("COPY . .");
     expect(dockerfile).toMatch(
-      /^COPY --from=openclaw_package --chown=appuser:appuser openclaw-current\.tgz \/tmp\/openclaw-current\.tgz$/m,
+      /^COPY --from=kova_package --chown=appuser:appuser kova-current\.tgz \/tmp\/kova-current\.tgz$/m,
     );
     expect(dockerfile).toContain(
-      "npm install -g --prefix /tmp/openclaw-prefix /tmp/openclaw-current.tgz --no-fund --no-audit",
+      "npm install -g --prefix /tmp/kova-prefix /tmp/kova-current.tgz --no-fund --no-audit",
     );
   });
 

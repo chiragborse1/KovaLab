@@ -1,6 +1,6 @@
-import { transcribeFirstAudio as transcribeFirstAudioImpl } from "openclaw/plugin-sdk/media-runtime";
+import { transcribeFirstAudio as transcribeFirstAudioImpl } from "getkova/plugin-sdk/media-runtime";
 
-type TranscribeFirstAudio = typeof import("openclaw/plugin-sdk/media-runtime").transcribeFirstAudio;
+type TranscribeFirstAudio = typeof import("getkova/plugin-sdk/media-runtime").transcribeFirstAudio;
 
 export async function transcribeFirstAudio(
   ...args: Parameters<TranscribeFirstAudio>

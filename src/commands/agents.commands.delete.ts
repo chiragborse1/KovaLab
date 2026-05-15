@@ -4,7 +4,7 @@ import { resolveAgentDir, resolveAgentWorkspaceDir } from "../agents/agent-scope
 import { replaceConfigFile } from "../config/config.js";
 import { logConfigUpdated } from "../config/logging.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
@@ -47,7 +47,7 @@ function workspacePathsOverlap(left: string, right: string): boolean {
 }
 
 function findOverlappingWorkspaceAgentIds(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   agentId: string,
   workspaceDir: string,
 ): string[] {

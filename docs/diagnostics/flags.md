@@ -41,13 +41,13 @@ Restart the gateway after changing flags.
 ## Env override (one-off)
 
 ```bash
-OPENCLAW_DIAGNOSTICS=telegram.http,telegram.payload
+KOVA_DIAGNOSTICS=telegram.http,telegram.payload
 ```
 
 Disable all flags:
 
 ```bash
-OPENCLAW_DIAGNOSTICS=0
+KOVA_DIAGNOSTICS=0
 ```
 
 ## Where logs go
@@ -55,7 +55,7 @@ OPENCLAW_DIAGNOSTICS=0
 Flags emit logs into the standard diagnostics log file. By default:
 
 ```
-/tmp/openclaw/openclaw-YYYY-MM-DD.log
+/tmp/chiragborse1/KovaLab-YYYY-MM-DD.log
 ```
 
 If you set `logging.file`, use that path instead. Logs are JSONL (one JSON object per line). Redaction still applies based on `logging.redactSensitive`.
@@ -65,19 +65,19 @@ If you set `logging.file`, use that path instead. Logs are JSONL (one JSON objec
 Pick the latest log file:
 
 ```bash
-ls -t /tmp/openclaw/openclaw-*.log | head -n 1
+ls -t /tmp/chiragborse1/KovaLab-*.log | head -n 1
 ```
 
 Filter for Telegram HTTP diagnostics:
 
 ```bash
-rg "telegram http error" /tmp/openclaw/openclaw-*.log
+rg "telegram http error" /tmp/chiragborse1/KovaLab-*.log
 ```
 
 Or tail while reproducing:
 
 ```bash
-tail -f /tmp/openclaw/openclaw-$(date +%F).log | rg "telegram http error"
+tail -f /tmp/chiragborse1/KovaLab-$(date +%F).log | rg "telegram http error"
 ```
 
 For remote gateways, you can also use `kova logs --follow` (see [/cli/logs](/cli/logs)).

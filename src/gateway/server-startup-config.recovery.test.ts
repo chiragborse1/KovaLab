@@ -1,9 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ConfigFileSnapshot, OpenClawConfig } from "../config/types.js";
+import type { ConfigFileSnapshot, KovaConfig } from "../config/types.js";
 import { buildTestConfigSnapshot } from "./test-helpers.config-snapshots.js";
 
 vi.mock("../config/config.js", () => ({
-  applyConfigOverrides: vi.fn((config: OpenClawConfig) => config),
+  applyConfigOverrides: vi.fn((config: KovaConfig) => config),
   isNixMode: false,
   readConfigFileSnapshot: vi.fn(),
   recoverConfigFromLastKnownGood: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock("../config/config.js", () => ({
       snapshot.issues.every((issue) => issue.path.startsWith("plugins.entries."))
     );
   }),
-  validateConfigObjectWithPlugins: vi.fn((config: OpenClawConfig) => ({
+  validateConfigObjectWithPlugins: vi.fn((config: KovaConfig) => ({
     ok: true,
     config,
     warnings: [],
@@ -40,17 +40,17 @@ let loadGatewayStartupConfigSnapshot: typeof import("./server-startup-config.js"
 let configIo: typeof import("../config/config.js");
 let recoveryNotice: typeof import("./config-recovery-notice.js");
 
-const configPath = "/tmp/openclaw-startup-recovery.json";
+const configPath = "/tmp/kova-startup-recovery.json";
 const validConfig = {
   gateway: {
     mode: "local",
   },
-} as OpenClawConfig;
+} as KovaConfig;
 
 function buildSnapshot(params: {
   valid: boolean;
   raw: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): ConfigFileSnapshot {
   return buildTestConfigSnapshot({
     path: configPath,
@@ -58,7 +58,7 @@ function buildSnapshot(params: {
     raw: params.raw,
     parsed: params.config ?? null,
     valid: params.valid,
-    config: params.config ?? ({} as OpenClawConfig),
+    config: params.config ?? ({} as KovaConfig),
     issues: params.valid ? [] : [{ path: "gateway.mode", message: "Expected 'local' or 'remote'" }],
     legacyIssues: [],
   });
@@ -159,12 +159,12 @@ describe("gateway startup config recovery", () => {
             feishu: { enabled: true },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       issues: [
         {
           path: "plugins.entries.feishu",
           message:
-            "plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load",
+            "plugin feishu: plugin requires Kova >=2026.4.23, but this host is 2026.4.22; skipping load",
         },
       ],
       legacyIssues: [],
@@ -190,11 +190,11 @@ describe("gateway startup config recovery", () => {
     expect(configIo.recoverConfigFromLastKnownGood).not.toHaveBeenCalled();
     expect(configIo.recoverConfigFromJsonRootSuffix).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledWith(
-      `gateway: skipped plugin config validation issue at plugins.entries.feishu: plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load. Run "kova doctor --fix" to quarantine the plugin config.`,
+      `gateway: skipped plugin config validation issue at plugins.entries.feishu: plugin feishu: plugin requires Kova >=2026.4.23, but this host is 2026.4.22; skipping load. Run "kova doctor --fix" to quarantine the plugin config.`,
     );
     expect(log.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        "gateway: config warnings:\n- plugins.entries.feishu: plugin feishu: plugin requires OpenClaw >=2026.4.23",
+        "gateway: config warnings:\n- plugins.entries.feishu: plugin feishu: plugin requires Kova >=2026.4.23",
       ),
     );
     expect(recoveryNotice.enqueueConfigRecoveryNotice).not.toHaveBeenCalled();
@@ -266,7 +266,7 @@ describe("gateway startup config recovery", () => {
             feishu: { enabled: true },
           },
         },
-      } as unknown as OpenClawConfig,
+      } as unknown as KovaConfig,
       issues: [
         {
           path: "gateway.mode",
@@ -324,7 +324,7 @@ describe("gateway startup config recovery", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
     const invalidSnapshot = buildTestConfigSnapshot({
       path: configPath,
       exists: true,

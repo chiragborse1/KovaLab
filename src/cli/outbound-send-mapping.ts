@@ -9,7 +9,7 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
  * Each value is a lazily-loaded send function for that channel.
  */
 export const CLI_OUTBOUND_SEND_FACTORY: unique symbol = Symbol.for(
-  "openclaw.cliOutboundSendFactory",
+  "kova.cliOutboundSendFactory",
 ) as never;
 
 export type CliOutboundSendFactory = (channelId: string) => unknown;

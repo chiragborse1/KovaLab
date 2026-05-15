@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/webhooks",
+  "name": "@kovaai/webhooks",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova webhook bridge plugin",
@@ -8,9 +8,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

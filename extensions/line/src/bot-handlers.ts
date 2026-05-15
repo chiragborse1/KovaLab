@@ -3,31 +3,31 @@ import {
   buildMentionRegexes,
   matchesMentionPatterns,
   resolveInboundMentionDecision,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import { hasControlCommand, resolveControlCommandGate } from "openclaw/plugin-sdk/command-auth";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/channel-inbound";
+import { createChannelPairingChallengeIssuer } from "getkova/plugin-sdk/channel-pairing";
+import { hasControlCommand, resolveControlCommandGate } from "getkova/plugin-sdk/command-auth";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import {
   resolveAllowlistProviderRuntimeGroupPolicy,
   resolveDefaultGroupPolicy,
   warnMissingProviderGroupPolicyFallbackOnce,
-} from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/config-runtime";
 import {
   readChannelAllowFromStore,
   resolvePairingIdLabel,
   upsertChannelPairingRequest,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { evaluateMatchedGroupAccessForPolicy } from "openclaw/plugin-sdk/group-access";
-import { createClaimableDedupe, type ClaimableDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
+} from "getkova/plugin-sdk/conversation-runtime";
+import { evaluateMatchedGroupAccessForPolicy } from "getkova/plugin-sdk/group-access";
+import { createClaimableDedupe, type ClaimableDedupe } from "getkova/plugin-sdk/persistent-dedupe";
 import {
   DEFAULT_GROUP_HISTORY_LIMIT,
   clearHistoryEntriesIfEnabled,
   recordPendingHistoryEntryIfEnabled,
   type HistoryEntry,
-} from "openclaw/plugin-sdk/reply-history";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-import { danger, logVerbose } from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/reply-history";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime";
+import { danger, logVerbose } from "getkova/plugin-sdk/runtime-env";
 import {
   firstDefined,
   isSenderAllowed,
@@ -73,7 +73,7 @@ function isDownloadableLineMessageType(
 }
 
 export interface LineHandlerContext {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   account: ResolvedLineAccount;
   runtime: RuntimeEnv;
   mediaMaxBytes: number;
@@ -401,7 +401,7 @@ function resolveEventRawText(event: MessageEvent | PostbackEvent): string {
 }
 
 function resolveLineCommandAuthorized(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   event: MessageEvent | PostbackEvent;
   senderId?: string;
   allow: NormalizedAllowFrom;

@@ -5,17 +5,17 @@ describe("buildSystemdUnit", () => {
   it("quotes arguments with whitespace", () => {
     const unit = buildSystemdUnit({
       description: "Kova Gateway",
-      programArguments: ["/usr/bin/openclaw", "gateway", "--name", "My Bot"],
+      programArguments: ["/usr/bin/kova", "gateway", "--name", "My Bot"],
       environment: {},
     });
     const execStart = unit.split("\n").find((line) => line.startsWith("ExecStart="));
-    expect(execStart).toBe('ExecStart=/usr/bin/openclaw gateway --name "My Bot"');
+    expect(execStart).toBe('ExecStart=/usr/bin/kova gateway --name "My Bot"');
   });
 
   it("renders control-group kill mode for child-process cleanup", () => {
     const unit = buildSystemdUnit({
       description: "Kova Gateway",
-      programArguments: ["/usr/bin/openclaw", "gateway", "run"],
+      programArguments: ["/usr/bin/kova", "gateway", "run"],
       environment: {},
     });
     expect(unit).toContain("KillMode=control-group");
@@ -31,7 +31,7 @@ describe("buildSystemdUnit", () => {
     expect(() =>
       buildSystemdUnit({
         description: "Kova Gateway",
-        programArguments: ["/usr/bin/openclaw", "gateway", "start"],
+        programArguments: ["/usr/bin/kova", "gateway", "start"],
         environment: {
           INJECT: "ok\nExecStartPre=/bin/touch /tmp/oc15789_rce",
         },
@@ -42,16 +42,16 @@ describe("buildSystemdUnit", () => {
   it("renders EnvironmentFile entries before inline Environment values", () => {
     const unit = buildSystemdUnit({
       description: "Kova Gateway",
-      programArguments: ["/usr/bin/openclaw", "gateway", "run"],
-      environmentFiles: ["/home/test/.openclaw/.env"],
+      programArguments: ["/usr/bin/kova", "gateway", "run"],
+      environmentFiles: ["/home/test/.kova/.env"],
       environment: {
-        OPENCLAW_GATEWAY_PORT: "18789",
+        KOVA_GATEWAY_PORT: "18789",
       },
     });
-    expect(unit).toContain("EnvironmentFile=-/home/test/.openclaw/.env");
-    expect(unit).toContain("Environment=OPENCLAW_GATEWAY_PORT=18789");
-    expect(unit.indexOf("EnvironmentFile=-/home/test/.openclaw/.env")).toBeLessThan(
-      unit.indexOf("Environment=OPENCLAW_GATEWAY_PORT=18789"),
+    expect(unit).toContain("EnvironmentFile=-/home/test/.kova/.env");
+    expect(unit).toContain("Environment=KOVA_GATEWAY_PORT=18789");
+    expect(unit.indexOf("EnvironmentFile=-/home/test/.kova/.env")).toBeLessThan(
+      unit.indexOf("Environment=KOVA_GATEWAY_PORT=18789"),
     );
   });
 });

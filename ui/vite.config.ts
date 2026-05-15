@@ -20,8 +20,7 @@ function normalizeBase(input: string): string {
 
 export default defineConfig(() => {
   const envBase =
-    process.env.KOVA_CONTROL_UI_BASE_PATH?.trim() ??
-    process.env.OPENCLAW_CONTROL_UI_BASE_PATH?.trim();
+    process.env.KOVA_CONTROL_UI_BASE_PATH?.trim() ?? process.env.KOVA_CONTROL_UI_BASE_PATH?.trim();
   const base = envBase ? normalizeBase(envBase) : "./";
   return {
     base,

@@ -1,10 +1,10 @@
 import type {
   ChannelDoctorConfigMutation,
   ChannelDoctorLegacyConfigRule,
-} from "openclaw/plugin-sdk/channel-contract";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/channel-contract";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 
-type ZalouserChannelsConfig = NonNullable<OpenClawConfig["channels"]>;
+type ZalouserChannelsConfig = NonNullable<KovaConfig["channels"]>;
 
 function asObjectRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -61,7 +61,7 @@ function normalizeZalouserGroupAllowAliases(params: {
   return { groups: nextGroups, changed };
 }
 
-function normalizeZalouserCompatibilityConfig(cfg: OpenClawConfig): ChannelDoctorConfigMutation {
+function normalizeZalouserCompatibilityConfig(cfg: KovaConfig): ChannelDoctorConfigMutation {
   const channels = asObjectRecord(cfg.channels);
   const zalouser = asObjectRecord(channels?.zalouser);
   if (!zalouser) {
@@ -150,7 +150,7 @@ export const legacyConfigRules: ChannelDoctorLegacyConfigRule[] = [
 ];
 
 export function normalizeCompatibilityConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): ChannelDoctorConfigMutation {
   return normalizeZalouserCompatibilityConfig(params.cfg);
 }

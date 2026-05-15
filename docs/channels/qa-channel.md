@@ -36,7 +36,7 @@ inspectable.
   "channels": {
     "qa-channel": {
       "baseUrl": "http://127.0.0.1:43123",
-      "botUserId": "openclaw",
+      "botUserId": "kova",
       "botDisplayName": "Kova QA",
       "allowFrom": ["*"],
       "pollTimeoutMs": 1000

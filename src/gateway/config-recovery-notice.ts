@@ -1,6 +1,6 @@
 import path from "node:path";
 import { resolveMainSessionKey } from "../config/sessions/main-session.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
 
 export type ConfigRecoveryNoticePhase = "startup" | "reload";
@@ -10,7 +10,7 @@ export function formatConfigRecoveryNotice(params: {
   reason: string;
   configPath: string;
 }): string {
-  const configName = path.basename(params.configPath) || "openclaw.json";
+  const configName = path.basename(params.configPath) || "kova.json";
   return [
     `Config recovery warning: Kova restored ${configName} from the last-known-good backup during ${params.phase} (${params.reason}).`,
     "The rejected config was invalid and was preserved as a timestamped .clobbered.* file.",
@@ -19,7 +19,7 @@ export function formatConfigRecoveryNotice(params: {
 }
 
 export function enqueueConfigRecoveryNotice(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   phase: ConfigRecoveryNoticePhase;
   reason: string;
   configPath: string;

@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { buildConfiguredAcpSessionKey } from "./persistent-bindings.types.js";
 
 const managerMocks = vi.hoisted(() => ({
@@ -39,7 +39,7 @@ const baseCfg = {
   agents: {
     list: [{ id: "codex" }, { id: "claude" }],
   },
-} satisfies OpenClawConfig;
+} satisfies KovaConfig;
 
 let resetAcpSessionInPlace: typeof import("./persistent-bindings.lifecycle.js").resetAcpSessionInPlace;
 
@@ -68,7 +68,7 @@ describe("resetAcpSessionInPlace", () => {
       agentId: "claude",
       mode: "persistent",
       backend: "acpx",
-      cwd: "/home/bob/clawd",
+      cwd: "/home/bob/kova",
     } as const;
     const sessionKey = buildConfiguredAcpSessionKey(spec);
     resolveMocks.resolveConfiguredAcpBindingSpecBySessionKey.mockReturnValue(spec);
@@ -77,7 +77,7 @@ describe("resetAcpSessionInPlace", () => {
         agent: "claude",
         mode: "persistent",
         backend: "acpx",
-        runtimeOptions: { cwd: "/home/bob/clawd" },
+        runtimeOptions: { cwd: "/home/bob/kova" },
       },
     });
 
@@ -162,7 +162,7 @@ describe("resetAcpSessionInPlace", () => {
       agentId: "claude",
       mode: "persistent",
       backend: "acpx",
-      cwd: "/home/bob/clawd",
+      cwd: "/home/bob/kova",
     } as const;
     const sessionKey = buildConfiguredAcpSessionKey(spec);
     resolveMocks.resolveConfiguredAcpBindingSpecBySessionKey.mockReturnValue(spec);

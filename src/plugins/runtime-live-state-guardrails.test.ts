@@ -14,7 +14,7 @@ const LIVE_RUNTIME_STATE_GUARDS: Record<
   }
 > = {
   [bundledPluginFile("whatsapp", "src/connection-controller-registry.ts")]: {
-    required: ["globalThis", 'Symbol.for("openclaw.whatsapp.connectionControllerRegistry")'],
+    required: ["globalThis", 'Symbol.for("kova.whatsapp.connectionControllerRegistry")'],
     forbidden: ["resolveGlobalSingleton"],
   },
 };

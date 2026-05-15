@@ -1,5 +1,5 @@
 import type { RequestClient } from "@buape/carbon";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { describe, expect, it } from "vitest";
 import { createDiscordRestClient } from "./client.js";
 
@@ -17,7 +17,7 @@ describe("createDiscordRestClient", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = createDiscordRestClient({ cfg, token: "Bot explicit-token", rest: fakeRest });
 
@@ -44,7 +44,7 @@ describe("createDiscordRestClient", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = createDiscordRestClient({
       cfg,
@@ -69,7 +69,7 @@ describe("createDiscordRestClient", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(() => createDiscordRestClient({ cfg, rest: fakeRest })).toThrow(/unresolved SecretRef/i);
   });

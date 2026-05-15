@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import * as conversationRuntime from "openclaw/plugin-sdk/conversation-binding-runtime";
-import type { ResolvedAgentRoute } from "openclaw/plugin-sdk/routing";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import * as conversationRuntime from "getkova/plugin-sdk/conversation-binding-runtime";
+import type { ResolvedAgentRoute } from "getkova/plugin-sdk/routing";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   resolveDiscordBoundConversationRoute,
   resolveDiscordEffectiveRoute,
@@ -27,7 +27,7 @@ export type DiscordNativeInteractionRouteState = {
 };
 
 export async function resolveDiscordNativeInteractionRouteState(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   guildId?: string;
   memberRoleIds?: string[];

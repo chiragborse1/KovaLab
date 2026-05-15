@@ -339,7 +339,7 @@ fun ConnectTabScreen(viewModel: MainViewModel) {
             CommandBlock("kova devices list")
             CommandBlock("kova devices approve <requestId>")
           }
-          Text("Kova Android ${openClawAndroidVersionLabel()}", style = mobileCaption1, color = mobileTextSecondary)
+          Text("Kova Android ${kovaAndroidVersionLabel()}", style = mobileCaption1, color = mobileTextSecondary)
           Button(
             onClick = {
               copyGatewayDiagnosticsReport(
@@ -360,7 +360,7 @@ fun ConnectTabScreen(viewModel: MainViewModel) {
           ) {
             Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Copy Report for Claw", style = mobileCallout.copy(fontWeight = FontWeight.Bold))
+            Text("Copy Report for Kova", style = mobileCallout.copy(fontWeight = FontWeight.Bold))
           }
         }
       }

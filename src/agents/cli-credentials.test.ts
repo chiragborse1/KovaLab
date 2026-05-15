@@ -151,7 +151,7 @@ describe("cli credentials", () => {
   );
 
   it("falls back to the file store when the keychain update fails", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-"));
     const credPath = path.join(tempDir, ".claude", ".credentials.json");
 
     fs.mkdirSync(path.dirname(credPath), { recursive: true, mode: 0o700 });
@@ -241,7 +241,7 @@ describe("cli credentials", () => {
   );
 
   it("reads Codex credentials from keychain when available", async () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-codex-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "kova-codex-"));
     process.env.CODEX_HOME = tempHome;
     const expSeconds = Math.floor(Date.parse("2026-03-23T00:48:49Z") / 1000);
 
@@ -273,7 +273,7 @@ describe("cli credentials", () => {
   });
 
   it("falls back to Codex auth.json when keychain is unavailable", async () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-codex-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "kova-codex-"));
     process.env.CODEX_HOME = tempHome;
     const expSeconds = Math.floor(Date.parse("2026-03-24T12:34:56Z") / 1000);
     execSyncMock.mockImplementation(() => {
@@ -306,7 +306,7 @@ describe("cli credentials", () => {
   });
 
   it("invalidates cached Codex credentials when auth.json changes within the TTL window", () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-codex-cache-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "kova-codex-cache-"));
     process.env.CODEX_HOME = tempHome;
     const authPath = path.join(tempHome, "auth.json");
     const firstExpiry = Math.floor(Date.parse("2026-03-24T12:34:56Z") / 1000);
@@ -366,7 +366,7 @@ describe("cli credentials", () => {
   });
 
   it("lifts Google account identity from the Gemini id_token", () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-gemini-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "kova-gemini-"));
     try {
       const credPath = path.join(tempHome, ".gemini", "oauth_creds.json");
       fs.mkdirSync(path.dirname(credPath), { recursive: true, mode: 0o700 });
@@ -401,7 +401,7 @@ describe("cli credentials", () => {
   });
 
   it("reads Gemini credentials without identity fields when id_token is absent", () => {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-gemini-noid-"));
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "kova-gemini-noid-"));
     try {
       const credPath = path.join(tempHome, ".gemini", "oauth_creds.json");
       fs.mkdirSync(path.dirname(credPath), { recursive: true, mode: 0o700 });

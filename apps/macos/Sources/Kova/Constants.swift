@@ -1,0 +1,51 @@
+import Foundation
+
+// Stable identifier used for both the macOS LaunchAgent label and Nix-managed defaults suite.
+// nix-kova writes app defaults into this suite to survive app bundle identifier churn.
+let launchdLabel = "ai.kova.mac"
+let gatewayLaunchdLabel = "ai.kova.gateway"
+let onboardingVersionKey = "kova.onboardingVersion"
+let onboardingSeenKey = "kova.onboardingSeen"
+let currentOnboardingVersion = 7
+let pauseDefaultsKey = "kova.pauseEnabled"
+let iconAnimationsEnabledKey = "kova.iconAnimationsEnabled"
+let swabbleEnabledKey = "kova.swabbleEnabled"
+let swabbleTriggersKey = "kova.swabbleTriggers"
+let voiceWakeTriggerChimeKey = "kova.voiceWakeTriggerChime"
+let voiceWakeSendChimeKey = "kova.voiceWakeSendChime"
+let showDockIconKey = "kova.showDockIcon"
+let defaultVoiceWakeTriggers = ["kova"]
+let voiceWakeMaxWords = 32
+let voiceWakeMaxWordLength = 64
+let voiceWakeMicKey = "kova.voiceWakeMicID"
+let voiceWakeMicNameKey = "kova.voiceWakeMicName"
+let voiceWakeLocaleKey = "kova.voiceWakeLocaleID"
+let voiceWakeAdditionalLocalesKey = "kova.voiceWakeAdditionalLocaleIDs"
+let voicePushToTalkEnabledKey = "kova.voicePushToTalkEnabled"
+let voiceWakeTriggersTalkModeKey = "kova.voiceWakeTriggersTalkMode"
+let talkEnabledKey = "kova.talkEnabled"
+let talkPhaseSoundsEnabledKey = "kova.talkPhaseSoundsEnabled"
+let talkShiftToStopEnabledKey = "kova.talkShiftToStopEnabled"
+let iconOverrideKey = "kova.iconOverride"
+let connectionModeKey = "kova.connectionMode"
+let remoteTargetKey = "kova.remoteTarget"
+let remoteIdentityKey = "kova.remoteIdentity"
+let remoteProjectRootKey = "kova.remoteProjectRoot"
+let remoteCliPathKey = "kova.remoteCliPath"
+let canvasEnabledKey = "kova.canvasEnabled"
+let cameraEnabledKey = "kova.cameraEnabled"
+let systemRunPolicyKey = "kova.systemRunPolicy"
+let systemRunAllowlistKey = "kova.systemRunAllowlist"
+let systemRunEnabledKey = "kova.systemRunEnabled"
+let locationModeKey = "kova.locationMode"
+let locationPreciseKey = "kova.locationPreciseEnabled"
+let peekabooBridgeEnabledKey = "kova.peekabooBridgeEnabled"
+let deepLinkKeyKey = "kova.deepLinkKey"
+let modelCatalogPathKey = "kova.modelCatalogPath"
+let modelCatalogReloadKey = "kova.modelCatalogReload"
+let cliInstallPromptedVersionKey = "kova.cliInstallPromptedVersion"
+let heartbeatsEnabledKey = "kova.heartbeatsEnabled"
+let debugPaneEnabledKey = "kova.debugPaneEnabled"
+let debugFileLogEnabledKey = "kova.debug.fileLogEnabled"
+let appLogLevelKey = "kova.debug.appLogLevel"
+let voiceWakeSupported: Bool = ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26

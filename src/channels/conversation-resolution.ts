@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveConversationIdFromTargets } from "../infra/outbound/conversation-id.js";
 import { normalizeConversationTargetRef } from "../infra/outbound/session-binding-normalization.js";
 import { getActivePluginChannelRegistry } from "../plugins/runtime.js";
@@ -39,7 +39,7 @@ export type ConversationResolution = {
 };
 
 export type ResolveCommandConversationResolutionInput = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel?: string | null;
   accountId?: string | null;
   chatType?: string | null;
@@ -57,7 +57,7 @@ export type ResolveCommandConversationResolutionInput = {
 };
 
 export type ResolveInboundConversationResolutionInput = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel?: string | null;
   accountId?: string | null;
   to?: string | null;
@@ -155,7 +155,7 @@ function normalizeResolutionTarget(params: {
 function resolveBindingAccountId(params: {
   rawAccountId?: string | null;
   plugin?: ChannelPlugin;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): string {
   return (
     normalizeOptionalString(params.rawAccountId) ||

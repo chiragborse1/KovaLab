@@ -1,5 +1,5 @@
 import type { DmPolicy } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
 import type { ChannelAccessPolicy } from "./setup-group-access.js";
@@ -28,21 +28,21 @@ export type ChannelSetupWizardStatus = {
   configuredScore?: number;
   unconfiguredScore?: number;
   resolveConfigured: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string;
   }) => boolean | Promise<boolean>;
   resolveStatusLines?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string;
     configured: boolean;
   }) => string[] | Promise<string[]>;
   resolveSelectionHint?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string;
     configured: boolean;
   }) => string | undefined | Promise<string | undefined>;
   resolveQuickstartScore?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string;
     configured: boolean;
   }) => number | undefined | Promise<number | undefined>;
@@ -61,7 +61,7 @@ export type ChannelSetupWizardNote = {
   title: string;
   lines: string[];
   shouldShow?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
   }) => boolean | Promise<boolean>;
@@ -70,11 +70,8 @@ export type ChannelSetupWizardNote = {
 export type ChannelSetupWizardEnvShortcut = {
   prompt: string;
   preferredEnvVar?: string;
-  isAvailable: (params: { cfg: OpenClawConfig; accountId: string }) => boolean;
-  apply: (params: {
-    cfg: OpenClawConfig;
-    accountId: string;
-  }) => OpenClawConfig | Promise<OpenClawConfig>;
+  isAvailable: (params: { cfg: KovaConfig; accountId: string }) => boolean;
+  apply: (params: { cfg: KovaConfig; accountId: string }) => KovaConfig | Promise<KovaConfig>;
 };
 
 export type ChannelSetupWizardCredential = {
@@ -87,29 +84,26 @@ export type ChannelSetupWizardCredential = {
   envPrompt: string;
   keepPrompt: string;
   inputPrompt: string;
-  allowEnv?: (params: { cfg: OpenClawConfig; accountId: string }) => boolean;
-  inspect: (params: {
-    cfg: OpenClawConfig;
-    accountId: string;
-  }) => ChannelSetupWizardCredentialState;
+  allowEnv?: (params: { cfg: KovaConfig; accountId: string }) => boolean;
+  inspect: (params: { cfg: KovaConfig; accountId: string }) => ChannelSetupWizardCredentialState;
   shouldPrompt?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
     currentValue?: string;
     state: ChannelSetupWizardCredentialState;
   }) => boolean | Promise<boolean>;
   applyUseEnv?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
-  }) => OpenClawConfig | Promise<OpenClawConfig>;
+  }) => KovaConfig | Promise<KovaConfig>;
   applySet?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
     value: unknown;
     resolvedValue: string;
-  }) => OpenClawConfig | Promise<OpenClawConfig>;
+  }) => KovaConfig | Promise<KovaConfig>;
 };
 
 export type ChannelSetupWizardTextInput = {
@@ -123,17 +117,17 @@ export type ChannelSetupWizardTextInput = {
   confirmCurrentValue?: boolean;
   keepPrompt?: string | ((value: string) => string);
   currentValue?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
   }) => string | undefined | Promise<string | undefined>;
   initialValue?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
   }) => string | undefined | Promise<string | undefined>;
   shouldPrompt?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
     currentValue?: string;
@@ -141,21 +135,21 @@ export type ChannelSetupWizardTextInput = {
   applyCurrentValue?: boolean;
   validate?: (params: {
     value: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
   }) => string | undefined;
   normalizeValue?: (params: {
     value: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
   }) => string;
   applySet?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     value: string;
-  }) => OpenClawConfig | Promise<OpenClawConfig>;
+  }) => KovaConfig | Promise<KovaConfig>;
 };
 
 export type ChannelSetupWizardAllowFromEntry = {
@@ -174,16 +168,16 @@ export type ChannelSetupWizardAllowFrom = {
   parseInputs?: (raw: string) => string[];
   parseId: (raw: string) => string | null;
   resolveEntries: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
     entries: string[];
   }) => Promise<ChannelSetupWizardAllowFromEntry[]>;
   apply: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     allowFrom: string[];
-  }) => OpenClawConfig | Promise<OpenClawConfig>;
+  }) => KovaConfig | Promise<KovaConfig>;
 };
 
 export type ChannelSetupWizardGroupAccess = {
@@ -192,30 +186,30 @@ export type ChannelSetupWizardGroupAccess = {
   helpTitle?: string;
   helpLines?: string[];
   skipAllowlistEntries?: boolean;
-  currentPolicy: (params: { cfg: OpenClawConfig; accountId: string }) => ChannelAccessPolicy;
-  currentEntries: (params: { cfg: OpenClawConfig; accountId: string }) => string[];
-  updatePrompt: (params: { cfg: OpenClawConfig; accountId: string }) => boolean;
+  currentPolicy: (params: { cfg: KovaConfig; accountId: string }) => ChannelAccessPolicy;
+  currentEntries: (params: { cfg: KovaConfig; accountId: string }) => string[];
+  updatePrompt: (params: { cfg: KovaConfig; accountId: string }) => boolean;
   setPolicy: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     policy: ChannelAccessPolicy;
-  }) => OpenClawConfig;
+  }) => KovaConfig;
   resolveAllowlist?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     credentialValues: ChannelSetupWizardCredentialValues;
     entries: string[];
     prompter: Pick<WizardPrompter, "note">;
   }) => Promise<unknown>;
   applyAllowlist?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     resolved: unknown;
-  }) => OpenClawConfig;
+  }) => KovaConfig;
 };
 
 export type ChannelSetupWizardPrepare = (params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   credentialValues: ChannelSetupWizardCredentialValues;
   runtime: ChannelSetupConfigureContext["runtime"];
@@ -223,17 +217,17 @@ export type ChannelSetupWizardPrepare = (params: {
   options?: ChannelSetupConfigureContext["options"];
 }) =>
   | {
-      cfg?: OpenClawConfig;
+      cfg?: KovaConfig;
       credentialValues?: ChannelSetupWizardCredentialValues;
     }
   | void
   | Promise<{
-      cfg?: OpenClawConfig;
+      cfg?: KovaConfig;
       credentialValues?: ChannelSetupWizardCredentialValues;
     } | void>;
 
 export type ChannelSetupWizardFinalize = (params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   credentialValues: ChannelSetupWizardCredentialValues;
   runtime: ChannelSetupConfigureContext["runtime"];
@@ -242,12 +236,12 @@ export type ChannelSetupWizardFinalize = (params: {
   forceAllowFrom: boolean;
 }) =>
   | {
-      cfg?: OpenClawConfig;
+      cfg?: KovaConfig;
       credentialValues?: ChannelSetupWizardCredentialValues;
     }
   | void
   | Promise<{
-      cfg?: OpenClawConfig;
+      cfg?: KovaConfig;
       credentialValues?: ChannelSetupWizardCredentialValues;
     } | void>;
 
@@ -257,7 +251,7 @@ export type ChannelSetupWizard = {
   introNote?: ChannelSetupWizardNote;
   envShortcut?: ChannelSetupWizardEnvShortcut;
   resolveAccountIdForConfigure?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: WizardPrompter;
     options?: ChannelSetupConfigureContext["options"];
     accountOverride?: string;
@@ -266,7 +260,7 @@ export type ChannelSetupWizard = {
     defaultAccountId: string;
   }) => string | Promise<string>;
   resolveShouldPromptAccountIds?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     options?: ChannelSetupConfigureContext["options"];
     shouldPromptAccountIds: boolean;
   }) => boolean;
@@ -279,7 +273,7 @@ export type ChannelSetupWizard = {
   dmPolicy?: ChannelSetupDmPolicy;
   allowFrom?: ChannelSetupWizardAllowFrom;
   groupAccess?: ChannelSetupWizardGroupAccess;
-  disable?: (cfg: OpenClawConfig) => OpenClawConfig;
+  disable?: (cfg: KovaConfig) => KovaConfig;
   onAccountRecorded?: ChannelSetupWizardAdapter["onAccountRecorded"];
 };
 
@@ -303,11 +297,11 @@ export type SetupChannelsOptions = {
 };
 
 export type PromptAccountIdParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   prompter: WizardPrompter;
   label: string;
   currentId?: string;
-  listAccountIds: (cfg: OpenClawConfig) => string[];
+  listAccountIds: (cfg: KovaConfig) => string[];
   defaultAccountId: string;
 };
 
@@ -322,13 +316,13 @@ export type ChannelSetupStatus = {
 };
 
 export type ChannelSetupStatusContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   options?: SetupChannelsOptions;
   accountOverrides: Partial<Record<ChannelId, string>>;
 };
 
 export type ChannelSetupConfigureContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   runtime: RuntimeEnv;
   prompter: WizardPrompter;
   options?: SetupChannelsOptions;
@@ -338,8 +332,8 @@ export type ChannelSetupConfigureContext = {
 };
 
 export type ChannelOnboardingPostWriteContext = {
-  previousCfg: OpenClawConfig;
-  cfg: OpenClawConfig;
+  previousCfg: KovaConfig;
+  cfg: KovaConfig;
   accountId: string;
   runtime: RuntimeEnv;
 };
@@ -347,11 +341,11 @@ export type ChannelOnboardingPostWriteContext = {
 export type ChannelOnboardingPostWriteHook = {
   channel: ChannelId;
   accountId: string;
-  run: (ctx: { cfg: OpenClawConfig; runtime: RuntimeEnv }) => Promise<void> | void;
+  run: (ctx: { cfg: KovaConfig; runtime: RuntimeEnv }) => Promise<void> | void;
 };
 
 export type ChannelSetupResult = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId?: string;
 };
 
@@ -368,16 +362,16 @@ export type ChannelSetupDmPolicy = {
   policyKey: string;
   allowFromKey: string;
   resolveConfigKeys?: (
-    cfg: OpenClawConfig,
+    cfg: KovaConfig,
     accountId?: string,
   ) => { policyKey: string; allowFromKey: string };
-  getCurrent: (cfg: OpenClawConfig, accountId?: string) => DmPolicy;
-  setPolicy: (cfg: OpenClawConfig, policy: DmPolicy, accountId?: string) => OpenClawConfig;
+  getCurrent: (cfg: KovaConfig, accountId?: string) => DmPolicy;
+  setPolicy: (cfg: KovaConfig, policy: DmPolicy, accountId?: string) => KovaConfig;
   promptAllowFrom?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: WizardPrompter;
     accountId?: string;
-  }) => Promise<OpenClawConfig>;
+  }) => Promise<KovaConfig>;
 };
 
 export type ChannelSetupWizardAdapter = {
@@ -393,5 +387,5 @@ export type ChannelSetupWizardAdapter = {
   afterConfigWritten?: (ctx: ChannelOnboardingPostWriteContext) => Promise<void> | void;
   dmPolicy?: ChannelSetupDmPolicy;
   onAccountRecorded?: (accountId: string, options?: SetupChannelsOptions) => void;
-  disable?: (cfg: OpenClawConfig) => OpenClawConfig;
+  disable?: (cfg: KovaConfig) => KovaConfig;
 };

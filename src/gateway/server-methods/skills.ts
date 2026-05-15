@@ -4,21 +4,21 @@ import {
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
 import { canExecRequestNode } from "../../agents/exec-defaults.js";
-import {
-  installSkillFromClawHub,
-  searchSkillsFromClawHub,
-  uninstallSkillFromClawHub,
-  updateSkillsFromClawHub,
-} from "../../agents/skills-clawhub.js";
 import { installSkill } from "../../agents/skills-install.js";
+import {
+  installSkillFromKovaHub,
+  searchSkillsFromKovaHub,
+  uninstallSkillFromKovaHub,
+  updateSkillsFromKovaHub,
+} from "../../agents/skills-kovahub.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
 import { listAgentWorkspaceDirs } from "../../agents/workspace-dirs.js";
 import { replaceConfigFile } from "../../config/config.js";
 import { redactConfigObject, REDACTED_SENTINEL } from "../../config/redact-snapshot.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
-import { fetchClawHubSkillDetail } from "../../infra/clawhub.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { formatErrorMessage } from "../../infra/errors.js";
+import { fetchKovaHubSkillDetail } from "../../infra/kovahub.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -145,7 +145,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       return;
     }
     try {
-      const results = await searchSkillsFromClawHub({
+      const results = await searchSkillsFromKovaHub({
         query: (params as { query?: string }).query,
         limit: (params as { limit?: number }).limit,
       });
@@ -167,7 +167,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       return;
     }
     try {
-      const detail = await fetchClawHubSkillDetail({
+      const detail = await fetchKovaHubSkillDetail({
         slug: (params as { slug: string }).slug,
       });
       respond(true, detail, undefined);
@@ -189,14 +189,14 @@ export const skillsHandlers: GatewayRequestHandlers = {
     }
     const cfg = context.getRuntimeConfig();
     const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-    if (params && typeof params === "object" && "source" in params && params.source === "clawhub") {
+    if (params && typeof params === "object" && "source" in params && params.source === "kovahub") {
       const p = params as {
-        source: "clawhub";
+        source: "kovahub";
         slug: string;
         version?: string;
         force?: boolean;
       };
-      const result = await installSkillFromClawHub({
+      const result = await installSkillFromKovaHub({
         workspaceDir: workspaceDirRaw,
         slug: p.slug,
         version: p.version,
@@ -255,10 +255,10 @@ export const skillsHandlers: GatewayRequestHandlers = {
     const cfg = context.getRuntimeConfig();
     const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
     const p = params as {
-      source: "clawhub";
+      source: "kovahub";
       slug: string;
     };
-    const result = await uninstallSkillFromClawHub({
+    const result = await uninstallSkillFromKovaHub({
       workspaceDir: workspaceDirRaw,
       slug: p.slug,
     });
@@ -288,9 +288,9 @@ export const skillsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    if (params && typeof params === "object" && "source" in params && params.source === "clawhub") {
+    if (params && typeof params === "object" && "source" in params && params.source === "kovahub") {
       const p = params as {
-        source: "clawhub";
+        source: "kovahub";
         slug?: string;
         all?: boolean;
       };
@@ -298,7 +298,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
         respond(
           false,
           undefined,
-          errorShape(ErrorCodes.INVALID_REQUEST, 'clawhub skills.update requires "slug" or "all"'),
+          errorShape(ErrorCodes.INVALID_REQUEST, 'kovahub skills.update requires "slug" or "all"'),
         );
         return;
       }
@@ -308,14 +308,14 @@ export const skillsHandlers: GatewayRequestHandlers = {
           undefined,
           errorShape(
             ErrorCodes.INVALID_REQUEST,
-            'clawhub skills.update accepts either "slug" or "all", not both',
+            'kovahub skills.update accepts either "slug" or "all", not both',
           ),
         );
         return;
       }
       const cfg = context.getRuntimeConfig();
       const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-      const results = await updateSkillsFromClawHub({
+      const results = await updateSkillsFromKovaHub({
         workspaceDir,
         slug: p.slug,
       });
@@ -326,7 +326,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
           ok: errors.length === 0,
           skillKey: p.slug ?? "*",
           config: {
-            source: "clawhub",
+            source: "kovahub",
             results,
           },
         },
@@ -380,7 +380,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
     }
     entries[p.skillKey] = current;
     skills.entries = entries;
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       ...cfg,
       skills,
     };

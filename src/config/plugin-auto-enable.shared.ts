@@ -22,7 +22,7 @@ import type {
 } from "./plugin-auto-enable.types.js";
 import { ensurePluginAllowlisted } from "./plugins-allowlist.js";
 import { isBlockedObjectKey } from "./prototype-keys.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 export type {
   PluginAutoEnableCandidate,
   PluginAutoEnableResult,
@@ -47,7 +47,7 @@ function resolveAutoEnableProviderPluginIds(
   return Object.fromEntries(entries);
 }
 
-function collectModelRefs(cfg: OpenClawConfig): string[] {
+function collectModelRefs(cfg: KovaConfig): string[] {
   const refs: string[] = [];
   const pushModelRef = (value: unknown) => {
     if (typeof value === "string" && value.trim()) {
@@ -99,7 +99,7 @@ function extractProviderFromModelRef(value: string): string | null {
   return normalizeProviderId(trimmed.slice(0, slash));
 }
 
-function hasConfiguredEmbeddedHarnessRuntime(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function hasConfiguredEmbeddedHarnessRuntime(cfg: KovaConfig, env: NodeJS.ProcessEnv): boolean {
   return collectConfiguredAgentHarnessRuntimes(cfg, env).length > 0;
 }
 
@@ -121,7 +121,7 @@ function resolveAgentHarnessOwnerPluginIds(
     .toSorted((left, right) => left.localeCompare(right));
 }
 
-function isProviderConfigured(cfg: OpenClawConfig, providerId: string): boolean {
+function isProviderConfigured(cfg: KovaConfig, providerId: string): boolean {
   const normalized = normalizeProviderId(providerId);
   const profiles = cfg.auth?.profiles;
   if (profiles && typeof profiles === "object") {
@@ -155,12 +155,12 @@ function isProviderConfigured(cfg: OpenClawConfig, providerId: string): boolean 
   return false;
 }
 
-function hasPluginOwnedWebSearchConfig(cfg: OpenClawConfig, pluginId: string): boolean {
+function hasPluginOwnedWebSearchConfig(cfg: KovaConfig, pluginId: string): boolean {
   const pluginConfig = cfg.plugins?.entries?.[pluginId]?.config;
   return isRecord(pluginConfig) && isRecord(pluginConfig.webSearch);
 }
 
-function hasPluginOwnedWebFetchConfig(cfg: OpenClawConfig, pluginId: string): boolean {
+function hasPluginOwnedWebFetchConfig(cfg: KovaConfig, pluginId: string): boolean {
   const pluginConfig = cfg.plugins?.entries?.[pluginId]?.config;
   return isRecord(pluginConfig) && isRecord(pluginConfig.webFetch);
 }
@@ -176,7 +176,7 @@ function resolvePluginOwnedToolConfigKeys(plugin: PluginManifestRecord): string[
   return Object.keys(properties).filter((key) => key !== "webSearch" && key !== "webFetch");
 }
 
-function hasPluginOwnedToolConfig(cfg: OpenClawConfig, plugin: PluginManifestRecord): boolean {
+function hasPluginOwnedToolConfig(cfg: KovaConfig, plugin: PluginManifestRecord): boolean {
   const pluginConfig = cfg.plugins?.entries?.[plugin.id]?.config;
   if (!isRecord(pluginConfig)) {
     return false;
@@ -282,13 +282,13 @@ function collectPluginIdsForConfiguredChannel(
   return [builtInId ?? claims[0]?.plugin.id ?? normalizedChannelId];
 }
 
-function collectCandidateChannelIds(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): string[] {
+function collectCandidateChannelIds(cfg: KovaConfig, env: NodeJS.ProcessEnv): string[] {
   return listPotentialConfiguredChannelIds(cfg, env).map(
     (channelId) => normalizeChatChannelId(channelId) ?? channelId,
   );
 }
 
-function hasConfiguredWebSearchPluginEntry(cfg: OpenClawConfig): boolean {
+function hasConfiguredWebSearchPluginEntry(cfg: KovaConfig): boolean {
   const entries = cfg.plugins?.entries;
   return (
     !!entries &&
@@ -299,7 +299,7 @@ function hasConfiguredWebSearchPluginEntry(cfg: OpenClawConfig): boolean {
   );
 }
 
-function hasConfiguredWebFetchPluginEntry(cfg: OpenClawConfig): boolean {
+function hasConfiguredWebFetchPluginEntry(cfg: KovaConfig): boolean {
   const entries = cfg.plugins?.entries;
   return (
     !!entries &&
@@ -310,7 +310,7 @@ function hasConfiguredWebFetchPluginEntry(cfg: OpenClawConfig): boolean {
   );
 }
 
-function hasConfiguredPluginConfigEntry(cfg: OpenClawConfig): boolean {
+function hasConfiguredPluginConfigEntry(cfg: KovaConfig): boolean {
   const entries = cfg.plugins?.entries;
   return (
     !!entries &&
@@ -334,7 +334,7 @@ function toolPolicyReferencesBrowser(value: unknown): boolean {
   );
 }
 
-function hasBrowserToolReference(cfg: OpenClawConfig): boolean {
+function hasBrowserToolReference(cfg: KovaConfig): boolean {
   if (toolPolicyReferencesBrowser(cfg.tools)) {
     return true;
   }
@@ -344,7 +344,7 @@ function hasBrowserToolReference(cfg: OpenClawConfig): boolean {
     : false;
 }
 
-function collectConfiguredPluginEntryIds(cfg: OpenClawConfig): string[] {
+function collectConfiguredPluginEntryIds(cfg: KovaConfig): string[] {
   const entries = cfg.plugins?.entries;
   if (!entries || typeof entries !== "object") {
     return [];
@@ -354,7 +354,7 @@ function collectConfiguredPluginEntryIds(cfg: OpenClawConfig): string[] {
     .filter(Boolean);
 }
 
-function resolveRelevantSetupAutoEnablePluginIds(cfg: OpenClawConfig): string[] {
+function resolveRelevantSetupAutoEnablePluginIds(cfg: KovaConfig): string[] {
   const pluginIds = new Set<string>(collectConfiguredPluginEntryIds(cfg));
   if (
     isRecord(cfg.browser) ||
@@ -375,7 +375,7 @@ function resolveRelevantSetupAutoEnablePluginIds(cfg: OpenClawConfig): string[] 
   return [...pluginIds].toSorted((left, right) => left.localeCompare(right));
 }
 
-function hasSetupAutoEnableRelevantConfig(cfg: OpenClawConfig): boolean {
+function hasSetupAutoEnableRelevantConfig(cfg: KovaConfig): boolean {
   const entries = cfg.plugins?.entries;
   if (isRecord(cfg.browser) || isRecord(cfg.acp) || hasBrowserToolReference(cfg)) {
     return true;
@@ -389,16 +389,16 @@ function hasSetupAutoEnableRelevantConfig(cfg: OpenClawConfig): boolean {
   return hasConfiguredPluginConfigEntry(cfg);
 }
 
-function hasPluginEntries(cfg: OpenClawConfig): boolean {
+function hasPluginEntries(cfg: KovaConfig): boolean {
   const entries = cfg.plugins?.entries;
   return !!entries && typeof entries === "object" && Object.keys(entries).length > 0;
 }
 
-function hasPluginAllowlistWithEntries(cfg: OpenClawConfig): boolean {
+function hasPluginAllowlistWithEntries(cfg: KovaConfig): boolean {
   return Array.isArray(cfg.plugins?.allow) && cfg.plugins.allow.length > 0 && hasPluginEntries(cfg);
 }
 
-function hasConfiguredProviderModelOrHarness(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function hasConfiguredProviderModelOrHarness(cfg: KovaConfig, env: NodeJS.ProcessEnv): boolean {
   if (cfg.auth?.profiles && Object.keys(cfg.auth.profiles).length > 0) {
     return true;
   }
@@ -411,7 +411,7 @@ function hasConfiguredProviderModelOrHarness(cfg: OpenClawConfig, env: NodeJS.Pr
   return hasConfiguredEmbeddedHarnessRuntime(cfg, env);
 }
 
-function configMayNeedPluginManifestRegistry(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
+function configMayNeedPluginManifestRegistry(cfg: KovaConfig, env: NodeJS.ProcessEnv): boolean {
   if (hasPluginAllowlistWithEntries(cfg)) {
     return true;
   }
@@ -434,10 +434,7 @@ function configMayNeedPluginManifestRegistry(cfg: OpenClawConfig, env: NodeJS.Pr
   return false;
 }
 
-export function configMayNeedPluginAutoEnable(
-  cfg: OpenClawConfig,
-  env: NodeJS.ProcessEnv,
-): boolean {
+export function configMayNeedPluginAutoEnable(cfg: KovaConfig, env: NodeJS.ProcessEnv): boolean {
   if (hasPluginAllowlistWithEntries(cfg)) {
     return true;
   }
@@ -492,7 +489,7 @@ export function resolvePluginAutoEnableCandidateReason(
 }
 
 export function resolveConfiguredPluginAutoEnableCandidates(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env: NodeJS.ProcessEnv;
   registry: PluginManifestRegistry;
 }): PluginAutoEnableCandidate[] {
@@ -598,7 +595,7 @@ export function resolveConfiguredPluginAutoEnableCandidates(params: {
   return changes;
 }
 
-function isPluginExplicitlyDisabled(cfg: OpenClawConfig, pluginId: string): boolean {
+function isPluginExplicitlyDisabled(cfg: KovaConfig, pluginId: string): boolean {
   const builtInChannelId = normalizeChatChannelId(pluginId);
   if (builtInChannelId) {
     const channels = cfg.channels as Record<string, unknown> | undefined;
@@ -615,12 +612,12 @@ function isPluginExplicitlyDisabled(cfg: OpenClawConfig, pluginId: string): bool
   return cfg.plugins?.entries?.[pluginId]?.enabled === false;
 }
 
-function isPluginDenied(cfg: OpenClawConfig, pluginId: string): boolean {
+function isPluginDenied(cfg: KovaConfig, pluginId: string): boolean {
   const deny = cfg.plugins?.deny;
   return Array.isArray(deny) && deny.includes(pluginId);
 }
 
-function isPluginExplicitlySelected(cfg: OpenClawConfig, pluginId: string): boolean {
+function isPluginExplicitlySelected(cfg: KovaConfig, pluginId: string): boolean {
   const allow = cfg.plugins?.allow;
   if (Array.isArray(allow) && allow.includes(pluginId)) {
     return true;
@@ -629,11 +626,11 @@ function isPluginExplicitlySelected(cfg: OpenClawConfig, pluginId: string): bool
 }
 
 function disableImplicitPreferredOverPlugin(params: {
-  config: OpenClawConfig;
-  originalConfig: OpenClawConfig;
+  config: KovaConfig;
+  originalConfig: KovaConfig;
   pluginId: string;
   manifestRegistry: PluginManifestRegistry;
-}): OpenClawConfig {
+}): KovaConfig {
   if (isPluginExplicitlySelected(params.originalConfig, params.pluginId)) {
     return params.config;
   }
@@ -659,7 +656,7 @@ function disableImplicitPreferredOverPlugin(params: {
   };
 }
 
-function isBuiltInChannelAlreadyEnabled(cfg: OpenClawConfig, channelId: string): boolean {
+function isBuiltInChannelAlreadyEnabled(cfg: KovaConfig, channelId: string): boolean {
   const channels = cfg.channels as Record<string, unknown> | undefined;
   const channelConfig = channels?.[channelId];
   return (
@@ -670,7 +667,7 @@ function isBuiltInChannelAlreadyEnabled(cfg: OpenClawConfig, channelId: string):
   );
 }
 
-function registerPluginEntry(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+function registerPluginEntry(cfg: KovaConfig, pluginId: string): KovaConfig {
   const builtInChannelId = normalizeChatChannelId(pluginId);
   if (builtInChannelId) {
     const channels = cfg.channels as Record<string, unknown> | undefined;
@@ -728,10 +725,10 @@ function isKnownPluginId(pluginId: string, manifestRegistry: PluginManifestRegis
 }
 
 function materializeConfiguredPluginEntryAllowlist(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   changes: string[];
   manifestRegistry: PluginManifestRegistry;
-}): OpenClawConfig {
+}): KovaConfig {
   let next = params.config;
   const allow = next.plugins?.allow;
   const entries = next.plugins?.entries;
@@ -785,7 +782,7 @@ function formatAutoEnableChange(
 }
 
 export function resolvePluginAutoEnableManifestRegistry(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env: NodeJS.ProcessEnv;
   manifestRegistry?: PluginManifestRegistry;
 }): PluginManifestRegistry {
@@ -802,7 +799,7 @@ export function resolvePluginAutoEnableManifestRegistry(params: {
 }
 
 export function materializePluginAutoEnableCandidatesInternal(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   candidates: readonly PluginAutoEnableCandidate[];
   env: NodeJS.ProcessEnv;
   manifestRegistry: PluginManifestRegistry;

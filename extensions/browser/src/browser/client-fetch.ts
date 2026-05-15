@@ -1,6 +1,6 @@
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import { fetchWithSsrFGuard } from "getkova/plugin-sdk/ssrf-runtime";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 import { formatCliCommand } from "../cli/command-format.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { isLoopbackHost } from "../gateway/net.js";
@@ -45,7 +45,7 @@ function withLoopbackBrowserAuthImpl(
   if (
     headers.has("authorization") ||
     headers.has("x-kova-password") ||
-    headers.has("x-openclaw-password")
+    headers.has("x-kova-password")
   ) {
     return { ...init, headers };
   }
@@ -125,7 +125,7 @@ function resolveDispatcherBrowserControlOwnership(url: string): BrowserControlOw
     if (!profile) {
       return "unknown";
     }
-    return profile.driver === "openclaw" && profile.cdpIsLoopback && !profile.attachOnly
+    return profile.driver === "kova" && profile.cdpIsLoopback && !profile.attachOnly
       ? "local-managed"
       : "external-browser";
   } catch {
@@ -145,7 +145,7 @@ function resolveBrowserFetchOperatorHint(
   }
   const isLocal = !isAbsoluteHttp(url);
   return isLocal
-    ? `Restart the Kova gateway (or \`${formatCliCommand("openclaw gateway")}\`).`
+    ? `Restart the Kova gateway (or \`${formatCliCommand("kova gateway")}\`).`
     : "If this is a sandboxed session, ensure the sandbox browser is running.";
 }
 

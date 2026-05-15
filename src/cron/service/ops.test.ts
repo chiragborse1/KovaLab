@@ -14,14 +14,14 @@ const { logger, makeStorePath } = setupCronServiceSuite({
 
 function withStateDirForStorePath(storePath: string) {
   const stateRoot = path.dirname(path.dirname(storePath));
-  const originalStateDir = process.env.OPENCLAW_STATE_DIR;
-  process.env.OPENCLAW_STATE_DIR = stateRoot;
+  const originalStateDir = process.env.KOVA_STATE_DIR;
+  process.env.KOVA_STATE_DIR = stateRoot;
   resetTaskRegistryForTests();
   return () => {
     if (originalStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = originalStateDir;
+      process.env.KOVA_STATE_DIR = originalStateDir;
     }
     resetTaskRegistryForTests();
   };
@@ -232,8 +232,8 @@ describe("cron service ops seam coverage", () => {
     const { storePath } = await makeStorePath();
     const stateRoot = path.dirname(path.dirname(storePath));
     const now = Date.parse("2026-03-23T12:00:00.000Z");
-    const originalStateDir = process.env.OPENCLAW_STATE_DIR;
-    process.env.OPENCLAW_STATE_DIR = stateRoot;
+    const originalStateDir = process.env.KOVA_STATE_DIR;
+    process.env.KOVA_STATE_DIR = stateRoot;
     resetTaskRegistryForTests();
 
     await writeDueIsolatedJobSnapshot(storePath, now);
@@ -252,9 +252,9 @@ describe("cron service ops seam coverage", () => {
 
     updateTaskRecordSpy.mockRestore();
     if (originalStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.KOVA_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = originalStateDir;
+      process.env.KOVA_STATE_DIR = originalStateDir;
     }
     resetTaskRegistryForTests();
   });

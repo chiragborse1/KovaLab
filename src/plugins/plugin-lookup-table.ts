@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   resolveChannelPluginIdsFromRegistry,
   resolveConfiguredDeferredChannelPluginIdsFromRegistry,
@@ -59,8 +59,8 @@ export type PluginLookUpTable = {
 };
 
 export type LoadPluginLookUpTableParams = {
-  config: OpenClawConfig;
-  activationSourceConfig?: OpenClawConfig;
+  config: KovaConfig;
+  activationSourceConfig?: KovaConfig;
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
   index?: PluginRegistrySnapshot;

@@ -7,7 +7,7 @@ type PackageJson = {
   version?: string;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
-  openclaw?: {
+  kova?: {
     install?: {
       minHostVersion?: string;
     };
@@ -15,7 +15,7 @@ type PackageJson = {
       pluginApi?: string;
     };
     build?: {
-      openclawVersion?: string;
+      kovaVersion?: string;
     };
   };
 };
@@ -32,7 +32,7 @@ function syncKovaDependencyRange(
   targetVersion: string,
 ): boolean {
   let changed = false;
-  for (const dependencyName of ["getkova", "openclaw"] as const) {
+  for (const dependencyName of ["getkova", "kova"] as const) {
     const current = deps?.[dependencyName];
     if (!current || current === "workspace:*" || !parseComparableRangeFloor(current)) {
       continue;
@@ -48,7 +48,7 @@ function syncKovaDependencyRange(
 }
 
 function syncPluginApiVersion(pkg: PackageJson, targetVersion: string): boolean {
-  const compat = pkg.openclaw?.compat;
+  const compat = pkg.kova?.compat;
   const current = compat?.pluginApi;
   if (!current || !parseComparableRangeFloor(current)) {
     return false;
@@ -62,7 +62,7 @@ function syncPluginApiVersion(pkg: PackageJson, targetVersion: string): boolean 
 }
 
 function syncMinHostVersionFloor(pkg: PackageJson, targetVersion: string): boolean {
-  const install = pkg.openclaw?.install;
+  const install = pkg.kova?.install;
   const current = install?.minHostVersion;
   const currentFloor = current ? parseComparableRangeFloor(current) : null;
   if (!install || !currentFloor) {
@@ -78,16 +78,16 @@ function syncMinHostVersionFloor(pkg: PackageJson, targetVersion: string): boole
   return true;
 }
 
-function syncBuildOpenClawVersion(pkg: PackageJson, targetVersion: string): boolean {
-  const build = pkg.openclaw?.build;
-  const current = build?.openclawVersion;
+function syncBuildKovaVersion(pkg: PackageJson, targetVersion: string): boolean {
+  const build = pkg.kova?.build;
+  const current = build?.kovaVersion;
   if (!current) {
     return false;
   }
   if (current === targetVersion) {
     return false;
   }
-  build.openclawVersion = targetVersion;
+  build.kovaVersion = targetVersion;
   return true;
 }
 
@@ -153,14 +153,14 @@ export function syncPluginVersions(rootDir = resolve(".")) {
     // Lower impossible floors during release-scheme migrations, but keep older valid floors.
     const minHostVersionChanged = syncMinHostVersionFloor(pkg, targetVersion);
     const pluginApiChanged = syncPluginApiVersion(pkg, targetVersion);
-    const buildOpenClawVersionChanged = syncBuildOpenClawVersion(pkg, targetVersion);
+    const buildKovaVersionChanged = syncBuildKovaVersion(pkg, targetVersion);
     const packageChanged =
       versionChanged ||
       devDependencyChanged ||
       peerDependencyChanged ||
       minHostVersionChanged ||
       pluginApiChanged ||
-      buildOpenClawVersionChanged;
+      buildKovaVersionChanged;
     if (!packageChanged) {
       skipped.push(pkg.name);
       continue;

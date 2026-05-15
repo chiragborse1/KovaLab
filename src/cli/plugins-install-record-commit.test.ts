@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 
 const mocks = vi.hoisted(() => ({
@@ -50,7 +50,7 @@ describe("commitConfigWithPendingPluginInstalls", () => {
       },
     };
     mocks.loadInstalledPluginIndexInstallRecords.mockResolvedValue(existingRecords);
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       plugins: {
         entries: {
           demo: { enabled: true },
@@ -139,7 +139,7 @@ describe("commitConfigWithPendingPluginInstalls", () => {
   });
 
   it("uses a plain config write when no pending plugin install records exist", async () => {
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       gateway: {
         mode: "local",
       },
@@ -161,7 +161,7 @@ describe("commitConfigWithPendingPluginInstalls", () => {
 
   it("supports non-replace config writers without adding an undefined write options argument", async () => {
     const writeConfigFile = vi.fn(async () => undefined);
-    const nextConfig: OpenClawConfig = {
+    const nextConfig: KovaConfig = {
       gateway: {
         mode: "local",
       },

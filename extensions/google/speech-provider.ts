@@ -1,19 +1,19 @@
-import { transcodeAudioBufferToOpus } from "openclaw/plugin-sdk/media-runtime";
+import { transcodeAudioBufferToOpus } from "getkova/plugin-sdk/media-runtime";
 import {
   assertOkOrThrowProviderError,
   postJsonRequest,
   sanitizeConfiguredModelProviderRequest,
-} from "openclaw/plugin-sdk/provider-http";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/provider-onboard";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/provider-http";
+import type { KovaConfig } from "getkova/plugin-sdk/provider-onboard";
+import { normalizeResolvedSecretInputString } from "getkova/plugin-sdk/secret-input";
 import type {
   SpeechDirectiveTokenParseContext,
   SpeechProviderConfig,
   SpeechProviderOverrides,
   SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech-core";
-import { asObject, trimToUndefined } from "openclaw/plugin-sdk/speech-core";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/speech-core";
+import { asObject, trimToUndefined } from "getkova/plugin-sdk/speech-core";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { resolveGoogleGenerativeAiHttpRequestConfig } from "./api.js";
 
 const DEFAULT_GOOGLE_TTS_MODEL = "gemini-3.1-flash-tts-preview";
@@ -140,7 +140,7 @@ function resolveGoogleTtsEnvApiKey(): string | undefined {
   );
 }
 
-function resolveGoogleTtsModelProviderApiKey(cfg?: OpenClawConfig): string | undefined {
+function resolveGoogleTtsModelProviderApiKey(cfg?: KovaConfig): string | undefined {
   return normalizeResolvedSecretInputString({
     value: cfg?.models?.providers?.google?.apiKey,
     path: "models.providers.google.apiKey",
@@ -148,7 +148,7 @@ function resolveGoogleTtsModelProviderApiKey(cfg?: OpenClawConfig): string | und
 }
 
 function resolveGoogleTtsApiKey(params: {
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   providerConfig: SpeechProviderConfig;
 }): string | undefined {
   return (
@@ -159,7 +159,7 @@ function resolveGoogleTtsApiKey(params: {
 }
 
 function resolveGoogleTtsBaseUrl(params: {
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   providerConfig: GoogleTtsProviderConfig;
 }): string | undefined {
   return (
@@ -309,7 +309,7 @@ function normalizePromptList(values: readonly string[] | undefined): string[] {
     .filter((value): value is string => Boolean(value));
 }
 
-function isOpenClawGoogleAudioProfilePrompt(text: string): boolean {
+function isKovaGoogleAudioProfilePrompt(text: string): boolean {
   return (
     text.includes("# AUDIO PROFILE:") &&
     text.includes("### TRANSCRIPT") &&
@@ -565,7 +565,7 @@ export function buildGoogleSpeechProvider(): SpeechProviderPlugin {
       const shouldWrap =
         config.promptTemplate === GOOGLE_AUDIO_PROFILE_PROMPT_TEMPLATE ||
         Boolean(config.personaPrompt);
-      if (!shouldWrap || isOpenClawGoogleAudioProfilePrompt(ctx.text)) {
+      if (!shouldWrap || isKovaGoogleAudioProfilePrompt(ctx.text)) {
         return undefined;
       }
       return {

@@ -1,7 +1,7 @@
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/setup";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/setup";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../../test/helpers/plugins/plugin-api.js";
-import type { OpenClawConfig, OpenClawPluginApi } from "../runtime-api.js";
+import type { KovaConfig, KovaPluginApi } from "../runtime-api.js";
 
 vi.mock("../../../test/helpers/config/bundled-channel-config-runtime.js", () => ({
   getBundledChannelRuntimeMap: () => new Map(),
@@ -13,7 +13,7 @@ const normalizeMattermostBaseUrl = vi.hoisted(() => vi.fn((value: string | undef
 const hasConfiguredSecretInput = vi.hoisted(() => vi.fn((value: unknown) => Boolean(value)));
 
 vi.mock("./setup.accounts.runtime.js", () => ({
-  listMattermostAccountIds: vi.fn((cfg: OpenClawConfig) => {
+  listMattermostAccountIds: vi.fn((cfg: KovaConfig) => {
     const accounts = cfg.channels?.mattermost?.accounts;
     const ids = accounts ? Object.keys(accounts) : [];
     return ids.length > 0 ? ids : [DEFAULT_ACCOUNT_ID];
@@ -47,15 +47,15 @@ vi.mock("./setup.secret-input.runtime.js", () => ({
 }));
 
 function createApi(
-  registrationMode: OpenClawPluginApi["registrationMode"],
+  registrationMode: KovaPluginApi["registrationMode"],
   registerHttpRoute = vi.fn(),
-): OpenClawPluginApi {
+): KovaPluginApi {
   return createTestPluginApi({
     id: "mattermost",
     name: "Mattermost",
     source: "test",
     config: {},
-    runtime: {} as OpenClawPluginApi["runtime"],
+    runtime: {} as KovaPluginApi["runtime"],
     registrationMode,
     registerHttpRoute,
   });
@@ -73,7 +73,7 @@ describe("mattermost setup", () => {
     ({ isMattermostConfigured, resolveMattermostAccountWithSecrets, mattermostSetupAdapter } =
       await import("./setup-core.js"));
     plugin = {
-      register(api: OpenClawPluginApi) {
+      register(api: KovaPluginApi) {
         if (api.registrationMode === "full") {
           api.registerHttpRoute({
             path: "/api/channels/mattermost/command",
@@ -261,7 +261,7 @@ describe("mattermost setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     expect(configured).toBe(true);
@@ -286,7 +286,7 @@ describe("mattermost setup", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       accountId: undefined,
     });
 
@@ -300,7 +300,7 @@ describe("mattermost setup", () => {
           channels: {
             mattermost: {},
           },
-        } as OpenClawConfig,
+        } as KovaConfig,
         accountId: "default",
       } as never),
     ).toBe(true);
@@ -318,7 +318,7 @@ describe("mattermost setup", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as KovaConfig,
         accountId: "default",
       } as never),
     ).toBe(false);
@@ -330,14 +330,14 @@ describe("mattermost setup", () => {
 
     expect(
       mattermostSetupWizard.envShortcut?.isAvailable?.({
-        cfg: { channels: { mattermost: {} } } as OpenClawConfig,
+        cfg: { channels: { mattermost: {} } } as KovaConfig,
         accountId: "default",
       } as never),
     ).toBe(true);
 
     expect(
       mattermostSetupWizard.envShortcut?.isAvailable?.({
-        cfg: { channels: { mattermost: {} } } as OpenClawConfig,
+        cfg: { channels: { mattermost: {} } } as KovaConfig,
         accountId: "work",
       } as never),
     ).toBe(false);
@@ -346,7 +346,7 @@ describe("mattermost setup", () => {
   it("keeps env shortcut as a no-op patch for the selected account", () => {
     expect(
       mattermostSetupWizard.envShortcut?.apply?.({
-        cfg: { channels: { mattermost: { enabled: false } } } as OpenClawConfig,
+        cfg: { channels: { mattermost: { enabled: false } } } as KovaConfig,
         accountId: "default",
       } as never),
     ).toEqual({

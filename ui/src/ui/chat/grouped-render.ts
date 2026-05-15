@@ -620,7 +620,7 @@ function extractGroupText(group: MessageGroup): string {
   return parts.join("\n\n");
 }
 
-const SKIP_DELETE_CONFIRM_KEY = "openclaw:skipDeleteConfirm";
+const SKIP_DELETE_CONFIRM_KEY = "kova:skipDeleteConfirm";
 
 type DeleteConfirmSide = "left" | "right";
 
@@ -811,7 +811,7 @@ function renderReplyPill(replyTarget: NormalizedMessage["replyTarget"]) {
 
 function isLocalAssistantAttachmentSource(source: string): boolean {
   const trimmed = source.trim();
-  if (/^\/(?:__kova__|__openclaw__|media|api\/chat\/media\/outgoing)\//.test(trimmed)) {
+  if (/^\/(?:__kova__|__kova__|media|api\/chat\/media\/outgoing)\//.test(trimmed)) {
     return false;
   }
   return (

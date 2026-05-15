@@ -60,7 +60,7 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
       deviceAuth: true,
     },
     onSecurityConfigure: vi.fn(),
-    theme: "claw",
+    theme: "kova",
     themeMode: "system",
     hasCustomTheme: false,
     customThemeLabel: null,
@@ -76,7 +76,7 @@ function createProps(overrides: Partial<QuickSettingsProps> = {}): QuickSettings
     onAdvancedSettings: vi.fn(),
     connected: true,
     gatewayUrl: "ws://localhost:18789",
-    assistantName: "OpenClaw",
+    assistantName: "Kova",
     assistantAvatar: null,
     assistantAvatarUrl: null,
     assistantAvatarSource: null,
@@ -390,7 +390,7 @@ describe("renderQuickSettings", () => {
     render(
       renderQuickSettings(
         createProps({
-          theme: "claw",
+          theme: "kova",
           hasCustomTheme: true,
           setTheme,
           onOpenCustomThemeImport,

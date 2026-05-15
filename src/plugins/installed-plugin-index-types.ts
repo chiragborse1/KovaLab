@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { PluginCompatCode } from "./compat/registry.js";
 import type { PluginCandidate } from "./discovery.js";
@@ -44,10 +44,10 @@ export type InstalledPluginInstallRecordInfo = Pick<
   | "shasum"
   | "resolvedAt"
   | "installedAt"
-  | "clawhubUrl"
-  | "clawhubPackage"
-  | "clawhubFamily"
-  | "clawhubChannel"
+  | "kovahubUrl"
+  | "kovahubPackage"
+  | "kovahubFamily"
+  | "kovahubChannel"
   | "marketplaceName"
   | "marketplaceSource"
   | "marketplacePlugin"
@@ -70,7 +70,7 @@ export type InstalledPluginIndexRecord = {
   /** Hash of the top-level installRecords entry; used to detect source-changed invalidation. */
   installRecordHash?: string;
   /**
-   * Package-authored openclaw.install metadata. This describes catalog/package
+   * Package-authored kova.install metadata. This describes catalog/package
    * install intent and must not be treated as the durable install record.
    */
   packageInstall?: PluginInstallSourceInfo;
@@ -109,7 +109,7 @@ export type InstalledPluginIndex = {
 };
 
 export type LoadInstalledPluginIndexParams = {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   stateDir?: string;

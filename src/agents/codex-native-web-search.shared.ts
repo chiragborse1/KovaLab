@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { isRecord } from "../utils.js";
 
 export type CodexNativeSearchMode = "cached" | "live";
@@ -60,7 +60,7 @@ function normalizeUserLocation(value: unknown): CodexNativeSearchUserLocation | 
 }
 
 export function resolveCodexNativeWebSearchConfig(
-  config: OpenClawConfig | undefined,
+  config: KovaConfig | undefined,
 ): ResolvedCodexNativeWebSearchConfig {
   const nativeConfig = config?.tools?.web?.search?.openaiCodex;
   return {
@@ -72,9 +72,7 @@ export function resolveCodexNativeWebSearchConfig(
   };
 }
 
-export function describeCodexNativeWebSearch(
-  config: OpenClawConfig | undefined,
-): string | undefined {
+export function describeCodexNativeWebSearch(config: KovaConfig | undefined): string | undefined {
   if (config?.tools?.web?.search?.enabled === false) {
     return undefined;
   }

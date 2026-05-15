@@ -160,9 +160,8 @@ const DEFAULT_TIMEOUT_MS = 20 * 60_000;
 const MAX_LOG_CHARS = 8000;
 const PREFLIGHT_MAX_COMMITS = 10;
 const DEFAULT_PACKAGE_NAME = "getkova";
-const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, "openclaw"]);
-const PREFLIGHT_TEMP_PREFIX =
-  process.platform === "win32" ? "ocu-pf-" : "openclaw-update-preflight-";
+const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, "kova"]);
+const PREFLIGHT_TEMP_PREFIX = process.platform === "win32" ? "ocu-pf-" : "kova-update-preflight-";
 const PREFLIGHT_WORKTREE_DIRNAME = process.platform === "win32" ? "wt" : "worktree";
 const PREFLIGHT_CLEANUP_TIMEOUT_MS = 60_000;
 const WINDOWS_PREFLIGHT_BASE_DIR = "ocu";
@@ -407,7 +406,7 @@ async function runStep(opts: RunStepOptions): Promise<UpdateStepResult> {
 }
 
 function normalizeTag(tag?: string) {
-  return normalizePackageTagInput(tag, [DEFAULT_PACKAGE_NAME, "openclaw"]) ?? "latest";
+  return normalizePackageTagInput(tag, [DEFAULT_PACKAGE_NAME, "kova"]) ?? "latest";
 }
 
 function normalizeDevTargetRef(value?: string | null): string | null {
@@ -704,7 +703,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
       status: "error",
       mode: "unknown",
       root: gitRoot,
-      reason: "not-openclaw-root",
+      reason: "not-kova-root",
       steps: [],
       durationMs: Date.now() - startedAt,
     };
@@ -1290,7 +1289,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
       const doctorNodePath = await resolveStableNodePath(process.execPath);
       const doctorArgv = [doctorNodePath, doctorEntry, "doctor", "--non-interactive", "--fix"];
       const doctorStep = await runStep(
-        step("kova doctor", doctorArgv, gitRoot, { OPENCLAW_UPDATE_IN_PROGRESS: "1" }),
+        step("kova doctor", doctorArgv, gitRoot, { KOVA_UPDATE_IN_PROGRESS: "1" }),
       );
       steps.push(doctorStep);
       if (doctorStep.exitCode !== 0) {
@@ -1390,7 +1389,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     return {
       status: "error",
       mode: "unknown",
-      reason: "not-openclaw-root",
+      reason: "not-kova-root",
       steps: [],
       durationMs: Date.now() - startedAt,
     };

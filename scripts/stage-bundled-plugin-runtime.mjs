@@ -77,12 +77,12 @@ function writeJsonFile(targetPath, value) {
   fs.writeFileSync(targetPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-function removeStaleOpenClawSelfReference(sourcePluginNodeModulesDir, repoRoot) {
+function removeStaleKovaSelfReference(sourcePluginNodeModulesDir, repoRoot) {
   if (!fs.existsSync(sourcePluginNodeModulesDir)) {
     return;
   }
 
-  const selfReferencePath = path.join(sourcePluginNodeModulesDir, "openclaw");
+  const selfReferencePath = path.join(sourcePluginNodeModulesDir, "kova");
   try {
     const existing = fs.lstatSync(selfReferencePath);
     if (!existing.isSymbolicLink()) {
@@ -98,17 +98,17 @@ function removeStaleOpenClawSelfReference(sourcePluginNodeModulesDir, repoRoot) 
   }
 }
 
-function ensureOpenClawExtensionAlias(params) {
+function ensureKovaExtensionAlias(params) {
   const pluginSdkDir = path.join(params.repoRoot, "dist", "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(params.distExtensionsRoot, "node_modules", "openclaw");
+  const aliasDir = path.join(params.distExtensionsRoot, "node_modules", "kova");
   const pluginSdkAliasPath = path.join(aliasDir, "plugin-sdk");
   fs.mkdirSync(aliasDir, { recursive: true });
   writeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "openclaw",
+    name: "kova",
     type: "module",
     exports: {
       "./plugin-sdk": "./plugin-sdk/index.js",
@@ -141,14 +141,14 @@ function isPathOrNestedPath(relativePath, nestedPath) {
 }
 
 function isRuntimeDepsStagingDebris(name) {
-  return name.startsWith(".openclaw-runtime-deps-") || name.startsWith(".kova-runtime-deps-");
+  return name.startsWith(".kova-runtime-deps-") || name.startsWith(".kova-runtime-deps-");
 }
 
 function shouldCopyRuntimeFile(relativePath) {
   return (
     isBundledSkillRuntimePath(relativePath) ||
     isPathOrNestedPath(relativePath, "package.json") ||
-    isPathOrNestedPath(relativePath, "openclaw.plugin.json") ||
+    isPathOrNestedPath(relativePath, "kova.plugin.json") ||
     isPathOrNestedPath(relativePath, ".codex-plugin/plugin.json") ||
     isPathOrNestedPath(relativePath, ".claude-plugin/plugin.json") ||
     isPathOrNestedPath(relativePath, ".cursor-plugin/plugin.json") ||
@@ -241,7 +241,7 @@ function linkPluginNodeModules(params) {
   if (!fs.existsSync(params.sourcePluginNodeModulesDir)) {
     return;
   }
-  removeStaleOpenClawSelfReference(params.sourcePluginNodeModulesDir, params.repoRoot);
+  removeStaleKovaSelfReference(params.sourcePluginNodeModulesDir, params.repoRoot);
   ensureSymlink(
     params.sourcePluginNodeModulesDir,
     runtimeNodeModulesDir,
@@ -264,7 +264,7 @@ export function stageBundledPluginRuntime(params = {}) {
 
   removePathIfExists(runtimeRoot);
   fs.mkdirSync(runtimeExtensionsRoot, { recursive: true });
-  ensureOpenClawExtensionAlias({ repoRoot, distExtensionsRoot });
+  ensureKovaExtensionAlias({ repoRoot, distExtensionsRoot });
 
   for (const dirent of fs.readdirSync(distExtensionsRoot, { withFileTypes: true })) {
     if (!dirent.isDirectory() || dirent.name === "node_modules") {

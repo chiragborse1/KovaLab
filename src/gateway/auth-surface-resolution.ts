@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { readGatewayCredentialEnv } from "./credential-planner.js";
 import { trimToUndefined, type ExplicitGatewayAuth } from "./credentials.js";
@@ -16,7 +16,7 @@ type ResolvedGatewayCredential = {
 };
 
 async function resolveGatewayCredential(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env: NodeJS.ProcessEnv;
   diagnostics: string[];
   path: GatewayCredentialPath;
@@ -45,7 +45,7 @@ function withDiagnostics<T extends object>(params: {
 }
 
 export async function resolveGatewayProbeSurfaceAuth(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env?: NodeJS.ProcessEnv;
   surface: "local" | "remote";
 }): Promise<{ token?: string; password?: string; diagnostics?: string[] }> {
@@ -80,12 +80,8 @@ export async function resolveGatewayProbeSurfaceAuth(params: {
     return {};
   }
 
-  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
-  const envPassword = readGatewayCredentialEnv(
-    env,
-    "KOVA_GATEWAY_PASSWORD",
-    "OPENCLAW_GATEWAY_PASSWORD",
-  );
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN");
+  const envPassword = readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD");
 
   if (authMode === "token") {
     const token = await resolveGatewayCredential({
@@ -147,7 +143,7 @@ export async function resolveGatewayProbeSurfaceAuth(params: {
 }
 
 export async function resolveGatewayInteractiveSurfaceAuth(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env?: NodeJS.ProcessEnv;
   explicitAuth?: ExplicitGatewayAuth;
   suppressEnvAuthFallback?: boolean;
@@ -163,10 +159,10 @@ export async function resolveGatewayInteractiveSurfaceAuth(params: {
   const explicitPassword = trimToUndefined(params.explicitAuth?.password);
   const envToken = params.suppressEnvAuthFallback
     ? undefined
-    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN");
   const envPassword = params.suppressEnvAuthFallback
     ? undefined
-    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD");
+    : readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD");
 
   if (params.surface === "remote") {
     const remoteToken = explicitToken

@@ -22,7 +22,7 @@ builds do not need a separate install.
 - If your build excludes bundled Nostr, install it manually.
 
 ```bash
-kova plugins install @openclaw/nostr
+kova plugins install @kovaai/nostr
 ```
 
 Use a local checkout (dev workflows):
@@ -95,14 +95,14 @@ Example:
     nostr: {
       privateKey: "${NOSTR_PRIVATE_KEY}",
       profile: {
-        name: "openclaw",
+        name: "kova",
         displayName: "Kova",
         about: "Personal assistant DM bot",
         picture: "https://example.com/avatar.png",
         banner: "https://example.com/banner.png",
         website: "https://example.com",
-        nip05: "openclaw@example.com",
-        lud16: "openclaw@example.com",
+        nip05: "kova@example.com",
+        lud16: "kova@example.com",
       },
     },
   },

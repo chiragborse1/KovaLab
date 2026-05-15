@@ -31,7 +31,7 @@ No external `zca`/`openzca` CLI binary is required.
 ### Option A: install from npm
 
 ```bash
-kova plugins install @openclaw/zalouser
+kova plugins install @kovaai/zalouser
 ```
 
 Restart the Gateway afterwards.

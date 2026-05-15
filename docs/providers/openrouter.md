@@ -111,11 +111,11 @@ OpenRouter uses a Bearer token with your API key under the hood.
 On real OpenRouter requests (`https://openrouter.ai/api/v1`), Kova also adds
 OpenRouter's documented app-attribution headers:
 
-| Header                    | Value                 |
-| ------------------------- | --------------------- |
-| `HTTP-Referer`            | `https://openclaw.ai` |
-| `X-OpenRouter-Title`      | `Kova`            |
-| `X-OpenRouter-Categories` | `cli-agent`           |
+| Header                    | Value                         |
+| ------------------------- | ----------------------------- |
+| `HTTP-Referer`            | `https://www.neuralstudio.in` |
+| `X-OpenRouter-Title`      | `Kova`                        |
+| `X-OpenRouter-Categories` | `cli-agent`                   |
 
 <Warning>
 If you repoint the OpenRouter provider at some other proxy or base URL, Kova

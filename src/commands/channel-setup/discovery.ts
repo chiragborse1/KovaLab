@@ -7,7 +7,7 @@ import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
 import type { ChannelMeta } from "../../channels/plugins/types.public.js";
 import { isStaticallyChannelConfigured } from "../../config/channel-configured-shared.js";
 import { applyPluginAutoEnable } from "../../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   listPluginContributionIds,
   loadPluginRegistrySnapshot,
@@ -37,12 +37,12 @@ export type ResolvedChannelSetupEntries = {
   installableCatalogById: Map<ChannelChoice, ChannelPluginCatalogEntry>;
 };
 
-function resolveWorkspaceDir(cfg: OpenClawConfig, workspaceDir?: string): string | undefined {
+function resolveWorkspaceDir(cfg: KovaConfig, workspaceDir?: string): string | undefined {
   return workspaceDir ?? resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
 }
 
 export function listManifestInstalledChannelIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): Set<ChannelChoice> {
@@ -68,7 +68,7 @@ export function listManifestInstalledChannelIds(params: {
 }
 
 export function isCatalogChannelInstalled(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   entry: ChannelPluginCatalogEntry;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
@@ -77,7 +77,7 @@ export function isCatalogChannelInstalled(params: {
 }
 
 export function resolveChannelSetupEntries(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   installedPlugins: ChannelPlugin[];
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;

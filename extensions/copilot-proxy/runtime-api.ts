@@ -1,6 +1,6 @@
-export { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+export { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
 export type {
-  OpenClawPluginApi,
+  KovaPluginApi,
   ProviderAuthContext,
   ProviderAuthResult,
-} from "openclaw/plugin-sdk/core";
+} from "getkova/plugin-sdk/core";

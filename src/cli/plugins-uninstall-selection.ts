@@ -1,12 +1,12 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { parseClawHubPluginSpec } from "../infra/clawhub-spec.js";
+import type { KovaConfig } from "../config/types.kova.js";
+import { parseKovaHubPluginSpec } from "../infra/kovahub-spec.js";
 import type { PluginRecord } from "../plugins/registry.js";
 
 export function resolvePluginUninstallId<
   TPlugin extends Pick<PluginRecord, "id" | "name">,
 >(params: {
   rawId: string;
-  config: OpenClawConfig;
+  config: KovaConfig;
   plugins: TPlugin[];
 }): { pluginId: string; plugin?: TPlugin } {
   const rawId = params.rawId.trim();
@@ -26,14 +26,14 @@ export function resolvePluginUninstallId<
     }
   }
 
-  const requestedClawHub = parseClawHubPluginSpec(rawId);
-  if (requestedClawHub) {
+  const requestedKovaHub = parseKovaHubPluginSpec(rawId);
+  if (requestedKovaHub) {
     for (const [pluginId, install] of Object.entries(params.config.plugins?.installs ?? {})) {
-      const installedClawHubName =
-        install.clawhubPackage ??
-        parseClawHubPluginSpec(install.spec ?? "")?.name ??
-        parseClawHubPluginSpec(install.resolvedSpec ?? "")?.name;
-      if (installedClawHubName === requestedClawHub.name) {
+      const installedKovaHubName =
+        install.kovahubPackage ??
+        parseKovaHubPluginSpec(install.spec ?? "")?.name ??
+        parseKovaHubPluginSpec(install.resolvedSpec ?? "")?.name;
+      if (installedKovaHubName === requestedKovaHub.name) {
         return { pluginId };
       }
     }

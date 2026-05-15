@@ -89,6 +89,6 @@ The bundled plugin usually means you only need the API key. Use explicit
 
 <Note>
 If the Gateway runs as a daemon (launchd/systemd), make sure `CEREBRAS_API_KEY`
-is available to that process, for example in `~/.openclaw/.env` or through
+is available to that process, for example in `~/.kova/.env` or through
 `env.shellEnv`.
 </Note>

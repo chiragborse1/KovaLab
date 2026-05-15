@@ -5,7 +5,7 @@ import {
   resolveAgentWorkspaceDir,
 } from "../../../../src/agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../../../../src/agents/memory-search.js";
-import type { OpenClawConfig } from "../../../../src/config/config.js";
+import type { KovaConfig } from "../../../../src/config/config.js";
 import {
   buildMemoryReadResult,
   DEFAULT_MEMORY_READ_LINES,
@@ -119,7 +119,7 @@ export async function readMemoryFile(params: {
 }
 
 export async function readAgentMemoryFile(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   relPath: string;
   from?: number;

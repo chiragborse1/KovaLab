@@ -7,13 +7,13 @@ export const rules = [
     label: "r: skill",
     close: true,
     message:
-      "Thanks for the contribution! New skills should be published on [ClawHub](https://clawhub.ai) for everyone to use. We’re keeping the core lean on skills, so I’m closing this out.",
+      "Thanks for the contribution! New skills should be published on [KovaHub](https://kovahub.ai) for everyone to use. We’re keeping the core lean on skills, so I’m closing this out.",
   },
   {
     label: "r: support",
     close: true,
     message:
-      "Please use [our support server](https://discord.gg/clawd) and ask in #help or #users-helping-users to resolve this, or follow the stuck FAQ at https://docs.openclaw.ai/help/faq#im-stuck-whats-the-fastest-way-to-get-unstuck.",
+      "Please use [our support server](https://discord.gg/kova) and ask in #help or #users-helping-users to resolve this, or follow the stuck FAQ at https://docs.neuralstudio.in/help/faq#im-stuck-whats-the-fastest-way-to-get-unstuck.",
   },
   {
     label: "r: no-ci-pr",
@@ -40,7 +40,7 @@ export const rules = [
     label: "r: third-party-extension",
     close: true,
     message:
-      "Please publish this as a third-party plugin on [ClawHub](https://clawhub.ai) instead of adding it to the core repo. Docs: https://docs.openclaw.ai/plugin and https://docs.openclaw.ai/tools/clawhub",
+      "Please publish this as a third-party plugin on [KovaHub](https://kovahub.ai) instead of adding it to the core repo. Docs: https://docs.neuralstudio.in/plugin and https://docs.neuralstudio.in/tools/kovahub",
   },
   {
     label: "r: moltbook",
@@ -49,14 +49,14 @@ export const rules = [
     lockReason: "off-topic",
     commentTriggers: ["moltbook"],
     message:
-      "OpenClaw is not affiliated with Moltbook, and issues related to Moltbook should not be submitted here.",
+      "Kova is not affiliated with Moltbook, and issues related to Moltbook should not be submitted here.",
   },
 ];
 
 export const managedLabelSpecs = {
   "r: skill": {
     color: "5319E7",
-    description: "Auto-close: skills should be published on ClawHub, not added to core.",
+    description: "Auto-close: skills should be published on KovaHub, not added to core.",
   },
   "r: support": {
     color: "0E8A16",
@@ -80,11 +80,11 @@ export const managedLabelSpecs = {
   },
   "r: third-party-extension": {
     color: "5319E7",
-    description: "Auto-close: third-party plugins/capabilities belong on ClawHub.",
+    description: "Auto-close: third-party plugins/capabilities belong on KovaHub.",
   },
   "r: moltbook": {
     color: "B60205",
-    description: "Auto-close and lock: Moltbook is off-topic for OpenClaw.",
+    description: "Auto-close and lock: Moltbook is off-topic for Kova.",
   },
   "r: spam": {
     color: "B60205",
@@ -132,7 +132,7 @@ export const managedLabelSpecs = {
   },
   "triage: external-plugin-candidate": {
     color: "C5DEF5",
-    description: "Candidate: plugin/capability may belong on ClawHub.",
+    description: "Candidate: plugin/capability may belong on KovaHub.",
   },
 };
 
@@ -171,7 +171,7 @@ const bugSubtypeLabels = Object.keys(bugSubtypeLabelSpecs);
 
 const maintainerTeam = "maintainer";
 const pingWarningMessage =
-  "Please don’t spam-ping multiple maintainers at once. Be patient, or join our community Discord for help: https://discord.gg/clawd";
+  "Please don’t spam-ping multiple maintainers at once. Be patient, or join our community Discord for help: https://discord.gg/kova";
 const mentionRegex = /@([A-Za-z0-9-]+)/g;
 const triggerLabel = "trigger-response";
 const activePrLimitLabel = "r: too-many-prs";
@@ -210,7 +210,7 @@ export function extractIssueFormValue(body, field) {
 }
 
 export function hasLinkedReference(text) {
-  return /(?:#\d+|github\.com\/openclaw\/openclaw\/(?:issues|pull)\/\d+)/i.test(text);
+  return /(?:#\d+|github\.com\/kova\/kova\/(?:issues|pull)\/\d+)/i.test(text);
 }
 
 export function hasFilledTemplateLine(body, field) {
@@ -383,7 +383,7 @@ export function classifyPullRequestCandidateLabels(pullRequest, files) {
     docsOnly &&
     !linkedReference &&
     (discoverabilityDocs ||
-      /\b(community plugin|plugin listing|discoverability|showcase|clawhub)\b/i.test(text))
+      /\b(community plugin|plugin listing|discoverability|showcase|kovahub)\b/i.test(text))
   ) {
     labelsToAdd.push(candidateLabels.docsDiscoverability);
   }
@@ -414,12 +414,12 @@ export function classifyPullRequestCandidateLabels(pullRequest, files) {
 
   const addsPluginManifest = files.some(
     (file) =>
-      file.status === "added" && /^extensions\/[^/]+\/openclaw\.plugin\.json$/i.test(file.filename),
+      file.status === "added" && /^extensions\/[^/]+\/kova\.plugin\.json$/i.test(file.filename),
   );
   if (
     !clearDesignContext &&
     (addsPluginManifest ||
-      /\b(third[- ]party|external plugin|community plugin|clawhub)\b/i.test(lowerText))
+      /\b(third[- ]party|external plugin|community plugin|kovahub)\b/i.test(lowerText))
   ) {
     labelsToAdd.push(candidateLabels.externalPluginCandidate);
   }

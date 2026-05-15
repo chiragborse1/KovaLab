@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 
-function createHeartbeatConfig(every: string): OpenClawConfig {
+function createHeartbeatConfig(every: string): KovaConfig {
   return {
     agents: {
       defaults: { heartbeat: { every } },
       list: [{ id: "main", heartbeat: { every } }],
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 describe("startHeartbeatRunner timeout overflow warnings", () => {

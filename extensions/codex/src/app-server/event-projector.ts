@@ -16,7 +16,7 @@ import {
   type EmbeddedRunAttemptParams,
   type EmbeddedRunAttemptResult,
   type MessagingToolSend,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "getkova/plugin-sdk/agent-harness-runtime";
 import { readCodexTurn } from "./protocol-validators.js";
 import {
   isJsonObject,
@@ -190,7 +190,7 @@ export class CodexAppServerEventProjector {
       },
     ];
     // Codex owns the canonical thread. These mirror records keep enough local
-    // context for OpenClaw history, search, and future harness switching.
+    // context for Kova history, search, and future harness switching.
     if (reasoningText) {
       messagesSnapshot.push(this.createAssistantMirrorMessage("Codex reasoning", reasoningText));
     }

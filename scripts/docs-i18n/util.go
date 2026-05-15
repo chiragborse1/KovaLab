@@ -12,8 +12,8 @@ import (
 const (
 	workflowVersion          = 15
 	docsI18nEngineName       = "pi"
-	envDocsI18nProvider      = "OPENCLAW_DOCS_I18N_PROVIDER"
-	envDocsI18nModel         = "OPENCLAW_DOCS_I18N_MODEL"
+	envDocsI18nProvider      = "KOVA_DOCS_I18N_PROVIDER"
+	envDocsI18nModel         = "KOVA_DOCS_I18N_MODEL"
 	defaultOpenAIModel       = "gpt-5.5"
 	defaultAnthropicModel    = "claude-opus-4-6"
 	defaultFallbackProvider  = "openai"

@@ -56,7 +56,7 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
     Send the same gateway auth your operator clients use:
 
     ```bash
-    curl -H "Authorization: Bearer $OPENCLAW_GATEWAY_TOKEN" \
+    curl -H "Authorization: Bearer $KOVA_GATEWAY_TOKEN" \
       http://127.0.0.1:18789/api/diagnostics/prometheus
     ```
 
@@ -69,9 +69,9 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
         scrape_interval: 30s
         metrics_path: /api/diagnostics/prometheus
         authorization:
-          credentials_file: /etc/prometheus/openclaw-gateway-token
+          credentials_file: /etc/prometheus/kova-gateway-token
         static_configs:
-          - targets: ["openclaw-gateway:18789"]
+          - targets: ["kova-gateway:18789"]
     ```
   </Step>
 </Steps>
@@ -82,32 +82,32 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
 
 ## Metrics exported
 
-| Metric                                        | Type      | Labels                                                                                    |
-| --------------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
-| `openclaw_run_completed_total`                | counter   | `channel`, `model`, `outcome`, `provider`, `trigger`                                      |
-| `openclaw_run_duration_seconds`               | histogram | `channel`, `model`, `outcome`, `provider`, `trigger`                                      |
-| `openclaw_model_call_total`                   | counter   | `api`, `error_category`, `model`, `outcome`, `provider`, `transport`                      |
-| `openclaw_model_call_duration_seconds`        | histogram | `api`, `error_category`, `model`, `outcome`, `provider`, `transport`                      |
-| `openclaw_model_tokens_total`                 | counter   | `agent`, `channel`, `model`, `provider`, `token_type`                                     |
-| `openclaw_gen_ai_client_token_usage`          | histogram | `model`, `provider`, `token_type`                                                         |
-| `openclaw_model_cost_usd_total`               | counter   | `agent`, `channel`, `model`, `provider`                                                   |
-| `openclaw_tool_execution_total`               | counter   | `error_category`, `outcome`, `params_kind`, `tool`                                        |
-| `openclaw_tool_execution_duration_seconds`    | histogram | `error_category`, `outcome`, `params_kind`, `tool`                                        |
-| `openclaw_harness_run_total`                  | counter   | `channel`, `error_category`, `harness`, `model`, `outcome`, `phase`, `plugin`, `provider` |
-| `openclaw_harness_run_duration_seconds`       | histogram | `channel`, `error_category`, `harness`, `model`, `outcome`, `phase`, `plugin`, `provider` |
-| `openclaw_message_processed_total`            | counter   | `channel`, `outcome`, `reason`                                                            |
-| `openclaw_message_processed_duration_seconds` | histogram | `channel`, `outcome`, `reason`                                                            |
-| `openclaw_message_delivery_total`             | counter   | `channel`, `delivery_kind`, `error_category`, `outcome`                                   |
-| `openclaw_message_delivery_duration_seconds`  | histogram | `channel`, `delivery_kind`, `error_category`, `outcome`                                   |
-| `openclaw_queue_lane_size`                    | gauge     | `lane`                                                                                    |
-| `openclaw_queue_lane_wait_seconds`            | histogram | `lane`                                                                                    |
-| `openclaw_session_state_total`                | counter   | `reason`, `state`                                                                         |
-| `openclaw_session_queue_depth`                | gauge     | `state`                                                                                   |
-| `openclaw_memory_bytes`                       | gauge     | `kind`                                                                                    |
-| `openclaw_memory_rss_bytes`                   | histogram | none                                                                                      |
-| `openclaw_memory_pressure_total`              | counter   | `level`, `reason`                                                                         |
-| `openclaw_telemetry_exporter_total`           | counter   | `exporter`, `reason`, `signal`, `status`                                                  |
-| `openclaw_prometheus_series_dropped_total`    | counter   | none                                                                                      |
+| Metric                                    | Type      | Labels                                                                                    |
+| ----------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `kova_run_completed_total`                | counter   | `channel`, `model`, `outcome`, `provider`, `trigger`                                      |
+| `kova_run_duration_seconds`               | histogram | `channel`, `model`, `outcome`, `provider`, `trigger`                                      |
+| `kova_model_call_total`                   | counter   | `api`, `error_category`, `model`, `outcome`, `provider`, `transport`                      |
+| `kova_model_call_duration_seconds`        | histogram | `api`, `error_category`, `model`, `outcome`, `provider`, `transport`                      |
+| `kova_model_tokens_total`                 | counter   | `agent`, `channel`, `model`, `provider`, `token_type`                                     |
+| `kova_gen_ai_client_token_usage`          | histogram | `model`, `provider`, `token_type`                                                         |
+| `kova_model_cost_usd_total`               | counter   | `agent`, `channel`, `model`, `provider`                                                   |
+| `kova_tool_execution_total`               | counter   | `error_category`, `outcome`, `params_kind`, `tool`                                        |
+| `kova_tool_execution_duration_seconds`    | histogram | `error_category`, `outcome`, `params_kind`, `tool`                                        |
+| `kova_harness_run_total`                  | counter   | `channel`, `error_category`, `harness`, `model`, `outcome`, `phase`, `plugin`, `provider` |
+| `kova_harness_run_duration_seconds`       | histogram | `channel`, `error_category`, `harness`, `model`, `outcome`, `phase`, `plugin`, `provider` |
+| `kova_message_processed_total`            | counter   | `channel`, `outcome`, `reason`                                                            |
+| `kova_message_processed_duration_seconds` | histogram | `channel`, `outcome`, `reason`                                                            |
+| `kova_message_delivery_total`             | counter   | `channel`, `delivery_kind`, `error_category`, `outcome`                                   |
+| `kova_message_delivery_duration_seconds`  | histogram | `channel`, `delivery_kind`, `error_category`, `outcome`                                   |
+| `kova_queue_lane_size`                    | gauge     | `lane`                                                                                    |
+| `kova_queue_lane_wait_seconds`            | histogram | `lane`                                                                                    |
+| `kova_session_state_total`                | counter   | `reason`, `state`                                                                         |
+| `kova_session_queue_depth`                | gauge     | `state`                                                                                   |
+| `kova_memory_bytes`                       | gauge     | `kind`                                                                                    |
+| `kova_memory_rss_bytes`                   | histogram | none                                                                                      |
+| `kova_memory_pressure_total`              | counter   | `level`, `reason`                                                                         |
+| `kova_telemetry_exporter_total`           | counter   | `exporter`, `reason`, `signal`, `status`                                                  |
+| `kova_prometheus_series_dropped_total`    | counter   | none                                                                                      |
 
 ## Label policy
 
@@ -119,7 +119,7 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
 
   </Accordion>
   <Accordion title="Series cap and overflow accounting">
-    The exporter caps retained time series in memory at **2048** series across counters, gauges, and histograms combined. New series beyond that cap are dropped, and `openclaw_prometheus_series_dropped_total` increments by one each time.
+    The exporter caps retained time series in memory at **2048** series across counters, gauges, and histograms combined. New series beyond that cap are dropped, and `kova_prometheus_series_dropped_total` increments by one each time.
 
     Watch this counter as a hard signal that an attribute upstream is leaking high-cardinality values. The exporter never lifts the cap automatically; if it climbs, fix the source rather than disabling the cap.
 
@@ -136,26 +136,26 @@ For traces, logs, OTLP push, and OpenTelemetry GenAI semantic attributes, see [O
 
 ```promql
 # Tokens per minute, split by provider
-sum by (provider) (rate(openclaw_model_tokens_total[1m]))
+sum by (provider) (rate(kova_model_tokens_total[1m]))
 
 # Spend (USD) over the last hour, by model
-sum by (model) (increase(openclaw_model_cost_usd_total[1h]))
+sum by (model) (increase(kova_model_cost_usd_total[1h]))
 
 # 95th percentile model run duration
 histogram_quantile(
   0.95,
   sum by (le, provider, model)
-    (rate(openclaw_run_duration_seconds_bucket[5m]))
+    (rate(kova_run_duration_seconds_bucket[5m]))
 )
 
 # Queue wait time SLO (95p under 2s)
 histogram_quantile(
   0.95,
-  sum by (le, lane) (rate(openclaw_queue_lane_wait_seconds_bucket[5m]))
+  sum by (le, lane) (rate(kova_queue_lane_wait_seconds_bucket[5m]))
 ) < 2
 
 # Dropped Prometheus series (cardinality alarm)
-increase(openclaw_prometheus_series_dropped_total[15m]) > 0
+increase(kova_prometheus_series_dropped_total[15m]) > 0
 ```
 
 <Tip>
@@ -193,7 +193,7 @@ Kova supports both surfaces independently. You can run either, both, or neither.
   <Accordion title="401 / unauthorized">
     The endpoint requires the Gateway operator scope (`auth: "gateway"` with `gatewayRuntimeScopeSurface: "trusted-operator"`). Use the same token or password Prometheus uses for any other Gateway operator route. There is no public unauthenticated mode.
   </Accordion>
-  <Accordion title="`openclaw_prometheus_series_dropped_total` is climbing">
+  <Accordion title="`kova_prometheus_series_dropped_total` is climbing">
     A new attribute is exceeding the **2048**-series cap. Inspect recent metrics for an unexpectedly high-cardinality label and fix it at the source. The exporter intentionally drops new series instead of silently rewriting labels.
   </Accordion>
   <Accordion title="Prometheus shows stale series after a restart">

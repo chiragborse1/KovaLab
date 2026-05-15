@@ -235,8 +235,8 @@ describe("browser server-context listKnownProfileNames", () => {
         kova: { cdpPort: 18800, color: "#FF4500" },
       },
     });
-    const openclaw = resolveProfile(resolved, "kova");
-    if (!openclaw) {
+    const kova = resolveProfile(resolved, "kova");
+    if (!kova) {
       throw new Error("expected kova profile");
     }
 
@@ -248,7 +248,7 @@ describe("browser server-context listKnownProfileNames", () => {
         [
           "stale-removed",
           {
-            profile: { ...openclaw, name: "stale-removed" },
+            profile: { ...kova, name: "stale-removed" },
             running: null,
           },
         ],

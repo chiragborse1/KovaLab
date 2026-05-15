@@ -5,7 +5,7 @@ import { loggingState } from "./state.js";
 export function resolveEnvLogLevelOverride(): LogLevel | undefined {
   const trimmed =
     normalizeOptionalString(process.env.KOVA_LOG_LEVEL) ??
-    normalizeOptionalString(process.env.OPENCLAW_LOG_LEVEL) ??
+    normalizeOptionalString(process.env.KOVA_LOG_LEVEL) ??
     "";
   if (!trimmed) {
     loggingState.invalidEnvLogLevelValue = null;

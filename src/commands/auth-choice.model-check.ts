@@ -8,12 +8,12 @@ import {
   listOpenAIAuthProfileProvidersForAgentRuntime,
   openAIProviderUsesCodexRuntimeByDefault,
 } from "../agents/openai-codex-routing.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import { buildProviderAuthRecoveryHint } from "./provider-auth-guidance.js";
 
 function resolveAuthProviderCandidates(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   provider: string;
   modelId: string;
   agentId?: string;
@@ -45,7 +45,7 @@ function resolveAuthProviderCandidates(params: {
 }
 
 export async function warnIfModelConfigLooksOff(
-  config: OpenClawConfig,
+  config: KovaConfig,
   prompter: WizardPrompter,
   options?: { agentId?: string; agentDir?: string; validateCatalog?: boolean },
 ) {

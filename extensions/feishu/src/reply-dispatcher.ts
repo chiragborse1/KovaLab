@@ -1,11 +1,11 @@
-import { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+import { logTypingFailure } from "getkova/plugin-sdk/channel-feedback";
+import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
 import {
   resolveSendableOutboundReplyParts,
   resolveTextChunksWithFallback,
   sendMediaWithLeadingCaption,
-} from "openclaw/plugin-sdk/reply-payload";
-import { stripReasoningTagsFromText } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/reply-payload";
+import { stripReasoningTagsFromText } from "getkova/plugin-sdk/text-runtime";
 import { resolveFeishuRuntimeAccount } from "./accounts.js";
 import { createFeishuClient } from "./client.js";
 import { sendMediaFeishu } from "./media.js";
@@ -13,7 +13,7 @@ import type { MentionTarget } from "./mention-target.types.js";
 import { buildMentionedCardContent } from "./mention.js";
 import {
   createReplyPrefixContext,
-  type ClawdbotConfig,
+  type KovaConfig,
   type OutboundIdentity,
   type ReplyPayload,
   type RuntimeEnv,
@@ -102,7 +102,7 @@ function resolveCardNote(
 }
 
 export type CreateFeishuReplyDispatcherParams = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   agentId: string;
   runtime: RuntimeEnv;
   chatId: string;

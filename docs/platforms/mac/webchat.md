@@ -22,7 +22,7 @@ agent (with a session switcher for other sessions).
   dist/Kova.app/Contents/MacOS/Kova --webchat
   ```
 
-- Logs: `./scripts/clawlog.sh` (subsystem `ai.openclaw`, category `WebChatSwiftUI`).
+- Logs: `./scripts/kovalog.sh` (subsystem `ai.kova`, category `WebChatSwiftUI`).
 
 ## How it is wired
 

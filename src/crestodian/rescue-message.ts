@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { CommandContext } from "../auto-reply/reply/commands-types.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { RuntimeEnv } from "../runtime.js";
 import {
   executeCrestodianOperation,
@@ -24,7 +24,7 @@ type RescuePendingOperation = {
 };
 
 export type CrestodianRescueMessageInput = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   command: CommandContext;
   commandBody: string;
   agentId?: string;
@@ -124,7 +124,7 @@ function formatUnsupportedRemoteOperation(operation: CrestodianOperation): strin
   if (operation.kind === "open-tui") {
     return [
       "Crestodian rescue cannot open the local TUI from a message channel.",
-      "Use local `openclaw` for agent handoff, or ask for status, doctor, config, gateway, agents, or models.",
+      "Use local `kova` for agent handoff, or ask for status, doctor, config, gateway, agents, or models.",
     ].join(" ");
   }
   return null;
@@ -192,5 +192,5 @@ export async function runCrestodianRescueMessage(
     auditDetails: buildAuditDetails(input),
     deps: input.deps,
   });
-  return capture.read() || "Crestodian listened, clicked a claw, and found nothing to change.";
+  return capture.read() || "Crestodian listened, checked the system, and found nothing to change.";
 }

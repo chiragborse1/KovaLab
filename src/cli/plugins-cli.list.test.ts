@@ -97,7 +97,7 @@ describe("plugins cli list", () => {
     expect(runtimeLogs.join("\n")).toContain("State:");
     expect(runtimeLogs.join("\n")).toContain("stale");
     expect(runtimeLogs.join("\n")).toContain("Refresh reasons:");
-    expect(runtimeLogs.join("\n")).toContain("openclaw plugins registry --refresh");
+    expect(runtimeLogs.join("\n")).toContain("kova plugins registry --refresh");
   });
 
   it("refreshes the persisted plugin registry on request", async () => {
@@ -121,7 +121,7 @@ describe("plugins cli list", () => {
   it("shows conversation-access hook policy in inspect output", async () => {
     buildPluginInspectReport.mockReturnValue({
       workspaceDir: "/workspace",
-      plugin: createPluginRecord({ id: "openclaw-mem0", name: "Mem0" }),
+      plugin: createPluginRecord({ id: "kova-mem0", name: "Mem0" }),
       shape: "hook-only",
       capabilityMode: "plain",
       capabilityCount: 1,
@@ -148,7 +148,7 @@ describe("plugins cli list", () => {
       compatibility: [],
     });
 
-    await runPluginsCommand(["plugins", "inspect", "openclaw-mem0"]);
+    await runPluginsCommand(["plugins", "inspect", "kova-mem0"]);
 
     expect(runtimeLogs.join("\n")).toContain("Policy");
     expect(runtimeLogs.join("\n")).toContain("allowConversationAccess: true");

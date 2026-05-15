@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import {
   createAccountScopedConversationBindingManager,
   resetAccountScopedConversationBindingsForTests,
   type AccountScopedConversationBindingManager,
   type BindingTargetKind,
-} from "openclaw/plugin-sdk/thread-bindings-runtime";
+} from "getkova/plugin-sdk/thread-bindings-runtime";
 
 type BlueBubblesBindingTargetKind = "subagent" | "acp";
 
@@ -12,7 +12,7 @@ type BlueBubblesConversationBindingManager =
   AccountScopedConversationBindingManager<BlueBubblesBindingTargetKind>;
 
 const BLUEBUBBLES_CONVERSATION_BINDINGS_STATE_KEY = Symbol.for(
-  "openclaw.bluebubblesConversationBindingsState",
+  "kova.bluebubblesConversationBindingsState",
 );
 
 function toSessionBindingTargetKind(raw: BlueBubblesBindingTargetKind): BindingTargetKind {
@@ -25,7 +25,7 @@ function toBlueBubblesTargetKind(raw: BindingTargetKind): BlueBubblesBindingTarg
 
 export function createBlueBubblesConversationBindingManager(params: {
   accountId?: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): BlueBubblesConversationBindingManager {
   return createAccountScopedConversationBindingManager({
     channel: "bluebubbles",

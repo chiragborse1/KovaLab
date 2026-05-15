@@ -1,9 +1,9 @@
-import { resolveApprovalOverGateway } from "openclaw/plugin-sdk/approval-gateway-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ExecApprovalReplyDecision } from "openclaw/plugin-sdk/infra-runtime";
+import { resolveApprovalOverGateway } from "getkova/plugin-sdk/approval-gateway-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { ExecApprovalReplyDecision } from "getkova/plugin-sdk/infra-runtime";
 
 export type ResolveTelegramExecApprovalParams = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   approvalId: string;
   decision: ExecApprovalReplyDecision;
   senderId?: string | null;

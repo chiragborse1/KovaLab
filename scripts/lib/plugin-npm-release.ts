@@ -10,7 +10,7 @@ export type PluginPackageJson = {
   name?: string;
   version?: string;
   private?: boolean;
-  openclaw?: {
+  kova?: {
     extensions?: string[];
     install?: {
       npmSpec?: string;
@@ -210,7 +210,7 @@ export function collectPublishablePluginPackageErrors(
   const errors: string[] = [];
   const packageName = packageJson.name?.trim() ?? "";
   const packageVersion = packageJson.version?.trim() ?? "";
-  const extensions = packageJson.openclaw?.extensions ?? [];
+  const extensions = packageJson.kova?.extensions ?? [];
 
   if (!packageName.startsWith("@kovaai/")) {
     errors.push(`package name must start with "@kovaai/"; found "${packageName || "<missing>"}".`);
@@ -226,15 +226,15 @@ export function collectPublishablePluginPackageErrors(
     );
   }
   if (!Array.isArray(extensions) || extensions.length === 0) {
-    errors.push("openclaw.extensions must contain at least one entry.");
+    errors.push("kova.extensions must contain at least one entry.");
   }
   if (extensions.some((entry) => typeof entry !== "string" || !entry.trim())) {
-    errors.push("openclaw.extensions must contain only non-empty strings.");
+    errors.push("kova.extensions must contain only non-empty strings.");
   }
-  const installNpmSpec = packageJson.openclaw?.install?.npmSpec?.trim();
+  const installNpmSpec = packageJson.kova?.install?.npmSpec?.trim();
   if (installNpmSpec && installNpmSpec !== packageName) {
     errors.push(
-      `openclaw.install.npmSpec must match package name "${packageName}"; found "${installNpmSpec}".`,
+      `kova.install.npmSpec must match package name "${packageName}"; found "${installNpmSpec}".`,
     );
   }
 
@@ -249,7 +249,7 @@ export function collectPublishablePluginPackages(
 
   for (const candidate of collectExtensionPackageJsonCandidates(rootDir)) {
     const { extensionId, packageDir, packageJson } = candidate;
-    if (packageJson.openclaw?.release?.publishToNpm !== true) {
+    if (packageJson.kova?.release?.publishToNpm !== true) {
       continue;
     }
 
@@ -276,7 +276,7 @@ export function collectPublishablePluginPackages(
       version,
       channel: parsedVersion.channel,
       publishTag: resolveNpmPublishPlan(version).publishTag,
-      installNpmSpec: normalizeOptionalString(packageJson.openclaw?.install?.npmSpec),
+      installNpmSpec: normalizeOptionalString(packageJson.kova?.install?.npmSpec),
     });
   }
 

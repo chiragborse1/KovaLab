@@ -1,6 +1,6 @@
-import { getExecApprovalReplyMetadata } from "openclaw/plugin-sdk/approval-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/core";
+import { getExecApprovalReplyMetadata } from "getkova/plugin-sdk/approval-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { ChannelPlugin } from "getkova/plugin-sdk/core";
 // Register the PlatformAdapter before any core/ module is used.
 import "./bridge/bootstrap.js";
 import { getQQBotApprovalCapability } from "./bridge/approval/capability.js";
@@ -35,7 +35,7 @@ const EXEC_APPROVAL_COMMAND_RE =
   /\/approve(?:@[^\s]+)?\s+[A-Za-z0-9][A-Za-z0-9._:-]*\s+(?:allow-once|allow-always|always|deny)\b/i;
 
 function shouldSuppressLocalQQBotApprovalPrompt(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId?: string | null;
   payload: { text?: string; channelData?: unknown };
   hint?: { kind: "approval-pending" | "approval-resolved"; approvalKind: "exec" | "plugin" };
@@ -75,7 +75,7 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
      * Treat an account as configured when either the live config has
      * credentials OR a recoverable credential backup exists. This mirrors
      * the standalone plugin and lets the gateway survive a hot upgrade
-     * that wiped openclaw.json mid-flight.
+     * that wiped kova.json mid-flight.
      */
     isConfigured: (account: ResolvedQQBotAccount | undefined) => {
       if (qqbotConfigAdapter.isConfigured(account)) {
@@ -153,7 +153,7 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
 
       // Recover credentials from the per-account backup if the live
       // config is missing appId/secret (e.g. a hot-upgrade wiped
-      // openclaw.json). We only restore when both fields are empty so a
+      // kova.json). We only restore when both fields are empty so a
       // user's intentional clear isn't silently undone.
       if (!account.appId || !account.clientSecret) {
         const backup = loadCredentialBackup(account.accountId);
@@ -205,7 +205,7 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
             lastConnectedAt: Date.now(),
           });
           // Snapshot credentials so we can recover from the next hot
-          // upgrade that might wipe openclaw.json mid-flight.
+          // upgrade that might wipe kova.json mid-flight.
           if (account.appId && account.clientSecret) {
             saveCredentialBackup(account.accountId, account.appId, account.clientSecret);
           }
@@ -240,12 +240,12 @@ export const qqbotPlugin: ChannelPlugin<ResolvedQQBotAccount> = {
       if (changed) {
         const runtime = getQQBotRuntime();
         await runtime.config.replaceConfigFile({
-          nextConfig: nextCfg as OpenClawConfig,
+          nextConfig: nextCfg as KovaConfig,
           afterWrite: { mode: "auto" },
         });
       }
 
-      const resolved = resolveQQBotAccount((changed ? nextCfg : cfg) as OpenClawConfig, accountId);
+      const resolved = resolveQQBotAccount((changed ? nextCfg : cfg) as KovaConfig, accountId);
       const loggedOut = resolved.secretSource === "none";
       const envToken = Boolean(process.env.QQBOT_CLIENT_SECRET);
 

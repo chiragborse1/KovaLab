@@ -19,9 +19,9 @@ describe("runtime context prompt submission", () => {
     const effectivePrompt = [
       "visible ask",
       "",
-      "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>",
+      "<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>",
       "secret runtime context",
-      "<<<END_OPENCLAW_INTERNAL_CONTEXT>>>",
+      "<<<END_KOVA_INTERNAL_CONTEXT>>>",
     ].join("\n");
 
     expect(
@@ -32,7 +32,7 @@ describe("runtime context prompt submission", () => {
     ).toEqual({
       prompt: "visible ask",
       runtimeContext:
-        "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>\nsecret runtime context\n<<<END_OPENCLAW_INTERNAL_CONTEXT>>>",
+        "<<<BEGIN_KOVA_INTERNAL_CONTEXT>>>\nsecret runtime context\n<<<END_KOVA_INTERNAL_CONTEXT>>>",
     });
   });
 

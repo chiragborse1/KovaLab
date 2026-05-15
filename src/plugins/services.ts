@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { STATE_DIR } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   emitTrustedDiagnosticEvent,
   onInternalDiagnosticEvent,
@@ -10,7 +10,7 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import { isOfficialExternalPluginPackageName } from "./official-external-plugin-catalog.js";
 import type { PluginServiceRegistration } from "./registry-types.js";
 import type { PluginRegistry } from "./registry.js";
-import type { OpenClawPluginServiceContext, PluginLogger } from "./types.js";
+import type { KovaPluginServiceContext, PluginLogger } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 function createPluginLogger(): PluginLogger {
@@ -37,10 +37,10 @@ function readPluginPackageName(rootDir: string | undefined): string | undefined 
 }
 
 function createServiceContext(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   workspaceDir?: string;
   service?: PluginServiceRegistration;
-}): OpenClawPluginServiceContext {
+}): KovaPluginServiceContext {
   const isDiagnosticsExporter =
     params.service?.pluginId === params.service?.service.id &&
     (params.service?.service.id === "diagnostics-otel" ||
@@ -72,7 +72,7 @@ export type PluginServicesHandle = {
 
 export async function startPluginServices(params: {
   registry: PluginRegistry;
-  config: OpenClawConfig;
+  config: KovaConfig;
   workspaceDir?: string;
 }): Promise<PluginServicesHandle> {
   const running: Array<{

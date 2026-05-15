@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
-import type { ClawdbotConfig, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, RuntimeEnv } from "../runtime-api.js";
 import {
   expectFirstSentCardUsesFillWidthOnly,
   expectSentCardHasP2pAction,
@@ -18,7 +18,7 @@ vi.mock("./send.js", () => ({
 }));
 
 describe("feishu quick-action launcher", () => {
-  const cfg: ClawdbotConfig = {};
+  const cfg: KovaConfig = {};
 
   beforeEach(() => {
     vi.clearAllMocks();

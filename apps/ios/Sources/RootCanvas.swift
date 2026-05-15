@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import OpenClawProtocol
+import KovaProtocol
 
 struct RootCanvas: View {
     @Environment(NodeAppModel.self) private var appModel

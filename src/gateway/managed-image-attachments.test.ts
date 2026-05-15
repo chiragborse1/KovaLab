@@ -151,7 +151,7 @@ async function requestManagedImage(params: {
             openUrl: params.pathName,
           },
         ],
-        __openclaw: { id: "msg-1" },
+        __kova: { id: "msg-1" },
       },
     ],
   );
@@ -261,7 +261,7 @@ describe("handleManagedOutgoingImageHttpRequest", () => {
       stateDir,
       pathName: `/api/chat/media/outgoing/${encodeURIComponent(sessionKey)}/${attachmentId}/full`,
       authResponse: { authMethod: "trusted-proxy", trustDeclaredOperatorScopes: true },
-      headers: { "x-openclaw-requester-session-key": sessionKey },
+      headers: { "x-kova-requester-session-key": sessionKey },
     });
 
     expect(result.statusCode).toBe(403);
@@ -274,7 +274,7 @@ describe("handleManagedOutgoingImageHttpRequest", () => {
       stateDir,
       pathName: `/api/chat/media/outgoing/${encodeURIComponent(sessionKey)}/${attachmentId}/full`,
       authResponse: { authMethod: "device-token" },
-      headers: { "x-openclaw-requester-session-key": sessionKey },
+      headers: { "x-kova-requester-session-key": sessionKey },
     });
 
     expect(result.statusCode).toBe(403);
@@ -301,7 +301,7 @@ describe("handleManagedOutgoingImageHttpRequest", () => {
       stateDir,
       pathName: `/api/chat/media/outgoing/${encodeURIComponent(sessionKey)}/${attachmentId}/full`,
       method: "POST",
-      headers: { "x-openclaw-requester-session-key": sessionKey },
+      headers: { "x-kova-requester-session-key": sessionKey },
     });
 
     expect(result.statusCode).toBe(405);
@@ -327,7 +327,7 @@ describe("handleManagedOutgoingImageHttpRequest", () => {
 
     const transcriptMessages = [
       {
-        __openclaw: { id: "msg-1" },
+        __kova: { id: "msg-1" },
         content: [
           {
             type: "image",
@@ -433,8 +433,8 @@ describe("createManagedOutgoingImageBlocks", () => {
   });
 
   it("rewrites local image sources into managed display blocks without leaking the source path", async () => {
-    const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    const previousStateDir = process.env.KOVA_STATE_DIR;
+    process.env.KOVA_STATE_DIR = stateDir;
     const sourcePath = path.join(stateDir, "workspace", "fixtures", "dot.png");
     await fs.mkdir(path.dirname(sourcePath), { recursive: true });
     await fs.writeFile(sourcePath, Buffer.from(TINY_PNG_BASE64, "base64"));
@@ -469,16 +469,16 @@ describe("createManagedOutgoingImageBlocks", () => {
       expect(record.original.path).toContain(path.join(stateDir, "media", "outgoing", "originals"));
     } finally {
       if (previousStateDir == null) {
-        delete process.env.OPENCLAW_STATE_DIR;
+        delete process.env.KOVA_STATE_DIR;
       } else {
-        process.env.OPENCLAW_STATE_DIR = previousStateDir;
+        process.env.KOVA_STATE_DIR = previousStateDir;
       }
     }
   });
 
   it("ingests external image URLs into managed storage instead of hotlinking them", async () => {
-    const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    const previousStateDir = process.env.KOVA_STATE_DIR;
+    process.env.KOVA_STATE_DIR = stateDir;
     const imageBuffer = Buffer.from(TINY_PNG_BASE64, "base64");
     const upstream = http.createServer((req, res) => {
       expect(req.url).toBe("/remote-cat.png?sig=secret");
@@ -534,19 +534,19 @@ describe("createManagedOutgoingImageBlocks", () => {
         upstream.close((error) => (error ? reject(error) : resolve())),
       );
       if (previousStateDir == null) {
-        delete process.env.OPENCLAW_STATE_DIR;
+        delete process.env.KOVA_STATE_DIR;
       } else {
-        process.env.OPENCLAW_STATE_DIR = previousStateDir;
+        process.env.KOVA_STATE_DIR = previousStateDir;
       }
     }
   });
 
   it("keeps managed originals under the state-dir media root when config path differs", async () => {
-    const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-    const previousConfigPath = process.env.OPENCLAW_CONFIG_PATH;
+    const previousStateDir = process.env.KOVA_STATE_DIR;
+    const previousConfigPath = process.env.KOVA_CONFIG_PATH;
     const externalConfigDir = await fs.mkdtemp(path.join(os.tmpdir(), "managed-image-config-"));
-    process.env.OPENCLAW_STATE_DIR = stateDir;
-    process.env.OPENCLAW_CONFIG_PATH = path.join(externalConfigDir, "config.json");
+    process.env.KOVA_STATE_DIR = stateDir;
+    process.env.KOVA_CONFIG_PATH = path.join(externalConfigDir, "config.json");
     const sourcePath = path.join(stateDir, "workspace", "fixtures", "dot.png");
     await fs.mkdir(path.dirname(sourcePath), { recursive: true });
     await fs.writeFile(sourcePath, Buffer.from(TINY_PNG_BASE64, "base64"));
@@ -575,14 +575,14 @@ describe("createManagedOutgoingImageBlocks", () => {
     } finally {
       await fs.rm(externalConfigDir, { recursive: true, force: true });
       if (previousStateDir == null) {
-        delete process.env.OPENCLAW_STATE_DIR;
+        delete process.env.KOVA_STATE_DIR;
       } else {
-        process.env.OPENCLAW_STATE_DIR = previousStateDir;
+        process.env.KOVA_STATE_DIR = previousStateDir;
       }
       if (previousConfigPath == null) {
-        delete process.env.OPENCLAW_CONFIG_PATH;
+        delete process.env.KOVA_CONFIG_PATH;
       } else {
-        process.env.OPENCLAW_CONFIG_PATH = previousConfigPath;
+        process.env.KOVA_CONFIG_PATH = previousConfigPath;
       }
     }
   });
@@ -646,8 +646,8 @@ describe("createManagedOutgoingImageBlocks", () => {
   });
 
   it("accepts URL images up to the configured managed-image byte limit", async () => {
-    const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-    process.env.OPENCLAW_STATE_DIR = stateDir;
+    const previousStateDir = process.env.KOVA_STATE_DIR;
+    process.env.KOVA_STATE_DIR = stateDir;
     const imageBuffer = await createNoisyPngBuffer(1600, 1200);
     expect(imageBuffer.byteLength).toBeGreaterThan(5 * 1024 * 1024);
     expect(imageBuffer.byteLength).toBeLessThan(DEFAULT_MANAGED_IMAGE_ATTACHMENT_LIMITS.maxBytes);
@@ -682,9 +682,9 @@ describe("createManagedOutgoingImageBlocks", () => {
         server.close((error) => (error ? reject(error) : resolve())),
       );
       if (previousStateDir == null) {
-        delete process.env.OPENCLAW_STATE_DIR;
+        delete process.env.KOVA_STATE_DIR;
       } else {
-        process.env.OPENCLAW_STATE_DIR = previousStateDir;
+        process.env.KOVA_STATE_DIR = previousStateDir;
       }
     }
   });
@@ -915,7 +915,7 @@ describe("cleanupManagedOutgoingImageRecords", () => {
     });
     readSessionMessagesMock.mockReturnValue([
       {
-        __openclaw: { id: "msg-1" },
+        __kova: { id: "msg-1" },
         content: [
           {
             type: "image",
@@ -951,7 +951,7 @@ describe("cleanupManagedOutgoingImageRecords", () => {
     });
     readSessionMessagesMock.mockReturnValue([
       {
-        __openclaw: { id: "msg-1" },
+        __kova: { id: "msg-1" },
         content: [
           {
             type: "image",

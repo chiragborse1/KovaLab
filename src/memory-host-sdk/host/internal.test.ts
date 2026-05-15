@@ -168,12 +168,12 @@ describe("listMemoryFiles", () => {
       },
       {
         name: "explicit repair root",
-        extraPaths: (tmpDir: string) => [path.join(tmpDir, ".openclaw-repair", "root-memory")],
+        extraPaths: (tmpDir: string) => [path.join(tmpDir, ".kova-repair", "root-memory")],
       },
     ] as const) {
       const tmpDir = getTmpDir();
       fsSync.writeFileSync(path.join(tmpDir, "MEMORY.md"), "# Default memory");
-      const repairDir = path.join(tmpDir, ".openclaw-repair", "root-memory", "2026-04-23");
+      const repairDir = path.join(tmpDir, ".kova-repair", "root-memory", "2026-04-23");
       fsSync.mkdirSync(repairDir, { recursive: true });
       fsSync.writeFileSync(path.join(repairDir, "memory.md"), "# Archived legacy memory");
 

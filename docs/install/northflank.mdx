@@ -13,25 +13,25 @@ This is the easiest "no terminal on the server" path: Northflank runs the Gatewa
 
 ## How to get started
 
-1. Click [Deploy Kova](https://northflank.com/stacks/deploy-openclaw) to open the template.
+1. Click [Deploy Kova](https://northflank.com/stacks/deploy-kova) to open the template.
 2. Create an [account on Northflank](https://app.northflank.com/signup) if you don't already have one.
 3. Click **Deploy Kova now**.
-4. Set the required environment variable: `OPENCLAW_GATEWAY_TOKEN` (use a strong random value).
+4. Set the required environment variable: `KOVA_GATEWAY_TOKEN` (use a strong random value).
 5. Click **Deploy stack** to build and run the Kova template.
 6. Wait for the deployment to complete, then click **View resources**.
 7. Open the Kova service.
-8. Open the public Kova URL at `/openclaw` and connect using the configured shared secret. This template uses `OPENCLAW_GATEWAY_TOKEN` by default; if you replace it with password auth, use that password instead.
+8. Open the public Kova URL at `/kova` and connect using the configured shared secret. This template uses `KOVA_GATEWAY_TOKEN` by default; if you replace it with password auth, use that password instead.
 
 ## What you get
 
 - Hosted Kova Gateway + Control UI
-- Persistent storage via Northflank Volume (`/data`) so `openclaw.json`,
+- Persistent storage via Northflank Volume (`/data`) so `kova.json`,
   per-agent `auth-profiles.json`, channel/provider state, sessions, and
   workspace survive redeploys
 
 ## Connect a channel
 
-Use the Control UI at `/openclaw` or run `kova onboard` via SSH for channel setup instructions:
+Use the Control UI at `/kova` or run `kova onboard` via SSH for channel setup instructions:
 
 - [Telegram](/channels/telegram) (fastest — just a bot token)
 - [Discord](/channels/discord)

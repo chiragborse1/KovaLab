@@ -1,11 +1,11 @@
-import { requireRuntimeConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { retryAsync } from "openclaw/plugin-sdk/retry-runtime";
+import { requireRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { retryAsync } from "getkova/plugin-sdk/retry-runtime";
 import {
   coerceSecretRef,
   normalizeResolvedSecretInputString,
-} from "openclaw/plugin-sdk/secret-input-runtime";
-import type { PinnedDispatcherPolicy } from "openclaw/plugin-sdk/ssrf-dispatcher";
+} from "getkova/plugin-sdk/secret-input-runtime";
+import type { PinnedDispatcherPolicy } from "getkova/plugin-sdk/ssrf-dispatcher";
 import {
   requiresExplicitMatrixDefaultAccount,
   resolveMatrixDefaultOrOnlyAccountId,

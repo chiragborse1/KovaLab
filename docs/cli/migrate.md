@@ -139,7 +139,7 @@ kova doctor
 
 ## Plugin contract
 
-Migration sources are plugins. A plugin declares its provider ids in `openclaw.plugin.json`:
+Migration sources are plugins. A plugin declares its provider ids in `kova.plugin.json`:
 
 ```json
 {
@@ -151,7 +151,7 @@ Migration sources are plugins. A plugin declares its provider ids in `openclaw.p
 
 At runtime the plugin calls `api.registerMigrationProvider(...)`. The provider implements `detect`, `plan`, and `apply`. Core owns CLI orchestration, backup policy, prompts, JSON output, and conflict preflight. Core passes the reviewed plan into `apply(ctx, plan)`, and providers may rebuild the plan only when that argument is absent for compatibility.
 
-Provider plugins can use `openclaw/plugin-sdk/migration` for item construction and summary counts, plus `openclaw/plugin-sdk/migration-runtime` for conflict-aware file copies, archive-only report copies, and migration reports.
+Provider plugins can use `getkova/plugin-sdk/migration` for item construction and summary counts, plus `getkova/plugin-sdk/migration-runtime` for conflict-aware file copies, archive-only report copies, and migration reports.
 
 ## Onboarding integration
 

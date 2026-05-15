@@ -11,28 +11,6 @@ const MIN_NODE_MINOR = 12;
 const MIN_NODE_VERSION = `${MIN_NODE_MAJOR}.${MIN_NODE_MINOR}`;
 const DEFAULT_CLI_NAME = "kova";
 
-const applyEnvAliases = () => {
-  const entries = Object.entries(process.env);
-  for (const [key, value] of entries) {
-    if (value === undefined) {
-      continue;
-    }
-    if (key.startsWith("KOVA_")) {
-      const aliasKey = `OPENCLAW_${key.slice("KOVA_".length)}`;
-      if (process.env[aliasKey] === undefined) {
-        process.env[aliasKey] = value;
-      }
-      continue;
-    }
-    if (key.startsWith("OPENCLAW_")) {
-      const aliasKey = `KOVA_${key.slice("OPENCLAW_".length)}`;
-      if (process.env[aliasKey] === undefined) {
-        process.env[aliasKey] = value;
-      }
-    }
-  }
-};
-
 const resolveCliName = () => {
   return DEFAULT_CLI_NAME;
 };
@@ -67,7 +45,6 @@ const ensureSupportedNodeVersion = () => {
 };
 
 ensureSupportedNodeVersion();
-applyEnvAliases();
 
 if (module.enableCompileCache && !process.env.NODE_DISABLE_COMPILE_CACHE) {
   try {
@@ -159,8 +136,7 @@ const isBareRootHelpInvocation = (argv) =>
 const isBrowserHelpInvocation = (argv) =>
   argv.length === 4 && argv[2] === "browser" && (argv[3] === "--help" || argv[3] === "-h");
 
-const isHelpFastPathDisabled = () =>
-  process.env.OPENCLAW_DISABLE_CLI_STARTUP_HELP_FAST_PATH === "1";
+const isHelpFastPathDisabled = () => process.env.KOVA_DISABLE_CLI_STARTUP_HELP_FAST_PATH === "1";
 
 const loadPrecomputedHelpText = (key) => {
   try {

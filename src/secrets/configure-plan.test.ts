@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import {
   TALK_TEST_PROVIDER_API_KEY_PATH,
   TALK_TEST_PROVIDER_ID,
@@ -27,7 +27,7 @@ describe("secrets configure plan helpers", () => {
           botToken: "token", // pragma: allowlist secret
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const candidates = buildConfigureCandidates(config);
     const paths = candidates.map((entry) => entry.path);
@@ -43,7 +43,7 @@ describe("secrets configure plan helpers", () => {
           legacy: { source: "env" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const next = {
       secrets: {
         providers: {
@@ -51,7 +51,7 @@ describe("secrets configure plan helpers", () => {
           modern: { source: "env" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const changes = collectConfigureProviderChanges({ original, next });
     expect(Object.keys(changes.upserts).toSorted()).toEqual(["default", "modern"]);
@@ -60,7 +60,7 @@ describe("secrets configure plan helpers", () => {
 
   it("discovers auth-profiles candidates for the selected agent scope", () => {
     const candidates = buildConfigureCandidatesForScope({
-      config: {} as OpenClawConfig,
+      config: {} as KovaConfig,
       authProfiles: {
         agentId: "main",
         store: {
@@ -102,7 +102,7 @@ describe("secrets configure plan helpers", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       authProfiles: {
         agentId: "main",
         store: {
@@ -156,12 +156,12 @@ describe("secrets configure plan helpers", () => {
           },
           apiKey: "demo-talk-key", // pragma: allowlist secret
         },
-      } as OpenClawConfig,
-      authoredOpenClawConfig: {
+      } as KovaConfig,
+      authoredKovaConfig: {
         talk: {
           apiKey: "demo-talk-key", // pragma: allowlist secret
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
     });
 
     const normalized = candidates.find((entry) => entry.path === TALK_TEST_PROVIDER_API_KEY_PATH);
@@ -177,7 +177,7 @@ describe("secrets configure plan helpers", () => {
           path: TALK_TEST_PROVIDER_API_KEY_PATH,
           pathSegments: ["talk", "providers", TALK_TEST_PROVIDER_ID, "apiKey"],
           label: TALK_TEST_PROVIDER_API_KEY_PATH,
-          configFile: "openclaw.json" as const,
+          configFile: "kova.json" as const,
           expectedResolvedValue: "string" as const,
           providerId: TALK_TEST_PROVIDER_ID,
           ref: {

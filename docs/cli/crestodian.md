@@ -37,7 +37,7 @@ local CLI probes, API-key presence, agents, model, and Gateway details.
 Crestodian uses the same Kova reference discovery as regular agents. In a Git checkout,
 it points itself at local `docs/` and the local source tree. In an npm package install, it
 uses the bundled package docs and links to
-[https://github.com/openclaw/openclaw](https://github.com/openclaw/openclaw), with explicit
+[https://github.com/chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab), with explicit
 guidance to review source whenever the docs are not enough.
 
 ## Examples
@@ -64,7 +64,7 @@ validate config
 setup
 setup workspace ~/Projects/work model openai/gpt-5.5
 config set gateway.port 19001
-config set-ref gateway.auth.token env OPENCLAW_GATEWAY_TOKEN
+config set-ref gateway.auth.token env KOVA_GATEWAY_TOKEN
 gateway status
 restart gateway
 agents
@@ -81,8 +81,8 @@ quit
 
 Crestodian's startup path is deliberately small. It can run when:
 
-- `openclaw.json` is missing
-- `openclaw.json` is invalid
+- `kova.json` is missing
+- `kova.json` is invalid
 - the Gateway is down
 - plugin command registration is unavailable
 - no agent has been configured yet
@@ -121,7 +121,7 @@ you pass `--yes` for a direct command:
 Applied writes are recorded in:
 
 ```text
-~/.openclaw/audit/crestodian.jsonl
+~/.kova/audit/crestodian.jsonl
 ```
 
 Discovery is not audited. Only applied operations and writes are logged.

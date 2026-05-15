@@ -26,8 +26,8 @@ execution:
   kind: flow
   summary: Verify qa-channel readiness recovery does not duplicate old outbound delivery.
   config:
-    firstPrompt: "@openclaw Reconnect dedupe setup marker. Reply exactly: RECONNECT-FIRST-OK"
-    secondPrompt: "@openclaw Reconnect dedupe follow-up marker. Reply exactly: RECONNECT-SECOND-OK"
+    firstPrompt: "@kovaai Reconnect dedupe setup marker. Reply exactly: RECONNECT-FIRST-OK"
+    secondPrompt: "@kovaai Reconnect dedupe follow-up marker. Reply exactly: RECONNECT-SECOND-OK"
     firstMarker: RECONNECT-FIRST-OK
     secondMarker: RECONNECT-SECOND-OK
 ```

@@ -1,4 +1,4 @@
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { KovaConfig } from "../runtime-api.js";
 import { buildFeishuConversationId } from "./conversation-id.js";
 import { normalizeFeishuExternalKey } from "./external-keys.js";
 import { downloadMessageResourceFeishu } from "./media.js";
@@ -348,7 +348,7 @@ function inferPlaceholder(messageType: string): string {
 }
 
 export async function resolveFeishuMediaList(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   messageId: string;
   messageType: string;
   content: string;

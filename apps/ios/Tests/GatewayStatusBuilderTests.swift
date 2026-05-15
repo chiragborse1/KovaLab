@@ -1,6 +1,6 @@
-import OpenClawKit
+import KovaKit
 import Testing
-@testable import OpenClaw
+@testable import Kova
 
 @Suite struct GatewayStatusBuilderTests {
     @Test func pausedProblemKeepsErrorStatus() {

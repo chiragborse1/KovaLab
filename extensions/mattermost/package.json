@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/mattermost",
+  "name": "@kovaai/mattermost",
   "version": "2.0.0-beta.5",
   "description": "Kova Mattermost channel plugin",
   "type": "module",
@@ -7,18 +7,18 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -33,7 +33,7 @@
       "order": 65
     },
     "install": {
-      "npmSpec": "@openclaw/mattermost",
+      "npmSpec": "@kovaai/mattermost",
       "defaultChoice": "npm",
       "minHostVersion": ">=2.0.0-beta.4"
     }

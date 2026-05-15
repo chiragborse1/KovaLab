@@ -68,7 +68,7 @@ export type GatewayBonjourDiscoverOpts = {
 
 const DEFAULT_TIMEOUT_MS = 2000;
 const GATEWAY_SERVICE_TYPE = "_kova-gw._tcp";
-const LEGACY_GATEWAY_SERVICE_TYPE = "_openclaw-gw._tcp";
+const LEGACY_GATEWAY_SERVICE_TYPE = "_kova-gw._tcp";
 const GATEWAY_SERVICE_TYPES = [GATEWAY_SERVICE_TYPE, LEGACY_GATEWAY_SERVICE_TYPE] as const;
 
 function escapeRegex(value: string): string {

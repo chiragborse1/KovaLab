@@ -48,7 +48,7 @@ Quick rule:
 | Session modes                                                         | Partial     | `session/set_mode` is supported and the bridge exposes initial Gateway-backed session controls for thought level, tool verbosity, reasoning, usage detail, and elevated actions. Broader ACP-native mode/config surfaces are still out of scope. |
 | Session info and usage updates                                        | Partial     | The bridge emits `session_info_update` and best-effort `usage_update` notifications from cached Gateway session snapshots. Usage is approximate and only sent when Gateway token totals are marked fresh.                                        |
 | Tool streaming                                                        | Partial     | `tool_call` / `tool_call_update` events include raw I/O, text content, and best-effort file locations when Gateway tool args/results expose them. Embedded terminals and richer diff-native output are still not exposed.                        |
-| Per-session MCP servers (`mcpServers`)                                | Unsupported | Bridge mode rejects per-session MCP server requests. Configure MCP on the Kova gateway or agent instead.                                                                                                                                     |
+| Per-session MCP servers (`mcpServers`)                                | Unsupported | Bridge mode rejects per-session MCP server requests. Configure MCP on the Kova gateway or agent instead.                                                                                                                                         |
 | Client filesystem methods (`fs/read_text_file`, `fs/write_text_file`) | Unsupported | The bridge does not call ACP client filesystem methods.                                                                                                                                                                                          |
 | Client terminal methods (`terminal/*`)                                | Unsupported | The bridge does not create ACP client terminals or stream terminal ids through tool calls.                                                                                                                                                       |
 | Session plans / thought streaming                                     | Unsupported | The bridge currently emits output text and tool status, not ACP plan or thought updates.                                                                                                                                                         |
@@ -85,7 +85,7 @@ kova acp
 kova acp --url wss://gateway-host:18789 --token <token>
 
 # Remote Gateway (token from file)
-kova acp --url wss://gateway-host:18789 --token-file ~/.openclaw/gateway.token
+kova acp --url wss://gateway-host:18789 --token-file ~/.kova/gateway.token
 
 # Attach to an existing session key
 kova acp --session agent:main:main
@@ -106,10 +106,10 @@ It spawns the ACP bridge and lets you type prompts interactively.
 kova acp client
 
 # Point the spawned bridge at a remote Gateway
-kova acp client --server-args --url wss://gateway-host:18789 --token-file ~/.openclaw/gateway.token
+kova acp client --server-args --url wss://gateway-host:18789 --token-file ~/.kova/gateway.token
 
-# Override the server command (default: openclaw)
-kova acp client --server "node" --server-args openclaw.mjs acp --url ws://127.0.0.1:19001
+# Override the server command (default: kova)
+kova acp client --server "node" --server-args kova.mjs acp --url ws://127.0.0.1:19001
 ```
 
 Permission model (client debug mode):
@@ -141,7 +141,7 @@ Example direct run (no config write):
 ```bash
 kova acp --url wss://gateway-host:18789 --token <token>
 # preferred for local process safety
-kova acp --url wss://gateway-host:18789 --token-file ~/.openclaw/gateway.token
+kova acp --url wss://gateway-host:18789 --token-file ~/.kova/gateway.token
 ```
 
 ## Selecting agents
@@ -168,7 +168,7 @@ If you want ACPX-backed sessions to see Kova plugin tools or selected
 built-in tools such as `cron`, enable the gateway-side ACPX MCP bridges instead
 of trying to pass per-session `mcpServers`. See
 [ACP Agents](/tools/acp-agents-setup#plugin-tools-mcp-bridge) and
-[Kova tools MCP bridge](/tools/acp-agents-setup#openclaw-tools-mcp-bridge).
+[Kova tools MCP bridge](/tools/acp-agents-setup#kova-tools-mcp-bridge).
 
 ## Use from `acpx` (Codex, Claude, other ACP clients)
 
@@ -199,8 +199,8 @@ time, override the `kova` agent command in `~/.acpx/config.json`:
 ```json
 {
   "agents": {
-    "openclaw": {
-      "command": "env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 kova acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main"
+    "kova": {
+      "command": "env KOVA_HIDE_BANNER=1 KOVA_SUPPRESS_NOTES=1 kova acp --url ws://127.0.0.1:18789 --token-file ~/.kova/gateway.token --session agent:main:main"
     }
   }
 }
@@ -210,7 +210,7 @@ For a repo-local Kova checkout, use the direct CLI entrypoint instead of the
 dev runner so the ACP stream stays clean. For example:
 
 ```bash
-env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 node openclaw.mjs acp ...
+env KOVA_HIDE_BANNER=1 KOVA_SUPPRESS_NOTES=1 node kova.mjs acp ...
 ```
 
 This is the easiest way to let Codex, Claude Code, or another ACP-aware client
@@ -225,7 +225,7 @@ Add a custom ACP agent in `~/.config/zed/settings.json` (or use Zed’s Settings
   "agent_servers": {
     "Kova ACP": {
       "type": "custom",
-      "command": "openclaw",
+      "command": "kova",
       "args": ["acp"],
       "env": {}
     }
@@ -240,7 +240,7 @@ To target a specific Gateway or agent:
   "agent_servers": {
     "Kova ACP": {
       "type": "custom",
-      "command": "openclaw",
+      "command": "kova",
       "args": [
         "acp",
         "--url",
@@ -299,13 +299,13 @@ Learn more about session keys at [/concepts/session](/concepts/session).
 Security note:
 
 - `--token` and `--password` can be visible in local process listings on some systems.
-- Prefer `--token-file`/`--password-file` or environment variables (`OPENCLAW_GATEWAY_TOKEN`, `OPENCLAW_GATEWAY_PASSWORD`).
+- Prefer `--token-file`/`--password-file` or environment variables (`KOVA_GATEWAY_TOKEN`, `KOVA_GATEWAY_PASSWORD`).
 - Gateway auth resolution follows the shared contract used by other Gateway clients:
-  - local mode: env (`OPENCLAW_GATEWAY_*`) -> `gateway.auth.*` -> `gateway.remote.*` fallback only when `gateway.auth.*` is unset (configured-but-unresolved local SecretRefs fail closed)
+  - local mode: env (`KOVA_GATEWAY_*`) -> `gateway.auth.*` -> `gateway.remote.*` fallback only when `gateway.auth.*` is unset (configured-but-unresolved local SecretRefs fail closed)
   - remote mode: `gateway.remote.*` with env/config fallback per remote precedence rules
   - `--url` is override-safe and does not reuse implicit config/env credentials; pass explicit `--token`/`--password` (or file variants)
-- ACP runtime backend child processes receive `OPENCLAW_SHELL=acp`, which can be used for context-specific shell/profile rules.
-- `kova acp client` sets `OPENCLAW_SHELL=acp-client` on the spawned bridge process.
+- ACP runtime backend child processes receive `KOVA_SHELL=acp`, which can be used for context-specific shell/profile rules.
+- `kova acp client` sets `KOVA_SHELL=acp-client` on the spawned bridge process.
 
 ### `acp client` options
 

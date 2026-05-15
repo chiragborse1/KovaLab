@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import {
   createChannelOnboardingPostWriteHook,
   createChannelOnboardingPostWriteHookCollector,
@@ -10,12 +10,12 @@ import { createExitThrowingRuntime } from "./test-wizard-helpers.js";
 describe("setupChannels post-write hooks", () => {
   it("collects onboarding post-write hooks and runs them against the final config", async () => {
     const afterConfigWritten = vi.fn(async () => {});
-    const previousCfg = {} as OpenClawConfig;
+    const previousCfg = {} as KovaConfig;
     const cfg = {
       channels: {
         telegram: { botToken: "new-token" },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     const adapter = {
       afterConfigWritten,
     };
@@ -62,7 +62,7 @@ describe("setupChannels post-write hooks", () => {
           },
         },
       ],
-      cfg: {} as OpenClawConfig,
+      cfg: {} as KovaConfig,
       runtime,
     });
 

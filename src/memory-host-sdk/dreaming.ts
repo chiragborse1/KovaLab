@@ -1,6 +1,6 @@
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { asNullableRecord } from "../shared/record-coerce.js";
 import {
   lowercasePreservingWhitespace,
@@ -18,14 +18,13 @@ export const DEFAULT_MEMORY_DREAMING_FREQUENCY = "0 3 * * *";
 export const DEFAULT_MEMORY_DREAMING_PLUGIN_ID = "memory-core";
 export const MANAGED_MEMORY_DREAMING_CRON_NAME = "Memory Dreaming Promotion";
 export const MANAGED_MEMORY_DREAMING_CRON_TAG = "[managed-by=memory-core.short-term-promotion]";
-export const MEMORY_DREAMING_SYSTEM_EVENT_TEXT =
-  "__openclaw_memory_core_short_term_promotion_dream__";
+export const MEMORY_DREAMING_SYSTEM_EVENT_TEXT = "__kova_memory_core_short_term_promotion_dream__";
 export const LEGACY_MEMORY_LIGHT_DREAMING_CRON_NAME = "Memory Light Dreaming";
 export const LEGACY_MEMORY_LIGHT_DREAMING_CRON_TAG = "[managed-by=memory-core.dreaming.light]";
-export const LEGACY_MEMORY_LIGHT_DREAMING_EVENT_TEXT = "__openclaw_memory_core_light_sleep__";
+export const LEGACY_MEMORY_LIGHT_DREAMING_EVENT_TEXT = "__kova_memory_core_light_sleep__";
 export const LEGACY_MEMORY_REM_DREAMING_CRON_NAME = "Memory REM Dreaming";
 export const LEGACY_MEMORY_REM_DREAMING_CRON_TAG = "[managed-by=memory-core.dreaming.rem]";
-export const LEGACY_MEMORY_REM_DREAMING_EVENT_TEXT = "__openclaw_memory_core_rem_sleep__";
+export const LEGACY_MEMORY_REM_DREAMING_EVENT_TEXT = "__kova_memory_core_rem_sleep__";
 
 export const DEFAULT_MEMORY_LIGHT_DREAMING_CRON_EXPR = "0 */6 * * *";
 export const DEFAULT_MEMORY_LIGHT_DREAMING_LOOKBACK_DAYS = 2;
@@ -328,7 +327,7 @@ function formatLocalIsoDay(epochMs: number): string {
 }
 
 export function resolveMemoryDreamingPluginId(
-  cfg: OpenClawConfig | Record<string, unknown> | undefined,
+  cfg: KovaConfig | Record<string, unknown> | undefined,
 ): string {
   const root = asNullableRecord(cfg);
   const plugins = asNullableRecord(root?.plugins);
@@ -341,7 +340,7 @@ export function resolveMemoryDreamingPluginId(
 }
 
 export function resolveMemoryDreamingPluginConfig(
-  cfg: OpenClawConfig | Record<string, unknown> | undefined,
+  cfg: KovaConfig | Record<string, unknown> | undefined,
 ): Record<string, unknown> | undefined {
   const root = asNullableRecord(cfg);
   const plugins = asNullableRecord(root?.plugins);
@@ -356,7 +355,7 @@ export const resolveMemoryCorePluginConfig = resolveMemoryDreamingPluginConfig;
 
 export function resolveMemoryDreamingConfig(params: {
   pluginConfig?: Record<string, unknown>;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): MemoryDreamingConfig {
   const dreaming = asNullableRecord(params.pluginConfig?.dreaming);
   const frequency =
@@ -516,7 +515,7 @@ export function resolveMemoryDreamingConfig(params: {
 
 export function resolveMemoryDeepDreamingConfig(params: {
   pluginConfig?: Record<string, unknown>;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): MemoryDeepDreamingConfig & {
   timezone?: string;
   verboseLogging: boolean;
@@ -534,7 +533,7 @@ export function resolveMemoryDeepDreamingConfig(params: {
 
 export function resolveMemoryLightDreamingConfig(params: {
   pluginConfig?: Record<string, unknown>;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): MemoryLightDreamingConfig & {
   timezone?: string;
   verboseLogging: boolean;
@@ -552,7 +551,7 @@ export function resolveMemoryLightDreamingConfig(params: {
 
 export function resolveMemoryRemDreamingConfig(params: {
   pluginConfig?: Record<string, unknown>;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): MemoryRemDreamingConfig & {
   timezone?: string;
   verboseLogging: boolean;
@@ -603,7 +602,7 @@ export function isSameMemoryDreamingDay(
   );
 }
 
-export function resolveMemoryDreamingWorkspaces(cfg: OpenClawConfig): MemoryDreamingWorkspace[] {
+export function resolveMemoryDreamingWorkspaces(cfg: KovaConfig): MemoryDreamingWorkspace[] {
   const configured = Array.isArray(cfg.agents?.list) ? cfg.agents.list : [];
   const agentIds: string[] = [];
   const seenAgents = new Set<string>();

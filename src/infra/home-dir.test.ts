@@ -15,7 +15,6 @@ describe("resolveEffectiveHomeDir", () => {
       name: "prefers KOVA_HOME over legacy home, HOME and USERPROFILE",
       env: {
         KOVA_HOME: " /srv/kova-home ",
-        OPENCLAW_HOME: " /srv/openclaw-home ",
         HOME: "/home/other",
         USERPROFILE: "C:/Users/other",
       } as NodeJS.ProcessEnv,
@@ -25,7 +24,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "ignores legacy home without compatibility mode",
       env: {
-        OPENCLAW_HOME: " /srv/openclaw-home ",
+        KOVA_HOME: " /srv/kova-home ",
         HOME: "/home/alice",
       } as NodeJS.ProcessEnv,
       homedir: () => "/fallback",
@@ -34,12 +33,12 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "uses legacy home only with compatibility mode",
       env: {
-        KOVA_ALLOW_OPENCLAW_COMPAT: "1",
-        OPENCLAW_HOME: " /srv/openclaw-home ",
+        KOVA_COMPAT: "1",
+        KOVA_HOME: " /srv/kova-home ",
         HOME: "/home/alice",
       } as NodeJS.ProcessEnv,
       homedir: () => "/fallback",
-      expected: "/srv/openclaw-home",
+      expected: "/srv/kova-home",
     },
     {
       name: "falls back to HOME",
@@ -57,7 +56,7 @@ describe("resolveEffectiveHomeDir", () => {
     {
       name: "falls back to homedir when env values are blank",
       env: {
-        OPENCLAW_HOME: " ",
+        KOVA_HOME: " ",
         HOME: " ",
         USERPROFILE: "\t",
       } as NodeJS.ProcessEnv,
@@ -68,7 +67,6 @@ describe("resolveEffectiveHomeDir", () => {
       name: "treats literal undefined env values as unset",
       env: {
         KOVA_HOME: "undefined",
-        OPENCLAW_HOME: "undefined",
         HOME: "undefined",
         USERPROFILE: "null",
       } as NodeJS.ProcessEnv,
@@ -137,7 +135,6 @@ describe("resolveOsHomeDir", () => {
       resolveOsHomeDir(
         {
           KOVA_HOME: "/srv/kova-home",
-          OPENCLAW_HOME: "/srv/openclaw-home",
           HOME: "/home/alice",
           USERPROFILE: "C:/Users/alice",
         } as NodeJS.ProcessEnv,
@@ -160,8 +157,8 @@ describe("expandHomePrefix", () => {
     {
       name: "expands exact ~ using explicit home",
       input: "~",
-      opts: { home: " /srv/openclaw-home " },
-      expected: "/srv/openclaw-home",
+      opts: { home: " /srv/kova-home " },
+      expected: "/srv/kova-home",
     },
     {
       name: "expands ~\\\\ using resolved env home",
@@ -228,7 +225,6 @@ describe("resolveOsHomeRelativePath", () => {
       resolveOsHomeRelativePath("~/docs", {
         env: {
           KOVA_HOME: "/srv/kova-home",
-          OPENCLAW_HOME: "/srv/openclaw-home",
           HOME: "/home/alice",
         } as NodeJS.ProcessEnv,
       }),

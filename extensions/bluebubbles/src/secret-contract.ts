@@ -4,13 +4,13 @@ import {
   type ResolverContext,
   type SecretDefaults,
   type SecretTargetRegistryEntry,
-} from "openclaw/plugin-sdk/channel-secret-basic-runtime";
+} from "getkova/plugin-sdk/channel-secret-basic-runtime";
 
 export const secretTargetRegistryEntries = [
   {
     id: "channels.bluebubbles.accounts.*.password",
     targetType: "channels.bluebubbles.accounts.*.password",
-    configFile: "openclaw.json",
+    configFile: "kova.json",
     pathPattern: "channels.bluebubbles.accounts.*.password",
     secretShape: "secret_input",
     expectedResolvedValue: "string",
@@ -21,7 +21,7 @@ export const secretTargetRegistryEntries = [
   {
     id: "channels.bluebubbles.password",
     targetType: "channels.bluebubbles.password",
-    configFile: "openclaw.json",
+    configFile: "kova.json",
     pathPattern: "channels.bluebubbles.password",
     secretShape: "secret_input",
     expectedResolvedValue: "string",

@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/amazon-bedrock-provider",
+  "name": "@kovaai/amazon-bedrock-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Amazon Bedrock provider plugin",
@@ -10,9 +10,9 @@
     "@aws-sdk/credential-provider-node": "3.972.36"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     },

@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/chiragborse1/KovaLab/actions/workflows/ci.yml?branch=dev"><img src="https://img.shields.io/github/actions/workflow/status/chiragborse1/KovaLab/ci.yml?branch=dev&style=for-the-badge" alt="CI status"></a>
   <a href="https://github.com/chiragborse1/KovaLab/releases"><img src="https://img.shields.io/github/v/release/chiragborse1/KovaLab?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
-  <a href="https://discord.gg/clawd"><img src="https://img.shields.io/discord/1456350064065904867?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
+  <a href="https://discord.gg/kova"><img src="https://img.shields.io/discord/1456350064065904867?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
@@ -22,7 +22,7 @@ If you want a personal, single-user assistant that feels local, fast, and always
 
 Supported channels include: WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, BlueBubbles, IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, QQ, WebChat.
 
-[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Vision](VISION.md) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Updating](https://docs.neuralstudio.in/install/updating) · [Showcase](https://docs.neuralstudio.in/start/showcase) · [FAQ](https://docs.neuralstudio.in/help/faq) · [Onboarding](https://docs.neuralstudio.in/start/wizard) · [Docker](https://docs.neuralstudio.in/install/docker) · [Discord](https://discord.gg/clawd)
+[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Vision](VISION.md) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Updating](https://docs.neuralstudio.in/install/updating) · [Showcase](https://docs.neuralstudio.in/start/showcase) · [FAQ](https://docs.neuralstudio.in/help/faq) · [Onboarding](https://docs.neuralstudio.in/start/wizard) · [Docker](https://docs.neuralstudio.in/install/docker) · [Discord](https://discord.gg/kova)
 
 New install? Start here: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
@@ -162,7 +162,7 @@ Run `kova doctor` to surface risky/misconfigured DM policies.
 
 - Chat commands: `/status`, `/new`, `/reset`, `/compact`, `/think <level>`, `/verbose on|off`, `/trace on|off`, `/usage off|tokens|full`, `/restart`, `/activation mention|always`
 - Session tools: `sessions_list`, `sessions_history`, `sessions_send`
-- Skills registry: [ClawHub](https://clawhub.ai)
+- Skills registry: [KovaHub](https://kovahub.ai)
 - Architecture overview: [Architecture](https://docs.neuralstudio.in/concepts/architecture)
 
 ## Docs by goal
@@ -279,7 +279,7 @@ by Peter Steinberger and the community.
 - [www.neuralstudio.in](https://www.neuralstudio.in/)
 - [soul.md](https://soul.md)
 - [steipete.me](https://steipete.me)
-- [@openclaw](https://x.com/openclaw)
+- [@kovaai](https://x.com/kova)
 
 ## Community
 

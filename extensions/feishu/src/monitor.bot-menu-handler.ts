@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, HistoryEntry, RuntimeEnv } from "../runtime-api.js";
+import type { KovaConfig, HistoryEntry, RuntimeEnv } from "../runtime-api.js";
 import { handleFeishuMessage, type FeishuMessageEvent } from "./bot.js";
 import { maybeHandleFeishuQuickActionMenu } from "./card-ux-launcher.js";
 import {
@@ -57,7 +57,7 @@ function parseFeishuBotMenuEvent(value: unknown): FeishuBotMenuEvent | null {
 }
 
 export function createFeishuBotMenuHandler(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   accountId: string;
   runtime?: RuntimeEnv;
   chatHistories: Map<string, HistoryEntry[]>;

@@ -17,7 +17,7 @@ describe("resolveIosVersion", () => {
   it("parses pinned SemVer versions and derives Apple marketing fields", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: "# OpenClaw iOS Changelog\n\n## 0.2.0\n\nStable notes.\n",
+      changelog: "# Kova iOS Changelog\n\n## 0.2.0\n\nStable notes.\n",
     });
 
     expect(resolveIosVersion(rootDir)).toMatchObject({
@@ -30,7 +30,7 @@ describe("resolveIosVersion", () => {
   it("accepts legacy CalVer pinned versions for compatibility", () => {
     const rootDir = writeIosFixture({
       version: "2026.4.6",
-      changelog: "# OpenClaw iOS Changelog\n\n## 2026.4.6\n\nNotes.\n",
+      changelog: "# Kova iOS Changelog\n\n## 2026.4.6\n\nNotes.\n",
     });
 
     expect(resolveIosVersion(rootDir).canonicalVersion).toBe("2026.4.6");
@@ -39,7 +39,7 @@ describe("resolveIosVersion", () => {
   it("rejects prerelease suffixes in the pinned iOS version file", () => {
     const rootDir = writeIosFixture({
       version: "2026.4.6-beta.1",
-      changelog: "# OpenClaw iOS Changelog\n\n## Unreleased\n\nNotes.\n",
+      changelog: "# Kova iOS Changelog\n\n## Unreleased\n\nNotes.\n",
     });
 
     expect(() => resolveIosVersion(rootDir)).toThrow(
@@ -69,7 +69,7 @@ describe("gateway version normalization", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
       packageVersion: "0.2.3-beta.5",
-      changelog: "# OpenClaw iOS Changelog\n\n## Unreleased\n\nNotes.\n",
+      changelog: "# Kova iOS Changelog\n\n## Unreleased\n\nNotes.\n",
     });
 
     expect(resolveGatewayVersionForIosRelease(rootDir)).toEqual({
@@ -83,13 +83,13 @@ describe("renderIosVersionXcconfig", () => {
   it("renders checked-in defaults from the pinned iOS version", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: "# OpenClaw iOS Changelog\n\n## 0.2.0\n\nNotes.\n",
+      changelog: "# Kova iOS Changelog\n\n## 0.2.0\n\nNotes.\n",
     });
     const version = resolveIosVersion(rootDir);
 
-    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_IOS_VERSION = 0.2.0");
-    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_MARKETING_VERSION = 0.2.0");
-    expect(renderIosVersionXcconfig(version)).toContain("OPENCLAW_BUILD_VERSION = 1");
+    expect(renderIosVersionXcconfig(version)).toContain("KOVA_IOS_VERSION = 0.2.0");
+    expect(renderIosVersionXcconfig(version)).toContain("KOVA_MARKETING_VERSION = 0.2.0");
+    expect(renderIosVersionXcconfig(version)).toContain("KOVA_BUILD_VERSION = 1");
   });
 });
 
@@ -97,7 +97,7 @@ describe("release note extraction", () => {
   it("extracts exact pinned version sections first", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: `# OpenClaw iOS Changelog
+      changelog: `# Kova iOS Changelog
 
 ## Unreleased
 
@@ -117,7 +117,7 @@ Draft notes.
   it("falls back to Unreleased when the release section does not exist yet", () => {
     const rootDir = writeIosFixture({
       version: "0.2.0",
-      changelog: `# OpenClaw iOS Changelog
+      changelog: `# Kova iOS Changelog
 
 ## Unreleased
 
@@ -136,7 +136,7 @@ Draft notes.
   it("extracts markdown bodies without the version heading", () => {
     expect(
       extractChangelogSection(
-        `# OpenClaw iOS Changelog\n\n## 0.2.0 - 2026-04-06\n\nLine one.\n\n## 0.1.9\n`,
+        `# Kova iOS Changelog\n\n## 0.2.0 - 2026-04-06\n\nLine one.\n\n## 0.1.9\n`,
         "0.2.0",
       ),
     ).toBe("Line one.");

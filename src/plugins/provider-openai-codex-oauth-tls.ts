@@ -1,6 +1,6 @@
 import path from "node:path";
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { asNullableObjectRecord } from "../shared/record-coerce.js";
 import { note } from "../terminal/note.js";
 
@@ -76,7 +76,7 @@ function resolveCertBundlePath(): string | null {
   return path.join(prefix, "etc", "openssl@3", "cert.pem");
 }
 
-function hasOpenAICodexOAuthProfile(cfg: OpenClawConfig): boolean {
+function hasOpenAICodexOAuthProfile(cfg: KovaConfig): boolean {
   const profiles = cfg.auth?.profiles;
   if (!profiles) {
     return false;
@@ -87,7 +87,7 @@ function hasOpenAICodexOAuthProfile(cfg: OpenClawConfig): boolean {
 }
 
 function shouldRunOpenAIOAuthTlsPrerequisites(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   deep?: boolean;
 }): boolean {
   if (params.deep === true) {
@@ -147,7 +147,7 @@ export function formatOpenAIOAuthTlsPreflightFix(
 }
 
 export async function noteOpenAIOAuthTlsPrerequisites(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   deep?: boolean;
 }): Promise<void> {
   if (!shouldRunOpenAIOAuthTlsPrerequisites(params)) {

@@ -87,7 +87,7 @@ describe("extra-params: Kilocode wrapper", () => {
       modelId: "anthropic/claude-sonnet-4",
     });
 
-    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("openclaw");
+    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("kova");
   });
 
   it("reads X-KILOCODE-FEATURE from KILOCODE_FEATURE env var", () => {
@@ -110,7 +110,7 @@ describe("extra-params: Kilocode wrapper", () => {
       callerHeaders: { "X-KILOCODE-FEATURE": "should-be-overwritten" },
     });
 
-    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("openclaw");
+    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("kova");
   });
 
   it("keeps Kilocode runtime wrapping under restrictive plugins.allow", () => {
@@ -121,7 +121,7 @@ describe("extra-params: Kilocode wrapper", () => {
       modelId: "anthropic/claude-sonnet-4",
     });
 
-    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("openclaw");
+    expect(headers?.["X-KILOCODE-FEATURE"]).toBe("kova");
   });
 
   it("does not inject header for non-kilocode providers", () => {

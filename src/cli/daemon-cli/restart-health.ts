@@ -227,16 +227,8 @@ async function confirmGatewayReachable(params: {
   port: number;
   includeHealthDetails?: boolean;
 }): Promise<GatewayReachability> {
-  const token = readGatewayCredentialEnv(
-    process.env,
-    "KOVA_GATEWAY_TOKEN",
-    "OPENCLAW_GATEWAY_TOKEN",
-  );
-  const password = readGatewayCredentialEnv(
-    process.env,
-    "KOVA_GATEWAY_PASSWORD",
-    "OPENCLAW_GATEWAY_PASSWORD",
-  );
+  const token = readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN");
+  const password = readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD");
   const probe = await probeGateway({
     url: `ws://127.0.0.1:${params.port}`,
     auth: token || password ? { token, password } : undefined,

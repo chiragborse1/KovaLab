@@ -1,14 +1,14 @@
 import type { ButtonInteraction, StringSelectMenuInteraction } from "@buape/carbon";
-import type { ChatCommandDefinition, CommandArgs } from "openclaw/plugin-sdk/command-auth";
+import type { ChatCommandDefinition, CommandArgs } from "getkova/plugin-sdk/command-auth";
 import {
   applyModelOverrideToSessionEntry,
   resolveStorePath,
   updateSessionStore,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { ResolvedAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { withTimeout } from "openclaw/plugin-sdk/text-runtime";
+  type KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
+import type { ResolvedAgentRoute } from "getkova/plugin-sdk/routing";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
+import { withTimeout } from "getkova/plugin-sdk/text-runtime";
 import {
   recordDiscordModelPickerRecentModel,
   type DiscordModelPickerPreferenceScope,
@@ -16,7 +16,7 @@ import {
 import type { DispatchDiscordCommandInteraction } from "./native-command-dispatch.js";
 import type { ThreadBindingManager } from "./thread-bindings.js";
 
-type DiscordConfig = NonNullable<OpenClawConfig["channels"]>["discord"];
+type DiscordConfig = NonNullable<KovaConfig["channels"]>["discord"];
 
 export type DiscordModelPickerSelectionCommand = {
   prompt: string;
@@ -32,7 +32,7 @@ export type DiscordModelPickerApplyResult =
   | { status: "failed"; noticeMessage: string };
 
 async function persistDiscordModelPickerOverride(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   route: ResolvedAgentRoute;
   provider: string;
   model: string;
@@ -65,7 +65,7 @@ export async function applyDiscordModelPickerSelection(params: {
   interaction: ButtonInteraction | StringSelectMenuInteraction;
   selectionCommand: DiscordModelPickerSelectionCommand;
   dispatchCommandInteraction: DispatchDiscordCommandInteraction;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   discordConfig: DiscordConfig;
   accountId: string;
   sessionPrefix: string;

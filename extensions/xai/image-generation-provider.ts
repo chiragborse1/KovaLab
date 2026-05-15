@@ -3,20 +3,20 @@ import type {
   ImageGenerationProvider,
   ImageGenerationRequest,
   ImageGenerationResult,
-} from "openclaw/plugin-sdk/image-generation";
-import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
-import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+} from "getkova/plugin-sdk/image-generation";
+import { isProviderApiKeyConfigured } from "getkova/plugin-sdk/provider-auth";
+import { resolveApiKeyForProvider } from "getkova/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
   createProviderOperationDeadline,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
   resolveProviderOperationTimeoutMs,
-} from "openclaw/plugin-sdk/provider-http";
+} from "getkova/plugin-sdk/provider-http";
 import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import { XAI_BASE_URL, XAI_DEFAULT_IMAGE_MODEL, XAI_IMAGE_MODELS } from "./model-definitions.js";
 
 const DEFAULT_OUTPUT_MIME = "image/png";

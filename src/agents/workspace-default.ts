@@ -14,16 +14,16 @@ export function resolveLegacyDefaultAgentWorkspaceDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
 ): string {
-  return resolveAgentWorkspaceDirForStateDir(".openclaw", env, homedir);
+  return resolveAgentWorkspaceDirForStateDir(".kova", env, homedir);
 }
 
 function resolveAgentWorkspaceDirForStateDir(
-  stateDirName: ".kova" | ".openclaw",
+  stateDirName: ".kova" | ".kova",
   env: NodeJS.ProcessEnv,
   homedir: () => string,
 ): string {
   const home = resolveRequiredHomeDir(env, homedir);
-  const profile = env.OPENCLAW_PROFILE?.trim();
+  const profile = env.KOVA_PROFILE?.trim();
   if (profile && normalizeOptionalLowercaseString(profile) !== "default") {
     return path.join(home, stateDirName, `workspace-${profile}`);
   }

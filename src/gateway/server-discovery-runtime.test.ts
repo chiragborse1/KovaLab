@@ -4,10 +4,10 @@ import type { PluginGatewayDiscoveryServiceRegistration } from "../plugins/regis
 const mocks = vi.hoisted(() => ({
   pickPrimaryTailnetIPv4: vi.fn(() => "100.64.0.10"),
   pickPrimaryTailnetIPv6: vi.fn(() => undefined as string | undefined),
-  resolveWideAreaDiscoveryDomain: vi.fn(() => "openclaw.internal."),
+  resolveWideAreaDiscoveryDomain: vi.fn(() => "kova.internal."),
   writeWideAreaGatewayZone: vi.fn(async () => ({
     changed: true,
-    zonePath: "/tmp/openclaw.internal.db",
+    zonePath: "/tmp/kova.internal.db",
   })),
   formatBonjourInstanceName: vi.fn((name: string) => `${name} (Kova)`),
   readDiscoveryEnv: vi.fn((env: NodeJS.ProcessEnv, key: string) => {
@@ -15,9 +15,9 @@ const mocks = vi.hoisted(() => ({
     if (modern) {
       return modern;
     }
-    return env.KOVA_ALLOW_OPENCLAW_COMPAT === "1" ? env[`OPENCLAW_${key}`]?.trim() : undefined;
+    return env.KOVA_COMPAT === "1" ? env[`KOVA_${key}`]?.trim() : undefined;
   }),
-  resolveBonjourCliPath: vi.fn(() => "/usr/local/bin/openclaw"),
+  resolveBonjourCliPath: vi.fn(() => "/usr/local/bin/kova"),
   resolveTailnetDnsHint: vi.fn(async () => "gateway.tailnet.example.ts.net"),
 }));
 
@@ -119,7 +119,7 @@ describe("startGatewayDiscovery", () => {
       canvasPort: 18789,
       sshPort: 2222,
       tailnetDns: "gateway.tailnet.example.ts.net",
-      cliPath: "/usr/local/bin/openclaw",
+      cliPath: "/usr/local/bin/kova",
       minimal: false,
     });
     expect(peer.service.advertise).toHaveBeenCalledTimes(1);
@@ -182,7 +182,7 @@ describe("startGatewayDiscovery", () => {
       port: 18789,
       gatewayTls: { enabled: false },
       wideAreaDiscoveryEnabled: true,
-      wideAreaDiscoveryDomain: "openclaw.internal.",
+      wideAreaDiscoveryDomain: "kova.internal.",
       tailscaleMode: "serve",
       mdnsMode: "off",
       gatewayDiscoveryServices: [service],
@@ -193,7 +193,7 @@ describe("startGatewayDiscovery", () => {
     expect(mocks.resolveTailnetDnsHint).toHaveBeenCalledWith({ enabled: true });
     expect(mocks.writeWideAreaGatewayZone).toHaveBeenCalledWith(
       expect.objectContaining({
-        domain: "openclaw.internal.",
+        domain: "kova.internal.",
         gatewayPort: 18789,
         displayName: "Lab Mac (Kova)",
         tailnetIPv4: "100.64.0.10",
@@ -215,7 +215,7 @@ describe("startGatewayDiscovery", () => {
       port: 18789,
       gatewayTls: { enabled: false },
       wideAreaDiscoveryEnabled: true,
-      wideAreaDiscoveryDomain: "openclaw.internal.",
+      wideAreaDiscoveryDomain: "kova.internal.",
       tailscaleMode: "serve",
       mdnsMode: "minimal",
       gatewayDiscoveryServices: [],

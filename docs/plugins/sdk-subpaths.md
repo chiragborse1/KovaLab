@@ -6,7 +6,7 @@ read_when:
 title: "Plugin SDK subpaths"
 ---
 
-The plugin SDK is exposed as a set of narrow subpaths under `openclaw/plugin-sdk/`.
+The plugin SDK is exposed as a set of narrow subpaths under `getkova/plugin-sdk/`.
 This page catalogs the commonly used subpaths grouped by purpose. The generated
 full list of 200+ subpaths lives in `scripts/lib/plugin-sdk-entrypoints.json`;
 reserved bundled-plugin helper subpaths appear there but are implementation
@@ -20,7 +20,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `plugin-sdk/plugin-entry`      | `definePluginEntry`                                                                                                                                    |
 | `plugin-sdk/core`              | `defineChannelPluginEntry`, `createChatChannelPlugin`, `createChannelPluginBase`, `defineSetupPluginEntry`, `buildChannelConfigSchema`                 |
-| `plugin-sdk/config-schema`     | `OpenClawSchema`                                                                                                                                       |
+| `plugin-sdk/config-schema`     | `KovaSchema`                                                                                                                                           |
 | `plugin-sdk/provider-entry`    | `defineSingleProviderPluginEntry`                                                                                                                      |
 | `plugin-sdk/migration`         | Migration provider item helpers such as `createMigrationItem`, reason constants, item status markers, redaction helpers, and `summarizeMigrationItems` |
 | `plugin-sdk/migration-runtime` | Runtime migration helpers such as `copyMigrationFileItem` and `writeMigrationReport`                                                                   |
@@ -30,7 +30,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | Subpath | Key exports |
     | --- | --- |
     | `plugin-sdk/channel-core` | `defineChannelPluginEntry`, `defineSetupPluginEntry`, `createChatChannelPlugin`, `createChannelPluginBase` |
-    | `plugin-sdk/config-schema` | Root `openclaw.json` Zod schema export (`OpenClawSchema`) |
+    | `plugin-sdk/config-schema` | Root `kova.json` Zod schema export (`KovaSchema`) |
     | `plugin-sdk/channel-setup` | `createOptionalChannelSetupSurface`, `createOptionalChannelSetupAdapter`, `createOptionalChannelSetupWizard`, plus `DEFAULT_ACCOUNT_ID`, `createTopLevelChannelDmPolicy`, `setSetupChannelEnabled`, `splitSetupEntries` |
     | `plugin-sdk/setup` | Shared setup wizard helpers, allowlist prompts, setup status builders |
     | `plugin-sdk/setup-runtime` | `createPatchedAccountSetupAdapter`, `createEnvPatchedAccountSetupAdapter`, `createSetupInputPresenceValidator`, `noteChannelLookupFailure`, `noteChannelLookupSummary`, `promptResolvedAllowFrom`, `splitSetupEntries`, `createAllowlistSetupWizardProxy`, `createDelegatedSetupWizardProxy` |

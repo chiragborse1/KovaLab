@@ -35,27 +35,27 @@ function powerShellSingleQuote(value: string): string {
 }
 
 function resolveSystemdUnit(env: NodeJS.ProcessEnv): string {
-  const override = normalizeOptionalString(env.KOVA_SYSTEMD_UNIT ?? env.OPENCLAW_SYSTEMD_UNIT);
+  const override = normalizeOptionalString(env.KOVA_SYSTEMD_UNIT ?? env.KOVA_SYSTEMD_UNIT);
   if (override) {
     return override.endsWith(".service") ? override : `${override}.service`;
   }
-  return `${resolveGatewaySystemdServiceName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE)}.service`;
+  return `${resolveGatewaySystemdServiceName(env.KOVA_PROFILE ?? env.KOVA_PROFILE)}.service`;
 }
 
 function resolveLaunchdLabel(env: NodeJS.ProcessEnv): string {
-  const override = normalizeOptionalString(env.KOVA_LAUNCHD_LABEL ?? env.OPENCLAW_LAUNCHD_LABEL);
+  const override = normalizeOptionalString(env.KOVA_LAUNCHD_LABEL ?? env.KOVA_LAUNCHD_LABEL);
   if (override) {
     return override;
   }
-  return resolveGatewayLaunchAgentLabel(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
+  return resolveGatewayLaunchAgentLabel(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
 }
 
 function resolveWindowsTaskName(env: NodeJS.ProcessEnv): string {
-  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.OPENCLAW_WINDOWS_TASK_NAME?.trim();
+  const override = env.KOVA_WINDOWS_TASK_NAME?.trim() ?? env.KOVA_WINDOWS_TASK_NAME?.trim();
   if (override) {
     return override;
   }
-  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.OPENCLAW_PROFILE);
+  return resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
 }
 
 /**
@@ -155,8 +155,8 @@ REM Standalone restart script - survives parent process termination.
 REM Keep this as a cmd wrapper so Group Policy script execution policies
 REM cannot block the update restart handoff before schtasks.exe runs.
 setlocal
-set "OPENCLAW_RESTART_SCRIPT=%~f0"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=$env:OPENCLAW_RESTART_SCRIPT; $s=Get-Content -Raw -LiteralPath $p; $m='# POWERSHELL'; $i=$s.IndexOf($m); if ($i -lt 0) { exit 1 }; Invoke-Expression $s.Substring($i)"
+set "KOVA_RESTART_SCRIPT=%~f0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=$env:KOVA_RESTART_SCRIPT; $s=Get-Content -Raw -LiteralPath $p; $m='# POWERSHELL'; $i=$s.IndexOf($m); if ($i -lt 0) { exit 1 }; Invoke-Expression $s.Substring($i)"
 set "status=%ERRORLEVEL%"
 del "%~f0" >nul 2>&1
 exit /b %status%
@@ -182,7 +182,7 @@ function Write-RestartLog {
   }
 }
 
-function Join-OpenClawProcessArguments {
+function Join-KovaProcessArguments {
   param([string[]]$Arguments)
   ($Arguments | ForEach-Object {
     if ($_ -match "\\s") {
@@ -193,7 +193,7 @@ function Join-OpenClawProcessArguments {
   }) -join " "
 }
 
-function Invoke-OpenClawSchtasksWithTimeout {
+function Invoke-KovaSchtasksWithTimeout {
   param(
     [string[]]$Arguments,
     [int]$TimeoutSeconds
@@ -202,7 +202,7 @@ function Invoke-OpenClawSchtasksWithTimeout {
   try {
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
     $startInfo.FileName = "schtasks.exe"
-    $startInfo.Arguments = Join-OpenClawProcessArguments -Arguments $Arguments
+    $startInfo.Arguments = Join-KovaProcessArguments -Arguments $Arguments
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
@@ -230,7 +230,7 @@ function Invoke-OpenClawSchtasksWithTimeout {
   }
 }
 
-function Get-OpenClawScheduledTaskState {
+function Get-KovaScheduledTaskState {
   param([string]$TaskName)
   try {
     $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
@@ -253,7 +253,7 @@ function Get-OpenClawScheduledTaskState {
   return "Unknown"
 }
 
-function Get-OpenClawListenerPids {
+function Get-KovaListenerPids {
   param([int]$Port)
   $listenerPids = @()
 
@@ -285,9 +285,9 @@ $taskName = ${quotedTaskName}
 $port = ${port}
 Write-RestartLog "kova restart attempt source=update target=$taskName"
 
-$taskState = Get-OpenClawScheduledTaskState -TaskName $taskName
+$taskState = Get-KovaScheduledTaskState -TaskName $taskName
 if ($taskState -eq "Running") {
-  $endStatus = Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10
+  $endStatus = Invoke-KovaSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10
   if ($endStatus -ne 0) {
     Write-RestartLog "kova restart schtasks end did not complete cleanly source=update status=$endStatus"
   }
@@ -296,7 +296,7 @@ if ($taskState -eq "Running") {
 }
 
 for ($attempt = 1; $attempt -le 10; $attempt++) {
-  $listeners = @(Get-OpenClawListenerPids -Port $port)
+  $listeners = @(Get-KovaListenerPids -Port $port)
   if ($listeners.Count -eq 0) {
     break
   }
@@ -316,7 +316,7 @@ for ($attempt = 1; $attempt -le 10; $attempt++) {
   Start-Sleep -Seconds 1
 }
 
-$status = Invoke-OpenClawSchtasksWithTimeout -Arguments @("/Run", "/TN", $taskName) -TimeoutSeconds 30
+$status = Invoke-KovaSchtasksWithTimeout -Arguments @("/Run", "/TN", $taskName) -TimeoutSeconds 30
 if ($status -eq 0) {
   Write-RestartLog "kova restart done source=update"
 } else {

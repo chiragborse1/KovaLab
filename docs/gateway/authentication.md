@@ -36,10 +36,10 @@ kova models status
 ```
 
 3. If the Gateway runs under systemd/launchd, prefer putting the key in
-   `~/.openclaw/.env` so the daemon can read it:
+   `~/.kova/.env` so the daemon can read it:
 
 ```bash
-cat >> ~/.openclaw/.env <<'EOF'
+cat >> ~/.kova/.env <<'EOF'
 <PROVIDER>_API_KEY=...
 EOF
 ```
@@ -55,7 +55,7 @@ If you’d rather not manage env vars yourself, onboarding can store
 API keys for daemon use: `kova onboard`.
 
 See [Help](/help) for details on env inheritance (`env.shellEnv`,
-`~/.openclaw/.env`, systemd/launchd).
+`~/.kova/.env`, systemd/launchd).
 
 ## Anthropic: Claude CLI and token compatibility
 
@@ -147,7 +147,7 @@ Some providers support retrying a request with alternative keys when an API call
 hits a provider rate limit.
 
 - Priority order:
-  - `OPENCLAW_LIVE_<PROVIDER>_KEY` (single override)
+  - `KOVA_LIVE_<PROVIDER>_KEY` (single override)
   - `<PROVIDER>_API_KEYS`
   - `<PROVIDER>_API_KEY`
   - `<PROVIDER>_API_KEY_*`

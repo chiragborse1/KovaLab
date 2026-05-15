@@ -13,7 +13,7 @@ function createSkill(overrides: Partial<SkillStatusEntry> = {}): SkillStatusEntr
   return {
     name: "Repo Skill",
     description: "Skill description",
-    source: "openclaw-workspace",
+    source: "kova-workspace",
     filePath: "/tmp/skill/SKILL.md",
     baseDir: "/tmp/skill",
     skillKey: "repo-skill",
@@ -52,7 +52,7 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
       createSkill({
         name: "Browser Skill",
         description: "Needs browser binary",
-        source: "openclaw-bundled",
+        source: "kova-bundled",
         skillKey: "browser-skill",
         bundled: true,
         eligible: false,
@@ -65,7 +65,7 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
       }),
       createSkill({
         name: "Disabled Skill",
-        source: "openclaw-managed",
+        source: "kova-managed",
         skillKey: "disabled-skill",
         disabled: true,
         primaryEnv: undefined,
@@ -86,16 +86,16 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     busyKey: null,
     messages: {},
     detailKey: null,
-    clawhubQuery: "",
-    clawhubResults: null,
-    clawhubSearchLoading: false,
-    clawhubSearchError: null,
-    clawhubDetail: null,
-    clawhubDetailSlug: null,
-    clawhubDetailLoading: false,
-    clawhubDetailError: null,
-    clawhubInstallSlug: null,
-    clawhubInstallMessage: null,
+    kovahubQuery: "",
+    kovahubResults: null,
+    kovahubSearchLoading: false,
+    kovahubSearchError: null,
+    kovahubDetail: null,
+    kovahubDetailSlug: null,
+    kovahubDetailLoading: false,
+    kovahubDetailError: null,
+    kovahubInstallSlug: null,
+    kovahubInstallMessage: null,
     onFilterChange: () => undefined,
     onStatusFilterChange: () => undefined,
     onSourceFilterChange: () => undefined,
@@ -107,10 +107,10 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     onInstall: () => undefined,
     onDetailOpen: () => undefined,
     onDetailClose: () => undefined,
-    onClawHubQueryChange: () => undefined,
-    onClawHubDetailOpen: () => undefined,
-    onClawHubDetailClose: () => undefined,
-    onClawHubInstall: () => undefined,
+    onKovaHubQueryChange: () => undefined,
+    onKovaHubDetailOpen: () => undefined,
+    onKovaHubDetailClose: () => undefined,
+    onKovaHubInstall: () => undefined,
     ...overrides,
   };
 }
@@ -139,7 +139,7 @@ describe("renderSkills", () => {
 
     const text = normalizeText(container);
     expect(text).toContain(
-      "Manage local skills, missing requirements, API keys, and ClawHub installs.",
+      "Manage local skills, missing requirements, API keys, and KovaHub installs.",
     );
     expect(text).toContain("Ready");
     expect(text).toContain("Needs setup");
@@ -149,7 +149,7 @@ describe("renderSkills", () => {
     expect(text).toContain("Browser Skill");
     expect(text).toContain("bin:chromium");
     expect(text).toContain("kova-workspace");
-    expect(text).not.toContain("openclaw-workspace");
+    expect(text).not.toContain("kova-workspace");
 
     const needsSetupTab = Array.from(container.querySelectorAll(".skills-filter-tab")).find((tab) =>
       tab.textContent?.includes("Needs Setup"),
@@ -292,34 +292,34 @@ describe("renderSkills", () => {
     expect(onInstall).toHaveBeenCalledWith("browser-skill", "Browser Skill", "brew-chromium");
   });
 
-  it("routes ClawHub search, detail, and install actions through the existing callbacks", () => {
+  it("routes KovaHub search, detail, and install actions through the existing callbacks", () => {
     const container = document.createElement("div");
-    const onClawHubQueryChange = vi.fn();
-    const onClawHubDetailOpen = vi.fn();
-    const onClawHubDetailClose = vi.fn();
-    const onClawHubInstall = vi.fn();
+    const onKovaHubQueryChange = vi.fn();
+    const onKovaHubDetailOpen = vi.fn();
+    const onKovaHubDetailClose = vi.fn();
+    const onKovaHubInstall = vi.fn();
 
     render(
       renderSkills(
         createProps({
-          clawhubQuery: "git",
-          clawhubResults: [
+          kovahubQuery: "git",
+          kovahubResults: [
             {
               score: 0.95,
               slug: "github",
               displayName: "GitHub",
-              summary: "GitHub integration for OpenClaw",
+              summary: "GitHub integration for Kova",
               version: "1.2.3",
             },
           ],
-          clawhubSearchError: "rate limited",
-          clawhubInstallMessage: { kind: "success", text: "Installed github" },
-          clawhubDetailSlug: "github",
-          clawhubDetail: {
+          kovahubSearchError: "rate limited",
+          kovahubInstallMessage: { kind: "success", text: "Installed github" },
+          kovahubDetailSlug: "github",
+          kovahubDetail: {
             skill: {
               slug: "github",
               displayName: "GitHub",
-              summary: "GitHub integration for OpenClaw",
+              summary: "GitHub integration for Kova",
               createdAt: 1_700_000_000,
               updatedAt: 1_700_000_100,
             },
@@ -332,30 +332,30 @@ describe("renderSkills", () => {
               os: ["macos", "linux"],
             },
             owner: {
-              displayName: "OpenClaw",
-              handle: "openclaw",
+              displayName: "Kova",
+              handle: "kova",
             },
           },
-          onClawHubQueryChange,
-          onClawHubDetailOpen,
-          onClawHubDetailClose,
-          onClawHubInstall,
+          onKovaHubQueryChange,
+          onKovaHubDetailOpen,
+          onKovaHubDetailClose,
+          onKovaHubInstall,
         }),
       ),
       container,
     );
 
-    const search = container.querySelector<HTMLInputElement>('input[name="clawhub-search"]');
+    const search = container.querySelector<HTMLInputElement>('input[name="kovahub-search"]');
     expect(search).not.toBeNull();
     search!.value = "calendar";
     search!.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(onClawHubQueryChange).toHaveBeenCalledWith("calendar");
+    expect(onKovaHubQueryChange).toHaveBeenCalledWith("calendar");
 
     const text = normalizeText(container);
     expect(text).toContain("rate limited");
     expect(text).toContain("Installed github");
-    expect(text).toContain("GitHub integration for OpenClaw");
-    expect(text).toContain("Owner OpenClaw (@openclaw)");
+    expect(text).toContain("GitHub integration for Kova");
+    expect(text).toContain("Owner Kova (@kovaai)");
     expect(text).toContain("Latest");
     expect(text).toContain("v1.2.3");
     expect(text).toContain("Platforms");
@@ -363,21 +363,21 @@ describe("renderSkills", () => {
     expect(text).toContain("Added search support");
 
     container
-      .querySelector<HTMLElement>(".skills-clawhub-row")
+      .querySelector<HTMLElement>(".skills-kovahub-row")
       ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onClawHubDetailOpen).toHaveBeenCalledWith("github");
+    expect(onKovaHubDetailOpen).toHaveBeenCalledWith("github");
 
     const installButtons = Array.from(container.querySelectorAll("button")).filter((button) =>
       button.textContent?.includes("Install"),
     );
     installButtons[0]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     installButtons.at(-1)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onClawHubInstall).toHaveBeenCalledWith("github");
+    expect(onKovaHubInstall).toHaveBeenCalledWith("github");
 
     const closeButton = Array.from(container.querySelectorAll(".skills-inspector button")).find(
       (button) => button.textContent?.includes("Close"),
     );
     closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onClawHubDetailClose).toHaveBeenCalledTimes(1);
+    expect(onKovaHubDetailClose).toHaveBeenCalledTimes(1);
   });
 });

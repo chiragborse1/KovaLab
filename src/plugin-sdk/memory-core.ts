@@ -35,8 +35,8 @@ export type {
   MemoryPluginPublicArtifactsProvider,
   MemoryPluginRuntime,
   MemoryPromptSectionBuilder,
-  OpenClawConfig,
-  OpenClawPluginApi,
+  KovaConfig,
+  KovaPluginApi,
 } from "./memory-core-host-runtime-core.js";
 export {
   colorize,

@@ -2,7 +2,7 @@
 #
 # Shared Docker E2E image resolver/builder.
 # Suite-specific scripts call this to resolve overrides, reuse pulled images, or
-# build the runner/functional images with the prepared OpenClaw package tarball.
+# build the runner/functional images with the prepared Kova package tarball.
 
 DOCKER_E2E_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${ROOT_DIR:-$(cd "$DOCKER_E2E_LIB_DIR/../.." && pwd)}"
@@ -24,8 +24,8 @@ docker_e2e_resolve_image() {
     fi
   done
 
-  if [ -n "${OPENCLAW_DOCKER_E2E_IMAGE:-}" ]; then
-    printf '%s\n' "$OPENCLAW_DOCKER_E2E_IMAGE"
+  if [ -n "${KOVA_DOCKER_E2E_IMAGE:-}" ]; then
+    printf '%s\n' "$KOVA_DOCKER_E2E_IMAGE"
     return 0
   fi
 
@@ -45,7 +45,7 @@ docker_e2e_build_or_reuse() {
     target="functional"
   fi
 
-  if [ "${OPENCLAW_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$skip_build" = "1" ]; then
+  if [ "${KOVA_SKIP_DOCKER_BUILD:-0}" = "1" ] || [ "$skip_build" = "1" ]; then
     echo "Reusing Docker image: $image_name"
     if ! docker image inspect "$image_name" >/dev/null 2>&1; then
       echo "Docker image not found locally; pulling: $image_name"
@@ -53,10 +53,10 @@ docker_e2e_build_or_reuse() {
         return 0
       fi
       if docker_build_on_missing_enabled; then
-        echo "Docker image not available; building because OPENCLAW_DOCKER_BUILD_ON_MISSING/OPENCLAW_TESTBOX allows fallback."
+        echo "Docker image not available; building because KOVA_DOCKER_BUILD_ON_MISSING/KOVA_TESTBOX allows fallback."
       else
         echo "Docker image not found: $image_name" >&2
-        echo "Build it first or unset OPENCLAW_SKIP_DOCKER_BUILD." >&2
+        echo "Build it first or unset KOVA_SKIP_DOCKER_BUILD." >&2
         return 1
       fi
     else
@@ -76,7 +76,7 @@ docker_e2e_build_or_reuse() {
     package_context="$(docker_e2e_prepare_package_context "$package_tgz")"
     # The Dockerfile never sees repo sources as app input; functional installs
     # exactly this tarball through a named BuildKit context.
-    build_args+=(--build-context "openclaw_package=$package_context")
+    build_args+=(--build-context "kova_package=$package_context")
   fi
   build_args+=(-t "$image_name" -f "$dockerfile" "$context")
   docker_build_run "$label-build" "${build_args[@]}"

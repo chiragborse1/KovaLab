@@ -48,7 +48,7 @@ Prefer localhost, Tailscale Serve, or an SSH tunnel.
 - **Gateway TLS**: when `gateway.tls.enabled: true`, dashboard/status links use
   `https://` and Control UI WebSocket links use `wss://`.
 - **Shared-secret token source**: `gateway.auth.token` (or
-  `OPENCLAW_GATEWAY_TOKEN`); `kova dashboard` can pass it via URL fragment
+  `KOVA_GATEWAY_TOKEN`); `kova dashboard` can pass it via URL fragment
   for one-time bootstrap, and the Control UI keeps it in sessionStorage for the
   current browser tab session and selected gateway URL instead of localStorage.
 - If `gateway.auth.token` is SecretRef-managed, `kova dashboard`
@@ -59,7 +59,7 @@ Prefer localhost, Tailscale Serve, or an SSH tunnel.
   current shell, `kova dashboard` still prints a non-tokenized URL plus
   actionable auth setup guidance.
 - **Shared-secret password**: use the configured `gateway.auth.password` (or
-  `OPENCLAW_GATEWAY_PASSWORD`). The dashboard does not persist passwords across
+  `KOVA_GATEWAY_PASSWORD`). The dashboard does not persist passwords across
   reloads.
 - **Identity-bearing modes**: Tailscale Serve can satisfy Control UI/WebSocket
   auth via identity headers when `gateway.auth.allowTailscale: true`, and a
@@ -87,9 +87,9 @@ Prefer localhost, Tailscale Serve, or an SSH tunnel.
 - Retrieve or supply the shared secret from the gateway host:
   - Token: `kova config get gateway.auth.token`
   - Password: resolve the configured `gateway.auth.password` or
-    `OPENCLAW_GATEWAY_PASSWORD`
+    `KOVA_GATEWAY_PASSWORD`
   - SecretRef-managed token: resolve the external secret provider or export
-    `OPENCLAW_GATEWAY_TOKEN` in this shell, then rerun `kova dashboard`
+    `KOVA_GATEWAY_TOKEN` in this shell, then rerun `kova dashboard`
   - No shared secret configured: `kova doctor --generate-gateway-token`
 - In the dashboard settings, paste the token or password into the auth field,
   then connect.

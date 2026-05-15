@@ -27,7 +27,7 @@ apply across the CLI.
 | Discovery and docs   | [`dns`](/cli/dns) · [`docs`](/cli/docs)                                                                                                                                                                                                                                 |
 | Pairing and channels | [`pairing`](/cli/pairing) · [`qr`](/cli/qr) · [`channels`](/cli/channels)                                                                                                                                                                                               |
 | Security and plugins | [`security`](/cli/security) · [`secrets`](/cli/secrets) · [`skills`](/cli/skills) · [`plugins`](/cli/plugins) · [`proxy`](/cli/proxy)                                                                                                                                   |
-| Legacy aliases       | [`daemon`](/cli/daemon) (gateway service) · [`clawbot`](/cli/clawbot) (namespace)                                                                                                                                                                                       |
+| Legacy aliases       | [`daemon`](/cli/daemon) (gateway service) · [`kova`](/cli/kova) (namespace)                                                                                                                                                                                             |
 | Plugins (optional)   | [`voicecall`](/cli/voicecall) (if installed)                                                                                                                                                                                                                            |
 
 ## Global flags
@@ -338,7 +338,7 @@ kova [--dev] [--profile <name>] <command>
     list
     approve
   qr
-  clawbot
+  kova
     qr
   docs
   dns

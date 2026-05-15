@@ -7,10 +7,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -38,10 +38,10 @@
       "pluginApi": ">=2.0.0-beta.5"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.5"
     },
     "release": {
-      "publishToClawHub": true,
+      "publishToKovaHub": true,
       "publishToNpm": true
     }
   }

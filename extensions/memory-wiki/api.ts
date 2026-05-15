@@ -2,8 +2,8 @@ export {
   buildPluginConfigSchema,
   definePluginEntry,
   type AnyAgentTool,
-  type OpenClawConfig,
-  type OpenClawPluginApi,
-  type OpenClawPluginConfigSchema,
-} from "openclaw/plugin-sdk/plugin-entry";
-export { z } from "openclaw/plugin-sdk/zod";
+  type KovaConfig,
+  type KovaPluginApi,
+  type KovaPluginConfigSchema,
+} from "getkova/plugin-sdk/plugin-entry";
+export { z } from "getkova/plugin-sdk/zod";

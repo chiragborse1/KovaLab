@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { SpeechProviderPlugin } from "../plugins/types.js";
 
 const resolvePluginCapabilityProviderMock = vi.hoisted(() => vi.fn());
@@ -48,7 +48,7 @@ describe("speech provider registry", () => {
   });
 
   it("lists providers from the speech capability runtime", () => {
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
     resolvePluginCapabilityProvidersMock.mockReturnValue([createSpeechProvider("demo-speech")]);
 
     expect(listSpeechProviders(cfg).map((provider) => provider.id)).toEqual(["demo-speech"]);
@@ -59,7 +59,7 @@ describe("speech provider registry", () => {
   });
 
   it("gets providers by normalized id through the capability runtime", () => {
-    const cfg = {} as OpenClawConfig;
+    const cfg = {} as KovaConfig;
     const provider = createSpeechProvider("microsoft", ["edge"]);
     resolvePluginCapabilityProviderMock.mockReturnValue(provider);
 

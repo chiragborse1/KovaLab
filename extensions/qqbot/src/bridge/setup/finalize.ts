@@ -1,35 +1,32 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/setup";
-import { formatDocsLink } from "openclaw/plugin-sdk/setup-tools";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { ChannelSetupWizard } from "getkova/plugin-sdk/setup";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/setup";
+import { formatDocsLink } from "getkova/plugin-sdk/setup-tools";
 import { applyQQBotAccountConfig, resolveQQBotAccount } from "../config.js";
 
 type SetupPrompter = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0]["prompter"];
 type SetupRuntime = Parameters<NonNullable<ChannelSetupWizard["finalize"]>>[0]["runtime"];
 
-function isQQBotAccountConfigured(cfg: OpenClawConfig, accountId: string): boolean {
+function isQQBotAccountConfigured(cfg: KovaConfig, accountId: string): boolean {
   const account = resolveQQBotAccount(cfg, accountId, { allowUnresolvedSecretRef: true });
   return Boolean(account.appId && account.clientSecret);
 }
 
-export async function detectQQBotConfigured(
-  cfg: OpenClawConfig,
-  accountId: string,
-): Promise<boolean> {
+export async function detectQQBotConfigured(cfg: KovaConfig, accountId: string): Promise<boolean> {
   return isQQBotAccountConfigured(cfg, accountId);
 }
 
 async function linkViaQrCode(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   prompter: SetupPrompter;
   runtime: SetupRuntime;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   try {
     const { qrConnect } = await import("@tencent-connect/qqbot-connector");
 
     const accounts: { appId: string; appSecret: string }[] = await qrConnect({
-      source: "openclaw",
+      source: "kova",
     });
 
     if (accounts.length === 0) {
@@ -72,10 +69,10 @@ async function linkViaQrCode(params: {
 }
 
 async function linkViaManualInput(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   prompter: SetupPrompter;
-}): Promise<OpenClawConfig> {
+}): Promise<KovaConfig> {
   const appId = await params.prompter.text({
     message: "请输入 QQ Bot AppID",
     validate: (value: string) => (value.trim() ? undefined : "AppID 不能为空"),
@@ -96,12 +93,12 @@ async function linkViaManualInput(params: {
 }
 
 export async function finalizeQQBotSetup(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   forceAllowFrom: boolean;
   prompter: SetupPrompter;
   runtime: SetupRuntime;
-}): Promise<{ cfg: OpenClawConfig }> {
+}): Promise<{ cfg: KovaConfig }> {
   const accountId = params.accountId.trim() || DEFAULT_ACCOUNT_ID;
   let next = params.cfg;
 

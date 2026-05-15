@@ -5,7 +5,7 @@ import {
   buildConfiguredModelCatalog,
   resolveConfiguredModelRef,
 } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   ErrorCodes,
   errorShape,
@@ -22,7 +22,7 @@ function catalogKey(entry: Pick<ModelCatalogEntry, "provider" | "id">): string {
   return `${entry.provider.trim().toLowerCase()}/${entry.id.trim().toLowerCase()}`;
 }
 
-function buildConfiguredFallbackCatalog(cfg: OpenClawConfig): ModelCatalogEntry[] {
+function buildConfiguredFallbackCatalog(cfg: KovaConfig): ModelCatalogEntry[] {
   const catalog = buildConfiguredModelCatalog({ cfg });
   const configured = resolveConfiguredModelRef({
     cfg,
@@ -61,7 +61,7 @@ function scheduleModelCatalogWarmup(loadGatewayModelCatalog: () => Promise<Model
 }
 
 function filterModelsForConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   catalog: ModelCatalogEntry[];
 }): ModelCatalogEntry[] {
   const { allowedCatalog } = buildAllowedModelSet({

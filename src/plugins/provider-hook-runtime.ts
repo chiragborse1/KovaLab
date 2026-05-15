@@ -1,5 +1,5 @@
 import { normalizeProviderId } from "../agents/provider-id.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { normalizePluginIdScope, serializePluginIdScope } from "./plugin-scope.js";
 import { resolveProviderConfigApiOwnerHint } from "./provider-config-owner.js";
@@ -39,14 +39,11 @@ let cachedHookProvidersWithoutConfig = new WeakMap<
   Map<string, ProviderPlugin[]>
 >();
 let cachedHookProvidersByConfig = new WeakMap<
-  OpenClawConfig,
+  KovaConfig,
   WeakMap<NodeJS.ProcessEnv, Map<string, ProviderPlugin[]>>
 >();
 
-function resolveHookProviderCacheBucket(params: {
-  config?: OpenClawConfig;
-  env: NodeJS.ProcessEnv;
-}) {
+function resolveHookProviderCacheBucket(params: { config?: KovaConfig; env: NodeJS.ProcessEnv }) {
   if (!params.config) {
     let bucket = cachedHookProvidersWithoutConfig.get(params.env);
     if (!bucket) {
@@ -70,7 +67,7 @@ function resolveHookProviderCacheBucket(params: {
 }
 
 function buildHookProviderCacheKey(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   onlyPluginIds?: string[];
   providerRefs?: string[];
@@ -90,7 +87,7 @@ export function clearProviderRuntimeHookCache(): void {
     Map<string, ProviderPlugin[]>
   >();
   cachedHookProvidersByConfig = new WeakMap<
-    OpenClawConfig,
+    KovaConfig,
     WeakMap<NodeJS.ProcessEnv, Map<string, ProviderPlugin[]>>
   >();
 }
@@ -104,7 +101,7 @@ export const __testing = {
 } as const;
 
 export function resolveProviderPluginsForHooks(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: string[];
@@ -163,7 +160,7 @@ export function resolveProviderPluginsForHooks(params: {
 
 export function resolveProviderRuntimePlugin(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   applyAutoEnable?: boolean;
@@ -196,7 +193,7 @@ export function resolveProviderRuntimePlugin(params: {
 
 export function resolveProviderHookPlugin(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderPlugin | undefined {
@@ -212,7 +209,7 @@ export function resolveProviderHookPlugin(params: {
 
 export function prepareProviderExtraParams(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   context: ProviderPrepareExtraParamsContext;
@@ -222,7 +219,7 @@ export function prepareProviderExtraParams(params: {
 
 export function resolveProviderExtraParamsForTransport(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   context: ProviderExtraParamsForTransportContext;
@@ -232,7 +229,7 @@ export function resolveProviderExtraParamsForTransport(params: {
 
 export function resolveProviderAuthProfileId(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   context: ProviderResolveAuthProfileIdContext;
@@ -243,7 +240,7 @@ export function resolveProviderAuthProfileId(params: {
 
 export function resolveProviderFollowupFallbackRoute(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   context: ProviderFollowupFallbackRouteContext;
@@ -253,7 +250,7 @@ export function resolveProviderFollowupFallbackRoute(params: {
 
 export function wrapProviderStreamFn(params: {
   provider: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   context: ProviderWrapStreamFnContext;

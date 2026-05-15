@@ -1,5 +1,5 @@
 /**
- * OpenClaw Memory (LanceDB) Plugin
+ * Kova Memory (LanceDB) Plugin
  *
  * Long-term memory with vector search for AI conversations.
  * Uses LanceDB for storage and OpenAI for embeddings.
@@ -8,15 +8,12 @@
 
 import { randomUUID } from "node:crypto";
 import type * as LanceDB from "@lancedb/lancedb";
+import { resolveLivePluginConfigObject, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { ensureGlobalUndiciEnvProxyDispatcher } from "getkova/plugin-sdk/runtime-env";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 import OpenAI from "openai";
-import {
-  resolveLivePluginConfigObject,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { ensureGlobalUndiciEnvProxyDispatcher } from "openclaw/plugin-sdk/runtime-env";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
 import { Type } from "typebox";
-import { definePluginEntry, type OpenClawPluginApi } from "./api.js";
+import { definePluginEntry, type KovaPluginApi } from "./api.js";
 import {
   DEFAULT_CAPTURE_MAX_CHARS,
   MEMORY_CATEGORIES,
@@ -371,7 +368,7 @@ export default definePluginEntry({
   kind: "memory" as const,
   configSchema: memoryConfigSchema,
 
-  register(api: OpenClawPluginApi) {
+  register(api: KovaPluginApi) {
     const cfg = memoryConfigSchema.parse(api.pluginConfig);
     const dbPath = cfg.dbPath!;
     const resolvedDbPath = dbPath.includes("://") ? dbPath : api.resolvePath(dbPath);
@@ -384,9 +381,7 @@ export default definePluginEntry({
     const autoCaptureCursors = new Map<string, AutoCaptureCursor>();
     const resolveCurrentHookConfig = () => {
       const runtimePluginConfig = resolveLivePluginConfigObject(
-        api.runtime.config?.current
-          ? () => api.runtime.config.current() as OpenClawConfig
-          : undefined,
+        api.runtime.config?.current ? () => api.runtime.config.current() as KovaConfig : undefined,
         "memory-lancedb",
         api.pluginConfig as Record<string, unknown>,
       );

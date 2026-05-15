@@ -1,7 +1,7 @@
 import {
   createModelCatalogPresetAppliers,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/provider-onboard";
+  type KovaConfig,
+} from "getkova/plugin-sdk/provider-onboard";
 import {
   QWEN_CN_BASE_URL,
   QWEN_DEFAULT_MODEL_REF,
@@ -21,7 +21,7 @@ export {
 
 const qwenPresetAppliers = createModelCatalogPresetAppliers<[string]>({
   primaryModelRef: QWEN_DEFAULT_MODEL_REF,
-  resolveParams: (_cfg: OpenClawConfig, baseUrl: string) => {
+  resolveParams: (_cfg: KovaConfig, baseUrl: string) => {
     const provider = buildQwenProvider({ baseUrl });
     return {
       providerId: "qwen",
@@ -39,35 +39,35 @@ const qwenPresetAppliers = createModelCatalogPresetAppliers<[string]>({
   },
 });
 
-export function applyQwenProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenProviderConfig(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyProviderConfig(cfg, QWEN_GLOBAL_BASE_URL);
 }
 
-export function applyQwenProviderConfigCn(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenProviderConfigCn(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyProviderConfig(cfg, QWEN_CN_BASE_URL);
 }
 
-export function applyQwenConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenConfig(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyConfig(cfg, QWEN_GLOBAL_BASE_URL);
 }
 
-export function applyQwenConfigCn(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenConfigCn(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyConfig(cfg, QWEN_CN_BASE_URL);
 }
 
-export function applyQwenStandardProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenStandardProviderConfig(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyProviderConfig(cfg, QWEN_STANDARD_GLOBAL_BASE_URL);
 }
 
-export function applyQwenStandardProviderConfigCn(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenStandardProviderConfigCn(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyProviderConfig(cfg, QWEN_STANDARD_CN_BASE_URL);
 }
 
-export function applyQwenStandardConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenStandardConfig(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyConfig(cfg, QWEN_STANDARD_GLOBAL_BASE_URL);
 }
 
-export function applyQwenStandardConfigCn(cfg: OpenClawConfig): OpenClawConfig {
+export function applyQwenStandardConfigCn(cfg: KovaConfig): KovaConfig {
   return qwenPresetAppliers.applyConfig(cfg, QWEN_STANDARD_CN_BASE_URL);
 }
 

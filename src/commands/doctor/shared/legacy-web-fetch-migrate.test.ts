@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { KovaConfig } from "../../../config/config.js";
 import {
   listLegacyWebFetchConfigPaths,
   migrateLegacyWebFetchConfig,
@@ -21,7 +21,7 @@ describe("legacy web fetch config", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(res.config.tools?.web?.fetch).toEqual({
       provider: "firecrawl",
@@ -55,7 +55,7 @@ describe("legacy web fetch config", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(res.config.plugins?.entries?.firecrawl).toEqual({
       enabled: true,

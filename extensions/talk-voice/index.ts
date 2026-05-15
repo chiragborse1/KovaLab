@@ -1,14 +1,14 @@
 import {
   resolveActiveTalkProviderConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { SpeechVoiceOption } from "openclaw/plugin-sdk/speech";
+  type KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import type { SpeechVoiceOption } from "getkova/plugin-sdk/speech";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalLowercaseString,
-} from "openclaw/plugin-sdk/text-runtime";
-import { definePluginEntry, type OpenClawPluginApi } from "./api.js";
+} from "getkova/plugin-sdk/text-runtime";
+import { definePluginEntry, type KovaPluginApi } from "./api.js";
 
 function mask(s: string, keep: number = 6): string {
   const trimmed = s.trim();
@@ -123,7 +123,7 @@ export default definePluginEntry({
   id: "talk-voice",
   name: "Talk Voice",
   description: "Command helpers for managing Talk voice configuration",
-  register(api: OpenClawPluginApi) {
+  register(api: KovaPluginApi) {
     api.registerCommand({
       name: "voice",
       nativeNames: {
@@ -137,7 +137,7 @@ export default definePluginEntry({
         const tokens = args.split(/\s+/).filter(Boolean);
         const action = normalizeLowercaseStringOrEmpty(tokens[0] ?? "status");
 
-        const cfg = api.runtime.config.current() as OpenClawConfig;
+        const cfg = api.runtime.config.current() as KovaConfig;
         const active = resolveActiveTalkProviderConfig(cfg.talk);
         if (!active) {
           return {

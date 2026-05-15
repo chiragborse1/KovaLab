@@ -1,7 +1,7 @@
 import { describeFailoverError, isFailoverError } from "../agents/failover-error.js";
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
 import { resolveAgentModelTimeoutMsValue } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import {
@@ -20,7 +20,7 @@ const log = createSubsystemLogger("image-generation");
 
 export type { GenerateImageParams, GenerateImageRuntimeResult } from "./runtime-types.js";
 
-function buildNoImageGenerationModelConfiguredMessage(cfg: OpenClawConfig): string {
+function buildNoImageGenerationModelConfiguredMessage(cfg: KovaConfig): string {
   return buildNoCapabilityModelConfiguredMessage({
     capabilityLabel: "image-generation",
     modelConfigKey: "imageGenerationModel",
@@ -28,7 +28,7 @@ function buildNoImageGenerationModelConfiguredMessage(cfg: OpenClawConfig): stri
   });
 }
 
-export function listRuntimeImageGenerationProviders(params?: { config?: OpenClawConfig }) {
+export function listRuntimeImageGenerationProviders(params?: { config?: KovaConfig }) {
   return listImageGenerationProviders(params?.config);
 }
 

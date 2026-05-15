@@ -526,7 +526,7 @@ html.theme-transition::view-transition-new(theme) {
 }
 
 kova-app,
-openclaw-app {
+kova-app {
   display: block;
   position: relative;
   z-index: 1;

@@ -6,7 +6,7 @@
 
 run_bundled_channel_runtime_dep_scenarios() {
   if [ "$RUN_CHANNEL_SCENARIOS" != "0" ]; then
-    IFS=',' read -r -a CHANNEL_SCENARIOS <<<"${OPENCLAW_BUNDLED_CHANNELS:-${CHANNEL_ONLY:-telegram,discord,slack,feishu,memory-lancedb}}"
+    IFS=',' read -r -a CHANNEL_SCENARIOS <<<"${KOVA_BUNDLED_CHANNELS:-${CHANNEL_ONLY:-telegram,discord,slack,feishu,memory-lancedb}}"
     for channel_scenario in "${CHANNEL_SCENARIOS[@]}"; do
       channel_scenario="${channel_scenario//[[:space:]]/}"
       [ -n "$channel_scenario" ] || continue
@@ -17,7 +17,7 @@ run_bundled_channel_runtime_dep_scenarios() {
         feishu) run_channel_scenario feishu @larksuiteoapi/node-sdk ;;
         memory-lancedb) run_channel_scenario memory-lancedb @lancedb/lancedb ;;
         *)
-          echo "Unsupported OPENCLAW_BUNDLED_CHANNELS entry: $channel_scenario" >&2
+          echo "Unsupported KOVA_BUNDLED_CHANNELS entry: $channel_scenario" >&2
           exit 1
           ;;
       esac

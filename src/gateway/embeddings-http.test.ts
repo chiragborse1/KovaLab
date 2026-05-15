@@ -5,7 +5,7 @@ import { getFreePort, installGatewayTestHooks } from "./test-helpers.js";
 
 installGatewayTestHooks({ scope: "suite" });
 
-const WRITE_SCOPE_HEADER = { "x-openclaw-scopes": "operator.write" };
+const WRITE_SCOPE_HEADER = { "x-kova-scopes": "operator.write" };
 
 let startGatewayServer: typeof import("./server.js").startGatewayServer;
 let createEmbeddingProviderMock: ReturnType<
@@ -172,7 +172,7 @@ describe("OpenAI-compatible embeddings HTTP API (e2e)", () => {
         model: "kova/default",
         input: "hello",
       },
-      { "x-openclaw-scopes": "operator.read" },
+      { "x-kova-scopes": "operator.read" },
     );
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({
@@ -187,7 +187,7 @@ describe("OpenAI-compatible embeddings HTTP API (e2e)", () => {
         model: "kova/default",
         input: "hello",
       },
-      { "x-openclaw-scopes": "" },
+      { "x-kova-scopes": "" },
     );
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({

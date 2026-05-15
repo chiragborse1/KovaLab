@@ -22,7 +22,7 @@ const fetchGuardMocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
+vi.mock("getkova/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: fetchGuardMocks.fetchWithSsrFGuard,
 }));
 
@@ -396,7 +396,7 @@ describe("google-meet CLI", () => {
 
   it("prints markdown artifact and attendance output", async () => {
     stubMeetArtifactsApi();
-    const tempDir = mkdtempSync(path.join(tmpdir(), "openclaw-google-meet-artifacts-"));
+    const tempDir = mkdtempSync(path.join(tmpdir(), "kova-google-meet-artifacts-"));
     const outputPath = path.join(tempDir, "artifacts.md");
     const artifactsStdout = captureStdout();
 
@@ -486,7 +486,7 @@ describe("google-meet CLI", () => {
   it("writes an export bundle", async () => {
     stubMeetArtifactsApi();
     const stdout = captureStdout();
-    const tempDir = mkdtempSync(path.join(tmpdir(), "openclaw-google-meet-export-"));
+    const tempDir = mkdtempSync(path.join(tmpdir(), "kova-google-meet-export-"));
 
     try {
       await setupCli({}).parseAsync(
@@ -554,7 +554,7 @@ describe("google-meet CLI", () => {
   it("includes artifact warnings in export summaries and manifests", async () => {
     stubMeetArtifactsApi({ failSmartNoteDocumentBody: true });
     const stdout = captureStdout();
-    const tempDir = mkdtempSync(path.join(tmpdir(), "openclaw-google-meet-export-warning-"));
+    const tempDir = mkdtempSync(path.join(tmpdir(), "kova-google-meet-export-warning-"));
 
     try {
       await setupCli({}).parseAsync(
@@ -597,7 +597,7 @@ describe("google-meet CLI", () => {
   it("prints a dry-run export manifest without writing files", async () => {
     stubMeetArtifactsApi();
     const stdout = captureStdout();
-    const parentDir = mkdtempSync(path.join(tmpdir(), "openclaw-google-meet-export-dry-run-"));
+    const parentDir = mkdtempSync(path.join(tmpdir(), "kova-google-meet-export-dry-run-"));
     const outputDir = path.join(parentDir, "bundle");
 
     try {
@@ -802,10 +802,10 @@ describe("google-meet CLI", () => {
               inCall: false,
               manualActionRequired: true,
               manualActionReason: "meet-admission-required",
-              manualActionMessage: "Admit the OpenClaw browser participant in Google Meet.",
+              manualActionMessage: "Admit the Kova browser participant in Google Meet.",
               browserUrl: "https://meet.google.com/abc-defg-hij",
             },
-            message: "Admit the OpenClaw browser participant in Google Meet.",
+            message: "Admit the Kova browser participant in Google Meet.",
           }),
         },
       }).parseAsync(["googlemeet", "recover-tab"], { from: "user" });

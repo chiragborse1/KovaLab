@@ -139,7 +139,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
     }
 
     private static let persistedStateKey = "watch.inbox.state.v2"
-    private static let defaultTitle = "OpenClaw"
+    private static let defaultTitle = "Kova"
     private static let defaultBody = "Waiting for messages from your iPhone."
     private let defaults: UserDefaults
 
@@ -249,7 +249,7 @@ struct WatchExecApprovalRecord: Codable, Sendable, Equatable, Identifiable {
             sentAtMs: message.sentAtMs)
         guard deliveryKey != self.lastDeliveryKey else { return }
 
-        let normalizedTitle = message.title.isEmpty ? "OpenClaw" : message.title
+        let normalizedTitle = message.title.isEmpty ? "Kova" : message.title
         self.title = normalizedTitle
         self.body = message.body
         self.transport = transport

@@ -1,4 +1,4 @@
-import OpenClawKit
+import KovaKit
 import Network
 import Observation
 import os
@@ -25,7 +25,7 @@ struct SettingsTab: View {
     @AppStorage("talk.button.enabled") private var talkButtonEnabled: Bool = true
     @AppStorage("talk.background.enabled") private var talkBackgroundEnabled: Bool = false
     @AppStorage("camera.enabled") private var cameraEnabled: Bool = true
-    @AppStorage("location.enabledMode") private var locationEnabledModeRaw: String = OpenClawLocationMode.off.rawValue
+    @AppStorage("location.enabledMode") private var locationEnabledModeRaw: String = KovaLocationMode.off.rawValue
     @AppStorage("screen.preventSleep") private var preventSleep: Bool = true
     @AppStorage("gateway.preferredStableID") private var preferredGatewayStableID: String = ""
     @AppStorage("gateway.lastDiscoveredStableID") private var lastDiscoveredGatewayStableID: String = ""
@@ -43,7 +43,7 @@ struct SettingsTab: View {
     @AppStorage("gateway.hasConnectedOnce") private var hasConnectedOnce: Bool = false
 
     @State private var connectingGatewayID: String?
-    @State private var lastLocationModeRaw: String = OpenClawLocationMode.off.rawValue
+    @State private var lastLocationModeRaw: String = KovaLocationMode.off.rawValue
     @State private var gatewayToken: String = ""
     @State private var gatewayPassword: String = ""
     @State private var defaultShareInstruction: String = ""
@@ -81,7 +81,7 @@ struct SettingsTab: View {
 
                         if !self.isGatewayConnected {
                             Text(
-                                "1. Open a chat with your OpenClaw agent and send /pair\n"
+                                "1. Open a chat with your Kova agent and send /pair\n"
                                     + "2. Copy the setup code it returns\n"
                                     + "3. Paste here and tap Connect\n"
                                     + "4. Back in that chat, run /pair approve")
@@ -276,7 +276,7 @@ struct SettingsTab: View {
                         self.featureToggle(
                             "Talk Mode",
                             isOn: self.$talkEnabled,
-                            help: "Enables voice conversation mode with your connected OpenClaw agent.") { newValue in
+                            help: "Enables voice conversation mode with your connected Kova agent.") { newValue in
                                 self.appModel.setTalkEnabled(newValue)
                             }
                         Picker("Speech Language", selection: self.$talkSpeechLocale) {
@@ -310,7 +310,7 @@ struct SettingsTab: View {
                             Button {
                                 self.activeFeatureHelp = FeatureHelp(
                                     title: "Location Access",
-                                    message: "Controls location permissions for OpenClaw. "
+                                    message: "Controls location permissions for Kova. "
                                         + "Off disables location tools, While Using enables "
                                         + "foreground location, and Always enables "
                                         + "background location."
@@ -323,9 +323,9 @@ struct SettingsTab: View {
                             .accessibilityLabel("Location Access info")
                         }
                         Picker("Location Access", selection: self.$locationEnabledModeRaw) {
-                            Text("Off").tag(OpenClawLocationMode.off.rawValue)
-                            Text("While Using").tag(OpenClawLocationMode.whileUsing.rawValue)
-                            Text("Always").tag(OpenClawLocationMode.always.rawValue)
+                            Text("Off").tag(KovaLocationMode.off.rawValue)
+                            Text("While Using").tag(KovaLocationMode.whileUsing.rawValue)
+                            Text("Always").tag(KovaLocationMode.always.rawValue)
                         }
                         .labelsHidden()
                         .pickerStyle(.segmented)
@@ -376,7 +376,7 @@ struct SettingsTab: View {
                                     self.activeFeatureHelp = FeatureHelp(
                                         title: "Default Share Instruction",
                                         message: "Appends this instruction when sharing content "
-                                            + "into OpenClaw from iOS."
+                                            + "into Kova from iOS."
                                     )
                                 } label: {
                                     Image(systemName: "info.circle")
@@ -408,7 +408,7 @@ struct SettingsTab: View {
                             .truncationMode(.middle)
                         LabeledContent("Device", value: DeviceInfoHelper.deviceFamily())
                         LabeledContent("Platform", value: DeviceInfoHelper.platformStringForDisplay())
-                        LabeledContent("OpenClaw", value: DeviceInfoHelper.openClawVersionString())
+                        LabeledContent("Kova", value: DeviceInfoHelper.kovaVersionString())
                     }
                 }
             }
@@ -520,7 +520,7 @@ struct SettingsTab: View {
             .onChange(of: self.locationEnabledModeRaw) { _, newValue in
                 let previous = self.lastLocationModeRaw
                 self.lastLocationModeRaw = newValue
-                guard let mode = OpenClawLocationMode(rawValue: newValue) else { return }
+                guard let mode = KovaLocationMode(rawValue: newValue) else { return }
                 Task {
                     let granted = await self.appModel.requestLocationPermissions(mode: mode)
                     if !granted {

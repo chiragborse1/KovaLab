@@ -5,7 +5,7 @@ import {
   INTERNAL_RUNTIME_CONTEXT_BEGIN,
   INTERNAL_RUNTIME_CONTEXT_END,
   KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
-  LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE,
+  LEGACY_KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
   stripInternalRuntimeContext,
   stripRuntimeContextCustomMessages,
 } from "./internal-runtime-context.js";
@@ -89,7 +89,7 @@ describe("internal runtime context codec", () => {
     }
   });
 
-  it("filters Kova and legacy OpenClaw runtime-context custom messages", () => {
+  it("filters Kova and legacy Kova runtime-context custom messages", () => {
     const visibleUser = { role: "user", content: "visible" };
     const kovaRuntime = {
       role: "custom",
@@ -98,7 +98,7 @@ describe("internal runtime context codec", () => {
     };
     const legacyRuntime = {
       role: "custom",
-      customType: LEGACY_OPENCLAW_RUNTIME_CONTEXT_CUSTOM_TYPE,
+      customType: LEGACY_KOVA_RUNTIME_CONTEXT_CUSTOM_TYPE,
       content: "legacy hidden",
     };
 

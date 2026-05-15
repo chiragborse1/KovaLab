@@ -94,12 +94,12 @@ Verify:
 tailscale status
 ```
 
-**From now on, connect via Tailscale:** `ssh ubuntu@openclaw` (or use the Tailscale IP).
+**From now on, connect via Tailscale:** `ssh ubuntu@kovaai` (or use the Tailscale IP).
 
 ## 5) Install Kova
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://www.neuralstudio.in/install.sh | bash
 source ~/.bashrc
 ```
 
@@ -123,7 +123,7 @@ kova doctor --generate-gateway-token
 kova config set gateway.tailscale.mode serve
 kova config set gateway.trustedProxies '["127.0.0.1"]'
 
-systemctl --user restart openclaw-gateway.service
+systemctl --user restart kova-gateway.service
 ```
 
 `gateway.trustedProxies=["127.0.0.1"]` here is only for the local Tailscale Serve proxy's forwarded-IP/local-client handling. It is **not** `gateway.auth.mode: "trusted-proxy"`. Diff viewer routes keep fail-closed behavior in this setup: raw `127.0.0.1` viewer requests without forwarded proxy headers can return `Diff not found`. Use `mode=file` / `mode=both` for attachments, or intentionally enable remote viewers and set `plugins.entries.diffs.config.viewerBaseUrl` (or pass a proxy `baseUrl`) if you need shareable viewer links.
@@ -135,7 +135,7 @@ systemctl --user restart openclaw-gateway.service
 kova --version
 
 # Check daemon status
-systemctl --user status openclaw-gateway.service
+systemctl --user status kova-gateway.service
 
 # Check Tailscale Serve
 tailscale serve status
@@ -163,7 +163,7 @@ This blocks SSH on port 22, HTTP, HTTPS, and everything else at the network edge
 From any device on your Tailscale network:
 
 ```
-https://openclaw.<tailnet-name>.ts.net/
+https://kova.<tailnet-name>.ts.net/
 ```
 
 Replace `<tailnet-name>` with your tailnet name (visible in `tailscale status`).
@@ -195,7 +195,7 @@ This setup often removes the _need_ for extra host-based firewall rules purely t
 
 ### Still recommended
 
-- **Credential permissions:** `chmod 700 ~/.openclaw`
+- **Credential permissions:** `chmod 700 ~/.kova`
 - **Security audit:** `kova security audit`
 - **System updates:** `sudo apt update && sudo apt upgrade` regularly
 - **Monitor Tailscale:** Review devices in [Tailscale admin console](https://login.tailscale.com/admin)
@@ -221,7 +221,7 @@ If Tailscale Serve isn't working, use an SSH tunnel:
 
 ```bash
 # From your local machine (via Tailscale)
-ssh -L 18789:127.0.0.1:18789 ubuntu@openclaw
+ssh -L 18789:127.0.0.1:18789 ubuntu@kovaai
 ```
 
 Then open `http://localhost:18789`.
@@ -253,7 +253,7 @@ sudo tailscale up --ssh --hostname=kova --reset
 ```bash
 kova gateway status
 kova doctor --non-interactive
-journalctl --user -u openclaw-gateway.service -n 50
+journalctl --user -u kova-gateway.service -n 50
 ```
 
 ### Cannot reach Control UI
@@ -266,7 +266,7 @@ tailscale serve status
 curl http://localhost:18789
 
 # Restart if needed
-systemctl --user restart openclaw-gateway.service
+systemctl --user restart kova-gateway.service
 ```
 
 ### ARM binary issues
@@ -285,8 +285,8 @@ Most npm packages work fine. For binaries, look for `linux-arm64` or `aarch64` r
 
 All state lives in:
 
-- `~/.openclaw/` — `openclaw.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
-- `~/.openclaw/workspace/` — workspace (SOUL.md, memory, artifacts)
+- `~/.kova/` — `kova.json`, per-agent `auth-profiles.json`, channel/provider state, and session data
+- `~/.kova/workspace/` — workspace (SOUL.md, memory, artifacts)
 
 Back up periodically:
 

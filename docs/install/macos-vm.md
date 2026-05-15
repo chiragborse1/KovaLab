@@ -152,7 +152,7 @@ Follow the onboarding prompts to set up your model provider (Anthropic, OpenAI, 
 Edit the config file:
 
 ```bash
-nano ~/.openclaw/openclaw.json
+nano ~/.chiragborse1/KovaLab.json
 ```
 
 Add your channels:
@@ -235,14 +235,14 @@ Before customizing further, snapshot your clean state:
 
 ```bash
 lume stop kova
-lume clone kova openclaw-golden
+lume clone kova kova-golden
 ```
 
 Reset anytime:
 
 ```bash
 lume stop kova && lume delete kova
-lume clone openclaw-golden kova
+lume clone kova-golden kova
 lume run kova --no-display
 ```
 
@@ -262,11 +262,11 @@ For true always-on, consider a dedicated Mac mini or a small VPS. See [VPS hosti
 
 ## Troubleshooting
 
-| Problem                  | Solution                                                                           |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| Can't SSH into VM        | Check "Remote Login" is enabled in VM's System Settings                            |
+| Problem                  | Solution                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| Can't SSH into VM        | Check "Remote Login" is enabled in VM's System Settings                        |
 | VM IP not showing        | Wait for VM to fully boot, run `lume get kova` again                           |
-| Lume command not found   | Add `~/.local/bin` to your PATH                                                    |
+| Lume command not found   | Add `~/.local/bin` to your PATH                                                |
 | WhatsApp QR not scanning | Ensure you're logged into the VM (not host) when running `kova channels login` |
 
 ---

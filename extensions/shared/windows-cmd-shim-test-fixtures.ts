@@ -1,1 +1,1 @@
-export { createWindowsCmdShimFixture } from "openclaw/plugin-sdk/testing";
+export { createWindowsCmdShimFixture } from "getkova/plugin-sdk/testing";

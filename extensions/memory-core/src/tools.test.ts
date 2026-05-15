@@ -7,7 +7,7 @@ import {
 } from "./memory-tool-manager-mock.js";
 import { createMemorySearchTool } from "./tools.js";
 import {
-  asOpenClawConfig,
+  asKovaConfig,
   createMemorySearchToolOrThrow,
   expectUnavailableMemorySearchDetails,
 } from "./tools.test-helpers.js";
@@ -108,7 +108,7 @@ describe("memory_search unavailable payloads", () => {
   });
 
   it("re-resolves config when executing a previously created tool", async () => {
-    const startupConfig = asOpenClawConfig({
+    const startupConfig = asKovaConfig({
       agents: {
         defaults: {
           memorySearch: {
@@ -122,7 +122,7 @@ describe("memory_search unavailable payloads", () => {
         backend: "builtin",
       },
     });
-    const patchedConfig = asOpenClawConfig({
+    const patchedConfig = asKovaConfig({
       agents: {
         defaults: {
           memorySearch: {

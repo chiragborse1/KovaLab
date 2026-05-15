@@ -3,7 +3,7 @@ import {
   getMediaGenerationRuntimeMocks,
   resetImageGenerationRuntimeMocks,
 } from "../../test/helpers/media-generation/runtime-module-mocks.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { generateImage, listRuntimeImageGenerationProviders } from "./runtime.js";
 import type { ImageGenerationProvider } from "./types.js";
 
@@ -58,7 +58,7 @@ describe("image-generation runtime", () => {
             imageGenerationModel: { primary: "image-plugin/img-v1" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cat",
       agentDir: "/tmp/agent",
       authStore,
@@ -115,7 +115,7 @@ describe("image-generation runtime", () => {
             },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cat",
     });
 
@@ -181,7 +181,7 @@ describe("image-generation runtime", () => {
     ]);
 
     const result = await generateImage({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as KovaConfig,
       prompt: "draw a cat",
     });
 
@@ -245,7 +245,7 @@ describe("image-generation runtime", () => {
             imageGenerationModel: { primary: "openai/gpt-image-1" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cat",
       size: "1024x1024",
       aspectRatio: "1:1",
@@ -309,7 +309,7 @@ describe("image-generation runtime", () => {
             imageGenerationModel: { primary: "openai/gpt-image-2" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cheap preview",
       quality: "low",
       outputFormat: "jpeg",
@@ -376,7 +376,7 @@ describe("image-generation runtime", () => {
             imageGenerationModel: { primary: "vydra/grok-imagine" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cat",
       quality: "low",
       outputFormat: "jpeg",
@@ -442,7 +442,7 @@ describe("image-generation runtime", () => {
             imageGenerationModel: { primary: "minimax/image-01" },
           },
         },
-      } as OpenClawConfig,
+      } as KovaConfig,
       prompt: "draw a cat",
       size: "1280x720",
     });
@@ -491,10 +491,8 @@ describe("image-generation runtime", () => {
     ];
     mocks.listImageGenerationProviders.mockReturnValue(providers);
 
-    expect(listRuntimeImageGenerationProviders({ config: {} as OpenClawConfig })).toEqual(
-      providers,
-    );
-    expect(mocks.listImageGenerationProviders).toHaveBeenCalledWith({} as OpenClawConfig);
+    expect(listRuntimeImageGenerationProviders({ config: {} as KovaConfig })).toEqual(providers);
+    expect(mocks.listImageGenerationProviders).toHaveBeenCalledWith({} as KovaConfig);
   });
 
   it("builds a generic config hint without hardcoded provider ids", async () => {
@@ -534,9 +532,7 @@ describe("image-generation runtime", () => {
       return [];
     });
 
-    await expect(
-      generateImage({ cfg: {} as OpenClawConfig, prompt: "draw a cat" }),
-    ).rejects.toThrow(
+    await expect(generateImage({ cfg: {} as KovaConfig, prompt: "draw a cat" })).rejects.toThrow(
       'No image-generation model configured. Set agents.defaults.imageGenerationModel.primary to a provider/model like "vision-one/paint-v1". If you want a specific provider, also configure that provider\'s auth/API key first (vision-one: VISION_ONE_API_KEY; vision-two: VISION_TWO_API_KEY).',
     );
   });

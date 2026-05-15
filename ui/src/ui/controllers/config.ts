@@ -152,8 +152,7 @@ function resolveUpdateStatusBanner(params: { status?: string; reason?: string })
       dirty: "Commit or stash changes, then retry.",
       "no-upstream": "Set an upstream branch, then retry.",
       "not-git-install": "Not a git checkout. Reinstall from the Kova CLI with `kova update`.",
-      "not-openclaw-root":
-        "Run the update from a Kova checkout or use the CLI global reinstall path.",
+      "not-kova-root": "Run the update from a Kova checkout or use the CLI global reinstall path.",
       "deps-install-failed": "Dependency install failed. Fix the install error and retry.",
       "build-failed": "Build failed. Fix the build error and retry.",
       "ui-build-failed": "The control UI rebuild failed. Fix the UI build error and retry.",

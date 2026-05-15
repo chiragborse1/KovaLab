@@ -1,6 +1,6 @@
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
 import type { GatewayTailscaleMode } from "../config/types.gateway.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveCronStorePath } from "../cron/store.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
 import {
@@ -18,7 +18,7 @@ import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
 
 export async function startGatewayEarlyRuntime(params: {
   minimalTestGateway: boolean;
-  cfgAtStart: OpenClawConfig;
+  cfgAtStart: KovaConfig;
   port: number;
   gatewayTls: { enabled: boolean; fingerprintSha256?: string };
   tailscaleMode: GatewayTailscaleMode;
@@ -57,7 +57,7 @@ export async function startGatewayEarlyRuntime(params: {
   skillsRefreshDelayMs: number;
   getSkillsRefreshTimer: () => ReturnType<typeof setTimeout> | null;
   setSkillsRefreshTimer: (timer: ReturnType<typeof setTimeout> | null) => void;
-  getRuntimeConfig: () => OpenClawConfig;
+  getRuntimeConfig: () => KovaConfig;
 }) {
   let bonjourStop: (() => Promise<void>) | null = null;
   if (!params.minimalTestGateway) {

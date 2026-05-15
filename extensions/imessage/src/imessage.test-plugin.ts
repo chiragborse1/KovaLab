@@ -1,8 +1,8 @@
-import type { ChannelOutboundAdapter } from "openclaw/plugin-sdk/channel-contract";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/core";
-import { resolveOutboundSendDep } from "openclaw/plugin-sdk/outbound-send-deps";
-import { collectStatusIssuesFromLastError } from "openclaw/plugin-sdk/status-helpers";
-import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/text-runtime";
+import type { ChannelOutboundAdapter } from "getkova/plugin-sdk/channel-contract";
+import type { ChannelPlugin } from "getkova/plugin-sdk/core";
+import { resolveOutboundSendDep } from "getkova/plugin-sdk/outbound-send-deps";
+import { collectStatusIssuesFromLastError } from "getkova/plugin-sdk/status-helpers";
+import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 
 function normalizeIMessageTestHandle(raw: string): string {
   let trimmed = raw.trim();

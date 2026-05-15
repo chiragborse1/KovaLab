@@ -10,22 +10,22 @@ import {
 } from "./redact.js";
 
 const defaults = getDefaultRedactPatterns();
-const originalConfigPath = process.env.OPENCLAW_CONFIG_PATH;
+const originalConfigPath = process.env.KOVA_CONFIG_PATH;
 let tempDirs: string[] = [];
 
 function writeConfig(source: string): void {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-redact-config-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-redact-config-"));
   tempDirs.push(dir);
-  const configPath = path.join(dir, "openclaw.json");
+  const configPath = path.join(dir, "kova.json");
   fs.writeFileSync(configPath, source);
-  process.env.OPENCLAW_CONFIG_PATH = configPath;
+  process.env.KOVA_CONFIG_PATH = configPath;
 }
 
 afterEach(() => {
   if (originalConfigPath === undefined) {
-    delete process.env.OPENCLAW_CONFIG_PATH;
+    delete process.env.KOVA_CONFIG_PATH;
   } else {
-    process.env.OPENCLAW_CONFIG_PATH = originalConfigPath;
+    process.env.KOVA_CONFIG_PATH = originalConfigPath;
   }
   for (const dir of tempDirs) {
     fs.rmSync(dir, { force: true, recursive: true });

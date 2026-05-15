@@ -39,7 +39,7 @@ const spawnSyncMock = vi.mocked(spawnSync);
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-runtime-deps-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-runtime-deps-test-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -68,7 +68,7 @@ function writeBundledPluginPackage(params: {
     JSON.stringify({ dependencies: params.deps }),
   );
   fs.writeFileSync(
-    path.join(pluginRoot, "openclaw.plugin.json"),
+    path.join(pluginRoot, "kova.plugin.json"),
     JSON.stringify({
       id: params.pluginId,
       enabledByDefault: params.enabledByDefault === true,
@@ -139,11 +139,11 @@ describe("resolveBundledRuntimeDepsNpmRunner", () => {
           npm_config_location: "global",
           npm_config_prefix: "/opt/homebrew",
         },
-        { cacheDir: "/opt/openclaw/runtime-cache" },
+        { cacheDir: "/opt/kova/runtime-cache" },
       ),
     ).toEqual({
       PATH: "/usr/bin:/bin",
-      npm_config_cache: "/opt/openclaw/runtime-cache",
+      npm_config_cache: "/opt/kova/runtime-cache",
       npm_config_global: "false",
       npm_config_legacy_peer_deps: "true",
       npm_config_location: "project",
@@ -278,10 +278,10 @@ describe("installBundledRuntimeDeps", () => {
       throw error;
     });
 
-    expect(isWritableDirectory("/usr/lib/node_modules/openclaw")).toBe(false);
+    expect(isWritableDirectory("/usr/lib/node_modules/kova")).toBe(false);
     expect(accessSpy).not.toHaveBeenCalled();
     expect(mkdirSpy).toHaveBeenCalledWith(
-      path.join("/usr/lib/node_modules/openclaw", ".openclaw-write-probe-"),
+      path.join("/usr/lib/node_modules/kova", ".kova-write-probe-"),
     );
   });
 
@@ -437,13 +437,13 @@ describe("installBundledRuntimeDeps", () => {
 
   it("anchors non-isolated external install roots with a package manifest", () => {
     const parentRoot = makeTempDir();
-    const installRoot = path.join(parentRoot, ".openclaw", "plugin-runtime-deps", "openclaw-test");
+    const installRoot = path.join(parentRoot, ".kova", "plugin-runtime-deps", "kova-test");
     fs.mkdirSync(path.join(parentRoot, "node_modules", "@grammyjs"), { recursive: true });
     spawnSyncMock.mockImplementation((_command, _args, options) => {
       const cwd = String(options?.cwd ?? "");
       expect(cwd).toBe(installRoot);
       expect(JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf8"))).toEqual({
-        name: "openclaw-runtime-deps-install",
+        name: "kova-runtime-deps-install",
         private: true,
       });
       writeInstalledPackage(cwd, "@grammyjs/runner", "2.0.3");
@@ -539,7 +539,7 @@ describe("installBundledRuntimeDeps", () => {
     expect(
       JSON.parse(fs.readFileSync(path.join(installExecutionRoot, "package.json"), "utf8")),
     ).toEqual({
-      name: "openclaw-runtime-deps-install",
+      name: "kova-runtime-deps-install",
       private: true,
     });
     expect(
@@ -562,7 +562,7 @@ describe("installBundledRuntimeDeps", () => {
     );
   });
 
-  it("uses an OpenClaw-owned npm cache for runtime dependency installs", () => {
+  it("uses an Kova-owned npm cache for runtime dependency installs", () => {
     const installRoot = makeTempDir();
     spawnSyncMock.mockImplementation((_command, _args, options) => {
       writeInstalledPackage(String(options?.cwd ?? ""), "tokenjuice", "0.6.1");
@@ -593,7 +593,7 @@ describe("installBundledRuntimeDeps", () => {
     });
 
     expect(JSON.parse(fs.readFileSync(path.join(installRoot, "package.json"), "utf8"))).toEqual({
-      name: "openclaw-runtime-deps-install",
+      name: "kova-runtime-deps-install",
       private: true,
     });
     expect(spawnSyncMock).toHaveBeenCalledWith(
@@ -603,7 +603,7 @@ describe("installBundledRuntimeDeps", () => {
         cwd: installRoot,
         env: expect.objectContaining({
           HOME: "/Users/alice",
-          npm_config_cache: path.join(installRoot, ".openclaw-npm-cache"),
+          npm_config_cache: path.join(installRoot, ".kova-npm-cache"),
         }),
       }),
     );
@@ -646,7 +646,7 @@ describe("installBundledRuntimeDeps", () => {
 
   it("cleans an owned isolated execution root after copying node_modules back", () => {
     const installRoot = makeTempDir();
-    const installExecutionRoot = path.join(installRoot, ".openclaw-install-stage");
+    const installExecutionRoot = path.join(installRoot, ".kova-install-stage");
     spawnSyncMock.mockImplementation((_command, _args, options) => {
       const cwd = String(options?.cwd ?? "");
       fs.mkdirSync(path.join(cwd, "node_modules", "tokenjuice"), { recursive: true });
@@ -691,10 +691,7 @@ describe("installBundledRuntimeDeps", () => {
     const realRmSync = fs.rmSync.bind(fs);
     let blockedCleanup = false;
     vi.spyOn(fs, "rmSync").mockImplementation((target, options) => {
-      if (
-        !blockedCleanup &&
-        path.basename(String(target)).startsWith(".openclaw-runtime-deps-copy-")
-      ) {
+      if (!blockedCleanup && path.basename(String(target)).startsWith(".kova-runtime-deps-copy-")) {
         blockedCleanup = true;
         const error = new Error("Directory not empty") as NodeJS.ErrnoException;
         error.code = "ENOTEMPTY";
@@ -761,7 +758,7 @@ describe("installBundledRuntimeDeps", () => {
 
     expect(() =>
       installBundledRuntimeDeps({
-        installRoot: "/tmp/openclaw",
+        installRoot: "/tmp/kova",
         missingSpecs: ["browser-runtime@1.0.0"],
         env: {},
       }),
@@ -955,7 +952,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
       enabledByDefault: true,
       channels: ["alpha"],
     });
-    const manifestPath = path.join(pluginRoot, "openclaw.plugin.json");
+    const manifestPath = path.join(pluginRoot, "kova.plugin.json");
     const readFileSyncSpy = vi.spyOn(fs, "readFileSync");
 
     scanBundledPluginRuntimeDeps({ packageRoot, config: {} });
@@ -971,7 +968,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       JSON.stringify({
-        name: "openclaw",
+        name: "kova",
         version: "2026.4.25",
         dependencies: { tslog: "^4.10.2" },
       }),
@@ -986,7 +983,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     const result = scanBundledPluginRuntimeDeps({
       packageRoot,
       config: {},
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
 
     expect(result.deps.map((dep) => `${dep.name}@${dep.version}`)).toEqual([
@@ -1005,7 +1002,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       JSON.stringify({
-        name: "openclaw",
+        name: "kova",
         version: "2026.4.25",
         dependencies: { tslog: "^4.10.2" },
       }),
@@ -1023,11 +1020,11 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
       config: {
         channels: { slack: { botToken: "xoxb-token" } },
       },
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
 
     expect(result.deps.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
-    expect(result.deps[0]?.pluginIds).toEqual(["openclaw-core"]);
+    expect(result.deps[0]?.pluginIds).toEqual(["kova-core"]);
     expect(result.missing.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
   });
 
@@ -1037,7 +1034,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       JSON.stringify({
-        name: "openclaw",
+        name: "kova",
         version: "2026.4.25",
         dependencies: { tslog: "^4.10.2" },
       }),
@@ -1052,11 +1049,11 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     const result = scanBundledPluginRuntimeDeps({
       packageRoot,
       config: {},
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
 
     expect(result.deps.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
-    expect(result.deps[0]?.pluginIds).toEqual(["logger-plugin", "openclaw-core"]);
+    expect(result.deps[0]?.pluginIds).toEqual(["logger-plugin", "kova-core"]);
     expect(result.missing.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
   });
 
@@ -1066,7 +1063,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     const writableStageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.25" }),
+      JSON.stringify({ name: "kova", version: "2026.4.25" }),
     );
     const pluginRoot = writeBundledPluginPackage({
       packageRoot,
@@ -1078,7 +1075,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
       enabledByDefault: true,
     });
     const env = {
-      OPENCLAW_PLUGIN_STAGE_DIR: [baselineStageDir, writableStageDir].join(path.delimiter),
+      KOVA_PLUGIN_STAGE_DIR: [baselineStageDir, writableStageDir].join(path.delimiter),
     };
     const installRootPlan = resolveBundledRuntimeDependencyInstallRootPlan(pluginRoot, { env });
     writeInstalledPackage(
@@ -1166,9 +1163,9 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({
         dependencies: {
-          "@openclaw/plugin-sdk": "workspace:*",
+          "@getkova/plugin-sdk": "workspace:*",
           "external-runtime": "^1.2.3",
-          openclaw: "workspace:*",
+          kova: "workspace:*",
         },
       }),
     );
@@ -1204,7 +1201,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       JSON.stringify({
-        name: "openclaw",
+        name: "kova",
         version: "2026.4.25",
         dependencies: { tslog: "^4.10.2" },
       }),
@@ -1215,7 +1212,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const result = ensureBundledPluginRuntimeDeps({
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
       installDeps: (params) => {
         calls.push(params);
       },
@@ -1224,7 +1221,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     });
 
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
     expect(result).toEqual({
       installedSpecs: ["tslog@^4.10.2"],
@@ -1241,7 +1238,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
   it("uses external staging when a packaged plugin declares workspace:* deps", () => {
     // Regression guard for packaged/Docker bundled plugins whose `package.json`
-    // still lists `"@openclaw/plugin-sdk": "workspace:*"` (and similar) alongside
+    // still lists `"@getkova/plugin-sdk": "workspace:*"` (and similar) alongside
     // concrete runtime deps. Without a distinct execution root, `npm install`
     // would resolve the plugin's own cwd manifest and fail with
     // EUNSUPPORTEDPROTOCOL on the `workspace:` protocol.
@@ -1253,7 +1250,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({
         dependencies: {
-          "@openclaw/plugin-sdk": "workspace:*",
+          "@getkova/plugin-sdk": "workspace:*",
           "@anthropic-ai/sdk": "^0.50.0",
         },
       }),
@@ -1289,7 +1286,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const stageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.22" }),
+      JSON.stringify({ name: "kova", version: "2026.4.22" }),
     );
     const pluginRoot = path.join(packageRoot, "dist", "extensions", "slack");
     fs.mkdirSync(pluginRoot, { recursive: true });
@@ -1302,7 +1299,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       }),
     );
 
-    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { KOVA_PLUGIN_STAGE_DIR: stageDir };
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const result = ensureBundledPluginRuntimeDeps({
       env,
@@ -1355,7 +1352,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const writableStageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.25" }),
+      JSON.stringify({ name: "kova", version: "2026.4.25" }),
     );
     const pluginRoot = path.join(packageRoot, "dist", "extensions", "slack");
     fs.mkdirSync(pluginRoot, { recursive: true });
@@ -1369,7 +1366,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       }),
     );
     const env = {
-      OPENCLAW_PLUGIN_STAGE_DIR: [baselineStageDir, writableStageDir].join(path.delimiter),
+      KOVA_PLUGIN_STAGE_DIR: [baselineStageDir, writableStageDir].join(path.delimiter),
     };
     const installRootPlan = resolveBundledRuntimeDependencyInstallRootPlan(pluginRoot, { env });
     const baselineRoot = installRootPlan.searchRoots[0] ?? baselineStageDir;
@@ -1412,7 +1409,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const stageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.22" }),
+      JSON.stringify({ name: "kova", version: "2026.4.22" }),
     );
     const alphaRoot = path.join(packageRoot, "dist", "extensions", "alpha");
     const betaRoot = path.join(packageRoot, "dist", "extensions", "beta");
@@ -1427,7 +1424,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       JSON.stringify({ dependencies: { "beta-runtime": "2.0.0" } }),
     );
 
-    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { KOVA_PLUGIN_STAGE_DIR: stageDir };
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const installDeps = (params: BundledRuntimeDepsInstallParams) => {
       calls.push(params);
@@ -1474,7 +1471,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const stageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.25" }),
+      JSON.stringify({ name: "kova", version: "2026.4.25" }),
     );
     const pluginRoot = path.join(packageRoot, "dist", "extensions", "telegram");
     fs.mkdirSync(pluginRoot, { recursive: true });
@@ -1482,7 +1479,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({ dependencies: { grammy: "^1.42.0" } }),
     );
-    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { KOVA_PLUGIN_STAGE_DIR: stageDir };
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env });
     const mirroredPluginRoot = path.join(installRoot, "dist", "extensions", "telegram");
     fs.mkdirSync(mirroredPluginRoot, { recursive: true });
@@ -1498,7 +1495,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
     const nestedUnknownRoot = path.join(
       stageDir,
-      `openclaw-unknown-${createHash("sha256").update(path.resolve(installRoot)).digest("hex").slice(0, 12)}`,
+      `kova-unknown-${createHash("sha256").update(path.resolve(installRoot)).digest("hex").slice(0, 12)}`,
     );
 
     expect(resolveBundledRuntimeDependencyInstallRoot(mirroredPluginRoot, { env })).toBe(
@@ -1523,7 +1520,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const packageRoot = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.25" }),
+      JSON.stringify({ name: "kova", version: "2026.4.25" }),
     );
     fs.writeFileSync(path.join(packageRoot, "pnpm-workspace.yaml"), "packages: []\n");
     fs.mkdirSync(path.join(packageRoot, "src"), { recursive: true });
@@ -1578,7 +1575,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const stageDir = makeTempDir();
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.22" }),
+      JSON.stringify({ name: "kova", version: "2026.4.22" }),
     );
     const alphaRoot = path.join(packageRoot, "dist", "extensions", "alpha");
     const betaRoot = path.join(packageRoot, "dist", "extensions", "beta");
@@ -1593,14 +1590,14 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       JSON.stringify({ dependencies: { "beta-runtime": "2.0.0" } }),
     );
 
-    const env = { OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { KOVA_PLUGIN_STAGE_DIR: stageDir };
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(alphaRoot, { env });
     fs.mkdirSync(path.join(installRoot, "node_modules", "alpha-runtime"), { recursive: true });
     fs.writeFileSync(
       path.join(installRoot, "node_modules", "alpha-runtime", "package.json"),
       JSON.stringify({ name: "alpha-runtime", version: "1.0.0" }),
     );
-    expect(fs.existsSync(path.join(installRoot, ".openclaw-runtime-deps.json"))).toBe(false);
+    expect(fs.existsSync(path.join(installRoot, ".kova-runtime-deps.json"))).toBe(false);
 
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const result = ensureBundledPluginRuntimeDeps({
@@ -1657,7 +1654,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
   it("keeps async repair locks and activity active until npm staging settles", async () => {
     const installRoot = makeTempDir();
-    const lockDir = path.join(installRoot, ".openclaw-runtime-deps.lock");
+    const lockDir = path.join(installRoot, ".kova-runtime-deps.lock");
     let releaseInstall!: () => void;
     const repair = repairBundledRuntimeDepsInstallRootAsync({
       installRoot,
@@ -1738,12 +1735,12 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
   it("includes runtime-deps lock owner details in timeout messages", () => {
     const message = bundledRuntimeDepsTesting.formatRuntimeDepsLockTimeoutMessage({
-      lockDir: "/tmp/openclaw-plugin/.openclaw-runtime-deps.lock",
+      lockDir: "/tmp/kova-plugin/.kova-runtime-deps.lock",
       owner: {
         pid: 0,
         createdAtMs: 1_000,
         ownerFileState: "invalid",
-        ownerFilePath: "/tmp/openclaw-plugin/.openclaw-runtime-deps.lock/owner.json",
+        ownerFilePath: "/tmp/kova-plugin/.kova-runtime-deps.lock/owner.json",
         ownerFileMtimeMs: 2_500,
         ownerFileIsSymlink: true,
         lockDirMtimeMs: 2_000,
@@ -1759,7 +1756,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     expect(message).toContain("ownerAge=302000ms");
     expect(message).toContain("ownerFileAge=300500ms");
     expect(message).toContain("lockAge=301000ms");
-    expect(message).toContain(".openclaw-runtime-deps.lock/owner.json");
+    expect(message).toContain(".kova-runtime-deps.lock/owner.json");
   });
 
   it("removes stale runtime-deps install locks before repairing deps", () => {
@@ -1775,7 +1772,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       }),
     );
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env: {} });
-    const lockDir = path.join(installRoot, ".openclaw-runtime-deps.lock");
+    const lockDir = path.join(installRoot, ".kova-runtime-deps.lock");
     fs.mkdirSync(lockDir, { recursive: true });
     fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({ pid: 0, createdAtMs: 0 }));
 
@@ -1817,7 +1814,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       }),
     );
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env: {} });
-    const lockDir = path.join(installRoot, ".openclaw-runtime-deps.lock");
+    const lockDir = path.join(installRoot, ".kova-runtime-deps.lock");
     fs.mkdirSync(lockDir, { recursive: true });
     const ownerPath = path.join(lockDir, "owner.json");
     fs.writeFileSync(ownerPath, "{", "utf8");
@@ -1865,7 +1862,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
         }),
       );
       const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env: {} });
-      const lockDir = path.join(installRoot, ".openclaw-runtime-deps.lock");
+      const lockDir = path.join(installRoot, ".kova-runtime-deps.lock");
       fs.mkdirSync(lockDir, { recursive: true });
       const ownerPath = path.join(lockDir, "owner.json");
       fs.symlinkSync("../missing-owner.json", ownerPath);
@@ -1907,8 +1904,8 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify({
         dependencies: {
-          "@openclaw/plugin-sdk": "workspace:*",
-          openclaw: "workspace:*",
+          "@getkova/plugin-sdk": "workspace:*",
+          kova: "workspace:*",
         },
       }),
     );
@@ -1943,7 +1940,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const result = ensureBundledPluginRuntimeDeps({
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
       installDeps: (params) => {
         calls.push(params);
       },
@@ -1956,7 +1953,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       retainSpecs: ["tokenjuice@0.6.1"],
     });
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
     expect(calls).toEqual([
       {
@@ -1968,7 +1965,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     expect(installRoot).toContain(stageDir);
     expect(installRoot).not.toBe(pluginRoot);
     expect(
-      JSON.parse(fs.readFileSync(path.join(installRoot, ".openclaw-runtime-deps.json"), "utf8")),
+      JSON.parse(fs.readFileSync(path.join(installRoot, ".kova-runtime-deps.json"), "utf8")),
     ).toEqual({ specs: ["tokenjuice@0.6.1"] });
   });
 
@@ -1979,7 +1976,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const pluginRoot = path.join(packageRoot, "extensions", "tokenjuice");
     fs.mkdirSync(pluginRoot, { recursive: true });
     fs.writeFileSync(
-      path.join(pluginRoot, ".openclaw-runtime-deps.json"),
+      path.join(pluginRoot, ".kova-runtime-deps.json"),
       JSON.stringify({ specs: ["stale@9.9.9"] }),
     );
     fs.writeFileSync(
@@ -2017,7 +2014,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       },
     ]);
     expect(resolveBundledRuntimeDependencyInstallRoot(pluginRoot, { env: {} })).toBe(pluginRoot);
-    expect(fs.existsSync(path.join(pluginRoot, ".openclaw-runtime-deps.json"))).toBe(false);
+    expect(fs.existsSync(path.join(pluginRoot, ".kova-runtime-deps.json"))).toBe(false);
   });
 
   it("removes stale source-checkout manifests even when runtime deps are present", () => {
@@ -2039,7 +2036,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       JSON.stringify({ name: "tokenjuice", version: "0.6.1" }),
     );
     fs.writeFileSync(
-      path.join(pluginRoot, ".openclaw-runtime-deps.json"),
+      path.join(pluginRoot, ".kova-runtime-deps.json"),
       JSON.stringify({ specs: ["stale@9.9.9"] }),
     );
 
@@ -2053,7 +2050,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     });
 
     expect(result).toEqual({ installedSpecs: [], retainSpecs: [] });
-    expect(fs.existsSync(path.join(pluginRoot, ".openclaw-runtime-deps.json"))).toBe(false);
+    expect(fs.existsSync(path.join(pluginRoot, ".kova-runtime-deps.json"))).toBe(false);
   });
 
   it("treats Docker build source trees without .git as source checkouts", () => {
@@ -2069,7 +2066,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
           acpx: "0.5.3",
         },
         devDependencies: {
-          "@openclaw/plugin-sdk": "workspace:*",
+          "@getkova/plugin-sdk": "workspace:*",
         },
       }),
     );
@@ -2126,7 +2123,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     const calls: BundledRuntimeDepsInstallParams[] = [];
 
     const result = ensureBundledPluginRuntimeDeps({
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
       installDeps: (params) => {
         calls.push(params);
       },
@@ -2141,7 +2138,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
     expect(calls).toEqual([
       {
         installRoot: resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
-          env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+          env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
         }),
         missingSpecs: ["tokenjuice@0.6.1"],
         installSpecs: ["tokenjuice@0.6.1"],
@@ -2174,7 +2171,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
 
     const calls: BundledRuntimeDepsInstallParams[] = [];
     const result = ensureBundledPluginRuntimeDeps({
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
       installDeps: (params) => {
         calls.push(params);
       },
@@ -2187,7 +2184,7 @@ describe("ensureBundledPluginRuntimeDeps", () => {
       retainSpecs: ["tokenjuice@0.6.1"],
     });
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginRoot, {
-      env: { OPENCLAW_PLUGIN_STAGE_DIR: stageDir },
+      env: { KOVA_PLUGIN_STAGE_DIR: stageDir },
     });
     expect(calls).toEqual([
       {

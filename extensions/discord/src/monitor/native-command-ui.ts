@@ -11,7 +11,7 @@ import {
   type StringSelectMenuInteraction,
 } from "@buape/carbon";
 import { ButtonStyle } from "discord-api-types/v10";
-import { resolveDefaultModelForAgent } from "openclaw/plugin-sdk/agent-runtime";
+import { resolveDefaultModelForAgent } from "getkova/plugin-sdk/agent-runtime";
 import {
   buildCommandTextFromArgs,
   findCommandByNativeName,
@@ -23,15 +23,15 @@ import {
   type CommandArgDefinition,
   type CommandArgValues,
   type CommandArgs,
-} from "openclaw/plugin-sdk/command-auth";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { loadSessionStore, resolveStorePath } from "openclaw/plugin-sdk/config-runtime";
-import type { ResolvedAgentRoute } from "openclaw/plugin-sdk/routing";
+} from "getkova/plugin-sdk/command-auth";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { loadSessionStore, resolveStorePath } from "getkova/plugin-sdk/config-runtime";
+import type { ResolvedAgentRoute } from "getkova/plugin-sdk/routing";
 import {
   chunkItems,
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import { resolveDiscordSlashCommandConfig } from "./commands.js";
 import {
   readDiscordModelPickerRecentModels,
@@ -58,7 +58,7 @@ export type {
 import { resolveDiscordNativeInteractionChannelContext } from "./native-interaction-channel-context.js";
 import type { ThreadBindingManager } from "./thread-bindings.js";
 
-type DiscordConfig = NonNullable<OpenClawConfig["channels"]>["discord"];
+type DiscordConfig = NonNullable<KovaConfig["channels"]>["discord"];
 type DiscordNativeChoiceInteraction =
   | AutocompleteInteraction
   | CommandInteraction
@@ -68,7 +68,7 @@ type DiscordNativeChoiceInteraction =
 const DISCORD_COMMAND_ARG_CUSTOM_ID_KEY = "cmdarg";
 
 export type DiscordCommandArgContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   discordConfig: DiscordConfig;
   accountId: string;
   sessionPrefix: string;
@@ -227,7 +227,7 @@ async function resolveDiscordModelPickerRouteState(params: {
     | ButtonInteraction
     | StringSelectMenuInteraction
     | AutocompleteInteraction;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   threadBindings: ThreadBindingManager;
   enforceConfiguredBindingReadiness?: boolean;
@@ -268,7 +268,7 @@ async function resolveDiscordModelPickerRoute(params: {
     | ButtonInteraction
     | StringSelectMenuInteraction
     | AutocompleteInteraction;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   threadBindings: ThreadBindingManager;
 }) {
@@ -278,7 +278,7 @@ async function resolveDiscordModelPickerRoute(params: {
 
 export async function resolveDiscordNativeChoiceContext(params: {
   interaction: DiscordNativeChoiceInteraction;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   threadBindings: ThreadBindingManager;
 }): Promise<{ provider?: string; model?: string } | null> {
@@ -325,7 +325,7 @@ export async function resolveDiscordNativeChoiceContext(params: {
 }
 
 function resolveDiscordModelPickerCurrentModel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   route: ResolvedAgentRoute;
   data: Awaited<ReturnType<typeof loadDiscordModelPickerData>>;
 }): string {
@@ -359,7 +359,7 @@ function resolveDiscordModelPickerCurrentModel(params: {
 }
 
 function resolveDiscordModelPickerCurrentRuntime(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   route: ResolvedAgentRoute;
 }): string {
   try {
@@ -390,7 +390,7 @@ function resolveDiscordModelPickerCurrentRuntime(params: {
 
 export async function replyWithDiscordModelPickerProviders(params: {
   interaction: CommandInteraction | ButtonInteraction | StringSelectMenuInteraction;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   command: DiscordModelPickerCommandContext;
   userId: string;
   accountId: string;

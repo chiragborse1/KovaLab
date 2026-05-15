@@ -1,9 +1,9 @@
-import type { AckReactionHandle } from "openclaw/plugin-sdk/channel-feedback";
-import type { getReplyFromConfig } from "openclaw/plugin-sdk/reply-runtime";
-import type { MsgContext } from "openclaw/plugin-sdk/reply-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { buildGroupHistoryKey } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
+import type { AckReactionHandle } from "getkova/plugin-sdk/channel-feedback";
+import type { getReplyFromConfig } from "getkova/plugin-sdk/reply-runtime";
+import type { MsgContext } from "getkova/plugin-sdk/reply-runtime";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import { buildGroupHistoryKey } from "getkova/plugin-sdk/routing";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
 import { resolveWhatsAppGroupSessionRoute } from "../../group-session-key.js";
 import { getPrimaryIdentityId, getSenderIdentity } from "../../identity.js";
 import { normalizeE164 } from "../../text-runtime.js";
@@ -30,7 +30,7 @@ export function createWebOnMessageHandler(params: {
   echoTracker: EchoTracker;
   backgroundTasks: Set<Promise<unknown>>;
   replyResolver: typeof getReplyFromConfig;
-  replyLogger: ReturnType<(typeof import("openclaw/plugin-sdk/runtime-env"))["getChildLogger"]>;
+  replyLogger: ReturnType<(typeof import("getkova/plugin-sdk/runtime-env"))["getChildLogger"]>;
   baseMentionConfig: MentionConfig;
   account: { authDir?: string; accountId?: string; selfChatMode?: boolean };
 }) {

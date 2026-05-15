@@ -7,9 +7,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 source "$ROOT_DIR/scripts/lib/docker-e2e-package.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-update-channel-switch-e2e" OPENCLAW_UPDATE_CHANNEL_SWITCH_E2E_IMAGE)"
-SKIP_BUILD="${OPENCLAW_UPDATE_CHANNEL_SWITCH_E2E_SKIP_BUILD:-0}"
-PACKAGE_TGZ="$(docker_e2e_prepare_package_tgz update-channel-switch "${OPENCLAW_CURRENT_PACKAGE_TGZ:-}")"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-update-channel-switch-e2e" KOVA_UPDATE_CHANNEL_SWITCH_E2E_IMAGE)"
+SKIP_BUILD="${KOVA_UPDATE_CHANNEL_SWITCH_E2E_SKIP_BUILD:-0}"
+PACKAGE_TGZ="$(docker_e2e_prepare_package_tgz update-channel-switch "${KOVA_CURRENT_PACKAGE_TGZ:-}")"
 # Bare lanes mount the package artifact instead of baking app sources into the image.
 docker_e2e_package_mount_args "$PACKAGE_TGZ"
 
@@ -18,8 +18,8 @@ docker_e2e_build_or_reuse "$IMAGE_NAME" update-channel-switch "$ROOT_DIR/scripts
 echo "Running update channel switch E2E..."
 docker run --rm \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e OPENCLAW_SKIP_CHANNELS=1 \
-  -e OPENCLAW_SKIP_PROVIDERS=1 \
+  -e KOVA_SKIP_CHANNELS=1 \
+  -e KOVA_SKIP_PROVIDERS=1 \
   "${DOCKER_E2E_PACKAGE_ARGS[@]}" \
   "$IMAGE_NAME" \
   bash -lc 'set -euo pipefail
@@ -32,12 +32,12 @@ export NPM_CONFIG_PREFIX=/tmp/npm-prefix
 export PNPM_HOME=/tmp/pnpm-home
 export PATH="/tmp/npm-prefix/bin:/tmp/pnpm-home:$PATH"
 export CI=true
-export OPENCLAW_DISABLE_BUNDLED_PLUGINS=1
-export OPENCLAW_NO_ONBOARD=1
-export OPENCLAW_NO_PROMPT=1
+export KOVA_DISABLE_BUNDLED_PLUGINS=1
+export KOVA_NO_ONBOARD=1
+export KOVA_NO_PROMPT=1
 
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-git_root="/tmp/openclaw-git"
+package_tgz="${KOVA_CURRENT_PACKAGE_TGZ:?missing KOVA_CURRENT_PACKAGE_TGZ}"
+git_root="/tmp/kova-git"
 mkdir -p "$git_root"
 # Build the fake git install from the packed package contents, not the checkout.
 tar -xzf "$package_tgz" -C "$git_root" --strip-components=1
@@ -46,7 +46,7 @@ tar -xzf "$package_tgz" -C "$git_root" --strip-components=1
 node - <<'"'"'NODE'"'"'
 const fs = require("node:fs");
 const path = require("node:path");
-const packageJsonPath = "/tmp/openclaw-git/package.json";
+const packageJsonPath = "/tmp/kova-git/package.json";
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const isLegacyPackageAcceptanceCompat = (version) => {
   const match = /^(\d{4})\.(\d{1,2})\.(\d{1,2})(?:[-+].*)?$/.exec(version || "");
@@ -104,21 +104,21 @@ packageJson.scripts = {
   "ui:build": fixtureUiBuildCommand,
 };
 fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
-fs.mkdirSync("/tmp/openclaw-git/dist/control-ui", { recursive: true });
-fs.writeFileSync("/tmp/openclaw-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
+fs.mkdirSync("/tmp/kova-git/dist/control-ui", { recursive: true });
+fs.writeFileSync("/tmp/kova-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
 NODE
 (
   cd "$git_root"
-  npm install --omit=optional --no-fund --no-audit >/tmp/openclaw-git-install.log 2>&1
+  npm install --omit=optional --no-fund --no-audit >/tmp/kova-git-install.log 2>&1
 )
 node - <<'"'"'NODE'"'"'
 const fs = require("node:fs");
-fs.mkdirSync("/tmp/openclaw-git/dist/control-ui", { recursive: true });
-fs.writeFileSync("/tmp/openclaw-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
+fs.mkdirSync("/tmp/kova-git/dist/control-ui", { recursive: true });
+fs.writeFileSync("/tmp/kova-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
 NODE
 
-git config --global user.email "docker-e2e@openclaw.local"
-git config --global user.name "OpenClaw Docker E2E"
+git config --global user.email "docker-e2e@kovaai.local"
+git config --global user.name "Kova Docker E2E"
 git config --global gc.auto 0
 git -C "$git_root" init -q
 git -C "$git_root" config gc.auto 0
@@ -131,7 +131,7 @@ pkg_tgz_path="$package_tgz"
 
 npm install -g --prefix /tmp/npm-prefix --omit=optional "$pkg_tgz_path"
 package_version="$(node -p "JSON.parse(require(\"node:fs\").readFileSync(\"/tmp/npm-prefix/lib/node_modules/getkova/package.json\", \"utf8\")).version")"
-OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT="$(
+KOVA_PACKAGE_ACCEPTANCE_LEGACY_COMPAT="$(
   node - "$package_version" <<"NODE"
 const version = process.argv[2] || "";
 const match = /^(\d{4})\.(\d{1,2})\.(\d{1,2})(?:[-+].*)?$/.exec(version);
@@ -154,12 +154,12 @@ for (let i = 0; i < value.length; i += 1) {
 console.log("1");
 NODE
 )"
-export OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT
+export KOVA_PACKAGE_ACCEPTANCE_LEGACY_COMPAT
 
-home_dir="$(mktemp -d /tmp/openclaw-update-channel-switch-home.XXXXXX)"
+home_dir="$(mktemp -d /tmp/kova-update-channel-switch-home.XXXXXX)"
 export HOME="$home_dir"
-mkdir -p "$HOME/.openclaw"
-cat > "$HOME/.openclaw/openclaw.json" <<'"'"'JSON'"'"'
+mkdir -p "$HOME/.kova"
+cat > "$HOME/.chiragborse1/KovaLab.json" <<'"'"'JSON'"'"'
 {
   "update": {
     "channel": "stable"
@@ -168,12 +168,12 @@ cat > "$HOME/.openclaw/openclaw.json" <<'"'"'JSON'"'"'
 }
 JSON
 
-export OPENCLAW_GIT_DIR="$git_root"
-export OPENCLAW_UPDATE_DEV_TARGET_REF="$fixture_sha"
+export KOVA_GIT_DIR="$git_root"
+export KOVA_UPDATE_DEV_TARGET_REF="$fixture_sha"
 
 echo "==> package -> git dev channel"
 set +e
-dev_json="$(openclaw update --channel dev --yes --json --no-restart)"
+dev_json="$(kova update --channel dev --yes --json --no-restart)"
 dev_status=$?
 set -e
 printf "%s\n" "$dev_json"
@@ -196,10 +196,10 @@ NODE
 node - <<'"'"'NODE'"'"'
 const fs = require("node:fs");
 const path = require("node:path");
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".kova", "kova.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 if (config.update?.channel !== "dev") {
-  if (process.env.OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT === "1") {
+  if (process.env.KOVA_PACKAGE_ACCEPTANCE_LEGACY_COMPAT === "1") {
     console.log(`legacy package did not persist update.channel dev; got ${JSON.stringify(config.update?.channel)}`);
   } else {
     throw new Error(`expected persisted update.channel dev, got ${JSON.stringify(config.update?.channel)}`);
@@ -207,7 +207,7 @@ if (config.update?.channel !== "dev") {
 }
 NODE
 
-status_json="$(openclaw update status --json)"
+status_json="$(kova update status --json)"
 printf "%s\n" "$status_json"
 STATUS_JSON="$status_json" node - <<'"'"'NODE'"'"'
 const payload = JSON.parse(process.env.STATUS_JSON);
@@ -218,7 +218,7 @@ NODE
 
 echo "==> git -> package stable channel"
 set +e
-stable_json="$(openclaw update --channel stable --tag "$pkg_tgz_path" --yes --json --no-restart)"
+stable_json="$(kova update --channel stable --tag "$pkg_tgz_path" --yes --json --no-restart)"
 stable_status=$?
 set -e
 printf "%s\n" "$stable_json"
@@ -241,10 +241,10 @@ NODE
 node - <<'"'"'NODE'"'"'
 const fs = require("node:fs");
 const path = require("node:path");
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".kova", "kova.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 if (config.update?.channel !== "stable") {
-  if (process.env.OPENCLAW_PACKAGE_ACCEPTANCE_LEGACY_COMPAT === "1") {
+  if (process.env.KOVA_PACKAGE_ACCEPTANCE_LEGACY_COMPAT === "1") {
     console.log(`legacy package did not persist update.channel stable; got ${JSON.stringify(config.update?.channel)}`);
   } else {
     throw new Error(`expected persisted update.channel stable, got ${JSON.stringify(config.update?.channel)}`);
@@ -252,7 +252,7 @@ if (config.update?.channel !== "stable") {
 }
 NODE
 
-status_json="$(openclaw update status --json)"
+status_json="$(kova update status --json)"
 printf "%s\n" "$status_json"
 STATUS_JSON="$status_json" node - <<'"'"'NODE'"'"'
 const payload = JSON.parse(process.env.STATUS_JSON);

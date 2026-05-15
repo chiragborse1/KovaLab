@@ -80,7 +80,7 @@ export async function modelsListCommand(
   if (providerFilter === null) {
     return;
   }
-  const [{ loadAuthProfileStoreWithoutExternalProfiles }, { resolveOpenClawAgentDir }] =
+  const [{ loadAuthProfileStoreWithoutExternalProfiles }, { resolveKovaAgentDir }] =
     await Promise.all([
       import("../../agents/auth-profiles/store.js"),
       import("../../agents/agent-paths.js"),
@@ -90,7 +90,7 @@ export async function modelsListCommand(
     runtime,
   });
   const authStore = loadAuthProfileStoreWithoutExternalProfiles();
-  const agentDir = resolveOpenClawAgentDir();
+  const agentDir = resolveKovaAgentDir();
 
   let modelRegistry: ModelRegistry | undefined;
   let discoveredKeys = new Set<string>();

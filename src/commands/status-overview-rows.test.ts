@@ -34,7 +34,7 @@ describe("status-overview-rows", () => {
           gatewayConnection: { url: "wss://gateway.example.com", urlSource: "config" },
         },
         osLabel: "macOS",
-        configPath: "/tmp/openclaw.json",
+        configPath: "/tmp/kova.json",
         secretDiagnosticsCount: 2,
         agentStatus: {
           bootstrapPendingCount: 1,
@@ -47,7 +47,7 @@ describe("status-overview-rows", () => {
       expect.arrayContaining([
         { Item: "Version", Value: expect.any(String) },
         { Item: "OS", Value: "macOS" },
-        { Item: "Config", Value: "/tmp/openclaw.json" },
+        { Item: "Config", Value: "/tmp/kova.json" },
         { Item: "Security", Value: "Run: kova security audit --deep" },
         { Item: "Secrets", Value: "2 diagnostics" },
       ]),

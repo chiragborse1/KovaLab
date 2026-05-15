@@ -3,10 +3,9 @@ import { once } from "node:events";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-vi.mock("openclaw/plugin-sdk/core", async () => {
-  const actual = await vi.importActual<typeof import("openclaw/plugin-sdk/core")>(
-    "openclaw/plugin-sdk/core",
-  );
+vi.mock("getkova/plugin-sdk/core", async () => {
+  const actual =
+    await vi.importActual<typeof import("getkova/plugin-sdk/core")>("getkova/plugin-sdk/core");
   return {
     ...actual,
     generateSecureUuid: () => "test-id",

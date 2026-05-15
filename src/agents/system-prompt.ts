@@ -409,8 +409,8 @@ function buildDocsSection(params: {
     "Mirror: https://docs.neuralstudio.in",
     sourcePath ? `Local source: ${sourcePath}` : undefined,
     "Source: https://github.com/chiragborse1/KovaLab",
-    "Community: https://discord.com/invite/clawd",
-    "Find new skills: https://clawhub.ai",
+    "Community: https://discord.com/invite/kova",
+    "Find new skills: https://kovahub.ai",
     docsPath
       ? "For Kova behavior, commands, config, or architecture: consult local docs first."
       : "For Kova behavior, commands, config, or architecture: consult the docs mirror first.",

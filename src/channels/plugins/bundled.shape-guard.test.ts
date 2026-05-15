@@ -11,9 +11,9 @@ type BundledEntrySource = { built?: string; source?: string };
 
 function restoreBundledPluginsDir(previousBundledPluginsDir: string | undefined) {
   if (previousBundledPluginsDir === undefined) {
-    delete process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    delete process.env.KOVA_BUNDLED_PLUGINS_DIR;
   } else {
-    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = previousBundledPluginsDir;
+    process.env.KOVA_BUNDLED_PLUGINS_DIR = previousBundledPluginsDir;
   }
 }
 
@@ -144,8 +144,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("fills sparse bundled channel plugin metadata from package metadata", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-metadata-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-metadata-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginDir = path.join(tempRoot, "dist", "extensions", "alpha");
     fs.mkdirSync(pluginDir, { recursive: true });
     fs.writeFileSync(
@@ -193,7 +193,7 @@ describe("bundled channel entry shape guards", () => {
     }));
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(tempRoot, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(tempRoot, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -215,8 +215,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("uses the active bundled plugin root override for channel entry loading", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-override-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-override-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginDir = path.join(tempRoot, "dist", "extensions", "alpha");
     fs.mkdirSync(pluginDir, { recursive: true });
     fs.writeFileSync(
@@ -263,7 +263,7 @@ describe("bundled channel entry shape guards", () => {
     }));
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(tempRoot, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(tempRoot, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -287,8 +287,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("treats direct bundled plugin-tree overrides as scan roots", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-direct-override-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-direct-override-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginsRoot = path.join(tempRoot, "bundled-plugins");
     const pluginDir = path.join(pluginsRoot, "alpha");
     fs.mkdirSync(pluginDir, { recursive: true });
@@ -337,7 +337,7 @@ describe("bundled channel entry shape guards", () => {
     }));
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = pluginsRoot;
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = pluginsRoot;
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -362,9 +362,9 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("partitions bundled channel lazy caches by active bundled root without re-importing", async () => {
-    const rootA = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-root-a-"));
-    const rootB = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-root-b-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const rootA = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-root-a-"));
+    const rootB = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-root-b-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const testGlobal = globalThis as typeof globalThis & {
       __bundledRootRuntime?: unknown;
     };
@@ -437,7 +437,7 @@ describe("bundled channel entry shape guards", () => {
         "./bundled.js?scope=bundled-root-partition",
       );
 
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(rootA, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(rootA, "dist", "extensions");
       expect(bundled.requireBundledChannelPlugin("alpha").meta.label).toBe("Alpha A");
       expect(bundled.getBundledChannelSetupPlugin("alpha")?.meta.label).toBe("Setup A");
       expect(bundled.getBundledChannelSecrets("alpha")?.secretTargetRegistryEntries?.[0]?.id).toBe(
@@ -448,7 +448,7 @@ describe("bundled channel entry shape guards", () => {
       ).toBe("channels.alpha.A.setup-entry-token");
       bundled.setBundledChannelRuntime("alpha", { marker: "first" } as never);
 
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(rootB, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(rootB, "dist", "extensions");
       expect(bundled.requireBundledChannelPlugin("alpha").meta.label).toBe("Alpha B");
       expect(bundled.getBundledChannelSetupPlugin("alpha")?.meta.label).toBe("Setup B");
       expect(bundled.getBundledChannelSecrets("alpha")?.secretTargetRegistryEntries?.[0]?.id).toBe(
@@ -469,8 +469,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("loads setup-entry feature plugins without loading the main channel entry", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-setup-only-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-setup-only-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginDir = path.join(root, "dist", "extensions", "alpha");
     const testGlobal = globalThis as typeof globalThis & {
       __bundledSetupOnlyMainLoaded?: boolean;
@@ -515,7 +515,7 @@ describe("bundled channel entry shape guards", () => {
     mockAlphaDistExtensionRuntime();
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -557,10 +557,10 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("does not load bundled setup entries through external staged runtime deps during discovery", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-setup-runtime-deps-"));
-    const stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-stage-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
-    const previousPluginStageDir = process.env.OPENCLAW_PLUGIN_STAGE_DIR;
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-setup-runtime-deps-"));
+    const stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-stage-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
+    const previousPluginStageDir = process.env.KOVA_PLUGIN_STAGE_DIR;
     const pluginDir = path.join(root, "dist", "extensions", "alpha");
     const testGlobal = globalThis as typeof globalThis & {
       __bundledSetupRuntimeDepMarker?: string;
@@ -568,13 +568,13 @@ describe("bundled channel entry shape guards", () => {
     fs.mkdirSync(pluginDir, { recursive: true });
     fs.writeFileSync(
       path.join(root, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.21" }),
+      JSON.stringify({ name: "kova", version: "2026.4.21" }),
       "utf8",
     );
     fs.writeFileSync(
       path.join(pluginDir, "package.json"),
       JSON.stringify({
-        name: "@openclaw/alpha",
+        name: "@kovaai/alpha",
         version: "2026.4.21",
         type: "module",
         dependencies: {
@@ -599,7 +599,7 @@ describe("bundled channel entry shape guards", () => {
       "utf8",
     );
 
-    process.env.OPENCLAW_PLUGIN_STAGE_DIR = stageRoot;
+    process.env.KOVA_PLUGIN_STAGE_DIR = stageRoot;
     const { resolveBundledRuntimeDependencyInstallRoot } =
       await import("../../plugins/bundled-runtime-deps.js");
     const installRoot = resolveBundledRuntimeDependencyInstallRoot(pluginDir);
@@ -620,7 +620,7 @@ describe("bundled channel entry shape guards", () => {
     mockAlphaDistExtensionRuntime();
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -632,9 +632,9 @@ describe("bundled channel entry shape guards", () => {
     } finally {
       restoreBundledPluginsDir(previousBundledPluginsDir);
       if (previousPluginStageDir === undefined) {
-        delete process.env.OPENCLAW_PLUGIN_STAGE_DIR;
+        delete process.env.KOVA_PLUGIN_STAGE_DIR;
       } else {
-        process.env.OPENCLAW_PLUGIN_STAGE_DIR = previousPluginStageDir;
+        process.env.KOVA_PLUGIN_STAGE_DIR = previousPluginStageDir;
       }
       fs.rmSync(root, { recursive: true, force: true });
       fs.rmSync(stageRoot, { recursive: true, force: true });
@@ -643,8 +643,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("swallows and caches bundled plugin and setup load failures", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-load-failure-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-load-failure-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginDir = path.join(root, "dist", "extensions", "alpha");
     const testGlobal = globalThis as typeof globalThis & {
       __bundledPluginFailureLoads?: number;
@@ -655,7 +655,7 @@ describe("bundled channel entry shape guards", () => {
     fs.mkdirSync(pluginDir, { recursive: true });
     fs.writeFileSync(
       path.join(root, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.21" }),
+      JSON.stringify({ name: "kova", version: "2026.4.21" }),
       "utf8",
     );
     fs.writeFileSync(
@@ -702,7 +702,7 @@ describe("bundled channel entry shape guards", () => {
     mockAlphaDistExtensionRuntime();
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -732,8 +732,8 @@ describe("bundled channel entry shape guards", () => {
   });
 
   it("caches undefined bundled plugin loads as unavailable", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-null-load-"));
-    const previousBundledPluginsDir = process.env.OPENCLAW_BUNDLED_PLUGINS_DIR;
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-null-load-"));
+    const previousBundledPluginsDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
     const pluginDir = path.join(root, "dist", "extensions", "alpha");
     const testGlobal = globalThis as typeof globalThis & {
       __bundledPluginUndefinedLoads?: number;
@@ -761,7 +761,7 @@ describe("bundled channel entry shape guards", () => {
     mockAlphaDistExtensionRuntime();
 
     try {
-      process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
+      process.env.KOVA_BUNDLED_PLUGINS_DIR = path.join(root, "dist", "extensions");
 
       const bundled = await importFreshModule<typeof import("./bundled.js")>(
         import.meta.url,
@@ -782,9 +782,9 @@ describe("bundled channel entry shape guards", () => {
     const offenders = collectBundledChannelEntrypointOffenders(
       bundledPluginRoots,
       (source) =>
-        !source.includes('from "openclaw/plugin-sdk/channel-entry-contract"') ||
-        source.includes('from "openclaw/plugin-sdk/core"') ||
-        source.includes('from "openclaw/plugin-sdk/channel-core"'),
+        !source.includes('from "getkova/plugin-sdk/channel-entry-contract"') ||
+        source.includes('from "getkova/plugin-sdk/core"') ||
+        source.includes('from "getkova/plugin-sdk/channel-core"'),
     );
 
     expect(offenders).toEqual([]);
@@ -801,13 +801,13 @@ describe("bundled channel entry shape guards", () => {
       }
       const setupEntrySource = fs.readFileSync(setupEntryPath, "utf8");
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
-        openclaw?: {
+        kova?: {
           setupFeatures?: Record<string, boolean>;
         };
       };
       for (const feature of ["legacyStateMigrations", "legacySessionSurfaces"]) {
         const usesFeature = setupEntrySource.includes(`${feature}: true`);
-        const hasHint = packageJson.openclaw?.setupFeatures?.[feature] === true;
+        const hasHint = packageJson.kova?.setupFeatures?.[feature] === true;
         if (usesFeature !== hasHint) {
           offenders.push(`${path.relative(process.cwd(), extensionDir)}:${feature}`);
         }
@@ -827,13 +827,13 @@ describe("bundled channel entry shape guards", () => {
         continue;
       }
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
-        openclaw?: {
+        kova?: {
           bundle?: {
             stageRuntimeDependencies?: boolean;
           };
         };
       };
-      if (packageJson.openclaw?.bundle?.stageRuntimeDependencies !== true) {
+      if (packageJson.kova?.bundle?.stageRuntimeDependencies !== true) {
         continue;
       }
       const setupEntrySource = fs.readFileSync(setupEntryPath, "utf8");
@@ -866,7 +866,7 @@ describe("bundled channel entry shape guards", () => {
         if (!source.includes("createChatChannelPlugin")) {
           continue;
         }
-        if (source.includes('from "openclaw/plugin-sdk/core"')) {
+        if (source.includes('from "getkova/plugin-sdk/core"')) {
           offenders.push(path.relative(process.cwd(), filePath));
         }
       }
@@ -888,7 +888,7 @@ describe("bundled channel entry shape guards", () => {
       "extensions/irc/src/runtime-api.ts",
       "extensions/matrix/src/runtime-api.ts",
     ].filter((filePath) =>
-      fs.readFileSync(path.resolve(filePath), "utf8").includes("openclaw/plugin-sdk/core"),
+      fs.readFileSync(path.resolve(filePath), "utf8").includes("getkova/plugin-sdk/core"),
     );
 
     expect(offenders).toEqual([]);
@@ -927,16 +927,14 @@ describe("bundled channel entry shape guards", () => {
       "extensions/telegram/src/doctor.ts",
       "extensions/zalouser/src/doctor.ts",
     ].filter((filePath) =>
-      fs
-        .readFileSync(path.resolve(filePath), "utf8")
-        .includes('from "openclaw/plugin-sdk/runtime"'),
+      fs.readFileSync(path.resolve(filePath), "utf8").includes('from "getkova/plugin-sdk/runtime"'),
     );
 
     expect(offenders).toEqual([]);
   });
 
   it("breaks reentrant bundled channel discovery cycles with an empty fallback", async () => {
-    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-reentrant-"));
+    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-reentrant-"));
     const modulePath = path.join(pluginDir, "index.js");
     fs.writeFileSync(modulePath, "export {};\n", "utf8");
 

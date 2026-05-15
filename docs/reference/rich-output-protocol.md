@@ -60,7 +60,7 @@ The normalized/stored assistant content block is a structured `canvas` item:
     "surface": "assistant_message",
     "render": "url",
     "viewId": "cv_123",
-    "url": "/__openclaw__/canvas/documents/cv_123/index.html",
+    "url": "/__kova__/canvas/documents/cv_123/index.html",
     "title": "Status",
     "preferredHeight": 320
   }

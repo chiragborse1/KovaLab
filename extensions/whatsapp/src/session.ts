@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
 import fsSync from "node:fs";
 import type { Agent } from "node:https";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import { formatCliCommand } from "openclaw/plugin-sdk/cli-runtime";
-import { VERSION } from "openclaw/plugin-sdk/cli-runtime";
+import { formatCliCommand } from "getkova/plugin-sdk/cli-runtime";
+import { VERSION } from "getkova/plugin-sdk/cli-runtime";
 import {
   resolveEnvHttpProxyUrl,
   shouldUseEnvHttpProxyForUrl,
-} from "openclaw/plugin-sdk/infra-runtime";
-import { danger, success } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger, toPinoLikeLogger } from "openclaw/plugin-sdk/runtime-env";
-import { ensureDir, resolveUserPath } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/infra-runtime";
+import { danger, success } from "getkova/plugin-sdk/runtime-env";
+import { getChildLogger, toPinoLikeLogger } from "getkova/plugin-sdk/runtime-env";
+import { ensureDir, resolveUserPath } from "getkova/plugin-sdk/text-runtime";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import {
   readCredsJsonRaw,
   restoreCredsFromBackupIfNeeded,

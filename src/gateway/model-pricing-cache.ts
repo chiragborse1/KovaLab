@@ -8,8 +8,8 @@ import {
   type ModelRef,
 } from "../agents/model-selection.js";
 import { resolvePluginWebSearchConfig } from "../config/plugin-web-search-config.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { planManifestModelCatalogRows, type ModelCatalogCost } from "../model-catalog/index.js";
@@ -416,7 +416,7 @@ function normalizeExternalPricingPolicy(
 function filterActiveManifestRegistry(params: {
   registry: PluginManifestRegistry;
   index: PluginRegistrySnapshot;
-  config: OpenClawConfig;
+  config: KovaConfig;
 }): PluginManifestRegistry {
   return {
     diagnostics: params.registry.diagnostics,
@@ -427,7 +427,7 @@ function filterActiveManifestRegistry(params: {
 }
 
 function resolveModelPricingManifestMetadata(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   pluginLookUpTable?: Pick<PluginLookUpTable, "index" | "manifestRegistry">;
   manifestRegistry?: PluginManifestRegistry;
 }): ModelPricingManifestMetadata {
@@ -647,7 +647,7 @@ function addProviderModelPair(params: {
 }
 
 function addConfiguredWebSearchPluginModels(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   aliasIndex: ReturnType<typeof buildModelAliasIndex>;
   refs: Map<string, ModelRef>;
   manifestRegistry: PluginManifestRegistry;
@@ -701,7 +701,7 @@ function isPrivateOrLoopbackBaseUrl(baseUrl: string | undefined): boolean {
 }
 
 function findConfiguredProviderModel(
-  config: OpenClawConfig,
+  config: KovaConfig,
   ref: ModelRef,
 ): ModelDefinitionConfig | undefined {
   const providerConfig = config.models?.providers?.[ref.provider];
@@ -712,13 +712,13 @@ function findConfiguredProviderModel(
 }
 
 function getConfiguredModelPricing(
-  config: OpenClawConfig,
+  config: KovaConfig,
   ref: ModelRef,
 ): CachedModelPricing | undefined {
   return toCachedModelPricing(findConfiguredProviderModel(config, ref)?.cost);
 }
 
-function hasPrivateOrLoopbackConfiguredEndpoint(config: OpenClawConfig, ref: ModelRef): boolean {
+function hasPrivateOrLoopbackConfiguredEndpoint(config: KovaConfig, ref: ModelRef): boolean {
   const providerConfig = config.models?.providers?.[ref.provider];
   const model = findConfiguredProviderModel(config, ref);
   return (
@@ -728,7 +728,7 @@ function hasPrivateOrLoopbackConfiguredEndpoint(config: OpenClawConfig, ref: Mod
 }
 
 function shouldFetchExternalPricingForRef(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   ref: ModelRef;
   policies: ReadonlyMap<string, ExternalPricingPolicy>;
   seededPricing: ReadonlyMap<string, CachedModelPricing>;
@@ -746,7 +746,7 @@ function shouldFetchExternalPricingForRef(params: {
 }
 
 function filterExternalPricingRefs(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   refs: ModelRef[];
   policies: ReadonlyMap<string, ExternalPricingPolicy>;
   seededPricing: ReadonlyMap<string, CachedModelPricing>;
@@ -762,7 +762,7 @@ function filterExternalPricingRefs(params: {
 }
 
 export function collectConfiguredModelPricingRefs(
-  config: OpenClawConfig,
+  config: KovaConfig,
   options: { manifestRegistry?: PluginManifestRegistry } = {},
 ): ModelRef[] {
   const manifestRegistry =
@@ -896,7 +896,7 @@ function resolveLiteLLMPricingForRef(params: {
   return undefined;
 }
 
-function scheduleRefresh(params: { config: OpenClawConfig; fetchImpl: typeof fetch }): void {
+function scheduleRefresh(params: { config: KovaConfig; fetchImpl: typeof fetch }): void {
   clearRefreshTimer();
   refreshTimer = setTimeout(() => {
     refreshTimer = null;
@@ -907,7 +907,7 @@ function scheduleRefresh(params: { config: OpenClawConfig; fetchImpl: typeof fet
 }
 
 function collectSeededPricing(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   refs: readonly ModelRef[];
   catalogPricing: ReadonlyMap<string, CachedModelPricing>;
 }): Map<string, CachedModelPricing> {
@@ -928,7 +928,7 @@ function collectSeededPricing(params: {
 }
 
 export async function refreshGatewayModelPricingCache(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   fetchImpl?: typeof fetch;
   pluginLookUpTable?: Pick<PluginLookUpTable, "index" | "manifestRegistry">;
   manifestRegistry?: PluginManifestRegistry;
@@ -1064,7 +1064,7 @@ export async function refreshGatewayModelPricingCache(params: {
 }
 
 export function startGatewayModelPricingRefresh(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   fetchImpl?: typeof fetch;
   pluginLookUpTable?: Pick<PluginLookUpTable, "index" | "manifestRegistry">;
   manifestRegistry?: PluginManifestRegistry;

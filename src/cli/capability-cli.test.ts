@@ -598,7 +598,7 @@ describe("capability cli", () => {
       ],
     });
 
-    const tempOutput = path.join(os.tmpdir(), `openclaw-image-mismatch-${Date.now()}.png`);
+    const tempOutput = path.join(os.tmpdir(), `kova-image-mismatch-${Date.now()}.png`);
     await fs.rm(tempOutput, { force: true });
     await fs.rm(tempOutput.replace(/\.png$/, ".jpg"), { force: true });
 
@@ -720,7 +720,7 @@ describe("capability cli", () => {
         },
       ],
     });
-    const inputPath = path.join(os.tmpdir(), `openclaw-image-edit-${Date.now()}.png`);
+    const inputPath = path.join(os.tmpdir(), `kova-image-edit-${Date.now()}.png`);
     await fs.writeFile(inputPath, Buffer.from("png-input"));
 
     await runRegisteredCli({
@@ -840,8 +840,8 @@ describe("capability cli", () => {
       ],
     });
 
-    const tempInput = path.join(os.tmpdir(), `openclaw-image-edit-input-${Date.now()}.png`);
-    const tempOutput = path.join(os.tmpdir(), `openclaw-image-edit-output-${Date.now()}.png`);
+    const tempInput = path.join(os.tmpdir(), `kova-image-edit-input-${Date.now()}.png`);
+    const tempOutput = path.join(os.tmpdir(), `kova-image-edit-output-${Date.now()}.png`);
     await fs.writeFile(tempInput, Buffer.from(pngBase64, "base64"));
     await fs.rm(tempOutput, { force: true });
 
@@ -935,7 +935,7 @@ describe("capability cli", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-video-generate-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-video-generate-"));
     const outputBase = path.join(tempDir, "result");
 
     await runRegisteredCli({

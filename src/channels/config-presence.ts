@@ -5,7 +5,7 @@ import {
   listBundledChannelIdsWithPersistedAuthState,
 } from "../channels/plugins/persisted-auth-state.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { hasNonEmptyString } from "../infra/outbound/channel-target.js";
 import { isRecord } from "../utils.js";
 import { listBundledChannelPluginIds } from "./plugins/bundled-ids.js";
@@ -16,11 +16,7 @@ type ChannelPresenceOptions = {
   includePersistedAuthState?: boolean;
   persistedAuthStateProbe?: {
     listChannelIds: () => readonly string[];
-    hasState: (params: {
-      channelId: string;
-      cfg: OpenClawConfig;
-      env: NodeJS.ProcessEnv;
-    }) => boolean;
+    hasState: (params: { channelId: string; cfg: KovaConfig; env: NodeJS.ProcessEnv }) => boolean;
   };
 };
 
@@ -67,7 +63,7 @@ function listPersistedAuthStateChannelIds(options: ChannelPresenceOptions): read
 
 function hasPersistedAuthState(params: {
   channelId: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env: NodeJS.ProcessEnv;
   options: ChannelPresenceOptions;
 }): boolean {
@@ -79,7 +75,7 @@ function hasPersistedAuthState(params: {
 }
 
 export function listPotentialConfiguredChannelIds(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): string[] {
@@ -93,7 +89,7 @@ export function listPotentialConfiguredChannelIds(
 }
 
 export function listPotentialConfiguredChannelPresenceSignals(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): ChannelPresenceSignal[] {
@@ -148,7 +144,7 @@ export function listPotentialConfiguredChannelPresenceSignals(
 }
 
 function hasEnvConfiguredChannel(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   env: NodeJS.ProcessEnv,
   options: ChannelPresenceOptions = {},
 ): boolean {
@@ -171,7 +167,7 @@ function hasEnvConfiguredChannel(
 }
 
 export function hasPotentialConfiguredChannels(
-  cfg: OpenClawConfig | null | undefined,
+  cfg: KovaConfig | null | undefined,
   env: NodeJS.ProcessEnv = process.env,
   options: ChannelPresenceOptions = {},
 ): boolean {

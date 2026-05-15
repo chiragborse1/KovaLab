@@ -3,7 +3,7 @@ import path from "node:path";
 import type { Command } from "commander";
 import { getRuntimeConfig, readConfigFileSnapshot, replaceConfigFile } from "../config/config.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { formatPluginSourceForTable, resolvePluginSourceRoots } from "../plugins/source-display.js";
 import type { PluginLogger } from "../plugins/types.js";
@@ -194,7 +194,7 @@ export function registerPluginsCli(program: Command) {
           return {
             Name: formatPluginDisplayName(plugin),
             ID: formatPluginDisplayName(plugin) !== plugin.id ? plugin.id : "",
-            Format: plugin.format === "openclaw" ? "kova" : (plugin.format ?? "kova"),
+            Format: plugin.format === "kova" ? "kova" : (plugin.format ?? "kova"),
             Status:
               plugin.status === "error"
                 ? theme.error("error")
@@ -378,7 +378,7 @@ export function registerPluginsCli(program: Command) {
       }
       lines.push(
         `${theme.muted("Format:")} ${
-          inspect.plugin.format === "openclaw" ? "kova" : (inspect.plugin.format ?? "kova")
+          inspect.plugin.format === "kova" ? "kova" : (inspect.plugin.format ?? "kova")
         }`,
       );
       if (inspect.plugin.bundleFormat) {
@@ -504,9 +504,9 @@ export function registerPluginsCli(program: Command) {
       const { refreshPluginRegistryAfterConfigMutation } =
         await import("./plugins-registry-refresh.js");
       const snapshot = await readConfigFileSnapshot();
-      const cfg = (snapshot.sourceConfig ?? snapshot.config) as OpenClawConfig;
+      const cfg = (snapshot.sourceConfig ?? snapshot.config) as KovaConfig;
       const enableResult = enablePluginInConfig(cfg, id);
-      let next: OpenClawConfig = enableResult.config;
+      let next: KovaConfig = enableResult.config;
       const slotResult = applySlotSelectionForPlugin(next, id);
       next = slotResult.config;
       await replaceConfigFile({
@@ -541,7 +541,7 @@ export function registerPluginsCli(program: Command) {
       const { refreshPluginRegistryAfterConfigMutation } =
         await import("./plugins-registry-refresh.js");
       const snapshot = await readConfigFileSnapshot();
-      const cfg = (snapshot.sourceConfig ?? snapshot.config) as OpenClawConfig;
+      const cfg = (snapshot.sourceConfig ?? snapshot.config) as KovaConfig;
       const next = setPluginEnabledInConfig(cfg, id, false);
       await replaceConfigFile({
         nextConfig: next,
@@ -588,7 +588,7 @@ export function registerPluginsCli(program: Command) {
       const { resolvePluginUninstallId } = await import("./plugins-uninstall-selection.js");
       const { promptYesNo } = await import("./prompt.js");
       const snapshot = await readConfigFileSnapshot();
-      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as OpenClawConfig;
+      const sourceConfig = (snapshot.sourceConfig ?? snapshot.config) as KovaConfig;
       const installRecords = await loadInstalledPluginIndexInstallRecords();
       const cfg = withPluginInstallRecords(sourceConfig, installRecords);
       const report = buildPluginDiagnosticsReport({ config: cfg });
@@ -719,7 +719,7 @@ export function registerPluginsCli(program: Command) {
   plugins
     .command("install")
     .description(
-      "Install a plugin or hook pack (path, archive, npm spec, clawhub:package, or marketplace entry)",
+      "Install a plugin or hook pack (path, archive, npm spec, kovahub:package, or marketplace entry)",
     )
     .argument(
       "<path-or-spec-or-plugin>",

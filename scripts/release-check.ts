@@ -78,7 +78,7 @@ const requiredPathGroups = [
 ];
 const forbiddenPrefixes = [
   "dist-runtime/",
-  "dist/OpenClaw.app/",
+  "dist/Kova.app/",
   "dist/extensions/qa-channel/",
   "dist/extensions/qa-lab/",
   "dist/plugin-sdk/extensions/qa-channel/",
@@ -246,7 +246,7 @@ export function createPackedBundledPluginPostinstallEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...env,
-    OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+    KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
   };
 }
 
@@ -289,9 +289,9 @@ export function createPackedCliSmokeEnv(
     AWS_EC2_METADATA_DISABLED: "true",
     AWS_SHARED_CREDENTIALS_FILE: homeDir ? join(homeDir, ".aws", "credentials") : undefined,
     AWS_CONFIG_FILE: homeDir ? join(homeDir, ".aws", "config") : undefined,
-    OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
-    OPENCLAW_NO_ONBOARD: "1",
-    OPENCLAW_SUPPRESS_NOTES: "1",
+    KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+    KOVA_NO_ONBOARD: "1",
+    KOVA_SUPPRESS_NOTES: "1",
     ...overrides,
   };
 }
@@ -484,7 +484,7 @@ function runPackedCliSmoke(params: {
   const binaryPath = resolveInstalledBinaryPath(params.prefixDir);
   const env = createPackedCliSmokeEnv(process.env, {
     HOME: params.homeDir,
-    OPENCLAW_STATE_DIR: params.stateDir,
+    KOVA_STATE_DIR: params.stateDir,
     OPENAI_API_KEY: "sk-kova-release-check",
   });
   const windowsRoot = env.SystemRoot ?? env.WINDIR ?? "C:\\Windows";
@@ -548,7 +548,7 @@ function runPackedBundledChannelEntrySmoke(): void {
         stdio: "inherit",
         env: {
           ...process.env,
-          OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+          KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
         },
       },
     );
@@ -559,9 +559,9 @@ function runPackedBundledChannelEntrySmoke(): void {
       env: {
         ...process.env,
         HOME: homeDir,
-        OPENCLAW_STATE_DIR: stateDir,
-        OPENCLAW_SUPPRESS_NOTES: "1",
-        OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+        KOVA_STATE_DIR: stateDir,
+        KOVA_SUPPRESS_NOTES: "1",
+        KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
       },
     });
 
@@ -617,8 +617,8 @@ export function collectForbiddenPackPaths(paths: Iterable<string>): string[] {
       (path) =>
         isBundledRuntimeDepsInstallStagePath(path) ||
         forbiddenPrefixes.some((prefix) => path.startsWith(prefix)) ||
-        /(^|\/)\.openclaw-runtime-deps-[^/]+(\/|$)/u.test(path) ||
-        path.endsWith("/.openclaw-runtime-deps-stamp.json") ||
+        /(^|\/)\.kova-runtime-deps-[^/]+(\/|$)/u.test(path) ||
+        path.endsWith("/.kova-runtime-deps-stamp.json") ||
         path.includes("node_modules/"),
     )
     .toSorted((left, right) => left.localeCompare(right));
@@ -727,7 +727,7 @@ function checkAppcastSparkleVersions() {
   }
 }
 
-// Critical functions that channel extension plugins import from openclaw/plugin-sdk.
+// Critical functions that channel extension plugins import from getkova/plugin-sdk.
 // If any are missing from the compiled output, plugins crash at runtime (#27569).
 const requiredPluginSdkExports = [
   "isDangerousNameMatchingEnabled",

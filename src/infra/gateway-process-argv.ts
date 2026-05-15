@@ -47,7 +47,7 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
     "dist/index.js",
     "dist/entry.js",
     "kova.mjs",
-    "openclaw.mjs",
+    "kova.mjs",
     "scripts/run-node.mjs",
     "src/entry.ts",
     "src/index.ts",
@@ -60,8 +60,8 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
   return (
     exe.endsWith("/kova") ||
     exe === "kova" ||
-    exe.endsWith("/openclaw") ||
-    exe === "openclaw" ||
-    (opts?.allowGatewayBinary === true && exe.endsWith("/openclaw-gateway"))
+    exe.endsWith("/kova") ||
+    exe === "kova" ||
+    (opts?.allowGatewayBinary === true && exe.endsWith("/kova-gateway"))
   );
 }

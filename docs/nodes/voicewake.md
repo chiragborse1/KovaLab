@@ -17,12 +17,12 @@ Kova treats **wake words as a single global list** owned by the **Gateway**.
 
 Wake words are stored on the gateway machine at:
 
-- `~/.openclaw/settings/voicewake.json`
+- `~/.kova/settings/voicewake.json`
 
 Shape:
 
 ```json
-{ "triggers": ["openclaw", "claude", "computer"], "updatedAtMs": 1730000000000 }
+{ "triggers": ["kova", "claude", "computer"], "updatedAtMs": 1730000000000 }
 ```
 
 ## Protocol

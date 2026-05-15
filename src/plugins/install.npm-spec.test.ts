@@ -17,7 +17,7 @@ vi.mock("../process/exec.js", () => ({
 }));
 
 const dynamicArchiveTemplatePathCache = new Map<string, string>();
-const suiteTempRootTracker = createSuiteTempRootTracker("openclaw-plugin-install-npm-spec");
+const suiteTempRootTracker = createSuiteTempRootTracker("kova-plugin-install-npm-spec");
 
 function buildDynamicArchiveTemplateKey(params: {
   packageJson: Record<string, unknown>;
@@ -68,7 +68,7 @@ async function ensureDynamicArchiveTemplate(params: {
   fs.writeFileSync(path.join(pkgDir, "package.json"), JSON.stringify(params.packageJson), "utf-8");
   if (params.pluginManifest) {
     fs.writeFileSync(
-      path.join(pkgDir, "openclaw.plugin.json"),
+      path.join(pkgDir, "kova.plugin.json"),
       JSON.stringify(params.pluginManifest),
       "utf-8",
     );
@@ -103,9 +103,9 @@ describe("installPluginFromNpmSpec", () => {
     const voiceCallArchivePath = await ensureDynamicArchiveTemplate({
       outName: "voice-call-0.0.1-npm.tgz",
       packageJson: {
-        name: "@openclaw/voice-call",
+        name: "@kovaai/voice-call",
         version: "0.0.1",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       pluginManifest: { id: "voice-call", name: "Voice Call", configSchema: { type: "object" } },
       withDistIndex: true,
@@ -122,8 +122,8 @@ describe("installPluginFromNpmSpec", () => {
           code: 0,
           stdout: JSON.stringify([
             {
-              id: "@openclaw/voice-call@0.0.1",
-              name: "@openclaw/voice-call",
+              id: "@kovaai/voice-call@0.0.1",
+              name: "@kovaai/voice-call",
               version: "0.0.1",
               filename: packedName,
               integrity: "sha512-plugin-test",
@@ -140,7 +140,7 @@ describe("installPluginFromNpmSpec", () => {
     });
 
     const result = await installPluginFromNpmSpec({
-      spec: "@openclaw/voice-call@0.0.1",
+      spec: "@kovaai/voice-call@0.0.1",
       extensionsDir,
       logger: { info: () => {}, warn: () => {} },
     });
@@ -148,12 +148,12 @@ describe("installPluginFromNpmSpec", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.npmResolution?.resolvedSpec).toBe("@openclaw/voice-call@0.0.1");
+    expect(result.npmResolution?.resolvedSpec).toBe("@kovaai/voice-call@0.0.1");
     expect(result.npmResolution?.integrity).toBe("sha512-plugin-test");
 
     expectSingleNpmPackIgnoreScriptsCall({
       calls: run.mock.calls as Array<[unknown, unknown]>,
-      expectedSpec: "@openclaw/voice-call@0.0.1",
+      expectedSpec: "@kovaai/voice-call@0.0.1",
     });
 
     expect(packTmpDir).not.toBe("");
@@ -170,7 +170,7 @@ describe("installPluginFromNpmSpec", () => {
       packageJson: {
         name: "dangerous-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       pluginManifest: {
         id: "dangerous-plugin",
@@ -249,8 +249,8 @@ describe("installPluginFromNpmSpec", () => {
   it("aborts when integrity drift callback rejects the fetched artifact", async () => {
     const run = runCommandWithTimeoutMock;
     mockNpmPackMetadataResult(run, {
-      id: "@openclaw/voice-call@0.0.1",
-      name: "@openclaw/voice-call",
+      id: "@kovaai/voice-call@0.0.1",
+      name: "@kovaai/voice-call",
       version: "0.0.1",
       filename: "voice-call-0.0.1.tgz",
       integrity: "sha512-new",
@@ -259,7 +259,7 @@ describe("installPluginFromNpmSpec", () => {
 
     const onIntegrityDrift = vi.fn(async () => false);
     const result = await installPluginFromNpmSpec({
-      spec: "@openclaw/voice-call@0.0.1",
+      spec: "@kovaai/voice-call@0.0.1",
       expectedIntegrity: "sha512-old",
       onIntegrityDrift,
     });
@@ -283,7 +283,7 @@ describe("installPluginFromNpmSpec", () => {
     });
 
     const result = await installPluginFromNpmSpec({
-      spec: "@openclaw/not-found",
+      spec: "@kovaai/not-found",
       logger: { info: () => {}, warn: () => {} },
     });
     expect(result.ok).toBe(false);
@@ -294,8 +294,8 @@ describe("installPluginFromNpmSpec", () => {
 
   it("handles prerelease npm specs correctly", async () => {
     const prereleaseMetadata = {
-      id: "@openclaw/voice-call@0.0.2-beta.1",
-      name: "@openclaw/voice-call",
+      id: "@kovaai/voice-call@0.0.2-beta.1",
+      name: "@kovaai/voice-call",
       version: "0.0.2-beta.1",
       filename: "voice-call-0.0.2-beta.1.tgz",
       integrity: "sha512-beta",
@@ -307,13 +307,13 @@ describe("installPluginFromNpmSpec", () => {
       mockNpmPackMetadataResult(run, prereleaseMetadata);
 
       const result = await installPluginFromNpmSpec({
-        spec: "@openclaw/voice-call",
+        spec: "@kovaai/voice-call",
         logger: { info: () => {}, warn: () => {} },
       });
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error).toContain("prerelease version 0.0.2-beta.1");
-        expect(result.error).toContain('"@openclaw/voice-call@beta"');
+        expect(result.error).toContain('"@kovaai/voice-call@beta"');
       }
     }
 
@@ -326,9 +326,9 @@ describe("installPluginFromNpmSpec", () => {
       const voiceCallArchivePath = await ensureDynamicArchiveTemplate({
         outName: "voice-call-0.0.2-beta.1-npm.tgz",
         packageJson: {
-          name: "@openclaw/voice-call",
+          name: "@kovaai/voice-call",
           version: "0.0.2-beta.1",
-          openclaw: { extensions: ["./dist/index.js"] },
+          kova: { extensions: ["./dist/index.js"] },
         },
         pluginManifest: {
           id: "voice-call",
@@ -358,7 +358,7 @@ describe("installPluginFromNpmSpec", () => {
       const extensionsDir = path.join(stateDir, "extensions");
       fs.mkdirSync(extensionsDir, { recursive: true });
       const result = await installPluginFromNpmSpec({
-        spec: "@openclaw/voice-call@beta",
+        spec: "@kovaai/voice-call@beta",
         extensionsDir,
         logger: { info: () => {}, warn: () => {} },
       });
@@ -367,10 +367,10 @@ describe("installPluginFromNpmSpec", () => {
         return;
       }
       expect(result.npmResolution?.version).toBe("0.0.2-beta.1");
-      expect(result.npmResolution?.resolvedSpec).toBe("@openclaw/voice-call@0.0.2-beta.1");
+      expect(result.npmResolution?.resolvedSpec).toBe("@kovaai/voice-call@0.0.2-beta.1");
       expectSingleNpmPackIgnoreScriptsCall({
         calls: run.mock.calls as Array<[unknown, unknown]>,
-        expectedSpec: "@openclaw/voice-call@beta",
+        expectedSpec: "@kovaai/voice-call@beta",
       });
       expect(packTmpDir).not.toBe("");
     }

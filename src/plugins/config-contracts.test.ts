@@ -40,7 +40,7 @@ function createPluginRecord(
 ): PluginManifestRecord {
   return {
     rootDir: `/tmp/${overrides.id}`,
-    manifestPath: `/tmp/${overrides.id}/openclaw.plugin.json`,
+    manifestPath: `/tmp/${overrides.id}/kova.plugin.json`,
     channelConfigs: undefined,
     providerAuthEnvVars: undefined,
     configUiHints: undefined,
@@ -67,7 +67,7 @@ function createPluginRecord(
     skills: [],
     settingsFiles: undefined,
     hooks: [],
-    source: `/tmp/${overrides.id}/openclaw.plugin.json`,
+    source: `/tmp/${overrides.id}/kova.plugin.json`,
     setupSource: undefined,
     startupDeferConfiguredChannelFullLoadUntilAfterListen: undefined,
     channelCatalogMeta: undefined,

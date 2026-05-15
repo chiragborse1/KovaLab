@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { fetchWithSsrFGuard } from "openclaw/plugin-sdk/ssrf-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { fetchWithSsrFGuard } from "getkova/plugin-sdk/ssrf-runtime";
 import { z } from "zod";
 import { startQaGatewayChild } from "../../gateway-child.js";
 import { DEFAULT_QA_LIVE_PROVIDER_MODE } from "../../providers/index.js";
@@ -144,14 +144,14 @@ type DiscordQaSummary = {
 };
 
 const DISCORD_API_BASE_URL = "https://discord.com/api/v10";
-const DISCORD_QA_CAPTURE_CONTENT_ENV = "OPENCLAW_QA_DISCORD_CAPTURE_CONTENT";
-const QA_REDACT_PUBLIC_METADATA_ENV = "OPENCLAW_QA_REDACT_PUBLIC_METADATA";
+const DISCORD_QA_CAPTURE_CONTENT_ENV = "KOVA_QA_DISCORD_CAPTURE_CONTENT";
+const QA_REDACT_PUBLIC_METADATA_ENV = "KOVA_QA_REDACT_PUBLIC_METADATA";
 const DISCORD_QA_ENV_KEYS = [
-  "OPENCLAW_QA_DISCORD_GUILD_ID",
-  "OPENCLAW_QA_DISCORD_CHANNEL_ID",
-  "OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN",
-  "OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN",
-  "OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID",
+  "KOVA_QA_DISCORD_GUILD_ID",
+  "KOVA_QA_DISCORD_CHANNEL_ID",
+  "KOVA_QA_DISCORD_DRIVER_BOT_TOKEN",
+  "KOVA_QA_DISCORD_SUT_BOT_TOKEN",
+  "KOVA_QA_DISCORD_SUT_APPLICATION_ID",
 ] as const;
 
 const DISCORD_QA_SCENARIOS: DiscordQaScenarioDefinition[] = [
@@ -236,13 +236,13 @@ export function resolveDiscordQaRuntimeEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): DiscordQaRuntimeEnv {
   const runtimeEnv = {
-    guildId: resolveEnvValue(env, "OPENCLAW_QA_DISCORD_GUILD_ID"),
-    channelId: resolveEnvValue(env, "OPENCLAW_QA_DISCORD_CHANNEL_ID"),
-    driverBotToken: resolveEnvValue(env, "OPENCLAW_QA_DISCORD_DRIVER_BOT_TOKEN"),
-    sutBotToken: resolveEnvValue(env, "OPENCLAW_QA_DISCORD_SUT_BOT_TOKEN"),
-    sutApplicationId: resolveEnvValue(env, "OPENCLAW_QA_DISCORD_SUT_APPLICATION_ID"),
+    guildId: resolveEnvValue(env, "KOVA_QA_DISCORD_GUILD_ID"),
+    channelId: resolveEnvValue(env, "KOVA_QA_DISCORD_CHANNEL_ID"),
+    driverBotToken: resolveEnvValue(env, "KOVA_QA_DISCORD_DRIVER_BOT_TOKEN"),
+    sutBotToken: resolveEnvValue(env, "KOVA_QA_DISCORD_SUT_BOT_TOKEN"),
+    sutApplicationId: resolveEnvValue(env, "KOVA_QA_DISCORD_SUT_APPLICATION_ID"),
   };
-  validateDiscordQaRuntimeEnv(runtimeEnv, "OPENCLAW_QA_DISCORD");
+  validateDiscordQaRuntimeEnv(runtimeEnv, "KOVA_QA_DISCORD");
   return runtimeEnv;
 }
 
@@ -266,7 +266,7 @@ function parseDiscordQaCredentialPayload(payload: unknown): DiscordQaRuntimeEnv 
 }
 
 function buildDiscordQaConfig(
-  baseCfg: OpenClawConfig,
+  baseCfg: KovaConfig,
   params: {
     guildId: string;
     channelId: string;
@@ -274,7 +274,7 @@ function buildDiscordQaConfig(
     sutAccountId: string;
     sutBotToken: string;
   },
-): OpenClawConfig {
+): KovaConfig {
   const pluginAllow = [...new Set([...(baseCfg.plugins?.allow ?? []), "discord"])];
   const pluginEntries = {
     ...baseCfg.plugins?.entries,
@@ -875,7 +875,7 @@ export async function runDiscordQaLive(params: {
 
   const finishedAt = new Date().toISOString();
   const publishedCleanupIssues = redactPublicMetadata
-    ? cleanupIssues.map(() => "details redacted (OPENCLAW_QA_REDACT_PUBLIC_METADATA=1)")
+    ? cleanupIssues.map(() => "details redacted (KOVA_QA_REDACT_PUBLIC_METADATA=1)")
     : cleanupIssues;
   const passedCount = scenarioResults.filter((entry) => entry.status === "pass").length;
   const failedCount = scenarioResults.filter((entry) => entry.status === "fail").length;

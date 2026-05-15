@@ -8,7 +8,7 @@ const saveMediaBuffer = vi.fn();
 const fetchRemoteMedia = vi.fn();
 const readFileWithinRoot = vi.fn();
 
-vi.mock("openclaw/plugin-sdk/infra-runtime", () => ({
+vi.mock("getkova/plugin-sdk/infra-runtime", () => ({
   readFileWithinRoot: (...args: unknown[]) => readFileWithinRoot(...args),
 }));
 

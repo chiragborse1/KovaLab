@@ -1,7 +1,4 @@
-import {
-  resolveLivePluginConfigObject,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
+import { resolveLivePluginConfigObject, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { definePluginEntry, resolveDefaultAgentId } from "./api.js";
 import { resolveConfig } from "./src/config.js";
 import { buildWorkshopGuidance } from "./src/prompt.js";
@@ -18,9 +15,7 @@ export default definePluginEntry({
   register(api) {
     const resolveCurrentConfig = () => {
       const runtimePluginConfig = resolveLivePluginConfigObject(
-        api.runtime.config?.current
-          ? () => api.runtime.config.current() as OpenClawConfig
-          : undefined,
+        api.runtime.config?.current ? () => api.runtime.config.current() as KovaConfig : undefined,
         "skill-workshop",
         api.pluginConfig as Record<string, unknown>,
       );

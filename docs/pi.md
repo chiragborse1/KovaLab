@@ -35,7 +35,7 @@ Kova uses the pi SDK to embed an AI coding agent into its messaging gateway arch
 | `pi-ai`           | Core LLM abstractions: `Model`, `streamSimple`, message types, provider APIs                           |
 | `pi-agent-core`   | Agent loop, tool execution, `AgentMessage` types                                                       |
 | `pi-coding-agent` | High-level SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, built-in tools |
-| `pi-tui`          | Terminal UI components (used in Kova's local TUI mode)                                             |
+| `pi-tui`          | Terminal UI components (used in Kova's local TUI mode)                                                 |
 
 ## File structure
 
@@ -78,7 +78,7 @@ src/agents/
 ├── pi-embedded-helpers.ts         # Error classification, turn validation
 ├── pi-embedded-helpers/           # Helper modules
 ├── pi-embedded-utils.ts           # Formatting utilities
-├── pi-tools.ts                    # createOpenClawCodingTools()
+├── pi-tools.ts                    # createKovaCodingTools()
 ├── pi-tools.abort.ts              # AbortSignal wrapping for tools
 ├── pi-tools.policy.ts             # Tool allowlist/denylist policy
 ├── pi-tools.read.ts               # Read tool customizations
@@ -110,7 +110,7 @@ src/agents/
 ├── sandbox.ts                     # Sandbox context resolution
 ├── sandbox/                       # Sandbox subsystem
 ├── channel-tools.ts               # Channel-specific tool injection
-├── openclaw-tools.ts              # Kova-specific tools
+├── kova-tools.ts              # Kova-specific tools
 ├── bash-tools.ts                  # exec/process tools
 ├── apply-patch.ts                 # apply_patch tool (OpenAI)
 ├── tools/                         # Individual tool implementations
@@ -149,7 +149,7 @@ const result = await runEmbeddedPiAgent({
   sessionKey: "main:whatsapp:+1234567890",
   sessionFile: "/path/to/session.jsonl",
   workspaceDir: "/path/to/workspace",
-  config: openclawConfig,
+  config: kovaConfig,
   prompt: "Hello, how are you?",
   provider: "anthropic",
   model: "claude-sonnet-4-6",
@@ -525,15 +525,15 @@ This provides the interactive terminal experience similar to pi's native mode.
 
 ## Key differences from Pi CLI
 
-| Aspect          | Pi CLI                  | Kova Embedded                                                                              |
-| --------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` command / RPC      | SDK via `createAgentSession()`                                                                 |
-| Tools           | Default coding tools    | Custom Kova tool suite                                                                     |
-| System prompt   | AGENTS.md + prompts     | Dynamic per-channel/context                                                                    |
-| Session storage | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (or `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth            | Single credential       | Multi-profile with rotation                                                                    |
-| Extensions      | Loaded from disk        | Programmatic + disk paths                                                                      |
-| Event handling  | TUI rendering           | Callback-based (onBlockReply, etc.)                                                            |
+| Aspect          | Pi CLI                  | Kova Embedded                                                                          |
+| --------------- | ----------------------- | -------------------------------------------------------------------------------------- |
+| Invocation      | `pi` command / RPC      | SDK via `createAgentSession()`                                                         |
+| Tools           | Default coding tools    | Custom Kova tool suite                                                                 |
+| System prompt   | AGENTS.md + prompts     | Dynamic per-channel/context                                                            |
+| Session storage | `~/.pi/agent/sessions/` | `~/.kova/agents/<agentId>/sessions/` (or `$KOVA_STATE_DIR/agents/<agentId>/sessions/`) |
+| Auth            | Single credential       | Multi-profile with rotation                                                            |
+| Extensions      | Loaded from disk        | Programmatic + disk paths                                                              |
+| Event handling  | TUI rendering           | Callback-based (onBlockReply, etc.)                                                    |
 
 ## Future considerations
 
@@ -563,7 +563,7 @@ Pi integration coverage spans these suites:
 
 Live/opt-in:
 
-- `src/agents/pi-embedded-runner-extraparams.live.test.ts` (enable `OPENCLAW_LIVE_TEST=1`)
+- `src/agents/pi-embedded-runner-extraparams.live.test.ts` (enable `KOVA_LIVE_TEST=1`)
 
 For current run commands, see [Pi Development Workflow](/pi-dev).
 

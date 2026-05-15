@@ -26,7 +26,7 @@ are **external** (published on npm by the community).
   <Step title="Install a plugin">
     ```bash
     # From npm
-    kova plugins install @openclaw/voice-call
+    kova plugins install @kovaai/voice-call
 
     # From a local directory or archive
     kova plugins install ./my-plugin
@@ -48,19 +48,19 @@ are **external** (published on npm by the community).
 If you prefer chat-native control, enable `commands.plugins: true` and use:
 
 ```text
-/plugin install clawhub:@openclaw/voice-call
+/plugin install kovahub:@kovaai/voice-call
 /plugin show voice-call
 /plugin enable voice-call
 ```
 
 The install path uses the same resolver as the CLI: local path/archive, explicit
-`clawhub:<pkg>`, explicit `npm:<pkg>`, or bare package spec (ClawHub first, then
+`kovahub:<pkg>`, explicit `npm:<pkg>`, or bare package spec (KovaHub first, then
 npm fallback).
 
 If config is invalid, install normally fails closed and points you at
 `kova doctor --fix`. The only recovery exception is a narrow bundled-plugin
 reinstall path for plugins that opt into
-`openclaw.install.allowInvalidConfigRecovery`.
+`kova.install.allowInvalidConfigRecovery`.
 During Gateway startup, invalid config for one plugin is isolated to that plugin:
 startup logs the `plugins.entries.<id>.config` issue, skips that plugin during
 load, and keeps other plugins and channels online. Run `kova doctor --fix`
@@ -94,7 +94,7 @@ Kova recognizes two plugin formats:
 
 | Format     | How it works                                                   | Examples                                               |
 | ---------- | -------------------------------------------------------------- | ------------------------------------------------------ |
-| **Native** | `openclaw.plugin.json` + runtime module; executes in-process   | Official plugins, community npm packages               |
+| **Native** | `kova.plugin.json` + runtime module; executes in-process       | Official plugins, community npm packages               |
 | **Bundle** | Codex/Claude/Cursor-compatible layout; mapped to Kova features | `.codex-plugin/`, `.claude-plugin/`, `.cursor-plugin/` |
 
 Both show up under `kova plugins list`. See [Plugin Bundles](/plugins/bundles) for bundle details.
@@ -104,20 +104,20 @@ and the [Plugin SDK Overview](/plugins/sdk-overview).
 
 ## Package entrypoints
 
-Native plugin npm packages must declare `openclaw.extensions` in `package.json`.
+Native plugin npm packages must declare `kova.extensions` in `package.json`.
 Each entry must stay inside the package directory and resolve to a readable
 runtime file, or to a TypeScript source file with an inferred built JavaScript
 peer such as `src/index.ts` to `dist/index.js`.
 
-Use `openclaw.runtimeExtensions` when published runtime files do not live at the
+Use `kova.runtimeExtensions` when published runtime files do not live at the
 same paths as the source entries. When present, `runtimeExtensions` must contain
 exactly one entry for every `extensions` entry. Mismatched lists fail install and
 plugin discovery rather than silently falling back to source paths.
 
 ```json
 {
-  "name": "@acme/openclaw-plugin",
-  "openclaw": {
+  "name": "@acme/kova-plugin",
+  "kova": {
     "extensions": ["./src/index.ts"],
     "runtimeExtensions": ["./dist/index.js"]
   }
@@ -128,14 +128,14 @@ plugin discovery rather than silently falling back to source paths.
 
 ### Installable (npm)
 
-| Plugin          | Package                | Docs                                 |
-| --------------- | ---------------------- | ------------------------------------ |
-| Matrix          | `@openclaw/matrix`     | [Matrix](/channels/matrix)           |
-| Microsoft Teams | `@openclaw/msteams`    | [Microsoft Teams](/channels/msteams) |
-| Nostr           | `@openclaw/nostr`      | [Nostr](/channels/nostr)             |
-| Voice Call      | `@openclaw/voice-call` | [Voice Call](/plugins/voice-call)    |
-| Zalo            | `@openclaw/zalo`       | [Zalo](/channels/zalo)               |
-| Zalo Personal   | `@openclaw/zalouser`   | [Zalo Personal](/plugins/zalouser)   |
+| Plugin          | Package              | Docs                                 |
+| --------------- | -------------------- | ------------------------------------ |
+| Matrix          | `@kovaai/matrix`     | [Matrix](/channels/matrix)           |
+| Microsoft Teams | `@kovaai/msteams`    | [Microsoft Teams](/channels/msteams) |
+| Nostr           | `@kovaai/nostr`      | [Nostr](/channels/nostr)             |
+| Voice Call      | `@kovaai/voice-call` | [Voice Call](/plugins/voice-call)    |
+| Zalo            | `@kovaai/zalo`       | [Zalo](/channels/zalo)               |
+| Zalo Personal   | `@kovaai/zalouser`   | [Zalo Personal](/plugins/zalouser)   |
 
 ### Core (shipped with Kova)
 
@@ -229,11 +229,11 @@ Kova scans for plugins in this order (first match wins):
   </Step>
 
   <Step title="Workspace plugins">
-    `\<workspace\>/.openclaw/<plugin-root>/*.ts` and `\<workspace\>/.openclaw/<plugin-root>/*/index.ts`.
+    `\<workspace\>/.kova/<plugin-root>/*.ts` and `\<workspace\>/.kova/<plugin-root>/*/index.ts`.
   </Step>
 
   <Step title="Global plugins">
-    `~/.openclaw/<plugin-root>/*.ts` and `~/.openclaw/<plugin-root>/*/index.ts`.
+    `~/.kova/<plugin-root>/*.ts` and `~/.kova/<plugin-root>/*/index.ts`.
   </Step>
 
   <Step title="Bundled plugins">
@@ -249,7 +249,7 @@ bind-mounted over the matching packaged source path, for example
 as a bundled source overlay and discovers it before the packaged
 `/app/dist/extensions/synology-chat` bundle. This keeps maintainer container
 loops working without switching every bundled plugin back to TypeScript source.
-Set `OPENCLAW_DISABLE_BUNDLED_SOURCE_OVERLAYS=1` to force packaged dist bundles
+Set `KOVA_DISABLE_BUNDLED_SOURCE_OVERLAYS=1` to force packaged dist bundles
 even when source overlay mounts are present.
 
 ### Enablement rules
@@ -359,8 +359,8 @@ kova plugins registry                  # inspect persisted registry state
 kova plugins registry --refresh        # rebuild persisted registry
 kova doctor --fix                      # repair plugin registry state
 
-kova plugins install <package>         # install (ClawHub first, then npm)
-kova plugins install clawhub:<pkg>     # install from ClawHub only
+kova plugins install <package>         # install (KovaHub first, then npm)
+kova plugins install kovahub:<pkg>     # install from KovaHub only
 kova plugins install npm:<pkg>         # install from npm only
 kova plugins install <spec> --force    # overwrite existing install
 kova plugins install <path>            # install from local path
@@ -421,7 +421,7 @@ does not bypass plugin `before_install` policy blocks or scan-failure blocking.
 
 This CLI flag applies to plugin install/update flows only. Gateway-backed skill
 dependency installs use the matching `dangerouslyForceUnsafeInstall` request
-override instead, while `kova skills install` remains the separate ClawHub
+override instead, while `kova skills install` remains the separate KovaHub
 skill download/install flow.
 
 Compatible bundles participate in the same plugin list/inspect/enable/disable

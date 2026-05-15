@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 
 export type ColdPluginFixture = {
   authChoiceId: string;
@@ -35,9 +35,9 @@ export function createColdPluginFixture(options: ColdPluginFixtureOptions): Cold
     path.join(options.rootDir, "package.json"),
     JSON.stringify(
       {
-        name: options.packageName ?? "@example/openclaw-cold-control-plane",
+        name: options.packageName ?? "@example/kova-cold-control-plane",
         version: options.packageVersion ?? "1.0.0",
-        openclaw: { extensions: ["./index.cjs"] },
+        kova: { extensions: ["./index.cjs"] },
       },
       null,
       2,
@@ -45,7 +45,7 @@ export function createColdPluginFixture(options: ColdPluginFixtureOptions): Cold
     "utf8",
   );
   fs.writeFileSync(
-    path.join(options.rootDir, "openclaw.plugin.json"),
+    path.join(options.rootDir, "kova.plugin.json"),
     JSON.stringify(
       {
         id: pluginId,
@@ -95,7 +95,7 @@ export function createColdPluginFixture(options: ColdPluginFixtureOptions): Cold
   };
 }
 
-export function createColdPluginConfig(pluginDir: string, pluginId: string): OpenClawConfig {
+export function createColdPluginConfig(pluginDir: string, pluginId: string): KovaConfig {
   return {
     plugins: {
       load: { paths: [pluginDir] },
@@ -112,13 +112,13 @@ export function createColdPluginHermeticEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    OPENCLAW_HOME: path.join(homeDir, "home"),
-    OPENCLAW_BUNDLED_PLUGINS_DIR: options.bundledPluginsDir,
-    OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY:
+    KOVA_HOME: path.join(homeDir, "home"),
+    KOVA_BUNDLED_PLUGINS_DIR: options.bundledPluginsDir,
+    KOVA_DISABLE_PERSISTED_PLUGIN_REGISTRY:
       options.disablePersistedRegistry === false ? undefined : "1",
-    OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-    OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-    OPENCLAW_VERSION: "2026.4.25",
+    KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+    KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+    KOVA_VERSION: "2026.4.25",
     VITEST: "true",
   };
 }

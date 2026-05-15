@@ -44,7 +44,7 @@ Run a persistent Kova Gateway on a DigitalOcean Droplet.
     apt install -y nodejs
 
     # Install Kova
-    curl -fsSL https://openclaw.ai/install.sh | bash
+    curl -fsSL https://www.neuralstudio.in/install.sh | bash
     kova --version
     ```
 
@@ -72,8 +72,8 @@ Run a persistent Kova Gateway on a DigitalOcean Droplet.
   <Step title="Verify the gateway">
     ```bash
     kova status
-    systemctl --user status openclaw-gateway.service
-    journalctl --user -u openclaw-gateway.service -f
+    systemctl --user status kova-gateway.service
+    journalctl --user -u kova-gateway.service -f
     ```
   </Step>
 
@@ -114,7 +114,7 @@ Run a persistent Kova Gateway on a DigitalOcean Droplet.
 
 ## Troubleshooting
 
-**Gateway will not start** -- Run `kova doctor --non-interactive` and check logs with `journalctl --user -u openclaw-gateway.service -n 50`.
+**Gateway will not start** -- Run `kova doctor --non-interactive` and check logs with `journalctl --user -u kova-gateway.service -n 50`.
 
 **Port already in use** -- Run `lsof -i :18789` to find the process, then stop it.
 

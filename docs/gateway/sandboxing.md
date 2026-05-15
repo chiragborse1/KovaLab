@@ -20,7 +20,7 @@ This is not a perfect security boundary, but it materially limits filesystem and
 <AccordionGroup>
   <Accordion title="Sandboxed browser details">
     - By default, the sandbox browser auto-starts (ensures CDP is reachable) when the browser tool needs it. Configure via `agents.defaults.sandbox.browser.autoStart` and `agents.defaults.sandbox.browser.autoStartTimeoutMs`.
-    - By default, sandbox browser containers use a dedicated Docker network (`openclaw-sandbox-browser`) instead of the global `bridge` network. Configure with `agents.defaults.sandbox.browser.network`.
+    - By default, sandbox browser containers use a dedicated Docker network (`kova-sandbox-browser`) instead of the global `bridge` network. Configure with `agents.defaults.sandbox.browser.network`.
     - The sandbox browser CDP relay is authenticated by default; Kova generates a per-container token and rebuilds/recreates stale images or containers that do not support the current auth contract.
     - Optional `agents.defaults.sandbox.browser.cdpSourceRange` adds a container-edge CDP ingress CIDR allowlist (for example `172.21.0.1/32`) on top of relay authentication.
     - noVNC observer access is password-protected by default; Kova emits a short-lived token URL that serves a local bootstrap page and opens noVNC with password in URL fragment (not query/header logs).
@@ -94,8 +94,8 @@ Sandboxing is off by default. If you enable sandboxing and do not choose a backe
 
 If you deploy the Kova Gateway itself as a Docker container, it orchestrates sibling sandbox containers using the host's Docker socket (DooD). This introduces a specific path mapping constraint:
 
-- **Config requires host paths**: The `openclaw.json` `workspace` configuration MUST contain the **Host's absolute path** (e.g. `/home/user/.openclaw/workspaces`), not the internal Gateway container path. When Kova asks the Docker daemon to spawn a sandbox, the daemon evaluates paths relative to the Host OS namespace, not the Gateway namespace.
-- **FS bridge parity (identical volume map)**: The Kova Gateway native process also writes heartbeat and bridge files to the `workspace` directory. Because the Gateway evaluates the exact same string (the host path) from within its own containerized environment, the Gateway deployment MUST include an identical volume map linking the host namespace natively (`-v /home/user/.openclaw:/home/user/.openclaw`).
+- **Config requires host paths**: The `kova.json` `workspace` configuration MUST contain the **Host's absolute path** (e.g. `/home/user/.kova/workspaces`), not the internal Gateway container path. When Kova asks the Docker daemon to spawn a sandbox, the daemon evaluates paths relative to the Host OS namespace, not the Gateway namespace.
+- **FS bridge parity (identical volume map)**: The Kova Gateway native process also writes heartbeat and bridge files to the `workspace` directory. Because the Gateway evaluates the exact same string (the host path) from within its own containerized environment, the Gateway deployment MUST include an identical volume map linking the host namespace natively (`-v /home/user/.kova:/home/user/.kova`).
 
 If you map paths internally without absolute host parity, Kova natively throws an `EACCES` permission error attempting to write its heartbeat inside the container environment because the fully qualified path string doesn't exist natively.
 </Warning>
@@ -115,7 +115,7 @@ Use `backend: "ssh"` when you want Kova to sandbox `exec`, file tools, and media
         workspaceAccess: "rw",
         ssh: {
           target: "user@gateway-host:22",
-          workspaceRoot: "/tmp/openclaw-sandboxes",
+          workspaceRoot: "/tmp/kova-sandboxes",
           strictHostKeyChecking: true,
           updateHostKeys: true,
           identityFile: "~/.ssh/id_ed25519",
@@ -178,7 +178,7 @@ OpenShell reuses the same core SSH transport and remote filesystem bridge as the
       openshell: {
         enabled: true,
         config: {
-          from: "openclaw",
+          from: "kova",
           mode: "remote", // mirror | remote
           remoteWorkspaceDir: "/sandbox",
           remoteAgentWorkspaceDir: "/agent",
@@ -279,7 +279,7 @@ For `mirror` mode, recreate mainly resets the remote execution environment becau
 
 <Tabs>
   <Tab title="none (default)">
-    Tools see a sandbox workspace under `~/.openclaw/sandboxes`.
+    Tools see a sandbox workspace under `~/.kova/sandboxes`.
   </Tab>
   <Tab title="ro">
     Mounts the agent workspace read-only at `/agent` (disables `write`/`edit`/`apply_patch`).
@@ -354,7 +354,7 @@ Example (read-only source + an extra data directory):
 
 ## Images and setup
 
-Default Docker image: `openclaw-sandbox:bookworm-slim`
+Default Docker image: `kova-sandbox:bookworm-slim`
 
 <Steps>
   <Step title="Build the default image">
@@ -372,7 +372,7 @@ Default Docker image: `openclaw-sandbox:bookworm-slim`
     scripts/sandbox-common-setup.sh
     ```
 
-    Then set `agents.defaults.sandbox.docker.image` to `openclaw-sandbox-common:bookworm-slim`.
+    Then set `agents.defaults.sandbox.docker.image` to `kova-sandbox-common:bookworm-slim`.
 
   </Step>
   <Step title="Optional: build the sandbox browser image">
@@ -389,7 +389,7 @@ By default, Docker sandbox containers run with **no network**. Override with `ag
     The bundled sandbox browser image also applies conservative Chromium startup defaults for containerized workloads. Current container defaults include:
 
     - `--remote-debugging-address=127.0.0.1`
-    - `--remote-debugging-port=<derived from OPENCLAW_BROWSER_CDP_PORT>`
+    - `--remote-debugging-port=<derived from KOVA_BROWSER_CDP_PORT>`
     - `--user-data-dir=${HOME}/.chrome`
     - `--no-first-run`
     - `--no-default-browser-check`
@@ -406,9 +406,9 @@ By default, Docker sandbox containers run with **no network**. Override with `ag
     - `--metrics-recording-only`
     - `--renderer-process-limit=2`
     - `--no-sandbox` when `noSandbox` is enabled.
-    - The three graphics hardening flags (`--disable-3d-apis`, `--disable-software-rasterizer`, `--disable-gpu`) are optional and are useful when containers lack GPU support. Set `OPENCLAW_BROWSER_DISABLE_GRAPHICS_FLAGS=0` if your workload requires WebGL or other 3D/browser features.
-    - `--disable-extensions` is enabled by default and can be disabled with `OPENCLAW_BROWSER_DISABLE_EXTENSIONS=0` for extension-reliant flows.
-    - `--renderer-process-limit=2` is controlled by `OPENCLAW_BROWSER_RENDERER_PROCESS_LIMIT=<N>`, where `0` keeps Chromium's default.
+    - The three graphics hardening flags (`--disable-3d-apis`, `--disable-software-rasterizer`, `--disable-gpu`) are optional and are useful when containers lack GPU support. Set `KOVA_BROWSER_DISABLE_GRAPHICS_FLAGS=0` if your workload requires WebGL or other 3D/browser features.
+    - `--disable-extensions` is enabled by default and can be disabled with `KOVA_BROWSER_DISABLE_EXTENSIONS=0` for extension-reliant flows.
+    - `--renderer-process-limit=2` is controlled by `KOVA_BROWSER_RENDERER_PROCESS_LIMIT=<N>`, where `0` keeps Chromium's default.
 
     If you need a different runtime profile, use a custom browser image and provide your own entrypoint. For local (non-container) Chromium profiles, use `browser.extraArgs` to append additional startup flags.
 
@@ -422,7 +422,7 @@ By default, Docker sandbox containers run with **no network**. Override with `ag
 
 Docker installs and the containerized gateway live here: [Docker](/install/docker)
 
-For Docker gateway deployments, `scripts/docker/setup.sh` can bootstrap sandbox config. Set `OPENCLAW_SANDBOX=1` (or `true`/`yes`/`on`) to enable that path. You can override socket location with `OPENCLAW_DOCKER_SOCKET`. Full setup and env reference: [Docker](/install/docker#agent-sandbox).
+For Docker gateway deployments, `scripts/docker/setup.sh` can bootstrap sandbox config. Set `KOVA_SANDBOX=1` (or `true`/`yes`/`on`) to enable that path. You can override socket location with `KOVA_DOCKER_SOCKET`. Full setup and env reference: [Docker](/install/docker#agent-sandbox).
 
 ## setupCommand (one-time container setup)
 

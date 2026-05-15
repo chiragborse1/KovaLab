@@ -17,7 +17,7 @@ function readJsonFile(filePath) {
 }
 
 export function isPublishablePluginPackage(packageJson) {
-  return packageJson.openclaw?.release?.publishToNpm === true;
+  return packageJson.kova?.release?.publishToNpm === true;
 }
 
 function normalizePackageEntry(value) {
@@ -64,8 +64,8 @@ function createNeverBundleDependencyMatcher(packageJson) {
     if (id === "getkova" || id.startsWith("getkova/")) {
       return true;
     }
-    // Kova still exposes this compatibility alias for forked OpenClaw plugin SDK imports.
-    if (id === "openclaw" || id.startsWith("openclaw/")) {
+    // Kova still exposes this compatibility alias for forked Kova plugin SDK imports.
+    if (id === "kova" || id.startsWith("kova/")) {
       return true;
     }
     for (const dependency of externalDependencies) {
@@ -120,8 +120,8 @@ export function resolvePluginNpmRuntimePackageFiles(plan) {
       : [],
   );
   merged.add("dist/**");
-  if (packageRelativePathExists(plan.packageDir, "openclaw.plugin.json")) {
-    merged.add("openclaw.plugin.json");
+  if (packageRelativePathExists(plan.packageDir, "kova.plugin.json")) {
+    merged.add("kova.plugin.json");
   }
   if (packageRelativePathExists(plan.packageDir, "README.md")) {
     merged.add("README.md");
@@ -160,9 +160,9 @@ function resolveHostPeerRange(packageJson, rootPackageJson) {
     normalizePublishedHostPeerRange(packageJson.peerDependencies?.getkova) ||
     normalizePublishedHostPeerRange(rootPackageJson?.version) ||
     normalizePublishedHostPeerRange(packageJson.version) ||
-    normalizeHostPeerRange(packageJson.openclaw?.compat?.pluginApi) ||
-    normalizeHostPeerRange(packageJson.peerDependencies?.openclaw) ||
-    normalizeHostPeerRange(packageJson.openclaw?.build?.openclawVersion)
+    normalizeHostPeerRange(packageJson.kova?.compat?.pluginApi) ||
+    normalizeHostPeerRange(packageJson.peerDependencies?.kova) ||
+    normalizeHostPeerRange(packageJson.kova?.build?.kovaVersion)
   );
 }
 
@@ -170,15 +170,15 @@ export function resolvePluginNpmRuntimePackagePeerMetadata(plan) {
   const hostPeerRange = resolveHostPeerRange(plan.packageJson, plan.rootPackageJson);
   if (!hostPeerRange) {
     throw new Error(
-      `cannot infer getkova peerDependency range for ${plan.pluginDir}; set openclaw.compat.pluginApi or package version`,
+      `cannot infer getkova peerDependency range for ${plan.pluginDir}; set kova.compat.pluginApi or package version`,
     );
   }
   const existingPeerDependencies = getStringRecord(plan.packageJson.peerDependencies);
   const peerDependenciesWithoutLegacyHost = { ...existingPeerDependencies };
-  delete peerDependenciesWithoutLegacyHost.openclaw;
+  delete peerDependenciesWithoutLegacyHost.kova;
   const existingPeerDependenciesMeta = getRecord(plan.packageJson.peerDependenciesMeta);
   const peerDependenciesMetaWithoutLegacyHost = { ...existingPeerDependenciesMeta };
-  delete peerDependenciesMetaWithoutLegacyHost.openclaw;
+  delete peerDependenciesMetaWithoutLegacyHost.kova;
   const existingKovaMeta = getRecord(peerDependenciesMetaWithoutLegacyHost.getkova);
   return {
     peerDependencies: {
@@ -240,15 +240,15 @@ export function resolvePluginNpmRuntimeBuildPlan(params) {
     sourceEntries,
     entry,
     outDir: path.join(packageDir, "dist"),
-    runtimeExtensions: (Array.isArray(packageJson.openclaw?.extensions)
-      ? packageJson.openclaw.extensions
+    runtimeExtensions: (Array.isArray(packageJson.kova?.extensions)
+      ? packageJson.kova.extensions
       : []
     )
       .map(normalizePackageEntry)
       .filter(Boolean)
       .map(toPackageRuntimeEntry),
-    runtimeSetupEntry: normalizePackageEntry(packageJson.openclaw?.setupEntry)
-      ? toPackageRuntimeEntry(packageJson.openclaw.setupEntry)
+    runtimeSetupEntry: normalizePackageEntry(packageJson.kova?.setupEntry)
+      ? toPackageRuntimeEntry(packageJson.kova.setupEntry)
       : undefined,
   };
   return {

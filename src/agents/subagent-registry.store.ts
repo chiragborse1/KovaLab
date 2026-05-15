@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { resolveOpenClawCompatMode, resolveStateDir } from "../config/paths.js";
+import { resolveKovaCompatMode, resolveStateDir } from "../config/paths.js";
 import { loadJsonFile, saveJsonFile } from "../infra/json-file.js";
 import { readStringValue } from "../shared/string-coerce.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.shared.js";
@@ -34,12 +34,12 @@ type LegacySubagentRunRecord = PersistedSubagentRunRecord & {
 function resolveSubagentStateDir(env: NodeJS.ProcessEnv = process.env): string {
   const explicit =
     env.KOVA_STATE_DIR?.trim() ||
-    (resolveOpenClawCompatMode(env) ? env.OPENCLAW_STATE_DIR?.trim() : undefined);
+    (resolveKovaCompatMode(env) ? env.KOVA_STATE_DIR?.trim() : undefined);
   if (explicit) {
     return resolveStateDir(env);
   }
   if (env.VITEST || env.NODE_ENV === "test") {
-    return path.join(os.tmpdir(), "openclaw-test-state", String(process.pid));
+    return path.join(os.tmpdir(), "kova-test-state", String(process.pid));
   }
   return resolveStateDir(env);
 }

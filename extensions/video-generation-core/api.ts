@@ -1,1 +1,1 @@
-export * from "openclaw/plugin-sdk/video-generation-core";
+export * from "getkova/plugin-sdk/video-generation-core";

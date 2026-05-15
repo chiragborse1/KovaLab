@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
 
 const hoisted = vi.hoisted(() => ({
@@ -43,7 +43,7 @@ function expectResolvedRequestSession(params: {
       session: {
         store: "/stores/{agentId}.json",
       },
-    } satisfies OpenClawConfig,
+    } satisfies KovaConfig,
     sessionId: params.sessionId,
   });
 
@@ -116,7 +116,7 @@ describe("resolveSessionKeyForRequest", () => {
         session: {
           store: "/stores/{agentId}.json",
         },
-      } satisfies OpenClawConfig,
+      } satisfies KovaConfig,
       sessionId: "resume-agent-1",
       agentId: "embedded-agent",
     });

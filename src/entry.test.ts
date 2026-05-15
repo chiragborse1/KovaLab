@@ -11,7 +11,7 @@ describe("entry root help fast path", () => {
   it("prefers precomputed root help text when available", async () => {
     outputPrecomputedRootHelpTextMock.mockReturnValueOnce(true);
 
-    const handled = await tryHandleRootHelpFastPath(["node", "openclaw", "--help"], {
+    const handled = await tryHandleRootHelpFastPath(["node", "kova", "--help"], {
       env: {},
     });
 
@@ -22,7 +22,7 @@ describe("entry root help fast path", () => {
   it("renders root help without importing the full program", async () => {
     const outputRootHelpMock = vi.fn();
 
-    const handled = await tryHandleRootHelpFastPath(["node", "openclaw", "--help"], {
+    const handled = await tryHandleRootHelpFastPath(["node", "kova", "--help"], {
       outputRootHelp: outputRootHelpMock,
       env: {},
     });
@@ -34,7 +34,7 @@ describe("entry root help fast path", () => {
   it("ignores non-root help invocations", async () => {
     const outputRootHelpMock = vi.fn();
 
-    const handled = await tryHandleRootHelpFastPath(["node", "openclaw", "status", "--help"], {
+    const handled = await tryHandleRootHelpFastPath(["node", "kova", "status", "--help"], {
       outputRootHelp: outputRootHelpMock,
       env: {},
     });
@@ -47,7 +47,7 @@ describe("entry root help fast path", () => {
     const outputRootHelpMock = vi.fn();
 
     const handled = await tryHandleRootHelpFastPath(
-      ["node", "openclaw", "--container", "demo", "--help"],
+      ["node", "kova", "--container", "demo", "--help"],
       {
         outputRootHelp: outputRootHelpMock,
         env: {},

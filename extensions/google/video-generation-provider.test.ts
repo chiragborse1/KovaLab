@@ -25,7 +25,7 @@ vi.mock("./google-genai-runtime.js", () => ({
   createGoogleGenAI: createGoogleGenAIMock,
 }));
 
-import * as providerAuthRuntime from "openclaw/plugin-sdk/provider-auth-runtime";
+import * as providerAuthRuntime from "getkova/plugin-sdk/provider-auth-runtime";
 import { expectExplicitVideoGenerationCapabilities } from "../../test/helpers/media-generation/provider-capability-assertions.js";
 import { buildGoogleVideoGenerationProvider } from "./video-generation-provider.js";
 

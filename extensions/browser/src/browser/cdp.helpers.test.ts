@@ -11,8 +11,8 @@ import { assertBrowserNavigationAllowed } from "./navigation-guard.js";
 
 const fetchWithSsrFGuardMock = vi.hoisted(() => vi.fn());
 
-vi.mock("openclaw/plugin-sdk/ssrf-runtime", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/ssrf-runtime")>();
+vi.mock("getkova/plugin-sdk/ssrf-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("getkova/plugin-sdk/ssrf-runtime")>();
   return {
     ...actual,
     fetchWithSsrFGuard: (...args: unknown[]) => fetchWithSsrFGuardMock(...args),
@@ -128,7 +128,7 @@ describe("cdp helpers", () => {
     });
 
     await expect(
-      fetchOk("http://openclaw:secret-token@127.0.0.1:9222/json/version", 250, undefined, {
+      fetchOk("http://kova:secret-token@127.0.0.1:9222/json/version", 250, undefined, {
         dangerouslyAllowPrivateNetwork: false,
       }),
     ).resolves.toBeUndefined();
@@ -138,7 +138,7 @@ describe("cdp helpers", () => {
         url: "http://127.0.0.1:9222/json/version",
         init: expect.objectContaining({
           headers: {
-            Authorization: `Basic ${Buffer.from("openclaw:secret-token").toString("base64")}`,
+            Authorization: `Basic ${Buffer.from("kova:secret-token").toString("base64")}`,
           },
         }),
       }),
@@ -147,7 +147,7 @@ describe("cdp helpers", () => {
   });
 
   it("redacts credentials from CDP URLs before exposing them", () => {
-    expect(redactCdpUrl("http://openclaw:secret-token@127.0.0.1:9222/json/version")).toBe(
+    expect(redactCdpUrl("http://kova:secret-token@127.0.0.1:9222/json/version")).toBe(
       "http://127.0.0.1:9222/json/version",
     );
   });
@@ -191,7 +191,7 @@ function createProfile(overrides: Partial<ResolvedBrowserProfile>): ResolvedBrow
     cdpHost: "172.29.128.1",
     cdpIsLoopback: false,
     color: "#123456",
-    driver: "openclaw",
+    driver: "kova",
     attachOnly: false,
     ...overrides,
     headless: overrides.headless ?? false,

@@ -16,7 +16,7 @@ const PUBLIC_CONTRACT_REFERENCE_FILES = [
   "docs/plugins/architecture.md",
   "src/plugins/contracts/plugin-sdk-subpaths.test.ts",
 ] as const;
-const PLUGIN_SDK_SUBPATH_PATTERN = /openclaw\/plugin-sdk\/([a-z0-9][a-z0-9-]*)\b/g;
+const PLUGIN_SDK_SUBPATH_PATTERN = /kova\/plugin-sdk\/([a-z0-9][a-z0-9-]*)\b/g;
 const BUNDLED_PLUGIN_FACADE_LOADER_PATTERN =
   /\bload(?:Activated)?BundledPluginPublicSurfaceModuleSync\b/;
 const PRIVATE_BUNDLED_SDK_SURFACE_PATTERN =
@@ -238,7 +238,7 @@ function collectCrossOwnerReservedSdkImports(): Array<{
   const leaks: Array<{ file: string; specifier: string; owner?: string }> = [];
   const reserved = new Set<string>(reservedBundledPluginSdkEntrypoints);
   const importPattern =
-    /\b(?:import|export)\b[\s\S]*?\bfrom\s*["']openclaw\/plugin-sdk\/([a-z0-9][a-z0-9-]*)["']/g;
+    /\b(?:import|export)\b[\s\S]*?\bfrom\s*["']kova\/plugin-sdk\/([a-z0-9][a-z0-9-]*)["']/g;
 
   for (const file of collectExtensionFiles(resolve(REPO_ROOT, "extensions"))) {
     const repoRelativePath = relative(REPO_ROOT, file).replaceAll("\\", "/");
@@ -263,7 +263,7 @@ function collectCrossOwnerReservedSdkImports(): Array<{
       }
       leaks.push({
         file: repoRelativePath,
-        specifier: `openclaw/plugin-sdk/${subpath}`,
+        specifier: `getkova/plugin-sdk/${subpath}`,
         owner,
       });
     }
@@ -369,7 +369,7 @@ describe("plugin-sdk package contract guardrails", () => {
         continue;
       }
       failures.push(
-        `${reference.file} references openclaw/plugin-sdk/${reference.subpath}, but ${reference.subpath} is missing from ${missingFrom.join(" and ")}`,
+        `${reference.file} references getkova/plugin-sdk/${reference.subpath}, but ${reference.subpath} is missing from ${missingFrom.join(" and ")}`,
       );
     }
 
@@ -390,7 +390,7 @@ describe("plugin-sdk package contract guardrails", () => {
       expect(matrixRuntimeDeps.get(dep)).toBeDefined();
       expect(rootRuntimeDeps.has(dep)).toBe(false);
     }
-    expect(rootRuntimeDeps.has("@openclaw/plugin-package-contract")).toBe(false);
+    expect(rootRuntimeDeps.has("@kovaai/plugin-package-contract")).toBe(false);
   });
 
   it("keeps extension sources on public sdk or local package seams", () => {

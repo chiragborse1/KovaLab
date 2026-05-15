@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { readGatewayCredentialEnv, trimToUndefined } from "../gateway/credentials.js";
 import { resolveRequiredConfiguredSecretRefInputString } from "../gateway/resolve-configured-secret-input-string.js";
@@ -28,7 +28,7 @@ type QrCliOptions = {
 function renderQrAscii(data: string): Promise<string> {
   return renderQrTerminal(data, { small: true });
 }
-function readDevicePairPublicUrlFromConfig(cfg: OpenClawConfig): string | undefined {
+function readDevicePairPublicUrlFromConfig(cfg: KovaConfig): string | undefined {
   const value = cfg.plugins?.entries?.["device-pair"]?.config?.["publicUrl"];
   if (typeof value !== "string") {
     return undefined;
@@ -37,11 +37,8 @@ function readDevicePairPublicUrlFromConfig(cfg: OpenClawConfig): string | undefi
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-function shouldResolveLocalGatewayPasswordSecret(
-  cfg: OpenClawConfig,
-  env: NodeJS.ProcessEnv,
-): boolean {
-  if (readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD")) {
+function shouldResolveLocalGatewayPasswordSecret(cfg: KovaConfig, env: NodeJS.ProcessEnv): boolean {
+  if (readGatewayCredentialEnv(env, "KOVA_GATEWAY_PASSWORD")) {
     return false;
   }
   const authMode = cfg.gateway?.auth?.mode;
@@ -51,7 +48,7 @@ function shouldResolveLocalGatewayPasswordSecret(
   if (authMode === "token" || authMode === "none" || authMode === "trusted-proxy") {
     return false;
   }
-  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const envToken = readGatewayCredentialEnv(env, "KOVA_GATEWAY_TOKEN");
   const configTokenConfigured = hasConfiguredSecretInput(
     cfg.gateway?.auth?.token,
     cfg.secrets?.defaults,
@@ -59,7 +56,7 @@ function shouldResolveLocalGatewayPasswordSecret(
   return !envToken && !configTokenConfigured;
 }
 
-async function resolveLocalGatewayPasswordSecretIfNeeded(cfg: OpenClawConfig): Promise<void> {
+async function resolveLocalGatewayPasswordSecretIfNeeded(cfg: KovaConfig): Promise<void> {
   const resolvedPassword = await resolveRequiredConfiguredSecretRefInputString({
     config: cfg,
     env: process.env,

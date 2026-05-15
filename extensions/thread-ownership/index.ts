@@ -1,11 +1,11 @@
-import { resolveLivePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { resolveLivePluginConfigObject } from "getkova/plugin-sdk/config-runtime";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   definePluginEntry,
   fetchWithSsrFGuard,
   ssrfPolicyFromDangerouslyAllowPrivateNetwork,
-  type OpenClawConfig,
-  type OpenClawPluginApi,
+  type KovaConfig,
+  type KovaPluginApi,
 } from "./api.js";
 
 type ThreadOwnershipConfig = {
@@ -13,7 +13,7 @@ type ThreadOwnershipConfig = {
   abTestChannels?: string[];
 };
 
-type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
+type AgentEntry = NonNullable<NonNullable<KovaConfig["agents"]>["list"]>[number];
 type ThreadOwnershipMessageSendingResult = { cancel: true } | undefined;
 
 // In-memory set of {channel}:{thread} keys where this agent was @-mentioned.
@@ -61,7 +61,7 @@ function containsAgentNameMention(text: string, agentName: string): boolean {
   return new RegExp(`(^|[^\\w])@${escapeRegExp(trimmedName)}(?=$|[^\\w])`, "i").test(text);
 }
 
-function resolveOwnershipAgent(config: OpenClawConfig): { id: string; name: string } {
+function resolveOwnershipAgent(config: KovaConfig): { id: string; name: string } {
   const list = Array.isArray(config.agents?.list)
     ? config.agents.list.filter(
         (entry): entry is AgentEntry => entry !== null && typeof entry === "object",
@@ -81,13 +81,11 @@ export default definePluginEntry({
   id: "thread-ownership",
   name: "Thread Ownership",
   description: "Slack thread claim coordination for multi-agent setups",
-  register(api: OpenClawPluginApi) {
+  register(api: KovaPluginApi) {
     const resolveCurrentState = () => {
-      const currentConfig = (api.runtime.config?.current?.() ?? api.config) as OpenClawConfig;
+      const currentConfig = (api.runtime.config?.current?.() ?? api.config) as KovaConfig;
       const livePluginCfg = resolveLivePluginConfigObject(
-        api.runtime.config?.current
-          ? () => api.runtime.config.current() as OpenClawConfig
-          : undefined,
+        api.runtime.config?.current ? () => api.runtime.config.current() as KovaConfig : undefined,
         "thread-ownership",
         isThreadOwnershipConfig(api.pluginConfig)
           ? (api.pluginConfig as Record<string, unknown>)

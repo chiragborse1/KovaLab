@@ -36,17 +36,17 @@ const writeRestartSentinel = vi.fn<(payload?: unknown) => Promise<string>>(
 );
 const writeDiagnosticStabilityBundleForFailureSync = vi.fn((_reason: string, _error: unknown) => ({
   status: "written" as const,
-  message: "wrote stability bundle: /tmp/openclaw-stability.json",
-  path: "/tmp/openclaw-stability.json",
+  message: "wrote stability bundle: /tmp/kova-stability.json",
+  path: "/tmp/kova-stability.json",
 }));
 const controlUiState = vi.hoisted(() => ({
-  root: "/tmp/openclaw-control-ui" as string | null,
+  root: "/tmp/kova-control-ui" as string | null,
 }));
 
 const { runtimeErrors, defaultRuntime, resetRuntimeCapture } = createCliRuntimeCapture();
 
 vi.mock("../../config/config.js", () => ({
-  getConfigPath: () => "/tmp/openclaw-test-missing-config.json",
+  getConfigPath: () => "/tmp/kova-test-missing-config.json",
   readBestEffortConfig: async () => configState.cfg,
   readConfigFileSnapshot: async () => configState.snapshot,
   recoverConfigFromLastKnownGood: (params: unknown) => recoverConfigFromLastKnownGood(params),
@@ -169,7 +169,7 @@ describe("gateway run option collisions", () => {
     resetRuntimeCapture();
     configState.cfg = {};
     configState.snapshot = { exists: false };
-    controlUiState.root = "/tmp/openclaw-control-ui";
+    controlUiState.root = "/tmp/kova-control-ui";
     gatewayLogMessages.length = 0;
     recoverConfigFromLastKnownGood.mockReset();
     recoverConfigFromLastKnownGood.mockResolvedValue(false);
@@ -255,17 +255,17 @@ describe("gateway run option collisions", () => {
       config: { meta: { lastTouchedVersion: "3.0.0" } },
       sourceConfig: { meta: { lastTouchedVersion: "3.0.0" } },
     };
-    const previousMarker = process.env.OPENCLAW_SERVICE_MARKER;
-    process.env.OPENCLAW_SERVICE_MARKER = "gateway";
+    const previousMarker = process.env.KOVA_SERVICE_MARKER;
+    process.env.KOVA_SERVICE_MARKER = "gateway";
     try {
       await expect(runGatewayCli(["gateway", "run", "--allow-unconfigured"])).rejects.toThrow(
         "__exit__:78",
       );
     } finally {
       if (previousMarker === undefined) {
-        delete process.env.OPENCLAW_SERVICE_MARKER;
+        delete process.env.KOVA_SERVICE_MARKER;
       } else {
-        process.env.OPENCLAW_SERVICE_MARKER = previousMarker;
+        process.env.KOVA_SERVICE_MARKER = previousMarker;
       }
     }
 
@@ -278,12 +278,12 @@ describe("gateway run option collisions", () => {
     ["--cli-backend-logs", "generic flag"],
     ["--claude-cli-logs", "deprecated alias"],
   ])("enables CLI backend log filtering via %s (%s)", async (flag) => {
-    delete process.env.OPENCLAW_CLI_BACKEND_LOG_OUTPUT;
+    delete process.env.KOVA_CLI_BACKEND_LOG_OUTPUT;
 
     await runGatewayCli(["gateway", "run", flag, "--allow-unconfigured"]);
 
     expect(setConsoleSubsystemFilter).toHaveBeenCalledWith(["agent/cli-backend"]);
-    expect(process.env.OPENCLAW_CLI_BACKEND_LOG_OUTPUT).toBe("1");
+    expect(process.env.KOVA_CLI_BACKEND_LOG_OUTPUT).toBe("1");
   });
 
   it("starts gateway when token mode has no configured token (startup bootstrap path)", async () => {
@@ -353,7 +353,7 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: false,
-      path: "/tmp/openclaw-test-missing-config.json",
+      path: "/tmp/kova-test-missing-config.json",
       config: {},
       parsed: null,
       issues: [{ path: "<root>", message: "JSON5 parse failed" }],
@@ -363,7 +363,7 @@ describe("gateway run option collisions", () => {
       configState.snapshot = {
         exists: true,
         valid: true,
-        path: "/tmp/openclaw-test-missing-config.json",
+        path: "/tmp/kova-test-missing-config.json",
         config: {
           gateway: {
             mode: "local",
@@ -406,7 +406,7 @@ describe("gateway run option collisions", () => {
       },
     });
     expect(gatewayLogMessages).toContain(
-      "gateway: restored invalid effective config from last-known-good backup: /tmp/openclaw-test-missing-config.json",
+      "gateway: restored invalid effective config from last-known-good backup: /tmp/kova-test-missing-config.json",
     );
     expect(startGatewayServer).toHaveBeenCalledWith(
       19170,
@@ -422,7 +422,7 @@ describe("gateway run option collisions", () => {
     configState.snapshot = {
       exists: true,
       valid: false,
-      path: "/tmp/openclaw-test-missing-config.json",
+      path: "/tmp/kova-test-missing-config.json",
       config: {},
       parsed: null,
       issues: [{ path: "<root>", message: "JSON5 parse failed" }],
@@ -432,7 +432,7 @@ describe("gateway run option collisions", () => {
       configState.snapshot = {
         exists: true,
         valid: true,
-        path: "/tmp/openclaw-test-missing-config.json",
+        path: "/tmp/kova-test-missing-config.json",
         config: {
           gateway: {
             mode: "local",
@@ -482,7 +482,7 @@ describe("gateway run option collisions", () => {
       gateway: {
         auth: {
           mode: "password",
-          password: { source: "env", provider: "default", id: "OPENCLAW_GATEWAY_PASSWORD" },
+          password: { source: "env", provider: "default", id: "KOVA_GATEWAY_PASSWORD" },
         },
       },
       secrets: {
@@ -510,7 +510,7 @@ describe("gateway run option collisions", () => {
 
   it("reads gateway password from --password-file", async () => {
     await withTempSecretFiles(
-      "openclaw-gateway-run-",
+      "kova-gateway-run-",
       { password: "pw_from_file\n" },
       async ({ passwordFile }) => {
         await runGatewayCli([
@@ -557,7 +557,7 @@ describe("gateway run option collisions", () => {
 
   it("rejects using both --password and --password-file", async () => {
     await withTempSecretFiles(
-      "openclaw-gateway-run-",
+      "kova-gateway-run-",
       { password: "pw_from_file\n" },
       async ({ passwordFile }) => {
         await expect(

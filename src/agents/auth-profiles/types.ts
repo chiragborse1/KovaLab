@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SecretRef } from "../../config/types.secrets.js";
 
 export type OAuthProvider = string;
@@ -29,7 +29,7 @@ export type ApiKeyCredential = {
 export type TokenCredential = {
   /**
    * Static bearer-style token (often OAuth access token / PAT).
-   * Not refreshable by OpenClaw (unlike `type: "oauth"`).
+   * Not refreshable by Kova (unlike `type: "oauth"`).
    */
   type: "token";
   provider: string;
@@ -103,7 +103,7 @@ export type AuthProfileStateStore = {
 export type AuthProfileStore = AuthProfileSecretsStore & AuthProfileState;
 
 export type AuthProfileIdRepairResult = {
-  config: OpenClawConfig;
+  config: KovaConfig;
   changes: string[];
   migrated: boolean;
   fromProfileId?: string;

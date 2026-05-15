@@ -1,7 +1,7 @@
 import {
   embeddedAgentLog,
   type EmbeddedRunAttemptParams,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "getkova/plugin-sdk/agent-harness-runtime";
 import {
   approvalRequestExplicitlyUnavailable,
   mapExecDecisionToOutcome,

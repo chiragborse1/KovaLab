@@ -19,9 +19,9 @@ const mocks = vi.hoisted(() => ({
   applyPluginUninstallDirectoryRemoval: vi.fn(),
   formatUninstallActionLabels: vi.fn(),
   installPluginFromNpmSpec: vi.fn(),
-  installPluginFromClawHub: vi.fn(),
-  parseClawHubPluginSpec: vi.fn(),
-  buildPreferredClawHubSpec: vi.fn(),
+  installPluginFromKovaHub: vi.fn(),
+  parseKovaHubPluginSpec: vi.fn(),
+  buildPreferredKovaHubSpec: vi.fn(),
   parseNpmPrefixSpec: vi.fn(),
   resolveOfficialExternalPluginNpmSpec: vi.fn(),
   recordPluginInstall: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock("../../plugins/toggle-config.js", () => ({
 }));
 vi.mock("../../cli/plugins-command-helpers.js", () => ({
   applySlotSelectionForPlugin: mocks.applySlotSelectionForPlugin,
-  buildPreferredClawHubSpec: mocks.buildPreferredClawHubSpec,
+  buildPreferredKovaHubSpec: mocks.buildPreferredKovaHubSpec,
   parseNpmPrefixSpec: mocks.parseNpmPrefixSpec,
 }));
 vi.mock("../../plugins/installed-plugin-index-records.js", () => ({
@@ -66,11 +66,11 @@ vi.mock("../../plugins/uninstall.js", () => ({
 vi.mock("../../plugins/install.js", () => ({
   installPluginFromNpmSpec: mocks.installPluginFromNpmSpec,
 }));
-vi.mock("../../plugins/clawhub.js", () => ({
-  installPluginFromClawHub: mocks.installPluginFromClawHub,
+vi.mock("../../plugins/kovahub.js", () => ({
+  installPluginFromKovaHub: mocks.installPluginFromKovaHub,
 }));
-vi.mock("../../infra/clawhub.js", () => ({
-  parseClawHubPluginSpec: mocks.parseClawHubPluginSpec,
+vi.mock("../../infra/kovahub.js", () => ({
+  parseKovaHubPluginSpec: mocks.parseKovaHubPluginSpec,
 }));
 vi.mock("../../plugins/official-external-plugin-catalog.js", () => ({
   resolveOfficialExternalPluginNpmSpec: mocks.resolveOfficialExternalPluginNpmSpec,
@@ -147,12 +147,12 @@ describe("plugins.status", () => {
       targetDir: "/tmp/demo",
       extensions: ["dist/index.js"],
     });
-    mocks.installPluginFromClawHub.mockResolvedValue({
+    mocks.installPluginFromKovaHub.mockResolvedValue({
       ok: false,
-      error: "not on clawhub",
+      error: "not on kovahub",
     });
-    mocks.parseClawHubPluginSpec.mockReturnValue(null);
-    mocks.buildPreferredClawHubSpec.mockReturnValue(null);
+    mocks.parseKovaHubPluginSpec.mockReturnValue(null);
+    mocks.buildPreferredKovaHubSpec.mockReturnValue(null);
     mocks.parseNpmPrefixSpec.mockReturnValue(null);
     mocks.resolveOfficialExternalPluginNpmSpec.mockReturnValue(undefined);
     mocks.recordPluginInstall.mockImplementation((config, update) => ({
@@ -190,7 +190,7 @@ describe("plugins.status", () => {
           enabled: true,
           status: "loaded",
           origin: "bundled",
-          format: "openclaw",
+          format: "kova",
           version: "2.0.0",
           channelIds: ["telegram"],
           providerIds: [],
@@ -206,7 +206,7 @@ describe("plugins.status", () => {
           enabled: false,
           status: "error",
           origin: "external",
-          format: "openclaw",
+          format: "kova",
           channelIds: [],
           providerIds: ["broken-provider"],
           toolNames: [],

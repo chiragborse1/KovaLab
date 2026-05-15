@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/testing";
+import type { KovaConfig } from "getkova/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import { registerSingleProviderPlugin } from "../../test/helpers/plugins/plugin-registration.js";
 import qwenPlugin from "./index.js";
@@ -20,7 +20,7 @@ describe("qwen provider plugin", () => {
           },
         },
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     expect(
       provider.suppressBuiltInModel?.({

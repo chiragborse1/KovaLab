@@ -1,13 +1,13 @@
-import { buildDmGroupAccountAllowlistAdapter } from "openclaw/plugin-sdk/allowlist-config-edit";
-import { createChatChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-import { buildPassiveProbedChannelStatusSummary } from "openclaw/plugin-sdk/extension-shared";
-import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
-import { sanitizeForPlainText } from "openclaw/plugin-sdk/outbound-runtime";
-import { buildOutboundBaseSessionKey, type RoutePeer } from "openclaw/plugin-sdk/routing";
+import { buildDmGroupAccountAllowlistAdapter } from "getkova/plugin-sdk/allowlist-config-edit";
+import { createChatChannelPlugin } from "getkova/plugin-sdk/channel-core";
+import { buildPassiveProbedChannelStatusSummary } from "getkova/plugin-sdk/extension-shared";
+import { createLazyRuntimeModule } from "getkova/plugin-sdk/lazy-runtime";
+import { sanitizeForPlainText } from "getkova/plugin-sdk/outbound-runtime";
+import { buildOutboundBaseSessionKey, type RoutePeer } from "getkova/plugin-sdk/routing";
 import {
   createComputedAccountStatusAdapter,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/status-helpers";
+} from "getkova/plugin-sdk/status-helpers";
 import { resolveIMessageAccount, type ResolvedIMessageAccount } from "./accounts.js";
 import {
   chunkTextForOutbound,

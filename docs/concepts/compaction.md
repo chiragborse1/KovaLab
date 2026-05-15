@@ -57,7 +57,7 @@ When `agents.defaults.compaction.keepRecentTokens` is set, manual compaction hon
 
 ## Configuration
 
-Configure compaction under `agents.defaults.compaction` in your `openclaw.json`. The most common knobs are listed below; for the full reference, see [Session management deep dive](/reference/session-management-compaction).
+Configure compaction under `agents.defaults.compaction` in your `kova.json`. The most common knobs are listed below; for the full reference, see [Session management deep dive](/reference/session-management-compaction).
 
 ### Using a different model
 

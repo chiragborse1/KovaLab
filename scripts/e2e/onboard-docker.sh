@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-onboard-e2e" OPENCLAW_ONBOARD_E2E_IMAGE)"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-onboard-e2e" KOVA_ONBOARD_E2E_IMAGE)"
 
 docker_e2e_build_or_reuse "$IMAGE_NAME" onboard
 
@@ -15,20 +15,20 @@ docker run --rm -t "$IMAGE_NAME" bash -lc '
 	  ONBOARD_FLAGS="--flow quickstart --auth-choice skip --skip-channels --skip-skills --skip-daemon --skip-ui"
 	  # tsdown may emit dist/index.js or dist/index.mjs depending on runtime/bundler.
 	  if [ -f dist/index.mjs ]; then
-	    OPENCLAW_ENTRY="dist/index.mjs"
+	    KOVA_ENTRY="dist/index.mjs"
 	  elif [ -f dist/index.js ]; then
-	    OPENCLAW_ENTRY="dist/index.js"
+	    KOVA_ENTRY="dist/index.js"
 	  else
 	    echo "Missing dist/index.(m)js (build output):"
 	    ls -la dist || true
 	    exit 1
 	  fi
-	  export OPENCLAW_ENTRY
+	  export KOVA_ENTRY
 
   # Provide a minimal trash shim to avoid noisy "missing trash" logs in containers.
-  export PATH="/tmp/openclaw-bin:$PATH"
-  mkdir -p /tmp/openclaw-bin
-  cat > /tmp/openclaw-bin/trash <<'"'"'TRASH'"'"'
+  export PATH="/tmp/kova-bin:$PATH"
+  mkdir -p /tmp/kova-bin
+  cat > /tmp/kova-bin/trash <<'"'"'TRASH'"'"'
 #!/usr/bin/env bash
 set -euo pipefail
 trash_dir="$HOME/.Trash"
@@ -43,7 +43,7 @@ for target in "$@"; do
   mv "$target" "$dest"
 done
 TRASH
-  chmod +x /tmp/openclaw-bin/trash
+  chmod +x /tmp/kova-bin/trash
 
   send() {
     local payload="$1"
@@ -112,7 +112,7 @@ TRASH
   }
 
 	  start_gateway() {
-	    node "$OPENCLAW_ENTRY" gateway --port 18789 --bind loopback --allow-unconfigured > /tmp/gateway-e2e.log 2>&1 &
+	    node "$KOVA_ENTRY" gateway --port 18789 --bind loopback --allow-unconfigured > /tmp/gateway-e2e.log 2>&1 &
 	    GATEWAY_PID="$!"
 	  }
 
@@ -166,11 +166,11 @@ TRASH
     local validate_fn="${6:-}"
 
     echo "== Wizard case: $case_name =="
-    set_isolated_openclaw_env "$home_dir"
+    set_isolated_kova_env "$home_dir"
 
-    input_fifo="$(mktemp -u "/tmp/openclaw-onboard-${case_name}.XXXXXX")"
+    input_fifo="$(mktemp -u "/tmp/kova-onboard-${case_name}.XXXXXX")"
     mkfifo "$input_fifo"
-    local log_path="/tmp/openclaw-onboard-${case_name}.log"
+    local log_path="/tmp/kova-onboard-${case_name}.log"
     WIZARD_LOG_PATH="$log_path"
     export WIZARD_LOG_PATH
     # Run under script to keep an interactive TTY for clack prompts.
@@ -213,20 +213,20 @@ TRASH
     local validate_fn="${4:-}"
 
 	    # Default onboarding command wrapper.
-	    run_wizard_cmd "$case_name" "$home_dir" "node \"$OPENCLAW_ENTRY\" onboard $ONBOARD_FLAGS" "$send_fn" true "$validate_fn"
+	    run_wizard_cmd "$case_name" "$home_dir" "node \"$KOVA_ENTRY\" onboard $ONBOARD_FLAGS" "$send_fn" true "$validate_fn"
 	  }
 
   make_home() {
-    mktemp -d "/tmp/openclaw-e2e-$1.XXXXXX"
+    mktemp -d "/tmp/kova-e2e-$1.XXXXXX"
   }
 
-  set_isolated_openclaw_env() {
+  set_isolated_kova_env() {
     local home_dir="$1"
     export HOME="$home_dir"
-    export OPENCLAW_HOME="$home_dir"
-    export OPENCLAW_STATE_DIR="$home_dir/.openclaw"
-    export OPENCLAW_CONFIG_PATH="$OPENCLAW_STATE_DIR/openclaw.json"
-    mkdir -p "$OPENCLAW_STATE_DIR"
+    export KOVA_HOME="$home_dir"
+    export KOVA_STATE_DIR="$home_dir/.kova"
+    export KOVA_CONFIG_PATH="$KOVA_STATE_DIR/kova.json"
+    mkdir -p "$KOVA_STATE_DIR"
   }
 
   assert_file() {
@@ -248,7 +248,7 @@ TRASH
   run_case_logged() {
     local label="$1"
     shift
-    local log_path="/tmp/openclaw-onboard-${label}.log"
+    local log_path="/tmp/kova-onboard-${label}.log"
     if ! "$@" >"$log_path" 2>&1; then
       cat "$log_path"
       exit 1
@@ -307,8 +307,8 @@ TRASH
   run_case_local_basic() {
     local home_dir
     home_dir="$(make_home local-basic)"
-    set_isolated_openclaw_env "$home_dir"
-    run_case_logged local-basic node "$OPENCLAW_ENTRY" onboard \
+    set_isolated_kova_env "$home_dir"
+    run_case_logged local-basic node "$KOVA_ENTRY" onboard \
 	      --non-interactive \
 	      --accept-risk \
       --flow quickstart \
@@ -320,9 +320,9 @@ TRASH
       --skip-health
 
     # Assert config + workspace scaffolding.
-    workspace_dir="$OPENCLAW_STATE_DIR/workspace"
-    config_path="$OPENCLAW_CONFIG_PATH"
-    sessions_dir="$OPENCLAW_STATE_DIR/agents/main/sessions"
+    workspace_dir="$KOVA_STATE_DIR/workspace"
+    config_path="$KOVA_CONFIG_PATH"
+    sessions_dir="$KOVA_STATE_DIR/agents/main/sessions"
 
     assert_file "$config_path"
     assert_dir "$sessions_dir"
@@ -382,16 +382,16 @@ NODE
   run_case_remote_non_interactive() {
     local home_dir
     home_dir="$(make_home remote-non-interactive)"
-    set_isolated_openclaw_env "$home_dir"
+    set_isolated_kova_env "$home_dir"
 	    # Smoke test non-interactive remote config write.
-	    run_case_logged remote-non-interactive node "$OPENCLAW_ENTRY" onboard --non-interactive --accept-risk \
+	    run_case_logged remote-non-interactive node "$KOVA_ENTRY" onboard --non-interactive --accept-risk \
 	      --mode remote \
 	      --remote-url ws://gateway.local:18789 \
       --remote-token remote-token \
       --skip-skills \
       --skip-health
 
-    config_path="$OPENCLAW_CONFIG_PATH"
+    config_path="$KOVA_CONFIG_PATH"
     assert_file "$config_path"
 
     CONFIG_PATH="$config_path" node --input-type=module - <<'"'"'NODE'"'"'
@@ -424,9 +424,9 @@ NODE
   run_case_reset() {
     local home_dir
     home_dir="$(make_home reset-config)"
-    set_isolated_openclaw_env "$home_dir"
+    set_isolated_kova_env "$home_dir"
     # Seed a remote config to exercise reset path.
-	    cat > "$OPENCLAW_CONFIG_PATH" <<'"'"'JSON'"'"'
+	    cat > "$KOVA_CONFIG_PATH" <<'"'"'JSON'"'"'
 {
   "meta": {},
   "agents": { "defaults": { "workspace": "/root/old" } },
@@ -437,7 +437,7 @@ NODE
 }
 JSON
 
-	    run_case_logged reset-config node "$OPENCLAW_ENTRY" onboard \
+	    run_case_logged reset-config node "$KOVA_ENTRY" onboard \
 	      --non-interactive \
 	      --accept-risk \
       --flow quickstart \
@@ -449,7 +449,7 @@ JSON
       --skip-ui \
       --skip-health
 
-    config_path="$OPENCLAW_CONFIG_PATH"
+    config_path="$KOVA_CONFIG_PATH"
     assert_file "$config_path"
 
     CONFIG_PATH="$config_path" node --input-type=module - <<'"'"'NODE'"'"'
@@ -480,9 +480,9 @@ NODE
 	    local home_dir
 	    home_dir="$(make_home channels)"
 	    # Channels-only configure flow.
-	    run_wizard_cmd channels "$home_dir" "node \"$OPENCLAW_ENTRY\" configure --section channels" send_channels_flow
+	    run_wizard_cmd channels "$home_dir" "node \"$KOVA_ENTRY\" configure --section channels" send_channels_flow
 
-    config_path="$OPENCLAW_CONFIG_PATH"
+    config_path="$KOVA_CONFIG_PATH"
     assert_file "$config_path"
 
     CONFIG_PATH="$config_path" node --input-type=module - <<'"'"'NODE'"'"'
@@ -519,9 +519,9 @@ NODE
   run_case_skills() {
     local home_dir
     home_dir="$(make_home skills)"
-    set_isolated_openclaw_env "$home_dir"
+    set_isolated_kova_env "$home_dir"
     # Seed skills config to ensure it survives the wizard.
-	    cat > "$OPENCLAW_CONFIG_PATH" <<'"'"'JSON'"'"'
+	    cat > "$KOVA_CONFIG_PATH" <<'"'"'JSON'"'"'
 {
   "meta": {},
   "skills": {
@@ -531,9 +531,9 @@ NODE
 }
 JSON
 
-	    run_wizard_cmd skills "$home_dir" "node \"$OPENCLAW_ENTRY\" configure --section skills" send_skills_flow
+	    run_wizard_cmd skills "$home_dir" "node \"$KOVA_ENTRY\" configure --section skills" send_skills_flow
 
-    config_path="$OPENCLAW_CONFIG_PATH"
+    config_path="$KOVA_CONFIG_PATH"
     assert_file "$config_path"
 
     CONFIG_PATH="$config_path" node --input-type=module - <<'"'"'NODE'"'"'

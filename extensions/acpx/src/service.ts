@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import { inspect } from "node:util";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
 import type {
   AcpRuntime,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  KovaPluginService,
+  KovaPluginServiceContext,
   PluginLogger,
 } from "../runtime-api.js";
 import { registerAcpRuntimeBackend, unregisterAcpRuntimeBackend } from "../runtime-api.js";
@@ -31,7 +31,7 @@ type AcpxRuntimeLike = AcpRuntime & {
   }>;
 };
 
-const ENABLE_STARTUP_PROBE_ENV = "OPENCLAW_ACPX_RUNTIME_STARTUP_PROBE";
+const ENABLE_STARTUP_PROBE_ENV = "KOVA_ACPX_RUNTIME_STARTUP_PROBE";
 
 type AcpxRuntimeFactoryParams = {
   pluginConfig: ResolvedAcpxPluginConfig;
@@ -120,7 +120,7 @@ function normalizeProbeAgent(value: string | undefined): string | undefined {
   return normalized ? normalized : undefined;
 }
 
-function resolveAllowedAgentsProbeAgent(ctx: OpenClawPluginServiceContext): string | undefined {
+function resolveAllowedAgentsProbeAgent(ctx: KovaPluginServiceContext): string | undefined {
   for (const agent of ctx.config.acp?.allowedAgents ?? []) {
     const normalized = normalizeProbeAgent(agent);
     if (normalized) {
@@ -136,15 +136,15 @@ function shouldRunStartupProbe(env: NodeJS.ProcessEnv = process.env): boolean {
 
 export function createAcpxRuntimeService(
   params: CreateAcpxRuntimeServiceParams = {},
-): OpenClawPluginService {
+): KovaPluginService {
   let runtime: AcpxRuntimeLike | null = null;
   let lifecycleRevision = 0;
 
   return {
     id: "acpx-runtime",
-    async start(ctx: OpenClawPluginServiceContext): Promise<void> {
-      if (process.env.OPENCLAW_SKIP_ACPX_RUNTIME === "1") {
-        ctx.logger.info("skipping embedded acpx runtime backend (OPENCLAW_SKIP_ACPX_RUNTIME=1)");
+    async start(ctx: KovaPluginServiceContext): Promise<void> {
+      if (process.env.KOVA_SKIP_ACPX_RUNTIME === "1") {
+        ctx.logger.info("skipping embedded acpx runtime backend (KOVA_SKIP_ACPX_RUNTIME=1)");
         return;
       }
 
@@ -180,7 +180,7 @@ export function createAcpxRuntimeService(
       });
       ctx.logger.info(`embedded ACP runtime online (cwd: ${pluginConfig.cwd})`);
 
-      if (!shouldRunStartupProbe() || process.env.OPENCLAW_SKIP_ACPX_RUNTIME_PROBE === "1") {
+      if (!shouldRunStartupProbe() || process.env.KOVA_SKIP_ACPX_RUNTIME_PROBE === "1") {
         return;
       }
 
@@ -211,7 +211,7 @@ export function createAcpxRuntimeService(
         }
       })();
     },
-    async stop(_ctx: OpenClawPluginServiceContext): Promise<void> {
+    async stop(_ctx: KovaPluginServiceContext): Promise<void> {
       lifecycleRevision += 1;
       unregisterAcpRuntimeBackend(ACPX_BACKEND_ID);
       runtime = null;

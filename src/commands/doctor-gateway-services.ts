@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { replaceConfigFile, type OpenClawConfig } from "../config/config.js";
+import { replaceConfigFile, type KovaConfig } from "../config/config.js";
 import { resolveGatewayPort, resolveIsNixMode } from "../config/paths.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";
 import {
@@ -11,7 +11,7 @@ import {
   renderGatewayServiceCleanupHints,
   type ExtraGatewayService,
 } from "../daemon/inspect.js";
-import { OPENCLAW_WRAPPER_ENV_KEY } from "../daemon/program-args.js";
+import { KOVA_WRAPPER_ENV_KEY } from "../daemon/program-args.js";
 import { isNodeRuntime } from "../daemon/runtime-binary.js";
 import {
   isVersionManagedNodePath,
@@ -94,24 +94,24 @@ function resolveRepairNodePath(params: {
 function buildGatewayServiceRepairEnv(
   command: GatewayServiceCommandConfig | null,
 ): NodeJS.ProcessEnv {
-  const wrapperPath = command?.environment?.[OPENCLAW_WRAPPER_ENV_KEY]?.trim();
-  if (!wrapperPath || Object.hasOwn(process.env, OPENCLAW_WRAPPER_ENV_KEY)) {
+  const wrapperPath = command?.environment?.[KOVA_WRAPPER_ENV_KEY]?.trim();
+  if (!wrapperPath || Object.hasOwn(process.env, KOVA_WRAPPER_ENV_KEY)) {
     return process.env;
   }
   return {
     ...process.env,
-    [OPENCLAW_WRAPPER_ENV_KEY]: wrapperPath,
+    [KOVA_WRAPPER_ENV_KEY]: wrapperPath,
   };
 }
 
 function resolveGatewayServiceWrapperPath(
   command: GatewayServiceCommandConfig | null,
 ): string | null {
-  return normalizeOptionalString(command?.environment?.[OPENCLAW_WRAPPER_ENV_KEY]) ?? null;
+  return normalizeOptionalString(command?.environment?.[KOVA_WRAPPER_ENV_KEY]) ?? null;
 }
 
 async function buildExpectedGatewayServicePlan(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   command: GatewayServiceCommandConfig;
   serviceInstallEnv: NodeJS.ProcessEnv;
   port: number;
@@ -130,7 +130,7 @@ async function buildExpectedGatewayServicePlan(params: {
 }
 
 async function buildGatewayServiceAuditInputs(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   command: GatewayServiceCommandConfig;
   serviceInstallEnv: NodeJS.ProcessEnv;
 }) {
@@ -286,7 +286,7 @@ async function cleanupLegacyLinuxUserServices(
 }
 
 export async function maybeRepairGatewayServiceConfig(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   mode: "local" | "remote",
   runtime: RuntimeEnv,
   prompter: DoctorPrompter,
@@ -314,7 +314,7 @@ export async function maybeRepairGatewayServiceConfig(
   const serviceInstallEnv = buildGatewayServiceRepairEnv(command);
   const serviceWrapperPath = resolveGatewayServiceWrapperPath(command);
   if (serviceWrapperPath) {
-    note(`Gateway service invokes ${OPENCLAW_WRAPPER_ENV_KEY}: ${serviceWrapperPath}`, "Gateway");
+    note(`Gateway service invokes ${KOVA_WRAPPER_ENV_KEY}: ${serviceWrapperPath}`, "Gateway");
   }
 
   const tokenRefConfigured = Boolean(
@@ -348,7 +348,7 @@ export async function maybeRepairGatewayServiceConfig(
     audit.issues.push({
       code: SERVICE_AUDIT_CODES.gatewayTokenMismatch,
       message:
-        "Gateway service OPENCLAW_GATEWAY_TOKEN should be unset when gateway.auth.token is SecretRef-managed",
+        "Gateway service KOVA_GATEWAY_TOKEN should be unset when gateway.auth.token is SecretRef-managed",
       detail: "service token is stale",
       level: "recommended",
     });
@@ -467,7 +467,7 @@ export async function maybeRepairGatewayServiceConfig(
     !configuredGatewayToken &&
     gatewayTokenForRepair
   ) {
-    const nextCfg: OpenClawConfig = {
+    const nextCfg: KovaConfig = {
       ...cfg,
       gateway: {
         ...cfg.gateway,

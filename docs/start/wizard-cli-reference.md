@@ -29,7 +29,7 @@ It does not install or modify anything on the remote host.
 
 <Steps>
   <Step title="Existing config detection">
-    - If `~/.openclaw/openclaw.json` exists, choose Keep, Modify, or Reset.
+    - If `~/.chiragborse1/KovaLab.json` exists, choose Keep, Modify, or Reset.
     - Re-running the wizard does not wipe anything unless you explicitly choose Reset (or pass `--reset`).
     - CLI `--reset` defaults to `config+creds+sessions`; use `--reset-scope full` to also remove workspace.
     - If config is invalid or contains legacy keys, the wizard stops and asks you to run `kova doctor` before continuing.
@@ -42,7 +42,7 @@ It does not install or modify anything on the remote host.
     - Full option matrix is in [Auth and model options](#auth-and-model-options).
   </Step>
   <Step title="Workspace">
-    - Default `~/.openclaw/workspace` (configurable).
+    - Default `~/.kova/workspace` (configurable).
     - Seeds workspace files needed for first-run bootstrap ritual.
     - Workspace layout: [Agent workspace](/concepts/agent-workspace).
   </Step>
@@ -222,8 +222,8 @@ Model behavior:
 
 Credential and profile paths:
 
-- Auth profiles (API keys + OAuth): `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`
-- Legacy OAuth import: `~/.openclaw/credentials/oauth.json`
+- Auth profiles (API keys + OAuth): `~/.kova/agents/<agentId>/agent/auth-profiles.json`
+- Legacy OAuth import: `~/.kova/credentials/oauth.json`
 
 Credential storage mode:
 
@@ -250,14 +250,14 @@ Credential storage mode:
 <Note>
 Headless and server tip: complete OAuth on a machine with a browser, then copy
 that agent's `auth-profiles.json` (for example
-`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`, or the matching
-`$OPENCLAW_STATE_DIR/...` path) to the gateway host. `credentials/oauth.json`
+`~/.kova/agents/<agentId>/agent/auth-profiles.json`, or the matching
+`$KOVA_STATE_DIR/...` path) to the gateway host. `credentials/oauth.json`
 is only a legacy import source.
 </Note>
 
 ## Outputs and internals
 
-Typical fields in `~/.openclaw/openclaw.json`:
+Typical fields in `~/.chiragborse1/KovaLab.json`:
 
 - `agents.defaults.workspace`
 - `agents.defaults.skipBootstrap` when `--skip-bootstrap` is passed
@@ -278,8 +278,8 @@ Typical fields in `~/.openclaw/openclaw.json`:
 
 `kova agents add` writes `agents.list[]` and optional `bindings`.
 
-WhatsApp credentials go under `~/.openclaw/credentials/whatsapp/<accountId>/`.
-Sessions are stored under `~/.openclaw/agents/<agentId>/sessions/`.
+WhatsApp credentials go under `~/.kova/credentials/whatsapp/<accountId>/`.
+Sessions are stored under `~/.kova/agents/<agentId>/sessions/`.
 
 <Note>
 Some channels are delivered as plugins. When selected during setup, the wizard
@@ -298,7 +298,7 @@ Clients (macOS app and Control UI) can render steps without re-implementing onbo
 Signal setup behavior:
 
 - Downloads the appropriate release asset
-- Stores it under `~/.openclaw/tools/signal-cli/<version>/`
+- Stores it under `~/.kova/tools/signal-cli/<version>/`
 - Writes `channels.signal.cliPath` in config
 - JVM builds require Java 21
 - Native builds are used when available

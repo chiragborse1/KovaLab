@@ -1,10 +1,10 @@
-import { formatReasoningMessage } from "openclaw/plugin-sdk/agent-runtime";
-import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
-import { findCodeRegions, isInsideCode } from "openclaw/plugin-sdk/text-runtime";
+import { formatReasoningMessage } from "getkova/plugin-sdk/agent-runtime";
+import type { ReplyPayload } from "getkova/plugin-sdk/reply-runtime";
+import { findCodeRegions, isInsideCode } from "getkova/plugin-sdk/text-runtime";
 import {
   normalizeLowercaseStringOrEmpty,
   stripReasoningTagsFromText,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 
 const REASONING_MESSAGE_PREFIX = "Reasoning:\n";
 const REASONING_TAG_PREFIXES = [

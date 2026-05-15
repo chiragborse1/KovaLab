@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 
 const validationMocks = vi.hoisted(() => ({
   validateConfigObjectWithPlugins: vi.fn(),
@@ -45,7 +45,7 @@ describe("doctor invalid plugin config repair", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(result.changes).toEqual([
       "- plugins.entries: quarantined 1 invalid plugin config (community-feedback)",
@@ -83,7 +83,7 @@ describe("doctor invalid plugin config repair", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(result.config.plugins?.entries?.["pack/one"]).toEqual({
       enabled: false,
@@ -113,7 +113,7 @@ describe("doctor invalid plugin config repair", () => {
           },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(result.changes).toEqual([
       "- plugins.entries: quarantined 1 invalid plugin config (community-feedback)",
@@ -141,7 +141,7 @@ describe("doctor invalid plugin config repair", () => {
       gateway: {
         mode: "invalid",
       },
-    } as unknown as OpenClawConfig;
+    } as unknown as KovaConfig;
 
     expect(maybeRepairInvalidPluginConfig(cfg)).toEqual({ config: cfg, changes: [] });
   });

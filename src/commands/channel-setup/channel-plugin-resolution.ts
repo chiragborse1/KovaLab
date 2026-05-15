@@ -7,7 +7,7 @@ import {
 import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
 import type { ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { normalizePluginsConfig, resolveEnableState } from "../../plugins/config-state.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
@@ -24,7 +24,7 @@ type ChannelPluginSnapshot = {
 };
 
 type ResolveInstallableChannelPluginResult = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelId?: ChannelId;
   plugin?: ChannelPlugin;
   catalogEntry?: ChannelPluginCatalogEntry;
@@ -32,7 +32,7 @@ type ResolveInstallableChannelPluginResult = {
   pluginInstalled: boolean;
 };
 
-function resolveWorkspaceDir(cfg: OpenClawConfig) {
+function resolveWorkspaceDir(cfg: KovaConfig) {
   return resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
 }
 
@@ -50,7 +50,7 @@ function resolveResolvedChannelId(params: {
   return normalizeChannelId(params.catalogEntry.id) ?? (params.catalogEntry.id as ChannelId);
 }
 
-export function resolveCatalogChannelEntry(raw: string, cfg: OpenClawConfig | null) {
+export function resolveCatalogChannelEntry(raw: string, cfg: KovaConfig | null) {
   const trimmed = normalizeOptionalLowercaseString(raw);
   if (!trimmed) {
     return undefined;
@@ -78,7 +78,7 @@ function findScopedChannelPlugin(
 
 function isTrustedWorkspaceChannelCatalogEntry(
   entry: ChannelPluginCatalogEntry | undefined,
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
 ): boolean {
   if (entry?.origin !== "workspace") {
     return true;
@@ -111,7 +111,7 @@ function isTrustedWorkspaceChannelCatalogEntry(
 function resolveTrustedCatalogEntry(params: {
   rawChannel?: string | null;
   channelId?: ChannelId;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   workspaceDir?: string;
   catalogEntry?: ChannelPluginCatalogEntry;
 }): ChannelPluginCatalogEntry | undefined {
@@ -145,7 +145,7 @@ function resolveTrustedCatalogEntry(params: {
 }
 
 function loadScopedChannelPlugin(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   runtime: RuntimeEnv;
   channelId: ChannelId;
   pluginId?: string;
@@ -162,7 +162,7 @@ function loadScopedChannelPlugin(params: {
 }
 
 export async function resolveInstallableChannelPlugin(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   runtime: RuntimeEnv;
   rawChannel?: string | null;
   channelId?: ChannelId;

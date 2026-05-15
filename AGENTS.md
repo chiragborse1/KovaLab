@@ -4,7 +4,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 
 ## Start
 
-- Repo: `https://github.com/openclaw/openclaw`
+- Repo: `https://github.com/chiragborse1/KovaLab`
 - Replies: repo-root refs only: `extensions/telegram/src/index.ts:80`. No absolute paths, no `~/`.
 - Run docs list first: `pnpm docs:list` if available; read relevant docs only.
 - High-confidence answers only when fixing/triaging: verify source, tests, shipped/current behavior, and dependency contracts before deciding.
@@ -19,13 +19,13 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 ## Map
 
 - Core TS: `src/`, `ui/`, `packages/`; plugins: `extensions/`; SDK: `src/plugin-sdk/*`; channels: `src/channels/*`; loader: `src/plugins/*`; protocol: `src/gateway/protocol/*`; docs/apps: `docs/`, `apps/`, `Swabble/`.
-- Installers: sibling `../openclaw.ai`.
+- Installers: sibling `../kova.ai`.
 - Scoped guides exist in: `extensions/`, `src/{plugin-sdk,channels,plugins,gateway,gateway/protocol,agents}/`, `test/helpers*/`, `docs/`, `ui/`, `scripts/`.
 
 ## Architecture
 
 - Core stays extension-agnostic. No bundled ids in core when manifest/registry/capability contracts work.
-- Extensions cross into core only via `openclaw/plugin-sdk/*`, manifest metadata, injected runtime helpers, documented barrels (`api.ts`, `runtime-api.ts`).
+- Extensions cross into core only via `getkova/plugin-sdk/*`, manifest metadata, injected runtime helpers, documented barrels (`api.ts`, `runtime-api.ts`).
 - Extension prod code: no core `src/**`, `src/plugin-sdk-internal/**`, other extension `src/**`, or relative outside package.
 - Core/tests: no deep plugin internals (`extensions/*/src/**`, `onboard.js`). Use `api.ts`, SDK facade, generic contracts.
 - Extension-owned behavior stays extension-owned: repair, detection, onboarding, auth/provider defaults, provider tools/settings.
@@ -44,27 +44,27 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 
 - Runtime: Node 22+. Keep Node + Bun paths working.
 - Install: `pnpm install` (keep Bun lock/patches aligned if touched).
-- CLI: `pnpm openclaw ...` or `pnpm dev`; build: `pnpm build`.
+- CLI: `pnpm kova ...` or `pnpm dev`; build: `pnpm build`.
 - Smart gate: `pnpm check:changed`; explain `pnpm changed:lanes --json`; staged preview `pnpm check:changed --staged`.
 - Sparse worktrees: `pnpm check:changed` is sparse-safe and may skip sparse-missing typecheck projects; do not expand sparse checkout just to satisfy changed-gate tsgo. Direct `pnpm tsgo*` remains strict; use a fuller worktree when you need direct typecheck proof.
 - Prod sweep: `pnpm check`; tests: `pnpm test`, `pnpm test:changed`, `pnpm test:serial`, `pnpm test:coverage`.
 - Extension tests: `pnpm test:extensions`, `pnpm test extensions`, `pnpm test extensions/<id>`.
 - Targeted tests: `pnpm test <path-or-filter> [vitest args...]`; never raw `vitest`.
-- Vitest flags only; no Jest flags like `--runInBand`. For serial runs use `pnpm test:serial` or `OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test ...`.
+- Vitest flags only; no Jest flags like `--runInBand`. For serial runs use `pnpm test:serial` or `KOVA_VITEST_MAX_WORKERS=1 pnpm test ...`.
 - Typecheck: `tsgo` lanes only (`pnpm tsgo*`, `pnpm check:test-types`); do not add `tsc --noEmit`, `typecheck`, `check:types`.
 - Formatting: use `oxfmt`, not Prettier. Prefer `pnpm format:check` / `pnpm format`; for targeted files use `pnpm exec oxfmt --check --threads=1 <files...>` or `pnpm exec oxfmt --write --threads=1 <files...>`.
 - Linting: use repo wrappers (`pnpm lint:*`, `scripts/run-oxlint.mjs`); do not invoke generic JS formatters/lints unless a repo script uses them.
-- Heavy checks: `OPENCLAW_LOCAL_CHECK=1`, mode `OPENCLAW_LOCAL_CHECK_MODE=throttled|full`; CI/shared use `OPENCLAW_LOCAL_CHECK=0`.
-- Blacksmith/Testbox is maintainer opt-in, not a repo-wide default. If Blacksmith access is available and `OPENCLAW_TESTBOX=1` is set, or a maintainer's personal AGENTS rules ask for it, use Testbox for broad, slow, Docker, live, E2E, full-suite, or CI-parity validation instead of running those heavy lanes locally. Use `OPENCLAW_LOCAL_CHECK_MODE=throttled|full` as the explicit local escape hatch.
+- Heavy checks: `KOVA_LOCAL_CHECK=1`, mode `KOVA_LOCAL_CHECK_MODE=throttled|full`; CI/shared use `KOVA_LOCAL_CHECK=0`.
+- Blacksmith/Testbox is maintainer opt-in, not a repo-wide default. If Blacksmith access is available and `KOVA_TESTBOX=1` is set, or a maintainer's personal AGENTS rules ask for it, use Testbox for broad, slow, Docker, live, E2E, full-suite, or CI-parity validation instead of running those heavy lanes locally. Use `KOVA_LOCAL_CHECK_MODE=throttled|full` as the explicit local escape hatch.
 - Testbox use: run from repo root, pre-warm early with `blacksmith testbox warmup ci-check-testbox.yml --ref main --idle-timeout 90`, reuse the returned `tbx_...` id for all `run`/`download` commands, and stop boxes you created before handoff. Timeout bins: `90` minutes default, `240` multi-hour, `720` all-day, `1440` overnight; anything above `1440` needs explicit approval and cleanup.
-- Testbox full-suite profile: `blacksmith testbox run --id <ID> "env NODE_OPTIONS=--max-old-space-size=4096 OPENCLAW_TEST_PROJECTS_PARALLEL=6 OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test"`. For installable package proof, prefer the GitHub `Package Acceptance` workflow over ad hoc Testbox commands.
+- Testbox full-suite profile: `blacksmith testbox run --id <ID> "env NODE_OPTIONS=--max-old-space-size=4096 KOVA_TEST_PROJECTS_PARALLEL=6 KOVA_VITEST_MAX_WORKERS=1 pnpm test"`. For installable package proof, prefer the GitHub `Package Acceptance` workflow over ad hoc Testbox commands.
 
 ## GitHub / CI
 
 - Triage: list first, hydrate few. Use bounded `gh --json --jq`; avoid repeated full comment scans.
 - Automatic PR/issue discovery: skip maintainer-owned items unless directly relevant. Do not comment, close, label, retitle, rebase, fix up, or land them without Peter asking.
 - PR scan/triage: no unsolicited PR comments/reviews. Report in chat only unless explicitly asked, or a close/duplicate action needs a reason comment.
-- Search/dedupe: prefer `gh search issues 'repo:openclaw/openclaw is:open <terms>' --json number,title,state,updatedAt --limit 20`.
+- Search/dedupe: prefer `gh search issues 'repo:chiragborse1/KovaLab is:open <terms>' --json number,title,state,updatedAt --limit 20`.
 - GitHub search boolean text is fussy. If `OR` queries return empty, split exact terms and search title/body/comments separately before concluding no hits.
 - PR shortlist: `gh pr list ...`; then `gh pr view <n> --json number,title,body,closingIssuesReferences,files,statusCheckRollup,reviewDecision`.
 - After landing PR: search duplicate open issues/PRs. Before closing: comment why + canonical link.
@@ -76,7 +76,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Wait matrix:
   - never: `Auto response`, `Labeler`, `Docs Sync Publish Repo`, `Docs Agent`, `Test Performance Agent`, `Stale`.
   - conditional: `CI` exact SHA only; `Docs` only docs task/no local docs proof; `Workflow Sanity` only workflow/composite/CI-policy edits; `Plugin NPM Release` only plugin package/release metadata.
-  - release/manual only: `Docker Release`, `OpenClaw NPM Release`, `macOS Release`, `OpenClaw Release Checks`, `Cross-OS Release Checks`, `NPM Telegram Beta E2E`.
+  - release/manual only: `Docker Release`, `Kova NPM Release`, `macOS Release`, `Kova Release Checks`, `Cross-OS Release Checks`, `NPM Telegram Beta E2E`.
   - explicit/surface only: `QA-Lab - All Lanes`, `Scheduled Live And E2E`, `Install Smoke`, `CodeQL`, `Sandbox Common Smoke`, `Parity gate`, `Blacksmith Testbox`, `Control UI Locale Refresh`.
 - `/landpr`: do not idle on `auto-response` or `check-docs`. Treat docs as local proof unless `check-docs` already failed with actionable relevant error.
 - Poll 30-60s. Fetch jobs/logs/artifacts only after failure/completion or concrete need.
@@ -117,7 +117,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Classes: no prototype mixins/mutations. Prefer inheritance/composition. Tests prefer per-instance stubs.
 - Comments: brief, only non-obvious logic.
 - Split files around ~700 LOC when clarity/testability improves.
-- Naming: **OpenClaw** product/docs; `openclaw` CLI/package/path/config.
+- Naming: **Kova** product/docs; `kova` CLI/package/path/config.
 - English: American spelling.
 
 ## Tests
@@ -128,12 +128,12 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Hot tests: avoid per-test `vi.resetModules()` + heavy imports. Measure with `pnpm test:perf:imports <file>` / `pnpm test:perf:hotspots --limit N`.
 - Seam depth: pure helper/contract unit tests; one integration smoke per boundary.
 - Mock expensive seams directly: scanners, manifests, registries, fs crawls, provider SDKs, network/process launch.
-- Prefer injection; if module mocking, mock narrow local `*.runtime.ts`, not broad barrels or `openclaw/plugin-sdk/*`.
+- Prefer injection; if module mocking, mock narrow local `*.runtime.ts`, not broad barrels or `getkova/plugin-sdk/*`.
 - Share fixtures/builders; delete duplicate assertions; assert behavior that can regress here.
 - Do not edit baseline/inventory/ignore/snapshot/expected-failure files to silence checks without explicit approval.
-- Do not run multiple independent `pnpm test`/Vitest commands concurrently in the same worktree. They can race on `node_modules/.experimental-vitest-cache` and fail with `ENOTEMPTY`. Use one grouped `pnpm test ...` invocation, run targeted lanes sequentially, or set distinct `OPENCLAW_VITEST_FS_MODULE_CACHE_PATH` values when true parallel Vitest processes are needed.
-- Test workers max 16. Memory pressure: `OPENCLAW_VITEST_MAX_WORKERS=1 pnpm test`.
-- Live: `OPENCLAW_LIVE_TEST=1 pnpm test:live`; verbose `OPENCLAW_LIVE_TEST_QUIET=0`.
+- Do not run multiple independent `pnpm test`/Vitest commands concurrently in the same worktree. They can race on `node_modules/.experimental-vitest-cache` and fail with `ENOTEMPTY`. Use one grouped `pnpm test ...` invocation, run targeted lanes sequentially, or set distinct `KOVA_VITEST_FS_MODULE_CACHE_PATH` values when true parallel Vitest processes are needed.
+- Test workers max 16. Memory pressure: `KOVA_VITEST_MAX_WORKERS=1 pnpm test`.
+- Live: `KOVA_LIVE_TEST=1 pnpm test:live`; verbose `KOVA_LIVE_TEST_QUIET=0`.
 - Guide: `docs/help/testing.md`.
 
 ## Docs / Changelog
@@ -154,17 +154,17 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - User says `commit`: your changes only. `commit all`: all changes in grouped chunks. `push`: may `git pull --rebase` first.
 - Do not delete/rename unexpected files; ask if blocking, else ignore.
 - Bulk PR close/reopen >5: ask with count/scope.
-- PR/issue workflows: `$openclaw-pr-maintainer`. `/landpr`: `~/.codex/prompts/landpr.md`.
+- PR/issue workflows: `$kova-pr-maintainer`. `/landpr`: `~/.codex/prompts/landpr.md`.
 
 ## Security / Release
 
 - Never commit real phone numbers, videos, credentials, live config.
-- Secrets: channel/provider creds in `~/.openclaw/credentials/`; model auth profiles in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+- Secrets: channel/provider creds in `~/.kova/credentials/`; model auth profiles in `~/.kova/agents/<agentId>/agent/auth-profiles.json`.
 - Env keys: check `~/.profile`.
 - Dependency patches/overrides/vendor changes need explicit approval. `pnpm.patchedDependencies` exact versions only.
 - Carbon pins owner-only: do not change `@buape/carbon` unless Shadow (`@thewilloftheshadow`, verified by `gh`) asks.
-- Releases/publish/version bumps need explicit approval. Release docs: `docs/reference/RELEASING.md`; use `$openclaw-release-maintainer`.
-- GHSA/advisories: `$openclaw-ghsa-maintainer`.
+- Releases/publish/version bumps need explicit approval. Release docs: `docs/reference/RELEASING.md`; use `$kova-release-maintainer`.
+- GHSA/advisories: `$kova-ghsa-maintainer`.
 - Beta tag/version match: `vYYYY.M.D-beta.N` -> npm `YYYY.M.D-beta.N --tag beta`.
 
 ## Apps / Platform
@@ -172,15 +172,15 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
 - Before simulator/emulator testing, check real iOS/Android devices.
 - "restart iOS/Android apps" = rebuild/reinstall/relaunch, not kill/launch.
 - SwiftUI: Observation (`@Observable`, `@Bindable`) over new `ObservableObject`.
-- Mac gateway: use app or `openclaw gateway restart/status --deep`; no ad-hoc tmux gateway. Logs: `./scripts/clawlog.sh`.
+- Mac gateway: use app or `kova gateway restart/status --deep`; no ad-hoc tmux gateway. Logs: `./scripts/kovalog.sh`.
 - Version bump touches: `package.json`, `apps/android/app/build.gradle.kts`, `apps/ios/version.json` + `pnpm ios:version:sync`, macOS `Info.plist`, `docs/install/updating.md`. Appcast only for Sparkle release.
-- Mobile LAN pairing: plaintext `ws://` loopback-only. Private-network `ws://` needs `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1`; Tailscale/public use `wss://` or tunnel.
+- Mobile LAN pairing: plaintext `ws://` loopback-only. Private-network `ws://` needs `KOVA_ALLOW_INSECURE_PRIVATE_WS=1`; Tailscale/public use `wss://` or tunnel.
 - A2UI hash `src/canvas-host/a2ui/.bundle.hash`: generated; ignore unless running `pnpm canvas:a2ui:bundle`; commit separately.
 
 ## Ops / Footguns
 
-- Remote install docs: `docs/install/{exe-dev,fly,hetzner}.md`. Parallels smoke: `$openclaw-parallels-smoke`; Discord roundtrip: `parallels-discord-roundtrip`.
-- Rebrand/migration/config warnings: run `openclaw doctor`.
+- Remote install docs: `docs/install/{exe-dev,fly,hetzner}.md`. Parallels smoke: `$kova-parallels-smoke`; Discord roundtrip: `parallels-discord-roundtrip`.
+- Rebrand/migration/config warnings: run `kova doctor`.
 - Never edit `node_modules`.
 - Local-only `.agents` ignores: `.git/info/exclude`, not repo `.gitignore`.
 - CLI progress: `src/cli/progress.ts`; status tables: `src/terminal/table.ts`.

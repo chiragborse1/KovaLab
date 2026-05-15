@@ -1,4 +1,4 @@
-import OpenClawKit
+import KovaKit
 import SwiftUI
 import WebKit
 
@@ -170,7 +170,7 @@ private final class ScreenNavigationDelegate: NSObject, WKNavigationDelegate {
 }
 
 private final class CanvasA2UIActionMessageHandler: NSObject, WKScriptMessageHandler {
-    static let messageName = "openclawCanvasA2UIAction"
+    static let messageName = "kovaCanvasA2UIAction"
     static let handlerNames = [messageName]
 
     weak var controller: ScreenController?

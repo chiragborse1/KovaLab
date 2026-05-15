@@ -14,9 +14,9 @@ export type {
   ChannelResolveKind,
   ChannelResolveResult,
   ChannelStatusAdapter,
-} from "openclaw/plugin-sdk/channel-contract";
-export type { ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
-export type { OutboundDeliveryResult } from "openclaw/plugin-sdk/channel-send-result";
-export type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-export type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-export type { WizardPrompter } from "openclaw/plugin-sdk/setup";
+} from "getkova/plugin-sdk/channel-contract";
+export type { ChannelPlugin } from "getkova/plugin-sdk/channel-core";
+export type { OutboundDeliveryResult } from "getkova/plugin-sdk/channel-send-result";
+export type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+export type { RuntimeEnv } from "getkova/plugin-sdk/runtime";
+export type { WizardPrompter } from "getkova/plugin-sdk/setup";

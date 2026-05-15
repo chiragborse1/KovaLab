@@ -1,5 +1,5 @@
-import { note } from "openclaw/plugin-sdk/browser-setup-tools";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { note } from "getkova/plugin-sdk/browser-setup-tools";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import {
   parseBrowserMajorVersion,
   readBrowserVersion,
@@ -7,7 +7,7 @@ import {
   resolveGoogleChromeExecutableForPlatform,
 } from "./browser/chrome.executables.js";
 import { resolveBrowserConfig } from "./browser/config.js";
-import type { OpenClawConfig } from "./config/config.js";
+import type { KovaConfig } from "./config/config.js";
 import { asRecord } from "./record-shared.js";
 
 const CHROME_MCP_MIN_MAJOR = 144;
@@ -26,7 +26,7 @@ type ManagedProfile = {
   name: string;
 };
 
-function collectChromeMcpProfiles(cfg: OpenClawConfig): ExistingSessionProfile[] {
+function collectChromeMcpProfiles(cfg: KovaConfig): ExistingSessionProfile[] {
   const browser = asRecord(cfg.browser);
   if (!browser) {
     return [];
@@ -57,7 +57,7 @@ function collectChromeMcpProfiles(cfg: OpenClawConfig): ExistingSessionProfile[]
   return [...profiles.values()].toSorted((a, b) => a.name.localeCompare(b.name));
 }
 
-function collectManagedProfiles(cfg: OpenClawConfig): ManagedProfile[] {
+function collectManagedProfiles(cfg: KovaConfig): ManagedProfile[] {
   const browser = asRecord(cfg.browser);
   if (!browser) {
     return [];
@@ -76,7 +76,7 @@ function collectManagedProfiles(cfg: OpenClawConfig): ManagedProfile[] {
 
   for (const [profileName, rawProfile] of Object.entries(configuredProfiles)) {
     const profile = asRecord(rawProfile);
-    const driver = normalizeOptionalString(profile?.driver) ?? "openclaw";
+    const driver = normalizeOptionalString(profile?.driver) ?? "kova";
     if (driver !== "existing-session") {
       profiles.set(profileName, { name: profileName });
     }
@@ -86,7 +86,7 @@ function collectManagedProfiles(cfg: OpenClawConfig): ManagedProfile[] {
 }
 
 export async function noteChromeMcpBrowserReadiness(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   deps?: {
     platform?: NodeJS.Platform;
     noteFn?: typeof note;

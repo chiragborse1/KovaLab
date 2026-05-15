@@ -29,7 +29,7 @@ This page lists every configuration knob for Kova memory search. For conceptual 
   </Card>
 </CardGroup>
 
-All memory search settings live under `agents.defaults.memorySearch` in `openclaw.json` unless noted otherwise.
+All memory search settings live under `agents.defaults.memorySearch` in `kova.json` unless noted otherwise.
 
 <Note>
 If you are looking for the **active memory** feature toggle and sub-agent config, that lives under `plugins.entries.active-memory` instead of `memorySearch`.
@@ -428,10 +428,10 @@ When sqlite-vec is unavailable, Kova falls back to in-process cosine similarity 
 
 ## Index storage
 
-| Key                   | Type     | Default                               | Description                                 |
-| --------------------- | -------- | ------------------------------------- | ------------------------------------------- |
-| `store.path`          | `string` | `~/.openclaw/memory/{agentId}.sqlite` | Index location (supports `{agentId}` token) |
-| `store.fts.tokenizer` | `string` | `unicode61`                           | FTS5 tokenizer (`unicode61` or `trigram`)   |
+| Key                   | Type     | Default                           | Description                                 |
+| --------------------- | -------- | --------------------------------- | ------------------------------------------- |
+| `store.path`          | `string` | `~/.kova/memory/{agentId}.sqlite` | Index location (supports `{agentId}` token) |
+| `store.fts.tokenizer` | `string` | `unicode61`                       | FTS5 tokenizer (`unicode61` or `trigram`)   |
 
 ---
 

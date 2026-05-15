@@ -5,7 +5,7 @@ import type { ChannelId } from "../channels/plugins/types.public.js";
 import { normalizeChannelId as normalizeBundledChannelId } from "../channels/registry.js";
 import { isRouteBinding, listRouteBindings } from "../config/bindings.js";
 import type { AgentRouteBinding } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   listPluginContributionIds,
   loadPluginRegistrySnapshot,
@@ -58,10 +58,10 @@ function canUpgradeBindingAccountScope(params: {
 }
 
 export function applyAgentBindings(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   bindings: AgentRouteBinding[],
 ): {
-  config: OpenClawConfig;
+  config: KovaConfig;
   added: AgentRouteBinding[];
   updated: AgentRouteBinding[];
   skipped: AgentRouteBinding[];
@@ -144,10 +144,10 @@ export function applyAgentBindings(
 }
 
 export function removeAgentBindings(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   bindings: AgentRouteBinding[],
 ): {
-  config: OpenClawConfig;
+  config: KovaConfig;
   removed: AgentRouteBinding[];
   missing: AgentRouteBinding[];
   conflicts: Array<{ binding: AgentRouteBinding; existingAgentId: string }>;
@@ -211,7 +211,7 @@ export function removeAgentBindings(
   };
 }
 
-function resolveDefaultAccountId(cfg: OpenClawConfig, provider: ChannelId): string {
+function resolveDefaultAccountId(cfg: KovaConfig, provider: ChannelId): string {
   const plugin = getBindingChannelPlugin(provider);
   if (!plugin) {
     return DEFAULT_ACCOUNT_ID;
@@ -219,7 +219,7 @@ function resolveDefaultAccountId(cfg: OpenClawConfig, provider: ChannelId): stri
   return resolveChannelDefaultAccountId({ plugin, cfg });
 }
 
-function listManifestChannelIds(config: OpenClawConfig): Set<string> {
+function listManifestChannelIds(config: KovaConfig): Set<string> {
   const index = loadPluginRegistrySnapshot({
     config,
     env: process.env,
@@ -234,10 +234,7 @@ function listManifestChannelIds(config: OpenClawConfig): Set<string> {
   );
 }
 
-function normalizeBindingChannelId(
-  raw: string | undefined,
-  config: OpenClawConfig,
-): ChannelId | null {
+function normalizeBindingChannelId(raw: string | undefined, config: KovaConfig): ChannelId | null {
   const bundled = normalizeBundledChannelId(raw);
   if (bundled) {
     return bundled;
@@ -255,7 +252,7 @@ function getBindingChannelPlugin(channel: ChannelId) {
 
 function resolveBindingAccountId(params: {
   channel: ChannelId;
-  config: OpenClawConfig;
+  config: KovaConfig;
   agentId: string;
   explicitAccountId?: string;
 }): string | undefined {
@@ -283,7 +280,7 @@ function resolveBindingAccountId(params: {
 export function buildChannelBindings(params: {
   agentId: string;
   selection: ChannelChoice[];
-  config: OpenClawConfig;
+  config: KovaConfig;
   accountIds?: Partial<Record<ChannelChoice, string>>;
 }): AgentRouteBinding[] {
   const bindings: AgentRouteBinding[] = [];
@@ -307,7 +304,7 @@ export function buildChannelBindings(params: {
 export function parseBindingSpecs(params: {
   agentId: string;
   specs?: string[];
-  config: OpenClawConfig;
+  config: KovaConfig;
 }): { bindings: AgentRouteBinding[]; errors: string[] } {
   const bindings: AgentRouteBinding[] = [];
   const errors: string[] = [];

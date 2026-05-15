@@ -2,7 +2,7 @@ import { isIP } from "node:net";
 import {
   matchesHostnameAllowlist,
   normalizeHostname,
-} from "openclaw/plugin-sdk/browser-security-runtime";
+} from "getkova/plugin-sdk/browser-security-runtime";
 import {
   isPrivateNetworkAllowedByPolicy,
   resolvePinnedHostnameWithPolicy,

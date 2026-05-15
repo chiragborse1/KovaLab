@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import KovaKit
 
 struct TalkModeGatewayConfigState {
     let activeProvider: String

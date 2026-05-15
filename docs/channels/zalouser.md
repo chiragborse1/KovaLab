@@ -20,7 +20,7 @@ packaged builds do not need a separate install.
 If you are on an older build or a custom install that excludes Zalo Personal,
 install it manually:
 
-- Install via CLI: `kova plugins install @openclaw/zalouser`
+- Install via CLI: `kova plugins install @kovaai/zalouser`
 - Or from a source checkout: `kova plugins install ./path/to/local/zalouser-plugin`
 - Details: [Plugins](/tools/plugin)
 

@@ -8,16 +8,20 @@ import {
 
 describe("gh-read helpers", () => {
   it("finds repo from gh args", () => {
-    expect(parseRepoArg(["pr", "view", "42", "-R", "openclaw/openclaw"])).toBe("openclaw/openclaw");
-    expect(parseRepoArg(["run", "list", "--repo=openclaw/docs"])).toBe("openclaw/docs");
+    expect(parseRepoArg(["pr", "view", "42", "-R", "chiragborse1/KovaLab"])).toBe(
+      "chiragborse1/KovaLab",
+    );
+    expect(parseRepoArg(["run", "list", "--repo=kova/docs"])).toBe("kova/docs");
     expect(parseRepoArg(["pr", "view", "42"])).toBeNull();
   });
 
   it("normalizes repo strings from common git formats", () => {
-    expect(normalizeRepo("openclaw/openclaw")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("github.com/openclaw/openclaw")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("https://github.com/openclaw/openclaw.git")).toBe("openclaw/openclaw");
-    expect(normalizeRepo("git@github.com:openclaw/openclaw.git")).toBe("openclaw/openclaw");
+    expect(normalizeRepo("chiragborse1/KovaLab")).toBe("chiragborse1/KovaLab");
+    expect(normalizeRepo("github.com/chiragborse1/KovaLab")).toBe("chiragborse1/KovaLab");
+    expect(normalizeRepo("https://github.com/chiragborse1/KovaLab.git")).toBe(
+      "chiragborse1/KovaLab",
+    );
+    expect(normalizeRepo("git@github.com:chiragborse1/KovaLab.git")).toBe("chiragborse1/KovaLab");
     expect(normalizeRepo("invalid")).toBeNull();
   });
 

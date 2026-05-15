@@ -24,15 +24,15 @@ afterEach(() => {
 });
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-doctor-plugin-registry", tempDirs);
+  return makeTrackedTempDir("kova-doctor-plugin-registry", tempDirs);
 }
 
 function hermeticEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   return {
-    OPENCLAW_BUNDLED_PLUGINS_DIR: undefined,
-    OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-    OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-    OPENCLAW_VERSION: "2026.4.25",
+    KOVA_BUNDLED_PLUGINS_DIR: undefined,
+    KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+    KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+    KOVA_VERSION: "2026.4.25",
     VITEST: "true",
     ...overrides,
   };
@@ -45,7 +45,7 @@ function createCandidate(rootDir: string, id = "demo"): PluginCandidate {
     "utf8",
   );
   fs.writeFileSync(
-    path.join(rootDir, "openclaw.plugin.json"),
+    path.join(rootDir, "kova.plugin.json"),
     JSON.stringify({
       id,
       name: id,

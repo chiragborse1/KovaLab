@@ -1,10 +1,6 @@
 import path from "node:path";
-import { resolveLivePluginConfigObject } from "openclaw/plugin-sdk/config-runtime";
-import {
-  resolvePreferredOpenClawTmpDir,
-  type OpenClawConfig,
-  type OpenClawPluginApi,
-} from "../api.js";
+import { resolveLivePluginConfigObject } from "getkova/plugin-sdk/config-runtime";
+import { resolvePreferredKovaTmpDir, type KovaConfig, type KovaPluginApi } from "../api.js";
 import {
   resolveDiffsPluginDefaults,
   resolveDiffsPluginSecurity,
@@ -15,21 +11,19 @@ import { DIFFS_AGENT_GUIDANCE } from "./prompt-guidance.js";
 import { DiffArtifactStore } from "./store.js";
 import { createDiffsTool } from "./tool.js";
 
-export function registerDiffsPlugin(api: OpenClawPluginApi): void {
+export function registerDiffsPlugin(api: KovaPluginApi): void {
   const store = new DiffArtifactStore({
-    rootDir: path.join(resolvePreferredOpenClawTmpDir(), "openclaw-diffs"),
+    rootDir: path.join(resolvePreferredKovaTmpDir(), "kova-diffs"),
     logger: api.logger,
   });
   const resolveCurrentPluginConfig = () =>
     resolveLivePluginConfigObject(
-      api.runtime.config?.current
-        ? () => api.runtime.config.current() as OpenClawConfig
-        : undefined,
+      api.runtime.config?.current ? () => api.runtime.config.current() as KovaConfig : undefined,
       "diffs",
       api.pluginConfig as Record<string, unknown>,
     ) ?? {};
   const resolveCurrentAccessConfig = () => {
-    const currentConfig = (api.runtime.config?.current?.() ?? api.config) as OpenClawConfig;
+    const currentConfig = (api.runtime.config?.current?.() ?? api.config) as KovaConfig;
     const pluginConfig = resolveCurrentPluginConfig();
     return {
       allowRemoteViewer: resolveDiffsPluginSecurity(pluginConfig).allowRemoteViewer,

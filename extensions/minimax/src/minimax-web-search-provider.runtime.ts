@@ -1,7 +1,7 @@
 import {
   createProviderHttpError,
   formatProviderHttpErrorMessage,
-} from "openclaw/plugin-sdk/provider-http";
+} from "getkova/plugin-sdk/provider-http";
 import {
   DEFAULT_SEARCH_COUNT,
   buildSearchCacheKey,
@@ -21,8 +21,8 @@ import {
   wrapWebContent,
   writeCachedSearchPayload,
   type SearchConfigRecord,
-} from "openclaw/plugin-sdk/provider-web-search";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/provider-web-search";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 
 const MINIMAX_SEARCH_ENDPOINT_GLOBAL = "https://api.minimax.io/v1/coding_plan/search";
 const MINIMAX_SEARCH_ENDPOINT_CN = "https://api.minimaxi.com/v1/coding_plan/search";

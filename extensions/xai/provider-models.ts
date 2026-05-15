@@ -1,10 +1,10 @@
 import type {
   ProviderResolveDynamicModelContext,
   ProviderRuntimeModel,
-} from "openclaw/plugin-sdk/plugin-entry";
-import { normalizeModelCompat } from "openclaw/plugin-sdk/provider-model-shared";
-import { applyXaiModelCompat } from "openclaw/plugin-sdk/provider-tools";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/plugin-entry";
+import { normalizeModelCompat } from "getkova/plugin-sdk/provider-model-shared";
+import { applyXaiModelCompat } from "getkova/plugin-sdk/provider-tools";
+import { normalizeOptionalLowercaseString } from "getkova/plugin-sdk/text-runtime";
 import { resolveXaiCatalogEntry, XAI_BASE_URL } from "./model-definitions.js";
 
 const XAI_MODERN_MODEL_PREFIXES = ["grok-3", "grok-4", "grok-code-fast"] as const;

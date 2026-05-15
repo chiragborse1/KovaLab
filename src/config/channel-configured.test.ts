@@ -32,7 +32,7 @@ vi.mock("../channels/plugins/persisted-auth-state.js", () => ({
   }: {
     channelId: string;
     env?: NodeJS.ProcessEnv;
-  }) => channelId === "matrix" && env?.OPENCLAW_STATE_DIR === "state-with-matrix-creds",
+  }) => channelId === "matrix" && env?.KOVA_STATE_DIR === "state-with-matrix-creds",
 }));
 
 vi.mock("../channels/plugins/bootstrap-registry.js", () => ({
@@ -57,7 +57,7 @@ describe("isChannelConfigured", () => {
     expect(
       isChannelConfigured({}, "irc", {
         IRC_HOST: "irc.example.com",
-        IRC_NICK: "openclaw",
+        IRC_NICK: "kova",
       }),
     ).toBe(true);
   });
@@ -79,8 +79,8 @@ describe("isChannelConfigured", () => {
   });
 
   it("detects persisted Matrix credentials through package metadata", () => {
-    expect(
-      isChannelConfigured({}, "matrix", { OPENCLAW_STATE_DIR: "state-with-matrix-creds" }),
-    ).toBe(true);
+    expect(isChannelConfigured({}, "matrix", { KOVA_STATE_DIR: "state-with-matrix-creds" })).toBe(
+      true,
+    );
   });
 });

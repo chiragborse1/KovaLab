@@ -15,7 +15,7 @@ import type {
 } from "../agents/auth-profiles/types.js";
 import { readClaudeCliCredentialsCached } from "../agents/cli-credentials.js";
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveExecutablePath } from "../infra/executable-path.js";
 import {
   normalizeOptionalLowercaseString,
@@ -35,7 +35,7 @@ type ClaudeCliReadableCredential =
 
 type ClaudeCliDirHealth = "present" | "missing" | "not_directory" | "unreadable" | "readonly";
 
-function usesClaudeCliModelSelection(cfg: OpenClawConfig): boolean {
+function usesClaudeCliModelSelection(cfg: KovaConfig): boolean {
   const primary = resolvePrimaryStringValue(
     cfg.agents?.defaults?.model as string | { primary?: string; fallbacks?: string[] } | undefined,
   );
@@ -47,7 +47,7 @@ function usesClaudeCliModelSelection(cfg: OpenClawConfig): boolean {
   );
 }
 
-function hasClaudeCliConfigSignals(cfg: OpenClawConfig): boolean {
+function hasClaudeCliConfigSignals(cfg: KovaConfig): boolean {
   if (usesClaudeCliModelSelection(cfg)) {
     return true;
   }
@@ -71,7 +71,7 @@ function hasClaudeCliStoreSignals(store: AuthProfileStore): boolean {
   return Object.values(store.profiles).some((profile) => profile?.provider === CLAUDE_CLI_PROVIDER);
 }
 
-function resolveClaudeCliCommand(cfg: OpenClawConfig): string {
+function resolveClaudeCliCommand(cfg: KovaConfig): string {
   const configured = cfg.agents?.defaults?.cliBackends ?? {};
   for (const [key, entry] of Object.entries(configured)) {
     if (normalizeOptionalLowercaseString(key) !== CLAUDE_CLI_PROVIDER) {
@@ -187,7 +187,7 @@ function formatProjectDirHealthLine(projectDir: string, health: ClaudeCliDirHeal
 }
 
 export function noteClaudeCliHealth(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   deps?: {
     noteFn?: typeof note;
     env?: NodeJS.ProcessEnv;

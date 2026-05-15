@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 
 const getRuntimeConfigMock = vi.fn();
 const mutateConfigFileMock = vi.fn();
@@ -47,7 +47,7 @@ describe("createRuntimeConfig", () => {
 
   it("routes deprecated writeConfigFile through replaceConfigFile with afterWrite", async () => {
     const configApi = createRuntimeConfig();
-    const nextConfig = { plugins: { entries: {} } } as OpenClawConfig;
+    const nextConfig = { plugins: { entries: {} } } as KovaConfig;
 
     await configApi.writeConfigFile(nextConfig);
 
@@ -63,7 +63,7 @@ describe("createRuntimeConfig", () => {
 
   it("preserves explicit afterWrite intent for deprecated writeConfigFile", async () => {
     const configApi = createRuntimeConfig();
-    const nextConfig = { plugins: { entries: {} } } as OpenClawConfig;
+    const nextConfig = { plugins: { entries: {} } } as KovaConfig;
 
     await configApi.writeConfigFile(nextConfig, {
       afterWrite: { mode: "none", reason: "test-controlled" },

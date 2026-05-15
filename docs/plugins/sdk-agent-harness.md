@@ -65,11 +65,11 @@ switch providers/models inside a turn.
 
 ## Register a harness
 
-**Import:** `openclaw/plugin-sdk/agent-harness`
+**Import:** `getkova/plugin-sdk/agent-harness`
 
 ```typescript
-import type { AgentHarness } from "openclaw/plugin-sdk/agent-harness";
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import type { AgentHarness } from "getkova/plugin-sdk/agent-harness";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
 
 const myHarness: AgentHarness = {
   id: "my-harness",
@@ -105,10 +105,10 @@ Kova chooses a harness after provider/model resolution:
 
 1. An existing session's recorded harness id wins, so config/env changes do not
    hot-switch that transcript to another runtime.
-2. `OPENCLAW_AGENT_RUNTIME=<id>` forces a registered harness with that id for
+2. `KOVA_AGENT_RUNTIME=<id>` forces a registered harness with that id for
    sessions that are not already pinned.
-3. `OPENCLAW_AGENT_RUNTIME=pi` forces the built-in PI harness.
-4. `OPENCLAW_AGENT_RUNTIME=auto` asks registered harnesses if they support the
+3. `KOVA_AGENT_RUNTIME=pi` forces the built-in PI harness.
+4. `KOVA_AGENT_RUNTIME=auto` asks registered harnesses if they support the
    resolved provider/model.
 5. If no registered harness matches, Kova uses PI unless PI fallback is
    disabled.
@@ -183,7 +183,7 @@ Pi tool-result transforms must use runtime-neutral middleware.
 
 Native harnesses that own their own protocol projection can use
 `classifyAgentHarnessTerminalOutcome(...)` from
-`openclaw/plugin-sdk/agent-harness-runtime` when a completed turn produced no
+`getkova/plugin-sdk/agent-harness-runtime` when a completed turn produced no
 visible assistant text. The helper returns `empty`, `reasoning-only`, or
 `planning-only` so Kova's fallback policy can decide whether to retry on a
 different model. It intentionally leaves prompt errors, in-flight turns, and
@@ -219,7 +219,7 @@ selection to fail instead of using PI. Explicit plugin runtimes such as
 `runtime: "codex"` already fail closed by default, unless `fallback: "pi"` is
 set in the same config or environment override scope. Selected plugin harness
 failures always fail hard. This does not block an explicit `runtime: "pi"` or
-`OPENCLAW_AGENT_RUNTIME=pi`.
+`KOVA_AGENT_RUNTIME=pi`.
 
 For Codex-only embedded runs:
 
@@ -278,13 +278,13 @@ Per-agent overrides use the same shape:
 }
 ```
 
-`OPENCLAW_AGENT_RUNTIME` still overrides the configured runtime. Use
-`OPENCLAW_AGENT_HARNESS_FALLBACK=none` to disable PI fallback from the
+`KOVA_AGENT_RUNTIME` still overrides the configured runtime. Use
+`KOVA_AGENT_HARNESS_FALLBACK=none` to disable PI fallback from the
 environment.
 
 ```bash
-OPENCLAW_AGENT_RUNTIME=codex \
-OPENCLAW_AGENT_HARNESS_FALLBACK=none \
+KOVA_AGENT_RUNTIME=codex \
+KOVA_AGENT_HARNESS_FALLBACK=none \
 kova gateway run
 ```
 

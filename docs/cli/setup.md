@@ -8,7 +8,7 @@ title: "Setup"
 
 # `kova setup`
 
-Initialize `~/.openclaw/openclaw.json` and the agent workspace.
+Initialize `~/.chiragborse1/KovaLab.json` and the agent workspace.
 
 Related:
 
@@ -19,7 +19,7 @@ Related:
 
 ```bash
 kova setup
-kova setup --workspace ~/.openclaw/workspace
+kova setup --workspace ~/.kova/workspace
 kova setup --wizard
 kova setup --wizard --import-from hermes --import-source ~/.hermes
 kova setup --non-interactive --mode remote --remote-url wss://gateway-host:18789 --remote-token <token>

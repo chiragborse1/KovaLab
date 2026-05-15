@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { withActivatedPluginIds } from "../../plugins/activation-context.js";
 import { resolveAgentHarnessPolicy } from "./selection.js";
 
 export async function ensureSelectedAgentHarnessPlugin(params: {
   provider: string;
   modelId: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   agentId?: string;
   sessionKey?: string;
   workspaceDir: string;

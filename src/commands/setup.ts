@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import JSON5 from "json5";
 import { z } from "zod";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
@@ -30,7 +30,7 @@ type SetupCommandDeps = {
   mkdir?: (dir: string, options: { recursive: true }) => Promise<unknown>;
   resolveSessionTranscriptsDir?: () => string | Promise<string>;
   replaceConfigFile?: (params: {
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     afterWrite: { mode: "auto" };
   }) => Promise<unknown>;
 };
@@ -82,7 +82,7 @@ async function ensureDefaultAgentWorkspace(
   return ensureAgentWorkspace(params);
 }
 
-async function writeDefaultConfigFile(config: OpenClawConfig): Promise<void> {
+async function writeDefaultConfigFile(config: KovaConfig): Promise<void> {
   const { replaceConfigFile } = await loadConfigIOModule();
   await replaceConfigFile({
     nextConfig: config,
@@ -110,12 +110,12 @@ async function resolveDefaultSessionTranscriptsDir(): Promise<string> {
 
 async function readConfigFileRaw(configPath: string): Promise<{
   exists: boolean;
-  parsed: OpenClawConfig;
+  parsed: KovaConfig;
 }> {
   try {
     const raw = await fs.readFile(configPath, "utf-8");
     const parsed = safeParseWithSchema(JsonRecordSchema, JSON5.parse(raw));
-    return { exists: true, parsed: (parsed ?? {}) as OpenClawConfig };
+    return { exists: true, parsed: (parsed ?? {}) as KovaConfig };
   } catch {
     return { exists: false, parsed: {} };
   }
@@ -140,7 +140,7 @@ export async function setupCommand(
   const workspace =
     desiredWorkspace ?? defaults.workspace ?? (await resolveDefaultAgentWorkspaceDir(deps));
 
-  const next: OpenClawConfig = {
+  const next: KovaConfig = {
     ...cfg,
     agents: {
       ...cfg.agents,

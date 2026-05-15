@@ -1,9 +1,9 @@
 import { resolveFeishuConfigReasoningDefault } from "./agent-config.js";
 import { loadSessionStore, resolveSessionStoreEntry } from "./bot-runtime-api.js";
-import type { ClawdbotConfig } from "./bot-runtime-api.js";
+import type { KovaConfig } from "./bot-runtime-api.js";
 
 export function resolveFeishuReasoningPreviewEnabled(params: {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   agentId: string;
   storePath: string;
   sessionKey?: string;

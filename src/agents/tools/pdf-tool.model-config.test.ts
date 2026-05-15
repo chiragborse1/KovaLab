@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import { resolvePdfModelConfigForTool } from "./pdf-tool.model-config.js";
 import { resetPdfToolAuthEnv } from "./pdf-tool.test-support.js";
 
 const ANTHROPIC_PDF_MODEL = "anthropic/claude-opus-4-7";
-const TEST_AGENT_DIR = "/tmp/openclaw-pdf-model-config";
+const TEST_AGENT_DIR = "/tmp/kova-pdf-model-config";
 
 vi.mock("./model-config.helpers.js", () => ({
   coerceToolModelConfig: (model?: unknown) => {
@@ -30,7 +30,7 @@ vi.mock("./model-config.helpers.js", () => ({
     }
     return false;
   },
-  resolveDefaultModelRef: (cfg?: OpenClawConfig) => {
+  resolveDefaultModelRef: (cfg?: KovaConfig) => {
     const modelCfg = cfg?.agents?.defaults?.model;
     const primary =
       (typeof modelCfg === "string"
@@ -41,10 +41,10 @@ vi.mock("./model-config.helpers.js", () => ({
   },
 }));
 
-function withDefaultModel(primary: string): OpenClawConfig {
+function withDefaultModel(primary: string): KovaConfig {
   return {
     agents: { defaults: { model: { primary } } },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 describe("resolvePdfModelConfigForTool", () => {
@@ -69,7 +69,7 @@ describe("resolvePdfModelConfigForTool", () => {
           pdfModel: { primary: ANTHROPIC_PDF_MODEL },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     expect(resolvePdfModelConfigForTool({ cfg, agentDir: TEST_AGENT_DIR })).toEqual({
       primary: ANTHROPIC_PDF_MODEL,
     });
@@ -83,7 +83,7 @@ describe("resolvePdfModelConfigForTool", () => {
           imageModel: { primary: "openai/gpt-5.4-mini" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
     expect(resolvePdfModelConfigForTool({ cfg, agentDir: TEST_AGENT_DIR })).toEqual({
       primary: "openai/gpt-5.4-mini",
     });

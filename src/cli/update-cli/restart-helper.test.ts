@@ -69,17 +69,17 @@ exit 0
   }
 
   function expectWindowsRestartWaitOrdering(content: string, port = 18789) {
-    const stateCheck = "$taskState = Get-OpenClawScheduledTaskState -TaskName $taskName";
+    const stateCheck = "$taskState = Get-KovaScheduledTaskState -TaskName $taskName";
     const runningGuard = 'if ($taskState -eq "Running")';
     const endCommand =
-      'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10';
+      'Invoke-KovaSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10';
     const skipEndLog = "kova restart skipped schtasks end";
     const pollLoop = "for ($attempt = 1; $attempt -le 10; $attempt++)";
-    const pollCall = `Get-OpenClawListenerPids -Port $port`;
+    const pollCall = `Get-KovaListenerPids -Port $port`;
     const forceKillBranch = "if ($attempt -eq 10)";
     const forceKillCommand = "Stop-Process -Id $listenerPid -Force";
     const runCommand =
-      'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/Run", "/TN", $taskName) -TimeoutSeconds 30';
+      'Invoke-KovaSchtasksWithTimeout -Arguments @("/Run", "/TN", $taskName) -TimeoutSeconds 30';
     const portAssignment = `$port = ${port}`;
     const stateCheckIndex = content.indexOf(stateCheck);
     const runningGuardIndex = content.indexOf(runningGuard, stateCheckIndex);
@@ -122,7 +122,7 @@ exit 0
     it("creates a systemd restart script on Linux", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
@@ -132,11 +132,11 @@ exit 0
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_SYSTEMD_UNIT override for systemd scripts", async () => {
+    it("uses KOVA_SYSTEMD_UNIT override for systemd scripts", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_SYSTEMD_UNIT: "custom-gateway",
+        KOVA_PROFILE: "default",
+        KOVA_SYSTEMD_UNIT: "custom-gateway",
       });
       expect(content).toContain("systemctl --user restart 'custom-gateway.service'");
       await cleanupScript(scriptPath);
@@ -147,7 +147,7 @@ exit 0
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".sh")).toBe(true);
       expect(content).toContain("#!/bin/sh");
@@ -170,7 +170,7 @@ exit 0
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
         HOME: "/Users/testuser",
       });
       expect(content).toContain("exec >>'/Users/testuser/.kova/logs/gateway-restart.log' 2>&1");
@@ -181,27 +181,27 @@ exit 0
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_STATE_DIR for the macOS update restart log", async () => {
+    it("uses KOVA_STATE_DIR for the macOS update restart log", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
         HOME: "/Users/testuser",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
+        KOVA_STATE_DIR: "/tmp/kova-state",
       });
 
       expect(content).toContain(
-        "if mkdir -p '/tmp/openclaw-state/logs' 2>/dev/null && : >>'/tmp/openclaw-state/logs/gateway-restart.log' 2>/dev/null; then",
+        "if mkdir -p '/tmp/kova-state/logs' 2>/dev/null && : >>'/tmp/kova-state/logs/gateway-restart.log' 2>/dev/null; then",
       );
-      expect(content).toContain("exec >>'/tmp/openclaw-state/logs/gateway-restart.log' 2>&1");
+      expect(content).toContain("exec >>'/tmp/kova-state/logs/gateway-restart.log' 2>&1");
       await cleanupScript(scriptPath);
     });
 
     it("returns the final macOS launchctl kickstart failure after logging cleanup", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
-      const tmpDir = await makeTempDir("openclaw-restart-helper-");
+      const tmpDir = await makeTempDir("kova-restart-helper-");
       const fakeBinDir = path.join(tmpDir, "bin");
       const stateDir = path.join(tmpDir, "state");
       await fs.mkdir(fakeBinDir, { recursive: true });
@@ -218,9 +218,9 @@ exit 0
       );
 
       const { scriptPath } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
         HOME: path.join(tmpDir, "home"),
-        OPENCLAW_STATE_DIR: stateDir,
+        KOVA_STATE_DIR: stateDir,
       });
 
       const result = await executeScript(scriptPath, {
@@ -238,7 +238,7 @@ exit 0
     it("continues the macOS restart path when log setup fails", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
-      const tmpDir = await makeTempDir("openclaw-restart-helper-");
+      const tmpDir = await makeTempDir("kova-restart-helper-");
       const fakeBinDir = path.join(tmpDir, "bin");
       const stateFile = path.join(tmpDir, "state-file");
       const markerPath = path.join(tmpDir, "launchctl-ran");
@@ -253,9 +253,9 @@ exit 0
       );
 
       const { scriptPath } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
         HOME: path.join(tmpDir, "home"),
-        OPENCLAW_STATE_DIR: stateFile,
+        KOVA_STATE_DIR: stateFile,
       });
 
       const result = await executeScript(scriptPath, {
@@ -270,16 +270,16 @@ exit 0
     it("logs custom macOS launchd labels without shell expansion", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
-      const tmpDir = await makeTempDir("openclaw-restart-helper-");
+      const tmpDir = await makeTempDir("kova-restart-helper-");
       const fakeBinDir = path.join(tmpDir, "bin");
       const stateDir = path.join(tmpDir, "state");
       await fs.mkdir(fakeBinDir, { recursive: true });
       await writeFakeLaunchctl(fakeBinDir);
 
       const { scriptPath } = await prepareAndReadScript({
-        OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.$(echo injected)",
+        KOVA_LAUNCHD_LABEL: "ai.kova.$(echo injected)",
         HOME: path.join(tmpDir, "home"),
-        OPENCLAW_STATE_DIR: stateDir,
+        KOVA_STATE_DIR: stateDir,
       });
 
       const result = await executeScript(scriptPath, {
@@ -288,19 +288,19 @@ exit 0
       const log = await fs.readFile(path.join(stateDir, "logs", "gateway-restart.log"), "utf-8");
 
       expect(result.code).toBeNull();
-      expect(log).toContain("target=ai.openclaw.$(echo injected)");
-      expect(log).not.toContain("target=ai.openclaw.injected");
+      expect(log).toContain("target=ai.kova.$(echo injected)");
+      expect(log).not.toContain("target=ai.kova.injected");
     });
 
-    it("uses OPENCLAW_LAUNCHD_LABEL override on macOS", async () => {
+    it("uses KOVA_LAUNCHD_LABEL override on macOS", async () => {
       Object.defineProperty(process, "platform", { value: "darwin" });
       process.getuid = () => 501;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_LAUNCHD_LABEL: "com.custom.openclaw",
+        KOVA_PROFILE: "default",
+        KOVA_LAUNCHD_LABEL: "com.custom.kova",
       });
-      expect(content).toContain("launchctl kickstart -k 'gui/501/com.custom.openclaw'");
+      expect(content).toContain("launchctl kickstart -k 'gui/501/com.custom.kova'");
       await cleanupScript(scriptPath);
     });
 
@@ -308,7 +308,7 @@ exit 0
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
       expect(scriptPath.endsWith(".cmd")).toBe(true);
       expect(content).toContain("@echo off");
@@ -317,8 +317,8 @@ exit 0
       expect(content).toContain('$ErrorActionPreference = "Continue"');
       expect(content).toContain("gateway-restart.log");
       expect(content).toContain("$taskName = 'Kova Gateway'");
-      expect(content).toContain("function Invoke-OpenClawSchtasksWithTimeout");
-      expect(content).toContain("function Get-OpenClawScheduledTaskState");
+      expect(content).toContain("function Invoke-KovaSchtasksWithTimeout");
+      expect(content).toContain("function Get-KovaScheduledTaskState");
       expect(content).toContain("Get-ScheduledTask -TaskName $TaskName");
       expect(content).toContain("kova restart skipped schtasks end");
       expectWindowsRestartWaitOrdering(content);
@@ -326,17 +326,17 @@ exit 0
       await cleanupScript(scriptPath);
     });
 
-    it("uses OPENCLAW_WINDOWS_TASK_NAME override on Windows", async () => {
+    it("uses KOVA_WINDOWS_TASK_NAME override on Windows", async () => {
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "default",
-        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway (custom)",
+        KOVA_PROFILE: "default",
+        KOVA_WINDOWS_TASK_NAME: "Kova Gateway (custom)",
       });
-      expect(content).toContain("$taskName = 'OpenClaw Gateway (custom)'");
-      expect(content).toContain("Get-OpenClawScheduledTaskState -TaskName $taskName");
+      expect(content).toContain("$taskName = 'Kova Gateway (custom)'");
+      expect(content).toContain("Get-KovaScheduledTaskState -TaskName $taskName");
       expect(content).toContain(
-        'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10',
+        'Invoke-KovaSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10',
       );
       expectWindowsRestartWaitOrdering(content);
       await cleanupScript(scriptPath);
@@ -348,7 +348,7 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript(
         {
-          OPENCLAW_PROFILE: "default",
+          KOVA_PROFILE: "default",
         },
         customPort,
       );
@@ -363,7 +363,7 @@ exit 0
     it("uses custom profile in service names", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "production",
+        KOVA_PROFILE: "production",
       });
       expect(content).toContain("kova-gateway-production.service");
       await cleanupScript(scriptPath);
@@ -374,7 +374,7 @@ exit 0
       process.getuid = () => 502;
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "staging",
+        KOVA_PROFILE: "staging",
       });
       expect(content).toContain("gui/502/ai.kova.staging");
       await cleanupScript(scriptPath);
@@ -384,7 +384,7 @@ exit 0
       Object.defineProperty(process, "platform", { value: "win32" });
 
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "production",
+        KOVA_PROFILE: "production",
       });
       expect(content).toContain("$taskName = 'Kova Gateway (production)'");
       expectWindowsRestartWaitOrdering(content);
@@ -404,7 +404,7 @@ exit 0
         .mockRejectedValueOnce(new Error("simulated write failure"));
 
       const scriptPath = await prepareRestartScript({
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
 
       expect(scriptPath).toBeNull();
@@ -414,7 +414,7 @@ exit 0
     it("escapes single quotes in profile names for shell scripts", async () => {
       Object.defineProperty(process, "platform", { value: "linux" });
       const { scriptPath, content } = await prepareAndReadScript({
-        OPENCLAW_PROFILE: "it's-a-test",
+        KOVA_PROFILE: "it's-a-test",
       });
       // Single quotes should be escaped with '\'' pattern
       expect(content).not.toContain("it's");
@@ -428,7 +428,7 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/testuser",
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
       // The plist path must contain the resolved home dir, not literal $HOME
       expect(content).toMatch(/[\\/]Users[\\/]testuser[\\/]Library[\\/]LaunchAgents[\\/]/);
@@ -442,7 +442,7 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/envhome",
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
       });
       expect(content).toMatch(/[\\/]Users[\\/]envhome[\\/]Library[\\/]LaunchAgents[\\/]/);
       await cleanupScript(scriptPath);
@@ -454,17 +454,17 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript({
         HOME: "/Users/testuser",
-        OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.it's-a-test",
+        KOVA_LAUNCHD_LABEL: "ai.kova.it's-a-test",
       });
       // The plist path must also shell-escape the label to prevent injection
-      expect(content).toContain("ai.openclaw.it'\\''s-a-test.plist");
+      expect(content).toContain("ai.kova.it'\\''s-a-test.plist");
       await cleanupScript(scriptPath);
     });
 
     it("rejects unsafe batch profile names on Windows", async () => {
       Object.defineProperty(process, "platform", { value: "win32" });
       const scriptPath = await prepareRestartScript({
-        OPENCLAW_PROFILE: "test&whoami",
+        KOVA_PROFILE: "test&whoami",
       });
 
       expect(scriptPath).toBeNull();

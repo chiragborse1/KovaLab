@@ -21,7 +21,7 @@ Each agent in a multi-agent setup can override the global sandbox and tool polic
 </CardGroup>
 
 <Warning>
-Auth is per-agent: each agent reads from its own `agentDir` auth store at `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`. Credentials are **not** shared between agents. Never reuse `agentDir` across agents. If you want to share creds, copy `auth-profiles.json` into the other agent's `agentDir`.
+Auth is per-agent: each agent reads from its own `agentDir` auth store at `~/.kova/agents/<agentId>/agent/auth-profiles.json`. Credentials are **not** shared between agents. Never reuse `agentDir` across agents. If you want to share creds, copy `auth-profiles.json` into the other agent's `agentDir`.
 </Warning>
 
 ---
@@ -38,13 +38,13 @@ Auth is per-agent: each agent reads from its own `agentDir` auth store at `~/.op
             "id": "main",
             "default": true,
             "name": "Personal Assistant",
-            "workspace": "~/.openclaw/workspace",
+            "workspace": "~/.kova/workspace",
             "sandbox": { "mode": "off" }
           },
           {
             "id": "family",
             "name": "Family Bot",
-            "workspace": "~/.openclaw/workspace-family",
+            "workspace": "~/.kova/workspace-family",
             "sandbox": {
               "mode": "all",
               "scope": "agent"
@@ -85,12 +85,12 @@ Auth is per-agent: each agent reads from its own `agentDir` auth store at `~/.op
         "list": [
           {
             "id": "personal",
-            "workspace": "~/.openclaw/workspace-personal",
+            "workspace": "~/.kova/workspace-personal",
             "sandbox": { "mode": "off" }
           },
           {
             "id": "work",
-            "workspace": "~/.openclaw/workspace-work",
+            "workspace": "~/.kova/workspace-work",
             "sandbox": {
               "mode": "all",
               "scope": "shared",
@@ -140,14 +140,14 @@ Auth is per-agent: each agent reads from its own `agentDir` auth store at `~/.op
         "list": [
           {
             "id": "main",
-            "workspace": "~/.openclaw/workspace",
+            "workspace": "~/.kova/workspace",
             "sandbox": {
               "mode": "off"
             }
           },
           {
             "id": "public",
-            "workspace": "~/.openclaw/workspace-public",
+            "workspace": "~/.kova/workspace-public",
             "sandbox": {
               "mode": "all",
               "scope": "agent"
@@ -245,7 +245,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
     {
       "agents": {
         "defaults": {
-          "workspace": "~/.openclaw/workspace",
+          "workspace": "~/.kova/workspace",
           "sandbox": {
             "mode": "non-main"
           }
@@ -270,7 +270,7 @@ Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restri
           {
             "id": "main",
             "default": true,
-            "workspace": "~/.openclaw/workspace",
+            "workspace": "~/.kova/workspace",
             "sandbox": { "mode": "off" }
           }
         ]
@@ -347,7 +347,7 @@ After configuring multi-agent sandbox and tools:
   </Step>
   <Step title="Verify sandbox containers">
     ```bash
-    docker ps --filter "name=openclaw-sbx-"
+    docker ps --filter "name=kova-sbx-"
     ```
   </Step>
   <Step title="Test tool restrictions">
@@ -356,7 +356,7 @@ After configuring multi-agent sandbox and tools:
   </Step>
   <Step title="Monitor logs">
     ```bash
-    tail -f "${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/logs/gateway.log" | grep -E "routing|sandbox|tools"
+    tail -f "${KOVA_STATE_DIR:-$HOME/.kova}/logs/gateway.log" | grep -E "routing|sandbox|tools"
     ```
   </Step>
 </Steps>

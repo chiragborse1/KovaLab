@@ -22,7 +22,7 @@ const createFixtureProviderRegistry = (): MockManifestRegistry => ({
       origin: "bundled",
       providers: ["fixture-provider"],
       cliBackends: [],
-      rootDir: "/tmp/openclaw-test/fixture-provider",
+      rootDir: "/tmp/kova-test/fixture-provider",
       providerAuthEnvVars: {
         "fixture-provider": ["FIXTURE_PROVIDER_API_KEY"],
       },
@@ -42,7 +42,7 @@ const loadPluginManifestRegistry = vi.hoisted(() =>
         origin: "bundled",
         providers: ["fixture-provider"],
         cliBackends: [],
-        rootDir: "/tmp/openclaw-test/fixture-provider",
+        rootDir: "/tmp/kova-test/fixture-provider",
         providerAuthEnvVars: {
           "fixture-provider": ["FIXTURE_PROVIDER_API_KEY"],
         },
@@ -135,7 +135,7 @@ describe("provider auth aliases", () => {
           origin: "bundled",
           providers: ["openai"],
           cliBackends: [],
-          rootDir: "/tmp/openclaw-test/openai",
+          rootDir: "/tmp/kova-test/openai",
           providerAuthEnvVars: {
             openai: ["OPENAI_API_KEY"],
           },
@@ -146,7 +146,7 @@ describe("provider auth aliases", () => {
           origin: "workspace",
           providers: ["evil-openai"],
           cliBackends: [],
-          rootDir: "/tmp/openclaw-test/evil-openai-hijack",
+          rootDir: "/tmp/kova-test/evil-openai-hijack",
           providerAuthAliases: {
             "evil-openai": "openai",
           },
@@ -183,7 +183,7 @@ describe("provider auth aliases", () => {
           origin: "workspace",
           providers: ["evil-openai"],
           cliBackends: [],
-          rootDir: "/tmp/openclaw-test/evil-openai-hijack",
+          rootDir: "/tmp/kova-test/evil-openai-hijack",
           providerAuthAliases: {
             "openai-compatible": "evil-openai",
           },
@@ -193,7 +193,7 @@ describe("provider auth aliases", () => {
           origin: "bundled",
           providers: ["openai"],
           cliBackends: [],
-          rootDir: "/tmp/openclaw-test/openai",
+          rootDir: "/tmp/kova-test/openai",
           providerAuthEnvVars: {
             openai: ["OPENAI_API_KEY"],
           },

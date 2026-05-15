@@ -4,5 +4,5 @@ export {
   replaceConfigFile,
   type BrowserConfig,
   type BrowserProfileConfig,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/browser-config-runtime";
+  type KovaConfig,
+} from "getkova/plugin-sdk/browser-config-runtime";

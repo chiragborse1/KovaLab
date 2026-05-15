@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import {
   applyModelAllowlist,
   applyModelFallbacksFromSelection,
@@ -130,7 +130,7 @@ describe("promptDefaultModel", () => {
     const prompter = makePrompter({ select });
 
     await promptDefaultModel({
-      config: { agents: { defaults: {} } } as OpenClawConfig,
+      config: { agents: { defaults: {} } } as KovaConfig,
       prompter,
       allowKeep: false,
       includeManual: false,
@@ -168,7 +168,7 @@ describe("promptDefaultModel", () => {
     const prompter = makePrompter({ select });
 
     await promptDefaultModel({
-      config: { agents: { defaults: {} } } as OpenClawConfig,
+      config: { agents: { defaults: {} } } as KovaConfig,
       prompter,
       allowKeep: false,
       includeManual: false,
@@ -208,7 +208,7 @@ describe("promptDefaultModel", () => {
           model: "openai/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptDefaultModel({
       config,
@@ -242,7 +242,7 @@ describe("promptDefaultModel", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptDefaultModel({
       config,
@@ -296,7 +296,7 @@ describe("promptDefaultModel", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptDefaultModel({
       config,
@@ -356,7 +356,7 @@ describe("promptDefaultModel", () => {
       return (vllm?.value ?? "") as never;
     });
     const prompter = makePrompter({ select });
-    const config = { agents: { defaults: {} } } as OpenClawConfig;
+    const config = { agents: { defaults: {} } } as KovaConfig;
 
     const result = await promptDefaultModel({
       config,
@@ -365,7 +365,7 @@ describe("promptDefaultModel", () => {
       includeManual: false,
       includeProviderPluginSetups: true,
       ignoreAllowlist: true,
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/kova-agent",
       runtime: {} as never,
     });
 
@@ -423,13 +423,13 @@ describe("promptDefaultModel", () => {
     const prompter = makePrompter({ select });
 
     await promptDefaultModel({
-      config: { agents: { defaults: {} } } as OpenClawConfig,
+      config: { agents: { defaults: {} } } as KovaConfig,
       prompter,
       allowKeep: false,
       includeManual: false,
       includeProviderPluginSetups: true,
       ignoreAllowlist: true,
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/kova-agent",
       runtime: {} as never,
     });
 
@@ -451,7 +451,7 @@ describe("promptDefaultModel", () => {
           model: "openai/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptDefaultModel({
       config,
@@ -461,7 +461,7 @@ describe("promptDefaultModel", () => {
       ignoreAllowlist: true,
       includeProviderPluginSetups: true,
       loadCatalog: false,
-      agentDir: "/tmp/openclaw-agent",
+      agentDir: "/tmp/kova-agent",
       runtime: {} as never,
     });
 
@@ -499,7 +499,7 @@ describe("promptModelAllowlist", () => {
 
     const multiselect = createSelectAllMultiselect();
     const prompter = makePrompter({ multiselect });
-    const config = { agents: { defaults: {} } } as OpenClawConfig;
+    const config = { agents: { defaults: {} } } as KovaConfig;
 
     const result = await promptModelAllowlist({
       config,
@@ -535,7 +535,7 @@ describe("promptModelAllowlist", () => {
 
     const multiselect = createSelectAllMultiselect();
     const prompter = makePrompter({ multiselect });
-    const config = { agents: { defaults: {} } } as OpenClawConfig;
+    const config = { agents: { defaults: {} } } as KovaConfig;
 
     await promptModelAllowlist({
       config,
@@ -573,7 +573,7 @@ describe("promptModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({ config, prompter });
     const call = multiselect.mock.calls[0]?.[0];
@@ -615,7 +615,7 @@ describe("promptModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({ config, prompter });
     const call = multiselect.mock.calls[0]?.[0];
@@ -638,7 +638,7 @@ describe("promptModelAllowlist", () => {
           model: "openai/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({ config, prompter });
 
@@ -663,7 +663,7 @@ describe("promptModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({ config, prompter });
 
@@ -703,7 +703,7 @@ describe("promptModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({
       config,
@@ -732,7 +732,7 @@ describe("promptModelAllowlist", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({
       config,
@@ -761,7 +761,7 @@ describe("promptModelAllowlist", () => {
           model: "openai-codex/gpt-5.5",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const result = await promptModelAllowlist({
       config,
@@ -806,7 +806,7 @@ describe("runtime model picker visibility", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await promptModelAllowlist({ config, prompter });
 
@@ -832,7 +832,7 @@ describe("router model visibility", () => {
     const multiselect = createSelectAllMultiselect();
     const defaultPrompter = makePrompter({ select });
     const allowlistPrompter = makePrompter({ multiselect });
-    const config = { agents: { defaults: {} } } as OpenClawConfig;
+    const config = { agents: { defaults: {} } } as KovaConfig;
 
     await promptDefaultModel({
       config,
@@ -864,7 +864,7 @@ describe("applyModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelAllowlist(config, ["openai/gpt-5.5"]);
     expect(next.agents?.defaults?.models).toEqual({
@@ -883,7 +883,7 @@ describe("applyModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelAllowlist(config, ["anthropic/claude-sonnet-4-6"], {
       scopeKeys: ["anthropic/claude-opus-4-6", "anthropic/claude-sonnet-4-6"],
@@ -903,7 +903,7 @@ describe("applyModelAllowlist", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelAllowlist(config, []);
     expect(next.agents?.defaults?.models).toBeUndefined();
@@ -918,7 +918,7 @@ describe("applyModelFallbacksFromSelection", () => {
           model: { primary: "anthropic/claude-opus-4-6" },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, [
       "anthropic/claude-opus-4-6",
@@ -935,7 +935,7 @@ describe("applyModelFallbacksFromSelection", () => {
       agents: {
         defaults: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, [
       "openai/gpt-5.5",
@@ -952,7 +952,7 @@ describe("applyModelFallbacksFromSelection", () => {
       agents: {
         defaults: {},
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"]);
     expect(next).toBe(config);
@@ -968,7 +968,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["anthropic/claude-opus-4-6"]);
     expect(next.agents?.defaults?.model).toEqual({
@@ -986,7 +986,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"]);
     expect(next.agents?.defaults?.model).toEqual({
@@ -1004,7 +1004,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"]);
     expect(next.agents?.defaults?.model).toEqual({
@@ -1023,7 +1023,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"], {
       scopeKeys: ["openai/gpt-5.5", "openai/gpt-5.4"],
@@ -1044,7 +1044,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, [], {
       scopeKeys: ["openai/gpt-5.5", "openai/gpt-5.4"],
@@ -1065,7 +1065,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5", "openai/gpt-5.4"], {
       scopeKeys: ["openai/gpt-5.5", "openai/gpt-5.4"],
@@ -1089,7 +1089,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"], {
       scopeKeys: ["openai/gpt-5.5", "openai/gpt-5.4-mini"],
@@ -1112,7 +1112,7 @@ describe("applyModelFallbacksFromSelection", () => {
           },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(
       config,
@@ -1134,7 +1134,7 @@ describe("applyModelFallbacksFromSelection", () => {
           model: { primary: "anthropic/claude-opus-4-6", fallbacks: ["openai/gpt-5.5"] },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const next = applyModelFallbacksFromSelection(config, ["openai/gpt-5.5"]);
     expect(next.agents?.defaults?.model).toEqual({

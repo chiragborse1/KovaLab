@@ -6,7 +6,7 @@ import CryptoKit
 import EventKit
 import Foundation
 import Darwin
-import OpenClawKit
+import KovaKit
 import Network
 import Observation
 import os
@@ -802,32 +802,32 @@ final class GatewayConnectionController {
     }
 
     private func currentCaps() -> [String] {
-        var caps = [OpenClawCapability.canvas.rawValue, OpenClawCapability.screen.rawValue]
+        var caps = [KovaCapability.canvas.rawValue, KovaCapability.screen.rawValue]
 
         // Default-on: if the key doesn't exist yet, treat it as enabled.
         let cameraEnabled =
             UserDefaults.standard.object(forKey: "camera.enabled") == nil
                 ? true
                 : UserDefaults.standard.bool(forKey: "camera.enabled")
-        if cameraEnabled { caps.append(OpenClawCapability.camera.rawValue) }
+        if cameraEnabled { caps.append(KovaCapability.camera.rawValue) }
 
         let voiceWakeEnabled = UserDefaults.standard.bool(forKey: VoiceWakePreferences.enabledKey)
-        if voiceWakeEnabled { caps.append(OpenClawCapability.voiceWake.rawValue) }
+        if voiceWakeEnabled { caps.append(KovaCapability.voiceWake.rawValue) }
 
         let locationModeRaw = UserDefaults.standard.string(forKey: "location.enabledMode") ?? "off"
-        let locationMode = OpenClawLocationMode(rawValue: locationModeRaw) ?? .off
-        if locationMode != .off { caps.append(OpenClawCapability.location.rawValue) }
+        let locationMode = KovaLocationMode(rawValue: locationModeRaw) ?? .off
+        if locationMode != .off { caps.append(KovaCapability.location.rawValue) }
 
-        caps.append(OpenClawCapability.device.rawValue)
+        caps.append(KovaCapability.device.rawValue)
         if WatchMessagingService.isSupportedOnDevice() {
-            caps.append(OpenClawCapability.watch.rawValue)
+            caps.append(KovaCapability.watch.rawValue)
         }
-        caps.append(OpenClawCapability.photos.rawValue)
-        caps.append(OpenClawCapability.contacts.rawValue)
-        caps.append(OpenClawCapability.calendar.rawValue)
-        caps.append(OpenClawCapability.reminders.rawValue)
+        caps.append(KovaCapability.photos.rawValue)
+        caps.append(KovaCapability.contacts.rawValue)
+        caps.append(KovaCapability.calendar.rawValue)
+        caps.append(KovaCapability.reminders.rawValue)
         if Self.motionAvailable() {
-            caps.append(OpenClawCapability.motion.rawValue)
+            caps.append(KovaCapability.motion.rawValue)
         }
 
         return caps
@@ -835,58 +835,58 @@ final class GatewayConnectionController {
 
     private func currentCommands() -> [String] {
         var commands: [String] = [
-            OpenClawCanvasCommand.present.rawValue,
-            OpenClawCanvasCommand.hide.rawValue,
-            OpenClawCanvasCommand.navigate.rawValue,
-            OpenClawCanvasCommand.evalJS.rawValue,
-            OpenClawCanvasCommand.snapshot.rawValue,
-            OpenClawCanvasA2UICommand.push.rawValue,
-            OpenClawCanvasA2UICommand.pushJSONL.rawValue,
-            OpenClawCanvasA2UICommand.reset.rawValue,
-            OpenClawScreenCommand.record.rawValue,
-            OpenClawSystemCommand.notify.rawValue,
-            OpenClawChatCommand.push.rawValue,
-            OpenClawTalkCommand.pttStart.rawValue,
-            OpenClawTalkCommand.pttStop.rawValue,
-            OpenClawTalkCommand.pttCancel.rawValue,
-            OpenClawTalkCommand.pttOnce.rawValue,
+            KovaCanvasCommand.present.rawValue,
+            KovaCanvasCommand.hide.rawValue,
+            KovaCanvasCommand.navigate.rawValue,
+            KovaCanvasCommand.evalJS.rawValue,
+            KovaCanvasCommand.snapshot.rawValue,
+            KovaCanvasA2UICommand.push.rawValue,
+            KovaCanvasA2UICommand.pushJSONL.rawValue,
+            KovaCanvasA2UICommand.reset.rawValue,
+            KovaScreenCommand.record.rawValue,
+            KovaSystemCommand.notify.rawValue,
+            KovaChatCommand.push.rawValue,
+            KovaTalkCommand.pttStart.rawValue,
+            KovaTalkCommand.pttStop.rawValue,
+            KovaTalkCommand.pttCancel.rawValue,
+            KovaTalkCommand.pttOnce.rawValue,
         ]
 
         let caps = Set(self.currentCaps())
-        if caps.contains(OpenClawCapability.camera.rawValue) {
-            commands.append(OpenClawCameraCommand.list.rawValue)
-            commands.append(OpenClawCameraCommand.snap.rawValue)
-            commands.append(OpenClawCameraCommand.clip.rawValue)
+        if caps.contains(KovaCapability.camera.rawValue) {
+            commands.append(KovaCameraCommand.list.rawValue)
+            commands.append(KovaCameraCommand.snap.rawValue)
+            commands.append(KovaCameraCommand.clip.rawValue)
         }
-        if caps.contains(OpenClawCapability.location.rawValue) {
-            commands.append(OpenClawLocationCommand.get.rawValue)
+        if caps.contains(KovaCapability.location.rawValue) {
+            commands.append(KovaLocationCommand.get.rawValue)
         }
-        if caps.contains(OpenClawCapability.device.rawValue) {
-            commands.append(OpenClawDeviceCommand.status.rawValue)
-            commands.append(OpenClawDeviceCommand.info.rawValue)
+        if caps.contains(KovaCapability.device.rawValue) {
+            commands.append(KovaDeviceCommand.status.rawValue)
+            commands.append(KovaDeviceCommand.info.rawValue)
         }
-        if caps.contains(OpenClawCapability.watch.rawValue) {
-            commands.append(OpenClawWatchCommand.status.rawValue)
-            commands.append(OpenClawWatchCommand.notify.rawValue)
+        if caps.contains(KovaCapability.watch.rawValue) {
+            commands.append(KovaWatchCommand.status.rawValue)
+            commands.append(KovaWatchCommand.notify.rawValue)
         }
-        if caps.contains(OpenClawCapability.photos.rawValue) {
-            commands.append(OpenClawPhotosCommand.latest.rawValue)
+        if caps.contains(KovaCapability.photos.rawValue) {
+            commands.append(KovaPhotosCommand.latest.rawValue)
         }
-        if caps.contains(OpenClawCapability.contacts.rawValue) {
-            commands.append(OpenClawContactsCommand.search.rawValue)
-            commands.append(OpenClawContactsCommand.add.rawValue)
+        if caps.contains(KovaCapability.contacts.rawValue) {
+            commands.append(KovaContactsCommand.search.rawValue)
+            commands.append(KovaContactsCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.calendar.rawValue) {
-            commands.append(OpenClawCalendarCommand.events.rawValue)
-            commands.append(OpenClawCalendarCommand.add.rawValue)
+        if caps.contains(KovaCapability.calendar.rawValue) {
+            commands.append(KovaCalendarCommand.events.rawValue)
+            commands.append(KovaCalendarCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.reminders.rawValue) {
-            commands.append(OpenClawRemindersCommand.list.rawValue)
-            commands.append(OpenClawRemindersCommand.add.rawValue)
+        if caps.contains(KovaCapability.reminders.rawValue) {
+            commands.append(KovaRemindersCommand.list.rawValue)
+            commands.append(KovaRemindersCommand.add.rawValue)
         }
-        if caps.contains(OpenClawCapability.motion.rawValue) {
-            commands.append(OpenClawMotionCommand.activity.rawValue)
-            commands.append(OpenClawMotionCommand.pedometer.rawValue)
+        if caps.contains(KovaCapability.motion.rawValue) {
+            commands.append(KovaMotionCommand.activity.rawValue)
+            commands.append(KovaMotionCommand.pedometer.rawValue)
         }
 
         return commands

@@ -3,7 +3,7 @@ import {
   type ConfigFileSnapshot,
   type GatewayAuthConfig,
   type GatewayTailscaleConfig,
-  type OpenClawConfig,
+  type KovaConfig,
   applyConfigOverrides,
   isNixMode,
   readConfigFileSnapshot,
@@ -44,7 +44,7 @@ type GatewayStartupLog = {
 type GatewaySecretsStateEventCode = "SECRETS_RELOADER_DEGRADED" | "SECRETS_RELOADER_RECOVERED";
 
 export type ActivateRuntimeSecrets = (
-  config: OpenClawConfig,
+  config: KovaConfig,
   params: { reason: "startup" | "reload" | "restart-check"; activate: boolean },
 ) => Promise<Awaited<ReturnType<typeof prepareSecretsRuntimeSnapshot>>>;
 
@@ -80,9 +80,9 @@ function resolveInvalidModelProviderApiIssueProviderId(issue: {
 }
 
 function cloneConfigWithoutModelProviders(
-  config: OpenClawConfig,
+  config: KovaConfig,
   providerIds: ReadonlySet<string>,
-): OpenClawConfig {
+): KovaConfig {
   const providers = config.models?.providers;
   if (!providers) {
     return config;
@@ -300,11 +300,7 @@ export async function loadGatewayStartupConfigSnapshot(params: {
 
 export function createRuntimeSecretsActivator(params: {
   logSecrets: GatewayStartupLog;
-  emitStateEvent: (
-    code: GatewaySecretsStateEventCode,
-    message: string,
-    cfg: OpenClawConfig,
-  ) => void;
+  emitStateEvent: (code: GatewaySecretsStateEventCode, message: string, cfg: KovaConfig) => void;
   prepareRuntimeSecretsSnapshot?: PrepareRuntimeSecretsSnapshot;
   activateRuntimeSecretsSnapshot?: ActivateRuntimeSecretsSnapshot;
 }): ActivateRuntimeSecrets {
@@ -383,7 +379,7 @@ export function assertValidGatewayStartupConfigSnapshot(
       ? formatConfigIssueLines(snapshot.issues, "", { normalizeRoot: true }).join("\n")
       : "Unknown validation issue.";
   const doctorHint = options.includeDoctorHint
-    ? `\nRun "${formatCliCommand("openclaw doctor --fix")}" to repair, then retry.`
+    ? `\nRun "${formatCliCommand("kova doctor --fix")}" to repair, then retry.`
     : "";
   throw new Error(`Invalid config at ${snapshot.path}.\n${issues}${doctorHint}`);
 }
@@ -449,7 +445,7 @@ export async function prepareGatewayStartupConfig(params: {
   };
 }
 
-function hasActiveGatewayAuthSecretRef(config: OpenClawConfig): boolean {
+function hasActiveGatewayAuthSecretRef(config: KovaConfig): boolean {
   const states = evaluateGatewayAuthSurfaceStates({
     config,
     defaults: config.secrets?.defaults,
@@ -461,10 +457,10 @@ function hasActiveGatewayAuthSecretRef(config: OpenClawConfig): boolean {
   });
 }
 
-function pruneSkippedStartupSecretSurfaces(config: OpenClawConfig): OpenClawConfig {
+function pruneSkippedStartupSecretSurfaces(config: KovaConfig): KovaConfig {
   const skipChannels =
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_CHANNELS) ||
-    isTruthyEnvValue(process.env.OPENCLAW_SKIP_PROVIDERS);
+    isTruthyEnvValue(process.env.KOVA_SKIP_CHANNELS) ||
+    isTruthyEnvValue(process.env.KOVA_SKIP_PROVIDERS);
   if (!skipChannels || !config.channels) {
     return config;
   }
@@ -474,7 +470,7 @@ function pruneSkippedStartupSecretSurfaces(config: OpenClawConfig): OpenClawConf
   };
 }
 
-function assertRuntimeGatewayAuthNotKnownWeak(config: OpenClawConfig): void {
+function assertRuntimeGatewayAuthNotKnownWeak(config: KovaConfig): void {
   assertGatewayAuthNotKnownWeak(
     resolveGatewayAuth({
       authConfig: config.gateway?.auth,
@@ -486,7 +482,7 @@ function assertRuntimeGatewayAuthNotKnownWeak(config: OpenClawConfig): void {
 
 function logGatewayAuthSurfaceDiagnostics(
   prepared: {
-    sourceConfig: OpenClawConfig;
+    sourceConfig: KovaConfig;
     warnings: Array<{ code: string; path: string; message: string }>;
   },
   logSecrets: GatewayStartupLog,
@@ -517,9 +513,9 @@ function logGatewayAuthSurfaceDiagnostics(
 }
 
 function applyGatewayAuthOverridesForStartupPreflight(
-  config: OpenClawConfig,
+  config: KovaConfig,
   overrides: GatewayStartupConfigOverrides,
-): OpenClawConfig {
+): KovaConfig {
   if (!overrides.auth && !overrides.tailscale) {
     return config;
   }

@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      OPENCLAW_LOCAL_CHECK: "0"
+      KOVA_LOCAL_CHECK: "0"
     steps:
       - uses: actions/checkout@v6
         with:
@@ -55,7 +55,7 @@ jobs:
 
       - name: Test changed targets
         env:
-          OPENCLAW_VITEST_MAX_WORKERS: "1"
+          KOVA_VITEST_MAX_WORKERS: "1"
         run: node scripts/test-projects.mjs --changed "${{ steps.changed-base.outputs.base }}"
 
       - name: Build runtime

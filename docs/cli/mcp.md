@@ -112,12 +112,12 @@ This gives MCP clients one place to:
   </Tab>
   <Tab title="Remote Gateway (token)">
     ```bash
-    kova mcp serve --url wss://gateway-host:18789 --token-file ~/.openclaw/gateway.token
+    kova mcp serve --url wss://gateway-host:18789 --token-file ~/.kova/gateway.token
     ```
   </Tab>
   <Tab title="Remote Gateway (password)">
     ```bash
-    kova mcp serve --url wss://gateway-host:18789 --password-file ~/.openclaw/gateway.password
+    kova mcp serve --url wss://gateway-host:18789 --password-file ~/.kova/gateway.password
     ```
   </Tab>
   <Tab title="Verbose / Claude off">
@@ -242,8 +242,8 @@ Example stdio client config:
 ```json
 {
   "mcpServers": {
-    "openclaw": {
-      "command": "openclaw",
+    "kova": {
+      "command": "kova",
       "args": [
         "mcp",
         "serve",
@@ -465,12 +465,12 @@ Sensitive values in `url` (userinfo) and `headers` are redacted in logs and stat
 
 `streamable-http` is an additional transport option alongside `sse` and `stdio`. It uses HTTP streaming for bidirectional communication with remote MCP servers.
 
-| Field                 | Description                                                                            |
-| --------------------- | -------------------------------------------------------------------------------------- |
-| `url`                 | HTTP or HTTPS URL of the remote server (required)                                      |
+| Field                 | Description                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `url`                 | HTTP or HTTPS URL of the remote server (required)                                  |
 | `transport`           | Set to `"streamable-http"` to select this transport; when omitted, Kova uses `sse` |
-| `headers`             | Optional key-value map of HTTP headers (for example auth tokens)                       |
-| `connectionTimeoutMs` | Per-server connection timeout in ms (optional)                                         |
+| `headers`             | Optional key-value map of HTTP headers (for example auth tokens)                   |
+| `connectionTimeoutMs` | Per-server connection timeout in ms (optional)                                     |
 
 Kova config uses `transport: "streamable-http"` as the canonical spelling. CLI-native MCP `type: "http"` values are accepted when saved through `kova mcp set` and repaired by `kova doctor --fix` in existing config, but `transport` is what embedded Pi consumes directly.
 

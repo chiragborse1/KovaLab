@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeMainKey } from "openclaw/plugin-sdk/routing";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { normalizeMainKey } from "getkova/plugin-sdk/routing";
 import {
   evaluateSessionFreshness,
   loadSessionStore,
@@ -12,7 +12,7 @@ import {
 } from "./config.runtime.js";
 
 export function getSessionSnapshot(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   from: string,
   _isHeartbeat = false,
   ctx?: {

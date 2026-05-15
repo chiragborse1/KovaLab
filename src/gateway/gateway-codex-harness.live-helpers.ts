@@ -87,7 +87,7 @@ export const EXPECTED_CODEX_STATUS_COMMAND_TEXT = [
 
 export function isExpectedCodexStatusCommandText(text: string): boolean {
   const normalized = text.toLowerCase();
-  const mentionsOpenClawStatus =
+  const mentionsKovaStatus =
     normalized.includes("kova is running on") || normalized.includes("kova status:");
   const mentionsHarnessSession =
     normalized.includes("session: `agent:dev:live-codex-harness`") ||
@@ -102,7 +102,7 @@ export function isExpectedCodexStatusCommandText(text: string): boolean {
     normalized.includes("`codex/") ||
     normalized.includes(" codex/");
 
-  return mentionsOpenClawStatus && mentionsHarnessSession && mentionsModel;
+  return mentionsKovaStatus && mentionsHarnessSession && mentionsModel;
 }
 
 export function isExpectedCodexModelsCommandText(text: string): boolean {

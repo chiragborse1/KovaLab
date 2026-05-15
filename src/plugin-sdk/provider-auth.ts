@@ -1,14 +1,14 @@
 // Public auth/onboarding helpers for provider plugins.
 
-import { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
+import { resolveKovaAgentDir } from "../agents/agent-paths.js";
 import { resolveApiKeyForProfile } from "../agents/auth-profiles/oauth.js";
 import { resolveAuthProfileOrder } from "../agents/auth-profiles/order.js";
 import { listProfilesForProvider } from "../agents/auth-profiles/profiles.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles/store.js";
 import { resolveEnvApiKey } from "../agents/model-auth-env.js";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 
-export type { OpenClawConfig } from "../config/config.js";
+export type { KovaConfig } from "../config/config.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type { SecretInputMode } from "../plugins/provider-auth-types.js";
 export type { ProviderAuthResult } from "../plugins/types.js";
@@ -67,7 +67,7 @@ export { createProviderApiKeyAuthMethod } from "../plugins/provider-api-key-auth
 export { coerceSecretRef, hasConfiguredSecretInput } from "../config/types.secrets.js";
 export { resolveDefaultSecretProviderAlias } from "../secrets/ref-contract.js";
 export { resolveRequiredHomeDir } from "../infra/home-dir.js";
-export { resolveOpenClawAgentDir } from "../agents/agent-paths.js";
+export { resolveKovaAgentDir } from "../agents/agent-paths.js";
 export {
   normalizeOptionalSecretInput,
   normalizeSecretInput,
@@ -106,11 +106,11 @@ export function isProviderApiKeyConfigured(params: {
 
 export function listUsableProviderAuthProfileIds(params: {
   provider: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   agentDir?: string;
 }): { agentDir: string; profileIds: string[] } {
   try {
-    const agentDir = params.agentDir?.trim() || resolveOpenClawAgentDir();
+    const agentDir = params.agentDir?.trim() || resolveKovaAgentDir();
     const store = ensureAuthProfileStore(agentDir, {
       allowKeychainPrompt: false,
     });
@@ -129,7 +129,7 @@ export function listUsableProviderAuthProfileIds(params: {
 
 export function isProviderAuthProfileConfigured(params: {
   provider: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   agentDir?: string;
 }): boolean {
   return listUsableProviderAuthProfileIds(params).profileIds.length > 0;
@@ -137,7 +137,7 @@ export function isProviderAuthProfileConfigured(params: {
 
 export async function resolveProviderAuthProfileApiKey(params: {
   provider: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   agentDir?: string;
 }): Promise<string | undefined> {
   const { agentDir, profileIds } = listUsableProviderAuthProfileIds(params);

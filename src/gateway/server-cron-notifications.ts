@@ -1,6 +1,6 @@
 import type { CliDeps } from "../cli/deps.types.js";
 import type { CronFailureDestinationConfig } from "../config/types.cron.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   resolveCronDeliveryPlan,
   resolveFailureDestination,
@@ -27,7 +27,7 @@ type CronLogger = {
 
 type CronAgentResolver = (requested?: string | null) => {
   agentId: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 };
 
 type CronWebhookTarget = {

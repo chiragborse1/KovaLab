@@ -1,5 +1,5 @@
 import type { ModelAliasIndex } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import { createLazyRuntimeModule } from "../../shared/lazy-runtime.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import type { GetReplyOptions } from "../get-reply-options.types.js";
@@ -13,7 +13,7 @@ import { handleInlineActions } from "./get-reply-inline-actions.js";
 import { stripStructuralPrefixes } from "./mentions.js";
 import type { createTypingController } from "./typing.js";
 
-type AgentDefaults = NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+type AgentDefaults = NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> | undefined;
 
 const loadCommandsRuntime = createLazyRuntimeModule(() => import("./commands.runtime.js"));
 const loadStatusCommandRuntime = createLazyRuntimeModule(() => import("./commands-status.js"));
@@ -36,7 +36,7 @@ function shouldRunNativeSlashCommandFastPath(ctx: MsgContext): boolean {
 
 export async function maybeResolveNativeSlashCommandFastReply(params: {
   ctx: MsgContext;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   agentDir: string;
   agentCfg: AgentDefaults;

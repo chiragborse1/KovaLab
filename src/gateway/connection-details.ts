@@ -1,9 +1,5 @@
-import {
-  resolveConfigPath,
-  resolveGatewayPort,
-  resolveOpenClawCompatMode,
-} from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.js";
+import { resolveConfigPath, resolveGatewayPort } from "../config/paths.js";
+import type { KovaConfig } from "../config/types.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { isSecureWebSocketUrl } from "./net.js";
 
@@ -16,35 +12,28 @@ export type GatewayConnectionDetails = {
 };
 
 type GatewayConnectionDetailResolvers = {
-  getRuntimeConfig?: () => OpenClawConfig;
+  getRuntimeConfig?: () => KovaConfig;
   resolveConfigPath?: (env: NodeJS.ProcessEnv) => string;
-  resolveGatewayPort?: (cfg?: OpenClawConfig, env?: NodeJS.ProcessEnv) => number;
+  resolveGatewayPort?: (cfg?: KovaConfig, env?: NodeJS.ProcessEnv) => number;
 };
 
 export function readGatewayUrlEnv(
   env: NodeJS.ProcessEnv = process.env,
-): { url: string; source: "KOVA_GATEWAY_URL" | "OPENCLAW_GATEWAY_URL" } | undefined {
+): { url: string; source: "KOVA_GATEWAY_URL" } | undefined {
   const modern = normalizeOptionalString(env.KOVA_GATEWAY_URL);
   if (modern) {
     return { url: modern, source: "KOVA_GATEWAY_URL" };
   }
-  if (!resolveOpenClawCompatMode(env)) {
-    return undefined;
-  }
-  const legacy = normalizeOptionalString(env.OPENCLAW_GATEWAY_URL);
-  return legacy ? { url: legacy, source: "OPENCLAW_GATEWAY_URL" } : undefined;
+  return undefined;
 }
 
 export function resolveAllowInsecurePrivateWs(env: NodeJS.ProcessEnv = process.env): boolean {
-  if (env.KOVA_ALLOW_INSECURE_PRIVATE_WS === "1") {
-    return true;
-  }
-  return resolveOpenClawCompatMode(env) && env.OPENCLAW_ALLOW_INSECURE_PRIVATE_WS === "1";
+  return env.KOVA_ALLOW_INSECURE_PRIVATE_WS === "1";
 }
 
 export function buildGatewayConnectionDetailsWithResolvers(
   options: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     url?: string;
     configPath?: string;
     urlSource?: "cli" | "env";

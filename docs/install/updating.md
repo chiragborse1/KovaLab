@@ -34,7 +34,7 @@ See [Development channels](/install/development-channels) for channel semantics.
 ## Switch between npm and git installs
 
 Use channels when you want to change the install type. The updater keeps your
-state, config, credentials, and workspace in `~/.openclaw`; it only changes
+state, config, credentials, and workspace in `~/.kova`; it only changes
 which Kova code install the CLI and gateway use.
 
 ```bash
@@ -60,7 +60,7 @@ and restarts it unless you pass `--no-restart`.
 ## Alternative: re-run the installer
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
+curl -fsSL https://www.neuralstudio.in/install.sh | bash
 ```
 
 Add `--no-onboard` to skip onboarding. To force a specific install type through
@@ -72,13 +72,13 @@ installer. The installer does not call the old updater; it runs the global
 package install directly and can recover a partially updated npm install.
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method npm
+curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method npm
 ```
 
 To pin the recovery to a specific version or dist-tag, add `--version`:
 
 ```bash
-curl -fsSL https://openclaw.ai/install.sh | bash -s -- --install-method npm --version <version-or-dist-tag>
+curl -fsSL https://www.neuralstudio.in/install.sh | bash -s -- --install-method npm --version <version-or-dist-tag>
 ```
 
 ## Alternative: manual npm, pnpm, or bun
@@ -107,25 +107,25 @@ bun add -g getkova@latest
   <Accordion title="Read-only package tree">
     Kova treats packaged global installs as read-only at runtime, even when the global package directory is writable by the current user. Bundled plugin runtime dependencies are staged into a writable runtime directory instead of mutating the package tree. This keeps `kova update` from racing with a running gateway or local agent that is repairing plugin dependencies during the same install.
 
-    Some Linux npm setups install global packages under root-owned directories such as `/usr/lib/node_modules/openclaw`. Kova supports that layout through the same external staging path.
+    Some Linux npm setups install global packages under root-owned directories such as `/usr/lib/node_modules/kova`. Kova supports that layout through the same external staging path.
 
   </Accordion>
   <Accordion title="Hardened systemd units">
     Set a writable stage directory that is included in `ReadWritePaths`:
 
     ```ini
-    Environment=OPENCLAW_PLUGIN_STAGE_DIR=/var/lib/openclaw/plugin-runtime-deps
-    ReadWritePaths=/var/lib/openclaw /home/openclaw/.openclaw /tmp
+    Environment=KOVA_PLUGIN_STAGE_DIR=/var/lib/kova/plugin-runtime-deps
+    ReadWritePaths=/var/lib/kova /home/kova/.kova /tmp
     ```
 
-    `OPENCLAW_PLUGIN_STAGE_DIR` also accepts a path list. Kova resolves bundled plugin runtime dependencies left-to-right across the listed roots, treats earlier roots as read-only preinstalled layers, and installs or repairs only into the final writable root:
+    `KOVA_PLUGIN_STAGE_DIR` also accepts a path list. Kova resolves bundled plugin runtime dependencies left-to-right across the listed roots, treats earlier roots as read-only preinstalled layers, and installs or repairs only into the final writable root:
 
     ```ini
-    Environment=OPENCLAW_PLUGIN_STAGE_DIR=/opt/openclaw/plugin-runtime-deps:/var/lib/openclaw/plugin-runtime-deps
-    ReadWritePaths=/var/lib/openclaw /home/openclaw/.openclaw /tmp
+    Environment=KOVA_PLUGIN_STAGE_DIR=/opt/kova/plugin-runtime-deps:/var/lib/kova/plugin-runtime-deps
+    ReadWritePaths=/var/lib/kova /home/kova/.kova /tmp
     ```
 
-    If `OPENCLAW_PLUGIN_STAGE_DIR` is not set, Kova uses `$STATE_DIRECTORY` when systemd provides it, then falls back to `~/.openclaw/plugin-runtime-deps`. The repair step treats that stage as an Kova-owned local package root and ignores user npm prefix and global settings, so global-install npm config does not redirect bundled plugin dependencies into `~/node_modules` or the global package tree.
+    If `KOVA_PLUGIN_STAGE_DIR` is not set, Kova uses `$STATE_DIRECTORY` when systemd provides it, then falls back to `~/.kova/plugin-runtime-deps`. The repair step treats that stage as an Kova-owned local package root and ignores user npm prefix and global settings, so global-install npm config does not redirect bundled plugin dependencies into `~/node_modules` or the global package tree.
 
   </Accordion>
   <Accordion title="Disk-space preflight">
@@ -141,7 +141,7 @@ bun add -g getkova@latest
 
 ## Auto-updater
 
-The auto-updater is off by default. Enable it in `~/.openclaw/openclaw.json`:
+The auto-updater is off by default. Enable it in `~/.chiragborse1/KovaLab.json`:
 
 ```json5
 {
@@ -161,10 +161,10 @@ The auto-updater is off by default. Enable it in `~/.openclaw/openclaw.json`:
 | -------- | ------------------------------------------------------------------------------------------------------------- |
 | `stable` | Waits `stableDelayHours`, then applies with deterministic jitter across `stableJitterHours` (spread rollout). |
 | `beta`   | Checks every `betaCheckIntervalHours` (default: hourly) and applies immediately.                              |
-| `dev`    | No automatic apply. Use `kova update` manually.                                                           |
+| `dev`    | No automatic apply. Use `kova update` manually.                                                               |
 
 The gateway also logs an update hint on startup (disable with `update.checkOnStart: false`).
-For downgrade or incident recovery, set `OPENCLAW_NO_AUTO_UPDATE=1` in the gateway environment to block automatic applies even when `update.auto.enabled` is configured. Startup update hints can still run unless `update.checkOnStart` is also disabled.
+For downgrade or incident recovery, set `KOVA_NO_AUTO_UPDATE=1` in the gateway environment to block automatic applies even when `update.auto.enabled` is configured. Startup update hints can still run unless `update.checkOnStart` is also disabled.
 
 ## After updating
 
@@ -222,7 +222,7 @@ To return to latest: `git checkout main && git pull`.
 - Run `kova doctor` again and read the output carefully.
 - For `kova update --channel dev` on source checkouts, the updater auto-bootstraps `pnpm` when needed. If you see a pnpm/corepack bootstrap error, install `pnpm` manually (or re-enable `corepack`) and rerun the update.
 - Check: [Troubleshooting](/gateway/troubleshooting)
-- Ask in Discord: [https://discord.gg/clawd](https://discord.gg/clawd)
+- Ask in Discord: [https://discord.gg/kova](https://discord.gg/kova)
 
 ## Related
 

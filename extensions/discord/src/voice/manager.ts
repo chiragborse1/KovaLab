@@ -12,17 +12,17 @@ import {
   resolveTtsConfig,
   resolveTtsPrefsPath,
   type ResolvedTtsConfig,
-} from "openclaw/plugin-sdk/agent-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { DiscordAccountConfig, TtsConfig } from "openclaw/plugin-sdk/config-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { parseTtsDirectives } from "openclaw/plugin-sdk/speech";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/temp-path";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/agent-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { DiscordAccountConfig, TtsConfig } from "getkova/plugin-sdk/config-runtime";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import { logVerbose, shouldLogVerbose } from "getkova/plugin-sdk/runtime-env";
+import { createSubsystemLogger } from "getkova/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { parseTtsDirectives } from "getkova/plugin-sdk/speech";
+import { formatErrorMessage } from "getkova/plugin-sdk/ssrf-runtime";
+import { resolvePreferredKovaTmpDir } from "getkova/plugin-sdk/temp-path";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { formatMention } from "../mentions.js";
 import { normalizeDiscordSlug, resolveDiscordOwnerAccess } from "../monitor/allow-list.js";
 import { formatDiscordUserTag } from "../monitor/format.js";
@@ -127,8 +127,8 @@ function mergeTtsConfig(base: TtsConfig, override?: TtsConfig): TtsConfig {
   };
 }
 
-function resolveVoiceTtsConfig(params: { cfg: OpenClawConfig; override?: TtsConfig }): {
-  cfg: OpenClawConfig;
+function resolveVoiceTtsConfig(params: { cfg: KovaConfig; override?: TtsConfig }): {
+  cfg: KovaConfig;
   resolved: ResolvedTtsConfig;
 } {
   if (!params.override) {
@@ -276,7 +276,7 @@ function estimateDurationSeconds(pcm: Buffer): number {
 }
 
 async function writeWavFile(pcm: Buffer): Promise<{ path: string; durationSeconds: number }> {
-  const tempDir = await fs.mkdtemp(path.join(resolvePreferredOpenClawTmpDir(), "discord-voice-"));
+  const tempDir = await fs.mkdtemp(path.join(resolvePreferredKovaTmpDir(), "discord-voice-"));
   const filePath = path.join(tempDir, `segment-${randomUUID()}.wav`);
   const wav = buildWavBuffer(pcm);
   await fs.writeFile(filePath, wav);
@@ -296,7 +296,7 @@ function scheduleTempCleanup(tempDir: string, delayMs: number = 30 * 60 * 1000):
 }
 
 async function transcribeAudio(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   filePath: string;
 }): Promise<string | undefined> {
@@ -330,7 +330,7 @@ export class DiscordVoiceManager {
   constructor(
     private params: {
       client: Client;
-      cfg: OpenClawConfig;
+      cfg: KovaConfig;
       discordConfig: DiscordAccountConfig;
       accountId: string;
       runtime: RuntimeEnv;

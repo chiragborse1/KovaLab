@@ -59,7 +59,7 @@ afterAll(async () => {
 
 async function createFreshOperatorDevice(scopes: string[], nonce: string) {
   const identity = loadOrCreateDeviceIdentity(
-    path.join(os.tmpdir(), `openclaw-talk-config-device-${process.pid}-${talkConfigDeviceSeq++}`),
+    path.join(os.tmpdir(), `kova-talk-config-device-${process.pid}-${talkConfigDeviceSeq++}`),
   );
   const signedAtMs = Date.now();
   const payload = buildDeviceAuthPayload({
@@ -201,7 +201,7 @@ describe("gateway talk.config", () => {
       expectTalkConfig(res.payload?.config?.talk, {
         provider: GENERIC_TALK_PROVIDER_ID,
         voiceId: "voice-123",
-        apiKey: "__OPENCLAW_REDACTED__",
+        apiKey: "__KOVA_REDACTED__",
         speechLocale: "ru-RU",
         silenceTimeoutMs: 1500,
       });

@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { NpmSpecResolution } from "../infra/install-source-utils.js";
 import { resolveNpmSpecMetadata } from "../infra/install-source-utils.js";
@@ -10,7 +10,6 @@ import {
 import type { UpdateChannel } from "../infra/update-channels.js";
 import { resolveUserPath } from "../utils.js";
 import { resolveBundledPluginSources } from "./bundled-sources.js";
-import { installPluginFromClawHub } from "./clawhub.js";
 import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-state.js";
 import {
   getExternalizedBundledPluginLegacyPathSuffix,
@@ -24,6 +23,7 @@ import {
   resolvePluginInstallDir,
 } from "./install.js";
 import { buildNpmResolutionInstallFields, recordPluginInstall } from "./installs.js";
+import { installPluginFromKovaHub } from "./kovahub.js";
 import { installPluginFromMarketplace } from "./marketplace.js";
 
 export type PluginUpdateLogger = {
@@ -43,7 +43,7 @@ export type PluginUpdateOutcome = {
 };
 
 export type PluginUpdateSummary = {
-  config: OpenClawConfig;
+  config: KovaConfig;
   changed: boolean;
   outcomes: PluginUpdateOutcome[];
 };
@@ -66,7 +66,7 @@ export type PluginChannelSyncSummary = {
 };
 
 export type PluginChannelSyncResult = {
-  config: OpenClawConfig;
+  config: KovaConfig;
   changed: boolean;
   summary: PluginChannelSyncSummary;
 };
@@ -96,13 +96,13 @@ function formatMarketplaceInstallFailure(params: {
   );
 }
 
-function formatClawHubInstallFailure(params: {
+function formatKovaHubInstallFailure(params: {
   pluginId: string;
   spec: string;
   phase: "check" | "update";
   error: string;
 }): string {
-  return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (ClawHub ${params.spec}).`;
+  return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (KovaHub ${params.spec}).`;
 }
 
 type InstallIntegrityDrift = {
@@ -309,7 +309,7 @@ function resolveBridgeInstallRecord(params: {
 }
 
 function isBridgeChannelEnabledByConfig(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   bridge: ExternalizedBundledPluginBridge;
 }): boolean {
   const channels = params.config.channels;
@@ -329,7 +329,7 @@ function isBridgeChannelEnabledByConfig(params: {
 }
 
 function isExternalizedBundledPluginEnabled(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   bridge: ExternalizedBundledPluginBridge;
 }): boolean {
   const normalized = normalizePluginsConfig(params.config.plugins);
@@ -383,7 +383,7 @@ function replacePluginIdInList(
   return next;
 }
 
-function migratePluginConfigId(cfg: OpenClawConfig, fromId: string, toId: string): OpenClawConfig {
+function migratePluginConfigId(cfg: KovaConfig, fromId: string, toId: string): KovaConfig {
   if (fromId === toId) {
     return cfg;
   }
@@ -465,7 +465,7 @@ function createPluginUpdateIntegrityDriftHandler(params: {
 }
 
 export async function updateNpmInstalledPlugins(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   logger?: PluginUpdateLogger;
   pluginIds?: string[];
   skipIds?: Set<string>;
@@ -502,7 +502,7 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-    if (record.source !== "npm" && record.source !== "marketplace" && record.source !== "clawhub") {
+    if (record.source !== "npm" && record.source !== "marketplace" && record.source !== "kovahub") {
       outcomes.push({
         pluginId,
         status: "skipped",
@@ -527,11 +527,11 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-    if (record.source === "clawhub" && !record.clawhubPackage) {
+    if (record.source === "kovahub" && !record.kovahubPackage) {
       outcomes.push({
         pluginId,
         status: "skipped",
-        message: `Skipping "${pluginId}" (missing ClawHub package metadata).`,
+        message: `Skipping "${pluginId}" (missing KovaHub package metadata).`,
       });
       continue;
     }
@@ -599,7 +599,7 @@ export async function updateNpmInstalledPlugins(params: {
     if (params.dryRun) {
       let probe:
         | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-        | Awaited<ReturnType<typeof installPluginFromClawHub>>
+        | Awaited<ReturnType<typeof installPluginFromKovaHub>>
         | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
       try {
         probe =
@@ -621,10 +621,10 @@ export async function updateNpmInstalledPlugins(params: {
                 }),
                 logger,
               })
-            : record.source === "clawhub"
-              ? await installPluginFromClawHub({
-                  spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
-                  baseUrl: record.clawhubUrl,
+            : record.source === "kovahub"
+              ? await installPluginFromKovaHub({
+                  spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
+                  baseUrl: record.kovahubUrl,
                   mode: "update",
                   extensionsDir,
                   timeoutMs: params.timeoutMs,
@@ -664,10 +664,10 @@ export async function updateNpmInstalledPlugins(params: {
                   phase: "check",
                   result: probe,
                 })
-              : record.source === "clawhub"
-                ? formatClawHubInstallFailure({
+              : record.source === "kovahub"
+                ? formatKovaHubInstallFailure({
                     pluginId,
-                    spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
+                    spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
                     phase: "check",
                     error: probe.error,
                   })
@@ -706,7 +706,7 @@ export async function updateNpmInstalledPlugins(params: {
 
     let result:
       | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-      | Awaited<ReturnType<typeof installPluginFromClawHub>>
+      | Awaited<ReturnType<typeof installPluginFromKovaHub>>
       | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
     try {
       result =
@@ -727,10 +727,10 @@ export async function updateNpmInstalledPlugins(params: {
               }),
               logger,
             })
-          : record.source === "clawhub"
-            ? await installPluginFromClawHub({
-                spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
-                baseUrl: record.clawhubUrl,
+          : record.source === "kovahub"
+            ? await installPluginFromKovaHub({
+                spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
+                baseUrl: record.kovahubUrl,
                 mode: "update",
                 extensionsDir,
                 timeoutMs: params.timeoutMs,
@@ -768,10 +768,10 @@ export async function updateNpmInstalledPlugins(params: {
                 phase: "update",
                 result: result,
               })
-            : record.source === "clawhub"
-              ? formatClawHubInstallFailure({
+            : record.source === "kovahub"
+              ? formatKovaHubInstallFailure({
                   pluginId,
-                  spec: effectiveSpec ?? `clawhub:${record.clawhubPackage!}`,
+                  spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
                   phase: "update",
                   error: result.error,
                 })
@@ -801,23 +801,23 @@ export async function updateNpmInstalledPlugins(params: {
         version: nextVersion,
         ...buildNpmResolutionInstallFields(result.npmResolution),
       });
-    } else if (record.source === "clawhub") {
-      const clawhubResult = result as Extract<
-        Awaited<ReturnType<typeof installPluginFromClawHub>>,
+    } else if (record.source === "kovahub") {
+      const kovahubResult = result as Extract<
+        Awaited<ReturnType<typeof installPluginFromKovaHub>>,
         { ok: true }
       >;
       next = recordPluginInstall(next, {
         pluginId: resolvedPluginId,
-        source: "clawhub",
-        spec: effectiveSpec ?? record.spec ?? `clawhub:${record.clawhubPackage!}`,
+        source: "kovahub",
+        spec: effectiveSpec ?? record.spec ?? `kovahub:${record.kovahubPackage!}`,
         installPath: result.targetDir,
         version: nextVersion,
-        integrity: clawhubResult.clawhub.integrity,
-        resolvedAt: clawhubResult.clawhub.resolvedAt,
-        clawhubUrl: clawhubResult.clawhub.clawhubUrl,
-        clawhubPackage: clawhubResult.clawhub.clawhubPackage,
-        clawhubFamily: clawhubResult.clawhub.clawhubFamily,
-        clawhubChannel: clawhubResult.clawhub.clawhubChannel,
+        integrity: kovahubResult.kovahub.integrity,
+        resolvedAt: kovahubResult.kovahub.resolvedAt,
+        kovahubUrl: kovahubResult.kovahub.kovahubUrl,
+        kovahubPackage: kovahubResult.kovahub.kovahubPackage,
+        kovahubFamily: kovahubResult.kovahub.kovahubFamily,
+        kovahubChannel: kovahubResult.kovahub.kovahubChannel,
       });
     } else {
       const marketplaceResult = result as Extract<
@@ -861,7 +861,7 @@ export async function updateNpmInstalledPlugins(params: {
 }
 
 export async function syncPluginsForUpdateChannel(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   channel: UpdateChannel;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;

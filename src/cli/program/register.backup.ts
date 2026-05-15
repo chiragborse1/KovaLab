@@ -72,7 +72,7 @@ export function registerBackupCommand(program: Command) {
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
           [
-            "kova backup verify ./2026-03-09T00-00-00.000Z-openclaw-backup.tar.gz",
+            "kova backup verify ./2026-03-09T00-00-00.000Z-kova-backup.tar.gz",
             "Check that the archive structure and manifest are intact.",
           ],
           [

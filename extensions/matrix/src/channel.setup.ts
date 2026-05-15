@@ -1,6 +1,6 @@
-import { describeAccountSnapshot } from "openclaw/plugin-sdk/account-helpers";
-import { buildChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-primitives";
-import type { ChannelPlugin } from "openclaw/plugin-sdk/channel-core";
+import { describeAccountSnapshot } from "getkova/plugin-sdk/account-helpers";
+import { buildChannelConfigSchema } from "getkova/plugin-sdk/channel-config-primitives";
+import type { ChannelPlugin } from "getkova/plugin-sdk/channel-core";
 import { matrixConfigAdapter } from "./config-adapter.js";
 import { MatrixConfigSchema } from "./config-schema.js";
 import { resolveMatrixAccount, type ResolvedMatrixAccount } from "./matrix/accounts.js";

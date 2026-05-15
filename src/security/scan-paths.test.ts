@@ -56,19 +56,19 @@ describe("isPathInsideWithRealpath", () => {
   it("returns false (safe default) when realpath fails for non-existent candidate", () => {
     // Non-existent path causes safeRealpathSync to return null (covers line 15)
     // New safe default (requireRealpath not set): returns false — secure by default
-    const nonExistent = path.join(tmpDir, "__does_not_exist_clawin_test__");
+    const nonExistent = path.join(tmpDir, "__does_not_exist_kova_in_test__");
     const result = isPathInsideWithRealpath(tmpDir, nonExistent);
     expect(result).toBe(false);
   });
 
   it("returns false when requireRealpath is true and realpath fails", () => {
-    const nonExistent = path.join(tmpDir, "__does_not_exist_clawin_test__");
+    const nonExistent = path.join(tmpDir, "__does_not_exist_kova_in_test__");
     const result = isPathInsideWithRealpath(tmpDir, nonExistent, { requireRealpath: true });
     expect(result).toBe(false);
   });
 
   it("returns true (explicit opt-out) when requireRealpath is false and realpath fails", () => {
-    const nonExistent = path.join(tmpDir, "__does_not_exist_clawin_test__");
+    const nonExistent = path.join(tmpDir, "__does_not_exist_kova_in_test__");
     const result = isPathInsideWithRealpath(tmpDir, nonExistent, { requireRealpath: false });
     expect(result).toBe(true);
   });

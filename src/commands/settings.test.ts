@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveLegacyDefaultAgentWorkspaceDir } from "../agents/workspace-default.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   applySettingsToggle,
   buildSettingsPaletteCommands,
@@ -12,7 +12,7 @@ import {
 
 describe("settings dashboard", () => {
   it("summarizes the main onboarding surfaces", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       agents: {
         defaults: {
           model: { primary: "openai/gpt-5.5" },
@@ -71,7 +71,7 @@ describe("settings dashboard", () => {
   });
 
   it("toggles safe boolean settings without touching unrelated config", () => {
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       agents: { defaults: { memorySearch: { enabled: true } } },
       browser: { enabled: true, defaultProfile: "chrome" },
       messages: { tts: { auto: "off", provider: "openai" } },

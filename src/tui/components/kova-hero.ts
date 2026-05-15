@@ -133,13 +133,13 @@ function formatSkills(skills: KovaHeroSkill[], maxRows: number): string[] {
 
 export function formatSkillSourceLabel(source?: string): string {
   switch ((source ?? "").trim()) {
-    case "openclaw-bundled":
+    case "kova-bundled":
       return "kova-bundled";
-    case "openclaw-extra":
+    case "kova-extra":
       return "kova-extra";
-    case "openclaw-managed":
+    case "kova-managed":
       return "kova-managed";
-    case "openclaw-workspace":
+    case "kova-workspace":
       return "kova-workspace";
     default:
       return source?.trim() ?? "";

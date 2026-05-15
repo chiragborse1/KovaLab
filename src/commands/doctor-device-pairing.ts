@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { formatCliCommand } from "../cli/command-format.js";
 import { resolveStateDir } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { callGateway } from "../gateway/call.js";
 import {
   listApprovedPairedDeviceRoles,
@@ -142,7 +142,7 @@ function normalizeLocalPairedDevice(device: PairedDevice): DoctorPairedDevice {
 }
 
 async function loadDoctorPairingSnapshot(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   healthOk: boolean;
 }): Promise<DoctorPairingSnapshot | null> {
   if (params.healthOk) {
@@ -359,7 +359,7 @@ function collectPairedRecordIssues(snapshot: DoctorPairingSnapshot): string[] {
     for (const role of approvedRoles) {
       const token = findTokenSummary(device, role);
       const rotateCommand = formatCliArgs([
-        "openclaw",
+        "kova",
         "devices",
         "rotate",
         "--device",
@@ -475,7 +475,7 @@ function collectLocalDeviceAuthIssues(snapshot: DoctorPairingSnapshot): string[]
       continue;
     }
     const rotateCommand = formatCliArgs([
-      "openclaw",
+      "kova",
       "devices",
       "rotate",
       "--device",
@@ -517,7 +517,7 @@ function formatPairingStoreReadIssue(error: JsonFileReadError): string {
 }
 
 export async function noteDevicePairingHealth(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   healthOk: boolean;
 }): Promise<void> {
   let snapshot: DoctorPairingSnapshot | null;

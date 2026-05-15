@@ -91,15 +91,11 @@ import { suppressDeprecations } from "./suppress-deprecations.js";
 const CLI_NAME = resolveDisplayCliName();
 const SERVICE_REFRESH_TIMEOUT_MS = 60_000;
 const DEFAULT_UPDATE_STEP_TIMEOUT_MS = 30 * 60_000;
-const POST_CORE_UPDATE_ENV = "OPENCLAW_UPDATE_POST_CORE";
-const POST_CORE_UPDATE_CHANNEL_ENV = "OPENCLAW_UPDATE_POST_CORE_CHANNEL";
-const POST_CORE_UPDATE_RESULT_PATH_ENV = "OPENCLAW_UPDATE_POST_CORE_RESULT_PATH";
-const POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV = "OPENCLAW_UPDATE_POST_CORE_INSTALL_RECORDS_PATH";
-const SERVICE_REFRESH_PATH_ENV_KEYS = [
-  "OPENCLAW_HOME",
-  "OPENCLAW_STATE_DIR",
-  "OPENCLAW_CONFIG_PATH",
-] as const;
+const POST_CORE_UPDATE_ENV = "KOVA_UPDATE_POST_CORE";
+const POST_CORE_UPDATE_CHANNEL_ENV = "KOVA_UPDATE_POST_CORE_CHANNEL";
+const POST_CORE_UPDATE_RESULT_PATH_ENV = "KOVA_UPDATE_POST_CORE_RESULT_PATH";
+const POST_CORE_UPDATE_INSTALL_RECORDS_PATH_ENV = "KOVA_UPDATE_POST_CORE_INSTALL_RECORDS_PATH";
+const SERVICE_REFRESH_PATH_ENV_KEYS = ["KOVA_HOME", "KOVA_STATE_DIR", "KOVA_CONFIG_PATH"] as const;
 
 const UPDATE_QUIPS = [
   "Leveled up! New skills unlocked. You're welcome.",
@@ -175,10 +171,10 @@ export function shouldUseLegacyProcessRestartAfterUpdate(params: {
 function isRunningInsideGatewayService(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  if (!isGatewayServiceMarker((env.KOVA_SERVICE_MARKER ?? env.OPENCLAW_SERVICE_MARKER)?.trim())) {
+  if (!isGatewayServiceMarker((env.KOVA_SERVICE_MARKER ?? env.KOVA_SERVICE_MARKER)?.trim())) {
     return false;
   }
-  const serviceKind = (env.KOVA_SERVICE_KIND ?? env.OPENCLAW_SERVICE_KIND)?.trim();
+  const serviceKind = (env.KOVA_SERVICE_KIND ?? env.KOVA_SERVICE_KIND)?.trim();
   return !serviceKind || serviceKind === GATEWAY_SERVICE_KIND;
 }
 
@@ -508,7 +504,7 @@ async function runPackageInstallUpdate(params: {
           argv: [resolveNodeRunner(), entryPath, "doctor", "--non-interactive", "--fix"],
           env: {
             ...process.env,
-            OPENCLAW_UPDATE_IN_PROGRESS: "1",
+            KOVA_UPDATE_IN_PROGRESS: "1",
           },
           timeoutMs: params.timeoutMs,
           progress: params.progress,
@@ -970,7 +966,7 @@ async function maybeRestartService(params: {
       if (!params.opts.json && restarted) {
         defaultRuntime.log(theme.success("Daemon restarted successfully."));
         defaultRuntime.log("");
-        process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+        process.env.KOVA_UPDATE_IN_PROGRESS = "1";
         try {
           const interactiveDoctor =
             process.stdin.isTTY && !params.opts.json && params.opts.yes !== true;
@@ -980,7 +976,7 @@ async function maybeRestartService(params: {
         } catch (err) {
           defaultRuntime.log(theme.warn(`Doctor failed: ${String(err)}`));
         } finally {
-          delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+          delete process.env.KOVA_UPDATE_IN_PROGRESS;
         }
       }
     } catch (err) {
@@ -1125,7 +1121,7 @@ async function continuePostCoreUpdateInFreshProcess(params: {
   if (params.opts.timeout) {
     argv.push("--timeout", params.opts.timeout);
   }
-  const resultDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-post-core-"));
+  const resultDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-update-post-core-"));
   const resultPath = params.opts.json === true ? path.join(resultDir, "plugins.json") : null;
   const installRecordsPath = path.join(resultDir, "plugin-install-records.json");
 
@@ -1273,7 +1269,7 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     updateInstallKind === "git" ? DEFAULT_GIT_CHANNEL : DEFAULT_PACKAGE_CHANNEL;
   const channel = requestedChannel ?? storedChannel ?? defaultChannel;
   const devTargetRef =
-    channel === "dev" ? process.env.OPENCLAW_UPDATE_DEV_TARGET_REF?.trim() || undefined : undefined;
+    channel === "dev" ? process.env.KOVA_UPDATE_DEV_TARGET_REF?.trim() || undefined : undefined;
 
   const explicitTag = normalizeTag(opts.tag);
   let tag = explicitTag ?? channelToNpmTag(channel);

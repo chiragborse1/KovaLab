@@ -1393,7 +1393,7 @@ export function registerGoogleMeetCli(params: {
         if (join) {
           writeStdoutLine("joined: %s", join.session.id);
         } else {
-          writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+          writeStdoutLine("joined: no (run `kova googlemeet join %s`)", result.meetingUri);
         }
         return;
       }
@@ -1436,7 +1436,7 @@ export function registerGoogleMeetCli(params: {
       if (join) {
         writeStdoutLine("joined: %s", join.session.id);
       } else {
-        writeStdoutLine("joined: no (run `openclaw googlemeet join %s`)", result.meetingUri);
+        writeStdoutLine("joined: no (run `kova googlemeet join %s`)", result.meetingUri);
       }
     });
 

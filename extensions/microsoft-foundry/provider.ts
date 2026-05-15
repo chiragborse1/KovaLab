@@ -1,8 +1,5 @@
-import type { ProviderNormalizeResolvedModelContext } from "openclaw/plugin-sdk/core";
-import type {
-  ModelProviderConfig,
-  ProviderPlugin,
-} from "openclaw/plugin-sdk/provider-model-shared";
+import type { ProviderNormalizeResolvedModelContext } from "getkova/plugin-sdk/core";
+import type { ModelProviderConfig, ProviderPlugin } from "getkova/plugin-sdk/provider-model-shared";
 import { apiKeyAuthMethod, entraIdAuthMethod } from "./auth.js";
 import { prepareFoundryRuntimeAuth } from "./runtime.js";
 import {

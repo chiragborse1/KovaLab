@@ -6,26 +6,24 @@ export type MatrixManagedDeviceInfo = {
 
 export type MatrixDeviceHealthSummary = {
   currentDeviceId: string | null;
-  staleOpenClawDevices: MatrixManagedDeviceInfo[];
-  currentOpenClawDevices: MatrixManagedDeviceInfo[];
+  staleKovaDevices: MatrixManagedDeviceInfo[];
+  currentKovaDevices: MatrixManagedDeviceInfo[];
 };
 
-const OPENCLAW_DEVICE_NAME_PREFIX = "Kova ";
+const KOVA_DEVICE_NAME_PREFIX = "Kova ";
 
-export function isOpenClawManagedMatrixDevice(displayName: string | null | undefined): boolean {
-  return displayName?.startsWith(OPENCLAW_DEVICE_NAME_PREFIX) === true;
+export function isKovaManagedMatrixDevice(displayName: string | null | undefined): boolean {
+  return displayName?.startsWith(KOVA_DEVICE_NAME_PREFIX) === true;
 }
 
 export function summarizeMatrixDeviceHealth(
   devices: MatrixManagedDeviceInfo[],
 ): MatrixDeviceHealthSummary {
   const currentDeviceId = devices.find((device) => device.current)?.deviceId ?? null;
-  const openClawDevices = devices.filter((device) =>
-    isOpenClawManagedMatrixDevice(device.displayName),
-  );
+  const kovaDevices = devices.filter((device) => isKovaManagedMatrixDevice(device.displayName));
   return {
     currentDeviceId,
-    staleOpenClawDevices: openClawDevices.filter((device) => !device.current),
-    currentOpenClawDevices: openClawDevices.filter((device) => device.current),
+    staleKovaDevices: kovaDevices.filter((device) => !device.current),
+    currentKovaDevices: kovaDevices.filter((device) => device.current),
   };
 }

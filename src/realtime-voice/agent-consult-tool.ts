@@ -4,7 +4,7 @@ import {
 } from "../shared/string-coerce.js";
 import type { RealtimeVoiceTool } from "./provider-types.js";
 
-export const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "openclaw_agent_consult";
+export const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "kova_agent_consult";
 export const REALTIME_VOICE_AGENT_CONSULT_TOOL_POLICIES = [
   "safe-read-only",
   "owner",

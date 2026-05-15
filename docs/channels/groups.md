@@ -274,7 +274,7 @@ Replying to a bot message counts as an implicit mention when the channel support
       {
         id: "main",
         groupChat: {
-          mentionPatterns: ["@openclaw", "openclaw", "\\+15555550123"],
+          mentionPatterns: ["@kovaai", "kova", "\\+15555550123"],
           historyLimit: 50,
         },
       },

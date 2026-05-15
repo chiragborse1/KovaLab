@@ -8,7 +8,7 @@ const upsertChannelPairingRequest = vi.hoisted(() =>
   vi.fn(async () => ({ code: "PAIRCODE", created: true })),
 );
 
-vi.mock("openclaw/plugin-sdk/runtime-env", () => ({
+vi.mock("getkova/plugin-sdk/runtime-env", () => ({
   createSubsystemLogger: () => ({
     child: () => ({
       info: telegramInboundInfo,

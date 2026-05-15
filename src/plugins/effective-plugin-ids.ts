@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { listPotentialConfiguredChannelIds } from "../channels/config-presence.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
 import {
@@ -13,7 +13,7 @@ import {
 import { normalizePluginsConfig } from "./config-state.js";
 import { loadPluginManifest } from "./manifest.js";
 
-function listExplicitlyDisabledChannelIds(config: OpenClawConfig): Set<string> {
+function listExplicitlyDisabledChannelIds(config: KovaConfig): Set<string> {
   const channels = config.channels;
   if (!channels || typeof channels !== "object" || Array.isArray(channels)) {
     return new Set();
@@ -34,8 +34,8 @@ function listExplicitlyDisabledChannelIds(config: OpenClawConfig): Set<string> {
 }
 
 function collectConfiguredChannelIds(
-  config: OpenClawConfig,
-  activationSourceConfig: OpenClawConfig,
+  config: KovaConfig,
+  activationSourceConfig: KovaConfig,
   env: NodeJS.ProcessEnv,
 ): string[] {
   const disabled = new Set([
@@ -103,7 +103,7 @@ function collectBundledChannelOwnerPluginIds(params: {
   return [...pluginIds].toSorted((left, right) => left.localeCompare(right));
 }
 
-function collectExplicitEffectivePluginIds(config: OpenClawConfig): string[] {
+function collectExplicitEffectivePluginIds(config: KovaConfig): string[] {
   const plugins = normalizePluginsConfig(config.plugins);
   if (!plugins.enabled) {
     return [];
@@ -130,7 +130,7 @@ function collectExplicitEffectivePluginIds(config: OpenClawConfig): string[] {
 }
 
 export function resolveEffectivePluginIds(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   env: NodeJS.ProcessEnv;
   workspaceDir?: string;
 }): string[] {

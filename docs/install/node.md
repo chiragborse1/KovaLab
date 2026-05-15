@@ -86,7 +86,7 @@ fnm use 24
 
 ## Troubleshooting
 
-### `openclaw: command not found`
+### `kova: command not found`
 
 This almost always means npm's global bin directory isn't on your PATH.
 

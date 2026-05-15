@@ -87,7 +87,7 @@ enum ExecApprovalNotificationBridge {
     }
 
     static func approvalID(from userInfo: [AnyHashable: Any]) -> String? {
-        let raw = self.openClawPayload(userInfo: userInfo)?["approvalId"] as? String
+        let raw = self.kovaPayload(userInfo: userInfo)?["approvalId"] as? String
         let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? nil : trimmed
     }
@@ -97,12 +97,12 @@ enum ExecApprovalNotificationBridge {
     }
 
     static func payloadKind(userInfo: [AnyHashable: Any]) -> String {
-        let raw = self.openClawPayload(userInfo: userInfo)?["kind"] as? String
+        let raw = self.kovaPayload(userInfo: userInfo)?["kind"] as? String
         let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? "unknown" : trimmed
     }
 
-    private static func openClawPayload(userInfo: [AnyHashable: Any]) -> [String: Any]? {
+    private static func kovaPayload(userInfo: [AnyHashable: Any]) -> [String: Any]? {
         if let payload = userInfo["kova"] as? [String: Any] {
             return payload
         }

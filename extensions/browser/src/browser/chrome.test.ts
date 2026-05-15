@@ -13,29 +13,26 @@ import {
 } from "./chrome.executables.js";
 import {
   clearStaleChromeSingletonLocks,
-  decorateOpenClawProfile,
+  decorateKovaProfile,
   diagnoseChromeCdp,
   ensureProfileCleanExit,
   findChromeExecutableLinux,
   findChromeExecutableMac,
   findChromeExecutableWindows,
   formatChromeCdpDiagnostic,
-  buildOpenClawChromeLaunchArgs,
+  buildKovaChromeLaunchArgs,
   getChromeWebSocketUrl,
   isProfileDecorated,
   isChromeCdpReady,
   isChromeReachable,
   resolveBrowserExecutableForPlatform,
-  stopOpenClawChrome,
+  stopKovaChrome,
 } from "./chrome.js";
-import {
-  DEFAULT_OPENCLAW_BROWSER_COLOR,
-  DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
-} from "./constants.js";
+import { DEFAULT_KOVA_BROWSER_COLOR, DEFAULT_KOVA_BROWSER_PROFILE_NAME } from "./constants.js";
 import { BrowserCdpEndpointBlockedError } from "./errors.js";
 import { DEFAULT_DOWNLOAD_DIR } from "./paths.js";
 
-type StopChromeTarget = Parameters<typeof stopOpenClawChrome>[0];
+type StopChromeTarget = Parameters<typeof stopKovaChrome>[0];
 
 async function readJson(filePath: string): Promise<Record<string, unknown>> {
   const raw = await fsp.readFile(filePath, "utf-8");
@@ -95,7 +92,7 @@ async function withMockChromeCdpServer(params: {
 }
 
 async function stopChromeWithProc(proc: ReturnType<typeof makeChromeTestProc>, timeoutMs: number) {
-  await stopOpenClawChrome(
+  await stopKovaChrome(
     {
       proc,
       cdpPort: 12345,
@@ -123,7 +120,7 @@ describe("browser chrome profile decoration", () => {
   };
 
   beforeAll(async () => {
-    fixtureRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "openclaw-chrome-suite-"));
+    fixtureRoot = await fsp.mkdtemp(path.join(os.tmpdir(), "kova-chrome-suite-"));
   });
 
   beforeEach(() => {
@@ -143,14 +140,14 @@ describe("browser chrome profile decoration", () => {
 
   it("writes expected name + signed ARGB seed to Chrome prefs", async () => {
     const userDataDir = await createUserDataDir();
-    decorateOpenClawProfile(userDataDir, { color: DEFAULT_OPENCLAW_BROWSER_COLOR });
+    decorateKovaProfile(userDataDir, { color: DEFAULT_KOVA_BROWSER_COLOR });
 
     const expectedSignedArgb = ((0xff << 24) | 0xff4500) >> 0;
 
     const def = await readDefaultProfileFromLocalState(userDataDir);
 
-    expect(def.name).toBe(DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME);
-    expect(def.shortcut_name).toBe(DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME);
+    expect(def.name).toBe(DEFAULT_KOVA_BROWSER_PROFILE_NAME);
+    expect(def.shortcut_name).toBe(DEFAULT_KOVA_BROWSER_PROFILE_NAME);
     expect(def.profile_color_seed).toBe(expectedSignedArgb);
     expect(def.profile_highlight_color).toBe(expectedSignedArgb);
     expect(def.default_avatar_fill_color).toBe(expectedSignedArgb);
@@ -167,17 +164,14 @@ describe("browser chrome profile decoration", () => {
     expect(prefs.download).toBeUndefined();
     expect(prefs.savefile).toBeUndefined();
 
-    const marker = await fsp.readFile(
-      path.join(userDataDir, ".openclaw-profile-decorated"),
-      "utf-8",
-    );
+    const marker = await fsp.readFile(path.join(userDataDir, ".kova-profile-decorated"), "utf-8");
     expect(marker.trim()).toMatch(/^\d+$/);
   });
 
   it("writes managed download prefs when a download dir is provided", async () => {
     const userDataDir = await createUserDataDir();
-    decorateOpenClawProfile(userDataDir, {
-      color: DEFAULT_OPENCLAW_BROWSER_COLOR,
+    decorateKovaProfile(userDataDir, {
+      color: DEFAULT_KOVA_BROWSER_COLOR,
       downloadDir: DEFAULT_DOWNLOAD_DIR,
     });
 
@@ -192,8 +186,8 @@ describe("browser chrome profile decoration", () => {
     expect(
       isProfileDecorated(
         userDataDir,
-        DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
-        DEFAULT_OPENCLAW_BROWSER_COLOR,
+        DEFAULT_KOVA_BROWSER_PROFILE_NAME,
+        DEFAULT_KOVA_BROWSER_COLOR,
         DEFAULT_DOWNLOAD_DIR,
       ),
     ).toBe(true);
@@ -201,13 +195,13 @@ describe("browser chrome profile decoration", () => {
 
   it("treats missing managed download prefs as undecorated when required", async () => {
     const userDataDir = await createUserDataDir();
-    decorateOpenClawProfile(userDataDir, { color: DEFAULT_OPENCLAW_BROWSER_COLOR });
+    decorateKovaProfile(userDataDir, { color: DEFAULT_KOVA_BROWSER_COLOR });
 
     expect(
       isProfileDecorated(
         userDataDir,
-        DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
-        DEFAULT_OPENCLAW_BROWSER_COLOR,
+        DEFAULT_KOVA_BROWSER_PROFILE_NAME,
+        DEFAULT_KOVA_BROWSER_COLOR,
         DEFAULT_DOWNLOAD_DIR,
       ),
     ).toBe(false);
@@ -215,10 +209,10 @@ describe("browser chrome profile decoration", () => {
 
   it("best-effort writes name when color is invalid", async () => {
     const userDataDir = await createUserDataDir();
-    decorateOpenClawProfile(userDataDir, { color: "lobster-orange" });
+    decorateKovaProfile(userDataDir, { color: "lobster-orange" });
     const def = await readDefaultProfileFromLocalState(userDataDir);
 
-    expect(def.name).toBe(DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME);
+    expect(def.name).toBe(DEFAULT_KOVA_BROWSER_PROFILE_NAME);
     expect(def.profile_color_seed).toBeUndefined();
   });
 
@@ -232,7 +226,7 @@ describe("browser chrome profile decoration", () => {
       "utf-8",
     );
 
-    decorateOpenClawProfile(userDataDir, { color: DEFAULT_OPENCLAW_BROWSER_COLOR });
+    decorateKovaProfile(userDataDir, { color: DEFAULT_KOVA_BROWSER_COLOR });
 
     const localState = await readJson(path.join(userDataDir, "Local State"));
     expect(typeof localState.profile).toBe("object");
@@ -251,12 +245,12 @@ describe("browser chrome profile decoration", () => {
 
   it("is idempotent when rerun on an existing profile", async () => {
     const userDataDir = await createUserDataDir();
-    decorateOpenClawProfile(userDataDir, { color: DEFAULT_OPENCLAW_BROWSER_COLOR });
-    decorateOpenClawProfile(userDataDir, { color: DEFAULT_OPENCLAW_BROWSER_COLOR });
+    decorateKovaProfile(userDataDir, { color: DEFAULT_KOVA_BROWSER_COLOR });
+    decorateKovaProfile(userDataDir, { color: DEFAULT_KOVA_BROWSER_COLOR });
 
     const prefs = await readJson(path.join(userDataDir, "Default", "Preferences"));
     const profile = prefs.profile as Record<string, unknown>;
-    expect(profile.name).toBe(DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME);
+    expect(profile.name).toBe(DEFAULT_KOVA_BROWSER_PROFILE_NAME);
   });
 
   it("clears stale singleton artifacts when the lock points at another host", async () => {
@@ -794,20 +788,20 @@ describe("browser chrome helpers", () => {
     );
   });
 
-  it("stopOpenClawChrome no-ops when process is already killed", async () => {
+  it("stopKovaChrome no-ops when process is already killed", async () => {
     const proc = makeChromeTestProc({ killed: true });
     await stopChromeWithProc(proc, 10);
     expect(proc.kill).not.toHaveBeenCalled();
   });
 
-  it("stopOpenClawChrome sends SIGTERM and returns once CDP is down", async () => {
+  it("stopKovaChrome sends SIGTERM and returns once CDP is down", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
     const proc = makeChromeTestProc();
     await stopChromeWithProc(proc, 10);
     expect(proc.kill).toHaveBeenCalledWith("SIGTERM");
   });
 
-  it("stopOpenClawChrome escalates to SIGKILL when CDP stays reachable", async () => {
+  it("stopKovaChrome escalates to SIGKILL when CDP stays reachable", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -871,7 +865,7 @@ describe("chrome executables", () => {
 
 describe("browser chrome launch args", () => {
   it("does not force an about:blank tab at startup", () => {
-    const args = buildOpenClawChromeLaunchArgs({
+    const args = buildKovaChromeLaunchArgs({
       resolved: {
         enabled: true,
         controlPort: 18791,
@@ -898,27 +892,27 @@ describe("browser chrome launch args", () => {
           maxTabsPerSession: 8,
           sweepMinutes: 5,
         },
-        defaultProfile: "openclaw",
+        defaultProfile: "kova",
         profiles: {
-          openclaw: { cdpPort: 18800, color: "#FF4500" },
+          kova: { cdpPort: 18800, color: "#FF4500" },
         },
       },
       profile: {
-        name: "openclaw",
+        name: "kova",
         cdpUrl: "http://127.0.0.1:18800",
         cdpPort: 18800,
         cdpHost: "127.0.0.1",
         cdpIsLoopback: true,
         color: "#FF4500",
-        driver: "openclaw",
+        driver: "kova",
         headless: false,
         attachOnly: false,
       },
-      userDataDir: "/tmp/openclaw-test-user-data",
+      userDataDir: "/tmp/kova-test-user-data",
     });
 
     expect(args).not.toContain("about:blank");
     expect(args).toContain("--remote-debugging-port=18800");
-    expect(args).toContain("--user-data-dir=/tmp/openclaw-test-user-data");
+    expect(args).toContain("--user-data-dir=/tmp/kova-test-user-data");
   });
 });

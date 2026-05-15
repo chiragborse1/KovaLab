@@ -10,5 +10,5 @@ export {
   withEnvAsync,
   withFetchPreconnect,
   isLiveTestEnabled,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/testing";
+  type KovaConfig,
+} from "getkova/plugin-sdk/testing";

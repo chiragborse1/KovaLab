@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import type { QaBusState } from "./bus-state.js";
 import { createQaTransportAdapter, type QaTransportId } from "./qa-transport-registry.js";
 import { renderQaMarkdownReport } from "./report.js";
@@ -24,7 +24,7 @@ export function resolveQaSelfCheckOutputPath(params?: { outputPath?: string; rep
 
 export async function runQaSelfCheckAgainstState(params: {
   state: QaBusState;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   transportId?: QaTransportId;
   outputPath?: string;
   repoRoot?: string;
@@ -66,7 +66,7 @@ export async function runQaSelfCheckAgainstState(params: {
     }
   });
   const report = renderQaMarkdownReport({
-    title: "OpenClaw QA E2E Self-Check",
+    title: "Kova QA E2E Self-Check",
     startedAt,
     finishedAt,
     checks,

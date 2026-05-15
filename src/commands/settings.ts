@@ -10,7 +10,7 @@ import { formatCliCommand } from "../cli/command-format.js";
 import { readConfigFileSnapshot } from "../config/config.js";
 import { mutateConfigFile } from "../config/mutate.js";
 import type { AgentModelConfig } from "../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { readGatewayCredentialEnv } from "../gateway/credentials.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
@@ -125,7 +125,7 @@ function isLegacyDefaultWorkspace(value: string): boolean {
   );
 }
 
-function resolveDisplayWorkspace(cfg: OpenClawConfig): string {
+function resolveDisplayWorkspace(cfg: KovaConfig): string {
   const configured = normalizeOptionalString(cfg.agents?.defaults?.workspace);
   if (!configured || isLegacyDefaultWorkspace(configured)) {
     return DEFAULT_AGENT_WORKSPACE_DIR;
@@ -133,11 +133,11 @@ function resolveDisplayWorkspace(cfg: OpenClawConfig): string {
   return configured;
 }
 
-function displayWorkspace(cfg: OpenClawConfig): string {
+function displayWorkspace(cfg: KovaConfig): string {
   return shortenHomePath(resolveDisplayWorkspace(cfg));
 }
 
-function normalizeSettingsConfig(cfg: OpenClawConfig): OpenClawConfig {
+function normalizeSettingsConfig(cfg: KovaConfig): KovaConfig {
   const workspace = normalizeOptionalString(cfg.agents?.defaults?.workspace);
   if (!workspace || !isLegacyDefaultWorkspace(workspace)) {
     return cfg;
@@ -154,7 +154,7 @@ function normalizeSettingsConfig(cfg: OpenClawConfig): OpenClawConfig {
   };
 }
 
-function countConfiguredChannels(cfg: OpenClawConfig): number {
+function countConfiguredChannels(cfg: KovaConfig): number {
   const channels = cfg.channels;
   if (!channels || typeof channels !== "object") {
     return 0;
@@ -170,7 +170,7 @@ function countConfiguredChannels(cfg: OpenClawConfig): number {
   }).length;
 }
 
-function countEnabledPlugins(cfg: OpenClawConfig): number {
+function countEnabledPlugins(cfg: KovaConfig): number {
   const entries = cfg.plugins?.entries;
   if (!entries) {
     return 0;
@@ -178,12 +178,12 @@ function countEnabledPlugins(cfg: OpenClawConfig): number {
   return Object.values(entries).filter((entry) => entry?.enabled !== false).length;
 }
 
-function countSkills(cfg: OpenClawConfig): number {
+function countSkills(cfg: KovaConfig): number {
   const allow = cfg.skills?.allowBundled;
   return Array.isArray(allow) ? allow.length : 0;
 }
 
-function resolveThemeName(cfg: OpenClawConfig): SettingsTheme {
+function resolveThemeName(cfg: KovaConfig): SettingsTheme {
   const accent = normalizeOptionalString(cfg.ui?.seamColor)?.toLowerCase();
   const match = Object.entries(THEME_ACCENTS).find(([, value]) => value.toLowerCase() === accent);
   return (match?.[0] as SettingsTheme | undefined) ?? "Neural";
@@ -202,7 +202,7 @@ function withStatus(
 }
 
 export function buildSettingsDashboardRows(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   statusMap?: SettingsStatusMap,
 ): SettingsDashboardRow[] {
   const model = splitModelRef(modelPrimary(cfg.agents?.defaults?.model));
@@ -441,7 +441,7 @@ export function filterSettingsPaletteCommands(
   );
 }
 
-async function resolveSecretInput(cfg: OpenClawConfig, value: unknown, configPath: string) {
+async function resolveSecretInput(cfg: KovaConfig, value: unknown, configPath: string) {
   try {
     return await resolveSetupSecretInputString({
       config: cfg,
@@ -472,7 +472,7 @@ async function pathExists(candidate: string): Promise<boolean> {
   }
 }
 
-async function resolveSettingsStatusSnapshot(cfg: OpenClawConfig): Promise<SettingsStatusSnapshot> {
+async function resolveSettingsStatusSnapshot(cfg: KovaConfig): Promise<SettingsStatusSnapshot> {
   const workspaceDir = resolveUserPath(resolveDisplayWorkspace(cfg));
   const workspaceExists = await pathExists(workspaceDir);
   const memoryEnabled = cfg.agents?.defaults?.memorySearch?.enabled !== false;
@@ -497,12 +497,8 @@ async function resolveSettingsStatusSnapshot(cfg: OpenClawConfig): Promise<Setti
   const gatewayStartedAt = Date.now();
   const gateway = await probeGatewayReachable({
     url: gatewayUrl,
-    token:
-      readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN") ??
-      gatewayToken,
-    password:
-      readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD", "OPENCLAW_GATEWAY_PASSWORD") ??
-      gatewayPassword,
+    token: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_TOKEN") ?? gatewayToken,
+    password: readGatewayCredentialEnv(process.env, "KOVA_GATEWAY_PASSWORD") ?? gatewayPassword,
     timeoutMs: 350,
   });
   const gatewayLatencyMs = Date.now() - gatewayStartedAt;
@@ -528,7 +524,7 @@ async function resolveSettingsStatusSnapshot(cfg: OpenClawConfig): Promise<Setti
   };
 }
 
-export async function resolveSettingsStatusMap(cfg: OpenClawConfig): Promise<SettingsStatusMap> {
+export async function resolveSettingsStatusMap(cfg: KovaConfig): Promise<SettingsStatusMap> {
   return (await resolveSettingsStatusSnapshot(cfg)).rows;
 }
 
@@ -538,7 +534,7 @@ function nextThemeName(current: string): SettingsTheme {
   return names[(index + 1) % names.length] ?? "Neural";
 }
 
-export function applySettingsToggle(cfg: OpenClawConfig, toggle: SettingsToggle): OpenClawConfig {
+export function applySettingsToggle(cfg: KovaConfig, toggle: SettingsToggle): KovaConfig {
   cfg = normalizeSettingsConfig(cfg);
   if (toggle === "memory") {
     const enabled = cfg.agents?.defaults?.memorySearch?.enabled !== false;
@@ -730,7 +726,7 @@ export function findSettingsRowIndex(rows: SettingsDashboardRow[], query: string
   return found === -1 ? 0 : found;
 }
 
-async function readCurrentConfig(runtime: RuntimeEnv): Promise<OpenClawConfig | null> {
+async function readCurrentConfig(runtime: RuntimeEnv): Promise<KovaConfig | null> {
   const snapshot = await readConfigFileSnapshot();
   if (!snapshot.valid) {
     runtime.error("Config invalid. Run `kova doctor --fix`, then run `kova settings` again.");
@@ -743,7 +739,7 @@ async function readCurrentConfig(runtime: RuntimeEnv): Promise<OpenClawConfig | 
   return normalizeSettingsConfig(snapshot.sourceConfig ?? snapshot.config ?? {});
 }
 
-async function saveConfig(nextConfig: OpenClawConfig): Promise<void> {
+async function saveConfig(nextConfig: KovaConfig): Promise<void> {
   nextConfig = normalizeSettingsConfig(nextConfig);
   await mutateConfigFile({
     mutate: (draft) => {

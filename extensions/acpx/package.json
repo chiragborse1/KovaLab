@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/acpx",
+  "name": "@kovaai/acpx",
   "version": "2.0.0-beta.5",
   "description": "Kova ACP runtime backend",
   "type": "module",
@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "@agentclientprotocol/claude-agent-acp": "0.31.0",
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],

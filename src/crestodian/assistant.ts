@@ -225,7 +225,7 @@ async function runLocalRuntimePlanner(
 }
 
 async function createTempPlannerDir(): Promise<string> {
-  return await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-crestodian-planner-"));
+  return await fs.mkdtemp(path.join(os.tmpdir(), "kova-crestodian-planner-"));
 }
 
 async function removeTempPlannerDir(dir: string): Promise<void> {

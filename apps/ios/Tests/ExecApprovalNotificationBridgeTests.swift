@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import UserNotifications
-@testable import OpenClaw
+@testable import Kova
 
 private final class MockNotificationCenter: NotificationCentering, @unchecked Sendable {
     var authorization: NotificationAuthorizationStatus = .authorized
@@ -64,7 +64,7 @@ private final class MockNotificationCenter: NotificationCentering, @unchecked Se
 
     @Test func parsePromptIgnoresUnexpectedActionIdentifiers() {
         let prompt = ExecApprovalNotificationBridge.parsePrompt(
-            actionIdentifier: "openclaw.exec-approval.allow-once",
+            actionIdentifier: "kova.exec-approval.allow-once",
             userInfo: [
                 "kova": [
                     "kind": ExecApprovalNotificationBridge.requestedKind,

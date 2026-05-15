@@ -18,7 +18,7 @@ import {
 const tempDirs: string[] = [];
 
 function makeStateDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-index-records-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-plugin-index-records-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -29,7 +29,7 @@ function createPluginCandidate(stateDir: string, pluginId: string): PluginCandid
   const source = path.join(rootDir, "index.ts");
   fs.writeFileSync(source, "export function register() {}\n", "utf8");
   fs.writeFileSync(
-    path.join(rootDir, "openclaw.plugin.json"),
+    path.join(rootDir, "kova.plugin.json"),
     JSON.stringify({
       id: pluginId,
       configSchema: { type: "object" },
@@ -59,8 +59,8 @@ describe("plugin index install records store", () => {
       {
         twitch: {
           source: "npm",
-          spec: "@openclaw/plugin-twitch@1.0.0",
-          installPath: "plugins/npm/@openclaw/plugin-twitch",
+          spec: "@kovaai/plugin-twitch@1.0.0",
+          installPath: "plugins/npm/@kovaai/plugin-twitch",
         },
       },
       {
@@ -78,8 +78,8 @@ describe("plugin index install records store", () => {
       installRecords: {
         twitch: {
           source: "npm",
-          spec: "@openclaw/plugin-twitch@1.0.0",
-          installPath: "plugins/npm/@openclaw/plugin-twitch",
+          spec: "@kovaai/plugin-twitch@1.0.0",
+          installPath: "plugins/npm/@kovaai/plugin-twitch",
         },
       },
       plugins: [
@@ -92,8 +92,8 @@ describe("plugin index install records store", () => {
     await expect(readPersistedInstalledPluginIndexInstallRecords({ stateDir })).resolves.toEqual({
       twitch: {
         source: "npm",
-        spec: "@openclaw/plugin-twitch@1.0.0",
-        installPath: "plugins/npm/@openclaw/plugin-twitch",
+        spec: "@kovaai/plugin-twitch@1.0.0",
+        installPath: "plugins/npm/@kovaai/plugin-twitch",
       },
     });
   });

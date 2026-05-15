@@ -12,7 +12,7 @@ import {
   resolveAgentMainSessionKey,
   resolveMainSessionKey,
 } from "../../config/sessions/main-session.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { sleepWithAbort } from "../../infra/backoff.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import type { OutboundDeliveryResult } from "../../infra/outbound/deliver.js";
@@ -98,8 +98,8 @@ export function resolveCronDeliveryBestEffort(job: CronJob): boolean {
 export type SuccessfulDeliveryTarget = Extract<DeliveryTargetResolution, { ok: true }>;
 
 type DispatchCronDeliveryParams = {
-  cfg: OpenClawConfig;
-  cfgWithAgentDefaults: OpenClawConfig;
+  cfg: KovaConfig;
+  cfgWithAgentDefaults: KovaConfig;
   deps: CliDeps;
   job: CronJob;
   agentId: string;
@@ -242,7 +242,7 @@ function cloneDeliveryResults(
 }
 
 function pruneCompletedDirectCronDeliveries(now: number) {
-  const ttlMs = process.env.OPENCLAW_TEST_FAST === "1" ? 60_000 : 24 * 60 * 60 * 1000;
+  const ttlMs = process.env.KOVA_TEST_FAST === "1" ? 60_000 : 24 * 60 * 60 * 1000;
   for (const [key, entry] of COMPLETED_DIRECT_CRON_DELIVERIES) {
     if (now - entry.ts >= ttlMs) {
       COMPLETED_DIRECT_CRON_DELIVERIES.delete(key);
@@ -323,17 +323,14 @@ function shouldQueueCronAwareness(job: CronJob, deliveryBestEffort: boolean): bo
   return job.sessionTarget === "isolated" && !deliveryBestEffort;
 }
 
-function resolveCronAwarenessMainSessionKey(params: {
-  cfg: OpenClawConfig;
-  agentId: string;
-}): string {
+function resolveCronAwarenessMainSessionKey(params: { cfg: KovaConfig; agentId: string }): string {
   return params.cfg.session?.scope === "global"
     ? resolveMainSessionKey(params.cfg)
     : resolveAgentMainSessionKey({ cfg: params.cfg, agentId: params.agentId });
 }
 
 async function queueCronAwarenessSystemEvent(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   jobId: string;
   agentId: string;
   deliveryIdempotencyKey: string;
@@ -400,7 +397,7 @@ function isTransientDirectCronDeliveryError(error: unknown): boolean {
 }
 
 function resolveDirectCronRetryDelaysMs(): readonly number[] {
-  return process.env.NODE_ENV === "test" && process.env.OPENCLAW_TEST_FAST === "1"
+  return process.env.NODE_ENV === "test" && process.env.KOVA_TEST_FAST === "1"
     ? [0, 0, 0]
     : [5_000, 10_000, 20_000];
 }
@@ -451,7 +448,7 @@ export async function dispatchCronDelivery(
   let directCronSessionDeleted = false;
   const formatDeliveryTargetError = (error: string) =>
     params.unverifiedMessagingToolDelivery === true
-      ? `${error}; the agent used the message tool, but OpenClaw could not verify that message matched the cron delivery target`
+      ? `${error}; the agent used the message tool, but Kova could not verify that message matched the cron delivery target`
       : error;
   const failDeliveryTarget = (error: string) =>
     params.withRunSession({
@@ -617,7 +614,7 @@ export async function dispatchCronDelivery(
           // Keep all attempts out of the write-ahead delivery queue so a
           // late-successful first send cannot leave behind a failed queue
           // entry that replays on the next restart.
-          // See: https://github.com/openclaw/openclaw/issues/40545
+          // See: https://github.com/chiragborse1/KovaLab/issues/40545
           skipQueue: true,
         });
       const deliveryResults = options?.retryTransient

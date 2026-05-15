@@ -2,7 +2,7 @@ import http from "node:http";
 import type {
   RealtimeVoiceBridge,
   RealtimeVoiceProviderPlugin,
-} from "openclaw/plugin-sdk/realtime-voice";
+} from "getkova/plugin-sdk/realtime-voice";
 import { describe, expect, it, vi } from "vitest";
 import { WebSocket } from "ws";
 import type { VoiceCallRealtimeConfig } from "../config.js";
@@ -259,7 +259,7 @@ describe("RealtimeCallHandler path routing", () => {
       realtimeProvider: makeRealtimeProvider(createBridge),
     });
     handler.registerToolHandler(
-      "openclaw_agent_consult",
+      "kova_agent_consult",
       () =>
         new Promise((resolve) => {
           resolveConsult = resolve;
@@ -284,7 +284,7 @@ describe("RealtimeCallHandler path routing", () => {
         callbacks?.onToolCall?.({
           itemId: "item-1",
           callId: "consult-call",
-          name: "openclaw_agent_consult",
+          name: "kova_agent_consult",
           args: { question: "Are the basement lights on?" },
         });
 
@@ -293,7 +293,7 @@ describe("RealtimeCallHandler path routing", () => {
             "consult-call",
             expect.objectContaining({
               status: "working",
-              tool: "openclaw_agent_consult",
+              tool: "kova_agent_consult",
             }),
             { willContinue: true },
           );

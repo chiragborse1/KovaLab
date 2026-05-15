@@ -2,11 +2,11 @@ import { randomUUID } from "node:crypto";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { formatCliCommand } from "openclaw/plugin-sdk/cli-runtime";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/routing";
-import { info, success } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
-import { defaultRuntime, type RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import { formatCliCommand } from "getkova/plugin-sdk/cli-runtime";
+import { DEFAULT_ACCOUNT_ID } from "getkova/plugin-sdk/routing";
+import { info, success } from "getkova/plugin-sdk/runtime-env";
+import { getChildLogger } from "getkova/plugin-sdk/runtime-env";
+import { defaultRuntime, type RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import { resolveOAuthDir } from "./auth-store.runtime.js";
 import { hasWebCredsSync, resolveWebCredsBackupPath, resolveWebCredsPath } from "./creds-files.js";
 import {

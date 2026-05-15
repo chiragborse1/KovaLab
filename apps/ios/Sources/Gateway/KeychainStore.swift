@@ -1,5 +1,5 @@
 import Foundation
-import OpenClawKit
+import KovaKit
 
 enum KeychainStore {
     static func loadString(service: String, account: String) -> String? {

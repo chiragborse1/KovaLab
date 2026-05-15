@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   normalizeModelCatalogProviderId,
   planManifestModelCatalogRows,
@@ -14,7 +14,7 @@ import {
 } from "../../plugins/plugin-registry.js";
 
 function loadStaticManifestCatalogRowsForPluginIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
   index: PluginRegistrySnapshot;
   pluginIds: readonly string[];
@@ -43,7 +43,7 @@ function loadStaticManifestCatalogRowsForPluginIds(params: {
 }
 
 function resolveConventionModelCatalogPluginIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   index: PluginRegistrySnapshot;
   providerFilter: string;
 }): readonly string[] {
@@ -65,7 +65,7 @@ function resolveConventionModelCatalogPluginIds(params: {
 }
 
 function resolveDeclaredModelCatalogPluginIds(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   index: PluginRegistrySnapshot;
   providerFilter: string;
 }): readonly string[] {
@@ -78,7 +78,7 @@ function resolveDeclaredModelCatalogPluginIds(params: {
 }
 
 export function loadStaticManifestCatalogRowsForList(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   providerFilter: string;
   env?: NodeJS.ProcessEnv;
 }): readonly NormalizedModelCatalogRow[] {

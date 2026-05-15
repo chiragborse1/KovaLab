@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
-  loadOpenClawProviderIndex,
+  loadKovaProviderIndex,
   normalizeModelCatalogProviderId,
   planProviderIndexModelCatalogRows,
 } from "../../model-catalog/index.js";
@@ -9,13 +9,13 @@ import { normalizePluginsConfig, resolveEffectiveEnableState } from "../../plugi
 
 export function loadProviderIndexCatalogRowsForList(params: {
   providerFilter: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): readonly NormalizedModelCatalogRow[] {
   const providerFilter = normalizeModelCatalogProviderId(params.providerFilter);
   if (!providerFilter) {
     return [];
   }
-  const index = loadOpenClawProviderIndex();
+  const index = loadKovaProviderIndex();
   return planProviderIndexModelCatalogRows({
     index,
     providerFilter,

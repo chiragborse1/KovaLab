@@ -91,7 +91,7 @@ describe("media understanding attachments SSRF", () => {
   });
 
   it("reads local attachments inside configured roots", async () => {
-    await withLocalAttachmentCache("openclaw-media-cache-allowed-", async ({ cache }) => {
+    await withLocalAttachmentCache("kova-media-cache-allowed-", async ({ cache }) => {
       const result = await cache.getBuffer({ attachmentIndex: 0, maxBytes: 1024, timeoutMs: 1000 });
       expect(result.buffer.toString()).toBe("ok");
     });
@@ -111,7 +111,7 @@ describe("media understanding attachments SSRF", () => {
   });
 
   it("blocks directory attachments even inside configured roots", async () => {
-    await withTempDir({ prefix: "openclaw-media-cache-dir-" }, async (base) => {
+    await withTempDir({ prefix: "kova-media-cache-dir-" }, async (base) => {
       const allowedRoot = path.join(base, "allowed");
       const attachmentPath = path.join(allowedRoot, "nested");
       await fs.mkdir(attachmentPath, { recursive: true });
@@ -130,7 +130,7 @@ describe("media understanding attachments SSRF", () => {
     if (process.platform === "win32") {
       return;
     }
-    await withTempDir({ prefix: "openclaw-media-cache-symlink-" }, async (base) => {
+    await withTempDir({ prefix: "kova-media-cache-symlink-" }, async (base) => {
       const allowedRoot = path.join(base, "allowed");
       const outsidePath = "/etc/passwd";
       const symlinkPath = path.join(allowedRoot, "note.txt");
@@ -149,7 +149,7 @@ describe("media understanding attachments SSRF", () => {
 
   it("enforces maxBytes after reading local attachments", async () => {
     await withLocalAttachmentCache(
-      "openclaw-media-cache-max-bytes-",
+      "kova-media-cache-max-bytes-",
       async ({ cache, canonicalAttachmentPath }) => {
         const originalOpen = fs.open.bind(fs);
         const openSpy = vi.spyOn(fs, "open");
@@ -179,7 +179,7 @@ describe("media understanding attachments SSRF", () => {
       return;
     }
     await withLocalAttachmentCache(
-      "openclaw-media-cache-flags-",
+      "kova-media-cache-flags-",
       async ({ cache, canonicalAttachmentPath }) => {
         const openSpy = vi.spyOn(fs, "open");
 
@@ -196,7 +196,7 @@ describe("media understanding attachments SSRF", () => {
   });
 
   it("rejects local attachments when canonicalization fails", async () => {
-    await withTempDir({ prefix: "openclaw-media-cache-realpath-failure-" }, async (base) => {
+    await withTempDir({ prefix: "kova-media-cache-realpath-failure-" }, async (base) => {
       const allowedRoot = path.join(base, "allowed");
       const attachmentPath = path.join(allowedRoot, "voice-note.m4a");
       await fs.mkdir(allowedRoot, { recursive: true });

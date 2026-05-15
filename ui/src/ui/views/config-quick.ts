@@ -151,7 +151,7 @@ export type QuickSettingsPersonalProps = Pick<
 
 type ThemeOption = { id: ThemeName; label: string };
 const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
-  { id: "claw", label: "Claw" },
+  { id: "kova", label: "Kova" },
   { id: "knot", label: "Knot" },
   { id: "dash", label: "Dash" },
 ];

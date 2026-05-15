@@ -1,4 +1,4 @@
-import OpenClawKit
+import KovaKit
 import Foundation
 import Testing
 
@@ -43,7 +43,7 @@ private func agentAction(
         #expect(DeepLinkParser.parse(url) == agentAction(message: "Hello"))
     }
 
-    @Test func parseRejectsNonOpenClawScheme() {
+    @Test func parseRejectsNonKovaScheme() {
         let url = URL(string: "https://example.com/agent?message=hi")!
         #expect(DeepLinkParser.parse(url) == nil)
     }
@@ -83,11 +83,11 @@ private func agentAction(
 
     @Test func parseGatewayLinkParsesCommonFields() {
         let url = URL(
-            string: "kova://gateway?host=openclaw.local&port=18789&tls=1&token=abc&password=def")!
+            string: "kova://gateway?host=kova.local&port=18789&tls=1&token=abc&password=def")!
         #expect(
             DeepLinkParser.parse(url) == .gateway(
                 .init(
-                    host: "openclaw.local",
+                    host: "kova.local",
                     port: 18789,
                     tls: true,
                     bootstrapToken: nil,

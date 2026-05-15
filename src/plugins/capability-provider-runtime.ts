@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   withBundledPluginAllowlistCompat,
   withBundledPluginEnablementCompat,
@@ -54,7 +54,7 @@ const CAPABILITY_CONTRACT_KEY: Record<CapabilityProviderRegistryKey, CapabilityC
 };
 
 const capabilityProviderPluginIdCache = new WeakMap<
-  OpenClawConfig,
+  KovaConfig,
   WeakMap<NodeJS.ProcessEnv, Map<string, CapabilityProviderPluginIdCacheEntry>>
 >();
 
@@ -72,7 +72,7 @@ function buildCapabilityProviderPluginIdCacheKey(params: {
 
 function getCachedCapabilityProviderPluginIds(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   env: NodeJS.ProcessEnv;
   providerId?: string;
 }): string[] | undefined {
@@ -89,7 +89,7 @@ function getCachedCapabilityProviderPluginIds(params: {
 
 function memoizeCapabilityProviderPluginIds(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   env: NodeJS.ProcessEnv;
   providerId?: string;
   pluginIds: string[];
@@ -118,7 +118,7 @@ function memoizeCapabilityProviderPluginIds(params: {
 
 function resolveBundledCapabilityCompatPluginIds(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   providerId?: string;
 }): string[] {
   const env = process.env;
@@ -153,7 +153,7 @@ function resolveBundledCapabilityCompatPluginIds(params: {
 
 function resolveCapabilityProviderConfig(params: {
   key: CapabilityProviderRegistryKey;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   pluginIds?: string[];
 }) {
   const pluginIds = params.pluginIds ?? resolveBundledCapabilityCompatPluginIds(params);
@@ -233,7 +233,7 @@ function addStringValue(target: Set<string>, value: unknown): void {
   }
 }
 
-function collectRequestedSpeechProviderIds(cfg: OpenClawConfig | undefined): Set<string> {
+function collectRequestedSpeechProviderIds(cfg: KovaConfig | undefined): Set<string> {
   const requested = new Set<string>();
   const tts =
     typeof cfg?.messages?.tts === "object" && cfg.messages.tts !== null
@@ -289,7 +289,7 @@ function filterLoadedProvidersForRequestedConfig<K extends CapabilityProviderReg
 export function resolvePluginCapabilityProvider<K extends CapabilityProviderRegistryKey>(params: {
   key: K;
   providerId: string;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): CapabilityProviderForKey<K> | undefined {
   const activeRegistry = resolveRuntimePluginRegistry();
   const activeProvider = findProviderById(activeRegistry?.[params.key] ?? [], params.providerId);
@@ -319,7 +319,7 @@ export function resolvePluginCapabilityProvider<K extends CapabilityProviderRegi
 
 export function resolvePluginCapabilityProviders<K extends CapabilityProviderRegistryKey>(params: {
   key: K;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
 }): CapabilityProviderForKey<K>[] {
   const activeRegistry = resolveRuntimePluginRegistry();
   const activeProviders = activeRegistry?.[params.key] ?? [];

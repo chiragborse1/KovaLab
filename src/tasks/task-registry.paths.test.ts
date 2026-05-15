@@ -10,7 +10,7 @@ describe("task registry paths", () => {
         VITEST: "true",
         VITEST_POOL_ID: "7",
       } as NodeJS.ProcessEnv),
-    ).toBe(path.join(os.tmpdir(), "openclaw-test-state", `${process.pid}-7`));
+    ).toBe(path.join(os.tmpdir(), "kova-test-state", `${process.pid}-7`));
   });
 
   it("prefers explicit state dir overrides over Vitest sharding", () => {
@@ -26,11 +26,11 @@ describe("task registry paths", () => {
   it("uses legacy explicit state dir overrides only when compat is enabled", () => {
     expect(
       resolveTaskStateDir({
-        KOVA_ALLOW_OPENCLAW_COMPAT: "1",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-custom-state",
+        KOVA_COMPAT: "1",
+        KOVA_STATE_DIR: "/tmp/kova-custom-state",
         VITEST: "true",
         VITEST_POOL_ID: "7",
       } as NodeJS.ProcessEnv),
-    ).toBe("/tmp/openclaw-custom-state");
+    ).toBe("/tmp/kova-custom-state");
   });
 });

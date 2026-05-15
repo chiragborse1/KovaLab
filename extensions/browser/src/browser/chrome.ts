@@ -2,8 +2,8 @@ import { type ChildProcess, type ChildProcessWithoutNullStreams, spawn } from "n
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { prepareOomScoreAdjustedSpawn } from "openclaw/plugin-sdk/process-runtime";
-import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+import { prepareOomScoreAdjustedSpawn } from "getkova/plugin-sdk/process-runtime";
+import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { ensurePortAvailable } from "../infra/ports.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -42,7 +42,7 @@ import {
   resolveBrowserExecutableForPlatform,
 } from "./chrome.executables.js";
 import {
-  decorateOpenClawProfile,
+  decorateKovaProfile,
   ensureProfileCleanExit,
   isProfileDecorated,
 } from "./chrome.profile-decoration.js";
@@ -54,10 +54,7 @@ import {
   type ResolvedBrowserConfig,
   type ResolvedBrowserProfile,
 } from "./config.js";
-import {
-  DEFAULT_OPENCLAW_BROWSER_COLOR,
-  DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME,
-} from "./constants.js";
+import { DEFAULT_KOVA_BROWSER_COLOR, DEFAULT_KOVA_BROWSER_PROFILE_NAME } from "./constants.js";
 import { BrowserProfileUnavailableError } from "./errors.js";
 import { DEFAULT_DOWNLOAD_DIR } from "./paths.js";
 
@@ -84,7 +81,7 @@ export {
   resolveBrowserExecutableForPlatform,
 } from "./chrome.executables.js";
 export {
-  decorateOpenClawProfile,
+  decorateKovaProfile,
   ensureProfileCleanExit,
   isProfileDecorated,
 } from "./chrome.profile-decoration.js";
@@ -227,7 +224,7 @@ function resolveBrowserExecutable(
   );
 }
 
-export function resolveOpenClawUserDataDir(profileName = DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME) {
+export function resolveKovaUserDataDir(profileName = DEFAULT_KOVA_BROWSER_PROFILE_NAME) {
   return path.join(CONFIG_DIR, "browser", profileName, "user-data");
 }
 
@@ -235,7 +232,7 @@ function cdpUrlForPort(cdpPort: number) {
   return `http://127.0.0.1:${cdpPort}`;
 }
 
-export function buildOpenClawChromeLaunchArgs(params: {
+export function buildKovaChromeLaunchArgs(params: {
   resolved: ResolvedBrowserConfig;
   profile: ResolvedBrowserProfile;
   userDataDir: string;
@@ -395,7 +392,7 @@ export async function isChromeCdpReady(
   return diagnostic.ok;
 }
 
-export async function launchOpenClawChrome(
+export async function launchKovaChrome(
   resolved: ResolvedBrowserConfig,
   profile: ResolvedBrowserProfile,
   launchOptions: ManagedBrowserHeadlessOptions = {},
@@ -421,20 +418,20 @@ export async function launchOpenClawChrome(
     );
   }
 
-  const userDataDir = resolveOpenClawUserDataDir(profile.name);
+  const userDataDir = resolveKovaUserDataDir(profile.name);
   fs.mkdirSync(userDataDir, { recursive: true });
   fs.mkdirSync(DEFAULT_DOWNLOAD_DIR, { recursive: true });
 
   const needsDecorate = !isProfileDecorated(
     userDataDir,
     profile.name,
-    (profile.color ?? DEFAULT_OPENCLAW_BROWSER_COLOR).toUpperCase(),
+    (profile.color ?? DEFAULT_KOVA_BROWSER_COLOR).toUpperCase(),
     DEFAULT_DOWNLOAD_DIR,
   );
 
   // First launch to create preference files if missing, then decorate and relaunch.
   const spawnOnce = () => {
-    const args = buildOpenClawChromeLaunchArgs({
+    const args = buildKovaChromeLaunchArgs({
       resolved,
       profile,
       userDataDir,
@@ -490,7 +487,7 @@ export async function launchOpenClawChrome(
 
   if (needsDecorate) {
     try {
-      decorateOpenClawProfile(userDataDir, {
+      decorateKovaProfile(userDataDir, {
         name: profile.name,
         color: profile.color,
         downloadDir: DEFAULT_DOWNLOAD_DIR,
@@ -586,10 +583,7 @@ export async function launchOpenClawChrome(
   return await launchOnceAndWait(true);
 }
 
-export async function stopOpenClawChrome(
-  running: RunningChrome,
-  timeoutMs = CHROME_STOP_TIMEOUT_MS,
-) {
+export async function stopKovaChrome(running: RunningChrome, timeoutMs = CHROME_STOP_TIMEOUT_MS) {
   const proc = running.proc;
   if (proc.killed) {
     return;

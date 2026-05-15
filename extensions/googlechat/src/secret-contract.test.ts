@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../../../src/config/types.js";
+import type { KovaConfig } from "../../../src/config/types.js";
 import { resolveSecretRefValues } from "../../../src/secrets/resolve.js";
 import {
   applyResolvedAssignments,
@@ -25,8 +25,8 @@ describe("googlechat secret contract", () => {
           },
         },
       },
-    } satisfies OpenClawConfig;
-    const resolvedConfig: OpenClawConfig = structuredClone(sourceConfig);
+    } satisfies KovaConfig;
+    const resolvedConfig: KovaConfig = structuredClone(sourceConfig);
     const context = createResolverContext({
       sourceConfig,
       env: {

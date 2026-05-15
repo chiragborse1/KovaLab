@@ -7,11 +7,11 @@ read_when:
 title: "Configuration"
 ---
 
-Kova reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.openclaw/openclaw.json`.
-The active config path must be a regular file. Symlinked `openclaw.json`
+Kova reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.chiragborse1/KovaLab.json`.
+The active config path must be a regular file. Symlinked `kova.json`
 layouts are unsupported for Kova-owned writes; an atomic write may replace
 the path instead of preserving the symlink. If you keep config outside the
-default state directory, point `OPENCLAW_CONFIG_PATH` directly at the real file.
+default state directory, point `KOVA_CONFIG_PATH` directly at the real file.
 
 If the file is missing, Kova uses safe defaults. Common reasons to add a config:
 
@@ -33,9 +33,9 @@ field map and defaults.
 ## Minimal config
 
 ```json5
-// ~/.openclaw/openclaw.json
+// ~/.chiragborse1/KovaLab.json
 {
-  agents: { defaults: { workspace: "~/.openclaw/workspace" } },
+  agents: { defaults: { workspace: "~/.kova/workspace" } },
   channels: { whatsapp: { allowFrom: ["+15555550123"] } },
 }
 ```
@@ -65,7 +65,7 @@ field map and defaults.
     fetch one path-scoped schema node plus immediate child summaries.
   </Tab>
   <Tab title="Direct edit">
-    Edit `~/.openclaw/openclaw.json` directly. The Gateway watches the file and applies changes automatically (see [hot reload](#config-hot-reload)).
+    Edit `~/.chiragborse1/KovaLab.json` directly. The Gateway watches the file and applies changes automatically (see [hot reload](#config-hot-reload)).
   </Tab>
 </Tabs>
 
@@ -90,7 +90,7 @@ When validation fails:
 - Run `kova doctor --fix` (or `--yes`) to apply repairs
 
 The Gateway keeps a trusted last-known-good copy after each successful startup.
-If `openclaw.json` later fails validation (or drops `gateway.mode`, shrinks
+If `kova.json` later fails validation (or drops `gateway.mode`, shrinks
 sharply, or has a stray log line prepended), Kova preserves the broken file
 as `.clobbered.*`, restores the last-known-good copy, and logs the recovery
 reason. The next agent turn also receives a system-event warning so the main
@@ -188,7 +188,7 @@ cannot roll back unrelated user settings.
           {
             id: "main",
             groupChat: {
-              mentionPatterns: ["@openclaw", "openclaw"],
+              mentionPatterns: ["@kovaai", "kova"],
             },
           },
         ],
@@ -315,7 +315,7 @@ cannot roll back unrelated user settings.
   </Accordion>
 
   <Accordion title="Enable relay-backed push for official iOS builds">
-    Relay-backed push is configured in `openclaw.json`.
+    Relay-backed push is configured in `kova.json`.
 
     Set this in gateway config:
 
@@ -364,8 +364,8 @@ cannot roll back unrelated user settings.
 
     Compatibility note:
 
-    - `OPENCLAW_APNS_RELAY_BASE_URL` and `OPENCLAW_APNS_RELAY_TIMEOUT_MS` still work as temporary env overrides.
-    - `OPENCLAW_APNS_RELAY_ALLOW_HTTP=true` remains a loopback-only development escape hatch; do not persist HTTP relay URLs in config.
+    - `KOVA_APNS_RELAY_BASE_URL` and `KOVA_APNS_RELAY_TIMEOUT_MS` still work as temporary env overrides.
+    - `KOVA_APNS_RELAY_ALLOW_HTTP=true` remains a loopback-only development escape hatch; do not persist HTTP relay URLs in config.
 
     See [iOS App](/platforms/ios#relay-backed-push-for-official-builds) for the end-to-end flow and [Authentication and trust flow](/platforms/ios#authentication-and-trust-flow) for the relay security model.
 
@@ -440,7 +440,7 @@ cannot roll back unrelated user settings.
     Security note:
     - Treat all hook/webhook payload content as untrusted input.
     - Use a dedicated `hooks.token`; do not reuse the shared Gateway token.
-    - Hook auth is header-only (`Authorization: Bearer ...` or `x-openclaw-token`); query-string tokens are rejected.
+    - Hook auth is header-only (`Authorization: Bearer ...` or `x-kova-token`); query-string tokens are rejected.
     - `hooks.path` cannot be `/`; keep webhook ingress on a dedicated subpath such as `/hooks`.
     - Keep unsafe-content bypass flags disabled (`hooks.gmail.allowUnsafeExternalContent`, `hooks.mappings[].allowUnsafeExternalContent`) unless doing tightly scoped debugging.
     - If you enable `hooks.allowRequestSessionKey`, also set `hooks.allowedSessionKeyPrefixes` to bound caller-selected session keys.
@@ -457,8 +457,8 @@ cannot roll back unrelated user settings.
     {
       agents: {
         list: [
-          { id: "home", default: true, workspace: "~/.openclaw/workspace-home" },
-          { id: "work", workspace: "~/.openclaw/workspace-work" },
+          { id: "home", default: true, workspace: "~/.kova/workspace-home" },
+          { id: "work", workspace: "~/.kova/workspace-work" },
         ],
       },
       bindings: [
@@ -476,7 +476,7 @@ cannot roll back unrelated user settings.
     Use `$include` to organize large configs:
 
     ```json5
-    // ~/.openclaw/openclaw.json
+    // ~/.chiragborse1/KovaLab.json
     {
       gateway: { port: 18789 },
       agents: { $include: "./agents.json5" },
@@ -493,7 +493,7 @@ cannot roll back unrelated user settings.
     - **Relative paths**: resolved relative to the including file
     - **Kova-owned writes**: when a write changes only one top-level section
       backed by a single-file include such as `plugins: { $include: "./plugins.json5" }`,
-      Kova updates that included file and leaves `openclaw.json` intact
+      Kova updates that included file and leaves `kova.json` intact
     - **Unsupported write-through**: root includes, include arrays, and includes
       with sibling overrides fail closed for Kova-owned writes instead of
       flattening the config
@@ -504,7 +504,7 @@ cannot roll back unrelated user settings.
 
 ## Config hot reload
 
-The Gateway watches `~/.openclaw/openclaw.json` and applies changes automatically — no manual restart needed for most settings.
+The Gateway watches `~/.chiragborse1/KovaLab.json` and applies changes automatically — no manual restart needed for most settings.
 
 Direct file edits are treated as untrusted until they validate. The watcher waits
 for editor temp-write/rename churn to settle, reads the final file, and rejects
@@ -519,7 +519,7 @@ issue instead of restoring `.last-good`.
 
 If you see `Config auto-restored from last-known-good` or
 `config reload restored last-known-good config` in logs, inspect the matching
-`.clobbered.*` file next to `openclaw.json`, fix the rejected payload, then run
+`.clobbered.*` file next to `kova.json`, fix the rejected payload, then run
 `kova config validate`. See [Gateway troubleshooting](/gateway/troubleshooting#gateway-restored-last-known-good-config)
 for the recovery checklist.
 
@@ -613,7 +613,7 @@ config already exists.
 Kova reads env vars from the parent process plus:
 
 - `.env` from the current working directory (if present)
-- `~/.openclaw/.env` (global fallback)
+- `~/.kova/.env` (global fallback)
 
 Neither file overrides existing env vars. You can also set inline env vars in config:
 
@@ -637,7 +637,7 @@ Neither file overrides existing env vars. You can also set inline env vars in co
 }
 ```
 
-Env var equivalent: `OPENCLAW_LOAD_SHELL_ENV=1`
+Env var equivalent: `KOVA_LOAD_SHELL_ENV=1`
 </Accordion>
 
 <Accordion title="Env var substitution in config values">
@@ -645,7 +645,7 @@ Env var equivalent: `OPENCLAW_LOAD_SHELL_ENV=1`
 
 ```json5
 {
-  gateway: { auth: { token: "${OPENCLAW_GATEWAY_TOKEN}" } },
+  gateway: { auth: { token: "${KOVA_GATEWAY_TOKEN}" } },
   models: { providers: { custom: { apiKey: "${CUSTOM_API_KEY}" } } },
 }
 ```

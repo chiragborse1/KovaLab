@@ -42,8 +42,8 @@ install method:
 - **`stable`** (git installs): checks out the latest stable git tag.
 - **`beta`** (git installs): prefers the latest beta git tag, but falls back to
   the latest stable git tag when beta is missing or older.
-- **`dev`**: ensures a git checkout (default `~/openclaw`, override with
-  `OPENCLAW_GIT_DIR`), switches to `main`, rebases on upstream, builds, and
+- **`dev`**: ensures a git checkout (default `~/kova`, override with
+  `KOVA_GIT_DIR`), switches to `main`, rebases on upstream, builds, and
   installs the global CLI from that checkout.
 
 <Tip>

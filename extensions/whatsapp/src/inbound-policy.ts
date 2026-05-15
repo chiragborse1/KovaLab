@@ -6,13 +6,13 @@ import {
   type ChannelGroupPolicy,
   type DmPolicy,
   type GroupPolicy,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/config-runtime";
+  type KovaConfig,
+} from "getkova/plugin-sdk/config-runtime";
 import {
   readStoreAllowFromForDmPolicy,
   resolveEffectiveAllowFromLists,
   resolveDmGroupAccessWithCommandGate,
-} from "openclaw/plugin-sdk/security-runtime";
+} from "getkova/plugin-sdk/security-runtime";
 import { resolveWhatsAppAccount, type ResolvedWhatsAppAccount } from "./accounts.js";
 import { getSelfIdentity, getSenderIdentity } from "./identity.js";
 import type { WebInboundMessage } from "./inbound/types.js";
@@ -65,7 +65,7 @@ function isNormalizedSenderAllowed(allowEntries: string[], sender?: string | nul
 function buildResolvedWhatsAppGroupConfig(params: {
   groupPolicy: GroupPolicy;
   groups: ResolvedWhatsAppAccount["groups"];
-}): OpenClawConfig {
+}): KovaConfig {
   return {
     channels: {
       whatsapp: {
@@ -73,11 +73,11 @@ function buildResolvedWhatsAppGroupConfig(params: {
         groups: params.groups,
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 export function resolveWhatsAppInboundPolicy(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId?: string | null;
   selfE164?: string | null;
 }): ResolvedWhatsAppInboundPolicy {
@@ -140,7 +140,7 @@ export function resolveWhatsAppInboundPolicy(params: {
 }
 
 export async function resolveWhatsAppCommandAuthorized(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   msg: WebInboundMessage;
   policy?: ResolvedWhatsAppInboundPolicy;
 }): Promise<boolean> {

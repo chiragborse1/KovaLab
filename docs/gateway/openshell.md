@@ -44,7 +44,7 @@ and an optional `mirror` workspace mode.
       openshell: {
         enabled: true,
         config: {
-          from: "openclaw",
+          from: "kova",
           mode: "remote",
         },
       },
@@ -132,7 +132,7 @@ All OpenShell config lives under `plugins.entries.openshell.config`:
 | ------------------------- | ------------------------ | ------------- | ----------------------------------------------------- |
 | `mode`                    | `"mirror"` or `"remote"` | `"mirror"`    | Workspace sync mode                                   |
 | `command`                 | `string`                 | `"openshell"` | Path or name of the `openshell` CLI                   |
-| `from`                    | `string`                 | `"openclaw"`  | Sandbox source for first-time create                  |
+| `from`                    | `string`                 | `"kova"`      | Sandbox source for first-time create                  |
 | `gateway`                 | `string`                 | —             | OpenShell gateway name (`--gateway`)                  |
 | `gatewayEndpoint`         | `string`                 | —             | OpenShell gateway endpoint URL (`--gateway-endpoint`) |
 | `policy`                  | `string`                 | —             | OpenShell policy ID for sandbox creation              |
@@ -166,7 +166,7 @@ Sandbox-level settings (`mode`, `scope`, `workspaceAccess`) are configured under
       openshell: {
         enabled: true,
         config: {
-          from: "openclaw",
+          from: "kova",
           mode: "remote",
         },
       },
@@ -194,7 +194,7 @@ Sandbox-level settings (`mode`, `scope`, `workspaceAccess`) are configured under
       openshell: {
         enabled: true,
         config: {
-          from: "openclaw",
+          from: "kova",
           mode: "mirror",
           gpu: true,
           providers: ["openai"],
@@ -231,7 +231,7 @@ Sandbox-level settings (`mode`, `scope`, `workspaceAccess`) are configured under
       openshell: {
         enabled: true,
         config: {
-          from: "openclaw",
+          from: "kova",
           mode: "remote",
           gateway: "lab",
           gatewayEndpoint: "https://lab.example",

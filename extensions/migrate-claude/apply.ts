@@ -1,16 +1,16 @@
 import path from "node:path";
-import { summarizeMigrationItems } from "openclaw/plugin-sdk/migration";
+import { summarizeMigrationItems } from "getkova/plugin-sdk/migration";
 import {
   archiveMigrationItem,
   copyMigrationFileItem,
   writeMigrationReport,
-} from "openclaw/plugin-sdk/migration-runtime";
+} from "getkova/plugin-sdk/migration-runtime";
 import type {
   MigrationApplyResult,
   MigrationItem,
   MigrationPlan,
   MigrationProviderContext,
-} from "openclaw/plugin-sdk/plugin-entry";
+} from "getkova/plugin-sdk/plugin-entry";
 import { applyConfigItem, applyManualItem } from "./config.js";
 import { appendItem } from "./helpers.js";
 import { buildClaudePlan } from "./plan.js";

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { migrateOrphanedSessionKeys } from "../infra/state-migrations.js";
 
 type SessionMigrationLogger = {
@@ -12,10 +12,10 @@ type SessionMigrationLogger = {
  * Idempotent and best-effort: if the migration fails, gateway startup
  * continues normally. This ensures accumulated orphaned session keys
  * (from the write-path bug #29683) are cleaned up automatically on
- * upgrade rather than requiring a manual `openclaw doctor` run.
+ * upgrade rather than requiring a manual `kova doctor` run.
  */
 export async function runStartupSessionMigration(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
   log: SessionMigrationLogger;
   deps?: {

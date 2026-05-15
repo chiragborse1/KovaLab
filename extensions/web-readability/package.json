@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/web-readability-plugin",
+  "name": "@kovaai/web-readability-plugin",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova local Readability web extraction plugin",
@@ -9,9 +9,9 @@
     "linkedom": "^0.18.12"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

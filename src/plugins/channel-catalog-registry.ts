@@ -1,4 +1,4 @@
-import { discoverOpenClawPlugins } from "./discovery.js";
+import { discoverKovaPlugins } from "./discovery.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import {
   loadPluginManifest,
@@ -24,7 +24,7 @@ export function listChannelCatalogEntries(
     env?: NodeJS.ProcessEnv;
   } = {},
 ): PluginChannelCatalogEntry[] {
-  return discoverOpenClawPlugins({
+  return discoverKovaPlugins({
     workspaceDir: params.workspaceDir,
     env: params.env,
   }).candidates.flatMap((candidate) => {

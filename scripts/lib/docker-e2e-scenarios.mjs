@@ -20,7 +20,7 @@ export const LIVE_RETRY_PATTERNS = [
 ];
 
 const bundledChannelLaneCommand =
-  "OPENCLAW_SKIP_DOCKER_BUILD=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps";
+  "KOVA_SKIP_DOCKER_BUILD=1 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0 pnpm test:docker:bundled-channel-deps";
 
 function lane(name, command, options = {}) {
   return {
@@ -102,7 +102,7 @@ function serviceLane(name, command, options = {}) {
 function bundledChannelScenarioLane(name, env, options = {}) {
   return npmLane(
     name,
-    `${env} OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-channel-deps`,
+    `${env} KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-channel-deps`,
     options,
   );
 }
@@ -111,31 +111,31 @@ const bundledScenarioLanes = [
   ...["telegram", "discord", "slack", "feishu", "memory-lancedb"].map((channel) =>
     npmLane(
       `bundled-channel-${channel}`,
-      `OPENCLAW_BUNDLED_CHANNELS=${channel} ${bundledChannelLaneCommand}`,
+      `KOVA_BUNDLED_CHANNELS=${channel} ${bundledChannelLaneCommand}`,
     ),
   ),
   ...["telegram", "discord", "slack", "feishu", "memory-lancedb", "acpx"].map((target) =>
     bundledChannelScenarioLane(
       `bundled-channel-update-${target}`,
-      `OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_UPDATE_TARGETS=${target} OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0`,
+      `KOVA_BUNDLED_CHANNEL_SCENARIOS=0 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=1 KOVA_BUNDLED_CHANNEL_UPDATE_TARGETS=${target} KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0`,
       { timeoutMs: BUNDLED_UPDATE_TIMEOUT_MS },
     ),
   ),
   bundledChannelScenarioLane(
     "bundled-channel-root-owned",
-    "OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
+    "KOVA_BUNDLED_CHANNEL_SCENARIOS=0 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=1 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
   ),
   bundledChannelScenarioLane(
     "bundled-channel-setup-entry",
-    "OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
+    "KOVA_BUNDLED_CHANNEL_SCENARIOS=0 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=1 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
   ),
   bundledChannelScenarioLane(
     "bundled-channel-load-failure",
-    "OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=1 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
+    "KOVA_BUNDLED_CHANNEL_SCENARIOS=0 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=1 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=0",
   ),
   bundledChannelScenarioLane(
     "bundled-channel-disabled-config",
-    "OPENCLAW_BUNDLED_CHANNEL_SCENARIOS=0 OPENCLAW_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 OPENCLAW_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=1",
+    "KOVA_BUNDLED_CHANNEL_SCENARIOS=0 KOVA_BUNDLED_CHANNEL_UPDATE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_ROOT_OWNED_SCENARIO=0 KOVA_BUNDLED_CHANNEL_SETUP_ENTRY_SCENARIO=0 KOVA_BUNDLED_CHANNEL_LOAD_FAILURE_SCENARIO=0 KOVA_BUNDLED_CHANNEL_DISABLED_CONFIG_SCENARIO=1",
   ),
 ];
 
@@ -144,7 +144,7 @@ const bundledPluginInstallUninstallLanes = Array.from(
   (_, index) =>
     lane(
       `bundled-plugin-install-uninstall-${index}`,
-      `OPENCLAW_BUNDLED_PLUGIN_SWEEP_TOTAL=${BUNDLED_PLUGIN_INSTALL_UNINSTALL_SHARDS} OPENCLAW_BUNDLED_PLUGIN_SWEEP_INDEX=${index} OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-plugin-install-uninstall`,
+      `KOVA_BUNDLED_PLUGIN_SWEEP_TOTAL=${BUNDLED_PLUGIN_INSTALL_UNINSTALL_SHARDS} KOVA_BUNDLED_PLUGIN_SWEEP_INDEX=${index} KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-plugin-install-uninstall`,
       {
         estimateSeconds: 280,
         resources: ["npm"],
@@ -154,19 +154,19 @@ const bundledPluginInstallUninstallLanes = Array.from(
 );
 
 export const mainLanes = [
-  liveLane("live-models", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-models", {
+  liveLane("live-models", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-models", {
     providers: ["claude-cli", "codex-cli", "google-gemini-cli"],
     timeoutMs: LIVE_PROFILE_TIMEOUT_MS,
     weight: 4,
   }),
-  liveLane("live-gateway", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-gateway", {
+  liveLane("live-gateway", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-gateway", {
     providers: ["claude-cli", "codex-cli", "google-gemini-cli"],
     timeoutMs: LIVE_PROFILE_TIMEOUT_MS,
     weight: 4,
   }),
   liveLane(
     "live-cli-backend-claude",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:claude",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:claude",
     {
       cacheKey: "cli-backend-claude",
       provider: "claude-cli",
@@ -177,7 +177,7 @@ export const mainLanes = [
   ),
   liveLane(
     "live-cli-backend-gemini",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:gemini",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:gemini",
     {
       cacheKey: "cli-backend-gemini",
       provider: "google-gemini-cli",
@@ -186,54 +186,53 @@ export const mainLanes = [
       weight: 3,
     },
   ),
-  serviceLane("openwebui", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
+  serviceLane("openwebui", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
     timeoutMs: OPENWEBUI_TIMEOUT_MS,
     weight: 5,
   }),
-  serviceLane("onboard", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
+  serviceLane("onboard", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
     weight: 2,
   }),
   npmLane(
     "npm-onboard-channel-agent",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
     { resources: ["service"], weight: 3 },
   ),
-  serviceLane("gateway-network", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
+  serviceLane("gateway-network", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
   serviceLane(
     "agents-delete-shared-workspace",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:agents-delete-shared-workspace",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:agents-delete-shared-workspace",
   ),
-  serviceLane("mcp-channels", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
+  serviceLane("mcp-channels", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
     resources: ["npm"],
     weight: 3,
   }),
-  lane("pi-bundle-mcp-tools", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
-  lane("crestodian-rescue", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-rescue"),
-  lane("crestodian-planner", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-planner"),
-  serviceLane(
-    "cron-mcp-cleanup",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup",
-    { resources: ["npm"], weight: 3 },
-  ),
-  npmLane("doctor-switch", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
+  lane("pi-bundle-mcp-tools", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
+  lane("crestodian-rescue", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-rescue"),
+  lane("crestodian-planner", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-planner"),
+  serviceLane("cron-mcp-cleanup", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup", {
+    resources: ["npm"],
+    weight: 3,
+  }),
+  npmLane("doctor-switch", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
     weight: 3,
   }),
   npmLane(
     "update-channel-switch",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:update-channel-switch",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:update-channel-switch",
     {
       timeoutMs: 30 * 60 * 1000,
       weight: 3,
     },
   ),
-  lane("plugins", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", {
+  lane("plugins", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", {
     resources: ["npm", "service"],
     weight: 6,
   }),
   ...bundledPluginInstallUninstallLanes,
   lane(
     "plugins-offline",
-    "OPENCLAW_PLUGINS_E2E_CLAWHUB=0 OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins",
+    "KOVA_PLUGINS_E2E_KOVAHUB=0 KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins",
     {
       resources: ["npm", "service"],
       weight: 6,
@@ -241,20 +240,17 @@ export const mainLanes = [
   ),
   npmLane(
     "bundled-channel-deps-compat",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-channel-deps:fast",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-channel-deps:fast",
     { resources: ["service"], weight: 3 },
   ),
-  npmLane("plugin-update", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
-  serviceLane("config-reload", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
+  npmLane("plugin-update", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
+  serviceLane("config-reload", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
   ...bundledScenarioLanes,
-  lane("openai-image-auth", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-image-auth"),
-  lane(
-    "crestodian-first-run",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-first-run",
-  ),
+  lane("openai-image-auth", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-image-auth"),
+  lane("crestodian-first-run", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-first-run"),
   lane(
     "session-runtime-context",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:session-runtime-context",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:session-runtime-context",
   ),
   lane("qr", "pnpm test:docker:qr"),
 ];
@@ -262,21 +258,17 @@ export const mainLanes = [
 export const tailLanes = [
   serviceLane(
     "openai-web-search-minimal",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
     { timeoutMs: 8 * 60 * 1000 },
   ),
-  liveLane(
-    "live-codex-harness",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-harness",
-    {
-      cacheKey: "codex-harness",
-      provider: "codex-cli",
-      resources: ["npm"],
-      timeoutMs: LIVE_ACP_TIMEOUT_MS,
-      weight: 3,
-    },
-  ),
-  liveLane("live-codex-bind", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-bind", {
+  liveLane("live-codex-harness", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-harness", {
+    cacheKey: "codex-harness",
+    provider: "codex-cli",
+    resources: ["npm"],
+    timeoutMs: LIVE_ACP_TIMEOUT_MS,
+    weight: 3,
+  }),
+  liveLane("live-codex-bind", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-codex-bind", {
     cacheKey: "codex-harness",
     provider: "codex-cli",
     resources: ["npm"],
@@ -285,7 +277,7 @@ export const tailLanes = [
   }),
   liveLane(
     "live-cli-backend-codex",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:codex",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-cli-backend:codex",
     {
       cacheKey: "cli-backend-codex",
       provider: "codex-cli",
@@ -296,7 +288,7 @@ export const tailLanes = [
   ),
   liveLane(
     "live-acp-bind-claude",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:claude",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:claude",
     {
       cacheKey: "acp-bind-claude",
       provider: "claude-cli",
@@ -305,31 +297,23 @@ export const tailLanes = [
       weight: 3,
     },
   ),
-  liveLane(
-    "live-acp-bind-codex",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:codex",
-    {
-      cacheKey: "acp-bind-codex",
-      provider: "codex-cli",
-      resources: ["npm"],
-      timeoutMs: LIVE_ACP_TIMEOUT_MS,
-      weight: 3,
-    },
-  ),
-  liveLane(
-    "live-acp-bind-droid",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:droid",
-    {
-      cacheKey: "acp-bind-droid",
-      provider: "droid",
-      resources: ["npm"],
-      timeoutMs: LIVE_ACP_TIMEOUT_MS,
-      weight: 3,
-    },
-  ),
+  liveLane("live-acp-bind-codex", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:codex", {
+    cacheKey: "acp-bind-codex",
+    provider: "codex-cli",
+    resources: ["npm"],
+    timeoutMs: LIVE_ACP_TIMEOUT_MS,
+    weight: 3,
+  }),
+  liveLane("live-acp-bind-droid", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:droid", {
+    cacheKey: "acp-bind-droid",
+    provider: "droid",
+    resources: ["npm"],
+    timeoutMs: LIVE_ACP_TIMEOUT_MS,
+    weight: 3,
+  }),
   liveLane(
     "live-acp-bind-gemini",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:gemini",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:gemini",
     {
       cacheKey: "acp-bind-gemini",
       provider: "google-gemini-cli",
@@ -340,7 +324,7 @@ export const tailLanes = [
   ),
   liveLane(
     "live-acp-bind-opencode",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:opencode",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:live-acp-bind:opencode",
     {
       cacheKey: "acp-bind-opencode",
       provider: "opencode",
@@ -352,72 +336,61 @@ export const tailLanes = [
 ];
 
 const releasePathPluginRuntimeLanes = [
-  lane("plugins", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", {
+  lane("plugins", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", {
     resources: ["npm", "service"],
     weight: 6,
   }),
   ...bundledPluginInstallUninstallLanes,
-  serviceLane(
-    "cron-mcp-cleanup",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup",
-    {
-      resources: ["npm"],
-      weight: 3,
-    },
-  ),
+  serviceLane("cron-mcp-cleanup", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup", {
+    resources: ["npm"],
+    weight: 3,
+  }),
   serviceLane(
     "openai-web-search-minimal",
-    "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
+    "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-web-search-minimal",
     { timeoutMs: 8 * 60 * 1000 },
   ),
 ];
 
 const releasePathBundledChannelLanes = [
-  npmLane("plugin-update", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
+  npmLane("plugin-update", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugin-update"),
   ...bundledScenarioLanes,
 ];
 
 const releasePathChunks = {
   core: [
-    lane("qr", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:qr"),
-    serviceLane("onboard", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
+    lane("qr", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:qr"),
+    serviceLane("onboard", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:onboard", {
       weight: 2,
     }),
-    serviceLane("gateway-network", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
-    serviceLane("config-reload", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
+    serviceLane("gateway-network", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:gateway-network"),
+    serviceLane("config-reload", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
     lane(
       "session-runtime-context",
-      "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:session-runtime-context",
+      "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:session-runtime-context",
     ),
-    lane(
-      "pi-bundle-mcp-tools",
-      "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools",
-    ),
-    serviceLane("mcp-channels", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
+    lane("pi-bundle-mcp-tools", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
+    serviceLane("mcp-channels", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:mcp-channels", {
       resources: ["npm"],
       weight: 3,
     }),
   ],
   "package-update": [
-    npmLane(
-      "install-e2e",
-      "OPENCLAW_INSTALL_TAG=beta OPENCLAW_E2E_MODELS=both pnpm test:install:e2e",
-      {
-        resources: ["service"],
-        weight: 4,
-      },
-    ),
+    npmLane("install-e2e", "KOVA_INSTALL_TAG=beta KOVA_E2E_MODELS=both pnpm test:install:e2e", {
+      resources: ["service"],
+      weight: 4,
+    }),
     npmLane(
       "npm-onboard-channel-agent",
-      "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
+      "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:npm-onboard-channel-agent",
       { resources: ["service"], weight: 3 },
     ),
-    npmLane("doctor-switch", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
+    npmLane("doctor-switch", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:doctor-switch", {
       weight: 3,
     }),
     npmLane(
       "update-channel-switch",
-      "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:update-channel-switch",
+      "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:update-channel-switch",
       {
         timeoutMs: 30 * 60 * 1000,
         weight: 3,
@@ -434,7 +407,7 @@ const legacyReleasePathChunks = {
 };
 
 function openWebUILane() {
-  return serviceLane("openwebui", "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
+  return serviceLane("openwebui", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui", {
     timeoutMs: OPENWEBUI_TIMEOUT_MS,
     weight: 5,
   });
@@ -444,7 +417,7 @@ export function releasePathChunkLanes(chunk, options = {}) {
   const base = releasePathChunks[chunk] ?? legacyReleasePathChunks[chunk];
   if (!base) {
     throw new Error(
-      `OPENCLAW_DOCKER_ALL_CHUNK must be one of: ${[
+      `KOVA_DOCKER_ALL_CHUNK must be one of: ${[
         ...Object.keys(releasePathChunks),
         ...Object.keys(legacyReleasePathChunks),
       ].join(", ")}. Got: ${JSON.stringify(chunk)}`,

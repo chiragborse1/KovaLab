@@ -1,25 +1,25 @@
 import { ChannelType, MessageType, type Message, type User } from "@buape/carbon";
 import { Routes, type APIMessage } from "discord-api-types/v10";
-import { formatAllowlistMatchMeta } from "openclaw/plugin-sdk/allow-from";
+import { formatAllowlistMatchMeta } from "getkova/plugin-sdk/allow-from";
 import {
   buildMentionRegexes,
   implicitMentionKindWhen,
   logInboundDrop,
   matchesMentionWithExplicit,
   resolveInboundMentionDecision,
-} from "openclaw/plugin-sdk/channel-inbound";
-import { resolveControlCommandGate } from "openclaw/plugin-sdk/command-auth-native";
-import { hasControlCommand } from "openclaw/plugin-sdk/command-detection";
-import { shouldHandleTextCommands } from "openclaw/plugin-sdk/command-surface";
-import { isDangerousNameMatchingEnabled } from "openclaw/plugin-sdk/config-runtime";
-import type { SessionBindingRecord } from "openclaw/plugin-sdk/conversation-binding-runtime";
-import { enqueueSystemEvent, recordChannelActivity } from "openclaw/plugin-sdk/infra-runtime";
+} from "getkova/plugin-sdk/channel-inbound";
+import { resolveControlCommandGate } from "getkova/plugin-sdk/command-auth-native";
+import { hasControlCommand } from "getkova/plugin-sdk/command-detection";
+import { shouldHandleTextCommands } from "getkova/plugin-sdk/command-surface";
+import { isDangerousNameMatchingEnabled } from "getkova/plugin-sdk/config-runtime";
+import type { SessionBindingRecord } from "getkova/plugin-sdk/conversation-binding-runtime";
+import { enqueueSystemEvent, recordChannelActivity } from "getkova/plugin-sdk/infra-runtime";
 import {
   recordPendingHistoryEntryIfEnabled,
   type HistoryEntry,
-} from "openclaw/plugin-sdk/reply-history";
-import { getChildLogger, logVerbose, shouldLogVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { logDebug, normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/reply-history";
+import { getChildLogger, logVerbose, shouldLogVerbose } from "getkova/plugin-sdk/runtime-env";
+import { logDebug, normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { resolveDefaultDiscordAccountId } from "../accounts.js";
 import { resolveDiscordConversationIdentity } from "../conversation-identity.js";
 import {
@@ -65,7 +65,7 @@ export type {
 const DISCORD_BOUND_THREAD_SYSTEM_PREFIXES = ["⚙️", "🤖", "🧰"];
 
 let conversationRuntimePromise:
-  | Promise<typeof import("openclaw/plugin-sdk/conversation-binding-runtime")>
+  | Promise<typeof import("getkova/plugin-sdk/conversation-binding-runtime")>
   | undefined;
 let pluralkitRuntimePromise: Promise<typeof import("../pluralkit.js")> | undefined;
 let discordSendRuntimePromise: Promise<typeof import("../send.js")> | undefined;
@@ -74,7 +74,7 @@ let systemEventsRuntimePromise: Promise<typeof import("./system-events.js")> | u
 let discordThreadingRuntimePromise: Promise<typeof import("./threading.js")> | undefined;
 
 async function loadConversationRuntime() {
-  conversationRuntimePromise ??= import("openclaw/plugin-sdk/conversation-binding-runtime");
+  conversationRuntimePromise ??= import("getkova/plugin-sdk/conversation-binding-runtime");
   return await conversationRuntimePromise;
 }
 

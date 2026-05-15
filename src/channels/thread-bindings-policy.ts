@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeAccountId } from "../routing/session-key.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import {
@@ -129,7 +129,7 @@ export function resolveThreadBindingsEnabled(params: {
 }
 
 function resolveChannelThreadBindings(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: string;
   accountId: string;
 }): {
@@ -154,7 +154,7 @@ function resolveSpawnFlagKey(
 }
 
 export function resolveThreadBindingSpawnPolicy(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: string;
   accountId?: string;
   kind: ThreadBindingSpawnKind;
@@ -184,7 +184,7 @@ export function resolveThreadBindingSpawnPolicy(params: {
 }
 
 export function resolveThreadBindingIdleTimeoutMsForChannel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: string;
   accountId?: string;
 }): number {
@@ -196,7 +196,7 @@ export function resolveThreadBindingIdleTimeoutMsForChannel(params: {
 }
 
 export function resolveThreadBindingMaxAgeMsForChannel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: string;
   accountId?: string;
 }): number {
@@ -208,7 +208,7 @@ export function resolveThreadBindingMaxAgeMsForChannel(params: {
 }
 
 function resolveThreadBindingChannelScope(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: string;
   accountId?: string;
 }) {

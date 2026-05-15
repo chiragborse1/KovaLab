@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { callGatewayFromCli } from "openclaw/plugin-sdk/gateway-runtime";
-import type { PluginRuntime } from "openclaw/plugin-sdk/plugin-runtime";
-import type { RuntimeLogger } from "openclaw/plugin-sdk/plugin-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { callGatewayFromCli } from "getkova/plugin-sdk/gateway-runtime";
+import type { PluginRuntime } from "getkova/plugin-sdk/plugin-runtime";
+import type { RuntimeLogger } from "getkova/plugin-sdk/plugin-runtime";
 import type { GoogleMeetConfig } from "../config.js";
 import {
   startNodeRealtimeAudioBridge,
@@ -83,7 +83,7 @@ export async function assertBlackHole2chAvailable(params: {
 export async function launchChromeMeet(params: {
   runtime: PluginRuntime;
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: KovaConfig;
   meetingSessionId: string;
   mode: "realtime" | "transcribe";
   url: string;
@@ -606,7 +606,7 @@ export type GoogleMeetCurrentTabRecoveryResult = Awaited<
 export async function launchChromeMeetOnNode(params: {
   runtime: PluginRuntime;
   config: GoogleMeetConfig;
-  fullConfig: OpenClawConfig;
+  fullConfig: KovaConfig;
   meetingSessionId: string;
   mode: "realtime" | "transcribe";
   url: string;

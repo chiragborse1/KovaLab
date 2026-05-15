@@ -231,7 +231,7 @@ const nativeHookRelayProviderAdapters: Record<
               ? { behavior: "allow" }
               : {
                   behavior: "deny",
-                  message: message?.trim() || "Denied by OpenClaw",
+                  message: message?.trim() || "Denied by Kova",
                 },
         },
       })}\n`,
@@ -289,11 +289,9 @@ export function buildNativeHookRelayCommand(params: {
   nodeExecutable?: string;
 }): string {
   const timeoutMs = normalizePositiveInteger(params.timeoutMs, DEFAULT_RELAY_TIMEOUT_MS);
-  const executable = params.executable ?? resolveOpenClawCliExecutable();
+  const executable = params.executable ?? resolveKovaCliExecutable();
   const argv =
-    executable === "openclaw"
-      ? ["openclaw"]
-      : [params.nodeExecutable ?? process.execPath, executable];
+    executable === "kova" ? ["kova"] : [params.nodeExecutable ?? process.execPath, executable];
   return shellQuoteArgs([
     ...argv,
     "hooks",
@@ -433,7 +431,7 @@ async function runNativeHookRelayPreToolUse(params: {
     return params.adapter.renderPreToolUseBlockResponse(outcome.reason);
   }
   // Codex PreToolUse supports block/allow, not argument mutation. If an
-  // OpenClaw plugin returns adjusted params here, we intentionally ignore them.
+  // Kova plugin returns adjusted params here, we intentionally ignore them.
   return params.adapter.renderNoopResponse(params.invocation.event);
 }
 
@@ -863,7 +861,7 @@ async function requestNativeHookRelayPermissionApproval(
     "plugin.approval.request",
     { timeoutMs: timeoutMs + 10_000 },
     {
-      pluginId: `openclaw-native-hook-relay-${request.provider}`,
+      pluginId: `kova-native-hook-relay-${request.provider}`,
       title: truncateText(
         `${nativeHookRelayProviderDisplayName(request.provider)} permission request`,
         MAX_APPROVAL_TITLE_LENGTH,
@@ -1002,7 +1000,7 @@ function truncateText(value: string, maxLength: number): string {
   return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
 }
 
-function resolveOpenClawCliExecutable(): string {
+function resolveKovaCliExecutable(): string {
   const argvEntry = process.argv[1];
   if (argvEntry) {
     const resolved = path.resolve(argvEntry);
@@ -1010,7 +1008,7 @@ function resolveOpenClawCliExecutable(): string {
       return resolved;
     }
   }
-  throw new Error("Cannot resolve OpenClaw CLI executable path for native hook relay");
+  throw new Error("Cannot resolve Kova CLI executable path for native hook relay");
 }
 
 function normalizeAllowedEvents(

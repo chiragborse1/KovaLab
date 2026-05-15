@@ -1,13 +1,13 @@
 import { lowercasePreservingWhitespace } from "../shared/string-coerce.js";
 
 export const A2UI_PATH = "/__kova__/a2ui";
-export const LEGACY_A2UI_PATH = "/__openclaw__/a2ui";
+export const LEGACY_A2UI_PATH = "/__kova__/a2ui";
 
 export const CANVAS_HOST_PATH = "/__kova__/canvas";
-export const LEGACY_CANVAS_HOST_PATH = "/__openclaw__/canvas";
+export const LEGACY_CANVAS_HOST_PATH = "/__kova__/canvas";
 
 export const CANVAS_WS_PATH = "/__kova__/ws";
-export const LEGACY_CANVAS_WS_PATH = "/__openclaw__/ws";
+export const LEGACY_CANVAS_WS_PATH = "/__kova__/ws";
 
 export function isA2uiPath(pathname: string): boolean {
   return resolveA2uiPathBase(pathname) !== undefined;
@@ -45,7 +45,7 @@ export function injectCanvasLiveReload(html: string): string {
   // Works on:
   // - iOS: window.webkit.messageHandlers.kovaCanvasA2UIAction.postMessage(...)
   // - Android: window.kovaCanvasA2UIAction.postMessage(...)
-  const handlerNames = ["kovaCanvasA2UIAction", "openclawCanvasA2UIAction"];
+  const handlerNames = ["kovaCanvasA2UIAction", "kovaCanvasA2UIAction"];
   function postToNode(payload) {
     try {
       const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
@@ -75,13 +75,13 @@ export function injectCanvasLiveReload(html: string): string {
   globalThis.Kova = globalThis.Kova ?? {};
   globalThis.Kova.postMessage = postToNode;
   globalThis.Kova.sendUserAction = sendUserAction;
-  globalThis.OpenClaw = globalThis.OpenClaw ?? {};
-  globalThis.OpenClaw.postMessage = postToNode;
-  globalThis.OpenClaw.sendUserAction = sendUserAction;
+  globalThis.Kova = globalThis.Kova ?? {};
+  globalThis.Kova.postMessage = postToNode;
+  globalThis.Kova.sendUserAction = sendUserAction;
   globalThis.kovaPostMessage = postToNode;
   globalThis.kovaSendUserAction = sendUserAction;
-  globalThis.openclawPostMessage = postToNode;
-  globalThis.openclawSendUserAction = sendUserAction;
+  globalThis.kovaPostMessage = postToNode;
+  globalThis.kovaSendUserAction = sendUserAction;
 
   try {
     const cap = new URLSearchParams(location.search).get("oc_cap");

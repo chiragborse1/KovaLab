@@ -9,7 +9,7 @@ import {
   resolveShellFromEnv,
   usesSlowDynamicCompletion,
 } from "../cli/completion-runtime.js";
-import { resolveOpenClawPackageRoot } from "../infra/openclaw-root.js";
+import { resolveKovaPackageRoot } from "../infra/kova-root.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { note } from "../terminal/note.js";
 import type { DoctorPrompter } from "./doctor-prompter.js";
@@ -20,7 +20,7 @@ const COMPLETION_CACHE_WRITE_TIMEOUT_MS = 30_000;
 
 /** Generate the completion cache by spawning the CLI. */
 async function generateCompletionCache(cliName = resolveDisplayCliName()): Promise<boolean> {
-  const root = await resolveOpenClawPackageRoot({
+  const root = await resolveKovaPackageRoot({
     moduleUrl: import.meta.url,
     argv1: process.argv[1],
     cwd: process.cwd(),

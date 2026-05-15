@@ -3,7 +3,7 @@ import path from "node:path";
 import { formatCliCommand } from "../cli/command-format.js";
 import { packageNameMatchesId } from "../infra/install-safe-path.js";
 import { type NpmIntegrityDrift, type NpmSpecResolution } from "../infra/install-source-utils.js";
-import { resolveOpenClawPackageRootSync } from "../infra/openclaw-root.js";
+import { resolveKovaPackageRootSync } from "../infra/kova-root.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { CONFIG_DIR, resolveUserPath } from "../utils.js";
 import {
@@ -41,10 +41,10 @@ type PackageManifest = PluginPackageManifest & {
 };
 
 const MISSING_EXTENSIONS_ERROR =
-  'package.json missing openclaw.extensions; update the plugin package to include openclaw.extensions (for example ["./dist/index.js"]). See https://docs.neuralstudio.in/help/troubleshooting#plugin-install-fails-with-missing-openclaw-extensions';
+  'package.json missing kova.extensions; update the plugin package to include kova.extensions (for example ["./dist/index.js"]). See https://docs.neuralstudio.in/help/troubleshooting#plugin-install-fails-with-missing-kova-extensions';
 const PLUGIN_ARCHIVE_ROOT_MARKERS = [
   "package.json",
-  "openclaw.plugin.json",
+  "kova.plugin.json",
   ".codex-plugin/plugin.json",
   ".claude-plugin/plugin.json",
   ".cursor-plugin/plugin.json",
@@ -55,10 +55,10 @@ export const PLUGIN_INSTALL_ERROR_CODE = {
   INVALID_MIN_HOST_VERSION: "invalid_min_host_version",
   UNKNOWN_HOST_VERSION: "unknown_host_version",
   INCOMPATIBLE_HOST_VERSION: "incompatible_host_version",
-  MISSING_OPENCLAW_EXTENSIONS: "missing_openclaw_extensions",
+  MISSING_KOVA_EXTENSIONS: "missing_kova_extensions",
   MISSING_PLUGIN_MANIFEST: "missing_plugin_manifest",
-  EMPTY_OPENCLAW_EXTENSIONS: "empty_openclaw_extensions",
-  INVALID_OPENCLAW_EXTENSIONS: "invalid_openclaw_extensions",
+  EMPTY_KOVA_EXTENSIONS: "empty_kova_extensions",
+  INVALID_KOVA_EXTENSIONS: "invalid_kova_extensions",
   NPM_PACKAGE_NOT_FOUND: "npm_package_not_found",
   PLUGIN_ID_MISMATCH: "plugin_id_mismatch",
   SECURITY_SCAN_BLOCKED: "security_scan_blocked",
@@ -95,7 +95,7 @@ type PluginInstallPolicyRequest = {
 
 const defaultLogger: PluginInstallLogger = {};
 
-function ensureOpenClawExtensions(params: { manifest: PackageManifest }):
+function ensureKovaExtensions(params: { manifest: PackageManifest }):
   | {
       ok: true;
       entries: string[];
@@ -110,14 +110,14 @@ function ensureOpenClawExtensions(params: { manifest: PackageManifest }):
     return {
       ok: false,
       error: MISSING_EXTENSIONS_ERROR,
-      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_OPENCLAW_EXTENSIONS,
+      code: PLUGIN_INSTALL_ERROR_CODE.MISSING_KOVA_EXTENSIONS,
     };
   }
   if (resolved.status === "empty") {
     return {
       ok: false,
-      error: "package.json openclaw.extensions is empty",
-      code: PLUGIN_INSTALL_ERROR_CODE.EMPTY_OPENCLAW_EXTENSIONS,
+      error: "package.json kova.extensions is empty",
+      code: PLUGIN_INSTALL_ERROR_CODE.EMPTY_KOVA_EXTENSIONS,
     };
   }
   return {
@@ -528,7 +528,7 @@ async function detectNativePackageInstallSource(packageDir: string): Promise<boo
 
   try {
     const manifest = await runtime.readJsonFile<PackageManifest>(manifestPath);
-    return ensureOpenClawExtensions({ manifest }).ok;
+    return ensureKovaExtensions({ manifest }).ok;
   } catch {
     return false;
   }
@@ -536,9 +536,9 @@ async function detectNativePackageInstallSource(packageDir: string): Promise<boo
 
 /**
  * After the staged plugin tree has been scanned, symlink the host package for
- * plugins that declare Kova as a peer dependency. The legacy openclaw alias is
+ * plugins that declare Kova as a peer dependency. The legacy kova alias is
  * still required because forked plugin SDK imports intentionally remain
- * compatible with `openclaw/plugin-sdk/*`.
+ * compatible with `getkova/plugin-sdk/*`.
  */
 async function linkHostPeerDependencies(params: {
   installedDir: string;
@@ -547,14 +547,14 @@ async function linkHostPeerDependencies(params: {
 }): Promise<void> {
   const peerNames = new Set(Object.keys(params.peerDependencies));
   const peers = [
-    ...(peerNames.has("getkova") ? ["getkova", "openclaw"] : []),
-    ...(peerNames.has("openclaw") ? ["openclaw"] : []),
+    ...(peerNames.has("getkova") ? ["getkova", "kova"] : []),
+    ...(peerNames.has("kova") ? ["kova"] : []),
   ].filter((name, index, list) => list.indexOf(name) === index);
   if (peers.length === 0) {
     return;
   }
 
-  const hostRoot = resolveOpenClawPackageRootSync({
+  const hostRoot = resolveKovaPackageRootSync({
     argv1: process.argv[1],
     moduleUrl: import.meta.url,
     cwd: process.cwd(),
@@ -578,13 +578,13 @@ async function linkHostPeerDependencies(params: {
       await fs.rm(linkPath, { recursive: true, force: true });
       await fs.symlink(hostRoot, linkPath, "junction");
       params.logger.info?.(
-        peerName === "openclaw"
+        peerName === "kova"
           ? `Linked legacy host SDK alias -> ${hostRoot}`
           : `Linked host peerDependency "${peerName}" -> ${hostRoot}`,
       );
     } catch (err) {
       params.logger.warn?.(
-        peerName === "openclaw"
+        peerName === "kova"
           ? `Failed to symlink legacy host SDK alias: ${String(err)}`
           : `Failed to symlink host peerDependency "${peerName}": ${String(err)}`,
       );
@@ -615,7 +615,7 @@ async function installPluginFromPackageDir(
     return { ok: false, error: `invalid package.json: ${String(err)}` };
   }
 
-  const extensionsResult = ensureOpenClawExtensions({
+  const extensionsResult = ensureKovaExtensions({
     manifest,
   });
   if (!extensionsResult.ok) {
@@ -630,15 +630,15 @@ async function installPluginFromPackageDir(
   const pkgName = normalizeOptionalString(manifest.name) ?? "";
   const npmPluginId = pkgName || "plugin";
 
-  // Prefer the canonical `id` from openclaw.plugin.json over the npm package name.
+  // Prefer the canonical `id` from kova.plugin.json over the npm package name.
   // This avoids a latent key-mismatch bug: if the manifest id (e.g. "memory-cognee")
-  // differs from the npm package name (e.g. "cognee-openclaw"), the plugin registry
+  // differs from the npm package name (e.g. "cognee-kova"), the plugin registry
   // uses the manifest id as the authoritative key, so the config entry must match it.
   const ocManifestResult = runtime.loadPluginManifest(params.packageDir);
   if (!ocManifestResult.ok && params.requirePluginManifest) {
     return {
       ok: false,
-      error: `package missing valid openclaw.plugin.json: ${ocManifestResult.error}`,
+      error: `package missing valid kova.plugin.json: ${ocManifestResult.error}`,
       code: PLUGIN_INSTALL_ERROR_CODE.MISSING_PLUGIN_MANIFEST,
     };
   }
@@ -689,7 +689,7 @@ async function installPluginFromPackageDir(
     if (minHostVersionCheck.kind === "unknown_host_version") {
       return {
         ok: false,
-        error: `plugin "${pluginId}" requires Kova >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined. Re-run from a released build or set OPENCLAW_VERSION and retry.`,
+        error: `plugin "${pluginId}" requires Kova >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined. Re-run from a released build or set KOVA_VERSION and retry.`,
         code: PLUGIN_INSTALL_ERROR_CODE.UNKNOWN_HOST_VERSION,
       };
     }
@@ -709,7 +709,7 @@ async function installPluginFromPackageDir(
     return {
       ok: false,
       error: extensionValidation.error,
-      code: PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS,
+      code: PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS,
     };
   }
 
@@ -769,7 +769,7 @@ async function installPluginFromPackageDir(
     afterInstall: async (installedDir) => {
       // Run the dependency-tree security scan BEFORE linking peer deps.
       // The scan rejects any node_modules/ symlink whose target resolves
-      // outside the install root — a rule our trusted host-openclaw link
+      // outside the install root — a rule our trusted host-kova link
       // would fail by design. Running the scan first also keeps the check
       // honest against malicious plugins, because any pre-existing symlink
       // smuggled in by the source would still be present when we walk.

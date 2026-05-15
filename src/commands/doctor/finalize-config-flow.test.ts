@@ -9,7 +9,7 @@ describe("doctor finalize config flow", () => {
       candidate: { channels: { signal: { enabled: true } } },
       pendingChanges: true,
       shouldRepair: false,
-      fixHints: ['Run "openclaw doctor --fix" to apply these changes.'],
+      fixHints: ['Run "kova doctor --fix" to apply these changes.'],
       confirm: async () => true,
       note,
     });
@@ -28,7 +28,7 @@ describe("doctor finalize config flow", () => {
       candidate: { channels: { signal: { enabled: true } } },
       pendingChanges: true,
       shouldRepair: false,
-      fixHints: ['Run "openclaw doctor --fix" to apply these changes.'],
+      fixHints: ['Run "kova doctor --fix" to apply these changes.'],
       confirm: async () => false,
       note,
     });
@@ -37,10 +37,7 @@ describe("doctor finalize config flow", () => {
       cfg: { channels: {} },
       shouldWriteConfig: false,
     });
-    expect(note).toHaveBeenCalledWith(
-      'Run "openclaw doctor --fix" to apply these changes.',
-      "Doctor",
-    );
+    expect(note).toHaveBeenCalledWith('Run "kova doctor --fix" to apply these changes.', "Doctor");
   });
 
   it("writes automatically in repair mode when changes exist", async () => {

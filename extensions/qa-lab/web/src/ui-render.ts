@@ -759,14 +759,14 @@ function renderCaptureStartupStatusRow(status: CaptureStartupProbeStatus | null)
 
 function renderCaptureStartupInstructions(status: CaptureStartupStatus | null): string {
   const proxyStart = "pnpm proxy:start --port 7799";
-  const gatewayStart = `OPENCLAW_DEBUG_PROXY_ENABLED=1 \\
-OPENCLAW_DEBUG_PROXY_REQUIRE=1 \\
-OPENCLAW_DEBUG_PROXY_URL=http://127.0.0.1:7799 \\
-pnpm openclaw gateway --port 18789 --bind loopback`;
+  const gatewayStart = `KOVA_DEBUG_PROXY_ENABLED=1 \\
+KOVA_DEBUG_PROXY_REQUIRE=1 \\
+KOVA_DEBUG_PROXY_URL=http://127.0.0.1:7799 \\
+pnpm kova gateway --port 18789 --bind loopback`;
   const qaStart = "pnpm qa:lab:ui --port 43124 --control-ui-url http://127.0.0.1:18789/";
   const caInstall = "pnpm proxy:install-ca";
   const caTrust =
-    "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /Users/thoffman/.openclaw/debug-proxy/certs/root-ca.pem";
+    "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /Users/thoffman/.kova/debug-proxy/certs/root-ca.pem";
   return `<div class="capture-startup-state">
     <div class="capture-startup-title">Proxy capture is not running yet.</div>
     <div class="text-dimmed text-sm capture-startup-copy">
@@ -1310,9 +1310,9 @@ function renderChatView(state: UiState): string {
 
 function messageAvatar(m: Message): { emoji: string; bg: string; role: string } {
   if (m.direction === "outbound") {
-    return { emoji: "\uD83E\uDD80", bg: "#7c6cff", role: "Claw" }; // 🦀
+    return { emoji: "\uD83E\uDD80", bg: "#7c6cff", role: "Kova" }; // 🦀
   }
-  return { emoji: "\uD83E\uDD9E", bg: "#d97706", role: "Clawfather" }; // 🦞
+  return { emoji: "\uD83E\uDD9E", bg: "#d97706", role: "Coordinator" }; // 🦞
 }
 
 function renderMessage(m: Message): string {

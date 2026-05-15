@@ -1,6 +1,6 @@
 import CoreImage
 import Combine
-import OpenClawKit
+import KovaKit
 import PhotosUI
 import SwiftUI
 import UIKit
@@ -305,7 +305,7 @@ struct OnboardingWizardView: View {
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 10)
 
-            Text("Turn this iPhone into a secure OpenClaw node for chat, voice, camera, and device tools.")
+            Text("Turn this iPhone into a secure Kova node for chat, voice, camera, and device tools.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -315,7 +315,7 @@ struct OnboardingWizardView: View {
             VStack(alignment: .leading, spacing: 14) {
                 Label("Connect to your gateway", systemImage: "link")
                 Label("Choose device permissions", systemImage: "hand.raised")
-                Label("Use OpenClaw from your phone", systemImage: "message.fill")
+                Label("Use Kova from your phone", systemImage: "message.fill")
             }
             .font(.subheadline.weight(.semibold))
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -338,7 +338,7 @@ struct OnboardingWizardView: View {
                     Text("Security notice")
                         .font(.headline)
                     Text(
-                        "The connected OpenClaw agent can use device capabilities you enable, "
+                        "The connected Kova agent can use device capabilities you enable, "
                             + "such as camera, microphone, photos, contacts, calendar, and location. "
                             + "Continue only if you trust the gateway and agent you connect to.")
                         .font(.footnote)
@@ -702,7 +702,7 @@ struct OnboardingWizardView: View {
             Button {
                 self.onClose()
             } label: {
-                Text("Open OpenClaw")
+                Text("Open Kova")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -919,7 +919,7 @@ struct OnboardingWizardView: View {
         if self.selectedMode == nil {
             self.selectedMode = OnboardingStateStore.lastMode()
         }
-        if self.selectedMode == .developerLocal && (self.manualHost == "kova.local" || self.manualHost == "openclaw.local") {
+        if self.selectedMode == .developerLocal && (self.manualHost == "kova.local" || self.manualHost == "kova.local") {
             self.manualHost = "localhost"
             self.manualTLS = false
         }
@@ -979,7 +979,7 @@ struct OnboardingWizardView: View {
 
     private func applyModeDefaults(_ mode: OnboardingConnectionMode) {
         let host = self.manualHost.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let hostIsDefaultLike = host.isEmpty || host == "kova.local" || host == "openclaw.local" || host == "localhost"
+        let hostIsDefaultLike = host.isEmpty || host == "kova.local" || host == "kova.local" || host == "localhost"
 
         switch mode {
         case .homeNetwork:
@@ -987,7 +987,7 @@ struct OnboardingWizardView: View {
             self.manualTLS = true
             if self.manualPort <= 0 || self.manualPort > 65535 { self.manualPort = 18789 }
         case .remoteDomain:
-            if host == "kova.local" || host == "openclaw.local" || host == "localhost" { self.manualHost = "" }
+            if host == "kova.local" || host == "kova.local" || host == "localhost" { self.manualHost = "" }
             self.manualTLS = true
             if self.manualPort <= 0 || self.manualPort > 65535 { self.manualPort = 18789 }
         case .developerLocal:

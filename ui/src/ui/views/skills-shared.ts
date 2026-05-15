@@ -8,7 +8,7 @@ function displaySkillSource(source: string): string {
   if (source === "managed") {
     return "kova-managed";
   }
-  return source.replace(/^openclaw-/u, "kova-");
+  return source.replace(/^kova-/u, "kova-");
 }
 
 export function computeSkillMissing(skill: SkillStatusEntry): string[] {

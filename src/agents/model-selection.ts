@@ -3,7 +3,7 @@ import {
   resolveAgentModelPrimaryValue,
   toAgentModelListLike,
 } from "../config/model-input.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import {
   resolveAgentConfig,
@@ -194,13 +194,13 @@ export function normalizeStoredOverrideModel(params: {
 export function resolveAllowlistModelKey(
   raw: string,
   defaultProvider: string,
-  cfg?: OpenClawConfig,
+  cfg?: KovaConfig,
 ): string | null {
   return resolveAllowlistModelKeyFromShared({ cfg, raw, defaultProvider });
 }
 
 export function resolveDefaultModelForAgent(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId?: string;
 }): ModelRef {
   const agentModelOverride = params.agentId
@@ -231,7 +231,7 @@ export function resolveDefaultModelForAgent(params: {
 
 export async function canonicalizeCaseOnlyCatalogModelRef(params: {
   raw: string | undefined;
-  cfg?: OpenClawConfig;
+  cfg?: KovaConfig;
   defaultProvider: string;
   loadCatalog: () => Promise<ModelCatalogEntry[]>;
   aliasIndex?: ModelAliasIndex;
@@ -281,7 +281,7 @@ function appendAuthProfileSuffix(modelRef: string, profile: string | undefined):
   return profile ? `${modelRef}@${profile}` : modelRef;
 }
 
-function resolveAllowedFallbacks(params: { cfg: OpenClawConfig; agentId?: string }): string[] {
+function resolveAllowedFallbacks(params: { cfg: KovaConfig; agentId?: string }): string[] {
   if (params.agentId) {
     const override = resolveAgentModelFallbacksOverride(params.cfg, params.agentId);
     if (override !== undefined) {
@@ -292,7 +292,7 @@ function resolveAllowedFallbacks(params: { cfg: OpenClawConfig; agentId?: string
 }
 
 export function resolveSubagentConfiguredModelSelection(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
 }): string | undefined {
   const agentConfig = resolveAgentConfig(params.cfg, params.agentId);
@@ -304,7 +304,7 @@ export function resolveSubagentConfiguredModelSelection(params: {
 }
 
 export function resolveSubagentSpawnModelSelection(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   modelOverride?: unknown;
 }): string {
@@ -324,7 +324,7 @@ export function resolveSubagentSpawnModelSelection(params: {
 }
 
 export function buildAllowedModelSet(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   catalog: ModelCatalogEntry[];
   defaultProvider: string;
   defaultModel?: string;
@@ -347,7 +347,7 @@ export function buildAllowedModelSet(params: {
 }
 
 export function getModelRefStatus(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   catalog: ModelCatalogEntry[];
   ref: ModelRef;
   defaultProvider: string;
@@ -367,7 +367,7 @@ export function getModelRefStatus(params: {
 
 function getModelRefStatusForResolve(
   params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     defaultProvider: string;
     defaultModel?: string;
@@ -384,7 +384,7 @@ function getModelRefStatusForResolve(
 }
 
 export function resolveAllowedModelRef(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   catalog: ModelCatalogEntry[];
   raw: string;
   defaultProvider: string;

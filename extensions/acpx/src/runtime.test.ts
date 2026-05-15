@@ -7,10 +7,10 @@ type TestSessionStore = {
   save(record: Record<string, unknown>): Promise<void>;
 };
 
-const DOCUMENTED_OPENCLAW_BRIDGE_COMMAND =
-  "env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 openclaw acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main";
+const DOCUMENTED_KOVA_BRIDGE_COMMAND =
+  "env KOVA_HIDE_BANNER=1 KOVA_SUPPRESS_NOTES=1 kova acp --url ws://127.0.0.1:18789 --token-file ~/.kova/gateway.token --session agent:main:main";
 const CODEX_ACP_COMMAND = "npx @zed-industries/codex-acp@^0.11.1";
-const CODEX_ACP_WRAPPER_COMMAND = `node "/tmp/openclaw/acpx/codex-acp-wrapper.mjs"`;
+const CODEX_ACP_WRAPPER_COMMAND = `node "/tmp/kova/acpx/codex-acp-wrapper.mjs"`;
 
 function makeRuntime(
   baseStore: TestSessionStore,
@@ -39,8 +39,8 @@ function makeRuntime(
     cwd: "/tmp",
     sessionStore: baseStore,
     agentRegistry: {
-      resolve: (agentName: string) => (agentName === "openclaw" ? "openclaw acp" : agentName),
-      list: () => ["codex", "openclaw"],
+      resolve: (agentName: string) => (agentName === "kova" ? "kova acp" : agentName),
+      list: () => ["codex", "kova"],
     },
     permissionMode: "approve-reads",
     ...options,
@@ -85,7 +85,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     vi.restoreAllMocks();
   });
 
-  it("normalizes OpenClaw Codex model ids for ACP startup", async () => {
+  it("normalizes Kova Codex model ids for ACP startup", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -93,7 +93,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
         resolve: (agentName: string) => (agentName === "codex" ? CODEX_ACP_COMMAND : agentName),
-        list: () => ["codex", "openclaw"],
+        list: () => ["codex", "kova"],
       },
     });
     const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -124,7 +124,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
         resolve: (agentName: string) => (agentName === "codex" ? CODEX_ACP_COMMAND : agentName),
-        list: () => ["codex", "openclaw"],
+        list: () => ["codex", "kova"],
       },
     });
     const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -156,7 +156,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
         resolve: (agentName: string) => (agentName === "main" ? CODEX_ACP_COMMAND : agentName),
-        list: () => ["main", "codex", "openclaw"],
+        list: () => ["main", "codex", "kova"],
       },
     });
     const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -191,7 +191,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     ).toBe(
       "npx @zed-industries/codex-acp@^0.11.1 -c model=gpt-5.4 -c model_reasoning_effort=medium",
     );
-    expect(__testing.isCodexAcpCommand("openclaw acp")).toBe(false);
+    expect(__testing.isCodexAcpCommand("kova acp")).toBe(false);
   });
 
   it("passes gpt-5.5 Codex ACP startup through instead of blocking it", async () => {
@@ -202,7 +202,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
         resolve: (agentName: string) => (agentName === "codex" ? CODEX_ACP_COMMAND : agentName),
-        list: () => ["codex", "openclaw"],
+        list: () => ["codex", "kova"],
       },
     });
     const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -233,7 +233,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
         resolve: (agentName: string) => (agentName === "codex" ? CODEX_ACP_COMMAND : agentName),
-        list: () => ["codex", "openclaw"],
+        list: () => ["codex", "kova"],
       },
     });
     const ensure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -418,7 +418,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(baseStore.load).toHaveBeenCalledOnce();
   });
 
-  it("routes openclaw ensureSession through the bridge-safe delegate when MCP servers are configured", async () => {
+  it("routes kova ensureSession through the bridge-safe delegate when MCP servers are configured", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -433,14 +433,14 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       runtimeSessionName: "default",
     });
     const bridgeEnsure = vi.spyOn(bridgeSafeDelegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "bridge",
     });
 
     const result = await runtime.ensureSession({
-      sessionKey: "agent:openclaw:acp:test",
-      agent: "openclaw",
+      sessionKey: "agent:kova:acp:test",
+      agent: "kova",
       mode: "persistent",
     });
 
@@ -449,7 +449,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultEnsure).not.toHaveBeenCalled();
   });
 
-  it("routes non-openclaw sessions through the default delegate", async () => {
+  it("routes non-kova sessions through the default delegate", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -464,7 +464,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       runtimeSessionName: "default",
     });
     const bridgeEnsure = vi.spyOn(bridgeSafeDelegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "bridge",
     });
@@ -480,7 +480,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(bridgeEnsure).not.toHaveBeenCalled();
   });
 
-  it("routes handle-based follow-up calls for openclaw sessions through the bridge-safe delegate", async () => {
+  it("routes handle-based follow-up calls for kova sessions through the bridge-safe delegate", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -496,9 +496,9 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       summary: "bridge",
     });
     const handle: Parameters<NonNullable<AcpRuntime["getStatus"]>>[0]["handle"] = {
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
-      runtimeSessionName: "openclaw-session-handle",
+      runtimeSessionName: "kova-session-handle",
     };
 
     const status = await runtime.getStatus({ handle });
@@ -508,7 +508,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultStatus).not.toHaveBeenCalled();
   });
 
-  it("keeps MCP-enabled routing when the openclaw agent is overridden to a non-bridge adapter", async () => {
+  it("keeps MCP-enabled routing when the kova agent is overridden to a non-bridge adapter", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -517,24 +517,24 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "openclaw" ? "codex" : agentName),
-        list: () => ["codex", "openclaw"],
+        resolve: (agentName: string) => (agentName === "kova" ? "codex" : agentName),
+        list: () => ["codex", "kova"],
       },
     });
     const defaultEnsure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "default",
     });
     const bridgeEnsure = vi.spyOn(bridgeSafeDelegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "bridge",
     });
 
     const result = await runtime.ensureSession({
-      sessionKey: "agent:openclaw:acp:test",
-      agent: "openclaw",
+      sessionKey: "agent:kova:acp:test",
+      agent: "kova",
       mode: "persistent",
     });
 
@@ -543,7 +543,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(bridgeEnsure).not.toHaveBeenCalled();
   });
 
-  it("uses the bridge-safe delegate for any agent mapped to the openclaw bridge command", async () => {
+  it("uses the bridge-safe delegate for any agent mapped to the kova bridge command", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -552,8 +552,8 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "codex" ? "openclaw acp" : agentName),
-        list: () => ["codex", "openclaw"],
+        resolve: (agentName: string) => (agentName === "codex" ? "kova acp" : agentName),
+        list: () => ["codex", "kova"],
       },
     });
     const defaultEnsure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
@@ -578,7 +578,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultEnsure).not.toHaveBeenCalled();
   });
 
-  it("uses the bridge-safe delegate for documented env-wrapped openclaw bridge commands", async () => {
+  it("uses the bridge-safe delegate for documented env-wrapped kova bridge commands", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -588,24 +588,24 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
         resolve: (agentName: string) =>
-          agentName === "openclaw" ? DOCUMENTED_OPENCLAW_BRIDGE_COMMAND : agentName,
-        list: () => ["codex", "openclaw"],
+          agentName === "kova" ? DOCUMENTED_KOVA_BRIDGE_COMMAND : agentName,
+        list: () => ["codex", "kova"],
       },
     });
     const defaultEnsure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "default",
     });
     const bridgeEnsure = vi.spyOn(bridgeSafeDelegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "bridge",
     });
 
     const result = await runtime.ensureSession({
-      sessionKey: "agent:openclaw:acp:test",
-      agent: "openclaw",
+      sessionKey: "agent:kova:acp:test",
+      agent: "kova",
       mode: "persistent",
     });
 
@@ -614,7 +614,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultEnsure).not.toHaveBeenCalled();
   });
 
-  it("uses the bridge-safe delegate for local node openclaw entrypoints", async () => {
+  it("uses the bridge-safe delegate for local node kova entrypoints", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -624,24 +624,24 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
         resolve: (agentName: string) =>
-          agentName === "openclaw" ? "env OPENCLAW_HIDE_BANNER=1 node openclaw.mjs acp" : agentName,
-        list: () => ["codex", "openclaw"],
+          agentName === "kova" ? "env KOVA_HIDE_BANNER=1 node kova.mjs acp" : agentName,
+        list: () => ["codex", "kova"],
       },
     });
     const defaultEnsure = vi.spyOn(delegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "default",
     });
     const bridgeEnsure = vi.spyOn(bridgeSafeDelegate, "ensureSession").mockResolvedValue({
-      sessionKey: "agent:openclaw:acp:test",
+      sessionKey: "agent:kova:acp:test",
       backend: "acpx",
       runtimeSessionName: "bridge",
     });
 
     const result = await runtime.ensureSession({
-      sessionKey: "agent:openclaw:acp:test",
-      agent: "openclaw",
+      sessionKey: "agent:kova:acp:test",
+      agent: "kova",
       mode: "persistent",
     });
 
@@ -653,8 +653,8 @@ describe("AcpxRuntime fresh reset wrapper", () => {
   it("routes follow-up calls by persisted agent command before current config", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => ({
-        acpxRecordId: "agent:openclaw:acp:test",
-        agentCommand: DOCUMENTED_OPENCLAW_BRIDGE_COMMAND,
+        acpxRecordId: "agent:kova:acp:test",
+        agentCommand: DOCUMENTED_KOVA_BRIDGE_COMMAND,
       })),
       save: vi.fn(async () => {}),
     };
@@ -662,8 +662,8 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "openclaw" ? "codex" : agentName),
-        list: () => ["codex", "openclaw"],
+        resolve: (agentName: string) => (agentName === "kova" ? "codex" : agentName),
+        list: () => ["codex", "kova"],
       },
     });
     const defaultStatus = vi.spyOn(delegate, "getStatus").mockResolvedValue({
@@ -675,9 +675,9 @@ describe("AcpxRuntime fresh reset wrapper", () => {
 
     const status = await runtime.getStatus({
       handle: {
-        sessionKey: "agent:openclaw:acp:test",
+        sessionKey: "agent:kova:acp:test",
         backend: "acpx",
-        runtimeSessionName: "agent:openclaw:acp:test",
+        runtimeSessionName: "agent:kova:acp:test",
       },
     });
 
@@ -686,7 +686,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultStatus).not.toHaveBeenCalled();
   });
 
-  it("probes through the bridge-safe delegate when probeAgent resolves to openclaw bridge", async () => {
+  it("probes through the bridge-safe delegate when probeAgent resolves to kova bridge", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => undefined),
       save: vi.fn(async () => {}),
@@ -694,11 +694,11 @@ describe("AcpxRuntime fresh reset wrapper", () => {
 
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
-      probeAgent: "openclaw",
+      probeAgent: "kova",
       agentRegistry: {
         resolve: (agentName: string) =>
-          agentName === "openclaw" ? DOCUMENTED_OPENCLAW_BRIDGE_COMMAND : agentName,
-        list: () => ["codex", "openclaw"],
+          agentName === "kova" ? DOCUMENTED_KOVA_BRIDGE_COMMAND : agentName,
+        list: () => ["codex", "kova"],
       },
     });
     const defaultProbe = vi.spyOn(delegate, "probeAvailability").mockResolvedValue(undefined);

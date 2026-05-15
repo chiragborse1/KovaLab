@@ -80,8 +80,8 @@ export function runInstalledWorkspaceBootstrapSmoke(params) {
           env: {
             ...process.env,
             HOME: homeDir,
-            OPENCLAW_HOME: homeDir,
-            OPENCLAW_SUPPRESS_NOTES: "1",
+            KOVA_HOME: homeDir,
+            KOVA_SUPPRESS_NOTES: "1",
           },
         },
       );

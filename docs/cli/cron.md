@@ -139,7 +139,7 @@ Isolated cron runs prefer structured execution-denial metadata from the embedded
 Retention and pruning are controlled in config:
 
 - `cron.sessionRetention` (default `24h`) prunes completed isolated run sessions.
-- `cron.runLog.maxBytes` and `cron.runLog.keepLines` prune `~/.openclaw/cron/runs/<jobId>.jsonl`.
+- `cron.runLog.maxBytes` and `cron.runLog.keepLines` prune `~/.kova/cron/runs/<jobId>.jsonl`.
 
 ## Migrating older jobs
 

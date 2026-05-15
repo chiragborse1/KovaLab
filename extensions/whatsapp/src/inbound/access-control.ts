@@ -1,12 +1,12 @@
-import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { warnMissingProviderGroupPolicyFallbackOnce } from "openclaw/plugin-sdk/config-runtime";
-import { upsertChannelPairingRequest } from "openclaw/plugin-sdk/conversation-runtime";
-import { defaultRuntime } from "openclaw/plugin-sdk/runtime-env";
+import { createChannelPairingChallengeIssuer } from "getkova/plugin-sdk/channel-pairing";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { warnMissingProviderGroupPolicyFallbackOnce } from "getkova/plugin-sdk/config-runtime";
+import { upsertChannelPairingRequest } from "getkova/plugin-sdk/conversation-runtime";
+import { defaultRuntime } from "getkova/plugin-sdk/runtime-env";
 import {
   readStoreAllowFromForDmPolicy,
   resolveDmGroupAccessWithLists,
-} from "openclaw/plugin-sdk/security-runtime";
+} from "getkova/plugin-sdk/security-runtime";
 import { resolveWhatsAppInboundPolicy } from "../inbound-policy.js";
 
 export type InboundAccessControlResult = {
@@ -26,7 +26,7 @@ function logWhatsAppVerbose(enabled: boolean | undefined, message: string) {
 }
 
 export async function checkInboundAccessControl(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   from: string;
   selfE164: string | null;

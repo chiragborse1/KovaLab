@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   resolveSystemNodeInfo: vi.fn(),
   renderSystemNodeWarning: vi.fn(),
   buildServiceEnvironment: vi.fn(),
-  resolveOpenClawWrapperPath: vi.fn(),
+  resolveKovaWrapperPath: vi.fn(),
 }));
 
 vi.mock("./daemon-install-auth-profiles-source.runtime.js", () => ({
@@ -30,9 +30,9 @@ vi.mock("../daemon/runtime-paths.js", () => ({
 }));
 
 vi.mock("../daemon/program-args.js", () => ({
-  OPENCLAW_WRAPPER_ENV_KEY: "OPENCLAW_WRAPPER",
+  KOVA_WRAPPER_ENV_KEY: "KOVA_WRAPPER",
   resolveGatewayProgramArguments: mocks.resolveGatewayProgramArguments,
-  resolveOpenClawWrapperPath: mocks.resolveOpenClawWrapperPath,
+  resolveKovaWrapperPath: mocks.resolveKovaWrapperPath,
 }));
 
 vi.mock("../daemon/service-env.js", () => ({
@@ -51,11 +51,9 @@ afterEach(() => {
 
 describe("resolveGatewayDevMode", () => {
   it("detects dev mode for src ts entrypoints", () => {
-    expect(resolveGatewayDevMode(["node", "/Users/me/openclaw/src/cli/index.ts"])).toBe(true);
-    expect(resolveGatewayDevMode(["node", "C:\\Users\\me\\openclaw\\src\\cli\\index.ts"])).toBe(
-      true,
-    );
-    expect(resolveGatewayDevMode(["node", "/Users/me/openclaw/dist/cli/index.js"])).toBe(false);
+    expect(resolveGatewayDevMode(["node", "/Users/me/kova/src/cli/index.ts"])).toBe(true);
+    expect(resolveGatewayDevMode(["node", "C:\\Users\\me\\kova\\src\\cli\\index.ts"])).toBe(true);
+    expect(resolveGatewayDevMode(["node", "/Users/me/kova/dist/cli/index.js"])).toBe(false);
   });
 });
 
@@ -72,13 +70,13 @@ function mockNodeGatewayPlanFixture(
     version = "22.0.0",
     supported = true,
     warning,
-    serviceEnvironment = { OPENCLAW_PORT: "3000" },
+    serviceEnvironment = { KOVA_PORT: "3000" },
   } = params;
   const workingDirectory = Object.hasOwn(params, "workingDirectory")
     ? params.workingDirectory
     : "/Users/me";
   mocks.resolvePreferredNodePath.mockResolvedValue("/opt/node");
-  mocks.resolveOpenClawWrapperPath.mockImplementation(async (value: string | undefined) =>
+  mocks.resolveKovaWrapperPath.mockImplementation(async (value: string | undefined) =>
     value?.trim() ? path.resolve(value) : undefined,
   );
   mocks.resolveGatewayProgramArguments.mockResolvedValue({
@@ -99,7 +97,7 @@ function mockNodeGatewayPlanFixture(
 }
 
 describe("buildGatewayInstallPlan", () => {
-  // Prevent tests from reading the developer's real ~/.openclaw/.env when
+  // Prevent tests from reading the developer's real ~/.kova/.env when
   // passing `env: {}` (which falls back to os.homedir for state-dir resolution).
   let isolatedHome: string;
   beforeEach(() => {
@@ -125,7 +123,7 @@ describe("buildGatewayInstallPlan", () => {
 
     expect(plan.programArguments).toEqual(["node", "gateway"]);
     expect(plan.workingDirectory).toBe("/Users/me");
-    expect(plan.environment).toEqual({ OPENCLAW_PORT: "3000" });
+    expect(plan.environment).toEqual({ KOVA_PORT: "3000" });
     expect(mocks.resolvePreferredNodePath).not.toHaveBeenCalled();
     expect(mocks.buildServiceEnvironment).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -211,18 +209,18 @@ describe("buildGatewayInstallPlan", () => {
     expect(plan.workingDirectory).toBeUndefined();
   });
 
-  it("passes OPENCLAW_WRAPPER through program args and managed service env", async () => {
-    const wrapperPath = path.resolve("/usr/local/bin/openclaw-doppler");
+  it("passes KOVA_WRAPPER through program args and managed service env", async () => {
+    const wrapperPath = path.resolve("/usr/local/bin/kova-doppler");
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
-        OPENCLAW_WRAPPER: wrapperPath,
+        KOVA_PORT: "3000",
+        KOVA_WRAPPER: wrapperPath,
       },
     });
 
     const plan = await buildGatewayInstallPlan({
       env: isolatedPlanEnv({
-        OPENCLAW_WRAPPER: wrapperPath,
+        KOVA_WRAPPER: wrapperPath,
       }),
       port: 3000,
       runtime: "node",
@@ -236,18 +234,18 @@ describe("buildGatewayInstallPlan", () => {
     expect(mocks.buildServiceEnvironment).toHaveBeenCalledWith(
       expect.objectContaining({
         env: expect.objectContaining({
-          OPENCLAW_WRAPPER: wrapperPath,
+          KOVA_WRAPPER: wrapperPath,
         }),
       }),
     );
-    expect(plan.environment.OPENCLAW_WRAPPER).toBe(wrapperPath);
+    expect(plan.environment.KOVA_WRAPPER).toBe(wrapperPath);
   });
 
   it("tracks safe config env keys without embedding literal values", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/Users/service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
 
@@ -263,7 +261,7 @@ describe("buildGatewayInstallPlan", () => {
           TRIMMED_KEY: "  ",
           vars: {
             GOOGLE_API_KEY: "test-key", // pragma: allowlist secret
-            OPENCLAW_PORT: "9999",
+            KOVA_PORT: "9999",
             NODE_OPTIONS: "--require /tmp/evil.js",
             SAFE_KEY: "safe-value",
           },
@@ -278,8 +276,8 @@ describe("buildGatewayInstallPlan", () => {
     expect(plan.environment.EMPTY_KEY).toBeUndefined();
     expect(plan.environment.TRIMMED_KEY).toBeUndefined();
     expect(plan.environment.HOME).toBe("/Users/service");
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBe(
+    expect(plan.environment.KOVA_PORT).toBe("3000");
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBe(
       "CUSTOM_VAR,GOOGLE_API_KEY,SAFE_KEY",
     );
   });
@@ -287,7 +285,7 @@ describe("buildGatewayInstallPlan", () => {
   it("drops stale version-manager paths when preserving existing service PATH", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
         PATH: "/usr/local/bin:/usr/bin:/bin",
         TMPDIR: "/tmp",
       },
@@ -315,7 +313,7 @@ describe("buildGatewayInstallPlan", () => {
   it("skips auth-profile store load when no auth-profile source exists", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
     mocks.hasAnyAuthProfileStoreSource.mockReturnValue(false);
@@ -327,13 +325,13 @@ describe("buildGatewayInstallPlan", () => {
     });
 
     expect(mocks.loadAuthProfileStoreForSecretsRuntime).not.toHaveBeenCalled();
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
+    expect(plan.environment.KOVA_PORT).toBe("3000");
   });
 
   it("uses the provided authStore without probing auth-profile runtime", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
 
@@ -356,7 +354,7 @@ describe("buildGatewayInstallPlan", () => {
     });
 
     expect(plan.environment.OPENAI_API_KEY).toBe("sk-openai-test");
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
     expect(mocks.hasAnyAuthProfileStoreSource).not.toHaveBeenCalled();
     expect(mocks.loadAuthProfileStoreForSecretsRuntime).not.toHaveBeenCalled();
   });
@@ -364,7 +362,7 @@ describe("buildGatewayInstallPlan", () => {
   it("merges only portable auth-profile env refs into the service environment", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
     mocks.loadAuthProfileStoreForSecretsRuntime.mockReturnValue({
@@ -422,7 +420,7 @@ describe("buildGatewayInstallPlan", () => {
     expect(plan.environment.MISSING_TOKEN).toBeUndefined();
     expect(plan.environment.OPENAI_API_KEY).toBe("sk-openai-test");
     expect(plan.environment.ANTHROPIC_TOKEN).toBe("ant-test-token");
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("NODE_OPTIONS"), "Auth profile");
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("GIT_ASKPASS"), "Auth profile");
   });
@@ -443,13 +441,13 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     await writeStateDirDotEnv(
       "BRAVE_API_KEY=BSA-from-env\nOPENROUTER_API_KEY=or-key\nMY_KEY=from-dotenv\nHOME=/from-dotenv\n",
       {
-        stateDir: path.join(tmpDir, ".openclaw"),
+        stateDir: path.join(tmpDir, ".kova"),
       },
     );
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
 
@@ -470,14 +468,14 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.OPENROUTER_API_KEY).toBeUndefined();
     expect(plan.environment.MY_KEY).toBeUndefined();
     expect(plan.environment.HOME).toBe("/from-service");
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBe(
+    expect(plan.environment.KOVA_PORT).toBe("3000");
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBe(
       "BRAVE_API_KEY,MY_KEY,OPENROUTER_API_KEY",
     );
   });
 
   it("works when .env file does not exist", async () => {
-    mockNodeGatewayPlanFixture({ serviceEnvironment: { OPENCLAW_PORT: "3000" } });
+    mockNodeGatewayPlanFixture({ serviceEnvironment: { KOVA_PORT: "3000" } });
 
     const plan = await buildGatewayInstallPlan({
       env: { HOME: tmpDir },
@@ -485,14 +483,14 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
       runtime: "node",
     });
 
-    expect(plan.environment.OPENCLAW_PORT).toBe("3000");
+    expect(plan.environment.KOVA_PORT).toBe("3000");
   });
 
   it("preserves safe custom vars from an existing service env and merges PATH", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
         PATH: "/managed/bin:/usr/bin",
         TMPDIR: "/tmp",
       },
@@ -508,7 +506,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
         BLOGWATCHER_HOME: "/Users/test/.blogwatcher",
         NODE_OPTIONS: "--require /tmp/evil.js",
         GOPATH: "/Users/test/.local/gopath",
-        OPENCLAW_SERVICE_MARKER: "openclaw",
+        KOVA_SERVICE_MARKER: "kova",
       },
     });
 
@@ -517,14 +515,14 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.BLOGWATCHER_HOME).toBe("/Users/test/.blogwatcher");
     expect(plan.environment.NODE_OPTIONS).toBeUndefined();
     expect(plan.environment.GOPATH).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MARKER).toBeUndefined();
+    expect(plan.environment.KOVA_SERVICE_MARKER).toBeUndefined();
   });
 
   it("drops keys that were previously tracked as managed service env", async () => {
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
         PATH: "/managed/bin:/usr/bin",
       },
     });
@@ -538,7 +536,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
         GOBIN: "/Users/test/.local/gopath/bin",
         BLOGWATCHER_HOME: "/Users/test/.blogwatcher",
         GOPATH: "/Users/test/.local/gopath",
-        OPENCLAW_SERVICE_MANAGED_ENV_KEYS: "GOBIN,GOPATH",
+        KOVA_SERVICE_MANAGED_ENV_KEYS: "GOBIN,GOPATH",
       },
     });
 
@@ -546,17 +544,17 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     expect(plan.environment.GOBIN).toBeUndefined();
     expect(plan.environment.BLOGWATCHER_HOME).toBe("/Users/test/.blogwatcher");
     expect(plan.environment.GOPATH).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBeUndefined();
   });
 
   it("drops legacy inline env values when the key is now managed by .env", async () => {
     await writeStateDirDotEnv("TAVILY_API_KEY=fresh-dotenv-value\n", {
-      stateDir: path.join(tmpDir, ".openclaw"),
+      stateDir: path.join(tmpDir, ".kova"),
     });
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
 
@@ -571,18 +569,18 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     });
 
     expect(plan.environment.TAVILY_API_KEY).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBe("TAVILY_API_KEY");
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBe("TAVILY_API_KEY");
     expect(plan.environment.CUSTOM_TOOL_HOME).toBe("/Users/test/.custom-tool");
   });
 
   it("does not embed auth-profile env refs when the key is already durable", async () => {
     await writeStateDirDotEnv("OPENAI_API_KEY=dotenv-openai\n", {
-      stateDir: path.join(tmpDir, ".openclaw"),
+      stateDir: path.join(tmpDir, ".kova"),
     });
     mockNodeGatewayPlanFixture({
       serviceEnvironment: {
         HOME: "/from-service",
-        OPENCLAW_PORT: "3000",
+        KOVA_PORT: "3000",
       },
     });
 
@@ -606,7 +604,7 @@ describe("buildGatewayInstallPlan — dotenv merge", () => {
     });
 
     expect(plan.environment.OPENAI_API_KEY).toBeUndefined();
-    expect(plan.environment.OPENCLAW_SERVICE_MANAGED_ENV_KEYS).toBe("OPENAI_API_KEY");
+    expect(plan.environment.KOVA_SERVICE_MANAGED_ENV_KEYS).toBe("OPENAI_API_KEY");
   });
 });
 

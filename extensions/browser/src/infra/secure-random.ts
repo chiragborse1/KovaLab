@@ -1,1 +1,1 @@
-export { generateSecureToken } from "openclaw/plugin-sdk/browser-security-runtime";
+export { generateSecureToken } from "getkova/plugin-sdk/browser-security-runtime";

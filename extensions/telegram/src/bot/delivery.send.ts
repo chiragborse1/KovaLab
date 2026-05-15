@@ -1,6 +1,6 @@
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
+import { formatErrorMessage } from "getkova/plugin-sdk/ssrf-runtime";
 import { type Bot, GrammyError } from "grammy";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
-import { formatErrorMessage } from "openclaw/plugin-sdk/ssrf-runtime";
 import { withTelegramApiErrorLogging } from "../api-logging.js";
 import { markdownToTelegramHtml } from "../format.js";
 import {

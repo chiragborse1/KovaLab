@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { normalizeEmbeddedAgentRuntime } from "./pi-embedded-runner/runtime.js";
 import { resolveProviderIdForAuth } from "./provider-auth-aliases.js";
@@ -26,7 +26,7 @@ function isOfficialOpenAIBaseUrl(baseUrl: unknown): boolean {
   }
 }
 
-function openAIProviderUsesCustomBaseUrl(config: OpenClawConfig | undefined): boolean {
+function openAIProviderUsesCustomBaseUrl(config: KovaConfig | undefined): boolean {
   return !isOfficialOpenAIBaseUrl(config?.models?.providers?.openai?.baseUrl);
 }
 
@@ -40,7 +40,7 @@ export function isOpenAICodexProvider(provider: string | undefined): boolean {
 
 export function openAIProviderUsesCodexRuntimeByDefault(params: {
   provider?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): boolean {
   return isOpenAIProvider(params.provider) && !openAIProviderUsesCustomBaseUrl(params.config);
 }
@@ -62,7 +62,7 @@ export function modelRefUsesOpenAIProvider(value: unknown): boolean {
 
 export function modelSelectionShouldEnsureCodexPlugin(params: {
   model?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
 }): boolean {
   const provider = parseModelRefProvider(params.model);
   if (provider === OPENAI_CODEX_PROVIDER_ID) {
@@ -84,7 +84,7 @@ export function shouldRouteOpenAIPiThroughCodexAuthProvider(params: {
   agentHarnessId?: string;
   authProfileProvider?: string;
   authProfileId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
 }): boolean {
   if (
@@ -142,7 +142,7 @@ export function resolveOpenAIRuntimeProviderForPi(params: {
   agentHarnessId?: string;
   authProfileProvider?: string;
   authProfileId?: string;
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
 }): string {
   return shouldRouteOpenAIPiThroughCodexAuthProvider(params)

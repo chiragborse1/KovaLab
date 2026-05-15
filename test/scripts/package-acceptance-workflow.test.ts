@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const PACKAGE_ACCEPTANCE_WORKFLOW = ".github/workflows/package-acceptance.yml";
-const LIVE_E2E_WORKFLOW = ".github/workflows/openclaw-live-and-e2e-checks-reusable.yml";
+const LIVE_E2E_WORKFLOW = ".github/workflows/kova-live-and-e2e-checks-reusable.yml";
 const NPM_TELEGRAM_WORKFLOW = ".github/workflows/npm-telegram-beta-e2e.yml";
-const RELEASE_CHECKS_WORKFLOW = ".github/workflows/openclaw-release-checks.yml";
+const RELEASE_CHECKS_WORKFLOW = ".github/workflows/kova-release-checks.yml";
 const FULL_RELEASE_VALIDATION_WORKFLOW = ".github/workflows/full-release-validation.yml";
 
 describe("package acceptance workflow", () => {
@@ -20,14 +20,12 @@ describe("package acceptance workflow", () => {
     expect(workflow).toContain("- ref");
     expect(workflow).toContain("- url");
     expect(workflow).toContain("- artifact");
-    expect(workflow).toContain("scripts/resolve-openclaw-package-candidate.mjs");
+    expect(workflow).toContain("scripts/resolve-kova-package-candidate.mjs");
     expect(workflow).toContain('--package-ref "$PACKAGE_REF"');
     expect(workflow).toContain('gh run download "$ARTIFACT_RUN_ID"');
     expect(workflow).toContain("name: ${{ env.PACKAGE_ARTIFACT_NAME }}");
     expect(workflow).toContain("pull-requests: read");
-    expect(workflow).toContain(
-      "uses: ./.github/workflows/openclaw-live-and-e2e-checks-reusable.yml",
-    );
+    expect(workflow).toContain("uses: ./.github/workflows/kova-live-and-e2e-checks-reusable.yml");
     expect(workflow).toContain("ref: ${{ inputs.workflow_ref }}");
     expect(workflow).toContain(
       "package_artifact_name: ${{ needs.resolve_package.outputs.package_artifact_name }}",
@@ -65,9 +63,9 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("package_artifact_run_id:");
     expect(workflow).toContain("docker_e2e_bare_image:");
     expect(workflow).toContain("docker_e2e_functional_image:");
-    expect(workflow).toContain("OPENCLAW_DOCKER_E2E_SELECTED_SHA:");
-    expect(workflow).toContain("Download current-run OpenClaw Docker E2E package");
-    expect(workflow).toContain("Download previous-run OpenClaw Docker E2E package");
+    expect(workflow).toContain("KOVA_DOCKER_E2E_SELECTED_SHA:");
+    expect(workflow).toContain("Download current-run Kova Docker E2E package");
+    expect(workflow).toContain("Download previous-run Kova Docker E2E package");
     expect(workflow).toContain("inputs.package_artifact_name != ''");
     expect(workflow).toContain(
       'bare_image="${PROVIDED_BARE_IMAGE:-ghcr.io/${repository}-docker-e2e-bare:${image_tag}}"',
@@ -98,7 +96,7 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("Download package-under-test artifact");
     expect(workflow).toContain("harness_ref:");
     expect(workflow).toContain("ref: ${{ inputs.harness_ref || github.sha }}");
-    expect(workflow).toContain("OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ");
+    expect(workflow).toContain("KOVA_NPM_TELEGRAM_PACKAGE_TGZ");
     expect(workflow).toContain("provider_mode:");
     expect(workflow).toContain("provider_mode must be mock-openai or live-frontier");
     expect(workflow).toContain("run_package_telegram_e2e:");
@@ -118,12 +116,8 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("telegram_mode: mock-openai");
     expect(workflow).toContain("ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}");
     expect(workflow).toContain("ANTHROPIC_API_TOKEN: ${{ secrets.ANTHROPIC_API_TOKEN }}");
-    expect(workflow).toContain(
-      "OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}",
-    );
-    expect(workflow).toContain(
-      "OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}",
-    );
+    expect(workflow).toContain("KOVA_QA_CONVEX_SITE_URL: ${{ secrets.KOVA_QA_CONVEX_SITE_URL }}");
+    expect(workflow).toContain("KOVA_QA_CONVEX_SECRET_CI: ${{ secrets.KOVA_QA_CONVEX_SECRET_CI }}");
   });
 
   it("detects Matrix fail-fast support for older release refs", () => {
@@ -132,12 +126,12 @@ describe("package artifact reuse", () => {
 
     expect(releaseWorkflow).toContain("matrix_args=(");
     expect(releaseWorkflow).toContain(
-      'pnpm openclaw qa matrix --help 2>/dev/null | grep -F -q -- "--fail-fast"',
+      'pnpm kova qa matrix --help 2>/dev/null | grep -F -q -- "--fail-fast"',
     );
     expect(releaseWorkflow).toContain("matrix_args+=(--fail-fast)");
-    expect(releaseWorkflow).toContain('pnpm openclaw qa matrix "${matrix_args[@]}"');
+    expect(releaseWorkflow).toContain('pnpm kova qa matrix "${matrix_args[@]}"');
     expect(qaWorkflow).toContain(
-      'pnpm openclaw qa matrix --help 2>/dev/null | grep -F -q -- "--fail-fast"',
+      'pnpm kova qa matrix --help 2>/dev/null | grep -F -q -- "--fail-fast"',
     );
   });
 

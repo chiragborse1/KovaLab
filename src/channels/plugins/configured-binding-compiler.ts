@@ -1,5 +1,5 @@
 import { listConfiguredBindings } from "../../config/bindings.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import {
   getActivePluginChannelRegistryVersion,
   requireActivePluginChannelRegistry,
@@ -31,10 +31,7 @@ type CachedCompiledConfiguredBindingRegistry = {
   registry: CompiledConfiguredBindingRegistry;
 };
 
-const compiledRegistryCache = new WeakMap<
-  OpenClawConfig,
-  CachedCompiledConfiguredBindingRegistry
->();
+const compiledRegistryCache = new WeakMap<KovaConfig, CachedCompiledConfiguredBindingRegistry>();
 
 function resolveLoadedChannelPlugin(channel: string) {
   const normalized = normalizeOptionalLowercaseString(channel);
@@ -86,7 +83,7 @@ function compileConfiguredBindingTarget(params: {
 }
 
 function compileConfiguredBindingRule(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channel: ConfiguredBindingChannel;
   binding: CompiledConfiguredBinding["binding"];
   target: ChannelConfiguredBindingConversationRef;
@@ -134,7 +131,7 @@ function pushCompiledRule(
 }
 
 function compileConfiguredBindingRegistry(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): CompiledConfiguredBindingRegistry {
   const rulesByChannel = new Map<ConfiguredBindingChannel, CompiledConfiguredBinding[]>();
 
@@ -177,9 +174,7 @@ function compileConfiguredBindingRegistry(params: {
   };
 }
 
-export function resolveCompiledBindingRegistry(
-  cfg: OpenClawConfig,
-): CompiledConfiguredBindingRegistry {
+export function resolveCompiledBindingRegistry(cfg: KovaConfig): CompiledConfiguredBindingRegistry {
   const activeRegistry = requireActivePluginChannelRegistry();
   const registryVersion = getActivePluginChannelRegistryVersion();
   const cached = compiledRegistryCache.get(cfg);
@@ -198,9 +193,7 @@ export function resolveCompiledBindingRegistry(
   return registry;
 }
 
-export function primeCompiledBindingRegistry(
-  cfg: OpenClawConfig,
-): CompiledConfiguredBindingRegistry {
+export function primeCompiledBindingRegistry(cfg: KovaConfig): CompiledConfiguredBindingRegistry {
   const activeRegistry = requireActivePluginChannelRegistry();
   const registry = compileConfiguredBindingRegistry({ cfg });
   compiledRegistryCache.set(cfg, {

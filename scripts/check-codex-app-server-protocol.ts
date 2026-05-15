@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const codexRepo = process.env.OPENCLAW_CODEX_REPO
-  ? path.resolve(process.env.OPENCLAW_CODEX_REPO)
+const codexRepo = process.env.KOVA_CODEX_REPO
+  ? path.resolve(process.env.KOVA_CODEX_REPO)
   : path.resolve(process.cwd(), "../codex");
 const schemaRoot = path.join(codexRepo, "codex-rs/app-server-protocol/schema/typescript");
 const sourceSchemaRoot = path.join(codexRepo, "codex-rs/app-server-protocol/schema");
@@ -108,9 +108,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `Codex app-server generated protocol matches OpenClaw bridge assumptions: ${schemaRoot}`,
-);
+console.log(`Codex app-server generated protocol matches Kova bridge assumptions: ${schemaRoot}`);
 
 async function compareGeneratedProtocolMirror(): Promise<void> {
   const sourceTsRoot = path.join(sourceSchemaRoot, "typescript");

@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
-import { CLAWHUB_INSTALL_ERROR_CODE } from "../plugins/clawhub.js";
+import { KOVAHUB_INSTALL_ERROR_CODE } from "../plugins/kovahub.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
 import { buildPluginDiagnosticsReport } from "../plugins/status.js";
 import { defaultRuntime } from "../runtime.js";
@@ -36,9 +36,9 @@ export function resolveFileNpmSpecToLocalPath(
 }
 
 export function applySlotSelectionForPlugin(
-  config: OpenClawConfig,
+  config: KovaConfig,
   pluginId: string,
-): { config: OpenClawConfig; warnings: string[] } {
+): { config: KovaConfig; warnings: string[] } {
   const report = buildPluginDiagnosticsReport({ config });
   const plugin = report.plugins.find((entry) => entry.id === pluginId);
   if (!plugin) {
@@ -73,10 +73,7 @@ export function createHookPackInstallLogger(): {
   };
 }
 
-export function enableInternalHookEntries(
-  config: OpenClawConfig,
-  hookNames: string[],
-): OpenClawConfig {
+export function enableInternalHookEntries(config: KovaConfig, hookNames: string[]): KovaConfig {
   const entries = { ...config.hooks?.internal?.entries } as Record<string, HookInternalEntryLike>;
 
   for (const hookName of hookNames) {
@@ -122,12 +119,12 @@ export function logSlotWarnings(warnings: string[]) {
   }
 }
 
-export function buildPreferredClawHubSpec(raw: string): string | null {
+export function buildPreferredKovaHubSpec(raw: string): string | null {
   const parsed = parseRegistryNpmSpec(raw);
   if (!parsed) {
     return null;
   }
-  return `clawhub:${parsed.name}${parsed.selector ? `@${parsed.selector}` : ""}`;
+  return `kovahub:${parsed.name}${parsed.selector ? `@${parsed.selector}` : ""}`;
 }
 
 export function parseNpmPrefixSpec(raw: string): string | null {
@@ -138,22 +135,22 @@ export function parseNpmPrefixSpec(raw: string): string | null {
   return trimmed.slice("npm:".length).trim();
 }
 
-export const PREFERRED_CLAWHUB_FALLBACK_DECISION = {
+export const PREFERRED_KOVAHUB_FALLBACK_DECISION = {
   FALLBACK_TO_NPM: "fallback_to_npm",
   STOP: "stop",
 } as const;
 
-export type PreferredClawHubFallbackDecision =
-  (typeof PREFERRED_CLAWHUB_FALLBACK_DECISION)[keyof typeof PREFERRED_CLAWHUB_FALLBACK_DECISION];
+export type PreferredKovaHubFallbackDecision =
+  (typeof PREFERRED_KOVAHUB_FALLBACK_DECISION)[keyof typeof PREFERRED_KOVAHUB_FALLBACK_DECISION];
 
-export function decidePreferredClawHubFallback(params: {
+export function decidePreferredKovaHubFallback(params: {
   code?: string;
-}): PreferredClawHubFallbackDecision {
+}): PreferredKovaHubFallbackDecision {
   if (
-    params.code === CLAWHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND ||
-    params.code === CLAWHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND
+    params.code === KOVAHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND ||
+    params.code === KOVAHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND
   ) {
-    return PREFERRED_CLAWHUB_FALLBACK_DECISION.FALLBACK_TO_NPM;
+    return PREFERRED_KOVAHUB_FALLBACK_DECISION.FALLBACK_TO_NPM;
   }
-  return PREFERRED_CLAWHUB_FALLBACK_DECISION.STOP;
+  return PREFERRED_KOVAHUB_FALLBACK_DECISION.STOP;
 }

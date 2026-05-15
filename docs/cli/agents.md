@@ -20,12 +20,12 @@ Related:
 ```bash
 kova agents list
 kova agents list --bindings
-kova agents add work --workspace ~/.openclaw/workspace-work
-kova agents add ops --workspace ~/.openclaw/workspace-ops --bind telegram:ops --non-interactive
+kova agents add work --workspace ~/.kova/workspace-work
+kova agents add ops --workspace ~/.kova/workspace-ops --bind telegram:ops --non-interactive
 kova agents bindings
 kova agents bind --agent work --bind telegram:ops
 kova agents unbind --agent work --bind telegram:ops
-kova agents set-identity --workspace ~/.openclaw/workspace --from-identity
+kova agents set-identity --workspace ~/.kova/workspace --from-identity
 kova agents set-identity --agent main --avatar avatars/kova.png
 kova agents delete work
 ```
@@ -34,7 +34,7 @@ kova agents delete work
 
 Use routing bindings to pin inbound channel traffic to a specific agent.
 
-If you also want different visible skills per agent, configure `agents.defaults.skills` and `agents.list[].skills` in `openclaw.json`. See [Skills config](/tools/skills-config) and [Configuration reference](/gateway/config-agents#agents-defaults-skills).
+If you also want different visible skills per agent, configure `agents.defaults.skills` and `agents.list[].skills` in `kova.json`. See [Skills config](/tools/skills-config) and [Configuration reference](/gateway/config-agents#agents-defaults-skills).
 
 List bindings:
 
@@ -155,7 +155,7 @@ Notes:
 
 Each agent workspace can include an `IDENTITY.md` at the workspace root:
 
-- Example path: `~/.openclaw/workspace/IDENTITY.md`
+- Example path: `~/.kova/workspace/IDENTITY.md`
 - `set-identity --from-identity` reads from the workspace root (or an explicit `--identity-file`)
 
 Avatar paths resolve relative to the workspace root.
@@ -190,7 +190,7 @@ Notes:
 Load from `IDENTITY.md`:
 
 ```bash
-kova agents set-identity --workspace ~/.openclaw/workspace --from-identity
+kova agents set-identity --workspace ~/.kova/workspace --from-identity
 ```
 
 Override fields explicitly:

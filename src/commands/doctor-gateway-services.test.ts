@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import { createDoctorPrompter } from "./doctor-prompter.js";
 import {
@@ -110,7 +110,7 @@ import {
 import { EXTERNAL_SERVICE_REPAIR_NOTE } from "./doctor-service-repair-policy.js";
 
 const originalStdinIsTTY = process.stdin.isTTY;
-const originalUpdateInProgress = process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+const originalUpdateInProgress = process.env.KOVA_UPDATE_IN_PROGRESS;
 
 function makeDoctorIo() {
   return { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
@@ -135,22 +135,19 @@ function makeDoctorPrompts() {
   };
 }
 
-async function runRepair(cfg: OpenClawConfig) {
+async function runRepair(cfg: KovaConfig) {
   await maybeRepairGatewayServiceConfig(cfg, "local", makeDoctorIo(), makeDoctorPrompts());
 }
 
-async function runNonInteractiveRepair(params: {
-  cfg?: OpenClawConfig;
-  updateInProgress?: boolean;
-}) {
+async function runNonInteractiveRepair(params: { cfg?: KovaConfig; updateInProgress?: boolean }) {
   Object.defineProperty(process.stdin, "isTTY", {
     value: false,
     configurable: true,
   });
   if (params.updateInProgress) {
-    process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+    process.env.KOVA_UPDATE_IN_PROGRESS = "1";
   } else {
-    delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+    delete process.env.KOVA_UPDATE_IN_PROGRESS;
   }
   await maybeRepairGatewayServiceConfig(
     params.cfg ?? { gateway: {} },
@@ -168,7 +165,7 @@ async function runNonInteractiveRepair(params: {
 
 const gatewayProgramArguments = [
   "/usr/bin/node",
-  "/usr/local/bin/openclaw",
+  "/usr/local/bin/kova",
   "gateway",
   "--port",
   "18789",
@@ -210,7 +207,7 @@ function setupGatewayTokenRepairScenario() {
   mocks.readCommand.mockResolvedValue({
     programArguments: gatewayProgramArguments,
     environment: {
-      OPENCLAW_GATEWAY_TOKEN: "stale-token",
+      KOVA_GATEWAY_TOKEN: "stale-token",
     },
   });
   mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -218,7 +215,7 @@ function setupGatewayTokenRepairScenario() {
     issues: [
       {
         code: "gateway-token-mismatch",
-        message: "Gateway service OPENCLAW_GATEWAY_TOKEN does not match gateway.auth.token",
+        message: "Gateway service KOVA_GATEWAY_TOKEN does not match gateway.auth.token",
         level: "recommended",
       },
     ],
@@ -238,10 +235,10 @@ describe("maybeRepairGatewayServiceConfig", () => {
     mocks.needsNodeRuntimeMigration.mockReturnValue(false);
     mocks.renderSystemNodeWarning.mockReturnValue(undefined);
     mocks.resolveSystemNodeInfo.mockResolvedValue(null);
-    mocks.resolveGatewayAuthTokenForService.mockImplementation(async (cfg: OpenClawConfig, env) => {
+    mocks.resolveGatewayAuthTokenForService.mockImplementation(async (cfg: KovaConfig, env) => {
       const configToken =
         typeof cfg.gateway?.auth?.token === "string" ? cfg.gateway.auth.token.trim() : undefined;
-      const envToken = env.OPENCLAW_GATEWAY_TOKEN?.trim() || undefined;
+      const envToken = env.KOVA_GATEWAY_TOKEN?.trim() || undefined;
       return { token: configToken || envToken };
     });
   });
@@ -252,16 +249,16 @@ describe("maybeRepairGatewayServiceConfig", () => {
       configurable: true,
     });
     if (originalUpdateInProgress === undefined) {
-      delete process.env.OPENCLAW_UPDATE_IN_PROGRESS;
+      delete process.env.KOVA_UPDATE_IN_PROGRESS;
     } else {
-      process.env.OPENCLAW_UPDATE_IN_PROGRESS = originalUpdateInProgress;
+      process.env.KOVA_UPDATE_IN_PROGRESS = originalUpdateInProgress;
     }
   });
 
   it("treats gateway.auth.token as source of truth for service token repairs", async () => {
     setupGatewayTokenRepairScenario();
 
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
@@ -348,7 +345,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
       programArguments: gatewayProgramArguments,
       workingDirectory: "/tmp",
       environment: {
-        OPENCLAW_SERVICE_MANAGED_ENV_KEYS: "TAVILY_API_KEY",
+        KOVA_SERVICE_MANAGED_ENV_KEYS: "TAVILY_API_KEY",
       },
     });
     mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -412,11 +409,11 @@ describe("maybeRepairGatewayServiceConfig", () => {
     );
   });
 
-  it("uses OPENCLAW_GATEWAY_TOKEN when config token is missing", async () => {
-    await withEnvAsync({ OPENCLAW_GATEWAY_TOKEN: "env-token" }, async () => {
+  it("uses KOVA_GATEWAY_TOKEN when config token is missing", async () => {
+    await withEnvAsync({ KOVA_GATEWAY_TOKEN: "env-token" }, async () => {
       setupGatewayTokenRepairScenario();
 
-      const cfg: OpenClawConfig = {
+      const cfg: KovaConfig = {
         gateway: {},
       };
 
@@ -457,14 +454,14 @@ describe("maybeRepairGatewayServiceConfig", () => {
 
   it("does not flag entrypoint mismatch when symlink and realpath match", async () => {
     setupGatewayEntrypointRepairScenario({
-      currentEntrypoint: "/Users/test/Library/pnpm/global/5/node_modules/openclaw/dist/index.js",
+      currentEntrypoint: "/Users/test/Library/pnpm/global/5/node_modules/kova/dist/index.js",
       installEntrypoint:
-        "/Users/test/Library/pnpm/global/5/node_modules/.pnpm/openclaw@2026.3.12/node_modules/openclaw/dist/index.js",
+        "/Users/test/Library/pnpm/global/5/node_modules/.pnpm/kova@2026.3.12/node_modules/kova/dist/index.js",
       realpath: async (value: string) => {
-        if (value.includes("/global/5/node_modules/openclaw/")) {
+        if (value.includes("/global/5/node_modules/kova/")) {
           return value.replace(
-            "/global/5/node_modules/openclaw/",
-            "/global/5/node_modules/.pnpm/openclaw@2026.3.12/node_modules/openclaw/",
+            "/global/5/node_modules/kova/",
+            "/global/5/node_modules/.pnpm/kova@2026.3.12/node_modules/kova/",
           );
         }
         return value;
@@ -483,8 +480,8 @@ describe("maybeRepairGatewayServiceConfig", () => {
 
   it("does not flag entrypoint mismatch when realpath fails but normalized absolute paths match", async () => {
     setupGatewayEntrypointRepairScenario({
-      currentEntrypoint: "/opt/openclaw/../openclaw/dist/index.js",
-      installEntrypoint: "/opt/openclaw/dist/index.js",
+      currentEntrypoint: "/opt/kova/../kova/dist/index.js",
+      installEntrypoint: "/opt/kova/dist/index.js",
       realpathError: new Error("no realpath"),
     });
 
@@ -499,11 +496,11 @@ describe("maybeRepairGatewayServiceConfig", () => {
   });
 
   it("keeps wrapper-managed gateway services aligned during entrypoint drift checks", async () => {
-    const wrapperPath = "/usr/local/bin/openclaw-doppler";
+    const wrapperPath = "/usr/local/bin/kova-doppler";
     mocks.readCommand.mockResolvedValue({
       programArguments: [wrapperPath, "gateway", "--port", "18789"],
       environment: {
-        OPENCLAW_WRAPPER: wrapperPath,
+        KOVA_WRAPPER: wrapperPath,
       },
     });
     mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -511,9 +508,9 @@ describe("maybeRepairGatewayServiceConfig", () => {
       issues: [],
     });
     mocks.buildGatewayInstallPlan.mockImplementation(async ({ env }) => ({
-      programArguments: [env.OPENCLAW_WRAPPER, "gateway", "--port", "18789"],
+      programArguments: [env.KOVA_WRAPPER, "gateway", "--port", "18789"],
       environment: {
-        OPENCLAW_WRAPPER: env.OPENCLAW_WRAPPER,
+        KOVA_WRAPPER: env.KOVA_WRAPPER,
       },
     }));
 
@@ -522,10 +519,10 @@ describe("maybeRepairGatewayServiceConfig", () => {
     expect(mocks.buildGatewayInstallPlan).toHaveBeenCalledWith(
       expect.objectContaining({
         env: expect.objectContaining({
-          OPENCLAW_WRAPPER: wrapperPath,
+          KOVA_WRAPPER: wrapperPath,
         }),
         existingEnvironment: expect.objectContaining({
-          OPENCLAW_WRAPPER: wrapperPath,
+          KOVA_WRAPPER: wrapperPath,
         }),
       }),
     );
@@ -534,7 +531,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
       "Gateway service config",
     );
     expect(mocks.note).toHaveBeenCalledWith(
-      "Gateway service invokes OPENCLAW_WRAPPER: /usr/local/bin/openclaw-doppler",
+      "Gateway service invokes KOVA_WRAPPER: /usr/local/bin/kova-doppler",
       "Gateway",
     );
     expect(mocks.stage).not.toHaveBeenCalled();
@@ -544,8 +541,8 @@ describe("maybeRepairGatewayServiceConfig", () => {
   it("still flags entrypoint mismatch when canonicalized paths differ", async () => {
     setupGatewayEntrypointRepairScenario({
       currentEntrypoint:
-        "/Users/test/.nvm/versions/node/v22.0.0/lib/node_modules/openclaw/dist/index.js",
-      installEntrypoint: "/Users/test/Library/pnpm/global/5/node_modules/openclaw/dist/index.js",
+        "/Users/test/.nvm/versions/node/v22.0.0/lib/node_modules/kova/dist/index.js",
+      installEntrypoint: "/Users/test/Library/pnpm/global/5/node_modules/kova/dist/index.js",
     });
 
     await runRepair({ gateway: {} });
@@ -560,8 +557,8 @@ describe("maybeRepairGatewayServiceConfig", () => {
 
   it("repairs entrypoint mismatch in non-interactive fix mode", async () => {
     setupGatewayEntrypointRepairScenario({
-      currentEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/entry.js",
-      installEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/index.js",
+      currentEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/entry.js",
+      installEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/index.js",
       installWorkingDirectory: "/tmp",
     });
 
@@ -616,8 +613,8 @@ describe("maybeRepairGatewayServiceConfig", () => {
 
   it("stages service config repairs during non-interactive update repairs", async () => {
     setupGatewayEntrypointRepairScenario({
-      currentEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/entry.js",
-      installEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/index.js",
+      currentEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/entry.js",
+      installEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/index.js",
       installWorkingDirectory: "/tmp",
     });
 
@@ -638,7 +635,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
     mocks.readCommand.mockResolvedValue({
       programArguments: gatewayProgramArguments,
       environment: {
-        OPENCLAW_GATEWAY_TOKEN: "stale-token",
+        KOVA_GATEWAY_TOKEN: "stale-token",
       },
     });
     mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -652,14 +649,14 @@ describe("maybeRepairGatewayServiceConfig", () => {
     });
     mocks.install.mockResolvedValue(undefined);
 
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       gateway: {
         auth: {
           mode: "token",
           token: {
             source: "env",
             provider: "default",
-            id: "OPENCLAW_GATEWAY_TOKEN",
+            id: "KOVA_GATEWAY_TOKEN",
           },
         },
       },
@@ -684,12 +681,12 @@ describe("maybeRepairGatewayServiceConfig", () => {
   it("falls back to embedded service token when config and env tokens are missing", async () => {
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        KOVA_GATEWAY_TOKEN: undefined,
       },
       async () => {
         setupGatewayTokenRepairScenario();
 
-        const cfg: OpenClawConfig = {
+        const cfg: KovaConfig = {
           gateway: {},
         };
 
@@ -734,16 +731,16 @@ describe("maybeRepairGatewayServiceConfig", () => {
       value: false,
       configurable: true,
     });
-    process.env.OPENCLAW_UPDATE_IN_PROGRESS = "1";
+    process.env.KOVA_UPDATE_IN_PROGRESS = "1";
 
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        KOVA_GATEWAY_TOKEN: undefined,
       },
       async () => {
         setupGatewayTokenRepairScenario();
 
-        const cfg: OpenClawConfig = {
+        const cfg: KovaConfig = {
           gateway: {},
         };
 
@@ -770,16 +767,16 @@ describe("maybeRepairGatewayServiceConfig", () => {
   it("does not persist EnvironmentFile-backed service tokens into config", async () => {
     await withEnvAsync(
       {
-        OPENCLAW_GATEWAY_TOKEN: undefined,
+        KOVA_GATEWAY_TOKEN: undefined,
       },
       async () => {
         mocks.readCommand.mockResolvedValue({
           programArguments: gatewayProgramArguments,
           environment: {
-            OPENCLAW_GATEWAY_TOKEN: "env-file-token",
+            KOVA_GATEWAY_TOKEN: "env-file-token",
           },
           environmentValueSources: {
-            OPENCLAW_GATEWAY_TOKEN: "file",
+            KOVA_GATEWAY_TOKEN: "file",
           },
         });
         mocks.auditGatewayServiceConfig.mockResolvedValue({
@@ -793,7 +790,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
         });
         mocks.install.mockResolvedValue(undefined);
 
-        const cfg: OpenClawConfig = {
+        const cfg: KovaConfig = {
           gateway: {},
         };
 
@@ -811,10 +808,10 @@ describe("maybeRepairGatewayServiceConfig", () => {
   });
 
   it("reports service config drift but skips service rewrite when service repair policy is external", async () => {
-    await withEnvAsync({ OPENCLAW_SERVICE_REPAIR_POLICY: "external" }, async () => {
+    await withEnvAsync({ KOVA_SERVICE_REPAIR_POLICY: "external" }, async () => {
       setupGatewayEntrypointRepairScenario({
-        currentEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/entry.js",
-        installEntrypoint: "/Users/test/Library/npm/node_modules/openclaw/dist/index.js",
+        currentEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/entry.js",
+        installEntrypoint: "/Users/test/Library/npm/node_modules/kova/dist/index.js",
         installWorkingDirectory: "/tmp",
       });
 
@@ -848,16 +845,16 @@ describe("maybeScanExtraGatewayServices", () => {
     mocks.findExtraGatewayServices.mockResolvedValue([
       {
         platform: "linux",
-        label: "clawdbot-gateway.service",
-        detail: "unit: /home/test/.config/systemd/user/clawdbot-gateway.service",
+        label: "kova-gateway.service",
+        detail: "unit: /home/test/.config/systemd/user/kova-gateway.service",
         scope: "user",
         legacy: true,
       },
     ]);
     mocks.uninstallLegacySystemdUnits.mockResolvedValue([
       {
-        name: "clawdbot-gateway",
-        unitPath: "/home/test/.config/systemd/user/clawdbot-gateway.service",
+        name: "kova-gateway",
+        unitPath: "/home/test/.config/systemd/user/kova-gateway.service",
         enabled: true,
         exists: true,
       },
@@ -889,7 +886,7 @@ describe("maybeScanExtraGatewayServices", () => {
       stdout: process.stdout,
     });
     expect(mocks.note).toHaveBeenCalledWith(
-      expect.stringContaining("clawdbot-gateway.service"),
+      expect.stringContaining("kova-gateway.service"),
       "Legacy gateway removed",
     );
     expect(runtime.log).toHaveBeenCalledWith(
@@ -898,12 +895,12 @@ describe("maybeScanExtraGatewayServices", () => {
   });
 
   it("reports legacy services but skips cleanup when service repair policy is external", async () => {
-    await withEnvAsync({ OPENCLAW_SERVICE_REPAIR_POLICY: "external" }, async () => {
+    await withEnvAsync({ KOVA_SERVICE_REPAIR_POLICY: "external" }, async () => {
       mocks.findExtraGatewayServices.mockResolvedValue([
         {
           platform: "linux",
-          label: "clawdbot-gateway.service",
-          detail: "unit: /home/test/.config/systemd/user/clawdbot-gateway.service",
+          label: "kova-gateway.service",
+          detail: "unit: /home/test/.config/systemd/user/kova-gateway.service",
           scope: "user",
           legacy: true,
         },
@@ -913,7 +910,7 @@ describe("maybeScanExtraGatewayServices", () => {
       await maybeScanExtraGatewayServices({ deep: false }, runtime, makeDoctorPrompts());
 
       expect(mocks.note).toHaveBeenCalledWith(
-        expect.stringContaining("clawdbot-gateway.service"),
+        expect.stringContaining("kova-gateway.service"),
         "Other gateway-like services detected",
       );
       expect(mocks.note).toHaveBeenCalledWith(
@@ -922,7 +919,7 @@ describe("maybeScanExtraGatewayServices", () => {
       );
       expect(mocks.uninstallLegacySystemdUnits).not.toHaveBeenCalled();
       expect(runtime.log).not.toHaveBeenCalledWith(
-        "Legacy gateway services removed. Installing OpenClaw gateway next.",
+        "Legacy gateway services removed. Installing Kova gateway next.",
       );
     });
   });

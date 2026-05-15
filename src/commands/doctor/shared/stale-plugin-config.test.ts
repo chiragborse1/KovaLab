@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { KovaConfig } from "../../../config/config.js";
 import type { PluginInstallRecord } from "../../../config/types.plugins.js";
 import type { PluginManifestRecord } from "../../../plugins/manifest-registry.js";
 import * as manifestRegistry from "../../../plugins/manifest-registry.js";
@@ -32,7 +32,7 @@ function manifest(id: string): PluginManifestRecord {
     origin: "bundled",
     rootDir: `/plugins/${id}`,
     source: `/plugins/${id}`,
-    manifestPath: `/plugins/${id}/openclaw.plugin.json`,
+    manifestPath: `/plugins/${id}/kova.plugin.json`,
   };
 }
 
@@ -59,7 +59,7 @@ describe("doctor stale plugin config helpers", () => {
           acpx: { enabled: true },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(hits).toEqual([
       {
@@ -84,7 +84,7 @@ describe("doctor stale plugin config helpers", () => {
           acpx: { enabled: true },
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(result.changes).toEqual([
       "- plugins.allow: removed 1 stale plugin id (acpx)",
@@ -105,26 +105,26 @@ describe("doctor stale plugin config helpers", () => {
           surface: "allow",
         },
       ],
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
     });
 
     expect(warnings).toEqual([
       expect.stringContaining('plugins.allow: stale plugin reference "acpx"'),
-      expect.stringContaining('Run "openclaw doctor --fix"'),
+      expect.stringContaining('Run "kova doctor --fix"'),
     ]);
   });
 
   it("removes stale third-party channel config and dependent channel refs", () => {
     const result = maybeRepairStalePluginConfig({
       plugins: {
-        allow: ["discord", "openclaw-weixin"],
+        allow: ["discord", "kova-weixin"],
         entries: {
           discord: { enabled: true },
-          "openclaw-weixin": { enabled: true },
+          "kova-weixin": { enabled: true },
         },
       },
       channels: {
-        "openclaw-weixin": {
+        "kova-weixin": {
           enabled: true,
           token: "stale",
         },
@@ -133,7 +133,7 @@ describe("doctor stale plugin config helpers", () => {
         },
         modelByChannel: {
           openai: {
-            "openclaw-weixin": "openai/gpt-5.4",
+            "kova-weixin": "openai/gpt-5.4",
             telegram: "openai/gpt-5.4",
           },
         },
@@ -141,7 +141,7 @@ describe("doctor stale plugin config helpers", () => {
       agents: {
         defaults: {
           heartbeat: {
-            target: "openclaw-weixin",
+            target: "kova-weixin",
             every: "30m",
           },
         },
@@ -149,7 +149,7 @@ describe("doctor stale plugin config helpers", () => {
           {
             id: "pi",
             heartbeat: {
-              target: "openclaw-weixin",
+              target: "kova-weixin",
             },
           },
           {
@@ -160,20 +160,20 @@ describe("doctor stale plugin config helpers", () => {
           },
         ],
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
     expect(result.changes).toEqual([
-      "- plugins.allow: removed 1 stale plugin id (openclaw-weixin)",
-      "- plugins.entries: removed 1 stale plugin entry (openclaw-weixin)",
-      "- channels: removed 1 stale channel config (openclaw-weixin)",
-      "- agents heartbeat: removed 2 stale heartbeat targets (openclaw-weixin)",
-      "- channels.modelByChannel: removed 1 stale channel model override (openclaw-weixin)",
+      "- plugins.allow: removed 1 stale plugin id (kova-weixin)",
+      "- plugins.entries: removed 1 stale plugin entry (kova-weixin)",
+      "- channels: removed 1 stale channel config (kova-weixin)",
+      "- agents heartbeat: removed 2 stale heartbeat targets (kova-weixin)",
+      "- channels.modelByChannel: removed 1 stale channel model override (kova-weixin)",
     ]);
     expect(result.config.plugins?.allow).toEqual(["discord"]);
     expect(result.config.plugins?.entries).toEqual({
       discord: { enabled: true },
     });
-    expect(result.config.channels?.["openclaw-weixin"]).toBeUndefined();
+    expect(result.config.channels?.["kova-weixin"]).toBeUndefined();
     expect(result.config.channels?.telegram).toEqual({ botToken: "keep" });
     expect(result.config.channels?.modelByChannel).toEqual({
       openai: {
@@ -192,7 +192,7 @@ describe("doctor stale plugin config helpers", () => {
           botToken: "typo",
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(scanStalePluginConfig(cfg)).toEqual([]);
     expect(maybeRepairStalePluginConfig(cfg)).toEqual({ config: cfg, changes: [] });
@@ -200,25 +200,23 @@ describe("doctor stale plugin config helpers", () => {
 
   it("uses missing persisted install records as stale channel evidence", () => {
     installedPluginIndexMocks.loadInstalledPluginIndexInstallRecordsSync.mockReturnValue({
-      "openclaw-weixin": {
+      "kova-weixin": {
         source: "npm",
-        resolvedName: "@tencent-weixin/openclaw-weixin",
+        resolvedName: "@tencent-weixin/kova-weixin",
         installedAt: "2026-04-12T00:00:00.000Z",
       },
     });
 
     const result = maybeRepairStalePluginConfig({
       channels: {
-        "openclaw-weixin": {
+        "kova-weixin": {
           enabled: true,
         },
       },
-    } as OpenClawConfig);
+    } as KovaConfig);
 
-    expect(result.changes).toEqual([
-      "- channels: removed 1 stale channel config (openclaw-weixin)",
-    ]);
-    expect(result.config.channels?.["openclaw-weixin"]).toBeUndefined();
+    expect(result.changes).toEqual(["- channels: removed 1 stale channel config (kova-weixin)"]);
+    expect(result.config.channels?.["kova-weixin"]).toBeUndefined();
   });
 
   it("does not auto-repair stale refs while plugin discovery has errors", () => {
@@ -236,7 +234,7 @@ describe("doctor stale plugin config helpers", () => {
           acpx: { enabled: true },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     const hits = scanStalePluginConfig(cfg);
     expect(hits).toEqual([
@@ -258,7 +256,7 @@ describe("doctor stale plugin config helpers", () => {
 
     const warnings = collectStalePluginConfigWarnings({
       hits,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "kova doctor --fix",
       autoRepairBlocked: true,
     });
     expect(warnings[2]).toContain("Auto-removal is paused");
@@ -273,7 +271,7 @@ describe("doctor stale plugin config helpers", () => {
           acpx: { enabled: true },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     expect(scanStalePluginConfig(cfg)).toEqual([
       {

@@ -17,7 +17,7 @@ export function resolveWideAreaDiscoveryDomain(params?: {
   configDomain?: string | null;
 }): string | null {
   const env = params?.env ?? process.env;
-  const candidate = params?.configDomain ?? env.OPENCLAW_WIDE_AREA_DOMAIN ?? null;
+  const candidate = params?.configDomain ?? env.KOVA_WIDE_AREA_DOMAIN ?? null;
   return normalizeWideAreaDomain(candidate);
 }
 
@@ -73,7 +73,7 @@ function extractSerial(zoneText: string): number | null {
 }
 
 function extractContentHash(zoneText: string): string | null {
-  const match = zoneText.match(/^\s*;\s*(?:kova|openclaw)-content-hash:\s*(\S+)\s*$/m);
+  const match = zoneText.match(/^\s*;\s*(?:kova|kova)-content-hash:\s*(\S+)\s*$/m);
   return match?.[1] ?? null;
 }
 

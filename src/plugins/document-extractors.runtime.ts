@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveBundledPluginCompatibleLoadValues } from "./activation-context.js";
 import {
   createPluginActivationSource,
@@ -40,7 +40,7 @@ function listDocumentExtractorPluginIds(params: {
 }
 
 function loadDocumentExtractorManifestRecords(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): readonly PluginManifestRecord[] {
@@ -53,7 +53,7 @@ function loadDocumentExtractorManifestRecords(params: {
 }
 
 function resolveEnabledBundledDocumentExtractorPlugins(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -62,7 +62,7 @@ function resolveEnabledBundledDocumentExtractorPlugins(params: {
     return [];
   }
   let manifestRecords: readonly PluginManifestRecord[] | undefined;
-  const loadManifestRecords = (config?: OpenClawConfig) => {
+  const loadManifestRecords = (config?: KovaConfig) => {
     manifestRecords ??= loadDocumentExtractorManifestRecords({
       config,
       workspaceDir: params.workspaceDir,
@@ -114,7 +114,7 @@ function resolveEnabledBundledDocumentExtractorPlugins(params: {
 }
 
 function resolveExplicitAllowedDocumentExtractorPluginIds(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   onlyPluginIds?: readonly string[];
 }): string[] | null {
   const allow = params.config?.plugins?.allow;
@@ -138,7 +138,7 @@ function resolveExplicitAllowedDocumentExtractorPluginIds(params: {
 }
 
 export function resolvePluginDocumentExtractors(params?: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];

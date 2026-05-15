@@ -10,7 +10,7 @@ title: "Qwen"
 
 **Qwen OAuth has been removed.** The free-tier OAuth integration
 (`qwen-portal`) that used `portal.qwen.ai` endpoints is no longer available.
-See [Issue #49557](https://github.com/openclaw/openclaw/issues/49557) for
+See [Issue #49557](https://github.com/chiragborse1/KovaLab/issues/49557) for
 background.
 
 </Warning>
@@ -303,7 +303,7 @@ See [Video Generation](/tools/video-generation) for shared tool parameters, prov
 
   <Accordion title="Environment and daemon setup">
     If the Gateway runs as a daemon (launchd/systemd), make sure `QWEN_API_KEY` is
-    available to that process (for example, in `~/.openclaw/.env` or via
+    available to that process (for example, in `~/.kova/.env` or via
     `env.shellEnv`).
   </Accordion>
 </AccordionGroup>

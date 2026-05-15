@@ -65,7 +65,7 @@ export type SandboxBrowserSettings = {
   enabled?: boolean;
   image?: string;
   containerPrefix?: string;
-  /** Docker network for sandbox browser containers (default: openclaw-sandbox-browser). */
+  /** Docker network for sandbox browser containers (default: kova-sandbox-browser). */
   network?: string;
   cdpPort?: number;
   /** Optional extra CIDR allowlist for authenticated container-edge CDP ingress (for example: 172.21.0.1/32). */

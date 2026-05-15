@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/memory-core",
+  "name": "@kovaai/memory-core",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova core memory search plugin",
@@ -9,18 +9,18 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

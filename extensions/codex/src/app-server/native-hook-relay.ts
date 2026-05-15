@@ -1,7 +1,7 @@
 import type {
   NativeHookRelayEvent,
   NativeHookRelayRegistrationHandle,
-} from "openclaw/plugin-sdk/agent-harness-runtime";
+} from "getkova/plugin-sdk/agent-harness-runtime";
 import type { JsonObject, JsonValue } from "./protocol.js";
 
 export const CODEX_NATIVE_HOOK_RELAY_EVENTS = [

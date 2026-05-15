@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolveAgentDir } from "../agents/agent-scope.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { logWarn } from "../logger.js";
 import {
@@ -23,7 +23,7 @@ import type { ResolvedGatewayAuth } from "./auth.js";
 import { sendJson } from "./http-common.js";
 import { handleGatewayPostJsonEndpoint } from "./http-endpoint-helpers.js";
 import {
-  OPENCLAW_MODEL_ID,
+  KOVA_MODEL_ID,
   getHeader,
   resolveAgentIdForRequest,
   resolveAgentIdFromModel,
@@ -91,7 +91,7 @@ function validateInputTexts(texts: string[]): string | undefined {
   return undefined;
 }
 
-function resolveAutoExplicitProviders(cfg: OpenClawConfig): Set<string> {
+function resolveAutoExplicitProviders(cfg: KovaConfig): Set<string> {
   return new Set(
     listMemoryEmbeddingProviders(cfg)
       .filter((adapter) => adapter.allowExplicitWhenConfiguredAuto)
@@ -107,7 +107,7 @@ function shouldContinueAutoSelection(
 }
 
 async function createConfiguredEmbeddingProvider(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentDir: string;
   provider: EmbeddingProviderRequest;
   model: string;
@@ -172,7 +172,7 @@ async function createConfiguredEmbeddingProvider(params: {
 function resolveEmbeddingsTarget(params: {
   requestModel: string;
   configuredProvider: EmbeddingProviderRequest;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): { provider: EmbeddingProviderRequest; model: string } | { errorMessage: string } {
   const raw = params.requestModel.trim();
   const slash = raw.indexOf("/");
@@ -240,7 +240,7 @@ export async function handleOpenAiEmbeddingsHttpRequest(
   }
 
   const cfg = getRuntimeConfig();
-  if (requestModel !== OPENCLAW_MODEL_ID && !resolveAgentIdFromModel(requestModel, cfg)) {
+  if (requestModel !== KOVA_MODEL_ID && !resolveAgentIdFromModel(requestModel, cfg)) {
     sendJson(res, 400, {
       error: {
         message: "Invalid `model`. Use `kova` or `kova/<agentId>`.",
@@ -274,7 +274,7 @@ export async function handleOpenAiEmbeddingsHttpRequest(
   const configuredProvider = memorySearch?.provider ?? "openai";
   const overrideModel =
     normalizeOptionalString(getHeader(req, "x-kova-model")) ||
-    normalizeOptionalString(getHeader(req, "x-openclaw-model")) ||
+    normalizeOptionalString(getHeader(req, "x-kova-model")) ||
     normalizeOptionalString(memorySearch?.model) ||
     "";
   const target = resolveEmbeddingsTarget({

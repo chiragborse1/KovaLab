@@ -5,7 +5,7 @@ import {
   resolveLinuxSystemCaBundle,
 } from "../bootstrap/node-extra-ca-certs.js";
 import { resolveNodeStartupTlsEnvironment } from "../bootstrap/node-startup-env.js";
-import { resolveOpenClawCompatMode } from "../config/paths.js";
+import { resolveKovaCompatMode } from "../config/paths.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { VERSION } from "../version.js";
 import {
@@ -30,7 +30,7 @@ function readEnvAlias(
 ): string | undefined {
   return (
     normalizeOptionalString(env[modernKey]) ??
-    (resolveOpenClawCompatMode(env as NodeJS.ProcessEnv)
+    (resolveKovaCompatMode(env as NodeJS.ProcessEnv)
       ? normalizeOptionalString(env[legacyKey])
       : undefined)
   );
@@ -297,8 +297,8 @@ export function buildServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const profile = readEnvAlias(env, "KOVA_PROFILE", "OPENCLAW_PROFILE");
-  const wrapperPath = readEnvAlias(env, "KOVA_WRAPPER", "OPENCLAW_WRAPPER");
+  const profile = readEnvAlias(env, "KOVA_PROFILE", "KOVA_PROFILE");
+  const wrapperPath = readEnvAlias(env, "KOVA_WRAPPER", "KOVA_WRAPPER");
   const resolvedLaunchdLabel =
     launchdLabel || (platform === "darwin" ? resolveGatewayLaunchAgentLabel(profile) : undefined);
   const systemdUnit = `${resolveGatewaySystemdServiceName(profile)}.service`;
@@ -330,11 +330,11 @@ export function buildNodeServiceEnvironment(params: {
     extraPathDirs,
     params.execPath,
   );
-  const gatewayToken = readEnvAlias(env, "KOVA_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_TOKEN");
+  const gatewayToken = readEnvAlias(env, "KOVA_GATEWAY_TOKEN", "KOVA_GATEWAY_TOKEN");
   const allowInsecurePrivateWs = readEnvAlias(
     env,
     "KOVA_ALLOW_INSECURE_PRIVATE_WS",
-    "OPENCLAW_ALLOW_INSECURE_PRIVATE_WS",
+    "KOVA_ALLOW_INSECURE_PRIVATE_WS",
   );
   return {
     ...buildCommonServiceEnvironment(env, sharedEnv),
@@ -390,10 +390,9 @@ function resolveSharedServiceEnvironmentFields(
   execPath?: string,
 ): SharedServiceEnvironmentFields {
   const stateDir =
-    readEnvAlias(env, "KOVA_STATE_DIR", "OPENCLAW_STATE_DIR") ?? resolveGatewayStateDir(env);
+    readEnvAlias(env, "KOVA_STATE_DIR", "KOVA_STATE_DIR") ?? resolveGatewayStateDir(env);
   const configPath =
-    readEnvAlias(env, "KOVA_CONFIG_PATH", "OPENCLAW_CONFIG_PATH") ??
-    path.join(stateDir, "kova.json");
+    readEnvAlias(env, "KOVA_CONFIG_PATH", "KOVA_CONFIG_PATH") ?? path.join(stateDir, "kova.json");
   const tmpDir = resolveServiceTmpDir(env, platform);
   // On macOS, launchd services don't inherit the shell environment, so Node's undici/fetch
   // cannot locate the system CA bundle. Default to /etc/ssl/cert.pem so TLS verification

@@ -1,4 +1,4 @@
-import { installPinnedHostnameTestHooks } from "openclaw/plugin-sdk/testing";
+import { installPinnedHostnameTestHooks } from "getkova/plugin-sdk/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { gradiumTTS } from "./tts.js";
 

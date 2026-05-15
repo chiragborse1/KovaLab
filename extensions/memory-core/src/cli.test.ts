@@ -23,9 +23,9 @@ const resolveCommandSecretRefsViaGateway = vi.hoisted(() =>
 
 vi.mock("./cli.host.runtime.js", async () => {
   const [runtimeCli, runtimeCore, runtimeFiles] = await Promise.all([
-    import("openclaw/plugin-sdk/memory-core-host-runtime-cli"),
-    import("openclaw/plugin-sdk/memory-core-host-runtime-core"),
-    import("openclaw/plugin-sdk/memory-core-host-runtime-files"),
+    import("getkova/plugin-sdk/memory-core-host-runtime-cli"),
+    import("getkova/plugin-sdk/memory-core-host-runtime-core"),
+    import("getkova/plugin-sdk/memory-core-host-runtime-files"),
   ]);
   return {
     colorize: runtimeCli.colorize,
@@ -51,9 +51,9 @@ vi.mock("./cli.host.runtime.js", async () => {
 });
 
 let registerMemoryCli: typeof import("./cli.js").registerMemoryCli;
-let defaultRuntime: typeof import("openclaw/plugin-sdk/memory-core-host-runtime-cli").defaultRuntime;
-let isVerbose: typeof import("openclaw/plugin-sdk/memory-core-host-runtime-cli").isVerbose;
-let setVerbose: typeof import("openclaw/plugin-sdk/memory-core-host-runtime-cli").setVerbose;
+let defaultRuntime: typeof import("getkova/plugin-sdk/memory-core-host-runtime-cli").defaultRuntime;
+let isVerbose: typeof import("getkova/plugin-sdk/memory-core-host-runtime-cli").isVerbose;
+let setVerbose: typeof import("getkova/plugin-sdk/memory-core-host-runtime-cli").setVerbose;
 let fixtureRoot = "";
 let workspaceFixtureRoot = "";
 let qmdFixtureRoot = "";
@@ -63,7 +63,7 @@ let qmdCaseId = 0;
 beforeAll(async () => {
   ({ registerMemoryCli } = await import("./cli.js"));
   ({ defaultRuntime, isVerbose, setVerbose } =
-    await import("openclaw/plugin-sdk/memory-core-host-runtime-cli"));
+    await import("getkova/plugin-sdk/memory-core-host-runtime-cli"));
   fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), "memory-cli-fixtures-"));
   workspaceFixtureRoot = path.join(fixtureRoot, "workspace");
   qmdFixtureRoot = path.join(fixtureRoot, "qmd");
@@ -108,7 +108,7 @@ describe("memory cli", () => {
       files: 0,
       chunks: 0,
       dirty: false,
-      workspaceDir: "/tmp/openclaw",
+      workspaceDir: "/tmp/kova",
       dbPath: "/tmp/memory.sqlite",
       provider: "openai",
       model: "text-embedding-3-small",
@@ -291,19 +291,19 @@ describe("memory cli", () => {
   it("documents memory help examples", () => {
     const helpText = getMemoryHelpText();
 
-    expect(helpText).toContain("openclaw memory status --fix");
+    expect(helpText).toContain("kova memory status --fix");
     expect(helpText).toContain("Repair stale recall locks and normalize promotion metadata.");
-    expect(helpText).toContain("openclaw memory status --deep");
+    expect(helpText).toContain("kova memory status --deep");
     expect(helpText).toContain("Probe embedding provider readiness.");
-    expect(helpText).toContain('openclaw memory search "meeting notes"');
+    expect(helpText).toContain('kova memory search "meeting notes"');
     expect(helpText).toContain("Quick search using positional query.");
-    expect(helpText).toContain('openclaw memory search --query "deployment" --max-results 20');
+    expect(helpText).toContain('kova memory search --query "deployment" --max-results 20');
     expect(helpText).toContain("Limit results for focused troubleshooting.");
-    expect(helpText).toContain("openclaw memory promote --apply");
+    expect(helpText).toContain("kova memory promote --apply");
     expect(helpText).toContain("Append top-ranked short-term candidates into MEMORY.md.");
-    expect(helpText).toContain('openclaw memory promote-explain "router vlan"');
+    expect(helpText).toContain('kova memory promote-explain "router vlan"');
     expect(helpText).toContain("Explain why a specific candidate would or would not promote.");
-    expect(helpText).toContain("openclaw memory rem-harness --json");
+    expect(helpText).toContain("kova memory rem-harness --json");
     expect(helpText).toContain(
       "Preview REM reflections, candidate truths, and deep promotion output.",
     );
@@ -458,7 +458,7 @@ describe("memory cli", () => {
       const log = spyRuntimeLogs(defaultRuntime);
       await runMemoryCli(["status"]);
       expect(log).toHaveBeenCalledWith(
-        expect.stringContaining("Fix: openclaw memory status --fix --agent main"),
+        expect.stringContaining("Fix: kova memory status --fix --agent main"),
       );
 
       log.mockClear();
@@ -469,7 +469,7 @@ describe("memory cli", () => {
       });
       await runMemoryCli(["status", "--fix"]);
       expect(log).not.toHaveBeenCalledWith(
-        expect.stringContaining("Fix: openclaw memory status --fix --agent main"),
+        expect.stringContaining("Fix: kova memory status --fix --agent main"),
       );
     });
   });
@@ -1126,7 +1126,7 @@ describe("memory cli", () => {
       await runMemoryCli(["rem-backfill", "--path", historyPath]);
 
       const dreams = await fs.readFile(path.join(workspaceDir, "DREAMS.md"), "utf-8");
-      expect(dreams).toContain("openclaw:dreaming:backfill-entry");
+      expect(dreams).toContain("kova:dreaming:backfill-entry");
       expect(dreams).toContain(`source=${historyPath}`);
       expect(dreams).toContain("January 1, 2025");
       expect(dreams).toContain("What Happened");
@@ -1227,13 +1227,13 @@ describe("memory cli", () => {
       await fs.writeFile(
         historyPath,
         [
-          "## OpenClaw / runtime / workflow preferences and corrections",
+          "## Kova / runtime / workflow preferences and corrections",
           "- Mariano explicitly said that when he tells Razor there has been an error, the default interpretation should be that he wants it fixed, not merely diagnosed or acknowledged.",
           "- Mariano clarified that the problem with cron output is overlapping, independently unreasonable crons converging into dumb sludge.",
           "",
           "## Versions / machine state and update work",
           "- MB Server repo updated but the active installed runtime is still old.",
-          "- jpclawhq updated and running.",
+          "- jpkovahq updated and running.",
           "",
           "## Other context and user preferences reinforced in this session",
           "- Mariano prefers short, punk, high-signal copy for social posts.",
@@ -1264,7 +1264,7 @@ describe("memory cli", () => {
       expect(rendered).not.toContain(
         "MB Server repo updated but the active installed runtime is still old",
       );
-      expect(rendered).not.toContain("jpclawhq updated and running");
+      expect(rendered).not.toContain("jpkovahq updated and running");
       expect(close).toHaveBeenCalled();
     });
   });
@@ -1427,7 +1427,7 @@ describe("memory cli", () => {
         [
           "# Dream Diary",
           "",
-          "<!-- openclaw:dreaming:diary:start -->",
+          "<!-- kova:dreaming:diary:start -->",
           "---",
           "",
           "*April 5, 2026, 3:00 AM*",
@@ -1438,12 +1438,12 @@ describe("memory cli", () => {
           "",
           "*January 1, 2025*",
           "",
-          "<!-- openclaw:dreaming:backfill-entry day=2025-01-01 source=memory/2025-01-01.md -->",
+          "<!-- kova:dreaming:backfill-entry day=2025-01-01 source=memory/2025-01-01.md -->",
           "",
           "What Happened",
           "1. Remove this entry.",
           "",
-          "<!-- openclaw:dreaming:diary:end -->",
+          "<!-- kova:dreaming:diary:end -->",
           "",
         ].join("\n"),
         "utf-8",
@@ -1518,7 +1518,7 @@ describe("memory cli", () => {
       const memoryPath = path.join(workspaceDir, "MEMORY.md");
       const memoryText = await fs.readFile(memoryPath, "utf-8");
       expect(memoryText).toContain("Promoted From Short-Term Memory");
-      expect(memoryText).toContain("openclaw-memory-promotion:");
+      expect(memoryText).toContain("kova-memory-promotion:");
       expect(memoryText).toContain("memory/2026-04-01.md:10-10");
       expect(log).toHaveBeenCalledWith(expect.stringContaining("Processed 1 candidate(s) for"));
       expect(log).toHaveBeenCalledWith(expect.stringContaining("appended=1 reconciledExisting=0"));

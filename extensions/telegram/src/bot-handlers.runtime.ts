@@ -1,35 +1,35 @@
 import type { Message, ReactionTypeEmoji } from "@grammyjs/types";
-import { resolveChannelConfigWrites } from "openclaw/plugin-sdk/channel-config-helpers";
-import { shouldDebounceTextInbound } from "openclaw/plugin-sdk/channel-inbound";
+import { resolveChannelConfigWrites } from "getkova/plugin-sdk/channel-config-helpers";
+import { shouldDebounceTextInbound } from "getkova/plugin-sdk/channel-inbound";
 import {
   createInboundDebouncer,
   resolveInboundDebounceMs,
-} from "openclaw/plugin-sdk/channel-inbound-debounce";
-import { resolveStoredModelOverride } from "openclaw/plugin-sdk/command-auth";
+} from "getkova/plugin-sdk/channel-inbound-debounce";
+import { resolveStoredModelOverride } from "getkova/plugin-sdk/command-auth";
 import {
   resolveCommandAuthorization,
   resolveCommandAuthorizedFromAuthorizers,
-} from "openclaw/plugin-sdk/command-auth-native";
-import { buildCommandsMessagePaginated } from "openclaw/plugin-sdk/command-status";
-import { replaceConfigFile } from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/command-auth-native";
+import { buildCommandsMessagePaginated } from "getkova/plugin-sdk/command-status";
+import { replaceConfigFile } from "getkova/plugin-sdk/config-runtime";
 import {
   loadSessionStore,
   resolveSessionStoreEntry,
   updateSessionStore,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { DmPolicy, OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import type { TelegramGroupConfig, TelegramTopicConfig } from "openclaw/plugin-sdk/config-runtime";
-import { applyModelOverrideToSessionEntry } from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/config-runtime";
+import type { DmPolicy, KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { TelegramGroupConfig, TelegramTopicConfig } from "getkova/plugin-sdk/config-runtime";
+import { applyModelOverrideToSessionEntry } from "getkova/plugin-sdk/config-runtime";
 import {
   buildPluginBindingResolvedText,
   parsePluginBindingApprovalCustomId,
   resolvePluginConversationBindingApproval,
-} from "openclaw/plugin-sdk/conversation-runtime";
-import { parseExecApprovalCommandText } from "openclaw/plugin-sdk/infra-runtime";
-import { formatModelsAvailableHeader } from "openclaw/plugin-sdk/models-provider-runtime";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { resolveThreadSessionKeys } from "openclaw/plugin-sdk/routing";
-import { danger, logVerbose, warn } from "openclaw/plugin-sdk/runtime-env";
+} from "getkova/plugin-sdk/conversation-runtime";
+import { parseExecApprovalCommandText } from "getkova/plugin-sdk/infra-runtime";
+import { formatModelsAvailableHeader } from "getkova/plugin-sdk/models-provider-runtime";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import { resolveThreadSessionKeys } from "getkova/plugin-sdk/routing";
+import { danger, logVerbose, warn } from "getkova/plugin-sdk/runtime-env";
 import { resolveTelegramMediaRuntimeOptions } from "./accounts.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
 import {
@@ -344,7 +344,7 @@ export const registerTelegramHandlers = ({
     messageThreadId?: number;
     resolvedThreadId?: number;
     senderId?: string | number;
-    runtimeCfg?: OpenClawConfig;
+    runtimeCfg?: KovaConfig;
   }): {
     agentId: string;
     sessionEntry: ReturnType<typeof resolveSessionStoreEntry>["existing"];
@@ -433,7 +433,7 @@ export const registerTelegramHandlers = ({
     messageThreadId?: number;
     resolvedThreadId?: number;
     senderId?: string | number;
-    runtimeCfg?: OpenClawConfig;
+    runtimeCfg?: KovaConfig;
   }): number | undefined => {
     const runtimeCfg = params.runtimeCfg ?? telegramDeps.getRuntimeConfig();
     const resolvedThreadId =
@@ -1004,7 +1004,7 @@ export const registerTelegramHandlers = ({
     senderId: string;
     senderUsername: string;
     context: TelegramEventAuthorizationContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
   }): boolean => {
     const { chatId, isGroup, senderId, senderUsername, context, cfg } = params;
     const useAccessGroups = cfg.commands?.useAccessGroups !== false;

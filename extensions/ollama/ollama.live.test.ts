@@ -3,14 +3,12 @@ import { createOllamaEmbeddingProvider } from "./src/embedding-provider.js";
 import { createOllamaStreamFn } from "./src/stream.js";
 import { createOllamaWebSearchProvider } from "./src/web-search-provider.js";
 
-const LIVE = process.env.OPENCLAW_LIVE_TEST === "1" && process.env.OPENCLAW_LIVE_OLLAMA === "1";
-const OLLAMA_BASE_URL =
-  process.env.OPENCLAW_LIVE_OLLAMA_BASE_URL?.trim() || "http://127.0.0.1:11434";
-const CHAT_MODEL = process.env.OPENCLAW_LIVE_OLLAMA_MODEL?.trim() || "llama3.2:latest";
-const EMBEDDING_MODEL =
-  process.env.OPENCLAW_LIVE_OLLAMA_EMBED_MODEL?.trim() || "embeddinggemma:latest";
-const PROVIDER_ID = process.env.OPENCLAW_LIVE_OLLAMA_PROVIDER_ID?.trim() || "ollama-live-custom";
-const RUN_WEB_SEARCH = process.env.OPENCLAW_LIVE_OLLAMA_WEB_SEARCH !== "0";
+const LIVE = process.env.KOVA_LIVE_TEST === "1" && process.env.KOVA_LIVE_OLLAMA === "1";
+const OLLAMA_BASE_URL = process.env.KOVA_LIVE_OLLAMA_BASE_URL?.trim() || "http://127.0.0.1:11434";
+const CHAT_MODEL = process.env.KOVA_LIVE_OLLAMA_MODEL?.trim() || "llama3.2:latest";
+const EMBEDDING_MODEL = process.env.KOVA_LIVE_OLLAMA_EMBED_MODEL?.trim() || "embeddinggemma:latest";
+const PROVIDER_ID = process.env.KOVA_LIVE_OLLAMA_PROVIDER_ID?.trim() || "ollama-live-custom";
+const RUN_WEB_SEARCH = process.env.KOVA_LIVE_OLLAMA_WEB_SEARCH !== "0";
 
 async function collectStreamEvents<T>(stream: AsyncIterable<T>): Promise<T[]> {
   const events: T[] = [];
@@ -142,7 +140,7 @@ describe.skipIf(!LIVE)("ollama live", () => {
       }
 
       const result = (await tool.execute({
-        query: "OpenClaw documentation",
+        query: "Kova documentation",
         count: 1,
       })) as {
         provider?: string;

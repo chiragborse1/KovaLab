@@ -17,11 +17,11 @@ Kova has two log “surfaces”:
 
 ## File-based logger
 
-- Default rolling log file is under `/tmp/openclaw/` (one file per day): `openclaw-YYYY-MM-DD.log`
+- Default rolling log file is under `/tmp/kova/` (one file per day): `kova-YYYY-MM-DD.log`
   - Date uses the gateway host's local timezone.
 - Active log files rotate at `logging.maxFileBytes` (default: 100 MB), keeping
   up to five numbered archives and continuing to write a fresh active file.
-- The log file path and level can be configured via `~/.openclaw/openclaw.json`:
+- The log file path and level can be configured via `~/.chiragborse1/KovaLab.json`:
   - `logging.file`
   - `logging.level`
 

@@ -1,22 +1,22 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
 import { createTestPluginApi } from "../../../../test/helpers/plugins/plugin-api.js";
-import type { OpenClawConfig, OpenClawPluginApi } from "../runtime-api.js";
+import type { KovaConfig, KovaPluginApi } from "../runtime-api.js";
 import { registerSlackPluginHttpRoutes } from "./plugin-routes.js";
 import { registerSlackHttpHandler } from "./registry.js";
 
-function createApi(config: OpenClawConfig, registerHttpRoute = vi.fn()): OpenClawPluginApi {
+function createApi(config: KovaConfig, registerHttpRoute = vi.fn()): KovaPluginApi {
   return createTestPluginApi({
     id: "slack",
     config,
     registerHttpRoute,
-  }) as OpenClawPluginApi;
+  }) as KovaPluginApi;
 }
 
 describe("registerSlackPluginHttpRoutes", () => {
   it("registers account webhook paths without resolving unresolved token refs", () => {
     const registerHttpRoute = vi.fn();
-    const cfg: OpenClawConfig = {
+    const cfg: KovaConfig = {
       channels: {
         slack: {
           accounts: {

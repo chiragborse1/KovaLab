@@ -13,11 +13,11 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
     "getkova": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -49,13 +49,13 @@
       "pluginApi": ">=2.0.0-beta.5"
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.5"
     },
     "bundle": {
       "stageRuntimeDependencies": true
     },
     "release": {
-      "publishToClawHub": true,
+      "publishToKovaHub": true,
       "publishToNpm": true
     }
   }

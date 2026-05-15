@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveBundledPluginCompatibleLoadValues } from "./activation-context.js";
 import {
   createPluginActivationSource,
@@ -40,7 +40,7 @@ function listWebContentExtractorPluginIds(params: {
 }
 
 function loadWebContentExtractorManifestRecords(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): readonly PluginManifestRecord[] {
@@ -53,7 +53,7 @@ function loadWebContentExtractorManifestRecords(params: {
 }
 
 function resolveEnabledBundledExtractorPlugins(params: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];
@@ -62,7 +62,7 @@ function resolveEnabledBundledExtractorPlugins(params: {
     return [];
   }
   let manifestRecords: readonly PluginManifestRecord[] | undefined;
-  const loadManifestRecords = (config?: OpenClawConfig) => {
+  const loadManifestRecords = (config?: KovaConfig) => {
     manifestRecords ??= loadWebContentExtractorManifestRecords({
       config,
       workspaceDir: params.workspaceDir,
@@ -114,7 +114,7 @@ function resolveEnabledBundledExtractorPlugins(params: {
 }
 
 export function resolvePluginWebContentExtractors(params?: {
-  config?: OpenClawConfig;
+  config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
   onlyPluginIds?: readonly string[];

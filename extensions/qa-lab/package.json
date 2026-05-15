@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/qa-lab",
+  "name": "@kovaai/qa-lab",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova QA lab plugin with private debugger UI and scenario runner",
@@ -12,23 +12,23 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
     "install": {
-      "npmSpec": "@openclaw/qa-lab",
+      "npmSpec": "@kovaai/qa-lab",
       "defaultChoice": "npm",
       "minHostVersion": ">=2.0.0-beta.4"
     },

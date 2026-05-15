@@ -688,7 +688,7 @@ status=done`,
     const report = renderQaAgenticParityMarkdownReport(comparison);
 
     expect(report).toContain(
-      "# OpenClaw Agentic Parity Report — openai/gpt-5.5 vs anthropic/claude-opus-4-6",
+      "# Kova Agentic Parity Report — openai/gpt-5.5 vs anthropic/claude-opus-4-6",
     );
     expect(report).toContain("| Completion rate | 100.0% | 100.0% |");
     expect(report).toContain("### Approval turn tool followthrough");
@@ -709,8 +709,6 @@ status=done`,
       comparedAt: "2026-04-11T00:00:00.000Z",
     });
     const report = renderQaAgenticParityMarkdownReport(comparison);
-    expect(report).toContain(
-      "# OpenClaw Agentic Parity Report — openai/gpt-5.5-alt vs openai/gpt-5.5",
-    );
+    expect(report).toContain("# Kova Agentic Parity Report — openai/gpt-5.5-alt vs openai/gpt-5.5");
   });
 });

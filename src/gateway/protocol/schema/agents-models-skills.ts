@@ -221,7 +221,7 @@ export const SkillsInstallParamsSchema = Type.Union([
   ),
   Type.Object(
     {
-      source: Type.Literal("clawhub"),
+      source: Type.Literal("kovahub"),
       slug: NonEmptyString,
       version: Type.Optional(NonEmptyString),
       force: Type.Optional(Type.Boolean()),
@@ -233,7 +233,7 @@ export const SkillsInstallParamsSchema = Type.Union([
 
 export const SkillsUninstallParamsSchema = Type.Object(
   {
-    source: Type.Literal("clawhub"),
+    source: Type.Literal("kovahub"),
     slug: NonEmptyString,
   },
   { additionalProperties: false },
@@ -251,7 +251,7 @@ export const SkillsUpdateParamsSchema = Type.Union([
   ),
   Type.Object(
     {
-      source: Type.Literal("clawhub"),
+      source: Type.Literal("kovahub"),
       slug: Type.Optional(NonEmptyString),
       all: Type.Optional(Type.Boolean()),
     },

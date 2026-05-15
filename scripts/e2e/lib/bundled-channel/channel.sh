@@ -12,22 +12,22 @@ run_channel_scenario() {
   echo "Running bundled $channel runtime deps Docker E2E..."
   if ! timeout "$DOCKER_RUN_TIMEOUT" docker run --rm \
     -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-    -e OPENCLAW_CHANNEL_UNDER_TEST="$channel" \
-    -e OPENCLAW_DEP_SENTINEL="$dep_sentinel" \
+    -e KOVA_CHANNEL_UNDER_TEST="$channel" \
+    -e KOVA_DEP_SENTINEL="$dep_sentinel" \
     "${DOCKER_E2E_PACKAGE_ARGS[@]}" \
     -i "$IMAGE_NAME" bash -s >"$run_log" 2>&1 <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-bundled-channel-deps.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/kova-bundled-channel-deps.XXXXXX")"
 export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENAI_API_KEY="sk-openclaw-bundled-channel-deps-e2e"
-export OPENCLAW_NO_ONBOARD=1
+export OPENAI_API_KEY="sk-kova-bundled-channel-deps-e2e"
+export KOVA_NO_ONBOARD=1
 
 TOKEN="bundled-channel-deps-token"
 PORT="18789"
-CHANNEL="${OPENCLAW_CHANNEL_UNDER_TEST:?missing OPENCLAW_CHANNEL_UNDER_TEST}"
-DEP_SENTINEL="${OPENCLAW_DEP_SENTINEL:?missing OPENCLAW_DEP_SENTINEL}"
+CHANNEL="${KOVA_CHANNEL_UNDER_TEST:?missing KOVA_CHANNEL_UNDER_TEST}"
+DEP_SENTINEL="${KOVA_DEP_SENTINEL:?missing KOVA_DEP_SENTINEL}"
 gateway_pid=""
 
 terminate_gateways() {
@@ -35,14 +35,14 @@ terminate_gateways() {
     kill "$gateway_pid" 2>/dev/null || true
   fi
   if command -v pkill >/dev/null 2>&1; then
-    pkill -TERM -f "[o]penclaw-gateway" 2>/dev/null || true
+    pkill -TERM -f "[k]ova-gateway" 2>/dev/null || true
   fi
   for _ in $(seq 1 100); do
     local alive=0
     if [ -n "${gateway_pid:-}" ] && kill -0 "$gateway_pid" 2>/dev/null; then
       alive=1
     fi
-    if command -v pgrep >/dev/null 2>&1 && pgrep -f "[o]penclaw-gateway" >/dev/null 2>&1; then
+    if command -v pgrep >/dev/null 2>&1 && pgrep -f "[k]ova-gateway" >/dev/null 2>&1; then
       alive=1
     fi
     [ "$alive" = "0" ] && break
@@ -52,7 +52,7 @@ terminate_gateways() {
     kill -KILL "$gateway_pid" 2>/dev/null || true
   fi
   if command -v pkill >/dev/null 2>&1; then
-    pkill -KILL -f "[o]penclaw-gateway" 2>/dev/null || true
+    pkill -KILL -f "[k]ova-gateway" 2>/dev/null || true
   fi
   if [ -n "${gateway_pid:-}" ]; then
     wait "$gateway_pid" 2>/dev/null || true
@@ -64,12 +64,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Installing mounted OpenClaw package..."
-package_tgz="${OPENCLAW_CURRENT_PACKAGE_TGZ:?missing OPENCLAW_CURRENT_PACKAGE_TGZ}"
-npm install -g "$package_tgz" --no-fund --no-audit >/tmp/openclaw-install.log 2>&1
+echo "Installing mounted Kova package..."
+package_tgz="${KOVA_CURRENT_PACKAGE_TGZ:?missing KOVA_CURRENT_PACKAGE_TGZ}"
+npm install -g "$package_tgz" --no-fund --no-audit >/tmp/kova-install.log 2>&1
 
-command -v openclaw >/dev/null
-package_root="$(npm root -g)/openclaw"
+command -v kova >/dev/null
+package_root="$(npm root -g)/kova"
 test -d "$package_root/dist/extensions/telegram"
 test -d "$package_root/dist/extensions/discord"
 test -d "$package_root/dist/extensions/slack"
@@ -77,7 +77,7 @@ test -d "$package_root/dist/extensions/feishu"
 test -d "$package_root/dist/extensions/memory-lancedb"
 
 stage_root() {
-  printf "%s/.openclaw/plugin-runtime-deps" "$HOME"
+  printf "%s/.kova/plugin-runtime-deps" "$HOME"
 }
 
 find_external_dep_package() {
@@ -114,7 +114,7 @@ const path = require("node:path");
 const mode = process.argv[2];
 const token = process.argv[3];
 const port = Number(process.argv[4]);
-const configPath = path.join(process.env.HOME, ".openclaw", "openclaw.json");
+const configPath = path.join(process.env.HOME, ".kova", "kova.json");
 const config = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
   : {};
@@ -210,7 +210,7 @@ if (mode === "memory-lancedb") {
             apiKey: process.env.OPENAI_API_KEY,
             model: "text-embedding-3-small",
           },
-          dbPath: "~/.openclaw/memory/lancedb-e2e",
+          dbPath: "~/.kova/memory/lancedb-e2e",
           autoCapture: false,
           autoRecall: false,
         },
@@ -229,10 +229,10 @@ start_gateway() {
   local skip_sidecars="${2:-0}"
   : >"$log_file"
   if [ "$skip_sidecars" = "1" ]; then
-    OPENCLAW_SKIP_CHANNELS=1 OPENCLAW_SKIP_PROVIDERS=1 \
-      openclaw gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
+    KOVA_SKIP_CHANNELS=1 KOVA_SKIP_PROVIDERS=1 \
+      kova gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
   else
-    openclaw gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
+    kova gateway --port "$PORT" --bind loopback --allow-unconfigured >"$log_file" 2>&1 &
   fi
   gateway_pid="$!"
 
@@ -303,12 +303,12 @@ assert_channel_status() {
     echo "memory-lancedb plugin activation verified by dependency sentinel"
     return 0
   fi
-  local out="/tmp/openclaw-channel-status-$channel.json"
-  local err="/tmp/openclaw-channel-status-$channel.err"
-  local parse_err="/tmp/openclaw-channel-status-$channel.parse.err"
-  local parse_out="/tmp/openclaw-channel-status-$channel.parse.out"
+  local out="/tmp/kova-channel-status-$channel.json"
+  local err="/tmp/kova-channel-status-$channel.err"
+  local parse_err="/tmp/kova-channel-status-$channel.parse.err"
+  local parse_out="/tmp/kova-channel-status-$channel.parse.out"
   for _ in $(seq 1 30); do
-    if openclaw gateway call channels.status \
+    if kova gateway call channels.status \
       --url "ws://127.0.0.1:$PORT" \
       --token "$TOKEN" \
       --timeout 10000 \
@@ -319,7 +319,7 @@ assert_channel_status() {
         return 0
       fi
     fi
-    if grep -Eq "\\[gateway\\] ready \\(.*\\b$channel\\b" /tmp/openclaw-"$channel"-*.log 2>/dev/null; then
+    if grep -Eq "\\[gateway\\] ready \\(.*\\b$channel\\b" /tmp/kova-"$channel"-*.log 2>/dev/null; then
       echo "$channel channel plugin visible in gateway ready log"
       return 0
     fi
@@ -331,7 +331,7 @@ assert_channel_status() {
     cat "$parse_err" >&2 || true
     cat "$out" >&2 || true
   fi
-  cat /tmp/openclaw-"$channel"-*.log >&2 2>/dev/null || true
+  cat /tmp/kova-"$channel"-*.log >&2 2>/dev/null || true
   return 1
 }
 
@@ -388,7 +388,7 @@ assert_no_dep_sentinel() {
 
 assert_no_install_stage() {
   local channel="$1"
-  local stage="$package_root/dist/extensions/$channel/.openclaw-install-stage"
+  local stage="$package_root/dist/extensions/$channel/.kova-install-stage"
   if [ -e "$stage" ]; then
     echo "install stage should be cleaned after activation for $channel" >&2
     find "$stage" -maxdepth 4 -type f | sort | head -80 >&2 || true
@@ -398,25 +398,25 @@ assert_no_install_stage() {
 
 echo "Starting baseline gateway with OpenAI configured..."
 write_config baseline
-start_gateway "/tmp/openclaw-$CHANNEL-baseline.log" 1
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-baseline.log"
+start_gateway "/tmp/kova-$CHANNEL-baseline.log" 1
+wait_for_gateway_health "/tmp/kova-$CHANNEL-baseline.log"
 stop_gateway
 assert_no_dep_sentinel "$CHANNEL" "$DEP_SENTINEL"
 
 echo "Enabling $CHANNEL by config edit, then restarting gateway..."
 write_config "$CHANNEL"
-start_gateway "/tmp/openclaw-$CHANNEL-first.log"
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-first.log"
-assert_installed_once "/tmp/openclaw-$CHANNEL-first.log" "$CHANNEL" "$DEP_SENTINEL"
+start_gateway "/tmp/kova-$CHANNEL-first.log"
+wait_for_gateway_health "/tmp/kova-$CHANNEL-first.log"
+assert_installed_once "/tmp/kova-$CHANNEL-first.log" "$CHANNEL" "$DEP_SENTINEL"
 assert_dep_sentinel "$CHANNEL" "$DEP_SENTINEL"
 assert_no_install_stage "$CHANNEL"
 assert_channel_status "$CHANNEL"
 stop_gateway
 
 echo "Restarting gateway again; $CHANNEL deps must stay installed..."
-start_gateway "/tmp/openclaw-$CHANNEL-second.log"
-wait_for_gateway_health "/tmp/openclaw-$CHANNEL-second.log"
-assert_not_installed "/tmp/openclaw-$CHANNEL-second.log" "$CHANNEL"
+start_gateway "/tmp/kova-$CHANNEL-second.log"
+wait_for_gateway_health "/tmp/kova-$CHANNEL-second.log"
+assert_not_installed "/tmp/kova-$CHANNEL-second.log" "$CHANNEL"
 assert_no_install_stage "$CHANNEL"
 assert_channel_status "$CHANNEL"
 stop_gateway

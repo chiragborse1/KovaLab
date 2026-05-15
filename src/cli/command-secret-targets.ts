@@ -1,5 +1,5 @@
 import { listReadOnlyChannelPluginsForConfig } from "../channels/plugins/read-only.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalAccountId } from "../routing/session-key.js";
 import {
   discoverConfigSecretTargetsByIds,
@@ -102,7 +102,7 @@ function isScopedChannelSecretTargetEntry(params: {
   const allowedPrefix = `channels.${channelId}.`;
   return (
     params.entry.id.startsWith(allowedPrefix) &&
-    params.entry.configFile === "openclaw.json" &&
+    params.entry.configFile === "kova.json" &&
     typeof params.entry.pathPattern === "string" &&
     params.entry.pathPattern.startsWith(allowedPrefix) &&
     (params.entry.refPathPattern === undefined ||
@@ -111,7 +111,7 @@ function isScopedChannelSecretTargetEntry(params: {
 }
 
 function getConfiguredChannelSecretTargetIds(
-  config: OpenClawConfig,
+  config: KovaConfig,
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
   const targetIds = new Set<string>();
@@ -173,7 +173,7 @@ function pathTargetsScopedChannelAccount(params: {
 }
 
 export function getScopedChannelsCommandSecretTargets(params: {
-  config: OpenClawConfig;
+  config: KovaConfig;
   channel?: string | null;
   accountId?: string | null;
 }): {
@@ -211,7 +211,7 @@ export function getChannelsCommandSecretTargetIds(): Set<string> {
 }
 
 export function getConfiguredChannelsCommandSecretTargetIds(
-  config: OpenClawConfig,
+  config: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): Set<string> {
   return toTargetIdSet(getConfiguredChannelSecretTargetIds(config, env));
@@ -231,7 +231,7 @@ export function getAgentRuntimeCommandSecretTargetIds(params?: {
 }
 
 export function getStatusCommandSecretTargetIds(
-  config?: OpenClawConfig,
+  config?: KovaConfig,
   env?: NodeJS.ProcessEnv,
 ): Set<string> {
   const channelTargetIds = config

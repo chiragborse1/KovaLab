@@ -1,5 +1,5 @@
 import { z, type ZodType } from "zod";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../../routing/session-key.js";
 import {
   resolveSingleAccountKeysToMove,
@@ -14,14 +14,14 @@ type ChannelSectionBase = {
   accounts?: Record<string, Record<string, unknown>>;
 };
 
-function channelHasAccounts(cfg: OpenClawConfig, channelKey: string): boolean {
+function channelHasAccounts(cfg: KovaConfig, channelKey: string): boolean {
   const channels = cfg.channels as Record<string, unknown> | undefined;
   const base = channels?.[channelKey] as ChannelSectionBase | undefined;
   return Boolean(base?.accounts && Object.keys(base.accounts).length > 0);
 }
 
 function shouldStoreNameInAccounts(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   accountId: string;
   alwaysUseAccounts?: boolean;
@@ -36,12 +36,12 @@ function shouldStoreNameInAccounts(params: {
 }
 
 export function applyAccountNameToChannelSection(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   accountId: string;
   name?: string;
   alwaysUseAccounts?: boolean;
-}): OpenClawConfig {
+}): KovaConfig {
   const trimmed = params.name?.trim();
   if (!trimmed) {
     return params.cfg;
@@ -68,7 +68,7 @@ export function applyAccountNameToChannelSection(params: {
           name: trimmed,
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
   }
   const baseAccounts: Record<string, Record<string, unknown>> = base?.accounts ?? {};
   const existingAccount = baseAccounts[accountId] ?? {};
@@ -91,14 +91,14 @@ export function applyAccountNameToChannelSection(params: {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 export function migrateBaseNameToDefaultAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   alwaysUseAccounts?: boolean;
-}): OpenClawConfig {
+}): KovaConfig {
   if (params.alwaysUseAccounts) {
     return params.cfg;
   }
@@ -125,17 +125,17 @@ export function migrateBaseNameToDefaultAccount(params: {
         accounts,
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 export function prepareScopedSetupConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   accountId: string;
   name?: string;
   alwaysUseAccounts?: boolean;
   migrateBaseName?: boolean;
-}): OpenClawConfig {
+}): KovaConfig {
   const namedConfig = applyAccountNameToChannelSection({
     cfg: params.cfg,
     channelKey: params.channelKey,
@@ -156,11 +156,11 @@ export function prepareScopedSetupConfig(params: {
 export function clearSetupPromotionRuntimeModuleCache(): void {}
 
 export function applySetupAccountConfigPatch(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   accountId: string;
   patch: Record<string, unknown>;
-}): OpenClawConfig {
+}): KovaConfig {
   return patchScopedAccountConfig({
     cfg: params.cfg,
     channelKey: params.channelKey,
@@ -214,7 +214,7 @@ export function createPatchedAccountSetupAdapter(params: {
 
 export function createZodSetupInputValidator<T extends ChannelSetupInput>(params: {
   schema: ZodType<T>;
-  validate?: (params: { cfg: OpenClawConfig; accountId: string; input: T }) => string | null;
+  validate?: (params: { cfg: KovaConfig; accountId: string; input: T }) => string | null;
 }): NonNullable<ChannelSetupAdapter["validateInput"]> {
   return (inputParams) => {
     const parsed = params.schema.safeParse(inputParams.input);
@@ -252,7 +252,7 @@ export function createSetupInputPresenceValidator(params: {
   defaultAccountOnlyEnvError?: string;
   whenNotUseEnv?: SetupInputPresenceRequirement[];
   validate?: (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
     input: ChannelSetupInput;
   }) => string | null;
@@ -311,7 +311,7 @@ export function createEnvPatchedAccountSetupAdapter(params: {
 }
 
 export function patchScopedAccountConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   accountId: string;
   patch: Record<string, unknown>;
@@ -319,7 +319,7 @@ export function patchScopedAccountConfig(params: {
   ensureChannelEnabled?: boolean;
   ensureAccountEnabled?: boolean;
   scopeDefaultToAccounts?: boolean;
-}): OpenClawConfig {
+}): KovaConfig {
   const accountId = normalizeAccountId(params.accountId);
   const channels = params.cfg.channels as Record<string, unknown> | undefined;
   const channelConfig = channels?.[params.channelKey];
@@ -344,7 +344,7 @@ export function patchScopedAccountConfig(params: {
           ...patch,
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
   }
 
   const accounts = base?.accounts ?? {};
@@ -371,7 +371,7 @@ export function patchScopedAccountConfig(params: {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 type ChannelSectionRecord = Record<string, unknown> & {
@@ -386,14 +386,14 @@ function cloneIfObject<T>(value: T): T {
 }
 
 function moveSingleAccountKeysIntoAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
   channel: ChannelSectionRecord;
   accounts: Record<string, Record<string, unknown>>;
   keysToMove: string[];
   targetAccountId: string;
   baseAccount?: Record<string, unknown>;
-}): OpenClawConfig {
+}): KovaConfig {
   const nextAccount: Record<string, unknown> = { ...params.baseAccount };
   for (const key of params.keysToMove) {
     nextAccount[key] = cloneIfObject(params.channel[key]);
@@ -414,7 +414,7 @@ function moveSingleAccountKeysIntoAccount(params: {
         },
       },
     },
-  } as OpenClawConfig;
+  } as KovaConfig;
 }
 
 function resolveExistingAccountKey(
@@ -433,9 +433,9 @@ function resolveExistingAccountKey(
 // move top-level account settings into accounts.default so the original
 // account keeps working without duplicate account values at channel root.
 export function moveSingleAccountChannelSectionToDefaultAccount(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   channelKey: string;
-}): OpenClawConfig {
+}): KovaConfig {
   const channels = params.cfg.channels as Record<string, unknown> | undefined;
   const baseConfig = channels?.[params.channelKey];
   const base =

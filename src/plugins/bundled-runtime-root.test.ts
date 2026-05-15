@@ -8,7 +8,7 @@ import { prepareBundledPluginRuntimeRoot } from "./bundled-runtime-root.js";
 const tempRoots: string[] = [];
 
 function makeTempRoot(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-bundled-runtime-root-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-runtime-root-"));
   tempRoots.push(root);
   return root;
 }
@@ -24,11 +24,11 @@ describe("prepareBundledPluginRuntimeRoot", () => {
     const packageRoot = makeTempRoot();
     const stageDir = makeTempRoot();
     const pluginRoot = path.join(packageRoot, "dist", "extensions", "browser");
-    const env = { ...process.env, OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { ...process.env, KOVA_PLUGIN_STAGE_DIR: stageDir };
     fs.mkdirSync(pluginRoot, { recursive: true });
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.24", type: "module" }),
+      JSON.stringify({ name: "kova", version: "2026.4.24", type: "module" }),
       "utf8",
     );
     fs.writeFileSync(
@@ -51,13 +51,13 @@ describe("prepareBundledPluginRuntimeRoot", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/browser",
+          name: "@kovaai/browser",
           version: "1.0.0",
           type: "module",
           dependencies: {
             "playwright-core": "1.0.0",
           },
-          openclaw: { extensions: ["./index.js"] },
+          kova: { extensions: ["./index.js"] },
         },
         null,
         2,
@@ -110,14 +110,14 @@ describe("prepareBundledPluginRuntimeRoot", () => {
 
   it("does not copy staged runtime mirror dist files onto themselves", () => {
     const stageDir = makeTempRoot();
-    const installRoot = path.join(stageDir, "openclaw-2026.4.26-alpha");
+    const installRoot = path.join(stageDir, "kova-2026.4.26-alpha");
     const pluginRoot = path.join(installRoot, "dist", "extensions", "qqbot");
     const distChunk = path.join(installRoot, "dist", "accounts-abc123.js");
-    const env = { ...process.env, OPENCLAW_PLUGIN_STAGE_DIR: stageDir };
+    const env = { ...process.env, KOVA_PLUGIN_STAGE_DIR: stageDir };
     fs.mkdirSync(pluginRoot, { recursive: true });
     fs.writeFileSync(
       path.join(installRoot, "package.json"),
-      JSON.stringify({ name: "openclaw", version: "2026.4.26", type: "module" }),
+      JSON.stringify({ name: "kova", version: "2026.4.26", type: "module" }),
       "utf8",
     );
     fs.writeFileSync(distChunk, "export const marker = 'same-root';\n", "utf8");
@@ -130,11 +130,11 @@ describe("prepareBundledPluginRuntimeRoot", () => {
       path.join(pluginRoot, "package.json"),
       JSON.stringify(
         {
-          name: "@openclaw/qqbot",
+          name: "@kovaai/qqbot",
           version: "1.0.0",
           type: "module",
           dependencies: { "qqbot-runtime": "1.0.0" },
-          openclaw: { extensions: ["./index.js"] },
+          kova: { extensions: ["./index.js"] },
         },
         null,
         2,

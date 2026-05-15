@@ -101,7 +101,7 @@ describe("createEmbeddedLobsterRunner", () => {
   });
 
   it("detects workflow files and parses argsJson", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lobster-runner-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-lobster-runner-"));
     const workflowPath = path.join(tempDir, "workflow.lobster");
     await fs.writeFile(workflowPath, "steps: []\n", "utf8");
 
@@ -144,7 +144,7 @@ describe("createEmbeddedLobsterRunner", () => {
   });
 
   it("returns a parse error when workflow args are invalid JSON", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lobster-runner-"));
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-lobster-runner-"));
     const workflowPath = path.join(tempDir, "workflow.lobster");
     await fs.writeFile(workflowPath, "steps: []\n", "utf8");
 
@@ -229,7 +229,7 @@ describe("createEmbeddedLobsterRunner", () => {
         timeoutMs: 2000,
         maxStdoutBytes: 4096,
       }),
-    ).rejects.toThrow("Lobster input requests are not supported by the OpenClaw Lobster tool yet");
+    ).rejects.toThrow("Lobster input requests are not supported by the Kova Lobster tool yet");
   });
 
   it("routes resume through the embedded runtime", async () => {
@@ -420,7 +420,7 @@ describe("createEmbeddedLobsterRunner", () => {
   it("deduplicates content-identical schema compilation in the installed Lobster runtime", async () => {
     await loadEmbeddedToolRuntimeFromPackage();
 
-    const corePath = requireForTest.resolve("@clawdbot/lobster/core");
+    const corePath = requireForTest.resolve("@kova/lobster/core");
     const validationPath = path.join(path.dirname(path.dirname(corePath)), "validation.js");
     const validationModule = (await import(pathToFileURL(validationPath).href)) as {
       sharedAjv: import("ajv").default;
@@ -438,8 +438,8 @@ describe("createEmbeddedLobsterRunner", () => {
   });
 
   it("falls back to the installed package core file when the core export is unavailable", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lobster-package-"));
-    const packageRoot = path.join(tempDir, "node_modules", "@clawdbot", "lobster");
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-lobster-package-"));
+    const packageRoot = path.join(tempDir, "node_modules", "@kova", "lobster");
     const packageEntryPath = path.join(packageRoot, "dist", "src", "sdk", "index.js");
     const packageCorePath = path.join(packageRoot, "dist", "src", "core", "index.js");
 
@@ -449,7 +449,7 @@ describe("createEmbeddedLobsterRunner", () => {
       await fs.writeFile(
         path.join(packageRoot, "package.json"),
         JSON.stringify({
-          name: "@clawdbot/lobster",
+          name: "@kova/lobster",
           type: "module",
           main: "./dist/src/sdk/index.js",
         }),
@@ -472,7 +472,7 @@ describe("createEmbeddedLobsterRunner", () => {
 
       const runtime = await loadEmbeddedToolRuntimeFromPackage({
         importModule: async (specifier) => {
-          if (specifier === "@clawdbot/lobster/core") {
+          if (specifier === "@kova/lobster/core") {
             throw new Error("package export missing");
           }
           return (await import(`${specifier}?t=${Date.now()}`)) as object;

@@ -25,62 +25,62 @@ describe("renderGatewayServiceStartHints", () => {
   it("resolves daemon container context from either env key", () => {
     expect(
       resolveDaemonContainerContext({
-        OPENCLAW_CONTAINER: "openclaw-demo-container",
+        KOVA_CONTAINER: "kova-demo-container",
       } as NodeJS.ProcessEnv),
-    ).toBe("openclaw-demo-container");
+    ).toBe("kova-demo-container");
     expect(
       resolveDaemonContainerContext({
-        OPENCLAW_CONTAINER_HINT: "openclaw-demo-container",
+        KOVA_CONTAINER_HINT: "kova-demo-container",
       } as NodeJS.ProcessEnv),
-    ).toBe("openclaw-demo-container");
+    ).toBe("kova-demo-container");
   });
 
-  it("prepends a single container restart hint when OPENCLAW_CONTAINER is set", () => {
+  it("prepends a single container restart hint when KOVA_CONTAINER is set", () => {
     expect(
       renderGatewayServiceStartHints({
-        OPENCLAW_CONTAINER: "openclaw-demo-container",
+        KOVA_CONTAINER: "kova-demo-container",
       } as NodeJS.ProcessEnv),
     ).toEqual(
       expect.arrayContaining([
-        "Restart the container or the service that manages it for openclaw-demo-container.",
+        "Restart the container or the service that manages it for kova-demo-container.",
       ]),
     );
   });
 
-  it("prepends a single container restart hint when OPENCLAW_CONTAINER_HINT is set", () => {
+  it("prepends a single container restart hint when KOVA_CONTAINER_HINT is set", () => {
     expect(
       renderGatewayServiceStartHints({
-        OPENCLAW_CONTAINER_HINT: "openclaw-demo-container",
+        KOVA_CONTAINER_HINT: "kova-demo-container",
       } as NodeJS.ProcessEnv),
     ).toEqual(
       expect.arrayContaining([
-        "Restart the container or the service that manages it for openclaw-demo-container.",
+        "Restart the container or the service that manages it for kova-demo-container.",
       ]),
     );
   });
 });
 
 describe("filterContainerGenericHints", () => {
-  it("drops the generic container foreground hint when OPENCLAW_CONTAINER is set", () => {
+  it("drops the generic container foreground hint when KOVA_CONTAINER is set", () => {
     expect(
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
           "If you're in a container, run the gateway in the foreground instead of `kova gateway`.",
         ],
-        { OPENCLAW_CONTAINER: "openclaw-demo-container" } as NodeJS.ProcessEnv,
+        { KOVA_CONTAINER: "kova-demo-container" } as NodeJS.ProcessEnv,
       ),
     ).toEqual([]);
   });
 
-  it("drops the generic container foreground hint when OPENCLAW_CONTAINER_HINT is set", () => {
+  it("drops the generic container foreground hint when KOVA_CONTAINER_HINT is set", () => {
     expect(
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
           "If you're in a container, run the gateway in the foreground instead of `kova gateway`.",
         ],
-        { OPENCLAW_CONTAINER_HINT: "openclaw-demo-container" } as NodeJS.ProcessEnv,
+        { KOVA_CONTAINER_HINT: "kova-demo-container" } as NodeJS.ProcessEnv,
       ),
     ).toEqual([]);
   });
@@ -91,9 +91,7 @@ describe("safeDaemonEnv", () => {
     expect(
       safeDaemonEnv({
         KOVA_GATEWAY_PORT: "18789",
-        OPENCLAW_GATEWAY_PORT: "18789",
         KOVA_STATE_DIR: "/tmp/kova",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw",
       }),
     ).toEqual(["KOVA_STATE_DIR=/tmp/kova", "KOVA_GATEWAY_PORT=18789"]);
   });

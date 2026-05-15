@@ -11,7 +11,7 @@ describe("prepare-codex-ci-config", () => {
   it("renders a minimal trusted non-interactive Codex config for the target repo", () => {
     expect(
       buildCiSafeCodexConfig({
-        projectPath: "/tmp/openclaw-pr-sync.xph5uu",
+        projectPath: "/tmp/kova-pr-sync.xph5uu",
       }),
     ).toBe(
       [
@@ -21,7 +21,7 @@ describe("prepare-codex-ci-config", () => {
         'approval_policy = "never"',
         'sandbox_mode = "workspace-write"',
         "",
-        '[projects."/tmp/openclaw-pr-sync.xph5uu"]',
+        '[projects."/tmp/kova-pr-sync.xph5uu"]',
         'trust_level = "trusted"',
         "",
       ].join("\n"),

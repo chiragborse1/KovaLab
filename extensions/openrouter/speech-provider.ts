@@ -2,8 +2,8 @@ import {
   assertOkOrThrowHttpError,
   postJsonRequest,
   resolveProviderHttpRequestConfig,
-} from "openclaw/plugin-sdk/provider-http";
-import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
+} from "getkova/plugin-sdk/provider-http";
+import { normalizeResolvedSecretInputString } from "getkova/plugin-sdk/secret-input";
 import {
   asFiniteNumber,
   asObject,
@@ -12,8 +12,8 @@ import {
   type SpeechProviderConfig,
   type SpeechProviderOverrides,
   type SpeechProviderPlugin,
-} from "openclaw/plugin-sdk/speech";
-import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/speech";
+import { normalizeOptionalLowercaseString } from "getkova/plugin-sdk/text-runtime";
 import { normalizeOpenRouterBaseUrl, OPENROUTER_BASE_URL } from "./provider-catalog.js";
 
 const DEFAULT_OPENROUTER_TTS_MODEL = "hexgrad/kokoro-82m";
@@ -262,7 +262,7 @@ export function buildOpenRouterSpeechProvider(): SpeechProviderPlugin {
         defaultHeaders: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://openclaw.ai",
+          "HTTP-Referer": "https://www.neuralstudio.in",
           "X-OpenRouter-Title": "Kova",
         },
         provider: "openrouter",

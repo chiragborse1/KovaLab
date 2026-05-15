@@ -1,7 +1,7 @@
 import { listReadOnlyChannelPluginsForConfig } from "../channels/plugins/read-only.js";
 import type { ChannelId } from "../channels/plugins/types.public.js";
 import { formatCliCommand } from "../cli/command-format.js";
-import type { OpenClawConfig, GatewayBindMode } from "../config/config.js";
+import type { KovaConfig, GatewayBindMode } from "../config/config.js";
 import type { AgentConfig } from "../config/types.agents.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { resolveGatewayAuth } from "../gateway/auth.js";
@@ -13,7 +13,7 @@ import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { note } from "../terminal/note.js";
 import { resolveDefaultChannelAccountContext } from "./channel-account-context.js";
 
-function collectImplicitHeartbeatDirectPolicyWarnings(cfg: OpenClawConfig): string[] {
+function collectImplicitHeartbeatDirectPolicyWarnings(cfg: KovaConfig): string[] {
   const warnings: string[] = [];
 
   const maybeWarn = (params: {
@@ -75,7 +75,7 @@ function execAskRank(value: ExecAsk): number {
   throw new Error("Unsupported exec ask value");
 }
 
-function collectExecPolicyConflictWarnings(cfg: OpenClawConfig): string[] {
+function collectExecPolicyConflictWarnings(cfg: KovaConfig): string[] {
   const warnings: string[] = [];
   const approvals = loadExecApprovals();
   const defaultRequestedSecuritySource = "Kova default (full)";
@@ -159,12 +159,12 @@ function collectExecPolicyConflictWarnings(cfg: OpenClawConfig): string[] {
   return warnings;
 }
 
-function collectDurableExecApprovalWarnings(cfg: OpenClawConfig): string[] {
+function collectDurableExecApprovalWarnings(cfg: KovaConfig): string[] {
   void cfg;
   return [];
 }
 
-export async function noteSecurityWarnings(cfg: OpenClawConfig) {
+export async function noteSecurityWarnings(cfg: KovaConfig) {
   const warnings: string[] = [];
   const auditHint = `- Run: ${formatCliCommand("kova security audit --deep")}`;
 

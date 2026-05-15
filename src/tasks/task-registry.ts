@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { createRequire } from "node:module";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
@@ -66,10 +66,10 @@ type TaskRegistryDeliveryRuntime = Pick<
   "sendMessage"
 >;
 const TASK_REGISTRY_DELIVERY_RUNTIME_OVERRIDE_KEY = Symbol.for(
-  "openclaw.taskRegistry.deliveryRuntimeOverride",
+  "kova.taskRegistry.deliveryRuntimeOverride",
 );
 const TASK_REGISTRY_CONTROL_RUNTIME_OVERRIDE_KEY = Symbol.for(
-  "openclaw.taskRegistry.controlRuntimeOverride",
+  "kova.taskRegistry.controlRuntimeOverride",
 );
 const require = createRequire(import.meta.url);
 const TASK_REGISTRY_CONTROL_RUNTIME_CANDIDATES = [
@@ -1817,7 +1817,7 @@ export function linkTaskToFlowById(params: { taskId: string; flowId: string }): 
 }
 
 export async function cancelTaskById(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   taskId: string;
 }): Promise<{ found: boolean; cancelled: boolean; reason?: string; task?: TaskRecord }> {
   ensureTaskRegistryReady();

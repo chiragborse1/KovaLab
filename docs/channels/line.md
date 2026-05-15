@@ -24,7 +24,7 @@ If you are on an older build or a custom install that excludes LINE, install it
 manually:
 
 ```bash
-kova plugins install @openclaw/line
+kova plugins install @kovaai/line
 ```
 
 Local checkout (when running from a git repo):

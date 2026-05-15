@@ -17,7 +17,7 @@ type GatewayProgramArgs = {
 type GatewayRuntimePreference = "auto" | "node" | "bun";
 
 export const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
-export const OPENCLAW_WRAPPER_ENV_KEY = "OPENCLAW_WRAPPER";
+export const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
 
 async function resolveCliEntrypointPathForService(): Promise<string> {
   const argv1 = process.argv[1];
@@ -45,7 +45,7 @@ async function resolveCliEntrypointPathForService(): Promise<string> {
     }
     // Prefer the original (possibly symlinked) path over the resolved realpath.
     // This keeps LaunchAgent/systemd paths stable across package version updates,
-    // since symlinks like node_modules/openclaw -> .pnpm/openclaw@X.Y.Z/...
+    // since symlinks like node_modules/kova -> .pnpm/kova@X.Y.Z/...
     // are automatically updated by pnpm, while the resolved path contains
     // version-specific directories that break after updates.
     const normalizedLooksLikeDist = isGatewayDistEntrypointPath(normalized);
@@ -181,7 +181,7 @@ async function resolveBinaryPath(binary: string): Promise<string> {
   }
 }
 
-export async function resolveOpenClawWrapperPath(
+export async function resolveKovaWrapperPath(
   inputPath: string | undefined,
 ): Promise<string | undefined> {
   const trimmed = inputPath?.trim();
@@ -212,7 +212,7 @@ async function resolveCliProgramArguments(params: {
   nodePath?: string;
   wrapperPath?: string;
 }): Promise<GatewayProgramArgs> {
-  const wrapperPath = await resolveOpenClawWrapperPath(params.wrapperPath);
+  const wrapperPath = await resolveKovaWrapperPath(params.wrapperPath);
   if (wrapperPath) {
     return { programArguments: [wrapperPath, ...params.args] };
   }

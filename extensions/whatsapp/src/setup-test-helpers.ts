@@ -192,7 +192,7 @@ export function expectNoWhatsAppLoginFollowup(harness: WizardPromptHarness): voi
 
 export function expectWhatsAppLoginFollowup(harness: WizardPromptHarness): void {
   expect(harness.note).toHaveBeenCalledWith(
-    expect.stringMatching(/(?:openclaw|kova) channels login/),
+    expect.stringMatching(/(?:kova|kova) channels login/),
     WHATSAPP_LOGIN_NOTE_TITLE,
   );
 }

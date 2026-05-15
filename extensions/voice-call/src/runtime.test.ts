@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import type { KovaConfig } from "getkova/plugin-sdk/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VoiceCallConfig } from "./config.js";
 import type { CoreConfig } from "./core-bridge.js";
@@ -184,7 +184,7 @@ describe("createVoiceCallRuntime lifecycle", () => {
           openai: { enabled: true },
         },
       },
-    } as OpenClawConfig;
+    } as KovaConfig;
 
     await createVoiceCallRuntime({
       config: createBaseConfig(),
@@ -303,12 +303,12 @@ describe("createVoiceCallRuntime lifecycle", () => {
 
     expect(mocks.realtimeHandlerCtorArgs[0]?.[0]).toMatchObject({
       tools: [
-        expect.objectContaining({ name: "openclaw_agent_consult" }),
+        expect.objectContaining({ name: "kova_agent_consult" }),
         expect.objectContaining({ name: "custom_tool" }),
       ],
     });
     expect(mocks.realtimeHandlerRegisterToolHandler).toHaveBeenCalledWith(
-      "openclaw_agent_consult",
+      "kova_agent_consult",
       expect.any(Function),
     );
 

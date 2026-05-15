@@ -124,8 +124,8 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
-    name: "clawbot",
-    description: "Legacy clawbot command aliases",
+    name: "kova",
+    description: "Legacy kova command aliases",
     hasSubcommands: true,
     hidden: true,
   },

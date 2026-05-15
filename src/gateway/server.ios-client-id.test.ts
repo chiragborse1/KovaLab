@@ -35,9 +35,9 @@ describe("connect params client id validation", () => {
   );
 
   test.each([
-    ["openclaw-ios", GATEWAY_CLIENT_IDS.IOS_APP],
-    ["openclaw-android", GATEWAY_CLIENT_IDS.ANDROID_APP],
-    ["openclaw-macos", GATEWAY_CLIENT_IDS.MACOS_APP],
+    ["kova-ios", GATEWAY_CLIENT_IDS.IOS_APP],
+    ["kova-android", GATEWAY_CLIENT_IDS.ANDROID_APP],
+    ["kova-macos", GATEWAY_CLIENT_IDS.MACOS_APP],
   ])("accepts legacy id %s and normalizes it to %s", (legacyId, expectedClientId) => {
     const ok = validateConnectParams(makeConnectParams(legacyId));
     expect(ok).toBe(true);
@@ -46,7 +46,7 @@ describe("connect params client id validation", () => {
   });
 
   test("rejects unknown client ids", () => {
-    const ok = validateConnectParams(makeConnectParams("openclaw-mobile"));
+    const ok = validateConnectParams(makeConnectParams("kova-mobile"));
     expect(ok).toBe(false);
   });
 });

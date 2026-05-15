@@ -1,6 +1,6 @@
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
 import { resolveDefaultAgentWorkspaceDir } from "../agents/workspace.js";
-import type { OpenClawConfig, GatewayAuthConfig } from "../config/config.js";
+import type { KovaConfig, GatewayAuthConfig } from "../config/config.js";
 import { isSecretRef, type SecretInput } from "../config/types.secrets.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
@@ -32,7 +32,7 @@ function sanitizeTokenValue(value: unknown): string | undefined {
 
 async function resolveProviderChoiceModelAllowlist(params: {
   authChoice: string;
-  config: OpenClawConfig;
+  config: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): Promise<
@@ -96,10 +96,10 @@ export function buildGatewayAuthConfig(params: {
 }
 
 export async function promptAuthConfig(
-  cfg: OpenClawConfig,
+  cfg: KovaConfig,
   runtime: RuntimeEnv,
   prompter: WizardPrompter,
-): Promise<OpenClawConfig> {
+): Promise<KovaConfig> {
   let next = cfg;
   let authChoice: string = "skip";
   let preferredProvider: string | undefined;

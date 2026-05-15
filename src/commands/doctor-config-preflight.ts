@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { readConfigFileSnapshot, recoverConfigFromJsonRootSuffix } from "../config/io.js";
 import { formatConfigIssueLines } from "../config/issue-format.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { note } from "../terminal/note.js";
 import { resolveHomeDir } from "../utils.js";
 import { noteIncludeConfinementWarning } from "./doctor-config-analysis.js";
@@ -23,7 +23,7 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
     // missing config
   }
 
-  const legacyCandidates = [path.join(home, ".clawdbot", "clawdbot.json")];
+  const legacyCandidates = [path.join(home, ".kova", "kova.json")];
 
   let legacyPath: string | null = null;
   for (const candidate of legacyCandidates) {
@@ -52,7 +52,7 @@ async function maybeMigrateLegacyConfig(): Promise<string[]> {
 
 export type DoctorConfigPreflightResult = {
   snapshot: Awaited<ReturnType<typeof readConfigFileSnapshot>>;
-  baseConfig: OpenClawConfig;
+  baseConfig: KovaConfig;
 };
 
 export async function runDoctorConfigPreflight(

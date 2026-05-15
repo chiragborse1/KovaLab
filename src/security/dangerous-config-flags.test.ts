@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { collectEnabledInsecureOrDangerousFlags } from "./dangerous-config-flags.js";
 
 const { resolvePluginConfigContractsByIdMock } = vi.hoisted(() => ({
@@ -17,8 +17,8 @@ vi.mock("../plugins/config-contracts.js", () => ({
   resolvePluginConfigContractsById: resolvePluginConfigContractsByIdMock,
 }));
 
-function asConfig(value: unknown): OpenClawConfig {
-  return value as OpenClawConfig;
+function asConfig(value: unknown): KovaConfig {
+  return value as KovaConfig;
 }
 
 describe("collectEnabledInsecureOrDangerousFlags", () => {

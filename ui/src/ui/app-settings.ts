@@ -464,8 +464,7 @@ export function inferBasePath() {
   if (typeof window === "undefined") {
     return "";
   }
-  const configured =
-    window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__OPENCLAW_CONTROL_UI_BASE_PATH__;
+  const configured = window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__KOVA_CONTROL_UI_BASE_PATH__;
   const normalizedConfigured = normalizeOptionalString(configured);
   if (normalizedConfigured) {
     return normalizeBasePath(normalizedConfigured);
@@ -477,8 +476,8 @@ export function syncThemeWithSettings(host: SettingsHost) {
   syncCustomThemeStyleTag(host.settings.customTheme);
   const normalizedTheme =
     host.settings.theme === "custom" && !host.settings.customTheme
-      ? "claw"
-      : (host.settings.theme ?? "claw");
+      ? "kova"
+      : (host.settings.theme ?? "kova");
   host.theme = normalizedTheme;
   host.themeMode = host.settings.themeMode ?? "system";
   if (normalizedTheme !== host.settings.theme) {

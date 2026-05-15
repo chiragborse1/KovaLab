@@ -8,7 +8,7 @@ import {
   getRuntimeConfigSnapshot,
   getRuntimeConfigSourceSnapshot,
 } from "../config/runtime-snapshot.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { resolveBundledPluginsDir } from "../plugins/bundled-dir.js";
 import {
   createPluginActivationSource,
@@ -26,22 +26,22 @@ const ALWAYS_ALLOWED_RUNTIME_DIR_NAMES = new Set([
   "media-understanding-core",
   "speech-core",
 ]);
-const EMPTY_FACADE_BOUNDARY_CONFIG: OpenClawConfig = {};
+const EMPTY_FACADE_BOUNDARY_CONFIG: KovaConfig = {};
 
-let cachedBoundaryRawConfig: OpenClawConfig | undefined;
+let cachedBoundaryRawConfig: KovaConfig | undefined;
 let cachedBoundaryResolvedConfigKey: string | undefined;
 let cachedBoundaryConfigFileState:
   | {
       configPath: string;
       mtimeMs: number;
       size: number;
-      rawConfig: OpenClawConfig;
+      rawConfig: KovaConfig;
     }
   | undefined;
 let cachedBoundaryResolvedConfig:
   | {
-      rawConfig: OpenClawConfig;
-      config: OpenClawConfig;
+      rawConfig: KovaConfig;
+      config: KovaConfig;
       normalizedPluginsConfig: ReturnType<typeof normalizePluginsConfig>;
       activationSource: ReturnType<typeof createPluginActivationSource>;
       autoEnabledReasons: Record<string, string[]>;
@@ -65,7 +65,7 @@ type FacadeModuleLocation = {
 };
 
 function readFacadeBoundaryConfigSafely(): {
-  rawConfig: OpenClawConfig;
+  rawConfig: KovaConfig;
   cacheKey?: string;
 } {
   try {
@@ -96,9 +96,7 @@ function readFacadeBoundaryConfigSafely(): {
     const raw = fs.readFileSync(configPath, "utf8");
     const parsed = JSON5.parse(raw);
     const rawConfig =
-      parsed && typeof parsed === "object"
-        ? (parsed as OpenClawConfig)
-        : EMPTY_FACADE_BOUNDARY_CONFIG;
+      parsed && typeof parsed === "object" ? (parsed as KovaConfig) : EMPTY_FACADE_BOUNDARY_CONFIG;
     cachedBoundaryConfigFileState = {
       configPath,
       mtimeMs: stat.mtimeMs,
@@ -186,11 +184,7 @@ function readBundledPluginManifestRecordFromDir(params: {
   pluginsRoot: string;
   resolvedDirName: string;
 }): FacadePluginManifestLike | null {
-  const manifestPath = path.join(
-    params.pluginsRoot,
-    params.resolvedDirName,
-    "openclaw.plugin.json",
-  );
+  const manifestPath = path.join(params.pluginsRoot, params.resolvedDirName, "kova.plugin.json");
   if (!fs.existsSync(manifestPath)) {
     return null;
   }
@@ -366,7 +360,7 @@ export function resolveBundledPluginPublicSurfaceAccess(params: {
 export function evaluateBundledPluginPublicSurfaceAccess(params: {
   params: { dirName: string; artifactBasename: string };
   manifestRecord: FacadePluginManifestLike;
-  config: OpenClawConfig;
+  config: KovaConfig;
   normalizedPluginsConfig: ReturnType<typeof normalizePluginsConfig>;
   activationSource: ReturnType<typeof createPluginActivationSource>;
   autoEnabledReasons: Record<string, string[]>;

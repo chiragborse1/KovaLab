@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { describe } from "vitest";
 import { installChannelActionsContractSuite } from "../../../test/helpers/channels/registry-contract-suites.js";
 import { discordPlugin } from "../api.js";
@@ -36,7 +36,7 @@ describe("discord actions contract", () => {
               },
             },
           },
-        } as OpenClawConfig,
+        } as KovaConfig,
         expectedActions: ["send", "poll", "react", "reactions", "emoji-list"],
         expectedCapabilities: ["presentation"],
       },

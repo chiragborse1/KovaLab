@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { isRecord } from "../utils.js";
 import { resolveAgentRuntimePolicy } from "./agent-runtime-policy.js";
 
 export function collectConfiguredAgentHarnessRuntimes(
-  config: OpenClawConfig,
+  config: KovaConfig,
   env: NodeJS.ProcessEnv,
 ): string[] {
   const runtimes = new Set<string>();
@@ -28,7 +28,7 @@ export function collectConfiguredAgentHarnessRuntimes(
       pushRuntime(resolveAgentRuntimePolicy(agent)?.id);
     }
   }
-  pushRuntime(env.OPENCLAW_AGENT_RUNTIME);
+  pushRuntime(env.KOVA_AGENT_RUNTIME);
 
   return [...runtimes].toSorted((left, right) => left.localeCompare(right));
 }

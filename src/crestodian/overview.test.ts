@@ -11,7 +11,7 @@ vi.mock("./probes.js", () => ({
 
 vi.mock("../config/config.js", () => ({
   readConfigFileSnapshot: vi.fn(async () => ({
-    path: "/tmp/openclaw.json",
+    path: "/tmp/kova.json",
     exists: true,
     valid: true,
     issues: [],
@@ -28,7 +28,7 @@ vi.mock("../config/config.js", () => ({
     },
     sourceConfig: undefined,
   })),
-  resolveConfigPath: vi.fn(() => "/tmp/openclaw.json"),
+  resolveConfigPath: vi.fn(() => "/tmp/kova.json"),
   resolveGatewayPort: vi.fn((cfg: { gateway?: { port?: number } }) => cfg.gateway?.port ?? 8765),
 }));
 
@@ -40,18 +40,18 @@ vi.mock("../gateway/call.js", () => ({
 }));
 
 describe("loadCrestodianOverview", () => {
-  const previousTestFast = process.env.OPENCLAW_TEST_FAST;
+  const previousTestFast = process.env.KOVA_TEST_FAST;
 
   afterEach(() => {
     if (previousTestFast === undefined) {
-      delete process.env.OPENCLAW_TEST_FAST;
+      delete process.env.KOVA_TEST_FAST;
     } else {
-      process.env.OPENCLAW_TEST_FAST = previousTestFast;
+      process.env.KOVA_TEST_FAST = previousTestFast;
     }
   });
 
   it("summarizes config, agents, model, tools, and gateway", async () => {
-    vi.stubEnv("OPENCLAW_TEST_FAST", "1");
+    vi.stubEnv("KOVA_TEST_FAST", "1");
 
     const { formatCrestodianOverview, formatCrestodianStartupMessage, loadCrestodianOverview } =
       await import("./overview.js");
@@ -71,7 +71,7 @@ describe("loadCrestodianOverview", () => {
       reachable: false,
     });
     expect(overview.references.docsPath).toMatch(/docs$/);
-    expect(overview.references.sourceUrl).toBe("https://github.com/openclaw/openclaw");
+    expect(overview.references.sourceUrl).toBe("https://github.com/chiragborse1/KovaLab");
     expect(formatCrestodianOverview(overview)).toContain(
       'Next: run "gateway status" or "restart gateway"',
     );

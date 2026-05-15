@@ -1,5 +1,5 @@
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import type { KovaConfig } from "../runtime-api.js";
 import { raceWithTimeoutAndAbort } from "./async.js";
 import { createFeishuClient } from "./client.js";
 import {
@@ -49,7 +49,7 @@ export type FeishuDriveCommentNoticeEvent = {
 };
 
 type ResolveDriveCommentEventParams = {
-  cfg: ClawdbotConfig;
+  cfg: KovaConfig;
   accountId: string;
   event: FeishuDriveCommentNoticeEvent;
   account?: ResolvedFeishuAccount;

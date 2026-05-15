@@ -1,5 +1,5 @@
 import { normalizePluginsConfig } from "./config-state.js";
-import { discoverOpenClawPlugins, type PluginCandidate } from "./discovery.js";
+import { discoverKovaPlugins, type PluginCandidate } from "./discovery.js";
 import type { LoadInstalledPluginIndexParams } from "./installed-plugin-index-types.js";
 import { loadPluginManifestRegistry, type PluginManifestRegistry } from "./manifest-registry.js";
 
@@ -23,7 +23,7 @@ export function resolveInstalledPluginIndexRegistry(params: LoadInstalledPluginI
   }
 
   const normalized = normalizePluginsConfig(params.config?.plugins);
-  const discovery = discoverOpenClawPlugins({
+  const discovery = discoverKovaPlugins({
     workspaceDir: params.workspaceDir,
     extraPaths: normalized.loadPaths,
     cache: params.cache,

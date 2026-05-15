@@ -16,7 +16,7 @@ import {
   refreshInstalledPluginIndex,
 } from "./installed-plugin-index.js";
 import { recordPluginInstall } from "./installs.js";
-import type { OpenClawPackageManifest } from "./manifest.js";
+import type { KovaPackageManifest } from "./manifest.js";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 
 vi.unmock("../version.js");
@@ -28,11 +28,11 @@ afterEach(() => {
 });
 
 function makeTempDir() {
-  return makeTrackedTempDir("openclaw-installed-plugin-index", tempDirs);
+  return makeTrackedTempDir("kova-installed-plugin-index", tempDirs);
 }
 
 function writePluginManifest(rootDir: string, manifest: Record<string, unknown>) {
-  fs.writeFileSync(path.join(rootDir, "openclaw.plugin.json"), JSON.stringify(manifest), "utf-8");
+  fs.writeFileSync(path.join(rootDir, "kova.plugin.json"), JSON.stringify(manifest), "utf-8");
 }
 
 function writePackageJson(rootDir: string, packageJson: Record<string, unknown>) {
@@ -49,10 +49,10 @@ function writeRuntimeEntry(rootDir: string) {
 
 function hermeticEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   return {
-    OPENCLAW_BUNDLED_PLUGINS_DIR: undefined,
-    OPENCLAW_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
-    OPENCLAW_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
-    OPENCLAW_VERSION: "2026.4.25",
+    KOVA_BUNDLED_PLUGINS_DIR: undefined,
+    KOVA_DISABLE_PLUGIN_DISCOVERY_CACHE: "1",
+    KOVA_DISABLE_PLUGIN_MANIFEST_CACHE: "1",
+    KOVA_VERSION: "2026.4.25",
     VITEST: "true",
     ...overrides,
   };
@@ -65,7 +65,7 @@ function createPluginCandidate(params: {
   packageName?: string;
   packageVersion?: string;
   packageDir?: string;
-  packageManifest?: OpenClawPackageManifest;
+  packageManifest?: KovaPackageManifest;
   format?: PluginCandidate["format"];
   bundleFormat?: PluginCandidate["bundleFormat"];
 }): PluginCandidate {
@@ -827,7 +827,7 @@ describe("installed plugin index", () => {
           },
         },
       },
-      env: hermeticEnv({ OPENCLAW_VERSION: "2026.4.25" }),
+      env: hermeticEnv({ KOVA_VERSION: "2026.4.25" }),
     });
 
     writePackageJson(fixture.rootDir, {
@@ -853,7 +853,7 @@ describe("installed plugin index", () => {
             resolvedVersion: "1.2.4",
           },
         },
-        env: hermeticEnv({ OPENCLAW_VERSION: "2026.4.26" }),
+        env: hermeticEnv({ KOVA_VERSION: "2026.4.26" }),
       }),
       compatRegistryVersion: "different-compat-registry",
     };

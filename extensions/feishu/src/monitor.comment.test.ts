@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createNonExitingRuntimeEnv } from "../../../test/helpers/plugins/runtime-env.js";
-import type { ClawdbotConfig } from "../runtime-api.js";
+import type { KovaConfig } from "../runtime-api.js";
 import * as dedup from "./dedup.js";
 import { createFeishuDriveCommentNoticeHandler } from "./monitor.comment-notice-handler.js";
 import {
@@ -23,14 +23,14 @@ vi.mock("./comment-handler.js", () => ({
   handleFeishuCommentEvent: handleFeishuCommentEventMock,
 }));
 
-function buildMonitorConfig(): ClawdbotConfig {
+function buildMonitorConfig(): KovaConfig {
   return {
     channels: {
       feishu: {
         enabled: true,
       },
     },
-  } as ClawdbotConfig;
+  } as KovaConfig;
 }
 
 function makeDriveCommentEvent(

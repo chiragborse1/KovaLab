@@ -9,7 +9,7 @@ import {
   resolveConfigPath,
   resolveGatewayPort,
   resolveGatewayLockDir,
-  resolveOpenClawCompatMode,
+  resolveKovaCompatMode,
   resolveOAuthDir,
   resolveOAuthPath,
   resolveStateDir,
@@ -23,8 +23,7 @@ describe("oauth paths", () => {
   it("prefers KOVA_OAUTH_DIR over legacy OAuth/state env", () => {
     const env = {
       KOVA_OAUTH_DIR: "/custom/kova-oauth",
-      OPENCLAW_OAUTH_DIR: "/custom/oauth",
-      OPENCLAW_STATE_DIR: "/custom/state",
+      KOVA_STATE_DIR: "/custom/state",
     } as NodeJS.ProcessEnv;
 
     expect(resolveOAuthDir(env, "/custom/state")).toBe(path.resolve("/custom/kova-oauth"));
@@ -35,8 +34,8 @@ describe("oauth paths", () => {
 
   it("ignores legacy OAuth/state env unless compatibility mode is explicit", () => {
     const env = {
-      OPENCLAW_STATE_DIR: "/custom/state",
-      OPENCLAW_OAUTH_DIR: "/custom/oauth",
+      KOVA_STATE_DIR: "/custom/state",
+      KOVA_OAUTH_DIR: "/custom/oauth",
     } as NodeJS.ProcessEnv;
 
     expect(resolveOAuthDir(env, "/custom/state")).toBe(path.join("/custom/state", "credentials"));
@@ -47,8 +46,8 @@ describe("oauth paths", () => {
 
   it("uses legacy OAuth env when compatibility mode is explicit", () => {
     const env = {
-      KOVA_ALLOW_OPENCLAW_COMPAT: "1",
-      OPENCLAW_OAUTH_DIR: "/custom/oauth",
+      KOVA_COMPAT: "1",
+      KOVA_OAUTH_DIR: "/custom/oauth",
     } as NodeJS.ProcessEnv;
 
     expect(resolveOAuthDir(env, "/custom/state")).toBe(path.resolve("/custom/oauth"));
@@ -64,21 +63,18 @@ describe("gateway port resolution", () => {
 
   it("prefers KOVA_GATEWAY_PORT over legacy port env and config", () => {
     expect(
-      resolveGatewayPort(
-        { gateway: { port: 19003 } },
-        envWith({ KOVA_GATEWAY_PORT: "19002", OPENCLAW_GATEWAY_PORT: "19001" }),
-      ),
+      resolveGatewayPort({ gateway: { port: 19003 } }, envWith({ KOVA_GATEWAY_PORT: "19002" })),
     ).toBe(19002);
   });
 
   it("ignores legacy port env unless compatibility mode is explicit", () => {
     expect(
-      resolveGatewayPort({ gateway: { port: 19002 } }, envWith({ OPENCLAW_GATEWAY_PORT: "19001" })),
+      resolveGatewayPort({ gateway: { port: 19002 } }, envWith({ KOVA_GATEWAY_PORT: "19001" })),
     ).toBe(19002);
     expect(
       resolveGatewayPort(
         { gateway: { port: 19002 } },
-        envWith({ KOVA_ALLOW_OPENCLAW_COMPAT: "1", OPENCLAW_GATEWAY_PORT: "19001" }),
+        envWith({ KOVA_COMPAT: "1", KOVA_GATEWAY_PORT: "19001" }),
       ),
     ).toBe(19001);
   });
@@ -105,7 +101,7 @@ describe("gateway port resolution", () => {
     expect(
       resolveGatewayPort(
         { gateway: { port: 19002 } },
-        envWith({ CLAWDBOT_GATEWAY_PORT: "127.0.0.1:18789" }),
+        envWith({ KOVA_GATEWAY_PORT: "127.0.0.1:18789" }),
       ),
     ).toBe(19002);
   });
@@ -156,7 +152,6 @@ describe("state + config path candidates", () => {
   it("prefers KOVA_STATE_DIR when set", () => {
     const env = {
       KOVA_STATE_DIR: "/new/kova-state",
-      OPENCLAW_STATE_DIR: "/new/state",
     } as NodeJS.ProcessEnv;
 
     expect(resolveStateDir(env, () => "/home/test")).toBe(path.resolve("/new/kova-state"));
@@ -169,10 +164,9 @@ describe("state + config path candidates", () => {
     expectKovaHomeDefaults(env);
   });
 
-  it("prefers KOVA_HOME over OPENCLAW_HOME and HOME for default state/config locations", () => {
+  it("prefers KOVA_HOME over KOVA_HOME and HOME for default state/config locations", () => {
     const env = {
       KOVA_HOME: "/srv/kova-home",
-      OPENCLAW_HOME: "/srv/openclaw-home",
       HOME: "/home/other",
     } as NodeJS.ProcessEnv;
     expectKovaHomeDefaults(env);
@@ -190,15 +184,15 @@ describe("state + config path candidates", () => {
     const home = "/home/test";
     const resolvedHome = path.resolve(home);
     const candidates = resolveDefaultConfigCandidates(
-      { KOVA_ALLOW_OPENCLAW_COMPAT: "1" } as NodeJS.ProcessEnv,
+      { KOVA_COMPAT: "1" } as NodeJS.ProcessEnv,
       () => home,
     );
-    expect(candidates).toContain(path.join(resolvedHome, ".openclaw", "openclaw.json"));
-    expect(candidates).toContain(path.join(resolvedHome, ".clawdbot", "clawdbot.json"));
+    expect(candidates).toContain(path.join(resolvedHome, ".kova", "kova.json"));
+    expect(candidates).toContain(path.join(resolvedHome, ".kova", "kova.json"));
   });
 
   it("prefers ~/.kova when it exists and legacy dirs are missing", async () => {
-    await withTempDir({ prefix: "openclaw-state-" }, async (root) => {
+    await withTempDir({ prefix: "kova-state-" }, async (root) => {
       const newDir = path.join(root, ".kova");
       await fs.mkdir(newDir, { recursive: true });
       const resolved = resolveStateDir({} as NodeJS.ProcessEnv, () => root);
@@ -207,8 +201,8 @@ describe("state + config path candidates", () => {
   });
 
   it("does not fall back to existing legacy state dir by default", async () => {
-    await withTempDir({ prefix: "openclaw-state-legacy-" }, async (root) => {
-      const legacyDir = path.join(root, ".openclaw");
+    await withTempDir({ prefix: "kova-state-legacy-" }, async (root) => {
+      const legacyDir = path.join(root, ".kova");
       await fs.mkdir(legacyDir, { recursive: true });
       const resolved = resolveStateDir({} as NodeJS.ProcessEnv, () => root);
       expect(resolved).toBe(path.join(root, ".kova"));
@@ -216,19 +210,16 @@ describe("state + config path candidates", () => {
   });
 
   it("falls back to existing legacy state dir only in explicit compatibility mode", async () => {
-    await withTempDir({ prefix: "openclaw-state-legacy-" }, async (root) => {
-      const legacyDir = path.join(root, ".openclaw");
+    await withTempDir({ prefix: "kova-state-legacy-" }, async (root) => {
+      const legacyDir = path.join(root, ".kova");
       await fs.mkdir(legacyDir, { recursive: true });
-      const resolved = resolveStateDir(
-        { KOVA_ALLOW_OPENCLAW_COMPAT: "1" } as NodeJS.ProcessEnv,
-        () => root,
-      );
+      const resolved = resolveStateDir({ KOVA_COMPAT: "1" } as NodeJS.ProcessEnv, () => root);
       expect(resolved).toBe(legacyDir);
     });
   });
 
   it("CONFIG_PATH prefers existing config when present", async () => {
-    await withTempDir({ prefix: "openclaw-config-" }, async (root) => {
+    await withTempDir({ prefix: "kova-config-" }, async (root) => {
       const configDir = path.join(root, ".kova");
       await fs.mkdir(configDir, { recursive: true });
       const configPath = path.join(configDir, "kova.json");
@@ -240,7 +231,7 @@ describe("state + config path candidates", () => {
   });
 
   it("respects state dir overrides when config is missing", async () => {
-    await withTempDir({ prefix: "openclaw-config-override-" }, async (root) => {
+    await withTempDir({ prefix: "kova-config-override-" }, async (root) => {
       const legacyDir = path.join(root, ".kova");
       await fs.mkdir(legacyDir, { recursive: true });
       const legacyConfig = path.join(legacyDir, "kova.json");
@@ -254,15 +245,11 @@ describe("state + config path candidates", () => {
   });
 });
 
-describe("OpenClaw compatibility mode", () => {
+describe("Kova compatibility mode", () => {
   it("is opt-in", () => {
-    expect(resolveOpenClawCompatMode({} as NodeJS.ProcessEnv)).toBe(false);
-    expect(
-      resolveOpenClawCompatMode({ KOVA_ALLOW_OPENCLAW_COMPAT: "1" } as NodeJS.ProcessEnv),
-    ).toBe(true);
-    expect(resolveOpenClawCompatMode({ KOVA_OPENCLAW_COMPAT: "true" } as NodeJS.ProcessEnv)).toBe(
-      true,
-    );
+    expect(resolveKovaCompatMode({} as NodeJS.ProcessEnv)).toBe(false);
+    expect(resolveKovaCompatMode({ KOVA_COMPAT: "1" } as NodeJS.ProcessEnv)).toBe(true);
+    expect(resolveKovaCompatMode({ KOVA_COMPAT: "true" } as NodeJS.ProcessEnv)).toBe(true);
   });
 });
 

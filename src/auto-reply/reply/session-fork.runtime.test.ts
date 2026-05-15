@@ -19,7 +19,7 @@ afterEach(async () => {
 
 describe("resolveParentForkTokenCountRuntime", () => {
   it("falls back to transcript-estimated tokens when cached totals are stale", async () => {
-    const root = await makeRoot("openclaw-parent-fork-token-estimate-");
+    const root = await makeRoot("kova-parent-fork-token-estimate-");
     const sessionsDir = path.join(root, "sessions");
     await fs.mkdir(sessionsDir);
 

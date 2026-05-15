@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-const TELEGRAM_POLLING_LEASES_KEY = Symbol.for("openclaw.telegram.pollingLeases");
+const TELEGRAM_POLLING_LEASES_KEY = Symbol.for("kova.telegram.pollingLeases");
 const DEFAULT_TELEGRAM_POLLING_LEASE_WAIT_MS = 5_000;
 
 type TelegramPollingLeaseEntry = {

@@ -33,7 +33,7 @@ open Kova.xcodeproj
 ```
 
 3. In Xcode:
-   - Scheme: `OpenClaw`
+   - Scheme: `Kova`
    - Destination: connected iPhone (recommended for real behavior)
    - Build configuration: `Debug`
    - Run (`Product` -> `Run`)
@@ -141,7 +141,7 @@ pnpm ios:beta
    - verifies synced iOS versioning artifacts
    - resolves the next TestFlight build number for that short version
    - generates `apps/ios/build/BetaRelease.xcconfig`
-   - archives `OpenClaw`
+   - archives `Kova`
    - uploads the IPA to TestFlight
 
 7. Expected outputs after a successful run:

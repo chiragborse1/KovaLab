@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import { isRecord } from "../utils.js";
 import { loadEnabledBundleMcpConfig } from "./bundle-mcp.js";
 import {
@@ -43,7 +43,7 @@ afterEach(async () => {
   await tempHarness.cleanup();
 });
 
-function createEnabledBundleConfig(pluginIds: string[]): OpenClawConfig {
+function createEnabledBundleConfig(pluginIds: string[]): KovaConfig {
   return {
     plugins: {
       entries: createEnabledPluginEntries(pluginIds),
@@ -87,49 +87,45 @@ async function expectInlineBundleMcpServer(params: {
 
 describe("loadEnabledBundleMcpConfig", () => {
   it("loads enabled Claude bundle MCP config and absolutizes relative args", async () => {
-    await withBundleHomeEnv(
-      tempHarness,
-      "openclaw-bundle-mcp",
-      async ({ homeDir, workspaceDir }) => {
-        const { pluginRoot, serverPath } = await createBundleProbePlugin(homeDir);
+    await withBundleHomeEnv(tempHarness, "kova-bundle-mcp", async ({ homeDir, workspaceDir }) => {
+      const { pluginRoot, serverPath } = await createBundleProbePlugin(homeDir);
 
-        const config: OpenClawConfig = {
-          plugins: {
-            entries: {
-              "bundle-probe": { enabled: true },
-            },
+      const config: KovaConfig = {
+        plugins: {
+          entries: {
+            "bundle-probe": { enabled: true },
           },
-        };
+        },
+      };
 
-        const loaded = loadEnabledBundleMcpConfig({
-          workspaceDir,
-          cfg: config,
-        });
-        const resolvedServerPath = await fs.realpath(serverPath);
-        const loadedServer = loaded.config.mcpServers.bundleProbe;
-        const loadedArgs = getServerArgs(loadedServer);
-        const loadedServerPath = typeof loadedArgs?.[0] === "string" ? loadedArgs[0] : undefined;
-        const resolvedPluginRoot = await fs.realpath(pluginRoot);
+      const loaded = loadEnabledBundleMcpConfig({
+        workspaceDir,
+        cfg: config,
+      });
+      const resolvedServerPath = await fs.realpath(serverPath);
+      const loadedServer = loaded.config.mcpServers.bundleProbe;
+      const loadedArgs = getServerArgs(loadedServer);
+      const loadedServerPath = typeof loadedArgs?.[0] === "string" ? loadedArgs[0] : undefined;
+      const resolvedPluginRoot = await fs.realpath(pluginRoot);
 
-        expectNoDiagnostics(loaded.diagnostics);
-        expect(isRecord(loadedServer) ? loadedServer.command : undefined).toBe("node");
-        expect(loadedArgs).toHaveLength(1);
-        expect(loadedServerPath).toBeDefined();
-        if (!loadedServerPath) {
-          throw new Error("expected bundled MCP args to include the server path");
-        }
-        expect(normalizePathForAssertion(await fs.realpath(loadedServerPath))).toBe(
-          normalizePathForAssertion(resolvedServerPath),
-        );
-        await expectResolvedPathEqual(loadedServer.cwd, resolvedPluginRoot);
-      },
-    );
+      expectNoDiagnostics(loaded.diagnostics);
+      expect(isRecord(loadedServer) ? loadedServer.command : undefined).toBe("node");
+      expect(loadedArgs).toHaveLength(1);
+      expect(loadedServerPath).toBeDefined();
+      if (!loadedServerPath) {
+        throw new Error("expected bundled MCP args to include the server path");
+      }
+      expect(normalizePathForAssertion(await fs.realpath(loadedServerPath))).toBe(
+        normalizePathForAssertion(resolvedServerPath),
+      );
+      await expectResolvedPathEqual(loadedServer.cwd, resolvedPluginRoot);
+    });
   });
 
   it("merges inline bundle MCP servers and skips disabled bundles", async () => {
     await withBundleHomeEnv(
       tempHarness,
-      "openclaw-bundle-inline",
+      "kova-bundle-inline",
       async ({ homeDir, workspaceDir }) => {
         await writeClaudeBundleManifest({
           homeDir,
@@ -179,7 +175,7 @@ describe("loadEnabledBundleMcpConfig", () => {
   it("resolves inline Claude MCP paths from the plugin root and expands CLAUDE_PLUGIN_ROOT", async () => {
     await withBundleHomeEnv(
       tempHarness,
-      "openclaw-bundle-inline-placeholder",
+      "kova-bundle-inline-placeholder",
       async ({ homeDir, workspaceDir }) => {
         const pluginRoot = await writeClaudeBundleManifest({
           homeDir,

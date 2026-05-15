@@ -83,9 +83,9 @@ async function waitForSessionCompletion(params: {
     .toBe(true);
 }
 
-test("exec supports pty output and OPENCLAW_SHELL", async () => {
+test("exec supports pty output and KOVA_SHELL", async () => {
   const result = await runPtyCommand(
-    currentNodeEvalCommand('process.stdout.write(`ok:${process.env.OPENCLAW_SHELL || ""}`)'),
+    currentNodeEvalCommand('process.stdout.write(`ok:${process.env.KOVA_SHELL || ""}`)'),
   );
 
   expect(result.status).toBe("completed");

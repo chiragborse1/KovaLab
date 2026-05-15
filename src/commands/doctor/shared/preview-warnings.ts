@@ -2,7 +2,7 @@ import { resolveAgentConfig } from "../../../agents/agent-scope-config.js";
 import { pickSandboxToolPolicy } from "../../../agents/sandbox-tool-policy.js";
 import { isToolAllowedByPolicies } from "../../../agents/tool-policy-match.js";
 import { mergeAlsoAllowPolicy, resolveToolProfilePolicy } from "../../../agents/tool-policy.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { AgentToolsConfig, ToolsConfig } from "../../../config/types.tools.js";
 import { collectChannelRouteTargets } from "../../../routing/channel-route-targets.js";
 
@@ -19,19 +19,19 @@ function hasRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function hasChannels(cfg: OpenClawConfig): boolean {
+function hasChannels(cfg: KovaConfig): boolean {
   return hasRecord(cfg.channels);
 }
 
-function listAgentRecords(cfg: OpenClawConfig): Record<string, unknown>[] {
+function listAgentRecords(cfg: KovaConfig): Record<string, unknown>[] {
   return Array.isArray(cfg.agents?.list) ? cfg.agents.list.filter(hasRecord) : [];
 }
 
-function hasPlugins(cfg: OpenClawConfig): boolean {
+function hasPlugins(cfg: KovaConfig): boolean {
   return hasRecord(cfg.plugins);
 }
 
-function hasPluginLoadPaths(cfg: OpenClawConfig): boolean {
+function hasPluginLoadPaths(cfg: KovaConfig): boolean {
   const plugins = cfg.plugins;
   if (!hasRecord(plugins)) {
     return false;
@@ -40,7 +40,7 @@ function hasPluginLoadPaths(cfg: OpenClawConfig): boolean {
   return hasRecord(load) && Array.isArray(load.paths) && load.paths.length > 0;
 }
 
-function hasExplicitChannelPluginBlockerConfig(cfg: OpenClawConfig): boolean {
+function hasExplicitChannelPluginBlockerConfig(cfg: KovaConfig): boolean {
   if (cfg.plugins?.enabled === false) {
     return true;
   }
@@ -68,7 +68,7 @@ function hasToolsBySenderKey(value: unknown): boolean {
   );
 }
 
-function hasConfiguredSafeBins(cfg: OpenClawConfig): boolean {
+function hasConfiguredSafeBins(cfg: KovaConfig): boolean {
   const globalExec = cfg.tools?.exec;
   if (
     hasRecord(globalExec) &&
@@ -105,7 +105,7 @@ function resolveMessageToolAvailability(params: {
   ]);
 }
 
-function collectMessageToolUnavailableTargets(cfg: OpenClawConfig): string[] {
+function collectMessageToolUnavailableTargets(cfg: KovaConfig): string[] {
   const agents = listAgentRecords(cfg);
   if (agents.length === 0) {
     return resolveMessageToolAvailability({ globalTools: cfg.tools })
@@ -122,7 +122,7 @@ function collectMessageToolUnavailableTargets(cfg: OpenClawConfig): string[] {
   );
 }
 
-function resolveGroupVisibleReplyProvenance(cfg: OpenClawConfig): {
+function resolveGroupVisibleReplyProvenance(cfg: KovaConfig): {
   path: "messages.groupChat.visibleReplies";
   provenance: VisibleReplyPolicyProvenance;
   value: "automatic" | "message_tool";
@@ -149,7 +149,7 @@ function formatTargets(targets: string[]): string {
   return `${targets.slice(0, 2).join(", ")}, and ${targets.length - 2} more`;
 }
 
-export function collectVisibleReplyToolPolicyWarnings(cfg: OpenClawConfig): string[] {
+export function collectVisibleReplyToolPolicyWarnings(cfg: KovaConfig): string[] {
   const targets = collectMessageToolUnavailableTargets(cfg);
   if (targets.length === 0) {
     return [];
@@ -185,7 +185,7 @@ function formatChannelList(channels: string[]): string {
     .join(", ")}, and ${channels.length - 2} more`;
 }
 
-export function collectChannelBoundMessageToolPolicyWarnings(cfg: OpenClawConfig): string[] {
+export function collectChannelBoundMessageToolPolicyWarnings(cfg: KovaConfig): string[] {
   return collectChannelRouteTargets(cfg).flatMap((target) => {
     const agentTools = resolveAgentConfig(cfg, target.agentId)?.tools;
     if (resolveMessageToolAvailability({ globalTools: cfg.tools, agentTools })) {
@@ -200,7 +200,7 @@ export function collectChannelBoundMessageToolPolicyWarnings(cfg: OpenClawConfig
 }
 
 export async function collectDoctorPreviewWarnings(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   doctorFixCommand: string;
   env?: NodeJS.ProcessEnv;
 }): Promise<string[]> {

@@ -1,4 +1,4 @@
-import OpenClawKit
+import KovaKit
 import Foundation
 import Network
 import Observation
@@ -52,9 +52,9 @@ final class GatewayDiscoveryModel {
         if !self.browsers.isEmpty { return }
         self.appendDebugLog("start()")
 
-        for domain in OpenClawBonjour.gatewayServiceDomains {
+        for domain in KovaBonjour.gatewayServiceDomains {
             let browser = GatewayDiscoveryBrowserSupport.makeBrowser(
-                serviceType: OpenClawBonjour.gatewayServiceType,
+                serviceType: KovaBonjour.gatewayServiceType,
                 domain: domain,
                 queueLabelPrefix: "ai.kova.ios.gateway-discovery",
                 onState: { [weak self] state in
@@ -159,7 +159,7 @@ final class GatewayDiscoveryModel {
 
     private static func prettifyInstanceName(_ decodedName: String) -> String {
         let normalized = decodedName.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-        let stripped = normalized.replacingOccurrences(of: " (OpenClaw)", with: "")
+        let stripped = normalized.replacingOccurrences(of: " (Kova)", with: "")
             .replacingOccurrences(of: #"\s+\(\d+\)$"#, with: "", options: .regularExpression)
         return stripped.trimmingCharacters(in: .whitespacesAndNewlines)
     }

@@ -1,6 +1,6 @@
-import type { ModelCatalogEntry } from "openclaw/plugin-sdk/agent-runtime";
-import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
-import { normalizeModelCompat } from "openclaw/plugin-sdk/provider-model-shared";
+import type { ModelCatalogEntry } from "getkova/plugin-sdk/agent-runtime";
+import type { ProviderRuntimeModel } from "getkova/plugin-sdk/plugin-entry";
+import { normalizeModelCompat } from "getkova/plugin-sdk/provider-model-shared";
 
 const PROVIDER_ID = "opencode-go";
 

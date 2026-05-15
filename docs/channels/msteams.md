@@ -16,7 +16,7 @@ If you are on an older build or a custom install that excludes bundled Teams,
 install it manually:
 
 ```bash
-kova plugins install @openclaw/msteams
+kova plugins install @kovaai/msteams
 ```
 
 Local checkout (when running from a git repo):
@@ -49,11 +49,11 @@ Install and authenticate the devtunnel CLI if you haven't already ([getting star
 
 ```bash
 # One-time setup (persistent URL across sessions):
-devtunnel create my-openclaw-bot --allow-anonymous
-devtunnel port create my-openclaw-bot -p 3978 --protocol auto
+devtunnel create my-kova-bot --allow-anonymous
+devtunnel port create my-kova-bot -p 3978 --protocol auto
 
 # Each dev session:
-devtunnel host my-openclaw-bot
+devtunnel host my-kova-bot
 # Your endpoint: https://<tunnel-id>.devtunnels.ms/api/messages
 ```
 
@@ -206,7 +206,7 @@ If you can't use the Teams CLI, you can set up the bot manually through the Azur
 2. Create an **Azure Bot** (App ID + secret + tenant ID).
 3. Build a **Teams app package** that references the bot and includes the RSC permissions below.
 4. Upload/install the Teams app into a team (or personal scope for DMs).
-5. Configure `msteams` in `~/.openclaw/openclaw.json` (or env vars) and start the gateway.
+5. Configure `msteams` in `~/.chiragborse1/KovaLab.json` (or env vars) and start the gateway.
 6. The gateway listens for Bot Framework webhook traffic on `/api/messages` by default.
 
 ### Step 1: Create Azure Bot
@@ -214,14 +214,14 @@ If you can't use the Teams CLI, you can set up the bot manually through the Azur
 1. Go to [Create Azure Bot](https://portal.azure.com/#create/Microsoft.AzureBot)
 2. Fill in the **Basics** tab:
 
-   | Field              | Value                                                    |
-   | ------------------ | -------------------------------------------------------- |
-   | **Bot handle**     | Your bot name, e.g., `openclaw-msteams` (must be unique) |
-   | **Subscription**   | Select your Azure subscription                           |
-   | **Resource group** | Create new or use existing                               |
-   | **Pricing tier**   | **Free** for dev/testing                                 |
-   | **Type of App**    | **Single Tenant** (recommended - see note below)         |
-   | **Creation type**  | **Create new Microsoft App ID**                          |
+   | Field              | Value                                                |
+   | ------------------ | ---------------------------------------------------- |
+   | **Bot handle**     | Your bot name, e.g., `kova-msteams` (must be unique) |
+   | **Subscription**   | Select your Azure subscription                       |
+   | **Resource group** | Create new or use existing                           |
+   | **Pricing tier**   | **Free** for dev/testing                             |
+   | **Type of App**    | **Single Tenant** (recommended - see note below)     |
+   | **Creation type**  | **Create new Microsoft App ID**                      |
 
 <Warning>
 Creation of new multi-tenant bots was deprecated after 2025-07-31. Use **Single Tenant** for new bots.
@@ -431,11 +431,11 @@ Teams can't reach `localhost`. Use a persistent dev tunnel so your URL stays the
 
 ```bash
 # One-time setup:
-devtunnel create my-openclaw-bot --allow-anonymous
-devtunnel port create my-openclaw-bot -p 3978 --protocol auto
+devtunnel create my-kova-bot --allow-anonymous
+devtunnel port create my-kova-bot -p 3978 --protocol auto
 
 # Each dev session:
-devtunnel host my-openclaw-bot
+devtunnel host my-kova-bot
 ```
 
 Alternatives: `ngrok http 3978` or `tailscale funnel 3978` (URLs may change each session).
@@ -830,14 +830,14 @@ Per-user sharing is more secure as only the chat participants can access the fil
 
 ### Files stored location
 
-Uploaded files are stored in a `/OpenClawShared/` folder in the configured SharePoint site's default document library.
+Uploaded files are stored in a `/KovaShared/` folder in the configured SharePoint site's default document library.
 
 ## Polls (Adaptive Cards)
 
 Kova sends Teams polls as Adaptive Cards (there is no native Teams poll API).
 
 - CLI: `kova message poll --channel msteams --target conversation:<id> ...`
-- Votes are recorded by the gateway in `~/.openclaw/msteams-polls.json`.
+- Votes are recorded by the gateway in `~/.kova/msteams-polls.json`.
 - The gateway must stay online to record votes.
 - Polls do not auto-post result summaries yet (inspect the store file if needed).
 

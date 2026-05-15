@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-build.sh"
-IMAGE_NAME="${OPENCLAW_CLEANUP_SMOKE_IMAGE:-openclaw-cleanup-smoke:local}"
-PLATFORM="${OPENCLAW_CLEANUP_SMOKE_PLATFORM:-linux/amd64}"
+IMAGE_NAME="${KOVA_CLEANUP_SMOKE_IMAGE:-kova-cleanup-smoke:local}"
+PLATFORM="${KOVA_CLEANUP_SMOKE_PLATFORM:-linux/amd64}"
 
 echo "==> Build image: $IMAGE_NAME"
 docker_build_run cleanup-build \

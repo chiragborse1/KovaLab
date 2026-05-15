@@ -51,7 +51,7 @@ describe("resolveFutureConfigActionBlock", () => {
     ).toBeNull();
   });
 
-  it("allows modern Kova builds to operate on legacy OpenClaw-written configs", () => {
+  it("allows modern Kova builds to operate on legacy Kova-written configs", () => {
     expect(
       resolveFutureConfigActionBlock({
         action: "stop the gateway service",

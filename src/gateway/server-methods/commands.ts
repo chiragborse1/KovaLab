@@ -7,7 +7,7 @@ import type {
 } from "../../auto-reply/commands-registry.types.js";
 import { listSkillCommandsForAgents } from "../../auto-reply/skill-commands.js";
 import { getChannelPlugin } from "../../channels/plugins/index.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { getPluginCommandSpecs } from "../../plugins/command-specs.js";
 import { listPluginCommands } from "../../plugins/commands.js";
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
@@ -51,11 +51,7 @@ function clampDescription(value: string | undefined): string {
   return clampString(value ?? "", COMMAND_DESCRIPTION_MAX_LENGTH);
 }
 
-function resolveAgentIdOrRespondError(
-  rawAgentId: unknown,
-  respond: RespondFn,
-  cfg: OpenClawConfig,
-) {
+function resolveAgentIdOrRespondError(rawAgentId: unknown, respond: RespondFn, cfg: KovaConfig) {
   const knownAgents = listAgentIds(cfg);
   const requestedAgentId = typeof rawAgentId === "string" ? rawAgentId.trim() : "";
   const agentId = requestedAgentId || resolveDefaultAgentId(cfg);
@@ -174,7 +170,7 @@ function mapCommand(
 function buildPluginCommandEntries(params: {
   provider?: string;
   nameSurface: CommandNameSurface;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
 }): CommandEntry[] {
   const pluginTextSpecs = listPluginCommands();
   const pluginNativeSpecs = getPluginCommandSpecs(params.provider, { config: params.cfg });
@@ -204,7 +200,7 @@ function buildPluginCommandEntries(params: {
 }
 
 export function buildCommandsListResult(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   agentId: string;
   provider?: string;
   scope?: "native" | "text" | "both";

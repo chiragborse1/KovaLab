@@ -11,20 +11,18 @@ describe("package Telegram live Docker E2E", () => {
   it("supports npm-specific Convex credential aliases", () => {
     const script = readFileSync(DOCKER_SCRIPT_PATH, "utf8");
 
-    expect(script).toContain("OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE");
-    expect(script).toContain("OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE");
-    expect(script).toContain('docker_env+=(-e OPENCLAW_QA_CREDENTIAL_SOURCE="$credential_source")');
-    expect(script).toContain('docker_env+=(-e OPENCLAW_QA_CREDENTIAL_ROLE="$credential_role")');
+    expect(script).toContain("KOVA_NPM_TELEGRAM_CREDENTIAL_SOURCE");
+    expect(script).toContain("KOVA_NPM_TELEGRAM_CREDENTIAL_ROLE");
+    expect(script).toContain('docker_env+=(-e KOVA_QA_CREDENTIAL_SOURCE="$credential_source")');
+    expect(script).toContain('docker_env+=(-e KOVA_QA_CREDENTIAL_ROLE="$credential_role")');
   });
 
   it("defaults CI runs to Convex when broker credentials are present", () => {
     const script = readFileSync(DOCKER_SCRIPT_PATH, "utf8");
 
-    expect(script).toContain(
-      'if [ -n "${CI:-}" ] && [ -n "${OPENCLAW_QA_CONVEX_SITE_URL:-}" ]; then',
-    );
-    expect(script).toContain("OPENCLAW_QA_CONVEX_SECRET_CI");
-    expect(script).toContain("OPENCLAW_QA_CONVEX_SECRET_MAINTAINER");
+    expect(script).toContain('if [ -n "${CI:-}" ] && [ -n "${KOVA_QA_CONVEX_SITE_URL:-}" ]; then');
+    expect(script).toContain("KOVA_QA_CONVEX_SECRET_CI");
+    expect(script).toContain("KOVA_QA_CONVEX_SECRET_MAINTAINER");
     expect(script).toContain('printf "convex"');
   });
 
@@ -44,14 +42,14 @@ describe("package Telegram live Docker E2E", () => {
   it("can install a resolved package tarball instead of a registry spec", () => {
     const script = readFileSync(DOCKER_SCRIPT_PATH, "utf8");
 
-    expect(script).toContain("OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ");
-    expect(script).toContain("OPENCLAW_CURRENT_PACKAGE_TGZ");
+    expect(script).toContain("KOVA_NPM_TELEGRAM_PACKAGE_TGZ");
+    expect(script).toContain("KOVA_CURRENT_PACKAGE_TGZ");
     expect(script).toContain(
       'package_mount_args=(-v "$resolved_package_tgz:$package_install_source:ro")',
     );
-    expect(script).toContain('validate_openclaw_package_spec "$PACKAGE_SPEC"');
+    expect(script).toContain('validate_kova_package_spec "$PACKAGE_SPEC"');
     expect(script.indexOf('if [ -n "$resolved_package_tgz" ]; then')).toBeLessThan(
-      script.indexOf('validate_openclaw_package_spec "$PACKAGE_SPEC"'),
+      script.indexOf('validate_kova_package_spec "$PACKAGE_SPEC"'),
     );
   });
 
@@ -66,10 +64,10 @@ describe("package Telegram live Docker E2E", () => {
       "utf8",
     );
 
-    expect(script).toContain('ln -sfnT "$openclaw_package_dir/dist" /app/dist');
-    expect(script).toContain('cp "$openclaw_package_dir/package.json" /app/package.json');
-    expect(script).toContain('ln -sfnT /app/extensions "$openclaw_package_dir/extensions"');
-    expect(script).toContain('"/app/node_modules/openclaw/package.json"');
+    expect(script).toContain('ln -sfnT "$kova_package_dir/dist" /app/dist');
+    expect(script).toContain('cp "$kova_package_dir/package.json" /app/package.json');
+    expect(script).toContain('ln -sfnT /app/extensions "$kova_package_dir/extensions"');
+    expect(script).toContain('"/app/node_modules/kova/package.json"');
     expect(script).toContain('"/app/node_modules/getkova/package.json"');
     expect(script).toContain('pkg.exports["./plugin-sdk/qa-channel"]');
     expect(script).toContain('"./extensions/qa-channel/api.ts"');
@@ -77,9 +75,9 @@ describe("package Telegram live Docker E2E", () => {
     expect(script).toContain('"./extensions/qa-channel/src/protocol.ts"');
     expect(script).toContain('pkg.exports["./plugin-sdk/gateway-runtime"]');
     expect(script).toContain('"./dist/plugin-sdk/browser-node-runtime.js"');
-    expect(gatewayRpcClient).toContain('from "openclaw/plugin-sdk/gateway-runtime"');
-    expect(qaRuntimeApi).toContain('from "openclaw/plugin-sdk/gateway-runtime"');
-    expect(gatewayRpcClient).not.toContain('from "openclaw/plugin-sdk/browser-node-runtime"');
+    expect(gatewayRpcClient).toContain('from "getkova/plugin-sdk/gateway-runtime"');
+    expect(qaRuntimeApi).toContain('from "getkova/plugin-sdk/gateway-runtime"');
+    expect(gatewayRpcClient).not.toContain('from "getkova/plugin-sdk/browser-node-runtime"');
   });
 
   it("exposes installed package dependencies to the mounted QA harness", () => {
@@ -99,14 +97,14 @@ describe("package Telegram live Docker E2E", () => {
   it("lets npm-specific credential aliases override shared QA env", () => {
     expect(
       __testing.resolveCredentialSource({
-        OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE: "convex",
-        OPENCLAW_QA_CREDENTIAL_SOURCE: "env",
+        KOVA_NPM_TELEGRAM_CREDENTIAL_SOURCE: "convex",
+        KOVA_QA_CREDENTIAL_SOURCE: "env",
       }),
     ).toBe("convex");
     expect(
       __testing.resolveCredentialRole({
-        OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE: "ci",
-        OPENCLAW_QA_CREDENTIAL_ROLE: "maintainer",
+        KOVA_NPM_TELEGRAM_CREDENTIAL_ROLE: "ci",
+        KOVA_QA_CREDENTIAL_ROLE: "maintainer",
       }),
     ).toBe("ci");
   });

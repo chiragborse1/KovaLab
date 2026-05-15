@@ -263,7 +263,7 @@ Kova keeps one combined live cache regression gate for repeated prefixes, tool t
 Run the narrow live gate with:
 
 ```sh
-OPENCLAW_LIVE_TEST=1 OPENCLAW_LIVE_CACHE_TEST=1 pnpm test:live:cache
+KOVA_LIVE_TEST=1 KOVA_LIVE_CACHE_TEST=1 pnpm test:live:cache
 ```
 
 The baseline file stores the most recent observed live numbers plus the provider-specific regression floors used by the test.
@@ -308,7 +308,7 @@ Why the assertions differ:
 diagnostics:
   cacheTrace:
     enabled: true
-    filePath: "~/.openclaw/logs/cache-trace.jsonl" # optional
+    filePath: "~/.kova/logs/cache-trace.jsonl" # optional
     includeMessages: false # default true
     includePrompt: false # default true
     includeSystem: false # default true
@@ -316,18 +316,18 @@ diagnostics:
 
 Defaults:
 
-- `filePath`: `$OPENCLAW_STATE_DIR/logs/cache-trace.jsonl`
+- `filePath`: `$KOVA_STATE_DIR/logs/cache-trace.jsonl`
 - `includeMessages`: `true`
 - `includePrompt`: `true`
 - `includeSystem`: `true`
 
 ### Env toggles (one-off debugging)
 
-- `OPENCLAW_CACHE_TRACE=1` enables cache tracing.
-- `OPENCLAW_CACHE_TRACE_FILE=/path/to/cache-trace.jsonl` overrides output path.
-- `OPENCLAW_CACHE_TRACE_MESSAGES=0|1` toggles full message payload capture.
-- `OPENCLAW_CACHE_TRACE_PROMPT=0|1` toggles prompt text capture.
-- `OPENCLAW_CACHE_TRACE_SYSTEM=0|1` toggles system prompt capture.
+- `KOVA_CACHE_TRACE=1` enables cache tracing.
+- `KOVA_CACHE_TRACE_FILE=/path/to/cache-trace.jsonl` overrides output path.
+- `KOVA_CACHE_TRACE_MESSAGES=0|1` toggles full message payload capture.
+- `KOVA_CACHE_TRACE_PROMPT=0|1` toggles prompt text capture.
+- `KOVA_CACHE_TRACE_SYSTEM=0|1` toggles system prompt capture.
 
 ### What to inspect
 

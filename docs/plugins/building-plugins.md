@@ -14,8 +14,8 @@ generation, video generation, web fetch, web search, agent tools, or any
 combination.
 
 You do not need to add your plugin to the Kova repository. Publish to
-[ClawHub](/tools/clawhub) or npm and users install with
-`kova plugins install <package-name>`. Kova tries ClawHub first and
+[KovaHub](/tools/kovahub) or npm and users install with
+`kova plugins install <package-name>`. Kova tries KovaHub first and
 falls back to npm automatically.
 
 ## Prerequisites
@@ -40,7 +40,7 @@ falls back to npm automatically.
 
 For a channel plugin that isn't guaranteed to be installed when onboarding/setup
 runs, use `createOptionalChannelSetupSurface(...)` from
-`openclaw/plugin-sdk/channel-setup`. It produces a setup adapter + wizard pair
+`getkova/plugin-sdk/channel-setup`. It produces a setup adapter + wizard pair
 that advertises the install requirement and fails closed on real config writes
 until the plugin is installed.
 
@@ -54,24 +54,24 @@ and provider plugins have dedicated guides linked above.
     <CodeGroup>
     ```json package.json
     {
-      "name": "@myorg/openclaw-my-plugin",
+      "name": "@myorg/kova-my-plugin",
       "version": "1.0.0",
       "type": "module",
-      "openclaw": {
+      "kova": {
         "extensions": ["./index.ts"],
         "compat": {
           "pluginApi": ">=2026.3.24-beta.2",
           "minGatewayVersion": "2026.3.24-beta.2"
         },
         "build": {
-          "openclawVersion": "2026.3.24-beta.2",
+          "kovaVersion": "2026.3.24-beta.2",
           "pluginSdkVersion": "2026.3.24-beta.2"
         }
       }
     }
     ```
 
-    ```json openclaw.plugin.json
+    ```json kova.plugin.json
     {
       "id": "my-plugin",
       "name": "My Plugin",
@@ -85,7 +85,7 @@ and provider plugins have dedicated guides linked above.
     </CodeGroup>
 
     Every plugin needs a manifest, even with no config. See
-    [Manifest](/plugins/manifest) for the full schema. The canonical ClawHub
+    [Manifest](/plugins/manifest) for the full schema. The canonical KovaHub
     publish snippets live in `docs/snippets/plugin-publish/`.
 
   </Step>
@@ -94,7 +94,7 @@ and provider plugins have dedicated guides linked above.
 
     ```typescript
     // index.ts
-    import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+    import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
     import { Type } from "@sinclair/typebox";
 
     export default definePluginEntry({
@@ -122,16 +122,16 @@ and provider plugins have dedicated guides linked above.
 
   <Step title="Test and publish">
 
-    **External plugins:** validate and publish with ClawHub, then install:
+    **External plugins:** validate and publish with KovaHub, then install:
 
     ```bash
-    clawhub package publish your-org/your-plugin --dry-run
-    clawhub package publish your-org/your-plugin
-    kova plugins install clawhub:@myorg/openclaw-my-plugin
+    kovahub package publish your-org/your-plugin --dry-run
+    kovahub package publish your-org/your-plugin
+    kova plugins install kovahub:@myorg/kova-my-plugin
     ```
 
-    Kova also checks ClawHub before npm for bare package specs like
-    `@myorg/openclaw-my-plugin`.
+    Kova also checks KovaHub before npm for bare package specs like
+    `@myorg/kova-my-plugin`.
 
     **In-repo plugins:** place under the bundled plugin workspace tree — automatically discovered.
 
@@ -197,7 +197,7 @@ Hook guard semantics to keep in mind:
 The `/approve` command handles both exec and plugin approvals with bounded fallback: when an exec approval id is not found, Kova retries the same id through plugin approvals. Plugin approval forwarding can be configured independently via `approvals.plugin` in config.
 
 If custom approval plumbing needs to detect that same bounded fallback case,
-prefer `isApprovalNotFoundError` from `openclaw/plugin-sdk/error-runtime`
+prefer `isApprovalNotFoundError` from `getkova/plugin-sdk/error-runtime`
 instead of matching approval-expiry strings manually.
 
 See [Plugin hooks](/plugins/hooks) for examples and the hook reference.
@@ -249,14 +249,14 @@ Users enable optional tools in config:
 
 ## Import conventions
 
-Always import from focused `openclaw/plugin-sdk/<subpath>` paths:
+Always import from focused `getkova/plugin-sdk/<subpath>` paths:
 
 ```typescript
-import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
+import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
+import { createPluginRuntimeStore } from "getkova/plugin-sdk/runtime-store";
 
 // Wrong: monolithic root (deprecated, will be removed)
-import { ... } from "openclaw/plugin-sdk";
+import { ... } from "getkova/plugin-sdk";
 ```
 
 For the full subpath reference, see [SDK Overview](/plugins/sdk-overview).
@@ -272,9 +272,9 @@ barrels unless the seam is truly generic. Current bundled examples:
 - OpenRouter: provider builder plus onboarding/config helpers
 
 If a helper is only useful inside one bundled provider package, keep it on that
-package-root seam instead of promoting it into `openclaw/plugin-sdk/*`.
+package-root seam instead of promoting it into `getkova/plugin-sdk/*`.
 
-Some generated `openclaw/plugin-sdk/<bundled-id>` helper seams still exist for
+Some generated `getkova/plugin-sdk/<bundled-id>` helper seams still exist for
 bundled-plugin maintenance and compatibility, for example
 `plugin-sdk/feishu-setup` or `plugin-sdk/zalo-setup`. Treat those as reserved
 surfaces, not as the default pattern for new third-party plugins.
@@ -282,7 +282,7 @@ surfaces, not as the default pattern for new third-party plugins.
 ## Pre-submission checklist
 
 <Check>**package.json** has correct `kova` metadata</Check>
-<Check>**openclaw.plugin.json** manifest is present and valid</Check>
+<Check>**kova.plugin.json** manifest is present and valid</Check>
 <Check>Entry point uses `defineChannelPluginEntry` or `definePluginEntry`</Check>
 <Check>All imports use focused `plugin-sdk/<subpath>` paths</Check>
 <Check>Internal imports use local modules, not SDK self-imports</Check>
@@ -291,7 +291,7 @@ surfaces, not as the default pattern for new third-party plugins.
 
 ## Beta release testing
 
-1. Watch for GitHub release tags on [openclaw/openclaw](https://github.com/openclaw/openclaw/releases) and subscribe via `Watch` > `Releases`. Beta tags look like `v2026.3.N-beta.1`. You can also turn on notifications for the official Kova X account [@openclaw](https://x.com/openclaw) for release announcements.
+1. Watch for GitHub release tags on [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab/releases) and subscribe via `Watch` > `Releases`. Beta tags look like `v2026.3.N-beta.1`. You can also turn on notifications for the official Kova X account [@kovaai](https://x.com/kova) for release announcements.
 2. Test your plugin against the beta tag as soon as it appears. The window before stable is typically only a few hours.
 3. Post in your plugin's thread in the `plugin-forum` Discord channel after testing with either `all good` or what broke. If you do not have a thread yet, create one.
 4. If something breaks, open or update an issue titled `Beta blocker: <plugin-name> - <summary>` and apply the `beta-blocker` label. Put the issue link in your thread.

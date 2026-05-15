@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/microsoft-speech",
+  "name": "@kovaai/microsoft-speech",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Microsoft speech plugin",
@@ -8,9 +8,9 @@
     "node-edge-tts": "^1.2.10"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

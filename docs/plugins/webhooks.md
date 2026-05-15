@@ -40,7 +40,7 @@ Set config under `plugins.entries.webhooks.config`:
               secret: {
                 source: "env",
                 provider: "default",
-                id: "OPENCLAW_WEBHOOK_SECRET",
+                id: "KOVA_WEBHOOK_SECRET",
               },
               controllerId: "webhooks/zapier",
               description: "Zapier TaskFlow bridge",
@@ -96,7 +96,7 @@ The plugin applies:
 Send `POST` requests with:
 
 - `Content-Type: application/json`
-- `Authorization: Bearer <secret>` or `x-openclaw-webhook-secret: <secret>`
+- `Authorization: Bearer <secret>` or `x-kova-webhook-secret: <secret>`
 
 Example:
 

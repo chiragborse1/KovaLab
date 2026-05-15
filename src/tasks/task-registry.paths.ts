@@ -1,12 +1,12 @@
 import os from "node:os";
 import path from "node:path";
 import { isMainThread, threadId } from "node:worker_threads";
-import { resolveOpenClawCompatMode, resolveStateDir } from "../config/paths.js";
+import { resolveKovaCompatMode, resolveStateDir } from "../config/paths.js";
 
 export function resolveTaskStateDir(env: NodeJS.ProcessEnv = process.env): string {
   const explicit =
     env.KOVA_STATE_DIR?.trim() ||
-    (resolveOpenClawCompatMode(env) ? env.OPENCLAW_STATE_DIR?.trim() : undefined);
+    (resolveKovaCompatMode(env) ? env.KOVA_STATE_DIR?.trim() : undefined);
   if (explicit) {
     return resolveStateDir(env);
   }
@@ -18,7 +18,7 @@ export function resolveTaskStateDir(env: NodeJS.ProcessEnv = process.env): strin
       : isMainThread
         ? String(process.pid)
         : `${process.pid}-${threadId}`;
-    return path.join(os.tmpdir(), "openclaw-test-state", shardSuffix);
+    return path.join(os.tmpdir(), "kova-test-state", shardSuffix);
   }
   return resolveStateDir(env);
 }

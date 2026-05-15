@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/media-understanding-core",
+  "name": "@kovaai/media-understanding-core",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova media understanding runtime package",
@@ -8,9 +8,9 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "bundle": {
       "stageRuntimeDependencies": true
     }

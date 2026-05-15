@@ -126,27 +126,27 @@ describe("scheduled task runtime derivation", () => {
 describe("resolveTaskScriptPath", () => {
   it.each([
     {
-      name: "uses default path when OPENCLAW_PROFILE is unset",
+      name: "uses default path when KOVA_PROFILE is unset",
       env: { USERPROFILE: "C:\\Users\\test" },
       expected: path.join("C:\\Users\\test", ".kova", "gateway.cmd"),
     },
     {
-      name: "uses profile-specific path when OPENCLAW_PROFILE is set to a custom value",
-      env: { USERPROFILE: "C:\\Users\\test", OPENCLAW_PROFILE: "jbphoenix" },
+      name: "uses profile-specific path when KOVA_PROFILE is set to a custom value",
+      env: { USERPROFILE: "C:\\Users\\test", KOVA_PROFILE: "jbphoenix" },
       expected: path.join("C:\\Users\\test", ".kova-jbphoenix", "gateway.cmd"),
     },
     {
-      name: "prefers OPENCLAW_STATE_DIR over profile-derived defaults",
+      name: "prefers KOVA_STATE_DIR over profile-derived defaults",
       env: {
         USERPROFILE: "C:\\Users\\test",
-        OPENCLAW_PROFILE: "rescue",
-        OPENCLAW_STATE_DIR: "C:\\State\\openclaw",
+        KOVA_PROFILE: "rescue",
+        KOVA_STATE_DIR: "C:\\State\\kova",
       },
-      expected: path.join("C:\\State\\openclaw", "gateway.cmd"),
+      expected: path.join("C:\\State\\kova", "gateway.cmd"),
     },
     {
       name: "falls back to HOME when USERPROFILE is not set",
-      env: { HOME: "/home/test", OPENCLAW_PROFILE: "default" },
+      env: { HOME: "/home/test", KOVA_PROFILE: "default" },
       expected: path.join("/home/test", ".kova", "gateway.cmd"),
     },
   ])("$name", ({ env, expected }) => {
@@ -164,12 +164,12 @@ describe("readScheduledTaskCommand", () => {
     },
     run: (env: Record<string, string | undefined>) => Promise<void>,
   ) {
-    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-schtasks-test-"));
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-schtasks-test-"));
     try {
       const extraEnv = typeof options.env === "function" ? options.env(tmpDir) : options.env;
       const env = {
         USERPROFILE: tmpDir,
-        OPENCLAW_PROFILE: "default",
+        KOVA_PROFILE: "default",
         ...extraEnv,
       };
       if (options.scriptLines) {
@@ -222,9 +222,9 @@ describe("readScheduledTaskCommand", () => {
         scriptLines: [
           "@echo off",
           "rem Kova Gateway",
-          "cd /d C:\\Projects\\openclaw",
+          "cd /d C:\\Projects\\kova",
           "set NODE_ENV=production",
-          "set OPENCLAW_PORT=18789",
+          "set KOVA_PORT=18789",
           "node gateway.js --verbose",
         ],
       },
@@ -232,14 +232,14 @@ describe("readScheduledTaskCommand", () => {
         const result = await readScheduledTaskCommand(env);
         expect(result).toEqual({
           programArguments: ["node", "gateway.js", "--verbose"],
-          workingDirectory: "C:\\Projects\\openclaw",
+          workingDirectory: "C:\\Projects\\kova",
           environment: {
             NODE_ENV: "production",
-            OPENCLAW_PORT: "18789",
+            KOVA_PORT: "18789",
           },
           environmentValueSources: {
             NODE_ENV: "inline",
-            OPENCLAW_PORT: "inline",
+            KOVA_PORT: "inline",
           },
           sourcePath: resolveTaskScriptPath(env),
         });
@@ -252,7 +252,7 @@ describe("readScheduledTaskCommand", () => {
       {
         scriptLines: [
           "@echo off",
-          '"C:\\Program Files\\nodejs\\node.exe" C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\openclaw\\dist\\index.js gateway --port 18789',
+          '"C:\\Program Files\\nodejs\\node.exe" C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\kova\\dist\\index.js gateway --port 18789',
         ],
       },
       async (env) => {
@@ -260,7 +260,7 @@ describe("readScheduledTaskCommand", () => {
         expect(result).toEqual({
           programArguments: [
             "C:\\Program Files\\nodejs\\node.exe",
-            "C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\openclaw\\dist\\index.js",
+            "C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\kova\\dist\\index.js",
             "gateway",
             "--port",
             "18789",
@@ -276,15 +276,15 @@ describe("readScheduledTaskCommand", () => {
       {
         scriptLines: [
           "@echo off",
-          '"\\\\fileserver\\OpenClaw Share\\node.exe" "\\\\fileserver\\OpenClaw Share\\dist\\index.js" gateway --port 18789',
+          '"\\\\fileserver\\Kova Share\\node.exe" "\\\\fileserver\\Kova Share\\dist\\index.js" gateway --port 18789',
         ],
       },
       async (env) => {
         const result = await readScheduledTaskCommand(env);
         expect(result).toEqual({
           programArguments: [
-            "\\\\fileserver\\OpenClaw Share\\node.exe",
-            "\\\\fileserver\\OpenClaw Share\\dist\\index.js",
+            "\\\\fileserver\\Kova Share\\node.exe",
+            "\\\\fileserver\\Kova Share\\dist\\index.js",
             "gateway",
             "--port",
             "18789",
@@ -295,10 +295,10 @@ describe("readScheduledTaskCommand", () => {
     );
   });
 
-  it("reads script from OPENCLAW_STATE_DIR override", async () => {
+  it("reads script from KOVA_STATE_DIR override", async () => {
     await withScheduledTaskScript(
       {
-        env: (tmpDir) => ({ OPENCLAW_STATE_DIR: path.join(tmpDir, "custom-state") }),
+        env: (tmpDir) => ({ KOVA_STATE_DIR: path.join(tmpDir, "custom-state") }),
         scriptLines: ["@echo off", "node gateway.js --from-state-dir"],
       },
       async (env) => {

@@ -105,13 +105,7 @@ export async function runQaDockerUp(
     sleepImpl,
     composeFile,
   });
-  await waitForDockerServiceHealth(
-    "openclaw-qa-gateway",
-    composeFile,
-    repoRoot,
-    runCommand,
-    sleepImpl,
-  );
+  await waitForDockerServiceHealth("kova-qa-gateway", composeFile, repoRoot, runCommand, sleepImpl);
   let gatewayUrl = hostGatewayUrl;
   if (
     !(await fetchImpl(`${hostGatewayUrl}healthz`)
@@ -119,7 +113,7 @@ export async function runQaDockerUp(
       .catch(() => false))
   ) {
     const containerGatewayUrl = await resolveComposeServiceUrl(
-      "openclaw-qa-gateway",
+      "kova-qa-gateway",
       18789,
       composeFile,
       repoRoot,

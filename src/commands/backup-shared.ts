@@ -59,7 +59,7 @@ function backupAssetPriority(kind: BackupAssetKind): number {
 }
 
 export function buildBackupArchiveRoot(nowMs = Date.now()): string {
-  return `${formatSessionArchiveTimestamp(nowMs)}-openclaw-backup`;
+  return `${formatSessionArchiveTimestamp(nowMs)}-kova-backup`;
 }
 
 export function buildBackupArchiveBasename(nowMs = Date.now()): string {

@@ -5,7 +5,7 @@ import {
   setConfiguredMcpServer,
   unsetConfiguredMcpServer,
 } from "../config/mcp-config.js";
-import { serveOpenClawChannelMcp } from "../mcp/channel-server.js";
+import { serveKovaChannelMcp } from "../mcp/channel-server.js";
 import { defaultRuntime } from "../runtime.js";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -53,7 +53,7 @@ export function registerMcpCli(program: Command) {
         ) {
           throw new Error("Invalid --claude-channel-mode value. Use auto, on, or off.");
         }
-        await serveOpenClawChannelMcp({
+        await serveKovaChannelMcp({
           gatewayUrl: opts.url as string | undefined,
           gatewayToken,
           gatewayPassword,

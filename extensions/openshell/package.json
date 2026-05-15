@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/openshell-sandbox",
+  "name": "@kovaai/openshell-sandbox",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova OpenShell sandbox backend",
@@ -8,9 +8,9 @@
     "openshell": "0.1.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

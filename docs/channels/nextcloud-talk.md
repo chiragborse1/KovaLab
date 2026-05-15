@@ -18,7 +18,7 @@ install it manually:
 Install via CLI (npm registry):
 
 ```bash
-kova plugins install @openclaw/nextcloud-talk
+kova plugins install @kovaai/nextcloud-talk
 ```
 
 Local checkout (when running from a git repo):

@@ -1,1 +1,1 @@
-export { expectChannelInboundContextContract } from "openclaw/plugin-sdk/testing";
+export { expectChannelInboundContextContract } from "getkova/plugin-sdk/testing";

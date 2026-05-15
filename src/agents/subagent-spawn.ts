@@ -3,7 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { isAcpRuntimeSpawnAvailable } from "../acp/runtime/availability.js";
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SubagentSpawnPreparation } from "../context-engine/types.js";
 import { listRegisteredPluginAgentPromptGuidance } from "../plugins/command-registry-state.js";
 import type { SubagentLifecycleHookRunner } from "../plugins/hooks.js";
@@ -255,7 +255,7 @@ function loadSubagentConfig() {
 }
 
 async function persistInitialChildSessionRuntimeModel(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   childSessionKey: string;
   resolvedModel?: string;
 }): Promise<string | undefined> {
@@ -310,7 +310,7 @@ type PreparedSpawnContext =
   | { status: "error"; error: string };
 
 async function prepareSubagentSessionContext(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   contextMode: SpawnSubagentContextMode;
   requesterAgentId: string;
   targetAgentId: string;
@@ -405,7 +405,7 @@ async function prepareSubagentSessionContext(params: {
 }
 
 async function prepareContextEngineSubagentSpawn(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   context: PreparedSpawnContext & { status: "ok" };
   requesterInternalKey: string;
   childSessionKey: string;

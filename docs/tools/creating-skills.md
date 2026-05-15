@@ -18,7 +18,7 @@ For how skills are loaded and prioritized, see [Skills](/tools/skills).
     Skills live in your workspace. Create a new folder:
 
     ```bash
-    mkdir -p ~/.openclaw/workspace/skills/hello-world
+    mkdir -p ~/.kova/workspace/skills/hello-world
     ```
 
   </Step>
@@ -83,20 +83,20 @@ For how skills are loaded and prioritized, see [Skills](/tools/skills).
 
 The YAML frontmatter supports these fields:
 
-| Field                               | Required | Description                                 |
-| ----------------------------------- | -------- | ------------------------------------------- |
-| `name`                              | Yes      | Unique identifier (snake_case)              |
-| `description`                       | Yes      | One-line description shown to the agent     |
-| `metadata.openclaw.os`              | No       | OS filter (`["darwin"]`, `["linux"]`, etc.) |
-| `metadata.openclaw.requires.bins`   | No       | Required binaries on PATH                   |
-| `metadata.openclaw.requires.config` | No       | Required config keys                        |
+| Field                           | Required | Description                                 |
+| ------------------------------- | -------- | ------------------------------------------- |
+| `name`                          | Yes      | Unique identifier (snake_case)              |
+| `description`                   | Yes      | One-line description shown to the agent     |
+| `metadata.kova.os`              | No       | OS filter (`["darwin"]`, `["linux"]`, etc.) |
+| `metadata.kova.requires.bins`   | No       | Required binaries on PATH                   |
+| `metadata.kova.requires.config` | No       | Required config keys                        |
 
 ## Best practices
 
 - **Be concise** — instruct the model on _what_ to do, not how to be an AI
 - **Safety first** — if your skill uses `exec`, ensure prompts don't allow arbitrary command injection from untrusted input
 - **Test locally** — use `kova agent --message "..."` to test before sharing
-- **Use ClawHub** — browse and contribute skills at [ClawHub](https://clawhub.ai)
+- **Use KovaHub** — browse and contribute skills at [KovaHub](https://kovahub.ai)
 
 ## Where skills live
 
@@ -105,13 +105,13 @@ The YAML frontmatter supports these fields:
 | `\<workspace\>/skills/`         | Highest    | Per-agent             |
 | `\<workspace\>/.agents/skills/` | High       | Per-workspace agent   |
 | `~/.agents/skills/`             | Medium     | Shared agent profile  |
-| `~/.openclaw/skills/`           | Medium     | Shared (all agents)   |
-| Bundled (shipped with Kova) | Low        | Global                |
+| `~/.kova/skills/`               | Medium     | Shared (all agents)   |
+| Bundled (shipped with Kova)     | Low        | Global                |
 | `skills.load.extraDirs`         | Lowest     | Custom shared folders |
 
 ## Related
 
 - [Skills reference](/tools/skills) — loading, precedence, and gating rules
 - [Skills config](/tools/skills-config) — `skills.*` config schema
-- [ClawHub](/tools/clawhub) — public skill registry
+- [KovaHub](/tools/kovahub) — public skill registry
 - [Building Plugins](/plugins/building-plugins) — plugins can ship skills

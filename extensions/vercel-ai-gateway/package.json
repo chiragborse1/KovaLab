@@ -1,13 +1,13 @@
 {
-  "name": "@openclaw/vercel-ai-gateway-provider",
+  "name": "@kovaai/vercel-ai-gateway-provider",
   "version": "2.0.0-beta.5",
   "private": true,
   "description": "Kova Vercel AI Gateway provider plugin",
   "type": "module",
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*"
+    "@getkova/plugin-sdk": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ]

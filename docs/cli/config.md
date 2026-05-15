@@ -6,7 +6,7 @@ title: "Config"
 sidebarTitle: "Config"
 ---
 
-Config helpers for non-interactive edits in `openclaw.json`: get/set/unset/file/schema/validate values by path and print the active config file. Run without a subcommand to open the configure wizard (same as `kova configure`).
+Config helpers for non-interactive edits in `kova.json`: get/set/unset/file/schema/validate values by path and print the active config file. Run without a subcommand to open the configure wizard (same as `kova configure`).
 
 ## Root options
 
@@ -30,7 +30,7 @@ kova config set agents.defaults.heartbeat.every "2h"
 kova config set agents.list[0].tools.exec.node "node-id-or-name"
 kova config set agents.defaults.models '{"openai/gpt-5.4":{}}' --strict-json --merge
 kova config set channels.discord.token --ref-provider default --ref-source env --ref-id DISCORD_BOT_TOKEN
-kova config set secrets.providers.vaultfile --provider-source file --provider-path /etc/openclaw/secrets.json --provider-mode json
+kova config set secrets.providers.vaultfile --provider-source file --provider-path /etc/kova/secrets.json --provider-mode json
 kova config unset plugins.entries.brave.config.webSearch.apiKey
 kova config set channels.discord.token --ref-provider default --ref-source env --ref-id DISCORD_BOT_TOKEN --dry-run
 kova config validate
@@ -39,7 +39,7 @@ kova config validate --json
 
 ### `config schema`
 
-Print the generated JSON schema for `openclaw.json` to stdout as JSON.
+Print the generated JSON schema for `kova.json` to stdout as JSON.
 
 <AccordionGroup>
   <Accordion title="What it includes">
@@ -62,7 +62,7 @@ kova config schema
 Pipe it into a file when you want to inspect or validate it with other tools:
 
 ```bash
-kova config schema > openclaw.schema.json
+kova config schema > kova.schema.json
 ```
 
 ### Paths
@@ -130,7 +130,7 @@ Use `--replace` only when you intentionally want the provided value to become th
     ```bash
     kova config set secrets.providers.vault \
       --provider-source exec \
-      --provider-command /usr/local/bin/openclaw-vault \
+      --provider-command /usr/local/bin/kova-vault \
       --provider-arg read \
       --provider-arg openai/api-key \
       --provider-timeout-ms 5000
@@ -172,7 +172,7 @@ kova config set channels.discord.token \
   --strict-json
 
 kova config set secrets.providers.vaultfile \
-  '{"source":"file","path":"/etc/openclaw/secrets.json","mode":"json"}' \
+  '{"source":"file","path":"/etc/kova/secrets.json","mode":"json"}' \
   --strict-json
 ```
 
@@ -213,7 +213,7 @@ Hardened exec provider example:
 ```bash
 kova config set secrets.providers.vault \
   --provider-source exec \
-  --provider-command /usr/local/bin/openclaw-vault \
+  --provider-command /usr/local/bin/kova-vault \
   --provider-arg read \
   --provider-arg openai/api-key \
   --provider-json-only \
@@ -224,7 +224,7 @@ kova config set secrets.providers.vault \
 
 ## Dry run
 
-Use `--dry-run` to validate changes without writing `openclaw.json`.
+Use `--dry-run` to validate changes without writing `kova.json`.
 
 ```bash
 kova config set channels.discord.token \
@@ -303,7 +303,7 @@ kova config set channels.discord.token \
     {
       "ok": true,
       "operations": 1,
-      "configPath": "~/.openclaw/openclaw.json",
+      "configPath": "~/.chiragborse1/KovaLab.json",
       "inputModes": ["builder"],
       "checks": {
         "schema": false,
@@ -320,7 +320,7 @@ kova config set channels.discord.token \
     {
       "ok": false,
       "operations": 1,
-      "configPath": "~/.openclaw/openclaw.json",
+      "configPath": "~/.chiragborse1/KovaLab.json",
       "inputModes": ["builder"],
       "checks": {
         "schema": false,
@@ -353,10 +353,10 @@ kova config set channels.discord.token \
 
 ## Write safety
 
-`kova config set` and other Kova-owned config writers validate the full post-change config before committing it to disk. If the new payload fails schema validation or looks like a destructive clobber, the active config is left alone and the rejected payload is saved beside it as `openclaw.json.rejected.*`.
+`kova config set` and other Kova-owned config writers validate the full post-change config before committing it to disk. If the new payload fails schema validation or looks like a destructive clobber, the active config is left alone and the rejected payload is saved beside it as `kova.json.rejected.*`.
 
 <Warning>
-The active config path must be a regular file. Symlinked `openclaw.json` layouts are unsupported for writes; use `OPENCLAW_CONFIG_PATH` to point directly at the real file instead.
+The active config path must be a regular file. Symlinked `kova.json` layouts are unsupported for writes; use `KOVA_CONFIG_PATH` to point directly at the real file instead.
 </Warning>
 
 Prefer CLI writes for small edits:
@@ -377,11 +377,11 @@ kova config validate
 
 Direct editor writes are still allowed, but the running Gateway treats them as untrusted until they validate. Invalid direct edits can be restored from the last-known-good backup during startup or hot reload. See [Gateway troubleshooting](/gateway/troubleshooting#gateway-restored-last-known-good-config).
 
-Whole-file recovery is reserved for globally broken config, such as parse errors, root-level schema failures, legacy migration failures, or mixed plugin and root failures. If validation fails only under `plugins.entries.<id>...`, Kova keeps the active `openclaw.json` in place and reports the plugin-local issue instead of restoring `.last-good`. This prevents plugin schema changes or `minHostVersion` skew from rolling back unrelated user settings such as models, providers, auth profiles, channels, gateway exposure, tools, memory, browser, or cron config.
+Whole-file recovery is reserved for globally broken config, such as parse errors, root-level schema failures, legacy migration failures, or mixed plugin and root failures. If validation fails only under `plugins.entries.<id>...`, Kova keeps the active `kova.json` in place and reports the plugin-local issue instead of restoring `.last-good`. This prevents plugin schema changes or `minHostVersion` skew from rolling back unrelated user settings such as models, providers, auth profiles, channels, gateway exposure, tools, memory, browser, or cron config.
 
 ## Subcommands
 
-- `config file`: Print the active config file path (resolved from `OPENCLAW_CONFIG_PATH` or default location). The path should name a regular file, not a symlink.
+- `config file`: Print the active config file path (resolved from `KOVA_CONFIG_PATH` or default location). The path should name a regular file, not a symlink.
 
 Restart the gateway after edits.
 

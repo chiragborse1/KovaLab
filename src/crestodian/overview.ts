@@ -3,17 +3,13 @@ import {
   resolveAgentEffectiveModelPrimary,
   resolveDefaultAgentId,
 } from "../agents/agent-scope.js";
-import {
-  OPENCLAW_DOCS_URL,
-  OPENCLAW_SOURCE_URL,
-  resolveOpenClawReferencePaths,
-} from "../agents/docs-path.js";
+import { KOVA_DOCS_URL, KOVA_SOURCE_URL, resolveKovaReferencePaths } from "../agents/docs-path.js";
 import {
   readConfigFileSnapshot,
   resolveConfigPath,
   resolveGatewayPort,
   type ConfigFileSnapshot,
-  type OpenClawConfig,
+  type KovaConfig,
 } from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import { normalizeAgentId } from "../routing/session-key.js";
@@ -60,7 +56,7 @@ export type CrestodianOverview = {
   };
 };
 
-type OpenClawReferencePaths = Awaited<ReturnType<typeof resolveOpenClawReferencePaths>>;
+type KovaReferencePaths = Awaited<ReturnType<typeof resolveKovaReferencePaths>>;
 
 function issueMessages(snapshot: ConfigFileSnapshot): string[] {
   return snapshot.issues.map((issue) => {
@@ -69,7 +65,7 @@ function issueMessages(snapshot: ConfigFileSnapshot): string[] {
   });
 }
 
-function buildAgentSummaries(cfg: OpenClawConfig): CrestodianAgentSummary[] {
+function buildAgentSummaries(cfg: KovaConfig): CrestodianAgentSummary[] {
   const defaultAgentId = resolveDefaultAgentId(cfg);
   const entries = listAgentEntries(cfg);
   if (entries.length === 0) {
@@ -108,8 +104,8 @@ function buildAgentSummaries(cfg: OpenClawConfig): CrestodianAgentSummary[] {
   return summaries;
 }
 
-function resolveFastTestReferences(env: NodeJS.ProcessEnv): OpenClawReferencePaths | undefined {
-  if (env.OPENCLAW_TEST_FAST !== "1") {
+function resolveFastTestReferences(env: NodeJS.ProcessEnv): KovaReferencePaths | undefined {
+  if (env.KOVA_TEST_FAST !== "1") {
     return undefined;
   }
   const sourcePath = process.cwd();
@@ -147,7 +143,7 @@ export async function loadCrestodianOverview(
     probeLocalCommand("claude"),
     probeGatewayUrl(gatewayUrl),
     resolveFastTestReferences(env) ??
-      resolveOpenClawReferencePaths({
+      resolveKovaReferencePaths({
         argv1: process.argv[1],
         cwd: process.cwd(),
         moduleUrl: import.meta.url,
@@ -180,9 +176,9 @@ export async function loadCrestodianOverview(
     },
     references: {
       docsPath: references.docsPath ?? undefined,
-      docsUrl: OPENCLAW_DOCS_URL,
+      docsUrl: KOVA_DOCS_URL,
       sourcePath: references.sourcePath ?? undefined,
-      sourceUrl: OPENCLAW_SOURCE_URL,
+      sourceUrl: KOVA_SOURCE_URL,
     },
   };
 }
@@ -218,7 +214,7 @@ export function formatCrestodianOverview(overview: CrestodianOverview): string {
       ? ["Config issues:", ...overview.config.issues.map((issue) => `  - ${issue}`)]
       : [];
   return [
-    "Crestodian online. Little claws, typed tools.",
+    "Crestodian online. Typed tools ready.",
     "",
     `Config: ${configStatus}`,
     `Path: ${overview.config.path}`,

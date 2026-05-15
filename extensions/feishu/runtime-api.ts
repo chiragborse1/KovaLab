@@ -11,42 +11,42 @@ export type {
   ChannelOutboundAdapter,
   ChannelPlugin,
   HistoryEntry,
-  OpenClawConfig,
-  OpenClawPluginApi,
+  KovaConfig,
+  KovaPluginApi,
   OutboundIdentity,
   PluginRuntime,
   ReplyPayload,
-} from "openclaw/plugin-sdk/core";
-export type { OpenClawConfig as ClawdbotConfig } from "openclaw/plugin-sdk/core";
-export type { RuntimeEnv } from "openclaw/plugin-sdk/runtime";
-export type { GroupToolPolicyConfig } from "openclaw/plugin-sdk/config-runtime";
+} from "getkova/plugin-sdk/core";
+export type { KovaConfig as KovaConfig } from "getkova/plugin-sdk/core";
+export type { RuntimeEnv } from "getkova/plugin-sdk/runtime";
+export type { GroupToolPolicyConfig } from "getkova/plugin-sdk/config-runtime";
 export {
   DEFAULT_ACCOUNT_ID,
   buildChannelConfigSchema,
   createActionGate,
   createDedupeCache,
-} from "openclaw/plugin-sdk/core";
+} from "getkova/plugin-sdk/core";
 export {
   PAIRING_APPROVED_MESSAGE,
   buildProbeChannelStatusSummary,
   createDefaultChannelRuntimeState,
-} from "openclaw/plugin-sdk/channel-status";
-export { buildAgentMediaPayload } from "openclaw/plugin-sdk/agent-media-payload";
-export { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
-export { createReplyPrefixContext } from "openclaw/plugin-sdk/channel-reply-pipeline";
+} from "getkova/plugin-sdk/channel-status";
+export { buildAgentMediaPayload } from "getkova/plugin-sdk/agent-media-payload";
+export { createChannelPairingController } from "getkova/plugin-sdk/channel-pairing";
+export { createReplyPrefixContext } from "getkova/plugin-sdk/channel-reply-pipeline";
 export {
   evaluateSupplementalContextVisibility,
   filterSupplementalContextItems,
   resolveChannelContextVisibilityMode,
-} from "openclaw/plugin-sdk/config-runtime";
-export { loadSessionStore, resolveSessionStoreEntry } from "openclaw/plugin-sdk/config-runtime";
-export { readJsonFileWithFallback } from "openclaw/plugin-sdk/json-store";
-export { createPersistentDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
-export { normalizeAgentId } from "openclaw/plugin-sdk/routing";
-export { chunkTextForOutbound } from "openclaw/plugin-sdk/text-chunking";
+} from "getkova/plugin-sdk/config-runtime";
+export { loadSessionStore, resolveSessionStoreEntry } from "getkova/plugin-sdk/config-runtime";
+export { readJsonFileWithFallback } from "getkova/plugin-sdk/json-store";
+export { createPersistentDedupe } from "getkova/plugin-sdk/persistent-dedupe";
+export { normalizeAgentId } from "getkova/plugin-sdk/routing";
+export { chunkTextForOutbound } from "getkova/plugin-sdk/text-chunking";
 export {
   isRequestBodyLimitError,
   readRequestBodyWithLimit,
   requestBodyErrorToText,
-} from "openclaw/plugin-sdk/webhook-ingress";
+} from "getkova/plugin-sdk/webhook-ingress";
 export { setFeishuRuntime } from "./src/runtime.js";

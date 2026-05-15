@@ -58,10 +58,10 @@ That prevents a failed fallback retry from overwriting newer unrelated session m
 
 Kova uses **auth profiles** for both API keys and OAuth tokens.
 
-- Secrets live in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json` (legacy: `~/.openclaw/agent/auth-profiles.json`).
-- Runtime auth-routing state lives in `~/.openclaw/agents/<agentId>/agent/auth-state.json`.
+- Secrets live in `~/.kova/agents/<agentId>/agent/auth-profiles.json` (legacy: `~/.kova/agent/auth-profiles.json`).
+- Runtime auth-routing state lives in `~/.kova/agents/<agentId>/agent/auth-state.json`.
 - Config `auth.profiles` / `auth.order` are **metadata + routing only** (no secrets).
-- Legacy import-only OAuth file: `~/.openclaw/credentials/oauth.json` (imported into `auth-profiles.json` on first use).
+- Legacy import-only OAuth file: `~/.kova/credentials/oauth.json` (imported into `auth-profiles.json` on first use).
 
 More detail: [OAuth](/concepts/oauth)
 
@@ -77,7 +77,7 @@ OAuth logins create distinct profiles so multiple accounts can coexist.
 - Default: `provider:default` when no email is available.
 - OAuth with email: `provider:<email>` (for example `google-antigravity:user@gmail.com`).
 
-Profiles live in `~/.openclaw/agents/<agentId>/agent/auth-profiles.json` under `profiles`.
+Profiles live in `~/.kova/agents/<agentId>/agent/auth-profiles.json` under `profiles`.
 
 ## Rotation order
 
@@ -138,7 +138,7 @@ When a profile fails due to auth/rate-limit errors (or a timeout that looks like
 
   </Accordion>
   <Accordion title="SDK retry-after caps">
-    Some provider SDKs may otherwise sleep for a long `Retry-After` window before returning control to Kova. For Stainless-based SDKs such as Anthropic and OpenAI, Kova caps SDK-internal `retry-after-ms` / `retry-after` waits at 60 seconds by default and surfaces longer retryable responses immediately so this failover path can run. Tune or disable the cap with `OPENCLAW_SDK_RETRY_MAX_WAIT_SECONDS`; see [Retry behavior](/concepts/retry).
+    Some provider SDKs may otherwise sleep for a long `Retry-After` window before returning control to Kova. For Stainless-based SDKs such as Anthropic and OpenAI, Kova caps SDK-internal `retry-after-ms` / `retry-after` waits at 60 seconds by default and surfaces longer retryable responses immediately so this failover path can run. Tune or disable the cap with `KOVA_SDK_RETRY_MAX_WAIT_SECONDS`; see [Retry behavior](/concepts/retry).
   </Accordion>
   <Accordion title="Model-scoped cooldowns">
     Rate-limit cooldowns can also be model-scoped:

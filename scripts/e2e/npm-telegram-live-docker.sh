@@ -1,50 +1,50 @@
 #!/usr/bin/env bash
-# Installs an OpenClaw package candidate in Docker, performs Telegram
+# Installs an Kova package candidate in Docker, performs Telegram
 # onboarding/doctor recovery, then runs the Telegram QA live harness.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
 
-IMAGE_NAME="$(docker_e2e_resolve_image "openclaw-npm-telegram-live-e2e" OPENCLAW_NPM_TELEGRAM_LIVE_E2E_IMAGE)"
-DOCKER_TARGET="${OPENCLAW_NPM_TELEGRAM_DOCKER_TARGET:-build}"
-PACKAGE_SPEC="${OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC:-getkova@beta}"
-PACKAGE_TGZ="${OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ:-${OPENCLAW_CURRENT_PACKAGE_TGZ:-}}"
-PACKAGE_LABEL="${OPENCLAW_NPM_TELEGRAM_PACKAGE_LABEL:-}"
-OUTPUT_DIR="${OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR:-.artifacts/qa-e2e/npm-telegram-live}"
+IMAGE_NAME="$(docker_e2e_resolve_image "kova-npm-telegram-live-e2e" KOVA_NPM_TELEGRAM_LIVE_E2E_IMAGE)"
+DOCKER_TARGET="${KOVA_NPM_TELEGRAM_DOCKER_TARGET:-build}"
+PACKAGE_SPEC="${KOVA_NPM_TELEGRAM_PACKAGE_SPEC:-getkova@beta}"
+PACKAGE_TGZ="${KOVA_NPM_TELEGRAM_PACKAGE_TGZ:-${KOVA_CURRENT_PACKAGE_TGZ:-}}"
+PACKAGE_LABEL="${KOVA_NPM_TELEGRAM_PACKAGE_LABEL:-}"
+OUTPUT_DIR="${KOVA_NPM_TELEGRAM_OUTPUT_DIR:-.artifacts/qa-e2e/npm-telegram-live}"
 
 resolve_credential_source() {
-  if [ -n "${OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE:-}" ]; then
-    printf "%s" "$OPENCLAW_NPM_TELEGRAM_CREDENTIAL_SOURCE"
+  if [ -n "${KOVA_NPM_TELEGRAM_CREDENTIAL_SOURCE:-}" ]; then
+    printf "%s" "$KOVA_NPM_TELEGRAM_CREDENTIAL_SOURCE"
     return 0
   fi
-  if [ -n "${OPENCLAW_QA_CREDENTIAL_SOURCE:-}" ]; then
-    printf "%s" "$OPENCLAW_QA_CREDENTIAL_SOURCE"
+  if [ -n "${KOVA_QA_CREDENTIAL_SOURCE:-}" ]; then
+    printf "%s" "$KOVA_QA_CREDENTIAL_SOURCE"
     return 0
   fi
-  if [ -n "${CI:-}" ] && [ -n "${OPENCLAW_QA_CONVEX_SITE_URL:-}" ]; then
-    if [ -n "${OPENCLAW_QA_CONVEX_SECRET_CI:-}" ] || [ -n "${OPENCLAW_QA_CONVEX_SECRET_MAINTAINER:-}" ]; then
+  if [ -n "${CI:-}" ] && [ -n "${KOVA_QA_CONVEX_SITE_URL:-}" ]; then
+    if [ -n "${KOVA_QA_CONVEX_SECRET_CI:-}" ] || [ -n "${KOVA_QA_CONVEX_SECRET_MAINTAINER:-}" ]; then
       printf "convex"
     fi
   fi
 }
 
 resolve_credential_role() {
-  if [ -n "${OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE:-}" ]; then
-    printf "%s" "$OPENCLAW_NPM_TELEGRAM_CREDENTIAL_ROLE"
+  if [ -n "${KOVA_NPM_TELEGRAM_CREDENTIAL_ROLE:-}" ]; then
+    printf "%s" "$KOVA_NPM_TELEGRAM_CREDENTIAL_ROLE"
     return 0
   fi
-  if [ -n "${OPENCLAW_QA_CREDENTIAL_ROLE:-}" ]; then
-    printf "%s" "$OPENCLAW_QA_CREDENTIAL_ROLE"
+  if [ -n "${KOVA_QA_CREDENTIAL_ROLE:-}" ]; then
+    printf "%s" "$KOVA_QA_CREDENTIAL_ROLE"
   fi
 }
 
-validate_openclaw_package_spec() {
+validate_kova_package_spec() {
   local spec="$1"
   if [[ "$spec" =~ ^getkova@(beta|latest|((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-beta\.[1-9][0-9]*)?|[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*|-beta\.[1-9][0-9]*)?))$ ]]; then
     return 0
   fi
-  echo "OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC must be getkova@beta, getkova@latest, or an exact Kova release version; got: $spec" >&2
+  echo "KOVA_NPM_TELEGRAM_PACKAGE_SPEC must be getkova@beta, getkova@latest, or an exact Kova release version; got: $spec" >&2
   exit 1
 }
 
@@ -54,13 +54,13 @@ resolve_package_tgz() {
     return 0
   fi
   if [ ! -f "$candidate" ]; then
-    echo "OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ must point to an existing .tgz file; got: $candidate" >&2
+    echo "KOVA_NPM_TELEGRAM_PACKAGE_TGZ must point to an existing .tgz file; got: $candidate" >&2
     exit 1
   fi
   case "$candidate" in
     *.tgz) ;;
     *)
-      echo "OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ must point to a .tgz file; got: $candidate" >&2
+      echo "KOVA_NPM_TELEGRAM_PACKAGE_TGZ must point to a .tgz file; got: $candidate" >&2
       exit 1
       ;;
   esac
@@ -78,7 +78,7 @@ if [ -n "$resolved_package_tgz" ]; then
   package_install_source="/package-under-test/$(basename "$resolved_package_tgz")"
   package_mount_args=(-v "$resolved_package_tgz:$package_install_source:ro")
 else
-  validate_openclaw_package_spec "$PACKAGE_SPEC"
+  validate_kova_package_spec "$PACKAGE_SPEC"
 fi
 if [ -z "$PACKAGE_LABEL" ]; then
   if [ -n "$resolved_package_tgz" ]; then
@@ -92,7 +92,7 @@ docker_e2e_build_or_reuse "$IMAGE_NAME" npm-telegram-live "$ROOT_DIR/scripts/e2e
 docker_e2e_harness_mount_args
 
 mkdir -p "$ROOT_DIR/.artifacts/qa-e2e"
-run_log="$(mktemp "${TMPDIR:-/tmp}/openclaw-npm-telegram-live.XXXXXX")"
+run_log="$(mktemp "${TMPDIR:-/tmp}/kova-npm-telegram-live.XXXXXX")"
 npm_prefix_host="$(mktemp -d "$ROOT_DIR/.artifacts/qa-e2e/npm-telegram-live-prefix.XXXXXX")"
 trap 'rm -f "$run_log"; rm -rf "$npm_prefix_host"' EXIT
 credential_source="$(resolve_credential_source)"
@@ -103,10 +103,10 @@ fi
 
 docker_env=(
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-  -e OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$PACKAGE_SPEC"
-  -e OPENCLAW_NPM_TELEGRAM_PACKAGE_LABEL="$PACKAGE_LABEL"
-  -e OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$OUTPUT_DIR"
-  -e OPENCLAW_NPM_TELEGRAM_FAST="${OPENCLAW_NPM_TELEGRAM_FAST:-1}"
+  -e KOVA_NPM_TELEGRAM_PACKAGE_SPEC="$PACKAGE_SPEC"
+  -e KOVA_NPM_TELEGRAM_PACKAGE_LABEL="$PACKAGE_LABEL"
+  -e KOVA_NPM_TELEGRAM_OUTPUT_DIR="$OUTPUT_DIR"
+  -e KOVA_NPM_TELEGRAM_FAST="${KOVA_NPM_TELEGRAM_FAST:-1}"
 )
 
 forward_env_if_set() {
@@ -117,10 +117,10 @@ forward_env_if_set() {
 }
 
 if [ -n "$credential_source" ]; then
-  docker_env+=(-e OPENCLAW_QA_CREDENTIAL_SOURCE="$credential_source")
+  docker_env+=(-e KOVA_QA_CREDENTIAL_SOURCE="$credential_source")
 fi
 if [ -n "$credential_role" ]; then
-  docker_env+=(-e OPENCLAW_QA_CREDENTIAL_ROLE="$credential_role")
+  docker_env+=(-e KOVA_QA_CREDENTIAL_ROLE="$credential_role")
 fi
 
 for key in \
@@ -128,31 +128,31 @@ for key in \
   ANTHROPIC_API_KEY \
   GEMINI_API_KEY \
   GOOGLE_API_KEY \
-  OPENCLAW_LIVE_OPENAI_KEY \
-  OPENCLAW_LIVE_ANTHROPIC_KEY \
-  OPENCLAW_LIVE_GEMINI_KEY \
-  OPENCLAW_QA_TELEGRAM_GROUP_ID \
-  OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN \
-  OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN \
-  OPENCLAW_QA_CONVEX_SITE_URL \
-  OPENCLAW_QA_CONVEX_SECRET_CI \
-  OPENCLAW_QA_CONVEX_SECRET_MAINTAINER \
-  OPENCLAW_QA_CREDENTIAL_LEASE_TTL_MS \
-  OPENCLAW_QA_CREDENTIAL_HEARTBEAT_INTERVAL_MS \
-  OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS \
-  OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS \
-  OPENCLAW_QA_CONVEX_ENDPOINT_PREFIX \
-  OPENCLAW_QA_CREDENTIAL_OWNER_ID \
-  OPENCLAW_QA_ALLOW_INSECURE_HTTP \
-  OPENCLAW_QA_REDACT_PUBLIC_METADATA \
-  OPENCLAW_QA_TELEGRAM_CAPTURE_CONTENT \
-  OPENCLAW_QA_SUITE_PROGRESS \
-  OPENCLAW_NPM_TELEGRAM_PROVIDER_MODE \
-  OPENCLAW_NPM_TELEGRAM_MODEL \
-  OPENCLAW_NPM_TELEGRAM_ALT_MODEL \
-  OPENCLAW_NPM_TELEGRAM_SCENARIOS \
-  OPENCLAW_NPM_TELEGRAM_SUT_ACCOUNT \
-  OPENCLAW_NPM_TELEGRAM_ALLOW_FAILURES; do
+  KOVA_LIVE_OPENAI_KEY \
+  KOVA_LIVE_ANTHROPIC_KEY \
+  KOVA_LIVE_GEMINI_KEY \
+  KOVA_QA_TELEGRAM_GROUP_ID \
+  KOVA_QA_TELEGRAM_DRIVER_BOT_TOKEN \
+  KOVA_QA_TELEGRAM_SUT_BOT_TOKEN \
+  KOVA_QA_CONVEX_SITE_URL \
+  KOVA_QA_CONVEX_SECRET_CI \
+  KOVA_QA_CONVEX_SECRET_MAINTAINER \
+  KOVA_QA_CREDENTIAL_LEASE_TTL_MS \
+  KOVA_QA_CREDENTIAL_HEARTBEAT_INTERVAL_MS \
+  KOVA_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS \
+  KOVA_QA_CREDENTIAL_HTTP_TIMEOUT_MS \
+  KOVA_QA_CONVEX_ENDPOINT_PREFIX \
+  KOVA_QA_CREDENTIAL_OWNER_ID \
+  KOVA_QA_ALLOW_INSECURE_HTTP \
+  KOVA_QA_REDACT_PUBLIC_METADATA \
+  KOVA_QA_TELEGRAM_CAPTURE_CONTENT \
+  KOVA_QA_SUITE_PROGRESS \
+  KOVA_NPM_TELEGRAM_PROVIDER_MODE \
+  KOVA_NPM_TELEGRAM_MODEL \
+  KOVA_NPM_TELEGRAM_ALT_MODEL \
+  KOVA_NPM_TELEGRAM_SCENARIOS \
+  KOVA_NPM_TELEGRAM_SUT_ACCOUNT \
+  KOVA_NPM_TELEGRAM_ALLOW_FAILURES; do
   forward_env_if_set "$key"
 done
 
@@ -168,19 +168,19 @@ run_logged() {
 echo "Running package Telegram live Docker E2E ($PACKAGE_LABEL)..."
 run_logged docker run --rm \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e OPENCLAW_NPM_TELEGRAM_INSTALL_SOURCE="$package_install_source" \
-  -e OPENCLAW_NPM_TELEGRAM_PACKAGE_LABEL="$PACKAGE_LABEL" \
+  -e KOVA_NPM_TELEGRAM_INSTALL_SOURCE="$package_install_source" \
+  -e KOVA_NPM_TELEGRAM_PACKAGE_LABEL="$PACKAGE_LABEL" \
   "${package_mount_args[@]}" \
   -v "$npm_prefix_host:/npm-global" \
   -i "$IMAGE_NAME" bash -s <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-npm-telegram-install.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/kova-npm-telegram-install.XXXXXX")"
 export NPM_CONFIG_PREFIX="/npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
-install_source="${OPENCLAW_NPM_TELEGRAM_INSTALL_SOURCE:?missing OPENCLAW_NPM_TELEGRAM_INSTALL_SOURCE}"
-package_label="${OPENCLAW_NPM_TELEGRAM_PACKAGE_LABEL:-$install_source}"
+install_source="${KOVA_NPM_TELEGRAM_INSTALL_SOURCE:?missing KOVA_NPM_TELEGRAM_INSTALL_SOURCE}"
+package_label="${KOVA_NPM_TELEGRAM_PACKAGE_LABEL:-$install_source}"
 echo "Installing ${package_label} from ${install_source}..."
 npm install -g "$install_source" --no-fund --no-audit
 
@@ -198,19 +198,19 @@ run_logged docker run --rm \
   -i "$IMAGE_NAME" bash -s <<'EOF'
 set -euo pipefail
 
-export HOME="$(mktemp -d "/tmp/openclaw-npm-telegram-runtime.XXXXXX")"
+export HOME="$(mktemp -d "/tmp/kova-npm-telegram-runtime.XXXXXX")"
 export NPM_CONFIG_PREFIX="/npm-global"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-export OPENCLAW_NPM_TELEGRAM_REPO_ROOT="/app"
+export KOVA_NPM_TELEGRAM_REPO_ROOT="/app"
 
 dump_hotpath_logs() {
   local status="$1"
   echo "installed-package onboarding recovery hot path failed with exit code $status" >&2
   for file in \
-    /tmp/openclaw-npm-telegram-onboard.json \
-    /tmp/openclaw-npm-telegram-channel-add.log \
-    /tmp/openclaw-npm-telegram-doctor-fix.log \
-    /tmp/openclaw-npm-telegram-doctor-check.log; do
+    /tmp/kova-npm-telegram-onboard.json \
+    /tmp/kova-npm-telegram-channel-add.log \
+    /tmp/kova-npm-telegram-doctor-fix.log \
+    /tmp/kova-npm-telegram-doctor-check.log; do
     if [ -f "$file" ]; then
       echo "--- $file ---" >&2
       sed -n '1,220p' "$file" >&2 || true
@@ -222,23 +222,23 @@ trap 'status=$?; dump_hotpath_logs "$status"; exit "$status"' ERR
 command -v kova
 kova --version
 mkdir -p /app/node_modules
-openclaw_package_dir="/npm-global/lib/node_modules/getkova"
-# The mounted QA harness imports openclaw/plugin-sdk and package dependencies;
+kova_package_dir="/npm-global/lib/node_modules/getkova"
+# The mounted QA harness imports getkova/plugin-sdk and package dependencies;
 # point those imports at the installed package without copying source into the test image.
-rm -rf /app/node_modules/openclaw /app/node_modules/getkova
-ln -sfnT "$openclaw_package_dir" /app/node_modules/openclaw
-ln -sfnT "$openclaw_package_dir" /app/node_modules/getkova
+rm -rf /app/node_modules/kova /app/node_modules/getkova
+ln -sfnT "$kova_package_dir" /app/node_modules/kova
+ln -sfnT "$kova_package_dir" /app/node_modules/getkova
 rm -rf /app/dist
-ln -sfnT "$openclaw_package_dir/dist" /app/dist
-cp "$openclaw_package_dir/package.json" /app/package.json
-rm -rf "$openclaw_package_dir/extensions"
-ln -sfnT /app/extensions "$openclaw_package_dir/extensions"
+ln -sfnT "$kova_package_dir/dist" /app/dist
+cp "$kova_package_dir/package.json" /app/package.json
+rm -rf "$kova_package_dir/extensions"
+ln -sfnT /app/extensions "$kova_package_dir/extensions"
 node --input-type=module <<'NODE'
 import fs from "node:fs";
 
 for (const packageJsonPath of [
   "/app/package.json",
-  "/app/node_modules/openclaw/package.json",
+  "/app/node_modules/kova/package.json",
   "/app/node_modules/getkova/package.json",
 ]) {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
@@ -260,13 +260,13 @@ for (const packageJsonPath of [
   fs.writeFileSync(packageJsonPath, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 NODE
-for deps_dir in "$openclaw_package_dir/node_modules" /npm-global/lib/node_modules; do
+for deps_dir in "$kova_package_dir/node_modules" /npm-global/lib/node_modules; do
   [ -d "$deps_dir" ] || continue
   for dependency_dir in "$deps_dir"/*; do
     [ -e "$dependency_dir" ] || continue
     dependency_name="$(basename "$dependency_dir")"
     case "$dependency_name" in
-      .bin | openclaw | getkova)
+      .bin | kova | getkova)
         continue
         ;;
       @*)
@@ -319,19 +319,19 @@ OPENAI_API_KEY="${OPENAI_API_KEY:-sk-kova-npm-telegram-hotpath}" kova onboard --
   --skip-ui \
   --skip-skills \
   --skip-health \
-  --json >/tmp/openclaw-npm-telegram-onboard.json </dev/null
+  --json >/tmp/kova-npm-telegram-onboard.json </dev/null
 
-kova channels add --channel telegram --token "123456:kova-npm-telegram-hotpath" >/tmp/openclaw-npm-telegram-channel-add.log 2>&1 </dev/null
-kova doctor --fix --non-interactive >/tmp/openclaw-npm-telegram-doctor-fix.log 2>&1 </dev/null
-kova doctor --non-interactive >/tmp/openclaw-npm-telegram-doctor-check.log 2>&1 </dev/null
-if grep -F -q "Bundled plugin runtime deps are missing." /tmp/openclaw-npm-telegram-doctor-check.log; then
+kova channels add --channel telegram --token "123456:kova-npm-telegram-hotpath" >/tmp/kova-npm-telegram-channel-add.log 2>&1 </dev/null
+kova doctor --fix --non-interactive >/tmp/kova-npm-telegram-doctor-fix.log 2>&1 </dev/null
+kova doctor --non-interactive >/tmp/kova-npm-telegram-doctor-check.log 2>&1 </dev/null
+if grep -F -q "Bundled plugin runtime deps are missing." /tmp/kova-npm-telegram-doctor-check.log; then
   exit 1
 fi
-if grep -F -q "Failed to install bundled plugin runtime deps" /tmp/openclaw-npm-telegram-doctor-fix.log; then
+if grep -F -q "Failed to install bundled plugin runtime deps" /tmp/kova-npm-telegram-doctor-fix.log; then
   exit 1
 fi
 
-export OPENCLAW_NPM_TELEGRAM_SUT_COMMAND="$(command -v kova)"
+export KOVA_NPM_TELEGRAM_SUT_COMMAND="$(command -v kova)"
 trap - ERR
 tsx scripts/e2e/npm-telegram-live-runner.ts
 EOF

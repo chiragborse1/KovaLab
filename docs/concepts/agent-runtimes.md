@@ -14,11 +14,11 @@ the finished turn to Kova.
 Runtimes are easy to confuse with providers because both show up near model
 configuration. They are different layers:
 
-| Layer         | Examples                              | What it means                                                       |
-| ------------- | ------------------------------------- | ------------------------------------------------------------------- |
+| Layer         | Examples                              | What it means                                                   |
+| ------------- | ------------------------------------- | --------------------------------------------------------------- |
 | Provider      | `openai`, `anthropic`, `openai-codex` | How Kova authenticates, discovers models, and names model refs. |
-| Model         | `gpt-5.5`, `claude-opus-4-6`          | The model selected for the agent turn.                              |
-| Agent runtime | `pi`, `codex`, `claude-cli`           | The low level loop or backend that executes the prepared turn.      |
+| Model         | `gpt-5.5`, `claude-opus-4-6`          | The model selected for the agent turn.                          |
+| Agent runtime | `pi`, `codex`, `claude-cli`           | The low level loop or backend that executes the prepared turn.  |
 | Channel       | Telegram, Discord, Slack, WhatsApp    | Where messages enter and leave Kova.                            |
 
 You will also see the word **harness** in code. A harness is the implementation
@@ -41,9 +41,9 @@ There are two runtime families:
 
 Most confusion comes from three different surfaces sharing the Codex name:
 
-| Surface                                              | Kova name/config                 | What it does                                                                                        |
+| Surface                                              | Kova name/config                     | What it does                                                                                        |
 | ---------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| Codex OAuth provider route                           | `openai-codex/*` model refs          | Uses ChatGPT/Codex subscription OAuth through the normal Kova PI runner.                        |
+| Codex OAuth provider route                           | `openai-codex/*` model refs          | Uses ChatGPT/Codex subscription OAuth through the normal Kova PI runner.                            |
 | Native Codex app-server runtime                      | `agentRuntime.id: "codex"`           | Runs the embedded agent turn through the bundled Codex app-server harness.                          |
 | Codex ACP adapter                                    | `runtime: "acp"`, `agentId: "codex"` | Runs Codex through the external ACP/acpx control plane. Use only when ACP/acpx is explicitly asked. |
 | Native Codex chat-control command set                | `/codex ...`                         | Binds, resumes, steers, stops, and inspects Codex app-server threads from chat.                     |
@@ -109,12 +109,12 @@ contract, see [Codex harness](/plugins/codex-harness#v1-support-contract).
 
 Different runtimes own different amounts of the loop.
 
-| Surface                     | Kova PI embedded                    | Codex app-server                                                            |
-| --------------------------- | --------------------------------------- | --------------------------------------------------------------------------- |
-| Model loop owner            | Kova through the PI embedded runner | Codex app-server                                                            |
+| Surface                     | Kova PI embedded                    | Codex app-server                                                        |
+| --------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
+| Model loop owner            | Kova through the PI embedded runner | Codex app-server                                                        |
 | Canonical thread state      | Kova transcript                     | Codex thread, plus Kova transcript mirror                               |
-| Kova dynamic tools      | Native Kova tool loop               | Bridged through the Codex adapter                                           |
-| Native shell and file tools | PI/Kova path                        | Codex-native tools, bridged through native hooks where supported            |
+| Kova dynamic tools          | Native Kova tool loop               | Bridged through the Codex adapter                                       |
+| Native shell and file tools | PI/Kova path                        | Codex-native tools, bridged through native hooks where supported        |
 | Context engine              | Native Kova context assembly        | Kova projects assembled context into the Codex turn                     |
 | Compaction                  | Kova or selected context engine     | Codex-native compaction, with Kova notifications and mirror maintenance |
 | Channel delivery            | Kova                                | Kova                                                                    |
@@ -131,7 +131,7 @@ Kova chooses an embedded runtime after provider and model resolution:
 
 1. A session's recorded runtime wins. Config changes do not hot-switch an
    existing transcript to a different native thread system.
-2. `OPENCLAW_AGENT_RUNTIME=<id>` forces that runtime for new or reset sessions.
+2. `KOVA_AGENT_RUNTIME=<id>` forces that runtime for new or reset sessions.
 3. `agents.defaults.agentRuntime.id` or `agents.list[].agentRuntime.id` can set
    `auto`, `pi`, a registered embedded harness id such as `codex`, or a
    supported CLI backend alias such as `claude-cli`.
@@ -182,16 +182,16 @@ Codex app-server execution.
 When a runtime is not PI, it should document what Kova surfaces it supports.
 Use this shape for runtime docs:
 
-| Question                               | Why it matters                                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.                   |
+| Question                               | Why it matters                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.               |
 | Who owns canonical thread history?     | Determines whether Kova can edit history or only mirror it.                                   |
-| Do Kova dynamic tools work?        | Messaging, sessions, cron, and Kova-owned tools rely on this.                                 |
+| Do Kova dynamic tools work?            | Messaging, sessions, cron, and Kova-owned tools rely on this.                                 |
 | Do dynamic tool hooks work?            | Plugins expect `before_tool_call`, `after_tool_call`, and middleware around Kova-owned tools. |
-| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.        |
-| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.      |
-| What compaction data is exposed?       | Some plugins only need notifications, while others need kept/dropped metadata.                    |
-| What is intentionally unsupported?     | Users should not assume PI equivalence where the native runtime owns more state.                  |
+| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.    |
+| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.  |
+| What compaction data is exposed?       | Some plugins only need notifications, while others need kept/dropped metadata.                |
+| What is intentionally unsupported?     | Users should not assume PI equivalence where the native runtime owns more state.              |
 
 The Codex runtime support contract is documented in
 [Codex harness](/plugins/codex-harness#v1-support-contract).

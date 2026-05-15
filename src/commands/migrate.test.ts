@@ -20,7 +20,7 @@ vi.mock("../config/config.js", () => ({
 }));
 
 vi.mock("../config/paths.js", () => ({
-  resolveStateDir: () => "/tmp/openclaw-migrate-command-test",
+  resolveStateDir: () => "/tmp/kova-migrate-command-test",
 }));
 
 vi.mock("../cli/prompt.js", () => ({
@@ -68,7 +68,7 @@ describe("migrateApplyCommand", () => {
   const originalIsTty = process.stdin.isTTY;
 
   beforeEach(async () => {
-    await fs.rm("/tmp/openclaw-migrate-command-test", { force: true, recursive: true });
+    await fs.rm("/tmp/kova-migrate-command-test", { force: true, recursive: true });
     Object.defineProperty(process.stdin, "isTTY", {
       configurable: true,
       value: false,
@@ -77,7 +77,7 @@ describe("migrateApplyCommand", () => {
     mocks.provider.apply.mockReset();
     mocks.promptYesNo.mockReset();
     mocks.backupCreateCommand.mockReset();
-    mocks.backupCreateCommand.mockResolvedValue({ archivePath: "/tmp/openclaw-backup.tgz" });
+    mocks.backupCreateCommand.mockResolvedValue({ archivePath: "/tmp/kova-backup.tgz" });
   });
 
   afterEach(async () => {
@@ -85,7 +85,7 @@ describe("migrateApplyCommand", () => {
       configurable: true,
       value: originalIsTty,
     });
-    await fs.rm("/tmp/openclaw-migrate-command-test", { force: true, recursive: true });
+    await fs.rm("/tmp/kova-migrate-command-test", { force: true, recursive: true });
     vi.clearAllMocks();
   });
 
@@ -253,12 +253,12 @@ describe("migrateApplyCommand", () => {
     );
     expect(mocks.provider.apply).toHaveBeenCalledWith(
       expect.objectContaining({
-        backupPath: "/tmp/openclaw-backup.tgz",
+        backupPath: "/tmp/kova-backup.tgz",
         reportDir: expect.stringContaining("/migration/hermes/"),
       }),
       planned,
     );
-    expect(result.backupPath).toBe("/tmp/openclaw-backup.tgz");
+    expect(result.backupPath).toBe("/tmp/kova-backup.tgz");
   });
 
   it("prints only the final result for root apply in JSON mode", async () => {
@@ -300,7 +300,7 @@ describe("migrateApplyCommand", () => {
     expect(logs).toHaveLength(1);
     expect(JSON.parse(logs[0] ?? "{}")).toMatchObject({
       providerId: "hermes",
-      backupPath: "/tmp/openclaw-backup.tgz",
+      backupPath: "/tmp/kova-backup.tgz",
       items: [
         {
           details: {

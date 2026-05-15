@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/matrix",
+  "name": "@kovaai/matrix",
   "version": "2.0.0-beta.5",
   "description": "Kova Matrix channel plugin",
   "type": "module",
@@ -14,18 +14,18 @@
     "typebox": "1.1.33"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "openclaw": ">=2.0.0-beta.5"
+    "kova": ">=2.0.0-beta.5"
   },
   "peerDependenciesMeta": {
-    "openclaw": {
+    "kova": {
       "optional": true
     }
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -76,7 +76,7 @@
       }
     },
     "install": {
-      "npmSpec": "@openclaw/matrix",
+      "npmSpec": "@kovaai/matrix",
       "defaultChoice": "npm",
       "minHostVersion": ">=2.0.0-beta.4",
       "allowInvalidConfigRecovery": true

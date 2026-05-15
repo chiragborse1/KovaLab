@@ -1,13 +1,13 @@
 const SETTINGS_KEY_PREFIX = "kova.control.settings.v1:";
 const LEGACY_SETTINGS_KEY = "kova.control.settings.v1";
-const OPENCLAW_SETTINGS_KEY_PREFIX = "openclaw.control.settings.v1:";
-const OPENCLAW_LEGACY_SETTINGS_KEY = "openclaw.control.settings.v1";
+const KOVA_SETTINGS_KEY_PREFIX = "kova.control.settings.v1:";
+const KOVA_LEGACY_SETTINGS_KEY = "kova.control.settings.v1";
 const LOCAL_USER_IDENTITY_KEY = "kova.control.user.v1";
-const OPENCLAW_LOCAL_USER_IDENTITY_KEY = "openclaw.control.user.v1";
+const KOVA_LOCAL_USER_IDENTITY_KEY = "kova.control.user.v1";
 const LOCAL_ASSISTANT_IDENTITY_KEY = "kova.control.assistant.v1";
-const OPENCLAW_LOCAL_ASSISTANT_IDENTITY_KEY = "openclaw.control.assistant.v1";
+const KOVA_LOCAL_ASSISTANT_IDENTITY_KEY = "kova.control.assistant.v1";
 const LEGACY_TOKEN_SESSION_KEY = "kova.control.token.v1";
-const OPENCLAW_LEGACY_TOKEN_SESSION_KEY = "openclaw.control.token.v1";
+const KOVA_LEGACY_TOKEN_SESSION_KEY = "kova.control.token.v1";
 const TOKEN_SESSION_KEY_PREFIX = "kova.control.token.v1:";
 const MAX_SCOPED_SESSION_ENTRIES = 10;
 
@@ -93,7 +93,7 @@ function deriveDefaultGatewayUrl(): { pageUrl: string; effectiveUrl: string } {
   const configured =
     typeof window !== "undefined" &&
     normalizeOptionalString(
-      window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__OPENCLAW_CONTROL_UI_BASE_PATH__,
+      window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__KOVA_CONTROL_UI_BASE_PATH__,
     );
   const basePath = configured
     ? normalizeBasePath(configured)
@@ -168,7 +168,7 @@ function loadSessionToken(gatewayUrl: string): string {
       return "";
     }
     storage.removeItem(LEGACY_TOKEN_SESSION_KEY);
-    storage.removeItem(OPENCLAW_LEGACY_TOKEN_SESSION_KEY);
+    storage.removeItem(KOVA_LEGACY_TOKEN_SESSION_KEY);
     const token = storage.getItem(tokenSessionKeyForGateway(gatewayUrl));
     return normalizeOptionalString(token) ?? "";
   } catch {
@@ -183,7 +183,7 @@ function persistSessionToken(gatewayUrl: string, token: string) {
       return;
     }
     storage.removeItem(LEGACY_TOKEN_SESSION_KEY);
-    storage.removeItem(OPENCLAW_LEGACY_TOKEN_SESSION_KEY);
+    storage.removeItem(KOVA_LEGACY_TOKEN_SESSION_KEY);
     const key = tokenSessionKeyForGateway(gatewayUrl);
     const normalized = normalizeOptionalString(token) ?? "";
     if (normalized) {
@@ -205,7 +205,7 @@ export function loadSettings(): UiSettings {
     token: loadSessionToken(defaultUrl),
     sessionKey: "main",
     lastActiveSessionKey: "main",
-    theme: "claw",
+    theme: "kova",
     themeMode: "system",
     chatFocusMode: false,
     chatShowThinking: true,
@@ -225,10 +225,10 @@ export function loadSettings(): UiSettings {
       storage?.getItem(SETTINGS_KEY_PREFIX + "default") ??
       storage?.getItem(LEGACY_SETTINGS_KEY) ??
       storage?.getItem(
-        OPENCLAW_SETTINGS_KEY_PREFIX + normalizeGatewayTokenScope(defaults.gatewayUrl),
+        KOVA_SETTINGS_KEY_PREFIX + normalizeGatewayTokenScope(defaults.gatewayUrl),
       ) ??
-      storage?.getItem(OPENCLAW_SETTINGS_KEY_PREFIX + "default") ??
-      storage?.getItem(OPENCLAW_LEGACY_SETTINGS_KEY);
+      storage?.getItem(KOVA_SETTINGS_KEY_PREFIX + "default") ??
+      storage?.getItem(KOVA_LEGACY_SETTINGS_KEY);
     if (!raw) {
       return defaults;
     }
@@ -247,7 +247,7 @@ export function loadSettings(): UiSettings {
       token: loadSessionToken(gatewayUrl),
       sessionKey: scopedSessionSelection.sessionKey,
       lastActiveSessionKey: scopedSessionSelection.lastActiveSessionKey,
-      theme: theme === "custom" && !customTheme ? "claw" : theme,
+      theme: theme === "custom" && !customTheme ? "kova" : theme,
       themeMode: mode,
       chatFocusMode:
         typeof parsed.chatFocusMode === "boolean" ? parsed.chatFocusMode : defaults.chatFocusMode,
@@ -301,8 +301,7 @@ export function loadLocalUserIdentity(): LocalUserIdentity {
   const storage = getSafeLocalStorage();
   try {
     const raw =
-      storage?.getItem(LOCAL_USER_IDENTITY_KEY) ??
-      storage?.getItem(OPENCLAW_LOCAL_USER_IDENTITY_KEY);
+      storage?.getItem(LOCAL_USER_IDENTITY_KEY) ?? storage?.getItem(KOVA_LOCAL_USER_IDENTITY_KEY);
     if (!raw) {
       return normalizeLocalUserIdentity();
     }
@@ -318,7 +317,7 @@ export function saveLocalUserIdentity(next: LocalUserIdentity) {
   try {
     if (!hasLocalUserIdentity(normalized)) {
       storage?.removeItem(LOCAL_USER_IDENTITY_KEY);
-      storage?.removeItem(OPENCLAW_LOCAL_USER_IDENTITY_KEY);
+      storage?.removeItem(KOVA_LOCAL_USER_IDENTITY_KEY);
       return;
     }
     storage?.setItem(LOCAL_USER_IDENTITY_KEY, JSON.stringify(normalized));
@@ -335,7 +334,7 @@ export function loadLocalAssistantIdentity(): LocalAssistantIdentity {
   try {
     const raw =
       storage?.getItem(LOCAL_ASSISTANT_IDENTITY_KEY) ??
-      storage?.getItem(OPENCLAW_LOCAL_ASSISTANT_IDENTITY_KEY);
+      storage?.getItem(KOVA_LOCAL_ASSISTANT_IDENTITY_KEY);
     if (!raw) {
       return { avatar: null };
     }
@@ -351,7 +350,7 @@ export function saveLocalAssistantIdentity(next: LocalAssistantIdentity) {
   try {
     if (!next.avatar) {
       storage?.removeItem(LOCAL_ASSISTANT_IDENTITY_KEY);
-      storage?.removeItem(OPENCLAW_LOCAL_ASSISTANT_IDENTITY_KEY);
+      storage?.removeItem(KOVA_LOCAL_ASSISTANT_IDENTITY_KEY);
       return;
     }
     storage?.setItem(LOCAL_ASSISTANT_IDENTITY_KEY, JSON.stringify({ avatar: next.avatar }));
@@ -373,9 +372,9 @@ function persistSettings(next: UiSettings) {
       storage?.getItem(scopedKey) ??
       storage?.getItem(SETTINGS_KEY_PREFIX + "default") ??
       storage?.getItem(LEGACY_SETTINGS_KEY) ??
-      storage?.getItem(OPENCLAW_SETTINGS_KEY_PREFIX + scope) ??
-      storage?.getItem(OPENCLAW_SETTINGS_KEY_PREFIX + "default") ??
-      storage?.getItem(OPENCLAW_LEGACY_SETTINGS_KEY);
+      storage?.getItem(KOVA_SETTINGS_KEY_PREFIX + scope) ??
+      storage?.getItem(KOVA_SETTINGS_KEY_PREFIX + "default") ??
+      storage?.getItem(KOVA_LEGACY_SETTINGS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedUiSettings;
       if (parsed.sessionsByGateway && typeof parsed.sessionsByGateway === "object") {

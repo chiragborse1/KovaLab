@@ -11,7 +11,7 @@ describe("restart log conventions", () => {
   it("resolves profile-aware gateway logs and restart attempts together", () => {
     const env = {
       HOME: "/Users/test",
-      OPENCLAW_PROFILE: "work",
+      KOVA_PROFILE: "work",
     };
 
     expect(resolveGatewayLogPaths(env)).toEqual({
@@ -24,14 +24,14 @@ describe("restart log conventions", () => {
     );
   });
 
-  it("honors OPENCLAW_STATE_DIR for restart attempts", () => {
+  it("honors KOVA_STATE_DIR for restart attempts", () => {
     const env = {
       HOME: "/Users/test",
-      OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
+      KOVA_STATE_DIR: "/tmp/kova-state",
     };
 
     expect(resolveGatewayRestartLogPath(env)).toBe(
-      `/tmp/openclaw-state/logs/${GATEWAY_RESTART_LOG_FILENAME}`,
+      `/tmp/kova-state/logs/${GATEWAY_RESTART_LOG_FILENAME}`,
     );
   });
 

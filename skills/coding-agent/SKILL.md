@@ -1,9 +1,9 @@
 ---
 name: coding-agent
-description: 'Delegate coding tasks to Codex, Claude Code, OpenCode, or Pi agents via immediate background processes. Use when: (1) building or creating features/apps, (2) reviewing PRs in a temp clone/worktree, (3) refactoring large codebases, (4) iterative coding that needs file exploration. NOT for: simple one-line fixes (just edit), reading code (use read tool), thread-bound ACP harness requests in chat (use sessions_spawn with runtime:"acp"), or any work in ~/clawd workspace (never spawn agents here). All coding-agent runs start with background:true immediately. Claude Code: use --print --permission-mode bypassPermissions (no PTY). Codex/Pi/OpenCode: pty:true required. Completion notification must use openclaw message send, not system event/heartbeat.'
+description: 'Delegate coding tasks to Codex, Claude Code, OpenCode, or Pi agents via immediate background processes. Use when: (1) building or creating features/apps, (2) reviewing PRs in a temp clone/worktree, (3) refactoring large codebases, (4) iterative coding that needs file exploration. NOT for: simple one-line fixes (just edit), reading code (use read tool), thread-bound ACP harness requests in chat (use sessions_spawn with runtime:"acp"), or any work in ~/kova workspace (never spawn agents here). All coding-agent runs start with background:true immediately. Claude Code: use --print --permission-mode bypassPermissions (no PTY). Codex/Pi/OpenCode: pty:true required. Completion notification must use kova message send, not system event/heartbeat.'
 metadata:
   {
-    "openclaw":
+    "kova":
       {
         "emoji": "🧩",
         "requires": { "anyBins": ["claude", "codex", "opencode", "pi"] },
@@ -91,7 +91,7 @@ Every coding-agent run follows this pattern:
    - `notifyReplyTo` (if replying to a specific message is desired)
    - `notifyThreadId` (Telegram topic / Slack thread when applicable)
 2. Start the coding CLI with `background:true` immediately.
-3. Include the notification route in the worker prompt and require the worker to call `openclaw message send` on completion.
+3. Include the notification route in the worker prompt and require the worker to call `kova message send` on completion.
 4. Monitor with `process action:log` / `poll`.
 5. If the worker needs input or fails before notifying, handle that explicitly yourself. Do not rely on heartbeat.
 
@@ -103,7 +103,7 @@ If you do not have a trustworthy notification route, say so and do not claim tha
 
 Do not rely on:
 
-- `openclaw system event`
+- `kova system event`
 - `tools.exec.notifyOnExit`
 - heartbeat delivery
 - `HEARTBEAT.md`
@@ -111,7 +111,7 @@ Do not rely on:
 Use a direct outbound completion message instead:
 
 ```bash
-openclaw message send --channel <channel> --target '<target>' --message '<text>'
+kova message send --channel <channel> --target '<target>' --message '<text>'
 ```
 
 Add optional routing flags only when they are real and applicable:
@@ -120,7 +120,7 @@ Add optional routing flags only when they are real and applicable:
 - `--reply-to <messageId>`
 - `--thread-id <threadId>`
 
-`openclaw message send` is a direct outbound send. It does not depend on heartbeat being enabled.
+`kova message send` is a direct outbound send. It does not depend on heartbeat being enabled.
 
 ### Completion Prompt Snippet
 
@@ -134,15 +134,15 @@ Notification route for completion:
 - reply_to: <notifyReplyTo or omit>
 - thread_id: <notifyThreadId or omit>
 
-When the task is completely finished, send exactly one completion message back to the user with openclaw message send using that route.
-If the task fails fatally, send exactly one failure message back to the user with openclaw message send using that route.
-Do not use openclaw system event. Do not rely on heartbeat. Do not skip the completion/failure message.
+When the task is completely finished, send exactly one completion message back to the user with kova message send using that route.
+If the task fails fatally, send exactly one failure message back to the user with kova message send using that route.
+Do not use kova system event. Do not rely on heartbeat. Do not skip the completion/failure message.
 ```
 
 ### Completion Command Template
 
 ```bash
-openclaw message send \
+kova message send \
   --channel <notifyChannel> \
   --target '<notifyTarget>' \
   --message 'Done: <brief summary>'
@@ -175,9 +175,9 @@ Notification route for completion:
 - reply_to: <notifyReplyTo or omit>
 - thread_id: <notifyThreadId or omit>
 
-When the task is completely finished, send exactly one completion message back to the user with openclaw message send using that route.
-If the task fails fatally, send exactly one failure message back to the user with openclaw message send using that route.
-Do not use openclaw system event. Do not rely on heartbeat. Do not skip the completion/failure message.'"
+When the task is completely finished, send exactly one completion message back to the user with kova message send using that route.
+If the task fails fatally, send exactly one failure message back to the user with kova message send using that route.
+Do not use kova system event. Do not rely on heartbeat. Do not skip the completion/failure message.'"
 ```
 
 Codex refuses to run outside a trusted git directory.
@@ -209,7 +209,7 @@ bash pty:true workdir:~/project background:true command:"codex --yolo 'Refactor 
 
 ### Reviewing PRs
 
-**Never review PRs in OpenClaw's own project folder.**
+**Never review PRs in Kova's own project folder.**
 Clone to a temp folder or use a worktree.
 
 ```bash
@@ -278,8 +278,8 @@ bash pty:true workdir:~/project background:true command:"pi --provider openai --
 git worktree add -b fix/issue-78 /tmp/issue-78 main
 git worktree add -b fix/issue-99 /tmp/issue-99 main
 
-bash pty:true workdir:/tmp/issue-78 background:true command:"pnpm install && codex --yolo 'Fix issue #78: <description>. Commit and push after review. Send the completion message with openclaw message send using the provided notify route.'"
-bash pty:true workdir:/tmp/issue-99 background:true command:"pnpm install && codex --yolo 'Fix issue #99 from the approved ticket summary. Implement only the in-scope edits. Send the completion message with openclaw message send using the provided notify route.'"
+bash pty:true workdir:/tmp/issue-78 background:true command:"pnpm install && codex --yolo 'Fix issue #78: <description>. Commit and push after review. Send the completion message with kova message send using the provided notify route.'"
+bash pty:true workdir:/tmp/issue-99 background:true command:"pnpm install && codex --yolo 'Fix issue #99 from the approved ticket summary. Implement only the in-scope edits. Send the completion message with kova message send using the provided notify route.'"
 
 process action:list
 process action:log sessionId:XXX
@@ -300,8 +300,8 @@ process action:log sessionId:XXX
 5. **--full-auto for building** - auto-approves changes
 6. **vanilla for reviewing** - no special flags needed
 7. **Parallel is OK** - run many Codex processes at once for batch work
-8. **NEVER start Codex inside your OpenClaw state directory** (`$OPENCLAW_STATE_DIR`, default `~/.openclaw`) - it'll read your soul docs and get weird ideas about the org chart!
-9. **NEVER checkout branches in ~/Projects/openclaw/** - that's the LIVE OpenClaw instance!
+8. **NEVER start Codex inside your Kova state directory** (`$KOVA_STATE_DIR`, default `~/.kova`) - it'll read your soul docs and get weird ideas about the org chart!
+9. **NEVER checkout branches in ~/Projects/kova/** - that's the LIVE Kova instance!
 10. **Always inject the Completion Prompt Snippet** into the worker prompt before spawning. The simplified examples below omit it for brevity — never spawn a worker without it.
 
 ---
@@ -317,7 +317,7 @@ When you spawn a coding agent in the background, keep the user in the loop.
   - you hit an error or need user action
   - the worker finishes
 - If you kill a session, immediately say you killed it and why.
-- If you are expecting the worker to self-notify with `openclaw message send`, say that clearly in your start update.
+- If you are expecting the worker to self-notify with `kova message send`, say that clearly in your start update.
 
 This prevents the user from seeing only a missing reply and having no idea what happened.
 
@@ -337,8 +337,8 @@ This prevents the user from seeing only a missing reply and having no idea what 
 4. **Capture notify routing before spawn.**
    - Completion messaging must have a real route.
 5. **Use direct completion messaging.**
-   - Require `openclaw message send`.
-   - Do not rely on `openclaw system event` or heartbeat.
+   - Require `kova message send`.
+   - Do not rely on `kova system event` or heartbeat.
 6. **Do not silently take over.**
    - If a worker fails or hangs, respawn it or ask for direction. Do not quietly switch to hand-editing.
 7. **Monitor with `process`.**
@@ -347,8 +347,8 @@ This prevents the user from seeing only a missing reply and having no idea what 
    - Do not kill sessions just because they are slow.
 9. **Parallel is OK.**
    - Many background Codex sessions can run at once.
-10. **Never start Codex in `~/.openclaw/`.**
-11. **Never checkout branches in `~/Projects/openclaw/`.**
+10. **Never start Codex in `~/.kova/`.**
+11. **Never checkout branches in `~/Projects/kova/`.**
 
 ---
 

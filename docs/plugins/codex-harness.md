@@ -26,11 +26,11 @@ The bundled `codex` plugin contributes several separate capabilities:
 
 | Capability                        | How you use it                                      | What it does                                                                  |
 | --------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Native embedded runtime           | `agentRuntime.id: "codex"`                          | Runs Kova embedded agent turns through Codex app-server.                  |
+| Native embedded runtime           | `agentRuntime.id: "codex"`                          | Runs Kova embedded agent turns through Codex app-server.                      |
 | Native chat-control commands      | `/codex bind`, `/codex resume`, `/codex steer`, ... | Binds and controls Codex app-server threads from a messaging conversation.    |
 | Codex app-server provider/catalog | `codex` internals, surfaced through the harness     | Lets the runtime discover and validate app-server models.                     |
 | Codex media-understanding path    | `codex/*` image-model compatibility paths           | Runs bounded Codex app-server turns for supported image understanding models. |
-| Native hook relay                 | Plugin hooks around Codex-native events             | Lets Kova observe/block supported Codex-native tool/finalization events.  |
+| Native hook relay                 | Plugin hooks around Codex-native events             | Lets Kova observe/block supported Codex-native tool/finalization events.      |
 
 Enabling the plugin makes those capabilities available. It does **not**:
 
@@ -69,7 +69,7 @@ and [Plugin guard behavior](/tools/plugin).
 
 The harness is off by default. New configs should keep OpenAI model refs
 canonical as `openai/gpt-*` and explicitly force
-`agentRuntime.id: "codex"` or `OPENCLAW_AGENT_RUNTIME=codex` when they
+`agentRuntime.id: "codex"` or `KOVA_AGENT_RUNTIME=codex` when they
 want native app-server execution. Legacy `codex/*` model refs still auto-select
 the harness for compatibility, but runtime-backed legacy provider prefixes are
 not shown as normal model/provider choices.
@@ -83,13 +83,13 @@ native app-server execution stays an explicit runtime choice.
 
 Use this table before changing config:
 
-| Desired behavior                            | Model ref                  | Runtime config                         | Plugin requirement          | Expected status label          |
-| ------------------------------------------- | -------------------------- | -------------------------------------- | --------------------------- | ------------------------------ |
-| OpenAI API through normal Kova runner   | `openai/gpt-*`             | omitted or `runtime: "pi"`             | OpenAI provider             | `Runtime: Kova Pi Default` |
-| Codex OAuth/subscription through PI         | `openai-codex/gpt-*`       | omitted or `runtime: "pi"`             | OpenAI Codex OAuth provider | `Runtime: Kova Pi Default` |
-| Native Codex app-server embedded turns      | `openai/gpt-*`             | `agentRuntime.id: "codex"`             | `codex` plugin              | `Runtime: OpenAI Codex`        |
-| Mixed providers with conservative auto mode | provider-specific refs     | `agentRuntime.id: "auto"`              | Optional plugin runtimes    | Depends on selected runtime    |
-| Explicit Codex ACP adapter session          | ACP prompt/model dependent | `sessions_spawn` with `runtime: "acp"` | healthy `acpx` backend      | ACP task/session status        |
+| Desired behavior                            | Model ref                  | Runtime config                         | Plugin requirement          | Expected status label       |
+| ------------------------------------------- | -------------------------- | -------------------------------------- | --------------------------- | --------------------------- |
+| OpenAI API through normal Kova runner       | `openai/gpt-*`             | omitted or `runtime: "pi"`             | OpenAI provider             | `Runtime: Kova Pi Default`  |
+| Codex OAuth/subscription through PI         | `openai-codex/gpt-*`       | omitted or `runtime: "pi"`             | OpenAI Codex OAuth provider | `Runtime: Kova Pi Default`  |
+| Native Codex app-server embedded turns      | `openai/gpt-*`             | `agentRuntime.id: "codex"`             | `codex` plugin              | `Runtime: OpenAI Codex`     |
+| Mixed providers with conservative auto mode | provider-specific refs     | `agentRuntime.id: "auto"`              | Optional plugin runtimes    | Depends on selected runtime |
+| Explicit Codex ACP adapter session          | ACP prompt/model dependent | `sessions_spawn` with `runtime: "acp"` | healthy `acpx` backend      | ACP task/session status     |
 
 The important split is provider versus runtime:
 
@@ -106,11 +106,11 @@ OpenAI-family routes are prefix-specific. Use `openai-codex/*` when you want
 Codex OAuth through PI; use `openai/*` when you want direct OpenAI API access or
 when you are forcing the native Codex app-server harness:
 
-| Model ref                                     | Runtime path                                 | Use when                                                                  |
-| --------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| Model ref                                     | Runtime path                             | Use when                                                                  |
+| --------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
 | `openai/gpt-5.4`                              | OpenAI provider through Kova/PI plumbing | You want current direct OpenAI Platform API access with `OPENAI_API_KEY`. |
 | `openai-codex/gpt-5.5`                        | OpenAI Codex OAuth through Kova/PI       | You want ChatGPT/Codex subscription auth with the default PI runner.      |
-| `openai/gpt-5.5` + `agentRuntime.id: "codex"` | Codex app-server harness                     | You want native Codex app-server execution for the embedded agent turn.   |
+| `openai/gpt-5.5` + `agentRuntime.id: "codex"` | Codex app-server harness                 | You want native Codex app-server execution for the embedded agent turn.   |
 
 GPT-5.5 is currently subscription/OAuth-only in Kova. Use
 `openai-codex/gpt-5.5` for PI OAuth, or `openai/gpt-5.5` with the Codex
@@ -160,7 +160,7 @@ means:
 Harness selection is not a live session control. When an embedded turn runs,
 Kova records the selected harness id on that session and keeps using it for
 later turns in the same session id. Change `agentRuntime` config or
-`OPENCLAW_AGENT_RUNTIME` when you want future sessions to use another harness;
+`KOVA_AGENT_RUNTIME` when you want future sessions to use another harness;
 use `/new` or `/reset` to start a fresh session before switching an existing
 conversation between PI and Codex. This avoids replaying one transcript through
 two incompatible native session systems.
@@ -297,15 +297,15 @@ With this shape:
 
 Agents should route user requests by intent, not by the word "Codex" alone:
 
-| User asks for...                                         | Agent should use...                              |
-| -------------------------------------------------------- | ------------------------------------------------ |
-| "Bind this chat to Codex"                                | `/codex bind`                                    |
-| "Resume Codex thread `<id>` here"                        | `/codex resume <id>`                             |
-| "Show Codex threads"                                     | `/codex threads`                                 |
-| "Use Codex as the runtime for this agent"                | config change to `agentRuntime.id`               |
-| "Use my ChatGPT/Codex subscription with normal Kova" | `openai-codex/*` model refs                      |
-| "Run Codex through ACP/acpx"                             | ACP `sessions_spawn({ runtime: "acp", ... })`    |
-| "Start Claude Code/Gemini/OpenCode/Cursor in a thread"   | ACP/acpx, not `/codex` and not native sub-agents |
+| User asks for...                                       | Agent should use...                              |
+| ------------------------------------------------------ | ------------------------------------------------ |
+| "Bind this chat to Codex"                              | `/codex bind`                                    |
+| "Resume Codex thread `<id>` here"                      | `/codex resume <id>`                             |
+| "Show Codex threads"                                   | `/codex threads`                                 |
+| "Use Codex as the runtime for this agent"              | config change to `agentRuntime.id`               |
+| "Use my ChatGPT/Codex subscription with normal Kova"   | `openai-codex/*` model refs                      |
+| "Run Codex through ACP/acpx"                           | ACP `sessions_spawn({ runtime: "acp", ... })`    |
+| "Start Claude Code/Gemini/OpenCode/Cursor in a thread" | ACP/acpx, not `/codex` and not native sub-agents |
 
 Kova only advertises ACP spawn guidance to agents when ACP is enabled,
 dispatchable, and backed by a loaded runtime backend. If ACP is not available,
@@ -335,12 +335,12 @@ uses Codex. Explicit plugin runtimes default to no PI fallback, so
 Environment override:
 
 ```bash
-OPENCLAW_AGENT_RUNTIME=codex kova gateway run
+KOVA_AGENT_RUNTIME=codex kova gateway run
 ```
 
 With Codex forced, Kova fails early if the Codex plugin is disabled, the
 app-server is too old, or the app-server cannot start. Set
-`OPENCLAW_AGENT_HARNESS_FALLBACK=pi` only if you intentionally want PI to handle
+`KOVA_AGENT_HARNESS_FALLBACK=pi` only if you intentionally want PI to handle
 missing harness selection.
 
 ## Per-agent Codex
@@ -527,18 +527,18 @@ Supported `appServer` fields:
 
 Environment overrides remain available for local testing:
 
-- `OPENCLAW_CODEX_APP_SERVER_BIN`
-- `OPENCLAW_CODEX_APP_SERVER_ARGS`
-- `OPENCLAW_CODEX_APP_SERVER_MODE=yolo|guardian`
-- `OPENCLAW_CODEX_APP_SERVER_APPROVAL_POLICY`
-- `OPENCLAW_CODEX_APP_SERVER_SANDBOX`
+- `KOVA_CODEX_APP_SERVER_BIN`
+- `KOVA_CODEX_APP_SERVER_ARGS`
+- `KOVA_CODEX_APP_SERVER_MODE=yolo|guardian`
+- `KOVA_CODEX_APP_SERVER_APPROVAL_POLICY`
+- `KOVA_CODEX_APP_SERVER_SANDBOX`
 
-`OPENCLAW_CODEX_APP_SERVER_BIN` bypasses the managed binary when
+`KOVA_CODEX_APP_SERVER_BIN` bypasses the managed binary when
 `appServer.command` is unset.
 
-`OPENCLAW_CODEX_APP_SERVER_GUARDIAN=1` was removed. Use
+`KOVA_CODEX_APP_SERVER_GUARDIAN=1` was removed. Use
 `plugins.entries.codex.config.appServer.mode: "guardian"` instead, or
-`OPENCLAW_CODEX_APP_SERVER_MODE=guardian` for one-off local testing. Config is
+`KOVA_CODEX_APP_SERVER_MODE=guardian` for one-off local testing. Config is
 preferred for repeatable deployments because it keeps the plugin behavior in the
 same reviewed file as the rest of the Codex harness setup.
 
@@ -729,11 +729,11 @@ future or custom app-server does not expose that JSON-RPC method.
 
 The Codex harness has three hook layers:
 
-| Layer                                 | Owner                    | Purpose                                                             |
-| ------------------------------------- | ------------------------ | ------------------------------------------------------------------- |
-| Kova plugin hooks                 | Kova                 | Product/plugin compatibility across PI and Codex harnesses.         |
-| Codex app-server extension middleware | Kova bundled plugins | Per-turn adapter behavior around Kova dynamic tools.            |
-| Codex native hooks                    | Codex                    | Low-level Codex lifecycle and native tool policy from Codex config. |
+| Layer                                 | Owner                | Purpose                                                             |
+| ------------------------------------- | -------------------- | ------------------------------------------------------------------- |
+| Kova plugin hooks                     | Kova                 | Product/plugin compatibility across PI and Codex harnesses.         |
+| Codex app-server extension middleware | Kova bundled plugins | Per-turn adapter behavior around Kova dynamic tools.                |
+| Codex native hooks                    | Codex                | Low-level Codex lifecycle and native tool policy from Codex config. |
 
 Kova does not use project or global Codex `hooks.json` files to route
 Kova plugin behavior. For the supported native tool and permission bridge,
@@ -770,21 +770,21 @@ Supported in Codex runtime v1:
 | Surface                                       | Support                                 | Why                                                                                                                                                                                                   |
 | --------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | OpenAI model loop through Codex               | Supported                               | Codex app-server owns the OpenAI turn, native thread resume, and native tool continuation.                                                                                                            |
-| Kova channel routing and delivery         | Supported                               | Telegram, Discord, Slack, WhatsApp, iMessage, and other channels stay outside the model runtime.                                                                                                      |
-| Kova dynamic tools                        | Supported                               | Codex asks Kova to execute these tools, so Kova stays in the execution path.                                                                                                                  |
-| Prompt and context plugins                    | Supported                               | Kova builds prompt overlays and projects context into the Codex turn before starting or resuming the thread.                                                                                      |
+| Kova channel routing and delivery             | Supported                               | Telegram, Discord, Slack, WhatsApp, iMessage, and other channels stay outside the model runtime.                                                                                                      |
+| Kova dynamic tools                            | Supported                               | Codex asks Kova to execute these tools, so Kova stays in the execution path.                                                                                                                          |
+| Prompt and context plugins                    | Supported                               | Kova builds prompt overlays and projects context into the Codex turn before starting or resuming the thread.                                                                                          |
 | Context engine lifecycle                      | Supported                               | Assemble, ingest or after-turn maintenance, and context-engine compaction coordination run for Codex turns.                                                                                           |
-| Dynamic tool hooks                            | Supported                               | `before_tool_call`, `after_tool_call`, and tool-result middleware run around Kova-owned dynamic tools.                                                                                            |
+| Dynamic tool hooks                            | Supported                               | `before_tool_call`, `after_tool_call`, and tool-result middleware run around Kova-owned dynamic tools.                                                                                                |
 | Lifecycle hooks                               | Supported as adapter observations       | `llm_input`, `llm_output`, `agent_end`, `before_compaction`, and `after_compaction` fire with honest Codex-mode payloads.                                                                             |
 | Final-answer revision gate                    | Supported through the native hook relay | Codex `Stop` is relayed to `before_agent_finalize`; `revise` asks Codex for one more model pass before finalization.                                                                                  |
 | Native shell, patch, and MCP block or observe | Supported through the native hook relay | Codex `PreToolUse` and `PostToolUse` are relayed for committed native tool surfaces, including MCP payloads on Codex app-server `0.125.0` or newer. Blocking is supported; argument rewriting is not. |
-| Native permission policy                      | Supported through the native hook relay | Codex `PermissionRequest` can be routed through Kova policy where the runtime exposes it. If Kova returns no decision, Codex continues through its normal guardian or user approval path.     |
-| App-server trajectory capture                 | Supported                               | Kova records the request it sent to app-server and the app-server notifications it receives.                                                                                                      |
+| Native permission policy                      | Supported through the native hook relay | Codex `PermissionRequest` can be routed through Kova policy where the runtime exposes it. If Kova returns no decision, Codex continues through its normal guardian or user approval path.             |
+| App-server trajectory capture                 | Supported                               | Kova records the request it sent to app-server and the app-server notifications it receives.                                                                                                          |
 
 Not supported in Codex runtime v1:
 
-| Surface                                             | V1 boundary                                                                                                                                     | Future path                                                                               |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Surface                                             | V1 boundary                                                                                                                                 | Future path                                                                               |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Native tool argument mutation                       | Codex native pre-tool hooks can block, but Kova does not rewrite Codex-native tool arguments.                                               | Requires Codex hook/schema support for replacement tool input.                            |
 | Editable Codex-native transcript history            | Codex owns canonical native thread history. Kova owns a mirror and can project future context, but should not mutate unsupported internals. | Add explicit Codex app-server APIs if native thread surgery is needed.                    |
 | `tool_result_persist` for Codex-native tool records | That hook transforms Kova-owned transcript writes, not Codex-native tool records.                                                           | Could mirror transformed records, but canonical rewrite needs Codex support.              |

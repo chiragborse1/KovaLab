@@ -16,5 +16,5 @@
 ## Checklist
 
 - [ ] `pnpm build` passes locally
-- [ ] No `openclaw` references left in user-facing strings
+- [ ] No `kova` references left in user-facing strings
 - [ ] Version bumped if needed

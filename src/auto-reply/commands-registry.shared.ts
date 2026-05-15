@@ -523,7 +523,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
     defineChatCommand({
       key: "mcp",
       nativeName: "mcp",
-      description: "Show or set OpenClaw MCP servers.",
+      description: "Show or set Kova MCP servers.",
       textAlias: "/mcp",
       category: "management",
       tier: "power",
@@ -629,7 +629,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
     defineChatCommand({
       key: "restart",
       nativeName: "restart",
-      description: "Restart OpenClaw.",
+      description: "Restart Kova.",
       textAlias: "/restart",
       category: "tools",
       tier: "power",

@@ -16,7 +16,7 @@ import {
 import type { CanvasHostHandler } from "../canvas-host/server.js";
 import { resolveBundledChannelGatewayAuthBypassPaths } from "../channels/plugins/gateway-auth-bypass.js";
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import {
   createDiagnosticTraceContext,
   runWithDiagnosticTraceContext,
@@ -43,7 +43,7 @@ import {
 import type { PreauthConnectionBudget } from "./server/preauth-connection-budget.js";
 import type { ReadinessChecker } from "./server/readiness.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
-import { VOICECLAW_REALTIME_PATH } from "./voiceclaw-realtime/paths.js";
+import { VOICEKOVA_REALTIME_PATH } from "./voicekova-realtime/paths.js";
 
 type PluginHttpRequestHandler = (
   req: IncomingMessage,
@@ -70,8 +70,8 @@ let sessionHistoryHttpModulePromise:
   | undefined;
 let sessionKillHttpModulePromise: Promise<typeof import("./session-kill-http.js")> | undefined;
 let toolsInvokeHttpModulePromise: Promise<typeof import("./tools-invoke-http.js")> | undefined;
-let voiceClawRealtimeUpgradeModulePromise:
-  | Promise<typeof import("./voiceclaw-realtime/upgrade.js")>
+let voiceKovaRealtimeUpgradeModulePromise:
+  | Promise<typeof import("./voicekova-realtime/upgrade.js")>
   | undefined;
 let canvasAuthModulePromise: Promise<typeof import("./server/http-auth.js")> | undefined;
 let httpAuthUtilsModulePromise: Promise<typeof import("./http-auth-utils.js")> | undefined;
@@ -129,9 +129,9 @@ function getToolsInvokeHttpModule() {
   return toolsInvokeHttpModulePromise;
 }
 
-function getVoiceClawRealtimeUpgradeModule() {
-  voiceClawRealtimeUpgradeModulePromise ??= import("./voiceclaw-realtime/upgrade.js");
-  return voiceClawRealtimeUpgradeModulePromise;
+function getVoiceKovaRealtimeUpgradeModule() {
+  voiceKovaRealtimeUpgradeModulePromise ??= import("./voicekova-realtime/upgrade.js");
+  return voiceKovaRealtimeUpgradeModulePromise;
 }
 
 function getCanvasAuthModule() {
@@ -155,13 +155,10 @@ const GATEWAY_PROBE_STATUS_BY_PATH = new Map<string, "live" | "ready">([
   ["/ready", "ready"],
   ["/readyz", "ready"],
 ]);
-const pluginGatewayAuthBypassPathsCache = new WeakMap<
-  OpenClawConfig,
-  Promise<ReadonlySet<string>>
->();
+const pluginGatewayAuthBypassPathsCache = new WeakMap<KovaConfig, Promise<ReadonlySet<string>>>();
 
 async function resolvePluginGatewayAuthBypassPaths(
-  configSnapshot: OpenClawConfig,
+  configSnapshot: KovaConfig,
 ): Promise<Set<string>> {
   const paths = new Set<string>();
   const configuredChannels = configSnapshot.channels;
@@ -180,7 +177,7 @@ async function resolvePluginGatewayAuthBypassPaths(
 }
 
 function getCachedPluginGatewayAuthBypassPaths(
-  configSnapshot: OpenClawConfig,
+  configSnapshot: KovaConfig,
 ): Promise<ReadonlySet<string>> {
   const cached = pluginGatewayAuthBypassPathsCache.get(configSnapshot);
   if (cached) {
@@ -480,7 +477,7 @@ export function createGatewayHttpServer(opts: {
   /** Optional rate limiter for auth brute-force protection. */
   rateLimiter?: AuthRateLimiter;
   getReadiness?: ReadinessChecker;
-  getRuntimeConfig?: () => OpenClawConfig;
+  getRuntimeConfig?: () => KovaConfig;
   tlsOptions?: TlsOptions;
 }): HttpServer {
   const {
@@ -861,7 +858,7 @@ export function attachGatewayUpgradeHandler(opts: {
         }
       }
       const preauthBudgetKey = resolveRequestClientIp(req, trustedProxies, allowRealIpFallback);
-      if (url.pathname === VOICECLAW_REALTIME_PATH) {
+      if (url.pathname === VOICEKOVA_REALTIME_PATH) {
         if (!preauthConnectionBudget.acquire(preauthBudgetKey)) {
           writeUpgradeServiceUnavailable(socket, "Too many unauthenticated sockets");
           socket.destroy();
@@ -877,8 +874,8 @@ export function attachGatewayUpgradeHandler(opts: {
         };
         socket.once("close", releasePreauthBudget);
         try {
-          const { handleVoiceClawRealtimeUpgrade } = await getVoiceClawRealtimeUpgradeModule();
-          handleVoiceClawRealtimeUpgrade({
+          const { handleVoiceKovaRealtimeUpgrade } = await getVoiceKovaRealtimeUpgradeModule();
+          handleVoiceKovaRealtimeUpgrade({
             req,
             socket,
             head,
@@ -894,7 +891,7 @@ export function attachGatewayUpgradeHandler(opts: {
           socket.off("close", releasePreauthBudget);
           releasePreauthBudget();
           socket.destroy();
-          throw new Error("VoiceClaw realtime websocket upgrade failed", { cause: err });
+          throw new Error("VoiceKova realtime websocket upgrade failed", { cause: err });
         }
       }
       if (wss.listenerCount("connection") === 0) {
@@ -920,17 +917,17 @@ export function attachGatewayUpgradeHandler(opts: {
         wss.handleUpgrade(req, socket, head, (ws) => {
           (
             ws as unknown as import("ws").WebSocket & {
-              __openclawPreauthBudgetClaimed?: boolean;
-              __openclawPreauthBudgetKey?: string;
+              __kovaPreauthBudgetClaimed?: boolean;
+              __kovaPreauthBudgetKey?: string;
             }
-          ).__openclawPreauthBudgetKey = preauthBudgetKey;
+          ).__kovaPreauthBudgetKey = preauthBudgetKey;
           wss.emit("connection", ws, req);
           const budgetClaimed = Boolean(
             (
               ws as unknown as import("ws").WebSocket & {
-                __openclawPreauthBudgetClaimed?: boolean;
+                __kovaPreauthBudgetClaimed?: boolean;
               }
-            ).__openclawPreauthBudgetClaimed,
+            ).__kovaPreauthBudgetClaimed,
           );
           if (budgetClaimed) {
             budgetTransferred = true;

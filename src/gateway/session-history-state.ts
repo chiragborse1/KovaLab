@@ -2,14 +2,14 @@ import {
   DEFAULT_CHAT_HISTORY_TEXT_MAX_CHARS,
   projectChatDisplayMessages,
 } from "./chat-display-projection.js";
-import { attachOpenClawTranscriptMeta, readSessionMessages } from "./session-utils.js";
+import { attachKovaTranscriptMeta, readSessionMessages } from "./session-utils.js";
 
 type SessionHistoryTranscriptMeta = {
   seq?: number;
 };
 
 export type SessionHistoryMessage = Record<string, unknown> & {
-  __openclaw?: SessionHistoryTranscriptMeta;
+  __kova?: SessionHistoryTranscriptMeta;
 };
 
 export type PaginatedSessionHistory = {
@@ -60,7 +60,7 @@ function buildPaginatedSessionHistory(params: {
 }
 
 export function resolveMessageSeq(message: SessionHistoryMessage | undefined): number | undefined {
-  const seq = message?.__openclaw?.seq;
+  const seq = message?.__kova?.seq;
   return typeof seq === "number" && Number.isFinite(seq) && seq > 0 ? seq : undefined;
 }
 
@@ -170,7 +170,7 @@ export class SessionHistorySseState {
       return null;
     }
     this.rawTranscriptSeq += 1;
-    const nextMessage = attachOpenClawTranscriptMeta(update.message, {
+    const nextMessage = attachKovaTranscriptMeta(update.message, {
       ...(typeof update.messageId === "string" ? { id: update.messageId } : {}),
       seq: this.rawTranscriptSeq,
     });

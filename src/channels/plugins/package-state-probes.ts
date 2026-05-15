@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
@@ -12,10 +12,7 @@ import {
   resolveExistingPluginModulePath,
 } from "./module-loader.js";
 
-type ChannelPackageStateChecker = (params: {
-  cfg: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-}) => boolean;
+type ChannelPackageStateChecker = (params: { cfg: KovaConfig; env?: NodeJS.ProcessEnv }) => boolean;
 
 type ChannelPackageStateMetadata = {
   specifier?: string;
@@ -115,7 +112,7 @@ export function listBundledChannelIdsForPackageState(
 export function hasBundledChannelPackageState(params: {
   metadataKey: ChannelPackageStateMetadataKey;
   channelId: string;
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   env?: NodeJS.ProcessEnv;
 }): boolean {
   const registry = getChannelPackageStateRegistry(params.metadataKey);

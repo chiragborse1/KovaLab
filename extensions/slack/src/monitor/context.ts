@@ -1,22 +1,19 @@
 import type { App } from "@slack/bolt";
-import { formatAllowlistMatchMeta } from "openclaw/plugin-sdk/allow-from";
-import type {
-  OpenClawConfig,
-  SlackReactionNotificationMode,
-} from "openclaw/plugin-sdk/config-runtime";
-import type { SessionScope } from "openclaw/plugin-sdk/config-runtime";
-import type { DmPolicy, GroupPolicy } from "openclaw/plugin-sdk/config-runtime";
-import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { createDedupeCache } from "openclaw/plugin-sdk/infra-runtime";
-import type { HistoryEntry } from "openclaw/plugin-sdk/reply-history";
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
-import { getChildLogger } from "openclaw/plugin-sdk/runtime-env";
-import type { RuntimeEnv } from "openclaw/plugin-sdk/runtime-env";
+import { formatAllowlistMatchMeta } from "getkova/plugin-sdk/allow-from";
+import type { KovaConfig, SlackReactionNotificationMode } from "getkova/plugin-sdk/config-runtime";
+import type { SessionScope } from "getkova/plugin-sdk/config-runtime";
+import type { DmPolicy, GroupPolicy } from "getkova/plugin-sdk/config-runtime";
+import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { createDedupeCache } from "getkova/plugin-sdk/infra-runtime";
+import type { HistoryEntry } from "getkova/plugin-sdk/reply-history";
+import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
+import { logVerbose } from "getkova/plugin-sdk/runtime-env";
+import { getChildLogger } from "getkova/plugin-sdk/runtime-env";
+import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
-} from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/text-runtime";
 import type { SlackMessageEvent } from "../types.js";
 import { normalizeAllowList, normalizeAllowListLower, normalizeSlackSlug } from "./allow-list.js";
 import type { SlackChannelConfigEntries } from "./channel-config.js";
@@ -32,7 +29,7 @@ export {
 } from "./channel-type.js";
 
 export type SlackMonitorContext = {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   botToken: string;
   app: App;
@@ -65,7 +62,7 @@ export type SlackMonitorContext = {
   threadHistoryScope: "thread" | "channel";
   threadInheritParent: boolean;
   threadRequireExplicitMention: boolean;
-  slashCommand: Required<import("openclaw/plugin-sdk/config-runtime").SlackSlashCommandConfig>;
+  slashCommand: Required<import("getkova/plugin-sdk/config-runtime").SlackSlashCommandConfig>;
   textLimit: number;
   ackReactionScope: string;
   typingReaction: string;
@@ -101,7 +98,7 @@ export type SlackMonitorContext = {
 };
 
 export function createSlackMonitorContext(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId: string;
   botToken: string;
   app: App;

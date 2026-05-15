@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../src/config/types.openclaw.js";
+import type { KovaConfig } from "../../src/config/types.kova.js";
 import {
   __testing,
   buildDeepgramRealtimeTranscriptionProvider,
@@ -13,7 +13,7 @@ describe("buildDeepgramRealtimeTranscriptionProvider", () => {
   it("normalizes nested provider config", () => {
     const provider = buildDeepgramRealtimeTranscriptionProvider();
     const resolved = provider.resolveConfig?.({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as KovaConfig,
       rawConfig: {
         providers: {
           deepgram: {

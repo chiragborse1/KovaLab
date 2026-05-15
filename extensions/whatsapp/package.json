@@ -11,10 +11,10 @@
     "undici": "8.2.0"
   },
   "devDependencies": {
-    "@openclaw/plugin-sdk": "workspace:*",
+    "@getkova/plugin-sdk": "workspace:*",
     "getkova": "workspace:*"
   },
-  "openclaw": {
+  "kova": {
     "extensions": [
       "./index.ts"
     ],
@@ -55,10 +55,10 @@
       "stageRuntimeDependencies": true
     },
     "build": {
-      "openclawVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.5"
     },
     "release": {
-      "publishToClawHub": true,
+      "publishToKovaHub": true,
       "publishToNpm": true
     }
   }

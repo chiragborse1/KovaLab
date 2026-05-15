@@ -4,7 +4,7 @@ import {
   resolveStoredSessionKeyForAgentStore,
 } from "../../gateway/session-store-key.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
-import type { OpenClawConfig } from "../types.openclaw.js";
+import type { KovaConfig } from "../types.kova.js";
 import { resolveStorePath } from "./paths.js";
 import { loadSessionStore } from "./store-load.js";
 import { resolveAllAgentSessionStoreTargetsSync } from "./targets.js";
@@ -15,7 +15,7 @@ function isStorePathTemplate(store?: string): boolean {
 }
 
 function mergeSessionEntryIntoCombined(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   combined: Record<string, SessionEntry>;
   entry: SessionEntry;
   agentId: string;
@@ -43,7 +43,7 @@ function mergeSessionEntryIntoCombined(params: {
   }
 }
 
-export function loadCombinedSessionStoreForGateway(cfg: OpenClawConfig): {
+export function loadCombinedSessionStoreForGateway(cfg: KovaConfig): {
   storePath: string;
   store: Record<string, SessionEntry>;
 } {

@@ -1,11 +1,11 @@
-import { resolveApprovalApprovers } from "openclaw/plugin-sdk/approval-auth-runtime";
+import { resolveApprovalApprovers } from "getkova/plugin-sdk/approval-auth-runtime";
 import {
   createChannelExecApprovalProfile,
   isChannelExecApprovalTargetRecipient,
-} from "openclaw/plugin-sdk/approval-client-runtime";
-import { doesApprovalRequestMatchChannelAccount } from "openclaw/plugin-sdk/approval-native-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { normalizeStringifiedOptionalString } from "openclaw/plugin-sdk/text-runtime";
+} from "getkova/plugin-sdk/approval-client-runtime";
+import { doesApprovalRequestMatchChannelAccount } from "getkova/plugin-sdk/approval-native-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import { normalizeStringifiedOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { resolveSlackAccount } from "./accounts.js";
 
 export function normalizeSlackApproverId(value: string | number): string | undefined {
@@ -24,7 +24,7 @@ export function normalizeSlackApproverId(value: string | number): string | undef
   return /^[UW][A-Z0-9]+$/i.test(trimmed) ? trimmed : undefined;
 }
 
-function resolveSlackOwnerApprovers(cfg: OpenClawConfig): string[] {
+function resolveSlackOwnerApprovers(cfg: KovaConfig): string[] {
   const ownerAllowFrom = cfg.commands?.ownerAllowFrom;
   if (!Array.isArray(ownerAllowFrom) || ownerAllowFrom.length === 0) {
     return [];
@@ -35,7 +35,7 @@ function resolveSlackOwnerApprovers(cfg: OpenClawConfig): string[] {
   });
 }
 export function getSlackExecApprovalApprovers(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   accountId?: string | null;
 }): string[] {
   const account = resolveSlackAccount(params).config;
@@ -46,7 +46,7 @@ export function getSlackExecApprovalApprovers(params: {
 }
 
 export function isSlackExecApprovalTargetRecipient(params: {
-  cfg: OpenClawConfig;
+  cfg: KovaConfig;
   senderId?: string | null;
   accountId?: string | null;
 }): boolean {

@@ -23,7 +23,7 @@ function parsePositiveInt(value) {
 }
 
 export function resolveVitestNodeArgs(env = process.env) {
-  if (isTruthyEnvValue(env.OPENCLAW_VITEST_ENABLE_MAGLEV)) {
+  if (isTruthyEnvValue(env.KOVA_VITEST_ENABLE_MAGLEV)) {
     return [];
   }
 
@@ -36,7 +36,7 @@ export function resolveVitestCliEntry() {
 }
 
 export function resolveVitestNoOutputTimeoutMs(env = process.env) {
-  return parsePositiveInt(env.OPENCLAW_VITEST_NO_OUTPUT_TIMEOUT_MS);
+  return parsePositiveInt(env.KOVA_VITEST_NO_OUTPUT_TIMEOUT_MS);
 }
 
 export function resolveVitestSpawnParams(env = process.env, platform = process.platform) {
@@ -65,9 +65,7 @@ function shouldApplyNativeWorkerBudget(env) {
   if (env.RAYON_NUM_THREADS?.trim() && env.TOKIO_WORKER_THREADS?.trim()) {
     return false;
   }
-  return (
-    env.OPENCLAW_TEST_PROJECTS_SERIAL === "1" || resolveExplicitVitestWorkerBudget(env) !== null
-  );
+  return env.KOVA_TEST_PROJECTS_SERIAL === "1" || resolveExplicitVitestWorkerBudget(env) !== null;
 }
 
 function resolveNativeWorkerCount(env) {
@@ -75,7 +73,7 @@ function resolveNativeWorkerCount(env) {
 }
 
 function resolveExplicitVitestWorkerBudget(env) {
-  return parsePositiveInt(env.OPENCLAW_VITEST_MAX_WORKERS ?? env.OPENCLAW_TEST_WORKERS);
+  return parsePositiveInt(env.KOVA_VITEST_MAX_WORKERS ?? env.KOVA_TEST_WORKERS);
 }
 
 export function shouldSuppressVitestStderrLine(line) {

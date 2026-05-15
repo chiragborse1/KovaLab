@@ -82,9 +82,9 @@ describe("packed CLI smoke", () => {
           SystemRoot: "C:\\Windows",
           GITHUB_TOKEN: "redacted",
           OPENAI_API_KEY: "real-secret",
-          OPENCLAW_CONFIG_PATH: "/tmp/leaky-config.json",
+          KOVA_CONFIG_PATH: "/tmp/leaky-config.json",
         },
-        { HOME: "/tmp/smoke-home", OPENCLAW_STATE_DIR: "/tmp/smoke-state" },
+        { HOME: "/tmp/smoke-home", KOVA_STATE_DIR: "/tmp/smoke-state" },
       ),
     ).toEqual({
       PATH:
@@ -101,10 +101,10 @@ describe("packed CLI smoke", () => {
       AWS_CONFIG_FILE: "/tmp/smoke-home/.aws/config",
       TMPDIR: "/tmp/original-tmp",
       SystemRoot: "C:\\Windows",
-      OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
-      OPENCLAW_NO_ONBOARD: "1",
-      OPENCLAW_SUPPRESS_NOTES: "1",
-      OPENCLAW_STATE_DIR: "/tmp/smoke-state",
+      KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+      KOVA_NO_ONBOARD: "1",
+      KOVA_SUPPRESS_NOTES: "1",
+      KOVA_STATE_DIR: "/tmp/smoke-state",
     });
   });
 });
@@ -116,14 +116,14 @@ describe("collectBundledExtensionManifestErrors", () => {
         {
           id: "broken",
           packageJson: {
-            openclaw: {
+            kova: {
               install: { npmSpec: "   " },
             },
           },
         },
       ]),
     ).toEqual([
-      "bundled extension 'broken' manifest invalid | openclaw.install.npmSpec must be a non-empty string",
+      "bundled extension 'broken' manifest invalid | kova.install.npmSpec must be a non-empty string",
     ]);
   });
 
@@ -133,8 +133,8 @@ describe("collectBundledExtensionManifestErrors", () => {
         {
           id: "broken",
           packageJson: {
-            openclaw: {
-              install: { npmSpec: "@openclaw/broken", minHostVersion: "2026.3.14" },
+            kova: {
+              install: { npmSpec: "@kovaai/broken", minHostVersion: "2026.3.14" },
             },
           },
         },
@@ -150,7 +150,7 @@ describe("collectBundledExtensionManifestErrors", () => {
         {
           id: "irc",
           packageJson: {
-            openclaw: {
+            kova: {
               install: { minHostVersion: ">=2026.3.14" },
             },
           },
@@ -165,13 +165,13 @@ describe("collectBundledExtensionManifestErrors", () => {
         {
           id: "broken",
           packageJson: {
-            openclaw: {
+            kova: {
               install: 123,
             },
           },
         },
       ]),
-    ).toEqual(["bundled extension 'broken' manifest invalid | openclaw.install must be an object"]);
+    ).toEqual(["bundled extension 'broken' manifest invalid | kova.install must be an object"]);
   });
 });
 
@@ -200,7 +200,7 @@ describe("bundled plugin root runtime mirrors", () => {
   });
 
   it("derives required root mirrors from built root dist imports", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-root-mirror-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-root-mirror-"));
 
     try {
       const distDir = join(tempRoot, "dist");
@@ -260,7 +260,7 @@ describe("bundled plugin root runtime mirrors", () => {
   });
 
   it("does not derive root mirrors for root chunks sourced from the owning plugin", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-root-mirror-owned-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-root-mirror-owned-"));
 
     try {
       const distDir = join(tempRoot, "dist");
@@ -283,18 +283,14 @@ describe("bundled plugin root runtime mirrors", () => {
   });
 
   it("does not require root deps for root chunks sourced from the owning installed plugin", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-root-owned-installed-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-root-owned-installed-"));
 
     try {
       mkdirSync(join(tempRoot, "dist", "extensions", "memory-lancedb"), { recursive: true });
-      writeFileSync(
-        join(tempRoot, "package.json"),
-        `{"name":"openclaw","dependencies":{}}\n`,
-        "utf8",
-      );
+      writeFileSync(join(tempRoot, "package.json"), `{"name":"kova","dependencies":{}}\n`, "utf8");
       writeFileSync(
         join(tempRoot, "dist", "extensions", "memory-lancedb", "package.json"),
-        `{"name":"@openclaw/memory-lancedb","dependencies":{"@lancedb/lancedb":"^0.27.2"}}\n`,
+        `{"name":"@kovaai/memory-lancedb","dependencies":{"@lancedb/lancedb":"^0.27.2"}}\n`,
         "utf8",
       );
       writeFileSync(
@@ -310,18 +306,14 @@ describe("bundled plugin root runtime mirrors", () => {
   });
 
   it("still requires root deps for root-owned installed chunks", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-root-owned-installed-missing-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-root-owned-installed-missing-"));
 
     try {
       mkdirSync(join(tempRoot, "dist", "extensions", "memory-lancedb"), { recursive: true });
-      writeFileSync(
-        join(tempRoot, "package.json"),
-        `{"name":"openclaw","dependencies":{}}\n`,
-        "utf8",
-      );
+      writeFileSync(join(tempRoot, "package.json"), `{"name":"kova","dependencies":{}}\n`, "utf8");
       writeFileSync(
         join(tempRoot, "dist", "extensions", "memory-lancedb", "package.json"),
-        `{"name":"@openclaw/memory-lancedb","dependencies":{"@lancedb/lancedb":"^0.27.2"}}\n`,
+        `{"name":"@kovaai/memory-lancedb","dependencies":{"@lancedb/lancedb":"^0.27.2"}}\n`,
         "utf8",
       );
       writeFileSync(
@@ -405,12 +397,12 @@ describe("collectForbiddenPackPaths", () => {
         "dist/index.js",
         bundledDistPluginFile("discord", "node_modules/@buape/carbon/index.js"),
         bundledPluginFile("tlon", "node_modules/.bin/tlon"),
-        "node_modules/.bin/openclaw",
+        "node_modules/.bin/kova",
       ]),
     ).toEqual([
       bundledDistPluginFile("discord", "node_modules/@buape/carbon/index.js"),
       bundledPluginFile("tlon", "node_modules/.bin/tlon"),
-      "node_modules/.bin/openclaw",
+      "node_modules/.bin/kova",
     ]);
   });
 
@@ -437,14 +429,14 @@ describe("collectForbiddenPackPaths", () => {
     expect(
       collectForbiddenPackPaths([
         "dist/index.js",
-        "dist/extensions/browser/.OpenClaw-Install-Stage/package.json",
-        "dist/extensions/codex/.openclaw-runtime-deps-backup-node_modules-old/zod/index.js",
-        "dist/extensions/discord/.openclaw-runtime-deps-stamp.json",
+        "dist/extensions/browser/.Kova-Install-Stage/package.json",
+        "dist/extensions/codex/.kova-runtime-deps-backup-node_modules-old/zod/index.js",
+        "dist/extensions/discord/.kova-runtime-deps-stamp.json",
       ]),
     ).toEqual([
-      "dist/extensions/browser/.OpenClaw-Install-Stage/package.json",
-      "dist/extensions/codex/.openclaw-runtime-deps-backup-node_modules-old/zod/index.js",
-      "dist/extensions/discord/.openclaw-runtime-deps-stamp.json",
+      "dist/extensions/browser/.Kova-Install-Stage/package.json",
+      "dist/extensions/codex/.kova-runtime-deps-backup-node_modules-old/zod/index.js",
+      "dist/extensions/discord/.kova-runtime-deps-stamp.json",
     ]);
   });
 
@@ -480,7 +472,7 @@ describe("collectForbiddenPackPaths", () => {
   });
 
   it("blocks root dist chunks that still reference private qa lab sources", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-release-private-qa-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-release-private-qa-"));
 
     try {
       mkdirSync(join(tempRoot, "dist"), { recursive: true });
@@ -500,7 +492,7 @@ describe("collectForbiddenPackPaths", () => {
   });
 
   it("blocks private QA paths in the generated dist inventory", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "openclaw-release-inventory-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kova-release-inventory-"));
 
     try {
       mkdirSync(join(tempRoot, "dist"), { recursive: true });
@@ -543,10 +535,10 @@ describe("collectMissingPackPaths", () => {
         bundledDistPluginFile("matrix", "helper-api.js"),
         bundledDistPluginFile("matrix", "runtime-api.js"),
         bundledDistPluginFile("matrix", "thread-bindings-runtime.js"),
-        bundledDistPluginFile("matrix", "openclaw.plugin.json"),
+        bundledDistPluginFile("matrix", "kova.plugin.json"),
         bundledDistPluginFile("matrix", "package.json"),
         bundledDistPluginFile("telegram", "runtime-api.js"),
-        bundledDistPluginFile("telegram", "openclaw.plugin.json"),
+        bundledDistPluginFile("telegram", "kova.plugin.json"),
         bundledDistPluginFile("telegram", "package.json"),
       ]),
     );
@@ -644,7 +636,7 @@ describe("createPackedBundledPluginPostinstallEnv", () => {
   it("keeps packed postinstall on the lazy bundled dependency path", () => {
     expect(createPackedBundledPluginPostinstallEnv({ PATH: "/usr/bin" })).toEqual({
       PATH: "/usr/bin",
-      OPENCLAW_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
+      KOVA_DISABLE_BUNDLED_ENTRY_SOURCE_FALLBACK: "1",
     });
   });
 });
@@ -679,13 +671,13 @@ describe("collectInstalledBundledPluginRuntimeDepErrors", () => {
     );
   }
 
-  it("returns no errors when declared deps are installed at the openclaw package root", () => {
+  it("returns no errors when declared deps are installed at the kova package root", () => {
     const packageRoot = createPackageRoot();
     try {
       writeBundledPluginPackageJson(packageRoot, "whatsapp", {
-        name: "@openclaw/whatsapp",
+        name: "@kovaai/whatsapp",
         dependencies: { "@whiskeysockets/baileys": "7.0.0-rc.9" },
-        openclaw: { bundle: { stageRuntimeDependencies: true } },
+        kova: { bundle: { stageRuntimeDependencies: true } },
       });
       installRuntimeDependencyAtPackageRoot(packageRoot, "@whiskeysockets/baileys", "7.0.0-rc.9");
 
@@ -699,9 +691,9 @@ describe("collectInstalledBundledPluginRuntimeDepErrors", () => {
     const packageRoot = createPackageRoot();
     try {
       writeBundledPluginPackageJson(packageRoot, "whatsapp", {
-        name: "@openclaw/whatsapp",
+        name: "@kovaai/whatsapp",
         dependencies: { "@whiskeysockets/baileys": "7.0.0-rc.9" },
-        openclaw: { bundle: { stageRuntimeDependencies: true } },
+        kova: { bundle: { stageRuntimeDependencies: true } },
       });
 
       expect(collectInstalledBundledPluginRuntimeDepErrors(packageRoot)).toEqual([

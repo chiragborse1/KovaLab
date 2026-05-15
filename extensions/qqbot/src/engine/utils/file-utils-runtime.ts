@@ -1,1 +1,1 @@
-export { fetchRemoteMedia } from "openclaw/plugin-sdk/media-runtime";
+export { fetchRemoteMedia } from "getkova/plugin-sdk/media-runtime";
