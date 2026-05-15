@@ -30,6 +30,7 @@ import { normalizeInputProvenance, type InputProvenance } from "../../sessions/i
 import { resolveSendPolicy } from "../../sessions/send-policy.js";
 import { parseAgentSessionKey } from "../../sessions/session-key-utils.js";
 import { emitSessionTranscriptUpdate } from "../../sessions/transcript-events.js";
+import { formatRawAssistantErrorForUi } from "../../shared/assistant-error-format.js";
 import {
   stripInlineDirectiveTagsForDisplay,
   sanitizeReplyDirectiveId,
@@ -1252,6 +1253,38 @@ async function persistAbortedPartials(params: {
   }
 }
 
+function formatChatRunErrorTranscriptText(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const formatted = formatRawAssistantErrorForUi(raw).trim();
+  return `Error: ${formatted || "chat run failed"}`;
+}
+
+async function appendChatRunErrorTranscriptMessage(params: {
+  context: Pick<GatewayRequestContext, "logGateway">;
+  sessionKey: string;
+  agentId: string;
+  runId: string;
+  err: unknown;
+}): Promise<TranscriptAppendResult> {
+  const { storePath, entry } = loadSessionEntry(params.sessionKey);
+  const sessionId = entry?.sessionId ?? params.runId;
+  const appended = await appendAssistantTranscriptMessage({
+    message: formatChatRunErrorTranscriptText(params.err),
+    sessionId,
+    storePath,
+    sessionFile: entry?.sessionFile,
+    agentId: params.agentId,
+    createIfMissing: true,
+    idempotencyKey: `${params.runId}:assistant-error`,
+  });
+  if (!appended.ok) {
+    params.context.logGateway.warn(
+      `webchat error transcript append failed: ${appended.error ?? "unknown error"}`,
+    );
+  }
+  return appended;
+}
+
 function createChatAbortOps(context: GatewayRequestContext): ChatAbortOps {
   return {
     chatAbortControllers: context.chatAbortControllers,
@@ -2335,16 +2368,23 @@ export const chatHandlers: GatewayRequestHandlers = {
             },
           });
         })
-        .catch((err) => {
-          void rewriteUserTranscriptMedia().catch((rewriteErr) => {
+        .catch(async (err) => {
+          await rewriteUserTranscriptMedia().catch((rewriteErr) => {
             context.logGateway.warn(
               `webchat transcript media rewrite failed after error: ${formatForLog(rewriteErr)}`,
             );
           });
-          void emitUserTranscriptUpdate().catch((transcriptErr) => {
+          await emitUserTranscriptUpdate().catch((transcriptErr) => {
             context.logGateway.warn(
               `webchat user transcript update failed after error: ${formatForLog(transcriptErr)}`,
             );
+          });
+          await appendChatRunErrorTranscriptMessage({
+            context,
+            sessionKey,
+            agentId,
+            runId: clientRunId,
+            err,
           });
           const error = errorShape(ErrorCodes.UNAVAILABLE, String(err));
           setGatewayDedupeEntry({
