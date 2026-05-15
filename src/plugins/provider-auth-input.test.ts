@@ -255,12 +255,17 @@ describe("maybeApplyApiKeyFromOption", () => {
 
 describe("ensureApiKeyFromEnvOrPrompt", () => {
   it("uses env credential when user confirms", async () => {
-    const { result, setCredential, text } = await runEnsureMinimaxApiKeyFlow({
+    const { result, setCredential, confirm, text } = await runEnsureMinimaxApiKeyFlow({
       confirmResult: true,
       textResult: "prompt-key",
     });
 
     expect(result).toBe("env-key");
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Use detected MINIMAX_API_KEY from env: MINIMAX_API_KEY (en…ey)?",
+      }),
+    );
     expect(setCredential).toHaveBeenCalledWith("env-key", "plaintext");
     expect(text).not.toHaveBeenCalled();
   });
