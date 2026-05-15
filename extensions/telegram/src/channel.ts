@@ -72,7 +72,6 @@ import {
   formatDuplicateTelegramTokenReason,
   telegramConfigAdapter,
 } from "./shared.js";
-import { withTelegramStartupProbeSlot } from "./startup-probe-limiter.js";
 import { detectTelegramLegacyStateMigrations } from "./state-migrations.js";
 import { collectTelegramStatusIssues } from "./status-issues.js";
 import { parseTelegramTarget } from "./targets.js";
@@ -879,30 +878,7 @@ export const telegramPlugin = createChatChannelPlugin({
           throw new Error(reason);
         }
         const token = (account.token ?? "").trim();
-        let telegramBotLabel = "";
-        try {
-          const probe = await withTelegramStartupProbeSlot(ctx.abortSignal, () =>
-            resolveTelegramProbe()(token, 2500, {
-              accountId: account.accountId,
-              proxyUrl: account.config.proxy,
-              network: account.config.network,
-              apiRoot: account.config.apiRoot,
-              includeWebhookInfo: false,
-            }),
-          );
-          const username = probe.ok ? probe.bot?.username?.trim() : null;
-          if (username) {
-            telegramBotLabel = ` (@${username})`;
-          }
-        } catch (err) {
-          if (ctx.abortSignal.aborted) {
-            return;
-          }
-          if (getTelegramRuntime().logging.shouldLogVerbose()) {
-            ctx.log?.debug?.(`[${account.accountId}] bot probe failed: ${String(err)}`);
-          }
-        }
-        ctx.log?.info(`[${account.accountId}] connector online${telegramBotLabel}`);
+        ctx.log?.info(`[${account.accountId}] connector online`);
         const setStatus = createAccountStatusSink({
           accountId: account.accountId,
           setStatus: ctx.setStatus,
