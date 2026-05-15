@@ -3,6 +3,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { removePathIfExists } from "./runtime-postbuild-shared.mjs";
 
+const KOVA_EXTENSION_ALIAS_PACKAGE_NAMES = ["getkova", "kova"];
+
 function symlinkType() {
   return process.platform === "win32" ? "junction" : "dir";
 }
@@ -104,27 +106,29 @@ function ensureKovaExtensionAlias(params) {
     return;
   }
 
-  const aliasDir = path.join(params.distExtensionsRoot, "node_modules", "kova");
-  const pluginSdkAliasPath = path.join(aliasDir, "plugin-sdk");
-  fs.mkdirSync(aliasDir, { recursive: true });
-  writeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "kova",
-    type: "module",
-    exports: {
-      "./plugin-sdk": "./plugin-sdk/index.js",
-      "./plugin-sdk/*": "./plugin-sdk/*.js",
-    },
-  });
-  removePathIfExists(pluginSdkAliasPath);
-  fs.mkdirSync(pluginSdkAliasPath, { recursive: true });
-  for (const dirent of fs.readdirSync(pluginSdkDir, { withFileTypes: true })) {
-    if (!dirent.isFile() || path.extname(dirent.name) !== ".js") {
-      continue;
+  for (const packageName of KOVA_EXTENSION_ALIAS_PACKAGE_NAMES) {
+    const aliasDir = path.join(params.distExtensionsRoot, "node_modules", packageName);
+    const pluginSdkAliasPath = path.join(aliasDir, "plugin-sdk");
+    fs.mkdirSync(aliasDir, { recursive: true });
+    writeJsonFile(path.join(aliasDir, "package.json"), {
+      name: packageName,
+      type: "module",
+      exports: {
+        "./plugin-sdk": "./plugin-sdk/index.js",
+        "./plugin-sdk/*": "./plugin-sdk/*.js",
+      },
+    });
+    removePathIfExists(pluginSdkAliasPath);
+    fs.mkdirSync(pluginSdkAliasPath, { recursive: true });
+    for (const dirent of fs.readdirSync(pluginSdkDir, { withFileTypes: true })) {
+      if (!dirent.isFile() || path.extname(dirent.name) !== ".js") {
+        continue;
+      }
+      writeRuntimeModuleWrapper(
+        path.join(pluginSdkDir, dirent.name),
+        path.join(pluginSdkAliasPath, dirent.name),
+      );
     }
-    writeRuntimeModuleWrapper(
-      path.join(pluginSdkDir, dirent.name),
-      path.join(pluginSdkAliasPath, dirent.name),
-    );
   }
 }
 

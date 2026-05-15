@@ -129,38 +129,49 @@ describe("stageBundledPluginRuntime", () => {
       fs.realpathSync(path.join(distPluginDir, "node_modules")),
     );
     expect(fs.existsSync(path.join(distPluginDir, "node_modules"))).toBe(true);
-    expect(
-      fs
-        .lstatSync(path.join(repoRoot, "dist", "extensions", "node_modules", "kova", "plugin-sdk"))
-        .isSymbolicLink(),
-    ).toBe(false);
-    expect(
-      fs.readFileSync(
-        path.join(repoRoot, "dist", "extensions", "node_modules", "kova", "package.json"),
-        "utf8",
-      ),
-    ).toContain('"./plugin-sdk": "./plugin-sdk/index.js"');
-    expect(
-      fs.readFileSync(
-        path.join(repoRoot, "dist", "extensions", "node_modules", "kova", "package.json"),
-        "utf8",
-      ),
-    ).toContain('"./plugin-sdk/*": "./plugin-sdk/*.js"');
-    expect(
-      fs.readFileSync(
-        path.join(
-          repoRoot,
-          "dist",
-          "extensions",
-          "node_modules",
-          "kova",
-          "plugin-sdk",
-          "channel-entry-contract.js",
+    for (const packageName of ["getkova", "kova"]) {
+      expect(
+        fs
+          .lstatSync(
+            path.join(repoRoot, "dist", "extensions", "node_modules", packageName, "plugin-sdk"),
+          )
+          .isSymbolicLink(),
+      ).toBe(false);
+      expect(
+        fs.readFileSync(
+          path.join(repoRoot, "dist", "extensions", "node_modules", packageName, "package.json"),
+          "utf8",
         ),
-        "utf8",
-      ),
-    ).toContain("../../../../plugin-sdk/channel-entry-contract.js");
+      ).toContain(`"name": "${packageName}"`);
+      expect(
+        fs.readFileSync(
+          path.join(repoRoot, "dist", "extensions", "node_modules", packageName, "package.json"),
+          "utf8",
+        ),
+      ).toContain('"./plugin-sdk": "./plugin-sdk/index.js"');
+      expect(
+        fs.readFileSync(
+          path.join(repoRoot, "dist", "extensions", "node_modules", packageName, "package.json"),
+          "utf8",
+        ),
+      ).toContain('"./plugin-sdk/*": "./plugin-sdk/*.js"');
+      expect(
+        fs.readFileSync(
+          path.join(
+            repoRoot,
+            "dist",
+            "extensions",
+            "node_modules",
+            packageName,
+            "plugin-sdk",
+            "channel-entry-contract.js",
+          ),
+          "utf8",
+        ),
+      ).toContain("../../../../plugin-sdk/channel-entry-contract.js");
+    }
     expect(fs.existsSync(path.join(runtimePluginDir, "node_modules", "kova"))).toBe(false);
+    expect(fs.existsSync(path.join(runtimePluginDir, "node_modules", "getkova"))).toBe(false);
   });
 
   it("keeps extension-local plugin-sdk wrappers resolving canonical dist chunks", async () => {

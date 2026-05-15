@@ -259,38 +259,42 @@ function writeRuntimeModuleWrapper(sourcePath: string, targetPath: string): void
   fs.writeFileSync(targetPath, content, "utf8");
 }
 
+const KOVA_PLUGIN_SDK_ALIAS_PACKAGE_NAMES = ["getkova", "kova"] as const;
+
 function ensureKovaPluginSdkAlias(distRoot: string): void {
   const pluginSdkDir = path.join(distRoot, "plugin-sdk");
   if (!fs.existsSync(pluginSdkDir)) {
     return;
   }
 
-  const aliasDir = path.join(distRoot, "extensions", "node_modules", "kova");
-  const pluginSdkAliasDir = path.join(aliasDir, "plugin-sdk");
-  writeRuntimeJsonFile(path.join(aliasDir, "package.json"), {
-    name: "kova",
-    type: "module",
-    exports: {
-      "./plugin-sdk": "./plugin-sdk/index.js",
-      "./plugin-sdk/*": "./plugin-sdk/*.js",
-    },
-  });
-  try {
-    if (fs.existsSync(pluginSdkAliasDir) && !fs.lstatSync(pluginSdkAliasDir).isDirectory()) {
-      fs.rmSync(pluginSdkAliasDir, { recursive: true, force: true });
+  for (const packageName of KOVA_PLUGIN_SDK_ALIAS_PACKAGE_NAMES) {
+    const aliasDir = path.join(distRoot, "extensions", "node_modules", packageName);
+    const pluginSdkAliasDir = path.join(aliasDir, "plugin-sdk");
+    writeRuntimeJsonFile(path.join(aliasDir, "package.json"), {
+      name: packageName,
+      type: "module",
+      exports: {
+        "./plugin-sdk": "./plugin-sdk/index.js",
+        "./plugin-sdk/*": "./plugin-sdk/*.js",
+      },
+    });
+    try {
+      if (fs.existsSync(pluginSdkAliasDir) && !fs.lstatSync(pluginSdkAliasDir).isDirectory()) {
+        fs.rmSync(pluginSdkAliasDir, { recursive: true, force: true });
+      }
+    } catch {
+      // Another process may be creating the alias at the same time; mkdir/write
+      // below will either converge or surface the real filesystem error.
     }
-  } catch {
-    // Another process may be creating the alias at the same time; mkdir/write
-    // below will either converge or surface the real filesystem error.
-  }
-  fs.mkdirSync(pluginSdkAliasDir, { recursive: true });
-  for (const entry of fs.readdirSync(pluginSdkDir, { withFileTypes: true })) {
-    if (!entry.isFile() || path.extname(entry.name) !== ".js") {
-      continue;
+    fs.mkdirSync(pluginSdkAliasDir, { recursive: true });
+    for (const entry of fs.readdirSync(pluginSdkDir, { withFileTypes: true })) {
+      if (!entry.isFile() || path.extname(entry.name) !== ".js") {
+        continue;
+      }
+      writeRuntimeModuleWrapper(
+        path.join(pluginSdkDir, entry.name),
+        path.join(pluginSdkAliasDir, entry.name),
+      );
     }
-    writeRuntimeModuleWrapper(
-      path.join(pluginSdkDir, entry.name),
-      path.join(pluginSdkAliasDir, entry.name),
-    );
   }
 }

@@ -856,7 +856,8 @@ describe("loadKovaPlugins", () => {
   it("refreshes bundled plugin-sdk aliases without deleting the shared alias directory", () => {
     const distRoot = makeTempDir();
     const pluginSdkDir = path.join(distRoot, "plugin-sdk");
-    const aliasDir = path.join(distRoot, "extensions", "node_modules", "kova", "plugin-sdk");
+    const aliasDir = path.join(distRoot, "extensions", "node_modules", "getkova", "plugin-sdk");
+    const legacyAliasDir = path.join(distRoot, "extensions", "node_modules", "kova", "plugin-sdk");
     mkdirSafe(pluginSdkDir);
     mkdirSafe(aliasDir);
     fs.writeFileSync(path.join(pluginSdkDir, "index.js"), "export const value = 1;\n", "utf8");
@@ -869,6 +870,19 @@ describe("loadKovaPlugins", () => {
 
     expect(fs.existsSync(path.join(aliasDir, "sentinel.txt"))).toBe(true);
     expect(fs.readFileSync(path.join(aliasDir, "core.js"), "utf8")).toContain("core.js");
+    expect(fs.readFileSync(path.join(legacyAliasDir, "core.js"), "utf8")).toContain("core.js");
+    expect(
+      fs.readFileSync(
+        path.join(distRoot, "extensions", "node_modules", "getkova", "package.json"),
+        "utf8",
+      ),
+    ).toContain('"name": "getkova"');
+    expect(
+      fs.readFileSync(
+        path.join(distRoot, "extensions", "node_modules", "kova", "package.json"),
+        "utf8",
+      ),
+    ).toContain('"name": "kova"');
   });
 
   it("disables bundled plugins by default", () => {

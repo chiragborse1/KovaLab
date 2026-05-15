@@ -26,6 +26,7 @@ describe("prepareBundledPluginRuntimeRoot", () => {
     const pluginRoot = path.join(packageRoot, "dist", "extensions", "browser");
     const env = { ...process.env, KOVA_PLUGIN_STAGE_DIR: stageDir };
     fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.mkdirSync(path.join(packageRoot, "dist", "plugin-sdk"), { recursive: true });
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       JSON.stringify({ name: "kova", version: "2026.4.24", type: "module" }),
@@ -40,6 +41,11 @@ describe("prepareBundledPluginRuntimeRoot", () => {
         `//#endregion`,
         "",
       ].join("\n"),
+      "utf8",
+    );
+    fs.writeFileSync(
+      path.join(packageRoot, "dist", "plugin-sdk", "text-runtime.js"),
+      "export const normalizeLowercaseStringOrEmpty = (value) => String(value).toLowerCase();\n",
       "utf8",
     );
     fs.writeFileSync(
@@ -106,6 +112,21 @@ describe("prepareBundledPluginRuntimeRoot", () => {
     expect(fs.existsSync(staleMirrorChunk)).toBe(true);
     expect(fs.lstatSync(staleMirrorChunk).isSymbolicLink()).toBe(false);
     expect(fs.readFileSync(staleMirrorChunk, "utf8")).toContain("playwright-core");
+    for (const packageName of ["getkova", "kova"]) {
+      expect(
+        fs.existsSync(
+          path.join(
+            installRoot,
+            "dist",
+            "extensions",
+            "node_modules",
+            packageName,
+            "plugin-sdk",
+            "text-runtime.js",
+          ),
+        ),
+      ).toBe(true);
+    }
   });
 
   it("does not copy staged runtime mirror dist files onto themselves", () => {
