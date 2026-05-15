@@ -9,6 +9,7 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { InlineCodeState } from "../markdown/code-spans.js";
 import { buildCodeSpanIndex, createInlineCodeState } from "../markdown/code-spans.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
+import { findFinalTagMatches } from "../shared/text/final-tags.js";
 import { hasOrphanReasoningCloseBoundary } from "../shared/text/reasoning-tags.js";
 import { EmbeddedBlockChunker } from "./pi-embedded-block-chunker.js";
 import {
@@ -41,8 +42,52 @@ import {
 } from "./pi-embedded-utils.js";
 import { hasNonzeroUsage, normalizeUsage, type UsageLike } from "./usage.js";
 
-const FINAL_TAG_SCAN_RE = /<\s*(\/?)\s*final\s*>/gi;
+const STREAM_STRIPPED_BLOCK_TAG_NAMES = [
+  "final",
+  "think",
+  "thinking",
+  "thought",
+  "antthinking",
+  "antml:think",
+  "antml:thinking",
+  "antml:thought",
+] as const;
 const log = createSubsystemLogger("agent/embedded");
+
+function isPotentialTrailingBlockTagFragment(fragment: string): boolean {
+  if (!fragment.startsWith("<") || fragment.includes(">")) {
+    return false;
+  }
+  const body = fragment.toLowerCase().slice(1).trimStart().replace(/^\//, "").trimStart();
+  if (!body) {
+    return true;
+  }
+  const namePart = body.split(/[\s/>]/, 1)[0] ?? "";
+  if (!namePart) {
+    return true;
+  }
+  return STREAM_STRIPPED_BLOCK_TAG_NAMES.some((name) => {
+    return name.startsWith(namePart) || namePart === name;
+  });
+}
+
+function splitTrailingBlockTagFragment(
+  text: string,
+  isInsideCodeSpan: (index: number) => boolean,
+): { text: string; pendingTagFragment?: string } {
+  const fragmentStart = text.lastIndexOf("<");
+  if (fragmentStart === -1 || isInsideCodeSpan(fragmentStart)) {
+    return { text };
+  }
+  const fragment = text.slice(fragmentStart);
+  if (!isPotentialTrailingBlockTagFragment(fragment)) {
+    return { text };
+  }
+  return {
+    text: text.slice(0, fragmentStart),
+    pendingTagFragment: fragment,
+  };
+}
 
 function collectPendingMediaFromInternalEvents(
   events: SubscribeEmbeddedPiSessionParams["internalEvents"],
@@ -212,9 +257,11 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     state.blockState.thinking = false;
     state.blockState.final = false;
     state.blockState.inlineCode = createInlineCodeState();
+    state.blockState.pendingTagFragment = undefined;
     state.partialBlockState.thinking = false;
     state.partialBlockState.final = false;
     state.partialBlockState.inlineCode = createInlineCodeState();
+    state.partialBlockState.pendingTagFragment = undefined;
     state.lastStreamedAssistant = undefined;
     state.lastStreamedAssistantCleaned = undefined;
     state.emittedAssistantUpdate = false;
@@ -514,20 +561,36 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
 
   const stripBlockTags = (
     text: string,
-    state: { thinking: boolean; final: boolean; inlineCode?: InlineCodeState },
+    state: {
+      thinking: boolean;
+      final: boolean;
+      inlineCode?: InlineCodeState;
+      pendingTagFragment?: string;
+    },
+    options?: { final?: boolean },
   ): string => {
-    if (!text) {
+    const input = `${state.pendingTagFragment ?? ""}${text}`;
+    state.pendingTagFragment = undefined;
+    if (!input) {
       return text;
     }
 
     const inlineStateStart = state.inlineCode ?? createInlineCodeState();
-    const codeSpans = buildCodeSpanIndex(text, inlineStateStart);
+    const initialCodeSpans = buildCodeSpanIndex(input, inlineStateStart);
+    const { text: scanText, pendingTagFragment } = options?.final
+      ? { text: input, pendingTagFragment: undefined }
+      : splitTrailingBlockTagFragment(input, initialCodeSpans.isInside);
+    state.pendingTagFragment = pendingTagFragment;
+    if (!scanText) {
+      return "";
+    }
+    const codeSpans = buildCodeSpanIndex(scanText, inlineStateStart);
 
     let processed = "";
     THINKING_TAG_SCAN_RE.lastIndex = 0;
     let lastIndex = 0;
     let inThinking = state.thinking;
-    for (const match of text.matchAll(THINKING_TAG_SCAN_RE)) {
+    for (const match of scanText.matchAll(THINKING_TAG_SCAN_RE)) {
       const idx = match.index ?? 0;
       if (codeSpans.isInside(idx)) {
         continue;
@@ -536,8 +599,8 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       if (!inThinking) {
         if (isClose) {
           const afterIndex = idx + match[0].length;
-          const before = text.slice(lastIndex, idx);
-          const after = text.slice(afterIndex);
+          const before = scanText.slice(lastIndex, idx);
+          const after = scanText.slice(afterIndex);
           if (hasOrphanReasoningCloseBoundary({ before, after })) {
             processed = "";
           } else {
@@ -546,13 +609,13 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
           lastIndex = afterIndex;
           continue;
         }
-        processed += text.slice(lastIndex, idx);
+        processed += scanText.slice(lastIndex, idx);
       }
       inThinking = !isClose;
       lastIndex = idx + match[0].length;
     }
     if (!inThinking) {
-      processed += text.slice(lastIndex);
+      processed += scanText.slice(lastIndex);
     }
     state.thinking = inThinking;
 
@@ -562,34 +625,42 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     const finalCodeSpans = buildCodeSpanIndex(processed, inlineStateStart);
     if (!params.enforceFinalTag) {
       state.inlineCode = finalCodeSpans.inlineState;
-      FINAL_TAG_SCAN_RE.lastIndex = 0;
-      return stripTagsOutsideCodeSpans(processed, FINAL_TAG_SCAN_RE, finalCodeSpans.isInside);
+      return stripFinalTagsOutsideCodeSpans(processed, finalCodeSpans.isInside);
     }
 
     // If enforcement is enabled, only return text that appeared inside a <final> block.
     let result = "";
-    FINAL_TAG_SCAN_RE.lastIndex = 0;
     let lastFinalIndex = 0;
     let inFinal = state.final;
     let everInFinal = state.final;
 
-    for (const match of processed.matchAll(FINAL_TAG_SCAN_RE)) {
-      const idx = match.index ?? 0;
+    for (const match of findFinalTagMatches(processed)) {
+      const idx = match.index;
       if (finalCodeSpans.isInside(idx)) {
         continue;
       }
-      const isClose = match[1] === "/";
+      const isClose = match.isClose;
+      const isSelfClosing = match.isSelfClosing;
 
-      if (!inFinal && !isClose) {
+      if (isSelfClosing) {
+        if (inFinal) {
+          result += processed.slice(lastFinalIndex, idx);
+          inFinal = false;
+        } else {
+          inFinal = true;
+          everInFinal = true;
+        }
+        lastFinalIndex = idx + match.text.length;
+      } else if (!inFinal && !isClose) {
         // Found <final> start tag.
         inFinal = true;
         everInFinal = true;
-        lastFinalIndex = idx + match[0].length;
+        lastFinalIndex = idx + match.text.length;
       } else if (inFinal && isClose) {
         // Found </final> end tag.
         result += processed.slice(lastFinalIndex, idx);
         inFinal = false;
-        lastFinalIndex = idx + match[0].length;
+        lastFinalIndex = idx + match.text.length;
       }
     }
 
@@ -609,36 +680,36 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     // missed (e.g. nested tags or hallucinations) to prevent leakage.
     const resultCodeSpans = buildCodeSpanIndex(result, inlineStateStart);
     state.inlineCode = resultCodeSpans.inlineState;
-    return stripTagsOutsideCodeSpans(result, FINAL_TAG_SCAN_RE, resultCodeSpans.isInside);
+    return stripFinalTagsOutsideCodeSpans(result, resultCodeSpans.isInside);
   };
 
-  const stripTagsOutsideCodeSpans = (
-    text: string,
-    pattern: RegExp,
-    isInside: (index: number) => boolean,
-  ) => {
+  const stripFinalTagsOutsideCodeSpans = (text: string, isInside: (index: number) => boolean) => {
     let output = "";
     let lastIndex = 0;
-    pattern.lastIndex = 0;
-    for (const match of text.matchAll(pattern)) {
-      const idx = match.index ?? 0;
+    for (const match of findFinalTagMatches(text)) {
+      const idx = match.index;
       if (isInside(idx)) {
         continue;
       }
       output += text.slice(lastIndex, idx);
-      lastIndex = idx + match[0].length;
+      lastIndex = idx + match.text.length;
     }
     output += text.slice(lastIndex);
     return output;
   };
 
-  const emitBlockChunk = (text: string, options?: { assistantMessageIndex?: number }) => {
+  const emitBlockChunk = (
+    text: string,
+    options?: { assistantMessageIndex?: number; final?: boolean },
+  ) => {
     if (state.suppressBlockChunks || params.silentExpected) {
       return;
     }
     // Strip <think> and <final> blocks across chunk boundaries to avoid leaking reasoning.
     // Also strip downgraded tool call text ([Tool Call: ...], [Historical context: ...], etc.).
-    const chunk = stripDowngradedToolCallText(stripBlockTags(text, state.blockState)).trimEnd();
+    const chunk = stripDowngradedToolCallText(
+      stripBlockTags(text, state.blockState, { final: options?.final === true }),
+    ).trimEnd();
     if (!chunk) {
       return;
     }
@@ -701,6 +772,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
 
   const flushBlockReplyBuffer = (options?: {
     assistantMessageIndex?: number;
+    final?: boolean;
   }): void | Promise<void> => {
     if (!params.onBlockReply) {
       return;
