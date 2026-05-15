@@ -171,10 +171,10 @@ export function shouldUseLegacyProcessRestartAfterUpdate(params: {
 function isRunningInsideGatewayService(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
-  if (!isGatewayServiceMarker((env.KOVA_SERVICE_MARKER ?? env.KOVA_SERVICE_MARKER)?.trim())) {
+  if (!isGatewayServiceMarker(env.KOVA_SERVICE_MARKER?.trim())) {
     return false;
   }
-  const serviceKind = (env.KOVA_SERVICE_KIND ?? env.KOVA_SERVICE_KIND)?.trim();
+  const serviceKind = env.KOVA_SERVICE_KIND?.trim();
   return !serviceKind || serviceKind === GATEWAY_SERVICE_KIND;
 }
 

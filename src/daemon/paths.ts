@@ -38,6 +38,6 @@ export function resolveGatewayStateDir(env: Record<string, string | undefined>):
     return resolveUserPathWithHome(override, home);
   }
   const home = resolveHomeDir(env);
-  const suffix = resolveGatewayProfileSuffix(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
+  const suffix = resolveGatewayProfileSuffix(env.KOVA_PROFILE);
   return path.join(home, `.kova${suffix}`);
 }

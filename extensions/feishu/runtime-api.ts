@@ -17,7 +17,6 @@ export type {
   PluginRuntime,
   ReplyPayload,
 } from "getkova/plugin-sdk/core";
-export type { KovaConfig as KovaConfig } from "getkova/plugin-sdk/core";
 export type { RuntimeEnv } from "getkova/plugin-sdk/runtime";
 export type { GroupToolPolicyConfig } from "getkova/plugin-sdk/config-runtime";
 export {

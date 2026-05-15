@@ -41,15 +41,11 @@ function resolveGuiDomain(): string {
 }
 
 function resolveLaunchAgentLabel(env?: Record<string, string | undefined>): string {
-  const envLabel =
-    normalizeOptionalString(env?.KOVA_LAUNCHD_LABEL) ??
-    normalizeOptionalString(env?.KOVA_LAUNCHD_LABEL);
+  const envLabel = normalizeOptionalString(env?.KOVA_LAUNCHD_LABEL);
   if (envLabel) {
     return assertValidLaunchAgentLabel(envLabel);
   }
-  return assertValidLaunchAgentLabel(
-    resolveGatewayLaunchAgentLabel(env?.KOVA_PROFILE ?? env?.KOVA_PROFILE),
-  );
+  return assertValidLaunchAgentLabel(resolveGatewayLaunchAgentLabel(env?.KOVA_PROFILE));
 }
 
 export function resolveLaunchdRestartTarget(

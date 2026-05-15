@@ -132,9 +132,7 @@ const GATEWAY_AUTH_MODES: readonly GatewayAuthMode[] = [
 const GATEWAY_TAILSCALE_MODES: readonly GatewayTailscaleMode[] = ["off", "serve", "funnel"];
 
 function createGatewayCliStartupTrace() {
-  const enabled = isTruthyEnvValue(
-    process.env.KOVA_GATEWAY_STARTUP_TRACE ?? process.env.KOVA_GATEWAY_STARTUP_TRACE,
-  );
+  const enabled = isTruthyEnvValue(process.env.KOVA_GATEWAY_STARTUP_TRACE);
   const started = performance.now();
   let last = started;
   const emit = (name: string, durationMs: number, totalMs: number) => {
@@ -366,9 +364,7 @@ function maybeWriteGatewayStartupFailureBundle(err: unknown): void {
 }
 
 async function runGatewayCommand(opts: GatewayRunOpts) {
-  const isDevProfile =
-    normalizeOptionalLowercaseString(process.env.KOVA_PROFILE ?? process.env.KOVA_PROFILE) ===
-    "dev";
+  const isDevProfile = normalizeOptionalLowercaseString(process.env.KOVA_PROFILE) === "dev";
   const devMode = Boolean(opts.dev) || isDevProfile;
   if (opts.reset && !devMode) {
     defaultRuntime.error("Use --reset with --dev.");
@@ -440,10 +436,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     action: "start the gateway service",
     snapshot,
   });
-  if (
-    futureStartupBlock &&
-    (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.KOVA_SERVICE_MARKER?.trim())
-  ) {
+  if (futureStartupBlock && process.env.KOVA_SERVICE_MARKER?.trim()) {
     defaultRuntime.error(formatFutureConfigActionBlock(futureStartupBlock));
     defaultRuntime.exit(78);
     return;
@@ -472,7 +465,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     return;
   }
   const bindExplicitRaw = bindExplicitRawStr as GatewayBindMode | undefined;
-  if (process.env.KOVA_SERVICE_MARKER?.trim() ?? process.env.KOVA_SERVICE_MARKER?.trim()) {
+  if (process.env.KOVA_SERVICE_MARKER?.trim()) {
     const stale = cleanStaleGatewayProcessesSync(port);
     if (stale.length > 0) {
       gatewayLog.info(

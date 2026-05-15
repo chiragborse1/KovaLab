@@ -470,8 +470,7 @@ export async function runServiceRestart(params: {
     // Check for token drift before restart (service token vs config token)
     try {
       const command = await params.service.readCommand(process.env);
-      const serviceToken =
-        command?.environment?.KOVA_GATEWAY_TOKEN ?? command?.environment?.KOVA_GATEWAY_TOKEN;
+      const serviceToken = command?.environment?.KOVA_GATEWAY_TOKEN;
       const cfg = await readBestEffortConfig();
       const driftEnv = {
         ...process.env,

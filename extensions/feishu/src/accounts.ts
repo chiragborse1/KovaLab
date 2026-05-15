@@ -1,6 +1,6 @@
 import {
   DEFAULT_ACCOUNT_ID,
-  type KovaConfig as KovaConfig,
+  type KovaConfig,
   createAccountListHelpers,
   normalizeAccountId,
   normalizeOptionalAccountId,

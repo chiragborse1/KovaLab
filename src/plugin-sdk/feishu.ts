@@ -40,7 +40,7 @@ export type {
 export type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 export { createReplyPrefixContext } from "../channels/reply-prefix.js";
 export { createChannelReplyPipeline } from "./channel-reply-pipeline.js";
-export type { KovaConfig as KovaConfig, KovaConfig } from "../config/config.js";
+export type { KovaConfig } from "../config/config.js";
 export { resolveChannelContextVisibilityMode } from "../config/context-visibility.js";
 export {
   resolveAllowlistProviderRuntimeGroupPolicy,

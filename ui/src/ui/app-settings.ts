@@ -464,7 +464,7 @@ export function inferBasePath() {
   if (typeof window === "undefined") {
     return "";
   }
-  const configured = window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__KOVA_CONTROL_UI_BASE_PATH__;
+  const configured = window.__KOVA_CONTROL_UI_BASE_PATH__;
   const normalizedConfigured = normalizeOptionalString(configured);
   if (normalizedConfigured) {
     return normalizeBasePath(normalizedConfigured);

@@ -91,10 +91,7 @@ function formatHostWithPort(hostname: string, port: string): string {
 function deriveDefaultGatewayUrl(): { pageUrl: string; effectiveUrl: string } {
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const configured =
-    typeof window !== "undefined" &&
-    normalizeOptionalString(
-      window.__KOVA_CONTROL_UI_BASE_PATH__ ?? window.__KOVA_CONTROL_UI_BASE_PATH__,
-    );
+    typeof window !== "undefined" && normalizeOptionalString(window.__KOVA_CONTROL_UI_BASE_PATH__);
   const basePath = configured
     ? normalizeBasePath(configured)
     : inferBasePathFromPathname(location.pathname);

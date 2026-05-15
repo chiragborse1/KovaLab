@@ -33,8 +33,7 @@ const randomTokenMock = vi.hoisted(() => vi.fn(() => "generated-token"));
 const createInstallPlanFixture = vi.hoisted(() => {
   return async (params?: { wrapperPath?: string; env?: Record<string, string | undefined> }) => {
     const environment: Record<string, string | undefined> = {};
-    const requestedWrapper =
-      params?.wrapperPath ?? params?.env?.KOVA_WRAPPER ?? params?.env?.KOVA_WRAPPER;
+    const requestedWrapper = params?.wrapperPath ?? params?.env?.KOVA_WRAPPER;
     if (requestedWrapper) {
       environment.KOVA_WRAPPER = requestedWrapper;
     }

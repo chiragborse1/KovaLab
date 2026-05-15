@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
+import type { WizardPrompter } from "../wizard/prompts.js";
 
 const mocks = vi.hoisted(() => {
   const writeConfigFile = vi.fn();
@@ -646,12 +647,12 @@ describe("runConfigureWizard", () => {
     mocks.replaceConfigFile.mockImplementation(async (params: { nextConfig: unknown }) => {
       await mocks.writeConfigFile(params.nextConfig);
     });
-    const prompter = {
+    const prompter: WizardPrompter = {
       intro: vi.fn(async () => {}),
       outro: vi.fn(async () => {}),
       note: vi.fn(async () => {}),
-      select: vi.fn(async () => "workspace"),
-      multiselect: vi.fn(async () => []),
+      select: vi.fn(async <T>() => "workspace" as T),
+      multiselect: vi.fn(async <T>() => [] as T[]),
       text: vi.fn(async () => "~/browser-kova"),
       confirm: vi.fn(async () => true),
       progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),
@@ -681,12 +682,12 @@ describe("runConfigureWizard", () => {
 
   it("does not run service actions when browser configure disables them", async () => {
     setupBaseWizardState();
-    const prompter = {
+    const prompter: WizardPrompter = {
       intro: vi.fn(async () => {}),
       outro: vi.fn(async () => {}),
       note: vi.fn(async () => {}),
-      select: vi.fn(async () => "workspace"),
-      multiselect: vi.fn(async () => []),
+      select: vi.fn(async <T>() => "workspace" as T),
+      multiselect: vi.fn(async <T>() => [] as T[]),
       text: vi.fn(async () => "18789"),
       confirm: vi.fn(async () => true),
       progress: vi.fn(() => ({ update: vi.fn(), stop: vi.fn() })),

@@ -1,3 +1,4 @@
+import { resolveKovaCompatMode } from "../config/paths.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 
 export const DEFAULT_PLUGIN_DISCOVERY_CACHE_MS = 1000;

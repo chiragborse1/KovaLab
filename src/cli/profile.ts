@@ -97,18 +97,15 @@ export function applyCliProfileEnv(params: {
 
   // Convenience only: fill defaults, never override explicit env values.
   env.KOVA_PROFILE = env.KOVA_PROFILE ?? profile;
-  env.KOVA_PROFILE = env.KOVA_PROFILE ?? env.KOVA_PROFILE;
 
-  const existingStateDir = normalizeOptionalString(env.KOVA_STATE_DIR ?? env.KOVA_STATE_DIR);
+  const existingStateDir = normalizeOptionalString(env.KOVA_STATE_DIR);
   const stateDir = existingStateDir || resolveProfileStateDir(profile, env, homedir);
   if (!existingStateDir) {
     env.KOVA_STATE_DIR = stateDir;
-    env.KOVA_STATE_DIR = stateDir;
   }
 
-  if (!normalizeOptionalString(env.KOVA_CONFIG_PATH ?? env.KOVA_CONFIG_PATH)) {
+  if (!normalizeOptionalString(env.KOVA_CONFIG_PATH)) {
     env.KOVA_CONFIG_PATH = path.join(stateDir, "kova.json");
-    env.KOVA_CONFIG_PATH = env.KOVA_CONFIG_PATH;
   }
 
   if (profile === "dev" && !env.KOVA_GATEWAY_PORT?.trim() && !env.KOVA_GATEWAY_PORT?.trim()) {

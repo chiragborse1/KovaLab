@@ -186,8 +186,8 @@ export function renderRuntimeHints(
     hints.push(
       ...buildPlatformRuntimeLogHints({
         env,
-        systemdServiceName: resolveGatewaySystemdServiceName(env.KOVA_PROFILE ?? env.KOVA_PROFILE),
-        windowsTaskName: resolveGatewayWindowsTaskName(env.KOVA_PROFILE ?? env.KOVA_PROFILE),
+        systemdServiceName: resolveGatewaySystemdServiceName(env.KOVA_PROFILE),
+        windowsTaskName: resolveGatewayWindowsTaskName(env.KOVA_PROFILE),
       }),
     );
   }
@@ -195,7 +195,7 @@ export function renderRuntimeHints(
 }
 
 export function renderGatewayServiceStartHints(env: NodeJS.ProcessEnv = process.env): string[] {
-  const profile = env.KOVA_PROFILE ?? env.KOVA_PROFILE;
+  const profile = env.KOVA_PROFILE;
   const container = resolveDaemonContainerContext(env);
   const hints = buildPlatformServiceStartHints({
     installCommand: formatCliCommand("kova gateway install", env),

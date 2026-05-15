@@ -4,7 +4,7 @@ import { executeWithApiKeyRotation } from "./api-key-rotation.js";
 describe("executeWithApiKeyRotation", () => {
   it("retries transient same-key failures before returning success", async () => {
     const execute = vi
-      .fn<[(apiKey: string) => Promise<string>]>()
+      .fn<(apiKey: string) => Promise<string>>()
       .mockRejectedValueOnce(Object.assign(new Error("HTTP 503"), { status: 503 }))
       .mockResolvedValueOnce("ok");
     const sleep = vi.fn(async () => {});
@@ -26,7 +26,7 @@ describe("executeWithApiKeyRotation", () => {
 
   it("rotates keys on rate limits instead of retrying the same key", async () => {
     const execute = vi
-      .fn<[(apiKey: string) => Promise<string>]>()
+      .fn<(apiKey: string) => Promise<string>>()
       .mockRejectedValueOnce(Object.assign(new Error("HTTP 429"), { status: 429 }))
       .mockResolvedValueOnce("rotated");
     const sleep = vi.fn(async () => {});
@@ -51,7 +51,7 @@ describe("executeWithApiKeyRotation", () => {
 
   it("does not retry non-transient provider failures", async () => {
     const error = Object.assign(new Error("HTTP 401 invalid api key"), { status: 401 });
-    const execute = vi.fn<[(apiKey: string) => Promise<string>]>().mockRejectedValue(error);
+    const execute = vi.fn<(apiKey: string) => Promise<string>>().mockRejectedValue(error);
     const sleep = vi.fn(async () => {});
 
     await expect(

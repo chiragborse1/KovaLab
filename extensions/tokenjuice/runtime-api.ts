@@ -1,1 +1,1 @@
-export { createTokenjuiceKovaEmbeddedExtension } from "tokenjuice/kova";
+export { createTokenjuiceOpenClawEmbeddedExtension as createTokenjuiceKovaEmbeddedExtension } from "tokenjuice/openclaw";

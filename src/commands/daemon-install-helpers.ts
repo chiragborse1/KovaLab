@@ -8,7 +8,6 @@ import { resolveGatewayLaunchAgentLabel } from "../daemon/constants.js";
 import { resolveGatewayStateDir } from "../daemon/paths.js";
 import {
   KOVA_WRAPPER_ENV_KEY,
-  KOVA_WRAPPER_ENV_KEY,
   resolveGatewayProgramArguments,
   resolveKovaWrapperPath,
 } from "../daemon/program-args.js";

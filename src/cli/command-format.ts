@@ -15,9 +15,9 @@ export function formatCliCommand(
 ): string {
   const cliName = resolveDisplayCliName();
   const normalizedCommand = replaceCliName(command, cliName);
-  const rawContainer = env.KOVA_CONTAINER_HINT?.trim() ?? env.KOVA_CONTAINER_HINT?.trim();
+  const rawContainer = env.KOVA_CONTAINER_HINT?.trim();
   const container = rawContainer && CONTAINER_HINT_RE.test(rawContainer) ? rawContainer : undefined;
-  const profile = normalizeProfileName(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
+  const profile = normalizeProfileName(env.KOVA_PROFILE);
   if (!container && !profile) {
     return normalizedCommand;
   }

@@ -17,7 +17,6 @@ type GatewayProgramArgs = {
 type GatewayRuntimePreference = "auto" | "node" | "bun";
 
 export const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
-export const KOVA_WRAPPER_ENV_KEY = "KOVA_WRAPPER";
 
 async function resolveCliEntrypointPathForService(): Promise<string> {
   const argv1 = process.argv[1];

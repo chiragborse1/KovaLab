@@ -276,7 +276,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
 
   if (service.runtime?.cachedLabel) {
     const env = service.command?.environment ?? process.env;
-    const labelValue = resolveGatewayLaunchAgentLabel(env.KOVA_PROFILE ?? env.KOVA_PROFILE);
+    const labelValue = resolveGatewayLaunchAgentLabel(env.KOVA_PROFILE);
     defaultRuntime.error(
       errorText(
         `LaunchAgent label cached but plist missing. Clear with: launchctl bootout gui/$UID/${labelValue}`,
@@ -317,9 +317,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
       defaultRuntime.error(`${errorText("Last gateway error:")} ${status.lastError}`);
     }
     if (process.platform === "linux") {
-      const unit = resolveGatewaySystemdServiceName(
-        serviceEnv.KOVA_PROFILE ?? serviceEnv.KOVA_PROFILE,
-      );
+      const unit = resolveGatewaySystemdServiceName(serviceEnv.KOVA_PROFILE);
       defaultRuntime.error(
         errorText(`Logs: journalctl --user -u ${unit}.service -n 200 --no-pager`),
       );

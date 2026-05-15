@@ -106,12 +106,8 @@ export function resolveGatewayServiceDescription(params: {
   return (
     params.description ??
     formatGatewayServiceDescription({
-      profile: params.env.KOVA_PROFILE ?? params.env.KOVA_PROFILE,
-      version:
-        params.environment?.KOVA_SERVICE_VERSION ??
-        params.environment?.KOVA_SERVICE_VERSION ??
-        params.env.KOVA_SERVICE_VERSION ??
-        params.env.KOVA_SERVICE_VERSION,
+      profile: params.env.KOVA_PROFILE,
+      version: params.environment?.KOVA_SERVICE_VERSION ?? params.env.KOVA_SERVICE_VERSION,
     })
   );
 }

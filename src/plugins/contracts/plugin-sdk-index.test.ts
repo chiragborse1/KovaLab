@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { buildPluginSdkPackageExports } from "../../plugin-sdk/entrypoints.js";
-import type { KovaConfig, KovaConfig, KovaSchemaType } from "../../plugin-sdk/index.js";
+import type { KovaConfig, KovaSchemaType } from "../../plugin-sdk/index.js";
 
 const pluginSdkIndexPath = fileURLToPath(new URL("../../plugin-sdk/index.ts", import.meta.url));
 

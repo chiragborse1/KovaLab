@@ -128,7 +128,6 @@ import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.
 declare global {
   interface Window {
     __KOVA_CONTROL_UI_BASE_PATH__?: string;
-    __KOVA_CONTROL_UI_BASE_PATH__?: string;
   }
 }
 

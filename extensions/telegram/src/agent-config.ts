@@ -1,4 +1,4 @@
-import type { KovaConfig } from "getkova/plugin-sdk/config-types";
+import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 
 type ReasoningDefault = "on" | "stream" | "off";
 

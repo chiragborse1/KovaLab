@@ -47,7 +47,7 @@ describe("models.list handler", () => {
 
     await modelsHandlers["models.list"]({
       req: {
-        type: "request",
+        type: "req",
         id: "models-1",
         method: "models.list",
         params: { preferCached: true },
