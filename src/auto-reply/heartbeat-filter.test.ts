@@ -6,7 +6,7 @@ import {
 } from "./heartbeat-filter.js";
 import { HEARTBEAT_PROMPT, HEARTBEAT_TRANSCRIPT_PROMPT } from "./heartbeat.js";
 
-const legacyHeartbeatTranscriptPrompt = "[Open" + "Claw heartbeat poll]";
+const legacyHeartbeatTranscriptPrompt = "[Open\u0043law heartbeat poll]";
 
 describe("isHeartbeatUserMessage", () => {
   it("matches heartbeat prompts", () => {
