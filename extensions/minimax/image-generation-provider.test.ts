@@ -90,6 +90,37 @@ describe("minimax image-generation provider", () => {
     });
   });
 
+  it("rejects malformed image base64", async () => {
+    mockMinimaxApiKey();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: {
+              image_base64: ['SGVsbG8=" onerror="alert(1)'],
+            },
+            base_resp: { status_code: 0 },
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const provider = buildMinimaxImageGenerationProvider();
+    await expect(
+      provider.generateImage({
+        provider: "minimax",
+        model: "image-01",
+        prompt: "draw a cat",
+        cfg: {},
+      }),
+    ).rejects.toThrow("MiniMax image generation returned malformed image base64");
+  });
+
   it("keeps the dedicated global image endpoint when text config uses the global API host", async () => {
     mockMinimaxApiKey();
     const fetchMock = mockSuccessfulMinimaxImageResponse();
