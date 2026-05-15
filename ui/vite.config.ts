@@ -87,6 +87,8 @@ function controlUiServiceWorkerBuildIdPlugin(buildId: string): Plugin {
   };
 }
 
+const NODE_MODULES_RE = /[\\/]node_modules[\\/]/;
+
 export default defineConfig(() => {
   const envBase = process.env.KOVA_CONTROL_UI_BASE_PATH?.trim();
   const base = envBase ? normalizeBase(envBase) : "./";
@@ -106,7 +108,35 @@ export default defineConfig(() => {
       outDir,
       emptyOutDir: true,
       sourcemap: true,
-      // Keep CI/onboard logs clean; current control UI chunking is intentionally above 500 kB.
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "lit",
+                test: /[\\/]node_modules[\\/](?:@lit|lit|lit-html)[\\/]/,
+                priority: 30,
+              },
+              {
+                name: "markdown",
+                test: /[\\/]node_modules[\\/](?:dompurify|entities|linkify-it|markdown-it|mdurl|uc\.micro)[\\/]/,
+                priority: 25,
+              },
+              {
+                name: "zod",
+                test: /[\\/]node_modules[\\/]zod[\\/]/,
+                priority: 20,
+              },
+              {
+                name: "vendor",
+                test: NODE_MODULES_RE,
+                priority: 10,
+                maxSize: 256 * 1024,
+              },
+            ],
+          },
+        },
+      },
       chunkSizeWarningLimit: 1024,
     },
     server: {
