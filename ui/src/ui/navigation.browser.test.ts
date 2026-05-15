@@ -30,6 +30,22 @@ async function confirmPendingGatewayChange(app: ReturnType<typeof mountApp>) {
   await app.updateComplete;
 }
 
+async function waitForSelector<T extends Element>(
+  app: ReturnType<typeof mountApp>,
+  selector: string,
+): Promise<T> {
+  let element: T | null = null;
+  await vi.waitFor(async () => {
+    await app.updateComplete;
+    element = app.querySelector<T>(selector);
+    expect(element).not.toBeNull();
+  });
+  if (!element) {
+    throw new Error(`Selector not found: ${selector}`);
+  }
+  return element;
+}
+
 function expectConfirmedGatewayChange(app: ReturnType<typeof mountApp>) {
   expect(app.settings.gatewayUrl).toBe("wss://other-gateway.example/kova");
   expect(app.settings.token).toBe("abc123");
@@ -110,7 +126,7 @@ describe("control UI routing", () => {
     await app.updateComplete;
 
     expect(app.tab).toBe("dreams");
-    expect(app.querySelector(".dreams__tab")).not.toBeNull();
+    await waitForSelector(app, ".dreams__tab");
     expect(app.querySelector(".dreams__mascot img")).not.toBeNull();
   });
 
@@ -579,12 +595,12 @@ describe("control UI routing", () => {
       undefined,
     );
 
-    const gatewayUrlInput = refreshed.querySelector<HTMLInputElement>(
+    const gatewayUrlInput = await waitForSelector<HTMLInputElement>(
+      refreshed,
       'input[placeholder="ws://100.x.y.z:18789"]',
     );
-    expect(gatewayUrlInput).not.toBeNull();
-    gatewayUrlInput!.value = "wss://other-gateway.example/kova";
-    gatewayUrlInput!.dispatchEvent(new Event("input", { bubbles: true }));
+    gatewayUrlInput.value = "wss://other-gateway.example/kova";
+    gatewayUrlInput.dispatchEvent(new Event("input", { bubbles: true }));
     await refreshed.updateComplete;
 
     expect(refreshed.settings.gatewayUrl).toBe("wss://other-gateway.example/kova");
