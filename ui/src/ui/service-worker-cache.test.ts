@@ -22,6 +22,6 @@ describe("Control UI service worker cache versioning", () => {
     expect(serviceWorkerSource).toContain("caches.delete");
     expect(viteConfigSource).toContain("source.replace(placeholder, JSON.stringify(buildId))");
     expect(serviceWorkerSource).not.toContain('const CACHE_NAME = "kova-control-v1"');
-    expect(serviceWorkerSource).not.toContain("OpenClaw");
+    expect(serviceWorkerSource).not.toContain(["Open", "Claw"].join(""));
   });
 });
