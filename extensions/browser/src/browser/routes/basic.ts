@@ -344,11 +344,11 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
       if (!name) {
         return jsonError(res, 400, "name is required");
       }
-      if (driver && driver !== "kova" && driver !== "kova" && driver !== "existing-session") {
+      if (driver && driver !== "kova" && driver !== "existing-session") {
         return jsonError(
           res,
           400,
-          `unsupported profile driver "${driver}"; use "kova", "kova", or "existing-session"`,
+          `unsupported profile driver "${driver}"; use "kova" or "existing-session"`,
         );
       }
 
@@ -364,7 +364,7 @@ export function registerBrowserBasicRoutes(app: BrowserRouteRegistrar, ctx: Brow
             driver:
               driver === "existing-session"
                 ? "existing-session"
-                : driver === "kova" || driver === "kova"
+                : driver === "kova"
                   ? "kova"
                   : undefined,
           }),
