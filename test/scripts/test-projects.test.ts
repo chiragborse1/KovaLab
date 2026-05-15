@@ -445,6 +445,21 @@ describe("scripts/test-projects changed-target routing", () => {
     ]);
   });
 
+  it("routes changed ui root config files to the ui lane", () => {
+    const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
+      "ui/vite.config.ts",
+    ]);
+
+    expect(plans).toEqual([
+      {
+        config: "test/vitest/vitest.ui.config.ts",
+        forwardedArgs: [],
+        includePatterns: null,
+        watchMode: false,
+      },
+    ]);
+  });
+
   it("routes auto-reply route source files to route regression tests", () => {
     expect(
       resolveChangedTestTargetPlan([

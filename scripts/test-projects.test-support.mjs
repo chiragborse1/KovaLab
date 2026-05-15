@@ -949,7 +949,7 @@ function classifyTarget(arg, cwd) {
   if (relative.startsWith("src/plugins/")) {
     return "plugin";
   }
-  if (relative.startsWith("ui/src/")) {
+  if (relative.startsWith("ui/")) {
     return "ui";
   }
   if (relative.startsWith("src/utils/")) {
@@ -986,7 +986,10 @@ function shouldUseWholeConfigTarget(kind, targetArg, cwd) {
     return false;
   }
   const relative = toRepoRelativeTarget(targetArg, cwd);
-  return relative.startsWith("ui/src/") && !relative.startsWith("ui/src/ui/");
+  if (!relative.startsWith("ui/src/")) {
+    return true;
+  }
+  return !relative.startsWith("ui/src/ui/");
 }
 
 function createVitestArgs(params) {

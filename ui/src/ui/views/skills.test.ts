@@ -149,7 +149,7 @@ describe("renderSkills", () => {
     expect(text).toContain("Browser Skill");
     expect(text).toContain("bin:chromium");
     expect(text).toContain("kova-workspace");
-    expect(text).not.toContain("kova-workspace");
+    expect(text).not.toContain("openclaw-workspace");
 
     const needsSetupTab = Array.from(container.querySelectorAll(".skills-filter-tab")).find((tab) =>
       tab.textContent?.includes("Needs Setup"),
@@ -333,7 +333,7 @@ describe("renderSkills", () => {
             },
             owner: {
               displayName: "Kova",
-              handle: "kova",
+              handle: "kovaai",
             },
           },
           onKovaHubQueryChange,
