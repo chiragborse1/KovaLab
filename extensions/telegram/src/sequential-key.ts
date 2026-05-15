@@ -48,6 +48,15 @@ function resolveStatusCommandControlLane(params: {
   return command?.category === "status" && command.key !== "export-session";
 }
 
+function isTelegramBtwRequestText(rawText: string | undefined, botUsername: string | undefined) {
+  // Lane selection only needs to recognize the canonical Telegram command.
+  // The shared helper still handles normalized bot-mention forms.
+  if (/^\/btw(?:@[^\s:]+)?(?::|\s|$)/i.test(rawText?.trim() ?? "")) {
+    return true;
+  }
+  return isBtwRequestText(rawText, botUsername ? { botUsername } : undefined);
+}
+
 export function getTelegramSequentialKey(ctx: TelegramSequentialKeyContext): string {
   const reaction = ctx.update?.message_reaction;
   if (reaction?.chat?.id) {
@@ -77,7 +86,7 @@ export function getTelegramSequentialKey(ctx: TelegramSequentialKeyContext): str
     }
     return "telegram:control";
   }
-  if (isBtwRequestText(rawText, botUsername ? { botUsername } : undefined)) {
+  if (isTelegramBtwRequestText(rawText, botUsername)) {
     const messageId = msg?.message_id;
     if (typeof chatId === "number" && typeof messageId === "number") {
       return `telegram:${chatId}:btw:${messageId}`;
