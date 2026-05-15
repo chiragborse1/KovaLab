@@ -65,6 +65,15 @@ describe("chat layout styles", () => {
     expect(css).toContain(".chat-controls__thinking-select .chat-select__menu");
   });
 
+  it("keeps composer controls labeled on desktop without shrinking mobile taps", () => {
+    const css = readLayoutCss();
+
+    expect(css).toContain(".agent-chat__control-label");
+    expect(css).toContain("min-width: 36px;");
+    expect(css).toContain("height: 36px;");
+    expect(css).toContain("@media (max-width: 860px)");
+  });
+
   it("uses switch affordances for chat view controls", () => {
     const css = readLayoutCss();
 

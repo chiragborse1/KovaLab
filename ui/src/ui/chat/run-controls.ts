@@ -25,6 +25,7 @@ export function renderChatRunControls(props: ChatRunControlsProps) {
               aria-label="Stop generating"
             >
               ${icons.stop}
+              <span class="agent-chat__control-label">Stop</span>
             </button>
           `
         : html`
@@ -41,6 +42,7 @@ export function renderChatRunControls(props: ChatRunControlsProps) {
               aria-label=${props.isBusy ? "Queue message" : "Send message"}
             >
               ${icons.send}
+              <span class="agent-chat__control-label">${props.isBusy ? "Queue" : "Send"}</span>
             </button>
           `}
     </div>

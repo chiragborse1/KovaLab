@@ -529,6 +529,33 @@ describe("chat loading skeleton", () => {
     expect(container.textContent).toContain("Already loaded answer");
   });
 
+  it("focuses the composer when non-control input chrome is clicked", () => {
+    const container = renderChatView();
+    const input = container.querySelector<HTMLElement>(".agent-chat__input");
+    const textarea = container.querySelector<HTMLTextAreaElement>(".agent-chat__input textarea");
+
+    expect(input).not.toBeNull();
+    expect(textarea).not.toBeNull();
+    input?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(document.activeElement).toBe(textarea);
+  });
+
+  it("does not steal focus from composer controls", () => {
+    const container = renderChatView({
+      composerControls: html`<button type="button" class="composer-extra">Extra</button>`,
+    });
+    const control = container.querySelector<HTMLButtonElement>(".composer-extra");
+    const textarea = container.querySelector<HTMLTextAreaElement>(".agent-chat__input textarea");
+
+    expect(control).not.toBeNull();
+    control?.focus();
+    control?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(document.activeElement).toBe(control);
+    expect(document.activeElement).not.toBe(textarea);
+  });
+
   it("keeps active stream content visible without the skeleton during a background reload", () => {
     const container = renderChatView({
       loading: true,

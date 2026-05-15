@@ -59,6 +59,7 @@ describe("chat run controls", () => {
     const stopButton = container.querySelector<HTMLButtonElement>('button[title="Stop"]');
     expect(queueButton).toBeNull();
     expect(stopButton).not.toBeNull();
+    expect(stopButton?.textContent).toContain("Stop");
     stopButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onAbort).toHaveBeenCalledTimes(1);
     expect(onQueueSend).not.toHaveBeenCalled();
@@ -83,6 +84,7 @@ describe("chat run controls", () => {
 
     const sendButton = container.querySelector<HTMLButtonElement>('button[title="Send"]');
     expect(sendButton).not.toBeNull();
+    expect(sendButton?.textContent).toContain("Send");
     sendButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onStoreDraft).toHaveBeenCalledWith(" run this ");
     expect(onSend).toHaveBeenCalledTimes(1);
