@@ -158,16 +158,14 @@ import {
 import { renderChat } from "./views/chat.ts";
 import { renderCommandPalette } from "./views/command-palette.ts";
 import { getPresetById } from "./views/config-presets.ts";
-import { renderQuickSettings, type QuickSettingsChannel } from "./views/config-quick.ts";
-import { renderConfig, type ConfigProps } from "./views/config.ts";
-import { renderControlPanel } from "./views/control-panel.ts";
+import type { QuickSettingsChannel } from "./views/config-quick.ts";
+import type { ConfigProps } from "./views/config.ts";
 import {
   renderCronQuickCreate,
   createDefaultDraft,
   draftToCronFormPatch,
 } from "./views/cron-quick-create.ts";
 import { renderDreamingRestartConfirmation } from "./views/dreaming-restart-confirmation.ts";
-import { renderDreaming } from "./views/dreaming.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
@@ -180,8 +178,18 @@ const notifyLazyViewChanged = () => _pendingUpdate?.();
 // The shared loader renders visible fallback states instead of leaving a tab blank.
 const lazyAgents = createLazyView(() => import("./views/agents.ts"), notifyLazyViewChanged);
 const lazyChannels = createLazyView(() => import("./views/channels.ts"), notifyLazyViewChanged);
+const lazyConfig = createLazyView(() => import("./views/config.ts"), notifyLazyViewChanged);
+const lazyConfigQuick = createLazyView(
+  () => import("./views/config-quick.ts"),
+  notifyLazyViewChanged,
+);
+const lazyControlPanel = createLazyView(
+  () => import("./views/control-panel.ts"),
+  notifyLazyViewChanged,
+);
 const lazyCron = createLazyView(() => import("./views/cron.ts"), notifyLazyViewChanged);
 const lazyDebug = createLazyView(() => import("./views/debug.ts"), notifyLazyViewChanged);
+const lazyDreaming = createLazyView(() => import("./views/dreaming.ts"), notifyLazyViewChanged);
 const lazyInstances = createLazyView(() => import("./views/instances.ts"), notifyLazyViewChanged);
 const lazyLogs = createLazyView(() => import("./views/logs.ts"), notifyLazyViewChanged);
 const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyViewChanged);
@@ -975,11 +983,13 @@ export function renderApp(state: AppViewState) {
     | "includeVirtualSections"
   >;
   const renderConfigTab = (overrides: ConfigTabOverrides) =>
-    renderConfig({
-      ...commonConfigProps,
-      includeVirtualSections: false,
-      ...overrides,
-    });
+    renderLazyView(lazyConfig, (m) =>
+      m.renderConfig({
+        ...commonConfigProps,
+        includeVirtualSections: false,
+        ...overrides,
+      }),
+    );
   const configSelection = normalizeMainConfigSelection(
     state.configActiveSection,
     state.configActiveSubsection,
@@ -1033,145 +1043,147 @@ export function renderApp(state: AppViewState) {
             typeof activeSession?.fastMode === "boolean"
               ? activeSession.fastMode
               : agentsDefaults.fastMode === true;
-          return renderQuickSettings({
-            currentModel,
-            modelCatalog: state.chatModelCatalog ?? [],
-            modelAuthStatus: state.modelAuthStatusResult,
-            modelAuthStatusLoading: state.modelAuthStatusLoading,
-            modelAuthStatusError: state.modelAuthStatusError,
-            onModelSelect: (modelRef) => {
-              void patchConfig(
-                state,
-                { agents: { defaults: { model: { primary: modelRef } } } },
-                { note: "control-ui quick model selection" },
-              ).then(() => requestHostUpdate?.());
-            },
-            onRefreshModelAuth: () => {
-              void loadModelAuthStatusState(state, { refresh: true }).then(() =>
-                requestHostUpdate?.(),
-              );
-            },
-            thinkingLevel,
-            fastMode,
-            onModelChange: () => {
-              state.configSettingsMode = "advanced";
-              state.tab = "aiAgents" as import("./navigation.ts").Tab;
-              state.aiAgentsActiveSection = "models";
-              requestHostUpdate?.();
-            },
-            onThinkingChange: (level) => {
-              void patchSession(state, state.sessionKey, { thinkingLevel: level }).then(() =>
-                requestHostUpdate?.(),
-              );
-            },
-            onFastModeToggle: () => {
-              void patchSession(state, state.sessionKey, { fastMode: !fastMode }).then(() =>
-                requestHostUpdate?.(),
-              );
-            },
-            channels: extractQuickSettingsChannels(state),
-            onChannelConfigure: () => {
-              state.tab = "communications" as import("./navigation.ts").Tab;
-              state.communicationsActiveSection = "channels";
-              requestHostUpdate?.();
-            },
-            automation: {
-              cronJobCount: state.cronJobs?.length ?? 0,
-              skillCount: state.skillsReport?.skills?.length ?? 0,
-              mcpServerCount: extractMcpServerCount(state),
-            },
-            onManageCron: () => {
-              state.tab = "cron" as import("./navigation.ts").Tab;
-              requestHostUpdate?.();
-            },
-            onBrowseSkills: () => {
-              state.tab = "skills" as import("./navigation.ts").Tab;
-              requestHostUpdate?.();
-            },
-            onConfigureMcp: () => {
-              state.tab = "infrastructure" as import("./navigation.ts").Tab;
-              state.infrastructureActiveSection = "mcp";
-              requestHostUpdate?.();
-            },
-            security: extractQuickSettingsSecurity(state),
-            onSecurityConfigure: () => {
-              state.configSettingsMode = "advanced";
-              state.configActiveSection = "auth";
-              requestHostUpdate?.();
-            },
-            theme: state.theme,
-            themeMode: state.themeMode,
-            hasCustomTheme: Boolean(state.settings.customTheme),
-            customThemeLabel: state.settings.customTheme?.label ?? null,
-            borderRadius: state.settings.borderRadius,
-            setTheme: (theme, context) => state.setTheme(theme, context),
-            onOpenCustomThemeImport: () => {
-              state.setTab("appearance");
-              state.appearanceFormMode = "form";
-              state.appearanceSearchQuery = "";
-              state.appearanceActiveSection = "__appearance__";
-              state.appearanceActiveSubsection = null;
-              state.openCustomThemeImport();
-              requestHostUpdate?.();
-            },
-            setThemeMode: (mode, context) => state.setThemeMode(mode, context),
-            setBorderRadius: (value) => state.setBorderRadius(value),
-            userAvatar: state.userAvatar ?? null,
-            onUserAvatarChange: (avatar) => state.applyLocalUserIdentity?.({ avatar }),
-            assistantAvatar: configAssistantAvatar,
-            assistantAvatarUrl: configAssistantAvatarUrl,
-            assistantAvatarSource: configAssistantAvatarSource,
-            assistantAvatarStatus: configAssistantAvatarStatus,
-            assistantAvatarReason: configAssistantAvatarReason,
-            assistantAvatarOverride,
-            assistantAvatarUploadBusy: state.assistantAvatarUploadBusy,
-            assistantAvatarUploadError: state.assistantAvatarUploadError,
-            onAssistantAvatarOverrideChange: (dataUrl) => {
-              setAssistantAvatarOverride(state, dataUrl);
-              state.chatAvatarUrl = dataUrl;
-              state.chatAvatarSource = dataUrl;
-              state.chatAvatarStatus = "data";
-              state.chatAvatarReason = null;
-              state.assistantAvatarUploadError = null;
-              requestHostUpdate?.();
-            },
-            onAssistantAvatarClearOverride: () => {
-              setAssistantAvatarOverride(state, null);
-              state.chatAvatarUrl = null;
-              state.chatAvatarSource = null;
-              state.chatAvatarStatus = null;
-              state.chatAvatarReason = null;
-              state.assistantAvatarUploadError = null;
-              requestHostUpdate?.();
-            },
-            basePath: state.basePath ?? "",
-            configObject: configObj,
-            savedConfigObject:
-              (state.configSnapshot?.config as Record<string, unknown> | null) ?? {},
-            configDirty: state.configFormDirty,
-            configSaving: state.configSaving,
-            configApplying: state.configApplying,
-            configReady: Boolean(state.configSnapshot?.hash),
-            onSelectPreset: (presetId) => {
-              const preset = getPresetById(presetId);
-              if (!preset) {
-                return;
-              }
-              stageConfigPreset(state, preset.patch);
-              requestHostUpdate?.();
-            },
-            onResetConfig: () => resetConfigPendingChanges(state),
-            onSaveConfig: () => saveConfig(state),
-            onApplyConfig: () => applyConfig(state),
-            onAdvancedSettings: () => {
-              state.configSettingsMode = "advanced";
-              requestHostUpdate?.();
-            },
-            connected: state.connected,
-            gatewayUrl: state.settings.gatewayUrl,
-            assistantName: state.assistantName,
-            version: state.hello?.server?.version ?? "",
-          });
+          return renderLazyView(lazyConfigQuick, (m) =>
+            m.renderQuickSettings({
+              currentModel,
+              modelCatalog: state.chatModelCatalog ?? [],
+              modelAuthStatus: state.modelAuthStatusResult,
+              modelAuthStatusLoading: state.modelAuthStatusLoading,
+              modelAuthStatusError: state.modelAuthStatusError,
+              onModelSelect: (modelRef) => {
+                void patchConfig(
+                  state,
+                  { agents: { defaults: { model: { primary: modelRef } } } },
+                  { note: "control-ui quick model selection" },
+                ).then(() => requestHostUpdate?.());
+              },
+              onRefreshModelAuth: () => {
+                void loadModelAuthStatusState(state, { refresh: true }).then(() =>
+                  requestHostUpdate?.(),
+                );
+              },
+              thinkingLevel,
+              fastMode,
+              onModelChange: () => {
+                state.configSettingsMode = "advanced";
+                state.tab = "aiAgents" as import("./navigation.ts").Tab;
+                state.aiAgentsActiveSection = "models";
+                requestHostUpdate?.();
+              },
+              onThinkingChange: (level) => {
+                void patchSession(state, state.sessionKey, { thinkingLevel: level }).then(() =>
+                  requestHostUpdate?.(),
+                );
+              },
+              onFastModeToggle: () => {
+                void patchSession(state, state.sessionKey, { fastMode: !fastMode }).then(() =>
+                  requestHostUpdate?.(),
+                );
+              },
+              channels: extractQuickSettingsChannels(state),
+              onChannelConfigure: () => {
+                state.tab = "communications" as import("./navigation.ts").Tab;
+                state.communicationsActiveSection = "channels";
+                requestHostUpdate?.();
+              },
+              automation: {
+                cronJobCount: state.cronJobs?.length ?? 0,
+                skillCount: state.skillsReport?.skills?.length ?? 0,
+                mcpServerCount: extractMcpServerCount(state),
+              },
+              onManageCron: () => {
+                state.tab = "cron" as import("./navigation.ts").Tab;
+                requestHostUpdate?.();
+              },
+              onBrowseSkills: () => {
+                state.tab = "skills" as import("./navigation.ts").Tab;
+                requestHostUpdate?.();
+              },
+              onConfigureMcp: () => {
+                state.tab = "infrastructure" as import("./navigation.ts").Tab;
+                state.infrastructureActiveSection = "mcp";
+                requestHostUpdate?.();
+              },
+              security: extractQuickSettingsSecurity(state),
+              onSecurityConfigure: () => {
+                state.configSettingsMode = "advanced";
+                state.configActiveSection = "auth";
+                requestHostUpdate?.();
+              },
+              theme: state.theme,
+              themeMode: state.themeMode,
+              hasCustomTheme: Boolean(state.settings.customTheme),
+              customThemeLabel: state.settings.customTheme?.label ?? null,
+              borderRadius: state.settings.borderRadius,
+              setTheme: (theme, context) => state.setTheme(theme, context),
+              onOpenCustomThemeImport: () => {
+                state.setTab("appearance");
+                state.appearanceFormMode = "form";
+                state.appearanceSearchQuery = "";
+                state.appearanceActiveSection = "__appearance__";
+                state.appearanceActiveSubsection = null;
+                state.openCustomThemeImport();
+                requestHostUpdate?.();
+              },
+              setThemeMode: (mode, context) => state.setThemeMode(mode, context),
+              setBorderRadius: (value) => state.setBorderRadius(value),
+              userAvatar: state.userAvatar ?? null,
+              onUserAvatarChange: (avatar) => state.applyLocalUserIdentity?.({ avatar }),
+              assistantAvatar: configAssistantAvatar,
+              assistantAvatarUrl: configAssistantAvatarUrl,
+              assistantAvatarSource: configAssistantAvatarSource,
+              assistantAvatarStatus: configAssistantAvatarStatus,
+              assistantAvatarReason: configAssistantAvatarReason,
+              assistantAvatarOverride,
+              assistantAvatarUploadBusy: state.assistantAvatarUploadBusy,
+              assistantAvatarUploadError: state.assistantAvatarUploadError,
+              onAssistantAvatarOverrideChange: (dataUrl) => {
+                setAssistantAvatarOverride(state, dataUrl);
+                state.chatAvatarUrl = dataUrl;
+                state.chatAvatarSource = dataUrl;
+                state.chatAvatarStatus = "data";
+                state.chatAvatarReason = null;
+                state.assistantAvatarUploadError = null;
+                requestHostUpdate?.();
+              },
+              onAssistantAvatarClearOverride: () => {
+                setAssistantAvatarOverride(state, null);
+                state.chatAvatarUrl = null;
+                state.chatAvatarSource = null;
+                state.chatAvatarStatus = null;
+                state.chatAvatarReason = null;
+                state.assistantAvatarUploadError = null;
+                requestHostUpdate?.();
+              },
+              basePath: state.basePath ?? "",
+              configObject: configObj,
+              savedConfigObject:
+                (state.configSnapshot?.config as Record<string, unknown> | null) ?? {},
+              configDirty: state.configFormDirty,
+              configSaving: state.configSaving,
+              configApplying: state.configApplying,
+              configReady: Boolean(state.configSnapshot?.hash),
+              onSelectPreset: (presetId) => {
+                const preset = getPresetById(presetId);
+                if (!preset) {
+                  return;
+                }
+                stageConfigPreset(state, preset.patch);
+                requestHostUpdate?.();
+              },
+              onResetConfig: () => resetConfigPendingChanges(state),
+              onSaveConfig: () => saveConfig(state),
+              onApplyConfig: () => applyConfig(state),
+              onAdvancedSettings: () => {
+                state.configSettingsMode = "advanced";
+                requestHostUpdate?.();
+              },
+              connected: state.connected,
+              gatewayUrl: state.settings.gatewayUrl,
+              assistantName: state.assistantName,
+              version: state.hello?.server?.version ?? "",
+            }),
+          );
         }
         // Advanced mode — full config form with accordion groups
         return renderConfigTab({
@@ -1611,176 +1623,178 @@ export function renderApp(state: AppViewState) {
               const agentsDefaults = ((configObj.agents as Record<string, unknown> | undefined)
                 ?.defaults ?? {}) as Record<string, unknown>;
               const currentModel = resolveModelPrimary(agentsDefaults.model);
-              return renderControlPanel({
-                configPath: state.configSnapshot?.path ?? null,
-                connected: state.connected,
-                gatewayUrl: state.settings.gatewayUrl,
-                connection: {
+              return renderLazyView(lazyControlPanel, (m) =>
+                m.renderControlPanel({
+                  configPath: state.configSnapshot?.path ?? null,
                   connected: state.connected,
-                  authMode: gatewayAuthMode,
-                  settings: state.settings,
-                  password: state.password,
-                  lastError: state.lastError,
-                  lastErrorCode: state.lastErrorCode,
-                  warnQueryToken,
-                  showGatewayToken: state.overviewShowGatewayToken,
-                  showGatewayPassword: state.overviewShowGatewayPassword,
-                  onSettingsChange: (next) => state.applySettings(next),
-                  onPasswordChange: (next) => (state.password = next),
-                  onSessionKeyChange: applyConnectionSessionKey,
-                  onToggleGatewayTokenVisibility: () => {
-                    state.overviewShowGatewayToken = !state.overviewShowGatewayToken;
+                  gatewayUrl: state.settings.gatewayUrl,
+                  connection: {
+                    connected: state.connected,
+                    authMode: gatewayAuthMode,
+                    settings: state.settings,
+                    password: state.password,
+                    lastError: state.lastError,
+                    lastErrorCode: state.lastErrorCode,
+                    warnQueryToken,
+                    showGatewayToken: state.overviewShowGatewayToken,
+                    showGatewayPassword: state.overviewShowGatewayPassword,
+                    onSettingsChange: (next) => state.applySettings(next),
+                    onPasswordChange: (next) => (state.password = next),
+                    onSessionKeyChange: applyConnectionSessionKey,
+                    onToggleGatewayTokenVisibility: () => {
+                      state.overviewShowGatewayToken = !state.overviewShowGatewayToken;
+                    },
+                    onToggleGatewayPasswordVisibility: () => {
+                      state.overviewShowGatewayPassword = !state.overviewShowGatewayPassword;
+                    },
+                    onConnect: () => state.connect(),
+                    onRefresh: () => state.loadOverview({ refresh: true }),
                   },
-                  onToggleGatewayPasswordVisibility: () => {
-                    state.overviewShowGatewayPassword = !state.overviewShowGatewayPassword;
+                  assistantName: state.assistantName,
+                  version: state.hello?.server?.version ?? "",
+                  config: configObj,
+                  wizardLoading: state.controlWizardLoading,
+                  wizardSessionId: state.controlWizardSessionId,
+                  wizardStep: state.controlWizardStep,
+                  wizardStatus: state.controlWizardStatus,
+                  wizardError: state.controlWizardError,
+                  wizardAnswerValue: state.controlWizardAnswerValue,
+                  wizardCompletedSteps: state.controlWizardCompletedSteps,
+                  wizardActiveSection: state.controlWizardActiveSection,
+                  wizardStepStartedAt: state.controlWizardStepStartedAt,
+                  modelCatalog: state.chatModelCatalog ?? [],
+                  modelAuthStatus: state.modelAuthStatusResult,
+                  modelAuthStatusLoading: state.modelAuthStatusLoading,
+                  modelAuthStatusError: state.modelAuthStatusError,
+                  pluginsStatus: state.pluginsStatusResult,
+                  pluginsStatusLoading: state.pluginsStatusLoading,
+                  pluginsStatusError: state.pluginsStatusError,
+                  pluginsOperation: state.pluginsOperation,
+                  pluginsInstallSpec: state.pluginsInstallSpec,
+                  modelsLoading: state.chatModelsLoading,
+                  currentModel,
+                  modelSaving: state.controlPanelModelSaving,
+                  modelError: state.controlPanelModelError,
+                  modelSearch: state.controlPanelModelSearch,
+                  manualModel: state.controlPanelManualModel,
+                  onWizardStart: (mode) => {
+                    void startControlWizard(state, { mode }).then(() => {
+                      void loadConfig(state).then(() => requestHostUpdate?.());
+                    });
                   },
-                  onConnect: () => state.connect(),
-                  onRefresh: () => state.loadOverview({ refresh: true }),
-                },
-                assistantName: state.assistantName,
-                version: state.hello?.server?.version ?? "",
-                config: configObj,
-                wizardLoading: state.controlWizardLoading,
-                wizardSessionId: state.controlWizardSessionId,
-                wizardStep: state.controlWizardStep,
-                wizardStatus: state.controlWizardStatus,
-                wizardError: state.controlWizardError,
-                wizardAnswerValue: state.controlWizardAnswerValue,
-                wizardCompletedSteps: state.controlWizardCompletedSteps,
-                wizardActiveSection: state.controlWizardActiveSection,
-                wizardStepStartedAt: state.controlWizardStepStartedAt,
-                modelCatalog: state.chatModelCatalog ?? [],
-                modelAuthStatus: state.modelAuthStatusResult,
-                modelAuthStatusLoading: state.modelAuthStatusLoading,
-                modelAuthStatusError: state.modelAuthStatusError,
-                pluginsStatus: state.pluginsStatusResult,
-                pluginsStatusLoading: state.pluginsStatusLoading,
-                pluginsStatusError: state.pluginsStatusError,
-                pluginsOperation: state.pluginsOperation,
-                pluginsInstallSpec: state.pluginsInstallSpec,
-                modelsLoading: state.chatModelsLoading,
-                currentModel,
-                modelSaving: state.controlPanelModelSaving,
-                modelError: state.controlPanelModelError,
-                modelSearch: state.controlPanelModelSearch,
-                manualModel: state.controlPanelManualModel,
-                onWizardStart: (mode) => {
-                  void startControlWizard(state, { mode }).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
-                },
-                onWizardStartSection: (section) => {
-                  void (async () => {
-                    if (state.controlWizardSessionId) {
-                      state.controlWizardError =
-                        "Finish or cancel the current setup step before opening another setup section.";
+                  onWizardStartSection: (section) => {
+                    void (async () => {
+                      if (state.controlWizardSessionId) {
+                        state.controlWizardError =
+                          "Finish or cancel the current setup step before opening another setup section.";
+                        requestHostUpdate?.();
+                        return;
+                      }
+                      await startControlWizard(state, { flow: "configure", section });
+                      await loadConfig(state);
                       requestHostUpdate?.();
+                    })();
+                  },
+                  onWizardAnswerChange: (value) => {
+                    state.controlWizardAnswerValue = value;
+                    requestHostUpdate?.();
+                  },
+                  onWizardSubmit: (value) => {
+                    void submitControlWizardStep(state, value).then(() => {
+                      void loadConfig(state).then(() => requestHostUpdate?.());
+                    });
+                  },
+                  onWizardCancel: () => {
+                    void cancelControlWizard(state).then(() => requestHostUpdate?.());
+                  },
+                  onWizardRefresh: () => {
+                    void refreshControlWizard(state).then(() => requestHostUpdate?.());
+                  },
+                  onRefreshModelAuth: () => {
+                    void loadModelAuthStatusState(state, { refresh: true }).then(() =>
+                      requestHostUpdate?.(),
+                    );
+                  },
+                  onRefreshPlugins: () => {
+                    void loadPluginsStatusState(state).then(() => requestHostUpdate?.());
+                  },
+                  onPluginInstallSpecChange: (value) => {
+                    state.pluginsInstallSpec = value;
+                    requestHostUpdate?.();
+                  },
+                  onPluginInstall: () => {
+                    void installPluginState(state).then(() => {
+                      void loadConfig(state).then(() => requestHostUpdate?.());
+                    });
+                  },
+                  onPluginSetEnabled: (pluginId, enabled) => {
+                    void setPluginEnabledState(state, pluginId, enabled).then(() => {
+                      void loadConfig(state).then(() => requestHostUpdate?.());
+                    });
+                  },
+                  onPluginUninstall: (pluginId) => {
+                    void uninstallPluginState(state, pluginId).then(() => {
+                      void loadConfig(state).then(() => requestHostUpdate?.());
+                    });
+                  },
+                  onModelSelect: (modelRef) => {
+                    if (!modelRef.trim()) {
                       return;
                     }
-                    await startControlWizard(state, { flow: "configure", section });
-                    await loadConfig(state);
+                    state.controlPanelModelSaving = true;
+                    state.controlPanelModelError = null;
                     requestHostUpdate?.();
-                  })();
-                },
-                onWizardAnswerChange: (value) => {
-                  state.controlWizardAnswerValue = value;
-                  requestHostUpdate?.();
-                },
-                onWizardSubmit: (value) => {
-                  void submitControlWizardStep(state, value).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
-                },
-                onWizardCancel: () => {
-                  void cancelControlWizard(state).then(() => requestHostUpdate?.());
-                },
-                onWizardRefresh: () => {
-                  void refreshControlWizard(state).then(() => requestHostUpdate?.());
-                },
-                onRefreshModelAuth: () => {
-                  void loadModelAuthStatusState(state, { refresh: true }).then(() =>
-                    requestHostUpdate?.(),
-                  );
-                },
-                onRefreshPlugins: () => {
-                  void loadPluginsStatusState(state).then(() => requestHostUpdate?.());
-                },
-                onPluginInstallSpecChange: (value) => {
-                  state.pluginsInstallSpec = value;
-                  requestHostUpdate?.();
-                },
-                onPluginInstall: () => {
-                  void installPluginState(state).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
-                },
-                onPluginSetEnabled: (pluginId, enabled) => {
-                  void setPluginEnabledState(state, pluginId, enabled).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
-                },
-                onPluginUninstall: (pluginId) => {
-                  void uninstallPluginState(state, pluginId).then(() => {
-                    void loadConfig(state).then(() => requestHostUpdate?.());
-                  });
-                },
-                onModelSelect: (modelRef) => {
-                  if (!modelRef.trim()) {
-                    return;
-                  }
-                  state.controlPanelModelSaving = true;
-                  state.controlPanelModelError = null;
-                  requestHostUpdate?.();
-                  void patchConfig(
-                    state,
-                    { agents: { defaults: { model: { primary: modelRef.trim() } } } },
-                    { note: "control-panel default model selection" },
-                  )
-                    .then(() => loadConfig(state))
-                    .catch((err: unknown) => {
-                      state.controlPanelModelError =
-                        err instanceof Error ? err.message : String(err);
-                    })
-                    .finally(() => {
-                      state.controlPanelModelSaving = false;
-                      requestHostUpdate?.();
-                    });
-                },
-                onModelSearchChange: (value) => {
-                  state.controlPanelModelSearch = value;
-                  requestHostUpdate?.();
-                },
-                onManualModelChange: (value) => {
-                  state.controlPanelManualModel = value;
-                  requestHostUpdate?.();
-                },
-                onManualModelSubmit: () => {
-                  const modelRef = state.controlPanelManualModel.trim();
-                  if (!modelRef) {
-                    return;
-                  }
-                  state.controlPanelModelSaving = true;
-                  state.controlPanelModelError = null;
-                  requestHostUpdate?.();
-                  void patchConfig(
-                    state,
-                    { agents: { defaults: { model: { primary: modelRef } } } },
-                    { note: "control-panel manual model selection" },
-                  )
-                    .then(() => {
-                      state.controlPanelManualModel = "";
-                      return loadConfig(state);
-                    })
-                    .catch((err: unknown) => {
-                      state.controlPanelModelError =
-                        err instanceof Error ? err.message : String(err);
-                    })
-                    .finally(() => {
-                      state.controlPanelModelSaving = false;
-                      requestHostUpdate?.();
-                    });
-                },
-              });
+                    void patchConfig(
+                      state,
+                      { agents: { defaults: { model: { primary: modelRef.trim() } } } },
+                      { note: "control-panel default model selection" },
+                    )
+                      .then(() => loadConfig(state))
+                      .catch((err: unknown) => {
+                        state.controlPanelModelError =
+                          err instanceof Error ? err.message : String(err);
+                      })
+                      .finally(() => {
+                        state.controlPanelModelSaving = false;
+                        requestHostUpdate?.();
+                      });
+                  },
+                  onModelSearchChange: (value) => {
+                    state.controlPanelModelSearch = value;
+                    requestHostUpdate?.();
+                  },
+                  onManualModelChange: (value) => {
+                    state.controlPanelManualModel = value;
+                    requestHostUpdate?.();
+                  },
+                  onManualModelSubmit: () => {
+                    const modelRef = state.controlPanelManualModel.trim();
+                    if (!modelRef) {
+                      return;
+                    }
+                    state.controlPanelModelSaving = true;
+                    state.controlPanelModelError = null;
+                    requestHostUpdate?.();
+                    void patchConfig(
+                      state,
+                      { agents: { defaults: { model: { primary: modelRef } } } },
+                      { note: "control-panel manual model selection" },
+                    )
+                      .then(() => {
+                        state.controlPanelManualModel = "";
+                        return loadConfig(state);
+                      })
+                      .catch((err: unknown) => {
+                        state.controlPanelModelError =
+                          err instanceof Error ? err.message : String(err);
+                      })
+                      .finally(() => {
+                        state.controlPanelModelSaving = false;
+                        requestHostUpdate?.();
+                      });
+                  },
+                }),
+              );
             })()
           : nothing}
         ${state.tab === "channels"
@@ -2651,65 +2665,67 @@ export function renderApp(state: AppViewState) {
             )
           : nothing}
         ${state.tab === "dreams"
-          ? renderDreaming({
-              active: dreamingOn,
-              shortTermCount: state.dreamingStatus?.shortTermCount ?? 0,
-              groundedSignalCount: state.dreamingStatus?.groundedSignalCount ?? 0,
-              totalSignalCount: state.dreamingStatus?.totalSignalCount ?? 0,
-              promotedCount: state.dreamingStatus?.promotedToday ?? 0,
-              phases: state.dreamingStatus?.phases ?? undefined,
-              shortTermEntries: state.dreamingStatus?.shortTermEntries ?? [],
-              promotedEntries: state.dreamingStatus?.promotedEntries ?? [],
-              dreamingOf: null,
-              nextCycle: dreamingNextCycle,
-              timezone: state.dreamingStatus?.timezone ?? null,
-              statusLoading: state.dreamingStatusLoading,
-              statusError: state.dreamingStatusError,
-              modeSaving: state.dreamingModeSaving,
-              dreamDiaryLoading: state.dreamDiaryLoading,
-              dreamDiaryActionLoading: state.dreamDiaryActionLoading,
-              dreamDiaryActionMessage: state.dreamDiaryActionMessage,
-              dreamDiaryActionArchivePath: state.dreamDiaryActionArchivePath,
-              dreamDiaryError: state.dreamDiaryError,
-              dreamDiaryPath: state.dreamDiaryPath,
-              dreamDiaryContent: state.dreamDiaryContent,
-              memoryWikiEnabled: isPluginEnabledInConfigSnapshot(
-                state.configSnapshot,
-                "memory-wiki",
-                { enabledByDefault: false },
-              ),
-              wikiImportInsightsLoading: state.wikiImportInsightsLoading,
-              wikiImportInsightsError: state.wikiImportInsightsError,
-              wikiImportInsights: state.wikiImportInsights,
-              wikiMemoryPalaceLoading: state.wikiMemoryPalaceLoading,
-              wikiMemoryPalaceError: state.wikiMemoryPalaceError,
-              wikiMemoryPalace: state.wikiMemoryPalace,
-              onRefresh: refreshDreaming,
-              onRefreshDiary: () => loadDreamDiary(state),
-              onRefreshImports: () => {
-                void (async () => {
-                  await loadConfig(state);
-                  await loadWikiImportInsights(state);
-                })();
-              },
-              onRefreshMemoryPalace: () => {
-                void (async () => {
-                  await loadConfig(state);
-                  await loadWikiMemoryPalace(state);
-                })();
-              },
-              onOpenConfig: () => openConfigFile(state),
-              onOpenWikiPage: (lookup: string) => openWikiPage(lookup),
-              onBackfillDiary: () => backfillDreamDiary(state),
-              onCopyDreamingArchivePath: () => {
-                void copyDreamingArchivePath(state);
-              },
-              onDedupeDreamDiary: () => dedupeDreamDiary(state),
-              onResetDiary: () => resetDreamDiary(state),
-              onResetGroundedShortTerm: () => resetGroundedShortTerm(state),
-              onRepairDreamingArtifacts: () => repairDreamingArtifacts(state),
-              onRequestUpdate: requestHostUpdate,
-            })
+          ? renderLazyView(lazyDreaming, (m) =>
+              m.renderDreaming({
+                active: dreamingOn,
+                shortTermCount: state.dreamingStatus?.shortTermCount ?? 0,
+                groundedSignalCount: state.dreamingStatus?.groundedSignalCount ?? 0,
+                totalSignalCount: state.dreamingStatus?.totalSignalCount ?? 0,
+                promotedCount: state.dreamingStatus?.promotedToday ?? 0,
+                phases: state.dreamingStatus?.phases ?? undefined,
+                shortTermEntries: state.dreamingStatus?.shortTermEntries ?? [],
+                promotedEntries: state.dreamingStatus?.promotedEntries ?? [],
+                dreamingOf: null,
+                nextCycle: dreamingNextCycle,
+                timezone: state.dreamingStatus?.timezone ?? null,
+                statusLoading: state.dreamingStatusLoading,
+                statusError: state.dreamingStatusError,
+                modeSaving: state.dreamingModeSaving,
+                dreamDiaryLoading: state.dreamDiaryLoading,
+                dreamDiaryActionLoading: state.dreamDiaryActionLoading,
+                dreamDiaryActionMessage: state.dreamDiaryActionMessage,
+                dreamDiaryActionArchivePath: state.dreamDiaryActionArchivePath,
+                dreamDiaryError: state.dreamDiaryError,
+                dreamDiaryPath: state.dreamDiaryPath,
+                dreamDiaryContent: state.dreamDiaryContent,
+                memoryWikiEnabled: isPluginEnabledInConfigSnapshot(
+                  state.configSnapshot,
+                  "memory-wiki",
+                  { enabledByDefault: false },
+                ),
+                wikiImportInsightsLoading: state.wikiImportInsightsLoading,
+                wikiImportInsightsError: state.wikiImportInsightsError,
+                wikiImportInsights: state.wikiImportInsights,
+                wikiMemoryPalaceLoading: state.wikiMemoryPalaceLoading,
+                wikiMemoryPalaceError: state.wikiMemoryPalaceError,
+                wikiMemoryPalace: state.wikiMemoryPalace,
+                onRefresh: refreshDreaming,
+                onRefreshDiary: () => loadDreamDiary(state),
+                onRefreshImports: () => {
+                  void (async () => {
+                    await loadConfig(state);
+                    await loadWikiImportInsights(state);
+                  })();
+                },
+                onRefreshMemoryPalace: () => {
+                  void (async () => {
+                    await loadConfig(state);
+                    await loadWikiMemoryPalace(state);
+                  })();
+                },
+                onOpenConfig: () => openConfigFile(state),
+                onOpenWikiPage: (lookup: string) => openWikiPage(lookup),
+                onBackfillDiary: () => backfillDreamDiary(state),
+                onCopyDreamingArchivePath: () => {
+                  void copyDreamingArchivePath(state);
+                },
+                onDedupeDreamDiary: () => dedupeDreamDiary(state),
+                onResetDiary: () => resetDreamDiary(state),
+                onResetGroundedShortTerm: () => resetGroundedShortTerm(state),
+                onRepairDreamingArtifacts: () => repairDreamingArtifacts(state),
+                onRequestUpdate: requestHostUpdate,
+              }),
+            )
           : nothing}
       </main>
       ${renderExecApprovalPrompt(state)} ${renderGatewayUrlConfirmation(state)}
