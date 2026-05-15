@@ -76,25 +76,21 @@ describe("handleConnected", () => {
     });
   });
 
-  it("waits for bootstrap load before first gateway connect", async () => {
-    let resolveBootstrap!: () => void;
+  it("starts the first gateway connect without waiting for bootstrap", async () => {
     loadBootstrapMock.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        resolveBootstrap = resolve;
+      new Promise<void>(() => {
+        /* keep bootstrap pending */
       }),
     );
     connectGatewayMock.mockReset();
     const host = createHost();
 
     handleConnected(host as never);
-    expect(connectGatewayMock).not.toHaveBeenCalled();
-
-    resolveBootstrap();
-    await Promise.resolve();
     expect(connectGatewayMock).toHaveBeenCalledTimes(1);
+    expect(loadBootstrapMock).toHaveBeenCalledTimes(1);
   });
 
-  it("skips deferred connect when disconnected before bootstrap resolves", async () => {
+  it("does not schedule a second connect when bootstrap later resolves", async () => {
     let resolveBootstrap!: () => void;
     loadBootstrapMock.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -105,13 +101,13 @@ describe("handleConnected", () => {
     const host = createHost();
 
     handleConnected(host as never);
-    expect(connectGatewayMock).not.toHaveBeenCalled();
+    expect(connectGatewayMock).toHaveBeenCalledTimes(1);
 
     host.connectGeneration += 1;
     resolveBootstrap();
     await Promise.resolve();
 
-    expect(connectGatewayMock).not.toHaveBeenCalled();
+    expect(connectGatewayMock).toHaveBeenCalledTimes(1);
   });
 
   it("scrubs URL settings before starting the bootstrap fetch", () => {
