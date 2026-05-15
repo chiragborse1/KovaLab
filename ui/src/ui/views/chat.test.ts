@@ -392,6 +392,50 @@ afterEach(() => {
 });
 
 describe("chat loading skeleton", () => {
+  it("keeps plain draft typing out of the full chat render path", () => {
+    const requestUpdate = vi.fn();
+    const onDraftChange = vi.fn();
+    const container = renderChatView({ onDraftChange, onRequestUpdate: requestUpdate });
+    const textarea = container.querySelector<HTMLTextAreaElement>(".agent-chat__input textarea");
+
+    expect(textarea).not.toBeNull();
+    textarea!.value = "hello";
+    textarea?.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(onDraftChange).toHaveBeenCalledWith("hello");
+    expect(requestUpdate).not.toHaveBeenCalled();
+  });
+
+  it("only requests draft re-renders when slash menu state changes", () => {
+    const requestUpdate = vi.fn();
+    const onDraftChange = vi.fn();
+    const container = renderChatView({ onDraftChange, onRequestUpdate: requestUpdate });
+    const textarea = container.querySelector<HTMLTextAreaElement>(".agent-chat__input textarea");
+
+    expect(textarea).not.toBeNull();
+    textarea!.value = "/";
+    textarea?.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onDraftChange).toHaveBeenLastCalledWith("/");
+    expect(requestUpdate).toHaveBeenCalledTimes(1);
+
+    requestUpdate.mockClear();
+    textarea!.value = "/n";
+    textarea?.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onDraftChange).toHaveBeenLastCalledWith("/n");
+    expect(requestUpdate).toHaveBeenCalledTimes(1);
+
+    requestUpdate.mockClear();
+    textarea!.value = "normal text";
+    textarea?.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(onDraftChange).toHaveBeenLastCalledWith("normal text");
+    expect(requestUpdate).toHaveBeenCalledTimes(1);
+
+    requestUpdate.mockClear();
+    textarea!.value = "normal text plus more";
+    textarea?.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(requestUpdate).not.toHaveBeenCalled();
+  });
+
   it("renders chat controls in the right rail without personal identity controls", () => {
     const container = renderChatView({
       sessionControls: html`<label class="field chat-controls__session"

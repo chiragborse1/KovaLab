@@ -371,7 +371,30 @@ function resetSlashMenuState(): void {
   vs.slashMenuExpanded = false;
 }
 
+function slashCommandListKey(items: SlashCommandDef[]): string {
+  return items.map((item) => item.name).join("\0");
+}
+
+function slashMenuStateKey(): string {
+  return [
+    vs.slashMenuOpen ? "open" : "closed",
+    vs.slashMenuMode,
+    String(vs.slashMenuIndex),
+    vs.slashMenuCommand?.name ?? "",
+    slashCommandListKey(vs.slashMenuItems),
+    vs.slashMenuArgItems.join("\0"),
+    vs.slashMenuExpanded ? "expanded" : "collapsed",
+  ].join("\u0001");
+}
+
 function updateSlashMenu(value: string, requestUpdate: () => void): void {
+  const previousState = slashMenuStateKey();
+  const requestIfChanged = () => {
+    if (slashMenuStateKey() !== previousState) {
+      requestUpdate();
+    }
+  };
+
   // Arg mode: /command <partial-arg>
   const argMatch = value.match(/^\/(\S+)\s(.*)$/);
   if (argMatch) {
@@ -389,13 +412,13 @@ function updateSlashMenu(value: string, requestUpdate: () => void): void {
         vs.slashMenuOpen = true;
         vs.slashMenuIndex = 0;
         vs.slashMenuItems = [];
-        requestUpdate();
+        requestIfChanged();
         return;
       }
     }
     vs.slashMenuOpen = false;
     resetSlashMenuState();
-    requestUpdate();
+    requestIfChanged();
     return;
   }
 
@@ -413,7 +436,7 @@ function updateSlashMenu(value: string, requestUpdate: () => void): void {
     vs.slashMenuOpen = false;
     resetSlashMenuState();
   }
-  requestUpdate();
+  requestIfChanged();
 }
 
 function selectSlashCommand(
@@ -1087,6 +1110,12 @@ export function renderChat(props: ChatProps) {
       if (result.handled) {
         if (result.preventDefault) {
           e.preventDefault();
+        }
+        const nextDraft = getDraft();
+        if (target.value !== nextDraft) {
+          target.value = nextDraft;
+          adjustTextareaHeight(target);
+          updateSlashMenu(nextDraft, requestUpdate);
         }
         if (result.restoreCaret) {
           restoreHistoryCaret(target, result.restoreCaret);

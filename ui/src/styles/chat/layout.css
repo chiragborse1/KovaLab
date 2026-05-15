@@ -542,13 +542,6 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--border-strong) 24%, transparent);
 }
 
-@supports (backdrop-filter: blur(1px)) {
-  .agent-chat__input {
-    backdrop-filter: blur(12px) saturate(1.6);
-    -webkit-backdrop-filter: blur(12px) saturate(1.6);
-  }
-}
-
 .agent-chat__input > textarea {
   width: 100%;
   min-height: 40px;
@@ -610,7 +603,10 @@
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
-  transition: all var(--duration-fast) ease;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
 }
 
 .agent-chat__input-btn svg,
