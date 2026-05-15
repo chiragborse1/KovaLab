@@ -9,8 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      OPENCLAW_LOCAL_CHECK: "0"
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v6
         with:
@@ -21,5 +25,41 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve changed base
+        id: changed-base
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_branch="${{ github.base_ref }}"
+            git fetch --no-tags origin "${base_branch}:refs/remotes/origin/${base_branch}"
+            base="origin/${base_branch}"
+          else
+            before="${{ github.event.before }}"
+            if [ -n "$before" ] && [ "$before" != "0000000000000000000000000000000000000000" ] && git cat-file -e "${before}^{commit}" 2>/dev/null; then
+              base="$before"
+            elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+              base="HEAD^"
+            else
+              base="HEAD"
+            fi
+          fi
+          echo "base=${base}" >> "$GITHUB_OUTPUT"
+          echo "Using changed base: ${base}"
+
+      - name: Build runtime
+        run: pnpm build
+
+      - name: Build Control UI
+        run: pnpm ui:build
+
+      - name: Check changed lanes
+        run: pnpm check:changed -- --base "${{ steps.changed-base.outputs.base }}" --head HEAD
+
+      - name: Test changed targets
+        env:
+          OPENCLAW_VITEST_MAX_WORKERS: "1"
+        run: node scripts/test-projects.mjs --changed "${{ steps.changed-base.outputs.base }}"
