@@ -1,6 +1,13 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import type { ChannelAccountSnapshot } from "getkova/plugin-sdk/channel-contract";
 import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  listTelegramSpooledUpdates,
+  writeTelegramSpooledUpdate,
+} from "./telegram-ingress-spool.js";
 
 const runMock = vi.hoisted(() => vi.fn());
 const createTelegramBotMock = vi.hoisted(() => vi.fn());
@@ -680,6 +687,96 @@ describe("TelegramPollingSession", () => {
         "deleteWebhook failed with a recoverable network error; continuing to polling",
       ),
     );
+  });
+
+  it("drains isolated ingress spool without starting the grammY polling runner", async () => {
+    const abort = new AbortController();
+    const spoolDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-telegram-ingress-test-"));
+    const handleUpdate = vi.fn(async () => undefined);
+    const init = vi.fn(async () => undefined);
+    const stop = vi.fn(async () => undefined);
+    const workerStop = vi.fn(async () => undefined);
+    const unsubscribe = vi.fn();
+    const createWorker = vi.fn(() => ({
+      onMessage: vi.fn(
+        (
+          listener: (message: {
+            type: "poll-success";
+            offset: null;
+            count: number;
+            finishedAt: number;
+          }) => void,
+        ) => {
+          listener({ type: "poll-success", offset: null, count: 1, finishedAt: Date.now() });
+          return unsubscribe;
+        },
+      ),
+      stop: workerStop,
+      task: async () => {
+        abort.abort();
+      },
+    }));
+    try {
+      await writeTelegramSpooledUpdate({
+        spoolDir,
+        update: { update_id: 42, message: { chat: { id: 123 }, message_id: 7, text: "hi" } },
+      });
+      createTelegramBotMock.mockReturnValueOnce({
+        api: {
+          deleteWebhook: vi.fn(async () => true),
+          config: { use: vi.fn() },
+        },
+        init,
+        handleUpdate,
+        stop,
+      });
+
+      const session = new TelegramPollingSession({
+        token: "tok",
+        config: {},
+        accountId: "default",
+        runtime: undefined,
+        proxyFetch: undefined,
+        abortSignal: abort.signal,
+        runnerOptions: {},
+        getLastUpdateId: () => null,
+        persistUpdateId: async () => undefined,
+        log: () => undefined,
+        telegramTransport: makeTelegramTransport(),
+        isolatedIngress: {
+          enabled: true,
+          spoolDir,
+          createWorker,
+        },
+      });
+
+      await session.runUntilAbort();
+
+      expect(init).toHaveBeenCalledTimes(1);
+      expect(runMock).not.toHaveBeenCalled();
+      expect(createWorker).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: "tok",
+          accountId: "default",
+          initialUpdateId: null,
+          spoolDir,
+        }),
+      );
+      expect(handleUpdate).toHaveBeenCalledWith({
+        update_id: 42,
+        message: { chat: { id: 123 }, message_id: 7, text: "hi" },
+      });
+      expect(await listTelegramSpooledUpdates({ spoolDir })).toEqual([]);
+      expect(createTelegramBotMock.mock.calls[0]?.[0]).toEqual(
+        expect.not.objectContaining({ updateOffset: expect.anything() }),
+      );
+      expect(createTelegramBotMock.mock.calls[0]?.[0]?.minimumClientTimeoutSeconds).toBe(45);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(workerStop).toHaveBeenCalled();
+      expect(stop).toHaveBeenCalled();
+    } finally {
+      await fs.rm(spoolDir, { recursive: true, force: true });
+    }
   });
 
   it("does not trigger stall restart shortly after a getUpdates error", async () => {
