@@ -36,7 +36,7 @@ describe("trajectory metadata", () => {
       "/Users/tester/project/kova.js",
       "--api-key",
       "super-secret",
-      "--config=/Users/tester/.chiragborse1/KovaLab.json",
+      "--config=/Users/tester/.kova/kova.json",
     ];
     try {
       const metadata = buildTrajectoryRunMetadata({
