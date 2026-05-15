@@ -49,7 +49,7 @@ function isCurrentKovaClient(clientId: string | undefined): boolean {
 
 function isLegacyKovaClient(clientId: string | undefined): boolean {
   const normalized = normalizeOptionalLowercaseString(clientId) ?? "";
-  return normalized.startsWith("kova-") || normalized.startsWith("moldbot-");
+  return normalized.startsWith("moldbot-");
 }
 
 function pickPreferredLegacyMigrationMatch(

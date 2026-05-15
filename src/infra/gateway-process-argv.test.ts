@@ -47,7 +47,7 @@ describe("isGatewayArgv", () => {
     expect(isGatewayArgv(["NODE", "C:\\Kova\\DIST\\ENTRY.JS", "gateway"])).toBe(true);
     expect(isGatewayArgv(["bun", "/srv/kova/scripts/run-node.mjs", "gateway"])).toBe(true);
     expect(isGatewayArgv(["node", "/srv/kova/kova.mjs", "gateway"])).toBe(true);
-    expect(isGatewayArgv(["node", "/srv/chiragborse1/KovaLab.mjs", "gateway"])).toBe(true);
+    expect(isGatewayArgv(["node", "/srv/KOVA/KOVA.MJS", "gateway"])).toBe(true);
     expect(isGatewayArgv(["tsx", "/srv/kova/src/entry.ts", "gateway"])).toBe(true);
     expect(isGatewayArgv(["tsx", "/srv/kova/src/index.ts", "gateway"])).toBe(true);
   });

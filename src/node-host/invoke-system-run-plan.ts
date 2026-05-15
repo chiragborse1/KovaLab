@@ -9,6 +9,7 @@ import { resolveCommandResolutionFromArgv } from "../infra/exec-command-resoluti
 import { isInterpreterLikeSafeBin } from "../infra/exec-safe-bin-runtime-policy.js";
 import {
   POSIX_SHELL_WRAPPERS,
+  extractShellWrapperCommand,
   normalizeExecutableToken,
   unwrapKnownDispatchWrapperInvocation,
   unwrapKnownShellMultiplexerInvocation,
@@ -951,6 +952,13 @@ function requiresStableInterpreterApprovalBindingWithShellCommand(params: {
   }
   if (params.shellCommand !== null) {
     return shellPayloadNeedsStableBinding(params.shellCommand, params.cwd);
+  }
+  const shellWrapperCommand = extractShellWrapperCommand(params.argv);
+  if (shellWrapperCommand.isWrapper) {
+    return (
+      shellWrapperCommand.command === null ||
+      shellPayloadNeedsStableBinding(shellWrapperCommand.command, params.cwd)
+    );
   }
   if (pnpmDlxInvocationNeedsFailClosedBinding(params.argv, params.cwd)) {
     return true;

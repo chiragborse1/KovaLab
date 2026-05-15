@@ -1,6 +1,6 @@
 export const PROJECT_NAME = "kova" as const;
 
-export const LEGACY_PROJECT_NAMES = ["kova"] as const;
+export const LEGACY_PROJECT_NAMES = [] as const;
 
 export const MANIFEST_KEY = PROJECT_NAME;
 

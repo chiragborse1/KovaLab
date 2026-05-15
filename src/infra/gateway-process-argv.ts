@@ -47,7 +47,6 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
     "dist/index.js",
     "dist/entry.js",
     "kova.mjs",
-    "kova.mjs",
     "scripts/run-node.mjs",
     "src/entry.ts",
     "src/index.ts",
@@ -58,8 +57,6 @@ export function isGatewayArgv(args: string[], opts?: { allowGatewayBinary?: bool
 
   const exe = (normalized[0] ?? "").replace(/\.(bat|cmd|exe)$/i, "");
   return (
-    exe.endsWith("/kova") ||
-    exe === "kova" ||
     exe.endsWith("/kova") ||
     exe === "kova" ||
     (opts?.allowGatewayBinary === true && exe.endsWith("/kova-gateway"))

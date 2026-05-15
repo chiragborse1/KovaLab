@@ -87,7 +87,7 @@ describe("filterContainerGenericHints", () => {
 });
 
 describe("safeDaemonEnv", () => {
-  it("shows Kova env names before legacy compatibility aliases", () => {
+  it("shows safe Kova env names", () => {
     expect(
       safeDaemonEnv({
         KOVA_GATEWAY_PORT: "18789",

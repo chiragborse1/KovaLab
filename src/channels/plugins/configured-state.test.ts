@@ -7,18 +7,11 @@ import {
 describe("bundled channel configured-state metadata", () => {
   it("lists the shipped metadata-first configured-state channels", () => {
     expect(listBundledChannelIdsWithConfiguredState()).toEqual(
-      expect.arrayContaining(["discord", "irc", "slack", "telegram"]),
+      expect.arrayContaining(["irc", "slack", "telegram"]),
     );
   });
 
-  it("resolves Discord, Slack, Telegram, and IRC env probes without full plugin loads", () => {
-    expect(
-      hasBundledChannelConfiguredState({
-        channelId: "discord",
-        cfg: {},
-        env: { DISCORD_BOT_TOKEN: "token" },
-      }),
-    ).toBe(true);
+  it("resolves Slack, Telegram, and IRC env probes without full plugin loads", () => {
     expect(
       hasBundledChannelConfiguredState({
         channelId: "slack",

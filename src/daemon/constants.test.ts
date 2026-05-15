@@ -133,23 +133,21 @@ describe("resolveGatewayServiceDescription", () => {
 });
 
 describe("LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES", () => {
-  it("includes known pre-rebrand gateway unit names", () => {
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("kova-gateway");
-    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toContain("kova-gateway");
+  it("does not duplicate current gateway unit names as legacy entries", () => {
+    expect(LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES).toEqual([]);
   });
 });
 
 describe("resolveLegacyGatewaySystemdServiceNames", () => {
-  it("returns profile-aware legacy Kova systemd names", () => {
-    expect(resolveLegacyGatewaySystemdServiceNames()).toContain("kova-gateway");
-    expect(resolveLegacyGatewaySystemdServiceNames("work")).toEqual(["kova-gateway-work"]);
+  it("returns no legacy Kova systemd names", () => {
+    expect(resolveLegacyGatewaySystemdServiceNames()).toEqual([]);
+    expect(resolveLegacyGatewaySystemdServiceNames("work")).toEqual([]);
   });
 });
 
 describe("isGatewayServiceMarker", () => {
-  it("accepts Kova and legacy Kova markers", () => {
+  it("accepts the current Kova marker only", () => {
     expect(isGatewayServiceMarker("kova")).toBe(true);
-    expect(isGatewayServiceMarker("kova")).toBe(true);
-    expect(isGatewayServiceMarker("kova")).toBe(false);
+    expect(isGatewayServiceMarker("not-kova")).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
-// Default service labels (canonical + legacy compatibility)
+// Default service labels.
 export const GATEWAY_LAUNCH_AGENT_LABEL = "ai.kova.gateway";
 export const GATEWAY_SYSTEMD_SERVICE_NAME = "kova-gateway";
 export const GATEWAY_WINDOWS_TASK_NAME = "Kova Gateway";
@@ -12,8 +12,8 @@ export const NODE_WINDOWS_TASK_NAME = "Kova Node";
 export const NODE_SERVICE_MARKER = "kova";
 export const NODE_SERVICE_KIND = "node";
 export const NODE_WINDOWS_TASK_SCRIPT_NAME = "node.cmd";
-export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = ["kova-gateway", "kova-gateway"];
-export const LEGACY_GATEWAY_SERVICE_MARKERS: string[] = ["kova"];
+export const LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES: string[] = [];
+export const LEGACY_GATEWAY_SERVICE_MARKERS: string[] = [];
 
 export function normalizeGatewayProfile(profile?: string): string | null {
   const trimmed = profile?.trim();
@@ -36,20 +36,12 @@ export function resolveGatewayLaunchAgentLabel(profile?: string): string {
   return `ai.kova.${normalized}`;
 }
 
-export function resolveLegacyGatewayLaunchAgentLabels(profile?: string): string[] {
-  const normalized = normalizeGatewayProfile(profile);
-  if (!normalized) {
-    return ["ai.kova.gateway"];
-  }
-  return [`ai.kova.${normalized}`];
+export function resolveLegacyGatewayLaunchAgentLabels(_profile?: string): string[] {
+  return [];
 }
 
-export function resolveLegacyGatewaySystemdServiceNames(profile?: string): string[] {
-  const suffix = resolveGatewayProfileSuffix(profile);
-  if (!suffix) {
-    return LEGACY_GATEWAY_SYSTEMD_SERVICE_NAMES;
-  }
-  return [`kova-gateway${suffix}`];
+export function resolveLegacyGatewaySystemdServiceNames(_profile?: string): string[] {
+  return [];
 }
 
 export function resolveGatewaySystemdServiceName(profile?: string): string {

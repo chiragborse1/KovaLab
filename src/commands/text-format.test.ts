@@ -7,7 +7,7 @@ describe("shortenText", () => {
   });
 
   it("truncates and appends ellipsis when over limit", () => {
-    expect(shortenText("kova-status-output", 10)).toBe("kova-…");
+    expect(shortenText("kova-status-output", 10)).toBe("kova-stat…");
   });
 
   it("counts multi-byte characters correctly", () => {

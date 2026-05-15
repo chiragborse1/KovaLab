@@ -47,14 +47,14 @@ describe("shared/node-match", () => {
     ).toBe("mac-studio");
   });
 
-  it("prefers a unique current Kova client over a legacy kova client", () => {
+  it("prefers a unique current Kova client over a legacy client", () => {
     expect(
       resolveNodeIdFromCandidates(
         [
           {
             nodeId: "legacy-mac",
             displayName: "Peter’s Mac Studio",
-            clientId: "kova-macos",
+            clientId: "moldbot-macos",
             connected: false,
           },
           {

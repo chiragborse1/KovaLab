@@ -58,6 +58,5 @@ describe("formatPluginLine", () => {
     expect(output).toContain("Kova Telegram (telegram) enabled");
     expect(output).toContain("format: kova");
     expect(output).not.toContain("@kovaai/telegram");
-    expect(output).not.toContain("format: kova");
   });
 });

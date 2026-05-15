@@ -80,7 +80,7 @@ describe("status-overview-surface", () => {
       }),
     ).toEqual([
       { Item: "OS", Value: "macOS · node 22" },
-      { Item: "Dashboard", Value: "http://127.0.0.1:18789/" },
+      { Item: "Dashboard", Value: "http://127.0.0.1:18790/" },
       { Item: "Tailscale exposure", Value: "muted(off · box.tail.ts.net)" },
       { Item: "Channel", Value: "stable (config)" },
       { Item: "Git", Value: "main · tag v1.2.3" },

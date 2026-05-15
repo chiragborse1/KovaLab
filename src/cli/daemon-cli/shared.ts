@@ -110,10 +110,6 @@ const SAFE_DAEMON_ENV_KEYS = [
   "KOVA_STATE_DIR",
   "KOVA_CONFIG_PATH",
   "KOVA_GATEWAY_PORT",
-  "KOVA_PROFILE",
-  "KOVA_STATE_DIR",
-  "KOVA_CONFIG_PATH",
-  "KOVA_GATEWAY_PORT",
   "KOVA_NIX_MODE",
 ];
 
@@ -123,12 +119,6 @@ export function filterDaemonEnv(env: Record<string, string> | undefined): Record
   }
   const filtered: Record<string, string> = {};
   for (const key of SAFE_DAEMON_ENV_KEYS) {
-    if (key.startsWith("KOVA_")) {
-      const kovaKey = key.replace(/^KOVA_/u, "KOVA_");
-      if (env[kovaKey]?.trim()) {
-        continue;
-      }
-    }
     const value = env[key];
     if (!value?.trim()) {
       continue;

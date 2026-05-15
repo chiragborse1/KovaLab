@@ -558,7 +558,7 @@ describe("setupChannels workspace shadow exclusion", () => {
     );
     let quickstartSelectionCount = 0;
     const select = vi.fn(async ({ message }: { message: string }) => {
-      if (message === "Select channel (QuickStart)") {
+      if (message === "Choose a chat channel") {
         quickstartSelectionCount += 1;
         return "external-chat";
       }

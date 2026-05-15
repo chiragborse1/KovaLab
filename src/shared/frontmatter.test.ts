@@ -49,7 +49,7 @@ describe("shared/frontmatter", () => {
     ).toEqual({ foo: 2 });
   });
 
-  test("resolveKovaManifestBlock reads legacy manifest keys", () => {
+  test("resolveKovaManifestBlock reads current manifest keys with install metadata", () => {
     expect(
       resolveKovaManifestBlock({
         frontmatter: {
@@ -59,12 +59,12 @@ describe("shared/frontmatter", () => {
     ).toEqual({ requires: { bins: ["op"] }, install: [] });
   });
 
-  test("resolveKovaManifestBlock prefers current manifest keys over legacy keys", () => {
+  test("resolveKovaManifestBlock prefers the current manifest key over unrelated keys", () => {
     expect(
       resolveKovaManifestBlock({
         frontmatter: {
           metadata:
-            "{ kova: { requires: { bins: ['current'] } }, kova: { requires: { bins: ['legacy'] } } }",
+            "{ kova: { requires: { bins: ['current'] } }, other: { requires: { bins: ['legacy'] } } }",
         },
       }),
     ).toEqual({ requires: { bins: ["current"] } });

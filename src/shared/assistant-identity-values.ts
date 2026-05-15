@@ -8,6 +8,9 @@ export function coerceIdentityValue(
   if (!trimmed) {
     return undefined;
   }
+  if (maxLength <= 0) {
+    return "";
+  }
   if (trimmed.length <= maxLength) {
     return trimmed;
   }
