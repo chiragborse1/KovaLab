@@ -144,6 +144,26 @@ function isContainerEnvironment() {
   }
 }
 
+function isWslEnvironment() {
+  if (process.platform !== "linux") {
+    return false;
+  }
+  if (process.env.WSL_INTEROP || process.env.WSL_DISTRO_NAME || process.env.WSLENV) {
+    return true;
+  }
+  for (const procPath of ["/proc/sys/kernel/osrelease", "/proc/version"]) {
+    try {
+      const value = fs.readFileSync(procPath, "utf8").toLowerCase();
+      if (value.includes("microsoft") || value.includes("wsl")) {
+        return true;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return false;
+}
+
 function isDisabledByEnv() {
   if (process.env.NODE_ENV === "test") {
     return true;
@@ -156,6 +176,9 @@ function isDisabledByEnv() {
     return envOverride;
   }
   if (isContainerEnvironment()) {
+    return true;
+  }
+  if (isWslEnvironment()) {
     return true;
   }
   return false;

@@ -10,8 +10,11 @@ title: "Bonjour discovery"
 
 Kova uses Bonjour (mDNS / DNS‑SD) to discover an active Gateway (WebSocket endpoint).
 Multicast `local.` browsing is a **LAN-only convenience**. The bundled `bonjour`
-plugin owns LAN advertising and is enabled by default. For cross-network discovery,
-the same beacon can also be published through a configured wide-area DNS-SD domain.
+plugin owns LAN advertising and is enabled by default on hosts where multicast is
+expected to work. Kova skips LAN mDNS advertising by default inside WSL and
+containers; set `KOVA_DISABLE_BONJOUR=0` only if you know that multicast works in
+that environment. For cross-network discovery, the same beacon can also be
+published through a configured wide-area DNS-SD domain.
 Discovery is still best-effort and does **not** replace SSH or Tailnet-based connectivity.
 
 ## Wide-area Bonjour (Unicast DNS-SD) over Tailscale
