@@ -10,6 +10,7 @@ import { createOutboundTestPlugin } from "../test-utils/channel-plugins.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import { createTempHomeEnv } from "../test-utils/temp-home.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
+import { __resetModelCatalogCacheForTest as resetGatewayModelCatalogCacheForTest } from "./server-model-catalog.js";
 import { createRegistry } from "./server.e2e-registry-helpers.js";
 import {
   connectOk,
@@ -148,9 +149,10 @@ const expectedSortedCatalog = (): ModelCatalogRpcEntry[] => [
 describe("gateway server models + voicewake", () => {
   const listModels = async () => rpcReq<{ models: ModelCatalogRpcEntry[] }>(ws, "models.list");
 
-  const seedPiCatalog = () => {
+  const seedPiCatalog = async () => {
     piSdkMock.enabled = true;
     piSdkMock.models = buildPiCatalogFixture();
+    await resetGatewayModelCatalogCacheForTest();
   };
 
   const withModelsConfig = async <T>(config: unknown, run: () => Promise<T>): Promise<T> => {
@@ -209,7 +211,7 @@ describe("gateway server models + voicewake", () => {
         },
       },
       async () => {
-        seedPiCatalog();
+        await seedPiCatalog();
         const res = await listModels();
         expect(res.ok).toBe(true);
         expect(res.payload?.models).toEqual(options.expected);
@@ -461,7 +463,7 @@ describe("gateway server models + voicewake", () => {
   });
 
   test("models.list returns model catalog", async () => {
-    seedPiCatalog();
+    await seedPiCatalog();
 
     const res1 = await listModels();
     const res2 = await listModels();
@@ -541,7 +543,7 @@ describe("gateway server models + voicewake", () => {
         },
       },
       async () => {
-        seedPiCatalog();
+        await seedPiCatalog();
         const res = await listModels();
         expect(res.ok).toBe(true);
         expect(res.payload?.models).toEqual([
@@ -584,7 +586,7 @@ describe("gateway server models + voicewake", () => {
         },
       },
       async () => {
-        seedPiCatalog();
+        await seedPiCatalog();
         const res = await listModels();
         expect(res.ok).toBe(true);
         expect(res.payload?.models).toEqual([
