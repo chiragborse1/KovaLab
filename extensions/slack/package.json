@@ -8,7 +8,7 @@
     "@slack/bolt": "^4.7.1",
     "@slack/web-api": "7.15.2",
     "https-proxy-agent": "^9.0.0",
-    "typebox": "1.1.33"
+    "typebox": "1.1.38"
   },
   "devDependencies": {
     "@getkova/plugin-sdk": "workspace:*"
