@@ -36,6 +36,14 @@ function createNestedGitEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
+function createLocalChangedLaneEnv(): NodeJS.ProcessEnv {
+  return {
+    ...createNestedGitEnv(),
+    CI: "false",
+    GITHUB_ACTIONS: "false",
+  };
+}
+
 const git = (cwd: string, args: string[]) =>
   execFileSync("git", args, {
     cwd,
@@ -73,7 +81,7 @@ describe("scripts/changed-lanes", () => {
       {
         cwd: dir,
         encoding: "utf8",
-        env: createNestedGitEnv(),
+        env: createLocalChangedLaneEnv(),
       },
     );
 
@@ -428,7 +436,7 @@ describe("scripts/changed-lanes", () => {
       {
         cwd: dir,
         encoding: "utf8",
-        env: createNestedGitEnv(),
+        env: createLocalChangedLaneEnv(),
       },
     );
 
@@ -499,7 +507,7 @@ describe("scripts/changed-lanes", () => {
       {
         cwd: dir,
         encoding: "utf8",
-        env: createNestedGitEnv(),
+        env: createLocalChangedLaneEnv(),
       },
     );
 
