@@ -23,6 +23,7 @@ import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
 } from "getkova/plugin-sdk/text-runtime";
+import { getOrCreateAccountThrottler } from "./account-throttler.js";
 import { resolveTelegramAccount } from "./accounts.js";
 import type { TelegramBotDeps } from "./bot-deps.js";
 import { registerTelegramHandlers } from "./bot-handlers.runtime.js";
@@ -356,7 +357,7 @@ export function createTelegramBotCore(
       ? { ...(client ? { client } : {}), ...(opts.botInfo ? { botInfo: opts.botInfo } : {}) }
       : undefined;
   const bot = new botRuntime.Bot(opts.token, botConfig);
-  bot.api.config.use(botRuntime.apiThrottler());
+  bot.api.config.use(getOrCreateAccountThrottler(opts.token, botRuntime.apiThrottler));
   // Catch all errors from bot middleware to prevent unhandled rejections
   bot.catch((err) => {
     runtime.error?.(danger(`telegram bot error: ${formatUncaughtError(err)}`));
