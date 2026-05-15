@@ -3,6 +3,15 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_DEV_PORT = 5173;
+
+function normalizeDevPort(input: string | undefined): number {
+  const value = Number.parseInt(input ?? "", 10);
+  if (Number.isInteger(value) && value > 0 && value <= 65535) {
+    return value;
+  }
+  return DEFAULT_DEV_PORT;
+}
 
 function normalizeBase(input: string): string {
   const trimmed = input.trim();
@@ -21,6 +30,8 @@ function normalizeBase(input: string): string {
 export default defineConfig(() => {
   const envBase = process.env.KOVA_CONTROL_UI_BASE_PATH?.trim();
   const base = envBase ? normalizeBase(envBase) : "./";
+  const port = normalizeDevPort(process.env.KOVA_CONTROL_UI_DEV_PORT);
+  const strictPort = process.env.KOVA_CONTROL_UI_STRICT_PORT === "1";
   return {
     base,
     publicDir: path.resolve(here, "public"),
@@ -36,8 +47,8 @@ export default defineConfig(() => {
     },
     server: {
       host: true,
-      port: 5173,
-      strictPort: true,
+      port,
+      strictPort,
     },
     plugins: [
       {
