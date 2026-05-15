@@ -11,7 +11,10 @@ import { truncateUtf16Safe } from "../../utils.js";
 import { isWebchatClient } from "../../utils/message-channel.js";
 import type { AuthRateLimiter } from "../auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "../auth.js";
-import { getPreauthHandshakeTimeoutMsFromEnv } from "../handshake-timeouts.js";
+import {
+  getPreauthHandshakeTimeoutMsFromEnv,
+  resolvePreauthHandshakeTimeoutAction,
+} from "../handshake-timeouts.js";
 import { isLoopbackAddress } from "../net.js";
 import { MAX_PAYLOAD_BYTES, MAX_PREAUTH_PAYLOAD_BYTES } from "../server-constants.js";
 import { clearNodeWakeState } from "../server-methods/nodes-wake-state.js";
@@ -262,12 +265,54 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       payload: { nonce: connectNonce, ts: Date.now() },
     });
 
+    const handshakeTimeoutMs = getPreauthHandshakeTimeoutMsFromEnv();
+    let handshakeTimer: ReturnType<typeof setTimeout> | undefined;
+    let handshakeTimeoutExtendedForTimerDelay = false;
+    const clearHandshakeTimer = () => {
+      if (handshakeTimer) {
+        clearTimeout(handshakeTimer);
+        handshakeTimer = undefined;
+      }
+    };
+    const scheduleHandshakeTimer = (timeoutMs: number) => {
+      clearHandshakeTimer();
+      handshakeTimer = setTimeout(() => {
+        if (client) {
+          return;
+        }
+        const handshakeMs = Date.now() - openedAt;
+        const timeoutAction = resolvePreauthHandshakeTimeoutAction({
+          elapsedMs: handshakeMs,
+          timeoutMs: handshakeTimeoutMs,
+          alreadyExtendedForTimerDelay: handshakeTimeoutExtendedForTimerDelay,
+        });
+        if (timeoutAction.action === "extend") {
+          handshakeTimeoutExtendedForTimerDelay = true;
+          logWsControl.debug(
+            `preauth handshake timer delayed conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"} elapsedMs=${handshakeMs} timerDelayMs=${timeoutAction.timerDelayMs}; extending by ${timeoutAction.graceMs}ms`,
+          );
+          scheduleHandshakeTimer(timeoutAction.graceMs);
+          return;
+        }
+        handshakeState = "failed";
+        setCloseCause("handshake-timeout", {
+          handshakeMs,
+          endpoint,
+          ...(timeoutAction.timerDelayMs > 0 ? { timerDelayMs: timeoutAction.timerDelayMs } : {}),
+        });
+        logWsControl.warn(
+          `preauth handshake timed out conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"}`,
+        );
+        close();
+      }, timeoutMs);
+    };
+
     const close = (code = 1000, reason?: string) => {
       if (closed) {
         return;
       }
       closed = true;
-      clearTimeout(handshakeTimer);
+      clearHandshakeTimer();
       releasePreauthBudget();
       if (client) {
         clients.delete(client);
@@ -367,20 +412,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       close();
     });
 
-    const handshakeTimeoutMs = getPreauthHandshakeTimeoutMsFromEnv();
-    const handshakeTimer = setTimeout(() => {
-      if (!client) {
-        handshakeState = "failed";
-        setCloseCause("handshake-timeout", {
-          handshakeMs: Date.now() - openedAt,
-          endpoint,
-        });
-        logWsControl.warn(
-          `preauth handshake timed out conn=${connId} peer=${endpoint ?? "n/a"} remote=${remoteAddr ?? "?"}`,
-        );
-        close();
-      }
-    }, handshakeTimeoutMs);
+    scheduleHandshakeTimer(handshakeTimeoutMs);
 
     attachGatewayWsMessageHandler({
       socket,
@@ -409,7 +441,7 @@ export function attachGatewayWsConnectionHandler(params: AttachGatewayWsConnecti
       send,
       close,
       isClosed: () => closed,
-      clearHandshakeTimer: () => clearTimeout(handshakeTimer),
+      clearHandshakeTimer,
       getClient: () => client,
       setClient: (next) => {
         if (closed) {

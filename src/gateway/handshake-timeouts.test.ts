@@ -6,7 +6,9 @@ import {
   getPreauthHandshakeTimeoutMsFromEnv,
   MAX_CONNECT_CHALLENGE_TIMEOUT_MS,
   MIN_CONNECT_CHALLENGE_TIMEOUT_MS,
+  PREAUTH_HANDSHAKE_TIMER_DELAY_GRACE_MS,
   resolveConnectChallengeTimeoutMs,
+  resolvePreauthHandshakeTimeoutAction,
 } from "./handshake-timeouts.js";
 
 describe("gateway handshake timeouts", () => {
@@ -60,5 +62,47 @@ describe("gateway handshake timeouts", () => {
         process.env.KOVA_CONNECT_CHALLENGE_TIMEOUT_MS = original;
       }
     }
+  });
+
+  test("extends pre-auth once when the timeout timer fires late", () => {
+    expect(
+      resolvePreauthHandshakeTimeoutAction({
+        elapsedMs: 19_100,
+        timeoutMs: 10_000,
+        alreadyExtendedForTimerDelay: false,
+      }),
+    ).toEqual({
+      action: "extend",
+      graceMs: PREAUTH_HANDSHAKE_TIMER_DELAY_GRACE_MS,
+      timerDelayMs: 9_100,
+    });
+
+    expect(
+      resolvePreauthHandshakeTimeoutAction({
+        elapsedMs: 24_100,
+        timeoutMs: 10_000,
+        alreadyExtendedForTimerDelay: true,
+      }),
+    ).toEqual({ action: "close", timerDelayMs: 14_100 });
+  });
+
+  test("closes pre-auth normally when the timeout timer is on time", () => {
+    expect(
+      resolvePreauthHandshakeTimeoutAction({
+        elapsedMs: 10_050,
+        timeoutMs: 10_000,
+        alreadyExtendedForTimerDelay: false,
+      }),
+    ).toEqual({ action: "close", timerDelayMs: 50 });
+  });
+
+  test("caps delayed-timer grace for short test handshakes", () => {
+    expect(
+      resolvePreauthHandshakeTimeoutAction({
+        elapsedMs: 1_300,
+        timeoutMs: 200,
+        alreadyExtendedForTimerDelay: false,
+      }),
+    ).toEqual({ action: "extend", graceMs: 1_000, timerDelayMs: 1_100 });
   });
 });
