@@ -705,7 +705,7 @@ export function formatValidationErrors(errors: ErrorObject[] | null | undefined)
   // De-dupe while preserving order.
   const unique = Array.from(new Set(parts.filter((part) => part.trim())));
   if (!unique.length) {
-    const fallback = ajv.errorsText(errors, { separator: "; " });
+    const fallback = getAjv().errorsText(errors, { separator: "; " });
     return fallback || "unknown validation error";
   }
   return unique.join("; ");
