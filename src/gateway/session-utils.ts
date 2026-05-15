@@ -71,6 +71,7 @@ import {
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
 import { normalizeSessionDeliveryFields } from "../utils/delivery-context.shared.js";
+import type { ModelCostConfig } from "../utils/usage-format.js";
 import { estimateUsageCost, resolveModelCostConfig } from "../utils/usage-format.js";
 import {
   canonicalizeSpawnedByForAgent,
@@ -249,6 +250,48 @@ function resolveLatestCompactionCheckpoint(
   );
 }
 
+type SessionListRowContext = {
+  // Per-list memoization for deterministic resolvers that scale linearly with
+  // session count but only depend on (provider, model[, agentId]).
+  modelCostConfigByModelRef: Map<string, ModelCostConfig | undefined>;
+  thinkingMetadataByModelRef: Map<
+    string,
+    {
+      levels: ReturnType<typeof listThinkingLevelOptions>;
+      defaultLevel: ReturnType<typeof resolveGatewaySessionThinkingDefault>;
+    }
+  >;
+};
+
+function createSessionRowModelCacheKey(provider: string | undefined, model: string | undefined) {
+  return `${normalizeOptionalString(provider) ?? ""}\u0000${normalizeOptionalString(model) ?? ""}`;
+}
+
+function createSessionListRowContext(): SessionListRowContext {
+  return {
+    modelCostConfigByModelRef: new Map(),
+    thinkingMetadataByModelRef: new Map(),
+  };
+}
+
+function resolveModelCostConfigCached(
+  provider: string | undefined,
+  model: string | undefined,
+  cfg: KovaConfig,
+  rowContext?: SessionListRowContext,
+): ModelCostConfig | undefined {
+  if (!rowContext) {
+    return resolveModelCostConfig({ provider, model, config: cfg });
+  }
+  const key = createSessionRowModelCacheKey(provider, model);
+  if (rowContext.modelCostConfigByModelRef.has(key)) {
+    return rowContext.modelCostConfigByModelRef.get(key);
+  }
+  const value = resolveModelCostConfig({ provider, model, config: cfg });
+  rowContext.modelCostConfigByModelRef.set(key, value);
+  return value;
+}
+
 function resolveEstimatedSessionCostUsd(params: {
   cfg: KovaConfig;
   provider?: string;
@@ -258,6 +301,7 @@ function resolveEstimatedSessionCostUsd(params: {
     "estimatedCostUsd" | "inputTokens" | "outputTokens" | "cacheRead" | "cacheWrite"
   >;
   explicitCostUsd?: number;
+  rowContext?: SessionListRowContext;
 }): number | undefined {
   const explicitCostUsd = resolveNonNegativeNumber(
     params.explicitCostUsd ?? params.entry?.estimatedCostUsd,
@@ -277,11 +321,12 @@ function resolveEstimatedSessionCostUsd(params: {
   ) {
     return undefined;
   }
-  const cost = resolveModelCostConfig({
-    provider: params.provider,
-    model: params.model,
-    config: params.cfg,
-  });
+  const cost = resolveModelCostConfigCached(
+    params.provider,
+    params.model,
+    params.cfg,
+    params.rowContext,
+  );
   if (!cost) {
     return undefined;
   }
@@ -395,6 +440,7 @@ function resolveTranscriptUsageFallback(params: {
   storePath: string;
   fallbackProvider?: string;
   fallbackModel?: string;
+  rowContext?: SessionListRowContext;
 }): {
   estimatedCostUsd?: number;
   totalTokens?: number;
@@ -440,6 +486,7 @@ function resolveTranscriptUsageFallback(params: {
       cacheRead: snapshot.cacheRead,
       cacheWrite: snapshot.cacheWrite,
     },
+    rowContext: params.rowContext,
   });
   return {
     modelProvider,
@@ -1056,6 +1103,46 @@ function resolveGatewaySessionThinkingDefault(params: {
   );
 }
 
+function resolveSessionRowThinkingMetadata(params: {
+  cfg: KovaConfig;
+  agentId: string;
+  provider: string;
+  model: string;
+  rowContext?: SessionListRowContext;
+}) {
+  if (!params.rowContext) {
+    const levels = listThinkingLevelOptions(params.provider, params.model);
+    return {
+      levels,
+      defaultLevel: resolveGatewaySessionThinkingDefault({
+        cfg: params.cfg,
+        provider: params.provider,
+        model: params.model,
+        agentId: params.agentId,
+      }),
+    };
+  }
+  const key = `${params.agentId}\u0000${createSessionRowModelCacheKey(
+    params.provider,
+    params.model,
+  )}`;
+  const cached = params.rowContext.thinkingMetadataByModelRef.get(key);
+  if (cached) {
+    return cached;
+  }
+  const value = {
+    levels: listThinkingLevelOptions(params.provider, params.model),
+    defaultLevel: resolveGatewaySessionThinkingDefault({
+      cfg: params.cfg,
+      provider: params.provider,
+      model: params.model,
+      agentId: params.agentId,
+    }),
+  };
+  params.rowContext.thinkingMetadataByModelRef.set(key, value);
+  return value;
+}
+
 export function getSessionDefaults(cfg: KovaConfig): GatewaySessionsDefaults {
   const resolved = resolveConfiguredModelRef({
     cfg,
@@ -1243,6 +1330,7 @@ export function buildGatewaySessionRow(params: {
   now?: number;
   includeDerivedTitles?: boolean;
   includeLastMessage?: boolean;
+  rowContext?: SessionListRowContext;
 }): GatewaySessionRow {
   const { cfg, storePath, store, key, entry } = params;
   const now = params.now ?? Date.now();
@@ -1341,6 +1429,7 @@ export function buildGatewaySessionRow(params: {
       provider: resolvedModel.provider,
       model: resolvedModel.model ?? DEFAULT_MODEL,
       entry,
+      rowContext: params.rowContext,
     }) === undefined;
   const transcriptUsage =
     needsTranscriptTotalTokens || needsTranscriptContextTokens || needsTranscriptEstimatedCostUsd
@@ -1351,6 +1440,7 @@ export function buildGatewaySessionRow(params: {
           storePath,
           fallbackProvider: resolvedModel.provider,
           fallbackModel: resolvedModel.model ?? DEFAULT_MODEL,
+          rowContext: params.rowContext,
         })
       : null;
   const preferLiveSubagentModelIdentity =
@@ -1385,6 +1475,7 @@ export function buildGatewaySessionRow(params: {
       provider: modelProvider,
       model,
       entry,
+      rowContext: params.rowContext,
     }) ?? resolveNonNegativeNumber(transcriptUsage?.estimatedCostUsd);
   const contextTokens =
     resolvePositiveNumber(entry?.contextTokens) ??
@@ -1420,7 +1511,14 @@ export function buildGatewaySessionRow(params: {
   const rowModel = selectedModel?.model ?? model;
   const thinkingProvider = rowModelProvider ?? DEFAULT_PROVIDER;
   const thinkingModel = rowModel ?? DEFAULT_MODEL;
-  const thinkingLevels = listThinkingLevelOptions(thinkingProvider, thinkingModel);
+  const thinkingMetadata = resolveSessionRowThinkingMetadata({
+    cfg,
+    agentId: sessionAgentId,
+    provider: thinkingProvider,
+    model: thinkingModel,
+    rowContext: params.rowContext,
+  });
+  const thinkingLevels = thinkingMetadata.levels;
 
   return {
     key,
@@ -1448,12 +1546,7 @@ export function buildGatewaySessionRow(params: {
     thinkingLevel: entry?.thinkingLevel,
     thinkingLevels,
     thinkingOptions: thinkingLevels.map((level) => level.label),
-    thinkingDefault: resolveGatewaySessionThinkingDefault({
-      cfg,
-      provider: thinkingProvider,
-      model: thinkingModel,
-      agentId: sessionAgentId,
-    }),
+    thinkingDefault: thinkingMetadata.defaultLevel,
     fastMode: entry?.fastMode,
     verboseLevel: entry?.verboseLevel,
     traceLevel: entry?.traceLevel,
@@ -1528,6 +1621,7 @@ export function listSessionsFromStore(params: {
     typeof opts.activeMinutes === "number" && Number.isFinite(opts.activeMinutes)
       ? Math.max(1, Math.floor(opts.activeMinutes))
       : undefined;
+  const rowContext = createSessionListRowContext();
 
   let sessions = Object.entries(store)
     .filter(([key]) => {
@@ -1593,6 +1687,7 @@ export function listSessionsFromStore(params: {
         now,
         includeDerivedTitles,
         includeLastMessage,
+        rowContext,
       }),
     )
     .toSorted((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
