@@ -14,6 +14,33 @@ type DashboardOptions = {
   noOpen?: boolean;
 };
 
+function hasConfiguredDashboardSecret(value: unknown): boolean {
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+  return Boolean(value && typeof value === "object");
+}
+
+function resolveDashboardAuthMode(cfg: { gateway?: unknown }): string {
+  const gateway =
+    cfg.gateway && typeof cfg.gateway === "object" ? (cfg.gateway as Record<string, unknown>) : {};
+  const auth =
+    gateway.auth && typeof gateway.auth === "object"
+      ? (gateway.auth as Record<string, unknown>)
+      : {};
+  const mode = typeof auth.mode === "string" ? auth.mode.trim() : "";
+  if (mode) {
+    return mode;
+  }
+  if (hasConfiguredDashboardSecret(auth.password) && !hasConfiguredDashboardSecret(auth.token)) {
+    return "password";
+  }
+  if (hasConfiguredDashboardSecret(auth.token)) {
+    return "token";
+  }
+  return "";
+}
+
 export async function dashboardCommand(
   runtime: RuntimeEnv = defaultRuntime,
   options: DashboardOptions = {},
@@ -24,11 +51,15 @@ export async function dashboardCommand(
   const bind = cfg.gateway?.bind ?? "loopback";
   const basePath = cfg.gateway?.controlUi?.basePath;
   const customBindHost = cfg.gateway?.customBindHost;
-  const resolvedToken = await resolveGatewayAuthToken({
-    cfg,
-    env: process.env,
-    envFallback: "always",
-  });
+  const authMode = resolveDashboardAuthMode(cfg);
+  const tokenAuthActive = authMode === "token";
+  const resolvedToken: Awaited<ReturnType<typeof resolveGatewayAuthToken>> = tokenAuthActive
+    ? await resolveGatewayAuthToken({
+        cfg,
+        env: process.env,
+        envFallback: "always",
+      })
+    : { secretRefConfigured: false };
   const token = resolvedToken.token ?? "";
 
   // LAN URLs fail secure-context checks in browsers.
@@ -50,6 +81,13 @@ export async function dashboardCommand(
   runtime.log(`Dashboard URL: ${links.httpUrl}`);
   if (includeTokenInUrl) {
     runtime.log("Token auto-auth included in browser/clipboard URL.");
+  }
+  if (authMode === "password") {
+    runtime.log(
+      "Gateway uses password auth; token auto-auth disabled. Enter the gateway password in Control UI settings.",
+    );
+  } else if (authMode && authMode !== "token") {
+    runtime.log(`Gateway auth mode is ${authMode}; token auto-auth disabled.`);
   }
   if (resolvedToken.secretRefConfigured && token) {
     runtime.log(

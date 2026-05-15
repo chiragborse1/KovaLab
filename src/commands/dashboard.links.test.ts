@@ -42,14 +42,14 @@ function resetRuntime() {
   runtime.exit.mockClear();
 }
 
-function mockSnapshot(token: unknown = "abc") {
+function mockSnapshot(token: unknown = "abc", authOverrides: Record<string, unknown> = {}) {
   readConfigFileSnapshotMock.mockResolvedValue({
     path: "/tmp/kova.json",
     exists: true,
     raw: "{}",
     parsed: {},
     valid: true,
-    config: { gateway: { auth: { token } } },
+    config: { gateway: { auth: { token, ...authOverrides } } },
     issues: [],
     legacyIssues: [],
   });
@@ -139,6 +139,27 @@ describe("dashboardCommand", () => {
 
     expect(openUrlMock).not.toHaveBeenCalled();
     expect(runtime.log).toHaveBeenCalledWith("ssh hint");
+  });
+
+  it("does not include token auto-auth when password mode is active", async () => {
+    mockSnapshot("token-value", {
+      mode: "password",
+      password: "password-value",
+    });
+    copyToClipboardMock.mockResolvedValue(true);
+    detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
+    openUrlMock.mockResolvedValue(true);
+
+    await dashboardCommand(runtime);
+
+    expect(copyToClipboardMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
+    expect(openUrlMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
+    expect(runtime.log).toHaveBeenCalledWith(
+      "Gateway uses password auth; token auto-auth disabled. Enter the gateway password in Control UI settings.",
+    );
+    expect(runtime.log).not.toHaveBeenCalledWith(
+      "Token auto-auth included in browser/clipboard URL.",
+    );
   });
 
   it("never passes token to SSH hint (CVE regression — SSH path)", async () => {

@@ -17,7 +17,8 @@ kova dashboard --no-open
 
 Notes:
 
-- `dashboard` resolves configured `gateway.auth.token` SecretRefs when possible.
+- `dashboard` resolves configured `gateway.auth.token` SecretRefs when token auth is active.
+- If `gateway.auth.mode` is `"password"`, `dashboard` opens/copies a plain URL; enter the gateway password in Control UI settings.
 - `dashboard` follows `gateway.tls.enabled`: TLS-enabled gateways print/open
   `https://` Control UI URLs and connect over `wss://`.
 - For SecretRef-managed tokens (resolved or unresolved), `dashboard` prints/copies/opens a non-tokenized URL to avoid exposing external secrets in terminal output, clipboard history, or browser-launch arguments.
