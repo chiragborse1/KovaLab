@@ -221,7 +221,7 @@ export function detectChangedLanesForPaths(params) {
 }
 
 /**
- * @param {{ base: string; head?: string; includeWorktree?: boolean; cwd?: string }} params
+ * @param {{ base: string; head?: string; includeWorktree?: boolean; cwd?: string; env?: Record<string, string | undefined> }} params
  * @returns {string[]}
  */
 export function listChangedPathsFromGit(params) {
@@ -232,7 +232,8 @@ export function listChangedPathsFromGit(params) {
     return [];
   }
   const rangePaths = runGitNameOnlyDiff([`${base}...${head}`], cwd);
-  if (params.includeWorktree === false) {
+  const includeWorktree = params.includeWorktree ?? !isCiLikeEnv(params.env ?? process.env);
+  if (!includeWorktree) {
     return rangePaths;
   }
   return [
@@ -243,6 +244,10 @@ export function listChangedPathsFromGit(params) {
       ...runGitLsFiles(["--others", "--exclude-standard"], cwd),
     ]),
   ].toSorted((left, right) => left.localeCompare(right));
+}
+
+function isCiLikeEnv(env) {
+  return env.CI === "true" || env.GITHUB_ACTIONS === "true";
 }
 
 function runGitNameOnlyDiff(extraArgs, cwd = process.cwd()) {

@@ -83,6 +83,55 @@ describe("scripts/changed-lanes", () => {
     });
   });
 
+  it("uses committed range paths only in GitHub Actions", () => {
+    const dir = makeTempRepoRoot(tempDirs, "openclaw-changed-lanes-ci-");
+    git(dir, ["init", "-q", "--initial-branch=main"]);
+    writeFileSync(path.join(dir, "README.md"), "initial\n", "utf8");
+    git(dir, ["add", "README.md"]);
+    git(dir, [
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "user.name=Test User",
+      "commit",
+      "-q",
+      "-m",
+      "initial",
+    ]);
+
+    mkdirSync(path.join(dir, "scripts"), { recursive: true });
+    writeFileSync(path.join(dir, "scripts", "changed.mjs"), "export {};\n", "utf8");
+    git(dir, ["add", "scripts/changed.mjs"]);
+    git(dir, [
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "user.name=Test User",
+      "commit",
+      "-q",
+      "-m",
+      "change script",
+    ]);
+
+    mkdirSync(path.join(dir, "node_modules", ".bin"), { recursive: true });
+    writeFileSync(path.join(dir, "node_modules", ".bin", "tool"), "ignored\n", "utf8");
+
+    const output = execFileSync(
+      process.execPath,
+      [path.join(repoRoot, "scripts", "changed-lanes.mjs"), "--json", "--base", "HEAD^"],
+      {
+        cwd: dir,
+        encoding: "utf8",
+        env: { ...createNestedGitEnv(), GITHUB_ACTIONS: "true" },
+      },
+    );
+
+    expect(JSON.parse(output)).toMatchObject({
+      paths: ["scripts/changed.mjs"],
+      lanes: { tooling: true, all: false },
+    });
+  });
+
   it("ignores the explicit path separator", () => {
     const result = detectChangedLanes(["--", "scripts/test-live-acp-bind-docker.sh"]);
 
