@@ -4,8 +4,11 @@ import { registerChannelRuntimeContext } from "getkova/plugin-sdk/channel-runtim
 import { resolveAgentMaxConcurrent } from "getkova/plugin-sdk/config-runtime";
 import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
 import { getRuntimeConfig } from "getkova/plugin-sdk/config-runtime";
-import { waitForAbortSignal } from "getkova/plugin-sdk/runtime-env";
-import { registerUnhandledRejectionHandler } from "getkova/plugin-sdk/runtime-env";
+import {
+  registerUncaughtExceptionHandler,
+  registerUnhandledRejectionHandler,
+  waitForAbortSignal,
+} from "getkova/plugin-sdk/runtime-env";
 import type { RuntimeEnv } from "getkova/plugin-sdk/runtime-env";
 import { formatErrorMessage } from "getkova/plugin-sdk/ssrf-runtime";
 import { resolveTelegramAccount } from "./accounts.js";
@@ -62,6 +65,10 @@ const isGrammyHttpError = (err: unknown): boolean => {
   return (err as { name?: string }).name === "HttpError";
 };
 
+function resolveDefaultIsolatedIngressEnabled(): boolean {
+  return !process.env.VITEST && process.env.NODE_ENV !== "test";
+}
+
 type TelegramMonitorPollingRuntime = typeof import("./monitor-polling.runtime.js");
 type TelegramPollingSessionInstance = InstanceType<
   TelegramMonitorPollingRuntime["TelegramPollingSession"]
@@ -89,13 +96,9 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
   const log = opts.runtime?.error ?? console.error;
   let pollingSession: TelegramPollingSessionInstance | undefined;
 
-  const unregisterHandler = registerUnhandledRejectionHandler((err) => {
+  const handlePollingNetworkFailure = (err: unknown, label: string) => {
     const isNetworkError = isRecoverableTelegramNetworkError(err, { context: "polling" });
     const isTelegramPollingError = isTelegramPollingNetworkError(err);
-    if (isGrammyHttpError(err) && isNetworkError && isTelegramPollingError) {
-      log(`[telegram] Suppressed network error: ${formatErrorMessage(err)}`);
-      return true;
-    }
 
     const activeRunner = pollingSession?.activeRunner;
     if (isNetworkError && isTelegramPollingError && activeRunner && activeRunner.isRunning()) {
@@ -104,14 +107,24 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
       pollingSession?.abortActiveFetch();
       void activeRunner.stop().catch(() => {});
       log("[telegram][diag] marking transport dirty after polling network failure");
-      log(
-        `[telegram] Restarting polling after unhandled network error: ${formatErrorMessage(err)}`,
-      );
+      log(`[telegram] Restarting polling after ${label}: ${formatErrorMessage(err)}`);
+      return true;
+    }
+
+    if (isGrammyHttpError(err) && isNetworkError && isTelegramPollingError) {
+      log(`[telegram] Suppressed network error: ${formatErrorMessage(err)}`);
       return true;
     }
 
     return false;
-  });
+  };
+
+  const unregisterUnhandledRejectionHandler = registerUnhandledRejectionHandler((err) =>
+    handlePollingNetworkFailure(err, "unhandled network error"),
+  );
+  const unregisterUncaughtExceptionHandler = registerUncaughtExceptionHandler((err) =>
+    handlePollingNetworkFailure(err, "uncaught network error"),
+  );
 
   try {
     const cfg = opts.config ?? getRuntimeConfig();
@@ -238,6 +251,7 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
         accountId: account.accountId,
         runtime: opts.runtime,
         proxyFetch,
+        botInfo: opts.botInfo,
         abortSignal: opts.abortSignal,
         runnerOptions: createTelegramRunnerOptions(cfg),
         getLastUpdateId: () => lastUpdateId,
@@ -247,12 +261,20 @@ export async function monitorTelegramProvider(opts: MonitorTelegramOpts = {}) {
         createTelegramTransport: createTelegramTransportForPolling,
         stallThresholdMs: account.config.pollingStallThresholdMs,
         setStatus: opts.setStatus,
+        isolatedIngress: {
+          enabled: opts.isolatedIngress?.enabled ?? resolveDefaultIsolatedIngressEnabled(),
+          apiRoot: account.config.apiRoot,
+          timeoutSeconds: account.config.timeoutSeconds,
+          proxy: account.config.proxy,
+          network: account.config.network,
+        },
       });
       await pollingSession.runUntilAbort();
     } finally {
       pollingLease.release();
     }
   } finally {
-    unregisterHandler();
+    unregisterUnhandledRejectionHandler();
+    unregisterUncaughtExceptionHandler();
   }
 }

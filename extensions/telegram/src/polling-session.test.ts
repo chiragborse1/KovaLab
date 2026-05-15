@@ -48,6 +48,10 @@ vi.mock("./api-logging.js", () => ({
   withTelegramApiErrorLogging: withTelegramApiErrorLoggingMock,
 }));
 
+vi.mock("./sequential-key.js", () => ({
+  getTelegramSequentialKey: vi.fn(() => "telegram:test"),
+}));
+
 vi.mock("getkova/plugin-sdk/runtime-env", () => ({
   computeBackoff: computeBackoffMock,
   formatDurationPrecise: vi.fn((ms: number) => `${ms}ms`),
@@ -626,11 +630,10 @@ describe("TelegramPollingSession", () => {
     expect(createTelegramTransport).toHaveBeenCalledTimes(1);
   });
 
-  it("rebuilds the transport and avoids duplicate deleteWebhook logs on recoverable cleanup errors", async () => {
+  it("continues polling and avoids duplicate deleteWebhook logs on recoverable cleanup errors", async () => {
     const abort = new AbortController();
     const transport1 = makeTelegramTransport();
-    const transport2 = makeTelegramTransport();
-    const createTelegramTransport = vi.fn(() => transport2);
+    const createTelegramTransport = vi.fn(() => makeTelegramTransport());
     const recoverableError = new Error("deleteWebhook network failed");
     const runtimeError = vi.fn();
     const log = vi.fn();
@@ -664,8 +667,9 @@ describe("TelegramPollingSession", () => {
 
     await session.runUntilAbort();
 
-    expectTelegramBotTransportSequence(transport1, transport2);
-    expect(createTelegramTransport).toHaveBeenCalledTimes(1);
+    expect(createTelegramBotMock).toHaveBeenCalledTimes(1);
+    expect(createTelegramBotMock.mock.calls[0]?.[0]?.telegramTransport).toBe(transport1);
+    expect(createTelegramTransport).not.toHaveBeenCalled();
     const cleanupCall = withTelegramApiErrorLoggingMock.mock.calls[0]?.[0] as
       | { shouldLog?: (err: unknown) => boolean }
       | undefined;
@@ -673,7 +677,7 @@ describe("TelegramPollingSession", () => {
     expect(runtimeError).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Telegram webhook cleanup network retry: deleteWebhook network failed",
+        "deleteWebhook failed with a recoverable network error; continuing to polling",
       ),
     );
   });

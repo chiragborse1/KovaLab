@@ -43,24 +43,38 @@ const { initSpy, runSpy, getRuntimeConfigMock } = vi.hoisted(() => ({
   })),
 }));
 
-const { registerUnhandledRejectionHandlerMock, emitUnhandledRejection, resetUnhandledRejection } =
-  vi.hoisted(() => {
-    let handler: ((reason: unknown) => boolean) | undefined;
-    return {
-      registerUnhandledRejectionHandlerMock: vi.fn((next: (reason: unknown) => boolean) => {
-        handler = next;
-        return () => {
-          if (handler === next) {
-            handler = undefined;
-          }
-        };
-      }),
-      emitUnhandledRejection: (reason: unknown) => handler?.(reason) ?? false,
-      resetUnhandledRejection: () => {
-        handler = undefined;
-      },
-    };
-  });
+const {
+  registerUnhandledRejectionHandlerMock,
+  registerUncaughtExceptionHandlerMock,
+  emitUnhandledRejection,
+  resetUnhandledRejection,
+} = vi.hoisted(() => {
+  let handler: ((reason: unknown) => boolean) | undefined;
+  let uncaughtHandler: ((reason: unknown) => boolean) | undefined;
+  return {
+    registerUnhandledRejectionHandlerMock: vi.fn((next: (reason: unknown) => boolean) => {
+      handler = next;
+      return () => {
+        if (handler === next) {
+          handler = undefined;
+        }
+      };
+    }),
+    registerUncaughtExceptionHandlerMock: vi.fn((next: (reason: unknown) => boolean) => {
+      uncaughtHandler = next;
+      return () => {
+        if (uncaughtHandler === next) {
+          uncaughtHandler = undefined;
+        }
+      };
+    }),
+    emitUnhandledRejection: (reason: unknown) => handler?.(reason) ?? false,
+    resetUnhandledRejection: () => {
+      handler = undefined;
+      uncaughtHandler = undefined;
+    },
+  };
+});
 
 const { createTelegramBotErrors } = vi.hoisted(() => ({
   createTelegramBotErrors: [] as unknown[],
@@ -314,6 +328,7 @@ vi.mock("getkova/plugin-sdk/runtime-env", async () => {
   );
   return {
     ...actual,
+    registerUncaughtExceptionHandler: registerUncaughtExceptionHandlerMock,
     computeBackoff,
     sleepWithAbort,
     registerUnhandledRejectionHandler: registerUnhandledRejectionHandlerMock,
@@ -365,6 +380,7 @@ describe("monitorTelegramProvider (grammY)", () => {
       close: vi.fn(async () => undefined),
     }));
     registerUnhandledRejectionHandlerMock.mockClear();
+    registerUncaughtExceptionHandlerMock.mockClear();
     resetUnhandledRejection();
     createTelegramBotErrors.length = 0;
     createdBotStops.length = 0;
@@ -461,16 +477,16 @@ describe("monitorTelegramProvider (grammY)", () => {
     expect(order).toEqual(["deleteWebhook", "run"]);
   });
 
-  it("retries recoverable deleteWebhook failures before polling", async () => {
+  it("continues polling after recoverable deleteWebhook failures", async () => {
     const abort = new AbortController();
     const cleanupError = makeRecoverableFetchError();
     api.deleteWebhook.mockReset();
-    api.deleteWebhook.mockRejectedValueOnce(cleanupError).mockResolvedValueOnce(true);
+    api.deleteWebhook.mockRejectedValueOnce(cleanupError);
     mockRunOnceAndAbort(abort);
 
     await monitorTelegramProvider({ token: "tok", abortSignal: abort.signal });
 
-    expect(api.deleteWebhook).toHaveBeenCalledTimes(2);
+    expect(api.deleteWebhook).toHaveBeenCalledTimes(1);
     expectRecoverableRetryState(1);
   });
 
