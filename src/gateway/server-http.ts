@@ -7,12 +7,7 @@ import {
 import { createServer as createHttpsServer } from "node:https";
 import type { TlsOptions } from "node:tls";
 import type { WebSocketServer } from "ws";
-import {
-  A2UI_PATH,
-  handleA2uiHttpRequest,
-  isCanvasRoutePath,
-  isCanvasWsPath,
-} from "../canvas-host/a2ui.js";
+import { A2UI_PATH, isCanvasRoutePath, isCanvasWsPath } from "../canvas-host/a2ui-shared.js";
 import type { CanvasHostHandler } from "../canvas-host/server.js";
 import { resolveBundledChannelGatewayAuthBypassPaths } from "../channels/plugins/gateway-auth-bypass.js";
 import { getRuntimeConfig } from "../config/config.js";
@@ -73,6 +68,7 @@ let toolsInvokeHttpModulePromise: Promise<typeof import("./tools-invoke-http.js"
 let voiceKovaRealtimeUpgradeModulePromise:
   | Promise<typeof import("./voicekova-realtime/upgrade.js")>
   | undefined;
+let canvasA2uiModulePromise: Promise<typeof import("../canvas-host/a2ui.js")> | undefined;
 let canvasAuthModulePromise: Promise<typeof import("./server/http-auth.js")> | undefined;
 let httpAuthUtilsModulePromise: Promise<typeof import("./http-auth-utils.js")> | undefined;
 let pluginRouteRuntimeScopesModulePromise:
@@ -132,6 +128,11 @@ function getToolsInvokeHttpModule() {
 function getVoiceKovaRealtimeUpgradeModule() {
   voiceKovaRealtimeUpgradeModulePromise ??= import("./voicekova-realtime/upgrade.js");
   return voiceKovaRealtimeUpgradeModulePromise;
+}
+
+function getCanvasA2uiModule() {
+  canvasA2uiModulePromise ??= import("../canvas-host/a2ui.js");
+  return canvasA2uiModulePromise;
 }
 
 function getCanvasAuthModule() {
@@ -689,7 +690,13 @@ export function createGatewayHttpServer(opts: {
         });
         requestStages.push({
           name: "a2ui",
-          run: () => (isA2uiPath(scopedRequestPath) ? handleA2uiHttpRequest(req, res) : false),
+          run: async () => {
+            if (!isA2uiPath(scopedRequestPath)) {
+              return false;
+            }
+            const { handleA2uiHttpRequest } = await getCanvasA2uiModule();
+            return handleA2uiHttpRequest(req, res);
+          },
         });
         requestStages.push({
           name: "canvas-http",
