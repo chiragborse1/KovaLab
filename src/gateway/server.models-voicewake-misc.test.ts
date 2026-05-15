@@ -152,7 +152,7 @@ describe("gateway server models + voicewake", () => {
   const seedPiCatalog = async () => {
     piSdkMock.enabled = true;
     piSdkMock.models = buildPiCatalogFixture();
-    await resetGatewayModelCatalogCacheForTest();
+    resetGatewayModelCatalogCacheForTest();
   };
 
   const withModelsConfig = async <T>(config: unknown, run: () => Promise<T>): Promise<T> => {
