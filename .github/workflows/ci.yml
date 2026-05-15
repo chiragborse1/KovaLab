@@ -1,32 +1,32 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  KOVA_LOCAL_CHECK: "0"
+
 jobs:
-  build:
+  resolve-changed-base:
+    name: Resolve changed base
     runs-on: ubuntu-latest
-    env:
-      KOVA_LOCAL_CHECK: "0"
+    outputs:
+      base: ${{ steps.changed-base.outputs.base }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10.33.0
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Resolve changed base
         id: changed-base
@@ -50,16 +50,98 @@ jobs:
           echo "base=${base}" >> "$GITHUB_OUTPUT"
           echo "Using changed base: ${base}"
 
+  check-changed-lanes:
+    name: Check changed lanes
+    runs-on: ubuntu-latest
+    needs: resolve-changed-base
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Check changed lanes
-        run: pnpm check:changed -- --base "${{ steps.changed-base.outputs.base }}" --head HEAD
+        run: pnpm check:changed -- --base "${{ needs.resolve-changed-base.outputs.base }}" --head HEAD
+
+  test-changed-targets:
+    name: Test changed targets
+    runs-on: ubuntu-latest
+    needs: resolve-changed-base
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Test changed targets
         env:
           KOVA_VITEST_MAX_WORKERS: "1"
-        run: node scripts/test-projects.mjs --changed "${{ steps.changed-base.outputs.base }}"
+        run: node scripts/test-projects.mjs --changed "${{ needs.resolve-changed-base.outputs.base }}"
+
+  build-runtime:
+    name: Build runtime
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build runtime
         run: pnpm build
+
+  build-control-ui:
+    name: Build Control UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build Control UI
         run: pnpm ui:build
