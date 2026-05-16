@@ -629,12 +629,27 @@ describe("monitorTelegramProvider (grammY)", () => {
     const abort = new AbortController();
     const firstCycle = mockRunOnceWithStalledPollingRunner();
     const secondCycle = mockRunOnceWithStalledPollingRunner();
+    const runtime = {
+      log: vi.fn(),
+      error: vi.fn(),
+      exit: vi.fn(),
+    };
 
-    const monitor = monitorTelegramProvider({ token: "tok", abortSignal: abort.signal });
+    const monitor = monitorTelegramProvider({
+      token: "tok",
+      abortSignal: abort.signal,
+      runtime,
+    });
     await firstCycle.waitForRunStart();
 
     expect(emitUnhandledRejection(await makeTaggedPollingFetchError())).toBe(true);
     expect(firstCycle.stop).toHaveBeenCalledTimes(1);
+    expect(runtime.log).toHaveBeenCalledWith(
+      expect.stringContaining("Restarting polling after unhandled network error"),
+    );
+    expect(runtime.error).not.toHaveBeenCalledWith(
+      expect.stringContaining("Restarting polling after unhandled network error"),
+    );
     // Unhandled polling rejections restart via TelegramPollingSession backoff,
     // so the second runner cycle is not immediate.
     await secondCycle.waitForRunStart();

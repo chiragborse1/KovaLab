@@ -4,6 +4,7 @@ import type { TelegramNetworkConfig } from "getkova/plugin-sdk/config-runtime";
 import {
   computeBackoff,
   formatDurationPrecise,
+  shouldLogVerbose,
   sleepWithAbort,
 } from "getkova/plugin-sdk/runtime-env";
 import { formatErrorMessage } from "getkova/plugin-sdk/ssrf-runtime";
@@ -45,6 +46,10 @@ const TELEGRAM_POLLING_CLIENT_TIMEOUT_FLOOR_SECONDS = Math.ceil(
 );
 
 type TelegramBot = ReturnType<typeof createTelegramBot>;
+
+function shouldLogIngressDiagnostics(): boolean {
+  return shouldLogVerbose() || process.env.KOVA_DEBUG_TELEGRAM_INGRESS === "1";
+}
 
 const waitForGracefulStop = async (stop: () => Promise<void>) => {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -339,7 +344,9 @@ export class TelegramPollingSession {
       network: ingress.network,
       proxy: ingress.proxy,
     });
-    this.opts.log(`[telegram][diag] isolated polling ingress started spool=${spoolDir}`);
+    if (shouldLogIngressDiagnostics()) {
+      this.opts.log(`[telegram][diag] isolated polling ingress started spool=${spoolDir}`);
+    }
     const pollState: {
       startedAt: number | null;
       offset: number | null;
@@ -410,9 +417,11 @@ export class TelegramPollingSession {
         return "exit";
       }
       const errorText = pollState.error ? ` error=${pollState.error}` : "";
-      this.opts.log(
-        `[telegram][diag] isolated polling ingress stopped outcome=${pollState.outcome} startedAt=${pollState.startedAt ?? "n/a"} offset=${pollState.offset ?? "n/a"}${errorText}`,
-      );
+      if (shouldLogIngressDiagnostics()) {
+        this.opts.log(
+          `[telegram][diag] isolated polling ingress stopped outcome=${pollState.outcome} startedAt=${pollState.startedAt ?? "n/a"} offset=${pollState.offset ?? "n/a"}${errorText}`,
+        );
+      }
       const shouldRestart = await this.#waitBeforeRestart(
         (delay) => `Telegram isolated polling ingress stopped; restarting in ${delay}.`,
       );

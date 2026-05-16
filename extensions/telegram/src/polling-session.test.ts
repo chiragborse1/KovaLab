@@ -62,6 +62,7 @@ vi.mock("./sequential-key.js", () => ({
 vi.mock("getkova/plugin-sdk/runtime-env", () => ({
   computeBackoff: computeBackoffMock,
   formatDurationPrecise: vi.fn((ms: number) => `${ms}ms`),
+  shouldLogVerbose: vi.fn(() => false),
   sleepWithAbort: sleepWithAbortMock,
 }));
 
@@ -716,6 +717,7 @@ describe("TelegramPollingSession", () => {
         abort.abort();
       },
     }));
+    const log = vi.fn();
     try {
       await writeTelegramSpooledUpdate({
         spoolDir,
@@ -741,7 +743,7 @@ describe("TelegramPollingSession", () => {
         runnerOptions: {},
         getLastUpdateId: () => null,
         persistUpdateId: async () => undefined,
-        log: () => undefined,
+        log,
         telegramTransport: makeTelegramTransport(),
         isolatedIngress: {
           enabled: true,
@@ -771,6 +773,9 @@ describe("TelegramPollingSession", () => {
         expect.not.objectContaining({ updateOffset: expect.anything() }),
       );
       expect(createTelegramBotMock.mock.calls[0]?.[0]?.minimumClientTimeoutSeconds).toBe(45);
+      expect(log).not.toHaveBeenCalledWith(
+        expect.stringContaining("isolated polling ingress started"),
+      );
       expect(unsubscribe).toHaveBeenCalledTimes(1);
       expect(workerStop).toHaveBeenCalled();
       expect(stop).toHaveBeenCalled();
