@@ -18,6 +18,7 @@ const SYNTHETIC_TRANSCRIPT_REPAIR_RESULT =
 const STARTUP_CHAT_HISTORY_RETRY_TIMEOUT_MS = 60_000;
 const STARTUP_CHAT_HISTORY_DEFAULT_RETRY_MS = 500;
 const STARTUP_CHAT_HISTORY_MAX_RETRY_MS = 5_000;
+const CHAT_STREAM_RENDER_THROTTLE_MS = 80;
 const chatHistoryRequestVersions = new WeakMap<object, number>();
 const handledTerminalChatEvents = new WeakMap<object, Set<string>>();
 const MAX_HANDLED_TERMINAL_CHAT_EVENTS = 200;
@@ -385,6 +386,9 @@ export type ChatState = {
   chatRunId: string | null;
   chatStream: string | null;
   chatStreamStartedAt: number | null;
+  chatStreamRenderPending?: string | null;
+  chatStreamRenderTimer?: ReturnType<typeof setTimeout> | null;
+  chatStreamLastRenderAt?: number | null;
   lastError: string | null;
   resetChatInputHistoryNavigation?: () => void;
 };
@@ -407,6 +411,53 @@ function maybeResetToolStream(state: ChatState) {
   ) {
     resetToolStream(toolHost as Parameters<typeof resetToolStream>[0]);
   }
+}
+
+function clearChatStreamRenderTimer(state: ChatState) {
+  if (state.chatStreamRenderTimer == null) {
+    state.chatStreamRenderTimer = null;
+    return;
+  }
+  clearTimeout(state.chatStreamRenderTimer);
+  state.chatStreamRenderTimer = null;
+}
+
+function flushPendingChatStreamRender(state: ChatState) {
+  clearChatStreamRenderTimer(state);
+  const next = state.chatStreamRenderPending;
+  state.chatStreamRenderPending = null;
+  if (typeof next !== "string") {
+    return;
+  }
+  if (state.chatStream !== next) {
+    state.chatStream = next;
+  }
+  state.chatStreamLastRenderAt = Date.now();
+}
+
+export function resetChatStreamRenderBuffer(state: ChatState) {
+  clearChatStreamRenderTimer(state);
+  state.chatStreamRenderPending = null;
+  state.chatStreamLastRenderAt = null;
+}
+
+function scheduleChatStreamRender(state: ChatState, next: string) {
+  state.chatStreamRenderPending = next;
+  const lastRenderedAt = state.chatStreamLastRenderAt;
+  const elapsed =
+    typeof lastRenderedAt === "number" ? Date.now() - lastRenderedAt : Number.POSITIVE_INFINITY;
+  if (elapsed >= CHAT_STREAM_RENDER_THROTTLE_MS) {
+    flushPendingChatStreamRender(state);
+    return;
+  }
+  if (state.chatStreamRenderTimer != null) {
+    return;
+  }
+  const delay = Math.max(0, CHAT_STREAM_RENDER_THROTTLE_MS - elapsed);
+  state.chatStreamRenderTimer = setTimeout(() => {
+    state.chatStreamRenderTimer = null;
+    flushPendingChatStreamRender(state);
+  }, delay);
 }
 
 export async function loadChatHistory(state: ChatState) {
@@ -459,6 +510,7 @@ export async function loadChatHistory(state: ChatState) {
     // Clear all streaming state — history includes tool results and text
     // inline, so keeping streaming artifacts would cause duplicates.
     maybeResetToolStream(state);
+    resetChatStreamRenderBuffer(state);
     state.chatStream = null;
     state.chatStreamStartedAt = null;
   } catch (err) {
@@ -643,6 +695,7 @@ export async function sendChatMessage(
   state.lastError = null;
   const runId = generateUUID();
   state.chatRunId = runId;
+  resetChatStreamRenderBuffer(state);
   state.chatStream = "";
   state.chatStreamStartedAt = now;
 
@@ -652,6 +705,7 @@ export async function sendChatMessage(
   } catch (err) {
     const error = formatConnectError(err);
     state.chatRunId = null;
+    resetChatStreamRenderBuffer(state);
     state.chatStream = null;
     state.chatStreamStartedAt = null;
     state.lastError = error;
@@ -756,9 +810,10 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   if (payload.state === "delta") {
     const next = extractText(payload.message);
     if (typeof next === "string" && !isSilentReplyStream(next)) {
-      state.chatStream = next;
+      scheduleChatStreamRender(state, next);
     }
   } else if (payload.state === "final") {
+    flushPendingChatStreamRender(state);
     rememberHandledTerminalChatEvent(state, payload);
     const finalMessage = normalizeFinalAssistantMessage(payload.message);
     if (finalMessage && !isAssistantSilentReply(finalMessage)) {
@@ -773,10 +828,12 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
         },
       ];
     }
+    resetChatStreamRenderBuffer(state);
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "aborted") {
+    flushPendingChatStreamRender(state);
     rememberHandledTerminalChatEvent(state, payload);
     const normalizedMessage = normalizeAbortedAssistantMessage(payload.message);
     if (normalizedMessage && !isAssistantSilentReply(normalizedMessage)) {
@@ -794,12 +851,14 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
         ];
       }
     }
+    resetChatStreamRenderBuffer(state);
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
   } else if (payload.state === "error") {
     rememberHandledTerminalChatEvent(state, payload);
     const error = payload.errorMessage?.trim() || "chat error";
+    resetChatStreamRenderBuffer(state);
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;

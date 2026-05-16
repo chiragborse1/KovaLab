@@ -28,6 +28,7 @@ import {
 import {
   loadChatHistory,
   handleChatEvent,
+  resetChatStreamRenderBuffer,
   type ChatEventPayload,
   type ChatState,
 } from "./controllers/chat.ts";
@@ -454,6 +455,7 @@ export function connectGateway(host: GatewayHost, options?: ConnectGatewayOption
       host.chatRunId = null;
       (host as unknown as { chatStream: string | null }).chatStream = null;
       (host as unknown as { chatStreamStartedAt: number | null }).chatStreamStartedAt = null;
+      resetChatStreamRenderBuffer(host as unknown as ChatState);
       (host as GatewayHostWithSideResults).chatSideResultTerminalRuns?.clear();
       resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
       if (shutdownHost.resumeChatQueueAfterReconnect) {
@@ -481,6 +483,7 @@ export function connectGateway(host: GatewayHost, options?: ConnectGatewayOption
         return;
       }
       host.connected = false;
+      resetChatStreamRenderBuffer(host as unknown as ChatState);
       // Code 1012 = Service Restart (expected during config saves, don't show as error)
       host.lastErrorCode =
         resolveGatewayErrorDetailCode(error) ??

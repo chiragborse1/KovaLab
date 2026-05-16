@@ -163,6 +163,101 @@ describe("handleChatEvent", () => {
     expect(state.chatStream).toBe("Alpha");
   });
 
+  it("batches rapid delta snapshots before updating visible stream text", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    try {
+      const state = createState({
+        sessionKey: "main",
+        chatRunId: "run-1",
+        chatStream: "",
+      });
+
+      expect(
+        handleChatEvent(state, {
+          runId: "run-1",
+          sessionKey: "main",
+          state: "delta",
+          message: { role: "assistant", content: [{ type: "text", text: "A" }] },
+        }),
+      ).toBe("delta");
+      expect(state.chatStream).toBe("A");
+      expect(state.chatStreamRenderTimer).toBeNull();
+
+      vi.advanceTimersByTime(20);
+      expect(
+        handleChatEvent(state, {
+          runId: "run-1",
+          sessionKey: "main",
+          state: "delta",
+          message: { role: "assistant", content: [{ type: "text", text: "AB" }] },
+        }),
+      ).toBe("delta");
+      expect(state.chatStream).toBe("A");
+
+      vi.advanceTimersByTime(20);
+      expect(
+        handleChatEvent(state, {
+          runId: "run-1",
+          sessionKey: "main",
+          state: "delta",
+          message: { role: "assistant", content: [{ type: "text", text: "ABC" }] },
+        }),
+      ).toBe("delta");
+      expect(state.chatStream).toBe("A");
+
+      vi.advanceTimersByTime(39);
+      expect(state.chatStream).toBe("A");
+      vi.advanceTimersByTime(1);
+      expect(state.chatStream).toBe("ABC");
+      expect(state.chatStreamRenderTimer).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("flushes the latest batched stream text before finalizing without a message", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    try {
+      const state = createState({
+        sessionKey: "main",
+        chatRunId: "run-1",
+        chatStream: "",
+      });
+
+      handleChatEvent(state, {
+        runId: "run-1",
+        sessionKey: "main",
+        state: "delta",
+        message: { role: "assistant", content: [{ type: "text", text: "First" }] },
+      });
+      vi.advanceTimersByTime(20);
+      handleChatEvent(state, {
+        runId: "run-1",
+        sessionKey: "main",
+        state: "delta",
+        message: { role: "assistant", content: [{ type: "text", text: "Latest" }] },
+      });
+
+      expect(state.chatStream).toBe("First");
+      expect(handleChatEvent(state, { runId: "run-1", sessionKey: "main", state: "final" })).toBe(
+        "final",
+      );
+      expect(state.chatStream).toBeNull();
+      expect(state.chatStreamRenderTimer).toBeNull();
+      expect(state.chatMessages.at(-1)).toMatchObject({
+        role: "assistant",
+        content: [{ type: "text", text: "Latest" }],
+      });
+
+      vi.runOnlyPendingTimers();
+      expect(state.chatStream).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("returns final for another run when payload has no message", () => {
     const state = createActiveStreamingState();
     const payload: ChatEventPayload = {
