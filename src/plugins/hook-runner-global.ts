@@ -11,9 +11,12 @@ import type { GlobalHookRunnerRegistry } from "./hook-registry.types.js";
 import type { PluginHookGatewayContext, PluginHookGatewayStopEvent } from "./hook-types.js";
 import { createHookRunner, type HookRunner } from "./hooks.js";
 
+export type GlobalHookRunnerRuntimeSubagentMode = "default" | "explicit" | "gateway-bindable";
+
 type HookRunnerGlobalState = {
   hookRunner: HookRunner | null;
   registry: GlobalHookRunnerRegistry | null;
+  runtimeSubagentMode: GlobalHookRunnerRuntimeSubagentMode | null;
 };
 
 const hookRunnerGlobalStateKey = Symbol.for("kova.plugins.hook-runner-global-state");
@@ -21,6 +24,7 @@ const getState = () =>
   resolveGlobalSingleton<HookRunnerGlobalState>(hookRunnerGlobalStateKey, () => ({
     hookRunner: null,
     registry: null,
+    runtimeSubagentMode: null,
   }));
 
 const getLog = () => createSubsystemLogger("plugins");
@@ -29,10 +33,14 @@ const getLog = () => createSubsystemLogger("plugins");
  * Initialize the global hook runner with a plugin registry.
  * Called once when plugins are loaded during gateway startup.
  */
-export function initializeGlobalHookRunner(registry: GlobalHookRunnerRegistry): void {
+export function initializeGlobalHookRunner(
+  registry: GlobalHookRunnerRegistry,
+  options?: { runtimeSubagentMode?: GlobalHookRunnerRuntimeSubagentMode },
+): void {
   const state = getState();
   const log = getLog();
   state.registry = registry;
+  state.runtimeSubagentMode = options?.runtimeSubagentMode ?? "default";
   state.hookRunner = createHookRunner(registry, {
     logger: {
       debug: (msg) => log.debug(msg),
@@ -65,6 +73,10 @@ export function getGlobalHookRunner(): HookRunner | null {
  */
 export function getGlobalPluginRegistry(): GlobalHookRunnerRegistry | null {
   return getState().registry;
+}
+
+export function getGlobalHookRunnerRuntimeSubagentMode(): GlobalHookRunnerRuntimeSubagentMode | null {
+  return getState().runtimeSubagentMode;
 }
 
 /**
@@ -102,4 +114,5 @@ export function resetGlobalHookRunner(): void {
   const state = getState();
   state.hookRunner = null;
   state.registry = null;
+  state.runtimeSubagentMode = null;
 }

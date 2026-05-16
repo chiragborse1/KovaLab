@@ -4217,6 +4217,13 @@ module.exports = { id: "throws-after-import", register() {} };`,
         api.on("message_sent", () => undefined);
       } };`,
     });
+    const secondDefaultPlugin = writePlugin({
+      id: "default-hook-surface-two",
+      filename: "default-hook-surface-two.cjs",
+      body: `module.exports = { id: "default-hook-surface-two", register(api) {
+        api.on("message_received", () => undefined);
+      } };`,
+    });
 
     const gatewayRegistry = loadKovaPlugins({
       workspaceDir: gatewayPlugin.dir,
@@ -4259,6 +4266,27 @@ module.exports = { id: "throws-after-import", register() {} };`,
     expect(getGlobalPluginRegistry()).toBe(gatewayRegistry);
     expect(getGlobalHookRunner()?.hasHooks("subagent_ended")).toBe(true);
     expect(getGlobalHookRunner()?.hasHooks("message_sent")).toBe(false);
+
+    const secondDefaultRegistry = loadKovaPlugins({
+      workspaceDir: secondDefaultPlugin.dir,
+      config: {
+        plugins: {
+          load: { paths: [secondDefaultPlugin.file] },
+          allow: ["default-hook-surface-two"],
+          entries: {
+            "default-hook-surface-two": {
+              enabled: true,
+              hooks: { allowConversationAccess: true },
+            },
+          },
+        },
+      },
+    });
+
+    expect(getActivePluginRegistry()).toBe(secondDefaultRegistry);
+    expect(getGlobalPluginRegistry()).toBe(gatewayRegistry);
+    expect(getGlobalHookRunner()?.hasHooks("subagent_ended")).toBe(true);
+    expect(getGlobalHookRunner()?.hasHooks("message_received")).toBe(false);
   });
 
   it.each([

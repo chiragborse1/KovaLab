@@ -66,7 +66,11 @@ import {
 } from "./config-state.js";
 import { discoverKovaPlugins } from "./discovery.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
-import { getGlobalHookRunner, initializeGlobalHookRunner } from "./hook-runner-global.js";
+import {
+  getGlobalHookRunner,
+  getGlobalHookRunnerRuntimeSubagentMode,
+  initializeGlobalHookRunner,
+} from "./hook-runner-global.js";
 import { toSafeImportPath } from "./import-specifier.js";
 import { loadInstalledPluginIndexInstallRecordsSync } from "./installed-plugin-index-records.js";
 import {
@@ -2188,11 +2192,11 @@ function activatePluginRegistry(
 ): void {
   const preserveGatewayHookRunner =
     runtimeSubagentMode === "default" &&
-    getActivePluginRuntimeSubagentMode() === "gateway-bindable" &&
+    getGlobalHookRunnerRuntimeSubagentMode() === "gateway-bindable" &&
     getGlobalHookRunner() !== null;
   setActivePluginRegistry(registry, cacheKey, runtimeSubagentMode, workspaceDir);
   if (!preserveGatewayHookRunner) {
-    initializeGlobalHookRunner(registry);
+    initializeGlobalHookRunner(registry, { runtimeSubagentMode });
   }
 }
 
