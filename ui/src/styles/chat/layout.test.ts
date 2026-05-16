@@ -65,10 +65,14 @@ describe("chat layout styles", () => {
     expect(css).toContain(".chat-controls__thinking-select .chat-select__menu");
   });
 
-  it("keeps composer controls labeled on desktop without shrinking mobile taps", () => {
+  it("keeps composer controls icon-only while preserving accessible labels", () => {
     const css = readLayoutCss();
 
     expect(css).toContain(".agent-chat__control-label");
+    expect(css).toContain("position: absolute;");
+    expect(css).toContain("clip: rect(0 0 0 0);");
+    expect(css).toContain(".agent-chat__input-btn svg");
+    expect(css).toContain("flex-shrink: 0;");
     expect(css).toContain("min-width: 36px;");
     expect(css).toContain("height: 36px;");
     expect(css).toContain("@media (max-width: 860px)");

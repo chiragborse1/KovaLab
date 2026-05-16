@@ -612,6 +612,8 @@
 
 .agent-chat__input-btn svg,
 .agent-chat__toolbar .btn--ghost svg {
+  display: block;
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
   fill: none;
@@ -622,13 +624,15 @@
 }
 
 .agent-chat__control-label {
-  min-width: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
-  font-size: 0.76rem;
-  font-weight: 500;
-  line-height: 1;
+  border: 0;
 }
 
 .agent-chat__input-btn:hover:not(:disabled),
@@ -706,6 +710,8 @@
 }
 
 .chat-send-btn svg {
+  display: block;
+  flex-shrink: 0;
   width: 15px;
   height: 15px;
   stroke: currentColor;
