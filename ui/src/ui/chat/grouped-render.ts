@@ -90,6 +90,13 @@ function renderChatTimestamp(timestamp: number) {
   `;
 }
 
+function renderChatMarkdownBody(markdown: string, isStreaming: boolean) {
+  if (isStreaming) {
+    return markdown;
+  }
+  return unsafeHTML(toSanitizedMarkdownHtml(markdown));
+}
+
 export function resetAssistantAttachmentAvailabilityCacheForTest() {
   assistantAttachmentAvailabilityCache.clear();
   for (const blobUrl of managedImageBlobUrlResolvedCache.values()) {
@@ -1476,7 +1483,7 @@ function renderGroupedMessage(
                           </details>`
                         : markdown
                           ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">
-                              ${unsafeHTML(toSanitizedMarkdownHtml(markdown))}
+                              ${renderChatMarkdownBody(markdown, opts.isStreaming)}
                             </div>`
                           : nothing}
                       ${hasToolCards
@@ -1539,7 +1546,7 @@ function renderGroupedMessage(
                 </details>`
               : markdown
                 ? html`<div class="chat-text" dir="${detectTextDirection(markdown)}">
-                    ${unsafeHTML(toSanitizedMarkdownHtml(markdown))}
+                    ${renderChatMarkdownBody(markdown, opts.isStreaming)}
                   </div>`
                 : nothing}
             ${hasToolCards

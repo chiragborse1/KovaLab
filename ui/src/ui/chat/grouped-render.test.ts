@@ -12,6 +12,7 @@ import {
 import { normalizeMessage } from "./message-normalizer.ts";
 
 const localStorageValues = vi.hoisted(() => new Map<string, string>());
+const toSanitizedMarkdownHtmlMock = vi.hoisted(() => vi.fn((value: string) => value));
 
 vi.mock("../../local-storage.ts", () => ({
   getSafeLocalStorage: () => ({
@@ -22,7 +23,7 @@ vi.mock("../../local-storage.ts", () => ({
 }));
 
 vi.mock("../markdown.ts", () => ({
-  toSanitizedMarkdownHtml: (value: string) => value,
+  toSanitizedMarkdownHtml: toSanitizedMarkdownHtmlMock,
 }));
 
 vi.mock("../icons.ts", () => ({
@@ -257,6 +258,7 @@ async function flushAssistantAttachmentAvailabilityChecks() {
 }
 
 afterEach(() => {
+  toSanitizedMarkdownHtmlMock.mockClear();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -406,6 +408,15 @@ describe("grouped chat rendering", () => {
 
     const streamingTime = container.querySelector<HTMLTimeElement>(".chat-group-timestamp");
     expect(streamingTime?.textContent?.trim()).toBe(display.label);
+  });
+
+  it("renders live stream text without reparsing markdown", () => {
+    const container = document.createElement("div");
+
+    render(renderStreamingGroup("**Working**\n\n```ts\nconst value = 1;\n```", 1000), container);
+
+    expect(toSanitizedMarkdownHtmlMock).not.toHaveBeenCalled();
+    expect(container.querySelector(".chat-text")?.textContent).toContain("**Working**");
   });
 
   it("renders configured local user names", () => {

@@ -1,4 +1,5 @@
 import { html, nothing, type TemplateResult } from "lit";
+import { guard } from "lit/directives/guard.js";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { CompactionStatus, FallbackStatus } from "../app-tool-stream.ts";
@@ -199,6 +200,65 @@ function createChatEphemeralState(): ChatEphemeralState {
 }
 
 const vs = createChatEphemeralState();
+let chatThreadRenderEpoch = 0;
+
+type StableChatItemsCache = {
+  sessionKey: string;
+  messages: unknown[];
+  toolMessages: unknown[];
+  streamSegments: Array<{ text: string; ts: number }>;
+  showToolCalls: boolean;
+  searchOpen: boolean;
+  searchQuery: string;
+  items: ReturnType<typeof buildChatItems>;
+};
+
+let stableChatItemsCache: StableChatItemsCache | null = null;
+
+function invalidateChatThreadRender() {
+  chatThreadRenderEpoch += 1;
+}
+
+function getStableChatItems(props: ChatProps): ReturnType<typeof buildChatItems> {
+  const searchOpen = vs.searchOpen;
+  const searchQuery = vs.searchQuery;
+  const cached = stableChatItemsCache;
+  if (
+    cached &&
+    cached.sessionKey === props.sessionKey &&
+    cached.messages === props.messages &&
+    cached.toolMessages === props.toolMessages &&
+    cached.streamSegments === props.streamSegments &&
+    cached.showToolCalls === props.showToolCalls &&
+    cached.searchOpen === searchOpen &&
+    cached.searchQuery === searchQuery
+  ) {
+    return cached.items;
+  }
+
+  const items = buildChatItems({
+    sessionKey: props.sessionKey,
+    messages: props.messages,
+    toolMessages: props.toolMessages,
+    streamSegments: props.streamSegments,
+    stream: null,
+    streamStartedAt: null,
+    showToolCalls: props.showToolCalls,
+    searchOpen,
+    searchQuery,
+  });
+  stableChatItemsCache = {
+    sessionKey: props.sessionKey,
+    messages: props.messages,
+    toolMessages: props.toolMessages,
+    streamSegments: props.streamSegments,
+    showToolCalls: props.showToolCalls,
+    searchOpen,
+    searchQuery,
+    items,
+  };
+  return items;
+}
 
 /**
  * Reset chat view ephemeral state when navigating away.
@@ -209,6 +269,8 @@ export function resetChatViewState() {
     stopStt();
   }
   Object.assign(vs, createChatEphemeralState());
+  stableChatItemsCache = null;
+  invalidateChatThreadRender();
 }
 
 export const cleanupChatModuleState = resetChatViewState;
@@ -907,25 +969,17 @@ export function renderChat(props: ChatProps) {
     );
   };
 
-  const chatItems = buildChatItems({
-    sessionKey: props.sessionKey,
-    messages: props.messages,
-    toolMessages: props.toolMessages,
-    streamSegments: props.streamSegments,
-    stream: props.stream,
-    streamStartedAt: props.streamStartedAt,
-    showToolCalls: props.showToolCalls,
-    searchOpen: vs.searchOpen,
-    searchQuery: vs.searchQuery,
-  });
+  const chatItems = getStableChatItems(props);
   syncToolCardExpansionState(props.sessionKey, chatItems, Boolean(props.autoExpandToolCalls));
   const expandedToolCards = getExpandedToolCards(props.sessionKey);
   const toggleToolCardExpanded = (toolCardId: string) => {
     expandedToolCards.set(toolCardId, !expandedToolCards.get(toolCardId));
+    invalidateChatThreadRender();
     requestUpdate();
   };
-  const isEmpty = chatItems.length === 0 && !props.loading;
-  const showLoadingSkeleton = props.loading && chatItems.length === 0;
+  const hasLiveStream = props.stream !== null;
+  const isEmpty = chatItems.length === 0 && !props.loading && !hasLiveStream;
+  const showLoadingSkeleton = props.loading && chatItems.length === 0 && !hasLiveStream;
 
   const thread = html`
     <div
@@ -979,75 +1033,118 @@ export function renderChat(props: ChatProps) {
         ${isEmpty && vs.searchOpen
           ? html` <div class="agent-chat__empty">No matching messages</div> `
           : nothing}
-        ${repeat(
-          chatItems,
-          (item) => item.key,
-          (item) => {
-            if (item.kind === "divider") {
-              return html`
-                <div class="chat-divider" role="separator" data-ts=${String(item.timestamp)}>
-                  <span class="chat-divider__line"></span>
-                  <span class="chat-divider__label">${item.label}</span>
-                  <span class="chat-divider__line"></span>
-                </div>
-              `;
-            }
-            if (item.kind === "reading-indicator") {
-              return renderReadingIndicatorGroup(
-                assistantIdentity,
-                props.basePath,
-                props.assistantAttachmentAuthToken ?? null,
-              );
-            }
-            if (item.kind === "stream") {
-              return renderStreamingGroup(
-                item.text,
-                item.startedAt,
+        ${guard(
+          [
+            chatItems,
+            showReasoning,
+            props.showToolCalls,
+            props.autoExpandToolCalls,
+            props.assistantName,
+            assistantIdentity.avatar,
+            props.userName,
+            props.userAvatar,
+            props.basePath,
+            props.localMediaPreviewRoots,
+            props.assistantAttachmentAuthToken,
+            props.canvasHostUrl,
+            props.embedSandboxMode,
+            props.allowExternalEmbedUrls,
+            activeSession?.contextTokens,
+            props.sessions?.defaults?.contextTokens,
+            chatThreadRenderEpoch,
+          ],
+          () =>
+            repeat(
+              chatItems,
+              (item) => item.key,
+              (item) => {
+                if (item.kind === "divider") {
+                  return html`
+                    <div class="chat-divider" role="separator" data-ts=${String(item.timestamp)}>
+                      <span class="chat-divider__line"></span>
+                      <span class="chat-divider__label">${item.label}</span>
+                      <span class="chat-divider__line"></span>
+                    </div>
+                  `;
+                }
+                if (item.kind === "reading-indicator") {
+                  return renderReadingIndicatorGroup(
+                    assistantIdentity,
+                    props.basePath,
+                    props.assistantAttachmentAuthToken ?? null,
+                  );
+                }
+                if (item.kind === "stream") {
+                  return renderStreamingGroup(
+                    item.text,
+                    item.startedAt,
+                    props.onOpenSidebar,
+                    assistantIdentity,
+                    props.basePath,
+                    props.assistantAttachmentAuthToken ?? null,
+                  );
+                }
+                if (item.kind === "group") {
+                  if (deleted.has(item.key)) {
+                    return nothing;
+                  }
+                  return renderMessageGroup(item, {
+                    onOpenSidebar: props.onOpenSidebar,
+                    showReasoning,
+                    showToolCalls: props.showToolCalls,
+                    autoExpandToolCalls: Boolean(props.autoExpandToolCalls),
+                    isToolMessageExpanded: (messageId: string) =>
+                      expandedToolCards.get(messageId) ?? false,
+                    onToggleToolMessageExpanded: (messageId: string) => {
+                      expandedToolCards.set(messageId, !expandedToolCards.get(messageId));
+                      invalidateChatThreadRender();
+                      requestUpdate();
+                    },
+                    isToolExpanded: (toolCardId: string) =>
+                      expandedToolCards.get(toolCardId) ?? false,
+                    onToggleToolExpanded: toggleToolCardExpanded,
+                    onRequestUpdate: requestUpdate,
+                    assistantName: props.assistantName,
+                    assistantAvatar: assistantIdentity.avatar,
+                    userName: props.userName ?? null,
+                    userAvatar: props.userAvatar ?? null,
+                    basePath: props.basePath,
+                    localMediaPreviewRoots: props.localMediaPreviewRoots ?? [],
+                    assistantAttachmentAuthToken: props.assistantAttachmentAuthToken ?? null,
+                    canvasHostUrl: props.canvasHostUrl,
+                    embedSandboxMode: props.embedSandboxMode ?? "scripts",
+                    allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
+                    contextWindow:
+                      activeSession?.contextTokens ??
+                      props.sessions?.defaults?.contextTokens ??
+                      null,
+                    onDelete: () => {
+                      deleted.delete(item.key);
+                      invalidateChatThreadRender();
+                      requestUpdate();
+                    },
+                  });
+                }
+                return nothing;
+              },
+            ),
+        )}
+        ${props.stream !== null
+          ? props.stream.trim().length > 0
+            ? renderStreamingGroup(
+                props.stream,
+                props.streamStartedAt ?? Date.now(),
                 props.onOpenSidebar,
                 assistantIdentity,
                 props.basePath,
                 props.assistantAttachmentAuthToken ?? null,
-              );
-            }
-            if (item.kind === "group") {
-              if (deleted.has(item.key)) {
-                return nothing;
-              }
-              return renderMessageGroup(item, {
-                onOpenSidebar: props.onOpenSidebar,
-                showReasoning,
-                showToolCalls: props.showToolCalls,
-                autoExpandToolCalls: Boolean(props.autoExpandToolCalls),
-                isToolMessageExpanded: (messageId: string) =>
-                  expandedToolCards.get(messageId) ?? false,
-                onToggleToolMessageExpanded: (messageId: string) => {
-                  expandedToolCards.set(messageId, !expandedToolCards.get(messageId));
-                  requestUpdate();
-                },
-                isToolExpanded: (toolCardId: string) => expandedToolCards.get(toolCardId) ?? false,
-                onToggleToolExpanded: toggleToolCardExpanded,
-                onRequestUpdate: requestUpdate,
-                assistantName: props.assistantName,
-                assistantAvatar: assistantIdentity.avatar,
-                userName: props.userName ?? null,
-                userAvatar: props.userAvatar ?? null,
-                basePath: props.basePath,
-                localMediaPreviewRoots: props.localMediaPreviewRoots ?? [],
-                assistantAttachmentAuthToken: props.assistantAttachmentAuthToken ?? null,
-                canvasHostUrl: props.canvasHostUrl,
-                embedSandboxMode: props.embedSandboxMode ?? "scripts",
-                allowExternalEmbedUrls: props.allowExternalEmbedUrls ?? false,
-                contextWindow:
-                  activeSession?.contextTokens ?? props.sessions?.defaults?.contextTokens ?? null,
-                onDelete: () => {
-                  deleted.delete(item.key);
-                  requestUpdate();
-                },
-              });
-            }
-            return nothing;
-          },
-        )}
+              )
+            : renderReadingIndicatorGroup(
+                assistantIdentity,
+                props.basePath,
+                props.assistantAttachmentAuthToken ?? null,
+              )
+          : nothing}
       </div>
     </div>
   `;

@@ -38,17 +38,8 @@ const loadSessionsMock = vi.hoisted(() =>
     }
   }),
 );
-
-vi.mock("../icons.ts", () => ({
-  icons: {},
-}));
-
-vi.mock("../chat/build-chat-items.ts", () => ({
-  buildChatItems: (props: {
-    messages: unknown[];
-    stream: string | null;
-    streamStartedAt: number | null;
-  }) => {
+const buildChatItemsMock = vi.hoisted(() =>
+  vi.fn((props: { messages: unknown[]; stream: string | null; streamStartedAt: number | null }) => {
     if (props.messages.length > 0) {
       return [
         {
@@ -77,11 +68,10 @@ vi.mock("../chat/build-chat-items.ts", () => ({
         : [{ kind: "reading-indicator", key: "reading:test" }];
     }
     return [];
-  },
-}));
-
-vi.mock("../chat/grouped-render.ts", () => ({
-  renderMessageGroup: (group: { messages: Array<{ message: unknown }> }) => {
+  }),
+);
+const renderMessageGroupMock = vi.hoisted(() =>
+  vi.fn((group: { messages: Array<{ message: unknown }> }) => {
     const element = document.createElement("div");
     element.className = "chat-group";
     element.textContent = group.messages
@@ -97,7 +87,19 @@ vi.mock("../chat/grouped-render.ts", () => ({
       })
       .join("\n");
     return element;
-  },
+  }),
+);
+
+vi.mock("../icons.ts", () => ({
+  icons: {},
+}));
+
+vi.mock("../chat/build-chat-items.ts", () => ({
+  buildChatItems: buildChatItemsMock,
+}));
+
+vi.mock("../chat/grouped-render.ts", () => ({
+  renderMessageGroup: renderMessageGroupMock,
   renderReadingIndicatorGroup: () => {
     const element = document.createElement("div");
     element.className = "chat-reading-indicator";
@@ -304,8 +306,13 @@ async function flushTasks() {
   await vi.dynamicImportSettled();
 }
 
-function renderChatView(overrides: Partial<Parameters<typeof renderChat>[0]> = {}) {
-  const container = document.createElement("div");
+function renderChatView(
+  overrides: Partial<Parameters<typeof renderChat>[0]> = {},
+  container = document.createElement("div"),
+) {
+  if (!container.isConnected) {
+    document.body.appendChild(container);
+  }
   render(
     renderChat({
       sessionKey: "main",
@@ -388,6 +395,9 @@ afterEach(() => {
   resetChatViewState();
   loadSessionsMock.mockClear();
   refreshVisibleToolsEffectiveForCurrentSessionMock.mockClear();
+  buildChatItemsMock.mockClear();
+  renderMessageGroupMock.mockClear();
+  document.body.replaceChildren();
   vi.unstubAllGlobals();
 });
 
@@ -404,6 +414,48 @@ describe("chat loading skeleton", () => {
 
     expect(onDraftChange).toHaveBeenCalledWith("hello");
     expect(requestUpdate).not.toHaveBeenCalled();
+  });
+
+  it("keeps the stable transcript render cached while live stream text changes", () => {
+    const toolMessages: unknown[] = [];
+    const streamSegments: Array<{ text: string; ts: number }> = [];
+    const localMediaPreviewRoots: string[] = [];
+    const messages = [
+      {
+        role: "assistant",
+        content: "Stable answer",
+        timestamp: 1,
+      },
+    ];
+    const container = renderChatView({
+      messages,
+      toolMessages,
+      streamSegments,
+      localMediaPreviewRoots,
+    });
+
+    expect(buildChatItemsMock).toHaveBeenCalledTimes(1);
+    expect(renderMessageGroupMock).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("Stable answer");
+
+    buildChatItemsMock.mockClear();
+    renderMessageGroupMock.mockClear();
+    renderChatView(
+      {
+        messages,
+        toolMessages,
+        streamSegments,
+        localMediaPreviewRoots,
+        stream: "new streamed text",
+        streamStartedAt: 2,
+      },
+      container,
+    );
+
+    expect(buildChatItemsMock).not.toHaveBeenCalled();
+    expect(renderMessageGroupMock).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Stable answer");
+    expect(container.textContent).toContain("new streamed text");
   });
 
   it("only requests draft re-renders when slash menu state changes", () => {
