@@ -301,7 +301,7 @@ function convertResponsesMessages(
             if (!shouldReplayResponsesItemIds) {
               delete reasoningItem.id;
             }
-            output.push(reasoningItem as ResponseInput[number]);
+            output.push(reasoningItem as unknown as ResponseInput[number]);
           }
         } else if (block.type === "text") {
           const textSignature = parseTextSignature(block.textSignature);
@@ -311,7 +311,7 @@ function convertResponsesMessages(
           if (msgId && msgId.length > 64) {
             msgId = `msg_${shortHash(msgId)}`;
           }
-          output.push({
+          const messageItem = {
             type: "message",
             role: "assistant",
             content: [
@@ -324,7 +324,8 @@ function convertResponsesMessages(
             status: "completed",
             ...(msgId ? { id: msgId } : {}),
             phase: textSignature?.phase,
-          });
+          };
+          output.push(messageItem as unknown as ResponseInput[number]);
         } else if (block.type === "toolCall") {
           const [callId, itemIdRaw] = block.id.split("|");
           const itemId =
