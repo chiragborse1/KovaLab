@@ -134,6 +134,43 @@ function buildInstalledManifestRegistryCacheKey(params: {
   });
 }
 
+export function resolveInstalledManifestRegistryIndexFingerprint(
+  index: InstalledPluginIndex,
+): string {
+  return hashJson({
+    version: index.version,
+    hostContractVersion: index.hostContractVersion,
+    compatRegistryVersion: index.compatRegistryVersion,
+    migrationVersion: index.migrationVersion,
+    policyHash: index.policyHash,
+    installRecords: index.installRecords,
+    diagnostics: index.diagnostics,
+    plugins: index.plugins.map((record) => ({
+      pluginId: record.pluginId,
+      packageName: record.packageName,
+      packageVersion: record.packageVersion,
+      installRecord: record.installRecord,
+      installRecordHash: record.installRecordHash,
+      packageInstall: record.packageInstall,
+      packageChannel: record.packageChannel,
+      manifestPath: record.manifestPath,
+      manifestHash: record.manifestHash,
+      format: record.format,
+      bundleFormat: record.bundleFormat,
+      source: record.source,
+      setupSource: record.setupSource,
+      packageJson: record.packageJson,
+      rootDir: record.rootDir,
+      origin: record.origin,
+      enabled: record.enabled,
+      enabledByDefault: record.enabledByDefault,
+      syntheticAuthRefs: record.syntheticAuthRefs,
+      startup: record.startup,
+      compat: record.compat,
+    })),
+  });
+}
+
 function getCachedInstalledManifestRegistry(cacheKey: string): PluginManifestRegistry | undefined {
   const cached = installedManifestRegistryFallbackCache.get(cacheKey);
   if (!cached) {

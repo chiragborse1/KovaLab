@@ -17,7 +17,13 @@ import {
 import { formatConfigIssueLines } from "../config/issue-format.js";
 import { asResolvedSourceConfig, materializeRuntimeConfig } from "../config/materialize.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
+import { configMayNeedPluginAutoEnable } from "../config/plugin-auto-enable.shared.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { setCurrentPluginMetadataSnapshot } from "../plugins/current-plugin-metadata-snapshot.js";
+import {
+  loadPluginMetadataSnapshot,
+  type PluginMetadataSnapshot,
+} from "../plugins/plugin-metadata-snapshot.js";
 import {
   GATEWAY_AUTH_SURFACE_PATHS,
   evaluateGatewayAuthSurfaceStates,
@@ -61,6 +67,7 @@ export type GatewayStartupConfigSnapshotLoadResult = {
   wroteConfig: boolean;
   degradedProviderApi?: boolean;
   degradedPluginConfig?: boolean;
+  pluginMetadataSnapshot?: PluginMetadataSnapshot;
 };
 
 const MODEL_PROVIDER_API_PATH_RE = /^models\.providers\.([^.]+)\.api$/;
@@ -262,20 +269,55 @@ export async function loadGatewayStartupConfigSnapshot(params: {
     );
   }
 
+  let pluginMetadataSnapshot: PluginMetadataSnapshot | undefined;
+  if (
+    !params.minimalTestGateway &&
+    !degradedStartupConfig &&
+    !degradedPluginConfig &&
+    configMayNeedPluginAutoEnable(configSnapshot.config, process.env)
+  ) {
+    try {
+      pluginMetadataSnapshot = loadPluginMetadataSnapshot({
+        config: configSnapshot.config,
+        env: process.env,
+      });
+      setCurrentPluginMetadataSnapshot(pluginMetadataSnapshot, {
+        config: configSnapshot.config,
+        env: process.env,
+      });
+    } catch (err) {
+      params.log.warn(`gateway: failed to prepare plugin metadata snapshot: ${String(err)}`);
+    }
+  }
+
   const autoEnable =
     params.minimalTestGateway || degradedStartupConfig || degradedPluginConfig
       ? { config: configSnapshot.config, changes: [] as string[] }
-      : applyPluginAutoEnable({ config: configSnapshot.config, env: process.env });
+      : applyPluginAutoEnable({
+          config: configSnapshot.config,
+          env: process.env,
+          ...(pluginMetadataSnapshot?.manifestRegistry
+            ? { manifestRegistry: pluginMetadataSnapshot.manifestRegistry }
+            : {}),
+        });
   if (autoEnable.changes.length === 0) {
     return {
       snapshot: configSnapshot,
       wroteConfig,
       ...(degradedStartupConfig ? { degradedProviderApi: true } : {}),
       ...(degradedPluginConfig ? { degradedPluginConfig: true } : {}),
+      ...(pluginMetadataSnapshot ? { pluginMetadataSnapshot } : {}),
     };
   }
 
   try {
+    if (pluginMetadataSnapshot) {
+      setCurrentPluginMetadataSnapshot(pluginMetadataSnapshot, {
+        config: configSnapshot.config,
+        compatibleConfigs: [autoEnable.config],
+        env: process.env,
+      });
+    }
     await replaceConfigFile({
       nextConfig: autoEnable.config,
       afterWrite: { mode: "auto" },
@@ -295,6 +337,7 @@ export async function loadGatewayStartupConfigSnapshot(params: {
     wroteConfig,
     ...(degradedStartupConfig ? { degradedProviderApi: true } : {}),
     ...(degradedPluginConfig ? { degradedPluginConfig: true } : {}),
+    ...(pluginMetadataSnapshot ? { pluginMetadataSnapshot } : {}),
   };
 }
 

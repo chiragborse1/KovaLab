@@ -5,6 +5,7 @@ import {
   listPotentialConfiguredChannelIds,
 } from "../channels/config-presence.js";
 import { getChatChannelMeta, normalizeChatChannelId } from "../channels/registry.js";
+import { getCurrentPluginMetadataSnapshot } from "../plugins/current-plugin-metadata-snapshot.js";
 import {
   type PluginManifestRecord,
   type PluginManifestRegistry,
@@ -208,16 +209,13 @@ function resolvePluginsWithOwnedToolConfig(
 
 function resolvePluginIdForConfiguredWebFetchProvider(
   providerId: string | undefined,
-  env: NodeJS.ProcessEnv,
+  registry: PluginManifestRegistry,
 ): string | undefined {
   const normalizedProviderId = normalizeOptionalLowercaseString(providerId);
   if (!normalizedProviderId) {
     return undefined;
   }
-  return loadPluginManifestRegistryForPluginRegistry({
-    env,
-    includeDisabled: true,
-  }).plugins.find(
+  return registry.plugins.find(
     (plugin) =>
       plugin.origin === "bundled" &&
       (plugin.contracts?.webFetchProviders ?? []).some(
@@ -543,7 +541,7 @@ export function resolveConfiguredPluginAutoEnableCandidates(params: {
       : undefined;
   const webFetchPluginId = resolvePluginIdForConfiguredWebFetchProvider(
     webFetchProvider,
-    params.env,
+    params.registry,
   );
   if (webFetchPluginId) {
     changes.push({
@@ -786,8 +784,16 @@ export function resolvePluginAutoEnableManifestRegistry(params: {
   env: NodeJS.ProcessEnv;
   manifestRegistry?: PluginManifestRegistry;
 }): PluginManifestRegistry {
+  const current = params.manifestRegistry
+    ? undefined
+    : getCurrentPluginMetadataSnapshot({
+        config: params.config,
+        env: params.env,
+        allowWorkspaceScopedSnapshot: true,
+      });
   return (
     params.manifestRegistry ??
+    current?.manifestRegistry ??
     (configMayNeedPluginManifestRegistry(params.config, params.env)
       ? loadPluginManifestRegistryForPluginRegistry({
           config: params.config,
