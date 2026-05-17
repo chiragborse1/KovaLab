@@ -18,6 +18,7 @@ import {
   DEFAULT_USER_FILENAME,
   ensureAgentWorkspace,
   isWorkspaceSetupCompleted,
+  reconcileWorkspaceBootstrapCompletion,
 } from "../../agents/workspace.js";
 import { purgeAgentSessionStoreEntries } from "../../commands/agents.command-shared.js";
 import {
@@ -72,6 +73,7 @@ const agentsHandlerDeps = {
   isWorkspaceSetupCompleted,
   openFileWithinRoot,
   readFileWithinRoot,
+  reconcileWorkspaceBootstrapCompletion,
   writeFileWithinRoot,
 };
 
@@ -81,6 +83,7 @@ export const __testing = {
       isWorkspaceSetupCompleted: typeof isWorkspaceSetupCompleted;
       openFileWithinRoot: typeof openFileWithinRoot;
       readFileWithinRoot: typeof readFileWithinRoot;
+      reconcileWorkspaceBootstrapCompletion: typeof reconcileWorkspaceBootstrapCompletion;
       writeFileWithinRoot: typeof writeFileWithinRoot;
     }>,
   ) {
@@ -90,11 +93,17 @@ export const __testing = {
     agentsHandlerDeps.isWorkspaceSetupCompleted = isWorkspaceSetupCompleted;
     agentsHandlerDeps.openFileWithinRoot = openFileWithinRoot;
     agentsHandlerDeps.readFileWithinRoot = readFileWithinRoot;
+    agentsHandlerDeps.reconcileWorkspaceBootstrapCompletion = reconcileWorkspaceBootstrapCompletion;
     agentsHandlerDeps.writeFileWithinRoot = writeFileWithinRoot;
   },
 };
 
 const MEMORY_FILE_NAMES = [DEFAULT_MEMORY_FILENAME] as const;
+const PERSONA_PROFILE_FILE_NAMES = new Set<string>([
+  DEFAULT_IDENTITY_FILENAME,
+  DEFAULT_SOUL_FILENAME,
+  DEFAULT_USER_FILENAME,
+]);
 
 const ALLOWED_FILE_NAMES = new Set<string>([...BOOTSTRAP_FILE_NAMES, ...MEMORY_FILE_NAMES]);
 
@@ -772,6 +781,13 @@ export const agentsHandlers: GatewayRequestHandlers = {
       }
       respondWorkspaceFileUnsafe(respond, name);
       return;
+    }
+    if (PERSONA_PROFILE_FILE_NAMES.has(name)) {
+      try {
+        await agentsHandlerDeps.reconcileWorkspaceBootstrapCompletion(workspaceDir);
+      } catch {
+        // Persona edits must remain saveable even if setup-state repair is temporarily unavailable.
+      }
     }
     const meta = await statWorkspaceFileSafely(workspaceDir, name);
     respond(

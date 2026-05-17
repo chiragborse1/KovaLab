@@ -26,6 +26,14 @@ On the first agent run, Kova bootstraps the workspace (default
 
 To skip this for a pre-seeded workspace, run `kova onboard --skip-bootstrap`.
 
+## Editing persona later
+
+The Control UI Agents page includes a **Persona** panel for the selected agent.
+It edits the same `IDENTITY.md`, `SOUL.md`, and `USER.md` files that
+bootstrapping creates. Saving changed persona files also lets Kova reconcile a
+pending bootstrap state, so a manually configured persona does not need to keep
+the first-run Q&A active.
+
 ## Where it runs
 
 Bootstrapping always runs on the **gateway host**. If the macOS app connects to

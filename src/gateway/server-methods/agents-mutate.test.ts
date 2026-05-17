@@ -1115,6 +1115,62 @@ describe("agents.files.list", () => {
   });
 });
 
+describe("agents.files.set bootstrap reconciliation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.loadConfigReturn = {
+      agents: {
+        list: [{ id: "main", workspace: "/workspace/test-agent" }],
+      },
+    };
+    mocks.fsMkdir.mockResolvedValue(undefined);
+  });
+
+  it("reconciles bootstrap completion after persona profile file saves", async () => {
+    const reconcileWorkspaceBootstrapCompletion = vi.fn(async () => ({
+      repaired: true,
+      bootstrapExists: false,
+      state: { version: 1 },
+    }));
+    agentsTesting.setDepsForTests({ reconcileWorkspaceBootstrapCompletion });
+
+    const { respond, promise } = makeCall("agents.files.set", {
+      agentId: "main",
+      name: "IDENTITY.md",
+      content: "- **Name:** Kova\n",
+    });
+    await promise;
+
+    expect(reconcileWorkspaceBootstrapCompletion).toHaveBeenCalledWith("/workspace/test-agent");
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        ok: true,
+        file: expect.objectContaining({ name: "IDENTITY.md" }),
+      }),
+      undefined,
+    );
+  });
+
+  it("does not reconcile bootstrap completion after non-persona file saves", async () => {
+    const reconcileWorkspaceBootstrapCompletion = vi.fn(async () => ({
+      repaired: false,
+      bootstrapExists: true,
+      state: { version: 1 },
+    }));
+    agentsTesting.setDepsForTests({ reconcileWorkspaceBootstrapCompletion });
+
+    const { promise } = makeCall("agents.files.set", {
+      agentId: "main",
+      name: "AGENTS.md",
+      content: "workspace instructions\n",
+    });
+    await promise;
+
+    expect(reconcileWorkspaceBootstrapCompletion).not.toHaveBeenCalled();
+  });
+});
+
 describe("agents.files.get/set symlink safety", () => {
   beforeEach(() => {
     vi.clearAllMocks();

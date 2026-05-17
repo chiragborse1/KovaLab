@@ -1,3 +1,4 @@
+import { PERSONA_WORKSPACE_FILE_NAMES } from "../agent-persona-files.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type {
   AgentFileEntry,
@@ -31,6 +32,27 @@ function mergeFileEntry(
     ? list.files.map((file) => (file.name === entry.name ? entry : file))
     : [...list.files, entry];
   return { ...list, files: nextFiles };
+}
+
+function applyLoadedFileContent(
+  state: AgentFilesState,
+  entry: AgentFileEntry,
+  content: string,
+  opts?: { preserveDraft?: boolean },
+) {
+  const name = entry.name;
+  const previousBase = state.agentFileContents[name] ?? "";
+  const currentDraft = state.agentFileDrafts[name];
+  const preserveDraft = opts?.preserveDraft ?? true;
+  state.agentFilesList = mergeFileEntry(state.agentFilesList, entry);
+  state.agentFileContents = { ...state.agentFileContents, [name]: content };
+  if (
+    !preserveDraft ||
+    !Object.hasOwn(state.agentFileDrafts, name) ||
+    currentDraft === previousBase
+  ) {
+    state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+  }
 }
 
 export function cancelAgentFilesRequests(state: AgentFilesState) {
@@ -101,18 +123,61 @@ export async function loadAgentFileContent(
     }
     if (res?.file) {
       const content = res.file.content ?? "";
-      const previousBase = state.agentFileContents[name] ?? "";
-      const currentDraft = state.agentFileDrafts[name];
-      const preserveDraft = opts?.preserveDraft ?? true;
-      state.agentFilesList = mergeFileEntry(state.agentFilesList, res.file);
-      state.agentFileContents = { ...state.agentFileContents, [name]: content };
+      applyLoadedFileContent(state, res.file, content, {
+        preserveDraft: opts?.preserveDraft ?? true,
+      });
+    }
+  } catch (err) {
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesError = String(err);
+    }
+  } finally {
+    if (state.agentFilesRequestVersion === requestVersion) {
+      state.agentFilesLoading = false;
+    }
+  }
+}
+
+export async function loadAgentPersonaFiles(state: AgentFilesState, agentId: string) {
+  if (!state.client || !state.connected || state.agentFilesLoading) {
+    return;
+  }
+  state.agentFilesRequestVersion += 1;
+  const requestVersion = state.agentFilesRequestVersion;
+  state.agentFilesLoading = true;
+  state.agentFilesError = null;
+  try {
+    const list = await state.client.request<AgentsFilesListResult | null>("agents.files.list", {
+      agentId,
+    });
+    if (state.agentFilesRequestVersion !== requestVersion || list?.agentId !== agentId) {
+      return;
+    }
+    if (list) {
+      state.agentFilesList = list;
       if (
-        !preserveDraft ||
-        !Object.hasOwn(state.agentFileDrafts, name) ||
-        currentDraft === previousBase
+        state.agentFileActive &&
+        !list.files.some((file) => file.name === state.agentFileActive)
       ) {
-        state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+        state.agentFileActive = null;
       }
+    }
+    for (const name of PERSONA_WORKSPACE_FILE_NAMES) {
+      if (state.agentFilesRequestVersion !== requestVersion) {
+        return;
+      }
+      const res = await state.client.request<AgentsFilesGetResult | null>("agents.files.get", {
+        agentId,
+        name,
+      });
+      if (
+        state.agentFilesRequestVersion !== requestVersion ||
+        res?.agentId !== agentId ||
+        res.file.name !== name
+      ) {
+        return;
+      }
+      applyLoadedFileContent(state, res.file, res.file.content ?? "");
     }
   } catch (err) {
     if (state.agentFilesRequestVersion === requestVersion) {

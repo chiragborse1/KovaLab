@@ -23,6 +23,7 @@ import {
   cancelAgentFilesRequests,
   loadAgentFileContent,
   loadAgentFiles,
+  loadAgentPersonaFiles,
   saveAgentFile,
 } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -1372,6 +1373,9 @@ export function renderApp(state: AppViewState) {
       case "files":
         void loadAgentFiles(state, agentId);
         return;
+      case "persona":
+        void loadAgentPersonaFiles(state, agentId);
+        return;
       case "skills":
         void loadAgentSkills(state, agentId);
         return;
@@ -2194,12 +2198,18 @@ export function renderApp(state: AppViewState) {
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
                   if (
-                    panel === "files" &&
+                    (panel === "files" || panel === "persona") &&
                     resolvedAgentId &&
                     state.agentFilesList?.agentId !== resolvedAgentId
                   ) {
                     resetAgentFilesState();
-                    void loadAgentFiles(state, resolvedAgentId);
+                    if (panel === "persona") {
+                      void loadAgentPersonaFiles(state, resolvedAgentId);
+                    } else {
+                      void loadAgentFiles(state, resolvedAgentId);
+                    }
+                  } else if (panel === "persona" && resolvedAgentId) {
+                    void loadAgentPersonaFiles(state, resolvedAgentId);
                   }
                   if (panel === "skills" && resolvedAgentId) {
                     void loadAgentSkills(state, resolvedAgentId);
@@ -2232,6 +2242,7 @@ export function renderApp(state: AppViewState) {
                   refreshAgentsPanelSupplementalData(panel);
                 },
                 onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
+                onLoadPersonaFiles: (agentId) => loadAgentPersonaFiles(state, agentId),
                 onSelectFile: (name) => {
                   state.agentFileActive = name;
                   if (!resolvedAgentId) {

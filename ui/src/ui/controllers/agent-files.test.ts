@@ -9,6 +9,7 @@ import {
   cancelAgentFilesRequests,
   loadAgentFiles,
   loadAgentFileContent,
+  loadAgentPersonaFiles,
   saveAgentFile,
   type AgentFilesState,
 } from "./agent-files.ts";
@@ -44,30 +45,28 @@ function createState(request: GatewayBrowserClient["request"]): AgentFilesState 
   };
 }
 
-function fileResult(agentId: string, content: string): AgentsFilesGetResult {
+function fileResult(agentId: string, content: string, name = "AGENTS.md"): AgentsFilesGetResult {
   return {
     agentId,
     workspace: `/workspace/${agentId}`,
     file: {
-      name: "AGENTS.md",
-      path: `/workspace/${agentId}/AGENTS.md`,
+      name,
+      path: `/workspace/${agentId}/${name}`,
       missing: false,
       content,
     },
   };
 }
 
-function listResult(agentId: string): AgentsFilesListResult {
+function listResult(agentId: string, names = ["AGENTS.md"]): AgentsFilesListResult {
   return {
     agentId,
     workspace: `/workspace/${agentId}`,
-    files: [
-      {
-        name: "AGENTS.md",
-        path: `/workspace/${agentId}/AGENTS.md`,
-        missing: false,
-      },
-    ],
+    files: names.map((name) => ({
+      name,
+      path: `/workspace/${agentId}/${name}`,
+      missing: false,
+    })),
   };
 }
 
@@ -209,5 +208,39 @@ describe("agent file controller", () => {
     expect(state.agentFileContents["AGENTS.md"]).toBe("edited content");
     expect(state.agentFileDrafts["AGENTS.md"]).toBe("edited content");
     expect(state.agentFileSaving).toBe(false);
+  });
+
+  it("loads persona workspace files without changing the active file", async () => {
+    const calls: Array<{ method: string; agentId?: string; name?: string }> = [];
+    const request: GatewayBrowserClient["request"] = async <T = unknown>(
+      method: string,
+      params?: unknown,
+    ): Promise<T> => {
+      const requestParams = params as { agentId?: string; name?: string };
+      calls.push({ method, agentId: requestParams.agentId, name: requestParams.name });
+      if (method === "agents.files.list") {
+        return listResult("main", ["AGENTS.md", "IDENTITY.md", "SOUL.md", "USER.md"]) as T;
+      }
+      return fileResult("main", `${requestParams.name} content`, requestParams.name) as T;
+    };
+    const state = createState(request);
+    state.agentFileActive = "AGENTS.md";
+
+    await loadAgentPersonaFiles(state, "main");
+
+    expect(calls).toEqual([
+      { method: "agents.files.list", agentId: "main", name: undefined },
+      { method: "agents.files.get", agentId: "main", name: "IDENTITY.md" },
+      { method: "agents.files.get", agentId: "main", name: "SOUL.md" },
+      { method: "agents.files.get", agentId: "main", name: "USER.md" },
+    ]);
+    expect(state.agentFileActive).toBe("AGENTS.md");
+    expect(state.agentFileContents).toMatchObject({
+      "IDENTITY.md": "IDENTITY.md content",
+      "SOUL.md": "SOUL.md content",
+      "USER.md": "USER.md content",
+    });
+    expect(state.agentFileDrafts).toMatchObject(state.agentFileContents);
+    expect(state.agentFilesLoading).toBe(false);
   });
 });

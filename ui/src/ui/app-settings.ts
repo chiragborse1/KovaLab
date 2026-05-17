@@ -8,7 +8,11 @@ import {
   stopDebugPolling,
 } from "./app-polling.ts";
 import { scheduleChatScroll, scheduleLogsScroll } from "./app-scroll.ts";
-import { loadAgentFiles, type AgentFilesState } from "./controllers/agent-files.ts";
+import {
+  loadAgentFiles,
+  loadAgentPersonaFiles,
+  type AgentFilesState,
+} from "./controllers/agent-files.ts";
 import {
   loadAgentIdentities,
   loadAgentIdentity,
@@ -93,7 +97,7 @@ type SettingsHost = {
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
-  agentsPanel?: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel?: "overview" | "persona" | "files" | "tools" | "skills" | "channels" | "cron";
   pendingGatewayUrl?: string | null;
   systemThemeCleanup?: (() => void) | null;
   pendingGatewayToken?: string | null;
@@ -322,6 +326,9 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
   switch (host.agentsPanel) {
     case "files":
       void loadAgentFiles(app, agentId);
+      return;
+    case "persona":
+      void loadAgentPersonaFiles(app, agentId);
       return;
     case "skills":
       void loadAgentSkills(app, agentId);

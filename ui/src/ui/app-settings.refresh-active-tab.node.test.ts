@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   scheduleChatScrollMock: vi.fn(),
   scheduleLogsScrollMock: vi.fn(),
   loadAgentFilesMock: vi.fn(async () => {}),
+  loadAgentPersonaFilesMock: vi.fn(async () => {}),
   loadAgentIdentitiesMock: vi.fn(async () => {}),
   loadAgentIdentityMock: vi.fn(async () => {}),
   loadAgentSkillsMock: vi.fn(async () => {}),
@@ -28,6 +29,7 @@ vi.mock("./app-scroll.ts", () => ({
 }));
 vi.mock("./controllers/agent-files.ts", () => ({
   loadAgentFiles: mocks.loadAgentFilesMock,
+  loadAgentPersonaFiles: mocks.loadAgentPersonaFilesMock,
 }));
 vi.mock("./controllers/agent-identity.ts", () => ({
   loadAgentIdentities: mocks.loadAgentIdentitiesMock,
@@ -97,13 +99,14 @@ describe("refreshActiveTab", () => {
     expect(mocks.loadCronRunsMock).not.toHaveBeenCalled();
   };
   const panelLoaderArgs = {
+    persona: [mocks.loadAgentPersonaFilesMock, "agent-b"],
     files: [mocks.loadAgentFilesMock, "agent-b"],
     skills: [mocks.loadAgentSkillsMock, "agent-b"],
     channels: [mocks.loadChannelsMock, false],
     tools: null,
   } as const;
 
-  for (const panel of ["files", "skills", "channels", "tools"] as const) {
+  for (const panel of ["persona", "files", "skills", "channels", "tools"] as const) {
     it(`routes agents ${panel} panel refresh through the expected loaders`, async () => {
       const host = createHost();
       host.agentsPanel = panel;
@@ -111,6 +114,7 @@ describe("refreshActiveTab", () => {
       await refreshActiveTab(host as never);
 
       expectCommonAgentsTabRefresh(host);
+      expect(mocks.loadAgentPersonaFilesMock).toHaveBeenCalledTimes(panel === "persona" ? 1 : 0);
       expect(mocks.loadAgentFilesMock).toHaveBeenCalledTimes(panel === "files" ? 1 : 0);
       expect(mocks.loadAgentSkillsMock).toHaveBeenCalledTimes(panel === "skills" ? 1 : 0);
       expect(mocks.loadChannelsMock).toHaveBeenCalledTimes(panel === "channels" ? 1 : 0);
@@ -136,6 +140,7 @@ describe("refreshActiveTab", () => {
     expect(mocks.loadCronStatusMock).toHaveBeenCalledOnce();
     expect(mocks.loadCronJobsPageMock).toHaveBeenCalledOnce();
     expect(mocks.loadCronRunsMock).toHaveBeenCalledWith(host, "job-123");
+    expect(mocks.loadAgentPersonaFilesMock).not.toHaveBeenCalled();
     expect(mocks.loadAgentFilesMock).not.toHaveBeenCalled();
     expect(mocks.loadAgentSkillsMock).not.toHaveBeenCalled();
   });

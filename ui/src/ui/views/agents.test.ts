@@ -1,5 +1,6 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
+import { renderAgentPersona } from "./agents-panel-persona.ts";
 import { renderAgentFiles } from "./agents-panels-status-files.ts";
 import { renderAgents, type AgentsProps } from "./agents.ts";
 
@@ -99,6 +100,7 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     onSelectAgent: () => undefined,
     onSelectPanel: () => undefined,
     onLoadFiles: () => undefined,
+    onLoadPersonaFiles: () => undefined,
     onSelectFile: () => undefined,
     onFileDraftChange: () => undefined,
     onFileReset: () => undefined,
@@ -123,6 +125,18 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
 }
 
 describe("renderAgents", () => {
+  it("includes the Persona tab", async () => {
+    const container = document.createElement("div");
+    render(renderAgents(createProps()), container);
+    await Promise.resolve();
+
+    const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>(".agent-tab")).map(
+      (button) => button.textContent?.trim(),
+    );
+
+    expect(tabs).toContain("Persona");
+  });
+
   it("shows the skills count only for the selected agent's report", async () => {
     const container = document.createElement("div");
     render(
@@ -176,6 +190,65 @@ describe("renderAgents", () => {
     );
 
     expect(skillsTab?.textContent?.trim()).toContain("1");
+  });
+});
+
+describe("renderAgentPersona", () => {
+  it("renders identity fields and persona editors from workspace files", () => {
+    const container = document.createElement("div");
+    render(
+      renderAgentPersona({
+        agentId: "alpha",
+        agentFilesList: {
+          agentId: "alpha",
+          workspace: "/tmp/workspace",
+          files: [
+            {
+              name: "IDENTITY.md",
+              path: "/tmp/workspace/IDENTITY.md",
+              missing: false,
+              size: 128,
+            },
+            {
+              name: "SOUL.md",
+              path: "/tmp/workspace/SOUL.md",
+              missing: false,
+              size: 256,
+            },
+            {
+              name: "USER.md",
+              path: "/tmp/workspace/USER.md",
+              missing: false,
+              size: 384,
+            },
+          ],
+        },
+        agentFilesLoading: false,
+        agentFilesError: null,
+        agentFileContents: {
+          "IDENTITY.md": "# IDENTITY.md - Who Am I?\n\n- **Name:** Nova\n- **Vibe:** Direct\n",
+          "SOUL.md": "# SOUL\n\nBe concise.",
+          "USER.md": "# USER\n\nCall the user Chirag.",
+        },
+        agentFileDrafts: {},
+        agentFileSaving: false,
+        onLoadPersonaFiles: () => undefined,
+        onOpenFile: () => undefined,
+        onFileDraftChange: () => undefined,
+        onFileReset: () => undefined,
+        onFileSave: () => undefined,
+      }),
+      container,
+    );
+
+    const nameInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+      (input) => input.placeholder === "Kova",
+    );
+
+    expect(nameInput?.value).toBe("Nova");
+    expect(container.textContent).toContain("Voice And Boundaries");
+    expect(container.textContent).toContain("User Context");
+    expect(container.textContent).toContain("bootstrap complete");
   });
 });
 
