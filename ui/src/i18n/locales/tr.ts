@@ -158,6 +158,7 @@ export const tr: TranslationMap = {
   },
   tabs: {
     agents: "Aracılar",
+    persona: "Persona",
     overview: "Genel Bakış",
     controlPanel: "Control Panel",
     channels: "Kanallar",
@@ -180,6 +181,7 @@ export const tr: TranslationMap = {
   },
   subtitles: {
     agents: "Çalışma alanları, araçlar, kimlikler.",
+    persona: "Kimlik, ses ve kullanıcı bağlamı.",
     overview: "Durum, giriş noktaları, sağlık.",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "Kanallar ve ayarlar.",

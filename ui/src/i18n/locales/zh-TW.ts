@@ -154,6 +154,7 @@ export const zh_TW: TranslationMap = {
   },
   tabs: {
     agents: "代理",
+    persona: "Persona",
     overview: "概覽",
     controlPanel: "Control Panel",
     channels: "頻道",
@@ -176,6 +177,7 @@ export const zh_TW: TranslationMap = {
   },
   subtitles: {
     agents: "工作區、工具、身份。",
+    persona: "身份、語氣和使用者上下文。",
     overview: "狀態、入口點、健康。",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "頻道和設置。",

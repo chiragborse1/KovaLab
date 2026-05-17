@@ -159,6 +159,7 @@ export const ja_JP: TranslationMap = {
   },
   tabs: {
     agents: "エージェント",
+    persona: "Persona",
     overview: "概要",
     controlPanel: "Control Panel",
     channels: "チャンネル",
@@ -181,6 +182,7 @@ export const ja_JP: TranslationMap = {
   },
   subtitles: {
     agents: "ワークスペース、ツール、ID。",
+    persona: "ID、口調、ユーザーコンテキスト。",
     overview: "ステータス、エントリーポイント、健全性。",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "チャンネルと設定。",

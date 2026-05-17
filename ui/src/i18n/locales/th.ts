@@ -154,6 +154,7 @@ export const th: TranslationMap = {
   },
   tabs: {
     agents: "เอเจนต์",
+    persona: "Persona",
     overview: "ภาพรวม",
     controlPanel: "Control Panel",
     channels: "ช่องทาง",
@@ -176,6 +177,7 @@ export const th: TranslationMap = {
   },
   subtitles: {
     agents: "เวิร์กสเปซ เครื่องมือ และข้อมูลประจำตัว",
+    persona: "ข้อมูลประจำตัว น้ำเสียง และบริบทผู้ใช้",
     overview: "สถานะ จุดเข้าใช้งาน และความพร้อมใช้งาน",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "ช่องทางและการตั้งค่า",

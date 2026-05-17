@@ -156,6 +156,7 @@ export const id: TranslationMap = {
   },
   tabs: {
     agents: "Agen",
+    persona: "Persona",
     overview: "Ikhtisar",
     controlPanel: "Control Panel",
     channels: "Saluran",
@@ -178,6 +179,7 @@ export const id: TranslationMap = {
   },
   subtitles: {
     agents: "Ruang kerja, alat, identitas.",
+    persona: "Identitas, suara, dan konteks pengguna.",
     overview: "Status, titik masuk, kesehatan.",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "Saluran dan pengaturan.",

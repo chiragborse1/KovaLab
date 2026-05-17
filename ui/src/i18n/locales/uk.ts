@@ -157,6 +157,7 @@ export const uk: TranslationMap = {
   },
   tabs: {
     agents: "Агенти",
+    persona: "Persona",
     overview: "Огляд",
     controlPanel: "Control Panel",
     channels: "Канали",
@@ -179,6 +180,7 @@ export const uk: TranslationMap = {
   },
   subtitles: {
     agents: "Робочі простори, інструменти, ідентичності.",
+    persona: "Ідентичність, голос і контекст користувача.",
     overview: "Стан, точки входу, справність.",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "Канали та налаштування.",
