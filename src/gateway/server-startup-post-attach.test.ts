@@ -141,6 +141,9 @@ type PostAttachRuntimeDeps = NonNullable<Parameters<typeof startGatewayPostAttac
 
 describe("startGatewayPostAttachRuntime", () => {
   beforeEach(() => {
+    vi.stubEnv("KOVA_SKIP_CHANNELS", "0");
+    vi.stubEnv("KOVA_SKIP_PROVIDERS", "0");
+    vi.stubEnv("KOVA_SKIP_STARTUP_MODEL_PREWARM", "0");
     hoisted.startPluginServices.mockClear();
     hoisted.startGmailWatcherWithLogs.mockClear();
     hoisted.loadInternalHooks.mockClear();
