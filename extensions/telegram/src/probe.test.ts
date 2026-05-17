@@ -2,11 +2,11 @@ import { withFetchPreconnect } from "getkova/plugin-sdk/testing";
 import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { probeTelegram, resetTelegramProbeFetcherCacheForTests } from "./probe.js";
 
-const resolveTelegramFetch = vi.hoisted(() => vi.fn());
+const resolveTelegramTransport = vi.hoisted(() => vi.fn());
 const makeProxyFetch = vi.hoisted(() => vi.fn());
 
 vi.mock("./fetch.js", () => ({
-  resolveTelegramFetch,
+  resolveTelegramTransport,
   resolveTelegramApiBase: (apiRoot?: string) =>
     apiRoot?.trim()?.replace(/\/+$/, "") || "https://api.telegram.org",
 }));
@@ -23,7 +23,12 @@ describe("probeTelegram retry logic", () => {
   const installFetchMock = (): Mock => {
     const fetchMock = vi.fn();
     global.fetch = withFetchPreconnect(fetchMock);
-    resolveTelegramFetch.mockImplementation((proxyFetch?: typeof fetch) => proxyFetch ?? fetch);
+    resolveTelegramTransport.mockImplementation((proxyFetch?: typeof fetch) => ({
+      fetch: proxyFetch ?? fetch,
+      sourceFetch: proxyFetch ?? fetch,
+      forceFallback: vi.fn(() => false),
+      close: vi.fn(async () => {}),
+    }));
     makeProxyFetch.mockImplementation(() => fetchMock as unknown as typeof fetch);
     return fetchMock;
   };
@@ -59,7 +64,7 @@ describe("probeTelegram retry logic", () => {
 
   afterEach(() => {
     resetTelegramProbeFetcherCacheForTests();
-    resolveTelegramFetch.mockReset();
+    resolveTelegramTransport.mockReset();
     makeProxyFetch.mockReset();
     vi.unstubAllEnvs();
     vi.clearAllMocks();
@@ -138,7 +143,12 @@ describe("probeTelegram retry logic", () => {
       });
     });
     global.fetch = withFetchPreconnect(fetchMock as unknown as typeof fetch);
-    resolveTelegramFetch.mockImplementation((proxyFetch?: typeof fetch) => proxyFetch ?? fetch);
+    resolveTelegramTransport.mockImplementation((proxyFetch?: typeof fetch) => ({
+      fetch: proxyFetch ?? fetch,
+      sourceFetch: proxyFetch ?? fetch,
+      forceFallback: vi.fn(() => false),
+      close: vi.fn(async () => {}),
+    }));
     makeProxyFetch.mockImplementation(() => fetchMock as unknown as typeof fetch);
     vi.useFakeTimers();
     try {
@@ -187,12 +197,11 @@ describe("probeTelegram retry logic", () => {
     });
 
     expect(makeProxyFetch).toHaveBeenCalledWith("http://127.0.0.1:8888");
-    expect(resolveTelegramFetch).toHaveBeenCalledWith(fetchMock, {
+    expect(resolveTelegramTransport).toHaveBeenCalledWith(fetchMock, {
       network: {
         autoSelectFamily: false,
         dnsResultOrder: "ipv4first",
       },
-      apiRoot: undefined,
     });
   });
 
@@ -231,7 +240,7 @@ describe("probeTelegram retry logic", () => {
       },
     });
 
-    expect(resolveTelegramFetch).toHaveBeenCalledTimes(1);
+    expect(resolveTelegramTransport).toHaveBeenCalledTimes(1);
   });
 
   it("does not reuse probe fetcher cache when network settings differ", async () => {
@@ -257,7 +266,7 @@ describe("probeTelegram retry logic", () => {
       },
     });
 
-    expect(resolveTelegramFetch).toHaveBeenCalledTimes(2);
+    expect(resolveTelegramTransport).toHaveBeenCalledTimes(2);
   });
 
   it("reuses probe fetcher cache across token rotation when accountId is stable", async () => {
@@ -285,6 +294,33 @@ describe("probeTelegram retry logic", () => {
       },
     });
 
-    expect(resolveTelegramFetch).toHaveBeenCalledTimes(1);
+    expect(resolveTelegramTransport).toHaveBeenCalledTimes(1);
+  });
+
+  it("promotes transport fallback after probe timeouts", async () => {
+    const fetchMock = vi.fn();
+    const forceFallback = vi.fn(() => true);
+    global.fetch = withFetchPreconnect(fetchMock as unknown as typeof fetch);
+    resolveTelegramTransport.mockReturnValue({
+      fetch: fetchMock,
+      sourceFetch: fetchMock,
+      forceFallback,
+      close: vi.fn(async () => {}),
+    });
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockRejectedValueOnce(new Error("timeout"));
+      mockGetMeSuccess(fetchMock);
+      mockGetWebhookInfoSuccess(fetchMock);
+
+      const probePromise = probeTelegram(`${token}-fallback`, timeoutMs);
+      await vi.advanceTimersByTimeAsync(1000);
+      const result = await probePromise;
+
+      expect(result.ok).toBe(true);
+      expect(forceFallback).toHaveBeenCalledWith("probe timeout/network error");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
