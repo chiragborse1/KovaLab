@@ -49,7 +49,7 @@ export function isExpiredTelegramCallbackQueryAckError(err: unknown): boolean {
   const message = formatErrorMessage(err);
   const methodMatches =
     method === "answerCallbackQuery" || /\banswerCallbackQuery\b/i.test(message);
-  const codeMatches = code === 400 || /\(400:/.test(message);
+  const codeMatches = code === 400 || message.includes("(400:");
   const expiredMatches =
     EXPIRED_CALLBACK_QUERY_MESSAGE_RE.test(description ?? "") ||
     EXPIRED_CALLBACK_QUERY_MESSAGE_RE.test(message);

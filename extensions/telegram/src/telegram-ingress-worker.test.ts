@@ -46,7 +46,7 @@ const workerMock = vi.hoisted(() => {
     }
 
     emit(event: string, ...args: unknown[]): void {
-      for (const listener of [...(this.listeners.get(event) ?? [])]) {
+      for (const listener of (this.listeners.get(event) ?? []).slice()) {
         listener(...args);
       }
     }
