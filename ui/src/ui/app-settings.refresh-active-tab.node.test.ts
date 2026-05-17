@@ -99,14 +99,13 @@ describe("refreshActiveTab", () => {
     expect(mocks.loadCronRunsMock).not.toHaveBeenCalled();
   };
   const panelLoaderArgs = {
-    persona: [mocks.loadAgentPersonaFilesMock, "agent-b"],
     files: [mocks.loadAgentFilesMock, "agent-b"],
     skills: [mocks.loadAgentSkillsMock, "agent-b"],
     channels: [mocks.loadChannelsMock, false],
     tools: null,
   } as const;
 
-  for (const panel of ["persona", "files", "skills", "channels", "tools"] as const) {
+  for (const panel of ["files", "skills", "channels", "tools"] as const) {
     it(`routes agents ${panel} panel refresh through the expected loaders`, async () => {
       const host = createHost();
       host.agentsPanel = panel;
@@ -114,7 +113,7 @@ describe("refreshActiveTab", () => {
       await refreshActiveTab(host as never);
 
       expectCommonAgentsTabRefresh(host);
-      expect(mocks.loadAgentPersonaFilesMock).toHaveBeenCalledTimes(panel === "persona" ? 1 : 0);
+      expect(mocks.loadAgentPersonaFilesMock).not.toHaveBeenCalled();
       expect(mocks.loadAgentFilesMock).toHaveBeenCalledTimes(panel === "files" ? 1 : 0);
       expect(mocks.loadAgentSkillsMock).toHaveBeenCalledTimes(panel === "skills" ? 1 : 0);
       expect(mocks.loadChannelsMock).toHaveBeenCalledTimes(panel === "channels" ? 1 : 0);
@@ -126,6 +125,20 @@ describe("refreshActiveTab", () => {
       expectNoCronLoaders();
     });
   }
+
+  it("routes persona tab refresh through persona workspace loaders", async () => {
+    const host = createHost();
+    host.tab = "persona";
+
+    await refreshActiveTab(host as never);
+
+    expectCommonAgentsTabRefresh(host);
+    expect(mocks.loadAgentPersonaFilesMock).toHaveBeenCalledWith(host, "agent-b");
+    expect(mocks.loadAgentFilesMock).not.toHaveBeenCalled();
+    expect(mocks.loadAgentSkillsMock).not.toHaveBeenCalled();
+    expect(mocks.loadChannelsMock).not.toHaveBeenCalled();
+    expectNoCronLoaders();
+  });
 
   it("routes agents cron panel refresh through cron loaders", async () => {
     const host = createHost();

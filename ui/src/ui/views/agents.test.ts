@@ -1,6 +1,6 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
-import { renderAgentPersona } from "./agents-panel-persona.ts";
+import { renderAgentPersona, renderPersonaPage } from "./agents-panel-persona.ts";
 import { renderAgentFiles } from "./agents-panels-status-files.ts";
 import { renderAgents, type AgentsProps } from "./agents.ts";
 
@@ -100,7 +100,6 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
     onSelectAgent: () => undefined,
     onSelectPanel: () => undefined,
     onLoadFiles: () => undefined,
-    onLoadPersonaFiles: () => undefined,
     onSelectFile: () => undefined,
     onFileDraftChange: () => undefined,
     onFileReset: () => undefined,
@@ -125,18 +124,6 @@ function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
 }
 
 describe("renderAgents", () => {
-  it("includes the Persona tab", async () => {
-    const container = document.createElement("div");
-    render(renderAgents(createProps()), container);
-    await Promise.resolve();
-
-    const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>(".agent-tab")).map(
-      (button) => button.textContent?.trim(),
-    );
-
-    expect(tabs).toContain("Persona");
-  });
-
   it("shows the skills count only for the selected agent's report", async () => {
     const container = document.createElement("div");
     render(
@@ -190,6 +177,49 @@ describe("renderAgents", () => {
     );
 
     expect(skillsTab?.textContent?.trim()).toContain("1");
+  });
+});
+
+describe("renderPersonaPage", () => {
+  it("renders a focused persona menu page with agent picker", async () => {
+    const container = document.createElement("div");
+    render(
+      renderPersonaPage({
+        loading: false,
+        error: null,
+        agentsList: {
+          defaultId: "alpha",
+          mainKey: "main",
+          scope: "workspace",
+          agents: [{ id: "alpha", name: "Alpha" } as never, { id: "beta", name: "Beta" } as never],
+        },
+        selectedAgentId: "beta",
+        agentIdentityLoading: false,
+        agentIdentityError: null,
+        agentIdentityById: { beta: { agentId: "beta", name: "Beta Prime", avatar: "" } },
+        agentFilesList: null,
+        agentFilesLoading: false,
+        agentFilesError: null,
+        agentFileContents: {},
+        agentFileDrafts: {},
+        agentFileSaving: false,
+        onRefresh: () => undefined,
+        onSelectAgent: () => undefined,
+        onLoadPersonaFiles: () => undefined,
+        onOpenFile: () => undefined,
+        onFileDraftChange: () => undefined,
+        onFileReset: () => undefined,
+        onFileSave: () => undefined,
+        onNavigateAgents: () => undefined,
+      }),
+      container,
+    );
+    await Promise.resolve();
+
+    expect(container.querySelector(".persona-page")).toBeTruthy();
+    expect(container.querySelector<HTMLSelectElement>(".agents-select")?.value).toBe("beta");
+    expect(container.textContent).toContain("Beta Prime");
+    expect(container.textContent).toContain("Persona files not loaded");
   });
 });
 

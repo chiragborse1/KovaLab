@@ -1,6 +1,5 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
-import { PERSONA_WORKSPACE_FILE_NAMES } from "../agent-persona-files.ts";
 import { icons } from "../icons.ts";
 import { pathForTab } from "../navigation.ts";
 import type {
@@ -15,7 +14,6 @@ import type {
   ToolsCatalogResult,
   ToolsEffectiveResult,
 } from "../types.ts";
-import { renderAgentPersona } from "./agents-panel-persona.ts";
 import { renderAgentOverview } from "./agents-panels-overview.ts";
 import {
   renderAgentFiles,
@@ -110,7 +108,6 @@ export type AgentsProps = {
   onSelectAgent: (agentId: string) => void;
   onSelectPanel: (panel: AgentsPanel) => void;
   onLoadFiles: (agentId: string) => void;
-  onLoadPersonaFiles: (agentId: string) => void;
   onSelectFile: (name: string) => void;
   onFileDraftChange: (name: string, content: string) => void;
   onFileReset: (name: string) => void;
@@ -173,14 +170,7 @@ export function renderAgents(props: AgentsProps) {
     selectedId && props.agentFiles.list?.agentId === selectedId
       ? props.agentFiles.list.files.length
       : null;
-  const selectedPersonaFileCount =
-    selectedId && props.agentFiles.list?.agentId === selectedId
-      ? PERSONA_WORKSPACE_FILE_NAMES.filter((name) =>
-          props.agentFiles.list?.files.some((file) => file.name === name && !file.missing),
-        ).length
-      : null;
   const tabCounts: Record<string, number | null> = {
-    persona: selectedPersonaFileCount || null,
     files: props.agentFiles.list?.files?.length ?? null,
     skills: selectedSkillCount,
     channels: channelEntryCount,
@@ -256,25 +246,6 @@ export function renderAgents(props: AgentsProps) {
                     onModelChange: props.onModelChange,
                     onModelFallbacksChange: props.onModelFallbacksChange,
                     onSelectPanel: props.onSelectPanel,
-                  })
-                : nothing}
-              ${props.activePanel === "persona"
-                ? renderAgentPersona({
-                    agentId: selectedAgent.id,
-                    agentFilesList: props.agentFiles.list,
-                    agentFilesLoading: props.agentFiles.loading,
-                    agentFilesError: props.agentFiles.error,
-                    agentFileContents: props.agentFiles.contents,
-                    agentFileDrafts: props.agentFiles.drafts,
-                    agentFileSaving: props.agentFiles.saving,
-                    onLoadPersonaFiles: props.onLoadPersonaFiles,
-                    onOpenFile: (name) => {
-                      props.onSelectFile(name);
-                      props.onSelectPanel("files");
-                    },
-                    onFileDraftChange: props.onFileDraftChange,
-                    onFileReset: props.onFileReset,
-                    onFileSave: props.onFileSave,
                   })
                 : nothing}
               ${props.activePanel === "files"
@@ -654,7 +625,6 @@ function renderAgentTabs(
 ) {
   const tabs: Array<{ id: AgentsPanel; label: string }> = [
     { id: "overview", label: "Overview" },
-    { id: "persona", label: "Persona" },
     { id: "files", label: "Files" },
     { id: "tools", label: "Tools" },
     { id: "skills", label: "Skills" },

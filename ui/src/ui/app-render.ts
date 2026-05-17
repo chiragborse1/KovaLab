@@ -195,6 +195,10 @@ const lazyDreaming = createLazyView(() => import("./views/dreaming.ts"), notifyL
 const lazyInstances = createLazyView(() => import("./views/instances.ts"), notifyLazyViewChanged);
 const lazyLogs = createLazyView(() => import("./views/logs.ts"), notifyLazyViewChanged);
 const lazyNodes = createLazyView(() => import("./views/nodes.ts"), notifyLazyViewChanged);
+const lazyPersona = createLazyView(
+  () => import("./views/agents-panel-persona.ts"),
+  notifyLazyViewChanged,
+);
 const lazySessions = createLazyView(() => import("./views/sessions.ts"), notifyLazyViewChanged);
 const lazySkills = createLazyView(() => import("./views/skills.ts"), notifyLazyViewChanged);
 
@@ -1373,9 +1377,6 @@ export function renderApp(state: AppViewState) {
       case "files":
         void loadAgentFiles(state, agentId);
         return;
-      case "persona":
-        void loadAgentPersonaFiles(state, agentId);
-        return;
       case "skills":
         void loadAgentSkills(state, agentId);
         return;
@@ -2198,18 +2199,12 @@ export function renderApp(state: AppViewState) {
                 onSelectPanel: (panel) => {
                   state.agentsPanel = panel;
                   if (
-                    (panel === "files" || panel === "persona") &&
+                    panel === "files" &&
                     resolvedAgentId &&
                     state.agentFilesList?.agentId !== resolvedAgentId
                   ) {
                     resetAgentFilesState();
-                    if (panel === "persona") {
-                      void loadAgentPersonaFiles(state, resolvedAgentId);
-                    } else {
-                      void loadAgentFiles(state, resolvedAgentId);
-                    }
-                  } else if (panel === "persona" && resolvedAgentId) {
-                    void loadAgentPersonaFiles(state, resolvedAgentId);
+                    void loadAgentFiles(state, resolvedAgentId);
                   }
                   if (panel === "skills" && resolvedAgentId) {
                     void loadAgentSkills(state, resolvedAgentId);
@@ -2242,7 +2237,6 @@ export function renderApp(state: AppViewState) {
                   refreshAgentsPanelSupplementalData(panel);
                 },
                 onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
-                onLoadPersonaFiles: (agentId) => loadAgentPersonaFiles(state, agentId),
                 onSelectFile: (name) => {
                   state.agentFileActive = name;
                   if (!resolvedAgentId) {
@@ -2436,6 +2430,74 @@ export function renderApp(state: AppViewState) {
                     return;
                   }
                   updateConfigFormValue(state, ["agents", "defaultId"], agentId);
+                },
+              }),
+            )
+          : nothing}
+        ${state.tab === "persona"
+          ? renderLazyView(lazyPersona, (m) =>
+              m.renderPersonaPage({
+                loading: state.agentsLoading,
+                error: state.agentsError,
+                agentsList: state.agentsList,
+                selectedAgentId: resolvedAgentId,
+                agentIdentityLoading: state.agentIdentityLoading,
+                agentIdentityError: state.agentIdentityError,
+                agentIdentityById: state.agentIdentityById,
+                agentFilesList: state.agentFilesList,
+                agentFilesLoading: state.agentFilesLoading,
+                agentFilesError: state.agentFilesError,
+                agentFileContents: state.agentFileContents,
+                agentFileDrafts: state.agentFileDrafts,
+                agentFileSaving: state.agentFileSaving,
+                onRefresh: async () => {
+                  await loadAgents(state);
+                  const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
+                  if (agentIds.length > 0) {
+                    void loadAgentIdentities(state, agentIds);
+                  }
+                  const agentId = resolveSelectedAgentId();
+                  if (agentId) {
+                    void loadAgentIdentity(state, agentId);
+                    void loadAgentPersonaFiles(state, agentId);
+                  }
+                },
+                onSelectAgent: (agentId) => {
+                  if (state.agentsSelectedId === agentId) {
+                    return;
+                  }
+                  state.agentsSelectedId = agentId;
+                  resetAgentSelectionPanelState();
+                  void loadAgentIdentity(state, agentId);
+                  void loadAgentPersonaFiles(state, agentId);
+                },
+                onLoadPersonaFiles: (agentId) => loadAgentPersonaFiles(state, agentId),
+                onOpenFile: (name) => {
+                  state.agentFileActive = name;
+                  if (resolvedAgentId) {
+                    void loadAgentFileContent(state, resolvedAgentId, name);
+                  }
+                  state.agentsPanel = "files";
+                  state.setTab("agents" as import("./navigation.ts").Tab);
+                },
+                onFileDraftChange: (name, content) => {
+                  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+                },
+                onFileReset: (name) => {
+                  const base = state.agentFileContents[name] ?? "";
+                  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: base };
+                },
+                onFileSave: (name) => {
+                  if (!resolvedAgentId) {
+                    return;
+                  }
+                  const content =
+                    state.agentFileDrafts[name] ?? state.agentFileContents[name] ?? "";
+                  void saveAgentFile(state, resolvedAgentId, name, content);
+                },
+                onNavigateAgents: () => {
+                  state.agentsPanel = "overview";
+                  state.setTab("agents" as import("./navigation.ts").Tab);
                 },
               }),
             )

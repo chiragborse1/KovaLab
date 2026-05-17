@@ -154,6 +154,7 @@ export const en: TranslationMap = {
   },
   tabs: {
     agents: "Agents",
+    persona: "Persona",
     overview: "Overview",
     controlPanel: "Control Panel",
     channels: "Channels",
@@ -176,6 +177,7 @@ export const en: TranslationMap = {
   },
   subtitles: {
     agents: "Workspaces, tools, identities.",
+    persona: "Identity, voice, and user context.",
     overview: "Status, entry points, health.",
     controlPanel: "Guided setup for model, gateway, agents, channels, and security.",
     channels: "Channels and settings.",

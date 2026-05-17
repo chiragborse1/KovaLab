@@ -31,6 +31,7 @@ describe("iconForTab", () => {
     expect(iconForTab("instances")).toBe("radio");
     expect(iconForTab("sessions")).toBe("fileText");
     expect(iconForTab("cron")).toBe("loader");
+    expect(iconForTab("persona")).toBe("brain");
     expect(iconForTab("skills")).toBe("zap");
     expect(iconForTab("nodes")).toBe("monitor");
     expect(iconForTab("config")).toBe("settings");
@@ -56,6 +57,7 @@ describe("titleForTab", () => {
     expect(titleForTab("chat")).toBe("Chat");
     expect(titleForTab("controlPanel")).toBe("Control Panel");
     expect(titleForTab("cron")).toBe("Cron Jobs");
+    expect(titleForTab("persona")).toBe("Persona");
   });
 });
 
@@ -70,6 +72,7 @@ describe("subtitleForTab", () => {
   it("returns descriptive subtitles", () => {
     expect(subtitleForTab("chat")).toContain("quick interventions");
     expect(subtitleForTab("config")).toContain("kova.json");
+    expect(subtitleForTab("persona")).toContain("Identity");
   });
 });
 
@@ -114,6 +117,7 @@ describe("pathForTab", () => {
   it("returns correct path without base", () => {
     expect(pathForTab("chat")).toBe("/chat");
     expect(pathForTab("controlPanel")).toBe("/control-panel");
+    expect(pathForTab("persona")).toBe("/persona");
   });
 
   it("prepends base path", () => {
@@ -128,6 +132,7 @@ describe("tabFromPath", () => {
     expect(tabFromPath("/overview")).toBe("controlPanel");
     expect(tabFromPath("/control-panel")).toBe("controlPanel");
     expect(tabFromPath("/sessions")).toBe("sessions");
+    expect(tabFromPath("/persona")).toBe("persona");
     expect(tabFromPath("/dreaming")).toBe("dreams");
     expect(tabFromPath("/dreams")).toBe("dreams");
   });

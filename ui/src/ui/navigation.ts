@@ -8,7 +8,7 @@ export const TAB_GROUPS = [
     label: "control",
     tabs: ["instances", "sessions", "usage", "cron"],
   },
-  { label: "agent", tabs: ["agents", "skills", "nodes", "dreams"] },
+  { label: "agent", tabs: ["agents", "persona", "skills", "nodes", "dreams"] },
   {
     label: "settings",
     tabs: ["controlPanel", "config"],
@@ -17,6 +17,7 @@ export const TAB_GROUPS = [
 
 export type Tab =
   | "agents"
+  | "persona"
   | "overview"
   | "controlPanel"
   | "channels"
@@ -39,6 +40,7 @@ export type Tab =
 
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
+  persona: "/persona",
   overview: "/overview",
   controlPanel: "/control-panel",
   channels: "/channels",
@@ -153,6 +155,8 @@ export function iconForTab(tab: Tab): IconName {
   switch (tab) {
     case "agents":
       return "folder";
+    case "persona":
+      return "brain";
     case "chat":
       return "messageSquare";
     case "overview":

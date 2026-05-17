@@ -357,14 +357,8 @@ export class KovaApp extends LitElement {
   @state() toolsEffectiveResultKey: string | null = null;
   @state() toolsEffectiveError: string | null = null;
   @state() toolsEffectiveResult: ToolsEffectiveResult | null = null;
-  @state() agentsPanel:
-    | "overview"
-    | "persona"
-    | "files"
-    | "tools"
-    | "skills"
-    | "channels"
-    | "cron" = "persona";
+  @state() agentsPanel: "overview" | "files" | "tools" | "skills" | "channels" | "cron" =
+    "overview";
   @state() agentFilesLoading = false;
   @state() agentFilesError: string | null = null;
   @state() agentFilesList: AgentsFilesListResult | null = null;

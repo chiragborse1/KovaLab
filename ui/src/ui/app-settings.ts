@@ -97,7 +97,7 @@ type SettingsHost = {
   basePath: string;
   agentsList?: AgentsListResult | null;
   agentsSelectedId?: string | null;
-  agentsPanel?: "overview" | "persona" | "files" | "tools" | "skills" | "channels" | "cron";
+  agentsPanel?: "overview" | "files" | "tools" | "skills" | "channels" | "cron";
   pendingGatewayUrl?: string | null;
   systemThemeCleanup?: (() => void) | null;
   pendingGatewayToken?: string | null;
@@ -327,9 +327,6 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
     case "files":
       void loadAgentFiles(app, agentId);
       return;
-    case "persona":
-      void loadAgentPersonaFiles(app, agentId);
-      return;
     case "skills":
       void loadAgentSkills(app, agentId);
       return;
@@ -344,6 +341,22 @@ async function refreshAgentsTab(host: SettingsHost, app: SettingsAppHost) {
     case undefined:
       return;
   }
+}
+
+async function refreshPersonaTab(host: SettingsHost, app: SettingsAppHost) {
+  await loadAgents(app);
+  await loadConfig(app);
+  const agentIds = host.agentsList?.agents?.map((entry) => entry.id) ?? [];
+  if (agentIds.length > 0) {
+    void loadAgentIdentities(app, agentIds);
+  }
+  const agentId =
+    host.agentsSelectedId ?? host.agentsList?.defaultId ?? host.agentsList?.agents?.[0]?.id;
+  if (!agentId) {
+    return;
+  }
+  void loadAgentIdentity(app, agentId);
+  void loadAgentPersonaFiles(app, agentId);
 }
 
 const SETTINGS_MODEL_CATALOG_RETRY_MS = 3500;
@@ -432,6 +445,9 @@ export async function refreshActiveTab(host: SettingsHost) {
       return;
     case "agents":
       await refreshAgentsTab(host, app);
+      return;
+    case "persona":
+      await refreshPersonaTab(host, app);
       return;
     case "nodes":
       await loadNodes(app);

@@ -5151,6 +5151,43 @@ td.data-table-key-col {
   gap: 16px;
 }
 
+.persona-page {
+  display: grid;
+  gap: 16px;
+}
+
+.persona-page-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.persona-page-agent {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 14px;
+}
+
+.persona-page-title {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.persona-page-title .card-title,
+.persona-page-title .card-sub {
+  overflow-wrap: anywhere;
+}
+
+.persona-page-actions {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .agent-persona-hero,
 .agent-files-hero,
 .agent-files-workspace,
@@ -5288,6 +5325,14 @@ td.data-table-key-col {
   }
 
   .agent-persona-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .persona-page-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .persona-page-actions {
     grid-template-columns: 1fr;
   }
 }
