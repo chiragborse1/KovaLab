@@ -135,6 +135,11 @@ export const createTelegramMessageProcessor = (deps: TelegramMessageProcessorDep
           (options?.ingressBuffer ? ` buffer=${options.ingressBuffer}` : ""),
       );
     }
+    if (context.ctxPayload?.InboundEventKind !== "room_event") {
+      void context.sendTyping().catch((err) => {
+        logVerbose(`telegram early typing cue failed for chat ${context.chatId}: ${String(err)}`);
+      });
+    }
     telegramInboundLog.info(
       formatTelegramInboundLogLine({
         from: context.ctxPayload?.From,

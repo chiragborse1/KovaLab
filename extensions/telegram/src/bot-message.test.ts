@@ -129,6 +129,50 @@ describe("telegram bot message processor", () => {
     );
   });
 
+  it("sends an early typing cue before dispatching non-room events", async () => {
+    const sendTyping = vi.fn().mockResolvedValue(undefined);
+    buildTelegramMessageContext.mockResolvedValue(
+      createMessageContext({
+        sendTyping,
+        ctxPayload: {
+          From: "telegram:123",
+          To: "telegram:123",
+          ChatType: "direct",
+          InboundEventKind: "message",
+          RawBody: "hello there",
+        },
+      }),
+    );
+
+    const processMessage = createTelegramMessageProcessor(baseDeps);
+    await processSampleMessage(processMessage);
+
+    expect(sendTyping).toHaveBeenCalledTimes(1);
+    expect(dispatchTelegramMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not send early typing for room events", async () => {
+    const sendTyping = vi.fn().mockResolvedValue(undefined);
+    buildTelegramMessageContext.mockResolvedValue(
+      createMessageContext({
+        sendTyping,
+        ctxPayload: {
+          From: "telegram:123",
+          To: "telegram:123",
+          ChatType: "direct",
+          InboundEventKind: "room_event",
+          RawBody: "hello there",
+        },
+      }),
+    );
+
+    const processMessage = createTelegramMessageProcessor(baseDeps);
+    await processSampleMessage(processMessage);
+
+    expect(sendTyping).not.toHaveBeenCalled();
+    expect(dispatchTelegramMessage).toHaveBeenCalledTimes(1);
+  });
+
   it("skips dispatch when no context is produced", async () => {
     buildTelegramMessageContext.mockResolvedValue(null);
     const processMessage = createTelegramMessageProcessor(baseDeps);
