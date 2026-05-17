@@ -5214,9 +5214,25 @@ td.data-table-key-col {
   flex-wrap: wrap;
 }
 
+.agent-persona-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.agent-persona-status__actions,
+.agent-persona-empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .agent-persona-load-state {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   justify-items: center;
   padding: 20px;
   color: var(--muted);
@@ -5253,12 +5269,35 @@ td.data-table-key-col {
   background: var(--secondary);
 }
 
+.agent-persona-advanced {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--secondary);
+}
+
 .agent-persona-raw summary {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.agent-persona-advanced summary {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agent-persona-advanced__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 12px 12px;
+  flex-wrap: wrap;
 }
 
 .agent-persona-file-badge {
@@ -5319,7 +5358,13 @@ td.data-table-key-col {
     grid-template-columns: 1fr;
   }
 
+  .agent-persona-status {
+    grid-template-columns: 1fr;
+  }
+
   .agent-persona-hero__actions,
+  .agent-persona-status__actions,
+  .agent-persona-empty-actions,
   .agent-persona-actions {
     justify-content: flex-start;
   }

@@ -21,9 +21,11 @@ import { warnQueryToken } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import {
   cancelAgentFilesRequests,
+  clearAgentPersonaDraft,
   loadAgentFileContent,
   loadAgentFiles,
   loadAgentPersonaFiles,
+  persistAgentPersonaDraft,
   saveAgentFile,
 } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -2246,10 +2248,21 @@ export function renderApp(state: AppViewState) {
                 },
                 onFileDraftChange: (name, content) => {
                   state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+                  if (resolvedAgentId) {
+                    persistAgentPersonaDraft(
+                      resolvedAgentId,
+                      name,
+                      content,
+                      state.agentFileContents[name] ?? "",
+                    );
+                  }
                 },
                 onFileReset: (name) => {
                   const base = state.agentFileContents[name] ?? "";
                   state.agentFileDrafts = { ...state.agentFileDrafts, [name]: base };
+                  if (resolvedAgentId) {
+                    clearAgentPersonaDraft(resolvedAgentId, name);
+                  }
                 },
                 onFileSave: (name) => {
                   if (!resolvedAgentId) {
@@ -2482,10 +2495,21 @@ export function renderApp(state: AppViewState) {
                 },
                 onFileDraftChange: (name, content) => {
                   state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
+                  if (resolvedAgentId) {
+                    persistAgentPersonaDraft(
+                      resolvedAgentId,
+                      name,
+                      content,
+                      state.agentFileContents[name] ?? "",
+                    );
+                  }
                 },
                 onFileReset: (name) => {
                   const base = state.agentFileContents[name] ?? "";
                   state.agentFileDrafts = { ...state.agentFileDrafts, [name]: base };
+                  if (resolvedAgentId) {
+                    clearAgentPersonaDraft(resolvedAgentId, name);
+                  }
                 },
                 onFileSave: (name) => {
                   if (!resolvedAgentId) {
@@ -2494,6 +2518,22 @@ export function renderApp(state: AppViewState) {
                   const content =
                     state.agentFileDrafts[name] ?? state.agentFileContents[name] ?? "";
                   void saveAgentFile(state, resolvedAgentId, name, content);
+                },
+                onCreateDefaultFiles: (agentId, files) => {
+                  if (files.length === 0) {
+                    return;
+                  }
+                  void (async () => {
+                    for (const file of files) {
+                      await saveAgentFile(state, agentId, file.name, file.content);
+                      clearAgentPersonaDraft(agentId, file.name);
+                    }
+                    await loadAgentPersonaFiles(state, agentId);
+                  })();
+                },
+                onContinueBootstrap: (agentId) => {
+                  switchChatSession(state, buildAgentMainSessionKey({ agentId }));
+                  state.setTab("chat" as import("./navigation.ts").Tab);
                 },
                 onNavigateAgents: () => {
                   state.agentsPanel = "overview";

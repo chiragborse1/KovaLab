@@ -1,4 +1,8 @@
-import { PERSONA_WORKSPACE_FILE_NAMES } from "../agent-persona-files.ts";
+import { getSafeLocalStorage } from "../../local-storage.ts";
+import {
+  isPersonaWorkspaceFileName,
+  PERSONA_WORKSPACE_FILE_NAMES,
+} from "../agent-persona-files.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type {
   AgentFileEntry,
@@ -19,6 +23,76 @@ export type AgentFilesState = {
   agentFileActive: string | null;
   agentFileSaving: boolean;
 };
+
+const PERSONA_DRAFT_STORAGE_PREFIX = "kova:persona-draft:v1";
+
+function personaDraftStorageKey(agentId: string, name: string) {
+  return `${PERSONA_DRAFT_STORAGE_PREFIX}:${encodeURIComponent(agentId)}:${encodeURIComponent(name)}`;
+}
+
+function readAgentPersonaDraft(agentId: string, name: string): string | null {
+  if (!isPersonaWorkspaceFileName(name)) {
+    return null;
+  }
+  try {
+    return getSafeLocalStorage()?.getItem(personaDraftStorageKey(agentId, name)) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function persistAgentPersonaDraft(
+  agentId: string,
+  name: string,
+  content: string,
+  base: string,
+) {
+  if (!isPersonaWorkspaceFileName(name)) {
+    return;
+  }
+  const storage = getSafeLocalStorage();
+  if (!storage) {
+    return;
+  }
+  const key = personaDraftStorageKey(agentId, name);
+  try {
+    if (content === base) {
+      storage.removeItem(key);
+      return;
+    }
+    storage.setItem(key, content);
+  } catch {
+    // Autosave is best-effort; editing and explicit save still work without localStorage.
+  }
+}
+
+export function clearAgentPersonaDraft(agentId: string, name: string) {
+  if (!isPersonaWorkspaceFileName(name)) {
+    return;
+  }
+  try {
+    getSafeLocalStorage()?.removeItem(personaDraftStorageKey(agentId, name));
+  } catch {
+    // Best-effort cleanup.
+  }
+}
+
+function applyStoredPersonaDraft(
+  state: AgentFilesState,
+  agentId: string,
+  name: string,
+  base: string,
+) {
+  const storedDraft = readAgentPersonaDraft(agentId, name);
+  if (storedDraft == null) {
+    return;
+  }
+  if (storedDraft === base) {
+    clearAgentPersonaDraft(agentId, name);
+    return;
+  }
+  state.agentFileDrafts = { ...state.agentFileDrafts, [name]: storedDraft };
+}
 
 function mergeFileEntry(
   list: AgentsFilesListResult | null,
@@ -126,6 +200,7 @@ export async function loadAgentFileContent(
       applyLoadedFileContent(state, res.file, content, {
         preserveDraft: opts?.preserveDraft ?? true,
       });
+      applyStoredPersonaDraft(state, agentId, name, content);
     }
   } catch (err) {
     if (state.agentFilesRequestVersion === requestVersion) {
@@ -177,7 +252,9 @@ export async function loadAgentPersonaFiles(state: AgentFilesState, agentId: str
       ) {
         return;
       }
-      applyLoadedFileContent(state, res.file, res.file.content ?? "");
+      const content = res.file.content ?? "";
+      applyLoadedFileContent(state, res.file, content);
+      applyStoredPersonaDraft(state, agentId, name, content);
     }
   } catch (err) {
     if (state.agentFilesRequestVersion === requestVersion) {
@@ -217,6 +294,7 @@ export async function saveAgentFile(
         state.agentFileContents = { ...state.agentFileContents, [name]: content };
         state.agentFileDrafts = { ...state.agentFileDrafts, [name]: content };
       }
+      clearAgentPersonaDraft(agentId, name);
     }
   } catch (err) {
     state.agentFilesError = String(err);

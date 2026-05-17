@@ -7,9 +7,11 @@ import type {
 } from "../types.ts";
 import {
   cancelAgentFilesRequests,
+  clearAgentPersonaDraft,
   loadAgentFiles,
   loadAgentFileContent,
   loadAgentPersonaFiles,
+  persistAgentPersonaDraft,
   saveAgentFile,
   type AgentFilesState,
 } from "./agent-files.ts";
@@ -242,5 +244,61 @@ describe("agent file controller", () => {
     });
     expect(state.agentFileDrafts).toMatchObject(state.agentFileContents);
     expect(state.agentFilesLoading).toBe(false);
+  });
+
+  it("restores locally saved persona drafts after workspace files load", async () => {
+    const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const storageValues = new Map<string, string>();
+    const storage: Storage = {
+      get length() {
+        return storageValues.size;
+      },
+      clear() {
+        storageValues.clear();
+      },
+      getItem(key: string) {
+        return storageValues.get(key) ?? null;
+      },
+      key(index: number) {
+        return [...storageValues.keys()][index] ?? null;
+      },
+      removeItem(key: string) {
+        storageValues.delete(key);
+      },
+      setItem(key: string, value: string) {
+        storageValues.set(key, value);
+      },
+    };
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: storage,
+    });
+    persistAgentPersonaDraft("main", "SOUL.md", "unsaved local behavior", "SOUL.md content");
+    const request: GatewayBrowserClient["request"] = async <T = unknown>(
+      method: string,
+      params?: unknown,
+    ): Promise<T> => {
+      const requestParams = params as { agentId?: string; name?: string };
+      if (method === "agents.files.list") {
+        return listResult("main", ["IDENTITY.md", "SOUL.md", "USER.md"]) as T;
+      }
+      return fileResult("main", `${requestParams.name} content`, requestParams.name) as T;
+    };
+    const state = createState(request);
+
+    try {
+      await loadAgentPersonaFiles(state, "main");
+
+      expect(state.agentFileContents["SOUL.md"]).toBe("SOUL.md content");
+      expect(state.agentFileDrafts["SOUL.md"]).toBe("unsaved local behavior");
+      expect(state.agentFileDrafts["IDENTITY.md"]).toBe("IDENTITY.md content");
+    } finally {
+      clearAgentPersonaDraft("main", "SOUL.md");
+      if (previousStorage) {
+        Object.defineProperty(globalThis, "localStorage", previousStorage);
+      } else {
+        delete (globalThis as { localStorage?: Storage }).localStorage;
+      }
+    }
   });
 });

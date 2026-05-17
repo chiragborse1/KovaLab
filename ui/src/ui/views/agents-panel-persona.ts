@@ -20,6 +20,11 @@ const IDENTITY_FILE = "IDENTITY.md";
 const SOUL_FILE = "SOUL.md";
 const USER_FILE = "USER.md";
 
+export type PersonaDefaultFile = {
+  name: string;
+  content: string;
+};
+
 const IDENTITY_FIELDS = [
   {
     label: "Name",
@@ -42,6 +47,31 @@ const IDENTITY_FIELDS = [
     placeholder: "avatars/kova.png or https://...",
   },
 ] as const;
+
+const DEFAULT_SOUL_DRAFT = [
+  "How this agent should work",
+  "",
+  "- Be clear, practical, and direct.",
+  "- Ask when a preference or requirement is missing.",
+  "- Keep the user's workflow moving without adding noise.",
+  "",
+  "Boundaries",
+  "",
+  "- Do not invent facts.",
+  "- Explain risks before making broad changes.",
+  "",
+].join("\n");
+
+const DEFAULT_USER_DRAFT = [
+  "Stable preferences",
+  "",
+  "- Add names, timezone, working style, and long-term preferences here.",
+  "",
+  "Project context",
+  "",
+  "- Add durable context this agent should remember across new runs.",
+  "",
+].join("\n");
 
 type PersonaFileState = {
   entry: AgentFileEntry | null;
@@ -136,11 +166,34 @@ function renderPersonaFileBadge(label: string, state: PersonaFileState) {
   `;
 }
 
+function renderPersonaAdvancedFileDetails(params: {
+  fileName: string;
+  state: PersonaFileState;
+  onOpenFile: (name: string) => void;
+}) {
+  return html`
+    <details class="agent-persona-advanced">
+      <summary>Advanced</summary>
+      <div class="agent-persona-advanced__body">
+        ${renderPersonaFileBadge(params.fileName, params.state)}
+        <button
+          type="button"
+          class="btn btn--sm btn--ghost"
+          @click=${() => params.onOpenFile(params.fileName)}
+        >
+          ${icons.fileText} Open File
+        </button>
+      </div>
+    </details>
+  `;
+}
+
 function renderPersonaEditor(params: {
   title: string;
   eyebrow: string;
   description: string;
   fileName: string;
+  fieldLabel: string;
   state: PersonaFileState;
   placeholder: string;
   loading: boolean;
@@ -158,13 +211,12 @@ function renderPersonaEditor(params: {
           <div class="card-title">${params.title}</div>
           <div class="card-sub">${params.description}</div>
         </div>
-        ${renderPersonaFileBadge(params.fileName, params.state)}
       </div>
       ${params.state.entry?.missing
         ? html`<div class="callout info">Saving creates ${params.fileName} in this workspace.</div>`
         : nothing}
       <label class="field agent-persona-markdown-field">
-        <span>${params.fileName}</span>
+        <span>${params.fieldLabel}</span>
         <textarea
           class="agent-persona-textarea"
           .value=${params.state.loaded ? params.state.draft : ""}
@@ -174,14 +226,12 @@ function renderPersonaEditor(params: {
             params.onDraftChange(params.fileName, (e.target as HTMLTextAreaElement).value)}
         ></textarea>
       </label>
+      ${renderPersonaAdvancedFileDetails({
+        fileName: params.fileName,
+        state: params.state,
+        onOpenFile: params.onOpenFile,
+      })}
       <div class="agent-persona-actions">
-        <button
-          type="button"
-          class="btn btn--sm btn--ghost"
-          @click=${() => params.onOpenFile(params.fileName)}
-        >
-          ${icons.fileText} Open File
-        </button>
         <button
           type="button"
           class="btn btn--sm"
@@ -237,6 +287,63 @@ function renderPersonaAgentAvatar(params: {
   `;
 }
 
+function buildMissingDefaultPersonaFiles(states: {
+  identity: PersonaFileState;
+  soul: PersonaFileState;
+  user: PersonaFileState;
+}): PersonaDefaultFile[] {
+  const candidates = [
+    {
+      name: IDENTITY_FILE,
+      content: ensureIdentityDraft(""),
+      state: states.identity,
+    },
+    {
+      name: SOUL_FILE,
+      content: DEFAULT_SOUL_DRAFT,
+      state: states.soul,
+    },
+    {
+      name: USER_FILE,
+      content: DEFAULT_USER_DRAFT,
+      state: states.user,
+    },
+  ];
+  return candidates
+    .filter((candidate) => !candidate.state.loaded || candidate.state.entry?.missing)
+    .map(({ name, content }) => ({ name, content }));
+}
+
+function renderPersonaStatus(params: {
+  bootstrapPending: boolean;
+  bootstrapLabel: string;
+  onContinueBootstrap: () => void;
+}) {
+  return html`
+    <section class="card agent-persona-status">
+      <div>
+        <div class="agents-eyebrow">Runtime impact</div>
+        <div class="card-title">Used in new agent runs after save.</div>
+        <div class="card-sub">
+          Current chats may keep their existing context until the next run or reload.
+        </div>
+      </div>
+      <div class="agent-persona-status__actions">
+        <span class="agent-pill ${params.bootstrapPending ? "warn" : ""}">
+          ${params.bootstrapLabel}
+        </span>
+        ${params.bootstrapPending
+          ? html`
+              <button type="button" class="btn btn--sm" @click=${params.onContinueBootstrap}>
+                Continue Bootstrap In Chat
+              </button>
+            `
+          : nothing}
+      </div>
+    </section>
+  `;
+}
+
 export function renderPersonaPage(params: {
   loading: boolean;
   error: string | null;
@@ -258,6 +365,8 @@ export function renderPersonaPage(params: {
   onFileDraftChange: (name: string, content: string) => void;
   onFileReset: (name: string) => void;
   onFileSave: (name: string) => void;
+  onCreateDefaultFiles: (agentId: string, files: PersonaDefaultFile[]) => void;
+  onContinueBootstrap: (agentId: string) => void;
   onNavigateAgents: () => void;
 }) {
   const agents = params.agentsList?.agents ?? [];
@@ -359,6 +468,8 @@ export function renderPersonaPage(params: {
             onFileDraftChange: params.onFileDraftChange,
             onFileReset: params.onFileReset,
             onFileSave: params.onFileSave,
+            onCreateDefaultFiles: params.onCreateDefaultFiles,
+            onContinueBootstrap: params.onContinueBootstrap,
           })}
     </div>
   `;
@@ -378,6 +489,8 @@ export function renderAgentPersona(params: {
   onFileDraftChange: (name: string, content: string) => void;
   onFileReset: (name: string) => void;
   onFileSave: (name: string) => void;
+  onCreateDefaultFiles: (agentId: string, files: PersonaDefaultFile[]) => void;
+  onContinueBootstrap: (agentId: string) => void;
 }) {
   const list = params.agentFilesList?.agentId === params.agentId ? params.agentFilesList : null;
   const identity = resolvePersonaFileState(
@@ -409,6 +522,7 @@ export function renderAgentPersona(params: {
       ? "bootstrap pending"
       : "bootstrap complete";
   const allLoaded = loadedCount === PERSONA_WORKSPACE_FILE_NAMES.length;
+  const defaultFiles = buildMissingDefaultPersonaFiles({ identity, soul, user });
 
   return html`
     <section class="agent-persona-console">
@@ -453,6 +567,11 @@ export function renderAgentPersona(params: {
       ${params.agentFilesError
         ? html`<div class="callout danger">${params.agentFilesError}</div>`
         : nothing}
+      ${renderPersonaStatus({
+        bootstrapPending,
+        bootstrapLabel,
+        onContinueBootstrap: () => params.onContinueBootstrap(params.agentId),
+      })}
       ${!allLoaded
         ? html`
             <section class="card agent-persona-load-state">
@@ -464,6 +583,26 @@ export function renderAgentPersona(params: {
               <span
                 >${loadedCount}/${PERSONA_WORKSPACE_FILE_NAMES.length} persona files loaded.</span
               >
+              <div class="agent-persona-empty-actions">
+                <button
+                  type="button"
+                  class="btn btn--sm primary"
+                  ?disabled=${params.agentFilesLoading ||
+                  params.agentFileSaving ||
+                  defaultFiles.length === 0}
+                  @click=${() => params.onCreateDefaultFiles(params.agentId, defaultFiles)}
+                >
+                  Create default persona files
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--sm"
+                  ?disabled=${params.agentFilesLoading}
+                  @click=${() => params.onLoadPersonaFiles(params.agentId)}
+                >
+                  ${params.agentFilesLoading ? t("common.loading") : "Load Persona"}
+                </button>
+              </div>
             </section>
           `
         : nothing}
@@ -474,10 +613,9 @@ export function renderAgentPersona(params: {
                 <div class="agent-system-card__head">
                   <div>
                     <div class="agents-eyebrow">Identity</div>
-                    <div class="card-title">Agent Basics</div>
-                    <div class="card-sub">These values mirror the bootstrap identity fields.</div>
+                    <div class="card-title">Identity</div>
+                    <div class="card-sub">Name, avatar, and basic presentation.</div>
                   </div>
-                  ${renderPersonaFileBadge(IDENTITY_FILE, identity)}
                 </div>
                 ${identity.entry?.missing
                   ? html`<div class="callout info">
@@ -511,6 +649,16 @@ export function renderAgentPersona(params: {
                 </div>
                 <details class="agent-persona-raw">
                   <summary>Raw identity markdown</summary>
+                  <div class="agent-persona-advanced__body">
+                    ${renderPersonaFileBadge(IDENTITY_FILE, identity)}
+                    <button
+                      type="button"
+                      class="btn btn--sm btn--ghost"
+                      @click=${() => params.onOpenFile(IDENTITY_FILE)}
+                    >
+                      ${icons.fileText} Open File
+                    </button>
+                  </div>
                   <textarea
                     class="agent-persona-textarea agent-persona-textarea--compact"
                     .value=${identity.loaded ? identity.draft : ""}
@@ -523,13 +671,6 @@ export function renderAgentPersona(params: {
                   ></textarea>
                 </details>
                 <div class="agent-persona-actions">
-                  <button
-                    type="button"
-                    class="btn btn--sm btn--ghost"
-                    @click=${() => params.onOpenFile(IDENTITY_FILE)}
-                  >
-                    ${icons.fileText} Open File
-                  </button>
                   <button
                     type="button"
                     class="btn btn--sm"
@@ -549,11 +690,11 @@ export function renderAgentPersona(params: {
                 </div>
               </article>
               ${renderPersonaEditor({
-                title: "Voice And Boundaries",
-                eyebrow: "Soul",
-                description:
-                  "Tone, principles, behavior boundaries, and long-term operating style.",
+                title: "Behavior",
+                eyebrow: "Behavior",
+                description: "Tone, principles, boundaries, and long-term operating style.",
                 fileName: SOUL_FILE,
+                fieldLabel: "Behavior notes",
                 state: soul,
                 placeholder: "Describe how this agent should speak, decide, and behave.",
                 loading: params.agentFilesLoading,
@@ -564,10 +705,11 @@ export function renderAgentPersona(params: {
                 onOpenFile: params.onOpenFile,
               })}
               ${renderPersonaEditor({
-                title: "User Context",
-                eyebrow: "User",
-                description: "Preferred name, timezone, working style, and persistent user notes.",
+                title: "About You",
+                eyebrow: "About You",
+                description: "Persistent user preferences and context for future runs.",
                 fileName: USER_FILE,
+                fieldLabel: "About you notes",
                 state: user,
                 placeholder: "Capture stable user preferences and context.",
                 loading: params.agentFilesLoading,

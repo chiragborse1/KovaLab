@@ -210,6 +210,8 @@ describe("renderPersonaPage", () => {
         onFileDraftChange: () => undefined,
         onFileReset: () => undefined,
         onFileSave: () => undefined,
+        onCreateDefaultFiles: () => undefined,
+        onContinueBootstrap: () => undefined,
         onNavigateAgents: () => undefined,
       }),
       container,
@@ -220,6 +222,7 @@ describe("renderPersonaPage", () => {
     expect(container.querySelector<HTMLSelectElement>(".agents-select")?.value).toBe("beta");
     expect(container.textContent).toContain("Beta Prime");
     expect(container.textContent).toContain("Persona files not loaded");
+    expect(container.textContent).toContain("Create default persona files");
   });
 });
 
@@ -267,6 +270,8 @@ describe("renderAgentPersona", () => {
         onFileDraftChange: () => undefined,
         onFileReset: () => undefined,
         onFileSave: () => undefined,
+        onCreateDefaultFiles: () => undefined,
+        onContinueBootstrap: () => undefined,
       }),
       container,
     );
@@ -276,9 +281,46 @@ describe("renderAgentPersona", () => {
     );
 
     expect(nameInput?.value).toBe("Nova");
-    expect(container.textContent).toContain("Voice And Boundaries");
-    expect(container.textContent).toContain("User Context");
+    expect(container.textContent).toContain("Behavior");
+    expect(container.textContent).toContain("About You");
+    expect(container.textContent).toContain("Used in new agent runs after save.");
     expect(container.textContent).toContain("bootstrap complete");
+  });
+
+  it("requests default persona files from the empty state", () => {
+    const container = document.createElement("div");
+    let requestedFiles: Array<{ name: string; content: string }> = [];
+
+    render(
+      renderAgentPersona({
+        agentId: "alpha",
+        agentFilesList: null,
+        agentFilesLoading: false,
+        agentFilesError: null,
+        agentFileContents: {},
+        agentFileDrafts: {},
+        agentFileSaving: false,
+        onLoadPersonaFiles: () => undefined,
+        onOpenFile: () => undefined,
+        onFileDraftChange: () => undefined,
+        onFileReset: () => undefined,
+        onFileSave: () => undefined,
+        onCreateDefaultFiles: (_agentId, files) => {
+          requestedFiles = files;
+        },
+        onContinueBootstrap: () => undefined,
+      }),
+      container,
+    );
+
+    const createButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent?.includes("Create default persona files"),
+    );
+    createButton?.click();
+
+    expect(requestedFiles.map((file) => file.name)).toEqual(["IDENTITY.md", "SOUL.md", "USER.md"]);
+    expect(requestedFiles[1]?.content).toContain("How this agent should work");
+    expect(requestedFiles[2]?.content).toContain("Stable preferences");
   });
 });
 
