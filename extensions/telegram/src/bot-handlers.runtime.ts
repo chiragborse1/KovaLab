@@ -31,7 +31,10 @@ import { resolveAgentRoute } from "getkova/plugin-sdk/routing";
 import { resolveThreadSessionKeys } from "getkova/plugin-sdk/routing";
 import { danger, logVerbose, warn } from "getkova/plugin-sdk/runtime-env";
 import { resolveTelegramMediaRuntimeOptions } from "./accounts.js";
-import { withTelegramApiErrorLogging } from "./api-logging.js";
+import {
+  isExpiredTelegramCallbackQueryAckError,
+  withTelegramApiErrorLogging,
+} from "./api-logging.js";
 import {
   isSenderAllowed,
   normalizeDmAllowFromWithStore,
@@ -1428,6 +1431,7 @@ export const registerTelegramHandlers = ({
     await withTelegramApiErrorLogging({
       operation: "answerCallbackQuery",
       runtime,
+      shouldLog: (err) => !isExpiredTelegramCallbackQueryAckError(err),
       fn: answerCallbackQuery,
     }).catch(() => {});
     try {
