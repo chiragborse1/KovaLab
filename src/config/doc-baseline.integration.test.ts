@@ -50,7 +50,7 @@ describe("config doc baseline integration", () => {
       kind: "channel",
       sensitive: true,
     });
-    expect(byPath.get("plugins.entries.voice-call.config.twilio.authToken")).toMatchObject({
+    expect(byPath.get("plugins.entries.brave.config.webSearch.apiKey")).toMatchObject({
       kind: "plugin",
       sensitive: true,
     });
