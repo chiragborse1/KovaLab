@@ -168,7 +168,6 @@ const DEFAULT_VOID_HOOK_TIMEOUT_MS_BY_HOOK: Partial<Record<PluginHookName, numbe
 };
 
 const DEFAULT_MODIFYING_HOOK_TIMEOUT_MS_BY_HOOK: Partial<Record<PluginHookName, number>> = {
-  before_agent_run: 15_000,
   before_agent_start: 15_000,
   before_prompt_build: 15_000,
 };
@@ -238,10 +237,7 @@ export function createHookRunner(
 ) {
   const logger = options.logger;
   const catchErrors = options.catchErrors ?? true;
-  const failurePolicyByHook = {
-    before_agent_run: "fail-closed",
-    ...options.failurePolicyByHook,
-  } satisfies Partial<Record<PluginHookName, HookFailurePolicy>>;
+  const failurePolicyByHook = options.failurePolicyByHook ?? {};
   const voidHookTimeoutMsByHook = {
     ...DEFAULT_VOID_HOOK_TIMEOUT_MS_BY_HOOK,
     ...options.voidHookTimeoutMsByHook,

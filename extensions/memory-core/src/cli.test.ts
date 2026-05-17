@@ -1528,13 +1528,17 @@ describe("memory cli", () => {
 
   it("prints conceptual promotion signals", async () => {
     await withTempWorkspace(async (workspaceDir) => {
+      const dayMs = 24 * 60 * 60 * 1000;
+      const recentMs = Date.now() - dayMs;
+      const earlierMs = recentMs - dayMs;
+      const recallDay = new Date(earlierMs).toISOString().slice(0, 10);
       await recordShortTermRecalls({
         workspaceDir,
         query: "router vlan",
-        nowMs: Date.parse("2026-04-01T00:00:00.000Z"),
+        nowMs: earlierMs,
         results: [
           {
-            path: "memory/2026-04-01.md",
+            path: `memory/${recallDay}.md`,
             startLine: 4,
             endLine: 8,
             score: 0.9,
@@ -1546,10 +1550,10 @@ describe("memory cli", () => {
       await recordShortTermRecalls({
         workspaceDir,
         query: "glacier backup",
-        nowMs: Date.parse("2026-04-03T00:00:00.000Z"),
+        nowMs: recentMs,
         results: [
           {
-            path: "memory/2026-04-01.md",
+            path: `memory/${recallDay}.md`,
             startLine: 4,
             endLine: 8,
             score: 0.88,
