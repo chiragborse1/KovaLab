@@ -92,7 +92,7 @@ function renderAgentContextCard(
 ) {
   return html`
     <section class="card agent-context-matrix">
-      <div class="agents-eyebrow">Agent context</div>
+      <div class="agents-eyebrow">Context</div>
       <div class="card-title">${context.identityName}</div>
       <div class="card-sub">${subtitle}</div>
       <div class="agent-context-matrix__grid">
@@ -226,9 +226,9 @@ export function renderAgentChannels(params: {
       <section class="card agent-channel-command">
         <div class="agent-system-card__head">
           <div>
-            <div class="agents-eyebrow">Channel routing matrix</div>
+            <div class="agents-eyebrow">Channels</div>
             <div class="card-title">Channels</div>
-            <div class="card-sub">Gateway-wide channel status snapshot for this agent context.</div>
+            <div class="card-sub">Gateway channel status for this agent context.</div>
           </div>
           <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
             ${params.loading ? t("common.refreshing") : t("common.refresh")}
@@ -321,9 +321,9 @@ export function renderAgentCron(params: {
         <section class="card agent-cron-scheduler">
           <div class="agent-system-card__head">
             <div>
-              <div class="agents-eyebrow">Scheduler pulse</div>
+              <div class="agents-eyebrow">Scheduler</div>
               <div class="card-title">Scheduler</div>
-              <div class="card-sub">Gateway cron status and next wake for this agent fleet.</div>
+              <div class="card-sub">Gateway cron status and next wake for this agent.</div>
             </div>
             <button class="btn btn--sm" ?disabled=${params.loading} @click=${params.onRefresh}>
               ${params.loading ? t("common.refreshing") : t("common.refresh")}
@@ -455,9 +455,9 @@ export function renderAgentFiles(params: {
     <section class="agent-files-console">
       <section class="card agent-files-hero">
         <div>
-          <div class="agents-eyebrow">Workspace blackbox</div>
-          <div class="card-title">Core Files</div>
-          <div class="card-sub">Bootstrap persona, identity, user profile, and tool guidance.</div>
+          <div class="agents-eyebrow">Workspace</div>
+          <div class="card-title">Files</div>
+          <div class="card-sub">Edit agent workspace instructions and profile files.</div>
         </div>
         <div class="agent-file-actions">
           <button

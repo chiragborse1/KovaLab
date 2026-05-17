@@ -4363,20 +4363,12 @@ td.data-table-key-col {
 .agents-command-deck {
   position: relative;
   display: grid;
-  gap: 16px;
+  gap: 14px;
   overflow: hidden;
 }
 
 .agents-command-deck::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent 0, transparent 23px, var(--grid-line) 24px),
-    linear-gradient(180deg, transparent 0, transparent 23px, var(--grid-line) 24px);
-  background-size: 24px 24px;
-  opacity: 0.55;
+  content: none;
 }
 
 .agents-command-deck > * {
@@ -4393,7 +4385,7 @@ td.data-table-key-col {
 .agents-command-deck__identity {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -4406,9 +4398,9 @@ td.data-table-key-col {
 .agents-command-deck__copy h2 {
   margin: 0;
   color: var(--text-strong);
-  font-size: clamp(24px, 3vw, 36px);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
 .agents-command-deck__copy p {
@@ -4466,17 +4458,17 @@ td.data-table-key-col {
 .agents-command-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .agents-command-metric {
   display: grid;
   gap: 4px;
   min-width: 0;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--secondary) 86%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
 }
 
 .agents-command-metric span,
@@ -4493,7 +4485,7 @@ td.data-table-key-col {
 .agents-command-metric strong {
   overflow: hidden;
   color: var(--text-strong);
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4625,7 +4617,7 @@ td.data-table-key-col {
   width: 100%;
   text-align: left;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--card);
   padding: 8px 12px;
   cursor: pointer;
@@ -4638,32 +4630,8 @@ td.data-table-key-col {
 
 .agent-row.active {
   border-color: var(--accent);
-  box-shadow: var(--focus-ring);
-}
-
-.agent-row--deck {
-  position: relative;
-  overflow: hidden;
-  padding: 12px;
-  background:
-    linear-gradient(135deg, hsl(var(--agent-hue, 30) 90% 48% / 0.11), transparent 34%), var(--card);
-}
-
-.agent-row--deck::after {
-  content: "";
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 54px;
-  height: 54px;
-  border: 1px solid hsl(var(--agent-hue, 30) 90% 58% / 0.22);
-  border-radius: var(--radius-full);
-  opacity: 0.65;
-  pointer-events: none;
-}
-
-.agent-row--deck.active::after {
-  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  background: var(--accent-subtle);
+  box-shadow: none;
 }
 
 .agent-row__meta {
@@ -4677,6 +4645,7 @@ td.data-table-key-col {
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  border: 1px solid var(--border);
   background: var(--secondary);
   display: grid;
   place-items: center;
@@ -4690,9 +4659,9 @@ td.data-table-key-col {
 }
 
 .agent-avatar--lg {
-  width: 72px;
-  height: 72px;
-  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
 }
 
 .agent-avatar--reactor {
@@ -4974,12 +4943,11 @@ td.data-table-key-col {
   gap: 16px;
 }
 
-.agent-overview-hero {
+.agent-overview-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
-  gap: 18px;
+  gap: 16px;
   align-items: stretch;
-  overflow: hidden;
 }
 
 .agent-overview-hero__main {
@@ -4992,9 +4960,9 @@ td.data-table-key-col {
 .agent-overview-hero__main h3 {
   margin: 0;
   color: var(--text-strong);
-  font-size: clamp(24px, 4vw, 44px);
-  line-height: 0.98;
-  letter-spacing: -0.05em;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
 .agent-overview-hero__main p {
@@ -5015,10 +4983,10 @@ td.data-table-key-col {
   display: grid;
   gap: 4px;
   min-width: 0;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--secondary) 86%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
 }
 
 .agent-overview-metric span,
@@ -5038,7 +5006,7 @@ td.data-table-key-col {
 .agent-skills-metric strong {
   overflow: hidden;
   color: var(--text-strong);
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5065,18 +5033,15 @@ td.data-table-key-col {
   gap: 16px;
 }
 
-.agent-workspace-orbit {
-  display: grid;
-  place-items: center;
-  min-height: 150px;
-  padding: 18px;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border) 72%);
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(circle at 50% 50%, var(--accent-subtle), transparent 58%),
-    color-mix(in srgb, var(--secondary) 82%, transparent);
+.agent-workspace-path {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
   color: var(--text-strong);
-  text-align: center;
+  text-align: left;
   word-break: break-all;
   cursor: pointer;
 }
@@ -5106,8 +5071,55 @@ td.data-table-key-col {
   gap: 12px;
 }
 
-.agent-chip-input--runway {
+.agent-chip-input--fallbacks {
   min-height: 44px;
+}
+
+@media (max-width: 1180px) {
+  .agents-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .agent-overview-summary,
+  .agent-overview-systems,
+  .agent-channels-console,
+  .agent-cron-topology,
+  .agent-model-control-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .agents-command-deck__hero,
+  .agents-roster__header,
+  .agent-system-card__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .agents-command-deck__actions {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .agents-command-deck__actions .agents-control-select {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .agents-command-grid,
+  .agent-overview-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .agent-row__meta {
+    grid-column: 2;
+    justify-items: start;
+  }
 }
 
 .agent-context-matrix {
@@ -5592,11 +5604,6 @@ td.data-table-key-col {
 
 .field textarea.agent-file-textarea {
   min-height: clamp(320px, 56vh, 720px);
-  transition: filter var(--duration-fast) ease;
-}
-
-.field textarea.agent-file-textarea:not(:focus) {
-  filter: blur(6px);
 }
 
 .agent-file-header {

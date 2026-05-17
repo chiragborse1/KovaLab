@@ -101,16 +101,16 @@ export function renderAgentOverview(params: {
 
   return html`
     <section class="agent-overview-console">
-      <div class="agent-overview-hero card">
+      <div class="agent-overview-summary card">
         <div class="agent-overview-hero__main">
-          <div class="agents-eyebrow">Runtime identity</div>
+          <div class="agents-eyebrow">Overview</div>
           <h3>${params.agentIdentity?.name ?? normalizeAgentLabel(agent)}</h3>
           <p>
             ${params.agentIdentityLoading
               ? "Resolving runtime identity…"
               : params.agentIdentityError
                 ? params.agentIdentityError
-                : "This is the active personality, model chain, workspace, and skill surface for the selected agent."}
+                : "Identity, model, workspace, and skill configuration for the selected agent."}
           </p>
         </div>
         <div class="agent-overview-status-grid">
@@ -133,8 +133,8 @@ export function renderAgentOverview(params: {
         <section class="card agent-system-card agent-system-card--workspace">
           <div class="agent-system-card__head">
             <div>
-              <div class="card-title">Workspace Core</div>
-              <div class="card-sub">Files, memory instructions, and local operating context.</div>
+              <div class="card-title">Workspace</div>
+              <div class="card-sub">Files, identity, user profile, and local context.</div>
             </div>
             <button class="btn btn--sm" type="button" @click=${() => onSelectPanel("files")}>
               Open Files
@@ -142,7 +142,7 @@ export function renderAgentOverview(params: {
           </div>
           <button
             type="button"
-            class="agent-workspace-orbit mono"
+            class="agent-workspace-path mono"
             @click=${() => onSelectPanel("files")}
             title="Open Files tab"
           >
@@ -159,8 +159,8 @@ export function renderAgentOverview(params: {
         <section class="card agent-system-card agent-system-card--model">
           <div class="agent-system-card__head">
             <div>
-              <div class="card-title">Model Chain</div>
-              <div class="card-sub">Primary model and fallback runway for this agent.</div>
+              <div class="card-title">Model</div>
+              <div class="card-sub">Primary model and fallback order for this agent.</div>
             </div>
             <div class="agent-model-actions">
               <button
@@ -203,9 +203,9 @@ export function renderAgentOverview(params: {
               </select>
             </label>
             <div class="field">
-              <span>Fallback runway</span>
+              <span>Fallbacks</span>
               <div
-                class="agent-chip-input agent-chip-input--runway"
+                class="agent-chip-input agent-chip-input--fallbacks"
                 @click=${(e: Event) => {
                   const container = e.currentTarget as HTMLElement;
                   const input = container.querySelector("input");

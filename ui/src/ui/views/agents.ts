@@ -394,7 +394,7 @@ function resolveAgentInitials(label: string, fallback: string): string {
 function renderAgentAvatar(view: AgentView, size: "sm" | "lg" = "sm") {
   return html`
     <span
-      class="agent-avatar agent-avatar--${size} agent-avatar--reactor"
+      class="agent-avatar agent-avatar--${size}"
       style=${`--agent-hue: ${view.hue};`}
       aria-hidden="true"
     >
@@ -446,7 +446,7 @@ function renderAgentsCommandDeck(params: {
                   ? "is-live"
                   : ""}"
               ></span>
-              Agent command deck
+              Agents
             </div>
             <h2>${selected?.label ?? "No agent selected"}</h2>
             <p>
@@ -456,7 +456,7 @@ function renderAgentsCommandDeck(params: {
                     <span>·</span>
                     <span>${selected.context.model}</span>
                   `
-                : "Pick an agent to inspect its runtime, workspace, and operating surface."}
+                : "Pick an agent to inspect runtime, workspace, tools, and routing."}
             </p>
           </div>
         </div>
@@ -519,22 +519,22 @@ function renderAgentsCommandDeck(params: {
         ? html`<div class="callout danger">${params.props.error}</div>`
         : nothing}
       <div class="agents-command-grid">
-        ${renderAgentCommandMetric("Fleet", String(params.agentViews.length), "configured agents")}
+        ${renderAgentCommandMetric("Agents", String(params.agentViews.length), "configured")}
         ${renderAgentCommandMetric(
           "Runtime",
           statusLabel,
-          params.props.runtimeSessionKey || "no active session",
+          params.props.runtimeSessionKey || "no session",
           params.props.runtimeSessionMatchesSelectedAgent ? "ok" : null,
         )}
         ${renderAgentCommandMetric(
           "Files",
           params.selectedFilesCount == null ? "Load" : String(params.selectedFilesCount),
-          "workspace core files",
+          "workspace files",
         )}
         ${renderAgentCommandMetric(
           "Skills",
           params.selectedSkillCount == null ? "Pending" : String(params.selectedSkillCount),
-          "agent skill report",
+          "skill report",
         )}
         ${renderAgentCommandMetric(
           "Live Tools",
@@ -549,12 +549,12 @@ function renderAgentsCommandDeck(params: {
         ${renderAgentCommandMetric(
           "Channels",
           params.channelEntryCount == null ? "Load" : String(params.channelEntryCount),
-          "connected surfaces",
+          "accounts",
         )}
         ${renderAgentCommandMetric(
           "Config",
           configState,
-          selected?.isDefault ? "default agent" : "agent override capable",
+          selected?.isDefault ? "default agent" : "agent overrides",
           params.props.config.dirty ? "warn" : null,
         )}
       </div>
@@ -585,18 +585,16 @@ function renderAgentRoster(agentViews: AgentView[], onSelectAgent: (agentId: str
     <section class="agents-roster">
       <div class="agents-roster__header">
         <div>
-          <div class="card-title">Agent Fleet</div>
-          <div class="card-sub">
-            Switch between isolated workspaces, identities, and routing targets.
-          </div>
+          <div class="card-title">Agents</div>
+          <div class="card-sub">Switch between isolated workspaces and routing targets.</div>
         </div>
       </div>
-      <div class="agent-list agent-list--deck">
+      <div class="agent-list">
         ${agentViews.map(
           (view) => html`
             <button
               type="button"
-              class="agent-row agent-row--deck ${view.selected ? "active" : ""}"
+              class="agent-row ${view.selected ? "active" : ""}"
               style=${`--agent-hue: ${view.hue};`}
               @click=${() => onSelectAgent(view.agent.id)}
             >
