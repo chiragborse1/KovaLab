@@ -47,13 +47,20 @@ export type TelegramIngressWorkerFactory = (
 
 export const createTelegramIngressWorker: TelegramIngressWorkerFactory = (options) => {
   const listeners = new Set<(message: TelegramIngressWorkerMessage) => void>();
+  let stopRequested = false;
   const worker = new Worker(new URL("./telegram-ingress-worker.runtime.js", import.meta.url), {
     workerData: options,
   });
   const taskPromise = new Promise<void>((resolve, reject) => {
-    worker.once("error", reject);
+    worker.once("error", (err) => {
+      if (stopRequested) {
+        resolve();
+        return;
+      }
+      reject(err);
+    });
     worker.once("exit", (code) => {
-      if (code === 0) {
+      if (code === 0 || stopRequested) {
         resolve();
         return;
       }
@@ -74,6 +81,7 @@ export const createTelegramIngressWorker: TelegramIngressWorkerFactory = (option
       };
     },
     async stop() {
+      stopRequested = true;
       // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node worker_threads workers do not accept a targetOrigin argument.
       worker.postMessage({ type: "stop" });
       const timeout = setTimeout(() => {
