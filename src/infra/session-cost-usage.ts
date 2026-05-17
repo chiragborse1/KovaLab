@@ -60,6 +60,7 @@ export type {
   SessionToolUsage,
   SessionUsageTimePoint,
   SessionUsageTimeSeries,
+  UsageCacheStatus,
 } from "./session-cost-usage.types.js";
 
 const emptyTotals = (): CostUsageTotals => ({

@@ -324,17 +324,39 @@ async function loadCostUsageSummaryCached(params: {
   startMs: number;
   endMs: number;
   config: KovaConfig;
+  refreshMode?: "background" | "sync";
 }): Promise<CostUsageSummary> {
   const cacheKey = `${params.startMs}-${params.endMs}`;
   const now = Date.now();
   const cached = costUsageCache.get(cacheKey);
   if (cached?.summary && cached.updatedAt && now - cached.updatedAt < COST_USAGE_CACHE_TTL_MS) {
-    return cached.summary;
+    return {
+      ...cached.summary,
+      cacheStatus: {
+        status: "fresh",
+        cachedFiles: 1,
+        pendingFiles: 0,
+        staleFiles: 0,
+        refreshedAt: cached.updatedAt,
+      },
+    };
   }
 
   if (cached?.inFlight) {
     if (cached.summary) {
-      return cached.summary;
+      return {
+        ...cached.summary,
+        cacheStatus: {
+          status: "refreshing",
+          cachedFiles: 1,
+          pendingFiles: 1,
+          staleFiles: 1,
+          refreshedAt: cached.updatedAt,
+        },
+      };
+    }
+    if (params.refreshMode === "background") {
+      return emptyRefreshingCostUsageSummary(params);
     }
     return await cached.inFlight;
   }
@@ -353,6 +375,9 @@ async function loadCostUsageSummaryCached(params: {
       if (entry.summary) {
         return entry.summary;
       }
+      if (params.refreshMode === "background") {
+        return emptyRefreshingCostUsageSummary(params);
+      }
       throw err;
     })
     .finally(() => {
@@ -367,9 +392,75 @@ async function loadCostUsageSummaryCached(params: {
   setCostUsageCache(cacheKey, entry);
 
   if (entry.summary) {
-    return entry.summary;
+    return {
+      ...entry.summary,
+      cacheStatus: {
+        status: "stale",
+        cachedFiles: 1,
+        pendingFiles: 1,
+        staleFiles: 1,
+        refreshedAt: entry.updatedAt,
+      },
+    };
+  }
+  if (params.refreshMode === "background") {
+    return emptyRefreshingCostUsageSummary(params);
   }
   return await inFlight;
+}
+
+function emptyRefreshingCostUsageSummary(params: {
+  startMs: number;
+  endMs: number;
+}): CostUsageSummary {
+  const days = Math.ceil((params.endMs - params.startMs) / (24 * 60 * 60 * 1000)) + 1;
+  return {
+    updatedAt: Date.now(),
+    days,
+    daily: [],
+    totals: {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      totalTokens: 0,
+      totalCost: 0,
+      inputCost: 0,
+      outputCost: 0,
+      cacheReadCost: 0,
+      cacheWriteCost: 0,
+      missingCostEntries: 0,
+    },
+    cacheStatus: {
+      status: "refreshing",
+      cachedFiles: 0,
+      pendingFiles: 1,
+      staleFiles: 1,
+    },
+  };
+}
+
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  map: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        results[index] = await map(items[index]!, index);
+      }
+    }),
+  );
+  return results;
 }
 
 // Exposed for unit tests (kept as a single export to avoid widening the public API surface).
@@ -402,7 +493,12 @@ export const usageHandlers: GatewayRequestHandlers = {
       mode: params?.mode,
       utcOffset: params?.utcOffset,
     });
-    const summary = await loadCostUsageSummaryCached({ startMs, endMs, config });
+    const summary = await loadCostUsageSummaryCached({
+      startMs,
+      endMs,
+      config,
+      refreshMode: "background",
+    });
     respond(true, summary, undefined);
   },
   "sessions.usage": async ({ respond, params, context }) => {
@@ -629,7 +725,7 @@ export const usageHandlers: GatewayRequestHandlers = {
       target.missingCostEntries += source.missingCostEntries;
     };
 
-    for (const merged of limitedEntries) {
+    const loadedEntries = await mapWithConcurrency(limitedEntries, 4, async (merged) => {
       const agentId = parseAgentSessionKey(merged.key)?.agentId;
       const usage = await loadSessionCostSummary({
         sessionId: merged.sessionId,
@@ -640,7 +736,10 @@ export const usageHandlers: GatewayRequestHandlers = {
         startMs,
         endMs,
       });
+      return { merged, agentId, usage };
+    });
 
+    for (const { merged, agentId, usage } of loadedEntries) {
       if (usage) {
         aggregateTotals.input += usage.input;
         aggregateTotals.output += usage.output;
