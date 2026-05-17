@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SkillSnapshot } from "../../agents/skills.js";
+
+const emptySkillSnapshot = (): SkillSnapshot => ({ prompt: "", skills: [], resolvedSkills: [] });
 
 const {
   buildWorkspaceSkillSnapshotMock,
@@ -10,7 +13,13 @@ const {
   resolveSessionAgentIdMock,
   resolveAgentIdFromSessionKeyMock,
 } = vi.hoisted(() => ({
-  buildWorkspaceSkillSnapshotMock: vi.fn(() => ({ prompt: "", skills: [], resolvedSkills: [] })),
+  buildWorkspaceSkillSnapshotMock: vi.fn(
+    (): SkillSnapshot => ({
+      prompt: "",
+      skills: [],
+      resolvedSkills: [],
+    }),
+  ),
   ensureSkillsWatcherMock: vi.fn(),
   getSkillsSnapshotVersionMock: vi.fn(() => 0),
   shouldRefreshSnapshotForVersionMock: vi.fn(() => false),
@@ -64,7 +73,7 @@ const { __testing_resetResolvedSkillsCache, ensureSkillSnapshot } =
 describe("ensureSkillSnapshot", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    buildWorkspaceSkillSnapshotMock.mockReturnValue({ prompt: "", skills: [], resolvedSkills: [] });
+    buildWorkspaceSkillSnapshotMock.mockReturnValue(emptySkillSnapshot());
     getSkillsSnapshotVersionMock.mockReturnValue(0);
     shouldRefreshSnapshotForVersionMock.mockReturnValue(false);
     getRemoteSkillEligibilityMock.mockReturnValue({
@@ -113,10 +122,26 @@ describe("ensureSkillSnapshot", () => {
 
   it("hydrates stripped resolved skills from the warm-start cache", async () => {
     vi.stubEnv("KOVA_TEST_FAST", "0");
-    const snapshot = {
+    const snapshot: SkillSnapshot = {
       prompt: "skill prompt",
       skills: [{ name: "demo" }],
-      resolvedSkills: [{ name: "demo", path: "/tmp/demo/SKILL.md" }],
+      resolvedSkills: [
+        {
+          name: "demo",
+          description: "Demo skill",
+          filePath: "/tmp/demo/SKILL.md",
+          baseDir: "/tmp/demo",
+          source: "test",
+          sourceInfo: {
+            path: "/tmp/demo/SKILL.md",
+            source: "test",
+            scope: "temporary",
+            origin: "top-level",
+            baseDir: "/tmp/demo",
+          },
+          disableModelInvocation: false,
+        },
+      ],
       version: 1,
     };
     buildWorkspaceSkillSnapshotMock.mockReturnValue(snapshot);
