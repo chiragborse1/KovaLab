@@ -170,7 +170,7 @@ describe("memory watcher config", () => {
     );
     expect(watchedPaths.every((watchPath) => !watchPath.includes("*"))).toBe(true);
     expect(options.ignoreInitial).toBe(true);
-    expect(options.awaitWriteFinish).toEqual({ stabilityThreshold: 25, pollInterval: 100 });
+    expect(options.awaitWriteFinish).toBeUndefined();
 
     const ignored = options.ignored as WatchIgnoredFn | undefined;
     expect(ignored).toBeTypeOf("function");

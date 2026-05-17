@@ -431,7 +431,7 @@ describe("QmdMemoryManager", () => {
     expect(initialUpdateCalls).toHaveLength(0);
 
     watcher.emit("change", path.join(workspaceDir, "notes.md"));
-    await vi.advanceTimersByTimeAsync(25);
+    await vi.advanceTimersByTimeAsync(125);
 
     const updateCalls = spawnMock.mock.calls.filter((call) => call[1]?.[0] === "update");
     expect(updateCalls).toHaveLength(1);
