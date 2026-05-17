@@ -44,4 +44,20 @@ describe("memory vector degradation warnings", () => {
     expect(shown).toBe(false);
     expect(warn).not.toHaveBeenCalled();
   });
+
+  it("skips the warning when no embeddings were produced", () => {
+    const warn = vi.fn();
+
+    const shown = logMemoryVectorDegradedWrite({
+      vectorEnabled: true,
+      vectorReady: false,
+      chunkCount: 0,
+      warningShown: false,
+      loadError: undefined,
+      warn,
+    });
+
+    expect(shown).toBe(false);
+    expect(warn).not.toHaveBeenCalled();
+  });
 });

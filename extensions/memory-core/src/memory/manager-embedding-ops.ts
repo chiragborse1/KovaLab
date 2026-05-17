@@ -615,10 +615,14 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
           .run(chunk.text, id, entry.path, source, model, chunk.startLine, chunk.endLine);
       }
     }
+    const embeddedChunkCount = embeddings.reduce(
+      (count, embedding) => count + (embedding.length > 0 ? 1 : 0),
+      0,
+    );
     this.vectorDegradedWriteWarningShown = logMemoryVectorDegradedWrite({
       vectorEnabled: this.vector.enabled,
       vectorReady,
-      chunkCount: chunks.length,
+      chunkCount: embeddedChunkCount,
       warningShown: this.vectorDegradedWriteWarningShown,
       loadError: this.vector.loadError,
       warn: (message) => log.warn(message),
