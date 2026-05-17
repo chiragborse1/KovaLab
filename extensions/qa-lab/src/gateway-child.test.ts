@@ -772,6 +772,84 @@ describe("qa bundled plugin dir", () => {
     ).toBe(path.join(repoRoot, "extensions", "qa-channel"));
   });
 
+  it("adds source-only installable plugins as QA load paths", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "qa-source-load-paths-"));
+    cleanups.push(async () => {
+      await rm(repoRoot, { recursive: true, force: true });
+    });
+    const pluginDir = path.join(repoRoot, "extensions", "diagnostics-otel");
+    await mkdir(pluginDir, { recursive: true });
+    await writeFile(
+      path.join(pluginDir, "package.json"),
+      JSON.stringify({
+        name: "@kovaai/diagnostics-otel",
+        type: "module",
+        kova: {
+          extensions: ["./index.ts"],
+          install: {
+            npmSpec: "@kovaai/diagnostics-otel",
+          },
+        },
+      }),
+      "utf8",
+    );
+    await writeFile(path.join(pluginDir, "index.ts"), "export default {};\n", "utf8");
+
+    await expect(
+      __testing.resolveQaSourcePluginLoadPaths({
+        repoRoot,
+        pluginIds: ["diagnostics-otel"],
+      }),
+    ).resolves.toEqual([pluginDir]);
+  });
+
+  it("keeps built installable plugins out of QA source load paths", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "qa-built-load-paths-"));
+    cleanups.push(async () => {
+      await rm(repoRoot, { recursive: true, force: true });
+    });
+    const builtPluginDir = path.join(repoRoot, "dist", "extensions", "diagnostics-otel");
+    const sourcePluginDir = path.join(repoRoot, "extensions", "diagnostics-otel");
+    await mkdir(builtPluginDir, { recursive: true });
+    await mkdir(sourcePluginDir, { recursive: true });
+    const packageJson = JSON.stringify({
+      name: "@kovaai/diagnostics-otel",
+      type: "module",
+      kova: {
+        extensions: ["./index.js"],
+        install: {
+          npmSpec: "@kovaai/diagnostics-otel",
+        },
+      },
+    });
+    await writeFile(path.join(builtPluginDir, "package.json"), packageJson, "utf8");
+    await writeFile(path.join(builtPluginDir, "index.js"), "export default {};\n", "utf8");
+    await writeFile(path.join(sourcePluginDir, "package.json"), packageJson, "utf8");
+    await writeFile(path.join(sourcePluginDir, "index.js"), "export default {};\n", "utf8");
+
+    await expect(
+      __testing.resolveQaSourcePluginLoadPaths({
+        repoRoot,
+        pluginIds: ["diagnostics-otel"],
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("merges QA plugin load paths without dropping existing config paths", () => {
+    const cfg = __testing.withQaPluginLoadPaths(
+      {
+        plugins: {
+          load: {
+            paths: ["/existing/plugin"],
+          },
+        },
+      },
+      ["/source/plugin", "/existing/plugin"],
+    );
+
+    expect(cfg.plugins?.load?.paths).toEqual(["/existing/plugin", "/source/plugin"]);
+  });
+
   it("uses a source bundled plugin when the built copy is missing CLI metadata", async () => {
     const repoRoot = await mkdtemp(path.join(os.tmpdir(), "qa-bundled-cli-metadata-root-"));
     cleanups.push(async () => {

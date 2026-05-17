@@ -16,6 +16,7 @@ import {
   resolveQaBundledPluginSourceDir,
   resolveQaOwnerPluginIdsForProviderIds,
   resolveQaRuntimeHostVersion,
+  resolveQaSourcePluginLoadPaths,
 } from "./bundled-plugin-staging.js";
 import { assertRepoBoundPath, ensureRepoBoundDirectory } from "./cli-paths.js";
 import { formatQaGatewayLogsForError, redactQaGatewayDebugText } from "./gateway-log-redaction.js";
@@ -287,6 +288,24 @@ async function waitForQaGatewayRestartBoundary(params: {
   throw new Error(`qa gateway child did not reach restart boundary within ${timeoutMs}ms`);
 }
 
+function withQaPluginLoadPaths(cfg: KovaConfig, loadPaths: readonly string[]): KovaConfig {
+  if (loadPaths.length === 0) {
+    return cfg;
+  }
+  const existingPaths = cfg.plugins?.load?.paths ?? [];
+  const paths = [...new Set([...existingPaths, ...loadPaths])];
+  return {
+    ...cfg,
+    plugins: {
+      ...cfg.plugins,
+      load: {
+        ...cfg.plugins?.load,
+        paths,
+      },
+    },
+  };
+}
+
 export const __testing = {
   assertQaArtifactDirWithinRepo,
   buildQaRuntimeEnv,
@@ -305,7 +324,9 @@ export const __testing = {
   waitForQaGatewayRestartBoundary,
   resolveQaOwnerPluginIdsForProviderIds,
   resolveQaBundledPluginSourceDir,
+  resolveQaSourcePluginLoadPaths,
   resolveQaRuntimeHostVersion,
+  withQaPluginLoadPaths,
   createQaBundledPluginsDir,
   stopQaGatewayChildProcessTree,
 };
@@ -606,16 +627,21 @@ export async function startQaGatewayChild(params: {
       baseUrl = `http://127.0.0.1:${gatewayPort}`;
       wsUrl = `ws://127.0.0.1:${gatewayPort}`;
       cfg = await buildStagedGatewayConfig(gatewayPort);
+      const allowedPluginIds = [...(cfg.plugins?.allow ?? []), "openai"].filter(
+        (pluginId, index, array): pluginId is string => {
+          return (
+            typeof pluginId === "string" && pluginId.length > 0 && array.indexOf(pluginId) === index
+          );
+        },
+      );
+      cfg = withQaPluginLoadPaths(
+        cfg,
+        await resolveQaSourcePluginLoadPaths({
+          repoRoot: params.repoRoot,
+          pluginIds: allowedPluginIds,
+        }),
+      );
       if (!env) {
-        const allowedPluginIds = [...(cfg.plugins?.allow ?? []), "openai"].filter(
-          (pluginId, index, array): pluginId is string => {
-            return (
-              typeof pluginId === "string" &&
-              pluginId.length > 0 &&
-              array.indexOf(pluginId) === index
-            );
-          },
-        );
         const stagedPluginRuntime = gatewayCommand?.usePackagedPlugins
           ? { bundledPluginsDir: undefined, runtimeHostVersion: undefined }
           : {

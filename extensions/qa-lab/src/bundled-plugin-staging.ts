@@ -21,6 +21,14 @@ const QA_RUNTIME_DEPS_ARTIFACT_BASENAMES = new Set([
   ".kova-runtime-deps-stamp.json",
 ]);
 
+type QaPluginPackageJson = {
+  kova?: {
+    install?: {
+      npmSpec?: unknown;
+    };
+  };
+};
+
 function assertSafeQaBundledPluginId(pluginId: string) {
   if (!QA_BUNDLED_PLUGIN_ID_PATTERN.test(pluginId)) {
     throw new Error(`invalid QA bundled plugin id: ${pluginId}`);
@@ -90,6 +98,58 @@ export function resolveQaBundledPluginSourceDir(params: { repoRoot: string; plug
     return cliMetadataCandidate;
   }
   return existingCandidates[0] ?? null;
+}
+
+function isQaExtensionSourceDir(params: { repoRoot: string; sourceDir: string }) {
+  const relativeSourceDir = path.relative(
+    path.join(params.repoRoot, "extensions"),
+    path.resolve(params.sourceDir),
+  );
+  return (
+    relativeSourceDir.length > 0 &&
+    !relativeSourceDir.startsWith("..") &&
+    !path.isAbsolute(relativeSourceDir)
+  );
+}
+
+async function hasQaPluginInstallNpmSpec(sourceDir: string) {
+  const packagePath = path.join(sourceDir, "package.json");
+  if (!existsSync(packagePath)) {
+    return false;
+  }
+  const packageRaw = await fs.readFile(packagePath, "utf8");
+  const packageJson = JSON.parse(packageRaw) as QaPluginPackageJson;
+  return (
+    typeof packageJson.kova?.install?.npmSpec === "string" &&
+    packageJson.kova.install.npmSpec.trim().length > 0
+  );
+}
+
+export async function resolveQaSourcePluginLoadPaths(params: {
+  repoRoot: string;
+  pluginIds: readonly string[];
+}) {
+  const loadPaths: string[] = [];
+  const seen = new Set<string>();
+  for (const pluginId of params.pluginIds) {
+    assertSafeQaBundledPluginId(pluginId);
+    if (seen.has(pluginId)) {
+      continue;
+    }
+    seen.add(pluginId);
+    const sourceDir = resolveQaBundledPluginSourceDir({
+      repoRoot: params.repoRoot,
+      pluginId,
+    });
+    if (!sourceDir || !isQaExtensionSourceDir({ repoRoot: params.repoRoot, sourceDir })) {
+      continue;
+    }
+    if (!(await hasQaPluginInstallNpmSpec(sourceDir))) {
+      continue;
+    }
+    loadPaths.push(sourceDir);
+  }
+  return loadPaths;
 }
 
 function resolveQaBundledPluginScanRoots(repoRoot: string) {
