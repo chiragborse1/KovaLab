@@ -52,6 +52,7 @@ import { transformTransportMessages } from "./transport-message-transform.js";
 import { mergeTransportMetadata, sanitizeTransportPayloadText } from "./transport-stream-shared.js";
 
 const DEFAULT_AZURE_OPENAI_API_VERSION = "2024-12-01-preview";
+const OPENAI_CODEX_RESPONSES_EMPTY_INPUT_TEXT = " ";
 const log = createSubsystemLogger("openai-transport");
 
 type BaseStreamOptions = {
@@ -208,9 +209,16 @@ function convertResponsesMessages(
   model: Model<Api>,
   context: Context,
   allowedToolCallProviders: Set<string>,
-  options?: { includeSystemPrompt?: boolean; supportsDeveloperRole?: boolean },
+  options?: {
+    includeSystemPrompt?: boolean;
+    supportsDeveloperRole?: boolean;
+    replayReasoningItems?: boolean;
+    replayResponsesItemIds?: boolean;
+  },
 ): ResponseInput {
   const messages: ResponseInput = [];
+  const shouldReplayReasoningItems = options?.replayReasoningItems ?? true;
+  const shouldReplayResponsesItemIds = options?.replayResponsesItemIds ?? true;
   const normalizeIdPart = (part: string) => {
     const sanitized = part.replace(/[^a-zA-Z0-9_-]/g, "_");
     const normalized = sanitized.length > 64 ? sanitized.slice(0, 64) : sanitized;
@@ -284,12 +292,23 @@ function convertResponsesMessages(
         msg.model !== model.id && msg.provider === model.provider && msg.api === model.api;
       for (const block of msg.content) {
         if (block.type === "thinking") {
-          if (block.thinkingSignature) {
-            output.push(JSON.parse(block.thinkingSignature));
+          if (
+            shouldReplayReasoningItems &&
+            block.thinkingSignature &&
+            block.thinkingSignature.startsWith("{")
+          ) {
+            const reasoningItem = JSON.parse(block.thinkingSignature) as Record<string, unknown>;
+            if (!shouldReplayResponsesItemIds) {
+              delete reasoningItem.id;
+            }
+            output.push(reasoningItem as ResponseInput[number]);
           }
         } else if (block.type === "text") {
-          let msgId = parseTextSignature(block.textSignature)?.id ?? `msg_${msgIndex}`;
-          if (msgId.length > 64) {
+          const textSignature = parseTextSignature(block.textSignature);
+          let msgId = shouldReplayResponsesItemIds
+            ? (textSignature?.id ?? `msg_${msgIndex}`)
+            : undefined;
+          if (msgId && msgId.length > 64) {
             msgId = `msg_${shortHash(msgId)}`;
           }
           output.push({
@@ -303,15 +322,18 @@ function convertResponsesMessages(
               },
             ],
             status: "completed",
-            id: msgId,
-            phase: parseTextSignature(block.textSignature)?.phase,
+            ...(msgId ? { id: msgId } : {}),
+            phase: textSignature?.phase,
           });
         } else if (block.type === "toolCall") {
           const [callId, itemIdRaw] = block.id.split("|");
-          const itemId = isDifferentModel && itemIdRaw?.startsWith("fc_") ? undefined : itemIdRaw;
+          const itemId =
+            shouldReplayResponsesItemIds && !(isDifferentModel && itemIdRaw?.startsWith("fc_"))
+              ? itemIdRaw
+              : undefined;
           output.push({
             type: "function_call",
-            id: itemId,
+            ...(itemId ? { id: itemId } : {}),
             call_id: callId,
             name: block.name,
             arguments:
@@ -759,7 +781,13 @@ export function createOpenAIResponsesTransportStreamFn(): StreamFn {
         if (nextParams !== undefined) {
           params = nextParams as typeof params;
         }
-        params = mergeTransportMetadata(params, turnState?.metadata);
+        if (!isOpenAICodexResponsesModel(model)) {
+          params = mergeTransportMetadata(params, turnState?.metadata);
+        }
+        params = sanitizeOpenAICodexResponsesParams(
+          model,
+          params as Record<string, unknown>,
+        ) as typeof params;
         const responseStream = (await client.responses.create(
           params as never,
           buildOpenAISdkRequestOptions(model, options?.signal),
@@ -863,6 +891,72 @@ function isOpenAICodexResponsesModel(model: Model<Api>): boolean {
   return model.provider === "openai-codex" && model.api === "openai-codex-responses";
 }
 
+function isNativeOpenAICodexResponsesBaseUrl(baseUrl?: string): boolean {
+  const trimmed = typeof baseUrl === "string" ? baseUrl.trim() : "";
+  if (!trimmed) {
+    return false;
+  }
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return false;
+    }
+    if (url.hostname.toLowerCase() !== "chatgpt.com") {
+      return false;
+    }
+    const pathname = url.pathname.replace(/\/+$/u, "").toLowerCase();
+    return [
+      "/backend-api",
+      "/backend-api/v1",
+      "/backend-api/codex",
+      "/backend-api/codex/v1",
+    ].includes(pathname);
+  } catch {
+    return false;
+  }
+}
+
+function usesNativeOpenAICodexResponsesBackend(model: Model<Api>): boolean {
+  return isOpenAICodexResponsesModel(model) && isNativeOpenAICodexResponsesBaseUrl(model.baseUrl);
+}
+
+const OPENAI_CODEX_RESPONSES_UNSUPPORTED_PARAMS = [
+  "max_output_tokens",
+  "metadata",
+  "prompt_cache_retention",
+  "service_tier",
+  "temperature",
+  "top_p",
+] as const;
+
+function stripOpenAICodexResponsesUnsupportedTextFields(params: Record<string, unknown>): void {
+  const text = params.text;
+  if (!text || typeof text !== "object" || Array.isArray(text)) {
+    return;
+  }
+  const sanitizedText = { ...(text as Record<string, unknown>) };
+  delete sanitizedText.format;
+  if (Object.keys(sanitizedText).length > 0) {
+    params.text = sanitizedText;
+  } else {
+    delete params.text;
+  }
+}
+
+function sanitizeOpenAICodexResponsesParams<T extends Record<string, unknown>>(
+  model: Model<Api>,
+  params: T,
+): T {
+  if (!usesNativeOpenAICodexResponsesBackend(model)) {
+    return params;
+  }
+  for (const key of OPENAI_CODEX_RESPONSES_UNSUPPORTED_PARAMS) {
+    delete params[key];
+  }
+  stripOpenAICodexResponsesUnsupportedTextFields(params);
+  return params;
+}
+
 function buildOpenAICodexResponsesInstructions(context: Context): string | undefined {
   if (!context.systemPrompt) {
     return undefined;
@@ -870,24 +964,20 @@ function buildOpenAICodexResponsesInstructions(context: Context): string | undef
   return sanitizeTransportPayloadText(stripSystemPromptCacheBoundary(context.systemPrompt));
 }
 
-function ensureOpenAICodexResponsesInput(
-  messages: ResponseInput,
-  instructions: string | undefined,
-) {
-  if (messages.length > 0 || !instructions) {
-    return messages;
+function ensureOpenAICodexResponsesInput(messages: ResponseInput, context: Context): void {
+  if (messages.length > 0 || !context.systemPrompt) {
+    return;
   }
-  return [
-    {
-      role: "user",
-      content: [
-        {
-          type: "input_text",
-          text: "Continue from the available session context.",
-        },
-      ],
-    },
-  ] satisfies ResponseInput;
+  const text = buildOpenAICodexResponsesInstructions(context);
+  if (!text) {
+    throw new Error(
+      "OpenAI Codex Responses requires non-empty input when only systemPrompt is provided.",
+    );
+  }
+  messages.push({
+    role: "user",
+    content: [{ type: "input_text", text: OPENAI_CODEX_RESPONSES_EMPTY_INPUT_TEXT }],
+  });
 }
 
 export function buildOpenAIResponsesParams(
@@ -897,15 +987,24 @@ export function buildOpenAIResponsesParams(
   metadata?: Record<string, string>,
 ) {
   const isCodexResponses = isOpenAICodexResponsesModel(model);
+  const isNativeCodexResponses = usesNativeOpenAICodexResponsesBackend(model);
   const compat = getCompat(model as OpenAIModeModel);
   const supportsDeveloperRole =
     typeof compat.supportsDeveloperRole === "boolean" ? compat.supportsDeveloperRole : undefined;
   const messages = convertResponsesMessages(
     model,
     context,
-    new Set(["openai", "openai-codex", "opencode", "azure-openai-responses"]),
-    { includeSystemPrompt: !isCodexResponses, supportsDeveloperRole },
+    new Set(["openai", "openai-codex", "opencode", "azure-openai-responses", "github-copilot"]),
+    {
+      includeSystemPrompt: !isCodexResponses,
+      supportsDeveloperRole,
+      replayReasoningItems: true,
+      replayResponsesItemIds: !isNativeCodexResponses,
+    },
   );
+  if (isCodexResponses) {
+    ensureOpenAICodexResponsesInput(messages, context);
+  }
   const codexResponsesInstructions = isCodexResponses
     ? buildOpenAICodexResponsesInstructions(context)
     : undefined;
@@ -915,9 +1014,7 @@ export function buildOpenAIResponsesParams(
   });
   const params: OpenAIResponsesRequestParams = {
     model: model.id,
-    input: isCodexResponses
-      ? ensureOpenAICodexResponsesInput(messages, codexResponsesInstructions)
-      : messages,
+    input: messages,
     stream: true,
     prompt_cache_key: cacheRetention === "none" ? undefined : options?.sessionId,
     prompt_cache_retention: getPromptCacheRetention(model.baseUrl, cacheRetention),
@@ -976,7 +1073,10 @@ export function buildOpenAIResponsesParams(
     }
   }
   applyOpenAIResponsesPayloadPolicy(params as Record<string, unknown>, payloadPolicy);
-  return params;
+  return sanitizeOpenAICodexResponsesParams(
+    model,
+    params as Record<string, unknown>,
+  ) as typeof params;
 }
 
 export function createAzureOpenAIResponsesTransportStreamFn(): StreamFn {
@@ -2078,5 +2178,6 @@ export const __testing = {
   createOpenAICompletionsClient,
   createOpenAIResponsesClient,
   buildOpenAICompletionsClientConfig,
+  sanitizeOpenAICodexResponsesParams,
   processOpenAICompletionsStream,
 };
