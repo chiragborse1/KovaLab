@@ -35,6 +35,9 @@ vi.mock("../../agents/skills.js", () => ({
 
 vi.mock("../../agents/skills/refresh.js", () => ({
   ensureSkillsWatcher: ensureSkillsWatcherMock,
+}));
+
+vi.mock("../../agents/skills/refresh-state.js", () => ({
   getSkillsSnapshotVersion: getSkillsSnapshotVersionMock,
   shouldRefreshSnapshotForVersion: shouldRefreshSnapshotForVersionMock,
 }));
@@ -55,7 +58,8 @@ vi.mock("../../routing/session-key.js", () => ({
   resolveAgentIdFromSessionKey: resolveAgentIdFromSessionKeyMock,
 }));
 
-const { ensureSkillSnapshot } = await import("./session-updates.js");
+const { __testing_resetResolvedSkillsCache, ensureSkillSnapshot } =
+  await import("./session-updates.js");
 
 describe("ensureSkillSnapshot", () => {
   beforeEach(() => {
@@ -74,6 +78,7 @@ describe("ensureSkillSnapshot", () => {
   });
 
   afterEach(() => {
+    __testing_resetResolvedSkillsCache();
     vi.unstubAllEnvs();
   });
 
@@ -104,5 +109,47 @@ describe("ensureSkillSnapshot", () => {
       expect.objectContaining({ agentId: "writer" }),
     );
     expect(resolveAgentIdFromSessionKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("hydrates stripped resolved skills from the warm-start cache", async () => {
+    vi.stubEnv("KOVA_TEST_FAST", "0");
+    const snapshot = {
+      prompt: "skill prompt",
+      skills: [{ name: "demo" }],
+      resolvedSkills: [{ name: "demo", path: "/tmp/demo/SKILL.md" }],
+      version: 1,
+    };
+    buildWorkspaceSkillSnapshotMock.mockReturnValue(snapshot);
+    getSkillsSnapshotVersionMock.mockReturnValue(1);
+
+    const first = await ensureSkillSnapshot({
+      sessionKey: "main",
+      isFirstTurnInSession: false,
+      workspaceDir: "/tmp/workspace",
+      cfg: { agents: { list: [{ id: "writer", default: true }] } },
+    });
+    expect(first.skillsSnapshot?.resolvedSkills).toEqual(snapshot.resolvedSkills);
+    expect(buildWorkspaceSkillSnapshotMock).toHaveBeenCalledTimes(1);
+
+    buildWorkspaceSkillSnapshotMock.mockClear();
+    const strippedSnapshot = {
+      prompt: "skill prompt",
+      skills: [{ name: "demo" }],
+      version: 1,
+    };
+
+    const second = await ensureSkillSnapshot({
+      sessionEntry: { sessionId: "s1", updatedAt: 1, skillsSnapshot: strippedSnapshot },
+      sessionKey: "main",
+      isFirstTurnInSession: false,
+      workspaceDir: "/tmp/workspace",
+      cfg: { agents: { list: [{ id: "writer", default: true }] } },
+    });
+
+    expect(buildWorkspaceSkillSnapshotMock).not.toHaveBeenCalled();
+    expect(second.skillsSnapshot).toEqual({
+      ...strippedSnapshot,
+      resolvedSkills: snapshot.resolvedSkills,
+    });
   });
 });

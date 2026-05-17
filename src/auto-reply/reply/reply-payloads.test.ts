@@ -44,11 +44,13 @@ describe("filterMessagingToolMediaDuplicates", () => {
   });
 
   it("preserves mediaUrl when it is not in sentMediaUrls", () => {
+    const payloads = [{ text: "hello", mediaUrl: "file:///tmp/photo.jpg" }];
     const result = filterMessagingToolMediaDuplicates({
-      payloads: [{ text: "hello", mediaUrl: "file:///tmp/photo.jpg" }],
+      payloads,
       sentMediaUrls: ["file:///tmp/other.jpg"],
     });
     expect(result).toEqual([{ text: "hello", mediaUrl: "file:///tmp/photo.jpg" }]);
+    expect(result).toBe(payloads);
   });
 
   it("filters matching entries from mediaUrls array", () => {
@@ -81,6 +83,7 @@ describe("filterMessagingToolMediaDuplicates", () => {
       sentMediaUrls: ["file:///tmp/photo.jpg"],
     });
     expect(result).toStrictEqual(payloads);
+    expect(result).toBe(payloads);
   });
 
   it("returns payloads unchanged when sentMediaUrls is empty", () => {
