@@ -66,7 +66,7 @@ describe("hook-runner-global", () => {
       port: 18789,
       config: {},
       workspaceDir: "/tmp/kova-test",
-      getCron: () => null,
+      getCron: () => undefined,
     };
     await mod.runGlobalGatewayStartSafely({ event, ctx });
     expect(firstGatewayStart).toHaveBeenCalledTimes(1);

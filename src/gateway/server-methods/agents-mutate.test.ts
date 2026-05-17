@@ -1130,7 +1130,7 @@ describe("agents.files.set bootstrap reconciliation", () => {
     const reconcileWorkspaceBootstrapCompletion = vi.fn(async () => ({
       repaired: true,
       bootstrapExists: false,
-      state: { version: 1 },
+      state: { version: 1 as const },
     }));
     agentsTesting.setDepsForTests({ reconcileWorkspaceBootstrapCompletion });
 
@@ -1156,7 +1156,7 @@ describe("agents.files.set bootstrap reconciliation", () => {
     const reconcileWorkspaceBootstrapCompletion = vi.fn(async () => ({
       repaired: false,
       bootstrapExists: true,
-      state: { version: 1 },
+      state: { version: 1 as const },
     }));
     agentsTesting.setDepsForTests({ reconcileWorkspaceBootstrapCompletion });
 
