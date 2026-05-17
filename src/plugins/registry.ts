@@ -176,7 +176,28 @@ export type {
 type PluginTypedHookPolicy = {
   allowPromptInjection?: boolean;
   allowConversationAccess?: boolean;
+  timeoutMs?: number;
+  timeouts?: Record<string, number>;
 };
+
+function normalizeHookTimeoutMs(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return undefined;
+  }
+  return Math.floor(value);
+}
+
+function resolveTypedHookTimeoutMs(params: {
+  hookName: PluginHookName;
+  opts?: { timeoutMs?: number };
+  policy?: PluginTypedHookPolicy;
+}): number | undefined {
+  return (
+    normalizeHookTimeoutMs(params.policy?.timeouts?.[params.hookName]) ??
+    normalizeHookTimeoutMs(params.policy?.timeoutMs) ??
+    normalizeHookTimeoutMs(params.opts?.timeoutMs)
+  );
+}
 
 const constrainLegacyPromptInjectionHook = (
   handler: PluginHookHandlerMap["before_agent_start"],
@@ -1316,7 +1337,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     record: PluginRecord,
     hookName: K,
     handler: PluginHookHandlerMap[K],
-    opts?: { priority?: number },
+    opts?: { priority?: number; timeoutMs?: number },
     policy?: PluginTypedHookPolicy,
   ) => {
     if (!isPluginHookName(hookName)) {
@@ -1374,12 +1395,14 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
         return;
       }
     }
+    const timeoutMs = resolveTypedHookTimeoutMs({ hookName, opts, policy });
     record.hookCount += 1;
     registry.typedHooks.push({
       pluginId: record.id,
       hookName,
       handler: effectiveHandler,
       priority: opts?.priority,
+      ...(timeoutMs !== undefined ? { timeoutMs } : {}),
       source: record.source,
     } as TypedPluginHookRegistration);
   };

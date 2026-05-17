@@ -207,4 +207,26 @@ describe("before_agent_start hook merger", () => {
     expect(capturedCtx).toBeDefined();
     expect(capturedCtx?.runId).toBe("test-run-id");
   });
+
+  it("continues when a before_agent_start handler exceeds its timeout", async () => {
+    addTestHook({
+      registry,
+      pluginId: "slow-plugin",
+      hookName: "before_agent_start",
+      handler: (() => new Promise(() => {})) as PluginHookRegistration["handler"],
+    });
+    addBeforeAgentStartHook(registry, "fast-plugin", () => ({ prependContext: "fast" }), -1);
+
+    const errors: string[] = [];
+    const runner = createHookRunner(registry, {
+      logger: { error: (message) => errors.push(message), warn: () => {} },
+      modifyingHookTimeoutMsByHook: { before_agent_start: 5 },
+    });
+
+    const result = await runner.runBeforeAgentStart({ prompt: "hello" }, stubCtx);
+
+    expect(result).toEqual({ prependContext: "fast" });
+    expect(errors.join("\n")).toContain("before_agent_start handler from slow-plugin failed");
+    expect(errors.join("\n")).toContain("timed out after 5ms");
+  });
 });
