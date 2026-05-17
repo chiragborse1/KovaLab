@@ -48,4 +48,14 @@ describe("resolveProviderDiscoveryFilterForTest", () => {
       }),
     ).toEqual(["openrouter"]);
   });
+
+  it("maps scoped provider discovery ids before live filtering", () => {
+    expect(
+      resolveProviderDiscoveryFilterForTest({
+        env: liveFilterEnv({}),
+        providerIds: ["claude-cli", "openrouter"],
+        resolveOwners,
+      }),
+    ).toEqual(["anthropic", "openrouter"]);
+  });
 });

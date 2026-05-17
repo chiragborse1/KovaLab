@@ -41,6 +41,10 @@ async function buildModelsJsonFingerprint(params: {
   config: KovaConfig;
   sourceConfigForSecrets: KovaConfig;
   agentDir: string;
+  workspaceDir?: string;
+  providerDiscoveryProviderIds?: readonly string[];
+  providerDiscoveryTimeoutMs?: number;
+  providerDiscoveryEntriesOnly?: boolean;
 }): Promise<string> {
   const authProfilesMtimeMs = await readFileMtimeMs(
     path.join(params.agentDir, "auth-profiles.json"),
@@ -53,6 +57,10 @@ async function buildModelsJsonFingerprint(params: {
     envShape,
     authProfilesMtimeMs,
     modelsFileMtimeMs,
+    workspaceDir: params.workspaceDir,
+    providerDiscoveryProviderIds: params.providerDiscoveryProviderIds,
+    providerDiscoveryTimeoutMs: params.providerDiscoveryTimeoutMs,
+    providerDiscoveryEntriesOnly: params.providerDiscoveryEntriesOnly === true,
   });
 }
 
@@ -138,6 +146,12 @@ async function withModelsJsonWriteLock<T>(targetPath: string, run: () => Promise
 export async function ensureKovaModelsJson(
   config?: KovaConfig,
   agentDirOverride?: string,
+  options: {
+    workspaceDir?: string;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
+  } = {},
 ): Promise<{ agentDir: string; wrote: boolean }> {
   const resolved = resolveModelsConfigInput(config);
   const cfg = resolved.config;
@@ -147,6 +161,16 @@ export async function ensureKovaModelsJson(
     config: cfg,
     sourceConfigForSecrets: resolved.sourceConfigForSecrets,
     agentDir,
+    ...(options.workspaceDir ? { workspaceDir: options.workspaceDir } : {}),
+    ...(options.providerDiscoveryProviderIds
+      ? { providerDiscoveryProviderIds: options.providerDiscoveryProviderIds }
+      : {}),
+    ...(options.providerDiscoveryTimeoutMs !== undefined
+      ? { providerDiscoveryTimeoutMs: options.providerDiscoveryTimeoutMs }
+      : {}),
+    ...(options.providerDiscoveryEntriesOnly === true
+      ? { providerDiscoveryEntriesOnly: true }
+      : {}),
   });
   const cached = MODELS_JSON_STATE.readyCache.get(targetPath);
   if (cached) {
@@ -167,8 +191,18 @@ export async function ensureKovaModelsJson(
       sourceConfigForSecrets: resolved.sourceConfigForSecrets,
       agentDir,
       env,
+      ...(options.workspaceDir ? { workspaceDir: options.workspaceDir } : {}),
       existingRaw: existingModelsFile.raw,
       existingParsed: existingModelsFile.parsed,
+      ...(options.providerDiscoveryProviderIds
+        ? { providerDiscoveryProviderIds: options.providerDiscoveryProviderIds }
+        : {}),
+      ...(options.providerDiscoveryTimeoutMs !== undefined
+        ? { providerDiscoveryTimeoutMs: options.providerDiscoveryTimeoutMs }
+        : {}),
+      ...(options.providerDiscoveryEntriesOnly === true
+        ? { providerDiscoveryEntriesOnly: true }
+        : {}),
     });
 
     if (plan.action === "skip") {

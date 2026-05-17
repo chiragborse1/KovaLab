@@ -22,6 +22,7 @@ const SESSION_LOCK_STALE_MS = 30 * 60 * 1000;
 const ACP_BACKEND_READY_TIMEOUT_MS = 5_000;
 const ACP_BACKEND_READY_POLL_MS = 50;
 const PRIMARY_MODEL_PREWARM_TIMEOUT_MS = 5_000;
+const STARTUP_PROVIDER_DISCOVERY_TIMEOUT_MS = 5_000;
 const SKIP_STARTUP_MODEL_PREWARM_ENVS = [
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
@@ -185,6 +186,7 @@ async function waitForAcpRuntimeBackendReady(params: {
 
 async function prewarmConfiguredPrimaryModel(params: {
   cfg: KovaConfig;
+  workspaceDir?: string;
   log: { warn: (msg: string) => void };
 }): Promise<void> {
   const { resolveAgentModelPrimaryValue } = await import("../config/model-input.js");
@@ -208,19 +210,17 @@ async function prewarmConfiguredPrimaryModel(params: {
   const [
     { resolveKovaAgentDir },
     { DEFAULT_MODEL, DEFAULT_PROVIDER },
-    { selectAgentHarness },
     { isCliProvider, resolveConfiguredModelRef },
     { ensureKovaModelsJson },
-    { resolveModel, resolveModelAsync },
     { resolveEmbeddedAgentRuntime },
+    { resolveAgentWorkspaceDir, resolveDefaultAgentId },
   ] = await Promise.all([
     import("../agents/agent-paths.js"),
     import("../agents/defaults.js"),
-    import("../agents/harness/selection.js"),
     import("../agents/model-selection.js"),
     import("../agents/models-config.js"),
-    import("../agents/pi-embedded-runner/model.js"),
     import("../agents/pi-embedded-runner/runtime.js"),
+    import("../agents/agent-scope.js"),
   ]);
   const { provider, model } = resolveConfiguredModelRef({
     cfg: params.cfg,
@@ -234,23 +234,17 @@ async function prewarmConfiguredPrimaryModel(params: {
   if (runtime !== "auto" && runtime !== "pi") {
     return;
   }
-  if (selectAgentHarness({ provider, modelId: model, config: params.cfg }).id !== "pi") {
-    return;
-  }
+  // Keep startup prewarm metadata-only; resolving models can import provider runtimes and block readiness.
   const agentDir = resolveKovaAgentDir();
+  const workspaceDir =
+    params.workspaceDir ?? resolveAgentWorkspaceDir(params.cfg, resolveDefaultAgentId(params.cfg));
   try {
-    await ensureKovaModelsJson(params.cfg, agentDir);
-    const resolved = resolveModel(provider, model, agentDir, params.cfg, {
-      skipProviderRuntimeHooks: true,
+    await ensureKovaModelsJson(params.cfg, agentDir, {
+      workspaceDir,
+      providerDiscoveryProviderIds: [provider],
+      providerDiscoveryTimeoutMs: STARTUP_PROVIDER_DISCOVERY_TIMEOUT_MS,
+      providerDiscoveryEntriesOnly: true,
     });
-    if (!resolved.model) {
-      const asyncResolved = await resolveModelAsync(provider, model, agentDir, params.cfg);
-      if (!asyncResolved.model) {
-        throw new Error(
-          resolved.error ?? asyncResolved.error ?? `Unknown model: ${provider}/${model}`,
-        );
-      }
-    }
   } catch (err) {
     params.log.warn(`startup model warmup failed for ${provider}/${model}: ${String(err)}`);
   }
@@ -259,6 +253,7 @@ async function prewarmConfiguredPrimaryModel(params: {
 async function prewarmConfiguredPrimaryModelWithTimeout(
   params: {
     cfg: KovaConfig;
+    workspaceDir?: string;
     log: { warn: (msg: string) => void };
     timeoutMs?: number;
   },
@@ -287,6 +282,7 @@ async function prewarmConfiguredPrimaryModelWithTimeout(
 function schedulePrimaryModelPrewarm(
   params: {
     cfg: KovaConfig;
+    workspaceDir?: string;
     log: { warn: (msg: string) => void };
     startupTrace?: GatewayStartupTrace;
   },
@@ -299,6 +295,7 @@ function schedulePrimaryModelPrewarm(
     prewarmConfiguredPrimaryModelWithTimeout(
       {
         cfg: params.cfg,
+        ...(params.workspaceDir ? { workspaceDir: params.workspaceDir } : {}),
         log: params.log,
       },
       prewarm,
@@ -408,6 +405,7 @@ export async function startGatewaySidecars(params: {
         schedulePrimaryModelPrewarm(
           {
             cfg: params.cfg,
+            workspaceDir: params.defaultWorkspaceDir,
             log: params.log,
             startupTrace: params.startupTrace,
           },
@@ -782,4 +780,5 @@ export async function startGatewayPostAttachRuntime(
 
 export const __testing = {
   prewarmConfiguredPrimaryModel,
+  shouldSkipStartupModelPrewarm,
 };

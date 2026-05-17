@@ -18,7 +18,11 @@ export type ResolveImplicitProvidersForModelsJson = (params: {
   agentDir: string;
   config: KovaConfig;
   env: NodeJS.ProcessEnv;
+  workspaceDir?: string;
   explicitProviders: Record<string, ProviderConfig>;
+  providerDiscoveryProviderIds?: readonly string[];
+  providerDiscoveryTimeoutMs?: number;
+  providerDiscoveryEntriesOnly?: boolean;
 }) => Promise<Record<string, ProviderConfig>>;
 
 export type ModelsJsonPlan =
@@ -38,6 +42,10 @@ export async function resolveProvidersForModelsJsonWithDeps(
     cfg: KovaConfig;
     agentDir: string;
     env: NodeJS.ProcessEnv;
+    workspaceDir?: string;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
   },
   deps?: {
     resolveImplicitProviders?: ResolveImplicitProvidersForModelsJson;
@@ -50,7 +58,15 @@ export async function resolveProvidersForModelsJsonWithDeps(
     agentDir,
     config: cfg,
     env,
+    ...(params.workspaceDir ? { workspaceDir: params.workspaceDir } : {}),
     explicitProviders,
+    ...(params.providerDiscoveryProviderIds
+      ? { providerDiscoveryProviderIds: params.providerDiscoveryProviderIds }
+      : {}),
+    ...(params.providerDiscoveryTimeoutMs !== undefined
+      ? { providerDiscoveryTimeoutMs: params.providerDiscoveryTimeoutMs }
+      : {}),
+    ...(params.providerDiscoveryEntriesOnly === true ? { providerDiscoveryEntriesOnly: true } : {}),
   });
   return mergeProviders({
     implicit: implicitProviders,
@@ -88,15 +104,36 @@ export async function planKovaModelsJsonWithDeps(
     sourceConfigForSecrets?: KovaConfig;
     agentDir: string;
     env: NodeJS.ProcessEnv;
+    workspaceDir?: string;
     existingRaw: string;
     existingParsed: unknown;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
   },
   deps?: {
     resolveImplicitProviders?: ResolveImplicitProvidersForModelsJson;
   },
 ): Promise<ModelsJsonPlan> {
   const { cfg, agentDir, env } = params;
-  const providers = await resolveProvidersForModelsJsonWithDeps({ cfg, agentDir, env }, deps);
+  const providers = await resolveProvidersForModelsJsonWithDeps(
+    {
+      cfg,
+      agentDir,
+      env,
+      ...(params.workspaceDir ? { workspaceDir: params.workspaceDir } : {}),
+      ...(params.providerDiscoveryProviderIds
+        ? { providerDiscoveryProviderIds: params.providerDiscoveryProviderIds }
+        : {}),
+      ...(params.providerDiscoveryTimeoutMs !== undefined
+        ? { providerDiscoveryTimeoutMs: params.providerDiscoveryTimeoutMs }
+        : {}),
+      ...(params.providerDiscoveryEntriesOnly === true
+        ? { providerDiscoveryEntriesOnly: true }
+        : {}),
+    },
+    deps,
+  );
 
   if (Object.keys(providers).length === 0) {
     return { action: "skip" };
