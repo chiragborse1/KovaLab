@@ -17,6 +17,10 @@ type HookRunnerGlobalState = {
   hookRunner: HookRunner | null;
   registry: GlobalHookRunnerRegistry | null;
   runtimeSubagentMode: GlobalHookRunnerRuntimeSubagentMode | null;
+  lastGatewayStart: {
+    event: Parameters<HookRunner["runGatewayStart"]>[0];
+    ctx: Parameters<HookRunner["runGatewayStart"]>[1];
+  } | null;
 };
 
 const hookRunnerGlobalStateKey = Symbol.for("kova.plugins.hook-runner-global-state");
@@ -25,6 +29,7 @@ const getState = () =>
     hookRunner: null,
     registry: null,
     runtimeSubagentMode: null,
+    lastGatewayStart: null,
   }));
 
 const getLog = () => createSubsystemLogger("plugins");
@@ -57,6 +62,7 @@ export function initializeGlobalHookRunner(
   if (hookCount > 0) {
     log.debug(`hook runner initialized with ${hookCount} registered hooks`);
   }
+  replayGatewayStartForCurrentRunner(state);
 }
 
 /**
@@ -77,6 +83,18 @@ export function getGlobalPluginRegistry(): GlobalHookRunnerRegistry | null {
 
 export function getGlobalHookRunnerRuntimeSubagentMode(): GlobalHookRunnerRuntimeSubagentMode | null {
   return getState().runtimeSubagentMode;
+}
+
+function replayGatewayStartForCurrentRunner(state: HookRunnerGlobalState): void {
+  const log = getLog();
+  const replay = state.lastGatewayStart;
+  const hookRunner = state.hookRunner;
+  if (!replay || !hookRunner?.hasHooks("gateway_start")) {
+    return;
+  }
+  void hookRunner.runGatewayStart(replay.event, replay.ctx).catch((err) => {
+    log.warn(`gateway_start hook replay failed: ${String(err)}`);
+  });
 }
 
 /**
@@ -107,6 +125,29 @@ export async function runGlobalGatewayStopSafely(params: {
   }
 }
 
+export async function runGlobalGatewayStartSafely(params: {
+  event: Parameters<HookRunner["runGatewayStart"]>[0];
+  ctx: Parameters<HookRunner["runGatewayStart"]>[1];
+  onError?: (err: unknown) => void;
+}): Promise<void> {
+  const state = getState();
+  state.lastGatewayStart = { event: params.event, ctx: params.ctx };
+  const log = getLog();
+  const hookRunner = state.hookRunner;
+  if (!hookRunner?.hasHooks("gateway_start")) {
+    return;
+  }
+  try {
+    await hookRunner.runGatewayStart(params.event, params.ctx);
+  } catch (err) {
+    if (params.onError) {
+      params.onError(err);
+      return;
+    }
+    log.warn(`gateway_start hook failed: ${String(err)}`);
+  }
+}
+
 /**
  * Reset the global hook runner (for testing).
  */
@@ -115,4 +156,5 @@ export function resetGlobalHookRunner(): void {
   state.hookRunner = null;
   state.registry = null;
   state.runtimeSubagentMode = null;
+  state.lastGatewayStart = null;
 }

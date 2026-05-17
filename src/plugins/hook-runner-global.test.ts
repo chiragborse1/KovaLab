@@ -52,4 +52,34 @@ describe("hook-runner-global", () => {
 
     await expectGlobalRunnerState({ hasRunner: false });
   });
+
+  it("replays gateway_start for hook runners initialized after gateway startup", async () => {
+    const mod = await importHookRunnerGlobalModule();
+    const firstGatewayStart = vi.fn();
+    const firstRegistry = createMockPluginRegistry([
+      { hookName: "gateway_start", handler: firstGatewayStart },
+    ]);
+    mod.initializeGlobalHookRunner(firstRegistry, { runtimeSubagentMode: "gateway-bindable" });
+
+    const event = { port: 18789 };
+    const ctx = {
+      port: 18789,
+      config: {},
+      workspaceDir: "/tmp/kova-test",
+      getCron: () => null,
+    };
+    await mod.runGlobalGatewayStartSafely({ event, ctx });
+    expect(firstGatewayStart).toHaveBeenCalledTimes(1);
+
+    const reloadedGatewayStart = vi.fn();
+    const reloadedRegistry = createMockPluginRegistry([
+      { hookName: "gateway_start", handler: reloadedGatewayStart },
+    ]);
+    mod.initializeGlobalHookRunner(reloadedRegistry, { runtimeSubagentMode: "gateway-bindable" });
+
+    await vi.waitFor(() => {
+      expect(reloadedGatewayStart).toHaveBeenCalledTimes(1);
+    });
+    expect(reloadedGatewayStart).toHaveBeenCalledWith(event, ctx);
+  });
 });

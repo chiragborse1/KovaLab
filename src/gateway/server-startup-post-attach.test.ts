@@ -90,7 +90,7 @@ vi.mock("../hooks/loader.js", () => ({
 }));
 
 vi.mock("../plugins/hook-runner-global.js", () => ({
-  getGlobalHookRunner: vi.fn(() => null),
+  runGlobalGatewayStartSafely: vi.fn(async () => undefined),
 }));
 
 vi.mock("../plugins/services.js", () => ({
@@ -412,7 +412,11 @@ describe("startGatewayPostAttachRuntime", () => {
     await startGatewayPostAttachRuntime(
       params,
       createPostAttachRuntimeDeps({
-        getGlobalHookRunner: vi.fn(async () => hookRunner as never),
+        runGlobalGatewayStartSafely: vi.fn(async ({ event, ctx }) => {
+          if (hookRunner.hasHooks("gateway_start")) {
+            await hookRunner.runGatewayStart(event, ctx);
+          }
+        }),
       }),
     );
 
@@ -448,9 +452,9 @@ function createPostAttachRuntimeDeps(
   overrides: Partial<PostAttachRuntimeDeps> = {},
 ): PostAttachRuntimeDeps {
   return {
-    getGlobalHookRunner: vi.fn(() => null),
     logGatewayStartup: hoisted.logGatewayStartup,
     refreshLatestUpdateRestartSentinel: hoisted.refreshLatestUpdateRestartSentinel,
+    runGlobalGatewayStartSafely: vi.fn(async () => undefined),
     scheduleGatewayUpdateCheck: hoisted.scheduleGatewayUpdateCheck,
     startGatewaySidecars: vi.fn(async () => ({ pluginServices: null })),
     startGatewayTailscaleExposure: hoisted.startGatewayTailscaleExposure,

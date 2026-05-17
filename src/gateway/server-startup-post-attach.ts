@@ -5,7 +5,7 @@ import type { KovaConfig } from "../config/types.kova.js";
 import { hasConfiguredInternalHooks } from "../hooks/configured.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { scheduleGatewayUpdateCheck } from "../infra/update-startup.js";
-import type { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import type { runGlobalGatewayStartSafely } from "../plugins/hook-runner-global.js";
 import type { PluginHookGatewayCronService } from "../plugins/hook-types.js";
 import type { loadKovaPlugins } from "../plugins/loader.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
@@ -579,11 +579,13 @@ export async function startGatewaySidecars(params: {
 }
 
 type GatewayPostAttachRuntimeDeps = {
-  getGlobalHookRunner: () => Awaitable<ReturnType<typeof getGlobalHookRunner>>;
   logGatewayStartup: (params: Parameters<typeof logGatewayStartup>[0]) => Awaitable<void>;
   refreshLatestUpdateRestartSentinel: () => Awaitable<
     ReturnType<typeof refreshLatestUpdateRestartSentinel>
   >;
+  runGlobalGatewayStartSafely: (
+    params: Parameters<typeof runGlobalGatewayStartSafely>[0],
+  ) => Awaitable<void>;
   scheduleGatewayUpdateCheck: (
     ...args: Parameters<typeof scheduleGatewayUpdateCheck>
   ) => Awaitable<ReturnType<typeof scheduleGatewayUpdateCheck>>;
@@ -594,12 +596,12 @@ type GatewayPostAttachRuntimeDeps = {
 };
 
 const defaultGatewayPostAttachRuntimeDeps: GatewayPostAttachRuntimeDeps = {
-  getGlobalHookRunner: async () =>
-    (await import("../plugins/hook-runner-global.js")).getGlobalHookRunner(),
   logGatewayStartup: async (params) =>
     (await import("./server-startup-log.js")).logGatewayStartup(params),
   refreshLatestUpdateRestartSentinel: async () =>
     (await import("./server-restart-sentinel.js")).refreshLatestUpdateRestartSentinel(),
+  runGlobalGatewayStartSafely: async (params) =>
+    (await import("../plugins/hook-runner-global.js")).runGlobalGatewayStartSafely(params),
   scheduleGatewayUpdateCheck: async (...args) =>
     (await import("../infra/update-startup.js")).scheduleGatewayUpdateCheck(...args),
   startGatewaySidecars,
@@ -740,22 +742,18 @@ export async function startGatewayPostAttachRuntime(
       if (params.minimalTestGateway) {
         return;
       }
-      const hookRunner = await runtimeDeps.getGlobalHookRunner();
-      if (hookRunner?.hasHooks("gateway_start")) {
-        void hookRunner
-          .runGatewayStart(
-            { port: params.port },
-            {
-              port: params.port,
-              config: params.gatewayPluginConfigAtStart,
-              workspaceDir: params.defaultWorkspaceDir,
-              getCron: () => params.deps.cron as PluginHookGatewayCronService | undefined,
-            },
-          )
-          .catch((err) => {
-            params.log.warn(`gateway_start hook failed: ${String(err)}`);
-          });
-      }
+      void runtimeDeps.runGlobalGatewayStartSafely({
+        event: { port: params.port },
+        ctx: {
+          port: params.port,
+          config: params.gatewayPluginConfigAtStart,
+          workspaceDir: params.defaultWorkspaceDir,
+          getCron: () => params.deps.cron as PluginHookGatewayCronService | undefined,
+        },
+        onError: (err) => {
+          params.log.warn(`gateway_start hook failed: ${String(err)}`);
+        },
+      });
     })
     .catch((err) => {
       params.log.warn(`connectors failed to start: ${String(err)}`);
