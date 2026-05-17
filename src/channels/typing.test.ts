@@ -67,8 +67,25 @@ describe("createTypingCallbacks", () => {
     });
 
     await callbacks.onReplyStart();
+    await flushMicrotasks();
 
     expect(onStartError).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not block the reply path on slow typing startup", async () => {
+    let releaseStart!: () => void;
+    const startReady = new Promise<void>((resolve) => {
+      releaseStart = resolve;
+    });
+    const { start, callbacks } = createTypingHarness({
+      start: vi.fn(() => startReady),
+    });
+
+    await callbacks.onReplyStart();
+
+    expect(start).toHaveBeenCalledTimes(1);
+    releaseStart();
+    await flushMicrotasks();
   });
 
   it("invokes stop on idle and reports stop errors", async () => {
@@ -87,6 +104,7 @@ describe("createTypingCallbacks", () => {
     await withFakeTimers(async () => {
       const { start, stop, callbacks } = createTypingHarness();
       await callbacks.onReplyStart();
+      await flushMicrotasks();
       expect(start).toHaveBeenCalledTimes(1);
 
       await vi.advanceTimersByTimeAsync(2_999);
@@ -113,6 +131,7 @@ describe("createTypingCallbacks", () => {
         start: vi.fn().mockRejectedValue(new Error("gone")),
       });
       await callbacks.onReplyStart();
+      await flushMicrotasks();
       expect(start).toHaveBeenCalledTimes(1);
       expect(onStartError).toHaveBeenCalledTimes(1);
 
@@ -133,6 +152,7 @@ describe("createTypingCallbacks", () => {
       });
 
       await callbacks.onReplyStart();
+      await flushMicrotasks();
       expect(start).toHaveBeenCalledTimes(1);
 
       await vi.advanceTimersByTimeAsync(9_000);
@@ -154,6 +174,7 @@ describe("createTypingCallbacks", () => {
         maxConsecutiveFailures: 2,
       });
       await callbacks.onReplyStart(); // fail
+      await flushMicrotasks();
       await vi.advanceTimersByTimeAsync(3_000); // success
       await vi.advanceTimersByTimeAsync(3_000); // fail
       await vi.advanceTimersByTimeAsync(3_000); // success
@@ -179,6 +200,7 @@ describe("createTypingCallbacks", () => {
       const { start, stop, callbacks } = createTypingHarness();
 
       await callbacks.onReplyStart();
+      await flushMicrotasks();
       expect(start).toHaveBeenCalledTimes(1);
 
       callbacks.onIdle?.();
@@ -200,6 +222,7 @@ describe("createTypingCallbacks", () => {
         const { start, stop, callbacks } = createTypingHarness({ maxDurationMs: 10_000 });
 
         await callbacks.onReplyStart();
+        await flushMicrotasks();
         expect(start).toHaveBeenCalledTimes(1);
         expect(stop).not.toHaveBeenCalled();
 
@@ -220,6 +243,7 @@ describe("createTypingCallbacks", () => {
         const { stop, callbacks } = createTypingHarness({ maxDurationMs: 10_000 });
 
         await callbacks.onReplyStart();
+        await flushMicrotasks();
 
         // Stop before TTL
         await vi.advanceTimersByTimeAsync(5_000);
@@ -245,6 +269,7 @@ describe("createTypingCallbacks", () => {
         const { stop, callbacks } = createTypingHarness();
 
         await callbacks.onReplyStart();
+        await flushMicrotasks();
 
         // Should not stop at 59s
         await vi.advanceTimersByTimeAsync(59_000);
@@ -261,6 +286,7 @@ describe("createTypingCallbacks", () => {
         const { stop, callbacks } = createTypingHarness({ maxDurationMs: 0 });
 
         await callbacks.onReplyStart();
+        await flushMicrotasks();
 
         // Should not auto-stop even after long time
         await vi.advanceTimersByTimeAsync(300_000);
@@ -274,6 +300,7 @@ describe("createTypingCallbacks", () => {
 
         // First start
         await callbacks.onReplyStart();
+        await flushMicrotasks();
         await vi.advanceTimersByTimeAsync(5_000);
 
         // Idle and restart
