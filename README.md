@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>EXFOLIATE! EXFOLIATE!</strong>
+  <strong>Your personal AI assistant, across your devices and channels.</strong>
 </p>
 
 <p align="center">
@@ -29,65 +29,6 @@ New install? Start here: [Getting started](https://docs.neuralstudio.in/start/ge
 Preferred setup: run `kova onboard` in your terminal.
 Kova Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
-
-## Sponsors
-
-<table>
-  <tr>
-    <td align="center" width="16.66%">
-      <a href="https://openai.com/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/openai-light.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/openai.svg" alt="OpenAI" height="28">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="16.66%">
-      <a href="https://github.com/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/github-light.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/github.svg" alt="GitHub" height="28">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="16.66%">
-      <a href="https://www.nvidia.com/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/nvidia.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/nvidia-dark.svg" alt="NVIDIA" height="28">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="16.66%">
-      <a href="https://vercel.com/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/vercel-light.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/vercel.svg" alt="Vercel" height="24">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="16.66%">
-      <a href="https://blacksmith.sh/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/blacksmith-light.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/blacksmith.svg" alt="Blacksmith" height="28">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="16.66%">
-      <a href="https://www.convex.dev/">
-        <picture>
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/convex-light.svg">
-          <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/sponsors/convex.svg" alt="Convex" height="24">
-        </picture>
-      </a>
-    </td>
-  </tr>
-</table>
-
-**Subscriptions (OAuth):**
-
-- **[OpenAI](https://openai.com/)** (ChatGPT/Codex)
 
 Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://docs.neuralstudio.in/start/onboarding).
 
@@ -267,21 +208,7 @@ Minimal `~/.kova/kova.json` (model + defaults):
 
 [Full configuration reference (all keys + examples).](https://docs.neuralstudio.in/gateway/configuration)
 
-## Molty
-
-Kova was built for **Molty**, a space unicorn AI assistant. 🦄
-by Peter Steinberger and the community.
-
-- [www.neuralstudio.in](https://www.neuralstudio.in/)
-- [soul.md](https://soul.md)
-- [steipete.me](https://steipete.me)
-- [@kovaai](https://x.com/kova)
-
 ## Community
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, maintainers, and how to submit PRs.
 AI/vibe-coded PRs welcome! 🤖
-
-Special thanks to [Mario Zechner](https://mariozechner.at/) for his support and for
-[pi-mono](https://github.com/badlogic/pi-mono).
-Special thanks to Adam Doppelt for the lobster.bot domain.
