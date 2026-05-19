@@ -91,6 +91,14 @@ async function deliverMediaReplyForTest(outboundSession: DeliverParams["outbound
 describe("normalizeAgentCommandReplyPayloads", () => {
   beforeEach(() => {
     setActivePluginRegistry(slackRegistry);
+    deliverOutboundPayloadsMock.mockReset();
+    deliverOutboundPayloadsMock.mockResolvedValue([]);
+    createReplyMediaPathNormalizerMock.mockReset();
+    createReplyMediaPathNormalizerMock.mockImplementation(
+      (..._args: unknown[]) =>
+        (payload: ReplyPayload) =>
+          Promise.resolve(payload),
+    );
   });
 
   afterEach(() => {
@@ -252,6 +260,107 @@ describe("normalizeAgentCommandReplyPayloads", () => {
         workspaceDir: "/tmp/agent-workspace",
       }),
     );
+  });
+
+  it("refreshes stale implicit session routing before final delivery", async () => {
+    deliverOutboundPayloadsMock.mockResolvedValue([{ channel: "slack", messageId: "msg-1" }]);
+    const runtime = { log: vi.fn(), error: vi.fn() };
+    const resolveFreshSessionEntryForDelivery = vi.fn(async () => ({
+      sessionId: "session-1",
+      updatedAt: 2,
+      deliveryContext: {
+        channel: "slack",
+        to: "#fresh",
+        accountId: "workspace-1",
+      },
+    }));
+
+    await deliverAgentCommandResult({
+      cfg: {
+        agents: {
+          list: [{ id: "tester", workspace: "/tmp/agent-workspace" }],
+        },
+      } as KovaConfig,
+      deps: {} as CliDeps,
+      runtime: runtime as never,
+      opts: {
+        message: "go",
+        deliver: true,
+        bestEffortDeliver: true,
+        sessionKey: "agent:tester:main",
+      } as AgentCommandOpts,
+      outboundSession: {
+        key: "agent:tester:main",
+        agentId: "tester",
+      } as never,
+      sessionEntry: {
+        sessionId: "session-1",
+        updatedAt: 1,
+      },
+      expectedSessionIdForFreshDelivery: "session-1",
+      resolveFreshSessionEntryForDelivery,
+      payloads: [{ text: "final answer" }],
+      result: createResult(),
+    });
+
+    expect(resolveFreshSessionEntryForDelivery).toHaveBeenCalledTimes(1);
+    expect(deliverOutboundPayloadsMock).toHaveBeenCalledTimes(1);
+    const [firstCallArg] = deliverOutboundPayloadsMock.mock.calls[0] ?? [];
+    const deliverArgs = firstCallArg as
+      | {
+          channel?: string;
+          to?: string;
+          accountId?: string;
+        }
+      | undefined;
+    expect(deliverArgs?.channel).toBe("slack");
+    expect(deliverArgs?.to).toBe("#fresh");
+    expect(deliverArgs?.accountId).toBe("workspace-1");
+  });
+
+  it("does not refresh final delivery routing from a different logical session", async () => {
+    deliverOutboundPayloadsMock.mockResolvedValue([{ channel: "slack", messageId: "msg-1" }]);
+    const runtime = { log: vi.fn(), error: vi.fn() };
+    const resolveFreshSessionEntryForDelivery = vi.fn(async () => ({
+      sessionId: "session-2",
+      updatedAt: 2,
+      deliveryContext: {
+        channel: "slack",
+        to: "#fresh",
+        accountId: "workspace-1",
+      },
+    }));
+
+    await deliverAgentCommandResult({
+      cfg: {
+        agents: {
+          list: [{ id: "tester", workspace: "/tmp/agent-workspace" }],
+        },
+      } as KovaConfig,
+      deps: {} as CliDeps,
+      runtime: runtime as never,
+      opts: {
+        message: "go",
+        deliver: true,
+        bestEffortDeliver: true,
+        sessionKey: "agent:tester:main",
+      } as AgentCommandOpts,
+      outboundSession: {
+        key: "agent:tester:main",
+        agentId: "tester",
+      } as never,
+      sessionEntry: {
+        sessionId: "session-1",
+        updatedAt: 1,
+      },
+      expectedSessionIdForFreshDelivery: "session-1",
+      resolveFreshSessionEntryForDelivery,
+      payloads: [{ text: "final answer" }],
+      result: createResult(),
+    });
+
+    expect(resolveFreshSessionEntryForDelivery).toHaveBeenCalledTimes(1);
+    expect(deliverOutboundPayloadsMock).not.toHaveBeenCalled();
   });
 
   it("keeps LINE directive-only replies intact for local preview when delivery is disabled", async () => {

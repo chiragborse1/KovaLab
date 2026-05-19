@@ -1155,7 +1155,20 @@ async function agentCommandInternal(
 
     const payloads = result.payloads ?? [];
     const { deliverAgentCommandResult } = await loadDeliveryRuntime();
-    return await deliverAgentCommandResult({
+    const resolveFreshSessionEntryForDelivery =
+      sessionStore && sessionKey
+        ? async () => {
+            const { loadSessionStore } = await loadSessionStoreRuntime();
+            const freshStore = loadSessionStore(storePath, { skipCache: true });
+            const freshEntry = freshStore[sessionKey];
+            if (!freshEntry || freshEntry.sessionId !== sessionId) {
+              return undefined;
+            }
+            sessionStore[sessionKey] = freshEntry;
+            return freshEntry;
+          }
+        : undefined;
+    const deliveryParams = {
       cfg,
       deps: resolvedDeps,
       runtime,
@@ -1164,7 +1177,16 @@ async function agentCommandInternal(
       sessionEntry,
       result,
       payloads,
-    });
+    };
+    return await deliverAgentCommandResult(
+      resolveFreshSessionEntryForDelivery
+        ? {
+            ...deliveryParams,
+            expectedSessionIdForFreshDelivery: sessionId,
+            resolveFreshSessionEntryForDelivery,
+          }
+        : deliveryParams,
+    );
   } finally {
     clearAgentRunContext(runId);
   }
