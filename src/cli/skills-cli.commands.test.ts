@@ -394,7 +394,6 @@ describe("skills cli commands", () => {
 
     expect(buildWorkspaceSkillStatusMock).toHaveBeenCalledWith("/tmp/workspace", {
       config: {},
-      agentId: "main",
     });
     expect(
       defaultRuntime.writeStdout.mock.calls.length + defaultRuntime.writeJson.mock.calls.length,

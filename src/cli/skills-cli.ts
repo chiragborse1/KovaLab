@@ -63,9 +63,9 @@ function resolveAgentOption(
 async function loadSkillsStatusReport(
   options?: ResolveSkillsWorkspaceOptions,
 ): Promise<SkillStatusReport> {
-  const { config, workspaceDir, agentId } = resolveSkillsWorkspace(options);
+  const { config, workspaceDir } = resolveSkillsWorkspace(options);
   const { buildWorkspaceSkillStatus } = await import("../agents/skills-status.js");
-  return buildWorkspaceSkillStatus(workspaceDir, { config, agentId });
+  return buildWorkspaceSkillStatus(workspaceDir, { config });
 }
 
 async function runSkillsAction(

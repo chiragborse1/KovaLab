@@ -244,11 +244,7 @@ export function validateToolPluginProject(params: {
   }
   const extensionResolution = resolvePackageExtensionEntries(params.packageManifest);
   if (extensionResolution.status !== "ok") {
-    errors.push(
-      extensionResolution.status === "missing" || extensionResolution.status === "empty"
-        ? "package.json must include kova.extensions"
-        : extensionResolution.error,
-    );
+    errors.push("package.json must include kova.extensions");
   } else if (!extensionResolution.entries.includes(params.entry)) {
     errors.push(`package.json kova.extensions must include ${params.entry}`);
   }
