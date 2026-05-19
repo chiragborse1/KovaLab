@@ -343,7 +343,6 @@ function Install-KovaGit {
 @echo off
 node "$entryPath" %*
 "@ | Out-File -FilePath "$wrapperDir\kova.cmd" -Encoding ASCII -Force
-    Remove-Item -LiteralPath "$wrapperDir\kova.cmd" -Force -ErrorAction SilentlyContinue
     Add-ToPath -Path $wrapperDir
     
     Write-Host "Kova installed" -Level success

@@ -73,6 +73,12 @@ describe("install.ps1 failure handling", () => {
     expect(completeInstallBody).toMatch(/\bthrow "Kova installation failed with exit code/);
   });
 
+  it("keeps the git install wrapper after writing it", () => {
+    const installGitBody = extractFunctionBody(source, "Install-KovaGit");
+    expect(installGitBody).toContain('Out-File -FilePath "$wrapperDir\\kova.cmd"');
+    expect(installGitBody).not.toContain('Remove-Item -LiteralPath "$wrapperDir\\kova.cmd"');
+  });
+
   runIfPowerShell("exits non-zero when run as a script file", () => {
     const tempDir = harness.createTempDir("kova-install-ps1-");
     const scriptPath = join(tempDir, "install.ps1");
