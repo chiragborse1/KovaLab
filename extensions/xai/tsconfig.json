@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "getkova/extension-api": ["../../src/extensionAPI.ts"],
+      "kova/extension-api": ["../../src/extensionAPI.ts"],
       "getkova/plugin-sdk": ["../../dist/plugin-sdk/src/plugin-sdk/index.d.ts"],
       "getkova/plugin-sdk/*": ["../../dist/plugin-sdk/src/plugin-sdk/*.d.ts"],
       "getkova/plugin-sdk/account-id": ["../../dist/plugin-sdk/src/plugin-sdk/account-id.d.ts"],
@@ -12,18 +12,6 @@
       ],
       "getkova/plugin-sdk/browser-maintenance": [
         "../../dist/plugin-sdk/src/plugin-sdk/browser-maintenance.d.ts"
-      ],
-      "getkova/plugin-sdk/browser-config-runtime": [
-        "../../dist/plugin-sdk/src/plugin-sdk/browser-config-runtime.d.ts"
-      ],
-      "getkova/plugin-sdk/browser-node-runtime": [
-        "../../dist/plugin-sdk/src/plugin-sdk/browser-node-runtime.d.ts"
-      ],
-      "getkova/plugin-sdk/browser-setup-tools": [
-        "../../dist/plugin-sdk/src/plugin-sdk/browser-setup-tools.d.ts"
-      ],
-      "getkova/plugin-sdk/browser-security-runtime": [
-        "../../dist/plugin-sdk/src/plugin-sdk/browser-security-runtime.d.ts"
       ],
       "getkova/plugin-sdk/channel-secret-runtime": [
         "../../dist/plugin-sdk/src/plugin-sdk/channel-secret-runtime.d.ts"
@@ -51,14 +39,14 @@
         "../../dist/plugin-sdk/src/plugin-sdk/secret-ref-runtime.d.ts"
       ],
       "getkova/plugin-sdk/ssrf-runtime": ["../../dist/plugin-sdk/src/plugin-sdk/ssrf-runtime.d.ts"],
-      "@kovaai/qa-channel/api.js": ["../../dist/plugin-sdk/extensions/qa-channel/api.d.ts"],
-      "@kovaai/*.js": ["../../packages/plugin-sdk/dist/extensions/*.d.ts", "../*"],
-      "@kovaai/*": ["../*"],
+      "@kova/qa-channel/api.js": ["../../dist/plugin-sdk/extensions/qa-channel/api.d.ts"],
+      "@kova/*.js": ["../../packages/plugin-sdk/dist/extensions/*.d.ts", "../*"],
+      "@kova/*": ["../*"],
       "@getkova/plugin-sdk/*": ["../../dist/plugin-sdk/src/plugin-sdk/*.d.ts"],
-      "@kovaai/anthropic-vertex/api.js": ["./.boundary-stubs/anthropic-vertex-api.d.ts"],
-      "@kovaai/ollama/api.js": ["./.boundary-stubs/ollama-api.d.ts"],
-      "@kovaai/ollama/runtime-api.js": ["./.boundary-stubs/ollama-runtime-api.d.ts"],
-      "@kovaai/speech-core/runtime-api.js": ["./.boundary-stubs/speech-core-runtime-api.d.ts"]
+      "@kova/anthropic-vertex/api.js": ["./.boundary-stubs/anthropic-vertex-api.d.ts"],
+      "@kova/ollama/api.js": ["./.boundary-stubs/ollama-api.d.ts"],
+      "@kova/ollama/runtime-api.js": ["./.boundary-stubs/ollama-runtime-api.d.ts"],
+      "@kova/speech-core/runtime-api.js": ["./.boundary-stubs/speech-core-runtime-api.d.ts"]
     }
   },
   "include": ["./*.ts", "./src/**/*.ts"],

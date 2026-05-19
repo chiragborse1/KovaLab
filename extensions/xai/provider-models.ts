@@ -3,11 +3,11 @@ import type {
   ProviderRuntimeModel,
 } from "getkova/plugin-sdk/plugin-entry";
 import { normalizeModelCompat } from "getkova/plugin-sdk/provider-model-shared";
-import { applyXaiModelCompat } from "getkova/plugin-sdk/provider-tools";
-import { normalizeOptionalLowercaseString } from "getkova/plugin-sdk/text-runtime";
+import { normalizeOptionalLowercaseString } from "getkova/plugin-sdk/string-coerce-runtime";
 import { resolveXaiCatalogEntry, XAI_BASE_URL } from "./model-definitions.js";
+import { applyXaiRuntimeModelCompat } from "./runtime-model-compat.js";
 
-const XAI_MODERN_MODEL_PREFIXES = ["grok-3", "grok-4", "grok-code-fast"] as const;
+const XAI_MODERN_MODEL_PREFIXES = ["grok-4.3", "grok-4.20"] as const;
 
 export function isModernXaiModel(modelId: string): boolean {
   const lower = normalizeOptionalLowercaseString(modelId) ?? "";
@@ -26,7 +26,7 @@ export function resolveXaiForwardCompatModel(params: {
     return undefined;
   }
 
-  return applyXaiModelCompat(
+  return applyXaiRuntimeModelCompat(
     normalizeModelCompat({
       id: definition.id,
       name: definition.name,

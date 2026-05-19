@@ -1,4 +1,4 @@
-import type { KovaConfig } from "getkova/plugin-sdk/config-runtime";
+import type { KovaConfig } from "getkova/plugin-sdk/config-contracts";
 import { canResolveEnvSecretRefInReadOnlyPath } from "getkova/plugin-sdk/extension-shared";
 import {
   coerceSecretRef,
@@ -13,11 +13,17 @@ import {
   resolveSecretInputString,
 } from "getkova/plugin-sdk/secret-input";
 
-export type XaiFallbackAuth = {
+type XaiFallbackAuth = {
   apiKey: string;
   source: string;
 };
 const XAI_API_KEY_ENV_VAR = "XAI_API_KEY";
+const XAI_PROVIDER_ID = "xai";
+
+export type XaiToolAuthContext = {
+  hasAuthForProvider?: (providerId: string) => boolean;
+  resolveApiKeyForProvider?: (providerId: string) => Promise<string | undefined>;
+};
 
 type ConfiguredRuntimeApiKeyResolution =
   | { status: "available"; value: string }
@@ -95,11 +101,6 @@ function readLegacyGrokApiKeyResult(cfg?: KovaConfig): ConfiguredRuntimeApiKeyRe
   );
 }
 
-export function readLegacyGrokApiKey(cfg?: KovaConfig): string | undefined {
-  const resolved = readLegacyGrokApiKeyResult(cfg);
-  return resolved.status === "available" ? resolved.value : undefined;
-}
-
 function readPluginXaiWebSearchApiKeyResult(cfg?: KovaConfig): ConfiguredRuntimeApiKeyResolution {
   return readConfiguredRuntimeApiKey(
     resolveProviderWebSearchPluginConfig(cfg as Record<string, unknown> | undefined, "xai")?.apiKey,
@@ -108,9 +109,36 @@ function readPluginXaiWebSearchApiKeyResult(cfg?: KovaConfig): ConfiguredRuntime
   );
 }
 
-export function readPluginXaiWebSearchApiKey(cfg?: KovaConfig): string | undefined {
-  const resolved = readPluginXaiWebSearchApiKeyResult(cfg);
-  return resolved.status === "available" ? resolved.value : undefined;
+function resolveConfiguredXaiToolApiKeyResult(params: {
+  runtimeConfig?: KovaConfig;
+  sourceConfig?: KovaConfig;
+}): ConfiguredRuntimeApiKeyResolution {
+  const runtimePlugin = readPluginXaiWebSearchApiKeyResult(params.runtimeConfig);
+  if (runtimePlugin.status === "available" || runtimePlugin.status === "blocked") {
+    return runtimePlugin;
+  }
+  const runtimeLegacy = readLegacyGrokApiKeyResult(params.runtimeConfig);
+  if (runtimeLegacy.status === "available" || runtimeLegacy.status === "blocked") {
+    return runtimeLegacy;
+  }
+  const sourcePlugin = readPluginXaiWebSearchApiKeyResult(params.sourceConfig);
+  if (sourcePlugin.status === "available" || sourcePlugin.status === "blocked") {
+    return sourcePlugin;
+  }
+  const sourceLegacy = readLegacyGrokApiKeyResult(params.sourceConfig);
+  if (sourceLegacy.status === "available" || sourceLegacy.status === "blocked") {
+    return sourceLegacy;
+  }
+  return { status: "missing" };
+}
+
+function hasXaiAuthProfile(auth?: XaiToolAuthContext): boolean {
+  return auth?.hasAuthForProvider?.(XAI_PROVIDER_ID) === true;
+}
+
+async function resolveXaiAuthProfileApiKey(auth?: XaiToolAuthContext): Promise<string | undefined> {
+  const value = await auth?.resolveApiKeyForProvider?.(XAI_PROVIDER_ID);
+  return normalizeSecretInputString(value);
 }
 
 export function resolveFallbackXaiAuth(cfg?: KovaConfig): XaiFallbackAuth | undefined {
@@ -142,44 +170,48 @@ export function resolveXaiToolApiKey(params: {
   runtimeConfig?: KovaConfig;
   sourceConfig?: KovaConfig;
 }): string | undefined {
-  const runtimePlugin = readPluginXaiWebSearchApiKeyResult(params.runtimeConfig);
-  if (runtimePlugin.status === "available") {
-    return runtimePlugin.value;
+  const configured = resolveConfiguredXaiToolApiKeyResult(params);
+  if (configured.status === "available") {
+    return configured.value;
   }
-  if (runtimePlugin.status === "blocked") {
-    return undefined;
-  }
-  const runtimeLegacy = readLegacyGrokApiKeyResult(params.runtimeConfig);
-  if (runtimeLegacy.status === "available") {
-    return runtimeLegacy.value;
-  }
-  if (runtimeLegacy.status === "blocked") {
-    return undefined;
-  }
-  const sourcePlugin = readPluginXaiWebSearchApiKeyResult(params.sourceConfig);
-  if (sourcePlugin.status === "available") {
-    return sourcePlugin.value;
-  }
-  if (sourcePlugin.status === "blocked") {
-    return undefined;
-  }
-  const sourceLegacy = readLegacyGrokApiKeyResult(params.sourceConfig);
-  if (sourceLegacy.status === "available") {
-    return sourceLegacy.value;
-  }
-  if (sourceLegacy.status === "blocked") {
+  if (configured.status === "blocked") {
     return undefined;
   }
   return readProviderEnvValue([XAI_API_KEY_ENV_VAR]);
+}
+
+export async function resolveXaiToolApiKeyWithAuth(params: {
+  runtimeConfig?: KovaConfig;
+  sourceConfig?: KovaConfig;
+  auth?: XaiToolAuthContext;
+}): Promise<string | undefined> {
+  const configured = resolveConfiguredXaiToolApiKeyResult(params);
+  if (configured.status === "available") {
+    return configured.value;
+  }
+  if (configured.status === "blocked") {
+    return undefined;
+  }
+  return (
+    (await resolveXaiAuthProfileApiKey(params.auth)) ?? readProviderEnvValue([XAI_API_KEY_ENV_VAR])
+  );
 }
 
 export function isXaiToolEnabled(params: {
   enabled?: boolean;
   runtimeConfig?: KovaConfig;
   sourceConfig?: KovaConfig;
+  auth?: XaiToolAuthContext;
 }): boolean {
   if (params.enabled === false) {
     return false;
   }
-  return Boolean(resolveXaiToolApiKey(params));
+  const configured = resolveConfiguredXaiToolApiKeyResult(params);
+  if (configured.status === "available") {
+    return true;
+  }
+  if (configured.status === "blocked") {
+    return false;
+  }
+  return hasXaiAuthProfile(params.auth) || Boolean(readProviderEnvValue([XAI_API_KEY_ENV_VAR]));
 }

@@ -1,4 +1,4 @@
-import { isRecord } from "getkova/plugin-sdk/text-runtime";
+import { isRecord } from "getkova/plugin-sdk/string-coerce-runtime";
 import { normalizeXaiModelId } from "../model-id.js";
 
 export { isRecord };

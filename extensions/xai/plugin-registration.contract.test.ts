@@ -1,4 +1,4 @@
-import { describePluginRegistrationContract } from "../../test/helpers/plugins/plugin-registration-contract.js";
+import { describePluginRegistrationContract } from "getkova/plugin-sdk/plugin-test-contracts";
 
 describePluginRegistrationContract({
   pluginId: "xai",
