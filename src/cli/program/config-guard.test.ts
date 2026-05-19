@@ -129,6 +129,30 @@ describe("ensureConfigReady", () => {
     expect(gatewayRuntime.exit).not.toHaveBeenCalled();
   });
 
+  it("retries the cached config snapshot after a read rejection", async () => {
+    const originalVitest = process.env.VITEST;
+    process.env.VITEST = "false";
+    const transientError = new Error("temporary config read failure");
+    const recoveredSnapshot = makeSnapshot();
+    readConfigFileSnapshotMock
+      .mockRejectedValueOnce(transientError)
+      .mockResolvedValueOnce(recoveredSnapshot);
+
+    try {
+      await expect(runEnsureConfigReady(["status"])).rejects.toThrow(transientError);
+      await expect(runEnsureConfigReady(["status"])).resolves.toBeDefined();
+      await expect(runEnsureConfigReady(["status"])).resolves.toBeDefined();
+    } finally {
+      if (originalVitest === undefined) {
+        delete process.env.VITEST;
+      } else {
+        process.env.VITEST = originalVitest;
+      }
+    }
+
+    expect(readConfigFileSnapshotMock).toHaveBeenCalledTimes(2);
+  });
+
   it("allows an explicit invalid-config override", async () => {
     setInvalidSnapshot();
     const runtime = makeRuntime();
