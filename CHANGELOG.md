@@ -49,3 +49,4 @@
 - CLI update: run package-update follow-up commands with the Node binary and package root used by the managed Gateway service, preventing multi-Node installs from upgrading the shell CLI while leaving the service on a mismatched runtime. Thanks @amknight
 - Installer/Windows: launch onboarding as an attached child process so fresh native Windows installs do not freeze at setup start or corrupt the terminal wizard rendering. Thanks @sjf-oa
 - Installer/npm: bypass user npm freshness policies for Kova-managed package installs while preserving project-local install isolation for bundled plugin runtime dependencies. Thanks @joshavant
+- WhatsApp: drain queued outbound deliveries periodically while connected so recovered sends do not wait for a reconnect before leaving the queue. Thanks @Oviemudiaga

@@ -311,6 +311,7 @@ export function startWebAutoReplyMonitor(params: {
   messageTimeoutMs?: number;
   watchdogCheckMs?: number;
   reconnect?: { initialMs: number; maxMs: number; maxAttempts: number; factor: number };
+  accountId?: string;
 }): WebAutoReplyMonitorHarness {
   const runtime = createWebAutoReplyRuntime();
   const controller = new AbortController();
@@ -327,6 +328,7 @@ export function startWebAutoReplyMonitor(params: {
       watchdogCheckMs: params.watchdogCheckMs,
       reconnect: params.reconnect ?? { initialMs: 10, maxMs: 10, maxAttempts: 3, factor: 1.1 },
       sleep: params.sleep,
+      accountId: params.accountId,
     },
   );
 
