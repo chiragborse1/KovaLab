@@ -10,6 +10,7 @@ import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
+import { collectGatewayProcessMemoryUsageMb, recordGatewayRestartTrace } from "./restart-trace.js";
 
 const shutdownLog = createSubsystemLogger("gateway/shutdown");
 const GATEWAY_SHUTDOWN_HOOK_TIMEOUT_MS = 1_000;
@@ -137,6 +138,7 @@ export function createGatewayCloseHandler(params: {
   httpServers?: HttpServer[];
 }) {
   return async (opts?: { reason?: string; restartExpectedMs?: number | null }) => {
+    const closeStartedAt = Date.now();
     try {
       const reasonRaw = normalizeOptionalString(opts?.reason) ?? "";
       const reason = reasonRaw || "gateway stopping";
@@ -365,5 +367,10 @@ export function createGatewayCloseHandler(params: {
         /* ignore */
       }
     }
+    recordGatewayRestartTrace("restart.close.total", Date.now() - closeStartedAt, [
+      ["reason", normalizeOptionalString(opts?.reason) ?? "gateway stopping"],
+      ["restartExpectedMs", opts?.restartExpectedMs ?? "none"],
+      ...collectGatewayProcessMemoryUsageMb(),
+    ]);
   };
 }

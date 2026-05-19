@@ -45,6 +45,11 @@ import {
 } from "../tasks/task-registry.maintenance.js";
 import { createAuthRateLimiter, type AuthRateLimiter } from "./auth-rate-limit.js";
 import { resolveGatewayAuth } from "./auth.js";
+import {
+  collectGatewayProcessMemoryUsageMb,
+  finishGatewayRestartTrace,
+  measureGatewayRestartTrace,
+} from "./restart-trace.js";
 import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 import { createChannelManager } from "./server-channels.js";
 import { createGatewayCloseHandler, runGatewayClosePrelude } from "./server-close.js";
@@ -895,38 +900,41 @@ export async function startGatewayServer(
       tailscaleCleanup: runtimeState.tailscaleCleanup,
       pluginServices: runtimeState.pluginServices,
     } = await startupTrace.measure("runtime.post-attach", () =>
-      startGatewayPostAttachRuntime({
-        minimalTestGateway,
-        cfgAtStart,
-        bindHost,
-        bindHosts: httpBindHosts,
-        port,
-        tlsEnabled: gatewayTls.enabled,
-        log,
-        isNixMode,
-        startupStartedAt: opts.startupStartedAt,
-        broadcast,
-        tailscaleMode,
-        resetOnExit: tailscaleConfig.resetOnExit ?? false,
-        preserveFunnel: tailscaleConfig.preserveFunnel ?? false,
-        controlUiBasePath,
-        logTailscale,
-        gatewayPluginConfigAtStart,
-        pluginRegistry,
-        defaultWorkspaceDir,
-        deps,
-        startChannels,
-        logHooks,
-        logChannels,
-        unavailableGatewayMethods,
-        onPluginServices: (pluginServices) => {
-          runtimeState.pluginServices = pluginServices;
-        },
-        startupTrace,
-        deferSidecars: opts.deferStartupSidecars !== false,
-      }),
+      measureGatewayRestartTrace("restart.ready.runtime.post-attach", () =>
+        startGatewayPostAttachRuntime({
+          minimalTestGateway,
+          cfgAtStart,
+          bindHost,
+          bindHosts: httpBindHosts,
+          port,
+          tlsEnabled: gatewayTls.enabled,
+          log,
+          isNixMode,
+          startupStartedAt: opts.startupStartedAt,
+          broadcast,
+          tailscaleMode,
+          resetOnExit: tailscaleConfig.resetOnExit ?? false,
+          preserveFunnel: tailscaleConfig.preserveFunnel ?? false,
+          controlUiBasePath,
+          logTailscale,
+          gatewayPluginConfigAtStart,
+          pluginRegistry,
+          defaultWorkspaceDir,
+          deps,
+          startChannels,
+          logHooks,
+          logChannels,
+          unavailableGatewayMethods,
+          onPluginServices: (pluginServices) => {
+            runtimeState.pluginServices = pluginServices;
+          },
+          startupTrace,
+          deferSidecars: opts.deferStartupSidecars !== false,
+        }),
+      ),
     ));
     startupTrace.mark("ready");
+    finishGatewayRestartTrace("restart.ready", collectGatewayProcessMemoryUsageMb());
 
     const activated = activateGatewayScheduledServices({
       minimalTestGateway,

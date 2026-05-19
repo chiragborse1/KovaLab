@@ -5,6 +5,11 @@ import {
   waitForActiveEmbeddedRuns,
 } from "../../agents/pi-embedded-runner/runs.js";
 import { getRuntimeConfig } from "../../config/config.js";
+import {
+  markGatewayRestartTrace,
+  recordGatewayRestartTrace,
+  startGatewayRestartTrace,
+} from "../../gateway/restart-trace.js";
 import type { startGatewayServer } from "../../gateway/server.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
@@ -266,6 +271,12 @@ export async function runGatewayLoop(params: {
     const isRestart = action === "restart";
     const restartDrainTimeoutMs = isRestart ? resolveRestartDrainTimeoutMs() : 0;
     gatewayLog.info(`received ${signal}; ${isRestart ? "restarting" : "shutting down"}`);
+    if (isRestart) {
+      startGatewayRestartTrace("restart.signal.received", [
+        ["signal", signal],
+        ["reason", restartReason ?? signal],
+      ]);
+    }
 
     let forceExitTimer: ReturnType<typeof setTimeout> | null = null;
     const armForceExitTimer = (forceExitMs: number) => {
@@ -320,43 +331,61 @@ export async function runGatewayLoop(params: {
         // On restart, wait for in-flight agent turns to finish before
         // tearing down the server so buffered messages are delivered.
         if (isRestart) {
-          // Reject new enqueues immediately during the drain window so
-          // sessions get an explicit restart error instead of silent task loss.
-          markGatewayDraining();
-          const activeTasks = getActiveTaskCount();
-          const activeRuns = getActiveEmbeddedRunCount();
-          const activeRuntimeDepsInstalls = getActiveBundledRuntimeDepsInstallCount();
+          const drainTraceStartedAt = Date.now();
+          let activeTasksAtDrainStart = 0;
+          let activeRunsAtDrainStart = 0;
+          let activeRuntimeDepsInstallsAtDrainStart = 0;
+          let drainTimedOut = false;
+          try {
+            // Reject new enqueues immediately during the drain window so
+            // sessions get an explicit restart error instead of silent task loss.
+            markGatewayDraining();
+            const activeTasks = getActiveTaskCount();
+            const activeRuns = getActiveEmbeddedRunCount();
+            const activeRuntimeDepsInstalls = getActiveBundledRuntimeDepsInstallCount();
+            activeTasksAtDrainStart = activeTasks;
+            activeRunsAtDrainStart = activeRuns;
+            activeRuntimeDepsInstallsAtDrainStart = activeRuntimeDepsInstalls;
 
-          // Best-effort abort for compacting runs so long compaction operations
-          // don't hold session write locks across restart boundaries.
-          if (activeRuns > 0) {
-            abortEmbeddedPiRun(undefined, { mode: "compacting" });
-          }
-
-          if (activeTasks > 0 || activeRuns > 0 || activeRuntimeDepsInstalls > 0) {
-            gatewayLog.info(
-              `draining ${activeTasks} active task(s), ${activeRuns} active embedded run(s), and ${activeRuntimeDepsInstalls} runtime deps install(s) before restart ${formatRestartDrainBudget()}`,
-            );
-            const stillPendingDrainLogger = createStillPendingDrainLogger();
-            const [tasksDrain, runsDrain, runtimeDepsDrain] = await Promise.all([
-              activeTasks > 0
-                ? waitForActiveTasks(restartDrainTimeoutMs)
-                : Promise.resolve({ drained: true }),
-              activeRuns > 0
-                ? waitForActiveEmbeddedRuns(restartDrainTimeoutMs)
-                : Promise.resolve({ drained: true }),
-              activeRuntimeDepsInstalls > 0
-                ? waitForBundledRuntimeDepsInstallIdle(restartDrainTimeoutMs)
-                : Promise.resolve({ drained: true }),
-            ]).finally(() => clearInterval(stillPendingDrainLogger));
-            if (tasksDrain.drained && runsDrain.drained && runtimeDepsDrain.drained) {
-              gatewayLog.info("all active work drained");
-            } else {
-              gatewayLog.warn("drain timeout reached; proceeding with restart");
-              // Final best-effort abort to avoid carrying active runs into the
-              // next lifecycle when drain time budget is exhausted.
-              abortEmbeddedPiRun(undefined, { mode: "all" });
+            // Best-effort abort for compacting runs so long compaction operations
+            // don't hold session write locks across restart boundaries.
+            if (activeRuns > 0) {
+              abortEmbeddedPiRun(undefined, { mode: "compacting" });
             }
+
+            if (activeTasks > 0 || activeRuns > 0 || activeRuntimeDepsInstalls > 0) {
+              gatewayLog.info(
+                `draining ${activeTasks} active task(s), ${activeRuns} active embedded run(s), and ${activeRuntimeDepsInstalls} runtime deps install(s) before restart ${formatRestartDrainBudget()}`,
+              );
+              const stillPendingDrainLogger = createStillPendingDrainLogger();
+              const [tasksDrain, runsDrain, runtimeDepsDrain] = await Promise.all([
+                activeTasks > 0
+                  ? waitForActiveTasks(restartDrainTimeoutMs)
+                  : Promise.resolve({ drained: true }),
+                activeRuns > 0
+                  ? waitForActiveEmbeddedRuns(restartDrainTimeoutMs)
+                  : Promise.resolve({ drained: true }),
+                activeRuntimeDepsInstalls > 0
+                  ? waitForBundledRuntimeDepsInstallIdle(restartDrainTimeoutMs)
+                  : Promise.resolve({ drained: true }),
+              ]).finally(() => clearInterval(stillPendingDrainLogger));
+              if (tasksDrain.drained && runsDrain.drained && runtimeDepsDrain.drained) {
+                gatewayLog.info("all active work drained");
+              } else {
+                drainTimedOut = true;
+                gatewayLog.warn("drain timeout reached; proceeding with restart");
+                // Final best-effort abort to avoid carrying active runs into the
+                // next lifecycle when drain time budget is exhausted.
+                abortEmbeddedPiRun(undefined, { mode: "all" });
+              }
+            }
+          } finally {
+            recordGatewayRestartTrace("restart.drain", Date.now() - drainTraceStartedAt, [
+              ["activeTasks", activeTasksAtDrainStart],
+              ["activeRuns", activeRunsAtDrainStart],
+              ["activeRuntimeDepsInstalls", activeRuntimeDepsInstallsAtDrainStart],
+              ["timedOut", drainTimedOut],
+            ]);
           }
         }
 
@@ -431,6 +460,7 @@ export async function runGatewayLoop(params: {
     let isFirstStart = true;
     for (;;) {
       onIteration();
+      markGatewayRestartTrace("restart.next-start");
       try {
         server = await params.start({ startupStartedAt });
         isFirstStart = false;
