@@ -21,13 +21,20 @@ describe("restart-helper", () => {
 
   async function prepareAndReadScript(env: Record<string, string>, gatewayPort = 18789) {
     const scriptPath = await prepareRestartScript(env, gatewayPort);
-    expect(scriptPath).toBeTruthy();
-    const content = await fs.readFile(scriptPath!, "utf-8");
-    return { scriptPath: scriptPath!, content };
+    if (scriptPath == null) {
+      throw new Error("expected restart script path");
+    }
+    const content = await fs.readFile(scriptPath, "utf-8");
+    return { scriptPath, content };
   }
 
   async function cleanupScript(scriptPath: string) {
     await fs.unlink(scriptPath).catch((error: unknown) => {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+    });
+    await fs.rmdir(path.dirname(scriptPath)).catch((error: unknown) => {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         throw error;
       }
@@ -51,6 +58,10 @@ exit 0
   ) {
     const launchctlPath = path.join(fakeBinDir, "launchctl");
     await fs.writeFile(launchctlPath, content, { mode: 0o755 });
+  }
+
+  async function writeFakeSleep(fakeBinDir: string) {
+    await fs.writeFile(path.join(fakeBinDir, "sleep"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
   }
 
   async function executeScript(scriptPath: string, env: Record<string, string>) {
@@ -129,7 +140,61 @@ exit 0
       expect(content).toContain("systemctl --user restart 'kova-gateway.service'");
       // Script should self-cleanup
       expect(content).toContain('rm -f "$0"');
+      expect(content).toContain('rmdir "$script_dir" 2>/dev/null || true');
       await cleanupScript(scriptPath);
+    });
+
+    it("creates restart scripts in a private temp directory with exclusive creation", async () => {
+      Object.defineProperty(process, "platform", { value: "linux" });
+      const timestamp = 1_727_201_234_567;
+      const oldCandidatePath = path.join(os.tmpdir(), `kova-restart-${timestamp}.sh`);
+      const victimDir = await makeTempDir("kova-restart-helper-victim-");
+      const victimPath = path.join(victimDir, "restart.sh");
+      await fs.rm(oldCandidatePath, { force: true });
+      await fs.writeFile(victimPath, "preexisting script\n", "utf-8");
+
+      let candidateIsSymlink = false;
+      try {
+        await fs.symlink(victimPath, oldCandidatePath);
+        candidateIsSymlink = true;
+      } catch {
+        await fs.writeFile(oldCandidatePath, "preexisting script\n", { flag: "wx" });
+      }
+
+      const dateSpy = vi.spyOn(Date, "now").mockReturnValue(timestamp);
+      const writeFileSpy = vi.spyOn(fs, "writeFile");
+
+      try {
+        const { scriptPath } = await prepareAndReadScript({
+          KOVA_PROFILE: "default",
+        });
+        const scriptDir = path.dirname(scriptPath);
+        const relativeScriptDir = path.relative(os.tmpdir(), scriptDir);
+
+        expect(scriptPath).not.toBe(oldCandidatePath);
+        expect(scriptDir).not.toBe(os.tmpdir());
+        expect(relativeScriptDir).not.toBe("");
+        expect(relativeScriptDir.startsWith("..")).toBe(false);
+        expect(path.isAbsolute(relativeScriptDir)).toBe(false);
+        expect(path.basename(scriptDir)).toMatch(/^kova-restart-/);
+        expect(writeFileSpy).toHaveBeenLastCalledWith(
+          scriptPath,
+          expect.any(String),
+          expect.objectContaining({ flag: "wx", mode: 0o755 }),
+        );
+        await expect(fs.readFile(victimPath, "utf-8")).resolves.toBe("preexisting script\n");
+        if (!candidateIsSymlink) {
+          await expect(fs.readFile(oldCandidatePath, "utf-8")).resolves.toBe(
+            "preexisting script\n",
+          );
+        }
+        await cleanupScript(scriptPath);
+      } finally {
+        dateSpy.mockRestore();
+        writeFileSpy.mockRestore();
+        await fs.rm(oldCandidatePath, { force: true });
+        await fs.rm(victimDir, { recursive: true, force: true });
+      }
     });
 
     it("uses KOVA_SYSTEMD_UNIT override for systemd scripts", async () => {
@@ -140,6 +205,46 @@ exit 0
       });
       expect(content).toContain("systemctl --user restart 'custom-gateway.service'");
       await cleanupScript(scriptPath);
+    });
+
+    it("fails with sudo systemd guidance when the gateway unit is system-scoped", async () => {
+      Object.defineProperty(process, "platform", { value: "linux" });
+      const tmpDir = await makeTempDir("kova-restart-helper-");
+      const fakeBinDir = path.join(tmpDir, "bin");
+      const callsPath = path.join(tmpDir, "systemctl-calls.log");
+      await fs.mkdir(fakeBinDir, { recursive: true });
+      await writeFakeSleep(fakeBinDir);
+      await fs.writeFile(
+        path.join(fakeBinDir, "systemctl"),
+        `#!/bin/sh
+printf '%s\\n' "$*" >> "$KOVA_SYSTEMCTL_CALLS"
+if [ "$1" = "--user" ] && [ "$2" = "is-active" ]; then exit 3; fi
+if [ "$1" = "--user" ] && [ "$2" = "is-enabled" ]; then exit 1; fi
+if [ "$1" = "is-active" ] && [ "$2" = "--quiet" ]; then exit 0; fi
+if [ "$1" = "is-enabled" ] && [ "$2" = "--quiet" ]; then exit 0; fi
+if [ "$1" = "--user" ] && [ "$2" = "restart" ]; then exit 99; fi
+exit 1
+`,
+        { mode: 0o755 },
+      );
+
+      const { scriptPath } = await prepareAndReadScript({
+        KOVA_PROFILE: "default",
+        HOME: path.join(tmpDir, "home"),
+        KOVA_STATE_DIR: path.join(tmpDir, "state"),
+      });
+      const result = await executeScript(scriptPath, {
+        PATH: `${fakeBinDir}:${process.env.PATH ?? ""}`,
+        KOVA_SYSTEMCTL_CALLS: callsPath,
+      });
+      const calls = await fs.readFile(callsPath, "utf-8");
+
+      expect(result.code).toBe(78);
+      expect(result.stderr).toContain("system-scoped kova gateway unit detected");
+      expect(result.stderr).toContain("sudo systemctl restart kova-gateway.service");
+      expect(calls).toContain("--user is-active --quiet kova-gateway.service");
+      expect(calls).toContain("is-active --quiet kova-gateway.service");
+      expect(calls).not.toContain("--user restart kova-gateway.service");
     });
 
     it("creates a launchd restart script on macOS", async () => {
@@ -155,7 +260,9 @@ exit 0
       // Should clear disabled state and fall back to bootstrap when kickstart fails.
       expect(content).toContain("launchctl enable 'gui/501/ai.kova.gateway'");
       expect(content).toContain("launchctl bootstrap 'gui/501'");
+      expect(content).toContain("Bootstrap loads RunAtLoad agents");
       expect(content).toContain('rm -f "$0"');
+      expect(content).toContain('rmdir "$script_dir" 2>/dev/null || true');
       await cleanupScript(scriptPath);
     });
 
@@ -205,13 +312,15 @@ exit 0
       const fakeBinDir = path.join(tmpDir, "bin");
       const stateDir = path.join(tmpDir, "state");
       await fs.mkdir(fakeBinDir, { recursive: true });
+      await writeFakeSleep(fakeBinDir);
       await writeFakeLaunchctl(
         fakeBinDir,
         `#!/bin/sh
 echo "launchctl $*" >&2
 case "$1" in
   kickstart) exit 42 ;;
-  enable|bootstrap) exit 0 ;;
+  enable) exit 0 ;;
+  bootstrap) exit 1 ;;
 esac
 exit 0
 `,
@@ -243,6 +352,7 @@ exit 0
       const stateFile = path.join(tmpDir, "state-file");
       const markerPath = path.join(tmpDir, "launchctl-ran");
       await fs.mkdir(fakeBinDir, { recursive: true });
+      await writeFakeSleep(fakeBinDir);
       await fs.writeFile(stateFile, "not a directory");
       await writeFakeLaunchctl(
         fakeBinDir,
@@ -274,6 +384,7 @@ exit 0
       const fakeBinDir = path.join(tmpDir, "bin");
       const stateDir = path.join(tmpDir, "state");
       await fs.mkdir(fakeBinDir, { recursive: true });
+      await writeFakeSleep(fakeBinDir);
       await writeFakeLaunchctl(fakeBinDir);
 
       const { scriptPath } = await prepareAndReadScript({
@@ -313,16 +424,20 @@ exit 0
       expect(scriptPath.endsWith(".cmd")).toBe(true);
       expect(content).toContain("@echo off");
       expect(content).toContain("powershell -NoProfile -ExecutionPolicy Bypass -Command");
-      expect(content).not.toContain("-File");
+      expect(content).not.toContain("powershell -NoProfile -ExecutionPolicy Bypass -File");
       expect(content).toContain('$ErrorActionPreference = "Continue"');
       expect(content).toContain("gateway-restart.log");
       expect(content).toContain("$taskName = 'Kova Gateway'");
       expect(content).toContain("function Invoke-KovaSchtasksWithTimeout");
       expect(content).toContain("function Get-KovaScheduledTaskState");
+      expect(content).toContain("function Invoke-KovaStartupLauncher");
       expect(content).toContain("Get-ScheduledTask -TaskName $TaskName");
       expect(content).toContain("kova restart skipped schtasks end");
+      expect(content).toContain('$launcherPath = Join-Path $env:USERPROFILE ".kova\\gateway.cmd"');
+      expect(content).toContain("kova restart launched startup fallback");
       expectWindowsRestartWaitOrdering(content);
       expect(content).toContain('del "%~f0" >nul 2>&1');
+      expect(content).toContain('rmdir "%KOVA_RESTART_SCRIPT_DIR%" >nul 2>&1');
       await cleanupScript(scriptPath);
     });
 
@@ -338,6 +453,7 @@ exit 0
       expect(content).toContain(
         'Invoke-KovaSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10',
       );
+      expect(content).toContain("$status = Invoke-KovaStartupLauncher");
       expectWindowsRestartWaitOrdering(content);
       await cleanupScript(scriptPath);
     });
@@ -485,7 +601,7 @@ exit 0
         stdio: "ignore",
         windowsHide: true,
       });
-      expect(mockChild.unref).toHaveBeenCalled();
+      expect(mockChild.unref).toHaveBeenCalledTimes(1);
     });
 
     it("uses cmd.exe on Windows", async () => {
@@ -501,7 +617,7 @@ exit 0
         stdio: "ignore",
         windowsHide: true,
       });
-      expect(mockChild.unref).toHaveBeenCalled();
+      expect(mockChild.unref).toHaveBeenCalledTimes(1);
     });
 
     it("quotes cmd.exe /c paths with metacharacters on Windows", async () => {
