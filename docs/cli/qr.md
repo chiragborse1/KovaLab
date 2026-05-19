@@ -35,9 +35,9 @@ kova qr --url wss://gateway.example/ws
 
 - `--token` and `--password` are mutually exclusive.
 - The setup code itself now carries an opaque short-lived `bootstrapToken`, not the shared gateway token/password.
-- In the built-in node/operator bootstrap flow, the primary node token still lands with `scopes: []`.
-- If bootstrap handoff also issues an operator token, it stays bounded to the bootstrap allowlist: `operator.approvals`, `operator.read`, `operator.talk.secrets`, `operator.write`.
-- Bootstrap scope checks are role-prefixed. That operator allowlist only satisfies operator requests; non-operator roles still need scopes under their own role prefix.
+- Built-in setup-code bootstrap returns a primary `node` token with `scopes: []` plus a bounded `operator` handoff token for trusted mobile onboarding.
+- The handed-off operator token is limited to `operator.approvals`, `operator.read`, and `operator.write`; `operator.admin`, `operator.pairing`, and `operator.talk.secrets` require a separate approved operator pairing or token flow.
+- Bootstrap scope checks are role-prefixed. Operator scope entries only satisfy operator requests, and non-operator roles still need scopes under their own role prefix.
 - Mobile pairing fails closed for Tailscale/public `ws://` gateway URLs. Private LAN `ws://` remains supported, but Tailscale/public mobile routes should use Tailscale Serve/Funnel or a `wss://` gateway URL.
 - With `--remote`, Kova requires either `gateway.remote.url` or
   `gateway.tailscale.mode=serve|funnel`.

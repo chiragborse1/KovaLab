@@ -146,7 +146,7 @@ bounded role entries in `deviceTokens`:
       {
         "deviceToken": "…",
         "role": "operator",
-        "scopes": ["operator.approvals", "operator.read", "operator.talk.secrets", "operator.write"]
+        "scopes": ["operator.approvals", "operator.read", "operator.write"]
       }
     ]
   }
@@ -154,11 +154,12 @@ bounded role entries in `deviceTokens`:
 ```
 
 For the built-in node/operator bootstrap flow, the primary node token stays
-`scopes: []` and any handed-off operator token stays bounded to the bootstrap
-operator allowlist (`operator.approvals`, `operator.read`,
-`operator.talk.secrets`, `operator.write`). Bootstrap scope checks stay
-role-prefixed: operator entries only satisfy operator requests, and non-operator
-roles still need scopes under their own role prefix.
+`scopes: []` and any handed-off operator token is limited to
+`operator.approvals`, `operator.read`, and `operator.write`. `operator.admin`,
+`operator.pairing`, and `operator.talk.secrets` require a separate approved
+operator pairing or token flow. Bootstrap scope checks stay role-prefixed:
+operator entries only satisfy operator requests, and non-operator roles still
+need scopes under their own role prefix.
 
 ### Node example
 
@@ -547,7 +548,9 @@ rather than the pre-handshake defaults.
     without pinning does not qualify.
 - Additional `hello-ok.auth.deviceTokens` entries are bootstrap handoff tokens.
   Persist them only when the connect used bootstrap auth on a trusted transport
-  such as `wss://` or loopback/local pairing.
+  such as `wss://` or loopback/local pairing. Built-in setup-code bootstrap
+  excludes `operator.admin`, `operator.pairing`, and `operator.talk.secrets`
+  from the handed-off operator token.
 - If a client supplies an **explicit** `deviceToken` or explicit `scopes`, that
   caller-requested scope set remains authoritative; cached scopes are only
   reused when the client is reusing the stored per-device token.

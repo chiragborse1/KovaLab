@@ -43,6 +43,8 @@ import { rawDataToString } from "../../../infra/ws.js";
 import { logRejectedLargePayload } from "../../../logging/diagnostic-payload.js";
 import type { createSubsystemLogger } from "../../../logging/subsystem.js";
 import {
+  BOOTSTRAP_HANDOFF_OPERATOR_SCOPES,
+  PAIRING_SETUP_BOOTSTRAP_PROFILE,
   resolveBootstrapProfileScopesForRole,
   type DeviceBootstrapProfile,
 } from "../../../shared/device-bootstrap-profile.js";
@@ -142,6 +144,19 @@ import { isUnauthorizedRoleError, UnauthorizedFloodGuard } from "./unauthorized-
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const DEVICE_SIGNATURE_SKEW_MS = 2 * 60 * 1000;
+
+function sameBootstrapProfile(
+  left: DeviceBootstrapProfile,
+  right: DeviceBootstrapProfile,
+): boolean {
+  if (left.roles.length !== right.roles.length || left.scopes.length !== right.scopes.length) {
+    return false;
+  }
+  return (
+    left.roles.every((role, index) => role === right.roles[index]) &&
+    left.scopes.every((scope, index) => scope === right.scopes[index])
+  );
+}
 
 export type WsOriginCheckMetrics = {
   hostHeaderFallbackAccepted: number;
@@ -942,7 +957,11 @@ export function attachGatewayWsMessageHandler(params: {
               role === "node" &&
               scopes.length === 0 &&
               !existingPairedDevice &&
-              bootstrapTokenCandidate
+              bootstrapTokenCandidate &&
+              !isControlUi &&
+              !isBrowserOperatorUi &&
+              !isWebchat &&
+              connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE
             ) {
               boundBootstrapProfile = await getBoundDeviceBootstrapProfile({
                 token: bootstrapTokenCandidate,
@@ -978,7 +997,12 @@ export function attachGatewayWsMessageHandler(params: {
               role === "node" &&
               scopes.length === 0 &&
               !existingPairedDevice &&
-              boundBootstrapProfile !== null;
+              !isControlUi &&
+              !isBrowserOperatorUi &&
+              !isWebchat &&
+              connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE &&
+              boundBootstrapProfile !== null &&
+              sameBootstrapProfile(boundBootstrapProfile, PAIRING_SETUP_BOOTSTRAP_PROFILE);
             const bootstrapProfileForSilentApproval = allowSilentBootstrapPairing
               ? boundBootstrapProfile
               : null;
@@ -989,7 +1013,12 @@ export function attachGatewayWsMessageHandler(params: {
               deviceId: device.id,
               publicKey: devicePublicKey,
               ...clientPairingMetadata,
-              ...(bootstrapPairingRoles ? { roles: bootstrapPairingRoles } : {}),
+              ...(bootstrapPairingRoles
+                ? {
+                    roles: bootstrapPairingRoles,
+                    scopes: [...BOOTSTRAP_HANDOFF_OPERATOR_SCOPES],
+                  }
+                : {}),
               silent:
                 reason === "scope-upgrade"
                   ? false
@@ -1203,6 +1232,34 @@ export function attachGatewayWsMessageHandler(params: {
                   }
                 }
               }
+            }
+
+            const retryBootstrapHandoffProfile =
+              authMethod === "bootstrap-token" &&
+              bootstrapTokenCandidate &&
+              role === "node" &&
+              scopes.length === 0 &&
+              !isControlUi &&
+              !isBrowserOperatorUi &&
+              !isWebchat &&
+              connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE &&
+              pairedRoles.includes("operator") &&
+              roleScopesAllow({
+                role: "operator",
+                requestedScopes: BOOTSTRAP_HANDOFF_OPERATOR_SCOPES,
+                allowedScopes: pairedScopes,
+              })
+                ? await getBoundDeviceBootstrapProfile({
+                    token: bootstrapTokenCandidate,
+                    deviceId: device.id,
+                    publicKey: devicePublicKey,
+                  })
+                : null;
+            if (
+              retryBootstrapHandoffProfile &&
+              sameBootstrapProfile(retryBootstrapHandoffProfile, PAIRING_SETUP_BOOTSTRAP_PROFILE)
+            ) {
+              handoffBootstrapProfile = retryBootstrapHandoffProfile;
             }
 
             // Metadata pinning is approval-bound. Reconnects can update access metadata,

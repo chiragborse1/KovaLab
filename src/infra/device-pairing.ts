@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeDeviceAuthScopes } from "../shared/device-auth.js";
 import {
   resolveBootstrapProfileScopesForRole,
+  resolveBootstrapProfileScopesForRoles,
   type DeviceBootstrapProfile,
 } from "../shared/device-bootstrap-profile.js";
 import {
@@ -426,6 +427,27 @@ function resolveRoleScopedDeviceTokenScopes(role: string, scopes: string[] | und
   return normalized.filter((scope) => !scope.startsWith(OPERATOR_SCOPE_PREFIX));
 }
 
+function preserveRoleScopedApprovalScopes(role: string, scopes: string[] | undefined): string[] {
+  if (!Array.isArray(scopes)) {
+    return [];
+  }
+  const out = new Set<string>();
+  for (const scope of scopes) {
+    const trimmed = scope.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const belongsToRole =
+      role === OPERATOR_ROLE
+        ? trimmed.startsWith(OPERATOR_SCOPE_PREFIX)
+        : !trimmed.startsWith(OPERATOR_SCOPE_PREFIX);
+    if (belongsToRole) {
+      out.add(trimmed);
+    }
+  }
+  return [...out];
+}
+
 function resolveApprovedTokenScopes(params: {
   role: string;
   pending: DevicePairingPendingRequest;
@@ -671,7 +693,10 @@ export async function approveBootstrapDevicePairing(
   // node/operator baseline from the verified bootstrap profile without routing
   // operator scope approval through the generic interactive approval checker.
   const approvedRoles = mergeRoles(bootstrapProfile.roles) ?? [];
-  const approvedScopes = normalizeDeviceAuthScopes([...bootstrapProfile.scopes]);
+  const approvedScopes = resolveBootstrapProfileScopesForRoles(
+    approvedRoles,
+    bootstrapProfile.scopes,
+  );
   return await withLock(async () => {
     const state = await loadState(baseDir);
     const pending = state.pendingById[requestId];
@@ -697,24 +722,26 @@ export async function approveBootstrapDevicePairing(
 
     const now = Date.now();
     const existing = state.pairedByDeviceId[pending.deviceId];
-    const roles = mergeRoles(
-      existing?.roles,
-      existing?.role,
-      pending.roles,
-      pending.role,
-      approvedRoles,
+    const grantedRoles = requestedRoles;
+    const grantedScopes = resolveBootstrapProfileScopesForRoles(grantedRoles, pending.scopes ?? []);
+    const grantedRoleSet = new Set(grantedRoles);
+    const preservedExistingScopes = (mergeRoles(existing?.roles, existing?.role) ?? []).flatMap(
+      (existingRole) =>
+        grantedRoleSet.has(existingRole)
+          ? []
+          : preserveRoleScopedApprovalScopes(
+              existingRole,
+              existing?.approvedScopes ?? existing?.scopes,
+            ),
     );
-    const nextApprovedScopes = mergeScopes(
-      existing?.approvedScopes ?? existing?.scopes,
-      pending.scopes,
-      approvedScopes,
-    );
+    const roles = mergeRoles(existing?.roles, existing?.role, pending.roles, pending.role);
+    const nextApprovedScopes = mergeScopes(preservedExistingScopes, grantedScopes);
     const tokens = existing?.tokens ? { ...existing.tokens } : {};
-    for (const roleForToken of approvedRoles) {
+    for (const roleForToken of grantedRoles) {
       const existingToken = tokens[roleForToken];
       const tokenScopes =
         roleForToken === OPERATOR_ROLE
-          ? resolveBootstrapProfileScopesForRole(roleForToken, approvedScopes)
+          ? resolveBootstrapProfileScopesForRole(roleForToken, grantedScopes)
           : [];
       tokens[roleForToken] = buildDeviceAuthToken({
         role: roleForToken,
