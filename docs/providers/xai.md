@@ -11,14 +11,20 @@ Kova ships a bundled `xai` provider plugin for Grok models.
 ## Getting started
 
 <Steps>
-  <Step title="Create an API key">
-    Create an API key in the [xAI console](https://console.x.ai/).
+  <Step title="Choose auth">
+    Use an API key from the [xAI console](https://console.x.ai/), browser OAuth
+    for eligible xAI accounts, or device-code sign-in for SSH, Docker, and VPS
+    hosts where a localhost browser callback is awkward.
   </Step>
-  <Step title="Set your API key">
-    Set `XAI_API_KEY`, or run:
+  <Step title="Sign in">
+    Set `XAI_API_KEY`, run the setup wizard, or start OAuth/device-code login:
 
     ```bash
     kova onboard --auth-choice xai-api-key
+    kova onboard --auth-choice xai-oauth
+    kova onboard --auth-choice xai-device-code
+    kova models auth login --provider xai --method oauth
+    kova models auth login --provider xai --device-code
     ```
 
   </Step>
@@ -33,12 +39,18 @@ Kova ships a bundled `xai` provider plugin for Grok models.
 
 <Note>
 Kova uses the xAI Responses API as the bundled xAI transport. The same
-`XAI_API_KEY` can also power Grok-backed `web_search`, first-class `x_search`,
-and remote `code_execution`.
+credential from API-key, OAuth, or device-code setup can also power first-class
+`x_search`, remote `code_execution`, and xAI image/video generation.
 If you store an xAI key under `plugins.entries.xai.config.webSearch.apiKey`,
 the bundled xAI model provider reuses that key as a fallback too.
 `code_execution` tuning lives under `plugins.entries.xai.config.codeExecution`.
 </Note>
+
+<Tip>
+Use `xai-device-code` when signing in from SSH, Docker, or a VPS. Kova prints an
+xAI URL and short code; finish sign-in in any local browser while the remote
+process polls xAI for the completed token exchange.
+</Tip>
 
 ## Built-in catalog
 
@@ -404,8 +416,8 @@ Legacy aliases still normalize to the canonical bundled ids:
   </Accordion>
 
   <Accordion title="Known limits">
-    - Auth is API-key only today. There is no xAI OAuth or device-code flow in
-      Kova yet.
+    - Speech and transcription currently require `XAI_API_KEY` or provider
+      config even when model auth uses OAuth/device-code.
     - `grok-4.20-multi-agent-experimental-beta-0304` is not supported on the
       normal xAI provider path because it requires a different upstream API
       surface than the standard Kova xAI transport.
