@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Agents: honor explicit `models.providers.<id>.timeoutSeconds` values above the default idle watchdog for cloud and self-hosted providers, so long first-token waits no longer fall back at ~120s when the provider timeout is higher. Thanks @yujiawei
 - Codex app-server: preserve plugin-tool auth profiles while keeping Codex transport auth scoped, so plugin-owned tools can still see their provider credentials. Thanks @rubencu
 - Agents/subagents: skip wake probes for dormant completion requesters so late subagent completions stay on the requester-agent/direct handoff path. Thanks @galiniliev
 - Agents: preserve reply-target context for bare Telegram and grouped-channel turns so quoted-message replies still reach the model when the visible body is only a mention. Thanks @joshavant

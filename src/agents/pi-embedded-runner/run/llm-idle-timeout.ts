@@ -116,11 +116,13 @@ export function resolveLlmIdleTimeoutMs(params?: {
     Number.isFinite(modelRequestTimeoutMs) &&
     modelRequestTimeoutMs > 0
   ) {
+    // `modelRequestTimeoutMs` is wired from `models.providers.<id>.timeoutSeconds`,
+    // which is an explicit per-provider opt-in. Honor it as a deliberate ceiling
+    // rather than clamping cloud providers back down to the implicit default
+    // network-silence watchdog. The agent/run timeout bounds still apply, so an
+    // explicit shorter run timeout always wins.
     const boundedTimeoutMs = Math.min(modelRequestTimeoutMs, ...timeoutBounds);
-    if (params?.trigger === "cron" || isLocalProvider) {
-      return clampTimeoutMs(boundedTimeoutMs);
-    }
-    return clampImplicitTimeoutMs(boundedTimeoutMs);
+    return clampTimeoutMs(boundedTimeoutMs);
   }
 
   if (typeof runTimeoutMs === "number" && Number.isFinite(runTimeoutMs) && runTimeoutMs > 0) {
