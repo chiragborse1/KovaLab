@@ -78,6 +78,16 @@ describe("Codex app-server config", () => {
     ).toEqual({});
   });
 
+  it("preserves configured Codex dynamic tool excludes", () => {
+    expect(
+      readCodexPluginConfig({
+        codexDynamicToolsExclude: ["exec", "sandbox_process"],
+      }),
+    ).toEqual({
+      codexDynamicToolsExclude: ["exec", "sandbox_process"],
+    });
+  });
+
   it("requires a websocket url when websocket transport is configured", () => {
     expect(() =>
       resolveCodexAppServerRuntimeOptions({

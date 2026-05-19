@@ -45,3 +45,4 @@
 - Skills: refresh session skill snapshots when configured watch roots change so newly added shared skill directories are visible immediately. Thanks @hclsys
 - Memory Wiki: preserve imported source write diagnostics for directory collisions and avoid clobbering hardlink targets when bridge pages are regenerated. Thanks @TurboTheTurtle
 - GitHub Copilot: add IDE request headers to dynamically resolved and configured model entries so Pi-native compaction uses the same provider contract as normal turns. Thanks @efpiva
+- Codex app-server: expose `sandbox_exec` and `sandbox_process` dynamic tools for SSH-backed Kova sandbox sessions while keeping native Codex shell usage separate. Thanks @chiragborse1

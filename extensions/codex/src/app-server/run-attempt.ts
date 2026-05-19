@@ -43,7 +43,11 @@ import {
 } from "./client-factory.js";
 import { isCodexAppServerApprovalRequest, type CodexAppServerClient } from "./client.js";
 import { ensureCodexComputerUse } from "./computer-use.js";
-import { resolveCodexAppServerRuntimeOptions } from "./config.js";
+import {
+  readCodexPluginConfig,
+  resolveCodexAppServerRuntimeOptions,
+  type CodexPluginConfig,
+} from "./config.js";
 import { projectContextEngineAssemblyForCodex } from "./context-engine-projection.js";
 import { createCodexDynamicToolBridge } from "./dynamic-tools.js";
 import { handleCodexAppServerElicitationRequest } from "./elicitation-bridge.js";
@@ -85,6 +89,9 @@ import { filterToolsForVisionInputs } from "./vision-tools.js";
 type KovaCodingToolsOptions = NonNullable<
   Parameters<(typeof import("getkova/plugin-sdk/agent-harness"))["createKovaCodingTools"]>[0]
 >;
+type KovaCodingToolsFactory =
+  (typeof import("getkova/plugin-sdk/agent-harness"))["createKovaCodingTools"];
+type KovaDynamicTool = ReturnType<KovaCodingToolsFactory>[number];
 
 let clientFactory = defaultCodexAppServerClientFactory;
 
@@ -183,6 +190,7 @@ export async function runCodexAppServerAttempt(
     sandbox,
     runAbortController,
     sessionAgentId,
+    pluginConfig: options.pluginConfig,
     onYieldDetected: () => {
       yieldDetected = true;
     },
@@ -857,6 +865,7 @@ type DynamicToolBuildParams = {
   sandbox: Awaited<ReturnType<typeof resolveSandboxContext>>;
   runAbortController: AbortController;
   sessionAgentId: string | undefined;
+  pluginConfig?: unknown;
   onYieldDetected: () => void;
 };
 
@@ -929,14 +938,12 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
       input.runAbortController.abort("sessions_yield");
     },
   });
-  const visionFilteredTools = filterToolsForVisionInputs(allTools, {
+  const codexFilteredTools = addSandboxShellDynamicToolsIfAvailable(allTools, allTools, input);
+  const visionFilteredTools = filterToolsForVisionInputs(codexFilteredTools, {
     modelHasVision,
     hasInboundImages: (params.images?.length ?? 0) > 0,
   });
-  const filteredTools =
-    params.toolsAllow && params.toolsAllow.length > 0
-      ? visionFilteredTools.filter((tool) => params.toolsAllow?.includes(tool.name))
-      : visionFilteredTools;
+  const filteredTools = filterCodexDynamicToolsForAllowlist(visionFilteredTools, params.toolsAllow);
   return normalizeAgentRuntimeTools({
     runtimePlan: params.runtimePlan,
     tools: filteredTools,
@@ -948,6 +955,108 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
     modelApi: params.model.api,
     model: params.model,
   });
+}
+
+function addSandboxShellDynamicToolsIfAvailable(
+  filteredTools: KovaDynamicTool[],
+  allTools: KovaDynamicTool[],
+  input: DynamicToolBuildParams,
+): KovaDynamicTool[] {
+  const pluginConfig = readCodexPluginConfig(input.pluginConfig);
+  if (
+    !shouldExposeSandboxExecDynamicTool(input) ||
+    isSandboxShellDynamicToolExcluded(pluginConfig)
+  ) {
+    return filteredTools;
+  }
+  const execTool = allTools.find((tool) => normalizeCodexDynamicToolName(tool.name) === "exec");
+  const processTool = allTools.find(
+    (tool) => normalizeCodexDynamicToolName(tool.name) === "process",
+  );
+  if (!execTool || !processTool) {
+    return filteredTools;
+  }
+  const sandboxExecTool: KovaDynamicTool = {
+    ...execTool,
+    name: "sandbox_exec",
+    description:
+      "Run a shell command through Kova's configured sandbox backend for this session. Use only when the command must execute in the Kova sandbox backend, such as an SSH-backed sandbox. Use Codex's native shell for normal local workspace commands.",
+    execute: async (toolCallId, args, signal, onUpdate) => {
+      const result = await execTool.execute(toolCallId, args, signal, onUpdate);
+      return {
+        ...result,
+        content: result.content.map((item) =>
+          item.type === "text"
+            ? Object.assign({}, item, {
+                text: item.text.replace(
+                  "Use process (list/poll/log/write/send-keys/submit/paste/kill/clear/remove) for follow-up.",
+                  "Use sandbox_process (list/poll/log/write/send-keys/submit/paste/kill/clear/remove) for follow-up.",
+                ),
+              })
+            : item,
+        ),
+      };
+    },
+  };
+  const sandboxProcessTool: KovaDynamicTool = {
+    ...processTool,
+    name: "sandbox_process",
+    description:
+      "Manage sandbox_exec sessions that were started through Kova's configured sandbox backend for this session: list, poll, log, write, send-keys, submit, paste, kill, clear, or remove. Use only for sandbox_exec follow-up; use Codex's native shell session handling for normal native shell commands.",
+  };
+  return [...filteredTools, sandboxExecTool, sandboxProcessTool];
+}
+
+function shouldExposeSandboxExecDynamicTool(input: DynamicToolBuildParams): boolean {
+  const backendId = input.sandbox?.enabled ? input.sandbox.backendId.trim().toLowerCase() : "";
+  return Boolean(backendId && backendId !== "docker");
+}
+
+function isSandboxShellDynamicToolExcluded(config: CodexPluginConfig): boolean {
+  return (config.codexDynamicToolsExclude ?? []).some((name) => {
+    const normalized = normalizeCodexDynamicToolName(name);
+    return (
+      normalized === "exec" ||
+      normalized === "sandbox_exec" ||
+      normalized === "process" ||
+      normalized === "sandbox_process"
+    );
+  });
+}
+
+function filterCodexDynamicToolsForAllowlist<T extends { name: string }>(
+  tools: T[],
+  toolsAllow?: string[],
+): T[] {
+  if (!toolsAllow) {
+    return tools;
+  }
+  if (toolsAllow.length === 0) {
+    return [];
+  }
+  if (hasWildcardCodexToolsAllow(toolsAllow)) {
+    return tools;
+  }
+  const allowSet = new Set(
+    toolsAllow.map((name) => normalizeCodexDynamicToolName(name)).filter(Boolean),
+  );
+  return tools.filter((tool) => {
+    const normalized = normalizeCodexDynamicToolName(tool.name);
+    return (
+      allowSet.has(normalized) ||
+      (normalized === "sandbox_exec" && allowSet.has("exec")) ||
+      (normalized === "sandbox_process" && (allowSet.has("exec") || allowSet.has("process")))
+    );
+  });
+}
+
+function hasWildcardCodexToolsAllow(toolsAllow: string[]): boolean {
+  return toolsAllow.some((name) => normalizeCodexDynamicToolName(name) === "*");
+}
+
+function normalizeCodexDynamicToolName(name: string): string {
+  const normalized = name.trim().toLowerCase().replaceAll("-", "_");
+  return normalized === "bash" ? "exec" : normalized;
 }
 
 async function withCodexStartupTimeout<T>(params: {
@@ -1100,6 +1209,9 @@ function handleApprovalRequest(params: {
 
 export const __testing = {
   filterToolsForVisionInputs,
+  buildDynamicTools,
+  addSandboxShellDynamicToolsIfAvailable,
+  filterCodexDynamicToolsForAllowlist,
   ...createCodexAppServerClientFactoryTestHooks((factory) => {
     clientFactory = factory;
   }),

@@ -64,6 +64,7 @@ export type CodexAppServerRuntimeOptions = {
 };
 
 export type CodexPluginConfig = {
+  codexDynamicToolsExclude?: string[];
   discovery?: {
     enabled?: boolean;
     timeoutMs?: number;
@@ -134,6 +135,7 @@ const codexAppServerServiceTierSchema = z.preprocess(
 
 const codexPluginConfigSchema = z
   .object({
+    codexDynamicToolsExclude: z.array(z.string()).optional(),
     discovery: z
       .object({
         enabled: z.boolean().optional(),
