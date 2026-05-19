@@ -1,5 +1,69 @@
+import type { EmbeddedRunAttemptParams } from "getkova/plugin-sdk/agent-harness-runtime";
 import { describe, expect, it } from "vitest";
-import { resolveReasoningEffort } from "./thread-lifecycle.js";
+import { buildDeveloperInstructions, resolveReasoningEffort } from "./thread-lifecycle.js";
+
+function createAttemptParams(
+  overrides: Partial<EmbeddedRunAttemptParams> = {},
+): EmbeddedRunAttemptParams {
+  return {
+    provider: "openai",
+    modelId: "gpt-5.5",
+    sessionId: "s1",
+    sessionFile: "/tmp/kova-session.jsonl",
+    workspaceDir: "/tmp/kova-workspace",
+    prompt: "hello",
+    runId: "run1",
+    ...overrides,
+  } as EmbeddedRunAttemptParams;
+}
+
+describe("Codex app-server developer instructions", () => {
+  it("summarizes deferred dynamic tool names in developer instructions", () => {
+    const instructions = buildDeveloperInstructions(createAttemptParams(), {
+      dynamicTools: [
+        {
+          name: "message",
+          description: "Send a message",
+          inputSchema: { type: "object" },
+        },
+        {
+          name: "music_generate",
+          description: "Create music",
+          inputSchema: { type: "object" },
+          namespace: "kova",
+          deferLoading: true,
+        },
+        {
+          name: "image_generate",
+          description: "Create images",
+          inputSchema: { type: "object" },
+          namespace: "kova",
+          deferLoading: true,
+        },
+      ],
+    });
+
+    expect(instructions).toContain(
+      "Deferred searchable Kova dynamic tools available: image_generate, music_generate.",
+    );
+    expect(instructions).toContain("Use `tool_search` to load exact callable specs before use.");
+    expect(instructions).not.toContain("message,");
+  });
+
+  it("keeps developer instructions compact when no dynamic tools are deferred", () => {
+    const instructions = buildDeveloperInstructions(createAttemptParams(), {
+      dynamicTools: [
+        {
+          name: "message",
+          description: "Send a message",
+          inputSchema: { type: "object" },
+        },
+      ],
+    });
+
+    expect(instructions).not.toContain("Deferred searchable Kova dynamic tools available");
+  });
+});
 
 describe("resolveReasoningEffort (#71946)", () => {
   describe("modern Codex models (none/low/medium/high/xhigh enum)", () => {

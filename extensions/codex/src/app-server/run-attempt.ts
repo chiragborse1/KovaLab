@@ -230,7 +230,9 @@ export async function runCodexAppServerAttempt(
     });
     historyMessages = readMirroredSessionHistoryMessages(params.sessionFile) ?? historyMessages;
   }
-  const baseDeveloperInstructions = buildDeveloperInstructions(params);
+  const baseDeveloperInstructions = buildDeveloperInstructions(params, {
+    dynamicTools: toolBridge.specs,
+  });
   let promptText = params.prompt;
   let developerInstructions = baseDeveloperInstructions;
   let prePromptMessageCount = historyMessages.length;

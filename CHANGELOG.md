@@ -40,3 +40,4 @@
 - CLI agents: include loopback MCP tool names in CLI prompts and session reuse hashes so CLI runtimes see the tools they are allowed to call. Thanks @TurboTheTurtle
 - Telegram doctor: explain malformed `channels.telegram.groups` shapes with the expected group-id/topic object map while keeping core validation messages plugin-agnostic. Thanks @giodl73
 - WhatsApp: clarify inbound group diagnostics so observed but unregistered groups point to `channels.whatsapp.groups` without changing routing or sender authorization. Thanks @neeravmakwana
+- Codex app-server: summarize deferred Kova dynamic tool names in developer instructions so `tool_search` can load lazily advertised tools by exact name. Thanks @pashpashpash

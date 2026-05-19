@@ -71,6 +71,7 @@ export async function startOrResumeThread(params: {
             buildThreadResumeParams(params.params, {
               threadId: binding.threadId,
               appServer: params.appServer,
+              dynamicTools: params.dynamicTools,
               developerInstructions: params.developerInstructions,
               config: params.config,
               sandbox: params.sandbox,
@@ -119,7 +120,8 @@ export async function startOrResumeThread(params: {
       serviceName: "Kova",
       ...(params.config ? { config: params.config } : {}),
       developerInstructions:
-        params.developerInstructions ?? buildDeveloperInstructions(params.params),
+        params.developerInstructions ??
+        buildDeveloperInstructions(params.params, { dynamicTools: params.dynamicTools }),
       dynamicTools: params.dynamicTools,
       experimentalRawEvents: true,
       persistExtendedHistory: true,
@@ -154,6 +156,7 @@ export function buildThreadResumeParams(
   options: {
     threadId: string;
     appServer: CodexAppServerRuntimeOptions;
+    dynamicTools?: CodexDynamicToolSpec[];
     developerInstructions?: string;
     config?: JsonObject;
     sandbox?: KovaSandboxContextForCodex | null;
@@ -169,7 +172,9 @@ export function buildThreadResumeParams(
     sandbox: options.appServer.sandbox,
     ...(options.appServer.serviceTier ? { serviceTier: options.appServer.serviceTier } : {}),
     ...(options.config ? { config: options.config } : {}),
-    developerInstructions: options.developerInstructions ?? buildDeveloperInstructions(params),
+    developerInstructions:
+      options.developerInstructions ??
+      buildDeveloperInstructions(params, { dynamicTools: options.dynamicTools }),
     persistExtendedHistory: true,
   };
 }
@@ -256,16 +261,37 @@ function stabilizeJsonValue(value: JsonValue): JsonValue {
   return stable;
 }
 
-export function buildDeveloperInstructions(params: EmbeddedRunAttemptParams): string {
+export function buildDeveloperInstructions(
+  params: EmbeddedRunAttemptParams,
+  options: { dynamicTools?: readonly CodexDynamicToolSpec[] } = {},
+): string {
   const promptOverlay = renderCodexRuntimePromptOverlay(params);
   const sections = [
     "You are running inside Kova. Use Kova dynamic tools for messaging, cron, sessions, and host actions when available.",
+    buildDeferredDynamicToolManifest(options.dynamicTools),
     "Preserve the user's existing channel/session context. If sending a channel reply, use the Kova messaging tool instead of describing that you would reply.",
     promptOverlay,
     params.extraSystemPrompt,
     params.skillsSnapshot?.prompt,
   ];
   return sections.filter((section) => typeof section === "string" && section.trim()).join("\n\n");
+}
+
+function buildDeferredDynamicToolManifest(
+  dynamicTools: readonly CodexDynamicToolSpec[] | undefined,
+): string | undefined {
+  const deferredToolNames = [
+    ...new Set(
+      (dynamicTools ?? [])
+        .filter((tool) => tool.deferLoading === true)
+        .map((tool) => tool.name.trim())
+        .filter(Boolean),
+    ),
+  ].toSorted((left, right) => left.localeCompare(right));
+  if (deferredToolNames.length === 0) {
+    return undefined;
+  }
+  return `Deferred searchable Kova dynamic tools available: ${deferredToolNames.join(", ")}. Use \`tool_search\` to load exact callable specs before use.`;
 }
 
 function renderCodexRuntimePromptOverlay(params: EmbeddedRunAttemptParams): string | undefined {
