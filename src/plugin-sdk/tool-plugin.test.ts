@@ -30,7 +30,6 @@ describe("defineToolPlugin", () => {
     });
     const captured = createCapturedPluginRegistration({
       config: { plugins: { entries: { "stock-quotes": { config: { apiKey: "test-key" } } } } },
-      id: "stock-quotes",
     });
     captured.api.pluginConfig = { apiKey: "test-key" };
 
@@ -63,7 +62,7 @@ describe("defineToolPlugin", () => {
         }),
       ],
     });
-    const captured = createCapturedPluginRegistration({ id: "echo" });
+    const captured = createCapturedPluginRegistration();
 
     entry.register(captured.api);
 
@@ -89,7 +88,7 @@ describe("defineToolPlugin", () => {
         }),
       ],
     });
-    const captured = createCapturedPluginRegistration({ id: "optional-tools" });
+    const captured = createCapturedPluginRegistration();
     const registerTool = vi.fn();
     captured.api.registerTool = registerTool as typeof captured.api.registerTool;
 
@@ -142,7 +141,7 @@ describe("defineToolPlugin", () => {
         }),
       ],
     });
-    const captured = createCapturedPluginRegistration({ id: "factory-tools" });
+    const captured = createCapturedPluginRegistration();
     captured.api.pluginConfig = { prefix: "ctx" };
     const registerTool = vi.fn();
     captured.api.registerTool = registerTool as typeof captured.api.registerTool;

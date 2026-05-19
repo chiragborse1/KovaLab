@@ -69,9 +69,9 @@ const mocks = vi.hoisted(() => {
   });
   return {
     loadConfigMock: vi.fn(() => ({})),
-    resolveAgentIdByWorkspacePathMock: vi.fn(() => undefined),
+    resolveAgentIdByWorkspacePathMock: vi.fn((_config: unknown, _cwd: string) => undefined),
     resolveDefaultAgentIdMock: vi.fn(() => "main"),
-    resolveAgentWorkspaceDirMock: vi.fn(() => "/tmp/workspace"),
+    resolveAgentWorkspaceDirMock: vi.fn((_config: unknown, _agentId: string) => "/tmp/workspace"),
     searchSkillsFromKovaHubMock: vi.fn(),
     installSkillFromKovaHubMock: vi.fn(),
     updateSkillsFromKovaHubMock: vi.fn(),
@@ -117,10 +117,11 @@ vi.mock("../config/config.js", () => ({
 }));
 
 vi.mock("../agents/agent-scope.js", () => ({
-  resolveAgentIdByWorkspacePath: (...args: unknown[]) =>
-    mocks.resolveAgentIdByWorkspacePathMock(...args),
+  resolveAgentIdByWorkspacePath: (config: unknown, cwd: string) =>
+    mocks.resolveAgentIdByWorkspacePathMock(config, cwd),
   resolveDefaultAgentId: () => mocks.resolveDefaultAgentIdMock(),
-  resolveAgentWorkspaceDir: (...args: unknown[]) => mocks.resolveAgentWorkspaceDirMock(...args),
+  resolveAgentWorkspaceDir: (config: unknown, agentId: string) =>
+    mocks.resolveAgentWorkspaceDirMock(config, agentId),
 }));
 
 vi.mock("../agents/skills-kovahub.js", () => ({

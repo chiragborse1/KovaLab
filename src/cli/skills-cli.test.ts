@@ -175,7 +175,7 @@ describe("skills-cli", () => {
 
       const output = formatSkillInfo(report, "env-aware-skill", {});
       expect(output).toContain("KOVA_CONFIG_PATH");
-      expect(output).toContain("default: ~/.chiragborse1/KovaLab.json");
+      expect(output).toContain("default: ~/.kova/kova.json");
       expect(output).toContain("skills.entries.env-aware-skill.apiKey");
     });
 
