@@ -206,6 +206,10 @@
       "types": "./dist/plugin-sdk/config-runtime.d.ts",
       "default": "./dist/plugin-sdk/config-runtime.js"
     },
+    "./plugin-sdk/config-contracts": {
+      "types": "./dist/plugin-sdk/config-contracts.d.ts",
+      "default": "./dist/plugin-sdk/config-contracts.js"
+    },
     "./plugin-sdk/config-schema": {
       "types": "./dist/plugin-sdk/config-schema.d.ts",
       "default": "./dist/plugin-sdk/config-schema.js"
@@ -453,6 +457,30 @@
     "./plugin-sdk/lazy-runtime": {
       "types": "./dist/plugin-sdk/lazy-runtime.d.ts",
       "default": "./dist/plugin-sdk/lazy-runtime.js"
+    },
+    "./plugin-sdk/plugin-test-api": {
+      "types": "./dist/plugin-sdk/plugin-test-api.d.ts",
+      "default": "./dist/plugin-sdk/plugin-test-api.js"
+    },
+    "./plugin-sdk/plugin-test-contracts": {
+      "types": "./dist/plugin-sdk/plugin-test-contracts.d.ts",
+      "default": "./dist/plugin-sdk/plugin-test-contracts.js"
+    },
+    "./plugin-sdk/plugin-test-runtime": {
+      "types": "./dist/plugin-sdk/plugin-test-runtime.d.ts",
+      "default": "./dist/plugin-sdk/plugin-test-runtime.js"
+    },
+    "./plugin-sdk/provider-http-test-mocks": {
+      "types": "./dist/plugin-sdk/provider-http-test-mocks.d.ts",
+      "default": "./dist/plugin-sdk/provider-http-test-mocks.js"
+    },
+    "./plugin-sdk/provider-test-contracts": {
+      "types": "./dist/plugin-sdk/provider-test-contracts.d.ts",
+      "default": "./dist/plugin-sdk/provider-test-contracts.js"
+    },
+    "./plugin-sdk/test-env": {
+      "types": "./dist/plugin-sdk/test-env.d.ts",
+      "default": "./dist/plugin-sdk/test-env.js"
     },
     "./plugin-sdk/testing": {
       "types": "./dist/plugin-sdk/testing.d.ts",

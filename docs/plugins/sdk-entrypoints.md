@@ -270,6 +270,16 @@ Kova classifies loaded plugins by their registration behavior:
 
 Use `kova plugins inspect <id>` to see a plugin's shape.
 
+## Test helper subpaths
+
+Plugin tests can import focused fixtures from public SDK test subpaths instead
+of reaching into core internals. Use `getkova/plugin-sdk/plugin-test-api` to
+capture or stub `KovaPluginApi`, `getkova/plugin-sdk/plugin-test-runtime` for
+runtime and setup wizard fixtures, `getkova/plugin-sdk/provider-test-contracts`
+for shared provider assertions, `getkova/plugin-sdk/provider-http-test-mocks`
+for provider HTTP mocks, and `getkova/plugin-sdk/test-env` for environment,
+fetch, and SSRF fixtures.
+
 ## Related
 
 - [SDK Overview](/plugins/sdk-overview) — registration API and subpath reference
