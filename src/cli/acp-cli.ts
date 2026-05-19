@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { runAcpClientInteractive } from "../acp/client.js";
 import { serveAcpGateway } from "../acp/server.js";
 import { normalizeAcpProvenanceMode } from "../acp/types.js";
+import { formatErrorMessage } from "../infra/errors.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
@@ -26,7 +27,8 @@ export function registerAcpCli(program: Command) {
     .option("-v, --verbose", "Verbose logging to stderr", false)
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/acp", "docs.neuralstudio.in/cli/acp")}\n`,
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/acp", "docs.neuralstudio.in/cli/acp")}\n`,
     )
     .action(async (opts) => {
       try {
@@ -72,7 +74,7 @@ export function registerAcpCli(program: Command) {
           verbose: Boolean(opts.verbose || inheritedVerbose),
         });
       } catch (err) {
-        defaultRuntime.error(String(err));
+        defaultRuntime.error(formatErrorMessage(err));
         defaultRuntime.exit(1);
       }
     });

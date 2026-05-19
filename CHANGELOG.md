@@ -8,3 +8,5 @@
 - Add a dedicated Control UI Persona menu with simple Identity, Behavior, and About You sections, default file creation, bootstrap status, and local draft recovery after refresh. Thanks @chiragborse1
 
 ### Fixes
+
+- CLI: format `kova acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Thanks @hclsys
