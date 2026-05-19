@@ -918,8 +918,22 @@ export async function runEmbeddedAttempt(
       senderIsOwner: params.senderIsOwner,
       warn: (message) => log.warn(message),
     });
+    const normalizedBundledTools =
+      filteredBundledTools.length > 0
+        ? normalizeAgentRuntimeTools({
+            runtimePlan: params.runtimePlan,
+            tools: filteredBundledTools,
+            provider: params.provider,
+            config: params.config,
+            workspaceDir: effectiveWorkspace,
+            env: process.env,
+            modelId: params.modelId,
+            modelApi: params.model.api,
+            model: params.model,
+          })
+        : filteredBundledTools;
     const effectiveTools = filterLocalModelLeanTools({
-      tools: [...tools, ...filteredBundledTools],
+      tools: [...tools, ...normalizedBundledTools],
       config: params.config,
       agentId: sessionAgentId,
     });

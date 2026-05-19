@@ -66,6 +66,64 @@ describe("deepseek provider plugin", () => {
     );
   });
 
+  it("owns DeepSeek tool schema compatibility for MCP union schemas", async () => {
+    const provider = await registerSingleProviderPlugin(deepseekPlugin);
+    const mcpTool = {
+      name: "unusual-whales__get_balance_sheet_screener",
+      description: "",
+      parameters: {
+        type: "object",
+        properties: {
+          date: {
+            anyOf: [{ type: "string" }, { type: "integer" }],
+          },
+          period: {
+            oneOf: [{ type: "string" }, { type: "null" }],
+          },
+        },
+      },
+      execute: () => undefined,
+    } as never;
+
+    const model = {
+      provider: "deepseek",
+      id: "deepseek-v4-pro",
+      name: "DeepSeek V4 Pro",
+      api: "openai-completions",
+      baseUrl: "https://api.deepseek.com",
+      reasoning: true,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 1_000_000,
+      maxTokens: 384_000,
+    } as never;
+
+    const normalized = provider.normalizeToolSchemas?.({
+      provider: "deepseek",
+      modelId: "deepseek-v4-pro",
+      modelApi: "openai-completions",
+      model,
+      tools: [mcpTool],
+    } as never);
+
+    expect(normalized?.[0]?.parameters).toEqual({
+      type: "object",
+      properties: {
+        date: { type: "string" },
+        period: { type: "string", nullable: true },
+      },
+    });
+    expect(
+      provider.inspectToolSchemas?.({
+        provider: "deepseek",
+        modelId: "deepseek-v4-pro",
+        modelApi: "openai-completions",
+        model,
+        tools: normalized ?? [],
+      } as never),
+    ).toStrictEqual([]);
+  });
+
   it("maps thinking levels to DeepSeek V4 payload controls", async () => {
     let capturedPayload: Record<string, unknown> | undefined;
     const baseStreamFn = (

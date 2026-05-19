@@ -1,6 +1,7 @@
 import { readConfiguredProviderCatalogEntries } from "getkova/plugin-sdk/provider-catalog-shared";
 import { defineSingleProviderPluginEntry } from "getkova/plugin-sdk/provider-entry";
 import { buildProviderReplayFamilyHooks } from "getkova/plugin-sdk/provider-model-shared";
+import { buildProviderToolCompatFamilyHooks } from "getkova/plugin-sdk/provider-tools";
 import { applyDeepSeekConfig, DEEPSEEK_DEFAULT_MODEL_REF } from "./onboard.js";
 import { buildDeepSeekProvider } from "./provider-catalog.js";
 import { createDeepSeekV4ThinkingWrapper } from "./stream.js";
@@ -45,6 +46,7 @@ export default defineSingleProviderPluginEntry({
     matchesContextOverflowError: ({ errorMessage }) =>
       /\bdeepseek\b.*(?:input.*too long|context.*exceed)/i.test(errorMessage),
     ...buildProviderReplayFamilyHooks({ family: "openai-compatible" }),
+    ...buildProviderToolCompatFamilyHooks("deepseek"),
     wrapStreamFn: (ctx) => createDeepSeekV4ThinkingWrapper(ctx.streamFn, ctx.thinkingLevel),
     isModernModelRef: ({ modelId }) => {
       const lower = modelId.toLowerCase();

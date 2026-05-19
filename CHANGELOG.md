@@ -51,3 +51,4 @@
 - Installer/npm: bypass user npm freshness policies for Kova-managed package installs while preserving project-local install isolation for bundled plugin runtime dependencies. Thanks @joshavant
 - WhatsApp: drain queued outbound deliveries periodically while connected so recovered sends do not wait for a reconnect before leaving the queue. Thanks @Oviemudiaga
 - Anthropic: preserve image input for current Claude vision models when stale local model rows mark them as text-only. Thanks @TurboTheTurtle
+- DeepSeek: normalize MCP tool schemas with `anyOf` and `oneOf` unions before requests reach DeepSeek so union-shaped parameters are not rejected. Thanks @TurboTheTurtle
