@@ -12,6 +12,70 @@ import { buildWebSearchProviderConfig, withTempHome, writeKovaConfig } from "./t
 import { validateConfigObject, validateConfigObjectRaw } from "./validation.js";
 import { KovaSchema } from "./zod-schema.js";
 
+function issuePaths(issues: Array<{ path: string }>): string[] {
+  return issues.map((issue) => issue.path);
+}
+
+describe("model provider overlays", () => {
+  it("accepts bundled provider timeout overlays without custom provider fields", () => {
+    const result = validateConfigObjectRaw({
+      models: {
+        providers: {
+          openai: {
+            timeoutSeconds: 600,
+          },
+        },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.config.models?.providers?.openai?.models).toEqual([]);
+      expect(result.config.models?.providers?.openai?.baseUrl).toBe("");
+    }
+  });
+
+  it("accepts bundled provider alias timeout overlays without custom provider fields", () => {
+    const result = validateConfigObjectRaw({
+      models: {
+        providers: {
+          "z.ai": {
+            timeoutSeconds: 600,
+          },
+        },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.config.models?.providers?.["z.ai"]?.models).toEqual([]);
+      expect(result.config.models?.providers?.["z.ai"]?.baseUrl).toBe("");
+    }
+  });
+
+  it("still requires baseUrl and models for custom provider declarations", () => {
+    const result = validateConfigObjectRaw({
+      models: {
+        providers: {
+          custom: {
+            timeoutSeconds: 600,
+          },
+        },
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(issuePaths(result.issues)).toEqual(
+        expect.arrayContaining([
+          "models.providers.custom.baseUrl",
+          "models.providers.custom.models",
+        ]),
+      );
+    }
+  });
+});
+
 describe("$schema key in config (#14998)", () => {
   it("accepts config with $schema string", () => {
     const result = KovaSchema.safeParse({

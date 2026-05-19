@@ -3172,7 +3172,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     "Declared model list for a provider including identifiers, metadata, provider-specific params, and optional compatibility/cost hints. Keep IDs exact to provider catalog values so selection and fallback resolve correctly.",
                 },
               },
-              required: ["baseUrl", "models"],
               additionalProperties: false,
             },
             title: "Model Providers",

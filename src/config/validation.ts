@@ -40,6 +40,7 @@ import { findLegacyConfigIssues } from "./legacy.js";
 import { materializeRuntimeConfig } from "./materialize.js";
 import type { KovaConfig, ConfigValidationIssue } from "./types.js";
 import { coerceSecretRef } from "./types.secrets.js";
+import { isBuiltInModelProviderOverlayId } from "./zod-schema.core.js";
 import { KovaSchema } from "./zod-schema.js";
 
 const LEGACY_REMOVED_PLUGIN_IDS = new Set(["google-antigravity-auth", "google-gemini-cli-auth"]);
@@ -62,6 +63,38 @@ function stripDeprecatedValidationKeys(raw: unknown): unknown {
   return {
     ...raw,
     commands,
+  };
+}
+
+function materializeBundledModelProviderOverlays(config: KovaConfig): KovaConfig {
+  const providers = config.models?.providers;
+  if (!providers) {
+    return config;
+  }
+  let nextProviders: typeof providers | undefined;
+  for (const [providerId, providerConfig] of Object.entries(providers)) {
+    if (
+      !isBuiltInModelProviderOverlayId(providerId) ||
+      (providerConfig.baseUrl && Array.isArray(providerConfig.models))
+    ) {
+      continue;
+    }
+    nextProviders ??= { ...providers };
+    nextProviders[providerId] = {
+      ...providerConfig,
+      baseUrl: providerConfig.baseUrl ?? "",
+      models: providerConfig.models ?? [],
+    };
+  }
+  if (!nextProviders) {
+    return config;
+  }
+  return {
+    ...config,
+    models: {
+      ...config.models,
+      providers: nextProviders,
+    },
   };
 }
 
@@ -656,7 +689,7 @@ export function validateConfigObjectRaw(
   if (policyIssues.length > 0) {
     return { ok: false, issues: policyIssues };
   }
-  const validatedConfig = validated.data as KovaConfig;
+  const validatedConfig = materializeBundledModelProviderOverlays(validated.data as KovaConfig);
   const duplicates = findDuplicateAgentDirs(validatedConfig);
   if (duplicates.length > 0) {
     return {

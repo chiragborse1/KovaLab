@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Config: allow bundled model provider timeout overlays without requiring users to redeclare provider base URLs and model lists, while keeping custom providers strict. Thanks @giodl73
 - Telegram: recover isolated polling spool lanes by claiming active updates, tombstoning timed-out handlers, and aborting stuck reply work so later updates can drain. Thanks @joshavant
 - Telegram: keep forum-topic routing and buffered media/text lanes scoped per topic so sibling topics can progress independently. Thanks @VACInc
 - CLI: format `kova acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Thanks @hclsys

@@ -367,6 +367,21 @@ function findConfiguredProviderModel(
   );
 }
 
+function hasConfiguredFallbackSurface(params: {
+  providerConfig: InlineProviderConfig | undefined;
+  configuredModel: ReturnType<typeof findConfiguredProviderModel>;
+  modelId: string;
+}): boolean {
+  if (params.modelId.startsWith("mock-")) {
+    return true;
+  }
+  if (params.configuredModel) {
+    return true;
+  }
+  const baseUrl = params.providerConfig?.baseUrl?.trim();
+  return Boolean(baseUrl);
+}
+
 function readModelParams(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return undefined;
@@ -760,7 +775,7 @@ function resolveConfiguredFallbackModel(params: {
     modelId,
     configuredParams: configuredModel?.params,
   });
-  if (!providerConfig && !modelId.startsWith("mock-")) {
+  if (!hasConfiguredFallbackSurface({ providerConfig, configuredModel, modelId })) {
     return undefined;
   }
   const fallbackTransport = resolveProviderTransport({
