@@ -13,6 +13,7 @@ describe("entry root help fast path", () => {
 
     const handled = await tryHandleRootHelpFastPath(["node", "kova", "--help"], {
       env: {},
+      loadRootHelpRenderOptionsForConfigSensitivePlugins: async () => null,
     });
 
     expect(handled).toBe(true);
@@ -24,6 +25,7 @@ describe("entry root help fast path", () => {
 
     const handled = await tryHandleRootHelpFastPath(["node", "kova", "--help"], {
       outputRootHelp: outputRootHelpMock,
+      loadRootHelpRenderOptionsForConfigSensitivePlugins: async () => null,
       env: {},
     });
 
@@ -31,11 +33,38 @@ describe("entry root help fast path", () => {
     expect(outputRootHelpMock).toHaveBeenCalledTimes(1);
   });
 
+  it("renders live root help when plugin config changes command descriptors", async () => {
+    const outputPrecomputedRootHelpTextMock = vi.fn(() => true);
+    const outputRootHelpMock = vi.fn();
+    const liveOptions = {
+      config: {
+        plugins: {
+          slots: {
+            memory: "memory-lancedb",
+          },
+        },
+      },
+      env: {},
+    };
+
+    const handled = await tryHandleRootHelpFastPath(["node", "kova", "--help"], {
+      env: {},
+      outputPrecomputedRootHelpText: outputPrecomputedRootHelpTextMock,
+      outputRootHelp: outputRootHelpMock,
+      loadRootHelpRenderOptionsForConfigSensitivePlugins: async () => liveOptions,
+    });
+
+    expect(handled).toBe(true);
+    expect(outputPrecomputedRootHelpTextMock).not.toHaveBeenCalled();
+    expect(outputRootHelpMock).toHaveBeenCalledWith(liveOptions);
+  });
+
   it("ignores non-root help invocations", async () => {
     const outputRootHelpMock = vi.fn();
 
     const handled = await tryHandleRootHelpFastPath(["node", "kova", "status", "--help"], {
       outputRootHelp: outputRootHelpMock,
+      loadRootHelpRenderOptionsForConfigSensitivePlugins: async () => null,
       env: {},
     });
 
@@ -50,6 +79,7 @@ describe("entry root help fast path", () => {
       ["node", "kova", "--container", "demo", "--help"],
       {
         outputRootHelp: outputRootHelpMock,
+        loadRootHelpRenderOptionsForConfigSensitivePlugins: async () => null,
         env: {},
       },
     );

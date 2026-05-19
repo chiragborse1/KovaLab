@@ -36,3 +36,4 @@
 - CLI/TUI: include gateway plugin slash commands in TUI autocomplete so connected sessions can suggest plugin-owned commands from the running gateway. Thanks @se7en-agent
 - CLI: retry config snapshot reads after a transient failure so one rejected read no longer poisons later commands in the same process. Thanks @honor2030
 - Models: show the effective OpenAI/Codex auth profile in `/models` provider headers instead of falling back to the OpenAI env-key label. Thanks @yu-xin-c
+- CLI: render root help from live plugin config when plugin loading affects command descriptors, so plugin-owned commands are visible in `kova --help`. Thanks @joshavant
