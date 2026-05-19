@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { theme } from "../../terminal/theme.js";
 import {
   filterContainerGenericHints,
+  parsePort,
   renderGatewayServiceStartHints,
   resolveDaemonContainerContext,
   resolveRuntimeStatusColor,
@@ -57,6 +58,20 @@ describe("renderGatewayServiceStartHints", () => {
         "Restart the container or the service that manages it for kova-demo-container.",
       ]),
     );
+  });
+});
+
+describe("parsePort", () => {
+  it("accepts valid TCP port numbers", () => {
+    expect(parsePort("1")).toBe(1);
+    expect(parsePort("65535")).toBe(65535);
+  });
+
+  it("rejects invalid or out-of-range ports", () => {
+    expect(parsePort("0")).toBeNull();
+    expect(parsePort("65536")).toBeNull();
+    expect(parsePort("99999")).toBeNull();
+    expect(parsePort("abc")).toBeNull();
   });
 });
 
