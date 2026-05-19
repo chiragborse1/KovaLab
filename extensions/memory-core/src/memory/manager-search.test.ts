@@ -244,4 +244,57 @@ describe("searchVector sqlite-vec KNN", () => {
       db.close();
     }
   });
+
+  it("yields between fallback vector batches", async () => {
+    const db = new DatabaseSync(":memory:");
+    try {
+      ensureMemoryIndexSchema({
+        db,
+        embeddingCacheTable: "embedding_cache",
+        cacheEnabled: false,
+        ftsTable: "chunks_fts",
+        ftsEnabled: false,
+      });
+      const insertChunk = db.prepare(
+        "INSERT INTO chunks (id, path, source, start_line, end_line, hash, model, text, embedding, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      );
+      for (let i = 0; i < 300; i += 1) {
+        const vector: [number, number] = i === 299 ? [1, 0] : [0, 1];
+        insertChunk.run(
+          `chunk-${i}`,
+          `memory/chunk-${i}.md`,
+          "memory",
+          1,
+          1,
+          `hash-${i}`,
+          "target-model",
+          `chunk ${i}`,
+          JSON.stringify(vector),
+          i,
+        );
+      }
+
+      let yielded = false;
+      setImmediate(() => {
+        yielded = true;
+      });
+
+      const results = await searchVector({
+        db,
+        vectorTable: "chunks_vec",
+        providerModel: "target-model",
+        queryVec: [1, 0],
+        limit: 1,
+        snippetMaxChars: 200,
+        ensureVectorReady: async () => false,
+        sourceFilterVec: { sql: "", params: [] },
+        sourceFilterChunks: { sql: "", params: [] },
+      });
+
+      expect(yielded).toBe(true);
+      expect(results.map((row) => row.id)).toEqual(["chunk-299"]);
+    } finally {
+      db.close();
+    }
+  });
 });
