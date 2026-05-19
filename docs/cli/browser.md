@@ -191,6 +191,7 @@ kova browser select <ref> OptionA OptionB
 kova browser fill --fields '[{"ref":"1","value":"Ada"}]'
 kova browser wait --text "Done"
 kova browser evaluate --fn '(el) => el.textContent' --ref <ref>
+kova browser evaluate --fn 'async () => await slowCheck()' --timeout-ms 30000
 ```
 
 Action responses return the current raw `targetId` after action-triggered page

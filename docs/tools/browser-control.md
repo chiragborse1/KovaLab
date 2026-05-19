@@ -290,6 +290,8 @@ You can wait on more than just time/text:
   - `kova browser wait --fn "window.ready===true"`
 - Wait for a selector to become visible:
   - `kova browser wait "#main"`
+- Give a long-running evaluate function more time:
+  - `kova browser evaluate --fn "async () => await slowCheck()" --timeout-ms 30000`
 
 These can be combined:
 
