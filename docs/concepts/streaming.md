@@ -129,12 +129,12 @@ Modes:
 
 ### Channel mapping
 
-| Channel    | `off` | `partial` | `block` | `progress`        |
-| ---------- | ----- | --------- | ------- | ----------------- |
-| Telegram   | ✅    | ✅        | ✅      | maps to `partial` |
-| Discord    | ✅    | ✅        | ✅      | maps to `partial` |
-| Slack      | ✅    | ✅        | ✅      | ✅                |
-| Mattermost | ✅    | ✅        | ✅      | ✅                |
+| Channel    | `off` | `partial` | `block` | `progress` |
+| ---------- | ----- | --------- | ------- | ---------- |
+| Telegram   | ✅    | ✅        | ✅      | ✅         |
+| Discord    | ✅    | ✅        | ✅      | ✅         |
+| Slack      | ✅    | ✅        | ✅      | ✅         |
+| Mattermost | ✅    | ✅        | ✅      | ✅         |
 
 Slack-only:
 
@@ -192,6 +192,7 @@ Supported surfaces:
 - Telegram has shipped with tool-progress preview updates enabled since `v2026.4.22`; keeping them enabled preserves that released behavior.
 - **Mattermost** already folds tool activity into its single draft preview post (see above).
 - Tool-progress edits follow the active preview streaming mode; they are skipped when preview streaming is `off` or when block streaming has taken over the message.
+- The default text progress label is `Working`, separated from compact tool lines by a blank line to reduce noisy preview churn.
 - To keep preview streaming but hide tool-progress lines, set `streaming.preview.toolProgress` to `false` for that channel. To disable preview edits entirely, set `streaming.mode` to `off`.
 
 Example:

@@ -542,9 +542,9 @@ Default slash command settings:
   </Accordion>
 
   <Accordion title="Live stream preview">
-    Kova can stream draft replies by sending a temporary message and editing it as text arrives. `channels.discord.streaming` takes `off` (default) | `partial` | `block` | `progress`. `progress` maps to `partial` on Discord; `streamMode` is a legacy alias and is auto-migrated.
+    Kova can stream draft replies by sending a temporary message and editing it as text arrives. `channels.discord.streaming` takes `off` | `partial` | `block` | `progress` (default). `streamMode` is a legacy alias and is auto-migrated.
 
-    Default stays `off` because Discord preview edits hit rate limits quickly when multiple bots or gateways share an account.
+    `progress` uses a stable `Working` preview while tools run, then finalizes the answer when completion is safe.
 
 ```json5
 {
