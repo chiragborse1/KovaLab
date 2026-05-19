@@ -125,6 +125,10 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
         bootstrapFiles: [],
         contextFiles: [],
       })),
+      getActiveMcpLoopbackRuntime: vi.fn(() => undefined),
+      ensureMcpLoopbackServer: vi.fn(async () => undefined),
+      createMcpLoopbackServerConfig: vi.fn(() => ({ mcpServers: {} })),
+      resolveMcpLoopbackScopedTools: vi.fn(() => ({ agentId: undefined, tools: [] })),
       resolveKovaReferencePaths: vi.fn(async () => ({ docsPath: null, sourcePath: null })),
     });
     mockGetGlobalHookRunner.mockReturnValue(null);
@@ -406,6 +410,70 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
 
       expect(context.extraSystemPromptHash).toBe(hashCliSessionText(staticPrompt));
       expect(context.reusableCliSession).toEqual({ sessionId: "cli-session" });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("includes loopback MCP tools in CLI prompt reports", async () => {
+    const { dir, sessionFile } = createSessionFile();
+    try {
+      const promptTool = {
+        name: "message",
+        description: "Send a message through the active channel.",
+        parameters: { type: "object", properties: {} },
+      };
+      setCliRunnerPrepareTestDeps({
+        getActiveMcpLoopbackRuntime: vi.fn(() => ({
+          port: 18791,
+          ownerToken: "owner-token",
+          nonOwnerToken: "non-owner-token",
+        })),
+        resolveMcpLoopbackScopedTools: vi.fn(() => ({
+          agentId: "main",
+          tools: [promptTool as never],
+        })),
+      });
+      cliBackendsTesting.setDepsForTest({
+        resolvePluginSetupCliBackend: () => undefined,
+        resolveRuntimeCliBackends: () => [
+          {
+            id: "test-cli",
+            bundleMcp: true,
+            config: {
+              command: "test-cli",
+              args: ["--print"],
+              systemPromptArg: "--system-prompt",
+              systemPromptWhen: "first",
+              sessionMode: "existing",
+              output: "text",
+              input: "arg",
+            },
+          },
+        ],
+      });
+
+      const context = await prepareCliRunContext({
+        sessionId: "session-test",
+        sessionKey: "agent:main:telegram:direct:user-1",
+        sessionFile,
+        workspaceDir: dir,
+        prompt: "latest ask",
+        provider: "test-cli",
+        model: "test-model",
+        timeoutMs: 1_000,
+        runId: "run-test-loopback-tools",
+        config: createCliBackendConfig({ systemPromptOverride: null }),
+        messageProvider: "telegram",
+        agentAccountId: "default",
+        senderIsOwner: true,
+      });
+
+      expect(context.promptToolNamesHash).toBe(hashCliSessionText(JSON.stringify(["message"])));
+      expect(context.systemPromptReport.tools.entries).toEqual([
+        expect.objectContaining({ name: "message" }),
+      ]);
+      expect(context.systemPrompt).toContain("message");
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

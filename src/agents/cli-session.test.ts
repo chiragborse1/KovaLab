@@ -22,6 +22,7 @@ describe("cli-session helpers", () => {
       authEpoch: "auth-epoch",
       authEpochVersion: 2,
       extraSystemPromptHash: "prompt-hash",
+      promptToolNamesHash: "tool-names-hash",
       mcpConfigHash: "mcp-hash",
       mcpResumeHash: "mcp-resume-hash",
     });
@@ -34,6 +35,7 @@ describe("cli-session helpers", () => {
       authEpoch: "auth-epoch",
       authEpochVersion: 2,
       extraSystemPromptHash: "prompt-hash",
+      promptToolNamesHash: "tool-names-hash",
       mcpConfigHash: "mcp-hash",
       mcpResumeHash: "mcp-resume-hash",
     });
@@ -76,6 +78,13 @@ describe("cli-session helpers", () => {
         binding,
         authEpochVersion: 2,
         extraSystemPromptHash: "prompt-hash",
+      }),
+    ).toEqual({ invalidatedReason: "system-prompt" });
+    expect(
+      resolveCliSessionReuse({
+        binding,
+        authEpochVersion: 2,
+        promptToolNamesHash: "tool-names-hash",
       }),
     ).toEqual({ invalidatedReason: "system-prompt" });
     expect(

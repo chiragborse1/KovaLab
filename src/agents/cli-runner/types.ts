@@ -85,4 +85,5 @@ export type PreparedCliRunContext = {
   authEpoch?: string;
   authEpochVersion: number;
   extraSystemPromptHash?: string;
+  promptToolNamesHash?: string;
 };

@@ -284,6 +284,9 @@ export async function runPreparedCliAgent(
                   ...(context.extraSystemPromptHash
                     ? { extraSystemPromptHash: context.extraSystemPromptHash }
                     : {}),
+                  ...(context.promptToolNamesHash
+                    ? { promptToolNamesHash: context.promptToolNamesHash }
+                    : {}),
                   ...(context.preparedBackend.mcpConfigHash
                     ? { mcpConfigHash: context.preparedBackend.mcpConfigHash }
                     : {}),

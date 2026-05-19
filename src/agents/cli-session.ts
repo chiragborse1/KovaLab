@@ -30,6 +30,7 @@ export function getCliSessionBinding(
       authEpoch: normalizeOptionalString(fromBindings?.authEpoch),
       authEpochVersion: fromBindings?.authEpochVersion,
       extraSystemPromptHash: normalizeOptionalString(fromBindings?.extraSystemPromptHash),
+      promptToolNamesHash: normalizeOptionalString(fromBindings?.promptToolNamesHash),
       mcpConfigHash: normalizeOptionalString(fromBindings?.mcpConfigHash),
       mcpResumeHash: normalizeOptionalString(fromBindings?.mcpResumeHash),
     };
@@ -85,6 +86,9 @@ export function setCliSessionBinding(
       ...(normalizeOptionalString(binding.extraSystemPromptHash)
         ? { extraSystemPromptHash: normalizeOptionalString(binding.extraSystemPromptHash) }
         : {}),
+      ...(normalizeOptionalString(binding.promptToolNamesHash)
+        ? { promptToolNamesHash: normalizeOptionalString(binding.promptToolNamesHash) }
+        : {}),
       ...(normalizeOptionalString(binding.mcpConfigHash)
         ? { mcpConfigHash: normalizeOptionalString(binding.mcpConfigHash) }
         : {}),
@@ -128,6 +132,7 @@ export function resolveCliSessionReuse(params: {
   authEpoch?: string;
   authEpochVersion: number;
   extraSystemPromptHash?: string;
+  promptToolNamesHash?: string;
   mcpConfigHash?: string;
   mcpResumeHash?: string;
 }): {
@@ -142,6 +147,7 @@ export function resolveCliSessionReuse(params: {
   const currentAuthProfileId = normalizeOptionalString(params.authProfileId);
   const currentAuthEpoch = normalizeOptionalString(params.authEpoch);
   const currentExtraSystemPromptHash = normalizeOptionalString(params.extraSystemPromptHash);
+  const currentPromptToolNamesHash = normalizeOptionalString(params.promptToolNamesHash);
   const currentMcpConfigHash = normalizeOptionalString(params.mcpConfigHash);
   const currentMcpResumeHash = normalizeOptionalString(params.mcpResumeHash);
   const storedAuthProfileId = normalizeOptionalString(binding?.authProfileId);
@@ -157,6 +163,10 @@ export function resolveCliSessionReuse(params: {
   }
   const storedExtraSystemPromptHash = normalizeOptionalString(binding?.extraSystemPromptHash);
   if (storedExtraSystemPromptHash !== currentExtraSystemPromptHash) {
+    return { invalidatedReason: "system-prompt" };
+  }
+  const storedPromptToolNamesHash = normalizeOptionalString(binding?.promptToolNamesHash);
+  if (storedPromptToolNamesHash !== currentPromptToolNamesHash) {
     return { invalidatedReason: "system-prompt" };
   }
   const storedMcpResumeHash = normalizeOptionalString(binding?.mcpResumeHash);

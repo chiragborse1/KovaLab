@@ -24,6 +24,28 @@ type CachedScopedTools = {
   time: number;
 };
 
+export function resolveMcpLoopbackScopedTools(params: {
+  cfg: KovaConfig;
+  sessionKey: string;
+  messageProvider: string | undefined;
+  accountId: string | undefined;
+  senderIsOwner: boolean | undefined;
+}): { agentId: string | undefined; tools: McpLoopbackTool[] } {
+  const scoped = resolveGatewayScopedTools({
+    cfg: params.cfg,
+    sessionKey: params.sessionKey,
+    messageProvider: params.messageProvider,
+    accountId: params.accountId,
+    senderIsOwner: params.senderIsOwner,
+    surface: "loopback",
+    excludeToolNames: NATIVE_TOOL_EXCLUDE,
+  });
+  return {
+    agentId: scoped.agentId,
+    tools: applyOwnerOnlyToolPolicy(scoped.tools, params.senderIsOwner === true),
+  };
+}
+
 export class McpLoopbackToolCache {
   #entries = new Map<string, CachedScopedTools>();
 
@@ -46,20 +68,17 @@ export class McpLoopbackToolCache {
       return cached;
     }
 
-    const next = resolveGatewayScopedTools({
+    const next = resolveMcpLoopbackScopedTools({
       cfg: params.cfg,
       sessionKey: params.sessionKey,
       messageProvider: params.messageProvider,
       accountId: params.accountId,
       senderIsOwner: params.senderIsOwner,
-      surface: "loopback",
-      excludeToolNames: NATIVE_TOOL_EXCLUDE,
     });
-    const tools = applyOwnerOnlyToolPolicy(next.tools, params.senderIsOwner === true);
     const nextEntry: CachedScopedTools = {
       agentId: next.agentId,
-      tools,
-      toolSchema: buildMcpToolSchema(tools),
+      tools: next.tools,
+      toolSchema: buildMcpToolSchema(next.tools),
       configRef: params.cfg,
       time: now,
     };

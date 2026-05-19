@@ -1,8 +1,10 @@
+import { getRuntimeConfig } from "../../config/config.js";
 import { ensureMcpLoopbackServer } from "../../gateway/mcp-http.js";
 import {
   createMcpLoopbackServerConfig,
   getActiveMcpLoopbackRuntime,
 } from "../../gateway/mcp-http.loopback-runtime.js";
+import { resolveMcpLoopbackScopedTools } from "../../gateway/mcp-http.runtime.js";
 import type {
   CliBackendAuthEpochMode,
   CliBackendPreparedExecution,
@@ -55,6 +57,7 @@ const prepareDeps = {
   getActiveMcpLoopbackRuntime,
   ensureMcpLoopbackServer,
   createMcpLoopbackServerConfig,
+  resolveMcpLoopbackScopedTools,
   resolveKovaReferencePaths: async (
     params: Parameters<typeof import("../docs-path.js").resolveKovaReferencePaths>[0],
   ) => (await import("../docs-path.js")).resolveKovaReferencePaths(params),
@@ -245,6 +248,20 @@ export async function prepareCliRunContext(
     ...(preparedBackendEnv ? { env: preparedBackendEnv } : {}),
     ...(preparedBackendCleanup ? { cleanup: preparedBackendCleanup } : {}),
   };
+  const promptTools =
+    backendResolved.bundleMcp && mcpLoopbackRuntime
+      ? prepareDeps.resolveMcpLoopbackScopedTools({
+          cfg: params.config ?? getRuntimeConfig(),
+          sessionKey: params.sessionKey ?? "",
+          messageProvider: params.messageChannel ?? params.messageProvider,
+          accountId: params.agentAccountId,
+          senderIsOwner: params.senderIsOwner,
+        }).tools
+      : [];
+  const promptToolNamesHash =
+    backendResolved.bundleMcp && mcpLoopbackRuntime
+      ? hashCliSessionText(JSON.stringify(promptTools.map((tool) => tool.name).toSorted()))
+      : undefined;
   const reusableCliSession = params.cliSessionBinding
     ? resolveCliSessionReuse({
         binding: params.cliSessionBinding,
@@ -252,6 +269,7 @@ export async function prepareCliRunContext(
         authEpoch,
         authEpochVersion: CLI_AUTH_EPOCH_VERSION,
         extraSystemPromptHash,
+        promptToolNamesHash,
         mcpConfigHash: preparedBackendFinal.mcpConfigHash,
         mcpResumeHash: preparedBackendFinal.mcpResumeHash,
       })
@@ -306,7 +324,7 @@ export async function prepareCliRunContext(
       docsPath: kovaReferences.docsPath ?? undefined,
       sourcePath: kovaReferences.sourcePath ?? undefined,
       skillsPrompt,
-      tools: [],
+      tools: promptTools,
       contextFiles,
       modelDisplay,
       agentId: sessionAgentId,
@@ -397,7 +415,7 @@ export async function prepareCliRunContext(
     bootstrapFiles,
     injectedFiles: contextFiles,
     skillsPrompt,
-    tools: [],
+    tools: promptTools,
   });
 
   return {
@@ -418,5 +436,6 @@ export async function prepareCliRunContext(
     authEpoch,
     authEpochVersion: CLI_AUTH_EPOCH_VERSION,
     extraSystemPromptHash,
+    promptToolNamesHash,
   };
 }
