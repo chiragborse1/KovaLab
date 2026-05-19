@@ -325,6 +325,34 @@ describe("handleModelsCommand", () => {
     expect(result?.reply?.text).toContain("Models (anthropic · 🔑 target-auth) — showing 1-2 of 2");
   });
 
+  it("labels OpenAI provider pages with the effective Codex auth provider set", async () => {
+    modelAuthLabelMocks.resolveModelAuthLabel.mockReturnValue(
+      "oauth (openai-codex:user@example.com)",
+    );
+
+    const result = await handleModelsCommand(
+      buildParams("/models openai", {
+        auth: {
+          order: {
+            openai: ["openai-codex:user@example.com"],
+          },
+        },
+      }),
+      true,
+    );
+
+    expect(result?.reply?.text).toContain(
+      "Models (openai · 🔑 oauth (openai-codex:user@example.com))",
+    );
+    const openaiAuthCall = modelAuthLabelMocks.resolveModelAuthLabel.mock.calls.find(
+      ([params]) => (params as { provider?: string }).provider === "openai",
+    );
+    expect(openaiAuthCall?.[0]).toMatchObject({
+      provider: "openai",
+      acceptedProviderIds: ["openai", "openai-codex"],
+    });
+  });
+
   it("returns a deprecation message for /models add when no provider is given", async () => {
     const result = await handleModelsCommand(buildParams("/models add"), true);
 

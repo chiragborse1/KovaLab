@@ -9,6 +9,7 @@ import {
 import { readCodexCliCredentialsCached } from "./cli-credentials.js";
 import { resolveEnvApiKey, resolveUsableCustomProviderApiKey } from "./model-auth.js";
 import { normalizeProviderId } from "./model-selection.js";
+import { resolveProviderIdForAuth } from "./provider-auth-aliases.js";
 
 export function resolveModelAuthLabel(params: {
   provider?: string;
@@ -16,6 +17,7 @@ export function resolveModelAuthLabel(params: {
   sessionEntry?: Partial<Pick<SessionEntry, "authProfileOverride">>;
   agentDir?: string;
   includeExternalProfiles?: boolean;
+  acceptedProviderIds?: readonly string[];
 }): string | undefined {
   const resolvedProvider = params.provider?.trim();
   if (!resolvedProvider) {
@@ -30,17 +32,36 @@ export function resolveModelAuthLabel(params: {
           allowKeychainPrompt: false,
         });
   const profileOverride = params.sessionEntry?.authProfileOverride?.trim();
-  const order = resolveAuthProfileOrder({
-    cfg: params.cfg,
-    store,
-    provider: providerKey,
-    preferredProfile: profileOverride,
-  });
+  const acceptedProviderKeys = [
+    ...new Set(
+      [...(params.acceptedProviderIds ?? []).map(normalizeProviderId), providerKey].filter(Boolean),
+    ),
+  ];
+  const acceptedAuthProviderKeys = acceptedProviderKeys.map((provider) =>
+    resolveProviderIdForAuth(provider, { config: params.cfg }),
+  );
+  const order = [
+    ...new Set(
+      acceptedProviderKeys.flatMap((acceptedProvider) =>
+        resolveAuthProfileOrder({
+          cfg: params.cfg,
+          store,
+          provider: acceptedProvider,
+          preferredProfile: profileOverride,
+        }),
+      ),
+    ),
+  ];
   const candidates = [profileOverride, ...order].filter(Boolean) as string[];
 
   for (const profileId of candidates) {
     const profile = store.profiles[profileId];
-    if (!profile || normalizeProviderId(profile.provider) !== providerKey) {
+    if (
+      !profile ||
+      !acceptedAuthProviderKeys.includes(
+        resolveProviderIdForAuth(profile.provider, { config: params.cfg }),
+      )
+    ) {
       continue;
     }
     const label = resolveAuthProfileDisplayLabel({
