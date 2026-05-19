@@ -5,7 +5,7 @@
   "description": "Kova Matrix QA runner plugin",
   "type": "module",
   "dependencies": {
-    "undici": "8.2.0"
+    "undici": "8.3.0"
   },
   "devDependencies": {
     "@getkova/plugin-sdk": "workspace:*",
