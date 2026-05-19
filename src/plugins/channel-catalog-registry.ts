@@ -1,4 +1,4 @@
-import { discoverKovaPlugins } from "./discovery.js";
+import { discoverKovaPlugins, type PluginDiscoveryResult } from "./discovery.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import {
   loadPluginManifest,
@@ -22,12 +22,16 @@ export function listChannelCatalogEntries(
     origin?: PluginOrigin;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
+    discovery?: PluginDiscoveryResult;
   } = {},
 ): PluginChannelCatalogEntry[] {
-  return discoverKovaPlugins({
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  }).candidates.flatMap((candidate) => {
+  const discovery =
+    params.discovery ??
+    discoverKovaPlugins({
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+    });
+  return discovery.candidates.flatMap((candidate) => {
     if (params.origin && candidate.origin !== params.origin) {
       return [];
     }

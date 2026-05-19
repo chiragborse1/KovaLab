@@ -1,6 +1,6 @@
 import { formatCliCommand } from "../cli/command-format.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
-import { discoverKovaPlugins } from "./discovery.js";
+import { discoverKovaPlugins, type PluginDiscoveryResult } from "./discovery.js";
 import { loadPluginManifest } from "./manifest.js";
 
 export type BundledPluginSource = {
@@ -38,11 +38,14 @@ export function resolveBundledPluginSources(params: {
   workspaceDir?: string;
   /** Use an explicit env when bundled roots should resolve independently from process.env. */
   env?: NodeJS.ProcessEnv;
+  discovery?: PluginDiscoveryResult;
 }): Map<string, BundledPluginSource> {
-  const discovery = discoverKovaPlugins({
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  });
+  const discovery =
+    params.discovery ??
+    discoverKovaPlugins({
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+    });
   const bundled = new Map<string, BundledPluginSource>();
 
   for (const candidate of discovery.candidates) {
