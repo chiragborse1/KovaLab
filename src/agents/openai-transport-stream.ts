@@ -53,6 +53,8 @@ import { mergeTransportMetadata, sanitizeTransportPayloadText } from "./transpor
 
 const DEFAULT_AZURE_OPENAI_API_VERSION = "2024-12-01-preview";
 const OPENAI_CODEX_RESPONSES_EMPTY_INPUT_TEXT = " ";
+const MODEL_STREAM_COOPERATIVE_YIELD_INTERVAL_MS = 12;
+const MODEL_STREAM_COOPERATIVE_YIELD_MAX_EVENTS = 64;
 const log = createSubsystemLogger("openai-transport");
 
 type BaseStreamOptions = {
@@ -65,6 +67,42 @@ type BaseStreamOptions = {
   onPayload?: (payload: unknown, model: Model<Api>) => unknown;
   headers?: Record<string, string>;
 };
+
+type ModelStreamCooperativeScheduler = {
+  afterEvent: () => Promise<void>;
+};
+
+function throwIfModelStreamAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new Error("Request was aborted");
+  }
+}
+
+function createModelStreamCooperativeScheduler(
+  signal?: AbortSignal,
+): ModelStreamCooperativeScheduler {
+  let lastYieldedAt = Date.now();
+  let eventsSinceYield = 0;
+  return {
+    async afterEvent() {
+      throwIfModelStreamAborted(signal);
+      eventsSinceYield += 1;
+      const now = Date.now();
+      if (
+        eventsSinceYield < MODEL_STREAM_COOPERATIVE_YIELD_MAX_EVENTS &&
+        now - lastYieldedAt < MODEL_STREAM_COOPERATIVE_YIELD_INTERVAL_MS
+      ) {
+        return;
+      }
+      eventsSinceYield = 0;
+      lastYieldedAt = now;
+      await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+      });
+      throwIfModelStreamAborted(signal);
+    },
+  };
+}
 
 type OpenAIResponsesOptions = BaseStreamOptions & {
   reasoning?: OpenAIReasoningEffort;
@@ -441,12 +479,15 @@ async function processResponsesStream(
       usage: MutableAssistantOutput["usage"],
       serviceTier?: ResponseCreateParamsStreaming["service_tier"],
     ) => void;
+    signal?: AbortSignal;
   },
 ) {
   let currentItem: Record<string, unknown> | null = null;
   let currentBlock: Record<string, unknown> | null = null;
   const blockIndex = () => output.content.length - 1;
+  const cooperativeScheduler = createModelStreamCooperativeScheduler(options?.signal);
   for await (const rawEvent of openaiStream) {
+    throwIfModelStreamAborted(options?.signal);
     const event = rawEvent as Record<string, unknown>;
     const type = stringifyUnknown(event.type);
     if (type === "response.created") {
@@ -624,6 +665,7 @@ async function processResponsesStream(
           : "Unknown error (no error details in response)";
       throw new Error(msg);
     }
+    await cooperativeScheduler.afterEvent();
   }
 }
 
@@ -797,6 +839,7 @@ export function createOpenAIResponsesTransportStreamFn(): StreamFn {
         await processResponsesStream(responseStream, output, stream, model, {
           serviceTier: (options as OpenAIResponsesOptions | undefined)?.serviceTier,
           applyServiceTierPricing,
+          signal: options?.signal,
         });
         if (options?.signal?.aborted) {
           throw new Error("Request was aborted");
@@ -1135,7 +1178,9 @@ export function createAzureOpenAIResponsesTransportStreamFn(): StreamFn {
           buildOpenAISdkRequestOptions(model, options?.signal),
         )) as unknown as AsyncIterable<unknown>;
         stream.push({ type: "start", partial: output as never });
-        await processResponsesStream(responseStream, output, stream, model);
+        await processResponsesStream(responseStream, output, stream, model, {
+          signal: options?.signal,
+        });
         if (options?.signal?.aborted) {
           throw new Error("Request was aborted");
         }
@@ -1324,7 +1369,9 @@ export function createOpenAICompletionsTransportStreamFn(): StreamFn {
           buildOpenAISdkRequestOptions(model, options?.signal),
         )) as unknown as AsyncIterable<ChatCompletionChunk>;
         stream.push({ type: "start", partial: output as never });
-        await processOpenAICompletionsStream(responseStream, output, model, stream);
+        await processOpenAICompletionsStream(responseStream, output, model, stream, {
+          signal: options?.signal,
+        });
         if (options?.signal?.aborted) {
           throw new Error("Request was aborted");
         }
@@ -1346,6 +1393,7 @@ async function processOpenAICompletionsStream(
   output: MutableAssistantOutput,
   model: Model<Api>,
   stream: { push(event: unknown): void },
+  options?: { signal?: AbortSignal },
 ) {
   const MAX_POST_TOOL_CALL_BUFFER_BYTES = 256_000;
   const MAX_TOOL_CALL_ARGUMENT_BUFFER_BYTES = 256_000;
@@ -1465,8 +1513,11 @@ async function processOpenAICompletionsStream(
     flushPendingPostToolCallDeltas();
     appendTextDeltaInternal(text);
   };
+  const cooperativeScheduler = createModelStreamCooperativeScheduler(options?.signal);
   for await (const rawChunk of responseStream as AsyncIterable<unknown>) {
+    throwIfModelStreamAborted(options?.signal);
     if (!rawChunk || typeof rawChunk !== "object") {
+      await cooperativeScheduler.afterEvent();
       continue;
     }
     const chunk = rawChunk as ChatCompletionChunk;
@@ -1476,6 +1527,7 @@ async function processOpenAICompletionsStream(
     }
     const choice = Array.isArray(chunk.choices) ? chunk.choices[0] : undefined;
     if (!choice) {
+      await cooperativeScheduler.afterEvent();
       continue;
     }
     const choiceUsage = (choice as unknown as { usage?: ChatCompletionChunk["usage"] }).usage;
@@ -1490,6 +1542,7 @@ async function processOpenAICompletionsStream(
       }
     }
     if (!choice.delta) {
+      await cooperativeScheduler.afterEvent();
       continue;
     }
     if (choice.delta.content) {
@@ -1504,6 +1557,7 @@ async function processOpenAICompletionsStream(
         }
       }
       if (contentDeltas.length > 0) {
+        await cooperativeScheduler.afterEvent();
         continue;
       }
     }
@@ -1582,6 +1636,7 @@ async function processOpenAICompletionsStream(
       }
     }
     flushPendingPostToolCallDeltas();
+    await cooperativeScheduler.afterEvent();
   }
   finishCurrentBlock();
   if (currentBlock?.type === "toolCall") {
@@ -2180,5 +2235,6 @@ export const __testing = {
   createOpenAIResponsesClient,
   buildOpenAICompletionsClientConfig,
   sanitizeOpenAICodexResponsesParams,
+  processResponsesStream,
   processOpenAICompletionsStream,
 };

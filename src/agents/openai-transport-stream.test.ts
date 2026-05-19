@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import type { Model } from "@mariozechner/pi-ai";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildOpenAIResponsesParams,
   buildOpenAICompletionsParams,
@@ -21,6 +21,42 @@ import {
 import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
 
 describe("openai transport stream", () => {
+  function createTestAssistantOutput(model: Model): {
+    role: "assistant";
+    content: Array<Record<string, unknown>>;
+    api: Model["api"];
+    provider: string;
+    model: string;
+    usage: {
+      input: number;
+      output: number;
+      cacheRead: number;
+      cacheWrite: number;
+      totalTokens: number;
+      cost: { input: number; output: number; cacheRead: number; cacheWrite: number; total: number };
+    };
+    stopReason: string;
+    timestamp: number;
+  } {
+    return {
+      role: "assistant",
+      content: [],
+      api: model.api,
+      provider: model.provider,
+      model: model.id,
+      usage: {
+        input: 0,
+        output: 0,
+        cacheRead: 0,
+        cacheWrite: 0,
+        totalTokens: 0,
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+      },
+      stopReason: "stop",
+      timestamp: Date.now(),
+    };
+  }
+
   it("moves Azure OpenAI completions api-version headers into default query params", () => {
     const config = __testing.buildOpenAICompletionsClientConfig(
       {
@@ -1054,6 +1090,96 @@ describe("openai transport stream", () => {
     });
     expect(params.max_output_tokens).toBe(1024);
     expect(params.temperature).toBe(0.2);
+  });
+
+  it("yields to aborts during bursty OpenAI-compatible streams", async () => {
+    const model = {
+      id: "deepseek-v4-flash",
+      name: "DeepSeek V4 Flash",
+      api: "openai-completions",
+      provider: "opencode-go",
+      baseUrl: "http://localhost:8000/v1",
+      reasoning: false,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 128000,
+      maxTokens: 4096,
+    } satisfies Model<"openai-completions">;
+    const output = createTestAssistantOutput(model);
+    const abort = new AbortController();
+    const stream = { push: vi.fn() };
+    let yieldedToTimer = false;
+
+    async function* mockStream() {
+      for (let index = 0; index < 512; index += 1) {
+        yield {
+          id: "chatcmpl-bursty",
+          object: "chat.completion.chunk" as const,
+          created: 1775425651,
+          model: model.id,
+          choices: [
+            {
+              index: 0,
+              delta: { role: "assistant" as const, content: "x" },
+              logprobs: null,
+              finish_reason: null,
+            },
+          ],
+        };
+      }
+    }
+
+    setTimeout(() => {
+      yieldedToTimer = true;
+      abort.abort();
+    }, 0);
+
+    await expect(
+      __testing.processOpenAICompletionsStream(mockStream(), output, model, stream, {
+        signal: abort.signal,
+      }),
+    ).rejects.toThrow("Request was aborted");
+    expect(yieldedToTimer).toBe(true);
+    expect(stream.push.mock.calls.length).toBeLessThan(512);
+  });
+
+  it("yields to aborts during bursty Responses streams", async () => {
+    const model = {
+      id: "gpt-5.4",
+      name: "GPT-5.4",
+      api: "openai-responses",
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1",
+      reasoning: true,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 200000,
+      maxTokens: 8192,
+    } satisfies Model<"openai-responses">;
+    const output = createTestAssistantOutput(model);
+    const abort = new AbortController();
+    const stream = { push: vi.fn() };
+    let yieldedToTimer = false;
+
+    async function* mockStream() {
+      yield { type: "response.output_item.added", item: { type: "message" } };
+      for (let index = 0; index < 512; index += 1) {
+        yield { type: "response.output_text.delta", delta: "x" };
+      }
+    }
+
+    setTimeout(() => {
+      yieldedToTimer = true;
+      abort.abort();
+    }, 0);
+
+    await expect(
+      __testing.processResponsesStream(mockStream(), output, stream, model, {
+        signal: abort.signal,
+      }),
+    ).rejects.toThrow("Request was aborted");
+    expect(yieldedToTimer).toBe(true);
+    expect(stream.push.mock.calls.length).toBeLessThan(512);
   });
 
   it("sanitizes native Codex responses params after payload hooks mutate them", () => {
