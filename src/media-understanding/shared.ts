@@ -1,6 +1,13 @@
 import path from "node:path";
-import { assertOkOrThrowHttpError } from "../agents/provider-http-errors.js";
-export { assertOkOrThrowHttpError } from "../agents/provider-http-errors.js";
+import {
+  assertOkOrThrowHttpError,
+  readProviderJsonObjectResponse,
+} from "../agents/provider-http-errors.js";
+export {
+  assertOkOrThrowHttpError,
+  readProviderJsonObjectResponse,
+  readProviderJsonResponse,
+} from "../agents/provider-http-errors.js";
 import type {
   ProviderRequestCapability,
   ProviderRequestTransport,
@@ -17,6 +24,11 @@ import type { GuardedFetchMode, GuardedFetchResult } from "../infra/net/fetch-gu
 import { fetchWithSsrFGuard, GUARDED_FETCH_MODE } from "../infra/net/fetch-guard.js";
 import { shouldUseEnvHttpProxyForUrl } from "../infra/net/proxy-env.js";
 import type { LookupFn, PinnedDispatcherPolicy, SsrFPolicy } from "../infra/net/ssrf.js";
+import {
+  executeProviderOperationWithRetry,
+  type ProviderOperationRetryStage,
+  type TransientProviderRetryConfig,
+} from "../provider-runtime/operation-retry.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 export { fetchWithTimeout };
 export { normalizeBaseUrl } from "../agents/provider-request-config.js";
@@ -68,6 +80,8 @@ export type ProviderOperationDeadline = {
   timeoutMs?: number;
 };
 
+export type ProviderOperationTimeoutMs = number | (() => number);
+
 export function createProviderOperationDeadline(params: {
   timeoutMs?: number;
   label: string;
@@ -102,6 +116,13 @@ export function resolveProviderOperationTimeoutMs(params: {
   return Math.max(1, Math.min(params.defaultTimeoutMs, remainingMs));
 }
 
+export function createProviderOperationTimeoutResolver(params: {
+  deadline: ProviderOperationDeadline;
+  defaultTimeoutMs: number;
+}): () => number {
+  return () => resolveProviderOperationTimeoutMs(params);
+}
+
 export async function waitProviderOperationPollInterval(params: {
   deadline: ProviderOperationDeadline;
   pollIntervalMs: number;
@@ -132,20 +153,24 @@ export async function pollProviderOperationJson<TPayload>(params: {
   getFailureMessage?: (payload: TPayload) => string | undefined;
 }): Promise<TPayload> {
   for (let attempt = 0; attempt < params.maxAttempts; attempt += 1) {
-    const response = await fetchWithTimeout(
-      params.url,
-      {
+    const response = await fetchProviderOperationResponse({
+      stage: "poll",
+      url: params.url,
+      init: {
         method: "GET",
         headers: params.headers,
       },
-      resolveProviderOperationTimeoutMs({
+      timeoutMs: createProviderOperationTimeoutResolver({
         deadline: params.deadline,
         defaultTimeoutMs: params.defaultTimeoutMs,
       }),
-      params.fetchFn,
-    );
-    await assertOkOrThrowHttpError(response, params.requestFailedMessage);
-    const payload = (await response.json()) as TPayload;
+      fetchFn: params.fetchFn,
+      requestFailedMessage: params.requestFailedMessage,
+    });
+    const payload = (await readProviderJsonObjectResponse(
+      response,
+      params.requestFailedMessage,
+    )) as TPayload;
     if (params.isComplete(payload)) {
       return payload;
     }
@@ -159,6 +184,66 @@ export async function pollProviderOperationJson<TPayload>(params: {
     });
   }
   throw new Error(params.timeoutMessage);
+}
+
+export async function fetchProviderOperationResponse(params: {
+  stage: ProviderOperationRetryStage;
+  url: string;
+  init?: RequestInit;
+  timeoutMs?: ProviderOperationTimeoutMs;
+  fetchFn: typeof fetch;
+  provider?: string;
+  requestFailedMessage?: string;
+  retry?: TransientProviderRetryConfig;
+}): Promise<Response> {
+  return await executeProviderOperationWithRetry({
+    provider: params.provider ?? "provider-http",
+    stage: params.stage,
+    retry: params.retry,
+    operation: async () => {
+      const response = await fetchWithTimeout(
+        params.url,
+        params.init ?? {},
+        resolveProviderOperationRequestTimeoutMs(params.timeoutMs),
+        params.fetchFn,
+      );
+      if (params.requestFailedMessage) {
+        await assertOkOrThrowHttpError(response, params.requestFailedMessage);
+      }
+      return response;
+    },
+  });
+}
+
+export async function fetchProviderDownloadResponse(params: {
+  url: string;
+  init?: RequestInit;
+  timeoutMs?: ProviderOperationTimeoutMs;
+  fetchFn: typeof fetch;
+  provider?: string;
+  requestFailedMessage: string;
+  retry?: TransientProviderRetryConfig;
+}): Promise<Response> {
+  return await fetchProviderOperationResponse({
+    stage: "download",
+    url: params.url,
+    init: params.init,
+    timeoutMs: params.timeoutMs,
+    fetchFn: params.fetchFn,
+    provider: params.provider,
+    requestFailedMessage: params.requestFailedMessage,
+    retry: params.retry,
+  });
+}
+
+function resolveProviderOperationRequestTimeoutMs(
+  timeoutMs: ProviderOperationTimeoutMs | undefined,
+): number {
+  const resolved = typeof timeoutMs === "function" ? timeoutMs() : timeoutMs;
+  if (typeof resolved !== "number" || !Number.isFinite(resolved) || resolved <= 0) {
+    return DEFAULT_GUARDED_HTTP_TIMEOUT_MS;
+  }
+  return resolved;
 }
 
 function resolveGuardedHttpTimeoutMs(timeoutMs: number | undefined): number {
@@ -321,15 +406,30 @@ export async function fetchWithTimeoutGuarded(
 
 type GuardedPostRequestOptions = NonNullable<Parameters<typeof fetchWithTimeoutGuarded>[4]>;
 
+function mergeGuardedPostSsrfPolicy(params: {
+  ssrfPolicy?: SsrFPolicy;
+  allowPrivateNetwork?: boolean;
+}): SsrFPolicy | undefined {
+  if (!params.ssrfPolicy) {
+    return params.allowPrivateNetwork ? { allowPrivateNetwork: true } : undefined;
+  }
+  if (!params.allowPrivateNetwork) {
+    return params.ssrfPolicy;
+  }
+  return { ...params.ssrfPolicy, allowPrivateNetwork: true };
+}
+
 function resolveGuardedPostRequestOptions(params: {
   pinDns?: boolean;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
   auditContext?: string;
   mode?: GuardedFetchMode;
 }): GuardedPostRequestOptions | undefined {
   if (
     !params.allowPrivateNetwork &&
+    !params.ssrfPolicy &&
     !params.dispatcherPolicy &&
     params.pinDns === undefined &&
     !params.auditContext &&
@@ -337,8 +437,9 @@ function resolveGuardedPostRequestOptions(params: {
   ) {
     return undefined;
   }
+  const ssrfPolicy = mergeGuardedPostSsrfPolicy(params);
   return {
-    ...(params.allowPrivateNetwork ? { ssrfPolicy: { allowPrivateNetwork: true } } : {}),
+    ...(ssrfPolicy ? { ssrfPolicy } : {}),
     ...(params.pinDns !== undefined ? { pinDns: params.pinDns } : {}),
     ...(params.dispatcherPolicy ? { dispatcherPolicy: params.dispatcherPolicy } : {}),
     ...(params.auditContext ? { auditContext: params.auditContext } : {}),
@@ -354,6 +455,7 @@ export async function postTranscriptionRequest(params: {
   fetchFn: typeof fetch;
   pinDns?: boolean;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
   auditContext?: string;
   /**
@@ -384,6 +486,7 @@ export async function postJsonRequest(params: {
   fetchFn: typeof fetch;
   pinDns?: boolean;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
   auditContext?: string;
   /**
@@ -414,6 +517,7 @@ export async function postMultipartRequest(params: {
   fetchFn: typeof fetch;
   pinDns?: boolean;
   allowPrivateNetwork?: boolean;
+  ssrfPolicy?: SsrFPolicy;
   dispatcherPolicy?: PinnedDispatcherPolicy;
   auditContext?: string;
   /**

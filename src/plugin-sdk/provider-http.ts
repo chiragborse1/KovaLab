@@ -4,6 +4,7 @@
 export {
   assertOkOrThrowHttpError,
   assertOkOrThrowProviderError,
+  assertProviderBinaryResponseContent,
   createProviderHttpError,
   extractProviderErrorDetail,
   extractProviderRequestId,
@@ -19,6 +20,9 @@ export {
 export {
   buildAudioTranscriptionFormData,
   createProviderOperationDeadline,
+  createProviderOperationTimeoutResolver,
+  fetchProviderDownloadResponse,
+  fetchProviderOperationResponse,
   fetchWithTimeout,
   fetchWithTimeoutGuarded,
   normalizeBaseUrl,
@@ -34,6 +38,7 @@ export {
   waitProviderOperationPollInterval,
 } from "../media-understanding/shared.js";
 export type { ProviderOperationDeadline } from "../media-understanding/shared.js";
+export type { ProviderOperationTimeoutMs } from "../media-understanding/shared.js";
 export {
   defaultTransientProviderRetryForStage,
   executeProviderOperationWithRetry,
@@ -68,6 +73,7 @@ export type {
   ProviderRequestTlsOverride,
   ProviderRequestTransportOverrides,
 } from "../agents/provider-request-config.js";
+export { resolveProviderRequestHeaders } from "../agents/provider-request-config.js";
 export {
   resolveProviderEndpoint,
   resolveProviderRequestCapabilities,
