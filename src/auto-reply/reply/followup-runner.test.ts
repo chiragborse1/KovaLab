@@ -668,6 +668,59 @@ describe("createFollowupRunner runtime config", () => {
     expect(call?.images).toBe(images);
     expect(call?.imageOrder).toBe(imageOrder);
   });
+
+  it("does not inherit source abort signals for queued followups", async () => {
+    const sourceAbortController = new AbortController();
+    sourceAbortController.abort();
+    runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      payloads: [],
+      meta: {},
+    });
+    const runner = createFollowupRunner({
+      opts: { abortSignal: sourceAbortController.signal },
+      typing: createMockTypingController(),
+      typingMode: "instant",
+      defaultModel: "openai/gpt-5.4",
+    });
+
+    await runner(
+      createQueuedRun({
+        run: {
+          provider: "openai",
+          model: "gpt-5.4",
+        },
+      }),
+    );
+
+    const call = getRunEmbeddedCall(runEmbeddedPiAgentMock.mock.calls.length - 1);
+    expect(call.abortSignal).toBeUndefined();
+  });
+
+  it("uses explicit queued abort signals for queued followups", async () => {
+    const abortController = new AbortController();
+    runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      payloads: [],
+      meta: {},
+    });
+    const runner = createFollowupRunner({
+      typing: createMockTypingController(),
+      typingMode: "instant",
+      defaultModel: "openai/gpt-5.4",
+    });
+
+    await runner(
+      createQueuedRun({
+        abortSignal: abortController.signal,
+        run: {
+          provider: "openai",
+          model: "gpt-5.4",
+        },
+      }),
+    );
+
+    const call = getRunEmbeddedCall(runEmbeddedPiAgentMock.mock.calls.length - 1);
+    expect(call.abortSignal).toBe(abortController.signal);
+  });
 });
 
 describe("createFollowupRunner compaction", () => {

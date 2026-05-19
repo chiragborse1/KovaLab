@@ -220,7 +220,7 @@ export function createFollowupRunner(params: {
       sessionId: run.sessionId,
       sessionKey: replySessionKey ?? "",
       resetTriggered: false,
-      upstreamAbortSignal: opts?.abortSignal,
+      upstreamAbortSignal: queued.abortSignal,
     });
     try {
       const runId = crypto.randomUUID();
@@ -333,6 +333,7 @@ export function createFollowupRunner(params: {
                 bashElevated: run.bashElevated,
                 timeoutMs: run.timeoutMs,
                 runId,
+                abortSignal: queued.abortSignal,
                 images: queuedImages,
                 imageOrder: queuedImageOrder,
                 allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
