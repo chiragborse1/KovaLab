@@ -195,13 +195,16 @@ RUN install -d -m 0755 "$COREPACK_HOME" && \
     chmod -R a+rX "$COREPACK_HOME"
 
 # Install additional system packages needed by your skills or extensions.
-# Example: docker build --build-arg KOVA_DOCKER_APT_PACKAGES="python3 wget" .
+# Example: docker build --build-arg KOVA_IMAGE_APT_PACKAGES="python3 wget" .
+# Legacy alias: KOVA_DOCKER_APT_PACKAGES is still accepted as a fallback.
+ARG KOVA_IMAGE_APT_PACKAGES
 ARG KOVA_DOCKER_APT_PACKAGES=""
 RUN --mount=type=cache,id=kova-bookworm-apt-cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=kova-bookworm-apt-lists,target=/var/lib/apt,sharing=locked \
-    if [ -n "$KOVA_DOCKER_APT_PACKAGES" ]; then \
+    packages="${KOVA_IMAGE_APT_PACKAGES-$KOVA_DOCKER_APT_PACKAGES}"; \
+    if [ -n "$packages" ]; then \
       apt-get update && \
-      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $KOVA_DOCKER_APT_PACKAGES; \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $packages; \
     fi
 
 # Optionally install Chromium and Xvfb for browser automation.

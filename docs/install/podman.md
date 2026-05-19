@@ -61,7 +61,7 @@ You can also set `KOVA_PODMAN_QUADLET=1`.
 Optional build/setup env vars:
 
 - `KOVA_IMAGE` or `KOVA_PODMAN_IMAGE` -- use an existing/pulled image instead of building `kova:local`
-- `KOVA_DOCKER_APT_PACKAGES` -- install extra apt packages during image build
+- `KOVA_IMAGE_APT_PACKAGES` -- install extra apt packages during image build
 - `KOVA_EXTENSIONS` -- pre-install plugin dependencies at build time
 
 Container start:

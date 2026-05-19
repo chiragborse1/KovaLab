@@ -324,16 +324,19 @@ lives on the [First-run FAQ](/help/faq-first-run).
     kova skills install <skill-slug>
     kova skills install <skill-slug> --version <version>
     kova skills install <skill-slug> --force
+    kova skills install <skill-slug> --global
     kova skills update --all
+    kova skills update --all --global
     kova skills list --eligible
     kova skills check
     ```
 
     Native `kova skills install` writes into the active workspace `skills/`
-    directory. Install the separate `kovahub` CLI only if you want to publish or
-    sync your own skills. For shared installs across agents, put the skill under
-    `~/.kova/skills` and use `agents.defaults.skills` or
-    `agents.list[].skills` if you want to narrow which agents can see it.
+    directory by default. Add `--global` to install or update shared managed
+    skills. Install the separate `kovahub` CLI only if you want to publish or
+    sync your own skills. For shared installs across agents, use
+    `agents.defaults.skills` or `agents.list[].skills` if you want to narrow
+    which agents can see a shared skill.
 
   </Accordion>
 
@@ -451,7 +454,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
     include system packages, Homebrew, or bundled browsers. For a fuller setup:
 
     - Persist `/home/node` with `KOVA_HOME_VOLUME` so caches survive.
-    - Bake system deps into the image with `KOVA_DOCKER_APT_PACKAGES`.
+    - Bake system deps into the image with `KOVA_IMAGE_APT_PACKAGES`.
     - Install Playwright browsers via the bundled CLI:
       `node /app/node_modules/playwright-core/cli.js install chromium`
     - Set `PLAYWRIGHT_BROWSERS_PATH` and ensure the path is persisted.

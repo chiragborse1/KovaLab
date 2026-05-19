@@ -358,9 +358,10 @@ install -d -m 700 "$KOVA_CONFIG_DIR" "$KOVA_WORKSPACE_DIR"
 ensure_private_existing_dir_owned_by_user "config directory" "$KOVA_CONFIG_DIR"
 ensure_private_existing_dir_owned_by_user "workspace directory" "$KOVA_WORKSPACE_DIR"
 
+KOVA_IMAGE_APT_PACKAGES="${KOVA_IMAGE_APT_PACKAGES-${KOVA_DOCKER_APT_PACKAGES:-}}"
 BUILD_ARGS=()
-if [[ -n "${KOVA_DOCKER_APT_PACKAGES:-}" ]]; then
-  BUILD_ARGS+=(--build-arg "KOVA_DOCKER_APT_PACKAGES=${KOVA_DOCKER_APT_PACKAGES}")
+if [[ -n "$KOVA_IMAGE_APT_PACKAGES" ]]; then
+  BUILD_ARGS+=(--build-arg "KOVA_IMAGE_APT_PACKAGES=${KOVA_IMAGE_APT_PACKAGES}")
 fi
 if [[ -n "${KOVA_EXTENSIONS:-}" ]]; then
   BUILD_ARGS+=(--build-arg "KOVA_EXTENSIONS=${KOVA_EXTENSIONS}")

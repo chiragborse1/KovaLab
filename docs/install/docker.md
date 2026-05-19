@@ -126,7 +126,7 @@ The setup script accepts these optional environment variables:
 | Variable                               | Purpose                                                         |
 | -------------------------------------- | --------------------------------------------------------------- |
 | `KOVA_IMAGE`                           | Use a remote image instead of building locally                  |
-| `KOVA_DOCKER_APT_PACKAGES`             | Install extra apt packages during build (space-separated)       |
+| `KOVA_IMAGE_APT_PACKAGES`              | Install extra apt packages during build (space-separated)       |
 | `KOVA_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)   |
 | `KOVA_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`) |
 | `KOVA_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                   |
@@ -375,7 +375,7 @@ See [KovaDock](/install/kovadock) for the full helper guide.
     full-featured container:
 
     1. **Persist `/home/node`**: `export KOVA_HOME_VOLUME="kova_home"`
-    2. **Bake system deps**: `export KOVA_DOCKER_APT_PACKAGES="git curl jq"`
+    2. **Bake system deps**: `export KOVA_IMAGE_APT_PACKAGES="git curl jq"`
     3. **Install Playwright browsers**:
        ```bash
        docker compose run --rm kova-cli \
