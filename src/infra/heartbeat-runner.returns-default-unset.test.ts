@@ -1139,6 +1139,30 @@ describe("runHeartbeatOnce", () => {
         replies: [{ text: "Reasoning:\n_Because it helps_" }, { text: "HEARTBEAT_OK" }],
         expectedTexts: ["Reasoning:\n_Because it helps_"],
       },
+      {
+        name: "thinking + final payload",
+        caseDir: "hb-thinking",
+        replies: [{ text: "Thinking\n\n_Because it helps_" }, { text: "Final alert" }],
+        expectedTexts: ["Thinking\n\n_Because it helps_", "Final alert"],
+      },
+      {
+        name: "visible final that starts with thinking prose",
+        caseDir: "hb-thinking-visible-final",
+        replies: [{ text: "Thinking... all clear" }],
+        expectedTexts: ["Thinking... all clear"],
+      },
+      {
+        name: "visible final that is exactly thinking label",
+        caseDir: "hb-thinking-exact-final",
+        replies: [{ text: "Thinking..." }],
+        expectedTexts: ["Thinking..."],
+      },
+      {
+        name: "visible final that starts with thinking status line",
+        caseDir: "hb-thinking-status-final",
+        replies: [{ text: "Thinking...\nI'll check that now" }],
+        expectedTexts: ["Thinking...\nI'll check that now"],
+      },
     ]),
   )(
     "handles reasoning payload delivery variants: $name",

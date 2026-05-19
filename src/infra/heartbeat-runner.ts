@@ -438,7 +438,7 @@ function resolveHeartbeatReasoningPayloads(
   const payloads = Array.isArray(replyResult) ? replyResult : replyResult ? [replyResult] : [];
   return payloads.filter((payload) => {
     const text = typeof payload.text === "string" ? payload.text : "";
-    return text.trimStart().startsWith("Reasoning:");
+    return /^(?:Reasoning:|Thinking\.{0,3}(?=\s*_))/u.test(text.trimStart());
   });
 }
 

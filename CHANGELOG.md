@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Channels: use the newer `Thinking` reasoning presentation while preserving legacy `Reasoning:` detection, so visible answers that merely start with “Thinking...” stay in the answer lane. Thanks @Patrick-Erichsen
 - Installer/Windows: keep the git-install `kova.cmd` wrapper after writing it, instead of deleting the command shim before PATH setup can use it. Thanks @chiragborse1
 - Codex app-server: include writable Docker bind host roots in the native turn sandbox policy so Codex-side shell/file actions follow Kova sandbox write access. Thanks @joshavant
 - Agents: honor explicit `models.providers.<id>.timeoutSeconds` values above the default idle watchdog for cloud and self-hosted providers, so long first-token waits no longer fall back at ~120s when the provider timeout is higher. Thanks @yujiawei

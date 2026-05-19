@@ -92,6 +92,19 @@ describe("chunkDiscordText", () => {
     expect(chunks[1].trimStart().startsWith("_")).toBe(true);
   });
 
+  it("keeps thinking-prefixed reasoning italics balanced across chunks", () => {
+    const body = Array.from({ length: 25 }, (_, i) => `${i + 1}. line`).join("\n");
+    const text = `Thinking\n\n_${body}_`;
+
+    const chunks = chunkDiscordText(text, { maxLines: 10, maxChars: 2000 });
+    expect(chunks.length).toBeGreaterThan(1);
+
+    for (const chunk of chunks) {
+      const underscoreCount = (chunk.match(/_/g) || []).length;
+      expect(underscoreCount % 2).toBe(0);
+    }
+  });
+
   it("keeps reasoning italics balanced when chunks split by char limit", () => {
     const longLine = "This is a very long reasoning line that forces char splits.";
     const body = Array.from({ length: 5 }, () => longLine).join("\n");

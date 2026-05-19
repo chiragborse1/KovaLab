@@ -6,7 +6,8 @@ import {
   stripReasoningTagsFromText,
 } from "getkova/plugin-sdk/text-runtime";
 
-const REASONING_MESSAGE_PREFIX = "Reasoning:\n";
+const REASONING_MESSAGE_RE = /^Thinking\.{0,3}\s*_/u;
+const LEGACY_REASONING_MESSAGE_PREFIX = "Reasoning:\n";
 const REASONING_TAG_PREFIXES = [
   "<think",
   "<thinking",
@@ -71,9 +72,12 @@ export function splitTelegramReasoningText(text?: string): TelegramReasoningSpli
   if (isPartialReasoningTagPrefix(trimmed)) {
     return {};
   }
+  if (REASONING_MESSAGE_RE.test(trimmed)) {
+    return { reasoningText: trimmed };
+  }
   if (
-    trimmed.startsWith(REASONING_MESSAGE_PREFIX) &&
-    trimmed.length > REASONING_MESSAGE_PREFIX.length
+    trimmed.startsWith(LEGACY_REASONING_MESSAGE_PREFIX) &&
+    trimmed.length > LEGACY_REASONING_MESSAGE_PREFIX.length
   ) {
     return { reasoningText: trimmed };
   }

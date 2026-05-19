@@ -37,7 +37,7 @@ type SendPayloadAdapter = Pick<
   "sendMedia" | "sendText" | "chunker" | "textChunkLimit"
 >;
 
-const REASONING_PREFIX = "reasoning:";
+const REASONING_PREFIX_RE = /^(?:reasoning:|thinking\.{0,3}(?=\s*(?:>\s*)?_))/u;
 
 function trimLeadingMarkdownQuoteMarkers(text: string): string {
   let candidate = text.trimStart();
@@ -56,12 +56,11 @@ export function isReasoningReplyPayload(payload: ReasoningReplyPayload): boolean
     return false;
   }
   const normalized = normalizeLowercaseStringOrEmpty(text.trimStart());
-  if (normalized.startsWith(REASONING_PREFIX)) {
+  if (REASONING_PREFIX_RE.test(normalized)) {
     return true;
   }
-  return normalizeLowercaseStringOrEmpty(trimLeadingMarkdownQuoteMarkers(text)).startsWith(
-    REASONING_PREFIX,
-  );
+  const unquoted = normalizeLowercaseStringOrEmpty(trimLeadingMarkdownQuoteMarkers(text));
+  return REASONING_PREFIX_RE.test(unquoted);
 }
 
 /** Extract the supported outbound reply fields from loose tool or agent payload objects. */
