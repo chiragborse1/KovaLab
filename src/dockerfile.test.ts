@@ -7,6 +7,8 @@ import { BUNDLED_PLUGIN_ROOT_DIR } from "../test/helpers/bundled-plugin-paths.js
 const repoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const dockerfilePath = join(repoRoot, "Dockerfile");
 const packageJsonPath = join(repoRoot, "package.json");
+const dockerAllScriptPath = join(repoRoot, "scripts/test-docker-all.mjs");
+const liveCodexHarnessScriptPath = join(repoRoot, "scripts/test-live-codex-harness-docker.sh");
 
 function collapseDockerContinuations(dockerfile: string): string {
   return dockerfile.replace(/\\\r?\n[ \t]*/g, " ");
@@ -86,6 +88,16 @@ describe("Dockerfile", () => {
     expect(Object.keys(packageJson.pnpm?.patchedDependencies ?? {})).not.toHaveLength(0);
     expect(dockerfile).toContain(
       "COPY --from=runtime-assets --chown=node:node /app/patches ./patches",
+    );
+  });
+
+  it("keeps the Codex plugin in Docker CI images that exercise Codex", async () => {
+    const dockerAllScript = await readFile(dockerAllScriptPath, "utf8");
+    const liveCodexHarnessScript = await readFile(liveCodexHarnessScriptPath, "utf8");
+
+    expect(dockerAllScript).toContain('appendExtension(baseEnv, "codex");');
+    expect(liveCodexHarnessScript).toContain(
+      "kova_live_codex_harness_append_build_extension codex",
     );
   });
 
