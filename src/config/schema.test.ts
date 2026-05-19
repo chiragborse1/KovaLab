@@ -396,6 +396,13 @@ describe("config schema", () => {
     expect(lookup?.schema).toHaveProperty("description");
   });
 
+  it("lists Matrix in messages.queue.byChannel schema lookup", () => {
+    const lookup = lookupConfigSchema(baseSchema, "messages.queue.byChannel");
+    expect(lookup?.path).toBe("messages.queue.byChannel");
+    expect(lookup?.children.map((child) => child.key)).toEqual(expect.arrayContaining(["matrix"]));
+    expect(lookup?.schema).toMatchObject({ additionalProperties: false });
+  });
+
   it("matches wildcard ui hints for concrete lookup paths", () => {
     const lookup = lookupConfigSchema(baseSchema, "agents.list.0.identity.avatar");
     expect(lookup?.path).toBe("agents.list.0.identity.avatar");

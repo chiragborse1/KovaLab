@@ -19022,6 +19022,38 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       },
                     ],
                   },
+                  googlechat: {
+                    anyOf: [
+                      {
+                        type: "string",
+                        const: "steer",
+                      },
+                      {
+                        type: "string",
+                        const: "followup",
+                      },
+                      {
+                        type: "string",
+                        const: "collect",
+                      },
+                      {
+                        type: "string",
+                        const: "steer-backlog",
+                      },
+                      {
+                        type: "string",
+                        const: "steer+backlog",
+                      },
+                      {
+                        type: "string",
+                        const: "queue",
+                      },
+                      {
+                        type: "string",
+                        const: "interrupt",
+                      },
+                    ],
+                  },
                   slack: {
                     anyOf: [
                       {
@@ -19183,6 +19215,38 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     ],
                   },
                   webchat: {
+                    anyOf: [
+                      {
+                        type: "string",
+                        const: "steer",
+                      },
+                      {
+                        type: "string",
+                        const: "followup",
+                      },
+                      {
+                        type: "string",
+                        const: "collect",
+                      },
+                      {
+                        type: "string",
+                        const: "steer-backlog",
+                      },
+                      {
+                        type: "string",
+                        const: "steer+backlog",
+                      },
+                      {
+                        type: "string",
+                        const: "queue",
+                      },
+                      {
+                        type: "string",
+                        const: "interrupt",
+                      },
+                    ],
+                  },
+                  matrix: {
                     anyOf: [
                       {
                         type: "string",
