@@ -1,5 +1,7 @@
 import type { SkillStatusReport } from "../agents/skills-status.js";
 import type {
+  CommandEntry,
+  CommandsListParams,
   SessionsListParams,
   SessionsPatchParams,
   SessionsPatchResult,
@@ -109,6 +111,7 @@ export type TuiBackend = {
   resetSession: (key: string, reason?: "new" | "reset") => Promise<unknown>;
   getGatewayStatus: () => Promise<unknown>;
   listModels: () => Promise<TuiModelChoice[]>;
+  listCommands?: (opts?: CommandsListParams) => Promise<CommandEntry[]>;
   listTools?: (opts: { agentId: string; includePlugins?: boolean }) => Promise<ToolsCatalogResult>;
   listSkills?: (opts: { agentId: string }) => Promise<SkillStatusReport>;
 };

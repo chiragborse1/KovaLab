@@ -14,6 +14,7 @@ import {
 } from "@mariozechner/pi-tui";
 import { resolveAgentIdByWorkspacePath, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getRuntimeConfig, type KovaConfig } from "../config/config.js";
+import type { CommandEntry } from "../gateway/protocol/index.js";
 import { setConsoleSubsystemFilter } from "../logging/console.js";
 import { loggingState } from "../logging/state.js";
 import {
@@ -337,6 +338,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   const autoMessage = opts.message?.trim();
   let autoMessageSent = false;
   let sessionInfo: SessionInfo = {};
+  let dynamicSlashCommands: CommandEntry[] = [];
+  let dynamicSlashCommandsKey: string | null = null;
+  let dynamicSlashCommandsInFlightKey: string | null = null;
+  let dynamicSlashCommandsRequestId = 0;
   let lastCtrlCAt = 0;
   let exitRequested = false;
   let exitResult: TuiResult = { exitReason: "exit" };
@@ -555,7 +560,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   root.addChild(footer);
   root.addChild(editor);
 
-  const updateAutocompleteProvider = () => {
+  const resolveDynamicSlashCommandsKey = () => currentAgentId;
+
+  const applyAutocompleteProvider = () => {
+    const dynamicKey = resolveDynamicSlashCommandsKey();
     editor.setAutocompleteProvider(
       new CombinedAutocompleteProvider(
         getSlashCommands({
@@ -563,10 +571,54 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
           local: isLocalMode,
           provider: sessionInfo.modelProvider,
           model: sessionInfo.model,
+          dynamicCommands: dynamicSlashCommandsKey === dynamicKey ? dynamicSlashCommands : [],
         }),
         process.cwd(),
       ),
     );
+  };
+
+  const refreshDynamicSlashCommands = () => {
+    const key = resolveDynamicSlashCommandsKey();
+    if (
+      !isConnected ||
+      !client.listCommands ||
+      dynamicSlashCommandsKey === key ||
+      dynamicSlashCommandsInFlightKey === key
+    ) {
+      return;
+    }
+    dynamicSlashCommandsInFlightKey = key;
+    const requestId = ++dynamicSlashCommandsRequestId;
+    const agentId = currentAgentId;
+    void client
+      .listCommands({
+        agentId,
+        scope: "text",
+        includeArgs: false,
+      })
+      .then((commands) => {
+        if (
+          requestId !== dynamicSlashCommandsRequestId ||
+          key !== resolveDynamicSlashCommandsKey()
+        ) {
+          return;
+        }
+        dynamicSlashCommands = commands;
+        dynamicSlashCommandsKey = key;
+        applyAutocompleteProvider();
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (dynamicSlashCommandsInFlightKey === key) {
+          dynamicSlashCommandsInFlightKey = null;
+        }
+      });
+  };
+
+  const updateAutocompleteProvider = () => {
+    applyAutocompleteProvider();
+    refreshDynamicSlashCommands();
   };
 
   tui.addChild(root);
@@ -1152,6 +1204,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     void (async () => {
       await refreshAgents();
       updateHeader();
+      updateAutocompleteProvider();
       await loadHistory();
       setConnectionStatus(
         isLocalMode ? "local ready" : reconnected ? "gateway reconnected" : "gateway connected",
@@ -1171,6 +1224,11 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     isConnected = false;
     wasDisconnected = true;
     historyLoaded = false;
+    dynamicSlashCommands = [];
+    dynamicSlashCommandsKey = null;
+    dynamicSlashCommandsInFlightKey = null;
+    dynamicSlashCommandsRequestId += 1;
+    updateAutocompleteProvider();
     const disconnectState = isLocalMode
       ? {
           connectionStatus: `local runtime stopped${reason ? `: ${reason}` : ""}`,

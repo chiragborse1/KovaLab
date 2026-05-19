@@ -16,6 +16,9 @@ import {
   GATEWAY_CLIENT_NAMES,
 } from "../gateway/protocol/client-info.js";
 import {
+  type CommandEntry,
+  type CommandsListParams,
+  type CommandsListResult,
   type HelloOk,
   PROTOCOL_VERSION,
   type SessionsListParams,
@@ -245,6 +248,11 @@ export class GatewayChatClient implements TuiBackend {
   async listModels(): Promise<GatewayModelChoice[]> {
     const res = await this.client.request("models.list");
     return Array.isArray(res?.models) ? res.models : [];
+  }
+
+  async listCommands(opts?: CommandsListParams): Promise<CommandEntry[]> {
+    const res = await this.client.request<CommandsListResult>("commands.list", opts ?? {});
+    return Array.isArray(res?.commands) ? res.commands : [];
   }
 
   async listTools(opts: {

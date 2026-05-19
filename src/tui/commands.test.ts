@@ -38,6 +38,25 @@ describe("getSlashCommands", () => {
     expect(gatewayStatus?.description).toBe("Show gateway status summary");
     expect(crestodian?.description).toBe("Return to Crestodian");
   });
+
+  it("merges dynamic gateway commands", () => {
+    const commands = getSlashCommands({
+      dynamicCommands: [
+        {
+          name: "dreaming",
+          textAliases: ["/dreaming"],
+          description: "Enable or disable memory dreaming.",
+          source: "plugin",
+          scope: "both",
+          acceptsArgs: true,
+        },
+      ],
+    });
+
+    expect(commands.find((command) => command.name === "dreaming")?.description).toBe(
+      "Enable or disable memory dreaming.",
+    );
+  });
 });
 
 describe("helpText", () => {
