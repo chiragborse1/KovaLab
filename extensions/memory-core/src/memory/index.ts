@@ -6,6 +6,7 @@ export type {
 } from "getkova/plugin-sdk/memory-core-host-engine-storage";
 export {
   closeAllMemorySearchManagers,
+  closeMemorySearchManager,
   getMemorySearchManager,
   type MemorySearchManagerPurpose,
   type MemorySearchManagerResult,

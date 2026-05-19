@@ -17,6 +17,7 @@ const hoisted = vi.hoisted(() => {
     },
   };
   return {
+    closeActiveMemorySearchManager: vi.fn(async () => {}),
     sessionStore,
     updateSessionStore: vi.fn(
       async (_storePath: string, updater: (store: Record<string, unknown>) => void) => {
@@ -25,6 +26,10 @@ const hoisted = vi.hoisted(() => {
     ),
   };
 });
+
+vi.mock("getkova/plugin-sdk/memory-host-search", () => ({
+  closeActiveMemorySearchManager: hoisted.closeActiveMemorySearchManager,
+}));
 
 vi.mock("getkova/plugin-sdk/config-runtime", async () => {
   const actual = await vi.importActual<typeof import("getkova/plugin-sdk/config-runtime")>(
@@ -1223,6 +1228,46 @@ describe("active-memory plugin", () => {
       .mocked(api.logger.info)
       .mock.calls.map((call: unknown[]) => String(call[0]));
     expect(infoLines.some((line: string) => line.includes(" cached "))).toBe(false);
+  });
+
+  it("releases memory search managers after active-memory timeouts", async () => {
+    __testing.setMinimumTimeoutMsForTests(1);
+    api.pluginConfig = {
+      agents: ["main"],
+      timeoutMs: 1,
+      logging: true,
+    };
+    plugin.register(api as unknown as KovaPluginApi);
+    runEmbeddedPiAgent.mockImplementationOnce(async (params: { abortSignal?: AbortSignal }) => {
+      return await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          params.abortSignal?.removeEventListener("abort", abortHandler);
+          resolve({ payloads: [] });
+        }, 30_000);
+        const abortHandler = () => {
+          clearTimeout(timer);
+          reject(new Error("aborted"));
+        };
+        params.abortSignal?.addEventListener("abort", abortHandler, { once: true });
+      });
+    });
+
+    await hooks.before_prompt_build(
+      { prompt: "what wings should i order? cleanup timeout", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:cleanup-timeout",
+        messageProvider: "webchat",
+      },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(hoisted.closeActiveMemorySearchManager).toHaveBeenCalledTimes(1);
+    expect(hoisted.closeActiveMemorySearchManager).toHaveBeenCalledWith({
+      cfg: configFile,
+      agentId: "main",
+    });
   });
 
   it("does not share cached recall results across session-id-only contexts", async () => {

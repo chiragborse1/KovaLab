@@ -106,6 +106,7 @@ export type MemoryPluginRuntime = {
     cfg: KovaConfig;
     agentId: string;
   }): MemoryRuntimeBackendConfig;
+  closeMemorySearchManager?(params: { cfg: KovaConfig; agentId: string }): Promise<void>;
   closeAllMemorySearchManagers?(): Promise<void>;
 };
 

@@ -27,3 +27,11 @@ export async function closeActiveMemorySearchManagers(cfg?: KovaConfig): Promise
   const runtime = await loadMemoryHostSearchRuntime();
   await runtime.closeActiveMemorySearchManagers(cfg);
 }
+
+export async function closeActiveMemorySearchManager(params: {
+  cfg: KovaConfig;
+  agentId: string;
+}): Promise<void> {
+  const runtime = await loadMemoryHostSearchRuntime();
+  await runtime.closeActiveMemorySearchManager(params);
+}

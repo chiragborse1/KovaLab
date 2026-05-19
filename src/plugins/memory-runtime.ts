@@ -51,3 +51,11 @@ export async function closeActiveMemorySearchManagers(cfg?: KovaConfig): Promise
   const runtime = getMemoryRuntime();
   await runtime?.closeAllMemorySearchManagers?.();
 }
+
+export async function closeActiveMemorySearchManager(params: {
+  cfg: KovaConfig;
+  agentId: string;
+}): Promise<void> {
+  const runtime = getMemoryRuntime();
+  await runtime?.closeMemorySearchManager?.(params);
+}

@@ -16,6 +16,7 @@ import {
   updateSessionStore,
   type KovaConfig,
 } from "getkova/plugin-sdk/config-runtime";
+import { closeActiveMemorySearchManager } from "getkova/plugin-sdk/memory-host-search";
 import { definePluginEntry, type KovaPluginApi } from "getkova/plugin-sdk/plugin-entry";
 import { resolvePreferredKovaTmpDir } from "getkova/plugin-sdk/temp-path";
 
@@ -685,6 +686,39 @@ function applyActiveMemoryRuntimeConfigSnapshot(
       },
     },
   };
+}
+
+function resolveActiveMemoryCleanupConfig(api: KovaPluginApi): KovaConfig | undefined {
+  try {
+    return (
+      (api.runtime.config?.current?.() as KovaConfig | undefined) ??
+      (api.config as KovaConfig | undefined)
+    );
+  } catch {
+    return api.config as KovaConfig | undefined;
+  }
+}
+
+function scheduleMemorySearchCleanupAfterTimeout(
+  api: KovaPluginApi,
+  logPrefix: string,
+  agentId: string,
+): void {
+  const cfg = resolveActiveMemoryCleanupConfig(api);
+  setTimeout(() => {
+    void closeActiveMemorySearchManager({ cfg: cfg ?? api.config, agentId })
+      .then(() => {
+        api.logger.debug?.(`${logPrefix} released memory search managers after timeout`);
+      })
+      .catch((error: unknown) => {
+        const message = toSingleLineLogValue(
+          error instanceof Error ? error.message : String(error),
+        );
+        api.logger.warn?.(
+          `${logPrefix} failed to release memory search managers after timeout: ${message}`,
+        );
+      });
+  }, 0);
 }
 
 function resolveThinkingLevel(thinking: unknown): ActiveMemoryThinkingLevel {
@@ -1810,6 +1844,7 @@ async function maybeResolveActiveRecall(params: {
     const raceResult = await Promise.race([subagentPromise, timeoutPromise]);
 
     if (raceResult === TIMEOUT_SENTINEL) {
+      scheduleMemorySearchCleanupAfterTimeout(params.api, logPrefix, params.agentId);
       const result: ActiveRecallResult = {
         status: "timeout",
         elapsedMs: Date.now() - startedAt,
@@ -1872,6 +1907,7 @@ async function maybeResolveActiveRecall(params: {
     return result;
   } catch (error) {
     if (controller.signal.aborted) {
+      scheduleMemorySearchCleanupAfterTimeout(params.api, logPrefix, params.agentId);
       const result: ActiveRecallResult = {
         status: "timeout",
         elapsedMs: Date.now() - startedAt,
