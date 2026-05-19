@@ -33,8 +33,11 @@ falls back to npm automatically.
   <Card title="Provider plugin" icon="cpu" href="/plugins/sdk-provider-plugins">
     Add a model provider (LLM, proxy, or custom endpoint)
   </Card>
-  <Card title="Tool / hook plugin" icon="wrench" href="/plugins/hooks">
-    Register agent tools, event hooks, or services — continue below
+  <Card title="Tool plugin" icon="wrench" href="/plugins/tool-plugins">
+    Add typed agent tools with `defineToolPlugin`
+  </Card>
+  <Card title="Hook plugin" icon="workflow" href="/plugins/hooks">
+    Register event hooks or services — continue below
   </Card>
 </CardGroup>
 

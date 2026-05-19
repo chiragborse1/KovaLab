@@ -177,7 +177,11 @@ export type {
 export type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
 export type { KovaConfig };
 
-export { buildPluginConfigSchema, emptyPluginConfigSchema } from "../plugins/config-schema.js";
+export {
+  buildJsonPluginConfigSchema,
+  buildPluginConfigSchema,
+  emptyPluginConfigSchema,
+} from "../plugins/config-schema.js";
 
 /** Options for a plugin entry that registers providers, tools, commands, or services. */
 type DefinePluginEntryOptions = {

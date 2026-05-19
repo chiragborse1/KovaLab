@@ -38,6 +38,10 @@ kova plugins inspect --all
 kova plugins info <id>
 kova plugins enable <id>
 kova plugins disable <id>
+kova plugins init <id>
+kova plugins build --entry ./dist/index.js
+kova plugins build --entry ./dist/index.js --check
+kova plugins validate --entry ./dist/index.js
 kova plugins registry
 kova plugins registry --refresh
 kova plugins uninstall <id>
@@ -55,6 +59,22 @@ Native Kova plugins must ship `kova.plugin.json` with an inline JSON Schema (`co
 
 `plugins list` shows `Format: kova` or `Format: bundle`. Verbose list/info output also shows the bundle subtype (`codex`, `claude`, or `cursor`) plus detected bundle capabilities.
 </Note>
+
+### Author Tool Plugins
+
+For simple agent-tool packages, use the authoring commands:
+
+```bash
+kova plugins init stock-quotes --name "Stock Quotes"
+kova plugins build --root ./stock-quotes --entry ./dist/index.js
+kova plugins build --root ./stock-quotes --entry ./dist/index.js --check
+kova plugins validate --root ./stock-quotes --entry ./dist/index.js
+```
+
+`plugins init` creates a small TypeScript tool plugin. `plugins build`
+generates `kova.plugin.json` and aligns `package.json#kova.extensions`.
+`plugins validate` verifies that generated metadata still matches the plugin
+entry. See [Tool plugins](/plugins/tool-plugins).
 
 ### Install
 
