@@ -270,6 +270,33 @@ function Invoke-NativeCommandCapture {
     }
 }
 
+function Get-KovaCommandPath {
+    $command = Get-Command kova -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($command) {
+        if ($command.Path) {
+            return $command.Path
+        }
+        if ($command.Source) {
+            return $command.Source
+        }
+    }
+    return $null
+}
+
+function Invoke-InteractiveKovaCommand {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$Arguments
+    )
+
+    $commandPath = Get-KovaCommandPath
+    if (-not $commandPath) {
+        throw "kova command not found on PATH."
+    }
+
+    $null = Start-Process -FilePath $commandPath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru
+}
+
 function Install-KovaNpm {
     param([string]$Target = "latest")
 
@@ -482,7 +509,9 @@ function Main {
     
     if (!$NoOnboard -and !$DryRun) {
         Write-Host ""
-        Write-Host "Run 'kova onboard' to complete setup" -Level info
+        Write-Host "Starting setup..." -Level info
+        Write-Host ""
+        Invoke-InteractiveKovaCommand onboard
     }
     
     Write-Host ""
