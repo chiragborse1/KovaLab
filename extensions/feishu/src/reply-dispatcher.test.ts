@@ -664,10 +664,10 @@ describe("createFeishuReplyDispatcher streaming behavior", () => {
     });
 
     await options.onReplyStart?.();
-    // Core agent sends pre-formatted text from formatReasoningMessage
-    result.replyOptions.onReasoningStream?.({ text: "Reasoning:\n_thinking step 1_" });
+    // Core agent sends pre-formatted text from formatReasoningMessage.
+    result.replyOptions.onReasoningStream?.({ text: "Thinking\n\n_thinking step 1_" });
     result.replyOptions.onReasoningStream?.({
-      text: "Reasoning:\n_thinking step 1_\n_step 2_",
+      text: "Thinking\n\n_thinking step 1_\n_step 2_",
     });
     result.replyOptions.onPartialReply?.({ text: "answer part" });
     result.replyOptions.onReasoningEnd?.();
@@ -680,9 +680,10 @@ describe("createFeishuReplyDispatcher streaming behavior", () => {
     );
     const reasoningUpdate = updateCalls.find((c) => c.includes("Thinking"));
     expect(reasoningUpdate).toContain("> 💭 **Thinking**");
-    // formatReasoningPrefix strips "Reasoning:" prefix and italic markers
+    // formatReasoningPrefix strips the visible Thinking prefix and italic markers.
     expect(reasoningUpdate).toContain("> thinking step");
     expect(reasoningUpdate).not.toContain("Reasoning:");
+    expect(reasoningUpdate).not.toContain("> Thinking");
     expect(reasoningUpdate).not.toMatch(/> _.*_/);
 
     const combinedUpdate = updateCalls.find((c) => c.includes("Thinking") && c.includes("---"));
@@ -741,7 +742,7 @@ describe("createFeishuReplyDispatcher streaming behavior", () => {
     });
 
     await options.onReplyStart?.();
-    result.replyOptions.onReasoningStream?.({ text: "Reasoning:\n_deep thought_" });
+    result.replyOptions.onReasoningStream?.({ text: "Thinking\n\n_deep thought_" });
     result.replyOptions.onReasoningEnd?.();
     await options.onIdle?.();
 
@@ -751,6 +752,7 @@ describe("createFeishuReplyDispatcher streaming behavior", () => {
     expect(closeArg).toContain("> 💭 **Thinking**");
     expect(closeArg).toContain("> deep thought");
     expect(closeArg).not.toContain("Reasoning:");
+    expect(closeArg).not.toContain("> Thinking");
     expect(closeArg).not.toContain("---");
   });
 
