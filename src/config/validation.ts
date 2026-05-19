@@ -304,6 +304,10 @@ function collectAllowedValuesFromIssueList(
   return { values: collected, incomplete: false, hasValues };
 }
 
+function formatRawChannelConfigIssueMessage(message: string): string {
+  return `invalid config: ${message}`;
+}
+
 function collectAllowedValuesFromUnknownIssue(issue: unknown): unknown[] {
   const collection = collectAllowedValuesFromIssue(issue);
   if (collection.incomplete || !collection.hasValues) {
@@ -1116,7 +1120,7 @@ function validateConfigObjectWithPluginsBase(
           issues.push({
             path:
               error.path === "<root>" ? `channels.${trimmed}` : `channels.${trimmed}.${error.path}`,
-            message: `invalid config: ${error.message}`,
+            message: formatRawChannelConfigIssueMessage(error.message),
             allowedValues: error.allowedValues,
             allowedValuesHiddenCount: error.allowedValuesHiddenCount,
           });

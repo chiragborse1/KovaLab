@@ -38,3 +38,4 @@
 - Models: show the effective OpenAI/Codex auth profile in `/models` provider headers instead of falling back to the OpenAI env-key label. Thanks @yu-xin-c
 - CLI: render root help from live plugin config when plugin loading affects command descriptors, so plugin-owned commands are visible in `kova --help`. Thanks @joshavant
 - CLI agents: include loopback MCP tool names in CLI prompts and session reuse hashes so CLI runtimes see the tools they are allowed to call. Thanks @TurboTheTurtle
+- Telegram doctor: explain malformed `channels.telegram.groups` shapes with the expected group-id/topic object map while keeping core validation messages plugin-agnostic. Thanks @giodl73

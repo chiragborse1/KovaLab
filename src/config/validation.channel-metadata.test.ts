@@ -36,6 +36,10 @@ function createTelegramSchemaRegistry(): PluginManifestRegistry {
                   enum: ["pairing", "allowlist"],
                   default: "pairing",
                 },
+                groups: {
+                  type: "object",
+                  additionalProperties: true,
+                },
               },
               // validateConfigObjectWithPlugins starts from the core validated
               // config, which can already include bundled runtime defaults for
@@ -162,6 +166,30 @@ describe("validateConfigObjectRawWithPlugins channel metadata", () => {
       expect(result.config.channels?.telegram).toEqual(
         expect.objectContaining({ dmPolicy: "pairing" }),
       );
+    }
+  });
+
+  it("keeps raw channel validation diagnostics plugin-agnostic", () => {
+    setupTelegramSchemaWithDefault();
+
+    const result = validateConfigObjectRawWithPlugins({
+      channels: {
+        telegram: {
+          groups: ["-1001234567890"],
+        },
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues).toContainEqual(
+        expect.objectContaining({
+          path: "channels.telegram.groups",
+          message: expect.stringContaining("invalid config:"),
+        }),
+      );
+      expect(result.issues[0]?.message).not.toContain("Telegram groups");
+      expect(result.issues[0]?.message).not.toContain("kova doctor --fix");
     }
   });
 });
