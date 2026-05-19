@@ -22,7 +22,7 @@ const {
   ),
   ensureSkillsWatcherMock: vi.fn(),
   getSkillsSnapshotVersionMock: vi.fn(() => 0),
-  shouldRefreshSnapshotForVersionMock: vi.fn(() => false),
+  shouldRefreshSnapshotForVersionMock: vi.fn((_cached?: number, _next?: number) => false),
   getRemoteSkillEligibilityMock: vi.fn(() => ({
     platforms: [],
     hasBin: () => false,
@@ -176,5 +176,37 @@ describe("ensureSkillSnapshot", () => {
       ...strippedSnapshot,
       resolvedSkills: snapshot.resolvedSkills,
     });
+  });
+
+  it("reads the skills snapshot version after watcher-side invalidation", async () => {
+    vi.stubEnv("KOVA_TEST_FAST", "0");
+    getSkillsSnapshotVersionMock.mockReturnValue(0);
+    ensureSkillsWatcherMock.mockImplementation(() => {
+      getSkillsSnapshotVersionMock.mockReturnValue(5);
+    });
+    shouldRefreshSnapshotForVersionMock.mockImplementation((cached = 0, next = 0) => cached < next);
+
+    await ensureSkillSnapshot({
+      sessionEntry: {
+        sessionId: "s1",
+        updatedAt: 1,
+        skillsSnapshot: {
+          prompt: "old",
+          skills: [],
+          version: 0,
+        },
+      },
+      sessionKey: "main",
+      isFirstTurnInSession: false,
+      workspaceDir: "/tmp/workspace",
+      cfg: { skills: { load: { extraDirs: ["/tmp/shared-skills"] } } },
+    });
+
+    expect(shouldRefreshSnapshotForVersionMock).toHaveBeenCalledWith(0, 5);
+    expect(buildWorkspaceSkillSnapshotMock).toHaveBeenCalledTimes(1);
+    const [[, snapshotParams]] = buildWorkspaceSkillSnapshotMock.mock.calls as unknown as Array<
+      [string, { snapshotVersion?: number }]
+    >;
+    expect(snapshotParams.snapshotVersion).toBe(5);
   });
 });

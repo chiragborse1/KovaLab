@@ -131,6 +131,7 @@ export function ensureSkillsWatcher(params: { workspaceDir: string; config?: Kov
   if (existing && existing.pathsKey === pathsKey && existing.debounceMs === debounceMs) {
     return;
   }
+  const watchTargetsChanged = existing ? existing.pathsKey !== pathsKey : false;
   if (existing) {
     watchers.delete(workspaceDir);
     if (existing.timer) {
@@ -176,6 +177,13 @@ export function ensureSkillsWatcher(params: { workspaceDir: string; config?: Kov
   });
 
   watchers.set(workspaceDir, state);
+  if (watchTargetsChanged) {
+    bumpSkillsSnapshotVersion({
+      workspaceDir,
+      reason: "watch-targets",
+      changedPath: pathsKey,
+    });
+  }
 }
 
 export async function resetSkillsRefreshForTest(): Promise<void> {

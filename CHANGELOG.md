@@ -42,3 +42,4 @@
 - WhatsApp: clarify inbound group diagnostics so observed but unregistered groups point to `channels.whatsapp.groups` without changing routing or sender authorization. Thanks @neeravmakwana
 - Codex app-server: summarize deferred Kova dynamic tool names in developer instructions so `tool_search` can load lazily advertised tools by exact name. Thanks @pashpashpash
 - Control UI: keep chat delete confirmation popovers clamped inside the viewport instead of letting them open off-screen near edges. Thanks @ThiagoCAltoe
+- Skills: refresh session skill snapshots when configured watch roots change so newly added shared skill directories are visible immediately. Thanks @hclsys
