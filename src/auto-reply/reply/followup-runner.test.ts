@@ -8,6 +8,7 @@ import type { SessionEntry } from "../../config/sessions/types.js";
 import type { FollowupRun, QueueSettings } from "./queue.js";
 
 const runEmbeddedPiAgentMock = vi.fn();
+const runWithModelFallbackMock = vi.fn();
 const compactEmbeddedPiSessionMock = vi.fn();
 const routeReplyMock = vi.fn();
 const isRoutableChannelMock = vi.fn();
@@ -245,10 +246,9 @@ async function persistRunSessionUsageForFollowupTest(
 async function loadFreshFollowupRunnerModuleForTest() {
   vi.resetModules();
   vi.doUnmock("../../config/config.js");
-  vi.doMock(
-    "../../agents/model-fallback.js",
-    async () => await import("../../test-utils/model-fallback.mock.js"),
-  );
+  vi.doMock("../../agents/model-fallback.js", async () => ({
+    runWithModelFallback: (...args: unknown[]) => runWithModelFallbackMock(...args),
+  }));
   vi.doMock("../../agents/session-write-lock.js", () => ({
     acquireSessionWriteLock: vi.fn(async () => ({
       release: async () => {},
@@ -366,6 +366,7 @@ beforeAll(async () => {
 beforeEach(() => {
   clearRuntimeConfigSnapshot?.();
   runEmbeddedPiAgentMock.mockReset();
+  runWithModelFallbackMock.mockReset();
   compactEmbeddedPiSessionMock.mockReset();
   runPreflightCompactionIfNeededMock.mockReset();
   resolveCommandSecretRefsViaGatewayMock.mockReset();
@@ -382,6 +383,21 @@ beforeEach(() => {
   );
   runPreflightCompactionIfNeededMock.mockImplementation(
     async (params: { sessionEntry?: SessionEntry }) => params.sessionEntry,
+  );
+  runWithModelFallbackMock.mockImplementation(
+    async (params: {
+      provider: string;
+      model: string;
+      run: (
+        provider: string,
+        model: string,
+        options?: { allowTransientCooldownProbe?: boolean },
+      ) => Promise<unknown>;
+    }) => ({
+      result: await params.run(params.provider, params.model),
+      provider: params.provider,
+      model: params.model,
+    }),
   );
   resolveCommandSecretRefsViaGatewayMock.mockImplementation(async ({ config }) => ({
     resolvedConfig: config,
@@ -457,6 +473,12 @@ function mockCompactionRun(params: {
 
 function createAsyncReplySpy() {
   return vi.fn(async () => {});
+}
+
+function getRunEmbeddedCall(index: number): Record<string, unknown> {
+  const call = runEmbeddedPiAgentMock.mock.calls[index]?.[0] as Record<string, unknown> | undefined;
+  expect(call).toBeDefined();
+  return call ?? {};
 }
 
 describe("createFollowupRunner runtime config", () => {
@@ -1641,5 +1663,142 @@ describe("createFollowupRunner agentDir forwarding", () => {
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(1);
     const call = runEmbeddedPiAgentMock.mock.calls.at(-1)?.[0] as { agentDir?: string };
     expect(call?.agentDir).toBe(agentDir);
+  });
+});
+
+describe("createFollowupRunner fallback transcript idempotency", () => {
+  it("suppresses queued user message persistence after the first fallback candidate writes it", async () => {
+    runWithModelFallbackMock.mockImplementationOnce(
+      async (params: { run: (provider: string, model: string) => Promise<unknown> }) => {
+        await expect(params.run("anthropic", "claude-opus-4-7")).rejects.toThrow("upstream 500");
+        return {
+          result: await params.run("openai", "gpt-5.4"),
+          provider: "openai",
+          model: "gpt-5.4",
+        };
+      },
+    );
+    runEmbeddedPiAgentMock.mockImplementationOnce(
+      async (args: { onUserMessagePersisted?: (message: { role: "user" }) => void }) => {
+        args.onUserMessagePersisted?.({ role: "user" });
+        throw new Error("upstream 500");
+      },
+    );
+    runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      payloads: [{ text: "ok" }],
+      meta: {},
+    });
+
+    const runner = createFollowupRunner({
+      typing: createMockTypingController(),
+      typingMode: "instant",
+      defaultModel: "anthropic/claude-opus-4-7",
+    });
+
+    await runner(
+      createQueuedRun({
+        run: {
+          provider: "anthropic",
+          model: "claude-opus-4-7",
+          suppressNextUserMessagePersistence: false,
+        },
+      }),
+    );
+
+    expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(2);
+    expect(getRunEmbeddedCall(0).suppressNextUserMessagePersistence).toBe(false);
+    expect(getRunEmbeddedCall(1).suppressNextUserMessagePersistence).toBe(true);
+  });
+
+  it("suppresses assistant error stubs after the first fallback candidate writes one", async () => {
+    runWithModelFallbackMock.mockImplementationOnce(
+      async (params: { run: (provider: string, model: string) => Promise<unknown> }) => {
+        await expect(params.run("anthropic", "claude-opus-4-7")).rejects.toThrow("upstream 500");
+        await expect(params.run("anthropic", "claude-opus-4-6")).rejects.toThrow("upstream 500");
+        return {
+          result: await params.run("openai", "gpt-5.4"),
+          provider: "openai",
+          model: "gpt-5.4",
+        };
+      },
+    );
+    runEmbeddedPiAgentMock.mockImplementationOnce(
+      async (args: {
+        onAssistantErrorMessagePersisted?: (message: {
+          role: "assistant";
+          stopReason: "error";
+        }) => void;
+      }) => {
+        args.onAssistantErrorMessagePersisted?.({
+          role: "assistant",
+          stopReason: "error",
+        });
+        throw new Error("upstream 500");
+      },
+    );
+    runEmbeddedPiAgentMock.mockRejectedValueOnce(new Error("upstream 500"));
+    runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      payloads: [{ text: "ok" }],
+      meta: {},
+    });
+
+    const runner = createFollowupRunner({
+      typing: createMockTypingController(),
+      typingMode: "instant",
+      defaultModel: "anthropic/claude-opus-4-7",
+    });
+
+    await runner(
+      createQueuedRun({
+        run: {
+          provider: "anthropic",
+          model: "claude-opus-4-7",
+        },
+      }),
+    );
+
+    expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(3);
+    expect(getRunEmbeddedCall(0).suppressAssistantErrorPersistence).toBe(false);
+    expect(getRunEmbeddedCall(1).suppressAssistantErrorPersistence).toBe(true);
+    expect(getRunEmbeddedCall(2).suppressAssistantErrorPersistence).toBe(true);
+  });
+
+  it("does not suppress later fallback candidates when nothing was persisted", async () => {
+    runWithModelFallbackMock.mockImplementationOnce(
+      async (params: { run: (provider: string, model: string) => Promise<unknown> }) => {
+        await expect(params.run("anthropic", "claude-opus-4-7")).rejects.toThrow("upstream early");
+        return {
+          result: await params.run("openai", "gpt-5.4"),
+          provider: "openai",
+          model: "gpt-5.4",
+        };
+      },
+    );
+    runEmbeddedPiAgentMock.mockRejectedValueOnce(new Error("upstream early"));
+    runEmbeddedPiAgentMock.mockResolvedValueOnce({
+      payloads: [{ text: "ok" }],
+      meta: {},
+    });
+
+    const runner = createFollowupRunner({
+      typing: createMockTypingController(),
+      typingMode: "instant",
+      defaultModel: "anthropic/claude-opus-4-7",
+    });
+
+    await runner(
+      createQueuedRun({
+        run: {
+          provider: "anthropic",
+          model: "claude-opus-4-7",
+          suppressNextUserMessagePersistence: false,
+        },
+      }),
+    );
+
+    expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(2);
+    expect(getRunEmbeddedCall(0).suppressNextUserMessagePersistence).toBe(false);
+    expect(getRunEmbeddedCall(1).suppressNextUserMessagePersistence).toBe(false);
+    expect(getRunEmbeddedCall(1).suppressAssistantErrorPersistence).toBe(false);
   });
 });

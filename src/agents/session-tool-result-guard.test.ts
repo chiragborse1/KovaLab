@@ -498,6 +498,137 @@ describe("installSessionToolResultGuard", () => {
     });
   });
 
+  it("suppresses only the next persisted user message when requested", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm, {
+      suppressNextUserMessagePersistence: true,
+    });
+
+    sm.appendMessage(
+      asAppendMessage({
+        role: "user",
+        content: "first",
+        timestamp: Date.now(),
+      }),
+    );
+    sm.appendMessage(
+      asAppendMessage({
+        role: "user",
+        content: "second",
+        timestamp: Date.now() + 1,
+      }),
+    );
+
+    const persisted = getPersistedMessages(sm);
+    expect(persisted.map((message) => message.role)).toEqual(["user"]);
+    expect((persisted[0] as { content?: unknown } | undefined)?.content).toBe("second");
+  });
+
+  it("suppresses assistant error stubs when requested", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm, {
+      suppressAssistantErrorPersistence: true,
+    });
+
+    sm.appendMessage(
+      asAppendMessage({
+        role: "assistant",
+        content: [{ type: "text", text: "[assistant turn failed before producing content]" }],
+        stopReason: "error",
+        timestamp: Date.now(),
+      }),
+    );
+    sm.appendMessage(
+      asAppendMessage({
+        role: "user",
+        content: "next user message",
+        timestamp: Date.now() + 1,
+      }),
+    );
+
+    const persisted = getPersistedMessages(sm);
+    expect(persisted.map((message) => message.role)).toEqual(["user"]);
+  });
+
+  it("notifies after assistant error stubs persist", () => {
+    const sm = SessionManager.inMemory();
+    const persistedErrors: Array<Extract<AgentMessage, { role: "assistant" }>> = [];
+    installSessionToolResultGuard(sm, {
+      onAssistantErrorMessagePersisted: (message) => {
+        persistedErrors.push(message);
+      },
+    });
+
+    sm.appendMessage(
+      asAppendMessage({
+        role: "assistant",
+        content: [{ type: "text", text: "[assistant turn failed before producing content]" }],
+        stopReason: "error",
+        timestamp: Date.now(),
+      }),
+    );
+
+    expect(persistedErrors).toHaveLength(1);
+    expect(persistedErrors[0]?.stopReason).toBe("error");
+  });
+
+  it("models fallback retries producing exactly one user and one assistant-error entry", () => {
+    const sm = SessionManager.inMemory();
+    let userPersisted = false;
+    let assistantErrorPersisted = false;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      installSessionToolResultGuard(sm, {
+        suppressNextUserMessagePersistence: userPersisted,
+        suppressAssistantErrorPersistence: assistantErrorPersisted,
+        onUserMessagePersisted: () => {
+          userPersisted = true;
+        },
+        onAssistantErrorMessagePersisted: () => {
+          assistantErrorPersisted = true;
+        },
+      });
+      sm.appendMessage(
+        asAppendMessage({
+          role: "user",
+          content: "queued user message",
+          timestamp: Date.now() + attempt,
+        }),
+      );
+      sm.appendMessage(
+        asAppendMessage({
+          role: "assistant",
+          content: [{ type: "text", text: "[assistant turn failed before producing content]" }],
+          stopReason: "error",
+          timestamp: Date.now() + attempt,
+        }),
+      );
+    }
+
+    const persisted = getPersistedMessages(sm);
+    expect(persisted.map((message) => message.role)).toEqual(["user", "assistant"]);
+  });
+
+  it("still persists successful assistant messages when error suppression is on", () => {
+    const sm = SessionManager.inMemory();
+    installSessionToolResultGuard(sm, {
+      suppressAssistantErrorPersistence: true,
+    });
+
+    sm.appendMessage(
+      asAppendMessage({
+        role: "assistant",
+        content: "ok response",
+        stopReason: "stop",
+        timestamp: Date.now(),
+      }),
+    );
+
+    const persisted = getPersistedMessages(sm);
+    expect(persisted).toHaveLength(1);
+    expect(persisted[0]?.role).toBe("assistant");
+  });
+
   // When an assistant message with toolCalls is aborted, no synthetic toolResult
   // should be created. Creating synthetic results for aborted/incomplete tool calls
   // causes API 400 errors: "unexpected tool_use_id found in tool_result blocks".

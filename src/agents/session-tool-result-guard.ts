@@ -302,6 +302,15 @@ export function installSessionToolResultGuard(
       event: PluginHookBeforeMessageWriteEvent,
     ) => PluginHookBeforeMessageWriteResult | undefined;
     maxToolResultChars?: number;
+    suppressNextUserMessagePersistence?: boolean;
+    suppressTranscriptOnlyAssistantPersistence?: boolean;
+    suppressAssistantErrorPersistence?: boolean;
+    onUserMessagePersisted?: (
+      message: Extract<AgentMessage, { role: "user" }>,
+    ) => void | Promise<void>;
+    onAssistantErrorMessagePersisted?: (
+      message: Extract<AgentMessage, { role: "assistant" }>,
+    ) => void | Promise<void>;
   },
 ): {
   flushPendingToolResults: () => void;
@@ -328,6 +337,7 @@ export function installSessionToolResultGuard(
   const missingToolResultText = opts?.missingToolResultText;
   const beforeWrite = opts?.beforeMessageWriteHook;
   const maxToolResultChars = resolveMaxToolResultChars(opts);
+  let suppressNextUserMessagePersistence = opts?.suppressNextUserMessagePersistence === true;
 
   /**
    * Run the before_message_write hook. Returns the (possibly modified) message,
@@ -450,6 +460,25 @@ export function installSessionToolResultGuard(
     if (!finalMessage) {
       return undefined;
     }
+    const finalRole = (finalMessage as { role?: unknown }).role;
+    if (
+      finalRole === "assistant" &&
+      toolCalls.length === 0 &&
+      opts?.suppressTranscriptOnlyAssistantPersistence === true
+    ) {
+      return undefined;
+    }
+    if (
+      finalRole === "assistant" &&
+      opts?.suppressAssistantErrorPersistence === true &&
+      (finalMessage as { stopReason?: string }).stopReason === "error"
+    ) {
+      return undefined;
+    }
+    if (finalRole === "user" && suppressNextUserMessagePersistence) {
+      suppressNextUserMessagePersistence = false;
+      return undefined;
+    }
     const result = originalAppend(finalMessage as never);
 
     const sessionFile = (
@@ -466,6 +495,17 @@ export function installSessionToolResultGuard(
 
     if (toolCalls.length > 0) {
       pendingState.trackToolCalls(toolCalls);
+    }
+    if (finalRole === "user") {
+      void opts?.onUserMessagePersisted?.(finalMessage as Extract<AgentMessage, { role: "user" }>);
+    }
+    if (
+      finalRole === "assistant" &&
+      (finalMessage as { stopReason?: string }).stopReason === "error"
+    ) {
+      void opts?.onAssistantErrorMessagePersisted?.(
+        finalMessage as Extract<AgentMessage, { role: "assistant" }>,
+      );
     }
 
     return result;

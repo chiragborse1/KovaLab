@@ -262,6 +262,8 @@ export function createFollowupRunner(params: {
       replyOperation.setPhase("running");
       try {
         const outcomePlan = buildAgentRuntimeOutcomePlan();
+        let queuedUserMessagePersistedAcrossFallback = false;
+        let assistantErrorPersistedAcrossFallback = false;
         const fallbackResult = await runWithModelFallback<EmbeddedAgentRunResult>({
           cfg: runtimeConfig,
           provider: run.provider,
@@ -276,6 +278,11 @@ export function createFollowupRunner(params: {
           classifyResult: ({ result, provider, model }) =>
             outcomePlan.classifyRunResult({ result, provider, model }),
           run: async (provider, model, runOptions) => {
+            const suppressQueuedUserPersistenceForCandidate =
+              (run.suppressNextUserMessagePersistence ?? false) ||
+              queuedUserMessagePersistedAcrossFallback;
+            const suppressAssistantErrorPersistenceForCandidate =
+              assistantErrorPersistedAcrossFallback;
             const authProfile = resolveRunAuthProfile(run, provider, { config: runtimeConfig });
             let attemptCompactionCount = 0;
             try {
@@ -335,6 +342,16 @@ export function createFollowupRunner(params: {
                   bootstrapPromptWarningSignaturesSeen[
                     bootstrapPromptWarningSignaturesSeen.length - 1
                   ],
+                suppressNextUserMessagePersistence: suppressQueuedUserPersistenceForCandidate,
+                onUserMessagePersisted: () => {
+                  queuedUserMessagePersistedAcrossFallback = true;
+                },
+                suppressTranscriptOnlyAssistantPersistence:
+                  run.suppressTranscriptOnlyAssistantPersistence,
+                suppressAssistantErrorPersistence: suppressAssistantErrorPersistenceForCandidate,
+                onAssistantErrorMessagePersisted: () => {
+                  assistantErrorPersistedAcrossFallback = true;
+                },
                 onAgentEvent: (evt) => {
                   if (evt.stream.startsWith("codex_app_server.")) {
                     emitAgentEvent({

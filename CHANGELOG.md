@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Agents/replies: suppress duplicate queued user messages and assistant error separators across embedded model fallback retries, keeping follow-up transcripts valid after provider failures. Thanks @chiragborse1
 - Agents/OpenAI streams: yield cooperatively while processing bursty Completions and Responses chunks, keeping aborts, channel liveness timers, and startup heartbeats responsive under noisy model output. Thanks @chiragborse1
 - Gateway pairing: limit QR/setup-code operator handoff tokens to read/write/approval scopes and only auto-approve the exact built-in setup profile. Thanks @ngutman
 - Channels: use the newer `Thinking` reasoning presentation while preserving legacy `Reasoning:` detection, so visible answers that merely start with “Thinking...” stay in the answer lane. Thanks @Patrick-Erichsen

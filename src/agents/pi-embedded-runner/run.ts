@@ -1029,6 +1029,12 @@ export async function runEmbeddedPiAgent(
             bootstrapPromptWarningSignaturesSeen,
             bootstrapPromptWarningSignature:
               bootstrapPromptWarningSignaturesSeen[bootstrapPromptWarningSignaturesSeen.length - 1],
+            suppressNextUserMessagePersistence: params.suppressNextUserMessagePersistence,
+            suppressTranscriptOnlyAssistantPersistence:
+              params.suppressTranscriptOnlyAssistantPersistence,
+            suppressAssistantErrorPersistence: params.suppressAssistantErrorPersistence,
+            onUserMessagePersisted: params.onUserMessagePersisted,
+            onAssistantErrorMessagePersisted: params.onAssistantErrorMessagePersisted,
           });
           const attempt = normalizeEmbeddedRunAttemptResult(rawAttempt);
 

@@ -956,6 +956,8 @@ export async function runAgentTurnWithFallback(params: {
         : undefined;
       const onToolResult = params.opts?.onToolResult;
       const outcomePlan = buildAgentRuntimeOutcomePlan();
+      let queuedUserMessagePersistedAcrossFallback = false;
+      let assistantErrorPersistedAcrossFallback = false;
       const fallbackResult = await runWithModelFallback<EmbeddedAgentRunResult>({
         ...resolveModelFallbackOptions(params.followupRun.run),
         runId,
@@ -975,6 +977,11 @@ export async function runAgentTurnWithFallback(params: {
           return classification;
         },
         run: async (provider, model, runOptions) => {
+          const suppressQueuedUserPersistenceForCandidate =
+            (params.followupRun.run.suppressNextUserMessagePersistence ?? false) ||
+            queuedUserMessagePersistedAcrossFallback;
+          const suppressAssistantErrorPersistenceForCandidate =
+            assistantErrorPersistedAcrossFallback;
           // Notify that model selection is complete (including after fallback).
           // This allows responsePrefix template interpolation with the actual model.
           params.opts?.onModelSelected?.({
@@ -1384,6 +1391,16 @@ export async function runAgentTurnWithFallback(params: {
                   bootstrapPromptWarningSignaturesSeen[
                     bootstrapPromptWarningSignaturesSeen.length - 1
                   ],
+                suppressNextUserMessagePersistence: suppressQueuedUserPersistenceForCandidate,
+                onUserMessagePersisted: () => {
+                  queuedUserMessagePersistedAcrossFallback = true;
+                },
+                suppressTranscriptOnlyAssistantPersistence:
+                  params.followupRun.run.suppressTranscriptOnlyAssistantPersistence,
+                suppressAssistantErrorPersistence: suppressAssistantErrorPersistenceForCandidate,
+                onAssistantErrorMessagePersisted: () => {
+                  assistantErrorPersistedAcrossFallback = true;
+                },
                 onToolResult: onToolResult
                   ? (() => {
                       // Serialize tool result delivery to preserve message ordering.
