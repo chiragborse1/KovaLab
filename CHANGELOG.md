@@ -14,3 +14,4 @@
 - Telegram: recover isolated polling spool lanes by claiming active updates, tombstoning timed-out handlers, and aborting stuck reply work so later updates can drain. Thanks @joshavant
 - Telegram: keep forum-topic routing and buffered media/text lanes scoped per topic so sibling topics can progress independently. Thanks @VACInc
 - CLI: format `kova acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Thanks @hclsys
+- Agents: make trajectory flush and general cleanup timeout limits configurable with `KOVA_TRAJECTORY_FLUSH_TIMEOUT_MS` and `KOVA_AGENT_CLEANUP_TIMEOUT_MS`. Thanks @bunsthedev

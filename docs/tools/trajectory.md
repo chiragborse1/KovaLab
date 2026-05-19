@@ -141,6 +141,20 @@ This disables runtime trajectory capture. `/export-trajectory` can still export
 the transcript branch, but runtime-only files such as compiled context,
 provider artifacts, and prompt metadata may be missing.
 
+## Tune Flush Timeout
+
+Kova flushes runtime trajectory sidecars during agent cleanup. The default
+cleanup timeout is 10,000 ms. On slow disks or large stores, set
+`KOVA_TRAJECTORY_FLUSH_TIMEOUT_MS` before starting Kova:
+
+```bash
+export KOVA_TRAJECTORY_FLUSH_TIMEOUT_MS=30000
+```
+
+This controls when Kova logs a `pi-trajectory-flush` timeout and continues. It
+does not change the trajectory size caps. To tune all agent cleanup steps that
+do not pass an explicit timeout, set `KOVA_AGENT_CLEANUP_TIMEOUT_MS`.
+
 ## Privacy and limits
 
 Trajectory bundles are designed for support and debugging, not public posting.
