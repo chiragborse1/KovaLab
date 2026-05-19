@@ -427,14 +427,17 @@ describe("deliverSubagentAnnouncement completion delivery", () => {
 
   it("keeps direct external delivery for dormant completion requesters", async () => {
     const callGateway = createGatewayMock();
+    const queueEmbeddedPiMessage = vi.fn(() => false);
     await deliverSlackThreadAnnouncement({
       callGateway,
       sessionId: "requester-session-2",
       isActive: false,
       expectsCompletionMessage: true,
       directIdempotencyKey: "announce-1b",
+      queueEmbeddedPiMessage,
     });
 
+    expect(queueEmbeddedPiMessage).not.toHaveBeenCalled();
     expect(callGateway).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "agent",

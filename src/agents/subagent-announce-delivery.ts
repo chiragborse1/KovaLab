@@ -446,7 +446,7 @@ async function maybeQueueSubagentAnnounce(params: {
   const { cfg, entry } = loadRequesterSessionEntry(params.requesterSessionKey);
   const canonicalKey = resolveRequesterStoreKey(cfg, params.requesterSessionKey);
   const { sessionId, isActive } = resolveRequesterSessionActivity(canonicalKey);
-  if (!sessionId) {
+  if (!sessionId || !isActive) {
     return "none";
   }
 
@@ -693,13 +693,15 @@ async function sendSubagentAnnounceDirectly(params: {
         ? extractThreadCompletionFallbackText(params.internalEvents)
         : "";
     const requesterActivity = resolveRequesterSessionActivity(canonicalRequesterSessionKey);
-    if (params.expectsCompletionMessage && requesterActivity.sessionId) {
-      const woke = requesterActivity.sessionId
-        ? subagentAnnounceDeliveryDeps.queueEmbeddedPiMessage(
-            requesterActivity.sessionId,
-            params.triggerMessage,
-          )
-        : false;
+    if (
+      params.expectsCompletionMessage &&
+      requesterActivity.sessionId &&
+      requesterActivity.isActive
+    ) {
+      const woke = subagentAnnounceDeliveryDeps.queueEmbeddedPiMessage(
+        requesterActivity.sessionId,
+        params.triggerMessage,
+      );
       if (woke) {
         return {
           delivered: true,

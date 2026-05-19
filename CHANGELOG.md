@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Agents/subagents: skip wake probes for dormant completion requesters so late subagent completions stay on the requester-agent/direct handoff path. Thanks @galiniliev
 - Agents: preserve reply-target context for bare Telegram and grouped-channel turns so quoted-message replies still reach the model when the visible body is only a mention. Thanks @joshavant
 - Agents: refresh final delivery routing from disk before sending a completed turn, while guarding against cross-session refreshes. Thanks @joshavant
 - Config: allow bundled model provider timeout overlays without requiring users to redeclare provider base URLs and model lists, while keeping custom providers strict. Thanks @giodl73
