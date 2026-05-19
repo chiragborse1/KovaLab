@@ -176,7 +176,7 @@ For a one-tool plugin, the generated manifest looks like this:
     "properties": {}
   },
   "activation": {
-    "onStartup": true
+    "onCapabilities": ["tool"]
   },
   "contracts": {
     "tools": ["stock_quote"]

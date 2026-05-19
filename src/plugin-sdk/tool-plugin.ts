@@ -1,4 +1,4 @@
-import type { AgentToolResult, AgentToolUpdateCallback } from "@earendil-works/pi-agent-core";
+import type { AgentToolResult, AgentToolUpdateCallback } from "@mariozechner/pi-agent-core";
 import { Type, type Static, type TSchema } from "typebox";
 import { jsonResult, textResult } from "../agents/tools/common.js";
 import type { PluginManifestActivation } from "../plugins/manifest.js";
@@ -138,7 +138,7 @@ export function defineToolPlugin<TConfigSchema extends TSchema | undefined = und
   const tools = [
     ...definition.tools(createToolPluginToolFactory<ToolPluginConfig<TConfigSchema>>()),
   ];
-  const activation = definition.activation ?? { onStartup: true };
+  const activation = definition.activation ?? { onCapabilities: ["tool"] };
   const metadata: ToolPluginMetadata = {
     id: definition.id,
     name: definition.name,

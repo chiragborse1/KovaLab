@@ -69,7 +69,7 @@ describe("plugin authoring commands", () => {
         additionalProperties: false,
         properties: {},
       },
-      activation: { onStartup: true },
+      activation: { onCapabilities: ["tool"] },
       contracts: { tools: ["demo_echo"] },
     });
   });
@@ -87,7 +87,7 @@ describe("plugin authoring commands", () => {
         additionalProperties: false,
         properties: {},
       },
-      activation: { onStartup: true },
+      activation: { onCapabilities: ["tool"] },
       contracts: { tools: ["demo_optional_echo"] },
       toolMetadata: {
         demo_optional_echo: { optional: true },

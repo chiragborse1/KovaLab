@@ -443,7 +443,7 @@ npm test
       additionalProperties: false,
       properties: {},
     },
-    activation: { onStartup: true },
+    activation: { onCapabilities: ["tool"] },
     contracts: { tools: ["echo"] },
   });
   defaultRuntime.log(`Created ${path.relative(process.cwd(), rootDir) || "."}`);
