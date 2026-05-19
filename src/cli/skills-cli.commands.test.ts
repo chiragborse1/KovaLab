@@ -69,6 +69,7 @@ const mocks = vi.hoisted(() => {
   });
   return {
     loadConfigMock: vi.fn(() => ({})),
+    resolveAgentIdByWorkspacePathMock: vi.fn(() => undefined),
     resolveDefaultAgentIdMock: vi.fn(() => "main"),
     resolveAgentWorkspaceDirMock: vi.fn(() => "/tmp/workspace"),
     searchSkillsFromKovaHubMock: vi.fn(),
@@ -86,6 +87,7 @@ const mocks = vi.hoisted(() => {
 
 const {
   loadConfigMock,
+  resolveAgentIdByWorkspacePathMock,
   resolveDefaultAgentIdMock,
   resolveAgentWorkspaceDirMock,
   searchSkillsFromKovaHubMock,
@@ -104,14 +106,21 @@ vi.mock("../runtime.js", () => ({
   defaultRuntime: mocks.defaultRuntime,
 }));
 
+vi.mock("../utils.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../utils.js")>()),
+  CONFIG_DIR: "/tmp/kova-config",
+}));
+
 vi.mock("../config/config.js", () => ({
   getRuntimeConfig: () => mocks.loadConfigMock(),
   loadConfig: () => mocks.loadConfigMock(),
 }));
 
 vi.mock("../agents/agent-scope.js", () => ({
+  resolveAgentIdByWorkspacePath: (...args: unknown[]) =>
+    mocks.resolveAgentIdByWorkspacePathMock(...args),
   resolveDefaultAgentId: () => mocks.resolveDefaultAgentIdMock(),
-  resolveAgentWorkspaceDir: () => mocks.resolveAgentWorkspaceDirMock(),
+  resolveAgentWorkspaceDir: (...args: unknown[]) => mocks.resolveAgentWorkspaceDirMock(...args),
 }));
 
 vi.mock("../agents/skills-kovahub.js", () => ({
@@ -142,6 +151,7 @@ describe("skills cli commands", () => {
     runtimeStdout.length = 0;
     runtimeErrors.length = 0;
     loadConfigMock.mockReset();
+    resolveAgentIdByWorkspacePathMock.mockReset();
     resolveDefaultAgentIdMock.mockReset();
     resolveAgentWorkspaceDirMock.mockReset();
     searchSkillsFromKovaHubMock.mockReset();
@@ -151,6 +161,7 @@ describe("skills cli commands", () => {
     buildWorkspaceSkillStatusMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
+    resolveAgentIdByWorkspacePathMock.mockReturnValue(undefined);
     resolveDefaultAgentIdMock.mockReturnValue("main");
     resolveAgentWorkspaceDirMock.mockReturnValue("/tmp/workspace");
     searchSkillsFromKovaHubMock.mockResolvedValue([]);
@@ -211,6 +222,46 @@ describe("skills cli commands", () => {
     ).toBe(true);
   });
 
+  it("installs a skill into the shared global skills directory", async () => {
+    installSkillFromKovaHubMock.mockResolvedValue({
+      ok: true,
+      slug: "calendar",
+      version: "1.2.3",
+      targetDir: "/tmp/kova-config/skills/calendar",
+    });
+
+    await runCommand(["skills", "install", "calendar", "--global"]);
+
+    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
+    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
+    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
+    expect(installSkillFromKovaHubMock).toHaveBeenCalledWith({
+      workspaceDir: "/tmp/kova-config",
+      slug: "calendar",
+      version: undefined,
+      force: false,
+      logger: expect.any(Object),
+    });
+  });
+
+  it("rejects using --global and --agent together for installs", async () => {
+    await expect(
+      runCommand(["skills", "install", "calendar", "--global", "--agent", "main"]),
+    ).rejects.toThrow("__exit__:1");
+
+    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
+    expect(installSkillFromKovaHubMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects using parent --agent with install --global", async () => {
+    await expect(
+      runCommand(["skills", "--agent", "writer", "install", "calendar", "--global"]),
+    ).rejects.toThrow("__exit__:1");
+
+    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
+    expect(installSkillFromKovaHubMock).not.toHaveBeenCalled();
+  });
+
   it("updates all tracked KovaHub skills", async () => {
     readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
     updateSkillsFromKovaHubMock.mockResolvedValue([
@@ -236,6 +287,78 @@ describe("skills cli commands", () => {
       true,
     );
     expect(runtimeErrors).toEqual([]);
+  });
+
+  it("updates tracked KovaHub skills in the shared global skills directory", async () => {
+    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
+    updateSkillsFromKovaHubMock.mockResolvedValue([
+      {
+        ok: true,
+        slug: "calendar",
+        previousVersion: "1.2.2",
+        version: "1.2.3",
+        changed: true,
+        targetDir: "/tmp/kova-config/skills/calendar",
+      },
+    ]);
+
+    await runCommand(["skills", "update", "--all", "--global"]);
+
+    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
+    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
+    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
+    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/kova-config");
+    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
+      workspaceDir: "/tmp/kova-config",
+      slug: undefined,
+      logger: expect.any(Object),
+    });
+  });
+
+  it("updates a single tracked KovaHub skill in the shared global skills directory", async () => {
+    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
+    updateSkillsFromKovaHubMock.mockResolvedValue([
+      {
+        ok: true,
+        slug: "calendar",
+        previousVersion: "1.2.2",
+        version: "1.2.3",
+        changed: true,
+        targetDir: "/tmp/kova-config/skills/calendar",
+      },
+    ]);
+
+    await runCommand(["skills", "update", "calendar", "--global"]);
+
+    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
+    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
+    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
+    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/kova-config");
+    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
+      workspaceDir: "/tmp/kova-config",
+      slug: "calendar",
+      logger: expect.any(Object),
+    });
+  });
+
+  it("rejects using --global and --agent together for updates", async () => {
+    await expect(
+      runCommand(["skills", "update", "--all", "--global", "--agent", "main"]),
+    ).rejects.toThrow("__exit__:1");
+
+    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
+    expect(readTrackedKovaHubSkillSlugsMock).not.toHaveBeenCalled();
+    expect(updateSkillsFromKovaHubMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects using parent --agent with update --global", async () => {
+    await expect(
+      runCommand(["skills", "--agent", "writer", "update", "--all", "--global"]),
+    ).rejects.toThrow("__exit__:1");
+
+    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
+    expect(readTrackedKovaHubSkillSlugsMock).not.toHaveBeenCalled();
+    expect(updateSkillsFromKovaHubMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -271,6 +394,7 @@ describe("skills cli commands", () => {
 
     expect(buildWorkspaceSkillStatusMock).toHaveBeenCalledWith("/tmp/workspace", {
       config: {},
+      agentId: "main",
     });
     expect(
       defaultRuntime.writeStdout.mock.calls.length + defaultRuntime.writeJson.mock.calls.length,

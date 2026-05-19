@@ -119,17 +119,19 @@ Use native `kova skills` commands for discover/install/update, or the
 separate `kovahub` CLI for publish/sync workflows. Full guide:
 [KovaHub](/tools/kovahub).
 
-| Action                             | Command                            |
-| ---------------------------------- | ---------------------------------- |
-| Install a skill into the workspace | `kova skills install <skill-slug>` |
-| Update all installed skills        | `kova skills update --all`         |
-| Sync (scan + publish updates)      | `kovahub sync --all`               |
+| Action                                   | Command                                     |
+| ---------------------------------------- | ------------------------------------------- |
+| Install a skill into the workspace       | `kova skills install <skill-slug>`          |
+| Install a shared managed skill           | `kova skills install <skill-slug> --global` |
+| Update all installed workspace skills    | `kova skills update --all`                  |
+| Update all shared managed KovaHub skills | `kova skills update --all --global`         |
+| Sync (scan + publish updates)            | `kovahub sync --all`                        |
 
 Native `kova skills install` installs into the active workspace
-`skills/` directory. The separate `kovahub` CLI also installs into
-`./skills` under your current working directory (or falls back to the
-configured Kova workspace). Kova picks that up as
-`<workspace>/skills` on the next session.
+`skills/` directory by default. Add `--global` to install or update in the
+shared managed skills directory. The separate `kovahub` CLI also installs into
+`./skills` under your current working directory (or falls back to the configured
+Kova workspace). Kova picks that up as `<workspace>/skills` on the next session.
 
 ## Security
 
