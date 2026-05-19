@@ -8,6 +8,8 @@ import {
   consumeEmbeddedRunModelSwitch,
   getActiveEmbeddedRunSnapshot,
   isEmbeddedPiRunActive,
+  queueEmbeddedPiMessageWithOutcome,
+  queueEmbeddedPiMessageWithOutcomeAsync,
   requestEmbeddedRunModelSwitch,
   setActiveEmbeddedRun,
   updateActiveEmbeddedRunSnapshot,
@@ -17,13 +19,22 @@ import {
 type RunHandle = Parameters<typeof setActiveEmbeddedRun>[1];
 
 function createRunHandle(
-  overrides: { isCompacting?: boolean; abort?: () => void } = {},
+  overrides: {
+    isCompacting?: boolean;
+    abort?: () => void;
+    queueMessage?: RunHandle["queueMessage"];
+    isStreaming?: RunHandle["isStreaming"];
+    supportsTranscriptCommitWait?: boolean;
+    sourceReplyDeliveryMode?: RunHandle["sourceReplyDeliveryMode"];
+  } = {},
 ): RunHandle {
   const abort = overrides.abort ?? (() => {});
   return {
-    queueMessage: async () => {},
-    isStreaming: () => true,
+    queueMessage: overrides.queueMessage ?? (async () => {}),
+    isStreaming: overrides.isStreaming ?? (() => true),
     isCompacting: () => overrides.isCompacting ?? false,
+    supportsTranscriptCommitWait: overrides.supportsTranscriptCommitWait,
+    sourceReplyDeliveryMode: overrides.sourceReplyDeliveryMode,
     abort,
   };
 }
@@ -201,5 +212,97 @@ describe("pi-embedded runner run registry", () => {
     clearActiveEmbeddedRun("session-clear-switch", handle);
 
     expect(consumeEmbeddedRunModelSwitch("session-clear-switch")).toBeUndefined();
+  });
+
+  it("returns structured queue failures for inactive and unsupported waits", () => {
+    expect(queueEmbeddedPiMessageWithOutcome("missing-session", "hello")).toEqual({
+      queued: false,
+      sessionId: "missing-session",
+      reason: "no_active_run",
+      gatewayHealth: "live",
+    });
+    expect(
+      queueEmbeddedPiMessageWithOutcome("missing-session", "hello", {
+        waitForTranscriptCommit: true,
+      }),
+    ).toEqual({
+      queued: false,
+      sessionId: "missing-session",
+      reason: "transcript_commit_wait_unsupported",
+      gatewayHealth: "live",
+    });
+  });
+
+  it("returns structured queue failures for inactive embedded handles", () => {
+    setActiveEmbeddedRun(
+      "session-not-streaming",
+      createRunHandle({
+        isStreaming: () => false,
+      }),
+    );
+    setActiveEmbeddedRun(
+      "session-compacting",
+      createRunHandle({
+        isCompacting: true,
+      }),
+    );
+
+    expect(queueEmbeddedPiMessageWithOutcome("session-not-streaming", "hello")).toEqual({
+      queued: false,
+      sessionId: "session-not-streaming",
+      reason: "not_streaming",
+      gatewayHealth: "live",
+    });
+    expect(queueEmbeddedPiMessageWithOutcome("session-compacting", "hello")).toEqual({
+      queued: false,
+      sessionId: "session-compacting",
+      reason: "compacting",
+      gatewayHealth: "live",
+    });
+  });
+
+  it("passes queue options to supported embedded handles", async () => {
+    const queueMessage = vi.fn(async () => {});
+    const handle = createRunHandle({
+      queueMessage,
+      supportsTranscriptCommitWait: true,
+      sourceReplyDeliveryMode: "message_tool_only",
+    });
+    setActiveEmbeddedRun("session-queue-options", handle);
+
+    const outcome = await queueEmbeddedPiMessageWithOutcomeAsync("session-queue-options", "hello", {
+      steeringMode: "all",
+      waitForTranscriptCommit: true,
+      sourceReplyDeliveryMode: "message_tool_only",
+    });
+
+    expect(outcome).toEqual(
+      expect.objectContaining({
+        queued: true,
+        sessionId: "session-queue-options",
+        target: "embedded_run",
+        gatewayHealth: "live",
+      }),
+    );
+    expect(queueMessage).toHaveBeenCalledWith("hello", {
+      steeringMode: "all",
+      waitForTranscriptCommit: true,
+      sourceReplyDeliveryMode: "message_tool_only",
+    });
+  });
+
+  it("rejects incompatible source reply delivery modes", () => {
+    setActiveEmbeddedRun("session-source-mode", createRunHandle());
+
+    expect(
+      queueEmbeddedPiMessageWithOutcome("session-source-mode", "hello", {
+        sourceReplyDeliveryMode: "message_tool_only",
+      }),
+    ).toEqual({
+      queued: false,
+      sessionId: "session-source-mode",
+      reason: "source_reply_delivery_mode_mismatch",
+      gatewayHealth: "live",
+    });
   });
 });

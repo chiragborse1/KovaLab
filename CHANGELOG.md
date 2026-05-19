@@ -5,6 +5,7 @@
 ### Changes
 
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
+- Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin
 - Gateway startup now overlaps logging, connector warmup, plugin services, and channel startup so the dashboard becomes ready sooner. Thanks @samzong
 - Simplify the Control UI Agents section with quieter copy, plain agent rows, a compact overview, and less decorative workspace/file editing chrome. Thanks @chiragborse1
