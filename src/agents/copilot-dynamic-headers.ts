@@ -1,9 +1,10 @@
 import type { Context } from "@mariozechner/pi-ai";
 
-export const COPILOT_EDITOR_VERSION = "vscode/1.96.2";
-export const COPILOT_USER_AGENT = "GitHubCopilotChat/0.26.7";
+export const COPILOT_EDITOR_VERSION = "vscode/1.107.0";
+export const COPILOT_USER_AGENT = "GitHubCopilotChat/0.35.0";
 export const COPILOT_EDITOR_PLUGIN_VERSION = "copilot-chat/0.35.0";
 export const COPILOT_GITHUB_API_VERSION = "2025-04-01";
+export const COPILOT_INTEGRATION_ID = "vscode-chat";
 
 function inferCopilotInitiator(messages: Context["messages"]): "agent" | "user" {
   const last = messages[messages.length - 1];
@@ -45,6 +46,7 @@ export function buildCopilotIdeHeaders(
   } = {},
 ): Record<string, string> {
   return {
+    "Accept-Encoding": "identity",
     "Editor-Version": COPILOT_EDITOR_VERSION,
     "Editor-Plugin-Version": COPILOT_EDITOR_PLUGIN_VERSION,
     "User-Agent": COPILOT_USER_AGENT,
@@ -58,7 +60,7 @@ export function buildCopilotDynamicHeaders(params: {
 }): Record<string, string> {
   return {
     ...buildCopilotIdeHeaders(),
-    "Copilot-Integration-Id": "vscode-chat",
+    "Copilot-Integration-Id": COPILOT_INTEGRATION_ID,
     "Openai-Organization": "github-copilot",
     "x-initiator": inferCopilotInitiator(params.messages),
     ...(params.hasImages ? { "Copilot-Vision-Request": "true" } : {}),

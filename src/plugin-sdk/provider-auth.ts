@@ -86,6 +86,14 @@ export {
   DEFAULT_OAUTH_REFRESH_MARGIN_MS,
   hasUsableOAuthCredential,
 } from "../agents/auth-profiles/credential-state.js";
+export {
+  COPILOT_EDITOR_PLUGIN_VERSION,
+  COPILOT_EDITOR_VERSION,
+  COPILOT_GITHUB_API_VERSION,
+  COPILOT_INTEGRATION_ID,
+  COPILOT_USER_AGENT,
+  buildCopilotIdeHeaders,
+} from "../agents/copilot-dynamic-headers.js";
 
 export function isProviderApiKeyConfigured(params: {
   provider: string;

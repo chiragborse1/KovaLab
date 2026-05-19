@@ -41,6 +41,7 @@ vi.mock("./openrouter-model-capabilities.js", () => ({
 }));
 
 import type { KovaConfig } from "../../config/config.js";
+import { COPILOT_INTEGRATION_ID, buildCopilotIdeHeaders } from "../copilot-dynamic-headers.js";
 import { getModelProviderRequestTransport } from "../provider-request-config.js";
 import { buildForwardCompatTemplate } from "./model.forward-compat.test-support.js";
 import { buildInlineProviderModels, resolveModel, resolveModelAsync } from "./model.js";
@@ -387,6 +388,40 @@ describe("resolveModel", () => {
     expect(result.error).toBeUndefined();
     expect((result.model as unknown as { headers?: Record<string, string> }).headers).toEqual({
       "X-Static": "tenant-a",
+    });
+  });
+
+  it("adds GitHub Copilot IDE headers to dynamic resolved model headers for Pi-native compaction", () => {
+    const result = resolveModelForTest("github-copilot", "gpt-5.5", "/tmp/agent");
+    const model = result.model as unknown as { headers?: Record<string, string> };
+
+    expect(model.headers).toEqual({
+      ...buildCopilotIdeHeaders(),
+      "Copilot-Integration-Id": COPILOT_INTEGRATION_ID,
+      "Openai-Organization": "github-copilot",
+    });
+  });
+
+  it("adds GitHub Copilot IDE headers to configured resolved model headers for Pi-native compaction", () => {
+    const cfg = {
+      models: {
+        providers: {
+          "github-copilot": {
+            baseUrl: "https://api.githubcopilot.com",
+            api: "openai-responses",
+            models: [makeModel("gpt-5.5")],
+          },
+        },
+      },
+    } as unknown as KovaConfig;
+
+    const result = resolveModelForTest("github-copilot", "gpt-5.5", "/tmp/agent", cfg);
+    const model = result.model as unknown as { headers?: Record<string, string> };
+
+    expect(model.headers).toEqual({
+      ...buildCopilotIdeHeaders(),
+      "Copilot-Integration-Id": COPILOT_INTEGRATION_ID,
+      "Openai-Organization": "github-copilot",
     });
   });
 
