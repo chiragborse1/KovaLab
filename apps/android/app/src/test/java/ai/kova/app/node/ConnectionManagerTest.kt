@@ -8,6 +8,7 @@ import ai.kova.app.protocol.KovaCameraCommand
 import ai.kova.app.protocol.KovaCapability
 import ai.kova.app.protocol.KovaLocationCommand
 import ai.kova.app.protocol.KovaMotionCommand
+import ai.kova.app.protocol.KovaPhotosCommand
 import ai.kova.app.protocol.KovaSmsCommand
 import ai.kova.app.gateway.GatewayEndpoint
 import ai.kova.app.gateway.isLoopbackGatewayHost
@@ -431,6 +432,7 @@ class ConnectionManagerTest {
         voiceWakeMode = VoiceWakeMode.Always,
         motionActivityAvailable = true,
         callLogAvailable = true,
+        photosAvailable = true,
         hasRecordAudioPermission = true,
       ).buildNodeConnectOptions()
 
@@ -438,10 +440,12 @@ class ConnectionManagerTest {
     assertTrue(options.commands.contains(KovaLocationCommand.Get.rawValue))
     assertTrue(options.commands.contains(KovaMotionCommand.Activity.rawValue))
     assertTrue(options.commands.contains(KovaCallLogCommand.Search.rawValue))
+    assertTrue(options.commands.contains(KovaPhotosCommand.Latest.rawValue))
     assertTrue(options.caps.contains(KovaCapability.Camera.rawValue))
     assertTrue(options.caps.contains(KovaCapability.Location.rawValue))
     assertTrue(options.caps.contains(KovaCapability.Motion.rawValue))
     assertTrue(options.caps.contains(KovaCapability.CallLog.rawValue))
+    assertTrue(options.caps.contains(KovaCapability.Photos.rawValue))
     assertTrue(options.caps.contains(KovaCapability.VoiceWake.rawValue))
   }
 
@@ -457,12 +461,13 @@ class ConnectionManagerTest {
   }
 
   @Test
-  fun buildNodeConnectOptions_omitsUnavailableCameraLocationAndCallLogSurfaces() {
+  fun buildNodeConnectOptions_omitsUnavailableCameraLocationCallLogAndPhotosSurfaces() {
     val options =
       newManager(
         cameraEnabled = false,
         locationMode = LocationMode.Off,
         callLogAvailable = false,
+        photosAvailable = false,
       ).buildNodeConnectOptions()
 
     assertFalse(options.commands.contains(KovaCameraCommand.List.rawValue))
@@ -470,9 +475,11 @@ class ConnectionManagerTest {
     assertFalse(options.commands.contains(KovaCameraCommand.Clip.rawValue))
     assertFalse(options.commands.contains(KovaLocationCommand.Get.rawValue))
     assertFalse(options.commands.contains(KovaCallLogCommand.Search.rawValue))
+    assertFalse(options.commands.contains(KovaPhotosCommand.Latest.rawValue))
     assertFalse(options.caps.contains(KovaCapability.Camera.rawValue))
     assertFalse(options.caps.contains(KovaCapability.Location.rawValue))
     assertFalse(options.caps.contains(KovaCapability.CallLog.rawValue))
+    assertFalse(options.caps.contains(KovaCapability.Photos.rawValue))
   }
 
   @Test
@@ -511,6 +518,7 @@ class ConnectionManagerTest {
     readSmsAvailable: Boolean = false,
     smsSearchPossible: Boolean = false,
     callLogAvailable: Boolean = false,
+    photosAvailable: Boolean = false,
     hasRecordAudioPermission: Boolean = false,
   ): ConnectionManager {
     val context = RuntimeEnvironment.getApplication()
@@ -531,6 +539,7 @@ class ConnectionManagerTest {
       readSmsAvailable = { readSmsAvailable },
       smsSearchPossible = { smsSearchPossible },
       callLogAvailable = { callLogAvailable },
+      photosAvailable = { photosAvailable },
       hasRecordAudioPermission = { hasRecordAudioPermission },
       manualTls = { false },
     )

@@ -28,6 +28,7 @@ class DeviceHandler(
   private val appContext: Context,
   private val smsEnabled: Boolean = BuildConfig.KOVA_ENABLE_SMS,
   private val callLogEnabled: Boolean = BuildConfig.KOVA_ENABLE_CALL_LOG,
+  private val photosEnabled: Boolean = BuildConfig.KOVA_ENABLE_PHOTOS,
 ) {
   companion object {
     internal fun hasAnySmsCapability(
@@ -155,7 +156,9 @@ class DeviceHandler(
     val smsReadGranted = hasPermission(Manifest.permission.READ_SMS)
     val notificationAccess = DeviceNotificationListenerService.isAccessEnabled(appContext)
     val photosGranted =
-      if (Build.VERSION.SDK_INT >= 33) {
+      if (!photosEnabled) {
+        false
+      } else if (Build.VERSION.SDK_INT >= 33) {
         hasPermission(Manifest.permission.READ_MEDIA_IMAGES)
       } else {
         hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -243,7 +246,7 @@ class DeviceHandler(
             "photos",
             permissionStateJson(
               granted = photosGranted,
-              promptableWhenDenied = true,
+              promptableWhenDenied = photosEnabled,
             ),
           )
           put(

@@ -153,6 +153,7 @@ class NodeRuntime(
     readSmsAvailable = { BuildConfig.KOVA_ENABLE_SMS && sms.canReadSms() },
     smsSearchPossible = { BuildConfig.KOVA_ENABLE_SMS && sms.hasTelephonyFeature() },
     callLogAvailable = { BuildConfig.KOVA_ENABLE_CALL_LOG },
+    photosAvailable = { BuildConfig.KOVA_ENABLE_PHOTOS },
     hasRecordAudioPermission = { hasRecordAudioPermission() },
     manualTls = { manualTls.value },
   )
@@ -180,6 +181,7 @@ class NodeRuntime(
     smsFeatureEnabled = { BuildConfig.KOVA_ENABLE_SMS },
     smsTelephonyAvailable = { sms.hasTelephonyFeature() },
     callLogAvailable = { BuildConfig.KOVA_ENABLE_CALL_LOG },
+    photosAvailable = { BuildConfig.KOVA_ENABLE_PHOTOS },
     debugBuild = { BuildConfig.DEBUG },
     refreshNodeCanvasCapability = { nodeSession.refreshNodeCanvasCapability() },
     onCanvasA2uiPush = {

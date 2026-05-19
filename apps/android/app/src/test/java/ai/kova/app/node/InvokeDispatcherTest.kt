@@ -6,6 +6,7 @@ import ai.kova.app.protocol.KovaCallLogCommand
 import ai.kova.app.protocol.KovaCameraCommand
 import ai.kova.app.protocol.KovaLocationCommand
 import ai.kova.app.protocol.KovaMotionCommand
+import ai.kova.app.protocol.KovaPhotosCommand
 import ai.kova.app.protocol.KovaSmsCommand
 import android.content.Context
 import android.content.pm.PackageManager
@@ -201,6 +202,16 @@ class InvokeDispatcherTest {
     }
 
   @Test
+  fun handleInvoke_blocksPhotosWhenUnavailable() =
+    runTest {
+      val result =
+        newDispatcher(photosAvailable = false).handleInvoke(KovaPhotosCommand.Latest.rawValue, null)
+
+      assertEquals("PHOTOS_UNAVAILABLE", result.error?.code)
+      assertEquals("PHOTOS_UNAVAILABLE: photos not available on this build", result.error?.message)
+    }
+
+  @Test
   fun handleInvoke_treatsDebugCommandsAsUnknownOutsideDebugBuilds() =
     runTest {
       val result = newDispatcher(debugBuild = false).handleInvoke("debug.logs", null)
@@ -217,6 +228,7 @@ class InvokeDispatcherTest {
     smsFeatureEnabled: Boolean = true,
     smsTelephonyAvailable: Boolean = true,
     callLogAvailable: Boolean = false,
+    photosAvailable: Boolean = true,
     debugBuild: Boolean = false,
     motionActivityAvailable: Boolean = false,
     motionPedometerAvailable: Boolean = false,
@@ -261,6 +273,7 @@ class InvokeDispatcherTest {
       smsFeatureEnabled = { smsFeatureEnabled },
       smsTelephonyAvailable = { smsTelephonyAvailable },
       callLogAvailable = { callLogAvailable },
+      photosAvailable = { photosAvailable },
       debugBuild = { debugBuild },
       refreshNodeCanvasCapability = { false },
       onCanvasA2uiPush = {},

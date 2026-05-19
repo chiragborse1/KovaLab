@@ -227,6 +227,19 @@ class DeviceHandlerTest {
   }
 
   @Test
+  fun handleDevicePermissions_marksPhotosUnpromptableWhenFeatureDisabled() {
+    val handler = DeviceHandler(appContext(), photosEnabled = false)
+
+    val result = handler.handleDevicePermissions(null)
+
+    assertTrue(result.ok)
+    val payload = parsePayload(result.payloadJson)
+    val photos = payload.getValue("permissions").jsonObject.getValue("photos").jsonObject
+    assertEquals("denied", photos.getValue("status").jsonPrimitive.content)
+    assertTrue(!photos.getValue("promptable").jsonPrimitive.boolean)
+  }
+
+  @Test
   fun handleDeviceHealth_returnsExpectedShape() {
     val handler = DeviceHandler(appContext())
 

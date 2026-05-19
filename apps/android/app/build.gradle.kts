@@ -80,11 +80,13 @@ android {
             dimension = "store"
             buildConfigField("boolean", "KOVA_ENABLE_SMS", "false")
             buildConfigField("boolean", "KOVA_ENABLE_CALL_LOG", "false")
+            buildConfigField("boolean", "KOVA_ENABLE_PHOTOS", "false")
         }
         create("thirdParty") {
             dimension = "store"
             buildConfigField("boolean", "KOVA_ENABLE_SMS", "true")
             buildConfigField("boolean", "KOVA_ENABLE_CALL_LOG", "true")
+            buildConfigField("boolean", "KOVA_ENABLE_PHOTOS", "true")
         }
     }
 

@@ -26,7 +26,6 @@ class InvokeCommandRegistryTest {
       KovaCapability.Device.rawValue,
       KovaCapability.Notifications.rawValue,
       KovaCapability.System.rawValue,
-      KovaCapability.Photos.rawValue,
       KovaCapability.Contacts.rawValue,
       KovaCapability.Calendar.rawValue,
     )
@@ -37,6 +36,7 @@ class InvokeCommandRegistryTest {
       KovaCapability.Location.rawValue,
       KovaCapability.Sms.rawValue,
       KovaCapability.CallLog.rawValue,
+      KovaCapability.Photos.rawValue,
       KovaCapability.VoiceWake.rawValue,
       KovaCapability.Motion.rawValue,
     )
@@ -50,7 +50,6 @@ class InvokeCommandRegistryTest {
       KovaNotificationsCommand.List.rawValue,
       KovaNotificationsCommand.Actions.rawValue,
       KovaSystemCommand.Notify.rawValue,
-      KovaPhotosCommand.Latest.rawValue,
       KovaContactsCommand.Search.rawValue,
       KovaContactsCommand.Add.rawValue,
       KovaCalendarCommand.Events.rawValue,
@@ -65,6 +64,7 @@ class InvokeCommandRegistryTest {
       KovaLocationCommand.Get.rawValue,
       KovaMotionCommand.Activity.rawValue,
       KovaMotionCommand.Pedometer.rawValue,
+      KovaPhotosCommand.Latest.rawValue,
       KovaSmsCommand.Send.rawValue,
       KovaSmsCommand.Search.rawValue,
       KovaCallLogCommand.Search.rawValue,
@@ -91,6 +91,7 @@ class InvokeCommandRegistryTest {
           readSmsAvailable = true,
           smsSearchPossible = true,
           callLogAvailable = true,
+          photosAvailable = true,
           voiceWakeEnabled = true,
           motionActivityAvailable = true,
           motionPedometerAvailable = true,
@@ -119,6 +120,7 @@ class InvokeCommandRegistryTest {
           readSmsAvailable = true,
           smsSearchPossible = true,
           callLogAvailable = true,
+          photosAvailable = true,
           motionActivityAvailable = true,
           motionPedometerAvailable = true,
           debugBuild = true,
@@ -139,6 +141,7 @@ class InvokeCommandRegistryTest {
           readSmsAvailable = false,
           smsSearchPossible = false,
           callLogAvailable = false,
+          photosAvailable = false,
           voiceWakeEnabled = false,
           motionActivityAvailable = true,
           motionPedometerAvailable = false,
@@ -207,6 +210,17 @@ class InvokeCommandRegistryTest {
   }
 
   @Test
+  fun advertisedPhotosSurface_respectsFeatureAvailability() {
+    val unavailableFlags = defaultFlags(photosAvailable = false)
+    val availableFlags = defaultFlags(photosAvailable = true)
+
+    assertFalse(InvokeCommandRegistry.advertisedCapabilities(unavailableFlags).contains(KovaCapability.Photos.rawValue))
+    assertFalse(InvokeCommandRegistry.advertisedCommands(unavailableFlags).contains(KovaPhotosCommand.Latest.rawValue))
+    assertTrue(InvokeCommandRegistry.advertisedCapabilities(availableFlags).contains(KovaCapability.Photos.rawValue))
+    assertTrue(InvokeCommandRegistry.advertisedCommands(availableFlags).contains(KovaPhotosCommand.Latest.rawValue))
+  }
+
+  @Test
   fun advertisedCapabilities_includesVoiceWakeWithoutAdvertisingCommands() {
     val capabilities = InvokeCommandRegistry.advertisedCapabilities(defaultFlags(voiceWakeEnabled = true))
     val commands = InvokeCommandRegistry.advertisedCommands(defaultFlags(voiceWakeEnabled = true))
@@ -238,6 +252,7 @@ class InvokeCommandRegistryTest {
     readSmsAvailable: Boolean = false,
     smsSearchPossible: Boolean = false,
     callLogAvailable: Boolean = false,
+    photosAvailable: Boolean = false,
     voiceWakeEnabled: Boolean = false,
     motionActivityAvailable: Boolean = false,
     motionPedometerAvailable: Boolean = false,
@@ -250,6 +265,7 @@ class InvokeCommandRegistryTest {
       readSmsAvailable = readSmsAvailable,
       smsSearchPossible = smsSearchPossible,
       callLogAvailable = callLogAvailable,
+      photosAvailable = photosAvailable,
       voiceWakeEnabled = voiceWakeEnabled,
       motionActivityAvailable = motionActivityAvailable,
       motionPedometerAvailable = motionPedometerAvailable,

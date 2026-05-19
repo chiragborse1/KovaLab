@@ -55,3 +55,4 @@
 - Anthropic: preserve image input for current Claude vision models when stale local model rows mark them as text-only. Thanks @TurboTheTurtle
 - DeepSeek: normalize MCP tool schemas with `anyOf` and `oneOf` unions before requests reach DeepSeek so union-shaped parameters are not rejected. Thanks @TurboTheTurtle
 - Twitch: register refreshing chat tokens with Twurple's chat intent so automatic token refresh keeps chat access available. Thanks @TurboTheTurtle
+- Android: remove photo library access from the Play flavor and hide Photos capability, onboarding, and settings surfaces when that build flag is off. Thanks @obviy
