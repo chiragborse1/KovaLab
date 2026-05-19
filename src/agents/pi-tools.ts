@@ -21,6 +21,7 @@ import { listChannelAgentTools } from "./channel-tools.js";
 import { shouldSuppressManagedWebSearchTool } from "./codex-native-web-search.js";
 import { resolveImageSanitizationLimits } from "./image-sanitization.js";
 import { createKovaTools } from "./kova-tools.js";
+import { filterLocalModelLeanTools } from "./local-model-lean.js";
 import type { ModelAuthMode } from "./model-auth.js";
 import { wrapToolWithAbortSignal } from "./pi-tools.abort.js";
 import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
@@ -140,14 +141,18 @@ function applyModelProviderToolPolicy(
     modelProvider?: string;
     modelApi?: string;
     modelId?: string;
+    agentId?: string;
+    sessionKey?: string;
     agentDir?: string;
     modelCompat?: ModelCompatConfig;
   },
 ): AnyAgentTool[] {
-  if (params?.config?.agents?.defaults?.experimental?.localModelLean === true) {
-    const leanDeny = new Set(["browser", "cron", "message"]);
-    tools = tools.filter((tool) => !leanDeny.has(tool.name));
-  }
+  tools = filterLocalModelLeanTools({
+    tools,
+    config: params?.config,
+    agentId: params?.agentId,
+    sessionKey: params?.sessionKey,
+  });
 
   if (
     shouldSuppressManagedWebSearchTool({
@@ -665,6 +670,8 @@ export function createKovaCodingTools(options?: {
     modelProvider: options?.modelProvider,
     modelApi: options?.modelApi,
     modelId: options?.modelId,
+    agentId: options?.agentId,
+    sessionKey: options?.sessionKey,
     agentDir: options?.agentDir,
     modelCompat: options?.modelCompat,
   });

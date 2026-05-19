@@ -78,6 +78,7 @@ import { resolveKovaReferencePaths } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
 import { resolveHeartbeatPromptForSystemPrompt } from "../../heartbeat-system-prompt.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
+import { filterLocalModelLeanTools, isLocalModelLeanEnabled } from "../../local-model-lean.js";
 import { buildModelAliasLines } from "../../model-alias-lines.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
@@ -916,7 +917,11 @@ export async function runEmbeddedAttempt(
       senderIsOwner: params.senderIsOwner,
       warn: (message) => log.warn(message),
     });
-    const effectiveTools = [...tools, ...filteredBundledTools];
+    const effectiveTools = filterLocalModelLeanTools({
+      tools: [...tools, ...filteredBundledTools],
+      config: params.config,
+      agentId: sessionAgentId,
+    });
     const allowedToolNames = collectAllowedToolNames({
       tools: effectiveTools,
       clientTools,
@@ -1516,6 +1521,10 @@ export async function runEmbeddedAttempt(
         agentId: sessionAgentId,
         messageProvider: params.messageProvider,
         messageChannel: params.messageChannel,
+        localModelLean: isLocalModelLeanEnabled({
+          config: params.config,
+          agentId: sessionAgentId,
+        }),
         toolCount: effectiveTools.length,
         clientToolCount: clientToolDefs.length,
       });

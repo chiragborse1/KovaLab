@@ -6171,6 +6171,21 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   description:
                     "Optional per-agent default for fast mode. Applies when no per-message or session fast-mode override is set.",
                 },
+                experimental: {
+                  type: "object",
+                  properties: {
+                    localModelLean: {
+                      type: "boolean",
+                      title: "Agent Lean Local Model Mode",
+                      description:
+                        "Per-agent override for lean local-model mode. Enable it for one smaller local-model agent without trimming tools from every agent.",
+                    },
+                  },
+                  additionalProperties: false,
+                  title: "Agent Experimental Flags",
+                  description:
+                    "Per-agent experimental flags. Omitted fields inherit agents.defaults.experimental.",
+                },
                 skills: {
                   type: "array",
                   items: {
@@ -26033,6 +26048,16 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Bootstrap Total Max Chars",
       help: "Max total characters across all injected workspace bootstrap files (default: 60000).",
       tags: ["performance"],
+    },
+    "agents.list[].experimental": {
+      label: "Agent Experimental Flags",
+      help: "Per-agent experimental flags. Omitted fields inherit agents.defaults.experimental.",
+      tags: ["security", "advanced"],
+    },
+    "agents.list[].experimental.localModelLean": {
+      label: "Agent Lean Local Model Mode",
+      help: "Per-agent override for lean local-model mode. Enable it for one smaller local-model agent without trimming tools from every agent.",
+      tags: ["security", "advanced"],
     },
     "agents.defaults.experimental": {
       label: "Experimental Agent Flags",

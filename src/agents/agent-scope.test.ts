@@ -119,6 +119,30 @@ describe("resolveAgentConfig", () => {
     });
   });
 
+  it("merges experimental flags from defaults with per-agent overrides", () => {
+    const cfg: KovaConfig = {
+      agents: {
+        defaults: {
+          experimental: {
+            localModelLean: true,
+          },
+        },
+        list: [
+          {
+            id: "main",
+            experimental: {
+              localModelLean: false,
+            },
+          },
+        ],
+      },
+    };
+
+    expect(resolveAgentConfig(cfg, "main")?.experimental).toEqual({
+      localModelLean: false,
+    });
+  });
+
   it("resolves explicit and effective model primary separately", () => {
     const cfgWithStringDefault = {
       agents: {
