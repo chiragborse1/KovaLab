@@ -258,7 +258,7 @@ describe("packNpmSpecToArchive", () => {
     expectPackError(result, [
       "Package not found on npm",
       "@kovaai/whatsapp",
-      "docs.kova.ai/tools/plugin",
+      "docs.neuralstudio.in/tools/plugin",
     ]);
   });
 

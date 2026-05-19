@@ -8,7 +8,10 @@ import { resolveStateDir } from "../config/paths.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { createLowDiskSpaceWarning } from "../infra/disk-space.js";
 import { resolveHomeRelativePath } from "../infra/home-dir.js";
-import { createNpmProjectInstallEnv } from "../infra/npm-install-env.js";
+import {
+  createNpmProjectInstallEnv,
+  type NpmProjectInstallEnvOptions,
+} from "../infra/npm-install-env.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import { sanitizeTerminalText } from "../terminal/safe-text.js";
 import { beginBundledRuntimeDepsInstall } from "./bundled-runtime-deps-activity.js";
@@ -1025,7 +1028,7 @@ function storeSourceCheckoutRuntimeDepsCache(params: {
 
 export function createBundledRuntimeDepsInstallEnv(
   env: NodeJS.ProcessEnv,
-  options: { cacheDir?: string } = {},
+  options: NpmProjectInstallEnvOptions = {},
 ): NodeJS.ProcessEnv {
   return {
     ...createNpmProjectInstallEnv(env, options),
@@ -1715,6 +1718,7 @@ export function installBundledRuntimeDeps(params: {
     ensureNpmInstallExecutionManifest(installExecutionRoot);
     const installEnv = createBundledRuntimeDepsInstallEnv(params.env, {
       cacheDir: path.join(installExecutionRoot, ".kova-npm-cache"),
+      npmConfigCwd: installExecutionRoot,
     });
     const npmRunner = resolveBundledRuntimeDepsNpmRunner({
       env: installEnv,
@@ -1782,6 +1786,7 @@ export async function installBundledRuntimeDepsAsync(params: {
     ensureNpmInstallExecutionManifest(installExecutionRoot);
     const installEnv = createBundledRuntimeDepsInstallEnv(params.env, {
       cacheDir: path.join(installExecutionRoot, ".kova-npm-cache"),
+      npmConfigCwd: installExecutionRoot,
     });
     const npmRunner = resolveBundledRuntimeDepsNpmRunner({
       env: installEnv,

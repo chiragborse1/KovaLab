@@ -5,6 +5,7 @@ import path from "node:path";
 import { BUNDLED_RUNTIME_SIDECAR_PATHS } from "../plugins/runtime-sidecar-paths.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { pathExists } from "../utils.js";
+import { createNpmFreshnessBypassArgs } from "./npm-install-env.js";
 import {
   collectPackageDistInventory,
   PACKAGE_DIST_INVENTORY_RELATIVE_PATH,
@@ -631,6 +632,9 @@ export function globalInstallArgs(
     ...(prefix ? ["--prefix", prefix] : []),
     spec,
     ...NPM_GLOBAL_INSTALL_QUIET_FLAGS,
+    ...createNpmFreshnessBypassArgs(process.env, new Date(), {
+      npmConfigPrefix: prefix,
+    }),
   ];
 }
 
@@ -656,6 +660,9 @@ export function globalInstallFallbackArgs(
     ...(prefix ? ["--prefix", prefix] : []),
     spec,
     ...NPM_GLOBAL_INSTALL_OMIT_OPTIONAL_FLAGS,
+    ...createNpmFreshnessBypassArgs(process.env, new Date(), {
+      npmConfigPrefix: prefix,
+    }),
   ];
 }
 

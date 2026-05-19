@@ -142,11 +142,17 @@ describe("resolveBundledRuntimeDepsNpmRunner", () => {
         { cacheDir: "/opt/kova/runtime-cache" },
       ),
     ).toEqual({
+      "NPM_CONFIG_MIN-RELEASE-AGE": "",
+      NPM_CONFIG_BEFORE: "",
+      NPM_CONFIG_MIN_RELEASE_AGE: "",
       PATH: "/usr/bin:/bin",
       npm_config_cache: "/opt/kova/runtime-cache",
+      npm_config_before: "",
       npm_config_global: "false",
       npm_config_legacy_peer_deps: "true",
       npm_config_location: "project",
+      "npm_config_min-release-age": "",
+      npm_config_min_release_age: "0",
       npm_config_package_lock: "false",
       npm_config_save: "false",
     });
@@ -1053,7 +1059,7 @@ describe("scanBundledPluginRuntimeDeps config policy", () => {
     });
 
     expect(result.deps.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
-    expect(result.deps[0]?.pluginIds).toEqual(["logger-plugin", "kova-core"]);
+    expect(result.deps[0]?.pluginIds).toEqual(["kova-core", "logger-plugin"]);
     expect(result.missing.map((dep) => `${dep.name}@${dep.version}`)).toEqual(["tslog@^4.10.2"]);
   });
 

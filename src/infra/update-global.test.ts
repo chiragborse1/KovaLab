@@ -248,6 +248,7 @@ describe("update global helpers", () => {
           "--no-fund",
           "--no-audit",
           "--loglevel=error",
+          "--min-release-age=0",
         ]);
         expect(globalInstallFallbackArgs("npm", "getkova@latest", pkgRoot)).toEqual([
           brewNpm,
@@ -258,6 +259,7 @@ describe("update global helpers", () => {
           "--no-fund",
           "--no-audit",
           "--loglevel=error",
+          "--min-release-age=0",
         ]);
       });
     } finally {
@@ -285,6 +287,7 @@ describe("update global helpers", () => {
         "--no-fund",
         "--no-audit",
         "--loglevel=error",
+        "--min-release-age=0",
       ]);
     });
   });
@@ -319,6 +322,7 @@ describe("update global helpers", () => {
           "--no-fund",
           "--no-audit",
           "--loglevel=error",
+          "--min-release-age=0",
         ]);
       });
     } finally {
@@ -339,6 +343,7 @@ describe("update global helpers", () => {
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
+      "--min-release-age=0",
     ]);
     expect(globalInstallArgs("pnpm", "getkova@latest")).toEqual([
       "pnpm",
@@ -362,6 +367,7 @@ describe("update global helpers", () => {
       "--no-fund",
       "--no-audit",
       "--loglevel=error",
+      "--min-release-age=0",
     ]);
     expect(globalInstallFallbackArgs("pnpm", "getkova@latest")).toBeNull();
     expect(

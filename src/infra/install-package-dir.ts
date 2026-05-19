@@ -127,7 +127,7 @@ async function runNpmInstallWithProgress(params: {
         timeoutMs: Math.max(params.timeoutMs, 300_000),
         cwd: params.stageDir,
         env: {
-          ...createNpmProjectInstallEnv(process.env),
+          ...createNpmProjectInstallEnv(process.env, { npmConfigCwd: params.stageDir }),
           COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
           NPM_CONFIG_IGNORE_SCRIPTS: "true",
         },

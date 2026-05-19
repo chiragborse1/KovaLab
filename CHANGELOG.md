@@ -48,3 +48,4 @@
 - Codex app-server: expose `sandbox_exec` and `sandbox_process` dynamic tools for SSH-backed Kova sandbox sessions while keeping native Codex shell usage separate. Thanks @chiragborse1
 - CLI update: run package-update follow-up commands with the Node binary and package root used by the managed Gateway service, preventing multi-Node installs from upgrading the shell CLI while leaving the service on a mismatched runtime. Thanks @amknight
 - Installer/Windows: launch onboarding as an attached child process so fresh native Windows installs do not freeze at setup start or corrupt the terminal wizard rendering. Thanks @sjf-oa
+- Installer/npm: bypass user npm freshness policies for Kova-managed package installs while preserving project-local install isolation for bundled plugin runtime dependencies. Thanks @joshavant
