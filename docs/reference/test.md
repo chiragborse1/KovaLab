@@ -156,6 +156,50 @@ after the trace output points at import, compile, or CPU-bound work that cannot
 be explained from phase timings alone. Do not compare source-runner results with
 built `dist/entry.js` results as the same baseline.
 
+## Gateway Restart Bench
+
+Script: [`scripts/bench-gateway-restart.ts`](https://github.com/chiragborse1/KovaLab/blob/dev/scripts/bench-gateway-restart.ts)
+
+The restart benchmark is supported on macOS and Linux only. It uses SIGUSR1 for
+in-process restarts and fails immediately on Windows.
+
+The benchmark defaults to the built CLI entry at `dist/entry.js`; run
+`pnpm build` before using the package-script command. To measure the source
+runner instead, pass `--entry scripts/run-node.mjs` and keep those results
+separate from built-entry baselines.
+
+Usage:
+
+- `pnpm test:restart:gateway -- --case skipChannels --runs 1 --restarts 5`
+- `pnpm test:restart:gateway -- --case default --runs 3 --restarts 3 --warmup 1`
+- `pnpm test:restart:gateway -- --case skipChannelsAcpxProbe --case skipChannelsNoAcpxProbe --runs 1 --restarts 5`
+- `node --import tsx scripts/bench-gateway-restart.ts --case fiftyPlugins --runs 1 --restarts 5 --output .artifacts/gateway-restart.json`
+- `node --import tsx scripts/bench-gateway-restart.ts --json`
+
+Case ids:
+
+- `skipChannels`: restart with channels skipped.
+- `skipChannelsAcpxProbe`: restart with channels skipped and ACPX startup probe on.
+- `skipChannelsNoAcpxProbe`: restart with channels skipped and ACPX startup probe off.
+- `default`: normal restart.
+- `fiftyPlugins`: restart with 50 manifest plugins.
+
+Output includes next `/healthz`, next `/readyz`, downtime, restart ready timing,
+CPU, RSS, startup trace metrics for the replacement process, and restart trace
+metrics for signal handling, active-work drain, close phases, next start, ready
+timing, and memory snapshots. The script enables `KOVA_GATEWAY_STARTUP_TRACE=1`
+and `KOVA_GATEWAY_RESTART_TRACE=1` in the child Gateway environment.
+
+Use this benchmark when a change touches restart signaling, close handlers,
+startup-after-restart, sidecar shutdown, service handoff, or readiness after
+restart. Start with `skipChannels` when isolating Gateway mechanics from channel
+startup. Use `default` or plugin-heavy cases only after the narrow case explains
+the restart path.
+
+Trace metrics are attribution hints, not verdicts. A restart change should be
+judged from multiple samples, the matching owner span, `/healthz` and `/readyz`
+behavior, and the user-visible restart contract.
+
 ## Onboarding E2E (Docker)
 
 Docker is optional; this is only needed for containerized onboarding smoke tests.
