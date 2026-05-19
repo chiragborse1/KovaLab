@@ -1510,6 +1510,31 @@ describe("resolveModel", () => {
     });
   });
 
+  it("repairs stale text-only Anthropic fallback rows for Claude vision models", () => {
+    const cfg = {
+      models: {
+        providers: {
+          anthropic: {
+            baseUrl: "https://api.anthropic.com",
+            api: "anthropic-messages",
+            models: [
+              {
+                ...makeModel("claude-sonnet-4-5"),
+                name: "claude-sonnet-4-5",
+                api: "anthropic-messages",
+                input: ["text"],
+              },
+            ],
+          },
+        },
+      },
+    } as unknown as KovaConfig;
+
+    const result = resolveModelForTest("anthropic", "claude-sonnet-4-5", "/tmp/agent", cfg);
+
+    expect(result.model?.input).toEqual(["text", "image"]);
+  });
+
   it("lets official openai-codex metadata override legacy unmarked models-add rows", () => {
     mockDiscoveredModel(discoverModels, {
       provider: "openai-codex",

@@ -50,3 +50,4 @@
 - Installer/Windows: launch onboarding as an attached child process so fresh native Windows installs do not freeze at setup start or corrupt the terminal wizard rendering. Thanks @sjf-oa
 - Installer/npm: bypass user npm freshness policies for Kova-managed package installs while preserving project-local install isolation for bundled plugin runtime dependencies. Thanks @joshavant
 - WhatsApp: drain queued outbound deliveries periodically while connected so recovered sends do not wait for a reconnect before leaving the queue. Thanks @Oviemudiaga
+- Anthropic: preserve image input for current Claude vision models when stale local model rows mark them as text-only. Thanks @TurboTheTurtle
