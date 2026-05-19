@@ -235,6 +235,50 @@ describe("runEmbeddedAttempt context engine sessionKey forwarding", () => {
     expect(contextCompiled?.data?.systemPrompt).toContain("internal heartbeat event");
   });
 
+  it("keeps current turn context visible on runtime-only turns", async () => {
+    let seenPrompt: string | undefined;
+
+    const result = await createContextEngineAttemptRunner({
+      contextEngine: createContextEngineBootstrapAndAssemble(),
+      sessionKey,
+      tempPaths,
+      trajectory: true,
+      attemptOverrides: {
+        prompt: "runtime bare mention event",
+        transcriptPrompt: "",
+        currentTurnContext: {
+          replyChain: [
+            {
+              sender: "Alice",
+              body: "Hello from the replied message",
+              isQuote: true,
+            },
+          ],
+        },
+      },
+      sessionPrompt: async (session, prompt) => {
+        seenPrompt = prompt;
+        session.messages = [
+          ...session.messages,
+          { role: "assistant", content: "done", timestamp: 2 },
+        ];
+      },
+    });
+
+    expect(seenPrompt).toContain("Reply chain of current user message");
+    expect(seenPrompt).toContain("Hello from the replied message");
+    expect(result.finalPromptText).toBe(seenPrompt);
+    const trajectoryEvents = (
+      await fs.readFile(path.join(tempPaths[0] ?? "", "session.trajectory.jsonl"), "utf8")
+    )
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as TrajectoryEvent);
+    const contextCompiled = trajectoryEvents.find((event) => event.type === "context.compiled");
+    expect(contextCompiled?.data?.prompt).toContain("Hello from the replied message");
+    expect(contextCompiled?.data?.systemPrompt).toContain("runtime bare mention event");
+  });
+
   it("forwards sessionKey to bootstrap, assemble, and afterTurn", async () => {
     const { bootstrap, assemble } = createContextEngineBootstrapAndAssemble();
     const afterTurn = vi.fn(async (_params: { sessionKey?: string }) => {});

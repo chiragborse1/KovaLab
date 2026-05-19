@@ -603,6 +603,55 @@ describe("runPreparedReply media-only handling", () => {
     expect(call?.followupRun.prompt).not.toContain("[User sent media without caption]");
   });
 
+  it("runs bare mention replies when the reply target is the current-turn context", async () => {
+    vi.mocked(buildInboundUserContextPrefix).mockReturnValueOnce(
+      [
+        "Reply target of current user message (untrusted, for context):",
+        "```json",
+        JSON.stringify({ sender_label: "Bot", body: "quoted status body" }, null, 2),
+        "```",
+      ].join("\n"),
+    );
+
+    const result = await runPreparedReply(
+      baseParams({
+        ctx: {
+          Body: "",
+          RawBody: "@bot",
+          CommandBody: "@bot",
+          Provider: "telegram",
+          Surface: "telegram",
+          ChatType: "group",
+          ReplyToBody: "quoted status body",
+          ReplyToSender: "Bot",
+        },
+        sessionCtx: {
+          Body: "",
+          BodyStripped: "",
+          RawBody: "@bot",
+          CommandBody: "@bot",
+          Provider: "telegram",
+          Surface: "telegram",
+          ChatType: "group",
+          ReplyToBody: "quoted status body",
+          ReplyToSender: "Bot",
+        },
+        command: {
+          ...baseParams().command,
+          rawBodyNormalized: "@bot",
+          commandBodyNormalized: "",
+        } as never,
+      }),
+    );
+
+    expect(result).toEqual({ text: "ok" });
+    const call = vi.mocked(runReplyAgent).mock.calls.at(-1)?.[0];
+    expect(call?.transcriptCommandBody).toBe("");
+    expect(call?.followupRun.transcriptPrompt).toBe("");
+    expect(call?.followupRun.prompt).toContain("Reply target of current user message");
+    expect(call?.followupRun.prompt).toContain("quoted status body");
+  });
+
   it("does not treat blank pending inbound history as user input", async () => {
     vi.mocked(buildInboundUserContextPrefix).mockReturnValueOnce(
       [

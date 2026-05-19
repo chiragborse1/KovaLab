@@ -2435,11 +2435,15 @@ export async function runEmbeddedAttempt(
               systemPromptText = runtimeSystemPrompt;
             }
           }
+          const currentTurnPromptContextSuffix = buildCurrentTurnPromptContextSuffix(
+            params.currentTurnContext,
+          );
+          const promptForModel = promptSubmission.prompt + currentTurnPromptContextSuffix;
 
           // Detect and load images referenced in the visible prompt for vision-capable models.
           // Images are prompt-local only (pi-like behavior).
           const imageResult = await detectAndLoadPromptImages({
-            prompt: promptSubmission.prompt,
+            prompt: promptForModel,
             workspaceDir: effectiveWorkspace,
             model: params.model,
             existingImages: params.images,
@@ -2455,13 +2459,13 @@ export async function runEmbeddedAttempt(
           });
 
           cacheTrace?.recordStage("prompt:images", {
-            prompt: promptSubmission.prompt,
+            prompt: promptForModel,
             messages: activeSession.messages,
             note: `images: prompt=${imageResult.images.length}`,
           });
           trajectoryRecorder?.recordEvent("context.compiled", {
             systemPrompt: systemPromptText,
-            prompt: promptSubmission.prompt,
+            prompt: promptForModel,
             messages: activeSession.messages,
             tools: toTrajectoryToolDefinitions(effectiveTools),
             imagesCount: imageResult.images.length,
@@ -2474,7 +2478,7 @@ export async function runEmbeddedAttempt(
             !skipPromptSubmission &&
             !promptSubmission.runtimeOnly &&
             !hasPromptSubmissionContent({
-              prompt: promptSubmission.prompt,
+              prompt: promptForModel,
               messages: activeSession.messages,
               imageCount: imageResult.images.length,
             })
@@ -2487,7 +2491,7 @@ export async function runEmbeddedAttempt(
             );
             trajectoryRecorder?.recordEvent("prompt.skipped", {
               reason: "empty_prompt_history_images",
-              prompt: promptSubmission.prompt,
+              prompt: promptForModel,
               messages: activeSession.messages,
               imagesCount: imageResult.images.length,
             });
@@ -2495,7 +2499,7 @@ export async function runEmbeddedAttempt(
 
           const msgCount = activeSession.messages.length;
           const systemLen = systemPromptText?.length ?? 0;
-          const promptLen = effectivePrompt.length;
+          const promptLen = promptForModel.length;
           const sessionSummary = summarizeSessionContext(activeSession.messages);
           const reserveTokens = settingsManager.getCompactionReserveTokens();
           const contextTokenBudget = params.contextTokenBudget ?? DEFAULT_CONTEXT_TOKENS;
@@ -2545,7 +2549,7 @@ export async function runEmbeddedAttempt(
                   provider: params.provider,
                   model: params.modelId,
                   systemPrompt: systemPromptText,
-                  prompt: effectivePrompt,
+                  prompt: promptForModel,
                   historyMessages: activeSession.messages,
                   imagesCount: imageResult.images.length,
                 },
@@ -2570,7 +2574,7 @@ export async function runEmbeddedAttempt(
             messages: activeSession.messages,
             unwindowedMessages: unwindowedContextEngineMessagesForPrecheck,
             systemPrompt: systemPromptText,
-            prompt: effectivePrompt,
+            prompt: promptForModel,
             contextTokenBudget,
             reserveTokens,
             toolResultMaxChars: resolveLiveToolResultMaxChars({
@@ -2653,18 +2657,14 @@ export async function runEmbeddedAttempt(
             if (normalizedReplayMessages !== activeSession.messages) {
               activeSession.agent.state.messages = normalizedReplayMessages;
             }
-            finalPromptText = promptSubmission.prompt;
+            finalPromptText = promptForModel;
             trajectoryRecorder?.recordEvent("prompt.submitted", {
-              prompt: promptSubmission.prompt,
+              prompt: promptForModel,
               systemPrompt: systemPromptText,
               messages: activeSession.messages,
               imagesCount: imageResult.images.length,
             });
             const btwSnapshotMessages = normalizedReplayMessages.slice(-MAX_BTW_SNAPSHOT_MESSAGES);
-            const currentTurnPromptContextSuffix = promptSubmission.runtimeOnly
-              ? ""
-              : buildCurrentTurnPromptContextSuffix(params.currentTurnContext);
-            const promptForModel = promptSubmission.prompt + currentTurnPromptContextSuffix;
             updateActiveEmbeddedRunSnapshot(params.sessionId, {
               transcriptLeafId,
               messages: btwSnapshotMessages,

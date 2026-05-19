@@ -179,6 +179,14 @@ function hasInboundHistoryBody(ctx: TemplateContext): boolean {
   );
 }
 
+function hasReplyTargetContext(ctx: MsgContext | TemplateContext): boolean {
+  if (normalizeOptionalString(ctx.ReplyToBody)) {
+    return true;
+  }
+  const replyChain = (ctx as { ReplyChain?: unknown }).ReplyChain;
+  return Array.isArray(replyChain) && replyChain.length > 0;
+}
+
 function resolveCurrentTurnPromptContext(
   ctx: TemplateContext,
 ): CurrentTurnPromptContext | undefined {
@@ -415,6 +423,8 @@ export async function runPreparedReply(
   const softResetTriggered = command.softResetTriggered === true;
   const softResetTail = command.softResetTail?.trim() ?? "";
   const effectiveResetTriggered = resetTriggered || softResetTriggered;
+  const hasCurrentReplyTargetContext =
+    hasReplyTargetContext(ctx) || hasReplyTargetContext(sessionCtx);
   const isWholeMessageCommand =
     normalizedCommandBody === rawBodyTrimmed ||
     normalizedCommandBody === rawBodyTrimmed.toLowerCase();
@@ -432,7 +442,10 @@ export async function runPreparedReply(
   const isBareSessionReset =
     softResetTriggered ||
     (isNewSession &&
-      ((baseBodyTrimmedRaw.length === 0 && rawBodyTrimmed.length > 0) || isBareNewOrReset));
+      (isBareNewOrReset ||
+        (!hasCurrentReplyTargetContext &&
+          baseBodyTrimmedRaw.length === 0 &&
+          rawBodyTrimmed.length > 0)));
   const startupAction =
     softResetTriggered || /^\/reset(?:\s|$)/.test(normalizedCommandBody) ? "reset" : "new";
   const spawnedWorkspaceOverride = resolveIngressWorkspaceOverrideForSpawnedRun({
@@ -496,7 +509,8 @@ export async function runPreparedReply(
   const hasUserBody =
     baseBodyFinal.trim().length > 0 ||
     softResetTail.length > 0 ||
-    hasInboundHistoryBody(sessionCtx);
+    hasInboundHistoryBody(sessionCtx) ||
+    hasCurrentReplyTargetContext;
   const hasMediaAttachment = hasInboundMedia(sessionCtx) || (opts?.images?.length ?? 0) > 0;
   if (!hasUserBody && !hasMediaAttachment) {
     // Skip onReplyStart when typing is suppressed (e.g. sendPolicy deny) —
