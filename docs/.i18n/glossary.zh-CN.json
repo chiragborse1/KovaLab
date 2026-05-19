@@ -4,6 +4,26 @@
     "target": "Kova"
   },
   {
+    "source": "KovaHub",
+    "target": "KovaHub"
+  },
+  {
+    "source": "Tool plugins",
+    "target": "Tool plugins"
+  },
+  {
+    "source": "Plugin SDK subpaths",
+    "target": "Plugin SDK subpaths"
+  },
+  {
+    "source": "Plugin manifest",
+    "target": "Plugin manifest"
+  },
+  {
+    "source": "Plugins CLI",
+    "target": "Plugins CLI"
+  },
+  {
     "source": "OpenAI",
     "target": "OpenAI"
   },
