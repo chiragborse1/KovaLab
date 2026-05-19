@@ -42,6 +42,7 @@ type TrajectoryRuntimeRecorder = {
   filePath: string;
   recordEvent: (type: string, data?: Record<string, unknown>) => void;
   flush: () => Promise<void>;
+  describeFlushState: () => string | undefined;
 };
 
 const writers = new Map<string, QueuedFileWriter>();
@@ -126,6 +127,29 @@ function truncateOversizedTrajectoryEvent(
     return truncated;
   }
   return undefined;
+}
+
+function describeTrajectoryWriterFlushState(writer: QueuedFileWriter): string | undefined {
+  const diagnostics = writer.describeQueue?.();
+  if (!diagnostics) {
+    return undefined;
+  }
+  const parts = [
+    `pendingWrites=${diagnostics.pendingWrites}`,
+    `queuedBytes=${diagnostics.queuedBytes}`,
+    `activeOperation=${diagnostics.activeOperation}`,
+    `yieldBeforeWrite=${diagnostics.yieldBeforeWrite}`,
+  ];
+  if (diagnostics.activeWriteBytes !== undefined) {
+    parts.push(`activeWriteBytes=${diagnostics.activeWriteBytes}`);
+  }
+  if (diagnostics.maxQueuedBytes !== undefined) {
+    parts.push(`maxQueuedBytes=${diagnostics.maxQueuedBytes}`);
+  }
+  if (diagnostics.maxFileBytes !== undefined) {
+    parts.push(`maxFileBytes=${diagnostics.maxFileBytes}`);
+  }
+  return parts.join(" ");
 }
 
 export function toTrajectoryToolDefinitions(
@@ -218,5 +242,6 @@ export function createTrajectoryRuntimeRecorder(
         writers.delete(filePath);
       }
     },
+    describeFlushState: () => describeTrajectoryWriterFlushState(writer),
   };
 }

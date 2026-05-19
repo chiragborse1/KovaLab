@@ -10,7 +10,10 @@ describe("createAnthropicPayloadLogger", () => {
       env: { KOVA_ANTHROPIC_PAYLOAD_LOG: "1" },
       writer: {
         filePath: "memory",
-        write: (line) => lines.push(line),
+        write: (line) => {
+          lines.push(line);
+          return "queued";
+        },
         flush: async () => undefined,
       },
     });

@@ -574,6 +574,7 @@ export async function runCodexAppServerAttempt(
       sessionId: params.sessionId,
       step: "codex-trajectory-flush-startup-failure",
       log: embeddedAgentLog,
+      getTimeoutDetails: () => trajectoryRecorder?.describeFlushState(),
       cleanup: async () => {
         await trajectoryRecorder?.flush();
       },
@@ -781,6 +782,7 @@ export async function runCodexAppServerAttempt(
       sessionId: params.sessionId,
       step: "codex-trajectory-flush",
       log: embeddedAgentLog,
+      getTimeoutDetails: () => trajectoryRecorder?.describeFlushState(),
       cleanup: async () => {
         await trajectoryRecorder?.flush();
       },

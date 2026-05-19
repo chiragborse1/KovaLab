@@ -58,6 +58,7 @@ describe("trajectory runtime", () => {
         filePath: "/tmp/session.trajectory.jsonl",
         write: (line) => {
           writes.push(line);
+          return "queued";
         },
         flush: async () => undefined,
       },
@@ -97,6 +98,7 @@ describe("trajectory runtime", () => {
         filePath: "/tmp/session.trajectory.jsonl",
         write: (line) => {
           writes.push(line);
+          return "queued";
         },
         flush: async () => undefined,
       },
@@ -127,7 +129,7 @@ describe("trajectory runtime", () => {
       sessionFile,
       writer: {
         filePath: path.join(trajectoryDir, "session-1.jsonl"),
-        write: () => undefined,
+        write: () => "queued",
         flush: async () => undefined,
       },
     });
@@ -149,6 +151,31 @@ describe("trajectory runtime", () => {
     ).toBe(0x07);
   });
 
+  it("describes queued writer state for cleanup timeout logs", () => {
+    const recorder = createTrajectoryRuntimeRecorder({
+      sessionId: "session-1",
+      sessionFile: "/tmp/session.jsonl",
+      writer: {
+        filePath: "/tmp/session.trajectory.jsonl",
+        write: () => "queued",
+        flush: async () => undefined,
+        describeQueue: () => ({
+          pendingWrites: 2,
+          queuedBytes: 256,
+          activeOperation: "file-append",
+          activeWriteBytes: 128,
+          maxFileBytes: 1024,
+          maxQueuedBytes: 1024,
+          yieldBeforeWrite: true,
+        }),
+      },
+    });
+
+    expect(recorder?.describeFlushState()).toBe(
+      "pendingWrites=2 queuedBytes=256 activeOperation=file-append yieldBeforeWrite=true activeWriteBytes=128 maxQueuedBytes=1024 maxFileBytes=1024",
+    );
+  });
+
   it("does not record runtime events when explicitly disabled", () => {
     const recorder = createTrajectoryRuntimeRecorder({
       env: {
@@ -159,7 +186,7 @@ describe("trajectory runtime", () => {
       sessionFile: "/tmp/session.jsonl",
       writer: {
         filePath: "/tmp/session.trajectory.jsonl",
-        write: () => undefined,
+        write: () => "queued",
         flush: async () => undefined,
       },
     });

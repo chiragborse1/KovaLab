@@ -3233,6 +3233,7 @@ export async function runEmbeddedAttempt(
         sessionId: params.sessionId,
         step: "pi-trajectory-flush",
         log,
+        getTimeoutDetails: () => trajectoryRecorder?.describeFlushState(),
         cleanup: async () => {
           await trajectoryRecorder?.flush();
         },
