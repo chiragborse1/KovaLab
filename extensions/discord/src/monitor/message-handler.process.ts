@@ -18,6 +18,7 @@ import {
 import { deliverFinalizableDraftPreview } from "getkova/plugin-sdk/channel-lifecycle";
 import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
 import {
+  formatChannelProgressDraftLineForEntry,
   formatChannelProgressDraftText,
   mergeChannelProgressDraftLine,
   resolveChannelStreamingBlockEnabled,
@@ -1005,42 +1006,85 @@ export async function processDiscordMessage(
             return;
           }
           await statusReactions.setTool(payload.name);
-          pushPreviewToolProgress(payload.name ? `tool: ${payload.name}` : "tool running");
+          pushPreviewToolProgress(
+            formatChannelProgressDraftLineForEntry(discordConfig, {
+              event: "tool",
+              name: payload.name,
+              phase: payload.phase,
+            }) ?? (payload.name ? `tool: ${payload.name}` : "tool running"),
+          );
         },
         onItemEvent: async (payload) => {
           pushPreviewToolProgress(
-            payload.progressText ?? payload.summary ?? payload.title ?? payload.name,
+            formatChannelProgressDraftLineForEntry(discordConfig, {
+              event: "item",
+              itemId: payload.itemId,
+              itemKind: payload.kind,
+              title: payload.title,
+              name: payload.name,
+              phase: payload.phase,
+              status: payload.status,
+              summary: payload.summary,
+              progressText: payload.progressText,
+            }) ??
+              payload.progressText ??
+              payload.summary ??
+              payload.title ??
+              payload.name,
           );
         },
         onPlanUpdate: async (payload) => {
-          if (payload.phase !== "update") {
-            return;
+          const progressLine = formatChannelProgressDraftLineForEntry(discordConfig, {
+            event: "plan",
+            phase: payload.phase,
+            title: payload.title,
+            explanation: payload.explanation,
+            steps: payload.steps,
+          });
+          if (progressLine) {
+            pushPreviewToolProgress(progressLine);
           }
-          pushPreviewToolProgress(payload.explanation ?? payload.steps?.[0] ?? "planning");
         },
         onApprovalEvent: async (payload) => {
-          if (payload.phase !== "requested") {
-            return;
+          const progressLine = formatChannelProgressDraftLineForEntry(discordConfig, {
+            event: "approval",
+            phase: payload.phase,
+            title: payload.title,
+            command: payload.command,
+            reason: payload.reason,
+            message: payload.message,
+          });
+          if (progressLine) {
+            pushPreviewToolProgress(progressLine);
           }
-          pushPreviewToolProgress(
-            payload.command ? `approval: ${payload.command}` : "approval requested",
-          );
         },
         onCommandOutput: async (payload) => {
-          if (payload.phase !== "end") {
-            return;
+          const progressLine = formatChannelProgressDraftLineForEntry(discordConfig, {
+            event: "command-output",
+            phase: payload.phase,
+            title: payload.title,
+            name: payload.name,
+            status: payload.status,
+            exitCode: payload.exitCode,
+          });
+          if (progressLine) {
+            pushPreviewToolProgress(progressLine);
           }
-          pushPreviewToolProgress(
-            payload.name
-              ? `${payload.name}${payload.exitCode === 0 ? " ✓" : payload.exitCode != null ? ` (exit ${payload.exitCode})` : ""}`
-              : payload.title,
-          );
         },
         onPatchSummary: async (payload) => {
-          if (payload.phase !== "end") {
-            return;
+          const progressLine = formatChannelProgressDraftLineForEntry(discordConfig, {
+            event: "patch",
+            phase: payload.phase,
+            title: payload.title,
+            name: payload.name,
+            added: payload.added,
+            modified: payload.modified,
+            deleted: payload.deleted,
+            summary: payload.summary,
+          });
+          if (progressLine) {
+            pushPreviewToolProgress(progressLine);
           }
-          pushPreviewToolProgress(payload.summary ?? payload.title ?? "patch applied");
         },
         onCompactionStart: async () => {
           if (isProcessAborted(abortSignal)) {

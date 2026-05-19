@@ -6,6 +6,7 @@ import {
 } from "getkova/plugin-sdk/channel-feedback";
 import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
 import {
+  formatChannelProgressDraftLineForEntry,
   formatChannelProgressDraftText,
   mergeChannelProgressDraftLine,
   resolveChannelStreamingBlockEnabled,
@@ -1065,42 +1066,85 @@ export const dispatchTelegramMessage = async ({
             if (statusReactionController && toolName) {
               await statusReactionController.setTool(toolName);
             }
-            pushPreviewToolProgress(toolName ? `tool: ${toolName}` : "tool running");
+            pushPreviewToolProgress(
+              formatChannelProgressDraftLineForEntry(telegramCfg, {
+                event: "tool",
+                name: toolName,
+                phase: payload.phase,
+              }) ?? (toolName ? `tool: ${toolName}` : "tool running"),
+            );
           },
           onItemEvent: async (payload) => {
             pushPreviewToolProgress(
-              payload.progressText ?? payload.summary ?? payload.title ?? payload.name,
+              formatChannelProgressDraftLineForEntry(telegramCfg, {
+                event: "item",
+                itemId: payload.itemId,
+                itemKind: payload.kind,
+                title: payload.title,
+                name: payload.name,
+                phase: payload.phase,
+                status: payload.status,
+                summary: payload.summary,
+                progressText: payload.progressText,
+              }) ??
+                payload.progressText ??
+                payload.summary ??
+                payload.title ??
+                payload.name,
             );
           },
           onPlanUpdate: async (payload) => {
-            if (payload.phase !== "update") {
-              return;
+            const progressLine = formatChannelProgressDraftLineForEntry(telegramCfg, {
+              event: "plan",
+              phase: payload.phase,
+              title: payload.title,
+              explanation: payload.explanation,
+              steps: payload.steps,
+            });
+            if (progressLine) {
+              pushPreviewToolProgress(progressLine);
             }
-            pushPreviewToolProgress(payload.explanation ?? payload.steps?.[0] ?? "planning");
           },
           onApprovalEvent: async (payload) => {
-            if (payload.phase !== "requested") {
-              return;
+            const progressLine = formatChannelProgressDraftLineForEntry(telegramCfg, {
+              event: "approval",
+              phase: payload.phase,
+              title: payload.title,
+              command: payload.command,
+              reason: payload.reason,
+              message: payload.message,
+            });
+            if (progressLine) {
+              pushPreviewToolProgress(progressLine);
             }
-            pushPreviewToolProgress(
-              payload.command ? `approval: ${payload.command}` : "approval requested",
-            );
           },
           onCommandOutput: async (payload) => {
-            if (payload.phase !== "end") {
-              return;
+            const progressLine = formatChannelProgressDraftLineForEntry(telegramCfg, {
+              event: "command-output",
+              phase: payload.phase,
+              title: payload.title,
+              name: payload.name,
+              status: payload.status,
+              exitCode: payload.exitCode,
+            });
+            if (progressLine) {
+              pushPreviewToolProgress(progressLine);
             }
-            pushPreviewToolProgress(
-              payload.name
-                ? `${payload.name}${payload.exitCode === 0 ? " ✓" : payload.exitCode != null ? ` (exit ${payload.exitCode})` : ""}`
-                : payload.title,
-            );
           },
           onPatchSummary: async (payload) => {
-            if (payload.phase !== "end") {
-              return;
+            const progressLine = formatChannelProgressDraftLineForEntry(telegramCfg, {
+              event: "patch",
+              phase: payload.phase,
+              title: payload.title,
+              name: payload.name,
+              added: payload.added,
+              modified: payload.modified,
+              deleted: payload.deleted,
+              summary: payload.summary,
+            });
+            if (progressLine) {
+              pushPreviewToolProgress(progressLine);
             }
-            pushPreviewToolProgress(payload.summary ?? payload.title ?? "patch applied");
           },
           onCompactionStart:
             statusReactionController || answerLane.stream
