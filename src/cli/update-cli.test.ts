@@ -310,6 +310,24 @@ describe("update-cli", () => {
     );
   };
 
+  const packageInstallCommandCall = () =>
+    vi
+      .mocked(runCommandWithTimeout)
+      .mock.calls.find(
+        ([argv]) => Array.isArray(argv) && argv[0] === "npm" && argv[1] === "i" && argv[2] === "-g",
+      );
+
+  const doctorCommandCall = () =>
+    vi
+      .mocked(runCommandWithTimeout)
+      .mock.calls.find(
+        ([argv]) =>
+          Array.isArray(argv) &&
+          argv.includes("doctor") &&
+          argv.includes("--non-interactive") &&
+          argv.includes("--fix"),
+      );
+
   const statfsFixture = (params: {
     bavail: number;
     bsize?: number;
@@ -1593,6 +1611,152 @@ describe("update-cli", () => {
         timeoutMs: expect.any(Number),
       }),
     );
+  });
+
+  it("uses the managed gateway service Node when package root matches but Node differs", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-service-node-"));
+    const nodeModules = path.join(tempDir, "lib", "node_modules");
+    const pkgRoot = path.join(nodeModules, "getkova");
+    const serviceNode = path.join(tempDir, "bin", "node");
+    const entryPath = path.join(pkgRoot, "dist", "index.js");
+    mockPackageInstallStatus(pkgRoot);
+    await fs.mkdir(path.dirname(serviceNode), { recursive: true });
+    await fs.mkdir(path.dirname(entryPath), { recursive: true });
+    await fs.writeFile(serviceNode, "", "utf8");
+    await fs.writeFile(entryPath, "export {};\n", "utf8");
+    await fs.writeFile(
+      path.join(pkgRoot, "package.json"),
+      JSON.stringify({ name: "getkova", version: "2026.5.19" }),
+      "utf8",
+    );
+    await writePackageDistInventory(pkgRoot);
+    serviceReadCommand.mockResolvedValue({
+      programArguments: [serviceNode, entryPath, "gateway"],
+    });
+    pathExists.mockImplementation(async (candidate: string) => {
+      try {
+        await fs.access(candidate);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    vi.mocked(runCommandWithTimeout).mockImplementation(async (argv) => {
+      if (Array.isArray(argv) && argv[0] === serviceNode && argv[1] === "--version") {
+        return {
+          stdout: "v24.14.0\n",
+          stderr: "",
+          code: 0,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      if (Array.isArray(argv) && argv[0] === "npm" && argv[1] === "root" && argv[2] === "-g") {
+        return {
+          stdout: `${nodeModules}\n`,
+          stderr: "",
+          code: 0,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      return {
+        stdout: "",
+        stderr: "",
+        code: 0,
+        signal: null,
+        killed: false,
+        termination: "exit",
+      };
+    });
+
+    await updateCommand({ yes: true, restart: false });
+
+    expect(doctorCommandCall()?.[0][0]).toBe(serviceNode);
+    const logLines = vi.mocked(defaultRuntime.log).mock.calls.map((call) => String(call[0]));
+    expect(logLines.join("\n")).toContain("managed gateway service Node");
+  });
+
+  it("pins package install to the managed service root when shell npm points elsewhere", async () => {
+    const shellRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kova-shell-root-"));
+    const servicePrefix = await fs.mkdtemp(path.join(os.tmpdir(), "kova-service-prefix-"));
+    const serviceNodeModules = path.join(servicePrefix, "lib", "node_modules");
+    const serviceRoot = path.join(serviceNodeModules, "getkova");
+    const serviceNode = path.join(servicePrefix, "bin", "node");
+    const entryPath = path.join(serviceRoot, "dist", "index.js");
+    mockPackageInstallStatus(shellRoot);
+    await fs.mkdir(path.dirname(serviceNode), { recursive: true });
+    await fs.mkdir(path.dirname(entryPath), { recursive: true });
+    await fs.writeFile(serviceNode, "", "utf8");
+    await fs.writeFile(entryPath, "export {};\n", "utf8");
+    await fs.writeFile(
+      path.join(serviceRoot, "package.json"),
+      JSON.stringify({ name: "getkova", version: "2026.5.19" }),
+      "utf8",
+    );
+    await writePackageDistInventory(serviceRoot);
+    serviceReadCommand.mockResolvedValue({
+      programArguments: [serviceNode, entryPath, "gateway"],
+    });
+    pathExists.mockImplementation(async (candidate: string) => {
+      try {
+        await fs.access(candidate);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    const nodeBGlobalRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), "kova-node-b-")),
+      "lib",
+      "node_modules",
+    );
+    await fs.mkdir(nodeBGlobalRoot, { recursive: true });
+    vi.mocked(runCommandWithTimeout).mockImplementation(async (argv) => {
+      if (Array.isArray(argv) && argv[0] === serviceNode && argv[1] === "--version") {
+        return {
+          stdout: "v24.14.0\n",
+          stderr: "",
+          code: 0,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      if (Array.isArray(argv) && argv[0] === "npm" && argv[1] === "root" && argv[2] === "-g") {
+        return {
+          stdout: `${nodeBGlobalRoot}\n`,
+          stderr: "",
+          code: 0,
+          signal: null,
+          killed: false,
+          termination: "exit",
+        };
+      }
+      return {
+        stdout: "",
+        stderr: "",
+        code: 0,
+        signal: null,
+        killed: false,
+        termination: "exit",
+      };
+    });
+
+    await updateCommand({ yes: true, restart: false });
+
+    const installCall = packageInstallCommandCall();
+    expect(installCall).toBeDefined();
+    const installArgv = installCall![0];
+    const prefixIndex = installArgv.indexOf("--prefix");
+    expect(prefixIndex).toBeGreaterThan(-1);
+    expect(installArgv[prefixIndex + 1]).toBe(servicePrefix);
+    expect(installArgv[prefixIndex + 1]).not.toContain(nodeBGlobalRoot);
+    expect(doctorCommandCall()?.[0][0]).toBe(serviceNode);
+    const logLines = vi.mocked(defaultRuntime.log).mock.calls.map((call) => String(call[0]));
+    expect(logLines.join("\n")).toContain("managed gateway service package root");
   });
 
   it("prepends portable Git PATH for package updates on Windows", async () => {

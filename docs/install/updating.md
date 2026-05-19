@@ -93,6 +93,13 @@ global install command. If that command fails, Kova retries once with
 cannot compile, while keeping the original failure visible if the fallback also
 fails.
 
+For managed Gateway services, `kova update` targets the package root used by
+the service. If your shell `kova` command points at a different global install,
+the updater prints both roots, uses the service package root for the install,
+and runs follow-up commands with the Node binary owned by that service. This
+keeps systems with multiple Node installs from upgrading one CLI while
+restarting the Gateway with another runtime.
+
 ```bash
 pnpm add -g getkova@latest
 ```

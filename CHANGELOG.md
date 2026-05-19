@@ -46,3 +46,4 @@
 - Memory Wiki: preserve imported source write diagnostics for directory collisions and avoid clobbering hardlink targets when bridge pages are regenerated. Thanks @TurboTheTurtle
 - GitHub Copilot: add IDE request headers to dynamically resolved and configured model entries so Pi-native compaction uses the same provider contract as normal turns. Thanks @efpiva
 - Codex app-server: expose `sandbox_exec` and `sandbox_process` dynamic tools for SSH-backed Kova sandbox sessions while keeping native Codex shell usage separate. Thanks @chiragborse1
+- CLI update: run package-update follow-up commands with the Node binary and package root used by the managed Gateway service, preventing multi-Node installs from upgrading the shell CLI while leaving the service on a mismatched runtime. Thanks @amknight

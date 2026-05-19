@@ -24,11 +24,13 @@ export type CommandRunner = (
 export type ResolvedGlobalInstallCommand = {
   manager: GlobalInstallManager;
   command: string;
+  installPrefix?: string;
 };
 
 export type ResolvedGlobalInstallTarget = ResolvedGlobalInstallCommand & {
   globalRoot: string | null;
   packageRoot: string | null;
+  installPrefix?: string;
 };
 
 const PRIMARY_PACKAGE_NAME = "getkova";
@@ -382,6 +384,24 @@ function inferNpmPrefixFromPackageRoot(pkgRoot?: string | null): string | null {
   return null;
 }
 
+function inferGlobalRootFromPackageRoot(pkgRoot?: string | null): string | null {
+  const trimmed = pkgRoot?.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const normalized = path.resolve(trimmed);
+  const nodeModulesDir = path.dirname(normalized);
+  if (path.basename(nodeModulesDir) !== "node_modules") {
+    return null;
+  }
+  if (
+    !ALL_PACKAGE_NAMES.includes(path.basename(normalized) as (typeof ALL_PACKAGE_NAMES)[number])
+  ) {
+    return null;
+  }
+  return nodeModulesDir;
+}
+
 function resolvePreferredNpmCommand(pkgRoot?: string | null): string | null {
   const prefix = inferNpmPrefixFromPackageRoot(pkgRoot);
   if (!prefix) {
@@ -458,20 +478,32 @@ export async function resolveGlobalInstallTarget(params: {
   runCommand: CommandRunner;
   timeoutMs: number;
   pkgRoot?: string | null;
+  honorPackageRoot?: boolean;
 }): Promise<ResolvedGlobalInstallTarget> {
-  const command = normalizeGlobalInstallCommand(params.manager, params.pkgRoot);
+  const honoredGlobalRoot = params.honorPackageRoot
+    ? inferGlobalRootFromPackageRoot(params.pkgRoot)
+    : null;
+  const honoredInstallPrefix = params.honorPackageRoot
+    ? inferNpmPrefixFromPackageRoot(params.pkgRoot)
+    : null;
+  const command =
+    honoredInstallPrefix && honoredGlobalRoot
+      ? resolveGlobalInstallCommand("npm", params.pkgRoot)
+      : normalizeGlobalInstallCommand(params.manager, params.pkgRoot);
   const globalRoot = await resolveGlobalRoot(
     command,
     params.runCommand,
     params.timeoutMs,
     params.pkgRoot,
   );
+  const targetGlobalRoot = honoredGlobalRoot ?? globalRoot;
   return {
     ...command,
-    globalRoot,
-    packageRoot: globalRoot
-      ? await resolveKnownGlobalPackageRoot(globalRoot, params.pkgRoot)
+    globalRoot: targetGlobalRoot,
+    packageRoot: targetGlobalRoot
+      ? await resolveKnownGlobalPackageRoot(targetGlobalRoot, params.pkgRoot)
       : null,
+    ...(honoredInstallPrefix ? { installPrefix: honoredInstallPrefix } : {}),
   };
 }
 
@@ -578,6 +610,7 @@ export function globalInstallArgs(
   managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand,
   spec: string,
   pkgRoot?: string | null,
+  installPrefix?: string | null,
 ): string[] {
   const resolved = normalizeGlobalInstallCommand(managerOrCommand, pkgRoot);
   if (resolved.manager === "pnpm") {
@@ -586,19 +619,44 @@ export function globalInstallArgs(
   if (resolved.manager === "bun") {
     return [resolved.command, "add", "-g", spec];
   }
-  return [resolved.command, "i", "-g", spec, ...NPM_GLOBAL_INSTALL_QUIET_FLAGS];
+  const prefix =
+    installPrefix ??
+    (typeof managerOrCommand === "object" && "installPrefix" in managerOrCommand
+      ? managerOrCommand.installPrefix
+      : undefined);
+  return [
+    resolved.command,
+    "i",
+    "-g",
+    ...(prefix ? ["--prefix", prefix] : []),
+    spec,
+    ...NPM_GLOBAL_INSTALL_QUIET_FLAGS,
+  ];
 }
 
 export function globalInstallFallbackArgs(
   managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand,
   spec: string,
   pkgRoot?: string | null,
+  installPrefix?: string | null,
 ): string[] | null {
   const resolved = normalizeGlobalInstallCommand(managerOrCommand, pkgRoot);
   if (resolved.manager !== "npm") {
     return null;
   }
-  return [resolved.command, "i", "-g", spec, ...NPM_GLOBAL_INSTALL_OMIT_OPTIONAL_FLAGS];
+  const prefix =
+    installPrefix ??
+    (typeof managerOrCommand === "object" && "installPrefix" in managerOrCommand
+      ? managerOrCommand.installPrefix
+      : undefined);
+  return [
+    resolved.command,
+    "i",
+    "-g",
+    ...(prefix ? ["--prefix", prefix] : []),
+    spec,
+    ...NPM_GLOBAL_INSTALL_OMIT_OPTIONAL_FLAGS,
+  ];
 }
 
 export async function cleanupGlobalRenameDirs(params: {

@@ -72,6 +72,7 @@ export async function runGlobalPackageUpdateSteps(params: {
   }
 
   const verifiedPackageRoot =
+    params.installTarget.packageRoot ??
     (
       await resolveGlobalInstallTarget({
         manager: params.installTarget,

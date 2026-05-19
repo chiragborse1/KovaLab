@@ -92,6 +92,12 @@ keeps packaged sidecars and channel-owned plugin records aligned with the
 installed Kova build while leaving full plugin-command completion rebuilds to
 explicit `kova completion --write-state` runs.
 
+When a managed Gateway service exists, package updates use the package root and
+Node binary from that service command. If the interactive shell points at a
+different global Kova install, the updater prints the mismatch and updates the
+service-owned package root so the restarted Gateway uses the same runtime that
+was validated before install.
+
 ## Git checkout flow
 
 ### Channel selection
