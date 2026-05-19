@@ -549,6 +549,8 @@ Behavior notes:
     - mention gating (`requireMention` + mention patterns)
     - duplicate keys in `kova.json` (JSON5): later entries override earlier ones, so keep a single `groupPolicy` per scope
 
+    If `channels.whatsapp.groups` is present, WhatsApp can still observe messages from other groups, but Kova drops them before session routing. Add the group JID to `channels.whatsapp.groups` or add `groups["*"]` to admit all groups while keeping sender authorization under `groupPolicy` and `groupAllowFrom`.
+
   </Accordion>
 
   <Accordion title="Bun runtime warning">
