@@ -73,6 +73,28 @@ describe("acp cli option collisions", () => {
     );
   });
 
+  it("forwards --no-prefix-cwd to the ACP bridge", async () => {
+    await parseAcp(["--no-prefix-cwd"]);
+
+    expect(serveAcpGateway).toHaveBeenCalledTimes(1);
+    expect(serveAcpGateway).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prefixCwd: false,
+      }),
+    );
+  });
+
+  it("defaults to prefixing the working directory", async () => {
+    await parseAcp([]);
+
+    expect(serveAcpGateway).toHaveBeenCalledTimes(1);
+    expect(serveAcpGateway).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prefixCwd: true,
+      }),
+    );
+  });
+
   it("loads gateway token/password from files", async () => {
     await withTempSecretFiles(
       "kova-acp-cli-",
