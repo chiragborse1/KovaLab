@@ -16,6 +16,7 @@ let handleSendChat: typeof import("./app-chat.ts").handleSendChat;
 let steerQueuedChatMessage: typeof import("./app-chat.ts").steerQueuedChatMessage;
 let navigateChatInputHistory: typeof import("./app-chat.ts").navigateChatInputHistory;
 let handleAbortChat: typeof import("./app-chat.ts").handleAbortChat;
+let hasAbortableChatRun: typeof import("./app-chat.ts").hasAbortableChatRun;
 let refreshChatAvatar: typeof import("./app-chat.ts").refreshChatAvatar;
 let clearPendingQueueItemsForRun: typeof import("./app-chat.ts").clearPendingQueueItemsForRun;
 
@@ -25,6 +26,7 @@ async function loadChatHelpers(): Promise<void> {
     steerQueuedChatMessage,
     navigateChatInputHistory,
     handleAbortChat,
+    hasAbortableChatRun,
     refreshChatAvatar,
     clearPendingQueueItemsForRun,
   } = await import("./app-chat.ts"));
@@ -717,6 +719,23 @@ describe("handleAbortChat", () => {
     expect(host.pendingAbort).toEqual({ runId: "run-main", sessionKey: "agent:main" });
     expect(host.chatMessage).toBe("");
     expect(host.chatRunId).toBe("run-main");
+  });
+
+  it("ignores stale run ids once the current session is terminal", async () => {
+    const host = makeHost({
+      connected: false,
+      chatRunId: "run-main",
+      chatMessage: "draft",
+      sessionKey: "agent:main",
+      sessionsResult: createSessionsResult([row("agent:main", { status: "done" })]),
+    });
+
+    expect(hasAbortableChatRun(host)).toBe(false);
+
+    await handleAbortChat(host);
+
+    expect(host.pendingAbort).toBeUndefined();
+    expect(host.chatMessage).toBe("draft");
   });
 
   it("keeps the draft when disconnected without an active run", async () => {

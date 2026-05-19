@@ -28,6 +28,7 @@ import { loadSessions, type SessionsState } from "./controllers/sessions.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { normalizeBasePath } from "./navigation.ts";
 import { parseAgentSessionKey } from "./session-key.ts";
+import { isSessionRunActive } from "./session-run-state.ts";
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 import type { ChatModelOverride, ModelCatalogEntry } from "./types.ts";
 import type { SessionsListResult } from "./types.ts";
@@ -65,6 +66,8 @@ export type ChatHost = ChatInputHistoryState & {
   onSlashAction?: (action: string) => void;
 };
 
+type ChatRunStateHost = Pick<ChatHost, "chatRunId" | "sessionKey" | "sessionsResult">;
+
 export const CHAT_SESSIONS_ACTIVE_MINUTES = 120;
 const CHAT_MODEL_CATALOG_RETRY_MS = 3500;
 export {
@@ -76,7 +79,19 @@ export {
 export type { ChatInputHistoryKeyInput, ChatInputHistoryKeyResult };
 
 export function isChatBusy(host: ChatHost) {
-  return host.chatSending || Boolean(host.chatRunId);
+  return host.chatSending || hasAbortableChatRun(host);
+}
+
+function resolveCurrentSessionRunState(host: ChatRunStateHost) {
+  return host.sessionsResult?.sessions?.find((row) => row.key === host.sessionKey);
+}
+
+export function hasAbortableChatRun(host: ChatRunStateHost) {
+  if (!host.chatRunId) {
+    return false;
+  }
+  const row = resolveCurrentSessionRunState(host);
+  return row?.status ? isSessionRunActive(row) : true;
 }
 
 export function isChatStopCommand(text: string) {
@@ -114,6 +129,9 @@ function isBtwCommand(text: string) {
 }
 
 export async function handleAbortChat(host: ChatHost) {
+  if (!hasAbortableChatRun(host)) {
+    return;
+  }
   // If disconnected but we have an active runId, queue the abort for when we reconnect
   if (!host.connected && host.chatRunId) {
     host.chatMessage = "";
