@@ -27,6 +27,10 @@ import {
   resolveEmbeddedCompactionTarget,
 } from "./compaction-runtime-context.js";
 import {
+  compactContextEngineWithSafetyTimeout,
+  resolveCompactionTimeoutMs,
+} from "./compaction-safety-timeout.js";
+import {
   rotateTranscriptAfterCompaction,
   shouldRotateCompactionTranscript,
 } from "./compaction-successor-transcript.js";
@@ -151,17 +155,34 @@ export async function compactEmbeddedPiSession(
             });
           }
         }
-        const result = await contextEngine.compact({
-          sessionId: params.sessionId,
-          sessionKey: params.sessionKey,
-          sessionFile: params.sessionFile,
-          tokenBudget: contextTokenBudget,
-          currentTokenCount: params.currentTokenCount,
-          compactionTarget: params.trigger === "manual" ? "threshold" : "budget",
-          customInstructions: params.customInstructions,
-          force: params.trigger === "manual",
-          runtimeContext,
-        });
+        let result: Awaited<ReturnType<typeof contextEngine.compact>>;
+        try {
+          result = await compactContextEngineWithSafetyTimeout(
+            contextEngine,
+            {
+              sessionId: params.sessionId,
+              sessionKey: params.sessionKey,
+              sessionFile: params.sessionFile,
+              tokenBudget: contextTokenBudget,
+              currentTokenCount: params.currentTokenCount,
+              compactionTarget: params.trigger === "manual" ? "threshold" : "budget",
+              customInstructions: params.customInstructions,
+              force: params.trigger === "manual",
+              runtimeContext,
+            },
+            resolveCompactionTimeoutMs(params.config),
+            params.abortSignal,
+          );
+        } catch (compactErr) {
+          log.warn("context-engine compaction failed", {
+            errorMessage: formatErrorMessage(compactErr),
+          });
+          result = {
+            ok: false,
+            compacted: false,
+            reason: formatErrorMessage(compactErr),
+          };
+        }
         const delegatedSessionId = result.result?.sessionId;
         const delegatedSessionFile = result.result?.sessionFile;
         const delegatedRotatedTranscript =

@@ -118,6 +118,10 @@ export {
   runHarnessContextEngineMaintenance,
 } from "../agents/harness/context-engine-lifecycle.js";
 export {
+  compactContextEngineWithSafetyTimeout,
+  resolveCompactionTimeoutMs,
+} from "../agents/pi-embedded-runner/compaction-safety-timeout.js";
+export {
   runAgentHarnessAfterToolCallHook,
   runAgentHarnessBeforeMessageWriteHook,
 } from "../agents/harness/hook-helpers.js";

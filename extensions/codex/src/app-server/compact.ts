@@ -1,7 +1,9 @@
 import {
+  compactContextEngineWithSafetyTimeout,
   embeddedAgentLog,
   formatErrorMessage,
   isActiveHarnessContextEngine,
+  resolveCompactionTimeoutMs,
   runHarnessContextEngineMaintenance,
   type CompactEmbeddedPiSessionParams,
   type EmbeddedPiCompactResult,
@@ -43,17 +45,22 @@ export async function maybeCompactCodexAppServerSession(
     let primary: ContextEngineCompactResult | undefined;
     let primaryError: string | undefined;
     try {
-      primary = await activeContextEngine.compact({
-        sessionId: params.sessionId,
-        sessionKey: params.sessionKey,
-        sessionFile: params.sessionFile,
-        tokenBudget: params.contextTokenBudget,
-        currentTokenCount: params.currentTokenCount,
-        compactionTarget: params.trigger === "manual" ? "threshold" : "budget",
-        customInstructions: params.customInstructions,
-        force: params.trigger === "manual",
-        runtimeContext: params.contextEngineRuntimeContext,
-      });
+      primary = await compactContextEngineWithSafetyTimeout(
+        activeContextEngine,
+        {
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          sessionFile: params.sessionFile,
+          tokenBudget: params.contextTokenBudget,
+          currentTokenCount: params.currentTokenCount,
+          compactionTarget: params.trigger === "manual" ? "threshold" : "budget",
+          customInstructions: params.customInstructions,
+          force: params.trigger === "manual",
+          runtimeContext: params.contextEngineRuntimeContext,
+        },
+        resolveCompactionTimeoutMs(params.config),
+        params.abortSignal,
+      );
     } catch (error) {
       primaryError = formatErrorMessage(error);
       embeddedAgentLog.warn(

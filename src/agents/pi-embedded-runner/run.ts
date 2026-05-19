@@ -86,6 +86,10 @@ import { derivePromptTokens, normalizeUsage, type UsageLike } from "../usage.js"
 import { redactRunIdentifier, resolveRunWorkspaceDir } from "../workspace-run.js";
 import { runPostCompactionSideEffects } from "./compaction-hooks.js";
 import { buildEmbeddedCompactionRuntimeContext } from "./compaction-runtime-context.js";
+import {
+  compactContextEngineWithSafetyTimeout,
+  resolveCompactionTimeoutMs,
+} from "./compaction-safety-timeout.js";
 import { runContextEngineMaintenance } from "./context-engine-maintenance.js";
 import { resolveEmbeddedRunFailureSignal } from "./failure-signal.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
@@ -1199,15 +1203,20 @@ export async function runEmbeddedPiAgent(
                   attempt: timeoutCompactionAttempts,
                   maxAttempts: MAX_TIMEOUT_COMPACTION_ATTEMPTS,
                 };
-                timeoutCompactResult = await contextEngine.compact({
-                  sessionId: activeSessionId,
-                  sessionKey: params.sessionKey,
-                  sessionFile: activeSessionFile,
-                  tokenBudget: ctxInfo.tokens,
-                  force: true,
-                  compactionTarget: "budget",
-                  runtimeContext: timeoutCompactionRuntimeContext,
-                });
+                timeoutCompactResult = await compactContextEngineWithSafetyTimeout(
+                  contextEngine,
+                  {
+                    sessionId: activeSessionId,
+                    sessionKey: params.sessionKey,
+                    sessionFile: activeSessionFile,
+                    tokenBudget: ctxInfo.tokens,
+                    force: true,
+                    compactionTarget: "budget",
+                    runtimeContext: timeoutCompactionRuntimeContext,
+                  },
+                  resolveCompactionTimeoutMs(params.config),
+                  params.abortSignal,
+                );
               } catch (compactErr) {
                 log.warn(
                   `[timeout-compaction] contextEngine.compact() threw during timeout recovery for ${provider}/${modelId}: ${String(compactErr)}`,
@@ -1347,18 +1356,23 @@ export async function runEmbeddedPiAgent(
                   attempt: overflowCompactionAttempts,
                   maxAttempts: MAX_OVERFLOW_COMPACTION_ATTEMPTS,
                 };
-                compactResult = await contextEngine.compact({
-                  sessionId: activeSessionId,
-                  sessionKey: params.sessionKey,
-                  sessionFile: activeSessionFile,
-                  tokenBudget: ctxInfo.tokens,
-                  ...(observedOverflowTokens !== undefined
-                    ? { currentTokenCount: observedOverflowTokens }
-                    : {}),
-                  force: true,
-                  compactionTarget: "budget",
-                  runtimeContext: overflowCompactionRuntimeContext,
-                });
+                compactResult = await compactContextEngineWithSafetyTimeout(
+                  contextEngine,
+                  {
+                    sessionId: activeSessionId,
+                    sessionKey: params.sessionKey,
+                    sessionFile: activeSessionFile,
+                    tokenBudget: ctxInfo.tokens,
+                    ...(observedOverflowTokens !== undefined
+                      ? { currentTokenCount: observedOverflowTokens }
+                      : {}),
+                    force: true,
+                    compactionTarget: "budget",
+                    runtimeContext: overflowCompactionRuntimeContext,
+                  },
+                  resolveCompactionTimeoutMs(params.config),
+                  params.abortSignal,
+                );
                 if (compactResult.ok && compactResult.compacted) {
                   adoptCompactionTranscript(compactResult);
                   await runContextEngineMaintenance({
