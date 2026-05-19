@@ -1604,6 +1604,44 @@ describe("runCodexAppServerAttempt", () => {
     );
   });
 
+  it("includes writable Docker bind host roots in Codex turn sandbox policy", () => {
+    const params = createParams("/tmp/session.jsonl", "/tmp/workspace");
+    const appServer = {
+      start: {
+        transport: "stdio" as const,
+        command: "codex",
+        args: ["app-server", "--listen", "stdio://"],
+        headers: {},
+      },
+      requestTimeoutMs: 60_000,
+      approvalPolicy: "never" as const,
+      approvalsReviewer: "user" as const,
+      sandbox: "workspace-write" as const,
+    };
+
+    expect(
+      buildTurnStartParams(params, {
+        threadId: "thread-1",
+        cwd: "/tmp/workspace",
+        appServer,
+        sandbox: {
+          enabled: true,
+          backendId: "docker",
+          docker: {
+            binds: ["/tmp/kova-writable-data:/data:rw", "/tmp/kova-readonly-data:/readonly:ro"],
+          },
+        },
+      }).sandboxPolicy,
+    ).toEqual({
+      type: "workspaceWrite",
+      writableRoots: ["/tmp/workspace", path.resolve("/tmp/kova-writable-data")],
+      readOnlyAccess: { type: "fullAccess" },
+      networkAccess: false,
+      excludeTmpdirEnvVar: false,
+      excludeSlashTmp: false,
+    });
+  });
+
   it("preserves the bound auth profile when resume params omit authProfileId", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");

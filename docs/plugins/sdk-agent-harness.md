@@ -207,6 +207,12 @@ Explicit plugin runtimes already fail closed by default. Set `fallback: "pi"`
 only when you intentionally want PI to handle missing harness selection. Codex
 app-server failures already fail directly instead of retrying through PI.
 
+Harnesses that translate Kova Docker sandbox state into a native runtime can
+use `resolveWritableSandboxBindHostRoots(...)` from
+`getkova/plugin-sdk/agent-harness-runtime` to include writable bind-mount host
+roots in their own sandbox policy while leaving read-only bind shadows locked
+down.
+
 ## Disable PI fallback
 
 By default, Kova runs embedded agents with `agents.defaults.agentRuntime`

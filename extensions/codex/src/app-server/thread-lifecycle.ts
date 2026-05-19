@@ -1,5 +1,6 @@
 import {
   embeddedAgentLog,
+  resolveWritableSandboxBindHostRoots,
   type EmbeddedRunAttemptParams,
 } from "getkova/plugin-sdk/agent-harness-runtime";
 import { renderCodexPromptOverlay } from "../../prompt-overlay.js";
@@ -12,6 +13,7 @@ import {
 } from "./protocol-validators.js";
 import {
   isJsonObject,
+  type CodexSandboxPolicy,
   type CodexDynamicToolSpec,
   type CodexThreadResumeParams,
   type CodexThreadStartParams,
@@ -27,6 +29,14 @@ import {
   type CodexAppServerThreadBinding,
 } from "./session-binding.js";
 
+type KovaSandboxContextForCodex = {
+  enabled: boolean;
+  backendId: string;
+  docker: {
+    binds?: readonly string[];
+  };
+};
+
 export async function startOrResumeThread(params: {
   client: CodexAppServerClient;
   params: EmbeddedRunAttemptParams;
@@ -35,6 +45,7 @@ export async function startOrResumeThread(params: {
   appServer: CodexAppServerRuntimeOptions;
   developerInstructions?: string;
   config?: JsonObject;
+  sandbox?: KovaSandboxContextForCodex | null;
 }): Promise<CodexAppServerThreadBinding> {
   const dynamicToolsFingerprint = fingerprintDynamicTools(params.dynamicTools);
   const binding = await readCodexAppServerBinding(params.params.sessionFile);
@@ -62,6 +73,7 @@ export async function startOrResumeThread(params: {
               appServer: params.appServer,
               developerInstructions: params.developerInstructions,
               config: params.config,
+              sandbox: params.sandbox,
             }),
           ),
         );
@@ -144,6 +156,7 @@ export function buildThreadResumeParams(
     appServer: CodexAppServerRuntimeOptions;
     developerInstructions?: string;
     config?: JsonObject;
+    sandbox?: KovaSandboxContextForCodex | null;
   },
 ): CodexThreadResumeParams {
   const modelProvider = resolveCodexAppServerModelProvider(params.provider);
@@ -168,6 +181,7 @@ export function buildTurnStartParams(
     cwd: string;
     appServer: CodexAppServerRuntimeOptions;
     promptText?: string;
+    sandbox?: KovaSandboxContextForCodex | null;
   },
 ): CodexTurnStartParams {
   return {
@@ -176,10 +190,33 @@ export function buildTurnStartParams(
     cwd: options.cwd,
     approvalPolicy: options.appServer.approvalPolicy,
     approvalsReviewer: options.appServer.approvalsReviewer,
-    sandboxPolicy: codexSandboxPolicyForTurn(options.appServer.sandbox, options.cwd),
+    sandboxPolicy: codexSandboxPolicyForTurnWithKovaSandbox(
+      options.appServer.sandbox,
+      options.cwd,
+      options.sandbox,
+    ),
     model: params.modelId,
     ...(options.appServer.serviceTier ? { serviceTier: options.appServer.serviceTier } : {}),
     effort: resolveReasoningEffort(params.thinkLevel, params.modelId),
+  };
+}
+
+function codexSandboxPolicyForTurnWithKovaSandbox(
+  mode: CodexAppServerRuntimeOptions["sandbox"],
+  cwd: string,
+  sandbox: KovaSandboxContextForCodex | null | undefined,
+): CodexSandboxPolicy {
+  const policy = codexSandboxPolicyForTurn(mode, cwd);
+  if (policy.type !== "workspaceWrite" || !sandbox?.enabled || sandbox.backendId !== "docker") {
+    return policy;
+  }
+  const writableRoots = new Set(policy.writableRoots);
+  for (const root of resolveWritableSandboxBindHostRoots(sandbox.docker.binds)) {
+    writableRoots.add(root);
+  }
+  return {
+    ...policy,
+    writableRoots: [...writableRoots],
   };
 }
 

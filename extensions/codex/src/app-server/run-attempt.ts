@@ -327,6 +327,7 @@ export async function runCodexAppServerAttempt(
           appServer,
           developerInstructions: promptBuild.developerInstructions,
           config: nativeHookRelayConfig,
+          sandbox,
         });
         return { client: startupClient, thread: startupThread };
       },
@@ -525,6 +526,7 @@ export async function runCodexAppServerAttempt(
           cwd: effectiveWorkspace,
           appServer,
           promptText: promptBuild.prompt,
+          sandbox,
         }),
         { timeoutMs: params.timeoutMs, signal: runAbortController.signal },
       ),
