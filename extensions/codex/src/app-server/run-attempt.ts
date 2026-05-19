@@ -25,6 +25,7 @@ import {
   runAgentHarnessAgentEndHook,
   runAgentHarnessLlmInputHook,
   runAgentHarnessLlmOutputHook,
+  runAgentCleanupStep,
   runHarnessContextEngineMaintenance,
   registerNativeHookRelay,
   setActiveEmbeddedRun,
@@ -568,7 +569,15 @@ export async function runCodexAppServerAttempt(
     notificationCleanup();
     requestCleanup();
     nativeHookRelay?.unregister();
-    await trajectoryRecorder?.flush();
+    await runAgentCleanupStep({
+      runId: params.runId,
+      sessionId: params.sessionId,
+      step: "codex-trajectory-flush-startup-failure",
+      log: embeddedAgentLog,
+      cleanup: async () => {
+        await trajectoryRecorder?.flush();
+      },
+    });
     params.abortSignal?.removeEventListener("abort", abortFromUpstream);
     throw error;
   }
@@ -767,7 +776,15 @@ export async function runCodexAppServerAttempt(
         aborted: runAbortController.signal.aborted,
       });
     }
-    await trajectoryRecorder?.flush();
+    await runAgentCleanupStep({
+      runId: params.runId,
+      sessionId: params.sessionId,
+      step: "codex-trajectory-flush",
+      log: embeddedAgentLog,
+      cleanup: async () => {
+        await trajectoryRecorder?.flush();
+      },
+    });
     userInputBridge?.cancelPending();
     clearTimeout(timeout);
     notificationCleanup();
