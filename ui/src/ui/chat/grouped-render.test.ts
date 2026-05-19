@@ -13,6 +13,7 @@ import { normalizeMessage } from "./message-normalizer.ts";
 
 const localStorageValues = vi.hoisted(() => new Map<string, string>());
 const toSanitizedMarkdownHtmlMock = vi.hoisted(() => vi.fn((value: string) => value));
+let restoreDeleteConfirmGeometry: (() => void) | undefined;
 
 vi.mock("../../local-storage.ts", () => ({
   getSafeLocalStorage: () => ({
@@ -251,6 +252,80 @@ function clearDeleteConfirmSkip() {
   localStorageValues.delete("kova:skipDeleteConfirm");
 }
 
+function domRect(params: {
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+}): DOMRect {
+  const left = params.left ?? 0;
+  const top = params.top ?? 0;
+  const width = params.width ?? 0;
+  const height = params.height ?? 0;
+  const rect = {
+    x: left,
+    y: top,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    toJSON: () => rect,
+  };
+  return rect as DOMRect;
+}
+
+function stubDeleteConfirmGeometry(params: {
+  trigger: { left: number; top: number; width: number; height: number };
+  popover: { width: number; height: number };
+  viewport: { left?: number; top?: number; width: number; height: number };
+}) {
+  vi.stubGlobal("innerWidth", params.viewport.width);
+  vi.stubGlobal("innerHeight", params.viewport.height);
+  vi.stubGlobal("visualViewport", {
+    height: params.viewport.height,
+    offsetLeft: params.viewport.left ?? 0,
+    offsetTop: params.viewport.top ?? 0,
+    width: params.viewport.width,
+  });
+  const original = HTMLElement.prototype.getBoundingClientRect;
+  HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
+    if (this.classList.contains("chat-group-delete")) {
+      return domRect(params.trigger);
+    }
+    if (this.classList.contains("chat-delete-confirm")) {
+      return domRect(params.popover);
+    }
+    return domRect({});
+  };
+  restoreDeleteConfirmGeometry = () => {
+    HTMLElement.prototype.getBoundingClientRect = original;
+  };
+}
+
+function renderDeleteConfirmFixture() {
+  const container = document.createElement("div");
+  clearDeleteConfirmSkip();
+  renderMessageGroups(
+    container,
+    [
+      createMessageGroup(
+        {
+          role: "user",
+          content: "hello from user",
+          timestamp: 1000,
+        },
+        "user",
+      ),
+    ],
+    { onDelete: vi.fn() },
+  );
+  const deleteButton = container.querySelector<HTMLButtonElement>(".chat-group-delete");
+  expect(deleteButton).not.toBeNull();
+  return { container, deleteButton: deleteButton as HTMLButtonElement };
+}
+
 async function flushAssistantAttachmentAvailabilityChecks() {
   for (let i = 0; i < 6; i++) {
     await Promise.resolve();
@@ -258,6 +333,8 @@ async function flushAssistantAttachmentAvailabilityChecks() {
 }
 
 afterEach(() => {
+  restoreDeleteConfirmGeometry?.();
+  restoreDeleteConfirmGeometry = undefined;
   toSanitizedMarkdownHtmlMock.mockClear();
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -313,6 +390,72 @@ describe("grouped chat rendering", () => {
     );
     expect(assistantConfirm).not.toBeNull();
     expect(assistantConfirm?.classList.contains("chat-delete-confirm--right")).toBe(true);
+  });
+
+  it("places the delete confirm below the trigger near the top viewport edge", () => {
+    stubDeleteConfirmGeometry({
+      trigger: { left: 20, top: 4, width: 24, height: 24 },
+      popover: { width: 200, height: 96 },
+      viewport: { width: 320, height: 240 },
+    });
+    const fixture = renderDeleteConfirmFixture();
+
+    fixture.deleteButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const popover = fixture.container.querySelector<HTMLElement>(".chat-delete-confirm");
+    expect(popover).not.toBeNull();
+    expect(popover?.dataset.placement).toBe("below");
+    expect(popover?.style.top).toBe("34px");
+    expect(popover?.style.left).toBe("8px");
+  });
+
+  it("places the delete confirm above the trigger near the bottom viewport edge", () => {
+    stubDeleteConfirmGeometry({
+      trigger: { left: 220, top: 190, width: 24, height: 24 },
+      popover: { width: 200, height: 80 },
+      viewport: { width: 320, height: 240 },
+    });
+    const fixture = renderDeleteConfirmFixture();
+
+    fixture.deleteButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const popover = fixture.container.querySelector<HTMLElement>(".chat-delete-confirm");
+    expect(popover).not.toBeNull();
+    expect(popover?.dataset.placement).toBe("above");
+    expect(popover?.style.top).toBe("104px");
+    expect(popover?.style.left).toBe("44px");
+  });
+
+  it("clamps the delete confirm horizontally inside narrow viewports", () => {
+    stubDeleteConfirmGeometry({
+      trigger: { left: 260, top: 120, width: 24, height: 24 },
+      popover: { width: 200, height: 80 },
+      viewport: { width: 320, height: 240 },
+    });
+    const fixture = renderDeleteConfirmFixture();
+
+    fixture.deleteButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const popover = fixture.container.querySelector<HTMLElement>(".chat-delete-confirm");
+    expect(popover).not.toBeNull();
+    expect(popover?.style.left).toBe("84px");
+  });
+
+  it("clamps the delete confirm inside shifted visual viewports", () => {
+    stubDeleteConfirmGeometry({
+      trigger: { left: 620, top: 540, width: 24, height: 24 },
+      popover: { width: 200, height: 80 },
+      viewport: { left: 320, top: 300, width: 320, height: 240 },
+    });
+    const fixture = renderDeleteConfirmFixture();
+
+    fixture.deleteButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    const popover = fixture.container.querySelector<HTMLElement>(".chat-delete-confirm");
+    expect(popover).not.toBeNull();
+    expect(popover?.dataset.placement).toBe("above");
+    expect(popover?.style.left).toBe("432px");
+    expect(popover?.style.top).toBe("452px");
   });
 
   it("renders assistant context usage from input and cache tokens", () => {
