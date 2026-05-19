@@ -161,7 +161,7 @@ export const registerTelegramHandlers = ({
       : MEDIA_GROUP_TIMEOUT_MS;
 
   const mediaGroupBuffer = new Map<string, MediaGroupEntry>();
-  let mediaGroupProcessing: Promise<void> = Promise.resolve();
+  const mediaGroupProcessingByKey = new Map<string, Promise<void>>();
   const messageCache = createTelegramMessageCache({
     persistedPath: resolveTelegramMessageCachePath(
       telegramDeps.resolveStorePath(cfg.session?.store),
@@ -176,7 +176,21 @@ export const registerTelegramHandlers = ({
     timer: ReturnType<typeof setTimeout>;
   };
   const textFragmentBuffer = new Map<string, TextFragmentEntry>();
-  let textFragmentProcessing: Promise<void> = Promise.resolve();
+  const textFragmentProcessingByKey = new Map<string, Promise<void>>();
+
+  const queueBufferedProcessing = async (
+    processingByKey: Map<string, Promise<void>>,
+    key: string,
+    task: () => Promise<void>,
+  ) => {
+    const previous = processingByKey.get(key) ?? Promise.resolve();
+    const current = previous.then(task).catch(() => undefined);
+    processingByKey.set(key, current);
+    await current;
+    if (processingByKey.get(key) === current) {
+      processingByKey.delete(key);
+    }
+  };
 
   const debounceMs = resolveInboundDebounceMs({ cfg, channel: "telegram" });
   const FORWARD_BURST_DEBOUNCE_MS = 80;
@@ -561,12 +575,9 @@ export const registerTelegramHandlers = ({
   };
 
   const queueTextFragmentFlush = async (entry: TextFragmentEntry) => {
-    textFragmentProcessing = textFragmentProcessing
-      .then(async () => {
-        await flushTextFragments(entry);
-      })
-      .catch(() => undefined);
-    await textFragmentProcessing;
+    await queueBufferedProcessing(textFragmentProcessingByKey, entry.key, async () => {
+      await flushTextFragments(entry);
+    });
   };
 
   const runTextFragmentFlush = async (entry: TextFragmentEntry) => {
@@ -1270,12 +1281,7 @@ export const registerTelegramHandlers = ({
         // Not appendable (or limits exceeded): flush buffered entry first, then continue normally.
         clearTimeout(existing.timer);
         textFragmentBuffer.delete(key);
-        textFragmentProcessing = textFragmentProcessing
-          .then(async () => {
-            await flushTextFragments(existing);
-          })
-          .catch(() => undefined);
-        await textFragmentProcessing;
+        await queueTextFragmentFlush(existing);
       }
 
       const shouldStart = text.length >= TELEGRAM_TEXT_FRAGMENT_START_THRESHOLD_CHARS;
@@ -1295,7 +1301,9 @@ export const registerTelegramHandlers = ({
     // Media group handling - buffer multi-image messages
     const mediaGroupId = msg.media_group_id;
     if (mediaGroupId) {
-      const existing = mediaGroupBuffer.get(mediaGroupId);
+      const threadId = resolvedThreadId ?? dmThreadId;
+      const mediaGroupKey = `media:${chatId}:${threadId ?? "main"}:${mediaGroupId}`;
+      const existing = mediaGroupBuffer.get(mediaGroupKey);
       if (existing) {
         clearTimeout(existing.timer);
         existing.messages.push({ msg, ctx });
@@ -1304,29 +1312,23 @@ export const registerTelegramHandlers = ({
           promptContextMinTimestampMs,
         );
         existing.timer = setTimeout(async () => {
-          mediaGroupBuffer.delete(mediaGroupId);
-          mediaGroupProcessing = mediaGroupProcessing
-            .then(async () => {
-              await processMediaGroup(existing);
-            })
-            .catch(() => undefined);
-          await mediaGroupProcessing;
+          mediaGroupBuffer.delete(mediaGroupKey);
+          await queueBufferedProcessing(mediaGroupProcessingByKey, mediaGroupKey, async () => {
+            await processMediaGroup(existing);
+          });
         }, mediaGroupTimeoutMs);
       } else {
         const entry: MediaGroupEntry = {
           messages: [{ msg, ctx }],
           ...promptContextBoundaryOptions(promptContextMinTimestampMs),
           timer: setTimeout(async () => {
-            mediaGroupBuffer.delete(mediaGroupId);
-            mediaGroupProcessing = mediaGroupProcessing
-              .then(async () => {
-                await processMediaGroup(entry);
-              })
-              .catch(() => undefined);
-            await mediaGroupProcessing;
+            mediaGroupBuffer.delete(mediaGroupKey);
+            await queueBufferedProcessing(mediaGroupProcessingByKey, mediaGroupKey, async () => {
+              await processMediaGroup(entry);
+            });
           }, mediaGroupTimeoutMs),
         };
-        mediaGroupBuffer.set(mediaGroupId, entry);
+        mediaGroupBuffer.set(mediaGroupKey, entry);
       }
       return;
     }
@@ -1549,6 +1551,7 @@ export const registerTelegramHandlers = ({
         chatType: callbackMessage.chat.type,
         isGroup,
         isForum: callbackMessage.chat.is_forum,
+        isTopicMessage: callbackMessage.is_topic_message,
         getChat,
       });
       const eventAuthContext = await resolveTelegramEventAuthorizationContext({
@@ -2196,6 +2199,7 @@ export const registerTelegramHandlers = ({
       chatType: msg.chat.type,
       isGroup,
       isForum: msg.chat.is_forum,
+      isTopicMessage: msg.is_topic_message,
       getChat,
     });
     const normalizedMsg = withResolvedTelegramForumFlag(msg, isForum);

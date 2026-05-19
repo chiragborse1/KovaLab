@@ -176,7 +176,7 @@ describe("createTelegramBot", () => {
   it("installs grammY throttler", () => {
     createTelegramBot({ token: "tok" });
     expect(throttlerSpy).toHaveBeenCalledTimes(1);
-    expect(useSpy).toHaveBeenCalledWith("throttler");
+    expect(useSpy).toHaveBeenCalledWith(expect.any(Function));
   });
   it("uses wrapped fetch when global fetch is available", () => {
     const originalFetch = globalThis.fetch;

@@ -9,4 +9,5 @@
 
 ### Fixes
 
+- Telegram: keep forum-topic routing and buffered media/text lanes scoped per topic so sibling topics can progress independently. Thanks @VACInc
 - CLI: format `kova acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Thanks @hclsys

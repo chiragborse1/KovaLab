@@ -351,6 +351,7 @@ async function resolveTelegramCommandAuth(params: {
     chatType: msg.chat.type,
     isGroup,
     isForum: extractTelegramForumFlag(msg.chat),
+    isTopicMessage: msg.is_topic_message,
     getChat,
   });
   const threadSpec = resolveTelegramThreadSpec({

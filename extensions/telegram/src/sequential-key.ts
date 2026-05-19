@@ -9,7 +9,10 @@ import {
   isBtwRequestText,
 } from "getkova/plugin-sdk/command-primitives-runtime";
 import { parseExecApprovalCommandText } from "getkova/plugin-sdk/infra-runtime";
-import { resolveTelegramForumThreadId } from "./bot/helpers.js";
+import {
+  resolveTelegramForumThreadId,
+  resolveTelegramMessageForumFlagHint,
+} from "./bot/helpers.js";
 
 export type TelegramSequentialKeyContext = {
   chat?: { id?: number };
@@ -105,7 +108,11 @@ export function getTelegramSequentialKey(ctx: TelegramSequentialKeyContext): str
   }
   const isGroup = msg?.chat?.type === "group" || msg?.chat?.type === "supergroup";
   const messageThreadId = msg?.message_thread_id;
-  const isForum = msg?.chat?.is_forum;
+  const isForum = resolveTelegramMessageForumFlagHint({
+    chatType: msg?.chat?.type,
+    isForum: msg?.chat?.is_forum,
+    isTopicMessage: msg?.is_topic_message,
+  });
   const threadId = isGroup
     ? resolveTelegramForumThreadId({ isForum, messageThreadId })
     : messageThreadId;
