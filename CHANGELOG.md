@@ -16,3 +16,4 @@
 - CLI: format `kova acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Thanks @hclsys
 - Agents: make trajectory flush and general cleanup timeout limits configurable with `KOVA_TRAJECTORY_FLUSH_TIMEOUT_MS` and `KOVA_AGENT_CLEANUP_TIMEOUT_MS`. Thanks @bunsthedev
 - Agents: include queued-writer diagnostics in trajectory flush timeout warnings so stuck cleanup logs show pending writes, queued bytes, and active append state. Thanks @galiniliev
+- Agents: treat repeated embedded-run clears as idempotent so late cleanup does not log false handle mismatch diagnostics after a run already completed. Thanks @galiniliev
