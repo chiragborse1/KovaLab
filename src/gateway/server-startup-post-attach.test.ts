@@ -194,6 +194,48 @@ describe("startGatewayPostAttachRuntime", () => {
     });
   });
 
+  it("starts sidecars while startup logging is still pending", async () => {
+    const events: string[] = [];
+    let finishStartupLog: (() => void) | undefined;
+    const logGatewayStartup = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          events.push("startup-log-start");
+          finishStartupLog = () => {
+            events.push("startup-log-end");
+            resolve();
+          };
+        }),
+    );
+    const startGatewaySidecars = vi.fn(async () => {
+      events.push("sidecars");
+      return { pluginServices: null };
+    });
+
+    const runtimePromise = startGatewayPostAttachRuntime(
+      createPostAttachParams(),
+      createPostAttachRuntimeDeps({
+        logGatewayStartup,
+        refreshLatestUpdateRestartSentinel: vi.fn(async () => null),
+        startGatewaySidecars,
+      }),
+    );
+
+    await vi.waitFor(() => {
+      expect(logGatewayStartup).toHaveBeenCalledTimes(1);
+      expect(startGatewaySidecars).toHaveBeenCalledTimes(1);
+    });
+    expect(events).toEqual(["startup-log-start", "sidecars"]);
+
+    if (!finishStartupLog) {
+      throw new Error("Expected startup log release callback to be initialized");
+    }
+    finishStartupLog();
+    await runtimePromise;
+
+    expect(events).toEqual(["startup-log-start", "sidecars", "startup-log-end"]);
+  });
+
   it("starts the qmd memory backend only when configured", async () => {
     await startGatewayPostAttachRuntime({
       ...createPostAttachParams(),
@@ -242,6 +284,45 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(startChannels).toHaveBeenCalledTimes(1);
     expect(prewarmPrimaryModel).toHaveBeenCalledTimes(1);
     finishPrewarm();
+  });
+
+  it("starts and reports plugin services before channel startup completion", async () => {
+    let releaseChannels: (() => void) | undefined;
+    const pluginServices = { stop: vi.fn(async () => {}) } as never;
+    const onPluginServices = vi.fn();
+    const onSidecarsReady = vi.fn();
+    const startChannels = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseChannels = resolve;
+        }),
+    );
+    hoisted.startPluginServices.mockResolvedValueOnce(pluginServices);
+
+    await startGatewayPostAttachRuntime({
+      ...createPostAttachParams({
+        deferSidecars: true,
+        onPluginServices,
+        onSidecarsReady,
+      }),
+      startChannels,
+    });
+
+    await vi.waitFor(() => {
+      expect(startChannels).toHaveBeenCalledTimes(1);
+      expect(hoisted.startPluginServices).toHaveBeenCalledTimes(1);
+      expect(onPluginServices).toHaveBeenCalledWith(pluginServices);
+    });
+    expect(onSidecarsReady).not.toHaveBeenCalled();
+
+    if (!releaseChannels) {
+      throw new Error("Expected channel startup release callback to be initialized");
+    }
+    releaseChannels();
+    await vi.waitFor(() => {
+      expect(onSidecarsReady).toHaveBeenCalledTimes(1);
+    });
+    expect(onPluginServices).toHaveBeenCalledTimes(1);
   });
 
   it("waits for sidecars by default before returning", async () => {
