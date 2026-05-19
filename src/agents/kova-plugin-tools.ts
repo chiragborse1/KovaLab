@@ -4,6 +4,11 @@ import { resolvePluginTools } from "../plugins/tools.js";
 import { getActiveSecretsRuntimeSnapshot } from "../secrets/runtime.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.js";
 import {
+  resolveApiKeyForProfile,
+  resolveAuthProfileOrder,
+  type AuthProfileStore,
+} from "./auth-profiles.js";
+import {
   resolveKovaPluginToolInputs,
   type KovaPluginToolOptions,
 } from "./kova-tools.plugin-context.js";
@@ -23,6 +28,7 @@ type ResolveKovaPluginToolsOptions = KovaPluginToolOptions & {
   requireExplicitMessageTarget?: boolean;
   disableMessageTool?: boolean;
   disablePluginTools?: boolean;
+  authProfileStore?: AuthProfileStore;
 };
 
 export function resolveKovaPluginToolsForOptions(params: {
@@ -49,13 +55,47 @@ export function resolveKovaPluginToolsForOptions(params: {
       runtimeSourceConfig: currentRuntimeSnapshot?.sourceConfig,
     });
   };
+  const authProfileStore = params.options?.authProfileStore;
+  const resolveAuthProfileIdsForProvider = authProfileStore
+    ? (providerId: string): string[] =>
+        resolveAuthProfileOrder({
+          cfg: resolveCurrentRuntimeConfig(),
+          store: authProfileStore,
+          provider: providerId,
+        })
+    : undefined;
+  const hasAuthForProvider = authProfileStore
+    ? (providerId: string) => (resolveAuthProfileIdsForProvider?.(providerId) ?? []).length > 0
+    : undefined;
+  const resolveApiKeyForProvider = authProfileStore
+    ? async (providerId: string): Promise<string | undefined> => {
+        for (const profileId of resolveAuthProfileIdsForProvider?.(providerId) ?? []) {
+          const resolved = await resolveApiKeyForProfile({
+            cfg: resolveCurrentRuntimeConfig(),
+            store: authProfileStore,
+            profileId,
+            agentDir: params.options?.agentDir,
+          });
+          if (resolved?.apiKey) {
+            return resolved.apiKey;
+          }
+        }
+        return undefined;
+      }
+    : undefined;
+  const pluginToolInputs = resolveKovaPluginToolInputs({
+    options: params.options,
+    resolvedConfig: params.resolvedConfig,
+    runtimeConfig: resolveCurrentRuntimeConfig(),
+    getRuntimeConfig: resolveCurrentRuntimeConfig,
+  });
   const pluginTools = resolvePluginTools({
-    ...resolveKovaPluginToolInputs({
-      options: params.options,
-      resolvedConfig: params.resolvedConfig,
-      runtimeConfig: resolveCurrentRuntimeConfig(),
-      getRuntimeConfig: resolveCurrentRuntimeConfig,
-    }),
+    ...pluginToolInputs,
+    context: {
+      ...pluginToolInputs.context,
+      ...(hasAuthForProvider ? { hasAuthForProvider } : {}),
+      ...(resolveApiKeyForProvider ? { resolveApiKeyForProvider } : {}),
+    },
     existingToolNames: params.existingToolNames ?? new Set<string>(),
     toolAllowlist: params.options?.pluginToolAllowlist,
     allowGatewaySubagentBinding: params.options?.allowGatewaySubagentBinding,

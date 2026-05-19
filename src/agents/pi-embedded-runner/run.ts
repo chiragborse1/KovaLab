@@ -486,11 +486,13 @@ export async function runEmbeddedPiAgent(
       const ctxInfo = resolvedRuntimeModel.ctxInfo;
       let effectiveModel = resolvedRuntimeModel.effectiveModel;
 
+      const fullAuthProfileStore = ensureAuthProfileStore(agentDir, {
+        allowKeychainPrompt: false,
+      });
       const authStore = pluginHarnessOwnsTransport
         ? createEmptyAuthProfileStore()
-        : ensureAuthProfileStore(agentDir, {
-            allowKeychainPrompt: false,
-          });
+        : fullAuthProfileStore;
+      const toolAuthProfileStore = agentHarness.id === "codex" ? fullAuthProfileStore : undefined;
       const preferredProfileId = params.authProfileId?.trim();
       let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
       if (lockedProfileId) {
@@ -984,6 +986,7 @@ export async function runEmbeddedPiAgent(
             authProfileIdSource: lockedProfileId ? "user" : "auto",
             initialReplayState: accumulatedReplayState,
             authStorage,
+            toolAuthProfileStore,
             modelRegistry,
             agentId: workspaceResolution.agentId,
             legacyBeforeAgentStartResult,

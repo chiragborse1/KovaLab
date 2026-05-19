@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
 import { activateSecretsRuntimeSnapshot, clearSecretsRuntimeSnapshot } from "../secrets/runtime.js";
+import type { AuthProfileStore } from "./auth-profiles.js";
 import { resolveKovaPluginToolsForOptions } from "./kova-plugin-tools.js";
 
 const hoisted = vi.hoisted(() => ({
@@ -118,6 +119,53 @@ describe("createKovaTools browser plugin integration", () => {
     const result = await browserTool.execute("tool-call", {});
     const details = (result.details ?? {}) as { workspaceOnly?: boolean | null };
     expect(details.workspaceOnly).toBe(true);
+  });
+
+  it("exposes auth profile helpers to plugin tool context", async () => {
+    let capturedContext:
+      | {
+          hasAuthForProvider?: (providerId: string) => boolean;
+          resolveApiKeyForProvider?: (providerId: string) => Promise<string | undefined>;
+        }
+      | undefined;
+    hoisted.resolvePluginTools.mockImplementation((params: unknown) => {
+      capturedContext = (
+        params as {
+          context?: {
+            hasAuthForProvider?: (providerId: string) => boolean;
+            resolveApiKeyForProvider?: (providerId: string) => Promise<string | undefined>;
+          };
+        }
+      ).context;
+      return [];
+    });
+
+    const config = {
+      plugins: {
+        allow: ["browser"],
+      },
+    } as KovaConfig;
+
+    resolveKovaPluginToolsForOptions({
+      options: {
+        config,
+        authProfileStore: {
+          version: 1,
+          profiles: {
+            "openai:default": {
+              type: "api_key",
+              provider: "openai",
+              key: "sk-test",
+            },
+          },
+        } satisfies AuthProfileStore,
+      },
+      resolvedConfig: config,
+    });
+
+    expect(capturedContext?.hasAuthForProvider?.("openai")).toBe(true);
+    expect(capturedContext?.hasAuthForProvider?.("anthropic")).toBe(false);
+    await expect(capturedContext?.resolveApiKeyForProvider?.("openai")).resolves.toBe("sk-test");
   });
 
   it("forwards gateway subagent binding to plugin resolution", () => {

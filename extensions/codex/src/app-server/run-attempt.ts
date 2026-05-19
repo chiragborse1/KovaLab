@@ -896,6 +896,7 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
       resolvedWorkspace: input.resolvedWorkspace,
     }),
     config: params.config,
+    authProfileStore: params.toolAuthProfileStore,
     abortSignal: input.runAbortController.signal,
     modelProvider: params.model.provider,
     modelId: params.modelId,

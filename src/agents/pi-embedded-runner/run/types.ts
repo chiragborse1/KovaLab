@@ -6,6 +6,7 @@ import type { SessionSystemPromptReport } from "../../../config/sessions/types.j
 import type { ContextEngine, ContextEnginePromptCacheInfo } from "../../../context-engine/types.js";
 import type { DiagnosticTraceContext } from "../../../infra/diagnostic-trace-context.js";
 import type { PluginHookBeforeAgentStartResult } from "../../../plugins/hook-before-agent-start.types.js";
+import type { AuthProfileStore } from "../../auth-profiles.js";
 import type { MessagingToolSend } from "../../pi-embedded-messaging.types.js";
 import type { AgentRuntimePlan } from "../../runtime-plan/types.js";
 import type { ToolErrorSummary } from "../../tool-error-summary.js";
@@ -40,6 +41,11 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   runtimePlan?: AgentRuntimePlan;
   model: Model<Api>;
   authStorage: AuthStorage;
+  /**
+   * Full auth profile store for plugin-owned tool availability.
+   * Plugin-owned harnesses may scope transport auth while tools still need plugin credentials.
+   */
+  toolAuthProfileStore?: AuthProfileStore;
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;

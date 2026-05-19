@@ -5,6 +5,7 @@ import { getActiveRuntimeWebToolsMetadata } from "../secrets/runtime.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import { resolveAgentWorkspaceDir, resolveSessionAgentIds } from "./agent-scope.js";
+import type { AuthProfileStore } from "./auth-profiles.js";
 import { resolveKovaPluginToolsForOptions } from "./kova-plugin-tools.js";
 import { applyNodesToolWorkspaceGuard } from "./kova-tools.nodes-workspace-guard.js";
 import {
@@ -95,6 +96,8 @@ export function createKovaTools(
     disableMessageTool?: boolean;
     /** If true, skip plugin tool resolution and return only shipped core tools. */
     disablePluginTools?: boolean;
+    /** Active auth profile store for plugin-owned tools. */
+    authProfileStore?: AuthProfileStore;
     /** Trusted sender id from inbound context (not tool args). */
     requesterSenderId?: string | null;
     /** Whether the requesting sender is an owner. */

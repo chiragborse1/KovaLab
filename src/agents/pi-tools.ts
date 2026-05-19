@@ -13,6 +13,7 @@ import {
 import { resolveGatewayMessageChannel } from "../utils/message-channel.js";
 import { resolveAgentConfig } from "./agent-scope.js";
 import { createApplyPatchTool } from "./apply-patch.js";
+import type { AuthProfileStore } from "./auth-profiles.js";
 import { describeExecTool, describeProcessTool } from "./bash-tools.descriptions.js";
 import type { ExecToolDefaults } from "./bash-tools.exec-types.js";
 import type { ProcessToolDefaults } from "./bash-tools.process.js";
@@ -343,6 +344,8 @@ export function createKovaCodingTools(options?: {
   disableMessageTool?: boolean;
   /** Keep the message tool available even when the selected profile omits it. */
   forceMessageTool?: boolean;
+  /** Active auth profile store for plugin-owned tools. */
+  authProfileStore?: AuthProfileStore;
   /** Whether the sender is an owner (required for owner-only tools). */
   senderIsOwner?: boolean;
   /** Callback invoked when sessions_yield tool is called. */
@@ -631,6 +634,7 @@ export function createKovaCodingTools(options?: {
       modelHasVision: options?.modelHasVision,
       requireExplicitMessageTarget: options?.requireExplicitMessageTarget,
       disableMessageTool: options?.disableMessageTool,
+      authProfileStore: options?.authProfileStore,
       requesterAgentIdOverride: agentId,
       requesterSenderId: options?.senderId,
       senderIsOwner: options?.senderIsOwner,

@@ -143,6 +143,12 @@ tool({
 });
 ```
 
+Provider-backed tool factories can also check trusted auth availability through
+`toolContext.hasAuthForProvider("provider-id")` and resolve the active key or
+token with `toolContext.resolveApiKeyForProvider("provider-id")`. These helpers
+respect Kova auth-profile order, eligibility, and SecretRef resolution for the
+current run.
+
 Factories are still for fixed tool names. Use `definePluginEntry` directly when
 the plugin computes tool names dynamically or combines tools with hooks,
 services, providers, commands, or other runtime surfaces.
