@@ -784,6 +784,99 @@ describe("TelegramPollingSession", () => {
     }
   });
 
+  it("marks a timed out isolated spool handler failed so later drains can recover", async () => {
+    const abort = new AbortController();
+    const spoolDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-telegram-ingress-timeout-"));
+    let releaseFirstUpdate: (() => void) | undefined;
+    const firstUpdateDone = new Promise<void>((resolve) => {
+      releaseFirstUpdate = resolve;
+    });
+    const firstUpdateStarted = vi.fn();
+    const handleUpdate = vi.fn(async (update: { update_id?: number }) => {
+      if (update.update_id === 42) {
+        firstUpdateStarted();
+        await firstUpdateDone;
+      }
+    });
+    let stopWorker: (() => void) | undefined;
+    const workerDone = new Promise<void>((resolve) => {
+      stopWorker = resolve;
+    });
+    const workerStop = vi.fn(async () => {
+      stopWorker?.();
+    });
+    const createWorker = vi.fn(() => ({
+      onMessage: vi.fn(() => () => undefined),
+      stop: workerStop,
+      task: async () => {
+        await workerDone;
+      },
+    }));
+    const log = vi.fn();
+    try {
+      await writeTelegramSpooledUpdate({
+        spoolDir,
+        update: { update_id: 42, message: { chat: { id: 123 }, message_id: 7, text: "slow" } },
+      });
+      await writeTelegramSpooledUpdate({
+        spoolDir,
+        update: { update_id: 43, message: { chat: { id: 123 }, message_id: 8, text: "later" } },
+      });
+      createTelegramBotMock.mockReturnValueOnce({
+        api: {
+          deleteWebhook: vi.fn(async () => true),
+          config: { use: vi.fn() },
+        },
+        init: vi.fn(async () => undefined),
+        handleUpdate,
+        stop: vi.fn(async () => undefined),
+      });
+
+      const session = new TelegramPollingSession({
+        token: "tok",
+        config: {},
+        accountId: "default",
+        runtime: undefined,
+        proxyFetch: undefined,
+        abortSignal: abort.signal,
+        runnerOptions: {},
+        getLastUpdateId: () => null,
+        persistUpdateId: async () => undefined,
+        log,
+        telegramTransport: makeTelegramTransport(),
+        isolatedIngress: {
+          enabled: true,
+          spoolDir,
+          createWorker,
+          drainIntervalMs: 5,
+          spooledUpdateHandlerTimeoutMs: 1,
+          spooledUpdateHandlerAbortGraceMs: 1,
+        },
+      });
+
+      const runPromise = session.runUntilAbort();
+      await vi.waitFor(() => expect(firstUpdateStarted).toHaveBeenCalledTimes(1));
+      await vi.waitFor(async () => {
+        expect((await fs.readdir(spoolDir)).some((entry) => entry.endsWith(".json.failed"))).toBe(
+          true,
+        );
+      });
+
+      expect(handleUpdate).toHaveBeenCalledTimes(1);
+      expect(log).toHaveBeenCalledWith(
+        expect.stringContaining("timed out spooled update 42 had no active reply fence"),
+      );
+
+      releaseFirstUpdate?.();
+      abort.abort();
+      await runPromise;
+    } finally {
+      releaseFirstUpdate?.();
+      stopWorker?.();
+      await fs.rm(spoolDir, { recursive: true, force: true });
+    }
+  });
+
   it("does not trigger stall restart shortly after a getUpdates error", async () => {
     const abort = new AbortController();
     const botStop = vi.fn(async () => undefined);

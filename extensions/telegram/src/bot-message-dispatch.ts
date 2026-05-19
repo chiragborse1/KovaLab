@@ -9,7 +9,6 @@ import {
   resolveChannelStreamingBlockEnabled,
   resolveChannelStreamingPreviewToolProgress,
 } from "getkova/plugin-sdk/channel-streaming";
-import { isAbortRequestText } from "getkova/plugin-sdk/command-primitives-runtime";
 import type {
   KovaConfig,
   ReplyToMode,
@@ -85,9 +84,27 @@ import {
   splitTelegramReasoningText,
 } from "./reasoning-lane-coordinator.js";
 import { editMessageTelegram } from "./send.js";
+import { getTelegramSequentialKey } from "./sequential-key.js";
 import { cacheSticker, describeStickerImage } from "./sticker-cache.js";
+import {
+  beginTelegramReplyFence,
+  buildTelegramReplyFenceLaneKey,
+  endTelegramReplyFence,
+  getTelegramReplyFenceSizeForTests,
+  isTelegramReplyFenceSuperseded,
+  resetTelegramReplyFenceForTests,
+  resolveTelegramReplyFenceKey,
+  shouldSupersedeTelegramReplyFence,
+  supersedeTelegramReplyFence,
+} from "./telegram-reply-fence.js";
 
 export { pruneStickerMediaFromContext } from "./bot-message-dispatch.media.js";
+export {
+  getTelegramReplyFenceSizeForTests,
+  resetTelegramReplyFenceForTests,
+  getTelegramReplyFenceSizeForTests as getTelegramAbortFenceSizeForTests,
+  resetTelegramReplyFenceForTests as resetTelegramAbortFenceForTests,
+};
 
 const EMPTY_RESPONSE_FALLBACK = "No response generated. Please try again.";
 const silentReplyDispatchLogger = createSubsystemLogger("telegram/silent-reply-dispatch");
@@ -123,71 +140,6 @@ type DispatchTelegramMessageParams = {
 };
 
 type TelegramReasoningLevel = "off" | "on" | "stream";
-
-type TelegramAbortFenceState = {
-  generation: number;
-  activeDispatches: number;
-};
-
-// Abort can arrive on Telegram's control lane ahead of older same-session reply work.
-const telegramAbortFenceByKey = new Map<string, TelegramAbortFenceState>();
-
-function normalizeTelegramFenceKey(value: unknown): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function resolveTelegramAbortFenceKey(params: {
-  ctxPayload: { SessionKey?: string; CommandTargetSessionKey?: string };
-  chatId: number | string;
-  threadSpec: { id?: number | string | null; scope?: string };
-}): string {
-  return (
-    normalizeTelegramFenceKey(params.ctxPayload.CommandTargetSessionKey) ??
-    normalizeTelegramFenceKey(params.ctxPayload.SessionKey) ??
-    `telegram:${String(params.chatId)}:${params.threadSpec.scope ?? "default"}:${params.threadSpec.id ?? "root"}`
-  );
-}
-
-function beginTelegramAbortFence(params: { key: string; supersede: boolean }): number {
-  const existing = telegramAbortFenceByKey.get(params.key);
-  const state: TelegramAbortFenceState = existing ?? {
-    generation: 0,
-    activeDispatches: 0,
-  };
-  if (params.supersede) {
-    state.generation += 1;
-  }
-  state.activeDispatches += 1;
-  telegramAbortFenceByKey.set(params.key, state);
-  return state.generation;
-}
-
-function isTelegramAbortFenceSuperseded(params: { key: string; generation: number }): boolean {
-  return (telegramAbortFenceByKey.get(params.key)?.generation ?? 0) !== params.generation;
-}
-
-function endTelegramAbortFence(key: string): void {
-  const state = telegramAbortFenceByKey.get(key);
-  if (!state) {
-    return;
-  }
-  state.activeDispatches -= 1;
-  if (state.activeDispatches <= 0) {
-    telegramAbortFenceByKey.delete(key);
-  }
-}
-
-export function getTelegramAbortFenceSizeForTests(): number {
-  return telegramAbortFenceByKey.size;
-}
-
-export function resetTelegramAbortFenceForTests(): void {
-  telegramAbortFenceByKey.clear();
-}
 
 function resolveTelegramReasoningLevel(params: {
   cfg: KovaConfig;
@@ -307,25 +259,38 @@ export const dispatchTelegramMessage = async ({
     }
     await statusReactionController.restoreInitial();
   };
-  const dispatchFenceKey = resolveTelegramAbortFenceKey({
+  const replyFenceKey = resolveTelegramReplyFenceKey({
     ctxPayload,
     chatId,
     threadSpec,
   });
-  let abortFenceGeneration: number | undefined;
+  const replyFenceLaneKey = getTelegramSequentialKey({
+    message: msg,
+    ...(context.primaryCtx.me ? { me: context.primaryCtx.me } : {}),
+  });
+  const scopedReplyFenceLaneKey = buildTelegramReplyFenceLaneKey({
+    accountId: route.accountId,
+    sequentialKey: replyFenceLaneKey,
+  });
+  let replyFenceGeneration: number | undefined;
+  const replyAbortController = new AbortController();
+  let replyAbortControllerQueued = false;
   let dispatchWasSuperseded = false;
   const isDispatchSuperseded = () =>
-    abortFenceGeneration !== undefined &&
-    isTelegramAbortFenceSuperseded({
-      key: dispatchFenceKey,
-      generation: abortFenceGeneration,
+    replyFenceGeneration !== undefined &&
+    isTelegramReplyFenceSuperseded({
+      key: replyFenceKey.activeKey,
+      generation: replyFenceGeneration,
     });
-  const releaseAbortFence = () => {
-    if (abortFenceGeneration === undefined) {
+  const releaseReplyFence = () => {
+    if (replyFenceGeneration === undefined) {
       return;
     }
-    endTelegramAbortFence(dispatchFenceKey);
-    abortFenceGeneration = undefined;
+    endTelegramReplyFence(
+      replyFenceKey.activeKey,
+      replyAbortControllerQueued ? undefined : replyAbortController,
+    );
+    replyFenceGeneration = undefined;
   };
   const draftMaxChars = Math.min(textLimit, 4096);
   const tableMode = resolveMarkdownTableMode({
@@ -616,13 +581,15 @@ export const dispatchTelegramMessage = async ({
           : undefined;
 
   const chunkMode = resolveChunkMode(cfg, "telegram", route.accountId);
-  const shouldSupersedeAbortFence =
-    ctxPayload.CommandAuthorized &&
-    isAbortRequestText(ctxPayload.CommandBody ?? ctxPayload.RawBody ?? ctxPayload.Body ?? "");
-
-  abortFenceGeneration = beginTelegramAbortFence({
-    key: dispatchFenceKey,
-    supersede: shouldSupersedeAbortFence,
+  const supersedeReplyFence = shouldSupersedeTelegramReplyFence(ctxPayload);
+  if (ctxPayload.InboundEventKind !== "room_event" && supersedeReplyFence) {
+    supersedeTelegramReplyFence(replyFenceKey.roomEventKey);
+  }
+  replyFenceGeneration = beginTelegramReplyFence({
+    key: replyFenceKey.activeKey,
+    supersede: supersedeReplyFence,
+    abortController: replyAbortController,
+    laneKey: scopedReplyFenceLaneKey,
   });
 
   const implicitQuoteReplyTargetId =
@@ -1033,6 +1000,7 @@ export const dispatchTelegramMessage = async ({
         replyOptions: {
           skillFilter,
           disableBlockStreaming,
+          abortSignal: replyAbortController.signal,
           onPartialReply:
             answerLane.stream || reasoningLane.stream
               ? (payload) =>
@@ -1228,7 +1196,7 @@ export const dispatchTelegramMessage = async ({
     }
   } finally {
     dispatchWasSuperseded = isDispatchSuperseded();
-    releaseAbortFence();
+    releaseReplyFence();
     endTelegramInboundTurnDeliveryCorrelation();
   }
   if (dispatchWasSuperseded) {
