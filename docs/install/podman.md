@@ -62,6 +62,7 @@ Optional build/setup env vars:
 
 - `KOVA_IMAGE` or `KOVA_PODMAN_IMAGE` -- use an existing/pulled image instead of building `kova:local`
 - `KOVA_IMAGE_APT_PACKAGES` -- install extra apt packages during image build
+- `KOVA_IMAGE_PIP_PACKAGES` -- install extra Python packages during image build
 - `KOVA_EXTENSIONS` -- pre-install plugin dependencies at build time
 
 Container start:

@@ -127,6 +127,7 @@ The setup script accepts these optional environment variables:
 | -------------------------------------- | --------------------------------------------------------------- |
 | `KOVA_IMAGE`                           | Use a remote image instead of building locally                  |
 | `KOVA_IMAGE_APT_PACKAGES`              | Install extra apt packages during build (space-separated)       |
+| `KOVA_IMAGE_PIP_PACKAGES`              | Install extra Python packages during build (space-separated)    |
 | `KOVA_EXTENSIONS`                      | Pre-install plugin deps at build time (space-separated names)   |
 | `KOVA_EXTRA_MOUNTS`                    | Extra host bind mounts (comma-separated `source:target[:opts]`) |
 | `KOVA_HOME_VOLUME`                     | Persist `/home/node` in a named Docker volume                   |
@@ -376,12 +377,13 @@ See [KovaDock](/install/kovadock) for the full helper guide.
 
     1. **Persist `/home/node`**: `export KOVA_HOME_VOLUME="kova_home"`
     2. **Bake system deps**: `export KOVA_IMAGE_APT_PACKAGES="git curl jq"`
-    3. **Install Playwright browsers**:
+    3. **Bake Python deps**: `export KOVA_IMAGE_PIP_PACKAGES="requests humanize"`
+    4. **Install Playwright browsers**:
        ```bash
        docker compose run --rm kova-cli \
          node /app/node_modules/playwright-core/cli.js install chromium
        ```
-    4. **Persist browser downloads**: set
+    5. **Persist browser downloads**: set
        `PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright` and use
        `KOVA_HOME_VOLUME` or `KOVA_EXTRA_MOUNTS`.
 

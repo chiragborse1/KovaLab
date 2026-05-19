@@ -455,6 +455,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
 
     - Persist `/home/node` with `KOVA_HOME_VOLUME` so caches survive.
     - Bake system deps into the image with `KOVA_IMAGE_APT_PACKAGES`.
+    - Bake Python deps into the image with `KOVA_IMAGE_PIP_PACKAGES`.
     - Install Playwright browsers via the bundled CLI:
       `node /app/node_modules/playwright-core/cli.js install chromium`
     - Set `PLAYWRIGHT_BROWSERS_PATH` and ensure the path is persisted.
