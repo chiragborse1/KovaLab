@@ -127,6 +127,8 @@ Modes:
 - `block`: preview updates in chunked/appended steps.
 - `progress`: progress/status preview during generation, final answer at completion.
 
+For detailed setup and behavior, see [Progress drafts](/concepts/progress-drafts).
+
 ### Channel mapping
 
 | Channel    | `off` | `partial` | `block` | `progress` |
