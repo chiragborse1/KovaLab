@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AgentInternalEvent } from "./internal-events.js";
+import type { EmbeddedPiQueueFailureReason } from "./pi-embedded-runner/runs.js";
 import {
   __testing,
   deliverSubagentAnnouncement,
@@ -7,6 +8,7 @@ import {
 } from "./subagent-announce-delivery.js";
 import {
   callGateway as runtimeCallGateway,
+  queueEmbeddedPiMessageWithOutcome as runtimeQueueEmbeddedPiMessageWithOutcome,
   sendMessage as runtimeSendMessage,
 } from "./subagent-announce-delivery.runtime.js";
 import { resolveAnnounceOrigin } from "./subagent-announce-origin.js";
@@ -28,6 +30,15 @@ function createGatewayMock(response: Record<string, unknown> = {}) {
   return vi.fn(async () => response) as unknown as typeof runtimeCallGateway;
 }
 
+function createGatewaySequenceMock(responses: Record<string, unknown>[]) {
+  let index = 0;
+  return vi.fn(async () => {
+    const response = responses[Math.min(index, responses.length - 1)] ?? {};
+    index += 1;
+    return response;
+  }) as unknown as ReturnType<typeof vi.fn> & typeof runtimeCallGateway;
+}
+
 function createSendMessageMock() {
   return vi.fn(async () => ({
     channel: "slack",
@@ -45,6 +56,7 @@ async function deliverSlackThreadAnnouncement(params: {
   expectsCompletionMessage: boolean;
   directIdempotencyKey: string;
   queueEmbeddedPiMessage?: (sessionId: string, message: string) => boolean;
+  queueEmbeddedPiMessageWithOutcome?: typeof runtimeQueueEmbeddedPiMessageWithOutcome;
   sendMessage?: typeof runtimeSendMessage;
   internalEvents?: AgentInternalEvent[];
 }) {
@@ -57,6 +69,9 @@ async function deliverSlackThreadAnnouncement(params: {
     getRuntimeConfig: () => ({}) as never,
     ...(params.queueEmbeddedPiMessage
       ? { queueEmbeddedPiMessage: params.queueEmbeddedPiMessage }
+      : {}),
+    ...(params.queueEmbeddedPiMessageWithOutcome
+      ? { queueEmbeddedPiMessageWithOutcome: params.queueEmbeddedPiMessageWithOutcome }
       : {}),
     ...(params.sendMessage ? { sendMessage: params.sendMessage } : {}),
   });
@@ -76,6 +91,29 @@ async function deliverSlackThreadAnnouncement(params: {
     directIdempotencyKey: params.directIdempotencyKey,
     internalEvents: params.internalEvents,
   });
+}
+
+function createQueueOutcomeSequenceMock(
+  queuedOutcomes: (boolean | EmbeddedPiQueueFailureReason)[],
+): typeof runtimeQueueEmbeddedPiMessageWithOutcome {
+  let index = 0;
+  return vi.fn((sessionId: string) => {
+    const outcome = queuedOutcomes[Math.min(index, queuedOutcomes.length - 1)] ?? false;
+    index += 1;
+    return outcome === true
+      ? {
+          queued: true,
+          sessionId,
+          target: "embedded_run",
+          gatewayHealth: "live",
+        }
+      : {
+          queued: false,
+          sessionId,
+          reason: typeof outcome === "string" ? outcome : "no_active_run",
+          gatewayHealth: "live",
+        };
+  }) as unknown as typeof runtimeQueueEmbeddedPiMessageWithOutcome;
 }
 
 async function deliverDiscordDirectMessageCompletion(params: {
@@ -639,6 +677,116 @@ describe("deliverSubagentAnnouncement completion delivery", () => {
         content: "child completion output",
       }),
     );
+  });
+
+  it("forces message-tool thread completions after transcript-wait wake falls stale", async () => {
+    const callGateway = createGatewaySequenceMock([
+      {
+        result: {
+          payloads: [],
+        },
+      },
+      {
+        result: {
+          payloads: [],
+          messagingToolSentTargets: [
+            {
+              tool: "message",
+              provider: "slack",
+              accountId: "acct-1",
+              to: "channel:C123",
+              threadId: "171.222",
+              text: "The background task completed.",
+            },
+          ],
+        },
+      },
+    ]);
+    const sendMessage = createSendMessageMock();
+    const queueEmbeddedPiMessageWithOutcome = createQueueOutcomeSequenceMock([
+      "transcript_commit_wait_unsupported",
+      "no_active_run",
+    ]);
+    const result = await deliverSlackThreadAnnouncement({
+      callGateway,
+      sendMessage,
+      queueEmbeddedPiMessageWithOutcome,
+      sessionId: "requester-session-4",
+      isActive: true,
+      expectsCompletionMessage: true,
+      directIdempotencyKey: "announce-thread-fallback-empty",
+      internalEvents: [
+        {
+          type: "task_completion",
+          source: "subagent",
+          childSessionKey: "agent:worker:subagent:child",
+          childSessionId: "child-session-id",
+          announceType: "subagent task",
+          taskLabel: "thread completion smoke",
+          status: "ok",
+          statusLabel: "completed successfully",
+          result: "child completion output",
+          replyInstruction: "Summarize the result.",
+        },
+      ],
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        delivered: true,
+        path: "direct",
+      }),
+    );
+    expect(callGateway).toHaveBeenCalledTimes(2);
+    expect(callGateway).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        method: "agent",
+        params: expect.objectContaining({
+          deliver: true,
+          channel: "slack",
+          accountId: "acct-1",
+          to: "channel:C123",
+          threadId: "171.222",
+        }),
+      }),
+    );
+    expect(callGateway).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        method: "agent",
+        params: expect.objectContaining({
+          deliver: false,
+          channel: "slack",
+          accountId: "acct-1",
+          to: "channel:C123",
+          threadId: "171.222",
+          sourceReplyDeliveryMode: "message_tool_only",
+          idempotencyKey: "announce-thread-fallback-empty:message-tool",
+        }),
+      }),
+    );
+    expect(queueEmbeddedPiMessageWithOutcome).toHaveBeenCalledTimes(2);
+    expect(queueEmbeddedPiMessageWithOutcome).toHaveBeenNthCalledWith(
+      1,
+      "requester-session-4",
+      "child done",
+      expect.objectContaining({
+        deliveryTimeoutMs: 120_000,
+        steeringMode: "all",
+        waitForTranscriptCommit: true,
+      }),
+    );
+    expect(queueEmbeddedPiMessageWithOutcome).toHaveBeenNthCalledWith(
+      2,
+      "requester-session-4",
+      "child done",
+      expect.objectContaining({
+        deliveryTimeoutMs: 120_000,
+        steeringMode: "all",
+      }),
+    );
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 
   it("uses a direct thread fallback when announce-agent returns no visible output", async () => {

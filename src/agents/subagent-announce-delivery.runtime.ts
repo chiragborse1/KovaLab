@@ -15,5 +15,6 @@ export { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 export {
   isEmbeddedPiRunActive,
   queueEmbeddedPiMessage,
+  queueEmbeddedPiMessageWithOutcome,
   resolveActiveEmbeddedRunSessionId,
 } from "./pi-embedded-runner/runs.js";

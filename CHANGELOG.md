@@ -13,6 +13,7 @@
 
 ### Fixes
 
+- Agents/subagents: recover stale completion announces by retrying unsupported transcript-wait wakes and forcing message-tool delivery when the requester run disappears mid-handoff. Thanks @galiniliev
 - Telegram/replies: keep queued follow-up turns detached from superseded dispatch abort signals while preserving explicit queued cancellation hooks. Thanks @VACInc
 - Agents/replies: suppress duplicate queued user messages and assistant error separators across embedded model fallback retries, keeping follow-up transcripts valid after provider failures. Thanks @chiragborse1
 - Agents/OpenAI streams: yield cooperatively while processing bursty Completions and Responses chunks, keeping aborts, channel liveness timers, and startup heartbeats responsive under noisy model output. Thanks @chiragborse1
