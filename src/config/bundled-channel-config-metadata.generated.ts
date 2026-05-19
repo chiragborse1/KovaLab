@@ -3415,11 +3415,11 @@ export const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA = [
       },
       streaming: {
         label: "Discord Streaming Mode",
-        help: 'Unified Discord stream preview mode: "off" | "partial" | "block" | "progress". "progress" maps to "partial" on Discord. Legacy boolean/streamMode keys are auto-mapped.',
+        help: 'Unified Discord stream preview mode: "off" | "partial" | "block" | "progress" (default: "progress"). Legacy boolean/streamMode keys are auto-mapped.',
       },
       "streaming.mode": {
         label: "Discord Streaming Mode",
-        help: 'Canonical Discord preview mode: "off" | "partial" | "block" | "progress". "progress" maps to "partial" on Discord.',
+        help: 'Canonical Discord preview mode: "off" | "partial" | "block" | "progress" (default: "progress").',
       },
       "streaming.chunkMode": {
         label: "Discord Chunk Mode",
@@ -15080,11 +15080,11 @@ export const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA = [
       },
       streaming: {
         label: "Telegram Streaming Mode",
-        help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram. Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.',
+        help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.',
       },
       "streaming.mode": {
         label: "Telegram Streaming Mode",
-        help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram.',
+        help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial").',
       },
       "streaming.chunkMode": {
         label: "Telegram Chunk Mode",

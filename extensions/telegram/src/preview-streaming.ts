@@ -1,6 +1,9 @@
-import { resolveChannelPreviewStreamMode } from "getkova/plugin-sdk/channel-streaming";
+import {
+  resolveChannelPreviewStreamMode,
+  type StreamingMode,
+} from "getkova/plugin-sdk/channel-streaming";
 
-export type TelegramPreviewStreamMode = "off" | "partial" | "block";
+export type TelegramPreviewStreamMode = StreamingMode;
 
 export function resolveTelegramPreviewStreamMode(
   params: {

@@ -18,8 +18,11 @@ import {
 import { deliverFinalizableDraftPreview } from "getkova/plugin-sdk/channel-lifecycle";
 import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
 import {
+  formatChannelProgressDraftText,
+  mergeChannelProgressDraftLine,
   resolveChannelStreamingBlockEnabled,
   resolveChannelStreamingPreviewToolProgress,
+  type ChannelProgressDraftLine,
 } from "getkova/plugin-sdk/channel-streaming";
 import { resolveChannelContextVisibilityMode } from "getkova/plugin-sdk/context-visibility-runtime";
 import { recordInboundSession } from "getkova/plugin-sdk/conversation-runtime";
@@ -638,24 +641,30 @@ export async function processDiscordMessage(
   const previewToolProgressEnabled =
     Boolean(draftStream) && resolveChannelStreamingPreviewToolProgress(discordConfig);
   let previewToolProgressSuppressed = false;
-  let previewToolProgressLines: string[] = [];
+  let previewToolProgressLines: Array<string | ChannelProgressDraftLine> = [];
 
-  const pushPreviewToolProgress = (line?: string) => {
+  const pushPreviewToolProgress = (line?: string | ChannelProgressDraftLine) => {
     if (!draftStream || !previewToolProgressEnabled || previewToolProgressSuppressed) {
       return;
     }
-    const normalized = line?.replace(/\s+/g, " ").trim();
+    const normalized =
+      typeof line === "string"
+        ? line.replace(/\s+/g, " ").trim()
+        : line?.text.replace(/\s+/g, " ").trim();
     if (!normalized) {
       return;
     }
-    const previous = previewToolProgressLines.at(-1);
-    if (previous === normalized) {
+    const nextLines = mergeChannelProgressDraftLine(previewToolProgressLines, line, {
+      maxLines: 8,
+    });
+    if (nextLines === previewToolProgressLines) {
       return;
     }
-    previewToolProgressLines = [...previewToolProgressLines, normalized].slice(-8);
-    const previewText = ["Working…", ...previewToolProgressLines.map((entry) => `• ${entry}`)].join(
-      "\n",
-    );
+    previewToolProgressLines = nextLines;
+    const previewText = formatChannelProgressDraftText({
+      entry: discordConfig,
+      lines: previewToolProgressLines,
+    });
     lastPartialText = previewText;
     draftText = previewText;
     hasStreamedMessage = true;

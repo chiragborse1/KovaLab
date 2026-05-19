@@ -31,11 +31,11 @@ export const telegramChannelConfigUiHints = {
   },
   streaming: {
     label: "Telegram Streaming Mode",
-    help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram. Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.',
+    help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.',
   },
   "streaming.mode": {
     label: "Telegram Streaming Mode",
-    help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram.',
+    help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial").',
   },
   "streaming.chunkMode": {
     label: "Telegram Chunk Mode",

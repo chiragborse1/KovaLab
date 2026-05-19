@@ -6,8 +6,11 @@ import {
 } from "getkova/plugin-sdk/channel-feedback";
 import { createChannelReplyPipeline } from "getkova/plugin-sdk/channel-reply-pipeline";
 import {
+  formatChannelProgressDraftText,
+  mergeChannelProgressDraftLine,
   resolveChannelStreamingBlockEnabled,
   resolveChannelStreamingPreviewToolProgress,
+  type ChannelProgressDraftLine,
 } from "getkova/plugin-sdk/channel-streaming";
 import type {
   KovaConfig,
@@ -436,24 +439,30 @@ export const dispatchTelegramMessage = async ({
   const previewToolProgressEnabled =
     Boolean(answerLane.stream) && resolveChannelStreamingPreviewToolProgress(telegramCfg);
   let previewToolProgressSuppressed = false;
-  let previewToolProgressLines: string[] = [];
-  const pushPreviewToolProgress = (line?: string) => {
+  let previewToolProgressLines: Array<string | ChannelProgressDraftLine> = [];
+  const pushPreviewToolProgress = (line?: string | ChannelProgressDraftLine) => {
     if (!previewToolProgressEnabled || previewToolProgressSuppressed || !answerLane.stream) {
       return;
     }
-    const normalized = line?.replace(/\s+/g, " ").trim();
+    const normalized =
+      typeof line === "string"
+        ? line.replace(/\s+/g, " ").trim()
+        : line?.text.replace(/\s+/g, " ").trim();
     if (!normalized) {
       return;
     }
-    const previous = previewToolProgressLines.at(-1);
-    if (previous === normalized) {
+    const nextLines = mergeChannelProgressDraftLine(previewToolProgressLines, line, {
+      maxLines: 8,
+    });
+    if (nextLines === previewToolProgressLines) {
       return;
     }
-    previewToolProgressLines = [...previewToolProgressLines, normalized].slice(-8);
-    const previewText = [
-      "Working…",
-      ...previewToolProgressLines.map((entry) => `• ${formatProgressAsMarkdownCode(entry)}`),
-    ].join("\n");
+    previewToolProgressLines = nextLines;
+    const previewText = formatChannelProgressDraftText({
+      entry: telegramCfg,
+      lines: previewToolProgressLines,
+      formatLine: formatProgressAsMarkdownCode,
+    });
     answerLane.lastPartialText = previewText;
     answerLane.stream.update(previewText);
   };
