@@ -1,13 +1,18 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { PluginCommandContext } from "getkova/plugin-sdk/plugin-entry";
+import type { PluginCommandContext, PluginCommandResult } from "getkova/plugin-sdk/plugin-entry";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CODEX_CONTROL_METHODS } from "./app-server/capabilities.js";
 import type { CodexComputerUseStatus } from "./app-server/computer-use.js";
 import type { CodexAppServerStartOptions } from "./app-server/config.js";
 import { resetSharedCodexAppServerClientForTests } from "./app-server/shared-client.js";
 import type { CodexCommandDeps } from "./command-handlers.js";
+import type {
+  CodexPluginConfigEntry,
+  CodexPluginsConfigBlock,
+  CodexPluginsManagementIO,
+} from "./command-plugins-management.js";
 import { handleCodexCommand } from "./commands.js";
 
 let tempDir: string;
@@ -51,6 +56,38 @@ function createDeps(overrides: Partial<CodexCommandDeps> = {}): Partial<CodexCom
   };
 }
 
+function inMemoryCodexPluginsIO(
+  initial: Record<string, CodexPluginConfigEntry> = {},
+  options: { enabled?: boolean } = { enabled: true },
+): CodexPluginsManagementIO & {
+  current: () => Record<string, CodexPluginConfigEntry>;
+  currentConfig: () => CodexPluginsConfigBlock;
+} {
+  const store: CodexPluginsConfigBlock = {
+    enabled: options.enabled,
+    plugins: JSON.parse(JSON.stringify(initial)),
+  };
+  return {
+    current: () => JSON.parse(JSON.stringify(store.plugins ?? {})),
+    currentConfig: () => JSON.parse(JSON.stringify(store)),
+    readConfig: () => Promise.resolve(JSON.parse(JSON.stringify(store))),
+    mutate: async (update) => {
+      update(store);
+    },
+  };
+}
+
+function requireResultText(result: PluginCommandResult): string {
+  if (typeof result.text !== "string") {
+    throw new Error("expected command result text");
+  }
+  return result.text;
+}
+
+function expectResultTextContains(result: PluginCommandResult, expected: string): void {
+  expect(requireResultText(result)).toContain(expected);
+}
+
 describe("codex command", () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-codex-command-"));
@@ -59,6 +96,46 @@ describe("codex command", () => {
   afterEach(async () => {
     resetSharedCodexAppServerClientForTests();
     await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("lists Codex sub-plugins through the /codex plugins command surface", async () => {
+    const codexPluginsManagementIo = inMemoryCodexPluginsIO({
+      "google-calendar": {
+        enabled: true,
+        marketplaceName: "openai-curated",
+        pluginName: "google-calendar",
+      },
+    });
+
+    const result = await handleCodexCommand(createContext("plugins list"), {
+      deps: createDeps({ codexPluginsManagementIo }),
+    });
+
+    expectResultTextContains(result, "ON   google-calendar");
+    expectResultTextContains(result, "kova.json");
+  });
+
+  it("enables and disables Codex sub-plugins through the /codex plugins command surface", async () => {
+    const codexPluginsManagementIo = inMemoryCodexPluginsIO({
+      "google-calendar": {
+        enabled: true,
+        marketplaceName: "openai-curated",
+        pluginName: "google-calendar",
+      },
+    });
+
+    const disabled = await handleCodexCommand(createContext("plugins disable google-calendar"), {
+      deps: createDeps({ codexPluginsManagementIo }),
+    });
+    expectResultTextContains(disabled, "google-calendar: disabled in kova.json");
+    expect(codexPluginsManagementIo.current()["google-calendar"]?.enabled).toBe(false);
+
+    const enabled = await handleCodexCommand(createContext("plugins enable google-calendar"), {
+      deps: createDeps({ codexPluginsManagementIo }),
+    });
+    expectResultTextContains(enabled, "google-calendar: enabled in kova.json");
+    expect(codexPluginsManagementIo.currentConfig().enabled).toBe(true);
+    expect(codexPluginsManagementIo.current()["google-calendar"]?.enabled).toBe(true);
   });
 
   it("attaches the current session to an existing Codex thread", async () => {

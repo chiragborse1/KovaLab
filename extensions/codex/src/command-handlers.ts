@@ -18,11 +18,16 @@ import {
   formatAccount,
   formatComputerUseStatus,
   formatCodexStatus,
+  formatCodexDisplayText,
   formatList,
   formatModels,
   formatThreads,
   readString,
 } from "./command-formatters.js";
+import {
+  handleCodexPluginsSubcommand,
+  type CodexPluginsManagementIO,
+} from "./command-plugins-management.js";
 import {
   codexControlRequest,
   readCodexStatusProbes,
@@ -66,6 +71,7 @@ export type CodexCommandDeps = {
   setCodexConversationPermissions: typeof setCodexConversationPermissions;
   steerCodexConversationTurn: typeof steerCodexConversationTurn;
   stopCodexConversationTurn: typeof stopCodexConversationTurn;
+  codexPluginsManagementIo?: CodexPluginsManagementIO;
 };
 
 type CodexControlRequestFn = (
@@ -125,6 +131,16 @@ export async function handleCodexSubcommand(
   const normalized = subcommand.toLowerCase();
   if (normalized === "help") {
     return { text: buildHelp() };
+  }
+  if (normalized === "plugins") {
+    if (!deps.codexPluginsManagementIo) {
+      return {
+        text:
+          "Codex sub-plugin management is not wired up in this runtime. " +
+          "Edit ~/.kova/kova.json or use `kova config patch` until plugin config mutation is available.",
+      };
+    }
+    return await handleCodexPluginsSubcommand(ctx, rest, deps.codexPluginsManagementIo);
   }
   if (normalized === "status") {
     return { text: formatCodexStatus(await deps.readCodexStatusProbes(options.pluginConfig)) };
@@ -224,7 +240,7 @@ export async function handleCodexSubcommand(
     ]);
     return { text: formatAccount(account, limits) };
   }
-  return { text: `Unknown Codex command: ${subcommand}\n\n${buildHelp()}` };
+  return { text: `Unknown Codex command: ${formatCodexDisplayText(subcommand)}\n\n${buildHelp()}` };
 }
 
 async function handleComputerUseCommand(

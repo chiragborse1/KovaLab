@@ -302,6 +302,8 @@ Agents should route user requests by intent, not by the word "Codex" alone:
 | "Bind this chat to Codex"                              | `/codex bind`                                    |
 | "Resume Codex thread `<id>` here"                      | `/codex resume <id>`                             |
 | "Show Codex threads"                                   | `/codex threads`                                 |
+| "Show configured native Codex sub-plugins"             | `/codex plugins list`                            |
+| "Enable/disable a configured Codex sub-plugin"         | `/codex plugins enable <name>` or `disable`      |
 | "Use Codex as the runtime for this agent"              | config change to `agentRuntime.id`               |
 | "Use my ChatGPT/Codex subscription with normal Kova"   | `openai-codex/*` model refs                      |
 | "Run Codex through ACP/acpx"                           | ACP `sessions_spawn({ runtime: "acp", ... })`    |
@@ -715,11 +717,17 @@ Common forms:
 - `/codex account` shows account and rate-limit status.
 - `/codex mcp` lists Codex app-server MCP server status.
 - `/codex skills` lists Codex app-server skills.
+- `/codex plugins` or `/codex plugins list` shows configured Codex sub-plugin entries from `plugins.entries.codex.config.codexPlugins.plugins`.
+- `/codex plugins enable <name>` and `/codex plugins disable <name>` update configured sub-plugin state in `~/.kova/kova.json`. They do not edit `~/.codex/config.toml` or install new Codex plugins.
 
 `/codex resume` writes the same sidecar binding file that the harness uses for
 normal turns. On the next message, Kova resumes that Codex thread, passes the
 currently selected Kova model into app-server, and keeps extended history
 enabled.
+
+Sub-plugin enable/disable changes are picked up by new Codex conversations. Use
+`/new` or `/reset` when the current conversation should refresh its Codex plugin
+policy.
 
 The command surface requires Codex app-server `0.125.0` or newer. Individual
 control methods are reported as `unsupported by this Codex app-server` if a

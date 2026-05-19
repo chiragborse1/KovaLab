@@ -147,7 +147,26 @@ export function buildHelp(): string {
     "- /codex account",
     "- /codex mcp",
     "- /codex skills",
+    "- /codex plugins [list|enable|disable]",
   ].join("\n");
+}
+
+function escapeCodexChatText(value: string): string {
+  return value
+    .replaceAll("@", "\uff20")
+    .replaceAll("`", "\uff40")
+    .replaceAll("[", "\uff3b")
+    .replaceAll("]", "\uff3d")
+    .replaceAll("(", "\uff08")
+    .replaceAll(")", "\uff09")
+    .replaceAll("*", "\u2217")
+    .replaceAll("_", "\uff3f")
+    .replaceAll("~", "\uff5e")
+    .replaceAll("|", "\uff5c");
+}
+
+export function formatCodexDisplayText(value: string): string {
+  return escapeCodexChatText(value.trim());
 }
 
 function summarizeAccount(value: JsonValue | undefined): string {
