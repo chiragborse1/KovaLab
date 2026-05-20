@@ -1,32 +1,26 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
-import { GatewayClient } from "../src/gateway/client.js";
+import type { GatewayClient } from "../src/gateway/client.js";
 import { connectGatewayClient } from "../src/gateway/test-helpers.e2e.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../src/utils/message-channel.js";
 import {
   type ChatEventPayload,
   type GatewayInstance,
-  connectNode,
   extractFirstTextBlock,
   postJson,
   spawnGatewayInstance,
   stopGatewayInstance,
   waitForChatFinalEvent,
-  waitForNodeStatus,
 } from "./helpers/gateway-e2e-harness.js";
 
 const E2E_TIMEOUT_MS = 360_000;
 
 describe("gateway multi-instance e2e", () => {
   const instances: GatewayInstance[] = [];
-  const nodeClients: GatewayClient[] = [];
-  const chatClients: GatewayClient[] = [];
+  const clients: GatewayClient[] = [];
 
   afterAll(async () => {
-    for (const client of nodeClients) {
-      client.stop();
-    }
-    for (const client of chatClients) {
+    for (const client of clients) {
       client.stop();
     }
     for (const inst of instances) {
@@ -35,22 +29,41 @@ describe("gateway multi-instance e2e", () => {
   });
 
   it(
-    "spins up two gateways and exercises WS + HTTP + node pairing",
+    "spins up two gateways and exercises WS + HTTP hooks",
     { timeout: E2E_TIMEOUT_MS },
     async () => {
       const [gwA, gwB] = await Promise.all([spawnGatewayInstance("a"), spawnGatewayInstance("b")]);
       instances.push(gwA, gwB);
 
-      const [nodeA, nodeB] = await Promise.all([
-        connectNode(gwA, "node-a"),
-        connectNode(gwB, "node-b"),
+      const [clientA, clientB] = await Promise.all([
+        connectGatewayClient({
+          url: `ws://127.0.0.1:${gwA.port}`,
+          token: gwA.gatewayToken,
+          clientName: GATEWAY_CLIENT_NAMES.CLI,
+          clientDisplayName: "multi-e2e-a",
+          clientVersion: "1.0.0",
+          platform: "test",
+          mode: GATEWAY_CLIENT_MODES.CLI,
+          deviceIdentity: null,
+          timeoutMs: 60_000,
+        }),
+        connectGatewayClient({
+          url: `ws://127.0.0.1:${gwB.port}`,
+          token: gwB.gatewayToken,
+          clientName: GATEWAY_CLIENT_NAMES.CLI,
+          clientDisplayName: "multi-e2e-b",
+          clientVersion: "1.0.0",
+          platform: "test",
+          mode: GATEWAY_CLIENT_MODES.CLI,
+          deviceIdentity: null,
+          timeoutMs: 60_000,
+        }),
       ]);
-      nodeClients.push(nodeA.client, nodeB.client);
+      clients.push(clientA, clientB);
 
-      await Promise.all([
-        waitForNodeStatus(gwA, nodeA.nodeId),
-        waitForNodeStatus(gwB, nodeB.nodeId),
-      ]);
+      await expect(
+        Promise.all([clientA.request("health", {}), clientB.request("health", {})]),
+      ).resolves.toHaveLength(2);
 
       const [hookResA, hookResB] = await Promise.all([
         postJson(
@@ -100,7 +113,7 @@ describe("gateway multi-instance e2e", () => {
           }
         },
       });
-      chatClients.push(chatClient);
+      clients.push(chatClient);
 
       const sessionKey = "agent:main:telegram:direct:123456";
       const idempotencyKey = `idem-${randomUUID()}`;
