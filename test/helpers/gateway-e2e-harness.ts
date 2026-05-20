@@ -6,6 +6,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { extractFirstTextBlock } from "../../src/shared/chat-message-content.js";
+import { getDeterministicFreePortBlock } from "../../src/test-utils/ports.js";
 import { sleep } from "../../src/utils.js";
 
 export { extractFirstTextBlock };
@@ -105,15 +106,7 @@ async function resolveGatewayEntrypoint(cwd: string): Promise<string[]> {
 }
 
 const getFreePort = async () => {
-  const srv = net.createServer();
-  await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
-  const addr = srv.address();
-  if (!addr || typeof addr === "string") {
-    srv.close();
-    throw new Error("failed to bind ephemeral port");
-  }
-  await new Promise<void>((resolve) => srv.close(() => resolve()));
-  return addr.port;
+  return await getDeterministicFreePortBlock({ offsets: [0, 1, 2, 3, 4] });
 };
 
 async function waitForPortOpen(
