@@ -389,7 +389,7 @@ describe("gateway-cli coverage", () => {
         ).rejects.toThrow("__exit__:0");
 
         expect(startGatewayServer).toHaveBeenCalled();
-        expect(runtimeErrors.join("\n")).toContain("Gateway failed to start:");
+        expect(runtimeErrors.join("\n")).toContain("Kova failed to start:");
         expect(runtimeErrors.join("\n")).toContain("gateway stop");
       },
     );

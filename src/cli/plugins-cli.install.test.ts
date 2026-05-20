@@ -422,13 +422,49 @@ describe("plugins cli install", () => {
   });
 
   it("does not persist incomplete config entries for config-gated bundled installs", async () => {
+    const bundledRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kova-bundled-config-"));
+    const pluginId = "needs-config";
+    const pluginRoot = path.join(bundledRoot, pluginId);
+    const previousBundledDir = process.env.KOVA_BUNDLED_PLUGINS_DIR;
+    process.env.KOVA_BUNDLED_PLUGINS_DIR = bundledRoot;
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginRoot, "package.json"),
+      JSON.stringify(
+        {
+          name: "@kovaai/needs-config",
+          version: "1.0.0",
+          type: "module",
+          kova: { extensions: ["./index.ts"] },
+        },
+        null,
+        2,
+      ),
+    );
+    fs.writeFileSync(
+      path.join(pluginRoot, "kova.plugin.json"),
+      JSON.stringify(
+        {
+          id: pluginId,
+          configSchema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              apiKey: { type: "string" },
+            },
+            required: ["apiKey"],
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    fs.writeFileSync(path.join(pluginRoot, "index.ts"), "export default {};\n");
     const cfg = {
       plugins: {
         entries: {
-          "memory-lancedb": {
-            config: {
-              embedding: {},
-            },
+          [pluginId]: {
+            config: {},
           },
         },
         load: {
@@ -438,23 +474,32 @@ describe("plugins cli install", () => {
     } as KovaConfig;
     loadConfig.mockReturnValue(cfg);
 
-    await runPluginsCommand(["plugins", "install", "memory-lancedb"]);
+    try {
+      await runPluginsCommand(["plugins", "install", pluginId]);
 
-    const writtenConfig = writeConfigFile.mock.calls.at(-1)?.[0] as KovaConfig;
-    expect(writtenConfig.plugins?.entries?.["memory-lancedb"]).toBeUndefined();
-    expect(writtenConfig.plugins?.load?.paths).toEqual(
-      expect.arrayContaining(["/existing/plugin", expect.stringContaining("memory-lancedb")]),
-    );
-    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
-      "memory-lancedb": expect.objectContaining({
-        source: "path",
-        sourcePath: expect.stringContaining("memory-lancedb"),
-        installPath: expect.stringContaining("memory-lancedb"),
-      }),
-    });
-    expect(enablePluginInConfig).not.toHaveBeenCalled();
-    expect(applyExclusiveSlotSelection).not.toHaveBeenCalled();
-    expect(runtimeLogs.some((line) => line.includes("requires configuration first"))).toBe(true);
+      const writtenConfig = writeConfigFile.mock.calls.at(-1)?.[0] as KovaConfig;
+      expect(writtenConfig.plugins?.entries?.[pluginId]).toBeUndefined();
+      expect(writtenConfig.plugins?.load?.paths).toEqual(
+        expect.arrayContaining(["/existing/plugin", pluginRoot]),
+      );
+      expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
+        [pluginId]: expect.objectContaining({
+          source: "path",
+          sourcePath: pluginRoot,
+          installPath: pluginRoot,
+        }),
+      });
+      expect(enablePluginInConfig).not.toHaveBeenCalled();
+      expect(applyExclusiveSlotSelection).not.toHaveBeenCalled();
+      expect(runtimeLogs.some((line) => line.includes("requires configuration first"))).toBe(true);
+    } finally {
+      if (previousBundledDir === undefined) {
+        delete process.env.KOVA_BUNDLED_PLUGINS_DIR;
+      } else {
+        process.env.KOVA_BUNDLED_PLUGINS_DIR = previousBundledDir;
+      }
+      fs.rmSync(bundledRoot, { recursive: true, force: true });
+    }
   });
 
   it("passes force through as overwrite mode for KovaHub installs", async () => {

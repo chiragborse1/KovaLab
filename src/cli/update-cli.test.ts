@@ -304,9 +304,17 @@ describe("update-cli", () => {
 
   const expectPackageInstallSpec = (spec: string) => {
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", spec, "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
+    const installCall = packageInstallCommandCall();
+    expect(installCall?.[0]).toEqual(
+      expect.arrayContaining([
+        "npm",
+        "i",
+        "-g",
+        spec,
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ]),
     );
   };
 
@@ -664,10 +672,7 @@ describe("update-cli", () => {
     );
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).not.toHaveBeenCalledWith(
-      ["npm", "i", "-g", expect.any(String)],
-      expect.anything(),
-    );
+    expect(packageInstallCommandCall()).toBeUndefined();
     expect(syncPluginsForUpdateChannel).toHaveBeenCalledTimes(1);
     expect(updateNpmInstalledPlugins).toHaveBeenCalledTimes(1);
     expect(spawn).not.toHaveBeenCalled();
@@ -1095,7 +1100,15 @@ describe("update-cli", () => {
       } else {
         expect(runGatewayUpdate).not.toHaveBeenCalled();
         expect(runCommandWithTimeout).toHaveBeenCalledWith(
-          ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+          expect.arrayContaining([
+            "npm",
+            "i",
+            "-g",
+            "getkova@latest",
+            "--no-fund",
+            "--no-audit",
+            "--loglevel=error",
+          ]),
           expect.any(Object),
         );
       }
@@ -1126,7 +1139,15 @@ describe("update-cli", () => {
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      expect.arrayContaining([
+        "npm",
+        "i",
+        "-g",
+        "getkova@latest",
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ]),
       expect.any(Object),
     );
   });
@@ -1196,10 +1217,7 @@ describe("update-cli", () => {
     );
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).not.toHaveBeenCalledWith(
-      ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
-    );
+    expect(packageInstallCommandCall()).toBeUndefined();
   });
 
   it("blocks package updates when the target requires a newer Node runtime", async () => {
@@ -1214,10 +1232,7 @@ describe("update-cli", () => {
     await updateCommand({ yes: true });
 
     expect(runGatewayUpdate).not.toHaveBeenCalled();
-    expect(runCommandWithTimeout).not.toHaveBeenCalledWith(
-      ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
-    );
+    expect(packageInstallCommandCall()).toBeUndefined();
     expect(defaultRuntime.exit).toHaveBeenCalledWith(1);
     const errors = vi.mocked(defaultRuntime.error).mock.calls.map((call) => String(call[0]));
     expect(errors.join("\n")).toContain("Node ");
@@ -1436,7 +1451,15 @@ describe("update-cli", () => {
     await updateCommand({ yes: true, restart: false });
 
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
+      expect.arrayContaining([
+        "npm",
+        "i",
+        "-g",
+        "getkova@latest",
+        "--no-fund",
+        "--no-audit",
+        "--loglevel=error",
+      ]),
       expect.any(Object),
     );
     expect(runCommandWithTimeout).toHaveBeenCalledWith(
@@ -1502,23 +1525,32 @@ describe("update-cli", () => {
 
     await updateCommand({ yes: true, restart: false });
 
-    expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      ["npm", "i", "-g", "getkova@latest", "--no-fund", "--no-audit", "--loglevel=error"],
-      expect.any(Object),
-    );
-    expect(runCommandWithTimeout).toHaveBeenCalledWith(
-      [
-        "npm",
-        "i",
-        "-g",
-        "getkova@latest",
-        "--omit=optional",
-        "--no-fund",
-        "--no-audit",
-        "--loglevel=error",
-      ],
-      expect.any(Object),
-    );
+    const installArgv = vi
+      .mocked(runCommandWithTimeout)
+      .mock.calls.map(([argv]) => argv)
+      .filter(
+        (argv) => Array.isArray(argv) && argv[0] === "npm" && argv[1] === "i" && argv[2] === "-g",
+      );
+    expect(
+      installArgv.some(
+        (argv) =>
+          argv.includes("getkova@latest") &&
+          argv.includes("--no-fund") &&
+          argv.includes("--no-audit") &&
+          argv.includes("--loglevel=error") &&
+          !argv.includes("--omit=optional"),
+      ),
+    ).toBe(true);
+    expect(
+      installArgv.some(
+        (argv) =>
+          argv.includes("getkova@latest") &&
+          argv.includes("--omit=optional") &&
+          argv.includes("--no-fund") &&
+          argv.includes("--no-audit") &&
+          argv.includes("--loglevel=error"),
+      ),
+    ).toBe(true);
     expect(defaultRuntime.exit).not.toHaveBeenCalledWith(1);
   });
 
