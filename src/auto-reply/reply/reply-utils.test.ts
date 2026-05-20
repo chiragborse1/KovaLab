@@ -25,7 +25,7 @@ describe("matchesMentionWithExplicit", () => {
     const cases = [
       {
         name: "regex match with explicit resolver available",
-        text: "@kovaai hello",
+        text: "@kova hello",
         mentionRegexes,
         explicit: {
           hasAnyMention: true,

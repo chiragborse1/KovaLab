@@ -345,15 +345,15 @@ describe("commands registry", () => {
   });
 
   it("normalizes telegram-style command mentions for the current bot", () => {
-    expect(normalizeCommandBody("/help@kovaai", { botUsername: "kova" })).toBe("/help");
+    expect(normalizeCommandBody("/help@kovaai", { botUsername: "kovaai" })).toBe("/help");
     expect(
       normalizeCommandBody("/help@kovaai args", {
-        botUsername: "kova",
+        botUsername: "kovaai",
       }),
     ).toBe("/help args");
     expect(
       normalizeCommandBody("/help@kovaai: args", {
-        botUsername: "kova",
+        botUsername: "kovaai",
       }),
     ).toBe("/help args");
   });

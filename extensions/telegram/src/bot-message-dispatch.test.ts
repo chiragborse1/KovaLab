@@ -1051,7 +1051,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       streamMode: "partial",
     });
 
-    expect(reasoningDraftStream.update).toHaveBeenCalledWith("Reasoning:\n_Thinking_");
+    expect(reasoningDraftStream.update).toHaveBeenCalledWith("Thinking\n\n_Thinking_");
     expect(answerDraftStream.update).toHaveBeenCalledWith("Answer");
   });
 
@@ -2818,7 +2818,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
     await dispatchWithContext({ context: createReasoningStreamContext(), streamMode: "partial" });
 
     expect(reasoningDraftStream.update).toHaveBeenCalledWith(
-      "Reasoning:\n_Counting letters in strawberry_",
+      "Thinking\n\n_Counting letters in strawberry_",
     );
     expect(answerDraftStream.update).toHaveBeenCalledWith("3");
     expect(
@@ -2850,7 +2850,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
     await dispatchWithContext({ context: createReasoningStreamContext(), streamMode: "partial" });
 
     expect(reasoningDraftStream.update).toHaveBeenCalledWith(
-      "Reasoning:\n_Counting letters in strawberry_",
+      "Thinking\n\n_Counting letters in strawberry_",
     );
     expect(answerDraftStream.update.mock.calls.some((call) => (call[0] ?? "").includes("<"))).toBe(
       false,
@@ -2886,7 +2886,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
     await dispatchWithContext({ context: createReasoningStreamContext(), streamMode: "partial" });
 
     expect(reasoningDraftStream.update).toHaveBeenCalledWith(
-      "Reasoning:\n_Word: strawberry. r appears at 3, 8, 9._",
+      "Thinking\n\n_Word: strawberry. r appears at 3, 8, 9._",
     );
     expect(reasoningDraftStream.clear).not.toHaveBeenCalled();
     expect(editMessageTelegram).toHaveBeenCalledWith(
@@ -2920,7 +2920,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       1,
       123,
       111,
-      "Reasoning:\n_Word: strawberry. r appears at 3, 8, 9._",
+      "Thinking\n\n_Word: strawberry. r appears at 3, 8, 9._",
       expect.any(Object),
     );
     expect(editMessageTelegram).toHaveBeenNthCalledWith(

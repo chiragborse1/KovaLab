@@ -1828,7 +1828,7 @@ describe("dispatchReplyFromConfig", () => {
       acp: {
         enabled: true,
         dispatch: { enabled: true },
-        stream: { coalesceIdleMs: 0, maxChunkChars: 128 },
+        stream: { deliveryMode: "live", coalesceIdleMs: 0, maxChunkChars: 128 },
       },
     } as KovaConfig;
     const dispatcher = createDispatcher();
@@ -2244,7 +2244,7 @@ describe("dispatchReplyFromConfig", () => {
       acp: {
         enabled: true,
         dispatch: { enabled: true },
-        stream: { coalesceIdleMs: 0, maxChunkChars: 256 },
+        stream: { deliveryMode: "live", coalesceIdleMs: 0, maxChunkChars: 256 },
       },
     } as KovaConfig;
     const dispatcher = createDispatcher();
@@ -2322,7 +2322,7 @@ describe("dispatchReplyFromConfig", () => {
       acp: {
         enabled: true,
         dispatch: { enabled: true },
-        stream: { coalesceIdleMs: 0, maxChunkChars: 256 },
+        stream: { deliveryMode: "live", coalesceIdleMs: 0, maxChunkChars: 256 },
       },
     } as KovaConfig;
     const dispatcher = createDispatcher();
@@ -2375,7 +2375,7 @@ describe("dispatchReplyFromConfig", () => {
       acp: {
         enabled: true,
         dispatch: { enabled: true },
-        stream: { coalesceIdleMs: 0, maxChunkChars: 256 },
+        stream: { deliveryMode: "live", coalesceIdleMs: 0, maxChunkChars: 256 },
       },
     } as KovaConfig;
     const dispatcher = createDispatcher();

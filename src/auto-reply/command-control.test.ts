@@ -949,7 +949,7 @@ describe("control command parsing", () => {
     ).toBe(false);
     expect(
       hasControlCommand("/help@kovaai", undefined, {
-        botUsername: "kova",
+        botUsername: "kovaai",
       }),
     ).toBe(true);
   });

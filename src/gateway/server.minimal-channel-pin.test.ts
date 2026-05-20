@@ -9,7 +9,7 @@ import { createOutboundTestPlugin } from "../test-utils/channel-plugins.js";
 import { createRegistry } from "./server.e2e-registry-helpers.js";
 import { getFreePort, installGatewayTestHooks, startGatewayServer } from "./test-helpers.js";
 
-installGatewayTestHooks({ scope: "suite" });
+installGatewayTestHooks();
 
 const whatsappOutbound = {
   deliveryMode: "direct" as const,

@@ -271,8 +271,8 @@ describe("abort detection", () => {
     expect(isAbortRequestText("stopp")).toBe(true);
     expect(isAbortRequestText("pare")).toBe(true);
     expect(isAbortRequestText(" توقف ")).toBe(true);
-    expect(isAbortRequestText("/stop@kovaai_bot", { botUsername: "kova_bot" })).toBe(true);
-    expect(isAbortRequestText("/Stop@kovaai_bot", { botUsername: "kova_bot" })).toBe(true);
+    expect(isAbortRequestText("/stop@kovaai_bot", { botUsername: "kovaai_bot" })).toBe(true);
+    expect(isAbortRequestText("/Stop@kovaai_bot", { botUsername: "kovaai_bot" })).toBe(true);
 
     expect(isAbortRequestText("/status")).toBe(false);
     expect(isAbortRequestText("do not do that")).toBe(true);
