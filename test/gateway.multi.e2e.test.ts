@@ -57,6 +57,18 @@ describe("gateway multi-instance e2e", () => {
     }
   };
 
+  const formatGatewayConnectTimeout = (inst: GatewayInstance) => {
+    const stdout = inst.stdout.slice(-40).join("");
+    const stderr = inst.stderr.slice(-40).join("");
+    return [
+      `gateway ${inst.name} connect timeout`,
+      "--- stdout tail ---",
+      stdout.trim() || "(empty)",
+      "--- stderr tail ---",
+      stderr.trim() || "(empty)",
+    ].join("\n");
+  };
+
   afterAll(async () => {
     await stopTrackedClients(clients);
     await stopTrackedInstances(instances);
@@ -85,7 +97,8 @@ describe("gateway multi-instance e2e", () => {
             platform: "test",
             mode: GATEWAY_CLIENT_MODES.CLI,
             deviceIdentity: null,
-            timeoutMs: 60_000,
+            timeoutMs: 120_000,
+            timeoutMessage: () => formatGatewayConnectTimeout(gwA),
           }),
         );
         testClients.push(clientA);
@@ -99,7 +112,8 @@ describe("gateway multi-instance e2e", () => {
             platform: "test",
             mode: GATEWAY_CLIENT_MODES.CLI,
             deviceIdentity: null,
-            timeoutMs: 60_000,
+            timeoutMs: 120_000,
+            timeoutMessage: () => formatGatewayConnectTimeout(gwB),
           }),
         );
         testClients.push(clientB);

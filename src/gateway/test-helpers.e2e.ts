@@ -47,7 +47,7 @@ export async function connectGatewayClient(params: {
   onEvent?: (evt: { event?: string; payload?: unknown }) => void;
   connectChallengeTimeoutMs?: number;
   timeoutMs?: number;
-  timeoutMessage?: string;
+  timeoutMessage?: string | (() => string);
 }) {
   const role = params.role ?? "operator";
   const scopes = params.scopes ?? (role === "node" ? [] : undefined);
@@ -108,10 +108,13 @@ export async function connectGatewayClient(params: {
       onClose: (code, reason) =>
         stop(new Error(`gateway closed during connect (${code}): ${reason}`), client),
     });
-    const timer = setTimeout(
-      () => stop(new Error(params.timeoutMessage ?? "gateway connect timeout"), client),
-      timeoutMs,
-    );
+    const timer = setTimeout(() => {
+      const timeoutMessage =
+        typeof params.timeoutMessage === "function"
+          ? params.timeoutMessage()
+          : params.timeoutMessage;
+      stop(new Error(timeoutMessage ?? "gateway connect timeout"), client);
+    }, timeoutMs);
     timer.unref();
     client.start();
   });
