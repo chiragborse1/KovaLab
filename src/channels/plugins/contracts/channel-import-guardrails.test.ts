@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -47,6 +47,12 @@ const GUARDED_CHANNEL_EXTENSIONS = new Set([
 ]);
 function bundledPluginFile(pluginId: string, relativePath: string): string {
   const rootDir = bundledPluginRoots.get(pluginId);
+  if (!rootDir) {
+    const sourceRootDir = resolve(REPO_ROOT, BUNDLED_PLUGIN_ROOT_DIR, pluginId);
+    if (existsSync(sourceRootDir)) {
+      return normalizePath(resolve(sourceRootDir, relativePath));
+    }
+  }
   if (!rootDir) {
     throw new Error(`missing bundled plugin root for ${pluginId}`);
   }

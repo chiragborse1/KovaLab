@@ -10,27 +10,34 @@ describeChannelCatalogEntryContract({
   alias: "teams",
 });
 
-const whatsappMeta = {
-  id: "whatsapp",
-  label: "WhatsApp",
-  selectionLabel: "WhatsApp (QR link)",
-  detailLabel: "WhatsApp Web",
-  docsPath: "/channels/whatsapp",
-  blurb: "works with your own number; recommend a separate phone + eSIM.",
+const metadataOnlyChannelMeta = {
+  id: "metadata-only-channel",
+  label: "Metadata Only Channel",
+  selectionLabel: "Metadata Only Channel",
+  detailLabel: "Metadata Only Channel",
+  docsPath: "/channels/metadata-only-channel",
+  blurb: "test-only metadata entry for bundled catalog discovery.",
 };
 
 describeBundledMetadataOnlyChannelCatalogContract({
-  pluginId: "whatsapp",
-  packageName: "@kovaai/whatsapp",
-  npmSpec: "@kovaai/whatsapp",
-  meta: whatsappMeta,
+  pluginId: "metadata-only-channel",
+  packageName: "@kovaai/metadata-only-channel",
+  npmSpec: "@kovaai/metadata-only-channel",
+  meta: metadataOnlyChannelMeta,
   defaultChoice: "npm",
 });
 
 describeOfficialFallbackChannelCatalogContract({
   channelId: "whatsapp",
   npmSpec: "@kovaai/whatsapp",
-  meta: whatsappMeta,
+  meta: {
+    id: "whatsapp",
+    label: "WhatsApp",
+    selectionLabel: "WhatsApp (QR link)",
+    detailLabel: "WhatsApp Web",
+    docsPath: "/channels/whatsapp",
+    blurb: "works with your own number; recommend a separate phone + eSIM.",
+  },
   packageName: "@kovaai/whatsapp",
   pluginId: "whatsapp",
   externalNpmSpec: "@vendor/whatsapp-fork",

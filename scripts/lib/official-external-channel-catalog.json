@@ -193,6 +193,31 @@
       }
     },
     {
+      "name": "@wecom/wecom-kova-plugin",
+      "version": "2026.4.23",
+      "description": "Kova WeCom channel plugin",
+      "source": "official",
+      "kind": "channel",
+      "kova": {
+        "channel": {
+          "id": "wecom",
+          "label": "WeCom",
+          "selectionLabel": "WeCom",
+          "detailLabel": "WeCom",
+          "docsPath": "/plugins/community#wecom",
+          "docsLabel": "wecom",
+          "blurb": "WeCom channel support through the official external plugin.",
+          "aliases": ["wework"],
+          "systemImage": "message"
+        },
+        "install": {
+          "npmSpec": "@wecom/wecom-kova-plugin@2026.4.23",
+          "defaultChoice": "npm",
+          "minHostVersion": ">=2.0.0-beta.3"
+        }
+      }
+    },
+    {
       "name": "@kovaai/zalo",
       "description": "Kova Zalo channel plugin",
       "source": "official",
