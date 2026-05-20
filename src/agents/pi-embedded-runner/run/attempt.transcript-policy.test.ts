@@ -6,6 +6,9 @@ import { resolveAttemptTranscriptPolicy } from "./attempt.transcript-policy.js";
 const resolveProviderRuntimePluginMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../../plugins/provider-hook-runtime.js", () => ({
+  __testing: {
+    buildHookProviderCacheKey: vi.fn(() => "test-cache-key"),
+  },
   resolveProviderRuntimePlugin: resolveProviderRuntimePluginMock,
 }));
 
