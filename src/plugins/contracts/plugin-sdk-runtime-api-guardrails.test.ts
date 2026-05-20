@@ -244,6 +244,24 @@ const RUNTIME_API_EXPORT_GUARDS: Record<string, readonly string[]> = {
 } as const;
 
 function collectRuntimeApiFiles(): string[] {
+  return [
+    ...new Set([
+      ...getBundledPluginRoots()
+        .entries()
+        .filter(([, rootDir]) => existsSync(resolve(rootDir, "runtime-api.ts")))
+        .map(([pluginId]) =>
+          bundledPluginFile({
+            rootDir: ROOT_DIR,
+            pluginId,
+            relativePath: "runtime-api.ts",
+          }),
+        ),
+      ...Object.keys(RUNTIME_API_EXPORT_GUARDS),
+    ]),
+  ].toSorted((left, right) => left.localeCompare(right));
+}
+
+function collectBundledRuntimeApiFiles(): string[] {
   return [...getBundledPluginRoots().entries()]
     .filter(([, rootDir]) => existsSync(resolve(rootDir, "runtime-api.ts")))
     .map(([pluginId]) =>
@@ -310,12 +328,9 @@ describe("runtime api guardrails", () => {
   });
 
   it("keeps bundled runtime api barrels off their own branded sdk facades", () => {
-    for (const [pluginId, rootDir] of getBundledPluginRoots().entries()) {
-      const path = resolve(rootDir, "runtime-api.ts");
-      if (!existsSync(path)) {
-        continue;
-      }
-      const source = readFileSync(path, "utf8");
+    for (const file of collectBundledRuntimeApiFiles()) {
+      const pluginId = file.split("/").at(1) ?? file;
+      const source = readFileSync(resolve(ROOT_DIR, "..", file), "utf8");
       expect(
         source,
         `${pluginId} runtime api should use generic sdk subpaths or local exports`,
