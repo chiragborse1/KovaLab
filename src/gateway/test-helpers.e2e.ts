@@ -66,6 +66,7 @@ export async function connectGatewayClient(params: {
         return path.join(identityRoot, "test-device-identities", `${safe}.json`);
       })(),
     );
+  const timeoutMs = params.timeoutMs ?? 10_000;
   return await new Promise<InstanceType<typeof GatewayClient>>((resolve, reject) => {
     let settled = false;
     const stop = (err?: Error, connectedClient?: InstanceType<typeof GatewayClient>) => {
@@ -98,6 +99,7 @@ export async function connectGatewayClient(params: {
       commands: params.commands,
       instanceId: params.instanceId,
       deviceIdentity,
+      requestTimeoutMs: timeoutMs,
       onEvent: params.onEvent,
       onHelloOk: () => stop(undefined, client),
       onConnectError: (err) => stop(err, client),
@@ -106,7 +108,7 @@ export async function connectGatewayClient(params: {
     });
     const timer = setTimeout(
       () => stop(new Error(params.timeoutMessage ?? "gateway connect timeout"), client),
-      params.timeoutMs ?? 10_000,
+      timeoutMs,
     );
     timer.unref();
     client.start();
