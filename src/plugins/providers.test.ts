@@ -607,7 +607,7 @@ describe("resolvePluginProviders", () => {
     });
   });
 
-  it("loads all discovered provider plugins in setup mode", () => {
+  it("honors configured allowlists while loading provider plugins in setup mode", () => {
     resolvePluginProviders({
       config: {
         plugins: {
@@ -623,16 +623,35 @@ describe("resolvePluginProviders", () => {
     expectLastSetupRegistryLoad({
       onlyPluginIds: ["google", "kilocode", "moonshot", "workspace-provider"],
     });
+    expect(getLastSetupLoadedPluginConfig()).toEqual({
+      plugins: {
+        allow: ["openrouter"],
+        entries: {
+          google: { enabled: false },
+        },
+      },
+    });
+  });
+
+  it("activates discovered provider plugins in setup mode without an allowlist", () => {
+    resolvePluginProviders({
+      config: {
+        plugins: {
+          entries: {
+            google: { enabled: false },
+          },
+        },
+      },
+      mode: "setup",
+    });
+
+    expectLastSetupRegistryLoad({
+      onlyPluginIds: ["google", "kilocode", "moonshot", "workspace-provider"],
+    });
     expect(getLastSetupLoadedPluginConfig()).toEqual(
       expect.objectContaining({
         plugins: expect.objectContaining({
-          allow: expect.arrayContaining([
-            "openrouter",
-            "google",
-            "kilocode",
-            "moonshot",
-            "workspace-provider",
-          ]),
+          allow: expect.arrayContaining(["google", "kilocode", "moonshot", "workspace-provider"]),
           entries: expect.objectContaining({
             google: { enabled: false },
             kilocode: { enabled: true },

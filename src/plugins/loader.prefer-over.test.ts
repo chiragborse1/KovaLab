@@ -32,6 +32,15 @@ function writeChannelToolPlugin(params: {
     fs.chmodSync(pluginDir, 0o755);
   }
   fs.writeFileSync(
+    path.join(pluginDir, "package.json"),
+    JSON.stringify({
+      name: `@kovaai/${params.id}`,
+      version: "0.0.1",
+      kova: { extensions: ["./index.cjs"] },
+    }),
+    "utf-8",
+  );
+  fs.writeFileSync(
     path.join(pluginDir, "kova.plugin.json"),
     JSON.stringify(
       {
@@ -102,7 +111,7 @@ describe("plugin loader preferOver activation", () => {
     const bundledRoot = makeTempDir();
     writeChannelToolPlugin({
       rootDir: bundledRoot,
-      id: "qqbot",
+      id: "fixture-qqbot",
       channelId: "qqbot",
       enabledByDefault: true,
     });
@@ -111,7 +120,7 @@ describe("plugin loader preferOver activation", () => {
       rootDir: externalRoot,
       id: "kova-qqbot",
       channelId: "qqbot",
-      preferOver: ["qqbot"],
+      preferOver: ["fixture-qqbot"],
     });
     const env = {
       KOVA_STATE_DIR: makeTempDir(),
@@ -132,9 +141,11 @@ describe("plugin loader preferOver activation", () => {
     });
 
     expect(autoEnabled.config.plugins?.entries?.["kova-qqbot"]?.enabled).toBe(true);
-    expect(autoEnabled.config.plugins?.entries?.qqbot?.enabled).toBe(false);
+    expect(autoEnabled.config.plugins?.entries?.["fixture-qqbot"]?.enabled).toBe(false);
     expect(registry.plugins.find((plugin) => plugin.id === "kova-qqbot")?.status).toBe("loaded");
-    expect(registry.plugins.find((plugin) => plugin.id === "qqbot")?.status).toBe("disabled");
+    expect(registry.plugins.find((plugin) => plugin.id === "fixture-qqbot")?.status).toBe(
+      "disabled",
+    );
     expect(registry.tools.map((tool) => tool.pluginId)).toEqual(["kova-qqbot"]);
     expect(registry.diagnostics.map((diag) => diag.message).join("\n")).not.toContain(
       "plugin tool name conflict",
@@ -145,7 +156,7 @@ describe("plugin loader preferOver activation", () => {
     const bundledRoot = makeTempDir();
     writeChannelToolPlugin({
       rootDir: bundledRoot,
-      id: "qqbot",
+      id: "fixture-qqbot",
       channelId: "qqbot",
       enabledByDefault: true,
     });
@@ -167,7 +178,7 @@ describe("plugin loader preferOver activation", () => {
         plugins: {
           load: { paths: [externalPluginDir] },
           entries: {
-            qqbot: { enabled: true },
+            "fixture-qqbot": { enabled: true },
             "kova-qqbot": { enabled: true },
           },
         },

@@ -52,7 +52,7 @@ function expectUnknownChannelRemovalPrompt(unsafeChannel: string, label: string)
   );
   expect(confirm).toHaveBeenCalledWith(
     expect.objectContaining({
-      message: `Delete ${label} configuration from ~/.chiragborse1/KovaLab.json?`,
+      message: `Delete ${label} configuration from ~/.kova/kova.json?`,
     }),
   );
   expect(note).toHaveBeenCalledWith(
@@ -115,7 +115,7 @@ describe("removeChannelConfigWizard", () => {
 
     expect(confirm).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Delete Telegram configuration from ~/.chiragborse1/KovaLab.json?",
+        message: "Delete Telegram configuration from ~/.kova/kova.json?",
       }),
     );
     expect(next.channels).toEqual({ twitch: { token: "secret" } });
@@ -140,7 +140,7 @@ describe("removeChannelConfigWizard", () => {
 
     expect(confirm).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Delete done configuration from ~/.chiragborse1/KovaLab.json?",
+        message: "Delete done configuration from ~/.kova/kova.json?",
       }),
     );
     expect(next.channels).toEqual({ telegram: { token: "secret" } });
@@ -220,7 +220,7 @@ describe("removeChannelConfigWizard", () => {
     );
     expect(confirm).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Delete Telegram\\nBot configuration from ~/.chiragborse1/KovaLab.json?",
+        message: "Delete Telegram\\nBot configuration from ~/.kova/kova.json?",
       }),
     );
     expect(note).toHaveBeenCalledWith(

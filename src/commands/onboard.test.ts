@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
   runNonInteractiveSetup: vi.fn(async () => {}),
   readConfigFileSnapshot: vi.fn(async () => ({ exists: false, valid: false, config: {} })),
   handleReset: vi.fn(async () => {}),
+  resolveOnboardWorkspaceDefault: vi.fn(
+    (config: { agents?: { defaults?: { workspace?: string } } } | undefined) =>
+      config?.agents?.defaults?.workspace ?? "~/.kova/workspace",
+  ),
 }));
 
 vi.mock("./onboard-interactive.js", () => ({
@@ -25,6 +29,7 @@ vi.mock("../config/config.js", () => ({
 vi.mock("./onboard-helpers.js", () => ({
   DEFAULT_WORKSPACE: "~/.kova/workspace",
   handleReset: mocks.handleReset,
+  resolveOnboardWorkspaceDefault: mocks.resolveOnboardWorkspaceDefault,
 }));
 
 function makeRuntime(): RuntimeEnv {
@@ -39,6 +44,10 @@ describe("setupWizardCommand", () => {
   afterEach(() => {
     vi.clearAllMocks();
     mocks.readConfigFileSnapshot.mockResolvedValue({ exists: false, valid: false, config: {} });
+    mocks.resolveOnboardWorkspaceDefault.mockImplementation(
+      (config: { agents?: { defaults?: { workspace?: string } } } | undefined) =>
+        config?.agents?.defaults?.workspace ?? "~/.kova/workspace",
+    );
   });
 
   it("fails fast for invalid secret-input-mode before setup starts", async () => {

@@ -397,7 +397,7 @@ export function registerDefaultAuthTokenSuite(): void {
       await new Promise<void>((resolve) => ws.once("close", () => resolve()));
     });
 
-    test("accepts legacy client ids when the signed payload matches the legacy id", async () => {
+    test("accepts native client ids when the signed payload matches the client id", async () => {
       const ws = await openWs(port);
       const token = resolveGatewayTokenOrEnv();
       const nonce = await readConnectChallengeNonce(ws);
@@ -410,7 +410,7 @@ export function registerDefaultAuthTokenSuite(): void {
       } as const;
       const { device } = await createSignedDevice({
         token,
-        scopes: ["operator.read"],
+        scopes: [],
         clientId: legacyClient.id,
         clientMode: legacyClient.mode,
         nonce,
@@ -420,6 +420,7 @@ export function registerDefaultAuthTokenSuite(): void {
         id: "c-legacy-client-id",
         token,
         client: legacyClient,
+        scopes: [],
         device,
       });
       expect(connectRes.ok).toBe(true);

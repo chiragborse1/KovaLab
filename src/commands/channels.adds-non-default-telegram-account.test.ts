@@ -736,7 +736,7 @@ describe("channels command", () => {
         },
       ],
     });
-    expect(joined).toMatch(/bot:@kovaai_bot/);
+    expect(joined).toMatch(/bot:@kova_bot/);
   });
 
   it("surfaces Telegram group membership audit issues in channels status output", () => {

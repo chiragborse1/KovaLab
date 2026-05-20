@@ -100,8 +100,15 @@ vi.mock("../commands/onboarding-plugin-install.js", () => ({
 }));
 
 const clearPluginDiscoveryCache = vi.hoisted(() => vi.fn());
+const discoverKovaPlugins = vi.hoisted(() =>
+  vi.fn(() => ({
+    candidates: [],
+    diagnostics: [],
+  })),
+);
 vi.mock("../plugins/discovery.js", () => ({
   clearPluginDiscoveryCache,
+  discoverKovaPlugins,
 }));
 
 const LOCAL_PROVIDER_ID = "local-provider";

@@ -1422,7 +1422,7 @@ describe("loadPluginManifestRegistry", () => {
     {
       name: "rejects invalid minHostVersion metadata",
       minHostVersion: "2026.3.22",
-      expectedMessage: "plugin manifest invalid | kova.install.minHostVersion must use",
+      expectedMessage: "plugin manifest invalid | plugin install.minHostVersion must use",
       expectWarn: false,
     },
     {

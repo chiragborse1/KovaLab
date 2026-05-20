@@ -225,7 +225,11 @@ export function listBundledPluginMetadata(params?: {
 
 export function findBundledPluginMetadataById(
   pluginId: string,
-  params?: { rootDir?: string; scanDir?: string },
+  params?: {
+    rootDir?: string;
+    scanDir?: string;
+    includeOfficialExternal?: boolean;
+  },
 ): BundledPluginMetadata | undefined {
   return listBundledPluginMetadata(params).find((entry) => entry.manifest.id === pluginId);
 }

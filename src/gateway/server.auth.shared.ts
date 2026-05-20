@@ -286,6 +286,7 @@ async function sendRawConnectReq(
       mode: string;
       displayName?: string;
     };
+    scopes?: string[];
     device: { id: string; publicKey: string; signature: string; signedAt: number; nonce?: string };
   },
 ) {
@@ -300,6 +301,7 @@ async function sendRawConnectReq(
         client: params.client ?? TEST_OPERATOR_CLIENT,
         caps: [],
         role: "operator",
+        ...(params.scopes ? { scopes: params.scopes } : {}),
         auth: params.token ? { token: params.token } : undefined,
         device: params.device,
       },

@@ -141,7 +141,7 @@ describe("promptRemoteGatewayConfig", () => {
     const manualUrl = "wss://manual.example.com:18789";
     const text: WizardPrompter["text"] = vi.fn(async (params) => {
       if (params.message === "Gateway WebSocket URL") {
-        expect(params.initialValue).toBe("ws://127.0.0.1:18789");
+        expect(params.initialValue).toBe("ws://127.0.0.1:18790");
         return manualUrl;
       }
       return "";
@@ -250,7 +250,7 @@ describe("promptRemoteGatewayConfig", () => {
     });
     const text: WizardPrompter["text"] = vi.fn(async (params) => {
       if (params.message === "Gateway WebSocket URL") {
-        expect(params.initialValue).toBe("ws://127.0.0.1:18789");
+        expect(params.initialValue).toBe("ws://127.0.0.1:18790");
         return String(params.initialValue);
       }
       return "";
@@ -263,7 +263,7 @@ describe("promptRemoteGatewayConfig", () => {
 
     const next = await promptRemoteGatewayConfig({} as KovaConfig, prompter);
 
-    expect(next.gateway?.remote?.url).toBe("ws://127.0.0.1:18789");
+    expect(next.gateway?.remote?.url).toBe("ws://127.0.0.1:18790");
     expect(select).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: "Connection method" }),
     );

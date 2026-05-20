@@ -48,8 +48,6 @@ vi.mock("./install.runtime.js", async () => {
 });
 
 let suiteFixtureRoot = "";
-const pluginFixturesDir = path.resolve(process.cwd(), "test", "fixtures", "plugins-install");
-const archiveFixturePathCache = new Map<string, string>();
 const dynamicArchiveTemplatePathCache = new Map<string, string>();
 let installPluginFromDirTemplateDir = "";
 let manifestInstallTemplateDir = "";
@@ -116,27 +114,6 @@ async function packToArchive({
   );
   return dest;
 }
-
-function getArchiveFixturePath(params: {
-  cacheKey: string;
-  outName: string;
-  buffer: Buffer;
-}): string {
-  const hit = archiveFixturePathCache.get(params.cacheKey);
-  if (hit) {
-    return hit;
-  }
-  const archivePath = path.join(ensureSuiteFixtureRoot(), params.outName);
-  fs.writeFileSync(archivePath, params.buffer);
-  archiveFixturePathCache.set(params.cacheKey, archivePath);
-  return archivePath;
-}
-
-function readZipperArchiveBuffer(): Buffer {
-  return fs.readFileSync(path.join(pluginFixturesDir, "zipper-0.0.1.zip"));
-}
-
-const ZIPPER_ARCHIVE_BUFFER = readZipperArchiveBuffer();
 
 function expectPluginFiles(result: { targetDir: string }, stateDir: string, pluginId: string) {
   expect(result.targetDir).toBe(
@@ -660,12 +637,17 @@ describe("installPluginFromArchive", () => {
     expect(manifest.version).toBe("0.0.2");
   });
 
-  it("rejects native plugin zip archives without kova.plugin.json", async () => {
+  it("rejects plugin archives without kova.plugin.json", async () => {
     const stateDir = suiteTempRootTracker.makeTempDir();
-    const archivePath = getArchiveFixturePath({
-      cacheKey: "zipper:0.0.1",
-      outName: "zipper-0.0.1.zip",
-      buffer: ZIPPER_ARCHIVE_BUFFER,
+    const archivePath = await ensureDynamicArchiveTemplate({
+      outName: "zipper-0.0.1.tgz",
+      packageJson: {
+        name: "@kovaai/zipper",
+        version: "0.0.1",
+        kova: { extensions: ["./dist/index.js"] },
+      },
+      withDistIndex: true,
+      writePluginManifest: false,
     });
 
     const extensionsDir = path.join(stateDir, "extensions");
