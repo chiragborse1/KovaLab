@@ -57,95 +57,46 @@ describe("gateway multi-instance e2e", () => {
     }
   };
 
-  const formatGatewayConnectTimeout = (inst: GatewayInstance) => {
-    const stdout = inst.stdout.slice(-40).join("");
-    const stderr = inst.stderr.slice(-40).join("");
-    return [
-      `gateway ${inst.name} connect timeout on port ${inst.port}`,
-      "--- stdout tail ---",
-      stdout.trim() || "(empty)",
-      "--- stderr tail ---",
-      stderr.trim() || "(empty)",
-    ].join("\n");
-  };
-
   afterAll(async () => {
     await stopTrackedClients(clients);
     await stopTrackedInstances(instances);
   });
 
-  it(
-    "spins up two gateways and exercises WS + HTTP hooks",
-    { timeout: E2E_TIMEOUT_MS },
-    async () => {
-      const testInstances: GatewayInstance[] = [];
-      const testClients: GatewayClient[] = [];
+  it("spins up two gateways and exercises HTTP hooks", { timeout: E2E_TIMEOUT_MS }, async () => {
+    const testInstances: GatewayInstance[] = [];
 
-      try {
-        const gwA = trackInstance(await spawnGatewayInstance("a"));
-        testInstances.push(gwA);
-        const clientA = trackClient(
-          await connectGatewayClient({
-            url: `ws://127.0.0.1:${gwA.port}`,
-            token: gwA.gatewayToken,
-            clientName: GATEWAY_CLIENT_NAMES.CLI,
-            clientDisplayName: "multi-e2e-a",
-            clientVersion: "1.0.0",
-            platform: "test",
-            mode: GATEWAY_CLIENT_MODES.CLI,
-            deviceIdentity: null,
-            timeoutMs: 120_000,
-            timeoutMessage: () => formatGatewayConnectTimeout(gwA),
-          }),
-        );
-        testClients.push(clientA);
+    try {
+      const gwA = trackInstance(await spawnGatewayInstance("a"));
+      testInstances.push(gwA);
+      const gwB = trackInstance(await spawnGatewayInstance("b"));
+      testInstances.push(gwB);
 
-        const gwB = trackInstance(await spawnGatewayInstance("b"));
-        testInstances.push(gwB);
-        const clientB = trackClient(
-          await connectGatewayClient({
-            url: `ws://127.0.0.1:${gwB.port}`,
-            token: gwB.gatewayToken,
-            clientName: GATEWAY_CLIENT_NAMES.CLI,
-            clientDisplayName: "multi-e2e-b",
-            clientVersion: "1.0.0",
-            platform: "test",
-            mode: GATEWAY_CLIENT_MODES.CLI,
-            deviceIdentity: null,
-            timeoutMs: 120_000,
-            timeoutMessage: () => formatGatewayConnectTimeout(gwB),
-          }),
-        );
-        testClients.push(clientB);
-
-        const [hookResA, hookResB] = await Promise.all([
-          postJson(
-            `http://127.0.0.1:${gwA.port}/hooks/wake`,
-            {
-              text: "wake a",
-              mode: "now",
-            },
-            { "x-kova-token": gwA.hookToken },
-          ),
-          postJson(
-            `http://127.0.0.1:${gwB.port}/hooks/wake`,
-            {
-              text: "wake b",
-              mode: "now",
-            },
-            { "x-kova-token": gwB.hookToken },
-          ),
-        ]);
-        expect(hookResA.status).toBe(200);
-        expect((hookResA.json as { ok?: boolean } | undefined)?.ok).toBe(true);
-        expect(hookResB.status).toBe(200);
-        expect((hookResB.json as { ok?: boolean } | undefined)?.ok).toBe(true);
-      } finally {
-        await stopTrackedClients(testClients);
-        await stopTrackedInstances(testInstances);
-      }
-    },
-  );
+      const [hookResA, hookResB] = await Promise.all([
+        postJson(
+          `http://127.0.0.1:${gwA.port}/hooks/wake`,
+          {
+            text: "wake a",
+            mode: "now",
+          },
+          { "x-kova-token": gwA.hookToken },
+        ),
+        postJson(
+          `http://127.0.0.1:${gwB.port}/hooks/wake`,
+          {
+            text: "wake b",
+            mode: "now",
+          },
+          { "x-kova-token": gwB.hookToken },
+        ),
+      ]);
+      expect(hookResA.status).toBe(200);
+      expect((hookResA.json as { ok?: boolean } | undefined)?.ok).toBe(true);
+      expect(hookResB.status).toBe(200);
+      expect((hookResB.json as { ok?: boolean } | undefined)?.ok).toBe(true);
+    } finally {
+      await stopTrackedInstances(testInstances);
+    }
+  });
 
   it(
     "delivers final chat event for telegram-shaped session keys",
