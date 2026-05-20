@@ -32,19 +32,19 @@ describe("oauth paths", () => {
     );
   });
 
-  it("ignores legacy OAuth/state env unless compatibility mode is explicit", () => {
+  it("uses KOVA_OAUTH_DIR alongside KOVA_STATE_DIR", () => {
     const env = {
       KOVA_STATE_DIR: "/custom/state",
       KOVA_OAUTH_DIR: "/custom/oauth",
     } as NodeJS.ProcessEnv;
 
-    expect(resolveOAuthDir(env, "/custom/state")).toBe(path.join("/custom/state", "credentials"));
+    expect(resolveOAuthDir(env, "/custom/state")).toBe(path.resolve("/custom/oauth"));
     expect(resolveOAuthPath(env, "/custom/state")).toBe(
-      path.join("/custom/state", "credentials", "oauth.json"),
+      path.join(path.resolve("/custom/oauth"), "oauth.json"),
     );
   });
 
-  it("uses legacy OAuth env when compatibility mode is explicit", () => {
+  it("continues to use KOVA_OAUTH_DIR when compatibility mode is explicit", () => {
     const env = {
       KOVA_COMPAT: "1",
       KOVA_OAUTH_DIR: "/custom/oauth",
@@ -67,10 +67,10 @@ describe("gateway port resolution", () => {
     ).toBe(19002);
   });
 
-  it("ignores legacy port env unless compatibility mode is explicit", () => {
+  it("uses KOVA_GATEWAY_PORT with or without compatibility mode", () => {
     expect(
       resolveGatewayPort({ gateway: { port: 19002 } }, envWith({ KOVA_GATEWAY_PORT: "19001" })),
-    ).toBe(19002);
+    ).toBe(19001);
     expect(
       resolveGatewayPort(
         { gateway: { port: 19002 } },
@@ -97,13 +97,13 @@ describe("gateway port resolution", () => {
     ).toBe(28789);
   });
 
-  it("ignores the legacy env name and falls back to config", () => {
+  it("accepts Compose-style values from KOVA_GATEWAY_PORT", () => {
     expect(
       resolveGatewayPort(
         { gateway: { port: 19002 } },
         envWith({ KOVA_GATEWAY_PORT: "127.0.0.1:18789" }),
       ),
-    ).toBe(19002);
+    ).toBe(18789);
   });
 
   it("falls back to config when the Compose-style suffix is invalid", () => {

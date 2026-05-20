@@ -92,6 +92,7 @@ function collectBundledPluginMetadata(
   packageRoot: string,
   includeChannelConfigs: boolean,
   includeSyntheticChannelConfigs: boolean,
+  includeOfficialExternal: boolean,
   scanDir?: string,
 ): readonly BundledPluginMetadata[] {
   const resolvedScanDir = resolveBundledPluginMetadataScanDir(packageRoot, scanDir);
@@ -110,7 +111,7 @@ function collectBundledPluginMetadata(
     if (!manifestResult.ok) {
       continue;
     }
-    if (isOfficialExternalPluginId(manifestResult.manifest.id)) {
+    if (!includeOfficialExternal && isOfficialExternalPluginId(manifestResult.manifest.id)) {
       continue;
     }
 
@@ -190,17 +191,20 @@ export function listBundledPluginMetadata(params?: {
   scanDir?: string;
   includeChannelConfigs?: boolean;
   includeSyntheticChannelConfigs?: boolean;
+  includeOfficialExternal?: boolean;
 }): readonly BundledPluginMetadata[] {
   const rootDir = path.resolve(params?.rootDir ?? KOVA_PACKAGE_ROOT);
   const scanDir = params?.scanDir ? path.resolve(params.scanDir) : undefined;
   const includeChannelConfigs = params?.includeChannelConfigs ?? !RUNNING_FROM_BUILT_ARTIFACT;
   const includeSyntheticChannelConfigs =
     params?.includeSyntheticChannelConfigs ?? includeChannelConfigs;
+  const includeOfficialExternal = params?.includeOfficialExternal === true;
   const cacheKey = JSON.stringify({
     rootDir,
     scanDir,
     includeChannelConfigs,
     includeSyntheticChannelConfigs,
+    includeOfficialExternal,
   });
   const cached = bundledPluginMetadataCache.get(cacheKey);
   if (cached) {
@@ -211,6 +215,7 @@ export function listBundledPluginMetadata(params?: {
       rootDir,
       includeChannelConfigs,
       includeSyntheticChannelConfigs,
+      includeOfficialExternal,
       scanDir,
     ),
   );

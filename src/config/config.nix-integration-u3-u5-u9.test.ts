@@ -38,8 +38,8 @@ describe("Nix integration (U3, U5, U9)", () => {
       expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "1" }))).toBe(true);
     });
 
-    it("requires explicit compatibility mode for legacy nix env", () => {
-      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "1" }))).toBe(false);
+    it("does not require compatibility mode for KOVA_NIX_MODE", () => {
+      expect(resolveIsNixMode(envWith({ KOVA_NIX_MODE: "1" }))).toBe(true);
       expect(resolveIsNixMode(envWith({ KOVA_COMPAT: "1", KOVA_NIX_MODE: "1" }))).toBe(true);
     });
   });

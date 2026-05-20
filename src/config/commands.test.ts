@@ -120,13 +120,13 @@ describe("resolveNativeSkillsEnabled", () => {
     ).toBe(false);
     expect(
       resolveNativeSkillsEnabled({
-        providerId: "discord",
+        providerId: "telegram",
         globalSetting: "auto",
         env,
         config: {
           plugins: {
             entries: {
-              discord: {
+              telegram: {
                 enabled: true,
               },
             },

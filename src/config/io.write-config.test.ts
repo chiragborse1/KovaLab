@@ -102,14 +102,13 @@ describe("config io write", () => {
       logger: silentLogger,
     });
 
-  it("writes implicit legacy .kova/kova.json configs back to kova.json", async () => {
+  it("writes implicit .kova/kova.json configs back to the resolved config path", async () => {
     await withSuiteHome(async (home) => {
       const stateDir = path.join(home, ".kova");
-      const legacyConfigPath = path.join(stateDir, "kova.json");
-      const canonicalConfigPath = path.join(stateDir, "kova.json");
+      const configPath = path.join(stateDir, "kova.json");
       await fs.mkdir(stateDir, { recursive: true });
       await fs.writeFile(
-        legacyConfigPath,
+        configPath,
         `${JSON.stringify({ gateway: { mode: "local", port: 18789 } }, null, 2)}\n`,
         "utf-8",
       );
@@ -119,19 +118,15 @@ describe("config io write", () => {
         homedir: () => home,
         logger: silentLogger,
       });
-      expect(io.configPath).toBe(legacyConfigPath);
+      expect(io.configPath).toBe(configPath);
 
       await io.writeConfigFile({ gateway: { mode: "local", port: 18790 } });
 
-      const migrated = JSON.parse(await fs.readFile(canonicalConfigPath, "utf-8")) as {
-        gateway?: { port?: number };
-      };
-      const legacy = JSON.parse(await fs.readFile(legacyConfigPath, "utf-8")) as {
+      const migrated = JSON.parse(await fs.readFile(configPath, "utf-8")) as {
         gateway?: { port?: number };
       };
       expect(migrated.gateway?.port).toBe(18790);
-      expect(legacy.gateway?.port).toBe(18789);
-      expect(mockMaintainConfigBackups).not.toHaveBeenCalled();
+      expect(mockMaintainConfigBackups).toHaveBeenCalledWith(configPath, expect.any(Object));
     });
   });
 

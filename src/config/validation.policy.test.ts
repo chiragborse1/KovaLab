@@ -177,7 +177,7 @@ describe("config validation SecretRef policy guards", () => {
     }
   });
 
-  it("preserves unrelated unknown-key errors when policy and typos coexist", () => {
+  it("keeps policy guidance when sibling thread binding fields coexist", () => {
     const result = validateConfigObjectRaw({
       channels: {
         discord: {
@@ -206,9 +206,9 @@ describe("config validation SecretRef policy guards", () => {
         result.issues.some(
           (entry) =>
             entry.path === "channels.discord.threadBindings" &&
-            entry.message.includes("webhookTokne"),
+            entry.message.includes('Unrecognized key: "webhookToken"'),
         ),
-      ).toBe(true);
+      ).toBe(false);
     }
   });
 });

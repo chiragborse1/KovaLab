@@ -1,5 +1,10 @@
 import { listBundledPluginMetadata } from "../plugins/bundled-plugin-metadata.js";
 import type { PluginManifestRecord } from "../plugins/manifest-registry.js";
+import {
+  getOfficialExternalPluginCatalogManifest,
+  listOfficialExternalPluginCatalogEntries,
+  resolveOfficialExternalPluginId,
+} from "../plugins/official-external-plugin-catalog.js";
 import { loadPluginManifestRegistryForPluginRegistry } from "../plugins/plugin-registry.js";
 import { loadBundledChannelSecretContractApi } from "./channel-contract-api.js";
 import type { SecretTargetRegistryEntry } from "./target-registry-types.js";
@@ -73,6 +78,7 @@ function listBundledPluginConfigSecretTargetRegistryEntries(): SecretTargetRegis
   for (const record of listBundledPluginMetadata({
     includeChannelConfigs: false,
     includeSyntheticChannelConfigs: false,
+    includeOfficialExternal: true,
   })) {
     const secretInputs = record.manifest.configContracts?.secretInputs?.paths ?? [];
     for (const secretInput of secretInputs) {
@@ -90,6 +96,20 @@ function listBundledPluginConfigSecretTargetRegistryEntries(): SecretTargetRegis
 
 function listChannelSecretTargetRegistryEntries(): SecretTargetRegistryEntry[] {
   const entries: SecretTargetRegistryEntry[] = [];
+  const seenChannelIds = new Set<string>();
+
+  const appendChannelContract = (channelId: string) => {
+    if (seenChannelIds.has(channelId)) {
+      return;
+    }
+    seenChannelIds.add(channelId);
+    try {
+      const contractApi = loadBundledChannelSecretContractApi(channelId);
+      entries.push(...(contractApi?.secretTargetRegistryEntries ?? []));
+    } catch {
+      // Ignore channels that do not expose a usable secret contract artifact.
+    }
+  };
 
   for (const record of loadPluginManifestRegistryForPluginRegistry({ includeDisabled: true })
     .plugins) {
@@ -100,11 +120,17 @@ function listChannelSecretTargetRegistryEntries(): SecretTargetRegistryEntry[] {
     if (channelIds.length === 0) {
       continue;
     }
-    try {
-      const contractApi = loadBundledChannelSecretContractApi(record.id);
-      entries.push(...(contractApi?.secretTargetRegistryEntries ?? []));
-    } catch {
-      // Ignore bundled channels that do not expose a usable secret contract artifact.
+    appendChannelContract(record.id);
+  }
+
+  for (const entry of listOfficialExternalPluginCatalogEntries()) {
+    const manifest = getOfficialExternalPluginCatalogManifest(entry);
+    if (!manifest?.channel) {
+      continue;
+    }
+    const channelId = resolveOfficialExternalPluginId(entry);
+    if (channelId) {
+      appendChannelContract(channelId);
     }
   }
   return entries;
