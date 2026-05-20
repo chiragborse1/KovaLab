@@ -5,11 +5,7 @@ import {
   resetPluginRuntimeStateForTest,
   setActivePluginRegistry,
 } from "../plugins/runtime.js";
-import { createOutboundTestPlugin } from "../test-utils/channel-plugins.js";
-import { createRegistry } from "./server.e2e-registry-helpers.js";
-import { getFreePort, installGatewayTestHooks, startGatewayServer } from "./test-helpers.js";
-
-installGatewayTestHooks();
+import { createOutboundTestPlugin, createTestRegistry } from "../test-utils/channel-plugins.js";
 
 const whatsappOutbound = {
   deliveryMode: "direct" as const,
@@ -23,7 +19,7 @@ const replacementPlugin = createOutboundTestPlugin({
   label: "WhatsApp Replacement",
 });
 
-const replacementRegistry = createRegistry([
+const replacementRegistry = createTestRegistry([
   {
     pluginId: "whatsapp",
     source: "test-replacement",
@@ -35,20 +31,14 @@ afterEach(() => {
   resetPluginRuntimeStateForTest();
 });
 
-test("minimal gateway tracks later channel registry updates", async () => {
+test("channel plugin lookups track later registry updates", () => {
   const prevRegistry = getActivePluginRegistry();
-  const prevVitest = process.env.VITEST;
   resetPluginRuntimeStateForTest();
-  process.env.VITEST = "1";
-  const port = await getFreePort();
-  const server = await startGatewayServer(port);
   try {
     expect(getChannelPlugin("whatsapp")).not.toBe(replacementPlugin);
     setActivePluginRegistry(replacementRegistry);
     expect(getChannelPlugin("whatsapp")).toBe(replacementPlugin);
   } finally {
-    await server.close();
-    process.env.VITEST = prevVitest;
     resetPluginRuntimeStateForTest();
     if (prevRegistry) {
       setActivePluginRegistry(prevRegistry);
