@@ -10,6 +10,8 @@ import {
 } from "../auto-reply/reply/reply-run-registry.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import { resetCliAuthEpochTestDeps, setCliAuthEpochTestDeps } from "./cli-auth-epoch.js";
+import { __testing as cliBackendsTesting } from "./cli-backends.js";
 import { runPreparedCliAgent } from "./cli-runner.js";
 import {
   createManagedRun,
@@ -125,6 +127,8 @@ function buildPreparedContext(params?: {
 describe("runCliAgent reliability", () => {
   afterEach(() => {
     replyRunTesting.resetReplyRunRegistry();
+    cliBackendsTesting.resetDepsForTest();
+    resetCliAuthEpochTestDeps();
     mockGetGlobalHookRunner.mockReset();
     vi.unstubAllEnvs();
   });
@@ -791,6 +795,19 @@ describe("runCliAgent reliability", () => {
       runBeforeAgentStart: vi.fn(async () => undefined),
     };
     mockGetGlobalHookRunner.mockReturnValue(hookRunner as never);
+    cliBackendsTesting.setDepsForTest({
+      resolvePluginSetupCliBackend: () => undefined,
+      resolveRuntimeCliBackends: () => [],
+    });
+    setCliAuthEpochTestDeps({
+      readClaudeCliCredentialsCached: () => null,
+      readCodexCliCredentialsCached: () => null,
+      readGeminiCliCredentialsCached: () => null,
+      loadAuthProfileStoreForRuntime: () => ({
+        version: 1,
+        profiles: {},
+      }),
+    });
 
     try {
       const context = await prepareCliRunContext({
