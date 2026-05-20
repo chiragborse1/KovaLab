@@ -595,6 +595,34 @@ function resolveChannelContractTargetKind(relative) {
   return "contractsChannelSession";
 }
 
+function resolveGatewayTargetKind(relative) {
+  if (!relative.startsWith("src/gateway/")) {
+    return null;
+  }
+  if (relative.startsWith("src/gateway/server-methods/")) {
+    return "gatewayMethods";
+  }
+  if (
+    relative.startsWith("src/gateway/protocol/") ||
+    /(?:client|reconnect|android-node|gateway-cli-backend)/u.test(relative)
+  ) {
+    return "gatewayClient";
+  }
+  if (
+    /server/u.test(relative) ||
+    [
+      "src/gateway/embeddings-http.test.ts",
+      "src/gateway/models-http.test.ts",
+      "src/gateway/openai-http.test.ts",
+      "src/gateway/openresponses-http.test.ts",
+      "src/gateway/probe.auth.integration.test.ts",
+    ].includes(relative)
+  ) {
+    return "gatewayServer";
+  }
+  return "gatewayCore";
+}
+
 function listChangedPathsFromGit(baseRef, cwd) {
   return listChangedPathsFromGitSource({ base: baseRef, cwd });
 }
@@ -886,8 +914,9 @@ function classifyTarget(arg, cwd) {
   if (relative.startsWith("src/channels/")) {
     return "channel";
   }
-  if (relative.startsWith("src/gateway/")) {
-    return "gateway";
+  const gatewayKind = resolveGatewayTargetKind(relative);
+  if (gatewayKind) {
+    return gatewayKind;
   }
   if (relative.startsWith("src/hooks/")) {
     return "hooks";

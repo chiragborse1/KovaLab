@@ -727,6 +727,42 @@ describe("scripts/test-projects changed-target routing", () => {
       },
     ]);
   });
+
+  it("routes gateway changed targets through split gateway shards", () => {
+    const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
+      "src/gateway/auth.ts",
+      "src/gateway/client.ts",
+      "src/gateway/server-channels.ts",
+      "src/gateway/server-methods/config.ts",
+    ]);
+
+    expect(plans).toEqual([
+      {
+        config: "test/vitest/vitest.gateway-core.config.ts",
+        forwardedArgs: [],
+        includePatterns: ["src/gateway/auth.test.ts"],
+        watchMode: false,
+      },
+      {
+        config: "test/vitest/vitest.gateway-client.config.ts",
+        forwardedArgs: [],
+        includePatterns: ["src/gateway/client.test.ts"],
+        watchMode: false,
+      },
+      {
+        config: "test/vitest/vitest.gateway-methods.config.ts",
+        forwardedArgs: [],
+        includePatterns: ["src/gateway/server-methods/config.test.ts"],
+        watchMode: false,
+      },
+      {
+        config: "test/vitest/vitest.gateway-server.config.ts",
+        forwardedArgs: [],
+        includePatterns: ["src/gateway/server-channels.test.ts"],
+        watchMode: false,
+      },
+    ]);
+  });
 });
 
 describe("scripts/test-projects local heavy-check lock", () => {
