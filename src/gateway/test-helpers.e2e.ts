@@ -88,7 +88,7 @@ export async function connectGatewayClient(params: {
       url: params.url,
       token: params.token,
       deviceToken: params.deviceToken,
-      connectChallengeTimeoutMs: params.connectChallengeTimeoutMs ?? 0,
+      connectChallengeTimeoutMs: params.connectChallengeTimeoutMs,
       clientName: params.clientName ?? GATEWAY_CLIENT_NAMES.TEST,
       clientDisplayName: params.clientDisplayName ?? "vitest",
       clientVersion: params.clientVersion ?? "dev",

@@ -238,6 +238,7 @@ export async function spawnGatewayInstance(name: string): Promise<GatewayInstanc
           KOVA_SKIP_BROWSER_CONTROL_SERVER: "1",
           KOVA_SKIP_CANVAS_HOST: "1",
           KOVA_TEST_MINIMAL_GATEWAY: "1",
+          KOVA_TEST_HANDSHAKE_TIMEOUT_MS: "60000",
           VITEST: "1",
         },
         stdio: ["ignore", "pipe", "pipe"],
