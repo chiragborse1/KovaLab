@@ -74,7 +74,7 @@ export async function handleCodexPluginsSubcommand(
 }
 
 function canMutateCodexPlugins(ctx: PluginCommandContext): boolean {
-  if (ctx.isAuthorizedSender === true) {
+  if (ctx.isAuthorizedSender) {
     return true;
   }
   return ctx.gatewayClientScopes?.includes("operator.admin") === true;

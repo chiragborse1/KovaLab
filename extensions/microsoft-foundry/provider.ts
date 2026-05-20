@@ -43,19 +43,23 @@ export function buildMicrosoftFoundryProvider(): ProviderPlugin {
       const selectedModelApi = isFoundryProviderApi(existingModel?.api)
         ? existingModel.api
         : providerConfig.api;
-      const nextModels = configuredModels.map((model) =>
-        model.id === selectedModelId
-          ? {
-              ...model,
-              name: selectedModelCapabilities.modelName,
-              api: selectedModelCapabilities.api,
-              input: selectedModelCapabilities.input,
-              ...(selectedModelCapabilities.compat
-                ? { compat: selectedModelCapabilities.compat }
-                : {}),
-            }
-          : model,
-      );
+      const nextModels = configuredModels.map((model) => {
+        if (model.id !== selectedModelId) {
+          return model;
+        }
+        return Object.assign(
+          {},
+          model,
+          {
+            name: selectedModelCapabilities.modelName,
+            api: selectedModelCapabilities.api,
+            input: selectedModelCapabilities.input,
+          },
+          selectedModelCapabilities.compat
+            ? { compat: selectedModelCapabilities.compat }
+            : undefined,
+        );
+      });
       if (!nextModels.some((model) => model.id === selectedModelId)) {
         nextModels.push({
           id: selectedModelId,

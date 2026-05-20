@@ -1,6 +1,5 @@
 import type { ProviderAuthContext } from "getkova/plugin-sdk/plugin-entry";
 import { createRuntimeEnv, createTestWizardPrompter } from "getkova/plugin-sdk/plugin-test-runtime";
-import type { OAuthCredential } from "getkova/plugin-sdk/provider-auth";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildXaiOAuthAuthorizationCodeTokenBody,
@@ -147,13 +146,13 @@ describe("xAI OAuth", () => {
     });
 
     const credential = {
-      type: "oauth",
+      type: "oauth" as const,
       provider: "xai",
       access: "access-1",
       refresh: "refresh-1",
       expires: 100,
       tokenEndpoint: "https://auth.x.ai/oauth2/token",
-    } satisfies OAuthCredential & { tokenEndpoint: string };
+    };
     const refreshed = await refreshXaiOAuthCredential(credential, { fetchImpl, now: () => 1_000 });
 
     expect(fetchImpl).toHaveBeenCalledWith("https://auth.x.ai/oauth2/token", expect.any(Object));

@@ -50,16 +50,19 @@ export function createRuntimeEnv(options?: { throwOnExit?: boolean }): OutputRun
   };
 }
 
-export function createTypedRuntimeEnv<TRuntime>(options?: { throwOnExit?: boolean }): TRuntime {
-  return createRuntimeEnv(options) as TRuntime;
+export function createTypedRuntimeEnv<TRuntime>(options?: {
+  throwOnExit?: boolean;
+  overrides?: Partial<TRuntime>;
+}): TRuntime {
+  return { ...createRuntimeEnv(options), ...options?.overrides } as TRuntime;
 }
 
 export function createNonExitingRuntimeEnv(): OutputRuntimeEnv {
   return createRuntimeEnv({ throwOnExit: false });
 }
 
-export function createNonExitingTypedRuntimeEnv<TRuntime>(): TRuntime {
-  return createTypedRuntimeEnv<TRuntime>({ throwOnExit: false });
+export function createNonExitingTypedRuntimeEnv<TRuntime>(overrides?: Partial<TRuntime>): TRuntime {
+  return createTypedRuntimeEnv<TRuntime>({ throwOnExit: false, overrides });
 }
 
 async function selectFirstWizardOption<T>(params: { options: Array<{ value: T }> }): Promise<T> {

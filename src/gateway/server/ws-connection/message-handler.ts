@@ -1286,7 +1286,7 @@ export function attachGatewayWsMessageHandler(params: {
           });
         }
         if (device && handoffBootstrapProfile) {
-          const bootstrapProfileForHello = handoffBootstrapProfile as DeviceBootstrapProfile;
+          const bootstrapProfileForHello = handoffBootstrapProfile;
           for (const bootstrapRole of bootstrapProfileForHello.roles) {
             if (bootstrapDeviceTokens.some((entry) => entry.role === bootstrapRole)) {
               continue;

@@ -32,17 +32,22 @@ export function resolveModelAuthLabel(params: {
           allowKeychainPrompt: false,
         });
   const profileOverride = params.sessionEntry?.authProfileOverride?.trim();
-  const acceptedProviderKeys = [
-    ...new Set(
-      [...(params.acceptedProviderIds ?? []).map(normalizeProviderId), providerKey].filter(Boolean),
+  const acceptedProviderKeys = new Set<string>();
+  for (const acceptedProviderId of params.acceptedProviderIds ?? []) {
+    const acceptedProviderKey = normalizeProviderId(acceptedProviderId);
+    if (acceptedProviderKey) {
+      acceptedProviderKeys.add(acceptedProviderKey);
+    }
+  }
+  acceptedProviderKeys.add(providerKey);
+  const acceptedAuthProviderKeys = new Set(
+    [...acceptedProviderKeys].map((provider) =>
+      resolveProviderIdForAuth(provider, { config: params.cfg }),
     ),
-  ];
-  const acceptedAuthProviderKeys = acceptedProviderKeys.map((provider) =>
-    resolveProviderIdForAuth(provider, { config: params.cfg }),
   );
   const order = [
     ...new Set(
-      acceptedProviderKeys.flatMap((acceptedProvider) =>
+      [...acceptedProviderKeys].flatMap((acceptedProvider) =>
         resolveAuthProfileOrder({
           cfg: params.cfg,
           store,
@@ -58,7 +63,7 @@ export function resolveModelAuthLabel(params: {
     const profile = store.profiles[profileId];
     if (
       !profile ||
-      !acceptedAuthProviderKeys.includes(
+      !acceptedAuthProviderKeys.has(
         resolveProviderIdForAuth(profile.provider, { config: params.cfg }),
       )
     ) {
