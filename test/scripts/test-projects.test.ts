@@ -8,11 +8,13 @@ import {
   applyParallelVitestCachePaths,
   buildFullSuiteVitestRunPlans,
   buildVitestRunPlans,
+  filterVitestRunSpecsForShard,
   listFullExtensionVitestProjectConfigs,
   shouldAcquireLocalHeavyCheckLock,
   resolveChangedTestTargetPlan,
   resolveChangedTargetArgs,
   resolveParallelFullSuiteConcurrency,
+  resolveTestProjectsShard,
   shouldRetryVitestNoOutputTimeout,
 } from "../../scripts/test-projects.test-support.mjs";
 import { fullSuiteVitestShards } from "../vitest/vitest.test-shards.mjs";
@@ -1202,6 +1204,60 @@ describe("scripts/test-projects full-suite sharding", () => {
         watchMode: true,
       },
     ]);
+  });
+});
+
+describe("scripts/test-projects CI sharding", () => {
+  const makeSpec = (config: string) => ({
+    config,
+    env: {},
+    includeFilePath: null,
+    includePatterns: null,
+    pnpmArgs: ["exec", "vitest", "run", "--config", config],
+    watchMode: false,
+  });
+
+  it("splits run specs across stable matrix shards", () => {
+    const specs = ["a", "b", "c", "d", "e", "f", "g"].map(makeSpec);
+
+    expect(
+      filterVitestRunSpecsForShard(specs, {
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "0",
+        KOVA_TEST_PROJECTS_SHARD_TOTAL: "3",
+      }).map((spec) => spec.config),
+    ).toEqual(["a", "d", "g"]);
+    expect(
+      filterVitestRunSpecsForShard(specs, {
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "1",
+        KOVA_TEST_PROJECTS_SHARD_TOTAL: "3",
+      }).map((spec) => spec.config),
+    ).toEqual(["b", "e"]);
+    expect(
+      filterVitestRunSpecsForShard(specs, {
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "2",
+        KOVA_TEST_PROJECTS_SHARD_TOTAL: "3",
+      }).map((spec) => spec.config),
+    ).toEqual(["c", "f"]);
+  });
+
+  it("validates shard env as a complete zero-based index pair", () => {
+    expect(
+      resolveTestProjectsShard({
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "0",
+        KOVA_TEST_PROJECTS_SHARD_TOTAL: "4",
+      }),
+    ).toEqual({ index: 0, total: 4 });
+    expect(() =>
+      resolveTestProjectsShard({
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "4",
+        KOVA_TEST_PROJECTS_SHARD_TOTAL: "4",
+      }),
+    ).toThrow(/must be less than/u);
+    expect(() =>
+      resolveTestProjectsShard({
+        KOVA_TEST_PROJECTS_SHARD_INDEX: "1",
+      }),
+    ).toThrow(/must be set together/u);
   });
 });
 

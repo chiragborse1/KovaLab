@@ -24,10 +24,12 @@ import {
   applyParallelVitestCachePaths,
   buildFullSuiteVitestRunPlans,
   createVitestRunSpecs,
+  filterVitestRunSpecsForShard,
   listFullExtensionVitestProjectConfigs,
   parseTestProjectsArgs,
   resolveParallelFullSuiteConcurrency,
   resolveChangedTargetArgs,
+  resolveTestProjectsShard,
   shouldAcquireLocalHeavyCheckLock,
   shouldRetryVitestNoOutputTimeout,
   writeVitestIncludeFile,
@@ -304,10 +306,19 @@ async function main() {
           baseEnv,
           cwd: process.cwd(),
         });
-  const runSpecs = applyDefaultMultiSpecVitestCachePaths(
-    applyDefaultVitestNoOutputTimeout(rawRunSpecs, { env: baseEnv }),
-    { cwd: process.cwd(), env: baseEnv },
-  );
+  const defaultedRunSpecs = applyDefaultVitestNoOutputTimeout(rawRunSpecs, { env: baseEnv });
+  const shard = resolveTestProjectsShard(baseEnv);
+  const shardRunSpecs = filterVitestRunSpecsForShard(defaultedRunSpecs, baseEnv);
+  const runSpecs = applyDefaultMultiSpecVitestCachePaths(shardRunSpecs, {
+    cwd: process.cwd(),
+    env: baseEnv,
+  });
+
+  if (shard) {
+    console.error(
+      `[test] selected Vitest shard ${shard.index + 1}/${shard.total} (${runSpecs.length}/${defaultedRunSpecs.length} specs)`,
+    );
+  }
 
   if (runSpecs.length === 0) {
     console.error("[test] no changed test targets; skipping Vitest.");
@@ -328,6 +339,7 @@ async function main() {
     changedTargetArgs === null &&
     !runSpecs.some((spec) => spec.watchMode);
   const isExplicitParallelMultiConfigRun =
+    !shard &&
     Boolean(baseEnv.KOVA_TEST_PROJECTS_PARALLEL) &&
     runSpecs.length > 1 &&
     !runSpecs.some((spec) => spec.watchMode);

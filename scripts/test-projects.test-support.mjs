@@ -130,6 +130,8 @@ const UTILS_VITEST_CONFIG = "test/vitest/vitest.utils.config.ts";
 const WIZARD_VITEST_CONFIG = "test/vitest/vitest.wizard.config.ts";
 const INCLUDE_FILE_ENV_KEY = "KOVA_VITEST_INCLUDE_FILE";
 const FS_MODULE_CACHE_PATH_ENV_KEY = "KOVA_VITEST_FS_MODULE_CACHE_PATH";
+const TEST_PROJECTS_SHARD_INDEX_ENV_KEY = "KOVA_TEST_PROJECTS_SHARD_INDEX";
+const TEST_PROJECTS_SHARD_TOTAL_ENV_KEY = "KOVA_TEST_PROJECTS_SHARD_TOTAL";
 const CHANGED_ARGS_PATTERN = /^--changed(?:=(.+))?$/u;
 const VITEST_CONFIG_BY_KIND = {
   acp: ACP_VITEST_CONFIG,
@@ -1270,6 +1272,54 @@ export function shouldUseLocalFullSuiteParallelByDefault(env = process.env) {
 function parsePositiveInt(value) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function hasNonBlankEnvValue(env, key) {
+  return typeof env[key] === "string" && env[key].trim().length > 0;
+}
+
+function parseRequiredIntegerEnv(env, key, { min }) {
+  const rawValue = env[key]?.trim();
+  if (!rawValue) {
+    throw new Error(`${key} must be set when test project sharding is enabled.`);
+  }
+  if (!/^\d+$/u.test(rawValue)) {
+    throw new Error(`${key} must be an integer, received ${JSON.stringify(rawValue)}.`);
+  }
+  const value = Number.parseInt(rawValue, 10);
+  if (value < min) {
+    throw new Error(`${key} must be at least ${min}, received ${value}.`);
+  }
+  return value;
+}
+
+export function resolveTestProjectsShard(env = process.env) {
+  const hasShardIndex = hasNonBlankEnvValue(env, TEST_PROJECTS_SHARD_INDEX_ENV_KEY);
+  const hasShardTotal = hasNonBlankEnvValue(env, TEST_PROJECTS_SHARD_TOTAL_ENV_KEY);
+  if (!hasShardIndex && !hasShardTotal) {
+    return null;
+  }
+  if (!hasShardIndex || !hasShardTotal) {
+    throw new Error(
+      `${TEST_PROJECTS_SHARD_INDEX_ENV_KEY} and ${TEST_PROJECTS_SHARD_TOTAL_ENV_KEY} must be set together.`,
+    );
+  }
+  const index = parseRequiredIntegerEnv(env, TEST_PROJECTS_SHARD_INDEX_ENV_KEY, { min: 0 });
+  const total = parseRequiredIntegerEnv(env, TEST_PROJECTS_SHARD_TOTAL_ENV_KEY, { min: 1 });
+  if (index >= total) {
+    throw new Error(
+      `${TEST_PROJECTS_SHARD_INDEX_ENV_KEY} must be less than ${TEST_PROJECTS_SHARD_TOTAL_ENV_KEY}; received ${index}/${total}.`,
+    );
+  }
+  return { index, total };
+}
+
+export function filterVitestRunSpecsForShard(specs, env = process.env) {
+  const shard = resolveTestProjectsShard(env);
+  if (!shard || shard.total === 1) {
+    return specs;
+  }
+  return specs.filter((_, index) => index % shard.total === shard.index);
 }
 
 function hasConservativeVitestWorkerBudget(env) {

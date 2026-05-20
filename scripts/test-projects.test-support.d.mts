@@ -79,6 +79,16 @@ export function applyDefaultMultiSpecVitestCachePaths(
   },
 ): VitestRunSpec[];
 
+export function resolveTestProjectsShard(env?: Record<string, string | undefined>): {
+  index: number;
+  total: number;
+} | null;
+
+export function filterVitestRunSpecsForShard(
+  specs: VitestRunSpec[],
+  env?: Record<string, string | undefined>,
+): VitestRunSpec[];
+
 export function writeVitestIncludeFile(filePath: string, includePatterns: string[]): void;
 
 export function buildVitestArgs(args: string[], cwd?: string): string[];
