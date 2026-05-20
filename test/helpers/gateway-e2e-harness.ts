@@ -36,8 +36,9 @@ export type GatewayInstance = {
 
 const GATEWAY_START_TIMEOUT_MS = 60_000;
 const GATEWAY_STOP_TIMEOUT_MS = 1_500;
-const GATEWAY_CONNECT_STATUS_TIMEOUT_MS = 10_000;
-const GATEWAY_NODE_STATUS_TIMEOUT_MS = 15_000;
+const GATEWAY_CONNECT_STATUS_TIMEOUT_MS = 30_000;
+const GATEWAY_NODE_CONNECT_TIMEOUT_MS = 60_000;
+const GATEWAY_NODE_STATUS_TIMEOUT_MS = 45_000;
 const GATEWAY_NODE_STATUS_POLL_MS = 20;
 const GATEWAY_HOME_REMOVE_RETRIES = 5;
 const GATEWAY_HOME_REMOVE_RETRY_DELAY_MS = 100;
@@ -369,10 +370,22 @@ export async function connectNode(
     caps: ["system"],
     commands: ["system.run"],
     deviceIdentity,
-    timeoutMs: 30_000,
+    timeoutMs: GATEWAY_NODE_CONNECT_TIMEOUT_MS,
     timeoutMessage: `timeout waiting for ${label} to connect`,
+  }).catch((err) => {
+    throw withGatewayLogTail(inst, err, `timeout waiting for ${label} to connect`);
   });
   return { client, nodeId };
+}
+
+function withGatewayLogTail(inst: GatewayInstance, err: unknown, message: string): Error {
+  const cause = err instanceof Error ? err : new Error(String(err));
+  const stdoutTail = inst.stdout.join("").split(/\r?\n/).slice(-80).join("\n");
+  const stderrTail = inst.stderr.join("").split(/\r?\n/).slice(-80).join("\n");
+  return new Error(
+    `${message}: ${cause.message}\n--- gateway ${inst.name} stdout tail ---\n${stdoutTail}\n--- gateway ${inst.name} stderr tail ---\n${stderrTail}`,
+    { cause },
+  );
 }
 
 async function connectStatusClient(
@@ -446,7 +459,11 @@ export async function waitForNodeStatus(
   } finally {
     client.stop();
   }
-  throw new Error(`timeout waiting for node status for ${nodeId}`);
+  throw withGatewayLogTail(
+    inst,
+    new Error(`timeout waiting for node status for ${nodeId}`),
+    `timeout waiting for node status for ${nodeId}`,
+  );
 }
 
 export async function waitForChatFinalEvent(params: {

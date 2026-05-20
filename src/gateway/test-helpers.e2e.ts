@@ -68,16 +68,17 @@ export async function connectGatewayClient(params: {
     );
   return await new Promise<InstanceType<typeof GatewayClient>>((resolve, reject) => {
     let settled = false;
-    const stop = (err?: Error, client?: InstanceType<typeof GatewayClient>) => {
+    const stop = (err?: Error, connectedClient?: InstanceType<typeof GatewayClient>) => {
       if (settled) {
         return;
       }
       settled = true;
       clearTimeout(timer);
       if (err) {
+        connectedClient?.stop();
         reject(err);
       } else {
-        resolve(client as InstanceType<typeof GatewayClient>);
+        resolve(connectedClient as InstanceType<typeof GatewayClient>);
       }
     };
     const client = new GatewayClient({
@@ -99,12 +100,12 @@ export async function connectGatewayClient(params: {
       deviceIdentity,
       onEvent: params.onEvent,
       onHelloOk: () => stop(undefined, client),
-      onConnectError: (err) => stop(err),
+      onConnectError: (err) => stop(err, client),
       onClose: (code, reason) =>
-        stop(new Error(`gateway closed during connect (${code}): ${reason}`)),
+        stop(new Error(`gateway closed during connect (${code}): ${reason}`), client),
     });
     const timer = setTimeout(
-      () => stop(new Error(params.timeoutMessage ?? "gateway connect timeout")),
+      () => stop(new Error(params.timeoutMessage ?? "gateway connect timeout"), client),
       params.timeoutMs ?? 10_000,
     );
     timer.unref();

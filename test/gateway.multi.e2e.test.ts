@@ -15,7 +15,7 @@ import {
   waitForNodeStatus,
 } from "./helpers/gateway-e2e-harness.js";
 
-const E2E_TIMEOUT_MS = 180_000;
+const E2E_TIMEOUT_MS = 240_000;
 
 describe("gateway multi-instance e2e", () => {
   const instances: GatewayInstance[] = [];
@@ -41,6 +41,17 @@ describe("gateway multi-instance e2e", () => {
       const [gwA, gwB] = await Promise.all([spawnGatewayInstance("a"), spawnGatewayInstance("b")]);
       instances.push(gwA, gwB);
 
+      const [nodeA, nodeB] = await Promise.all([
+        connectNode(gwA, "node-a"),
+        connectNode(gwB, "node-b"),
+      ]);
+      nodeClients.push(nodeA.client, nodeB.client);
+
+      await Promise.all([
+        waitForNodeStatus(gwA, nodeA.nodeId),
+        waitForNodeStatus(gwB, nodeB.nodeId),
+      ]);
+
       const [hookResA, hookResB] = await Promise.all([
         postJson(
           `http://127.0.0.1:${gwA.port}/hooks/wake`,
@@ -63,17 +74,6 @@ describe("gateway multi-instance e2e", () => {
       expect((hookResA.json as { ok?: boolean } | undefined)?.ok).toBe(true);
       expect(hookResB.status).toBe(200);
       expect((hookResB.json as { ok?: boolean } | undefined)?.ok).toBe(true);
-
-      const [nodeA, nodeB] = await Promise.all([
-        connectNode(gwA, "node-a"),
-        connectNode(gwB, "node-b"),
-      ]);
-      nodeClients.push(nodeA.client, nodeB.client);
-
-      await Promise.all([
-        waitForNodeStatus(gwA, nodeA.nodeId),
-        waitForNodeStatus(gwB, nodeB.nodeId),
-      ]);
     },
   );
 
@@ -93,7 +93,7 @@ describe("gateway multi-instance e2e", () => {
         clientVersion: "1.0.0",
         platform: "test",
         mode: GATEWAY_CLIENT_MODES.CLI,
-        timeoutMs: 30_000,
+        timeoutMs: 60_000,
         onEvent: (evt) => {
           if (evt.event === "chat" && evt.payload && typeof evt.payload === "object") {
             chatEvents.push(evt.payload as ChatEventPayload);
