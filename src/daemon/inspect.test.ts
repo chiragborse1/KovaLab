@@ -108,7 +108,7 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
   );
 
   it.skipIf(!isLinux)(
-    "reports a legacy kova-gateway service as an extra gateway service",
+    "does not report a Kova gateway-shaped unit without the typed marker as extra",
     async () => {
       const tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "kova-test-"));
       const systemdDir = path.join(tmpHome, ".config", "systemd", "user");
@@ -117,16 +117,7 @@ describe("findExtraGatewayServices (linux / scanSystemdDir) — real filesystem"
         await fs.mkdir(systemdDir, { recursive: true });
         await fs.writeFile(unitPath, KOVA_GATEWAY_CONTENTS);
         const result = await findExtraGatewayServices({ HOME: tmpHome });
-        expect(result).toEqual([
-          {
-            platform: "linux",
-            label: "kova-gateway.service",
-            detail: `unit: ${unitPath}`,
-            scope: "user",
-            marker: "kova",
-            legacy: true,
-          },
-        ]);
+        expect(result).toEqual([]);
       } finally {
         await fs.rm(tmpHome, { recursive: true, force: true });
       }
@@ -169,7 +160,7 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([]);
   });
 
-  it("collects only non-kova marker tasks from schtasks output", async () => {
+  it("collects extra Kova-shaped tasks that are not the canonical gateway task", async () => {
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
@@ -194,7 +185,7 @@ describe("findExtraGatewayServices (win32)", () => {
         detail: "task: Kova Legacy, run: C:\\kova\\kova.exe run",
         scope: "system",
         marker: "kova",
-        legacy: true,
+        legacy: false,
       },
     ]);
   });

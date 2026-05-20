@@ -1108,13 +1108,10 @@ describe("systemd service control", () => {
     await assertRestartSuccess({ KOVA_PROFILE: "work" });
   });
 
-  it("prefers the active legacy unit when both Kova and Kova unit files exist", async () => {
+  it("uses the current Kova unit without probing removed legacy names", async () => {
     vi.spyOn(fs, "access").mockImplementation(async (pathname) => {
       const pathValue = pathLikeToString(pathname);
-      if (
-        pathValue.endsWith("/kova-gateway.service") ||
-        pathValue.endsWith("/kova-gateway.service")
-      ) {
+      if (pathValue.endsWith("/kova-gateway.service")) {
         return;
       }
       throw Object.assign(new Error(`ENOENT: ${pathValue}`), { code: "ENOENT" });
@@ -1126,36 +1123,6 @@ describe("systemd service control", () => {
         cb(null, "", "");
       })
       .mockImplementationOnce((_cmd, args, _opts, cb) => {
-        assertUserSystemctlArgs(
-          args,
-          "show",
-          "kova-gateway.service",
-          "--no-page",
-          "--property",
-          "LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMainCode",
-        );
-        cb(createExecFileError("show failed"), "", "Unit kova-gateway.service could not be found.");
-      })
-      .mockImplementationOnce((_cmd, args, _opts, cb) => {
-        assertUserSystemctlArgs(args, "is-enabled", "kova-gateway.service");
-        cb(
-          createExecFileError("is-enabled failed"),
-          "",
-          "Unit file kova-gateway.service does not exist.",
-        );
-      })
-      .mockImplementationOnce((_cmd, args, _opts, cb) => {
-        assertUserSystemctlArgs(
-          args,
-          "show",
-          "kova-gateway.service",
-          "--no-page",
-          "--property",
-          "LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMainCode",
-        );
-        cb(null, ["LoadState=loaded", "ActiveState=active", "SubState=running"].join("\n"), "");
-      })
-      .mockImplementationOnce((_cmd, args, _opts, cb) => {
         assertUserSystemctlArgs(args, "stop", "kova-gateway.service");
         cb(null, "", "");
       });
@@ -1164,6 +1131,8 @@ describe("systemd service control", () => {
       stdout: { write: vi.fn() } as unknown as NodeJS.WritableStream,
       env: { HOME: TEST_SERVICE_HOME },
     });
+
+    expect(execFileMock).toHaveBeenCalledTimes(2);
   });
 
   it("surfaces stop failures with systemctl detail", async () => {
