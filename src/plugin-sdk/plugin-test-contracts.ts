@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pluginRegistrationContractRegistry } from "../plugins/contracts/registry.js";
+import {
+  pluginRegistrationContractRegistry,
+  videoGenerationProviderContractRegistry,
+} from "../plugins/contracts/registry.js";
 import { loadPluginManifestRegistry } from "../plugins/manifest-registry.js";
 
 type PluginRegistrationContractParams = {
@@ -16,6 +19,7 @@ type PluginRegistrationContractParams = {
   videoGenerationProviderIds?: string[];
   musicGenerationProviderIds?: string[];
   toolNames?: string[];
+  requireGenerateVideo?: boolean;
   manifestAuthChoice?: {
     pluginId: string;
     choiceId: string;
@@ -102,6 +106,17 @@ export function describePluginRegistrationContract(params: PluginRegistrationCon
         expect(findRegistration(params.pluginId).videoGenerationProviderIds).toEqual(
           params.videoGenerationProviderIds,
         );
+      });
+    }
+    if (params.requireGenerateVideo) {
+      it("keeps video-generation runtime implementation available", () => {
+        const providers = videoGenerationProviderContractRegistry.filter(
+          (entry) => entry.pluginId === params.pluginId,
+        );
+        expect(providers.length).toBeGreaterThan(0);
+        for (const entry of providers) {
+          expect(entry.provider.generateVideo).toEqual(expect.any(Function));
+        }
       });
     }
     if (params.musicGenerationProviderIds) {

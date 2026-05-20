@@ -126,8 +126,25 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
         contextFiles: [],
       })),
       getActiveMcpLoopbackRuntime: vi.fn(() => undefined),
-      ensureMcpLoopbackServer: vi.fn(async () => undefined),
-      createMcpLoopbackServerConfig: vi.fn(() => ({ mcpServers: {} })),
+      ensureMcpLoopbackServer: vi.fn(async () => ({
+        port: 18791,
+        close: async () => undefined,
+      })),
+      createMcpLoopbackServerConfig: vi.fn((port: number) => ({
+        mcpServers: {
+          kova: {
+            type: "http",
+            url: `http://127.0.0.1:${port}/mcp`,
+            headers: {
+              Authorization: "Bearer ${KOVA_MCP_TOKEN}",
+              "x-session-key": "${KOVA_MCP_SESSION_KEY}",
+              "x-kova-agent-id": "${KOVA_MCP_AGENT_ID}",
+              "x-kova-account-id": "${KOVA_MCP_ACCOUNT_ID}",
+              "x-kova-message-channel": "${KOVA_MCP_MESSAGE_CHANNEL}",
+            },
+          },
+        },
+      })),
       resolveMcpLoopbackScopedTools: vi.fn(() => ({ agentId: undefined, tools: [] })),
       resolveKovaReferencePaths: vi.fn(async () => ({ docsPath: null, sourcePath: null })),
     });
@@ -439,6 +456,7 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
         resolveRuntimeCliBackends: () => [
           {
             id: "test-cli",
+            pluginId: "test-plugin",
             bundleMcp: true,
             config: {
               command: "test-cli",

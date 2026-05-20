@@ -33,5 +33,14 @@ export function createTelegramPollingStatusPublisher(setStatus?: TelegramPolling
         connected: false,
       });
     },
+    notePollingError(message: string, at = Date.now()) {
+      setStatus?.({
+        mode: "polling",
+        connected: false,
+        lastError: message,
+        lastEventAt: at,
+        lastTransportActivityAt: at,
+      });
+    },
   };
 }

@@ -242,7 +242,6 @@ describe("runEmbeddedAttempt context engine sessionKey forwarding", () => {
       contextEngine: createContextEngineBootstrapAndAssemble(),
       sessionKey,
       tempPaths,
-      trajectory: true,
       attemptOverrides: {
         prompt: "runtime bare mention event",
         transcriptPrompt: "",

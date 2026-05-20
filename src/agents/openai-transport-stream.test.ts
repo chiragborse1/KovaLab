@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import type { Model } from "@mariozechner/pi-ai";
+import type { Api, Model } from "@mariozechner/pi-ai";
 import { describe, expect, it, vi } from "vitest";
 import {
   buildOpenAIResponsesParams,
@@ -21,10 +21,10 @@ import {
 import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
 
 describe("openai transport stream", () => {
-  function createTestAssistantOutput(model: Model): {
+  function createTestAssistantOutput(model: Model<Api>): {
     role: "assistant";
     content: Array<Record<string, unknown>>;
-    api: Model["api"];
+    api: Model<Api>["api"];
     provider: string;
     model: string;
     usage: {

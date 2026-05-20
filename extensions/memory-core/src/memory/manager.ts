@@ -179,6 +179,24 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
   private readonlyRecoveryFailures = 0;
   private readonlyRecoveryLastError?: string;
 
+  protected async withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+      return await promise;
+    }
+    let timer: NodeJS.Timeout | null = null;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      timer.unref?.();
+    });
+    try {
+      return await Promise.race([promise, timeout]);
+    } finally {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
+  }
+
   private static async loadProviderResult(params: {
     cfg: KovaConfig;
     agentId: string;

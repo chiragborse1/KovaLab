@@ -64,16 +64,30 @@ export async function waitForLocalOAuthCallback(params: {
   successTitle: string;
   progressMessage?: string;
   hostname?: string;
+  corsOriginAllowlist?: readonly string[];
   onProgress?: (message: string) => void;
 }): Promise<OAuthCallbackResult> {
   const hostname = params.hostname ?? "localhost";
   const escapedSuccessTitle = escapeHtmlText(params.successTitle);
+  const allowedCorsOrigins = new Set(params.corsOriginAllowlist ?? []);
 
   return new Promise<OAuthCallbackResult>((resolve, reject) => {
     let settled = false;
     let timeout: NodeJS.Timeout | null = null;
     const server = createServer((req, res) => {
       try {
+        const origin = req.headers.origin;
+        if (typeof origin === "string" && allowedCorsOrigins.has(origin)) {
+          res.setHeader("Access-Control-Allow-Origin", origin);
+          res.setHeader("Vary", "Origin");
+        }
+        if (req.method === "OPTIONS") {
+          res.statusCode = 204;
+          res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+          res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+          res.end();
+          return;
+        }
         const requestUrl = new URL(req.url ?? "/", `http://${hostname}:${params.port}`);
         if (requestUrl.pathname !== params.callbackPath) {
           res.statusCode = 404;

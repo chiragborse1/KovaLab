@@ -22,6 +22,7 @@ export type RealtimeTranscriptionSessionCallbacks = {
 };
 
 export type RealtimeTranscriptionSessionCreateRequest = RealtimeTranscriptionSessionCallbacks & {
+  cfg?: KovaConfig;
   providerConfig: RealtimeTranscriptionProviderConfig;
 };
 

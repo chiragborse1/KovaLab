@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { EnvApiKeyResult } from "./model-auth-env.js";
 
 const mocks = vi.hoisted(() => ({
   ensureAuthProfileStore: vi.fn(),
   loadAuthProfileStoreWithoutExternalProfiles: vi.fn(),
   resolveAuthProfileOrder: vi.fn(),
   resolveAuthProfileDisplayLabel: vi.fn(),
-  resolveUsableCustomProviderApiKey: vi.fn(() => null),
-  resolveEnvApiKey: vi.fn(() => null),
+  resolveUsableCustomProviderApiKey: vi.fn<() => string | null>(() => null),
+  resolveEnvApiKey: vi.fn<() => EnvApiKeyResult | null>(() => null),
   readCodexCliCredentialsCached: vi.fn<() => unknown>(() => null),
 }));
 

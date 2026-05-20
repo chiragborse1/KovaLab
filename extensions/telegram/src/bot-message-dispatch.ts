@@ -445,6 +445,9 @@ export const dispatchTelegramMessage = async ({
     if (!previewToolProgressEnabled || previewToolProgressSuppressed || !answerLane.stream) {
       return;
     }
+    if (line === undefined) {
+      return;
+    }
     const normalized =
       typeof line === "string"
         ? line.replace(/\s+/g, " ").trim()

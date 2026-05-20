@@ -648,6 +648,9 @@ export async function processDiscordMessage(
     if (!draftStream || !previewToolProgressEnabled || previewToolProgressSuppressed) {
       return;
     }
+    if (line === undefined) {
+      return;
+    }
     const normalized =
       typeof line === "string"
         ? line.replace(/\s+/g, " ").trim()

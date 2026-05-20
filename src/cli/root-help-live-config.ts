@@ -18,7 +18,6 @@ export function hasPluginHelpAffectingConfig(config: KovaConfig | null | undefin
     plugins.enabled === false ||
     hasListEntries(plugins.allow) ||
     hasListEntries(plugins.deny) ||
-    plugins.bundledDiscovery !== undefined ||
     hasListEntries(plugins.load?.paths) ||
     hasEntries(plugins.slots) ||
     hasEntries(plugins.entries) ||
@@ -34,10 +33,7 @@ export async function loadRootHelpRenderOptionsForConfigSensitivePlugins(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<RootHelpRenderOptions | null> {
   const configModule = await import("../config/config.js");
-  const snapshot = await configModule.readConfigFileSnapshot({
-    observe: false,
-    skipPluginValidation: true,
-  });
+  const snapshot = await configModule.readConfigFileSnapshot();
   if (!snapshot.valid) {
     return null;
   }

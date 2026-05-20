@@ -11,6 +11,7 @@ type CodexTrajectoryRecorder = {
   filePath: string;
   recordEvent: (type: string, data?: Record<string, unknown>) => void;
   flush: () => Promise<void>;
+  describeFlushState: () => string | undefined;
 };
 
 type CodexTrajectoryInit = {
@@ -264,6 +265,7 @@ export function createCodexTrajectoryRecorder(
     flush: async () => {
       await queue;
     },
+    describeFlushState: () => undefined,
   };
 }
 
