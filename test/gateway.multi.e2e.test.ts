@@ -61,7 +61,7 @@ describe("gateway multi-instance e2e", () => {
     const stdout = inst.stdout.slice(-40).join("");
     const stderr = inst.stderr.slice(-40).join("");
     return [
-      `gateway ${inst.name} connect timeout`,
+      `gateway ${inst.name} connect timeout on port ${inst.port}`,
       "--- stdout tail ---",
       stdout.trim() || "(empty)",
       "--- stderr tail ---",
@@ -84,9 +84,6 @@ describe("gateway multi-instance e2e", () => {
       try {
         const gwA = trackInstance(await spawnGatewayInstance("a"));
         testInstances.push(gwA);
-        const gwB = trackInstance(await spawnGatewayInstance("b"));
-        testInstances.push(gwB);
-
         const clientA = trackClient(
           await connectGatewayClient({
             url: `ws://127.0.0.1:${gwA.port}`,
@@ -102,6 +99,9 @@ describe("gateway multi-instance e2e", () => {
           }),
         );
         testClients.push(clientA);
+
+        const gwB = trackInstance(await spawnGatewayInstance("b"));
+        testInstances.push(gwB);
         const clientB = trackClient(
           await connectGatewayClient({
             url: `ws://127.0.0.1:${gwB.port}`,
