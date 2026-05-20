@@ -18,27 +18,29 @@ async function withStateDirFixture(run: (root: string) => Promise<void>): Promis
 }
 
 describe("legacy state dir auto-migration", () => {
-  it("skips a legacy symlinked state dir when it points outside supported legacy roots", async () => {
+  it("does not treat the current .kova state dir as a legacy source", async () => {
     await withStateDirFixture(async (root) => {
-      const legacySymlink = path.join(root, ".kova");
-      const legacyDir = path.join(root, "legacy-state-source");
+      const currentSymlink = path.join(root, ".kova");
+      const currentDir = path.join(root, "current-state-source");
 
-      fs.mkdirSync(legacyDir, { recursive: true });
-      fs.writeFileSync(path.join(legacyDir, "marker.txt"), "ok", "utf-8");
+      fs.mkdirSync(currentDir, { recursive: true });
+      fs.writeFileSync(path.join(currentDir, "marker.txt"), "ok", "utf-8");
 
       const dirLinkType = process.platform === "win32" ? "junction" : "dir";
-      fs.symlinkSync(legacyDir, legacySymlink, dirLinkType);
+      fs.symlinkSync(currentDir, currentSymlink, dirLinkType);
 
       const result = await autoMigrateLegacyStateDir({
         env: {} as NodeJS.ProcessEnv,
         homedir: () => root,
       });
 
-      expect(result.migrated).toBe(false);
-      expect(result.warnings).toEqual([
-        `Legacy state dir is a symlink (${legacySymlink} → ${legacyDir}); skipping auto-migration.`,
-      ]);
-      expect(fs.readFileSync(path.join(root, "legacy-state-source", "marker.txt"), "utf-8")).toBe(
+      expect(result).toEqual({
+        migrated: false,
+        skipped: false,
+        changes: [],
+        warnings: [],
+      });
+      expect(fs.readFileSync(path.join(root, "current-state-source", "marker.txt"), "utf-8")).toBe(
         "ok",
       );
       expect(fs.readFileSync(path.join(root, ".kova", "marker.txt"), "utf-8")).toBe("ok");
@@ -65,11 +67,11 @@ describe("legacy state dir auto-migration", () => {
     });
   });
 
-  it("only runs once per process until reset", async () => {
+  it("only checks once per process until reset", async () => {
     await withStateDirFixture(async (root) => {
-      const legacyDir = path.join(root, ".kova");
-      fs.mkdirSync(legacyDir, { recursive: true });
-      fs.writeFileSync(path.join(legacyDir, "marker.txt"), "ok", "utf-8");
+      const currentDir = path.join(root, ".kova");
+      fs.mkdirSync(currentDir, { recursive: true });
+      fs.writeFileSync(path.join(currentDir, "marker.txt"), "ok", "utf-8");
 
       const first = await autoMigrateLegacyStateDir({
         env: {} as NodeJS.ProcessEnv,
@@ -80,7 +82,12 @@ describe("legacy state dir auto-migration", () => {
         homedir: () => root,
       });
 
-      expect(first.migrated).toBe(true);
+      expect(first).toEqual({
+        migrated: false,
+        skipped: false,
+        changes: [],
+        warnings: [],
+      });
       expect(second).toEqual({
         migrated: false,
         skipped: true,

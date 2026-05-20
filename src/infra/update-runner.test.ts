@@ -12,8 +12,22 @@ import { runGatewayUpdate } from "./update-runner.js";
 
 type CommandResponse = { stdout?: string; stderr?: string; code?: number | null };
 type CommandResult = { stdout: string; stderr: string; code: number | null };
-const WHATSAPP_LIGHT_RUNTIME_API = bundledDistPluginFile("whatsapp", "light-runtime-api.js");
+const TELEGRAM_RUNTIME_API = bundledDistPluginFile("telegram", "runtime-api.js");
 const fixtureRootTracker = createSuiteTempRootTracker({ prefix: "kova-update-" });
+const NPM_GLOBAL_QUIET_ARGS = ["--no-fund", "--no-audit", "--loglevel=error"] as const;
+const NPM_FRESHNESS_BYPASS_ARG = "--min-release-age=0";
+
+function npmGlobalInstallCommand(spec: string, opts?: { omitOptional?: boolean }): string {
+  return [
+    "npm",
+    "i",
+    "-g",
+    spec,
+    ...(opts?.omitOptional ? ["--omit=optional"] : []),
+    ...NPM_GLOBAL_QUIET_ARGS,
+    NPM_FRESHNESS_BYPASS_ARG,
+  ].join(" ");
+}
 
 function toCommandResult(response?: CommandResponse): CommandResult {
   return {
@@ -277,9 +291,10 @@ describe("runGatewayUpdate", () => {
     onBaseInstall?: () => Promise<CommandResult>;
     onOmitOptionalInstall?: () => Promise<CommandResult>;
   }) {
-    const baseInstallKey = "npm i -g getkova@latest --no-fund --no-audit --loglevel=error";
-    const omitOptionalInstallKey =
-      "npm i -g getkova@latest --omit=optional --no-fund --no-audit --loglevel=error";
+    const baseInstallKey = npmGlobalInstallCommand("getkova@latest");
+    const omitOptionalInstallKey = npmGlobalInstallCommand("getkova@latest", {
+      omitOptional: true,
+    });
 
     return async (argv: string[]): Promise<CommandResult> => {
       const key = argv.join(" ");
@@ -1391,16 +1406,16 @@ describe("runGatewayUpdate", () => {
   it.each([
     {
       title: "updates global npm installs when detected",
-      expectedInstallCommand: "npm i -g getkova@latest --no-fund --no-audit --loglevel=error",
+      expectedInstallCommand: npmGlobalInstallCommand("getkova@latest"),
     },
     {
       title: "uses update channel for global npm installs when tag is omitted",
-      expectedInstallCommand: "npm i -g getkova@beta --no-fund --no-audit --loglevel=error",
+      expectedInstallCommand: npmGlobalInstallCommand("getkova@beta"),
       channel: "beta" as const,
     },
     {
       title: "updates global npm installs with tag override",
-      expectedInstallCommand: "npm i -g getkova@beta --no-fund --no-audit --loglevel=error",
+      expectedInstallCommand: npmGlobalInstallCommand("getkova@beta"),
       tag: "beta",
     },
   ])("$title", async ({ expectedInstallCommand, channel, tag }) => {
@@ -1419,16 +1434,13 @@ describe("runGatewayUpdate", () => {
 
   it("updates global npm installs from the GitHub main package spec", async () => {
     const { calls, result } = await runNpmGlobalUpdateCase({
-      expectedInstallCommand:
-        "npm i -g github:chiragborse1/KovaLab#main --no-fund --no-audit --loglevel=error",
+      expectedInstallCommand: npmGlobalInstallCommand("github:chiragborse1/KovaLab#main"),
       tag: "main",
     });
 
     expect(result.status).toBe("ok");
     expect(result.mode).toBe("npm");
-    expect(calls).toContain(
-      "npm i -g github:chiragborse1/KovaLab#main --no-fund --no-audit --loglevel=error",
-    );
+    expect(calls).toContain(npmGlobalInstallCommand("github:chiragborse1/KovaLab#main"));
   });
 
   it("falls back to global npm update when git is missing from PATH", async () => {
@@ -1436,7 +1448,7 @@ describe("runGatewayUpdate", () => {
     const { calls, runCommand } = createGlobalInstallHarness({
       pkgRoot,
       npmRootOutput: nodeModules,
-      installCommand: "npm i -g getkova@latest --no-fund --no-audit --loglevel=error",
+      installCommand: npmGlobalInstallCommand("getkova@latest"),
       gitRootMode: "missing",
       onInstall: async () => writeGlobalPackageVersion(pkgRoot),
     });
@@ -1445,7 +1457,7 @@ describe("runGatewayUpdate", () => {
 
     expect(result.status).toBe("ok");
     expect(result.mode).toBe("npm");
-    expect(calls).toContain("npm i -g getkova@latest --no-fund --no-audit --loglevel=error");
+    expect(calls).toContain(npmGlobalInstallCommand("getkova@latest"));
   });
 
   it("cleans stale npm rename dirs before global update", async () => {
@@ -1504,7 +1516,7 @@ describe("runGatewayUpdate", () => {
 
   it("fails global npm update when the installed version misses the requested correction", async () => {
     const { calls, result } = await runNpmGlobalUpdateCase({
-      expectedInstallCommand: "npm i -g getkova@2026.3.23-2 --no-fund --no-audit --loglevel=error",
+      expectedInstallCommand: npmGlobalInstallCommand("getkova@2026.3.23-2"),
       tag: "2026.3.23-2",
     });
 
@@ -1514,12 +1526,12 @@ describe("runGatewayUpdate", () => {
     expect(result.steps.at(-1)?.stderrTail).toContain(
       "expected installed version 2026.3.23-2, found 2.0.0",
     );
-    expect(calls).toContain("npm i -g getkova@2026.3.23-2 --no-fund --no-audit --loglevel=error");
+    expect(calls).toContain(npmGlobalInstallCommand("getkova@2026.3.23-2"));
   });
 
   it("fails global npm update when bundled runtime sidecars are missing after install", async () => {
     const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir);
-    const expectedInstallCommand = "npm i -g getkova@latest --no-fund --no-audit --loglevel=error";
+    const expectedInstallCommand = npmGlobalInstallCommand("getkova@latest");
     const { runCommand } = createGlobalInstallHarness({
       pkgRoot,
       npmRootOutput: nodeModules,
@@ -1532,7 +1544,7 @@ describe("runGatewayUpdate", () => {
         );
         await writeBundledRuntimeSidecars(pkgRoot);
         await writePackageDistInventory(pkgRoot);
-        await fs.rm(path.join(pkgRoot, WHATSAPP_LIGHT_RUNTIME_API), { force: true });
+        await fs.rm(path.join(pkgRoot, TELEGRAM_RUNTIME_API), { force: true });
       },
     });
 
@@ -1541,7 +1553,7 @@ describe("runGatewayUpdate", () => {
     expect(result.status).toBe("error");
     expect(result.reason).toBe("global-install-failed");
     expect(result.steps.at(-1)?.stderrTail).toContain(
-      `missing packaged dist file ${WHATSAPP_LIGHT_RUNTIME_API}`,
+      `missing packaged dist file ${TELEGRAM_RUNTIME_API}`,
     );
   });
 
@@ -1565,7 +1577,7 @@ describe("runGatewayUpdate", () => {
     const { runCommand } = createGlobalInstallHarness({
       pkgRoot,
       npmRootOutput: nodeModules,
-      installCommand: "npm i -g getkova@latest --no-fund --no-audit --loglevel=error",
+      installCommand: npmGlobalInstallCommand("getkova@latest"),
       onInstall: async (options) => {
         installEnv = options?.env;
         await writeGlobalPackageVersion(pkgRoot);
@@ -1590,8 +1602,7 @@ describe("runGatewayUpdate", () => {
 
   it("uses KOVA_UPDATE_PACKAGE_SPEC for global package updates", async () => {
     const { nodeModules, pkgRoot } = await createGlobalPackageFixture(tempDir);
-    const expectedInstallCommand =
-      "npm i -g http://10.211.55.2:8138/kova-next.tgz --no-fund --no-audit --loglevel=error";
+    const expectedInstallCommand = npmGlobalInstallCommand("http://10.211.55.2:8138/kova-next.tgz");
     const { calls, runCommand } = createGlobalInstallHarness({
       pkgRoot,
       npmRootOutput: nodeModules,
