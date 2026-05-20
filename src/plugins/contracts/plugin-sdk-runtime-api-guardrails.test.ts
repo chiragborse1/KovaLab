@@ -246,8 +246,7 @@ const RUNTIME_API_EXPORT_GUARDS: Record<string, readonly string[]> = {
 function collectRuntimeApiFiles(): string[] {
   return [
     ...new Set([
-      ...getBundledPluginRoots()
-        .entries()
+      ...Array.from(getBundledPluginRoots().entries())
         .filter(([, rootDir]) => existsSync(resolve(rootDir, "runtime-api.ts")))
         .map(([pluginId]) =>
           bundledPluginFile({
