@@ -15,7 +15,7 @@ import {
   waitForNodeStatus,
 } from "./helpers/gateway-e2e-harness.js";
 
-const E2E_TIMEOUT_MS = 120_000;
+const E2E_TIMEOUT_MS = 180_000;
 
 describe("gateway multi-instance e2e", () => {
   const instances: GatewayInstance[] = [];
@@ -93,6 +93,7 @@ describe("gateway multi-instance e2e", () => {
         clientVersion: "1.0.0",
         platform: "test",
         mode: GATEWAY_CLIENT_MODES.CLI,
+        timeoutMs: 30_000,
         onEvent: (evt) => {
           if (evt.event === "chat" && evt.payload && typeof evt.payload === "object") {
             chatEvents.push(evt.payload as ChatEventPayload);

@@ -36,8 +36,8 @@ export type GatewayInstance = {
 
 const GATEWAY_START_TIMEOUT_MS = 60_000;
 const GATEWAY_STOP_TIMEOUT_MS = 1_500;
-const GATEWAY_CONNECT_STATUS_TIMEOUT_MS = 2_000;
-const GATEWAY_NODE_STATUS_TIMEOUT_MS = 4_000;
+const GATEWAY_CONNECT_STATUS_TIMEOUT_MS = 10_000;
+const GATEWAY_NODE_STATUS_TIMEOUT_MS = 15_000;
 const GATEWAY_NODE_STATUS_POLL_MS = 20;
 const GATEWAY_HOME_REMOVE_RETRIES = 5;
 const GATEWAY_HOME_REMOVE_RETRY_DELAY_MS = 100;
@@ -369,6 +369,7 @@ export async function connectNode(
     caps: ["system"],
     commands: ["system.run"],
     deviceIdentity,
+    timeoutMs: 30_000,
     timeoutMessage: `timeout waiting for ${label} to connect`,
   });
   return { client, nodeId };

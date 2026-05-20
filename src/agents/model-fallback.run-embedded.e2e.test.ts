@@ -138,7 +138,7 @@ async function withAgentWorkspace<T>(
   try {
     return await fn({ agentDir, workspaceDir });
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await fs.rm(root, { recursive: true, force: true, maxRetries: 20, retryDelay: 25 });
   }
 }
 
