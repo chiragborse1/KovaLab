@@ -96,6 +96,49 @@ describe("handleAssistantFailover", () => {
       expect(events).toEqual(["advance", "mark-start", "mark-finish"]);
     });
 
+    it("waits for auth profile failure marking before terminal fallback", async () => {
+      const events: string[] = [];
+      let releaseMark!: () => void;
+      const markFinished = new Promise<void>((resolve) => {
+        releaseMark = resolve;
+      });
+      const maybeMarkAuthProfileFailure = vi.fn(async () => {
+        events.push("mark-start");
+        await markFinished;
+        events.push("mark-finish");
+      });
+
+      let settled = false;
+      const outcomePromise = handleAssistantFailover(
+        makeParams({
+          initialDecision: { action: "rotate_profile", reason: "rate_limit" },
+          fallbackConfigured: true,
+          failoverReason: "rate_limit",
+          assistantProfileFailureReason: "rate_limit",
+          lastProfileId: "openai:p1",
+          billingFailure: false,
+          rateLimitFailure: true,
+          maybeMarkAuthProfileFailure,
+          advanceAuthProfile: vi.fn(async () => {
+            events.push("advance");
+            return false;
+          }),
+        }),
+      ).then((outcome) => {
+        settled = true;
+        return outcome;
+      });
+
+      await vi.waitFor(() => expect(events).toEqual(["advance", "mark-start"]));
+      await Promise.resolve();
+      expect(settled).toBe(false);
+
+      releaseMark();
+      const outcome = await outcomePromise;
+      expectThrownFailoverError(outcome);
+      expect(events).toEqual(["advance", "mark-start", "mark-finish"]);
+    });
+
     it("does not log profile-specific warnings without a failed profile id", async () => {
       const warn = vi.fn();
       const outcome = await handleAssistantFailover(

@@ -79,6 +79,7 @@ export async function handleAssistantFailover(params: {
 }): Promise<AssistantFailoverOutcome> {
   let overloadProfileRotations = params.overloadProfileRotations;
   let decision = params.initialDecision;
+  let terminalProfileFailureMark: Promise<void> | null = null;
   const sameModelIdleTimeoutRetry = (): AssistantFailoverOutcome => {
     params.warn(
       `[llm-idle-timeout] ${sanitizeForLog(params.provider)}/${sanitizeForLog(params.modelId)} produced no reply before the idle watchdog; retrying same model`,
@@ -98,11 +99,11 @@ export async function handleAssistantFailover(params: {
   if (decision.action === "rotate_profile") {
     const failedProfileId = params.lastProfileId;
     const failureReason = params.timedOut ? "timeout" : params.assistantProfileFailureReason;
-    const markFailedProfile = () => {
+    const startFailedProfileMark = () => {
       if (!failedProfileId || !failureReason || failureReason === "timeout") {
-        return;
+        return null;
       }
-      params
+      return params
         .maybeMarkAuthProfileFailure({
           profileId: failedProfileId,
           reason: failureReason,
@@ -121,7 +122,7 @@ export async function handleAssistantFailover(params: {
         params.warn(
           `overload profile rotation cap reached for ${sanitizeForLog(params.provider)}/${sanitizeForLog(params.modelId)} after ${overloadProfileRotations} rotations; escalating to model fallback`,
         );
-        markFailedProfile();
+        await startFailedProfileMark();
         params.logAssistantFailoverDecision("fallback_model", { status });
         return {
           action: "throw",
@@ -150,7 +151,7 @@ export async function handleAssistantFailover(params: {
     }
 
     const rotated = await params.advanceAuthProfile();
-    markFailedProfile();
+    terminalProfileFailureMark = startFailedProfileMark();
     if (params.timedOut && !params.isProbeSession && failedProfileId) {
       params.warn(`Profile ${failedProfileId} timed out. Trying next account...`);
     }
@@ -190,6 +191,7 @@ export async function handleAssistantFailover(params: {
   }
 
   if (decision.action === "fallback_model") {
+    await terminalProfileFailureMark;
     await params.maybeBackoffBeforeOverloadFailover(params.failoverReason);
     const message = resolveAssistantFailoverErrorMessage(params);
     const status =
@@ -232,6 +234,7 @@ export async function handleAssistantFailover(params: {
     // the client surface can render it the same way it already
     // renders fallback_model failures.
     if (!params.externalAbort && !params.timedOut) {
+      await terminalProfileFailureMark;
       const message = resolveAssistantFailoverErrorMessage(params);
       const reason = resolveSurfaceErrorReason(decision.reason, params);
       const status =
