@@ -92,12 +92,7 @@ describe("pairing setup code", () => {
       expect.objectContaining({
         profile: {
           roles: ["node", "operator"],
-          scopes: [
-            "operator.approvals",
-            "operator.read",
-            "operator.talk.secrets",
-            "operator.write",
-          ],
+          scopes: ["operator.approvals", "operator.read", "operator.write"],
         },
       }),
     );
