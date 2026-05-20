@@ -98,6 +98,7 @@ jobs:
       - name: Test changed targets
         env:
           KOVA_VITEST_MAX_WORKERS: "1"
+          KOVA_VITEST_NO_OUTPUT_TIMEOUT_MS: "600000"
         run: node scripts/test-projects.mjs --changed "${{ needs.resolve-changed-base.outputs.base }}"
 
   build-runtime:
