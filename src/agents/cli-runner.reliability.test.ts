@@ -26,6 +26,7 @@ import type { PreparedCliRunContext } from "./cli-runner/types.js";
 
 vi.mock("../plugins/hook-runner-global.js", () => ({
   getGlobalHookRunner: vi.fn(() => null),
+  getGlobalHookRunnerRuntimeSubagentMode: vi.fn(() => "default"),
 }));
 
 vi.mock("../tts/tts.js", () => ({

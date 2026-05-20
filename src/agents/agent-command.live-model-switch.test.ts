@@ -247,11 +247,13 @@ vi.mock("../utils/message-channel.js", () => ({
 }));
 
 vi.mock("./agent-scope.js", () => ({
+  listAgentEntries: () => [],
   listAgentIds: () => ["default"],
   resolveAgentConfig: () => undefined,
   resolveAgentDir: () => "/tmp/agent",
   resolveEffectiveModelFallbacks: state.resolveEffectiveModelFallbacksMock,
   resolveSessionAgentId: () => "default",
+  resolveSessionAgentIds: () => ({ defaultAgentId: "default", sessionAgentId: "default" }),
   resolveAgentSkillsFilter: () => undefined,
   resolveAgentWorkspaceDir: () => "/tmp/workspace",
 }));

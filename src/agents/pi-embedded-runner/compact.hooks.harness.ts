@@ -205,6 +205,7 @@ export async function loadCompactHooksHarness(): Promise<{
 
   vi.doMock("../../plugins/hook-runner-global.js", () => ({
     getGlobalHookRunner: () => hookRunner,
+    getGlobalHookRunnerRuntimeSubagentMode: () => "default",
   }));
 
   vi.doMock("../runtime-plugins.js", () => ({
@@ -417,6 +418,20 @@ export async function loadCompactHooksHarness(): Promise<{
   }));
 
   vi.doMock("./compaction-safety-timeout.js", () => ({
+    compactContextEngineWithSafetyTimeout: vi.fn(
+      async (
+        contextEngine: { compact: (params?: unknown) => Promise<unknown> },
+        params?: unknown,
+        _timeoutMs?: number,
+        abortSignal?: AbortSignal,
+      ) => {
+        const compactParams =
+          abortSignal && params && typeof params === "object"
+            ? { ...params, abortSignal }
+            : (params ?? (abortSignal ? { abortSignal } : undefined));
+        return await contextEngine.compact(compactParams);
+      },
+    ),
     compactWithSafetyTimeout: vi.fn(
       async (
         compact: () => Promise<unknown>,

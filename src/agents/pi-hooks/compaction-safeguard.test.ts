@@ -1341,7 +1341,7 @@ describe("compaction-safeguard recent-turn preservation", () => {
       "Copilot-Integration-Id": "vscode-chat",
       "Editor-Plugin-Version": "copilot-chat/0.35.0",
       "Openai-Organization": "github-copilot",
-      "User-Agent": "GitHubCopilotChat/0.26.7",
+      "User-Agent": "GitHubCopilotChat/0.35.0",
       "X-Test": "1",
       "x-initiator": "user",
     });

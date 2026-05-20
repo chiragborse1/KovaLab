@@ -5,6 +5,9 @@ vi.mock("../plugins/provider-hook-runtime.js", async () => {
     typeof import("../plugins/provider-replay-helpers.js")
   >("../plugins/provider-replay-helpers.js");
   return {
+    __testing: {
+      buildHookProviderCacheKey: vi.fn(() => "test-cache-key"),
+    },
     resolveProviderRuntimePlugin: vi.fn(({ provider }: { provider?: string }) => {
       if (
         !provider ||

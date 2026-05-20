@@ -398,6 +398,8 @@ export async function loadRunOverflowCompactionHarness(): Promise<{
 
   vi.doMock("../../plugins/hook-runner-global.js", () => ({
     getGlobalHookRunner: vi.fn(() => mockedGlobalHookRunner),
+    getGlobalHookRunnerRuntimeSubagentMode: vi.fn(() => "default"),
+    initializeGlobalHookRunner: vi.fn(),
   }));
 
   vi.doMock("../../context-engine/init.js", () => ({
@@ -405,6 +407,10 @@ export async function loadRunOverflowCompactionHarness(): Promise<{
   }));
   vi.doMock("../../context-engine/registry.js", () => ({
     resolveContextEngine: mockedResolveContextEngine,
+  }));
+
+  vi.doMock("../harness/runtime-plugin.js", () => ({
+    ensureSelectedAgentHarnessPlugin: vi.fn(async () => undefined),
   }));
 
   vi.doMock("../runtime-plugins.js", () => ({

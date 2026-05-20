@@ -175,7 +175,7 @@ describe("ssh sandbox backend", () => {
     );
     expect(sshMocks.runSshSandboxCommand).toHaveBeenCalledWith(
       expect.objectContaining({
-        remoteCommand: expect.stringContaining("/remote/chiragborse1/KovaLab-ssh-agent-worker"),
+        remoteCommand: expect.stringContaining("/remote/kova/kova-ssh-agent-worker-"),
       }),
     );
   });
@@ -277,7 +277,7 @@ describe("ssh sandbox backend", () => {
     expect(execSpec.argv).toEqual(
       expect.arrayContaining(["ssh", "-F", createSession().configPath, "-T", createSession().host]),
     );
-    expect(execSpec.argv.at(-1)).toContain("/remote/chiragborse1/KovaLab-ssh-agent-worker");
+    expect(execSpec.argv.at(-1)).toContain("/remote/kova/kova-ssh-agent-worker-");
     expect(sshMocks.uploadDirectoryToSshTarget).toHaveBeenCalledTimes(2);
     expect(sshMocks.uploadDirectoryToSshTarget).toHaveBeenNthCalledWith(
       1,

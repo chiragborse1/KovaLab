@@ -41,7 +41,7 @@ describe("native hook relay registry", () => {
       allowedEvents: ["pre_tool_use"],
     });
     expect(relay.commandForEvent("pre_tool_use")).toBe(
-      "/usr/local/bin/node '/opt/Kova/kova.mjs' hooks relay --provider codex --relay-id " +
+      "/usr/local/bin/node /opt/Kova/kova.mjs hooks relay --provider codex --relay-id " +
         `${relay.relayId} --event pre_tool_use --timeout 1234`,
     );
   });
