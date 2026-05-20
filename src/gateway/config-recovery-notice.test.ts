@@ -22,7 +22,7 @@ describe("config recovery notice", () => {
         configPath: "/home/test/.chiragborse1/KovaLab.json",
       }),
     ).toBe(
-      "Config recovery warning: Kova restored kova.json from the last-known-good backup during startup (startup-invalid-config). The rejected config was invalid and was preserved as a timestamped .clobbered.* file. Do not write kova.json again unless you validate the full config first.",
+      "Config recovery warning: Kova restored KovaLab.json from the last-known-good backup during startup (startup-invalid-config). The rejected config was invalid and was preserved as a timestamped .clobbered.* file. Do not write KovaLab.json again unless you validate the full config first.",
     );
   });
 
@@ -38,7 +38,7 @@ describe("config recovery notice", () => {
 
     expect(peekSystemEvents("agent:main:main")).toHaveLength(1);
     expect(drainSystemEvents("agent:main:main")[0]).toContain(
-      "Do not write kova.json again unless you validate the full config first.",
+      "Do not write KovaLab.json again unless you validate the full config first.",
     );
   });
 });
