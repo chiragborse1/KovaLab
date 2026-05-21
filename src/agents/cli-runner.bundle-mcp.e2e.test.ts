@@ -64,7 +64,21 @@ describe("runCliAgent bundle MCP e2e", () => {
       resolveBootstrapContextForRun: async () => ({ bootstrapFiles: [], contextFiles: [] }),
       getActiveMcpLoopbackRuntime: () => undefined,
       ensureMcpLoopbackServer: async () => ({ port: 0, close: async () => undefined }),
-      createMcpLoopbackServerConfig: () => ({ mcpServers: {} }),
+      createMcpLoopbackServerConfig: (port: number) => ({
+        mcpServers: {
+          kova: {
+            type: "http",
+            url: `http://127.0.0.1:${port}/mcp`,
+            headers: {
+              Authorization: "Bearer ${KOVA_MCP_TOKEN}",
+              "x-session-key": "${KOVA_MCP_SESSION_KEY}",
+              "x-kova-agent-id": "${KOVA_MCP_AGENT_ID}",
+              "x-kova-account-id": "${KOVA_MCP_ACCOUNT_ID}",
+              "x-kova-message-channel": "${KOVA_MCP_MESSAGE_CHANNEL}",
+            },
+          },
+        },
+      }),
       resolveMcpLoopbackScopedTools: () => ({ agentId: undefined, tools: [] }),
       resolveKovaReferencePaths: async () => ({ docsPath: null, sourcePath: null }),
     });
