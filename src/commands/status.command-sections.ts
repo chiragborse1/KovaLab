@@ -152,7 +152,7 @@ export function buildStatusMemoryValue(
   }
   if (!params.memory) {
     const slot = params.memoryPlugin.slot ? `plugin ${params.memoryPlugin.slot}` : "plugin";
-    return params.muted(`enabled (${slot}) · unavailable`);
+    return params.muted(`enabled (${slot}) · no memory snapshot · run kova memory status`);
   }
   const parts: string[] = [];
   const dirtySuffix = params.memory.dirty ? ` · ${params.warn("dirty")}` : "";
@@ -167,7 +167,12 @@ export function buildStatusMemoryValue(
     tone === "ok" ? params.ok(text) : tone === "warn" ? params.warn(text) : params.muted(text);
   if (params.memory.vector) {
     const state = params.resolveMemoryVectorState(params.memory.vector);
-    const label = state.state === "disabled" ? "vector off" : `vector ${state.state}`;
+    const label =
+      state.state === "disabled"
+        ? "vector off"
+        : state.state === "unknown"
+          ? "vector not probed"
+          : `vector ${state.state}`;
     parts.push(colorByTone(state.tone, label));
   }
   if (params.memory.fts) {

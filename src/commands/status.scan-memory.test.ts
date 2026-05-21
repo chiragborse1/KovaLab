@@ -59,9 +59,25 @@ describe("status.scan-memory", () => {
       cfg: { agents: {} },
       agentStatus,
       memoryPlugin: { enabled: true, slot: "memory-core" },
+      deep: false,
       resolveMemoryConfig: mocks.resolveMemorySearchConfig,
       getMemorySearchManager: mocks.getMemorySearchManager,
       requireDefaultStore,
     });
+  });
+
+  it("forwards deep status requests", async () => {
+    const { resolveStatusMemoryStatusSnapshot } = await import("./status.scan-memory.ts");
+
+    await resolveStatusMemoryStatusSnapshot({
+      cfg: { agents: {} },
+      agentStatus: createMainAgentStatus(),
+      memoryPlugin: { enabled: true, slot: "memory-core" },
+      deep: true,
+    });
+
+    expect(mocks.resolveSharedMemoryStatusSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({ deep: true }),
+    );
   });
 });

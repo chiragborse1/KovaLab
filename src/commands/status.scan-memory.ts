@@ -27,6 +27,7 @@ export async function resolveStatusMemoryStatusSnapshot(params: {
   cfg: KovaConfig;
   agentStatus: Awaited<ReturnType<typeof getAgentLocalStatusesFn>>;
   memoryPlugin: MemoryPluginStatus;
+  deep?: boolean;
   requireDefaultStore?: (agentId: string) => string;
 }): Promise<MemoryStatusSnapshot | null> {
   const { getMemorySearchManager } = await loadStatusScanDepsRuntimeModule();
@@ -34,6 +35,7 @@ export async function resolveStatusMemoryStatusSnapshot(params: {
     cfg: params.cfg,
     agentStatus: params.agentStatus,
     memoryPlugin: params.memoryPlugin,
+    deep: params.deep === true,
     resolveMemoryConfig: resolveMemorySearchConfig,
     getMemorySearchManager,
     requireDefaultStore: params.requireDefaultStore,

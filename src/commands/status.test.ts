@@ -961,6 +961,18 @@ describe("statusCommand", () => {
     (runtime.error as Mock<(...args: unknown[]) => void>).mockClear();
   });
 
+  it("passes --deep through to the interactive status scan", async () => {
+    const { scanStatus } = await import("./status.scan.js");
+    vi.mocked(scanStatus).mockClear();
+
+    await statusCommand({ deep: true, timeoutMs: 1234 }, runtime as never);
+
+    expect(scanStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ json: false, deep: true, timeoutMs: 1234 }),
+      runtime,
+    );
+  });
+
   it("prints JSON and includes security audit only when all is requested", async () => {
     mocks.hasPotentialConfiguredChannels.mockReturnValue(false);
     mocks.buildPluginCompatibilityNotices.mockReturnValue([

@@ -13,6 +13,7 @@ export async function scanStatus(
     json?: boolean;
     timeoutMs?: number;
     all?: boolean;
+    deep?: boolean;
   },
   _runtime: RuntimeEnv,
 ): Promise<StatusScanResult> {
@@ -35,6 +36,7 @@ export async function scanStatus(
             cfg,
             agentStatus,
             memoryPlugin,
+            deep: opts.all === true || opts.deep === true,
           }),
       },
     );
@@ -74,6 +76,7 @@ export async function scanStatus(
             cfg,
             agentStatus,
             memoryPlugin,
+            deep: opts.deep === true,
           }),
         channelIssues: overview.channelIssues,
         channels: overview.channels,

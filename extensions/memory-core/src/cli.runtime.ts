@@ -734,8 +734,6 @@ export async function runMemoryStatus(opts: MemoryCommandOptions) {
           } else if (opts.index && !syncFn) {
             defaultRuntime.log("Memory backend does not support manual reindex.");
           }
-        } else {
-          await manager.probeVectorAvailability();
         }
         const status = manager.status();
         const sources = (
@@ -819,6 +817,7 @@ export async function runMemoryStatus(opts: MemoryCommandOptions) {
       dreamingAudit,
       dreamingRepair,
     } = result;
+    const deep = Boolean(opts.deep || opts.index);
     const filesIndexed = status.files ?? 0;
     const chunksIndexed = status.chunks ?? 0;
     const totalFiles = scan?.totalFiles ?? null;
@@ -877,7 +876,7 @@ export async function runMemoryStatus(opts: MemoryCommandOptions) {
     if (status.vector) {
       const vectorState = status.vector.enabled
         ? status.vector.available === undefined
-          ? "unknown"
+          ? "not probed"
           : status.vector.available
             ? "ready"
             : "unavailable"
@@ -889,6 +888,11 @@ export async function runMemoryStatus(opts: MemoryCommandOptions) {
             ? theme.warn
             : theme.muted;
       lines.push(`${label("Vector")} ${colorize(rich, vectorColor, vectorState)}`);
+      if (!deep && status.vector.enabled && status.vector.available === undefined) {
+        lines.push(
+          `${label("Deep check")} ${info(`kova memory status --deep --agent ${agentId}`)}`,
+        );
+      }
       if (status.vector.dims) {
         lines.push(`${label("Vector dims")} ${info(String(status.vector.dims))}`);
       }
@@ -1194,28 +1198,38 @@ export async function runMemorySearch(
         process.exitCode = 1;
         return;
       }
-      const workspaceDir =
-        typeof (manager as { status?: () => { workspaceDir?: string } }).status === "function"
-          ? manager.status().workspaceDir
-          : undefined;
-      void recordShortTermRecalls({
-        workspaceDir,
-        query,
-        results,
-        timezone: dreaming.timezone,
-      }).catch(() => {
-        // Recall tracking is best-effort and must not block normal search results.
-      });
+      if (results.length > 0) {
+        const workspaceDir =
+          typeof (manager as { status?: () => { workspaceDir?: string } }).status === "function"
+            ? manager.status().workspaceDir
+            : undefined;
+        void recordShortTermRecalls({
+          workspaceDir,
+          query,
+          results,
+          timezone: dreaming.timezone,
+        }).catch(() => {
+          // Recall tracking is best-effort and must not block normal search results.
+        });
+      }
       if (opts.json) {
         defaultRuntime.writeJson({ results });
         return;
       }
       if (results.length === 0) {
-        defaultRuntime.log("No matches.");
+        defaultRuntime.log(
+          [
+            `No matches for "${query}" (${agentId}).`,
+            `Check index health with: kova memory status --deep --agent ${agentId}`,
+          ].join("\n"),
+        );
         return;
       }
       const rich = isRich();
-      const lines: string[] = [];
+      const lines: string[] = [
+        `Memory search (${agentId}): ${results.length} match${results.length === 1 ? "" : "es"} for "${query}"`,
+        "",
+      ];
       for (const result of results) {
         lines.push(
           `${colorize(rich, theme.success, result.score.toFixed(3))} ${colorize(

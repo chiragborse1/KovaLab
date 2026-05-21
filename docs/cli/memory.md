@@ -60,7 +60,8 @@ Authorized chat surfaces expose the same terminal-first recall loop through slas
 
 `memory status`:
 
-- `--deep`: probe vector + embedding availability. Plain `memory status` stays fast and does not run a live embedding ping.
+- Plain `memory status` reports the current indexed state and skips live vector/embedding probes. If vector readiness has not been checked in this process, it shows `Vector: not probed`.
+- `--deep`: probe vector + embedding availability on demand.
 - `--index`: run a reindex if the store is dirty (implies `--deep`).
 - `--fix`: repair stale recall locks and normalize promotion metadata.
 - `--json`: print JSON output.
@@ -76,6 +77,7 @@ If `memory status` shows `Dreaming status: blocked`, the managed dreaming cron i
 - Query input: pass either positional `[query]` or `--query <text>`.
 - If both are provided, `--query` wins.
 - If neither is provided, the command exits with an error.
+- Text output starts with a concise match count; empty searches skip recall bookkeeping and print the `memory status --deep` follow-up command.
 - `--agent <id>`: scope to a single agent (default: the default agent).
 - `--max-results <n>`: limit the number of results returned.
 - `--min-score <n>`: filter out low-score matches.

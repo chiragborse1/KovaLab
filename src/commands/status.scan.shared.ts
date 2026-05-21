@@ -167,6 +167,7 @@ export async function resolveSharedMemoryStatusSnapshot(params: {
   cfg: KovaConfig;
   agentStatus: { defaultId?: string | null };
   memoryPlugin: MemoryPluginStatus;
+  deep?: boolean;
   resolveMemoryConfig: (cfg: KovaConfig, agentId: string) => { store: { path: string } } | null;
   getMemorySearchManager: (params: {
     cfg: KovaConfig;
@@ -208,7 +209,9 @@ export async function resolveSharedMemoryStatusSnapshot(params: {
     return null;
   }
   try {
-    await manager.probeVectorAvailability();
+    if (params.deep) {
+      await manager.probeVectorAvailability();
+    }
   } catch {}
   const status = manager.status();
   await manager.close?.().catch(() => {});

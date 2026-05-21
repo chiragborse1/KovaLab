@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveGatewayProbeSnapshot } from "./status.scan.shared.js";
+import {
+  resolveGatewayProbeSnapshot,
+  resolveSharedMemoryStatusSnapshot,
+} from "./status.scan.shared.js";
 
 const mocks = vi.hoisted(() => ({
   buildGatewayConnectionDetailsWithResolvers: vi.fn(),
@@ -138,5 +141,55 @@ describe("resolveGatewayProbeSnapshot", () => {
 
     expect(result.gatewayProbe?.error).toBe("timeout; warn");
     expect(result.gatewayProbeAuthWarning).toBeUndefined();
+  });
+});
+
+describe("resolveSharedMemoryStatusSnapshot", () => {
+  function createMemoryStatusManager() {
+    return {
+      probeVectorAvailability: vi.fn(async () => true),
+      status: vi.fn(() => ({
+        backend: "builtin" as const,
+        provider: "local",
+        files: 2,
+        chunks: 3,
+        dirty: false,
+        vector: { enabled: true },
+      })),
+      close: vi.fn(async () => {}),
+    };
+  }
+
+  const baseParams = {
+    cfg: { agents: { defaults: { memorySearch: {} } } },
+    agentStatus: { defaultId: "main" },
+    memoryPlugin: { enabled: true, slot: "memory-core" },
+    resolveMemoryConfig: () => ({ store: { path: "/tmp/main.sqlite" } }),
+  };
+
+  it("keeps the shallow status path off live vector probes", async () => {
+    const manager = createMemoryStatusManager();
+
+    const result = await resolveSharedMemoryStatusSnapshot({
+      ...baseParams,
+      getMemorySearchManager: vi.fn(async () => ({ manager })),
+    });
+
+    expect(manager.probeVectorAvailability).not.toHaveBeenCalled();
+    expect(result).toEqual(expect.objectContaining({ agentId: "main", files: 2, chunks: 3 }));
+    expect(manager.close).toHaveBeenCalled();
+  });
+
+  it("runs the live vector probe only for deep status", async () => {
+    const manager = createMemoryStatusManager();
+
+    await resolveSharedMemoryStatusSnapshot({
+      ...baseParams,
+      deep: true,
+      getMemorySearchManager: vi.fn(async () => ({ manager })),
+    });
+
+    expect(manager.probeVectorAvailability).toHaveBeenCalledTimes(1);
+    expect(manager.close).toHaveBeenCalled();
   });
 });

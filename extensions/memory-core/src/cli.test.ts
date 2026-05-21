@@ -215,8 +215,9 @@ describe("memory cli", () => {
 
   it("prints vector status when available", async () => {
     const close = vi.fn(async () => {});
+    const probeVectorAvailability = vi.fn(async () => true);
     mockManager({
-      probeVectorAvailability: vi.fn(async () => true),
+      probeVectorAvailability,
       status: () =>
         makeMemoryStatus({
           files: 2,
@@ -242,6 +243,32 @@ describe("memory cli", () => {
     expect(log).toHaveBeenCalledWith(expect.stringContaining("FTS: ready"));
     expect(log).toHaveBeenCalledWith(
       expect.stringContaining("Embedding cache: enabled (123 entries)"),
+    );
+    expect(probeVectorAvailability).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalled();
+  });
+
+  it("keeps plain memory status off live vector probes when state is unknown", async () => {
+    const close = vi.fn(async () => {});
+    const probeVectorAvailability = vi.fn(async () => true);
+    mockManager({
+      probeVectorAvailability,
+      status: () =>
+        makeMemoryStatus({
+          vector: {
+            enabled: true,
+          },
+        }),
+      close,
+    });
+
+    const log = spyRuntimeLogs(defaultRuntime);
+    await runMemoryCli(["status"]);
+
+    expect(probeVectorAvailability).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("Vector: not probed"));
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining("Deep check: kova memory status --deep --agent main"),
     );
     expect(close).toHaveBeenCalled();
   });
@@ -335,9 +362,10 @@ describe("memory cli", () => {
 
   it("prints embeddings status when deep", async () => {
     const close = vi.fn(async () => {});
+    const probeVectorAvailability = vi.fn(async () => true);
     const probeEmbeddingAvailability = vi.fn(async () => ({ ok: true }));
     mockManager({
-      probeVectorAvailability: vi.fn(async () => true),
+      probeVectorAvailability,
       probeEmbeddingAvailability,
       status: () => makeMemoryStatus({ files: 1, chunks: 1 }),
       close,
@@ -346,6 +374,7 @@ describe("memory cli", () => {
     const log = spyRuntimeLogs(defaultRuntime);
     await runMemoryCli(["status", "--deep"]);
 
+    expect(probeVectorAvailability).toHaveBeenCalled();
     expect(probeEmbeddingAvailability).toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Embeddings: ready"));
     expect(close).toHaveBeenCalled();
@@ -785,7 +814,8 @@ describe("memory cli", () => {
   it("prints no matches for empty search results", async () => {
     const close = vi.fn(async () => {});
     const search = vi.fn(async () => []);
-    mockManager({ search, close });
+    const status = vi.fn(() => makeMemoryStatus());
+    mockManager({ search, status, close });
 
     const log = spyRuntimeLogs(defaultRuntime);
     await runMemoryCli(["search", "hello"]);
@@ -800,7 +830,10 @@ describe("memory cli", () => {
       agentId: "main",
       purpose: "cli",
     });
-    expect(log).toHaveBeenCalledWith("No matches.");
+    expect(log).toHaveBeenCalledWith(
+      'No matches for "hello" (main).\nCheck index health with: kova memory status --deep --agent main',
+    );
+    expect(status).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalled();
   });
 
@@ -817,7 +850,7 @@ describe("memory cli", () => {
       minScore: undefined,
       sessionKey: "agent:main:cli:direct:memory-search",
     });
-    expect(log).toHaveBeenCalledWith("No matches.");
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('No matches for "deployment notes"'));
     expect(close).toHaveBeenCalled();
     expect(process.exitCode).toBeUndefined();
   });
@@ -835,6 +868,29 @@ describe("memory cli", () => {
       minScore: undefined,
       sessionKey: "agent:main:cli:direct:memory-search",
     });
+    expect(close).toHaveBeenCalled();
+  });
+
+  it("prints a concise search summary before text results", async () => {
+    const close = vi.fn(async () => {});
+    const search = vi.fn(async () => [
+      {
+        path: "memory/2026-01-12.md",
+        startLine: 1,
+        endLine: 2,
+        score: 0.5,
+        snippet: "Hello",
+        source: "memory",
+      },
+    ]);
+    mockManager({ search, status: () => makeMemoryStatus(), close });
+
+    const log = spyRuntimeLogs(defaultRuntime);
+    await runMemoryCli(["search", "hello"]);
+
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining('Memory search (main): 1 match for "hello"'),
+    );
     expect(close).toHaveBeenCalled();
   });
 

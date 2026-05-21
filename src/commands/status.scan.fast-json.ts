@@ -71,6 +71,7 @@ export async function scanStatusJsonFast(
             cfg,
             agentStatus,
             memoryPlugin,
+            deep: true,
             requireDefaultStore: resolveDefaultMemoryStorePath,
           })
         : null,

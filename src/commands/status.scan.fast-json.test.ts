@@ -122,6 +122,14 @@ describe("scanStatusJsonFast", () => {
   });
 
   it("restores memory inspection when --all is requested", async () => {
+    const memoryManager = createStatusMemorySearchManager();
+    applyStatusScanDefaults(mocks, {
+      sourceConfig: createStatusMemorySearchConfig(),
+      resolvedConfig: createStatusMemorySearchConfig(),
+      summary: createStatusSummary({ byAgent: [] }),
+      memoryManager,
+    });
+
     const result = await scanStatusJsonFast({ all: true }, {} as never);
 
     expect(result.memory).toEqual(expect.objectContaining({ agentId: "main" }));
@@ -137,6 +145,7 @@ describe("scanStatusJsonFast", () => {
       agentId: "main",
       purpose: "status",
     });
+    expect(memoryManager.manager.probeVectorAvailability).toHaveBeenCalledTimes(1);
   });
 
   it("skips gateway and update probes on cold-start status --json", async () => {

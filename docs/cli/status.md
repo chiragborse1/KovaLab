@@ -24,6 +24,7 @@ Notes:
   Control UI. Use the Control UI for advanced/admin work, not as the primary
   daily entry point.
 - `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Slack + Signal).
+- The Memory row is intentionally lightweight: plain `status` does not run a live vector/embedding probe. Use `kova memory status --deep` for memory backend diagnostics and `kova memory index` for an on-demand sync.
 - `--usage` prints normalized provider usage windows as `X% left`.
 - Session status output separates `Execution:` from `Runtime:`. `Execution` is the sandbox path (`direct`, `docker/*`), while `Runtime` tells you whether the session is using `Kova Pi Default`, `OpenAI Codex`, a CLI backend, or an ACP backend such as `codex (acp/acpx)`. See [Agent runtimes](/concepts/agent-runtimes) for the provider/model/runtime distinction.
 - MiniMax's raw `usage_percent` / `usagePercent` fields are remaining quota, so Kova inverts them before display; count-based fields win when present. `model_remains` responses prefer the chat-model entry, derive the window label from timestamps when needed, and include the model name in the plan label.

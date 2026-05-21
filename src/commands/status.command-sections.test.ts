@@ -3,6 +3,7 @@ import type { HealthSummary } from "./health.js";
 import {
   buildStatusFooterLines,
   buildStatusHealthRows,
+  buildStatusMemoryValue,
   buildStatusPairingRecoveryLines,
   buildStatusPluginCompatibilityLines,
   buildStatusSecurityAuditLines,
@@ -135,6 +136,45 @@ describe("status.command-sections", () => {
       { Item: "Matrix", Status: "ok(LINKED)", Detail: "linked" },
       { Item: "Pager", Status: "warn(UNLINKED)", Detail: "not linked" },
     ]);
+  });
+
+  it("formats memory status as on-demand when the index is absent or not deeply probed", () => {
+    const resolvers = {
+      resolveMemoryVectorState: () => ({ state: "unknown" as const, tone: "muted" as const }),
+      resolveMemoryFtsState: () => ({ state: "ready" as const, tone: "ok" as const }),
+      resolveMemoryCacheSummary: () => ({ text: "cache on (4)", tone: "ok" as const }),
+    };
+    const decorators = {
+      ok: (value: string) => `ok(${value})`,
+      warn: (value: string) => `warn(${value})`,
+      muted: (value: string) => `muted(${value})`,
+    };
+
+    expect(
+      buildStatusMemoryValue({
+        memory: null,
+        memoryPlugin: { enabled: true, slot: "memory-core" },
+        ...decorators,
+        ...resolvers,
+      }),
+    ).toBe("muted(enabled (plugin memory-core) · no memory snapshot · run kova memory status)");
+
+    expect(
+      buildStatusMemoryValue({
+        memory: {
+          agentId: "main",
+          backend: "builtin",
+          provider: "local",
+          files: 2,
+          chunks: 3,
+          dirty: false,
+          vector: { enabled: true },
+        },
+        memoryPlugin: { enabled: true, slot: "memory-core" },
+        ...decorators,
+        ...resolvers,
+      }),
+    ).toContain("muted(vector not probed)");
   });
 
   it("builds footer lines from update and reachability state", () => {
