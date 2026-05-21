@@ -33,7 +33,8 @@ genuinely needs the requester's current transcript, the agent can request
 ## Slash command
 
 Use `/subagents` to inspect or control sub-agent runs for the **current
-session**:
+session**. In the terminal, `/subagents` is a running/recent view for
+on-demand checks; it is not a wait loop:
 
 ```text
 /subagents list
@@ -72,8 +73,9 @@ requester chat when the run finishes.
 <AccordionGroup>
   <Accordion title="Non-blocking, push-based completion">
     - The spawn command is non-blocking; it returns a run id immediately.
-    - On completion, the sub-agent announces a summary/result message back to the requester chat channel.
+    - On completion, the sub-agent announces a summary/result message back through the parent requester session.
     - Completion is push-based. Once spawned, do **not** poll `/subagents list`, `sessions_list`, or `sessions_history` in a loop just to wait for it to finish; inspect status only on-demand for debugging or intervention.
+    - In the terminal, use `/subagents` to see active runs and recent terminal summaries, then wait for the parent summary message instead of repeatedly checking status.
     - On completion, Kova best-effort closes tracked browser tabs/processes opened by that sub-agent session before the announce cleanup flow continues.
   </Accordion>
   <Accordion title="Manual-spawn delivery resilience">

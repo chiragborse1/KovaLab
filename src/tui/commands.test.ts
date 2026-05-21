@@ -103,7 +103,7 @@ describe("getSlashCommands", () => {
       { value: "repair apply", label: "repair apply" },
     ]);
     expect(recover?.getArgumentCompletions?.("a")).toEqual([{ value: "apply", label: "apply" }]);
-    expect(subagents?.description).toBe("Show running subagents");
+    expect(subagents?.description).toBe("Show running subagents and recent summaries");
     expect(automation?.description).toBe("Show scheduled/background automation");
   });
 

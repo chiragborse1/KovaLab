@@ -228,6 +228,9 @@ function formatTaskSnapshot(result: TuiTasksList, label = "Tasks"): string {
   if (tasks.length > priority.length) {
     lines.push(`- and ${plural(tasks.length - priority.length, "more task")}`);
   }
+  if (label === "Subagents" && summary.active > 0) {
+    lines.push("Completion is push-based; wait for the parent summary instead of polling.");
+  }
   return lines.join("\n");
 }
 

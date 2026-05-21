@@ -126,6 +126,7 @@ Core:
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>`
 - `/skill <name> [args]`
 - `/plugins list`
+- `/subagents [list]`
 
 Session controls:
 
@@ -145,6 +146,11 @@ interrupt an active local run. Use `/busy interrupt` when you explicitly want a
 new message to replace the current run. Use `/busy steer` when you want new
 messages injected into the active embedded run at the next safe tool boundary;
 if steering is not available yet, the TUI queues the message as a follow-up.
+
+`/subagents` shows active subagent work and recent terminal summaries without
+starting an agent turn. Subagent completion is push-based, so use this view for
+on-demand inspection only; wait for the parent summary instead of polling it in
+a loop.
 
 Session lifecycle:
 

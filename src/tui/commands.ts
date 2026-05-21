@@ -182,7 +182,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "subagents",
-      description: "Show running subagents",
+      description: "Show running subagents and recent summaries",
       argumentHint: "list",
       getArgumentCompletions: taskCompletions,
     },

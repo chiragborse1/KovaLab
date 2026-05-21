@@ -419,6 +419,9 @@ describe("tui command handlers", () => {
     expect(sendChat).not.toHaveBeenCalled();
     expect(listTasks).toHaveBeenCalledWith(expect.objectContaining({ runtime: "subagent" }));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Subagents: 1 task"));
+    expect(addSystem).toHaveBeenCalledWith(
+      expect.stringContaining("wait for the parent summary instead of polling"),
+    );
   });
 
   it("previews and applies recovery from the local task maintenance loop", async () => {
