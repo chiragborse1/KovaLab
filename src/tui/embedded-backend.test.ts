@@ -480,6 +480,45 @@ describe("EmbeddedTuiBackend", () => {
     );
   });
 
+  it("formats fallback cooldown errors for terminal chat", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const error = Object.assign(
+      new Error(
+        "All models failed (1): openai-codex/gpt-5.5: Provider openai-codex is in cooldown (all profiles unavailable) (rate_limit)",
+      ),
+      {
+        name: "FallbackSummaryError",
+        attempts: [{ provider: "openai-codex", model: "gpt-5.5", reason: "rate_limit" }],
+        soonestCooldownExpiry: Date.now() + 45_000,
+      },
+    );
+    agentCommandFromIngressMock.mockRejectedValueOnce(error);
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "hello",
+      runId: "run-rate-limit",
+    });
+    await waitFor(() =>
+      events.some((entry) => (entry.payload as { state?: string }).state === "error"),
+    );
+
+    const errorPayload = events
+      .filter((entry) => entry.event === "chat")
+      .map((entry) => entry.payload as { state?: string; errorMessage?: string })
+      .find((payload) => payload.state === "error");
+    expect(errorPayload?.errorMessage).toContain("openai-codex is rate-limited");
+    expect(errorPayload?.errorMessage).toContain("switch with /models");
+    expect(errorPayload?.errorMessage).not.toContain("All models failed");
+  });
+
   it("registers tool-first local runs before forwarding agent events", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
     const pending = deferred<{

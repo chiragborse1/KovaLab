@@ -21,6 +21,7 @@ import type {
   TuiModelChoice,
   TuiSessionList,
 } from "./tui-backend.js";
+import { formatTuiRunError } from "./tui-error-format.js";
 import { TuiTurnTrace } from "./turn-trace.js";
 
 type LocalRunState = {
@@ -911,7 +912,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
         this.emitChatAborted(params.runId, run);
         return;
       }
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = formatTuiRunError(error);
       this.emitChatError(params.runId, run, errorMessage);
       run.trace.step("turn.error", errorMessage.slice(0, 160));
     } finally {

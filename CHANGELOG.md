@@ -13,6 +13,7 @@
 - CLI/TUI: add opt-in `KOVA_TUI_TRACE=1` turn timing diagnostics for local terminal chat latency investigations. Thanks @chiragborse1
 - CLI/TUI: start the isolated local backend through a direct worker entrypoint when built, avoiding full CLI bootstrap before terminal chat becomes ready. Thanks @chiragborse1
 - CLI/TUI: keep late startup history loads from replacing an in-flight local prompt or run. Thanks @chiragborse1
+- CLI/TUI: show concise cooldown guidance for local terminal rate-limit failures instead of raw fallback summaries. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
