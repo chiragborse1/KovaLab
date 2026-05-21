@@ -158,6 +158,18 @@ describe("resolveMissingPluginCommandMessage", () => {
     ).toContain('`plugins.allow` excludes "browser"');
   });
 
+  it("keeps the removed dashboard command pointed at terminal-first surfaces", () => {
+    const message = resolveMissingPluginCommandMessage("dashboard", {
+      plugins: {
+        allow: ["quietchat"],
+      },
+    });
+    expect(message).toContain("has been removed");
+    expect(message).toContain("kova chat");
+    expect(message).toContain("kova control-ui");
+    expect(message).not.toContain("plugins.allow");
+  });
+
   it("explains explicit bundled plugin disablement", () => {
     expect(
       resolveMissingPluginCommandMessage("browser", {

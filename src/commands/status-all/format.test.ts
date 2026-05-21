@@ -7,8 +7,8 @@ import {
   buildGatewayStatusJsonPayload,
   buildGatewayStatusSummaryParts,
   formatGatewaySelfSummary,
-  resolveStatusDashboardUrl,
-  formatStatusDashboardValue,
+  resolveStatusControlUiUrl,
+  formatStatusControlUiValue,
   formatStatusServiceValue,
   formatStatusTailscaleValue,
 } from "./format.js";
@@ -49,10 +49,10 @@ describe("status-all format", () => {
     });
   });
 
-  it("formats dashboard values consistently", () => {
-    expect(formatStatusDashboardValue("https://kova.local")).toBe("https://kova.local");
-    expect(formatStatusDashboardValue("")).toBe("disabled");
-    expect(formatStatusDashboardValue(null)).toBe("disabled");
+  it("formats Control UI values consistently", () => {
+    expect(formatStatusControlUiValue("https://kova.local")).toBe("https://kova.local");
+    expect(formatStatusControlUiValue("")).toBe("disabled");
+    expect(formatStatusControlUiValue(null)).toBe("disabled");
   });
 
   it("builds shared update surface values", () => {
@@ -90,9 +90,9 @@ describe("status-all format", () => {
     });
   });
 
-  it("resolves dashboard urls from gateway config", () => {
+  it("resolves Control UI urls from gateway config", () => {
     expect(
-      resolveStatusDashboardUrl({
+      resolveStatusControlUiUrl({
         cfg: {
           gateway: {
             bind: "loopback",
@@ -102,7 +102,7 @@ describe("status-all format", () => {
       }),
     ).toBe("http://127.0.0.1:18790/ui/");
     expect(
-      resolveStatusDashboardUrl({
+      resolveStatusControlUiUrl({
         cfg: {
           gateway: {
             bind: "loopback",
@@ -112,7 +112,7 @@ describe("status-all format", () => {
       }),
     ).toBe("https://127.0.0.1:18790/");
     expect(
-      resolveStatusDashboardUrl({
+      resolveStatusControlUiUrl({
         cfg: {
           gateway: {
             controlUi: { enabled: false },
@@ -234,7 +234,7 @@ describe("status-all format", () => {
         decorateWarn: (value) => `warn(${value})`,
       }),
     ).toEqual({
-      dashboardUrl: "http://127.0.0.1:18790/",
+      controlUiUrl: "http://127.0.0.1:18790/",
       gatewayValue:
         "remote · wss://gateway.example.com (config) · ok(reachable 123ms) · auth token · gateway app 1.2.3",
       gatewaySelfValue: "gateway app 1.2.3",
@@ -272,7 +272,7 @@ describe("status-all format", () => {
         },
       }),
     ).toEqual({
-      dashboardUrl: null,
+      controlUiUrl: null,
       gatewayValue: "node → remote.example:18789 · no local gateway",
       gatewaySelfValue: null,
       gatewayServiceValue: "LaunchAgent not installed",
@@ -284,7 +284,7 @@ describe("status-all format", () => {
     expect(
       buildStatusOverviewRows({
         prefixRows: [{ Item: "Version", Value: "1.0.0" }],
-        dashboardValue: "https://kova.local",
+        controlUiValue: "https://kova.local",
         tailscaleValue: "serve · https://tail.example",
         channelLabel: "stable",
         gitLabel: "main @ v1.0.0",

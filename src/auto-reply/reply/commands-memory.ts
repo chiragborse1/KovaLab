@@ -237,14 +237,28 @@ function formatMemorySyncResult(params: {
   return `${prefix}${progress}\n${formatMemoryStatus({ status: params.status })}`;
 }
 
-async function resolveMemoryManager(params: HandleCommandsParams) {
+async function resolveMemoryManager(
+  params: HandleCommandsParams,
+  purpose: "default" | "status" = "default",
+) {
   const agentId = params.sessionKey
     ? resolveSessionAgentId({ sessionKey: params.sessionKey, config: params.cfg })
     : params.agentId;
   return await getActiveMemorySearchManager({
     cfg: params.cfg,
     agentId: agentId ?? params.agentId ?? "main",
+    ...(purpose === "status" ? { purpose } : {}),
   });
+}
+
+async function closeStatusMemoryManager(manager: {
+  close?: () => Promise<void> | void;
+}): Promise<void> {
+  try {
+    await manager.close?.();
+  } catch (error) {
+    logVerbose(`Memory status manager close failed: ${String(error)}`);
+  }
 }
 
 export const handleMemoryCommand: CommandHandler = async (
@@ -270,7 +284,7 @@ export const handleMemoryCommand: CommandHandler = async (
   }
 
   if (parsed.action === "status") {
-    const { manager, error } = await resolveMemoryManager(params);
+    const { manager, error } = await resolveMemoryManager(params, "status");
     if (!manager) {
       return {
         shouldContinue: false,
@@ -279,10 +293,14 @@ export const handleMemoryCommand: CommandHandler = async (
         },
       };
     }
-    return {
-      shouldContinue: false,
-      reply: { text: formatMemoryStatus({ status: manager.status() }) },
-    };
+    try {
+      return {
+        shouldContinue: false,
+        reply: { text: formatMemoryStatus({ status: manager.status() }) },
+      };
+    } finally {
+      await closeStatusMemoryManager(manager);
+    }
   }
 
   if (parsed.action === "search") {

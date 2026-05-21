@@ -363,7 +363,7 @@ export function buildSettingsDashboardRows(
       id: "theme",
       label: "Theme",
       value: themeName,
-      hint: "Space cycles dashboard accent",
+      hint: "Space cycles terminal accent",
       status: withStatus("theme", status("✓ Active", "ok"), statusMap),
       toggle: "theme",
     },
@@ -889,7 +889,7 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
     emitKeypressEvents(stdin);
     while (stdin.read() !== null) {
       // Drain buffered keypresses left behind by nested prompts before
-      // returning to the dashboard; otherwise Enter can reopen the first row.
+      // returning to the settings list; otherwise Enter can reopen the first row.
     }
     stdin.setRawMode(true);
     stdin.resume();

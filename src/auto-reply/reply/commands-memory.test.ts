@@ -42,8 +42,9 @@ describe("handleMemoryCommand", () => {
   });
 
   it("formats lightweight memory status", async () => {
+    const close = vi.fn();
     getActiveMemorySearchManagerMock.mockResolvedValue({
-      manager: { status: () => baseStatus },
+      manager: { status: () => baseStatus, close },
     });
 
     const result = await handleMemoryCommand(buildParams("/memory status"), true);
@@ -55,7 +56,9 @@ describe("handleMemoryCommand", () => {
     expect(getActiveMemorySearchManagerMock).toHaveBeenCalledWith({
       cfg: baseCommandTestConfig,
       agentId: "main",
+      purpose: "status",
     });
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it("searches active memory for the current session", async () => {
@@ -85,6 +88,10 @@ describe("handleMemoryCommand", () => {
     expect(search).toHaveBeenCalledWith("terminal workflows", {
       maxResults: 5,
       sessionKey: "agent:main:main",
+    });
+    expect(getActiveMemorySearchManagerMock).toHaveBeenCalledWith({
+      cfg: baseCommandTestConfig,
+      agentId: "main",
     });
   });
 

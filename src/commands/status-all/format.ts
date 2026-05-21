@@ -92,7 +92,7 @@ export function buildStatusUpdateSurface(params: {
   };
 }
 
-export function formatStatusDashboardValue(value: string | null | undefined): string {
+export function formatStatusControlUiValue(value: string | null | undefined): string {
   const trimmed = normalizeOptionalString(value);
   return trimmed && trimmed.length > 0 ? trimmed : "disabled";
 }
@@ -160,7 +160,7 @@ export function formatStatusServiceValue(params: {
   return `${params.label} ${installedPrefix}${params.loadedText}${runtimeSuffix}`;
 }
 
-export function resolveStatusDashboardUrl(params: {
+export function resolveStatusControlUiUrl(params: {
   cfg: Pick<KovaConfig, "gateway">;
 }): string | null {
   if (!(params.cfg.gateway?.controlUi?.enabled ?? true)) {
@@ -178,7 +178,7 @@ export function resolveStatusDashboardUrl(params: {
 export function buildStatusOverviewRows(params: {
   prefixRows?: StatusOverviewRow[];
   terminalValue?: string;
-  dashboardValue: string;
+  controlUiValue: string;
   tailscaleValue: string;
   channelLabel: string;
   gitLabel?: string | null;
@@ -195,7 +195,7 @@ export function buildStatusOverviewRows(params: {
   const rows: StatusOverviewRow[] = [...(params.prefixRows ?? [])];
   rows.push(
     { Item: "Terminal", Value: params.terminalValue ?? "kova chat" },
-    { Item: "Control UI", Value: params.dashboardValue },
+    { Item: "Control UI", Value: params.controlUiValue },
     { Item: "Tailscale exposure", Value: params.tailscaleValue },
     { Item: "Channel", Value: params.channelLabel },
   );
@@ -265,7 +265,7 @@ export function buildStatusOverviewSurfaceRows(params: {
     updateConfigChannel: params.cfg.update?.channel,
     update: params.update,
   });
-  const { dashboardUrl, gatewayValue, gatewaySelfValue, gatewayServiceValue, nodeServiceValue } =
+  const { controlUiUrl, gatewayValue, gatewaySelfValue, gatewayServiceValue, nodeServiceValue } =
     buildStatusGatewaySurfaceValues({
       cfg: params.cfg,
       gatewayMode: params.gatewayMode,
@@ -284,7 +284,7 @@ export function buildStatusOverviewSurfaceRows(params: {
   return buildStatusOverviewRows({
     prefixRows: params.prefixRows,
     terminalValue: params.terminalValue,
-    dashboardValue: formatStatusDashboardValue(dashboardUrl),
+    controlUiValue: formatStatusControlUiValue(controlUiUrl),
     tailscaleValue: formatStatusTailscaleValue({
       tailscaleMode: params.tailscaleMode,
       dnsName: params.tailscaleDns,
@@ -431,7 +431,7 @@ export function buildStatusGatewaySurfaceValues(params: {
         : ""
     }${gatewaySelfValue ? ` · ${gatewaySelfValue}` : ""}`;
   return {
-    dashboardUrl: resolveStatusDashboardUrl({ cfg: params.cfg }),
+    controlUiUrl: resolveStatusControlUiUrl({ cfg: params.cfg }),
     gatewayValue,
     gatewaySelfValue,
     gatewayServiceValue: formatStatusServiceValue({
