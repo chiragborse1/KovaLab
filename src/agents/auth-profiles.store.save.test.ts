@@ -73,6 +73,31 @@ describe("saveAuthProfileStore", () => {
     }
   });
 
+  it("does not add an empty plaintext token to tokenRef-only profiles", async () => {
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-tokenref-upsert-"));
+    try {
+      upsertAuthProfile({
+        profileId: "github-copilot:default",
+        credential: {
+          type: "token",
+          provider: "github-copilot",
+          tokenRef: { source: "env", provider: "default", id: "GITHUB_TOKEN" },
+        },
+        agentDir,
+      });
+
+      const profile = ensureAuthProfileStore(agentDir).profiles["github-copilot:default"];
+      expect(profile).toEqual({
+        type: "token",
+        provider: "github-copilot",
+        tokenRef: { source: "env", provider: "default", id: "GITHUB_TOKEN" },
+      });
+    } finally {
+      clearRuntimeAuthProfileStoreSnapshots();
+      await fs.rm(agentDir, { recursive: true, force: true });
+    }
+  });
+
   it("refreshes the runtime snapshot when a saved store rotates oauth tokens", async () => {
     const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-auth-save-runtime-"));
     try {

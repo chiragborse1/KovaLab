@@ -20,7 +20,12 @@ function normalizeAuthProfileCredential(credential: AuthProfileCredential): Auth
           : {}),
       }
     : credential.type === "token"
-      ? { ...credential, token: normalizeSecretInput(credential.token) }
+      ? {
+          ...credential,
+          ...(typeof credential.token === "string"
+            ? { token: normalizeSecretInput(credential.token) }
+            : {}),
+        }
       : credential;
 }
 
