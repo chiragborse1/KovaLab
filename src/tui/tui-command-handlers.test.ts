@@ -16,6 +16,7 @@ async function flushAsyncSelect() {
 
 function createHarness(params?: {
   sendChat?: ReturnType<typeof vi.fn>;
+  steerChat?: ReturnType<typeof vi.fn>;
   getGatewayStatus?: ReturnType<typeof vi.fn>;
   patchSession?: ReturnType<typeof vi.fn>;
   resetSession?: ReturnType<typeof vi.fn>;
@@ -28,10 +29,11 @@ function createHarness(params?: {
   isConnected?: boolean;
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
-  busyInputMode?: "queue" | "interrupt";
+  busyInputMode?: "queue" | "steer" | "interrupt";
   opts?: { local?: boolean };
 }) {
   const sendChat = params?.sendChat ?? vi.fn().mockResolvedValue({ runId: "r1" });
+  const steerChat = params?.steerChat;
   const getGatewayStatus = params?.getGatewayStatus ?? vi.fn().mockResolvedValue({});
   const patchSession = params?.patchSession ?? vi.fn().mockResolvedValue({});
   const resetSession = params?.resetSession ?? vi.fn().mockResolvedValue({ ok: true });
@@ -66,7 +68,7 @@ function createHarness(params?: {
   };
 
   const { handleCommand } = createCommandHandlers({
-    client: { sendChat, getGatewayStatus, patchSession, resetSession } as never,
+    client: { sendChat, steerChat, getGatewayStatus, patchSession, resetSession } as never,
     chatLog: { addUser, addSystem } as never,
     tui: { requestRender } as never,
     opts: params?.opts ?? {},
@@ -94,6 +96,7 @@ function createHarness(params?: {
     handleCommand,
     getGatewayStatus,
     sendChat,
+    steerChat,
     openOverlay,
     closeOverlay,
     patchSession,
@@ -330,6 +333,63 @@ describe("tui command handlers", () => {
     expect(state.busyInputMode).toBe("interrupt");
     expect(addSystem).toHaveBeenCalledWith(
       "busy input set to interrupt; new messages replace the active run",
+    );
+  });
+
+  it("can switch busy input to steer mode", async () => {
+    const { handleCommand, addSystem, state } = createHarness({
+      activeChatRunId: "run-main",
+    });
+
+    await handleCommand("/busy steer");
+
+    expect(state.busyInputMode).toBe("steer");
+    expect(addSystem).toHaveBeenCalledWith(
+      "busy input set to steer; new messages are injected into the active run when possible",
+    );
+  });
+
+  it("steers active-run messages when steer mode is available", async () => {
+    const steerChat = vi.fn().mockResolvedValue({ ok: true });
+    const setActivityStatus = vi.fn();
+    const { handleCommand, sendChat, addUser, addSystem, state } = createHarness({
+      activeChatRunId: "run-main",
+      busyInputMode: "steer",
+      steerChat,
+      setActivityStatus,
+    });
+
+    await handleCommand("nudge current");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).not.toHaveBeenCalled();
+    expect(steerChat).toHaveBeenCalledWith({
+      sessionKey: "agent:main:main",
+      message: "nudge current",
+    });
+    expect(addSystem).toHaveBeenCalledWith("steered active run");
+    expect(setActivityStatus).toHaveBeenCalledWith("steered active run");
+    expect(state.queuedMessages).toHaveLength(0);
+  });
+
+  it("falls back to queue when steering is unavailable", async () => {
+    const steerChat = vi.fn().mockResolvedValue({ ok: false, reason: "not_streaming" });
+    const { handleCommand, sendChat, addSystem, state } = createHarness({
+      activeChatRunId: "run-main",
+      busyInputMode: "steer",
+      steerChat,
+    });
+
+    await handleCommand("nudge later");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(state.queuedMessages).toHaveLength(1);
+    expect(state.queuedMessages[0]?.text).toBe("nudge later");
+    expect(addSystem).toHaveBeenCalledWith(
+      "steer unavailable (not_streaming); queued follow-up instead",
+    );
+    expect(addSystem).toHaveBeenCalledWith(
+      "run active; queued follow-up (1). /busy status shows the queue.",
     );
   });
 

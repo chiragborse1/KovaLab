@@ -100,6 +100,10 @@ export type TuiBackend = {
   start: () => void;
   stop: () => void;
   sendChat: (opts: ChatSendOptions) => Promise<{ runId: string }>;
+  steerChat?: (opts: {
+    sessionKey: string;
+    message: string;
+  }) => Promise<{ ok: boolean; reason?: string }>;
   abortChat: (opts: {
     sessionKey: string;
     runId: string;

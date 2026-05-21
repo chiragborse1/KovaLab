@@ -269,6 +269,19 @@ export class EmbeddedTuiBackend implements TuiBackend {
     return { ok: true, aborted: true };
   }
 
+  async steerChat(opts: { sessionKey: string; message: string }) {
+    const { queueEmbeddedPiMessageWithOutcome, resolveActiveEmbeddedRunSessionId } =
+      await import("../agents/pi-embedded-runner/runs.js");
+    const sessionId = resolveActiveEmbeddedRunSessionId(opts.sessionKey);
+    if (!sessionId) {
+      return { ok: false, reason: "no_active_run" };
+    }
+    const outcome = queueEmbeddedPiMessageWithOutcome(sessionId, opts.message, {
+      steeringMode: "all",
+    });
+    return outcome.queued ? { ok: true } : { ok: false, reason: outcome.reason };
+  }
+
   async loadHistory(opts: { sessionKey: string; limit?: number }) {
     const [
       { resolveSessionAgentId },

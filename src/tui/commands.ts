@@ -15,7 +15,7 @@ const REASONING_LEVELS = ["on", "off"];
 const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
 const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
-const BUSY_LEVELS = ["status", "queue", "interrupt", "clear"];
+const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
 
 export type ParsedCommand = {
   name: string;
@@ -213,7 +213,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/elevated <on|off|ask|full>",
     "/elev <on|off|ask|full>",
     "/activation <mention|always>",
-    "/busy <status|queue|interrupt|clear>",
+    "/busy <status|queue|steer|interrupt|clear>",
     "/new or /reset",
     "/abort",
     "/settings",

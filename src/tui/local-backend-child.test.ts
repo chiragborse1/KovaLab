@@ -15,6 +15,11 @@ class BindingSensitiveBackend {
     return { runId: opts.runId ?? "generated" };
   }
 
+  async steerChat(opts: { sessionKey: string; message: string }) {
+    this.abortSessionRuns(`${opts.sessionKey}:${opts.message}`);
+    return { ok: true };
+  }
+
   private abortSessionRuns(sessionKey: string) {
     this.abortedSessions.push(sessionKey);
   }
@@ -33,5 +38,18 @@ describe("local backend child dispatch", () => {
     ).resolves.toEqual({ runId: "run-1" });
 
     expect(backend.abortedSessions).toEqual(["agent:main:main"]);
+  });
+
+  it("forwards the optional steer method through the same bound dispatch", async () => {
+    const backend = new BindingSensitiveBackend() as BindingSensitiveBackend & TuiBackend;
+
+    await expect(
+      invokeBackend(backend, "steerChat", {
+        sessionKey: "agent:main:main",
+        message: "keep going",
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(backend.abortedSessions).toEqual(["agent:main:main:keep going"]);
   });
 });

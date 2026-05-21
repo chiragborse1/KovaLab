@@ -77,7 +77,7 @@ export type QueuedMessage = {
   mode: QueuedMessageMode;
 };
 
-export type TuiBusyInputMode = "queue" | "interrupt";
+export type TuiBusyInputMode = "queue" | "steer" | "interrupt";
 
 export type GatewayStatusSummary = {
   runtimeVersion?: string | null;

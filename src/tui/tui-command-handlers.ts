@@ -65,6 +65,9 @@ function normalizeBusyInputMode(value: string): TuiBusyInputMode | null {
   if (normalized === "queue" || normalized === "followup" || normalized === "follow-up") {
     return "queue";
   }
+  if (normalized === "steer" || normalized === "steering") {
+    return "steer";
+  }
   if (normalized === "interrupt" || normalized === "abort") {
     return "interrupt";
   }
@@ -148,6 +151,31 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     );
     setActivityStatus("queue cleared");
     tui.requestRender();
+  };
+
+  const steerMessage = async (text: string) => {
+    const steerChat = client.steerChat;
+    if (typeof steerChat !== "function") {
+      return false;
+    }
+    try {
+      const result = await steerChat({
+        sessionKey: state.currentSessionKey,
+        message: text,
+      });
+      if (!result.ok) {
+        const reason = result.reason ? ` (${result.reason})` : "";
+        chatLog.addSystem(`steer unavailable${reason}; queued follow-up instead`);
+        return false;
+      }
+      chatLog.addSystem("steered active run");
+      setActivityStatus("steered active run");
+      tui.requestRender();
+      return true;
+    } catch (err) {
+      chatLog.addSystem(`steer failed: ${sanitizeRenderableText(String(err))}`);
+      return false;
+    }
   };
 
   const setAgent = async (id: string) => {
@@ -645,14 +673,16 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         const nextMode = normalizeBusyInputMode(action);
         if (!nextMode) {
-          chatLog.addSystem("usage: /busy status|queue|interrupt|clear");
+          chatLog.addSystem("usage: /busy status|queue|steer|interrupt|clear");
           break;
         }
         state.busyInputMode = nextMode;
         chatLog.addSystem(
           nextMode === "queue"
             ? "busy input set to queue; new messages wait for the active run to finish"
-            : "busy input set to interrupt; new messages replace the active run",
+            : nextMode === "steer"
+              ? "busy input set to steer; new messages are injected into the active run when possible"
+              : "busy input set to interrupt; new messages replace the active run",
         );
         setActivityStatus(`busy ${nextMode}`);
         break;
@@ -720,14 +750,18 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
     const isBtw = isBtwCommand(text);
     const queueIfBusy = options?.queueIfBusy ?? true;
-    if (
-      !isBtw &&
-      queueIfBusy &&
-      getBusyInputMode() === "queue" &&
-      (state.activeChatRunId || state.pendingOptimisticUserMessage)
-    ) {
-      queueMessage(text, "busy");
-      return;
+    if (!isBtw && queueIfBusy && (state.activeChatRunId || state.pendingOptimisticUserMessage)) {
+      const busyMode = getBusyInputMode();
+      if (busyMode === "steer" && state.activeChatRunId) {
+        const steered = await steerMessage(text);
+        if (steered) {
+          return;
+        }
+      }
+      if (busyMode === "queue" || busyMode === "steer") {
+        queueMessage(text, "busy");
+        return;
+      }
     }
     const runId = randomUUID();
     try {

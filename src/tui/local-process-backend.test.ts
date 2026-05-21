@@ -121,6 +121,33 @@ describe("LocalProcessTuiBackend", () => {
     await expect(requestPromise).resolves.toEqual({ runId: "run-1" });
   });
 
+  it("bridges steer requests to the worker", async () => {
+    const child = createFakeChild();
+    spawnMock.mockReturnValue(child);
+    const backend = new LocalProcessTuiBackend();
+    backend.start();
+
+    const requestPromise = backend.steerChat({
+      sessionKey: "agent:main:main",
+      message: "tighten the current run",
+    });
+    await flushMicrotasks();
+
+    const rawRequest = child.stdin.read()?.toString("utf8").trim();
+    expect(JSON.parse(rawRequest ?? "{}")).toEqual({
+      type: "request",
+      id: 1,
+      method: "steerChat",
+      params: {
+        sessionKey: "agent:main:main",
+        message: "tighten the current run",
+      },
+    });
+
+    writeBackendMessage(child, { type: "response", id: 1, ok: true, result: { ok: true } });
+    await expect(requestPromise).resolves.toEqual({ ok: true });
+  });
+
   it("rejects pending requests when the worker exits", async () => {
     const child = createFakeChild();
     spawnMock.mockReturnValue(child);

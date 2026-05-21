@@ -15,6 +15,7 @@ import { filterTuiExecArgv } from "./tui-launch.js";
 
 type LocalProcessRequestMethod =
   | "sendChat"
+  | "steerChat"
   | "abortChat"
   | "loadHistory"
   | "listSessions"
@@ -155,6 +156,10 @@ export class LocalProcessTuiBackend implements TuiBackend {
 
   async sendChat(opts: ChatSendOptions): Promise<{ runId: string }> {
     return (await this.request("sendChat", opts)) as { runId: string };
+  }
+
+  async steerChat(opts: { sessionKey: string; message: string }) {
+    return (await this.request("steerChat", opts)) as { ok: boolean; reason?: string };
   }
 
   async abortChat(opts: { sessionKey: string; runId: string }) {

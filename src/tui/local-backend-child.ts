@@ -17,6 +17,7 @@ type ChildRequest =
 type BackendMethod = keyof Pick<
   TuiBackend,
   | "sendChat"
+  | "steerChat"
   | "abortChat"
   | "loadHistory"
   | "listSessions"
@@ -31,6 +32,7 @@ type BackendMethod = keyof Pick<
 
 const backendMethods = new Set<string>([
   "sendChat",
+  "steerChat",
   "abortChat",
   "loadHistory",
   "listSessions",

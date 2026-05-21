@@ -137,11 +137,13 @@ Session controls:
 - `/elevated <on|off|ask|full>` (alias: `/elev`)
 - `/activation <mention|always>`
 - `/deliver <on|off>`
-- `/busy <status|queue|interrupt|clear>`
+- `/busy <status|queue|steer|interrupt|clear>`
 
 Busy input defaults to `queue` in the terminal so accidental follow-ups do not
 interrupt an active local run. Use `/busy interrupt` when you explicitly want a
-new message to replace the current run.
+new message to replace the current run. Use `/busy steer` when you want new
+messages injected into the active embedded run at the next safe tool boundary;
+if steering is not available yet, the TUI queues the message as a follow-up.
 
 Session lifecycle:
 
