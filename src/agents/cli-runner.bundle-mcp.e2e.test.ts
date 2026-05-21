@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
 import { captureEnv } from "../test-utils/env.js";
 import {
@@ -9,6 +9,11 @@ import {
   writeClaudeBundle,
   writeFakeClaudeCli,
 } from "./bundle-mcp.test-harness.js";
+import { __testing as cliBackendsTesting } from "./cli-backends.js";
+import {
+  resetCliRunnerPrepareTestDepsForTest,
+  setCliRunnerPrepareTestDeps,
+} from "./cli-runner/prepare.js";
 
 vi.mock("./cli-runner/helpers.js", async () => {
   const original =
@@ -28,6 +33,48 @@ vi.mock("./cli-runner/helpers.js", async () => {
 const E2E_TIMEOUT_MS = 180_000;
 
 describe("runCliAgent bundle MCP e2e", () => {
+  beforeEach(() => {
+    cliBackendsTesting.setDepsForTest({
+      resolveRuntimeCliBackends: () => [],
+      resolvePluginSetupCliBackend: ({ backend }) =>
+        backend === "claude-cli"
+          ? {
+              pluginId: "anthropic",
+              backend: {
+                id: "claude-cli",
+                bundleMcp: true,
+                bundleMcpMode: "claude-config-file",
+                config: {
+                  command: "claude",
+                  args: ["-p"],
+                  output: "jsonl",
+                  input: "arg",
+                  modelArg: "--model",
+                  sessionArg: "--session-id",
+                  sessionMode: "always",
+                  sessionIdFields: ["session_id"],
+                  clearEnv: [],
+                },
+              },
+            }
+          : undefined,
+    });
+    setCliRunnerPrepareTestDeps({
+      makeBootstrapWarn: () => () => undefined,
+      resolveBootstrapContextForRun: async () => ({ bootstrapFiles: [], contextFiles: [] }),
+      getActiveMcpLoopbackRuntime: () => undefined,
+      ensureMcpLoopbackServer: async () => ({ port: 0, close: async () => undefined }),
+      createMcpLoopbackServerConfig: () => ({ mcpServers: {} }),
+      resolveMcpLoopbackScopedTools: () => ({ agentId: undefined, tools: [] }),
+      resolveKovaReferencePaths: async () => ({ docsPath: null, sourcePath: null }),
+    });
+  });
+
+  afterEach(() => {
+    cliBackendsTesting.resetDepsForTest();
+    resetCliRunnerPrepareTestDepsForTest();
+  });
+
   it(
     "routes enabled bundle MCP config into the claude-cli backend and executes the tool",
     { timeout: E2E_TIMEOUT_MS },
@@ -59,6 +106,7 @@ describe("runCliAgent bundle MCP e2e", () => {
                 command: "node",
                 args: [fakeClaudePath],
                 clearEnv: [],
+                input: "arg",
               },
             },
           },

@@ -76,7 +76,6 @@ if (!tools.tools.some((tool) => tool.name === "bundle_probe")) {
   throw new Error("bundle_probe tool not exposed");
 }
 const result = await client.callTool({ name: "bundle_probe", arguments: {} });
-await transport.close();
 
 const text = Array.isArray(result.content)
   ? result.content
@@ -85,13 +84,31 @@ const text = Array.isArray(result.content)
       .join("\\n")
   : "";
 
-process.stdout.write(
+const output =
   JSON.stringify({
     type: "result",
     session_id: readArg("--session-id") ?? randomUUID(),
     result: "BUNDLE MCP OK " + text,
-  }) + "\\n",
-);
+  }) + "\\n";
+
+await new Promise((resolve, reject) => {
+  process.stdout.write(output, (error) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+    resolve();
+  });
+});
+
+await Promise.race([
+  client.close().catch(() => {}),
+  new Promise((resolve) => {
+    const timer = setTimeout(resolve, 1000);
+    timer.unref?.();
+  }),
+]);
+process.exit(0);
 `,
   );
 }

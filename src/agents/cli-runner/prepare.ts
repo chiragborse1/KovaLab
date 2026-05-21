@@ -51,7 +51,7 @@ import {
 } from "./session-history.js";
 import type { PreparedCliRunContext, RunCliAgentParams } from "./types.js";
 
-const prepareDeps = {
+const defaultPrepareDeps = {
   makeBootstrapWarn: makeBootstrapWarnImpl,
   resolveBootstrapContextForRun: resolveBootstrapContextForRunImpl,
   getActiveMcpLoopbackRuntime,
@@ -63,8 +63,14 @@ const prepareDeps = {
   ) => (await import("../docs-path.js")).resolveKovaReferencePaths(params),
 };
 
+const prepareDeps = { ...defaultPrepareDeps };
+
 export function setCliRunnerPrepareTestDeps(overrides: Partial<typeof prepareDeps>): void {
   Object.assign(prepareDeps, overrides);
+}
+
+export function resetCliRunnerPrepareTestDepsForTest(): void {
+  Object.assign(prepareDeps, defaultPrepareDeps);
 }
 
 export function shouldSkipLocalCliCredentialEpoch(params: {
