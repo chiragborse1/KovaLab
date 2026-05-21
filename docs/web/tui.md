@@ -121,6 +121,7 @@ Core:
 - `/session <key>` (or `/sessions [query]`)
 - `/model <provider/model>` (or `/models`)
 - `/tools [compact|verbose]`
+- `/skills [compact|verbose]`
 - `/context [compact|verbose]`
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>`
 - `/skill <name> [args]`

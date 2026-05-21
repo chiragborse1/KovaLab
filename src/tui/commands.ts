@@ -16,6 +16,7 @@ const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
 const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
 const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
+const SURFACE_LEVELS = ["compact", "verbose"];
 const MEMORY_COMMAND_COMPLETIONS = [
   {
     value: "status",
@@ -132,6 +133,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const elevatedCompletions = createLevelCompletion(ELEVATED_LEVELS);
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
   const busyCompletions = createLevelCompletion(BUSY_LEVELS);
+  const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
     { name: "gateway-status", description: "Show gateway status summary" },
@@ -145,6 +147,18 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       name: "sessions",
       description: "Open session picker",
       argumentHint: "[query]",
+    },
+    {
+      name: "tools",
+      description: "Show terminal tool catalog",
+      argumentHint: "compact | verbose",
+      getArgumentCompletions: surfaceCompletions,
+    },
+    {
+      name: "skills",
+      description: "Show terminal skill catalog",
+      argumentHint: "compact | verbose",
+      getArgumentCompletions: surfaceCompletions,
     },
     {
       name: "model",
@@ -246,6 +260,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/session <key> (or /sessions [query])",
     "/model <provider/model> (or /models)",
     "/tools [compact|verbose]",
+    "/skills [compact|verbose]",
     "/context [compact|verbose]",
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
     "/skill <name> [args]",

@@ -29,6 +29,9 @@ import type {
   TuiStateAccess,
 } from "./tui-types.js";
 
+type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
+type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
+
 type CommandHandlerContext = {
   client: TuiBackend;
   chatLog: ChatLog;
@@ -76,6 +79,99 @@ function normalizeBusyInputMode(value: string): TuiBusyInputMode | null {
 
 function formatQueuedFollowUpCount(count: number): string {
   return `${count} queued follow-up${count === 1 ? "" : "s"}`;
+}
+
+function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${String(count)} ${count === 1 ? singular : pluralForm}`;
+}
+
+function truncateLine(text: string, maxLength = 120): string {
+  const cleaned = sanitizeRenderableText(text).replace(/\s+/g, " ").trim();
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+  return `${cleaned.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function normalizeSurfaceMode(args: string): "compact" | "verbose" | null {
+  const normalized = args.trim().toLowerCase();
+  if (!normalized || normalized === "compact") {
+    return "compact";
+  }
+  if (normalized === "verbose") {
+    return "verbose";
+  }
+  return null;
+}
+
+function formatToolCatalog(result: TuiToolCatalog, mode: "compact" | "verbose"): string {
+  const groups = Array.isArray(result.groups) ? result.groups : [];
+  const totalTools = groups.reduce((sum, group) => sum + group.tools.length, 0);
+  const lines = [
+    `Tools: ${plural(totalTools, "tool")} across ${plural(groups.length, "group")} for agent ${result.agentId}`,
+  ];
+  if (groups.length === 0) {
+    lines.push("No tools are currently exposed.");
+    return lines.join("\n");
+  }
+
+  for (const group of groups) {
+    lines.push(`- ${group.label}: ${plural(group.tools.length, "tool")}`);
+    if (mode !== "verbose") {
+      continue;
+    }
+    for (const tool of group.tools.slice(0, 12)) {
+      const description = tool.description ? ` - ${truncateLine(tool.description, 96)}` : "";
+      lines.push(`  ${tool.label}${description}`);
+    }
+    if (group.tools.length > 12) {
+      lines.push(`  and ${plural(group.tools.length - 12, "more tool")}`);
+    }
+  }
+  if (mode === "compact") {
+    lines.push("Use /tools verbose for names and short descriptions.");
+  }
+  return lines.join("\n");
+}
+
+function formatSkillCatalog(result: TuiSkillStatus, mode: "compact" | "verbose"): string {
+  const skills = Array.isArray(result.skills) ? result.skills : [];
+  const visible = skills.filter((skill) => !skill.disabled);
+  const eligible = visible.filter((skill) => skill.eligible).length;
+  const offline = visible.length - eligible;
+  const disabled = skills.length - visible.length;
+  const lines = [
+    `Skills: ${plural(visible.length, "skill")} visible (${String(eligible)} ready, ${String(offline)} offline, ${String(disabled)} disabled)`,
+  ];
+  if (visible.length === 0) {
+    lines.push("No skills are currently visible for this agent.");
+    return lines.join("\n");
+  }
+
+  if (mode === "compact") {
+    const bySource = new Map<string, number>();
+    for (const skill of visible) {
+      const source = skill.source || "workspace";
+      bySource.set(source, (bySource.get(source) ?? 0) + 1);
+    }
+    for (const [source, count] of [...bySource.entries()].toSorted((a, b) =>
+      a[0].localeCompare(b[0]),
+    )) {
+      lines.push(`- ${source}: ${plural(count, "skill")}`);
+    }
+    lines.push("Use /skills verbose for names and status.");
+    return lines.join("\n");
+  }
+
+  for (const skill of visible.slice(0, 30)) {
+    const status = skill.eligible ? "ready" : "offline";
+    const description = skill.description ? ` - ${truncateLine(skill.description, 96)}` : "";
+    lines.push(`- ${skill.name}: ${status}${description}`);
+  }
+  if (visible.length > 30) {
+    lines.push(`- and ${plural(visible.length - 30, "more skill")}`);
+  }
+  return lines.join("\n");
 }
 
 export function createCommandHandlers(context: CommandHandlerContext) {
@@ -282,6 +378,45 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     });
   };
 
+  const showToolsCatalog = async (args: string) => {
+    const mode = normalizeSurfaceMode(args);
+    if (!mode) {
+      chatLog.addSystem("usage: /tools [compact|verbose]");
+      return;
+    }
+    if (!client.listTools) {
+      await sendMessage(args ? `/tools ${args}` : "/tools", { queueIfBusy: false });
+      return;
+    }
+    try {
+      const result = await client.listTools({
+        agentId: state.currentAgentId,
+        includePlugins: mode === "verbose",
+      });
+      chatLog.addSystem(formatToolCatalog(result, mode));
+    } catch (err) {
+      chatLog.addSystem(`tools catalog failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const showSkillCatalog = async (args: string) => {
+    const mode = normalizeSurfaceMode(args);
+    if (!mode) {
+      chatLog.addSystem("usage: /skills [compact|verbose]");
+      return;
+    }
+    if (!client.listSkills) {
+      await sendMessage(args ? `/skills ${args}` : "/skills", { queueIfBusy: false });
+      return;
+    }
+    try {
+      const result = await client.listSkills({ agentId: state.currentAgentId });
+      chatLog.addSystem(formatSkillCatalog(result, mode));
+    } catch (err) {
+      chatLog.addSystem(`skills catalog failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
   const openSessionSelector = async (query = "") => {
     const normalizedQuery = query.trim();
     try {
@@ -458,6 +593,12 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         } else {
           await sendMessage(raw);
         }
+        break;
+      case "tools":
+        await showToolsCatalog(args);
+        break;
+      case "skills":
+        await showSkillCatalog(args);
         break;
       case "crestodian":
         chatLog.addSystem(

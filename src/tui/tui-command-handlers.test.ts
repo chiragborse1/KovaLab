@@ -22,6 +22,8 @@ function createHarness(params?: {
   patchSession?: ReturnType<typeof vi.fn>;
   resetSession?: ReturnType<typeof vi.fn>;
   listSessions?: ReturnType<typeof vi.fn>;
+  listTools?: ReturnType<typeof vi.fn>;
+  listSkills?: ReturnType<typeof vi.fn>;
   runAuthFlow?: RunAuthFlow;
   setSession?: SetSessionMock;
   loadHistory?: LoadHistoryMock;
@@ -48,6 +50,53 @@ function createHarness(params?: {
           displayName: "Research",
           updatedAt: Date.now(),
           lastMessagePreview: "latest research notes",
+        },
+      ],
+    });
+  const listTools =
+    params?.listTools ??
+    vi.fn().mockResolvedValue({
+      agentId: "main",
+      groups: [
+        {
+          id: "files",
+          label: "Files",
+          source: "core",
+          tools: [
+            {
+              id: "read",
+              label: "read",
+              description: "Read files",
+              source: "core",
+              defaultProfiles: ["coding"],
+            },
+          ],
+        },
+      ],
+      profiles: [],
+    });
+  const listSkills =
+    params?.listSkills ??
+    vi.fn().mockResolvedValue({
+      workspaceDir: "",
+      managedSkillsDir: "",
+      skills: [
+        {
+          name: "codex",
+          description: "Coding workflow",
+          source: "workspace",
+          bundled: false,
+          filePath: "",
+          baseDir: "",
+          skillKey: "codex",
+          always: false,
+          disabled: false,
+          blockedByAllowlist: false,
+          eligible: true,
+          requirements: {},
+          missing: {},
+          configChecks: [],
+          install: [],
         },
       ],
     });
@@ -89,6 +138,8 @@ function createHarness(params?: {
       patchSession,
       resetSession,
       listSessions,
+      listTools,
+      listSkills,
     } as never,
     chatLog: { addUser, addSystem } as never,
     tui: { requestRender } as never,
@@ -123,6 +174,8 @@ function createHarness(params?: {
     patchSession,
     resetSession,
     listSessions,
+    listTools,
+    listSkills,
     setSession,
     addUser,
     addSystem,
@@ -225,6 +278,28 @@ describe("tui command handlers", () => {
     );
     const selector = openOverlay.mock.calls[0]?.[0] as SelectableOverlay | undefined;
     expect(selector?.getFilterText?.()).toBe("research");
+  });
+
+  it("renders a local compact tool catalog without sending a chat turn", async () => {
+    const { handleCommand, listTools, sendChat, addSystem } = createHarness();
+
+    await handleCommand("/tools");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(listTools).toHaveBeenCalledWith({ agentId: "main", includePlugins: false });
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Tools: 1 tool"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Use /tools verbose"));
+  });
+
+  it("renders a local verbose skill catalog without sending a chat turn", async () => {
+    const { handleCommand, listSkills, sendChat, addSystem } = createHarness();
+
+    await handleCommand("/skills verbose");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(listSkills).toHaveBeenCalledWith({ agentId: "main" });
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Skills: 1 skill visible"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("codex: ready"));
   });
 
   it("forwards /context list directly", async () => {

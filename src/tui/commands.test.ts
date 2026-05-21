@@ -82,6 +82,14 @@ describe("getSlashCommands", () => {
     expect(sessions?.argumentHint).toBe("[query]");
   });
 
+  it("adds compact and verbose completions for terminal catalog commands", () => {
+    const commands = getSlashCommands();
+    const tools = commands.find((command) => command.name === "tools");
+    const skills = commands.find((command) => command.name === "skills");
+    expect(tools?.getArgumentCompletions?.("v")).toEqual([{ value: "verbose", label: "verbose" }]);
+    expect(skills?.getArgumentCompletions?.("c")).toEqual([{ value: "compact", label: "compact" }]);
+  });
+
   it("merges dynamic gateway commands", () => {
     const commands = getSlashCommands({
       dynamicCommands: [
@@ -113,6 +121,7 @@ describe("helpText", () => {
     expect(output).toContain("/session <key> (or /sessions [query])");
     expect(output).toContain("Terminal command center:");
     expect(output).toContain("/tools [compact|verbose]");
+    expect(output).toContain("/skills [compact|verbose]");
     expect(output).toContain("/context [compact|verbose]");
     expect(output).toContain(
       "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
