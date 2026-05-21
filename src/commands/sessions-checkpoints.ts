@@ -227,7 +227,7 @@ async function callGatewayChecked(
   try {
     return await deps.callGateway(method, params);
   } catch (error) {
-    throw new Error(formatErrorMessage(error));
+    throw new Error(formatErrorMessage(error), { cause: error });
   }
 }
 

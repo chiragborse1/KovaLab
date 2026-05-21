@@ -940,7 +940,7 @@ function buildTrajectoryReportCapture(params: {
     normalizedFinalStatus !== "succeeded" &&
     normalizedFinalStatus !== "ok"
   ) {
-    issues.push(`finalStatus:${finalStatus}`);
+    issues.push(`finalStatus:${String(finalStatus)}`);
   }
   for (const flag of ["aborted", "externalAbort", "timedOut", "idleTimedOut"]) {
     if (params.artifactsCapture?.[flag] === true) {
