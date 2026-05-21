@@ -58,8 +58,60 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
+async function ensureDirectoryIsPlain(dirPath: string, label: string): Promise<void> {
+  const stat = await fs.lstat(dirPath);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`${label} must not be a symlink`);
+  }
+  if (!stat.isDirectory()) {
+    throw new Error(`${label} is not a directory`);
+  }
+}
+
+async function ensureSafeWriteTarget(params: { rootDir: string; targetPath: string }) {
+  const root = path.resolve(params.rootDir);
+  const target = path.resolve(params.targetPath);
+  const parent = path.dirname(target);
+  if (target !== root && !target.startsWith(`${root}${path.sep}`)) {
+    throw new Error("skill write target escapes skill directory");
+  }
+  await fs.mkdir(root, { recursive: true });
+  await ensureDirectoryIsPlain(root, "skill write root");
+
+  const relativeParent = path.relative(root, parent);
+  if (relativeParent.startsWith("..") || path.isAbsolute(relativeParent)) {
+    throw new Error("skill write parent escapes skill directory");
+  }
+  let current = root;
+  for (const segment of relativeParent.split(path.sep).filter(Boolean)) {
+    current = path.join(current, segment);
+    try {
+      await ensureDirectoryIsPlain(current, "skill write parent");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+      await fs.mkdir(current);
+      await ensureDirectoryIsPlain(current, "skill write parent");
+    }
+  }
+
+  try {
+    const targetStat = await fs.lstat(target);
+    if (targetStat.isSymbolicLink()) {
+      throw new Error("skill write target must not be a symlink");
+    }
+    if (!targetStat.isFile()) {
+      throw new Error("skill write target is not a file");
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
+}
+
 async function atomicWrite(filePath: string, content: string): Promise<void> {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now().toString(36)}-${randomUUID()}`;
   await fs.writeFile(tempPath, content, "utf8");
   await fs.rename(tempPath, filePath);
@@ -107,6 +159,10 @@ export async function prepareProposalWrite(params: {
 }> {
   const name = assertValidSkillName(params.proposal.skillName);
   const target = skillPath(params.proposal.workspaceDir, name);
+  await ensureSafeWriteTarget({
+    rootDir: path.resolve(params.proposal.workspaceDir, "skills"),
+    targetPath: target,
+  });
   const exists = await pathExists(target);
   let next: string;
   const change = params.proposal.change;
@@ -177,6 +233,7 @@ export async function writeSupportFile(params: {
   if (!target.startsWith(`${root}${path.sep}`)) {
     throw new Error("support file path escapes skill directory");
   }
+  await ensureSafeWriteTarget({ rootDir: root, targetPath: target });
   await atomicWrite(target, `${params.content.trimEnd()}\n`);
   return target;
 }

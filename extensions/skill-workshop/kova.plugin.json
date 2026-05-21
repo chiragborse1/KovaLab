@@ -2,6 +2,7 @@
   "id": "skill-workshop",
   "name": "Skill Workshop",
   "description": "Captures repeatable workflows as workspace skills, with pending review, safe writes, and skill prompt refresh.",
+  "commandAliases": [{ "name": "skill-workshop" }],
   "contracts": {
     "tools": ["skill_workshop"]
   },

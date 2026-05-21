@@ -61,6 +61,16 @@ describe("skills-cli", () => {
       expect(output).toContain("✓");
     });
 
+    it("warns that workspace skills override managed shared skills", () => {
+      const report = createMockReport([
+        createMockSkill({ name: "workspace-copy", source: "kova-workspace" }),
+        createMockSkill({ name: "managed-copy", source: "kova-managed" }),
+      ]);
+      const output = formatSkillsList(report, {});
+      expect(output).toContain("workspace/project skills override shared managed skills");
+      expect(output).toContain("managed skills are shared across local agents");
+    });
+
     it("formats skills list with disabled skill", () => {
       const report = createMockReport([
         createMockSkill({
@@ -149,6 +159,18 @@ describe("skills-cli", () => {
       expect(output).toContain("API_KEY");
     });
 
+    it("shows managed skill trust guidance in info output", () => {
+      const report = createMockReport([
+        createMockSkill({
+          name: "managed-skill",
+          source: "kova-managed",
+        }),
+      ]);
+      const output = formatSkillInfo(report, "managed-skill", {});
+      expect(output).toContain("Managed/shared skill");
+      expect(output).toContain("workspace skill with the same name overrides this copy");
+    });
+
     it("shows API key storage guidance for the active config path", () => {
       const report = createMockReport([
         createMockSkill({
@@ -211,6 +233,14 @@ describe("skills-cli", () => {
       expect(output).toContain("not-ready");
       expect(output).toContain("go"); // missing binary
       expect(output).toContain("kova skills update");
+    });
+
+    it("includes trust guidance in check output for workspace skills", () => {
+      const report = createMockReport([
+        createMockSkill({ name: "workspace-skill", source: "kova-workspace" }),
+      ]);
+      const output = formatSkillsCheck(report, {});
+      expect(output).toContain("workspace/project skills override managed and bundled skills");
     });
 
     it("normalizes text-presentation emoji selectors in check output", () => {

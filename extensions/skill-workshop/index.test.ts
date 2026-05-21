@@ -143,6 +143,25 @@ describe("skill-workshop", () => {
     );
   });
 
+  it.runIf(process.platform !== "win32")(
+    "rejects pre-existing symlink skill directories before writing",
+    async () => {
+      const workspaceDir = await makeTempDir();
+      const outsideDir = await makeTempDir();
+      const skillsDir = path.join(workspaceDir, "skills");
+      await fs.mkdir(skillsDir, { recursive: true });
+      await fs.symlink(outsideDir, path.join(skillsDir, "animated-gif-workflow"), "dir");
+
+      await expect(
+        applyProposalToWorkspace({
+          proposal: createProposal(workspaceDir),
+          maxSkillBytes: 40_000,
+        }),
+      ).rejects.toThrow(/symlink/i);
+      await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+    },
+  );
+
   it("registers a tool and auto-applies agent_end proposals in auto mode", async () => {
     const workspaceDir = await makeTempDir();
     const stateDir = await makeTempDir();

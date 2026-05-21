@@ -270,6 +270,33 @@ Pending and quarantined proposals are deduplicated by skill name and change
 payload. The store keeps the newest pending/quarantined proposals up to
 `maxPending`.
 
+## Terminal review
+
+Use the terminal review flow when you want operator approval without asking the
+agent to apply its own proposal:
+
+```bash
+kova skill-workshop status
+kova skill-workshop review
+kova skill-workshop inspect <proposal-id>
+kova skill-workshop apply <proposal-id> --yes
+kova skill-workshop reject <proposal-id>
+kova skill-workshop quarantine
+```
+
+The CLI reads the same per-workspace proposal store as the `skill_workshop`
+tool. `review`, `list`, `inspect`, and `quarantine` are read-only. `apply`
+requires `--yes`, applies only pending proposals, refuses quarantined proposals,
+and writes only under the selected workspace `skills/` directory. It does not
+write to the shared managed skills directory.
+
+Target a specific workspace or agent:
+
+```bash
+kova skill-workshop review --workspace /path/to/workspace
+kova skill-workshop review --agent main
+```
+
 ## Tool reference
 
 The plugin registers one agent tool:
@@ -640,14 +667,14 @@ Inspect quarantined proposals:
 
 Common symptoms:
 
-| Symptom                               | Likely cause                                                                        | Check                                                                |
-| ------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Symptom                               | Likely cause                                                                        | Check                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Tool is unavailable                   | Plugin entry is not enabled                                                         | `plugins.entries.skill-workshop.enabled` and `kova plugins list` |
-| No automatic proposal appears         | `autoCapture: false`, `reviewMode: "off"`, or thresholds not met                    | Config, proposal status, Gateway logs                                |
-| Heuristic did not capture             | User wording did not match correction patterns                                      | Use explicit `skill_workshop.suggest` or enable LLM reviewer         |
-| Reviewer did not create a proposal    | Reviewer returned `none`, invalid JSON, or timed out                                | Gateway logs, `reviewTimeoutMs`, thresholds                          |
-| Proposal is not applied               | `approvalPolicy: "pending"`                                                         | `list_pending`, then `apply`                                         |
-| Proposal disappeared from pending     | Duplicate proposal reused, max pending pruning, or was applied/rejected/quarantined | `status`, `list_pending` with status filters, `list_quarantine`      |
+| No automatic proposal appears         | `autoCapture: false`, `reviewMode: "off"`, or thresholds not met                    | Config, proposal status, Gateway logs                            |
+| Heuristic did not capture             | User wording did not match correction patterns                                      | Use explicit `skill_workshop.suggest` or enable LLM reviewer     |
+| Reviewer did not create a proposal    | Reviewer returned `none`, invalid JSON, or timed out                                | Gateway logs, `reviewTimeoutMs`, thresholds                      |
+| Proposal is not applied               | `approvalPolicy: "pending"`                                                         | `list_pending`, then `apply`                                     |
+| Proposal disappeared from pending     | Duplicate proposal reused, max pending pruning, or was applied/rejected/quarantined | `status`, `list_pending` with status filters, `list_quarantine`  |
 | Skill file exists but model misses it | Skill snapshot not refreshed or skill gating excludes it                            | `kova skills` status and workspace skill eligibility             |
 
 Relevant logs:

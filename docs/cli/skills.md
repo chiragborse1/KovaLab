@@ -40,6 +40,11 @@ kova skills info <name>
 kova skills info <name> --json
 kova skills check
 kova skills check --json
+kova skill-workshop review
+kova skill-workshop inspect <proposal-id>
+kova skill-workshop apply <proposal-id> --yes
+kova skill-workshop reject <proposal-id>
+kova skill-workshop quarantine
 ```
 
 `search`/`install`/`update` use KovaHub directly. By default, `install` and
@@ -74,7 +79,26 @@ Notes:
   `--json`, that means the machine-readable payload stays on stdout for pipes
   and scripts.
 
+## Skill Workshop proposals
+
+The optional [Skill Workshop plugin](/plugins/skill-workshop) stores generated
+skill changes as workspace proposals. Review them from the terminal:
+
+```bash
+kova skill-workshop review
+kova skill-workshop inspect <proposal-id>
+kova skill-workshop apply <proposal-id> --yes
+kova skill-workshop reject <proposal-id>
+kova skill-workshop quarantine
+```
+
+`review`, `list`, `inspect`, and `quarantine` do not write skill files. `apply`
+requires `--yes`, refuses quarantined proposals, and writes only to the selected
+workspace `skills/` directory. It does not mutate the shared managed skills
+directory.
+
 ## Related
 
 - [CLI reference](/cli)
 - [Skills](/tools/skills)
+- [Skill Workshop plugin](/plugins/skill-workshop)

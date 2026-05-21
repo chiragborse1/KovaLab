@@ -94,6 +94,42 @@ function formatSkillMissingSummary(skill: SkillStatusEntry): string {
   return missing.join("; ");
 }
 
+const WORKSPACE_SKILL_SOURCES = new Set(["kova-workspace", "agents-skills-project"]);
+const MANAGED_SKILL_SOURCES = new Set(["kova-managed", "agents-skills-personal", "kova-extra"]);
+
+function isWorkspaceSkillSource(source: string): boolean {
+  return WORKSPACE_SKILL_SOURCES.has(source);
+}
+
+function isManagedSkillSource(source: string): boolean {
+  return MANAGED_SKILL_SOURCES.has(source);
+}
+
+function formatSkillsTrustNotice(skills: readonly SkillStatusEntry[]): string | undefined {
+  const hasWorkspaceSkills = skills.some((skill) => isWorkspaceSkillSource(skill.source));
+  const hasManagedSkills = skills.some((skill) => isManagedSkillSource(skill.source));
+  if (hasWorkspaceSkills && hasManagedSkills) {
+    return "Trust: workspace/project skills override shared managed skills. Review workspace skill files before trusting a shared repo; managed skills are shared across local agents.";
+  }
+  if (hasWorkspaceSkills) {
+    return "Trust: workspace/project skills override managed and bundled skills. Review workspace skill files before trusting a shared repo.";
+  }
+  if (hasManagedSkills) {
+    return "Trust: managed skills are shared across local agents. A workspace skill with the same name overrides the managed copy.";
+  }
+  return undefined;
+}
+
+function formatSkillTrustNotice(skill: SkillStatusEntry): string | undefined {
+  if (isWorkspaceSkillSource(skill.source)) {
+    return "Workspace/project skill: this overrides managed and bundled copies with the same name. Review SKILL.md before trusting a shared repo.";
+  }
+  if (isManagedSkillSource(skill.source)) {
+    return "Managed/shared skill: visible across local agents. A workspace skill with the same name overrides this copy.";
+  }
+  return undefined;
+}
+
 export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOptions): string {
   const skills = opts.eligible ? report.skills.filter((s) => s.eligible) : report.skills;
 
@@ -159,6 +195,11 @@ export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOpti
       rows,
     }).trimEnd(),
   );
+  const trustNotice = formatSkillsTrustNotice(skills);
+  if (trustNotice) {
+    lines.push("");
+    lines.push(trustNotice);
+  }
 
   return appendKovaHubHint(lines.join("\n"), opts.json);
 }
@@ -211,6 +252,12 @@ export function formatSkillInfo(
   }
   if (skill.primaryEnv) {
     lines.push(`${theme.muted("  Primary env:")} ${skill.primaryEnv}`);
+  }
+  const trustNotice = formatSkillTrustNotice(skill);
+  if (trustNotice) {
+    lines.push("");
+    lines.push(theme.heading("Trust:"));
+    lines.push(`  ${trustNotice}`);
   }
 
   const hasRequirements =
@@ -329,6 +376,12 @@ export function formatSkillsCheck(report: SkillStatusReport, opts: SkillsCheckOp
   lines.push(`${theme.warn("⏸")} ${theme.muted("Disabled:")} ${disabled.length}`);
   lines.push(`${theme.warn("🚫")} ${theme.muted("Blocked by allowlist:")} ${blocked.length}`);
   lines.push(`${theme.error("✗")} ${theme.muted("Missing requirements:")} ${missingReqs.length}`);
+
+  const trustNotice = formatSkillsTrustNotice(report.skills);
+  if (trustNotice) {
+    lines.push("");
+    lines.push(trustNotice);
+  }
 
   if (eligible.length > 0) {
     lines.push("");

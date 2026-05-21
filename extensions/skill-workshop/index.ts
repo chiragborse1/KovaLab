@@ -7,6 +7,12 @@ import { createProposalFromMessages } from "./src/signals.js";
 import { createSkillWorkshopTool } from "./src/tool.js";
 import { applyOrStoreProposal, createStoreForContext } from "./src/workshop.js";
 
+const SKILL_WORKSHOP_CLI_DESCRIPTOR = {
+  name: "skill-workshop",
+  description: "Review Skill Workshop workspace skill proposals",
+  hasSubcommands: true,
+};
+
 export default definePluginEntry({
   id: "skill-workshop",
   name: "Skill Workshop",
@@ -21,6 +27,17 @@ export default definePluginEntry({
       );
       return resolveConfig(runtimePluginConfig);
     };
+
+    api.registerCli(
+      async ({ program, config, workspaceDir }) => {
+        const { registerSkillWorkshopCli } = await import("./src/cli.js");
+        registerSkillWorkshopCli(program, { config, workspaceDir });
+      },
+      {
+        commands: ["skill-workshop"],
+        descriptors: [SKILL_WORKSHOP_CLI_DESCRIPTOR],
+      },
+    );
 
     api.registerTool(
       (ctx) => {

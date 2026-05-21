@@ -110,7 +110,10 @@ writes so new skills become available without a Gateway restart.
 Use it for corrections such as _"next time, verify GIF attribution"_ or
 hard-won workflows such as media QA checklists. Start with pending
 approval; use automatic writes only in trusted workspaces after reviewing
-its proposals. Full guide: [Skill Workshop plugin](/plugins/skill-workshop).
+its proposals. Review pending and quarantined proposals with
+`kova skill-workshop review`; applying from the terminal requires
+`kova skill-workshop apply <proposal-id> --yes` and writes only to the selected
+workspace `skills/` directory. Full guide: [Skill Workshop plugin](/plugins/skill-workshop).
 
 ## KovaHub (install and sync)
 
@@ -144,6 +147,7 @@ Prefer sandboxed runs for untrusted inputs and risky tools. See
 - Workspace and extra-dir skill discovery only accepts skill roots and `SKILL.md` files whose resolved realpath stays inside the configured root.
 - Gateway-backed skill dependency installs (`skills.install`, onboarding, and the Skills settings UI) run the built-in dangerous-code scanner before executing installer metadata. `critical` findings block by default unless the caller explicitly sets the dangerous override; suspicious findings still warn only.
 - `kova skills install <slug>` is different — it downloads a KovaHub skill folder into the workspace and does not use the installer-metadata path above.
+- `kova skill-workshop apply <proposal-id> --yes` applies reviewed proposals only to the selected workspace `skills/` directory; it does not update shared managed skills.
 - `skills.entries.*.env` and `skills.entries.*.apiKey` inject secrets into the **host** process for that agent turn (not the sandbox). Keep secrets out of prompts and logs.
 
 For a broader threat model and checklists, see [Security](/gateway/security).
