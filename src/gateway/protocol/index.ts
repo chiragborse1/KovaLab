@@ -114,6 +114,10 @@ import {
   CronStatusParamsSchema,
   type CronUpdateParams,
   CronUpdateParamsSchema,
+  type TasksAuditParams,
+  TasksAuditParamsSchema,
+  type TasksAuditResult,
+  TasksAuditResultSchema,
   type TasksCancelParams,
   TasksCancelParamsSchema,
   type TasksCancelResult,
@@ -126,6 +130,10 @@ import {
   TasksListParamsSchema,
   type TasksListResult,
   TasksListResultSchema,
+  type TasksMaintenanceParams,
+  TasksMaintenanceParamsSchema,
+  type TasksMaintenanceResult,
+  TasksMaintenanceResultSchema,
   type TasksNotifyParams,
   TasksNotifyParamsSchema,
   type TasksNotifyResult,
@@ -598,11 +606,19 @@ export const validateCronRemoveParams = lazyCompile<CronRemoveParams>(CronRemove
 export const validateCronRunParams = lazyCompile<CronRunParams>(CronRunParamsSchema);
 export const validateCronRunsParams = lazyCompile<CronRunsParams>(CronRunsParamsSchema);
 export const validateTasksListParams = lazyCompile<TasksListParams>(TasksListParamsSchema);
+export const validateTasksAuditParams = lazyCompile<TasksAuditParams>(TasksAuditParamsSchema);
+export const validateTasksMaintenanceParams = lazyCompile<TasksMaintenanceParams>(
+  TasksMaintenanceParamsSchema,
+);
 export const validateTasksShowParams = lazyCompile<TasksShowParams>(TasksShowParamsSchema);
 export const validateTasksCancelParams = lazyCompile<TasksCancelParams>(TasksCancelParamsSchema);
 export const validateTasksDeleteParams = lazyCompile<TasksDeleteParams>(TasksDeleteParamsSchema);
 export const validateTasksNotifyParams = lazyCompile<TasksNotifyParams>(TasksNotifyParamsSchema);
 export const validateTasksListResult = lazyCompile<TasksListResult>(TasksListResultSchema);
+export const validateTasksAuditResult = lazyCompile<TasksAuditResult>(TasksAuditResultSchema);
+export const validateTasksMaintenanceResult = lazyCompile<TasksMaintenanceResult>(
+  TasksMaintenanceResultSchema,
+);
 export const validateTasksShowResult = lazyCompile<TasksShowResult>(TasksShowResultSchema);
 export const validateTasksCancelResult = lazyCompile<TasksCancelResult>(TasksCancelResultSchema);
 export const validateTasksDeleteResult = lazyCompile<TasksDeleteResult>(TasksDeleteResultSchema);
@@ -833,6 +849,10 @@ export {
   CronRunsParamsSchema,
   TasksListParamsSchema,
   TasksListResultSchema,
+  TasksAuditParamsSchema,
+  TasksAuditResultSchema,
+  TasksMaintenanceParamsSchema,
+  TasksMaintenanceResultSchema,
   TasksShowParamsSchema,
   TasksShowResultSchema,
   TasksCancelParamsSchema,
@@ -976,6 +996,10 @@ export type {
   CronRunLogEntry,
   TasksListParams,
   TasksListResult,
+  TasksAuditParams,
+  TasksAuditResult,
+  TasksMaintenanceParams,
+  TasksMaintenanceResult,
   TasksShowParams,
   TasksShowResult,
   TasksCancelParams,

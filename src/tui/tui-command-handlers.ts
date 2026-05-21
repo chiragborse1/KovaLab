@@ -18,6 +18,12 @@ import {
 } from "./components/selectors.js";
 import type { TuiBackend } from "./tui-backend.js";
 import { sanitizeRenderableText } from "./tui-formatters.js";
+import {
+  formatMaintenanceSummary,
+  formatSelfHealingReport,
+  formatTaskAudit,
+  normalizeRecoveryAction,
+} from "./tui-self-healing.js";
 import { formatStatusSummary } from "./tui-status-summary.js";
 import type {
   AgentSummary,
@@ -32,8 +38,6 @@ import type {
 type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
 type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
 type TuiTasksList = Awaited<ReturnType<NonNullable<TuiBackend["listTasks"]>>>;
-type TuiTasksAudit = Awaited<ReturnType<NonNullable<TuiBackend["auditTasks"]>>>;
-type TuiTasksMaintenance = Awaited<ReturnType<NonNullable<TuiBackend["maintainTasks"]>>>;
 
 type CommandHandlerContext = {
   client: TuiBackend;
@@ -230,66 +234,6 @@ function formatTaskSnapshot(result: TuiTasksList, label = "Tasks"): string {
   }
   if (label === "Subagents" && summary.active > 0) {
     lines.push("Completion is push-based; wait for the parent summary instead of polling.");
-  }
-  return lines.join("\n");
-}
-
-function formatAuditCodes(byCode: Record<string, number>): string {
-  return Object.entries(byCode)
-    .filter(([, count]) => count > 0)
-    .map(([code, count]) => `${code}:${String(count)}`)
-    .join(", ");
-}
-
-function formatTaskAudit(result: TuiTasksAudit): string {
-  const taskIssues = result.tasks.total;
-  const flowIssues = result.flows.total;
-  const total = taskIssues + flowIssues;
-  const lines = [
-    `Recovery audit: ${total === 0 ? "clean" : `${String(total)} issue${total === 1 ? "" : "s"}`}`,
-  ];
-  if (taskIssues > 0) {
-    lines.push(
-      `- tasks: ${String(result.tasks.errors)} errors, ${String(
-        result.tasks.warnings,
-      )} warnings${formatAuditCodes(result.tasks.byCode) ? ` (${formatAuditCodes(result.tasks.byCode)})` : ""}`,
-    );
-  }
-  if (flowIssues > 0) {
-    lines.push(
-      `- task flows: ${String(result.flows.errors)} errors, ${String(
-        result.flows.warnings,
-      )} warnings${formatAuditCodes(result.flows.byCode) ? ` (${formatAuditCodes(result.flows.byCode)})` : ""}`,
-    );
-  }
-  if (total > 0) {
-    lines.push("Run /recover apply to reconcile lost/stale records and prune old terminal work.");
-  }
-  return lines.join("\n");
-}
-
-function formatMaintenanceSummary(result: TuiTasksMaintenance): string {
-  const taskActions =
-    result.tasks.reconciled +
-    result.tasks.recovered +
-    result.tasks.cleanupStamped +
-    result.tasks.pruned;
-  const flowActions = result.flows.reconciled + result.flows.pruned;
-  const total = taskActions + flowActions;
-  const label = result.apply ? "Recovery applied" : "Recovery preview";
-  const lines = [
-    `${label}: ${total === 0 ? "nothing to change" : `${String(total)} action${total === 1 ? "" : "s"}`}`,
-    `- tasks: ${String(result.tasks.reconciled)} reconciled, ${String(
-      result.tasks.recovered,
-    )} recovered, ${String(result.tasks.cleanupStamped)} cleanup-stamped, ${String(
-      result.tasks.pruned,
-    )} pruned`,
-    `- task flows: ${String(result.flows.reconciled)} reconciled, ${String(
-      result.flows.pruned,
-    )} pruned`,
-  ];
-  if (!result.apply && total > 0) {
-    lines.push("Run /recover apply to apply this maintenance.");
   }
   return lines.join("\n");
 }
@@ -638,14 +582,36 @@ export function createCommandHandlers(context: CommandHandlerContext) {
   };
 
   const showRecovery = async (args: string) => {
-    const normalized = args.trim().toLowerCase();
-    if (normalized === "apply" || normalized === "fix" || normalized === "repair") {
-      await runTaskMaintenance(true);
-      await showTaskAudit();
+    const action = normalizeRecoveryAction(args);
+    if (!action) {
+      chatLog.addSystem("usage: /recover [status|apply]");
       return;
     }
-    await showTaskAudit();
-    await runTaskMaintenance(false);
+    const missing = [
+      !client.auditTasks ? "task audit" : "",
+      !client.maintainTasks ? "task maintenance" : "",
+    ].filter(Boolean);
+    if (missing.length > 0 || !client.auditTasks || !client.maintainTasks) {
+      chatLog.addSystem(
+        `self-healing runtime unavailable (${missing.join(", ")}); use !kova tasks audit and !kova tasks maintenance`,
+      );
+      return;
+    }
+    try {
+      const auditBefore = await client.auditTasks();
+      const maintenance = await client.maintainTasks({ apply: action === "apply" });
+      const auditAfter = action === "apply" ? await client.auditTasks() : auditBefore;
+      chatLog.addSystem(
+        formatSelfHealingReport({
+          action,
+          auditBefore,
+          maintenance,
+          auditAfter,
+        }),
+      );
+    } catch (err) {
+      chatLog.addSystem(`self-healing scan failed: ${sanitizeRenderableText(String(err))}`);
+    }
   };
 
   const openSessionSelector = async (query = "") => {

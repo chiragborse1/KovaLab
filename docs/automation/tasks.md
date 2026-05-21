@@ -36,6 +36,8 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
 - Completion notifications are delivered directly to a channel or queued for the next heartbeat.
 - `kova tasks list` shows all tasks; `kova tasks audit` surfaces issues.
 - `kova tasks report` summarizes active automation, task failures, delivery state, Task Flow counts, and recent issue rows without rerunning work.
+- In the TUI, `/recover` runs the same self-healing scan and `/recover apply`
+  applies safe task and Task Flow maintenance without starting an agent turn.
 - Terminal records are kept for 7 days, then automatically pruned.
 
 ## Quick start
@@ -289,6 +291,22 @@ Use `/tasks` in any chat session to see background tasks linked to that session.
 When the current session has no visible linked tasks, `/tasks` falls back to agent-local task counts so you still get an overview without leaking other-session details.
 
 For the full operator ledger, use the CLI: `kova tasks list`.
+
+## Terminal self-healing (`/recover`)
+
+The terminal `/recover` command is a compact operator loop for task health. It
+does not send a normal agent prompt. Instead, it calls the local or Gateway task
+runtime directly, audits tasks and Task Flow records, previews maintenance, and
+prints the next action.
+
+- `/recover` or `/recover status` shows current audit totals, issue codes, and
+  safe maintenance available now.
+- `/recover apply` applies the safe maintenance pass, then audits again so the
+  terminal shows before and after health.
+
+Safe maintenance can reconcile lost/stale records, recover durable cron
+completion state, finalize cancelled Task Flow records with no active children,
+stamp missing cleanup metadata, and prune expired terminal records.
 
 ## Status integration (task pressure)
 

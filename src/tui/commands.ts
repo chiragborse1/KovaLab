@@ -214,7 +214,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "recover",
-      description: "Audit and repair local background task state",
+      description: "Run self-healing task and Task Flow recovery",
       argumentHint: "status | apply",
       getArgumentCompletions: recoverCompletions,
     },

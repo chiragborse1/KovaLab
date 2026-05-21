@@ -121,11 +121,14 @@ Core:
 - `/model <provider/model>` (or `/models`)
 - `/tools [compact|verbose]`
 - `/skills [compact|verbose]`
+- `/tasks [list|running|subagents|cron|audit|repair [apply]]`
+- `/automation [list|running|audit]`
+- `/subagents [list]`
+- `/recover [status|apply]`
 - `/context [compact|verbose]`
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>`
 - `/skill <name> [args]`
 - `/plugins list`
-- `/subagents [list]`
 
 Session controls:
 
@@ -149,6 +152,12 @@ if steering is not available yet, the TUI queues the message as a follow-up.
 starting an agent turn. Subagent completion is push-based, so use this view for
 on-demand inspection only; wait for the parent summary instead of polling it in
 a loop.
+
+`/recover` runs the terminal self-healing loop. It audits background tasks and
+Task Flow state, previews safe maintenance, and shows one compact repair plan.
+Use `/recover apply` to reconcile lost or stale task records, recover durable
+cron completions, stamp missing cleanup metadata, and prune expired terminal
+records. The same command works in local embedded mode and through the Gateway.
 
 Session lifecycle:
 

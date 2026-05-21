@@ -1,7 +1,6 @@
+import { resolveCronStorePath } from "../../cron/store.js";
 import {
   deleteTaskRecordById,
-  getTaskRegistrySummary,
-  listTaskRecords,
   resolveTaskForLookupToken,
   updateTaskNotifyPolicyById,
 } from "../../tasks/runtime-internal.js";
@@ -13,19 +12,41 @@ import {
 import { isTerminalTaskStatus } from "../../tasks/task-executor-policy.js";
 import { cancelDetachedTaskRunById } from "../../tasks/task-executor.js";
 import {
+  getInspectableTaskFlowAuditSummary,
+  previewTaskFlowRegistryMaintenance,
+  runTaskFlowRegistryMaintenance,
+} from "../../tasks/task-flow-registry.maintenance.js";
+import {
+  configureTaskRegistryMaintenance,
+  getInspectableTaskAuditSummary,
+  getInspectableTaskRegistrySummary,
+  previewTaskRegistryMaintenance,
+  reconcileInspectableTasks,
+  runTaskRegistryMaintenance,
+} from "../../tasks/task-registry.maintenance.js";
+import {
   ErrorCodes,
   errorShape,
   formatValidationErrors,
+  validateTasksAuditParams,
   validateTasksCancelParams,
   validateTasksDeleteParams,
   validateTasksListParams,
+  validateTasksMaintenanceParams,
   validateTasksNotifyParams,
   validateTasksShowParams,
 } from "../protocol/index.js";
-import type { GatewayRequestHandlers } from "./types.js";
+import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
+
+function configureTaskMaintenance(context: GatewayRequestContext) {
+  const cfg = context.getRuntimeConfig();
+  configureTaskRegistryMaintenance({
+    cronStorePath: resolveCronStorePath(cfg.cron?.store),
+  });
+}
 
 export const tasksHandlers: GatewayRequestHandlers = {
-  "tasks.list": ({ params, respond }) => {
+  "tasks.list": ({ params, respond, context }) => {
     if (!validateTasksListParams(params)) {
       respond(
         false,
@@ -45,7 +66,8 @@ export const tasksHandlers: GatewayRequestHandlers = {
     const status = p.status && p.status !== "all" ? p.status : undefined;
     const runtime = p.runtime && p.runtime !== "all" ? p.runtime : undefined;
     const limit = p.limit ?? 200;
-    const tasks = listTaskRecords()
+    configureTaskMaintenance(context);
+    const tasks = reconcileInspectableTasks()
       .filter((task) => (status ? task.status === status : true))
       .filter((task) => (runtime ? task.runtime === runtime : true))
       .slice(0, limit)
@@ -54,11 +76,54 @@ export const tasksHandlers: GatewayRequestHandlers = {
       true,
       {
         tasks,
-        summary: mapTaskRunAggregateSummary(getTaskRegistrySummary()),
+        summary: mapTaskRunAggregateSummary(getInspectableTaskRegistrySummary()),
         count: tasks.length,
       },
       undefined,
     );
+  },
+
+  "tasks.audit": ({ params, respond, context }) => {
+    if (!validateTasksAuditParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.audit params: ${formatValidationErrors(validateTasksAuditParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    configureTaskMaintenance(context);
+    respond(
+      true,
+      {
+        tasks: getInspectableTaskAuditSummary(),
+        flows: getInspectableTaskFlowAuditSummary(),
+      },
+      undefined,
+    );
+  },
+
+  "tasks.maintenance": async ({ params, respond, context }) => {
+    if (!validateTasksMaintenanceParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.maintenance params: ${formatValidationErrors(validateTasksMaintenanceParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    configureTaskMaintenance(context);
+    const apply = (params as { apply?: boolean }).apply === true;
+    const [tasks, flows] = apply
+      ? await Promise.all([runTaskRegistryMaintenance(), runTaskFlowRegistryMaintenance()])
+      : [previewTaskRegistryMaintenance(), previewTaskFlowRegistryMaintenance()];
+    respond(true, { apply, tasks, flows }, undefined);
   },
 
   "tasks.show": ({ params, respond }) => {

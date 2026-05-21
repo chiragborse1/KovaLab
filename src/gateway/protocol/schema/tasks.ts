@@ -60,6 +60,70 @@ const TaskRuntimeCountsSchema = Type.Object(
   { additionalProperties: false },
 );
 
+const TaskAuditCodeCountsSchema = Type.Object(
+  {
+    stale_queued: Type.Number(),
+    stale_running: Type.Number(),
+    lost: Type.Number(),
+    delivery_failed: Type.Number(),
+    missing_cleanup: Type.Number(),
+    inconsistent_timestamps: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
+const TaskFlowAuditCodeCountsSchema = Type.Object(
+  {
+    restore_failed: Type.Number(),
+    stale_running: Type.Number(),
+    stale_waiting: Type.Number(),
+    stale_blocked: Type.Number(),
+    cancel_stuck: Type.Number(),
+    missing_linked_tasks: Type.Number(),
+    blocked_task_missing: Type.Number(),
+    inconsistent_timestamps: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
+const TaskAuditSummarySchema = Type.Object(
+  {
+    total: Type.Number(),
+    warnings: Type.Number(),
+    errors: Type.Number(),
+    byCode: TaskAuditCodeCountsSchema,
+  },
+  { additionalProperties: false },
+);
+
+const TaskFlowAuditSummarySchema = Type.Object(
+  {
+    total: Type.Number(),
+    warnings: Type.Number(),
+    errors: Type.Number(),
+    byCode: TaskFlowAuditCodeCountsSchema,
+  },
+  { additionalProperties: false },
+);
+
+const TaskRegistryMaintenanceSummarySchema = Type.Object(
+  {
+    reconciled: Type.Number(),
+    recovered: Type.Number(),
+    cleanupStamped: Type.Number(),
+    pruned: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
+const TaskFlowRegistryMaintenanceSummarySchema = Type.Object(
+  {
+    reconciled: Type.Number(),
+    pruned: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
 export const TaskRunAggregateSummarySchema = Type.Object(
   {
     total: Type.Number(),
@@ -124,6 +188,40 @@ export const TasksListResultSchema = Type.Object(
 );
 
 export type TasksListResult = Static<typeof TasksListResultSchema>;
+
+export const TasksAuditParamsSchema = Type.Object({}, { additionalProperties: false });
+
+export type TasksAuditParams = Static<typeof TasksAuditParamsSchema>;
+
+export const TasksAuditResultSchema = Type.Object(
+  {
+    tasks: TaskAuditSummarySchema,
+    flows: TaskFlowAuditSummarySchema,
+  },
+  { additionalProperties: false },
+);
+
+export type TasksAuditResult = Static<typeof TasksAuditResultSchema>;
+
+export const TasksMaintenanceParamsSchema = Type.Object(
+  {
+    apply: Type.Optional(Type.Boolean()),
+  },
+  { additionalProperties: false },
+);
+
+export type TasksMaintenanceParams = Static<typeof TasksMaintenanceParamsSchema>;
+
+export const TasksMaintenanceResultSchema = Type.Object(
+  {
+    apply: Type.Boolean(),
+    tasks: TaskRegistryMaintenanceSummarySchema,
+    flows: TaskFlowRegistryMaintenanceSummarySchema,
+  },
+  { additionalProperties: false },
+);
+
+export type TasksMaintenanceResult = Static<typeof TasksMaintenanceResultSchema>;
 
 export const TasksShowParamsSchema = Type.Object(
   {

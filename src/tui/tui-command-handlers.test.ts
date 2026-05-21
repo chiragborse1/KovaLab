@@ -430,6 +430,98 @@ describe("tui command handlers", () => {
   });
 
   it("previews and applies recovery from the local task maintenance loop", async () => {
+    const auditTasks = vi
+      .fn()
+      .mockResolvedValueOnce({
+        tasks: {
+          total: 1,
+          warnings: 1,
+          errors: 0,
+          byCode: {
+            stale_queued: 0,
+            stale_running: 0,
+            lost: 0,
+            delivery_failed: 0,
+            missing_cleanup: 1,
+            inconsistent_timestamps: 0,
+          },
+        },
+        flows: {
+          total: 0,
+          warnings: 0,
+          errors: 0,
+          byCode: {
+            restore_failed: 0,
+            stale_running: 0,
+            stale_waiting: 0,
+            stale_blocked: 0,
+            cancel_stuck: 0,
+            missing_linked_tasks: 0,
+            blocked_task_missing: 0,
+            inconsistent_timestamps: 0,
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        tasks: {
+          total: 1,
+          warnings: 1,
+          errors: 0,
+          byCode: {
+            stale_queued: 0,
+            stale_running: 0,
+            lost: 0,
+            delivery_failed: 0,
+            missing_cleanup: 1,
+            inconsistent_timestamps: 0,
+          },
+        },
+        flows: {
+          total: 0,
+          warnings: 0,
+          errors: 0,
+          byCode: {
+            restore_failed: 0,
+            stale_running: 0,
+            stale_waiting: 0,
+            stale_blocked: 0,
+            cancel_stuck: 0,
+            missing_linked_tasks: 0,
+            blocked_task_missing: 0,
+            inconsistent_timestamps: 0,
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        tasks: {
+          total: 0,
+          warnings: 0,
+          errors: 0,
+          byCode: {
+            stale_queued: 0,
+            stale_running: 0,
+            lost: 0,
+            delivery_failed: 0,
+            missing_cleanup: 0,
+            inconsistent_timestamps: 0,
+          },
+        },
+        flows: {
+          total: 0,
+          warnings: 0,
+          errors: 0,
+          byCode: {
+            restore_failed: 0,
+            stale_running: 0,
+            stale_waiting: 0,
+            stale_blocked: 0,
+            cancel_stuck: 0,
+            missing_linked_tasks: 0,
+            blocked_task_missing: 0,
+            inconsistent_timestamps: 0,
+          },
+        },
+      });
     const maintainTasks = vi
       .fn()
       .mockResolvedValueOnce({
@@ -442,17 +534,18 @@ describe("tui command handlers", () => {
         tasks: { reconciled: 1, recovered: 0, cleanupStamped: 0, pruned: 0 },
         flows: { reconciled: 0, pruned: 0 },
       });
-    const { handleCommand, auditTasks, addSystem } = createHarness({ maintainTasks });
+    const { handleCommand, addSystem } = createHarness({ auditTasks, maintainTasks });
 
     await handleCommand("/recover");
     await handleCommand("/recover apply");
 
-    expect(auditTasks).toHaveBeenCalledTimes(2);
+    expect(auditTasks).toHaveBeenCalledTimes(3);
     expect(maintainTasks).toHaveBeenNthCalledWith(1, { apply: false });
     expect(maintainTasks).toHaveBeenNthCalledWith(2, { apply: true });
-    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery audit: 1 issue"));
-    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery preview"));
-    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery applied"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Self-healing scan"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("repair available"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Self-healing apply"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("clean after repair"));
   });
 
   it("forwards /context list directly", async () => {

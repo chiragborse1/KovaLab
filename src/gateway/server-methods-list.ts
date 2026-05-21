@@ -136,6 +136,8 @@ const BASE_METHODS = [
   "cron.runs",
   "tasks.list",
   "tasks.show",
+  "tasks.audit",
+  "tasks.maintenance",
   "tasks.cancel",
   "tasks.delete",
   "tasks.notify",

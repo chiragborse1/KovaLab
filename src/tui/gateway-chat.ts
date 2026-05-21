@@ -24,7 +24,9 @@ import {
   type SessionsListParams,
   type SessionsPatchResult,
   type SessionsPatchParams,
+  type TasksAuditResult,
   type TasksListResult,
+  type TasksMaintenanceResult,
   type ToolsCatalogResult,
 } from "../gateway/protocol/index.js";
 import { formatErrorMessage } from "../infra/errors.js";
@@ -277,6 +279,14 @@ export class GatewayChatClient implements TuiBackend {
     opts: { status?: string; runtime?: string; limit?: number } = {},
   ): Promise<TasksListResult> {
     return await this.client.request<TasksListResult>("tasks.list", opts);
+  }
+
+  async auditTasks(): Promise<TasksAuditResult> {
+    return await this.client.request<TasksAuditResult>("tasks.audit", {});
+  }
+
+  async maintainTasks(opts: { apply?: boolean } = {}): Promise<TasksMaintenanceResult> {
+    return await this.client.request<TasksMaintenanceResult>("tasks.maintenance", opts);
   }
 }
 

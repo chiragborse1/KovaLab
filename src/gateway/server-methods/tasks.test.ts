@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../../config/types.kova.js";
 import {
+  createManagedTaskFlow,
+  resetTaskFlowRegistryForTests,
+} from "../../tasks/task-flow-registry.js";
+import {
   createTaskRecord,
   resetTaskRegistryDeliveryRuntimeForTests,
   resetTaskRegistryForTests,
@@ -19,11 +23,13 @@ async function withTaskState(run: () => Promise<void>): Promise<void> {
     process.env.KOVA_STATE_DIR = root;
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });
+    resetTaskFlowRegistryForTests({ persist: false });
     try {
       await run();
     } finally {
       resetTaskRegistryDeliveryRuntimeForTests();
       resetTaskRegistryForTests({ persist: false });
+      resetTaskFlowRegistryForTests({ persist: false });
     }
   });
 }
@@ -49,6 +55,7 @@ async function invokeTaskHandler(method: keyof typeof tasksHandlers, params: unk
 
 describe("tasks gateway handlers", () => {
   afterEach(() => {
+    vi.useRealTimers();
     if (ORIGINAL_STATE_DIR === undefined) {
       delete process.env.KOVA_STATE_DIR;
     } else {
@@ -56,6 +63,7 @@ describe("tasks gateway handlers", () => {
     }
     resetTaskRegistryDeliveryRuntimeForTests();
     resetTaskRegistryForTests({ persist: false });
+    resetTaskFlowRegistryForTests({ persist: false });
   });
 
   it("lists durable task records through the gateway contract", async () => {
@@ -115,6 +123,56 @@ describe("tasks gateway handlers", () => {
             runId: "run_show_me",
             status: "succeeded",
           }),
+        },
+        undefined,
+      );
+    });
+  });
+
+  it("audits and previews task maintenance through the gateway contract", async () => {
+    await withTaskState(async () => {
+      const now = Date.now();
+      vi.useFakeTimers();
+      vi.setSystemTime(now - 40 * 60_000);
+      createTaskRecord({
+        runtime: "cli",
+        ownerKey: "agent:main:main",
+        scopeKind: "session",
+        runId: "run_gateway_repair",
+        status: "running",
+        task: "Finished local run",
+      });
+      vi.setSystemTime(now);
+      createManagedTaskFlow({
+        ownerKey: "agent:main:main",
+        controllerId: "tests/gateway-tasks",
+        goal: "Old terminal flow",
+        status: "succeeded",
+        createdAt: now - 8 * 24 * 60 * 60_000,
+        updatedAt: now - 8 * 24 * 60 * 60_000,
+        endedAt: now - 8 * 24 * 60 * 60_000,
+      });
+
+      const auditRespond = await invokeTaskHandler("tasks.audit", {});
+      const maintenanceRespond = await invokeTaskHandler("tasks.maintenance", {});
+
+      expect(auditRespond).toHaveBeenCalledWith(
+        true,
+        expect.objectContaining({
+          tasks: expect.objectContaining({
+            total: 1,
+            byCode: expect.objectContaining({ stale_running: 1 }),
+          }),
+          flows: expect.objectContaining({ total: 0 }),
+        }),
+        undefined,
+      );
+      expect(maintenanceRespond).toHaveBeenCalledWith(
+        true,
+        {
+          apply: false,
+          tasks: expect.objectContaining({ cleanupStamped: 0 }),
+          flows: expect.objectContaining({ reconciled: 0, pruned: 1 }),
         },
         undefined,
       );
