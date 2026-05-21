@@ -101,15 +101,25 @@ Use `--password` if your Gateway uses password auth.
 - Ctrl+O: toggle tool output expansion
 - Ctrl+T: toggle thinking visibility (reloads history)
 
-## Slash commands
+## Terminal command center
+
+Run `/help` to show the command center inside the TUI. It keeps the local
+terminal controls and the Gateway-backed command surface in one place.
 
 Core:
 
 - `/help`
+- `/commands`
 - `/status`
+- `/gateway-status` (alias: `/gwstatus`)
 - `/agent <id>` (or `/agents`)
+- `/crestodian [request]`
 - `/session <key>` (or `/sessions`)
 - `/model <provider/model>` (or `/models`)
+- `/tools [compact|verbose]`
+- `/context [compact|verbose]`
+- `/skill <name> [args]`
+- `/plugins list`
 
 Session controls:
 
@@ -134,7 +144,8 @@ Local mode only:
 
 - `/auth [provider]` opens the provider auth/login flow inside the TUI.
 
-Other Gateway slash commands (for example, `/context`) are forwarded to the Gateway and shown as system output. See [Slash commands](/tools/slash-commands).
+Other Gateway slash commands are forwarded to the Gateway and shown as system
+output. See [Slash commands](/tools/slash-commands).
 
 ## Local shell commands
 

@@ -176,7 +176,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
 export function helpText(options: SlashCommandOptions = {}): string {
   const thinkLevels = formatThinkingLevels(options.provider, options.model, "|");
   return [
-    "Slash commands:",
+    "Terminal command center:",
     "/help",
     "/commands",
     "/status",
@@ -187,6 +187,12 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/crestodian [request]",
     "/session <key> (or /sessions)",
     "/model <provider/model> (or /models)",
+    "/tools [compact|verbose]",
+    "/context [compact|verbose]",
+    "/skill <name> [args]",
+    "/plugins list",
+    "",
+    "Run controls:",
     `/think <${thinkLevels}>`,
     "/fast <status|on|off>",
     "/verbose <on|off>",

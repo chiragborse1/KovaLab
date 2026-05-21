@@ -27,6 +27,7 @@ Notes:
 - Local mode uses the embedded agent runtime directly. Most local tools work, but Gateway-only features are unavailable.
 - Local mode adds `/auth [provider]` inside the TUI command surface.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
+- `/help` opens the terminal command center with core navigation, run controls, Gateway status, tools, context, skills, and plugin commands.
 
 ## Examples
 
@@ -58,6 +59,7 @@ kova chat
 Then inside the TUI:
 
 ```text
+/help
 !kova config file
 !kova docs gateway auth token secretref
 !kova config validate

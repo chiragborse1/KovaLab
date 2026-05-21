@@ -67,5 +67,11 @@ describe("helpText", () => {
     expect(output).toContain("/gateway-status");
     expect(output).toContain("/gwstatus");
     expect(output).toContain("/crestodian [request]");
+    expect(output).toContain("Terminal command center:");
+    expect(output).toContain("/tools [compact|verbose]");
+    expect(output).toContain("/context [compact|verbose]");
+    expect(output).toContain("/skill <name> [args]");
+    expect(output).toContain("/plugins list");
+    expect(output).toContain("Run controls:");
   });
 });
