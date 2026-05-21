@@ -189,6 +189,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/model <provider/model> (or /models)",
     "/tools [compact|verbose]",
     "/context [compact|verbose]",
+    "/memory [status|search <query>]",
     "/skill <name> [args]",
     "/plugins list",
     "",

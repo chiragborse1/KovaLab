@@ -235,6 +235,29 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       tier: "standard",
     }),
     defineChatCommand({
+      key: "memory",
+      nativeName: "memory",
+      description: "Check memory status or search recall.",
+      textAlias: "/memory",
+      category: "status",
+      tier: "essential",
+      args: [
+        {
+          name: "action",
+          description: "help, status, or search",
+          type: "string",
+          choices: ["help", "status", "search"],
+        },
+        {
+          name: "query",
+          description: "Search query",
+          type: "string",
+          captureRemaining: true,
+        },
+      ],
+      argsMenu: "auto",
+    }),
+    defineChatCommand({
       key: "btw",
       nativeName: "btw",
       description: "Ask a side question without changing future session context.",

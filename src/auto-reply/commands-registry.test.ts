@@ -86,6 +86,7 @@ describe("commands registry", () => {
     expect(specs.find((spec) => spec.name === "tasks")).toBeTruthy();
     expect(specs.find((spec) => spec.name === "whoami")).toBeTruthy();
     expect(specs.find((spec) => spec.name === "compact")).toBeTruthy();
+    expect(specs.find((spec) => spec.name === "memory")).toBeTruthy();
   });
 
   it("filters commands based on config flags", () => {

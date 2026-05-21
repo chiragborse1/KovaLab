@@ -70,6 +70,7 @@ describe("helpText", () => {
     expect(output).toContain("Terminal command center:");
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/context [compact|verbose]");
+    expect(output).toContain("/memory [status|search <query>]");
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins list");
     expect(output).toContain("Run controls:");

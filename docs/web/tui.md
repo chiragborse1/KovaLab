@@ -118,6 +118,7 @@ Core:
 - `/model <provider/model>` (or `/models`)
 - `/tools [compact|verbose]`
 - `/context [compact|verbose]`
+- `/memory [status|search <query>]`
 - `/skill <name> [args]`
 - `/plugins list`
 

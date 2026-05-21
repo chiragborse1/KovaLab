@@ -16,6 +16,7 @@ import {
   handleToolsCommand,
 } from "./commands-info.js";
 import { handleMcpCommand } from "./commands-mcp.js";
+import { handleMemoryCommand } from "./commands-memory.js";
 import { handleModelsCommand } from "./commands-models.js";
 import { handlePluginCommand } from "./commands-plugin.js";
 import { handlePluginsCommand } from "./commands-plugins.js";
@@ -50,6 +51,7 @@ export function loadCommandHandlers(): CommandHandler[] {
     handleHelpCommand,
     handleCommandsListCommand,
     handleToolsCommand,
+    handleMemoryCommand,
     handleStatusCommand,
     handleTasksCommand,
     handleAllowlistCommand,
