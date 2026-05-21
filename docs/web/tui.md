@@ -58,7 +58,7 @@ Use `--password` if your Gateway uses password auth.
 
 ## What you see
 
-- Header: compact runtime strip with connection state, current agent/session, model, token count, tools, and skills.
+- Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
 - Footer: connection state + agent + session + model + think/fast/verbose/trace/reasoning + token counts + deliver.

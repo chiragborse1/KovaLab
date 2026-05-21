@@ -1,7 +1,7 @@
 import { visibleWidth } from "@mariozechner/pi-tui";
 import { describe, expect, it } from "vitest";
 import { normalizeTestText } from "../../../test/helpers/normalize-text.js";
-import { KovaHero, formatSkillSourceLabel } from "./kova-hero.js";
+import { KovaHero, formatContextGauge, formatSkillSourceLabel } from "./kova-hero.js";
 
 describe("KovaHero", () => {
   it("renders the connected Kova shell with live tools and skills", () => {
@@ -29,9 +29,8 @@ describe("KovaHero", () => {
 
     const rendered = normalizeTestText(hero.render(132).join("\n"));
     expect(rendered).toContain("Kova Agent");
-    expect(rendered).toContain("Tool Surface");
+    expect(rendered).toContain("Live Surface");
     expect(rendered).toContain("2 tools ready");
-    expect(rendered).toContain("Skill Surface");
     expect(rendered).toContain("1 skills available");
   });
 
@@ -72,7 +71,15 @@ describe("KovaHero", () => {
 
     const rendered = normalizeTestText(hero.render(120).join("\n"));
     expect(rendered).toContain("2 skills available");
-    expect(rendered).toContain("1 offline until configured");
+    expect(rendered).toContain("1 offline");
+  });
+
+  it("formats token labels as a compact context gauge", () => {
+    const rendered = normalizeTestText(formatContextGauge("tokens 15k/272k (6%)"));
+
+    expect(rendered).toContain("15k/272k");
+    expect(rendered).toContain("[");
+    expect(rendered).toContain("6%");
   });
 
   it("maps known legacy skill source labels without changing unknown sources", () => {

@@ -71,31 +71,63 @@ function statLine(label: string, value: string): string {
   return `${theme.accentSoft(`${label}:`)} ${value}`;
 }
 
+function compactTokenLabel(label: string): string {
+  return label.replace(/^tokens\s+/i, "").trim() || "n/a";
+}
+
+function parseTokenPercent(label: string): number | null {
+  const match = /\((\d+)%\)/.exec(label);
+  if (!match?.[1]) {
+    return null;
+  }
+  const percent = Number.parseInt(match[1], 10);
+  return Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : null;
+}
+
+export function formatContextGauge(tokenLabel: string): string {
+  const compact = compactTokenLabel(tokenLabel);
+  const percent = parseTokenPercent(tokenLabel);
+  if (percent === null) {
+    return compact;
+  }
+  const filled = Math.max(0, Math.min(10, Math.round(percent / 10)));
+  const gauge = `${"█".repeat(filled)}${"░".repeat(10 - filled)}`;
+  return `${compact} ${theme.dim(`[${gauge}]`)} ${String(percent)}%`;
+}
+
 function formatToolGroups(groups: KovaHeroToolGroup[]): string[] {
   if (groups.length === 0) {
-    return [theme.dim("catalog loading...")];
+    return [theme.dim("tools loading")];
   }
 
   const toolCount = countTools(groups);
   const groupCount = groups.length;
+  const groupPreview = groups
+    .slice(0, 3)
+    .map((group) => group.label)
+    .filter(Boolean)
+    .join(", ");
+  const suffix = groupCount > 3 ? ` +${String(groupCount - 3)}` : "";
   return [
     theme.accent(`${String(toolCount)} tools ready`),
-    theme.dim(`${String(groupCount)} group${groupCount === 1 ? "" : "s"} loaded on demand`),
+    theme.dim(
+      groupPreview
+        ? `${groupPreview}${suffix}`
+        : `${String(groupCount)} group${groupCount === 1 ? "" : "s"} loaded`,
+    ),
   ];
 }
 
 function formatSkills(skills: KovaHeroSkill[]): string[] {
   const visible = skills.filter((skill) => skill.disabled !== true);
   if (visible.length === 0) {
-    return [theme.dim("skills loading...")];
+    return [theme.dim("skills loading")];
   }
 
   const offline = visible.filter((skill) => skill.eligible === false).length;
   return [
     theme.accent(`${String(visible.length)} skills available`),
-    offline > 0
-      ? theme.dim(`${String(offline)} offline until configured`)
-      : theme.dim("workspace skills load when invoked"),
+    offline > 0 ? theme.dim(`${String(offline)} offline`) : theme.dim("loaded on demand"),
   ];
 }
 
@@ -139,20 +171,22 @@ export class KovaHero implements Component {
     const toolCount = countTools(this.state.toolGroups);
     const skillCount = this.state.skills.length;
     const lines = [
-      theme.header(`KOVA TERMINAL v${VERSION}`),
+      theme.header(`KOVA v${VERSION} | ${this.state.connectionStatus}`),
       theme.dim(
-        `${this.state.connectionStatus} | agent ${this.state.agentLabel} | session ${this.state.sessionLabel}`,
+        `${this.state.agentLabel}/${this.state.sessionLabel} | ${this.state.modelLabel} | ${this.state.activityStatus}`,
       ),
-      theme.accent(`${String(toolCount)} tools | ${String(skillCount)} skills | /help`),
+      theme.accent(
+        `${formatContextGauge(this.state.tokenLabel)} | ${String(toolCount)} tools | ${String(skillCount)} skills | /help`,
+      ),
     ];
     return lines.map((line) => clipped(line, width));
   }
 
   private renderFull(width: number): string[] {
     const innerWidth = Math.max(1, width - 4);
-    const leftWidth = Math.max(28, Math.min(44, Math.floor(innerWidth * 0.38)));
+    const leftWidth = Math.max(32, Math.min(56, Math.floor(innerWidth * 0.5)));
     const rightWidth = Math.max(20, innerWidth - leftWidth - 2);
-    const title = ` KOVA TERMINAL v${VERSION} | ${this.state.connectionStatus} `;
+    const title = ` KOVA TERMINAL v${VERSION} `;
     const topRight = Math.max(0, width - 2 - visibleWidth(title));
     const lines: string[] = [];
 
@@ -164,22 +198,18 @@ export class KovaHero implements Component {
 
     const leftRows = [
       theme.header(this.state.title),
-      theme.dim("terminal-first local agent runtime"),
-      "",
-      statLine("agent", this.state.agentLabel),
-      statLine("session", this.state.sessionLabel),
+      statLine("state", `${this.state.connectionStatus} · ${this.state.activityStatus}`),
       statLine("model", this.state.modelLabel),
-      statLine("context", this.state.tokenLabel),
-      statLine("activity", this.state.activityStatus),
+      statLine("context", formatContextGauge(this.state.tokenLabel)),
+      statLine("session", `${this.state.agentLabel}/${this.state.sessionLabel}`),
       statLine("link", this.state.connection),
       "",
-      theme.dim("/help | /models | /sessions | /settings"),
+      theme.dim("/help /model /sessions /busy /settings"),
     ];
     const rightRows = [
-      theme.header("Tool Surface"),
+      theme.header("Live Surface"),
       ...formatToolGroups(this.state.toolGroups),
       "",
-      theme.header("Skill Surface"),
       ...formatSkills(this.state.skills),
       "",
       theme.accent(
