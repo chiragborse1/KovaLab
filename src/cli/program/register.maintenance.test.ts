@@ -111,6 +111,14 @@ describe("registerMaintenanceCommands doctor action", () => {
     );
   });
 
+  it("hides dashboard alias from help output", () => {
+    const program = new Command();
+    registerMaintenanceCommands(program);
+
+    expect(program.helpInformation()).toContain("control-ui");
+    expect(program.helpInformation()).not.toContain("dashboard");
+  });
+
   it("passes reset options to reset command", async () => {
     resetCommand.mockResolvedValue(undefined);
 

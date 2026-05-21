@@ -10,7 +10,7 @@ import { runCommandWithRuntime } from "../cli-utils.js";
 
 function registerControlUiCommand(program: Command, name: "control-ui" | "dashboard") {
   program
-    .command(name)
+    .command(name, name === "dashboard" ? { hidden: true } : {})
     .description(
       name === "dashboard"
         ? "Open the Control UI with your current token (legacy alias)"

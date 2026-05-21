@@ -143,6 +143,15 @@ describe("command-registry", () => {
     expect(names.length).toBeGreaterThan(1);
   });
 
+  it("hides legacy dashboard placeholder from root help", () => {
+    const program = createProgram();
+    registerCoreCliCommands(program, testProgramContext, ["node", "kova", "--help"]);
+
+    const help = program.helpInformation();
+    expect(help).toContain("control-ui");
+    expect(help).not.toContain("dashboard");
+  });
+
   it("treats maintenance commands as top-level builtins", async () => {
     const program = createProgram();
 

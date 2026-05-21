@@ -14,14 +14,12 @@ use `kova chat`; the Control UI is the advanced/admin browser surface.
 ```bash
 kova control-ui
 kova control-ui --no-open
-kova dashboard
-kova dashboard --no-open
 ```
 
 Notes:
 
 - `control-ui` resolves configured `gateway.auth.token` SecretRefs when token auth is active.
-- `dashboard` remains as a compatibility alias for `control-ui`.
+- `dashboard` remains as a hidden compatibility alias for older scripts; new docs and onboarding use `control-ui`.
 - If `gateway.auth.mode` is `"password"`, the command opens/copies a plain URL; enter the gateway password in Control UI settings.
 - The command follows `gateway.tls.enabled`: TLS-enabled gateways print/open
   `https://` Control UI URLs and connect over `wss://`.

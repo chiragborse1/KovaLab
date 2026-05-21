@@ -427,7 +427,7 @@ export async function finalizeSetupWizard(
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
           "Control UI keeps URL tokens in memory for the current tab and strips them from the URL after load.",
-          `Open Control UI anytime: ${formatCliCommand("kova dashboard --no-open")}`,
+          `Open Control UI anytime: ${formatCliCommand("kova control-ui --no-open")}`,
           "If prompted: paste the token into Control UI settings or use the tokenized URL.",
         ].join("\n"),
         "Gateway token",
@@ -500,7 +500,7 @@ export async function finalizeSetupWizard(
         [
           `Start terminal chat: ${formatCliCommand("kova chat")}`,
           controlUiEnabled
-            ? `Advanced Control UI: ${formatCliCommand("kova dashboard --no-open")}`
+            ? `Advanced Control UI: ${formatCliCommand("kova control-ui --no-open")}`
             : undefined,
         ]
           .filter(Boolean)
