@@ -3,7 +3,7 @@ summary: "Private QA automation shape for qa-lab, qa-channel, seeded scenarios, 
 read_when:
   - Extending qa-lab or qa-channel
   - Adding repo-backed QA scenarios
-  - Building higher-realism QA automation around the Gateway dashboard
+  - Building higher-realism QA automation around the Gateway Control UI
 title: "QA E2E automation"
 ---
 
@@ -21,7 +21,7 @@ Current pieces:
 
 The current QA operator flow is a two-pane QA site:
 
-- Left: Gateway dashboard (Control UI) with the agent.
+- Left: Gateway Control UI with the agent.
 - Right: QA Lab, showing the Slack-ish transcript and scenario plan.
 
 Run it with:
@@ -316,4 +316,4 @@ When no `--judge-model` is passed, the judges default to
 
 - [Testing](/help/testing)
 - [QA Channel](/channels/qa-channel)
-- [Dashboard](/web/dashboard)
+- [Control UI](/web/control-ui)

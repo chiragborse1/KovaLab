@@ -103,7 +103,7 @@ systemctl --user status kova-gateway.service
 journalctl --user -u kova-gateway.service -f
 ```
 
-## 6) Access the Dashboard
+## 6) Access the Control UI
 
 The gateway binds to loopback by default. To access the Control UI:
 

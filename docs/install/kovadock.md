@@ -2,7 +2,7 @@
 summary: "KovaDock shell helpers for Docker-based Kova installs"
 read_when:
   - You run Kova with Docker often and want shorter day-to-day commands
-  - You want a helper layer for dashboard, logs, token setup, and pairing flows
+  - You want a helper layer for Control UI, logs, token setup, and pairing flows
 title: "KovaDock"
 ---
 

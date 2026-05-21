@@ -200,7 +200,7 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   base stable payload
 - npm release preflight fails closed unless the tarball includes both
   `dist/control-ui/index.html` and a non-empty `dist/control-ui/assets/` payload
-  so we do not ship an empty browser dashboard again
+  so we do not ship an empty browser Control UI again
 - Post-publish verification also checks that the published registry install
   contains non-empty bundled plugin runtime deps under the root `dist/*`
   layout. A release that ships with missing or empty bundled plugin

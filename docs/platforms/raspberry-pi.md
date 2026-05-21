@@ -153,17 +153,17 @@ systemctl --user status kova-gateway.service
 journalctl --user -u kova-gateway.service -f
 ```
 
-## 9) Access the Kova Dashboard
+## 9) Access the Kova Control UI
 
 Replace `user@gateway-host` with your Pi username and hostname or IP address.
 
-On your computer, ask the Pi to print a fresh dashboard URL:
+On your computer, ask the Pi to print a fresh Control UI URL:
 
 ```bash
-ssh user@gateway-host 'kova dashboard --no-open'
+ssh user@gateway-host 'kova control-ui --no-open'
 ```
 
-The command prints `Dashboard URL:`. Depending on how `gateway.auth.token`
+The command prints `Control UI URL:`. Depending on how `gateway.auth.token`
 is configured, the URL may be a plain `http://127.0.0.1:18789/` link or one
 that includes `#token=...`.
 
@@ -173,7 +173,7 @@ In another terminal on your computer, create the SSH tunnel:
 ssh -N -L 18789:127.0.0.1:18789 user@gateway-host
 ```
 
-Then open the printed Dashboard URL in your local browser.
+Then open the printed Control UI URL in your local browser.
 
 If the UI asks for shared-secret auth, paste the configured token or password
 into Control UI settings. For token auth, use `gateway.auth.token` (or

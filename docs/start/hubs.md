@@ -93,7 +93,7 @@ Use these hubs to discover every page, including deep dives and reference docs t
 - [Doctor](/gateway/doctor)
 - [Logging](/gateway/logging)
 - [Sandboxing](/gateway/sandboxing)
-- [Control UI access](/web/dashboard)
+- [Control UI access](/web/control-ui)
 - [Control UI](/web/control-ui)
 - [Remote access](/gateway/remote)
 - [Remote gateway README](/gateway/remote-gateway-readme)
