@@ -143,6 +143,21 @@ kova tasks flow cancel <lookup>
 | `kova tasks flow show <id>`   | Inspect one flow by flow id or lookup key     |
 | `kova tasks flow cancel <id>` | Cancel a running flow and its active tasks    |
 
+### Terminal goals facade
+
+Use `kova goals` for a higher-level terminal goal ledger backed by managed Task
+Flow records. It creates `cli/goals` flows, lists active goals by default, and
+keeps final transitions explicit:
+
+```bash
+kova goals add "Ship the fast terminal loop" --step "plan"
+kova goals set <goal-id> --status running --step "collect evidence"
+kova goals done <goal-id>
+kova goals cancel <goal-id>
+```
+
+See [CLI: goals](/cli/goals) for the command reference.
+
 ## How flows relate to tasks
 
 Flows coordinate tasks, not replace them. A single flow may drive multiple background tasks over its lifetime. Use `kova tasks` to inspect individual task records and `kova tasks flow` to inspect the orchestrating flow.

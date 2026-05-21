@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   statusCommand: vi.fn(),
   healthCommand: vi.fn(),
   sessionsCommand: vi.fn(),
+  sessionsCheckpointsCommand: vi.fn(),
   sessionsCleanupCommand: vi.fn(),
   tasksListCommand: vi.fn(),
   tasksAuditCommand: vi.fn(),
@@ -16,6 +17,13 @@ const mocks = vi.hoisted(() => ({
   flowsListCommand: vi.fn(),
   flowsShowCommand: vi.fn(),
   flowsCancelCommand: vi.fn(),
+  goalsListCommand: vi.fn(),
+  goalsAddCommand: vi.fn(),
+  goalsShowCommand: vi.fn(),
+  goalsSetCommand: vi.fn(),
+  goalsDoneCommand: vi.fn(),
+  goalsFailCommand: vi.fn(),
+  goalsCancelCommand: vi.fn(),
   setVerbose: vi.fn(),
   runtime: {
     log: vi.fn(),
@@ -27,6 +35,7 @@ const mocks = vi.hoisted(() => ({
 const statusCommand = mocks.statusCommand;
 const healthCommand = mocks.healthCommand;
 const sessionsCommand = mocks.sessionsCommand;
+const sessionsCheckpointsCommand = mocks.sessionsCheckpointsCommand;
 const sessionsCleanupCommand = mocks.sessionsCleanupCommand;
 const tasksListCommand = mocks.tasksListCommand;
 const tasksAuditCommand = mocks.tasksAuditCommand;
@@ -37,6 +46,13 @@ const tasksCancelCommand = mocks.tasksCancelCommand;
 const flowsListCommand = mocks.flowsListCommand;
 const flowsShowCommand = mocks.flowsShowCommand;
 const flowsCancelCommand = mocks.flowsCancelCommand;
+const goalsListCommand = mocks.goalsListCommand;
+const goalsAddCommand = mocks.goalsAddCommand;
+const goalsShowCommand = mocks.goalsShowCommand;
+const goalsSetCommand = mocks.goalsSetCommand;
+const goalsDoneCommand = mocks.goalsDoneCommand;
+const goalsFailCommand = mocks.goalsFailCommand;
+const goalsCancelCommand = mocks.goalsCancelCommand;
 const setVerbose = mocks.setVerbose;
 const runtime = mocks.runtime;
 
@@ -50,6 +66,10 @@ vi.mock("../../commands/health.js", () => ({
 
 vi.mock("../../commands/sessions.js", () => ({
   sessionsCommand: mocks.sessionsCommand,
+}));
+
+vi.mock("../../commands/sessions-checkpoints.js", () => ({
+  sessionsCheckpointsCommand: mocks.sessionsCheckpointsCommand,
 }));
 
 vi.mock("../../commands/sessions-cleanup.js", () => ({
@@ -69,6 +89,16 @@ vi.mock("../../commands/flows.js", () => ({
   flowsListCommand: mocks.flowsListCommand,
   flowsShowCommand: mocks.flowsShowCommand,
   flowsCancelCommand: mocks.flowsCancelCommand,
+}));
+
+vi.mock("../../commands/goals.js", () => ({
+  goalsListCommand: mocks.goalsListCommand,
+  goalsAddCommand: mocks.goalsAddCommand,
+  goalsShowCommand: mocks.goalsShowCommand,
+  goalsSetCommand: mocks.goalsSetCommand,
+  goalsDoneCommand: mocks.goalsDoneCommand,
+  goalsFailCommand: mocks.goalsFailCommand,
+  goalsCancelCommand: mocks.goalsCancelCommand,
 }));
 
 vi.mock("../../globals.js", () => ({
@@ -92,6 +122,7 @@ describe("registerStatusHealthSessionsCommands", () => {
     statusCommand.mockResolvedValue(undefined);
     healthCommand.mockResolvedValue(undefined);
     sessionsCommand.mockResolvedValue(undefined);
+    sessionsCheckpointsCommand.mockResolvedValue(undefined);
     sessionsCleanupCommand.mockResolvedValue(undefined);
     tasksListCommand.mockResolvedValue(undefined);
     tasksAuditCommand.mockResolvedValue(undefined);
@@ -102,6 +133,13 @@ describe("registerStatusHealthSessionsCommands", () => {
     flowsListCommand.mockResolvedValue(undefined);
     flowsShowCommand.mockResolvedValue(undefined);
     flowsCancelCommand.mockResolvedValue(undefined);
+    goalsListCommand.mockResolvedValue(undefined);
+    goalsAddCommand.mockResolvedValue(undefined);
+    goalsShowCommand.mockResolvedValue(undefined);
+    goalsSetCommand.mockResolvedValue(undefined);
+    goalsDoneCommand.mockResolvedValue(undefined);
+    goalsFailCommand.mockResolvedValue(undefined);
+    goalsCancelCommand.mockResolvedValue(undefined);
   });
 
   it("runs status command with timeout and debug-derived verbose", async () => {
@@ -252,6 +290,35 @@ describe("registerStatusHealthSessionsCommands", () => {
     );
   });
 
+  it("runs sessions checkpoints subcommand with gateway options and restore confirmation", async () => {
+    await runCli([
+      "sessions",
+      "--json",
+      "checkpoints",
+      "agent:main:main",
+      "--checkpoint-id",
+      "checkpoint-1",
+      "--restore",
+      "--confirm",
+      "--timeout",
+      "5000",
+    ]);
+
+    expect(sessionsCheckpointsCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: "agent:main:main",
+        checkpointId: "checkpoint-1",
+        restore: true,
+        confirm: true,
+        json: true,
+      }),
+      runtime,
+      expect.objectContaining({
+        callGateway: expect.any(Function),
+      }),
+    );
+  });
+
   it("runs tasks list from the parent command", async () => {
     await runCli(["tasks", "--json", "--runtime", "acp", "--status", "running"]);
 
@@ -352,6 +419,71 @@ describe("registerStatusHealthSessionsCommands", () => {
     expect(tasksCancelCommand).toHaveBeenCalledWith(
       expect.objectContaining({
         lookup: "run-123",
+      }),
+      runtime,
+    );
+  });
+
+  it("routes goals commands through durable goal handlers", async () => {
+    await runCli(["goals", "--json", "--all", "--status", "running"]);
+    expect(goalsListCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        json: true,
+        all: true,
+        status: "running",
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "add", "Ship faster terminal goals", "--step", "plan"]);
+    expect(goalsAddCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        goal: "Ship faster terminal goals",
+        step: "plan",
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "show", "goal-123", "--json"]);
+    expect(goalsShowCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookup: "goal-123",
+        json: true,
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "set", "goal-123", "--status", "running", "--step", "execute"]);
+    expect(goalsSetCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookup: "goal-123",
+        status: "running",
+        step: "execute",
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "done", "goal-123"]);
+    expect(goalsDoneCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookup: "goal-123",
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "fail", "goal-123", "--reason", "judge failed"]);
+    expect(goalsFailCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookup: "goal-123",
+        reason: "judge failed",
+      }),
+      runtime,
+    );
+
+    await runCli(["goals", "cancel", "goal-123"]);
+    expect(goalsCancelCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookup: "goal-123",
       }),
       runtime,
     );

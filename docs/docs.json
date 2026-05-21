@@ -1582,6 +1582,7 @@
                     "pages": [
                       "cli/agent",
                       "cli/agents",
+                      "cli/goals",
                       "cli/hooks",
                       "cli/infer",
                       "cli/memory",
