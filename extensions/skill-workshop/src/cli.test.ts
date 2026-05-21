@@ -145,6 +145,15 @@ describe("skill-workshop cli", () => {
     });
     expect((await store.get("proposal-123456"))?.status).toBe("applied");
     expect(result.stdout).toContain(`Applied media-qa -> ${skillPath}`);
+
+    const usage = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "usage"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(usage.stdout).toContain("media-qa");
+    expect(usage.stdout).toContain("active");
+    expect(usage.stdout).toContain("foreground");
   });
 
   it("refuses to apply quarantined proposals", async () => {
@@ -170,5 +179,88 @@ describe("skill-workshop cli", () => {
     await expect(
       fs.access(path.join(workspaceDir, "skills", "media-qa", "SKILL.md")),
     ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("curates, pins, archives, and restores tracked skills from the terminal", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const skillDir = path.join(workspaceDir, "skills", "media-qa");
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await fs.mkdir(skillDir, { recursive: true });
+    await fs.writeFile(
+      path.join(skillDir, "SKILL.md"),
+      "---\nname: media-qa\ndescription: Media QA workflow.\n---\n\n## Workflow\n\n- Verify dimensions.\n",
+    );
+    await store.recordAppliedProposal(
+      createProposal(workspaceDir, {
+        source: "reviewer",
+        status: "applied",
+      }),
+    );
+
+    const pin = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "pin", "media-qa"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(pin.stdout).toContain("Pinned media-qa");
+
+    const usage = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "usage"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(usage.stdout).toContain("pinned");
+
+    const preview = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "curate", "--workspace", workspaceDir, "--json"],
+      workspaceDir,
+      stateDir,
+      config: {
+        plugins: {
+          entries: {
+            "skill-workshop": {
+              enabled: true,
+              config: {
+                curatorIntervalTurns: 1,
+                curatorMinSkillAgeDays: 0,
+                curatorStaleDays: 1,
+                curatorArchiveDays: 1,
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(JSON.parse(preview.stdout)).toMatchObject({
+      report: {
+        checked: 1,
+        skipped: [expect.objectContaining({ skillName: "media-qa", reason: "pinned" })],
+      },
+    });
+
+    await runSkillWorkshopCli({
+      argv: ["skill-workshop", "unpin", "media-qa"],
+      workspaceDir,
+      stateDir,
+    });
+    const archive = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "archive", "media-qa", "--yes"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(archive.stdout).toContain("Archived media-qa");
+    await expect(fs.access(path.join(skillDir, "SKILL.md"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+
+    const restore = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "restore", "media-qa", "--yes"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(restore.stdout).toContain("Restored media-qa");
+    await expect(fs.access(path.join(skillDir, "SKILL.md"))).resolves.toBeUndefined();
+    expect((await store.getUsage("media-qa"))?.state).toBe("active");
   });
 });

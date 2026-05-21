@@ -8,6 +8,12 @@ export type SkillWorkshopConfig = {
   reviewTimeoutMs: number;
   maxPending: number;
   maxSkillBytes: number;
+  curatorEnabled: boolean;
+  curatorIntervalTurns: number;
+  curatorMinSkillAgeDays: number;
+  curatorStaleDays: number;
+  curatorArchiveDays: number;
+  curatorMaxActions: number;
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -46,5 +52,11 @@ export function resolveConfig(raw: unknown): SkillWorkshopConfig {
     reviewTimeoutMs: readInteger(cfg.reviewTimeoutMs, 45_000, 5_000, 180_000),
     maxPending: readInteger(cfg.maxPending, 50, 1, 200),
     maxSkillBytes: readInteger(cfg.maxSkillBytes, 40_000, 1024, 200_000),
+    curatorEnabled: readBoolean(cfg.curatorEnabled, true),
+    curatorIntervalTurns: readInteger(cfg.curatorIntervalTurns, 50, 1, 10_000),
+    curatorMinSkillAgeDays: readInteger(cfg.curatorMinSkillAgeDays, 7, 0, 365),
+    curatorStaleDays: readInteger(cfg.curatorStaleDays, 30, 1, 3650),
+    curatorArchiveDays: readInteger(cfg.curatorArchiveDays, 90, 1, 3650),
+    curatorMaxActions: readInteger(cfg.curatorMaxActions, 20, 1, 500),
   };
 }

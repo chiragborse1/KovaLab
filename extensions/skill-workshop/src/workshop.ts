@@ -74,6 +74,7 @@ export async function applyOrStoreProposal(params: {
       },
       params.config.maxPending,
     );
+    await params.store.recordAppliedProposal(stored);
     return { status: "applied", skillPath: applied.skillPath, proposal: stored };
   }
   const stored = await params.store.add(

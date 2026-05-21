@@ -1,9 +1,11 @@
 import { resolveLivePluginConfigObject, type KovaConfig } from "getkova/plugin-sdk/config-runtime";
-import { definePluginEntry, resolveDefaultAgentId } from "./api.js";
+import { definePluginEntry, resolveDefaultAgentId, type KovaPluginApi } from "./api.js";
 import { resolveConfig } from "./src/config.js";
+import { runSkillCurator, shouldRunCurator } from "./src/curator.js";
 import { buildWorkshopGuidance } from "./src/prompt.js";
 import { countToolCalls, reviewTranscriptForProposal } from "./src/reviewer.js";
 import { createProposalFromMessages } from "./src/signals.js";
+import type { SkillWorkshopStore } from "./src/store.js";
 import { createSkillWorkshopTool } from "./src/tool.js";
 import { applyOrStoreProposal, createStoreForContext } from "./src/workshop.js";
 
@@ -64,13 +66,16 @@ export default definePluginEntry({
 
     api.on("agent_end", async (event, ctx) => {
       const config = resolveCurrentConfig();
-      if (!config.enabled || !config.autoCapture || config.reviewMode === "off") {
+      if (!config.enabled) {
         return;
       }
       if (!event.success) {
         return;
       }
       if (ctx.sessionId?.startsWith("skill-workshop-review-")) {
+        return;
+      }
+      if (!config.autoCapture || config.reviewMode === "off") {
         return;
       }
       const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
@@ -106,6 +111,7 @@ export default definePluginEntry({
 
       const llmEnabled = config.reviewMode === "llm" || config.reviewMode === "hybrid";
       if (!llmEnabled) {
+        await maybeRunCurator({ api, config, store, workspaceDir });
         return;
       }
       const reviewState = await store.recordReviewTurn(countToolCalls(event.messages));
@@ -115,6 +121,7 @@ export default definePluginEntry({
       const shouldReview =
         thresholdMet || (config.reviewMode === "llm" && heuristicProposal !== undefined);
       if (!shouldReview) {
+        await maybeRunCurator({ api, config, store, workspaceDir });
         return;
       }
       await store.markReviewed();
@@ -149,12 +156,59 @@ export default definePluginEntry({
       } catch (error) {
         api.logger.warn(`skill-workshop: reviewer skipped: ${String(error)}`);
       }
+      await maybeRunCurator({ api, config, store, workspaceDir });
     });
   },
 });
+
+async function maybeRunCurator(params: {
+  api: KovaPluginApi;
+  config: ReturnType<typeof resolveConfig>;
+  store: SkillWorkshopStore;
+  workspaceDir: string;
+}): Promise<void> {
+  if (!params.config.curatorEnabled) {
+    return;
+  }
+  const state = await params.store.recordCuratorTurn();
+  if (
+    !shouldRunCurator({
+      enabled: params.config.curatorEnabled,
+      turnsSinceRun: state.turnsSinceRun,
+      intervalTurns: params.config.curatorIntervalTurns,
+    })
+  ) {
+    return;
+  }
+  try {
+    const result = await runSkillCurator({
+      store: params.store,
+      stateDir: params.api.runtime.state.resolveStateDir(),
+      workspaceDir: params.workspaceDir,
+      config: {
+        enabled: params.config.curatorEnabled,
+        intervalTurns: params.config.curatorIntervalTurns,
+        minSkillAgeDays: params.config.curatorMinSkillAgeDays,
+        staleDays: params.config.curatorStaleDays,
+        archiveDays: params.config.curatorArchiveDays,
+        maxActions: params.config.curatorMaxActions,
+      },
+      apply: true,
+    });
+    const changed = result.report.actions.filter((action) => action.type !== "keep").length;
+    params.api.logger.info(
+      `skill-workshop: curator checked ${String(result.report.checked)} skills, ${String(
+        changed,
+      )} changes`,
+    );
+  } catch (error) {
+    params.api.logger.warn(`skill-workshop: curator skipped: ${String(error)}`);
+  }
+}
 
 export { createProposalFromMessages } from "./src/signals.js";
 export { SkillWorkshopStore } from "./src/store.js";
 export { applyProposalToWorkspace, normalizeSkillName } from "./src/skills.js";
 export { countToolCalls, reviewTranscriptForProposal } from "./src/reviewer.js";
 export { scanSkillContent } from "./src/scanner.js";
+export { runSkillCurator } from "./src/curator.js";

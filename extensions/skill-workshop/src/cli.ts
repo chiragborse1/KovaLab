@@ -6,9 +6,15 @@ import { resolveStateDir } from "getkova/plugin-sdk/state-paths";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
 import { resolveConfig } from "./config.js";
+import { archiveSkill, restoreArchivedSkill, runSkillCurator } from "./curator.js";
 import { applyProposalToWorkspace } from "./skills.js";
 import { SkillWorkshopStore } from "./store.js";
-import type { SkillChange, SkillProposal, SkillWorkshopStatus } from "./types.js";
+import type {
+  SkillChange,
+  SkillProposal,
+  SkillWorkshopStatus,
+  SkillWorkshopUsageRecord,
+} from "./types.js";
 
 type SkillWorkshopCliIo = {
   writeStdout?: (text: string) => void;
@@ -35,6 +41,10 @@ type ListOptions = CommonOptions & {
 
 type ApplyOptions = CommonOptions & {
   yes?: boolean;
+};
+
+type CurateOptions = CommonOptions & {
+  apply?: boolean;
 };
 
 const STATUSES: SkillWorkshopStatus[] = ["pending", "applied", "rejected", "quarantined"];
@@ -256,6 +266,77 @@ function formatProposalDetails(proposal: SkillProposal): string {
   return lines.join("\n");
 }
 
+function formatUsageRow(record: SkillWorkshopUsageRecord): string {
+  const pin = record.pinned ? "pinned" : "";
+  return [
+    record.skillName.padEnd(30),
+    record.state.padEnd(8),
+    record.origin.padEnd(10),
+    `views:${String(record.views)}`.padEnd(9),
+    `applies:${String(record.applies)}`.padEnd(11),
+    `patches:${String(record.patches)}`.padEnd(10),
+    pin,
+  ]
+    .filter((part) => part.length > 0)
+    .join("  ");
+}
+
+function formatUsageList(params: {
+  workspaceDir: string;
+  records: SkillWorkshopUsageRecord[];
+}): string {
+  const lines: string[] = [];
+  lines.push("Skill Workshop Usage");
+  lines.push(`Workspace: ${params.workspaceDir}`);
+  lines.push("");
+  if (params.records.length === 0) {
+    lines.push("No tracked skills yet.");
+    return lines.join("\n");
+  }
+  lines.push(
+    [
+      "Skill".padEnd(30),
+      "State".padEnd(8),
+      "Origin".padEnd(10),
+      "Views".padEnd(9),
+      "Applies".padEnd(11),
+      "Patches".padEnd(10),
+      "Pin",
+    ].join("  "),
+  );
+  for (const record of params.records) {
+    lines.push(formatUsageRow(record));
+  }
+  return lines.join("\n");
+}
+
+function formatCuratorReport(params: {
+  workspaceDir: string;
+  reportPath: string;
+  checked: number;
+  apply: boolean;
+  actions: Array<{ type: string; skillName: string; reason: string }>;
+}): string {
+  const changed = params.actions.filter((action) => action.type !== "keep").length;
+  const lines = [
+    `Skill curator ${params.apply ? "applied" : "preview"}: ${String(
+      params.checked,
+    )} checked, ${String(changed)} changes`,
+    `Workspace: ${params.workspaceDir}`,
+    `Report: ${params.reportPath}`,
+  ];
+  for (const action of params.actions.slice(0, 12)) {
+    lines.push(`- ${action.type}: ${action.skillName} - ${action.reason}`);
+  }
+  if (params.actions.length > 12) {
+    lines.push(`- and ${String(params.actions.length - 12)} more actions`);
+  }
+  if (!params.apply && changed > 0) {
+    lines.push("Run with --apply to make these changes.");
+  }
+  return lines.join("\n");
+}
+
 async function resolveProposal(params: {
   store: SkillWorkshopStore;
   id: string;
@@ -425,6 +506,7 @@ async function handleApply(ctx: SkillWorkshopCliContext, id: string, opts: Apply
     maxSkillBytes: config.maxSkillBytes,
   });
   const updated = await store.updateStatus(proposal.id, "applied");
+  await store.recordAppliedProposal(updated);
   if (opts.json) {
     writeLine(
       ctx.io,
@@ -455,6 +537,118 @@ async function handleReject(ctx: SkillWorkshopCliContext, id: string, opts: Comm
   writeLine(ctx.io, "stdout", `Rejected ${proposal.skillName} (${proposal.id})`);
 }
 
+async function handleUsage(ctx: SkillWorkshopCliContext, opts: CommonOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  const records = await store.listUsage();
+  if (opts.json) {
+    writeLine(ctx.io, "stdout", JSON.stringify({ workspaceDir, records }, null, 2));
+    return;
+  }
+  writeLine(ctx.io, "stdout", formatUsageList({ workspaceDir, records }));
+}
+
+async function handlePin(ctx: SkillWorkshopCliContext, skillName: string, opts: CommonOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  const record = await store.setUsagePinned(skillName, true);
+  writeLine(ctx.io, "stdout", opts.json ? JSON.stringify(record, null, 2) : `Pinned ${skillName}`);
+}
+
+async function handleUnpin(ctx: SkillWorkshopCliContext, skillName: string, opts: CommonOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  const record = await store.setUsagePinned(skillName, false);
+  writeLine(
+    ctx.io,
+    "stdout",
+    opts.json ? JSON.stringify(record, null, 2) : `Unpinned ${skillName}`,
+  );
+}
+
+async function handleCurate(ctx: SkillWorkshopCliContext, opts: CurateOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const stateDir = ctx.stateDir ?? resolveStateDir();
+  const store = createStore(ctx, workspaceDir);
+  const config = readPluginConfig(ctx.config);
+  const result = await runSkillCurator({
+    store,
+    stateDir,
+    workspaceDir,
+    config: {
+      enabled: config.curatorEnabled,
+      intervalTurns: config.curatorIntervalTurns,
+      minSkillAgeDays: config.curatorMinSkillAgeDays,
+      staleDays: config.curatorStaleDays,
+      archiveDays: config.curatorArchiveDays,
+      maxActions: config.curatorMaxActions,
+    },
+    apply: opts.apply === true,
+  });
+  if (opts.json) {
+    writeLine(ctx.io, "stdout", JSON.stringify(result, null, 2));
+    return;
+  }
+  writeLine(
+    ctx.io,
+    "stdout",
+    formatCuratorReport({
+      workspaceDir,
+      reportPath: result.reportPath,
+      checked: result.report.checked,
+      apply: result.report.apply,
+      actions: result.report.actions,
+    }),
+  );
+}
+
+async function handleArchive(ctx: SkillWorkshopCliContext, skillName: string, opts: ApplyOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  if (!opts.yes) {
+    writeLine(
+      ctx.io,
+      "stderr",
+      `Review required before archiving ${skillName}. No files changed. Re-run with --yes.`,
+    );
+    setExitCode(ctx.io, 1);
+    return;
+  }
+  const archivePath = await archiveSkill({
+    store,
+    workspaceDir,
+    skillName,
+    reason: "manual archive",
+  });
+  const payload = { status: "archived", skillName, archivePath };
+  writeLine(
+    ctx.io,
+    "stdout",
+    opts.json ? JSON.stringify(payload, null, 2) : `Archived ${skillName} -> ${archivePath}`,
+  );
+}
+
+async function handleRestore(ctx: SkillWorkshopCliContext, skillName: string, opts: ApplyOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  if (!opts.yes) {
+    writeLine(
+      ctx.io,
+      "stderr",
+      `Review required before restoring ${skillName}. No files changed. Re-run with --yes.`,
+    );
+    setExitCode(ctx.io, 1);
+    return;
+  }
+  const skillPath = await restoreArchivedSkill({ store, workspaceDir, skillName });
+  const payload = { status: "restored", skillName, skillPath };
+  writeLine(
+    ctx.io,
+    "stdout",
+    opts.json ? JSON.stringify(payload, null, 2) : `Restored ${skillName} -> ${skillPath}`,
+  );
+}
+
 function addTargetOptions(command: Command): Command {
   return command
     .option("--agent <id>", "Target agent workspace")
@@ -468,7 +662,7 @@ export function registerSkillWorkshopCli(program: Command, ctx: SkillWorkshopCli
     .description("Review Skill Workshop proposals for workspace skills")
     .addHelpText(
       "after",
-      "\nExamples:\n  kova skill-workshop review\n  kova skill-workshop inspect <id>\n  kova skill-workshop apply <id> --yes\n",
+      "\nExamples:\n  kova skill-workshop review\n  kova skill-workshop inspect <id>\n  kova skill-workshop apply <id> --yes\n  kova skill-workshop curate --apply\n",
     );
 
   addTargetOptions(root.command("status").description("Show proposal counts")).action(
@@ -521,6 +715,54 @@ export function registerSkillWorkshopCli(program: Command, ctx: SkillWorkshopCli
     .action(
       withCliErrors(ctx, async (id: string, opts: CommonOptions) => {
         await handleReject(ctx, id, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("usage").description("Show tracked skill usage")).action(
+    withCliErrors(ctx, async (opts: CommonOptions) => {
+      await handleUsage(ctx, opts);
+    }),
+  );
+
+  addTargetOptions(root.command("pin").description("Protect a tracked skill from curator archive"))
+    .argument("<skill>", "Skill name")
+    .action(
+      withCliErrors(ctx, async (skillName: string, opts: CommonOptions) => {
+        await handlePin(ctx, skillName, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("unpin").description("Allow curator archive for a tracked skill"))
+    .argument("<skill>", "Skill name")
+    .action(
+      withCliErrors(ctx, async (skillName: string, opts: CommonOptions) => {
+        await handleUnpin(ctx, skillName, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("curate").description("Run skill curator preview"))
+    .option("--apply", "Apply safe curator actions", false)
+    .action(
+      withCliErrors(ctx, async (opts: CurateOptions) => {
+        await handleCurate(ctx, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("archive").description("Archive a workspace skill"))
+    .argument("<skill>", "Skill name")
+    .option("--yes", "Confirm the workspace skill archive", false)
+    .action(
+      withCliErrors(ctx, async (skillName: string, opts: ApplyOptions) => {
+        await handleArchive(ctx, skillName, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("restore").description("Restore an archived workspace skill"))
+    .argument("<skill>", "Skill name")
+    .option("--yes", "Confirm the workspace skill restore", false)
+    .action(
+      withCliErrors(ctx, async (skillName: string, opts: ApplyOptions) => {
+        await handleRestore(ctx, skillName, opts);
       }),
     );
 

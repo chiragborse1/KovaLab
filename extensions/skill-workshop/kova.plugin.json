@@ -75,6 +75,40 @@
         "minimum": 1024,
         "maximum": 200000,
         "default": 40000
+      },
+      "curatorEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "curatorIntervalTurns": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10000,
+        "default": 50
+      },
+      "curatorMinSkillAgeDays": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 365,
+        "default": 7
+      },
+      "curatorStaleDays": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3650,
+        "default": 30
+      },
+      "curatorArchiveDays": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3650,
+        "default": 90
+      },
+      "curatorMaxActions": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 500,
+        "default": 20
       }
     }
   }

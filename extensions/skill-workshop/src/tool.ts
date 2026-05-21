@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Type } from "typebox";
 import { jsonResult, type KovaPluginApi } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
+import { archiveSkill, restoreArchivedSkill, runSkillCurator } from "./curator.js";
 import {
   applyProposalToWorkspace,
   normalizeSkillName,
@@ -97,12 +98,18 @@ export function createSkillWorkshopTool(params: {
       action: Type.String({
         enum: [
           "status",
+          "usage",
           "list_pending",
           "list_quarantine",
           "inspect",
           "suggest",
           "apply",
           "reject",
+          "pin",
+          "unpin",
+          "archive",
+          "restore",
+          "curate",
           "write_support_file",
         ],
       }),
@@ -128,13 +135,24 @@ export function createSkillWorkshopTool(params: {
       const store = createStoreForContext(params);
       if (action === "status") {
         const all = await store.list();
+        const usage = await store.listUsage();
         return jsonResult({
           workspaceDir,
           pending: all.filter((item) => item.status === "pending").length,
           quarantined: all.filter((item) => item.status === "quarantined").length,
           applied: all.filter((item) => item.status === "applied").length,
           rejected: all.filter((item) => item.status === "rejected").length,
+          skills: {
+            tracked: usage.length,
+            active: usage.filter((item) => item.state === "active").length,
+            stale: usage.filter((item) => item.state === "stale").length,
+            archived: usage.filter((item) => item.state === "archived").length,
+            pinned: usage.filter((item) => item.pinned).length,
+          },
         });
+      }
+      if (action === "usage") {
+        return jsonResult(await store.listUsage());
       }
       if (action === "list_pending") {
         return jsonResult(await store.list(raw.status ?? "pending"));
@@ -146,7 +164,11 @@ export function createSkillWorkshopTool(params: {
         if (!raw.id) {
           throw new Error("id required");
         }
-        return jsonResult(await store.get(raw.id));
+        const proposal = await store.get(raw.id);
+        if (proposal) {
+          await store.markUsageViewed(proposal.skillName);
+        }
+        return jsonResult(proposal);
       }
       if (action === "suggest") {
         const proposal = buildProposal({ workspaceDir, raw, source: "tool" });
@@ -184,6 +206,7 @@ export function createSkillWorkshopTool(params: {
             },
             params.config.maxPending,
           );
+          await store.recordAppliedProposal(stored);
           return jsonResult({ status: "applied", skillPath: applied.skillPath, proposal: stored });
         }
         const prepared = await prepareProposalWrite({
@@ -226,6 +249,7 @@ export function createSkillWorkshopTool(params: {
           maxSkillBytes: params.config.maxSkillBytes,
         });
         const updated = await store.updateStatus(raw.id, "applied");
+        await store.recordAppliedProposal(updated);
         return jsonResult({ status: "applied", skillPath: applied.skillPath, proposal: updated });
       }
       if (action === "reject") {
@@ -233,6 +257,51 @@ export function createSkillWorkshopTool(params: {
           throw new Error("id required");
         }
         return jsonResult(await store.updateStatus(raw.id, "rejected"));
+      }
+      if (action === "pin" || action === "unpin") {
+        const skillName = normalizeSkillName(readString(raw.skillName) ?? "");
+        if (!skillName) {
+          throw new Error("skillName required");
+        }
+        return jsonResult(await store.setUsagePinned(skillName, action === "pin"));
+      }
+      if (action === "archive") {
+        const skillName = normalizeSkillName(readString(raw.skillName) ?? "");
+        if (!skillName) {
+          throw new Error("skillName required");
+        }
+        const archivePath = await archiveSkill({
+          store,
+          workspaceDir,
+          skillName,
+          reason: readString(raw.reason) ?? "manual archive",
+        });
+        return jsonResult({ status: "archived", skillName, archivePath });
+      }
+      if (action === "restore") {
+        const skillName = normalizeSkillName(readString(raw.skillName) ?? "");
+        if (!skillName) {
+          throw new Error("skillName required");
+        }
+        const skillPath = await restoreArchivedSkill({ store, workspaceDir, skillName });
+        return jsonResult({ status: "restored", skillName, skillPath });
+      }
+      if (action === "curate") {
+        const result = await runSkillCurator({
+          store,
+          stateDir: params.api.runtime.state.resolveStateDir(),
+          workspaceDir,
+          config: {
+            enabled: params.config.curatorEnabled,
+            intervalTurns: params.config.curatorIntervalTurns,
+            minSkillAgeDays: params.config.curatorMinSkillAgeDays,
+            staleDays: params.config.curatorStaleDays,
+            archiveDays: params.config.curatorArchiveDays,
+            maxActions: params.config.curatorMaxActions,
+          },
+          apply: raw.apply === true,
+        });
+        return jsonResult(result);
       }
       if (action === "write_support_file") {
         const skillName = readString(raw.skillName);

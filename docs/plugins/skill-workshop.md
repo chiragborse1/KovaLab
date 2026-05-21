@@ -113,17 +113,23 @@ does not apply proposals with critical findings.
 
 ## Configuration
 
-| Key                  | Default     | Range / values                              | Meaning                                                              |
-| -------------------- | ----------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| `enabled`            | `true`      | boolean                                     | Enables the plugin after the plugin entry is loaded.                 |
-| `autoCapture`        | `true`      | boolean                                     | Enables post-turn capture/review on successful agent turns.          |
-| `approvalPolicy`     | `"pending"` | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.               |
-| `reviewMode`         | `"hybrid"`  | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither. |
-| `reviewInterval`     | `15`        | `1..200`                                    | Run reviewer after this many successful turns.                       |
-| `reviewMinToolCalls` | `8`         | `1..500`                                    | Run reviewer after this many observed tool calls.                    |
-| `reviewTimeoutMs`    | `45000`     | `5000..180000`                              | Timeout for the embedded reviewer run.                               |
-| `maxPending`         | `50`        | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                |
-| `maxSkillBytes`      | `40000`     | `1024..200000`                              | Max generated skill/support file size.                               |
+| Key                      | Default     | Range / values                              | Meaning                                                               |
+| ------------------------ | ----------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| `enabled`                | `true`      | boolean                                     | Enables the plugin after the plugin entry is loaded.                  |
+| `autoCapture`            | `true`      | boolean                                     | Enables post-turn capture/review on successful agent turns.           |
+| `approvalPolicy`         | `"pending"` | `"pending"`, `"auto"`                       | Queue proposals or write safe proposals automatically.                |
+| `reviewMode`             | `"hybrid"`  | `"off"`, `"heuristic"`, `"llm"`, `"hybrid"` | Chooses explicit correction capture, LLM reviewer, both, or neither.  |
+| `reviewInterval`         | `15`        | `1..200`                                    | Run reviewer after this many successful turns.                        |
+| `reviewMinToolCalls`     | `8`         | `1..500`                                    | Run reviewer after this many observed tool calls.                     |
+| `reviewTimeoutMs`        | `45000`     | `5000..180000`                              | Timeout for the embedded reviewer run.                                |
+| `maxPending`             | `50`        | `1..200`                                    | Max pending/quarantined proposals kept per workspace.                 |
+| `maxSkillBytes`          | `40000`     | `1024..200000`                              | Max generated skill/support file size.                                |
+| `curatorEnabled`         | `true`      | boolean                                     | Enable stale-skill maintenance for tracked background-created skills. |
+| `curatorIntervalTurns`   | `50`        | `1..10000`                                  | Successful turns between automatic curator passes.                    |
+| `curatorMinSkillAgeDays` | `7`         | `0..365`                                    | Minimum age before a tracked skill can be marked stale or archived.   |
+| `curatorStaleDays`       | `30`        | `1..3650`                                   | Inactive days before a tracked skill is marked stale.                 |
+| `curatorArchiveDays`     | `90`        | `1..3650`                                   | Inactive days before a tracked background skill is archived.          |
+| `curatorMaxActions`      | `20`        | `1..500`                                    | Maximum curator actions per pass.                                     |
 
 Recommended profiles:
 
@@ -219,6 +225,36 @@ The reviewer has no tools:
 
 The reviewer returns either `{ "action": "none" }` or one proposal. The `action` field is `create`, `append`, or `replace` — prefer `append`/`replace` when a relevant skill already exists; use `create` only when no existing skill fits.
 
+## Skill usage and curator
+
+Skill Workshop tracks applied proposals as procedural-skill usage metadata:
+
+- origin: foreground tool suggestion or background review
+- state: active, stale, or archived
+- counts: views, applies, and patches
+- pin state: pinned skills are skipped by curator archive
+- archive state: archived skills can be restored
+
+The curator only manages tracked background-created skills. It does not delete
+skills. Automatic passes mark inactive skills stale or move inactive old skills
+under `<workspace>/skills/.archive/` so they stop loading but remain
+recoverable.
+
+Manual review:
+
+```bash
+kova skill-workshop usage
+kova skill-workshop curate
+kova skill-workshop curate --apply
+kova skill-workshop pin <skill>
+kova skill-workshop unpin <skill>
+kova skill-workshop archive <skill> --yes
+kova skill-workshop restore <skill> --yes
+```
+
+Each curator pass writes a JSON report and Markdown report under the
+Skill Workshop state directory.
+
 Example `create`:
 
 ```json
@@ -282,6 +318,12 @@ kova skill-workshop inspect <proposal-id>
 kova skill-workshop apply <proposal-id> --yes
 kova skill-workshop reject <proposal-id>
 kova skill-workshop quarantine
+kova skill-workshop usage
+kova skill-workshop curate [--apply]
+kova skill-workshop pin <skill>
+kova skill-workshop unpin <skill>
+kova skill-workshop archive <skill> --yes
+kova skill-workshop restore <skill> --yes
 ```
 
 The CLI reads the same per-workspace proposal store as the `skill_workshop`
