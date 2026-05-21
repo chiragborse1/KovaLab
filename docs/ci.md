@@ -12,6 +12,11 @@ The Control UI build is scoped on normal push/PR runs. It runs when `ui/`, root
 package metadata, the lockfile, or the CI workflow itself changes; manual
 `workflow_dispatch` still runs it explicitly.
 
+Changed-test shards run with one Vitest worker and 6 GB Node heap headroom. The
+single worker keeps file-level concurrency predictable on shared runners; the
+larger heap prevents long serial agent/config shards from failing after passing
+thousands of tests due to worker-thread heap exhaustion.
+
 `Full Release Validation` is the manual umbrella workflow for "run everything
 before release." It accepts a branch, tag, or full commit SHA, dispatches the
 manual `CI` workflow with that target, and dispatches `Kova Release Checks`
