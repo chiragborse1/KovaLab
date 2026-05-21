@@ -17,6 +17,7 @@
 - CLI/TUI: queue terminal follow-up input by default while a run is active, with `/busy queue|steer|interrupt` controls and Alt+Enter/Alt+Up queue shortcuts. Thanks @chiragborse1
 - CLI/TUI: replace the animated busy spinner with a stable low-work `moseying` status line so long local runs do not keep repainting the terminal. Thanks @chiragborse1
 - CLI/TUI: load recent terminal history in the background after local startup routing is ready so auto-started chat turns can begin sooner. Thanks @chiragborse1
+- CLI/TUI: compact the terminal hero inventory into tool and skill counts instead of listing bulky tool and skill names on the first screen. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev

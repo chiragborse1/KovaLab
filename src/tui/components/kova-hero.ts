@@ -71,48 +71,32 @@ function statLine(label: string, value: string): string {
   return `${theme.accentSoft(`${label}:`)} ${value}`;
 }
 
-function formatToolGroups(groups: KovaHeroToolGroup[], maxRows: number): string[] {
+function formatToolGroups(groups: KovaHeroToolGroup[]): string[] {
   if (groups.length === 0) {
     return [theme.dim("catalog loading...")];
   }
 
-  const rows: string[] = [];
-  for (const group of groups) {
-    const names = group.tools
-      .slice(0, 4)
-      .map((tool) => tool.label || tool.id)
-      .join(", ");
-    if (!names) {
-      continue;
-    }
-    rows.push(`${theme.accentSoft(`${group.label}:`)} ${names}`);
-    if (rows.length >= maxRows) {
-      break;
-    }
-  }
-
-  if (groups.length > rows.length) {
-    rows.push(theme.dim(`and ${String(groups.length - rows.length)} more tool groups...`));
-  }
-  return rows.length > 0 ? rows : [theme.dim("no tools visible")];
+  const toolCount = countTools(groups);
+  const groupCount = groups.length;
+  return [
+    theme.accent(`${String(toolCount)} tools ready`),
+    theme.dim(`${String(groupCount)} group${groupCount === 1 ? "" : "s"} loaded on demand`),
+  ];
 }
 
-function formatSkills(skills: KovaHeroSkill[], maxRows: number): string[] {
+function formatSkills(skills: KovaHeroSkill[]): string[] {
   const visible = skills.filter((skill) => skill.disabled !== true);
   if (visible.length === 0) {
     return [theme.dim("skills loading...")];
   }
 
-  const rows = visible.slice(0, maxRows).map((skill) => {
-    const sourceLabel = formatSkillSourceLabel(skill.source);
-    const source = sourceLabel ? theme.dim(` (${sourceLabel})`) : "";
-    const marker = skill.eligible === false ? theme.dim("offline ") : "";
-    return `${marker}${skill.name}${source}`;
-  });
-  if (visible.length > rows.length) {
-    rows.push(theme.dim(`and ${String(visible.length - rows.length)} more skills...`));
-  }
-  return rows;
+  const offline = visible.filter((skill) => skill.eligible === false).length;
+  return [
+    theme.accent(`${String(visible.length)} skills available`),
+    offline > 0
+      ? theme.dim(`${String(offline)} offline until configured`)
+      : theme.dim("workspace skills load when invoked"),
+  ];
 }
 
 export function formatSkillSourceLabel(source?: string): string {
@@ -193,10 +177,10 @@ export class KovaHero implements Component {
     ];
     const rightRows = [
       theme.header("Tool Surface"),
-      ...formatToolGroups(this.state.toolGroups, 5),
+      ...formatToolGroups(this.state.toolGroups),
       "",
       theme.header("Skill Surface"),
-      ...formatSkills(this.state.skills, 5),
+      ...formatSkills(this.state.skills),
       "",
       theme.accent(
         `${String(countTools(this.state.toolGroups))} tools | ${String(this.state.skills.length)} skills | terminal first`,
