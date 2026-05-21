@@ -5,6 +5,9 @@ import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { canExecRequestNode } from "../agents/exec-defaults.js";
 import { buildAllowedModelSet, resolveThinkingDefault } from "../agents/model-selection.js";
 import { buildWorkspaceSkillStatus, type SkillStatusReport } from "../agents/skills-status.js";
+import { maybeResolveTextAlias } from "../auto-reply/commands-registry.js";
+import type { ReplyPayload } from "../auto-reply/reply-payload.js";
+import type { MsgContext } from "../auto-reply/templating.js";
 import { createDefaultDeps } from "../cli/deps.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { updateSessionStore } from "../config/sessions.js";
@@ -85,10 +88,11 @@ function resolveBtwQuestion(message: string): string | undefined {
 }
 
 function payloadText(parts: unknown): string {
-  if (!Array.isArray(parts)) {
+  const entries = Array.isArray(parts) ? parts : parts ? [parts] : [];
+  if (entries.length === 0) {
     return "";
   }
-  return parts
+  return entries
     .map((part) => {
       if (!part || typeof part !== "object") {
         return "";
@@ -106,6 +110,30 @@ function timeoutSecondsFromMs(timeoutMs?: number): string | undefined {
     return undefined;
   }
   return String(Math.max(0, Math.ceil(timeoutMs / 1000)));
+}
+
+function timeoutSecondsNumberFromMs(timeoutMs?: number): number | undefined {
+  if (typeof timeoutMs !== "number" || !Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    return undefined;
+  }
+  return Math.max(0, Math.ceil(timeoutMs / 1000));
+}
+
+function isTextSlashCommand(message: string, cfg: ReturnType<typeof getRuntimeConfig>): boolean {
+  const trimmed = message.trim();
+  if (!trimmed.startsWith("/")) {
+    return false;
+  }
+  // /btw is handled as a side-result lane by the TUI so it does not disturb
+  // the active chat run.
+  if (/^\/btw(?::|\s|$)/i.test(trimmed)) {
+    return false;
+  }
+  return maybeResolveTextAlias(trimmed, cfg) !== null;
+}
+
+function replyText(reply: ReplyPayload | ReplyPayload[] | undefined): string {
+  return payloadText(reply);
 }
 
 export class EmbeddedTuiBackend implements TuiBackend {
@@ -456,6 +484,25 @@ export class EmbeddedTuiBackend implements TuiBackend {
     });
   }
 
+  private emitChatCommandFinal(runId: string, run: LocalRunState, text: string) {
+    if (run.finalSent) {
+      return;
+    }
+    run.finalSent = true;
+    run.registered = true;
+    this.emit("chat", {
+      runId,
+      sessionKey: run.sessionKey,
+      state: "final",
+      message: {
+        role: "assistant",
+        command: true,
+        content: [{ type: "text", text }],
+        timestamp: Date.now(),
+      },
+    });
+  }
+
   private ensureRunRegistered(runId: string, run: LocalRunState) {
     if (run.registered || run.isBtw) {
       return;
@@ -532,9 +579,70 @@ export class EmbeddedTuiBackend implements TuiBackend {
         this.emitChatAborted(evt.runId, run);
         return;
       }
-      const errorMessage = typeof evt.data?.error === "string" ? evt.data.error : undefined;
-      this.emitChatError(evt.runId, run, errorMessage);
+      // Embedded model fallback can emit a lifecycle error for a failed
+      // candidate and then continue with the next candidate. The runTurn
+      // promise is the terminal authority; it will emit a final error if the
+      // whole run actually fails.
+      return;
     }
+  }
+
+  private async runTextCommandTurn(params: {
+    runId: string;
+    sessionKey: string;
+    message: string;
+    timeoutMs?: number;
+    controller: AbortController;
+  }) {
+    const { cfg, canonicalKey } = loadSessionEntry(params.sessionKey);
+    const commandBody = params.message;
+    const stampedMessage = injectTimestamp(params.message, timestampOptsFromConfig(cfg));
+    const ctx: MsgContext = {
+      Body: params.message,
+      BodyForAgent: stampedMessage,
+      BodyForCommands: commandBody,
+      RawBody: params.message,
+      CommandBody: commandBody,
+      InputProvenance: { kind: "external_user", sourceChannel: INTERNAL_MESSAGE_CHANNEL },
+      SessionKey: canonicalKey,
+      Provider: INTERNAL_MESSAGE_CHANNEL,
+      Surface: INTERNAL_MESSAGE_CHANNEL,
+      OriginatingChannel: INTERNAL_MESSAGE_CHANNEL,
+      ChatType: "direct",
+      CommandSource: "text",
+      CommandAuthorized: true,
+      MessageSid: params.runId,
+      SenderId: "tui-local",
+      SenderName: "TUI",
+      SenderUsername: "tui",
+    };
+    let agentRunStarted = false;
+    const { getReplyFromConfig } = await import("../auto-reply/reply/get-reply.js");
+    const reply = await getReplyFromConfig(
+      ctx,
+      {
+        runId: params.runId,
+        abortSignal: params.controller.signal,
+        timeoutOverrideSeconds: timeoutSecondsNumberFromMs(params.timeoutMs),
+        onAgentRunStart: () => {
+          agentRunStarted = true;
+        },
+      },
+      cfg,
+    );
+    const run = this.runs.get(params.runId);
+    if (!run) {
+      return;
+    }
+    const text = replyText(reply);
+    if (!agentRunStarted) {
+      this.emitChatCommandFinal(params.runId, run, text || "(no output)");
+      return;
+    }
+    if (text && !run.buffer) {
+      run.buffer = text;
+    }
+    this.emitChatFinal(params.runId, run);
   }
 
   private async runTurn(params: {
@@ -548,6 +656,16 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }) {
     try {
       const { cfg, canonicalKey, entry } = loadSessionEntry(params.sessionKey);
+      if (isTextSlashCommand(params.message, cfg)) {
+        await this.runTextCommandTurn({
+          runId: params.runId,
+          sessionKey: params.sessionKey,
+          message: params.message,
+          timeoutMs: params.timeoutMs,
+          controller: params.controller,
+        });
+        return;
+      }
       const result = await agentCommandFromIngress(
         {
           message: injectTimestamp(params.message, timestampOptsFromConfig(cfg)),

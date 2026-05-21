@@ -835,6 +835,31 @@ describe("tui-event-handlers: streaming watchdog", () => {
     handlers.dispose?.();
   });
 
+  it("does not arm the streaming watchdog for empty registration deltas", () => {
+    const { state, chatLog, setActivityStatus, handlers } = createHarness({
+      streamingWatchdogMs: 5_000,
+    });
+
+    handlers.handleChatEvent({
+      runId: "run-tool-only",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { role: "assistant", content: [{ type: "text", text: "" }] },
+    } satisfies ChatEvent);
+
+    expect(setActivityStatus).toHaveBeenLastCalledWith("running");
+
+    vi.advanceTimersByTime(10_000);
+
+    expect(setActivityStatus).not.toHaveBeenCalledWith("idle");
+    expect(chatLog.addSystem).not.toHaveBeenCalledWith(
+      expect.stringContaining("streaming watchdog"),
+    );
+    expect(state.activeChatRunId).toBe("run-tool-only");
+
+    handlers.dispose?.();
+  });
+
   it("does not let an older run steal the active run watchdog", () => {
     const { state, chatLog, setActivityStatus, handlers } = createHarness({
       streamingWatchdogMs: 5_000,

@@ -3,10 +3,15 @@ import { isEmbeddedMode, setEmbeddedMode } from "../infra/embedded-mode.js";
 import { defaultRuntime } from "../runtime.js";
 
 const agentCommandFromIngressMock = vi.fn();
+const getReplyFromConfigMock = vi.fn();
 let registeredListener: ((evt: unknown) => void) | undefined;
 
 vi.mock("../agents/agent-command.js", () => ({
   agentCommandFromIngress: (...args: unknown[]) => agentCommandFromIngressMock(...args),
+}));
+
+vi.mock("../auto-reply/reply/get-reply.js", () => ({
+  getReplyFromConfig: (...args: unknown[]) => getReplyFromConfigMock(...args),
 }));
 
 vi.mock("../infra/agent-events.js", () => ({
@@ -127,12 +132,19 @@ async function flushMicrotasks() {
   await Promise.resolve();
 }
 
+async function flushAsyncTurn() {
+  await flushMicrotasks();
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  await flushMicrotasks();
+}
+
 describe("EmbeddedTuiBackend", () => {
   const originalRuntimeLog = defaultRuntime.log;
   const originalRuntimeError = defaultRuntime.error;
 
   beforeEach(() => {
     agentCommandFromIngressMock.mockReset();
+    getReplyFromConfigMock.mockReset();
     registeredListener = undefined;
     setEmbeddedMode(false);
     defaultRuntime.log = originalRuntimeLog;
@@ -330,6 +342,100 @@ describe("EmbeddedTuiBackend", () => {
         },
       },
     ]);
+  });
+
+  it("routes local text slash commands through the reply command pipeline", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    getReplyFromConfigMock.mockResolvedValueOnce({ text: "Memory commands:" });
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "/memory",
+      runId: "run-memory-command",
+    });
+    await flushAsyncTurn();
+
+    expect(agentCommandFromIngressMock).not.toHaveBeenCalled();
+    expect(getReplyFromConfigMock).toHaveBeenCalledOnce();
+    expect(events).toEqual([
+      {
+        event: "chat",
+        payload: {
+          runId: "run-memory-command",
+          sessionKey: "agent:main:main",
+          state: "final",
+          message: {
+            role: "assistant",
+            command: true,
+            content: [{ type: "text", text: "Memory commands:" }],
+            timestamp: expect.any(Number),
+          },
+        },
+      },
+    ]);
+  });
+
+  it("does not turn transient lifecycle errors into chat errors before fallback completes", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const pending = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    agentCommandFromIngressMock.mockReturnValueOnce(pending.promise);
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "hello",
+      runId: "run-fallback",
+    });
+
+    registeredListener?.({
+      runId: "run-fallback",
+      stream: "lifecycle",
+      data: { phase: "error", error: "429 rate limit" },
+    });
+    registeredListener?.({
+      runId: "run-fallback",
+      stream: "assistant",
+      data: { text: "recovered", delta: "recovered" },
+    });
+    registeredListener?.({
+      runId: "run-fallback",
+      stream: "lifecycle",
+      data: { phase: "end", stopReason: "stop" },
+    });
+
+    pending.resolve({ payloads: [{ text: "recovered" }], meta: {} });
+    await flushMicrotasks();
+
+    const chatPayloads = events
+      .filter((entry) => entry.event === "chat")
+      .map((entry) => entry.payload as { state?: string; errorMessage?: string });
+    expect(chatPayloads.some((payload) => payload.state === "error")).toBe(false);
+    expect(chatPayloads.at(-1)).toEqual(
+      expect.objectContaining({
+        state: "final",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "recovered" }],
+          timestamp: expect.any(Number),
+        },
+      }),
+    );
   });
 
   it("registers tool-first local runs before forwarding agent events", async () => {

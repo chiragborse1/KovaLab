@@ -830,7 +830,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         return;
       }
       updateBusyStatusMessage();
-    }, 120);
+    }, 300);
   };
 
   const stopWaitingTimer = () => {
