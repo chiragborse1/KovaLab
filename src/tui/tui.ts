@@ -1283,11 +1283,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     const reconnected = wasDisconnected;
     wasDisconnected = false;
     setConnectionStatus(isLocalMode ? "local ready" : "connected");
-    void (async () => {
-      await refreshAgents();
-      updateHeader();
-      updateAutocompleteProvider();
-      await loadHistory();
+    const finishStartupHydration = () => {
       startupHydrated = true;
       clearCatalogRefreshTimer();
       scheduleHeroCatalogRefresh(250);
@@ -1295,13 +1291,27 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         isLocalMode ? "local ready" : reconnected ? "gateway reconnected" : "gateway connected",
         4000,
       );
+      updateFooter();
+      tui.requestRender();
+    };
+    const loadStartupHistory = async () => {
+      try {
+        await loadHistory();
+      } finally {
+        finishStartupHydration();
+      }
+    };
+    void (async () => {
+      await refreshAgents();
+      updateHeader();
+      updateAutocompleteProvider();
+      updateFooter();
       tui.requestRender();
       if (!autoMessageSent && autoMessage) {
         autoMessageSent = true;
-        await sendMessage(autoMessage);
+        void sendMessage(autoMessage);
       }
-      updateFooter();
-      tui.requestRender();
+      void loadStartupHistory();
     })();
   };
 
