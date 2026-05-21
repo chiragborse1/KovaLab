@@ -55,6 +55,27 @@ JSON examples:
 }
 ```
 
+## Checkpoint restore
+
+Compaction can keep pre-compaction checkpoints for a session. Use
+`kova sessions checkpoints` to inspect them from the terminal through the
+running Gateway:
+
+```bash
+kova sessions checkpoints agent:main:main
+kova sessions checkpoints agent:main:main --checkpoint-id <id>
+kova sessions checkpoints agent:main:main --checkpoint-id <id> --branch
+kova sessions checkpoints agent:main:main --checkpoint-id <id> --restore
+kova sessions checkpoints agent:main:main --checkpoint-id <id> --restore --confirm
+```
+
+- Default behavior is read-only: without `--branch` or `--restore`, the command lists checkpoints or shows one checkpoint.
+- `--branch` creates a separate session from the pre-compaction snapshot and keeps the current session unchanged.
+- `--restore` previews the rollback and makes no changes unless `--confirm` is also present.
+- `--restore --confirm` replaces the current session with a branch of the pre-compaction snapshot. The Gateway interrupts an active run first when needed.
+- Gateway connection options are supported: `--url`, `--token`, and `--timeout`.
+- `--json` prints machine-readable output.
+
 ## Cleanup maintenance
 
 Run maintenance now (instead of waiting for the next write cycle):
