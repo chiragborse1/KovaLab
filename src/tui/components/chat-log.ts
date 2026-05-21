@@ -12,6 +12,7 @@ export class ChatLog extends Container {
   private readonly maxComponents: number;
   private toolById = new Map<string, ToolExecutionComponent>();
   private streamingRuns = new Map<string, AssistantMessageComponent>();
+  private assistantTextByRun = new Map<string, string>();
   private pendingUsers = new Map<
     string,
     {
@@ -37,6 +38,7 @@ export class ChatLog extends Container {
     for (const [runId, message] of this.streamingRuns.entries()) {
       if (message === component) {
         this.streamingRuns.delete(runId);
+        this.assistantTextByRun.delete(runId);
       }
     }
     for (const [runId, entry] of this.pendingUsers.entries()) {
@@ -69,6 +71,7 @@ export class ChatLog extends Container {
     this.clear();
     this.toolById.clear();
     this.streamingRuns.clear();
+    this.assistantTextByRun.clear();
     this.btwMessage = null;
     if (!opts?.preservePendingUsers) {
       this.pendingUsers.clear();
@@ -187,11 +190,15 @@ export class ChatLog extends Container {
     const effectiveRunId = this.resolveRunId(runId);
     const existing = this.streamingRuns.get(effectiveRunId);
     if (existing) {
-      existing.setText(text);
+      if (this.assistantTextByRun.get(effectiveRunId) !== text) {
+        existing.setText(text);
+        this.assistantTextByRun.set(effectiveRunId, text);
+      }
       return existing;
     }
     const component = new AssistantMessageComponent(text);
     this.streamingRuns.set(effectiveRunId, component);
+    this.assistantTextByRun.set(effectiveRunId, text);
     this.append(component);
     return component;
   }
@@ -203,15 +210,22 @@ export class ChatLog extends Container {
       this.startAssistant(text, runId);
       return;
     }
+    if (this.assistantTextByRun.get(effectiveRunId) === text) {
+      return;
+    }
     existing.setText(text);
+    this.assistantTextByRun.set(effectiveRunId, text);
   }
 
   finalizeAssistant(text: string, runId?: string) {
     const effectiveRunId = this.resolveRunId(runId);
     const existing = this.streamingRuns.get(effectiveRunId);
     if (existing) {
-      existing.setText(text);
+      if (this.assistantTextByRun.get(effectiveRunId) !== text) {
+        existing.setText(text);
+      }
       this.streamingRuns.delete(effectiveRunId);
+      this.assistantTextByRun.delete(effectiveRunId);
       return;
     }
     this.append(new AssistantMessageComponent(text));
@@ -225,6 +239,7 @@ export class ChatLog extends Container {
     }
     this.removeChild(existing);
     this.streamingRuns.delete(effectiveRunId);
+    this.assistantTextByRun.delete(effectiveRunId);
   }
 
   showBtw(params: { question: string; text: string; isError?: boolean }) {

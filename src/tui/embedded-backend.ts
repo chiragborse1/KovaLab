@@ -47,6 +47,7 @@ type AgentTimestampModule = typeof import("../gateway/server-methods/agent-times
 type ChatServerMethodsModule = typeof import("../gateway/server-methods/chat.js");
 type SessionUtilsFsModule = typeof import("../gateway/session-utils.fs.js");
 type SessionUtilsModule = typeof import("../gateway/session-utils.js");
+type AgentCommandModule = typeof import("../agents/agent-command.js");
 
 let agentScopeModulePromise: Promise<AgentScopeModule> | null = null;
 let configModulePromise: Promise<ConfigModule> | null = null;
@@ -57,6 +58,9 @@ let agentTimestampModulePromise: Promise<AgentTimestampModule> | null = null;
 let chatServerMethodsModulePromise: Promise<ChatServerMethodsModule> | null = null;
 let sessionUtilsFsModulePromise: Promise<SessionUtilsFsModule> | null = null;
 let sessionUtilsModulePromise: Promise<SessionUtilsModule> | null = null;
+let agentCommandModulePromise: Promise<AgentCommandModule> | null = null;
+
+const EMBEDDED_TUI_WARMUP_DELAY_MS = 16;
 
 function getAgentScopeModule() {
   agentScopeModulePromise ??= import("../agents/agent-scope.js");
@@ -101,6 +105,11 @@ function getSessionUtilsFsModule() {
 function getSessionUtilsModule() {
   sessionUtilsModulePromise ??= import("../gateway/session-utils.js");
   return sessionUtilsModulePromise;
+}
+
+function getAgentCommandModule() {
+  agentCommandModulePromise ??= import("../agents/agent-command.js");
+  return agentCommandModulePromise;
 }
 
 const silentRuntime = {
@@ -179,6 +188,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   private readonly runs = new Map<string, LocalRunState>();
   private unsubscribe?: () => void;
   private warmupTimer?: ReturnType<typeof setTimeout>;
+  private warmupPromise?: Promise<void>;
   private previousRuntimeLog?: typeof defaultRuntime.log;
   private previousRuntimeError?: typeof defaultRuntime.error;
   private seq = 0;
@@ -619,19 +629,19 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   private scheduleWarmup() {
-    if (this.warmupTimer) {
+    if (this.warmupTimer || this.warmupPromise) {
       return;
     }
     this.warmupTimer = setTimeout(() => {
       this.warmupTimer = undefined;
-      void Promise.allSettled([
+      this.warmupPromise = Promise.allSettled([
         getConfigModule(),
         getSessionUtilsModule(),
         getAgentTimestampModule(),
-        import("../agents/agent-command.js"),
+        getAgentCommandModule(),
         this.getDeps(),
-      ]);
-    }, 250);
+      ]).then(() => undefined);
+    }, EMBEDDED_TUI_WARMUP_DELAY_MS);
     this.warmupTimer.unref?.();
   }
 
@@ -951,7 +961,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
       }
       this.runs.get(params.runId)?.trace.step("agent.imports.start");
       const [{ agentCommandFromIngress }, deps] = await Promise.all([
-        import("../agents/agent-command.js"),
+        getAgentCommandModule(),
         this.getDeps(),
       ]);
       this.runs.get(params.runId)?.trace.step("agent.imports.end");

@@ -4,6 +4,7 @@ import { defaultRuntime } from "../runtime.js";
 
 const agentCommandFromIngressMock = vi.fn();
 const getReplyFromConfigMock = vi.fn();
+const createDefaultDepsMock = vi.fn(() => ({}));
 let registeredListener: ((evt: unknown) => void) | undefined;
 
 vi.mock("../agents/agent-command.js", () => ({
@@ -26,7 +27,7 @@ vi.mock("../infra/agent-events.js", () => ({
 }));
 
 vi.mock("../cli/deps.js", () => ({
-  createDefaultDeps: () => ({}),
+  createDefaultDeps: () => createDefaultDepsMock(),
 }));
 
 vi.mock("../config/sessions.js", () => ({
@@ -158,6 +159,7 @@ describe("EmbeddedTuiBackend", () => {
   beforeEach(() => {
     agentCommandFromIngressMock.mockReset();
     getReplyFromConfigMock.mockReset();
+    createDefaultDepsMock.mockClear();
     registeredListener = undefined;
     setEmbeddedMode(false);
     defaultRuntime.log = originalRuntimeLog;
@@ -261,6 +263,33 @@ describe("EmbeddedTuiBackend", () => {
         },
       },
     ]);
+  });
+
+  it("warms embedded chat imports shortly after connect without blocking connection", async () => {
+    vi.useFakeTimers();
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const backend = new EmbeddedTuiBackend();
+    const onConnected = vi.fn();
+    backend.onConnected = onConnected;
+
+    try {
+      backend.start();
+      await flushMicrotasks();
+
+      expect(onConnected).toHaveBeenCalledTimes(1);
+      expect(createDefaultDepsMock).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(15);
+      expect(createDefaultDepsMock).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1);
+      await flushMicrotasks();
+
+      expect(createDefaultDepsMock).toHaveBeenCalledTimes(1);
+    } finally {
+      backend.stop();
+      vi.useRealTimers();
+    }
   });
 
   it("keeps final short replies like No after suppressing lead-fragment deltas", async () => {

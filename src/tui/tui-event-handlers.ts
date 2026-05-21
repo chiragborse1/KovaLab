@@ -44,10 +44,13 @@ type EventHandlerContext = {
   clearLocalBtwRunIds?: () => void;
   /** Reset `streaming` after this much delta silence. Set to 0 to disable. */
   streamingWatchdogMs?: number;
+  /** Minimum delay between assistant text renders. Set to 0 to render every delta. */
+  assistantDeltaRenderIntervalMs?: number;
   localMode?: boolean;
 };
 
 const DEFAULT_STREAMING_WATCHDOG_MS = 30_000;
+const DEFAULT_ASSISTANT_DELTA_RENDER_INTERVAL_MS = 32;
 const RUN_RECOVERY_HINT =
   "Recovery: session history is preserved; use /sessions to reopen saved sessions, /reset to start clean, or !kova tasks list to inspect detached background work.";
 const STALE_RUN_RECOVERY_HINT =
@@ -76,6 +79,10 @@ export function createEventHandlers(context: EventHandlerContext) {
   let streamAssembler = new TuiStreamAssembler();
   let lastSessionKey = state.currentSessionKey;
   let pendingHistoryRefresh = false;
+  let assistantDeltaRenderTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastAssistantDeltaRenderAt: number | null = null;
+  const pendingAssistantDeltas = new Map<string, string>();
+  const renderedAssistantRuns = new Set<string>();
 
   const streamingWatchdogMs =
     typeof context.streamingWatchdogMs === "number" &&
@@ -83,6 +90,12 @@ export function createEventHandlers(context: EventHandlerContext) {
     context.streamingWatchdogMs >= 0
       ? Math.floor(context.streamingWatchdogMs)
       : DEFAULT_STREAMING_WATCHDOG_MS;
+  const assistantDeltaRenderIntervalMs =
+    typeof context.assistantDeltaRenderIntervalMs === "number" &&
+    Number.isFinite(context.assistantDeltaRenderIntervalMs) &&
+    context.assistantDeltaRenderIntervalMs >= 0
+      ? Math.floor(context.assistantDeltaRenderIntervalMs)
+      : DEFAULT_ASSISTANT_DELTA_RENDER_INTERVAL_MS;
   let streamingWatchdogTimer: ReturnType<typeof setTimeout> | null = null;
   let streamingWatchdogRunId: string | null = null;
 
@@ -123,6 +136,83 @@ export function createEventHandlers(context: EventHandlerContext) {
     }
   };
 
+  const clearAssistantDeltaRenderTimer = () => {
+    if (assistantDeltaRenderTimer) {
+      clearTimeout(assistantDeltaRenderTimer);
+      assistantDeltaRenderTimer = null;
+    }
+  };
+
+  const flushPendingAssistantDeltas = (runId?: string, opts: { requestRender?: boolean } = {}) => {
+    const entries =
+      typeof runId === "string"
+        ? pendingAssistantDeltas.has(runId)
+          ? ([[runId, pendingAssistantDeltas.get(runId) as string]] as Array<[string, string]>)
+          : []
+        : Array.from(pendingAssistantDeltas.entries());
+    if (entries.length === 0) {
+      return false;
+    }
+    for (const [entryRunId, text] of entries) {
+      pendingAssistantDeltas.delete(entryRunId);
+      renderedAssistantRuns.add(entryRunId);
+      chatLog.updateAssistant(text, entryRunId);
+    }
+    lastAssistantDeltaRenderAt = Date.now();
+    if (pendingAssistantDeltas.size === 0) {
+      clearAssistantDeltaRenderTimer();
+    }
+    if (opts.requestRender !== false) {
+      tui.requestRender();
+    }
+    return true;
+  };
+
+  const dropPendingAssistantDelta = (runId: string) => {
+    pendingAssistantDeltas.delete(runId);
+    renderedAssistantRuns.delete(runId);
+    if (pendingAssistantDeltas.size === 0) {
+      clearAssistantDeltaRenderTimer();
+    }
+  };
+
+  const clearPendingAssistantDeltas = () => {
+    pendingAssistantDeltas.clear();
+    renderedAssistantRuns.clear();
+    clearAssistantDeltaRenderTimer();
+  };
+
+  const scheduleAssistantDeltaRender = (runId: string, text: string) => {
+    pendingAssistantDeltas.set(runId, text);
+    if (
+      assistantDeltaRenderIntervalMs <= 0 ||
+      lastAssistantDeltaRenderAt === null ||
+      !renderedAssistantRuns.has(runId)
+    ) {
+      flushPendingAssistantDeltas(runId);
+      return;
+    }
+
+    const now = Date.now();
+    const elapsedMs = now - lastAssistantDeltaRenderAt;
+    if (elapsedMs >= assistantDeltaRenderIntervalMs) {
+      flushPendingAssistantDeltas(runId);
+      return;
+    }
+
+    if (assistantDeltaRenderTimer) {
+      return;
+    }
+    assistantDeltaRenderTimer = setTimeout(() => {
+      assistantDeltaRenderTimer = null;
+      flushPendingAssistantDeltas();
+    }, assistantDeltaRenderIntervalMs - elapsedMs);
+    const maybeUnref = (assistantDeltaRenderTimer as { unref?: () => void }).unref;
+    if (typeof maybeUnref === "function") {
+      maybeUnref.call(assistantDeltaRenderTimer);
+    }
+  };
+
   const pruneRunMap = (runs: Map<string, number>) => {
     if (runs.size <= 200) {
       return;
@@ -154,6 +244,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     finalizedRuns.clear();
     sessionRuns.clear();
     streamAssembler = new TuiStreamAssembler();
+    clearPendingAssistantDeltas();
     pendingHistoryRefresh = false;
     state.pendingOptimisticUserMessage = false;
     clearLocalRunIds?.();
@@ -189,6 +280,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     finalizedRuns.set(runId, Date.now());
     sessionRuns.delete(runId);
     streamAssembler.drop(runId);
+    dropPendingAssistantDelta(runId);
     pruneRunMap(finalizedRuns);
   };
 
@@ -221,6 +313,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     status: "aborted" | "error";
   }) => {
     streamAssembler.drop(params.runId);
+    dropPendingAssistantDelta(params.runId);
     sessionRuns.delete(params.runId);
     clearActiveRunIfMatch(params.runId);
     flushPendingHistoryRefreshIfIdle();
@@ -318,13 +411,15 @@ export function createEventHandlers(context: EventHandlerContext) {
       const displayText = streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
       if (!displayText) {
         setActivityStatus("waiting");
+        tui.requestRender();
         return;
       }
       setActivityStatus("streaming");
       if (state.activeChatRunId === evt.runId) {
         armStreamingWatchdog(evt.runId);
       }
-      chatLog.updateAssistant(displayText, evt.runId);
+      scheduleAssistantDeltaRender(evt.runId, displayText);
+      return;
     }
     if (evt.state === "final") {
       const isLocalBtwRun = isLocalBtwRunId?.(evt.runId) ?? false;
@@ -384,6 +479,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     if (evt.state === "aborted") {
       forgetLocalBtwRunId?.(evt.runId);
       const wasActiveRun = state.activeChatRunId === evt.runId;
+      flushPendingAssistantDeltas(evt.runId, { requestRender: false });
       chatLog.addSystem("run aborted");
       chatLog.addSystem(RUN_RECOVERY_HINT);
       terminateRun({ runId: evt.runId, wasActiveRun, status: "aborted" });
@@ -394,6 +490,7 @@ export function createEventHandlers(context: EventHandlerContext) {
       const wasActiveRun = state.activeChatRunId === evt.runId;
       const errorMessage = evt.errorMessage ?? "unknown";
       const authHint = resolveAuthErrorHint(errorMessage);
+      flushPendingAssistantDeltas(evt.runId, { requestRender: false });
       chatLog.addSystem(authHint ?? `run error: ${errorMessage}`);
       if (!authHint) {
         chatLog.addSystem(RUN_RECOVERY_HINT);
@@ -502,6 +599,7 @@ export function createEventHandlers(context: EventHandlerContext) {
 
   const dispose = () => {
     clearStreamingWatchdog();
+    clearPendingAssistantDeltas();
   };
 
   return { handleChatEvent, handleAgentEvent, handleBtwEvent, dispose };

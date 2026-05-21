@@ -117,6 +117,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     chatLog?: HandlerChatLog;
     btw?: HandlerBtwPresenter;
     localMode?: boolean;
+    assistantDeltaRenderIntervalMs?: number;
   }) => {
     const state = makeState(params?.state);
     const context = makeContext(state);
@@ -127,6 +128,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
       tui: context.tui,
       state,
       localMode: params?.localMode,
+      assistantDeltaRenderIntervalMs: params?.assistantDeltaRenderIntervalMs,
       setActivityStatus: context.setActivityStatus,
       loadHistory: context.loadHistory,
       noteLocalRunId: context.noteLocalRunId,
@@ -508,6 +510,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     const { state, chatLog, setActivityStatus, loadHistory, handleChatEvent } =
       createHandlersHarness({
         state: { activeChatRunId: "run-active" },
+        assistantDeltaRenderIntervalMs: 0,
       });
 
     handleChatEvent({
@@ -724,6 +727,157 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     });
 
     expect(loadHistory).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("tui-event-handlers: assistant delta render batching", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("renders the first assistant delta immediately and coalesces rapid follow-up deltas", () => {
+    const state: TuiStateAccess = {
+      agentDefaultId: "main",
+      sessionMainKey: "agent:main:main",
+      sessionScope: "global",
+      agents: [],
+      currentAgentId: "main",
+      currentSessionKey: "agent:main:main",
+      currentSessionId: "session-1",
+      activeChatRunId: null,
+      pendingOptimisticUserMessage: false,
+      historyLoaded: true,
+      sessionInfo: { verboseLevel: "on" },
+      initialSessionApplied: true,
+      isConnected: true,
+      autoMessageSent: false,
+      toolsExpanded: false,
+      showThinking: false,
+      connectionStatus: "connected",
+      activityStatus: "idle",
+      statusTimeout: null,
+      lastCtrlCAt: 0,
+    };
+    const chatLog = createMockChatLog();
+    const handlers = createEventHandlers({
+      chatLog,
+      btw: createMockBtwPresenter(),
+      tui: { requestRender: vi.fn() } as unknown as MockTui & HandlerTui,
+      state,
+      setActivityStatus: vi.fn(),
+      assistantDeltaRenderIntervalMs: 40,
+    });
+
+    handlers.handleChatEvent({
+      runId: "run-batch",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "h" },
+    } satisfies ChatEvent);
+    handlers.handleChatEvent({
+      runId: "run-batch",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "he" },
+    } satisfies ChatEvent);
+    handlers.handleChatEvent({
+      runId: "run-batch",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "hel" },
+    } satisfies ChatEvent);
+
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(1);
+    expect(chatLog.updateAssistant).toHaveBeenLastCalledWith("h", "run-batch");
+
+    handlers.handleChatEvent({
+      runId: "run-second",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "x" },
+    } satisfies ChatEvent);
+
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(2);
+    expect(chatLog.updateAssistant).toHaveBeenLastCalledWith("x", "run-second");
+
+    vi.advanceTimersByTime(39);
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(2);
+
+    vi.advanceTimersByTime(1);
+
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(3);
+    expect(chatLog.updateAssistant).toHaveBeenLastCalledWith("hel", "run-batch");
+
+    handlers.dispose?.();
+  });
+
+  it("flushes a pending assistant delta before showing a run error", () => {
+    const state: TuiStateAccess = {
+      agentDefaultId: "main",
+      sessionMainKey: "agent:main:main",
+      sessionScope: "global",
+      agents: [],
+      currentAgentId: "main",
+      currentSessionKey: "agent:main:main",
+      currentSessionId: "session-1",
+      activeChatRunId: null,
+      pendingOptimisticUserMessage: false,
+      historyLoaded: true,
+      sessionInfo: { verboseLevel: "on" },
+      initialSessionApplied: true,
+      isConnected: true,
+      autoMessageSent: false,
+      toolsExpanded: false,
+      showThinking: false,
+      connectionStatus: "connected",
+      activityStatus: "idle",
+      statusTimeout: null,
+      lastCtrlCAt: 0,
+    };
+    const chatLog = createMockChatLog();
+    const handlers = createEventHandlers({
+      chatLog,
+      btw: createMockBtwPresenter(),
+      tui: { requestRender: vi.fn() } as unknown as MockTui & HandlerTui,
+      state,
+      setActivityStatus: vi.fn(),
+      assistantDeltaRenderIntervalMs: 40,
+    });
+
+    handlers.handleChatEvent({
+      runId: "run-error-after-delta",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "part" },
+    } satisfies ChatEvent);
+    handlers.handleChatEvent({
+      runId: "run-error-after-delta",
+      sessionKey: state.currentSessionKey,
+      state: "delta",
+      message: { content: "partial" },
+    } satisfies ChatEvent);
+
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(1);
+
+    handlers.handleChatEvent({
+      runId: "run-error-after-delta",
+      sessionKey: state.currentSessionKey,
+      state: "error",
+      errorMessage: "provider failed",
+    } satisfies ChatEvent);
+
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(2);
+    expect(chatLog.updateAssistant).toHaveBeenLastCalledWith("partial", "run-error-after-delta");
+    expect(chatLog.addSystem).toHaveBeenCalledWith("run error: provider failed");
+
+    vi.advanceTimersByTime(40);
+    expect(chatLog.updateAssistant).toHaveBeenCalledTimes(2);
+
+    handlers.dispose?.();
   });
 });
 
