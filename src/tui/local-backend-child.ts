@@ -1,4 +1,6 @@
+import path from "node:path";
 import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
 import type { TuiBackend } from "./tui-backend.js";
 
 type ChildRequest =
@@ -156,4 +158,11 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
   }
 
   backend.stop();
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  runEmbeddedTuiBackendStdio().catch((error: unknown) => {
+    writeProtocol({ type: "fatal", error: errorMessage(error) });
+    process.exit(1);
+  });
 }

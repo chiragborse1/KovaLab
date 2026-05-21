@@ -1,14 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { resolveSessionAgentId } from "../agents/agent-scope.js";
 import type { SkillStatusReport } from "../agents/skills-status.js";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import type { MsgContext } from "../auto-reply/templating.js";
-import { getRuntimeConfig } from "../config/config.js";
-import {
-  projectRecentChatDisplayMessages,
-  resolveEffectiveChatHistoryMaxChars,
-} from "../gateway/chat-display-projection.js";
-import { augmentChatHistoryWithCliSessionImports } from "../gateway/cli-session-history.js";
 import {
   normalizeLiveAssistantEventText,
   projectLiveAssistantBufferedText,
@@ -16,28 +9,6 @@ import {
   shouldSuppressAssistantEventForLiveChat,
 } from "../gateway/live-chat-projector.js";
 import type { SessionsPatchResult } from "../gateway/protocol/index.js";
-import { getMaxChatHistoryMessagesBytes } from "../gateway/server-constants.js";
-import {
-  injectTimestamp,
-  timestampOptsFromConfig,
-} from "../gateway/server-methods/agent-timestamp.js";
-import {
-  augmentChatHistoryWithCanvasBlocks,
-  CHAT_HISTORY_MAX_SINGLE_MESSAGE_BYTES,
-  enforceChatHistoryFinalBudget,
-  replaceOversizedChatHistoryMessages,
-} from "../gateway/server-methods/chat.js";
-import { capArrayByJsonBytes } from "../gateway/session-utils.fs.js";
-import {
-  listAgentsForGateway,
-  listSessionsFromStore,
-  loadCombinedSessionStoreForGateway,
-  loadSessionEntry,
-  migrateAndPruneGatewaySessionStoreKey,
-  resolveGatewaySessionStoreTarget,
-  resolveSessionModelRef,
-  readSessionMessages,
-} from "../gateway/session-utils.js";
 import { type AgentEventPayload, onAgentEvent } from "../infra/agent-events.js";
 import { setEmbeddedMode } from "../infra/embedded-mode.js";
 import { defaultRuntime } from "../runtime.js";
@@ -66,6 +37,70 @@ type LocalRunState = {
 };
 
 type DefaultDeps = ReturnType<(typeof import("../cli/deps.js"))["createDefaultDeps"]>;
+type AgentScopeModule = typeof import("../agents/agent-scope.js");
+type ConfigModule = typeof import("../config/config.js");
+type ChatDisplayProjectionModule = typeof import("../gateway/chat-display-projection.js");
+type CliSessionHistoryModule = typeof import("../gateway/cli-session-history.js");
+type ServerConstantsModule = typeof import("../gateway/server-constants.js");
+type AgentTimestampModule = typeof import("../gateway/server-methods/agent-timestamp.js");
+type ChatServerMethodsModule = typeof import("../gateway/server-methods/chat.js");
+type SessionUtilsFsModule = typeof import("../gateway/session-utils.fs.js");
+type SessionUtilsModule = typeof import("../gateway/session-utils.js");
+
+let agentScopeModulePromise: Promise<AgentScopeModule> | null = null;
+let configModulePromise: Promise<ConfigModule> | null = null;
+let chatDisplayProjectionModulePromise: Promise<ChatDisplayProjectionModule> | null = null;
+let cliSessionHistoryModulePromise: Promise<CliSessionHistoryModule> | null = null;
+let serverConstantsModulePromise: Promise<ServerConstantsModule> | null = null;
+let agentTimestampModulePromise: Promise<AgentTimestampModule> | null = null;
+let chatServerMethodsModulePromise: Promise<ChatServerMethodsModule> | null = null;
+let sessionUtilsFsModulePromise: Promise<SessionUtilsFsModule> | null = null;
+let sessionUtilsModulePromise: Promise<SessionUtilsModule> | null = null;
+
+function getAgentScopeModule() {
+  agentScopeModulePromise ??= import("../agents/agent-scope.js");
+  return agentScopeModulePromise;
+}
+
+function getConfigModule() {
+  configModulePromise ??= import("../config/config.js");
+  return configModulePromise;
+}
+
+function getChatDisplayProjectionModule() {
+  chatDisplayProjectionModulePromise ??= import("../gateway/chat-display-projection.js");
+  return chatDisplayProjectionModulePromise;
+}
+
+function getCliSessionHistoryModule() {
+  cliSessionHistoryModulePromise ??= import("../gateway/cli-session-history.js");
+  return cliSessionHistoryModulePromise;
+}
+
+function getServerConstantsModule() {
+  serverConstantsModulePromise ??= import("../gateway/server-constants.js");
+  return serverConstantsModulePromise;
+}
+
+function getAgentTimestampModule() {
+  agentTimestampModulePromise ??= import("../gateway/server-methods/agent-timestamp.js");
+  return agentTimestampModulePromise;
+}
+
+function getChatServerMethodsModule() {
+  chatServerMethodsModulePromise ??= import("../gateway/server-methods/chat.js");
+  return chatServerMethodsModulePromise;
+}
+
+function getSessionUtilsFsModule() {
+  sessionUtilsFsModulePromise ??= import("../gateway/session-utils.fs.js");
+  return sessionUtilsFsModulePromise;
+}
+
+function getSessionUtilsModule() {
+  sessionUtilsModulePromise ??= import("../gateway/session-utils.js");
+  return sessionUtilsModulePromise;
+}
 
 const silentRuntime = {
   log: (..._args: unknown[]) => undefined,
@@ -139,8 +174,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
   onGap?: (info: { expected: number; received: number }) => void;
 
   private deps?: DefaultDeps;
+  private depsPromise?: Promise<DefaultDeps>;
   private readonly runs = new Map<string, LocalRunState>();
   private unsubscribe?: () => void;
+  private warmupTimer?: ReturnType<typeof setTimeout>;
   private previousRuntimeLog?: typeof defaultRuntime.log;
   private previousRuntimeError?: typeof defaultRuntime.error;
   private seq = 0;
@@ -161,10 +198,15 @@ export class EmbeddedTuiBackend implements TuiBackend {
     });
     queueMicrotask(() => {
       this.onConnected?.();
+      this.scheduleWarmup();
     });
   }
 
   stop() {
+    if (this.warmupTimer) {
+      clearTimeout(this.warmupTimer);
+      this.warmupTimer = undefined;
+    }
     this.unsubscribe?.();
     this.unsubscribe = undefined;
     for (const run of this.runs.values()) {
@@ -227,6 +269,28 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async loadHistory(opts: { sessionKey: string; limit?: number }) {
+    const [
+      { resolveSessionAgentId },
+      { projectRecentChatDisplayMessages, resolveEffectiveChatHistoryMaxChars },
+      { augmentChatHistoryWithCliSessionImports },
+      { getMaxChatHistoryMessagesBytes },
+      {
+        augmentChatHistoryWithCanvasBlocks,
+        CHAT_HISTORY_MAX_SINGLE_MESSAGE_BYTES,
+        enforceChatHistoryFinalBudget,
+        replaceOversizedChatHistoryMessages,
+      },
+      { capArrayByJsonBytes },
+      { loadSessionEntry, readSessionMessages, resolveSessionModelRef },
+    ] = await Promise.all([
+      getAgentScopeModule(),
+      getChatDisplayProjectionModule(),
+      getCliSessionHistoryModule(),
+      getServerConstantsModule(),
+      getChatServerMethodsModule(),
+      getSessionUtilsFsModule(),
+      getSessionUtilsModule(),
+    ]);
     const { cfg, storePath, entry } = loadSessionEntry(opts.sessionKey);
     const sessionId = entry?.sessionId;
     const sessionAgentId = resolveSessionAgentId({ sessionKey: opts.sessionKey, config: cfg });
@@ -277,6 +341,9 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listSessions(opts?: Parameters<TuiBackend["listSessions"]>[0]): Promise<TuiSessionList> {
+    const { getRuntimeConfig } = await getConfigModule();
+    const { listSessionsFromStore, loadCombinedSessionStoreForGateway } =
+      await getSessionUtilsModule();
     const cfg = getRuntimeConfig();
     const { storePath, store } = loadCombinedSessionStoreForGateway(cfg);
     return listSessionsFromStore({
@@ -288,12 +355,25 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listAgents(): Promise<TuiAgentsList> {
+    const [{ getRuntimeConfig }, { listAgentsForGateway }] = await Promise.all([
+      getConfigModule(),
+      getSessionUtilsModule(),
+    ]);
     return listAgentsForGateway(getRuntimeConfig()) as TuiAgentsList;
   }
 
   async patchSession(
     opts: Parameters<TuiBackend["patchSession"]>[0],
   ): Promise<SessionsPatchResult> {
+    const [
+      { resolveSessionAgentId },
+      { getRuntimeConfig },
+      {
+        migrateAndPruneGatewaySessionStoreKey,
+        resolveGatewaySessionStoreTarget,
+        resolveSessionModelRef,
+      },
+    ] = await Promise.all([getAgentScopeModule(), getConfigModule(), getSessionUtilsModule()]);
     const cfg = getRuntimeConfig();
     const target = resolveGatewaySessionStoreTarget({ cfg, key: opts.key });
     const [{ updateSessionStore }, { applySessionsPatchToStore }, { loadGatewayModelCatalog }] =
@@ -355,12 +435,17 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listModels(): Promise<TuiModelChoice[]> {
-    const [{ DEFAULT_PROVIDER }, { buildAllowedModelSet }, { loadGatewayModelCatalog }] =
-      await Promise.all([
-        import("../agents/defaults.js"),
-        import("../agents/model-selection.js"),
-        import("../gateway/server-model-catalog.js"),
-      ]);
+    const [
+      { DEFAULT_PROVIDER },
+      { buildAllowedModelSet },
+      { getRuntimeConfig },
+      { loadGatewayModelCatalog },
+    ] = await Promise.all([
+      import("../agents/defaults.js"),
+      import("../agents/model-selection.js"),
+      getConfigModule(),
+      import("../gateway/server-model-catalog.js"),
+    ]);
     const catalog = await loadGatewayModelCatalog();
     const cfg = getRuntimeConfig();
     const { allowedCatalog } = buildAllowedModelSet({
@@ -379,7 +464,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listTools(opts: { agentId: string; includePlugins?: boolean }) {
-    const { buildToolsCatalogResult } = await import("../gateway/server-methods/tools-catalog.js");
+    const [{ getRuntimeConfig }, { buildToolsCatalogResult }] = await Promise.all([
+      getConfigModule(),
+      import("../gateway/server-methods/tools-catalog.js"),
+    ]);
     return buildToolsCatalogResult({
       cfg: getRuntimeConfig(),
       agentId: opts.agentId,
@@ -394,11 +482,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
       { buildWorkspaceSkillStatus },
       { getRemoteSkillEligibility },
     ] = await Promise.all([
-      import("../agents/agent-scope.js"),
+      getAgentScopeModule(),
       import("../agents/exec-defaults.js"),
       import("../agents/skills-status.js"),
       import("../infra/skills-remote.js"),
     ]);
+    const { getRuntimeConfig } = await getConfigModule();
     const cfg = getRuntimeConfig();
     const workspaceDir = resolveAgentWorkspaceDir(cfg, opts.agentId);
     return buildWorkspaceSkillStatus(workspaceDir, {
@@ -416,10 +505,35 @@ export class EmbeddedTuiBackend implements TuiBackend {
 
   private async getDeps(): Promise<DefaultDeps> {
     if (!this.deps) {
-      const { createDefaultDeps } = await import("../cli/deps.js");
-      this.deps = createDefaultDeps();
+      this.depsPromise ??= import("../cli/deps.js")
+        .then(({ createDefaultDeps }) => {
+          this.deps = createDefaultDeps();
+          return this.deps;
+        })
+        .catch((error: unknown) => {
+          this.depsPromise = undefined;
+          throw error;
+        });
+      await this.depsPromise;
     }
-    return this.deps;
+    return this.deps as DefaultDeps;
+  }
+
+  private scheduleWarmup() {
+    if (this.warmupTimer) {
+      return;
+    }
+    this.warmupTimer = setTimeout(() => {
+      this.warmupTimer = undefined;
+      void Promise.allSettled([
+        getConfigModule(),
+        getSessionUtilsModule(),
+        getAgentTimestampModule(),
+        import("../agents/agent-command.js"),
+        this.getDeps(),
+      ]);
+    }, 250);
+    this.warmupTimer.unref?.();
   }
 
   private abortSessionRuns(sessionKey: string) {
@@ -639,6 +753,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }) {
     const trace = this.runs.get(params.runId)?.trace;
     trace?.step("command.session.load.start");
+    const [{ loadSessionEntry }, { injectTimestamp, timestampOptsFromConfig }] = await Promise.all([
+      getSessionUtilsModule(),
+      getAgentTimestampModule(),
+    ]);
     const { cfg, canonicalKey } = loadSessionEntry(params.sessionKey);
     trace?.step("command.session.load.end");
     const commandBody = params.message;
@@ -709,6 +827,8 @@ export class EmbeddedTuiBackend implements TuiBackend {
     try {
       this.runs.get(params.runId)?.trace.step("turn.start");
       this.runs.get(params.runId)?.trace.step("session.load.start");
+      const [{ loadSessionEntry }, { injectTimestamp, timestampOptsFromConfig }] =
+        await Promise.all([getSessionUtilsModule(), getAgentTimestampModule()]);
       const { cfg, canonicalKey, entry } = loadSessionEntry(params.sessionKey);
       this.runs
         .get(params.runId)

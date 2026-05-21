@@ -52,8 +52,16 @@ type PendingRequest = {
 };
 
 const KOVA_CLI_WRAPPER_PATH = fileURLToPath(new URL("../../kova.mjs", import.meta.url));
+const LOCAL_BACKEND_CHILD_ENTRY_PATHS = [
+  fileURLToPath(new URL("./tui/local-backend-child.js", import.meta.url)),
+  fileURLToPath(new URL("./local-backend-child.js", import.meta.url)),
+];
 
 function resolveLocalBackendCliArgs(): string[] {
+  const directEntry = LOCAL_BACKEND_CHILD_ENTRY_PATHS.find((entryPath) => existsSync(entryPath));
+  if (directEntry) {
+    return [...filterTuiExecArgv(process.execArgv), directEntry];
+  }
   const entry = process.argv[1]?.trim();
   const entryArgs =
     entry && path.isAbsolute(entry)

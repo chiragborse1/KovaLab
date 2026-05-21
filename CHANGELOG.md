@@ -11,6 +11,7 @@
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
 - CLI/TUI: run local chat turns through an isolated terminal backend worker so provider, memory, and tool work no longer share the renderer event loop. Thanks @chiragborse1
 - CLI/TUI: add opt-in `KOVA_TUI_TRACE=1` turn timing diagnostics for local terminal chat latency investigations. Thanks @chiragborse1
+- CLI/TUI: start the isolated local backend through a direct worker entrypoint when built, avoiding full CLI bootstrap before terminal chat becomes ready. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
