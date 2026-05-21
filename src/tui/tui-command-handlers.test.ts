@@ -4,6 +4,7 @@ import type { QueuedMessage } from "./tui-types.js";
 
 type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runAuthFlow"]>;
+type AbortActiveMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type SelectableOverlay = {
   onSelect?: (item: { value: string; label?: string; description?: string }) => void;
   getFilterText?: () => string;
@@ -33,7 +34,7 @@ function createHarness(params?: {
   refreshSessionInfo?: ReturnType<typeof vi.fn>;
   applySessionInfoFromPatch?: ReturnType<typeof vi.fn>;
   setActivityStatus?: SetActivityStatusMock;
-  abortActive?: ReturnType<typeof vi.fn>;
+  abortActive?: AbortActiveMock;
   isConnected?: boolean;
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
@@ -207,7 +208,8 @@ function createHarness(params?: {
   const openOverlay = vi.fn();
   const closeOverlay = vi.fn();
   const requestExit = vi.fn();
-  const abortActive = params?.abortActive ?? vi.fn();
+  const abortActive =
+    params?.abortActive ?? (vi.fn().mockResolvedValue(undefined) as AbortActiveMock);
   const runAuthFlow: RunAuthFlow | undefined =
     params?.runAuthFlow ??
     (params?.opts?.local
@@ -690,7 +692,7 @@ describe("tui command handlers", () => {
   });
 
   it("stops the active run with canonical and legacy lifecycle commands", async () => {
-    const abortActive = vi.fn().mockResolvedValue(undefined);
+    const abortActive = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const { handleCommand } = createHarness({ abortActive });
 
     await handleCommand("/stop");
