@@ -90,6 +90,23 @@ describe("getSlashCommands", () => {
     expect(skills?.getArgumentCompletions?.("c")).toEqual([{ value: "compact", label: "compact" }]);
   });
 
+  it("adds terminal ops commands for tasks and recovery", () => {
+    const commands = getSlashCommands();
+    const tasks = commands.find((command) => command.name === "tasks");
+    const recover = commands.find((command) => command.name === "recover");
+    const subagents = commands.find((command) => command.name === "subagents");
+    const automation = commands.find((command) => command.name === "automation");
+
+    expect(tasks?.argumentHint).toContain("audit");
+    expect(tasks?.getArgumentCompletions?.("rep")).toEqual([
+      { value: "repair", label: "repair" },
+      { value: "repair apply", label: "repair apply" },
+    ]);
+    expect(recover?.getArgumentCompletions?.("a")).toEqual([{ value: "apply", label: "apply" }]);
+    expect(subagents?.description).toBe("Show running subagents");
+    expect(automation?.description).toBe("Show scheduled/background automation");
+  });
+
   it("merges dynamic gateway commands", () => {
     const commands = getSlashCommands({
       dynamicCommands: [
@@ -122,6 +139,10 @@ describe("helpText", () => {
     expect(output).toContain("Terminal command center:");
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/skills [compact|verbose]");
+    expect(output).toContain("/tasks [list|running|subagents|cron|audit|repair [apply]]");
+    expect(output).toContain("/subagents [list]");
+    expect(output).toContain("/automation [list|running|audit]");
+    expect(output).toContain("/recover [status|apply]");
     expect(output).toContain("/context [compact|verbose]");
     expect(output).toContain(
       "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",

@@ -25,7 +25,10 @@ type LocalProcessRequestMethod =
   | "getGatewayStatus"
   | "listModels"
   | "listTools"
-  | "listSkills";
+  | "listSkills"
+  | "listTasks"
+  | "auditTasks"
+  | "maintainTasks";
 
 type LocalProcessRequest = {
   type: "request";
@@ -205,6 +208,24 @@ export class LocalProcessTuiBackend implements TuiBackend {
   async listSkills(opts: Parameters<NonNullable<TuiBackend["listSkills"]>>[0]) {
     return (await this.request("listSkills", opts)) as Awaited<
       ReturnType<NonNullable<TuiBackend["listSkills"]>>
+    >;
+  }
+
+  async listTasks(opts?: Parameters<NonNullable<TuiBackend["listTasks"]>>[0]) {
+    return (await this.request("listTasks", opts ?? {})) as Awaited<
+      ReturnType<NonNullable<TuiBackend["listTasks"]>>
+    >;
+  }
+
+  async auditTasks() {
+    return (await this.request("auditTasks", {})) as Awaited<
+      ReturnType<NonNullable<TuiBackend["auditTasks"]>>
+    >;
+  }
+
+  async maintainTasks(opts?: Parameters<NonNullable<TuiBackend["maintainTasks"]>>[0]) {
+    return (await this.request("maintainTasks", opts ?? {})) as Awaited<
+      ReturnType<NonNullable<TuiBackend["maintainTasks"]>>
     >;
   }
 

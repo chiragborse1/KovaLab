@@ -7,6 +7,11 @@ import type {
   SessionsPatchResult,
   ToolsCatalogResult,
 } from "../gateway/protocol/index.js";
+import type { TaskRunAggregateSummary, TaskRunView } from "../plugins/runtime/task-domain-types.js";
+import type { TaskFlowAuditSummary } from "../tasks/task-flow-registry.audit.js";
+import type { TaskFlowRegistryMaintenanceSummary } from "../tasks/task-flow-registry.maintenance.js";
+import type { TaskAuditSummary } from "../tasks/task-registry.audit.js";
+import type { TaskRegistryMaintenanceSummary } from "../tasks/task-registry.maintenance.js";
 import type { ResponseUsageMode, SessionInfo, SessionScope } from "./tui-types.js";
 
 export type ChatSendOptions = {
@@ -87,6 +92,23 @@ export type TuiModelChoice = {
   reasoning?: boolean;
 };
 
+export type TuiTasksList = {
+  tasks: TaskRunView[];
+  summary: TaskRunAggregateSummary;
+  count: number;
+};
+
+export type TuiTasksAudit = {
+  tasks: TaskAuditSummary;
+  flows: TaskFlowAuditSummary;
+};
+
+export type TuiTasksMaintenance = {
+  apply: boolean;
+  tasks: TaskRegistryMaintenanceSummary;
+  flows: TaskFlowRegistryMaintenanceSummary;
+};
+
 export type TuiBackend = {
   connection: {
     url: string;
@@ -118,4 +140,11 @@ export type TuiBackend = {
   listCommands?: (opts?: CommandsListParams) => Promise<CommandEntry[]>;
   listTools?: (opts: { agentId: string; includePlugins?: boolean }) => Promise<ToolsCatalogResult>;
   listSkills?: (opts: { agentId: string }) => Promise<SkillStatusReport>;
+  listTasks?: (opts?: {
+    status?: string;
+    runtime?: string;
+    limit?: number;
+  }) => Promise<TuiTasksList>;
+  auditTasks?: () => Promise<TuiTasksAudit>;
+  maintainTasks?: (opts?: { apply?: boolean }) => Promise<TuiTasksMaintenance>;
 };

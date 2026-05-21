@@ -28,6 +28,9 @@ type BackendMethod = keyof Pick<
   | "listModels"
   | "listTools"
   | "listSkills"
+  | "listTasks"
+  | "auditTasks"
+  | "maintainTasks"
 >;
 
 const backendMethods = new Set<string>([
@@ -43,6 +46,9 @@ const backendMethods = new Set<string>([
   "listModels",
   "listTools",
   "listSkills",
+  "listTasks",
+  "auditTasks",
+  "maintainTasks",
 ]);
 
 function writeProtocol(message: unknown) {

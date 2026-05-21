@@ -517,6 +517,91 @@ export class EmbeddedTuiBackend implements TuiBackend {
     });
   }
 
+  async listTasks(opts: { status?: string; runtime?: string; limit?: number } = {}) {
+    const [
+      { getRuntimeConfig },
+      { resolveCronStorePath },
+      { mapTaskRunAggregateSummary, mapTaskRunView },
+      { configureTaskRegistryMaintenance, reconcileInspectableTasks },
+      { summarizeTaskRecords },
+    ] = await Promise.all([
+      getConfigModule(),
+      import("../cron/store.js"),
+      import("../tasks/task-domain-views.js"),
+      import("../tasks/task-registry.maintenance.js"),
+      import("../tasks/task-registry.summary.js"),
+    ]);
+    const cfg = getRuntimeConfig();
+    configureTaskRegistryMaintenance({
+      cronStorePath: resolveCronStorePath(cfg.cron?.store),
+    });
+    const status = opts.status?.trim();
+    const runtime = opts.runtime?.trim();
+    const limit =
+      typeof opts.limit === "number" && Number.isFinite(opts.limit)
+        ? Math.max(1, Math.min(500, Math.floor(opts.limit)))
+        : 50;
+    const allRecords = reconcileInspectableTasks();
+    const records = allRecords
+      .filter((task) => (!status || status === "all" ? true : task.status === status))
+      .filter((task) => (!runtime || runtime === "all" ? true : task.runtime === runtime))
+      .slice(0, limit);
+    return {
+      tasks: records.map((task) => mapTaskRunView(task)),
+      summary: mapTaskRunAggregateSummary(summarizeTaskRecords(allRecords)),
+      count: records.length,
+    };
+  }
+
+  async auditTasks() {
+    const [
+      { getRuntimeConfig },
+      { resolveCronStorePath },
+      { configureTaskRegistryMaintenance, getInspectableTaskAuditSummary },
+      { getInspectableTaskFlowAuditSummary },
+    ] = await Promise.all([
+      getConfigModule(),
+      import("../cron/store.js"),
+      import("../tasks/task-registry.maintenance.js"),
+      import("../tasks/task-flow-registry.maintenance.js"),
+    ]);
+    const cfg = getRuntimeConfig();
+    configureTaskRegistryMaintenance({
+      cronStorePath: resolveCronStorePath(cfg.cron?.store),
+    });
+    return {
+      tasks: getInspectableTaskAuditSummary(),
+      flows: getInspectableTaskFlowAuditSummary(),
+    };
+  }
+
+  async maintainTasks(opts: { apply?: boolean } = {}) {
+    const [
+      { getRuntimeConfig },
+      { resolveCronStorePath },
+      {
+        configureTaskRegistryMaintenance,
+        previewTaskRegistryMaintenance,
+        runTaskRegistryMaintenance,
+      },
+      { previewTaskFlowRegistryMaintenance, runTaskFlowRegistryMaintenance },
+    ] = await Promise.all([
+      getConfigModule(),
+      import("../cron/store.js"),
+      import("../tasks/task-registry.maintenance.js"),
+      import("../tasks/task-flow-registry.maintenance.js"),
+    ]);
+    const cfg = getRuntimeConfig();
+    configureTaskRegistryMaintenance({
+      cronStorePath: resolveCronStorePath(cfg.cron?.store),
+    });
+    const apply = opts.apply === true;
+    const [tasks, flows] = apply
+      ? await Promise.all([runTaskRegistryMaintenance(), runTaskFlowRegistryMaintenance()])
+      : [previewTaskRegistryMaintenance(), previewTaskFlowRegistryMaintenance()];
+    return { apply, tasks, flows };
+  }
+
   private async getDeps(): Promise<DefaultDeps> {
     if (!this.deps) {
       this.depsPromise ??= import("../cli/deps.js")

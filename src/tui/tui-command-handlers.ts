@@ -31,6 +31,9 @@ import type {
 
 type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
 type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
+type TuiTasksList = Awaited<ReturnType<NonNullable<TuiBackend["listTasks"]>>>;
+type TuiTasksAudit = Awaited<ReturnType<NonNullable<TuiBackend["auditTasks"]>>>;
+type TuiTasksMaintenance = Awaited<ReturnType<NonNullable<TuiBackend["maintainTasks"]>>>;
 
 type CommandHandlerContext = {
   client: TuiBackend;
@@ -172,6 +175,163 @@ function formatSkillCatalog(result: TuiSkillStatus, mode: "compact" | "verbose")
     lines.push(`- and ${plural(visible.length - 30, "more skill")}`);
   }
   return lines.join("\n");
+}
+
+function formatTaskAge(timestamp?: number): string {
+  if (typeof timestamp !== "number" || !Number.isFinite(timestamp)) {
+    return "unknown";
+  }
+  return formatRelativeTimestamp(timestamp, { dateFallback: true, fallback: "unknown" });
+}
+
+function formatTaskSnapshot(result: TuiTasksList, label = "Tasks"): string {
+  const tasks = Array.isArray(result.tasks) ? result.tasks : [];
+  const summary = result.summary;
+  const lines = [
+    `${label}: ${plural(summary.total, "task")} (${String(summary.active)} active, ${String(
+      summary.failures,
+    )} issue${summary.failures === 1 ? "" : "s"})`,
+    `Status: ${String(summary.byStatus.queued)} queued, ${String(
+      summary.byStatus.running,
+    )} running, ${String(summary.byStatus.failed + summary.byStatus.timed_out + summary.byStatus.lost)} failed/lost`,
+    `Runtime: ${String(summary.byRuntime.subagent)} subagent, ${String(
+      summary.byRuntime.cron,
+    )} cron, ${String(summary.byRuntime.acp)} acp, ${String(summary.byRuntime.cli)} cli`,
+  ];
+  if (tasks.length === 0) {
+    lines.push("No matching background work.");
+    return lines.join("\n");
+  }
+
+  const priority = tasks
+    .toSorted((left, right) => {
+      const leftActive = left.status === "queued" || left.status === "running" ? 0 : 1;
+      const rightActive = right.status === "queued" || right.status === "running" ? 0 : 1;
+      if (leftActive !== rightActive) {
+        return leftActive - rightActive;
+      }
+      return (
+        (right.lastEventAt ?? right.startedAt ?? right.createdAt) -
+        (left.lastEventAt ?? left.startedAt ?? left.createdAt)
+      );
+    })
+    .slice(0, 8);
+  for (const task of priority) {
+    const title = truncateLine(
+      task.progressSummary || task.terminalSummary || task.label || task.title,
+      80,
+    );
+    const when = formatTaskAge(task.lastEventAt ?? task.startedAt ?? task.createdAt);
+    const child = task.childSessionKey ? ` child ${truncateLine(task.childSessionKey, 34)}` : "";
+    lines.push(`- ${task.id}: ${task.runtime} ${task.status} ${when}${child} - ${title}`);
+  }
+  if (tasks.length > priority.length) {
+    lines.push(`- and ${plural(tasks.length - priority.length, "more task")}`);
+  }
+  return lines.join("\n");
+}
+
+function formatAuditCodes(byCode: Record<string, number>): string {
+  return Object.entries(byCode)
+    .filter(([, count]) => count > 0)
+    .map(([code, count]) => `${code}:${String(count)}`)
+    .join(", ");
+}
+
+function formatTaskAudit(result: TuiTasksAudit): string {
+  const taskIssues = result.tasks.total;
+  const flowIssues = result.flows.total;
+  const total = taskIssues + flowIssues;
+  const lines = [
+    `Recovery audit: ${total === 0 ? "clean" : `${String(total)} issue${total === 1 ? "" : "s"}`}`,
+  ];
+  if (taskIssues > 0) {
+    lines.push(
+      `- tasks: ${String(result.tasks.errors)} errors, ${String(
+        result.tasks.warnings,
+      )} warnings${formatAuditCodes(result.tasks.byCode) ? ` (${formatAuditCodes(result.tasks.byCode)})` : ""}`,
+    );
+  }
+  if (flowIssues > 0) {
+    lines.push(
+      `- task flows: ${String(result.flows.errors)} errors, ${String(
+        result.flows.warnings,
+      )} warnings${formatAuditCodes(result.flows.byCode) ? ` (${formatAuditCodes(result.flows.byCode)})` : ""}`,
+    );
+  }
+  if (total > 0) {
+    lines.push("Run /recover apply to reconcile lost/stale records and prune old terminal work.");
+  }
+  return lines.join("\n");
+}
+
+function formatMaintenanceSummary(result: TuiTasksMaintenance): string {
+  const taskActions =
+    result.tasks.reconciled +
+    result.tasks.recovered +
+    result.tasks.cleanupStamped +
+    result.tasks.pruned;
+  const flowActions = result.flows.reconciled + result.flows.pruned;
+  const total = taskActions + flowActions;
+  const label = result.apply ? "Recovery applied" : "Recovery preview";
+  const lines = [
+    `${label}: ${total === 0 ? "nothing to change" : `${String(total)} action${total === 1 ? "" : "s"}`}`,
+    `- tasks: ${String(result.tasks.reconciled)} reconciled, ${String(
+      result.tasks.recovered,
+    )} recovered, ${String(result.tasks.cleanupStamped)} cleanup-stamped, ${String(
+      result.tasks.pruned,
+    )} pruned`,
+    `- task flows: ${String(result.flows.reconciled)} reconciled, ${String(
+      result.flows.pruned,
+    )} pruned`,
+  ];
+  if (!result.apply && total > 0) {
+    lines.push("Run /recover apply to apply this maintenance.");
+  }
+  return lines.join("\n");
+}
+
+type TaskCommandTarget = "tasks" | "subagents" | "automation";
+
+function resolveTaskListOptions(target: TaskCommandTarget, args: string) {
+  const tokens = args.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  let runtime: string | undefined;
+  let status: string | undefined;
+  if (target === "subagents") {
+    runtime = "subagent";
+  }
+  if (target === "automation") {
+    runtime = "cron";
+  }
+  for (const token of tokens) {
+    if (token === "list" || token === "all") {
+      continue;
+    }
+    if (token === "subagent" || token === "subagents") {
+      runtime = "subagent";
+      continue;
+    }
+    if (token === "cron" || token === "automation") {
+      runtime = "cron";
+      continue;
+    }
+    if (token === "acp" || token === "cli") {
+      runtime = token;
+      continue;
+    }
+    if (
+      token === "queued" ||
+      token === "running" ||
+      token === "succeeded" ||
+      token === "failed" ||
+      token === "timed_out" ||
+      token === "cancelled" ||
+      token === "lost"
+    ) {
+      status = token;
+    }
+  }
+  return { runtime, status, limit: 50 };
 }
 
 export function createCommandHandlers(context: CommandHandlerContext) {
@@ -417,6 +577,74 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
   };
 
+  const showTaskAudit = async () => {
+    if (!client.auditTasks) {
+      await sendMessage("/tasks audit", { queueIfBusy: false });
+      return;
+    }
+    try {
+      const result = await client.auditTasks();
+      chatLog.addSystem(formatTaskAudit(result));
+    } catch (err) {
+      chatLog.addSystem(`task audit failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const runTaskMaintenance = async (apply: boolean) => {
+    if (!client.maintainTasks) {
+      chatLog.addSystem(
+        apply
+          ? "local recovery apply is unavailable here; run !kova tasks maintenance --apply"
+          : "local recovery preview is unavailable here; run !kova tasks maintenance",
+      );
+      return;
+    }
+    try {
+      const result = await client.maintainTasks({ apply });
+      chatLog.addSystem(formatMaintenanceSummary(result));
+    } catch (err) {
+      chatLog.addSystem(`task maintenance failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const showTaskSnapshot = async (target: TaskCommandTarget, args: string) => {
+    const normalized = args.trim().toLowerCase();
+    if (target === "tasks" && normalized.startsWith("audit")) {
+      await showTaskAudit();
+      return;
+    }
+    if (
+      target === "tasks" &&
+      (normalized.startsWith("repair") || normalized.startsWith("recover"))
+    ) {
+      await runTaskMaintenance(/\bapply\b/.test(normalized));
+      return;
+    }
+    if (!client.listTasks) {
+      await sendMessage(args ? `/${target} ${args}` : `/${target}`, { queueIfBusy: false });
+      return;
+    }
+    try {
+      const result = await client.listTasks(resolveTaskListOptions(target, args));
+      const label =
+        target === "subagents" ? "Subagents" : target === "automation" ? "Automation" : "Tasks";
+      chatLog.addSystem(formatTaskSnapshot(result, label));
+    } catch (err) {
+      chatLog.addSystem(`tasks list failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const showRecovery = async (args: string) => {
+    const normalized = args.trim().toLowerCase();
+    if (normalized === "apply" || normalized === "fix" || normalized === "repair") {
+      await runTaskMaintenance(true);
+      await showTaskAudit();
+      return;
+    }
+    await showTaskAudit();
+    await runTaskMaintenance(false);
+  };
+
   const openSessionSelector = async (query = "") => {
     const normalizedQuery = query.trim();
     try {
@@ -599,6 +827,26 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         break;
       case "skills":
         await showSkillCatalog(args);
+        break;
+      case "tasks":
+        await showTaskSnapshot("tasks", args);
+        break;
+      case "subagents":
+        if (args && !/^(list|running|queued|failed|lost|all)$/i.test(args.trim())) {
+          await sendMessage(raw, { queueIfBusy: false });
+        } else {
+          await showTaskSnapshot("subagents", args);
+        }
+        break;
+      case "automation":
+        if (args.trim().toLowerCase().startsWith("audit")) {
+          await showTaskAudit();
+        } else {
+          await showTaskSnapshot("automation", args);
+        }
+        break;
+      case "recover":
+        await showRecovery(args);
         break;
       case "crestodian":
         chatLog.addSystem(

@@ -17,6 +17,18 @@ const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
 const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
 const SURFACE_LEVELS = ["compact", "verbose"];
+const TASK_LEVELS = [
+  "list",
+  "running",
+  "queued",
+  "failed",
+  "subagents",
+  "cron",
+  "audit",
+  "repair",
+  "repair apply",
+];
+const RECOVER_LEVELS = ["status", "apply"];
 const MEMORY_COMMAND_COMPLETIONS = [
   {
     value: "status",
@@ -134,6 +146,8 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
   const busyCompletions = createLevelCompletion(BUSY_LEVELS);
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
+  const taskCompletions = createLevelCompletion(TASK_LEVELS);
+  const recoverCompletions = createLevelCompletion(RECOVER_LEVELS);
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
     { name: "gateway-status", description: "Show gateway status summary" },
@@ -159,6 +173,30 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Show terminal skill catalog",
       argumentHint: "compact | verbose",
       getArgumentCompletions: surfaceCompletions,
+    },
+    {
+      name: "tasks",
+      description: "Show background tasks and repair checks",
+      argumentHint: "list | running | subagents | cron | audit | repair [apply]",
+      getArgumentCompletions: taskCompletions,
+    },
+    {
+      name: "subagents",
+      description: "Show running subagents",
+      argumentHint: "list",
+      getArgumentCompletions: taskCompletions,
+    },
+    {
+      name: "automation",
+      description: "Show scheduled/background automation",
+      argumentHint: "list | running | audit",
+      getArgumentCompletions: taskCompletions,
+    },
+    {
+      name: "recover",
+      description: "Audit and repair local background task state",
+      argumentHint: "status | apply",
+      getArgumentCompletions: recoverCompletions,
     },
     {
       name: "model",
@@ -261,6 +299,10 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/model <provider/model> (or /models)",
     "/tools [compact|verbose]",
     "/skills [compact|verbose]",
+    "/tasks [list|running|subagents|cron|audit|repair [apply]]",
+    "/subagents [list]",
+    "/automation [list|running|audit]",
+    "/recover [status|apply]",
     "/context [compact|verbose]",
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
     "/skill <name> [args]",

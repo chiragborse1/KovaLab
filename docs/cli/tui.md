@@ -29,6 +29,8 @@ Notes:
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 - `/help` opens the terminal command center with core navigation, run controls, Gateway status, tools, context, memory, skills, and plugin commands.
 - `/tools` and `/skills` render compact terminal catalogs locally; use `verbose` when you need names and short descriptions.
+- `/tasks`, `/subagents`, and `/automation` render durable background work directly from the task runtime, so you can inspect detached agent runs without spending an LLM turn.
+- `/recover` audits task and TaskFlow state, previews safe maintenance, and `/recover apply` reconciles stale/lost records and prunes old terminal work.
 - Set `KOVA_TUI_TRACE=1` when you need per-turn local timing diagnostics and a slowest-segment summary for slow replies.
 
 ## Examples
@@ -45,6 +47,10 @@ kova chat --message "Compare my config to the docs and tell me what to fix"
 kova tui --session bugfix
 # inside the TUI, open matching sessions
 /sessions research
+# inspect background agent work without asking the model
+/subagents
+/tasks audit
+/recover
 ```
 
 ## Config repair loop

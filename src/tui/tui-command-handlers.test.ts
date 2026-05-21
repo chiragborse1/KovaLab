@@ -24,6 +24,9 @@ function createHarness(params?: {
   listSessions?: ReturnType<typeof vi.fn>;
   listTools?: ReturnType<typeof vi.fn>;
   listSkills?: ReturnType<typeof vi.fn>;
+  listTasks?: ReturnType<typeof vi.fn>;
+  auditTasks?: ReturnType<typeof vi.fn>;
+  maintainTasks?: ReturnType<typeof vi.fn>;
   runAuthFlow?: RunAuthFlow;
   setSession?: SetSessionMock;
   loadHistory?: LoadHistoryMock;
@@ -100,6 +103,95 @@ function createHarness(params?: {
         },
       ],
     });
+  const listTasks =
+    params?.listTasks ??
+    vi.fn().mockResolvedValue({
+      tasks: [
+        {
+          id: "task-1",
+          runtime: "subagent",
+          sessionKey: "agent:main:main",
+          ownerKey: "agent:main:main",
+          scope: "session",
+          childSessionKey: "agent:main:subagent:child",
+          title: "research memory loop",
+          status: "running",
+          deliveryStatus: "pending",
+          notifyPolicy: "done_only",
+          createdAt: Date.now(),
+          lastEventAt: Date.now(),
+        },
+      ],
+      summary: {
+        total: 1,
+        active: 1,
+        terminal: 0,
+        failures: 0,
+        byStatus: {
+          queued: 0,
+          running: 1,
+          succeeded: 0,
+          failed: 0,
+          timed_out: 0,
+          cancelled: 0,
+          lost: 0,
+        },
+        byRuntime: {
+          subagent: 1,
+          acp: 0,
+          cli: 0,
+          cron: 0,
+        },
+      },
+      count: 1,
+    });
+  const auditTasks =
+    params?.auditTasks ??
+    vi.fn().mockResolvedValue({
+      tasks: {
+        total: 1,
+        warnings: 1,
+        errors: 0,
+        byCode: {
+          stale_queued: 0,
+          stale_running: 0,
+          lost: 0,
+          delivery_failed: 0,
+          missing_cleanup: 1,
+          inconsistent_timestamps: 0,
+        },
+      },
+      flows: {
+        total: 0,
+        warnings: 0,
+        errors: 0,
+        byCode: {
+          restore_failed: 0,
+          stale_running: 0,
+          stale_waiting: 0,
+          stale_blocked: 0,
+          cancel_stuck: 0,
+          missing_linked_tasks: 0,
+          blocked_task_missing: 0,
+          inconsistent_timestamps: 0,
+        },
+      },
+    });
+  const maintainTasks =
+    params?.maintainTasks ??
+    vi.fn().mockResolvedValue({
+      apply: false,
+      tasks: {
+        reconciled: 0,
+        recovered: 0,
+        cleanupStamped: 1,
+        pruned: 0,
+      },
+      flows: {
+        reconciled: 0,
+        pruned: 0,
+      },
+    });
   const setSession = params?.setSession ?? (vi.fn().mockResolvedValue(undefined) as SetSessionMock);
   const addUser = vi.fn();
   const addSystem = vi.fn();
@@ -140,6 +232,9 @@ function createHarness(params?: {
       listSessions,
       listTools,
       listSkills,
+      listTasks,
+      auditTasks,
+      maintainTasks,
     } as never,
     chatLog: { addUser, addSystem } as never,
     tui: { requestRender } as never,
@@ -176,6 +271,9 @@ function createHarness(params?: {
     listSessions,
     listTools,
     listSkills,
+    listTasks,
+    auditTasks,
+    maintainTasks,
     setSession,
     addUser,
     addSystem,
@@ -300,6 +398,53 @@ describe("tui command handlers", () => {
     expect(listSkills).toHaveBeenCalledWith({ agentId: "main" });
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Skills: 1 skill visible"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("codex: ready"));
+  });
+
+  it("renders local background tasks without starting an agent turn", async () => {
+    const { handleCommand, listTasks, sendChat, addSystem } = createHarness();
+
+    await handleCommand("/tasks running");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(listTasks).toHaveBeenCalledWith(expect.objectContaining({ status: "running" }));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Tasks: 1 task"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("task-1: subagent running"));
+  });
+
+  it("shows subagents from the task runtime", async () => {
+    const { handleCommand, listTasks, sendChat, addSystem } = createHarness();
+
+    await handleCommand("/subagents");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(listTasks).toHaveBeenCalledWith(expect.objectContaining({ runtime: "subagent" }));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Subagents: 1 task"));
+  });
+
+  it("previews and applies recovery from the local task maintenance loop", async () => {
+    const maintainTasks = vi
+      .fn()
+      .mockResolvedValueOnce({
+        apply: false,
+        tasks: { reconciled: 0, recovered: 0, cleanupStamped: 1, pruned: 0 },
+        flows: { reconciled: 0, pruned: 0 },
+      })
+      .mockResolvedValueOnce({
+        apply: true,
+        tasks: { reconciled: 1, recovered: 0, cleanupStamped: 0, pruned: 0 },
+        flows: { reconciled: 0, pruned: 0 },
+      });
+    const { handleCommand, auditTasks, addSystem } = createHarness({ maintainTasks });
+
+    await handleCommand("/recover");
+    await handleCommand("/recover apply");
+
+    expect(auditTasks).toHaveBeenCalledTimes(2);
+    expect(maintainTasks).toHaveBeenNthCalledWith(1, { apply: false });
+    expect(maintainTasks).toHaveBeenNthCalledWith(2, { apply: true });
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery audit: 1 issue"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery preview"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Recovery applied"));
   });
 
   it("forwards /context list directly", async () => {
