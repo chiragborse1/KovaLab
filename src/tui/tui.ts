@@ -1287,7 +1287,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     const finishStartupHydration = () => {
       startupHydrated = true;
       clearCatalogRefreshTimer();
-      scheduleHeroCatalogRefresh(250);
+      scheduleHeroCatalogRefresh(3000);
       setConnectionStatus(
         isLocalMode ? "local ready" : reconnected ? "gateway reconnected" : "gateway connected",
         4000,
