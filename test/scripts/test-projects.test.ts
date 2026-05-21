@@ -495,6 +495,26 @@ describe("scripts/test-projects changed-target routing", () => {
     });
   });
 
+  it("routes memory slash command edits to focused command and registry tests", () => {
+    expect(
+      resolveChangedTestTargetPlan([
+        "docs/cli/memory.md",
+        "docs/tools/slash-commands.md",
+        "src/auto-reply/commands-registry.shared.ts",
+        "src/auto-reply/reply/commands-memory.test.ts",
+        "src/auto-reply/reply/commands-memory.ts",
+      ]),
+    ).toEqual({
+      mode: "targets",
+      targets: [
+        "src/auto-reply/commands-registry.test.ts",
+        "src/docs/slash-commands-doc.test.ts",
+        "extensions/telegram/src/bot.command-menu.test.ts",
+        "src/auto-reply/reply/commands-memory.test.ts",
+      ],
+    });
+  });
+
   it("routes Google Meet CLI edits to the lightweight CLI tests", () => {
     expect(resolveChangedTestTargetPlan(["extensions/google-meet/src/cli.ts"])).toEqual({
       mode: "targets",

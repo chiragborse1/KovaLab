@@ -295,7 +295,16 @@ const SOURCE_TEST_TARGETS = new Map([
       "src/auto-reply/reply/dispatch-from-config.test.ts",
     ],
   ],
+  [
+    "src/auto-reply/commands-registry.shared.ts",
+    [
+      "src/auto-reply/commands-registry.test.ts",
+      "src/docs/slash-commands-doc.test.ts",
+      "extensions/telegram/src/bot.command-menu.test.ts",
+    ],
+  ],
   ["src/auto-reply/reply/commands-acp.ts", ["src/auto-reply/reply/commands-acp.test.ts"]],
+  ["src/auto-reply/reply/commands-memory.ts", ["src/auto-reply/reply/commands-memory.test.ts"]],
   [
     "src/auto-reply/reply/dispatch-acp-command-bypass.ts",
     ["src/auto-reply/reply/dispatch-acp-command-bypass.test.ts"],

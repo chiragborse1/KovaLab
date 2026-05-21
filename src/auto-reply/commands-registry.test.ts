@@ -272,6 +272,14 @@ describe("commands registry", () => {
     ]);
   });
 
+  it("keeps memory native action choices aligned with implemented handlers", () => {
+    const memory = listChatCommands().find((command) => command.key === "memory");
+    expect(memory).toBeTruthy();
+    expect(memory?.description).toBe("Check memory status, sync, search, or read recall.");
+    const actionArg = memory?.args?.find((arg) => arg.name === "action");
+    expect(actionArg?.choices).toEqual(["help", "status", "sync", "search", "read"]);
+  });
+
   it("registers fast mode as a first-class options command", () => {
     const fast = listChatCommands().find((command) => command.key === "fast");
     expect(fast).toMatchObject({
