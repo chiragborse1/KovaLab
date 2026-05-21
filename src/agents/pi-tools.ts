@@ -39,6 +39,7 @@ import {
   createHostWorkspaceEditTool,
   createHostWorkspaceWriteTool,
   createKovaReadTool,
+  createKovaReadManyTool,
   createSandboxedEditTool,
   createSandboxedReadTool,
   createSandboxedWriteTool,
@@ -470,20 +471,20 @@ export function createKovaCodingTools(options?: {
           modelContextWindowTokens: options?.modelContextWindowTokens,
           imageSanitization,
         });
-        return [
-          workspaceOnly
-            ? wrapToolWorkspaceRootGuardWithOptions(sandboxed, sandboxRoot, {
-                containerWorkdir: sandbox.containerWorkdir,
-              })
-            : sandboxed,
-        ];
+        const readTool = workspaceOnly
+          ? wrapToolWorkspaceRootGuardWithOptions(sandboxed, sandboxRoot, {
+              containerWorkdir: sandbox.containerWorkdir,
+            })
+          : sandboxed;
+        return [readTool, createKovaReadManyTool(readTool)];
       }
       const freshReadTool = createReadTool(workspaceRoot);
       const wrapped = createKovaReadTool(freshReadTool, {
         modelContextWindowTokens: options?.modelContextWindowTokens,
         imageSanitization,
       });
-      return [workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped];
+      const readTool = workspaceOnly ? wrapToolWorkspaceRootGuard(wrapped, workspaceRoot) : wrapped;
+      return [readTool, createKovaReadManyTool(readTool)];
     }
     if (tool.name === "bash" || tool.name === execToolName) {
       return [];

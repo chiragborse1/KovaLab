@@ -57,7 +57,7 @@ These tools ship with Kova and are available without installing any plugins:
 | `code_execution`                           | Run sandboxed remote Python analysis                                  | [Code Execution](/tools/code-execution)                      |
 | `browser`                                  | Control a Chromium browser (navigate, click, screenshot)              | [Browser](/tools/browser)                                    |
 | `web_search` / `x_search` / `web_fetch`    | Search the web, search X posts, fetch page content                    | [Web](/tools/web), [Web Fetch](/tools/web-fetch)             |
-| `read` / `write` / `edit`                  | File I/O in the workspace                                             |                                                              |
+| `read` / `read_many` / `write` / `edit`    | File I/O in the workspace; `read_many` batches safe reads             |                                                              |
 | `apply_patch`                              | Multi-hunk file patches                                               | [Apply Patch](/tools/apply-patch)                            |
 | `message`                                  | Send messages across all channels                                     | [Agent Send](/tools/agent-send)                              |
 | `canvas`                                   | Drive node Canvas (present, eval, snapshot)                           |                                                              |
@@ -163,7 +163,7 @@ Use `group:*` shorthands in allow/deny lists:
 | Group              | Tools                                                                                                     |
 | ------------------ | --------------------------------------------------------------------------------------------------------- |
 | `group:runtime`    | exec, process, code_execution (`bash` is accepted as an alias for `exec`)                                 |
-| `group:fs`         | read, write, edit, apply_patch                                                                            |
+| `group:fs`         | read, read_many, write, edit, apply_patch                                                                 |
 | `group:sessions`   | sessions_list, sessions_history, sessions_send, sessions_spawn, sessions_yield, subagents, session_status |
 | `group:memory`     | memory_search, memory_get                                                                                 |
 | `group:web`        | web_search, x_search, web_fetch                                                                           |
@@ -173,7 +173,7 @@ Use `group:*` shorthands in allow/deny lists:
 | `group:nodes`      | nodes                                                                                                     |
 | `group:agents`     | agents_list                                                                                               |
 | `group:media`      | image, image_generate, music_generate, video_generate, tts                                                |
-| `group:kova`   | All built-in Kova tools (excludes plugin tools)                                                       |
+| `group:kova`       | All built-in Kova tools (excludes plugin tools)                                                           |
 
 `sessions_history` returns a bounded, safety-filtered recall view. It strips
 thinking tags, `<relevant-memories>` scaffolding, plain-text tool-call XML

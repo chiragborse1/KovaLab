@@ -6,6 +6,7 @@ describe("tool-catalog", () => {
     const policy = resolveCoreToolProfilePolicy("coding");
     expect(policy).toBeDefined();
     expect(policy!.allow).toContain("code_execution");
+    expect(policy!.allow).toContain("read_many");
     expect(policy!.allow).toContain("web_search");
     expect(policy!.allow).toContain("x_search");
     expect(policy!.allow).toContain("web_fetch");

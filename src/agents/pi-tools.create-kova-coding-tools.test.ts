@@ -199,6 +199,7 @@ describe("createKovaCodingTools", () => {
     const names = new Set(oauthTools.map((tool) => tool.name));
     expect(names.has("exec")).toBe(true);
     expect(names.has("read")).toBe(true);
+    expect(names.has("read_many")).toBe(true);
     expect(names.has("write")).toBe(true);
     expect(names.has("edit")).toBe(true);
     expect(names.has("apply_patch")).toBe(false);

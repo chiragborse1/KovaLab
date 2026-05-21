@@ -59,6 +59,13 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
     profiles: ["coding"],
   },
   {
+    id: "read_many",
+    label: "read_many",
+    description: "Read multiple files in one safe batch",
+    sectionId: "fs",
+    profiles: ["coding"],
+  },
+  {
     id: "write",
     label: "write",
     description: "Create or overwrite files",

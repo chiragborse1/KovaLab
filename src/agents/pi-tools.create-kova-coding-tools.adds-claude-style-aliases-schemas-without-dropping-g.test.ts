@@ -4,7 +4,11 @@ import path from "node:path";
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import { Type } from "typebox";
 import { describe, expect, it, vi } from "vitest";
-import { createKovaReadTool, createSandboxedReadTool } from "./pi-tools.read.js";
+import {
+  createKovaReadManyTool,
+  createKovaReadTool,
+  createSandboxedReadTool,
+} from "./pi-tools.read.js";
 import { createHostSandboxFsBridge } from "./test-helpers/host-sandbox-fs-bridge.js";
 
 function extractToolText(result: unknown): string {
@@ -128,6 +132,66 @@ describe("createKovaCodingTools read behavior", () => {
 
       expect(extractToolText(result)).toBe("");
     } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("batches multiple guarded text reads through read_many", async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-read-many-"));
+    await fs.writeFile(path.join(tmpDir, "a.txt"), "alpha", "utf8");
+    await fs.writeFile(path.join(tmpDir, "b.txt"), "bravo", "utf8");
+    try {
+      const readTool = createSandboxedReadTool({
+        root: tmpDir,
+        bridge: createHostSandboxFsBridge(tmpDir),
+      });
+      const readManyTool = createKovaReadManyTool(readTool);
+
+      const result = await readManyTool.execute("read-many-1", {
+        paths: ["a.txt", "b.txt"],
+      });
+      const text = extractToolText(result);
+
+      expect(text).toContain("--- a.txt");
+      expect(text).toContain("alpha");
+      expect(text).toContain("--- b.txt");
+      expect(text).toContain("bravo");
+      expect(result.details).toMatchObject({
+        count: 2,
+        capped: false,
+        files: [
+          { path: "a.txt", ok: true },
+          { path: "b.txt", ok: true },
+        ],
+      });
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps read_many inside the same sandbox guard as read", async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-read-many-guard-"));
+    const outsidePath = path.join(os.tmpdir(), "kova-read-many-outside.txt");
+    await fs.writeFile(outsidePath, "outside", "utf8");
+    try {
+      const readTool = createSandboxedReadTool({
+        root: tmpDir,
+        bridge: createHostSandboxFsBridge(tmpDir),
+      });
+      const readManyTool = createKovaReadManyTool(readTool);
+
+      const result = await readManyTool.execute("read-many-guard", {
+        paths: [outsidePath],
+      });
+      const text = extractToolText(result);
+
+      expect(text).toContain("[read_many error:");
+      expect(text).toMatch(/sandbox root/i);
+      expect(result.details).toMatchObject({
+        files: [{ path: outsidePath, ok: false }],
+      });
+    } finally {
+      await fs.rm(outsidePath, { force: true });
       await fs.rm(tmpDir, { recursive: true, force: true });
     }
   });

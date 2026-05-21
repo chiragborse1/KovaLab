@@ -3,6 +3,7 @@ import path from "node:path";
 import { URL } from "node:url";
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import { createEditTool, createReadTool, createWriteTool } from "@mariozechner/pi-coding-agent";
+import { Type } from "typebox";
 import { isWindowsDrivePath } from "../infra/archive-path.js";
 import {
   appendFileWithinRoot,
@@ -47,10 +48,52 @@ const MAX_ADAPTIVE_READ_MAX_BYTES = 128 * 1024;
 const ADAPTIVE_READ_CONTEXT_SHARE = 0.1;
 const CHARS_PER_TOKEN_ESTIMATE = 4;
 const MAX_ADAPTIVE_READ_PAGES = 4;
+const READ_MANY_MAX_FILES = 8;
+const READ_MANY_DEFAULT_MAX_BYTES = 128 * 1024;
+const READ_MANY_MAX_BYTES = 256 * 1024;
+
+const readManySchema = Type.Object({
+  paths: Type.Optional(
+    Type.Array(Type.String(), {
+      description: "Shortcut list of file paths to read, up to 8 files.",
+    }),
+  ),
+  files: Type.Optional(
+    Type.Array(
+      Type.Object({
+        path: Type.String({ description: "File path to read." }),
+        offset: Type.Optional(Type.Number({ description: "1-based line offset." })),
+        limit: Type.Optional(Type.Number({ description: "Maximum lines to return." })),
+      }),
+      {
+        description: "Structured file read requests, up to 8 files.",
+      },
+    ),
+  ),
+  maxBytes: Type.Optional(
+    Type.Number({
+      description: "Maximum combined text bytes to return. Defaults to 128KB; capped at 256KB.",
+    }),
+  ),
+});
 
 type KovaReadToolOptions = {
   modelContextWindowTokens?: number;
   imageSanitization?: ImageSanitizationLimits;
+};
+
+type ReadManyEntry = {
+  path: string;
+  offset?: number;
+  limit?: number;
+};
+
+type ReadManyDetail = {
+  path: string;
+  ok: boolean;
+  bytes?: number;
+  error?: string;
+  skipped?: "combined_limit";
 };
 
 type ReadTruncationDetails = {
@@ -90,6 +133,87 @@ function formatBytes(bytes: number): string {
     return `${Math.round(bytes / 1024)}KB`;
   }
   return `${bytes}B`;
+}
+
+function clampReadManyMaxBytes(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return READ_MANY_DEFAULT_MAX_BYTES;
+  }
+  return clamp(Math.floor(value), 1024, READ_MANY_MAX_BYTES);
+}
+
+function parsePositiveInteger(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return undefined;
+  }
+  return Math.floor(value);
+}
+
+function sanitizeReadManyPathLabel(filePath: string): string {
+  return filePath.replaceAll("\u001b", "").replace(/\r?\n|\r/g, "\\n");
+}
+
+function parseReadManyEntries(record: Record<string, unknown> | undefined): ReadManyEntry[] {
+  const pathEntries = Array.isArray(record?.paths)
+    ? record.paths
+        .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+        .filter(Boolean)
+        .map((filePath) => ({ path: filePath }))
+    : [];
+  const fileEntries = Array.isArray(record?.files)
+    ? record.files
+        .map((entry): ReadManyEntry | null => {
+          if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+            return null;
+          }
+          const file = entry as Record<string, unknown>;
+          const filePath = typeof file.path === "string" ? file.path.trim() : "";
+          if (!filePath) {
+            return null;
+          }
+          const offset = parsePositiveInteger(file.offset);
+          const limit = parsePositiveInteger(file.limit);
+          return {
+            path: filePath,
+            ...(offset !== undefined ? { offset } : {}),
+            ...(limit !== undefined ? { limit } : {}),
+          };
+        })
+        .filter((entry): entry is ReadManyEntry => entry !== null)
+    : [];
+  return fileEntries.length > 0 ? fileEntries : pathEntries;
+}
+
+function buildReadManyArgs(entry: ReadManyEntry): Record<string, unknown> {
+  return {
+    path: entry.path,
+    ...(entry.offset !== undefined ? { offset: entry.offset } : {}),
+    ...(entry.limit !== undefined ? { limit: entry.limit } : {}),
+  };
+}
+
+function appendReadManyBlock(params: { output: string; block: string; maxBytes: number }): {
+  output: string;
+  capped: boolean;
+} {
+  const delimiter = params.output ? "\n\n" : "";
+  const available = params.maxBytes - Buffer.byteLength(params.output, "utf-8");
+  if (available <= 0) {
+    return { output: params.output, capped: true };
+  }
+  const full = `${delimiter}${params.block}`;
+  const fullBytes = Buffer.byteLength(full, "utf-8");
+  if (fullBytes <= available) {
+    return {
+      output: `${params.output}${full}`,
+      capped: false,
+    };
+  }
+  const cappedBuffer = Buffer.from(full, "utf-8").subarray(0, available);
+  return {
+    output: `${params.output}${cappedBuffer.toString("utf-8")}`,
+    capped: true,
+  };
 }
 
 function getToolResultText(result: AgentToolResult<unknown>): string | undefined {
@@ -733,6 +857,82 @@ export function createKovaReadTool(
         `read:${filePath}`,
         options?.imageSanitization,
       );
+    },
+  };
+}
+
+export function createKovaReadManyTool(readTool: AnyAgentTool): AnyAgentTool {
+  return {
+    name: "read_many",
+    label: "read_many",
+    description:
+      "Read multiple text files in one safe batch. Use this for parallel repo inspection instead of many separate read calls. It reuses the read tool's workspace/sandbox guards and is limited to safe reads only.",
+    parameters: readManySchema,
+    execute: async (toolCallId, params, signal) => {
+      const record = getToolParamsRecord(params);
+      const entries = parseReadManyEntries(record);
+      if (entries.length === 0) {
+        throw new Error("read_many requires files[] or paths[].");
+      }
+      if (entries.length > READ_MANY_MAX_FILES) {
+        throw new Error(`read_many supports at most ${READ_MANY_MAX_FILES} files per call.`);
+      }
+
+      const maxBytes = clampReadManyMaxBytes(record?.maxBytes);
+      const details: ReadManyDetail[] = [];
+      let output = "";
+      let capped = false;
+
+      for (const [index, entry] of entries.entries()) {
+        if (signal?.aborted) {
+          throw new Error("read_many aborted.");
+        }
+        if (capped) {
+          details.push({ path: entry.path, ok: false, skipped: "combined_limit" });
+          continue;
+        }
+        const safePath = sanitizeReadManyPathLabel(entry.path);
+        try {
+          const result = await readTool.execute(
+            `${toolCallId}:${index}`,
+            buildReadManyArgs(entry),
+            signal,
+          );
+          const text =
+            getToolResultText(result) ?? "[non-text read result omitted; use read for media]";
+          const block = `--- ${safePath}\n${text}`;
+          const appended = appendReadManyBlock({ output, block, maxBytes });
+          output = appended.output;
+          const bytes = Buffer.byteLength(text, "utf-8");
+          details.push({ path: entry.path, ok: true, bytes });
+          if (appended.capped) {
+            capped = true;
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          const block = `--- ${safePath}\n[read_many error: ${message}]`;
+          const appended = appendReadManyBlock({ output, block, maxBytes });
+          output = appended.output;
+          details.push({ path: entry.path, ok: false, error: message });
+          if (appended.capped) {
+            capped = true;
+          }
+        }
+      }
+
+      if (capped) {
+        output += `\n\n[read_many output capped at ${formatBytes(maxBytes)}. Re-run with fewer files, smaller limits, or higher maxBytes.]`;
+      }
+
+      return {
+        content: [{ type: "text", text: output }],
+        details: {
+          count: entries.length,
+          maxBytes,
+          capped,
+          files: details,
+        },
+      };
     },
   };
 }
