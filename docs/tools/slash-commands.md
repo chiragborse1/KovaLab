@@ -152,6 +152,7 @@ Current source-of-truth:
     - `/crestodian <request>` runs the Crestodian setup and repair helper from an owner DM.
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
+    - `/memory status` and `/memory search <query>` inspect memory health and run direct recall search from chat.
     - `/whoami` shows your sender id. Alias: `/id`.
     - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary.
   </Accordion>
