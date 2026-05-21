@@ -16,6 +16,38 @@ const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
 const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
 const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
+const MEMORY_COMMAND_COMPLETIONS = [
+  {
+    value: "status",
+    label: "status",
+    description: "Check memory backend and index health",
+  },
+  {
+    value: "sync",
+    label: "sync",
+    description: "Refresh the active memory index",
+  },
+  {
+    value: "sync force",
+    label: "sync force",
+    description: "Rebuild the active memory index",
+  },
+  {
+    value: "search ",
+    label: "search <query>",
+    description: "Search recalled memory snippets",
+  },
+  {
+    value: "read ",
+    label: "read <path[:line[-end]]>",
+    description: "Read a cited memory source excerpt",
+  },
+  {
+    value: "help",
+    label: "help",
+    description: "Show memory command help",
+  },
+];
 
 export type ParsedCommand = {
   name: string;
@@ -62,6 +94,18 @@ function appendSlashCommand(
     return;
   }
   seen.add(normalizedName);
+  if (normalizedName === "memory") {
+    commands.push({
+      name: normalizedName,
+      description,
+      argumentHint: "status | sync [force] | search <query> | read <path[:line[-end]]>",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return MEMORY_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
+      },
+    });
+    return;
+  }
   commands.push({ name: normalizedName, description });
 }
 
@@ -199,7 +243,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/model <provider/model> (or /models)",
     "/tools [compact|verbose]",
     "/context [compact|verbose]",
-    "/memory [status|search <query>]",
+    "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
     "/skill <name> [args]",
     "/plugins list",
     "",

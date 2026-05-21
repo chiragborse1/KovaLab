@@ -39,6 +39,43 @@ describe("getSlashCommands", () => {
     expect(crestodian?.description).toBe("Return to Crestodian");
   });
 
+  it("adds practical argument completions for /memory", () => {
+    const commands = getSlashCommands();
+    const memory = commands.find((command) => command.name === "memory");
+    expect(memory?.argumentHint).toBe(
+      "status | sync [force] | search <query> | read <path[:line[-end]]>",
+    );
+    expect(memory?.getArgumentCompletions?.("s")).toEqual([
+      {
+        value: "status",
+        label: "status",
+        description: "Check memory backend and index health",
+      },
+      {
+        value: "sync",
+        label: "sync",
+        description: "Refresh the active memory index",
+      },
+      {
+        value: "sync force",
+        label: "sync force",
+        description: "Rebuild the active memory index",
+      },
+      {
+        value: "search ",
+        label: "search <query>",
+        description: "Search recalled memory snippets",
+      },
+    ]);
+    expect(memory?.getArgumentCompletions?.("sync f")).toEqual([
+      {
+        value: "sync force",
+        label: "sync force",
+        description: "Rebuild the active memory index",
+      },
+    ]);
+  });
+
   it("merges dynamic gateway commands", () => {
     const commands = getSlashCommands({
       dynamicCommands: [
@@ -70,7 +107,9 @@ describe("helpText", () => {
     expect(output).toContain("Terminal command center:");
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/context [compact|verbose]");
-    expect(output).toContain("/memory [status|search <query>]");
+    expect(output).toContain(
+      "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
+    );
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins list");
     expect(output).toContain("Run controls:");
