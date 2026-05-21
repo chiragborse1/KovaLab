@@ -320,10 +320,10 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     `http://127.0.0.1:18789/`
 
-    Reprint a clean dashboard link:
+    Reprint a clean Control UI link:
 
     ```bash
-    docker compose run --rm kova-cli dashboard --no-open
+    docker compose run --rm kova-cli control-ui --no-open
     ```
 
     If the UI prompts for shared-secret auth, paste the configured token or

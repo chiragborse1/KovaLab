@@ -99,10 +99,10 @@ Run a persistent, always-on Kova Gateway on a Raspberry Pi. Since the Pi is just
   </Step>
 
   <Step title="Access the Control UI">
-    On your computer, get a dashboard URL from the Pi:
+    On your computer, get a Control UI URL from the Pi:
 
     ```bash
-    ssh user@gateway-host 'kova dashboard --no-open'
+    ssh user@gateway-host 'kova control-ui --no-open'
     ```
 
     Then create an SSH tunnel in another terminal:

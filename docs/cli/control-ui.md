@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `kova control-ui` and legacy `kova dashboard`"
+summary: "CLI reference for `kova control-ui`"
 read_when:
   - You want to open the Control UI with your current token
   - You want to print the URL without launching a browser
@@ -19,7 +19,7 @@ kova control-ui --no-open
 Notes:
 
 - `control-ui` resolves configured `gateway.auth.token` SecretRefs when token auth is active.
-- `dashboard` remains as a hidden compatibility alias for older scripts; new docs and onboarding use `control-ui`.
+- Older scripts can still call the hidden compatibility alias, but new flows and docs use `control-ui`.
 - If `gateway.auth.mode` is `"password"`, the command opens/copies a plain URL; enter the gateway password in Control UI settings.
 - The command follows `gateway.tls.enabled`: TLS-enabled gateways print/open
   `https://` Control UI URLs and connect over `wss://`.

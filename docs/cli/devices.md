@@ -189,8 +189,8 @@ Notes:
 
 Related:
 
-- [Control UI auth troubleshooting](/web/dashboard#if-you-see-unauthorized-1008)
-- [Gateway troubleshooting](/gateway/troubleshooting#dashboard-control-ui-connectivity)
+- [Control UI auth troubleshooting](/web/control-ui#if-you-see-unauthorized-1008)
+- [Gateway troubleshooting](/gateway/troubleshooting#control-ui-connectivity)
 
 ## Related
 

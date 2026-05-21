@@ -72,7 +72,7 @@ Once approved, the device is remembered and won't require re-approval unless you
 
 The Control UI supports a per-browser personal identity (display name and avatar) attached to outgoing messages for attribution in shared sessions. It lives in browser storage, is scoped to the current browser profile, and is not synced to other devices or persisted server-side beyond the normal transcript authorship metadata on messages you actually send. Clearing site data or switching browsers resets it to empty.
 
-The same browser-local pattern applies to the assistant avatar override. Uploaded assistant avatars overlay the gateway-resolved identity on the local browser only and never round-trip through `config.patch`. The shared `ui.assistant.avatar` config field is still available for non-UI clients writing the field directly (such as scripted gateways or custom dashboards).
+The same browser-local pattern applies to the assistant avatar override. Uploaded assistant avatars overlay the gateway-resolved identity on the local browser only and never round-trip through `config.patch`. The shared `ui.assistant.avatar` config field is still available for non-UI clients writing the field directly (such as scripted gateways or custom control surfaces).
 
 ## Runtime config endpoint
 
@@ -365,7 +365,7 @@ When gateway auth is configured, the Control UI avatar endpoint requires the sam
 
 - `GET /avatar/<agentId>` returns the avatar image only to authenticated callers. `GET /avatar/<agentId>?meta=1` returns the avatar metadata under the same rule.
 - Unauthenticated requests to either route are rejected (matching the sibling assistant-media route). This prevents the avatar route from leaking agent identity on hosts that are otherwise protected.
-- The Control UI itself forwards the gateway token as a bearer header when fetching avatars, and uses authenticated blob URLs so the image still renders in dashboards.
+- The Control UI itself forwards the gateway token as a bearer header when fetching avatars, and uses authenticated blob URLs so the image still renders in browser control surfaces.
 
 If you disable gateway auth (not recommended on shared hosts), the avatar route also becomes unauthenticated, in line with the rest of the gateway.
 
@@ -446,7 +446,7 @@ Remote access setup details: [Remote access](/gateway/remote).
 
 ## Related
 
-- [Control UI access](/web/dashboard) — auth and exposure modes
+- [Control UI access](/web/control-ui) — auth and exposure modes
 - [Health Checks](/gateway/health) — gateway health monitoring
 - [TUI](/web/tui) — terminal user interface
 - [WebChat](/web/webchat) — browser-based chat interface

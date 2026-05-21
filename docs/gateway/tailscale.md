@@ -1,13 +1,13 @@
 ---
-summary: "Integrated Tailscale Serve/Funnel for the Gateway dashboard"
+summary: "Integrated Tailscale Serve/Funnel for the Gateway Control UI"
 read_when:
   - Exposing the Gateway Control UI outside localhost
-  - Automating tailnet or public dashboard access
+  - Automating tailnet or public Control UI access
 title: "Tailscale"
 ---
 
 Kova can auto-configure Tailscale **Serve** (tailnet) or **Funnel** (public) for the
-Gateway dashboard and WebSocket port. This keeps the Gateway bound to loopback while
+Gateway Control UI and WebSocket port. This keeps the Gateway bound to loopback while
 Tailscale provides HTTPS, routing, and (for Serve) identity headers.
 
 ## Modes

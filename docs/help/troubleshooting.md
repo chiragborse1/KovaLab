@@ -86,7 +86,7 @@ Reference: [Plugin architecture](/plugins/architecture)
 flowchart TD
   A[Kova is not working] --> B{What breaks first}
   B --> C[No replies]
-  B --> D[Dashboard or Control UI will not connect]
+  B --> D[Control UI will not connect]
   B --> E[Gateway will not start or service not running]
   B --> F[Channel connects but messages do not flow]
   B --> G[Cron or heartbeat did not fire or did not deliver]
@@ -134,7 +134,7 @@ flowchart TD
 
   </Accordion>
 
-  <Accordion title="Dashboard or Control UI will not connect">
+  <Accordion title="Control UI will not connect">
     ```bash
     kova status
     kova gateway status
@@ -145,7 +145,7 @@ flowchart TD
 
     Good output looks like:
 
-    - `Dashboard: http://...` is shown in `kova gateway status`
+    - `Control UI: http://...` is shown in `kova gateway status`
     - `Connectivity probe: ok`
     - `Capability: read-only`, `write-capable`, or `admin-capable`
     - No auth loop in logs
@@ -170,7 +170,7 @@ flowchart TD
 
     Deep pages:
 
-    - [/gateway/troubleshooting#dashboard-control-ui-connectivity](/gateway/troubleshooting#dashboard-control-ui-connectivity)
+    - [/gateway/troubleshooting#control-ui-connectivity](/gateway/troubleshooting#control-ui-connectivity)
     - [/web/control-ui](/web/control-ui)
     - [/gateway/authentication](/gateway/authentication)
 

@@ -69,7 +69,7 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
     Need the URL again?
 
     ```bash
-    docker compose run --rm kova-cli dashboard --no-open
+    docker compose run --rm kova-cli control-ui --no-open
     ```
 
   </Step>
@@ -477,15 +477,15 @@ scripts/sandbox-setup.sh
   </Accordion>
 
   <Accordion title="Unauthorized or pairing required in Control UI">
-    Fetch a fresh dashboard link and approve the browser device:
+    Fetch a fresh Control UI link and approve the browser device:
 
     ```bash
-    docker compose run --rm kova-cli dashboard --no-open
+    docker compose run --rm kova-cli control-ui --no-open
     docker compose run --rm kova-cli devices list
     docker compose run --rm kova-cli devices approve <requestId>
     ```
 
-    More detail: [Dashboard](/web/dashboard), [Devices](/cli/devices).
+    More detail: [Control UI](/web/control-ui), [Devices](/cli/devices).
 
   </Accordion>
 

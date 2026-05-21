@@ -1467,7 +1467,7 @@ lives on the [Models FAQ](/help/faq-models).
 
     Fix:
 
-    - Fastest: `kova dashboard` (prints + copies the dashboard URL, tries to open; shows SSH hint if headless).
+    - Fastest: `kova control-ui` (prints + copies the Control UI URL, tries to open; shows SSH hint if headless).
     - If you don't have a token yet: `kova doctor --generate-gateway-token`.
     - If remote, tunnel first: `ssh -N -L 18789:127.0.0.1:18789 user@host` then open `http://127.0.0.1:18789/`.
     - Shared-secret mode: set `gateway.auth.token` / `KOVA_GATEWAY_TOKEN` or `gateway.auth.password` / `KOVA_GATEWAY_PASSWORD`, then paste the matching secret in Control UI settings.
@@ -1479,7 +1479,7 @@ lives on the [Models FAQ](/help/faq-models).
     - If that rotate call says it was denied, check two things:
       - paired-device sessions can rotate only their **own** device unless they also have `operator.admin`
       - explicit `--scope` values cannot exceed the caller's current operator scopes
-    - Still stuck? Run `kova status --all` and follow [Troubleshooting](/gateway/troubleshooting). See [Dashboard](/web/dashboard) for auth details.
+    - Still stuck? Run `kova status --all` and follow [Troubleshooting](/gateway/troubleshooting). See [Control UI](/web/control-ui) for auth details.
 
   </Accordion>
 
@@ -1636,7 +1636,7 @@ lives on the [Models FAQ](/help/faq-models).
 
     - Model auth not loaded on the **gateway host** (check `models status`).
     - Channel pairing/allowlist blocking replies (check channel config + logs).
-    - WebChat/Dashboard is open without the right token.
+    - WebChat or Control UI is open without the right token.
 
     If you are remote, confirm the tunnel/Tailscale connection is up and that the
     Gateway WebSocket is reachable.
@@ -1650,7 +1650,7 @@ lives on the [Models FAQ](/help/faq-models).
 
     1. Is the Gateway running? `kova gateway status`
     2. Is the Gateway healthy? `kova status`
-    3. Does the UI have the right token? `kova dashboard`
+    3. Does the UI have the right token? `kova control-ui`
     4. If remote, is the tunnel/Tailscale link up?
 
     Then tail logs:
@@ -1659,7 +1659,7 @@ lives on the [Models FAQ](/help/faq-models).
     kova logs --follow
     ```
 
-    Docs: [Dashboard](/web/dashboard), [Remote access](/gateway/remote), [Troubleshooting](/gateway/troubleshooting).
+    Docs: [Control UI](/web/control-ui), [Remote access](/gateway/remote), [Troubleshooting](/gateway/troubleshooting).
 
   </Accordion>
 

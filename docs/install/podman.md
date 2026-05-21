@@ -90,7 +90,7 @@ export KOVA_CONTAINER=kova
 Then commands such as these will run inside that container automatically:
 
 ```bash
-kova dashboard --no-open
+kova control-ui --no-open
 kova gateway status --deep   # includes extra service scan
 kova doctor
 kova channels login
@@ -160,7 +160,7 @@ The launch script and Quadlet bind-mount host state into the container:
 By default those are host directories, not anonymous container state, so
 `kova.json`, per-agent `auth-profiles.json`, channel/provider state,
 sessions, and workspace survive container replacement.
-The Podman setup also seeds `gateway.controlUi.allowedOrigins` for `127.0.0.1` and `localhost` on the published gateway port so the local dashboard works with the container's non-loopback bind.
+The Podman setup also seeds `gateway.controlUi.allowedOrigins` for `127.0.0.1` and `localhost` on the published gateway port so the local Control UI works with the container's non-loopback bind.
 
 Useful env vars for the manual launcher:
 
@@ -189,7 +189,7 @@ Quadlet note:
 - **Container logs:** `podman logs -f kova`
 - **Stop container:** `podman stop kova`
 - **Remove container:** `podman rm -f kova`
-- **Open dashboard URL from host CLI:** `kova dashboard --no-open`
+- **Open Control UI URL from host CLI:** `kova control-ui --no-open`
 - **Health/status via host CLI:** `kova gateway status --deep` (RPC probe + extra
   service scan)
 

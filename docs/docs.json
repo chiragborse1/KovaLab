@@ -418,7 +418,15 @@
     },
     {
       "source": "/dashboard",
-      "destination": "/web/dashboard"
+      "destination": "/web/control-ui"
+    },
+    {
+      "source": "/web/dashboard",
+      "destination": "/web/control-ui"
+    },
+    {
+      "source": "/cli/dashboard",
+      "destination": "/cli/control-ui"
     },
     {
       "source": "/device-models",
@@ -1538,7 +1546,7 @@
               },
               {
                 "group": "Web interfaces",
-                "pages": ["web/index", "web/control-ui", "web/dashboard", "web/webchat", "web/tui"]
+                "pages": ["web/index", "web/control-ui", "web/webchat", "web/tui"]
               }
             ]
           },
@@ -1617,7 +1625,7 @@
                   },
                   {
                     "group": "Interfaces",
-                    "pages": ["cli/dashboard", "cli/tui"]
+                    "pages": ["cli/control-ui", "cli/tui"]
                   },
                   {
                     "group": "Utility",

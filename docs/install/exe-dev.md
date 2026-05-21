@@ -29,7 +29,7 @@ Shelley, [exe.dev](https://exe.dev)'s agent, can install Kova instantly with our
 prompt. The prompt used is as below:
 
 ```
-Set up Kova (https://docs.neuralstudio.in/install) on this VM. Use the non-interactive and accept-risk flags for kova onboarding. Add the supplied auth or token as needed. Configure nginx to forward from the default port 18789 to the root location on the default enabled site config, making sure to enable Websocket support. Pairing is done by "kova devices list" and "kova devices approve <request id>". Make sure the dashboard shows that Kova's health is OK. exe.dev handles forwarding from port 8000 to port 80/443 and HTTPS for us, so the final "reachable" should be <vm-name>.exe.xyz, without port specification.
+Set up Kova (https://docs.neuralstudio.in/install) on this VM. Use the non-interactive and accept-risk flags for kova onboarding. Add the supplied auth or token as needed. Configure nginx to forward from the default port 18789 to the root location on the default enabled site config, making sure to enable Websocket support. Pairing is done by "kova devices list" and "kova devices approve <request id>". Make sure the Control UI shows that Kova's health is OK. exe.dev handles forwarding from port 8000 to port 80/443 and HTTPS for us, so the final "reachable" should be <vm-name>.exe.xyz, without port specification.
 ```
 
 ## Manual installation
