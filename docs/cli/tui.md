@@ -28,6 +28,7 @@ Notes:
 - Local mode adds `/auth [provider]` inside the TUI command surface.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 - `/help` opens the terminal command center with core navigation, run controls, Gateway status, tools, context, memory, skills, and plugin commands.
+- Set `KOVA_TUI_TRACE=1` when you need per-turn local timing diagnostics for slow replies.
 
 ## Examples
 

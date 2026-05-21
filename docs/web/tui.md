@@ -30,6 +30,7 @@ Notes:
 - `kova` and `kova crestodian` also use this TUI shell, with Crestodian as the local setup and repair chat backend.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 - Set `KOVA_TUI_IN_PROCESS_BACKEND=1` only when debugging the legacy in-process local backend.
+- Set `KOVA_TUI_TRACE=1` to print per-turn local timing diagnostics in the chat log while investigating slow replies.
 
 ### Gateway mode
 
@@ -234,6 +235,19 @@ Tips:
 - `--message <text>`: Send an initial message after connecting
 - `--timeout-ms <ms>`: Agent timeout in ms (defaults to `agents.defaults.timeoutSeconds`)
 - `--history-limit <n>`: History entries to load (default `80`)
+
+## Timing diagnostics
+
+For local-mode reply latency debugging, launch with:
+
+```bash
+KOVA_TUI_TRACE=1 kova chat
+```
+
+The chat log prints timing markers for the local turn handoff, session load,
+agent import/dependency setup, agent dispatch, first agent event, first assistant
+text, and finalization. Use this only while debugging; normal runs keep these
+markers hidden.
 
 <Warning>
 When you set `--url`, the TUI does not fall back to config or environment credentials. Pass `--token` or `--password` explicitly. Missing explicit credentials is an error. In local mode, do not pass `--url`, `--token`, or `--password`.

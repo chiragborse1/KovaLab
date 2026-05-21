@@ -50,6 +50,7 @@ import type {
   TuiModelChoice,
   TuiSessionList,
 } from "./tui-backend.js";
+import { TuiTurnTrace } from "./turn-trace.js";
 
 type LocalRunState = {
   sessionKey: string;
@@ -59,6 +60,9 @@ type LocalRunState = {
   question?: string;
   finalSent: boolean;
   registered: boolean;
+  trace: TuiTurnTrace;
+  firstAgentEventSent: boolean;
+  firstAssistantEventSent: boolean;
 };
 
 type DefaultDeps = ReturnType<(typeof import("../cli/deps.js"))["createDefaultDeps"]>;
@@ -181,6 +185,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
       this.abortSessionRuns(opts.sessionKey);
     }
     const controller = new AbortController();
+    const trace = new TuiTurnTrace({
+      runId,
+      sessionKey: opts.sessionKey,
+      emit: (payload) => this.emit("trace", payload),
+    });
+    trace.step("send.accepted", question ? "btw" : "chat");
     this.runs.set(runId, {
       sessionKey: opts.sessionKey,
       controller,
@@ -189,6 +199,9 @@ export class EmbeddedTuiBackend implements TuiBackend {
       question,
       finalSent: false,
       registered: false,
+      trace,
+      firstAgentEventSent: false,
+      firstAssistantEventSent: false,
     });
 
     void this.runTurn({
@@ -547,6 +560,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
     if (!run) {
       return;
     }
+    if (!run.firstAgentEventSent) {
+      run.firstAgentEventSent = true;
+      run.trace.step("agent.event.first", evt.stream);
+    }
 
     if (evt.stream !== "assistant") {
       this.ensureRunRegistered(evt.runId, run);
@@ -568,6 +585,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
         text: evt.data.text,
         delta: evt.data.delta,
       });
+      if (!run.firstAssistantEventSent) {
+        run.firstAssistantEventSent = true;
+        run.trace.step("assistant.text.first");
+      }
       run.buffer = resolveMergedAssistantText({
         previousText: run.buffer,
         nextText: cleaned.text,
@@ -616,7 +637,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
     timeoutMs?: number;
     controller: AbortController;
   }) {
+    const trace = this.runs.get(params.runId)?.trace;
+    trace?.step("command.session.load.start");
     const { cfg, canonicalKey } = loadSessionEntry(params.sessionKey);
+    trace?.step("command.session.load.end");
     const commandBody = params.message;
     const stampedMessage = injectTimestamp(params.message, timestampOptsFromConfig(cfg));
     const ctx: MsgContext = {
@@ -639,7 +663,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
       SenderUsername: "tui",
     };
     let agentRunStarted = false;
+    trace?.step("command.pipeline.import.start");
     const { getReplyFromConfig } = await import("../auto-reply/reply/get-reply.js");
+    trace?.step("command.pipeline.import.end");
+    trace?.step("command.pipeline.start");
     const reply = await getReplyFromConfig(
       ctx,
       {
@@ -652,18 +679,21 @@ export class EmbeddedTuiBackend implements TuiBackend {
       },
       cfg,
     );
+    trace?.step("command.pipeline.end");
     const run = this.runs.get(params.runId);
     if (!run) {
       return;
     }
     const text = replyText(reply);
     if (!agentRunStarted) {
+      run.trace.step("turn.final", "command");
       this.emitChatCommandFinal(params.runId, run, text || "(no output)");
       return;
     }
     if (text && !run.buffer) {
       run.buffer = text;
     }
+    run.trace.step("turn.final", "command");
     this.emitChatFinal(params.runId, run);
   }
 
@@ -677,8 +707,14 @@ export class EmbeddedTuiBackend implements TuiBackend {
     controller: AbortController;
   }) {
     try {
+      this.runs.get(params.runId)?.trace.step("turn.start");
+      this.runs.get(params.runId)?.trace.step("session.load.start");
       const { cfg, canonicalKey, entry } = loadSessionEntry(params.sessionKey);
+      this.runs
+        .get(params.runId)
+        ?.trace.step("session.load.end", entry?.sessionId ? "existing session" : "new session");
       if (shouldUseReplyCommandPipeline(params.message)) {
+        this.runs.get(params.runId)?.trace.step("command.route");
         await this.runTextCommandTurn({
           runId: params.runId,
           sessionKey: params.sessionKey,
@@ -688,10 +724,13 @@ export class EmbeddedTuiBackend implements TuiBackend {
         });
         return;
       }
+      this.runs.get(params.runId)?.trace.step("agent.imports.start");
       const [{ agentCommandFromIngress }, deps] = await Promise.all([
         import("../agents/agent-command.js"),
         this.getDeps(),
       ]);
+      this.runs.get(params.runId)?.trace.step("agent.imports.end");
+      this.runs.get(params.runId)?.trace.step("agent.dispatch.start");
       const result = await agentCommandFromIngress(
         {
           message: injectTimestamp(params.message, timestampOptsFromConfig(cfg)),
@@ -713,6 +752,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
         silentRuntime,
         deps,
       );
+      this.runs.get(params.runId)?.trace.step("agent.dispatch.end");
       const run = this.runs.get(params.runId);
       if (!run) {
         return;
@@ -730,6 +770,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
           });
         }
         this.emitChatFinal(params.runId, run);
+        run.trace.step("turn.final");
         return;
       }
 
@@ -739,6 +780,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
           run.buffer = normalizedText;
         }
         this.emitChatFinal(params.runId, run);
+        run.trace.step("turn.final");
       }
     } catch (error) {
       const run = this.runs.get(params.runId);
@@ -751,6 +793,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
       }
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.emitChatError(params.runId, run, errorMessage);
+      run.trace.step("turn.error", errorMessage.slice(0, 160));
     } finally {
       this.runs.delete(params.runId);
     }

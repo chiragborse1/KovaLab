@@ -153,6 +153,7 @@ async function waitFor(predicate: () => boolean) {
 describe("EmbeddedTuiBackend", () => {
   const originalRuntimeLog = defaultRuntime.log;
   const originalRuntimeError = defaultRuntime.error;
+  const originalTrace = process.env.KOVA_TUI_TRACE;
 
   beforeEach(() => {
     agentCommandFromIngressMock.mockReset();
@@ -161,12 +162,18 @@ describe("EmbeddedTuiBackend", () => {
     setEmbeddedMode(false);
     defaultRuntime.log = originalRuntimeLog;
     defaultRuntime.error = originalRuntimeError;
+    delete process.env.KOVA_TUI_TRACE;
   });
 
   afterEach(() => {
     setEmbeddedMode(false);
     defaultRuntime.log = originalRuntimeLog;
     defaultRuntime.error = originalRuntimeError;
+    if (originalTrace === undefined) {
+      delete process.env.KOVA_TUI_TRACE;
+    } else {
+      process.env.KOVA_TUI_TRACE = originalTrace;
+    }
   });
 
   it("bridges assistant and lifecycle events into chat events", async () => {
@@ -571,6 +578,54 @@ describe("EmbeddedTuiBackend", () => {
 
     expect(result).toEqual({ ok: true, aborted: true });
     expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("emits opt-in timing trace events for local turns", async () => {
+    process.env.KOVA_TUI_TRACE = "1";
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    agentCommandFromIngressMock.mockResolvedValueOnce({
+      payloads: [{ text: "hello" }],
+      meta: {},
+    });
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "hello",
+      runId: "run-trace",
+    });
+    await waitFor(() =>
+      events.some(
+        (entry) =>
+          entry.event === "trace" &&
+          (entry.payload as { stage?: string } | undefined)?.stage === "turn.final",
+      ),
+    );
+
+    const tracePayloads = events
+      .filter((entry) => entry.event === "trace")
+      .map((entry) => entry.payload as { stage?: string; elapsedMs?: number; runId?: string });
+    expect(tracePayloads.map((payload) => payload.stage)).toEqual(
+      expect.arrayContaining([
+        "send.accepted",
+        "turn.start",
+        "session.load.start",
+        "session.load.end",
+        "agent.imports.start",
+        "agent.imports.end",
+        "agent.dispatch.start",
+        "agent.dispatch.end",
+        "turn.final",
+      ]),
+    );
+    expect(tracePayloads.every((payload) => payload.runId === "run-trace")).toBe(true);
+    expect(tracePayloads.every((payload) => typeof payload.elapsedMs === "number")).toBe(true);
   });
 
   it("restores embedded mode and runtime loggers on stop", async () => {
