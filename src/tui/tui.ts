@@ -650,6 +650,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   let catalogRefreshKey = "";
   let catalogRefreshPromise: Promise<void> | null = null;
+  let catalogRefreshTimer: NodeJS.Timeout | null = null;
 
   const refreshHeroCatalog = async (agentId: string) => {
     hero.setState({ catalogStatus: "refreshing live tools and skills..." });
@@ -682,7 +683,25 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     tui.requestRender();
   };
 
-  const maybeRefreshHeroCatalog = () => {
+  const clearCatalogRefreshTimer = () => {
+    if (!catalogRefreshTimer) {
+      return;
+    }
+    clearTimeout(catalogRefreshTimer);
+    catalogRefreshTimer = null;
+  };
+
+  const scheduleHeroCatalogRefresh = (delayMs = 1200) => {
+    if (catalogRefreshTimer) {
+      return;
+    }
+    catalogRefreshTimer = setTimeout(() => {
+      catalogRefreshTimer = null;
+      maybeRefreshHeroCatalog();
+    }, delayMs);
+  };
+
+  function maybeRefreshHeroCatalog() {
     if (!isConnected) {
       return;
     }
@@ -690,6 +709,11 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     if (!key || catalogRefreshKey === key || catalogRefreshPromise) {
       return;
     }
+    if (busyStates.has(activityStatus) || activeChatRunId || pendingOptimisticUserMessage) {
+      scheduleHeroCatalogRefresh();
+      return;
+    }
+    clearCatalogRefreshTimer();
     catalogRefreshKey = key;
     catalogRefreshPromise = refreshHeroCatalog(key)
       .catch(() => {
@@ -702,7 +726,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
           maybeRefreshHeroCatalog();
         }
       });
-  };
+  }
 
   const updateHeader = () => {
     const sessionLabel = formatSessionKey(currentSessionKey);
@@ -830,7 +854,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         return;
       }
       updateBusyStatusMessage();
-    }, 300);
+    }, 500);
   };
 
   const stopWaitingTimer = () => {
@@ -1055,6 +1079,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return;
     }
     exitRequested = true;
+    clearCatalogRefreshTimer();
     exitResult = {
       exitReason: result?.exitReason ?? "exit",
       ...(result?.crestodianMessage ? { crestodianMessage: result.crestodianMessage } : {}),
@@ -1224,6 +1249,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     isConnected = false;
     wasDisconnected = true;
     historyLoaded = false;
+    clearCatalogRefreshTimer();
     dynamicSlashCommands = [];
     dynamicSlashCommandsKey = null;
     dynamicSlashCommandsInFlightKey = null;

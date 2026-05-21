@@ -1,5 +1,8 @@
 import type { SlashCommand } from "@mariozechner/pi-tui";
-import { listChatCommands, listChatCommandsForConfig } from "../auto-reply/commands-registry.js";
+import {
+  listChatCommands,
+  listChatCommandsForConfig,
+} from "../auto-reply/commands-registry-list.js";
 import { formatThinkingLevels, listThinkingLevelLabels } from "../auto-reply/thinking.js";
 import type { KovaConfig } from "../config/types.js";
 import type { CommandEntry } from "../gateway/protocol/index.js";

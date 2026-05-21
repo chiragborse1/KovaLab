@@ -1,16 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { agentCommandFromIngress } from "../agents/agent-command.js";
-import { resolveAgentWorkspaceDir, resolveSessionAgentId } from "../agents/agent-scope.js";
-import { DEFAULT_PROVIDER } from "../agents/defaults.js";
-import { canExecRequestNode } from "../agents/exec-defaults.js";
-import { buildAllowedModelSet, resolveThinkingDefault } from "../agents/model-selection.js";
-import { buildWorkspaceSkillStatus, type SkillStatusReport } from "../agents/skills-status.js";
-import { maybeResolveTextAlias } from "../auto-reply/commands-registry.js";
+import { resolveSessionAgentId } from "../agents/agent-scope.js";
+import type { SkillStatusReport } from "../agents/skills-status.js";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import type { MsgContext } from "../auto-reply/templating.js";
-import { createDefaultDeps } from "../cli/deps.js";
 import { getRuntimeConfig } from "../config/config.js";
-import { updateSessionStore } from "../config/sessions.js";
 import {
   projectRecentChatDisplayMessages,
   resolveEffectiveChatHistoryMaxChars,
@@ -34,9 +27,6 @@ import {
   enforceChatHistoryFinalBudget,
   replaceOversizedChatHistoryMessages,
 } from "../gateway/server-methods/chat.js";
-import { buildToolsCatalogResult } from "../gateway/server-methods/tools-catalog.js";
-import { loadGatewayModelCatalog } from "../gateway/server-model-catalog.js";
-import { performGatewaySessionReset } from "../gateway/session-reset-service.js";
 import { capArrayByJsonBytes } from "../gateway/session-utils.fs.js";
 import {
   listAgentsForGateway,
@@ -48,10 +38,8 @@ import {
   resolveSessionModelRef,
   readSessionMessages,
 } from "../gateway/session-utils.js";
-import { applySessionsPatchToStore } from "../gateway/sessions-patch.js";
 import { type AgentEventPayload, onAgentEvent } from "../infra/agent-events.js";
 import { setEmbeddedMode } from "../infra/embedded-mode.js";
-import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { defaultRuntime } from "../runtime.js";
 import { INTERNAL_MESSAGE_CHANNEL } from "../utils/message-channel.js";
 import type {
@@ -72,6 +60,8 @@ type LocalRunState = {
   finalSent: boolean;
   registered: boolean;
 };
+
+type DefaultDeps = ReturnType<(typeof import("../cli/deps.js"))["createDefaultDeps"]>;
 
 const silentRuntime = {
   log: (..._args: unknown[]) => undefined,
@@ -119,7 +109,7 @@ function timeoutSecondsNumberFromMs(timeoutMs?: number): number | undefined {
   return Math.max(0, Math.ceil(timeoutMs / 1000));
 }
 
-function isTextSlashCommand(message: string, cfg: ReturnType<typeof getRuntimeConfig>): boolean {
+function shouldUseReplyCommandPipeline(message: string): boolean {
   const trimmed = message.trim();
   if (!trimmed.startsWith("/")) {
     return false;
@@ -129,7 +119,7 @@ function isTextSlashCommand(message: string, cfg: ReturnType<typeof getRuntimeCo
   if (/^\/btw(?::|\s|$)/i.test(trimmed)) {
     return false;
   }
-  return maybeResolveTextAlias(trimmed, cfg) !== null;
+  return true;
 }
 
 function replyText(reply: ReplyPayload | ReplyPayload[] | undefined): string {
@@ -144,7 +134,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   onDisconnected?: (reason: string) => void;
   onGap?: (info: { expected: number; received: number }) => void;
 
-  private readonly deps = createDefaultDeps();
+  private deps?: DefaultDeps;
   private readonly runs = new Map<string, LocalRunState>();
   private unsubscribe?: () => void;
   private previousRuntimeLog?: typeof defaultRuntime.log;
@@ -255,12 +245,11 @@ export class EmbeddedTuiBackend implements TuiBackend {
 
     let thinkingLevel = entry?.thinkingLevel;
     if (!thinkingLevel) {
-      const catalog = await loadGatewayModelCatalog();
+      const { resolveThinkingDefault } = await import("../agents/model-thinking-default.js");
       thinkingLevel = resolveThinkingDefault({
         cfg,
         provider: resolvedSessionModel.provider,
         model: resolvedSessionModel.model,
-        catalog,
       });
     }
 
@@ -294,6 +283,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
   ): Promise<SessionsPatchResult> {
     const cfg = getRuntimeConfig();
     const target = resolveGatewaySessionStoreTarget({ cfg, key: opts.key });
+    const [{ updateSessionStore }, { applySessionsPatchToStore }, { loadGatewayModelCatalog }] =
+      await Promise.all([
+        import("../config/sessions.js"),
+        import("../gateway/sessions-patch.js"),
+        import("../gateway/server-model-catalog.js"),
+      ]);
     const applied = await updateSessionStore(target.storePath, async (store) => {
       const { primaryKey } = migrateAndPruneGatewaySessionStoreKey({
         cfg,
@@ -330,6 +325,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async resetSession(key: string, reason?: "new" | "reset") {
+    const { performGatewaySessionReset } = await import("../gateway/session-reset-service.js");
     const result = await performGatewaySessionReset({
       key,
       reason: reason === "new" ? "new" : "reset",
@@ -346,6 +342,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listModels(): Promise<TuiModelChoice[]> {
+    const [{ DEFAULT_PROVIDER }, { buildAllowedModelSet }, { loadGatewayModelCatalog }] =
+      await Promise.all([
+        import("../agents/defaults.js"),
+        import("../agents/model-selection.js"),
+        import("../gateway/server-model-catalog.js"),
+      ]);
     const catalog = await loadGatewayModelCatalog();
     const cfg = getRuntimeConfig();
     const { allowedCatalog } = buildAllowedModelSet({
@@ -364,6 +366,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listTools(opts: { agentId: string; includePlugins?: boolean }) {
+    const { buildToolsCatalogResult } = await import("../gateway/server-methods/tools-catalog.js");
     return buildToolsCatalogResult({
       cfg: getRuntimeConfig(),
       agentId: opts.agentId,
@@ -372,6 +375,17 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   async listSkills(opts: { agentId: string }): Promise<SkillStatusReport> {
+    const [
+      { resolveAgentWorkspaceDir },
+      { canExecRequestNode },
+      { buildWorkspaceSkillStatus },
+      { getRemoteSkillEligibility },
+    ] = await Promise.all([
+      import("../agents/agent-scope.js"),
+      import("../agents/exec-defaults.js"),
+      import("../agents/skills-status.js"),
+      import("../infra/skills-remote.js"),
+    ]);
     const cfg = getRuntimeConfig();
     const workspaceDir = resolveAgentWorkspaceDir(cfg, opts.agentId);
     return buildWorkspaceSkillStatus(workspaceDir, {
@@ -385,6 +399,14 @@ export class EmbeddedTuiBackend implements TuiBackend {
         }),
       },
     });
+  }
+
+  private async getDeps(): Promise<DefaultDeps> {
+    if (!this.deps) {
+      const { createDefaultDeps } = await import("../cli/deps.js");
+      this.deps = createDefaultDeps();
+    }
+    return this.deps;
   }
 
   private abortSessionRuns(sessionKey: string) {
@@ -656,7 +678,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }) {
     try {
       const { cfg, canonicalKey, entry } = loadSessionEntry(params.sessionKey);
-      if (isTextSlashCommand(params.message, cfg)) {
+      if (shouldUseReplyCommandPipeline(params.message)) {
         await this.runTextCommandTurn({
           runId: params.runId,
           sessionKey: params.sessionKey,
@@ -666,6 +688,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
         });
         return;
       }
+      const [{ agentCommandFromIngress }, deps] = await Promise.all([
+        import("../agents/agent-command.js"),
+        this.getDeps(),
+      ]);
       const result = await agentCommandFromIngress(
         {
           message: injectTimestamp(params.message, timestampOptsFromConfig(cfg)),
@@ -684,7 +710,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
           allowModelOverride: false,
         },
         silentRuntime,
-        this.deps,
+        deps,
       );
       const run = this.runs.get(params.runId);
       if (!run) {

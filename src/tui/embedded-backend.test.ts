@@ -40,11 +40,13 @@ vi.mock("../agents/agent-scope.js", () => ({
 }));
 
 vi.mock("../agents/defaults.js", () => ({
+  DEFAULT_MODEL: "gpt-5.5",
   DEFAULT_PROVIDER: "openai",
 }));
 
 vi.mock("../agents/model-selection.js", () => ({
   buildAllowedModelSet: ({ catalog }: { catalog: unknown[] }) => ({ allowedCatalog: catalog }),
+  resolveConfiguredModelRef: () => null,
   resolveThinkingDefault: () => undefined,
 }));
 
@@ -136,6 +138,16 @@ async function flushAsyncTurn() {
   await flushMicrotasks();
   await new Promise<void>((resolve) => setImmediate(resolve));
   await flushMicrotasks();
+}
+
+async function waitFor(predicate: () => boolean) {
+  for (let i = 0; i < 20; i++) {
+    if (predicate()) {
+      return;
+    }
+    await flushAsyncTurn();
+  }
+  expect(predicate()).toBe(true);
 }
 
 describe("EmbeddedTuiBackend", () => {
@@ -320,7 +332,7 @@ describe("EmbeddedTuiBackend", () => {
       message: "/btw what changed?",
       runId: "run-btw-1",
     });
-    await flushMicrotasks();
+    await waitFor(() => events.length >= 2);
 
     expect(events).toEqual([
       {
@@ -360,7 +372,7 @@ describe("EmbeddedTuiBackend", () => {
       message: "/memory",
       runId: "run-memory-command",
     });
-    await flushAsyncTurn();
+    await waitFor(() => getReplyFromConfigMock.mock.calls.length === 1);
 
     expect(agentCommandFromIngressMock).not.toHaveBeenCalled();
     expect(getReplyFromConfigMock).toHaveBeenCalledOnce();
@@ -465,7 +477,9 @@ describe("EmbeddedTuiBackend", () => {
       data: { phase: "start", toolCallId: "tc-tool-first", name: "exec" },
     });
     pending.resolve({ payloads: [{ text: "done" }], meta: {} });
-    await flushMicrotasks();
+    await waitFor(() =>
+      events.some((entry) => (entry.payload as { state?: string }).state === "final"),
+    );
 
     expect(events).toEqual([
       {
@@ -524,6 +538,7 @@ describe("EmbeddedTuiBackend", () => {
       message: "long task",
       runId: "run-abort-1",
     });
+    await waitFor(() => capturedSignal !== undefined);
 
     const result = await backend.abortChat({
       sessionKey: "agent:main:main",
