@@ -26,7 +26,7 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "settings",
-    description: "Open the Kova settings dashboard",
+    description: "Open the terminal settings console",
     hasSubcommands: false,
   },
   {
@@ -51,8 +51,13 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
+    name: "control-ui",
+    description: "Open the optional browser Control UI",
+    hasSubcommands: false,
+  },
+  {
     name: "dashboard",
-    description: "Open the Control UI with your current token",
+    description: "Open the optional browser Control UI (legacy alias)",
     hasSubcommands: false,
   },
   {

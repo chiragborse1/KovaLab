@@ -8,6 +8,29 @@ import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
 
+function registerControlUiCommand(program: Command, name: "control-ui" | "dashboard") {
+  program
+    .command(name)
+    .description(
+      name === "dashboard"
+        ? "Open the Control UI with your current token (legacy alias)"
+        : "Open the Control UI with your current token",
+    )
+    .addHelpText(
+      "after",
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dashboard", "docs.neuralstudio.in/cli/dashboard")}\n`,
+    )
+    .option("--no-open", "Print URL but do not launch a browser")
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        await dashboardCommand(defaultRuntime, {
+          noOpen: opts.open === false,
+        });
+      });
+    });
+}
+
 export function registerMaintenanceCommands(program: Command) {
   program
     .command("doctor")
@@ -40,22 +63,8 @@ export function registerMaintenanceCommands(program: Command) {
       });
     });
 
-  program
-    .command("dashboard")
-    .description("Open the Control UI with your current token")
-    .addHelpText(
-      "after",
-      () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dashboard", "docs.neuralstudio.in/cli/dashboard")}\n`,
-    )
-    .option("--no-open", "Print URL but do not launch a browser")
-    .action(async (opts) => {
-      await runCommandWithRuntime(defaultRuntime, async () => {
-        await dashboardCommand(defaultRuntime, {
-          noOpen: opts.open === false,
-        });
-      });
-    });
+  registerControlUiCommand(program, "control-ui");
+  registerControlUiCommand(program, "dashboard");
 
   program
     .command("reset")

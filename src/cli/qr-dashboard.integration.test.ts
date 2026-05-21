@@ -126,7 +126,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
     delete process.env.SHARED_GATEWAY_TOKEN;
   });
 
-  it("uses the same resolved token SecretRef for qr auth validation and dashboard commands", async () => {
+  it("uses the same resolved token SecretRef for qr auth validation and Control UI commands", async () => {
     const fixture = createGatewayTokenRefFixture();
     process.env.SHARED_GATEWAY_TOKEN = "shared-token-123";
     loadConfigMock.mockReturnValue(fixture);
@@ -150,7 +150,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
     runtimeErrors.length = 0;
     await dashboardCommand(runtime, { noOpen: true });
     const joined = runtimeLogs.join("\n");
-    expect(joined).toContain("Dashboard URL: http://127.0.0.1:18789/");
+    expect(joined).toContain("Control UI URL: http://127.0.0.1:18789/");
     expect(joined).not.toContain("#token=");
     expect(joined).toContain(
       "Token auto-auth is disabled for SecretRef-managed gateway.auth.token",
@@ -159,7 +159,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
     expect(runtimeErrors).toEqual([]);
   });
 
-  it("fails qr but keeps dashboard actionable when the shared token SecretRef is unresolved", async () => {
+  it("fails qr but keeps Control UI actionable when the shared token SecretRef is unresolved", async () => {
     const fixture = createGatewayTokenRefFixture();
     loadConfigMock.mockReturnValue(fixture);
     readConfigFileSnapshotMock.mockResolvedValue({
@@ -178,7 +178,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
     runtimeErrors.length = 0;
     await dashboardCommand(runtime, { noOpen: true });
     const joined = runtimeLogs.join("\n");
-    expect(joined).toContain("Dashboard URL: http://127.0.0.1:18789/");
+    expect(joined).toContain("Control UI URL: http://127.0.0.1:18789/");
     expect(joined).not.toContain("#token=");
     expect(joined).toContain("Token auto-auth unavailable");
     expect(joined).toContain("Set KOVA_GATEWAY_TOKEN");

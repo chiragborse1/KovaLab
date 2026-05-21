@@ -83,7 +83,7 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Optional: open the Control UI">
     ```bash
-    kova dashboard
+    kova control-ui
     ```
 
     This opens the advanced browser operator surface. Use it when you want
@@ -123,7 +123,7 @@ Restart the Gateway and reopen the Control UI:
 
 ```bash
 kova gateway restart
-kova dashboard
+kova control-ui
 ```
 
 </Accordion>

@@ -21,6 +21,7 @@ vi.mock("./register.backup.js", () => ({
 vi.mock("./register.maintenance.js", () => ({
   registerMaintenanceCommands: (program: Command) => {
     program.command("doctor");
+    program.command("control-ui");
     program.command("dashboard");
     program.command("reset");
     program.command("uninstall");
@@ -149,6 +150,7 @@ describe("command-registry", () => {
 
     const names = getCoreCliCommandNames();
     expect(names).toContain("doctor");
+    expect(names).toContain("control-ui");
     expect(names).toContain("dashboard");
     expect(names).toContain("reset");
     expect(names).toContain("uninstall");
@@ -177,6 +179,6 @@ describe("command-registry", () => {
 
     const found = await registerCoreCliByName(program, testProgramContext, "dashboard");
     expect(found).toBe(true);
-    expect(namesOf(program)).toEqual(["doctor", "dashboard", "reset", "uninstall"]);
+    expect(namesOf(program)).toEqual(["doctor", "control-ui", "dashboard", "reset", "uninstall"]);
   });
 });

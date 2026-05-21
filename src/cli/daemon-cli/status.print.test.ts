@@ -157,7 +157,7 @@ describe("printDaemonStatus", () => {
     expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining("Capability: write-capable"));
   });
 
-  it("passes daemon TLS state to dashboard link rendering", () => {
+  it("passes daemon TLS state to Control UI link rendering", () => {
     printDaemonStatus(
       {
         service: {

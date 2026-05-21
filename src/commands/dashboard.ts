@@ -78,7 +78,7 @@ export async function dashboardCommand(
     ? `${links.httpUrl}#token=${encodeURIComponent(token)}`
     : links.httpUrl;
 
-  runtime.log(`Dashboard URL: ${links.httpUrl}`);
+  runtime.log(`Control UI URL: ${links.httpUrl}`);
   if (includeTokenInUrl) {
     runtime.log("Token auto-auth included in browser/clipboard URL.");
   }
@@ -97,7 +97,7 @@ export async function dashboardCommand(
   if (resolvedToken.unresolvedRefReason) {
     runtime.log(`Token auto-auth unavailable: ${resolvedToken.unresolvedRefReason}`);
     runtime.log(
-      "Set KOVA_GATEWAY_TOKEN in this shell or resolve your secret provider, then rerun `kova dashboard`.",
+      "Set KOVA_GATEWAY_TOKEN in this shell or resolve your secret provider, then rerun `kova control-ui`.",
     );
   }
 

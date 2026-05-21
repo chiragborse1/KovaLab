@@ -100,8 +100,8 @@ Open:
   gateway token (even on loopback).
 - In shared-secret mode, the UI sends `connect.params.auth.token` or
   `connect.params.auth.password`.
-- When `gateway.tls.enabled: true`, local dashboard and status helpers render
-  `https://` dashboard URLs and `wss://` WebSocket URLs.
+- When `gateway.tls.enabled: true`, local Control UI and status helpers render
+  `https://` Control UI URLs and `wss://` WebSocket URLs.
 - In identity-bearing modes such as Tailscale Serve or `trusted-proxy`, the
   WebSocket auth check is satisfied from request headers instead.
 - For non-loopback Control UI deployments, set `gateway.controlUi.allowedOrigins`

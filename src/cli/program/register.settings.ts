@@ -8,7 +8,7 @@ import { runCommandWithRuntime } from "../cli-utils.js";
 export function registerSettingsCommand(program: Command) {
   program
     .command("settings")
-    .description("Open the Kova settings dashboard")
+    .description("Open the terminal settings console")
     .addHelpText(
       "after",
       () =>

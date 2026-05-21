@@ -61,7 +61,7 @@ function mockSnapshot(params?: {
   mocks.copyToClipboard.mockResolvedValue(true);
 }
 
-describe("dashboardCommand bind selection", () => {
+describe("dashboardCommand Control UI bind selection", () => {
   beforeEach(() => {
     mocks.readConfigFileSnapshot.mockClear();
     mocks.resolveGatewayPort.mockClear();
@@ -75,7 +75,7 @@ describe("dashboardCommand bind selection", () => {
   it.each([
     { label: "maps lan bind to loopback", snapshot: { bind: "lan" as const } },
     { label: "defaults unset bind to loopback", snapshot: undefined },
-  ])("$label for dashboard URLs", async ({ snapshot }) => {
+  ])("$label for Control UI URLs", async ({ snapshot }) => {
     mockSnapshot(snapshot);
 
     await dashboardCommand(runtime, { noOpen: true });

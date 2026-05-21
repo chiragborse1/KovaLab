@@ -75,7 +75,7 @@ describe("dashboardCommand", () => {
     delete process.env.CUSTOM_GATEWAY_TOKEN;
   });
 
-  it("opens and copies the dashboard link by default", async () => {
+  it("opens and copies the Control UI link by default", async () => {
     mockSnapshot("abc123");
     copyToClipboardMock.mockResolvedValue(true);
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
@@ -98,7 +98,7 @@ describe("dashboardCommand", () => {
     );
   });
 
-  it("never logs the gateway token in the dashboard URL (CVE regression)", async () => {
+  it("never logs the gateway token in the Control UI URL (CVE regression)", async () => {
     const secretToken = "super-secret-bearer-token";
     mockSnapshot(secretToken);
     copyToClipboardMock.mockResolvedValue(true);
@@ -122,7 +122,7 @@ describe("dashboardCommand", () => {
     }
 
     // Base URL should be logged without the fragment.
-    expect(runtime.log).toHaveBeenCalledWith("Dashboard URL: http://127.0.0.1:18789/");
+    expect(runtime.log).toHaveBeenCalledWith("Control UI URL: http://127.0.0.1:18789/");
     expect(runtime.log).toHaveBeenCalledWith("Token auto-auth included in browser/clipboard URL.");
   });
 

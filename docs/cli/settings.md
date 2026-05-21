@@ -1,20 +1,20 @@
 ---
-summary: "CLI reference for `kova settings` (dashboard-style configuration)"
+summary: "CLI reference for `kova settings` (terminal settings console)"
 read_when:
   - You want to change Kova settings without repeating onboarding
-  - You want a keyboard-driven settings dashboard from the terminal
+  - You want a keyboard-driven settings console from the terminal
 title: "Settings"
 ---
 
 # `kova settings`
 
-Open the Kova settings dashboard.
+Open the terminal settings console.
 
 ```bash
 kova settings
 ```
 
-The dashboard is a post-onboarding control surface for common configuration:
+The settings console is a post-onboarding control surface for common configuration:
 
 - Provider and model
 - Workspace
@@ -45,7 +45,7 @@ Keyboard controls:
   `Change Provider`, `Toggle Memory`, `Restart Gateway`, or `Open Plugins`
 - Q/Esc or the **Finish** row: quit
 
-After an editor finishes, the dashboard opens again with refreshed values.
+After an editor finishes, the settings console opens again with refreshed values.
 
 `kova settings` does not remove the full onboarding path. The **Full Setup**
 row still opens the complete setup wizard for first-time setup, import, reset,

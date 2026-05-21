@@ -1,11 +1,11 @@
 ---
 summary: "Optional Control UI access and auth"
 read_when:
-  - Changing dashboard authentication or exposure modes
-title: "Dashboard"
+  - Changing Control UI authentication or exposure modes
+title: "Control UI access"
 ---
 
-The Dashboard command opens the optional browser Control UI served at `/` by default
+The `kova control-ui` command opens the optional browser Control UI served at `/` by default
 (override with `gateway.controlUi.basePath`).
 
 For day-to-day chat, use `kova chat`. This page is for the advanced browser
@@ -34,13 +34,13 @@ auth path:
 See `gateway.auth` in [Gateway configuration](/gateway/configuration).
 
 Security note: the Control UI is an **admin surface** (chat, config, exec approvals).
-Do not expose it publicly. The UI keeps dashboard URL tokens in sessionStorage
+Do not expose it publicly. The UI keeps Control UI URL tokens in sessionStorage
 for the current browser tab session and selected gateway URL, and strips them from the URL after load.
 Prefer localhost, Tailscale Serve, or an SSH tunnel.
 
 ## Open the Control UI
 
-- Re-open anytime: `kova dashboard` (copies link, opens browser if possible, shows SSH hint if headless).
+- Re-open anytime: `kova control-ui` (copies link, opens browser if possible, shows SSH hint if headless). `kova dashboard` remains a compatibility alias.
 - Onboarding offers this only as an advanced option after terminal chat.
 - If the UI prompts for shared-secret auth, paste the configured token or
   password into Control UI settings.
@@ -48,26 +48,26 @@ Prefer localhost, Tailscale Serve, or an SSH tunnel.
 ## Auth basics (local vs remote)
 
 - **Localhost**: open `http://127.0.0.1:18789/`.
-- **Gateway TLS**: when `gateway.tls.enabled: true`, dashboard/status links use
+- **Gateway TLS**: when `gateway.tls.enabled: true`, Control UI/status links use
   `https://` and Control UI WebSocket links use `wss://`.
 - **Shared-secret token source**: `gateway.auth.token` (or
-  `KOVA_GATEWAY_TOKEN`); `kova dashboard` can pass it via URL fragment
+  `KOVA_GATEWAY_TOKEN`); `kova control-ui` can pass it via URL fragment
   for one-time bootstrap, and the Control UI keeps it in sessionStorage for the
   current browser tab session and selected gateway URL instead of localStorage.
-- If `gateway.auth.token` is SecretRef-managed, `kova dashboard`
+- If `gateway.auth.token` is SecretRef-managed, `kova control-ui`
   prints/copies/opens a non-tokenized URL by design. This avoids exposing
   externally managed tokens in shell logs, clipboard history, or browser-launch
   arguments.
 - If `gateway.auth.token` is configured as a SecretRef and is unresolved in your
-  current shell, `kova dashboard` still prints a non-tokenized URL plus
+  current shell, `kova control-ui` still prints a non-tokenized URL plus
   actionable auth setup guidance.
 - **Shared-secret password**: use the configured `gateway.auth.password` (or
-  `KOVA_GATEWAY_PASSWORD`). The dashboard does not persist passwords across
+  `KOVA_GATEWAY_PASSWORD`). The Control UI does not persist passwords across
   reloads.
 - **Identity-bearing modes**: Tailscale Serve can satisfy Control UI/WebSocket
   auth via identity headers when `gateway.auth.allowTailscale: true`, and a
   non-loopback identity-aware reverse proxy can satisfy
-  `gateway.auth.mode: "trusted-proxy"`. In those modes the dashboard does not
+  `gateway.auth.mode: "trusted-proxy"`. In those modes the Control UI does not
   need a pasted shared secret for the WebSocket.
 - **Not localhost**: use Tailscale Serve, a non-loopback shared-secret bind, a
   non-loopback identity-aware reverse proxy with
@@ -92,9 +92,9 @@ Prefer localhost, Tailscale Serve, or an SSH tunnel.
   - Password: resolve the configured `gateway.auth.password` or
     `KOVA_GATEWAY_PASSWORD`
   - SecretRef-managed token: resolve the external secret provider or export
-    `KOVA_GATEWAY_TOKEN` in this shell, then rerun `kova dashboard`
+    `KOVA_GATEWAY_TOKEN` in this shell, then rerun `kova control-ui`
   - No shared secret configured: `kova doctor --generate-gateway-token`
-- In the dashboard settings, paste the token or password into the auth field,
+- In the Control UI settings, paste the token or password into the auth field,
   then connect.
 - The UI language picker is in **Overview -> Gateway Access -> Language**.
   It is part of the access card, not the Appearance section.

@@ -79,4 +79,4 @@ Related global options:
 ## Related
 
 - [Control UI](/web/control-ui)
-- [Dashboard](/web/dashboard)
+- [Control UI access](/web/dashboard)

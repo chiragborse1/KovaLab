@@ -10,7 +10,7 @@ import {
   renderSettingsDashboard,
 } from "./settings.js";
 
-describe("settings dashboard", () => {
+describe("settings console", () => {
   it("summarizes the main onboarding surfaces", () => {
     const cfg: KovaConfig = {
       agents: {

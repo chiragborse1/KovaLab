@@ -85,7 +85,20 @@ describe("registerMaintenanceCommands doctor action", () => {
     );
   });
 
-  it("passes noOpen to dashboard command", async () => {
+  it("passes noOpen to control-ui command", async () => {
+    dashboardCommand.mockResolvedValue(undefined);
+
+    await runMaintenanceCli(["control-ui", "--no-open"]);
+
+    expect(dashboardCommand).toHaveBeenCalledWith(
+      runtime,
+      expect.objectContaining({
+        noOpen: true,
+      }),
+    );
+  });
+
+  it("keeps dashboard as a compatibility alias", async () => {
     dashboardCommand.mockResolvedValue(undefined);
 
     await runMaintenanceCli(["dashboard", "--no-open"]);
@@ -151,12 +164,12 @@ describe("registerMaintenanceCommands doctor action", () => {
     );
   });
 
-  it("exits with code 1 when dashboard fails", async () => {
-    dashboardCommand.mockRejectedValue(new Error("dashboard failed"));
+  it("exits with code 1 when control-ui fails", async () => {
+    dashboardCommand.mockRejectedValue(new Error("control ui failed"));
 
-    await runMaintenanceCli(["dashboard"]);
+    await runMaintenanceCli(["control-ui"]);
 
-    expect(runtime.error).toHaveBeenCalledWith("Error: dashboard failed");
+    expect(runtime.error).toHaveBeenCalledWith("Error: control ui failed");
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
 });
