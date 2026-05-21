@@ -6,7 +6,6 @@ import {
   CombinedAutocompleteProvider,
   Container,
   Key,
-  Loader,
   matchesKey,
   ProcessTerminal,
   Text,
@@ -371,7 +370,6 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let activityStatus = "idle";
   let connectionStatus = isLocalMode ? "starting local runtime" : "connecting";
   let statusTimeout: NodeJS.Timeout | null = null;
-  let statusTimer: NodeJS.Timeout | null = null;
   let statusStartedAt: number | null = null;
 
   const state: TuiStateAccess = {
@@ -783,7 +781,6 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   const busyStates = new Set(["sending", "waiting", "streaming", "running"]);
   let statusText: Text | null = null;
-  let statusLoader: Loader | null = null;
 
   const formatElapsed = (startMs: number) => {
     const totalSeconds = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
@@ -800,25 +797,8 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return;
     }
     statusContainer.clear();
-    statusLoader?.stop();
-    statusLoader = null;
     statusText = new Text("", 1, 0);
     statusContainer.addChild(statusText);
-  };
-
-  const ensureStatusLoader = () => {
-    if (statusLoader) {
-      return;
-    }
-    statusContainer.clear();
-    statusText = null;
-    statusLoader = new Loader(
-      tui,
-      (spinner) => theme.accent(spinner),
-      (text) => theme.bold(theme.accentSoft(text)),
-      "",
-    );
-    statusContainer.addChild(statusLoader);
   };
 
   let waitingTick = 0;
@@ -826,14 +806,14 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let waitingPhrase: string | null = null;
 
   const updateBusyStatusMessage = () => {
-    if (!statusLoader || !statusStartedAt) {
+    if (!statusText || !statusStartedAt) {
       return;
     }
     const elapsed = formatElapsed(statusStartedAt);
 
-    if (activityStatus === "waiting") {
+    if (busyStates.has(activityStatus)) {
       waitingTick++;
-      statusLoader.setMessage(
+      statusText.setText(
         buildWaitingStatusMessage({
           theme,
           tick: waitingTick,
@@ -846,27 +826,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return;
     }
 
-    statusLoader.setMessage(`${activityStatus} • ${elapsed} | ${connectionStatus}`);
-  };
-
-  const startStatusTimer = () => {
-    if (statusTimer) {
-      return;
-    }
-    statusTimer = setInterval(() => {
-      if (!busyStates.has(activityStatus)) {
-        return;
-      }
-      updateBusyStatusMessage();
-    }, 1000);
-  };
-
-  const stopStatusTimer = () => {
-    if (!statusTimer) {
-      return;
-    }
-    clearInterval(statusTimer);
-    statusTimer = null;
+    statusText.setText(`${activityStatus} • ${elapsed} | ${connectionStatus}`);
   };
 
   const startWaitingTimer = () => {
@@ -883,7 +843,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     waitingTick = 0;
 
     waitingTimer = setInterval(() => {
-      if (activityStatus !== "waiting") {
+      if (!busyStates.has(activityStatus)) {
         return;
       }
       updateBusyStatusMessage();
@@ -906,21 +866,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       if (!statusStartedAt) {
         statusStartedAt = Date.now();
       }
-      ensureStatusLoader();
-      if (activityStatus === "waiting") {
-        stopStatusTimer();
-        startWaitingTimer();
-      } else {
-        stopWaitingTimer();
-        startStatusTimer();
-      }
+      ensureStatusText();
+      startWaitingTimer();
       updateBusyStatusMessage();
     } else {
       statusStartedAt = null;
-      stopStatusTimer();
       stopWaitingTimer();
-      statusLoader?.stop();
-      statusLoader = null;
       ensureStatusText();
       const text = activityStatus ? `${connectionStatus} | ${activityStatus}` : connectionStatus;
       statusText?.setText(theme.dim(text));
