@@ -313,6 +313,29 @@ describe("EmbeddedTuiBackend", () => {
     );
   });
 
+  it("marks local chat turns for interactive failover", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    agentCommandFromIngressMock.mockResolvedValueOnce({
+      payloads: [{ text: "ok" }],
+      meta: {},
+    });
+
+    const backend = new EmbeddedTuiBackend();
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "hello",
+      runId: "run-interactive-failover",
+    });
+    await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 1);
+
+    expect(agentCommandFromIngressMock.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        interactiveFailover: true,
+      }),
+    );
+  });
+
   it("emits side-result events for local /btw runs", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
     agentCommandFromIngressMock.mockResolvedValueOnce({

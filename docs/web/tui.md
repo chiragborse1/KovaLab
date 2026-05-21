@@ -212,7 +212,7 @@ Tips:
 
 ## History + streaming
 
-- On connect, the TUI loads the latest history (default 200 messages).
+- On connect, the TUI loads the latest history (default 80 messages).
 - Streaming responses update in place until finalized.
 - The TUI also listens to agent tool events for richer tool cards.
 
@@ -232,7 +232,7 @@ Tips:
 - `--thinking <level>`: Override thinking level for sends
 - `--message <text>`: Send an initial message after connecting
 - `--timeout-ms <ms>`: Agent timeout in ms (defaults to `agents.defaults.timeoutSeconds`)
-- `--history-limit <n>`: History entries to load (default `200`)
+- `--history-limit <n>`: History entries to load (default `80`)
 
 <Warning>
 When you set `--url`, the TUI does not fall back to config or environment credentials. Pass `--token` or `--password` explicitly. Missing explicit credentials is an error. In local mode, do not pass `--url`, `--token`, or `--password`.

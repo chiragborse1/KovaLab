@@ -650,6 +650,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let catalogRefreshKey = "";
   let catalogRefreshPromise: Promise<void> | null = null;
   let catalogRefreshTimer: NodeJS.Timeout | null = null;
+  let startupHydrated = false;
 
   const refreshHeroCatalog = async (agentId: string) => {
     hero.setState({ catalogStatus: "refreshing live tools and skills..." });
@@ -698,10 +699,15 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       catalogRefreshTimer = null;
       maybeRefreshHeroCatalog();
     }, delayMs);
+    catalogRefreshTimer.unref?.();
   };
 
   function maybeRefreshHeroCatalog() {
     if (!isConnected) {
+      return;
+    }
+    if (!startupHydrated) {
+      scheduleHeroCatalogRefresh(2000);
       return;
     }
     const key = currentAgentId;
@@ -806,6 +812,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
           tick: waitingTick,
           elapsed,
           connectionStatus,
+          animated: false,
           phrases: waitingPhrase ? [waitingPhrase] : undefined,
         }),
       );
@@ -853,7 +860,8 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         return;
       }
       updateBusyStatusMessage();
-    }, 500);
+    }, 1000);
+    waitingTimer.unref?.();
   };
 
   const stopWaitingTimer = () => {
@@ -1220,6 +1228,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   client.onConnected = () => {
     isConnected = true;
+    startupHydrated = false;
     pairingHintShown = false;
     const reconnected = wasDisconnected;
     wasDisconnected = false;
@@ -1229,6 +1238,9 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       updateHeader();
       updateAutocompleteProvider();
       await loadHistory();
+      startupHydrated = true;
+      clearCatalogRefreshTimer();
+      scheduleHeroCatalogRefresh(250);
       setConnectionStatus(
         isLocalMode ? "local ready" : reconnected ? "gateway reconnected" : "gateway connected",
         4000,

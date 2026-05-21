@@ -705,7 +705,9 @@ export async function runEmbeddedPiAgent(
       let emptyErrorRetries = 0;
       const overloadFailoverBackoffMs = resolveOverloadFailoverBackoffMs(params.config);
       const overloadProfileRotationLimit = resolveOverloadProfileRotationLimit(params.config);
-      const rateLimitProfileRotationLimit = resolveRateLimitProfileRotationLimit(params.config);
+      const rateLimitProfileRotationLimit = params.interactiveFailover
+        ? 0
+        : resolveRateLimitProfileRotationLimit(params.config);
       const maybeEscalateRateLimitProfileFallback = (params: {
         failoverProvider: string;
         failoverModel: string;
@@ -1645,6 +1647,9 @@ export async function runEmbeddedPiAgent(
               fallbackConfigured,
               failoverFailure: promptFailoverFailure,
               failoverReason: promptFailoverReason,
+              profileRotationAllowed: !(
+                params.interactiveFailover && promptFailoverReason === "rate_limit"
+              ),
               profileRotated: false,
             });
             if (
@@ -1683,6 +1688,9 @@ export async function runEmbeddedPiAgent(
                 fallbackConfigured,
                 failoverFailure: promptFailoverFailure,
                 failoverReason: promptFailoverReason,
+                profileRotationAllowed: !(
+                  params.interactiveFailover && promptFailoverReason === "rate_limit"
+                ),
                 profileRotated: true,
               });
             }
@@ -1829,6 +1837,9 @@ export async function runEmbeddedPiAgent(
             fallbackConfigured,
             failoverFailure,
             failoverReason: assistantFailoverReason,
+            profileRotationAllowed: !(
+              params.interactiveFailover && assistantFailoverReason === "rate_limit"
+            ),
             timedOut,
             timedOutDuringCompaction,
             profileRotated: false,

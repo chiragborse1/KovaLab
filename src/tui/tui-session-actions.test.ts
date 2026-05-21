@@ -235,7 +235,7 @@ describe("tui session actions", () => {
     expect(setActivityStatus).toHaveBeenCalledWith("idle");
     expect(loadHistory).toHaveBeenCalledWith({
       sessionKey: "agent:main:other",
-      limit: 200,
+      limit: 80,
     });
     expect(state.currentSessionKey).toBe("agent:main:other");
     expect(state.sessionInfo.model).toBe("session-model");

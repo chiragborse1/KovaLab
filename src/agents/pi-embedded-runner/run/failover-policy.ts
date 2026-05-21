@@ -51,6 +51,7 @@ type PromptDecisionParams = {
   fallbackConfigured: boolean;
   failoverFailure: boolean;
   failoverReason: FailoverReason | null;
+  profileRotationAllowed?: boolean;
   profileRotated: boolean;
 };
 
@@ -61,6 +62,7 @@ type AssistantDecisionParams = {
   fallbackConfigured: boolean;
   failoverFailure: boolean;
   failoverReason: FailoverReason | null;
+  profileRotationAllowed?: boolean;
   timedOut: boolean;
   timedOutDuringCompaction: boolean;
   profileRotated: boolean;
@@ -128,7 +130,11 @@ export function resolveRunFailoverDecision(params: RunFailoverDecisionParams): R
         reason: params.failoverReason,
       };
     }
-    if (!params.profileRotated && shouldRotatePrompt(params)) {
+    if (
+      params.profileRotationAllowed !== false &&
+      !params.profileRotated &&
+      shouldRotatePrompt(params)
+    ) {
       return {
         action: "rotate_profile",
         reason: params.failoverReason,
@@ -153,7 +159,7 @@ export function resolveRunFailoverDecision(params: RunFailoverDecisionParams): R
     };
   }
   const assistantShouldRotate = shouldRotateAssistant(params);
-  if (!params.profileRotated && assistantShouldRotate) {
+  if (params.profileRotationAllowed !== false && !params.profileRotated && assistantShouldRotate) {
     return {
       action: "rotate_profile",
       reason: params.failoverReason,

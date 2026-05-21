@@ -43,9 +43,14 @@ export function buildWaitingStatusMessage(params: {
   tick: number;
   elapsed: string;
   connectionStatus: string;
+  animated?: boolean;
   phrases?: string[];
 }) {
   const phrase = pickWaitingPhrase(params.tick, params.phrases);
-  const cute = shimmerText(params.theme, `${phrase}…`, params.tick);
+  const label = `${phrase}…`;
+  const cute =
+    params.animated === false
+      ? params.theme.dim(label)
+      : shimmerText(params.theme, label, params.tick);
   return `${cute} • ${params.elapsed} | ${params.connectionStatus}`;
 }

@@ -703,6 +703,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
           runContext: {
             messageChannel: INTERNAL_MESSAGE_CHANNEL,
           },
+          interactiveFailover: true,
           timeout: timeoutSecondsFromMs(params.timeoutMs),
           runId: params.runId,
           abortSignal: params.controller.signal,

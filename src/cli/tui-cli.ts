@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
+import { DEFAULT_TUI_HISTORY_LIMIT } from "../tui/tui-history-policy.js";
 import { parseTimeoutMs } from "./parse-timeout.js";
 
 export function registerTuiCli(program: Command) {
@@ -19,10 +20,11 @@ export function registerTuiCli(program: Command) {
     .option("--thinking <level>", "Thinking level override")
     .option("--message <text>", "Send an initial message after connecting")
     .option("--timeout-ms <ms>", "Agent timeout in ms (defaults to agents.defaults.timeoutSeconds)")
-    .option("--history-limit <n>", "History entries to load", "200")
+    .option("--history-limit <n>", "History entries to load", String(DEFAULT_TUI_HISTORY_LIMIT))
     .addHelpText(
       "after",
-      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/tui", "docs.neuralstudio.in/cli/tui")}\n`,
+      () =>
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/tui", "docs.neuralstudio.in/cli/tui")}\n`,
     )
     .action(async (opts, cmd) => {
       try {
@@ -41,7 +43,10 @@ export function registerTuiCli(program: Command) {
             `warning: invalid --timeout-ms "${String(opts.timeoutMs)}"; ignoring`,
           );
         }
-        const historyLimit = Number.parseInt(String(opts.historyLimit ?? "200"), 10);
+        const historyLimit = Number.parseInt(
+          String(opts.historyLimit ?? DEFAULT_TUI_HISTORY_LIMIT),
+          10,
+        );
         const { runTui } = await import("../tui/tui.js");
         await runTui({
           local: isLocal,

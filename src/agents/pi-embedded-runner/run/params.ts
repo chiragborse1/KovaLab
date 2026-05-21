@@ -200,4 +200,6 @@ export type RunEmbeddedPiAgentParams = {
    * exit promptly after emitting the final JSON result.
    */
   cleanupBundleMcpOnRunEnd?: boolean;
+  /** Prefer quick interactive error surfacing over same-provider auth-profile retries. */
+  interactiveFailover?: boolean;
 };

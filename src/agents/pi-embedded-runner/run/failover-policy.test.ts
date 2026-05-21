@@ -61,6 +61,24 @@ describe("resolveRunFailoverDecision", () => {
     });
   });
 
+  it("skips prompt-side profile rotation when rotation is disabled", () => {
+    expect(
+      resolveRunFailoverDecision({
+        stage: "prompt",
+        aborted: false,
+        externalAbort: false,
+        fallbackConfigured: false,
+        failoverFailure: true,
+        failoverReason: "rate_limit",
+        profileRotationAllowed: false,
+        profileRotated: false,
+      }),
+    ).toEqual({
+      action: "surface_error",
+      reason: "rate_limit",
+    });
+  });
+
   it("treats classified assistant-side 429s as rotation candidates even without error stopReason", () => {
     expect(
       resolveRunFailoverDecision({
@@ -95,6 +113,26 @@ describe("resolveRunFailoverDecision", () => {
       }),
     ).toEqual({
       action: "fallback_model",
+      reason: "rate_limit",
+    });
+  });
+
+  it("skips assistant-side profile rotation when rotation is disabled", () => {
+    expect(
+      resolveRunFailoverDecision({
+        stage: "assistant",
+        aborted: false,
+        externalAbort: false,
+        fallbackConfigured: false,
+        failoverFailure: false,
+        failoverReason: "rate_limit",
+        profileRotationAllowed: false,
+        timedOut: false,
+        timedOutDuringCompaction: false,
+        profileRotated: false,
+      }),
+    ).toEqual({
+      action: "surface_error",
       reason: "rate_limit",
     });
   });

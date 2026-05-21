@@ -10,6 +10,7 @@ import { normalizeOptionalString } from "../shared/string-coerce.js";
 import type { ChatLog } from "./components/chat-log.js";
 import type { TuiAgentsList, TuiBackend } from "./tui-backend.js";
 import { asString, extractTextFromMessage, isCommandMessage } from "./tui-formatters.js";
+import { DEFAULT_TUI_HISTORY_LIMIT } from "./tui-history-policy.js";
 import type { SessionInfo, TuiOptions, TuiStateAccess } from "./tui-types.js";
 
 type SessionActionBtwPresenter = {
@@ -289,7 +290,7 @@ export function createSessionActions(context: SessionActionContext) {
     try {
       const history = await client.loadHistory({
         sessionKey: state.currentSessionKey,
-        limit: opts.historyLimit ?? 200,
+        limit: opts.historyLimit ?? DEFAULT_TUI_HISTORY_LIMIT,
       });
       const record = history as {
         messages?: unknown[];

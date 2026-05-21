@@ -37,4 +37,18 @@ describe("tui-waiting", () => {
     expect(msg).toContain("<b><a>");
     expect(msg).toContain("<d>");
   });
+
+  it("can keep the waiting phrase static for low-work TUI status updates", () => {
+    const msg = buildWaitingStatusMessage({
+      theme,
+      tick: 1,
+      elapsed: "3s",
+      connectionStatus: "connected",
+      phrases: ["moseying"],
+      animated: false,
+    });
+
+    expect(msg).toContain("<d>moseying…</d>");
+    expect(msg).not.toContain("<b><a>");
+  });
 });
