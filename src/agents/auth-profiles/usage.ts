@@ -240,8 +240,8 @@ export async function probeWhamForCooldown(
 /**
  * Infer the most likely reason all candidate profiles are currently unavailable.
  *
- * We prefer explicit active `disabledReason` values (for example billing/auth)
- * over generic cooldown buckets, then fall back to failure-count signals.
+ * We prefer explicit active `disabledReason` / `cooldownReason` values over
+ * stale counter history, then fall back to failure-count signals.
  */
 export function resolveProfilesUnavailableReason(params: {
   store: AuthProfileStore;
@@ -272,6 +272,11 @@ export function resolveProfilesUnavailableReason(params: {
 
     const cooldownActive = isActiveUnusableWindow(stats.cooldownUntil, now);
     if (!cooldownActive) {
+      continue;
+    }
+
+    if (stats.cooldownReason && FAILURE_REASON_SET.has(stats.cooldownReason)) {
+      addScore(stats.cooldownReason, 1);
       continue;
     }
 
@@ -546,7 +551,7 @@ function computeNextProfileUsageStats(params: {
   // in-memory during profile ordering, but the on-disk state may still carry
   // the old counters when the lock-based updater reads a fresh store. Without
   // this check, stale error counts from an expired cooldown cause the next
-  // failure to escalate to a much longer cooldown (e.g. 1 min → 25 min).
+  // failure to escalate to a much longer cooldown (e.g. 1 min -> 5 min).
   const unusableUntil = resolveProfileUnusableUntil(params.existing);
   const previousCooldownExpired = typeof unusableUntil === "number" && params.now >= unusableUntil;
 

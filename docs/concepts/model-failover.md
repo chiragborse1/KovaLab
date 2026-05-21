@@ -150,12 +150,13 @@ When a profile fails due to auth/rate-limit errors (or a timeout that looks like
   </Accordion>
 </AccordionGroup>
 
-Cooldowns use exponential backoff:
+Transient cooldowns use a short stepped backoff:
 
+- 30 seconds
 - 1 minute
-- 5 minutes
-- 25 minutes
-- 1 hour (cap)
+- 5 minutes (cap)
+
+Active cooldown and disabled windows are not extended by repeated failures inside the same window. Once all active cooldown/disabled windows for the profile have expired, the next failure starts from a fresh counter instead of inheriting stale backoff history.
 
 State is stored in `auth-state.json` under `usageStats`:
 
@@ -164,7 +165,9 @@ State is stored in `auth-state.json` under `usageStats`:
   "usageStats": {
     "provider:profile": {
       "lastUsed": 1736160000000,
-      "cooldownUntil": 1736160600000,
+      "cooldownUntil": 1736160060000,
+      "cooldownReason": "rate_limit",
+      "cooldownModel": "gpt-5.4",
       "errorCount": 2
     }
   }
@@ -253,6 +256,7 @@ When every auth profile for a provider is already in cooldown, Kova does not aut
     - The primary candidate may be probed near cooldown expiry, with a per-provider throttle.
     - Same-provider fallback siblings can be attempted despite cooldown when the failure looks transient (`rate_limit`, `overloaded`, or unknown). This is especially relevant when a rate limit is model-scoped and a sibling model may still recover immediately.
     - Transient cooldown probes are limited to one per provider per fallback run so a single provider does not stall cross-provider fallback.
+    - Probe throttles are scoped by provider and agent, pruned after 24 hours, and capped in memory so diagnostics do not create an unbounded router cache.
   </Accordion>
 </AccordionGroup>
 
@@ -301,6 +305,8 @@ The persisted fallback override closes that window, and the narrow rollback keep
 - reason (`rate_limit`, `overloaded`, `billing`, `auth`, `model_not_found`, and similar failover reasons)
 - optional status/code
 - human-readable error summary
+
+Cooldown skips include the inferred reason and, when known, an approximate retry window in the per-attempt summary. Active `cooldownReason` values are preferred over stale failure counters so auth-shaped cooldowns do not look like generic transient failures.
 
 Structured `model_fallback_decision` logs also include flat `fallbackStep*` fields when a candidate fails, is skipped, or a later fallback succeeds. These fields make the attempted transition explicit (`fallbackStepFromModel`, `fallbackStepToModel`, `fallbackStepFromFailureReason`, `fallbackStepFromFailureDetail`, `fallbackStepFinalOutcome`) so log and diagnostic exporters can reconstruct the primary failure even when the terminal fallback also fails.
 

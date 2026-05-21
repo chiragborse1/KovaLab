@@ -259,6 +259,43 @@ describe("resolveProfilesUnavailableReason", () => {
     ).toBe("auth");
   });
 
+  it("uses active cooldownReason when failure history is absent", () => {
+    const now = Date.now();
+    const store = makeStore({
+      "anthropic:default": {
+        cooldownUntil: now + 60_000,
+        cooldownReason: "timeout",
+      },
+    });
+
+    expect(
+      resolveProfilesUnavailableReason({
+        store,
+        profileIds: ["anthropic:default"],
+        now,
+      }),
+    ).toBe("timeout");
+  });
+
+  it("prefers active cooldownReason over stale failure counts", () => {
+    const now = Date.now();
+    const store = makeStore({
+      "anthropic:default": {
+        cooldownUntil: now + 60_000,
+        cooldownReason: "auth",
+        failureCounts: { rate_limit: 5 },
+      },
+    });
+
+    expect(
+      resolveProfilesUnavailableReason({
+        store,
+        profileIds: ["anthropic:default"],
+        now,
+      }),
+    ).toBe("auth");
+  });
+
   it("returns overloaded for active overloaded cooldown windows", () => {
     const now = Date.now();
     const store = makeStore({

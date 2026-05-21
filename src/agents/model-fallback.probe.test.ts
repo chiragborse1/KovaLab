@@ -260,6 +260,22 @@ describe("runWithModelFallback – probe logic", () => {
     await expectPrimarySkippedAfterLongCooldown("billing");
   });
 
+  it("includes cooldown reason and retry window when skipping a candidate", async () => {
+    const cfg = makeCfg();
+    const expiresIn30Min = NOW + 30 * 60 * 1000;
+    mockedGetSoonestCooldownExpiry.mockReturnValue(expiresIn30Min);
+    mockedResolveProfilesUnavailableReason.mockReturnValue("auth");
+
+    const run = vi.fn().mockResolvedValue("ok");
+
+    const result = await runPrimaryCandidate(cfg, run);
+
+    expectPrimarySkippedForReason(result, run, "auth");
+    expect(result.attempts[0]?.error).toContain("all profiles unavailable");
+    expect(result.attempts[0]?.error).toContain("reason=auth");
+    expect(result.attempts[0]?.error).toContain("retry in 30m");
+  });
+
   it("probes primary model when within 2-min margin of cooldown expiry", async () => {
     const cfg = makeCfg();
     // Cooldown expires in 1 minute — within 2-min probe margin

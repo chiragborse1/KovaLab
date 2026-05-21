@@ -580,10 +580,7 @@ function shouldProbePrimaryDuringCooldown(params: {
   hasFallbackCandidates: boolean;
   now: number;
   throttleKey: string;
-  authRuntime: ModelFallbackAuthRuntime;
-  authStore: AuthProfileStore;
-  profileIds: string[];
-  model: string;
+  soonestCooldownExpiry: number | null;
 }): boolean {
   if (!params.isPrimary || !params.hasFallbackCandidates) {
     return false;
@@ -593,10 +590,7 @@ function shouldProbePrimaryDuringCooldown(params: {
     return false;
   }
 
-  const soonest = params.authRuntime.getSoonestCooldownExpiry(params.authStore, params.profileIds, {
-    now: params.now,
-    forModel: params.model,
-  });
+  const soonest = params.soonestCooldownExpiry;
   if (soonest === null || !Number.isFinite(soonest)) {
     return true;
   }
@@ -623,12 +617,47 @@ type CooldownDecision =
       type: "skip";
       reason: FailoverReason;
       error: string;
+      cooldownUntil: number | null;
     }
   | {
       type: "attempt";
       reason: FailoverReason;
       markProbe: boolean;
+      cooldownUntil: number | null;
     };
+
+function formatCooldownRetryIn(cooldownUntil: number | null, now: number): string | null {
+  if (typeof cooldownUntil !== "number" || !Number.isFinite(cooldownUntil) || cooldownUntil <= 0) {
+    return null;
+  }
+  const remainingMs = Math.max(0, cooldownUntil - now);
+  if (remainingMs === 0) {
+    return "now";
+  }
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
+  if (remainingSeconds < 60) {
+    return `${remainingSeconds}s`;
+  }
+  const remainingMinutes = Math.ceil(remainingSeconds / 60);
+  if (remainingMinutes < 60) {
+    return `${remainingMinutes}m`;
+  }
+  return `${Math.ceil(remainingMinutes / 60)}h`;
+}
+
+function buildCooldownUnavailableError(params: {
+  provider: string;
+  reason: FailoverReason;
+  cooldownUntil: number | null;
+  now: number;
+  detail: string;
+}): string {
+  const retryIn = formatCooldownRetryIn(params.cooldownUntil, params.now);
+  return (
+    `Provider ${params.provider} is unavailable (${params.detail}; reason=${params.reason}` +
+    `${retryIn ? `; retry in ${retryIn}` : ""})`
+  );
+}
 
 function resolveCooldownDecision(params: {
   candidate: ModelCandidate;
@@ -641,15 +670,20 @@ function resolveCooldownDecision(params: {
   authStore: AuthProfileStore;
   profileIds: string[];
 }): CooldownDecision {
+  const soonestCooldownExpiry = params.authRuntime.getSoonestCooldownExpiry(
+    params.authStore,
+    params.profileIds,
+    {
+      now: params.now,
+      forModel: params.candidate.model,
+    },
+  );
   const shouldProbe = shouldProbePrimaryDuringCooldown({
     isPrimary: params.isPrimary,
     hasFallbackCandidates: params.hasFallbackCandidates,
     now: params.now,
     throttleKey: params.probeThrottleKey,
-    authRuntime: params.authRuntime,
-    authStore: params.authStore,
-    profileIds: params.profileIds,
-    model: params.candidate.model,
+    soonestCooldownExpiry,
   });
 
   const inferredReason =
@@ -663,7 +697,14 @@ function resolveCooldownDecision(params: {
     return {
       type: "skip",
       reason: inferredReason,
-      error: `Provider ${params.candidate.provider} has ${inferredReason} issue (skipping all models)`,
+      cooldownUntil: soonestCooldownExpiry,
+      error: buildCooldownUnavailableError({
+        provider: params.candidate.provider,
+        reason: inferredReason,
+        cooldownUntil: soonestCooldownExpiry,
+        now: params.now,
+        detail: "all profiles unavailable; skipping all models",
+      }),
     };
   }
 
@@ -677,12 +718,24 @@ function resolveCooldownDecision(params: {
       !params.hasFallbackCandidates &&
       isProbeThrottleOpen(params.now, params.probeThrottleKey);
     if (params.isPrimary && (shouldProbe || shouldProbeSingleProviderBilling)) {
-      return { type: "attempt", reason: inferredReason, markProbe: true };
+      return {
+        type: "attempt",
+        reason: inferredReason,
+        markProbe: true,
+        cooldownUntil: soonestCooldownExpiry,
+      };
     }
     return {
       type: "skip",
       reason: inferredReason,
-      error: `Provider ${params.candidate.provider} has ${inferredReason} issue (skipping all models)`,
+      cooldownUntil: soonestCooldownExpiry,
+      error: buildCooldownUnavailableError({
+        provider: params.candidate.provider,
+        reason: inferredReason,
+        cooldownUntil: soonestCooldownExpiry,
+        now: params.now,
+        detail: "all profiles unavailable; skipping all models",
+      }),
     };
   }
 
@@ -693,7 +746,14 @@ function resolveCooldownDecision(params: {
     return {
       type: "skip",
       reason: inferredReason,
-      error: `Provider ${params.candidate.provider} is in cooldown (all profiles unavailable)`,
+      cooldownUntil: soonestCooldownExpiry,
+      error: buildCooldownUnavailableError({
+        provider: params.candidate.provider,
+        reason: inferredReason,
+        cooldownUntil: soonestCooldownExpiry,
+        now: params.now,
+        detail: "all profiles unavailable",
+      }),
     };
   }
 
@@ -701,6 +761,7 @@ function resolveCooldownDecision(params: {
     type: "attempt",
     reason: inferredReason,
     markProbe: params.isPrimary && shouldProbe,
+    cooldownUntil: soonestCooldownExpiry,
   };
 }
 
@@ -804,7 +865,13 @@ export async function runWithModelFallback<T>(params: {
           // cross-provider fallback on providers with long internal retries.
           const isTransientCooldownReason = shouldUseTransientCooldownProbeSlot(decision.reason);
           if (isTransientCooldownReason && cooldownProbeUsedProviders.has(candidate.provider)) {
-            const error = `Provider ${candidate.provider} is in cooldown (probe already attempted this run)`;
+            const error = buildCooldownUnavailableError({
+              provider: candidate.provider,
+              reason: decision.reason,
+              cooldownUntil: decision.cooldownUntil,
+              now,
+              detail: "probe already attempted this run",
+            });
             attempts.push({
               provider: candidate.provider,
               model: candidate.model,
