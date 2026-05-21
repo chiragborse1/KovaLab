@@ -804,6 +804,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let waitingTick = 0;
   let waitingTimer: NodeJS.Timeout | null = null;
   let waitingPhrase: string | null = null;
+  const waitingStatusTickMs = 5000;
 
   const updateBusyStatusMessage = () => {
     if (!statusText || !statusStartedAt) {
@@ -847,7 +848,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         return;
       }
       updateBusyStatusMessage();
-    }, 1000);
+    }, waitingStatusTickMs);
     waitingTimer.unref?.();
   };
 
