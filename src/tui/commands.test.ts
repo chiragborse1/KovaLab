@@ -76,6 +76,12 @@ describe("getSlashCommands", () => {
     ]);
   });
 
+  it("marks /sessions as query-filterable", () => {
+    const commands = getSlashCommands();
+    const sessions = commands.find((command) => command.name === "sessions");
+    expect(sessions?.argumentHint).toBe("[query]");
+  });
+
   it("merges dynamic gateway commands", () => {
     const commands = getSlashCommands({
       dynamicCommands: [
@@ -104,6 +110,7 @@ describe("helpText", () => {
     expect(output).toContain("/gateway-status");
     expect(output).toContain("/gwstatus");
     expect(output).toContain("/crestodian [request]");
+    expect(output).toContain("/session <key> (or /sessions [query])");
     expect(output).toContain("Terminal command center:");
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/context [compact|verbose]");

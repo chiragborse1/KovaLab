@@ -1694,7 +1694,15 @@ export function listSessionsFromStore(params: {
 
   if (search) {
     sessions = sessions.filter((s) => {
-      const fields = [s.displayName, s.label, s.subject, s.sessionId, s.key];
+      const fields = [
+        s.displayName,
+        s.label,
+        s.subject,
+        s.sessionId,
+        s.key,
+        s.derivedTitle,
+        s.lastMessagePreview,
+      ];
       return fields.some(
         (f) => typeof f === "string" && normalizeLowercaseStringOrEmpty(f).includes(search),
       );

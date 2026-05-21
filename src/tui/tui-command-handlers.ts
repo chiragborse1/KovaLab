@@ -282,7 +282,8 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     });
   };
 
-  const openSessionSelector = async () => {
+  const openSessionSelector = async (query = "") => {
+    const normalizedQuery = query.trim();
     try {
       const result = await client.listSessions({
         includeGlobal: false,
@@ -290,6 +291,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         includeDerivedTitles: true,
         includeLastMessage: true,
         agentId: state.currentAgentId,
+        ...(normalizedQuery ? { search: normalizedQuery } : {}),
       });
       const items = result.sessions.map((session) => {
         const title = session.derivedTitle ?? session.displayName;
@@ -319,7 +321,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             .join(" "),
         };
       });
-      const selector = createFilterableSelectList(items, 9);
+      const selector = createFilterableSelectList(items, 9, normalizedQuery);
       openSelector(selector, async (value) => {
         await setSession(value);
       });
@@ -474,7 +476,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "sessions":
-        await openSessionSelector();
+        await openSessionSelector(args);
         break;
       case "model":
         if (!args) {

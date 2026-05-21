@@ -88,7 +88,7 @@ Use `--password` if your Gateway uses password auth.
 
 - Model picker: list available models and set the session override.
 - Agent picker: choose a different agent.
-- Session picker: shows only sessions for the current agent.
+- Session picker: shows only sessions for the current agent; use `/sessions <query>` to open it filtered to matching session metadata, derived titles, or latest previews.
 - Settings: toggle deliver, tool output expansion, and thinking visibility.
 
 ## Keyboard shortcuts
@@ -118,7 +118,7 @@ Core:
 - `/gateway-status` (alias: `/gwstatus`)
 - `/agent <id>` (or `/agents`)
 - `/crestodian [request]`
-- `/session <key>` (or `/sessions`)
+- `/session <key>` (or `/sessions [query]`)
 - `/model <provider/model>` (or `/models`)
 - `/tools [compact|verbose]`
 - `/context [compact|verbose]`

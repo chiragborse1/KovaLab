@@ -6,6 +6,7 @@ type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runAuthFlow"]>;
 type SelectableOverlay = {
   onSelect?: (item: { value: string; label?: string; description?: string }) => void;
+  getFilterText?: () => string;
 };
 type SetActivityStatusMock = ReturnType<typeof vi.fn> & ((text: string) => void);
 type SetSessionMock = ReturnType<typeof vi.fn> & ((key: string) => Promise<void>);
@@ -20,6 +21,7 @@ function createHarness(params?: {
   getGatewayStatus?: ReturnType<typeof vi.fn>;
   patchSession?: ReturnType<typeof vi.fn>;
   resetSession?: ReturnType<typeof vi.fn>;
+  listSessions?: ReturnType<typeof vi.fn>;
   runAuthFlow?: RunAuthFlow;
   setSession?: SetSessionMock;
   loadHistory?: LoadHistoryMock;
@@ -37,6 +39,18 @@ function createHarness(params?: {
   const getGatewayStatus = params?.getGatewayStatus ?? vi.fn().mockResolvedValue({});
   const patchSession = params?.patchSession ?? vi.fn().mockResolvedValue({});
   const resetSession = params?.resetSession ?? vi.fn().mockResolvedValue({ ok: true });
+  const listSessions =
+    params?.listSessions ??
+    vi.fn().mockResolvedValue({
+      sessions: [
+        {
+          key: "agent:main:research",
+          displayName: "Research",
+          updatedAt: Date.now(),
+          lastMessagePreview: "latest research notes",
+        },
+      ],
+    });
   const setSession = params?.setSession ?? (vi.fn().mockResolvedValue(undefined) as SetSessionMock);
   const addUser = vi.fn();
   const addSystem = vi.fn();
@@ -68,7 +82,14 @@ function createHarness(params?: {
   };
 
   const { handleCommand } = createCommandHandlers({
-    client: { sendChat, steerChat, getGatewayStatus, patchSession, resetSession } as never,
+    client: {
+      sendChat,
+      steerChat,
+      getGatewayStatus,
+      patchSession,
+      resetSession,
+      listSessions,
+    } as never,
     chatLog: { addUser, addSystem } as never,
     tui: { requestRender } as never,
     opts: params?.opts ?? {},
@@ -82,7 +103,7 @@ function createHarness(params?: {
     refreshAgents: vi.fn(),
     abortActive: vi.fn(),
     setActivityStatus,
-    formatSessionKey: vi.fn(),
+    formatSessionKey: (key: string) => key,
     applySessionInfoFromPatch: applySessionInfoFromPatch as never,
     noteLocalRunId,
     noteLocalBtwRunId,
@@ -101,6 +122,7 @@ function createHarness(params?: {
     closeOverlay,
     patchSession,
     resetSession,
+    listSessions,
     setSession,
     addUser,
     addSystem,
@@ -186,6 +208,23 @@ describe("tui command handlers", () => {
       }),
     );
     expect(closeOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the session picker with a query filter", async () => {
+    const { handleCommand, listSessions, openOverlay } = createHarness();
+
+    await handleCommand("/sessions research");
+
+    expect(listSessions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "main",
+        includeDerivedTitles: true,
+        includeLastMessage: true,
+        search: "research",
+      }),
+    );
+    const selector = openOverlay.mock.calls[0]?.[0] as SelectableOverlay | undefined;
+    expect(selector?.getFilterText?.()).toBe("research");
   });
 
   it("forwards /context list directly", async () => {

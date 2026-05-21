@@ -643,13 +643,16 @@ describe("EmbeddedTuiBackend", () => {
       events.some(
         (entry) =>
           entry.event === "trace" &&
-          (entry.payload as { stage?: string } | undefined)?.stage === "turn.final",
+          (entry.payload as { stage?: string } | undefined)?.stage === "summary",
       ),
     );
 
     const tracePayloads = events
       .filter((entry) => entry.event === "trace")
-      .map((entry) => entry.payload as { stage?: string; elapsedMs?: number; runId?: string });
+      .map(
+        (entry) =>
+          entry.payload as { stage?: string; elapsedMs?: number; runId?: string; detail?: string },
+      );
     expect(tracePayloads.map((payload) => payload.stage)).toEqual(
       expect.arrayContaining([
         "send.accepted",
@@ -661,10 +664,14 @@ describe("EmbeddedTuiBackend", () => {
         "agent.dispatch.start",
         "agent.dispatch.end",
         "turn.final",
+        "summary",
       ]),
     );
     expect(tracePayloads.every((payload) => payload.runId === "run-trace")).toBe(true);
     expect(tracePayloads.every((payload) => typeof payload.elapsedMs === "number")).toBe(true);
+    expect(tracePayloads.find((payload) => payload.stage === "summary")?.detail).toMatch(
+      /^final \| slowest /,
+    );
   });
 
   it("restores embedded mode and runtime loggers on stop", async () => {

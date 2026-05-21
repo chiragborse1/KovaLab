@@ -55,6 +55,15 @@ describe("FilterableSelectList", () => {
     expect(list.render(80).join("\n")).toContain("second session");
   });
 
+  it("can start with an initial filter", () => {
+    const list = new FilterableSelectList(testItems, 5, mockTheme, "beta");
+
+    expect(list.getFilterText()).toBe("beta");
+    expect(list.getSelectedItem()?.value).toBe("session-2");
+    expect(list.render(80).join("\n")).toContain("second session");
+    expect(list.render(80).join("\n")).not.toContain("first session");
+  });
+
   it("calls onCancel when escape is pressed with an empty filter", () => {
     const list = new FilterableSelectList(testItems, 5, mockTheme);
     let cancelled = false;

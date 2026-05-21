@@ -187,6 +187,51 @@ describe("listSessionsFromStore search", () => {
     }
   });
 
+  test("filters sessions across loaded derived titles and last previews", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kova-session-search-test-"));
+    const storePath = path.join(tmpDir, "sessions.json");
+    const sessionId = "sess-opaque-search";
+    fs.writeFileSync(
+      path.join(tmpDir, `${sessionId}.jsonl`),
+      [
+        JSON.stringify({ type: "session", version: 1, id: sessionId }),
+        JSON.stringify({
+          message: { role: "user", content: "Investigate startup latency" },
+        }),
+        JSON.stringify({
+          message: { role: "assistant", content: "Provider cooldown was the root cause" },
+        }),
+      ].join("\n"),
+      "utf-8",
+    );
+
+    try {
+      const store: Record<string, SessionEntry> = {
+        "agent:main:opaque": {
+          sessionId,
+          updatedAt: Date.now(),
+        } as SessionEntry,
+      };
+      const byDerivedTitle = listSessionsFromStore({
+        cfg: baseCfg,
+        storePath,
+        store,
+        opts: { includeDerivedTitles: true, search: "startup latency" },
+      });
+      const byPreview = listSessionsFromStore({
+        cfg: baseCfg,
+        storePath,
+        store,
+        opts: { includeLastMessage: true, search: "cooldown" },
+      });
+
+      expect(byDerivedTitle.sessions.map((session) => session.key)).toEqual(["agent:main:opaque"]);
+      expect(byPreview.sessions.map((session) => session.key)).toEqual(["agent:main:opaque"]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   test("hides cron run alias session keys from sessions list", () => {
     const now = Date.now();
     const store: Record<string, SessionEntry> = {

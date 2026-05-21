@@ -223,6 +223,7 @@ export class GatewayChatClient implements TuiBackend {
       includeDerivedTitles: opts?.includeDerivedTitles,
       includeLastMessage: opts?.includeLastMessage,
       agentId: opts?.agentId,
+      search: opts?.search,
     });
   }
 

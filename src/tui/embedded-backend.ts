@@ -596,6 +596,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
     if (run.finalSent) {
       return;
     }
+    run.trace.step("turn.final", stopReason ? `stop ${stopReason}` : undefined);
     run.finalSent = true;
     run.registered = true;
     const projected = projectLiveAssistantBufferedText(run.buffer.trim(), {
@@ -618,12 +619,14 @@ export class EmbeddedTuiBackend implements TuiBackend {
           }
         : {}),
     });
+    run.trace.summary("final");
   }
 
   private emitChatAborted(runId: string, run: LocalRunState) {
     if (run.finalSent) {
       return;
     }
+    run.trace.step("turn.aborted");
     run.finalSent = true;
     run.registered = true;
     this.emit("chat", {
@@ -631,12 +634,14 @@ export class EmbeddedTuiBackend implements TuiBackend {
       sessionKey: run.sessionKey,
       state: "aborted",
     });
+    run.trace.summary("aborted");
   }
 
   private emitChatError(runId: string, run: LocalRunState, errorMessage?: string) {
     if (run.finalSent) {
       return;
     }
+    run.trace.step("turn.error", errorMessage?.slice(0, 160));
     run.finalSent = true;
     run.registered = true;
     this.emit("chat", {
@@ -645,12 +650,14 @@ export class EmbeddedTuiBackend implements TuiBackend {
       state: "error",
       ...(errorMessage ? { errorMessage } : {}),
     });
+    run.trace.summary("error");
   }
 
   private emitChatCommandFinal(runId: string, run: LocalRunState, text: string) {
     if (run.finalSent) {
       return;
     }
+    run.trace.step("turn.final", "command");
     run.finalSent = true;
     run.registered = true;
     this.emit("chat", {
@@ -664,6 +671,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
         timestamp: Date.now(),
       },
     });
+    run.trace.summary("command");
   }
 
   private ensureRunRegistered(runId: string, run: LocalRunState) {
@@ -818,14 +826,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
     }
     const text = replyText(reply);
     if (!agentRunStarted) {
-      run.trace.step("turn.final", "command");
       this.emitChatCommandFinal(params.runId, run, text || "(no output)");
       return;
     }
     if (text && !run.buffer) {
       run.buffer = text;
     }
-    run.trace.step("turn.final", "command");
     this.emitChatFinal(params.runId, run);
   }
 
@@ -904,7 +910,6 @@ export class EmbeddedTuiBackend implements TuiBackend {
           });
         }
         this.emitChatFinal(params.runId, run);
-        run.trace.step("turn.final");
         return;
       }
 
@@ -914,7 +919,6 @@ export class EmbeddedTuiBackend implements TuiBackend {
           run.buffer = normalizedText;
         }
         this.emitChatFinal(params.runId, run);
-        run.trace.step("turn.final");
       }
     } catch (error) {
       const run = this.runs.get(params.runId);
@@ -927,7 +931,6 @@ export class EmbeddedTuiBackend implements TuiBackend {
       }
       const errorMessage = formatTuiRunError(error);
       this.emitChatError(params.runId, run, errorMessage);
-      run.trace.step("turn.error", errorMessage.slice(0, 160));
     } finally {
       this.runs.delete(params.runId);
     }

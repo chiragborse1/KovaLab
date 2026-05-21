@@ -36,12 +36,23 @@ export class FilterableSelectList implements Component {
   onSelect?: (item: SelectItem) => void;
   onCancel?: () => void;
 
-  constructor(items: FilterableSelectItem[], maxVisible: number, theme: FilterableSelectListTheme) {
+  constructor(
+    items: FilterableSelectItem[],
+    maxVisible: number,
+    theme: FilterableSelectListTheme,
+    initialFilter = "",
+  ) {
     this.allItems = prepareSearchItems(items);
     this.maxVisible = maxVisible;
     this.theme = theme;
     this.input = new Input();
     this.selectList = new SelectList(this.allItems, maxVisible, theme);
+    const normalizedInitialFilter = initialFilter.trim();
+    if (normalizedInitialFilter) {
+      this.filterText = normalizedInitialFilter;
+      this.input.setValue(normalizedInitialFilter);
+      this.applyFilter();
+    }
   }
 
   private applyFilter(): void {

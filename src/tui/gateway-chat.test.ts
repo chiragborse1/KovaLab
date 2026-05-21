@@ -585,4 +585,32 @@ describe("GatewayChatClient", () => {
       scope: "text",
     });
   });
+
+  it("forwards session search through sessions.list", async () => {
+    const client = new GatewayChatClient({
+      url: "ws://127.0.0.1:18789",
+      token: "test-token",
+      allowInsecureLocalOperatorUi: true,
+    });
+    const request = vi.fn().mockResolvedValue({ sessions: [] });
+    (client as unknown as { client: { request: typeof request } }).client.request = request;
+
+    await client.listSessions({
+      agentId: "main",
+      includeDerivedTitles: true,
+      includeLastMessage: true,
+      search: "research",
+    });
+
+    expect(request).toHaveBeenCalledWith("sessions.list", {
+      limit: undefined,
+      activeMinutes: undefined,
+      includeGlobal: undefined,
+      includeUnknown: undefined,
+      includeDerivedTitles: true,
+      includeLastMessage: true,
+      agentId: "main",
+      search: "research",
+    });
+  });
 });

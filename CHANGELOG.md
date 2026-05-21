@@ -11,10 +11,12 @@
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
 - CLI/TUI: run local chat turns through an isolated terminal backend worker so provider, memory, and tool work no longer share the renderer event loop. Thanks @chiragborse1
 - CLI/TUI: add opt-in `KOVA_TUI_TRACE=1` turn timing diagnostics for local terminal chat latency investigations. Thanks @chiragborse1
+- CLI/TUI: summarize slow local turn traces with the slowest segment and likely source so terminal latency investigations point at cold imports, session I/O, or provider/model runtime. Thanks @chiragborse1
 - CLI/TUI: start the isolated local backend through a direct worker entrypoint when built, avoiding full CLI bootstrap before terminal chat becomes ready. Thanks @chiragborse1
 - CLI/TUI: keep late startup history loads from replacing an in-flight local prompt or run. Thanks @chiragborse1
 - CLI/TUI: show concise cooldown guidance for local terminal rate-limit failures instead of raw fallback summaries. Thanks @chiragborse1
 - CLI/TUI: queue terminal follow-up input by default while a run is active, with `/busy queue|steer|interrupt` controls and Alt+Enter/Alt+Up queue shortcuts. Thanks @chiragborse1
+- CLI/TUI: let `/sessions <query>` open the terminal session picker with existing Gateway/local session search, including derived titles and latest previews when loaded. Thanks @chiragborse1
 - CLI/TUI: replace the animated busy spinner with a stable low-work `moseying` status line so long local runs do not keep repainting the terminal. Thanks @chiragborse1
 - CLI/TUI: load recent terminal history in the background after local startup routing is ready so auto-started chat turns can begin sooner. Thanks @chiragborse1
 - CLI/TUI: compact the terminal hero inventory into tool and skill counts instead of listing bulky tool and skill names on the first screen. Thanks @chiragborse1

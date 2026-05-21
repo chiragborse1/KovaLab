@@ -18,6 +18,11 @@ type TuiTurnTraceOptions = {
   emit: (payload: TuiTurnTracePayload) => void;
 };
 
+type TraceMark = {
+  stage: string;
+  elapsedMs: number;
+};
+
 export function isTuiTurnTraceEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return TRACE_ENABLED_VALUES.has(env.KOVA_TUI_TRACE?.trim().toLowerCase() ?? "");
 }
@@ -41,12 +46,30 @@ export function formatTuiTurnTrace(payload: unknown): string {
   return `trace ${stage} +${formatTuiTraceElapsed(elapsedMs)}${detail}`;
 }
 
+function classifySlowTraceSegment(stage: string): string {
+  if (/agent\.dispatch/i.test(stage)) {
+    return "provider/model runtime";
+  }
+  if (/agent\.imports|command\.pipeline\.import/i.test(stage)) {
+    return "cold imports";
+  }
+  if (/session\.load|history/i.test(stage)) {
+    return "session/history I/O";
+  }
+  if (/command\.pipeline/i.test(stage)) {
+    return "slash-command pipeline";
+  }
+  return "runtime";
+}
+
 export class TuiTurnTrace {
   private readonly startedAt = performance.now();
   private readonly enabled: boolean;
   private readonly runId: string;
   private readonly sessionKey: string;
   private readonly emit: (payload: TuiTurnTracePayload) => void;
+  private readonly marks: TraceMark[] = [];
+  private summaryEmitted = false;
 
   constructor(opts: TuiTurnTraceOptions) {
     this.enabled = opts.enabled ?? isTuiTurnTraceEnabled();
@@ -59,12 +82,42 @@ export class TuiTurnTrace {
     if (!this.enabled) {
       return;
     }
+    const elapsedMs = performance.now() - this.startedAt;
+    this.marks.push({ stage, elapsedMs });
     this.emit({
       runId: this.runId,
       sessionKey: this.sessionKey,
       stage,
-      elapsedMs: performance.now() - this.startedAt,
+      elapsedMs,
       ...(detail ? { detail } : {}),
+      ts: Date.now(),
+    });
+  }
+
+  summary(status: string) {
+    if (!this.enabled || this.summaryEmitted) {
+      return;
+    }
+    this.summaryEmitted = true;
+    const elapsedMs = performance.now() - this.startedAt;
+    const marks = this.marks.length > 0 ? this.marks : [{ stage: "start", elapsedMs: 0 }];
+    const segments = marks.map((mark, index) => {
+      const next = marks[index + 1]?.elapsedMs ?? elapsedMs;
+      return {
+        stage: mark.stage,
+        durationMs: Math.max(0, next - mark.elapsedMs),
+      };
+    });
+    const slowest = segments.toSorted((a, b) => b.durationMs - a.durationMs)[0];
+    const slowestDetail = slowest
+      ? `slowest ${slowest.stage} ${formatTuiTraceElapsed(slowest.durationMs)} (${classifySlowTraceSegment(slowest.stage)})`
+      : "slowest unknown";
+    this.emit({
+      runId: this.runId,
+      sessionKey: this.sessionKey,
+      stage: "summary",
+      elapsedMs,
+      detail: `${status} | ${slowestDetail}`,
       ts: Date.now(),
     });
   }
