@@ -1,8 +1,10 @@
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { logVerbose } from "../../globals.js";
 import type {
+  MemoryReadResult,
   MemoryProviderStatus,
   MemorySearchResult,
+  MemorySyncProgressUpdate,
 } from "../../memory-host-sdk/engine-storage.js";
 import { getActiveMemorySearchManager } from "../../plugins/memory-runtime.js";
 import type {
@@ -12,15 +14,20 @@ import type {
 } from "./commands-types.js";
 
 const MAX_MEMORY_SEARCH_RESULTS = 5;
+const DEFAULT_MEMORY_READ_LINES = 40;
+const MAX_MEMORY_READ_LINES = 120;
 
 function memoryHelpText(): string {
   return [
     "Memory commands:",
     "- /memory status",
+    "- /memory sync [force]",
     "- /memory search <query>",
+    "- /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]",
     "",
     "Terminal equivalents:",
     "- kova memory status --deep",
+    "- kova memory index --force",
     '- kova memory search "<query>"',
   ].join("\n");
 }
@@ -96,6 +103,23 @@ function formatMemorySearchResults(query: string, results: MemorySearchResult[])
   return lines.join("\n");
 }
 
+function formatReadRange(result: MemoryReadResult): string {
+  const from = Math.max(1, result.from ?? 1);
+  const lineCount = Math.max(1, result.lines ?? result.text.split("\n").length);
+  return `${String(from)}-${String(from + lineCount - 1)}`;
+}
+
+function formatMemoryReadResult(result: MemoryReadResult): string {
+  const header = `Memory read: ${result.path}:${formatReadRange(result)}`;
+  const continuation =
+    result.truncated && typeof result.nextFrom === "number"
+      ? `\n\nContinue with: /memory read ${result.path} from=${String(result.nextFrom)} lines=${String(
+          DEFAULT_MEMORY_READ_LINES,
+        )}`
+      : "";
+  return `${header}\n\n${result.text || "(empty)"}${continuation}`;
+}
+
 function parseMemoryCommand(normalized: string): { action: string; query: string } | null {
   if (normalized !== "/memory" && !normalized.startsWith("/memory ")) {
     return null;
@@ -107,6 +131,110 @@ function parseMemoryCommand(normalized: string): { action: string; query: string
   const [actionRaw, ...rest] = args.split(/\s+/);
   const action = actionRaw?.toLowerCase() ?? "help";
   return { action, query: rest.join(" ").trim() };
+}
+
+function parsePositiveInteger(value: string): number | undefined {
+  if (!/^\d+$/.test(value.trim())) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(value, 10);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function clampMemoryReadLines(value: number): number {
+  return Math.min(MAX_MEMORY_READ_LINES, Math.max(1, value));
+}
+
+function stripWrappingQuotes(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2) {
+    const first = trimmed[0];
+    const last = trimmed[trimmed.length - 1];
+    if ((first === `"` && last === `"`) || (first === `'` && last === `'`)) {
+      return trimmed.slice(1, -1);
+    }
+  }
+  return trimmed;
+}
+
+function parseMemoryReadArgs(
+  raw: string,
+): { relPath: string; from?: number; lines?: number } | null {
+  const tokens = raw
+    .trim()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+  const targetRaw = tokens.shift();
+  if (!targetRaw) {
+    return null;
+  }
+
+  let target = stripWrappingQuotes(targetRaw);
+  let from: number | undefined;
+  let lines: number | undefined;
+
+  const rangeMatch = target.match(/^(.*):(\d+)(?:-(\d+))?$/);
+  if (rangeMatch && rangeMatch[1]) {
+    target = rangeMatch[1];
+    const start = parsePositiveInteger(rangeMatch[2]);
+    const end = rangeMatch[3] ? parsePositiveInteger(rangeMatch[3]) : undefined;
+    if (start) {
+      from = start;
+      if (end && end >= start) {
+        lines = clampMemoryReadLines(end - start + 1);
+      } else if (end) {
+        lines = 1;
+      }
+    }
+  }
+
+  for (const token of tokens) {
+    const option = token.match(/^(from|line|start|lines|limit)=([0-9]+)$/i);
+    if (!option) {
+      continue;
+    }
+    const value = parsePositiveInteger(option[2]);
+    if (!value) {
+      continue;
+    }
+    const key = option[1].toLowerCase();
+    if (key === "from" || key === "line" || key === "start") {
+      from = value;
+    } else {
+      lines = clampMemoryReadLines(value);
+    }
+  }
+
+  if (!target) {
+    return null;
+  }
+  return {
+    relPath: target,
+    ...(typeof from === "number" ? { from } : {}),
+    lines: clampMemoryReadLines(lines ?? DEFAULT_MEMORY_READ_LINES),
+  };
+}
+
+function shouldForceMemorySync(query: string): boolean {
+  return query
+    .split(/\s+/)
+    .map((token) => token.trim().toLowerCase())
+    .some((token) => token === "force" || token === "--force" || token === "true");
+}
+
+function formatMemorySyncResult(params: {
+  status: MemoryProviderStatus;
+  force: boolean;
+  progress: MemorySyncProgressUpdate[];
+}): string {
+  const prefix = params.force ? "Memory sync complete (forced)." : "Memory sync complete.";
+  const lastProgress = params.progress.at(-1);
+  const progress =
+    lastProgress && lastProgress.total > 0
+      ? `\nIndexed ${String(lastProgress.completed)}/${String(lastProgress.total)}${lastProgress.label ? `: ${lastProgress.label}` : ""}`
+      : "";
+  return `${prefix}${progress}\n${formatMemoryStatus({ status: params.status })}`;
 }
 
 async function resolveMemoryManager(params: HandleCommandsParams) {
@@ -192,8 +320,89 @@ export const handleMemoryCommand: CommandHandler = async (
     }
   }
 
+  if (parsed.action === "sync") {
+    const { manager, error } = await resolveMemoryManager(params);
+    if (!manager) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Memory sync unavailable${error ? `: ${error}` : ""}\nVerify: kova memory status --deep`,
+        },
+      };
+    }
+    if (!manager.sync) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: "Memory sync unavailable for active backend.\nUse: kova memory index --force",
+        },
+      };
+    }
+    const progress: MemorySyncProgressUpdate[] = [];
+    const force = shouldForceMemorySync(parsed.query);
+    try {
+      await manager.sync({
+        reason: "chat-command",
+        force,
+        progress: (update) => {
+          progress.push(update);
+        },
+      });
+      return {
+        shouldContinue: false,
+        reply: {
+          text: formatMemorySyncResult({
+            status: manager.status(),
+            force,
+            progress,
+          }),
+        },
+      };
+    } catch (error) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Memory sync failed: ${String(error)}\nVerify: kova memory status --deep`,
+        },
+      };
+    }
+  }
+
+  if (parsed.action === "read") {
+    const readParams = parseMemoryReadArgs(parsed.query);
+    if (!readParams) {
+      return {
+        shouldContinue: false,
+        reply: { text: "Usage: /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]" },
+      };
+    }
+    const { manager, error } = await resolveMemoryManager(params);
+    if (!manager) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Memory read unavailable${error ? `: ${error}` : ""}\nVerify: kova memory status --deep`,
+        },
+      };
+    }
+    try {
+      const result = await manager.readFile(readParams);
+      return {
+        shouldContinue: false,
+        reply: { text: formatMemoryReadResult(result) },
+      };
+    } catch (error) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Memory read failed: ${String(error)}\nVerify: kova memory status --deep`,
+        },
+      };
+    }
+  }
+
   return {
     shouldContinue: false,
-    reply: { text: "Usage: /memory [help|status|search <query>]" },
+    reply: { text: "Usage: /memory [help|status|sync [force]|search <query>|read <path>]" },
   };
 };

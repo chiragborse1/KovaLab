@@ -36,6 +36,7 @@ describe("handleMemoryCommand", () => {
 
     expect(result?.shouldContinue).toBe(false);
     expect(result?.reply?.text).toContain("/memory status");
+    expect(result?.reply?.text).toContain("/memory sync");
     expect(result?.reply?.text).toContain("kova memory search");
     expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
   });
@@ -91,6 +92,75 @@ describe("handleMemoryCommand", () => {
     const result = await handleMemoryCommand(buildParams("/memory search"), true);
 
     expect(result?.reply?.text).toBe("Usage: /memory search <query>");
+    expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
+  });
+
+  it("syncs active memory on demand", async () => {
+    const sync = vi.fn(
+      async (params: {
+        progress?: (update: { completed: number; total: number; label?: string }) => void;
+      }) => {
+        params.progress?.({ completed: 2, total: 3, label: "sessions" });
+        params.progress?.({ completed: 3, total: 3, label: "memory" });
+      },
+    );
+    getActiveMemorySearchManagerMock.mockResolvedValue({
+      manager: { status: () => baseStatus, sync },
+    });
+
+    const result = await handleMemoryCommand(buildParams("/memory sync force"), true);
+
+    expect(result?.reply?.text).toContain("Memory sync complete (forced).");
+    expect(result?.reply?.text).toContain("Indexed 3/3: memory");
+    expect(result?.reply?.text).toContain("Memory status:");
+    expect(sync).toHaveBeenCalledWith({
+      reason: "chat-command",
+      force: true,
+      progress: expect.any(Function),
+    });
+  });
+
+  it("reports sync unavailable when the active backend cannot sync", async () => {
+    getActiveMemorySearchManagerMock.mockResolvedValue({
+      manager: { status: () => baseStatus },
+    });
+
+    const result = await handleMemoryCommand(buildParams("/memory sync"), true);
+
+    expect(result?.reply?.text).toContain("Memory sync unavailable for active backend.");
+  });
+
+  it("reads memory source excerpts from citations", async () => {
+    const readFile = vi.fn(async () => ({
+      path: "memory/people.md",
+      from: 4,
+      lines: 2,
+      text: "Chirag prefers terminal-first workflows.\nKova should make recall inspectable.",
+    }));
+    getActiveMemorySearchManagerMock.mockResolvedValue({
+      manager: { readFile },
+    });
+
+    const result = await handleMemoryCommand(
+      buildParams("/memory read memory/people.md:4-5"),
+      true,
+    );
+
+    expect(result?.reply?.text).toContain("Memory read: memory/people.md:4-5");
+    expect(result?.reply?.text).toContain("terminal-first workflows");
+    expect(readFile).toHaveBeenCalledWith({
+      relPath: "memory/people.md",
+      from: 4,
+      lines: 2,
+    });
+  });
+
+  it("returns usage for missing read target", async () => {
+    const result = await handleMemoryCommand(buildParams("/memory read"), true);
+
+    expect(result?.reply?.text).toBe(
+      "Usage: /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]",
+    );
     expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
   });
 });

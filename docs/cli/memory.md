@@ -42,6 +42,15 @@ kova memory status --agent main
 kova memory index --agent main --verbose
 ```
 
+## Chat shortcuts
+
+Authorized chat surfaces expose the same terminal-first recall loop through slash commands:
+
+- `/memory status`: lightweight backend/index health.
+- `/memory sync [force]`: refresh the active memory index; `force` requests a full rebuild.
+- `/memory search <query>`: return top recalled snippets with file/line citations.
+- `/memory read <path[:line[-end]]> [from=<line>] [lines=<count>]`: read a cited source excerpt directly from chat.
+
 ## Options
 
 `memory status` and `memory index`:
