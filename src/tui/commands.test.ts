@@ -10,6 +10,11 @@ describe("parseCommand", () => {
     expect(parseCommand("/gwstatus")).toEqual({ name: "gateway-status", args: "" });
   });
 
+  it("normalizes hidden lifecycle aliases", () => {
+    expect(parseCommand("/abort")).toEqual({ name: "stop", args: "" });
+    expect(parseCommand("/quit")).toEqual({ name: "exit", args: "" });
+  });
+
   it("returns empty name for empty input", () => {
     expect(parseCommand("   ")).toEqual({ name: "", args: "" });
   });
@@ -107,6 +112,32 @@ describe("getSlashCommands", () => {
     expect(automation?.description).toBe("Show scheduled/background automation");
   });
 
+  it("keeps alias commands out of the visible command palette", () => {
+    const commandNames = getSlashCommands().map((command) => command.name);
+    expect(commandNames).toContain("elevated");
+    expect(commandNames).toContain("gateway-status");
+    expect(commandNames).toContain("stop");
+    expect(commandNames).not.toContain("elev");
+    expect(commandNames).not.toContain("gwstatus");
+    expect(commandNames).not.toContain("abort");
+    expect(commandNames).not.toContain("quit");
+    expect(commandNames).not.toContain("id");
+    expect(commandNames).not.toContain("plugin");
+    expect(commandNames).not.toContain("tell");
+    expect(commandNames).not.toContain("t");
+    expect(commandNames).not.toContain("v");
+  });
+
+  it("uses the canonical gateway alias when merging multi-alias commands", () => {
+    const commandNames = getSlashCommands().map((command) => command.name);
+    expect(commandNames).toContain("export-session");
+    expect(commandNames).toContain("export-trajectory");
+    expect(commandNames).toContain("plugins");
+    expect(commandNames).not.toContain("export");
+    expect(commandNames).not.toContain("trajectory");
+    expect(commandNames).not.toContain("plugin");
+  });
+
   it("merges dynamic gateway commands", () => {
     const commands = getSlashCommands({
       dynamicCommands: [
@@ -131,12 +162,10 @@ describe("helpText", () => {
   it("includes slash command help for aliases", () => {
     const output = helpText();
     expect(output).toContain("/elevated <on|off|ask|full>");
-    expect(output).toContain("/elev <on|off|ask|full>");
     expect(output).toContain("/gateway-status");
-    expect(output).toContain("/gwstatus");
     expect(output).toContain("/crestodian [request]");
     expect(output).toContain("/session <key> (or /sessions [query])");
-    expect(output).toContain("Terminal command center:");
+    expect(output).toContain("Kova terminal controls:");
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/skills [compact|verbose]");
     expect(output).toContain("/tasks [list|running|subagents|cron|audit|repair [apply]]");
@@ -150,5 +179,9 @@ describe("helpText", () => {
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins list");
     expect(output).toContain("Run controls:");
+    expect(output).toContain("/stop");
+    expect(output).toContain("Short aliases still work");
+    expect(output).not.toContain("/abort");
+    expect(output).not.toContain("/quit");
   });
 });

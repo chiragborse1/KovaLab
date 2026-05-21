@@ -1114,7 +1114,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem(`reset failed: ${sanitizeRenderableText(String(err))}`);
         }
         break;
-      case "abort":
+      case "stop":
         await abortActive();
         break;
       case "settings":

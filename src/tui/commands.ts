@@ -76,9 +76,27 @@ export type SlashCommandOptions = {
 };
 
 const COMMAND_ALIASES: Record<string, string> = {
+  abort: "stop",
   elev: "elevated",
   gwstatus: "gateway-status",
+  quit: "exit",
 };
+
+const HIDDEN_ALIAS_NAMES = new Set([
+  "abort",
+  "elev",
+  "export",
+  "gwstatus",
+  "id",
+  "plugin",
+  "quit",
+  "reason",
+  "t",
+  "tell",
+  "thinking",
+  "trajectory",
+  "v",
+]);
 
 function createLevelCompletion(
   levels: string[],
@@ -104,6 +122,9 @@ function appendSlashCommand(
 ) {
   const normalizedName = normalizeSlashCommandName(name);
   if (!normalizedName || seen.has(normalizedName)) {
+    return;
+  }
+  if (HIDDEN_ALIAS_NAMES.has(normalizedName)) {
     return;
   }
   seen.add(normalizedName);
@@ -151,7 +172,6 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
     { name: "gateway-status", description: "Show gateway status summary" },
-    { name: "gwstatus", description: "Alias for /gateway-status" },
     ...(options.local ? [{ name: "auth", description: "Run provider auth/login flow" }] : []),
     { name: "agent", description: "Switch agent (or open picker)" },
     { name: "agents", description: "Open agent picker" },
@@ -242,11 +262,6 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       getArgumentCompletions: elevatedCompletions,
     },
     {
-      name: "elev",
-      description: "Alias for /elevated",
-      getArgumentCompletions: elevatedCompletions,
-    },
-    {
       name: "activation",
       description: "Set group activation",
       getArgumentCompletions: activationCompletions,
@@ -256,28 +271,23 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Control input while a run is active",
       getArgumentCompletions: busyCompletions,
     },
-    { name: "abort", description: "Abort active run" },
-    { name: "new", description: "Reset the session" },
+    { name: "stop", description: "Stop active run" },
+    { name: "new", description: "Start a new session" },
     { name: "reset", description: "Reset the session" },
     { name: "settings", description: "Open settings" },
     { name: "exit", description: "Exit the TUI" },
-    { name: "quit", description: "Exit the TUI" },
   ];
 
   const seen = new Set(commands.map((command) => command.name));
   const gatewayCommands = options.cfg ? listChatCommandsForConfig(options.cfg) : listChatCommands();
   for (const command of gatewayCommands) {
     const aliases = command.textAliases.length > 0 ? command.textAliases : [`/${command.key}`];
-    for (const alias of aliases) {
-      appendSlashCommand(commands, seen, alias, command.description);
-    }
+    appendSlashCommand(commands, seen, aliases[0] ?? `/${command.key}`, command.description);
   }
 
   for (const command of options.dynamicCommands ?? []) {
     const aliases = command.textAliases?.length ? command.textAliases : [command.name];
-    for (const alias of aliases) {
-      appendSlashCommand(commands, seen, alias, command.description);
-    }
+    appendSlashCommand(commands, seen, aliases[0] ?? command.name, command.description);
   }
 
   return commands;
@@ -286,12 +296,11 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
 export function helpText(options: SlashCommandOptions = {}): string {
   const thinkLevels = formatThinkingLevels(options.provider, options.model, "|");
   return [
-    "Terminal command center:",
+    "Kova terminal controls:",
     "/help",
     "/commands",
     "/status",
     "/gateway-status",
-    "/gwstatus",
     ...(options.local ? ["/auth [provider]"] : []),
     "/agent <id> (or /agents)",
     "/crestodian [request]",
@@ -316,12 +325,14 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/reasoning <on|off>",
     "/usage <off|tokens|full>",
     "/elevated <on|off|ask|full>",
-    "/elev <on|off|ask|full>",
     "/activation <mention|always>",
     "/busy <status|queue|steer|interrupt|clear>",
-    "/new or /reset",
-    "/abort",
+    "/new",
+    "/reset",
+    "/stop",
     "/settings",
     "/exit",
+    "",
+    "Short aliases still work; the command palette shows canonical commands only.",
   ].join("\n");
 }

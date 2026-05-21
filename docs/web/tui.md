@@ -80,8 +80,7 @@ Use `--password` if your Gateway uses password auth.
 
 - Messages are sent to the Gateway; delivery to providers is off by default.
 - Turn delivery on:
-  - `/deliver on`
-  - or the Settings panel
+  - open the Settings panel
   - or start with `kova tui --deliver`
 
 ## Pickers + overlays
@@ -105,17 +104,17 @@ Use `--password` if your Gateway uses password auth.
 - Alt+Enter: queue the current input as a follow-up
 - Alt+Up: restore the most recent queued follow-up to the editor
 
-## Terminal command center
+## Kova terminal controls
 
-Run `/help` to show the command center inside the TUI. It keeps the local
-terminal controls and the Gateway-backed command surface in one place.
+Run `/help` to show Kova terminal controls inside the TUI. It keeps local
+controls and the Gateway-backed command surface in one place.
 
 Core:
 
 - `/help`
 - `/commands`
 - `/status`
-- `/gateway-status` (alias: `/gwstatus`)
+- `/gateway-status`
 - `/agent <id>` (or `/agents`)
 - `/crestodian [request]`
 - `/session <key>` (or `/sessions [query]`)
@@ -136,9 +135,8 @@ Session controls:
 - `/trace <on|off>`
 - `/reasoning <on|off|stream>`
 - `/usage <off|tokens|full>`
-- `/elevated <on|off|ask|full>` (alias: `/elev`)
+- `/elevated <on|off|ask|full>`
 - `/activation <mention|always>`
-- `/deliver <on|off>`
 - `/busy <status|queue|steer|interrupt|clear>`
 
 Busy input defaults to `queue` in the terminal so accidental follow-ups do not
@@ -154,10 +152,14 @@ a loop.
 
 Session lifecycle:
 
-- `/new` or `/reset` (reset the session)
-- `/abort` (abort the active run)
+- `/new` starts a fresh session
+- `/reset` clears the current session
+- `/stop` (stop the active run)
 - `/settings`
 - `/exit`
+
+Short aliases such as `/gwstatus`, `/elev`, `/abort`, and `/quit` still work,
+but the TUI command palette shows canonical commands only.
 
 Local mode only:
 
@@ -276,7 +278,7 @@ No output after sending a message:
 - Run `/status` in the TUI to confirm the Gateway is connected and idle/busy.
 - Check the Gateway logs: `kova logs --follow`.
 - Confirm the agent can run: `kova status` and `kova models status`.
-- If you expect messages in a chat channel, enable delivery (`/deliver on` or `--deliver`).
+- If you expect messages in a chat channel, enable delivery in Settings or start with `--deliver`.
 
 ## Connection troubleshooting
 

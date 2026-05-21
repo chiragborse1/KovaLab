@@ -33,6 +33,7 @@ function createHarness(params?: {
   refreshSessionInfo?: ReturnType<typeof vi.fn>;
   applySessionInfoFromPatch?: ReturnType<typeof vi.fn>;
   setActivityStatus?: SetActivityStatusMock;
+  abortActive?: ReturnType<typeof vi.fn>;
   isConnected?: boolean;
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
@@ -206,6 +207,7 @@ function createHarness(params?: {
   const openOverlay = vi.fn();
   const closeOverlay = vi.fn();
   const requestExit = vi.fn();
+  const abortActive = params?.abortActive ?? vi.fn();
   const runAuthFlow: RunAuthFlow | undefined =
     params?.runAuthFlow ??
     (params?.opts?.local
@@ -247,7 +249,7 @@ function createHarness(params?: {
     loadHistory,
     setSession,
     refreshAgents: vi.fn(),
-    abortActive: vi.fn(),
+    abortActive,
     setActivityStatus,
     formatSessionKey: (key: string) => key,
     applySessionInfoFromPatch: applySessionInfoFromPatch as never,
@@ -286,6 +288,7 @@ function createHarness(params?: {
     noteLocalRunId,
     noteLocalBtwRunId,
     requestExit,
+    abortActive,
     state,
   };
 }
@@ -684,6 +687,16 @@ describe("tui command handlers", () => {
 
     expect(state.queuedMessages).toEqual([]);
     expect(addSystem).toHaveBeenCalledWith("cleared 1 queued follow-up");
+  });
+
+  it("stops the active run with canonical and legacy lifecycle commands", async () => {
+    const abortActive = vi.fn().mockResolvedValue(undefined);
+    const { handleCommand } = createHarness({ abortActive });
+
+    await handleCommand("/stop");
+    await handleCommand("/abort");
+
+    expect(abortActive).toHaveBeenCalledTimes(2);
   });
 
   it("creates unique session for /new and resets shared session for /reset", async () => {
