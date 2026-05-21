@@ -263,12 +263,24 @@ const TOOLING_TEST_TARGETS = new Map([
     ["test/scripts/vitest-local-scheduling.test.ts"],
   ],
 ]);
+const TUI_BACKEND_CONTRACT_TEST_TARGETS = [
+  "src/tui/embedded-backend.test.ts",
+  "src/tui/local-backend-child.test.ts",
+  "src/tui/local-process-backend.test.ts",
+  "src/tui/tui-command-handlers.test.ts",
+];
+const TUI_STATE_CONTRACT_TEST_TARGETS = [
+  "src/tui/tui-command-handlers.test.ts",
+  "src/tui/tui.test.ts",
+];
 const SOURCE_TEST_TARGETS = new Map([
   ...PRECISE_SOURCE_TEST_TARGETS,
   ["extensions/google-meet/index.ts", ["extensions/google-meet/index.test.ts"]],
   ["extensions/google-meet/src/cli.ts", ["extensions/google-meet/src/cli.test.ts"]],
   ["extensions/google-meet/src/create.ts", ["extensions/google-meet/index.test.ts"]],
   ["extensions/google-meet/src/oauth.ts", ["extensions/google-meet/src/oauth.test.ts"]],
+  ["src/tui/tui-backend.ts", TUI_BACKEND_CONTRACT_TEST_TARGETS],
+  ["src/tui/tui-types.ts", TUI_STATE_CONTRACT_TEST_TARGETS],
   ["src/commands/doctor-memory-search.ts", ["src/commands/doctor-memory-search.test.ts"]],
   ["src/agents/live-model-turn-probes.ts", ["src/agents/live-model-turn-probes.test.ts"]],
   [

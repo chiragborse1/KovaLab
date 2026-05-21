@@ -431,6 +431,28 @@ describe("scripts/test-projects changed-target routing", () => {
     ]);
   });
 
+  it("keeps shared TUI contract edits in the TUI lane", () => {
+    const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
+      "src/tui/tui-backend.ts",
+      "src/tui/tui-types.ts",
+    ]);
+
+    expect(plans).toEqual([
+      {
+        config: "test/vitest/vitest.tui.config.ts",
+        forwardedArgs: [],
+        includePatterns: [
+          "src/tui/embedded-backend.test.ts",
+          "src/tui/local-backend-child.test.ts",
+          "src/tui/local-process-backend.test.ts",
+          "src/tui/tui-command-handlers.test.ts",
+          "src/tui/tui.test.ts",
+        ],
+        watchMode: false,
+      },
+    ]);
+  });
+
   it("routes changed ui support files to the ui lane without dead include globs", () => {
     const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
       "ui/src/styles/base.css",
