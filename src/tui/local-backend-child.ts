@@ -60,7 +60,7 @@ function redirectConsoleToStderr() {
   console.error = (...args: unknown[]) => write("error", args);
 }
 
-async function invokeBackend(
+export async function invokeBackend(
   backend: TuiBackend,
   method: BackendMethod,
   params: unknown,
@@ -76,7 +76,10 @@ async function invokeBackend(
   if (typeof fn !== "function") {
     throw new Error(`local backend method unavailable: ${method}`);
   }
-  return await (fn as (params?: unknown) => Promise<unknown>)(params);
+  return await (fn as (this: TuiBackend, params?: unknown) => Promise<unknown>).call(
+    backend,
+    params,
+  );
 }
 
 export async function runEmbeddedTuiBackendStdio(): Promise<void> {
