@@ -204,6 +204,22 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps active runs running when a recoverable lifecycle error arrives", () => {
+    const { tui, setActivityStatus, handleAgentEvent } = createHandlersHarness({
+      state: { activeChatRunId: "run-retry" },
+    });
+
+    handleAgentEvent({
+      runId: "run-retry",
+      stream: "lifecycle",
+      data: { phase: "error", error: "429 rate limit" },
+    });
+
+    expect(setActivityStatus).toHaveBeenCalledWith("running");
+    expect(setActivityStatus).not.toHaveBeenCalledWith("error");
+    expect(tui.requestRender).toHaveBeenCalledTimes(1);
+  });
+
   it("captures runId from chat events when activeChatRunId is unset", () => {
     const { state, chatLog, handleChatEvent, handleAgentEvent } = createHandlersHarness({
       state: { activeChatRunId: null },

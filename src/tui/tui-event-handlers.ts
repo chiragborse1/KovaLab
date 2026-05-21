@@ -456,7 +456,10 @@ export function createEventHandlers(context: EventHandlerContext) {
         setActivityStatus("idle");
       }
       if (phase === "error") {
-        setActivityStatus("error");
+        // The chat event is the terminal authority. A lifecycle error can be
+        // a failed fallback candidate while the run continues with another
+        // model/auth path, so keep the active turn running until chat final/error.
+        setActivityStatus("running");
       }
       tui.requestRender();
     }
