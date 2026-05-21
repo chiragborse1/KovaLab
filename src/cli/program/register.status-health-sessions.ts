@@ -52,7 +52,7 @@ async function runWithVerboseAndTimeout(
 export function registerStatusHealthSessionsCommands(program: Command) {
   program
     .command("status")
-    .description("Show channel health and recent session recipients")
+    .description("Show terminal readiness, Gateway health, and recent sessions")
     .option("--json", "Output JSON instead of text", false)
     .option("--all", "Full diagnosis (read-only, pasteable)", false)
     .option("--usage", "Show model provider usage/quota snapshots", false)
@@ -64,7 +64,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["kova status", "Show channel health + session summary."],
+          ["kova status", "Show terminal readiness + session summary."],
           ["kova status --all", "Full diagnosis (read-only)."],
           ["kova status --json", "Machine-readable output."],
           ["kova status --usage", "Show model provider usage/quota snapshots."],

@@ -140,6 +140,7 @@ export function buildStatusOverviewRowsFromSurface(params: {
   prefixRows?: StatusOverviewRow[];
   middleRows?: StatusOverviewRow[];
   suffixRows?: StatusOverviewRow[];
+  terminalValue?: string;
   agentsValue: string;
   updateValue?: string;
   gatewayAuthWarningValue?: string | null;
@@ -181,6 +182,7 @@ export function buildStatusOverviewRowsFromSurface(params: {
     prefixRows: params.prefixRows,
     middleRows: params.middleRows,
     suffixRows: params.suffixRows,
+    terminalValue: params.terminalValue,
     agentsValue: params.agentsValue,
     updateValue: params.updateValue,
     gatewayAuthWarningValue: params.gatewayAuthWarningValue,

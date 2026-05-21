@@ -177,6 +177,7 @@ export function resolveStatusDashboardUrl(params: {
 
 export function buildStatusOverviewRows(params: {
   prefixRows?: StatusOverviewRow[];
+  terminalValue?: string;
   dashboardValue: string;
   tailscaleValue: string;
   channelLabel: string;
@@ -193,7 +194,8 @@ export function buildStatusOverviewRows(params: {
 }): StatusOverviewRow[] {
   const rows: StatusOverviewRow[] = [...(params.prefixRows ?? [])];
   rows.push(
-    { Item: "Dashboard", Value: params.dashboardValue },
+    { Item: "Terminal", Value: params.terminalValue ?? "kova chat" },
+    { Item: "Control UI", Value: params.dashboardValue },
     { Item: "Tailscale exposure", Value: params.tailscaleValue },
     { Item: "Channel", Value: params.channelLabel },
   );
@@ -253,6 +255,7 @@ export function buildStatusOverviewSurfaceRows(params: {
   prefixRows?: StatusOverviewRow[];
   middleRows?: StatusOverviewRow[];
   suffixRows?: StatusOverviewRow[];
+  terminalValue?: string;
   agentsValue: string;
   updateValue?: string;
   gatewayAuthWarningValue?: string | null;
@@ -280,6 +283,7 @@ export function buildStatusOverviewSurfaceRows(params: {
     });
   return buildStatusOverviewRows({
     prefixRows: params.prefixRows,
+    terminalValue: params.terminalValue,
     dashboardValue: formatStatusDashboardValue(dashboardUrl),
     tailscaleValue: formatStatusTailscaleValue({
       tailscaleMode: params.tailscaleMode,

@@ -87,7 +87,7 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "status",
-    description: "Show channel health and recent session recipients",
+    description: "Show terminal readiness, Gateway health, and recent sessions",
     hasSubcommands: false,
   },
   {

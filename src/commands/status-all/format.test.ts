@@ -300,7 +300,8 @@ describe("status-all format", () => {
       }),
     ).toEqual([
       { Item: "Version", Value: "1.0.0" },
-      { Item: "Dashboard", Value: "https://kova.local" },
+      { Item: "Terminal", Value: "kova chat" },
+      { Item: "Control UI", Value: "https://kova.local" },
       { Item: "Tailscale exposure", Value: "serve · https://tail.example" },
       { Item: "Channel", Value: "stable" },
       { Item: "Git", Value: "main @ v1.0.0" },
@@ -372,7 +373,8 @@ describe("status-all format", () => {
       }),
     ).toEqual([
       { Item: "Version", Value: "1.0.0" },
-      { Item: "Dashboard", Value: "http://127.0.0.1:18790/" },
+      { Item: "Terminal", Value: "kova chat" },
+      { Item: "Control UI", Value: "http://127.0.0.1:18790/" },
       { Item: "Tailscale exposure", Value: "serve · box.tail.ts.net · https://box.tail.ts.net" },
       { Item: "Channel", Value: "stable (config)" },
       { Item: "Git", Value: "main · tag v1.2.3" },

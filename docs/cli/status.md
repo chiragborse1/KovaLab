@@ -1,14 +1,15 @@
 ---
-summary: "CLI reference for `kova status` (diagnostics, probes, usage snapshots)"
+summary: "CLI reference for `kova status` (terminal readiness, diagnostics, probes, usage snapshots)"
 read_when:
-  - You want a quick diagnosis of channel health + recent session recipients
+  - You want a quick terminal readiness check with Gateway, memory, skills, channels, and recent sessions
   - You want a pasteable “all” status for debugging
 title: "Status"
 ---
 
 # `kova status`
 
-Diagnostics for channels + sessions.
+Terminal command-center snapshot for local chat readiness, Gateway health,
+memory, plugin compatibility, channels, tasks, and recent sessions.
 
 ```bash
 kova status
@@ -19,6 +20,9 @@ kova status --usage
 
 Notes:
 
+- The Overview starts with `Terminal: kova chat`, then lists the optional browser
+  Control UI. Use the Control UI for advanced/admin work, not as the primary
+  daily entry point.
 - `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Slack + Signal).
 - `--usage` prints normalized provider usage windows as `X% left`.
 - Session status output separates `Execution:` from `Runtime:`. `Execution` is the sandbox path (`direct`, `docker/*`), while `Runtime` tells you whether the session is using `Kova Pi Default`, `OpenAI Codex`, a CLI backend, or an ACP backend such as `codex (acp/acpx)`. See [Agent runtimes](/concepts/agent-runtimes) for the provider/model/runtime distinction.

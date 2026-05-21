@@ -103,6 +103,7 @@ export function buildStatusCommandOverviewRows(
     decorateTailscaleOff: params.muted,
     decorateTailscaleWarn: params.warn,
     prefixRows: [{ Item: "OS", Value: `${params.osLabel} · node ${process.versions.node}` }],
+    terminalValue: formatCliCommand("kova chat"),
     updateValue: params.updateValue,
     agentsValue,
     suffixRows: [
@@ -157,6 +158,7 @@ export function buildStatusAllOverviewRows(params: {
     middleRows: [
       { Item: "Security", Value: `Run: ${formatCliCommand("kova security audit --deep")}` },
     ],
+    terminalValue: formatCliCommand("kova chat"),
     agentsValue: buildStatusAllAgentsValue({
       agentStatus: params.agentStatus,
     }),
