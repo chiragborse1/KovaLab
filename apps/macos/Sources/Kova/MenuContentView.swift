@@ -111,7 +111,7 @@ struct MenuContent: View {
                     await self.openDashboard()
                 }
             } label: {
-                Label("Open Control UI", systemImage: "gauge")
+                Label("Open Dashboard", systemImage: "gauge")
             }
             Button {
                 Task { @MainActor in
