@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   tasksListCommand: vi.fn(),
   tasksAuditCommand: vi.fn(),
   tasksMaintenanceCommand: vi.fn(),
+  tasksReportCommand: vi.fn(),
   tasksShowCommand: vi.fn(),
   tasksNotifyCommand: vi.fn(),
   tasksCancelCommand: vi.fn(),
@@ -40,6 +41,7 @@ const sessionsCleanupCommand = mocks.sessionsCleanupCommand;
 const tasksListCommand = mocks.tasksListCommand;
 const tasksAuditCommand = mocks.tasksAuditCommand;
 const tasksMaintenanceCommand = mocks.tasksMaintenanceCommand;
+const tasksReportCommand = mocks.tasksReportCommand;
 const tasksShowCommand = mocks.tasksShowCommand;
 const tasksNotifyCommand = mocks.tasksNotifyCommand;
 const tasksCancelCommand = mocks.tasksCancelCommand;
@@ -80,6 +82,7 @@ vi.mock("../../commands/tasks.js", () => ({
   tasksListCommand: mocks.tasksListCommand,
   tasksAuditCommand: mocks.tasksAuditCommand,
   tasksMaintenanceCommand: mocks.tasksMaintenanceCommand,
+  tasksReportCommand: mocks.tasksReportCommand,
   tasksShowCommand: mocks.tasksShowCommand,
   tasksNotifyCommand: mocks.tasksNotifyCommand,
   tasksCancelCommand: mocks.tasksCancelCommand,
@@ -127,6 +130,7 @@ describe("registerStatusHealthSessionsCommands", () => {
     tasksListCommand.mockResolvedValue(undefined);
     tasksAuditCommand.mockResolvedValue(undefined);
     tasksMaintenanceCommand.mockResolvedValue(undefined);
+    tasksReportCommand.mockResolvedValue(undefined);
     tasksShowCommand.mockResolvedValue(undefined);
     tasksNotifyCommand.mockResolvedValue(undefined);
     tasksCancelCommand.mockResolvedValue(undefined);
@@ -351,6 +355,30 @@ describe("registerStatusHealthSessionsCommands", () => {
       expect.objectContaining({
         json: true,
         apply: true,
+      }),
+      runtime,
+    );
+  });
+
+  it("runs tasks report subcommand with filters", async () => {
+    await runCli([
+      "tasks",
+      "--json",
+      "--runtime",
+      "cron",
+      "report",
+      "--status",
+      "failed",
+      "--limit",
+      "3",
+    ]);
+
+    expect(tasksReportCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        json: true,
+        runtime: "cron",
+        status: "failed",
+        limit: 3,
       }),
       runtime,
     );

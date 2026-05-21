@@ -20,6 +20,7 @@ import {
   tasksListCommand,
   tasksMaintenanceCommand,
   tasksNotifyCommand,
+  tasksReportCommand,
   tasksShowCommand,
 } from "../../commands/tasks.js";
 import { setVerbose } from "../../globals.js";
@@ -380,6 +381,37 @@ export function registerStatusHealthSessionsCommands(program: Command) {
               | "missing_linked_tasks"
               | "blocked_task_missing"
               | undefined,
+            limit: parsePositiveIntOrUndefined(opts.limit),
+          },
+          defaultRuntime,
+        );
+      });
+    });
+
+  tasksCmd
+    .command("report")
+    .description("Summarize background automation task health")
+    .option("--json", "Output as JSON", false)
+    .option("--runtime <name>", "Filter by kind (subagent, acp, cron, cli)")
+    .option(
+      "--status <name>",
+      "Filter by status (queued, running, succeeded, failed, timed_out, cancelled, lost)",
+    )
+    .option("--limit <n>", "Limit active task and issue rows")
+    .action(async (opts, command) => {
+      const parentOpts = command.parent?.opts() as
+        | {
+            json?: boolean;
+            runtime?: string;
+            status?: string;
+          }
+        | undefined;
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        await tasksReportCommand(
+          {
+            json: Boolean(opts.json || parentOpts?.json),
+            runtime: (opts.runtime as string | undefined) ?? parentOpts?.runtime,
+            status: (opts.status as string | undefined) ?? parentOpts?.status,
             limit: parsePositiveIntOrUndefined(opts.limit),
           },
           defaultRuntime,

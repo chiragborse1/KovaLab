@@ -21,6 +21,7 @@ kova tasks list --status running
 kova tasks show <lookup>
 kova tasks notify <lookup> state_changes
 kova tasks cancel <lookup>
+kova tasks report
 kova tasks audit
 kova tasks maintenance
 kova tasks maintenance --apply
@@ -76,6 +77,14 @@ kova tasks audit [--severity <warn|error>] [--code <name>] [--limit <n>] [--json
 ```
 
 Surfaces stale, lost, delivery-failed, or otherwise inconsistent task and Task Flow records. Lost tasks retained until `cleanupAfter` are warnings; expired or unstamped lost tasks are errors.
+
+### `report`
+
+```bash
+kova tasks report [--runtime <name>] [--status <name>] [--limit <n>] [--json]
+```
+
+Prints a lightweight background automation report from the existing task ledger and Task Flow records. The report includes task status/runtime counts, delivery state, Task Flow counts, audit totals, completed-task duration stats, active task rows, and recent failed/lost/delivery-failed tasks. It does not rerun work.
 
 ### `maintenance`
 

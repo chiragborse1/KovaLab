@@ -130,7 +130,7 @@ Current source-of-truth:
     - `/stop` aborts the current run.
     - `/session idle <duration|off>` and `/session max-age <duration|off>` manage thread-binding expiry.
     - `/export-session [path]` exports the current session to HTML. Alias: `/export`.
-    - `/export-trajectory [path]` exports a JSONL [trajectory bundle](/tools/trajectory) for the current session. Alias: `/trajectory`.
+    - `/export-trajectory [path]` exports a JSONL [trajectory bundle](/tools/trajectory) plus a lightweight `report.json` for the current session. Alias: `/trajectory`.
   </Accordion>
   <Accordion title="Model and run controls">
     - `/think <level>` sets the thinking level. Options come from the active model's provider profile; common levels are `off`, `minimal`, `low`, `medium`, and `high`, with custom levels such as `xhigh`, `adaptive`, `max`, or binary `on` only where supported. Aliases: `/thinking`, `/t`.

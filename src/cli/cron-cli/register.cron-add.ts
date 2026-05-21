@@ -17,6 +17,7 @@ import {
   parseCronToolsAllow,
   printCronJson,
   printCronList,
+  printCronStatus,
   warnIfCronSchedulerDisabled,
 } from "./shared.js";
 
@@ -29,7 +30,11 @@ export function registerCronStatusCommand(cron: Command) {
       .action(async (opts) => {
         try {
           const res = await callGatewayFromCli("cron.status", opts, {});
-          printCronJson(res);
+          if (opts.json) {
+            printCronJson(res);
+            return;
+          }
+          printCronStatus(res);
         } catch (err) {
           handleCronCliError(err);
         }

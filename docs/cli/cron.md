@@ -14,6 +14,17 @@ Manage cron jobs for the Gateway scheduler.
 Run `kova cron --help` for the full command surface. See [Cron jobs](/automation/cron-jobs) for the conceptual guide.
 </Tip>
 
+## Scheduler status
+
+`kova cron status` prints a human-readable scheduler summary by default:
+
+```bash
+kova cron status
+kova cron status --json
+```
+
+The text output shows whether scheduled automation is enabled, how many jobs are stored, the next scheduler wake, and the cron store path. If the scheduler is disabled, the command calls that out as paused automation: jobs remain saved, but they will not run automatically until `cron.enabled` is restored and the Gateway restarts.
+
 ## Sessions
 
 `--session` accepts `main`, `isolated`, `current`, or `session:<id>`.
@@ -194,6 +205,7 @@ Manual run and inspection:
 ```bash
 kova cron list
 kova cron show <job-id>
+kova cron status
 kova cron run <job-id>
 kova cron run <job-id> --due
 kova cron runs --id <job-id> --limit 50
@@ -218,6 +230,15 @@ kova cron edit <job-id> --best-effort-deliver
 kova cron edit <job-id> --no-best-effort-deliver
 kova cron edit <job-id> --no-deliver
 ```
+
+Pause or resume a job:
+
+```bash
+kova cron pause <job-id>
+kova cron resume <job-id>
+```
+
+`pause` is an alias for `disable`; `resume` is an alias for `enable`.
 
 ## Related
 

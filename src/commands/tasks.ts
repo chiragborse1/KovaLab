@@ -16,6 +16,7 @@ import {
   runTaskFlowRegistryMaintenance,
 } from "../tasks/task-flow-registry.maintenance.js";
 import type { TaskFlowRecord } from "../tasks/task-flow-registry.types.js";
+import { listTaskFlowRecords } from "../tasks/task-flow-runtime-internal.js";
 import {
   listTaskAuditFindings,
   summarizeTaskAuditFindings,
@@ -43,6 +44,36 @@ const STATUS_PAD = 10;
 const DELIVERY_PAD = 14;
 const ID_PAD = 10;
 const RUN_PAD = 10;
+
+const TASK_STATUSES = [
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "timed_out",
+  "cancelled",
+  "lost",
+] as const;
+const TASK_RUNTIMES = ["subagent", "acp", "cli", "cron"] as const;
+const TASK_DELIVERY_STATUSES = [
+  "pending",
+  "delivered",
+  "session_queued",
+  "failed",
+  "parent_missing",
+  "not_applicable",
+] as const;
+const TASK_NOTIFY_POLICIES = ["done_only", "state_changes", "silent"] as const;
+const TASK_FLOW_STATUSES = [
+  "queued",
+  "running",
+  "waiting",
+  "blocked",
+  "succeeded",
+  "failed",
+  "cancelled",
+  "lost",
+] as const;
 
 const info = theme.info;
 
@@ -128,6 +159,167 @@ function formatTaskRows(tasks: TaskRecord[], rich: boolean) {
 function formatTaskListSummary(tasks: TaskRecord[]) {
   const summary = summarizeTaskRecords(tasks);
   return `${summary.byStatus.queued} queued · ${summary.byStatus.running} running · ${summary.failures} issues`;
+}
+
+function createCountRecord<T extends string>(keys: readonly T[]): Record<T, number> {
+  return Object.fromEntries(keys.map((key) => [key, 0])) as Record<T, number>;
+}
+
+function formatCountPairs(counts: Record<string, number>, keys: readonly string[]): string {
+  const pairs = keys
+    .map((key) => `${key} ${counts[key] ?? 0}`)
+    .filter((entry) => !entry.endsWith(" 0"));
+  return pairs.length > 0 ? pairs.join(" · ") : "none";
+}
+
+function resolveReportLimit(limit: number | undefined): number {
+  if (typeof limit !== "number" || !Number.isFinite(limit) || limit <= 0) {
+    return 10;
+  }
+  return Math.min(50, Math.floor(limit));
+}
+
+function formatDurationCompact(ms: number | null | undefined): string {
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) {
+    return "n/a";
+  }
+  if (ms < 1000) {
+    return `${Math.round(ms)}ms`;
+  }
+  if (ms < 60_000) {
+    return `${Math.round(ms / 100) / 10}s`;
+  }
+  if (ms < 3_600_000) {
+    return `${Math.round(ms / 60_000)}m`;
+  }
+  if (ms < 86_400_000) {
+    return `${Math.round(ms / 3_600_000)}h`;
+  }
+  return `${Math.round(ms / 86_400_000)}d`;
+}
+
+function percentile(sortedValues: number[], percentileValue: number): number | null {
+  if (sortedValues.length === 0) {
+    return null;
+  }
+  const clamped = Math.max(0, Math.min(100, percentileValue));
+  const index = Math.max(
+    0,
+    Math.min(sortedValues.length - 1, Math.ceil((clamped / 100) * sortedValues.length) - 1),
+  );
+  return sortedValues[index] ?? null;
+}
+
+function summarizeCompletedTaskDurations(tasks: TaskRecord[]) {
+  const durations = tasks
+    .flatMap((task) => {
+      if (typeof task.endedAt !== "number") {
+        return [];
+      }
+      const start = typeof task.startedAt === "number" ? task.startedAt : task.createdAt;
+      const duration = task.endedAt - start;
+      return Number.isFinite(duration) && duration >= 0 ? [duration] : [];
+    })
+    .toSorted((left, right) => left - right);
+  const totalMs = durations.reduce((sum, duration) => sum + duration, 0);
+  return {
+    count: durations.length,
+    avgMs: durations.length > 0 ? Math.round(totalMs / durations.length) : null,
+    p50Ms: percentile(durations, 50),
+    p95Ms: percentile(durations, 95),
+    maxMs: durations.at(-1) ?? null,
+  };
+}
+
+function summarizeTaskFlows(flows: TaskFlowRecord[]) {
+  const byStatus = createCountRecord(TASK_FLOW_STATUSES);
+  for (const flow of flows) {
+    byStatus[flow.status] += 1;
+  }
+  const active = flows.filter(
+    (flow) =>
+      flow.status === "queued" ||
+      flow.status === "running" ||
+      flow.status === "waiting" ||
+      flow.status === "blocked",
+  ).length;
+  return {
+    total: flows.length,
+    active,
+    terminal: flows.length - active,
+    byStatus,
+  };
+}
+
+function compareRecentTaskActivity(left: TaskRecord, right: TaskRecord): number {
+  const leftAt = left.endedAt ?? left.lastEventAt ?? left.startedAt ?? left.createdAt;
+  const rightAt = right.endedAt ?? right.lastEventAt ?? right.startedAt ?? right.createdAt;
+  return rightAt - leftAt;
+}
+
+function isTaskIssue(task: TaskRecord): boolean {
+  return (
+    task.status === "failed" ||
+    task.status === "timed_out" ||
+    task.status === "lost" ||
+    task.deliveryStatus === "failed" ||
+    task.deliveryStatus === "parent_missing"
+  );
+}
+
+export function buildTaskAutomationReport(opts: {
+  runtime?: string;
+  status?: string;
+  limit?: number;
+}) {
+  const runtimeFilter = opts.runtime?.trim();
+  const statusFilter = opts.status?.trim();
+  const limit = resolveReportLimit(opts.limit);
+  const tasks = reconcileInspectableTasks().filter((task) => {
+    if (runtimeFilter && task.runtime !== runtimeFilter) {
+      return false;
+    }
+    if (statusFilter && task.status !== statusFilter) {
+      return false;
+    }
+    return true;
+  });
+  const flows = listTaskFlowRecords();
+  const summary = summarizeTaskRecords(tasks);
+  const byDeliveryStatus = createCountRecord(TASK_DELIVERY_STATUSES);
+  const byNotifyPolicy = createCountRecord(TASK_NOTIFY_POLICIES);
+  for (const task of tasks) {
+    byDeliveryStatus[task.deliveryStatus] += 1;
+    byNotifyPolicy[task.notifyPolicy] += 1;
+  }
+  const { summary: auditSummary } = toSystemAuditFindings({});
+  return {
+    generatedAt: new Date().toISOString(),
+    filters: {
+      runtime: runtimeFilter ?? null,
+      status: statusFilter ?? null,
+      limit,
+    },
+    tasks: {
+      ...summary,
+      byDeliveryStatus,
+      byNotifyPolicy,
+      completedDurationMs: summarizeCompletedTaskDurations(tasks),
+    },
+    taskFlows: summarizeTaskFlows(flows),
+    audit: {
+      total: auditSummary.total,
+      errors: auditSummary.errors,
+      warnings: auditSummary.warnings,
+      tasks: auditSummary.tasks,
+      taskFlows: auditSummary.taskFlows,
+    },
+    activeTasks: tasks
+      .filter((task) => task.status === "queued" || task.status === "running")
+      .toSorted(compareRecentTaskActivity)
+      .slice(0, limit),
+    recentIssues: tasks.filter(isTaskIssue).toSorted(compareRecentTaskActivity).slice(0, limit),
+  };
 }
 
 function formatAgeMs(ageMs: number | undefined): string {
@@ -495,6 +687,73 @@ export async function tasksAuditCommand(
   for (const line of formatAuditRows(displayed, rich)) {
     runtime.log(line);
   }
+}
+
+export async function tasksReportCommand(
+  opts: { json?: boolean; runtime?: string; status?: string; limit?: number },
+  runtime: RuntimeEnv,
+) {
+  configureTaskMaintenanceFromConfig();
+  const report = buildTaskAutomationReport(opts);
+
+  if (opts.json) {
+    runtime.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  runtime.log(info("Background automation report"));
+  runtime.log(
+    info(
+      `Tasks: ${report.tasks.total} total · ${report.tasks.active} active · ${report.tasks.failures} issues`,
+    ),
+  );
+  runtime.log(info(`Task status: ${formatCountPairs(report.tasks.byStatus, TASK_STATUSES)}`));
+  runtime.log(info(`Runtimes: ${formatCountPairs(report.tasks.byRuntime, TASK_RUNTIMES)}`));
+  runtime.log(
+    info(`Delivery: ${formatCountPairs(report.tasks.byDeliveryStatus, TASK_DELIVERY_STATUSES)}`),
+  );
+  runtime.log(
+    info(
+      `TaskFlow: ${report.taskFlows.total} total · ${report.taskFlows.active} active · ${formatCountPairs(report.taskFlows.byStatus, TASK_FLOW_STATUSES)}`,
+    ),
+  );
+  runtime.log(
+    info(
+      `Audit: ${report.audit.total} findings · ${report.audit.errors} errors · ${report.audit.warnings} warnings`,
+    ),
+  );
+  const durations = report.tasks.completedDurationMs;
+  runtime.log(
+    info(
+      `Completed task duration: ${durations.count} samples · avg ${formatDurationCompact(durations.avgMs)} · p95 ${formatDurationCompact(durations.p95Ms)} · max ${formatDurationCompact(durations.maxMs)}`,
+    ),
+  );
+
+  if (report.filters.runtime) {
+    runtime.log(info(`Runtime filter: ${report.filters.runtime}`));
+  }
+  if (report.filters.status) {
+    runtime.log(info(`Status filter: ${report.filters.status}`));
+  }
+
+  const rich = isRich();
+  if (report.activeTasks.length > 0) {
+    runtime.log("");
+    runtime.log(info(`Active tasks (${report.activeTasks.length}):`));
+    for (const line of formatTaskRows(report.activeTasks, rich)) {
+      runtime.log(line);
+    }
+  }
+  if (report.recentIssues.length > 0) {
+    runtime.log("");
+    runtime.log(info(`Recent task issues (${report.recentIssues.length}):`));
+    for (const line of formatTaskRows(report.recentIssues, rich)) {
+      runtime.log(line);
+    }
+    return;
+  }
+  runtime.log("");
+  runtime.log("No recent task issues.");
 }
 
 export async function tasksMaintenanceCommand(

@@ -143,7 +143,7 @@ async function runCronAddAndGetParams(addArgs: string[]): Promise<CronAddParams>
 }
 
 async function runCronSimpleAndGetUpdatePatch(
-  command: "enable" | "disable",
+  command: "enable" | "disable" | "pause" | "resume",
 ): Promise<{ enabled?: boolean }> {
   await runCronCommand(["cron", command, "job-1"]);
   const updateCall = callGatewayFromCli.mock.calls.find((call) => call[0] === "cron.update");
@@ -240,6 +240,37 @@ async function runCronRunAndCaptureExit(params: {
 }
 
 describe("cron cli", () => {
+  it("prints cron status as a readable automation summary by default", async () => {
+    resetGatewayMock();
+    callGatewayFromCli.mockImplementation(async (method: string) => {
+      if (method === "cron.status") {
+        return {
+          enabled: false,
+          jobs: 2,
+          nextWakeAtMs: Date.now() + 60_000,
+          storePath: "/tmp/kova/cron/jobs.json",
+        };
+      }
+      return { ok: true };
+    });
+
+    const program = buildProgram();
+    await program.parseAsync(["cron", "status"], { from: "user" });
+
+    const output = defaultRuntime.log.mock.calls.map((call) => String(call[0])).join("\n");
+    expect(defaultRuntime.writeJson).not.toHaveBeenCalled();
+    expect(output).toContain("Cron scheduler:");
+    expect(output).toContain("enabled: no");
+    expect(output).toContain("jobs: 2");
+    expect(output).toContain("automation: paused");
+  });
+
+  it("keeps cron status JSON output machine-readable when requested", async () => {
+    await runCronCommand(["cron", "status", "--json"]);
+
+    expect(defaultRuntime.writeJson).toHaveBeenCalledWith({ enabled: true });
+  });
+
   it.each([
     {
       name: "exits 0 for cron run when job executes successfully",
@@ -399,6 +430,8 @@ describe("cron cli", () => {
   it.each([
     { command: "enable" as const, expectedEnabled: true },
     { command: "disable" as const, expectedEnabled: false },
+    { command: "pause" as const, expectedEnabled: false },
+    { command: "resume" as const, expectedEnabled: true },
   ])("cron $command sets enabled=$expectedEnabled patch", async ({ command, expectedEnabled }) => {
     const patch = await runCronSimpleAndGetUpdatePatch(command);
     expect(patch.enabled).toBe(expectedEnabled);

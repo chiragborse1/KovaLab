@@ -29,6 +29,27 @@ export function printCronJson(value: unknown) {
   defaultRuntime.writeJson(value);
 }
 
+type CronStatusLike = {
+  enabled?: boolean;
+  storePath?: string;
+  jobs?: number;
+  nextWakeAtMs?: number | null;
+};
+
+export function printCronStatus(value: unknown, runtime: RuntimeEnv = defaultRuntime) {
+  const status = value && typeof value === "object" ? (value as CronStatusLike) : {};
+  const enabled = status.enabled === true;
+  const jobs = typeof status.jobs === "number" && Number.isFinite(status.jobs) ? status.jobs : 0;
+  runtime.log("Cron scheduler:");
+  runtime.log(`enabled: ${enabled ? "yes" : "no"}`);
+  runtime.log(`jobs: ${jobs}`);
+  runtime.log(`nextWake: ${enabled ? formatRelative(status.nextWakeAtMs, Date.now()) : "-"}`);
+  runtime.log(`store: ${status.storePath || "-"}`);
+  if (!enabled) {
+    runtime.log("automation: paused; scheduled jobs are saved but will not run automatically");
+  }
+}
+
 export function handleCronCliError(err: unknown) {
   defaultRuntime.error(danger(String(err)));
   defaultRuntime.exit(1);

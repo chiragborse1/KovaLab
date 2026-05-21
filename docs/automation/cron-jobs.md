@@ -26,6 +26,7 @@ Cron is the Gateway's built-in scheduler. It persists jobs, wakes the agent at t
   </Step>
   <Step title="Check your jobs">
     ```bash
+    kova cron status
     kova cron list
     kova cron show <job-id>
     ```
@@ -50,6 +51,7 @@ Cron is the Gateway's built-in scheduler. It persists jobs, wakes the agent at t
 - Isolated cron runs also guard against stale acknowledgement replies. If the first result is just an interim status update (`on it`, `pulling everything together`, and similar hints) and no descendant subagent run is still responsible for the final answer, Kova re-prompts once for the actual result before delivery.
 - Isolated cron runs prefer structured execution-denial metadata from the embedded run, then fall back to known final summary/output markers such as `SYSTEM_RUN_DENIED` and `INVALID_REQUEST`, so a blocked command is not reported as a green run.
 - Isolated cron runs also treat run-level agent failures as job errors even when no reply payload is produced, so model/provider failures increment error counters and trigger failure notifications instead of clearing the job as successful.
+- `kova cron status` is the fastest read-only scheduler check. It reports whether scheduled automation is enabled, how many jobs are stored, the next wake, and whether automation is effectively paused because `cron.enabled` is false.
 
 <a id="maintenance"></a>
 
@@ -344,6 +346,7 @@ When `hooks.enabled=true` and `hooks.gmail.account` is set, the Gateway starts `
 
 ```bash
 # List all jobs
+kova cron status
 kova cron list
 
 # Show one job, including resolved delivery route
@@ -364,10 +367,16 @@ kova cron runs --id <jobId> --limit 50
 # Delete a job
 kova cron remove <jobId>
 
+# Pause or resume a job
+kova cron pause <jobId>
+kova cron resume <jobId>
+
 # Agent selection (multi-agent setups)
 kova cron add --name "Ops sweep" --cron "0 6 * * *" --session isolated --message "Check ops queue" --agent ops
 kova cron edit <jobId> --clear-agent
 ```
+
+`pause` is an operator-friendly alias for `disable`; `resume` is an alias for `enable`.
 
 <Note>
 Model override note:

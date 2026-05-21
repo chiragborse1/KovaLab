@@ -35,6 +35,7 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
 - Isolated cron delivery suppresses stale interim parent replies while descendant subagent work is still draining, and it prefers final descendant output when that arrives before delivery.
 - Completion notifications are delivered directly to a channel or queued for the next heartbeat.
 - `kova tasks list` shows all tasks; `kova tasks audit` surfaces issues.
+- `kova tasks report` summarizes active automation, task failures, delivery state, Task Flow counts, and recent issue rows without rerunning work.
 - Terminal records are kept for 7 days, then automatically pruned.
 
 ## Quick start
@@ -71,6 +72,9 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
     ```bash
     # Run a health audit
     kova tasks audit
+
+    # Summarize active and recently failed background automation
+    kova tasks report
 
     # Preview or apply maintenance
     kova tasks maintenance
@@ -217,6 +221,14 @@ kova tasks notify <lookup> state_changes
     ```bash
     kova tasks notify <lookup> <done_only|state_changes|silent>
     ```
+  </Accordion>
+  <Accordion title="tasks report">
+    ```bash
+    kova tasks report [--runtime <acp|subagent|cron|cli>] [--status <status>] [--limit <n>] [--json]
+    ```
+
+    Builds a read-only report from existing task and Task Flow records: status and runtime counts, delivery state, audit totals, completed-task duration stats, active task rows, and recent failed/lost/delivery-failed tasks. Use this when you need a quick automation health snapshot instead of a full audit table.
+
   </Accordion>
   <Accordion title="tasks audit">
     ```bash

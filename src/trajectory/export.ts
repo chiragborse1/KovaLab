@@ -799,6 +799,216 @@ function buildPromptsCapture(params: {
   };
 }
 
+function parseEventTimeMs(event: TrajectoryEvent): number | null {
+  const parsed = Date.parse(event.ts);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatEventTime(ms: number | null): string | undefined {
+  if (ms === null) {
+    return undefined;
+  }
+  return new Date(ms).toISOString();
+}
+
+function summarizeEventSpan(events: TrajectoryEvent[]) {
+  const times = events
+    .map(parseEventTimeMs)
+    .filter((value): value is number => typeof value === "number")
+    .toSorted((left, right) => left - right);
+  const first = times[0] ?? null;
+  const last = times.at(-1) ?? null;
+  return {
+    firstEventAt: formatEventTime(first),
+    lastEventAt: formatEventTime(last),
+    durationMs: first !== null && last !== null ? Math.max(0, last - first) : null,
+  };
+}
+
+function countEventsByType(events: TrajectoryEvent[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const event of events) {
+    counts[event.type] = (counts[event.type] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function findEventTime(events: TrajectoryEvent[], type: string, order: "first" | "last") {
+  const matches = events.filter((event) => event.type === type);
+  const event = order === "first" ? matches[0] : matches.at(-1);
+  return event ? parseEventTimeMs(event) : null;
+}
+
+function normalizeUsageReport(value: unknown): JsonRecord | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const report: JsonRecord = {};
+  for (const key of [
+    "input",
+    "output",
+    "cacheRead",
+    "cacheWrite",
+    "totalTokens",
+    "input_tokens",
+    "output_tokens",
+    "cache_read_tokens",
+    "cache_write_tokens",
+    "total_tokens",
+  ]) {
+    const entry = value[key];
+    if (typeof entry === "number" && Number.isFinite(entry)) {
+      report[key] = entry;
+    }
+  }
+  const cost = value.cost;
+  if (isRecord(cost)) {
+    const costReport: JsonRecord = {};
+    for (const key of ["input", "output", "cacheRead", "cacheWrite", "total"]) {
+      const entry = cost[key];
+      if (typeof entry === "number" && Number.isFinite(entry)) {
+        costReport[key] = entry;
+      }
+    }
+    if (Object.keys(costReport).length > 0) {
+      report.cost = costReport;
+    }
+  }
+  return Object.keys(report).length > 0 ? report : undefined;
+}
+
+function resolveReportModel(params: {
+  metadataCapture?: JsonRecord;
+  runtimeEvents: TrajectoryEvent[];
+}): JsonRecord | undefined {
+  const metadataModel = params.metadataCapture?.model;
+  if (isRecord(metadataModel)) {
+    return metadataModel;
+  }
+  const latest = params.runtimeEvents
+    .slice()
+    .toReversed()
+    .find((event) => event.provider || event.modelId || event.modelApi);
+  if (!latest?.provider && !latest?.modelId && !latest?.modelApi) {
+    return undefined;
+  }
+  return {
+    provider: latest.provider,
+    name: latest.modelId,
+    api: latest.modelApi,
+  };
+}
+
+function buildToolReport(events: TrajectoryEvent[]) {
+  const calls = events.filter((event) => event.type === "tool.call");
+  const results = events.filter((event) => event.type === "tool.result");
+  const callsByName: Record<string, number> = {};
+  for (const call of calls) {
+    const name =
+      typeof call.data?.name === "string" && call.data.name.trim()
+        ? call.data.name.trim()
+        : "unknown";
+    callsByName[name] = (callsByName[name] ?? 0) + 1;
+  }
+  return {
+    totalCalls: calls.length,
+    totalResults: results.length,
+    uniqueToolCount: Object.keys(callsByName).length,
+    callsByName,
+  };
+}
+
+function buildTrajectoryReportCapture(params: {
+  manifest: TrajectoryBundleManifest;
+  runtimeEvents: TrajectoryEvent[];
+  events: TrajectoryEvent[];
+  metadataCapture?: JsonRecord;
+  artifactsCapture?: JsonRecord;
+}): JsonRecord {
+  const span = summarizeEventSpan(params.events);
+  const promptSubmittedAt = findEventTime(params.runtimeEvents, "prompt.submitted", "first");
+  const modelCompletedAt = findEventTime(params.runtimeEvents, "model.completed", "last");
+  const runtimeErrorEvents = params.runtimeEvents.filter((event) =>
+    event.type.toLowerCase().includes("error"),
+  );
+  const issues: string[] = [];
+  const finalStatus = params.artifactsCapture?.finalStatus;
+  const normalizedFinalStatus = typeof finalStatus === "string" ? finalStatus.toLowerCase() : "";
+  if (
+    normalizedFinalStatus &&
+    normalizedFinalStatus !== "success" &&
+    normalizedFinalStatus !== "succeeded" &&
+    normalizedFinalStatus !== "ok"
+  ) {
+    issues.push(`finalStatus:${finalStatus}`);
+  }
+  for (const flag of ["aborted", "externalAbort", "timedOut", "idleTimedOut"]) {
+    if (params.artifactsCapture?.[flag] === true) {
+      issues.push(flag);
+    }
+  }
+  if (typeof params.artifactsCapture?.promptError === "string") {
+    issues.push("promptError");
+  }
+  if (runtimeErrorEvents.length > 0) {
+    issues.push(`runtimeErrorEvents:${runtimeErrorEvents.length}`);
+  }
+
+  const eventCounts = countEventsByType(params.events);
+  return {
+    traceSchema: "kova-trajectory",
+    schemaVersion: 1,
+    reportKind: "trajectory-summary",
+    generatedAt: new Date().toISOString(),
+    traceId: params.manifest.traceId,
+    sessionId: params.manifest.sessionId,
+    sessionKey: params.manifest.sessionKey,
+    summary: {
+      eventCount: params.manifest.eventCount,
+      runtimeEventCount: params.manifest.runtimeEventCount,
+      transcriptEventCount: params.manifest.transcriptEventCount,
+      ...span,
+    },
+    outcome: {
+      finalStatus,
+      aborted: params.artifactsCapture?.aborted,
+      externalAbort: params.artifactsCapture?.externalAbort,
+      timedOut: params.artifactsCapture?.timedOut,
+      idleTimedOut: params.artifactsCapture?.idleTimedOut,
+      promptError: params.artifactsCapture?.promptError,
+      promptErrorSource: params.artifactsCapture?.promptErrorSource,
+    },
+    model: resolveReportModel({
+      metadataCapture: params.metadataCapture,
+      runtimeEvents: params.runtimeEvents,
+    }),
+    usage: normalizeUsageReport(params.artifactsCapture?.usage),
+    promptCache: params.artifactsCapture?.promptCache,
+    performance: {
+      promptToModelCompletedMs:
+        promptSubmittedAt !== null && modelCompletedAt !== null
+          ? Math.max(0, modelCompletedAt - promptSubmittedAt)
+          : null,
+      runDurationMs: span.durationMs,
+    },
+    transcript: {
+      userMessages: eventCounts["user.message"] ?? 0,
+      assistantMessages: eventCounts["assistant.message"] ?? 0,
+      toolCalls: eventCounts["tool.call"] ?? 0,
+      toolResults: eventCounts["tool.result"] ?? 0,
+      compactions: eventCounts["session.compaction"] ?? 0,
+    },
+    tools: buildToolReport(params.events),
+    diagnostics: {
+      issueCount: issues.length,
+      issues,
+      hasRuntimeEvents: params.manifest.runtimeEventCount > 0,
+      hasSubmittedPrompt: (eventCounts["prompt.submitted"] ?? 0) > 0,
+      hasModelCompletion: (eventCounts["model.completed"] ?? 0) > 0,
+    },
+  };
+}
+
 export function resolveDefaultTrajectoryExportDir(params: {
   workspaceDir: string;
   sessionId: string;
@@ -899,6 +1109,15 @@ export function exportTrajectoryBundle(params: BuildTrajectoryBundleParams): {
     runtimeEvents,
     runtimeContext: bundleRuntimeContext,
   });
+  const reportCapture = buildTrajectoryReportCapture({
+    manifest,
+    runtimeEvents,
+    events,
+    metadataCapture,
+    artifactsCapture,
+  });
+  files.push(jsonSupportBundleFile("report.json", redactLocalPathValues(reportCapture, redaction)));
+  supplementalFiles.push("report.json");
   if (metadataCapture) {
     files.push(
       jsonSupportBundleFile("metadata.json", redactLocalPathValues(metadataCapture, redaction)),

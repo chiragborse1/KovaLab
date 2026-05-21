@@ -49,6 +49,10 @@ You can choose a relative output directory name:
 The custom path is resolved inside `.kova/trajectory-exports/`. Absolute
 paths and `~` paths are rejected.
 
+Every export also writes `report.json`, a lightweight replay/eval/performance
+summary built from the captured trajectory and transcript events. It does not
+rerun the model or tools.
+
 ## Access
 
 Trajectory export is an owner command. The sender must pass the normal command
@@ -91,19 +95,27 @@ Events are written as JSON Lines with this schema marker:
 
 An exported bundle can contain:
 
-| File                  | Contents                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `manifest.json`       | Bundle schema, source files, event counts, and generated file list                             |
-| `events.jsonl`        | Ordered runtime and transcript timeline                                                        |
-| `session-branch.json` | Redacted active transcript branch and session header                                           |
-| `metadata.json`       | Kova version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata         |
-| `artifacts.json`      | Final status, errors, usage, prompt cache, compaction count, assistant text, and tool metadata |
-| `prompts.json`        | Submitted prompts and selected prompt-building details                                         |
-| `system-prompt.txt`   | Latest compiled system prompt, when captured                                                   |
-| `tools.json`          | Tool definitions sent to the model, when captured                                              |
+| File                  | Contents                                                                                              |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| `manifest.json`       | Bundle schema, source files, event counts, and generated file list                                    |
+| `report.json`         | Lightweight run report: event counts, timing, outcome, model/usage, tool-call counts, and diagnostics |
+| `events.jsonl`        | Ordered runtime and transcript timeline                                                               |
+| `session-branch.json` | Redacted active transcript branch and session header                                                  |
+| `metadata.json`       | Kova version, OS/runtime, model, config snapshot, plugins, skills, and prompt metadata                |
+| `artifacts.json`      | Final status, errors, usage, prompt cache, compaction count, assistant text, and tool metadata        |
+| `prompts.json`        | Submitted prompts and selected prompt-building details                                                |
+| `system-prompt.txt`   | Latest compiled system prompt, when captured                                                          |
+| `tools.json`          | Tool definitions sent to the model, when captured                                                     |
 
 `manifest.json` lists the files present in that bundle. Some files are omitted
 when the session did not capture the corresponding runtime data.
+
+`report.json` is always generated when the bundle is written. It is intended for
+quick triage and regression comparison: use it to check whether runtime capture
+was present, how long the recorded run took, what model/usage metadata was
+recorded, how many tool calls/results appeared, and whether timeout, abort, or
+prompt-error diagnostics were captured. For full replay context, inspect
+`events.jsonl`, `artifacts.json`, and `prompts.json`.
 
 ## Capture location
 

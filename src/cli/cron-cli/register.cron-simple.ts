@@ -53,7 +53,7 @@ async function loadCronJobForShow(
 
 function registerCronToggleCommand(params: {
   cron: Command;
-  name: "enable" | "disable";
+  name: "enable" | "disable" | "pause" | "resume";
   description: string;
   enabled: boolean;
 }) {
@@ -107,6 +107,18 @@ export function registerCronSimpleCommands(cron: Command) {
     name: "disable",
     description: "Disable a cron job",
     enabled: false,
+  });
+  registerCronToggleCommand({
+    cron,
+    name: "pause",
+    description: "Pause a cron job (alias for disable)",
+    enabled: false,
+  });
+  registerCronToggleCommand({
+    cron,
+    name: "resume",
+    description: "Resume a cron job (alias for enable)",
+    enabled: true,
   });
 
   addGatewayClientOptions(

@@ -692,13 +692,28 @@ describe("exportTrajectoryBundle", () => {
         schemaVersion: 1,
         traceId: "session-1",
         source: "runtime",
-        type: "trace.artifacts",
+        type: "model.completed",
         ts: "2026-04-22T08:00:03.000Z",
         seq: 5,
         sourceSeq: 5,
         sessionId: "session-1",
         data: {
+          usage: emptyUsage,
+        },
+      },
+      {
+        traceSchema: "kova-trajectory",
+        schemaVersion: 1,
+        traceId: "session-1",
+        source: "runtime",
+        type: "trace.artifacts",
+        ts: "2026-04-22T08:00:04.000Z",
+        seq: 6,
+        sourceSeq: 6,
+        sessionId: "session-1",
+        data: {
           finalStatus: "success",
+          usage: emptyUsage,
           assistantTexts: ["done"],
           finalPromptText: `final prompt from ${path.join(tmpDir, "prompt.txt")}`,
           itemLifecycle: {
@@ -737,7 +752,13 @@ describe("exportTrajectoryBundle", () => {
     expect(fs.existsSync(path.join(outputDir, "metadata.json"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "artifacts.json"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "prompts.json"))).toBe(true);
-    expect(bundle.supplementalFiles).toEqual(["metadata.json", "artifacts.json", "prompts.json"]);
+    expect(fs.existsSync(path.join(outputDir, "report.json"))).toBe(true);
+    expect(bundle.supplementalFiles).toEqual([
+      "report.json",
+      "metadata.json",
+      "artifacts.json",
+      "prompts.json",
+    ]);
 
     const exportedEvents = fs
       .readFileSync(path.join(outputDir, "events.jsonl"), "utf8")
@@ -749,6 +770,33 @@ describe("exportTrajectoryBundle", () => {
     expect(exportedEvents.some((event) => event.type === "context.compiled")).toBe(true);
     expect(JSON.stringify(exportedEvents)).toContain("$WORKSPACE_DIR/inside.txt");
     expect(JSON.stringify(exportedEvents)).not.toContain("$WORKSPACE_DIR2");
+
+    const report = JSON.parse(fs.readFileSync(path.join(outputDir, "report.json"), "utf8")) as {
+      reportKind?: string;
+      summary?: { runtimeEventCount?: number; transcriptEventCount?: number; durationMs?: number };
+      performance?: { promptToModelCompletedMs?: number | null };
+      transcript?: { toolCalls?: number; toolResults?: number };
+      tools?: { callsByName?: Record<string, number> };
+      diagnostics?: { issueCount?: number; hasRuntimeEvents?: boolean };
+      usage?: { totalTokens?: number };
+    };
+    expect(report.reportKind).toBe("trajectory-summary");
+    expect(report.summary).toMatchObject({
+      runtimeEventCount: runtimeEvents.length,
+    });
+    expect(report.summary?.transcriptEventCount).toBeGreaterThan(0);
+    expect(report.summary?.durationMs).toBeGreaterThan(0);
+    expect(report.performance?.promptToModelCompletedMs).toBe(1000);
+    expect(report.transcript).toMatchObject({
+      toolCalls: 1,
+      toolResults: 1,
+    });
+    expect(report.tools?.callsByName?.read).toBe(1);
+    expect(report.diagnostics).toMatchObject({
+      issueCount: 0,
+      hasRuntimeEvents: true,
+    });
+    expect(report.usage?.totalTokens).toBe(0);
 
     const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "manifest.json"), "utf8")) as {
       contents?: Array<{ path: string; mediaType: string; bytes: number }>;
@@ -763,6 +811,7 @@ describe("exportTrajectoryBundle", () => {
       "events.jsonl",
       "metadata.json",
       "prompts.json",
+      "report.json",
       "session-branch.json",
       "system-prompt.txt",
       "tools.json",

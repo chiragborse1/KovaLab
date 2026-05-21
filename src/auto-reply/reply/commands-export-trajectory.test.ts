@@ -17,7 +17,7 @@ const hoisted = await vi.hoisted(async () => {
       },
       events: [{ type: "context.compiled" }],
       runtimeFile: "/tmp/target-store/session.trajectory.jsonl",
-      supplementalFiles: ["metadata.json", "artifacts.json", "prompts.json"],
+      supplementalFiles: ["report.json", "metadata.json", "artifacts.json", "prompts.json"],
     })),
     resolveDefaultTrajectoryExportDirMock: vi.fn(
       () => "/tmp/workspace/.kova/trajectory-exports/kova-trajectory-session",
@@ -119,6 +119,7 @@ describe("buildExportTrajectoryReply", () => {
     const reply = await buildExportTrajectoryReply(makeParams());
 
     expect(reply.text).toContain("✅ Trajectory exported!");
+    expect(reply.text).toContain("report.json");
     expect(reply.text).toContain("session-branch.json");
     expect(reply.text).not.toContain("session.jsonl");
     expect(reply.text).not.toContain("runtime.jsonl");
