@@ -66,6 +66,7 @@ export function createSessionActions(context: SessionActionContext) {
   } = context;
   let refreshSessionInfoPromise: Promise<void> = Promise.resolve();
   let lastSessionDefaults: SessionInfoDefaults | null = null;
+  let historyLoadRequestId = 0;
 
   const applyAgentsResult = (result: TuiAgentsList) => {
     state.agentDefaultId = normalizeAgentId(result.defaultId);
@@ -287,11 +288,22 @@ export function createSessionActions(context: SessionActionContext) {
   };
 
   const loadHistory = async () => {
+    const requestId = ++historyLoadRequestId;
+    const requestSessionKey = state.currentSessionKey;
     try {
       const history = await client.loadHistory({
-        sessionKey: state.currentSessionKey,
+        sessionKey: requestSessionKey,
         limit: opts.historyLimit ?? DEFAULT_TUI_HISTORY_LIMIT,
       });
+      if (requestId !== historyLoadRequestId || state.currentSessionKey !== requestSessionKey) {
+        return;
+      }
+      if (state.activeChatRunId || state.pendingOptimisticUserMessage) {
+        state.historyLoaded = false;
+        await refreshSessionInfo();
+        tui.requestRender();
+        return;
+      }
       const record = history as {
         messages?: unknown[];
         sessionId?: string;
@@ -360,7 +372,9 @@ export function createSessionActions(context: SessionActionContext) {
       }
       state.historyLoaded = true;
     } catch (err) {
-      chatLog.addSystem(`history failed: ${String(err)}`);
+      if (requestId === historyLoadRequestId && state.currentSessionKey === requestSessionKey) {
+        chatLog.addSystem(`history failed: ${String(err)}`);
+      }
     }
     await refreshSessionInfo();
     tui.requestRender();

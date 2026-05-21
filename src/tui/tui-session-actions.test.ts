@@ -244,6 +244,53 @@ describe("tui session actions", () => {
     expect(btw.clear).toHaveBeenCalled();
   });
 
+  it("does not replace the chat log when history resolves during a pending local send", async () => {
+    let resolveHistory: ((value: unknown) => void) | undefined;
+    const loadHistory = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveHistory = resolve;
+        }),
+    );
+    const listSessions = vi.fn().mockResolvedValue({
+      ts: Date.now(),
+      path: "/tmp/sessions.json",
+      count: 0,
+      defaults: {},
+      sessions: [],
+    });
+    const chatLog = {
+      addSystem: vi.fn(),
+      clearAll: vi.fn(),
+    } as unknown as import("./components/chat-log.js").ChatLog;
+    const requestRender = vi.fn();
+    const state = createBaseState();
+
+    const { loadHistory: runLoadHistory } = createTestSessionActions({
+      client: {
+        listSessions,
+        loadHistory,
+      } as unknown as TuiBackend,
+      chatLog,
+      state,
+      tui: { requestRender } as unknown as import("@mariozechner/pi-tui").TUI,
+    });
+
+    const pendingLoad = runLoadHistory();
+    await Promise.resolve();
+    state.pendingOptimisticUserMessage = true;
+    resolveHistory?.({
+      sessionId: "session-1",
+      messages: [{ role: "user", content: [{ type: "text", text: "old prompt" }] }],
+    });
+    await pendingLoad;
+
+    expect(chatLog.clearAll).not.toHaveBeenCalled();
+    expect(state.historyLoaded).toBe(false);
+    expect(listSessions).toHaveBeenCalledTimes(1);
+    expect(requestRender).toHaveBeenCalled();
+  });
+
   it("applies default model info when the current session has no persisted entry yet", async () => {
     const listSessions = vi.fn().mockResolvedValue({
       ts: Date.now(),
