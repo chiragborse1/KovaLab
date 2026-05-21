@@ -200,11 +200,11 @@ describe("tui-event-handlers: handleAgentEvent", () => {
 
     handleAgentEvent(evt);
 
-    expect(setActivityStatus).toHaveBeenCalledWith("running");
+    expect(setActivityStatus).toHaveBeenCalledWith("waiting");
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps active runs running when a recoverable lifecycle error arrives", () => {
+  it("keeps active runs waiting when a recoverable lifecycle error arrives", () => {
     const { tui, setActivityStatus, handleAgentEvent } = createHandlersHarness({
       state: { activeChatRunId: "run-retry" },
     });
@@ -215,7 +215,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
       data: { phase: "error", error: "429 rate limit" },
     });
 
-    expect(setActivityStatus).toHaveBeenCalledWith("running");
+    expect(setActivityStatus).toHaveBeenCalledWith("waiting");
     expect(setActivityStatus).not.toHaveBeenCalledWith("error");
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
   });
@@ -863,7 +863,7 @@ describe("tui-event-handlers: streaming watchdog", () => {
       message: { role: "assistant", content: [{ type: "text", text: "" }] },
     } satisfies ChatEvent);
 
-    expect(setActivityStatus).toHaveBeenLastCalledWith("running");
+    expect(setActivityStatus).toHaveBeenLastCalledWith("waiting");
 
     vi.advanceTimersByTime(10_000);
 

@@ -957,7 +957,6 @@ export async function runAgentTurnWithFallback(params: {
       const onToolResult = params.opts?.onToolResult;
       const outcomePlan = buildAgentRuntimeOutcomePlan();
       let queuedUserMessagePersistedAcrossFallback = false;
-      let assistantErrorPersistedAcrossFallback = false;
       const fallbackResult = await runWithModelFallback<EmbeddedAgentRunResult>({
         ...resolveModelFallbackOptions(params.followupRun.run),
         runId,
@@ -980,8 +979,6 @@ export async function runAgentTurnWithFallback(params: {
           const suppressQueuedUserPersistenceForCandidate =
             (params.followupRun.run.suppressNextUserMessagePersistence ?? false) ||
             queuedUserMessagePersistedAcrossFallback;
-          const suppressAssistantErrorPersistenceForCandidate =
-            assistantErrorPersistedAcrossFallback;
           // Notify that model selection is complete (including after fallback).
           // This allows responsePrefix template interpolation with the actual model.
           params.opts?.onModelSelected?.({
@@ -1397,10 +1394,7 @@ export async function runAgentTurnWithFallback(params: {
                 },
                 suppressTranscriptOnlyAssistantPersistence:
                   params.followupRun.run.suppressTranscriptOnlyAssistantPersistence,
-                suppressAssistantErrorPersistence: suppressAssistantErrorPersistenceForCandidate,
-                onAssistantErrorMessagePersisted: () => {
-                  assistantErrorPersistedAcrossFallback = true;
-                },
+                suppressAssistantErrorPersistence: true,
                 onToolResult: onToolResult
                   ? (() => {
                       // Serialize tool result delivery to preserve message ordering.

@@ -1,3 +1,4 @@
+import { STREAM_ERROR_FALLBACK_TEXT } from "../agents/stream-message-shared.js";
 import { isHeartbeatOkResponse, isHeartbeatUserMessage } from "../auto-reply/heartbeat-filter.js";
 import { HEARTBEAT_PROMPT } from "../auto-reply/heartbeat.js";
 import {
@@ -505,6 +506,27 @@ function isEmptyTextOnlyContent(content: unknown): boolean {
   return sawText;
 }
 
+function isStreamErrorFallbackContent(content: unknown): boolean {
+  if (typeof content === "string") {
+    return content.trim() === STREAM_ERROR_FALLBACK_TEXT;
+  }
+  if (!Array.isArray(content) || content.length === 0) {
+    return false;
+  }
+  const textParts: string[] = [];
+  for (const block of content) {
+    if (!block || typeof block !== "object") {
+      return false;
+    }
+    const entry = block as { type?: unknown; text?: unknown };
+    if (entry.type !== "text" || typeof entry.text !== "string") {
+      return false;
+    }
+    textParts.push(entry.text.trim());
+  }
+  return textParts.join("\n").trim() === STREAM_ERROR_FALLBACK_TEXT;
+}
+
 function shouldHideProjectedHistoryMessage(message: Record<string, unknown>): boolean {
   const roleContent = asRoleContentMessage(message);
   if (!roleContent) {
@@ -515,6 +537,13 @@ function shouldHideProjectedHistoryMessage(message: Record<string, unknown>): bo
   }
   if (roleContent.role === "assistant" && isEmptyTextOnlyContent(message.content ?? message.text)) {
     return false;
+  }
+  if (
+    roleContent.role === "assistant" &&
+    message.stopReason === "error" &&
+    isStreamErrorFallbackContent(message.content ?? message.text)
+  ) {
+    return true;
   }
   if (isHeartbeatUserMessage(roleContent, HEARTBEAT_PROMPT)) {
     return true;

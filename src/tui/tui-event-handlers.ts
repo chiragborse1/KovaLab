@@ -313,7 +313,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     if (evt.state === "delta") {
       const displayText = streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
       if (!displayText) {
-        setActivityStatus("running");
+        setActivityStatus("waiting");
         return;
       }
       setActivityStatus("streaming");
@@ -450,7 +450,7 @@ export function createEventHandlers(context: EventHandlerContext) {
       }
       const phase = typeof evt.data?.phase === "string" ? evt.data.phase : "";
       if (phase === "start") {
-        setActivityStatus("running");
+        setActivityStatus("waiting");
       }
       if (phase === "end") {
         setActivityStatus("idle");
@@ -458,8 +458,9 @@ export function createEventHandlers(context: EventHandlerContext) {
       if (phase === "error") {
         // The chat event is the terminal authority. A lifecycle error can be
         // a failed fallback candidate while the run continues with another
-        // model/auth path, so keep the active turn running until chat final/error.
-        setActivityStatus("running");
+        // model/auth path, so keep the active turn in its waiting state until
+        // chat final/error.
+        setActivityStatus("waiting");
       }
       tui.requestRender();
     }

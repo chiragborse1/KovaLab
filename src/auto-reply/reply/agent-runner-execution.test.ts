@@ -171,6 +171,8 @@ type FallbackRunnerParams = {
 type EmbeddedAgentParams = {
   onBlockReply?: (payload: { text?: string; mediaUrls?: string[] }) => Promise<void> | void;
   onToolResult?: (payload: { text?: string; mediaUrls?: string[] }) => Promise<void> | void;
+  suppressAssistantErrorPersistence?: boolean;
+  onAssistantErrorMessagePersisted?: (message: unknown) => void;
   onItemEvent?: (payload: {
     itemId?: string;
     kind?: string;
@@ -683,6 +685,45 @@ describe("runAgentTurnWithFallback", () => {
     const result = await runAgentTurnWithFallback(createMinimalRunAgentTurnParams());
 
     expect(result.kind).toBe("success");
+  });
+
+  it("suppresses assistant error stubs for fallback candidates", async () => {
+    state.runEmbeddedPiAgentMock
+      .mockRejectedValueOnce(new Error("upstream 500"))
+      .mockResolvedValueOnce({
+        payloads: [{ text: "ok" }],
+        meta: {},
+      });
+    state.runWithModelFallbackMock.mockImplementationOnce(async (params: FallbackRunnerParams) => {
+      await expect(params.run("anthropic", "claude")).rejects.toThrow("upstream 500");
+      return {
+        result: await params.run("openai", "gpt-5.4"),
+        provider: "openai",
+        model: "gpt-5.4",
+        attempts: [
+          {
+            provider: "anthropic",
+            model: "claude",
+            error: "upstream 500",
+            reason: "unknown",
+          },
+        ],
+      };
+    });
+
+    const runAgentTurnWithFallback = await getRunAgentTurnWithFallback();
+    const result = await runAgentTurnWithFallback(createMinimalRunAgentTurnParams());
+
+    expect(result.kind).toBe("success");
+    expect(state.runEmbeddedPiAgentMock).toHaveBeenCalledTimes(2);
+    expect(
+      (state.runEmbeddedPiAgentMock.mock.calls[0]?.[0] as EmbeddedAgentParams)
+        .suppressAssistantErrorPersistence,
+    ).toBe(true);
+    expect(
+      (state.runEmbeddedPiAgentMock.mock.calls[1]?.[0] as EmbeddedAgentParams)
+        .suppressAssistantErrorPersistence,
+    ).toBe(true);
   });
 
   it("does not classify empty final payloads after block replies were sent", async () => {

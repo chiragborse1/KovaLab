@@ -536,6 +536,25 @@ describe("projectRecentChatDisplayMessages", () => {
     ]);
   });
 
+  it("hides internal assistant failure stubs from display history", () => {
+    const result = projectRecentChatDisplayMessages([
+      { role: "user", content: "hello", timestamp: 1 },
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "[assistant turn failed before producing content]" }],
+        stopReason: "error",
+        errorMessage: "429 rate limit",
+        timestamp: 2,
+      },
+      { role: "assistant", content: "final answer", timestamp: 3 },
+    ]);
+
+    expect(result).toEqual([
+      { role: "user", content: "hello", timestamp: 1 },
+      { role: "assistant", content: "final answer", timestamp: 3 },
+    ]);
+  });
+
   it("applies history limits after dropping display-hidden messages", () => {
     const result = projectRecentChatDisplayMessages(
       [

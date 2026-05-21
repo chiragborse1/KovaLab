@@ -350,7 +350,6 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let statusTimeout: NodeJS.Timeout | null = null;
   let statusTimer: NodeJS.Timeout | null = null;
   let statusStartedAt: number | null = null;
-  let lastActivityStatus = activityStatus;
 
   const state: TuiStateAccess = {
     get agentDefaultId() {
@@ -869,7 +868,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   const renderStatus = () => {
     const isBusy = busyStates.has(activityStatus);
     if (isBusy) {
-      if (!statusStartedAt || lastActivityStatus !== activityStatus) {
+      if (!statusStartedAt) {
         statusStartedAt = Date.now();
       }
       ensureStatusLoader();
@@ -891,7 +890,6 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       const text = activityStatus ? `${connectionStatus} | ${activityStatus}` : connectionStatus;
       statusText?.setText(theme.dim(text));
     }
-    lastActivityStatus = activityStatus;
     updateHeader();
   };
 

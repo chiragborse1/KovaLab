@@ -1763,7 +1763,7 @@ describe("createFollowupRunner fallback transcript idempotency", () => {
     expect(getRunEmbeddedCall(1).suppressNextUserMessagePersistence).toBe(true);
   });
 
-  it("suppresses assistant error stubs after the first fallback candidate writes one", async () => {
+  it("suppresses assistant error stubs for every fallback candidate", async () => {
     runWithModelFallbackMock.mockImplementationOnce(
       async (params: { run: (provider: string, model: string) => Promise<unknown> }) => {
         await expect(params.run("anthropic", "claude-opus-4-7")).rejects.toThrow("upstream 500");
@@ -1811,12 +1811,12 @@ describe("createFollowupRunner fallback transcript idempotency", () => {
     );
 
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(3);
-    expect(getRunEmbeddedCall(0).suppressAssistantErrorPersistence).toBe(false);
+    expect(getRunEmbeddedCall(0).suppressAssistantErrorPersistence).toBe(true);
     expect(getRunEmbeddedCall(1).suppressAssistantErrorPersistence).toBe(true);
     expect(getRunEmbeddedCall(2).suppressAssistantErrorPersistence).toBe(true);
   });
 
-  it("does not suppress later fallback candidates when nothing was persisted", async () => {
+  it("suppresses later fallback candidate error stubs even when nothing was persisted", async () => {
     runWithModelFallbackMock.mockImplementationOnce(
       async (params: { run: (provider: string, model: string) => Promise<unknown> }) => {
         await expect(params.run("anthropic", "claude-opus-4-7")).rejects.toThrow("upstream early");
@@ -1852,6 +1852,7 @@ describe("createFollowupRunner fallback transcript idempotency", () => {
     expect(runEmbeddedPiAgentMock).toHaveBeenCalledTimes(2);
     expect(getRunEmbeddedCall(0).suppressNextUserMessagePersistence).toBe(false);
     expect(getRunEmbeddedCall(1).suppressNextUserMessagePersistence).toBe(false);
-    expect(getRunEmbeddedCall(1).suppressAssistantErrorPersistence).toBe(false);
+    expect(getRunEmbeddedCall(0).suppressAssistantErrorPersistence).toBe(true);
+    expect(getRunEmbeddedCall(1).suppressAssistantErrorPersistence).toBe(true);
   });
 });
