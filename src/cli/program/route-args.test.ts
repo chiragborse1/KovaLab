@@ -96,6 +96,8 @@ describe("route-args", () => {
         "sqlite",
         "--active",
         "true",
+        "--search",
+        "research",
       ]),
     ).toEqual({
       json: true,
@@ -103,8 +105,10 @@ describe("route-args", () => {
       agent: "default",
       store: "sqlite",
       active: "true",
+      search: "research",
     });
     expect(parseSessionsRouteArgs(["node", "kova", "sessions", "--agent"])).toBeNull();
+    expect(parseSessionsRouteArgs(["node", "kova", "sessions", "--search"])).toBeNull();
     expect(
       parseAgentsListRouteArgs(["node", "kova", "agents", "list", "--json", "--bindings"]),
     ).toEqual({

@@ -144,12 +144,17 @@ export function parseSessionsRouteArgs(argv: string[]) {
   if (!active.ok) {
     return null;
   }
+  const search = parseOptionalFlagValue(argv, "--search");
+  if (!search.ok) {
+    return null;
+  }
   return {
     json: hasFlag(argv, "--json"),
     allAgents: hasFlag(argv, "--all-agents"),
     agent: agent.value,
     store: store.value,
     active: active.value,
+    search: search.value,
   };
 }
 

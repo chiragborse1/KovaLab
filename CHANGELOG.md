@@ -17,6 +17,7 @@
 - CLI/TUI: show concise cooldown guidance for local terminal rate-limit failures instead of raw fallback summaries. Thanks @chiragborse1
 - CLI/TUI: queue terminal follow-up input by default while a run is active, with `/busy queue|steer|interrupt` controls and Alt+Enter/Alt+Up queue shortcuts. Thanks @chiragborse1
 - CLI/TUI: let `/sessions <query>` open the terminal session picker with existing Gateway/local session search, including derived titles and latest previews when loaded. Thanks @chiragborse1
+- CLI: add `kova sessions --search <query>` so terminal session lookup works from shell scripts and outside the TUI. Thanks @chiragborse1
 - CLI/TUI: render `/tools` and `/skills` as compact terminal-local catalogs, with verbose modes for names and short descriptions, instead of routing every catalog lookup through an agent turn. Thanks @chiragborse1
 - CLI/TUI: replace the animated busy spinner with a stable low-work `moseying` status line so long local runs do not keep repainting the terminal. Thanks @chiragborse1
 - CLI/TUI: slow the busy-status repaint cadence during long local runs so elapsed-time updates do less terminal work while replies are pending. Thanks @chiragborse1

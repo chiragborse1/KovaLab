@@ -4,6 +4,7 @@ import { loadSessionStore, resolveSessionTotalTokens } from "../config/sessions.
 import { info } from "../globals.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
+import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { isRich, theme } from "../terminal/theme.js";
 import { resolveSessionStoreTargetsOrExit } from "./session-store-targets.js";
 import {
@@ -108,7 +109,14 @@ const formatKindCell = (kind: SessionRow["kind"], rich: boolean) => {
 };
 
 export async function sessionsCommand(
-  opts: { json?: boolean; store?: string; active?: string; agent?: string; allAgents?: boolean },
+  opts: {
+    json?: boolean;
+    store?: string;
+    active?: string;
+    agent?: string;
+    allAgents?: boolean;
+    search?: string;
+  },
   runtime: RuntimeEnv,
 ) {
   const aggregateAgents = opts.allAgents === true;
@@ -131,6 +139,7 @@ export async function sessionsCommand(
   if (!targets) {
     return;
   }
+  const search = normalizeLowercaseStringOrEmpty(opts.search);
 
   let activeMinutes: number | undefined;
   if (opts.active !== undefined) {
@@ -162,6 +171,32 @@ export async function sessionsCommand(
       }
       return Date.now() - row.updatedAt <= activeMinutes * 60_000;
     })
+    .filter((row) => {
+      if (!search) {
+        return true;
+      }
+      const fields = [
+        row.key,
+        row.sessionId,
+        row.agentId,
+        row.kind,
+        row.model,
+        row.modelProvider,
+        row.modelOverride,
+        row.providerOverride,
+        row.thinkingLevel,
+        row.verboseLevel,
+        row.traceLevel,
+        row.reasoningLevel,
+        row.elevatedLevel,
+        row.responseUsage,
+        row.groupActivation,
+      ];
+      return fields.some(
+        (field) =>
+          typeof field === "string" && normalizeLowercaseStringOrEmpty(field).includes(search),
+      );
+    })
     .toSorted((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
 
   if (opts.json) {
@@ -178,6 +213,7 @@ export async function sessionsCommand(
       allAgents: aggregateAgents ? true : undefined,
       count: rows.length,
       activeMinutes: activeMinutes ?? null,
+      search: search || null,
       sessions: await Promise.all(
         rows.map(async (r) => {
           const model = resolveSessionDisplayModel(cfg, r);
@@ -210,6 +246,9 @@ export async function sessionsCommand(
   runtime.log(info(`Sessions listed: ${rows.length}`));
   if (activeMinutes) {
     runtime.log(info(`Filtered to last ${activeMinutes} minute(s)`));
+  }
+  if (search) {
+    runtime.log(info(`Search: ${opts.search?.trim() ?? search}`));
   }
   if (rows.length === 0) {
     runtime.log("No sessions found.");

@@ -154,6 +154,53 @@ describe("sessionsCommand", () => {
     expect(payload.sessions?.map((row) => row.key)).toEqual(["recent"]);
   });
 
+  it("applies --search filtering in JSON output", async () => {
+    const store = writeStore(
+      {
+        "agent:main:research": {
+          sessionId: "sess-research",
+          updatedAt: Date.now() - 5 * 60_000,
+          model: "pi:opus",
+        },
+        "agent:main:daily": {
+          sessionId: "sess-daily",
+          updatedAt: Date.now() - 10 * 60_000,
+          model: "pi:opus",
+        },
+      },
+      "sessions-search",
+    );
+
+    const payload = await runSessionsJson<{
+      search?: string | null;
+      sessions?: Array<{
+        key: string;
+      }>;
+    }>(sessionsCommand, store, { search: "research" });
+    expect(payload.search).toBe("research");
+    expect(payload.sessions?.map((row) => row.key)).toEqual(["agent:main:research"]);
+  });
+
+  it("prints the active search in text output", async () => {
+    const store = writeStore(
+      {
+        "agent:main:research": {
+          sessionId: "sess-research",
+          updatedAt: Date.now() - 5 * 60_000,
+          model: "pi:opus",
+        },
+      },
+      "sessions-search-text",
+    );
+
+    const { runtime, logs } = makeRuntime();
+    await sessionsCommand({ store, search: "research" }, runtime);
+
+    fs.rmSync(store);
+    expect(logs).toContain("Search: research");
+    expect(logs.some((line) => line.includes("agent:main:research"))).toBe(true);
+  });
+
   it("rejects invalid --active values", async () => {
     const store = writeStore(
       {

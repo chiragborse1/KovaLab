@@ -127,6 +127,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
     .option("--agent <id>", "Agent id to inspect (default: configured default agent)")
     .option("--all-agents", "Aggregate sessions across all configured agents", false)
     .option("--active <minutes>", "Only show sessions updated within the past N minutes")
+    .option("--search <query>", "Filter sessions by key, id, model, agent, kind, or flags")
     .addHelpText(
       "after",
       () =>
@@ -135,6 +136,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
           ["kova sessions --agent work", "List sessions for one agent."],
           ["kova sessions --all-agents", "Aggregate sessions across agents."],
           ["kova sessions --active 120", "Only last 2 hours."],
+          ["kova sessions --search research", "Filter sessions by metadata."],
           ["kova sessions --json", "Machine-readable output."],
           ["kova sessions --store ./tmp/sessions.json", "Use a specific session store."],
         ])}\n\n${theme.muted(
@@ -155,6 +157,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
           agent: opts.agent as string | undefined,
           allAgents: Boolean(opts.allAgents),
           active: opts.active as string | undefined,
+          search: opts.search as string | undefined,
         },
         defaultRuntime,
       );

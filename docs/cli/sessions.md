@@ -14,6 +14,7 @@ kova sessions
 kova sessions --agent work
 kova sessions --all-agents
 kova sessions --active 120
+kova sessions --search research
 kova sessions --verbose
 kova sessions --json
 ```
@@ -24,6 +25,7 @@ Scope selection:
 - `--verbose`: verbose logging
 - `--agent <id>`: one configured agent store
 - `--all-agents`: aggregate all configured agent stores
+- `--search <query>`: filter sessions by key, session id, agent, kind, model, or mode flags
 - `--store <path>`: explicit store path (cannot be combined with `--agent` or `--all-agents`)
 
 `kova sessions --all-agents` reads configured agent stores. Gateway and ACP
