@@ -48,6 +48,10 @@ type EventHandlerContext = {
 };
 
 const DEFAULT_STREAMING_WATCHDOG_MS = 30_000;
+const RUN_RECOVERY_HINT =
+  "Recovery: session history is preserved; use /sessions to reopen saved sessions, /reset to start clean, or !kova tasks list to inspect detached background work.";
+const STALE_RUN_RECOVERY_HINT =
+  "If detached work was involved, run !kova tasks audit to surface stale or lost background tasks.";
 
 export function createEventHandlers(context: EventHandlerContext) {
   const {
@@ -109,7 +113,7 @@ export function createEventHandlers(context: EventHandlerContext) {
       chatLog.addSystem(
         `streaming watchdog: no stream updates for ${Math.round(
           streamingWatchdogMs / 1000,
-        )}s; resetting status. The backend may have dropped this run silently — send a new message to resync.`,
+        )}s; resetting status. The backend may have dropped this run silently; send a new message to resync. ${STALE_RUN_RECOVERY_HINT}`,
       );
       tui.requestRender();
     }, streamingWatchdogMs);
@@ -381,6 +385,7 @@ export function createEventHandlers(context: EventHandlerContext) {
       forgetLocalBtwRunId?.(evt.runId);
       const wasActiveRun = state.activeChatRunId === evt.runId;
       chatLog.addSystem("run aborted");
+      chatLog.addSystem(RUN_RECOVERY_HINT);
       terminateRun({ runId: evt.runId, wasActiveRun, status: "aborted" });
       maybeRefreshHistoryForRun(evt.runId);
     }
@@ -388,7 +393,11 @@ export function createEventHandlers(context: EventHandlerContext) {
       forgetLocalBtwRunId?.(evt.runId);
       const wasActiveRun = state.activeChatRunId === evt.runId;
       const errorMessage = evt.errorMessage ?? "unknown";
-      chatLog.addSystem(resolveAuthErrorHint(errorMessage) ?? `run error: ${errorMessage}`);
+      const authHint = resolveAuthErrorHint(errorMessage);
+      chatLog.addSystem(authHint ?? `run error: ${errorMessage}`);
+      if (!authHint) {
+        chatLog.addSystem(RUN_RECOVERY_HINT);
+      }
       terminateRun({ runId: evt.runId, wasActiveRun, status: "error" });
       maybeRefreshHistoryForRun(evt.runId);
     }

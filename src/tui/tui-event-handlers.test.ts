@@ -611,6 +611,41 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     );
   });
 
+  it("adds a recovery hint after non-auth run errors", () => {
+    const { state, chatLog, handleChatEvent } = createHandlersHarness({
+      state: { activeChatRunId: "run-error" },
+    });
+
+    handleChatEvent({
+      runId: "run-error",
+      sessionKey: state.currentSessionKey,
+      state: "error",
+      errorMessage: "worker exited before final response",
+    });
+
+    expect(chatLog.addSystem).toHaveBeenCalledWith(
+      "run error: worker exited before final response",
+    );
+    expect(chatLog.addSystem).toHaveBeenCalledWith(expect.stringContaining("!kova tasks list"));
+  });
+
+  it("adds a recovery hint after aborted runs", () => {
+    const { state, chatLog, handleChatEvent } = createHandlersHarness({
+      state: { activeChatRunId: "run-abort" },
+    });
+
+    handleChatEvent({
+      runId: "run-abort",
+      sessionKey: state.currentSessionKey,
+      state: "aborted",
+    });
+
+    expect(chatLog.addSystem).toHaveBeenCalledWith("run aborted");
+    expect(chatLog.addSystem).toHaveBeenCalledWith(
+      expect.stringContaining("session history is preserved"),
+    );
+  });
+
   it("drops streaming assistant when chat final has no message", () => {
     const { state, chatLog, handleChatEvent } = createHandlersHarness({
       state: { activeChatRunId: null },
@@ -762,6 +797,7 @@ describe("tui-event-handlers: streaming watchdog", () => {
     expect(setActivityStatus).toHaveBeenLastCalledWith("idle");
     expect(state.activeChatRunId).toBeNull();
     expect(chatLog.addSystem).toHaveBeenCalledWith(expect.stringContaining("streaming watchdog"));
+    expect(chatLog.addSystem).toHaveBeenCalledWith(expect.stringContaining("!kova tasks audit"));
 
     handlers.dispose?.();
   });
