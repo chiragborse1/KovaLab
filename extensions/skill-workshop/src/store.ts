@@ -307,9 +307,9 @@ export class SkillWorkshopStore {
   async recordAppliedProposal(proposal: SkillProposal): Promise<SkillWorkshopUsageRecord> {
     return await withLock(this.filePath, async () => {
       const file = await readJson(this.filePath);
-      const usage = updateUsageForProposal({ ...(file.usage ?? {}) }, proposal);
+      const usage = updateUsageForProposal({ ...file.usage }, proposal);
       await atomicWriteJson(this.filePath, { ...file, usage });
-      return usage[proposal.skillName]!;
+      return usage[proposal.skillName];
     });
   }
 
@@ -329,7 +329,7 @@ export class SkillWorkshopStore {
   async markUsageViewed(skillName: string): Promise<SkillWorkshopUsageRecord> {
     return await withLock(this.filePath, async () => {
       const file = await readJson(this.filePath);
-      const usage = { ...(file.usage ?? {}) };
+      const usage = { ...file.usage };
       const existing = usage[skillName];
       const now = Date.now();
       usage[skillName] = {
@@ -353,7 +353,7 @@ export class SkillWorkshopStore {
         ...(existing?.archiveReason ? { archiveReason: existing.archiveReason } : {}),
       };
       await atomicWriteJson(this.filePath, { ...file, usage });
-      return usage[skillName]!;
+      return usage[skillName];
     });
   }
 
@@ -403,7 +403,7 @@ export class SkillWorkshopStore {
   ): Promise<SkillWorkshopUsageRecord> {
     return await withLock(this.filePath, async () => {
       const file = await readJson(this.filePath);
-      const usage = { ...(file.usage ?? {}) };
+      const usage = { ...file.usage };
       const now = Date.now();
       const current =
         usage[skillName] ??
@@ -423,7 +423,7 @@ export class SkillWorkshopStore {
       const next = update(current, now);
       usage[skillName] = normalizeUsageRecord(next, skillName);
       await atomicWriteJson(this.filePath, { ...file, usage });
-      return usage[skillName]!;
+      return usage[skillName];
     });
   }
 

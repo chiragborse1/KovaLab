@@ -137,7 +137,10 @@ function createStore(ctx: SkillWorkshopCliContext, workspaceDir: string): SkillW
   });
 }
 
-function parseStatus(value: string | undefined, io: SkillWorkshopCliIo | undefined) {
+function parseStatus(
+  value: string | undefined,
+  io: SkillWorkshopCliIo | undefined,
+): SkillWorkshopStatus | undefined {
   const status = value?.trim() as SkillWorkshopStatus | undefined;
   if (!status) {
     return undefined;
@@ -145,7 +148,7 @@ function parseStatus(value: string | undefined, io: SkillWorkshopCliIo | undefin
   if (STATUSES.includes(status)) {
     return status;
   }
-  fail(io, `Invalid status "${value}". Use one of: ${STATUSES.join(", ")}.`);
+  return fail(io, `Invalid status "${value}". Use one of: ${STATUSES.join(", ")}.`);
 }
 
 function oneLine(value: string, max = 96): string {
@@ -352,7 +355,7 @@ async function resolveProposal(params: {
   if (matches.length > 1) {
     fail(params.io, `Proposal id is ambiguous: ${params.id}`);
   }
-  return matches[0]!;
+  return matches[0];
 }
 
 function assertProposalWorkspace(params: {
