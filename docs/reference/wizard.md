@@ -83,7 +83,7 @@ For a high-level overview, see [Onboarding (CLI)](/start/wizard).
     - In token mode, interactive setup offers:
       - **Generate/store plaintext token** (default)
       - **Use SecretRef** (opt-in)
-      - Quickstart reuses existing `gateway.auth.token` SecretRefs across `env`, `file`, and `exec` providers for onboarding probe/dashboard bootstrap.
+      - Quickstart reuses existing `gateway.auth.token` SecretRefs across `env`, `file`, and `exec` providers for onboarding probes and optional Control UI access.
       - If that SecretRef is configured but cannot be resolved, onboarding fails early with a clear fix message instead of silently degrading runtime auth.
     - In password mode, interactive setup also supports plaintext or SecretRef storage.
     - Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
@@ -93,6 +93,8 @@ For a high-level overview, see [Onboarding (CLI)](/start/wizard).
     - Non‑loopback binds still require auth.
   </Step>
   <Step title="Channels">
+    - Quick setup skips channel setup by default so first run stays terminal-only.
+    - Use `--with-channels`, custom setup, `kova channels add`, or `kova configure --section channels` when you want Kova on chat platforms.
     - [WhatsApp](/channels/whatsapp): optional QR login.
     - [Telegram](/channels/telegram): bot token.
     - [Discord](/channels/discord): bot token.
@@ -216,7 +218,7 @@ Typical fields in `~/.chiragborse1/KovaLab.json`:
 - `tools.profile` (local onboarding defaults to `"coding"` when unset; existing explicit values are preserved)
 - `gateway.*` (mode, bind, auth, tailscale)
 - `session.dmScope` (behavior details: [CLI Setup Reference](/start/wizard-cli-reference#outputs-and-internals))
-- `channels.telegram.botToken`, `channels.discord.token`, `channels.matrix.*`, `channels.signal.*`, `channels.imessage.*`
+- `channels.telegram.botToken`, `channels.discord.token`, `channels.matrix.*`, `channels.signal.*`, `channels.imessage.*` when channel setup is requested
 - Channel allowlists (Slack/Discord/Matrix/Microsoft Teams) when you opt in during the prompts (names resolve to IDs when possible).
 - `skills.install.nodeManager`
   - `setup --node-manager` accepts `npm`, `pnpm`, or `bun`.

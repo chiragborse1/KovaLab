@@ -1,5 +1,5 @@
 ---
-summary: "Kova is a multi-channel gateway for AI agents that runs on any OS."
+summary: "Kova is a terminal-native local AI agent with optional Gateway, channels, and apps."
 read_when:
   - Introducing Kova to newcomers
 title: "Kova"
@@ -25,33 +25,34 @@ title: "Kova"
 > _"Stay sharp. Ship clearly."_ — Kova
 
 <p align="center">
-  <strong>Any OS gateway for AI agents across Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more.</strong><br />
-  Send a message, get an agent response from your pocket. Run one Gateway across built-in channels, bundled channel plugins, WebChat, and mobile nodes.
+  <strong>Terminal-first local agent for memory, skills, tools, and durable workflows.</strong><br />
+  Start in <code>kova chat</code>. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
 </p>
 
 <Columns>
   <Card title="Get Started" href="/start/getting-started" icon="rocket">
-    Install Kova and bring up the Gateway in minutes.
+    Install Kova and start terminal chat in minutes.
   </Card>
   <Card title="Run Onboarding" href="/start/wizard" icon="sparkles">
-    Guided setup with `kova onboard` and pairing flows.
+    Guided setup with `kova onboard`, model auth, workspace, memory, and skills.
   </Card>
-  <Card title="Open the Control UI" href="/web/control-ui" icon="layout-dashboard">
-    Launch the browser dashboard for chat, config, and sessions.
+  <Card title="Use The TUI" href="/web/tui" icon="terminal">
+    Run `kova chat` for the local embedded agent experience.
   </Card>
 </Columns>
 
 ## What is Kova?
 
-Kova is a **self-hosted gateway** that connects your favorite chat apps and channel surfaces — built-in channels plus bundled or external channel plugins such as Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more — to AI coding agents like Pi. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI assistant.
+Kova is a **terminal-native local agent** with memory, skills, sessions, and tools at the center. You run it from `kova chat` first, then enable the Gateway when you want always-on delivery, channels, cron, nodes, apps, or the browser Control UI.
 
-**Who is it for?** Developers and power users who want a personal AI assistant they can message from anywhere — without giving up control of their data or relying on a hosted service.
+**Who is it for?** Developers and power users who want a personal AI assistant that works locally, remembers durable context, learns reusable procedures, and can still be reached remotely when needed.
 
 **What makes it different?**
 
+- **Terminal-first**: `kova chat` is the primary interactive product
 - **Self-hosted**: runs on your hardware, your rules
-- **Multi-channel**: one Gateway serves built-in channels plus bundled or external channel plugins simultaneously
-- **Agent-native**: built for coding agents with tool use, sessions, memory, and multi-agent routing
+- **Learning-oriented**: built around memory, skills, sessions, and reusable workflows
+- **Gateway-optional**: one Gateway can serve built-in channels plus bundled or external channel plugins when you enable it
 - **Open source**: MIT licensed, community-driven
 
 **What do you need?** Node 24 (recommended), or Node 22 LTS (`22.14+`) for compatibility, an API key from your chosen provider, and 5 minutes. For best quality and security, use the strongest latest-generation model available.
@@ -60,24 +61,27 @@ Kova is a **self-hosted gateway** that connects your favorite chat apps and chan
 
 ```mermaid
 flowchart LR
-  A["Chat apps + plugins"] --> B["Gateway"]
-  B --> C["Pi agent"]
-  B --> D["CLI"]
-  B --> E["Web Control UI"]
-  B --> F["macOS app"]
-  B --> G["iOS and Android nodes"]
+  A["Terminal TUI"] --> B["Kova agent runtime"]
+  B --> C["Memory + skills"]
+  B --> D["Tools"]
+  E["Headless Gateway"] --> B
+  E --> F["Channels + apps"]
+  E --> G["Control UI"]
 ```
 
-The Gateway is the single source of truth for sessions, routing, and channel connections.
+The terminal owns the primary agent loop. The Gateway extends that loop to remote clients, channels, scheduled work, and app nodes.
 
 ## Key capabilities
 
 <Columns>
-  <Card title="Multi-channel gateway" icon="network" href="/channels">
-    Discord, iMessage, Signal, Slack, Telegram, WhatsApp, WebChat, and more with a single Gateway process.
+  <Card title="Terminal chat" icon="terminal" href="/web/tui">
+    Local embedded agent runtime with model, session, tool, and config controls.
+  </Card>
+  <Card title="Memory and skills" icon="brain" href="/concepts/memory">
+    Durable memory, semantic recall, dreaming, and reusable workspace skills.
   </Card>
   <Card title="Plugin channels" icon="plug" href="/tools/plugin">
-    Bundled plugins add Matrix, Nostr, Twitch, Zalo, and more in normal current releases.
+    Add chat platforms through bundled or external plugins when you need remote reach.
   </Card>
   <Card title="Multi-agent routing" icon="route" href="/concepts/multi-agent">
     Isolated sessions per agent, workspace, or sender.
@@ -86,7 +90,7 @@ The Gateway is the single source of truth for sessions, routing, and channel con
     Send and receive images, audio, and documents.
   </Card>
   <Card title="Web Control UI" icon="monitor" href="/web/control-ui">
-    Browser dashboard for chat, config, sessions, and nodes.
+    Optional browser admin for config, channels, cron, logs, skills, sessions, and nodes.
   </Card>
   <Card title="Mobile nodes" icon="smartphone" href="/nodes">
     Pair iOS and Android nodes for Canvas, camera, and voice-enabled workflows.
@@ -107,22 +111,22 @@ The Gateway is the single source of truth for sessions, routing, and channel con
     ```
   </Step>
   <Step title="Chat">
-    Open the Control UI in your browser and send a message:
+    Start the terminal agent:
 
     ```bash
-    kova dashboard
+    kova chat
     ```
 
-    Or connect a channel ([Telegram](/channels/telegram) is fastest) and chat from your phone.
+    Add the Control UI or a channel later when the local agent is working.
 
   </Step>
 </Steps>
 
 Need the full install and dev setup? See [Getting Started](/start/getting-started).
 
-## Dashboard
+## Control UI
 
-Open the browser Control UI after the Gateway starts.
+Open the optional browser Control UI after the Gateway starts.
 
 - Local default: [http://127.0.0.1:18789/](http://127.0.0.1:18789/)
 - Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)

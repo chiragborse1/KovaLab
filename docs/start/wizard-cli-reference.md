@@ -16,8 +16,9 @@ Local mode (default) walks you through:
 
 - Model and auth setup (OpenAI Code subscription OAuth, Anthropic Claude CLI or API key, plus MiniMax, GLM, Ollama, Moonshot, StepFun, and AI Gateway options)
 - Workspace location and bootstrap files
-- Gateway settings (port, bind, auth, tailscale)
-- Channels and providers (Telegram, WhatsApp, Discord, Google Chat, Mattermost, Signal, BlueBubbles, and other bundled channel plugins)
+- Terminal chat through `kova chat`
+- Gateway settings for always-on and remote surfaces (port, bind, auth, tailscale)
+- Channels and providers only when requested (Telegram, WhatsApp, Discord, Google Chat, Mattermost, Signal, BlueBubbles, and other bundled channel plugins)
 - Daemon install (LaunchAgent, systemd user unit, or native Windows Scheduled Task with Startup-folder fallback)
 - Health check
 - Skills setup
@@ -60,6 +61,8 @@ It does not install or modify anything on the remote host.
     - Non-loopback binds still require auth.
   </Step>
   <Step title="Channels">
+    - Quick setup skips this step by default so first run stays terminal-only.
+    - Use `--with-channels`, custom setup, `kova channels add`, or `kova configure --section channels` when you want Kova outside the terminal.
     - [WhatsApp](/channels/whatsapp): optional QR login
     - [Telegram](/channels/telegram): bot token
     - [Discord](/channels/discord): bot token
@@ -92,12 +95,15 @@ It does not install or modify anything on the remote host.
     - Installs optional dependencies (some use Homebrew on macOS).
   </Step>
   <Step title="Finish">
+    - Opens terminal chat by default.
+    - Offers the advanced Control UI only when the Gateway is reachable and Control UI is enabled.
     - Summary and next steps, including iOS, Android, and macOS app options.
   </Step>
 </Steps>
 
 <Note>
-If no GUI is detected, the wizard prints SSH port-forward instructions for the Control UI instead of opening a browser.
+Control UI asset checks run only when you choose the advanced browser surface.
+If no GUI is detected, the wizard prints SSH port-forward instructions instead of opening a browser.
 If Control UI assets are missing, the wizard attempts to build them; fallback is `pnpm ui:build` (auto-installs UI deps).
 </Note>
 
@@ -265,7 +271,7 @@ Typical fields in `~/.chiragborse1/KovaLab.json`:
 - `tools.profile` (local onboarding defaults to `"coding"` when unset; existing explicit values are preserved)
 - `gateway.*` (mode, bind, auth, tailscale)
 - `session.dmScope` (local onboarding defaults this to `per-channel-peer` when unset; existing explicit values are preserved)
-- `channels.telegram.botToken`, `channels.discord.token`, `channels.matrix.*`, `channels.signal.*`, `channels.imessage.*`
+- `channels.telegram.botToken`, `channels.discord.token`, `channels.matrix.*`, `channels.signal.*`, `channels.imessage.*` when channel setup is requested
 - Channel allowlists (Slack, Discord, Matrix, Microsoft Teams) when you opt in during prompts (names resolve to IDs when possible)
 - `skills.install.nodeManager`
   - The `setup --node-manager` flag accepts `npm`, `pnpm`, or `bun`.

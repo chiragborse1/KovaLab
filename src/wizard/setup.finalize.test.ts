@@ -661,7 +661,7 @@ describe("finalizeSetupWizard", () => {
       expect.stringContaining("You skipped background service install"),
       "Gateway",
     );
-    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Dashboard ready");
+    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Control UI ready");
   });
 
   it("does not show a Codex native search summary when web search is globally disabled", async () => {

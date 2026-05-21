@@ -72,6 +72,8 @@ export type OnboardOptions = OnboardDynamicProviderOptions & {
   tailscaleResetOnExit?: boolean;
   installDaemon?: boolean;
   daemonRuntime?: GatewayDaemonRuntime;
+  /** Opt into chat channel setup during quickstart. Custom setup still prompts by default. */
+  withChannels?: boolean;
   skipChannels?: boolean;
   /** @deprecated Legacy alias for `skipChannels`. */
   skipProviders?: boolean;

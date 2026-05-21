@@ -29,9 +29,9 @@ describe("KovaHero", () => {
 
     const rendered = normalizeTestText(hero.render(132).join("\n"));
     expect(rendered).toContain("Kova Agent");
-    expect(rendered).toContain("Available Tools");
+    expect(rendered).toContain("Tool Surface");
     expect(rendered).toContain("browser_click");
-    expect(rendered).toContain("Available Skills");
+    expect(rendered).toContain("Skill Surface");
     expect(rendered).toContain("codex");
   });
 
@@ -73,8 +73,7 @@ describe("KovaHero", () => {
     const rendered = normalizeTestText(hero.render(120).join("\n"));
     expect(rendered).toContain("kova-bundled");
     expect(rendered).toContain("kova-extra");
-    expect(rendered).not.toContain("kova-bundled");
-    expect(rendered).not.toContain("kova-extra");
+    expect(rendered).toContain("offline one");
   });
 
   it("maps known legacy skill source labels without changing unknown sources", () => {

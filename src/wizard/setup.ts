@@ -239,7 +239,7 @@ export async function runSetupWizard(
     );
   }
 
-  const quickstartHint = `Fast local setup. Change details later with ${formatCliCommand("kova configure")}.`;
+  const quickstartHint = `Fast terminal setup. Change details later with ${formatCliCommand("kova configure")}.`;
   const manualHint = "Choose workspace, network, auth, service, and channel details yourself.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;
@@ -435,7 +435,7 @@ export async function runSetupWizard(
             : []),
           `Gateway auth: ${formatAuth(quickstartGateway.authMode)}`,
           `Tailscale exposure: ${formatTailscale(quickstartGateway.tailscaleMode)}`,
-          "Next: choose model, workspace, channels, and where to start.",
+          "Next: choose model, workspace, learning surfaces, and terminal start.",
         ]
       : [
           "Quick setup will create a private local gateway:",
@@ -443,7 +443,7 @@ export async function runSetupWizard(
           "Gateway bind: Loopback (127.0.0.1)",
           "Gateway auth: Token (default)",
           "Tailscale exposure: Off",
-          "Next: choose model, workspace, channels, and where to start.",
+          "Next: choose model, workspace, learning surfaces, and terminal start.",
         ];
     await prompter.note(quickstartLines.join("\n"), "Quick setup");
   }
@@ -730,8 +730,21 @@ export async function runSetupWizard(
   nextConfig = gateway.nextConfig;
   const settings = gateway.settings;
 
-  if (opts.skipChannels ?? opts.skipProviders) {
-    await prompter.note("Chat channels skipped. You can add them later.", "Channels");
+  const channelsExplicitlyRequested = opts.withChannels === true || opts.skipChannels === false;
+  const skipChannelSetup =
+    opts.skipChannels === true ||
+    opts.skipProviders === true ||
+    (flow === "quickstart" && !channelsExplicitlyRequested);
+  if (skipChannelSetup) {
+    const message =
+      flow === "quickstart" && opts.skipChannels !== true && opts.skipProviders !== true
+        ? [
+            "Quick setup keeps the first run terminal-only and skips chat channel setup.",
+            `Add channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
+            `Or rerun custom setup: ${formatCliCommand("kova onboard --flow advanced")}`,
+          ].join("\n")
+        : "Chat channels skipped. You can add them later.";
+    await prompter.note(message, "Channels");
   } else {
     const { listChannelPlugins } = await import("../channels/plugins/index.js");
     const { setupChannels } = await import("../commands/onboard-channels.js");

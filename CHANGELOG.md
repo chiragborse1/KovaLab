@@ -4,6 +4,7 @@
 
 ### Changes
 
+- CLI/TUI: make quick onboarding terminal-first by skipping chat channels by default, launching `kova chat`, and treating the browser Control UI as an optional advanced surface. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin

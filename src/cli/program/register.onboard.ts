@@ -138,6 +138,7 @@ function shouldOpenSettingsDashboardForRepeatOnboard(command: unknown): boolean 
     "installDaemon",
     "skipDaemon",
     "daemonRuntime",
+    "withChannels",
     "skipChannels",
     "skipSkills",
     "skipBootstrap",
@@ -226,6 +227,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--no-install-daemon", "Skip gateway service install")
     .option("--skip-daemon", "Skip gateway service install")
     .option("--daemon-runtime <runtime>", "Daemon runtime: node|bun")
+    .option("--with-channels", "Configure chat channels during quick setup")
     .option("--skip-channels", "Skip channel setup")
     .option("--skip-skills", "Skip skills setup")
     .option("--skip-bootstrap", "Skip creating default agent workspace files")
@@ -304,7 +306,8 @@ export function registerOnboardCommand(program: Command) {
           resetScope: opts.resetScope as ResetScope | undefined,
           installDaemon,
           daemonRuntime: opts.daemonRuntime as GatewayDaemonRuntime | undefined,
-          skipChannels: Boolean(opts.skipChannels),
+          withChannels: Boolean(opts.withChannels),
+          skipChannels: opts.skipChannels === true ? true : undefined,
           skipSkills: Boolean(opts.skipSkills),
           skipBootstrap: Boolean(opts.skipBootstrap),
           skipSearch: Boolean(opts.skipSearch),

@@ -6,9 +6,10 @@ read_when:
 title: "Getting started"
 ---
 
-Install Kova, run onboarding, and chat with your AI assistant — all in
-about 5 minutes. By the end you will have a running Gateway, configured auth,
-and a working chat session.
+Install Kova, run onboarding, and start a terminal chat in about 5 minutes.
+By the end you will have a local agent workspace, configured model auth, and a
+working `kova chat` session. The Gateway, channels, apps, and Control UI can be
+enabled after the local agent is working.
 
 ## What you need
 
@@ -54,30 +55,39 @@ Need to install Node? See [Node setup](/install/node).
     kova onboard --install-daemon
     ```
 
-    The wizard walks you through choosing a model provider, setting an API key,
-    and configuring the Gateway. It takes about 2 minutes.
+    The wizard walks you through choosing a model provider, setting auth,
+    creating the workspace, enabling the learning loop, and opening terminal
+    chat. It takes about 2 minutes.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 
   </Step>
-  <Step title="Verify the Gateway is running">
+  <Step title="Start terminal chat">
+    ```bash
+    kova chat
+    ```
+
+    This runs the embedded local agent directly. No browser, Gateway, or chat
+    channel is required for the first conversation.
+
+  </Step>
+  <Step title="Optional: verify the Gateway">
     ```bash
     kova gateway status
     ```
 
-    You should see the Gateway listening on port 18789.
+    The Gateway is headless infrastructure for remote access, channels, cron,
+    nodes, apps, and the advanced Control UI. If you installed the daemon, you
+    should see it listening on port 18789.
 
   </Step>
-  <Step title="Open the dashboard">
+  <Step title="Optional: open the Control UI">
     ```bash
     kova dashboard
     ```
 
-    This opens the Control UI in your browser. If it loads, everything is working.
-
-  </Step>
-  <Step title="Send your first message">
-    Type a message in the Control UI chat and you should get an AI reply.
+    This opens the advanced browser operator surface. Use it when you want
+    visual admin for channels, cron, skills, logs, nodes, or config.
 
     Want to chat from your phone instead? The fastest channel to set up is
     [Telegram](/channels/telegram) (just a bot token). See [Channels](/channels)
@@ -87,7 +97,7 @@ Need to install Node? See [Node setup](/install/node).
 </Steps>
 
 <Accordion title="Advanced: mount a custom Control UI build">
-  If you maintain a localized or customized dashboard build, point
+  If you maintain a localized or customized Control UI build, point
   `gateway.controlUi.root` to a directory that contains your built static
   assets and `index.html`.
 
@@ -109,7 +119,7 @@ Then set:
 }
 ```
 
-Restart the gateway and reopen the dashboard:
+Restart the Gateway and reopen the Control UI:
 
 ```bash
 kova gateway restart

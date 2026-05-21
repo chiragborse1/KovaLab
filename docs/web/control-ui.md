@@ -7,7 +7,12 @@ title: "Control UI"
 sidebarTitle: "Control UI"
 ---
 
-The Control UI is a small **Vite + Lit** single-page app served by the Gateway:
+The Control UI is the optional browser operator surface served by the Gateway.
+Use `kova chat` for the primary terminal experience; use the Control UI when
+you want visual admin for channels, cron, skills, logs, nodes, config, or
+remote Gateway operations.
+
+The app is a small **Vite + Lit** single-page app:
 
 - default: `http://<host>:18789/`
 - optional prefix: set `gateway.controlUi.basePath` (e.g. `/kova`)

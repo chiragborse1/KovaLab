@@ -1,11 +1,11 @@
-# 🦄 Kova — Personal AI Assistant
+# Kova - Terminal Native AI Agent
 
 <p align="center">
     <img src="https://raw.githubusercontent.com/chiragborse1/KovaLab/dev/docs/assets/kova-logo.png" alt="Kova" width="220">
 </p>
 
 <p align="center">
-  <strong>Your personal AI assistant, across your devices and channels.</strong>
+  <strong>A terminal-first local agent that learns your memory, skills, tools, and workflows.</strong>
 </p>
 
 <p align="center">
@@ -15,19 +15,19 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-**Kova** is a _personal AI assistant_ you run on your own devices.
-It answers you on the channels you already use. It can speak and listen on macOS/iOS/Android, and can render a live Canvas you control. The Gateway is just the control plane — the product is the assistant.
+**Kova** is a terminal-native personal agent you run on your own devices.
+Start in `kova chat`, give it real work, and let memory, skills, sessions, and tools become the center of the experience.
 
-If you want a personal, single-user assistant that feels local, fast, and always-on, this is it.
+The Gateway is headless infrastructure for always-on delivery, remote access, channels, cron, nodes, and apps. The browser Control UI is an advanced operator surface, not the default place to chat.
 
-Supported channels include: WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, BlueBubbles, IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, QQ, WebChat.
+If you want a local agent that feels fast, remembers useful context, creates reusable skills, and can later live on your channels, this is the path.
 
 [Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Vision](VISION.md) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Updating](https://docs.neuralstudio.in/install/updating) · [Showcase](https://docs.neuralstudio.in/start/showcase) · [FAQ](https://docs.neuralstudio.in/help/faq) · [Onboarding](https://docs.neuralstudio.in/start/wizard) · [Docker](https://docs.neuralstudio.in/install/docker) · [Discord](https://discord.gg/kova)
 
 New install? Start here: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
 Preferred setup: run `kova onboard` in your terminal.
-Kova Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Kova Onboard guides you through model auth, workspace, memory, skills, and the first terminal chat. Gateway, channels, apps, and the Control UI can be enabled after the agent works locally. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
 
 Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://docs.neuralstudio.in/start/onboarding).
@@ -43,24 +43,22 @@ npm install -g getkova@latest
 kova onboard --install-daemon
 ```
 
-Kova Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running.
+Kova Onboard starts with terminal chat. `--install-daemon` also installs the headless Gateway service (launchd/systemd user service) for always-on jobs, remote access, and channels.
 
 ## Quick start (TL;DR)
 
 Runtime: **Node 24 (recommended) or Node 22.14+**.
 
-Full beginner guide (auth, pairing, channels): [Getting started](https://docs.neuralstudio.in/start/getting-started)
+Full beginner guide: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
 ```bash
 kova onboard --install-daemon
 
-kova gateway --port 18789 --verbose
+# Talk to the local embedded agent. No Gateway or browser required.
+kova chat
 
-# Send a message
-kova message send --target +1234567890 --message "Hello from Kova"
-
-# Talk to the assistant (optionally deliver back to any connected channel: WhatsApp/Telegram/Slack/Discord/Google Chat/Signal/iMessage/BlueBubbles/IRC/Microsoft Teams/Matrix/Feishu/LINE/Mattermost/Nextcloud Talk/Nostr/Synology Chat/Tlon/Twitch/Zalo/Zalo Personal/WeChat/QQ/WebChat)
-kova agent --message "Ship checklist" --thinking high
+# One-shot local turn for scripts.
+kova agent --local --message "Ship checklist" --thinking high
 ```
 
 Upgrading? [Updating guide](https://docs.neuralstudio.in/install/updating) (and run `kova doctor`).
@@ -83,14 +81,15 @@ Run `kova doctor` to surface risky/misconfigured DM policies.
 
 ## Highlights
 
-- **[Local-first Gateway](https://docs.neuralstudio.in/gateway)** — single control plane for sessions, channels, tools, and events.
-- **[Multi-channel inbox](https://docs.neuralstudio.in/channels)** — WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, BlueBubbles (iMessage), iMessage (legacy), IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WeChat, QQ, WebChat, macOS, iOS/Android.
-- **[Multi-agent routing](https://docs.neuralstudio.in/gateway/configuration)** — route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions).
+- **[Terminal chat](https://docs.neuralstudio.in/web/tui)** — `kova chat` runs the embedded agent locally, with model/session controls, tool cards, and config repair from the same shell.
+- **[Memory](https://docs.neuralstudio.in/concepts/memory)** — durable Markdown memory, semantic recall, memory promotion, and dreaming support for long-running agents.
+- **[Skills](https://docs.neuralstudio.in/tools/skills)** — managed and workspace skills turn repeatable workflows into reusable agent procedures.
+- **[Subagents](https://docs.neuralstudio.in/tools/subagents)** — spawn isolated background work and return results to the requesting session.
+- **[Headless Gateway](https://docs.neuralstudio.in/gateway)** — infrastructure for remote access, channels, cron, nodes, tools, and events after local chat works.
+- **[Optional channels](https://docs.neuralstudio.in/channels)** — connect WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, Matrix, and more when you want Kova outside the terminal.
 - **[Voice Wake](https://docs.neuralstudio.in/nodes/voicewake) + [Talk Mode](https://docs.neuralstudio.in/nodes/talk)** — wake words on macOS/iOS and continuous voice on Android (ElevenLabs + system TTS fallback).
 - **[Live Canvas](https://docs.neuralstudio.in/platforms/mac/canvas)** — agent-driven visual workspace with [A2UI](https://docs.neuralstudio.in/platforms/mac/canvas#canvas-a2ui).
-- **[First-class tools](https://docs.neuralstudio.in/tools)** — browser, canvas, nodes, cron, sessions, and Discord/Slack actions.
-- **[Companion apps](https://docs.neuralstudio.in/platforms/macos)** — macOS menu bar app + iOS/Android [nodes](https://docs.neuralstudio.in/nodes).
-- **[Onboarding](https://docs.neuralstudio.in/start/wizard) + [skills](https://docs.neuralstudio.in/tools/skills)** — onboarding-driven setup with bundled/managed/workspace skills.
+- **[Control UI](https://docs.neuralstudio.in/web/control-ui)** — optional browser admin surface for operators who want visual config, logs, channels, cron, skills, and nodes.
 
 ## Security model (important)
 
@@ -108,7 +107,7 @@ Run `kova doctor` to surface risky/misconfigured DM policies.
 
 ## Docs by goal
 
-- New here: [Getting started](https://docs.neuralstudio.in/start/getting-started), [Onboarding](https://docs.neuralstudio.in/start/wizard), [Updating](https://docs.neuralstudio.in/install/updating)
+- New here: [Getting started](https://docs.neuralstudio.in/start/getting-started), [TUI](https://docs.neuralstudio.in/web/tui), [Onboarding](https://docs.neuralstudio.in/start/wizard), [Updating](https://docs.neuralstudio.in/install/updating)
 - Channel setup: [Channels index](https://docs.neuralstudio.in/channels), [WhatsApp](https://docs.neuralstudio.in/channels/whatsapp), [Telegram](https://docs.neuralstudio.in/channels/telegram), [Discord](https://docs.neuralstudio.in/channels/discord), [Slack](https://docs.neuralstudio.in/channels/slack)
 - Apps + nodes: [macOS](https://docs.neuralstudio.in/platforms/macos), [iOS](https://docs.neuralstudio.in/platforms/ios), [Android](https://docs.neuralstudio.in/platforms/android), [Nodes](https://docs.neuralstudio.in/nodes)
 - Config + security: [Configuration](https://docs.neuralstudio.in/gateway/configuration), [Security](https://docs.neuralstudio.in/gateway/security), [Sandboxing](https://docs.neuralstudio.in/gateway/sandboxing)

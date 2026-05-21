@@ -342,12 +342,6 @@ export async function finalizeSetupWizard(
 
   const controlUiEnabled =
     nextConfig.gateway?.controlUi?.enabled ?? baseConfig.gateway?.controlUi?.enabled ?? true;
-  if (!opts.skipUi && controlUiEnabled) {
-    const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-    if (!controlUiAssets.ok && controlUiAssets.message) {
-      runtime.error(controlUiAssets.message);
-    }
-  }
 
   await prompter.note(
     [
@@ -393,22 +387,22 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     [
-      `Dashboard: ${links.httpUrl}`,
+      `Terminal chat: ${formatCliCommand("kova chat")}`,
+      `Control UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
       settings.authMode === "token" && settings.gatewayToken
-        ? `Dashboard (with token): ${authedUrl}`
+        ? `Control UI (with token): ${authedUrl}`
         : undefined,
       `Gateway WS: ${links.wsUrl}`,
       gatewayStatusLine,
-      "Docs: https://docs.neuralstudio.in/web/control-ui",
+      "Docs: https://docs.neuralstudio.in/web/tui",
     ]
       .filter(Boolean)
       .join("\n"),
-    "Dashboard",
+    "Start surfaces",
   );
 
   let controlUiOpened = false;
   let controlUiOpenHint: string | undefined;
-  let seededInBackground = false;
   let hatchChoice: "tui" | "web" | "later" | null = null;
   let launchedTui = false;
 
@@ -428,13 +422,13 @@ export async function finalizeSetupWizard(
     if (gatewayProbe.ok) {
       await prompter.note(
         [
-          "Gateway token: shared auth for Gateway and Dashboard access.",
+          "Gateway token: shared auth for remote Gateway clients and the optional Control UI.",
           "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
-          "Dashboard keeps URL tokens in memory for the current tab and strips them from the URL after load.",
-          `Open the dashboard anytime: ${formatCliCommand("kova dashboard --no-open")}`,
-          "If prompted: paste the token into Dashboard settings or use the tokenized dashboard URL.",
+          "Control UI keeps URL tokens in memory for the current tab and strips them from the URL after load.",
+          `Open Control UI anytime: ${formatCliCommand("kova dashboard --no-open")}`,
+          "If prompted: paste the token into Control UI settings or use the tokenized URL.",
         ].join("\n"),
         "Gateway token",
       );
@@ -442,7 +436,9 @@ export async function finalizeSetupWizard(
 
     const hatchOptions: { value: "tui" | "web" | "later"; label: string }[] = [
       { value: "tui", label: "Open Terminal chat (recommended)" },
-      ...(gatewayProbe.ok ? [{ value: "web" as const, label: "Open Dashboard" }] : []),
+      ...(gatewayProbe.ok && controlUiEnabled
+        ? [{ value: "web" as const, label: "Open Control UI (advanced)" }]
+        : []),
       { value: "later", label: "Finish without launching" },
     ];
 
@@ -466,6 +462,10 @@ export async function finalizeSetupWizard(
       }
       launchedTui = true;
     } else if (hatchChoice === "web") {
+      const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
+      if (!controlUiAssets.ok && controlUiAssets.message) {
+        runtime.error(controlUiAssets.message);
+      }
       const browserSupport = await detectBrowserOpenSupport();
       if (browserSupport.ok) {
         controlUiOpened = await openUrl(authedUrl);
@@ -485,7 +485,7 @@ export async function finalizeSetupWizard(
       }
       await prompter.note(
         [
-          `Dashboard link (with token): ${authedUrl}`,
+          `Control UI link (with token): ${authedUrl}`,
           controlUiOpened
             ? "Opened in your browser."
             : "Copy/paste this URL in a browser on this machine.",
@@ -493,11 +493,18 @@ export async function finalizeSetupWizard(
         ]
           .filter(Boolean)
           .join("\n"),
-        "Dashboard ready",
+        "Control UI ready",
       );
     } else {
       await prompter.note(
-        `When you're ready: ${formatCliCommand("kova dashboard --no-open")}`,
+        [
+          `Start terminal chat: ${formatCliCommand("kova chat")}`,
+          controlUiEnabled
+            ? `Advanced Control UI: ${formatCliCommand("kova dashboard --no-open")}`
+            : undefined,
+        ]
+          .filter(Boolean)
+          .join("\n"),
         "Launch later",
       );
     }
@@ -523,10 +530,15 @@ export async function finalizeSetupWizard(
   const shouldOpenControlUi =
     !opts.skipUi &&
     gatewayProbe.ok &&
+    controlUiEnabled &&
     settings.authMode === "token" &&
     Boolean(settings.gatewayToken) &&
     hatchChoice === null;
   if (shouldOpenControlUi) {
+    const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
+    if (!controlUiAssets.ok && controlUiAssets.message) {
+      runtime.error(controlUiAssets.message);
+    }
     const browserSupport = await detectBrowserOpenSupport();
     if (browserSupport.ok) {
       controlUiOpened = await openUrl(authedUrl);
@@ -547,7 +559,7 @@ export async function finalizeSetupWizard(
 
     await prompter.note(
       [
-        `Dashboard link (with token): ${authedUrl}`,
+        `Control UI link (with token): ${authedUrl}`,
         controlUiOpened
           ? "Opened in your browser."
           : "Copy/paste this URL in a browser on this machine.",
@@ -555,7 +567,7 @@ export async function finalizeSetupWizard(
       ]
         .filter(Boolean)
         .join("\n"),
-      "Dashboard ready",
+      "Control UI ready",
     );
   }
 
@@ -678,10 +690,10 @@ export async function finalizeSetupWizard(
 
   await prompter.outro(
     controlUiOpened
-      ? "Kova is ready. Dashboard opened in your browser."
-      : seededInBackground
-        ? "Kova is ready. Dashboard was prepared in the background."
-        : "Kova is ready. Use the links above when you are ready.",
+      ? "Kova is ready. Control UI opened in your browser."
+      : launchedTui
+        ? "Kova terminal chat is ready."
+        : "Kova is ready. Start with `kova chat` when you are ready.",
   );
 
   return { launchedTui };

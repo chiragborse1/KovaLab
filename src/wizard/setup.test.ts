@@ -449,7 +449,6 @@ describe("runSetupWizard", () => {
         flow: "quickstart",
         authChoice: "skip",
         installDaemon: false,
-        skipProviders: true,
         skipSkills: true,
         skipSearch: true,
         skipHealth: true,
@@ -478,7 +477,6 @@ describe("runSetupWizard", () => {
         flow: "quickstart",
         authChoice: "skip",
         installDaemon: false,
-        skipProviders: true,
         skipSkills: true,
         skipSearch: true,
         skipHealth: true,
@@ -652,6 +650,34 @@ describe("runSetupWizard", () => {
     }
   });
 
+  it("keeps quick setup terminal-first by skipping channel setup unless requested", async () => {
+    setupChannels.mockClear();
+    const note: WizardPrompter["note"] = vi.fn(async () => {});
+    const prompter = buildWizardPrompter({ note });
+    const runtime = createRuntime();
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "quickstart",
+        authChoice: "skip",
+        installDaemon: false,
+        skipSkills: true,
+        skipSearch: true,
+        skipHealth: true,
+        skipUi: true,
+      },
+      runtime,
+      prompter,
+    );
+
+    expect(setupChannels).not.toHaveBeenCalled();
+    expect(note).toHaveBeenCalledWith(
+      expect.stringContaining("first run terminal-only"),
+      "Channels",
+    );
+  });
+
   it("defers channel setup plugin loads during quick setup until a channel is selected", async () => {
     const prompter = buildWizardPrompter({});
     const runtime = createRuntime();
@@ -662,7 +688,6 @@ describe("runSetupWizard", () => {
         flow: "quickstart",
         authChoice: "skip",
         installDaemon: false,
-        skipProviders: true,
         skipChannels: false,
         skipSkills: true,
         skipSearch: true,

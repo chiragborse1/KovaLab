@@ -1,12 +1,15 @@
 ---
-summary: "Gateway dashboard (Control UI) access and auth"
+summary: "Optional Control UI access and auth"
 read_when:
   - Changing dashboard authentication or exposure modes
 title: "Dashboard"
 ---
 
-The Gateway dashboard is the browser Control UI served at `/` by default
+The Dashboard command opens the optional browser Control UI served at `/` by default
 (override with `gateway.controlUi.basePath`).
+
+For day-to-day chat, use `kova chat`. This page is for the advanced browser
+operator surface.
 
 Quick open (local Gateway):
 
@@ -35,10 +38,10 @@ Do not expose it publicly. The UI keeps dashboard URL tokens in sessionStorage
 for the current browser tab session and selected gateway URL, and strips them from the URL after load.
 Prefer localhost, Tailscale Serve, or an SSH tunnel.
 
-## Fast path (recommended)
+## Open the Control UI
 
-- After onboarding, the CLI auto-opens the dashboard and prints a clean (non-tokenized) link.
 - Re-open anytime: `kova dashboard` (copies link, opens browser if possible, shows SSH hint if headless).
+- Onboarding offers this only as an advanced option after terminal chat.
 - If the UI prompts for shared-secret auth, paste the configured token or
   password into Control UI settings.
 

@@ -1,19 +1,20 @@
 ---
 summary: "CLI reference for `kova onboard` (interactive onboarding)"
 read_when:
-  - You want guided setup for gateway, workspace, auth, channels, and skills
+  - You want guided setup for terminal chat, workspace, auth, memory, and skills
 title: "Onboard"
 ---
 
 # `kova onboard`
 
-Interactive onboarding for local or remote Kova Gateway setup.
+Interactive onboarding for the terminal-first Kova agent setup.
 
 The interactive flow starts with a Kova Setup screen, then walks through setup
-type, workspace, model, Gateway access, chat channels, web search, skills,
-hooks, and where to start first.
+type, workspace, model, Gateway access, web search, skills, hooks, and where to
+start first. Quick setup starts in terminal chat; channels and the browser
+Control UI are optional follow-up surfaces.
 
-After a valid config exists, plain `kova onboard` opens the settings dashboard
+After a valid config exists, plain `kova onboard` opens terminal settings
 instead of repeating first-run onboarding. Pass explicit onboarding flags such
 as `--flow quickstart`, `--reset`, or `--non-interactive` when you need the
 full setup path again.
@@ -48,13 +49,14 @@ kova onboard --flow quickstart
 kova onboard --flow manual
 kova onboard --flow import
 kova onboard --import-from hermes --import-source ~/.hermes
+kova onboard --with-channels
 kova onboard --skip-bootstrap
 kova onboard --mode remote --remote-url wss://gateway-host:18789
 ```
 
 `--flow import` uses plugin-owned migration providers such as Hermes. It only runs against a fresh Kova setup; if existing config, credentials, sessions, or workspace memory/identity files are present, reset or choose a fresh setup before importing.
 
-`kova settings` is the normal post-onboarding control surface for model,
+`kova settings` is the normal post-onboarding terminal control surface for model,
 workspace, Gateway, channels, memory, browser tools, voice, web search, skills,
 plugins, background service, health checks, and theme. `--modern` starts the
 Crestodian conversational onboarding preview. Without `--modern`, first-run
@@ -191,7 +193,7 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: Quick setup, minimal prompts, auto-generates a Gateway token.
+    - `quickstart`: Quick setup, minimal prompts, terminal chat first, auto-generates a Gateway token.
     - `manual`: Custom setup, full prompts for port, bind, and auth (alias of `advanced`).
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
@@ -210,7 +212,8 @@ kova onboard --non-interactive \
   </Accordion>
   <Accordion title="Other behaviors">
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
-    - Fastest first chat: `kova dashboard` (browser dashboard, no channel setup).
+    - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
+    - Quick setup skips channels by default. Use `--with-channels`, custom setup, or `kova channels add` when you want Kova on chat platforms.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

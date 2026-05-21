@@ -1,5 +1,5 @@
 ---
-summary: "Terminal UI (TUI): connect to the Gateway or run locally in embedded mode"
+summary: "Terminal UI (TUI): run Kova locally or connect to the Gateway"
 read_when:
   - You want a beginner-friendly walkthrough of the TUI
   - You need the complete list of TUI features, commands, and shortcuts
@@ -7,6 +7,28 @@ title: "TUI"
 ---
 
 ## Quick start
+
+### Local mode
+
+Run the terminal product without a Gateway:
+
+```bash
+kova chat
+# or
+kova tui --local
+```
+
+This is the default interactive path. It uses the embedded agent runtime
+directly, so first chat does not depend on the Gateway, a browser, or any chat
+channel.
+
+Notes:
+
+- `kova chat` and `kova terminal` are aliases for `kova tui --local`.
+- `--local` cannot be combined with `--url`, `--token`, or `--password`.
+- Most local tools work in embedded mode, but Gateway-only remote delivery features are unavailable.
+- `kova` and `kova crestodian` also use this TUI shell, with Crestodian as the local setup and repair chat backend.
+- Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 
 ### Gateway mode
 
@@ -32,26 +54,9 @@ kova tui --url ws://<host>:<port> --token <gateway-token>
 
 Use `--password` if your Gateway uses password auth.
 
-### Local mode
-
-Run the TUI without a Gateway:
-
-```bash
-kova chat
-# or
-kova tui --local
-```
-
-Notes:
-
-- `kova chat` and `kova terminal` are aliases for `kova tui --local`.
-- `--local` cannot be combined with `--url`, `--token`, or `--password`.
-- Local mode uses the embedded agent runtime directly. Most local tools work, but Gateway-only features are unavailable.
-- `kova` and `kova crestodian` also use this TUI shell, with Crestodian as the local setup and repair chat backend.
-
 ## What you see
 
-- Header: Kova hero panel with connection state, current agent/session, model, token count, and live tools/skills summary.
+- Header: compact runtime strip with connection state, current agent/session, model, token count, tools, and skills.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
 - Footer: connection state + agent + session + model + think/fast/verbose/trace/reasoning + token counts + deliver.

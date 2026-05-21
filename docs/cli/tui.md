@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `kova tui` (Gateway-backed or local embedded terminal UI)"
+summary: "CLI reference for `kova tui` and `kova chat`"
 read_when:
   - You want a terminal UI for the Gateway (remote-friendly)
   - You want to pass url/token/session from scripts
@@ -10,8 +10,8 @@ title: "TUI"
 
 # `kova tui`
 
-Open the terminal UI connected to the Gateway, or run it in local embedded
-mode.
+Open Kova's terminal UI. `kova chat` is the default local embedded path; `kova
+tui` can also connect to a running Gateway for remote or always-on sessions.
 
 Related:
 
@@ -20,6 +20,7 @@ Related:
 Notes:
 
 - `chat` and `terminal` are aliases for `kova tui --local`.
+- Local mode is the fastest first chat path and does not require the Gateway or Control UI.
 - `--local` cannot be combined with `--url`, `--token`, or `--password`.
 - `tui` resolves configured gateway auth SecretRefs for token/password auth when possible (`env`/`file`/`exec` providers).
 - When launched from inside a configured agent workspace directory, TUI auto-selects that agent for the session key default (unless `--session` is explicitly `agent:<id>:...`).

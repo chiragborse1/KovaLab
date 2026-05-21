@@ -50,26 +50,6 @@ const DEFAULT_STATE: KovaHeroState = {
   skills: [],
 };
 
-const KOVA_BANNER = [
-  "██╗  ██╗ ██████╗ ██╗   ██╗ █████╗",
-  "██║ ██╔╝██╔═══██╗██║   ██║██╔══██╗",
-  "█████╔╝ ██║   ██║██║   ██║███████║",
-  "██╔═██╗ ██║   ██║╚██╗ ██╔╝██╔══██║",
-  "██║  ██╗╚██████╔╝ ╚████╔╝ ██║  ██║",
-  "╚═╝  ╚═╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝",
-];
-
-const KOVA_MARK = [
-  "        /\\",
-  "       /  \\",
-  "   ___/____\\___",
-  "      ( o  o )",
-  "       \\_==_/",
-  "       /|  |\\",
-  "      //|  |\\\\",
-  "        /__\\",
-];
-
 function countTools(groups: KovaHeroToolGroup[]): number {
   return groups.reduce((sum, group) => sum + group.tools.length, 0);
 }
@@ -85,6 +65,10 @@ function clipped(text: string, width: number): string {
 
 function frameLine(left: string, right: string, leftWidth: number, rightWidth: number): string {
   return `${padVisible(left, leftWidth)}  ${padVisible(right, rightWidth)}`;
+}
+
+function statLine(label: string, value: string): string {
+  return `${theme.accentSoft(`${label}:`)} ${value}`;
 }
 
 function formatToolGroups(groups: KovaHeroToolGroup[], maxRows: number): string[] {
@@ -171,28 +155,22 @@ export class KovaHero implements Component {
     const toolCount = countTools(this.state.toolGroups);
     const skillCount = this.state.skills.length;
     const lines = [
-      theme.header(`KOVA AGENT v${VERSION}`),
+      theme.header(`KOVA TERMINAL v${VERSION}`),
       theme.dim(
         `${this.state.connectionStatus} | agent ${this.state.agentLabel} | session ${this.state.sessionLabel}`,
       ),
-      theme.accent(
-        `${String(toolCount)} tools · ${String(skillCount)} skills · /help for commands`,
-      ),
+      theme.accent(`${String(toolCount)} tools | ${String(skillCount)} skills | /help`),
     ];
     return lines.map((line) => clipped(line, width));
   }
 
   private renderFull(width: number): string[] {
     const innerWidth = Math.max(1, width - 4);
-    const leftWidth = Math.max(24, Math.min(36, Math.floor(innerWidth * 0.28)));
+    const leftWidth = Math.max(28, Math.min(44, Math.floor(innerWidth * 0.38)));
     const rightWidth = Math.max(20, innerWidth - leftWidth - 2);
-    const title = ` ${this.state.title} v${VERSION} · ${this.state.connectionStatus} `;
+    const title = ` KOVA TERMINAL v${VERSION} | ${this.state.connectionStatus} `;
     const topRight = Math.max(0, width - 2 - visibleWidth(title));
     const lines: string[] = [];
-
-    for (const bannerLine of KOVA_BANNER) {
-      lines.push(clipped(theme.header(bannerLine), width));
-    }
 
     lines.push(
       theme.border(
@@ -201,23 +179,27 @@ export class KovaHero implements Component {
     );
 
     const leftRows = [
-      ...KOVA_MARK.map((line) => theme.accent(line)),
+      theme.header(this.state.title),
+      theme.dim("terminal-first local agent runtime"),
       "",
-      theme.accentSoft(`agent: ${this.state.agentLabel}`),
-      theme.dim(`session: ${this.state.sessionLabel}`),
-      theme.dim(`model: ${this.state.modelLabel}`),
-      theme.dim(`tokens: ${this.state.tokenLabel}`),
-      theme.dim(`link: ${this.state.connection}`),
+      statLine("agent", this.state.agentLabel),
+      statLine("session", this.state.sessionLabel),
+      statLine("model", this.state.modelLabel),
+      statLine("context", this.state.tokenLabel),
+      statLine("activity", this.state.activityStatus),
+      statLine("link", this.state.connection),
+      "",
+      theme.dim("/help | /models | /sessions | /settings"),
     ];
     const rightRows = [
-      theme.header("Available Tools"),
-      ...formatToolGroups(this.state.toolGroups, 8),
+      theme.header("Tool Surface"),
+      ...formatToolGroups(this.state.toolGroups, 5),
       "",
-      theme.header("Available Skills"),
-      ...formatSkills(this.state.skills, 8),
+      theme.header("Skill Surface"),
+      ...formatSkills(this.state.skills, 5),
       "",
       theme.accent(
-        `${String(countTools(this.state.toolGroups))} tools · ${String(this.state.skills.length)} skills · /help for commands`,
+        `${String(countTools(this.state.toolGroups))} tools | ${String(this.state.skills.length)} skills | terminal first`,
       ),
       ...(this.state.catalogStatus ? [theme.dim(this.state.catalogStatus)] : []),
     ];

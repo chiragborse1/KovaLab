@@ -66,7 +66,7 @@ kova gateway --port 18789
 
 Now message the assistant number from your allowlisted phone.
 
-When onboarding finishes, Kova auto-opens the dashboard and prints a clean (non-tokenized) link. If the dashboard prompts for auth, paste the configured shared secret into Control UI settings. Onboarding uses a token by default (`gateway.auth.token`), but password auth works too if you switched `gateway.auth.mode` to `password`. To reopen later: `kova dashboard`.
+When onboarding finishes, Kova offers terminal chat first. Start or return to it anytime with `kova chat`. The browser Control UI is optional; if it prompts for auth, paste the configured shared secret into Control UI settings. Onboarding uses a token by default (`gateway.auth.token`), but password auth works too if you switched `gateway.auth.mode` to `password`. To open the advanced browser surface later: `kova dashboard`.
 
 ## Give the agent a workspace (AGENTS)
 
