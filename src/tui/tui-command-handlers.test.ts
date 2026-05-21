@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCommandHandlers } from "./tui-command-handlers.js";
+import type { QueuedMessage } from "./tui-types.js";
 
 type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runAuthFlow"]>;
@@ -27,6 +28,7 @@ function createHarness(params?: {
   isConnected?: boolean;
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
+  busyInputMode?: "queue" | "interrupt";
   opts?: { local?: boolean };
 }) {
   const sendChat = params?.sendChat ?? vi.fn().mockResolvedValue({ runId: "r1" });
@@ -57,6 +59,8 @@ function createHarness(params?: {
     currentSessionKey: "agent:main:main",
     activeChatRunId: params?.activeChatRunId ?? null,
     pendingOptimisticUserMessage: params?.pendingOptimisticUserMessage ?? false,
+    busyInputMode: params?.busyInputMode ?? "queue",
+    queuedMessages: [] as QueuedMessage[],
     isConnected: params?.isConnected ?? true,
     sessionInfo: {},
   };
@@ -295,6 +299,69 @@ describe("tui command handlers", () => {
         message: "/btw what changed?",
       }),
     );
+  });
+
+  it("queues normal messages while a run is active by default", async () => {
+    const setActivityStatus = vi.fn();
+    const { handleCommand, sendChat, addUser, addSystem, state } = createHarness({
+      activeChatRunId: "run-main",
+      setActivityStatus,
+    });
+
+    await handleCommand("second prompt");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).not.toHaveBeenCalled();
+    expect(state.queuedMessages).toHaveLength(1);
+    expect(state.queuedMessages[0]?.text).toBe("second prompt");
+    expect(addSystem).toHaveBeenCalledWith(
+      "run active; queued follow-up (1). /busy status shows the queue.",
+    );
+    expect(setActivityStatus).toHaveBeenCalledWith("1 queued follow-up");
+  });
+
+  it("can switch busy input to interrupt mode", async () => {
+    const { handleCommand, addSystem, state } = createHarness({
+      activeChatRunId: "run-main",
+    });
+
+    await handleCommand("/busy interrupt");
+
+    expect(state.busyInputMode).toBe("interrupt");
+    expect(addSystem).toHaveBeenCalledWith(
+      "busy input set to interrupt; new messages replace the active run",
+    );
+  });
+
+  it("sends active-run messages immediately in interrupt mode", async () => {
+    const { handleCommand, sendChat, addUser, state } = createHarness({
+      activeChatRunId: "run-main",
+      busyInputMode: "interrupt",
+    });
+
+    await handleCommand("replace current");
+
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "replace current",
+      }),
+    );
+    expect(addUser).toHaveBeenCalledWith("replace current");
+    expect(state.queuedMessages).toHaveLength(0);
+  });
+
+  it("clears queued busy follow-ups", async () => {
+    const { handleCommand, addSystem, state } = createHarness();
+    state.queuedMessages.push({
+      runId: "queued-1",
+      text: "later",
+      mode: "followUp",
+    });
+
+    await handleCommand("/busy clear");
+
+    expect(state.queuedMessages).toEqual([]);
+    expect(addSystem).toHaveBeenCalledWith("cleared 1 queued follow-up");
   });
 
   it("creates unique session for /new and resets shared session for /reset", async () => {

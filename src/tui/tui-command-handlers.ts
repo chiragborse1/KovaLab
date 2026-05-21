@@ -22,6 +22,8 @@ import { formatStatusSummary } from "./tui-status-summary.js";
 import type {
   AgentSummary,
   GatewayStatusSummary,
+  QueuedMessage,
+  TuiBusyInputMode,
   TuiResult,
   TuiOptions,
   TuiStateAccess,
@@ -58,6 +60,21 @@ function isBtwCommand(text: string): boolean {
   return /^\/btw(?::|\s|$)/i.test(text.trim());
 }
 
+function normalizeBusyInputMode(value: string): TuiBusyInputMode | null {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "queue" || normalized === "followup" || normalized === "follow-up") {
+    return "queue";
+  }
+  if (normalized === "interrupt" || normalized === "abort") {
+    return "interrupt";
+  }
+  return null;
+}
+
+function formatQueuedFollowUpCount(count: number): string {
+  return `${count} queued follow-up${count === 1 ? "" : "s"}`;
+}
+
 export function createCommandHandlers(context: CommandHandlerContext) {
   const {
     client,
@@ -82,6 +99,56 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     runAuthFlow,
     requestExit,
   } = context;
+
+  const getQueuedMessages = () => {
+    if (!Array.isArray(state.queuedMessages)) {
+      state.queuedMessages = [];
+    }
+    return state.queuedMessages;
+  };
+
+  const getBusyInputMode = (): TuiBusyInputMode => state.busyInputMode ?? "queue";
+
+  const queueMessage = (text: string, origin: "busy" | "manual" = "manual") => {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return false;
+    }
+    const queued: QueuedMessage = {
+      runId: `queued-${randomUUID()}`,
+      text: trimmed,
+      mode: "followUp",
+    };
+    const queue = getQueuedMessages();
+    queue.push(queued);
+    state.queuedMessages = queue;
+    const count = queue.length;
+    const prefix = origin === "busy" ? "run active; " : "";
+    chatLog.addSystem(`${prefix}queued follow-up (${count}). /busy status shows the queue.`);
+    setActivityStatus(formatQueuedFollowUpCount(count));
+    tui.requestRender();
+    return true;
+  };
+
+  const dequeueQueuedMessage = () => {
+    const queue = getQueuedMessages();
+    const next = queue.pop();
+    state.queuedMessages = queue;
+    const count = queue.length;
+    setActivityStatus(next ? `restored queued follow-up (${count} left)` : "no queued follow-ups");
+    tui.requestRender();
+    return next?.text ?? null;
+  };
+
+  const clearQueuedMessages = () => {
+    const count = getQueuedMessages().length;
+    state.queuedMessages = [];
+    chatLog.addSystem(
+      count ? `cleared ${formatQueuedFollowUpCount(count)}` : "no queued follow-ups",
+    );
+    setActivityStatus("queue cleared");
+    tui.requestRender();
+  };
 
   const setAgent = async (id: string) => {
     state.currentAgentId = normalizeAgentId(id);
@@ -562,6 +629,34 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       }
+      case "busy": {
+        const action = args || "status";
+        if (action === "status") {
+          chatLog.addSystem(
+            `busy input: ${getBusyInputMode()}; ${formatQueuedFollowUpCount(
+              getQueuedMessages().length,
+            )}`,
+          );
+          break;
+        }
+        if (action === "clear") {
+          clearQueuedMessages();
+          break;
+        }
+        const nextMode = normalizeBusyInputMode(action);
+        if (!nextMode) {
+          chatLog.addSystem("usage: /busy status|queue|interrupt|clear");
+          break;
+        }
+        state.busyInputMode = nextMode;
+        chatLog.addSystem(
+          nextMode === "queue"
+            ? "busy input set to queue; new messages wait for the active run to finish"
+            : "busy input set to interrupt; new messages replace the active run",
+        );
+        setActivityStatus(`busy ${nextMode}`);
+        break;
+      }
       case "new":
         try {
           // Clear token counts immediately to avoid stale display (#1523)
@@ -606,13 +701,13 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         requestExit();
         break;
       default:
-        await sendMessage(raw);
+        await sendMessage(raw, { queueIfBusy: !raw.trim().startsWith("/") });
         break;
     }
     tui.requestRender();
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, options?: { queueIfBusy?: boolean }) => {
     if (!state.isConnected) {
       chatLog.addSystem(
         opts.local
@@ -624,6 +719,16 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       return;
     }
     const isBtw = isBtwCommand(text);
+    const queueIfBusy = options?.queueIfBusy ?? true;
+    if (
+      !isBtw &&
+      queueIfBusy &&
+      getBusyInputMode() === "queue" &&
+      (state.activeChatRunId || state.pendingOptimisticUserMessage)
+    ) {
+      queueMessage(text, "busy");
+      return;
+    }
     const runId = randomUUID();
     try {
       if (!isBtw) {
@@ -668,6 +773,8 @@ export function createCommandHandlers(context: CommandHandlerContext) {
   return {
     handleCommand,
     sendMessage,
+    queueMessage,
+    dequeueQueuedMessage,
     openModelSelector,
     openAgentSelector,
     openSessionSelector,

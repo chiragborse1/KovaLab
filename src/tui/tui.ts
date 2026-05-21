@@ -43,8 +43,10 @@ import {
 } from "./tui-submit.js";
 import type {
   AgentSummary,
+  QueuedMessage,
   SessionInfo,
   SessionScope,
+  TuiBusyInputMode,
   TuiOptions,
   TuiResult,
   TuiStateAccess,
@@ -344,6 +346,8 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let currentSessionId: string | null = null;
   let activeChatRunId: string | null = null;
   let pendingOptimisticUserMessage = false;
+  let busyInputMode: TuiBusyInputMode = "queue";
+  let queuedMessages: QueuedMessage[] = [];
   let historyLoaded = false;
   let isConnected = false;
   let wasDisconnected = false;
@@ -424,6 +428,18 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     },
     set pendingOptimisticUserMessage(value) {
       pendingOptimisticUserMessage = value;
+    },
+    get busyInputMode() {
+      return busyInputMode;
+    },
+    set busyInputMode(value) {
+      busyInputMode = value ?? "queue";
+    },
+    get queuedMessages() {
+      return queuedMessages;
+    },
+    set queuedMessages(value) {
+      queuedMessages = Array.isArray(value) ? value : [];
     },
     get historyLoaded() {
       return historyLoaded;
@@ -1023,6 +1039,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       fast ? "fast" : null,
       verbose !== "off" ? `verbose ${verbose}` : null,
       reasoningLabel,
+      queuedMessages.length > 0 ? `queue ${queuedMessages.length}` : null,
       tokens,
     ].filter(Boolean);
     footer.setText(theme.dim(footerParts.join(" | ")));
@@ -1111,31 +1128,65 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   };
   exitAwareClient.setRequestExitHandler?.(() => requestExit());
 
-  const { handleCommand, sendMessage, openModelSelector, openAgentSelector, openSessionSelector } =
-    createCommandHandlers({
-      client,
-      chatLog,
-      tui,
-      opts,
-      state,
-      deliverDefault,
-      openOverlay,
-      closeOverlay,
-      refreshSessionInfo,
-      applySessionInfoFromPatch,
-      loadHistory,
-      setSession,
-      refreshAgents,
-      abortActive,
-      setActivityStatus,
-      formatSessionKey,
-      noteLocalRunId,
-      noteLocalBtwRunId,
-      forgetLocalRunId,
-      forgetLocalBtwRunId,
-      runAuthFlow,
-      requestExit,
-    });
+  const {
+    handleCommand,
+    sendMessage,
+    queueMessage,
+    dequeueQueuedMessage,
+    openModelSelector,
+    openAgentSelector,
+    openSessionSelector,
+  } = createCommandHandlers({
+    client,
+    chatLog,
+    tui,
+    opts,
+    state,
+    deliverDefault,
+    openOverlay,
+    closeOverlay,
+    refreshSessionInfo,
+    applySessionInfoFromPatch,
+    loadHistory,
+    setSession,
+    refreshAgents,
+    abortActive,
+    setActivityStatus,
+    formatSessionKey,
+    noteLocalRunId,
+    noteLocalBtwRunId,
+    forgetLocalRunId,
+    forgetLocalBtwRunId,
+    runAuthFlow,
+    requestExit,
+  });
+
+  let drainingQueuedMessage = false;
+  const drainQueuedMessages = async () => {
+    if (
+      drainingQueuedMessage ||
+      activeChatRunId ||
+      pendingOptimisticUserMessage ||
+      queuedMessages.length === 0
+    ) {
+      return;
+    }
+    const next = queuedMessages.shift();
+    if (!next) {
+      return;
+    }
+    drainingQueuedMessage = true;
+    updateFooter();
+    try {
+      await sendMessage(next.text);
+    } finally {
+      drainingQueuedMessage = false;
+      updateFooter();
+      if (!activeChatRunId && !pendingOptimisticUserMessage && queuedMessages.length > 0) {
+        void drainQueuedMessages();
+      }
+    }
+  };
 
   const { runLocalShellLine } = createLocalShellRunner({
     chatLog,
@@ -1209,6 +1260,28 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     showThinking = !showThinking;
     void loadHistory();
   };
+  editor.onAltEnter = () => {
+    const value = editor.getText().trim();
+    if (!value) {
+      setActivityStatus("no follow-up to queue");
+      tui.requestRender();
+      return;
+    }
+    editor.setText("");
+    editor.addToHistory(value);
+    queueMessage(value, "manual");
+    updateFooter();
+    if (!activeChatRunId && !pendingOptimisticUserMessage) {
+      void drainQueuedMessages();
+    }
+  };
+  editor.onAltUp = () => {
+    const restored = dequeueQueuedMessage();
+    if (restored) {
+      editor.setText(restored);
+    }
+    updateFooter();
+  };
 
   tui.addInputListener((data) => {
     if (!chatLog.hasVisibleBtw()) {
@@ -1225,9 +1298,20 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     return undefined;
   });
 
+  const maybeDrainQueuedMessagesAfterChatEvent = (payload: unknown) => {
+    if (!payload || typeof payload !== "object") {
+      return;
+    }
+    const stateValue = (payload as { state?: unknown }).state;
+    if (stateValue === "final" || stateValue === "aborted" || stateValue === "error") {
+      void drainQueuedMessages();
+    }
+  };
+
   client.onEvent = (evt) => {
     if (evt.event === "chat") {
       handleChatEvent(evt.payload);
+      maybeDrainQueuedMessagesAfterChatEvent(evt.payload);
     }
     if (evt.event === "chat.side_result") {
       handleBtwEvent(evt.payload);

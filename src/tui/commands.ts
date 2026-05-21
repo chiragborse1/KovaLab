@@ -15,6 +15,7 @@ const REASONING_LEVELS = ["on", "off"];
 const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
 const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
+const BUSY_LEVELS = ["status", "queue", "interrupt", "clear"];
 
 export type ParsedCommand = {
   name: string;
@@ -86,6 +87,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const usageCompletions = createLevelCompletion(USAGE_FOOTER_LEVELS);
   const elevatedCompletions = createLevelCompletion(ELEVATED_LEVELS);
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
+  const busyCompletions = createLevelCompletion(BUSY_LEVELS);
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
     { name: "gateway-status", description: "Show gateway status summary" },
@@ -149,6 +151,11 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Set group activation",
       getArgumentCompletions: activationCompletions,
     },
+    {
+      name: "busy",
+      description: "Control input while a run is active",
+      getArgumentCompletions: busyCompletions,
+    },
     { name: "abort", description: "Abort active run" },
     { name: "new", description: "Reset the session" },
     { name: "reset", description: "Reset the session" },
@@ -206,6 +213,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/elevated <on|off|ask|full>",
     "/elev <on|off|ask|full>",
     "/activation <mention|always>",
+    "/busy <status|queue|interrupt|clear>",
     "/new or /reset",
     "/abort",
     "/settings",

@@ -102,6 +102,8 @@ Use `--password` if your Gateway uses password auth.
 - Ctrl+P: session picker
 - Ctrl+O: toggle tool output expansion
 - Ctrl+T: toggle thinking visibility (reloads history)
+- Alt+Enter: queue the current input as a follow-up
+- Alt+Up: restore the most recent queued follow-up to the editor
 
 ## Terminal command center
 
@@ -135,6 +137,11 @@ Session controls:
 - `/elevated <on|off|ask|full>` (alias: `/elev`)
 - `/activation <mention|always>`
 - `/deliver <on|off>`
+- `/busy <status|queue|interrupt|clear>`
+
+Busy input defaults to `queue` in the terminal so accidental follow-ups do not
+interrupt an active local run. Use `/busy interrupt` when you explicitly want a
+new message to replace the current run.
 
 Session lifecycle:
 

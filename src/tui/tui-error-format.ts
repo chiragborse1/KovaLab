@@ -45,7 +45,10 @@ function isTransientFallbackSummary(summary: FallbackSummaryLike): boolean {
   const attempts = fallbackAttempts(summary);
   return (
     attempts.length > 0 &&
-    attempts.every((attempt) => TRANSIENT_FALLBACK_REASONS.has(String(attempt.reason ?? "")))
+    attempts.every(
+      (attempt) =>
+        typeof attempt.reason === "string" && TRANSIENT_FALLBACK_REASONS.has(attempt.reason),
+    )
   );
 }
 

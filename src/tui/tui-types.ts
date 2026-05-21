@@ -77,6 +77,8 @@ export type QueuedMessage = {
   mode: QueuedMessageMode;
 };
 
+export type TuiBusyInputMode = "queue" | "interrupt";
+
 export type GatewayStatusSummary = {
   runtimeVersion?: string | null;
   linkChannel?: {
@@ -126,6 +128,7 @@ export type TuiStateAccess = {
   currentSessionId: string | null;
   activeChatRunId: string | null;
   pendingOptimisticUserMessage?: boolean;
+  busyInputMode?: TuiBusyInputMode;
   queuedMessages?: QueuedMessage[];
   historyLoaded: boolean;
   sessionInfo: SessionInfo;
