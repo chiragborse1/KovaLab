@@ -17,7 +17,7 @@ function appendOption(args: string[], flag: string, value: string | number | und
   args.push(flag, String(value));
 }
 
-function filterTuiExecArgv(execArgv: readonly string[]): string[] {
+export function filterTuiExecArgv(execArgv: readonly string[]): string[] {
   const filtered: string[] = [];
   for (let index = 0; index < execArgv.length; index += 1) {
     const arg = execArgv[index] ?? "";

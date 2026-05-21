@@ -8,6 +8,10 @@ read_when:
 
 The CI runs on every push to `main` and every pull request. It uses smart scoping to skip expensive jobs when only unrelated areas changed. Manual `workflow_dispatch` runs intentionally bypass smart scoping and fan out the full normal CI graph for release candidates or broad validation.
 
+The Control UI build is scoped on normal push/PR runs. It runs when `ui/`, root
+package metadata, the lockfile, or the CI workflow itself changes; manual
+`workflow_dispatch` still runs it explicitly.
+
 `Full Release Validation` is the manual umbrella workflow for "run everything
 before release." It accepts a branch, tag, or full commit SHA, dispatches the
 manual `CI` workflow with that target, and dispatches `Kova Release Checks`

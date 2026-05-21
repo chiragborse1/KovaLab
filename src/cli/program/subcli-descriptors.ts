@@ -84,6 +84,12 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
+    name: "tui-local-backend",
+    description: "Run the local TUI backend worker",
+    hasSubcommands: false,
+    hidden: true,
+  },
+  {
     name: "cron",
     description: "Manage cron jobs via the Gateway scheduler",
     hasSubcommands: true,

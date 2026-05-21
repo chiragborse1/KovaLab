@@ -28,8 +28,6 @@ import { getSlashCommands } from "./commands.js";
 import { ChatLog } from "./components/chat-log.js";
 import { CustomEditor } from "./components/custom-editor.js";
 import { KovaHero } from "./components/kova-hero.js";
-import { EmbeddedTuiBackend } from "./embedded-backend.js";
-import { GatewayChatClient } from "./gateway-chat.js";
 import { editorTheme, theme } from "./theme/theme.js";
 import type { TuiBackend } from "./tui-backend.js";
 import { createCommandHandlers } from "./tui-command-handlers.js";
@@ -75,6 +73,26 @@ type RunTuiOptions = TuiOptions & {
   config?: KovaConfig;
   title?: string;
 };
+
+async function createTuiBackend(opts: RunTuiOptions): Promise<TuiBackend> {
+  if (opts.backend) {
+    return opts.backend;
+  }
+  if (opts.local) {
+    if (process.env.KOVA_TUI_IN_PROCESS_BACKEND === "1") {
+      const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+      return new EmbeddedTuiBackend();
+    }
+    const { LocalProcessTuiBackend } = await import("./local-process-backend.js");
+    return new LocalProcessTuiBackend();
+  }
+  const { GatewayChatClient } = await import("./gateway-chat.js");
+  return await GatewayChatClient.connect({
+    url: opts.url,
+    token: opts.token,
+    password: opts.password,
+  });
+}
 
 /** Resolve the absolute path to the `codex` CLI binary, or `null` if not installed. */
 export function resolveCodexCliBin(): string | null {
@@ -520,15 +538,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     localBtwRunIds.clear();
   };
 
-  const client: TuiBackend = opts.backend
-    ? opts.backend
-    : opts.local
-      ? new EmbeddedTuiBackend()
-      : await GatewayChatClient.connect({
-          url: opts.url,
-          token: opts.token,
-          password: opts.password,
-        });
+  const client = await createTuiBackend(opts);
   const previousConsoleSubsystemFilter = isLocalMode
     ? loggingState.consoleSubsystemFilter
       ? [...loggingState.consoleSubsystemFilter]

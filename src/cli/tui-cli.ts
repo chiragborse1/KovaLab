@@ -7,6 +7,19 @@ import { parseTimeoutMs } from "./parse-timeout.js";
 
 export function registerTuiCli(program: Command) {
   program
+    .command("tui-local-backend", { hidden: true })
+    .description("Run the local TUI backend worker")
+    .action(async () => {
+      try {
+        const { runEmbeddedTuiBackendStdio } = await import("../tui/local-backend-child.js");
+        await runEmbeddedTuiBackendStdio();
+      } catch (err) {
+        defaultRuntime.error(String(err));
+        defaultRuntime.exit(1);
+      }
+    });
+
+  program
     .command("tui")
     .alias("terminal")
     .alias("chat")

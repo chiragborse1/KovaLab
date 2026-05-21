@@ -24,7 +24,7 @@ Notes:
 - `--local` cannot be combined with `--url`, `--token`, or `--password`.
 - `tui` resolves configured gateway auth SecretRefs for token/password auth when possible (`env`/`file`/`exec` providers).
 - When launched from inside a configured agent workspace directory, TUI auto-selects that agent for the session key default (unless `--session` is explicitly `agent:<id>:...`).
-- Local mode uses the embedded agent runtime directly. Most local tools work, but Gateway-only features are unavailable.
+- Local mode uses an isolated local backend worker for the embedded agent runtime. Most local tools work, but Gateway-only features are unavailable.
 - Local mode adds `/auth [provider]` inside the TUI command surface.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 - `/help` opens the terminal command center with core navigation, run controls, Gateway status, tools, context, memory, skills, and plugin commands.
@@ -34,6 +34,7 @@ Notes:
 ```bash
 kova chat
 kova tui --local
+kova chat --history-limit 30
 kova tui
 kova tui --url ws://127.0.0.1:18789 --token <token>
 kova tui --session main --deliver
@@ -44,9 +45,9 @@ kova tui --session bugfix
 
 ## Config repair loop
 
-Use local mode when the current config already validates and you want the
-embedded agent to inspect it, compare it against the docs, and help repair it
-from the same terminal:
+Use local mode when the current config already validates and you want the local
+agent worker to inspect it, compare it against the docs, and help repair it from
+the same terminal:
 
 If `kova config validate` is already failing, use `kova configure` or
 `kova doctor --fix` first. `kova chat` does not bypass the invalid-

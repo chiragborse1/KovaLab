@@ -18,9 +18,9 @@ kova chat
 kova tui --local
 ```
 
-This is the default interactive path. It uses the embedded agent runtime
-directly, so first chat does not depend on the Gateway, a browser, or any chat
-channel.
+This is the default interactive path. It uses an isolated local backend worker
+for the embedded agent runtime, so first chat does not depend on the Gateway, a
+browser, or any chat channel.
 
 Notes:
 
@@ -29,6 +29,7 @@ Notes:
 - Most local tools work in embedded mode, but Gateway-only remote delivery features are unavailable.
 - `kova` and `kova crestodian` also use this TUI shell, with Crestodian as the local setup and repair chat backend.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
+- Set `KOVA_TUI_IN_PROCESS_BACKEND=1` only when debugging the legacy in-process local backend.
 
 ### Gateway mode
 

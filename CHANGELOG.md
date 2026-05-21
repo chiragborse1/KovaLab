@@ -9,6 +9,7 @@
 - CLI: add `kova control-ui` as the explicit browser admin command and move command output to Control UI wording. Thanks @chiragborse1
 - CLI/TUI: reshape `/help` into a terminal command center that surfaces Gateway status, tools, context, skills, plugin management, and run controls from one place. Thanks @chiragborse1
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
+- CLI/TUI: run local chat turns through an isolated terminal backend worker so provider, memory, and tool work no longer share the renderer event loop. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev

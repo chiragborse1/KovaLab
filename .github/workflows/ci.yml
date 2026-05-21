@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       base: ${{ steps.changed-base.outputs.base }}
+      control_ui_changed: ${{ steps.changed-base.outputs.control_ui_changed }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -47,8 +48,15 @@ jobs:
               base="HEAD"
             fi
           fi
+          changed_files="$(git diff --name-only "${base}" HEAD || true)"
+          control_ui_changed=false
+          if printf '%s\n' "${changed_files}" | grep -Eq '^(\.github/workflows/ci\.yml|package.json|pnpm-lock\.yaml|ui/)'; then
+            control_ui_changed=true
+          fi
           echo "base=${base}" >> "$GITHUB_OUTPUT"
+          echo "control_ui_changed=${control_ui_changed}" >> "$GITHUB_OUTPUT"
           echo "Using changed base: ${base}"
+          echo "Control UI changed: ${control_ui_changed}"
 
   check-changed-lanes:
     name: Check changed lanes
@@ -142,6 +150,8 @@ jobs:
   build-control-ui:
     name: Build Control UI
     runs-on: ubuntu-latest
+    needs: resolve-changed-base
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.resolve-changed-base.outputs.control_ui_changed == 'true' }}
     steps:
       - uses: actions/checkout@v6
         with:
