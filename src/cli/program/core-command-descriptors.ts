@@ -56,12 +56,6 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
-    name: "dashboard",
-    description: "Open the optional browser Control UI (legacy alias)",
-    hasSubcommands: false,
-    hidden: true,
-  },
-  {
     name: "reset",
     description: "Reset local config/state (keeps the CLI installed)",
     hasSubcommands: false,

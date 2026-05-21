@@ -562,7 +562,7 @@ describe("connectGateway", () => {
       error: {
         code: "INVALID_REQUEST",
         message:
-          "unauthorized: gateway token mismatch (open the dashboard URL and paste the token in Control UI settings)",
+          "unauthorized: gateway token mismatch (open the Control UI URL and paste the token in Control UI settings)",
         details: { code: "AUTH_TOKEN_MISMATCH" },
       },
     });

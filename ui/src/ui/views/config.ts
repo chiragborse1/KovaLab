@@ -651,7 +651,7 @@ const GUIDED_SCOPES: GuidedScopeDefinition[] = [
       },
       web: {
         title: "Web UI",
-        detail: "Dashboard web server and browser-facing settings.",
+        detail: "Control UI web server and browser-facing settings.",
         tips: ["Keep tokens enabled.", "Expose only through trusted networks."],
       },
       browser: {
@@ -1167,7 +1167,7 @@ function renderCommunicationOverview(props: ConfigProps) {
           icon: sidebarIcons.notifications,
           title: "Browser Notifications",
           status: props.webPush?.subscribed ? "Ready" : "Setup",
-          detail: "Let the web dashboard notify this browser when Kova needs attention.",
+          detail: "Let the Control UI notify this browser when Kova needs attention.",
           rows: [
             {
               label: "Browser push",

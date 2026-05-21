@@ -4,7 +4,7 @@ import { registerMaintenanceCommands } from "./register.maintenance.js";
 
 const mocks = vi.hoisted(() => ({
   doctorCommand: vi.fn(),
-  dashboardCommand: vi.fn(),
+  controlUiCommand: vi.fn(),
   resetCommand: vi.fn(),
   uninstallCommand: vi.fn(),
   runtime: {
@@ -14,14 +14,14 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-const { doctorCommand, dashboardCommand, resetCommand, uninstallCommand, runtime } = mocks;
+const { doctorCommand, controlUiCommand, resetCommand, uninstallCommand, runtime } = mocks;
 
 vi.mock("../../commands/doctor.js", () => ({
   doctorCommand: mocks.doctorCommand,
 }));
 
-vi.mock("../../commands/dashboard.js", () => ({
-  dashboardCommand: mocks.dashboardCommand,
+vi.mock("../../commands/control-ui.js", () => ({
+  controlUiCommand: mocks.controlUiCommand,
 }));
 
 vi.mock("../../commands/reset.js", () => ({
@@ -86,11 +86,11 @@ describe("registerMaintenanceCommands doctor action", () => {
   });
 
   it("passes noOpen to control-ui command", async () => {
-    dashboardCommand.mockResolvedValue(undefined);
+    controlUiCommand.mockResolvedValue(undefined);
 
     await runMaintenanceCli(["control-ui", "--no-open"]);
 
-    expect(dashboardCommand).toHaveBeenCalledWith(
+    expect(controlUiCommand).toHaveBeenCalledWith(
       runtime,
       expect.objectContaining({
         noOpen: true,
@@ -98,20 +98,7 @@ describe("registerMaintenanceCommands doctor action", () => {
     );
   });
 
-  it("keeps dashboard as a compatibility alias", async () => {
-    dashboardCommand.mockResolvedValue(undefined);
-
-    await runMaintenanceCli(["dashboard", "--no-open"]);
-
-    expect(dashboardCommand).toHaveBeenCalledWith(
-      runtime,
-      expect.objectContaining({
-        noOpen: true,
-      }),
-    );
-  });
-
-  it("hides dashboard alias from help output", () => {
+  it("does not expose dashboard in help output", () => {
     const program = new Command();
     registerMaintenanceCommands(program);
 
@@ -173,7 +160,7 @@ describe("registerMaintenanceCommands doctor action", () => {
   });
 
   it("exits with code 1 when control-ui fails", async () => {
-    dashboardCommand.mockRejectedValue(new Error("control ui failed"));
+    controlUiCommand.mockRejectedValue(new Error("control ui failed"));
 
     await runMaintenanceCli(["control-ui"]);
 

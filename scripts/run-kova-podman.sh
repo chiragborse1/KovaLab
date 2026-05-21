@@ -7,7 +7,7 @@
 #   ./scripts/run-kova-podman.sh launch setup  # Onboarding wizard
 #
 # Manage the running container from the host CLI:
-#   kova --container kova dashboard --no-open
+#   kova --container kova control-ui --no-open
 #   kova --container kova channels login
 #
 # Legacy: "setup-host" delegates to the Podman setup script
@@ -566,7 +566,7 @@ podman run --pull="$PODMAN_PULL" -d --replace \
   node dist/index.js gateway --bind "$GATEWAY_BIND" --port 18789 >/dev/null
 
 echo "Container $CONTAINER_NAME started: http://127.0.0.1:${HOST_GATEWAY_PORT}/"
-echo "podman exec -it $CONTAINER_NAME kova dashboard --no-open"
+echo "podman exec -it $CONTAINER_NAME kova control-ui --no-open"
 echo "podman exec -it $CONTAINER_NAME kova devices approve --latest  # if pairing required"
 echo "podman logs -f $CONTAINER_NAME"
 if [[ "$PLATFORM_NAME" == "Linux" ]]; then

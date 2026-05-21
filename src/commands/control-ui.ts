@@ -10,18 +10,18 @@ import {
   resolveControlUiLinks,
 } from "./onboard-helpers.js";
 
-type DashboardOptions = {
+type ControlUiOptions = {
   noOpen?: boolean;
 };
 
-function hasConfiguredDashboardSecret(value: unknown): boolean {
+function hasConfiguredControlUiSecret(value: unknown): boolean {
   if (typeof value === "string") {
     return value.trim().length > 0;
   }
   return Boolean(value && typeof value === "object");
 }
 
-function resolveDashboardAuthMode(cfg: { gateway?: unknown }): string {
+function resolveControlUiAuthMode(cfg: { gateway?: unknown }): string {
   const gateway =
     cfg.gateway && typeof cfg.gateway === "object" ? (cfg.gateway as Record<string, unknown>) : {};
   const auth =
@@ -32,18 +32,18 @@ function resolveDashboardAuthMode(cfg: { gateway?: unknown }): string {
   if (mode) {
     return mode;
   }
-  if (hasConfiguredDashboardSecret(auth.password) && !hasConfiguredDashboardSecret(auth.token)) {
+  if (hasConfiguredControlUiSecret(auth.password) && !hasConfiguredControlUiSecret(auth.token)) {
     return "password";
   }
-  if (hasConfiguredDashboardSecret(auth.token)) {
+  if (hasConfiguredControlUiSecret(auth.token)) {
     return "token";
   }
   return "";
 }
 
-export async function dashboardCommand(
+export async function controlUiCommand(
   runtime: RuntimeEnv = defaultRuntime,
-  options: DashboardOptions = {},
+  options: ControlUiOptions = {},
 ) {
   const snapshot = await readConfigFileSnapshot();
   const cfg = snapshot.valid ? (snapshot.sourceConfig ?? snapshot.config) : {};
@@ -51,7 +51,7 @@ export async function dashboardCommand(
   const bind = cfg.gateway?.bind ?? "loopback";
   const basePath = cfg.gateway?.controlUi?.basePath;
   const customBindHost = cfg.gateway?.customBindHost;
-  const authMode = resolveDashboardAuthMode(cfg);
+  const authMode = resolveControlUiAuthMode(cfg);
   const tokenAuthActive = authMode === "token";
   const resolvedToken: Awaited<ReturnType<typeof resolveGatewayAuthToken>> = tokenAuthActive
     ? await resolveGatewayAuthToken({
@@ -74,7 +74,7 @@ export async function dashboardCommand(
   // Avoid embedding externally managed SecretRef tokens in terminal/clipboard/browser args.
   const includeTokenInUrl = token.length > 0 && !resolvedToken.secretRefConfigured;
   // Prefer URL fragment to avoid leaking auth tokens via query params.
-  const dashboardUrl = includeTokenInUrl
+  const controlUiUrl = includeTokenInUrl
     ? `${links.httpUrl}#token=${encodeURIComponent(token)}`
     : links.httpUrl;
 
@@ -101,7 +101,7 @@ export async function dashboardCommand(
     );
   }
 
-  const copied = await copyToClipboard(dashboardUrl).catch(() => false);
+  const copied = await copyToClipboard(controlUiUrl).catch(() => false);
   runtime.log(copied ? "Copied to clipboard." : "Copy to clipboard unavailable.");
 
   let opened = false;
@@ -109,7 +109,7 @@ export async function dashboardCommand(
   if (!options.noOpen) {
     const browserSupport = await detectBrowserOpenSupport();
     if (browserSupport.ok) {
-      opened = await openUrl(dashboardUrl);
+      opened = await openUrl(controlUiUrl);
     }
     if (!opened) {
       hint = formatControlUiSshHint({

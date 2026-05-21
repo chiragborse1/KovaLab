@@ -1514,13 +1514,13 @@ EOF
 resolve_dashboard_url() {
   local dashboard_url
   dashboard_url="$(
-    guest_current_user_cli "$GUEST_KOVA_BIN" dashboard --no-open \
-      | awk '/^Dashboard URL: / { sub(/^Dashboard URL: /, ""); print; exit }'
+    guest_current_user_cli "$GUEST_KOVA_BIN" control-ui --no-open \
+      | awk '/^Control UI URL: / { sub(/^Control UI URL: /, ""); print; exit }'
   )"
   dashboard_url="${dashboard_url//$'\r'/}"
   dashboard_url="${dashboard_url//$'\n'/}"
   [[ -n "$dashboard_url" ]] || {
-    echo "failed to resolve dashboard URL from kova dashboard --no-open" >&2
+    echo "failed to resolve Control UI URL from kova control-ui --no-open" >&2
     return 1
   }
   printf '%s\n' "$dashboard_url"
@@ -1528,8 +1528,8 @@ resolve_dashboard_url() {
 
 verify_dashboard_load() {
   local dashboard_url dashboard_http_url dashboard_url_q dashboard_http_url_q cmd headless_flag
-  # `kova dashboard --no-open` can hang under the Tahoe Parallels transport
-  # even when the dashboard itself is healthy. Probe the local dashboard URL
+  # `kova control-ui --no-open` can hang under the Tahoe Parallels transport
+  # even when the Control UI itself is healthy. Probe the local Control UI URL
   # directly so the smoke still validates HTML readiness and browser reachability.
   dashboard_url="http://127.0.0.1:18789/"
   dashboard_http_url="$dashboard_url"

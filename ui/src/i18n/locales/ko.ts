@@ -264,7 +264,7 @@ export const ko: TranslationMap = {
       metadataUpgradeSummary:
         "이 기기는 이미 페어링되어 있지만, 메타데이터 변경은 승인을 기다리고 있습니다.",
       mobileHint:
-        "모바일에서 사용 중이신가요? 데스크톱에서 kova dashboard --no-open으로 전체 URL(#token=... 포함)을 복사하세요.",
+        "모바일에서 사용 중이신가요? 데스크톱에서 kova control-ui --no-open으로 전체 URL(#token=... 포함)을 복사하세요.",
       docsTitle: "기기 페어링 문서(새 탭에서 열림)",
       docsLink: "문서: 기기 페어링",
     },
@@ -695,11 +695,11 @@ export const ko: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

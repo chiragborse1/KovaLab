@@ -366,17 +366,17 @@ kovadock-fix-token() {
   echo -e "   Try: $(_cmd kovadock-devices)"
 }
 
-# Open dashboard in browser
-kovadock-dashboard() {
+# Open Control UI in browser
+kovadock-control-ui() {
   _kovadock_ensure_dir || return 1
 
-  echo "🦞 Getting dashboard URL..."
+  echo "🦞 Getting Control UI URL..."
   local output exit_status url
-  output=$(_kovadock_compose run --rm kova-cli dashboard --no-open 2>&1)
+  output=$(_kovadock_compose run --rm kova-cli control-ui --no-open 2>&1)
   exit_status=$?
   url=$(printf "%s\n" "$output" | _kovadock_filter_warnings | grep -o 'http[s]\?://[^[:space:]]*' | head -n 1)
   if [[ $exit_status -ne 0 ]]; then
-    echo "❌ Failed to get dashboard URL"
+    echo "❌ Failed to get Control UI URL"
     echo -e "   Try restarting: $(_cmd kovadock-restart)"
     return 1
   fi
@@ -390,7 +390,7 @@ kovadock-dashboard() {
     echo "   2. Copy the Request ID from the Pending table"
     echo -e "   3. Run: $(_cmd 'kovadock-approve <request-id>')"
   else
-    echo "❌ Failed to get dashboard URL"
+    echo "❌ Failed to get Control UI URL"
     echo -e "   Try restarting: $(_cmd kovadock-restart)"
   fi
 }
@@ -464,7 +464,7 @@ kovadock-help() {
   echo ""
 
   echo -e "${_CLR_BOLD}${_CLR_MAGENTA}🌐 Web UI & Devices${_CLR_RESET}"
-  echo -e "  $(_cmd kovadock-dashboard)   ${_CLR_DIM}Open web UI in browser ${_CLR_CYAN}(auto-guides you)${_CLR_RESET}"
+  echo -e "  $(_cmd kovadock-control-ui) ${_CLR_DIM}Open Control UI in browser ${_CLR_CYAN}(auto-guides you)${_CLR_RESET}"
   echo -e "  $(_cmd kovadock-devices)     ${_CLR_DIM}List device pairings ${_CLR_CYAN}(auto-guides you)${_CLR_RESET}"
   echo -e "  $(_cmd kovadock-approve) ${_CLR_CYAN}<id>${_CLR_RESET} ${_CLR_DIM}Approve device pairing ${_CLR_CYAN}(with examples)${_CLR_RESET}"
   echo ""
@@ -492,7 +492,7 @@ kovadock-help() {
   echo -e "${_CLR_BOLD}${_CLR_GREEN}🚀 First Time Setup${_CLR_RESET}"
   echo -e "${_CLR_CYAN}  1.${_CLR_RESET} $(_cmd kovadock-start)          ${_CLR_DIM}# Start the gateway${_CLR_RESET}"
   echo -e "${_CLR_CYAN}  2.${_CLR_RESET} $(_cmd kovadock-fix-token)      ${_CLR_DIM}# Configure token${_CLR_RESET}"
-  echo -e "${_CLR_CYAN}  3.${_CLR_RESET} $(_cmd kovadock-dashboard)      ${_CLR_DIM}# Open web UI${_CLR_RESET}"
+  echo -e "${_CLR_CYAN}  3.${_CLR_RESET} $(_cmd kovadock-control-ui)    ${_CLR_DIM}# Open Control UI${_CLR_RESET}"
   echo -e "${_CLR_CYAN}  4.${_CLR_RESET} $(_cmd kovadock-devices)        ${_CLR_DIM}# If pairing needed${_CLR_RESET}"
   echo -e "${_CLR_CYAN}  5.${_CLR_RESET} $(_cmd kovadock-approve) ${_CLR_CYAN}<id>${_CLR_RESET}   ${_CLR_DIM}# Approve pairing${_CLR_RESET}"
   echo ""

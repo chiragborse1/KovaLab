@@ -183,7 +183,7 @@ struct TailscaleIntegrationSection: View {
         if let host = self.effectiveService.tailscaleHostname {
             let url = "https://\(host)/ui/"
             HStack(spacing: 8) {
-                Text("Dashboard URL:")
+                Text("Control UI URL:")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if let link = URL(string: url) {

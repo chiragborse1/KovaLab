@@ -106,13 +106,13 @@ function renderAuthHint(props: ConnectionPanelProps) {
       <div class="muted" style="margin-top: 8px">
         ${t("overview.auth.required")}
         <div style="margin-top: 6px">
-          <span class="mono">kova dashboard --no-open</span> → tokenized URL<br />
+          <span class="mono">kova control-ui --no-open</span> → tokenized URL<br />
           <span class="mono">kova doctor --generate-gateway-token</span> → set token
         </div>
         <div style="margin-top: 6px">
           <a
             class="session-link"
-            href="https://docs.neuralstudio.in/web/dashboard"
+            href="https://docs.neuralstudio.in/web/control-ui"
             target=${EXTERNAL_LINK_TARGET}
             rel=${buildExternalLinkRel()}
             title=${t("overview.connection.authDocsTitle")}
@@ -124,11 +124,11 @@ function renderAuthHint(props: ConnectionPanelProps) {
   }
   return html`
     <div class="muted" style="margin-top: 8px">
-      ${t("overview.auth.failed", { command: "kova dashboard --no-open" })}
+      ${t("overview.auth.failed", { command: "kova control-ui --no-open" })}
       <div style="margin-top: 6px">
         <a
           class="session-link"
-          href="https://docs.neuralstudio.in/web/dashboard"
+          href="https://docs.neuralstudio.in/web/control-ui"
           target=${EXTERNAL_LINK_TARGET}
           rel=${buildExternalLinkRel()}
           title=${t("overview.connection.authDocsTitle")}
@@ -329,11 +329,11 @@ export function renderConnectionPanel(props: ConnectionPanelProps) {
                 <strong>${t("overview.connection.title")}</strong>
                 <span>${t("overview.connection.step2")}</span>
               </div>
-              ${renderConnectCommand("kova dashboard")}
+              ${renderConnectCommand("kova control-ui")}
               <div class="ov-access-note__links">
                 <a
                   class="session-link"
-                  href="https://docs.neuralstudio.in/web/dashboard"
+                  href="https://docs.neuralstudio.in/web/control-ui"
                   target="_blank"
                   rel="noreferrer"
                   >${t("overview.connection.docsLink")}</a

@@ -265,7 +265,7 @@ export const es: TranslationMap = {
       metadataUpgradeSummary:
         "Este dispositivo ya está emparejado, pero el cambio de metadatos está pendiente de aprobación.",
       mobileHint:
-        "¿En el móvil? Copia la URL completa (incluyendo #token=...) desde kova dashboard --no-open en tu escritorio.",
+        "¿En el móvil? Copia la URL completa (incluyendo #token=...) desde kova control-ui --no-open en tu escritorio.",
       docsTitle: "Documentación de emparejamiento de dispositivos (se abre en una pestaña nueva)",
       docsLink: "Documentación: Emparejamiento de dispositivos",
     },
@@ -704,11 +704,11 @@ export const es: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

@@ -269,7 +269,7 @@ export const ja_JP: TranslationMap = {
       metadataUpgradeSummary:
         "このデバイスはすでにペアリングされていますが、メタデータの変更は承認待ちです。",
       mobileHint:
-        "モバイルを使用していますか？ デスクトップで kova dashboard --no-open から完全な URL（#token=... を含む）をコピーしてください。",
+        "モバイルを使用していますか？ デスクトップで kova control-ui --no-open から完全な URL（#token=... を含む）をコピーしてください。",
       docsTitle: "デバイスのペアリングに関するドキュメント（新しいタブで開きます）",
       docsLink: "ドキュメント: デバイスのペアリング",
     },
@@ -702,11 +702,11 @@ export const ja_JP: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

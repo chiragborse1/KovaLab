@@ -267,7 +267,7 @@ export const uk: TranslationMap = {
       metadataUpgradeSummary:
         "Цей пристрій уже сполучено, але зміна метаданих очікує на схвалення.",
       mobileHint:
-        "На мобільному? Скопіюйте повний URL (включно з #token=...) з kova dashboard --no-open на вашому комп’ютері.",
+        "На мобільному? Скопіюйте повний URL (включно з #token=...) з kova control-ui --no-open на вашому комп’ютері.",
       docsTitle: "Документація щодо сполучення пристроїв (відкривається в новій вкладці)",
       docsLink: "Документація: Сполучення пристроїв",
     },
@@ -703,11 +703,11 @@ export const uk: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

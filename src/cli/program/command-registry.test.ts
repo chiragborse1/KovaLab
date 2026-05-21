@@ -22,7 +22,6 @@ vi.mock("./register.maintenance.js", () => ({
   registerMaintenanceCommands: (program: Command) => {
     program.command("doctor");
     program.command("control-ui");
-    program.command("dashboard");
     program.command("reset");
     program.command("uninstall");
   },
@@ -143,7 +142,7 @@ describe("command-registry", () => {
     expect(names.length).toBeGreaterThan(1);
   });
 
-  it("hides legacy dashboard placeholder from root help", () => {
+  it("does not expose the removed dashboard placeholder in root help", () => {
     const program = createProgram();
     registerCoreCliCommands(program, testProgramContext, ["node", "kova", "--help"]);
 
@@ -160,7 +159,7 @@ describe("command-registry", () => {
     const names = getCoreCliCommandNames();
     expect(names).toContain("doctor");
     expect(names).toContain("control-ui");
-    expect(names).toContain("dashboard");
+    expect(names).not.toContain("dashboard");
     expect(names).toContain("reset");
     expect(names).toContain("uninstall");
     expect(names).not.toContain("maintenance");
@@ -186,8 +185,8 @@ describe("command-registry", () => {
     registerCoreCliCommands(program, testProgramContext, ["node", "kova", "doctor"]);
     expect(namesOf(program)).toEqual(["doctor"]);
 
-    const found = await registerCoreCliByName(program, testProgramContext, "dashboard");
+    const found = await registerCoreCliByName(program, testProgramContext, "control-ui");
     expect(found).toBe(true);
-    expect(namesOf(program)).toEqual(["doctor", "control-ui", "dashboard", "reset", "uninstall"]);
+    expect(namesOf(program)).toEqual(["doctor", "control-ui", "reset", "uninstall"]);
   });
 });

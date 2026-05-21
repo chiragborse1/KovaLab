@@ -257,7 +257,7 @@ export const th: TranslationMap = {
       metadataUpgradeTitle: "การเปลี่ยนแปลงข้อมูลเมตาของอุปกรณ์รอการอนุมัติ",
       metadataUpgradeSummary: "อุปกรณ์นี้จับคู่แล้ว แต่การเปลี่ยนแปลงข้อมูลเมตากำลังรอการอนุมัติ",
       mobileHint:
-        "ใช้งานบนมือถืออยู่หรือไม่? คัดลอก URL แบบเต็ม (รวม #token=...) จาก kova dashboard --no-open บนเดสก์ท็อปของคุณ",
+        "ใช้งานบนมือถืออยู่หรือไม่? คัดลอก URL แบบเต็ม (รวม #token=...) จาก kova control-ui --no-open บนเดสก์ท็อปของคุณ",
       docsTitle: "เอกสารการจับคู่อุปกรณ์ (เปิดในแท็บใหม่)",
       docsLink: "เอกสาร: การจับคู่อุปกรณ์",
     },
@@ -677,7 +677,7 @@ export const th: TranslationMap = {
     },
   },
   login: {
-    subtitle: "Gateway Dashboard",
+    subtitle: "Gateway Control UI",
     brand: "Kova Control",
     heroAria: "Kova gateway connection overview",
     trustAria: "Kova access guarantees",
@@ -686,11 +686,11 @@ export const th: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

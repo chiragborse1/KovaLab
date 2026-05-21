@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { dashboardCommand } from "../../commands/dashboard.js";
+import { controlUiCommand } from "../../commands/control-ui.js";
 import { doctorCommand } from "../../commands/doctor.js";
 import { resetCommand } from "../../commands/reset.js";
 import { uninstallCommand } from "../../commands/uninstall.js";
@@ -8,23 +8,19 @@ import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { runCommandWithRuntime } from "../cli-utils.js";
 
-function registerControlUiCommand(program: Command, name: "control-ui" | "dashboard") {
+function registerControlUiCommand(program: Command) {
   program
-    .command(name, name === "dashboard" ? { hidden: true } : {})
-    .description(
-      name === "dashboard"
-        ? "Open the Control UI with your current token (legacy alias)"
-        : "Open the Control UI with your current token",
-    )
+    .command("control-ui")
+    .description("Open the Control UI with your current token")
     .addHelpText(
       "after",
       () =>
-        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/dashboard", "docs.neuralstudio.in/cli/dashboard")}\n`,
+        `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/control-ui", "docs.neuralstudio.in/cli/control-ui")}\n`,
     )
     .option("--no-open", "Print URL but do not launch a browser")
     .action(async (opts) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
-        await dashboardCommand(defaultRuntime, {
+        await controlUiCommand(defaultRuntime, {
           noOpen: opts.open === false,
         });
       });
@@ -63,8 +59,7 @@ export function registerMaintenanceCommands(program: Command) {
       });
     });
 
-  registerControlUiCommand(program, "control-ui");
-  registerControlUiCommand(program, "dashboard");
+  registerControlUiCommand(program);
 
   program
     .command("reset")

@@ -266,7 +266,7 @@ export const pl: TranslationMap = {
       metadataUpgradeSummary:
         "To urządzenie jest już sparowane, ale zmiana metadanych oczekuje na zatwierdzenie.",
       mobileHint:
-        "Na urządzeniu mobilnym? Skopiuj pełny URL (w tym #token=...) z kova dashboard --no-open na komputerze.",
+        "Na urządzeniu mobilnym? Skopiuj pełny URL (w tym #token=...) z kova control-ui --no-open na komputerze.",
       docsTitle: "Dokumentacja parowania urządzeń (otwiera się w nowej karcie)",
       docsLink: "Dokumentacja: Parowanie urządzeń",
     },
@@ -704,11 +704,11 @@ export const pl: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

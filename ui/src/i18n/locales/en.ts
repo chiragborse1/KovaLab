@@ -261,7 +261,7 @@ export const en: TranslationMap = {
       metadataUpgradeSummary:
         "This device is already paired, but the metadata change is waiting for approval.",
       mobileHint:
-        "On mobile? Copy the full URL (including #token=...) from the Kova desktop command: kova dashboard --no-open.",
+        "On mobile? Copy the full URL (including #token=...) from the Kova desktop command: kova control-ui --no-open.",
       docsTitle: "Device pairing docs (opens in new tab)",
       docsLink: "Docs: Device pairing",
     },
@@ -272,7 +272,7 @@ export const en: TranslationMap = {
     connection: {
       title: "Connection link",
       step1: "Start the gateway on your host machine:",
-      step2: "Get a tokenized dashboard URL:",
+      step2: "Get a tokenized Control UI URL:",
       step3: "Paste the WebSocket URL and token above, or open the tokenized URL directly.",
       step4: "Or generate a reusable token:",
       docsHint: "For remote access, Tailscale Serve is recommended. ",
@@ -529,7 +529,7 @@ export const en: TranslationMap = {
     empty: {
       title: "Start with a date range",
       subtitle:
-        "Load usage data to compare costs, inspect sessions, and drill into timelines without leaving the dashboard.",
+        "Load usage data to compare costs, inspect sessions, and drill into timelines without leaving the Control UI.",
       hint: "Select a date range and click Refresh to load usage.",
       noData: "No data",
       featureOverview: "Overview cards",
@@ -685,7 +685,7 @@ export const en: TranslationMap = {
     },
   },
   login: {
-    subtitle: "Gateway Dashboard",
+    subtitle: "Gateway Control UI",
     brand: "Kova Control",
     heroAria: "Kova gateway connection overview",
     trustAria: "Kova access guarantees",
@@ -694,10 +694,10 @@ export const en: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle: "Paste your gateway URL and one secret. Nothing is stored permanently.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

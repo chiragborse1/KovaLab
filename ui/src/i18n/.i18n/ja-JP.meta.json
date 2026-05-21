@@ -17,12 +17,12 @@
     "subtitles.controlPanel",
     "tabs.controlPanel"
   ],
-  "generatedAt": "2026-05-14T14:28:05.884Z",
+  "generatedAt": "2026-05-21T08:58:18.341Z",
   "locale": "ja-JP",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "c90cdcb0cfc246fc184c4a91dcfee2facf6476644640092783bb259d1cc86db1",
-  "totalKeys": 779,
-  "translatedKeys": 763,
+  "sourceHash": "b1907e043c45347e88addf5e1cd8752d28afcf93f096b625fc81b00c3958f5d3",
+  "totalKeys": 781,
+  "translatedKeys": 765,
   "workflow": 1
 }

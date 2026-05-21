@@ -41,7 +41,7 @@ vi.mock("../runtime.js", () => ({
   defaultRuntime: runtime,
 }));
 
-const { dashboardCommand } = await import("../commands/dashboard.js");
+const { controlUiCommand } = await import("../commands/control-ui.js");
 const { registerQrCli } = await import("./qr-cli.js");
 
 function createGatewayTokenRefFixture() {
@@ -106,7 +106,7 @@ async function runCli(args: string[]): Promise<void> {
   await program.parseAsync(args, { from: "user" });
 }
 
-describe("cli integration: qr + dashboard token SecretRef", () => {
+describe("cli integration: qr + control-ui token SecretRef", () => {
   let envSnapshot: ReturnType<typeof captureEnv>;
 
   beforeAll(() => {
@@ -148,7 +148,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
 
     runtimeLogs.length = 0;
     runtimeErrors.length = 0;
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
     const joined = runtimeLogs.join("\n");
     expect(joined).toContain("Control UI URL: http://127.0.0.1:18789/");
     expect(joined).not.toContain("#token=");
@@ -176,7 +176,7 @@ describe("cli integration: qr + dashboard token SecretRef", () => {
 
     runtimeLogs.length = 0;
     runtimeErrors.length = 0;
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
     const joined = runtimeLogs.join("\n");
     expect(joined).toContain("Control UI URL: http://127.0.0.1:18789/");
     expect(joined).not.toContain("#token=");

@@ -6,10 +6,10 @@
 
 - CLI/TUI: make quick onboarding terminal-first by skipping chat channels by default, launching `kova chat`, and treating the browser Control UI as an optional advanced surface. Thanks @chiragborse1
 - CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat`, demoting Dashboard wording to optional Control UI, and adding chat-first next steps. Thanks @chiragborse1
-- CLI: add `kova control-ui` as the explicit browser admin command while keeping `kova dashboard` as a compatibility alias and moving command output to Control UI wording. Thanks @chiragborse1
+- CLI: add `kova control-ui` as the explicit browser admin command and move command output to Control UI wording. Thanks @chiragborse1
 - CLI/TUI: reshape `/help` into a terminal command center that surfaces Gateway status, tools, context, skills, plugin management, and run controls from one place. Thanks @chiragborse1
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
-- CLI: hide the legacy `kova dashboard` alias from help and onboarding while pointing Control UI launch hints at `kova control-ui --no-open`. Thanks @chiragborse1
+- CLI: remove the legacy `kova dashboard` alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin

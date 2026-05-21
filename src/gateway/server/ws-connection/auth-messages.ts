@@ -17,7 +17,7 @@ export function formatGatewayAuthFailureMessage(params: {
   const isCli = isGatewayCliClient(client);
   const isControlUi = isOperatorUiClient(client);
   const isWebchat = isWebchatClient(client);
-  const uiHint = "open the dashboard URL and paste the token in Control UI settings";
+  const uiHint = "open the Control UI URL and paste the token in Control UI settings";
   const tokenHint = isCli
     ? "set gateway.remote.token to match gateway.auth.token"
     : isControlUi || isWebchat

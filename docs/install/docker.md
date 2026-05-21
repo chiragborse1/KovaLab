@@ -295,7 +295,7 @@ echo 'source ~/.kovadock/kovadock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
 
 If you installed KovaDock from the older `scripts/shell-helpers/kovadock-helpers.sh` raw path, rerun the install command above so your local helper file tracks the new location.
 
-Then use `kovadock-start`, `kovadock-stop`, `kovadock-dashboard`, etc. Run
+Then use `kovadock-start`, `kovadock-stop`, `kovadock-control-ui`, etc. Run
 `kovadock-help` for all commands.
 See [KovaDock](/install/kovadock) for the full helper guide.
 

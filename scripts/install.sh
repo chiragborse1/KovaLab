@@ -2283,7 +2283,7 @@ run_doctor() {
     ui_success "Doctor complete"
 }
 
-maybe_open_dashboard() {
+maybe_open_control_ui() {
     local kova_bin="${KOVA_BIN:-}"
     if [[ -z "$kova_bin" ]]; then
         kova_bin="$(resolve_kova_bin || true)"
@@ -2291,10 +2291,10 @@ maybe_open_dashboard() {
     if [[ -z "$kova_bin" ]]; then
         return 0
     fi
-    if ! "$kova_bin" dashboard --help >/dev/null 2>&1; then
+    if ! "$kova_bin" control-ui --help >/dev/null 2>&1; then
         return 0
     fi
-    "$kova_bin" dashboard || true
+    "$kova_bin" control-ui || true
 }
 
 resolve_workspace_dir() {
@@ -2790,7 +2790,7 @@ main() {
     fi
 
     if [[ "$should_open_dashboard" == "true" ]]; then
-        maybe_open_dashboard
+        maybe_open_control_ui
     fi
 
     show_footer_links

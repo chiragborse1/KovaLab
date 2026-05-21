@@ -269,7 +269,7 @@ export const de: TranslationMap = {
       metadataUpgradeSummary:
         "Dieses Gerät ist bereits gekoppelt, aber die Änderung der Metadaten wartet auf Genehmigung.",
       mobileHint:
-        "Auf dem Mobilgerät? Kopieren Sie die vollständige URL (einschließlich #token=...) von kova dashboard --no-open auf Ihrem Desktop.",
+        "Auf dem Mobilgerät? Kopieren Sie die vollständige URL (einschließlich #token=...) von kova control-ui --no-open auf Ihrem Desktop.",
       docsTitle: "Gerätekopplungs-Dokumentation (öffnet sich in neuem Tab)",
       docsLink: "Docs: Gerätekopplung",
     },
@@ -704,11 +704,11 @@ export const de: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",

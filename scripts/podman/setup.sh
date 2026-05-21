@@ -460,4 +460,4 @@ echo
 echo "Next:"
 echo "  ./scripts/run-kova-podman.sh launch"
 echo "  ./scripts/run-kova-podman.sh launch setup"
-echo "  kova --container $KOVA_CONTAINER_NAME dashboard --no-open"
+echo "  kova --container $KOVA_CONTAINER_NAME control-ui --no-open"

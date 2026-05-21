@@ -19,7 +19,7 @@ kova control-ui --no-open
 Notes:
 
 - `control-ui` resolves configured `gateway.auth.token` SecretRefs when token auth is active.
-- Older scripts can still call the hidden compatibility alias, but new flows and docs use `control-ui`.
+- The old `dashboard` CLI alias is no longer registered; scripts should call `control-ui`.
 - If `gateway.auth.mode` is `"password"`, the command opens/copies a plain URL; enter the gateway password in Control UI settings.
 - The command follows `gateway.tls.enabled`: TLS-enabled gateways print/open
   `https://` Control UI URLs and connect over `wss://`.

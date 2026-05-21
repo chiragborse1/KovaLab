@@ -772,7 +772,7 @@ function buildAttentionItems(host: SettingsAppHost) {
       title: "Missing operator.read scope",
       description:
         "This connection does not have the operator.read scope. Some features may be unavailable.",
-      href: "https://docs.neuralstudio.in/web/dashboard",
+      href: "https://docs.neuralstudio.in/web/control-ui",
       external: true,
     });
   }

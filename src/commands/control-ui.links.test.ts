@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { dashboardCommand } from "./dashboard.js";
+import { controlUiCommand } from "./control-ui.js";
 
 const readConfigFileSnapshotMock = vi.hoisted(() => vi.fn());
 const resolveGatewayPortMock = vi.hoisted(() => vi.fn());
@@ -61,7 +61,7 @@ function mockSnapshot(token: unknown = "abc", authOverrides: Record<string, unkn
   resolveSecretRefValuesMock.mockReset();
 }
 
-describe("dashboardCommand", () => {
+describe("controlUiCommand", () => {
   beforeEach(() => {
     resetRuntime();
     readConfigFileSnapshotMock.mockClear();
@@ -81,7 +81,7 @@ describe("dashboardCommand", () => {
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
     openUrlMock.mockResolvedValue(true);
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(resolveControlUiLinksMock).toHaveBeenCalledWith({
       port: 18789,
@@ -105,7 +105,7 @@ describe("dashboardCommand", () => {
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
     openUrlMock.mockResolvedValue(true);
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     // Clipboard and browser should still receive the tokenized URL.
     expect(copyToClipboardMock).toHaveBeenCalledWith(
@@ -135,7 +135,7 @@ describe("dashboardCommand", () => {
     });
     formatControlUiSshHintMock.mockReturnValue("ssh hint");
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(openUrlMock).not.toHaveBeenCalled();
     expect(runtime.log).toHaveBeenCalledWith("ssh hint");
@@ -150,7 +150,7 @@ describe("dashboardCommand", () => {
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
     openUrlMock.mockResolvedValue(true);
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(copyToClipboardMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
     expect(openUrlMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
@@ -169,7 +169,7 @@ describe("dashboardCommand", () => {
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: false, reason: "ssh" });
     formatControlUiSshHintMock.mockReturnValue("ssh hint without token");
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     // formatControlUiSshHint must NOT receive the token — the returned
     // hint string is written to runtime.log, which flows into the same
@@ -191,7 +191,7 @@ describe("dashboardCommand", () => {
     mockSnapshot("abc");
     copyToClipboardMock.mockResolvedValue(true);
 
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
 
     expect(detectBrowserOpenSupportMock).not.toHaveBeenCalled();
     expect(openUrlMock).not.toHaveBeenCalled();
@@ -204,7 +204,7 @@ describe("dashboardCommand", () => {
     mockSnapshot("abc");
     copyToClipboardMock.mockResolvedValue(false);
 
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
 
     expect(runtime.log).toHaveBeenCalledWith(
       "Browser launch disabled (--no-open). Use the URL above.",
@@ -222,7 +222,7 @@ describe("dashboardCommand", () => {
     openUrlMock.mockResolvedValue(true);
     resolveSecretRefValuesMock.mockRejectedValue(new Error("missing env var"));
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(copyToClipboardMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
     expect(runtime.log).toHaveBeenCalledWith(
@@ -248,7 +248,7 @@ describe("dashboardCommand", () => {
     openUrlMock.mockResolvedValue(true);
     resolveSecretRefValuesMock.mockRejectedValue(new Error("missing env var"));
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(copyToClipboardMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
     expect(openUrlMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
@@ -266,7 +266,7 @@ describe("dashboardCommand", () => {
     detectBrowserOpenSupportMock.mockResolvedValue({ ok: true });
     openUrlMock.mockResolvedValue(true);
 
-    await dashboardCommand(runtime);
+    await controlUiCommand(runtime);
 
     expect(copyToClipboardMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");
     expect(openUrlMock).toHaveBeenCalledWith("http://127.0.0.1:18789/");

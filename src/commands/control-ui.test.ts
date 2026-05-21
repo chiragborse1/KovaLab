@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GatewayBindMode } from "../config/types.gateway.js";
-import { dashboardCommand } from "./dashboard.js";
+import { controlUiCommand } from "./control-ui.js";
 
 const mocks = vi.hoisted(() => ({
   readConfigFileSnapshot: vi.fn(),
@@ -61,7 +61,7 @@ function mockSnapshot(params?: {
   mocks.copyToClipboard.mockResolvedValue(true);
 }
 
-describe("dashboardCommand Control UI bind selection", () => {
+describe("controlUiCommand bind selection", () => {
   beforeEach(() => {
     mocks.readConfigFileSnapshot.mockClear();
     mocks.resolveGatewayPort.mockClear();
@@ -78,7 +78,7 @@ describe("dashboardCommand Control UI bind selection", () => {
   ])("$label for Control UI URLs", async ({ snapshot }) => {
     mockSnapshot(snapshot);
 
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
 
     expect(mocks.resolveControlUiLinks).toHaveBeenCalledWith({
       port: 18789,
@@ -92,7 +92,7 @@ describe("dashboardCommand Control UI bind selection", () => {
   it("preserves custom bind mode", async () => {
     mockSnapshot({ bind: "custom", customBindHost: "10.0.0.5" });
 
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
 
     expect(mocks.resolveControlUiLinks).toHaveBeenCalledWith({
       port: 18789,
@@ -106,7 +106,7 @@ describe("dashboardCommand Control UI bind selection", () => {
   it("preserves tailnet bind mode", async () => {
     mockSnapshot({ bind: "tailnet" });
 
-    await dashboardCommand(runtime, { noOpen: true });
+    await controlUiCommand(runtime, { noOpen: true });
 
     expect(mocks.resolveControlUiLinks).toHaveBeenCalledWith({
       port: 18789,

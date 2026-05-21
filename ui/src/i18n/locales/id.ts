@@ -265,7 +265,7 @@ export const id: TranslationMap = {
       metadataUpgradeSummary:
         "Perangkat ini sudah dipasangkan, tetapi perubahan metadata sedang menunggu persetujuan.",
       mobileHint:
-        "Di seluler? Salin URL lengkap (termasuk #token=...) dari kova dashboard --no-open di desktop Anda.",
+        "Di seluler? Salin URL lengkap (termasuk #token=...) dari kova control-ui --no-open di desktop Anda.",
       docsTitle: "Dokumentasi pemasangan perangkat (dibuka di tab baru)",
       docsLink: "Dokumentasi: Pemasangan perangkat",
     },
@@ -699,11 +699,11 @@ export const id: TranslationMap = {
       "Connect to your Gateway, keep shared secrets in-session, and open the control surface only when the host is ready.",
     panelTitle: "Connect to Kova",
     panelSubtitle:
-      "Use the tokenized dashboard URL from your host, or paste the Gateway details here.",
-    quickHint: "Need a fresh link? Run kova dashboard on the gateway host.",
+      "Use the tokenized Control UI URL from your host, or paste the Gateway details here.",
+    quickHint: "Need a fresh link? Run kova control-ui on the gateway host.",
     visualGateway: "Gateway",
     visualSession: "Session",
-    visualDashboard: "Dashboard",
+    visualDashboard: "Control UI",
     trustLocal: "Local-first",
     trustAuth: "Token or password",
     trustNetwork: "Tailscale-ready",
