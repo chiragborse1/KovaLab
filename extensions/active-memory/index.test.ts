@@ -51,8 +51,15 @@ describe("active-memory plugin", () => {
     agents: ["main"],
     logging: true,
   };
-  const syncRuntimePluginConfig = (nextPluginConfig: Record<string, unknown>) => {
-    pluginConfig = nextPluginConfig;
+  const syncRuntimePluginConfig = (
+    nextPluginConfig: Record<string, unknown>,
+    opts: { injectBlockingMode?: boolean } = {},
+  ) => {
+    const effectivePluginConfig =
+      opts.injectBlockingMode === false
+        ? nextPluginConfig
+        : { recallMode: "blocking", ...nextPluginConfig };
+    pluginConfig = effectivePluginConfig;
     const plugins = configFile.plugins as Record<string, unknown> | undefined;
     const entries = plugins?.entries as Record<string, unknown> | undefined;
     const existingEntry = entries?.["active-memory"] as Record<string, unknown> | undefined;
@@ -65,7 +72,7 @@ describe("active-memory plugin", () => {
           "active-memory": {
             ...existingEntry,
             enabled: true,
-            config: nextPluginConfig,
+            config: effectivePluginConfig,
           },
         },
       },
@@ -162,6 +169,7 @@ describe("active-memory plugin", () => {
 
   afterEach(async () => {
     vi.useRealTimers();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     vi.restoreAllMocks();
     if (stateDir) {
       await fs.rm(stateDir, { recursive: true, force: true });
@@ -171,6 +179,47 @@ describe("active-memory plugin", () => {
 
   it("registers a before_prompt_build hook", () => {
     expect(api.on).toHaveBeenCalledWith("before_prompt_build", expect.any(Function));
+  });
+
+  it("keeps default recall off the prompt hot path when cache is cold", async () => {
+    syncRuntimePluginConfig(
+      {
+        agents: ["main"],
+        logging: true,
+      },
+      { injectBlockingMode: false },
+    );
+    plugin.register(api as unknown as KovaPluginApi);
+
+    const result = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? cache-first", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:cache-first",
+        messageProvider: "webchat",
+      },
+    );
+
+    expect(result).toBeUndefined();
+    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+    expect(hoisted.updateSessionStore).not.toHaveBeenCalled();
+
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(1));
+
+    const cachedResult = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? cache-first", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:cache-first",
+        messageProvider: "webchat",
+      },
+    );
+
+    expect(cachedResult).toEqual({
+      prependContext: expect.stringContaining("lemon pepper wings"),
+    });
   });
 
   it("runs recall without recording shared auth-profile failures", async () => {
@@ -659,7 +708,7 @@ describe("active-memory plugin", () => {
     });
   });
 
-  it("frames the blocking memory subagent as a memory search agent for another model", async () => {
+  it("frames the memory recall worker as a memory search agent for another model", async () => {
     await hooks.before_prompt_build(
       {
         prompt: "What is my favorite food? strict-style-check",
@@ -892,7 +941,7 @@ describe("active-memory plugin", () => {
     expect((result as { prependContext: string }).prependContext).toContain("2% milk");
   });
 
-  it("preserves canonical parent session scope in the blocking memory subagent session key", async () => {
+  it("preserves canonical parent session scope in the memory recall worker session key", async () => {
     await hooks.before_prompt_build(
       { prompt: "what should i grab on the way?", messages: [] },
       {

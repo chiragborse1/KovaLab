@@ -32,6 +32,7 @@ const DEFAULT_MAX_CACHE_ENTRIES = 1000;
 const CACHE_SWEEP_INTERVAL_MS = 1000;
 const DEFAULT_MIN_TIMEOUT_MS = 250;
 const DEFAULT_QUERY_MODE = "recent" as const;
+const DEFAULT_RECALL_MODE = "cache-first" as const;
 const DEFAULT_QMD_SEARCH_MODE = "search" as const;
 const DEFAULT_TRANSCRIPT_DIR = "active-memory";
 const TOGGLE_STATE_FILE = "session-toggles.json";
@@ -78,6 +79,7 @@ type ActiveRecallPluginConfig = {
   promptOverride?: string;
   promptAppend?: string;
   timeoutMs?: number;
+  recallMode?: ActiveMemoryRecallMode;
   queryMode?: "message" | "recent" | "full";
   maxSummaryChars?: number;
   recentUserTurns?: number;
@@ -94,6 +96,7 @@ type ActiveRecallPluginConfig = {
 };
 
 type ActiveMemoryQmdSearchMode = "inherit" | "search" | "vsearch" | "query";
+type ActiveMemoryRecallMode = "cache-first" | "blocking";
 
 type ResolvedActiveRecallPluginConfig = {
   enabled: boolean;
@@ -113,6 +116,7 @@ type ResolvedActiveRecallPluginConfig = {
   promptOverride?: string;
   promptAppend?: string;
   timeoutMs: number;
+  recallMode: ActiveMemoryRecallMode;
   queryMode: "message" | "recent" | "full";
   maxSummaryChars: number;
   recentUserTurns: number;
@@ -152,7 +156,7 @@ type ActiveMemorySearchDebug = {
 
 type ActiveRecallResult =
   | {
-      status: "empty" | "timeout" | "unavailable";
+      status: "empty" | "timeout" | "unavailable" | "scheduled";
       elapsedMs: number;
       summary: string | null;
       searchDebug?: ActiveMemorySearchDebug;
@@ -179,6 +183,7 @@ type ActiveMemoryToggleStore = {
 type AsyncLock = <T>(task: () => Promise<T>) => Promise<T>;
 
 const toggleStoreLocks = new Map<string, AsyncLock>();
+const activeRecallInFlight = new Set<string>();
 let lastActiveRecallCacheSweepAt = 0;
 let minimumTimeoutMs = DEFAULT_MIN_TIMEOUT_MS;
 
@@ -279,6 +284,10 @@ function resolveQmdSearchMode(value: unknown): ActiveMemoryQmdSearchMode {
     return value;
   }
   return DEFAULT_QMD_SEARCH_MODE;
+}
+
+function resolveRecallMode(value: unknown): ActiveMemoryRecallMode {
+  return value === "blocking" ? "blocking" : DEFAULT_RECALL_MODE;
 }
 
 function hasDeprecatedModelFallbackPolicy(pluginConfig: unknown): boolean {
@@ -637,6 +646,7 @@ function normalizePluginConfig(pluginConfig: unknown): ResolvedActiveRecallPlugi
       minimumTimeoutMs,
       120_000,
     ),
+    recallMode: resolveRecallMode(raw.recallMode),
     queryMode:
       raw.queryMode === "message" || raw.queryMode === "recent" || raw.queryMode === "full"
         ? raw.queryMode
@@ -1076,6 +1086,43 @@ function buildPluginStatusLine(params: {
     parts.push(`summary=${params.result.summary.length} chars`);
   }
   return parts.join(" ");
+}
+
+function buildActiveRecallLogContext(params: {
+  api: KovaPluginApi;
+  config: ResolvedActiveRecallPluginConfig;
+  agentId: string;
+  sessionKey?: string;
+  sessionId?: string;
+  query: string;
+  currentModelProviderId?: string;
+  currentModelId?: string;
+}): {
+  cacheKey: string;
+  resolvedModelRef?: { provider: string; model: string };
+  logPrefix: string;
+} {
+  const cacheKey = buildCacheKey({
+    agentId: params.agentId,
+    sessionKey: params.sessionKey,
+    sessionId: params.sessionId,
+    query: params.query,
+  });
+  const resolvedModelRef = getModelRef(params.api, params.agentId, params.config, {
+    modelProviderId: params.currentModelProviderId,
+    modelId: params.currentModelId,
+  });
+  const logPrefix = [
+    `active-memory: agent=${toSingleLineLogValue(params.agentId)}`,
+    `session=${toSingleLineLogValue(params.sessionKey ?? params.sessionId ?? "none")}`,
+    ...(resolvedModelRef?.provider
+      ? [`activeProvider=${toSingleLineLogValue(resolvedModelRef.provider)}`]
+      : []),
+    ...(resolvedModelRef?.model
+      ? [`activeModel=${toSingleLineLogValue(resolvedModelRef.model)}`]
+      : []),
+  ].join(" ");
+  return { cacheKey, resolvedModelRef, logPrefix };
 }
 
 function buildPluginDebugLine(params: {
@@ -1770,27 +1817,8 @@ async function maybeResolveActiveRecall(params: {
   currentModelId?: string;
 }): Promise<ActiveRecallResult> {
   const startedAt = Date.now();
-  const cacheKey = buildCacheKey({
-    agentId: params.agentId,
-    sessionKey: params.sessionKey,
-    sessionId: params.sessionId,
-    query: params.query,
-  });
+  const { cacheKey, resolvedModelRef, logPrefix } = buildActiveRecallLogContext(params);
   const cached = getCachedResult(cacheKey);
-  const resolvedModelRef = getModelRef(params.api, params.agentId, params.config, {
-    modelProviderId: params.currentModelProviderId,
-    modelId: params.currentModelId,
-  });
-  const logPrefix = [
-    `active-memory: agent=${toSingleLineLogValue(params.agentId)}`,
-    `session=${toSingleLineLogValue(params.sessionKey ?? params.sessionId ?? "none")}`,
-    ...(resolvedModelRef?.provider
-      ? [`activeProvider=${toSingleLineLogValue(resolvedModelRef.provider)}`]
-      : []),
-    ...(resolvedModelRef?.model
-      ? [`activeModel=${toSingleLineLogValue(resolvedModelRef.model)}`]
-      : []),
-  ].join(" ");
   if (cached) {
     await persistPluginStatusLines({
       api: params.api,
@@ -1949,6 +1977,97 @@ async function maybeResolveActiveRecall(params: {
   }
 }
 
+function scheduleBackgroundActiveRecall(params: {
+  api: KovaPluginApi;
+  config: ResolvedActiveRecallPluginConfig;
+  agentId: string;
+  sessionKey?: string;
+  sessionId?: string;
+  messageProvider?: string;
+  channelId?: string;
+  query: string;
+  currentModelProviderId?: string;
+  currentModelId?: string;
+  cacheKey: string;
+  logPrefix: string;
+}): boolean {
+  if (activeRecallInFlight.has(params.cacheKey)) {
+    return false;
+  }
+  activeRecallInFlight.add(params.cacheKey);
+  const timer = setTimeout(() => {
+    void maybeResolveActiveRecall(params)
+      .catch((error: unknown) => {
+        const message = toSingleLineLogValue(
+          error instanceof Error ? error.message : String(error),
+        );
+        params.api.logger.warn?.(`${params.logPrefix} background failed error=${message}`);
+      })
+      .finally(() => {
+        activeRecallInFlight.delete(params.cacheKey);
+      });
+  }, 0);
+  timer.unref?.();
+  return true;
+}
+
+async function resolveCachedOrScheduleActiveRecall(params: {
+  api: KovaPluginApi;
+  config: ResolvedActiveRecallPluginConfig;
+  agentId: string;
+  sessionKey?: string;
+  sessionId?: string;
+  messageProvider?: string;
+  channelId?: string;
+  query: string;
+  currentModelProviderId?: string;
+  currentModelId?: string;
+}): Promise<ActiveRecallResult> {
+  const { cacheKey, resolvedModelRef, logPrefix } = buildActiveRecallLogContext(params);
+  const cached = getCachedResult(cacheKey);
+  if (cached) {
+    await persistPluginStatusLines({
+      api: params.api,
+      agentId: params.agentId,
+      sessionKey: params.sessionKey,
+      statusLine: `${buildPluginStatusLine({ result: cached, config: params.config })} cached`,
+      debugSummary: cached.summary,
+      searchDebug: cached.searchDebug,
+    });
+    if (params.config.logging) {
+      params.api.logger.info?.(
+        `${logPrefix} cached status=${cached.status} summaryChars=${String(cached.summary?.length ?? 0)} queryChars=${String(params.query.length)}`,
+      );
+    }
+    return cached;
+  }
+
+  if (!resolvedModelRef) {
+    return {
+      status: "unavailable",
+      elapsedMs: 0,
+      summary: null,
+    };
+  }
+
+  const scheduled = scheduleBackgroundActiveRecall({
+    ...params,
+    cacheKey,
+    logPrefix,
+  });
+  const result: ActiveRecallResult = {
+    status: "scheduled",
+    elapsedMs: 0,
+    summary: null,
+  };
+  if (params.config.logging) {
+    params.api.logger.info?.(
+      `${logPrefix} ${scheduled ? "scheduled" : "already scheduled"} queryChars=${String(params.query.length)}`,
+    );
+  }
+  return result;
+}
+
 export default definePluginEntry({
   id: "active-memory",
   name: "Active Memory",
@@ -2105,7 +2224,7 @@ export default definePluginEntry({
           recentTurns: extractRecentTurns(event.messages),
           config,
         });
-        const result = await maybeResolveActiveRecall({
+        const resolveParams = {
           api,
           config,
           agentId: effectiveAgentId,
@@ -2116,7 +2235,11 @@ export default definePluginEntry({
           query,
           currentModelProviderId: ctx.modelProviderId,
           currentModelId: ctx.modelId,
-        });
+        };
+        const result =
+          config.recallMode === "blocking"
+            ? await maybeResolveActiveRecall(resolveParams)
+            : await resolveCachedOrScheduleActiveRecall(resolveParams);
         if (!result.summary) {
           return undefined;
         }
@@ -2145,6 +2268,7 @@ export const __testing = {
   getCachedResult,
   resetActiveRecallCacheForTests() {
     activeRecallCache.clear();
+    activeRecallInFlight.clear();
     lastActiveRecallCacheSweepAt = 0;
     minimumTimeoutMs = DEFAULT_MIN_TIMEOUT_MS;
   },

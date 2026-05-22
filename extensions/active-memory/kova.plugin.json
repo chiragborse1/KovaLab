@@ -1,7 +1,7 @@
 {
   "id": "active-memory",
   "name": "Active Memory",
-  "description": "Runs a bounded blocking memory sub-agent before eligible conversational replies and injects relevant memory into prompt context.",
+  "description": "Runs a bounded memory recall worker for eligible conversational replies and injects cached relevant memory into prompt context.",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -29,6 +29,10 @@
         "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "adaptive"]
       },
       "timeoutMs": { "type": "integer", "minimum": 250, "maximum": 120000 },
+      "recallMode": {
+        "type": "string",
+        "enum": ["cache-first", "blocking"]
+      },
       "queryMode": {
         "type": "string",
         "enum": ["message", "recent", "full"]
@@ -78,7 +82,7 @@
     },
     "model": {
       "label": "Memory Model",
-      "help": "Provider/model used for the blocking memory sub-agent."
+      "help": "Provider/model used for the memory recall worker."
     },
     "modelFallback": {
       "label": "Fallback Memory Model",
@@ -95,17 +99,21 @@
     "timeoutMs": {
       "label": "Timeout (ms)"
     },
+    "recallMode": {
+      "label": "Recall Mode",
+      "help": "cache-first keeps the reply hot path fast and refreshes recall in the background; blocking waits for recall before the reply."
+    },
     "queryMode": {
       "label": "Query Mode",
-      "help": "Choose whether the blocking memory sub-agent sees only the latest user message, a small recent tail, or the full conversation."
+      "help": "Choose whether the memory recall worker sees only the latest user message, a small recent tail, or the full conversation."
     },
     "promptStyle": {
       "label": "Prompt Style",
-      "help": "Choose how eager or strict the blocking memory sub-agent should be when deciding whether to return memory."
+      "help": "Choose how eager or strict the memory recall worker should be when deciding whether to return memory."
     },
     "thinking": {
       "label": "Thinking Override",
-      "help": "Advanced: optional thinking level for the blocking memory sub-agent. Defaults to off for speed."
+      "help": "Advanced: optional thinking level for the memory recall worker. Defaults to off for speed."
     },
     "promptOverride": {
       "label": "Prompt Override",
@@ -125,7 +133,7 @@
     },
     "persistTranscripts": {
       "label": "Persist Transcripts",
-      "help": "Keep blocking memory sub-agent session transcripts on disk in a separate plugin-owned directory."
+      "help": "Keep memory recall worker session transcripts on disk in a separate plugin-owned directory."
     },
     "transcriptDir": {
       "label": "Transcript Directory",
@@ -133,7 +141,7 @@
     },
     "qmd.searchMode": {
       "label": "QMD Search Mode",
-      "help": "Override the QMD search mode used by the blocking memory sub-agent. Defaults to fast lexical search; use inherit to match the main memory backend setting."
+      "help": "Override the QMD search mode used by the memory recall worker. Defaults to fast lexical search; use inherit to match the main memory backend setting."
     }
   }
 }

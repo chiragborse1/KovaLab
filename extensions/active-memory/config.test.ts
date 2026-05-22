@@ -37,6 +37,36 @@ describe("active-memory manifest config schema", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts both recall modes", () => {
+    for (const recallMode of ["cache-first", "blocking"]) {
+      const result = validateJsonSchemaValue({
+        schema: manifest.configSchema,
+        cacheKey: `active-memory.manifest.recall-mode.${recallMode}`,
+        value: {
+          enabled: true,
+          agents: ["main"],
+          recallMode,
+        },
+      });
+
+      expect(result.ok).toBe(true);
+    }
+  });
+
+  it("rejects unknown recall modes", () => {
+    const result = validateJsonSchemaValue({
+      schema: manifest.configSchema,
+      cacheKey: "active-memory.manifest.recall-mode-invalid",
+      value: {
+        enabled: true,
+        agents: ["main"],
+        recallMode: "eager",
+      },
+    });
+
+    expect(result.ok).toBe(false);
+  });
+
   it("rejects timeoutMs values above the runtime ceiling", () => {
     const result = validateJsonSchemaValue({
       schema: manifest.configSchema,
