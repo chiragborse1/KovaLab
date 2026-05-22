@@ -38,6 +38,7 @@ vi.mock("../agents/pi-embedded.js", () => ({
 }));
 
 vi.mock("../agents/model-catalog.js", () => ({
+  getCachedModelCatalog: vi.fn(() => undefined),
   loadModelCatalog: vi.fn(),
 }));
 

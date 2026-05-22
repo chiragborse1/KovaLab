@@ -5,7 +5,7 @@ import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.j
 import "./agent-command.test-mocks.js";
 import { __testing as acpManagerTesting } from "../acp/control-plane/manager.js";
 import * as authProfileStoreModule from "../agents/auth-profiles/store.js";
-import { loadModelCatalog } from "../agents/model-catalog.js";
+import { getCachedModelCatalog, loadModelCatalog } from "../agents/model-catalog.js";
 import * as modelSelectionModule from "../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import * as runtimeSnapshotModule from "../config/runtime-snapshot.js";
@@ -314,6 +314,7 @@ beforeEach(() => {
   acpManagerTesting.resetAcpSessionManagerForTests();
   runtimeSnapshotModule.clearRuntimeConfigSnapshot();
   vi.mocked(runEmbeddedPiAgent).mockResolvedValue(createDefaultAgentResult());
+  vi.mocked(getCachedModelCatalog).mockReturnValue(undefined);
   vi.mocked(loadModelCatalog).mockResolvedValue([]);
   vi.mocked(modelSelectionModule.isCliProvider).mockImplementation(() => false);
   configIoMocks.readConfigFileSnapshotForWrite.mockResolvedValue({
@@ -592,7 +593,7 @@ describe("agentCommand", () => {
         },
       });
 
-      vi.mocked(loadModelCatalog).mockResolvedValueOnce([
+      vi.mocked(getCachedModelCatalog).mockReturnValueOnce([
         { id: "claude-opus-4-6", name: "Opus", provider: "anthropic" },
         { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
         { id: "gpt-5.4", name: "GPT-5.2", provider: "openai" },
@@ -650,7 +651,7 @@ describe("agentCommand", () => {
         },
       });
 
-      vi.mocked(loadModelCatalog).mockResolvedValueOnce([
+      vi.mocked(getCachedModelCatalog).mockReturnValueOnce([
         { id: "claude-opus-4-6", name: "Opus", provider: "anthropic" },
         { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
       ]);
@@ -807,7 +808,7 @@ describe("agentCommand", () => {
           "openai/gpt-4.1-mini": {},
         },
       });
-      vi.mocked(loadModelCatalog).mockResolvedValueOnce([
+      vi.mocked(getCachedModelCatalog).mockReturnValueOnce([
         {
           id: "gpt-4.1-mini",
           name: "GPT-4.1 Mini",

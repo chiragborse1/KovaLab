@@ -274,7 +274,7 @@ function formatCheckpointList(
     lines.push("No checkpoints found for this session.");
     return lines.join("\n");
   }
-  for (const checkpoint of checkpoints.slice().reverse().slice(0, 8)) {
+  for (const checkpoint of checkpoints.toReversed().slice(0, 8)) {
     const summary = checkpoint.summary?.trim() ? ` - ${truncateLine(checkpoint.summary, 84)}` : "";
     lines.push(
       `- ${checkpoint.checkpointId}: ${checkpoint.reason}, ${formatCheckpointAge(
