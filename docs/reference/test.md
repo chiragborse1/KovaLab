@@ -56,6 +56,38 @@ If `pnpm test` flakes on a loaded host, rerun once before treating it as a regre
 - `KOVA_VITEST_MAX_WORKERS=1 pnpm test`
 - `KOVA_VITEST_FS_MODULE_CACHE_PATH=/tmp/kova-vitest-cache pnpm test:changed`
 
+## Baseline Performance Bench
+
+Script: [`scripts/bench-kova-baseline.ts`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/bench-kova-baseline.ts)
+
+Use this first when measuring terminal responsiveness after runtime, provider,
+memory, plugin scan, or model-discovery changes. The default profile runs an
+isolated local `/status` TUI command turn plus a tiny CLI startup sample, then
+writes one JSON summary and per-component artifacts under
+`.artifacts/kova-baseline/`.
+
+Usage:
+
+- `pnpm bench:baseline`
+- `pnpm bench:baseline -- --profile tui --runs 5`
+- `pnpm bench:baseline -- --current-config --tui-command "/memory status"`
+- `pnpm bench:baseline -- --current-config --live-message "Reply with one word: ok."`
+- `pnpm bench:baseline -- --profile full --runs 3 --warmup 1`
+
+Profiles:
+
+- `smoke`: TUI hot path plus tiny CLI startup sample.
+- `tui`: local embedded TUI command timing only.
+- `cli`: CLI startup timing only.
+- `gateway`: Gateway startup timing with channels skipped.
+- `full`: TUI, CLI, and Gateway startup timing.
+
+Default TUI runs use an isolated temp config so benchmark output is stable and
+does not depend on local provider credentials. Pass `--current-config` when you
+want to measure the user's actual plugin, memory, provider, and model-discovery
+shape. Pass `--live-message` only when provider keys are available and real
+first-token/provider-dispatch timing is desired.
+
 ## Model latency bench (local keys)
 
 Script: [`scripts/bench-model.ts`](https://github.com/chiragborse1/KovaLab/blob/main/scripts/bench-model.ts)
