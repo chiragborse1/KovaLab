@@ -240,6 +240,7 @@ export function createMemorySearchTool(options: {
             | undefined;
           if (shouldQueryMemory && memory && !("error" in memory)) {
             const runtimeDebug: MemorySearchRuntimeDebug[] = [];
+            const activeMemoryRecall = isActiveMemorySessionKey(options.agentSessionKey);
             const qmdSearchModeOverride = resolveActiveMemoryQmdSearchModeOverride(
               cfg,
               options.agentSessionKey,
@@ -255,6 +256,7 @@ export function createMemorySearchTool(options: {
               minScore,
               sessionKey: options.agentSessionKey,
               qmdSearchModeOverride,
+              deferSearchSync: activeMemoryRecall,
               onDebug: (debug) => {
                 runtimeDebug.push(debug);
               },

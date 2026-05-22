@@ -263,6 +263,7 @@ class BorrowedMemoryManager implements MemorySearchManager {
       sessionKey?: string;
       qmdSearchModeOverride?: "query" | "search" | "vsearch";
       onDebug?: (debug: MemorySearchRuntimeDebug) => void;
+      deferSearchSync?: boolean;
       sources?: MemorySource[];
     },
   ) {
@@ -369,6 +370,7 @@ class FallbackMemoryManager implements MemorySearchManager {
       sessionKey?: string;
       qmdSearchModeOverride?: "query" | "search" | "vsearch";
       onDebug?: (debug: MemorySearchRuntimeDebug) => void;
+      deferSearchSync?: boolean;
       sources?: MemorySource[];
     },
   ) {

@@ -1068,6 +1068,7 @@ export class QmdMemoryManager implements MemorySearchManager {
       sessionKey?: string;
       qmdSearchModeOverride?: "query" | "search" | "vsearch";
       onDebug?: (debug: MemorySearchRuntimeDebug) => void;
+      deferSearchSync?: boolean;
       sources?: MemorySource[];
     },
   ): Promise<MemorySearchResult[]> {

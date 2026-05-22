@@ -71,6 +71,7 @@ export interface MemorySearchManager {
       maxResults?: number;
       minScore?: number;
       sessionKey?: string;
+      deferSearchSync?: boolean;
       sources?: MemorySource[];
     },
   ): Promise<MemorySearchResult[]>;

@@ -47,7 +47,9 @@ describe("memory_search unavailable payloads", () => {
 
   it("returns structured search debug metadata for qmd results", async () => {
     setMemoryBackend("qmd");
+    let seenDeferSearchSync: boolean | undefined;
     setMemorySearchImpl(async (opts) => {
+      seenDeferSearchSync = opts?.deferSearchSync;
       opts?.onDebug?.({
         backend: "qmd",
         configuredMode: opts.qmdSearchModeOverride ?? "query",
@@ -105,6 +107,7 @@ describe("memory_search unavailable payloads", () => {
     expect((result.details as { debug?: { searchMs?: number } }).debug?.searchMs).toEqual(
       expect.any(Number),
     );
+    expect(seenDeferSearchSync).toBe(true);
   });
 
   it("re-resolves config when executing a previously created tool", async () => {

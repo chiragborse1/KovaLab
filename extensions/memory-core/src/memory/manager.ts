@@ -352,6 +352,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
       sessionKey?: string;
       qmdSearchModeOverride?: "query" | "search" | "vsearch";
       onDebug?: (debug: MemorySearchRuntimeDebug) => void;
+      deferSearchSync?: boolean;
       /** When set, only these chunk sources are considered (must be enabled for this manager). */
       sources?: MemorySource[];
     },
@@ -359,13 +360,19 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     opts?.onDebug?.({ backend: "builtin" });
     let hasIndexedContent = this.hasIndexedContent();
     if (!hasIndexedContent) {
-      try {
-        // A fresh process can receive its first search before background watch/session
-        // syncs have built the index. Force one synchronous bootstrap so the first
-        // lookup after restart does not fail closed with empty results.
-        await this.sync({ reason: "search", force: true });
-      } catch (err) {
-        log.warn(`memory sync failed (search-bootstrap): ${String(err)}`);
+      if (opts?.deferSearchSync) {
+        void this.sync({ reason: "search", force: true }).catch((err) => {
+          log.warn(`memory sync failed (search-bootstrap): ${String(err)}`);
+        });
+      } else {
+        try {
+          // A fresh process can receive its first search before background watch/session
+          // syncs have built the index. Force one synchronous bootstrap so the first
+          // lookup after restart does not fail closed with empty results.
+          await this.sync({ reason: "search", force: true });
+        } catch (err) {
+          log.warn(`memory sync failed (search-bootstrap): ${String(err)}`);
+        }
       }
       hasIndexedContent = this.hasIndexedContent();
     }

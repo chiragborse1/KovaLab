@@ -285,6 +285,29 @@ describe("memory index", () => {
     }
   }
 
+  it("defers first-search bootstrap sync when requested", async () => {
+    const cfg = createCfg({
+      storePath: indexMainPath,
+      vectorEnabled: false,
+      onSearch: false,
+    });
+    const manager = await getPersistentManager(cfg);
+    let releaseSync: (() => void) | undefined;
+    const syncReleased = new Promise<void>((resolve) => {
+      releaseSync = resolve;
+    });
+    const syncSpy = vi.spyOn(manager, "sync").mockImplementation(async () => {
+      await syncReleased;
+    });
+
+    const results = await manager.search("alpha", { deferSearchSync: true });
+
+    expect(results).toEqual([]);
+    expect(syncSpy).toHaveBeenCalledWith({ reason: "search", force: true });
+    releaseSync?.();
+    await syncReleased;
+  });
+
   async function getFtsSessionManager(params: {
     stateDirName: string;
     storeFileName: string;
