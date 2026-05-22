@@ -1219,14 +1219,23 @@ function sanitizeDebugText(text: string): string {
   return sanitized.replace(/\s+/g, " ").trim();
 }
 
-async function persistPluginStatusLines(params: {
+type PersistPluginStatusLinesParams = {
   api: KovaPluginApi;
   agentId: string;
   sessionKey?: string;
   statusLine?: string;
   debugSummary?: string | null;
   searchDebug?: ActiveMemorySearchDebug;
-}): Promise<void> {
+};
+
+function persistPluginStatusLinesSoon(params: PersistPluginStatusLinesParams): void {
+  const timer = setTimeout(() => {
+    void persistPluginStatusLines(params);
+  }, 0);
+  timer.unref?.();
+}
+
+async function persistPluginStatusLines(params: PersistPluginStatusLinesParams): Promise<void> {
   const sessionKey = params.sessionKey?.trim();
   if (!sessionKey) {
     return;
@@ -1836,7 +1845,7 @@ async function maybeResolveActiveRecall(params: {
   const { cacheKey, resolvedModelRef, logPrefix } = buildActiveRecallLogContext(params);
   const cached = getCachedResult(cacheKey);
   if (cached) {
-    await persistPluginStatusLines({
+    persistPluginStatusLinesSoon({
       api: params.api,
       agentId: params.agentId,
       sessionKey: params.sessionKey,
@@ -2042,7 +2051,7 @@ async function resolveCachedOrScheduleActiveRecall(params: {
   const { cacheKey, resolvedModelRef, logPrefix } = buildActiveRecallLogContext(params);
   const cached = getCachedResult(cacheKey);
   if (cached) {
-    await persistPluginStatusLines({
+    persistPluginStatusLinesSoon({
       api: params.api,
       agentId: params.agentId,
       sessionKey: params.sessionKey,

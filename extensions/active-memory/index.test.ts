@@ -244,6 +244,62 @@ describe("active-memory plugin", () => {
     });
   });
 
+  it("does not wait for cached recall status persistence", async () => {
+    syncRuntimePluginConfig(
+      {
+        agents: ["main"],
+        logging: true,
+      },
+      { injectBlockingMode: false },
+    );
+    plugin.register(api as unknown as KovaPluginApi);
+
+    await hooks.before_prompt_build(
+      { prompt: "what wings should i order? cached status", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:cached-status",
+        messageProvider: "webchat",
+      },
+    );
+
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(hoisted.updateSessionStore).toHaveBeenCalled());
+
+    hoisted.updateSessionStore.mockClear();
+    let persistStarted = false;
+    let releasePersist: (() => void) | undefined;
+    hoisted.updateSessionStore.mockImplementationOnce(
+      async (_storePath: string, updater: (store: Record<string, unknown>) => void) => {
+        persistStarted = true;
+        await new Promise<void>((resolve) => {
+          releasePersist = resolve;
+        });
+        updater(hoisted.sessionStore);
+      },
+    );
+
+    const cachedResult = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? cached status", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:cached-status",
+        messageProvider: "webchat",
+      },
+    );
+
+    expect(cachedResult).toEqual({
+      prependContext: expect.stringContaining("lemon pepper wings"),
+    });
+    expect(persistStarted).toBe(false);
+
+    await vi.waitFor(() => expect(persistStarted).toBe(true));
+    releasePersist?.();
+    await vi.waitFor(() => expect(hoisted.updateSessionStore).toHaveBeenCalledTimes(1));
+  });
+
   it("runs recall without recording shared auth-profile failures", async () => {
     await hooks.before_prompt_build(
       { prompt: "what wings should i order?", messages: [] },
