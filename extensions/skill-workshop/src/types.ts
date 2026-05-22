@@ -77,11 +77,13 @@ export type SkillWorkshopCuratorAction =
       type: "mark_stale";
       skillName: string;
       reason: string;
+      previousState?: SkillWorkshopSkillState;
     }
   | {
       type: "archive";
       skillName: string;
       reason: string;
+      previousState?: SkillWorkshopSkillState;
       archivePath?: string;
     }
   | {

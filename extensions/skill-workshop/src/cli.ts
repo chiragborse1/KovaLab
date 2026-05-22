@@ -6,7 +6,12 @@ import { resolveStateDir } from "getkova/plugin-sdk/state-paths";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
 import { resolveConfig } from "./config.js";
-import { archiveSkill, restoreArchivedSkill, runSkillCurator } from "./curator.js";
+import {
+  archiveSkill,
+  restoreArchivedSkill,
+  rollbackSkillCuratorReport,
+  runSkillCurator,
+} from "./curator.js";
 import { applyProposalToWorkspace } from "./skills.js";
 import { SkillWorkshopStore } from "./store.js";
 import type {
@@ -45,6 +50,10 @@ type ApplyOptions = CommonOptions & {
 
 type CurateOptions = CommonOptions & {
   apply?: boolean;
+};
+
+type CuratorRollbackOptions = ApplyOptions & {
+  report?: string;
 };
 
 const STATUSES: SkillWorkshopStatus[] = ["pending", "applied", "rejected", "quarantined"];
@@ -652,6 +661,41 @@ async function handleRestore(ctx: SkillWorkshopCliContext, skillName: string, op
   );
 }
 
+async function handleCuratorRollback(ctx: SkillWorkshopCliContext, opts: CuratorRollbackOptions) {
+  const workspaceDir = resolveWorkspaceDir(ctx, opts);
+  const store = createStore(ctx, workspaceDir);
+  if (!opts.yes) {
+    writeLine(
+      ctx.io,
+      "stderr",
+      "Review required before rolling back curator actions. No files changed. Re-run with --yes.",
+    );
+    setExitCode(ctx.io, 1);
+    return;
+  }
+  const result = await rollbackSkillCuratorReport({
+    store,
+    workspaceDir,
+    ...(opts.report ? { reportPath: path.resolve(opts.report) } : {}),
+  });
+  if (opts.json) {
+    writeLine(ctx.io, "stdout", JSON.stringify(result, null, 2));
+    return;
+  }
+  const lines = [
+    `Rolled back ${String(result.rolledBack.length)} curator actions`,
+    `Workspace: ${workspaceDir}`,
+    `Report: ${result.reportPath}`,
+  ];
+  for (const item of result.rolledBack.slice(0, 12)) {
+    lines.push(`- ${item.type}: ${item.skillName} -> ${item.state ?? "active"}`);
+  }
+  for (const item of result.skipped.slice(0, 12)) {
+    lines.push(`- skipped ${item.skillName}: ${item.reason}`);
+  }
+  writeLine(ctx.io, "stdout", lines.join("\n"));
+}
+
 function addTargetOptions(command: Command): Command {
   return command
     .option("--agent <id>", "Target agent workspace")
@@ -766,6 +810,15 @@ export function registerSkillWorkshopCli(program: Command, ctx: SkillWorkshopCli
     .action(
       withCliErrors(ctx, async (skillName: string, opts: ApplyOptions) => {
         await handleRestore(ctx, skillName, opts);
+      }),
+    );
+
+  addTargetOptions(root.command("rollback-curator").description("Rollback the latest curator run"))
+    .option("--report <path>", "Curator report JSON path")
+    .option("--yes", "Confirm curator rollback", false)
+    .action(
+      withCliErrors(ctx, async (opts: CuratorRollbackOptions) => {
+        await handleCuratorRollback(ctx, opts);
       }),
     );
 

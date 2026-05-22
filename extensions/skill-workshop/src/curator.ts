@@ -6,6 +6,7 @@ import { workspaceKey, SkillWorkshopStore } from "./store.js";
 import type {
   SkillWorkshopCuratorAction,
   SkillWorkshopCuratorReport,
+  SkillWorkshopSkillState,
   SkillWorkshopUsageRecord,
 } from "./types.js";
 
@@ -16,6 +17,13 @@ export type SkillWorkshopCuratorConfig = {
   staleDays: number;
   archiveDays: number;
   maxActions: number;
+};
+
+export type SkillWorkshopCuratorRollbackResult = {
+  reportPath: string;
+  workspaceDir: string;
+  rolledBack: Array<{ type: string; skillName: string; state?: SkillWorkshopSkillState }>;
+  skipped: Array<{ skillName: string; reason: string }>;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -209,6 +217,7 @@ export async function runSkillCurator(params: {
         type: "archive",
         skillName: record.skillName,
         reason,
+        previousState: record.state,
       };
       if (params.apply) {
         const archivePath = await archiveSkill({
@@ -233,7 +242,12 @@ export async function runSkillCurator(params: {
           archiveReason: reason,
         });
       }
-      actions.push({ type: "mark_stale", skillName: record.skillName, reason });
+      actions.push({
+        type: "mark_stale",
+        skillName: record.skillName,
+        reason,
+        previousState: record.state,
+      });
       continue;
     }
     actions.push({ type: "keep", skillName: record.skillName, reason: "recent activity" });
@@ -256,6 +270,89 @@ export async function runSkillCurator(params: {
   await fs.writeFile(path.join(dir, `${basename}.md`), reportMarkdown(report), "utf8");
   await params.store.markCuratorRun(jsonPath);
   return { report, reportPath: jsonPath };
+}
+
+async function readCuratorReport(reportPath: string): Promise<SkillWorkshopCuratorReport> {
+  const parsed = JSON.parse(
+    await fs.readFile(reportPath, "utf8"),
+  ) as Partial<SkillWorkshopCuratorReport>;
+  if (!parsed.workspaceDir || !Array.isArray(parsed.actions)) {
+    throw new Error(`invalid curator report: ${reportPath}`);
+  }
+  return {
+    id: typeof parsed.id === "string" ? parsed.id : "unknown",
+    createdAt:
+      typeof parsed.createdAt === "number" && Number.isFinite(parsed.createdAt)
+        ? parsed.createdAt
+        : 0,
+    workspaceDir: parsed.workspaceDir,
+    apply: parsed.apply === true,
+    checked:
+      typeof parsed.checked === "number" && Number.isFinite(parsed.checked) ? parsed.checked : 0,
+    actions: parsed.actions,
+    skipped: Array.isArray(parsed.skipped) ? parsed.skipped : [],
+  };
+}
+
+export async function rollbackSkillCuratorReport(params: {
+  store: SkillWorkshopStore;
+  workspaceDir: string;
+  reportPath?: string;
+}): Promise<SkillWorkshopCuratorRollbackResult> {
+  const curator = await params.store.getCuratorState();
+  const reportPath = params.reportPath ?? curator.lastReportPath;
+  if (!reportPath) {
+    throw new Error("curator report path required");
+  }
+  const report = await readCuratorReport(reportPath);
+  if (path.resolve(report.workspaceDir) !== path.resolve(params.workspaceDir)) {
+    throw new Error("curator report belongs to a different workspace");
+  }
+  const rolledBack: SkillWorkshopCuratorRollbackResult["rolledBack"] = [];
+  const skipped: SkillWorkshopCuratorRollbackResult["skipped"] = [];
+  if (!report.apply) {
+    return { reportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
+  }
+  for (const action of report.actions.toReversed()) {
+    if (action.type === "keep") {
+      continue;
+    }
+    if (!action.previousState) {
+      skipped.push({ skillName: action.skillName, reason: "missing previous state" });
+      continue;
+    }
+    if (action.type === "mark_stale") {
+      await params.store.setUsageState({
+        skillName: action.skillName,
+        state: action.previousState,
+      });
+      rolledBack.push({
+        type: action.type,
+        skillName: action.skillName,
+        state: action.previousState,
+      });
+      continue;
+    }
+    if (action.type === "archive") {
+      await restoreArchivedSkill({
+        store: params.store,
+        workspaceDir: params.workspaceDir,
+        skillName: action.skillName,
+      });
+      if (action.previousState !== "active") {
+        await params.store.setUsageState({
+          skillName: action.skillName,
+          state: action.previousState,
+        });
+      }
+      rolledBack.push({
+        type: action.type,
+        skillName: action.skillName,
+        state: action.previousState,
+      });
+    }
+  }
+  return { reportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
 }
 
 export function shouldRunCurator(params: {

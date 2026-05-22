@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { Type } from "typebox";
 import { jsonResult, type KovaPluginApi } from "../api.js";
 import type { SkillWorkshopConfig } from "./config.js";
-import { archiveSkill, restoreArchivedSkill, runSkillCurator } from "./curator.js";
+import {
+  archiveSkill,
+  restoreArchivedSkill,
+  rollbackSkillCuratorReport,
+  runSkillCurator,
+} from "./curator.js";
 import {
   applyProposalToWorkspace,
   normalizeSkillName,
@@ -25,6 +30,7 @@ type ToolParams = {
   oldText?: string;
   newText?: string;
   relativePath?: string;
+  reportPath?: string;
   apply?: boolean;
 };
 
@@ -110,6 +116,7 @@ export function createSkillWorkshopTool(params: {
           "archive",
           "restore",
           "curate",
+          "rollback_curator",
           "write_support_file",
         ],
       }),
@@ -126,6 +133,7 @@ export function createSkillWorkshopTool(params: {
       oldText: Type.Optional(Type.String()),
       newText: Type.Optional(Type.String()),
       relativePath: Type.Optional(Type.String()),
+      reportPath: Type.Optional(Type.String()),
       apply: Type.Optional(Type.Boolean()),
     }),
     async execute(_toolCallId: string, rawParams: Record<string, unknown>) {
@@ -302,6 +310,15 @@ export function createSkillWorkshopTool(params: {
           apply: raw.apply === true,
         });
         return jsonResult(result);
+      }
+      if (action === "rollback_curator") {
+        return jsonResult(
+          await rollbackSkillCuratorReport({
+            store,
+            workspaceDir,
+            ...(raw.reportPath ? { reportPath: raw.reportPath } : {}),
+          }),
+        );
       }
       if (action === "write_support_file") {
         const skillName = readString(raw.skillName);

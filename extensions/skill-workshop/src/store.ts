@@ -479,4 +479,9 @@ export class SkillWorkshopStore {
       return next;
     });
   }
+
+  async getCuratorState(): Promise<SkillWorkshopCuratorState> {
+    const file = await readJson(this.filePath);
+    return normalizeCuratorState(file.curator);
+  }
 }

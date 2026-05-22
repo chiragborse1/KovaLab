@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { runSkillCurator, restoreArchivedSkill } from "./curator.js";
+import { rollbackSkillCuratorReport, runSkillCurator } from "./curator.js";
 import { SkillWorkshopStore } from "./store.js";
 import type { SkillProposal } from "./types.js";
 
@@ -111,13 +111,50 @@ describe("skill curator", () => {
     });
     expect((await store.getUsage("agent-fix-workflow"))?.state).toBe("archived");
 
-    const restoredPath = await restoreArchivedSkill({
+    const rollback = await rollbackSkillCuratorReport({
       store,
       workspaceDir,
-      skillName: "agent-fix-workflow",
     });
-    expect(restoredPath).toBe(skillDir);
+    expect(rollback.rolledBack).toEqual([
+      expect.objectContaining({ type: "archive", skillName: "agent-fix-workflow" }),
+    ]);
     await expect(fs.access(path.join(skillDir, "SKILL.md"))).resolves.toBeUndefined();
+    expect((await store.getUsage("agent-fix-workflow"))?.state).toBe("active");
+  });
+
+  it("rolls back stale curator marks", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await store.recordAppliedProposal(createProposal(workspaceDir));
+    const now = Date.now();
+    await ageTrackedSkill({
+      store,
+      skillName: "agent-fix-workflow",
+      timestamp: now - 40 * 24 * 60 * 60 * 1000,
+    });
+
+    await runSkillCurator({
+      store,
+      stateDir,
+      workspaceDir,
+      config: {
+        enabled: true,
+        intervalTurns: 1,
+        minSkillAgeDays: 7,
+        staleDays: 30,
+        archiveDays: 90,
+        maxActions: 20,
+      },
+      apply: true,
+      now,
+    });
+    expect((await store.getUsage("agent-fix-workflow"))?.state).toBe("stale");
+
+    const rollback = await rollbackSkillCuratorReport({ store, workspaceDir });
+    expect(rollback.rolledBack).toEqual([
+      expect.objectContaining({ type: "mark_stale", skillName: "agent-fix-workflow" }),
+    ]);
     expect((await store.getUsage("agent-fix-workflow"))?.state).toBe("active");
   });
 });

@@ -255,10 +255,17 @@ kova skill-workshop pin <skill>
 kova skill-workshop unpin <skill>
 kova skill-workshop archive <skill> --yes
 kova skill-workshop restore <skill> --yes
+kova skill-workshop rollback-curator --yes
 ```
 
 Each curator pass writes a JSON report and Markdown report under the
-Skill Workshop state directory.
+Skill Workshop state directory. Applied curator reports can be rolled back from
+the latest report or from an explicit JSON report path:
+
+```bash
+kova skill-workshop rollback-curator --yes
+kova skill-workshop rollback-curator --report <report.json> --yes
+```
 
 Example `create`:
 
@@ -329,6 +336,7 @@ kova skill-workshop pin <skill>
 kova skill-workshop unpin <skill>
 kova skill-workshop archive <skill> --yes
 kova skill-workshop restore <skill> --yes
+kova skill-workshop rollback-curator --yes
 ```
 
 The CLI reads the same per-workspace proposal store as the `skill_workshop`
