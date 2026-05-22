@@ -275,6 +275,56 @@ describe("skill-workshop", () => {
     );
   });
 
+  it("persists post-turn capture before background work runs", async () => {
+    vi.useFakeTimers();
+    try {
+      const workspaceDir = await makeTempDir();
+      const stateDir = await makeTempDir();
+      const on = vi.fn();
+      const api = createTestPluginApi({
+        pluginConfig: { approvalPolicy: "auto", reviewMode: "heuristic" },
+        runtime: {
+          agent: {
+            resolveAgentWorkspaceDir: () => workspaceDir,
+          },
+          state: {
+            resolveStateDir: () => stateDir,
+          },
+        } as never,
+        on,
+      });
+
+      plugin.register(api);
+      const handler = on.mock.calls.find((call) => call[0] === "agent_end")?.[1];
+      await handler?.(
+        {
+          success: true,
+          messages: [
+            {
+              role: "user",
+              content:
+                "From now on when asked for animated GIFs, verify the file is actually animated.",
+            },
+          ],
+        },
+        { workspaceDir },
+      );
+
+      const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+      await expect(store.listPendingCaptures()).resolves.toHaveLength(1);
+
+      await vi.runAllTimersAsync();
+      await vi.waitFor(async () => {
+        await expect(store.listPendingCaptures()).resolves.toHaveLength(0);
+      });
+      await expect(
+        fs.access(path.join(workspaceDir, "skills", "animated-gif-workflow", "SKILL.md")),
+      ).resolves.toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("emits prompt-build guidance through the registered hook", async () => {
     const on = vi.fn();
     const api = createTestPluginApi({
@@ -953,6 +1003,50 @@ describe("skill-workshop", () => {
     const store = new SkillWorkshopStore({ stateDir, workspaceDir });
     await vi.waitFor(async () => {
       await expect(store.list("pending")).resolves.toHaveLength(1);
+    });
+    expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+  });
+
+  it("keeps reviewer thresholds when the reviewer fails", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const runEmbeddedPiAgent = vi.fn(async () => {
+      throw new Error("provider unavailable");
+    });
+    const on = vi.fn();
+    const api = createTestPluginApi({
+      pluginConfig: { reviewMode: "llm", reviewInterval: 1 },
+      runtime: {
+        agent: {
+          defaults: { provider: "openai", model: "gpt-5.4" },
+          resolveAgentWorkspaceDir: () => workspaceDir,
+          resolveAgentDir: () => path.join(workspaceDir, ".agent"),
+          runEmbeddedPiAgent,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      on,
+    });
+
+    plugin.register(api);
+    const handler = on.mock.calls.find((call) => call[0] === "agent_end")?.[1];
+    await handler?.(
+      {
+        success: true,
+        messages: [{ role: "user", content: "We built a tricky animated GIF QA scenario." }],
+      },
+      { workspaceDir, agentId: "main" },
+    );
+
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await vi.waitFor(async () => {
+      await expect(store.getReviewState()).resolves.toMatchObject({
+        turnsSinceReview: 1,
+        reviewFailures: 1,
+        lastReviewFailedAt: expect.any(Number),
+      });
     });
     expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
   });

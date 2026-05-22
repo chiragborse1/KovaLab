@@ -269,7 +269,7 @@ Manual review:
 ```bash
 kova skill-workshop usage
 kova skill-workshop curate
-kova skill-workshop curate --apply
+kova skill-workshop curate --apply --yes
 kova skill-workshop pin <skill>
 kova skill-workshop unpin <skill>
 kova skill-workshop archive <skill> --yes
@@ -350,7 +350,7 @@ kova skill-workshop apply <proposal-id> --yes
 kova skill-workshop reject <proposal-id>
 kova skill-workshop quarantine
 kova skill-workshop usage
-kova skill-workshop curate [--apply]
+kova skill-workshop curate [--apply --yes]
 kova skill-workshop pin <skill>
 kova skill-workshop unpin <skill>
 kova skill-workshop archive <skill> --yes

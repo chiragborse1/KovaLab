@@ -48,7 +48,7 @@ type ApplyOptions = CommonOptions & {
   yes?: boolean;
 };
 
-type CurateOptions = CommonOptions & {
+type CurateOptions = ApplyOptions & {
   apply?: boolean;
 };
 
@@ -603,6 +603,15 @@ async function handleCurate(ctx: SkillWorkshopCliContext, opts: CurateOptions) {
   const stateDir = ctx.stateDir ?? resolveStateDir();
   const store = createStore(ctx, workspaceDir);
   const config = readPluginConfig(ctx.config);
+  if (opts.apply && !opts.yes) {
+    writeLine(
+      ctx.io,
+      "stderr",
+      "Review required before applying curator actions. No files changed. Re-run with --apply --yes.",
+    );
+    setExitCode(ctx.io, 1);
+    return;
+  }
   const result = await runSkillCurator({
     store,
     stateDir,
@@ -729,7 +738,7 @@ export function registerSkillWorkshopCli(program: Command, ctx: SkillWorkshopCli
     .description("Review Skill Workshop proposals for workspace skills")
     .addHelpText(
       "after",
-      "\nExamples:\n  kova skill-workshop review\n  kova skill-workshop inspect <id>\n  kova skill-workshop apply <id> --yes\n  kova skill-workshop curate --apply\n",
+      "\nExamples:\n  kova skill-workshop review\n  kova skill-workshop inspect <id>\n  kova skill-workshop apply <id> --yes\n  kova skill-workshop curate --apply --yes\n",
     );
 
   addTargetOptions(root.command("status").description("Show proposal counts")).action(
@@ -809,6 +818,7 @@ export function registerSkillWorkshopCli(program: Command, ctx: SkillWorkshopCli
 
   addTargetOptions(root.command("curate").description("Run skill curator preview"))
     .option("--apply", "Apply safe curator actions", false)
+    .option("--yes", "Confirm curator workspace changes", false)
     .action(
       withCliErrors(ctx, async (opts: CurateOptions) => {
         await handleCurate(ctx, opts);

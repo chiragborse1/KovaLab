@@ -248,6 +248,15 @@ describe("skill-workshop cli", () => {
       },
     });
 
+    const blockedApply = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "curate", "--apply"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(blockedApply.stderr).toContain("Review required before applying curator actions");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = undefined;
+
     await runSkillWorkshopCli({
       argv: ["skill-workshop", "unpin", "media-qa"],
       workspaceDir,

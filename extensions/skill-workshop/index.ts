@@ -5,8 +5,9 @@ import { runSkillCurator, shouldRunCurator } from "./src/curator.js";
 import { buildWorkshopGuidance } from "./src/prompt.js";
 import { countToolCalls, reviewTranscriptForProposal } from "./src/reviewer.js";
 import { createProposalFromMessages } from "./src/signals.js";
-import type { SkillWorkshopStore } from "./src/store.js";
+import type { SkillWorkshopPendingCapture, SkillWorkshopStore } from "./src/store.js";
 import { createSkillWorkshopTool } from "./src/tool.js";
+import type { SkillProposal } from "./src/types.js";
 import { applyOrStoreProposal, createStoreForContext } from "./src/workshop.js";
 
 const SKILL_WORKSHOP_CLI_DESCRIPTOR = {
@@ -78,10 +79,25 @@ export default definePluginEntry({
       if (!config.autoCapture || config.reviewMode === "off") {
         return;
       }
+      const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
+      const workspaceDir =
+        ctx.workspaceDir || api.runtime.agent.resolveAgentWorkspaceDir(api.config, agentId);
+      const store = createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
+      await store.enqueuePendingCapture({
+        workspaceDir,
+        messages: event.messages,
+        agentId,
+        ...(ctx.sessionId ? { sessionId: ctx.sessionId } : {}),
+        ...(ctx.sessionKey ? { sessionKey: ctx.sessionKey } : {}),
+        ...(ctx.modelProviderId ? { modelProviderId: ctx.modelProviderId } : {}),
+        ...(ctx.modelId ? { modelId: ctx.modelId } : {}),
+        ...(ctx.messageProvider ? { messageProvider: ctx.messageProvider } : {}),
+        ...(ctx.channelId ? { channelId: ctx.channelId } : {}),
+      });
       scheduleBackgroundCapture({
         api,
         task: async () => {
-          await runPostTurnCapture({ api, config, event, ctx });
+          await drainPendingCaptures({ api, config, store, workspaceDir });
         },
       });
     });
@@ -100,6 +116,58 @@ function scheduleBackgroundCapture(params: {
   timer.unref?.();
 }
 
+async function drainPendingCaptures(params: {
+  api: KovaPluginApi;
+  config: ReturnType<typeof resolveConfig>;
+  store: SkillWorkshopStore;
+  workspaceDir: string;
+}): Promise<void> {
+  const pending = await params.store.listPendingCaptures();
+  for (const capture of pending.toReversed()) {
+    if (capture.workspaceDir !== params.workspaceDir) {
+      continue;
+    }
+    await runPendingCapture({
+      api: params.api,
+      config: params.config,
+      store: params.store,
+      capture,
+    });
+  }
+}
+
+async function runPendingCapture(params: {
+  api: KovaPluginApi;
+  config: ReturnType<typeof resolveConfig>;
+  store: SkillWorkshopStore;
+  capture: SkillWorkshopPendingCapture;
+}): Promise<void> {
+  try {
+    await runPostTurnCapture({
+      api: params.api,
+      config: params.config,
+      event: { messages: params.capture.messages },
+      ctx: {
+        workspaceDir: params.capture.workspaceDir,
+        ...(params.capture.agentId ? { agentId: params.capture.agentId } : {}),
+        ...(params.capture.sessionId ? { sessionId: params.capture.sessionId } : {}),
+        ...(params.capture.sessionKey ? { sessionKey: params.capture.sessionKey } : {}),
+        ...(params.capture.modelProviderId
+          ? { modelProviderId: params.capture.modelProviderId }
+          : {}),
+        ...(params.capture.modelId ? { modelId: params.capture.modelId } : {}),
+        ...(params.capture.messageProvider
+          ? { messageProvider: params.capture.messageProvider }
+          : {}),
+        ...(params.capture.channelId ? { channelId: params.capture.channelId } : {}),
+      },
+      store: params.store,
+    });
+  } finally {
+    await params.store.removePendingCapture(params.capture.id);
+  }
+}
+
 async function runPostTurnCapture(params: {
   api: KovaPluginApi;
   config: ReturnType<typeof resolveConfig>;
@@ -116,12 +184,14 @@ async function runPostTurnCapture(params: {
     messageProvider?: string;
     channelId?: string;
   };
+  store?: SkillWorkshopStore;
 }): Promise<void> {
   const { api, config, event, ctx } = params;
   const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
   const workspaceDir =
     ctx.workspaceDir || api.runtime.agent.resolveAgentWorkspaceDir(api.config, agentId);
-  const store = createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
+  const store =
+    params.store ?? createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
   const heuristicProposal = createProposalFromMessages({
     messages: event.messages,
     workspaceDir,
@@ -164,9 +234,9 @@ async function runPostTurnCapture(params: {
     await maybeRunCurator({ api, config, store, workspaceDir });
     return;
   }
-  await store.markReviewed();
+  let proposal: SkillProposal | undefined;
   try {
-    const proposal = await reviewTranscriptForProposal({
+    proposal = await reviewTranscriptForProposal({
       api,
       config,
       messages: event.messages,
@@ -181,11 +251,19 @@ async function runPostTurnCapture(params: {
         channelId: ctx.channelId,
       },
     });
-    if (!proposal) {
-      api.logger.debug?.("skill-workshop: reviewer found no update");
-      await maybeRunCurator({ api, config, store, workspaceDir });
-      return;
-    }
+    await store.markReviewed();
+  } catch (error) {
+    await store.markReviewFailed();
+    api.logger.warn(`skill-workshop: reviewer skipped: ${String(error)}`);
+    await maybeRunCurator({ api, config, store, workspaceDir });
+    return;
+  }
+  if (!proposal) {
+    api.logger.debug?.("skill-workshop: reviewer found no update");
+    await maybeRunCurator({ api, config, store, workspaceDir });
+    return;
+  }
+  try {
     const result = await applyOrStoreProposal({ proposal, store, config, workspaceDir });
     if (result.status === "applied") {
       api.logger.info(`skill-workshop: applied ${proposal.skillName}`);
@@ -195,7 +273,7 @@ async function runPostTurnCapture(params: {
       api.logger.info(`skill-workshop: queued ${proposal.skillName}`);
     }
   } catch (error) {
-    api.logger.warn(`skill-workshop: reviewer skipped: ${String(error)}`);
+    api.logger.warn(`skill-workshop: reviewer proposal skipped: ${String(error)}`);
   }
   await maybeRunCurator({ api, config, store, workspaceDir });
 }

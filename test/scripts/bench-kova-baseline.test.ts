@@ -20,6 +20,7 @@ describe("baseline benchmark script", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Kova baseline benchmark");
     expect(result.stdout).toContain("--profile <smoke|tui|cli|gateway|full>");
+    expect(result.stdout).toContain("--tui-backend <local-process|embedded>");
     expect(result.stdout).toContain("--current-config");
     expect(result.stdout).toContain("--markdown-output <path>");
     expect(result.stdout).not.toContain("baseline written");
@@ -44,6 +45,8 @@ describe("baseline benchmark script", () => {
         "--current-config",
         "--tui-command",
         "/status",
+        "--tui-backend",
+        "embedded",
         "--output",
         ".artifacts/custom/result.json",
       ]),
@@ -54,6 +57,7 @@ describe("baseline benchmark script", () => {
       warmup: 0,
       currentConfig: true,
       tuiCommand: "/status",
+      tuiBackend: "embedded",
       output: ".artifacts/custom/result.json",
       markdownOutput: ".artifacts/custom/result.md",
     });
@@ -70,6 +74,7 @@ describe("baseline benchmark script", () => {
       outputPath: ".artifacts/kova-baseline/latest.json",
       tui: {
         command: "/status",
+        backendMode: "embedded",
         currentConfig: false,
         runs: 1,
         warmup: 0,
@@ -92,6 +97,7 @@ describe("baseline benchmark script", () => {
     });
 
     expect(report).toContain("# Kova Baseline Performance Report");
+    expect(report).toContain("- Backend: embedded");
     expect(report).toContain("Final latency");
     expect(report).toContain("| abcdef12 | final | 10ms | 100ms | provider/model runtime |");
   });

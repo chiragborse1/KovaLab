@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { rollbackSkillCuratorReport, runSkillCurator } from "./curator.js";
+import { restoreArchivedSkill, rollbackSkillCuratorReport, runSkillCurator } from "./curator.js";
 import { SkillWorkshopStore } from "./store.js";
 import type { SkillProposal } from "./types.js";
 
@@ -156,5 +156,52 @@ describe("skill curator", () => {
       expect.objectContaining({ type: "mark_stale", skillName: "agent-fix-workflow" }),
     ]);
     expect((await store.getUsage("agent-fix-workflow"))?.state).toBe("active");
+  });
+
+  it("rejects rollback reports outside the curator report directory", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    const outsideReport = path.join(workspaceDir, "outside-report.json");
+    await fs.writeFile(
+      outsideReport,
+      `${JSON.stringify({
+        id: "outside",
+        createdAt: Date.now(),
+        workspaceDir,
+        apply: true,
+        checked: 0,
+        actions: [],
+        skipped: [],
+      })}\n`,
+      "utf8",
+    );
+
+    await expect(
+      rollbackSkillCuratorReport({ store, workspaceDir, reportPath: outsideReport }),
+    ).rejects.toThrow(/curator report path escapes/u);
+  });
+
+  it("rejects archived skill restores from outside the workspace archive", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const outsideDir = await makeTempDir();
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await fs.mkdir(path.join(outsideDir, "agent-fix-workflow"), { recursive: true });
+    await fs.writeFile(
+      path.join(outsideDir, "agent-fix-workflow", "SKILL.md"),
+      "---\nname: agent-fix-workflow\ndescription: Outside.\n---\n",
+    );
+    await store.recordAppliedProposal(createProposal(workspaceDir));
+    await store.setUsageState({
+      skillName: "agent-fix-workflow",
+      state: "archived",
+      archivePath: path.join(outsideDir, "agent-fix-workflow"),
+      archiveReason: "test",
+    });
+
+    await expect(
+      restoreArchivedSkill({ store, workspaceDir, skillName: "agent-fix-workflow" }),
+    ).rejects.toThrow(/skill archive path escapes/u);
   });
 });

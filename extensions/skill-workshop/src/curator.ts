@@ -52,6 +52,35 @@ function reportDir(params: { stateDir: string; workspaceDir: string }): string {
   return path.join(params.stateDir, "skill-workshop", "reports", workspaceKey(params.workspaceDir));
 }
 
+function stateDirForStore(store: SkillWorkshopStore): string {
+  return path.dirname(path.dirname(store.filePath));
+}
+
+function assertPathInside(params: { root: string; candidate: string; label: string }): string {
+  const root = path.resolve(params.root);
+  const candidate = path.resolve(params.candidate);
+  if (candidate === root || candidate.startsWith(`${root}${path.sep}`)) {
+    return candidate;
+  }
+  throw new Error(`${params.label} escapes expected directory`);
+}
+
+async function assertExistingPathInside(params: {
+  root: string;
+  candidate: string;
+  label: string;
+}): Promise<string> {
+  await fs.mkdir(params.root, { recursive: true });
+  const [rootReal, candidateReal] = await Promise.all([
+    fs.realpath(params.root),
+    fs.realpath(params.candidate),
+  ]);
+  if (candidateReal === rootReal || candidateReal.startsWith(`${rootReal}${path.sep}`)) {
+    return candidateReal;
+  }
+  throw new Error(`${params.label} escapes expected directory`);
+}
+
 function reportMarkdown(report: SkillWorkshopCuratorReport): string {
   const lines: string[] = [];
   lines.push(`# Skill Workshop Curator Report`);
@@ -106,7 +135,7 @@ async function archiveSkillDirectory(params: {
 }): Promise<string | undefined> {
   const skillsDir = path.resolve(params.workspaceDir, "skills");
   const source = path.resolve(skillsDir, params.skillName);
-  if (source !== skillsDir && !source.startsWith(`${skillsDir}${path.sep}`)) {
+  if (source === skillsDir || !source.startsWith(`${skillsDir}${path.sep}`)) {
     throw new Error("skill archive source escapes workspace skills directory");
   }
   if (!(await pathExists(path.join(source, "SKILL.md")))) {
@@ -117,7 +146,11 @@ async function archiveSkillDirectory(params: {
   await fs.mkdir(archiveRoot, { recursive: true });
   await ensurePlainDirectory(archiveRoot);
   const stamp = new Date(params.now).toISOString().replace(/[:.]/g, "-");
-  const target = path.join(archiveRoot, `${params.skillName}-${stamp}`);
+  const target = assertPathInside({
+    root: archiveRoot,
+    candidate: path.join(archiveRoot, `${params.skillName}-${stamp}`),
+    label: "skill archive target",
+  });
   await fs.rename(source, target);
   bumpSkillsSnapshotVersion({
     workspaceDir: params.workspaceDir,
@@ -160,11 +193,23 @@ export async function restoreArchivedSkill(params: {
   }
   const skillsDir = path.resolve(params.workspaceDir, "skills");
   const target = path.resolve(skillsDir, params.skillName);
+  if (target === skillsDir || !target.startsWith(`${skillsDir}${path.sep}`)) {
+    throw new Error("skill restore target escapes workspace skills directory");
+  }
   if (await pathExists(target)) {
     throw new Error(`skill already exists: ${params.skillName}`);
   }
   await fs.mkdir(skillsDir, { recursive: true });
-  await fs.rename(record.archivePath, target);
+  const archiveRoot = path.join(skillsDir, ".archive");
+  await fs.mkdir(archiveRoot, { recursive: true });
+  await ensurePlainDirectory(archiveRoot);
+  const source = await assertExistingPathInside({
+    root: archiveRoot,
+    candidate: record.archivePath,
+    label: "skill archive path",
+  });
+  await ensurePlainDirectory(source);
+  await fs.rename(source, target);
   await params.store.setUsageState({ skillName: params.skillName, state: "active" });
   bumpSkillsSnapshotVersion({
     workspaceDir: params.workspaceDir,
@@ -304,14 +349,22 @@ export async function rollbackSkillCuratorReport(params: {
   if (!reportPath) {
     throw new Error("curator report path required");
   }
-  const report = await readCuratorReport(reportPath);
+  const safeReportPath = await assertExistingPathInside({
+    root: reportDir({
+      stateDir: stateDirForStore(params.store),
+      workspaceDir: params.workspaceDir,
+    }),
+    candidate: reportPath,
+    label: "curator report path",
+  });
+  const report = await readCuratorReport(safeReportPath);
   if (path.resolve(report.workspaceDir) !== path.resolve(params.workspaceDir)) {
     throw new Error("curator report belongs to a different workspace");
   }
   const rolledBack: SkillWorkshopCuratorRollbackResult["rolledBack"] = [];
   const skipped: SkillWorkshopCuratorRollbackResult["skipped"] = [];
   if (!report.apply) {
-    return { reportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
+    return { reportPath: safeReportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
   }
   for (const action of report.actions.toReversed()) {
     if (action.type === "keep") {
@@ -352,7 +405,7 @@ export async function rollbackSkillCuratorReport(params: {
       });
     }
   }
-  return { reportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
+  return { reportPath: safeReportPath, workspaceDir: params.workspaceDir, rolledBack, skipped };
 }
 
 export function shouldRunCurator(params: {

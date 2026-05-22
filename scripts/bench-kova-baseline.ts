@@ -5,11 +5,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
-import type { TuiEvent } from "../src/tui/tui-backend.js";
+import type { TuiBackend, TuiEvent } from "../src/tui/tui-backend.js";
 import type { TuiTurnTracePayload } from "../src/tui/turn-trace.js";
 
 type BaselineProfile = "smoke" | "tui" | "cli" | "gateway" | "full";
 type BaselineComponent = "tui" | "cli" | "gateway";
+type TuiBackendMode = "local-process" | "embedded";
 
 type SummaryStats = {
   avg: number;
@@ -42,6 +43,7 @@ type TuiCommandSample = {
 
 type TuiBenchResult = {
   command: string;
+  backendMode: TuiBackendMode;
   currentConfig: boolean;
   runs: number;
   warmup: number;
@@ -80,6 +82,7 @@ type CliOptions = {
   output: string;
   markdownOutput: string;
   tuiCommand: string;
+  tuiBackend: TuiBackendMode;
   currentConfig: boolean;
   liveMessage?: string;
 };
@@ -89,6 +92,7 @@ const DEFAULT_RUNS = 1;
 const DEFAULT_WARMUP = 0;
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_TUI_COMMAND = "/status";
+const DEFAULT_TUI_BACKEND: TuiBackendMode = "local-process";
 const DEFAULT_OUTPUT = ".artifacts/kova-baseline/latest.json";
 
 function defaultMarkdownOutput(outputPath: string): string {
@@ -136,6 +140,14 @@ function parseProfile(raw: string | undefined): BaselineProfile {
   throw new Error(`Unknown --profile "${raw}"`);
 }
 
+function parseTuiBackendMode(raw: string | undefined): TuiBackendMode {
+  const mode = (raw ?? DEFAULT_TUI_BACKEND).trim().toLowerCase();
+  if (mode === "local-process" || mode === "embedded") {
+    return mode;
+  }
+  throw new Error(`Unknown --tui-backend "${raw}"`);
+}
+
 function resolveComponents(profile: BaselineProfile): BaselineComponent[] {
   if (profile === "tui") {
     return ["tui"];
@@ -168,6 +180,7 @@ function parseOptions(argv = process.argv.slice(2)): CliOptions {
     output,
     markdownOutput: parseFlagValue(argv, "--markdown-output") ?? defaultMarkdownOutput(output),
     tuiCommand: parseFlagValue(argv, "--tui-command") ?? DEFAULT_TUI_COMMAND,
+    tuiBackend: parseTuiBackendMode(parseFlagValue(argv, "--tui-backend")),
     currentConfig: hasFlag(argv, "--current-config"),
     liveMessage: parseFlagValue(argv, "--live-message"),
   };
@@ -249,6 +262,7 @@ function renderBaselineMarkdown(result: BaselineResult): string {
   if (result.tui) {
     lines.push("## TUI", "");
     lines.push(`- Command: \`${result.tui.command}\``);
+    lines.push(`- Backend: ${result.tui.backendMode}`);
     lines.push(`- Config: ${result.tui.currentConfig ? "current" : "isolated"}`);
     lines.push(`- Startup: ${formatMs(result.tui.startupMs)}`);
     lines.push(`- Final latency: ${renderStats(result.tui.summary.finalMs)}`);
@@ -341,7 +355,7 @@ function restoreEnv(previous: Map<string, string | undefined>): void {
 }
 
 async function runOneTuiCommand(params: {
-  backend: import("../src/tui/embedded-backend.js").EmbeddedTuiBackend;
+  backend: TuiBackend;
   command: string;
   sessionKey: string;
   timeoutMs: number;
@@ -427,6 +441,15 @@ async function runOneTuiCommand(params: {
   }
 }
 
+async function createTuiBackend(mode: TuiBackendMode): Promise<TuiBackend> {
+  if (mode === "embedded") {
+    const { EmbeddedTuiBackend } = await import("../src/tui/embedded-backend.js");
+    return new EmbeddedTuiBackend();
+  }
+  const { LocalProcessTuiBackend } = await import("../src/tui/local-process-backend.js");
+  return new LocalProcessTuiBackend();
+}
+
 async function runTuiBenchmarkInline(options: CliOptions): Promise<TuiBenchResult> {
   const root = options.currentConfig
     ? undefined
@@ -443,8 +466,7 @@ async function runTuiBenchmarkInline(options: CliOptions): Promise<TuiBenchResul
       process.env.KOVA_TUI_TRACE = "1";
     }
 
-    const { EmbeddedTuiBackend } = await import("../src/tui/embedded-backend.js");
-    const backend = new EmbeddedTuiBackend();
+    const backend = await createTuiBackend(options.tuiBackend);
     const startupStartedAt = performance.now();
     const connected = new Promise<void>((resolve) => {
       backend.onConnected = resolve;
@@ -475,6 +497,7 @@ async function runTuiBenchmarkInline(options: CliOptions): Promise<TuiBenchResul
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
     return {
       command: options.liveMessage ?? options.tuiCommand,
+      backendMode: options.tuiBackend,
       currentConfig: options.currentConfig,
       runs: options.runs,
       warmup: options.warmup,
@@ -514,6 +537,8 @@ function runTuiBenchmarkWorker(options: CliOptions, outputPath: string): TuiBenc
     String(options.timeoutMs),
     "--tui-command",
     options.tuiCommand,
+    "--tui-backend",
+    options.tuiBackend,
     "--worker-output",
     outputPath,
     ...(options.currentConfig ? ["--current-config"] : []),
@@ -565,6 +590,7 @@ function buildFailedTuiWorkerResult(
   const finalMs = worker.durationMs;
   return {
     command: options.liveMessage ?? options.tuiCommand,
+    backendMode: options.tuiBackend,
     currentConfig: options.currentConfig,
     runs: options.runs,
     warmup: options.warmup,
@@ -634,6 +660,8 @@ Options:
   --warmup <n>            warmup runs per component (default ${String(DEFAULT_WARMUP)})
   --timeout-ms <ms>       per-run timeout (default ${String(DEFAULT_TIMEOUT_MS)})
   --tui-command <text>    local command for TUI hot-path timing (default "${DEFAULT_TUI_COMMAND}")
+  --tui-backend <local-process|embedded>
+                           backend to measure (default ${DEFAULT_TUI_BACKEND})
   --live-message <text>   replace the final TUI sample with a real provider message
   --current-config        use the current Kova config instead of an isolated temp config
   --output <path>         write JSON summary (default ${DEFAULT_OUTPUT})
@@ -767,6 +795,7 @@ export const testing = {
   parseOptions,
   parsePositiveInt,
   parseProfile,
+  parseTuiBackendMode,
   renderBaselineMarkdown,
   resolveComponents,
   summarizeNumbers,

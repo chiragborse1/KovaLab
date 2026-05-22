@@ -16,15 +16,34 @@ type StoreFile = {
   review?: SkillWorkshopReviewState;
   curator?: SkillWorkshopCuratorState;
   usage?: Record<string, SkillWorkshopUsageRecord>;
+  pendingCaptures?: SkillWorkshopPendingCapture[];
 };
 
 export type SkillWorkshopReviewState = {
   turnsSinceReview: number;
   toolCallsSinceReview: number;
   lastReviewAt?: number;
+  reviewFailures: number;
+  lastReviewFailedAt?: number;
+};
+
+export type SkillWorkshopPendingCapture = {
+  id: string;
+  createdAt: number;
+  workspaceDir: string;
+  messages: unknown[];
+  agentId?: string;
+  sessionId?: string;
+  sessionKey?: string;
+  modelProviderId?: string;
+  modelId?: string;
+  messageProvider?: string;
+  channelId?: string;
 };
 
 const locks = new Map<string, Promise<void>>();
+const MAX_PENDING_CAPTURES = 20;
+const MAX_PENDING_CAPTURE_BYTES = 512 * 1024;
 
 export function workspaceKey(workspaceDir: string): string {
   return createHash("sha256").update(path.resolve(workspaceDir)).digest("hex").slice(0, 16);
@@ -67,6 +86,7 @@ async function readJson(filePath: string): Promise<StoreFile> {
           ? normalizeCuratorState(parsed.curator as Partial<SkillWorkshopCuratorState>)
           : undefined,
       usage: normalizeUsageMap(parsed.usage),
+      ...normalizePendingCapturesForFile(parsed.pendingCaptures),
     };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -90,6 +110,13 @@ function normalizeReviewState(
         : 0,
     ...(typeof value.lastReviewAt === "number" && Number.isFinite(value.lastReviewAt)
       ? { lastReviewAt: value.lastReviewAt }
+      : {}),
+    reviewFailures:
+      typeof value.reviewFailures === "number" && Number.isFinite(value.reviewFailures)
+        ? Math.max(0, Math.trunc(value.reviewFailures))
+        : 0,
+    ...(typeof value.lastReviewFailedAt === "number" && Number.isFinite(value.lastReviewFailedAt)
+      ? { lastReviewFailedAt: value.lastReviewFailedAt }
       : {}),
   };
 }
@@ -191,6 +218,85 @@ function normalizeUsageMap(value: unknown): Record<string, SkillWorkshopUsageRec
     usage[name] = normalizeUsageRecord(record, name);
   }
   return usage;
+}
+
+function cloneBoundedMessages(messages: unknown[]): unknown[] {
+  for (const candidate of [messages, messages.slice(-20), messages.slice(-5)]) {
+    try {
+      const serialized = JSON.stringify(candidate);
+      if (serialized.length <= MAX_PENDING_CAPTURE_BYTES) {
+        return JSON.parse(serialized) as unknown[];
+      }
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizePendingCapture(value: unknown): SkillWorkshopPendingCapture | undefined {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  if (typeof record.id !== "string" || !record.id.trim()) {
+    return undefined;
+  }
+  if (typeof record.workspaceDir !== "string" || !record.workspaceDir.trim()) {
+    return undefined;
+  }
+  const messages = Array.isArray(record.messages) ? cloneBoundedMessages(record.messages) : [];
+  return {
+    id: record.id,
+    createdAt:
+      typeof record.createdAt === "number" && Number.isFinite(record.createdAt)
+        ? record.createdAt
+        : Date.now(),
+    workspaceDir: record.workspaceDir,
+    messages,
+    ...(typeof record.agentId === "string" && record.agentId.trim()
+      ? { agentId: record.agentId }
+      : {}),
+    ...(typeof record.sessionId === "string" && record.sessionId.trim()
+      ? { sessionId: record.sessionId }
+      : {}),
+    ...(typeof record.sessionKey === "string" && record.sessionKey.trim()
+      ? { sessionKey: record.sessionKey }
+      : {}),
+    ...(typeof record.modelProviderId === "string" && record.modelProviderId.trim()
+      ? { modelProviderId: record.modelProviderId }
+      : {}),
+    ...(typeof record.modelId === "string" && record.modelId.trim()
+      ? { modelId: record.modelId }
+      : {}),
+    ...(typeof record.messageProvider === "string" && record.messageProvider.trim()
+      ? { messageProvider: record.messageProvider }
+      : {}),
+    ...(typeof record.channelId === "string" && record.channelId.trim()
+      ? { channelId: record.channelId }
+      : {}),
+  };
+}
+
+function normalizePendingCaptures(value: unknown): SkillWorkshopPendingCapture[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const seen = new Set<string>();
+  const pending: SkillWorkshopPendingCapture[] = [];
+  for (const item of value) {
+    const capture = normalizePendingCapture(item);
+    if (!capture || seen.has(capture.id)) {
+      continue;
+    }
+    seen.add(capture.id);
+    pending.push(capture);
+  }
+  return pending
+    .toSorted((left, right) => right.createdAt - left.createdAt)
+    .slice(0, MAX_PENDING_CAPTURES);
+}
+
+function normalizePendingCapturesForFile(value: unknown): Pick<StoreFile, "pendingCaptures"> {
+  const pendingCaptures = normalizePendingCaptures(value);
+  return pendingCaptures.length > 0 ? { pendingCaptures } : {};
 }
 
 function proposalOrigin(source: SkillProposal["source"]): SkillWorkshopSkillOrigin {
@@ -448,6 +554,21 @@ export class SkillWorkshopStore {
         turnsSinceReview: 0,
         toolCallsSinceReview: 0,
         lastReviewAt: Date.now(),
+        reviewFailures: 0,
+      };
+      await atomicWriteJson(this.filePath, { ...file, review: next });
+      return next;
+    });
+  }
+
+  async markReviewFailed(): Promise<SkillWorkshopReviewState> {
+    return await withLock(this.filePath, async () => {
+      const file = await readJson(this.filePath);
+      const current = normalizeReviewState(file.review);
+      const next = {
+        ...current,
+        reviewFailures: current.reviewFailures + 1,
+        lastReviewFailedAt: Date.now(),
       };
       await atomicWriteJson(this.filePath, { ...file, review: next });
       return next;
@@ -488,5 +609,54 @@ export class SkillWorkshopStore {
   async getCuratorState(): Promise<SkillWorkshopCuratorState> {
     const file = await readJson(this.filePath);
     return normalizeCuratorState(file.curator);
+  }
+
+  async enqueuePendingCapture(
+    capture: Omit<SkillWorkshopPendingCapture, "id" | "createdAt">,
+  ): Promise<SkillWorkshopPendingCapture> {
+    return await withLock(this.filePath, async () => {
+      const file = await readJson(this.filePath);
+      const pending = normalizePendingCaptures(file.pendingCaptures);
+      const entry: SkillWorkshopPendingCapture = {
+        id: randomUUID(),
+        createdAt: Date.now(),
+        workspaceDir: capture.workspaceDir,
+        messages: cloneBoundedMessages(capture.messages),
+        ...(capture.agentId ? { agentId: capture.agentId } : {}),
+        ...(capture.sessionId ? { sessionId: capture.sessionId } : {}),
+        ...(capture.sessionKey ? { sessionKey: capture.sessionKey } : {}),
+        ...(capture.modelProviderId ? { modelProviderId: capture.modelProviderId } : {}),
+        ...(capture.modelId ? { modelId: capture.modelId } : {}),
+        ...(capture.messageProvider ? { messageProvider: capture.messageProvider } : {}),
+        ...(capture.channelId ? { channelId: capture.channelId } : {}),
+      };
+      const nextPendingCaptures = [entry, ...pending].slice(0, MAX_PENDING_CAPTURES);
+      await atomicWriteJson(this.filePath, {
+        ...file,
+        pendingCaptures: nextPendingCaptures,
+      });
+      return entry;
+    });
+  }
+
+  async listPendingCaptures(): Promise<SkillWorkshopPendingCapture[]> {
+    const file = await readJson(this.filePath);
+    return normalizePendingCaptures(file.pendingCaptures);
+  }
+
+  async removePendingCapture(id: string): Promise<void> {
+    await withLock(this.filePath, async () => {
+      const file = await readJson(this.filePath);
+      const pendingCaptures = normalizePendingCaptures(file.pendingCaptures).filter(
+        (capture) => capture.id !== id,
+      );
+      const nextFile: StoreFile = { ...file };
+      if (pendingCaptures.length > 0) {
+        nextFile.pendingCaptures = pendingCaptures;
+      } else {
+        delete nextFile.pendingCaptures;
+      }
+      await atomicWriteJson(this.filePath, nextFile);
+    });
   }
 }

@@ -63,6 +63,8 @@ const KOVA_CLI_WRAPPER_PATH = fileURLToPath(new URL("../../kova.mjs", import.met
 const LOCAL_BACKEND_CHILD_ENTRY_PATHS = [
   fileURLToPath(new URL("./tui/local-backend-child.js", import.meta.url)),
   fileURLToPath(new URL("./local-backend-child.js", import.meta.url)),
+  fileURLToPath(new URL("./tui/local-backend-child.ts", import.meta.url)),
+  fileURLToPath(new URL("./local-backend-child.ts", import.meta.url)),
 ];
 
 function resolveLocalBackendCliArgs(): string[] {
@@ -110,12 +112,14 @@ export class LocalProcessTuiBackend implements TuiBackend {
   private nextRequestId = 0;
   private readonly pending = new Map<number, PendingRequest>();
   private disconnected = false;
+  private connected = false;
 
   start() {
     if (this.child) {
       return;
     }
     this.disconnected = false;
+    this.connected = false;
     const child = spawn(process.execPath, resolveLocalBackendCliArgs(), {
       cwd: process.cwd(),
       env: {
@@ -315,10 +319,11 @@ export class LocalProcessTuiBackend implements TuiBackend {
 
   private handleMessage(message: LocalProcessMessage) {
     if (message.type === "ready") {
+      this.emitConnected();
       return;
     }
     if (message.type === "connected") {
-      this.onConnected?.();
+      this.emitConnected();
       return;
     }
     if (message.type === "disconnected") {
@@ -366,6 +371,15 @@ export class LocalProcessTuiBackend implements TuiBackend {
       return;
     }
     this.disconnected = true;
+    this.connected = false;
     this.onDisconnected?.(reason);
+  }
+
+  private emitConnected() {
+    if (this.connected) {
+      return;
+    }
+    this.connected = true;
+    this.onConnected?.();
   }
 }

@@ -32,6 +32,7 @@ type ToolParams = {
   relativePath?: string;
   reportPath?: string;
   apply?: boolean;
+  yes?: boolean;
 };
 
 function readString(value: unknown): string | undefined {
@@ -135,6 +136,7 @@ export function createSkillWorkshopTool(params: {
       relativePath: Type.Optional(Type.String()),
       reportPath: Type.Optional(Type.String()),
       apply: Type.Optional(Type.Boolean()),
+      yes: Type.Optional(Type.Boolean()),
     }),
     async execute(_toolCallId: string, rawParams: Record<string, unknown>) {
       const raw = rawParams as ToolParams;
@@ -301,6 +303,9 @@ export function createSkillWorkshopTool(params: {
         return jsonResult({ status: "restored", skillName, skillPath });
       }
       if (action === "curate") {
+        if (raw.apply === true && raw.yes !== true) {
+          throw new Error("curate apply requires yes=true");
+        }
         const result = await runSkillCurator({
           store,
           stateDir: params.api.runtime.state.resolveStateDir(),

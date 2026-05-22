@@ -67,7 +67,7 @@ describe("LocalProcessTuiBackend", () => {
 
     expect(spawnMock).toHaveBeenCalledWith(
       process.execPath,
-      ["--no-warnings", "/repo/kova.mjs", "tui-local-backend"],
+      ["--no-warnings", expect.stringMatching(/local-backend-child\.(?:js|ts)$/u)],
       expect.objectContaining({
         cwd: process.cwd(),
         stdio: ["pipe", "pipe", "pipe"],
@@ -88,6 +88,7 @@ describe("LocalProcessTuiBackend", () => {
     backend.onEvent = (evt) => events.push(evt);
     backend.start();
 
+    writeBackendMessage(child, { type: "ready" });
     writeBackendMessage(child, { type: "connected" });
     writeBackendMessage(child, {
       type: "event",
