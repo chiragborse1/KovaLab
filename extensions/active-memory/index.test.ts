@@ -222,6 +222,28 @@ describe("active-memory plugin", () => {
     });
   });
 
+  it("keeps providerless local webchat recall off the prompt hot path even in blocking mode", async () => {
+    const result = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? local terminal", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        sessionKey: "agent:main:main",
+        channelId: "webchat",
+      },
+    );
+
+    expect(result).toBeUndefined();
+    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(1));
+
+    expect(runEmbeddedPiAgent.mock.calls.at(-1)?.[0]).toMatchObject({
+      messageChannel: "webchat",
+      messageProvider: "webchat",
+    });
+  });
+
   it("runs recall without recording shared auth-profile failures", async () => {
     await hooks.before_prompt_build(
       { prompt: "what wings should i order?", messages: [] },

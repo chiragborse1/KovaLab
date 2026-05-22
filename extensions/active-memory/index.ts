@@ -376,6 +376,22 @@ function normalizeOptionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function normalizeChannelHint(value: string | undefined): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function isProviderlessLocalWebchatContext(ctx: {
+  trigger?: string;
+  messageProvider?: string;
+  channelId?: string;
+}): boolean {
+  return (
+    ctx.trigger === "user" &&
+    normalizeChannelHint(ctx.channelId) === "webchat" &&
+    normalizeChannelHint(ctx.messageProvider) === ""
+  );
+}
+
 function resolveRecallRunChannelContext(params: {
   api: KovaPluginApi;
   agentId: string;
@@ -938,15 +954,15 @@ function resolveChatType(ctx: {
       agentSessionParts[0] === "agent" &&
       (agentSessionParts[2] === mainKey || agentSessionParts[2] === "main")
     ) {
-      const provider = (ctx.messageProvider ?? "").trim().toLowerCase();
-      const channelId = (ctx.channelId ?? "").trim();
+      const provider = normalizeChannelHint(ctx.messageProvider);
+      const channelId = ctx.channelId?.trim() ?? "";
       if (provider && provider !== "webchat" && channelId) {
         return "direct";
       }
     }
   }
-  const provider = (ctx.messageProvider ?? "").trim().toLowerCase();
-  if (provider === "webchat") {
+  const provider = normalizeChannelHint(ctx.messageProvider);
+  if (provider === "webchat" || (!provider && normalizeChannelHint(ctx.channelId) === "webchat")) {
     return "direct";
   }
   return undefined;
@@ -2236,10 +2252,11 @@ export default definePluginEntry({
           currentModelProviderId: ctx.modelProviderId,
           currentModelId: ctx.modelId,
         };
-        const result =
-          config.recallMode === "blocking"
-            ? await maybeResolveActiveRecall(resolveParams)
-            : await resolveCachedOrScheduleActiveRecall(resolveParams);
+        const shouldUseCacheFirstRecall =
+          config.recallMode !== "blocking" || isProviderlessLocalWebchatContext(ctx);
+        const result = shouldUseCacheFirstRecall
+          ? await resolveCachedOrScheduleActiveRecall(resolveParams)
+          : await maybeResolveActiveRecall(resolveParams);
         if (!result.summary) {
           return undefined;
         }

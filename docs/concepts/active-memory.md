@@ -82,6 +82,11 @@ The fastest default is `config.recallMode: "cache-first"`. Cold recall refreshes
 status/debug lines and warms the cache after the visible reply has started,
 instead of blocking the first token path.
 
+Local terminal chat always keeps recall cache-first for providerless local
+turns, even if `config.recallMode` is set to `"blocking"`. That keeps memory
+refresh work off the terminal dispatch path; cached recall can still be injected
+when it is already warm.
+
 The simplest model setup is to leave `config.model` unset and let Active Memory use
 the same model you already use for normal replies. That is the safest default
 because it follows your existing provider, auth, and model preferences.
