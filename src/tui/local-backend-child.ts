@@ -31,6 +31,10 @@ type BackendMethod = keyof Pick<
   | "listTasks"
   | "auditTasks"
   | "maintainTasks"
+  | "listSessionCheckpoints"
+  | "getSessionCheckpoint"
+  | "branchSessionCheckpoint"
+  | "restoreSessionCheckpoint"
 >;
 
 const backendMethods = new Set<string>([
@@ -49,6 +53,10 @@ const backendMethods = new Set<string>([
   "listTasks",
   "auditTasks",
   "maintainTasks",
+  "listSessionCheckpoints",
+  "getSessionCheckpoint",
+  "branchSessionCheckpoint",
+  "restoreSessionCheckpoint",
 ]);
 
 function writeProtocol(message: unknown) {

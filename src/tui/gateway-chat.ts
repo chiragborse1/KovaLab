@@ -38,6 +38,10 @@ import type {
   TuiBackend,
   TuiEvent,
   TuiModelChoice,
+  TuiSessionCheckpointBranch,
+  TuiSessionCheckpointList,
+  TuiSessionCheckpointRestore,
+  TuiSessionCheckpointResult,
   TuiSessionList,
 } from "./tui-backend.js";
 
@@ -287,6 +291,42 @@ export class GatewayChatClient implements TuiBackend {
 
   async maintainTasks(opts: { apply?: boolean } = {}): Promise<TasksMaintenanceResult> {
     return await this.client.request<TasksMaintenanceResult>("tasks.maintenance", opts);
+  }
+
+  async listSessionCheckpoints(opts: { key: string }): Promise<TuiSessionCheckpointList> {
+    return await this.client.request<TuiSessionCheckpointList>("sessions.compaction.list", {
+      key: opts.key,
+    });
+  }
+
+  async getSessionCheckpoint(opts: {
+    key: string;
+    checkpointId: string;
+  }): Promise<TuiSessionCheckpointResult> {
+    return await this.client.request<TuiSessionCheckpointResult>("sessions.compaction.get", {
+      key: opts.key,
+      checkpointId: opts.checkpointId,
+    });
+  }
+
+  async branchSessionCheckpoint(opts: {
+    key: string;
+    checkpointId: string;
+  }): Promise<TuiSessionCheckpointBranch> {
+    return await this.client.request<TuiSessionCheckpointBranch>("sessions.compaction.branch", {
+      key: opts.key,
+      checkpointId: opts.checkpointId,
+    });
+  }
+
+  async restoreSessionCheckpoint(opts: {
+    key: string;
+    checkpointId: string;
+  }): Promise<TuiSessionCheckpointRestore> {
+    return await this.client.request<TuiSessionCheckpointRestore>("sessions.compaction.restore", {
+      key: opts.key,
+      checkpointId: opts.checkpointId,
+    });
   }
 }
 

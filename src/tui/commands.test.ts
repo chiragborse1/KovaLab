@@ -100,6 +100,7 @@ describe("getSlashCommands", () => {
     const commands = getSlashCommands();
     const tasks = commands.find((command) => command.name === "tasks");
     const recover = commands.find((command) => command.name === "recover");
+    const rollback = commands.find((command) => command.name === "rollback");
     const subagents = commands.find((command) => command.name === "subagents");
     const automation = commands.find((command) => command.name === "automation");
 
@@ -109,6 +110,10 @@ describe("getSlashCommands", () => {
       { value: "repair apply", label: "repair apply" },
     ]);
     expect(recover?.getArgumentCompletions?.("a")).toEqual([{ value: "apply", label: "apply" }]);
+    expect(rollback?.argumentHint).toContain("restore <id> confirm");
+    expect(rollback?.getArgumentCompletions?.("br")).toEqual([
+      { value: "branch ", label: "branch " },
+    ]);
     expect(subagents?.description).toBe("Show running subagents and recent summaries");
     expect(automation?.description).toBe("Show scheduled/background automation");
   });
@@ -175,6 +180,7 @@ describe("helpText", () => {
     expect(output).toContain("/subagents [list]");
     expect(output).toContain("/automation [list|running|audit]");
     expect(output).toContain("/recover [status|apply]");
+    expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");
     expect(output).toContain("/context [compact|verbose]");
     expect(output).toContain(
       "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",

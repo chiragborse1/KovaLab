@@ -47,6 +47,7 @@ type AgentTimestampModule = typeof import("../gateway/server-methods/agent-times
 type ChatServerMethodsModule = typeof import("../gateway/server-methods/chat.js");
 type SessionUtilsFsModule = typeof import("../gateway/session-utils.fs.js");
 type SessionUtilsModule = typeof import("../gateway/session-utils.js");
+type SessionCheckpointActionsModule = typeof import("../gateway/session-checkpoint-actions.js");
 type AgentCommandModule = typeof import("../agents/agent-command.js");
 
 let agentScopeModulePromise: Promise<AgentScopeModule> | null = null;
@@ -58,6 +59,7 @@ let agentTimestampModulePromise: Promise<AgentTimestampModule> | null = null;
 let chatServerMethodsModulePromise: Promise<ChatServerMethodsModule> | null = null;
 let sessionUtilsFsModulePromise: Promise<SessionUtilsFsModule> | null = null;
 let sessionUtilsModulePromise: Promise<SessionUtilsModule> | null = null;
+let sessionCheckpointActionsModulePromise: Promise<SessionCheckpointActionsModule> | null = null;
 let agentCommandModulePromise: Promise<AgentCommandModule> | null = null;
 
 const EMBEDDED_TUI_WARMUP_DELAY_MS = 16;
@@ -105,6 +107,11 @@ function getSessionUtilsFsModule() {
 function getSessionUtilsModule() {
   sessionUtilsModulePromise ??= import("../gateway/session-utils.js");
   return sessionUtilsModulePromise;
+}
+
+function getSessionCheckpointActionsModule() {
+  sessionCheckpointActionsModulePromise ??= import("../gateway/session-checkpoint-actions.js");
+  return sessionCheckpointActionsModulePromise;
 }
 
 function getAgentCommandModule() {
@@ -610,6 +617,48 @@ export class EmbeddedTuiBackend implements TuiBackend {
       ? await Promise.all([runTaskRegistryMaintenance(), runTaskFlowRegistryMaintenance()])
       : [previewTaskRegistryMaintenance(), previewTaskFlowRegistryMaintenance()];
     return { apply, tasks, flows };
+  }
+
+  async listSessionCheckpoints(opts: { key: string }) {
+    const [{ loadSessionEntry }, { listSessionCompactionCheckpoints }] = await Promise.all([
+      getSessionUtilsModule(),
+      import("../gateway/session-compaction-checkpoints.js"),
+    ]);
+    const { entry, canonicalKey } = loadSessionEntry(opts.key);
+    return {
+      key: canonicalKey,
+      checkpoints: listSessionCompactionCheckpoints(entry),
+    };
+  }
+
+  async getSessionCheckpoint(opts: { key: string; checkpointId: string }) {
+    const [{ loadSessionEntry }, { getSessionCompactionCheckpoint }] = await Promise.all([
+      getSessionUtilsModule(),
+      import("../gateway/session-compaction-checkpoints.js"),
+    ]);
+    const checkpointId = opts.checkpointId.trim();
+    if (!checkpointId) {
+      throw new Error("checkpointId required");
+    }
+    const { entry, canonicalKey } = loadSessionEntry(opts.key);
+    const checkpoint = getSessionCompactionCheckpoint({ entry, checkpointId });
+    if (!checkpoint) {
+      throw new Error(`checkpoint not found: ${checkpointId}`);
+    }
+    return {
+      key: canonicalKey,
+      checkpoint,
+    };
+  }
+
+  async branchSessionCheckpoint(opts: { key: string; checkpointId: string }) {
+    const { branchSessionCompactionCheckpoint } = await getSessionCheckpointActionsModule();
+    return await branchSessionCompactionCheckpoint(opts);
+  }
+
+  async restoreSessionCheckpoint(opts: { key: string; checkpointId: string }) {
+    const { restoreSessionCompactionCheckpoint } = await getSessionCheckpointActionsModule();
+    return await restoreSessionCompactionCheckpoint(opts);
   }
 
   private async getDeps(): Promise<DefaultDeps> {

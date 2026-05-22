@@ -124,6 +124,7 @@ Core:
 - `/automation [list|running|audit]`
 - `/subagents [list]`
 - `/recover [status|apply]`
+- `/rollback [list|show <id>|branch <id>|restore <id> confirm]`
 - `/context [compact|verbose]`
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>`
 - `/skill <name> [args]`
@@ -157,6 +158,12 @@ Task Flow state, previews safe maintenance, and shows one compact repair plan.
 Use `/recover apply` to reconcile lost or stale task records, recover durable
 cron completions, stamp missing cleanup metadata, and prune expired terminal
 records. The same command works in local embedded mode and through the Gateway.
+
+`/rollback` exposes session compaction checkpoints in the TUI. `/rollback`
+lists checkpoints for the current session, `/rollback show <id>` previews one,
+`/rollback branch <id>` opens the pre-compaction snapshot as a separate session,
+and `/rollback restore <id> confirm` replaces the current session after an
+explicit confirm step. Restore is blocked while a run is active.
 
 Session lifecycle:
 

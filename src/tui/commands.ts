@@ -29,6 +29,7 @@ const TASK_LEVELS = [
   "repair apply",
 ];
 const RECOVER_LEVELS = ["status", "apply"];
+const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
 const MEMORY_COMMAND_COMPLETIONS = [
   {
     value: "status",
@@ -171,6 +172,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
   const taskCompletions = createLevelCompletion(TASK_LEVELS);
   const recoverCompletions = createLevelCompletion(RECOVER_LEVELS);
+  const rollbackCompletions = createLevelCompletion(ROLLBACK_LEVELS);
   const commands: SlashCommand[] = [
     { name: "help", description: "Show slash command help" },
     { name: "gateway-status", description: "Show gateway status summary" },
@@ -219,6 +221,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Run self-healing task and Task Flow recovery",
       argumentHint: "status | apply",
       getArgumentCompletions: recoverCompletions,
+    },
+    {
+      name: "rollback",
+      description: "Inspect or restore session checkpoints",
+      argumentHint: "list | show <id> | branch <id> | restore <id> confirm",
+      getArgumentCompletions: rollbackCompletions,
     },
     {
       name: "model",
@@ -313,6 +321,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/subagents [list]",
     "/automation [list|running|audit]",
     "/recover [status|apply]",
+    "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
     "/context [compact|verbose]",
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
     "/skill <name> [args]",

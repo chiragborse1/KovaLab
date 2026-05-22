@@ -28,6 +28,10 @@ function createHarness(params?: {
   listTasks?: ReturnType<typeof vi.fn>;
   auditTasks?: ReturnType<typeof vi.fn>;
   maintainTasks?: ReturnType<typeof vi.fn>;
+  listSessionCheckpoints?: ReturnType<typeof vi.fn>;
+  getSessionCheckpoint?: ReturnType<typeof vi.fn>;
+  branchSessionCheckpoint?: ReturnType<typeof vi.fn>;
+  restoreSessionCheckpoint?: ReturnType<typeof vi.fn>;
   runAuthFlow?: RunAuthFlow;
   setSession?: SetSessionMock;
   loadHistory?: LoadHistoryMock;
@@ -194,6 +198,49 @@ function createHarness(params?: {
         pruned: 0,
       },
     });
+  const checkpoint = {
+    checkpointId: "checkpoint-1",
+    sessionKey: "agent:main:main",
+    sessionId: "session-current",
+    createdAt: Date.now(),
+    reason: "manual",
+    tokensBefore: 1200,
+    tokensAfter: 120,
+    summary: "Before memory compaction",
+    preCompaction: {
+      sessionId: "session-before",
+    },
+    postCompaction: {
+      sessionId: "session-current",
+    },
+  };
+  const listSessionCheckpoints =
+    params?.listSessionCheckpoints ??
+    vi.fn().mockResolvedValue({
+      key: "agent:main:main",
+      checkpoints: [checkpoint],
+    });
+  const getSessionCheckpoint =
+    params?.getSessionCheckpoint ??
+    vi.fn().mockResolvedValue({
+      key: "agent:main:main",
+      checkpoint,
+    });
+  const branchSessionCheckpoint =
+    params?.branchSessionCheckpoint ??
+    vi.fn().mockResolvedValue({
+      sourceKey: "agent:main:main",
+      key: "agent:main:checkpoint:new",
+      sessionId: "session-branch",
+      checkpoint,
+    });
+  const restoreSessionCheckpoint =
+    params?.restoreSessionCheckpoint ??
+    vi.fn().mockResolvedValue({
+      key: "agent:main:main",
+      sessionId: "session-restored",
+      checkpoint,
+    });
   const setSession = params?.setSession ?? (vi.fn().mockResolvedValue(undefined) as SetSessionMock);
   const addUser = vi.fn();
   const addSystem = vi.fn();
@@ -239,6 +286,10 @@ function createHarness(params?: {
       listTasks,
       auditTasks,
       maintainTasks,
+      listSessionCheckpoints,
+      getSessionCheckpoint,
+      branchSessionCheckpoint,
+      restoreSessionCheckpoint,
     } as never,
     chatLog: { addUser, addSystem } as never,
     tui: { requestRender } as never,
@@ -278,6 +329,10 @@ function createHarness(params?: {
     listTasks,
     auditTasks,
     maintainTasks,
+    listSessionCheckpoints,
+    getSessionCheckpoint,
+    branchSessionCheckpoint,
+    restoreSessionCheckpoint,
     setSession,
     addUser,
     addSystem,
@@ -546,6 +601,73 @@ describe("tui command handlers", () => {
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("repair available"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Self-healing apply"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("clean after repair"));
+  });
+
+  it("lists rollback checkpoints without starting an agent turn", async () => {
+    const { handleCommand, listSessionCheckpoints, sendChat, addSystem } = createHarness();
+
+    await handleCommand("/rollback");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(listSessionCheckpoints).toHaveBeenCalledWith({ key: "agent:main:main" });
+    expect(addSystem).toHaveBeenCalledWith(
+      expect.stringContaining("Rollback checkpoints: 1 checkpoint"),
+    );
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("checkpoint-1"));
+  });
+
+  it("previews rollback restore until confirm is explicit", async () => {
+    const { handleCommand, getSessionCheckpoint, restoreSessionCheckpoint, addSystem } =
+      createHarness();
+
+    await handleCommand("/rollback restore checkpoint-1");
+
+    expect(getSessionCheckpoint).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      checkpointId: "checkpoint-1",
+    });
+    expect(restoreSessionCheckpoint).not.toHaveBeenCalled();
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Checkpoint: checkpoint-1"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("restore preview only"));
+  });
+
+  it("branches rollback checkpoints and switches to the new branch", async () => {
+    const { handleCommand, branchSessionCheckpoint, setSession, sendChat, addSystem } =
+      createHarness();
+
+    await handleCommand("/rollback branch checkpoint-1");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(branchSessionCheckpoint).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      checkpointId: "checkpoint-1",
+    });
+    expect(addSystem).toHaveBeenCalledWith("created checkpoint branch: agent:main:checkpoint:new");
+    expect(setSession).toHaveBeenCalledWith("agent:main:checkpoint:new");
+  });
+
+  it("restores rollback checkpoints only after confirm and no active run", async () => {
+    const { handleCommand, restoreSessionCheckpoint, setSession, addSystem } = createHarness();
+
+    await handleCommand("/rollback restore checkpoint-1 confirm");
+
+    expect(restoreSessionCheckpoint).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      checkpointId: "checkpoint-1",
+    });
+    expect(addSystem).toHaveBeenCalledWith("restored agent:main:main from checkpoint checkpoint-1");
+    expect(setSession).toHaveBeenCalledWith("agent:main:main");
+  });
+
+  it("blocks checkpoint restore while a run is active", async () => {
+    const { handleCommand, restoreSessionCheckpoint, addSystem } = createHarness({
+      activeChatRunId: "run-main",
+    });
+
+    await handleCommand("/rollback restore checkpoint-1 confirm");
+
+    expect(restoreSessionCheckpoint).not.toHaveBeenCalled();
+    expect(addSystem).toHaveBeenCalledWith("stop the active run before restoring a checkpoint");
   });
 
   it("forwards /context list directly", async () => {

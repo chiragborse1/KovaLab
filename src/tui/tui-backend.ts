@@ -1,4 +1,5 @@
 import type { SkillStatusReport } from "../agents/skills-status.js";
+import type { SessionCompactionCheckpoint, SessionEntry } from "../config/sessions.js";
 import type {
   CommandEntry,
   CommandsListParams,
@@ -109,6 +110,31 @@ export type TuiTasksMaintenance = {
   flows: TaskFlowRegistryMaintenanceSummary;
 };
 
+export type TuiSessionCheckpointList = {
+  key: string;
+  checkpoints: SessionCompactionCheckpoint[];
+};
+
+export type TuiSessionCheckpointResult = {
+  key: string;
+  checkpoint: SessionCompactionCheckpoint;
+};
+
+export type TuiSessionCheckpointBranch = {
+  sourceKey: string;
+  key: string;
+  sessionId: string;
+  checkpoint: SessionCompactionCheckpoint;
+  entry?: SessionEntry;
+};
+
+export type TuiSessionCheckpointRestore = {
+  key: string;
+  sessionId: string;
+  checkpoint: SessionCompactionCheckpoint;
+  entry?: SessionEntry;
+};
+
 export type TuiBackend = {
   connection: {
     url: string;
@@ -147,4 +173,17 @@ export type TuiBackend = {
   }) => Promise<TuiTasksList>;
   auditTasks?: () => Promise<TuiTasksAudit>;
   maintainTasks?: (opts?: { apply?: boolean }) => Promise<TuiTasksMaintenance>;
+  listSessionCheckpoints?: (opts: { key: string }) => Promise<TuiSessionCheckpointList>;
+  getSessionCheckpoint?: (opts: {
+    key: string;
+    checkpointId: string;
+  }) => Promise<TuiSessionCheckpointResult>;
+  branchSessionCheckpoint?: (opts: {
+    key: string;
+    checkpointId: string;
+  }) => Promise<TuiSessionCheckpointBranch>;
+  restoreSessionCheckpoint?: (opts: {
+    key: string;
+    checkpointId: string;
+  }) => Promise<TuiSessionCheckpointRestore>;
 };

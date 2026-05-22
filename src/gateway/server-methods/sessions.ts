@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { CURRENT_SESSION_VERSION, SessionManager } from "@mariozechner/pi-coding-agent";
+import { CURRENT_SESSION_VERSION } from "@mariozechner/pi-coding-agent";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import {
   abortEmbeddedPiRun,
@@ -60,6 +60,11 @@ import {
   validateSessionsResolveParams,
   validateSessionsSendParams,
 } from "../protocol/index.js";
+import {
+  branchSessionCompactionCheckpoint,
+  restoreSessionCompactionCheckpoint,
+  toSessionCheckpointActionErrorShape,
+} from "../session-checkpoint-actions.js";
 import {
   getSessionCompactionCheckpoint,
   listSessionCompactionCheckpoints,
@@ -271,47 +276,6 @@ function rejectWebchatSessionMutation(params: {
 
 function buildDashboardSessionKey(agentId: string): string {
   return `agent:${agentId}:dashboard:${randomUUID()}`;
-}
-
-function cloneCheckpointSessionEntry(params: {
-  currentEntry: SessionEntry;
-  nextSessionId: string;
-  nextSessionFile: string;
-  label?: string;
-  parentSessionKey?: string;
-  totalTokens?: number;
-  preserveCompactionCheckpoints?: boolean;
-}): SessionEntry {
-  return {
-    ...params.currentEntry,
-    sessionId: params.nextSessionId,
-    sessionFile: params.nextSessionFile,
-    updatedAt: Date.now(),
-    systemSent: false,
-    abortedLastRun: false,
-    startedAt: undefined,
-    endedAt: undefined,
-    runtimeMs: undefined,
-    status: undefined,
-    inputTokens: undefined,
-    outputTokens: undefined,
-    cacheRead: undefined,
-    cacheWrite: undefined,
-    estimatedCostUsd: undefined,
-    totalTokens:
-      typeof params.totalTokens === "number" && Number.isFinite(params.totalTokens)
-        ? params.totalTokens
-        : undefined,
-    totalTokensFresh:
-      typeof params.totalTokens === "number" && Number.isFinite(params.totalTokens)
-        ? true
-        : undefined,
-    label: params.label ?? params.currentEntry.label,
-    parentSessionKey: params.parentSessionKey ?? params.currentEntry.parentSessionKey,
-    compactionCheckpoints: params.preserveCompactionCheckpoints
-      ? params.currentEntry.compactionCheckpoints
-      : undefined,
-  };
 }
 
 function ensureSessionTranscriptFile(params: {
@@ -1060,8 +1024,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       return;
     }
     const loaded = loadSessionEntry(key);
-    const { cfg, entry, canonicalKey } = loaded;
-    const target = resolveGatewaySessionStoreTarget({ cfg, key: canonicalKey });
+    const { entry, canonicalKey } = loaded;
     if (!entry?.sessionId) {
       respond(
         false,
@@ -1070,66 +1033,23 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    const checkpoint = getSessionCompactionCheckpoint({ entry, checkpointId });
-    if (!checkpoint?.preCompaction.sessionFile) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, `checkpoint not found: ${checkpointId}`),
-      );
+    let result: Awaited<ReturnType<typeof branchSessionCompactionCheckpoint>>;
+    try {
+      result = await branchSessionCompactionCheckpoint({ key, checkpointId });
+    } catch (error) {
+      respond(false, undefined, toSessionCheckpointActionErrorShape(error));
       return;
     }
-    if (!fs.existsSync(checkpoint.preCompaction.sessionFile)) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.UNAVAILABLE, "checkpoint snapshot transcript is missing"),
-      );
-      return;
-    }
-
-    const snapshotSession = SessionManager.open(
-      checkpoint.preCompaction.sessionFile,
-      path.dirname(checkpoint.preCompaction.sessionFile),
-    );
-    const branchedSession = SessionManager.forkFrom(
-      checkpoint.preCompaction.sessionFile,
-      snapshotSession.getCwd(),
-      path.dirname(checkpoint.preCompaction.sessionFile),
-    );
-    const branchedSessionFile = branchedSession.getSessionFile();
-    if (!branchedSessionFile) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.UNAVAILABLE, "failed to create checkpoint branch transcript"),
-      );
-      return;
-    }
-    const nextKey = buildDashboardSessionKey(target.agentId);
-    const label = entry.label?.trim() ? `${entry.label.trim()} (checkpoint)` : "Checkpoint branch";
-    const nextEntry = cloneCheckpointSessionEntry({
-      currentEntry: entry,
-      nextSessionId: branchedSession.getSessionId(),
-      nextSessionFile: branchedSessionFile,
-      label,
-      parentSessionKey: canonicalKey,
-      totalTokens: checkpoint.tokensBefore,
-    });
-
-    await updateSessionStore(target.storePath, (store) => {
-      store[nextKey] = nextEntry;
-    });
 
     respond(
       true,
       {
         ok: true,
-        sourceKey: canonicalKey,
-        key: nextKey,
-        sessionId: nextEntry.sessionId,
-        checkpoint,
-        entry: nextEntry,
+        sourceKey: result.sourceKey,
+        key: result.key,
+        sessionId: result.sessionId,
+        checkpoint: result.checkpoint,
+        entry: result.entry,
       },
       undefined,
     );
@@ -1138,7 +1058,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       reason: "checkpoint-branch",
     });
     emitSessionsChanged(context, {
-      sessionKey: nextKey,
+      sessionKey: result.key,
       reason: "checkpoint-branch",
     });
   },
@@ -1175,29 +1095,12 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       return;
     }
     const loaded = loadSessionEntry(key);
-    const { entry, canonicalKey, storePath } = loaded;
+    const { entry, canonicalKey } = loaded;
     if (!entry?.sessionId) {
       respond(
         false,
         undefined,
         errorShape(ErrorCodes.INVALID_REQUEST, `session not found: ${key}`),
-      );
-      return;
-    }
-    const checkpoint = getSessionCompactionCheckpoint({ entry, checkpointId });
-    if (!checkpoint?.preCompaction.sessionFile) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, `checkpoint not found: ${checkpointId}`),
-      );
-      return;
-    }
-    if (!fs.existsSync(checkpoint.preCompaction.sessionFile)) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.UNAVAILABLE, "checkpoint snapshot transcript is missing"),
       );
       return;
     }
@@ -1216,44 +1119,22 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const snapshotSession = SessionManager.open(
-      checkpoint.preCompaction.sessionFile,
-      path.dirname(checkpoint.preCompaction.sessionFile),
-    );
-    const restoredSession = SessionManager.forkFrom(
-      checkpoint.preCompaction.sessionFile,
-      snapshotSession.getCwd(),
-      path.dirname(checkpoint.preCompaction.sessionFile),
-    );
-    const restoredSessionFile = restoredSession.getSessionFile();
-    if (!restoredSessionFile) {
-      respond(
-        false,
-        undefined,
-        errorShape(ErrorCodes.UNAVAILABLE, "failed to restore checkpoint transcript"),
-      );
+    let result: Awaited<ReturnType<typeof restoreSessionCompactionCheckpoint>>;
+    try {
+      result = await restoreSessionCompactionCheckpoint({ key, checkpointId });
+    } catch (error) {
+      respond(false, undefined, toSessionCheckpointActionErrorShape(error));
       return;
     }
-    const nextEntry = cloneCheckpointSessionEntry({
-      currentEntry: entry,
-      nextSessionId: restoredSession.getSessionId(),
-      nextSessionFile: restoredSessionFile,
-      totalTokens: checkpoint.tokensBefore,
-      preserveCompactionCheckpoints: true,
-    });
-
-    await updateSessionStore(storePath, (store) => {
-      store[canonicalKey] = nextEntry;
-    });
 
     respond(
       true,
       {
         ok: true,
-        key: canonicalKey,
-        sessionId: nextEntry.sessionId,
-        checkpoint,
-        entry: nextEntry,
+        key: result.key,
+        sessionId: result.sessionId,
+        checkpoint: result.checkpoint,
+        entry: result.entry,
       },
       undefined,
     );

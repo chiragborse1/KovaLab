@@ -38,6 +38,12 @@ import type {
 type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
 type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
 type TuiTasksList = Awaited<ReturnType<NonNullable<TuiBackend["listTasks"]>>>;
+type TuiSessionCheckpointList = Awaited<
+  ReturnType<NonNullable<TuiBackend["listSessionCheckpoints"]>>
+>;
+type TuiSessionCheckpointResult = Awaited<
+  ReturnType<NonNullable<TuiBackend["getSessionCheckpoint"]>>
+>;
 
 type CommandHandlerContext = {
   client: TuiBackend;
@@ -236,6 +242,116 @@ function formatTaskSnapshot(result: TuiTasksList, label = "Tasks"): string {
     lines.push("Completion is push-based; wait for the parent summary instead of polling.");
   }
   return lines.join("\n");
+}
+
+function formatCheckpointTokens(checkpoint: TuiSessionCheckpointResult["checkpoint"]): string {
+  const before =
+    typeof checkpoint.tokensBefore === "number" && Number.isFinite(checkpoint.tokensBefore)
+      ? String(checkpoint.tokensBefore)
+      : "?";
+  const after =
+    typeof checkpoint.tokensAfter === "number" && Number.isFinite(checkpoint.tokensAfter)
+      ? String(checkpoint.tokensAfter)
+      : "?";
+  return `${before} -> ${after}`;
+}
+
+function formatCheckpointAge(timestamp: number): string {
+  return formatRelativeTimestamp(timestamp, { dateFallback: true, fallback: "unknown" });
+}
+
+function formatCheckpointList(
+  result: TuiSessionCheckpointList,
+  formatSessionKey: (key: string) => string,
+): string {
+  const checkpoints = Array.isArray(result.checkpoints) ? result.checkpoints : [];
+  const lines = [
+    `Rollback checkpoints: ${plural(checkpoints.length, "checkpoint")} for ${formatSessionKey(
+      result.key,
+    )}`,
+  ];
+  if (checkpoints.length === 0) {
+    lines.push("No checkpoints found for this session.");
+    return lines.join("\n");
+  }
+  for (const checkpoint of checkpoints.slice().reverse().slice(0, 8)) {
+    const summary = checkpoint.summary?.trim() ? ` - ${truncateLine(checkpoint.summary, 84)}` : "";
+    lines.push(
+      `- ${checkpoint.checkpointId}: ${checkpoint.reason}, ${formatCheckpointAge(
+        checkpoint.createdAt,
+      )}, tokens ${formatCheckpointTokens(checkpoint)}${summary}`,
+    );
+  }
+  if (checkpoints.length > 8) {
+    lines.push(`- and ${plural(checkpoints.length - 8, "older checkpoint")}`);
+  }
+  lines.push("Use /rollback show <id>, /rollback branch <id>, or /rollback restore <id> confirm.");
+  return lines.join("\n");
+}
+
+function formatCheckpointDetails(
+  result: TuiSessionCheckpointResult,
+  formatSessionKey: (key: string) => string,
+): string {
+  const checkpoint = result.checkpoint;
+  const lines = [
+    `Checkpoint: ${checkpoint.checkpointId}`,
+    `Session: ${formatSessionKey(result.key)}`,
+    `Created: ${formatCheckpointAge(checkpoint.createdAt)}`,
+    `Reason: ${checkpoint.reason}`,
+    `Tokens: ${formatCheckpointTokens(checkpoint)}`,
+    `Snapshot session: ${checkpoint.preCompaction.sessionId}`,
+    `Current compacted session: ${checkpoint.postCompaction.sessionId}`,
+  ];
+  if (checkpoint.summary?.trim()) {
+    lines.push(`Summary: ${truncateLine(checkpoint.summary, 180)}`);
+  }
+  lines.push("No changes made. Use /rollback branch <id> or /rollback restore <id> confirm.");
+  return lines.join("\n");
+}
+
+type RollbackCommand =
+  | { action: "list" }
+  | { action: "show"; checkpointId: string }
+  | { action: "branch"; checkpointId: string }
+  | { action: "restore-preview"; checkpointId: string }
+  | { action: "restore-confirm"; checkpointId: string };
+
+function parseRollbackCommand(args: string): RollbackCommand | null {
+  const tokens = args.trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) {
+    return { action: "list" };
+  }
+  const [firstRaw, secondRaw] = tokens;
+  const first = firstRaw?.toLowerCase() ?? "";
+  if (first === "list" || first === "status") {
+    return { action: "list" };
+  }
+  if (first === "show" || first === "get" || first === "view") {
+    return secondRaw ? { action: "show", checkpointId: secondRaw } : null;
+  }
+  if (first === "branch" || first === "fork") {
+    return secondRaw ? { action: "branch", checkpointId: secondRaw } : null;
+  }
+  if (first === "restore") {
+    if (!secondRaw) {
+      return null;
+    }
+    const confirmed = tokens
+      .slice(2)
+      .some((token) => token.toLowerCase() === "confirm" || /^--?confirm$/i.test(token));
+    return {
+      action: confirmed ? "restore-confirm" : "restore-preview",
+      checkpointId: secondRaw,
+    };
+  }
+  if (first === "confirm") {
+    return secondRaw ? { action: "restore-confirm", checkpointId: secondRaw } : null;
+  }
+  if (tokens.length === 1) {
+    return { action: "show", checkpointId: tokens[0] ?? "" };
+  }
+  return null;
 }
 
 type TaskCommandTarget = "tasks" | "subagents" | "automation";
@@ -614,6 +730,80 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
   };
 
+  const showRollback = async (args: string) => {
+    const command = parseRollbackCommand(args);
+    if (!command) {
+      chatLog.addSystem("usage: /rollback [list|show <id>|branch <id>|restore <id> confirm]");
+      return;
+    }
+    const missing = [
+      !client.listSessionCheckpoints ? "checkpoint list" : "",
+      !client.getSessionCheckpoint ? "checkpoint read" : "",
+    ].filter(Boolean);
+    if (missing.length > 0 || !client.listSessionCheckpoints || !client.getSessionCheckpoint) {
+      chatLog.addSystem(
+        `rollback unavailable (${missing.join(", ")}); use !kova sessions checkpoints ${state.currentSessionKey}`,
+      );
+      return;
+    }
+    try {
+      if (command.action === "list") {
+        const result = await client.listSessionCheckpoints({ key: state.currentSessionKey });
+        chatLog.addSystem(formatCheckpointList(result, formatSessionKey));
+        return;
+      }
+      if (command.action === "show" || command.action === "restore-preview") {
+        const result = await client.getSessionCheckpoint({
+          key: state.currentSessionKey,
+          checkpointId: command.checkpointId,
+        });
+        chatLog.addSystem(formatCheckpointDetails(result, formatSessionKey));
+        if (command.action === "restore-preview") {
+          chatLog.addSystem(
+            `restore preview only; run /rollback restore ${command.checkpointId} confirm to replace this session`,
+          );
+        }
+        return;
+      }
+      if (command.action === "branch") {
+        if (!client.branchSessionCheckpoint) {
+          chatLog.addSystem("checkpoint branching is unavailable in this backend");
+          return;
+        }
+        setActivityStatus("branching checkpoint");
+        const result = await client.branchSessionCheckpoint({
+          key: state.currentSessionKey,
+          checkpointId: command.checkpointId,
+        });
+        chatLog.addSystem(`created checkpoint branch: ${formatSessionKey(result.key)}`);
+        await setSession(result.key);
+        return;
+      }
+      if (command.action === "restore-confirm") {
+        if (!client.restoreSessionCheckpoint) {
+          chatLog.addSystem("checkpoint restore is unavailable in this backend");
+          return;
+        }
+        if (state.activeChatRunId || state.pendingOptimisticUserMessage) {
+          chatLog.addSystem("stop the active run before restoring a checkpoint");
+          return;
+        }
+        setActivityStatus("restoring checkpoint");
+        const result = await client.restoreSessionCheckpoint({
+          key: state.currentSessionKey,
+          checkpointId: command.checkpointId,
+        });
+        chatLog.addSystem(
+          `restored ${formatSessionKey(result.key)} from checkpoint ${result.checkpoint.checkpointId}`,
+        );
+        await setSession(result.key);
+      }
+    } catch (err) {
+      chatLog.addSystem(`rollback failed: ${sanitizeRenderableText(String(err))}`);
+      setActivityStatus("error");
+    }
+  };
+
   const openSessionSelector = async (query = "") => {
     const normalizedQuery = query.trim();
     try {
@@ -816,6 +1006,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         break;
       case "recover":
         await showRecovery(args);
+        break;
+      case "rollback":
+        await showRollback(args);
         break;
       case "crestodian":
         chatLog.addSystem(

@@ -28,7 +28,11 @@ type LocalProcessRequestMethod =
   | "listSkills"
   | "listTasks"
   | "auditTasks"
-  | "maintainTasks";
+  | "maintainTasks"
+  | "listSessionCheckpoints"
+  | "getSessionCheckpoint"
+  | "branchSessionCheckpoint"
+  | "restoreSessionCheckpoint";
 
 type LocalProcessRequest = {
   type: "request";
@@ -226,6 +230,36 @@ export class LocalProcessTuiBackend implements TuiBackend {
   async maintainTasks(opts?: Parameters<NonNullable<TuiBackend["maintainTasks"]>>[0]) {
     return (await this.request("maintainTasks", opts ?? {})) as Awaited<
       ReturnType<NonNullable<TuiBackend["maintainTasks"]>>
+    >;
+  }
+
+  async listSessionCheckpoints(
+    opts: Parameters<NonNullable<TuiBackend["listSessionCheckpoints"]>>[0],
+  ) {
+    return (await this.request("listSessionCheckpoints", opts)) as Awaited<
+      ReturnType<NonNullable<TuiBackend["listSessionCheckpoints"]>>
+    >;
+  }
+
+  async getSessionCheckpoint(opts: Parameters<NonNullable<TuiBackend["getSessionCheckpoint"]>>[0]) {
+    return (await this.request("getSessionCheckpoint", opts)) as Awaited<
+      ReturnType<NonNullable<TuiBackend["getSessionCheckpoint"]>>
+    >;
+  }
+
+  async branchSessionCheckpoint(
+    opts: Parameters<NonNullable<TuiBackend["branchSessionCheckpoint"]>>[0],
+  ) {
+    return (await this.request("branchSessionCheckpoint", opts)) as Awaited<
+      ReturnType<NonNullable<TuiBackend["branchSessionCheckpoint"]>>
+    >;
+  }
+
+  async restoreSessionCheckpoint(
+    opts: Parameters<NonNullable<TuiBackend["restoreSessionCheckpoint"]>>[0],
+  ) {
+    return (await this.request("restoreSessionCheckpoint", opts)) as Awaited<
+      ReturnType<NonNullable<TuiBackend["restoreSessionCheckpoint"]>>
     >;
   }
 
