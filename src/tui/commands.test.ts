@@ -13,6 +13,7 @@ describe("parseCommand", () => {
   it("normalizes hidden lifecycle aliases", () => {
     expect(parseCommand("/abort")).toEqual({ name: "stop", args: "" });
     expect(parseCommand("/quit")).toEqual({ name: "exit", args: "" });
+    expect(parseCommand("/commands")).toEqual({ name: "help", args: "" });
   });
 
   it("returns empty name for empty input", () => {
@@ -120,6 +121,7 @@ describe("getSlashCommands", () => {
     expect(commandNames).not.toContain("elev");
     expect(commandNames).not.toContain("gwstatus");
     expect(commandNames).not.toContain("abort");
+    expect(commandNames).not.toContain("commands");
     expect(commandNames).not.toContain("quit");
     expect(commandNames).not.toContain("id");
     expect(commandNames).not.toContain("plugin");
@@ -163,6 +165,7 @@ describe("helpText", () => {
     const output = helpText();
     expect(output).toContain("/elevated <on|off|ask|full>");
     expect(output).toContain("/gateway-status");
+    expect(output).not.toContain("/commands");
     expect(output).toContain("/crestodian [request]");
     expect(output).toContain("/session <key> (or /sessions [query])");
     expect(output).toContain("Kova terminal controls:");
@@ -180,7 +183,7 @@ describe("helpText", () => {
     expect(output).toContain("/plugins list");
     expect(output).toContain("Run controls:");
     expect(output).toContain("/stop");
-    expect(output).toContain("Short aliases still work");
+    expect(output).toContain("commands alias opens help");
     expect(output).not.toContain("/abort");
     expect(output).not.toContain("/quit");
   });

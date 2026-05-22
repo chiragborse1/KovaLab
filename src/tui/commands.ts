@@ -77,6 +77,7 @@ export type SlashCommandOptions = {
 
 const COMMAND_ALIASES: Record<string, string> = {
   abort: "stop",
+  commands: "help",
   elev: "elevated",
   gwstatus: "gateway-status",
   quit: "exit",
@@ -84,6 +85,7 @@ const COMMAND_ALIASES: Record<string, string> = {
 
 const HIDDEN_ALIAS_NAMES = new Set([
   "abort",
+  "commands",
   "elev",
   "export",
   "gwstatus",
@@ -298,7 +300,6 @@ export function helpText(options: SlashCommandOptions = {}): string {
   return [
     "Kova terminal controls:",
     "/help",
-    "/commands",
     "/status",
     "/gateway-status",
     ...(options.local ? ["/auth [provider]"] : []),
@@ -333,6 +334,6 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/settings",
     "/exit",
     "",
-    "Short aliases still work; the command palette shows canonical commands only.",
+    "Short aliases still work; the commands alias opens help.",
   ].join("\n");
 }

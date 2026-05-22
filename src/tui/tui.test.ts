@@ -55,10 +55,10 @@ describe("tui slash commands", () => {
     });
   });
 
-  it("includes gateway text commands", () => {
+  it("keeps duplicate command-help aliases out of the palette", () => {
     const commands = getSlashCommands({});
     expect(commands.some((command) => command.name === "context")).toBe(true);
-    expect(commands.some((command) => command.name === "commands")).toBe(true);
+    expect(commands.some((command) => command.name === "commands")).toBe(false);
   });
 
   it("includes /auth in local embedded mode", () => {
