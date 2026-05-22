@@ -2276,6 +2276,7 @@ export async function runEmbeddedAttempt(
         const hookCtx = {
           runId: params.runId,
           trace: freezeDiagnosticTraceContext(diagnosticTrace),
+          surface: params.surface,
           agentId: hookAgentId,
           sessionKey: params.sessionKey,
           sessionId: params.sessionId,

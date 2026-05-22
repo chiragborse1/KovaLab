@@ -228,6 +228,7 @@ describe("active-memory plugin", () => {
       {
         agentId: "main",
         trigger: "user",
+        surface: "tui",
         sessionKey: "agent:main:main",
         channelId: "webchat",
       },
@@ -241,6 +242,41 @@ describe("active-memory plugin", () => {
     expect(runEmbeddedPiAgent.mock.calls.at(-1)?.[0]).toMatchObject({
       messageChannel: "webchat",
       messageProvider: "webchat",
+    });
+  });
+
+  it("keeps local webchat recall cache-first when channel and provider are both webchat", async () => {
+    const result = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? local tui", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        surface: "tui",
+        sessionKey: "agent:main:local-tui",
+        messageProvider: "webchat",
+        channelId: "webchat",
+      },
+    );
+
+    expect(result).toBeUndefined();
+    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(1));
+
+    const cachedResult = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? local tui", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        surface: "tui",
+        sessionKey: "agent:main:local-tui",
+        messageProvider: "webchat",
+        channelId: "webchat",
+      },
+    );
+
+    expect(cachedResult).toEqual({
+      prependContext: expect.stringContaining("lemon pepper wings"),
     });
   });
 
@@ -1829,6 +1865,7 @@ describe("active-memory plugin", () => {
     );
 
     expect(result).toBeUndefined();
+    await vi.waitFor(() => expect(hoisted.updateSessionStore).toHaveBeenCalled());
     const updater = hoisted.updateSessionStore.mock.calls.at(-1)?.[1] as
       | ((store: Record<string, Record<string, unknown>>) => void)
       | undefined;

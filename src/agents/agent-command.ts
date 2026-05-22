@@ -50,7 +50,7 @@ import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
 import { ensureSelectedAgentHarnessPlugin } from "./harness/runtime-plugin.js";
 import { AGENT_LANE_SUBAGENT } from "./lanes.js";
 import { LiveSessionModelSwitchError } from "./live-model-switch.js";
-import { loadModelCatalog } from "./model-catalog.js";
+import { getCachedModelCatalog, type ModelCatalogEntry } from "./model-catalog.js";
 import { runWithModelFallback } from "./model-fallback.js";
 import {
   buildAllowedModelSet,
@@ -705,15 +705,16 @@ async function agentCommandInternal(
     }
     const needsModelCatalog = Boolean(hasAllowlist);
     let allowedModelKeys = new Set<string>();
-    let allowedModelCatalog: Awaited<ReturnType<typeof loadModelCatalog>> = [];
-    let modelCatalog: Awaited<ReturnType<typeof loadModelCatalog>> | null = null;
+    let allowedModelCatalog: ModelCatalogEntry[] = [];
+    let modelCatalog: ModelCatalogEntry[] | null = null;
     let allowAnyModel = !hasAllowlist;
 
     if (needsModelCatalog) {
-      modelCatalog = await loadModelCatalog({ config: cfg });
+      const cachedCatalog = getCachedModelCatalog() ?? [];
+      modelCatalog = cachedCatalog.length > 0 ? cachedCatalog : null;
       const allowed = buildAllowedModelSet({
         cfg,
-        catalog: modelCatalog,
+        catalog: cachedCatalog,
         defaultProvider,
         defaultModel,
         agentId: sessionAgentId,

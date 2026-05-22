@@ -380,15 +380,21 @@ function normalizeChannelHint(value: string | undefined): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
-function isProviderlessLocalWebchatContext(ctx: {
+function isLocalWebchatHotPathContext(ctx: {
+  surface?: string;
   trigger?: string;
   messageProvider?: string;
   channelId?: string;
 }): boolean {
+  const surface = normalizeChannelHint(ctx.surface);
+  const channel = normalizeChannelHint(ctx.channelId);
+  const provider = normalizeChannelHint(ctx.messageProvider);
   return (
+    surface === "tui" &&
     ctx.trigger === "user" &&
-    normalizeChannelHint(ctx.channelId) === "webchat" &&
-    normalizeChannelHint(ctx.messageProvider) === ""
+    (channel === "webchat" || provider === "webchat") &&
+    (channel === "" || channel === "webchat") &&
+    (provider === "" || provider === "webchat")
   );
 }
 
@@ -2207,7 +2213,7 @@ export default definePluginEntry({
         const effectiveAgentId =
           resolvedAgentId || resolveStatusUpdateAgentId({ sessionKey: resolvedSessionKey });
         if (await isSessionActiveMemoryDisabled({ api, sessionKey: resolvedSessionKey })) {
-          await persistPluginStatusLines({
+          persistPluginStatusLinesSoon({
             api,
             agentId: effectiveAgentId,
             sessionKey: resolvedSessionKey,
@@ -2215,7 +2221,7 @@ export default definePluginEntry({
           return undefined;
         }
         if (!isEnabledForAgent(config, effectiveAgentId)) {
-          await persistPluginStatusLines({
+          persistPluginStatusLinesSoon({
             api,
             agentId: effectiveAgentId,
             sessionKey: resolvedSessionKey,
@@ -2223,7 +2229,7 @@ export default definePluginEntry({
           return undefined;
         }
         if (!isEligibleInteractiveSession(ctx)) {
-          await persistPluginStatusLines({
+          persistPluginStatusLinesSoon({
             api,
             agentId: effectiveAgentId,
             sessionKey: resolvedSessionKey,
@@ -2237,7 +2243,7 @@ export default definePluginEntry({
             mainKey: api.config.session?.mainKey,
           })
         ) {
-          await persistPluginStatusLines({
+          persistPluginStatusLinesSoon({
             api,
             agentId: effectiveAgentId,
             sessionKey: resolvedSessionKey,
@@ -2262,7 +2268,7 @@ export default definePluginEntry({
           currentModelId: ctx.modelId,
         };
         const shouldUseCacheFirstRecall =
-          config.recallMode !== "blocking" || isProviderlessLocalWebchatContext(ctx);
+          config.recallMode !== "blocking" || isLocalWebchatHotPathContext(ctx);
         const result = shouldUseCacheFirstRecall
           ? await resolveCachedOrScheduleActiveRecall(resolveParams)
           : await maybeResolveActiveRecall(resolveParams);

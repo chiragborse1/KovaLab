@@ -281,6 +281,7 @@ vi.mock("./lanes.js", () => ({
 }));
 
 vi.mock("./model-catalog.js", () => ({
+  getCachedModelCatalog: () => [],
   loadModelCatalog: async () => [],
 }));
 

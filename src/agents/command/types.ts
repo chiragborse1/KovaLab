@@ -20,6 +20,7 @@ export type AgentCommandResultMetaOverrides = {
 };
 
 export type AgentRunContext = {
+  surface?: string;
   messageChannel?: string;
   accountId?: string;
   groupId?: string | null;

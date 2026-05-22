@@ -975,6 +975,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
           deliver: params.deliver,
           channel: INTERNAL_MESSAGE_CHANNEL,
           runContext: {
+            surface: "tui",
             messageChannel: INTERNAL_MESSAGE_CHANNEL,
           },
           interactiveFailover: true,

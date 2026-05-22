@@ -163,6 +163,7 @@ export type PluginHookAgentContext = {
   runId?: string;
   jobId?: string;
   trace?: DiagnosticTraceContext;
+  surface?: string;
   agentId?: string;
   sessionKey?: string;
   sessionId?: string;

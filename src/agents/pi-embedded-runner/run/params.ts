@@ -49,6 +49,8 @@ export type RunEmbeddedPiAgentParams = {
   /** Session-like key for sandbox and tool-policy resolution. Defaults to sessionKey. */
   sandboxSessionKey?: string;
   agentId?: string;
+  /** Local client surface hint for plugin hot-path policy. */
+  surface?: string;
   messageChannel?: string;
   messageProvider?: string;
   agentAccountId?: string;
