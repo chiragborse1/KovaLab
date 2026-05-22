@@ -23,6 +23,33 @@ type TraceMark = {
   elapsedMs: number;
 };
 
+export type TuiTraceSegment = {
+  stage: string;
+  durationMs: number;
+};
+
+const TUI_TRACE_SEGMENT_BUDGETS: Array<{
+  pattern: RegExp;
+  budgetMs: number;
+  reason: string;
+}> = [
+  {
+    pattern: /agent\.imports|command\.pipeline\.import/i,
+    budgetMs: 750,
+    reason: "cold imports",
+  },
+  {
+    pattern: /session\.load|history/i,
+    budgetMs: 500,
+    reason: "session/history I/O",
+  },
+  {
+    pattern: /command\.pipeline/i,
+    budgetMs: 750,
+    reason: "slash-command pipeline",
+  },
+];
+
 export function isTuiTurnTraceEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return TRACE_ENABLED_VALUES.has(env.KOVA_TUI_TRACE?.trim().toLowerCase() ?? "");
 }
@@ -60,6 +87,67 @@ function classifySlowTraceSegment(stage: string): string {
     return "slash-command pipeline";
   }
   return "runtime";
+}
+
+export function buildTuiTraceSegments(
+  marks: readonly TraceMark[],
+  totalElapsedMs: number,
+): TuiTraceSegment[] {
+  const safeTotalElapsedMs = Number.isFinite(totalElapsedMs) ? Math.max(0, totalElapsedMs) : 0;
+  return marks.map((mark, index) => {
+    const next = marks[index + 1]?.elapsedMs ?? safeTotalElapsedMs;
+    return {
+      stage: mark.stage,
+      durationMs: Math.max(0, next - mark.elapsedMs),
+    };
+  });
+}
+
+function findTraceBudgetHit(segments: readonly TuiTraceSegment[]):
+  | {
+      stage: string;
+      durationMs: number;
+      budgetMs: number;
+      reason: string;
+    }
+  | undefined {
+  return segments
+    .flatMap((segment) => {
+      const budget = TUI_TRACE_SEGMENT_BUDGETS.find((entry) => entry.pattern.test(segment.stage));
+      if (!budget || segment.durationMs <= budget.budgetMs) {
+        return [];
+      }
+      return [
+        {
+          stage: segment.stage,
+          durationMs: segment.durationMs,
+          budgetMs: budget.budgetMs,
+          reason: budget.reason,
+        },
+      ];
+    })
+    .toSorted((a, b) => b.durationMs - a.durationMs)[0];
+}
+
+export function summarizeTuiTraceSegments(segments: readonly TuiTraceSegment[]): {
+  slowestDetail: string;
+  budgetDetail?: string;
+} {
+  const slowest = segments.toSorted((a, b) => b.durationMs - a.durationMs)[0];
+  const slowestDetail = slowest
+    ? `slowest ${slowest.stage} ${formatTuiTraceElapsed(slowest.durationMs)} (${classifySlowTraceSegment(slowest.stage)})`
+    : "slowest unknown";
+  const budgetHit = findTraceBudgetHit(segments);
+  return {
+    slowestDetail,
+    ...(budgetHit
+      ? {
+          budgetDetail:
+            `budget ${budgetHit.stage} ${formatTuiTraceElapsed(budgetHit.durationMs)} > ` +
+            `${formatTuiTraceElapsed(budgetHit.budgetMs)} (${budgetHit.reason})`,
+        }
+      : {}),
+  };
 }
 
 export class TuiTurnTrace {
@@ -101,23 +189,15 @@ export class TuiTurnTrace {
     this.summaryEmitted = true;
     const elapsedMs = performance.now() - this.startedAt;
     const marks = this.marks.length > 0 ? this.marks : [{ stage: "start", elapsedMs: 0 }];
-    const segments = marks.map((mark, index) => {
-      const next = marks[index + 1]?.elapsedMs ?? elapsedMs;
-      return {
-        stage: mark.stage,
-        durationMs: Math.max(0, next - mark.elapsedMs),
-      };
-    });
-    const slowest = segments.toSorted((a, b) => b.durationMs - a.durationMs)[0];
-    const slowestDetail = slowest
-      ? `slowest ${slowest.stage} ${formatTuiTraceElapsed(slowest.durationMs)} (${classifySlowTraceSegment(slowest.stage)})`
-      : "slowest unknown";
+    const { slowestDetail, budgetDetail } = summarizeTuiTraceSegments(
+      buildTuiTraceSegments(marks, elapsedMs),
+    );
     this.emit({
       runId: this.runId,
       sessionKey: this.sessionKey,
       stage: "summary",
       elapsedMs,
-      detail: `${status} | ${slowestDetail}`,
+      detail: `${status} | ${slowestDetail}${budgetDetail ? ` | ${budgetDetail}` : ""}`,
       ts: Date.now(),
     });
   }
