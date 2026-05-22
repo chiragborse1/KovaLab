@@ -112,7 +112,6 @@ controls and the Gateway-backed command surface in one place.
 Core:
 
 - `/help`
-- `/commands`
 - `/status`
 - `/gateway-status`
 - `/agent <id>` (or `/agents`)
@@ -167,8 +166,8 @@ Session lifecycle:
 - `/settings`
 - `/exit`
 
-Short aliases such as `/gwstatus`, `/elev`, `/abort`, and `/quit` still work,
-but the TUI command palette shows canonical commands only.
+Short aliases such as `/commands`, `/gwstatus`, `/elev`, `/abort`, and `/quit`
+still work, but the TUI command palette shows canonical commands only.
 
 Local mode only:
 
