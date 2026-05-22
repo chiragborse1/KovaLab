@@ -1142,20 +1142,27 @@ function resolveConfigForRead(
 function resolveLegacyConfigForRead(
   resolvedConfigRaw: unknown,
   sourceRaw: unknown,
+  options: { collectLegacyIssues?: boolean; pluginFallback?: "full" | "skip" } = {},
 ): LegacyMigrationResolution {
-  const pluginIds = collectRelevantDoctorPluginIds(resolvedConfigRaw);
-  const sourceLegacyIssues = findLegacyConfigIssues(
-    resolvedConfigRaw,
-    sourceRaw,
-    listPluginDoctorLegacyConfigRules({ pluginIds }),
-  );
+  const collectLegacyIssues = options.collectLegacyIssues !== false;
+  const sourceLegacyIssues = collectLegacyIssues
+    ? findLegacyConfigIssues(
+        resolvedConfigRaw,
+        sourceRaw,
+        listPluginDoctorLegacyConfigRules({
+          pluginIds: collectRelevantDoctorPluginIds(resolvedConfigRaw),
+        }),
+      )
+    : [];
   if (!resolvedConfigRaw || typeof resolvedConfigRaw !== "object") {
     return {
       effectiveConfigRaw: resolvedConfigRaw,
       sourceLegacyIssues,
     };
   }
-  const compat = applyRuntimeLegacyConfigMigrations(resolvedConfigRaw);
+  const compat = applyRuntimeLegacyConfigMigrations(resolvedConfigRaw, {
+    pluginFallback: options.pluginFallback,
+  });
   return {
     effectiveConfigRaw: compat.next ?? resolvedConfigRaw,
     sourceLegacyIssues,
@@ -1512,7 +1519,10 @@ export function createConfigIO(
         deps.env,
       );
       const resolvedConfig = readResolution.resolvedConfigRaw;
-      const legacyResolution = resolveLegacyConfigForRead(resolvedConfig, effectiveParsed);
+      const legacyResolution = resolveLegacyConfigForRead(resolvedConfig, effectiveParsed, {
+        collectLegacyIssues: false,
+        pluginFallback: "skip",
+      });
       const installMigration = migrateAndStripShippedPluginInstallConfigRecords(
         legacyResolution.effectiveConfigRaw,
         { rootConfigRaw: effectiveParsed },
@@ -1554,6 +1564,7 @@ export function createConfigIO(
       }
       const validated = validateConfigObjectWithPlugins(effectiveConfigRaw, {
         env: deps.env,
+        legacyConfigRules: "skip",
         pluginValidation: overrides.pluginValidation,
       });
       if (!validated.ok) {

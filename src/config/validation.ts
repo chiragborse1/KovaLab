@@ -654,25 +654,27 @@ export function validateConfigObjectRaw(
   raw: unknown,
   opts?: {
     touchedPaths?: ReadonlyArray<ReadonlyArray<string>>;
+    legacyConfigRules?: "full" | "skip";
   },
 ): { ok: true; config: KovaConfig } | { ok: false; issues: ConfigValidationIssue[] } {
   const normalizedRaw = stripDeprecatedValidationKeys(raw);
   const policyIssues = collectUnsupportedSecretRefPolicyIssues(normalizedRaw);
-  const doctorPluginIds = opts?.touchedPaths
-    ? collectRelevantDoctorPluginIdsForTouchedPaths({
-        raw: normalizedRaw,
-        touchedPaths: opts.touchedPaths,
-      })
-    : collectRelevantDoctorPluginIds(normalizedRaw);
-  const extraLegacyRules = listPluginDoctorLegacyConfigRules({
-    pluginIds: doctorPluginIds,
-  });
-  const legacyIssues = findLegacyConfigIssues(
-    normalizedRaw,
-    normalizedRaw,
-    extraLegacyRules,
-    opts?.touchedPaths,
-  );
+  const legacyIssues =
+    opts?.legacyConfigRules === "skip"
+      ? []
+      : findLegacyConfigIssues(
+          normalizedRaw,
+          normalizedRaw,
+          listPluginDoctorLegacyConfigRules({
+            pluginIds: opts?.touchedPaths
+              ? collectRelevantDoctorPluginIdsForTouchedPaths({
+                  raw: normalizedRaw,
+                  touchedPaths: opts.touchedPaths,
+                })
+              : collectRelevantDoctorPluginIds(normalizedRaw),
+          }),
+          opts?.touchedPaths,
+        );
   if (legacyIssues.length > 0) {
     return {
       ok: false,
@@ -722,8 +724,11 @@ export function validateConfigObjectRaw(
 
 export function validateConfigObject(
   raw: unknown,
+  opts?: { legacyConfigRules?: "full" | "skip" },
 ): { ok: true; config: KovaConfig } | { ok: false; issues: ConfigValidationIssue[] } {
-  const result = validateConfigObjectRaw(raw);
+  const result = validateConfigObjectRaw(raw, {
+    legacyConfigRules: opts?.legacyConfigRules,
+  });
   if (!result.ok) {
     return result;
   }
@@ -747,31 +752,52 @@ type ValidateConfigWithPluginsResult =
 
 export function validateConfigObjectWithPlugins(
   raw: unknown,
-  params?: { env?: NodeJS.ProcessEnv; pluginValidation?: "full" | "skip" },
+  params?: {
+    env?: NodeJS.ProcessEnv;
+    pluginValidation?: "full" | "skip";
+    legacyConfigRules?: "full" | "skip";
+  },
 ): ValidateConfigWithPluginsResult {
   return validateConfigObjectWithPluginsBase(raw, {
     applyDefaults: true,
     env: params?.env,
+    legacyConfigRules: params?.legacyConfigRules ?? "full",
     pluginValidation: params?.pluginValidation ?? "full",
   });
 }
 
 export function validateConfigObjectRawWithPlugins(
   raw: unknown,
-  params?: { env?: NodeJS.ProcessEnv; pluginValidation?: "full" | "skip" },
+  params?: {
+    env?: NodeJS.ProcessEnv;
+    pluginValidation?: "full" | "skip";
+    legacyConfigRules?: "full" | "skip";
+  },
 ): ValidateConfigWithPluginsResult {
   return validateConfigObjectWithPluginsBase(raw, {
     applyDefaults: false,
     env: params?.env,
+    legacyConfigRules: params?.legacyConfigRules ?? "full",
     pluginValidation: params?.pluginValidation ?? "full",
   });
 }
 
 function validateConfigObjectWithPluginsBase(
   raw: unknown,
-  opts: { applyDefaults: boolean; env?: NodeJS.ProcessEnv; pluginValidation?: "full" | "skip" },
+  opts: {
+    applyDefaults: boolean;
+    env?: NodeJS.ProcessEnv;
+    pluginValidation?: "full" | "skip";
+    legacyConfigRules?: "full" | "skip";
+  },
 ): ValidateConfigWithPluginsResult {
-  const base = opts.applyDefaults ? validateConfigObject(raw) : validateConfigObjectRaw(raw);
+  const base = opts.applyDefaults
+    ? validateConfigObject(raw, {
+        legacyConfigRules: opts.legacyConfigRules,
+      })
+    : validateConfigObjectRaw(raw, {
+        legacyConfigRules: opts.legacyConfigRules,
+      });
   if (!base.ok) {
     return { ok: false, issues: base.issues, warnings: [] };
   }

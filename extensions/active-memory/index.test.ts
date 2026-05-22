@@ -280,6 +280,44 @@ describe("active-memory plugin", () => {
     });
   });
 
+  it("keeps terminal recall off the prompt hot path even for internal chat sessions", async () => {
+    const result = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? terminal internal", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        surface: "tui",
+        sessionKey: "agent:main:main",
+        channelId: "internal",
+      },
+    );
+
+    expect(result).toBeUndefined();
+    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledTimes(1));
+
+    expect(runEmbeddedPiAgent.mock.calls.at(-1)?.[0]).toMatchObject({
+      messageChannel: "internal",
+      messageProvider: "internal",
+    });
+
+    const cachedResult = await hooks.before_prompt_build(
+      { prompt: "what wings should i order? terminal internal", messages: [] },
+      {
+        agentId: "main",
+        trigger: "user",
+        surface: "tui",
+        sessionKey: "agent:main:main",
+        channelId: "internal",
+      },
+    );
+
+    expect(cachedResult).toEqual({
+      prependContext: expect.stringContaining("lemon pepper wings"),
+    });
+  });
+
   it("does not wait for cached recall status persistence", async () => {
     syncRuntimePluginConfig(
       {

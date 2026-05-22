@@ -453,6 +453,46 @@ describe("EmbeddedTuiBackend", () => {
     ]);
   });
 
+  it("answers local status without importing the reply command pipeline", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "/status",
+      runId: "run-status-command",
+    });
+    await waitFor(() => events.some((evt) => evt.event === "chat"));
+
+    expect(agentCommandFromIngressMock).not.toHaveBeenCalled();
+    expect(getReplyFromConfigMock).not.toHaveBeenCalled();
+    expect(events).toContainEqual({
+      event: "chat",
+      payload: {
+        runId: "run-status-command",
+        sessionKey: "agent:main:main",
+        state: "final",
+        message: {
+          role: "assistant",
+          command: true,
+          content: [
+            {
+              type: "text",
+              text: expect.stringContaining("Kova terminal status"),
+            },
+          ],
+          timestamp: expect.any(Number),
+        },
+      },
+    });
+  });
+
   it("does not turn transient lifecycle errors into chat errors before fallback completes", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
     const pending = deferred<{

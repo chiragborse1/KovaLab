@@ -380,22 +380,18 @@ function normalizeChannelHint(value: string | undefined): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
-function isLocalWebchatHotPathContext(ctx: {
+function isTerminalHotPathContext(ctx: {
   surface?: string;
   trigger?: string;
   messageProvider?: string;
   channelId?: string;
 }): boolean {
   const surface = normalizeChannelHint(ctx.surface);
-  const channel = normalizeChannelHint(ctx.channelId);
-  const provider = normalizeChannelHint(ctx.messageProvider);
-  return (
-    surface === "tui" &&
-    ctx.trigger === "user" &&
-    (channel === "webchat" || provider === "webchat") &&
-    (channel === "" || channel === "webchat") &&
-    (provider === "" || provider === "webchat")
-  );
+  if (surface !== "tui" || ctx.trigger !== "user") {
+    return false;
+  }
+
+  return true;
 }
 
 function resolveRecallRunChannelContext(params: {
@@ -937,6 +933,7 @@ function isEligibleInteractiveSession(ctx: {
 }
 
 function resolveChatType(ctx: {
+  surface?: string;
   sessionKey?: string;
   messageProvider?: string;
   channelId?: string;
@@ -960,6 +957,9 @@ function resolveChatType(ctx: {
       agentSessionParts[0] === "agent" &&
       (agentSessionParts[2] === mainKey || agentSessionParts[2] === "main")
     ) {
+      if (normalizeChannelHint(ctx.surface) === "tui") {
+        return "direct";
+      }
       const provider = normalizeChannelHint(ctx.messageProvider);
       const channelId = ctx.channelId?.trim() ?? "";
       if (provider && provider !== "webchat" && channelId) {
@@ -977,6 +977,7 @@ function resolveChatType(ctx: {
 function isAllowedChatType(
   config: ResolvedActiveRecallPluginConfig,
   ctx: {
+    surface?: string;
     sessionKey?: string;
     messageProvider?: string;
     channelId?: string;
@@ -2268,7 +2269,7 @@ export default definePluginEntry({
           currentModelId: ctx.modelId,
         };
         const shouldUseCacheFirstRecall =
-          config.recallMode !== "blocking" || isLocalWebchatHotPathContext(ctx);
+          config.recallMode !== "blocking" || isTerminalHotPathContext(ctx);
         const result = shouldUseCacheFirstRecall
           ? await resolveCachedOrScheduleActiveRecall(resolveParams)
           : await maybeResolveActiveRecall(resolveParams);

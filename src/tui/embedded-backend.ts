@@ -11,6 +11,7 @@ import {
 import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import { type AgentEventPayload, onAgentEvent } from "../infra/agent-events.js";
 import { setEmbeddedMode } from "../infra/embedded-mode.js";
+import { parseAgentSessionKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import { INTERNAL_MESSAGE_CHANNEL } from "../utils/message-channel.js";
 import type {
@@ -176,6 +177,49 @@ function shouldUseReplyCommandPipeline(message: string): boolean {
     return false;
   }
   return true;
+}
+
+function buildEmbeddedStatusReply(params: {
+  message: string;
+  activeRunCount: number;
+  session: ReturnType<SessionUtilsModule["loadSessionEntry"]>;
+  sessionUtils: SessionUtilsModule;
+}): string | undefined {
+  const command = params.message.trim().toLowerCase();
+  if (command !== "/status") {
+    return undefined;
+  }
+
+  const parsed = parseAgentSessionKey(params.session.canonicalKey);
+  const agentId = parsed?.agentId ?? "main";
+  const sessionLabel = parsed?.rest ?? params.session.canonicalKey;
+  const modelRef = params.sessionUtils.resolveSessionModelRef(
+    params.session.cfg,
+    params.session.entry,
+    agentId,
+  );
+  const otherRuns = Math.max(0, params.activeRunCount - 1);
+  const lines = [
+    "Kova terminal status",
+    `- mode: local embedded`,
+    `- agent: ${agentId}`,
+    `- session: ${sessionLabel}`,
+    `- model: ${modelRef.provider}/${modelRef.model}`,
+    `- activity: ${otherRuns > 0 ? `${String(otherRuns)} other active run${otherRuns === 1 ? "" : "s"}` : "idle"}`,
+  ];
+  const thinking = params.session.entry?.thinkingLevel;
+  if (thinking) {
+    lines.push(`- thinking: ${thinking}`);
+  }
+  const verbose = params.session.entry?.verboseLevel;
+  if (verbose) {
+    lines.push(`- verbose: ${verbose}`);
+  }
+  if (params.session.entry?.fastMode !== undefined) {
+    lines.push(`- fast: ${params.session.entry.fastMode ? "on" : "off"}`);
+  }
+  lines.push("More: /gateway-status, /tools, /skills, /tasks");
+  return lines.join("\n");
 }
 
 function replyText(reply: ReplyPayload | ReplyPayload[] | undefined): string {
@@ -991,12 +1035,29 @@ export class EmbeddedTuiBackend implements TuiBackend {
     try {
       this.runs.get(params.runId)?.trace.step("turn.start");
       this.runs.get(params.runId)?.trace.step("session.load.start");
-      const [{ loadSessionEntry }, { injectTimestamp, timestampOptsFromConfig }] =
-        await Promise.all([getSessionUtilsModule(), getAgentTimestampModule()]);
-      const { cfg, canonicalKey, entry } = loadSessionEntry(params.sessionKey);
+      const [sessionUtils, { injectTimestamp, timestampOptsFromConfig }] = await Promise.all([
+        getSessionUtilsModule(),
+        getAgentTimestampModule(),
+      ]);
+      const session = sessionUtils.loadSessionEntry(params.sessionKey);
+      const { cfg, canonicalKey, entry } = session;
       this.runs
         .get(params.runId)
         ?.trace.step("session.load.end", entry?.sessionId ? "existing session" : "new session");
+      const fastCommandReply = buildEmbeddedStatusReply({
+        message: params.message,
+        activeRunCount: this.runs.size,
+        session,
+        sessionUtils,
+      });
+      if (fastCommandReply) {
+        const run = this.runs.get(params.runId);
+        if (run) {
+          this.runs.get(params.runId)?.trace.step("command.fast", "/status");
+          this.emitChatCommandFinal(params.runId, run, fastCommandReply);
+        }
+        return;
+      }
       if (shouldUseReplyCommandPipeline(params.message)) {
         this.runs.get(params.runId)?.trace.step("command.route");
         await this.runTextCommandTurn({

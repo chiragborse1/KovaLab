@@ -21,6 +21,19 @@ function isLegacySecretRefEnvMarker(value: unknown): value is string {
   return typeof value === "string" && value.trim().startsWith(LEGACY_SECRETREF_ENV_MARKER_PREFIX);
 }
 
+function containsLegacySecretRefEnvMarker(value: unknown): boolean {
+  if (isLegacySecretRefEnvMarker(value)) {
+    return true;
+  }
+  if (Array.isArray(value)) {
+    return value.some((entry) => containsLegacySecretRefEnvMarker(entry));
+  }
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  return Object.values(value).some((entry) => containsLegacySecretRefEnvMarker(entry));
+}
+
 function toCandidate(
   target: DiscoveredConfigSecretTarget,
   defaults: NonNullable<KovaConfig["secrets"]>["defaults"] | undefined,
@@ -39,6 +52,9 @@ function toCandidate(
 export function collectLegacySecretRefEnvMarkerCandidates(
   config: KovaConfig,
 ): LegacySecretRefEnvMarkerCandidate[] {
+  if (!containsLegacySecretRefEnvMarker(config)) {
+    return [];
+  }
   const defaults = config.secrets?.defaults;
   return discoverConfigSecretTargets(config)
     .map((target) => toCandidate(target, defaults))

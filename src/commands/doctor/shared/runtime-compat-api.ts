@@ -3,7 +3,10 @@ import type { KovaConfig } from "../../../config/types.kova.js";
 import { applyLegacyDoctorMigrations } from "./legacy-config-compat.js";
 import { normalizeRuntimeCompatibilityConfigValues } from "./legacy-config-runtime-migrate.js";
 
-export function applyRuntimeLegacyConfigMigrations(raw: unknown): {
+export function applyRuntimeLegacyConfigMigrations(
+  raw: unknown,
+  options: { pluginFallback?: "full" | "skip" } = {},
+): {
   next: Record<string, unknown> | null;
   changes: string[];
 } {
@@ -12,7 +15,9 @@ export function applyRuntimeLegacyConfigMigrations(raw: unknown): {
   }
 
   const original = raw as Record<string, unknown>;
-  const migrated = applyLegacyDoctorMigrations(original);
+  const migrated = applyLegacyDoctorMigrations(original, {
+    pluginFallback: options.pluginFallback,
+  });
   const base = (migrated.next ?? original) as KovaConfig;
   const normalized = normalizeRuntimeCompatibilityConfigValues(base);
   const next = normalized.config as KovaConfig & Record<string, unknown>;

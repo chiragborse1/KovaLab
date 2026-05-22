@@ -25,16 +25,23 @@ function collectRelevantDoctorChannelIds(raw: unknown): string[] {
 
 function resolveBundledChannelCompatibilityNormalizer(
   channelId: string,
+  options: { allowBootstrapFallback?: boolean } = {},
 ): ChannelDoctorCompatibilityNormalizer | undefined {
   const contractNormalizer =
     loadBundledChannelDoctorContractApi(channelId)?.normalizeCompatibilityConfig;
   if (typeof contractNormalizer === "function") {
     return contractNormalizer;
   }
+  if (options.allowBootstrapFallback === false) {
+    return undefined;
+  }
   return getBootstrapChannelPlugin(channelId)?.doctor?.normalizeCompatibilityConfig;
 }
 
-export function applyChannelDoctorCompatibilityMigrations(cfg: Record<string, unknown>): {
+export function applyChannelDoctorCompatibilityMigrations(
+  cfg: Record<string, unknown>,
+  options: { pluginFallback?: "full" | "skip" } = {},
+): {
   next: Record<string, unknown>;
   changes: string[];
 } {
@@ -43,7 +50,9 @@ export function applyChannelDoctorCompatibilityMigrations(cfg: Record<string, un
   const unresolvedChannelIds: string[] = [];
 
   for (const channelId of collectRelevantDoctorChannelIds(cfg)) {
-    const normalizeCompatibilityConfig = resolveBundledChannelCompatibilityNormalizer(channelId);
+    const normalizeCompatibilityConfig = resolveBundledChannelCompatibilityNormalizer(channelId, {
+      allowBootstrapFallback: options.pluginFallback !== "skip",
+    });
     if (!normalizeCompatibilityConfig) {
       unresolvedChannelIds.push(channelId);
       continue;
@@ -56,7 +65,7 @@ export function applyChannelDoctorCompatibilityMigrations(cfg: Record<string, un
     changes.push(...mutation.changes);
   }
 
-  if (unresolvedChannelIds.length > 0) {
+  if (unresolvedChannelIds.length > 0 && options.pluginFallback !== "skip") {
     const compat = applyPluginDoctorCompatibilityMigrations(nextCfg, {
       pluginIds: unresolvedChannelIds,
     });
