@@ -364,6 +364,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let dynamicSlashCommandsKey: string | null = null;
   let dynamicSlashCommandsInFlightKey: string | null = null;
   let dynamicSlashCommandsRequestId = 0;
+  let dynamicSlashCommandsTimer: NodeJS.Timeout | null = null;
   let lastCtrlCAt = 0;
   let exitRequested = false;
   let exitResult: TuiResult = { exitReason: "exit" };
@@ -640,9 +641,30 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       });
   };
 
+  const clearDynamicSlashCommandsTimer = () => {
+    if (!dynamicSlashCommandsTimer) {
+      return;
+    }
+    clearTimeout(dynamicSlashCommandsTimer);
+    dynamicSlashCommandsTimer = null;
+  };
+
+  const scheduleDynamicSlashCommandsRefresh = (delayMs = 1200) => {
+    if (dynamicSlashCommandsTimer) {
+      return;
+    }
+    dynamicSlashCommandsTimer = setTimeout(() => {
+      dynamicSlashCommandsTimer = null;
+      refreshDynamicSlashCommands();
+    }, delayMs);
+    dynamicSlashCommandsTimer.unref?.();
+  };
+
   const updateAutocompleteProvider = () => {
     applyAutocompleteProvider();
-    refreshDynamicSlashCommands();
+    if (isConnected) {
+      scheduleDynamicSlashCommandsRefresh();
+    }
   };
 
   tui.addChild(root);
@@ -1066,6 +1088,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     }
     exitRequested = true;
     clearCatalogRefreshTimer();
+    clearDynamicSlashCommandsTimer();
     exitResult = {
       exitReason: result?.exitReason ?? "exit",
       ...(result?.crestodianMessage ? { crestodianMessage: result.crestodianMessage } : {}),
@@ -1342,6 +1365,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     wasDisconnected = true;
     historyLoaded = false;
     clearCatalogRefreshTimer();
+    clearDynamicSlashCommandsTimer();
     dynamicSlashCommands = [];
     dynamicSlashCommandsKey = null;
     dynamicSlashCommandsInFlightKey = null;
