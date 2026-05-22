@@ -30,6 +30,7 @@
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Active Memory: make recall cache-first by default so cold memory searches warm in the background instead of blocking the first reply token. Thanks @chiragborse1
 - Memory: let active recall defer first-search index bootstrap so cold memory sync warms in the background instead of blocking interactive replies. Thanks @chiragborse1
+- Skill Workshop: keep curator maintenance running even when the post-turn reviewer finds no new skill update. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin

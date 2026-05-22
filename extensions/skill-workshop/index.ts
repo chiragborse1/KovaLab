@@ -183,6 +183,7 @@ async function runPostTurnCapture(params: {
     });
     if (!proposal) {
       api.logger.debug?.("skill-workshop: reviewer found no update");
+      await maybeRunCurator({ api, config, store, workspaceDir });
       return;
     }
     const result = await applyOrStoreProposal({ proposal, store, config, workspaceDir });

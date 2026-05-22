@@ -940,6 +940,54 @@ describe("skill-workshop", () => {
     await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledOnce());
   });
 
+  it("runs curator maintenance when reviewer finds no skill update", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const runEmbeddedPiAgent = vi.fn(async () => ({
+      payloads: [{ text: JSON.stringify({ action: "none" }) }],
+      meta: {},
+    }));
+    const on = vi.fn();
+    const api = createTestPluginApi({
+      pluginConfig: {
+        reviewMode: "llm",
+        reviewInterval: 1,
+        curatorIntervalTurns: 1,
+      },
+      runtime: {
+        agent: {
+          defaults: { provider: "openai", model: "gpt-5.4" },
+          resolveAgentWorkspaceDir: () => workspaceDir,
+          resolveAgentDir: () => path.join(workspaceDir, ".agent"),
+          runEmbeddedPiAgent,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      on,
+    });
+
+    plugin.register(api);
+    const handler = on.mock.calls.find((call) => call[0] === "agent_end")?.[1];
+    await handler?.(
+      {
+        success: true,
+        messages: [{ role: "user", content: "We solved a workflow without reusable changes." }],
+      },
+      { workspaceDir, agentId: "main" },
+    );
+
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await vi.waitFor(async () => {
+      await expect(store.getCuratorState()).resolves.toMatchObject({
+        turnsSinceRun: 0,
+        lastReportPath: expect.any(String),
+      });
+    });
+    expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+  });
+
   it("quarantines unsafe tool suggestions with scan metadata", async () => {
     const workspaceDir = await makeTempDir();
     const stateDir = await makeTempDir();
