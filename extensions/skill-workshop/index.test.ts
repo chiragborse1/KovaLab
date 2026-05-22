@@ -21,6 +21,14 @@ async function makeTempDir(): Promise<string> {
   return dir;
 }
 
+async function waitForSkillFile(workspaceDir: string, skillName: string): Promise<string> {
+  const skillPath = path.join(workspaceDir, "skills", skillName, "SKILL.md");
+  await vi.waitFor(async () => {
+    await expect(fs.access(skillPath)).resolves.toBeUndefined();
+  });
+  return await fs.readFile(skillPath, "utf8");
+}
+
 afterEach(async () => {
   vi.restoreAllMocks();
   await Promise.all(tempDirs.splice(0).map((dir) => fs.rm(dir, { recursive: true, force: true })));
@@ -206,12 +214,11 @@ describe("skill-workshop", () => {
       { workspaceDir },
     );
 
-    const skillText = await fs.readFile(
-      path.join(workspaceDir, "skills", "animated-gif-workflow", "SKILL.md"),
-      "utf8",
-    );
+    const skillText = await waitForSkillFile(workspaceDir, "animated-gif-workflow");
     expect(skillText).toContain("actually animated");
-    expect(logger.info).toHaveBeenCalledWith("skill-workshop: applied animated-gif-workflow");
+    await vi.waitFor(() =>
+      expect(logger.info).toHaveBeenCalledWith("skill-workshop: applied animated-gif-workflow"),
+    );
   });
 
   it("emits prompt-build guidance through the registered hook", async () => {
@@ -478,9 +485,7 @@ describe("skill-workshop", () => {
       { workspaceDir },
     );
 
-    await expect(
-      fs.access(path.join(workspaceDir, "skills", "animated-gif-workflow", "SKILL.md")),
-    ).resolves.toBeUndefined();
+    await waitForSkillFile(workspaceDir, "animated-gif-workflow");
   });
 
   it("uses live runtime config to skip capture when review mode turns off", async () => {
@@ -891,8 +896,48 @@ describe("skill-workshop", () => {
     );
 
     const store = new SkillWorkshopStore({ stateDir, workspaceDir });
-    expect(await store.list("pending")).toHaveLength(1);
+    await vi.waitFor(async () => {
+      await expect(store.list("pending")).resolves.toHaveLength(1);
+    });
     expect(runEmbeddedPiAgent).toHaveBeenCalledOnce();
+  });
+
+  it("keeps post-turn review off the hook hot path", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    const runEmbeddedPiAgent = vi.fn(async () => ({
+      payloads: [{ text: JSON.stringify({ action: "none" }) }],
+      meta: {},
+    }));
+    const on = vi.fn();
+    const api = createTestPluginApi({
+      pluginConfig: { reviewMode: "llm", reviewInterval: 1 },
+      runtime: {
+        agent: {
+          defaults: { provider: "openai", model: "gpt-5.4" },
+          resolveAgentWorkspaceDir: () => workspaceDir,
+          resolveAgentDir: () => path.join(workspaceDir, ".agent"),
+          runEmbeddedPiAgent,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      on,
+    });
+
+    plugin.register(api);
+    const handler = on.mock.calls.find((call) => call[0] === "agent_end")?.[1];
+    await handler?.(
+      {
+        success: true,
+        messages: [{ role: "user", content: "We built a tricky animated GIF QA scenario." }],
+      },
+      { workspaceDir, agentId: "main" },
+    );
+
+    expect(runEmbeddedPiAgent).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(runEmbeddedPiAgent).toHaveBeenCalledOnce());
   });
 
   it("quarantines unsafe tool suggestions with scan metadata", async () => {

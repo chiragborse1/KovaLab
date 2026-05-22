@@ -78,88 +78,126 @@ export default definePluginEntry({
       if (!config.autoCapture || config.reviewMode === "off") {
         return;
       }
-      const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
-      const workspaceDir =
-        ctx.workspaceDir || api.runtime.agent.resolveAgentWorkspaceDir(api.config, agentId);
-      const store = createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
-      const heuristicProposal = createProposalFromMessages({
-        messages: event.messages,
-        workspaceDir,
-        agentId,
-        sessionId: ctx.sessionId,
+      scheduleBackgroundCapture({
+        api,
+        task: async () => {
+          await runPostTurnCapture({ api, config, event, ctx });
+        },
       });
-      const heuristicEnabled = config.reviewMode === "heuristic" || config.reviewMode === "hybrid";
-      if (heuristicEnabled && heuristicProposal) {
-        try {
-          const result = await applyOrStoreProposal({
-            proposal: heuristicProposal,
-            store,
-            config,
-            workspaceDir,
-          });
-          if (result.status === "applied") {
-            api.logger.info(`skill-workshop: applied ${heuristicProposal.skillName}`);
-          } else if (result.status === "quarantined") {
-            api.logger.warn(`skill-workshop: quarantined ${heuristicProposal.skillName}`);
-          } else {
-            api.logger.info(`skill-workshop: queued ${heuristicProposal.skillName}`);
-          }
-        } catch (error) {
-          api.logger.warn(`skill-workshop: heuristic capture skipped: ${String(error)}`);
-        }
-      }
-
-      const llmEnabled = config.reviewMode === "llm" || config.reviewMode === "hybrid";
-      if (!llmEnabled) {
-        await maybeRunCurator({ api, config, store, workspaceDir });
-        return;
-      }
-      const reviewState = await store.recordReviewTurn(countToolCalls(event.messages));
-      const thresholdMet =
-        reviewState.turnsSinceReview >= config.reviewInterval ||
-        reviewState.toolCallsSinceReview >= config.reviewMinToolCalls;
-      const shouldReview =
-        thresholdMet || (config.reviewMode === "llm" && heuristicProposal !== undefined);
-      if (!shouldReview) {
-        await maybeRunCurator({ api, config, store, workspaceDir });
-        return;
-      }
-      await store.markReviewed();
-      try {
-        const proposal = await reviewTranscriptForProposal({
-          api,
-          config,
-          messages: event.messages,
-          ctx: {
-            agentId,
-            sessionId: ctx.sessionId,
-            sessionKey: ctx.sessionKey,
-            workspaceDir,
-            modelProviderId: ctx.modelProviderId,
-            modelId: ctx.modelId,
-            messageProvider: ctx.messageProvider,
-            channelId: ctx.channelId,
-          },
-        });
-        if (!proposal) {
-          api.logger.debug?.("skill-workshop: reviewer found no update");
-          return;
-        }
-        const result = await applyOrStoreProposal({ proposal, store, config, workspaceDir });
-        if (result.status === "applied") {
-          api.logger.info(`skill-workshop: applied ${proposal.skillName}`);
-        } else if (result.status === "quarantined") {
-          api.logger.warn(`skill-workshop: quarantined ${proposal.skillName}`);
-        } else {
-          api.logger.info(`skill-workshop: queued ${proposal.skillName}`);
-        }
-      } catch (error) {
-        api.logger.warn(`skill-workshop: reviewer skipped: ${String(error)}`);
-      }
-      await maybeRunCurator({ api, config, store, workspaceDir });
     });
   },
 });
+
+function scheduleBackgroundCapture(params: {
+  api: KovaPluginApi;
+  task: () => Promise<void>;
+}): void {
+  const timer = setTimeout(() => {
+    void params.task().catch((error) => {
+      params.api.logger.warn(`skill-workshop: background capture skipped: ${String(error)}`);
+    });
+  }, 0);
+  timer.unref?.();
+}
+
+async function runPostTurnCapture(params: {
+  api: KovaPluginApi;
+  config: ReturnType<typeof resolveConfig>;
+  event: {
+    messages: unknown[];
+  };
+  ctx: {
+    agentId?: string;
+    sessionId?: string;
+    sessionKey?: string;
+    workspaceDir?: string;
+    modelProviderId?: string;
+    modelId?: string;
+    messageProvider?: string;
+    channelId?: string;
+  };
+}): Promise<void> {
+  const { api, config, event, ctx } = params;
+  const agentId = ctx.agentId ?? resolveDefaultAgentId(api.config);
+  const workspaceDir =
+    ctx.workspaceDir || api.runtime.agent.resolveAgentWorkspaceDir(api.config, agentId);
+  const store = createStoreForContext({ api, ctx: { ...ctx, workspaceDir }, config });
+  const heuristicProposal = createProposalFromMessages({
+    messages: event.messages,
+    workspaceDir,
+    agentId,
+    sessionId: ctx.sessionId,
+  });
+  const heuristicEnabled = config.reviewMode === "heuristic" || config.reviewMode === "hybrid";
+  if (heuristicEnabled && heuristicProposal) {
+    try {
+      const result = await applyOrStoreProposal({
+        proposal: heuristicProposal,
+        store,
+        config,
+        workspaceDir,
+      });
+      if (result.status === "applied") {
+        api.logger.info(`skill-workshop: applied ${heuristicProposal.skillName}`);
+      } else if (result.status === "quarantined") {
+        api.logger.warn(`skill-workshop: quarantined ${heuristicProposal.skillName}`);
+      } else {
+        api.logger.info(`skill-workshop: queued ${heuristicProposal.skillName}`);
+      }
+    } catch (error) {
+      api.logger.warn(`skill-workshop: heuristic capture skipped: ${String(error)}`);
+    }
+  }
+
+  const llmEnabled = config.reviewMode === "llm" || config.reviewMode === "hybrid";
+  if (!llmEnabled) {
+    await maybeRunCurator({ api, config, store, workspaceDir });
+    return;
+  }
+  const reviewState = await store.recordReviewTurn(countToolCalls(event.messages));
+  const thresholdMet =
+    reviewState.turnsSinceReview >= config.reviewInterval ||
+    reviewState.toolCallsSinceReview >= config.reviewMinToolCalls;
+  const shouldReview =
+    thresholdMet || (config.reviewMode === "llm" && heuristicProposal !== undefined);
+  if (!shouldReview) {
+    await maybeRunCurator({ api, config, store, workspaceDir });
+    return;
+  }
+  await store.markReviewed();
+  try {
+    const proposal = await reviewTranscriptForProposal({
+      api,
+      config,
+      messages: event.messages,
+      ctx: {
+        agentId,
+        sessionId: ctx.sessionId,
+        sessionKey: ctx.sessionKey,
+        workspaceDir,
+        modelProviderId: ctx.modelProviderId,
+        modelId: ctx.modelId,
+        messageProvider: ctx.messageProvider,
+        channelId: ctx.channelId,
+      },
+    });
+    if (!proposal) {
+      api.logger.debug?.("skill-workshop: reviewer found no update");
+      return;
+    }
+    const result = await applyOrStoreProposal({ proposal, store, config, workspaceDir });
+    if (result.status === "applied") {
+      api.logger.info(`skill-workshop: applied ${proposal.skillName}`);
+    } else if (result.status === "quarantined") {
+      api.logger.warn(`skill-workshop: quarantined ${proposal.skillName}`);
+    } else {
+      api.logger.info(`skill-workshop: queued ${proposal.skillName}`);
+    }
+  } catch (error) {
+    api.logger.warn(`skill-workshop: reviewer skipped: ${String(error)}`);
+  }
+  await maybeRunCurator({ api, config, store, workspaceDir });
+}
 
 async function maybeRunCurator(params: {
   api: KovaPluginApi;

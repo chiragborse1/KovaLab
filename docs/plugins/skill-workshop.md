@@ -173,6 +173,11 @@ Recommended profiles:
 
 Skill Workshop has three capture paths.
 
+Automatic capture runs after the user-visible turn has finished and is scheduled
+as background maintenance. It is nonfatal, does not run shell commands, and does
+not block the main reply path. If reviewer or curator work fails, Kova logs the
+failure and keeps the chat turn intact.
+
 ### Tool suggestions
 
 The model can call `skill_workshop` directly when it sees a reusable procedure
