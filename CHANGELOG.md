@@ -23,6 +23,7 @@
 - CLI/TUI: slow the busy-status repaint cadence during long local runs so elapsed-time updates do less terminal work while replies are pending. Thanks @chiragborse1
 - CLI/TUI: load recent terminal history in the background after local startup routing is ready so auto-started chat turns can begin sooner. Thanks @chiragborse1
 - CLI/TUI: defer startup tool and skill catalog refresh farther into idle time so first terminal input stays lighter after history hydration. Thanks @chiragborse1
+- CLI/TUI: send local auto-start messages before startup agent/history hydration and skip the competing startup history reload during that active turn. Thanks @chiragborse1
 - CLI/TUI: compact the terminal hero inventory into tool and skill counts instead of listing bulky tool and skill names on the first screen. Thanks @chiragborse1
 - CLI/TUI: make `/recover` a Gateway-aware self-healing loop that audits tasks and Task Flow, previews safe repair, and applies maintenance without starting an agent turn. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1

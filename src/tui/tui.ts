@@ -1295,6 +1295,21 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       updateFooter();
       tui.requestRender();
     };
+    const refreshStartupAgents = async () => {
+      await refreshAgents();
+      updateHeader();
+      updateAutocompleteProvider();
+      updateFooter();
+      tui.requestRender();
+    };
+    const sendStartupAutoMessage = () => {
+      if (autoMessageSent || !autoMessage) {
+        return false;
+      }
+      autoMessageSent = true;
+      void sendMessage(autoMessage);
+      return true;
+    };
     const loadStartupHistory = async () => {
       try {
         await loadHistory();
@@ -1303,14 +1318,20 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       }
     };
     void (async () => {
-      await refreshAgents();
-      updateHeader();
-      updateAutocompleteProvider();
-      updateFooter();
-      tui.requestRender();
-      if (!autoMessageSent && autoMessage) {
-        autoMessageSent = true;
-        void sendMessage(autoMessage);
+      if (isLocalMode && autoMessage) {
+        initialSessionApplied = true;
+        updateHeader();
+        updateFooter();
+        tui.requestRender();
+        sendStartupAutoMessage();
+        finishStartupHydration();
+        void refreshStartupAgents();
+        return;
+      }
+      await refreshStartupAgents();
+      if (sendStartupAutoMessage()) {
+        finishStartupHydration();
+        return;
       }
       void loadStartupHistory();
     })();
