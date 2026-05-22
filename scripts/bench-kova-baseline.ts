@@ -78,6 +78,7 @@ type CliOptions = {
   warmup: number;
   timeoutMs: number;
   output: string;
+  markdownOutput: string;
   tuiCommand: string;
   currentConfig: boolean;
   liveMessage?: string;
@@ -89,6 +90,11 @@ const DEFAULT_WARMUP = 0;
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_TUI_COMMAND = "/status";
 const DEFAULT_OUTPUT = ".artifacts/kova-baseline/latest.json";
+
+function defaultMarkdownOutput(outputPath: string): string {
+  const ext = path.extname(outputPath);
+  return ext ? `${outputPath.slice(0, -ext.length)}.md` : `${outputPath}.md`;
+}
 
 function parseFlagValue(argv: string[], flag: string): string | undefined {
   const index = argv.indexOf(flag);
@@ -148,6 +154,7 @@ function resolveComponents(profile: BaselineProfile): BaselineComponent[] {
 
 function parseOptions(argv = process.argv.slice(2)): CliOptions {
   const profile = parseProfile(parseFlagValue(argv, "--profile"));
+  const output = parseFlagValue(argv, "--output") ?? DEFAULT_OUTPUT;
   return {
     profile,
     components: resolveComponents(profile),
@@ -158,7 +165,8 @@ function parseOptions(argv = process.argv.slice(2)): CliOptions {
       DEFAULT_TIMEOUT_MS,
       "--timeout-ms",
     ),
-    output: parseFlagValue(argv, "--output") ?? DEFAULT_OUTPUT,
+    output,
+    markdownOutput: parseFlagValue(argv, "--markdown-output") ?? defaultMarkdownOutput(output),
     tuiCommand: parseFlagValue(argv, "--tui-command") ?? DEFAULT_TUI_COMMAND,
     currentConfig: hasFlag(argv, "--current-config"),
     liveMessage: parseFlagValue(argv, "--live-message"),
@@ -199,6 +207,71 @@ function summarizeNumbers(values: number[]): SummaryStats {
 
 function tail(text: string, maxLength = 2400): string {
   return text.length <= maxLength ? text : text.slice(-maxLength);
+}
+
+function formatMs(value: number | null | undefined): string {
+  return typeof value === "number" && Number.isFinite(value) ? `${Math.round(value)}ms` : "n/a";
+}
+
+function renderStats(stats: SummaryStats): string {
+  return `avg ${formatMs(stats.avg)}, p50 ${formatMs(stats.p50)}, p95 ${formatMs(
+    stats.p95,
+  )}, min ${formatMs(stats.min)}, max ${formatMs(stats.max)}`;
+}
+
+function renderChildSection(label: string, child: ChildBenchResult | undefined): string[] {
+  if (!child) {
+    return [];
+  }
+  return [
+    `## ${label}`,
+    "",
+    `- Exit: ${String(child.exitCode)}${child.signal ? ` (${child.signal})` : ""}`,
+    `- Duration: ${formatMs(child.durationMs)}`,
+    `- Artifact: \`${child.outputPath ?? "none"}\``,
+    ...(child.stderrTail.trim()
+      ? [`- stderr tail: \`${child.stderrTail.trim().slice(-240)}\``]
+      : []),
+    "",
+  ];
+}
+
+function renderBaselineMarkdown(result: BaselineResult): string {
+  const lines: string[] = [
+    "# Kova Baseline Performance Report",
+    "",
+    `- Generated: ${result.generatedAt}`,
+    `- Profile: ${result.profile}`,
+    `- Components: ${result.components.join(", ")}`,
+    `- JSON: \`${result.outputPath}\``,
+    "",
+  ];
+  if (result.tui) {
+    lines.push("## TUI", "");
+    lines.push(`- Command: \`${result.tui.command}\``);
+    lines.push(`- Config: ${result.tui.currentConfig ? "current" : "isolated"}`);
+    lines.push(`- Startup: ${formatMs(result.tui.startupMs)}`);
+    lines.push(`- Final latency: ${renderStats(result.tui.summary.finalMs)}`);
+    lines.push(
+      `- First event: ${
+        result.tui.summary.firstEventMs ? renderStats(result.tui.summary.firstEventMs) : "n/a"
+      }`,
+    );
+    lines.push("");
+    lines.push("| Run | Status | First event | Final | Slowest |");
+    lines.push("| --- | --- | ---: | ---: | --- |");
+    for (const sample of result.tui.samples) {
+      lines.push(
+        `| ${sample.runId.slice(0, 8)} | ${sample.status} | ${formatMs(
+          sample.firstEventMs,
+        )} | ${formatMs(sample.finalMs)} | ${sample.slowestDetail.replace(/\|/g, "/")} |`,
+      );
+    }
+    lines.push("");
+  }
+  lines.push(...renderChildSection("CLI", result.cli));
+  lines.push(...renderChildSection("Gateway", result.gateway));
+  return `${lines.join("\n").trimEnd()}\n`;
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
@@ -564,6 +637,7 @@ Options:
   --live-message <text>   replace the final TUI sample with a real provider message
   --current-config        use the current Kova config instead of an isolated temp config
   --output <path>         write JSON summary (default ${DEFAULT_OUTPUT})
+  --markdown-output <path> write Markdown report (default: JSON path with .md)
 `);
 }
 
@@ -643,7 +717,9 @@ async function main(): Promise<void> {
   }
 
   writeFileSync(options.output, `${JSON.stringify(result, null, 2)}\n`);
+  writeFileSync(options.markdownOutput, renderBaselineMarkdown(result));
   console.log(`baseline written: ${options.output}`);
+  console.log(`baseline report written: ${options.markdownOutput}`);
   if (result.tui) {
     console.log(
       `tui ${result.tui.command}: p50=${Math.round(result.tui.summary.finalMs.p50)}ms ` +
@@ -660,7 +736,7 @@ async function main(): Promise<void> {
       continue;
     }
     console.log(
-      `${label}: exit=${String(child.exitCode)} signal=${String(child.signal ?? "none")} artifact=${
+      `${label}: exit=${String(child.exitCode)} signal=${child.signal ?? "none"} artifact=${
         child.outputPath ?? "none"
       }`,
     );
@@ -691,6 +767,7 @@ export const testing = {
   parseOptions,
   parsePositiveInt,
   parseProfile,
+  renderBaselineMarkdown,
   resolveComponents,
   summarizeNumbers,
 };

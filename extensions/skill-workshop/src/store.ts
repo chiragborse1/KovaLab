@@ -454,6 +454,11 @@ export class SkillWorkshopStore {
     });
   }
 
+  async getReviewState(): Promise<SkillWorkshopReviewState> {
+    const file = await readJson(this.filePath);
+    return normalizeReviewState(file.review);
+  }
+
   async recordCuratorTurn(): Promise<SkillWorkshopCuratorState> {
     return await withLock(this.filePath, async () => {
       const file = await readJson(this.filePath);

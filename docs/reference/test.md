@@ -63,7 +63,7 @@ Script: [`scripts/bench-kova-baseline.ts`](https://github.com/chiragborse1/KovaL
 Use this first when measuring terminal responsiveness after runtime, provider,
 memory, plugin scan, or model-discovery changes. The default profile runs an
 isolated local `/status` TUI command turn plus a tiny CLI startup sample, then
-writes one JSON summary and per-component artifacts under
+the script writes a JSON summary, a Markdown report, and per-component artifacts under
 `.artifacts/kova-baseline/`.
 
 Usage:
@@ -73,6 +73,7 @@ Usage:
 - `pnpm bench:baseline -- --current-config --tui-command "/memory status"`
 - `pnpm bench:baseline -- --current-config --live-message "Reply with one word: ok."`
 - `pnpm bench:baseline -- --profile full --runs 3 --warmup 1`
+- `pnpm bench:baseline -- --markdown-output .artifacts/kova-baseline/report.md`
 
 Profiles:
 
@@ -87,6 +88,10 @@ does not depend on local provider credentials. Pass `--current-config` when you
 want to measure the user's actual plugin, memory, provider, and model-discovery
 shape. Pass `--live-message` only when provider keys are available and real
 first-token/provider-dispatch timing is desired.
+
+The Markdown report is the terminal-first dashboard for speed work. It shows TUI
+startup, first event, final latency, slowest trace segment, and child component
+exit state without requiring a browser UI.
 
 ## Model latency bench (local keys)
 

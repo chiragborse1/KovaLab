@@ -28,6 +28,7 @@ const TASK_LEVELS = [
   "repair",
   "repair apply",
 ];
+const SUBAGENT_LEVELS = ["list", "running", "queued", "failed", "lost", "all"];
 const RECOVER_LEVELS = ["status", "apply"];
 const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
 const MEMORY_COMMAND_COMPLETIONS = [
@@ -171,6 +172,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const busyCompletions = createLevelCompletion(BUSY_LEVELS);
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
   const taskCompletions = createLevelCompletion(TASK_LEVELS);
+  const subagentCompletions = createLevelCompletion(SUBAGENT_LEVELS);
   const recoverCompletions = createLevelCompletion(RECOVER_LEVELS);
   const rollbackCompletions = createLevelCompletion(ROLLBACK_LEVELS);
   const commands: SlashCommand[] = [
@@ -207,8 +209,8 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     {
       name: "subagents",
       description: "Show running subagents and recent summaries",
-      argumentHint: "list",
-      getArgumentCompletions: taskCompletions,
+      argumentHint: "list | running | queued | failed | lost | all",
+      getArgumentCompletions: subagentCompletions,
     },
     {
       name: "automation",
@@ -318,7 +320,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/tools [compact|verbose]",
     "/skills [compact|verbose]",
     "/tasks [list|running|subagents|cron|audit|repair [apply]]",
-    "/subagents [list]",
+    "/subagents [list|running|queued|failed|lost|all]",
     "/automation [list|running|audit]",
     "/recover [status|apply]",
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",

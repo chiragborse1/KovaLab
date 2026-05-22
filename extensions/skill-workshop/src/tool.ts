@@ -142,8 +142,12 @@ export function createSkillWorkshopTool(params: {
       const workspaceDir = resolveWorkspaceDir(params);
       const store = createStoreForContext(params);
       if (action === "status") {
-        const all = await store.list();
-        const usage = await store.listUsage();
+        const [all, usage, review, curator] = await Promise.all([
+          store.list(),
+          store.listUsage(),
+          store.getReviewState(),
+          store.getCuratorState(),
+        ]);
         return jsonResult({
           workspaceDir,
           pending: all.filter((item) => item.status === "pending").length,
@@ -157,6 +161,8 @@ export function createSkillWorkshopTool(params: {
             archived: usage.filter((item) => item.state === "archived").length,
             pinned: usage.filter((item) => item.pinned).length,
           },
+          review,
+          curator,
         });
       }
       if (action === "usage") {

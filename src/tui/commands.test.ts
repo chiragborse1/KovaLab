@@ -115,6 +115,11 @@ describe("getSlashCommands", () => {
       { value: "branch ", label: "branch " },
     ]);
     expect(subagents?.description).toBe("Show running subagents and recent summaries");
+    expect(subagents?.argumentHint).toBe("list | running | queued | failed | lost | all");
+    expect(subagents?.getArgumentCompletions?.("r")).toEqual([
+      { value: "running", label: "running" },
+    ]);
+    expect(subagents?.getArgumentCompletions?.("rep")).toEqual([]);
     expect(automation?.description).toBe("Show scheduled/background automation");
   });
 
@@ -177,7 +182,7 @@ describe("helpText", () => {
     expect(output).toContain("/tools [compact|verbose]");
     expect(output).toContain("/skills [compact|verbose]");
     expect(output).toContain("/tasks [list|running|subagents|cron|audit|repair [apply]]");
-    expect(output).toContain("/subagents [list]");
+    expect(output).toContain("/subagents [list|running|queued|failed|lost|all]");
     expect(output).toContain("/automation [list|running|audit]");
     expect(output).toContain("/recover [status|apply]");
     expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");

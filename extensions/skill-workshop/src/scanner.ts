@@ -38,6 +38,25 @@ const RULES: Array<{
     message: "skill text may exfiltrate environment variables",
   },
   {
+    ruleId: "secret-literal-api-key",
+    severity: "critical",
+    pattern: /\b(?:api[_-]?key|token|password|secret)\b\s*[:=]\s*["']?[A-Za-z0-9_\-.]{16,}/i,
+    message: "skill text appears to include a literal credential",
+  },
+  {
+    ruleId: "secret-private-key",
+    severity: "critical",
+    pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/i,
+    message: "skill text includes private key material",
+  },
+  {
+    ruleId: "memory-exfiltration",
+    severity: "critical",
+    pattern:
+      /\b(read|cat|print|dump|export)\b.{0,60}\b(memory files?|MEMORY\.md|credentials?|secrets?)\b.{0,100}\b(send|post|upload|paste|share|exfiltrate)\b/i,
+    message: "skill text encourages memory or secret exfiltration",
+  },
+  {
     ruleId: "destructive-delete",
     severity: "warn",
     pattern: /\brm\s+-rf\s+(\/|\$HOME|~|\.)/i,

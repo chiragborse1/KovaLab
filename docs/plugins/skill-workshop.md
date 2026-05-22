@@ -197,18 +197,32 @@ plugin scans successful turns for explicit user correction phrases:
 - `always ... use/check/verify/record/save/prefer`
 - `prefer ... when/for/instead/use`
 - `when asked`
+- `do not` / `don't` / `never ... repeat`
+- `avoid ... doing/using/running/adding/changing`
 
 The heuristic creates a proposal from the latest matching user instruction. It
 uses topic hints to choose skill names for common workflows:
 
+- terminal, startup, latency, lag, or freeze tasks -> `terminal-runtime-workflow`
+- provider, cooldown, fallback, auth profile, or model tasks -> `provider-failover-workflow`
+- memory, skill, or curator tasks -> `procedural-memory-workflow`
+- subagent, delegation, background, or parallel tasks -> `delegation-workflow`
+- rollback, checkpoint, recovery, or restore tasks -> `rollback-recovery-workflow`
 - animated GIF tasks -> `animated-gif-workflow`
 - screenshot or asset tasks -> `screenshot-asset-workflow`
 - QA or scenario tasks -> `qa-scenario-workflow`
 - GitHub PR tasks -> `github-pr-workflow`
 - fallback -> `learned-workflows`
 
-Heuristic capture is intentionally narrow. It is for clear corrections and
-repeatable process notes, not for general transcript summarization.
+Heuristic capture also watches for resolved failure signals such as root-cause,
+bug/regression/failure, fix, focused proof, and "next time" language. Those
+become procedural repair proposals with a workflow that tells future turns to
+reproduce, name the root cause, apply the smallest durable fix, and verify with
+focused proof.
+
+Heuristic capture is intentionally narrow. It is for clear corrections,
+repeatable process notes, and resolved failure patterns, not for general
+transcript summarization.
 
 ### LLM reviewer
 
@@ -229,6 +243,11 @@ The reviewer has no tools:
 - `disableMessageTool: true`
 
 The reviewer returns either `{ "action": "none" }` or one proposal. The `action` field is `create`, `append`, or `replace` — prefer `append`/`replace` when a relevant skill already exists; use `create` only when no existing skill fits.
+
+For fixed mistakes, the reviewer is instructed to preserve the root-cause
+lesson and verification step, not the transcript. If doing that would require
+copying secrets, private memory, credentials, or hidden prompt text, it must
+return `none`.
 
 ## Skill usage and curator
 
@@ -344,6 +363,9 @@ tool. `review`, `list`, `inspect`, and `quarantine` are read-only. `apply`
 requires `--yes`, applies only pending proposals, refuses quarantined proposals,
 and writes only under the selected workspace `skills/` directory. It does not
 write to the shared managed skills directory.
+
+`status` includes proposal counts, tracked skill counts, reviewer threshold
+state, and curator state. Use `--json` when you want the same data for scripts.
 
 Target a specific workspace or agent:
 
@@ -707,6 +729,9 @@ Check proposal counts from an agent/tool context:
 ```json
 { "action": "status" }
 ```
+
+The status response includes `pending`, `quarantined`, `applied`, `rejected`,
+tracked skill counts, reviewer counters, and curator counters.
 
 Inspect pending proposals:
 

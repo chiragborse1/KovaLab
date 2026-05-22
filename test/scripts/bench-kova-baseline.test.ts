@@ -21,6 +21,7 @@ describe("baseline benchmark script", () => {
     expect(result.stdout).toContain("Kova baseline benchmark");
     expect(result.stdout).toContain("--profile <smoke|tui|cli|gateway|full>");
     expect(result.stdout).toContain("--current-config");
+    expect(result.stdout).toContain("--markdown-output <path>");
     expect(result.stdout).not.toContain("baseline written");
     expect(result.stderr).toBe("");
   });
@@ -43,6 +44,8 @@ describe("baseline benchmark script", () => {
         "--current-config",
         "--tui-command",
         "/status",
+        "--output",
+        ".artifacts/custom/result.json",
       ]),
     ).toMatchObject({
       profile: "tui",
@@ -51,9 +54,45 @@ describe("baseline benchmark script", () => {
       warmup: 0,
       currentConfig: true,
       tuiCommand: "/status",
+      output: ".artifacts/custom/result.json",
+      markdownOutput: ".artifacts/custom/result.md",
     });
     expect(() => testing.parsePositiveInt("2abc", 1, "--runs")).toThrow(
       /--runs must be an integer/u,
     );
+  });
+
+  it("renders a compact markdown report for benchmark artifacts", () => {
+    const report = testing.renderBaselineMarkdown({
+      generatedAt: "2026-05-22T00:00:00.000Z",
+      profile: "tui",
+      components: ["tui"],
+      outputPath: ".artifacts/kova-baseline/latest.json",
+      tui: {
+        command: "/status",
+        currentConfig: false,
+        runs: 1,
+        warmup: 0,
+        startupMs: 123.4,
+        summary: {
+          finalMs: { avg: 100, p50: 100, p95: 100, min: 100, max: 100 },
+          firstEventMs: { avg: 10, p50: 10, p95: 10, min: 10, max: 10 },
+        },
+        samples: [
+          {
+            runId: "abcdef123456",
+            status: "final",
+            firstEventMs: 10,
+            finalMs: 100,
+            trace: {},
+            slowestDetail: "provider/model runtime",
+          },
+        ],
+      },
+    });
+
+    expect(report).toContain("# Kova Baseline Performance Report");
+    expect(report).toContain("Final latency");
+    expect(report).toContain("| abcdef12 | final | 10ms | 100ms | provider/model runtime |");
   });
 });

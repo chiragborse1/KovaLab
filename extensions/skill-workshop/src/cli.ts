@@ -392,15 +392,31 @@ async function skillFileExists(workspaceDir: string, skillName: string): Promise
 async function handleStatus(ctx: SkillWorkshopCliContext, opts: CommonOptions) {
   const workspaceDir = resolveWorkspaceDir(ctx, opts);
   const store = createStore(ctx, workspaceDir);
-  const proposals = await store.list();
+  const [proposals, usage, review, curator] = await Promise.all([
+    store.list(),
+    store.listUsage(),
+    store.getReviewState(),
+    store.getCuratorState(),
+  ]);
   const counts = Object.fromEntries(
     STATUSES.map((status) => [
       status,
       proposals.filter((proposal) => proposal.status === status).length,
     ]),
   ) as Record<SkillWorkshopStatus, number>;
+  const skillCounts = {
+    tracked: usage.length,
+    active: usage.filter((record) => record.state === "active").length,
+    stale: usage.filter((record) => record.state === "stale").length,
+    archived: usage.filter((record) => record.state === "archived").length,
+    pinned: usage.filter((record) => record.pinned).length,
+  };
   if (opts.json) {
-    writeLine(ctx.io, "stdout", JSON.stringify({ workspaceDir, ...counts }, null, 2));
+    writeLine(
+      ctx.io,
+      "stdout",
+      JSON.stringify({ workspaceDir, ...counts, skills: skillCounts, review, curator }, null, 2),
+    );
     return;
   }
   const config = readPluginConfig(ctx.config);
@@ -416,6 +432,10 @@ async function handleStatus(ctx: SkillWorkshopCliContext, opts: CommonOptions) {
       `Quarantined: ${counts.quarantined}`,
       `Applied: ${counts.applied}`,
       `Rejected: ${counts.rejected}`,
+      "",
+      `Skills: ${skillCounts.tracked} tracked (${skillCounts.active} active, ${skillCounts.stale} stale, ${skillCounts.archived} archived, ${skillCounts.pinned} pinned)`,
+      `Reviewer: ${review.turnsSinceReview} turns / ${review.toolCallsSinceReview} tool calls since review`,
+      `Curator: ${curator.turnsSinceRun} turns since run${curator.lastReportPath ? `, last report ${curator.lastReportPath}` : ""}`,
     ].join("\n"),
   );
 }

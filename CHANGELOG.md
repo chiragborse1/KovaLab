@@ -34,6 +34,9 @@
 - Active Memory: persist cached recall status in the background so warm memory injection does not wait on session-store writes. Thanks @chiragborse1
 - Memory: let active recall defer first-search index bootstrap so cold memory sync warms in the background instead of blocking interactive replies. Thanks @chiragborse1
 - Skill Workshop: keep curator maintenance running even when the post-turn reviewer finds no new skill update. Thanks @chiragborse1
+- Skill Workshop: capture resolved failure patterns as procedural repair skills, tighten skill safety scanning, and expose reviewer/curator health in status output. Thanks @chiragborse1
+- CLI/TUI: narrow `/subagents` autocomplete to actual subagent filters instead of generic task maintenance actions. Thanks @chiragborse1
+- Benchmarks: write a Markdown terminal performance report next to baseline benchmark JSON artifacts. Thanks @chiragborse1
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin

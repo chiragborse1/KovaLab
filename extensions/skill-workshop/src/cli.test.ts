@@ -154,6 +154,15 @@ describe("skill-workshop cli", () => {
     expect(usage.stdout).toContain("media-qa");
     expect(usage.stdout).toContain("active");
     expect(usage.stdout).toContain("foreground");
+
+    const status = await runSkillWorkshopCli({
+      argv: ["skill-workshop", "status"],
+      workspaceDir,
+      stateDir,
+    });
+    expect(status.stdout).toContain("Skills: 1 tracked");
+    expect(status.stdout).toContain("Reviewer: 0 turns / 0 tool calls since review");
+    expect(status.stdout).toContain("Curator: 0 turns since run");
   });
 
   it("refuses to apply quarantined proposals", async () => {
