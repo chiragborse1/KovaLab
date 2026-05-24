@@ -57,7 +57,7 @@
   }
 }
 
-/* Tablet and smaller: switch the left nav to a slide-over drawer. */
+/* Tablet and smaller: switch the left nav to the temporary overlay navigation. */
 @media (max-width: 1100px) {
   .shell,
   .shell--nav-collapsed {
@@ -82,7 +82,6 @@
     width: min(86vw, 320px);
     min-width: 0;
     border-right: none;
-    box-shadow: 0 30px 80px color-mix(in srgb, black 40%, transparent);
     transform: translateX(-100%);
     opacity: 0;
     pointer-events: none;
@@ -96,7 +95,6 @@
     transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
-    box-shadow: none;
   }
 
   .shell--nav-drawer-open .shell-nav,
@@ -112,7 +110,7 @@
     inset: 0;
     z-index: 65;
     border: 0;
-    background: color-mix(in srgb, black 52%, transparent);
+    background: transparent;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--shell-focus-duration) var(--shell-focus-ease);
@@ -132,10 +130,8 @@
     height: 38px;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+    background: transparent;
     color: var(--muted);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
   }
 
   .sidebar,
@@ -207,7 +203,6 @@
     min-height: 40px;
     padding: 0 12px;
     font-size: 13px;
-    border-radius: var(--radius-md);
     white-space: nowrap;
     flex: 0 0 auto;
     width: auto;
@@ -219,7 +214,6 @@
     min-height: 44px;
     padding: 0;
     margin: 0 auto;
-    border-radius: var(--radius-lg);
   }
 
   .sidebar--collapsed .nav-item--active::before,
@@ -245,9 +239,7 @@
     top: 10px;
     bottom: 10px;
     width: 3px;
-    border-radius: var(--radius-full);
     background: color-mix(in srgb, var(--accent) 86%, transparent);
-    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 34%, transparent);
   }
 
   .sidebar--collapsed .sidebar-shell__footer {
@@ -316,10 +308,8 @@
     height: 38px;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+    background: transparent;
     color: var(--muted);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
   }
 
   .topbar-status {
@@ -411,11 +401,9 @@
     top: 100%;
     right: 0;
     z-index: 100;
-    background: var(--card, #161b22);
+    background: var(--bg, #0a0a0a);
     border: 1px solid var(--border, #30363d);
-    border-radius: var(--radius-md);
     padding: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     flex-direction: column;
     gap: 4px;
     min-width: 220px;
@@ -464,7 +452,6 @@
   /* Cards */
   .card {
     padding: 12px;
-    border-radius: var(--radius-md);
   }
 
   .card-title {
@@ -479,7 +466,6 @@
 
   .stat {
     padding: 10px;
-    border-radius: var(--radius-md);
   }
 
   .stat-label {
@@ -506,7 +492,6 @@
   .field textarea,
   .field select {
     padding: 8px 10px;
-    border-radius: var(--radius-md);
     font-size: 14px;
   }
 
@@ -554,7 +539,6 @@
 
   .chat-bubble {
     padding: 8px 12px;
-    border-radius: var(--radius-md);
   }
 
   .chat-compose {
@@ -564,7 +548,6 @@
   .chat-compose__field textarea {
     min-height: 60px;
     padding: 8px 10px;
-    border-radius: var(--radius-md);
     font-size: 14px;
   }
 
@@ -590,7 +573,6 @@
 
   /* Log stream */
   .log-stream {
-    border-radius: var(--radius-md);
     max-height: 380px;
   }
 
@@ -619,7 +601,6 @@
   /* Lists */
   .list-item {
     padding: 10px;
-    border-radius: var(--radius-md);
   }
 
   .list-title {
@@ -633,7 +614,6 @@
   /* Code blocks */
   .code-block {
     padding: 8px;
-    border-radius: var(--radius-md);
     font-size: 11px;
   }
 
@@ -782,7 +762,7 @@
   }
 
   .data-table-wrapper {
-    border-radius: var(--radius-sm);
+    overflow: auto;
   }
 
   .session-key-cell {

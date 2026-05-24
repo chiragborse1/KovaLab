@@ -781,6 +781,15 @@ function summarizePluginCapabilities(plugin: PluginStatusSummary): string {
   return parts.length > 0 ? parts.join(" · ") : "manifest only";
 }
 
+type PluginCapabilityListKey = "toolNames" | "gatewayMethods" | "services";
+
+function countPluginCapabilityEntries(
+  plugins: readonly PluginStatusSummary[],
+  key: PluginCapabilityListKey,
+): number {
+  return plugins.reduce((total, plugin) => total + plugin[key].length, 0);
+}
+
 function renderPluginOperation(props: ControlPanelProps) {
   const operation = props.pluginsOperation;
   if (!operation) {
@@ -833,6 +842,11 @@ function renderPluginInventorySection(props: ControlPanelProps) {
   const visiblePlugins = plugins.slice(0, 12);
   const diagnostics = status?.diagnostics ?? [];
   const installSpec = props.pluginsInstallSpec.trim();
+  const toolCount = status ? countPluginCapabilityEntries(plugins, "toolNames") : null;
+  const gatewayMethodCount = status
+    ? countPluginCapabilityEntries(plugins, "gatewayMethods")
+    : null;
+  const serviceCount = status ? countPluginCapabilityEntries(plugins, "services") : null;
   return html`
     <section class="control-panel-section">
       ${renderSectionHeader({
@@ -860,6 +874,18 @@ function renderPluginInventorySection(props: ControlPanelProps) {
           <div class="control-panel-ops-card">
             <span>Providers</span>
             <strong>${status?.totals.providers ?? "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Tools</span>
+            <strong>${toolCount ?? "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Runtime APIs</span>
+            <strong>${gatewayMethodCount ?? "unknown"}</strong>
+          </div>
+          <div class="control-panel-ops-card">
+            <span>Services</span>
+            <strong>${serviceCount ?? "unknown"}</strong>
           </div>
           <div class="control-panel-ops-card ${diagnostics.length > 0 ? "is-warn" : "is-ok"}">
             <span>Diagnostics</span>

@@ -1084,7 +1084,7 @@ export function renderApp(state: AppViewState) {
   const renderConfigTabForActiveTab = () => {
     switch (state.tab) {
       case "config": {
-        // Quick Settings mode — opinionated card layout
+        // Quick Settings mode: ruled operator layout.
         if (state.configSettingsMode === "quick") {
           const configObj = state.configForm ?? state.configSnapshot?.config ?? {};
           const assistantAvatarOverride = resolveAssistantAvatarOverride(configObj);

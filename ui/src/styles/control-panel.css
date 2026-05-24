@@ -19,7 +19,7 @@
 .control-panel code {
   font-family: var(--mono);
   font-size: 0.92em;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .control-panel-nav {
@@ -28,10 +28,9 @@
   align-self: start;
   display: grid;
   gap: 4px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--card);
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
 }
 
 .control-panel-nav__title {
@@ -51,7 +50,7 @@
   width: 100%;
   padding: 9px 10px;
   border: 0;
-  border-radius: var(--radius-md);
+  border-left: 2px solid transparent;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -61,7 +60,7 @@
   text-align: left;
   text-decoration: none;
   transition:
-    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
     color var(--duration-fast) ease;
 }
 
@@ -72,20 +71,17 @@
 
 .control-panel-nav a:hover,
 .control-panel-step:hover {
-  background: var(--bg-hover);
   color: var(--text);
 }
 
 .control-panel-step.is-active {
   border-color: var(--accent);
-  background: var(--bg-hover);
   color: var(--text);
 }
 
 .control-panel-step.is-active .control-panel-step__index {
   border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-contrast, #050505);
+  color: var(--accent);
 }
 
 .control-panel-nav a span {
@@ -102,7 +98,6 @@
   height: 20px;
   flex: 0 0 auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
   color: var(--accent);
   font-size: 11px;
   font-weight: 800;
@@ -141,10 +136,9 @@
 
 .control-panel-hero,
 .control-panel-section {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--card);
-  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  overflow: visible;
 }
 
 .control-panel-hero {
@@ -152,7 +146,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 24px 0 20px;
 }
 
 .control-panel-eyebrow,
@@ -167,7 +161,7 @@
 .control-panel-hero h1 {
   margin: 2px 0 6px;
   font-size: 28px;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .control-panel-hero p {
@@ -190,7 +184,6 @@
   flex-shrink: 0;
   padding: 6px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
   color: var(--muted);
   font-size: 12px;
 }
@@ -200,7 +193,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 20px;
+  padding: 20px 0 16px;
 }
 
 .control-panel-section__title-row {
@@ -216,15 +209,13 @@
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
   color: var(--accent);
 }
 
 .control-panel-section__head h2 {
   margin: 0;
   font-size: 18px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .control-panel-section__head p {
@@ -241,7 +232,7 @@
 .control-panel-section__body {
   display: grid;
   gap: 12px;
-  padding: 18px 20px 20px;
+  padding: 18px 0 22px;
 }
 
 .control-panel-current {
@@ -251,8 +242,7 @@
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--muted);
   font-size: 13px;
 }
@@ -270,12 +260,10 @@
 .control-panel-metrics button {
   min-width: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   transition:
-    background var(--duration-fast) ease,
     border-color var(--duration-fast) ease,
     color var(--duration-fast) ease;
 }
@@ -291,7 +279,6 @@
 .control-panel-chip:hover:not(:disabled),
 .control-panel-metrics button:hover {
   border-color: var(--accent);
-  background: var(--bg-hover);
 }
 
 .control-panel-provider:disabled,
@@ -359,8 +346,7 @@
 .control-panel-toggle {
   padding: 7px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--muted);
   cursor: pointer;
   font-size: 12px;
@@ -372,7 +358,6 @@
 .control-panel-toggle.active {
   border-color: var(--accent);
   color: var(--accent);
-  background: var(--bg-hover);
 }
 
 .control-panel-toggle {
@@ -385,7 +370,6 @@
 .control-panel-toggle span {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-full);
   background: var(--muted);
 }
 
@@ -441,8 +425,7 @@
   gap: 12px;
   padding: 14px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-completed-flow {
@@ -459,8 +442,7 @@
   max-width: min(100%, 360px);
   padding: 7px 9px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-completed-step__index {
@@ -470,7 +452,6 @@
   width: 18px;
   height: 18px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
   color: var(--accent);
   font-size: 10px;
   font-weight: 800;
@@ -506,8 +487,7 @@
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-model-flow__intro strong {
@@ -536,7 +516,6 @@
 .control-panel-flow-card__head em {
   padding: 3px 7px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
   color: var(--muted);
   font-size: 11px;
   font-style: normal;
@@ -582,8 +561,7 @@
   justify-content: space-between;
   padding: 9px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg);
+  background: transparent;
 }
 
 .control-panel-current-model span {
@@ -630,8 +608,7 @@
   gap: 4px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg);
+  background: transparent;
 }
 
 .control-panel-readonly-field span {
@@ -671,7 +648,6 @@
 .control-panel-wizard-step__meta span {
   padding: 3px 7px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
@@ -699,7 +675,6 @@
   position: relative;
   height: 6px;
   overflow: hidden;
-  border-radius: var(--radius-full);
   background: var(--border);
 }
 
@@ -709,7 +684,6 @@
   bottom: 0;
   left: -40%;
   width: 40%;
-  border-radius: inherit;
   background: var(--accent);
   animation: control-panel-progress-slide 950ms ease-in-out infinite;
 }
@@ -734,7 +708,6 @@
 .control-panel-summary__status {
   padding: 9px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
   font-size: 12px;
   font-weight: 700;
 }
@@ -761,7 +734,6 @@
 .control-panel-inline-progress span {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-full);
   background: var(--accent);
   animation: control-panel-pulse 800ms ease-in-out infinite alternate;
 }
@@ -783,8 +755,7 @@
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-ops-card span {
@@ -833,8 +804,7 @@
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-provider-status.is-ok {
@@ -881,8 +851,7 @@
   align-items: end;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-plugin-install-form label {
@@ -906,8 +875,7 @@
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-plugin-row.is-ok {
@@ -977,8 +945,7 @@
   align-items: start;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--muted);
   font-size: 12px;
 }
@@ -1004,7 +971,6 @@
   max-width: 100%;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
   background: #fff;
 }
 
@@ -1060,13 +1026,11 @@
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   text-align: left;
   transition:
-    background var(--duration-fast) ease,
     border-color var(--duration-fast) ease,
     color var(--duration-fast) ease;
 }
@@ -1074,7 +1038,6 @@
 .control-panel-option:hover,
 .control-panel-option.active {
   border-color: var(--accent);
-  background: var(--bg-hover);
 }
 
 .control-panel-option--provider,
@@ -1090,12 +1053,11 @@
   height: 34px;
   flex: 0 0 auto;
   border: 1px solid currentColor;
-  border-radius: var(--radius-md);
   color: var(--accent);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .control-panel-provider-logo--openrouter {
@@ -1185,8 +1147,7 @@
   gap: 10px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
+  background: var(--bg);
 }
 
 .control-panel-next-bar span {
@@ -1207,8 +1168,7 @@
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+  background: transparent;
 }
 
 .control-panel-list-row strong,
@@ -1289,7 +1249,7 @@
   font-size: 26px;
   font-weight: 700;
   line-height: 1.08;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 
 .control-panel-hero p,
@@ -1312,7 +1272,7 @@
   font-size: 17px;
   font-weight: 650;
   line-height: 1.2;
-  letter-spacing: -0.012em;
+  letter-spacing: 0;
 }
 
 .control-panel-model-flow__intro strong,
@@ -1342,14 +1302,14 @@
   color: var(--text-strong, var(--text));
   font-size: 17px;
   font-weight: 650;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .control-panel-metrics span {
   color: var(--text-strong, var(--text));
   font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .control-panel .btn {

@@ -804,9 +804,9 @@ describe("renderControlPanel", () => {
                 version: "2.0.0",
                 channelIds: ["telegram"],
                 providerIds: [],
-                toolNames: [],
-                gatewayMethods: [],
-                services: [],
+                toolNames: ["telegram_send"],
+                gatewayMethods: ["telegram.status"],
+                services: ["telegram"],
                 commands: [],
                 configSchema: true,
                 installed: false,
@@ -851,6 +851,8 @@ describe("renderControlPanel", () => {
     expect(container.textContent).toContain("Plugin inventory");
     expect(container.textContent).toContain("persisted");
     expect(container.textContent).toContain("1 / 2");
+    expect(container.textContent).toContain("Runtime APIs");
+    expect(container.textContent).toContain("1 channel · 1 tool · 1 rpc · 1 service");
     expect(container.textContent).toContain("Telegram");
     expect(container.textContent).toContain("Broken");
     expect(container.textContent).toContain("broken: manifest failed");
