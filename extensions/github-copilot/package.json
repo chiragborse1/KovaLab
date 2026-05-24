@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@getkova/plugin-sdk": "workspace:*",
-    "@mariozechner/pi-ai": "0.70.2"
+    "@mariozechner/pi-ai": "0.73.1"
   },
   "kova": {
     "extensions": [
