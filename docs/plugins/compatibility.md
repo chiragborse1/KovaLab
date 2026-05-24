@@ -43,6 +43,14 @@ revalidate each replacement annotation during release planning because plugin
 ownership and config footprint can change as providers and channels move out of
 core.
 
+For a lightweight owner/status report before a release sweep, run:
+
+```sh
+node scripts/plugin-compat-report.mjs --as-of=YYYY-MM-DD
+```
+
+Use `--json` when preparing release-note automation or CI annotations.
+
 ## Plugin inspector package
 
 The plugin inspector should live outside the core Kova repo as a separate

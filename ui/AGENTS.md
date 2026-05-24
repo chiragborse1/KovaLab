@@ -17,3 +17,9 @@ This directory owns Control UI-specific guidance that should not live in the rep
 
 - Keep UI-specific rules here.
 - Leave repo-global architecture, verification, and git workflow rules in the root `AGENTS.md`.
+
+## Design Drift
+
+- Read `KOVA_DESIGN.md` before changing Control UI styles or layout.
+- Do not add new cards, tinted panels, shadows, gradients, blur, slide-in drawers, rounded badges, or rounded control surfaces unless the design guide changes first.
+- Keep exceptions explicit and narrow. Status dots may stay circular, and accessibility focus indicators must remain visible without decorative glow.
