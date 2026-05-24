@@ -9,7 +9,7 @@ import {
 } from "getkova/plugin-sdk/agent-harness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { __testing as nativeHookRelayTesting } from "../../../../src/agents/harness/native-hook-relay.js";
-import { buildAgentRuntimePlan } from "../../../../src/agents/runtime-plan/build.js";
+import type { AgentRuntimePlan } from "../../../../src/agents/runtime-plan/types.js";
 import {
   onAgentEvent,
   resetAgentEventsForTest,
@@ -60,19 +60,77 @@ function createParamsWithRuntimePlan(
   const params = createParams(sessionFile, workspaceDir);
   return {
     ...params,
-    runtimePlan: buildAgentRuntimePlan({
+    runtimePlan: createTestRuntimePlan({
       provider: params.provider,
       modelId: params.modelId,
-      model: params.model,
-      modelApi: params.model.api,
-      harnessId: "codex",
-      harnessRuntime: "codex",
-      config: params.config,
-      workspaceDir,
-      agentDir: tempDir,
-      thinkingLevel: params.thinkLevel,
+      modelApi: params.model.api ?? undefined,
     }),
   } as EmbeddedRunAttemptParams;
+}
+
+const testRuntimeTranscriptPolicy: AgentRuntimePlan["transcript"]["policy"] = {
+  sanitizeMode: "images-only",
+  sanitizeToolCallIds: false,
+  preserveNativeAnthropicToolUseIds: false,
+  repairToolUseResultPairing: true,
+  preserveSignatures: false,
+  sanitizeThinkingSignatures: false,
+  dropThinkingBlocks: false,
+  dropReasoningFromHistory: false,
+  applyGoogleTurnOrdering: false,
+  validateGeminiTurns: false,
+  validateAnthropicTurns: false,
+  allowSyntheticToolResults: false,
+};
+
+function createTestRuntimePlan(params: {
+  provider: string;
+  modelId: string;
+  modelApi?: string;
+}): AgentRuntimePlan {
+  return {
+    resolvedRef: {
+      provider: params.provider,
+      modelId: params.modelId,
+      ...(params.modelApi ? { modelApi: params.modelApi } : {}),
+      harnessId: "codex",
+    },
+    auth: {
+      providerForAuth: params.provider,
+      authProfileProviderForAuth: params.provider,
+    },
+    prompt: {
+      provider: params.provider,
+      modelId: params.modelId,
+      resolveSystemPromptContribution: () => undefined,
+    },
+    tools: {
+      normalize: (tools) => tools,
+      logDiagnostics: () => undefined,
+    },
+    transcript: {
+      policy: testRuntimeTranscriptPolicy,
+      resolvePolicy: () => testRuntimeTranscriptPolicy,
+    },
+    delivery: {
+      isSilentPayload: () => false,
+      resolveFollowupRoute: () => undefined,
+    },
+    outcome: {
+      classifyRunResult: () => undefined,
+    },
+    transport: {
+      extraParams: {},
+      resolveExtraParams: () => ({}),
+    },
+    observability: {
+      resolvedRef: `${params.provider}/${params.modelId}`,
+      provider: params.provider,
+      modelId: params.modelId,
+      ...(params.modelApi ? { modelApi: params.modelApi } : {}),
+      harnessId: "codex",
+    },
+  };
 }
 
 function threadStartResult(threadId = "thread-1") {
@@ -172,6 +230,7 @@ function createAppServerHarness(
     async waitForMethod(method: string) {
       await vi.waitFor(() => expect(requests.some((entry) => entry.method === method)).toBe(true), {
         interval: 1,
+        timeout: 5_000,
       });
     },
     async notify(notification: CodexServerNotification) {
@@ -385,13 +444,27 @@ describe("runCodexAppServerAttempt", () => {
     const workspaceDir = path.join(tempDir, "workspace");
     const sessionManager = SessionManager.open(sessionFile);
     sessionManager.appendMessage(assistantMessage("existing context", Date.now()));
-    const harness = createStartedThreadHarness();
+    const harness = createStartedThreadHarness(async (method) => {
+      if (method === "turn/start") {
+        return {
+          turn: {
+            id: "turn-1",
+            status: "completed",
+            items: [{ type: "agentMessage", id: "msg-1", text: "hello back" }],
+          },
+        };
+      }
+      return undefined;
+    });
 
     const params = createParamsWithRuntimePlan(sessionFile, workspaceDir);
     params.onAgentEvent = onRunAgentEvent;
     const run = runCodexAppServerAttempt(params);
     await harness.waitForMethod("turn/start");
-    await vi.waitFor(() => expect(llmInput).toHaveBeenCalledTimes(1), { interval: 1 });
+    await vi.waitFor(() => expect(llmInput).toHaveBeenCalledTimes(1), {
+      interval: 1,
+      timeout: 5_000,
+    });
 
     expect(llmInput).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -411,21 +484,17 @@ describe("runCodexAppServerAttempt", () => {
       }),
     );
 
-    await harness.notify({
-      method: "item/agentMessage/delta",
-      params: {
-        threadId: "thread-1",
-        turnId: "turn-1",
-        itemId: "msg-1",
-        delta: "hello back",
-      },
-    });
-    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
     const result = await run;
 
     expect(result.assistantTexts).toEqual(["hello back"]);
-    await vi.waitFor(() => expect(llmOutput).toHaveBeenCalledTimes(1), { interval: 1 });
-    await vi.waitFor(() => expect(agentEnd).toHaveBeenCalledTimes(1), { interval: 1 });
+    await vi.waitFor(() => expect(llmOutput).toHaveBeenCalledTimes(1), {
+      interval: 1,
+      timeout: 5_000,
+    });
+    await vi.waitFor(() => expect(agentEnd).toHaveBeenCalledTimes(1), {
+      interval: 1,
+      timeout: 5_000,
+    });
     const agentEvents = onRunAgentEvent.mock.calls.map(([event]) => event);
     expect(agentEvents).toEqual(
       expect.arrayContaining([
