@@ -404,7 +404,7 @@ function resolveEditor(opts: PersonaEditOptions): string | undefined {
 }
 
 function canOpenInteractiveEditor(): boolean {
-  return Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  return process.stdin.isTTY && process.stdout.isTTY;
 }
 
 function quoteShellArg(value: string): string {
