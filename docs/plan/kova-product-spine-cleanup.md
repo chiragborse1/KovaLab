@@ -56,13 +56,14 @@ Done:
   now have one terminal-first learning-loop story in
   [Learning Loop](/concepts/learning-loop), with `kova status` pointing to the
   review commands.
+- Filesystem checkpoint/rollback now has an explicit decision and implementation
+  plan in [Filesystem Checkpoint And Rollback](/plan/filesystem-checkpoint-rollback).
 
 Remaining:
 
 - Continue hotspot cleanup one owner-boundary slice at a time.
 - Add generated or manifest-backed capability inventory where static owner docs
   still have gaps.
-- Filesystem checkpoint/rollback decision and implementation plan.
 - MCP runtime parity decisions for saved-server status, dynamic tool refresh,
   and sampling.
 

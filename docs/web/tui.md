@@ -172,6 +172,9 @@ lists checkpoints for the current session, `/rollback show <id>` previews one,
 and `/rollback restore <id> confirm` replaces the current session after an
 explicit confirm step. Restore is blocked while a run is active.
 
+This is session rollback, not filesystem restore. File-mutation checkpoints are
+tracked separately in [Filesystem Checkpoint And Rollback](/plan/filesystem-checkpoint-rollback).
+
 `/memory dreams` reads the latest Dream Diary entries from `DREAMS.md` or
 `dreams.md` without opening the browser Control UI. Use `/memory dreams all` for
 the full file or `/memory dreams lines=40` for a smaller tail.
