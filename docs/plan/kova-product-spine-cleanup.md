@@ -40,6 +40,8 @@ Done:
   plan in [Plugin Compatibility Cleanup](/plan/plugin-compatibility-cleanup).
 - Plugin compatibility and doctor migration debt now have a repeatable owner,
   status, and removal-review report at `scripts/plugin-compat-report.mjs`.
+- Plugin compatibility and doctor migration debt can now be reviewed from the
+  terminal with `kova plugins compatibility-report`.
 - Reference-agent capability parity has a refreshed review in
   [Reference Agent Capability Parity Review](/plan/reference-agent-capability-parity).
 - Kova capability matrices now have a docs-derived inventory in
@@ -50,8 +52,6 @@ Done:
 Remaining:
 
 - Use the hotspot audit to choose one clear owner-boundary refactor at a time.
-- Add a maintainer or release-facing command surface for the compatibility
-  report before any removal-pending sweep.
 - Move capability matrices into CLI/TUI docs and status surfaces where they can
   be maintained from manifests or owner docs.
 - Closed-learning-loop cleanup: memory, dreaming, Skill Workshop, and skill

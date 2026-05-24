@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { Command } from "commander";
@@ -5,6 +7,7 @@ import { getRuntimeConfig, readConfigFileSnapshot, replaceConfigFile } from "../
 import { resolveStateDir } from "../config/paths.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
+import { resolveKovaPackageRootSync } from "../infra/kova-root.js";
 import { formatPluginSourceForTable, resolvePluginSourceRoots } from "../plugins/source-display.js";
 import type { PluginLogger } from "../plugins/types.js";
 import { defaultRuntime } from "../runtime.js";
@@ -47,6 +50,16 @@ export type PluginRegistryOptions = {
   refresh?: boolean;
 };
 
+export type PluginCompatibilityReportOptions = {
+  json?: boolean;
+  asOf?: string;
+  owner?: string;
+  source?: string;
+  status?: string;
+  dueDays?: string;
+  limit?: string;
+};
+
 export type PluginAuthoringBuildOptions = {
   root?: string;
   entry?: string;
@@ -70,6 +83,68 @@ const quietPluginJsonLogger: PluginLogger = {
   warn: () => undefined,
   error: () => undefined,
 };
+
+const PLUGIN_COMPAT_REPORT_SCRIPT = path.join("scripts", "plugin-compat-report.mjs");
+
+function appendPluginCompatReportArg(
+  args: string[],
+  name: string,
+  value: string | undefined,
+): void {
+  if (value === undefined) {
+    return;
+  }
+  args.push(`${name}=${value}`);
+}
+
+function runPluginCompatibilityReport(opts: PluginCompatibilityReportOptions): void {
+  const packageRoot = resolveKovaPackageRootSync({
+    argv1: process.argv[1],
+    cwd: process.cwd(),
+    moduleUrl: import.meta.url,
+  });
+  if (!packageRoot) {
+    defaultRuntime.error(
+      "Plugin compatibility reports are available from a Kova source checkout. Run this command from the repo root or use scripts/plugin-compat-report.mjs directly.",
+    );
+    return defaultRuntime.exit(1);
+  }
+  const scriptPath = path.join(packageRoot, PLUGIN_COMPAT_REPORT_SCRIPT);
+  if (!fs.existsSync(scriptPath)) {
+    defaultRuntime.error(
+      "Plugin compatibility reports are available from a Kova source checkout. Run this command from the repo root or use scripts/plugin-compat-report.mjs directly.",
+    );
+    return defaultRuntime.exit(1);
+  }
+
+  const args = [scriptPath];
+  if (opts.json) {
+    args.push("--json");
+  }
+  appendPluginCompatReportArg(args, "--as-of", opts.asOf);
+  appendPluginCompatReportArg(args, "--owner", opts.owner);
+  appendPluginCompatReportArg(args, "--source", opts.source);
+  appendPluginCompatReportArg(args, "--status", opts.status);
+  appendPluginCompatReportArg(args, "--due-days", opts.dueDays);
+  appendPluginCompatReportArg(args, "--limit", opts.limit);
+
+  const result = spawnSync(process.execPath, args, {
+    cwd: packageRoot,
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (result.error) {
+    defaultRuntime.error(`Plugin compatibility report failed: ${result.error.message}`);
+    return defaultRuntime.exit(1);
+  }
+  if (typeof result.status === "number" && result.status !== 0) {
+    return defaultRuntime.exit(result.status);
+  }
+  if (result.signal) {
+    defaultRuntime.error(`Plugin compatibility report stopped by signal ${result.signal}.`);
+    return defaultRuntime.exit(1);
+  }
+}
 
 function formatInspectSection(title: string, lines: string[]): string[] {
   if (lines.length === 0) {
@@ -843,6 +918,21 @@ export function registerPluginsCli(program: Command) {
         lines.push(`${theme.muted("Repair:")} ${theme.command("kova plugins registry --refresh")}`);
       }
       defaultRuntime.log(lines.join("\n"));
+    });
+
+  plugins
+    .command("compatibility-report")
+    .alias("compat-report")
+    .description("Print maintainer plugin compatibility cleanup report")
+    .option("--json", "Print JSON")
+    .option("--as-of <date>", "Date used for removal-window math")
+    .option("--owner <list>", "Filter by owner list, for example sdk,provider")
+    .option("--source <list>", "Filter by source list, for example plugin,doctor")
+    .option("--status <list>", "Filter by status list, for example deprecated")
+    .option("--due-days <days>", "Review queue window in days")
+    .option("--limit <count>", "Limit review queue entries, 0 means no limit")
+    .action((opts: PluginCompatibilityReportOptions) => {
+      runPluginCompatibilityReport(opts);
     });
 
   plugins

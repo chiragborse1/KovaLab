@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `kova plugins` (list, install, marketplace, uninstall, enable/disable, doctor)"
+summary: "CLI reference for `kova plugins` (list, install, marketplace, uninstall, enable/disable, doctor, compatibility reports)"
 read_when:
   - You want to install or manage Gateway plugins or compatible bundles
   - You want to debug plugin load failures
@@ -44,6 +44,8 @@ kova plugins build --entry ./dist/index.js --check
 kova plugins validate --entry ./dist/index.js
 kova plugins registry
 kova plugins registry --refresh
+kova plugins compatibility-report
+kova plugins compatibility-report --json
 kova plugins uninstall <id>
 kova plugins doctor
 kova plugins update <id-or-npm-spec>
@@ -348,6 +350,16 @@ Use `plugins registry` to inspect whether the persisted registry is present, cur
 <Warning>
 `KOVA_DISABLE_PERSISTED_PLUGIN_REGISTRY=1` is a deprecated break-glass compatibility switch for registry read failures. Prefer `plugins registry --refresh` or `kova doctor --fix`; the env fallback is only for emergency startup recovery while the migration rolls out.
 </Warning>
+
+### Compatibility Report
+
+```bash
+kova plugins compatibility-report
+kova plugins compatibility-report --json
+kova plugins compatibility-report --owner sdk,provider --due-days 120
+```
+
+`compatibility-report` is a maintainer-facing source-checkout command for plugin compatibility and doctor deprecation cleanup. It reports owner counts, status counts, and removal-review entries before any deprecated or removal-pending behavior is swept. `compat-report` is a shorter alias.
 
 ### Marketplace
 
