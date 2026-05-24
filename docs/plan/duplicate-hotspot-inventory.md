@@ -36,16 +36,16 @@ node scripts/audit-kova-spine.mjs --json
 
 - Bundled plugin manifest files: 118
 - Top-level extension directories: 130
-- Tracked docs pages under `docs/`: 469
+- Tracked docs pages under `docs/`: 480
 - Largest source areas by file count:
   - `src/agents`: 1501
   - `src/infra`: 683
-  - `src/gateway`: 632
-  - `src/commands`: 592
-  - `src/plugins`: 510
-  - `src/auto-reply`: 490
+  - `src/gateway`: 633
+  - `src/commands`: 594
+  - `src/plugins`: 511
+  - `src/auto-reply`: 492
   - `src/plugin-sdk`: 469
-  - `src/cli`: 396
+  - `src/cli`: 399
   - `src/config`: 326
   - `src/channels`: 284
 - Largest extension areas by file count:
@@ -89,6 +89,10 @@ Large hand-maintained or test files worth targeted review:
 - `src/gateway/server.sessions.gateway-server-sessions-a.test.ts`
 - `src/auto-reply/reply/session.test.ts`
 - `extensions/telegram/src/bot.create-telegram-bot.test.ts`
+- `extensions/qa-lab/web/src/ui-render.ts`
+- `extensions/matrix/src/matrix/monitor/handler.test.ts`
+- `src/agents/subagent-announce.format.e2e.test.ts`
+- `extensions/qa-matrix/src/runners/contract/scenario-runtime-e2ee.ts`
 - `src/plugins/loader.ts`
 
 ## Concept Hotspots
@@ -187,6 +191,8 @@ for compatibility, security, release safety, or direct bug fixes.
   compatibility reporting work is in place.
 - Promote capability matrices into user-facing docs and terminal status/settings
   surfaces instead of adding another disconnected capability page.
+- Add filesystem checkpoints only when the implementation wraps real Kova-owned
+  write/edit/apply-patch paths and can prove preview-first restore semantics.
 
 ## Non Goals
 
