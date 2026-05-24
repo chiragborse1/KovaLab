@@ -110,8 +110,9 @@ session before the model can keep working reliably.
 
 ## Kova terminal controls
 
-Run `/help` to show Kova terminal controls inside the TUI. It keeps local
-controls and the Gateway-backed command surface in one place.
+Run `/help` to show the compact terminal command map inside the TUI. Use
+`/help all` when you want the full command list. Help keeps local controls and
+the Gateway-backed command surface in one place.
 
 Core:
 
@@ -125,7 +126,7 @@ Core:
 - `/tools [compact|verbose]`
 - `/skills [compact|verbose]`
 - `/tasks [list|running|subagents|cron|audit|repair [apply]]`
-- `/automation [list|running|audit]`
+- `/automation [list|running|queued|failed|audit]`
 - `/subagents [list]`
 - `/recover [status|apply]`
 - `/rollback [list|show <id>|branch <id>|restore <id> confirm]`

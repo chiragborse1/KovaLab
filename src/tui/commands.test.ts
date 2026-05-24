@@ -128,6 +128,11 @@ describe("getSlashCommands", () => {
     ]);
     expect(subagents?.getArgumentCompletions?.("rep")).toEqual([]);
     expect(automation?.description).toBe("Show scheduled/background automation");
+    expect(automation?.argumentHint).toBe("list | running | queued | failed | audit");
+    expect(automation?.getArgumentCompletions?.("rep")).toEqual([]);
+    expect(automation?.getArgumentCompletions?.("f")).toEqual([
+      { value: "failed", label: "failed" },
+    ]);
   });
 
   it("keeps alias commands out of the visible command palette", () => {
@@ -178,8 +183,21 @@ describe("getSlashCommands", () => {
 });
 
 describe("helpText", () => {
-  it("includes slash command help for aliases", () => {
+  it("shows compact slash command help by default", () => {
     const output = helpText();
+    expect(output).toContain("Kova terminal controls");
+    expect(output).toContain("Core:");
+    expect(output).toContain("/status - current session and runtime state");
+    expect(output).toContain("/memory - memory health and commands");
+    expect(output).toContain("More: /help all");
+    expect(output).toContain("/commands opens this help");
+    expect(output).not.toContain("/elevated <on|off|ask|full>");
+    expect(output).not.toContain("/abort");
+    expect(output).not.toContain("/quit");
+  });
+
+  it("includes full slash command help for aliases", () => {
+    const output = helpText({ verbose: true });
     expect(output).toContain("/elevated <on|off|ask|full>");
     expect(output).toContain("/gateway-status");
     expect(output).not.toContain("/commands");
@@ -190,7 +208,7 @@ describe("helpText", () => {
     expect(output).toContain("/skills [compact|verbose]");
     expect(output).toContain("/tasks [list|running|subagents|cron|audit|repair [apply]]");
     expect(output).toContain("/subagents [list|running|queued|failed|lost|all]");
-    expect(output).toContain("/automation [list|running|audit]");
+    expect(output).toContain("/automation [list|running|queued|failed|audit]");
     expect(output).toContain("/recover [status|apply]");
     expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");
     expect(output).toContain("/context [compact|verbose]");
@@ -201,7 +219,7 @@ describe("helpText", () => {
     expect(output).toContain("/plugins [list|verbose|show <plugin>]");
     expect(output).toContain("Run controls:");
     expect(output).toContain("/stop");
-    expect(output).toContain("commands alias opens help");
+    expect(output).toContain("Short aliases still work.");
     expect(output).not.toContain("/abort");
     expect(output).not.toContain("/quit");
   });

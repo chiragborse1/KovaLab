@@ -107,6 +107,18 @@ function truncateLine(text: string, maxLength = 120): string {
   return `${cleaned.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
+function formatNamePreview(names: string[], limit: number): string {
+  const visible = names
+    .map((name) => sanitizeRenderableText(name).trim())
+    .filter((name) => name.length > 0)
+    .slice(0, limit);
+  if (visible.length === 0) {
+    return "";
+  }
+  const remaining = names.length - visible.length;
+  return remaining > 0 ? `${visible.join(", ")}, +${String(remaining)} more` : visible.join(", ");
+}
+
 function normalizeSurfaceMode(args: string): "compact" | "verbose" | null {
   const normalized = args.trim().toLowerCase();
   if (!normalized || normalized === "compact") {
@@ -130,7 +142,16 @@ function formatToolCatalog(result: TuiToolCatalog, mode: "compact" | "verbose"):
   }
 
   for (const group of groups) {
-    lines.push(`- ${group.label}: ${plural(group.tools.length, "tool")}`);
+    const preview =
+      mode === "compact"
+        ? formatNamePreview(
+            group.tools.map((tool) => tool.id),
+            6,
+          )
+        : "";
+    lines.push(
+      `- ${group.label}: ${plural(group.tools.length, "tool")}${preview ? ` (${preview})` : ""}`,
+    );
     if (mode !== "verbose") {
       continue;
     }
@@ -171,7 +192,11 @@ function formatSkillCatalog(result: TuiSkillStatus, mode: "compact" | "verbose")
     for (const [source, count] of [...bySource.entries()].toSorted((a, b) =>
       a[0].localeCompare(b[0]),
     )) {
-      lines.push(`- ${source}: ${plural(count, "skill")}`);
+      const names = visible
+        .filter((skill) => (skill.source || "workspace") === source)
+        .map((skill) => skill.name);
+      const preview = formatNamePreview(names, 6);
+      lines.push(`- ${source}: ${plural(count, "skill")}${preview ? ` (${preview})` : ""}`);
     }
     lines.push("Use /skills verbose for names and status.");
     return lines.join("\n");
@@ -1071,6 +1096,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             local: opts.local,
             provider: state.sessionInfo.modelProvider,
             model: state.sessionInfo.model,
+            verbose: /^(all|full|verbose)$/i.test(args.trim()),
           }),
         );
         break;
@@ -1393,10 +1419,20 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "busy": {
         const action = args || "status";
         if (action === "status") {
+          const mode = getBusyInputMode();
+          const explanation =
+            mode === "queue"
+              ? "new messages wait for the active run to finish"
+              : mode === "steer"
+                ? "new messages try to steer the active run, then queue if steering is unavailable"
+                : "new messages replace the active run";
           chatLog.addSystem(
-            `busy input: ${getBusyInputMode()}; ${formatQueuedFollowUpCount(
-              getQueuedMessages().length,
-            )}`,
+            [
+              `busy input: ${mode}`,
+              `queue: ${formatQueuedFollowUpCount(getQueuedMessages().length)}`,
+              `meaning: ${explanation}`,
+              "actions: /busy queue, /busy steer, /busy interrupt, /busy clear",
+            ].join("\n"),
           );
           break;
         }

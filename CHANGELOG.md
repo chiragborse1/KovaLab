@@ -8,6 +8,7 @@
 - CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat`, demoting Dashboard wording to optional Control UI, and adding chat-first next steps. Thanks @chiragborse1
 - CLI: add `kova control-ui` as the explicit browser admin command and move command output to Control UI wording. Thanks @chiragborse1
 - CLI/TUI: reshape `/help` into a terminal command center that surfaces Gateway status, tools, context, skills, plugin management, and run controls from one place. Thanks @chiragborse1
+- CLI/TUI: make `/help` compact by default, add `/help all`, and show actionable names in compact `/tools` and `/skills` output. Thanks @chiragborse1
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
 - CLI/TUI: add `kova memory dreams` and `/memory dreams` so Dream Diary review works from terminal and chat without opening the Control UI. Thanks @chiragborse1
 - CLI/TUI: add `kova persona` and `/persona` so `SOUL.md` persona status, reading, creation, and terminal editing work without the Control UI. Thanks @chiragborse1

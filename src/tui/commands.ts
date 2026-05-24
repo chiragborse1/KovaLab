@@ -29,6 +29,7 @@ const TASK_LEVELS = [
   "repair apply",
 ];
 const SUBAGENT_LEVELS = ["list", "running", "queued", "failed", "lost", "all"];
+const AUTOMATION_LEVELS = ["list", "running", "queued", "failed", "audit"];
 const RECOVER_LEVELS = ["status", "apply"];
 const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
 const MEMORY_COMMAND_COMPLETIONS = [
@@ -254,10 +255,16 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
   const taskCompletions = createLevelCompletion(TASK_LEVELS);
   const subagentCompletions = createLevelCompletion(SUBAGENT_LEVELS);
+  const automationCompletions = createLevelCompletion(AUTOMATION_LEVELS);
   const recoverCompletions = createLevelCompletion(RECOVER_LEVELS);
   const rollbackCompletions = createLevelCompletion(ROLLBACK_LEVELS);
   const commands: SlashCommand[] = [
-    { name: "help", description: "Show slash command help" },
+    {
+      name: "help",
+      description: "Show terminal command help",
+      argumentHint: "[all]",
+      getArgumentCompletions: createLevelCompletion(["all"]),
+    },
     { name: "gateway-status", description: "Show gateway status summary" },
     ...(options.local ? [{ name: "auth", description: "Run provider auth/login flow" }] : []),
     { name: "agent", description: "Switch agent (or open picker)" },
@@ -305,8 +312,8 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     {
       name: "automation",
       description: "Show scheduled/background automation",
-      argumentHint: "list | running | audit",
-      getArgumentCompletions: taskCompletions,
+      argumentHint: "list | running | queued | failed | audit",
+      getArgumentCompletions: automationCompletions,
     },
     {
       name: "recover",
@@ -395,8 +402,39 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   return commands;
 }
 
-export function helpText(options: SlashCommandOptions = {}): string {
+export function helpText(options: SlashCommandOptions & { verbose?: boolean } = {}): string {
   const thinkLevels = formatThinkingLevels(options.provider, options.model, "|");
+  if (!options.verbose) {
+    return [
+      "Kova terminal controls",
+      "",
+      "Core:",
+      "/status - current session and runtime state",
+      "/new - start a fresh session",
+      "/stop - stop the active run",
+      "/settings - terminal preferences",
+      "",
+      "Navigate:",
+      "/agent <id> or /agents",
+      "/session <key> or /sessions [query]",
+      "/model <provider/model> or /models",
+      "",
+      "Inspect:",
+      "/memory - memory health and commands",
+      "/tools - runtime tools",
+      "/skills - loaded skills",
+      "/tasks - background work",
+      "/plugins - plugin status",
+      "",
+      "Control:",
+      `/think <${thinkLevels}>`,
+      "/fast <status|on|off>",
+      "/busy <status|queue|steer|interrupt|clear>",
+      "",
+      "More: /help all, /gateway-status, /automation, /recover, /rollback",
+      "Short aliases still work; /commands opens this help.",
+    ].join("\n");
+  }
   return [
     "Kova terminal controls:",
     "/help",
@@ -411,7 +449,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/skills [compact|verbose]",
     "/tasks [list|running|subagents|cron|audit|repair [apply]]",
     "/subagents [list|running|queued|failed|lost|all]",
-    "/automation [list|running|audit]",
+    "/automation [list|running|queued|failed|audit]",
     "/recover [status|apply]",
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
     "/context [compact|verbose]",
@@ -436,6 +474,6 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/settings",
     "/exit",
     "",
-    "Short aliases still work; the commands alias opens help.",
+    "Short aliases still work.",
   ].join("\n");
 }

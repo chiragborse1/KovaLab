@@ -453,6 +453,16 @@ describe("tui command handlers", () => {
     expect(requestRender).toHaveBeenCalled();
   });
 
+  it("shows compact help by default and full help on request", async () => {
+    const { handleCommand, addSystem } = createHarness();
+
+    await handleCommand("/help");
+    await handleCommand("/help all");
+
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("More: /help all"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("/elevated <on|off|ask|full>"));
+  });
+
   it("opens a context mode selector for /context without sending immediately", async () => {
     const { handleCommand, sendChat, openOverlay } = createHarness();
 
@@ -505,7 +515,19 @@ describe("tui command handlers", () => {
     expect(addUser).toHaveBeenCalledWith("/tools");
     expect(listTools).toHaveBeenCalledWith({ agentId: "main", includePlugins: false });
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Tools: 1 tool"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Files: 1 tool (read)"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Use /tools verbose"));
+  });
+
+  it("renders compact skills with useful names", async () => {
+    const { handleCommand, listSkills, sendChat, addUser, addSystem } = createHarness();
+
+    await handleCommand("/skills");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/skills");
+    expect(listSkills).toHaveBeenCalledWith({ agentId: "main" });
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("workspace: 1 skill (codex)"));
   });
 
   it("renders a local verbose skill catalog without sending a chat turn", async () => {
@@ -890,6 +912,20 @@ describe("tui command handlers", () => {
     expect(addSystem).toHaveBeenCalledWith(
       "busy input set to interrupt; new messages replace the active run",
     );
+  });
+
+  it("explains the current busy input mode", async () => {
+    const { handleCommand, addSystem } = createHarness({
+      busyInputMode: "queue",
+    });
+
+    await handleCommand("/busy status");
+
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("busy input: queue"));
+    expect(addSystem).toHaveBeenCalledWith(
+      expect.stringContaining("new messages wait for the active run to finish"),
+    );
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("/busy interrupt"));
   });
 
   it("can switch busy input to steer mode", async () => {
