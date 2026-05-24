@@ -8,9 +8,11 @@ const theme = {
 } as any;
 
 describe("tui-waiting", () => {
-  it("keeps the default busy label stable", () => {
-    expect(pickWaitingPhrase(0)).toBe("moseying");
-    expect(pickWaitingPhrase(99)).toBe("moseying");
+  it("rotates the default busy labels", () => {
+    expect(pickWaitingPhrase(0)).toBe("flibbertigibbeting");
+    expect(pickWaitingPhrase(60)).toBe("moseying");
+    expect(pickWaitingPhrase(99)).toBe("conjuring");
+    expect(pickWaitingPhrase(100)).toBe("flibbertigibbeting");
   });
 
   it("pickWaitingPhrase rotates every 10 ticks", () => {

@@ -6,6 +6,7 @@ import {
   CombinedAutocompleteProvider,
   Container,
   Key,
+  Loader,
   matchesKey,
   ProcessTerminal,
   Text,
@@ -803,6 +804,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   const busyStates = new Set(["sending", "waiting", "streaming", "running"]);
   let statusText: Text | null = null;
+  let statusLoader: Loader | null = null;
 
   const formatElapsed = (startMs: number) => {
     const totalSeconds = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
@@ -819,37 +821,74 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return;
     }
     statusContainer.clear();
+    statusLoader?.stop();
+    statusLoader = null;
     statusText = new Text("", 1, 0);
     statusContainer.addChild(statusText);
   };
 
+  const ensureStatusLoader = () => {
+    if (statusLoader) {
+      return;
+    }
+    statusContainer.clear();
+    statusText = null;
+    statusLoader = new Loader(
+      tui,
+      (spinner) => theme.accent(spinner),
+      (text) => theme.bold(theme.accentSoft(text)),
+      "",
+    );
+    statusContainer.addChild(statusLoader);
+  };
+
   let waitingTick = 0;
+  let statusTimer: NodeJS.Timeout | null = null;
   let waitingTimer: NodeJS.Timeout | null = null;
   let waitingPhrase: string | null = null;
-  const waitingStatusTickMs = 5000;
 
   const updateBusyStatusMessage = () => {
-    if (!statusText || !statusStartedAt) {
+    if (!statusLoader || !statusStartedAt) {
       return;
     }
     const elapsed = formatElapsed(statusStartedAt);
 
-    if (busyStates.has(activityStatus)) {
+    if (activityStatus === "waiting") {
       waitingTick++;
-      statusText.setText(
+      statusLoader.setMessage(
         buildWaitingStatusMessage({
           theme,
           tick: waitingTick,
           elapsed,
           connectionStatus,
-          animated: false,
           phrases: waitingPhrase ? [waitingPhrase] : undefined,
         }),
       );
       return;
     }
 
-    statusText.setText(`${activityStatus} • ${elapsed} | ${connectionStatus}`);
+    statusLoader.setMessage(`${activityStatus} • ${elapsed} | ${connectionStatus}`);
+  };
+
+  const startStatusTimer = () => {
+    if (statusTimer) {
+      return;
+    }
+    statusTimer = setInterval(() => {
+      if (!busyStates.has(activityStatus)) {
+        return;
+      }
+      updateBusyStatusMessage();
+    }, 1000);
+    statusTimer.unref?.();
+  };
+
+  const stopStatusTimer = () => {
+    if (!statusTimer) {
+      return;
+    }
+    clearInterval(statusTimer);
+    statusTimer = null;
   };
 
   const startWaitingTimer = () => {
@@ -866,11 +905,11 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     waitingTick = 0;
 
     waitingTimer = setInterval(() => {
-      if (!busyStates.has(activityStatus)) {
+      if (activityStatus !== "waiting") {
         return;
       }
       updateBusyStatusMessage();
-    }, waitingStatusTickMs);
+    }, 120);
     waitingTimer.unref?.();
   };
 
@@ -889,12 +928,21 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       if (!statusStartedAt) {
         statusStartedAt = Date.now();
       }
-      ensureStatusText();
-      startWaitingTimer();
+      ensureStatusLoader();
+      if (activityStatus === "waiting") {
+        stopStatusTimer();
+        startWaitingTimer();
+      } else {
+        stopWaitingTimer();
+        startStatusTimer();
+      }
       updateBusyStatusMessage();
     } else {
       statusStartedAt = null;
+      stopStatusTimer();
       stopWaitingTimer();
+      statusLoader?.stop();
+      statusLoader = null;
       ensureStatusText();
       const text = activityStatus ? `${connectionStatus} | ${activityStatus}` : connectionStatus;
       statusText?.setText(theme.dim(text));
@@ -1089,6 +1137,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     exitRequested = true;
     clearCatalogRefreshTimer();
     clearDynamicSlashCommandsTimer();
+    stopStatusTimer();
+    stopWaitingTimer();
+    statusLoader?.stop();
+    statusLoader = null;
     exitResult = {
       exitReason: result?.exitReason ?? "exit",
       ...(result?.crestodianMessage ? { crestodianMessage: result.crestodianMessage } : {}),
