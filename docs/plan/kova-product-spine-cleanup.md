@@ -62,6 +62,8 @@ Done:
   runtime parity decisions in [MCP Runtime Parity](/plan/mcp-runtime-parity).
 - Plugin capability ownership can now be refreshed from manifests with
   `scripts/plugin-capability-inventory.mjs`.
+- Saved MCP server config can now be reviewed from the terminal with
+  `kova mcp status` before any live probing or dynamic tool refresh work.
 
 Remaining:
 

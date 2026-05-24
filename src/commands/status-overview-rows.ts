@@ -31,6 +31,7 @@ function buildCapabilityMapValue() {
   return [
     `channels ${formatCliCommand("kova channels capabilities")}`,
     `plugins ${formatCliCommand("kova plugins inspect --all")}`,
+    `mcp ${formatCliCommand("kova mcp status")}`,
     `models ${formatCliCommand("kova models status")}`,
     `sandbox ${formatCliCommand("kova sandbox list")}`,
   ].join(" · ");

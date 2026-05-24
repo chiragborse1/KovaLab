@@ -134,6 +134,7 @@ Capability map:
 
 - channels: `kova channels capabilities`
 - plugins and plugin-owned tools: `/plugins list|show` or `kova plugins inspect --all`
+- MCP saved server config: `kova mcp status`
 - model/provider readiness: `/models` or `kova models status`
 - runtime isolation: `kova sandbox list`
 

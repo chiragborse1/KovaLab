@@ -11,19 +11,17 @@ sidebarTitle: "MCP"
 `kova mcp` has two jobs:
 
 - run Kova as an MCP server with `kova mcp serve`
-- manage Kova-owned outbound MCP server definitions with `list`, `show`, `set`, and `unset`
+- manage Kova-owned outbound MCP server definitions with `list`, `status`, `show`, `set`, and `unset`
 
 In other words:
 
 - `serve` is Kova acting as an MCP server
-- `list` / `show` / `set` / `unset` is Kova acting as an MCP client-side registry for other MCP servers its runtimes may consume later
+- `list` / `status` / `show` / `set` / `unset` is Kova acting as an MCP client-side registry for other MCP servers its runtimes may consume later
 
 Use [`kova acp`](/cli/acp) when Kova should host a coding harness session itself and route that runtime through ACP.
 
 <Note>
-Saved MCP server commands are currently config-management commands. They do not
-perform live reachability checks, dynamic tool refresh, or MCP sampling. The
-runtime parity decisions are tracked in [MCP Runtime Parity](/plan/mcp-runtime-parity).
+Saved MCP server commands are currently config-management commands. `kova mcp status` validates and redacts saved server config, but it does not launch stdio servers, perform live reachability checks, refresh dynamic tools, or enable MCP sampling. The runtime parity decisions are tracked in [MCP Runtime Parity](/plan/mcp-runtime-parity).
 </Note>
 
 ## Kova as an MCP server
@@ -352,7 +350,7 @@ For broader testing context, see [Testing](/help/testing).
 
 ## Kova as an MCP client registry
 
-This is the `kova mcp list`, `show`, `set`, and `unset` path.
+This is the `kova mcp list`, `status`, `show`, `set`, and `unset` path.
 
 These commands do not expose Kova over MCP. They manage Kova-owned MCP server definitions under `mcp.servers` in Kova config.
 
@@ -361,9 +359,9 @@ Those saved definitions are for runtimes that Kova launches or configures later,
 <AccordionGroup>
   <Accordion title="Important behavior">
     - these commands only read or write Kova config
+    - `status` validates saved transport shape and redacts URLs, headers, and env values
     - they do not connect to the target MCP server
     - they do not validate whether the command, URL, or remote transport is reachable right now
-    - live saved-server status should land as a separate `kova mcp status` surface before probes are added
     - runtime adapters decide which transport shapes they actually support at execution time
     - embedded Pi exposes configured MCP tools in normal `coding` and `messaging` tool profiles; `minimal` still hides them, and `tools.deny: ["bundle-mcp"]` disables them explicitly
     - session-scoped bundled MCP runtimes are reaped after `mcp.sessionIdleTtlMs` milliseconds of idle time (default 10 minutes; set `0` to disable) and one-shot embedded runs clean them up at run end
@@ -379,6 +377,7 @@ Kova also stores a lightweight MCP server registry in config for surfaces that w
 Commands:
 
 - `kova mcp list`
+- `kova mcp status [name]`
 - `kova mcp show [name]`
 - `kova mcp set <name> <json>`
 - `kova mcp unset <name>`
@@ -386,6 +385,8 @@ Commands:
 Notes:
 
 - `list` sorts server names.
+- `status` reports whether saved server config is usable by runtime adapters without launching the server.
+- `status --json` prints the same redacted report as structured JSON.
 - `show` without a name prints the full configured MCP server object.
 - `set` expects one JSON object value on the command line.
 - Use `transport: "streamable-http"` for Streamable HTTP MCP servers. `kova mcp set` also normalizes CLI-native `type: "http"` to the same canonical config shape for compatibility.
@@ -395,6 +396,8 @@ Examples:
 
 ```bash
 kova mcp list
+kova mcp status
+kova mcp status context7 --json
 kova mcp show context7 --json
 kova mcp set context7 '{"command":"uvx","args":["context7-mcp"]}'
 kova mcp set docs '{"url":"https://mcp.example.com","transport":"streamable-http"}'

@@ -12,6 +12,7 @@ import {
   normalizeStringifiedOptionalString,
 } from "../shared/string-coerce.js";
 import { resolveGatewayAuthOptions } from "./gateway-secret-options.js";
+import { buildMcpServerStatusReport, formatMcpServerStatusReport } from "./mcp-status.js";
 
 function fail(message: string): never {
   defaultRuntime.error(message);
@@ -87,6 +88,33 @@ export function registerMcpCli(program: Command) {
       defaultRuntime.log(`MCP servers (${loaded.path}):`);
       for (const name of names) {
         defaultRuntime.log(`- ${name}`);
+      }
+    });
+
+  mcp
+    .command("status")
+    .description("Show saved MCP server config status without launching servers")
+    .argument("[name]", "MCP server name")
+    .option("--json", "Print JSON")
+    .action(async (name: string | undefined, opts: { json?: boolean }) => {
+      const loaded = await listConfiguredMcpServers();
+      if (!loaded.ok) {
+        fail(loaded.error);
+      }
+      if (name && !Object.hasOwn(loaded.mcpServers, name)) {
+        fail(`No MCP server named "${name}" in ${loaded.path}.`);
+      }
+      const report = buildMcpServerStatusReport({
+        path: loaded.path,
+        mcpServers: loaded.mcpServers,
+        name,
+      });
+      if (opts.json) {
+        printJson(report);
+        return;
+      }
+      for (const line of formatMcpServerStatusReport(report)) {
+        defaultRuntime.log(line);
       }
     });
 

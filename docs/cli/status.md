@@ -24,9 +24,10 @@ Notes:
   `kova logs`, `kova tasks`, `kova memory`, `kova skills`, and TUI slash
   commands for daily administration. The browser UI appears only when it is
   explicitly enabled.
-- The `Capability map` row points to the terminal commands that own the live
-  capability inventory: `kova channels capabilities`, `kova plugins inspect
---all`, `kova models status`, and `kova sandbox list`.
+- The `Capability map` row points to the terminal commands that own capability
+  and runtime-config inventory: `kova channels capabilities`, `kova plugins
+inspect --all`, `kova mcp status`, `kova models status`, and `kova sandbox
+list`.
 - The `Learning loop` row points to reviewable memory and skill-improvement
   commands: `kova memory status`, `kova memory dreams`, `kova skills list`, and
   `kova skill-workshop review`.

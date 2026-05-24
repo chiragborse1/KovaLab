@@ -11,11 +11,11 @@ read_when:
 
 Kova has three MCP surfaces:
 
-| Surface             | What it means                                                     | Status      |
-| ------------------- | ----------------------------------------------------------------- | ----------- |
-| `kova mcp serve`    | Kova acts as an MCP server for channel conversations              | Strong      |
-| Saved `mcp.servers` | Kova stores outbound MCP server definitions for runtime adapters  | Config-only |
-| Bundle MCP          | Compatible plugin bundles contribute MCP servers to embedded runs | Supported   |
+| Surface             | What it means                                                     | Status        |
+| ------------------- | ----------------------------------------------------------------- | ------------- |
+| `kova mcp serve`    | Kova acts as an MCP server for channel conversations              | Strong        |
+| Saved `mcp.servers` | Kova stores outbound MCP server definitions for runtime adapters  | Config status |
+| Bundle MCP          | Compatible plugin bundles contribute MCP servers to embedded runs | Supported     |
 
 Do not merge these into one mental model. They share the MCP protocol, but they
 have different owners and lifecycles.
@@ -24,10 +24,10 @@ have different owners and lifecycles.
 
 ### Saved-server status
 
-Add this first.
+Added first.
 
-`kova mcp list/show/set/unset` currently manage config only. They do not connect
-to saved servers and should not pretend to be a runtime health check.
+`kova mcp list/status/show/set/unset` currently manage config only. They do not
+connect to saved servers and should not pretend to be a runtime health check.
 
 Planned shape:
 
@@ -42,9 +42,12 @@ The status command should:
 - load saved `mcp.servers`
 - classify transport (`stdio`, `sse`, `streamable-http`)
 - report config validity without launching expensive servers by default
-- optionally probe reachability with `--probe`
 - redact env, headers, URLs, and auth material
 - show whether an active runtime adapter is expected to consume that server
+
+Still planned after the config-status surface:
+
+- optionally probe reachability with `--probe`
 
 ### Dynamic tool refresh
 
@@ -81,9 +84,9 @@ If added later, sampling must require:
 ## Implementation Order
 
 1. Document the current surface split in CLI docs.
-2. Add `kova mcp status` as a config-validity command.
+2. Add `kova mcp status` as a config-validity command. Done.
 3. Add optional `--probe` reachability checks with strict timeouts.
-4. Surface MCP status in `kova status --all` after the command is stable.
+4. Surface MCP status in `kova status --all` after the command is stable. Done.
 5. Add dynamic `tools/list_changed` refresh for long-lived runtime clients.
 6. Revisit sampling only with a real product use case.
 

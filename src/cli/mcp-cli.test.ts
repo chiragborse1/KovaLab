@@ -82,6 +82,29 @@ describe("mcp cli", () => {
     });
   });
 
+  it("reports saved MCP server status without exposing secret material", async () => {
+    await withTempHome("kova-cli-mcp-home-", async () => {
+      const workspaceDir = await createWorkspace();
+      vi.spyOn(process, "cwd").mockReturnValue(workspaceDir);
+
+      await runMcpCommand([
+        "mcp",
+        "set",
+        "remote",
+        '{"url":"https://user:pass@example.com/mcp?token=secret&safe=value","headers":{"Authorization":"Bearer secret"}}',
+      ]);
+
+      mockLog.mockClear();
+      await runMcpCommand(["mcp", "status", "remote"]);
+
+      const output = mockLog.mock.calls.map((call) => String(call[0])).join("\n");
+      expect(output).toContain("remote: ok sse");
+      expect(output).toContain("https://***:***@example.com/mcp?token=***&safe=value");
+      expect(output).toContain("header entries: 1");
+      expect(output).not.toContain("Bearer secret");
+    });
+  });
+
   it("fails when removing an unknown MCP server", async () => {
     await withTempHome("kova-cli-mcp-home-", async () => {
       const workspaceDir = await createWorkspace();

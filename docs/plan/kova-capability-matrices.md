@@ -74,21 +74,21 @@ Channel matrix follow-ups:
 
 ## Tool Matrix
 
-| Capability group        | Main tools or surfaces                                      | Owner                          | Status  | Notes                                                                              |
-| ----------------------- | ----------------------------------------------------------- | ------------------------------ | ------- | ---------------------------------------------------------------------------------- |
-| Runtime execution       | `exec`, `process`                                           | Core plus sandbox/node hosts   | Yes     | Host, sandbox, and node routing depend on tool policy and sandbox config           |
-| Remote analysis         | `code_execution`                                            | Core/tool provider             | Yes     | Sandboxed remote Python analysis path                                              |
-| File I/O                | `read`, `read_many`, `write`, `edit`, `apply_patch`         | Core                           | Yes     | `apply_patch` remains separately gated by exec/apply-patch policy                  |
-| Web                     | `web_search`, `x_search`, `web_fetch`                       | Core plus provider plugins     | Yes     | Provider selection is plugin/config-owned                                          |
-| Browser and UI          | `browser`, `canvas`, `nodes`                                | Core plus plugins/nodes        | Yes     | Browser plugin and node pairing carry extra security policy                        |
-| Messaging               | `message`, channel actions, `sessions_send`                 | Gateway/channel plugins        | Yes     | Channel-specific action support varies                                             |
-| Automation              | `cron`, Gateway runtime tool, hooks, Task Flow              | Gateway/core/plugins           | Yes     | Automation product story is now centralized in [Automation and tasks](/automation) |
-| Memory                  | `memory_search`, `memory_get`                               | Active memory plugin           | Yes     | Default is `memory-core`; backends change behavior                                 |
-| Sessions and subagents  | `sessions_*`, `subagents`, `agents_list`, `session_status`  | Core/Gateway                   | Yes     | Subagents are background task tracked                                              |
-| Media understanding     | `image`, `pdf`, audio/video media processing                | Core plus media plugins        | Yes     | Exact provider fallback depends on model/media config                              |
-| Media generation        | `image_generate`, `music_generate`, `video_generate`, `tts` | Shared capability plus plugins | Yes     | Provider-owned defaults and fallbacks                                              |
-| MCP tools               | Bundle MCP, saved MCP servers, `kova mcp serve`             | Plugin/runtime bridge          | Partial | Strong base; live server health, dynamic refresh, and sampling are follow-ups      |
-| Optional workflow tools | `llm-task`, `lobster`, `diffs`, `tokenjuice`, plugin tools  | Plugins                        | Yes     | Keep plugin-owned behavior out of core unless a generic contract is needed         |
+| Capability group        | Main tools or surfaces                                      | Owner                          | Status  | Notes                                                                                        |
+| ----------------------- | ----------------------------------------------------------- | ------------------------------ | ------- | -------------------------------------------------------------------------------------------- |
+| Runtime execution       | `exec`, `process`                                           | Core plus sandbox/node hosts   | Yes     | Host, sandbox, and node routing depend on tool policy and sandbox config                     |
+| Remote analysis         | `code_execution`                                            | Core/tool provider             | Yes     | Sandboxed remote Python analysis path                                                        |
+| File I/O                | `read`, `read_many`, `write`, `edit`, `apply_patch`         | Core                           | Yes     | `apply_patch` remains separately gated by exec/apply-patch policy                            |
+| Web                     | `web_search`, `x_search`, `web_fetch`                       | Core plus provider plugins     | Yes     | Provider selection is plugin/config-owned                                                    |
+| Browser and UI          | `browser`, `canvas`, `nodes`                                | Core plus plugins/nodes        | Yes     | Browser plugin and node pairing carry extra security policy                                  |
+| Messaging               | `message`, channel actions, `sessions_send`                 | Gateway/channel plugins        | Yes     | Channel-specific action support varies                                                       |
+| Automation              | `cron`, Gateway runtime tool, hooks, Task Flow              | Gateway/core/plugins           | Yes     | Automation product story is now centralized in [Automation and tasks](/automation)           |
+| Memory                  | `memory_search`, `memory_get`                               | Active memory plugin           | Yes     | Default is `memory-core`; backends change behavior                                           |
+| Sessions and subagents  | `sessions_*`, `subagents`, `agents_list`, `session_status`  | Core/Gateway                   | Yes     | Subagents are background task tracked                                                        |
+| Media understanding     | `image`, `pdf`, audio/video media processing                | Core plus media plugins        | Yes     | Exact provider fallback depends on model/media config                                        |
+| Media generation        | `image_generate`, `music_generate`, `video_generate`, `tts` | Shared capability plus plugins | Yes     | Provider-owned defaults and fallbacks                                                        |
+| MCP tools               | Bundle MCP, saved MCP servers, `kova mcp serve`             | Plugin/runtime bridge          | Partial | Config status exists; live reachability probes, dynamic refresh, and sampling are follow-ups |
+| Optional workflow tools | `llm-task`, `lobster`, `diffs`, `tokenjuice`, plugin tools  | Plugins                        | Yes     | Keep plugin-owned behavior out of core unless a generic contract is needed                   |
 
 Tool matrix follow-ups:
 
