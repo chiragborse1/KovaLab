@@ -80,6 +80,32 @@ counters and trigger failure notifications.
 
 ## Scheduling
 
+### Templates
+
+`kova cron templates` lists starter jobs for common terminal workflows:
+
+```bash
+kova cron templates
+kova cron templates --json
+```
+
+Use `--template` with `cron add` to create one, then override any field with
+normal flags:
+
+```bash
+kova cron add --template daily-brief
+kova cron add --template weekly-review --tz America/New_York
+kova cron add --template reminder --at 45m --message "Check the build"
+kova cron add --template hourly-check --message "Look for stuck work"
+```
+
+Current templates:
+
+- `daily-brief`: isolated morning brief, announced to the last chat route.
+- `weekly-review`: isolated Monday review, announced to the last chat route.
+- `hourly-check`: lightweight isolated check with delivery disabled.
+- `reminder`: one-shot reminder 20 minutes from now.
+
 ### One-shot jobs
 
 `--at <datetime>` schedules a one-shot run. Offset-less datetimes are treated as UTC unless you also pass `--tz <iana>`, which interprets the wall-clock time in the given timezone.

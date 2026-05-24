@@ -21,6 +21,117 @@ import {
   warnIfCronSchedulerDisabled,
 } from "./shared.js";
 
+type CronAddTemplateSchedule =
+  | { kind: "at"; at: string }
+  | { kind: "every"; every: string }
+  | { kind: "cron"; expr: string; tz?: string; stagger?: string; exact?: boolean };
+
+type CronAddTemplateDefaults = {
+  name: string;
+  schedule: CronAddTemplateSchedule;
+  session: "main" | "isolated" | "current" | `session:${string}`;
+  wake?: "now" | "next-heartbeat";
+  systemEvent?: string;
+  message?: string;
+  lightContext?: boolean;
+  announce?: boolean;
+  noDeliver?: boolean;
+  channel?: string;
+};
+
+type CronAddTemplate = {
+  id: string;
+  title: string;
+  description: string;
+  defaults: CronAddTemplateDefaults;
+};
+
+const CRON_ADD_TEMPLATES: CronAddTemplate[] = [
+  {
+    id: "daily-brief",
+    title: "Daily brief",
+    description: "Ask the agent for a concise morning plan every day.",
+    defaults: {
+      name: "Daily brief",
+      schedule: { kind: "cron", expr: "0 8 * * *", tz: "UTC", stagger: "5m" },
+      session: "isolated",
+      wake: "now",
+      message:
+        "Prepare a concise daily brief with schedule items, reminders, and the most important next actions.",
+      lightContext: true,
+      announce: true,
+      channel: "last",
+    },
+  },
+  {
+    id: "weekly-review",
+    title: "Weekly review",
+    description: "Create a weekly planning and follow-up review.",
+    defaults: {
+      name: "Weekly review",
+      schedule: { kind: "cron", expr: "0 9 * * 1", tz: "UTC", stagger: "10m" },
+      session: "isolated",
+      wake: "now",
+      message:
+        "Review the past week, summarize open loops, and suggest a focused plan for this week.",
+      lightContext: true,
+      announce: true,
+      channel: "last",
+    },
+  },
+  {
+    id: "hourly-check",
+    title: "Hourly check",
+    description: "Run a lightweight recurring check without chat delivery.",
+    defaults: {
+      name: "Hourly check",
+      schedule: { kind: "every", every: "1h" },
+      session: "isolated",
+      wake: "next-heartbeat",
+      message: "Check whether anything needs attention. Reply only when there is a clear action.",
+      lightContext: true,
+      noDeliver: true,
+    },
+  },
+  {
+    id: "reminder",
+    title: "Reminder",
+    description: "Create a one-shot reminder 20 minutes from now.",
+    defaults: {
+      name: "Reminder",
+      schedule: { kind: "at", at: "20m" },
+      session: "isolated",
+      wake: "now",
+      message: "Remind me to follow up.",
+      lightContext: true,
+      announce: true,
+      channel: "last",
+    },
+  },
+];
+
+const CRON_ADD_TEMPLATE_IDS = CRON_ADD_TEMPLATES.map((template) => template.id);
+
+function normalizeTemplateId(input: unknown): string {
+  return normalizeLowercaseStringOrEmpty(input).replaceAll("_", "-");
+}
+
+function resolveCronAddTemplate(input: unknown): CronAddTemplate | undefined {
+  const id = normalizeTemplateId(input);
+  if (!id) {
+    return undefined;
+  }
+  const template = CRON_ADD_TEMPLATES.find((candidate) => candidate.id === id);
+  if (!template) {
+    throw new Error(`Unknown --template "${id}". Use: ${CRON_ADD_TEMPLATE_IDS.join("|")}`);
+  }
+  return template;
+}
+
+function formatCronTemplateCommand(template: CronAddTemplate): string {
+  return `kova cron add --template ${template.id}`;
+}
+
 export function registerCronStatusCommand(cron: Command) {
   addGatewayClientOptions(
     cron
@@ -68,13 +179,38 @@ export function registerCronListCommand(cron: Command) {
   );
 }
 
+export function registerCronTemplatesCommand(cron: Command) {
+  cron
+    .command("templates")
+    .alias("presets")
+    .description("List cron add templates")
+    .option("--json", "Output JSON", false)
+    .action((opts: { json?: boolean }) => {
+      if (opts.json) {
+        printCronJson(CRON_ADD_TEMPLATES);
+        return;
+      }
+      defaultRuntime.log("Cron templates:");
+      for (const template of CRON_ADD_TEMPLATES) {
+        defaultRuntime.log(
+          [
+            `${template.id} - ${template.title}`,
+            `  ${template.description}`,
+            `  ${formatCronTemplateCommand(template)}`,
+          ].join("\n"),
+        );
+      }
+    });
+}
+
 export function registerCronAddCommand(cron: Command) {
   addGatewayClientOptions(
     cron
       .command("add")
       .alias("create")
       .description("Add a cron job")
-      .requiredOption("--name <name>", "Job name")
+      .option("--template <name>", `Apply a template (${CRON_ADD_TEMPLATE_IDS.join("|")})`)
+      .option("--name <name>", "Job name")
       .option("--description <text>", "Optional description")
       .option("--disabled", "Create job disabled", false)
       .option("--delete-after-run", "Delete one-shot job after it succeeds", false)
@@ -115,16 +251,46 @@ export function registerCronAddCommand(cron: Command) {
       .option("--json", "Output JSON", false)
       .action(async (opts: GatewayRpcOpts & Record<string, unknown>, cmd?: Command) => {
         try {
+          const template = resolveCronAddTemplate(opts.template);
+          const templateDefaults = template?.defaults;
+          const optionSource =
+            typeof cmd?.getOptionValueSource === "function"
+              ? (name: string) => cmd.getOptionValueSource(name)
+              : () => undefined;
+          const fromCli = (name: string) => optionSource(name) === "cli";
+          const withTemplateDefault = (name: string, templateValue: unknown) =>
+            fromCli(name) ? opts[name] : (templateValue ?? opts[name]);
+          const scheduleFromCli = ["at", "cron", "every"].some(fromCli);
+          const templateSchedule = scheduleFromCli ? undefined : templateDefaults?.schedule;
           const schedule = resolveCronCreateSchedule({
-            at: opts.at,
-            cron: opts.cron,
-            every: opts.every,
-            exact: opts.exact,
-            stagger: opts.stagger,
-            tz: opts.tz,
+            at: withTemplateDefault(
+              "at",
+              templateSchedule?.kind === "at" ? templateSchedule.at : undefined,
+            ),
+            cron: withTemplateDefault(
+              "cron",
+              templateSchedule?.kind === "cron" ? templateSchedule.expr : undefined,
+            ),
+            every: withTemplateDefault(
+              "every",
+              templateSchedule?.kind === "every" ? templateSchedule.every : undefined,
+            ),
+            exact: withTemplateDefault(
+              "exact",
+              templateSchedule?.kind === "cron" ? templateSchedule.exact : undefined,
+            ),
+            stagger: withTemplateDefault(
+              "stagger",
+              templateSchedule?.kind === "cron" ? templateSchedule.stagger : undefined,
+            ),
+            tz: withTemplateDefault(
+              "tz",
+              templateSchedule?.kind === "cron" ? templateSchedule.tz : undefined,
+            ),
           });
 
-          const wakeMode = normalizeOptionalString(opts.wake) ?? "now";
+          const wakeMode =
+            normalizeOptionalString(withTemplateDefault("wake", templateDefaults?.wake)) ?? "now";
           if (wakeMode !== "now" && wakeMode !== "next-heartbeat") {
             throw new Error("--wake must be now or next-heartbeat");
           }
@@ -132,16 +298,26 @@ export function registerCronAddCommand(cron: Command) {
           const rawAgentId = normalizeOptionalString(opts.agent);
           const agentId = rawAgentId ? sanitizeAgentId(rawAgentId) : undefined;
 
-          const hasAnnounce = Boolean(opts.announce) || opts.deliver === true;
-          const hasNoDeliver = opts.deliver === false;
+          const deliverFromCli = fromCli("deliver");
+          const hasAnnounce =
+            opts.deliver === true ||
+            (!deliverFromCli &&
+              (fromCli("announce") ? Boolean(opts.announce) : templateDefaults?.announce === true));
+          const hasNoDeliver =
+            opts.deliver === false || (!deliverFromCli && templateDefaults?.noDeliver === true);
           const deliveryFlagCount = [hasAnnounce, hasNoDeliver].filter(Boolean).length;
           if (deliveryFlagCount > 1) {
             throw new Error("Choose at most one of --announce or --no-deliver");
           }
 
           const payload = (() => {
-            const systemEvent = normalizeOptionalString(opts.systemEvent) ?? "";
-            const message = normalizeOptionalString(opts.message) ?? "";
+            const systemEvent =
+              normalizeOptionalString(
+                withTemplateDefault("systemEvent", templateDefaults?.systemEvent),
+              ) ?? "";
+            const message =
+              normalizeOptionalString(withTemplateDefault("message", templateDefaults?.message)) ??
+              "";
             const chosen = [Boolean(systemEvent), Boolean(message)].filter(Boolean).length;
             if (chosen !== 1) {
               throw new Error("Choose exactly one payload: --system-event or --message");
@@ -157,20 +333,24 @@ export function registerCronAddCommand(cron: Command) {
               thinking: normalizeOptionalString(opts.thinking),
               timeoutSeconds:
                 timeoutSeconds && Number.isFinite(timeoutSeconds) ? timeoutSeconds : undefined,
-              lightContext: opts.lightContext === true ? true : undefined,
+              lightContext: Boolean(
+                withTemplateDefault("lightContext", templateDefaults?.lightContext),
+              )
+                ? true
+                : undefined,
               toolsAllow: parseCronToolsAllow(opts.tools),
             };
           })();
 
-          const optionSource =
-            typeof cmd?.getOptionValueSource === "function"
-              ? (name: string) => cmd.getOptionValueSource(name)
-              : () => undefined;
           const sessionSource = optionSource("session");
-          const sessionTargetRaw = normalizeOptionalString(opts.session) ?? "";
+          const sessionTargetRaw =
+            normalizeOptionalString(withTemplateDefault("session", templateDefaults?.session)) ??
+            "";
           const inferredSessionTarget = payload.kind === "agentTurn" ? "isolated" : "main";
           const sessionTarget =
-            sessionSource === "cli" ? sessionTargetRaw || "" : inferredSessionTarget;
+            sessionSource === "cli"
+              ? sessionTargetRaw || ""
+              : (templateDefaults?.session ?? inferredSessionTarget);
           const isCustomSessionTarget =
             normalizeLowercaseStringOrEmpty(sessionTarget).startsWith("session:") &&
             Boolean(normalizeOptionalString(sessionTarget.slice(8)));
@@ -212,7 +392,8 @@ export function registerCronAddCommand(cron: Command) {
                   : "announce"
               : undefined;
 
-          const name = normalizeOptionalString(opts.name) ?? "";
+          const name =
+            normalizeOptionalString(withTemplateDefault("name", templateDefaults?.name)) ?? "";
           if (!name) {
             throw new Error("--name is required");
           }
@@ -235,7 +416,9 @@ export function registerCronAddCommand(cron: Command) {
             delivery: deliveryMode
               ? {
                   mode: deliveryMode,
-                  channel: normalizeOptionalString(opts.channel),
+                  channel: normalizeOptionalString(
+                    withTemplateDefault("channel", templateDefaults?.channel),
+                  ),
                   to: normalizeOptionalString(opts.to),
                   accountId,
                   bestEffort: opts.bestEffortDeliver ? true : undefined,

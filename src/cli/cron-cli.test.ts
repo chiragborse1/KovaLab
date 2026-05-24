@@ -74,17 +74,20 @@ type CronUpdatePatch = {
 };
 
 type CronAddParams = {
-  schedule?: { kind?: string; staggerMs?: number };
+  name?: string;
+  schedule?: { kind?: string; expr?: string; tz?: string; staggerMs?: number; everyMs?: number };
   payload?: {
+    message?: string;
     model?: string;
     thinking?: string;
     lightContext?: boolean;
     toolsAllow?: string[];
   };
-  delivery?: { mode?: string; accountId?: string };
+  delivery?: { mode?: string; accountId?: string; channel?: string };
   deleteAfterRun?: boolean;
   agentId?: string;
   sessionTarget?: string;
+  wakeMode?: string;
 };
 
 function buildProgram() {
@@ -371,6 +374,42 @@ describe("cron cli", () => {
     params = addCall?.[2] as { sessionTarget?: string; payload?: { kind?: string } };
     expect(params?.sessionTarget).toBe("isolated");
     expect(params?.payload?.kind).toBe("agentTurn");
+  });
+
+  it("applies cron add templates", async () => {
+    const params = await runCronAddAndGetParams(["--template", "daily-brief"]);
+
+    expect(params?.name).toBe("Daily brief");
+    expect(params?.schedule).toMatchObject({
+      kind: "cron",
+      expr: "0 8 * * *",
+      tz: "UTC",
+      staggerMs: 300_000,
+    });
+    expect(params?.sessionTarget).toBe("isolated");
+    expect(params?.wakeMode).toBe("now");
+    expect(params?.payload?.message).toContain("daily brief");
+    expect(params?.payload?.lightContext).toBe(true);
+    expect(params?.delivery).toMatchObject({ mode: "announce", channel: "last" });
+  });
+
+  it("lets explicit cron add flags override template defaults", async () => {
+    const params = await runCronAddAndGetParams([
+      "--template",
+      "daily_brief",
+      "--name",
+      "Custom",
+      "--at",
+      "20m",
+      "--message",
+      "Ping me",
+      "--no-deliver",
+    ]);
+
+    expect(params?.name).toBe("Custom");
+    expect(params?.schedule?.kind).toBe("at");
+    expect(params?.payload?.message).toBe("Ping me");
+    expect(params?.delivery?.mode).toBe("none");
   });
 
   it("supports --keep-after-run on cron add", async () => {
