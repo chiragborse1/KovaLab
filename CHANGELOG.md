@@ -59,6 +59,7 @@
 
 ### Fixes
 
+- CLI/TUI: keep fast local slash-command replies from leaving the terminal busy, echo local command rows before command output, add `/plugins` status inspection, and render the footer token gauge as a progress bar. Thanks @chiragborse1
 - CLI/TUI: restore the animated busy loader and rotating waiting phrases in terminal chat while keeping the deferred startup work that protects first-input latency. Thanks @chiragborse1
 - Agents/subagents: recover stale completion announces by retrying unsupported transcript-wait wakes and forcing message-tool delivery when the requester run disappears mid-handoff. Thanks @galiniliev
 - Telegram/replies: keep queued follow-up turns detached from superseded dispatch abort signals while preserving explicit queued cancellation hooks. Thanks @VACInc

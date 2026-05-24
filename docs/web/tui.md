@@ -128,12 +128,12 @@ Core:
 - `/context [compact|verbose]`
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>`
 - `/skill <name> [args]`
-- `/plugins list|show|install|update|enable|disable`
+- `/plugins [list|verbose|show <plugin>]`
 
 Capability map:
 
 - channels: `kova channels capabilities`
-- plugins and plugin-owned tools: `/plugins list|show` or `kova plugins inspect --all`
+- plugins and plugin-owned tools: `/plugins list|verbose|show` or `kova plugins inspect --all`
 - MCP saved server config: `kova mcp status`
 - model/provider readiness: `/models` or `kova models status`
 - runtime isolation: `kova sandbox list`

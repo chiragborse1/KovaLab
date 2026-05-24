@@ -198,7 +198,7 @@ describe("helpText", () => {
       "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
     );
     expect(output).toContain("/skill <name> [args]");
-    expect(output).toContain("/plugins list");
+    expect(output).toContain("/plugins [list|verbose|show <plugin>]");
     expect(output).toContain("Run controls:");
     expect(output).toContain("/stop");
     expect(output).toContain("commands alias opens help");

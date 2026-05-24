@@ -24,6 +24,8 @@ type LocalProcessRequestMethod =
   | "resetSession"
   | "getGatewayStatus"
   | "listModels"
+  | "listCommands"
+  | "listPlugins"
   | "listTools"
   | "listSkills"
   | "listTasks"
@@ -205,6 +207,18 @@ export class LocalProcessTuiBackend implements TuiBackend {
 
   async listModels(): Promise<TuiModelChoice[]> {
     return (await this.request("listModels", {})) as TuiModelChoice[];
+  }
+
+  async listCommands(opts?: Parameters<NonNullable<TuiBackend["listCommands"]>>[0]) {
+    return (await this.request("listCommands", opts ?? {})) as Awaited<
+      ReturnType<NonNullable<TuiBackend["listCommands"]>>
+    >;
+  }
+
+  async listPlugins() {
+    return (await this.request("listPlugins", {})) as Awaited<
+      ReturnType<NonNullable<TuiBackend["listPlugins"]>>
+    >;
   }
 
   async listTools(opts: Parameters<NonNullable<TuiBackend["listTools"]>>[0]) {

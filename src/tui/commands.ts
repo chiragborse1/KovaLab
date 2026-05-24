@@ -107,34 +107,14 @@ const PLUGIN_COMMAND_COMPLETIONS = [
     description: "List discovered plugins",
   },
   {
+    value: "verbose",
+    label: "verbose",
+    description: "Show discovered plugin details",
+  },
+  {
     value: "show ",
     label: "show <plugin>",
     description: "Inspect plugin details",
-  },
-  {
-    value: "install ",
-    label: "install <spec>",
-    description: "Install a plugin",
-  },
-  {
-    value: "update ",
-    label: "update <plugin>",
-    description: "Update a tracked plugin",
-  },
-  {
-    value: "update all --dry-run",
-    label: "update all --dry-run",
-    description: "Preview all tracked plugin updates",
-  },
-  {
-    value: "enable ",
-    label: "enable <plugin>",
-    description: "Enable a plugin",
-  },
-  {
-    value: "disable ",
-    label: "disable <plugin>",
-    description: "Disable a plugin",
   },
 ];
 
@@ -156,6 +136,7 @@ const COMMAND_ALIASES: Record<string, string> = {
   commands: "help",
   elev: "elevated",
   gwstatus: "gateway-status",
+  plugin: "plugins",
   quit: "exit",
 };
 
@@ -236,8 +217,7 @@ function appendSlashCommand(
     commands.push({
       name: normalizedName,
       description,
-      argumentHint:
-        "list | show <plugin> | install <spec> | update <plugin|all> [--dry-run] | enable|disable <plugin>",
+      argumentHint: "list | verbose | show <plugin>",
       getArgumentCompletions: (prefix) => {
         const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
         return PLUGIN_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
@@ -300,6 +280,15 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Show terminal skill catalog",
       argumentHint: "compact | verbose",
       getArgumentCompletions: surfaceCompletions,
+    },
+    {
+      name: "plugins",
+      description: "Show terminal plugin status",
+      argumentHint: "list | verbose | show <plugin>",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return PLUGIN_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
+      },
     },
     {
       name: "tasks",
@@ -429,7 +418,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
-    "/plugins <list|show|install|update|enable|disable>",
+    "/plugins [list|verbose|show <plugin>]",
     "",
     "Run controls:",
     `/think <${thinkLevels}>`,

@@ -3,6 +3,7 @@ import type { SessionCompactionCheckpoint, SessionEntry } from "../config/sessio
 import type {
   CommandEntry,
   CommandsListParams,
+  PluginsStatusResult,
   SessionsListParams,
   SessionsPatchParams,
   SessionsPatchResult,
@@ -164,6 +165,7 @@ export type TuiBackend = {
   getGatewayStatus: () => Promise<unknown>;
   listModels: () => Promise<TuiModelChoice[]>;
   listCommands?: (opts?: CommandsListParams) => Promise<CommandEntry[]>;
+  listPlugins?: () => Promise<PluginsStatusResult>;
   listTools?: (opts: { agentId: string; includePlugins?: boolean }) => Promise<ToolsCatalogResult>;
   listSkills?: (opts: { agentId: string }) => Promise<SkillStatusReport>;
   listTasks?: (opts?: {

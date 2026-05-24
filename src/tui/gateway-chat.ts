@@ -20,6 +20,7 @@ import {
   type CommandsListParams,
   type CommandsListResult,
   type HelloOk,
+  type PluginsStatusResult,
   PROTOCOL_VERSION,
   type SessionsListParams,
   type SessionsPatchResult,
@@ -261,6 +262,10 @@ export class GatewayChatClient implements TuiBackend {
   async listCommands(opts?: CommandsListParams): Promise<CommandEntry[]> {
     const res = await this.client.request<CommandsListResult>("commands.list", opts ?? {});
     return Array.isArray(res?.commands) ? res.commands : [];
+  }
+
+  async listPlugins(): Promise<PluginsStatusResult> {
+    return await this.client.request<PluginsStatusResult>("plugins.status", {});
   }
 
   async listTools(opts: {

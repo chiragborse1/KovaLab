@@ -37,6 +37,7 @@ import type {
 
 type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
 type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
+type TuiPluginStatus = Awaited<ReturnType<NonNullable<TuiBackend["listPlugins"]>>>;
 type TuiTasksList = Awaited<ReturnType<NonNullable<TuiBackend["listTasks"]>>>;
 type TuiSessionCheckpointList = Awaited<
   ReturnType<NonNullable<TuiBackend["listSessionCheckpoints"]>>
@@ -187,6 +188,129 @@ function formatSkillCatalog(result: TuiSkillStatus, mode: "compact" | "verbose")
   return lines.join("\n");
 }
 
+type PluginsCommand =
+  | { action: "list"; mode: "compact" | "verbose" }
+  | { action: "show"; pluginId: string }
+  | { action: "write"; command: string }
+  | { action: "error"; message: string };
+
+function parsePluginsCommand(args: string): PluginsCommand {
+  const tokens = args
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 0);
+  const action = (tokens[0] ?? "list").toLowerCase();
+  if (tokens.length === 0 || action === "list" || action === "compact") {
+    if (tokens.length > 1 && tokens[1] !== "compact" && tokens[1] !== "verbose") {
+      return { action: "error", message: "usage: /plugins [list|verbose|show <plugin>]" };
+    }
+    return {
+      action: "list",
+      mode: tokens.includes("verbose") ? "verbose" : "compact",
+    };
+  }
+  if (action === "verbose") {
+    return { action: "list", mode: "verbose" };
+  }
+  if (action === "show" || action === "inspect" || action === "get") {
+    const pluginId = tokens.slice(1).join(" ").trim();
+    if (!pluginId || pluginId.toLowerCase() === "all") {
+      return { action: "list", mode: "verbose" };
+    }
+    return { action: "show", pluginId };
+  }
+  if (["install", "update", "enable", "disable", "uninstall", "remove"].includes(action)) {
+    return { action: "write", command: args.trim() };
+  }
+  return { action: "error", message: "usage: /plugins [list|verbose|show <plugin>]" };
+}
+
+function formatPluginKind(kind: string | string[] | undefined): string {
+  if (Array.isArray(kind)) {
+    return kind.length > 0 ? kind.join(", ") : "none";
+  }
+  return kind?.trim() || "none";
+}
+
+function formatPluginList(result: TuiPluginStatus, mode: "compact" | "verbose"): string {
+  const lines = [
+    `Plugins: ${plural(result.totals.total, "plugin")} (${String(
+      result.totals.enabled,
+    )} enabled, ${String(result.totals.disabled)} disabled, ${String(
+      result.totals.errors,
+    )} error${result.totals.errors === 1 ? "" : "s"})`,
+    `Registry: ${result.registrySource}`,
+  ];
+  if (result.plugins.length === 0) {
+    lines.push("No plugins discovered.");
+    return lines.join("\n");
+  }
+
+  const plugins = result.plugins.toSorted((left, right) => {
+    const leftRank = left.status === "error" ? 0 : left.status === "loaded" ? 1 : 2;
+    const rightRank = right.status === "error" ? 0 : right.status === "loaded" ? 1 : 2;
+    return leftRank - rightRank || left.id.localeCompare(right.id);
+  });
+  const visible = mode === "verbose" ? plugins : plugins.slice(0, 14);
+  for (const plugin of visible) {
+    const details =
+      mode === "verbose"
+        ? `; kind ${formatPluginKind(plugin.kind)}; ${String(plugin.toolNames.length)} tools; ${String(
+            plugin.commands.length,
+          )} commands`
+        : "";
+    lines.push(`- ${plugin.id}: ${plugin.status}${plugin.enabled ? "" : " disabled"}${details}`);
+  }
+  if (visible.length < plugins.length) {
+    lines.push(`- and ${plural(plugins.length - visible.length, "more plugin")}`);
+  }
+  if (result.diagnostics.length > 0) {
+    lines.push(`Diagnostics: ${plural(result.diagnostics.length, "item")}; use /plugins verbose.`);
+  }
+  lines.push("Use /plugins show <id> for details.");
+  return lines.join("\n");
+}
+
+function formatPluginDetails(result: TuiPluginStatus, pluginId: string): string {
+  const normalized = pluginId.trim().toLowerCase();
+  const plugin = result.plugins.find(
+    (entry) => entry.id.toLowerCase() === normalized || entry.name.toLowerCase() === normalized,
+  );
+  if (!plugin) {
+    return `Plugin not found: ${pluginId}`;
+  }
+  const lines = [
+    `Plugin: ${plugin.name} (${plugin.id})`,
+    `Status: ${plugin.status}${plugin.enabled ? " enabled" : " disabled"}`,
+    `Origin: ${plugin.origin}${plugin.version ? ` ${plugin.version}` : ""}`,
+    `Kind: ${formatPluginKind(plugin.kind)}`,
+    `Format: ${plugin.format ?? "kova"}${plugin.bundleFormat ? `/${plugin.bundleFormat}` : ""}`,
+    `Config: ${plugin.configured ? "configured" : "not configured"}; schema ${
+      plugin.configSchema ? "yes" : "no"
+    }`,
+    `Installed: ${plugin.installed ? "yes" : "no"}; removable ${plugin.removable ? "yes" : "no"}`,
+  ];
+  if (plugin.description) {
+    lines.push(`Description: ${truncateLine(plugin.description, 160)}`);
+  }
+  if (plugin.channelIds.length > 0) {
+    lines.push(`Channels: ${plugin.channelIds.join(", ")}`);
+  }
+  if (plugin.providerIds.length > 0) {
+    lines.push(`Providers: ${plugin.providerIds.join(", ")}`);
+  }
+  if (plugin.toolNames.length > 0) {
+    lines.push(`Tools: ${plugin.toolNames.slice(0, 18).join(", ")}`);
+  }
+  if (plugin.commands.length > 0) {
+    lines.push(`Commands: ${plugin.commands.slice(0, 18).join(", ")}`);
+  }
+  if (plugin.error) {
+    lines.push(`Error: ${truncateLine(plugin.error, 180)}`);
+  }
+  return lines.join("\n");
+}
+
 function formatTaskAge(timestamp?: number): string {
   if (typeof timestamp !== "number" || !Number.isFinite(timestamp)) {
     return "unknown";
@@ -318,7 +442,10 @@ type RollbackCommand =
   | { action: "restore-confirm"; checkpointId: string };
 
 function parseRollbackCommand(args: string): RollbackCommand | null {
-  const tokens = args.trim().split(/\s+/).filter(Boolean);
+  const tokens = args
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 0);
   if (tokens.length === 0) {
     return { action: "list" };
   }
@@ -357,7 +484,11 @@ function parseRollbackCommand(args: string): RollbackCommand | null {
 type TaskCommandTarget = "tasks" | "subagents" | "automation";
 
 function resolveTaskListOptions(target: TaskCommandTarget, args: string) {
-  const tokens = args.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const tokens = args
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length > 0);
   let runtime: string | undefined;
   let status: string | undefined;
   if (target === "subagents") {
@@ -640,6 +771,35 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
   };
 
+  const showPlugins = async (args: string) => {
+    const command = parsePluginsCommand(args);
+    if (command.action === "error") {
+      chatLog.addSystem(command.message);
+      return;
+    }
+    if (command.action === "write") {
+      const suffix = command.command ? ` ${command.command}` : "";
+      chatLog.addSystem(
+        `plugin writes are CLI-owned in the terminal for now; use: kova plugins${suffix}`,
+      );
+      return;
+    }
+    if (!client.listPlugins) {
+      chatLog.addSystem("plugins status is unavailable in this backend");
+      return;
+    }
+    try {
+      const result = await client.listPlugins();
+      chatLog.addSystem(
+        command.action === "show"
+          ? formatPluginDetails(result, command.pluginId)
+          : formatPluginList(result, command.mode),
+      );
+    } catch (err) {
+      chatLog.addSystem(`plugins status failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
   const showTaskAudit = async () => {
     if (!client.auditTasks) {
       await sendMessage("/tasks audit", { queueIfBusy: false });
@@ -706,7 +866,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     const missing = [
       !client.auditTasks ? "task audit" : "",
       !client.maintainTasks ? "task maintenance" : "",
-    ].filter(Boolean);
+    ].filter((value) => value.length > 0);
     if (missing.length > 0 || !client.auditTasks || !client.maintainTasks) {
       chatLog.addSystem(
         `self-healing runtime unavailable (${missing.join(", ")}); use !kova tasks audit and !kova tasks maintenance`,
@@ -739,7 +899,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     const missing = [
       !client.listSessionCheckpoints ? "checkpoint list" : "",
       !client.getSessionCheckpoint ? "checkpoint read" : "",
-    ].filter(Boolean);
+    ].filter((value) => value.length > 0);
     if (missing.length > 0 || !client.listSessionCheckpoints || !client.getSessionCheckpoint) {
       chatLog.addSystem(
         `rollback unavailable (${missing.join(", ")}); use !kova sessions checkpoints ${state.currentSessionKey}`,
@@ -839,7 +999,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             session.key,
             session.lastMessagePreview,
           ]
-            .filter(Boolean)
+            .filter((value): value is string => typeof value === "string" && value.length > 0)
             .join(" "),
         };
       });
@@ -895,8 +1055,17 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     if (!name) {
       return;
     }
+    let commandEchoed = false;
+    const echoCommand = () => {
+      if (commandEchoed) {
+        return;
+      }
+      chatLog.addUser(raw);
+      commandEchoed = true;
+    };
     switch (name) {
       case "help":
+        echoCommand();
         chatLog.addSystem(
           helpText({
             local: opts.local,
@@ -982,22 +1151,31 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "tools":
+        echoCommand();
         await showToolsCatalog(args);
         break;
       case "skills":
+        echoCommand();
         await showSkillCatalog(args);
         break;
+      case "plugins":
+        echoCommand();
+        await showPlugins(args);
+        break;
       case "tasks":
+        echoCommand();
         await showTaskSnapshot("tasks", args);
         break;
       case "subagents":
         if (args && !/^(list|running|queued|failed|lost|all)$/i.test(args.trim())) {
           await sendMessage(raw, { queueIfBusy: false });
         } else {
+          echoCommand();
           await showTaskSnapshot("subagents", args);
         }
         break;
       case "automation":
+        echoCommand();
         if (args.trim().toLowerCase().startsWith("audit")) {
           await showTaskAudit();
         } else {
@@ -1005,9 +1183,11 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "recover":
+        echoCommand();
         await showRecovery(args);
         break;
       case "rollback":
+        echoCommand();
         await showRollback(args);
         break;
       case "crestodian":
@@ -1326,7 +1506,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         noteLocalBtwRunId?.(runId);
       }
       tui.requestRender();
-      await client.sendChat({
+      const result = await client.sendChat({
         sessionKey: state.currentSessionKey,
         message: text,
         thinking: opts.thinking,
@@ -1335,8 +1515,14 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         runId,
       });
       if (!isBtw) {
-        setActivityStatus("waiting");
-        tui.requestRender();
+        const effectiveRunId = result.runId || runId;
+        const shouldKeepWaiting =
+          state.pendingOptimisticUserMessage ||
+          (state.activeChatRunId === effectiveRunId && state.activityStatus === "sending");
+        if (shouldKeepWaiting) {
+          setActivityStatus("waiting");
+          tui.requestRender();
+        }
       }
     } catch (err) {
       if (isBtw) {

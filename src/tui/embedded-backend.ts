@@ -147,7 +147,7 @@ function payloadText(parts: unknown): string {
       const payload = part as { text?: unknown };
       return typeof payload.text === "string" ? payload.text.trim() : "";
     })
-    .filter(Boolean)
+    .filter((text) => text.length > 0)
     .join("\n\n")
     .trim();
 }
@@ -518,6 +518,44 @@ export class EmbeddedTuiBackend implements TuiBackend {
       contextWindow: entry.contextWindow,
       reasoning: entry.reasoning,
     }));
+  }
+
+  async listCommands(opts = {}) {
+    const [{ getRuntimeConfig }, { buildCommandsListResult }, { resolveDefaultAgentId }] =
+      await Promise.all([
+        getConfigModule(),
+        import("../gateway/server-methods/commands.js"),
+        getAgentScopeModule(),
+      ]);
+    const params = opts as {
+      agentId?: string;
+      provider?: string;
+      scope?: "native" | "text" | "both";
+      includeArgs?: boolean;
+    };
+    const cfg = getRuntimeConfig();
+    const result = buildCommandsListResult({
+      cfg,
+      agentId: params.agentId?.trim() || resolveDefaultAgentId(cfg),
+      provider: params.provider,
+      scope: params.scope,
+      includeArgs: params.includeArgs,
+    });
+    return result.commands;
+  }
+
+  async listPlugins() {
+    const [
+      { getRuntimeConfig },
+      { loadInstalledPluginIndexInstallRecords },
+      { createPluginsStatusResult },
+    ] = await Promise.all([
+      getConfigModule(),
+      import("../plugins/installed-plugin-index-records.js"),
+      import("../gateway/server-methods/plugins.js"),
+    ]);
+    const installRecords = await loadInstalledPluginIndexInstallRecords();
+    return createPluginsStatusResult(getRuntimeConfig(), { installRecords });
   }
 
   async listTools(opts: { agentId: string; includePlugins?: boolean }) {

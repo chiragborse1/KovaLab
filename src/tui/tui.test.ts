@@ -59,6 +59,7 @@ describe("tui slash commands", () => {
     const commands = getSlashCommands({});
     expect(commands.some((command) => command.name === "context")).toBe(true);
     expect(commands.some((command) => command.name === "persona")).toBe(true);
+    expect(commands.some((command) => command.name === "plugins")).toBe(true);
     expect(commands.some((command) => command.name === "commands")).toBe(false);
   });
 

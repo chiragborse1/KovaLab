@@ -23,6 +23,7 @@ function createHarness(params?: {
   patchSession?: ReturnType<typeof vi.fn>;
   resetSession?: ReturnType<typeof vi.fn>;
   listSessions?: ReturnType<typeof vi.fn>;
+  listPlugins?: ReturnType<typeof vi.fn>;
   listTools?: ReturnType<typeof vi.fn>;
   listSkills?: ReturnType<typeof vi.fn>;
   listTasks?: ReturnType<typeof vi.fn>;
@@ -61,6 +62,41 @@ function createHarness(params?: {
           lastMessagePreview: "latest research notes",
         },
       ],
+    });
+  const listPlugins =
+    params?.listPlugins ??
+    vi.fn().mockResolvedValue({
+      registrySource: "derived",
+      plugins: [
+        {
+          id: "telegram",
+          name: "Telegram",
+          enabled: true,
+          status: "loaded",
+          origin: "bundled",
+          format: "kova",
+          kind: ["channel"],
+          channelIds: ["telegram"],
+          providerIds: [],
+          toolNames: ["telegram_send"],
+          gatewayMethods: [],
+          services: [],
+          commands: ["pair"],
+          configSchema: true,
+          installed: false,
+          configured: true,
+          removable: true,
+        },
+      ],
+      diagnostics: [],
+      totals: {
+        total: 1,
+        enabled: 1,
+        disabled: 0,
+        errors: 0,
+        channels: 1,
+        providers: 0,
+      },
     });
   const listTools =
     params?.listTools ??
@@ -271,6 +307,7 @@ function createHarness(params?: {
     queuedMessages: [] as QueuedMessage[],
     isConnected: params?.isConnected ?? true,
     sessionInfo: {},
+    activityStatus: "idle",
   };
 
   const { handleCommand } = createCommandHandlers({
@@ -281,6 +318,7 @@ function createHarness(params?: {
       patchSession,
       resetSession,
       listSessions,
+      listPlugins,
       listTools,
       listSkills,
       listTasks,
@@ -324,6 +362,7 @@ function createHarness(params?: {
     patchSession,
     resetSession,
     listSessions,
+    listPlugins,
     listTools,
     listSkills,
     listTasks,
@@ -377,6 +416,25 @@ describe("tui command handlers", () => {
     resolveSend({ runId: "r1" });
     await pending;
     expect(setActivityStatus).toHaveBeenCalledWith("waiting");
+  });
+
+  it("does not restore waiting after a fast command already finalized", async () => {
+    let harness: ReturnType<typeof createHarness>;
+    const setActivityStatus = vi.fn();
+    const sendChat = vi.fn(async () => {
+      harness.state.pendingOptimisticUserMessage = false;
+      harness.state.activeChatRunId = null;
+      harness.state.activityStatus = "idle";
+      setActivityStatus("idle");
+      return { runId: "r1" };
+    });
+    harness = createHarness({ sendChat, setActivityStatus });
+
+    await harness.handleCommand("/status");
+
+    expect(setActivityStatus).toHaveBeenCalledWith("sending");
+    expect(setActivityStatus).toHaveBeenCalledWith("idle");
+    expect(setActivityStatus).not.toHaveBeenCalledWith("waiting");
   });
 
   it("forwards unknown slash commands to the gateway", async () => {
@@ -439,25 +497,41 @@ describe("tui command handlers", () => {
   });
 
   it("renders a local compact tool catalog without sending a chat turn", async () => {
-    const { handleCommand, listTools, sendChat, addSystem } = createHarness();
+    const { handleCommand, listTools, sendChat, addUser, addSystem } = createHarness();
 
     await handleCommand("/tools");
 
     expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/tools");
     expect(listTools).toHaveBeenCalledWith({ agentId: "main", includePlugins: false });
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Tools: 1 tool"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Use /tools verbose"));
   });
 
   it("renders a local verbose skill catalog without sending a chat turn", async () => {
-    const { handleCommand, listSkills, sendChat, addSystem } = createHarness();
+    const { handleCommand, listSkills, sendChat, addUser, addSystem } = createHarness();
 
     await handleCommand("/skills verbose");
 
     expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/skills verbose");
     expect(listSkills).toHaveBeenCalledWith({ agentId: "main" });
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Skills: 1 skill visible"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("codex: ready"));
+  });
+
+  it("renders plugin status locally without requiring command config", async () => {
+    const { handleCommand, listPlugins, sendChat, addUser, addSystem } = createHarness();
+
+    await handleCommand("/plugins");
+    await handleCommand("/plugins show telegram");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/plugins");
+    expect(addUser).toHaveBeenCalledWith("/plugins show telegram");
+    expect(listPlugins).toHaveBeenCalledTimes(2);
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Plugins: 1 plugin"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Plugin: Telegram (telegram)"));
   });
 
   it("renders local background tasks without starting an agent turn", async () => {

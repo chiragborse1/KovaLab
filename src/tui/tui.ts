@@ -27,7 +27,7 @@ import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { getSlashCommands } from "./commands.js";
 import { ChatLog } from "./components/chat-log.js";
 import { CustomEditor } from "./components/custom-editor.js";
-import { KovaHero } from "./components/kova-hero.js";
+import { KovaHero, formatContextGauge } from "./components/kova-hero.js";
 import { editorTheme, theme } from "./theme/theme.js";
 import type { TuiBackend } from "./tui-backend.js";
 import { createCommandHandlers } from "./tui-command-handlers.js";
@@ -1046,7 +1046,9 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       provider: sessionInfo.modelProvider,
       model: sessionInfo.model,
     });
-    const tokens = formatTokens(sessionInfo.totalTokens ?? null, sessionInfo.contextTokens ?? null);
+    const tokens = formatContextGauge(
+      formatTokens(sessionInfo.totalTokens ?? null, sessionInfo.contextTokens ?? null),
+    );
     const think = sessionInfo.thinkingLevel ?? "off";
     const fast = sessionInfo.fastMode === true;
     const verbose = sessionInfo.verboseLevel ?? "off";
@@ -1063,7 +1065,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       reasoningLabel,
       queuedMessages.length > 0 ? `queue ${queuedMessages.length}` : null,
       tokens,
-    ].filter(Boolean);
+    ].filter((part): part is string => typeof part === "string" && part.length > 0);
     footer.setText(theme.dim(footerParts.join(" | ")));
   };
 
