@@ -256,7 +256,7 @@ async function probeStdioServer(server: Record<string, unknown>): Promise<McpSer
       canAccessExecutable(candidate),
     ),
   );
-  const found = checks.some(Boolean);
+  const found = checks.some((value) => value);
   return found
     ? { status: "ok", detail: "command found" }
     : { status: "failed", detail: "command not found" };
