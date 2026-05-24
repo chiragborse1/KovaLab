@@ -128,7 +128,7 @@ Core:
 - `/context [compact|verbose]`
 - `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>`
 - `/skill <name> [args]`
-- `/plugins list`
+- `/plugins list|show|install|update|enable|disable`
 
 Session controls:
 

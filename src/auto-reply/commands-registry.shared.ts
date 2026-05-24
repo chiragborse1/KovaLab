@@ -598,16 +598,16 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
     defineChatCommand({
       key: "plugins",
       nativeName: "plugins",
-      description: "List, show, enable, or disable plugins.",
+      description: "List, show, install, update, enable, or disable plugins.",
       textAliases: ["/plugins", "/plugin"],
       category: "management",
       tier: "power",
       args: [
         {
           name: "action",
-          description: "list | show | get | enable | disable",
+          description: "list | show | get | install | update | enable | disable",
           type: "string",
-          choices: ["list", "show", "get", "enable", "disable"],
+          choices: ["list", "show", "get", "install", "update", "enable", "disable"],
         },
         {
           name: "path",

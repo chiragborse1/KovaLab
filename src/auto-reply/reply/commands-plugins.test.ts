@@ -12,6 +12,11 @@ const buildPluginInspectReportMock = vi.hoisted(() => vi.fn());
 const buildAllPluginInspectReportsMock = vi.hoisted(() => vi.fn());
 const formatPluginCompatibilityNoticeMock = vi.hoisted(() => vi.fn(() => "ok"));
 const refreshPluginRegistryAfterConfigMutationMock = vi.hoisted(() => vi.fn(async () => undefined));
+const loadInstalledPluginIndexInstallRecordsMock = vi.hoisted(() =>
+  vi.fn(async (params: { config?: KovaConfig } = {}) => params.config?.plugins?.installs ?? {}),
+);
+const updateNpmInstalledPluginsMock = vi.hoisted(() => vi.fn());
+const commitPluginInstallRecordsWithConfigMock = vi.hoisted(() => vi.fn(async () => undefined));
 
 vi.mock("../../cli/npm-resolution.js", () => ({
   buildNpmInstallRecordFields: vi.fn(),
@@ -26,6 +31,10 @@ vi.mock("../../cli/plugins-command-helpers.js", () => ({
 
 vi.mock("../../cli/plugins-install-persist.js", () => ({
   persistPluginInstall: vi.fn(async () => undefined),
+}));
+
+vi.mock("../../cli/plugins-install-record-commit.js", () => ({
+  commitPluginInstallRecordsWithConfig: commitPluginInstallRecordsWithConfigMock,
 }));
 
 vi.mock("../../cli/plugins-registry-refresh.js", () => ({
@@ -56,9 +65,21 @@ vi.mock("../../plugins/install.js", () => ({
 }));
 
 vi.mock("../../plugins/installed-plugin-index-records.js", () => ({
-  loadInstalledPluginIndexInstallRecords: vi.fn(
-    async (params = {}) => params.config?.plugins?.installs ?? {},
-  ),
+  loadInstalledPluginIndexInstallRecords: loadInstalledPluginIndexInstallRecordsMock,
+  withoutPluginInstallRecords: vi.fn((config) => ({
+    ...config,
+    plugins: {
+      ...config.plugins,
+      installs: undefined,
+    },
+  })),
+  withPluginInstallRecords: vi.fn((config, installs) => ({
+    ...config,
+    plugins: {
+      ...config.plugins,
+      installs,
+    },
+  })),
 }));
 
 vi.mock("../../plugins/manifest-registry.js", () => ({
@@ -84,6 +105,10 @@ vi.mock("../../plugins/toggle-config.js", () => ({
       },
     },
   })),
+}));
+
+vi.mock("../../plugins/update.js", () => ({
+  updateNpmInstalledPlugins: updateNpmInstalledPluginsMock,
 }));
 
 vi.mock("../../utils.js", async () => {
@@ -168,6 +193,32 @@ describe("handlePluginsCommand", () => {
         compatibility: [],
       },
     ]);
+    loadInstalledPluginIndexInstallRecordsMock.mockImplementation(
+      async (params: { config?: KovaConfig } = {}) => params.config?.plugins?.installs ?? {},
+    );
+    updateNpmInstalledPluginsMock.mockResolvedValue({
+      config: {
+        ...buildCfg(),
+        plugins: {
+          ...buildCfg().plugins,
+          installs: {
+            superpowers: {
+              source: "npm",
+              spec: "@kovaai/superpowers",
+              installPath: "/tmp/plugins/superpowers",
+            },
+          },
+        },
+      },
+      changed: true,
+      outcomes: [
+        {
+          pluginId: "superpowers",
+          status: "updated",
+          message: "Updated superpowers: 1.0.0 -> 1.1.0.",
+        },
+      ],
+    });
   });
 
   it("lists discovered plugins and inspects plugin details", async () => {
@@ -303,6 +354,41 @@ describe("handlePluginsCommand", () => {
     expect(result?.reply?.text).toContain('Plugin "superpowers" enabled');
     expect(buildPluginRegistrySnapshotReportMock).toHaveBeenCalled();
     expect(buildPluginDiagnosticsReportMock).not.toHaveBeenCalled();
+  });
+
+  it("updates tracked plugins from the command surface", async () => {
+    loadInstalledPluginIndexInstallRecordsMock.mockResolvedValue({
+      superpowers: {
+        source: "npm",
+        spec: "@kovaai/superpowers",
+        installPath: "/tmp/plugins/superpowers",
+      },
+    });
+
+    const params = buildPluginsParams("/plugins update superpowers", buildCfg(), {
+      gatewayClientScopes: WRITE_GATEWAY_SCOPES,
+    });
+    params.command.senderIsOwner = true;
+
+    const result = await handlePluginsCommand(params, true);
+
+    expect(result?.reply?.text).toContain("Plugin update");
+    expect(result?.reply?.text).toContain("Updated superpowers");
+    expect(updateNpmInstalledPluginsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pluginIds: ["superpowers"],
+        dryRun: undefined,
+      }),
+    );
+    expect(commitPluginInstallRecordsWithConfigMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        previousInstallRecords: expect.objectContaining({ superpowers: expect.any(Object) }),
+        nextInstallRecords: expect.objectContaining({ superpowers: expect.any(Object) }),
+      }),
+    );
+    expect(refreshPluginRegistryAfterConfigMutationMock).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "source-changed" }),
+    );
   });
 
   it("returns an explicit unauthorized reply for native /plugins list", async () => {

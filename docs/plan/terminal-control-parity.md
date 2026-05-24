@@ -19,7 +19,7 @@ need, and has a small proof command or test.
 ## Current Matrix
 
 | Control UI workflow            | Terminal equivalent                                                   | Status    | Next action                                                                    |
-| ------------------------------ | --------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| ------------------------------ | --------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------ | -------- | ----- | ------------------------------------------------------- |
 | Chat with the agent            | `kova chat`, `kova tui --local`, `kova tui`                           | Ready     | Keep first-run latency and local backend checks in the TUI test loop.          |
 | Gateway status                 | `kova status`, `/status`, `/gateway-status`                           | Ready     | Keep browser wording out of default status output.                             |
 | Model selection                | `/model`, `/models`, `kova models list`, `kova models set`            | Ready     | Keep provider auth guidance terminal-readable.                                 |
@@ -32,7 +32,7 @@ need, and has a small proof command or test.
 | Dream Diary review             | `kova memory dreams`, `/memory dreams`                                | Ready     | Keep bounded terminal output and JSON for scripts.                             |
 | Dreaming toggle                | `/dreaming on\|off\|status`                                           | Ready     | Add CLI config examples only when users ask for non-chat automation.           |
 | Persona editing                | `kova persona ...` plus `/persona` read-only chat inspection          | Ready     | Keep `SOUL.md` as the file-backed source of truth.                             |
-| Plugin management              | `kova plugins ...`, `/plugins list`                                   | Partial   | Add terminal install/update flows before removing browser plugin affordances.  |
+| Plugin management              | `kova plugins ...`, `/plugins install                                 | update    | enable                                                                         | disable` | Ready | Keep plugin mutation replies concise and restart-aware. |
 | Channel setup                  | `kova channels ...`, `kova configure --section channels`              | Partial   | Keep onboarding channel selection terminal-first and skip channels by default. |
 | Logs                           | `kova logs --grep/--level/--subsystem`, Gateway log path from status  | Ready     | Keep filters cheap and readable for remote tailing.                            |
 | Config editing                 | `kova config ...`, `kova settings`, `kova configure`                  | Partial   | Avoid raw JSON editing for common toggles.                                     |

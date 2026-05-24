@@ -7,6 +7,7 @@ export type PluginsCommand =
   | { action: "list" }
   | { action: "inspect"; name?: string }
   | { action: "install"; spec: string }
+  | { action: "update"; name?: string; all?: boolean; dryRun?: boolean }
   | { action: "enable"; name: string }
   | { action: "disable"; name: string }
   | { action: "error"; message: string };
@@ -49,6 +50,26 @@ export function parsePluginsCommand(raw: string): PluginsCommand | null {
     return { action: "install", spec: name };
   }
 
+  if (action === "update" || action === "upgrade") {
+    const args = rest.filter(Boolean);
+    const dryRun = args.includes("--dry-run");
+    const updateArgs = args.filter((arg) => arg !== "--dry-run");
+    const all = updateArgs.includes("--all") || updateArgs.includes("all");
+    const target = updateArgs.find((arg) => arg !== "--all" && arg !== "all");
+    if (!all && !target) {
+      return {
+        action: "error",
+        message: "Usage: /plugins update <plugin-id-or-npm-spec>|all [--dry-run]",
+      };
+    }
+    return {
+      action: "update",
+      ...(target ? { name: target } : {}),
+      ...(all ? { all: true } : {}),
+      ...(dryRun ? { dryRun: true } : {}),
+    };
+  }
+
   if (action === "enable" || action === "disable") {
     if (!name) {
       return {
@@ -61,6 +82,6 @@ export function parsePluginsCommand(raw: string): PluginsCommand | null {
 
   return {
     action: "error",
-    message: "Usage: /plugins list|inspect|show|get|install|enable|disable [plugin]",
+    message: "Usage: /plugins list|inspect|show|get|install|update|enable|disable [plugin]",
   };
 }

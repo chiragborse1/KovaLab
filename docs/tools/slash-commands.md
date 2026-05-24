@@ -175,7 +175,7 @@ Current source-of-truth:
   <Accordion title="Owner-only writes and admin">
     - `/config show|get|set|unset` reads or writes `kova.json`. Owner-only. Requires `commands.config: true`.
     - `/mcp show|get|set|unset` reads or writes Kova-managed MCP server config under `mcp.servers`. Owner-only. Requires `commands.mcp: true`.
-    - `/plugins list|inspect|show|get|install|enable|disable` inspects or mutates plugin state. `/plugin` is an alias. Owner-only for writes. Requires `commands.plugins: true`.
+    - `/plugins list|inspect|show|get|install|update|enable|disable` inspects or mutates plugin state. `/plugin` is an alias. Owner-only for writes. Requires `commands.plugins: true`.
     - `/debug show|set|unset|reset` manages runtime-only config overrides. Owner-only. Requires `commands.debug: true`.
     - `/restart` restarts Kova when enabled. Default: enabled; set `commands.restart: false` to disable it.
     - `/send on|off|inherit` sets send policy. Owner-only.
@@ -399,14 +399,19 @@ Examples:
 /plugins
 /plugins list
 /plugin show context7
+/plugins install kovahub:context7
+/plugins update context7 --dry-run
+/plugins update all
 /plugins enable context7
 /plugins disable context7
 ```
 
 <Note>
 - `/plugins list` and `/plugins show` use real plugin discovery against the current workspace plus on-disk config.
-- `/plugins enable|disable` updates plugin config only; it does not install or uninstall plugins.
-- After enable/disable changes, restart the gateway to apply them.
+- `/plugins install <spec>` accepts the same path, archive, npm, and `kovahub:<pkg>` specs as `kova plugins install`.
+- `/plugins update <plugin>|all [--dry-run]` updates tracked plugin installs. Integrity drift fails closed from chat.
+- `/plugins enable|disable` updates plugin config only.
+- After install/update/enable/disable changes, restart the gateway to apply them.
 </Note>
 
 ## Surface notes

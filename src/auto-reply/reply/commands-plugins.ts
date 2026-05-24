@@ -8,7 +8,9 @@ import {
 } from "../../cli/plugins-command-helpers.js";
 import { persistPluginInstall } from "../../cli/plugins-install-persist.js";
 import type { ConfigSnapshotForInstallPersist } from "../../cli/plugins-install-persist.js";
+import { commitPluginInstallRecordsWithConfig } from "../../cli/plugins-install-record-commit.js";
 import { refreshPluginRegistryAfterConfigMutation } from "../../cli/plugins-registry-refresh.js";
+import { resolvePluginUpdateSelection } from "../../cli/plugins-update-selection.js";
 import {
   readConfigFileSnapshot,
   replaceConfigFile,
@@ -19,7 +21,11 @@ import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { resolveArchiveKind } from "../../infra/archive.js";
 import { parseKovaHubPluginSpec } from "../../infra/kovahub.js";
 import { installPluginFromNpmSpec, installPluginFromPath } from "../../plugins/install.js";
-import { loadInstalledPluginIndexInstallRecords } from "../../plugins/installed-plugin-index-records.js";
+import {
+  loadInstalledPluginIndexInstallRecords,
+  withoutPluginInstallRecords,
+  withPluginInstallRecords,
+} from "../../plugins/installed-plugin-index-records.js";
 import { installPluginFromKovaHub } from "../../plugins/kovahub.js";
 import { clearPluginManifestRegistryCache } from "../../plugins/manifest-registry.js";
 import type { PluginRecord } from "../../plugins/registry.js";
@@ -32,6 +38,7 @@ import {
   type PluginStatusReport,
 } from "../../plugins/status.js";
 import { setPluginEnabledInConfig } from "../../plugins/toggle-config.js";
+import { updateNpmInstalledPlugins } from "../../plugins/update.js";
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
 import { resolveUserPath } from "../../utils.js";
 import { isInternalMessageChannel } from "../../utils/message-channel.js";
@@ -281,6 +288,77 @@ async function installPluginFromPluginsCommand(params: {
   return { ok: true, pluginId: result.pluginId };
 }
 
+async function updatePluginsFromPluginsCommand(params: {
+  id?: string;
+  all?: boolean;
+  dryRun?: boolean;
+  snapshot: ConfigSnapshotForInstallPersist;
+}): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const installRecords = await loadInstalledPluginIndexInstallRecords();
+  const selection = resolvePluginUpdateSelection({
+    installs: installRecords,
+    rawId: params.id,
+    all: params.all,
+  });
+  if (selection.pluginIds.length === 0) {
+    return {
+      ok: false,
+      error: params.all
+        ? "No tracked plugins to update."
+        : "Provide a plugin id, npm spec, or use `all`.",
+    };
+  }
+
+  const logs: string[] = [];
+  const updateResult = await updateNpmInstalledPlugins({
+    config: withPluginInstallRecords(structuredClone(params.snapshot.config), installRecords),
+    pluginIds: selection.pluginIds,
+    specOverrides: selection.specOverrides,
+    dryRun: params.dryRun,
+    logger: {
+      info: (message) => logs.push(message),
+      warn: (message) => logs.push(`Warning: ${message}`),
+      error: (message) => logs.push(`Error: ${message}`),
+    },
+    onIntegrityDrift: () => false,
+  });
+
+  let hasErrors = false;
+  const outcomeLines = updateResult.outcomes.map((outcome) => {
+    if (outcome.status === "error") {
+      hasErrors = true;
+    }
+    return outcome.message;
+  });
+
+  if (!params.dryRun && updateResult.changed) {
+    const nextInstallRecords = updateResult.config.plugins?.installs ?? {};
+    const nextConfig = withoutPluginInstallRecords(updateResult.config);
+    await commitPluginInstallRecordsWithConfig({
+      previousInstallRecords: installRecords,
+      nextInstallRecords,
+      nextConfig,
+      baseHash: params.snapshot.baseHash,
+    });
+    await refreshPluginRegistryAfterConfigMutation({
+      config: nextConfig,
+      reason: "source-changed",
+      installRecords: nextInstallRecords,
+      logger: {
+        warn: (message) => logs.push(`Warning: ${message}`),
+      },
+    });
+    outcomeLines.push("Restart the gateway to load updated plugins.");
+  }
+
+  const title = params.dryRun ? "🔌 Plugin update dry run" : "🔌 Plugin update";
+  const body = [...logs, ...outcomeLines].filter(Boolean).join("\n");
+  if (hasErrors) {
+    return { ok: false, error: body || "Plugin update failed." };
+  }
+  return { ok: true, text: body ? `${title}\n${body}` : `${title}\nNo plugin update output.` };
+}
+
 async function loadPluginCommandState(
   workspaceDir: string,
   options?: { loadModules?: boolean },
@@ -370,6 +448,7 @@ export const handlePluginsCommand: CommandHandler = async (params, allowTextComm
 
   if (
     pluginsCommand.action === "install" ||
+    pluginsCommand.action === "update" ||
     pluginsCommand.action === "enable" ||
     pluginsCommand.action === "disable"
   ) {
@@ -377,7 +456,7 @@ export const handlePluginsCommand: CommandHandler = async (params, allowTextComm
       label: "/plugins write",
       allowedScopes: ["operator.admin"],
       missingText:
-        "❌ /plugins install|enable|disable requires operator.admin for gateway clients.",
+        "❌ /plugins install|update|enable|disable requires operator.admin for gateway clients.",
     });
     if (missingAdminScope) {
       return missingAdminScope;
@@ -406,6 +485,34 @@ export const handlePluginsCommand: CommandHandler = async (params, allowTextComm
       shouldContinue: false,
       reply: {
         text: `🔌 Installed plugin "${installed.pluginId}". Restart the gateway to load plugins.`,
+      },
+    };
+  }
+
+  if (pluginsCommand.action === "update") {
+    const loadedConfig = await loadPluginCommandConfig();
+    if (!loadedConfig.ok) {
+      return {
+        shouldContinue: false,
+        reply: { text: `⚠️ ${loadedConfig.error}` },
+      };
+    }
+    const updated = await updatePluginsFromPluginsCommand({
+      id: pluginsCommand.name,
+      all: pluginsCommand.all,
+      dryRun: pluginsCommand.dryRun,
+      snapshot: loadedConfig.snapshot,
+    });
+    if (!updated.ok) {
+      return {
+        shouldContinue: false,
+        reply: { text: `⚠️ ${updated.error}` },
+      };
+    }
+    return {
+      shouldContinue: false,
+      reply: {
+        text: updated.text,
       },
     };
   }

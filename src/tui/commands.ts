@@ -100,6 +100,43 @@ const PERSONA_COMMAND_COMPLETIONS = [
     description: "Show persona command help",
   },
 ];
+const PLUGIN_COMMAND_COMPLETIONS = [
+  {
+    value: "list",
+    label: "list",
+    description: "List discovered plugins",
+  },
+  {
+    value: "show ",
+    label: "show <plugin>",
+    description: "Inspect plugin details",
+  },
+  {
+    value: "install ",
+    label: "install <spec>",
+    description: "Install a plugin",
+  },
+  {
+    value: "update ",
+    label: "update <plugin>",
+    description: "Update a tracked plugin",
+  },
+  {
+    value: "update all --dry-run",
+    label: "update all --dry-run",
+    description: "Preview all tracked plugin updates",
+  },
+  {
+    value: "enable ",
+    label: "enable <plugin>",
+    description: "Enable a plugin",
+  },
+  {
+    value: "disable ",
+    label: "disable <plugin>",
+    description: "Disable a plugin",
+  },
+];
 
 export type ParsedCommand = {
   name: string;
@@ -191,6 +228,19 @@ function appendSlashCommand(
         return PERSONA_COMMAND_COMPLETIONS.filter((item) =>
           item.value.startsWith(normalizedPrefix),
         );
+      },
+    });
+    return;
+  }
+  if (normalizedName === "plugins") {
+    commands.push({
+      name: normalizedName,
+      description,
+      argumentHint:
+        "list | show <plugin> | install <spec> | update <plugin|all> [--dry-run] | enable|disable <plugin>",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return PLUGIN_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
       },
     });
     return;
@@ -379,7 +429,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
-    "/plugins list",
+    "/plugins <list|show|install|update|enable|disable>",
     "",
     "Run controls:",
     `/think <${thinkLevels}>`,
