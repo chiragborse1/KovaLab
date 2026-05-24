@@ -690,7 +690,7 @@ export async function finalizeSetupWizard(
 
   await prompter.outro(
     controlUiOpened
-      ? "Kova is ready. Control UI opened in your browser."
+      ? "Kova is ready. Legacy web UI opened in your browser."
       : launchedTui
         ? "Kova terminal chat is ready."
         : "Kova is ready. Start with `kova chat` when you are ready.",

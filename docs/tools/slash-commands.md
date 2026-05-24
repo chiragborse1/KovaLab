@@ -283,7 +283,7 @@ User-invocable skills are also exposed as slash commands:
 - Results are session-scoped, so changing agent, channel, thread, sender authorization, or model can change the output.
 - `/tools` includes tools that are actually reachable at runtime, including core tools, connected plugin tools, and channel-owned tools.
 
-For profile and override editing, use the Control UI Tools panel or config/catalog surfaces instead of treating `/tools` as a static catalog.
+For profile and override editing, use terminal/config surfaces such as `kova settings`, `kova config`, plugin setup commands, and the provider/tool docs instead of treating `/tools` as a static catalog.
 
 ## Usage surfaces (what shows where)
 

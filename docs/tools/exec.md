@@ -141,7 +141,9 @@ kova config get agents.list
 kova config set agents.list[0].tools.exec.node "node-id-or-name"
 ```
 
-Control UI: the Nodes tab includes a small “Exec node binding” panel for the same settings.
+The legacy browser Control UI still exposes the same binding for compatibility,
+but terminal users should prefer `kova config` or `kova settings` so the setup
+stays scriptable.
 
 ## Session overrides (`/exec`)
 

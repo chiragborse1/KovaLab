@@ -1874,9 +1874,9 @@ lives on the [Models FAQ](/help/faq-models).
     /reasoning off
     ```
 
-    If it is still noisy, check the session settings in the Control UI and set verbose
-    to **inherit**. Also confirm you are not using a bot profile with `verboseDefault` set
-    to `on` in config.
+    If it is still noisy, inspect the active session and config from the terminal:
+    run `/status`, `/usage`, and `kova config get agents.defaults`. Also confirm you are
+    not using a bot profile with `verboseDefault` set to `on` in config.
 
     Docs: [Thinking and verbose](/tools/thinking), [Security](/gateway/security#reasoning-verbose-output-in-groups).
 

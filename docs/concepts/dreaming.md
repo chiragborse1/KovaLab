@@ -89,7 +89,7 @@ There is also a grounded historical backfill lane for review and recovery work:
   </Accordion>
 </AccordionGroup>
 
-The Control UI exposes the same diary backfill/reset flow so you can inspect results in the Dreams scene before deciding whether the grounded candidates deserve promotion. The Scene also shows a distinct grounded lane so you can see which staged short-term entries came from historical replay, which promoted items were grounded-led, and clear only grounded-only staged entries without touching ordinary live short-term state.
+Use `kova memory dreams`, `/memory dreams`, and the `memory rem-*` commands above to inspect diary output and decide whether grounded candidates deserve promotion. The legacy browser Control UI can still visualize this flow, but terminal review is the primary path.
 
 ## Deep ranking signals
 

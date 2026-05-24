@@ -44,11 +44,11 @@ Done:
   [Reference Agent Capability Parity Review](/plan/reference-agent-capability-parity).
 - Kova capability matrices now have a docs-derived inventory in
   [Kova Capability Matrices](/plan/kova-capability-matrices).
+- Core docs and CLI prompts now point ordinary administration toward terminal
+  commands first, keeping the browser Control UI as optional compatibility.
 
 Remaining:
 
-- Replace remaining docs and prompts that still send users to the browser
-  dashboard for normal administration.
 - Use the hotspot audit to choose one clear owner-boundary refactor at a time.
 - Add a maintainer or release-facing command surface for the compatibility
   report before any removal-pending sweep.

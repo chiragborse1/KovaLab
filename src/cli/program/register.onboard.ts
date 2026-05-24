@@ -233,7 +233,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--skip-bootstrap", "Skip creating default agent workspace files")
     .option("--skip-search", "Skip search provider setup")
     .option("--skip-health", "Skip health check")
-    .option("--skip-ui", "Skip Control UI/TUI prompts")
+    .option("--skip-ui", "Skip post-setup launch prompts")
     .option("--node-manager <name>", "Node manager for skills: npm|pnpm|bun")
     .option("--import-from <provider>", "Migration provider to run during onboarding")
     .option("--import-source <path>", "Source agent home for --import-from")
