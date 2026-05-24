@@ -20,6 +20,12 @@ In other words:
 
 Use [`kova acp`](/cli/acp) when Kova should host a coding harness session itself and route that runtime through ACP.
 
+<Note>
+Saved MCP server commands are currently config-management commands. They do not
+perform live reachability checks, dynamic tool refresh, or MCP sampling. The
+runtime parity decisions are tracked in [MCP Runtime Parity](/plan/mcp-runtime-parity).
+</Note>
+
 ## Kova as an MCP server
 
 This is the `kova mcp serve` path.
@@ -357,6 +363,7 @@ Those saved definitions are for runtimes that Kova launches or configures later,
     - these commands only read or write Kova config
     - they do not connect to the target MCP server
     - they do not validate whether the command, URL, or remote transport is reachable right now
+    - live saved-server status should land as a separate `kova mcp status` surface before probes are added
     - runtime adapters decide which transport shapes they actually support at execution time
     - embedded Pi exposes configured MCP tools in normal `coding` and `messaging` tool profiles; `minimal` still hides them, and `tools.deny: ["bundle-mcp"]` disables them explicitly
     - session-scoped bundled MCP runtimes are reaped after `mcp.sessionIdleTtlMs` milliseconds of idle time (default 10 minutes; set `0` to disable) and one-shot embedded runs clean them up at run end
