@@ -126,7 +126,7 @@ Core:
 - `/recover [status|apply]`
 - `/rollback [list|show <id>|branch <id>|restore <id> confirm]`
 - `/context [compact|verbose]`
-- `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>`
+- `/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>`
 - `/skill <name> [args]`
 - `/plugins list`
 
@@ -164,6 +164,10 @@ lists checkpoints for the current session, `/rollback show <id>` previews one,
 `/rollback branch <id>` opens the pre-compaction snapshot as a separate session,
 and `/rollback restore <id> confirm` replaces the current session after an
 explicit confirm step. Restore is blocked while a run is active.
+
+`/memory dreams` reads the latest Dream Diary entries from `DREAMS.md` or
+`dreams.md` without opening the browser Control UI. Use `/memory dreams all` for
+the full file or `/memory dreams lines=40` for a smaller tail.
 
 Session lifecycle:
 

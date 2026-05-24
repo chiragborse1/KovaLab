@@ -58,6 +58,11 @@ const MEMORY_COMMAND_COMPLETIONS = [
     description: "Read a cited memory source excerpt",
   },
   {
+    value: "dreams",
+    label: "dreams",
+    description: "Review the Dream Diary",
+  },
+  {
     value: "help",
     label: "help",
     description: "Show memory command help",
@@ -136,7 +141,7 @@ function appendSlashCommand(
     commands.push({
       name: normalizedName,
       description,
-      argumentHint: "status | sync [force] | search <query> | read <path[:line[-end]]>",
+      argumentHint: "status | sync [force] | search <query> | read <path[:line[-end]]> | dreams",
       getArgumentCompletions: (prefix) => {
         const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
         return MEMORY_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
@@ -325,7 +330,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/recover [status|apply]",
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
     "/context [compact|verbose]",
-    "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
+    "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
     "/skill <name> [args]",
     "/plugins list",
     "",

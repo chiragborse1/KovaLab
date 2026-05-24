@@ -237,16 +237,16 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
     defineChatCommand({
       key: "memory",
       nativeName: "memory",
-      description: "Check memory status, sync, search, or read recall.",
+      description: "Check memory status, sync, search, read recall, or review dreams.",
       textAlias: "/memory",
       category: "status",
       tier: "essential",
       args: [
         {
           name: "action",
-          description: "help, status, sync, search, or read",
+          description: "help, status, sync, search, read, or dreams",
           type: "string",
-          choices: ["help", "status", "sync", "search", "read"],
+          choices: ["help", "status", "sync", "search", "read", "dreams"],
         },
         {
           name: "query",

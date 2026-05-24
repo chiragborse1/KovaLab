@@ -14,6 +14,11 @@ export type MemorySearchCommandOptions = MemoryCommandOptions & {
   minScore?: number;
 };
 
+export type MemoryDreamsCommandOptions = MemoryCommandOptions & {
+  all?: boolean;
+  lines?: number;
+};
+
 export type MemoryPromoteCommandOptions = MemoryCommandOptions & {
   limit?: number;
   minScore?: number;

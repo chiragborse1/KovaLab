@@ -152,7 +152,7 @@ Current source-of-truth:
     - `/crestodian <request>` runs the Crestodian setup and repair helper from an owner DM.
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
-    - `/memory status`, `/memory sync [force]`, `/memory search <query>`, and `/memory read <path[:line[-end]]>` inspect memory health, refresh recall, search, and read cited source excerpts from chat.
+    - `/memory status`, `/memory sync [force]`, `/memory search <query>`, `/memory read <path[:line[-end]]>`, and `/memory dreams` inspect memory health, refresh recall, search, read cited source excerpts, and review the Dream Diary from chat.
     - `/whoami` shows your sender id. Alias: `/id`.
     - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary.
   </Accordion>

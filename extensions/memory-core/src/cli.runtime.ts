@@ -29,6 +29,7 @@ import {
 } from "./cli.host.runtime.js";
 import type {
   MemoryCommandOptions,
+  MemoryDreamsCommandOptions,
   MemoryPromoteCommandOptions,
   MemoryPromoteExplainOptions,
   MemoryRemBackfillOptions,
@@ -65,6 +66,9 @@ type MemoryManager = NonNullable<Awaited<ReturnType<typeof getMemorySearchManage
 type MemoryManagerPurpose = Parameters<typeof getMemorySearchManager>[0]["purpose"];
 
 type MemorySourceName = "memory" | "sessions";
+const DREAM_DIARY_FILE_NAMES = ["DREAMS.md", "dreams.md"] as const;
+const DEFAULT_DREAM_DIARY_LINES = 80;
+const MAX_DREAM_DIARY_LINES = 400;
 
 type SourceScan = {
   source: MemorySourceName;
@@ -81,6 +85,13 @@ type MemorySourceScan = {
 type LoadedMemoryCommandConfig = {
   config: KovaConfig;
   diagnostics: string[];
+};
+
+type DreamDiaryRead = {
+  found: boolean;
+  path: string;
+  content?: string;
+  updatedAtMs?: number;
 };
 
 function getMemoryCommandSecretTargetIds(): Set<string> {
@@ -207,6 +218,64 @@ async function listWorkspaceDailyFiles(workspaceDir: string, limit: number): Pro
     }
     throw err;
   }
+}
+
+function normalizeDreamDiaryLineLimit(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return DEFAULT_DREAM_DIARY_LINES;
+  }
+  return Math.min(MAX_DREAM_DIARY_LINES, Math.max(1, Math.floor(value)));
+}
+
+async function readDreamDiary(workspaceDir: string): Promise<DreamDiaryRead> {
+  for (const name of DREAM_DIARY_FILE_NAMES) {
+    const filePath = path.join(workspaceDir, name);
+    let stat: fsSync.Stats;
+    try {
+      stat = await fs.lstat(filePath);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException | undefined)?.code === "ENOENT") {
+        continue;
+      }
+      return { found: false, path: name };
+    }
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      continue;
+    }
+    try {
+      return {
+        found: true,
+        path: name,
+        content: await fs.readFile(filePath, "utf-8"),
+        updatedAtMs: Math.floor(stat.mtimeMs),
+      };
+    } catch {
+      return { found: false, path: name };
+    }
+  }
+  return { found: false, path: DREAM_DIARY_FILE_NAMES[0] };
+}
+
+function sliceDreamDiaryContent(content: string, opts: MemoryDreamsCommandOptions) {
+  const allLines = content.split(/\r?\n/);
+  const lineCount = allLines.length;
+  const lineLimit = normalizeDreamDiaryLineLimit(opts.lines);
+  if (opts.all || lineCount <= lineLimit) {
+    return {
+      content,
+      lineCount,
+      shownLineCount: lineCount,
+      truncated: false,
+      lineLimit,
+    };
+  }
+  return {
+    content: allLines.slice(-lineLimit).join("\n"),
+    lineCount,
+    shownLineCount: lineLimit,
+    truncated: true,
+    lineLimit,
+  };
 }
 
 function formatDreamingSummary(cfg: KovaConfig): string {
@@ -1242,6 +1311,95 @@ export async function runMemorySearch(
         lines.push("");
       }
       defaultRuntime.log(lines.join("\n").trim());
+    },
+  });
+}
+
+export async function runMemoryDreams(opts: MemoryDreamsCommandOptions) {
+  const { config: cfg, diagnostics } = await loadMemoryCommandConfig("memory dreams");
+  emitMemorySecretResolveDiagnostics(diagnostics, { json: Boolean(opts.json) });
+  const agentId = resolveAgent(cfg, opts.agent);
+
+  await withMemoryManagerForAgent({
+    cfg,
+    agentId,
+    purpose: "status",
+    run: async (manager) => {
+      const status = manager.status();
+      const workspaceDir = status.workspaceDir?.trim();
+      if (!workspaceDir) {
+        const message = "Memory dreams requires a resolvable workspace directory.";
+        if (opts.json) {
+          defaultRuntime.writeJson({
+            agentId,
+            found: false,
+            path: DREAM_DIARY_FILE_NAMES[0],
+            error: message,
+          });
+        } else {
+          defaultRuntime.error(message);
+        }
+        process.exitCode = 1;
+        return;
+      }
+
+      const diary = await readDreamDiary(workspaceDir);
+      if (!diary.found || diary.content === undefined) {
+        if (opts.json) {
+          defaultRuntime.writeJson({
+            agentId,
+            found: false,
+            path: diary.path,
+            workspaceDir,
+          });
+          return;
+        }
+        defaultRuntime.log(
+          [
+            `Dream Diary not found (${agentId}).`,
+            `Expected: ${shortenHomePath(path.join(workspaceDir, diary.path))}`,
+            "Dreaming writes review notes after it has run at least once.",
+          ].join("\n"),
+        );
+        return;
+      }
+
+      const display = sliceDreamDiaryContent(diary.content, opts);
+      if (opts.json) {
+        defaultRuntime.writeJson({
+          agentId,
+          found: true,
+          path: diary.path,
+          workspaceDir,
+          updatedAtMs: diary.updatedAtMs,
+          lineCount: display.lineCount,
+          shownLineCount: display.shownLineCount,
+          truncated: display.truncated,
+          content: display.content,
+        });
+        return;
+      }
+
+      const rich = isRich();
+      const heading = colorize(rich, theme.heading, `Dream Diary (${agentId})`);
+      const muted = (text: string) => colorize(rich, theme.muted, text);
+      const info = (text: string) => colorize(rich, theme.info, text);
+      const updated = diary.updatedAtMs ? new Date(diary.updatedAtMs).toISOString() : "unknown";
+      const lines = [
+        `${heading} ${muted(diary.path)}`,
+        `${muted("Workspace:")} ${info(shortenHomePath(workspaceDir))}`,
+        `${muted("Updated:")} ${info(updated)}`,
+        display.truncated
+          ? `${muted("Showing:")} last ${String(display.shownLineCount)} of ${String(
+              display.lineCount,
+            )} lines ${muted("(use --all for the full diary)")}`
+          : `${muted("Showing:")} ${String(display.lineCount)} line${
+              display.lineCount === 1 ? "" : "s"
+            }`,
+        "",
+        display.content.trimEnd() || "(empty)",
+      ];
+      defaultRuntime.log(lines.join("\n"));
     },
   });
 }

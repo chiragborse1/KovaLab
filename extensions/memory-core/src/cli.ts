@@ -6,6 +6,7 @@ import {
 } from "getkova/plugin-sdk/memory-core-host-runtime-cli";
 import type {
   MemoryCommandOptions,
+  MemoryDreamsCommandOptions,
   MemoryPromoteCommandOptions,
   MemoryPromoteExplainOptions,
   MemoryRemBackfillOptions,
@@ -40,6 +41,11 @@ async function runMemoryIndex(opts: MemoryCommandOptions) {
 async function runMemorySearch(queryArg: string | undefined, opts: MemorySearchCommandOptions) {
   const runtime = await loadMemoryCliRuntime();
   await runtime.runMemorySearch(queryArg, opts);
+}
+
+async function runMemoryDreams(opts: MemoryDreamsCommandOptions) {
+  const runtime = await loadMemoryCliRuntime();
+  await runtime.runMemoryDreams(opts);
 }
 
 async function runMemoryPromote(opts: MemoryPromoteCommandOptions) {
@@ -84,6 +90,10 @@ export function registerMemoryCli(program: Command) {
           [
             'kova memory search --query "deployment" --max-results 20',
             "Limit results for focused troubleshooting.",
+          ],
+          [
+            "kova memory dreams --lines 80",
+            "Review the latest Dream Diary entries from the terminal.",
           ],
           [
             `kova memory promote --limit 10 --min-score ${DEFAULT_PROMOTION_MIN_SCORE}`,
@@ -147,6 +157,17 @@ export function registerMemoryCli(program: Command) {
     .option("--json", "Print JSON")
     .action(async (queryArg: string | undefined, opts: MemorySearchCommandOptions) => {
       await runMemorySearch(queryArg, opts);
+    });
+
+  memory
+    .command("dreams")
+    .description("Review Dream Diary entries from DREAMS.md")
+    .option("--agent <id>", "Agent id (default: default agent)")
+    .option("--lines <n>", "Show the last N lines", (value: string) => Number(value))
+    .option("--all", "Show the whole Dream Diary", false)
+    .option("--json", "Print JSON")
+    .action(async (opts: MemoryDreamsCommandOptions) => {
+      await runMemoryDreams(opts);
     });
 
   memory

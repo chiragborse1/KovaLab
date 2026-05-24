@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for `kova memory` (status/index/search/promote/promote-explain/rem-harness)"
+summary: "CLI reference for `kova memory` (status/index/search/dreams/promote/promote-explain/rem-harness)"
 read_when:
   - You want to index or search semantic memory
   - You’re debugging memory availability or indexing
@@ -28,6 +28,9 @@ kova memory status --fix
 kova memory index --force
 kova memory search "meeting notes"
 kova memory search --query "deployment" --max-results 20
+kova memory dreams
+kova memory dreams --lines 80
+kova memory dreams --all
 kova memory promote --limit 10 --min-score 0.75
 kova memory promote --apply
 kova memory promote --json --min-recall-count 0 --min-unique-queries 0
@@ -50,6 +53,7 @@ Authorized chat surfaces expose the same terminal-first recall loop through slas
 - `/memory sync [force]`: refresh the active memory index; `force` requests a full rebuild.
 - `/memory search <query>`: return top recalled snippets with file/line citations.
 - `/memory read <path[:line[-end]]> [from=<line>] [lines=<count>]`: read a cited source excerpt directly from chat.
+- `/memory dreams [lines=<count>|all]`: review recent Dream Diary entries from chat.
 
 ## Options
 
@@ -82,6 +86,20 @@ If `memory status` shows `Dreaming status: blocked`, the managed dreaming cron i
 - `--max-results <n>`: limit the number of results returned.
 - `--min-score <n>`: filter out low-score matches.
 - `--json`: print JSON results.
+
+`memory dreams`:
+
+Review the human-readable Dream Diary written by dreaming runs.
+
+```bash
+kova memory dreams [--agent <id>] [--lines <n>] [--all] [--json]
+```
+
+- Reads `DREAMS.md` or existing `dreams.md` from the selected agent workspace.
+- Default output shows the last 80 lines so large diaries do not flood the terminal.
+- `--lines <n>`: show the last N lines, capped to a safe terminal limit.
+- `--all`: show the full diary.
+- `--json`: print script-friendly output with path, line counts, truncation state, and content.
 
 `memory promote`:
 
@@ -145,6 +163,7 @@ facts into `MEMORY.md`), and **REM** (reflect and surface themes).
 - Dreaming runs on one managed sweep schedule (`dreaming.frequency`) and executes phases in order: light, REM, deep.
 - Only the deep phase writes durable memory to `MEMORY.md`.
 - Human-readable phase output and diary entries are written to `DREAMS.md` (or existing `dreams.md`), with optional per-phase reports in `memory/dreaming/<phase>/YYYY-MM-DD.md`.
+- Review the diary from the terminal with `kova memory dreams` or from chat with `/memory dreams`.
 - Ranking uses weighted signals: recall frequency, retrieval relevance, query diversity, temporal recency, cross-day consolidation, and derived concept richness.
 - Promotion re-reads the live daily note before writing to `MEMORY.md`, so edited or deleted short-term snippets do not get promoted from stale recall-store snapshots.
 - Scheduled and manual `memory promote` runs share the same deep phase defaults unless you pass CLI threshold overrides.

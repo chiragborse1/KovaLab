@@ -326,6 +326,8 @@ describe("memory cli", () => {
     expect(helpText).toContain("Quick search using positional query.");
     expect(helpText).toContain('kova memory search --query "deployment" --max-results 20');
     expect(helpText).toContain("Limit results for focused troubleshooting.");
+    expect(helpText).toContain("kova memory dreams --lines 80");
+    expect(helpText).toContain("Review the latest Dream Diary entries from the terminal.");
     expect(helpText).toContain("kova memory promote --apply");
     expect(helpText).toContain("Append top-ranked short-term candidates into MEMORY.md.");
     expect(helpText).toContain('kova memory promote-explain "router vlan"');
@@ -929,6 +931,75 @@ describe("memory cli", () => {
     expect(Array.isArray(payload.results)).toBe(true);
     expect(payload.results).toHaveLength(1);
     expect(close).toHaveBeenCalled();
+  });
+
+  it("prints a bounded Dream Diary tail", async () => {
+    await withTempWorkspace(async (workspaceDir) => {
+      await fs.writeFile(
+        path.join(workspaceDir, "DREAMS.md"),
+        ["# Dream Diary", "older note", "newer note"].join("\n"),
+        "utf-8",
+      );
+      const close = vi.fn(async () => {});
+      mockManager({
+        status: () => makeMemoryStatus({ workspaceDir }),
+        close,
+      });
+
+      const log = spyRuntimeLogs(defaultRuntime);
+      await runMemoryCli(["dreams", "--lines", "2"]);
+
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("Dream Diary (main)"));
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("Showing: last 2 of 3 lines"));
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("older note\nnewer note"));
+      expect(log).not.toHaveBeenCalledWith(expect.stringContaining("# Dream Diary"));
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
+  it("prints Dream Diary json", async () => {
+    await withTempWorkspace(async (workspaceDir) => {
+      await fs.writeFile(path.join(workspaceDir, "dreams.md"), "lowercase diary\n", "utf-8");
+      const close = vi.fn(async () => {});
+      mockManager({
+        status: () => makeMemoryStatus({ workspaceDir }),
+        close,
+      });
+
+      const writeJson = spyRuntimeJson(defaultRuntime);
+      await runMemoryCli(["dreams", "--json"]);
+
+      const payload = firstWrittenJsonArg<{
+        agentId: string;
+        found: boolean;
+        path: string;
+        content: string;
+      }>(writeJson);
+      expect(payload).toMatchObject({
+        agentId: "main",
+        found: true,
+        path: "dreams.md",
+        content: "lowercase diary\n",
+      });
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
+  it("reports when the Dream Diary is missing", async () => {
+    await withTempWorkspace(async (workspaceDir) => {
+      const close = vi.fn(async () => {});
+      mockManager({
+        status: () => makeMemoryStatus({ workspaceDir }),
+        close,
+      });
+
+      const log = spyRuntimeLogs(defaultRuntime);
+      await runMemoryCli(["dreams"]);
+
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("Dream Diary not found"));
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("DREAMS.md"));
+      expect(close).toHaveBeenCalled();
+    });
   });
 
   it("prints no candidates when promote has no short-term recall data", async () => {

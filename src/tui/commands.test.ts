@@ -49,7 +49,7 @@ describe("getSlashCommands", () => {
     const commands = getSlashCommands();
     const memory = commands.find((command) => command.name === "memory");
     expect(memory?.argumentHint).toBe(
-      "status | sync [force] | search <query> | read <path[:line[-end]]>",
+      "status | sync [force] | search <query> | read <path[:line[-end]]> | dreams",
     );
     expect(memory?.getArgumentCompletions?.("s")).toEqual([
       {
@@ -78,6 +78,13 @@ describe("getSlashCommands", () => {
         value: "sync force",
         label: "sync force",
         description: "Rebuild the active memory index",
+      },
+    ]);
+    expect(memory?.getArgumentCompletions?.("d")).toEqual([
+      {
+        value: "dreams",
+        label: "dreams",
+        description: "Review the Dream Diary",
       },
     ]);
   });
@@ -188,7 +195,7 @@ describe("helpText", () => {
     expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");
     expect(output).toContain("/context [compact|verbose]");
     expect(output).toContain(
-      "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>>",
+      "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
     );
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins list");

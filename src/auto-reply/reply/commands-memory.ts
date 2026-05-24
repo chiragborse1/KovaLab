@@ -1,3 +1,6 @@
+import fsSync from "node:fs";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { logVerbose } from "../../globals.js";
 import type {
@@ -16,6 +19,9 @@ import type {
 const MAX_MEMORY_SEARCH_RESULTS = 5;
 const DEFAULT_MEMORY_READ_LINES = 40;
 const MAX_MEMORY_READ_LINES = 120;
+const DEFAULT_DREAM_DIARY_LINES = 80;
+const MAX_DREAM_DIARY_LINES = 160;
+const DREAM_DIARY_FILE_NAMES = ["DREAMS.md", "dreams.md"] as const;
 
 function memoryHelpText(): string {
   return [
@@ -24,11 +30,13 @@ function memoryHelpText(): string {
     "- /memory sync [force]",
     "- /memory search <query>",
     "- /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]",
+    "- /memory dreams [lines=<count>|all]",
     "",
     "Terminal equivalents:",
     "- kova memory status --deep",
     "- kova memory index --force",
     '- kova memory search "<query>"',
+    "- kova memory dreams --lines 80",
   ].join("\n");
 }
 
@@ -118,6 +126,93 @@ function formatMemoryReadResult(result: MemoryReadResult): string {
         )}`
       : "";
   return `${header}\n\n${result.text || "(empty)"}${continuation}`;
+}
+
+async function readDreamDiary(workspaceDir: string): Promise<{
+  found: boolean;
+  path: string;
+  content?: string;
+  updatedAtMs?: number;
+}> {
+  for (const name of DREAM_DIARY_FILE_NAMES) {
+    const filePath = path.join(workspaceDir, name);
+    let stat: fsSync.Stats;
+    try {
+      stat = await fs.lstat(filePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException | undefined)?.code === "ENOENT") {
+        continue;
+      }
+      return { found: false, path: name };
+    }
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      continue;
+    }
+    try {
+      return {
+        found: true,
+        path: name,
+        content: await fs.readFile(filePath, "utf-8"),
+        updatedAtMs: Math.floor(stat.mtimeMs),
+      };
+    } catch {
+      return { found: false, path: name };
+    }
+  }
+  return { found: false, path: DREAM_DIARY_FILE_NAMES[0] };
+}
+
+function parseDreamDiaryArgs(raw: string): { all: boolean; lines: number } {
+  let all = false;
+  let lines = DEFAULT_DREAM_DIARY_LINES;
+  for (const token of raw
+    .split(/\s+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)) {
+    const normalized = token.toLowerCase();
+    if (normalized === "all" || normalized === "--all") {
+      all = true;
+      continue;
+    }
+    const match = normalized.match(/^--?lines(?:=|:)(\d+)$/) ?? normalized.match(/^lines=(\d+)$/);
+    const value = match?.[1] ? parsePositiveInteger(match[1]) : undefined;
+    if (value) {
+      lines = Math.min(MAX_DREAM_DIARY_LINES, value);
+    }
+  }
+  return { all, lines };
+}
+
+function formatDreamDiary(params: {
+  agentId: string;
+  diary: Awaited<ReturnType<typeof readDreamDiary>>;
+  all: boolean;
+  lines: number;
+}): string {
+  if (!params.diary.found || params.diary.content === undefined) {
+    return [
+      `Dream Diary not found (${params.agentId}).`,
+      `Expected: ${params.diary.path}`,
+      "Dreaming writes review notes after it has run at least once.",
+    ].join("\n");
+  }
+  const allLines = params.diary.content.split(/\r?\n/);
+  const lineCount = allLines.length;
+  const truncated = !params.all && lineCount > params.lines;
+  const shown = truncated ? allLines.slice(-params.lines).join("\n") : params.diary.content;
+  const updated = params.diary.updatedAtMs
+    ? new Date(params.diary.updatedAtMs).toISOString()
+    : "unknown";
+  const showing = truncated
+    ? `last ${String(params.lines)} of ${String(lineCount)} lines`
+    : `${String(lineCount)} line${lineCount === 1 ? "" : "s"}`;
+  return [
+    `Dream Diary (${params.agentId}): ${params.diary.path}`,
+    `Updated: ${updated}`,
+    `Showing: ${showing}`,
+    "",
+    shown.trimEnd() || "(empty)",
+  ].join("\n");
 }
 
 function parseMemoryCommand(normalized: string): { action: string; query: string } | null {
@@ -419,8 +514,55 @@ export const handleMemoryCommand: CommandHandler = async (
     }
   }
 
+  if (parsed.action === "dreams" || parsed.action === "diary") {
+    const { manager, error } = await resolveMemoryManager(params, "status");
+    if (!manager) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Dream Diary unavailable${error ? `: ${error}` : ""}\nVerify: kova memory status --deep`,
+        },
+      };
+    }
+    try {
+      const status = manager.status();
+      const workspaceDir = status.workspaceDir?.trim();
+      if (!workspaceDir) {
+        return {
+          shouldContinue: false,
+          reply: {
+            text: "Dream Diary unavailable: no memory workspace resolved.\nVerify: kova memory status --deep",
+          },
+        };
+      }
+      const diary = await readDreamDiary(workspaceDir);
+      const options = parseDreamDiaryArgs(parsed.query);
+      return {
+        shouldContinue: false,
+        reply: {
+          text: formatDreamDiary({
+            agentId: params.agentId ?? "main",
+            diary,
+            ...options,
+          }),
+        },
+      };
+    } catch (error) {
+      return {
+        shouldContinue: false,
+        reply: {
+          text: `Dream Diary failed: ${String(error)}\nVerify: kova memory status --deep`,
+        },
+      };
+    } finally {
+      await closeStatusMemoryManager(manager);
+    }
+  }
+
   return {
     shouldContinue: false,
-    reply: { text: "Usage: /memory [help|status|sync [force]|search <query>|read <path>]" },
+    reply: {
+      text: "Usage: /memory [help|status|sync [force]|search <query>|read <path>|dreams]",
+    },
   };
 };

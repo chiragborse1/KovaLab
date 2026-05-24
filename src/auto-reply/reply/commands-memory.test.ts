@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { baseCommandTestConfig, buildCommandTestParams } from "./commands.test-harness.js";
 
@@ -37,6 +40,7 @@ describe("handleMemoryCommand", () => {
     expect(result?.shouldContinue).toBe(false);
     expect(result?.reply?.text).toContain("/memory status");
     expect(result?.reply?.text).toContain("/memory sync");
+    expect(result?.reply?.text).toContain("/memory dreams");
     expect(result?.reply?.text).toContain("kova memory search");
     expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
   });
@@ -169,5 +173,48 @@ describe("handleMemoryCommand", () => {
       "Usage: /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]",
     );
     expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
+  });
+
+  it("reads the Dream Diary through memory commands", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-memory-dreams-"));
+    const close = vi.fn();
+    try {
+      await fs.writeFile(
+        path.join(workspaceDir, "DREAMS.md"),
+        ["# Dream Diary", "older note", "newer note"].join("\n"),
+        "utf-8",
+      );
+      getActiveMemorySearchManagerMock.mockResolvedValue({
+        manager: { status: () => ({ ...baseStatus, workspaceDir }), close },
+      });
+
+      const result = await handleMemoryCommand(buildParams("/memory dreams lines=2"), true);
+
+      expect(result?.reply?.text).toContain("Dream Diary (main): DREAMS.md");
+      expect(result?.reply?.text).toContain("Showing: last 2 of 3 lines");
+      expect(result?.reply?.text).toContain("older note\nnewer note");
+      expect(result?.reply?.text).not.toContain("# Dream Diary");
+      expect(close).toHaveBeenCalledOnce();
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports when the Dream Diary has not been created yet", async () => {
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-memory-dreams-missing-"));
+    const close = vi.fn();
+    try {
+      getActiveMemorySearchManagerMock.mockResolvedValue({
+        manager: { status: () => ({ ...baseStatus, workspaceDir }), close },
+      });
+
+      const result = await handleMemoryCommand(buildParams("/memory dreams"), true);
+
+      expect(result?.reply?.text).toContain("Dream Diary not found");
+      expect(result?.reply?.text).toContain("DREAMS.md");
+      expect(close).toHaveBeenCalledOnce();
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
   });
 });
