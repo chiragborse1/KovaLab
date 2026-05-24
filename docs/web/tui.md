@@ -130,6 +130,13 @@ Core:
 - `/skill <name> [args]`
 - `/plugins list|show|install|update|enable|disable`
 
+Capability map:
+
+- channels: `kova channels capabilities`
+- plugins and plugin-owned tools: `/plugins list|show` or `kova plugins inspect --all`
+- model/provider readiness: `/models` or `kova models status`
+- runtime isolation: `kova sandbox list`
+
 Session controls:
 
 - `/think <off|minimal|low|medium|high>`

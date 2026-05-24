@@ -14,6 +14,7 @@
 - CLI: add `kova logs --grep`, `--level`, and `--subsystem` filters so terminal log review can replace browser log panes. Thanks @chiragborse1
 - CLI/TUI: add `/plugins update` with dry-run support so tracked plugin upgrades can be managed from terminal chat. Thanks @chiragborse1
 - CLI: add `kova plugins compatibility-report` for maintainer plugin compatibility and deprecation cleanup review from the terminal. Thanks @chiragborse1
+- CLI/TUI: add a terminal capability map to status and TUI docs for channel, plugin, model, and sandbox capability discovery. Thanks @chiragborse1
 - CLI: add `kova cron templates` and `kova cron add --template ...` for terminal-first schedule creation without browser shortcuts. Thanks @chiragborse1
 - CLI/TUI: run local chat turns through an isolated terminal backend worker so provider, memory, and tool work no longer share the renderer event loop. Thanks @chiragborse1
 - CLI/TUI: add opt-in `KOVA_TUI_TRACE=1` turn timing diagnostics for local terminal chat latency investigations. Thanks @chiragborse1

@@ -46,14 +46,16 @@ Done:
   [Reference Agent Capability Parity Review](/plan/reference-agent-capability-parity).
 - Kova capability matrices now have a docs-derived inventory in
   [Kova Capability Matrices](/plan/kova-capability-matrices).
+- `kova status`, `kova status --all`, and TUI docs now point users to the
+  terminal commands that own channel, plugin, model, and sandbox capabilities.
 - Core docs and CLI prompts now point ordinary administration toward terminal
   commands first, keeping the browser Control UI as optional compatibility.
 
 Remaining:
 
 - Use the hotspot audit to choose one clear owner-boundary refactor at a time.
-- Move capability matrices into CLI/TUI docs and status surfaces where they can
-  be maintained from manifests or owner docs.
+- Add generated or manifest-backed capability inventory where static owner docs
+  still have gaps.
 - Closed-learning-loop cleanup: memory, dreaming, Skill Workshop, and skill
   proposal review as one product story.
 - Filesystem checkpoint/rollback decision and implementation plan.

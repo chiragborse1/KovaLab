@@ -24,6 +24,9 @@ Notes:
   `kova logs`, `kova tasks`, `kova memory`, `kova skills`, and TUI slash
   commands for daily administration. The browser UI appears only when it is
   explicitly enabled.
+- The `Capability map` row points to the terminal commands that own the live
+  capability inventory: `kova channels capabilities`, `kova plugins inspect
+--all`, `kova models status`, and `kova sandbox list`.
 - `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Slack + Signal).
 - The Memory row is intentionally lightweight: plain `status` does not run a live vector/embedding probe. Use `kova memory status --deep` for memory backend diagnostics and `kova memory index` for an on-demand sync.
 - `--usage` prints normalized provider usage windows as `X% left`.

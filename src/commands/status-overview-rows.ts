@@ -27,6 +27,15 @@ import {
 import type { MemoryPluginStatus, MemoryStatusSnapshot } from "./status.scan.shared.js";
 import type { StatusSummary } from "./status.types.js";
 
+function buildCapabilityMapValue() {
+  return [
+    `channels ${formatCliCommand("kova channels capabilities")}`,
+    `plugins ${formatCliCommand("kova plugins inspect --all")}`,
+    `models ${formatCliCommand("kova models status")}`,
+    `sandbox ${formatCliCommand("kova sandbox list")}`,
+  ].join(" · ");
+}
+
 export function buildStatusCommandOverviewRows(
   params: {
     opts: {
@@ -108,6 +117,7 @@ export function buildStatusCommandOverviewRows(
     agentsValue,
     suffixRows: [
       { Item: "Memory", Value: memoryValue },
+      { Item: "Capability map", Value: buildCapabilityMapValue() },
       { Item: "Plugin compatibility", Value: pluginCompatibilityValue },
       { Item: "Probes", Value: probesValue },
       { Item: "Events", Value: eventsValue },
@@ -157,6 +167,7 @@ export function buildStatusAllOverviewRows(params: {
     ],
     middleRows: [
       { Item: "Security", Value: `Run: ${formatCliCommand("kova security audit --deep")}` },
+      { Item: "Capability map", Value: buildCapabilityMapValue() },
     ],
     terminalValue: formatCliCommand("kova chat"),
     agentsValue: buildStatusAllAgentsValue({
