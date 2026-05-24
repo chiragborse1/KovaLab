@@ -287,12 +287,12 @@ describe("gateway-status local target scheme", () => {
     expect(targets).toContainEqual(
       expect.objectContaining({
         id: "localLoopback",
-        url: "wss://127.0.0.1:18790",
+        url: "wss://127.0.0.1:18789",
       }),
     );
 
     const hints = buildNetworkHints(cfg as never);
-    expect(hints.localLoopbackUrl).toBe("wss://127.0.0.1:18790");
+    expect(hints.localLoopbackUrl).toBe("wss://127.0.0.1:18789");
   });
 });
 
