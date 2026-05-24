@@ -36,6 +36,15 @@ function buildCapabilityMapValue() {
   ].join(" · ");
 }
 
+function buildLearningLoopValue() {
+  return [
+    `memory ${formatCliCommand("kova memory status")}`,
+    `dreams ${formatCliCommand("kova memory dreams")}`,
+    `skills ${formatCliCommand("kova skills list")}`,
+    `proposals ${formatCliCommand("kova skill-workshop review")}`,
+  ].join(" · ");
+}
+
 export function buildStatusCommandOverviewRows(
   params: {
     opts: {
@@ -117,6 +126,7 @@ export function buildStatusCommandOverviewRows(
     agentsValue,
     suffixRows: [
       { Item: "Memory", Value: memoryValue },
+      { Item: "Learning loop", Value: buildLearningLoopValue() },
       { Item: "Capability map", Value: buildCapabilityMapValue() },
       { Item: "Plugin compatibility", Value: pluginCompatibilityValue },
       { Item: "Probes", Value: probesValue },
@@ -167,6 +177,7 @@ export function buildStatusAllOverviewRows(params: {
     ],
     middleRows: [
       { Item: "Security", Value: `Run: ${formatCliCommand("kova security audit --deep")}` },
+      { Item: "Learning loop", Value: buildLearningLoopValue() },
       { Item: "Capability map", Value: buildCapabilityMapValue() },
     ],
     terminalValue: formatCliCommand("kova chat"),

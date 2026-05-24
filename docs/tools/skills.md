@@ -95,6 +95,13 @@ workspace skill overrides them. You can gate them via
 See [Plugins](/tools/plugin) for discovery/config and [Tools](/tools) for
 the tool surface those skills teach.
 
+## Learning loop
+
+Skills are one review point in Kova's local learning loop. Memory and dreaming
+help surface facts or patterns; Skill Workshop turns repeated procedures into
+reviewable workspace skill proposals. Start from [Learning Loop](/concepts/learning-loop)
+when deciding whether something belongs in memory, a dream review, or a skill.
+
 ## Skill Workshop
 
 The optional, experimental **Skill Workshop** plugin can create or update

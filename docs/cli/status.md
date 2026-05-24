@@ -27,6 +27,9 @@ Notes:
 - The `Capability map` row points to the terminal commands that own the live
   capability inventory: `kova channels capabilities`, `kova plugins inspect
 --all`, `kova models status`, and `kova sandbox list`.
+- The `Learning loop` row points to reviewable memory and skill-improvement
+  commands: `kova memory status`, `kova memory dreams`, `kova skills list`, and
+  `kova skill-workshop review`.
 - `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Slack + Signal).
 - The Memory row is intentionally lightweight: plain `status` does not run a live vector/embedding probe. Use `kova memory status --deep` for memory backend diagnostics and `kova memory index` for an on-demand sync.
 - `--usage` prints normalized provider usage windows as `X% left`.
@@ -48,3 +51,4 @@ Notes:
 
 - [CLI reference](/cli)
 - [Doctor](/gateway/doctor)
+- [Learning Loop](/concepts/learning-loop)

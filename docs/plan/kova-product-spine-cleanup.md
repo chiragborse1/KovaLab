@@ -52,14 +52,16 @@ Done:
   commands first, keeping the browser Control UI as optional compatibility.
 - The first hotspot cleanup slice moved bundled runtime dependency Jiti aliasing
   out of the plugin loader into an owner-focused plugin helper module.
+- Memory, Dream Diary review, memory promotion, and Skill Workshop proposals
+  now have one terminal-first learning-loop story in
+  [Learning Loop](/concepts/learning-loop), with `kova status` pointing to the
+  review commands.
 
 Remaining:
 
 - Continue hotspot cleanup one owner-boundary slice at a time.
 - Add generated or manifest-backed capability inventory where static owner docs
   still have gaps.
-- Closed-learning-loop cleanup: memory, dreaming, Skill Workshop, and skill
-  proposal review as one product story.
 - Filesystem checkpoint/rollback decision and implementation plan.
 - MCP runtime parity decisions for saved-server status, dynamic tool refresh,
   and sampling.
