@@ -77,6 +77,7 @@ describe("KovaHero", () => {
   it("formats token labels as a compact context gauge", () => {
     const rendered = normalizeTestText(formatContextGauge("tokens 15k/272k (6%)"));
 
+    expect(rendered).toContain("ctx");
     expect(rendered).toContain("15k/272k");
     expect(rendered).toContain("[");
     expect(rendered).toContain("6%");

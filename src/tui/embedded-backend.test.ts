@@ -417,7 +417,7 @@ describe("EmbeddedTuiBackend", () => {
 
   it("routes local text slash commands through the reply command pipeline", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
-    getReplyFromConfigMock.mockResolvedValueOnce({ text: "Memory commands:" });
+    getReplyFromConfigMock.mockResolvedValueOnce({ text: "Memory status:" });
 
     const backend = new EmbeddedTuiBackend();
     const events: Array<{ event: string; payload: unknown }> = [];
@@ -445,7 +445,7 @@ describe("EmbeddedTuiBackend", () => {
           message: {
             role: "assistant",
             command: true,
-            content: [{ type: "text", text: "Memory commands:" }],
+            content: [{ type: "text", text: "Memory status:" }],
             timestamp: expect.any(Number),
           },
         },

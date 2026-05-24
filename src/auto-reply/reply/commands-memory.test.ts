@@ -35,14 +35,34 @@ describe("handleMemoryCommand", () => {
   });
 
   it("shows memory command help", async () => {
-    const result = await handleMemoryCommand(buildParams("/memory"), true);
+    const result = await handleMemoryCommand(buildParams("/memory help"), true);
 
     expect(result?.shouldContinue).toBe(false);
+    expect(result?.reply?.text).toContain("/memory help");
     expect(result?.reply?.text).toContain("/memory status");
     expect(result?.reply?.text).toContain("/memory sync");
     expect(result?.reply?.text).toContain("/memory dreams");
     expect(result?.reply?.text).toContain("kova memory search");
     expect(getActiveMemorySearchManagerMock).not.toHaveBeenCalled();
+  });
+
+  it("defaults bare memory to status", async () => {
+    const close = vi.fn();
+    getActiveMemorySearchManagerMock.mockResolvedValue({
+      manager: { status: () => baseStatus, close },
+    });
+
+    const result = await handleMemoryCommand(buildParams("/memory"), true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(result?.reply?.text).toContain("Memory status:");
+    expect(result?.reply?.text).toContain("backend builtin");
+    expect(getActiveMemorySearchManagerMock).toHaveBeenCalledWith({
+      cfg: baseCommandTestConfig,
+      agentId: "main",
+      purpose: "status",
+    });
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it("formats lightweight memory status", async () => {

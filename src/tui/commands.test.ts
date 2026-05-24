@@ -195,7 +195,7 @@ describe("helpText", () => {
     expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");
     expect(output).toContain("/context [compact|verbose]");
     expect(output).toContain(
-      "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
+      "/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]",
     );
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins [list|verbose|show <plugin>]");

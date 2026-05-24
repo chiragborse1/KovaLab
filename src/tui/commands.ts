@@ -415,7 +415,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/recover [status|apply]",
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
     "/context [compact|verbose]",
-    "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
+    "/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]",
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
     "/plugins [list|verbose|show <plugin>]",

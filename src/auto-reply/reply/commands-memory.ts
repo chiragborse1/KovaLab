@@ -26,6 +26,7 @@ const DREAM_DIARY_FILE_NAMES = ["DREAMS.md", "dreams.md"] as const;
 function memoryHelpText(): string {
   return [
     "Memory commands:",
+    "- /memory help",
     "- /memory status",
     "- /memory sync [force]",
     "- /memory search <query>",
@@ -221,7 +222,7 @@ function parseMemoryCommand(normalized: string): { action: string; query: string
   }
   const args = normalized.slice("/memory".length).trim();
   if (!args) {
-    return { action: "help", query: "" };
+    return { action: "status", query: "" };
   }
   const [actionRaw, ...rest] = args.split(/\s+/);
   const action = actionRaw?.toLowerCase() ?? "help";
