@@ -50,10 +50,12 @@ Done:
   terminal commands that own channel, plugin, model, and sandbox capabilities.
 - Core docs and CLI prompts now point ordinary administration toward terminal
   commands first, keeping the browser Control UI as optional compatibility.
+- The first hotspot cleanup slice moved bundled runtime dependency Jiti aliasing
+  out of the plugin loader into an owner-focused plugin helper module.
 
 Remaining:
 
-- Use the hotspot audit to choose one clear owner-boundary refactor at a time.
+- Continue hotspot cleanup one owner-boundary slice at a time.
 - Add generated or manifest-backed capability inventory where static owner docs
   still have gaps.
 - Closed-learning-loop cleanup: memory, dreaming, Skill Workshop, and skill

@@ -177,6 +177,9 @@ for compatibility, security, release safety, or direct bug fixes.
   operator UX should land in CLI/TUI first.
 - Repo audit repeatability: added `scripts/audit-kova-spine.mjs` to refresh the
   same tracked-file counts, largest-file signals, and Control UI drift counts.
+- Plugin loader: moved bundled runtime dependency Jiti alias collection into
+  `src/plugins/bundled-runtime-jiti-aliases.ts` so loader orchestration no
+  longer owns dependency export-map scanning.
 
 ## Next Implementation Slices
 
