@@ -60,12 +60,12 @@ Done:
   plan in [Filesystem Checkpoint And Rollback](/plan/filesystem-checkpoint-rollback).
 - MCP saved-server status, dynamic tool refresh, and sampling now have explicit
   runtime parity decisions in [MCP Runtime Parity](/plan/mcp-runtime-parity).
+- Plugin capability ownership can now be refreshed from manifests with
+  `scripts/plugin-capability-inventory.mjs`.
 
 Remaining:
 
 - Continue hotspot cleanup one owner-boundary slice at a time.
-- Add generated or manifest-backed capability inventory where static owner docs
-  still have gaps.
 
 ## Goal
 

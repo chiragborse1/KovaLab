@@ -16,6 +16,17 @@ Use the linked owner docs as the source of truth for exact setup, limits, and
 runtime behavior. Before changing behavior, verify the owner module and targeted
 tests.
 
+Manifest-backed ownership can be refreshed with:
+
+```sh
+node scripts/plugin-capability-inventory.mjs
+node scripts/plugin-capability-inventory.mjs --json
+```
+
+That inventory reads tracked `extensions/*/kova.plugin.json` files and reports
+channel, provider, CLI backend, skill, command alias, and `contracts.*`
+ownership without loading plugin runtime code.
+
 ## Legend
 
 | Mark    | Meaning                                                                |
@@ -83,7 +94,8 @@ Tool matrix follow-ups:
 
 - Make tool group/profile selection visible in terminal setup, `kova settings`,
   and `kova status --all`.
-- Add a generated or manifest-backed inventory for plugin-owned tools.
+- Use `scripts/plugin-capability-inventory.mjs` as the manifest-backed starting
+  point for plugin-owned tools and provider surfaces.
 - Keep "built-in", "plugin", and "MCP" origin visible to users.
 
 ## Runtime And Isolation Matrix
