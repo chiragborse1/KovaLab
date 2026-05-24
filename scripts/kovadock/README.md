@@ -151,11 +151,11 @@ The Docker setup uses three config files on the host. The container never stores
 
 ### Config Files
 
-| File                           | Purpose                                          | Examples                                                    |
-| ------------------------------ | ------------------------------------------------ | ----------------------------------------------------------- |
-| `<project>/.env`               | **Docker infra** — image, ports, gateway token   | `KOVA_GATEWAY_TOKEN`, `KOVA_IMAGE`, `KOVA_GATEWAY_PORT`     |
-| `~/.kova/.env`                 | **Secrets** — API keys and bot tokens            | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN` |
-| `~/.chiragborse1/KovaLab.json` | **Behavior config** — models, channels, policies | Model selection, WhatsApp allowlists, agent settings        |
+| File                | Purpose                                          | Examples                                                    |
+| ------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
+| `<project>/.env`    | **Docker infra** — image, ports, gateway token   | `KOVA_GATEWAY_TOKEN`, `KOVA_IMAGE`, `KOVA_GATEWAY_PORT`     |
+| `~/.kova/.env`      | **Secrets** — API keys and bot tokens            | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN` |
+| `~/.kova/kova.json` | **Behavior config** — models, channels, policies | Model selection, WhatsApp allowlists, agent settings        |
 
 **Do NOT** put API keys or bot tokens in `kova.json`. Use `~/.kova/.env` for all secrets.
 
@@ -198,7 +198,7 @@ volumes:
 This means:
 
 - `~/.kova/.env` is available inside the container at `/home/node/.kova/.env` — Kova loads it automatically as the global env fallback
-- `~/.chiragborse1/KovaLab.json` is available at `/home/node/.chiragborse1/KovaLab.json` — the gateway watches it and hot-reloads most changes
+- `~/.kova/kova.json` is available at `/home/node/.kova/kova.json` — the gateway watches it and hot-reloads most changes
 - No need to add API keys to `docker-compose.yml` or configure anything inside the container
 - Keys survive `kovadock-update`, `kovadock-rebuild`, and `kovadock-clean` because they live on the host
 

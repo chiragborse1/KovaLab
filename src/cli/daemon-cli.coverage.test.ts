@@ -181,7 +181,7 @@ describe("daemon-cli coverage", () => {
 
     expect(probeGatewayStatus).toHaveBeenCalledTimes(1);
     expect(probeGatewayStatus).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "ws://127.0.0.1:18790" }),
+      expect.objectContaining({ url: "ws://127.0.0.1:18789" }),
     );
     expect(findExtraGatewayServices).not.toHaveBeenCalled();
     expect(inspectPortUsage).toHaveBeenCalled();

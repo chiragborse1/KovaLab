@@ -139,7 +139,7 @@ kova hooks disable command-logger
 
 ## Configuration
 
-Hooks can be configured in `~/.chiragborse1/KovaLab.json`:
+Hooks can be configured in `~/.kova/kova.json`:
 
 ```json
 {

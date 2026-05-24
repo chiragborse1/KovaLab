@@ -153,7 +153,7 @@ describe("registerQrCli", () => {
   }
 
   function expectLoggedLocalSetupCode() {
-    expectLoggedSetupCode("ws://127.0.0.1:18790");
+    expectLoggedSetupCode("ws://127.0.0.1:18789");
   }
 
   function mockTailscaleStatusLookup() {
@@ -190,7 +190,7 @@ describe("registerQrCli", () => {
     await runQr(["--setup-code-only"]);
 
     const expected = encodePairingSetupCode({
-      url: "ws://127.0.0.1:18790",
+      url: "ws://127.0.0.1:18789",
       bootstrapToken: "bootstrap-123",
     });
     expect(runtime.log).toHaveBeenCalledWith(expected);
@@ -244,7 +244,7 @@ describe("registerQrCli", () => {
 
     await runQr(["--setup-code-only"]);
 
-    expectLoggedSetupCode("ws://192.168.1.8:18790");
+    expectLoggedSetupCode("ws://192.168.1.8:18789");
   });
 
   it("allows android emulator cleartext override urls", async () => {

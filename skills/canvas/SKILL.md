@@ -57,7 +57,7 @@ This is why localhost URLs don't work - the node receives the Tailscale hostname
 
 ## Configuration
 
-In the active Kova config file (`$KOVA_CONFIG_PATH`, default `~/.chiragborse1/KovaLab.json`):
+In the active Kova config file (`$KOVA_CONFIG_PATH`, default `~/.kova/kova.json`):
 
 ```json
 {

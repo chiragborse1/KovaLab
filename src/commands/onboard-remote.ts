@@ -14,7 +14,7 @@ import type { WizardPrompter } from "../wizard/prompts.js";
 import { detectBinary } from "./onboard-helpers.js";
 import type { SecretInputMode } from "./onboard-types.js";
 
-const DEFAULT_GATEWAY_URL = "ws://127.0.0.1:18790";
+const DEFAULT_GATEWAY_URL = "ws://127.0.0.1:18789";
 
 function buildLabel(beacon: GatewayBonjourBeacon): string {
   return buildGatewayDiscoveryLabel(beacon);

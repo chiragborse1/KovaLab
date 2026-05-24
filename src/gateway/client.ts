@@ -48,6 +48,8 @@ import {
   validateResponseFrame,
 } from "./protocol/index.js";
 
+const DEFAULT_GATEWAY_WS_URL = "ws://127.0.0.1:18789";
+
 type Pending = {
   resolve: (value: unknown) => void;
   reject: (err: unknown) => void;
@@ -232,7 +234,7 @@ export class GatewayClient {
     this.clearConnectChallengeTimeout();
     this.connectNonce = null;
     this.connectSent = false;
-    const url = this.opts.url ?? "ws://127.0.0.1:18790";
+    const url = this.opts.url ?? DEFAULT_GATEWAY_WS_URL;
     if (this.opts.tlsFingerprint && !url.startsWith("wss://")) {
       this.opts.onConnectError?.(new Error("gateway tls fingerprint requires wss:// gateway url"));
       return;
@@ -254,7 +256,7 @@ export class GatewayClient {
         `SECURITY ERROR: Cannot connect to "${displayHost}" over plaintext ws://. ` +
           "Both credentials and chat data would be exposed to network interception. " +
           "Use wss:// for remote URLs. Safe defaults: keep gateway.bind=loopback and connect via SSH tunnel " +
-          "(ssh -N -L 18790:127.0.0.1:18790 user@gateway-host), or use Tailscale Serve/Funnel. " +
+          "(ssh -N -L 18789:127.0.0.1:18789 user@gateway-host), or use Tailscale Serve/Funnel. " +
           (allowPrivateWs
             ? ""
             : "Break-glass (trusted private networks only): set KOVA_ALLOW_INSECURE_PRIVATE_WS=1. ") +
@@ -685,7 +687,7 @@ export class GatewayClient {
   }
 
   private isTrustedDeviceRetryEndpoint(): boolean {
-    const rawUrl = this.opts.url ?? "ws://127.0.0.1:18789";
+    const rawUrl = this.opts.url ?? DEFAULT_GATEWAY_WS_URL;
     try {
       const parsed = new URL(rawUrl);
       const protocol =

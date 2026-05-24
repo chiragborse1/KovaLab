@@ -72,7 +72,7 @@ Resolve the active state directory first:
 STATE_DIR="${KOVA_STATE_DIR:-$HOME/.kova}"
 ```
 
-Then write those resolved paths into the active Kova config file (`$KOVA_CONFIG_PATH`, default `~/.chiragborse1/KovaLab.json`):
+Then write those resolved paths into the active Kova config file (`$KOVA_CONFIG_PATH`, default `~/.kova/kova.json`):
 
 ```json5
 {

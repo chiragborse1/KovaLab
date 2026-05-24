@@ -62,7 +62,7 @@ describe("ensureControlUiAllowedOriginsForNonLoopbackBind", () => {
     );
 
     expect(result.bind).toBe("auto");
-    expect(result.seededOrigins).toEqual(["http://localhost:18790", "http://127.0.0.1:18790"]);
+    expect(result.seededOrigins).toEqual(["http://localhost:18789", "http://127.0.0.1:18789"]);
   });
 
   it("does not overwrite explicit allowed origins", () => {

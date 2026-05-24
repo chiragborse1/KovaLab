@@ -29,7 +29,7 @@ spec:
             - sh
             - -c
             - |
-              cp /config/kova.json /home/node/.chiragborse1/KovaLab.json
+              cp /config/kova.json /home/node/.kova/kova.json
               mkdir -p /home/node/.kova/workspace
               cp /config/AGENTS.md /home/node/.kova/workspace/AGENTS.md
           securityContext:

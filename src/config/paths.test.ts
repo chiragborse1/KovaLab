@@ -131,8 +131,8 @@ describe("gateway port resolution", () => {
   });
 
   it("defaults fresh Kova gateways to the Kova port", () => {
-    expect(DEFAULT_GATEWAY_PORT).toBe(18790);
-    expect(resolveGatewayPort({}, envWith({}))).toBe(18790);
+    expect(DEFAULT_GATEWAY_PORT).toBe(18789);
+    expect(resolveGatewayPort({}, envWith({}))).toBe(18789);
   });
 });
 

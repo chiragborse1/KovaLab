@@ -37,7 +37,7 @@ function createIoForHome(home: string, env: NodeJS.ProcessEnv = {} as NodeJS.Pro
 }
 
 describe("config io paths", () => {
-  it("uses ~/.chiragborse1/KovaLab.json when config exists", async () => {
+  it("uses ~/.kova/kova.json when config exists", async () => {
     await withTempHome(async (home) => {
       const configPath = await writeConfig(home, ".kova", 19001);
       const io = createIoForHome(home);
@@ -45,7 +45,7 @@ describe("config io paths", () => {
     });
   });
 
-  it("defaults to ~/.chiragborse1/KovaLab.json when config is missing", async () => {
+  it("defaults to ~/.kova/kova.json when config is missing", async () => {
     await withTempHome(async (home) => {
       const io = createIoForHome(home);
       expect(io.configPath).toBe(path.join(home, ".kova", "kova.json"));

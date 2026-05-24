@@ -23,12 +23,12 @@ const CASES: GuidanceCase[] = [
   {
     file: "skills/gh-issues/SKILL.md",
     required: ["KOVA_CONFIG_PATH"],
-    forbidden: ["cat ~/.chiragborse1/KovaLab.json"],
+    forbidden: ["cat ~/.chiragborse1/KovaLab.json", "cat ~/.kova/kova.json"],
   },
   {
     file: "skills/canvas/SKILL.md",
     required: ["KOVA_CONFIG_PATH"],
-    forbidden: ["cat ~/.chiragborse1/KovaLab.json"],
+    forbidden: ["cat ~/.chiragborse1/KovaLab.json", "cat ~/.kova/kova.json"],
   },
   {
     file: "skills/openai-whisper-api/SKILL.md",

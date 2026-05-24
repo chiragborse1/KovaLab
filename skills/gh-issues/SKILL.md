@@ -131,7 +131,7 @@ If in watch mode: Also filter out any issue numbers already in the PROCESSED_ISS
 Error handling:
 
 - If curl returns an HTTP 401 or 403 → stop and tell the user:
-  > "GitHub authentication failed. Please check your apiKey in the Kova dashboard or in the active Kova config path (`$KOVA_CONFIG_PATH`, default `~/.chiragborse1/KovaLab.json`) under `skills.entries.gh-issues`."
+  > "GitHub authentication failed. Please check your apiKey in the Kova dashboard or in the active Kova config path (`$KOVA_CONFIG_PATH`, default `~/.kova/kova.json`) under `skills.entries.gh-issues`."
 - If the response is an empty array (after filtering) → report "No issues found matching filters" and stop (or loop back if in watch mode).
 - If curl fails or returns any other error → report the error verbatim and stop.
 
@@ -229,7 +229,7 @@ Run these checks sequentially via exec:
 
    If HTTP status is not 200, stop with:
 
-   > "GitHub authentication failed. Please check your apiKey in the Kova dashboard or in the active Kova config path (`$KOVA_CONFIG_PATH`, default `~/.chiragborse1/KovaLab.json`) under `skills.entries.gh-issues`."
+   > "GitHub authentication failed. Please check your apiKey in the Kova dashboard or in the active Kova config path (`$KOVA_CONFIG_PATH`, default `~/.kova/kova.json`) under `skills.entries.gh-issues`."
 
 5. **Check for existing PRs:**
    For each confirmed issue number N, run:
