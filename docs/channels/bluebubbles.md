@@ -494,7 +494,7 @@ If the flag is on and split-sends still arrive as two turns, check each layer:
 <AccordionGroup>
   <Accordion title="Config actually loaded">
     ```
-    grep coalesceSameSenderDms ~/.chiragborse1/KovaLab.json
+    grep coalesceSameSenderDms ~/.kova/kova.json
     ```
 
     Then `kova gateway restart` — the flag is read at debouncer-registry creation.

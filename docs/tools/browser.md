@@ -133,7 +133,7 @@ Set `browser.defaultProfile: "kova"` if you want managed mode by default.
 
 ## Configuration
 
-Browser settings live in `~/.chiragborse1/KovaLab.json`.
+Browser settings live in `~/.kova/kova.json`.
 
 ```json5
 {

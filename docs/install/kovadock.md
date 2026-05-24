@@ -93,7 +93,7 @@ KovaDock works with the same Docker config split described in [Docker](/install/
 - `<project>/.env` for Docker-specific values like image name, ports, and the gateway token
 - `~/.kova/.env` for env-backed provider keys and bot tokens
 - `~/.kova/agents/<agentId>/agent/auth-profiles.json` for stored provider OAuth/API-key auth
-- `~/.chiragborse1/KovaLab.json` for behavior config
+- `~/.kova/kova.json` for behavior config
 
 Use `kovadock-show-config` when you want to inspect the `.env` files and `kova.json` quickly. It redacts `.env` values in its printed output.
 

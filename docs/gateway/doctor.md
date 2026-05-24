@@ -63,7 +63,7 @@ kova doctor
 If you want to review changes before writing, open the config file first:
 
 ```bash
-cat ~/.chiragborse1/KovaLab.json
+cat ~/.kova/kova.json
 ```
 
 ## What it does (summary)
@@ -164,7 +164,7 @@ That stages grounded durable candidates into the short-term dreaming store while
 
     - Explain which legacy keys were found.
     - Show the migration it applied.
-    - Rewrite `~/.chiragborse1/KovaLab.json` with the updated schema.
+    - Rewrite `~/.kova/kova.json` with the updated schema.
 
     The Gateway also auto-runs doctor migrations on startup when it detects a legacy config format, so stale configs are repaired without manual intervention. Cron job store migrations are handled by `kova doctor --fix`.
 
@@ -305,7 +305,7 @@ That stages grounded durable candidates into the short-term dreaming store while
     - **Main session "1-line JSONL"**: flags when the main transcript has only one line (history is not accumulating).
     - **Multiple state dirs**: warns when multiple `~/.kova` folders exist across home directories or when `KOVA_STATE_DIR` points elsewhere (history can split between installs).
     - **Remote mode reminder**: if `gateway.mode=remote`, doctor reminds you to run it on the remote host (the state lives there).
-    - **Config file permissions**: warns if `~/.chiragborse1/KovaLab.json` is group/world readable and offers to tighten to `600`.
+    - **Config file permissions**: warns if `~/.kova/kova.json` is group/world readable and offers to tighten to `600`.
 
   </Accordion>
   <Accordion title="5. Model auth health (OAuth expiry)">

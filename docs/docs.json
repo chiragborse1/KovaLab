@@ -377,27 +377,11 @@
       "destination": "/start/kova"
     },
     {
-      "source": "/start/kova",
-      "destination": "/start/kova"
-    },
-    {
-      "source": "/start/kova/",
-      "destination": "/start/kova"
-    },
-    {
       "source": "/start/pairing",
       "destination": "/channels/pairing"
     },
     {
       "source": "/kovahub",
-      "destination": "/tools/kovahub"
-    },
-    {
-      "source": "/kovahub",
-      "destination": "/tools/kovahub"
-    },
-    {
-      "source": "/tools/kovahub",
       "destination": "/tools/kovahub"
     },
     {

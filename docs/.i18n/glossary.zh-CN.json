@@ -546,5 +546,41 @@
   {
     "source": "/cli/config",
     "target": "/cli/config"
+  },
+  {
+    "source": "Control UI command",
+    "target": "Control UI 命令"
+  },
+  {
+    "source": "CLI reference",
+    "target": "CLI 参考"
+  },
+  {
+    "source": "Control UI",
+    "target": "Control UI"
+  },
+  {
+    "source": "Terminal UI",
+    "target": "Terminal UI"
+  },
+  {
+    "source": "Control UI auth troubleshooting",
+    "target": "Control UI 认证故障排除"
+  },
+  {
+    "source": "CLI: goals",
+    "target": "CLI：goals"
+  },
+  {
+    "source": "Skill Workshop plugin",
+    "target": "Skill Workshop 插件"
+  },
+  {
+    "source": "/gateway/troubleshooting#control-ui-connectivity",
+    "target": "/gateway/troubleshooting#control-ui-connectivity"
+  },
+  {
+    "source": "Control UI access",
+    "target": "Control UI 访问"
   }
 ]

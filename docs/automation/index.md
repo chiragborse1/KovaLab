@@ -9,6 +9,21 @@ title: "Automation & tasks"
 
 Kova runs work in the background through tasks, scheduled jobs, event hooks, and standing instructions. This page helps you choose the right mechanism and understand how they fit together.
 
+## Product spine
+
+Automation is one stack, not several unrelated schedulers:
+
+- **Hooks** react to lifecycle events.
+- **Cron** starts work at an exact time or from an inbound trigger.
+- **Standing orders** define long-running authority and boundaries.
+- **Task Flow** coordinates durable multi-step workflows.
+- **Background tasks** record detached execution, delivery, and audit state.
+- **Heartbeat** runs periodic main-session awareness checks when exact timing is
+  less important than context.
+
+Goals and higher-level commands should map onto this stack instead of creating
+a parallel automation model.
+
 ## Quick decision guide
 
 ```mermaid
@@ -23,25 +38,25 @@ flowchart TD
     Q1a -->|Exact| CRON["Scheduled Tasks (Cron)"]
     Q1a -->|Flexible| HEARTBEAT[Heartbeat]
 
-    Q2 -->|Yes| TASKS[Background Tasks]
-    Q3 -->|Yes| FLOW[Task Flow]
+    Q2 -->|Yes| TASKS["Background Tasks"]
+    Q3 -->|Yes| FLOW["Task Flow"]
     Q4 -->|Yes| HOOKS[Hooks]
-    Q5 -->|Yes| SO[Standing Orders]
+    Q5 -->|Yes| SO["Standing Orders"]
 ```
 
-| Use case                                | Recommended            | Why                                              |
-| --------------------------------------- | ---------------------- | ------------------------------------------------ |
-| Send daily report at 9 AM sharp         | Scheduled Tasks (Cron) | Exact timing, isolated execution                 |
-| Remind me in 20 minutes                 | Scheduled Tasks (Cron) | One-shot with precise timing (`--at`)            |
-| Run weekly deep analysis                | Scheduled Tasks (Cron) | Standalone task, can use different model         |
-| Check inbox every 30 min                | Heartbeat              | Batches with other checks, context-aware         |
-| Monitor calendar for upcoming events    | Heartbeat              | Natural fit for periodic awareness               |
-| Inspect status of a subagent or ACP run | Background Tasks       | Tasks ledger tracks all detached work            |
-| Audit what ran and when                 | Background Tasks       | `kova tasks list` and `kova tasks audit` |
-| Multi-step research then summarize      | Task Flow              | Durable orchestration with revision tracking     |
-| Run a script on session reset           | Hooks                  | Event-driven, fires on lifecycle events          |
-| Execute code on every tool call         | Plugin hooks           | In-process hooks can intercept tool calls        |
-| Always check compliance before replying | Standing Orders        | Injected into every session automatically        |
+| Use case                                | Recommended            | Why                                          |
+| --------------------------------------- | ---------------------- | -------------------------------------------- |
+| Send daily report at 9 AM sharp         | Scheduled Tasks (Cron) | Exact timing, isolated execution             |
+| Remind me in 20 minutes                 | Scheduled Tasks (Cron) | One-shot with precise timing (`--at`)        |
+| Run weekly deep analysis                | Scheduled Tasks (Cron) | Standalone task, can use different model     |
+| Check inbox every 30 min                | Heartbeat              | Batches with other checks, context-aware     |
+| Monitor calendar for upcoming events    | Heartbeat              | Natural fit for periodic awareness           |
+| Inspect status of a subagent or ACP run | Background Tasks       | Tasks ledger tracks all detached work        |
+| Audit what ran and when                 | Background Tasks       | `kova tasks list` and `kova tasks audit`     |
+| Multi-step research then summarize      | Task Flow              | Durable orchestration with revision tracking |
+| Run a script on session reset           | Hooks                  | Event-driven, fires on lifecycle events      |
+| Execute code on every tool call         | Plugin hooks           | In-process hooks can intercept tool calls    |
+| Always check compliance before replying | Standing Orders        | Injected into every session automatically    |
 
 ### Scheduled Tasks (Cron) vs Heartbeat
 

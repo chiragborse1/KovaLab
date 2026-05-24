@@ -152,7 +152,7 @@ Follow the onboarding prompts to set up your model provider (Anthropic, OpenAI, 
 Edit the config file:
 
 ```bash
-nano ~/.chiragborse1/KovaLab.json
+nano ~/.kova/kova.json
 ```
 
 Add your channels:

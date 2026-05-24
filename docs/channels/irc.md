@@ -11,7 +11,7 @@ IRC ships as a bundled plugin, but it is configured in the main config under `ch
 
 ## Quick start
 
-1. Enable IRC config in `~/.chiragborse1/KovaLab.json`.
+1. Enable IRC config in `~/.kova/kova.json`.
 2. Set at least:
 
 ```json5

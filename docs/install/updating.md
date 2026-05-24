@@ -148,7 +148,7 @@ bun add -g getkova@latest
 
 ## Auto-updater
 
-The auto-updater is off by default. Enable it in `~/.chiragborse1/KovaLab.json`:
+The auto-updater is off by default. Enable it in `~/.kova/kova.json`:
 
 ```json5
 {

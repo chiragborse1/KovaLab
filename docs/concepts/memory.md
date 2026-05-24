@@ -10,6 +10,25 @@ Kova remembers things by writing **plain Markdown files** in your agent's
 workspace. The model only "remembers" what gets saved to disk — there is no
 hidden state.
 
+## Product spine
+
+Memory and context are related, but they are not the same layer:
+
+- **Memory files** store durable facts, daily notes, and reviewable dreaming
+  output.
+- **Memory search** retrieves saved material through the active memory backend.
+- **Active memory** can proactively recall relevant material before or during a
+  conversational turn.
+- **Context** is the current model input: prompt, history, tools, attachments,
+  retrieved memory, and compaction summaries.
+- **Context engines** decide how context is assembled and compacted for a run.
+- **Compaction** manages token budget; it is not long-term memory unless the
+  agent or memory flush writes important facts to memory files.
+
+Use this split when debugging "why did the agent know or forget this?" First
+check whether the fact was saved to memory, then whether it was retrieved, then
+whether it was included in the current context.
+
 ## How it works
 
 Your agent has three memory-related files:

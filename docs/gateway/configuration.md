@@ -7,7 +7,7 @@ read_when:
 title: "Configuration"
 ---
 
-Kova reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.chiragborse1/KovaLab.json`.
+Kova reads an optional <Tooltip tip="JSON5 supports comments and trailing commas">**JSON5**</Tooltip> config from `~/.kova/kova.json`.
 The active config path must be a regular file. Symlinked `kova.json`
 layouts are unsupported for Kova-owned writes; an atomic write may replace
 the path instead of preserving the symlink. If you keep config outside the
@@ -33,7 +33,7 @@ field map and defaults.
 ## Minimal config
 
 ```json5
-// ~/.chiragborse1/KovaLab.json
+// ~/.kova/kova.json
 {
   agents: { defaults: { workspace: "~/.kova/workspace" } },
   channels: { whatsapp: { allowFrom: ["+15555550123"] } },
@@ -65,7 +65,7 @@ field map and defaults.
     fetch one path-scoped schema node plus immediate child summaries.
   </Tab>
   <Tab title="Direct edit">
-    Edit `~/.chiragborse1/KovaLab.json` directly. The Gateway watches the file and applies changes automatically (see [hot reload](#config-hot-reload)).
+    Edit `~/.kova/kova.json` directly. The Gateway watches the file and applies changes automatically (see [hot reload](#config-hot-reload)).
   </Tab>
 </Tabs>
 
@@ -476,7 +476,7 @@ cannot roll back unrelated user settings.
     Use `$include` to organize large configs:
 
     ```json5
-    // ~/.chiragborse1/KovaLab.json
+    // ~/.kova/kova.json
     {
       gateway: { port: 18789 },
       agents: { $include: "./agents.json5" },
@@ -504,7 +504,7 @@ cannot roll back unrelated user settings.
 
 ## Config hot reload
 
-The Gateway watches `~/.chiragborse1/KovaLab.json` and applies changes automatically — no manual restart needed for most settings.
+The Gateway watches `~/.kova/kova.json` and applies changes automatically — no manual restart needed for most settings.
 
 Direct file edits are treated as untrusted until they validate. The watcher waits
 for editor temp-write/rename churn to settle, reads the final file, and rejects

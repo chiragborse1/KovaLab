@@ -303,7 +303,7 @@ kova config set channels.discord.token \
     {
       "ok": true,
       "operations": 1,
-      "configPath": "~/.chiragborse1/KovaLab.json",
+      "configPath": "~/.kova/kova.json",
       "inputModes": ["builder"],
       "checks": {
         "schema": false,
@@ -320,7 +320,7 @@ kova config set channels.discord.token \
     {
       "ok": false,
       "operations": 1,
-      "configPath": "~/.chiragborse1/KovaLab.json",
+      "configPath": "~/.kova/kova.json",
       "inputModes": ["builder"],
       "checks": {
         "schema": false,

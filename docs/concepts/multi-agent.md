@@ -6,11 +6,33 @@ read_when: "You want multiple isolated agents (workspaces + auth) in one gateway
 status: active
 ---
 
+Kova starts with one default personal agent. Multi-agent routing extends that
+same model when one Gateway needs to host multiple isolated agents side by side.
+
 Run multiple _isolated_ agents — each with its own workspace, state directory (`agentDir`), and session history — plus multiple channel accounts (e.g. two WhatsApps) in one running Gateway. Inbound messages are routed to the right agent through bindings.
 
 An **agent** here is the full per-persona scope: workspace files, auth profiles, model registry, and session store. `agentDir` is the on-disk state directory that holds this per-agent config at `~/.kova/agents/<agentId>/`. A **binding** maps a channel account (e.g. a Slack workspace or a WhatsApp number) to one of those agents.
 
-## What is "one agent"?
+Use multi-agent routing when you need separate people, personas, credentials,
+or workspaces. Do not use it just to run one-off background work; use sessions,
+subagents, cron, or Task Flow for that.
+
+## How this relates to the default agent
+
+The default mode is still the simplest and recommended setup:
+
+- one Gateway
+- one `main` agent
+- one workspace
+- one per-agent state directory
+- one session store
+
+Multi-agent mode repeats that same unit for each extra `agentId` and adds
+bindings so inbound messages can choose the right agent deterministically.
+Nothing in multi-agent mode changes the core meaning of an agent; it only adds
+more isolated copies of that unit.
+
+## What is one agent?
 
 An **agent** is a fully scoped brain with its own:
 
@@ -42,7 +64,7 @@ The Gateway can host **one agent** (default) or **many agents** side-by-side.
 
 ## Paths (quick map)
 
-- Config: `~/.chiragborse1/KovaLab.json` (or `KOVA_CONFIG_PATH`)
+- Config: `~/.kova/kova.json` (or `KOVA_CONFIG_PATH`)
 - State dir: `~/.kova` (or `KOVA_STATE_DIR`)
 - Workspace: `~/.kova/workspace` (or `~/.kova/workspace-<agentId>`)
 - Agent dir: `~/.kova/agents/<agentId>/agent` (or `agents.list[].agentDir`)
@@ -359,7 +381,7 @@ Common channels supporting this pattern include:
     kova channels login --channel whatsapp --account biz
     ```
 
-    `~/.chiragborse1/KovaLab.json` (JSON5):
+    `~/.kova/kova.json` (JSON5):
 
     ```js
     {

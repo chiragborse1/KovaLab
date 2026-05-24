@@ -45,7 +45,7 @@ Supported keys:
 - `seed`, `normalize`, `lang`, `output_format`, `latency_tier`
 - `once`
 
-## Config (`~/.chiragborse1/KovaLab.json`)
+## Config (`~/.kova/kova.json`)
 
 ```json5
 {

@@ -55,7 +55,7 @@ kova channels login
 kova gateway --port 18789
 ```
 
-3. Put a minimal config in `~/.chiragborse1/KovaLab.json`:
+3. Put a minimal config in `~/.kova/kova.json`:
 
 ```json5
 {

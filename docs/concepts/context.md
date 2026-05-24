@@ -17,6 +17,19 @@ Beginner mental model:
 
 Context is _not the same thing_ as “memory”: memory can be stored on disk and reloaded later; context is what’s inside the model’s current window.
 
+## Product spine
+
+The context stack has separate responsibilities:
+
+- **Session history** is the transcript Kova can draw from.
+- **Memory** is durable information saved outside the current context window.
+- **Active memory** retrieves relevant saved information when enabled.
+- **Context engine** assembles the run input and owns compaction behavior.
+- **Model context** is the final bounded payload sent to the provider.
+
+When context feels too large or incomplete, debug those layers in order instead
+of treating memory, transcript history, and compaction as one feature.
+
 ## Quick start (inspect context)
 
 - `/status` → quick “how full is my window?” view + session settings.

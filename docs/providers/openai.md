@@ -39,14 +39,14 @@ changing config.
 
 The names are similar but not interchangeable:
 
-| Name you see                       | Layer             | Meaning                                                                                           |
-| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------- |
-| `openai`                           | Provider prefix   | Direct OpenAI Platform API route.                                                                 |
+| Name you see                       | Layer             | Meaning                                                                                       |
+| ---------------------------------- | ----------------- | --------------------------------------------------------------------------------------------- |
+| `openai`                           | Provider prefix   | Direct OpenAI Platform API route.                                                             |
 | `openai-codex`                     | Provider prefix   | OpenAI Codex OAuth/subscription route through the normal Kova PI runner.                      |
 | `codex` plugin                     | Plugin            | Bundled Kova plugin that provides native Codex app-server runtime and `/codex` chat controls. |
-| `agentRuntime.id: codex`           | Agent runtime     | Force the native Codex app-server harness for embedded turns.                                     |
-| `/codex ...`                       | Chat command set  | Bind/control Codex app-server threads from a conversation.                                        |
-| `runtime: "acp", agentId: "codex"` | ACP session route | Explicit fallback path that runs Codex through ACP/acpx.                                          |
+| `agentRuntime.id: codex`           | Agent runtime     | Force the native Codex app-server harness for embedded turns.                                 |
+| `/codex ...`                       | Chat command set  | Bind/control Codex app-server threads from a conversation.                                    |
+| `runtime: "acp", agentId: "codex"` | ACP session route | Explicit fallback path that runs Codex through ACP/acpx.                                      |
 
 This means a config can intentionally contain both `openai-codex/*` and the
 `codex` plugin. That is valid when you want Codex OAuth through PI and also want
@@ -72,7 +72,7 @@ through PI, `kova doctor` warns and leaves the route unchanged.
 
 ## Kova feature coverage
 
-| OpenAI capability         | Kova surface                                           | Status                                                 |
+| OpenAI capability         | Kova surface                                               | Status                                                 |
 | ------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
 | Chat / Responses          | `openai/<model>` model provider                            | Yes                                                    |
 | Codex subscription models | `openai-codex/<model>` with `openai-codex` OAuth           | Yes                                                    |

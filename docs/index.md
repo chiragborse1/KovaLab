@@ -26,7 +26,7 @@ title: "Kova"
 
 <p align="center">
   <strong>Terminal-first local agent for memory, skills, tools, and durable workflows.</strong><br />
-  Start in <code>kova chat</code>. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
+  Start in kova chat. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
 </p>
 
 <Columns>
@@ -137,7 +137,7 @@ Open the optional browser Control UI after the Gateway starts.
 
 ## Configuration (optional)
 
-Config lives at `~/.chiragborse1/KovaLab.json`.
+Config lives at `~/.kova/kova.json`.
 
 - If you **do nothing**, Kova uses the bundled Pi binary in RPC mode with per-sender sessions.
 - If you want to lock it down, start with `channels.whatsapp.allowFrom` and (for groups) mention rules.

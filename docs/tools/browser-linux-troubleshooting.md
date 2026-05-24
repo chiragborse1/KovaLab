@@ -50,7 +50,7 @@ sudo dpkg -i google-chrome-stable_current_amd64.deb
 sudo apt --fix-broken install -y  # if there are dependency errors
 ```
 
-Then update your Kova config (`~/.chiragborse1/KovaLab.json`):
+Then update your Kova config (`~/.kova/kova.json`):
 
 ```json
 {

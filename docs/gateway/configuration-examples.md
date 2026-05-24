@@ -20,7 +20,7 @@ Examples below are aligned with the current config schema. For the exhaustive re
 }
 ```
 
-Save to `~/.chiragborse1/KovaLab.json` and you can DM the bot from that number.
+Save to `~/.kova/kova.json` and you can DM the bot from that number.
 
 ### Recommended starter
 

@@ -15,7 +15,7 @@ For a high-level overview, see [Onboarding (CLI)](/start/wizard).
 
 <Steps>
   <Step title="Existing config detection">
-    - If `~/.chiragborse1/KovaLab.json` exists, choose **Keep / Modify / Reset**.
+    - If `~/.kova/kova.json` exists, choose **Keep / Modify / Reset**.
     - Re-running onboarding does **not** wipe anything unless you explicitly choose **Reset**
       (or pass `--reset`).
     - CLI `--reset` defaults to `config+creds+sessions`; use `--reset-scope full`
@@ -211,7 +211,7 @@ Notes:
 
 ## What the wizard writes
 
-Typical fields in `~/.chiragborse1/KovaLab.json`:
+Typical fields in `~/.kova/kova.json`:
 
 - `agents.defaults.workspace`
 - `agents.defaults.model` / `models.providers` (if Minimax chosen)

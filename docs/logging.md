@@ -28,7 +28,7 @@ Kova keeps up to five numbered archives beside the active file, such as
 `kova-YYYY-MM-DD.1.log`, and keeps writing to a fresh active log instead of
 suppressing diagnostics.
 
-You can override this in `~/.chiragborse1/KovaLab.json`:
+You can override this in `~/.kova/kova.json`:
 
 ```json
 {
@@ -144,7 +144,7 @@ kova gateway --verbose --ws-log full
 
 ## Configuring logging
 
-All logging configuration lives under `logging` in `~/.chiragborse1/KovaLab.json`.
+All logging configuration lives under `logging` in `~/.kova/kova.json`.
 
 ```json
 {

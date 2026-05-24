@@ -86,7 +86,7 @@ Optional compatibility controls:
 ## Where to set the key
 
 **Via config:** run `kova configure --section web`. It stores the key in
-`~/.chiragborse1/KovaLab.json` under `plugins.entries.perplexity.config.webSearch.apiKey`.
+`~/.kova/kova.json` under `plugins.entries.perplexity.config.webSearch.apiKey`.
 That field also accepts SecretRef objects.
 
 **Via environment:** set `PERPLEXITY_API_KEY` or `OPENROUTER_API_KEY`

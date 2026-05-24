@@ -7,7 +7,7 @@ title: "Skills config"
 ---
 
 Most skills loader/install configuration lives under `skills` in
-`~/.chiragborse1/KovaLab.json`. Agent-specific skill visibility lives under
+`~/.kova/kova.json`. Agent-specific skill visibility lives under
 `agents.defaults.skills` and `agents.list[].skills`.
 
 ```json5

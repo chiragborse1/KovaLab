@@ -30,7 +30,7 @@ It does not install or modify anything on the remote host.
 
 <Steps>
   <Step title="Existing config detection">
-    - If `~/.chiragborse1/KovaLab.json` exists, choose Keep, Modify, or Reset.
+    - If `~/.kova/kova.json` exists, choose Keep, Modify, or Reset.
     - Re-running the wizard does not wipe anything unless you explicitly choose Reset (or pass `--reset`).
     - CLI `--reset` defaults to `config+creds+sessions`; use `--reset-scope full` to also remove workspace.
     - If config is invalid or contains legacy keys, the wizard stops and asks you to run `kova doctor` before continuing.
@@ -263,7 +263,7 @@ is only a legacy import source.
 
 ## Outputs and internals
 
-Typical fields in `~/.chiragborse1/KovaLab.json`:
+Typical fields in `~/.kova/kova.json`:
 
 - `agents.defaults.workspace`
 - `agents.defaults.skipBootstrap` when `--skip-bootstrap` is passed

@@ -53,7 +53,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     - `/model` in chat (quick, per-session)
     - `kova models set ...` (updates just model config)
     - `kova configure --section model` (interactive)
-    - edit `agents.defaults.model` in `~/.chiragborse1/KovaLab.json`
+    - edit `agents.defaults.model` in `~/.kova/kova.json`
 
     Avoid `config.apply` with a partial object unless you intend to replace the whole config.
     For RPC edits, inspect with `config.schema.lookup` first and prefer `config.patch`. The lookup payload gives you the normalized path, shallow schema docs/constraints, and immediate child summaries.

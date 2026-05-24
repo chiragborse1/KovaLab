@@ -166,7 +166,7 @@ Prefer `kova sandbox recreate` over manual backend-specific cleanup. It uses the
 
 ## Configuration
 
-Sandbox settings live in `~/.chiragborse1/KovaLab.json` under `agents.defaults.sandbox` (per-agent overrides go in `agents.list[].sandbox`):
+Sandbox settings live in `~/.kova/kova.json` under `agents.defaults.sandbox` (per-agent overrides go in `agents.list[].sandbox`):
 
 ```jsonc
 {

@@ -15,7 +15,7 @@ For onboarding details, see [Onboarding (CLI)](/start/wizard).
 
 Pick a setup workflow based on how often you want updates and whether you want to run the Gateway yourself:
 
-- **Tailoring lives outside the repo:** keep your config and workspace in `~/.chiragborse1/KovaLab.json` and `~/.kova/workspace/` so repo updates don't touch them.
+- **Tailoring lives outside the repo:** keep your config and workspace in `~/.kova/kova.json` and `~/.kova/workspace/` so repo updates don't touch them.
 - **Stable workflow (recommended for most):** install the macOS app and let it run the bundled Gateway.
 - **Bleeding edge workflow (dev):** run the Gateway yourself via `pnpm gateway:watch`, then let the macOS app attach in Local mode.
 
@@ -29,7 +29,7 @@ Pick a setup workflow based on how often you want updates and whether you want t
 
 If you want “100% tailored to me” _and_ easy updates, keep your customization in:
 
-- **Config:** `~/.chiragborse1/KovaLab.json` (JSON/JSON5-ish)
+- **Config:** `~/.kova/kova.json` (JSON/JSON5-ish)
 - **Workspace:** `~/.kova/workspace` (skills, prompts, memories; make it a private git repo)
 
 Bootstrap once:

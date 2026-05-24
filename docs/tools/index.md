@@ -47,6 +47,22 @@ Kova has three layers that work together:
   </Step>
 </Steps>
 
+## Product spine
+
+Keep the ownership split clear:
+
+- **Tools** are callable runtime actions exposed to the model.
+- **Skills** are instructions that teach the model when and how to use tools.
+- **Plugins** package capabilities such as providers, channels, tools, skills,
+  hooks, and harnesses.
+- **Core** owns generic routing, policy, schemas, and shared tool hosts.
+- **Plugins** own provider-specific and channel-specific behavior behind those
+  generic contracts.
+
+If a feature names a provider, channel, harness, or external dependency, start
+in the owning plugin. Add a core seam only when multiple owners need the same
+generic capability.
+
 ## Built-in tools
 
 These tools ship with Kova and are available without installing any plugins:

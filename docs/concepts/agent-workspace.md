@@ -21,7 +21,7 @@ When sandboxing is enabled and `workspaceAccess` is not `"rw"`, tools operate in
 
 - Default: `~/.kova/workspace`
 - If `KOVA_PROFILE` is set and not `"default"`, the default becomes `~/.kova/workspace-<profile>`.
-- Override in `~/.chiragborse1/KovaLab.json`:
+- Override in `~/.kova/kova.json`:
 
 ```json5
 {
@@ -106,7 +106,7 @@ If any bootstrap file is missing, Kova injects a "missing file" marker into the 
 
 These live under `~/.kova/` and should NOT be committed to the workspace repo:
 
-- `~/.chiragborse1/KovaLab.json` (config)
+- `~/.kova/kova.json` (config)
 - `~/.kova/agents/<agentId>/agent/auth-profiles.json` (model auth profiles: OAuth + API keys)
 - `~/.kova/credentials/` (channel/provider state plus legacy OAuth import data)
 - `~/.kova/agents/<agentId>/sessions/` (session transcripts + metadata)
@@ -206,7 +206,7 @@ Suggested `.gitignore` starter:
     Clone the repo to the desired path (default `~/.kova/workspace`).
   </Step>
   <Step title="Update config">
-    Set `agents.defaults.workspace` to that path in `~/.chiragborse1/KovaLab.json`.
+    Set `agents.defaults.workspace` to that path in `~/.kova/kova.json`.
   </Step>
   <Step title="Seed missing files">
     Run `kova setup --workspace <path>` to seed any missing files.

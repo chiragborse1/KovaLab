@@ -10,7 +10,7 @@ title: "ElevenLabs"
 Kova uses ElevenLabs for text-to-speech, batch speech-to-text with Scribe
 v2, and Voice Call streaming STT with Scribe v2 Realtime.
 
-| Capability               | Kova surface                              | Default                  |
+| Capability               | Kova surface                                  | Default                  |
 | ------------------------ | --------------------------------------------- | ------------------------ |
 | Text-to-speech           | `messages.tts` / `talk`                       | `eleven_multilingual_v2` |
 | Batch speech-to-text     | `tools.media.audio`                           | `scribe_v2`              |

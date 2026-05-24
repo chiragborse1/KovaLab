@@ -19,7 +19,7 @@ Kova ships with a built-in `legacy` engine and uses it by default — most users
     ```bash
     kova doctor
     # or inspect config directly:
-    cat ~/.chiragborse1/KovaLab.json | jq '.plugins.slots.contextEngine'
+    cat ~/.kova/kova.json | jq '.plugins.slots.contextEngine'
     ```
   </Step>
   <Step title="Install a plugin engine">

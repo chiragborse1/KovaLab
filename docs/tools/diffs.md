@@ -258,7 +258,7 @@ Mode behavior summary:
 
 ## Plugin defaults
 
-Set plugin-wide defaults in `~/.chiragborse1/KovaLab.json`:
+Set plugin-wide defaults in `~/.kova/kova.json`:
 
 ```json5
 {

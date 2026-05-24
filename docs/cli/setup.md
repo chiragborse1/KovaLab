@@ -8,7 +8,7 @@ title: "Setup"
 
 # `kova setup`
 
-Initialize `~/.chiragborse1/KovaLab.json` and the agent workspace.
+Initialize `~/.kova/kova.json` and the agent workspace.
 
 Related:
 

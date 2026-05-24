@@ -6,7 +6,7 @@ read_when:
   - You are validating channel, model, gateway, or tool config blocks
 ---
 
-Core config reference for `~/.chiragborse1/KovaLab.json`. For a task-oriented overview, see [Configuration](/gateway/configuration).
+Core config reference for `~/.kova/kova.json`. For a task-oriented overview, see [Configuration](/gateway/configuration).
 
 Covers the main Kova config surfaces and links out when a subsystem has its own deeper reference. Channel- and plugin-owned command catalogs and deep memory/QMD knobs live on their own pages rather than on this one.
 
@@ -1209,7 +1209,7 @@ Template placeholders expanded in `tools.media.models[].args`:
 Split config into multiple files:
 
 ```json5
-// ~/.chiragborse1/KovaLab.json
+// ~/.kova/kova.json
 {
   gateway: { port: 18789 },
   agents: { $include: "./agents.json5" },

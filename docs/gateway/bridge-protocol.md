@@ -75,7 +75,7 @@ Payload fields (all optional unless noted):
 ## Historical tailnet usage
 
 - Bind the bridge to a tailnet IP: `bridge.bind: "tailnet"` in
-  `~/.chiragborse1/KovaLab.json` (historical only; `bridge.*` is no longer valid).
+  `~/.kova/kova.json` (historical only; `bridge.*` is no longer valid).
 - Clients connect via MagicDNS name or tailnet IP.
 - Bonjour does **not** cross networks; use manual host/port or wide-area DNS‑SD
   when needed.

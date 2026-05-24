@@ -83,7 +83,7 @@ Notes:
 ## If the command is missing
 
 If `kova browser` is an unknown command, check `plugins.allow` in
-`~/.chiragborse1/KovaLab.json`.
+`~/.kova/kova.json`.
 
 When `plugins.allow` is present, list the bundled browser plugin explicitly
 unless the config already has a root `browser` block:

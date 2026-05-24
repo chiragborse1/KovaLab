@@ -40,7 +40,7 @@ Notes:
 
 - Interactive prompts (like keychain/OAuth fixes) only run when stdin is a TTY and `--non-interactive` is **not** set. Headless runs (cron, Telegram, no terminal) will skip prompts.
 - Performance: non-interactive `doctor` runs skip eager plugin loading so headless health checks stay fast. Interactive sessions still fully load plugins when a check needs their contribution.
-- `--fix` (alias for `--repair`) writes a backup to `~/.chiragborse1/KovaLab.json.bak` and drops unknown config keys, listing each removal.
+- `--fix` (alias for `--repair`) writes a backup to `~/.kova/kova.json.bak` and drops unknown config keys, listing each removal.
 - State integrity checks now detect orphan transcript files in the sessions directory and can archive them as `.deleted.<timestamp>` to reclaim space safely.
 - Doctor also scans `~/.kova/cron/jobs.json` (or `cron.store`) for legacy cron job shapes and can rewrite them in place before the scheduler has to auto-normalize them at runtime.
 - Doctor repairs missing bundled plugin runtime dependencies without writing into packaged global installs. For root-owned npm installs or hardened systemd units, set `KOVA_PLUGIN_STAGE_DIR` to a writable directory such as `/var/lib/kova/plugin-runtime-deps`; it can also be a path-list such as `/opt/kova/plugin-runtime-deps:/var/lib/kova/plugin-runtime-deps`, where earlier roots are read-only lookup layers and the final root is the repair target.

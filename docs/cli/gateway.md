@@ -38,7 +38,7 @@ kova gateway run
 
 <AccordionGroup>
   <Accordion title="Startup behavior">
-    - By default, the Gateway refuses to start unless `gateway.mode=local` is set in `~/.chiragborse1/KovaLab.json`. Use `--allow-unconfigured` for ad-hoc/dev runs.
+    - By default, the Gateway refuses to start unless `gateway.mode=local` is set in `~/.kova/kova.json`. Use `--allow-unconfigured` for ad-hoc/dev runs.
     - `kova onboard --mode local` and `kova setup` are expected to write `gateway.mode=local`. If the file exists but `gateway.mode` is missing, treat that as a broken or clobbered config and repair it instead of assuming local mode implicitly.
     - If the file exists and `gateway.mode` is missing, the Gateway treats that as suspicious config damage and refuses to "guess local" for you.
     - Binding beyond loopback without auth is blocked (safety guardrail).

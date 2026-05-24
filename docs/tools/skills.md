@@ -302,7 +302,7 @@ metadata:
 ## Config overrides
 
 Bundled and managed skills can be toggled and supplied with env values
-under `skills.entries` in `~/.chiragborse1/KovaLab.json`:
+under `skills.entries` in `~/.kova/kova.json`:
 
 ```json5
 {

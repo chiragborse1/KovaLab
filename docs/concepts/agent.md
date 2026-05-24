@@ -5,16 +5,41 @@ read_when:
 title: "Agent runtime"
 ---
 
-Kova runs a **single embedded agent runtime** — one agent process per
-Gateway, with its own workspace, bootstrap files, and session store. This page
-covers that runtime contract: what the workspace must contain, which files get
-injected, and how sessions bootstrap against it.
+Kova's default product shape is **one personal agent controlled by the local
+Gateway**. That default agent has a workspace, bootstrap files, model/auth
+configuration, and a session store. This page covers the default runtime
+contract: what the workspace must contain, which files get injected, and how
+sessions bootstrap against it.
+
+The same Gateway can also host multiple isolated agents. Treat that as an
+advanced routing layer on top of the default model, not a separate product
+concept. The default path is one agent; [Multi-agent routing](/concepts/multi-agent)
+explains how extra isolated agents extend it.
+
+## Product spine
+
+The agent layer has one job: run useful turns inside an explicit workspace.
+
+- **Gateway** owns control, routing, auth, transport, and observability.
+- **Agent runtime** owns model turns, tools, session history, and workspace
+  bootstrap.
+- **Workspace files** own persona, instructions, local notes, and user-editable
+  memory.
+- **Plugins** add providers, channels, tools, skills, and harnesses without
+  making core depend on plugin-specific implementation details.
+- **Automation** triggers or tracks agent work; it does not replace the agent
+  runtime.
+
+When adding or debugging a feature, decide which layer owns the behavior before
+changing code.
 
 ## Workspace (required)
 
-Kova uses a single agent workspace directory (`agents.defaults.workspace`) as the agent’s **only** working directory (`cwd`) for tools and context.
+Kova uses one workspace directory for the default agent
+(`agents.defaults.workspace`) as that agent's working directory (`cwd`) for
+tools and context.
 
-Recommended: use `kova setup` to create `~/.chiragborse1/KovaLab.json` if missing and initialize the workspace files.
+Recommended: use `kova setup` to create `~/.kova/kova.json` if missing and initialize the workspace files.
 
 Full workspace layout + backup guide: [Agent workspace](/concepts/agent-workspace)
 

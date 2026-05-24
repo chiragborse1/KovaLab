@@ -708,7 +708,7 @@ Guidance:
 
 Keep config + state private on the gateway host:
 
-- `~/.chiragborse1/KovaLab.json`: `600` (user read/write only)
+- `~/.kova/kova.json`: `600` (user read/write only)
 - `~/.kova`: `700` (user only)
 
 `kova doctor` can warn and offer to tighten these permissions.

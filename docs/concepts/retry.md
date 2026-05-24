@@ -48,7 +48,7 @@ title: "Retry policy"
 
 ## Configuration
 
-Set retry policy per provider in `~/.chiragborse1/KovaLab.json`:
+Set retry policy per provider in `~/.kova/kova.json`:
 
 ```json5
 {

@@ -78,7 +78,7 @@ access, bind explicitly and keep auth enabled.
 
 For tailnet‑only setups:
 
-- Set `gateway.bind: "tailnet"` in `~/.chiragborse1/KovaLab.json`.
+- Set `gateway.bind: "tailnet"` in `~/.kova/kova.json`.
 - Restart the Gateway (or restart the macOS menubar app).
 
 ## What advertises

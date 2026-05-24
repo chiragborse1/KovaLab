@@ -14,7 +14,7 @@ Kova pulls environment variables from multiple sources. The rule is **never over
 1. **Process environment** (what the Gateway process already has from the parent shell/daemon).
 2. **`.env` in the current working directory** (dotenv default; does not override).
 3. **Global `.env`** at `~/.kova/.env` (aka `$KOVA_STATE_DIR/.env`; does not override).
-4. **Config `env` block** in `~/.chiragborse1/KovaLab.json` (applied only if missing).
+4. **Config `env` block** in `~/.kova/kova.json` (applied only if missing).
 5. **Optional login-shell import** (`env.shellEnv.enabled` or `KOVA_LOAD_SHELL_ENV=1`), applied only for missing expected keys.
 
 On Ubuntu fresh installs that use the default state dir, Kova also treats `~/.config/kova/gateway.env` as a compatibility fallback after the global `.env`. If both files exist and disagree, Kova keeps `~/.kova/.env` and prints a warning.
@@ -107,7 +107,7 @@ Both resolve from process env at activation time. SecretRef details are document
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `KOVA_HOME`        | Override the home directory used for all internal path resolution (`~/.kova/`, agent dirs, sessions, credentials). Useful when running Kova as a dedicated service user. |
 | `KOVA_STATE_DIR`   | Override the state directory (default `~/.kova`).                                                                                                                        |
-| `KOVA_CONFIG_PATH` | Override the config file path (default `~/.chiragborse1/KovaLab.json`).                                                                                                  |
+| `KOVA_CONFIG_PATH` | Override the config file path (default `~/.kova/kova.json`).                                                                                                             |
 
 ## Logging
 

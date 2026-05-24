@@ -30,7 +30,7 @@ The macOS app surfaces Kova skills via the gateway; it does not parse skills loc
 
 ## Env/API keys
 
-- The app stores keys in `~/.chiragborse1/KovaLab.json` under `skills.entries.<skillKey>`.
+- The app stores keys in `~/.kova/kova.json` under `skills.entries.<skillKey>`.
 - `skills.update` patches `enabled`, `apiKey`, and `env`.
 
 ## Remote mode

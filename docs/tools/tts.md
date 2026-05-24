@@ -84,7 +84,7 @@ config; new configs should always use `microsoft`.
 
 ## Configuration
 
-TTS config lives under `messages.tts` in `~/.chiragborse1/KovaLab.json`. Pick a
+TTS config lives under `messages.tts` in `~/.kova/kova.json`. Pick a
 preset and adapt the provider block:
 
 <Tabs>

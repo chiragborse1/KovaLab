@@ -120,7 +120,7 @@ The sidebar is grouped by operating intent:
     - Server cards expose transport, command, args, remote URL, headers, env, and timeout fields without requiring raw object editing.
   </Accordion>
   <Accordion title="Config">
-    - View/edit `~/.chiragborse1/KovaLab.json` (`config.get`, `config.set`).
+    - View/edit `~/.kova/kova.json` (`config.get`, `config.set`).
     - Quick Settings exposes Model & Provider cards backed by `models.list`, `models.authStatus`, and `config.patch`, so the default agent model can be changed without opening the raw config editor.
     - Control Panel owns gateway connection settings plus the browser onboarding wizard, covering the same setup flow as `kova onboard`: model/provider auth, workspace, gateway, channels, web search, daemon/service, skills, and health checks. Setup answers stay visible as the next prompt appears, and the model step includes catalog search plus manual `provider/model` entry backed by `models.list` and `config.patch`.
     - Control Panel also shows provider/auth health from `models.authStatus`, current default model, read-only plugin inventory from `plugins.status`, plugin/channel setup counts from the loaded config snapshot, and setup diagnostics that point operators at health, plugin, and channel reconfiguration without opening raw JSON.
