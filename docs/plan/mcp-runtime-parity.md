@@ -44,10 +44,11 @@ The status command should:
 - report config validity without launching expensive servers by default
 - redact env, headers, URLs, and auth material
 - show whether an active runtime adapter is expected to consume that server
+- optionally probe command presence or HTTP reachability with `--probe`
 
 Still planned after the config-status surface:
 
-- optionally probe reachability with `--probe`
+- full MCP protocol handshakes for saved servers, if a runtime owner needs them
 
 ### Dynamic tool refresh
 
@@ -85,7 +86,7 @@ If added later, sampling must require:
 
 1. Document the current surface split in CLI docs.
 2. Add `kova mcp status` as a config-validity command. Done.
-3. Add optional `--probe` reachability checks with strict timeouts.
+3. Add optional `--probe` reachability checks with strict timeouts. Done.
 4. Surface MCP status in `kova status --all` after the command is stable. Done.
 5. Add dynamic `tools/list_changed` refresh for long-lived runtime clients.
 6. Revisit sampling only with a real product use case.

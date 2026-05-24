@@ -17,6 +17,7 @@
 - CLI/TUI: add a terminal capability map to status and TUI docs for channel, plugin, model, and sandbox capability discovery. Thanks @chiragborse1
 - CLI/TUI: add a terminal learning-loop map and docs tying memory, Dream Diary review, memory promotion, and Skill Workshop proposals together. Thanks @chiragborse1
 - CLI: add `kova mcp status` so saved MCP server config can be reviewed from the terminal with redacted status output before live probes are added. Thanks @chiragborse1
+- CLI: add `kova mcp status --probe` for explicit saved MCP command-presence and HTTP reachability checks without launching stdio MCP servers by default. Thanks @chiragborse1
 - CLI: add `kova cron templates` and `kova cron add --template ...` for terminal-first schedule creation without browser shortcuts. Thanks @chiragborse1
 - CLI/TUI: run local chat turns through an isolated terminal backend worker so provider, memory, and tool work no longer share the renderer event loop. Thanks @chiragborse1
 - CLI/TUI: add opt-in `KOVA_TUI_TRACE=1` turn timing diagnostics for local terminal chat latency investigations. Thanks @chiragborse1

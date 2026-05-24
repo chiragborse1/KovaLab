@@ -105,6 +105,22 @@ describe("mcp cli", () => {
     });
   });
 
+  it("can probe a stdio MCP command without launching the server", async () => {
+    await withTempHome("kova-cli-mcp-home-", async () => {
+      const workspaceDir = await createWorkspace();
+      vi.spyOn(process, "cwd").mockReturnValue(workspaceDir);
+
+      await runMcpCommand(["mcp", "set", "local-node", '{"command":"node"}']);
+
+      mockLog.mockClear();
+      await runMcpCommand(["mcp", "status", "local-node", "--probe"]);
+
+      const output = mockLog.mock.calls.map((call) => String(call[0])).join("\n");
+      expect(output).toContain("local-node: ok stdio command=node");
+      expect(output).toContain("probe: ok command found");
+    });
+  });
+
   it("fails when removing an unknown MCP server", async () => {
     await withTempHome("kova-cli-mcp-home-", async () => {
       const workspaceDir = await createWorkspace();

@@ -21,7 +21,7 @@ In other words:
 Use [`kova acp`](/cli/acp) when Kova should host a coding harness session itself and route that runtime through ACP.
 
 <Note>
-Saved MCP server commands are currently config-management commands. `kova mcp status` validates and redacts saved server config, but it does not launch stdio servers, perform live reachability checks, refresh dynamic tools, or enable MCP sampling. The runtime parity decisions are tracked in [MCP Runtime Parity](/plan/mcp-runtime-parity).
+Saved MCP server commands are currently config-management commands. `kova mcp status` validates and redacts saved server config; `kova mcp status --probe` adds a lightweight command-presence or HTTP reachability probe. These commands do not launch stdio MCP servers, refresh dynamic tools, or enable MCP sampling. The runtime parity decisions are tracked in [MCP Runtime Parity](/plan/mcp-runtime-parity).
 </Note>
 
 ## Kova as an MCP server
@@ -360,6 +360,7 @@ Those saved definitions are for runtimes that Kova launches or configures later,
   <Accordion title="Important behavior">
     - these commands only read or write Kova config
     - `status` validates saved transport shape and redacts URLs, headers, and env values
+    - `status --probe` checks stdio command presence or HTTP reachability with strict timeouts
     - they do not connect to the target MCP server
     - they do not validate whether the command, URL, or remote transport is reachable right now
     - runtime adapters decide which transport shapes they actually support at execution time
@@ -387,6 +388,7 @@ Notes:
 - `list` sorts server names.
 - `status` reports whether saved server config is usable by runtime adapters without launching the server.
 - `status --json` prints the same redacted report as structured JSON.
+- `status --probe` does not launch stdio MCP servers. For stdio entries it only checks whether the command is present. For HTTP entries it opens a strict-timeout request and reports the HTTP status.
 - `show` without a name prints the full configured MCP server object.
 - `set` expects one JSON object value on the command line.
 - Use `transport: "streamable-http"` for Streamable HTTP MCP servers. `kova mcp set` also normalizes CLI-native `type: "http"` to the same canonical config shape for compatibility.
@@ -397,6 +399,7 @@ Examples:
 ```bash
 kova mcp list
 kova mcp status
+kova mcp status --probe
 kova mcp status context7 --json
 kova mcp show context7 --json
 kova mcp set context7 '{"command":"uvx","args":["context7-mcp"]}'

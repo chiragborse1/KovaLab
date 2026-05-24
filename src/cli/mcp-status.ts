@@ -1,3 +1,6 @@
+import { constants as fsConstants } from "node:fs";
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
   describeHttpMcpServerLaunchConfig,
   resolveHttpMcpServerLaunchConfig,
@@ -16,6 +19,12 @@ import { isRecord } from "../utils.js";
 
 type McpStatus = "ok" | "invalid";
 type McpTransportStatus = "stdio" | HttpMcpTransportType | "unknown";
+type McpProbeStatus = "ok" | "failed" | "skipped";
+
+export type McpServerProbeResult = {
+  status: McpProbeStatus;
+  detail: string;
+};
 
 export type McpServerStatusEntry = {
   name: string;
@@ -28,6 +37,7 @@ export type McpServerStatusEntry = {
   envCount?: number;
   headerCount?: number;
   connectionTimeoutMs?: number;
+  probe?: McpServerProbeResult;
   consumer: string;
 };
 
@@ -45,6 +55,10 @@ function readPositiveTimeoutMs(server: Record<string, unknown>): number | undefi
     server.connectionTimeoutMs > 0
     ? server.connectionTimeoutMs
     : undefined;
+}
+
+function getProbeTimeoutMs(server: Record<string, unknown>): number {
+  return Math.min(readPositiveTimeoutMs(server) ?? 5_000, 10_000);
 }
 
 function readStringArrayLength(value: unknown): number | undefined {
@@ -202,6 +216,122 @@ export function buildMcpServerStatusReport(params: {
   };
 }
 
+function commandHasPathSeparator(command: string): boolean {
+  return command.includes("/") || command.includes("\\") || path.isAbsolute(command);
+}
+
+function getCommandPathCandidates(command: string): string[] {
+  if (commandHasPathSeparator(command)) {
+    return [command];
+  }
+  const pathEntries = (process.env.PATH ?? "").split(path.delimiter).filter(Boolean);
+  const extensions =
+    process.platform === "win32"
+      ? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM").split(";").filter(Boolean)
+      : [""];
+  return pathEntries.flatMap((entry) =>
+    extensions.map((extension) => path.join(entry, command + extension)),
+  );
+}
+
+async function canAccessExecutable(candidate: string): Promise<boolean> {
+  try {
+    await fs.access(candidate, process.platform === "win32" ? fsConstants.F_OK : fsConstants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function probeStdioServer(server: Record<string, unknown>): Promise<McpServerProbeResult> {
+  const launch = resolveStdioMcpServerLaunchConfig(server);
+  if (!launch.ok) {
+    return { status: "skipped", detail: "not a stdio server" };
+  }
+  const checks = await Promise.all(
+    getCommandPathCandidates(launch.config.command).map((candidate) =>
+      canAccessExecutable(candidate),
+    ),
+  );
+  const found = checks.some(Boolean);
+  return found
+    ? { status: "ok", detail: "command found" }
+    : { status: "failed", detail: "command not found" };
+}
+
+async function probeHttpServer(server: Record<string, unknown>): Promise<McpServerProbeResult> {
+  const requestedTransport = readRequestedTransport(server);
+  const transportType: HttpMcpTransportType =
+    requestedTransport === "streamable-http" ? "streamable-http" : "sse";
+  const launch = resolveHttpMcpServerLaunchConfig(server, { transportType });
+  if (!launch.ok) {
+    return { status: "skipped", detail: launch.reason };
+  }
+  const timeoutMs = getProbeTimeoutMs(server);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(launch.config.url, {
+      method: "GET",
+      headers: {
+        ...launch.config.headers,
+        accept:
+          launch.config.transportType === "sse"
+            ? "text/event-stream"
+            : "application/json, text/event-stream",
+      },
+      signal: controller.signal,
+    });
+    await response.body?.cancel().catch(() => undefined);
+    if (response.status >= 500) {
+      return { status: "failed", detail: `HTTP ${response.status}` };
+    }
+    return { status: "ok", detail: `HTTP ${response.status}` };
+  } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? `timed out after ${timeoutMs}ms`
+        : error instanceof Error
+          ? error.message
+          : String(error);
+    return { status: "failed", detail: message || "request failed" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function probeMcpServer(
+  entry: McpServerStatusEntry,
+  server: Record<string, unknown> | undefined,
+): Promise<McpServerProbeResult> {
+  if (!server || entry.status !== "ok") {
+    return { status: "skipped", detail: "config invalid" };
+  }
+  if (entry.transport === "stdio") {
+    return probeStdioServer(server);
+  }
+  if (entry.transport === "sse" || entry.transport === "streamable-http") {
+    return probeHttpServer(server);
+  }
+  return { status: "skipped", detail: "unsupported transport" };
+}
+
+export async function probeMcpServerStatusReport(params: {
+  report: McpServerStatusReport;
+  mcpServers: ConfigMcpServers;
+}): Promise<McpServerStatusReport> {
+  const servers = await Promise.all(
+    params.report.servers.map(async (entry) => ({
+      ...entry,
+      probe: await probeMcpServer(entry, params.mcpServers[entry.name]),
+    })),
+  );
+  return {
+    ...params.report,
+    servers,
+  };
+}
+
 export function formatMcpServerStatusReport(report: McpServerStatusReport): string[] {
   const lines = [`MCP saved-server status (${report.path}):`];
   if (report.servers.length === 0) {
@@ -219,6 +349,9 @@ export function formatMcpServerStatusReport(report: McpServerStatusReport): stri
     }
     if (entry.headerCount && entry.headerCount > 0) {
       lines.push(`  header entries: ${entry.headerCount}`);
+    }
+    if (entry.probe) {
+      lines.push(`  probe: ${entry.probe.status} ${entry.probe.detail}`);
     }
     for (const warning of entry.warnings) {
       lines.push(`  warning: ${warning}`);

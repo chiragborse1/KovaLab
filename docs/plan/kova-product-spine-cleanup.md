@@ -64,6 +64,8 @@ Done:
   `scripts/plugin-capability-inventory.mjs`.
 - Saved MCP server config can now be reviewed from the terminal with
   `kova mcp status` before any live probing or dynamic tool refresh work.
+- Saved MCP server reachability can now be checked explicitly with
+  `kova mcp status --probe` without launching stdio MCP servers by default.
 
 Remaining:
 

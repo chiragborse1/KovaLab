@@ -12,7 +12,11 @@ import {
   normalizeStringifiedOptionalString,
 } from "../shared/string-coerce.js";
 import { resolveGatewayAuthOptions } from "./gateway-secret-options.js";
-import { buildMcpServerStatusReport, formatMcpServerStatusReport } from "./mcp-status.js";
+import {
+  buildMcpServerStatusReport,
+  formatMcpServerStatusReport,
+  probeMcpServerStatusReport,
+} from "./mcp-status.js";
 
 function fail(message: string): never {
   defaultRuntime.error(message);
@@ -96,7 +100,8 @@ export function registerMcpCli(program: Command) {
     .description("Show saved MCP server config status without launching servers")
     .argument("[name]", "MCP server name")
     .option("--json", "Print JSON")
-    .action(async (name: string | undefined, opts: { json?: boolean }) => {
+    .option("--probe", "Probe command presence or HTTP reachability with strict timeouts", false)
+    .action(async (name: string | undefined, opts: { json?: boolean; probe?: boolean }) => {
       const loaded = await listConfiguredMcpServers();
       if (!loaded.ok) {
         fail(loaded.error);
@@ -104,11 +109,17 @@ export function registerMcpCli(program: Command) {
       if (name && !Object.hasOwn(loaded.mcpServers, name)) {
         fail(`No MCP server named "${name}" in ${loaded.path}.`);
       }
-      const report = buildMcpServerStatusReport({
+      let report = buildMcpServerStatusReport({
         path: loaded.path,
         mcpServers: loaded.mcpServers,
         name,
       });
+      if (opts.probe) {
+        report = await probeMcpServerStatusReport({
+          report,
+          mcpServers: loaded.mcpServers,
+        });
+      }
       if (opts.json) {
         printJson(report);
         return;
