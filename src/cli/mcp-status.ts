@@ -227,10 +227,14 @@ function getCommandPathCandidates(command: string): string[] {
   if (commandHasPathSeparator(command)) {
     return [command];
   }
-  const pathEntries = (process.env.PATH ?? "").split(path.delimiter).filter(Boolean);
+  const pathEntries = (process.env.PATH ?? "")
+    .split(path.delimiter)
+    .filter((entry) => entry.length > 0);
   const extensions =
     process.platform === "win32"
-      ? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM").split(";").filter(Boolean)
+      ? (process.env.PATHEXT ?? ".EXE;.CMD;.BAT;.COM")
+          .split(";")
+          .filter((entry) => entry.length > 0)
       : [""];
   return pathEntries.flatMap((entry) =>
     extensions.map((extension) => path.join(entry, command + extension)),
