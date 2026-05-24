@@ -163,7 +163,7 @@ export function formatStatusServiceValue(params: {
 export function resolveStatusControlUiUrl(params: {
   cfg: Pick<KovaConfig, "gateway">;
 }): string | null {
-  if (!(params.cfg.gateway?.controlUi?.enabled ?? true)) {
+  if (params.cfg.gateway?.controlUi?.enabled !== true) {
     return null;
   }
   return resolveControlUiLinks({
@@ -195,7 +195,7 @@ export function buildStatusOverviewRows(params: {
   const rows: StatusOverviewRow[] = [...(params.prefixRows ?? [])];
   rows.push(
     { Item: "Terminal", Value: params.terminalValue ?? "kova chat" },
-    { Item: "Control UI", Value: params.controlUiValue },
+    { Item: "Legacy web UI", Value: params.controlUiValue },
     { Item: "Tailscale exposure", Value: params.tailscaleValue },
     { Item: "Channel", Value: params.channelLabel },
   );

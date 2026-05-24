@@ -21989,7 +21989,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "boolean",
                 title: "Control UI Enabled",
                 description:
-                  "Enables serving the gateway Control UI from the gateway HTTP process when true. Keep enabled for local administration, and disable when an external control surface replaces it.",
+                  "Enables terminal status advertising and source-checkout auto-builds for the legacy browser Control UI when true. Set false for strict terminal-only operation, and enable only when you intentionally use the browser surface.",
               },
               basePath: {
                 type: "string",
@@ -22058,7 +22058,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             additionalProperties: false,
             title: "Control UI",
             description:
-              "Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep UI exposure minimal and pair with strong auth controls before internet-facing deployments.",
+              "Legacy browser Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep the terminal surfaces as the primary operator path and pair any web exposure with strong auth controls.",
           },
           auth: {
             type: "object",
@@ -24597,12 +24597,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.controlUi": {
       label: "Control UI",
-      help: "Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep UI exposure minimal and pair with strong auth controls before internet-facing deployments.",
+      help: "Legacy browser Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep the terminal surfaces as the primary operator path and pair any web exposure with strong auth controls.",
       tags: ["network"],
     },
     "gateway.controlUi.enabled": {
       label: "Control UI Enabled",
-      help: "Enables serving the gateway Control UI from the gateway HTTP process when true. Keep enabled for local administration, and disable when an external control surface replaces it.",
+      help: "Enables terminal status advertising and source-checkout auto-builds for the legacy browser Control UI when true. Set false for strict terminal-only operation, and enable only when you intentionally use the browser surface.",
       tags: ["network"],
     },
     "gateway.auth": {

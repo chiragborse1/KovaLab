@@ -80,8 +80,8 @@ export async function resolveGatewayRuntimeConfig(params: {
       );
     }
   }
-  const controlUiEnabled =
-    params.controlUiEnabled ?? params.cfg.gateway?.controlUi?.enabled ?? true;
+  const configuredControlUiEnabled = params.cfg.gateway?.controlUi?.enabled === true;
+  const controlUiEnabled = params.controlUiEnabled ?? configuredControlUiEnabled;
   const openAiChatCompletionsConfig = params.cfg.gateway?.http?.endpoints?.chatCompletions;
   const openAiChatCompletionsEnabled =
     params.openAiChatCompletionsEnabled ?? openAiChatCompletionsConfig?.enabled ?? false;

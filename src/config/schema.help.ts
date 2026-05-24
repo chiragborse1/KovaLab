@@ -72,9 +72,9 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.customBindHost":
     "Explicit bind host/IP used when gateway.bind is set to custom for manual interface targeting. Use a precise address and avoid wildcard binds unless external exposure is required.",
   "gateway.controlUi":
-    "Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep UI exposure minimal and pair with strong auth controls before internet-facing deployments.",
+    "Legacy browser Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep the terminal surfaces as the primary operator path and pair any web exposure with strong auth controls.",
   "gateway.controlUi.enabled":
-    "Enables serving the gateway Control UI from the gateway HTTP process when true. Keep enabled for local administration, and disable when an external control surface replaces it.",
+    "Enables terminal status advertising and source-checkout auto-builds for the legacy browser Control UI when true. Set false for strict terminal-only operation, and enable only when you intentionally use the browser surface.",
   "gateway.auth":
     "Authentication policy for gateway HTTP/WebSocket access including mode, credentials, trusted-proxy behavior, and rate limiting. Keep auth enabled for every non-loopback deployment.",
   "gateway.auth.mode":

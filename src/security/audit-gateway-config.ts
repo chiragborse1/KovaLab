@@ -31,7 +31,7 @@ export function collectGatewayConfigFindings(
   const bind = typeof cfg.gateway?.bind === "string" ? cfg.gateway.bind : "loopback";
   const tailscaleMode = cfg.gateway?.tailscale?.mode ?? "off";
   const auth = resolveGatewayAuth({ authConfig: cfg.gateway?.auth, tailscaleMode, env });
-  const controlUiEnabled = cfg.gateway?.controlUi?.enabled !== false;
+  const controlUiEnabled = cfg.gateway?.controlUi?.enabled === true;
   const controlUiAllowedOrigins = (cfg.gateway?.controlUi?.allowedOrigins ?? [])
     .map((value) => value.trim())
     .filter(Boolean);

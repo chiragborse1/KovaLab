@@ -76,7 +76,7 @@ export function ensureControlUiAllowedOriginsForNonLoopbackBind(
   if (!isGatewayNonLoopbackBindMode(effectiveBind)) {
     return { config, seededOrigins: null, bind: null };
   }
-  if (opts?.requireControlUiEnabled && config.gateway?.controlUi?.enabled === false) {
+  if (opts?.requireControlUiEnabled && config.gateway?.controlUi?.enabled !== true) {
     return { config, seededOrigins: null, bind: effectiveBind };
   }
   if (

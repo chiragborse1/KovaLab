@@ -81,7 +81,7 @@ export type TalkConfigResponse = TalkConfig & {
 };
 
 export type GatewayControlUiConfig = {
-  /** If false, the Gateway will not serve the Control UI (default /). */
+  /** If true, the Gateway serves and may auto-build the legacy browser Control UI. */
   enabled?: boolean;
   /** Optional base path prefix for the web console (e.g. "/kova"). */
   basePath?: string;

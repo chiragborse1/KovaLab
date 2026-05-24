@@ -213,6 +213,7 @@ describe("resolveGatewayRuntimeConfig", () => {
           gateway: {
             bind: "lan" as const,
             auth: TOKEN_AUTH,
+            controlUi: { enabled: true },
           },
         },
         expectedError: "non-loopback Control UI requires gateway.controlUi.allowedOrigins",
@@ -224,6 +225,7 @@ describe("resolveGatewayRuntimeConfig", () => {
             bind: "lan" as const,
             auth: TOKEN_AUTH,
             controlUi: {
+              enabled: true,
               dangerouslyAllowHostHeaderOriginFallback: true,
             },
           },
@@ -237,6 +239,7 @@ describe("resolveGatewayRuntimeConfig", () => {
             bind: "lan" as const,
             auth: TOKEN_AUTH,
             controlUi: {
+              enabled: true,
               allowedOrigins: ["  https://control.example.com  "],
             },
           },
@@ -253,6 +256,21 @@ describe("resolveGatewayRuntimeConfig", () => {
       const result = await resolveGatewayRuntimeConfig({ cfg, port: 18789 });
       expect(result.bindHost).toBe(expectedBindHost);
     });
+
+    it("allows non-loopback gateway without Control UI origins when browser UI is not enabled", async () => {
+      const result = await resolveGatewayRuntimeConfig({
+        cfg: {
+          gateway: {
+            bind: "lan",
+            auth: TOKEN_AUTH,
+          },
+        },
+        port: 18789,
+      });
+
+      expect(result.bindHost).toBe("0.0.0.0");
+      expect(result.controlUiEnabled).toBe(false);
+    });
   });
 
   describe("container-aware bind default", () => {
@@ -268,7 +286,7 @@ describe("resolveGatewayRuntimeConfig", () => {
         cfg: {
           gateway: {
             auth: TOKEN_AUTH,
-            controlUi: { allowedOrigins: ["https://control.example.com"] },
+            controlUi: { enabled: true, allowedOrigins: ["https://control.example.com"] },
           },
         },
         port: 18789,
@@ -281,7 +299,7 @@ describe("resolveGatewayRuntimeConfig", () => {
       vi.spyOn(fs, "accessSync").mockImplementation(() => undefined); // /.dockerenv exists
       await expect(
         resolveGatewayRuntimeConfig({
-          cfg: { gateway: { auth: TOKEN_AUTH } },
+          cfg: { gateway: { auth: TOKEN_AUTH, controlUi: { enabled: true } } },
           port: 18789,
         }),
       ).rejects.toThrow(/non-loopback Control UI requires gateway\.controlUi\.allowedOrigins/);

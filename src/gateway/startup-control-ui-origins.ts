@@ -14,6 +14,7 @@ export async function maybeSeedControlUiAllowedOriginsAtStartup(params: {
 }): Promise<{ config: KovaConfig; persistedAllowedOriginsSeed: boolean }> {
   const seeded = ensureControlUiAllowedOriginsForNonLoopbackBind(params.config, {
     isContainerEnvironment,
+    requireControlUiEnabled: true,
     runtimeBind: params.runtimeBind,
     runtimePort: params.runtimePort,
   });

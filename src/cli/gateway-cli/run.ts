@@ -208,7 +208,7 @@ function formatModeErrorList(modes: readonly string[]): string {
 }
 
 function maybeLogPendingControlUiBuild(cfg: KovaConfig): void {
-  if (cfg.gateway?.controlUi?.enabled === false) {
+  if (cfg.gateway?.controlUi?.enabled !== true) {
     return;
   }
   if (toOptionString(cfg.gateway?.controlUi?.root)) {
@@ -224,7 +224,7 @@ function maybeLogPendingControlUiBuild(cfg: KovaConfig): void {
     return;
   }
   gatewayLog.info(
-    "web console assets are missing; first startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
+    "web console assets are missing for explicit gateway.controlUi.enabled=true; startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
   );
 }
 

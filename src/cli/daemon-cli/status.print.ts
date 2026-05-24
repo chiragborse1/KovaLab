@@ -156,9 +156,9 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
       `${label("Gateway:")} bind=${infoText(status.gateway.bindMode)} (${infoText(bindHost)}), port=${infoText(String(status.gateway.port))} (${infoText(status.gateway.portSource)})`,
     );
     defaultRuntime.log(`${label("Probe target:")} ${infoText(status.gateway.probeUrl)}`);
-    const controlUiEnabled = status.config?.daemon?.controlUi?.enabled ?? true;
+    const controlUiEnabled = status.config?.daemon?.controlUi?.enabled === true;
     if (!controlUiEnabled) {
-      defaultRuntime.log(`${label("Control UI:")} ${warnText("disabled")}`);
+      defaultRuntime.log(`${label("Legacy web UI:")} ${warnText("disabled")}`);
     } else {
       const links = resolveControlUiLinks({
         port: status.gateway.port,
@@ -167,7 +167,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean })
         basePath: status.config?.daemon?.controlUi?.basePath,
         tlsEnabled: status.gateway.tlsEnabled === true,
       });
-      defaultRuntime.log(`${label("Control UI:")} ${infoText(links.httpUrl)}`);
+      defaultRuntime.log(`${label("Legacy web UI:")} ${infoText(links.httpUrl)}`);
     }
     if (status.gateway.probeNote) {
       defaultRuntime.log(`${label("Probe note:")} ${infoText(status.gateway.probeNote)}`);

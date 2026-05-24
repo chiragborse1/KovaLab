@@ -1067,7 +1067,7 @@ describe("statusCommand", () => {
       "Summary:",
       "CRITICAL",
       "Terminal",
-      "Control UI",
+      "Legacy web UI",
       "macos 14.0 (arm64)",
       "Memory",
       "Plugin compatibility",

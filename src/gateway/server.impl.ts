@@ -242,7 +242,7 @@ export type GatewayServerOptions = {
   host?: string;
   /**
    * If false, do not serve the browser Control UI.
-   * Default: config `gateway.controlUi.enabled` (or true when absent).
+   * Default: config `gateway.controlUi.enabled` (or false when absent).
    */
   controlUiEnabled?: boolean;
   /**
@@ -375,8 +375,9 @@ export async function startGatewayServer(
       getActiveBundledRuntimeDepsInstallCount() +
       getInspectableTaskRegistrySummary().active,
   );
-  // Unconditional startup migration: seed gateway.controlUi.allowedOrigins for existing
-  // non-loopback installs that upgraded to v2026.2.26+ without required origins.
+  // Compatibility startup migration: seed gateway.controlUi.allowedOrigins for
+  // explicit non-loopback Control UI installs that upgraded to v2026.2.26+
+  // without required origins.
   const controlUiSeed = minimalTestGateway
     ? { config: cfgAtStart, persistedAllowedOriginsSeed: false }
     : await startupTrace.measure("control-ui.seed", () =>
@@ -524,6 +525,9 @@ export async function startGatewayServer(
     resolveGatewayControlUiRootState({
       controlUiRootOverride,
       controlUiEnabled,
+      autoBuildAssets:
+        controlUiEnabled &&
+        (cfgAtStart.gateway?.controlUi?.enabled === true || opts.controlUiEnabled === true),
       gatewayRuntime,
       log,
     }),

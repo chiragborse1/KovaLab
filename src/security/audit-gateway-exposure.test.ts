@@ -87,6 +87,7 @@ describe("security audit gateway exposure findings", () => {
         gateway: {
           bind: "lan",
           auth: { mode: "token", token: "very-long-browser-token-0123456789" },
+          controlUi: { enabled: true },
         },
       } satisfies KovaConfig,
       expectedFinding: {
@@ -99,7 +100,7 @@ describe("security audit gateway exposure findings", () => {
       cfg: {
         gateway: {
           bind: "loopback",
-          controlUi: { allowedOrigins: ["*"] },
+          controlUi: { enabled: true, allowedOrigins: ["*"] },
         },
       } satisfies KovaConfig,
       expectedFinding: {
@@ -113,7 +114,7 @@ describe("security audit gateway exposure findings", () => {
         gateway: {
           bind: "lan",
           auth: { mode: "token", token: "very-long-browser-token-0123456789" },
-          controlUi: { allowedOrigins: ["*"] },
+          controlUi: { enabled: true, allowedOrigins: ["*"] },
         },
       } satisfies KovaConfig,
       expectedFinding: {

@@ -820,9 +820,12 @@ export async function runConfigureWizard(
         }
       }
 
-      const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-      if (!controlUiAssets.ok && controlUiAssets.message) {
-        runtime.error(controlUiAssets.message);
+      const controlUiEnabled = nextConfig.gateway?.controlUi?.enabled === true;
+      if (controlUiEnabled) {
+        const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
+        if (!controlUiAssets.ok && controlUiAssets.message) {
+          runtime.error(controlUiAssets.message);
+        }
       }
 
       const bind = nextConfig.gateway?.bind ?? "loopback";
@@ -873,12 +876,13 @@ export async function runConfigureWizard(
 
       note(
         [
-          `Web UI: ${links.httpUrl}`,
+          `Terminal settings: kova settings`,
+          controlUiEnabled ? `Legacy web UI: ${links.httpUrl}` : "Legacy web UI: not enabled",
           `Gateway WS: ${links.wsUrl}`,
           gatewayStatusLine,
-          "Docs: https://docs.neuralstudio.in/web/control-ui",
+          "Docs: https://docs.neuralstudio.in/cli/settings",
         ].join("\n"),
-        "Control UI",
+        "Terminal control",
       );
 
       await outro("Configure complete.");

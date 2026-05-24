@@ -13,7 +13,7 @@ type StatusCommandReportDataParams = Parameters<typeof buildStatusCommandReportD
 
 export const baseStatusCfg = {
   update: { channel: "stable" },
-  gateway: { bind: "loopback" },
+  gateway: { bind: "loopback", controlUi: { enabled: true } },
 } as const;
 
 export const baseStatusUpdate = {

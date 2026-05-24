@@ -341,7 +341,8 @@ export async function finalizeSetupWizard(
   }
 
   const controlUiEnabled =
-    nextConfig.gateway?.controlUi?.enabled ?? baseConfig.gateway?.controlUi?.enabled ?? true;
+    nextConfig.gateway?.controlUi?.enabled === true ||
+    baseConfig.gateway?.controlUi?.enabled === true;
 
   await prompter.note(
     [
@@ -388,9 +389,9 @@ export async function finalizeSetupWizard(
   await prompter.note(
     [
       `Terminal chat: ${formatCliCommand("kova chat")}`,
-      `Control UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
+      `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "not enabled"}`,
       settings.authMode === "token" && settings.gatewayToken
-        ? `Control UI (with token): ${authedUrl}`
+        ? `Legacy web UI (with token): ${authedUrl}`
         : undefined,
       `Gateway WS: ${links.wsUrl}`,
       gatewayStatusLine,
@@ -422,13 +423,12 @@ export async function finalizeSetupWizard(
     if (gatewayProbe.ok) {
       await prompter.note(
         [
-          "Gateway token: shared auth for remote Gateway clients and the optional Control UI.",
+          "Gateway token: shared auth for remote Gateway clients and legacy web UI when enabled.",
           "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
-          "Control UI keeps URL tokens in memory for the current tab and strips them from the URL after load.",
-          `Open Control UI anytime: ${formatCliCommand("kova control-ui --no-open")}`,
-          "If prompted: paste the token into Control UI settings or use the tokenized URL.",
+          "The terminal surfaces do not need browser tokens.",
+          `If you opt into the legacy web UI later: ${formatCliCommand("kova control-ui --no-open")}`,
         ].join("\n"),
         "Gateway token",
       );
@@ -500,7 +500,7 @@ export async function finalizeSetupWizard(
         [
           `Start terminal chat: ${formatCliCommand("kova chat")}`,
           controlUiEnabled
-            ? `Advanced Control UI: ${formatCliCommand("kova control-ui --no-open")}`
+            ? `Legacy web UI: ${formatCliCommand("kova control-ui --no-open")}`
             : undefined,
         ]
           .filter(Boolean)

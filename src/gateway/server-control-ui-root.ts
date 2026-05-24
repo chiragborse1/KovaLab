@@ -11,6 +11,7 @@ import type { ControlUiRootState } from "./control-ui.js";
 export async function resolveGatewayControlUiRootState(params: {
   controlUiRootOverride?: string;
   controlUiEnabled: boolean;
+  autoBuildAssets?: boolean;
   gatewayRuntime: RuntimeEnv;
   log: { warn: (message: string) => void };
 }): Promise<ControlUiRootState | undefined> {
@@ -37,7 +38,7 @@ export async function resolveGatewayControlUiRootState(params: {
     });
 
   let resolvedRoot = resolveRoot();
-  if (!resolvedRoot) {
+  if (!resolvedRoot && params.autoBuildAssets === true) {
     const ensureResult = await ensureControlUiAssetsBuilt(params.gatewayRuntime);
     if (!ensureResult.ok && ensureResult.message) {
       params.log.warn(`gateway: ${ensureResult.message}`);

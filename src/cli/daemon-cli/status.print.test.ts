@@ -177,7 +177,7 @@ describe("printDaemonStatus", () => {
             path: "/tmp/kova-daemon/kova.json",
             exists: true,
             valid: true,
-            controlUi: { basePath: "/ui" },
+            controlUi: { enabled: true, basePath: "/ui" },
           },
           mismatch: true,
         },

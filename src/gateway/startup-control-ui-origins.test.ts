@@ -8,7 +8,7 @@ describe("maybeSeedControlUiAllowedOriginsAtStartup", () => {
     const log = { info: vi.fn(), warn: vi.fn() };
 
     const result = await maybeSeedControlUiAllowedOriginsAtStartup({
-      config: { gateway: {} },
+      config: { gateway: { controlUi: { enabled: true } } },
       writeConfig: async (config) => {
         written.push(config);
       },
@@ -29,7 +29,7 @@ describe("maybeSeedControlUiAllowedOriginsAtStartup", () => {
   it("does not rewrite config when origins already exist", async () => {
     const config: KovaConfig = {
       gateway: {
-        controlUi: { allowedOrigins: ["https://control.example.com"] },
+        controlUi: { enabled: true, allowedOrigins: ["https://control.example.com"] },
       },
     };
     const writeConfig = vi.fn<() => Promise<void>>();
@@ -44,6 +44,24 @@ describe("maybeSeedControlUiAllowedOriginsAtStartup", () => {
     });
 
     expect(result).toEqual({ config, persistedAllowedOriginsSeed: false });
+    expect(writeConfig).not.toHaveBeenCalled();
+    expect(log.info).not.toHaveBeenCalled();
+    expect(log.warn).not.toHaveBeenCalled();
+  });
+
+  it("does not seed origins when the legacy browser UI is not enabled", async () => {
+    const writeConfig = vi.fn<() => Promise<void>>();
+    const log = { info: vi.fn(), warn: vi.fn() };
+
+    const result = await maybeSeedControlUiAllowedOriginsAtStartup({
+      config: { gateway: {} },
+      writeConfig,
+      log,
+      runtimeBind: "lan",
+      runtimePort: 3000,
+    });
+
+    expect(result).toEqual({ config: { gateway: {} }, persistedAllowedOriginsSeed: false });
     expect(writeConfig).not.toHaveBeenCalled();
     expect(log.info).not.toHaveBeenCalled();
     expect(log.warn).not.toHaveBeenCalled();
