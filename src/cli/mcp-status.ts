@@ -162,7 +162,10 @@ function buildHttpStatus(name: string, server: Record<string, unknown>): McpServ
     return {
       name,
       status: "invalid",
-      transport: requestedTransport || "unknown",
+      transport:
+        requestedTransport === "sse" || requestedTransport === "streamable-http"
+          ? requestedTransport
+          : "unknown",
       target: null,
       issues: [launch.reason],
       warnings,
