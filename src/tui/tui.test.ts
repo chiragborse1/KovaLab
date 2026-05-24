@@ -62,11 +62,13 @@ describe("tui slash commands", () => {
     expect(commands.some((command) => command.name === "commands")).toBe(false);
   });
 
-  it("offers persona argument completions", () => {
+  it("offers persona argument completions", async () => {
     const persona = getSlashCommands({}).find((command) => command.name === "persona");
 
+    expect(persona).toBeDefined();
     expect(persona?.argumentHint).toContain("show");
-    expect(persona?.getArgumentCompletions?.("sh").map((entry) => entry.value)).toContain("show");
+    const completions = await persona?.getArgumentCompletions?.("sh");
+    expect(completions?.map((entry) => entry.value)).toContain("show");
   });
 
   it("includes /auth in local embedded mode", () => {
