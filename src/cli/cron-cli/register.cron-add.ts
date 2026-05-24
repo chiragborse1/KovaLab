@@ -326,6 +326,10 @@ export function registerCronAddCommand(cron: Command) {
               return { kind: "systemEvent" as const, text: systemEvent };
             }
             const timeoutSeconds = parsePositiveIntOrUndefined(opts.timeoutSeconds);
+            const lightContext = withTemplateDefault(
+              "lightContext",
+              templateDefaults?.lightContext,
+            );
             return {
               kind: "agentTurn" as const,
               message,
@@ -333,11 +337,7 @@ export function registerCronAddCommand(cron: Command) {
               thinking: normalizeOptionalString(opts.thinking),
               timeoutSeconds:
                 timeoutSeconds && Number.isFinite(timeoutSeconds) ? timeoutSeconds : undefined,
-              lightContext: Boolean(
-                withTemplateDefault("lightContext", templateDefaults?.lightContext),
-              )
-                ? true
-                : undefined,
+              lightContext: lightContext ? true : undefined,
               toolsAllow: parseCronToolsAllow(opts.tools),
             };
           })();
