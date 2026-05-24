@@ -19,6 +19,10 @@ Related:
 
 - `--limit <n>`: maximum number of log lines to return (default `200`)
 - `--max-bytes <n>`: maximum bytes to read from the log file (default `250000`)
+- `--deep`: read a larger log window without changing output format
+- `--grep <text>`: only show lines containing the text
+- `--level <levels>`: only show comma-separated log levels such as `error,warn`
+- `--subsystem <names>`: only show comma-separated subsystems or modules such as `gateway,telegram`
 - `--follow`: follow the log stream
 - `--interval <ms>`: polling interval while following (default `1000`)
 - `--json`: emit line-delimited JSON events
@@ -44,6 +48,8 @@ kova logs
 kova logs --follow
 kova logs --follow --interval 2000
 kova logs --limit 500 --max-bytes 500000
+kova logs --grep timeout --level error,warn
+kova logs --follow --subsystem gateway,telegram
 kova logs --json
 kova logs --plain
 kova logs --no-color

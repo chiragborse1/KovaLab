@@ -200,6 +200,43 @@ describe("logs cli", () => {
     expect(stdoutWrites.join("")).toContain("deep line");
   });
 
+  it("filters log output by grep, level, and subsystem", async () => {
+    callGatewayFromCli.mockResolvedValueOnce({
+      file: "/tmp/kova.log",
+      lines: [
+        JSON.stringify({
+          time: "2025-01-01T12:00:00.000Z",
+          _meta: { logLevelName: "INFO", name: JSON.stringify({ subsystem: "gateway" }) },
+          0: "startup ready",
+        }),
+        JSON.stringify({
+          time: "2025-01-01T12:00:01.000Z",
+          _meta: { logLevelName: "WARN", name: JSON.stringify({ subsystem: "telegram" }) },
+          0: "poll retry",
+        }),
+        "raw retry line",
+      ],
+    });
+
+    const stdoutWrites = captureStdoutWrites();
+
+    await runLogsCli([
+      "logs",
+      "--plain",
+      "--grep",
+      "retry",
+      "--level",
+      "warn",
+      "--subsystem",
+      "telegram",
+    ]);
+
+    const output = stdoutWrites.join("");
+    expect(output).toContain("poll retry");
+    expect(output).not.toContain("startup ready");
+    expect(output).not.toContain("raw retry line");
+  });
+
   describe("formatLogTimestamp", () => {
     it("formats UTC timestamp in plain mode by default", () => {
       const result = formatLogTimestamp("2025-01-01T12:00:00.000Z");

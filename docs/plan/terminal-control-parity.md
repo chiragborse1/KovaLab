@@ -34,7 +34,7 @@ need, and has a small proof command or test.
 | Persona editing                | `kova persona ...` plus `/persona` read-only chat inspection          | Ready     | Keep `SOUL.md` as the file-backed source of truth.                             |
 | Plugin management              | `kova plugins ...`, `/plugins list`                                   | Partial   | Add terminal install/update flows before removing browser plugin affordances.  |
 | Channel setup                  | `kova channels ...`, `kova configure --section channels`              | Partial   | Keep onboarding channel selection terminal-first and skip channels by default. |
-| Logs                           | `kova logs ...`, Gateway log path from `kova status`                  | Partial   | Add a compact tail/filter command before removing browser log panes.           |
+| Logs                           | `kova logs --grep/--level/--subsystem`, Gateway log path from status  | Ready     | Keep filters cheap and readable for remote tailing.                            |
 | Config editing                 | `kova config ...`, `kova settings`, `kova configure`                  | Partial   | Avoid raw JSON editing for common toggles.                                     |
 | Cron and schedules             | `kova cron ...`, `/tasks cron`, `/automation`                         | Partial   | Add schedule creation templates before removing browser cron shortcuts.        |
 | Voice and realtime controls    | CLI config plus channel/plugin commands                               | Not ready | Keep browser surface or document a terminal replacement first.                 |

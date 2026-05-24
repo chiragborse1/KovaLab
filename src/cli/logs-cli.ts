@@ -39,10 +39,13 @@ type LogsCliOptions = {
   maxBytes?: string;
   deep?: boolean;
   follow?: boolean;
+  grep?: string;
   interval?: string;
+  level?: string;
   json?: boolean;
   plain?: boolean;
   color?: boolean;
+  subsystem?: string;
   localTime?: boolean;
   url?: string;
   token?: string;
@@ -58,6 +61,47 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   }
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function splitFilterList(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+  return value
+    .split(",")
+    .map((entry) => normalizeLowercaseStringOrEmpty(entry))
+    .filter(Boolean);
+}
+
+function buildLogLineFilter(opts: LogsCliOptions): (raw: string) => boolean {
+  const grep = normalizeLowercaseStringOrEmpty(opts.grep);
+  const levels = new Set(splitFilterList(opts.level));
+  const subsystems = new Set(splitFilterList(opts.subsystem));
+  if (!grep && levels.size === 0 && subsystems.size === 0) {
+    return () => true;
+  }
+
+  return (raw: string) => {
+    const parsed = parseLogLine(raw);
+    if (levels.size > 0 && !levels.has(normalizeLowercaseStringOrEmpty(parsed?.level))) {
+      return false;
+    }
+    if (subsystems.size > 0) {
+      const subsystem = normalizeLowercaseStringOrEmpty(parsed?.subsystem);
+      const module = normalizeLowercaseStringOrEmpty(parsed?.module);
+      if (!subsystems.has(subsystem) && !subsystems.has(module)) {
+        return false;
+      }
+    }
+    if (grep) {
+      const haystack = [raw, parsed?.message, parsed?.subsystem, parsed?.module, parsed?.level]
+        .filter(Boolean)
+        .join("\n")
+        .toLowerCase();
+      return haystack.includes(grep);
+    }
+    return true;
+  };
 }
 
 async function fetchLogs(
@@ -252,10 +296,13 @@ export function registerLogsCli(program: Command) {
     .option("--max-bytes <n>", "Max bytes to read")
     .option("--deep", "Read a larger log window without changing output format", false)
     .option("--follow", "Follow log output", false)
+    .option("--grep <text>", "Only show log lines containing text")
     .option("--interval <ms>", "Polling interval in ms", "1000")
+    .option("--level <levels>", "Only show comma-separated levels such as error,warn")
     .option("--json", "Emit JSON log lines", false)
     .option("--plain", "Plain text output (no ANSI styling)", false)
     .option("--no-color", "Disable ANSI colors")
+    .option("--subsystem <names>", "Only show comma-separated subsystems or modules")
     .option("--local-time", "Display timestamps in local timezone", false)
     .addHelpText(
       "after",
@@ -275,6 +322,7 @@ export function registerLogsCli(program: Command) {
     const rich = isRich() && opts.color !== false;
     const localTime =
       Boolean(opts.localTime) || (!!process.env.TZ && isValidTimeZone(process.env.TZ));
+    const includeLine = buildLogLineFilter(opts);
 
     while (true) {
       let payload: LogsTailPayload;
@@ -294,7 +342,7 @@ export function registerLogsCli(program: Command) {
         process.exit(1);
         return;
       }
-      const lines = Array.isArray(payload.lines) ? payload.lines : [];
+      const lines = Array.isArray(payload.lines) ? payload.lines.filter(includeLine) : [];
       if (jsonMode) {
         if (first) {
           if (
