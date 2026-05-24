@@ -16,7 +16,7 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "onboard",
-    description: "Interactive onboarding for gateway, workspace, and skills",
+    description: "Interactive onboarding for terminal chat, workspace, and skills",
     hasSubcommands: false,
   },
   {

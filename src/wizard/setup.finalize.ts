@@ -346,7 +346,7 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     [
-      "Optional apps can extend Kova beyond this terminal:",
+      "Optional apps can extend Kova after terminal chat is working:",
       "- macOS app for system hooks and notifications",
       "- iOS app for camera and canvas workflows",
       "- Android app for camera and canvas workflows",
@@ -388,18 +388,20 @@ export async function finalizeSetupWizard(
 
   await prompter.note(
     [
-      `Terminal chat: ${formatCliCommand("kova chat")}`,
-      `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "not enabled"}`,
-      settings.authMode === "token" && settings.gatewayToken
+      `Primary start: ${formatCliCommand("kova chat")}`,
+      "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
+      "Useful first commands inside chat: /status, /memory, /persona, /tools",
+      `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`,
+      `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
+      controlUiEnabled && settings.authMode === "token" && settings.gatewayToken
         ? `Legacy web UI (with token): ${authedUrl}`
         : undefined,
-      `Gateway WS: ${links.wsUrl}`,
-      gatewayStatusLine,
+      `Gateway detail: ${gatewayStatusLine}`,
       "Docs: https://docs.neuralstudio.in/web/tui",
     ]
       .filter(Boolean)
       .join("\n"),
-    "Start surfaces",
+    "Terminal start",
   );
 
   let controlUiOpened = false;
@@ -423,11 +425,11 @@ export async function finalizeSetupWizard(
     if (gatewayProbe.ok) {
       await prompter.note(
         [
-          "Gateway token: shared auth for remote Gateway clients and legacy web UI when enabled.",
+          "Gateway token: shared auth for remote clients, channels, nodes, and legacy web UI when enabled.",
+          "Local terminal chat does not need a browser token.",
           "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
-          "The terminal surfaces do not need browser tokens.",
           `If you opt into the legacy web UI later: ${formatCliCommand("kova control-ui --no-open")}`,
         ].join("\n"),
         "Gateway token",
@@ -499,6 +501,9 @@ export async function finalizeSetupWizard(
       await prompter.note(
         [
           `Start terminal chat: ${formatCliCommand("kova chat")}`,
+          `Inspect readiness: ${formatCliCommand("kova status --all")}`,
+          `Tune persona: ${formatCliCommand("kova persona edit")}`,
+          `Check memory: ${formatCliCommand("kova memory status")}`,
           controlUiEnabled
             ? `Legacy web UI: ${formatCliCommand("kova control-ui --no-open")}`
             : undefined,
@@ -509,7 +514,14 @@ export async function finalizeSetupWizard(
       );
     }
   } else if (opts.skipUi) {
-    await prompter.note("Start prompt skipped.", "Start");
+    await prompter.note(
+      [
+        "Start prompt skipped.",
+        `Start terminal chat: ${formatCliCommand("kova chat")}`,
+        `Inspect readiness: ${formatCliCommand("kova status --all")}`,
+      ].join("\n"),
+      "Start",
+    );
   }
 
   await prompter.note(
@@ -684,7 +696,13 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.note(
-    'Next ideas: https://www.neuralstudio.in/ ("What People Are Building").',
+    [
+      `Chat: ${formatCliCommand("kova chat")}`,
+      `Status: ${formatCliCommand("kova status --all")}`,
+      `Persona: ${formatCliCommand("kova persona edit")}`,
+      `Memory: ${formatCliCommand("kova memory status")}`,
+      `Channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
+    ].join("\n"),
     "Next steps",
   );
 

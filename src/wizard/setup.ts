@@ -438,7 +438,7 @@ export async function runSetupWizard(
           "Next: choose model, workspace, learning surfaces, and terminal start.",
         ]
       : [
-          "Quick setup will create a private local gateway:",
+          "Quick setup will prepare terminal chat and a private local Gateway:",
           `Gateway port: ${quickstartGateway.port}`,
           "Gateway bind: Loopback (127.0.0.1)",
           "Gateway auth: Token (default)",

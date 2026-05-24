@@ -158,7 +158,7 @@ function shouldOpenSettingsDashboardForRepeatOnboard(command: unknown): boolean 
 export function registerOnboardCommand(program: Command) {
   const command = program
     .command("onboard")
-    .description("Interactive onboarding for the gateway, workspace, and skills")
+    .description("Interactive onboarding for terminal chat, workspace, and skills")
     .addHelpText(
       "after",
       () =>

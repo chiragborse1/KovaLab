@@ -223,6 +223,11 @@ kova onboard --non-interactive \
 ## Common follow-up commands
 
 ```bash
+kova chat
+kova status --all
+kova persona edit
+kova memory status
+kova channels add --channel telegram
 kova configure
 kova settings
 kova agents add <name>

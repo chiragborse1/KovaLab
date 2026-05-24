@@ -128,7 +128,7 @@ export function formatWizardBootScreen(): string {
     formatBootScreenRow("release", VERSION),
     formatBootScreenRow("step 1", "choose setup type"),
     formatBootScreenRow("step 2", "choose workspace and model"),
-    formatBootScreenRow("step 3", "enable memory, skills, and tools"),
+    formatBootScreenRow("step 3", "set persona, memory, skills, tools"),
     formatBootScreenRow("step 4", "open terminal chat"),
     "╰────────────────────────────────────────────────────────╯",
     "",

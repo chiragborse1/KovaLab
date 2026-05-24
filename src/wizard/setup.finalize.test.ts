@@ -347,6 +347,16 @@ describe("finalizeSetupWizard", () => {
       message: undefined,
       timeoutMs: 300_000,
     });
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("Primary start: kova chat"),
+      "Terminal start",
+    );
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Useful first commands inside chat: /status, /memory, /persona, /tools",
+      ),
+      "Terminal start",
+    );
   });
 
   it("passes setup auth through health reachability checks", async () => {
@@ -662,6 +672,43 @@ describe("finalizeSetupWizard", () => {
       "Gateway",
     );
     expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Control UI ready");
+  });
+
+  it("shows terminal next steps when launch prompts are skipped", async () => {
+    const prompter = createLaterPrompter();
+
+    await finalizeSetupWizard({
+      flow: "quickstart",
+      opts: {
+        acceptRisk: true,
+        authChoice: "skip",
+        installDaemon: false,
+        skipHealth: true,
+        skipUi: true,
+      },
+      baseConfig: {},
+      nextConfig: {},
+      workspaceDir: "/tmp",
+      settings: {
+        port: 18789,
+        bind: "loopback",
+        authMode: "token",
+        gatewayToken: "test-token",
+        tailscaleMode: "off",
+        tailscaleResetOnExit: false,
+      },
+      prompter,
+      runtime: createRuntime(),
+    });
+
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("Start terminal chat: kova chat"),
+      "Start",
+    );
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("Persona: kova persona edit"),
+      "Next steps",
+    );
   });
 
   it("does not show a Codex native search summary when web search is globally disabled", async () => {
