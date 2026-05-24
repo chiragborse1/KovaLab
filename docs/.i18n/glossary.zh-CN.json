@@ -582,5 +582,29 @@
   {
     "source": "Control UI access",
     "target": "Control UI 访问"
+  },
+  {
+    "source": "Control UI Design Cleanup",
+    "target": "Control UI 设计清理"
+  },
+  {
+    "source": "Duplicate And Hotspot Inventory",
+    "target": "重复项与热点清单"
+  },
+  {
+    "source": "Kova Capability Matrices",
+    "target": "Kova 能力矩阵"
+  },
+  {
+    "source": "Kova Product Spine Cleanup",
+    "target": "Kova 产品主线清理"
+  },
+  {
+    "source": "Plugin Compatibility Cleanup",
+    "target": "插件兼容性清理"
+  },
+  {
+    "source": "Reference Agent Capability Parity Review",
+    "target": "参考 Agent 能力对齐评审"
   }
 ]
