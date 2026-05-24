@@ -129,6 +129,12 @@ async function loadTemplate(name: string): Promise<string> {
   }
 }
 
+export async function loadWorkspaceBootstrapTemplate(
+  name: WorkspaceBootstrapFileName,
+): Promise<string> {
+  return await loadTemplate(name);
+}
+
 export type WorkspaceBootstrapFileName =
   | typeof DEFAULT_AGENTS_FILENAME
   | typeof DEFAULT_SOUL_FILENAME

@@ -44,6 +44,30 @@
     "target": "Status"
   },
   {
+    "source": "TUI",
+    "target": "TUI"
+  },
+  {
+    "source": "Memory CLI",
+    "target": "Memory CLI"
+  },
+  {
+    "source": "Persona CLI",
+    "target": "Persona CLI"
+  },
+  {
+    "source": "Terminal Control Parity",
+    "target": "Terminal Control Parity"
+  },
+  {
+    "source": "Legacy web surfaces",
+    "target": "Legacy web surfaces"
+  },
+  {
+    "source": "Control UI (legacy browser)",
+    "target": "Control UI (legacy browser)"
+  },
+  {
     "source": "Gateway",
     "target": "Gateway 网关"
   },

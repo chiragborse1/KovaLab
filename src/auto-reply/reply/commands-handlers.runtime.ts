@@ -18,6 +18,7 @@ import {
 import { handleMcpCommand } from "./commands-mcp.js";
 import { handleMemoryCommand } from "./commands-memory.js";
 import { handleModelsCommand } from "./commands-models.js";
+import { handlePersonaCommand } from "./commands-persona.js";
 import { handlePluginCommand } from "./commands-plugin.js";
 import { handlePluginsCommand } from "./commands-plugins.js";
 import {
@@ -52,6 +53,7 @@ export function loadCommandHandlers(): CommandHandler[] {
     handleCommandsListCommand,
     handleToolsCommand,
     handleMemoryCommand,
+    handlePersonaCommand,
     handleStatusCommand,
     handleTasksCommand,
     handleAllowlistCommand,

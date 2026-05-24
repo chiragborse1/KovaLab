@@ -64,7 +64,7 @@ These are the standard files Kova expects inside the workspace:
     Operating instructions for the agent and how it should use memory. Loaded at the start of every session. Good place for rules, priorities, and "how to behave" details.
   </Accordion>
   <Accordion title="SOUL.md — persona and tone">
-    Persona, tone, and boundaries. Loaded every session. Guide: [SOUL.md personality guide](/concepts/soul).
+    Persona, tone, and boundaries. Loaded every session. Guide: [SOUL.md personality guide](/concepts/soul). Terminal controls: [`kova persona`](/cli/persona).
   </Accordion>
   <Accordion title="USER.md — who the user is">
     Who the user is and how to address them. Loaded every session.

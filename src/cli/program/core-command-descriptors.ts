@@ -86,6 +86,11 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: true,
   },
   {
+    name: "persona",
+    description: "Inspect and edit the current agent persona",
+    hasSubcommands: true,
+  },
+  {
     name: "status",
     description: "Show terminal readiness, Gateway health, and recent sessions",
     hasSubcommands: false,

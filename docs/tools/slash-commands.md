@@ -153,6 +153,7 @@ Current source-of-truth:
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
     - `/memory status`, `/memory sync [force]`, `/memory search <query>`, `/memory read <path[:line[-end]]>`, and `/memory dreams` inspect memory health, refresh recall, search, read cited source excerpts, and review the Dream Diary from chat.
+    - `/persona status`, `/persona show [lines=<count>|all]`, and `/persona path` inspect the active `SOUL.md`; writes stay terminal-only through `kova persona edit` or `kova persona init`.
     - `/whoami` shows your sender id. Alias: `/id`.
     - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary.
   </Accordion>

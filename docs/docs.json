@@ -1572,6 +1572,7 @@
                       "cli/memory",
                       "cli/message",
                       "cli/models",
+                      "cli/persona",
                       "cli/sessions",
                       "cli/system",
                       "cli/tasks"

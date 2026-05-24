@@ -11,6 +11,13 @@ vi.mock("./register.agent.js", () => ({
   },
 }));
 
+vi.mock("./register.persona.js", () => ({
+  registerPersonaCommand: (program: Command) => {
+    const persona = program.command("persona");
+    persona.command("show");
+  },
+}));
+
 vi.mock("./register.backup.js", () => ({
   registerBackupCommand: (program: Command) => {
     const backup = program.command("backup");
@@ -84,12 +91,14 @@ describe("command-registry", () => {
     expect(names).toContain("mcp");
     expect(names).toContain("agent");
     expect(names).toContain("agents");
+    expect(names).toContain("persona");
   });
 
   it("returns only commands that support subcommands", () => {
     const names = getCoreCliCommandsWithSubcommands();
     expect(names).toContain("config");
     expect(names).toContain("agents");
+    expect(names).toContain("persona");
     expect(names).toContain("backup");
     expect(names).toContain("mcp");
     expect(names).toContain("sessions");

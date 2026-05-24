@@ -31,7 +31,7 @@ need, and has a small proof command or test.
 | Memory status and recall       | `/memory status`, `/memory search`, `/memory read`, `kova memory ...` | Ready     | Keep degraded vector or keyword-only state clear.                              |
 | Dream Diary review             | `kova memory dreams`, `/memory dreams`                                | Ready     | Keep bounded terminal output and JSON for scripts.                             |
 | Dreaming toggle                | `/dreaming on\|off\|status`                                           | Ready     | Add CLI config examples only when users ask for non-chat automation.           |
-| Persona editing                | `kova persona ...` and file-backed workspace prompts                  | Partial   | Finish CLI/TUI editing before removing browser persona forms.                  |
+| Persona editing                | `kova persona ...` plus `/persona` read-only chat inspection          | Ready     | Keep `SOUL.md` as the file-backed source of truth.                             |
 | Plugin management              | `kova plugins ...`, `/plugins list`                                   | Partial   | Add terminal install/update flows before removing browser plugin affordances.  |
 | Channel setup                  | `kova channels ...`, `kova configure --section channels`              | Partial   | Keep onboarding channel selection terminal-first and skip channels by default. |
 | Logs                           | `kova logs ...`, Gateway log path from `kova status`                  | Partial   | Add a compact tail/filter command before removing browser log panes.           |
@@ -57,4 +57,5 @@ Before removing a browser-only page or panel:
 
 - [TUI](/web/tui)
 - [Memory CLI](/cli/memory)
+- [Persona CLI](/cli/persona)
 - [Control UI](/web/control-ui)

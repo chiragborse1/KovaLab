@@ -58,7 +58,15 @@ describe("tui slash commands", () => {
   it("keeps duplicate command-help aliases out of the palette", () => {
     const commands = getSlashCommands({});
     expect(commands.some((command) => command.name === "context")).toBe(true);
+    expect(commands.some((command) => command.name === "persona")).toBe(true);
     expect(commands.some((command) => command.name === "commands")).toBe(false);
+  });
+
+  it("offers persona argument completions", () => {
+    const persona = getSlashCommands({}).find((command) => command.name === "persona");
+
+    expect(persona?.argumentHint).toContain("show");
+    expect(persona?.getArgumentCompletions?.("sh").map((entry) => entry.value)).toContain("show");
   });
 
   it("includes /auth in local embedded mode", () => {

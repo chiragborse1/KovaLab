@@ -68,6 +68,38 @@ const MEMORY_COMMAND_COMPLETIONS = [
     description: "Show memory command help",
   },
 ];
+const PERSONA_COMMAND_COMPLETIONS = [
+  {
+    value: "status",
+    label: "status",
+    description: "Show SOUL.md status and edit command",
+  },
+  {
+    value: "show",
+    label: "show",
+    description: "Read SOUL.md",
+  },
+  {
+    value: "show lines=80",
+    label: "show lines=80",
+    description: "Read the first 80 lines",
+  },
+  {
+    value: "show all",
+    label: "show all",
+    description: "Read the full persona file",
+  },
+  {
+    value: "path",
+    label: "path",
+    description: "Show the SOUL.md path",
+  },
+  {
+    value: "help",
+    label: "help",
+    description: "Show persona command help",
+  },
+];
 
 export type ParsedCommand = {
   name: string;
@@ -145,6 +177,20 @@ function appendSlashCommand(
       getArgumentCompletions: (prefix) => {
         const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
         return MEMORY_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
+      },
+    });
+    return;
+  }
+  if (normalizedName === "persona") {
+    commands.push({
+      name: normalizedName,
+      description,
+      argumentHint: "status | show [lines=<count>|all] | path",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return PERSONA_COMMAND_COMPLETIONS.filter((item) =>
+          item.value.startsWith(normalizedPrefix),
+        );
       },
     });
     return;
@@ -331,6 +377,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
     "/context [compact|verbose]",
     "/memory <status|sync [force]|search <query>|read <path[:line[-end]]>|dreams>",
+    "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
     "/plugins list",
     "",

@@ -258,6 +258,29 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       argsMenu: "auto",
     }),
     defineChatCommand({
+      key: "persona",
+      nativeName: "persona",
+      description: "Show persona status or read SOUL.md.",
+      textAlias: "/persona",
+      category: "status",
+      tier: "essential",
+      args: [
+        {
+          name: "action",
+          description: "help, status, show, path, edit, or init",
+          type: "string",
+          choices: ["help", "status", "show", "path", "edit", "init"],
+        },
+        {
+          name: "value",
+          description: "lines=<count> or all for show",
+          type: "string",
+          captureRemaining: true,
+        },
+      ],
+      argsMenu: "auto",
+    }),
+    defineChatCommand({
       key: "btw",
       nativeName: "btw",
       description: "Ask a side question without changing future session context.",
