@@ -6,6 +6,7 @@
 
 - CLI/TUI: make quick onboarding terminal-first by skipping chat channels by default, launching `kova chat`, and treating the browser Control UI as an optional advanced surface. Thanks @chiragborse1
 - CLI/onboarding: tighten first-run setup copy around terminal chat, persona, memory, status, and channel follow-up commands. Thanks @chiragborse1
+- CLI/TUI: add `/limits` so terminal users can distinguish the context-window gauge from provider account quotas and rate limits. Thanks @chiragborse1
 - CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat`, demoting Dashboard wording to optional Control UI, and adding chat-first next steps. Thanks @chiragborse1
 - CLI: add `kova control-ui` as the explicit browser admin command and move command output to Control UI wording. Thanks @chiragborse1
 - CLI/TUI: reshape `/help` into a terminal command center that surfaces Gateway status, tools, context, skills, plugin management, and run controls from one place. Thanks @chiragborse1

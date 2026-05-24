@@ -17,7 +17,7 @@ import {
   createSettingsList,
 } from "./components/selectors.js";
 import type { TuiBackend } from "./tui-backend.js";
-import { sanitizeRenderableText } from "./tui-formatters.js";
+import { formatContextUsageLine, sanitizeRenderableText } from "./tui-formatters.js";
 import {
   formatMaintenanceSummary,
   formatSelfHealingReport,
@@ -334,6 +334,27 @@ function formatPluginDetails(result: TuiPluginStatus, pluginId: string): string 
     lines.push(`Error: ${truncateLine(plugin.error, 180)}`);
   }
   return lines.join("\n");
+}
+
+function formatLimitsSummary(state: TuiStateAccess): string {
+  const info = state.sessionInfo;
+  const total = info.totalTokens ?? null;
+  const context = info.contextTokens ?? null;
+  const remaining =
+    typeof total === "number" && typeof context === "number" ? Math.max(0, context - total) : null;
+  const percent =
+    typeof total === "number" && typeof context === "number" && context > 0
+      ? (total / context) * 100
+      : null;
+  const model = [info.modelProvider, info.model].filter(Boolean).join("/") || "current model";
+  return [
+    "Limits",
+    `- Context window: ${formatContextUsageLine({ total, context, remaining, percent })}`,
+    `- Model: ${model}`,
+    "- This is the model context window, not your provider account quota.",
+    "- Provider quotas/rate limits come from the provider and may not be exposed to Kova.",
+    "- Shell check when available: kova status --usage",
+  ].join("\n");
 }
 
 function formatTaskAge(timestamp?: number): string {
@@ -1158,6 +1179,10 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         } catch (err) {
           chatLog.addSystem(`status failed: ${String(err)}`);
         }
+        break;
+      case "limits":
+        echoCommand();
+        chatLog.addSystem(formatLimitsSummary(state));
         break;
       case "agent":
         if (!args) {

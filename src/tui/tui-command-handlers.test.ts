@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCommandHandlers } from "./tui-command-handlers.js";
-import type { QueuedMessage } from "./tui-types.js";
+import type { QueuedMessage, SessionInfo } from "./tui-types.js";
 
 type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runAuthFlow"]>;
@@ -44,6 +44,7 @@ function createHarness(params?: {
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
   busyInputMode?: "queue" | "steer" | "interrupt";
+  sessionInfo?: SessionInfo;
   opts?: { local?: boolean };
 }) {
   const sendChat = params?.sendChat ?? vi.fn().mockResolvedValue({ runId: "r1" });
@@ -306,7 +307,7 @@ function createHarness(params?: {
     busyInputMode: params?.busyInputMode ?? "queue",
     queuedMessages: [] as QueuedMessage[],
     isConnected: params?.isConnected ?? true,
-    sessionInfo: {},
+    sessionInfo: params?.sessionInfo ?? {},
     activityStatus: "idle",
   };
 
@@ -824,6 +825,32 @@ describe("tui command handlers", () => {
     expect(sendChat).not.toHaveBeenCalled();
     expect(addSystem).toHaveBeenCalledWith("Gateway status");
     expect(addSystem).toHaveBeenCalledWith("Version: 1.2.3");
+  });
+
+  it("shows local context limits without sending an agent turn", async () => {
+    const { handleCommand, addSystem, addUser, sendChat } = createHarness({
+      sessionInfo: {
+        modelProvider: "openai-codex",
+        model: "gpt-5.5",
+        totalTokens: 44000,
+        contextTokens: 272000,
+      },
+    });
+
+    await handleCommand("/limit");
+
+    expect(addUser).toHaveBeenCalledWith("/limit");
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addSystem).toHaveBeenCalledWith(
+      [
+        "Limits",
+        "- Context window: tokens 44k/272k (228k left, 16%)",
+        "- Model: openai-codex/gpt-5.5",
+        "- This is the model context window, not your provider account quota.",
+        "- Provider quotas/rate limits come from the provider and may not be exposed to Kova.",
+        "- Shell check when available: kova status --usage",
+      ].join("\n"),
+    );
   });
 
   it("returns to Crestodian with an optional request", async () => {

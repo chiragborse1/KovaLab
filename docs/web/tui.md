@@ -66,7 +66,10 @@ Use `--password` if your Gateway uses password auth.
 
 The `ctx` gauge is the current session's estimated model context usage. When it
 gets close to the selected model's context limit, Kova needs compaction or a new
-session before the model can keep working reliably.
+session before the model can keep working reliably. It is not your provider
+account quota or daily/monthly model limit. Use `/limits` for the in-terminal
+explanation, and `kova status --usage` when a provider exposes quota or usage
+snapshots.
 
 ## Mental model: agents + sessions
 
@@ -119,6 +122,7 @@ Core:
 - `/help`
 - `/status`
 - `/gateway-status`
+- `/limits`
 - `/agent <id>` (or `/agents`)
 - `/crestodian [request]`
 - `/session <key>` (or `/sessions [query]`)
@@ -141,6 +145,7 @@ Capability map:
 - plugins and plugin-owned tools: `/plugins list|verbose|show` or `kova plugins inspect --all`
 - MCP saved server config: `kova mcp status`
 - model/provider readiness: `/models` or `kova models status`
+- context vs provider quota: `/limits` or `kova status --usage`
 - runtime isolation: `kova sandbox list`
 
 Session controls:

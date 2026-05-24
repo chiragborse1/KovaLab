@@ -10,6 +10,10 @@ describe("parseCommand", () => {
     expect(parseCommand("/gwstatus")).toEqual({ name: "gateway-status", args: "" });
   });
 
+  it("normalizes limit aliases", () => {
+    expect(parseCommand("/limit")).toEqual({ name: "limits", args: "" });
+  });
+
   it("normalizes hidden lifecycle aliases", () => {
     expect(parseCommand("/abort")).toEqual({ name: "stop", args: "" });
     expect(parseCommand("/quit")).toEqual({ name: "exit", args: "" });
@@ -39,9 +43,11 @@ describe("getSlashCommands", () => {
     const commands = getSlashCommands();
     const status = commands.find((command) => command.name === "status");
     const gatewayStatus = commands.find((command) => command.name === "gateway-status");
+    const limits = commands.find((command) => command.name === "limits");
     const crestodian = commands.find((command) => command.name === "crestodian");
     expect(status?.description).toBe("Show current status.");
     expect(gatewayStatus?.description).toBe("Show gateway status summary");
+    expect(limits?.description).toBe("Explain context usage vs provider quotas");
     expect(crestodian?.description).toBe("Return to Crestodian");
   });
 
@@ -144,6 +150,7 @@ describe("getSlashCommands", () => {
     expect(commandNames).not.toContain("gwstatus");
     expect(commandNames).not.toContain("abort");
     expect(commandNames).not.toContain("commands");
+    expect(commandNames).not.toContain("limit");
     expect(commandNames).not.toContain("quit");
     expect(commandNames).not.toContain("id");
     expect(commandNames).not.toContain("plugin");
@@ -189,6 +196,7 @@ describe("helpText", () => {
     expect(output).toContain("Core:");
     expect(output).toContain("/status - current session and runtime state");
     expect(output).toContain("/memory - memory health and commands");
+    expect(output).toContain("/limits - context window vs provider quota");
     expect(output).toContain("More: /help all");
     expect(output).toContain("/commands opens this help");
     expect(output).not.toContain("/elevated <on|off|ask|full>");
@@ -200,6 +208,7 @@ describe("helpText", () => {
     const output = helpText({ verbose: true });
     expect(output).toContain("/elevated <on|off|ask|full>");
     expect(output).toContain("/gateway-status");
+    expect(output).toContain("/limits");
     expect(output).not.toContain("/commands");
     expect(output).toContain("/crestodian [request]");
     expect(output).toContain("/session <key> (or /sessions [query])");
