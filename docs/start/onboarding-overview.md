@@ -9,7 +9,7 @@ sidebarTitle: "Onboarding Overview"
 
 Kova has two onboarding paths. Both configure auth, workspace identity, and the
 local agent. CLI onboarding is terminal-first; Gateway, channels, apps, and the
-Control UI are optional follow-up surfaces.
+legacy browser UI are optional follow-up surfaces.
 
 ## Which path should I use?
 
@@ -36,6 +36,7 @@ Regardless of which path you choose, onboarding sets up:
    BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams,
    Telegram, WhatsApp, and more
 6. **Daemon** (optional) — background service so the Gateway starts automatically
+7. **Terminal operations** — status, settings, logs, tasks, memory, skills, and plugins from the CLI/TUI
 
 ## CLI onboarding
 

@@ -28,11 +28,11 @@ To skip this for a pre-seeded workspace, run `kova onboard --skip-bootstrap`.
 
 ## Editing persona later
 
-The Control UI includes a dedicated **Persona** menu for the selected agent. It
-edits the same `IDENTITY.md`, `SOUL.md`, and `USER.md` files that bootstrapping
-creates. Saving changed persona files also lets Kova reconcile a pending
-bootstrap state, so a manually configured persona does not need to keep the
-first-run Q&A active.
+Edit persona from the terminal with `kova settings` or the TUI settings flow.
+These controls update the same `IDENTITY.md`, `SOUL.md`, and `USER.md` files
+that bootstrapping creates. Saving changed persona files also lets Kova
+reconcile a pending bootstrap state, so a manually configured persona does not
+need to keep the first-run Q&A active.
 
 ## Where it runs
 

@@ -11,8 +11,8 @@ Interactive onboarding for the terminal-first Kova agent setup.
 
 The interactive flow starts with a Kova Setup screen, then walks through setup
 type, workspace, model, Gateway access, web search, skills, hooks, and where to
-start first. Quick setup starts in terminal chat; channels and the browser
-Control UI are optional follow-up surfaces.
+start first. Quick setup starts in terminal chat; channels, apps, and the
+legacy browser UI are optional follow-up surfaces.
 
 After a valid config exists, plain `kova onboard` opens terminal settings
 instead of repeating first-run onboarding. Pass explicit onboarding flags such
@@ -56,11 +56,11 @@ kova onboard --mode remote --remote-url wss://gateway-host:18789
 
 `--flow import` uses plugin-owned migration providers such as Hermes. It only runs against a fresh Kova setup; if existing config, credentials, sessions, or workspace memory/identity files are present, reset or choose a fresh setup before importing.
 
-`kova settings` is the normal post-onboarding terminal control surface for model,
-workspace, Gateway, channels, memory, browser tools, voice, web search, skills,
-plugins, background service, health checks, and theme. `--modern` starts the
-Crestodian conversational onboarding preview. Without `--modern`, first-run
-`kova onboard` keeps the guided setup flow.
+`kova settings` is the normal post-onboarding terminal control surface for
+model, workspace, Gateway, channels, memory, browser tools, voice, web search,
+skills, plugins, background service, health checks, and theme. `--modern`
+starts the Crestodian conversational onboarding preview. Without `--modern`,
+first-run `kova onboard` keeps the guided setup flow.
 
 For plaintext private-network `ws://` targets (trusted networks only), set
 `KOVA_ALLOW_INSECURE_PRIVATE_WS=1` in the onboarding process environment.
@@ -213,6 +213,7 @@ kova onboard --non-interactive \
   <Accordion title="Other behaviors">
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
     - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
+    - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
     - Quick setup skips channels by default. Use `--with-channels`, custom setup, or `kova channels add` when you want Kova on chat platforms.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.

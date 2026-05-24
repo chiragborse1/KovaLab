@@ -11,7 +11,7 @@ CLI onboarding is the **recommended** way to shape a new Kova instance on macOS,
 Linux, or Windows (via WSL2; strongly recommended).
 It sets up model auth, the local workspace, terminal chat, web search, skills,
 and the optional headless Gateway in one guided flow. Channels and the browser
-Control UI are follow-up surfaces after the local agent works.
+UI are optional follow-up surfaces after the local agent works.
 
 ```bash
 kova onboard
@@ -92,7 +92,7 @@ Onboarding starts by choosing a setup type:
    If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, daemon install is blocked until mode is set explicitly.
 6. **Health check** — Starts the Gateway and verifies it is reachable.
 7. **Skills** — Installs recommended skills and optional dependencies.
-8. **Start** — Opens Terminal chat, opens the advanced Control UI, or finishes without launching.
+8. **Start** — Opens Terminal chat by default, offers the legacy browser UI only when explicitly enabled, or finishes without launching.
 
 <Note>
 Re-running onboarding does **not** wipe anything unless you explicitly choose **Reset** (or pass `--reset`).

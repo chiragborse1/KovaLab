@@ -8,8 +8,9 @@ title: "Control UI command"
 
 # `kova control-ui`
 
-Open the optional browser Control UI using your current auth. For daily chat,
-use `kova chat`; the Control UI is the advanced/admin browser surface.
+Open the legacy browser Control UI using your current auth. For daily chat and
+administration, use `kova chat`, `kova status --all`, `kova settings`, and
+`kova logs`; the browser UI is optional compatibility surface area.
 
 ```bash
 kova control-ui
@@ -19,6 +20,9 @@ kova control-ui --no-open
 Notes:
 
 - `control-ui` resolves configured `gateway.auth.token` SecretRefs when token auth is active.
+- The command does not make the browser UI the primary control surface. Enable
+  `gateway.controlUi.enabled=true` when you want the Gateway to build/serve web
+  assets in source checkouts.
 - The old `dashboard` CLI alias is no longer registered; scripts should call `control-ui`.
 - If `gateway.auth.mode` is `"password"`, the command opens/copies a plain URL; enter the gateway password in Control UI settings.
 - The command follows `gateway.tls.enabled`: TLS-enabled gateways print/open

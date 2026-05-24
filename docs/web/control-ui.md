@@ -1,5 +1,5 @@
 ---
-summary: "Browser-based control UI for the Gateway (chat, nodes, config)"
+summary: "Legacy browser-based control UI for the Gateway"
 read_when:
   - You want to operate the Gateway from a browser
   - You want Tailnet access without SSH tunnels
@@ -7,10 +7,10 @@ title: "Control UI"
 sidebarTitle: "Control UI"
 ---
 
-The Control UI is the optional browser operator surface served by the Gateway.
-Use `kova chat` for the primary terminal experience; use the Control UI when
-you want visual admin for channels, cron, skills, logs, nodes, config, or
-remote Gateway operations.
+The Control UI is the legacy optional browser operator surface served by the
+Gateway. Use `kova chat`, `kova status --all`, `kova settings`, and `kova logs`
+for the primary terminal experience. Use the Control UI only when you
+intentionally need the browser compatibility surface.
 
 The app is a small **Vite + Lit** single-page app:
 
@@ -20,6 +20,14 @@ The app is a small **Vite + Lit** single-page app:
 It speaks **directly to the Gateway WebSocket** on the same port.
 
 ## Quick open (local)
+
+First enable the browser surface when running from a source checkout:
+
+```bash
+kova config set gateway.controlUi.enabled true
+pnpm ui:build
+kova gateway
+```
 
 If the Gateway is running on the same computer, open:
 

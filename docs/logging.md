@@ -1,5 +1,5 @@
 ---
-summary: "File logs, console output, CLI tailing, and the Control UI Logs tab"
+summary: "File logs, console output, and CLI tailing"
 read_when:
   - You need a beginner-friendly overview of Kova logging
   - You want to configure log levels, formats, or redaction
@@ -10,10 +10,10 @@ title: "Logging"
 Kova has two main log surfaces:
 
 - **File logs** (JSON lines) written by the Gateway.
-- **Console output** shown in terminals and the Gateway Debug UI.
+- **Console output** shown in terminals and `kova logs`.
 
-The Control UI **Logs** tab tails the gateway file log. This page explains where
-logs live, how to read them, and how to configure log levels and formats.
+This page explains where logs live, how to read them from the terminal, and how
+to configure log levels and formats.
 
 ## Where logs live
 
@@ -83,10 +83,10 @@ If the Gateway is unreachable, the CLI prints a short hint to run:
 kova doctor
 ```
 
-### Control UI (web)
+### Legacy browser UI
 
-The Control UI’s **Logs** tab tails the same file using `logs.tail`.
-See [/web/control-ui](/web/control-ui) for how to open it.
+The legacy browser UI can tail the same file using `logs.tail` when that surface
+is enabled. The CLI remains the recommended path.
 
 ### Channel-only logs
 
@@ -100,7 +100,7 @@ kova channels logs --channel whatsapp
 
 ### File logs (JSONL)
 
-Each line in the log file is a JSON object. The CLI and Control UI parse these
+Each line in the log file is a JSON object. The CLI and legacy browser UI parse these
 entries to render structured output (time, level, subsystem, message).
 
 File-log JSONL records also include machine-filterable top-level fields when

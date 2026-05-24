@@ -99,7 +99,9 @@ pnpm gateway:watch
 `gateway:watch` runs the gateway in watch mode and reloads on relevant source,
 config, and bundled-plugin metadata changes.
 `pnpm kova setup` is the one-time local config/workspace initialization step for a fresh checkout.
-`pnpm gateway:watch` does not rebuild `dist/control-ui`, so rerun `pnpm ui:build` after `ui/` changes or use `pnpm ui:dev` while developing the Control UI.
+The normal development loop is terminal-first. `pnpm gateway:watch` does not
+rebuild `dist/control-ui`; run `pnpm ui:build` or `pnpm ui:dev` only when you
+are intentionally working on the legacy browser UI.
 
 If you are intentionally using the Bun workflow, the equivalent commands are:
 

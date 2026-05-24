@@ -1,28 +1,32 @@
 ---
-summary: "Gateway web surfaces: Control UI, bind modes, and security"
+summary: "Legacy Gateway browser surfaces, bind modes, and security"
 read_when:
   - You want to access the Gateway over Tailscale
   - You want the browser Control UI and config editing
 title: "Web"
 ---
 
-The Gateway serves a small **browser Control UI** (Vite + Lit) from the same port as the Gateway WebSocket:
+Kova is terminal-first. Use `kova chat`, `kova status`, `kova settings`, and
+`kova logs` for normal operation. The Gateway can still serve the legacy
+**browser Control UI** (Vite + Lit) from the same port as the Gateway WebSocket
+when it is enabled and assets are available:
 
 - default: `http://<host>:18789/`
 - with `gateway.tls.enabled: true`: `https://<host>:18789/`
 - optional prefix: set `gateway.controlUi.basePath` (e.g. `/kova`)
 
-Capabilities live in [Control UI](/web/control-ui). The rest of this page focuses on bind modes, security, and web-facing surfaces.
+Capabilities live in [Control UI](/web/control-ui). The rest of this page
+focuses on bind modes, security, and web-facing surfaces.
 
 ## Webhooks
 
 When `hooks.enabled=true`, the Gateway also exposes a small webhook endpoint on the same HTTP server.
 See [Gateway configuration](/gateway/configuration) → `hooks` for auth + payloads.
 
-## Config (default-on)
+## Config
 
-The Control UI is **enabled by default** when assets are present (`dist/control-ui`).
-You can control it via config:
+The terminal path does not require web assets. Enable the legacy browser UI
+explicitly when you want that surface:
 
 ```json5
 {
@@ -119,7 +123,8 @@ Open:
 
 ## Building the UI
 
-The Gateway serves static files from `dist/control-ui`. Build them with:
+The Gateway serves static files from `dist/control-ui`. Build them only when you
+are using the legacy browser UI:
 
 ```bash
 pnpm ui:build

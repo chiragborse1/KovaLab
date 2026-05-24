@@ -127,8 +127,9 @@ was validated before install.
   <Step title="Install dependencies">
     Uses the repo package manager. For pnpm checkouts, the updater bootstraps `pnpm` on demand (via `corepack` first, then a temporary `npm install pnpm@10` fallback) instead of running `npm run build` inside a pnpm workspace.
   </Step>
-  <Step title="Build Control UI">
-    Builds the gateway and the Control UI.
+  <Step title="Build runtime artifacts">
+    Builds the gateway runtime and verifies legacy browser UI artifacts for
+    source-update compatibility.
   </Step>
   <Step title="Run doctor">
     `kova doctor` runs as the final safe-update check.

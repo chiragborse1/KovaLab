@@ -20,9 +20,10 @@ kova status --usage
 
 Notes:
 
-- The Overview starts with `Terminal: kova chat`, then lists the optional browser
-  Control UI. Use the Control UI for advanced/admin work, not as the primary
-  daily entry point.
+- The Overview starts with `Terminal: kova chat`. Use `kova settings`,
+  `kova logs`, `kova tasks`, `kova memory`, `kova skills`, and TUI slash
+  commands for daily administration. The browser UI appears only when it is
+  explicitly enabled.
 - `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Slack + Signal).
 - The Memory row is intentionally lightweight: plain `status` does not run a live vector/embedding probe. Use `kova memory status --deep` for memory backend diagnostics and `kova memory index` for an on-demand sync.
 - `--usage` prints normalized provider usage windows as `X% left`.

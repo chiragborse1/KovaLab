@@ -22,6 +22,8 @@ Local mode (default) walks you through:
 - Daemon install (LaunchAgent, systemd user unit, or native Windows Scheduled Task with Startup-folder fallback)
 - Health check
 - Skills setup
+- Terminal operations through `kova settings`, `kova status`, `kova logs`, and
+  TUI slash commands
 
 Remote mode configures this machine to connect to a gateway elsewhere.
 It does not install or modify anything on the remote host.
@@ -96,15 +98,18 @@ It does not install or modify anything on the remote host.
   </Step>
   <Step title="Finish">
     - Opens terminal chat by default.
-    - Offers the advanced Control UI only when the Gateway is reachable and Control UI is enabled.
-    - Summary and next steps, including iOS, Android, and macOS app options.
+    - Offers the legacy browser UI only when the Gateway is reachable and
+      `gateway.controlUi.enabled=true`.
+    - Summary and next steps, including terminal commands, iOS, Android, and
+      macOS app options.
   </Step>
 </Steps>
 
 <Note>
-Control UI asset checks run only when you choose the advanced browser surface.
-If no GUI is detected, the wizard prints SSH port-forward instructions instead of opening a browser.
-If Control UI assets are missing, the wizard attempts to build them; fallback is `pnpm ui:build` (auto-installs UI deps).
+Control UI asset checks run only when you explicitly choose the legacy browser
+surface. If no GUI is detected, the wizard prints SSH port-forward instructions
+instead of opening a browser. If Control UI assets are missing, the wizard
+attempts to build them; fallback is `pnpm ui:build` (auto-installs UI deps).
 </Note>
 
 ## Remote mode details

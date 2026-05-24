@@ -1,6 +1,6 @@
 ---
 title: "Kova Product Spine Cleanup"
-summary: "Plan for restoring one clear architecture and product story across agents, plugins, automation, memory, and UI"
+summary: "Plan for restoring one clear terminal-first architecture and product story across agents, plugins, automation, and memory"
 read_when:
   - You are comparing Kova capabilities with another agent platform
   - You are deciding whether a new feature belongs in agents, automation, memory, plugins, or UI
@@ -9,10 +9,10 @@ read_when:
 
 ## Status
 
-Phase 0 and Phase 1 are in progress. The first pass aligned the default Gateway
-port, canonical config path references, the initial product-spine docs, a fresh
-reference-agent capability parity review, repeatable hotspot reporting, and
-repeatable plugin compatibility reporting.
+Phase 0 and Phase 1 are in progress. Kova's current product direction is
+terminal-first: `kova chat`, `kova status`, `kova settings`, `kova logs`, and
+the TUI command center are the primary operator surfaces. The browser Control UI
+is now treated as a legacy/optional surface, not the product spine.
 
 ## Progress
 
@@ -28,10 +28,10 @@ Done:
   assembly, and compaction.
 - Tools/plugins docs now state the ownership split between core contracts and
   plugin-owned behavior.
-- Control UI design drift has a static cleanup plan in
-  [Control UI Design Cleanup](/plan/control-ui-design-cleanup).
-- Control UI Quick Settings has a first visual cleanup pass and contributor
-  guardrails in `ui/AGENTS.md`.
+- Terminal-first docs now identify `kova chat` and `kova settings` as the daily
+  control surfaces.
+- Control UI work is frozen to compatibility, security, and release safety. New
+  operator UX should land in CLI/TUI unless a platform app explicitly owns it.
 - Duplicate and large-file hotspots have a static inventory in
   [Duplicate And Hotspot Inventory](/plan/duplicate-hotspot-inventory).
 - Duplicate and large-file hotspots now have a repeatable static audit helper
@@ -47,13 +47,13 @@ Done:
 
 Remaining:
 
-- Continue Control UI design cleanup against `KOVA_DESIGN.md`, especially
-  Control Panel and mobile navigation.
+- Replace remaining docs and prompts that still send users to the browser
+  dashboard for normal administration.
 - Use the hotspot audit to choose one clear owner-boundary refactor at a time.
 - Add a maintainer or release-facing command surface for the compatibility
   report before any removal-pending sweep.
-- Move capability matrices into the user-facing docs and Control UI status
-  surfaces where they can be maintained from manifests or owner docs.
+- Move capability matrices into CLI/TUI docs and status surfaces where they can
+  be maintained from manifests or owner docs.
 - Closed-learning-loop cleanup: memory, dreaming, Skill Workshop, and skill
   proposal review as one product story.
 - Filesystem checkpoint/rollback decision and implementation plan.
@@ -73,7 +73,8 @@ separate experiments. The product spine is:
   understandable model
 - memory and context systems that improve agent continuity without hiding where
   recall, storage, compaction, and prompt assembly happen
-- a Control UI that matches the documented Kova design language
+- a terminal operator surface that makes setup, status, memory, skills, plugins,
+  logs, and recovery usable without a browser
 
 ## Why This Exists
 
@@ -139,15 +140,21 @@ The plugin architecture direction remains manifest-first:
 - broad mutable registries should continue shrinking toward targeted runtime
   loading
 
-### Control UI
+### Terminal Operator Surface
 
-The Control UI should either follow the documented Kova design language or the
-design document should be changed. A cleanup pass should remove conflicting
-surface-level patterns before adding more panels:
+The CLI and TUI are the active product surfaces. New operator work should land
+where terminal users already are:
 
-- no card-first layouts unless the design language explicitly allows them
-- no decorative shadows, gradients, or rounded panel systems by default
-- dense operator views should favor tables, panes, lists, and clear controls
+- `kova chat` for local embedded runs
+- `kova status --all` for pasteable diagnostics
+- `kova settings` for common configuration
+- `kova logs` for runtime logs
+- TUI slash commands such as `/status`, `/tasks`, `/automation`, `/recover`,
+  `/memory`, `/skills`, and `/plugins`
+
+The browser Control UI remains compatibility surface area. Keep it secure and
+buildable, but do not add new product-critical workflows there unless the same
+workflow has a terminal path.
 
 ## Cleanup Phases
 
@@ -169,6 +176,7 @@ Rewrite the core concept docs around one path:
 - explain automation as triggers, authority, workflows, and task state
 - explain memory and context as separate responsibilities
 - explain plugins as the extension model for everything not owned by core
+- explain the browser UI as optional/legacy, never the required setup path
 
 ### Phase 2: Duplicate Inventory
 
@@ -201,6 +209,6 @@ closing real capability gaps while preserving Kova's local-first architecture.
 
 - Do not remove features only because they feel messy.
 - Do not move plugin-owned behavior into core for convenience.
-- Do not use UI redesign as a substitute for architecture cleanup.
+- Do not use web UI redesign as a substitute for architecture cleanup.
 - Do not add large new automation or memory features until the existing model is
   documented and reconciled.

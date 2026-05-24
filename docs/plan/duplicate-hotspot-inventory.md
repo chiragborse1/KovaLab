@@ -144,9 +144,9 @@ cleanup should label each feature as:
 - compaction
 - review or knowledge curation
 
-### Control UI
+### Legacy Browser UI
 
-The UI has both structural and visual hotspots:
+The legacy browser UI has structural and visual hotspots:
 
 - `ui/src/styles/components.css`
 - `ui/src/styles/config-quick.css`
@@ -155,8 +155,8 @@ The UI has both structural and visual hotspots:
 - `ui/src/styles/control-panel.css`
 - `ui/src/ui/app-render.ts`
 
-Use [Control UI Design Cleanup](/plan/control-ui-design-cleanup) before editing
-these files broadly.
+Do not broaden this surface while Kova is terminal-first. Edit these files only
+for compatibility, security, release safety, or direct bug fixes.
 
 ## Cleanup Order
 
@@ -173,9 +173,8 @@ these files broadly.
 
 - Config/Gateway defaults: aligned the default Gateway port and canonical config
   path references across runtime, tests, scripts, and docs.
-- Control UI: started the visual cleanup with Quick Settings, Control Panel, and
-  mobile layout ruled-section styling plus a lightweight migrated-style guard; see
-  [Control UI Design Cleanup](/plan/control-ui-design-cleanup).
+- Legacy browser UI: previous visual cleanup work remains documented, but new
+  operator UX should land in CLI/TUI first.
 - Repo audit repeatability: added `scripts/audit-kova-spine.mjs` to refresh the
   same tracked-file counts, largest-file signals, and Control UI drift counts.
 
@@ -183,10 +182,8 @@ these files broadly.
 
 - Split or relocate plugin-loader tests by contract only after the related
   compatibility reporting work is in place.
-- Continue Control UI cleanup in `ui/src/styles/layout.mobile.css`, using the
-  design plan before broad edits.
-- Promote capability matrices into user-facing docs and then mirror their status
-  in the Control UI instead of adding another disconnected capability page.
+- Promote capability matrices into user-facing docs and terminal status/settings
+  surfaces instead of adding another disconnected capability page.
 
 ## Non Goals
 

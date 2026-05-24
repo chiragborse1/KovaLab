@@ -9,7 +9,7 @@ title: "Getting started"
 Install Kova, run onboarding, and start a terminal chat in about 5 minutes.
 By the end you will have a local agent workspace, configured model auth, and a
 working `kova chat` session. The Gateway, channels, apps, and Control UI can be
-enabled after the local agent is working.
+enabled separately after the local agent is working.
 
 ## What you need
 
@@ -77,17 +77,19 @@ Need to install Node? See [Node setup](/install/node).
     ```
 
     The Gateway is headless infrastructure for remote access, channels, cron,
-    nodes, apps, and the advanced Control UI. If you installed the daemon, you
-    should see it listening on port 18789.
+    nodes, apps, and optional web compatibility. If you installed the daemon,
+    you should see it listening on port 18789.
 
   </Step>
-  <Step title="Optional: open the Control UI">
+  <Step title="Optional: inspect from the terminal">
     ```bash
-    kova control-ui
+    kova status --all
+    kova settings
+    kova logs
     ```
 
-    This opens the advanced browser operator surface. Use it when you want
-    visual admin for channels, cron, skills, logs, nodes, or config.
+    These commands are the normal operator surface for health, settings,
+    channels, memory, plugins, skills, and logs.
 
     Want to chat from your phone instead? The fastest channel to set up is
     [Telegram](/channels/telegram) (just a bot token). See [Channels](/channels)
@@ -96,10 +98,10 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
 </Steps>
 
-<Accordion title="Advanced: mount a custom Control UI build">
-  If you maintain a localized or customized Control UI build, point
-  `gateway.controlUi.root` to a directory that contains your built static
-  assets and `index.html`.
+<Accordion title="Legacy: enable the browser Control UI">
+  Kova's primary flow is terminal-first. If you still need the legacy browser
+  Control UI, enable it explicitly and point `gateway.controlUi.root` to built
+  static assets when you use a custom build.
 
 ```bash
 mkdir -p "$HOME/.kova/control-ui-custom"

@@ -81,7 +81,8 @@ Channel matrix follow-ups:
 
 Tool matrix follow-ups:
 
-- Make tool group/profile selection visible in Control UI setup.
+- Make tool group/profile selection visible in terminal setup, `kova settings`,
+  and `kova status --all`.
 - Add a generated or manifest-backed inventory for plugin-owned tools.
 - Keep "built-in", "plugin", and "MCP" origin visible to users.
 
@@ -103,8 +104,8 @@ Runtime matrix follow-ups:
 - Promote the runtime comparison into [Sandboxing](/gateway/sandboxing) or setup
   docs.
 - Decide whether cloud/serverless backends are a Kova goal.
-- Add one operator UI surface that shows current runtime, sandbox, host, and
-  elevated policy together.
+- Add one terminal operator surface that shows current runtime, sandbox, host,
+  and elevated policy together.
 
 ## Memory Matrix
 
@@ -133,6 +134,6 @@ Memory matrix follow-ups:
 
 1. Move the channel matrix into user-facing channel docs.
 2. Add manifest-backed source/origin fields where possible.
-3. Add runtime/tool/memory status summaries to Control UI without changing the
-   design cleanup direction.
+3. Add runtime/tool/memory status summaries to CLI/TUI surfaces without making
+   the legacy browser UI the required path.
 4. Only then decide which missing capabilities deserve implementation work.
