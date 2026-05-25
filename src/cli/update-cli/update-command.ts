@@ -119,7 +119,7 @@ const UPDATE_QUIPS = [
   "Firmware fresh. Brain wrinkles: increased.",
   "I've seen things you wouldn't believe. Anyway, I'm updated.",
   "Back online. The changelog is long but our friendship is longer.",
-  "Upgraded! Peter fixed stuff. Blame him if it breaks.",
+  "Upgraded! Fresh fixes landed. Run doctor if anything feels off.",
   "Transformation complete. Please don't look directly at the glitter cloud.",
   "Version bump! Same chaos energy, fewer crashes (probably).",
 ];

@@ -914,13 +914,13 @@ TAGLINES+=("Your config is valid, your assumptions are not.")
 TAGLINES+=("I don't just autocomplete—I auto-commit (emotionally), then ask you to review (logically).")
 TAGLINES+=("Less clicking, more shipping, fewer \"where did that file go\" moments.")
 TAGLINES+=("Kova up, commit in—let's ship something mildly responsible.")
-TAGLINES+=("I'll butter your workflow like a lobster roll: messy, delicious, effective.")
-TAGLINES+=("Shell yeah—I'm here to pinch the toil and leave you the glory.")
+TAGLINES+=("I'll streamline your workflow: messy problems in, useful outcomes out.")
+TAGLINES+=("Shell yeah—I'm here to move the toil out of your way.")
 TAGLINES+=("If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.")
 TAGLINES+=("Because texting yourself reminders is so 2024.")
 TAGLINES+=("WhatsApp, but make it ✨engineering✨.")
 TAGLINES+=("Turning \"I'll reply later\" into \"my bot replied instantly\".")
-TAGLINES+=("The only crab in your contacts you actually want to hear from. 🦞")
+TAGLINES+=("The one chat assistant in your contacts that can actually do the work.")
 TAGLINES+=("Chat automation for people who peaked at IRC.")
 TAGLINES+=("Because Siri wasn't answering at 3AM.")
 TAGLINES+=("IPC, but it's your phone.")
@@ -1958,7 +1958,7 @@ warn_duplicate_kova_global_installs() {
     fi
     echo -e "  Active node: ${INFO}${active_node:-none}${NC}"
     echo -e "  Active npm: ${INFO}${active_npm:-none}${NC}"
-    echo -e "  Active kova/kova: ${INFO}${active_kova:-none}${NC}"
+    echo -e "  Active kova: ${INFO}${active_kova:-none}${NC}"
     echo ""
     echo "  Found installs:"
 
@@ -2653,24 +2653,24 @@ main() {
     if [[ "$is_upgrade" == "true" ]]; then
         local update_messages=(
             "Leveled up! New skills unlocked. You're welcome."
-            "Fresh code, same lobster. Miss me?"
+            "Fresh code, same Kova. Miss me?"
             "Back and better. Did you even notice I was gone?"
             "Update complete. I learned some new tricks while I was out."
             "Upgraded! Now with 23% more sass."
             "I've evolved. Try to keep up. 🦞"
             "New version, who dis? Oh right, still me but shinier."
-            "Patched, polished, and ready to pinch. Let's go."
+            "Patched, polished, and ready to ship. Let's go."
             "Fresh build installed. Cleaner edges, fewer rough spots."
             "Update done! Check the changelog or just trust me, it's good."
-            "Reborn from the boiling waters of npm. Stronger now."
+            "Rebuilt from npm. Stronger now."
             "I went away and came back smarter. You should try it sometime."
             "Update complete. The bugs feared me, so they left."
             "New version installed. Old version sends its regards."
             "Firmware fresh. Brain wrinkles: increased."
             "I've seen things you wouldn't believe. Anyway, I'm updated."
             "Back online. The changelog is long but our friendship is longer."
-            "Upgraded! Peter fixed stuff. Blame him if it breaks."
-            "Molting complete. Please don't look at my soft shell phase."
+            "Upgraded! Fresh fixes landed. Run doctor if anything feels off."
+            "Refresh complete. New build, cleaner edges."
             "Version bump! Same chaos energy, fewer crashes (probably)."
         )
         local update_message
@@ -2686,7 +2686,7 @@ main() {
             "Cozy. I've already read your calendar. We need to talk."
             "Finally unpacked. Now point me at your problems."
             "Cracks knuckles. Alright, what are we building?"
-            "The lobster has landed. Your terminal will never be the same."
+            "Kova has landed. Your terminal will never be the same."
             "All done! I promise to only judge your code a little bit."
         )
         local completion_message

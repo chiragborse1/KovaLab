@@ -82,10 +82,11 @@ describe("install.ps1 failure handling", () => {
   it("launches interactive onboarding outside Main's captured output", () => {
     const interactiveCommandBody = extractFunctionBody(source, "Invoke-InteractiveKovaCommand");
     const mainBody = extractFunctionBody(source, "Main");
-    expect(interactiveCommandBody).toContain("Start-Process");
-    expect(interactiveCommandBody).toContain("-NoNewWindow");
-    expect(interactiveCommandBody).toContain("-Wait");
-    expect(interactiveCommandBody).toContain("-PassThru");
+    expect(interactiveCommandBody).toContain("Get-KovaCommandPath");
+    expect(interactiveCommandBody).toContain("& powershell.exe");
+    expect(interactiveCommandBody).toContain("-File $commandPath @Arguments");
+    expect(interactiveCommandBody).toContain("& $commandPath @Arguments");
+    expect(interactiveCommandBody).not.toContain("Start-Process");
     expect(mainBody).toContain('Write-Host "Starting setup..." -Level info');
     expect(mainBody).toContain("Invoke-InteractiveKovaCommand onboard");
   });
