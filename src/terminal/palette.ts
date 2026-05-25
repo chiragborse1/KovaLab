@@ -1,12 +1,12 @@
-// Lobster palette tokens for CLI/UI theming. Use this palette for all CLI color output.
+// Kova terminal palette tokens. Use this palette for all CLI color output.
 // Keep in sync with docs/cli/index.md (CLI palette section).
-export const LOBSTER_PALETTE = {
-  accent: "#FF5A2D",
-  accentBright: "#FF7A3D",
-  accentDim: "#D14A22",
-  info: "#FF8A5B",
+export const KOVA_TERMINAL_PALETTE = {
+  accent: "#00B8A9",
+  accentBright: "#36D399",
+  accentDim: "#187A73",
+  info: "#4C8DFF",
   success: "#2FBF71",
-  warn: "#FFB020",
-  error: "#E23D2D",
-  muted: "#8B7F77",
+  warn: "#F5A524",
+  error: "#EF4444",
+  muted: "#7B8794",
 } as const;

@@ -47,7 +47,7 @@ describe("settings console", () => {
       "Background Service",
       "Health Check",
       "Theme",
-      "Kova Builder",
+      "Setup Extras",
       "Finish",
     ]);
     expect(rows.find((row) => row.id === "provider")?.value).toBe("openai");

@@ -34,8 +34,8 @@ import { launchTuiCli } from "../tui/tui-launch.js";
 import { resolveUserPath } from "../utils.js";
 import { listConfiguredWebSearchProviders } from "../web-search/runtime.js";
 import type { WizardPrompter } from "./prompts.js";
-import type { SetupBuilderModule } from "./setup.builder.js";
 import { setupWizardShellCompletion } from "./setup.completion.js";
+import type { SetupExtraModule } from "./setup.extras.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
 import type { GatewayWizardSettings, WizardFlow } from "./setup.types.js";
 
@@ -46,7 +46,7 @@ type FinalizeOnboardingOptions = {
   nextConfig: KovaConfig;
   workspaceDir: string;
   settings: GatewayWizardSettings;
-  builderModules?: SetupBuilderModule[];
+  extraModules?: SetupExtraModule[];
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
 };
@@ -66,14 +66,14 @@ export async function finalizeSetupWizard(
 ): Promise<{ launchedTui: boolean }> {
   const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime } = options;
   const isQuickstart = flow === "quickstart";
-  const isBuilder = flow === "builder";
-  const builderModules = options.builderModules ?? [];
-  const builderWantsGateway = builderModules.includes("gateway") || opts.installDaemon === true;
+  const isExtras = flow === "extras";
+  const extraModules = options.extraModules ?? [];
+  const extrasWantGateway = extraModules.includes("gateway") || opts.installDaemon === true;
   let gatewayProbe: { ok: boolean; detail?: string } =
-    isQuickstart || (isBuilder && !builderWantsGateway)
+    isQuickstart || (isExtras && !extrasWantGateway)
       ? {
           ok: false,
-          detail: isQuickstart ? "not checked during Kova Start" : "not checked by Kova Builder",
+          detail: isQuickstart ? "not checked during launch" : "not checked by extras setup",
         }
       : { ok: true };
   let resolvedGatewayPassword = "";
@@ -97,8 +97,8 @@ export async function finalizeSetupWizard(
     typeof opts.installDaemon === "boolean" ? opts.installDaemon : undefined;
   const shouldPrepareServiceLayer =
     explicitInstallDaemon === true ||
-    (!isQuickstart && !isBuilder && explicitInstallDaemon !== false) ||
-    (isBuilder && builderWantsGateway && explicitInstallDaemon !== false);
+    (!isQuickstart && !isExtras && explicitInstallDaemon !== false) ||
+    (isExtras && extrasWantGateway && explicitInstallDaemon !== false);
   const systemdAvailable =
     process.platform === "linux" && shouldPrepareServiceLayer
       ? await isSystemdUserServiceAvailable()
@@ -129,7 +129,7 @@ export async function finalizeSetupWizard(
     installDaemon = explicitInstallDaemon;
   } else if (process.platform === "linux" && !systemdAvailable) {
     installDaemon = false;
-  } else if (flow === "quickstart" || (isBuilder && !builderWantsGateway)) {
+  } else if (flow === "quickstart" || (isExtras && !extrasWantGateway)) {
     installDaemon = false;
   } else {
     installDaemon = await prompter.confirm({
@@ -157,7 +157,7 @@ export async function finalizeSetupWizard(
           });
     if (flow === "quickstart") {
       await prompter.note(
-        "Kova Start uses the Node runtime when you explicitly install the Gateway service.",
+        "Launch uses the Node runtime when you explicitly install the Gateway service.",
         "Gateway service runtime",
       );
     }
@@ -278,7 +278,7 @@ export async function finalizeSetupWizard(
 
   const shouldCheckGatewayHealth =
     !opts.skipHealth &&
-    ((!isQuickstart && !isBuilder) || installDaemon || (isBuilder && builderWantsGateway));
+    ((!isQuickstart && !isExtras) || installDaemon || (isExtras && extrasWantGateway));
   if (shouldCheckGatewayHealth) {
     const probeLinks = resolveControlUiLinks({
       bind: nextConfig.gateway?.bind ?? "loopback",
@@ -362,17 +362,17 @@ export async function finalizeSetupWizard(
   } else if (isQuickstart && !installDaemon) {
     await prompter.note(
       [
-        "Gateway health check skipped for Kova Start.",
+        "Gateway health check skipped for launch.",
         "Terminal chat runs locally without a Gateway service.",
         `Start Gateway later: ${formatCliCommand("kova gateway run")}`,
         `Install service later: ${formatCliCommand("kova onboard --install-daemon")}`,
       ].join("\n"),
       "Gateway",
     );
-  } else if (isBuilder && !builderWantsGateway) {
+  } else if (isExtras && !extrasWantGateway) {
     await prompter.note(
       [
-        "Gateway health check skipped because Gateway was not selected in Kova Builder.",
+        "Gateway health check skipped because always-on Gateway was not selected.",
         `Check later: ${formatCliCommand("kova status --all")}`,
       ].join("\n"),
       "Gateway",
@@ -383,7 +383,7 @@ export async function finalizeSetupWizard(
     nextConfig.gateway?.controlUi?.enabled === true ||
     baseConfig.gateway?.controlUi?.enabled === true;
 
-  if (!isQuickstart && !isBuilder) {
+  if (!isQuickstart && !isExtras) {
     await prompter.note(
       [
         "Optional apps can extend Kova after terminal chat is working:",
@@ -393,7 +393,7 @@ export async function finalizeSetupWizard(
       ].join("\n"),
       "Kova apps",
     );
-  } else if (isBuilder && (builderWantsGateway || builderModules.includes("channels"))) {
+  } else if (isExtras && (extrasWantGateway || extraModules.includes("channels"))) {
     await prompter.note(
       [
         "Terminal chat is still the base.",
@@ -417,7 +417,7 @@ export async function finalizeSetupWizard(
       ? `${links.httpUrl}#token=${encodeURIComponent(settings.gatewayToken)}`
       : links.httpUrl;
   const shouldProbeGatewayForSummary =
-    (!isQuickstart && !isBuilder) || installDaemon || (isBuilder && builderWantsGateway);
+    (!isQuickstart && !isExtras) || installDaemon || (isExtras && extrasWantGateway);
   if (shouldProbeGatewayForSummary && (opts.skipHealth || !gatewayProbe.ok)) {
     gatewayProbe = await probeGatewayReachable({
       url: links.wsUrl,
@@ -448,22 +448,22 @@ export async function finalizeSetupWizard(
             : `Gateway: saved for later at ${links.wsUrl}`,
           installDaemon ? `Gateway detail: ${gatewayStatusLine}` : undefined,
           installDaemon
-            ? "Add later: channels, web search, skills, and hooks."
-            : "Add later: channels, web search, skills, hooks, background service.",
+            ? "Add later: chat apps, web recall, skills, and automation."
+            : "Add later: chat apps, web recall, skills, automation, background service.",
           "Docs: https://docs.neuralstudio.in/web/tui",
         ]
-      : isBuilder
+      : isExtras
         ? [
             `Primary start: ${formatCliCommand("kova chat")}`,
             "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
             "Useful first commands inside chat: /status, /memory, /persona, /tools",
-            builderModules.length
-              ? `Builder modules: ${builderModules.join(", ")}`
-              : "Builder modules: none; current setup left in place.",
-            builderWantsGateway
+            extraModules.length
+              ? `Extras added: ${extraModules.join(", ")}`
+              : "Extras added: none; current setup left in place.",
+            extrasWantGateway
               ? `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`
               : "Gateway: unchanged.",
-            builderWantsGateway ? `Gateway detail: ${gatewayStatusLine}` : undefined,
+            extrasWantGateway ? `Gateway detail: ${gatewayStatusLine}` : undefined,
             `Add more: ${formatCliCommand("kova settings")}`,
             "Docs: https://docs.neuralstudio.in/web/tui",
           ]
@@ -503,10 +503,7 @@ export async function finalizeSetupWizard(
       );
     }
 
-    if (
-      ((!isQuickstart && !isBuilder) || builderWantsGateway || installDaemon) &&
-      gatewayProbe.ok
-    ) {
+    if (((!isQuickstart && !isExtras) || extrasWantGateway || installDaemon) && gatewayProbe.ok) {
       await prompter.note(
         [
           "Gateway token: shared auth for remote clients, channels, nodes, and legacy web UI when enabled.",
@@ -608,7 +605,7 @@ export async function finalizeSetupWizard(
     );
   }
 
-  if (!isQuickstart && !isBuilder) {
+  if (!isQuickstart && !isExtras) {
     await prompter.note(
       [
         "Back up your Kova workspace.",
@@ -621,13 +618,13 @@ export async function finalizeSetupWizard(
       "Keep Kova secure: review access, review tools, and avoid public exposure. https://docs.neuralstudio.in/security",
       "Security",
     );
-  } else if (isBuilder) {
+  } else if (isExtras) {
     await prompter.note(
       [
-        "Kova Builder only changed the modules selected in this run.",
-        `Add or revise modules later: ${formatCliCommand("kova settings")}`,
+        "Only selected extras changed in this run.",
+        `Add or revise extras later: ${formatCliCommand("kova settings")}`,
       ].join("\n"),
-      "Kova Builder",
+      "Extras",
     );
   }
 
@@ -681,22 +678,22 @@ export async function finalizeSetupWizard(
   const webSearchProvider = nextConfig.tools?.web?.search?.provider;
   const webSearchEnabled = nextConfig.tools?.web?.search?.enabled;
   const configuredSearchProviders = listConfiguredWebSearchProviders({ config: nextConfig });
-  const shouldReportWebSearch = !isBuilder || builderModules.includes("web");
+  const shouldReportWebSearch = !isExtras || extraModules.includes("web");
   if (isQuickstart) {
     await prompter.note(
       [
-        "Kova Start is ready.",
+        "Kova launch is ready.",
         `Chat: ${formatCliCommand("kova chat")}`,
         `Persona: ${formatCliCommand("kova persona edit")}`,
         `Memory: ${formatCliCommand("kova memory status")}`,
-        `Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+        `Extras: ${formatCliCommand("kova onboard --flow extras")}`,
       ].join("\n"),
       "Next steps",
     );
-  } else if (isBuilder && !shouldReportWebSearch) {
+  } else if (isExtras && !shouldReportWebSearch) {
     await prompter.note(
       [
-        "Kova Builder is ready.",
+        "Kova extras are ready.",
         `Chat: ${formatCliCommand("kova chat")}`,
         `Settings: ${formatCliCommand("kova settings")}`,
         `Web search later: ${formatCliCommand("kova configure --section web")}`,
@@ -800,7 +797,7 @@ export async function finalizeSetupWizard(
     }
   }
 
-  if (!isQuickstart && (!isBuilder || shouldReportWebSearch) && codexNativeSummary) {
+  if (!isQuickstart && (!isExtras || shouldReportWebSearch) && codexNativeSummary) {
     await prompter.note(
       [
         codexNativeSummary,
@@ -811,7 +808,7 @@ export async function finalizeSetupWizard(
     );
   }
 
-  if (!isQuickstart && !isBuilder) {
+  if (!isQuickstart && !isExtras) {
     await prompter.note(
       [
         `Chat: ${formatCliCommand("kova chat")}`,
@@ -822,10 +819,10 @@ export async function finalizeSetupWizard(
       ].join("\n"),
       "Next steps",
     );
-  } else if (isBuilder && shouldReportWebSearch) {
+  } else if (isExtras && shouldReportWebSearch) {
     await prompter.note(
       [
-        "Kova Builder is ready.",
+        "Kova extras are ready.",
         `Chat: ${formatCliCommand("kova chat")}`,
         `Settings: ${formatCliCommand("kova settings")}`,
         `Gateway later: ${formatCliCommand("kova configure --section gateway")}`,

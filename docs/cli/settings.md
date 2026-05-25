@@ -47,10 +47,9 @@ Keyboard controls:
 
 After an editor finishes, the settings console opens again with refreshed values.
 
-`kova settings` does not remove onboarding. The **Kova Builder** row opens the
-goal-based setup planner for first-time setup, import, reset, bootstrap, and
-optional modules such as Gateway/service, channels, web search, skills, plugins,
-and hooks.
+`kova settings` does not remove onboarding. The **Setup Extras** row opens the
+optional setup path for Gateway/service, chat apps, web recall, skills, plugins,
+and automation after the terminal agent is already usable.
 
 For scripts, use targeted non-interactive commands instead:
 

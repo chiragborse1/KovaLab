@@ -55,10 +55,10 @@ Need to install Node? See [Node setup](/install/node).
     kova onboard
     ```
 
-    Kova Start walks you through choosing a model provider, setting auth,
+    Launch chat walks you through choosing a model provider, setting auth,
     creating the workspace, and opening terminal chat. It keeps Gateway service,
-    channels, web search, skills, and hooks for later so the first run stays
-    short.
+    chat apps, web recall, skills, and automation for later so the first run
+    stays short.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 

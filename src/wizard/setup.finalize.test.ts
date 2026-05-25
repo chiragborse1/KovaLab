@@ -674,7 +674,7 @@ describe("finalizeSetupWizard", () => {
     expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Control UI ready");
   });
 
-  it("skips Gateway probes during Kova Start without a daemon", async () => {
+  it("skips Gateway probes during launch without a daemon", async () => {
     const prompter = createLaterPrompter();
 
     await finalizeSetupWizard({
@@ -705,7 +705,7 @@ describe("finalizeSetupWizard", () => {
     expect(probeGatewayReachable).not.toHaveBeenCalled();
     expect(isSystemdUserServiceAvailable).not.toHaveBeenCalled();
     expect(prompter.note).toHaveBeenCalledWith(
-      expect.stringContaining("Gateway health check skipped for Kova Start."),
+      expect.stringContaining("Gateway health check skipped for launch."),
       "Gateway",
     );
   });

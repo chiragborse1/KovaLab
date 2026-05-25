@@ -25,7 +25,7 @@ import { setupWizardCommand } from "./onboard.js";
 
 type SettingsAction =
   | { type: "configure"; section: WizardSection }
-  | { type: "onboard"; flow?: "builder" }
+  | { type: "onboard"; flow?: "extras" }
   | { type: "health" }
   | { type: "finish" }
   | { type: "restart-gateway" };
@@ -369,11 +369,11 @@ export function buildSettingsDashboardRows(
     },
     {
       id: "setup",
-      label: "Kova Builder",
+      label: "Setup Extras",
       value: "Open",
-      hint: "Goal-based setup, import, reset, bootstrap",
-      status: withStatus("setup", status("Planner", "muted"), statusMap),
-      action: { type: "onboard", flow: "builder" },
+      hint: "Add Gateway, chat apps, web recall, skills, plugins, or automation",
+      status: withStatus("setup", status("Optional", "muted"), statusMap),
+      action: { type: "onboard", flow: "extras" },
     },
     {
       id: "finish",
@@ -404,7 +404,7 @@ export function buildSettingsPaletteCommands(
     daemon: "Manage Background Service",
     health: "Run Health Check",
     theme: "Cycle Theme",
-    setup: "Open Kova Builder",
+    setup: "Open Setup Extras",
     finish: "Finish",
   };
   const commands = rows.map((row) => ({
@@ -785,7 +785,7 @@ function describeAction(action: SettingsAction): string {
   if (action.type === "restart-gateway") {
     return "kova gateway restart";
   }
-  return action.flow === "builder" ? "kova onboard --flow builder" : "kova onboard";
+  return action.flow === "extras" ? "kova onboard --flow extras" : "kova onboard";
 }
 
 export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Promise<void> {

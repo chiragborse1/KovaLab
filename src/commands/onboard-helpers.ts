@@ -110,27 +110,16 @@ export function printWizardHeader(runtime: RuntimeEnv) {
   runtime.log(formatWizardBootScreen());
 }
 
-function formatBootScreenRow(label: string, value: string): string {
-  const content = `${label.padEnd(8, " ")} ${value}`.slice(0, 53);
-  return `│  ${content.padEnd(53, " ")} │`;
-}
-
 export function formatWizardBootScreen(): string {
   return [
-    "╭────────────────────────────────────────────────────────╮",
-    "│                                                        │",
-    "│                         KOVA                          │",
-    "│                                                        │",
-    "│                   Kova Onboarding                      │",
-    "│              chat first, build only what you need       │",
-    "│                                                        │",
-    "├────────────────────────────────────────────────────────┤",
-    formatBootScreenRow("release", VERSION),
-    formatBootScreenRow("goal", "get a working terminal agent"),
-    formatBootScreenRow("base", "model/auth and workspace"),
-    formatBootScreenRow("builder", "Gateway, channels, web, skills, hooks"),
-    formatBootScreenRow("start", "open terminal chat"),
-    "╰────────────────────────────────────────────────────────╯",
+    "KOVA LAUNCH",
+    `version ${VERSION}`,
+    "",
+    "1. choose model",
+    "2. choose workspace",
+    "3. open terminal chat",
+    "",
+    "Extras stay optional: Gateway, chat apps, web recall, skills, plugins, automation.",
     "",
   ].join("\n");
 }

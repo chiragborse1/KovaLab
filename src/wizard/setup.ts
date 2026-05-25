@@ -22,10 +22,10 @@ import { defaultRuntime } from "../runtime.js";
 import { resolveUserPath } from "../utils.js";
 import { WizardCancelledError, type WizardPrompter } from "./prompts.js";
 import {
-  promptSetupBuilderModules,
+  promptSetupExtraModules,
   resolveGatewaySettingsFromDefaults,
-  type SetupBuilderModule,
-} from "./setup.builder.js";
+  type SetupExtraModule,
+} from "./setup.extras.js";
 import { detectSetupMigrationSources, runSetupMigrationImport } from "./setup.migration-import.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
 import {
@@ -255,25 +255,26 @@ export async function runSetupWizard(
     );
   }
 
-  const quickstartHint = "First chat first: model/auth, workspace, then terminal chat.";
-  const builderHint =
-    "Goal-based setup: choose only Gateway, channels, web, skills, plugins, or hooks when you want them.";
+  const quickstartHint = "Model, workspace, and terminal chat. Nothing else blocks first use.";
+  const extrasHint = "Choose optional surfaces only if you want them now.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow =
-    explicitFlowRaw === "manual" || explicitFlowRaw === "advanced" ? "builder" : explicitFlowRaw;
+    explicitFlowRaw === "builder" || explicitFlowRaw === "manual" || explicitFlowRaw === "advanced"
+      ? "extras"
+      : explicitFlowRaw;
   if (
     normalizedExplicitFlow &&
     normalizedExplicitFlow !== "quickstart" &&
-    normalizedExplicitFlow !== "builder" &&
+    normalizedExplicitFlow !== "extras" &&
     normalizedExplicitFlow !== "import"
   ) {
-    runtime.error("Invalid --flow (use quickstart, builder, manual, advanced, or import).");
+    runtime.error("Invalid --flow (use quickstart, extras, or import).");
     runtime.exit(1);
     return;
   }
   const explicitFlow: SetupFlowChoice | undefined =
     normalizedExplicitFlow === "quickstart" ||
-    normalizedExplicitFlow === "builder" ||
+    normalizedExplicitFlow === "extras" ||
     normalizedExplicitFlow === "import"
       ? normalizedExplicitFlow
       : undefined;
@@ -296,8 +297,8 @@ export async function runSetupWizard(
     (await prompter.select({
       message: "How should Kova start?",
       options: [
-        { value: "quickstart", label: "Kova Start", hint: quickstartHint },
-        { value: "builder", label: "Kova Builder", hint: builderHint },
+        { value: "quickstart", label: "Launch chat", hint: quickstartHint },
+        { value: "extras", label: "Add extras first", hint: extrasHint },
         importOption,
       ],
       initialValue: "quickstart",
@@ -305,10 +306,10 @@ export async function runSetupWizard(
 
   if (opts.mode === "remote" && flow === "quickstart") {
     await prompter.note(
-      "Kova Start is local-only. Switching to Kova Builder for remote Gateway setup.",
+      "Remote setup needs Gateway details, so Kova will open the extras path.",
       "Setup path",
     );
-    flow = "builder";
+    flow = "extras";
   }
 
   let existingSetupAction: ExistingSetupAction = snapshot.exists ? "use" : "tune";
@@ -320,12 +321,12 @@ export async function runSetupWizard(
       options: [
         {
           value: "use",
-          label: "Use current home",
+          label: "Use current setup",
           hint: "Keep model, workspace, Gateway, and secrets unchanged",
         },
         {
           value: "tune",
-          label: "Tune model or workspace",
+          label: "Change model or workspace",
           hint: "Change the base chat setup before choosing extras",
         },
         { value: "reset", label: "Reset Kova", hint: "Clear config before rebuilding" },
@@ -457,7 +458,7 @@ export async function runSetupWizard(
     };
     const quickstartLines = quickstartGateway.hasExisting
       ? [
-          "Kova Start keeps your current Gateway settings, but opens terminal chat first:",
+          "Kova will keep your current Gateway settings and open terminal chat first.",
           `Gateway port: ${quickstartGateway.port}`,
           `Gateway bind: ${formatBind(quickstartGateway.bind)}`,
           ...(quickstartGateway.bind === "custom" && quickstartGateway.customBindHost
@@ -465,19 +466,19 @@ export async function runSetupWizard(
             : []),
           `Gateway auth: ${formatAuth(quickstartGateway.authMode)}`,
           `Tailscale exposure: ${formatTailscale(quickstartGateway.tailscaleMode)}`,
-          "Skipped for now: channels, web search, skills, hooks, and service install.",
+          "Later: chat apps, web recall, skill packs, automation, background service.",
           "Next: model/auth, workspace, terminal chat.",
         ]
       : [
-          "Kova Start prepares a private terminal-first setup:",
+          "Kova will prepare a private terminal-first setup.",
           `Gateway port: ${quickstartGateway.port}`,
           "Gateway bind: Loopback (127.0.0.1)",
           "Gateway auth: Token (default)",
           "Tailscale exposure: Off",
-          "Skipped for now: channels, web search, skills, hooks, and service install.",
+          "Later: chat apps, web recall, skill packs, automation, background service.",
           "Next: model/auth, workspace, terminal chat.",
         ];
-    await prompter.note(quickstartLines.join("\n"), "Kova Start");
+    await prompter.note(quickstartLines.join("\n"), "Kova launch");
   }
 
   const localPort = resolveGatewayPort(baseConfig);
@@ -646,7 +647,7 @@ export async function runSetupWizard(
     await prompter.note(
       [
         "Using your current model/auth and workspace.",
-        "Kova Builder will only touch modules you choose next.",
+        "Kova will only touch extras you choose next.",
       ].join("\n"),
       "Current chat base",
     );
@@ -762,9 +763,9 @@ export async function runSetupWizard(
     break;
   }
 
-  const builderModules: SetupBuilderModule[] =
-    flow === "builder"
-      ? await promptSetupBuilderModules({
+  const extraModules: SetupExtraModule[] =
+    flow === "extras"
+      ? await promptSetupExtraModules({
           config: nextConfig,
           workspaceDir,
           gatewayDefaults: quickstartGateway,
@@ -776,12 +777,12 @@ export async function runSetupWizard(
   const shouldConfigureGateway =
     flow === "quickstart" ||
     flow === "advanced" ||
-    builderModules.includes("gateway") ||
-    (flow === "builder" && opts.installDaemon === true);
+    extraModules.includes("gateway") ||
+    (flow === "extras" && opts.installDaemon === true);
   if (shouldConfigureGateway) {
     const { configureGatewayForSetup } = await import("./setup.gateway-config.js");
     const gateway = await configureGatewayForSetup({
-      flow: flow === "builder" ? "advanced" : wizardFlow,
+      flow: flow === "extras" ? "advanced" : wizardFlow,
       baseConfig,
       nextConfig,
       localPort,
@@ -792,7 +793,7 @@ export async function runSetupWizard(
     });
     nextConfig = gateway.nextConfig;
     settings = gateway.settings;
-  } else if (flow === "builder") {
+  } else if (flow === "extras") {
     await prompter.note(
       [
         "Gateway setup left unchanged.",
@@ -808,20 +809,20 @@ export async function runSetupWizard(
     opts.skipChannels === true ||
     opts.skipProviders === true ||
     (flow === "quickstart" && !channelsExplicitlyRequested) ||
-    (flow === "builder" && !builderModules.includes("channels"));
+    (flow === "extras" && !extraModules.includes("channels"));
   if (skipChannelSetup) {
     const message =
       flow === "quickstart" && opts.skipChannels !== true && opts.skipProviders !== true
         ? [
-            "Quick setup keeps the first run terminal-only and skips chat channel setup.",
+            "Launch keeps the first run terminal-only and skips chat app setup.",
             `Add channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
-            `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+            `Or reopen extras: ${formatCliCommand("kova onboard --flow extras")}`,
           ].join("\n")
-        : flow === "builder"
+        : flow === "extras"
           ? [
-              "Messaging channels left unchanged.",
+              "Chat apps left unchanged.",
               `Add later: ${formatCliCommand("kova channels add --channel telegram")}`,
-              `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+              `Or reopen extras: ${formatCliCommand("kova onboard --flow extras")}`,
             ].join("\n")
           : "Chat channels skipped. You can add them later.";
     await prompter.note(message, "Channels");
@@ -857,22 +858,22 @@ export async function runSetupWizard(
   const skipWebSearchSetup =
     opts.skipSearch ||
     flow === "quickstart" ||
-    (flow === "builder" && !builderModules.includes("web"));
+    (flow === "extras" && !extraModules.includes("web"));
   if (skipWebSearchSetup) {
     const message =
       flow === "quickstart" && !opts.skipSearch
         ? [
-            "Kova Start skips web search until terminal chat works.",
+            "Launch skips web recall until terminal chat works.",
             `Add it later: ${formatCliCommand("kova configure --section web")}`,
-            `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+            `Or reopen extras: ${formatCliCommand("kova onboard --flow extras")}`,
           ].join("\n")
-        : flow === "builder" && !builderModules.includes("web")
+        : flow === "extras" && !extraModules.includes("web")
           ? [
-              "Web search left unchanged.",
+              "Web recall left unchanged.",
               `Add later: ${formatCliCommand("kova configure --section web")}`,
             ].join("\n")
-          : "Web search skipped. You can add it later.";
-    await prompter.note(message, "Web search");
+          : "Web recall skipped. You can add it later.";
+    await prompter.note(message, "Web recall");
   } else {
     const { setupSearch } = await import("../commands/onboard-search.js");
     nextConfig = await setupSearch(nextConfig, runtime, prompter, {
@@ -884,16 +885,16 @@ export async function runSetupWizard(
   const skipSkillSetup =
     opts.skipSkills ||
     flow === "quickstart" ||
-    (flow === "builder" && !builderModules.includes("skills"));
+    (flow === "extras" && !extraModules.includes("skills"));
   if (skipSkillSetup) {
     const message =
       flow === "quickstart" && !opts.skipSkills
         ? [
-            "Kova Start skips skill installation for a faster first run.",
+            "Launch skips skill installation for a faster first run.",
             `Inspect later: ${formatCliCommand("kova skills")}`,
             `Configure later: ${formatCliCommand("kova settings")}`,
           ].join("\n")
-        : flow === "builder" && !builderModules.includes("skills")
+        : flow === "extras" && !extraModules.includes("skills")
           ? ["Skills left unchanged.", `Inspect later: ${formatCliCommand("kova skills")}`].join(
               "\n",
             )
@@ -905,14 +906,14 @@ export async function runSetupWizard(
   }
 
   // Plugin configuration (sandbox backends, tool plugins, etc.)
-  if (flow !== "quickstart" && (flow !== "builder" || builderModules.includes("plugins"))) {
+  if (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("plugins"))) {
     const { setupPluginConfig } = await import("./setup.plugin-config.js");
     nextConfig = await setupPluginConfig({
       config: nextConfig,
       prompter,
       workspaceDir,
     });
-  } else if (flow === "builder" && !builderModules.includes("plugins")) {
+  } else if (flow === "extras" && !extraModules.includes("plugins")) {
     await prompter.note(
       ["Plugin setup left unchanged.", `Review later: ${formatCliCommand("kova settings")}`].join(
         "\n",
@@ -922,22 +923,22 @@ export async function runSetupWizard(
   }
 
   // Setup hooks (session memory on /new)
-  if (flow !== "quickstart" && (flow !== "builder" || builderModules.includes("hooks"))) {
+  if (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("hooks"))) {
     const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
     nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
   } else {
     const message =
       flow === "quickstart"
         ? [
-            "Automation hooks skipped for Kova Start.",
+            "Automation rules skipped for launch.",
             `Review later: ${formatCliCommand("kova hooks list")}`,
             `Enable later: ${formatCliCommand("kova hooks enable <name>")}`,
           ].join("\n")
         : [
-            "Automation hooks left unchanged.",
+            "Automation rules left unchanged.",
             `Review later: ${formatCliCommand("kova hooks list")}`,
           ].join("\n");
-    await prompter.note(message, "Automation hooks");
+    await prompter.note(message, "Automation");
   }
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
@@ -953,7 +954,7 @@ export async function runSetupWizard(
     nextConfig,
     workspaceDir,
     settings,
-    builderModules,
+    extraModules,
     prompter,
     runtime,
   });

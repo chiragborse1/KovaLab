@@ -1,7 +1,7 @@
 import type { GatewayAuthChoice } from "../commands/onboard-types.js";
 import type { SecretInput } from "../config/types.secrets.js";
 
-export type WizardFlow = "quickstart" | "builder" | "advanced";
+export type WizardFlow = "quickstart" | "extras" | "advanced";
 
 export type QuickstartGatewayDefaults = {
   hasExisting: boolean;

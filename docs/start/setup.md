@@ -1,5 +1,5 @@
 ---
-summary: "Kova Builder and development setup workflows"
+summary: "Kova setup and development workflows"
 read_when:
   - Setting up a new machine
   - You want “latest + greatest” without breaking your personal setup

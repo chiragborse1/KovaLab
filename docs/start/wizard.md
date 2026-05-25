@@ -9,17 +9,17 @@ sidebarTitle: "Onboarding: CLI"
 
 CLI onboarding is the **recommended** way to shape a new Kova instance on macOS,
 Linux, or Windows (via WSL2; strongly recommended).
-The default path is **Kova Start**: choose model/auth, choose the workspace, and
-open terminal chat. Larger setup now goes through **Kova Builder**, a goal-based
-planner that lets you pick only the modules you want now: Gateway/service,
-messaging channels, web search, skills, plugins, or automation hooks.
+The default path is **Launch chat**: choose model/auth, choose the workspace,
+and open terminal chat. Optional setup goes through **Setup Extras**, where you
+can add Gateway/service, chat apps, web recall, skills, plugins, or automation
+only when you want them.
 
 ```bash
 kova onboard
 ```
 
-Onboarding opens with a short Kova screen that explains the first-chat path and
-the optional Builder path before any config is written.
+Onboarding opens with a short Kova launch screen: model, workspace, chat. Extras
+stay clearly optional before any config is written.
 
 <Info>
 Fastest first chat: run `kova chat`. It uses the embedded local agent runtime,
@@ -42,19 +42,19 @@ you do not have to repeat first-run onboarding for routine edits.
 </Note>
 
 <Tip>
-Kova Builder includes a web recall module where you can pick a provider such as
+Setup Extras includes a web recall module where you can pick a provider such as
 Brave, DuckDuckGo, Exa, Firecrawl, Gemini, Grok, Kimi, MiniMax Search, Ollama
 Web Search, Perplexity, SearXNG, or Tavily. Some providers require an API key,
 while others are key-free. You can also configure this later with `kova
 configure --section web`. Docs: [Web tools](/tools/web).
 </Tip>
 
-## Quick vs Custom
+## Launch vs Extras
 
-Onboarding starts by choosing a setup type:
+Onboarding starts by choosing how much to do now:
 
 <Tabs>
-  <Tab title="Kova Start">
+  <Tab title="Launch chat">
     - Fast terminal launch
     - Embedded local agent runtime for first chat
     - Private local Gateway config saved for follow-up work
@@ -64,12 +64,12 @@ Onboarding starts by choosing a setup type:
     - Tool policy default for new local setups: `tools.profile: "coding"` (existing explicit profile is preserved)
     - DM isolation default: local onboarding writes `session.dmScope: "per-channel-peer"` when unset. Details: [CLI Setup Reference](/start/wizard-cli-reference#outputs-and-internals)
     - Tailscale access **Off**
-    - Gateway health/service, channels, web search, skills, and hooks are skipped by default; use Kova Builder, `kova settings`, or `kova channels add` when you want Kova outside the terminal
+    - Gateway health/service, chat apps, web recall, skills, and automation are skipped by default; use Setup Extras, `kova settings`, or `kova channels add` when you want Kova outside the terminal
   </Tab>
-  <Tab title="Kova Builder">
+  <Tab title="Setup Extras">
     - Reuses the current Kova home by default.
-    - Lets you tune model/workspace only when you choose to.
-    - Runs only selected modules: Gateway/service, messaging channels, web search, skills, plugins, and hooks.
+    - Lets you change model/workspace only when you choose to.
+    - Runs only selected modules: Gateway/service, chat apps, web recall, skills, plugins, and automation.
     - Leaves unselected modules unchanged and points you to the matching command for later.
   </Tab>
 </Tabs>
@@ -89,13 +89,13 @@ Onboarding starts by choosing a setup type:
 3. **Gateway access** — Port, bind address, auth mode, Tailscale access for always-on and remote surfaces.
    In interactive token mode, choose default plaintext token storage or opt into SecretRef.
    Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
-4. **Chat channels** — skipped by default in Kova Start. Kova Builder can configure built-in and bundled chat channels such as BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams, QQ Bot, Signal, Slack, Telegram, WhatsApp, and more when you select the messaging module.
-5. **Background service** — Kova Builder can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback when you select the Gateway module.
+4. **Chat apps** — skipped by default in Launch chat. Setup Extras can configure built-in and bundled chat channels such as BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams, QQ Bot, Signal, Slack, Telegram, WhatsApp, and more when you select chat apps.
+5. **Background service** — Setup Extras can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback when you select always-on Gateway.
    If token auth requires a token and `gateway.auth.token` is SecretRef-managed, daemon install validates it but does not persist the resolved token into supervisor service environment metadata.
    If token auth requires a token and the configured token SecretRef is unresolved, daemon install is blocked with actionable guidance.
    If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, daemon install is blocked until mode is set explicitly.
-6. **Health check** — Kova Builder verifies the Gateway only when the Gateway module is selected or a service install is requested. Kova Start skips this so first chat is not blocked by Gateway startup.
-7. **Skills and hooks** — Kova Builder installs skill dependencies or enables automation hooks only when you select those modules. Kova Start leaves both for later.
+6. **Health check** — Setup Extras verifies the Gateway only when always-on Gateway is selected or a service install is requested. Launch chat skips this so first chat is not blocked by Gateway startup.
+7. **Skills and automation** — Setup Extras installs skill dependencies or enables automation hooks only when you select those modules. Launch chat leaves both for later.
 8. **Start** — Opens Terminal chat by default, offers the legacy browser UI only when explicitly enabled, or finishes without launching.
 
 <Note>

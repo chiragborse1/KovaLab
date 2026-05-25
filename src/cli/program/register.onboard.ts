@@ -177,7 +177,7 @@ export function registerOnboardCommand(program: Command) {
       "Acknowledge that agents are powerful and full system access is risky (required for --non-interactive)",
       false,
     )
-    .option("--flow <flow>", "Onboard flow: quickstart|builder|advanced|manual|import")
+    .option("--flow <flow>", "Onboard flow: quickstart|extras|import")
     .option("--mode <mode>", "Onboard mode: local|remote")
     .option("--auth-choice <choice>", `Auth: ${AUTH_CHOICE_HELP}`)
     .option(
@@ -275,6 +275,7 @@ export function registerOnboardCommand(program: Command) {
           acceptRisk: Boolean(opts.acceptRisk),
           flow: opts.flow as
             | "quickstart"
+            | "extras"
             | "builder"
             | "advanced"
             | "manual"

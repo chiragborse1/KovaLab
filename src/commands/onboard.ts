@@ -41,7 +41,9 @@ export async function setupWizardCommand(
     );
   }
   const flow =
-    opts.flow === "manual" || opts.flow === "advanced" ? ("builder" as const) : opts.flow;
+    opts.flow === "builder" || opts.flow === "manual" || opts.flow === "advanced"
+      ? ("extras" as const)
+      : opts.flow;
   const normalizedOpts =
     normalizedAuthChoice === opts.authChoice && flow === opts.flow
       ? opts

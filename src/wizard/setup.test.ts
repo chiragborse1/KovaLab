@@ -477,7 +477,7 @@ describe("runSetupWizard", () => {
     expect(runTui).not.toHaveBeenCalled();
   });
 
-  it("keeps Kova Start on the short terminal path by default", async () => {
+  it("keeps launch on the short terminal path by default", async () => {
     setupChannels.mockClear();
     setupSearch.mockClear();
     setupSkills.mockClear();
@@ -503,16 +503,16 @@ describe("runSetupWizard", () => {
     expect(setupSkills).not.toHaveBeenCalled();
     expect(setupInternalHooks).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("Kova Start skips web search until terminal chat works."),
-      "Web search",
+      expect.stringContaining("Launch skips web recall until terminal chat works."),
+      "Web recall",
     );
     expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("Kova Start skips skill installation for a faster first run."),
+      expect.stringContaining("Launch skips skill installation for a faster first run."),
       "Skills",
     );
   });
 
-  it("runs Kova Builder as selected modules instead of the full checklist", async () => {
+  it("runs setup extras as selected modules instead of the full checklist", async () => {
     configureGatewayForSetup.mockClear();
     setupChannels.mockClear();
     setupSearch.mockClear();
@@ -557,7 +557,7 @@ describe("runSetupWizard", () => {
     await runSetupWizard(
       {
         acceptRisk: true,
-        flow: "builder",
+        flow: "extras",
         installDaemon: false,
         skipHealth: true,
         skipUi: true,
@@ -575,8 +575,8 @@ describe("runSetupWizard", () => {
     expect(setupInternalHooks).toHaveBeenCalledTimes(1);
     expect(finalizeSetupWizard).toHaveBeenCalledWith(
       expect.objectContaining({
-        flow: "builder",
-        builderModules: ["web", "hooks"],
+        flow: "extras",
+        extraModules: ["web", "hooks"],
       }),
     );
   });
@@ -1148,7 +1148,7 @@ describe("runSetupWizard", () => {
     expect(
       calls.some(
         (call) =>
-          call?.[1] === "Kova Start" &&
+          call?.[1] === "Kova launch" &&
           typeof call?.[0] === "string" &&
           call[0].includes("Gateway port: 18791"),
       ),
