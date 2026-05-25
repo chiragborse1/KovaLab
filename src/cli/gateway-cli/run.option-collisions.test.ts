@@ -297,13 +297,20 @@ describe("gateway run option collisions", () => {
     );
   });
 
-  it("logs when first startup will build missing web console assets", async () => {
+  it("logs when explicit control UI startup will build missing web console assets", async () => {
     controlUiState.root = null;
+    configState.cfg = {
+      gateway: {
+        controlUi: {
+          enabled: true,
+        },
+      },
+    };
 
     await runGatewayCli(["gateway", "run", "--allow-unconfigured"]);
 
     expect(gatewayLogMessages).toContain(
-      "web console assets are missing; first startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
+      "web console assets are missing for explicit gateway.controlUi.enabled=true; startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
     );
   });
 
