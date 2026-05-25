@@ -795,6 +795,66 @@ describe("skill-workshop", () => {
     });
   });
 
+  it("keeps pending-mode reviewer tool writes pending", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    let tool: AnyAgentTool | undefined;
+    const api = createTestPluginApi({
+      pluginConfig: { approvalPolicy: "pending" },
+      runtime: {
+        agent: {
+          resolveAgentWorkspaceDir: () => workspaceDir,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      registerTool(registered) {
+        const resolved =
+          typeof registered === "function"
+            ? registered({
+                workspaceDir,
+                agentId: "main",
+                sessionId: "skill-workshop-review-test",
+              })
+            : registered;
+        tool = Array.isArray(resolved) ? resolved[0] : (resolved ?? undefined);
+      },
+    });
+
+    plugin.register(api);
+    const result = await tool?.execute?.("call-1", {
+      action: "suggest",
+      apply: true,
+      skillName: "reviewer-created-workflow",
+      description: "Reviewer-created workflow",
+      body: "Capture reusable review output as workspace guidance.",
+    });
+
+    expect(result?.details).toMatchObject({
+      status: "pending",
+      proposal: {
+        source: "reviewer",
+        agentId: "main",
+        sessionId: "skill-workshop-review-test",
+      },
+    });
+    await expect(
+      fs.access(path.join(workspaceDir, "skills", "reviewer-created-workflow", "SKILL.md")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    expect(await store.list("pending")).toHaveLength(1);
+
+    await expect(
+      tool?.execute?.("call-2", {
+        action: "write_support_file",
+        skillName: "reviewer-created-workflow",
+        relativePath: "notes.txt",
+        body: "persisted by prompt injection",
+      }),
+    ).rejects.toThrow(/background reviewer writes require approvalPolicy=auto/);
+  });
+
   it("uses the reviewer to propose existing skill repairs", async () => {
     const workspaceDir = await makeTempDir();
     const stateDir = await makeTempDir();
@@ -863,7 +923,7 @@ describe("skill-workshop", () => {
     expect(runEmbeddedPiAgent).toHaveBeenCalledWith(
       expect.objectContaining({
         disableTools: false,
-        toolsAllow: ["memory_search", "memory_get", "skill_workshop"],
+        toolsAllow: ["memory_search", "memory_get"],
         provider: "openai",
         model: "gpt-5.4",
         prompt: expect.stringContaining("root-cause lesson"),

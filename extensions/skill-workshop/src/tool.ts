@@ -99,6 +99,34 @@ function proposalSourceForContext(ctx: { sessionId?: string }): SkillProposal["s
   return ctx.sessionId?.startsWith("skill-workshop-review-") ? "reviewer" : "tool";
 }
 
+const REVIEWER_PENDING_ALLOWED_ACTIONS = new Set([
+  "status",
+  "usage",
+  "list_pending",
+  "list_quarantine",
+  "inspect",
+  "suggest",
+]);
+
+function isPendingReviewerContext(params: {
+  source: SkillProposal["source"];
+  config: SkillWorkshopConfig;
+}): boolean {
+  return params.source === "reviewer" && params.config.approvalPolicy !== "auto";
+}
+
+function assertPendingReviewerActionAllowed(params: {
+  action: string;
+  source: SkillProposal["source"];
+  config: SkillWorkshopConfig;
+}): void {
+  if (isPendingReviewerContext(params) && !REVIEWER_PENDING_ALLOWED_ACTIONS.has(params.action)) {
+    throw new Error(
+      "background reviewer writes require approvalPolicy=auto; queue a pending suggestion instead",
+    );
+  }
+}
+
 export function createSkillWorkshopTool(params: {
   api: KovaPluginApi;
   config: SkillWorkshopConfig;
@@ -152,6 +180,7 @@ export function createSkillWorkshopTool(params: {
       const workspaceDir = resolveWorkspaceDir(params);
       const store = createStoreForContext(params);
       const source = proposalSourceForContext(params.ctx);
+      assertPendingReviewerActionAllowed({ action, source, config: params.config });
       if (action === "status") {
         const [all, usage, review, curator] = await Promise.all([
           store.list(),
@@ -204,7 +233,8 @@ export function createSkillWorkshopTool(params: {
           sessionId: params.ctx.sessionId,
         });
         const shouldApply =
-          raw.apply === true || (raw.apply !== false && params.config.approvalPolicy === "auto");
+          !isPendingReviewerContext({ source, config: params.config }) &&
+          (raw.apply === true || (raw.apply !== false && params.config.approvalPolicy === "auto"));
         if (shouldApply) {
           const prepared = await prepareProposalWrite({
             proposal,

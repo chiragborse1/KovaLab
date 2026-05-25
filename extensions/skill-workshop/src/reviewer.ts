@@ -14,7 +14,8 @@ import type { SkillChange, SkillProposal } from "./types.js";
 const MAX_TRANSCRIPT_CHARS = 12_000;
 const MAX_SKILL_CHARS = 2_000;
 const MAX_SKILLS = 12;
-const REVIEWER_TOOLS_ALLOW = ["memory_search", "memory_get", "skill_workshop"] as const;
+const REVIEWER_READ_TOOLS_ALLOW = ["memory_search", "memory_get"] as const;
+const REVIEWER_WRITE_TOOLS_ALLOW = [...REVIEWER_READ_TOOLS_ALLOW, "skill_workshop"] as const;
 
 type ReviewContext = {
   agentId: string;
@@ -214,16 +215,26 @@ async function readExistingSkills(workspaceDir: string): Promise<string> {
 async function buildReviewPrompt(params: {
   workspaceDir: string;
   messages: unknown[];
+  allowSkillWorkshopTool: boolean;
 }): Promise<string> {
   const skills = await readExistingSkills(params.workspaceDir);
   const transcript = buildTranscript(params.messages);
+  const toolGuidance = params.allowSkillWorkshopTool
+    ? [
+        "You may use only these tools when available: memory_search, memory_get, skill_workshop.",
+        "Prefer skill_workshop tool actions for real changes: suggest for SKILL.md proposals and write_support_file for reusable support files.",
+        "Use pending proposals unless the configured tool policy explicitly applies changes.",
+        'If tool calls complete the useful work, return {"action":"none"}.',
+      ]
+    : [
+        "You may use only read-only tools when available: memory_search, memory_get.",
+        "Do not call skill_workshop in pending review mode.",
+        "Return JSON only for any proposal; Kova will queue it for explicit approval.",
+      ];
   return [
     "You are Kova's background self-improvement reviewer.",
     "Review the transcript for durable memory or skill updates after the user turn is complete.",
-    "You may use only these tools when available: memory_search, memory_get, skill_workshop.",
-    "Prefer skill_workshop tool actions for real changes: suggest for SKILL.md proposals and write_support_file for reusable support files.",
-    "Use pending proposals unless the configured tool policy explicitly applies changes.",
-    'If tool calls complete the useful work, return {"action":"none"}.',
+    ...toolGuidance,
     "If tools are unavailable, return JSON only. No markdown unless inside JSON strings.",
     "Use none unless there is a reusable workflow, correction, hard-won fix, or stale skill repair.",
     "When the transcript shows a mistake that was fixed, capture the root-cause lesson and verification step so the same failure is less likely to recur.",
@@ -247,9 +258,11 @@ export async function reviewTranscriptForProposal(params: {
   ctx: ReviewContext;
   messages: unknown[];
 }): Promise<SkillProposal | undefined> {
+  const allowSkillWorkshopTool = params.config.approvalPolicy === "auto";
   const prompt = await buildReviewPrompt({
     workspaceDir: params.ctx.workspaceDir,
     messages: params.messages,
+    allowSkillWorkshopTool,
   });
   const sessionId = `skill-workshop-review-${randomUUID()}`;
   const stateDir = params.api.runtime.state.resolveStateDir();
@@ -273,7 +286,9 @@ export async function reviewTranscriptForProposal(params: {
     timeoutMs: params.config.reviewTimeoutMs,
     runId: sessionId,
     trigger: "manual",
-    toolsAllow: [...REVIEWER_TOOLS_ALLOW],
+    toolsAllow: allowSkillWorkshopTool
+      ? [...REVIEWER_WRITE_TOOLS_ALLOW]
+      : [...REVIEWER_READ_TOOLS_ALLOW],
     disableTools: false,
     disableMessageTool: true,
     bootstrapContextMode: "lightweight",
