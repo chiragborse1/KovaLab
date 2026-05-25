@@ -26,7 +26,6 @@ const registerSubCliByNameMock = vi.hoisted(() => vi.fn());
 const restoreTerminalStateMock = vi.hoisted(() => vi.fn());
 const hasEnvHttpProxyConfiguredMock = vi.hoisted(() => vi.fn(() => false));
 const ensureGlobalUndiciEnvProxyDispatcherMock = vi.hoisted(() => vi.fn());
-const runCrestodianMock = vi.hoisted(() => vi.fn(async () => {}));
 const progressDoneMock = vi.hoisted(() => vi.fn());
 const createCliProgressMock = vi.hoisted(() =>
   vi.fn(() => ({
@@ -122,10 +121,6 @@ vi.mock("../infra/net/undici-global-dispatcher.js", () => ({
   ensureGlobalUndiciEnvProxyDispatcher: ensureGlobalUndiciEnvProxyDispatcherMock,
 }));
 
-vi.mock("../crestodian/crestodian.js", () => ({
-  runCrestodian: runCrestodianMock,
-}));
-
 vi.mock("./progress.js", () => ({
   createCliProgress: createCliProgressMock,
 }));
@@ -186,7 +181,6 @@ describe("runCli exit behavior", () => {
     expect(outputPrecomputedRootHelpTextMock).toHaveBeenCalledTimes(1);
     expect(hasEnvHttpProxyConfiguredMock).not.toHaveBeenCalled();
     expect(ensureGlobalUndiciEnvProxyDispatcherMock).not.toHaveBeenCalled();
-    expect(runCrestodianMock).not.toHaveBeenCalled();
   });
 
   it("renders root help without building the full program", async () => {
@@ -227,52 +221,6 @@ describe("runCli exit behavior", () => {
     expect(outputPrecomputedRootHelpTextMock).not.toHaveBeenCalled();
     expect(outputRootHelpMock).toHaveBeenCalledWith(liveOptions);
     expect(buildProgramMock).not.toHaveBeenCalled();
-  });
-
-  it("bootstraps env proxy before bare Crestodian startup", async () => {
-    hasEnvHttpProxyConfiguredMock.mockReturnValue(true);
-    const stdinTty = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
-    const stdoutTty = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
-    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
-    Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
-
-    try {
-      await runCli(["node", "kova"]);
-    } finally {
-      if (stdinTty) {
-        Object.defineProperty(process.stdin, "isTTY", stdinTty);
-      } else {
-        delete (process.stdin as { isTTY?: boolean }).isTTY;
-      }
-      if (stdoutTty) {
-        Object.defineProperty(process.stdout, "isTTY", stdoutTty);
-      } else {
-        delete (process.stdout as { isTTY?: boolean }).isTTY;
-      }
-    }
-
-    expect(ensureGlobalUndiciEnvProxyDispatcherMock).toHaveBeenCalledTimes(1);
-    expect(runCrestodianMock).toHaveBeenCalledWith({ onReady: expect.any(Function) });
-    expect(ensureGlobalUndiciEnvProxyDispatcherMock.mock.invocationCallOrder[0]).toBeLessThan(
-      runCrestodianMock.mock.invocationCallOrder[0],
-    );
-  });
-
-  it("bootstraps env proxy before modern onboard Crestodian startup", async () => {
-    hasEnvHttpProxyConfiguredMock.mockReturnValue(true);
-
-    await runCli(["node", "kova", "onboard", "--modern", "--json"]);
-
-    expect(ensureGlobalUndiciEnvProxyDispatcherMock).toHaveBeenCalledTimes(1);
-    expect(runCrestodianMock).toHaveBeenCalledWith({
-      message: undefined,
-      yes: false,
-      json: true,
-      interactive: true,
-    });
-    expect(ensureGlobalUndiciEnvProxyDispatcherMock.mock.invocationCallOrder[0]).toBeLessThan(
-      runCrestodianMock.mock.invocationCallOrder[0],
-    );
   });
 
   it("closes memory managers when a runtime was registered", async () => {

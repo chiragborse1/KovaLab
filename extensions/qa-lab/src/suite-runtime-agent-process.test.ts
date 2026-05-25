@@ -118,7 +118,7 @@ describe("qa suite runtime agent process helpers", () => {
         alternateModel: "openai/gpt-5.5-mini",
         providerMode: "mock-openai",
       } as never,
-      ["crestodian", "-m", "overview"],
+      ["status"],
       {
         env: {
           KOVA_STATE_DIR: "/tmp/isolated-state",
@@ -134,7 +134,7 @@ describe("qa suite runtime agent process helpers", () => {
     await expect(pending).resolves.toBe("ok");
     expect(spawnMock).toHaveBeenCalledWith(
       "/usr/bin/node",
-      ["/repo/dist/index.js", "crestodian", "-m", "overview"],
+      ["/repo/dist/index.js", "status"],
       expect.objectContaining({
         env: expect.objectContaining({
           PATH: "/usr/bin",

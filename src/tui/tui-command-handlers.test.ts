@@ -1024,27 +1024,14 @@ describe("tui command handlers", () => {
     );
   });
 
-  it("returns to Crestodian with an optional request", async () => {
-    const { handleCommand, addSystem, requestExit, sendChat } = createHarness();
-
-    await handleCommand("/crestodian restart gateway");
-
-    expect(sendChat).not.toHaveBeenCalled();
-    expect(addSystem).toHaveBeenCalledWith("returning to Crestodian with request: restart gateway");
-    expect(requestExit).toHaveBeenCalledWith({
-      exitReason: "return-to-crestodian",
-      crestodianMessage: "restart gateway",
-    });
-  });
-
-  it("leaves a Crestodian breadcrumb after switching agents", async () => {
+  it("confirms agent switches without a helper breadcrumb", async () => {
     const { handleCommand, addSystem, setSession, state } = createHarness();
 
     await handleCommand("/agent Work");
 
     expect(state.currentAgentId).toBe("work");
     expect(setSession).toHaveBeenCalledWith("");
-    expect(addSystem).toHaveBeenCalledWith("agent set to work; use /crestodian to return");
+    expect(addSystem).toHaveBeenCalledWith("agent set to work");
   });
 
   it("defers local run binding until gateway events provide a real run id", async () => {

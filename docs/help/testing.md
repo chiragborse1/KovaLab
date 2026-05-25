@@ -64,20 +64,6 @@ When debugging real providers/models (requires real creds):
     `KOVA_LIVE_CODEX_HARNESS_IMAGE_PROBE=0 KOVA_LIVE_CODEX_HARNESS_MCP_PROBE=0 KOVA_LIVE_CODEX_HARNESS_GUARDIAN_PROBE=0 KOVA_LIVE_CODEX_HARNESS_SUBAGENT_PROBE=1 pnpm test:docker:live-codex-harness`.
     This exits after the sub-agent probe unless
     `KOVA_LIVE_CODEX_HARNESS_SUBAGENT_ONLY=0` is set.
-- Crestodian rescue command smoke: `pnpm test:live:crestodian-rescue-channel`
-  - Opt-in belt-and-suspenders check for the message-channel rescue command
-    surface. It exercises `/crestodian status`, queues a persistent model
-    change, replies `/crestodian yes`, and verifies the audit/config write path.
-- Crestodian planner Docker smoke: `pnpm test:docker:crestodian-planner`
-  - Runs Crestodian in a configless container with a fake Claude CLI on `PATH`
-    and verifies the fuzzy planner fallback translates into an audited typed
-    config write.
-- Crestodian first-run Docker smoke: `pnpm test:docker:crestodian-first-run`
-  - Starts from an empty Kova state dir, routes bare `kova` to
-    Crestodian, applies setup/model/agent/Discord plugin + SecretRef writes,
-    validates config, and verifies audit entries. The same Ring 0 setup path is
-    also covered in QA Lab by
-    `pnpm kova qa suite --scenario crestodian-ring-zero-setup`.
 - Moonshot/Kimi cost smoke: with `MOONSHOT_API_KEY` set, run
   `kova models list --provider moonshot --json`, then run an isolated
   `kova agent --local --session-id live-kimi-cost --message 'Reply exactly: KIMI_LIVE_OK' --thinking off --json`

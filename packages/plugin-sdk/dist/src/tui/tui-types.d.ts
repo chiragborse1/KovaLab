@@ -10,10 +10,9 @@ export type TuiOptions = {
     historyLimit?: number;
     message?: string;
 };
-export type TuiExitReason = "exit" | "return-to-crestodian";
+export type TuiExitReason = "exit";
 export type TuiResult = {
     exitReason: TuiExitReason;
-    crestodianMessage?: string;
 };
 export type ChatEvent = {
     runId: string;
@@ -65,6 +64,7 @@ export type QueuedMessage = {
     text: string;
     mode: QueuedMessageMode;
 };
+export type TuiBusyInputMode = "queue" | "steer" | "interrupt";
 export type GatewayStatusSummary = {
     runtimeVersion?: string | null;
     linkChannel?: {
@@ -116,6 +116,7 @@ export type TuiStateAccess = {
     currentSessionId: string | null;
     activeChatRunId: string | null;
     pendingOptimisticUserMessage?: boolean;
+    busyInputMode?: TuiBusyInputMode;
     queuedMessages?: QueuedMessage[];
     historyLoaded: boolean;
     sessionInfo: SessionInfo;

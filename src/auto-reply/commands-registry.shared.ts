@@ -208,15 +208,6 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       ],
     }),
     defineChatCommand({
-      key: "crestodian",
-      description: "Run the Crestodian setup and repair helper.",
-      textAlias: "/crestodian",
-      acceptsArgs: true,
-      scope: "text",
-      category: "management",
-      tier: "essential",
-    }),
-    defineChatCommand({
       key: "tasks",
       nativeName: "tasks",
       description: "List background tasks for this session.",

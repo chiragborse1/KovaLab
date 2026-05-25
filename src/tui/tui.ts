@@ -1138,7 +1138,6 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     statusLoader = null;
     exitResult = {
       exitReason: result?.exitReason ?? "exit",
-      ...(result?.crestodianMessage ? { crestodianMessage: result.crestodianMessage } : {}),
     };
     void Promise.resolve(client.stop())
       .catch(() => {

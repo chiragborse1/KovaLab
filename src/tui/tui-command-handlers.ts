@@ -710,7 +710,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
   const setAgent = async (id: string) => {
     state.currentAgentId = normalizeAgentId(id);
     await setSession("");
-    chatLog.addSystem(`agent set to ${state.currentAgentId}; use /crestodian to return`);
+    chatLog.addSystem(`agent set to ${state.currentAgentId}`);
   };
 
   const closeOverlayAndRender = () => {
@@ -1283,15 +1283,6 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "rollback":
         echoCommand();
         await showRollback(args);
-        break;
-      case "crestodian":
-        chatLog.addSystem(
-          args ? `returning to Crestodian with request: ${args}` : "returning to Crestodian",
-        );
-        requestExit({
-          exitReason: "return-to-crestodian",
-          ...(args ? { crestodianMessage: args } : {}),
-        });
         break;
       case "session":
         if (!args) {

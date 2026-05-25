@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { PluginManifestCommandAliasRegistry } from "../plugins/manifest-command-aliases.js";
 import {
   rewriteUpdateFlagArgv,
+  rewriteBareRootArgvToLocalChat,
   resolveMissingPluginCommandMessage,
   shouldEnsureCliPath,
-  shouldStartCrestodianForBareRoot,
-  shouldStartCrestodianForModernOnboard,
+  shouldStartLocalChatForBareRoot,
   shouldUseBrowserHelpFastPath,
   shouldUseRootHelpFastPath,
 } from "./run-main-policy.js";
@@ -70,8 +70,6 @@ describe("shouldEnsureCliPath", () => {
   });
 
   it("skips path bootstrap for read-only fast paths", () => {
-    expect(shouldEnsureCliPath(["node", "kova"])).toBe(false);
-    expect(shouldEnsureCliPath(["node", "kova", "--profile", "work"])).toBe(false);
     expect(shouldEnsureCliPath(["node", "kova", "status"])).toBe(false);
     expect(shouldEnsureCliPath(["node", "kova", "--log-level", "debug", "status"])).toBe(false);
     expect(shouldEnsureCliPath(["node", "kova", "sessions", "--json"])).toBe(false);
@@ -80,45 +78,51 @@ describe("shouldEnsureCliPath", () => {
   });
 
   it("keeps path bootstrap for mutating or unknown commands", () => {
+    expect(shouldEnsureCliPath(["node", "kova"])).toBe(true);
+    expect(shouldEnsureCliPath(["node", "kova", "--profile", "work"])).toBe(true);
     expect(shouldEnsureCliPath(["node", "kova", "message", "send"])).toBe(true);
     expect(shouldEnsureCliPath(["node", "kova", "voicecall", "status"])).toBe(true);
     expect(shouldEnsureCliPath(["node", "kova", "acp", "-v"])).toBe(true);
   });
 });
 
-describe("shouldStartCrestodianForBareRoot", () => {
-  it("starts Crestodian for bare root invocations", () => {
-    expect(shouldStartCrestodianForBareRoot(["node", "kova"])).toBe(true);
-    expect(shouldStartCrestodianForBareRoot(["node", "kova", "--profile", "work"])).toBe(true);
-    expect(shouldStartCrestodianForBareRoot(["node", "kova", "--dev"])).toBe(true);
+describe("shouldStartLocalChatForBareRoot", () => {
+  it("starts local chat for bare root invocations", () => {
+    expect(shouldStartLocalChatForBareRoot(["node", "kova"])).toBe(true);
+    expect(shouldStartLocalChatForBareRoot(["node", "kova", "--profile", "work"])).toBe(true);
+    expect(shouldStartLocalChatForBareRoot(["node", "kova", "--dev"])).toBe(true);
   });
 
-  it("does not start Crestodian for help, version, or commands", () => {
-    expect(shouldStartCrestodianForBareRoot(["node", "kova", "--help"])).toBe(false);
-    expect(shouldStartCrestodianForBareRoot(["node", "kova", "-V"])).toBe(false);
-    expect(shouldStartCrestodianForBareRoot(["node", "kova", "status"])).toBe(false);
+  it("does not start local chat for help, version, or commands", () => {
+    expect(shouldStartLocalChatForBareRoot(["node", "kova", "--help"])).toBe(false);
+    expect(shouldStartLocalChatForBareRoot(["node", "kova", "-V"])).toBe(false);
+    expect(shouldStartLocalChatForBareRoot(["node", "kova", "status"])).toBe(false);
   });
 });
 
-describe("shouldStartCrestodianForModernOnboard", () => {
-  it("starts Crestodian before heavy command registration for modern onboard", () => {
-    expect(
-      shouldStartCrestodianForModernOnboard([
-        "node",
-        "kova",
-        "onboard",
-        "--modern",
-        "--non-interactive",
-        "--json",
-      ]),
-    ).toBe(true);
+describe("rewriteBareRootArgvToLocalChat", () => {
+  it("routes bare root invocations to local chat", () => {
+    expect(rewriteBareRootArgvToLocalChat(["node", "kova"])).toEqual(["node", "kova", "chat"]);
+    expect(rewriteBareRootArgvToLocalChat(["node", "kova", "--profile", "work"])).toEqual([
+      "node",
+      "kova",
+      "--profile",
+      "work",
+      "chat",
+    ]);
   });
 
-  it("keeps classic onboard and help on the normal command path", () => {
-    expect(shouldStartCrestodianForModernOnboard(["node", "kova", "onboard"])).toBe(false);
-    expect(
-      shouldStartCrestodianForModernOnboard(["node", "kova", "onboard", "--modern", "--help"]),
-    ).toBe(false);
+  it("leaves explicit commands and help alone", () => {
+    expect(rewriteBareRootArgvToLocalChat(["node", "kova", "onboard"])).toEqual([
+      "node",
+      "kova",
+      "onboard",
+    ]);
+    expect(rewriteBareRootArgvToLocalChat(["node", "kova", "--help"])).toEqual([
+      "node",
+      "kova",
+      "--help",
+    ]);
   });
 });
 

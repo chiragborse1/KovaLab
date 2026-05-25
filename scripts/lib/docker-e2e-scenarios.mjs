@@ -208,8 +208,6 @@ export const mainLanes = [
     weight: 3,
   }),
   lane("pi-bundle-mcp-tools", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:pi-bundle-mcp-tools"),
-  lane("crestodian-rescue", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-rescue"),
-  lane("crestodian-planner", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-planner"),
   serviceLane("cron-mcp-cleanup", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:cron-mcp-cleanup", {
     resources: ["npm"],
     weight: 3,
@@ -243,7 +241,6 @@ export const mainLanes = [
   serviceLane("config-reload", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:config-reload"),
   ...bundledScenarioLanes,
   lane("openai-image-auth", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:openai-image-auth"),
-  lane("crestodian-first-run", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:crestodian-first-run"),
   lane(
     "session-runtime-context",
     "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:session-runtime-context",

@@ -59,8 +59,6 @@ export const forcedUnitFastTestFiles = [
   "src/acp/persistent-bindings.test.ts",
   "src/acp/server.startup.test.ts",
   "src/browser-lifecycle-cleanup.test.ts",
-  "src/crestodian/overview.test.ts",
-  "src/crestodian/operations.test.ts",
   "src/flows/channel-setup.test.ts",
   "src/context-engine/context-engine.test.ts",
   "src/i18n/registry.test.ts",

@@ -150,7 +150,6 @@ Current source-of-truth:
     - `/tools [compact|verbose]` shows what the current agent can use right now.
     - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available. In the local TUI, bare `/status` is a fast terminal snapshot; use `/status full` for this richer status block.
     - `/diagnostics [note]` explains diagnostics privacy and requests an approval-backed `kova gateway diagnostics export --json` support bundle.
-    - `/crestodian <request>` runs the Crestodian setup and repair helper from an owner DM.
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
     - `/memory status`, `/memory sync [force]`, `/memory search <query>`, `/memory read <path[:line[-end]]>`, and `/memory dreams` inspect memory health, refresh recall, search, read cited source excerpts, and review the Dream Diary from chat.
@@ -255,7 +254,6 @@ User-invocable skills are also exposed as slash commands:
     - If the agent is idle, the next run uses it right away.
     - If a run is already active, Kova marks a live switch as pending and only restarts into the new model at a clean retry point.
     - If tool activity or reply output has already started, the pending switch can stay queued until a later retry opportunity or the next user turn.
-    - In the local TUI, `/crestodian [request]` returns from the normal agent TUI to Crestodian. This is separate from message-channel rescue mode and does not grant remote config authority.
   </Accordion>
   <Accordion title="Fast path and inline shortcuts">
     - **Fast path:** command-only messages from allowlisted senders are handled immediately (bypass queue + model).

@@ -11,11 +11,10 @@ export type TuiOptions = {
   message?: string;
 };
 
-export type TuiExitReason = "exit" | "return-to-crestodian";
+export type TuiExitReason = "exit";
 
 export type TuiResult = {
   exitReason: TuiExitReason;
-  crestodianMessage?: string;
 };
 
 export type ChatEvent = {

@@ -71,11 +71,9 @@ describe("getSlashCommands", () => {
     const status = commands.find((command) => command.name === "status");
     const gatewayStatus = commands.find((command) => command.name === "gateway-status");
     const limits = commands.find((command) => command.name === "limits");
-    const crestodian = commands.find((command) => command.name === "crestodian");
     expect(status?.description).toBe("Show current status.");
     expect(gatewayStatus?.description).toBe("Show gateway status summary");
     expect(limits?.description).toBe("Explain context usage vs provider quotas");
-    expect(crestodian?.description).toBe("Return to Crestodian");
   });
 
   it("adds practical argument completions for /memory", () => {
@@ -252,7 +250,6 @@ describe("helpText", () => {
     expect(output).toContain("/gateway-status");
     expect(output).toContain("/limits");
     expect(output).toContain("/commands");
-    expect(output).toContain("/crestodian [request]");
     expect(output).toContain("/session <key> (or /sessions [query])");
     expect(output).toContain("Kova terminal controls:");
     expect(output).toContain("/tools [compact|verbose]");

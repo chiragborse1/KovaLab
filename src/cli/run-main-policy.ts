@@ -24,7 +24,7 @@ export function rewriteUpdateFlagArgv(argv: string[]): string[] {
 
 export function shouldEnsureCliPath(argv: string[]): boolean {
   const invocation = resolveCliArgvInvocation(argv);
-  if (invocation.hasHelpOrVersion || shouldStartCrestodianForBareRoot(argv)) {
+  if (invocation.hasHelpOrVersion) {
     return false;
   }
   return resolveCliCommandPathPolicy(invocation.commandPath).ensureCliPath;
@@ -59,18 +59,16 @@ export function shouldUseBrowserHelpFastPath(
   );
 }
 
-export function shouldStartCrestodianForBareRoot(argv: string[]): boolean {
+export function shouldStartLocalChatForBareRoot(argv: string[]): boolean {
   const invocation = resolveCliArgvInvocation(argv);
   return invocation.commandPath.length === 0 && !invocation.hasHelpOrVersion;
 }
 
-export function shouldStartCrestodianForModernOnboard(argv: string[]): boolean {
-  const invocation = resolveCliArgvInvocation(argv);
-  return (
-    invocation.commandPath[0] === "onboard" &&
-    argv.includes("--modern") &&
-    !invocation.hasHelpOrVersion
-  );
+export function rewriteBareRootArgvToLocalChat(argv: string[]): string[] {
+  if (!shouldStartLocalChatForBareRoot(argv)) {
+    return argv;
+  }
+  return [...argv, "chat"];
 }
 
 export function resolveMissingPluginCommandMessage(

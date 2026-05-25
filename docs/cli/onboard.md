@@ -62,9 +62,8 @@ kova onboard --mode remote --remote-url wss://gateway-host:18789
 
 `kova settings` is the normal post-onboarding terminal control surface for
 model, workspace, Gateway, channels, memory, browser tools, voice, web search,
-skills, plugins, background service, health checks, and theme. `--modern`
-starts the Crestodian conversational onboarding preview. Without `--modern`,
-`kova onboard` keeps the guided setup flow.
+skills, plugins, background service, health checks, and theme. `kova onboard`
+keeps the guided setup flow focused on model, workspace, Gateway, and channels.
 
 For plaintext private-network `ws://` targets (trusted networks only), set
 `KOVA_ALLOW_INSECURE_PRIVATE_WS=1` in the onboarding process environment.

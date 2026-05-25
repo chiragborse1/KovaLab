@@ -239,20 +239,6 @@ const McpConfigSchema = z
   .strict()
   .optional();
 
-const CrestodianSchema = z
-  .object({
-    rescue: z
-      .object({
-        enabled: z.union([z.literal("auto"), z.boolean()]).optional(),
-        ownerDmOnly: z.boolean().optional(),
-        pendingTtlMinutes: z.number().int().positive().optional(),
-      })
-      .strict()
-      .optional(),
-  })
-  .strict()
-  .optional();
-
 export const KovaSchema = z
   .object({
     $schema: z.string().optional(),
@@ -378,7 +364,6 @@ export const KovaSchema = z
       })
       .strict()
       .optional(),
-    crestodian: CrestodianSchema,
     update: z
       .object({
         channel: z.union([z.literal("stable"), z.literal("beta"), z.literal("dev")]).optional(),

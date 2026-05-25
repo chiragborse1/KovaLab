@@ -27,7 +27,7 @@ Notes:
 - `kova chat` and `kova terminal` are aliases for `kova tui --local`.
 - `--local` cannot be combined with `--url`, `--token`, or `--password`.
 - Most local tools work in embedded mode, but Gateway-only remote delivery features are unavailable.
-- `kova` and `kova crestodian` also use this TUI shell, with Crestodian as the local setup and repair chat backend.
+- Bare `kova` opens the local terminal chat path.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
 - Set `KOVA_TUI_IN_PROCESS_BACKEND=1` only when debugging the legacy in-process local backend.
 - Set `KOVA_TUI_TRACE=1` to print per-turn local timing diagnostics and a slowest-segment summary while investigating slow replies.
@@ -126,7 +126,6 @@ Core:
 - `/gateway-status`
 - `/limits`
 - `/agent <id>` (or `/agents`)
-- `/crestodian [request]`
 - `/session <key>` (or `/sessions [query]`)
 - `/model <provider/model>` (or `/models`)
 - `/tools [compact|verbose]`
