@@ -284,7 +284,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       key: "btw",
       nativeName: "btw",
       description: "Ask a side question without changing future session context.",
-      textAlias: "/btw",
+      textAliases: ["/btw", "/background", "/bg", "/side"],
       acceptsArgs: true,
       category: "tools",
       tier: "standard",
@@ -651,7 +651,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       key: "usage",
       nativeName: "usage",
       description: "Usage footer or cost summary.",
-      textAlias: "/usage",
+      textAliases: ["/usage", "/footer"],
       category: "options",
       tier: "standard",
       args: [
@@ -775,9 +775,9 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       args: [
         {
           name: "mode",
-          description: "on or off",
+          description: "on, off, or full",
           type: "string",
-          choices: ["on", "off"],
+          choices: ["on", "off", "full"],
         },
       ],
       argsMenu: "auto",
@@ -809,9 +809,9 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       args: [
         {
           name: "mode",
-          description: "status, on, or off",
+          description: "status, on, off, or default",
           type: "string",
-          choices: ["status", "on", "off"],
+          choices: ["status", "on", "off", "default"],
         },
       ],
       argsMenu: "auto",
@@ -889,7 +889,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       key: "model",
       nativeName: "model",
       description: "Show or set the model.",
-      textAlias: "/model",
+      textAliases: ["/model", "/provider"],
       category: "options",
       tier: "essential",
       args: [
@@ -914,7 +914,7 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       key: "queue",
       nativeName: "queue",
       description: "Adjust queue settings.",
-      textAlias: "/queue",
+      textAliases: ["/queue", "/q"],
       category: "options",
       tier: "power",
       args: [
