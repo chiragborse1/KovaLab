@@ -776,7 +776,6 @@ export async function runSetupWizard(
   let settings = resolveGatewaySettingsFromDefaults(quickstartGateway);
   const shouldConfigureGateway =
     flow === "quickstart" ||
-    flow === "advanced" ||
     extraModules.includes("gateway") ||
     (flow === "extras" && opts.installDaemon === true);
   if (shouldConfigureGateway) {
