@@ -7,9 +7,10 @@ title: "Getting started"
 ---
 
 Install Kova, run onboarding, and start a terminal chat in about 5 minutes.
-By the end you will have a local agent workspace, configured model auth, and a
-working `kova chat` session. The Gateway, channels, apps, and Control UI can be
-enabled separately after the local agent is working.
+By the end you will have a local agent workspace, configured model auth, a
+local Gateway port, and a working `kova chat` session. Channels and advanced
+Gateway/service features can be configured during onboarding or skipped until
+after the local agent is working.
 
 ## What you need
 
@@ -55,10 +56,9 @@ Need to install Node? See [Node setup](/install/node).
     kova onboard
     ```
 
-    Launch chat walks you through choosing a model provider, setting auth,
-    creating the workspace, and opening terminal chat. It keeps Gateway service,
-    chat apps, web recall, skills, and automation for later so the first run
-    stays short.
+    Onboarding walks through the small base setup: workspace, model/auth,
+    Gateway port, and chat channels. After that, advanced setup is optional for
+    web recall, skills, plugins, automation, and background service.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 

@@ -56,10 +56,12 @@ describe("formatWizardBootScreen", () => {
   it("prints the Kova setup identity before onboarding starts", () => {
     const output = formatWizardBootScreen();
 
-    expect(output).toContain("KOVA");
-    expect(output).toContain("Kova Onboarding");
-    expect(output).toContain("chat first, build only what you need");
-    expect(output).toContain("Gateway, channels, web, skills, hooks");
+    expect(output).toContain("KOVA SETUP");
+    expect(output).toContain("1. choose workspace");
+    expect(output).toContain("2. choose model");
+    expect(output).toContain("3. choose Gateway port");
+    expect(output).toContain("4. connect chat apps");
+    expect(output).toContain("Advanced setup stays optional");
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("openclaw");

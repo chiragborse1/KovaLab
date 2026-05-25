@@ -26,8 +26,8 @@ If you want a local agent that feels fast, remembers useful context, creates reu
 
 New install? Start here: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
-Preferred setup: run `kova onboard` in your terminal.
-Kova Onboard guides you through model auth, workspace, memory, skills, and the first terminal chat. Gateway, channels, apps, and the Control UI can be enabled after the agent works locally. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Preferred setup: use the installer one-liner, then run `kova onboard` if it is not launched automatically.
+Kova Onboard guides you through workspace, model auth, Gateway port, chat channels, and the first terminal chat. Web recall, skills, plugins, automation, background service, apps, and the Control UI stay in advanced setup until you want them. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
 
 Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://docs.neuralstudio.in/start/onboarding).
@@ -37,13 +37,16 @@ Model note: while many providers and models are supported, prefer a current flag
 Runtime: **Node 24 (recommended) or Node 22.14+**.
 
 ```bash
-npm install -g getkova@latest
-# or: pnpm add -g getkova@latest
-
-kova onboard --install-daemon
+curl -fsSL https://www.neuralstudio.in/install.sh | bash
 ```
 
-Kova Onboard starts with terminal chat. `--install-daemon` also installs the headless Gateway service (launchd/systemd user service) for always-on jobs, remote access, and channels.
+Windows PowerShell:
+
+```powershell
+iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+```
+
+Already manage Node yourself? `npm install -g getkova@latest` still works.
 
 ## Quick start (TL;DR)
 
@@ -52,7 +55,7 @@ Runtime: **Node 24 (recommended) or Node 22.14+**.
 Full beginner guide: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
 ```bash
-kova onboard --install-daemon
+kova onboard
 
 # Talk to the local embedded agent. No Gateway or browser required.
 kova chat

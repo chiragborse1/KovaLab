@@ -195,6 +195,11 @@ describe("configureGatewayForSetup", () => {
     mocks.randomToken.mockReturnValue("generated-token");
     const result = await runGatewayConfig({
       bindChoice: "lan",
+      nextConfig: {
+        gateway: {
+          controlUi: { enabled: true },
+        },
+      },
     });
 
     expect(result.nextConfig.gateway?.controlUi?.allowedOrigins).toEqual([

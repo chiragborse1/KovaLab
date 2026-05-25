@@ -12,7 +12,6 @@ import type {
   TailscaleMode,
 } from "../../commands/onboard-types.js";
 import { setupWizardCommand } from "../../commands/onboard.js";
-import { readConfigFileSnapshot } from "../../config/config.js";
 import { resolveManifestProviderOnboardAuthFlags } from "../../plugins/provider-auth-choices.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -88,71 +87,6 @@ function pickOnboardProviderAuthOptionValues(
   return Object.fromEntries(
     ONBOARD_AUTH_FLAGS.map((flag) => [flag.optionKey, opts[flag.optionKey] as string | undefined]),
   );
-}
-
-function optionSource(command: unknown, optionKey: string): string | undefined {
-  if (!command || typeof command !== "object") {
-    return undefined;
-  }
-  const getOptionValueSource =
-    "getOptionValueSource" in command ? command.getOptionValueSource : undefined;
-  if (typeof getOptionValueSource !== "function") {
-    return undefined;
-  }
-  return getOptionValueSource.call(command, optionKey);
-}
-
-function shouldOpenSettingsDashboardForRepeatOnboard(command: unknown): boolean {
-  const optionKeys = [
-    "workspace",
-    "reset",
-    "resetScope",
-    "nonInteractive",
-    "modern",
-    "acceptRisk",
-    "flow",
-    "mode",
-    "authChoice",
-    "tokenProvider",
-    "token",
-    "tokenProfileId",
-    "tokenExpiresIn",
-    "secretInputMode",
-    "cloudflareAiGatewayAccountId",
-    "cloudflareAiGatewayGatewayId",
-    "customBaseUrl",
-    "customApiKey",
-    "customModelId",
-    "customProviderId",
-    "customCompatibility",
-    "gatewayPort",
-    "gatewayBind",
-    "gatewayAuth",
-    "gatewayToken",
-    "gatewayTokenRefEnv",
-    "gatewayPassword",
-    "remoteUrl",
-    "remoteToken",
-    "tailscale",
-    "tailscaleResetOnExit",
-    "installDaemon",
-    "skipDaemon",
-    "daemonRuntime",
-    "withChannels",
-    "skipChannels",
-    "skipSkills",
-    "skipBootstrap",
-    "skipSearch",
-    "skipHealth",
-    "skipUi",
-    "nodeManager",
-    "importFrom",
-    "importSource",
-    "importSecrets",
-    "json",
-    ...ONBOARD_AUTH_FLAGS.map((flag) => flag.optionKey),
-  ];
-  return !optionKeys.some((optionKey) => optionSource(command, optionKey) === "cli");
 }
 
 export function registerOnboardCommand(program: Command) {
@@ -251,14 +185,6 @@ export function registerOnboardCommand(program: Command) {
           interactive: !opts.nonInteractive,
         });
         return;
-      }
-      if (shouldOpenSettingsDashboardForRepeatOnboard(commandRuntime)) {
-        const snapshot = await readConfigFileSnapshot();
-        if (snapshot.exists && snapshot.valid) {
-          const { settingsCommand } = await import("../../commands/settings.js");
-          await settingsCommand(defaultRuntime);
-          return;
-        }
       }
       const installDaemon = resolveInstallDaemonFlag(commandRuntime, {
         installDaemon: Boolean(opts.installDaemon),

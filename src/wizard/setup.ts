@@ -6,7 +6,6 @@ import type {
   GatewayAuthChoice,
   OnboardMode,
   OnboardOptions,
-  ResetScope,
 } from "../commands/onboard-types.js";
 import { createConfigIO, replaceConfigFile, resolveGatewayPort } from "../config/config.js";
 import type { KovaConfig } from "../config/types.kova.js";
@@ -28,15 +27,9 @@ import {
 } from "./setup.extras.js";
 import { detectSetupMigrationSources, runSetupMigrationImport } from "./setup.migration-import.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
-import {
-  SECURITY_CONFIRM_MESSAGE,
-  SECURITY_NOTE_MESSAGE,
-  SECURITY_NOTE_TITLE,
-} from "./setup.security-note.js";
 import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 
 type SetupFlowChoice = WizardFlow | "import";
-type ExistingSetupAction = "use" | "tune" | "reset";
 
 type AuthChoiceModule = typeof import("../commands/auth-choice.js");
 type ConfigLoggingModule = typeof import("../config/logging.js");
@@ -169,25 +162,6 @@ async function resolveAuthChoiceModelSelectionPolicy(params: {
   };
 }
 
-async function requireRiskAcknowledgement(params: {
-  opts: OnboardOptions;
-  prompter: WizardPrompter;
-}) {
-  if (params.opts.acceptRisk === true) {
-    return;
-  }
-
-  await params.prompter.note(SECURITY_NOTE_MESSAGE, SECURITY_NOTE_TITLE);
-
-  const ok = await params.prompter.confirm({
-    message: SECURITY_CONFIRM_MESSAGE,
-    initialValue: false,
-  });
-  if (!ok) {
-    throw new WizardCancelledError("risk not accepted");
-  }
-}
-
 export async function runSetupWizard(
   opts: OnboardOptions,
   runtime: RuntimeEnv = defaultRuntime,
@@ -196,7 +170,6 @@ export async function runSetupWizard(
   const onboardHelpers = await import("../commands/onboard-helpers.js");
   onboardHelpers.printWizardHeader(runtime);
   await prompter.intro("Kova Setup");
-  await requireRiskAcknowledgement({ opts, prompter });
 
   let snapshotLoadedMessage = "Kova home loaded.";
   const snapshotProgress = prompter.progress("Reading Kova home");
@@ -255,8 +228,6 @@ export async function runSetupWizard(
     );
   }
 
-  const quickstartHint = "Model, workspace, and terminal chat. Nothing else blocks first use.";
-  const extrasHint = "Choose optional surfaces only if you want them now.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow =
     explicitFlowRaw === "builder" || explicitFlowRaw === "manual" || explicitFlowRaw === "advanced"
@@ -287,22 +258,7 @@ export async function runSetupWizard(
     }
     return migrationDetections;
   };
-  const importOption = {
-    value: "import" as const,
-    label: "Import or migrate",
-    hint: "Bring supported agent homes into Kova",
-  };
-  let flow: SetupFlowChoice =
-    explicitFlow ??
-    (await prompter.select({
-      message: "How should Kova start?",
-      options: [
-        { value: "quickstart", label: "Launch chat", hint: quickstartHint },
-        { value: "extras", label: "Add extras first", hint: extrasHint },
-        importOption,
-      ],
-      initialValue: "quickstart",
-    }));
+  let flow: SetupFlowChoice = explicitFlow ?? "quickstart";
 
   if (opts.mode === "remote" && flow === "quickstart") {
     await prompter.note(
@@ -310,54 +266,6 @@ export async function runSetupWizard(
       "Setup path",
     );
     flow = "extras";
-  }
-
-  let existingSetupAction: ExistingSetupAction = snapshot.exists ? "use" : "tune";
-  if (snapshot.exists) {
-    await prompter.note(onboardHelpers.summarizeExistingConfig(baseConfig), "Kova home");
-
-    const selectedAction = await prompter.select({
-      message: "Kova found an existing home. What should happen next?",
-      options: [
-        {
-          value: "use",
-          label: "Use current setup",
-          hint: "Keep model, workspace, Gateway, and secrets unchanged",
-        },
-        {
-          value: "tune",
-          label: "Change model or workspace",
-          hint: "Change the base chat setup before choosing extras",
-        },
-        { value: "reset", label: "Reset Kova", hint: "Clear config before rebuilding" },
-      ],
-      initialValue: "use",
-    });
-    existingSetupAction =
-      selectedAction === "tune" || selectedAction === "reset" || selectedAction === "use"
-        ? selectedAction
-        : "use";
-
-    if (existingSetupAction === "reset") {
-      const workspaceDefault = onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig);
-      const resetScope = (await prompter.select({
-        message: "What should be cleared?",
-        options: [
-          { value: "config", label: "Config only" },
-          {
-            value: "config+creds+sessions",
-            label: "Config, credentials, and sessions",
-          },
-          {
-            value: "full",
-            label: "Full reset, including workspace",
-          },
-        ],
-      })) as ResetScope;
-      await onboardHelpers.handleReset(resetScope, resolveUserPath(workspaceDefault), runtime);
-      baseConfig = {};
-      existingSetupAction = "tune";
-    }
   }
 
   if (opts.importFrom || flow === "import") {
@@ -424,62 +332,6 @@ export async function runSetupWizard(
       tailscaleResetOnExit: baseConfig.gateway?.tailscale?.resetOnExit ?? false,
     };
   })();
-
-  if (flow === "quickstart") {
-    const formatBind = (value: "loopback" | "lan" | "auto" | "custom" | "tailnet") => {
-      if (value === "loopback") {
-        return "Loopback (127.0.0.1)";
-      }
-      if (value === "lan") {
-        return "LAN";
-      }
-      if (value === "custom") {
-        return "Custom IP";
-      }
-      if (value === "tailnet") {
-        return "Tailnet (Tailscale IP)";
-      }
-      return "Auto";
-    };
-    const formatAuth = (value: GatewayAuthChoice) => {
-      if (value === "token") {
-        return "Token (default)";
-      }
-      return "Password";
-    };
-    const formatTailscale = (value: "off" | "serve" | "funnel") => {
-      if (value === "off") {
-        return "Off";
-      }
-      if (value === "serve") {
-        return "Serve";
-      }
-      return "Funnel";
-    };
-    const quickstartLines = quickstartGateway.hasExisting
-      ? [
-          "Kova will keep your current Gateway settings and open terminal chat first.",
-          `Gateway port: ${quickstartGateway.port}`,
-          `Gateway bind: ${formatBind(quickstartGateway.bind)}`,
-          ...(quickstartGateway.bind === "custom" && quickstartGateway.customBindHost
-            ? [`Gateway custom IP: ${quickstartGateway.customBindHost}`]
-            : []),
-          `Gateway auth: ${formatAuth(quickstartGateway.authMode)}`,
-          `Tailscale exposure: ${formatTailscale(quickstartGateway.tailscaleMode)}`,
-          "Later: chat apps, web recall, skill packs, automation, background service.",
-          "Next: model/auth, workspace, terminal chat.",
-        ]
-      : [
-          "Kova will prepare a private terminal-first setup.",
-          `Gateway port: ${quickstartGateway.port}`,
-          "Gateway bind: Loopback (127.0.0.1)",
-          "Gateway auth: Token (default)",
-          "Tailscale exposure: Off",
-          "Later: chat apps, web recall, skill packs, automation, background service.",
-          "Next: model/auth, workspace, terminal chat.",
-        ];
-    await prompter.note(quickstartLines.join("\n"), "Kova launch");
-  }
 
   const localPort = resolveGatewayPort(baseConfig);
   const localUrl = `ws://127.0.0.1:${localPort}`;
@@ -606,13 +458,13 @@ export async function runSetupWizard(
   }
 
   const shouldPromptCoreSetup =
+    flow === "quickstart" ||
     !snapshot.exists ||
-    existingSetupAction !== "use" ||
     opts.workspace !== undefined ||
     opts.authChoice !== undefined;
   const workspaceInput =
     opts.workspace ??
-    (shouldPromptCoreSetup && flow !== "quickstart"
+    (shouldPromptCoreSetup
       ? await prompter.text({
           message: "Kova workspace",
           initialValue: onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig),
@@ -647,7 +499,7 @@ export async function runSetupWizard(
     await prompter.note(
       [
         "Using your current model/auth and workspace.",
-        "Kova will only touch extras you choose next.",
+        "Kova will only touch the advanced setup pieces you choose next.",
       ].join("\n"),
       "Current chat base",
     );
@@ -765,7 +617,7 @@ export async function runSetupWizard(
     }
   }
 
-  const extraModules: SetupExtraModule[] =
+  let extraModules: SetupExtraModule[] =
     flow === "extras"
       ? await promptSetupExtraModules({
           config: nextConfig,
@@ -776,17 +628,19 @@ export async function runSetupWizard(
       : [];
 
   let settings = resolveGatewaySettingsFromDefaults(quickstartGateway);
+  const loadGatewayConfigModule = async () => await import("./setup.gateway-config.js");
   const shouldConfigureGateway =
     flow === "quickstart" ||
     extraModules.includes("gateway") ||
     (flow === "extras" && opts.installDaemon === true);
   if (shouldConfigureGateway) {
-    const { configureGatewayForSetup } = await import("./setup.gateway-config.js");
+    const { configureGatewayForSetup } = await loadGatewayConfigModule();
     const gateway = await configureGatewayForSetup({
       flow: flow === "extras" ? "advanced" : wizardFlow,
       baseConfig,
       nextConfig,
       localPort,
+      gatewayPort: opts.gatewayPort,
       quickstartGateway,
       secretInputMode: opts.secretInputMode,
       prompter,
@@ -805,27 +659,19 @@ export async function runSetupWizard(
     );
   }
 
-  const channelsExplicitlyRequested = opts.withChannels === true || opts.skipChannels === false;
   const skipChannelSetup =
     opts.skipChannels === true ||
     opts.skipProviders === true ||
-    (flow === "quickstart" && !channelsExplicitlyRequested) ||
     (flow === "extras" && !extraModules.includes("channels"));
   if (skipChannelSetup) {
     const message =
-      flow === "quickstart" && opts.skipChannels !== true && opts.skipProviders !== true
+      flow === "extras"
         ? [
-            "Launch keeps the first run terminal-only and skips chat app setup.",
-            `Add channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
+            "Chat apps left unchanged.",
+            `Add later: ${formatCliCommand("kova channels add --channel telegram")}`,
             `Or reopen extras: ${formatCliCommand("kova onboard --flow extras")}`,
           ].join("\n")
-        : flow === "extras"
-          ? [
-              "Chat apps left unchanged.",
-              `Add later: ${formatCliCommand("kova channels add --channel telegram")}`,
-              `Or reopen extras: ${formatCliCommand("kova onboard --flow extras")}`,
-            ].join("\n")
-          : "Chat channels skipped. You can add them later.";
+        : "Chat channels skipped. You can add them later.";
     await prompter.note(message, "Channels");
   } else {
     const { listChannelPlugins } = await import("../channels/plugins/index.js");
@@ -841,10 +687,42 @@ export async function runSetupWizard(
       deferStatusUntilSelection: flow === "quickstart",
       forceAllowFromChannels: quickstartAllowFromChannels,
       skipDmPolicyPrompt: flow === "quickstart",
-      skipConfirm: flow === "quickstart",
+      skipConfirm: false,
       quickstartDefaults: flow === "quickstart",
       secretInputMode: opts.secretInputMode,
     });
+  }
+
+  if (flow === "quickstart") {
+    const wantsAdvanced = await prompter.confirm({
+      message: "Do advanced setup now?",
+      initialValue: false,
+    });
+    if (wantsAdvanced) {
+      extraModules = await promptSetupExtraModules({
+        config: nextConfig,
+        workspaceDir,
+        gatewayDefaults: quickstartGateway,
+        excludeModules: ["channels"],
+        prompter,
+      });
+      if (extraModules.includes("gateway")) {
+        const { configureGatewayForSetup } = await loadGatewayConfigModule();
+        const gateway = await configureGatewayForSetup({
+          flow: "advanced",
+          baseConfig,
+          nextConfig,
+          localPort: settings.port,
+          gatewayPort: opts.gatewayPort,
+          quickstartGateway,
+          secretInputMode: opts.secretInputMode,
+          prompter,
+          runtime,
+        });
+        nextConfig = gateway.nextConfig;
+        settings = gateway.settings;
+      }
+    }
   }
 
   nextConfig = await writeWizardConfigFile(nextConfig, {
@@ -858,8 +736,7 @@ export async function runSetupWizard(
 
   const skipWebSearchSetup =
     opts.skipSearch ||
-    flow === "quickstart" ||
-    (flow === "extras" && !extraModules.includes("web"));
+    ((flow === "quickstart" || flow === "extras") && !extraModules.includes("web"));
   if (skipWebSearchSetup) {
     const message =
       flow === "quickstart" && !opts.skipSearch
@@ -885,8 +762,7 @@ export async function runSetupWizard(
 
   const skipSkillSetup =
     opts.skipSkills ||
-    flow === "quickstart" ||
-    (flow === "extras" && !extraModules.includes("skills"));
+    ((flow === "quickstart" || flow === "extras") && !extraModules.includes("skills"));
   if (skipSkillSetup) {
     const message =
       flow === "quickstart" && !opts.skipSkills
@@ -907,7 +783,10 @@ export async function runSetupWizard(
   }
 
   // Plugin configuration (sandbox backends, tool plugins, etc.)
-  if (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("plugins"))) {
+  if (
+    (flow === "quickstart" && extraModules.includes("plugins")) ||
+    (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("plugins")))
+  ) {
     const { setupPluginConfig } = await import("./setup.plugin-config.js");
     nextConfig = await setupPluginConfig({
       config: nextConfig,
@@ -924,7 +803,10 @@ export async function runSetupWizard(
   }
 
   // Setup hooks (session memory on /new)
-  if (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("hooks"))) {
+  if (
+    (flow === "quickstart" && extraModules.includes("hooks")) ||
+    (flow !== "quickstart" && (flow !== "extras" || extraModules.includes("hooks")))
+  ) {
     const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
     nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
   } else {
@@ -948,8 +830,10 @@ export async function runSetupWizard(
   });
 
   const { finalizeSetupWizard } = await import("./setup.finalize.js");
+  const finalizeFlow: WizardFlow =
+    flow === "quickstart" && extraModules.length > 0 ? "extras" : wizardFlow;
   const { launchedTui } = await finalizeSetupWizard({
-    flow: wizardFlow,
+    flow: finalizeFlow,
     opts,
     baseConfig,
     nextConfig,

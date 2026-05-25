@@ -9,19 +9,18 @@ title: "Onboard"
 
 Interactive onboarding for the terminal-first Kova agent setup.
 
-The interactive flow starts with a Kova onboarding screen. The default path,
-**Launch chat**, asks only for model/auth and workspace, saves a private local
-Gateway config for later, then opens terminal chat.
+Plain `kova onboard` always opens the onboarding flow. It asks for the four
+things needed to make Kova usable without turning setup into an admin panel:
 
-For larger setup, use **Setup Extras**. It keeps the model/workspace base
-separate from optional modules, then asks you to select only the modules you
-want now, such as Gateway/service, chat apps, web recall, skills, plugins, or
-automation.
+1. Workspace
+2. Model/auth provider
+3. Gateway port
+4. Chat channel setup
 
-After a valid config exists, plain `kova onboard` opens terminal settings
-instead of repeating first-run onboarding. Pass explicit onboarding flags such
-as `--flow quickstart`, `--reset`, or `--non-interactive` when you need the
-full setup path again.
+After that, Kova asks whether you want advanced setup now. Advanced setup is
+where web recall, skill dependencies, plugin settings, automation hooks, and
+background Gateway service details live. Routine edits after onboarding belong
+in `kova settings`.
 
 ## Related guides
 
@@ -64,7 +63,7 @@ kova onboard --mode remote --remote-url wss://gateway-host:18789
 model, workspace, Gateway, channels, memory, browser tools, voice, web search,
 skills, plugins, background service, health checks, and theme. `--modern`
 starts the Crestodian conversational onboarding preview. Without `--modern`,
-first-run `kova onboard` keeps the guided setup flow.
+`kova onboard` keeps the guided setup flow.
 
 For plaintext private-network `ws://` targets (trusted networks only), set
 `KOVA_ALLOW_INSECURE_PRIVATE_WS=1` in the onboarding process environment.
@@ -197,8 +196,8 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: Launch chat, minimal prompts, terminal chat first, auto-generates a Gateway token, and skips Gateway health/service, chat apps, web recall, skills, and automation until later.
-    - `extras`: Optional setup path that reuses the current home unless you choose to change it, then runs only the selected setup modules.
+    - `quickstart`: Default onboarding. Prompts for workspace, model/auth, Gateway port, and chat channel setup, then offers advanced setup.
+    - `extras`: Advanced-only setup path for web recall, skills, plugins, hooks, channels, and always-on Gateway.
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
   <Accordion title="Provider prefiltering">
@@ -218,7 +217,7 @@ kova onboard --non-interactive \
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
     - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
     - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
-    - Launch chat skips channels, web recall, skills, hooks, and service install by default. Use `--with-channels`, Setup Extras, `kova settings`, or `kova channels add` when you want the larger surface.
+    - Base onboarding asks about chat channels, then skips web recall, skills, hooks, and service install unless you choose advanced setup.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

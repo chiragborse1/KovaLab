@@ -112,14 +112,15 @@ export function printWizardHeader(runtime: RuntimeEnv) {
 
 export function formatWizardBootScreen(): string {
   return [
-    "KOVA LAUNCH",
+    "KOVA SETUP",
     `version ${VERSION}`,
     "",
-    "1. choose model",
-    "2. choose workspace",
-    "3. open terminal chat",
+    "1. choose workspace",
+    "2. choose model",
+    "3. choose Gateway port",
+    "4. connect chat apps",
     "",
-    "Extras stay optional: Gateway, chat apps, web recall, skills, plugins, automation.",
+    "Advanced setup stays optional: web recall, skills, plugins, automation, background service.",
     "",
   ].join("\n");
 }

@@ -4,9 +4,7 @@
 
 ### Changes
 
-- CLI/onboarding: replace the old full linear wizard with Kova Builder, a goal-based planner that reuses the current home and runs only selected Gateway, channel, web, skill, plugin, or hook modules. Thanks @chiragborse1
-- CLI/TUI: make quick onboarding terminal-first by skipping chat channels by default, launching `kova chat`, and treating the browser Control UI as an optional advanced surface. Thanks @chiragborse1
-- CLI/onboarding: make Kova Start a shorter first-chat path by deferring Gateway service/health, web search, skills, and hooks to advanced setup or settings. Thanks @chiragborse1
+- CLI/onboarding: simplify `kova onboard` into a Kova-owned base flow for workspace, model/auth, Gateway port, and chat channels, with web recall, skills, plugins, hooks, and background service kept in optional advanced setup. Thanks @chiragborse1
 - CLI/onboarding: tighten first-run setup copy around terminal chat, persona, memory, status, and channel follow-up commands. Thanks @chiragborse1
 - CLI/TUI: add `/limits` so terminal users can distinguish the context-window gauge from provider account quotas and rate limits. Thanks @chiragborse1
 - CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat`, demoting Dashboard wording to optional Control UI, and adding chat-first next steps. Thanks @chiragborse1

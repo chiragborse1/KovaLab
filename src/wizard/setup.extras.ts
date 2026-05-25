@@ -94,8 +94,11 @@ export async function promptSetupExtraModules(params: {
   config: KovaConfig;
   workspaceDir: string;
   gatewayDefaults: QuickstartGatewayDefaults;
+  excludeModules?: SetupExtraModule[];
   prompter: Pick<WizardPrompter, "note" | "multiselect">;
 }): Promise<SetupExtraModule[]> {
+  const excluded = new Set(params.excludeModules ?? []);
+  const modules = SETUP_EXTRA_MODULES.filter((module) => !excluded.has(module.value));
   await params.prompter.note(
     [
       "Kova can start as a plain terminal agent.",
@@ -116,7 +119,7 @@ export async function promptSetupExtraModules(params: {
         label: "No extras, open chat",
         hint: "Fastest path",
       },
-      ...SETUP_EXTRA_MODULES,
+      ...modules,
     ],
     initialValues: ["__none__"],
     searchable: true,

@@ -459,6 +459,7 @@ describe("runSetupWizard", () => {
         flow: "quickstart",
         authChoice: "skip",
         installDaemon: false,
+        skipChannels: true,
         skipSkills: true,
         skipSearch: true,
         skipHealth: true,
@@ -477,7 +478,7 @@ describe("runSetupWizard", () => {
     expect(runTui).not.toHaveBeenCalled();
   });
 
-  it("keeps launch on the short terminal path by default", async () => {
+  it("keeps advanced extras off by default after the base flow", async () => {
     setupChannels.mockClear();
     setupSearch.mockClear();
     setupSkills.mockClear();
@@ -498,7 +499,7 @@ describe("runSetupWizard", () => {
       prompter,
     );
 
-    expect(setupChannels).not.toHaveBeenCalled();
+    expect(setupChannels).toHaveBeenCalledTimes(1);
     expect(setupSearch).not.toHaveBeenCalled();
     expect(setupSkills).not.toHaveBeenCalled();
     expect(setupInternalHooks).not.toHaveBeenCalled();
@@ -764,10 +765,9 @@ describe("runSetupWizard", () => {
     }
   });
 
-  it("keeps quick setup terminal-first by skipping channel setup unless requested", async () => {
+  it("asks for channel setup during the quick base flow", async () => {
     setupChannels.mockClear();
-    const note: WizardPrompter["note"] = vi.fn(async () => {});
-    const prompter = buildWizardPrompter({ note });
+    const prompter = buildWizardPrompter({});
     const runtime = createRuntime();
 
     await runSetupWizard(
@@ -785,10 +785,15 @@ describe("runSetupWizard", () => {
       prompter,
     );
 
-    expect(setupChannels).not.toHaveBeenCalled();
-    expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("first run terminal-only"),
-      "Channels",
+    expect(setupChannels).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        deferStatusUntilSelection: true,
+        quickstartDefaults: true,
+        skipConfirm: false,
+      }),
     );
   });
 
@@ -1116,8 +1121,8 @@ describe("runSetupWizard", () => {
   it("shows the resolved gateway port in quickstart for fresh envs", async () => {
     const previousPort = process.env.KOVA_GATEWAY_PORT;
     process.env.KOVA_GATEWAY_PORT = "18791";
-    const note: WizardPrompter["note"] = vi.fn(async () => {});
-    const prompter = buildWizardPrompter({ note });
+    configureGatewayForSetup.mockClear();
+    const prompter = buildWizardPrompter({});
     const runtime = createRuntime();
 
     try {
@@ -1144,15 +1149,11 @@ describe("runSetupWizard", () => {
       }
     }
 
-    const calls = (note as unknown as { mock: { calls: unknown[][] } }).mock.calls;
-    expect(
-      calls.some(
-        (call) =>
-          call?.[1] === "Kova launch" &&
-          typeof call?.[0] === "string" &&
-          call[0].includes("Gateway port: 18791"),
-      ),
-    ).toBe(true);
+    expect(configureGatewayForSetup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        localPort: 18791,
+      }),
+    );
   });
 
   it("uses manifest setup metadata for post-auth model policy without loading provider runtime", async () => {

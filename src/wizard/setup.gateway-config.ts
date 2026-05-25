@@ -37,6 +37,7 @@ type ConfigureGatewayOptions = {
   baseConfig: KovaConfig;
   nextConfig: KovaConfig;
   localPort: number;
+  gatewayPort?: number;
   quickstartGateway: QuickstartGatewayDefaults;
   secretInputMode?: SecretInputMode;
   prompter: WizardPrompter;
@@ -58,19 +59,24 @@ export async function configureGatewayForSetup(
   const { flow, localPort, quickstartGateway, prompter } = opts;
   let { nextConfig } = opts;
 
-  const port =
-    flow === "quickstart"
-      ? quickstartGateway.port
-      : Number.parseInt(
-          normalizeWizardTextInput(
-            await prompter.text({
-              message: "Gateway port",
-              initialValue: String(localPort),
-              validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
-            }),
-          ),
-          10,
-        );
+  const explicitGatewayPort =
+    typeof opts.gatewayPort === "number" &&
+    Number.isFinite(opts.gatewayPort) &&
+    opts.gatewayPort > 0
+      ? opts.gatewayPort
+      : undefined;
+  const promptGatewayPort = async () => {
+    const rawInput = normalizeWizardTextInput(
+      await prompter.text({
+        message: "Gateway port",
+        initialValue: String(localPort),
+        validate: (value) => (Number.isFinite(Number(value)) ? undefined : "Invalid port"),
+      }),
+    );
+    const parsed = Number.parseInt(rawInput || String(localPort), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : localPort;
+  };
+  const port = explicitGatewayPort ?? (await promptGatewayPort());
 
   let bind: GatewayWizardSettings["bind"] =
     flow === "quickstart"
