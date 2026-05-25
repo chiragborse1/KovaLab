@@ -3,6 +3,7 @@ import {
   listChatCommands,
   listChatCommandsForConfig,
 } from "../auto-reply/commands-registry-list.js";
+import { normalizeCommandBody } from "../auto-reply/commands-registry-normalize.js";
 import { formatThinkingLevels, listThinkingLevelLabels } from "../auto-reply/thinking.js";
 import type { KovaConfig } from "../config/types.js";
 import type { CommandEntry } from "../gateway/protocol/index.js";
@@ -17,6 +18,7 @@ const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full"];
 const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
 const SURFACE_LEVELS = ["compact", "verbose"];
+const CONTEXT_LEVELS = ["list", "detail", "json"];
 const TASK_LEVELS = [
   "list",
   "running",
@@ -228,11 +230,21 @@ function appendSlashCommand(
     });
     return;
   }
+  if (normalizedName === "context") {
+    commands.push({
+      name: normalizedName,
+      description,
+      argumentHint: "list | detail | json",
+      getArgumentCompletions: createLevelCompletion(CONTEXT_LEVELS),
+    });
+    return;
+  }
   commands.push({ name: normalizedName, description });
 }
 
 export function parseCommand(input: string): ParsedCommand {
-  const trimmed = input.replace(/^\//, "").trim();
+  const normalizedBody = normalizeCommandBody(input);
+  const trimmed = normalizedBody.replace(/^\//, "").trim();
   if (!trimmed) {
     return { name: "", args: "" };
   }
@@ -255,6 +267,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
   const busyCompletions = createLevelCompletion(BUSY_LEVELS);
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
+  const contextCompletions = createLevelCompletion(CONTEXT_LEVELS);
   const taskCompletions = createLevelCompletion(TASK_LEVELS);
   const subagentCompletions = createLevelCompletion(SUBAGENT_LEVELS);
   const automationCompletions = createLevelCompletion(AUTOMATION_LEVELS);
@@ -335,6 +348,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Set model (or open picker)",
     },
     { name: "models", description: "Open model picker" },
+    {
+      name: "context",
+      description: "Explain assembled context",
+      argumentHint: "list | detail | json",
+      getArgumentCompletions: contextCompletions,
+    },
     {
       name: "think",
       description: "Set thinking level",
@@ -457,7 +476,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/automation [list|running|queued|failed|audit]",
     "/recover [status|apply]",
     "/rollback [list|show <id>|branch <id>|restore <id> confirm]",
-    "/context [compact|verbose]",
+    "/context [list|detail|json]",
     "/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]",
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",

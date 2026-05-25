@@ -134,7 +134,7 @@ Core:
 - `/subagents [list]`
 - `/recover [status|apply]`
 - `/rollback [list|show <id>|branch <id>|restore <id> confirm]`
-- `/context [compact|verbose]`
+- `/context [list|detail|json]`
 - `/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]`
 - `/skill <name> [args]`
 - `/plugins [list|verbose|show <plugin>]`

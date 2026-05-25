@@ -14,6 +14,11 @@ describe("parseCommand", () => {
     expect(parseCommand("/limit")).toEqual({ name: "limits", args: "" });
   });
 
+  it("normalizes shared colon command syntax", () => {
+    expect(parseCommand("/think: high")).toEqual({ name: "think", args: "high" });
+    expect(parseCommand("/context: detail")).toEqual({ name: "context", args: "detail" });
+  });
+
   it("normalizes hidden lifecycle aliases", () => {
     expect(parseCommand("/abort")).toEqual({ name: "stop", args: "" });
     expect(parseCommand("/quit")).toEqual({ name: "exit", args: "" });
@@ -105,8 +110,11 @@ describe("getSlashCommands", () => {
     const commands = getSlashCommands();
     const tools = commands.find((command) => command.name === "tools");
     const skills = commands.find((command) => command.name === "skills");
+    const context = commands.find((command) => command.name === "context");
     expect(tools?.getArgumentCompletions?.("v")).toEqual([{ value: "verbose", label: "verbose" }]);
     expect(skills?.getArgumentCompletions?.("c")).toEqual([{ value: "compact", label: "compact" }]);
+    expect(context?.argumentHint).toBe("list | detail | json");
+    expect(context?.getArgumentCompletions?.("d")).toEqual([{ value: "detail", label: "detail" }]);
   });
 
   it("adds terminal ops commands for tasks and recovery", () => {
@@ -220,7 +228,7 @@ describe("helpText", () => {
     expect(output).toContain("/automation [list|running|queued|failed|audit]");
     expect(output).toContain("/recover [status|apply]");
     expect(output).toContain("/rollback [list|show <id>|branch <id>|restore <id> confirm]");
-    expect(output).toContain("/context [compact|verbose]");
+    expect(output).toContain("/context [list|detail|json]");
     expect(output).toContain(
       "/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]",
     );
