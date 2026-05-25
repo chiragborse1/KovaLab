@@ -6,6 +6,7 @@ import {
   setActivePluginRegistry,
 } from "../plugins/runtime.js";
 import { listChatChannels } from "./chat-meta.js";
+import { isChannelVisibleInConfiguredLists, isChannelVisibleInSetup } from "./plugins/exposure.js";
 import {
   formatChannelSelectionLine,
   listRegisteredChannelPluginIds,
@@ -25,6 +26,18 @@ describe("channel registry helpers", () => {
   it("includes MS Teams in the bundled channel list", () => {
     const channels = listChatChannels();
     expect(channels.some((channel) => channel.id === "msteams")).toBe(true);
+  });
+
+  it("keeps the legacy imsg bridge out of new setup surfaces", () => {
+    const channels = listChatChannels();
+    const imessage = channels.find((channel) => channel.id === "imessage");
+    const bluebubbles = channels.find((channel) => channel.id === "bluebubbles");
+
+    expect(imessage).toBeDefined();
+    expect(bluebubbles).toBeDefined();
+    expect(isChannelVisibleInSetup(imessage!)).toBe(false);
+    expect(isChannelVisibleInConfiguredLists(imessage!)).toBe(false);
+    expect(isChannelVisibleInSetup(bluebubbles!)).toBe(true);
   });
 
   it("formats Telegram selection lines without a docs prefix and with website extras", () => {

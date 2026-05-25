@@ -20,6 +20,11 @@
       "docsPath": "/channels/imessage",
       "docsLabel": "imessage",
       "blurb": "this is still a work in progress.",
+      "exposure": {
+        "configured": false,
+        "setup": false,
+        "docs": true
+      },
       "aliases": [
         "imsg"
       ],

@@ -71,12 +71,20 @@ export function createIMessagePluginBase(params: {
   | "setup"
   | "messaging"
 > {
+  const baseMeta = getChatChannelMeta(IMESSAGE_CHANNEL);
   const base = createChannelPluginBase({
     id: IMESSAGE_CHANNEL,
     meta: {
-      ...getChatChannelMeta(IMESSAGE_CHANNEL),
+      ...baseMeta,
       aliases: ["imsg"],
+      exposure: {
+        ...baseMeta.exposure,
+        configured: false,
+        setup: false,
+        docs: true,
+      },
       showConfigured: false,
+      showInSetup: false,
     },
     setupWizard: params.setupWizard,
     capabilities: {
