@@ -2,6 +2,9 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
 
 vi.mock("../plugins/provider-hook-runtime.js", () => ({
+  __testing: {
+    buildHookProviderCacheKey: vi.fn(() => "test-provider-hook-cache-key"),
+  },
   resolveProviderRuntimePlugin: vi.fn(({ provider }: { provider?: string }) =>
     provider === "mistral"
       ? {
