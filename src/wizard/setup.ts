@@ -652,43 +652,103 @@ export async function runSetupWizard(
       "Current chat base",
     );
   }
-  while (shouldPromptCoreSetup || opts.authChoice !== undefined) {
-    if (authChoiceFromPrompt) {
-      authChoice = await promptAuthChoiceGrouped!({
-        prompter,
-        store: authStore!,
-        includeSkip: true,
-        config: nextConfig,
-        workspaceDir,
-      });
-    }
-    if (authChoice === undefined) {
-      throw new WizardCancelledError("auth choice is required");
-    }
+  if (shouldPromptCoreSetup || opts.authChoice !== undefined) {
+    for (;;) {
+      if (authChoiceFromPrompt) {
+        authChoice = await promptAuthChoiceGrouped!({
+          prompter,
+          store: authStore!,
+          includeSkip: true,
+          config: nextConfig,
+          workspaceDir,
+        });
+      }
+      if (authChoice === undefined) {
+        throw new WizardCancelledError("auth choice is required");
+      }
 
-    if (authChoice === "custom-api-key") {
-      const { promptCustomApiConfig } = await import("../commands/onboard-custom.js");
-      const customResult = await promptCustomApiConfig({
+      if (authChoice === "custom-api-key") {
+        const { promptCustomApiConfig } = await import("../commands/onboard-custom.js");
+        const customResult = await promptCustomApiConfig({
+          prompter,
+          runtime,
+          config: nextConfig,
+          secretInputMode: opts.secretInputMode,
+        });
+        nextConfig = customResult.config;
+        break;
+      }
+      if (authChoice === "skip") {
+        // Explicit skip should stay cold: do not bootstrap auth/profile machinery
+        // or run model/auth checks when the caller already chose to skip setup.
+        if (authChoiceFromPrompt) {
+          const { applyPrimaryModel, promptDefaultModel } = await loadModelPickerModule();
+          const modelSelection = await promptDefaultModel({
+            config: nextConfig,
+            prompter,
+            allowKeep: true,
+            ignoreAllowlist: true,
+            includeProviderPluginSetups: false,
+            loadCatalog: false,
+            workspaceDir,
+            runtime,
+          });
+          if (modelSelection.config) {
+            nextConfig = modelSelection.config;
+          }
+          if (modelSelection.model) {
+            nextConfig = applyPrimaryModel(nextConfig, modelSelection.model);
+          }
+
+          const { warnIfModelConfigLooksOff } = await loadAuthChoiceModule();
+          await warnIfModelConfigLooksOff(nextConfig, prompter, { validateCatalog: false });
+        }
+        break;
+      }
+
+      const [
+        { applyAuthChoice, resolvePreferredProviderForAuthChoice, warnIfModelConfigLooksOff },
+        { applyPrimaryModel, promptDefaultModel },
+      ] = await Promise.all([loadAuthChoiceModule(), loadModelPickerModule()]);
+      const authResult = await applyAuthChoice({
+        authChoice,
+        config: nextConfig,
         prompter,
         runtime,
-        config: nextConfig,
-        secretInputMode: opts.secretInputMode,
+        setDefaultModel: true,
+        opts: {
+          tokenProvider: opts.tokenProvider,
+          token: opts.authChoice === "apiKey" && opts.token ? opts.token : undefined,
+        },
       });
-      nextConfig = customResult.config;
-      break;
-    }
-    if (authChoice === "skip") {
-      // Explicit skip should stay cold: do not bootstrap auth/profile machinery
-      // or run model/auth checks when the caller already chose to skip setup.
-      if (authChoiceFromPrompt) {
-        const { applyPrimaryModel, promptDefaultModel } = await loadModelPickerModule();
+      nextConfig = authResult.config;
+      if (authResult.retrySelection) {
+        if (authChoiceFromPrompt) {
+          continue;
+        }
+        break;
+      }
+      if (authResult.agentModelOverride) {
+        nextConfig = applyPrimaryModel(nextConfig, authResult.agentModelOverride);
+      }
+
+      const authChoiceModelSelectionPolicy = await resolveAuthChoiceModelSelectionPolicy({
+        authChoice,
+        config: nextConfig,
+        workspaceDir,
+        resolvePreferredProviderForAuthChoice,
+      });
+      const shouldPromptModelSelection =
+        authChoiceFromPrompt || authChoiceModelSelectionPolicy?.promptWhenAuthChoiceProvided;
+      if (shouldPromptModelSelection) {
         const modelSelection = await promptDefaultModel({
           config: nextConfig,
           prompter,
-          allowKeep: true,
+          allowKeep: authChoiceModelSelectionPolicy?.allowKeepCurrent ?? true,
           ignoreAllowlist: true,
-          includeProviderPluginSetups: false,
-          loadCatalog: false,
+          includeProviderPluginSetups: true,
+          preferredProvider: authChoiceModelSelectionPolicy?.preferredProvider,
+          browseCatalogOnDemand: true,
           workspaceDir,
           runtime,
         });
@@ -698,69 +758,11 @@ export async function runSetupWizard(
         if (modelSelection.model) {
           nextConfig = applyPrimaryModel(nextConfig, modelSelection.model);
         }
-
-        const { warnIfModelConfigLooksOff } = await loadAuthChoiceModule();
-        await warnIfModelConfigLooksOff(nextConfig, prompter, { validateCatalog: false });
       }
+
+      await warnIfModelConfigLooksOff(nextConfig, prompter, { validateCatalog: false });
       break;
     }
-
-    const [
-      { applyAuthChoice, resolvePreferredProviderForAuthChoice, warnIfModelConfigLooksOff },
-      { applyPrimaryModel, promptDefaultModel },
-    ] = await Promise.all([loadAuthChoiceModule(), loadModelPickerModule()]);
-    const authResult = await applyAuthChoice({
-      authChoice,
-      config: nextConfig,
-      prompter,
-      runtime,
-      setDefaultModel: true,
-      opts: {
-        tokenProvider: opts.tokenProvider,
-        token: opts.authChoice === "apiKey" && opts.token ? opts.token : undefined,
-      },
-    });
-    nextConfig = authResult.config;
-    if (authResult.retrySelection) {
-      if (authChoiceFromPrompt) {
-        continue;
-      }
-      break;
-    }
-    if (authResult.agentModelOverride) {
-      nextConfig = applyPrimaryModel(nextConfig, authResult.agentModelOverride);
-    }
-
-    const authChoiceModelSelectionPolicy = await resolveAuthChoiceModelSelectionPolicy({
-      authChoice,
-      config: nextConfig,
-      workspaceDir,
-      resolvePreferredProviderForAuthChoice,
-    });
-    const shouldPromptModelSelection =
-      authChoiceFromPrompt || authChoiceModelSelectionPolicy?.promptWhenAuthChoiceProvided;
-    if (shouldPromptModelSelection) {
-      const modelSelection = await promptDefaultModel({
-        config: nextConfig,
-        prompter,
-        allowKeep: authChoiceModelSelectionPolicy?.allowKeepCurrent ?? true,
-        ignoreAllowlist: true,
-        includeProviderPluginSetups: true,
-        preferredProvider: authChoiceModelSelectionPolicy?.preferredProvider,
-        browseCatalogOnDemand: true,
-        workspaceDir,
-        runtime,
-      });
-      if (modelSelection.config) {
-        nextConfig = modelSelection.config;
-      }
-      if (modelSelection.model) {
-        nextConfig = applyPrimaryModel(nextConfig, modelSelection.model);
-      }
-    }
-
-    await warnIfModelConfigLooksOff(nextConfig, prompter, { validateCatalog: false });
-    break;
   }
 
   const extraModules: SetupExtraModule[] =
