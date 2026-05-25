@@ -34,7 +34,7 @@ async function createWorkspaceSkill(params: {
       `name: ${params.name}`,
       `description: ${description}`,
       "---",
-      params.body ?? `Use files under {baseDir}. Session ${"${KOVA_SESSION_ID}"}.`,
+      params.body ?? "Use files under {baseDir}. Session ${KOVA_SESSION_ID}.",
       "",
     ].join("\n"),
     "utf8",
