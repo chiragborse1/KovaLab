@@ -46,14 +46,14 @@ This threat model documents adversarial threats to the Kova AI agent platform an
 
 ### 1.2 Scope
 
-| Component            | Included | Notes                                              |
-| -------------------- | -------- | -------------------------------------------------- |
-| Kova Agent Runtime   | Yes      | Core agent execution, tool calls, sessions         |
-| Gateway              | Yes      | Authentication, routing, channel integration       |
-| Channel Integrations | Yes      | WhatsApp, Telegram, Discord, Signal, Slack, etc.   |
-| KovaHub Marketplace  | Future   | Planned skill publishing, moderation, distribution |
-| MCP Servers          | Yes      | External tool providers                            |
-| User Devices         | Partial  | Mobile apps, desktop clients                       |
+| Component            | Included | Notes                                                    |
+| -------------------- | -------- | -------------------------------------------------------- |
+| Kova Agent Runtime   | Yes      | Core agent execution, tool calls, sessions               |
+| Gateway              | Yes      | Authentication, routing, channel integration             |
+| Channel Integrations | Yes      | WhatsApp, Telegram, Discord, Signal, Slack, etc.         |
+| KovaHub Marketplace  | Future   | Planned marketplace publishing, moderation, distribution |
+| MCP Servers          | Yes      | External tool providers                                  |
+| User Devices         | Partial  | Mobile apps, desktop clients                             |
 
 ### 1.3 Out of Scope
 
@@ -605,7 +605,7 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 
 ---
 
-_This threat model is a living document. Report security issues to security@kovaai.ai_
+_This threat model is a living document. Report security issues through GitHub Security Advisories or security@neuralstudio.in._
 
 ## Related
 

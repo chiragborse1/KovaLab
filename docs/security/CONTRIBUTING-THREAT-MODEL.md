@@ -25,7 +25,7 @@ Spotted an attack vector or risk we haven't covered? Open an issue on [chiragbor
 
 We'll handle the ATLAS mapping, threat IDs, and risk assessment during review. If you want to include those details, great - but it's not expected.
 
-> **This is for adding to the threat model, not reporting live vulnerabilities.** If you've found an exploitable vulnerability, see our [Trust page](https://trust.kova.ai) for responsible disclosure instructions.
+> **This is for adding to the threat model, not reporting live vulnerabilities.** If you've found an exploitable vulnerability, use GitHub Security Advisories or email security@neuralstudio.in.
 
 ### Suggest a Mitigation
 
@@ -89,7 +89,7 @@ If you're unsure about the risk level, just describe the impact and we'll assess
 
 ## Contact
 
-- **Security vulnerabilities:** See our [Trust page](https://trust.kova.ai) for reporting instructions
+- **Security vulnerabilities:** Use GitHub Security Advisories or email security@neuralstudio.in
 - **Threat model questions:** Open an issue on [chiragborse1/kova-trust](https://github.com/chiragborse1/kova-trust/issues)
 - **General chat:** Discord #security channel
 

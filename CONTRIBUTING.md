@@ -1,229 +1,246 @@
 # Contributing to Kova
 
-Welcome to the lobster tank! 🦞
+Kova is a terminal-first, local-first AI agent. The default path is simple:
 
-## Quick Links
-
-- **GitHub:** https://github.com/chiragborse1/KovaLab
-- **Vision:** [`VISION.md`](VISION.md)
-- **Discord:** https://discord.gg/uT9ETzpaHT
-- **X/Twitter:** [@steipete](https://x.com/steipete) / [@kovaai](https://x.com/kova)
-
-## Maintainers
-
-- **Peter Steinberger** - Benevolent Dictator
-  - GitHub: [@steipete](https://github.com/steipete) · X: [@steipete](https://x.com/steipete)
-
-- **Shadow** - Discord subsystem, Discord admin, KovaHub, all community moderation
-  - GitHub: [@thewilloftheshadow](https://github.com/thewilloftheshadow) · X: [@4shadowed](https://x.com/4shadowed)
-
-- **Vignesh** - Memory (QMD), formal modeling, TUI, IRC, and Lobster
-  - GitHub: [@vignesh07](https://github.com/vignesh07) · X: [@\_vgnsh](https://x.com/_vgnsh)
-
-- **Jos** - Telegram, API, Nix mode
-  - GitHub: [@joshp123](https://github.com/joshp123) · X: [@jjpcodes](https://x.com/jjpcodes)
-
-- **Ayaan Zaidi** - Telegram subsystem, Android app
-  - GitHub: [@obviyus](https://github.com/obviyus) · X: [@obviyus](https://x.com/obviyus)
-
-- **Tyler Yust** - Agents/subagents, cron, BlueBubbles, macOS app
-  - GitHub: [@tyler6204](https://github.com/tyler6204) · X: [@tyleryust](https://x.com/tyleryust)
-
-- **Mariano Belinky** - iOS app, Security
-  - GitHub: [@mbelinky](https://github.com/mbelinky) · X: [@belimad](https://x.com/belimad)
-
-- **Nimrod Gutman** - iOS app, macOS app and crustacean features
-  - GitHub: [@ngutman](https://github.com/ngutman) · X: [@theguti](https://x.com/theguti)
-
-- **Vincent Koc** - Agents, Telemetry, Hooks, Security
-  - GitHub: [@vincentkoc](https://github.com/vincentkoc) · X: [@vincent_koc](https://x.com/vincent_koc)
-
-- **Val Alexander** - UI/UX, Docs, and Agent DevX
-  - GitHub: [@BunsDev](https://github.com/BunsDev) · X: [@BunsDev](https://x.com/BunsDev)
-
-- **Seb Slight** - Docs, Agent Reliability, Runtime Hardening
-  - GitHub: [@sebslight](https://github.com/sebslight) · X: [@sebslig](https://x.com/sebslig)
-
-- **Christoph Nakazawa** - JS Infra
-  - GitHub: [@cpojer](https://github.com/cpojer) · X: [@cnakazawa](https://x.com/cnakazawa)
-
-- **Gustavo Madeira Santana** - Multi-agents, CLI, Performance, Plugins, Matrix
-  - GitHub: [@gumadeiras](https://github.com/gumadeiras) · X: [@gumadeiras](https://x.com/gumadeiras)
-
-- **Onur Solmaz** - Agents, dev workflows, ACP integrations, MS Teams
-  - GitHub: [@onutc](https://github.com/onutc), [@osolmaz](https://github.com/osolmaz) · X: [@onusoz](https://x.com/onusoz)
-
-- **Josh Avant** - Core, CLI, Gateway, Security, Agents
-  - GitHub: [@joshavant](https://github.com/joshavant) · X: [@joshavant](https://x.com/joshavant)
-
-- **Jonathan Taylor** - ACP subsystem, Gateway features/bugs, Gog/Mog/Sog CLI's, SEDMAT
-  - GitHub [@visionik](https://github.com/visionik) · X: [@visionik](https://x.com/visionik)
-
-- **Josh Lehman** - Compaction, Context Engine
-  - GitHub [@jalehman](https://github.com/jalehman) · X: [@jlehman\_](https://x.com/jlehman_)
-
-- **Radek Sienkiewicz** - Docs, Control UI
-  - GitHub [@velvet-shark](https://github.com/velvet-shark) · X: [@velvet_shark](https://twitter.com/velvet_shark)
-
-- **Muhammed Mukhthar** - Mattermost, CLI
-  - GitHub [@mukhtharcm](https://github.com/mukhtharcm) · X: [@mukhtharcm](https://x.com/mukhtharcm)
-
-- **Altay** - Agents, CLI, error handling
-  - GitHub [@altaywtf](https://github.com/altaywtf) · X: [@altaywtf](https://x.com/altaywtf)
-
-- **Robin Waslander** - Security, PR triage, bug fixes
-  - GitHub: [@hydro13](https://github.com/hydro13) · X: [@Robin_waslander](https://x.com/Robin_waslander)
-
-- **Tengji (George) Zhang** - Chinese model APIs, cloud, pi
-  - GitHub: [@odysseus0](https://github.com/odysseus0) · X: [@odysseus0z](https://x.com/odysseus0z)
-
-- **Sliverp** - Chinese Channel: QQ, WeChat, Wecom, Dingtalk, Feishu
-  - GitHub: [@sliverp](https://github.com/sliverp) · X: [@sliver01234](https://x.com/sliver01234)
-
-- **Mason Huang** - Stability, Security, Speed
-  - GitHub: [@hxy91819](https://github.com/hxy91819) · X: [@chenjingtalk](https://x.com/chenjingtalk)
-
-## How to Contribute
-
-1. **Bugs & small fixes** → Open a PR!
-2. **New features / architecture** → Start a [GitHub Issue](https://github.com/chiragborse1/KovaLab/issues/new/choose) or ask in Discord first. Most features are not accepted and should be third party plugins instead using our plugin SDK.
-3. **Refactor-only PRs** → Don't open a PR. We are not accepting refactor-only changes unless a maintainer explicitly asks for them as part of a concrete fix.
-4. **Test/CI-only PRs for known `main` failures** → Don't open a PR. The Maintainer team is already tracking those failures, and PRs that only tweak tests or CI to chase them will be closed unless they are required to validate a new fix.
-5. **Questions** → Discord [#help](https://discord.com/channels/1456350064065904867/1459642797895319552) / [#users-helping-users](https://discord.com/channels/1456350064065904867/1459007081603403828)
-
-## PR Limits
-
-We cap at **10 open PRs per author**. If you exceed this, the `r: too-many-prs` label is added and your PR is auto-closed. This is a hard limit.
-
-For coordinated change sets that genuinely need more than 10 PRs, join the **#contributors** channel in Discord and talk to maintainers first.
-
-## Before You PR
-
-- Test locally with your Kova instance
-- Run tests: `pnpm build && pnpm check && pnpm test`
-- For iterative local commits, `scripts/committer --fast "message" <files...>` passes `FAST_COMMIT=1` through to the pre-commit hook so it skips the repo-wide `pnpm check`. Only use it when you've already run equivalent targeted validation for the touched surface.
-- For extension/plugin changes, run the fast local lane first:
-  - `pnpm test:extension <extension-name>`
-  - `pnpm test:extension --list` to see valid extension ids
-  - If you changed shared plugin or channel surfaces, run `pnpm test:contracts`
-  - For targeted shared-surface work, use `pnpm test:contracts:channels` or `pnpm test:contracts:plugins`
-  - These commands also cover the shared seam/smoke files that the default unit lane skips
-  - If you changed broader runtime behavior, still run the relevant wider lanes (`pnpm test:extensions`, `pnpm test:channels`, or `pnpm test`) before asking for review
-- If you touched bundled-plugin boundaries in shared code, run the matching inventories:
-  - `node scripts/check-src-extension-import-boundary.mjs --json` for `src/**`
-  - `node scripts/check-sdk-package-extension-import-boundary.mjs --json` for `src/plugin-sdk/**` and `packages/**`
-  - `node scripts/check-test-helper-extension-import-boundary.mjs --json` for `test/helpers/**`
-- Shared test helpers must use `src/test-utils/bundled-plugin-public-surface.ts` instead of repo-relative `extensions/**` imports. Keep plugin-local deep mocks inside the owning bundled plugin package.
-- If you have access to Codex, run `codex review --base origin/main` locally before opening or updating your PR. Treat this as the current highest standard of AI review, even if GitHub Codex review also runs.
-- Do not submit refactor-only PRs unless a maintainer explicitly requested that refactor for an active fix or deliverable.
-- Do not submit test or CI-config fixes for failures already red on `main` CI. If a failure is already visible in the [main branch CI runs](https://github.com/chiragborse1/KovaLab/actions), it's a known issue the Maintainer team is tracking, and a PR that only addresses those failures will be closed automatically. If you spot a _new_ regression not yet shown in main CI, report it as an issue first.
-- Do not submit test-only PRs that just try to make known `main` CI failures pass. Test changes are acceptable when they are required to validate a new fix or cover new behavior in the same PR.
-- Ensure CI checks pass
-- Keep PRs focused (one thing per PR; do not mix unrelated concerns)
-- Describe what & why
-- Reply to or resolve bot review conversations you addressed before asking for review again
-- **Include screenshots** — one showing the problem/before, one showing the fix/after (for UI or visual changes)
-- Use American English spelling and grammar in code, comments, docs, and UI strings
-- Do not edit files covered by `CODEOWNERS` security ownership unless a listed owner explicitly asked for the change or is already reviewing it with you. Treat those paths as restricted review surfaces, not opportunistic cleanup targets.
-
-## Review Conversations Are Author-Owned
-
-If a review bot leaves review conversations on your PR, you are expected to handle the follow-through:
-
-- Resolve the conversation yourself once the code or explanation fully addresses the bot's concern
-- Reply and leave it open only when you need maintainer or reviewer judgment
-- Do not leave "fixed" bot review conversations for maintainers to clean up for you
-- If Codex leaves comments, address every relevant one or resolve it with a short explanation when it is not applicable to your change
-- If GitHub Codex review does not trigger for some reason, run `codex review --base origin/main` locally anyway and treat that output as required review work
-
-This applies to both human-authored and AI-assisted PRs.
-
-## Control UI Decorators
-
-The Control UI uses Lit with **legacy** decorators (current Rollup parsing does not support
-`accessor` fields required for standard decorators). When adding reactive fields, keep the
-legacy style:
-
-```ts
-@state() foo = "bar";
-@property({ type: Number }) count = 0;
+```bash
+kova onboard
+kova
 ```
 
-The root `tsconfig.json` is configured for legacy decorators (`experimentalDecorators: true`)
-with `useDefineForClassFields: false`. Avoid flipping these unless you are also updating the UI
-build tooling to support standard decorators.
+The Gateway, plugins, channels, memory, skills, apps, and web surfaces exist to
+support that product spine. Contributions should make Kova easier to install,
+safer to operate, faster to use, or clearer to extend.
 
-## AI/Vibe-Coded PRs Welcome! 🤖
+## Links
 
-Built with Codex, Claude, or other AI tools? **Awesome - just mark it!**
+- GitHub: https://github.com/chiragborse1/KovaLab
+- Website: https://www.neuralstudio.in/
+- Docs: https://docs.neuralstudio.in/
+- Discord: https://discord.gg/uT9ETzpaHT
+- Issues: https://github.com/chiragborse1/KovaLab/issues/new/choose
 
-Please include in your PR:
+## Current Priorities
 
-- [ ] Mark as AI-assisted in the PR title or description
-- [ ] Note the degree of testing (untested / lightly tested / fully tested)
-- [ ] Include prompts or session logs if possible (super helpful!)
-- [ ] Confirm you understand what the code does
-- [ ] If you have access to Codex, run `codex review --base origin/main` locally and address the findings before asking for review
-- [ ] Resolve or reply to bot review conversations after you address them
+We prioritize work in this order:
 
-AI PRs are first-class citizens here. We just want transparency so reviewers know what to look for. If you are using an LLM coding agent, instruct it to resolve bot review conversations it has addressed instead of leaving them for maintainers.
+1. Release blockers: install, update, onboarding, packaging, CI, and fresh-run failures.
+2. Reliability: crashes, data loss, stuck runs, broken channel delivery, broken model/provider routing.
+3. Security hardening: auth, sandboxing, approvals, plugin loading, secret handling, and trusted-boundary clarity.
+4. Terminal-first UX: `kova`, slash commands, status, settings, logs, permissions, memory, skills, and plugin workflows.
+5. Performance: startup latency, first-token delay, event-loop stalls, memory pressure, and unnecessary background work.
+6. Docs that help real users install, configure, recover, or extend Kova.
+7. New capabilities that fit Kova's plugin-first architecture.
 
-## Current Focus & Roadmap 🗺
+If a change does not clearly fit one of these buckets, open an issue first.
 
-We are currently prioritizing:
+## What Belongs Where
 
-- **Stability**: Fixing edge cases in channel connections (WhatsApp/Telegram).
-- **UX**: Improving the onboarding wizard and error messages.
-- **Skills**: For skill contributions, head to [KovaHub](https://kovahub.ai/) — the community hub for Kova skills.
-- **Performance**: Optimizing token usage and compaction logic.
+Kova is intentionally plugin-first. Put behavior in the smallest owner that can
+hold it without making core depend on a specific integration.
 
-Check the [GitHub Issues](https://github.com/chiragborse1/KovaLab/issues) for
-["good first issue"](https://github.com/chiragborse1/KovaLab/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-labels. If none are open, pick a small docs or bug issue and leave a quick comment saying
-you'd like to work on it.
+| Change type                          | Preferred home                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Provider integration                 | `extensions/<provider>`                                                                     |
+| Chat/channel integration             | `extensions/<channel>`                                                                      |
+| Tool backed by a service or runtime  | plugin in `extensions/`                                                                     |
+| Reusable user procedure              | `skills/<skill>` or workspace skill                                                         |
+| Gateway protocol or routing contract | `src/gateway/protocol` and docs                                                             |
+| Terminal operator workflow           | CLI/TUI under `src/cli`, `src/commands`, or `src/tui`                                       |
+| Browser Control UI compatibility fix | `ui/`, only when the terminal path already exists or the issue is security/release-critical |
+| Docs-only user guidance              | `docs/` plus README when it is a first-run surface                                          |
+
+Do not move plugin-owned behavior into core just because it is convenient.
+Core should expose generic seams; integrations should own their defaults,
+setup, repair, and runtime-specific behavior.
+
+## Feature Boundaries
+
+Before adding a feature, ask:
+
+- Does this help the terminal-first product path?
+- Can this be a skill instead of a plugin?
+- Can this be a plugin instead of core?
+- Is the behavior safe for a local-first personal agent?
+- Is there a test or live proof that matches how users will actually run it?
+
+Kova does not accept features solely because another agent has them. Reference
+projects are useful for learning, but Kova should keep its own architecture:
+local-first Gateway, terminal-first controls, reviewable memory and skills,
+manifest-first plugins, and explicit security boundaries.
+
+## Development Setup
+
+Requirements:
+
+- Node 24 recommended, Node 22.14+ supported.
+- pnpm 10.x.
+- Git.
+- Docker only when validating Docker or sandbox behavior.
+
+Install:
+
+```bash
+pnpm install
+```
+
+Run from source:
+
+```bash
+pnpm kova onboard
+pnpm kova
+```
+
+Build:
+
+```bash
+pnpm build
+```
+
+Build the optional browser Control UI only when you touched web assets or
+release packaging:
+
+```bash
+pnpm ui:build
+```
+
+## Docs First
+
+Before working in docs, run:
+
+```bash
+pnpm docs:list
+```
+
+Read only the docs that match the `Read when` hints for your change. Keep docs
+generic: no personal hostnames, local secrets, phone numbers, or private paths.
+
+Use "plugins" in public docs and UI. `extensions/` is the internal source-tree
+name.
+
+## Checks
+
+Use the smallest check that proves the touched behavior.
+
+Common checks:
+
+```bash
+pnpm build
+pnpm check:changed
+pnpm test:changed
+pnpm test <path-or-filter>
+pnpm release:check
+```
+
+Formatting:
+
+```bash
+pnpm exec oxfmt --check --threads=1 <files...>
+pnpm exec oxfmt --write --threads=1 <files...>
+```
+
+Do not run raw `vitest`; use repo scripts such as `pnpm test`. Do not add
+`tsc --noEmit` lanes; this repo uses `tsgo` wrappers.
+
+If your machine cannot run heavy checks safely, say exactly what you did run and
+which CI check should be treated as authoritative. Do not pretend local proof is
+stronger than it is.
+
+## Pull Requests
+
+Keep PRs focused. One PR should explain one problem and one solution.
+
+Every PR should include:
+
+- What bug, feature, or user problem is being addressed.
+- What changed.
+- What did not change.
+- Real behavior proof when the change affects runtime behavior.
+- Tests or checks run.
+- Security impact.
+- Screenshots or terminal captures for UI/TUI/CLI output changes.
+
+External PRs must include real behavior proof from a real Kova setup. Unit
+tests, mocks, snapshots, lint, type checks, and CI are useful, but they are not
+the same as proving the user workflow works.
+
+Do not edit `CHANGELOG.md` in normal contributor PRs unless a maintainer asks.
+Maintainers prepare release notes from commit history before release.
+
+## AI-Assisted Contributions
+
+AI-assisted PRs are welcome, but they need the same proof as human-written PRs.
+
+If an AI tool helped, say so in the PR body and include:
+
+- What the tool changed.
+- What you personally reviewed.
+- What you personally tested.
+- Any prompts or session notes that help reviewers understand the work.
+
+You are still responsible for the code.
+
+## Security-Sensitive Changes
+
+Read `SECURITY.md` before touching:
+
+- Gateway auth, tokens, pairing, trusted proxy, or HTTP surfaces.
+- Exec approvals, sandboxing, elevated mode, or node execution.
+- Plugin install/load/update paths.
+- Secret storage, redaction, or credential routing.
+- Channel allowlists, group behavior, sender identity, or message routing.
+- Browser, media, file, archive, or path-handling code.
+
+If you found a vulnerability, do not open a public issue or PR with exploit
+details. Use GitHub Security Advisories or the private security contact listed
+in `SECURITY.md`.
+
+## Code Style
+
+- TypeScript ESM.
+- Prefer real types over `any`.
+- Validate external data at boundaries.
+- Keep comments brief and useful.
+- Use American English in code, docs, and UI.
+- Keep compatibility changes documented and tested.
+- Do not add broad core registries when a manifest or plugin-owned contract can
+  express the behavior.
+
+## Plugins and Skills
+
+Plugins are trusted code. Add a bundled plugin only when it is broad, maintained,
+and cannot be a skill.
+
+Skills are the right home when the capability can be expressed as instructions,
+shell commands, existing tools, or a small procedure. Specialized or personal
+skills should live in the user's workspace. KovaHub is planned for a future
+marketplace release; do not document it as a live registry until it ships end to
+end.
+
+## Commit and Branch Workflow
+
+For local commits, use:
+
+```bash
+scripts/committer "type(scope): summary" <files...>
+```
+
+Stage intended files only. Do not revert unrelated local changes. If the work
+touches generated config/API baselines, regenerate and commit the matching
+generated hash files.
 
 ## Maintainers
 
-We're selectively expanding the maintainer team.
-If you're an experienced contributor who wants to help shape Kova's direction — whether through code, docs, or community — we'd like to hear from you.
+Kova maintainer access is earned through sustained, high-quality contributions:
+bug fixes, careful reviews, reliable release work, documentation, security
+hardening, and community support.
 
-Being a maintainer is a responsibility, not an honorary title. We expect active, consistent involvement — triaging issues, reviewing PRs, and helping move the project forward.
+If you want to help maintain Kova, start by contributing focused PRs and helping
+users in issues or Discord. Maintainer invitations are handled privately.
 
-Still interested? Email contributing@kovaai.ai with:
+## Getting Help
 
-- Links to your PRs on Kova (if you don't have any, start there first)
-- Links to open source projects you maintain or actively contribute to
-- Your GitHub, Discord, and X/Twitter handles
-- A brief intro: background, experience, and areas of interest
-- Languages you speak and where you're based
-- How much time you can realistically commit
+Use Discord for setup questions, usage help, and early contributor discussion:
+https://discord.gg/uT9ETzpaHT
 
-We welcome people across all skill sets — engineering, documentation, community management, and more.
-We review every human-only-written application carefully and add maintainers slowly and deliberately.
-Please allow a few weeks for a response.
-
-## Report a Vulnerability
-
-We take security reports seriously. Report vulnerabilities directly to the repository where the issue lives:
-
-- **Core CLI and gateway** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab)
-- **macOS desktop app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/macos)
-- **iOS app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/ios)
-- **Android app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/android)
-- **KovaHub** — [chiragborse1/kovahub](https://github.com/chiragborse1/kovahub)
-- **Trust and threat model** — [chiragborse1/kova-trust](https://github.com/chiragborse1/kova-trust)
-
-For issues that don't fit a specific repo, or if you're unsure, email **security@kovaai.ai** and we'll route it.
-
-### Required in Reports
-
-1. **Title**
-2. **Severity Assessment**
-3. **Impact**
-4. **Affected Component**
-5. **Technical Reproduction**
-6. **Demonstrated Impact**
-7. **Environment**
-8. **Remediation Advice**
-
-Reports without reproduction steps, demonstrated impact, and remediation advice will be deprioritized. Given the volume of AI-generated scanner findings, we must ensure we're receiving vetted reports from researchers who understand the issues.
+For bugs, feature requests, and reproducible problems, use GitHub Issues:
+https://github.com/chiragborse1/KovaLab/issues/new/choose

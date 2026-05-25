@@ -51,8 +51,8 @@ struct AboutSettings: View {
                     title: "GitHub",
                     url: "https://github.com/chiragborse1/KovaLab")
                 AboutLinkRow(icon: "globe", title: "Website", url: "https://www.neuralstudio.in")
-                AboutLinkRow(icon: "bird", title: "Twitter", url: "https://twitter.com/steipete")
-                AboutLinkRow(icon: "envelope", title: "Email", url: "mailto:peter@steipete.me")
+                AboutLinkRow(icon: "bubble.left.and.bubble.right", title: "Discord", url: "https://discord.gg/uT9ETzpaHT")
+                AboutLinkRow(icon: "envelope", title: "Email", url: "mailto:security@neuralstudio.in")
             }
             .frame(maxWidth: .infinity)
             .multilineTextAlignment(.center)
@@ -77,7 +77,7 @@ struct AboutSettings: View {
                 }
             }
 
-            Text("© 2025 Peter Steinberger — MIT License.")
+            Text("© 2026 Chirag Borse — MIT License.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)

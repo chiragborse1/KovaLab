@@ -9,8 +9,9 @@ read_when:
 
 ## Review Scope
 
-This review was refreshed on 2026-05-22 against an external reference agent
-platform. The project name and source links are intentionally not stored in this
+This review was refreshed on 2026-05-25 against current external reference
+agent platforms: one messaging/app-oriented platform and one terminal/research
+agent platform. Reference names and links are intentionally not stored in this
 Kova-facing plan. The goal is to keep the useful capability lessons without
 putting another product's branding into Kova docs.
 
@@ -18,6 +19,43 @@ Parity does not mean Kova should copy another project. The useful question is:
 
 > Does Kova give the user the same kind of power, with Kova's local-first
 > Gateway, plugin, workspace, and control-plane architecture kept intact?
+
+## Latest Reference Refresh
+
+The 2026-05-25 refresh found no reason to copy another architecture wholesale.
+The remaining gaps are product decisions and packaging work, not a missing
+agent core.
+
+What still needs deliberate Kova decisions:
+
+- Managed provider/tool gateway: Kova is still bring-your-own-key/local-first by
+  default. A managed shortcut would be a product and billing decision, not a
+  parity patch.
+- Marketplace: KovaHub is intentionally future work. Current installs should use
+  local paths, archives, npm packages, and bundled/default skills.
+- Additional bundled skills: reference platforms ship more ready-made skills.
+  Kova should add skills only when they are maintained, documented, tested, and
+  useful in the terminal flow.
+- Extra channel and utility plugins: several reference plugins are useful but
+  not terminal-first launch blockers. Add them through plugin ownership, not by
+  placing provider or channel behavior in core.
+- Filesystem checkpoints: Kova still needs a product choice between automatic
+  mutation snapshots and explicit git/workspace discipline.
+- Cloud sandbox backends: Kova has local, node, Docker, SSH, OpenShell, and
+  elevated execution. Serverless/cloud backends should be added only with a
+  clear security and cost model.
+- Skill learning loop: Kova has skills, memory, dreaming, Skill Workshop, and
+  reviews. The next improvement is making the loop simple and inspectable by
+  default, not adding more hidden automation.
+
+Public release blockers from this refresh:
+
+- Contribution and security policy must be Kova-owned and not inherited from a
+  reference project.
+- User-facing credits, security links, and app About surfaces must point to Kova
+  owners and Kova contact paths.
+- Docs should say "plugins" publicly and keep `extensions/` as the internal
+  implementation term.
 
 ## Executive Finding
 

@@ -1,328 +1,222 @@
 # Security Policy
 
-If you believe you've found a security issue in Kova, please report it privately.
+If you believe you found a security issue in Kova, report it privately first.
 
-## Reporting
+Kova is local-first agent software. It can read files, call tools, run commands,
+connect chat channels, and act through accounts you configure. That power is the
+point of the product, so security reports are triaged against Kova's actual
+trust boundaries, not against the idea that every model output is trusted.
 
-Report vulnerabilities directly to the repository where the issue lives:
-
-- **Core CLI and gateway** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab)
-- **macOS desktop app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/macos)
-- **iOS app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/ios)
-- **Android app** — [chiragborse1/KovaLab](https://github.com/chiragborse1/KovaLab) (apps/android)
-- **KovaHub** — [chiragborse1/kovahub](https://github.com/chiragborse1/kovahub)
-- **Trust and threat model** — [chiragborse1/kova-trust](https://github.com/chiragborse1/kova-trust)
-
-For issues that don't fit a specific repo, or if you're unsure, email **[security@kovaai.ai](mailto:security@kovaai.ai)** and we'll route it.
-
-For full reporting instructions see our [Trust page](https://trust.kova.ai).
-
-### Required in Reports
-
-1. **Title**
-2. **Severity Assessment**
-3. **Impact**
-4. **Affected Component**
-5. **Technical Reproduction**
-6. **Demonstrated Impact**
-7. **Environment**
-8. **Remediation Advice**
-
-Reports without reproduction steps, demonstrated impact, and remediation advice will be deprioritized. Given the volume of AI-generated scanner findings, we must ensure we're receiving vetted reports from researchers who understand the issues.
-
-### Report Acceptance Gate (Triage Fast Path)
-
-For fastest triage, include all of the following:
-
-- Exact vulnerable path (`file`, function, and line range) on a current revision.
-- Tested version details (Kova version and/or commit SHA).
-- Reproducible PoC against latest `main` or latest released version.
-- If the claim targets a released version, evidence from the shipped tag and published artifact/package for that exact version (not only `main`).
-- For dependency CVE reports, evidence that the shipped dependency version is actually affected, plus a PoC that reproduces impact through Kova. Showing that Kova can reach a native parser is not enough by itself.
-- Demonstrated impact tied to Kova's documented trust boundaries.
-- For exposed-secret reports: proof the credential is Kova-owned (or grants access to Kova-operated infrastructure/services).
-- Explicit statement that the report does not rely on adversarial operators sharing one gateway host/config.
-- Scope check explaining why the report is **not** covered by the Out of Scope section below.
-- For command-risk/parity reports (for example obfuscation detection differences), a concrete boundary-bypass path is required (auth/approval/allowlist/sandbox). Parity-only findings are treated as hardening, not vulnerabilities.
-
-Reports that miss these requirements may be closed as `invalid` or `no-action`.
-
-### Common False-Positive Patterns
-
-These are frequently reported but are typically closed with no code change:
-
-- Prompt-injection-only chains without a boundary bypass (prompt injection is out of scope).
-- Operator-intended local features (for example TUI local `!` shell) presented as remote injection.
-- Reports that treat explicit operator-control surfaces (for example `canvas.eval`, browser evaluate/script execution, or direct `node.invoke` execution primitives) as vulnerabilities without demonstrating an auth/policy/sandbox boundary bypass. These capabilities are intentional when enabled and are trusted-operator features, not standalone security bugs.
-- Authorized user-triggered local actions presented as privilege escalation. Example: an allowlisted/owner sender running `/export-session /absolute/path.html` to write on the host. In this trust model, authorized user actions are trusted host actions unless you demonstrate an auth/sandbox/boundary bypass.
-- Reports that only show a malicious plugin executing privileged actions after a trusted operator installs/enables it.
-- Reports that assume per-user multi-tenant authorization on a shared gateway host/config.
-- Reports that only show quoted/replied/thread/forwarded supplemental context from non-allowlisted senders being visible to the model, without demonstrating an auth, policy, approval, or sandbox boundary bypass.
-- Reports that treat the Gateway HTTP compatibility endpoints (`POST /v1/chat/completions`, `POST /v1/responses`) as if they implemented scoped operator auth (`operator.write` vs `operator.admin`). These endpoints authenticate the shared Gateway bearer secret/password and are documented full operator-access surfaces, not per-user/per-scope boundaries.
-- Reports that assume `x-kova-scopes` can reduce or redefine shared-secret bearer auth on the OpenAI-compatible HTTP endpoints. For shared-secret auth (`gateway.auth.mode="token"` or `"password"`), those endpoints ignore narrower bearer-declared scopes and restore the full default operator scope set plus owner semantics.
-- Reports that treat `POST /tools/invoke` under shared-secret bearer auth (`gateway.auth.mode="token"` or `"password"`) as a narrower per-request/per-scope authorization surface. That endpoint is designed as the same trusted-operator HTTP boundary: shared-secret bearer auth is full operator access there, narrower `x-kova-scopes` values do not reduce that path, and owner-only tool policy follows the shared-secret operator contract.
-- Reports that only show differences in heuristic detection/parity (for example obfuscation-pattern detection on one exec path but not another, such as `node.invoke -> system.run` parity gaps) without demonstrating bypass of auth, approvals, allowlist enforcement, sandboxing, or other documented trust boundaries.
-- Reports that only show an ACP tool can indirectly execute, mutate, orchestrate sessions, or reach another tool/runtime without demonstrating bypass of ACP prompt/approval, allowlist enforcement, sandboxing, or another documented trust boundary. ACP silent approval is intentionally limited to narrow readonly classes; parity-only indirect-command findings are hardening, not vulnerabilities.
-- Reports that only show untrusted media bytes reaching a maintained native decoder dependency (for example Sharp/libvips/libheif) without proving the shipped dependency version is vulnerable and demonstrating crash, memory corruption, data exposure, or a boundary bypass through Kova. JavaScript header sniffing and image dimension fast-paths are preflight/UX checks, not the security boundary for native decoder correctness.
-- ReDoS/DoS claims that require trusted operator configuration input (for example catastrophic regex in `sessionFilter` or `logging.redactPatterns`) without a trust-boundary bypass.
-- Archive/install extraction claims that require pre-existing local filesystem priming in trusted state (for example planting symlink/hardlink aliases under destination directories such as skills/tools paths) without showing an untrusted path that can create/control that primitive.
-- Reports that depend on replacing or rewriting an already-approved executable path on a trusted host (same-path inode/content swap) without showing an untrusted path to perform that write.
-- Reports that depend on pre-existing symlinked skill/workspace filesystem state (for example symlink chains involving `skills/*/SKILL.md`) without showing an untrusted path that can create/control that state.
-- Missing HSTS findings on default local/loopback deployments.
-- Reports against test-only harnesses, QA Lab, QE Lab, E2E fixtures, benchmark rigs, or maintainer-only debugging tools when the vulnerable code is not shipped as a supported production surface.
-- Slack webhook signature findings when HTTP mode already uses signing-secret verification.
-- Discord inbound webhook signature findings for paths not used by this repo's Discord integration.
-- Claims that Microsoft Teams `fileConsent/invoke` `uploadInfo.uploadUrl` is attacker-controlled without demonstrating one of: auth boundary bypass, a real authenticated Teams/Bot Framework event carrying attacker-chosen URL, or compromise of the Microsoft/Bot trust path.
-- Scanner-only claims against stale/nonexistent paths, or claims without a working repro.
-- Reports that restate an already-fixed issue against later released versions without showing the vulnerable path still exists in the shipped tag or published artifact for that later version.
-
-### Duplicate Report Handling
-
-- Search existing advisories before filing.
-- Include likely duplicate GHSA IDs in your report when applicable.
-- Maintainers may close lower-quality/later duplicates in favor of the earliest high-quality canonical report.
-
-## Security & Trust
-
-**Jamieson O'Reilly** ([@theonejvo](https://twitter.com/theonejvo)) is Security & Trust at Kova. Jamieson is the founder of [Dvuln](https://dvuln.com) and brings extensive experience in offensive security, penetration testing, and security program development.
-
-## Bug Bounties
-
-Kova is a labor of love. There is no bug bounty program and no budget for paid reports. Please still disclose responsibly so we can fix issues quickly.
-The best way to help the project right now is by sending PRs.
-
-## Maintainers: GHSA Updates via CLI
-
-When patching a GHSA via `gh api`, include `X-GitHub-Api-Version: 2022-11-28` (or newer). Without it, some fields (notably CVSS) may not persist even if the request returns 200.
-
-## Operator Trust Model (Important)
-
-Kova does **not** model one gateway as a multi-tenant, adversarial user boundary.
-
-- Authenticated Gateway callers are treated as trusted operators for that gateway instance.
-- Direct localhost/loopback Control UI and Gateway WebSocket sessions authenticated with the shared gateway secret (`token` / `password`) are in that same trusted-operator bucket. Local auto-paired device sessions on that path are expected to retain full localhost operator capability; they do not create a separate `operator.write` vs `operator.admin` security boundary.
-- The HTTP compatibility endpoints (`POST /v1/chat/completions`, `POST /v1/responses`) and direct tool endpoint (`POST /tools/invoke`) are in that same trusted-operator bucket. Passing Gateway bearer auth there is equivalent to operator access for that gateway; they do not implement a narrower `operator.write` vs `operator.admin` trust split.
-- Concretely, on the OpenAI-compatible HTTP surface:
-  - shared-secret bearer auth (`token` / `password`) authenticates possession of the gateway operator secret
-  - those requests receive the full default operator scope set (`operator.admin`, `operator.read`, `operator.write`, `operator.approvals`, `operator.pairing`)
-  - chat-turn endpoints (`/v1/chat/completions`, `/v1/responses`) also treat those shared-secret callers as owner senders for owner-only tool policy
-  - `POST /tools/invoke` follows that same shared-secret rule and also treats those callers as owner senders for owner-only tool policy
-  - narrower `x-kova-scopes` headers are ignored for that shared-secret path
-  - only identity-bearing HTTP modes (for example trusted proxy auth or `gateway.auth.mode="none"` on private ingress) honor declared per-request operator scopes
-- Session identifiers (`sessionKey`, session IDs, labels) are routing controls, not per-user authorization boundaries.
-- If one operator can view data from another operator on the same gateway, that is expected in this trust model.
-- Kova can technically run multiple gateway instances on one machine, but recommended operations are clean separation by trust boundary.
-- Recommended mode: one user per machine/host (or VPS), one gateway for that user, and one or more agents inside that gateway.
-- If multiple users need Kova, use one VPS (or host/OS user boundary) per user.
-- For advanced setups, multiple gateways on one machine are possible, but only with strict isolation and are not the recommended default.
-- Exec behavior is host-first by default: `agents.defaults.sandbox.mode` defaults to `off`.
-- `tools.exec.host` defaults to `auto`: sandbox when sandbox runtime is active for the session, otherwise gateway.
-- Implicit exec calls (no explicit host in the tool call) follow the same behavior.
-- This is expected in Kova's one-user trusted-operator model. If you need isolation, enable sandbox mode (`non-main`/`all`) and keep strict tool policy.
-
-## Trusted Plugin Concept (Core)
-
-Plugins/extensions are part of Kova's trusted computing base for a gateway.
-
-- Installing or enabling a plugin grants it the same trust level as local code running on that gateway host.
-- Plugin behavior such as reading env/files or running host commands is expected inside this trust boundary.
-- Security reports must show a boundary bypass (for example unauthenticated plugin load, allowlist/policy bypass, or sandbox/path-safety bypass), not only malicious behavior from a trusted-installed plugin.
-
-## Out of Scope
-
-- Public Internet Exposure
-- Using Kova in ways that the docs recommend not to
-- Test-only code and maintainer harnesses, including QA Lab, QE Lab, E2E fixtures, benchmark rigs, smoke-test containers, and local debugging proxies, unless the report demonstrates that the same vulnerable behavior is reachable from shipped Kova production code or a published package artifact intended for users.
-- Deployments where mutually untrusted/adversarial operators share one gateway host and config (for example, reports expecting per-operator isolation for `sessions.list`, `sessions.preview`, `chat.history`, or similar control-plane reads)
-- Prompt-injection-only attacks (without a policy/auth/sandbox boundary bypass)
-- Reports that require write access to trusted local state (`~/.kova`, workspace files like `MEMORY.md` / `memory/*.md`)
-- Reports where exploitability depends on attacker-controlled pre-existing symlink/hardlink filesystem state in trusted local paths (for example extraction/install target trees) unless a separate untrusted boundary bypass is shown that creates that state.
-- Reports whose only claim is sandbox/workspace read expansion through trusted local skill/workspace symlink state (for example `skills/*/SKILL.md` symlink chains) unless a separate untrusted boundary bypass is shown that creates/controls that state.
-- Reports whose only claim is post-approval executable identity drift on a trusted host via same-path file replacement/rewrite unless a separate untrusted boundary bypass is shown for that host write primitive.
-- Reports where the only demonstrated impact is an already-authorized sender intentionally invoking a local-action command (for example `/export-session` writing to an absolute host path) without bypassing auth, sandbox, or another documented boundary
-- Reports whose only claim is use of an explicit trusted-operator control surface (for example `canvas.eval`, browser evaluate/script execution, or direct `node.invoke` execution) without demonstrating an auth, policy, allowlist, approval, or sandbox bypass.
-- Reports where the only claim is that a trusted-installed/enabled plugin can execute with gateway/host privileges (documented trust model behavior).
-- Any report whose only claim is that an operator-enabled `dangerous*`/`dangerously*` config option weakens defaults (these are explicit break-glass tradeoffs by design)
-- Reports that depend on trusted operator-supplied configuration values to trigger availability impact (for example custom regex patterns). These may still be fixed as defense-in-depth hardening, but are not security-boundary bypasses.
-- Reports whose only claim is heuristic/parity drift in command-risk detection (for example obfuscation-pattern checks) across exec surfaces, without a demonstrated trust-boundary bypass. These are hardening-only findings and are not vulnerabilities; triage may close them as `invalid`/`no-action` or track them separately as low/informational hardening.
-- Reports whose only claim is that an ACP-exposed tool can indirectly execute commands, mutate host state, or reach another privileged tool/runtime without demonstrating a bypass of ACP prompt/approval, allowlist enforcement, sandboxing, or another documented trust boundary. These are hardening-only findings, not vulnerabilities.
-- Reports whose only claim is that exec approvals do not semantically model every interpreter/runtime loader form, subcommand, flag combination, package script, or transitive module/config import. Exec approvals bind exact request context and best-effort direct local file operands; they are not a complete semantic model of everything a runtime may load.
-- Reports whose only claim is parser reachability in an up-to-date maintained dependency without showing that the exact shipped dependency build is vulnerable. We keep native media dependencies current; dependency exposure alone is not a vulnerability.
-- Exposed secrets that are third-party/user-controlled credentials (not Kova-owned and not granting access to Kova-operated infrastructure/services) without demonstrated Kova impact
-- Reports whose only claim is host-side exec when sandbox runtime is disabled/unavailable (documented default behavior in the trusted-operator model), without a boundary bypass.
-- Reports whose only claim is that a platform-provided upload destination URL is untrusted (for example Microsoft Teams `fileConsent/invoke` `uploadInfo.uploadUrl`) without proving attacker control in an authenticated production flow.
+## Report a Security Issue
 
-## Deployment Assumptions
+Use a private GitHub Security Advisory for this repository:
 
-Kova security guidance assumes:
+https://github.com/chiragborse1/KovaLab/security/advisories/new
 
-- The host where Kova runs is within a trusted OS/admin boundary.
-- Anyone who can modify `~/.kova` state/config (including `kova.json`) is effectively a trusted operator.
-- A single Gateway shared by mutually untrusted people is **not a recommended setup**. Use separate gateways (or at minimum separate OS users/hosts) per trust boundary.
-- Authenticated Gateway callers are treated as trusted operators. Session identifiers (for example `sessionKey`) are routing controls, not per-user authorization boundaries.
-- Multiple gateway instances can run on one machine, but the recommended model is clean per-user isolation (prefer one host/VPS per user).
+If GitHub advisories do not fit the report, contact:
 
-## One-User Trust Model (Personal Assistant)
+security@neuralstudio.in
 
-Kova's security model is "personal assistant" (one trusted operator, potentially many agents), not "shared multi-tenant bus."
+Do not open a public issue, pull request, discussion, or Discord thread that
+contains an unpatched vulnerability, exploit path, secret, or security-sensitive
+proof of concept.
 
-- If multiple people can message the same tool-enabled agent (for example a shared Slack workspace), they can all steer that agent within its granted permissions.
-- Non-owner sender status only affects owner-only tools/commands. If a non-owner can still access a non-owner-only tool on that same agent (for example `canvas`), that is within the granted tool boundary unless the report demonstrates an auth, policy, allowlist, approval, or sandbox bypass.
-- Session or memory scoping reduces context bleed, but does **not** create per-user host authorization boundaries.
-- For mixed-trust or adversarial users, isolate by OS user/host/gateway and use separate credentials per boundary.
-- A company-shared agent can be a valid setup when users are in the same trust boundary and the agent is strictly business-only.
-- For company-shared setups, use a dedicated machine/VM/container and dedicated accounts; avoid mixing personal data on that runtime.
-- If that host/browser profile is logged into personal accounts (for example Apple/Google/personal password manager), you have collapsed the boundary and increased personal-data exposure risk.
+## Supported Versions
 
-## Context Visibility and Allowlists
+Kova is currently in beta. Security fixes target:
 
-Kova distinguishes:
+- the latest published npm `beta` release,
+- the latest promoted npm `latest` release,
+- the current `main` branch when the issue is not yet released.
 
-- **Trigger authorization**: who can trigger the agent (`dmPolicy`, `groupPolicy`, allowlists, mention gates)
-- **Context visibility**: what supplemental context is provided to the model (reply body, quoted text, thread history, forwarded metadata)
+Old dev snapshots and local source checkouts are not supported as separate
+security release lines, but reports against them are useful when they reproduce
+on current `main` or the latest published package.
 
-In current releases, allowlists primarily gate triggering and owner-style command access. They do not guarantee universal supplemental-context redaction across every channel/surface.
-
-Current channel behavior is not fully uniform:
+## What to Include
 
-- some channels already filter parts of supplemental context by sender allowlist
-- other channels still pass supplemental context as received
+A useful report includes:
 
-Reports that only show supplemental-context visibility differences are typically hardening/consistency findings unless they also demonstrate a documented boundary bypass (auth, policy, approvals, sandbox, or equivalent).
+- A short title and severity assessment.
+- Affected component, file path, and line range when known.
+- Kova version, commit SHA, install method, OS, Node version, and relevant config.
+- Reproduction steps against current `main` or the latest published release.
+- Demonstrated impact.
+- The trust boundary crossed.
+- Why the report is not covered by the out-of-scope section below.
+- Suggested fix or mitigation, if you have one.
 
-Hardening roadmap may add explicit visibility modes (for example `all`, `allowlist`, `allowlist_quote`) so operators can opt into stricter context filtering with predictable tradeoffs.
+For dependency CVEs, include evidence that Kova ships the affected version and
+that the issue is reachable through Kova with real impact. Scanner output alone
+is not enough.
 
-## Agent and Model Assumptions
+## Trust Model
 
-- The model/agent is **not** a trusted principal. Assume prompt/content injection can manipulate behavior.
-- Security boundaries come from host/config trust, auth, tool policy, sandboxing, and exec approvals.
-- Prompt injection by itself is not a vulnerability report unless it crosses one of those boundaries.
-- Hook/webhook-driven payloads should be treated as untrusted content; keep unsafe bypass flags disabled unless doing tightly scoped debugging (`hooks.gmail.allowUnsafeExternalContent`, `hooks.mappings[].allowUnsafeExternalContent`).
-- Weak model tiers are generally easier to prompt-inject. For tool-enabled or hook-driven agents, prefer strong modern model tiers and strict tool policy (for example `tools.profile: "messaging"` or stricter), plus sandboxing where possible.
+Kova is a personal agent by default: one trusted operator, one local Kova home,
+and one Gateway for that operator.
 
-## Gateway and Node trust concept
+Kova does not treat one Gateway as a hostile multi-tenant boundary between
+adversarial users. If multiple people can message the same tool-enabled agent,
+they share the delegated authority granted to that agent unless you isolate
+them with separate hosts, OS users, gateways, agents, credentials, and tool
+policies.
 
-Kova separates routing from execution, but both remain inside the same operator trust boundary:
+Security boundaries come from:
 
-- **Gateway** is the control plane. If a caller passes Gateway auth, they are treated as a trusted operator for that Gateway.
-- **Node** is an execution extension of the Gateway. Pairing a node grants operator-level remote capability on that node.
-- **Exec approvals** (allowlist/ask UI) are operator guardrails to reduce accidental command execution, not a multi-tenant authorization boundary.
-- Exec approvals bind exact command/cwd/env context and, when Kova can identify one concrete local script/file operand, that file snapshot too. This is best-effort integrity hardening, not a complete semantic model of every interpreter/runtime loader path.
-- Differences in command-risk warning heuristics between exec surfaces (`gateway`, `node`, `sandbox`) do not, by themselves, constitute a security-boundary bypass.
-- For untrusted-user isolation, split by trust boundary: separate gateways and separate OS users/hosts per boundary.
+- OS user and host isolation.
+- Gateway authentication.
+- Channel pairing and allowlists.
+- Tool allow/deny policy.
+- Exec approvals.
+- Sandbox runtimes.
+- Plugin install and load policy.
+- Secret storage and credential routing.
 
-## Workspace Memory Trust Boundary
+Security boundaries do not come from:
 
-`MEMORY.md` and `memory/*.md` are plain workspace files and are treated as trusted local operator state.
+- The model behaving honestly.
+- Prompt wording.
+- Session names or session IDs.
+- In-process string heuristics.
+- A trusted plugin promising to be harmless.
+- A shared Gateway pretending to separate mutually hostile users.
 
-- If someone can edit workspace memory files, they already crossed the trusted operator boundary.
-- Memory search indexing/recall over those files is expected behavior, not a sandbox/security boundary.
-- Example report pattern considered out of scope: "attacker writes malicious content into `memory/*.md`, then `memory_search` returns it."
-- If you need isolation between mutually untrusted users, split by OS user or host and run separate gateways.
+## Operator Boundary
 
-## Plugin Trust Boundary
+Authenticated Gateway callers are trusted operators for that Gateway instance.
 
-Plugins/extensions are loaded **in-process** with the Gateway and are treated as trusted code.
+Shared-secret Gateway auth, including token and password auth, grants operator
+access to the Gateway HTTP and WebSocket surfaces. The OpenAI-compatible HTTP
+endpoints and direct tool invocation endpoint are operator surfaces, not
+fine-grained per-user authorization layers.
 
-- Plugins can execute with the same OS privileges as the Kova process.
-- Runtime helpers (for example `runtime.system.runCommandWithTimeout`) are convenience APIs, not a sandbox boundary.
-- Only install plugins you trust, and prefer `plugins.allow` to pin explicit trusted plugin ids.
+Session identifiers are routing handles. They are not authorization boundaries.
 
-## Temp Folder Boundary (Media/Sandbox)
+If you need isolation between people, run separate Kova instances by trust
+boundary. Prefer separate hosts, VPS instances, containers, or OS users, with
+separate credentials.
 
-Kova uses a dedicated temp root for local media handoff and sandbox-adjacent temp artifacts:
+## Agent and Prompt-Injection Assumptions
 
-- Preferred temp root: `/tmp/kova` (when available and safe on the host).
-- Fallback temp root: `os.tmpdir()/kova` (or `kova-<uid>` on multi-user hosts).
+The model is not a trusted principal. Treat messages, websites, files, tool
+results, MCP responses, and channel content as attacker-influenced input.
 
-Security boundary notes:
+Prompt injection is expected in any tool-enabled agent. A prompt-injection-only
+chain is not a Kova vulnerability unless it bypasses a documented boundary such
+as auth, allowlists, approvals, sandboxing, tool policy, or credential routing.
 
-- Sandbox media validation allows absolute temp paths only under the Kova-managed temp root.
-- Arbitrary host tmp paths are not treated as trusted media roots.
-- Plugin/extension code should use Kova temp helpers (`resolvePreferredKovaTmpDir`, `buildRandomTempFilePath`, `withTempDownloadPath`) rather than raw `os.tmpdir()` defaults when handling media files.
-- Enforcement reference points:
-  - temp root resolver: `src/infra/tmp-kova-dir.ts`
-  - SDK temp helpers: `src/plugin-sdk/temp-path.ts`
-  - messaging/channel tmp guardrail: `scripts/check-no-random-messaging-tmp.mjs`
+Use stronger models, narrow tool profiles, sandboxing, approvals, and separate
+sessions for untrusted channels.
 
-## Operational Guidance
+## Plugins and Skills
 
-For threat model + hardening guidance (including `kova security audit --deep` and `--fix`), see:
+Plugins run as trusted code inside the Kova process or adjacent runtime. A
+plugin can read, execute, register hooks, call runtime helpers, and access the
+resources granted to the Kova process.
 
-- `https://docs.neuralstudio.in/gateway/security`
+Installing or enabling a plugin means you trust that plugin.
 
-### Tool filesystem hardening
+A malicious trusted-installed plugin is not by itself a Kova vulnerability. A
+bug in Kova that loads a plugin without authorization, ignores plugin policy,
+misrepresents what is being installed, or lets a plugin escape a declared
+sandbox or policy boundary is in scope.
 
-- `tools.exec.applyPatch.workspaceOnly: true` (recommended): keeps `apply_patch` writes/deletes within the configured workspace directory.
-- `tools.fs.workspaceOnly: true` (optional): restricts `read`/`write`/`edit`/`apply_patch` paths and native prompt image auto-load paths to the workspace directory.
-- Avoid setting `tools.exec.applyPatch.workspaceOnly: false` unless you fully trust who can trigger tool execution.
+Skills are also trusted instructions and, depending on their contents, may cause
+the agent to run commands or call tools. Review third-party skills before use.
 
-### Sub-agent delegation hardening
+## In Scope
 
-- Keep `sessions_spawn` denied unless you explicitly need delegated runs.
-- Keep `agents.list[].subagents.allowAgents` narrow, and only include agents with sandbox settings you trust.
-- When delegation must stay sandboxed, call `sessions_spawn` with `sandbox: "require"` (default is `inherit`).
-  - `sandbox: "require"` rejects the spawn unless the target child runtime is sandboxed.
-  - This prevents a less-restricted session from delegating work into an unsandboxed child by mistake.
+Security reports are in scope when they demonstrate one of these:
 
-### Web Interface Safety
+- Bypass of Gateway auth, channel pairing, allowlists, or trusted-proxy checks.
+- Bypass of exec approvals, sandbox policy, tool allow/deny policy, or elevated-mode gates.
+- Secret or credential leakage caused by Kova where the secret should have been withheld.
+- Plugin install, update, discovery, or loading behavior that violates configured policy.
+- Path traversal, archive extraction, file write, or media handling bug reachable from an untrusted boundary with demonstrated impact.
+- Cross-boundary channel behavior where an unauthorized sender can dispatch work, resolve approvals, or receive private output.
+- A released package or installer behavior that exposes secrets, weakens auth, or installs unexpected executable code.
+- A documentation or product claim that says a boundary exists when the shipped code does not enforce it.
 
-Kova's web interface (Gateway Control UI + HTTP endpoints) is intended for **local use only**.
+## Usually Out of Scope
 
-- Recommended: keep the Gateway **loopback-only** (`127.0.0.1` / `::1`).
-  - Config: `gateway.bind="loopback"` (default).
-  - CLI: `kova gateway run --bind loopback`.
-- `gateway.controlUi.dangerouslyDisableDeviceAuth` is intended for localhost-only break-glass use.
-  - Kova keeps deployment flexibility by design and does not hard-forbid non-local setups.
-  - Non-local and other risky configurations are surfaced by `kova security audit` as dangerous findings.
-  - This operator-selected tradeoff is by design and not, by itself, a security vulnerability.
-- Canvas host note: network-visible canvas is **intentional** for trusted node scenarios (LAN/tailnet).
-  - Expected setup: non-loopback bind + Gateway auth (token/password/trusted-proxy) + firewall/tailnet controls.
-  - Expected routes: `/__kova__/canvas/`, `/__kova__/a2ui/`.
-  - This deployment model alone is not a security vulnerability.
-- Do **not** expose it to the public internet (no direct bind to `0.0.0.0`, no public reverse proxy). It is not hardened for public exposure.
-- If you need remote access, prefer an SSH tunnel or Tailscale serve/funnel (so the Gateway still binds to loopback), plus strong Gateway auth.
-- The Gateway HTTP surface includes the canvas host (`/__kova__/canvas/`, `/__kova__/a2ui/`). Treat canvas content as sensitive/untrusted and avoid exposing it beyond loopback unless you understand the risk.
+These are normally not security vulnerabilities by themselves:
 
-## Runtime Requirements
+- Prompt injection without a boundary bypass.
+- A trusted operator intentionally running commands, enabling tools, installing plugins, or exposing the Gateway.
+- A malicious plugin or skill after a trusted operator installs it.
+- Multiple mutually untrusted users sharing one Gateway and expecting isolation.
+- Public internet exposure that ignores Kova's local-first deployment guidance.
+- Missing HSTS on loopback/local deployments.
+- Scanner-only findings without a working reproduction and Kova-specific impact.
+- Dependency-only findings without proof that the shipped package is affected and reachable.
+- Reports against tests, fixtures, benchmark rigs, local repro harnesses, or maintainer-only tooling unless the same bug is reachable in shipped production code.
+- Reports that rely on pre-existing trusted local filesystem tampering under `~/.kova`, the configured workspace, or an already-approved executable path.
+- Resource-use reports that only show extra CPU, memory, decoding, transcoding, serialization, or base64 work after input has already passed Kova's configured acceptance limits, unless they demonstrate unauthenticated amplification, persistent exhaustion, crash, data exposure, or another boundary bypass.
 
-### Node.js Version
+When unsure, report privately. We would rather route a careful report than miss
+a real issue.
 
-Kova requires **Node.js 22.14.0 or later** (LTS). This version includes important security patches:
+## Recommended Secure Defaults
 
-- CVE-2025-59466: async_hooks DoS vulnerability
-- CVE-2026-21636: Permission model bypass vulnerability
+For personal use:
 
-Verify your Node.js version:
+- Keep the Gateway bound to loopback unless you need remote access.
+- Use Gateway token or password auth.
+- Use channel pairing or allowlists.
+- Require mentions in group chats.
+- Keep broad tools off in shared or group sessions.
+- Use sandbox mode for non-main or untrusted sessions.
+- Keep plugins and skills allowlisted where possible.
+- Store secrets through Kova credentials or environment-backed secret sources,
+  not in prompts or public config.
+- Run `kova security audit --deep` after setup changes.
 
-```bash
-node --version  # Should be v22.14.0 or later
-```
+For shared or team use:
 
-### Docker Security
+- Use a dedicated host, VM, container, or OS user per trust boundary.
+- Use dedicated provider, channel, browser, and workspace credentials.
+- Keep personal browser profiles and personal files away from shared agents.
+- Prefer sandboxed runtimes and explicit tool allowlists.
+- Treat group chats as untrusted input.
 
-When running Kova in Docker:
+## Web, Gateway, and Remote Access
 
-1. The official image runs as a non-root user (`node`) for reduced attack surface
-2. Use `--read-only` flag when possible for additional filesystem protection
-3. Limit container capabilities with `--cap-drop=ALL`
+The Gateway is the control plane. The browser Control UI is an optional legacy
+operator surface. Neither should be exposed directly to the public internet.
 
-Example secure Docker run:
+Preferred remote access:
 
-```bash
-docker run --read-only --cap-drop=ALL \
-  -v kova-data:/app/data \
-  chiragborse1/KovaLab:latest
-```
+- SSH tunnel.
+- Tailscale or another private network.
+- Reverse proxy only when you understand the auth, origin, TLS, and trusted
+  proxy settings.
 
-## Security Scanning
+Keep non-loopback deployments explicit and audited. Risky `dangerous*` or
+`dangerously*` options are break-glass operator decisions and are not security
+bugs by themselves.
 
-This project uses `detect-secrets` for automated secret detection in CI/CD.
-See `.detect-secrets.cfg` for configuration and `.secrets.baseline` for the baseline.
+## Docker and Sandboxing
 
-Run locally:
+Docker, SSH, OpenShell, node hosts, and elevated mode are different execution
+postures. Make sure you know which one is active before treating a session as
+isolated.
 
-```bash
-pip install detect-secrets==1.5.0
-detect-secrets scan --baseline .secrets.baseline
-```
+Sandboxing reduces what tool execution can reach. It does not make the model
+trusted, and it does not make a shared Gateway into a hostile multi-tenant
+service.
+
+## Disclosure Handling
+
+We aim to acknowledge high-signal reports quickly, reproduce the issue, decide
+scope, prepare a fix, and publish an advisory when appropriate.
+
+Low-signal reports may be closed or deprioritized when they lack reproduction,
+impact, affected version, or a boundary-crossing explanation.
+
+Duplicate reports may be closed in favor of the earliest high-quality canonical
+report.
+
+## Bug Bounty
+
+Kova does not currently run a paid bug bounty program. Responsible disclosure is
+still appreciated and helps us protect users before public release.

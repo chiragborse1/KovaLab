@@ -94,7 +94,7 @@ describe("resolveDiscordAllowlistConfig", () => {
         input: "1456350064065904867/1464953333713473657",
         resolved: true,
         guildId: "1456350064065904867",
-        guildName: "Friends of the Crustacean 🦞🤝",
+        guildName: "Kova Lab",
         channelId: "1464953333713473657",
         channelName: "dev",
       },
@@ -102,15 +102,15 @@ describe("resolveDiscordAllowlistConfig", () => {
         input: "1456350064065904867/1456744319972282449",
         resolved: true,
         guildId: "1456350064065904867",
-        guildName: "Friends of the Crustacean 🦞🤝",
+        guildName: "Kova Lab",
         channelId: "1456744319972282449",
         channelName: "maintainers",
       },
       {
-        input: "friends-of-the-crustacean/1464953333713473657",
+        input: "kova-lab/1464953333713473657",
         resolved: true,
         guildId: "1456350064065904867",
-        guildName: "Friends of the Crustacean 🦞🤝",
+        guildName: "Kova Lab",
         channelId: "1464953333713473657",
         channelName: "dev",
       },
@@ -128,7 +128,7 @@ describe("resolveDiscordAllowlistConfig", () => {
             "1456744319972282449": {},
           },
         },
-        "friends-of-the-crustacean": {
+        "kova-lab": {
           channels: {
             "1464953333713473657": {},
           },
@@ -142,9 +142,9 @@ describe("resolveDiscordAllowlistConfig", () => {
       .map(([line]) => String(line))
       .join("\n");
     expect(logs.match(/1456350064065904867\/1464953333713473657/g)?.length).toBe(1);
-    expect(logs).toContain("aliases:friends-of-the-crustacean/1464953333713473657");
+    expect(logs).toContain("aliases:kova-lab/1464953333713473657");
     expect(logs).toContain(
-      "1456350064065904867/1456744319972282449 (guild:Friends of the Crustacean 🦞🤝; channel:maintainers)",
+      "1456350064065904867/1456744319972282449 (guild:Kova Lab; channel:maintainers)",
     );
   });
 });
