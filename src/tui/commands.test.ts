@@ -42,6 +42,8 @@ describe("getSlashCommands", () => {
     expect(activation?.getArgumentCompletions?.("a")).toEqual([
       { value: "always", label: "always" },
     ]);
+    const usage = commands.find((command) => command.name === "usage");
+    expect(usage?.getArgumentCompletions?.("c")).toEqual([{ value: "cost", label: "cost" }]);
   });
 
   it("keeps session status on the shared command path and exposes gateway status separately", () => {

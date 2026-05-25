@@ -810,6 +810,62 @@ describe("tui command handlers", () => {
     );
   });
 
+  it("forwards shared session lifecycle subcommands instead of switching sessions", async () => {
+    const { handleCommand, sendChat, setSession, addUser } = createHarness();
+
+    await handleCommand("/session idle 2h");
+    await handleCommand("/session max-age off");
+
+    expect(setSession).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenNthCalledWith(1, "/session idle 2h");
+    expect(addUser).toHaveBeenNthCalledWith(2, "/session max-age off");
+    expect(sendChat).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/session idle 2h",
+      }),
+    );
+    expect(sendChat).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/session max-age off",
+      }),
+    );
+  });
+
+  it("forwards /models arguments to the shared model listing command", async () => {
+    const { handleCommand, sendChat, openOverlay, addUser } = createHarness();
+
+    await handleCommand("/models openai-codex limit=10");
+
+    expect(openOverlay).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/models openai-codex limit=10");
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/models openai-codex limit=10",
+      }),
+    );
+  });
+
+  it("forwards /usage cost to the shared cost summary command", async () => {
+    const { handleCommand, sendChat, patchSession, addUser, addSystem } = createHarness();
+
+    await handleCommand("/usage cost");
+
+    expect(patchSession).not.toHaveBeenCalled();
+    expect(addSystem).not.toHaveBeenCalledWith(expect.stringContaining("usage footer"));
+    expect(addUser).toHaveBeenCalledWith("/usage cost");
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/usage cost",
+      }),
+    );
+  });
+
   it("keeps gateway diagnostics on /gateway-status", async () => {
     const { handleCommand, getGatewayStatus, addSystem, addUser, sendChat } = createHarness({
       getGatewayStatus: vi.fn().mockResolvedValue({
@@ -1073,6 +1129,34 @@ describe("tui command handlers", () => {
     expect(resetSession).toHaveBeenCalledTimes(1);
     expect(resetSession).toHaveBeenCalledWith("agent:main:main", "reset");
     expect(loadHistory).toHaveBeenCalledTimes(1); // /reset calls loadHistory directly; /new does so indirectly via setSession
+  });
+
+  it("applies model arguments when /new creates an isolated TUI session", async () => {
+    const setSessionMock = vi.fn().mockResolvedValue(undefined) as SetSessionMock;
+    const patchSession = vi.fn().mockResolvedValue({
+      resolved: { modelProvider: "openai-codex", model: "gpt-5.5" },
+    });
+    const refreshSessionInfo = vi.fn().mockResolvedValue(undefined);
+    const applySessionInfoFromPatch = vi.fn();
+    const { handleCommand } = createHarness({
+      setSession: setSessionMock,
+      patchSession,
+      refreshSessionInfo,
+      applySessionInfoFromPatch,
+    });
+
+    await handleCommand("/new openai-codex/gpt-5.5");
+
+    const newKey = setSessionMock.mock.calls[0]?.[0];
+    expect(newKey).toEqual(expect.stringMatching(/^tui-/));
+    expect(patchSession).toHaveBeenCalledWith({
+      key: newKey,
+      model: "openai-codex/gpt-5.5",
+    });
+    expect(applySessionInfoFromPatch).toHaveBeenCalledWith({
+      resolved: { modelProvider: "openai-codex", model: "gpt-5.5" },
+    });
+    expect(refreshSessionInfo).toHaveBeenCalledTimes(1);
   });
 
   it("reports send failures and marks activity status as error", async () => {

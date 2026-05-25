@@ -1253,6 +1253,8 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "session":
         if (!args) {
           await openSessionSelector();
+        } else if (/^(?:idle|max-age)(?:\s|$)/i.test(args.trim())) {
+          await sendMessage(raw, { queueIfBusy: false });
         } else {
           await setSession(args);
         }
@@ -1278,7 +1280,11 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "models":
-        await openModelSelector();
+        if (args) {
+          await sendMessage(raw, { queueIfBusy: false });
+        } else {
+          await openModelSelector();
+        }
         break;
       case "think":
         if (!args) {
@@ -1375,9 +1381,13 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "usage": {
+        if (/^cost(?:\s|$)/i.test(args.trim())) {
+          await sendMessage(raw, { queueIfBusy: false });
+          break;
+        }
         const normalized = args ? normalizeUsageDisplay(args) : undefined;
         if (args && !normalized) {
-          chatLog.addSystem("usage: /usage <off|tokens|full>");
+          chatLog.addSystem("usage: /usage <off|tokens|full|cost>");
           break;
         }
         const currentRaw = state.sessionInfo.responseUsage;
@@ -1494,6 +1504,14 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           // to other connected TUI clients sharing the original session key.
           const uniqueKey = `tui-${randomUUID()}`;
           await setSession(uniqueKey);
+          if (args) {
+            const result = await client.patchSession({
+              key: uniqueKey,
+              model: args,
+            });
+            applySessionInfoFromPatch(result);
+            await refreshSessionInfo();
+          }
           chatLog.addSystem(`new session: ${uniqueKey}`);
         } catch (err) {
           chatLog.addSystem(`new session failed: ${sanitizeRenderableText(String(err))}`);
