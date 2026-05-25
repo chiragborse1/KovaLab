@@ -55,6 +55,10 @@ describe("getSlashCommands", () => {
       { value: "off", label: "off" },
     ]);
     expect(verbose?.getArgumentCompletions?.("f")).toEqual([{ value: "full", label: "full" }]);
+    const details = commands.find((command) => command.name === "details");
+    expect(details?.getArgumentCompletions?.("e")).toEqual([
+      { value: "expanded", label: "expanded" },
+    ]);
     const fast = commands.find((command) => command.name === "fast");
     expect(fast?.getArgumentCompletions?.("d")).toEqual([{ value: "default", label: "default" }]);
     const think = commands.find((command) => command.name === "think");
@@ -237,6 +241,7 @@ describe("helpText", () => {
     expect(output).toContain("/status - current session and runtime state");
     expect(output).toContain("/memory - memory health and commands");
     expect(output).toContain("/limits - context window vs provider quota");
+    expect(output).toContain("/details <hidden|collapsed|expanded>");
     expect(output).toContain("More: /commands, /help all");
     expect(output).toContain("/commands opens the full catalog");
     expect(output).not.toContain("/elevated <on|off|ask|full>");
@@ -266,6 +271,7 @@ describe("helpText", () => {
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins [list|verbose|show <plugin>]");
     expect(output).toContain("Run controls:");
+    expect(output).toContain("/details <status|hidden|collapsed|expanded|cycle>");
     expect(output).toContain("/stop");
     expect(output).toContain("Short aliases still work.");
     expect(output).not.toContain("/abort");

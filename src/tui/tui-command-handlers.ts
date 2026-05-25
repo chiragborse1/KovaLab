@@ -135,6 +135,28 @@ function normalizeSurfaceMode(args: string): "compact" | "verbose" | null {
   return null;
 }
 
+type DetailsMode = "hidden" | "collapsed" | "expanded";
+
+function normalizeDetailsMode(value: string): DetailsMode | "cycle" | "status" | null {
+  const normalized = normalizeLowercaseStringOrEmpty(value);
+  if (!normalized || normalized === "status") {
+    return "status";
+  }
+  if (normalized === "hide" || normalized === "hidden" || normalized === "off") {
+    return "hidden";
+  }
+  if (normalized === "collapse" || normalized === "collapsed" || normalized === "on") {
+    return "collapsed";
+  }
+  if (normalized === "expand" || normalized === "expanded" || normalized === "full") {
+    return "expanded";
+  }
+  if (normalized === "cycle" || normalized === "toggle") {
+    return "cycle";
+  }
+  return null;
+}
+
 function formatToolCatalog(result: TuiToolCatalog, mode: "compact" | "verbose"): string {
   const groups = Array.isArray(result.groups) ? result.groups : [];
   const totalTools = groups.reduce((sum, group) => sum + group.tools.length, 0);
@@ -993,6 +1015,61 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     );
   };
 
+  const currentDetailsMode = (): DetailsMode => {
+    const verbose = state.sessionInfo.verboseLevel ?? "off";
+    if (verbose === "full" || state.toolsExpanded) {
+      return "expanded";
+    }
+    return verbose === "off" ? "hidden" : "collapsed";
+  };
+
+  const setDetailsMode = async (mode: DetailsMode) => {
+    const verboseLevel = mode === "hidden" ? "off" : mode === "expanded" ? "full" : "on";
+    const previousToolsExpanded = state.toolsExpanded;
+    const previousVerboseLevel = state.sessionInfo.verboseLevel;
+    state.toolsExpanded = mode === "expanded";
+    state.sessionInfo.verboseLevel = verboseLevel;
+    chatLog.setToolsExpanded(state.toolsExpanded);
+    try {
+      const result = await client.patchSession({
+        key: state.currentSessionKey,
+        verboseLevel,
+      });
+      chatLog.addSystem(
+        `details ${mode} (${mode === "hidden" ? "tool cards off" : mode === "collapsed" ? "tool cards on, output folded" : "tool cards and output expanded"})`,
+      );
+      applySessionInfoFromPatch(result);
+      await loadHistory();
+    } catch (err) {
+      state.toolsExpanded = previousToolsExpanded;
+      state.sessionInfo.verboseLevel = previousVerboseLevel;
+      chatLog.setToolsExpanded(state.toolsExpanded);
+      chatLog.addSystem(`details failed: ${String(err)}`);
+    }
+  };
+
+  const showOrSetDetails = async (args: string) => {
+    const mode = normalizeDetailsMode(args);
+    if (!mode) {
+      chatLog.addSystem("usage: /details [status|hidden|collapsed|expanded|cycle]");
+      return;
+    }
+    if (mode === "status") {
+      chatLog.addSystem(
+        `details: ${currentDetailsMode()} (verbose ${state.sessionInfo.verboseLevel ?? "off"}, tool output ${state.toolsExpanded ? "expanded" : "collapsed"})`,
+      );
+      return;
+    }
+    if (mode === "cycle") {
+      const current = currentDetailsMode();
+      await setDetailsMode(
+        current === "hidden" ? "collapsed" : current === "collapsed" ? "expanded" : "hidden",
+      );
+      return;
+    }
+    await setDetailsMode(mode);
+  };
+
   const showTaskAudit = async () => {
     if (!client.auditTasks) {
       await sendMessage("/tasks audit", { queueIfBusy: false });
@@ -1489,6 +1566,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       }
+      case "details":
+        await showOrSetDetails(args);
+        break;
       case "trace":
         if (!args) {
           chatLog.addSystem("usage: /trace <on|off>");

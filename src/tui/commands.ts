@@ -10,6 +10,7 @@ import type { CommandEntry } from "../gateway/protocol/index.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 const VERBOSE_LEVELS = ["on", "off", "full"];
+const DETAIL_LEVELS = ["status", "hidden", "collapsed", "expanded", "cycle"];
 const TRACE_LEVELS = ["on", "off"];
 const FAST_LEVELS = ["status", "on", "off", "default"];
 const REASONING_LEVELS = ["on", "off"];
@@ -262,6 +263,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const thinkLevels = listThinkingLevelLabels(options.provider, options.model);
   const thinkCommandLevels = ["default", ...thinkLevels.filter((level) => level !== "default")];
   const verboseCompletions = createLevelCompletion(VERBOSE_LEVELS);
+  const detailsCompletions = createLevelCompletion(DETAIL_LEVELS);
   const traceCompletions = createLevelCompletion(TRACE_LEVELS);
   const fastCompletions = createLevelCompletion(FAST_LEVELS);
   const reasoningCompletions = createLevelCompletion(REASONING_LEVELS);
@@ -379,6 +381,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       getArgumentCompletions: verboseCompletions,
     },
     {
+      name: "details",
+      description: "Show, hide, or expand live tool details",
+      argumentHint: "status | hidden | collapsed | expanded | cycle",
+      getArgumentCompletions: detailsCompletions,
+    },
+    {
       name: "trace",
       description: "Set trace on/off",
       getArgumentCompletions: traceCompletions,
@@ -483,6 +491,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       `/think <default|${thinkLevels}>`,
       "/fast <status|on|off|default>",
       "/busy <status|queue|steer|interrupt|clear>",
+      "/details <hidden|collapsed|expanded>",
       "/update [status|run]",
       "",
       "More: /commands, /help all, /gateway-status, /automation, /recover, /rollback",
@@ -518,6 +527,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     `/think <default|${thinkLevels}>`,
     "/fast <status|on|off|default>",
     "/verbose <on|off|full>",
+    "/details <status|hidden|collapsed|expanded|cycle>",
     "/trace <on|off>",
     "/reasoning <on|off>",
     "/usage [off|tokens|full|cost] (alias: /footer)",

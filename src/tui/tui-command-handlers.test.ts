@@ -312,6 +312,7 @@ function createHarness(params?: {
   const setSession = params?.setSession ?? (vi.fn().mockResolvedValue(undefined) as SetSessionMock);
   const addUser = vi.fn();
   const addSystem = vi.fn();
+  const setToolsExpanded = vi.fn();
   const requestRender = vi.fn();
   const noteLocalRunId = vi.fn();
   const noteLocalBtwRunId = vi.fn();
@@ -362,7 +363,7 @@ function createHarness(params?: {
       branchSessionCheckpoint,
       restoreSessionCheckpoint,
     } as never,
-    chatLog: { addUser, addSystem } as never,
+    chatLog: { addUser, addSystem, setToolsExpanded } as never,
     tui: { requestRender } as never,
     opts: params?.opts ?? {},
     state: state as never,
@@ -409,6 +410,7 @@ function createHarness(params?: {
     setSession,
     addUser,
     addSystem,
+    setToolsExpanded,
     requestRender,
     loadHistory,
     refreshSessionInfo,
@@ -1441,6 +1443,46 @@ describe("tui command handlers", () => {
 
     expect(runAuthFlow).not.toHaveBeenCalled();
     expect(addSystem).toHaveBeenCalledWith("abort the current run before /auth");
+  });
+
+  it("maps /details modes onto verbose tool display controls", async () => {
+    const patchSession = vi.fn().mockResolvedValue({ verboseLevel: "full" });
+    const loadHistory = vi.fn().mockResolvedValue(undefined) as LoadHistoryMock;
+    const { handleCommand, addSystem, setToolsExpanded, state } = createHarness({
+      patchSession,
+      loadHistory,
+    });
+
+    await handleCommand("/details expanded");
+
+    expect(state.toolsExpanded).toBe(true);
+    expect(state.sessionInfo.verboseLevel).toBe("full");
+    expect(setToolsExpanded).toHaveBeenCalledWith(true);
+    expect(patchSession).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      verboseLevel: "full",
+    });
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("details expanded"));
+    expect(loadHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it("cycles /details through hidden collapsed and expanded", async () => {
+    const { handleCommand, patchSession, state } = createHarness({
+      sessionInfo: { verboseLevel: "off" },
+    });
+
+    await handleCommand("/details cycle");
+    await handleCommand("/details cycle");
+
+    expect(patchSession).toHaveBeenNthCalledWith(1, {
+      key: "agent:main:main",
+      verboseLevel: "on",
+    });
+    expect(patchSession).toHaveBeenNthCalledWith(2, {
+      key: "agent:main:main",
+      verboseLevel: "full",
+    });
+    expect(state.toolsExpanded).toBe(true);
   });
 
   it("rejects invalid /activation values before patching the session", async () => {
