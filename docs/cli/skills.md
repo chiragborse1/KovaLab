@@ -39,6 +39,10 @@ and config. Workspace-backed commands resolve the target workspace from
 `--agent <id>`, then the current working directory when it is inside a configured
 agent workspace, then the default agent.
 
+Inside an agent turn, Kova also exposes `skills_list` and `skill_view` tools so
+the model can discover and load the same visible skills without guessing file
+paths. Skill slash commands preload their `SKILL.md` before the model runs.
+
 Notes:
 
 - `--agent <id>` targets one configured agent workspace and overrides current

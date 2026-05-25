@@ -37,11 +37,13 @@ import type { TypingController } from "./typing.js";
 
 type SkillCommandsRuntime = typeof import("../skill-commands.runtime.js");
 type KovaToolsRuntime = typeof import("../../agents/kova-tools.runtime.js");
+type SkillsToolRuntime = typeof import("../../agents/tools/skills-tool.js");
 type AbortCutoffRuntime = typeof import("./abort-cutoff.runtime.js");
 type CommandsRuntime = typeof import("./commands.runtime.js");
 
 let skillCommandsRuntimePromise: Promise<SkillCommandsRuntime> | undefined;
 let kovaToolsRuntimePromise: Promise<KovaToolsRuntime> | undefined;
+let skillsToolRuntimePromise: Promise<SkillsToolRuntime> | undefined;
 let abortCutoffRuntimePromise: Promise<AbortCutoffRuntime> | undefined;
 let commandsRuntimePromise: Promise<CommandsRuntime> | undefined;
 let builtinSlashCommands: Set<string> | null = null;
@@ -54,6 +56,11 @@ function loadSkillCommandsRuntime(): Promise<SkillCommandsRuntime> {
 function loadKovaToolsRuntime(): Promise<KovaToolsRuntime> {
   kovaToolsRuntimePromise ??= import("../../agents/kova-tools.runtime.js");
   return kovaToolsRuntimePromise;
+}
+
+function loadSkillsToolRuntime(): Promise<SkillsToolRuntime> {
+  skillsToolRuntimePromise ??= import("../../agents/tools/skills-tool.js");
+  return skillsToolRuntimePromise;
 }
 
 function loadAbortCutoffRuntime(): Promise<AbortCutoffRuntime> {
@@ -307,17 +314,37 @@ export async function handleInlineActions(params: {
       }
     }
 
-    const rewrittenBody = skillInvocation.command.promptTemplate
-      ? expandBundleCommandPromptTemplate(
-          skillInvocation.command.promptTemplate,
-          skillInvocation.args,
-        )
-      : [
+    let rewrittenBody: string;
+    if (skillInvocation.command.promptTemplate) {
+      rewrittenBody = expandBundleCommandPromptTemplate(
+        skillInvocation.command.promptTemplate,
+        skillInvocation.args,
+      );
+    } else {
+      try {
+        const { loadSkillViewPayload, renderSkillInvocationPrompt } = await loadSkillsToolRuntime();
+        rewrittenBody = renderSkillInvocationPrompt({
+          payload: loadSkillViewPayload({
+            workspaceDir,
+            config: cfg,
+            agentId,
+            sessionId: sessionKey,
+            name: skillInvocation.command.skillName,
+          }),
+          userInput: skillInvocation.args,
+        });
+      } catch (err) {
+        logVerbose(
+          `Failed to preload /${skillInvocation.command.name} skill "${skillInvocation.command.skillName}": ${formatErrorMessage(err)}`,
+        );
+        rewrittenBody = [
           `Use the "${skillInvocation.command.skillName}" skill for this request.`,
           skillInvocation.args ? `User input:\n${skillInvocation.args}` : null,
         ]
           .filter((entry): entry is string => Boolean(entry))
           .join("\n\n");
+      }
+    }
     ctx.Body = rewrittenBody;
     ctx.BodyForAgent = rewrittenBody;
     sessionCtx.Body = rewrittenBody;

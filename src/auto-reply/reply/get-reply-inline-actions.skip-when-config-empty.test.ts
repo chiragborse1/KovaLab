@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { SessionEntry } from "../../config/sessions.js";
@@ -571,6 +574,72 @@ describe("handleInlineActions", () => {
         }),
       }),
     );
+  });
+
+  it("preloads normal workspace skill commands into the agent prompt", async () => {
+    const typing = createTypingController();
+    handleCommandsMock.mockResolvedValue({ shouldContinue: false, reply: { text: "done" } });
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-skill-command-"));
+    const skillDir = path.join(workspaceDir, "skills", "daily-plan");
+    await fs.mkdir(skillDir, { recursive: true });
+    await fs.writeFile(
+      path.join(skillDir, "SKILL.md"),
+      [
+        "---",
+        "name: daily-plan",
+        "description: Plan the day",
+        "---",
+        "Use a short checkpoint list from {baseDir}.",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    const ctx = buildTestCtx({
+      Body: "/daily_plan write the morning plan",
+      CommandBody: "/daily_plan write the morning plan",
+    });
+    const skillCommands: SkillCommandSpec[] = [
+      {
+        name: "daily_plan",
+        skillName: "daily-plan",
+        description: "Plan the day",
+      },
+    ];
+
+    try {
+      const result = await handleInlineActions(
+        createHandleInlineActionsInput({
+          ctx,
+          typing,
+          cleanedBody: "/daily_plan write the morning plan",
+          command: {
+            isAuthorizedSender: true,
+            rawBodyNormalized: "/daily_plan write the morning plan",
+            commandBodyNormalized: "/daily_plan write the morning plan",
+          },
+          overrides: {
+            allowTextCommands: true,
+            cfg: { commands: { text: true } },
+            workspaceDir,
+            skillCommands,
+          },
+        }),
+      );
+
+      expect(result).toEqual({ kind: "reply", reply: { text: "done" } });
+      expect(ctx.Body).toContain('Kova loaded the "daily-plan" skill');
+      expect(ctx.Body).toContain("Use a short checkpoint list from ");
+      expect(ctx.Body).toContain("User input:\nwrite the morning plan");
+      expect(handleCommandsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctx: expect.objectContaining({
+            Body: expect.stringContaining('Kova loaded the "daily-plan" skill'),
+          }),
+        }),
+      );
+    } finally {
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
   });
 
   it("passes requesterAgentIdOverride into inline tool runtimes", async () => {

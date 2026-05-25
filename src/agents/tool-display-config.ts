@@ -347,6 +347,16 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
       title: "Memory Get",
       detailKeys: ["path", "from", "lines"],
     },
+    skills_list: {
+      emoji: "🧰",
+      title: "Skills List",
+      detailKeys: ["query", "source"],
+    },
+    skill_view: {
+      emoji: "📚",
+      title: "Skill View",
+      detailKeys: ["name", "filePath"],
+    },
     web_search: {
       emoji: "🔎",
       title: "Web Search",

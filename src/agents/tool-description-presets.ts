@@ -9,6 +9,8 @@ export const SESSIONS_SEND_TOOL_DISPLAY_SUMMARY = "Send a message to another vis
 export const SESSIONS_SPAWN_TOOL_DISPLAY_SUMMARY = "Spawn sub-agent or ACP sessions.";
 export const SESSIONS_SPAWN_SUBAGENT_TOOL_DISPLAY_SUMMARY = "Spawn sub-agent sessions.";
 export const SESSION_STATUS_TOOL_DISPLAY_SUMMARY = "Show session status, usage, and model state.";
+export const SKILLS_LIST_TOOL_DISPLAY_SUMMARY = "List reusable skills visible to this agent.";
+export const SKILL_VIEW_TOOL_DISPLAY_SUMMARY = "Read a skill or one of its support files.";
 export const UPDATE_PLAN_TOOL_DISPLAY_SUMMARY = "Track a short structured work plan.";
 
 export function describeSessionsListTool(): string {

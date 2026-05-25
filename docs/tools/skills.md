@@ -102,6 +102,18 @@ help surface facts or patterns; Skill Workshop turns repeated procedures into
 reviewable workspace skill proposals. Start from [Learning Loop](/concepts/learning-loop)
 when deciding whether something belongs in memory, a dream review, or a skill.
 
+## Agent tools
+
+Kova exposes skill discovery to the agent through `skills_list` and `skill_view`.
+`skills_list` returns the skills visible to the current agent after the same
+load-time filters used by the prompt catalog. `skill_view` reads a skill's
+`SKILL.md` or a support file under that skill directory; paths are confined to
+the selected skill and symlink escapes are rejected.
+
+User slash commands generated from skills also preload the matching `SKILL.md`
+into the turn, so `/my_skill ...` behaves like an explicit skill invocation even
+when the model would otherwise need to discover and read the file first.
+
 ## Skill Workshop
 
 The optional, experimental **Skill Workshop** plugin can create or update

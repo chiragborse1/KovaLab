@@ -33,6 +33,7 @@ import { createSessionsListTool } from "./tools/sessions-list-tool.js";
 import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 import { createSessionsYieldTool } from "./tools/sessions-yield-tool.js";
+import { createSkillsListTool, createSkillViewTool } from "./tools/skills-tool.js";
 import { createSubagentsTool } from "./tools/subagents-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createUpdatePlanTool } from "./tools/update-plan-tool.js";
@@ -269,6 +270,18 @@ export function createKovaTools(
     createAgentsListTool({
       agentSessionKey: options?.agentSessionKey,
       requesterAgentIdOverride: options?.requesterAgentIdOverride,
+    }),
+    createSkillsListTool({
+      workspaceDir,
+      config: resolvedConfig,
+      agentId: sessionAgentId,
+      sessionId: options?.sessionId,
+    }),
+    createSkillViewTool({
+      workspaceDir,
+      config: resolvedConfig,
+      agentId: sessionAgentId,
+      sessionId: options?.sessionId,
     }),
     ...(isUpdatePlanToolEnabledForKovaTools({
       config: resolvedConfig,
