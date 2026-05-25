@@ -32,6 +32,7 @@ import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/di
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
 import { getActiveBundledRuntimeDepsInstallCount } from "../plugins/bundled-runtime-deps-activity.js";
 import { runGlobalGatewayStopSafely } from "../plugins/hook-runner-global.js";
+import { pinActivePluginHttpRouteRegistry } from "../plugins/runtime.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
 import { getTotalQueueSize } from "../process/command-queue.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -82,7 +83,10 @@ import {
   loadGatewayStartupConfigSnapshot,
   prepareGatewayStartupConfig,
 } from "./server-startup-config.js";
-import { prepareGatewayPluginBootstrap } from "./server-startup-plugins.js";
+import {
+  prepareGatewayPluginBootstrap,
+  type GatewayStartupPluginRuntimeLoadResult,
+} from "./server-startup-plugins.js";
 import { STARTUP_UNAVAILABLE_GATEWAY_METHODS } from "./server-startup-unavailable-methods.js";
 import { startGatewayEarlyRuntime, startGatewayPostAttachRuntime } from "./server-startup.js";
 import { createWizardSessionTracker } from "./server-wizard-sessions.js";
@@ -414,6 +418,7 @@ export async function startGatewayServer(
       cfgAtStart,
       startupRuntimeConfig,
       minimalTestGateway,
+      loadRuntimePlugins: false,
       log,
     }),
   );
@@ -440,12 +445,17 @@ export async function startGatewayServer(
     ]);
   }
   let { pluginRegistry, baseGatewayMethods } = pluginBootstrap;
-  const channelLogs = Object.fromEntries(
-    listChannelPlugins().map((plugin) => [plugin.id, logChannels.child(plugin.id)]),
-  ) as Record<ChannelId, ReturnType<typeof createSubsystemLogger>>;
-  const channelRuntimeEnvs = Object.fromEntries(
-    Object.entries(channelLogs).map(([id, logger]) => [id, runtimeForLogger(logger)]),
-  ) as unknown as Record<ChannelId, RuntimeEnv>;
+  const { runtimePluginsLoaded } = pluginBootstrap;
+  const channelLogs = {} as Record<ChannelId, ReturnType<typeof createSubsystemLogger>>;
+  const channelRuntimeEnvs = {} as Record<ChannelId, RuntimeEnv>;
+  const refreshChannelRuntimeSurfaces = () => {
+    for (const plugin of listChannelPlugins()) {
+      const logger = channelLogs[plugin.id] ?? logChannels.child(plugin.id);
+      channelLogs[plugin.id] = logger;
+      channelRuntimeEnvs[plugin.id] ??= runtimeForLogger(logger);
+    }
+  };
+  refreshChannelRuntimeSurfaces();
   const listActiveGatewayMethods = (nextBaseGatewayMethods: string[]) =>
     Array.from(
       new Set([
@@ -640,6 +650,7 @@ export async function startGatewayServer(
     }),
     gatewayMethods: listActiveGatewayMethods(baseGatewayMethods),
   });
+  const attachedGatewayMethods = runtimeState.gatewayMethods;
   deps.cron = runtimeState.cronState.cron;
 
   const runClosePrelude = async () =>
@@ -787,6 +798,50 @@ export async function startGatewayServer(
     });
 
     const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
+    const attachedGatewayExtraHandlers = { ...pluginRegistry.gatewayHandlers, ...extraHandlers };
+    const publishGatewayPluginRuntime = (loaded: GatewayStartupPluginRuntimeLoadResult) => {
+      pluginRegistry = loaded.pluginRegistry;
+      baseGatewayMethods = loaded.gatewayMethods;
+      const nextMethods = listActiveGatewayMethods(baseGatewayMethods);
+      runtimeState.gatewayMethods = attachedGatewayMethods;
+      attachedGatewayMethods.splice(0, attachedGatewayMethods.length, ...nextMethods);
+      pinActivePluginHttpRouteRegistry(pluginRegistry);
+      refreshChannelRuntimeSurfaces();
+      for (const key of Object.keys(attachedGatewayExtraHandlers)) {
+        delete attachedGatewayExtraHandlers[key];
+      }
+      Object.assign(attachedGatewayExtraHandlers, pluginRegistry.gatewayHandlers, extraHandlers);
+    };
+    const refreshAttachedGatewayDiscovery = async (nextPluginRegistry: typeof pluginRegistry) => {
+      if (minimalTestGateway) {
+        return;
+      }
+      try {
+        const stopPreviousDiscovery = runtimeState.bonjourStop;
+        runtimeState.bonjourStop = null;
+        if (stopPreviousDiscovery) {
+          try {
+            await stopPreviousDiscovery();
+          } catch (err) {
+            logDiscovery.warn(
+              `gateway discovery stop failed before plugin refresh: ${String(err)}`,
+            );
+          }
+        }
+        const { startGatewayPluginDiscovery } = await import("./server-startup-early.js");
+        runtimeState.bonjourStop = await startGatewayPluginDiscovery({
+          minimalTestGateway,
+          cfgAtStart,
+          port,
+          gatewayTls,
+          tailscaleMode,
+          logDiscovery,
+          pluginRegistry: nextPluginRegistry,
+        });
+      } catch (err) {
+        logDiscovery.warn(`gateway discovery refresh failed after plugin load: ${String(err)}`);
+      }
+    };
 
     const unavailableGatewayMethods = new Set<string>(
       minimalTestGateway ? [] : STARTUP_UNAVAILABLE_GATEWAY_METHODS,
@@ -856,20 +911,21 @@ export async function startGatewayServer(
 
     setFallbackGatewayContextResolver(() => gatewayRequestContext);
 
-    if (!minimalTestGateway) {
+    if (!minimalTestGateway && runtimePluginsLoaded) {
       if (deferredConfiguredChannelPluginIds.length > 0) {
         const { reloadDeferredGatewayPlugins } = await import("./server-plugin-bootstrap.js");
-        ({ pluginRegistry, gatewayMethods: baseGatewayMethods } = reloadDeferredGatewayPlugins({
-          cfg: gatewayPluginConfigAtStart,
-          workspaceDir: defaultWorkspaceDir,
-          log,
-          coreGatewayMethodNames: baseMethods,
-          baseMethods,
-          pluginIds: startupPluginIds,
-          pluginLookUpTable,
-          logDiagnostics: false,
-        }));
-        runtimeState.gatewayMethods = listActiveGatewayMethods(baseGatewayMethods);
+        publishGatewayPluginRuntime(
+          reloadDeferredGatewayPlugins({
+            cfg: gatewayPluginConfigAtStart,
+            workspaceDir: defaultWorkspaceDir,
+            log,
+            coreGatewayMethodNames: baseMethods,
+            baseMethods,
+            pluginIds: startupPluginIds,
+            pluginLookUpTable,
+            logDiagnostics: false,
+          }),
+        );
       }
     }
 
@@ -887,12 +943,12 @@ export async function startGatewayServer(
         getRequiredSharedGatewaySessionGeneration(sharedGatewaySessionGenerationState),
       rateLimiter: authRateLimiter,
       browserRateLimiter: browserAuthRateLimiter,
-      gatewayMethods: runtimeState.gatewayMethods,
+      gatewayMethods: attachedGatewayMethods,
       events: GATEWAY_EVENTS,
       logGateway: log,
       logHealth,
       logWsControl,
-      extraHandlers: { ...pluginRegistry.gatewayHandlers, ...extraHandlers },
+      extraHandlers: attachedGatewayExtraHandlers,
       broadcast,
       context: gatewayRequestContext,
     });
@@ -929,6 +985,27 @@ export async function startGatewayServer(
           logHooks,
           logChannels,
           unavailableGatewayMethods,
+          ...(!runtimePluginsLoaded && !minimalTestGateway
+            ? {
+                loadStartupPlugins: async () => {
+                  const { loadGatewayStartupPluginRuntime } =
+                    await import("./server-startup-plugins.js");
+                  return loadGatewayStartupPluginRuntime({
+                    cfg: gatewayPluginConfigAtStart,
+                    activationSourceConfig: cfgAtStart,
+                    workspaceDir: defaultWorkspaceDir,
+                    log,
+                    baseMethods,
+                    startupPluginIds,
+                    pluginLookUpTable,
+                  });
+                },
+                onStartupPluginsLoaded: async (loaded) => {
+                  publishGatewayPluginRuntime(loaded);
+                  await refreshAttachedGatewayDiscovery(loaded.pluginRegistry);
+                },
+              }
+            : {}),
           onPluginServices: (pluginServices) => {
             runtimeState.pluginServices = pluginServices;
           },

@@ -183,11 +183,7 @@ describe("prepareGatewayPluginBootstrap runtime-deps staging", () => {
         selectedPluginIds: ["telegram"],
       }),
     );
-    expect(log.warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "gateway startup will continue with per-plugin runtime-deps installs",
-      ),
-    );
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("plugin runtime load after"));
     expect(loadGatewayStartupPlugins.mock.calls[0]?.[0]).not.toHaveProperty(
       "bundledRuntimeDepsInstaller",
     );
@@ -219,11 +215,36 @@ describe("prepareGatewayPluginBootstrap runtime-deps staging", () => {
     expect(loadGatewayStartupPlugins).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        "failed to scan bundled runtime deps before gateway startup; gateway startup will continue with per-plugin runtime-deps installs",
+        "failed to scan bundled runtime deps before plugin runtime load; gateway startup will continue with per-plugin runtime-deps installs",
       ),
     );
     expect(loadGatewayStartupPlugins.mock.calls[0]?.[0]).not.toHaveProperty(
       "bundledRuntimeDepsInstaller",
     );
+  });
+
+  it("can prepare descriptor-only bootstrap without loading plugin runtime", async () => {
+    const log = createLog();
+    const { prepareGatewayPluginBootstrap } = await import("./server-startup-plugins.js");
+
+    await expect(
+      prepareGatewayPluginBootstrap({
+        cfgAtStart: {},
+        startupRuntimeConfig: {},
+        minimalTestGateway: false,
+        loadRuntimePlugins: false,
+        log,
+      }),
+    ).resolves.toMatchObject({
+      baseGatewayMethods: ["ping"],
+      runtimePluginsLoaded: false,
+      startupPluginIds: ["telegram"],
+      pluginRegistry: { plugins: [] },
+    });
+
+    expect(loadPluginLookUpTable).toHaveBeenCalledOnce();
+    expect(loadGatewayStartupPlugins).not.toHaveBeenCalled();
+    expect(scanBundledPluginRuntimeDeps).not.toHaveBeenCalled();
+    expect(repairBundledRuntimeDepsInstallRootAsync).not.toHaveBeenCalled();
   });
 });

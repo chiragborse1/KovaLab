@@ -42,6 +42,7 @@
 - CLI/TUI: compact the terminal hero inventory into tool and skill counts instead of listing bulky tool and skill names on the first screen. Thanks @chiragborse1
 - CLI/TUI: make `/recover` a Gateway-aware self-healing loop that audits tasks and Task Flow, previews safe repair, and applies maintenance without starting an agent turn. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
+- Gateway startup: bind the control plane before loading plugin runtime so local clients can connect while plugins finish warming. Thanks @chiragborse1
 - Active Memory: make recall cache-first by default so cold memory searches warm in the background instead of blocking the first reply token. Thanks @chiragborse1
 - Active Memory: keep providerless local terminal recall cache-first even when blocking recall is configured, so memory refresh cannot delay first provider dispatch. Thanks @chiragborse1
 - Active Memory: persist cached recall status in the background so warm memory injection does not wait on session-store writes. Thanks @chiragborse1

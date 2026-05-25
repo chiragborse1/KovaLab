@@ -15,6 +15,7 @@ import {
 } from "./events.js";
 import type { refreshLatestUpdateRestartSentinel } from "./server-restart-sentinel.js";
 import type { logGatewayStartup } from "./server-startup-log.js";
+import type { GatewayStartupPluginRuntimeLoadResult } from "./server-startup-plugins.js";
 import { STARTUP_UNAVAILABLE_GATEWAY_METHODS } from "./server-startup-unavailable-methods.js";
 import type { startGatewayTailscaleExposure } from "./server-tailscale.js";
 
@@ -36,6 +37,7 @@ type Awaitable<T> = T | Promise<T>;
 
 type GatewayStartupTrace = {
   mark: (name: string) => void;
+  detail?: (name: string, extras: ReadonlyArray<readonly [string, number | string]>) => void;
   measure: <T>(name: string, run: () => Awaitable<T>) => Promise<T>;
 };
 
@@ -657,6 +659,8 @@ export async function startGatewayPostAttachRuntime(
     };
     logChannels: { info: (msg: string) => void; error: (msg: string) => void };
     unavailableGatewayMethods: Set<string>;
+    loadStartupPlugins?: () => Awaitable<GatewayStartupPluginRuntimeLoadResult>;
+    onStartupPluginsLoaded?: (loaded: GatewayStartupPluginRuntimeLoadResult) => Awaitable<void>;
     onPluginServices?: (pluginServices: PluginServicesHandle | null) => void;
     onSidecarsReady?: () => void;
     startupTrace?: GatewayStartupTrace;
@@ -670,6 +674,20 @@ export async function startGatewayPostAttachRuntime(
     refreshLatestUpdateRestartSentinel: runtimeDeps.refreshLatestUpdateRestartSentinel,
   });
 
+  let pluginRegistry = params.pluginRegistry;
+  if (!params.minimalTestGateway && params.loadStartupPlugins) {
+    const loaded = await measureStartup(params.startupTrace, "plugins.runtime-post-bind", () =>
+      params.loadStartupPlugins!(),
+    );
+    pluginRegistry = loaded.pluginRegistry;
+    params.startupTrace?.mark("plugins.runtime.ready");
+    params.startupTrace?.detail("plugins.runtime-post-bind", [
+      ["plugins", String(loaded.pluginRegistry.plugins.length)],
+      ["methods", String(loaded.gatewayMethods.length)],
+    ]);
+    await params.onStartupPluginsLoaded?.(loaded);
+  }
+
   const startupLogPromise = measureStartup(params.startupTrace, "post-attach.log", () =>
     runtimeDeps.logGatewayStartup({
       cfg: params.cfgAtStart,
@@ -677,7 +695,7 @@ export async function startGatewayPostAttachRuntime(
       bindHosts: params.bindHosts,
       port: params.port,
       tlsEnabled: params.tlsEnabled,
-      loadedPluginIds: params.pluginRegistry.plugins
+      loadedPluginIds: pluginRegistry.plugins
         .filter((plugin) => plugin.status === "loaded")
         .map((plugin) => plugin.id),
       log: params.log,
@@ -734,7 +752,7 @@ export async function startGatewayPostAttachRuntime(
         const result = await measureStartup(params.startupTrace, "sidecars.total", () =>
           runtimeDeps.startGatewaySidecars({
             cfg: params.gatewayPluginConfigAtStart,
-            pluginRegistry: params.pluginRegistry,
+            pluginRegistry,
             defaultWorkspaceDir: params.defaultWorkspaceDir,
             deps: params.deps,
             startChannels: params.startChannels,

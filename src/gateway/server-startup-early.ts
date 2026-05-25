@@ -16,6 +16,38 @@ import {
 import { startGatewayDiscovery } from "./server-discovery-runtime.js";
 import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
 
+export async function startGatewayPluginDiscovery(params: {
+  minimalTestGateway: boolean;
+  cfgAtStart: KovaConfig;
+  port: number;
+  gatewayTls: { enabled: boolean; fingerprintSha256?: string };
+  tailscaleMode: GatewayTailscaleMode;
+  logDiscovery: {
+    info: (msg: string) => void;
+    warn: (msg: string) => void;
+  };
+  pluginRegistry?: PluginRegistry;
+}): Promise<(() => Promise<void>) | null> {
+  if (params.minimalTestGateway) {
+    return null;
+  }
+  const machineDisplayName = await getMachineDisplayName();
+  const discovery = await startGatewayDiscovery({
+    machineDisplayName,
+    port: params.port,
+    gatewayTls: params.gatewayTls.enabled
+      ? { enabled: true, fingerprintSha256: params.gatewayTls.fingerprintSha256 }
+      : undefined,
+    wideAreaDiscoveryEnabled: params.cfgAtStart.discovery?.wideArea?.enabled === true,
+    wideAreaDiscoveryDomain: params.cfgAtStart.discovery?.wideArea?.domain,
+    tailscaleMode: params.tailscaleMode,
+    mdnsMode: params.cfgAtStart.discovery?.mdns?.mode,
+    gatewayDiscoveryServices: params.pluginRegistry?.gatewayDiscoveryServices,
+    logDiscovery: params.logDiscovery,
+  });
+  return discovery.bonjourStop;
+}
+
 export async function startGatewayEarlyRuntime(params: {
   minimalTestGateway: boolean;
   cfgAtStart: KovaConfig;
@@ -59,24 +91,15 @@ export async function startGatewayEarlyRuntime(params: {
   setSkillsRefreshTimer: (timer: ReturnType<typeof setTimeout> | null) => void;
   getRuntimeConfig: () => KovaConfig;
 }) {
-  let bonjourStop: (() => Promise<void>) | null = null;
-  if (!params.minimalTestGateway) {
-    const machineDisplayName = await getMachineDisplayName();
-    const discovery = await startGatewayDiscovery({
-      machineDisplayName,
-      port: params.port,
-      gatewayTls: params.gatewayTls.enabled
-        ? { enabled: true, fingerprintSha256: params.gatewayTls.fingerprintSha256 }
-        : undefined,
-      wideAreaDiscoveryEnabled: params.cfgAtStart.discovery?.wideArea?.enabled === true,
-      wideAreaDiscoveryDomain: params.cfgAtStart.discovery?.wideArea?.domain,
-      tailscaleMode: params.tailscaleMode,
-      mdnsMode: params.cfgAtStart.discovery?.mdns?.mode,
-      gatewayDiscoveryServices: params.pluginRegistry?.gatewayDiscoveryServices,
-      logDiscovery: params.logDiscovery,
-    });
-    bonjourStop = discovery.bonjourStop;
-  }
+  const bonjourStop = await startGatewayPluginDiscovery({
+    minimalTestGateway: params.minimalTestGateway,
+    cfgAtStart: params.cfgAtStart,
+    port: params.port,
+    gatewayTls: params.gatewayTls,
+    tailscaleMode: params.tailscaleMode,
+    logDiscovery: params.logDiscovery,
+    pluginRegistry: params.pluginRegistry,
+  });
 
   if (!params.minimalTestGateway) {
     setSkillsRemoteRegistry(params.nodeRegistry);

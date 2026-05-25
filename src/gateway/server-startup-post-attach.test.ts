@@ -236,6 +236,63 @@ describe("startGatewayPostAttachRuntime", () => {
     expect(events).toEqual(["startup-log-start", "sidecars", "startup-log-end"]);
   });
 
+  it("loads deferred startup plugins before startup log and sidecars use the registry", async () => {
+    const initialRegistry = {
+      plugins: [{ id: "cold", status: "disabled" }],
+    } as never;
+    const loadedRegistry = {
+      plugins: [
+        { id: "telegram", status: "loaded" },
+        { id: "browser", status: "loaded" },
+      ],
+    } as never;
+    const loadStartupPlugins = vi.fn(async () => ({
+      pluginRegistry: loadedRegistry,
+      gatewayMethods: ["ping", "telegram.send"],
+    }));
+    const onStartupPluginsLoaded = vi.fn(async () => undefined);
+    const logGatewayStartup = vi.fn(async () => undefined);
+    const startGatewaySidecars = vi.fn(async () => ({ pluginServices: null }));
+    const trace = {
+      mark: vi.fn(),
+      detail: vi.fn(),
+      measure: vi.fn(async (_name: string, run: () => unknown) => await run()),
+    };
+
+    await startGatewayPostAttachRuntime(
+      {
+        ...createPostAttachParams({
+          pluginRegistry: initialRegistry,
+          loadStartupPlugins,
+          onStartupPluginsLoaded,
+          startupTrace: trace,
+        }),
+        deferSidecars: false,
+      },
+      createPostAttachRuntimeDeps({
+        logGatewayStartup,
+        startGatewaySidecars,
+        refreshLatestUpdateRestartSentinel: vi.fn(async () => null),
+      }),
+    );
+
+    expect(loadStartupPlugins).toHaveBeenCalledOnce();
+    expect(onStartupPluginsLoaded).toHaveBeenCalledWith(
+      expect.objectContaining({ pluginRegistry: loadedRegistry }),
+    );
+    expect(trace.measure).toHaveBeenCalledWith("plugins.runtime-post-bind", expect.any(Function));
+    expect(trace.detail).toHaveBeenCalledWith("plugins.runtime-post-bind", [
+      ["plugins", "2"],
+      ["methods", "2"],
+    ]);
+    expect(logGatewayStartup).toHaveBeenCalledWith(
+      expect.objectContaining({ loadedPluginIds: ["telegram", "browser"] }),
+    );
+    expect(startGatewaySidecars).toHaveBeenCalledWith(
+      expect.objectContaining({ pluginRegistry: loadedRegistry }),
+    );
+  });
+
   it("starts the qmd memory backend only when configured", async () => {
     await startGatewayPostAttachRuntime({
       ...createPostAttachParams(),
