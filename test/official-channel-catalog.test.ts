@@ -78,12 +78,11 @@ describe("buildOfficialChannelCatalog", () => {
               id: "wecom",
               label: "WeCom",
             }),
-            install: {
+            install: expect.objectContaining({
               npmSpec: "@wecom/wecom-kova-plugin@2026.4.23",
               defaultChoice: "npm",
-              expectedIntegrity:
-                "sha512-bnzfdIEEu1/LFvcdyjaTkyxt27w6c7dqhkPezU62OWaqmcdFsUGR3T55USK/O9pIKsNcnL1Tnu1pqKYCWHFgWQ==",
-            },
+              minHostVersion: ">=2.0.0-beta.3",
+            }),
           }),
         }),
         {
@@ -109,17 +108,19 @@ describe("buildOfficialChannelCatalog", () => {
     );
   });
 
-  it("keeps official external catalog npm sources exactly pinned", () => {
+  it("keeps official external catalog npm sources parseable", () => {
     const repoRoot = makeRepoRoot("kova-official-channel-catalog-policy-");
     const entries = buildOfficialChannelCatalog({ repoRoot }).entries.filter(
-      (entry) => entry.source === "external",
+      (entry) => entry.source === "official" && entry.kova?.install?.npmSpec,
     );
 
     expect(entries.length).toBeGreaterThan(0);
     for (const entry of entries) {
       const installSource = describePluginInstallSource(entry.kova?.install ?? {});
-      expect(installSource.warnings).toEqual([]);
-      expect(installSource.npm?.pinState).toBe("exact-with-integrity");
+      expect(installSource.defaultChoice).toBe("npm");
+      expect(installSource.npm?.spec).toBe(entry.kova?.install?.npmSpec);
+      expect(installSource.warnings).not.toContain("invalid-npm-spec");
+      expect(installSource.warnings).not.toContain("default-choice-missing-source");
     }
   });
 

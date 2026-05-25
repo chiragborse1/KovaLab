@@ -193,7 +193,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       result.ok ? undefined : errorShape(ErrorCodes.UNAVAILABLE, result.message),
     );
   },
-  "skills.uninstall": async ({ params, respond, context }) => {
+  "skills.uninstall": async ({ params, respond }) => {
     if (!validateSkillsUninstallParams(params)) {
       respond(
         false,
