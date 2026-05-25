@@ -63,9 +63,9 @@ function normalizeSkillLookup(value: string): string {
 
 function loadSkillEntries(options: SkillToolOptions): SkillEntry[] {
   if (options.entries) {
-    return options.entries
-      .slice()
-      .sort((left, right) => left.skill.name.localeCompare(right.skill.name, "en"));
+    return options.entries.toSorted((left, right) =>
+      left.skill.name.localeCompare(right.skill.name, "en"),
+    );
   }
   return loadVisibleWorkspaceSkillEntries(options.workspaceDir, {
     config: options.config,
@@ -74,7 +74,7 @@ function loadSkillEntries(options: SkillToolOptions): SkillEntry[] {
     skillFilter: options.skillFilter,
     agentId: options.agentId,
     eligibility: options.eligibility,
-  }).sort((left, right) => left.skill.name.localeCompare(right.skill.name, "en"));
+  }).toSorted((left, right) => left.skill.name.localeCompare(right.skill.name, "en"));
 }
 
 function toListItem(entry: SkillEntry): SkillListItem {
@@ -189,7 +189,7 @@ function collectLinkedFiles(entry: SkillEntry): Record<SupportDirName, string[]>
     try {
       entries = fs
         .readdirSync(dir, { withFileTypes: true })
-        .sort((left, right) => left.name.localeCompare(right.name, "en"));
+        .toSorted((left, right) => left.name.localeCompare(right.name, "en"));
     } catch {
       return;
     }
