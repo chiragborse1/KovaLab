@@ -899,6 +899,23 @@ describe("handleDirectiveOnly model persist behavior (fixes #1435)", () => {
     expect(sessionStore["agent:main:dm:1"]?.thinkingLevel).toBe("off");
   });
 
+  it("resets thinking level to the model default", async () => {
+    const directives = parseInlineDirectives("/think default");
+    const sessionEntry = createSessionEntry({ thinkingLevel: "low" });
+    const sessionStore = { [sessionKey]: sessionEntry };
+    const result = await handleDirectiveOnly(
+      createHandleParams({
+        directives,
+        sessionEntry,
+        sessionStore,
+      }),
+    );
+
+    expect(result?.text).toContain("Thinking level reset to default");
+    expect(sessionEntry.thinkingLevel).toBeUndefined();
+    expect(sessionStore["agent:main:dm:1"]?.thinkingLevel).toBeUndefined();
+  });
+
   it("reports current thinking status", async () => {
     setDirectiveTestProviders([
       {
@@ -926,7 +943,7 @@ describe("handleDirectiveOnly model persist behavior (fixes #1435)", () => {
     );
 
     expect(result?.text).toContain("Current thinking level: low");
-    expect(result?.text).toContain("Options: off, minimal, low, medium, adaptive, high.");
+    expect(result?.text).toContain("Options: default, off, minimal, low, medium, adaptive, high.");
   });
 
   it("persists verbose on and off directives", async () => {
@@ -988,6 +1005,17 @@ describe("handleDirectiveOnly model persist behavior (fixes #1435)", () => {
     );
     expect(offReply?.text).toContain("Fast mode disabled");
     expect(sessionEntry.fastMode).toBe(false);
+
+    const defaultReply = await handleDirectiveOnly(
+      createHandleParams({
+        directives: parseInlineDirectives("/fast default"),
+        sessionEntry,
+        sessionStore,
+        currentFastMode: sessionEntry.fastMode,
+      }),
+    );
+    expect(defaultReply?.text).toContain("Fast mode reset to default");
+    expect(sessionEntry.fastMode).toBeUndefined();
   });
 
   it("persists and reports elevated-mode directives when allowed", async () => {

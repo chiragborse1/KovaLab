@@ -45,7 +45,8 @@ title: "Thinking levels"
 ## Setting a session default
 
 - Send a message that is **only** the directive (whitespace allowed), e.g. `/think:medium` or `/t high`.
-- That sticks for the current session (per-sender by default); cleared by `/think:off` or session idle reset.
+- That sticks for the current session (per-sender by default); `/think off` stores an explicit disabled override, while `/think default` clears the override.
+- Use `/think default` (also accepts `inherit`, `reset`, `clear`, and `unpin`) to clear the session override and fall back to the model/agent default.
 - Confirmation reply is sent (`Thinking level set to high.` / `Thinking disabled.`). If the level is invalid (e.g. `/thinking big`), the command is rejected with a hint and the session state is left unchanged.
 - Send `/think` (or `/think:`) with no argument to see the current thinking level.
 
@@ -55,8 +56,8 @@ title: "Thinking levels"
 
 ## Fast mode (/fast)
 
-- Levels: `on|off`.
-- Directive-only message toggles a session fast-mode override and replies `Fast mode enabled.` / `Fast mode disabled.`.
+- Levels: `on|off|default`.
+- Directive-only message toggles or clears a session fast-mode override and replies `Fast mode enabled.` / `Fast mode disabled.` / `Fast mode reset to default.`.
 - Send `/fast` (or `/fast status`) with no mode to see the current effective fast-mode state.
 - Kova resolves fast mode in this order:
   1. Inline/directive-only `/fast on|off`
@@ -74,7 +75,7 @@ title: "Thinking levels"
 ## Verbose directives (/verbose or /v)
 
 - Levels: `on` (minimal) | `full` | `off` (default).
-- Directive-only message toggles session verbose and replies `Verbose logging enabled.` / `Verbose logging disabled.`; invalid levels return a hint without changing state.
+- Directive-only message toggles session verbose and replies `Verbose logging enabled.` / `Verbose logging set to full.` / `Verbose logging disabled.`; invalid levels return a hint without changing state.
 - `/verbose off` stores an explicit session override; clear it via the Sessions UI by choosing `inherit`.
 - Inline directive affects only that message; session/global defaults apply otherwise.
 - Send `/verbose` (or `/verbose:`) with no argument to see the current verbose level.

@@ -28,6 +28,18 @@ describe("parseCommand", () => {
     expect(parseCommand("/commands")).toEqual({ name: "commands", args: "" });
   });
 
+  it("normalizes Hermes-compatible command aliases", () => {
+    expect(parseCommand("/bg check logs")).toEqual({ name: "btw", args: "check logs" });
+    expect(parseCommand("/background check logs")).toEqual({ name: "btw", args: "check logs" });
+    expect(parseCommand("/side check logs")).toEqual({ name: "btw", args: "check logs" });
+    expect(parseCommand("/q interrupt")).toEqual({ name: "queue", args: "interrupt" });
+    expect(parseCommand("/provider openai/gpt-5.4")).toEqual({
+      name: "model",
+      args: "openai/gpt-5.4",
+    });
+    expect(parseCommand("/footer status")).toEqual({ name: "usage", args: "status" });
+  });
+
   it("returns empty name for empty input", () => {
     expect(parseCommand("   ")).toEqual({ name: "", args: "" });
   });
@@ -42,6 +54,11 @@ describe("getSlashCommands", () => {
       { value: "on", label: "on" },
       { value: "off", label: "off" },
     ]);
+    expect(verbose?.getArgumentCompletions?.("f")).toEqual([{ value: "full", label: "full" }]);
+    const fast = commands.find((command) => command.name === "fast");
+    expect(fast?.getArgumentCompletions?.("d")).toEqual([{ value: "default", label: "default" }]);
+    const think = commands.find((command) => command.name === "think");
+    expect(think?.getArgumentCompletions?.("d")).toEqual([{ value: "default", label: "default" }]);
     expect(activation?.getArgumentCompletions?.("a")).toEqual([
       { value: "always", label: "always" },
     ]);

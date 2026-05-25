@@ -167,22 +167,12 @@ export function createSessionActions(context: SessionActionContext) {
     }
 
     const next = { ...state.sessionInfo };
-    if (entry?.thinkingLevel !== undefined) {
+    if (entry) {
       next.thinkingLevel = entry.thinkingLevel;
-    }
-    if (entry?.fastMode !== undefined) {
       next.fastMode = entry.fastMode;
-    }
-    if (entry?.verboseLevel !== undefined) {
       next.verboseLevel = entry.verboseLevel;
-    }
-    if (entry?.traceLevel !== undefined) {
       next.traceLevel = entry.traceLevel;
-    }
-    if (entry?.reasoningLevel !== undefined) {
       next.reasoningLevel = entry.reasoningLevel;
-    }
-    if (entry?.responseUsage !== undefined) {
       next.responseUsage = entry.responseUsage;
     }
     if (entry?.inputTokens !== undefined) {

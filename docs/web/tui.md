@@ -152,8 +152,8 @@ Capability map:
 
 Session controls:
 
-- `/think <off|minimal|low|medium|high>`
-- `/fast <status|on|off>`
+- `/think <default|off|minimal|low|medium|high>`
+- `/fast <status|on|off|default>`
 - `/verbose <on|full|off>`
 - `/trace <on|off>`
 - `/reasoning <on|off|stream>`
@@ -200,8 +200,11 @@ Session lifecycle:
 - `/settings`
 - `/exit`
 
-Short aliases such as `/commands`, `/gwstatus`, `/elev`, `/abort`, and `/quit`
-still work, but the TUI command palette shows canonical commands only.
+Short aliases such as `/gwstatus`, `/elev`, `/abort`, and `/quit` still work,
+but the TUI command palette shows canonical commands only.
+Hermes-style aliases also work when Kova has an equivalent: `/background`,
+`/bg`, and `/side` route to `/btw`; `/q` routes to `/queue`; `/provider`
+routes to `/model`; `/footer` routes to `/usage`.
 
 Local mode only:
 

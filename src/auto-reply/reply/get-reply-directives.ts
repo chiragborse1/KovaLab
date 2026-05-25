@@ -324,8 +324,10 @@ export async function resolveReplyDirectives(params: {
     : {
         ...parsedDirectives,
         hasThinkDirective: false,
+        clearThinkLevel: false,
         hasVerboseDirective: false,
         hasFastDirective: false,
+        clearFastMode: false,
         hasReasoningDirective: false,
         hasStatusDirective: false,
         hasModelDirective: false,
@@ -407,8 +409,10 @@ export async function resolveReplyDirectives(params: {
     groupResolution,
   });
   const defaultActivation = defaultGroupActivation(requireMention);
-  const resolvedThinkLevel =
-    directives.thinkLevel ?? (targetSessionEntry?.thinkingLevel as ThinkLevel | undefined);
+  const sessionThinkLevel = directives.clearThinkLevel
+    ? undefined
+    : (targetSessionEntry?.thinkingLevel as ThinkLevel | undefined);
+  const resolvedThinkLevel = directives.thinkLevel ?? sessionThinkLevel;
   const resolvedFastMode =
     directives.fastMode ??
     resolveFastModeState({
@@ -416,7 +420,7 @@ export async function resolveReplyDirectives(params: {
       provider,
       model,
       agentId,
-      sessionEntry: targetSessionEntry,
+      sessionEntry: directives.clearFastMode ? undefined : targetSessionEntry,
     }).enabled;
 
   const resolvedVerboseLevel =
@@ -499,7 +503,7 @@ export async function resolveReplyDirectives(params: {
 
   const thinkingExplicitlySet =
     directives.thinkLevel !== undefined ||
-    targetSessionEntry?.thinkingLevel !== undefined ||
+    (!directives.clearThinkLevel && targetSessionEntry?.thinkingLevel !== undefined) ||
     agentCfg?.thinkingDefault !== undefined;
 
   // When neither directive nor session nor agent set reasoning, default to model capability

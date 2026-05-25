@@ -9,9 +9,9 @@ import type { KovaConfig } from "../config/types.js";
 import type { CommandEntry } from "../gateway/protocol/index.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
-const VERBOSE_LEVELS = ["on", "off"];
+const VERBOSE_LEVELS = ["on", "off", "full"];
 const TRACE_LEVELS = ["on", "off"];
-const FAST_LEVELS = ["status", "on", "off"];
+const FAST_LEVELS = ["status", "on", "off", "default"];
 const REASONING_LEVELS = ["on", "off"];
 const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
 const ACTIVATION_LEVELS = ["mention", "always"];
@@ -147,11 +147,14 @@ const HIDDEN_ALIAS_NAMES = new Set([
   "abort",
   "elev",
   "export",
+  "footer",
   "gwstatus",
   "id",
   "limit",
   "plugin",
+  "provider",
   "quit",
+  "q",
   "reason",
   "t",
   "tell",
@@ -256,6 +259,7 @@ export function parseCommand(input: string): ParsedCommand {
 
 export function getSlashCommands(options: SlashCommandOptions = {}): SlashCommand[] {
   const thinkLevels = listThinkingLevelLabels(options.provider, options.model);
+  const thinkCommandLevels = ["default", ...thinkLevels.filter((level) => level !== "default")];
   const verboseCompletions = createLevelCompletion(VERBOSE_LEVELS);
   const traceCompletions = createLevelCompletion(TRACE_LEVELS);
   const fastCompletions = createLevelCompletion(FAST_LEVELS);
@@ -355,20 +359,21 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "think",
-      description: "Set thinking level",
+      description: "Set thinking level or reset to default",
+      argumentHint: "default | " + formatThinkingLevels(options.provider, options.model, " | "),
       getArgumentCompletions: (prefix) =>
-        thinkLevels
+        thinkCommandLevels
           .filter((v) => v.startsWith(normalizeLowercaseStringOrEmpty(prefix)))
           .map((value) => ({ value, label: value })),
     },
     {
       name: "fast",
-      description: "Set fast mode on/off",
+      description: "Set fast mode on/off/default",
       getArgumentCompletions: fastCompletions,
     },
     {
       name: "verbose",
-      description: "Set verbose on/off",
+      description: "Set verbose on/off/full",
       getArgumentCompletions: verboseCompletions,
     },
     {
@@ -384,6 +389,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     {
       name: "usage",
       description: "Show usage or configure the per-response usage line",
+      argumentHint: "[off|tokens|full|cost]",
       getArgumentCompletions: usageCompletions,
     },
     {
@@ -465,8 +471,8 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       "/plugins - plugin status",
       "",
       "Control:",
-      `/think <${thinkLevels}>`,
-      "/fast <status|on|off>",
+      `/think <default|${thinkLevels}>`,
+      "/fast <status|on|off|default>",
       "/busy <status|queue|steer|interrupt|clear>",
       "",
       "More: /commands, /help all, /gateway-status, /automation, /recover, /rollback",
@@ -499,12 +505,12 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/plugins [list|verbose|show <plugin>]",
     "",
     "Run controls:",
-    `/think <${thinkLevels}>`,
-    "/fast <status|on|off>",
-    "/verbose <on|off>",
+    `/think <default|${thinkLevels}>`,
+    "/fast <status|on|off|default>",
+    "/verbose <on|off|full>",
     "/trace <on|off>",
     "/reasoning <on|off>",
-    "/usage [off|tokens|full|cost]",
+    "/usage [off|tokens|full|cost] (alias: /footer)",
     "/elevated <on|off|ask|full>",
     "/activation <mention|always>",
     "/busy <status|queue|steer|interrupt|clear>",

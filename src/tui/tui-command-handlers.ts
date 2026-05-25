@@ -3,12 +3,14 @@ import type { Component, SelectItem, TUI } from "@mariozechner/pi-tui";
 import { normalizeGroupActivation } from "../auto-reply/group-activation.js";
 import {
   formatThinkingLevels,
+  isSessionDefaultDirectiveValue,
   normalizeUsageDisplay,
   resolveResponseUsageMode,
 } from "../auto-reply/thinking.js";
 import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
 import { normalizeAgentId } from "../routing/session-key.js";
+import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { formatTokenCount } from "../utils/usage-format.js";
 import { commandCatalogText, helpText, parseCommand } from "./commands.js";
 import type { ChatLog } from "./components/chat-log.js";
@@ -1334,38 +1336,50 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             state.sessionInfo.model,
             "|",
           );
-          chatLog.addSystem(`usage: /think <${levels}>`);
+          chatLog.addSystem(`usage: /think <default|${levels}>`);
           break;
         }
         try {
+          const resetToDefault = isSessionDefaultDirectiveValue(args);
           const result = await client.patchSession({
             key: state.currentSessionKey,
-            thinkingLevel: args,
+            thinkingLevel: resetToDefault ? null : args,
           });
-          chatLog.addSystem(`thinking set to ${args}`);
+          if (resetToDefault) {
+            state.sessionInfo.thinkingLevel = undefined;
+            chatLog.addSystem("thinking reset to default");
+          } else {
+            chatLog.addSystem(`thinking set to ${args}`);
+          }
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
           chatLog.addSystem(`think failed: ${String(err)}`);
         }
         break;
-      case "verbose":
+      case "verbose": {
         if (!args) {
-          chatLog.addSystem("usage: /verbose <on|off>");
+          chatLog.addSystem("usage: /verbose <on|off|full>");
+          break;
+        }
+        const verboseLevel = normalizeLowercaseStringOrEmpty(args);
+        if (verboseLevel !== "on" && verboseLevel !== "off" && verboseLevel !== "full") {
+          chatLog.addSystem("usage: /verbose <on|off|full>");
           break;
         }
         try {
           const result = await client.patchSession({
             key: state.currentSessionKey,
-            verboseLevel: args,
+            verboseLevel,
           });
-          chatLog.addSystem(`verbose set to ${args}`);
+          chatLog.addSystem(`verbose set to ${verboseLevel}`);
           applySessionInfoFromPatch(result);
           await loadHistory();
         } catch (err) {
           chatLog.addSystem(`verbose failed: ${String(err)}`);
         }
         break;
+      }
       case "trace":
         if (!args) {
           chatLog.addSystem("usage: /trace <on|off>");
@@ -1383,27 +1397,44 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem(`trace failed: ${String(err)}`);
         }
         break;
-      case "fast":
-        if (!args || args === "status") {
+      case "fast": {
+        const fastModeArg = normalizeLowercaseStringOrEmpty(args);
+        if (!fastModeArg || fastModeArg === "status") {
           chatLog.addSystem(`fast mode: ${state.sessionInfo.fastMode ? "on" : "off"}`);
           break;
         }
-        if (args !== "on" && args !== "off") {
-          chatLog.addSystem("usage: /fast <status|on|off>");
+        if (isSessionDefaultDirectiveValue(fastModeArg)) {
+          try {
+            const result = await client.patchSession({
+              key: state.currentSessionKey,
+              fastMode: null,
+            });
+            state.sessionInfo.fastMode = undefined;
+            chatLog.addSystem("fast mode reset to default");
+            applySessionInfoFromPatch(result);
+            await refreshSessionInfo();
+          } catch (err) {
+            chatLog.addSystem(`fast failed: ${String(err)}`);
+          }
+          break;
+        }
+        if (fastModeArg !== "on" && fastModeArg !== "off") {
+          chatLog.addSystem("usage: /fast <status|on|off|default>");
           break;
         }
         try {
           const result = await client.patchSession({
             key: state.currentSessionKey,
-            fastMode: args === "on",
+            fastMode: fastModeArg === "on",
           });
-          chatLog.addSystem(`fast mode ${args === "on" ? "enabled" : "disabled"}`);
+          chatLog.addSystem(`fast mode ${fastModeArg === "on" ? "enabled" : "disabled"}`);
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {
           chatLog.addSystem(`fast failed: ${String(err)}`);
         }
         break;
+      }
       case "reasoning":
         if (!args) {
           chatLog.addSystem("usage: /reasoning <on|off>");
@@ -1424,6 +1455,11 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "usage": {
         const usageArgs = args.trim();
         if (!usageArgs) {
+          echoCommand();
+          chatLog.addSystem(formatUsageSummary(state));
+          break;
+        }
+        if (usageArgs === "status" || usageArgs === "show") {
           echoCommand();
           chatLog.addSystem(formatUsageSummary(state));
           break;

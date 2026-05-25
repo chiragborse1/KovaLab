@@ -135,25 +135,28 @@ export async function handleDirectiveOnly(
     provider: resolvedProvider,
     model: resolvedModel,
     agentId: activeAgentId,
-    sessionEntry,
+    sessionEntry: directives.clearFastMode ? undefined : sessionEntry,
   });
-  const effectiveFastMode = directives.fastMode ?? currentFastMode ?? fastModeState.enabled;
+  const effectiveFastMode =
+    directives.fastMode ??
+    (directives.clearFastMode ? fastModeState.enabled : currentFastMode) ??
+    fastModeState.enabled;
   const effectiveFastModeSource =
     directives.fastMode !== undefined ? "session" : fastModeState.source;
 
-  if (directives.hasThinkDirective && !directives.thinkLevel) {
+  if (directives.hasThinkDirective && !directives.thinkLevel && !directives.clearThinkLevel) {
     // If no argument was provided, show the current level
     if (!directives.rawThinkLevel) {
       const level = currentThinkLevel ?? "off";
       return {
         text: withOptions(
           `Current thinking level: ${level}.`,
-          formatThinkingLevels(resolvedProvider, resolvedModel),
+          `default, ${formatThinkingLevels(resolvedProvider, resolvedModel)}`,
         ),
       };
     }
     return {
-      text: `Unrecognized thinking level "${directives.rawThinkLevel}". Valid levels: ${formatThinkingLevels(resolvedProvider, resolvedModel)}.`,
+      text: `Unrecognized thinking level "${directives.rawThinkLevel}". Valid levels: default, ${formatThinkingLevels(resolvedProvider, resolvedModel)}.`,
     };
   }
   if (directives.hasVerboseDirective && !directives.verboseLevel) {
@@ -178,7 +181,11 @@ export async function handleDirectiveOnly(
       text: `Unrecognized trace level "${directives.rawTraceLevel}". Valid levels: off, on, raw.`,
     };
   }
-  if (directives.hasFastDirective && directives.fastMode === undefined) {
+  if (
+    directives.hasFastDirective &&
+    directives.fastMode === undefined &&
+    !directives.clearFastMode
+  ) {
     if (
       !directives.rawFastMode ||
       normalizeLowercaseStringOrEmpty(directives.rawFastMode) === "status"
@@ -192,12 +199,12 @@ export async function handleDirectiveOnly(
       return {
         text: withOptions(
           `Current fast mode: ${effectiveFastMode ? "on" : "off"}${sourceSuffix}.`,
-          "status, on, off",
+          "status, on, off, default",
         ),
       };
     }
     return {
-      text: `Unrecognized fast mode "${directives.rawFastMode}". Valid levels: status, on, off.`,
+      text: `Unrecognized fast mode "${directives.rawFastMode}". Valid levels: status, on, off, default.`,
     };
   }
   if (directives.hasReasoningDirective && !directives.reasoningLevel) {
@@ -341,8 +348,10 @@ export async function handleDirectiveOnly(
     elevatedAllowed;
   let modelSelectionUpdated = false;
   const shouldPersistSessionEntry =
-    (directives.hasThinkDirective && Boolean(directives.thinkLevel)) ||
-    (directives.hasFastDirective && directives.fastMode !== undefined) ||
+    (directives.hasThinkDirective &&
+      (Boolean(directives.thinkLevel) || directives.clearThinkLevel)) ||
+    (directives.hasFastDirective &&
+      (directives.fastMode !== undefined || directives.clearFastMode)) ||
     (directives.hasVerboseDirective &&
       Boolean(directives.verboseLevel) &&
       allowInternalVerbosePersistence) ||
@@ -354,16 +363,25 @@ export async function handleDirectiveOnly(
     directives.hasQueueDirective ||
     shouldRemapUnsupportedThinkLevel;
   const fastModeChanged =
-    directives.hasFastDirective &&
-    directives.fastMode !== undefined &&
-    directives.fastMode !== currentFastMode;
+    (directives.hasFastDirective &&
+      directives.fastMode !== undefined &&
+      directives.fastMode !== currentFastMode) ||
+    (directives.clearFastMode && currentFastMode !== fastModeState.enabled);
   let reasoningChanged =
     directives.hasReasoningDirective && directives.reasoningLevel !== undefined;
   if (shouldPersistSessionEntry) {
-    if (directives.hasThinkDirective && directives.thinkLevel && resolvedDirectiveThinkLevel) {
+    if (directives.clearThinkLevel) {
+      delete sessionEntry.thinkingLevel;
+    } else if (
+      directives.hasThinkDirective &&
+      directives.thinkLevel &&
+      resolvedDirectiveThinkLevel
+    ) {
       sessionEntry.thinkingLevel = resolvedDirectiveThinkLevel;
     }
-    if (directives.hasFastDirective && directives.fastMode !== undefined) {
+    if (directives.clearFastMode) {
+      delete sessionEntry.fastMode;
+    } else if (directives.hasFastDirective && directives.fastMode !== undefined) {
       sessionEntry.fastMode = directives.fastMode;
     }
     if (shouldRemapUnsupportedThinkLevel && remappedUnsupportedThinkLevel) {
@@ -477,7 +495,9 @@ export async function handleDirectiveOnly(
   });
 
   const parts: string[] = [];
-  if (directives.hasThinkDirective && directives.thinkLevel) {
+  if (directives.clearThinkLevel) {
+    parts.push("Thinking level reset to default.");
+  } else if (directives.hasThinkDirective && directives.thinkLevel) {
     const displayedThinkLevel = resolvedDirectiveThinkLevel ?? directives.thinkLevel;
     parts.push(
       displayedThinkLevel === "off"
@@ -490,7 +510,9 @@ export async function handleDirectiveOnly(
       );
     }
   }
-  if (directives.hasFastDirective && directives.fastMode !== undefined) {
+  if (directives.clearFastMode) {
+    parts.push(formatDirectiveAck("Fast mode reset to default."));
+  } else if (directives.hasFastDirective && directives.fastMode !== undefined) {
     parts.push(
       directives.fastMode
         ? formatDirectiveAck("Fast mode enabled.")
@@ -606,9 +628,10 @@ export async function handleDirectiveOnly(
     parts.push(formatDirectiveAck(`Queue drop set to ${directives.dropPolicy}.`));
   }
   if (fastModeChanged) {
-    enqueueSystemEvent(`Fast mode ${sessionEntry.fastMode ? "enabled" : "disabled"}.`, {
+    const nextFastMode = directives.clearFastMode ? fastModeState.enabled : sessionEntry.fastMode;
+    enqueueSystemEvent(`Fast mode ${nextFastMode ? "enabled" : "disabled"}.`, {
       sessionKey,
-      contextKey: `fast:${sessionEntry.fastMode ? "on" : "off"}`,
+      contextKey: `fast:${nextFastMode ? "on" : "off"}`,
     });
   }
   const ack = parts.join(" ").trim();

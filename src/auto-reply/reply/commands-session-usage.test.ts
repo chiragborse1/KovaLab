@@ -241,4 +241,51 @@ describe("handleFastCommand", () => {
       }),
     );
   });
+
+  it("clears the target session fast override for /fast default", async () => {
+    const params = buildUsageParams();
+    params.command.commandBodyNormalized = "/fast default";
+    params.sessionEntry = {
+      sessionId: "wrapper-session",
+      updatedAt: Date.now(),
+      fastMode: false,
+    };
+    params.sessionStore = {
+      [params.sessionKey]: {
+        sessionId: "target-session",
+        updatedAt: Date.now(),
+        fastMode: true,
+      },
+    };
+
+    const result = await handleFastCommand(params, true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(result?.reply?.text).toBe("⚙️ Fast mode reset to default.");
+    expect(params.sessionStore[params.sessionKey]?.fastMode).toBeUndefined();
+  });
+
+  it("updates the target session entry for /fast on", async () => {
+    const params = buildUsageParams();
+    params.command.commandBodyNormalized = "/fast on";
+    params.sessionEntry = {
+      sessionId: "wrapper-session",
+      updatedAt: Date.now(),
+      fastMode: false,
+    };
+    params.sessionStore = {
+      [params.sessionKey]: {
+        sessionId: "target-session",
+        updatedAt: Date.now(),
+        fastMode: false,
+      },
+    };
+
+    const result = await handleFastCommand(params, true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(result?.reply?.text).toBe("⚙️ Fast mode enabled.");
+    expect(params.sessionEntry?.fastMode).toBe(false);
+    expect(params.sessionStore[params.sessionKey]?.fastMode).toBe(true);
+  });
 });

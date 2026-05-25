@@ -438,6 +438,38 @@ describe("tui command handlers", () => {
     expect(setActivityStatus).not.toHaveBeenCalledWith("waiting");
   });
 
+  it("clears session overrides for default run-control commands", async () => {
+    const patchSession = vi.fn().mockResolvedValue({
+      entry: { sessionId: "session-1", updatedAt: Date.now() },
+    });
+    const refreshSessionInfo = vi.fn().mockResolvedValue(undefined);
+    const applySessionInfoFromPatch = vi.fn();
+    const { handleCommand, addSystem, state } = createHarness({
+      patchSession,
+      refreshSessionInfo,
+      applySessionInfoFromPatch,
+      sessionInfo: { thinkingLevel: "high", fastMode: true },
+    });
+
+    await handleCommand("/think default");
+    await handleCommand("/fast default");
+
+    expect(patchSession).toHaveBeenNthCalledWith(1, {
+      key: "agent:main:main",
+      thinkingLevel: null,
+    });
+    expect(patchSession).toHaveBeenNthCalledWith(2, {
+      key: "agent:main:main",
+      fastMode: null,
+    });
+    expect(addSystem).toHaveBeenCalledWith("thinking reset to default");
+    expect(addSystem).toHaveBeenCalledWith("fast mode reset to default");
+    expect(state.sessionInfo.thinkingLevel).toBeUndefined();
+    expect(state.sessionInfo.fastMode).toBeUndefined();
+    expect(applySessionInfoFromPatch).toHaveBeenCalledTimes(2);
+    expect(refreshSessionInfo).toHaveBeenCalledTimes(2);
+  });
+
   it("forwards unknown slash commands to the gateway", async () => {
     const { handleCommand, sendChat, addUser, addSystem, requestRender } = createHarness();
 
@@ -908,6 +940,24 @@ describe("tui command handlers", () => {
         "- Full runtime status: /status full",
       ].join("\n"),
     );
+  });
+
+  it("shows current usage for the Hermes-style footer status alias", async () => {
+    const { handleCommand, sendChat, patchSession, addUser, addSystem } = createHarness({
+      sessionInfo: {
+        responseUsage: "tokens",
+        totalTokens: 12000,
+        contextTokens: 200000,
+      },
+    });
+
+    await handleCommand("/footer status");
+
+    expect(addUser).toHaveBeenCalledWith("/footer status");
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(patchSession).not.toHaveBeenCalled();
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("- Footer: tokens"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("- Context: tokens 12k/200k"));
   });
 
   it("updates the usage footer only when a mode is provided", async () => {

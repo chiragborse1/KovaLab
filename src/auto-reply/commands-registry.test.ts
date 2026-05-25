@@ -290,7 +290,7 @@ describe("commands registry", () => {
       category: "options",
     });
     const modeArg = fast?.args?.find((arg) => arg.name === "mode");
-    expect(modeArg?.choices).toEqual(["status", "on", "off"]);
+    expect(modeArg?.choices).toEqual(["status", "on", "off", "default"]);
   });
 
   it("detects known text commands", () => {
@@ -375,6 +375,15 @@ describe("commands registry", () => {
 
   it("keeps unregistered dock underscore aliases unchanged", () => {
     expect(normalizeCommandBody("/dock_telegram")).toBe("/dock_telegram");
+  });
+
+  it("normalizes compatibility aliases to Kova canonical commands", () => {
+    expect(normalizeCommandBody("/background audit this")).toBe("/btw audit this");
+    expect(normalizeCommandBody("/bg audit this")).toBe("/btw audit this");
+    expect(normalizeCommandBody("/side audit this")).toBe("/btw audit this");
+    expect(normalizeCommandBody("/q interrupt")).toBe("/queue interrupt");
+    expect(normalizeCommandBody("/provider openai/gpt-5.4")).toBe("/model openai/gpt-5.4");
+    expect(normalizeCommandBody("/footer status")).toBe("/usage status");
   });
 });
 

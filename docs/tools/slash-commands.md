@@ -133,16 +133,16 @@ Current source-of-truth:
     - `/export-trajectory [path]` exports a JSONL [trajectory bundle](/tools/trajectory) plus a lightweight `report.json` for the current session. Alias: `/trajectory`.
   </Accordion>
   <Accordion title="Model and run controls">
-    - `/think <level>` sets the thinking level. Options come from the active model's provider profile; common levels are `off`, `minimal`, `low`, `medium`, and `high`, with custom levels such as `xhigh`, `adaptive`, `max`, or binary `on` only where supported. Aliases: `/thinking`, `/t`.
+    - `/think <level|default>` sets the thinking level or clears the session override. Options come from the active model's provider profile; common levels are `off`, `minimal`, `low`, `medium`, and `high`, with custom levels such as `xhigh`, `adaptive`, `max`, or binary `on` only where supported. Aliases: `/thinking`, `/t`.
     - `/verbose on|off|full` toggles verbose output. Alias: `/v`.
     - `/trace on|off` toggles plugin trace output for the current session.
-    - `/fast [status|on|off]` shows or sets fast mode.
+    - `/fast [status|on|off|default]` shows, sets, or clears fast mode.
     - `/reasoning [on|off|stream]` toggles reasoning visibility. Alias: `/reason`.
     - `/elevated [on|off|ask|full]` toggles elevated mode. Alias: `/elev`.
     - `/exec host=<auto|sandbox|gateway|node> security=<deny|allowlist|full> ask=<off|on-miss|always> node=<id>` shows or sets exec defaults.
-    - `/model [name|#|status]` shows or sets the model.
+    - `/model [name|#|status]` shows or sets the model. Alias: `/provider`.
     - `/models [provider] [page] [limit=<n>|size=<n>|all]` lists providers or models for a provider.
-    - `/queue <mode>` manages queue behavior (`steer`, `interrupt`, `followup`, `collect`, `steer-backlog`) plus options like `debounce:2s cap:25 drop:summarize`.
+    - `/queue <mode>` manages queue behavior (`steer`, `interrupt`, `followup`, `collect`, `steer-backlog`) plus options like `debounce:2s cap:25 drop:summarize`. Alias: `/q`.
   </Accordion>
   <Accordion title="Discovery and status">
     - `/help` shows the short help summary.
@@ -155,13 +155,13 @@ Current source-of-truth:
     - `/memory status`, `/memory sync [force]`, `/memory search <query>`, `/memory read <path[:line[-end]]>`, and `/memory dreams` inspect memory health, refresh recall, search, read cited source excerpts, and review the Dream Diary from chat.
     - `/persona status`, `/persona show [lines=<count>|all]`, and `/persona path` inspect the active `SOUL.md`; writes stay terminal-only through `kova persona edit` or `kova persona init`.
     - `/whoami` shows your sender id. Alias: `/id`.
-    - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary. In the local TUI, bare `/usage` shows the current usage snapshot without changing footer settings.
+    - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary. Alias: `/footer`. In the local TUI, bare `/usage` shows the current usage snapshot without changing footer settings.
   </Accordion>
   <Accordion title="Skills, allowlists, approvals">
     - `/skill <name> [input]` runs a skill by name.
     - `/allowlist [list|add|remove] ...` manages allowlist entries. Text-only.
     - `/approve <id> <decision>` resolves exec approval prompts.
-    - `/btw <question>` asks a side question without changing future session context. See [BTW](/tools/btw).
+    - `/btw <question>` asks a side question without changing future session context. Aliases: `/background`, `/bg`, `/side`. See [BTW](/tools/btw).
   </Accordion>
   <Accordion title="Subagents and ACP">
     - `/subagents list|kill|log|info|send|steer|spawn` manages sub-agent runs for the current session.
@@ -243,7 +243,7 @@ User-invocable skills are also exposed as slash commands:
   <Accordion title="Verbose / trace / fast / reasoning safety">
     - `/verbose` is meant for debugging and extra visibility; keep it **off** in normal use.
     - `/trace` is narrower than `/verbose`: it only reveals plugin-owned trace/debug lines and keeps normal verbose tool chatter off.
-    - `/fast on|off` persists a session override. Use the Sessions UI `inherit` option to clear it and fall back to config defaults.
+    - `/fast on|off` persists a session override. Use `/fast default` or the Sessions UI `inherit` option to clear it and fall back to config defaults.
     - `/fast` is provider-specific: OpenAI/OpenAI Codex map it to `service_tier=priority` on native Responses endpoints, while direct public Anthropic requests, including OAuth-authenticated traffic sent to `api.anthropic.com`, map it to `service_tier=auto` or `standard_only`. See [OpenAI](/providers/openai) and [Anthropic](/providers/anthropic).
     - Tool failure summaries are still shown when relevant, but detailed failure text is only included when `/verbose` is `on` or `full`.
     - `/reasoning`, `/verbose`, and `/trace` are risky in group settings: they may reveal internal reasoning, tool output, or plugin diagnostics you did not intend to expose. Prefer leaving them off, especially in group chats.
