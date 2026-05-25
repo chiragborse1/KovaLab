@@ -36,6 +36,7 @@ import { handleSubagentsCommand } from "./commands-subagents.js";
 import { handleTasksCommand } from "./commands-tasks.js";
 import { handleTtsCommands } from "./commands-tts.js";
 import type { CommandHandler } from "./commands-types.js";
+import { handleUpdateCommand } from "./commands-update.js";
 import { handleWhoamiCommand } from "./commands-whoami.js";
 
 export function loadCommandHandlers(): CommandHandler[] {
@@ -49,6 +50,7 @@ export function loadCommandHandlers(): CommandHandler[] {
     handleUsageCommand,
     handleSessionCommand,
     handleRestartCommand,
+    handleUpdateCommand,
     handleTtsCommands,
     handleHelpCommand,
     handleCommandsListCommand,

@@ -698,6 +698,23 @@ export function buildBuiltinChatCommands(): ChatCommandDefinition[] {
       tier: "power",
     }),
     defineChatCommand({
+      key: "update",
+      nativeName: "update",
+      description: "Update Kova or check update status.",
+      textAlias: "/update",
+      category: "management",
+      tier: "power",
+      args: [
+        {
+          name: "action",
+          description: "status or run",
+          type: "string",
+          choices: ["status", "run"],
+        },
+      ],
+      argsMenu: "auto",
+    }),
+    defineChatCommand({
       key: "activation",
       nativeName: "activation",
       description: "Set group activation mode.",

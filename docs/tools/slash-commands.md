@@ -179,6 +179,7 @@ Current source-of-truth:
     - `/plugins list|inspect|show|get|install|update|enable|disable` inspects or mutates plugin state. `/plugin` is an alias. Owner-only for writes. Requires `commands.plugins: true`.
     - `/debug show|set|unset|reset` manages runtime-only config overrides. Owner-only. Requires `commands.debug: true`.
     - `/restart` restarts Kova when enabled. Default: enabled; set `commands.restart: false` to disable it.
+    - `/update [status|run]` checks or runs the updater. Owner-only; bare `/update` runs the updater.
     - `/send on|off|inherit` sets send policy. Owner-only.
   </Accordion>
   <Accordion title="Voice, TTS, channel control">

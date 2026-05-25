@@ -34,6 +34,7 @@ const SUBAGENT_LEVELS = ["list", "running", "queued", "failed", "lost", "all"];
 const AUTOMATION_LEVELS = ["list", "running", "queued", "failed", "audit"];
 const RECOVER_LEVELS = ["status", "apply"];
 const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
+const UPDATE_LEVELS = ["status", "run"];
 const MEMORY_COMMAND_COMPLETIONS = [
   {
     value: "status",
@@ -275,6 +276,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const automationCompletions = createLevelCompletion(AUTOMATION_LEVELS);
   const recoverCompletions = createLevelCompletion(RECOVER_LEVELS);
   const rollbackCompletions = createLevelCompletion(ROLLBACK_LEVELS);
+  const updateCompletions = createLevelCompletion(UPDATE_LEVELS);
   const commands: SlashCommand[] = [
     {
       name: "help",
@@ -410,6 +412,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     { name: "stop", description: "Stop active run" },
     { name: "new", description: "Start a new session" },
     { name: "reset", description: "Reset the session" },
+    {
+      name: "update",
+      description: "Update Kova or check update status",
+      argumentHint: "status | run",
+      getArgumentCompletions: updateCompletions,
+    },
     { name: "settings", description: "Open settings" },
     { name: "exit", description: "Exit the TUI" },
   ];
@@ -474,6 +482,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       `/think <default|${thinkLevels}>`,
       "/fast <status|on|off|default>",
       "/busy <status|queue|steer|interrupt|clear>",
+      "/update [status|run]",
       "",
       "More: /commands, /help all, /gateway-status, /automation, /recover, /rollback",
       "Short aliases still work; /commands opens the full catalog.",
@@ -517,6 +526,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/new",
     "/reset",
     "/stop",
+    "/update [status|run]",
     "/settings",
     "/exit",
     "",
