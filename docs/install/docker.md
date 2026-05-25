@@ -36,13 +36,22 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
     This builds the gateway image locally. To use a pre-built image instead:
 
     ```bash
-    export KOVA_IMAGE="ghcr.io/chiragborse1/KovaLab:latest"
+    export KOVA_IMAGE="ghcr.io/chiragborse1/kova:latest"
     ./scripts/docker/setup.sh
     ```
 
-    Pre-built images are published at the
+    Pre-built images are published to
     [GitHub Container Registry](https://github.com/chiragborse1/KovaLab/pkgs/container/kova).
-    Common tags: `main`, `latest`, `<version>` (e.g. `2026.2.26`).
+    Common tags:
+
+    - `dev`: latest image from the `dev` branch
+    - `main`: latest image from the `main` branch
+    - `latest`: latest stable release tag
+    - `beta`: latest beta release tag
+    - `v...`: exact release tag, for example `v2026.5.25-beta.1`
+
+    The first published registry image targets `linux/amd64`. ARM64 images can
+    be added after the release lane is green and timing is known.
 
   </Step>
 

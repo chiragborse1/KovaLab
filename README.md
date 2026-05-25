@@ -111,6 +111,18 @@ kova skills list             # inspect skills
 kova plugins list            # inspect plugins
 ```
 
+## Docker image
+
+Kova also publishes a container image for server and VPS deployments:
+
+```bash
+docker pull ghcr.io/chiragborse1/kova:dev
+```
+
+For normal laptop/terminal use, prefer the regular installer. Use Docker when
+you want a containerized Gateway, repeatable server deploys, or a disposable
+runtime.
+
 Inside the terminal chat, useful slash commands include:
 
 ```text
