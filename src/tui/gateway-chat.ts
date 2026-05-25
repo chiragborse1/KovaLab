@@ -37,6 +37,7 @@ import type {
   ChatSendOptions,
   TuiAgentsList,
   TuiBackend,
+  TuiConfigSnapshot,
   TuiEvent,
   TuiModelChoice,
   TuiSessionCheckpointBranch,
@@ -252,6 +253,10 @@ export class GatewayChatClient implements TuiBackend {
 
   async getGatewayStatus() {
     return await this.client.request("status");
+  }
+
+  async getConfig() {
+    return await this.client.request<TuiConfigSnapshot>("config.get", {});
   }
 
   async listModels(): Promise<GatewayModelChoice[]> {

@@ -1,5 +1,6 @@
 import type { SkillStatusReport } from "../agents/skills-status.js";
 import type { SessionCompactionCheckpoint, SessionEntry } from "../config/sessions.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type {
   CommandEntry,
   CommandsListParams,
@@ -94,6 +95,15 @@ export type TuiModelChoice = {
   reasoning?: boolean;
 };
 
+export type TuiConfigSnapshot = {
+  path?: string;
+  exists?: boolean;
+  valid?: boolean;
+  hash?: string;
+  config?: KovaConfig;
+  runtimeConfig?: KovaConfig;
+};
+
 export type TuiTasksList = {
   tasks: TaskRunView[];
   summary: TaskRunAggregateSummary;
@@ -163,6 +173,7 @@ export type TuiBackend = {
   patchSession: (opts: SessionsPatchParams) => Promise<SessionsPatchResult>;
   resetSession: (key: string, reason?: "new" | "reset") => Promise<unknown>;
   getGatewayStatus: () => Promise<unknown>;
+  getConfig?: () => Promise<TuiConfigSnapshot>;
   listModels: () => Promise<TuiModelChoice[]>;
   listCommands?: (opts?: CommandsListParams) => Promise<CommandEntry[]>;
   listPlugins?: () => Promise<PluginsStatusResult>;

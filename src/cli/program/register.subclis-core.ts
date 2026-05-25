@@ -97,6 +97,11 @@ const entrySpecs: readonly CommandGroupDescriptorSpec<SubCliRegistrar>[] = [
       exportName: "registerExecPolicyCli",
     },
     {
+      commandNames: ["permissions"],
+      loadModule: () => import("../permissions-cli.js"),
+      exportName: "registerPermissionsCli",
+    },
+    {
       commandNames: ["nodes"],
       loadModule: () => import("../nodes-cli.js"),
       exportName: "registerNodesCli",

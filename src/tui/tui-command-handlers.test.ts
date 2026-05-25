@@ -28,6 +28,7 @@ function createHarness(params?: {
   sendChat?: ReturnType<typeof vi.fn>;
   steerChat?: ReturnType<typeof vi.fn>;
   getGatewayStatus?: ReturnType<typeof vi.fn>;
+  getConfig?: ReturnType<typeof vi.fn>;
   patchSession?: ReturnType<typeof vi.fn>;
   resetSession?: ReturnType<typeof vi.fn>;
   listSessions?: ReturnType<typeof vi.fn>;
@@ -58,6 +59,28 @@ function createHarness(params?: {
   const sendChat = params?.sendChat ?? vi.fn().mockResolvedValue({ runId: "r1" });
   const steerChat = params?.steerChat;
   const getGatewayStatus = params?.getGatewayStatus ?? vi.fn().mockResolvedValue({});
+  const getConfig =
+    params?.getConfig ??
+    vi.fn().mockResolvedValue({
+      path: "/tmp/kova.json",
+      exists: true,
+      valid: true,
+      config: {
+        tools: {
+          profile: "coding",
+          deny: ["exec"],
+          exec: { security: "allowlist", ask: "on-miss" },
+          fs: { workspaceOnly: true },
+        },
+        plugins: {
+          allow: ["telegram"],
+          entries: { telegram: { enabled: true } },
+        },
+        agents: {
+          defaults: { sandbox: { mode: "non-main" } },
+        },
+      },
+    });
   const patchSession = params?.patchSession ?? vi.fn().mockResolvedValue({});
   const resetSession = params?.resetSession ?? vi.fn().mockResolvedValue({ ok: true });
   const listSessions =
@@ -324,6 +347,7 @@ function createHarness(params?: {
       sendChat,
       steerChat,
       getGatewayStatus,
+      getConfig,
       patchSession,
       resetSession,
       listSessions,
@@ -364,6 +388,7 @@ function createHarness(params?: {
   return {
     handleCommand,
     getGatewayStatus,
+    getConfig,
     sendChat,
     steerChat,
     openOverlay,
@@ -617,6 +642,24 @@ describe("tui command handlers", () => {
     expect(listPlugins).toHaveBeenCalledTimes(2);
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Plugins: 1 plugin"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Plugin: Telegram (telegram)"));
+  });
+
+  it("renders permissions locally without starting an agent turn", async () => {
+    const { handleCommand, getConfig, listTools, listPlugins, sendChat, addUser, addSystem } =
+      createHarness();
+
+    await handleCommand("/permissions");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/permissions");
+    expect(getConfig).toHaveBeenCalledTimes(1);
+    expect(listTools).toHaveBeenCalledWith({ agentId: "main", includePlugins: true });
+    expect(listPlugins).toHaveBeenCalledTimes(1);
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Kova permissions"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("profile: coding"));
+    expect(addSystem).toHaveBeenCalledWith(
+      expect.stringContaining("runtime: 1 tools across 1 groups"),
+    );
   });
 
   it("renders local background tasks without starting an agent turn", async () => {

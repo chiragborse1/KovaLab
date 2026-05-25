@@ -7,6 +7,7 @@ import type {
   ChatSendOptions,
   TuiAgentsList,
   TuiBackend,
+  TuiConfigSnapshot,
   TuiEvent,
   TuiModelChoice,
   TuiSessionList,
@@ -23,6 +24,7 @@ type LocalProcessRequestMethod =
   | "patchSession"
   | "resetSession"
   | "getGatewayStatus"
+  | "getConfig"
   | "listModels"
   | "listCommands"
   | "listPlugins"
@@ -203,6 +205,10 @@ export class LocalProcessTuiBackend implements TuiBackend {
 
   async getGatewayStatus() {
     return await this.request("getGatewayStatus", {});
+  }
+
+  async getConfig() {
+    return (await this.request("getConfig", {})) as TuiConfigSnapshot;
   }
 
   async listModels(): Promise<TuiModelChoice[]> {

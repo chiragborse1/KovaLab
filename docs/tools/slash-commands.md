@@ -148,6 +148,7 @@ Current source-of-truth:
     - `/help` shows the short help summary.
     - `/commands` shows the generated command catalog.
     - `/tools [compact|verbose]` shows what the current agent can use right now.
+    - `/permissions` shows the terminal permission center: tool profile/overrides, exec approval mode, sandbox mode, plugin gates, and the CLI commands that change them.
     - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available. In the local TUI, bare `/status` is a fast terminal snapshot; use `/status full` for this richer status block.
     - `/diagnostics [note]` explains diagnostics privacy and requests an approval-backed `kova gateway diagnostics export --json` support bundle.
     - `/tasks` lists active/recent background tasks for the current session.
@@ -284,6 +285,14 @@ User-invocable skills are also exposed as slash commands:
 - `/tools` includes tools that are actually reachable at runtime, including core tools, connected plugin tools, and channel-owned tools.
 
 For profile and override editing, use terminal/config surfaces such as `kova settings`, `kova config`, plugin setup commands, and the provider/tool docs instead of treating `/tools` as a static catalog.
+
+## `/permissions`
+
+`/permissions` answers the config/control question that `/tools` intentionally does not: **what policy decides what this agent may use**.
+
+- It summarizes `tools.profile`, explicit allow/deny lists, filesystem guards, elevated exec state, exec approval policy, sandbox mode, plugin allow/deny lists, and agent overrides.
+- In the terminal TUI it also includes current runtime counts from `/tools` and `/plugins` when the backend exposes them.
+- For a non-interactive shell view, run `kova permissions`; for the detailed exec merge with the host approvals file, run `kova exec-policy show` or `kova approvals get`.
 
 ## Usage surfaces (what shows where)
 

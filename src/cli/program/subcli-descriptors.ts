@@ -49,6 +49,11 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: true,
   },
   {
+    name: "permissions",
+    description: "Show terminal tool, exec, sandbox, and plugin permissions",
+    hasSubcommands: false,
+  },
+  {
     name: "nodes",
     description: "Manage gateway-owned node pairing and node commands",
     hasSubcommands: true,

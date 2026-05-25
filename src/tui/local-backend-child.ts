@@ -25,6 +25,7 @@ type BackendMethod = keyof Pick<
   | "patchSession"
   | "resetSession"
   | "getGatewayStatus"
+  | "getConfig"
   | "listModels"
   | "listCommands"
   | "listPlugins"
@@ -49,6 +50,7 @@ const backendMethods = new Set<string>([
   "patchSession",
   "resetSession",
   "getGatewayStatus",
+  "getConfig",
   "listModels",
   "listCommands",
   "listPlugins",

@@ -9,6 +9,7 @@ import {
 } from "../auto-reply/thinking.js";
 import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
+import { formatPermissionSummary } from "../permissions/summary.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { formatTokenCount } from "../utils/usage-format.js";
@@ -42,6 +43,7 @@ type TuiToolCatalog = Awaited<ReturnType<NonNullable<TuiBackend["listTools"]>>>;
 type TuiSkillStatus = Awaited<ReturnType<NonNullable<TuiBackend["listSkills"]>>>;
 type TuiPluginStatus = Awaited<ReturnType<NonNullable<TuiBackend["listPlugins"]>>>;
 type TuiTasksList = Awaited<ReturnType<NonNullable<TuiBackend["listTasks"]>>>;
+type TuiConfigSnapshot = Awaited<ReturnType<NonNullable<TuiBackend["getConfig"]>>>;
 type TuiSessionCheckpointList = Awaited<
   ReturnType<NonNullable<TuiBackend["listSessionCheckpoints"]>>
 >;
@@ -928,6 +930,69 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
   };
 
+  const showPermissions = async () => {
+    let configSnapshot: TuiConfigSnapshot | null = null;
+    let tools: TuiToolCatalog | null = null;
+    let plugins: TuiPluginStatus | null = null;
+    try {
+      configSnapshot = client.getConfig ? await client.getConfig() : null;
+    } catch (err) {
+      chatLog.addSystem(`permissions config failed: ${sanitizeRenderableText(String(err))}`);
+      return;
+    }
+    if (!configSnapshot) {
+      chatLog.addSystem("permissions unavailable: backend cannot read config");
+      return;
+    }
+    const cfg = configSnapshot.runtimeConfig ?? configSnapshot.config;
+    if (!cfg) {
+      chatLog.addSystem("permissions unavailable: config snapshot missing");
+      return;
+    }
+    try {
+      tools = client.listTools
+        ? await client.listTools({
+            agentId: state.currentAgentId,
+            includePlugins: true,
+          })
+        : null;
+    } catch {
+      tools = null;
+    }
+    try {
+      plugins = client.listPlugins ? await client.listPlugins() : null;
+    } catch {
+      plugins = null;
+    }
+    const toolCount =
+      tools?.groups.reduce((sum, group) => sum + group.tools.length, 0) ?? undefined;
+    chatLog.addSystem(
+      formatPermissionSummary({
+        cfg,
+        configPath: configSnapshot.path,
+        runtime: {
+          ...(tools
+            ? {
+                tools: {
+                  count: toolCount ?? 0,
+                  groups: tools.groups.length,
+                },
+              }
+            : {}),
+          ...(plugins
+            ? {
+                plugins: {
+                  total: plugins.totals.total,
+                  enabled: plugins.totals.enabled,
+                  errors: plugins.totals.errors,
+                },
+              }
+            : {}),
+        },
+      }),
+    );
+  };
+
   const showTaskAudit = async () => {
     if (!client.auditTasks) {
       await sendMessage("/tasks audit", { queueIfBusy: false });
@@ -1304,6 +1369,10 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "plugins":
         echoCommand();
         await showPlugins(args);
+        break;
+      case "permissions":
+        echoCommand();
+        await showPermissions();
         break;
       case "tasks":
         echoCommand();

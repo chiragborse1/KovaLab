@@ -559,6 +559,19 @@ export class EmbeddedTuiBackend implements TuiBackend {
     return `local embedded mode${this.runs.size > 0 ? ` (${String(this.runs.size)} active run${this.runs.size === 1 ? "" : "s"})` : ""}`;
   }
 
+  async getConfig() {
+    const { readConfigFileSnapshot } = await getConfigModule();
+    const snapshot = await readConfigFileSnapshot();
+    return {
+      path: snapshot.path,
+      exists: snapshot.exists,
+      valid: snapshot.valid,
+      hash: snapshot.hash,
+      config: snapshot.config,
+      runtimeConfig: snapshot.runtimeConfig,
+    };
+  }
+
   async listModels(): Promise<TuiModelChoice[]> {
     const [
       { DEFAULT_PROVIDER },

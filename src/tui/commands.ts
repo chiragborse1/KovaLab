@@ -317,6 +317,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
         return PLUGIN_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
       },
     },
+    { name: "permissions", description: "Show tool, exec, sandbox, and plugin permissions" },
     {
       name: "tasks",
       description: "Show background tasks and repair checks",
@@ -476,6 +477,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       "/skills - loaded skills",
       "/tasks - background work",
       "/plugins - plugin status",
+      "/permissions - permission center",
       "",
       "Control:",
       `/think <default|${thinkLevels}>`,
@@ -510,6 +512,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
     "/plugins [list|verbose|show <plugin>]",
+    "/permissions",
     "",
     "Run controls:",
     `/think <default|${thinkLevels}>`,
