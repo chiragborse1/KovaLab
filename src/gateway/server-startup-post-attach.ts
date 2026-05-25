@@ -676,12 +676,13 @@ export async function startGatewayPostAttachRuntime(
 
   let pluginRegistry = params.pluginRegistry;
   if (!params.minimalTestGateway && params.loadStartupPlugins) {
+    const loadStartupPlugins = params.loadStartupPlugins;
     const loaded = await measureStartup(params.startupTrace, "plugins.runtime-post-bind", () =>
-      params.loadStartupPlugins!(),
+      loadStartupPlugins(),
     );
     pluginRegistry = loaded.pluginRegistry;
     params.startupTrace?.mark("plugins.runtime.ready");
-    params.startupTrace?.detail("plugins.runtime-post-bind", [
+    params.startupTrace?.detail?.("plugins.runtime-post-bind", [
       ["plugins", String(loaded.pluginRegistry.plugins.length)],
       ["methods", String(loaded.gatewayMethods.length)],
     ]);
