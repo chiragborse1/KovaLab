@@ -81,7 +81,7 @@ export const lightMode = isLightBackground();
 
 export const darkPalette = {
   text: "#E8E3D5",
-  dim: "#7B7F87",
+  dim: "#F3EEE0",
   accent: KOVA_ORANGE,
   accentSoft: KOVA_ORANGE_SOFT,
   border: KOVA_ORANGE,
@@ -109,7 +109,7 @@ export const darkPalette = {
 
 export const lightPalette = {
   text: "#1E1E1E",
-  dim: "#5B6472",
+  dim: "#1E1E1E",
   accent: "#C84F00",
   accentSoft: "#B45309",
   border: "#C84F00",

@@ -835,8 +835,8 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     statusText = null;
     statusLoader = new Loader(
       tui,
-      (spinner) => theme.accent(spinner),
-      (text) => theme.bold(theme.accentSoft(text)),
+      (spinner) => theme.userText(spinner),
+      (text) => theme.userText(text),
       "",
     );
     statusContainer.addChild(statusLoader);
@@ -857,7 +857,11 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       waitingTick++;
       statusLoader.setMessage(
         buildWaitingStatusMessage({
-          theme,
+          theme: {
+            dim: theme.userText,
+            bold: theme.bold,
+            accentSoft: theme.userText,
+          },
           tick: waitingTick,
           elapsed,
           connectionStatus,
@@ -948,7 +952,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
         activityStatus && activityStatus !== "idle"
           ? `${connectionStatus} | ${activityStatus}`
           : connectionStatus;
-      statusText?.setText(theme.dim(text));
+      statusText?.setText(theme.userText(text));
     }
     updateHeader();
   };
@@ -1059,7 +1063,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       reasoningLevel: sessionInfo.reasoningLevel,
       queuedCount: queuedMessages.length,
     });
-    footer.setText(theme.dim(footerLine));
+    footer.setText(theme.userText(footerLine));
   };
 
   const { openOverlay, closeOverlay } = createOverlayHandlers(tui, editor);
