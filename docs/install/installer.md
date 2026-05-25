@@ -289,8 +289,8 @@ by default, plus git-checkout installs under the same prefix flow.
   </Step>
   <Step title="Post-install tasks">
     - Adds needed bin directory to user PATH when possible
-    - Refreshes a loaded gateway service best-effort (`kova gateway install --force`, then restart)
-    - Runs `kova doctor --non-interactive` on upgrades and git installs (best effort)
+    - Starts `kova onboard` in the same PowerShell session unless `-NoOnboard` is set
+    - Keeps output plain on legacy Windows PowerShell consoles that do not support ANSI colors
   </Step>
   <Step title="Handle failures">
     `iwr ... | iex` and scriptblock installs report a terminating error without closing the current PowerShell session. Direct `powershell -File` / `pwsh -File` installs still exit non-zero for automation.
@@ -351,13 +351,14 @@ by default, plus git-checkout installs under the same prefix flow.
 
   <Accordion title="Environment variables reference">
 
-| Variable                       | Description        |
-| ------------------------------ | ------------------ |
-| `KOVA_INSTALL_METHOD=git\|npm` | Install method     |
-| `KOVA_GIT_DIR=<path>`          | Checkout directory |
-| `KOVA_NO_ONBOARD=1`            | Skip onboarding    |
-| `KOVA_GIT_UPDATE=0`            | Disable git pull   |
-| `KOVA_DRY_RUN=1`               | Dry run mode       |
+| Variable                                | Description        |
+| --------------------------------------- | ------------------ |
+| `KOVA_INSTALL_METHOD=git\|npm`          | Install method     |
+| `KOVA_GIT_DIR=<path>`                   | Checkout directory |
+| `KOVA_NO_ONBOARD=1`                     | Skip onboarding    |
+| `KOVA_GIT_UPDATE=0`                     | Disable git pull   |
+| `KOVA_DRY_RUN=1`                        | Dry run mode       |
+| `KOVA_NPM_LOGLEVEL=error\|warn\|notice` | npm log level      |
 
   </Accordion>
 </AccordionGroup>

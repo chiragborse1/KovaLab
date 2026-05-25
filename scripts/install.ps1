@@ -14,29 +14,64 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Colors
-$ACCENT = "`e[38;2;255;77;77m"    # coral-bright
-$SUCCESS = "`e[38;2;0;229;204m"    # cyan-bright
-$WARN = "`e[38;2;255;176;32m"     # amber
-$ERROR_COLOR = "`e[38;2;230;57;70m"     # coral-mid
-$MUTED = "`e[38;2;90;100;128m"    # text-muted
-$NC = "`e[0m"                     # No Color
+function Test-AnsiOutput {
+    if ($env:NO_COLOR) {
+        return $false
+    }
+    if ($env:WT_SESSION -or $env:ANSICON -or $env:TERM_PROGRAM) {
+        return $true
+    }
+    if ($env:ConEmuANSI -eq "ON") {
+        return $true
+    }
+    if ($PSVersionTable.PSVersion.Major -ge 7) {
+        return $true
+    }
+    return $false
+}
+
+$script:UseAnsiOutput = Test-AnsiOutput
+$ESC = [char]27
+if ($script:UseAnsiOutput) {
+    $ACCENT = "$ESC[38;2;255;77;77m"    # coral-bright
+    $SUCCESS = "$ESC[38;2;0;229;204m"   # cyan-bright
+    $WARN = "$ESC[38;2;255;176;32m"     # amber
+    $ERROR_COLOR = "$ESC[38;2;230;57;70m" # coral-mid
+    $MUTED = "$ESC[38;2;90;100;128m"    # text-muted
+    $NC = "$ESC[0m"                     # No Color
+} else {
+    $ACCENT = ""
+    $SUCCESS = ""
+    $WARN = ""
+    $ERROR_COLOR = ""
+    $MUTED = ""
+    $NC = ""
+}
 
 function Write-Host {
     param([string]$Message, [string]$Level = "info")
+    if ([string]::IsNullOrEmpty($Message)) {
+        Microsoft.PowerShell.Utility\Write-Host ""
+        return
+    }
+    if ($Level -eq "raw") {
+        Microsoft.PowerShell.Utility\Write-Host $Message
+        return
+    }
+
     $msg = switch ($Level) {
-        "success" { "$SUCCESS✓$NC $Message" }
+        "success" { "${SUCCESS}OK$NC $Message" }
         "warn" { "$WARN!$NC $Message" }
-        "error" { "$ERROR_COLOR✗$NC $Message" }
-        default { "$MUTED·$NC $Message" }
+        "error" { "${ERROR_COLOR}X$NC $Message" }
+        default { "${MUTED}-$NC $Message" }
     }
     Microsoft.PowerShell.Utility\Write-Host $msg
 }
 
 function Write-Banner {
     Write-Host ""
-    Write-Host "${ACCENT}  🦄 Kova Installer$NC" -Level info
-    Write-Host "${MUTED}  All your chats, one Kova.$NC" -Level info
+    Write-Host "${ACCENT}  Kova Installer$NC" -Level raw
+    Write-Host "${MUTED}  All your chats, one Kova.$NC" -Level raw
     Write-Host ""
 }
 
@@ -271,13 +306,15 @@ function Invoke-NativeCommandCapture {
 }
 
 function Get-KovaCommandPath {
-    $command = Get-Command kova -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($command) {
-        if ($command.Path) {
-            return $command.Path
-        }
-        if ($command.Source) {
-            return $command.Source
+    foreach ($commandName in @("kova.cmd", "kova.exe", "kova.ps1", "kova")) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($command) {
+            if ($command.Path) {
+                return $command.Path
+            }
+            if ($command.Source) {
+                return $command.Source
+            }
         }
     }
     return $null
@@ -294,7 +331,19 @@ function Invoke-InteractiveKovaCommand {
         throw "kova command not found on PATH."
     }
 
-    $null = Start-Process -FilePath $commandPath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru
+    try {
+        if ($commandPath -match '(?i)\.ps1$') {
+            & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $commandPath @Arguments
+        } else {
+            & $commandPath @Arguments
+        }
+    } catch {
+        throw "Failed to start Kova setup via ${commandPath}: $_"
+    }
+
+    if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) {
+        throw "Kova setup exited with code $LASTEXITCODE."
+    }
 }
 
 function Install-KovaNpm {
@@ -307,12 +356,18 @@ function Install-KovaNpm {
     try {
         # Run npm out-of-process so warning chatter on stderr does not get
         # promoted into a terminating PowerShell error while the install succeeds.
+        $npmLogLevel = $env:KOVA_NPM_LOGLEVEL
+        if ([string]::IsNullOrWhiteSpace($npmLogLevel)) {
+            $npmLogLevel = "error"
+        }
         $installResult = Invoke-NativeCommandCapture -FilePath "npm.cmd" -Arguments @(
             "install",
             "-g",
             $installSpec,
             "--no-fund",
-            "--no-audit"
+            "--no-audit",
+            "--loglevel",
+            $npmLogLevel
         )
         if ($installResult.Stdout) {
             Microsoft.PowerShell.Utility\Write-Host $installResult.Stdout
@@ -515,7 +570,7 @@ function Main {
     }
     
     Write-Host ""
-    Write-Host "🦄 Kova installed successfully!" -Level success
+    Write-Host "Kova installed successfully!" -Level success
     return $true
 }
 
