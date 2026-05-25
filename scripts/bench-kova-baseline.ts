@@ -490,7 +490,7 @@ async function runTuiBenchmarkInline(options: CliOptions): Promise<TuiBenchResul
         }
       }
     } finally {
-      backend.stop();
+      await backend.stop();
     }
     const firstEventValues = samples
       .map((sample) => sample.firstEventMs)
