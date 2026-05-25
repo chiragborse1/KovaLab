@@ -52,12 +52,13 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Run onboarding">
     ```bash
-    kova onboard --install-daemon
+    kova onboard
     ```
 
-    The wizard walks you through choosing a model provider, setting auth,
-    creating the workspace, enabling the learning loop, and opening terminal
-    chat. It takes about 2 minutes.
+    Kova Start walks you through choosing a model provider, setting auth,
+    creating the workspace, and opening terminal chat. It keeps Gateway service,
+    channels, web search, skills, and hooks for later so the first run stays
+    short.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 
@@ -77,8 +78,9 @@ Need to install Node? See [Node setup](/install/node).
     ```
 
     The Gateway is headless infrastructure for remote access, channels, cron,
-    nodes, apps, and optional web compatibility. If you installed the daemon,
-    you should see it listening on port 18789.
+    nodes, apps, and optional web compatibility. Install the daemon with
+    `kova onboard --install-daemon` or start it manually with `kova gateway run`
+    when you need those surfaces.
 
   </Step>
   <Step title="Optional: inspect from the terminal">

@@ -9,10 +9,10 @@ title: "Onboard"
 
 Interactive onboarding for the terminal-first Kova agent setup.
 
-The interactive flow starts with a Kova Setup screen, then walks through setup
-type, workspace, model, Gateway access, web search, skills, hooks, and where to
-start first. Quick setup starts in terminal chat; channels, apps, and the
-legacy browser UI are optional follow-up surfaces.
+The interactive flow starts with a Kova Start screen. The default path asks only
+for model/auth and workspace, saves a private local Gateway config for later,
+then opens terminal chat. Advanced setup keeps the full Gateway, channel,
+service, web search, skills, and hooks prompts.
 
 After a valid config exists, plain `kova onboard` opens terminal settings
 instead of repeating first-run onboarding. Pass explicit onboarding flags such
@@ -193,7 +193,7 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: Quick setup, minimal prompts, terminal chat first, auto-generates a Gateway token.
+    - `quickstart`: Kova Start, minimal prompts, terminal chat first, auto-generates a Gateway token, and skips Gateway health/service, channels, web search, skills, and hooks until later.
     - `manual`: Custom setup, full prompts for port, bind, and auth (alias of `advanced`).
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
@@ -214,7 +214,7 @@ kova onboard --non-interactive \
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
     - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
     - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
-    - Quick setup skips channels by default. Use `--with-channels`, custom setup, or `kova channels add` when you want Kova on chat platforms.
+    - Kova Start skips channels, web search, skills, hooks, and service install by default. Use `--with-channels`, advanced setup, `kova settings`, or `kova channels add` when you want the larger surface.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

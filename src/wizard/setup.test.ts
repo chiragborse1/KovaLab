@@ -92,6 +92,7 @@ const logConfigUpdated = vi.hoisted(() => vi.fn(() => {}));
 const setupInternalHooks = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 
 const setupChannels = vi.hoisted(() => vi.fn(async (cfg) => cfg));
+const setupSearch = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const setupSkills = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const detectSetupMigrationSources = vi.hoisted(() => vi.fn(async () => []));
 const runSetupMigrationImport = vi.hoisted(() => vi.fn(async () => {}));
@@ -159,6 +160,10 @@ vi.mock("../commands/onboard-channels.js", () => ({
 
 vi.mock("../commands/onboard-skills.js", () => ({
   setupSkills,
+}));
+
+vi.mock("../commands/onboard-search.js", () => ({
+  setupSearch,
 }));
 
 vi.mock("./setup.migration-import.js", () => ({
@@ -351,7 +356,7 @@ describe("runSetupWizard", () => {
 
     const caseDir = await makeCaseDir("provider-missing-id-");
     const select = vi.fn(async ({ message }: WizardSelectParams<unknown>) => {
-      if (message === "Choose setup type") {
+      if (message === "How should Kova start?") {
         return "quickstart";
       }
       if (message === "Choose a chat channel") {
@@ -465,6 +470,41 @@ describe("runSetupWizard", () => {
     expect(setupSkills).not.toHaveBeenCalled();
     expect(healthCommand).not.toHaveBeenCalled();
     expect(runTui).not.toHaveBeenCalled();
+  });
+
+  it("keeps Kova Start on the short terminal path by default", async () => {
+    setupChannels.mockClear();
+    setupSearch.mockClear();
+    setupSkills.mockClear();
+    setupInternalHooks.mockClear();
+    const note: WizardPrompter["note"] = vi.fn(async () => {});
+    const prompter = buildWizardPrompter({ note });
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "quickstart",
+        authChoice: "skip",
+        installDaemon: false,
+        skipHealth: true,
+        skipUi: true,
+      },
+      createRuntime(),
+      prompter,
+    );
+
+    expect(setupChannels).not.toHaveBeenCalled();
+    expect(setupSearch).not.toHaveBeenCalled();
+    expect(setupSkills).not.toHaveBeenCalled();
+    expect(setupInternalHooks).not.toHaveBeenCalled();
+    expect(note).toHaveBeenCalledWith(
+      expect.stringContaining("Kova Start skips web search until terminal chat works."),
+      "Web search",
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.stringContaining("Kova Start skips skill installation for a faster first run."),
+      "Skills",
+    );
   });
 
   it("does not scan migration providers during normal quick setup", async () => {
@@ -1034,7 +1074,7 @@ describe("runSetupWizard", () => {
     expect(
       calls.some(
         (call) =>
-          call?.[1] === "Quick setup" &&
+          call?.[1] === "Kova Start" &&
           typeof call?.[0] === "string" &&
           call[0].includes("Gateway port: 18791"),
       ),

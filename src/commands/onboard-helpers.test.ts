@@ -57,9 +57,9 @@ describe("formatWizardBootScreen", () => {
     const output = formatWizardBootScreen();
 
     expect(output).toContain("KOVA");
-    expect(output).toContain("Setup");
-    expect(output).toContain("start your terminal AI agent");
-    expect(output).toContain("set persona, memory, skills, tools");
+    expect(output).toContain("Kova Start");
+    expect(output).toContain("first chat first, extras later");
+    expect(output).toContain("channels, Gateway, skills, web tools");
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("openclaw");

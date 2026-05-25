@@ -239,8 +239,8 @@ export async function runSetupWizard(
     );
   }
 
-  const quickstartHint = `Fast terminal setup. Change details later with ${formatCliCommand("kova configure")}.`;
-  const manualHint = "Choose workspace, network, auth, service, and channel details yourself.";
+  const quickstartHint = "First chat first: model/auth, workspace, then terminal chat.";
+  const manualHint = "Full control over Gateway, channels, tools, service, and advanced setup.";
   const explicitFlowRaw = opts.flow?.trim();
   const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;
   if (
@@ -270,16 +270,16 @@ export async function runSetupWizard(
   };
   const importOption = {
     value: "import" as const,
-    label: "Import from another setup",
-    hint: "Detects supported agent homes only if selected",
+    label: "Import or migrate",
+    hint: "Bring supported agent homes into Kova",
   };
   let flow: SetupFlowChoice =
     explicitFlow ??
     (await prompter.select({
-      message: "Choose setup type",
+      message: "How should Kova start?",
       options: [
-        { value: "quickstart", label: "Quick setup", hint: quickstartHint },
-        { value: "advanced", label: "Custom setup", hint: manualHint },
+        { value: "quickstart", label: "Kova Start", hint: quickstartHint },
+        { value: "advanced", label: "Advanced setup", hint: manualHint },
         importOption,
       ],
       initialValue: "quickstart",
@@ -287,8 +287,8 @@ export async function runSetupWizard(
 
   if (opts.mode === "remote" && flow === "quickstart") {
     await prompter.note(
-      "Quick setup is local-only. Switching to custom setup for remote gateway setup.",
-      "Setup type",
+      "Kova Start is local-only. Switching to Advanced setup for remote Gateway setup.",
+      "Setup path",
     );
     flow = "advanced";
   }
@@ -427,7 +427,7 @@ export async function runSetupWizard(
     };
     const quickstartLines = quickstartGateway.hasExisting
       ? [
-          "Quick setup will keep your current gateway settings:",
+          "Kova Start keeps your current Gateway settings, but opens terminal chat first:",
           `Gateway port: ${quickstartGateway.port}`,
           `Gateway bind: ${formatBind(quickstartGateway.bind)}`,
           ...(quickstartGateway.bind === "custom" && quickstartGateway.customBindHost
@@ -435,17 +435,19 @@ export async function runSetupWizard(
             : []),
           `Gateway auth: ${formatAuth(quickstartGateway.authMode)}`,
           `Tailscale exposure: ${formatTailscale(quickstartGateway.tailscaleMode)}`,
-          "Next: choose model, workspace, learning surfaces, and terminal start.",
+          "Skipped for now: channels, web search, skills, hooks, and service install.",
+          "Next: model/auth, workspace, terminal chat.",
         ]
       : [
-          "Quick setup will prepare terminal chat and a private local Gateway:",
+          "Kova Start prepares a private terminal-first setup:",
           `Gateway port: ${quickstartGateway.port}`,
           "Gateway bind: Loopback (127.0.0.1)",
           "Gateway auth: Token (default)",
           "Tailscale exposure: Off",
-          "Next: choose model, workspace, learning surfaces, and terminal start.",
+          "Skipped for now: channels, web search, skills, hooks, and service install.",
+          "Next: model/auth, workspace, terminal chat.",
         ];
-    await prompter.note(quickstartLines.join("\n"), "Quick setup");
+    await prompter.note(quickstartLines.join("\n"), "Kova Start");
   }
 
   const localPort = resolveGatewayPort(baseConfig);
@@ -774,8 +776,16 @@ export async function runSetupWizard(
     skipBootstrap: Boolean(nextConfig.agents?.defaults?.skipBootstrap),
   });
 
-  if (opts.skipSearch) {
-    await prompter.note("Web search skipped. You can add it later.", "Web search");
+  if (opts.skipSearch || flow === "quickstart") {
+    const message =
+      flow === "quickstart" && !opts.skipSearch
+        ? [
+            "Kova Start skips web search until terminal chat works.",
+            `Add it later: ${formatCliCommand("kova configure --section web")}`,
+            `Or rerun Advanced setup: ${formatCliCommand("kova onboard --flow advanced")}`,
+          ].join("\n")
+        : "Web search skipped. You can add it later.";
+    await prompter.note(message, "Web search");
   } else {
     const { setupSearch } = await import("../commands/onboard-search.js");
     nextConfig = await setupSearch(nextConfig, runtime, prompter, {
@@ -784,8 +794,16 @@ export async function runSetupWizard(
     });
   }
 
-  if (opts.skipSkills) {
-    await prompter.note("Skills skipped. You can install them later.", "Skills");
+  if (opts.skipSkills || flow === "quickstart") {
+    const message =
+      flow === "quickstart" && !opts.skipSkills
+        ? [
+            "Kova Start skips skill installation for a faster first run.",
+            `Inspect later: ${formatCliCommand("kova skills")}`,
+            `Configure later: ${formatCliCommand("kova settings")}`,
+          ].join("\n")
+        : "Skills skipped. You can install them later.";
+    await prompter.note(message, "Skills");
   } else {
     const { setupSkills } = await import("../commands/onboard-skills.js");
     nextConfig = await setupSkills(nextConfig, workspaceDir, runtime, prompter);
@@ -802,8 +820,19 @@ export async function runSetupWizard(
   }
 
   // Setup hooks (session memory on /new)
-  const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
-  nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
+  if (flow === "quickstart") {
+    await prompter.note(
+      [
+        "Automation hooks skipped for Kova Start.",
+        `Review later: ${formatCliCommand("kova hooks list")}`,
+        `Enable later: ${formatCliCommand("kova hooks enable <name>")}`,
+      ].join("\n"),
+      "Automation hooks",
+    );
+  } else {
+    const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
+    nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
+  }
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
   nextConfig = await writeWizardConfigFile(nextConfig, {

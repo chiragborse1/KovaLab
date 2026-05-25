@@ -287,7 +287,7 @@ describe("finalizeSetupWizard", () => {
 
     try {
       await finalizeSetupWizard({
-        flow: "quickstart",
+        flow: "advanced",
         opts: {
           acceptRisk: true,
           authChoice: "skip",
@@ -368,7 +368,7 @@ describe("finalizeSetupWizard", () => {
     const runtime = createRuntime();
 
     await finalizeSetupWizard({
-      flow: "quickstart",
+      flow: "advanced",
       opts: {
         acceptRisk: true,
         authChoice: "skip",
@@ -630,7 +630,7 @@ describe("finalizeSetupWizard", () => {
     );
   });
 
-  it("shows actionable gateway guidance instead of a hard error in no-daemon onboarding", async () => {
+  it("shows actionable gateway guidance instead of a hard error in advanced no-daemon onboarding", async () => {
     waitForGatewayReachable.mockResolvedValue({
       ok: false,
       detail: "gateway closed (1006 abnormal closure (no close frame)): no close reason",
@@ -643,7 +643,7 @@ describe("finalizeSetupWizard", () => {
     const runtime = createRuntime();
 
     await finalizeSetupWizard({
-      flow: "quickstart",
+      flow: "advanced",
       opts: {
         acceptRisk: true,
         authChoice: "skip",
@@ -672,6 +672,42 @@ describe("finalizeSetupWizard", () => {
       "Gateway",
     );
     expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Control UI ready");
+  });
+
+  it("skips Gateway probes during Kova Start without a daemon", async () => {
+    const prompter = createLaterPrompter();
+
+    await finalizeSetupWizard({
+      flow: "quickstart",
+      opts: {
+        acceptRisk: true,
+        authChoice: "skip",
+        installDaemon: false,
+        skipHealth: false,
+        skipUi: true,
+      },
+      baseConfig: {},
+      nextConfig: {},
+      workspaceDir: "/tmp",
+      settings: {
+        port: 18789,
+        bind: "loopback",
+        authMode: "token",
+        gatewayToken: "test-token",
+        tailscaleMode: "off",
+        tailscaleResetOnExit: false,
+      },
+      prompter,
+      runtime: createRuntime(),
+    });
+
+    expect(waitForGatewayReachable).not.toHaveBeenCalled();
+    expect(probeGatewayReachable).not.toHaveBeenCalled();
+    expect(isSystemdUserServiceAvailable).not.toHaveBeenCalled();
+    expect(prompter.note).toHaveBeenCalledWith(
+      expect.stringContaining("Gateway health check skipped for Kova Start."),
+      "Gateway",
+    );
   });
 
   it("shows terminal next steps when launch prompts are skipped", async () => {
