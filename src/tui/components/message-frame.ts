@@ -18,16 +18,6 @@ function padToWidth(line: string, width: number): string {
   return clipped + " ".repeat(Math.max(0, width - visibleWidth(clipped)));
 }
 
-function borderLine(
-  width: number,
-  left: string,
-  fill: string,
-  right: string,
-  style: (text: string) => string,
-) {
-  return style(`${left}${fill.repeat(Math.max(0, width - 2))}${right}`);
-}
-
 export class MessageFrame implements Component {
   constructor(
     private readonly body: Component,
@@ -40,14 +30,13 @@ export class MessageFrame implements Component {
       return this.body.render(requestedWidth);
     }
     const frameWidth = requestedWidth;
-    const innerWidth = Math.max(1, frameWidth - 4);
+    const innerWidth = Math.max(1, frameWidth - 2);
     const bodyLines = this.body.render(innerWidth);
     const content = bodyLines.length > 0 ? bodyLines : [""];
 
     return [
       this.renderTop(frameWidth),
       ...content.map((line) => this.renderContentLine(line, innerWidth)),
-      borderLine(frameWidth, "╰", "─", "╯", this.options.theme.border),
     ];
   }
 
@@ -59,20 +48,16 @@ export class MessageFrame implements Component {
     const maxTitleWidth = Math.max(1, width - 7);
     const title = truncateToWidth(this.options.title, maxTitleWidth, "…");
     const titleWidth = visibleWidth(title);
-    const fillerWidth = Math.max(0, width - 5 - titleWidth);
+    const fillerWidth = Math.max(0, width - 4 - titleWidth);
 
     return [
       this.options.theme.border("╭─ "),
       this.options.theme.title(title),
-      this.options.theme.border(` ${"─".repeat(fillerWidth)}╮`),
+      this.options.theme.border(` ${"─".repeat(fillerWidth)}`),
     ].join("");
   }
 
   private renderContentLine(line: string, innerWidth: number): string {
-    return [
-      this.options.theme.border("│ "),
-      padToWidth(line, innerWidth),
-      this.options.theme.border(" │"),
-    ].join("");
+    return [this.options.theme.border("  "), padToWidth(line, innerWidth)].join("");
   }
 }

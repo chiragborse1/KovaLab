@@ -49,9 +49,10 @@ describe("ChatLog", () => {
     const rendered = normalizeTestText(chatLog.render(48).join("\n"));
 
     expect(rendered).toContain("╭─ You");
-    expect(rendered).toContain("│ please check the build");
+    expect(rendered).toContain("  please check the build");
     expect(rendered).toContain("╭─ Kova");
-    expect(rendered).toContain("│ Build looks clean.");
+    expect(rendered).toContain("  Build looks clean.");
+    expect(rendered).not.toContain("╰");
   });
 
   it("drops stale tool references when old components are pruned", () => {

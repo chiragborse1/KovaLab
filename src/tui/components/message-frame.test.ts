@@ -17,7 +17,7 @@ const plainTheme = {
 };
 
 describe("MessageFrame", () => {
-  it("renders a titled border without changing visible width", () => {
+  it("renders an open titled frame without changing visible width", () => {
     const frame = new MessageFrame(new PlainBody(), {
       title: "Kova",
       theme: plainTheme,
@@ -26,8 +26,10 @@ describe("MessageFrame", () => {
     const lines = frame.render(24);
 
     expect(lines[0]).toContain("╭─ Kova");
-    expect(lines[1]).toContain("│ hello");
-    expect(lines.at(-1)).toContain("╰");
+    expect(lines[0]).not.toContain("╮");
+    expect(lines[1]).toContain("  hello");
+    expect(lines.join("\n")).not.toContain("│");
+    expect(lines.join("\n")).not.toContain("╰");
     expect(lines.every((line) => visibleWidth(line) === 24)).toBe(true);
   });
 
