@@ -20,7 +20,7 @@ kova status --usage
 
 Notes:
 
-- The Overview starts with `Terminal: kova chat`. Use `kova settings`,
+- The Overview starts with `Terminal: kova`. Use `kova settings`,
   `kova logs`, `kova tasks`, `kova memory`, `kova skills`, and TUI slash
   commands for daily administration. The browser UI appears only when it is
   explicitly enabled.

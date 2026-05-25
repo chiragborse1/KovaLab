@@ -194,7 +194,7 @@ export function buildStatusOverviewRows(params: {
 }): StatusOverviewRow[] {
   const rows: StatusOverviewRow[] = [...(params.prefixRows ?? [])];
   rows.push(
-    { Item: "Terminal", Value: params.terminalValue ?? "kova chat" },
+    { Item: "Terminal", Value: params.terminalValue ?? "kova" },
     { Item: "Legacy web UI", Value: params.controlUiValue },
     { Item: "Tailscale exposure", Value: params.tailscaleValue },
     { Item: "Channel", Value: params.channelLabel },

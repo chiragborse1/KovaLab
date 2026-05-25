@@ -288,14 +288,14 @@ describe("isCommandMessage", () => {
 });
 
 describe("formatFooterSessionLabel", () => {
-  it("keeps the lower TUI footer compact for normal terminal sessions", () => {
+  it("keeps the lower TUI footer explicit for normal terminal sessions", () => {
     expect(
       formatFooterSessionLabel({
         agentLabel: "main",
         sessionLabel: "tui-123",
         displayName: "TUI",
       }),
-    ).toBe("main/tui-123");
+    ).toBe("agent main | session tui-123");
   });
 
   it("keeps meaningful display names", () => {
@@ -305,7 +305,7 @@ describe("formatFooterSessionLabel", () => {
         sessionLabel: "research",
         displayName: "market scan",
       }),
-    ).toBe("main/research (market scan)");
+    ).toBe("agent main | session research (market scan)");
   });
 });
 
@@ -313,7 +313,7 @@ describe("formatTuiFooterLine", () => {
   it("keeps the footer focused on session, active flags, queue, and context", () => {
     expect(
       formatTuiFooterLine({
-        sessionLabel: "main/tui-123",
+        sessionLabel: "agent main | session tui-123",
         tokens: "ctx 18k/272k (7%)",
         thinkingLevel: "off",
         fastMode: false,
@@ -321,13 +321,13 @@ describe("formatTuiFooterLine", () => {
         reasoningLevel: "off",
         queuedCount: 0,
       }),
-    ).toBe("main/tui-123 | ctx 18k/272k (7%)");
+    ).toBe("agent main | session tui-123 | ctx 18k/272k (7%)");
   });
 
   it("includes only active runtime modifiers", () => {
     expect(
       formatTuiFooterLine({
-        sessionLabel: "main/research",
+        sessionLabel: "agent main | session research",
         tokens: "ctx 20k/200k (10%)",
         thinkingLevel: "high",
         fastMode: true,
@@ -336,7 +336,7 @@ describe("formatTuiFooterLine", () => {
         queuedCount: 2,
       }),
     ).toBe(
-      "main/research | think high | fast | verbose full | reasoning:stream | queue 2 | ctx 20k/200k (10%)",
+      "agent main | session research | think high | fast | verbose full | reasoning:stream | queue 2 | ctx 20k/200k (10%)",
     );
   });
 });

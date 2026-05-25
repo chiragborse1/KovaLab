@@ -37,6 +37,7 @@ describe("parseCommand", () => {
       name: "model",
       args: "openai/gpt-5.4",
     });
+    expect(parseCommand("/v")).toEqual({ name: "verbose", args: "" });
     expect(parseCommand("/footer status")).toEqual({ name: "usage", args: "status" });
   });
 
@@ -55,6 +56,9 @@ describe("getSlashCommands", () => {
       { value: "off", label: "off" },
     ]);
     expect(verbose?.getArgumentCompletions?.("f")).toEqual([{ value: "full", label: "full" }]);
+    expect(verbose?.getArgumentCompletions?.("v")).toEqual([
+      { value: "verbose", label: "verbose" },
+    ]);
     const details = commands.find((command) => command.name === "details");
     expect(details?.getArgumentCompletions?.("e")).toEqual([
       { value: "expanded", label: "expanded" },
@@ -255,6 +259,7 @@ describe("helpText", () => {
     expect(output).toContain("/memory - memory health and commands");
     expect(output).toContain("/limits - context window vs provider quota");
     expect(output).toContain("/approve - choose a pending approval");
+    expect(output).toContain("/verbose - cycle tool activity");
     expect(output).toContain("/details <hidden|collapsed|expanded>");
     expect(output).toContain("More: /commands, /help all");
     expect(output).toContain("/commands opens the full catalog");
@@ -289,6 +294,7 @@ describe("helpText", () => {
     );
     expect(output).toContain("/approve [id] [allow-once|allow-always|deny]");
     expect(output).toContain("Run controls:");
+    expect(output).toContain("/verbose [off|new|all|verbose]");
     expect(output).toContain("/details <status|hidden|collapsed|expanded|cycle>");
     expect(output).toContain("/stop");
     expect(output).toContain("Short aliases still work.");

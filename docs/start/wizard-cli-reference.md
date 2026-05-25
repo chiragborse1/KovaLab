@@ -16,7 +16,7 @@ Local mode (default) walks you through:
 
 - Model and auth setup (OpenAI Code subscription OAuth, Anthropic Claude CLI or API key, plus MiniMax, GLM, Ollama, Moonshot, StepFun, and AI Gateway options)
 - Workspace location and bootstrap files
-- Terminal chat through `kova chat`
+- Terminal chat through `kova`
 - Gateway settings for always-on and remote surfaces (port, bind, auth, tailscale)
 - Channels and providers only when requested (Telegram, WhatsApp, Discord, Google Chat, Mattermost, Signal, BlueBubbles, and other bundled channel plugins)
 - Daemon install (LaunchAgent, systemd user unit, or native Windows Scheduled Task with Startup-folder fallback)

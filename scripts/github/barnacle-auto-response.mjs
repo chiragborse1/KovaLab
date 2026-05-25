@@ -13,7 +13,7 @@ export const rules = [
     label: "r: support",
     close: true,
     message:
-      "Please use [our support server](https://discord.gg/kova) and ask in #help or #users-helping-users to resolve this, or follow the stuck FAQ at https://docs.neuralstudio.in/help/faq#im-stuck-whats-the-fastest-way-to-get-unstuck.",
+      "Please use [our support server](https://discord.gg/uT9ETzpaHT) and ask in #help or #users-helping-users to resolve this, or follow the stuck FAQ at https://docs.neuralstudio.in/help/faq#im-stuck-whats-the-fastest-way-to-get-unstuck.",
   },
   {
     label: "r: no-ci-pr",
@@ -171,7 +171,7 @@ const bugSubtypeLabels = Object.keys(bugSubtypeLabelSpecs);
 
 const maintainerTeam = "maintainer";
 const pingWarningMessage =
-  "Please don’t spam-ping multiple maintainers at once. Be patient, or join our community Discord for help: https://discord.gg/kova";
+  "Please don’t spam-ping multiple maintainers at once. Be patient, or join our community Discord for help: https://discord.gg/uT9ETzpaHT";
 const mentionRegex = /@([A-Za-z0-9-]+)/g;
 const triggerLabel = "trigger-response";
 const activePrLimitLabel = "r: too-many-prs";

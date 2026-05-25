@@ -20,10 +20,10 @@ export function registerTuiCli(program: Command) {
     });
 
   program
-    .command("tui")
+    .command("tui", { hidden: true })
     .alias("terminal")
     .alias("chat")
-    .description("Open a terminal UI connected to the Gateway")
+    .description("Open the compatibility terminal UI command")
     .option("--local", "Run against the local embedded agent runtime", false)
     .option("--url <url>", "Gateway WebSocket URL (defaults to gateway.remote.url when configured)")
     .option("--token <token>", "Gateway token (if required)")

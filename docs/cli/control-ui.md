@@ -9,7 +9,7 @@ title: "Control UI command"
 # `kova control-ui`
 
 Open the legacy browser Control UI using your current auth. For daily chat and
-administration, use `kova chat`, `kova status --all`, `kova settings`, and
+administration, use `kova`, `kova status --all`, `kova settings`, and
 `kova logs`; the browser UI is optional compatibility surface area.
 
 ```bash

@@ -8,7 +8,7 @@ sidebarTitle: "Control UI"
 ---
 
 The Control UI is the legacy optional browser operator surface served by the
-Gateway. Use `kova chat`, `kova status --all`, `kova settings`, and `kova logs`
+Gateway. Use `kova`, `kova status --all`, `kova settings`, and `kova logs`
 for the primary terminal experience. Use the Control UI only when you
 intentionally need the browser compatibility surface.
 

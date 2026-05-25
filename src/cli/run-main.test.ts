@@ -102,13 +102,19 @@ describe("shouldStartLocalChatForBareRoot", () => {
 
 describe("rewriteBareRootArgvToLocalChat", () => {
   it("routes bare root invocations to local chat", () => {
-    expect(rewriteBareRootArgvToLocalChat(["node", "kova"])).toEqual(["node", "kova", "chat"]);
+    expect(rewriteBareRootArgvToLocalChat(["node", "kova"])).toEqual([
+      "node",
+      "kova",
+      "tui",
+      "--local",
+    ]);
     expect(rewriteBareRootArgvToLocalChat(["node", "kova", "--profile", "work"])).toEqual([
       "node",
       "kova",
       "--profile",
       "work",
-      "chat",
+      "tui",
+      "--local",
     ]);
   });
 
@@ -169,7 +175,7 @@ describe("resolveMissingPluginCommandMessage", () => {
       },
     });
     expect(message).toContain("has been removed");
-    expect(message).toContain("kova chat");
+    expect(message).toContain("kova");
     expect(message).toContain("kova control-ui");
     expect(message).not.toContain("plugins.allow");
   });

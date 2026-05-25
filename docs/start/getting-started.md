@@ -8,7 +8,7 @@ title: "Getting started"
 
 Install Kova, run onboarding, and start a terminal chat in about 5 minutes.
 By the end you will have a local agent workspace, configured model auth, a
-working `kova chat` session, and optional channel setup if you want chat apps.
+working `kova` session, and optional channel setup if you want chat apps.
 Advanced Gateway/service features can be configured during onboarding extras or
 skipped until after the local agent is working.
 
@@ -41,7 +41,7 @@ Need to install Node? See [Node setup](/install/node).
       </Tab>
       <Tab title="Windows (PowerShell)">
         ```powershell
-        iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+        powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
         ```
       </Tab>
     </Tabs>
@@ -66,7 +66,7 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
   <Step title="Start terminal chat">
     ```bash
-    kova chat
+    kova
     ```
 
     This runs the embedded local agent directly. No browser, Gateway, or chat

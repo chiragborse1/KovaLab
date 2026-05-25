@@ -75,18 +75,21 @@ const subCliCommandCatalog = defineCommandDescriptorCatalog([
   },
   {
     name: "tui",
-    description: "Open a terminal UI connected to the Gateway",
+    description: "Open the compatibility terminal UI command",
     hasSubcommands: false,
+    hidden: true,
   },
   {
     name: "terminal",
-    description: "Open a local terminal UI (alias for tui --local)",
+    description: "Open a local terminal UI (compatibility alias)",
     hasSubcommands: false,
+    hidden: true,
   },
   {
     name: "chat",
-    description: "Open a local terminal UI (alias for tui --local)",
+    description: "Open a local terminal UI (compatibility alias)",
     hasSubcommands: false,
+    hidden: true,
   },
   {
     name: "tui-local-backend",

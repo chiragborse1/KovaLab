@@ -232,6 +232,28 @@ function normalizeDetailsMode(value: string): DetailsMode | "cycle" | "status" |
   return null;
 }
 
+function normalizeVerboseDetailsMode(value: string): DetailsMode | "cycle" | null {
+  const normalized = normalizeLowercaseStringOrEmpty(value);
+  if (!normalized || normalized === "cycle" || normalized === "toggle") {
+    return "cycle";
+  }
+  if (normalized === "off" || normalized === "hidden" || normalized === "silent") {
+    return "hidden";
+  }
+  if (
+    normalized === "on" ||
+    normalized === "new" ||
+    normalized === "all" ||
+    normalized === "collapsed"
+  ) {
+    return "collapsed";
+  }
+  if (normalized === "full" || normalized === "verbose" || normalized === "expanded") {
+    return "expanded";
+  }
+  return null;
+}
+
 function formatToolCatalog(result: TuiToolCatalog, mode: "compact" | "verbose"): string {
   const groups = Array.isArray(result.groups) ? result.groups : [];
   const totalTools = groups.reduce((sum, group) => sum + group.tools.length, 0);
@@ -1339,7 +1361,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         verboseLevel,
       });
       chatLog.addSystem(
-        `details ${mode} (${mode === "hidden" ? "tool cards off" : mode === "collapsed" ? "tool cards on, output folded" : "tool cards and output expanded"})`,
+        `details ${mode} (${mode === "hidden" ? "tool activity off" : mode === "collapsed" ? "tool activity rail on" : "tool rail and output expanded"})`,
       );
       applySessionInfoFromPatch(result);
       await loadHistory();
@@ -1863,26 +1885,12 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "verbose": {
-        if (!args) {
-          chatLog.addSystem("usage: /verbose <on|off|full>");
+        const mode = normalizeVerboseDetailsMode(args);
+        if (!mode) {
+          chatLog.addSystem("usage: /verbose [off|new|all|verbose]");
           break;
         }
-        const verboseLevel = normalizeLowercaseStringOrEmpty(args);
-        if (verboseLevel !== "on" && verboseLevel !== "off" && verboseLevel !== "full") {
-          chatLog.addSystem("usage: /verbose <on|off|full>");
-          break;
-        }
-        try {
-          const result = await client.patchSession({
-            key: state.currentSessionKey,
-            verboseLevel,
-          });
-          chatLog.addSystem(`verbose set to ${verboseLevel}`);
-          applySessionInfoFromPatch(result);
-          await loadHistory();
-        } catch (err) {
-          chatLog.addSystem(`verbose failed: ${String(err)}`);
-        }
+        await showOrSetDetails(mode);
         break;
       }
       case "details":

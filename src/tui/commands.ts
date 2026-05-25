@@ -9,7 +9,7 @@ import type { KovaConfig } from "../config/types.js";
 import type { CommandEntry } from "../gateway/protocol/index.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
-const VERBOSE_LEVELS = ["on", "off", "full"];
+const VERBOSE_LEVELS = ["on", "off", "full", "new", "all", "verbose"];
 const DETAIL_LEVELS = ["status", "hidden", "collapsed", "expanded", "cycle"];
 const TRACE_LEVELS = ["on", "off"];
 const FAST_LEVELS = ["status", "on", "off", "default"];
@@ -181,6 +181,7 @@ const COMMAND_ALIASES: Record<string, string> = {
   limit: "limits",
   plugin: "plugins",
   quit: "exit",
+  v: "verbose",
 };
 
 const HIDDEN_ALIAS_NAMES = new Set([
@@ -446,7 +447,8 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "verbose",
-      description: "Set verbose on/off/full",
+      description: "Cycle or set live tool activity",
+      argumentHint: "[off|new|all|verbose]",
       getArgumentCompletions: verboseCompletions,
     },
     {
@@ -561,6 +563,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       `/think <default|${thinkLevels}>`,
       "/fast <status|on|off|default>",
       "/busy <status|queue|steer|interrupt|clear>",
+      "/verbose - cycle tool activity",
       "/details <hidden|collapsed|expanded>",
       "/update [status|run]",
       "",
@@ -597,7 +600,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "Run controls:",
     `/think <default|${thinkLevels}>`,
     "/fast <status|on|off|default>",
-    "/verbose <on|off|full>",
+    "/verbose [off|new|all|verbose]",
     "/details <status|hidden|collapsed|expanded|cycle>",
     "/trace <on|off>",
     "/reasoning <on|off>",

@@ -359,7 +359,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     ```powershell
     # install.ps1 has no dedicated -Verbose flag yet.
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
 

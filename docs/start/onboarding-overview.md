@@ -22,7 +22,7 @@ legacy browser UI are optional follow-up surfaces.
 | **Command**    | `kova onboard`                              | Launch the app            |
 
 Most users should start with **CLI onboarding**. It works everywhere and gets to
-`kova chat` before any browser or channel setup.
+`kova` before any browser or channel setup.
 
 ## What onboarding configures
 
@@ -30,7 +30,7 @@ Regardless of which path you choose, onboarding sets up:
 
 1. **Model provider and auth** — API key, OAuth, or setup token for your chosen provider
 2. **Workspace** — directory for agent files, bootstrap templates, and memory
-3. **Terminal chat** — first local conversation through `kova chat`
+3. **Terminal chat** — first local conversation through `kova`
 4. **Gateway** (optional) — port, bind address, auth mode for always-on and remote access
 5. **Channels** (optional) — built-in and bundled chat channels such as
    BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams,

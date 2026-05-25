@@ -58,4 +58,19 @@ describe("tui-waiting", () => {
     expect(msg).toContain("<d>moseying…</d>");
     expect(msg).not.toContain("<b><a>");
   });
+
+  it("can include an honest waiting phase", () => {
+    const msg = buildWaitingStatusMessage({
+      theme,
+      tick: 1,
+      elapsed: "12s",
+      connectionStatus: "local ready",
+      phase: "model deciding next action",
+      phrases: ["moseying"],
+      animated: false,
+    });
+
+    expect(msg).toContain("<d>model deciding next action</d>");
+    expect(msg).toContain("local ready");
+  });
 });

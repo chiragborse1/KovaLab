@@ -333,7 +333,7 @@ export function buildStatusFooterLines(params: {
     "Troubleshooting: https://docs.neuralstudio.in/troubleshooting",
     ...(params.updateHint ? ["", params.warn(params.updateHint)] : []),
     "Next steps:",
-    `  Start chatting:     ${params.formatCliCommand("kova chat")}`,
+    `  Start chatting:     ${params.formatCliCommand("kova")}`,
     `  Need to share?      ${params.formatCliCommand("kova status --all")}`,
     `  Need to debug live? ${params.formatCliCommand("kova logs --follow")}`,
     params.nodeOnlyGateway

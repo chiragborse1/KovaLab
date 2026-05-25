@@ -1658,6 +1658,44 @@ describe("tui command handlers", () => {
     expect(state.toolsExpanded).toBe(true);
   });
 
+  it("cycles /verbose through Hermes-style tool activity modes", async () => {
+    const { handleCommand, patchSession, state } = createHarness({
+      sessionInfo: { verboseLevel: "off" },
+    });
+
+    await handleCommand("/verbose");
+    await handleCommand("/verbose");
+
+    expect(patchSession).toHaveBeenNthCalledWith(1, {
+      key: "agent:main:main",
+      verboseLevel: "on",
+    });
+    expect(patchSession).toHaveBeenNthCalledWith(2, {
+      key: "agent:main:main",
+      verboseLevel: "full",
+    });
+    expect(state.toolsExpanded).toBe(true);
+  });
+
+  it("maps Hermes-style /verbose labels onto Kova detail modes", async () => {
+    const { handleCommand, patchSession, state } = createHarness({
+      sessionInfo: { verboseLevel: "off" },
+    });
+
+    await handleCommand("/verbose all");
+    await handleCommand("/verbose verbose");
+
+    expect(patchSession).toHaveBeenNthCalledWith(1, {
+      key: "agent:main:main",
+      verboseLevel: "on",
+    });
+    expect(patchSession).toHaveBeenNthCalledWith(2, {
+      key: "agent:main:main",
+      verboseLevel: "full",
+    });
+    expect(state.toolsExpanded).toBe(true);
+  });
+
   it("rejects invalid /activation values before patching the session", async () => {
     const { handleCommand, patchSession, addSystem } = createHarness();
 

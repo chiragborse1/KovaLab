@@ -6,7 +6,7 @@ Welcome to the lobster tank! 🦞
 
 - **GitHub:** https://github.com/chiragborse1/KovaLab
 - **Vision:** [`VISION.md`](VISION.md)
-- **Discord:** https://discord.gg/kova
+- **Discord:** https://discord.gg/uT9ETzpaHT
 - **X/Twitter:** [@steipete](https://x.com/steipete) / [@kovaai](https://x.com/kova)
 
 ## Maintainers

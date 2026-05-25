@@ -1,6 +1,6 @@
 # Kova Installer for Windows (PowerShell)
-# Usage: iwr -useb https://www.neuralstudio.in/install.ps1 | iex
-# Or: & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+# Usage: powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
+# Or: & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
 
 param(
     [ValidateSet("npm", "git")]
@@ -290,6 +290,7 @@ function Invoke-NativeCommandCapture {
 
         $process = Start-Process -FilePath $startFilePath `
             -ArgumentList $startArguments `
+            -NoNewWindow `
             -Wait `
             -PassThru `
             -RedirectStandardOutput $stdoutPath `
@@ -331,18 +332,29 @@ function Invoke-InteractiveKovaCommand {
         throw "kova command not found on PATH."
     }
 
-    try {
-        if ($commandPath -match '(?i)\.ps1$') {
-            & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $commandPath @Arguments
-        } else {
-            & $commandPath @Arguments
-        }
-    } catch {
-        throw "Failed to start Kova setup via ${commandPath}: $_"
+    if ($commandPath -match '(?i)\.ps1$') {
+        $process = Start-Process -FilePath "powershell.exe" `
+            -ArgumentList (@(
+                "-NoLogo",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                $commandPath
+            ) + $Arguments) `
+            -NoNewWindow `
+            -Wait `
+            -PassThru
+    } else {
+        $process = Start-Process -FilePath $commandPath `
+            -ArgumentList $Arguments `
+            -NoNewWindow `
+            -Wait `
+            -PassThru
     }
 
-    if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) {
-        throw "Kova setup exited with code $LASTEXITCODE."
+    if ($process.ExitCode -ne 0) {
+        throw "Kova setup exited with code $($process.ExitCode)."
     }
 }
 
@@ -562,15 +574,20 @@ function Main {
         }
     } catch { }
     
+    if (!$DryRun) {
+        Write-Host ""
+        Write-Host "Kova installed successfully!" -Level success
+    }
+
     if (!$NoOnboard -and !$DryRun) {
         Write-Host ""
         Write-Host "Starting setup..." -Level info
         Write-Host ""
         Invoke-InteractiveKovaCommand onboard
+    } elseif ($NoOnboard -and !$DryRun) {
+        Write-Host "Skipping setup (requested). Run kova onboard later." -Level info
     }
-    
-    Write-Host ""
-    Write-Host "Kova installed successfully!" -Level success
+
     return $true
 }
 

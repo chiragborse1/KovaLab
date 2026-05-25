@@ -215,7 +215,7 @@ kova onboard --non-interactive \
   </Accordion>
   <Accordion title="Other behaviors">
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
-    - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
+    - Fastest first chat: `kova` (embedded terminal agent, no browser or channel setup).
     - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
     - Base onboarding asks about chat channels, then skips web recall, skills, hooks, and service install unless you choose optional setup. If you choose optional setup there, Kova runs the optional steps directly instead of showing a second picker. Gateway port/network prompts stay in `--flow extras`.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
@@ -226,7 +226,7 @@ kova onboard --non-interactive \
 ## Common follow-up commands
 
 ```bash
-kova chat
+kova
 kova status --all
 kova persona edit
 kova memory status

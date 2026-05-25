@@ -42,7 +42,7 @@ kova skill-workshop status
 kova skill-workshop review
 ```
 
-Inside `kova chat`, use `/memory status`, `/memory search <query>`,
+Inside `kova`, use `/memory status`, `/memory search <query>`,
 `/memory dreams`, `/skills`, and `/plugins list`.
 
 ## Safety Defaults

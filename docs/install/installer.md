@@ -40,11 +40,11 @@ Kova ships three installer scripts, served from `kova.ai`.
   </Tab>
   <Tab title="install.ps1">
     ```powershell
-    iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
     ```
 
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -Tag beta -NoOnboard -DryRun
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -Tag beta -NoOnboard -DryRun
     ```
 
   </Tab>
@@ -289,11 +289,11 @@ by default, plus git-checkout installs under the same prefix flow.
   </Step>
   <Step title="Post-install tasks">
     - Adds needed bin directory to user PATH when possible
-    - Starts `kova onboard` in the same PowerShell session unless `-NoOnboard` is set
+    - Starts `kova onboard` in the same console window unless `-NoOnboard` is set
     - Keeps output plain on legacy Windows PowerShell consoles that do not support ANSI colors
   </Step>
   <Step title="Handle failures">
-    `iwr ... | iex` and scriptblock installs report a terminating error without closing the current PowerShell session. Direct `powershell -File` / `pwsh -File` installs still exit non-zero for automation.
+    The recommended `powershell -Command "irm ... | iex"` and scriptblock installs report a terminating error without closing the current PowerShell session. Direct `powershell -File` / `pwsh -File` installs still exit non-zero for automation.
   </Step>
 </Steps>
 
@@ -302,34 +302,34 @@ by default, plus git-checkout installs under the same prefix flow.
 <Tabs>
   <Tab title="Default">
     ```powershell
-    iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
     ```
   </Tab>
   <Tab title="Git install">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -InstallMethod git
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -InstallMethod git
     ```
   </Tab>
   <Tab title="GitHub main via npm">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -Tag main
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -Tag main
     ```
   </Tab>
   <Tab title="Custom git directory">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -InstallMethod git -GitDir "C:\kova"
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -InstallMethod git -GitDir "C:\kova"
     ```
   </Tab>
   <Tab title="Dry run">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -DryRun
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -DryRun
     ```
   </Tab>
   <Tab title="Debug trace">
     ```powershell
     # install.ps1 has no dedicated -Verbose flag yet.
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
   </Tab>
@@ -392,7 +392,7 @@ Use non-interactive flags/env vars for predictable runs.
   </Tab>
   <Tab title="install.ps1 (skip onboarding)">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
     ```
   </Tab>
 </Tabs>
@@ -433,7 +433,7 @@ Use non-interactive flags/env vars for predictable runs.
 
     ```powershell
     Set-PSDebug -Trace 1
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
     Set-PSDebug -Trace 0
     ```
 

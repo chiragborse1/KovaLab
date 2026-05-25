@@ -68,7 +68,7 @@ export function rewriteBareRootArgvToLocalChat(argv: string[]): string[] {
   if (!shouldStartLocalChatForBareRoot(argv)) {
     return argv;
   }
-  return [...argv, "chat"];
+  return [...argv, "tui", "--local"];
 }
 
 export function resolveMissingPluginCommandMessage(
@@ -89,7 +89,7 @@ export function resolveMissingPluginCommandMessage(
   }
   if (normalizedPluginId === "dashboard") {
     return (
-      "The `kova dashboard` command has been removed. Use `kova chat` for terminal chat, " +
+      "The `kova dashboard` command has been removed. Use `kova` for terminal chat, " +
       "or `kova control-ui` for the optional browser Control UI."
     );
   }

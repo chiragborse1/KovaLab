@@ -173,7 +173,7 @@ export class KovaHero implements Component {
     const lines = [
       theme.header(`KOVA v${VERSION} | ${this.state.connectionStatus}`),
       theme.dim(
-        `${this.state.agentLabel}/${this.state.sessionLabel} | ${this.state.modelLabel} | ${this.state.activityStatus}`,
+        `agent ${this.state.agentLabel} | session ${this.state.sessionLabel} | ${this.state.modelLabel} | ${this.state.activityStatus}`,
       ),
       theme.accent(
         `${formatContextGauge(this.state.tokenLabel)} | ${String(toolCount)} tools | ${String(skillCount)} skills | /help`,
@@ -201,7 +201,7 @@ export class KovaHero implements Component {
       statLine("state", `${this.state.connectionStatus} · ${this.state.activityStatus}`),
       statLine("model", this.state.modelLabel),
       statLine("context", formatContextGauge(this.state.tokenLabel)),
-      statLine("session", `${this.state.agentLabel}/${this.state.sessionLabel}`),
+      statLine("session", `agent ${this.state.agentLabel} | session ${this.state.sessionLabel}`),
       statLine("link", this.state.connection),
       "",
       theme.dim("/help /model /sessions /busy /settings"),

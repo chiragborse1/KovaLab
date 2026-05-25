@@ -151,7 +151,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
   };
 
   it("processes tool events when runId matches activeChatRunId (even if sessionId differs)", () => {
-    const { chatLog, tui, handleAgentEvent } = createHandlersHarness({
+    const { state, chatLog, tui, setActivityStatus, handleAgentEvent } = createHandlersHarness({
       state: { currentSessionId: "session-xyz", activeChatRunId: "run-123" },
     });
 
@@ -169,7 +169,30 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     handleAgentEvent(evt);
 
     expect(chatLog.startTool).toHaveBeenCalledWith("tc1", "exec", { command: "echo hi" });
+    expect(state.activityDetail).toBe("running exec");
+    expect(setActivityStatus).toHaveBeenCalledWith("running");
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns to an honest waiting status after a tool result", () => {
+    const { state, chatLog, setActivityStatus, handleAgentEvent } = createHandlersHarness({
+      state: { activeChatRunId: "run-123", sessionInfo: { verboseLevel: "on" } },
+    });
+
+    handleAgentEvent({
+      runId: "run-123",
+      stream: "tool",
+      data: {
+        phase: "result",
+        toolCallId: "tc1",
+        name: "web_search",
+        result: { content: [] },
+      },
+    });
+
+    expect(chatLog.updateToolResult).toHaveBeenCalled();
+    expect(state.activityDetail).toBe("finished web_search; waiting for model");
+    expect(setActivityStatus).toHaveBeenCalledWith("waiting");
   });
 
   it("ignores tool events when runId does not match activeChatRunId", () => {
@@ -476,7 +499,7 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     );
   });
 
-  it("renders approval events even when verbose tool cards are hidden", () => {
+  it("renders approval events even when verbose tool activity is hidden", () => {
     const { chatLog, tui, handleAgentEvent } = createHandlersHarness({
       state: {
         activeChatRunId: "run-approval",

@@ -43,6 +43,7 @@ export function buildWaitingStatusMessage(params: {
   tick: number;
   elapsed: string;
   connectionStatus: string;
+  phase?: string | null;
   animated?: boolean;
   phrases?: string[];
 }) {
@@ -52,5 +53,7 @@ export function buildWaitingStatusMessage(params: {
     params.animated === false
       ? params.theme.dim(label)
       : shimmerText(params.theme, label, params.tick);
-  return `${cute} • ${params.elapsed} | ${params.connectionStatus}`;
+  const phase = params.phase?.trim();
+  const phaseText = phase ? ` | ${params.theme.dim(phase)}` : "";
+  return `${cute} • ${params.elapsed}${phaseText} | ${params.connectionStatus}`;
 }

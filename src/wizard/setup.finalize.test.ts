@@ -348,7 +348,7 @@ describe("finalizeSetupWizard", () => {
       timeoutMs: 300_000,
     });
     expect(prompter.note).toHaveBeenCalledWith(
-      expect.stringContaining("Primary start: kova chat"),
+      expect.stringContaining("Primary start: kova"),
       "Terminal start",
     );
     expect(prompter.note).toHaveBeenCalledWith(
@@ -738,7 +738,7 @@ describe("finalizeSetupWizard", () => {
     });
 
     expect(prompter.note).toHaveBeenCalledWith(
-      expect.stringContaining("Start terminal chat: kova chat"),
+      expect.stringContaining("Start terminal chat: kova"),
       "Start",
     );
     expect(prompter.note).toHaveBeenCalledWith(

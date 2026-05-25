@@ -370,6 +370,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let exitRequested = false;
   let exitResult: TuiResult = { exitReason: "exit" };
   let activityStatus = "idle";
+  let activityDetail: string | null = null;
   let connectionStatus = isLocalMode ? "starting local runtime" : "connecting";
   let statusTimeout: NodeJS.Timeout | null = null;
   let statusStartedAt: number | null = null;
@@ -494,6 +495,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     },
     set activityStatus(value) {
       activityStatus = value;
+    },
+    get activityDetail() {
+      return activityDetail;
+    },
+    set activityDetail(value) {
+      activityDetail = value?.trim() ? value.trim() : null;
     },
     get statusTimeout() {
       return statusTimeout;
@@ -807,13 +814,32 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let statusLoader: Loader | null = null;
 
   const formatElapsed = (startMs: number) => {
-    const totalSeconds = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+    const totalSeconds = elapsedSecondsSince(startMs);
     if (totalSeconds < 60) {
       return `${totalSeconds}s`;
     }
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}m ${seconds}s`;
+  };
+
+  const elapsedSecondsSince = (startMs: number) => {
+    return Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+  };
+
+  const resolveActivityDetail = (elapsedSeconds: number) => {
+    if (activityDetail) {
+      return activityDetail;
+    }
+    if (activityStatus === "waiting") {
+      if (elapsedSeconds >= 20) {
+        return "still waiting on model/provider";
+      }
+      if (elapsedSeconds >= 8) {
+        return "model deciding next action";
+      }
+    }
+    return null;
   };
 
   const ensureStatusText = () => {
@@ -851,7 +877,9 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     if (!statusLoader || !statusStartedAt) {
       return;
     }
+    const elapsedSeconds = elapsedSecondsSince(statusStartedAt);
     const elapsed = formatElapsed(statusStartedAt);
+    const detail = resolveActivityDetail(elapsedSeconds);
 
     if (activityStatus === "waiting") {
       waitingTick++;
@@ -865,13 +893,15 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
           tick: waitingTick,
           elapsed,
           connectionStatus,
+          phase: detail,
           phrases: waitingPhrase ? [waitingPhrase] : undefined,
         }),
       );
       return;
     }
 
-    statusLoader.setMessage(`${activityStatus} • ${elapsed} | ${connectionStatus}`);
+    const detailText = detail ? ` | ${detail}` : "";
+    statusLoader.setMessage(`${activityStatus} • ${elapsed}${detailText} | ${connectionStatus}`);
   };
 
   const startStatusTimer = () => {
@@ -943,6 +973,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       updateBusyStatusMessage();
     } else {
       statusStartedAt = null;
+      activityDetail = null;
       stopStatusTimer();
       stopWaitingTimer();
       statusLoader?.stop();
@@ -979,6 +1010,9 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   const setActivityStatus = (text: string) => {
     activityStatus = text;
+    if (!busyStates.has(text) || text === "sending" || text === "streaming") {
+      activityDetail = null;
+    }
     renderStatus();
   };
 

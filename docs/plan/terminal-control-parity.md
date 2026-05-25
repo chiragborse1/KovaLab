@@ -20,7 +20,7 @@ need, and has a small proof command or test.
 
 | Control UI workflow            | Terminal equivalent                                                                           | Status  | Next action                                                                    |
 | ------------------------------ | --------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
-| Chat with the agent            | `kova chat`, `kova tui --local`, `kova tui`                                                   | Ready   | Keep first-run latency and local backend checks in the TUI test loop.          |
+| Chat with the agent            | `kova`                                                                                        | Ready   | Keep first-run latency and local backend checks in the TUI test loop.          |
 | Gateway status                 | `kova status`, `/status`, `/gateway-status`                                                   | Ready   | Keep browser wording out of default status output.                             |
 | Model selection                | `/model`, `/models`, `kova models list`, `kova models set`                                    | Ready   | Keep provider auth guidance terminal-readable.                                 |
 | Sessions                       | `/session`, `/sessions <query>`, `kova sessions --search <query>`                             | Ready   | Keep session search fast before loading large histories.                       |
@@ -53,6 +53,30 @@ Before removing a browser-only page or panel:
    cannot support it.
 5. Remove the browser code only after the matrix row is `Ready` or explicitly
    marked `Retired`.
+
+## Hermes-Style TUI MVP
+
+Kova's MVP target is the useful terminal behavior, not a byte-for-byte clone.
+
+Ready:
+
+- Open user and assistant message boxes with Kova styling.
+- Compact tool activity rail.
+- `/verbose` cycles tool visibility; `/details` keeps explicit hidden,
+  collapsed, and expanded modes.
+- `/busy`, queued input, permissions, tools, skills, tasks, memory, persona,
+  and plugin inspection are terminal-first.
+- Slow-turn status is honest about the phase before a tool starts: tool line
+  durations measure tool runtime only, while model/provider waiting remains in
+  the status line and `KOVA_TUI_TRACE=1` gives the full timing proof.
+
+Not copied into the MVP:
+
+- Hermes skin packs and full Ink/React renderer architecture.
+- Hermes-only kanban/dashboard surfaces.
+- Hermes-specific names, icons, and release language.
+- Byte-for-byte transcript formatting where Kova already has product-owned
+  terminal commands or safety behavior.
 
 ## References
 

@@ -10,7 +10,7 @@ read_when:
 Kova projects are not toy demos. People are shipping PR review loops, mobile apps, home automation, voice systems, devtools, and memory-heavy workflows from the channels they already use — chat-native builds on Telegram, WhatsApp, Discord, and terminals; real automation for booking, shopping, and support without waiting for an API; and physical-world integrations with printers, vacuums, cameras, and home systems.
 
 <Info>
-**Want to be featured?** Share your project in [#self-promotion on Discord](https://discord.gg/kova) or [tag @kovaai on X](https://x.com/kova).
+**Want to be featured?** Share your project in [#self-promotion on Discord](https://discord.gg/uT9ETzpaHT) or [tag @kovaai on X](https://x.com/kova).
 </Info>
 
 ## Videos
@@ -367,7 +367,7 @@ Full astronomy gear marketplace. Built with and around the Kova ecosystem.
 
 <Steps>
   <Step title="Share it">
-    Post in [#self-promotion on Discord](https://discord.gg/kova) or [tweet @kovaai](https://x.com/kova).
+    Post in [#self-promotion on Discord](https://discord.gg/uT9ETzpaHT) or [tweet @kovaai](https://x.com/kova).
   </Step>
   <Step title="Include details">
     Tell us what it does, link to the repo or demo, and share a screenshot if you have one.

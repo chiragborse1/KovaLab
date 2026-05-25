@@ -10,7 +10,7 @@ read_when:
 ## Status
 
 Phase 0 and Phase 1 are in progress. Kova's current product direction is
-terminal-first: `kova chat`, `kova status`, `kova settings`, `kova logs`, and
+terminal-first: `kova`, `kova status`, `kova settings`, `kova logs`, and
 the TUI command center are the primary operator surfaces. The browser Control UI
 is now treated as a legacy/optional surface, not the product spine.
 
@@ -28,7 +28,7 @@ Done:
   assembly, and compaction.
 - Tools/plugins docs now state the ownership split between core contracts and
   plugin-owned behavior.
-- Terminal-first docs now identify `kova chat` and `kova settings` as the daily
+- Terminal-first docs now identify `kova` and `kova settings` as the daily
   control surfaces.
 - Control UI work is frozen to compatibility, security, and release safety. New
   operator UX should land in CLI/TUI unless a platform app explicitly owns it.
@@ -156,7 +156,7 @@ The plugin architecture direction remains manifest-first:
 The CLI and TUI are the active product surfaces. New operator work should land
 where terminal users already are:
 
-- `kova chat` for local embedded runs
+- `kova` for local embedded runs
 - `kova status --all` for pasteable diagnostics
 - `kova settings` for common configuration
 - `kova logs` for runtime logs

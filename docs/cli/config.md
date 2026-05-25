@@ -397,11 +397,11 @@ kova config validate --json
 After `kova config validate` is passing, you can use the local TUI to have an embedded agent compare the active config against the docs while you validate each change from the same terminal:
 
 <Note>
-If validation is already failing, start with `kova configure` or `kova doctor --fix`. `kova chat` does not bypass the invalid-config guard.
+If validation is already failing, start with `kova configure` or `kova doctor --fix`. `kova` does not bypass the invalid-config guard.
 </Note>
 
 ```bash
-kova chat
+kova
 ```
 
 Then inside the TUI:

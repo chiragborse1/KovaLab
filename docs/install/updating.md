@@ -229,7 +229,7 @@ To return to latest: `git checkout main && git pull`.
 - Run `kova doctor` again and read the output carefully.
 - For `kova update --channel dev` on source checkouts, the updater auto-bootstraps `pnpm` when needed. If you see a pnpm/corepack bootstrap error, install `pnpm` manually (or re-enable `corepack`) and rerun the update.
 - Check: [Troubleshooting](/gateway/troubleshooting)
-- Ask in Discord: [https://discord.gg/kova](https://discord.gg/kova)
+- Ask in Discord: [https://discord.gg/uT9ETzpaHT](https://discord.gg/uT9ETzpaHT)
 
 ## Related
 

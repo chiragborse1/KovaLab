@@ -543,6 +543,8 @@ export function createEventHandlers(context: EventHandlerContext) {
         return;
       }
       if (phase === "start") {
+        state.activityDetail = `running ${toolName}`;
+        setActivityStatus("running");
         chatLog.startTool(toolCallId, toolName, data.args);
       } else if (phase === "update") {
         if (!allowToolOutput) {
@@ -562,6 +564,10 @@ export function createEventHandlers(context: EventHandlerContext) {
             typeof data.result === "object" && data.result ? data.result : { content: [] },
             { isError: Boolean(data.isError), outputHidden: true },
           );
+        }
+        if (isActiveRun) {
+          state.activityDetail = `finished ${toolName}; waiting for model`;
+          setActivityStatus("waiting");
         }
       }
       tui.requestRender();

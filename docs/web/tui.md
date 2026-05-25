@@ -13,9 +13,7 @@ title: "TUI"
 Run the terminal product without a Gateway:
 
 ```bash
-kova chat
-# or
-kova tui --local
+kova
 ```
 
 This is the default interactive path. It uses an isolated local backend worker
@@ -24,7 +22,8 @@ browser, or any chat channel.
 
 Notes:
 
-- `kova chat` and `kova terminal` are aliases for `kova tui --local`.
+- `kova` is the canonical local terminal chat entry.
+- Older local aliases remain available only for compatibility.
 - `--local` cannot be combined with `--url`, `--token`, or `--password`.
 - Most local tools work in embedded mode, but Gateway-only remote delivery features are unavailable.
 - Bare `kova` opens the local terminal chat path.
@@ -40,7 +39,7 @@ Notes:
 kova gateway
 ```
 
-2. Open the TUI.
+2. Open the remote TUI compatibility command.
 
 ```bash
 kova tui
@@ -59,13 +58,19 @@ Use `--password` if your Gateway uses password auth.
 ## What you see
 
 - Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
-- Chat log: user messages, assistant replies, system notices, tool cards.
+- Chat log: user messages, assistant replies, system notices, compact tool activity.
 - Approval cards: exec/tool approval requests stay visible even when tool
   details are hidden; run `/approve` to choose a pending request, or respond
   with the shown `/approve ...` command.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
 - Footer: compact `agent/session`, active mode flags, queued messages, and `ctx used/limit`.
 - Input: text editor with autocomplete.
+
+Tool activity uses a compact Hermes-style rail. The duration on each tool line is
+only the tool's runtime after Kova receives the tool-start event. If a turn takes
+time before the first tool appears, the status line now says whether Kova is
+waiting on the model/provider or running a tool. Use `KOVA_TUI_TRACE=1 kova` for
+the full per-turn timing breakdown when a reply feels slow.
 
 The `ctx` gauge is the current session's estimated model context usage. When it
 gets close to the selected model's context limit, Kova needs compaction or a new
@@ -91,7 +96,7 @@ snapshots.
 - Messages are sent to the Gateway; delivery to providers is off by default.
 - Turn delivery on:
   - open the Settings panel
-  - or start with `kova tui --deliver`
+  - or start a Gateway-backed session with `kova tui --deliver`
 
 ## Pickers + overlays
 
@@ -249,7 +254,7 @@ embedded agent to inspect it on the same machine, compare it against the docs,
 and help repair drift without depending on a running Gateway.
 
 If `kova config validate` is already failing, start with `kova configure`
-or `kova doctor --fix` first. `kova chat` does not bypass the invalid-
+or `kova doctor --fix` first. `kova` does not bypass the invalid-
 config guard.
 
 Typical loop:
@@ -257,7 +262,7 @@ Typical loop:
 1. Start local mode:
 
 ```bash
-kova chat
+kova
 ```
 
 2. Ask the agent what you want checked, for example:
@@ -293,14 +298,14 @@ Tips:
 ## Terminal colors
 
 - The TUI keeps assistant body text in your terminal's default foreground so dark and light terminals both stay readable.
-- If your terminal uses a light background and auto-detection is wrong, set `KOVA_THEME=light` before launching `kova tui`.
+- If your terminal uses a light background and auto-detection is wrong, set `KOVA_THEME=light` before launching `kova`.
 - To force the original dark palette instead, set `KOVA_THEME=dark`.
 
 ## History + streaming
 
 - On connect, the TUI loads the latest history (default 80 messages).
 - Streaming responses update in place until finalized.
-- The TUI also listens to agent tool events for richer tool cards.
+- The TUI also listens to agent tool events for a compact activity rail.
 
 ## Connection details
 
@@ -325,7 +330,7 @@ Tips:
 For local-mode reply latency debugging, launch with:
 
 ```bash
-KOVA_TUI_TRACE=1 kova chat
+KOVA_TUI_TRACE=1 kova
 ```
 
 The chat log prints timing markers for the local turn handoff, session load,

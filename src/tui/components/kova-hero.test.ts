@@ -30,6 +30,7 @@ describe("KovaHero", () => {
     const rendered = normalizeTestText(hero.render(132).join("\n"));
     expect(rendered).toContain("Kova Agent");
     expect(rendered).toContain("Live Surface");
+    expect(rendered).toContain("session: agent main | session main");
     expect(rendered).toContain("2 tools ready");
     expect(rendered).toContain("1 skills available");
   });

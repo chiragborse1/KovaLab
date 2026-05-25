@@ -440,7 +440,7 @@ export async function finalizeSetupWizard(
   await prompter.note(
     (isQuickstart
       ? [
-          `Primary start: ${formatCliCommand("kova chat")}`,
+          `Primary start: ${formatCliCommand("kova")}`,
           "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
           "Useful first commands: /status, /memory, /persona, /tools",
           installDaemon
@@ -454,7 +454,7 @@ export async function finalizeSetupWizard(
         ]
       : isExtras
         ? [
-            `Primary start: ${formatCliCommand("kova chat")}`,
+            `Primary start: ${formatCliCommand("kova")}`,
             "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
             "Useful first commands inside chat: /status, /memory, /persona, /tools",
             extraModules.length
@@ -468,7 +468,7 @@ export async function finalizeSetupWizard(
             "Docs: https://docs.neuralstudio.in/web/tui",
           ]
         : [
-            `Primary start: ${formatCliCommand("kova chat")}`,
+            `Primary start: ${formatCliCommand("kova")}`,
             "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
             "Useful first commands inside chat: /status, /memory, /persona, /tools",
             `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`,
@@ -581,7 +581,7 @@ export async function finalizeSetupWizard(
     } else {
       await prompter.note(
         [
-          `Start terminal chat: ${formatCliCommand("kova chat")}`,
+          `Start terminal chat: ${formatCliCommand("kova")}`,
           `Inspect readiness: ${formatCliCommand("kova status --all")}`,
           `Tune persona: ${formatCliCommand("kova persona edit")}`,
           `Check memory: ${formatCliCommand("kova memory status")}`,
@@ -598,7 +598,7 @@ export async function finalizeSetupWizard(
     await prompter.note(
       [
         "Start prompt skipped.",
-        `Start terminal chat: ${formatCliCommand("kova chat")}`,
+        `Start terminal chat: ${formatCliCommand("kova")}`,
         `Inspect readiness: ${formatCliCommand("kova status --all")}`,
       ].join("\n"),
       "Start",
@@ -683,7 +683,7 @@ export async function finalizeSetupWizard(
     await prompter.note(
       [
         "Kova launch is ready.",
-        `Chat: ${formatCliCommand("kova chat")}`,
+        `Chat: ${formatCliCommand("kova")}`,
         `Persona: ${formatCliCommand("kova persona edit")}`,
         `Memory: ${formatCliCommand("kova memory status")}`,
         `Extras: ${formatCliCommand("kova onboard --flow extras")}`,
@@ -694,7 +694,7 @@ export async function finalizeSetupWizard(
     await prompter.note(
       [
         "Kova extras are ready.",
-        `Chat: ${formatCliCommand("kova chat")}`,
+        `Chat: ${formatCliCommand("kova")}`,
         `Settings: ${formatCliCommand("kova settings")}`,
         `Web search later: ${formatCliCommand("kova configure --section web")}`,
       ].join("\n"),
@@ -811,7 +811,7 @@ export async function finalizeSetupWizard(
   if (!isQuickstart && !isExtras) {
     await prompter.note(
       [
-        `Chat: ${formatCliCommand("kova chat")}`,
+        `Chat: ${formatCliCommand("kova")}`,
         `Status: ${formatCliCommand("kova status --all")}`,
         `Persona: ${formatCliCommand("kova persona edit")}`,
         `Memory: ${formatCliCommand("kova memory status")}`,
@@ -823,7 +823,7 @@ export async function finalizeSetupWizard(
     await prompter.note(
       [
         "Kova extras are ready.",
-        `Chat: ${formatCliCommand("kova chat")}`,
+        `Chat: ${formatCliCommand("kova")}`,
         `Settings: ${formatCliCommand("kova settings")}`,
         `Gateway later: ${formatCliCommand("kova configure --section gateway")}`,
       ].join("\n"),
@@ -836,7 +836,7 @@ export async function finalizeSetupWizard(
       ? "Kova is ready. Legacy web UI opened in your browser."
       : launchedTui
         ? "Kova terminal chat is ready."
-        : "Kova is ready. Start with `kova chat` when you are ready.",
+        : "Kova is ready. Start with `kova` when you are ready.",
   );
 
   return { launchedTui };

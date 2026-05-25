@@ -69,7 +69,7 @@ describe("ChatLog", () => {
     expect(chatLog.children.length).toBe(20);
   });
 
-  it("renders collapsed tool cards with a useful hidden-output hint", () => {
+  it("renders collapsed tools as a compact activity rail without hidden-output noise", () => {
     const chatLog = new ChatLog(40);
 
     chatLog.startTool("tool-1", "exec", { command: "pnpm test" });
@@ -80,9 +80,28 @@ describe("ChatLog", () => {
     );
 
     const rendered = normalizeTestText(chatLog.render(120).join("\n"));
-    expect(rendered).toContain("done");
-    expect(rendered).toContain("output hidden; use /details expanded to show tool output");
+    expect(rendered).toContain("┊");
+    expect(rendered).toContain("$");
+    expect(rendered).toContain("pnpm test");
+    expect(rendered).not.toContain("output hidden");
     expect(rendered).not.toContain("secret output");
+  });
+
+  it("shows tool output only when details are expanded", () => {
+    const chatLog = new ChatLog(40);
+
+    chatLog.startTool("tool-1", "read", { path: "src/index.ts" });
+    chatLog.updateToolResult("tool-1", { content: [{ type: "text", text: "file output" }] });
+
+    let rendered = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(rendered).toContain("┊");
+    expect(rendered).toContain("read");
+    expect(rendered).toContain("src/index.ts");
+    expect(rendered).not.toContain("file output");
+
+    chatLog.setToolsExpanded(true);
+    rendered = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(rendered).toContain("file output");
   });
 
   it("renders and updates approval cards by approval id", () => {

@@ -23,7 +23,7 @@ Onboarding opens with a short setup screen and then goes straight into the base
 prompts. It does not redirect returning users into Settings.
 
 <Info>
-Fastest first chat: run `kova chat`. It uses the embedded local agent runtime,
+Fastest first chat: run `kova`. It uses the embedded local agent runtime,
 so no browser, Gateway, or chat channel is required.
 </Info>
 

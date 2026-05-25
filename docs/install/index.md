@@ -25,7 +25,7 @@ The fastest way to install. It detects your OS, installs Node if needed, install
   </Tab>
   <Tab title="Windows (PowerShell)">
     ```powershell
-    iwr -useb https://www.neuralstudio.in/install.ps1 | iex
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
     ```
   </Tab>
 </Tabs>
@@ -40,7 +40,7 @@ To install without running onboarding:
   </Tab>
   <Tab title="Windows (PowerShell)">
     ```powershell
-    & ([scriptblock]::Create((iwr -useb https://www.neuralstudio.in/install.ps1))) -NoOnboard
+    & ([scriptblock]::Create((irm https://www.neuralstudio.in/install.ps1))) -NoOnboard
     ```
   </Tab>
 </Tabs>

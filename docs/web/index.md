@@ -6,7 +6,7 @@ read_when:
 title: "Web"
 ---
 
-Kova is terminal-first. Use `kova chat`, `kova status`, `kova settings`, and
+Kova is terminal-first. Use `kova`, `kova status`, `kova settings`, and
 `kova logs` for normal operation. The Gateway can still serve the legacy
 **browser Control UI** (Vite + Lit) from the same port as the Gateway WebSocket
 when it is enabled and assets are available:

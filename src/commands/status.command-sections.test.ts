@@ -192,7 +192,7 @@ describe("status.command-sections", () => {
       "",
       "warn(upgrade ready)",
       "Next steps:",
-      "  Start chatting:     cmd:kova chat",
+      "  Start chatting:     cmd:kova",
       "  Need to share?      cmd:kova status --all",
       "  Need to debug live? cmd:kova logs --follow",
       "  Fix reachability first: cmd:kova gateway probe",

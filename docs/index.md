@@ -26,7 +26,7 @@ title: "Kova"
 
 <p align="center">
   <strong>Terminal-first local agent for memory, skills, tools, and durable workflows.</strong><br />
-  Start in kova chat. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
+  Start in kova. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
 </p>
 
 <Columns>
@@ -37,19 +37,19 @@ title: "Kova"
     Guided setup with `kova onboard`, model auth, workspace, memory, and skills.
   </Card>
   <Card title="Use The TUI" href="/web/tui" icon="terminal">
-    Run `kova chat` for the local embedded agent experience.
+    Run `kova` for the local embedded agent experience.
   </Card>
 </Columns>
 
 ## What is Kova?
 
-Kova is a **terminal-native local agent** with memory, skills, sessions, and tools at the center. You run it from `kova chat` first, then enable the Gateway when you want always-on delivery, channels, cron, nodes, apps, or the browser Control UI.
+Kova is a **terminal-native local agent** with memory, skills, sessions, and tools at the center. You run it from `kova` first, then enable the Gateway when you want always-on delivery, channels, cron, nodes, apps, or the browser Control UI.
 
 **Who is it for?** Developers and power users who want a personal AI assistant that works locally, remembers durable context, learns reusable procedures, and can still be reached remotely when needed.
 
 **What makes it different?**
 
-- **Terminal-first**: `kova chat` is the primary interactive product
+- **Terminal-first**: `kova` is the primary interactive product
 - **Self-hosted**: runs on your hardware, your rules
 - **Learning-oriented**: built around memory, skills, sessions, and reusable workflows
 - **Gateway-optional**: one Gateway can serve built-in channels plus bundled or external channel plugins when you enable it
@@ -114,7 +114,7 @@ The terminal owns the primary agent loop. The Gateway extends that loop to remot
     Start the terminal agent:
 
     ```bash
-    kova chat
+    kova
     ```
 
     Add the Control UI or a channel later when the local agent is working.

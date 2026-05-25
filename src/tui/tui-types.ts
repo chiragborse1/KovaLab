@@ -138,6 +138,7 @@ export type TuiStateAccess = {
   showThinking: boolean;
   connectionStatus: string;
   activityStatus: string;
+  activityDetail?: string | null;
   statusTimeout: ReturnType<typeof setTimeout> | null;
   lastCtrlCAt: number;
 };

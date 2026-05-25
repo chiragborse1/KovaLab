@@ -390,7 +390,7 @@ export function formatFooterSessionLabel(params: {
   sessionLabel: string;
   displayName?: string | null;
 }): string {
-  const base = `${params.agentLabel}/${params.sessionLabel}`;
+  const base = `agent ${params.agentLabel} | session ${params.sessionLabel}`;
   const displayName = params.displayName?.trim();
   if (!displayName || displayName.toLowerCase() === "tui" || displayName === params.sessionLabel) {
     return base;
