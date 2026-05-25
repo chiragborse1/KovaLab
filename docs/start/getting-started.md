@@ -57,8 +57,9 @@ Need to install Node? See [Node setup](/install/node).
     ```
 
     Onboarding walks through the small base setup: workspace, model/auth,
-    Gateway port, and chat channels. After that, advanced setup is optional for
-    web recall, skills, plugins, automation, and background service.
+    Gateway port, and chat channels. After that, advanced setup is optional; if
+    you choose it, Kova walks through web recall, skills, plugins, automation,
+    and background service directly.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 

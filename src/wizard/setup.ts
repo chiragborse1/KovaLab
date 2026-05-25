@@ -31,6 +31,14 @@ import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 
 type SetupFlowChoice = WizardFlow | "import";
 
+const QUICKSTART_ADVANCED_MODULES: SetupExtraModule[] = [
+  "gateway",
+  "web",
+  "skills",
+  "plugins",
+  "hooks",
+];
+
 type AuthChoiceModule = typeof import("../commands/auth-choice.js");
 type ConfigLoggingModule = typeof import("../config/logging.js");
 type ModelPickerModule = typeof import("../commands/model-picker.js");
@@ -699,29 +707,21 @@ export async function runSetupWizard(
       initialValue: false,
     });
     if (wantsAdvanced) {
-      extraModules = await promptSetupExtraModules({
-        config: nextConfig,
-        workspaceDir,
-        gatewayDefaults: quickstartGateway,
-        excludeModules: ["channels"],
+      extraModules = [...QUICKSTART_ADVANCED_MODULES];
+      const { configureGatewayForSetup } = await loadGatewayConfigModule();
+      const gateway = await configureGatewayForSetup({
+        flow: "advanced",
+        baseConfig,
+        nextConfig,
+        localPort: settings.port,
+        gatewayPort: opts.gatewayPort,
+        quickstartGateway,
+        secretInputMode: opts.secretInputMode,
         prompter,
+        runtime,
       });
-      if (extraModules.includes("gateway")) {
-        const { configureGatewayForSetup } = await loadGatewayConfigModule();
-        const gateway = await configureGatewayForSetup({
-          flow: "advanced",
-          baseConfig,
-          nextConfig,
-          localPort: settings.port,
-          gatewayPort: opts.gatewayPort,
-          quickstartGateway,
-          secretInputMode: opts.secretInputMode,
-          prompter,
-          runtime,
-        });
-        nextConfig = gateway.nextConfig;
-        settings = gateway.settings;
-      }
+      nextConfig = gateway.nextConfig;
+      settings = gateway.settings;
     }
   }
 

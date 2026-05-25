@@ -513,6 +513,51 @@ describe("runSetupWizard", () => {
     );
   });
 
+  it("runs the full advanced sequence directly when quick setup asks for it", async () => {
+    configureGatewayForSetup.mockClear();
+    setupSearch.mockClear();
+    setupSkills.mockClear();
+    setupPluginConfig.mockClear();
+    setupInternalHooks.mockClear();
+    finalizeSetupWizard.mockClear();
+    const multiselect: WizardPrompter["multiselect"] = vi.fn(async () => []);
+    const prompter = buildWizardPrompter({
+      confirm: vi.fn(async () => true),
+      multiselect,
+    });
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "quickstart",
+        authChoice: "skip",
+        installDaemon: false,
+        skipChannels: true,
+        skipHealth: true,
+        skipUi: true,
+      },
+      createRuntime(),
+      prompter,
+    );
+
+    expect(multiselect).not.toHaveBeenCalled();
+    expect(configureGatewayForSetup).toHaveBeenCalledTimes(2);
+    expect(configureGatewayForSetup).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ flow: "advanced" }),
+    );
+    expect(setupSearch).toHaveBeenCalledTimes(1);
+    expect(setupSkills).toHaveBeenCalledTimes(1);
+    expect(setupPluginConfig).toHaveBeenCalledTimes(1);
+    expect(setupInternalHooks).toHaveBeenCalledTimes(1);
+    expect(finalizeSetupWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        flow: "extras",
+        extraModules: ["gateway", "web", "skills", "plugins", "hooks"],
+      }),
+    );
+  });
+
   it("runs setup extras as selected modules instead of the full checklist", async () => {
     configureGatewayForSetup.mockClear();
     setupChannels.mockClear();

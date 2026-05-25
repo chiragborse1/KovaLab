@@ -11,8 +11,8 @@ CLI onboarding is the **recommended** way to shape a new Kova instance on macOS,
 Linux, or Windows (via WSL2; strongly recommended). The default path is direct:
 choose a workspace, choose model/auth, pick the local Gateway port, configure
 chat channels or skip them, then start terminal chat. Optional setup comes after
-that, where you can add web recall, skills, plugins, automation, or an
-always-on Gateway service only when you want them.
+that; when you choose it, Kova walks through the advanced Gateway, web recall,
+skills, plugins, automation, and always-on service steps directly.
 
 ```bash
 kova onboard
@@ -63,8 +63,8 @@ Onboarding starts with the same base flow for new and returning users:
   </Tab>
   <Tab title="Advanced setup">
     - Runs only after the base prompts unless you pass `--flow extras`.
-    - Lets you add always-on Gateway/service, web recall, skills, plugins, and automation.
-    - Leaves unselected modules unchanged and points you to the matching command for later.
+    - Walks through always-on Gateway/service, web recall, skills, plugins, and automation in order.
+    - `kova onboard --flow extras` remains the selective module picker for later focused edits.
   </Tab>
 </Tabs>
 
@@ -82,7 +82,7 @@ Onboarding starts with the same base flow for new and returning users:
    For Anthropic, interactive onboarding/configure offers **Anthropic Claude CLI** as the preferred local path and **Anthropic API key** as the recommended production path. Anthropic setup-token also remains available as a supported token-auth path.
 3. **Gateway port** — Local port for Gateway surfaces. The base flow keeps bind/auth/Tailscale on safe local defaults.
 4. **Chat apps** — Configure one chat app now or skip and add channels later with `kova channels add`.
-5. **Advanced setup** — Optional. Add web recall, skill dependencies, plugin settings, automation hooks, or full Gateway/service settings.
+5. **Advanced setup** — Optional. If you choose it, Kova runs the full advanced sequence for web recall, skill dependencies, plugin settings, automation hooks, and full Gateway/service settings.
 6. **Gateway access** — In advanced setup, configure bind address, auth mode, Tailscale access, and always-on service behavior.
    In interactive token mode, choose default plaintext token storage or opt into SecretRef.
    Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.

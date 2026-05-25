@@ -27,7 +27,7 @@ If you want a local agent that feels fast, remembers useful context, creates reu
 New install? Start here: [Getting started](https://docs.neuralstudio.in/start/getting-started)
 
 Preferred setup: use the installer one-liner, then run `kova onboard` if it is not launched automatically.
-Kova Onboard guides you through workspace, model auth, Gateway port, chat channels, and the first terminal chat. Web recall, skills, plugins, automation, background service, apps, and the Control UI stay in advanced setup until you want them. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Kova Onboard guides you through workspace, model auth, Gateway port, chat channels, and the first terminal chat. If you choose advanced setup, Kova walks through web recall, skills, plugins, automation, background service, apps, and Control UI options directly. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
 Works with npm, pnpm, or bun.
 
 Model note: while many providers and models are supported, prefer a current flagship model from the provider you trust and already use. See [Onboarding](https://docs.neuralstudio.in/start/onboarding).
