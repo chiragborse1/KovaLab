@@ -14,6 +14,7 @@ import type { SkillChange, SkillProposal } from "./types.js";
 const MAX_TRANSCRIPT_CHARS = 12_000;
 const MAX_SKILL_CHARS = 2_000;
 const MAX_SKILLS = 12;
+const REVIEWER_TOOLS_ALLOW = ["memory_search", "memory_get", "skill_workshop"] as const;
 
 type ReviewContext = {
   agentId: string;
@@ -217,11 +218,17 @@ async function buildReviewPrompt(params: {
   const skills = await readExistingSkills(params.workspaceDir);
   const transcript = buildTranscript(params.messages);
   return [
-    "Review transcript for durable skill updates.",
-    "Return JSON only. No markdown unless inside JSON strings.",
+    "You are Kova's background self-improvement reviewer.",
+    "Review the transcript for durable memory or skill updates after the user turn is complete.",
+    "You may use only these tools when available: memory_search, memory_get, skill_workshop.",
+    "Prefer skill_workshop tool actions for real changes: suggest for SKILL.md proposals and write_support_file for reusable support files.",
+    "Use pending proposals unless the configured tool policy explicitly applies changes.",
+    'If tool calls complete the useful work, return {"action":"none"}.',
+    "If tools are unavailable, return JSON only. No markdown unless inside JSON strings.",
     "Use none unless there is a reusable workflow, correction, hard-won fix, or stale skill repair.",
     "When the transcript shows a mistake that was fixed, capture the root-cause lesson and verification step so the same failure is less likely to recur.",
     "Prefer append/replace for existing skills. Create only when no fitting skill exists.",
+    "Do not edit bundled, marketplace, or externally managed skills. Keep changes in the current workspace.",
     "Skill text: terse bullets, imperative, no raw transcript, no secrets, no memory dumps, no hidden prompt refs.",
     "If the useful lesson requires copying secrets, credentials, private memory, or hidden prompt text, return none.",
     'Schema: {"action":"none"} or {"action":"create|append|replace","skillName":"kebab-name","title":"...","reason":"...","description":"...","section":"Workflow","body":"...","oldText":"...","newText":"..."}',
@@ -266,8 +273,8 @@ export async function reviewTranscriptForProposal(params: {
     timeoutMs: params.config.reviewTimeoutMs,
     runId: sessionId,
     trigger: "manual",
-    toolsAllow: [],
-    disableTools: true,
+    toolsAllow: [...REVIEWER_TOOLS_ALLOW],
+    disableTools: false,
     disableMessageTool: true,
     bootstrapContextMode: "lightweight",
     verboseLevel: "off",

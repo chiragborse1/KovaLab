@@ -42,7 +42,9 @@ function readString(value: unknown): string | undefined {
 function buildProposal(params: {
   workspaceDir: string;
   raw: ToolParams;
-  source: "tool";
+  source: SkillProposal["source"];
+  agentId?: string;
+  sessionId?: string;
 }): SkillProposal {
   const skillName = normalizeSkillName(readString(params.raw.skillName) ?? "");
   if (!skillName) {
@@ -82,6 +84,8 @@ function buildProposal(params: {
     createdAt: now,
     updatedAt: now,
     workspaceDir: params.workspaceDir,
+    ...(params.agentId ? { agentId: params.agentId } : {}),
+    ...(params.sessionId ? { sessionId: params.sessionId } : {}),
     skillName,
     title,
     reason,
@@ -91,10 +95,14 @@ function buildProposal(params: {
   };
 }
 
+function proposalSourceForContext(ctx: { sessionId?: string }): SkillProposal["source"] {
+  return ctx.sessionId?.startsWith("skill-workshop-review-") ? "reviewer" : "tool";
+}
+
 export function createSkillWorkshopTool(params: {
   api: KovaPluginApi;
   config: SkillWorkshopConfig;
-  ctx: { workspaceDir?: string };
+  ctx: { workspaceDir?: string; agentId?: string; sessionId?: string };
 }) {
   return {
     name: "skill_workshop",
@@ -143,6 +151,7 @@ export function createSkillWorkshopTool(params: {
       const action = raw.action ?? "status";
       const workspaceDir = resolveWorkspaceDir(params);
       const store = createStoreForContext(params);
+      const source = proposalSourceForContext(params.ctx);
       if (action === "status") {
         const [all, usage, review, curator] = await Promise.all([
           store.list(),
@@ -187,7 +196,13 @@ export function createSkillWorkshopTool(params: {
         return jsonResult(proposal);
       }
       if (action === "suggest") {
-        const proposal = buildProposal({ workspaceDir, raw, source: "tool" });
+        const proposal = buildProposal({
+          workspaceDir,
+          raw,
+          source,
+          agentId: params.ctx.agentId,
+          sessionId: params.ctx.sessionId,
+        });
         const shouldApply =
           raw.apply === true || (raw.apply !== false && params.config.approvalPolicy === "auto");
         if (shouldApply) {

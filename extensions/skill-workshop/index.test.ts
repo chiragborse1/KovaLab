@@ -745,6 +745,56 @@ describe("skill-workshop", () => {
     expect(await store.list("pending")).toHaveLength(1);
   });
 
+  it("marks reviewer tool-created skills as background provenance", async () => {
+    const workspaceDir = await makeTempDir();
+    const stateDir = await makeTempDir();
+    let tool: AnyAgentTool | undefined;
+    const api = createTestPluginApi({
+      pluginConfig: { approvalPolicy: "auto" },
+      runtime: {
+        agent: {
+          resolveAgentWorkspaceDir: () => workspaceDir,
+        },
+        state: {
+          resolveStateDir: () => stateDir,
+        },
+      } as never,
+      registerTool(registered) {
+        const resolved =
+          typeof registered === "function"
+            ? registered({
+                workspaceDir,
+                agentId: "main",
+                sessionId: "skill-workshop-review-test",
+              })
+            : registered;
+        tool = Array.isArray(resolved) ? resolved[0] : (resolved ?? undefined);
+      },
+    });
+
+    plugin.register(api);
+    const result = await tool?.execute?.("call-1", {
+      action: "suggest",
+      skillName: "reviewer-created-workflow",
+      description: "Reviewer-created workflow",
+      body: "Capture reusable review output as workspace guidance.",
+    });
+
+    expect(result?.details).toMatchObject({
+      status: "applied",
+      proposal: {
+        source: "reviewer",
+        agentId: "main",
+        sessionId: "skill-workshop-review-test",
+      },
+    });
+    const store = new SkillWorkshopStore({ stateDir, workspaceDir });
+    await expect(store.getUsage("reviewer-created-workflow")).resolves.toMatchObject({
+      origin: "background",
+      lastSource: "reviewer",
+    });
+  });
+
   it("uses the reviewer to propose existing skill repairs", async () => {
     const workspaceDir = await makeTempDir();
     const stateDir = await makeTempDir();
@@ -812,8 +862,8 @@ describe("skill-workshop", () => {
     });
     expect(runEmbeddedPiAgent).toHaveBeenCalledWith(
       expect.objectContaining({
-        disableTools: true,
-        toolsAllow: [],
+        disableTools: false,
+        toolsAllow: ["memory_search", "memory_get", "skill_workshop"],
         provider: "openai",
         model: "gpt-5.4",
         prompt: expect.stringContaining("root-cause lesson"),
