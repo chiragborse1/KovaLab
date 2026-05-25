@@ -59,9 +59,9 @@ describe("formatWizardBootScreen", () => {
     expect(output).toContain("KOVA SETUP");
     expect(output).toContain("1. choose workspace");
     expect(output).toContain("2. choose model");
-    expect(output).toContain("3. choose Gateway port");
-    expect(output).toContain("4. connect chat apps");
-    expect(output).toContain("Advanced setup stays optional");
+    expect(output).toContain("3. connect chat apps (optional)");
+    expect(output).toContain("4. open terminal chat");
+    expect(output).toContain("Optional setup stays later");
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("openclaw");

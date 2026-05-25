@@ -14,12 +14,13 @@ things needed to make Kova usable without turning setup into an admin panel:
 
 1. Workspace
 2. Model/auth provider
-3. Gateway port
-4. Chat channel setup
+3. Optional chat channel setup
+4. Start terminal chat
 
-After that, Kova asks whether you want advanced setup now. Advanced setup is
-the direct step-by-step path for full Gateway settings, web recall, skill
-dependencies, plugin settings, automation hooks, and background service details.
+After that, Kova asks whether you want optional setup now. Optional setup is the
+direct step-by-step path for web recall, skill dependencies, plugin settings,
+and automation hooks. Full Gateway settings and background service details live
+in `kova onboard --flow extras` or `kova configure --section gateway`.
 Routine edits after onboarding belong in `kova settings`.
 
 ## Related guides
@@ -196,7 +197,7 @@ kova onboard --non-interactive \
 
 <AccordionGroup>
   <Accordion title="Flow types">
-    - `quickstart`: Default onboarding. Prompts for workspace, model/auth, Gateway port, and chat channel setup, then asks whether to run the advanced setup steps.
+    - `quickstart`: Default onboarding. Prompts for workspace, model/auth, and optional chat channel setup, then asks whether to run optional setup steps.
     - `extras`: Advanced-only setup path where you can choose specific modules such as web recall, skills, plugins, hooks, channels, and always-on Gateway.
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
@@ -217,7 +218,7 @@ kova onboard --non-interactive \
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
     - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
     - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
-    - Base onboarding asks about chat channels, then skips web recall, skills, hooks, and service install unless you choose advanced setup. If you choose advanced setup there, Kova runs the advanced steps directly instead of showing a second picker.
+    - Base onboarding asks about chat channels, then skips web recall, skills, hooks, and service install unless you choose optional setup. If you choose optional setup there, Kova runs the optional steps directly instead of showing a second picker. Gateway port/network prompts stay in `--flow extras`.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

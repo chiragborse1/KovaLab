@@ -117,10 +117,10 @@ export function formatWizardBootScreen(): string {
     "",
     "1. choose workspace",
     "2. choose model",
-    "3. choose Gateway port",
-    "4. connect chat apps",
+    "3. connect chat apps (optional)",
+    "4. open terminal chat",
     "",
-    "Advanced setup stays optional: web recall, skills, plugins, automation, background service.",
+    "Optional setup stays later: Gateway service, web recall, skills, plugins, automation.",
     "",
   ].join("\n");
 }

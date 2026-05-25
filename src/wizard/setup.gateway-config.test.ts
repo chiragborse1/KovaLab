@@ -121,6 +121,37 @@ describe("configureGatewayForSetup", () => {
     }
   });
 
+  it("uses the quickstart port without prompting", async () => {
+    mocks.randomToken.mockReturnValue("generated-token");
+    const text = vi.fn(async () => {
+      throw new Error("quickstart should not prompt for a gateway port");
+    });
+    const prompter = buildWizardPrompter({
+      select: vi.fn(
+        async (params: WizardSelectParams<unknown>) =>
+          params.initialValue ?? params.options[0]?.value,
+      ) as unknown as WizardPrompter["select"],
+      text,
+    });
+
+    const result = await configureGatewayForSetup({
+      flow: "quickstart",
+      baseConfig: {},
+      nextConfig: {},
+      localPort: 19999,
+      quickstartGateway: {
+        ...createQuickstartGateway("token"),
+        port: 18791,
+      },
+      prompter,
+      runtime: createRuntime(),
+    });
+
+    expect(text).not.toHaveBeenCalled();
+    expect(result.settings.port).toBe(18791);
+    expect(result.nextConfig.gateway?.port).toBe(18791);
+  });
+
   it("enables insecure local control ui auth for fresh quickstart loopback setups", async () => {
     mocks.randomToken.mockReturnValue("generated-token");
 

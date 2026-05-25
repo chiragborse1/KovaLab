@@ -76,7 +76,9 @@ export async function configureGatewayForSetup(
     const parsed = Number.parseInt(rawInput || String(localPort), 10);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : localPort;
   };
-  const port = explicitGatewayPort ?? (await promptGatewayPort());
+  const port =
+    explicitGatewayPort ??
+    (flow === "quickstart" ? quickstartGateway.port : await promptGatewayPort());
 
   let bind: GatewayWizardSettings["bind"] =
     flow === "quickstart"

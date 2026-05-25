@@ -9,10 +9,11 @@ sidebarTitle: "Onboarding: CLI"
 
 CLI onboarding is the **recommended** way to shape a new Kova instance on macOS,
 Linux, or Windows (via WSL2; strongly recommended). The default path is direct:
-choose a workspace, choose model/auth, pick the local Gateway port, configure
-chat channels or skip them, then start terminal chat. Optional setup comes after
-that; when you choose it, Kova walks through the advanced Gateway, web recall,
-skills, plugins, automation, and always-on service steps directly.
+choose a workspace, choose model/auth, configure a chat channel or skip it, then
+start terminal chat. Kova keeps safe local Gateway defaults in the background
+for channel and service features. Optional setup comes after that; when you
+choose it, Kova walks through web recall, skills, plugins, and automation
+directly. Full Gateway/service settings stay in the extras path.
 
 ```bash
 kova onboard
@@ -57,14 +58,14 @@ Onboarding starts with the same base flow for new and returning users:
   <Tab title="Base flow">
     - Pick or keep the workspace.
     - Pick model/auth and then a default model.
-    - Pick the local Gateway port. Bind/auth/Tailscale stay on safe local defaults unless you choose advanced setup.
     - Configure a chat app or skip for now.
+    - Keep Gateway networking on safe local defaults in the background.
     - Open terminal chat or finish without launching.
   </Tab>
   <Tab title="Advanced setup">
     - Runs only after the base prompts unless you pass `--flow extras`.
-    - Walks through always-on Gateway/service, web recall, skills, plugins, and automation in order.
-    - `kova onboard --flow extras` remains the selective module picker for later focused edits.
+    - Walks through web recall, skills, plugins, and automation in order.
+    - `kova onboard --flow extras` remains the selective module picker for always-on Gateway/service, channels, and later focused edits.
   </Tab>
 </Tabs>
 
@@ -80,17 +81,17 @@ Onboarding starts with the same base flow for new and returning users:
    In non-interactive `ref` mode, the provider env var must be set; passing inline key flags without that env var fails fast.
    In interactive runs, choosing secret reference mode lets you point at either an environment variable or a configured provider ref (`file` or `exec`), with a fast preflight validation before saving.
    For Anthropic, interactive onboarding/configure offers **Anthropic Claude CLI** as the preferred local path and **Anthropic API key** as the recommended production path. Anthropic setup-token also remains available as a supported token-auth path.
-3. **Gateway port** — Local port for Gateway surfaces. The base flow keeps bind/auth/Tailscale on safe local defaults.
-4. **Chat apps** — Configure one chat app now or skip and add channels later with `kova channels add`.
-5. **Advanced setup** — Optional. If you choose it, Kova runs the full advanced sequence for web recall, skill dependencies, plugin settings, automation hooks, and full Gateway/service settings.
-6. **Gateway access** — In advanced setup, configure bind address, auth mode, Tailscale access, and always-on service behavior.
+3. **Chat apps** — Configure one chat app now or skip and add channels later with `kova channels add`.
+4. **Gateway defaults** — Kova keeps loopback Gateway defaults for channels, pairing, nodes, cron, and remote service features without asking for a port in the first-run flow.
+5. **Optional setup** — Optional. If you choose it, Kova runs web recall, skill dependencies, plugin settings, and automation hooks directly.
+6. **Gateway access** — In `kova onboard --flow extras`, configure bind address, port, auth mode, Tailscale access, and always-on service behavior.
    In interactive token mode, choose default plaintext token storage or opt into SecretRef.
    Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
-7. **Background service** — Advanced setup can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback when you select always-on Gateway.
+7. **Background service** — Extras can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback when you select always-on Gateway.
    If token auth requires a token and `gateway.auth.token` is SecretRef-managed, daemon install validates it but does not persist the resolved token into supervisor service environment metadata.
    If token auth requires a token and the configured token SecretRef is unresolved, daemon install is blocked with actionable guidance.
    If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, daemon install is blocked until mode is set explicitly.
-8. **Health check** — Advanced setup verifies the Gateway only when always-on Gateway is selected or a service install is requested.
+8. **Health check** — Extras verify the Gateway only when always-on Gateway is selected or a service install is requested.
 9. **Start** — Opens Terminal chat by default, offers the legacy browser UI only when explicitly enabled, or finishes without launching.
 
 <Note>

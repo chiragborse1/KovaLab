@@ -31,13 +31,7 @@ import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 
 type SetupFlowChoice = WizardFlow | "import";
 
-const QUICKSTART_ADVANCED_MODULES: SetupExtraModule[] = [
-  "gateway",
-  "web",
-  "skills",
-  "plugins",
-  "hooks",
-];
+const QUICKSTART_ADVANCED_MODULES: SetupExtraModule[] = ["web", "skills", "plugins", "hooks"];
 
 type AuthChoiceModule = typeof import("../commands/auth-choice.js");
 type ConfigLoggingModule = typeof import("../config/logging.js");
@@ -703,25 +697,11 @@ export async function runSetupWizard(
 
   if (flow === "quickstart") {
     const wantsAdvanced = await prompter.confirm({
-      message: "Do advanced setup now?",
+      message: "Add optional setup now?",
       initialValue: false,
     });
     if (wantsAdvanced) {
       extraModules = [...QUICKSTART_ADVANCED_MODULES];
-      const { configureGatewayForSetup } = await loadGatewayConfigModule();
-      const gateway = await configureGatewayForSetup({
-        flow: "advanced",
-        baseConfig,
-        nextConfig,
-        localPort: settings.port,
-        gatewayPort: opts.gatewayPort,
-        quickstartGateway,
-        secretInputMode: opts.secretInputMode,
-        prompter,
-        runtime,
-      });
-      nextConfig = gateway.nextConfig;
-      settings = gateway.settings;
     }
   }
 

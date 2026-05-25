@@ -513,7 +513,7 @@ describe("runSetupWizard", () => {
     );
   });
 
-  it("runs the full advanced sequence directly when quick setup asks for it", async () => {
+  it("runs optional setup directly when quick setup asks for it", async () => {
     configureGatewayForSetup.mockClear();
     setupSearch.mockClear();
     setupSkills.mockClear();
@@ -541,11 +541,7 @@ describe("runSetupWizard", () => {
     );
 
     expect(multiselect).not.toHaveBeenCalled();
-    expect(configureGatewayForSetup).toHaveBeenCalledTimes(2);
-    expect(configureGatewayForSetup).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ flow: "advanced" }),
-    );
+    expect(configureGatewayForSetup).toHaveBeenCalledTimes(1);
     expect(setupSearch).toHaveBeenCalledTimes(1);
     expect(setupSkills).toHaveBeenCalledTimes(1);
     expect(setupPluginConfig).toHaveBeenCalledTimes(1);
@@ -553,7 +549,7 @@ describe("runSetupWizard", () => {
     expect(finalizeSetupWizard).toHaveBeenCalledWith(
       expect.objectContaining({
         flow: "extras",
-        extraModules: ["gateway", "web", "skills", "plugins", "hooks"],
+        extraModules: ["web", "skills", "plugins", "hooks"],
       }),
     );
   });
