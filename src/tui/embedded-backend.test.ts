@@ -287,7 +287,7 @@ describe("EmbeddedTuiBackend", () => {
 
       expect(createDefaultDepsMock).toHaveBeenCalledTimes(1);
     } finally {
-      backend.stop();
+      await backend.stop();
       vi.useRealTimers();
     }
   });
@@ -852,7 +852,7 @@ describe("EmbeddedTuiBackend", () => {
     expect(defaultRuntime.log).not.toBe(originalRuntimeLog);
     expect(defaultRuntime.error).not.toBe(originalRuntimeError);
 
-    backend.stop();
+    await backend.stop();
 
     expect(isEmbeddedMode()).toBe(false);
     expect(defaultRuntime.log).toBe(originalRuntimeLog);
