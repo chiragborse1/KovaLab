@@ -149,6 +149,7 @@ Current source-of-truth:
     - `/commands` shows the generated command catalog.
     - `/tools [compact|verbose]` shows what the current agent can use right now.
     - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available. In the local TUI, bare `/status` is a fast terminal snapshot; use `/status full` for this richer status block.
+    - `/diagnostics [note]` explains diagnostics privacy and requests an approval-backed `kova gateway diagnostics export --json` support bundle.
     - `/crestodian <request>` runs the Crestodian setup and repair helper from an owner DM.
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
