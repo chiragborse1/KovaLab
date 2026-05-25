@@ -90,9 +90,9 @@ API key auth, and dynamic model resolution.
     credentials without loading your plugin runtime. Add `providerAuthAliases`
     when a provider variant should reuse another provider id's auth. `modelSupport`
     is optional and lets Kova auto-load your provider plugin from shorthand
-    model ids like `acme-large` before runtime hooks exist. If you publish the
-    provider on KovaHub, those `kova.compat` and `kova.build` fields
-    are required in `package.json`.
+    model ids like `acme-large` before runtime hooks exist. External provider
+    packages should keep `kova.compat` and `kova.build` in `package.json` so Kova
+    can verify compatibility before loading.
 
   </Step>
 
@@ -710,17 +710,15 @@ API key auth, and dynamic model resolution.
   </Step>
 </Steps>
 
-## Publish to KovaHub
-
-Provider plugins publish the same way as any other external code plugin:
+## Publish
 
 ```bash
-kovahub package publish your-org/your-plugin --dry-run
-kovahub package publish your-org/your-plugin
+npm publish --dry-run
+npm publish
 ```
 
-Do not use the legacy skill-only publish alias here; plugin packages should use
-`kovahub package publish`.
+KovaHub marketplace publishing is planned for a future Kova release and is not
+active in this build.
 
 ## File structure
 

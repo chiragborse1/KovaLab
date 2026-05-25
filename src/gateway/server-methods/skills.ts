@@ -5,20 +5,12 @@ import {
 } from "../../agents/agent-scope.js";
 import { canExecRequestNode } from "../../agents/exec-defaults.js";
 import { installSkill } from "../../agents/skills-install.js";
-import {
-  installSkillFromKovaHub,
-  searchSkillsFromKovaHub,
-  uninstallSkillFromKovaHub,
-  updateSkillsFromKovaHub,
-} from "../../agents/skills-kovahub.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
 import { listAgentWorkspaceDirs } from "../../agents/workspace-dirs.js";
 import { replaceConfigFile } from "../../config/config.js";
 import { redactConfigObject, REDACTED_SENTINEL } from "../../config/redact-snapshot.js";
 import type { KovaConfig } from "../../config/types.kova.js";
-import { formatErrorMessage } from "../../infra/errors.js";
-import { fetchKovaHubSkillDetail } from "../../infra/kovahub.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -36,6 +28,9 @@ import {
   validateSkillsUpdateParams,
 } from "../protocol/index.js";
 import type { GatewayRequestHandlers } from "./types.js";
+
+const KOVAHUB_UNAVAILABLE_MESSAGE =
+  "KovaHub registry integration is not available in this build. Use local workspace skills for now.";
 
 function collectSkillBins(entries: SkillEntry[]): string[] {
   const bins = new Set<string>();
@@ -144,15 +139,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    try {
-      const results = await searchSkillsFromKovaHub({
-        query: (params as { query?: string }).query,
-        limit: (params as { limit?: number }).limit,
-      });
-      respond(true, { results }, undefined);
-    } catch (err) {
-      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatErrorMessage(err)));
-    }
+    respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, KOVAHUB_UNAVAILABLE_MESSAGE));
   },
   "skills.detail": async ({ params, respond }) => {
     if (!validateSkillsDetailParams(params)) {
@@ -166,14 +153,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    try {
-      const detail = await fetchKovaHubSkillDetail({
-        slug: (params as { slug: string }).slug,
-      });
-      respond(true, detail, undefined);
-    } catch (err) {
-      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, formatErrorMessage(err)));
-    }
+    respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, KOVAHUB_UNAVAILABLE_MESSAGE));
   },
   "skills.install": async ({ params, respond, context }) => {
     if (!validateSkillsInstallParams(params)) {
@@ -190,34 +170,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
     const cfg = context.getRuntimeConfig();
     const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
     if (params && typeof params === "object" && "source" in params && params.source === "kovahub") {
-      const p = params as {
-        source: "kovahub";
-        slug: string;
-        version?: string;
-        force?: boolean;
-      };
-      const result = await installSkillFromKovaHub({
-        workspaceDir: workspaceDirRaw,
-        slug: p.slug,
-        version: p.version,
-        force: Boolean(p.force),
-      });
-      respond(
-        result.ok,
-        result.ok
-          ? {
-              ok: true,
-              message: `Installed ${result.slug}@${result.version}`,
-              stdout: "",
-              stderr: "",
-              code: 0,
-              slug: result.slug,
-              version: result.version,
-              targetDir: result.targetDir,
-            }
-          : result,
-        result.ok ? undefined : errorShape(ErrorCodes.UNAVAILABLE, result.error),
-      );
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, KOVAHUB_UNAVAILABLE_MESSAGE));
       return;
     }
     const p = params as {
@@ -252,29 +205,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    const cfg = context.getRuntimeConfig();
-    const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-    const p = params as {
-      source: "kovahub";
-      slug: string;
-    };
-    const result = await uninstallSkillFromKovaHub({
-      workspaceDir: workspaceDirRaw,
-      slug: p.slug,
-    });
-    respond(
-      result.ok,
-      result.ok
-        ? {
-            ok: true,
-            message: result.removed ? `Uninstalled ${result.slug}` : `Untracked ${result.slug}`,
-            slug: result.slug,
-            targetDir: result.targetDir,
-            removed: result.removed,
-          }
-        : result,
-      result.ok ? undefined : errorShape(ErrorCodes.UNAVAILABLE, result.error),
-    );
+    respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, KOVAHUB_UNAVAILABLE_MESSAGE));
   },
   "skills.update": async ({ params, respond, context }) => {
     if (!validateSkillsUpdateParams(params)) {
@@ -289,51 +220,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       return;
     }
     if (params && typeof params === "object" && "source" in params && params.source === "kovahub") {
-      const p = params as {
-        source: "kovahub";
-        slug?: string;
-        all?: boolean;
-      };
-      if (!p.slug && !p.all) {
-        respond(
-          false,
-          undefined,
-          errorShape(ErrorCodes.INVALID_REQUEST, 'kovahub skills.update requires "slug" or "all"'),
-        );
-        return;
-      }
-      if (p.slug && p.all) {
-        respond(
-          false,
-          undefined,
-          errorShape(
-            ErrorCodes.INVALID_REQUEST,
-            'kovahub skills.update accepts either "slug" or "all", not both',
-          ),
-        );
-        return;
-      }
-      const cfg = context.getRuntimeConfig();
-      const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
-      const results = await updateSkillsFromKovaHub({
-        workspaceDir,
-        slug: p.slug,
-      });
-      const errors = results.filter((result) => !result.ok);
-      respond(
-        errors.length === 0,
-        {
-          ok: errors.length === 0,
-          skillKey: p.slug ?? "*",
-          config: {
-            source: "kovahub",
-            results,
-          },
-        },
-        errors.length === 0
-          ? undefined
-          : errorShape(ErrorCodes.UNAVAILABLE, errors.map((result) => result.error).join("; ")),
-      );
+      respond(false, undefined, errorShape(ErrorCodes.UNAVAILABLE, KOVAHUB_UNAVAILABLE_MESSAGE));
       return;
     }
     const p = params as {

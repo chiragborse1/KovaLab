@@ -215,17 +215,17 @@ npm test
 
 ## Publish
 
-Publish through KovaHub when the package is ready:
+Publish through npm when the package is ready:
 
 ```bash
-kovahub package publish your-org/stock-quotes --dry-run
-kovahub package publish your-org/stock-quotes
+npm publish --dry-run
+npm publish
 ```
 
-Install with an explicit KovaHub locator:
+Install with the npm package name:
 
 ```bash
-kova plugins install kovahub:your-org/stock-quotes
+kova plugins install @myorg/stock-quotes
 ```
 
 ## Troubleshooting
@@ -266,4 +266,4 @@ metadata with the entry you intend to ship.
 - [Plugin SDK subpaths](/plugins/sdk-subpaths)
 - [Plugin manifest](/plugins/manifest)
 - [Plugins CLI](/cli/plugins)
-- [KovaHub](/tools/kovahub)
+- [KovaHub status](/tools/kovahub)

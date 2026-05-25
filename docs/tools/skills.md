@@ -122,26 +122,11 @@ its proposals. Review pending and quarantined proposals with
 `kova skill-workshop apply <proposal-id> --yes` and writes only to the selected
 workspace `skills/` directory. Full guide: [Skill Workshop plugin](/plugins/skill-workshop).
 
-## KovaHub (install and sync)
+## KovaHub status
 
-[KovaHub](https://kovahub.ai) is the public skills registry for Kova.
-Use native `kova skills` commands for discover/install/update, or the
-separate `kovahub` CLI for publish/sync workflows. Full guide:
-[KovaHub](/tools/kovahub).
-
-| Action                                   | Command                                     |
-| ---------------------------------------- | ------------------------------------------- |
-| Install a skill into the workspace       | `kova skills install <skill-slug>`          |
-| Install a shared managed skill           | `kova skills install <skill-slug> --global` |
-| Update all installed workspace skills    | `kova skills update --all`                  |
-| Update all shared managed KovaHub skills | `kova skills update --all --global`         |
-| Sync (scan + publish updates)            | `kovahub sync --all`                        |
-
-Native `kova skills install` installs into the active workspace
-`skills/` directory by default. Add `--global` to install or update in the
-shared managed skills directory. The separate `kovahub` CLI also installs into
-`./skills` under your current working directory (or falls back to the configured
-Kova workspace). Kova picks that up as `<workspace>/skills` on the next session.
+KovaHub is planned as a future Kova marketplace. This build does not include
+live registry search, install, update, publish, or sync flows. Use local
+workspace/shared skill roots for now. See [KovaHub](/tools/kovahub).
 
 ## Security
 
@@ -153,7 +138,6 @@ Prefer sandboxed runs for untrusted inputs and risky tools. See
 
 - Workspace and extra-dir skill discovery only accepts skill roots and `SKILL.md` files whose resolved realpath stays inside the configured root.
 - Gateway-backed skill dependency installs (`skills.install`, onboarding, and the Skills settings UI) run the built-in dangerous-code scanner before executing installer metadata. `critical` findings block by default unless the caller explicitly sets the dangerous override; suspicious findings still warn only.
-- `kova skills install <slug>` is different — it downloads a KovaHub skill folder into the workspace and does not use the installer-metadata path above.
 - `kova skill-workshop apply <proposal-id> --yes` applies reviewed proposals only to the selected workspace `skills/` directory; it does not update shared managed skills.
 - `skills.entries.*.env` and `skills.entries.*.apiKey` inject secrets into the **host** process for that agent turn (not the sandbox). Keep secrets out of prompts and logs.
 
@@ -456,14 +440,9 @@ local overrides — for example, pinning or patching a skill without
 changing the bundled copy. Workspace skills are user-owned and override
 both on name conflicts.
 
-## Looking for more skills?
-
-Browse [https://kovahub.ai](https://kovahub.ai). Full configuration
-schema: [Skills config](/tools/skills-config).
-
 ## Related
 
-- [KovaHub](/tools/kovahub) — public skills registry
+- [KovaHub](/tools/kovahub) — future marketplace status
 - [Creating skills](/tools/creating-skills) — building custom skills
 - [Plugins](/tools/plugin) — plugin system overview
 - [Skill Workshop plugin](/plugins/skill-workshop) — generate skills from agent work

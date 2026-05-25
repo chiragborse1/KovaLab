@@ -410,7 +410,6 @@ function buildDocsSection(params: {
     sourcePath ? `Local source: ${sourcePath}` : undefined,
     "Source: https://github.com/chiragborse1/KovaLab",
     "Community: https://discord.com/invite/kova",
-    "Find new skills: https://kovahub.ai",
     docsPath
       ? "For Kova behavior, commands, config, or architecture: consult local docs first."
       : "For Kova behavior, commands, config, or architecture: consult the docs mirror first.",

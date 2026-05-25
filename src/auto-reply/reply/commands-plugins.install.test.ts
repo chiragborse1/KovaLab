@@ -6,12 +6,10 @@ import { createCommandWorkspaceHarness } from "./commands-filesystem.test-suppor
 import { handlePluginsCommand } from "./commands-plugins.js";
 import { buildPluginsCommandParams } from "./commands.test-harness.js";
 
-const { installPluginFromPathMock, installPluginFromKovaHubMock, persistPluginInstallMock } =
-  vi.hoisted(() => ({
-    installPluginFromPathMock: vi.fn(),
-    installPluginFromKovaHubMock: vi.fn(),
-    persistPluginInstallMock: vi.fn(),
-  }));
+const { installPluginFromPathMock, persistPluginInstallMock } = vi.hoisted(() => ({
+  installPluginFromPathMock: vi.fn(),
+  persistPluginInstallMock: vi.fn(),
+}));
 
 vi.mock("../../plugins/install.js", async () => {
   const actual = await vi.importActual<typeof import("../../plugins/install.js")>(
@@ -20,16 +18,6 @@ vi.mock("../../plugins/install.js", async () => {
   return {
     ...actual,
     installPluginFromPath: installPluginFromPathMock,
-  };
-});
-
-vi.mock("../../plugins/kovahub.js", async () => {
-  const actual = await vi.importActual<typeof import("../../plugins/kovahub.js")>(
-    "../../plugins/kovahub.js",
-  );
-  return {
-    ...actual,
-    installPluginFromKovaHub: installPluginFromKovaHubMock,
   };
 });
 
@@ -50,7 +38,6 @@ function buildPluginsParams(commandBodyNormalized: string, workspaceDir: string)
 describe("handleCommands /plugins install", () => {
   afterEach(async () => {
     installPluginFromPathMock.mockReset();
-    installPluginFromKovaHubMock.mockReset();
     persistPluginInstallMock.mockReset();
     await workspaceHarness.cleanupWorkspaces();
   });
@@ -95,27 +82,7 @@ describe("handleCommands /plugins install", () => {
     });
   });
 
-  it("installs from an explicit kovahub: spec", async () => {
-    installPluginFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      pluginId: "kovahub-demo",
-      targetDir: "/tmp/kovahub-demo",
-      version: "1.2.3",
-      extensions: ["index.js"],
-      packageName: "@chiragborse1/kovahub-demo",
-      kovahub: {
-        source: "kovahub",
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "@chiragborse1/kovahub-demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-        version: "1.2.3",
-        integrity: "sha512-demo",
-        resolvedAt: "2026-03-22T12:00:00.000Z",
-      },
-    });
-    persistPluginInstallMock.mockResolvedValue({});
-
+  it("rejects explicit kovahub: specs while registry installs are disabled", async () => {
     await withTempHome("kova-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
       const params = buildPluginsParams(
@@ -126,64 +93,34 @@ describe("handleCommands /plugins install", () => {
       if (result === null) {
         throw new Error("expected plugin install result");
       }
-      expect(result.reply?.text).toContain('Installed plugin "kovahub-demo"');
-      expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          spec: "kovahub:@chiragborse1/kovahub-demo@1.2.3",
-        }),
-      );
-      expect(persistPluginInstallMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pluginId: "kovahub-demo",
-          install: expect.objectContaining({
-            source: "kovahub",
-            spec: "kovahub:@chiragborse1/kovahub-demo@1.2.3",
-            installPath: "/tmp/kovahub-demo",
-            version: "1.2.3",
-            integrity: "sha512-demo",
-            kovahubPackage: "@chiragborse1/kovahub-demo",
-            kovahubChannel: "official",
-          }),
-        }),
-      );
+      expect(result.reply?.text).toContain("KovaHub plugin installs are not available");
+      expect(persistPluginInstallMock).not.toHaveBeenCalled();
     });
   });
 
   it("treats /plugin add as an install alias", async () => {
-    installPluginFromKovaHubMock.mockResolvedValue({
+    installPluginFromPathMock.mockResolvedValue({
       ok: true,
       pluginId: "alias-demo",
       targetDir: "/tmp/alias-demo",
       version: "1.0.0",
       extensions: ["index.js"],
-      packageName: "@kovaai/alias-demo",
-      kovahub: {
-        source: "kovahub",
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "@kovaai/alias-demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-        version: "1.0.0",
-        integrity: "sha512-alias",
-        resolvedAt: "2026-03-23T12:00:00.000Z",
-      },
     });
     persistPluginInstallMock.mockResolvedValue({});
 
     await withTempHome("kova-command-plugins-home-", async () => {
       const workspaceDir = await workspaceHarness.createWorkspace();
-      const params = buildPluginsParams(
-        "/plugin add kovahub:@kovaai/alias-demo@1.0.0",
-        workspaceDir,
-      );
+      const pluginDir = path.join(workspaceDir, "fixtures", "alias-demo");
+      await fs.mkdir(pluginDir, { recursive: true });
+      const params = buildPluginsParams(`/plugin add ${pluginDir}`, workspaceDir);
       const result = await handlePluginsCommand(params, true);
       if (result === null) {
         throw new Error("expected plugin install result");
       }
       expect(result.reply?.text).toContain('Installed plugin "alias-demo"');
-      expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
+      expect(installPluginFromPathMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          spec: "kovahub:@kovaai/alias-demo@1.0.0",
+          path: pluginDir,
         }),
       );
     });

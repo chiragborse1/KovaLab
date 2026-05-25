@@ -23,7 +23,6 @@ import {
   resolvePluginInstallDir,
 } from "./install.js";
 import { buildNpmResolutionInstallFields, recordPluginInstall } from "./installs.js";
-import { installPluginFromKovaHub } from "./kovahub.js";
 import { installPluginFromMarketplace } from "./marketplace.js";
 
 export type PluginUpdateLogger = {
@@ -94,15 +93,6 @@ function formatMarketplaceInstallFailure(params: {
     `Failed to ${params.phase} ${params.pluginId}: ` +
     `${params.error} (marketplace plugin ${params.marketplacePlugin} from ${params.marketplaceSource}).`
   );
-}
-
-function formatKovaHubInstallFailure(params: {
-  pluginId: string;
-  spec: string;
-  phase: "check" | "update";
-  error: string;
-}): string {
-  return `Failed to ${params.phase} ${params.pluginId}: ${params.error} (KovaHub ${params.spec}).`;
 }
 
 type InstallIntegrityDrift = {
@@ -502,7 +492,7 @@ export async function updateNpmInstalledPlugins(params: {
       continue;
     }
 
-    if (record.source !== "npm" && record.source !== "marketplace" && record.source !== "kovahub") {
+    if (record.source !== "npm" && record.source !== "marketplace") {
       outcomes.push({
         pluginId,
         status: "skipped",
@@ -523,15 +513,6 @@ export async function updateNpmInstalledPlugins(params: {
         pluginId,
         status: "skipped",
         message: `Skipping "${pluginId}" (missing npm spec).`,
-      });
-      continue;
-    }
-
-    if (record.source === "kovahub" && !record.kovahubPackage) {
-      outcomes.push({
-        pluginId,
-        status: "skipped",
-        message: `Skipping "${pluginId}" (missing KovaHub package metadata).`,
       });
       continue;
     }
@@ -599,7 +580,6 @@ export async function updateNpmInstalledPlugins(params: {
     if (params.dryRun) {
       let probe:
         | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-        | Awaited<ReturnType<typeof installPluginFromKovaHub>>
         | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
       try {
         probe =
@@ -621,29 +601,17 @@ export async function updateNpmInstalledPlugins(params: {
                 }),
                 logger,
               })
-            : record.source === "kovahub"
-              ? await installPluginFromKovaHub({
-                  spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
-                  baseUrl: record.kovahubUrl,
-                  mode: "update",
-                  extensionsDir,
-                  timeoutMs: params.timeoutMs,
-                  dryRun: true,
-                  dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
-                  expectedPluginId: pluginId,
-                  logger,
-                })
-              : await installPluginFromMarketplace({
-                  marketplace: record.marketplaceSource!,
-                  plugin: record.marketplacePlugin!,
-                  mode: "update",
-                  extensionsDir,
-                  timeoutMs: params.timeoutMs,
-                  dryRun: true,
-                  dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
-                  expectedPluginId: pluginId,
-                  logger,
-                });
+            : await installPluginFromMarketplace({
+                marketplace: record.marketplaceSource!,
+                plugin: record.marketplacePlugin!,
+                mode: "update",
+                extensionsDir,
+                timeoutMs: params.timeoutMs,
+                dryRun: true,
+                dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
+                expectedPluginId: pluginId,
+                logger,
+              });
       } catch (err) {
         outcomes.push({
           pluginId,
@@ -664,20 +632,13 @@ export async function updateNpmInstalledPlugins(params: {
                   phase: "check",
                   result: probe,
                 })
-              : record.source === "kovahub"
-                ? formatKovaHubInstallFailure({
-                    pluginId,
-                    spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
-                    phase: "check",
-                    error: probe.error,
-                  })
-                : formatMarketplaceInstallFailure({
-                    pluginId,
-                    marketplaceSource: record.marketplaceSource!,
-                    marketplacePlugin: record.marketplacePlugin!,
-                    phase: "check",
-                    error: probe.error,
-                  }),
+              : formatMarketplaceInstallFailure({
+                  pluginId,
+                  marketplaceSource: record.marketplaceSource!,
+                  marketplacePlugin: record.marketplacePlugin!,
+                  phase: "check",
+                  error: probe.error,
+                }),
         });
         continue;
       }
@@ -706,7 +667,6 @@ export async function updateNpmInstalledPlugins(params: {
 
     let result:
       | Awaited<ReturnType<typeof installPluginFromNpmSpec>>
-      | Awaited<ReturnType<typeof installPluginFromKovaHub>>
       | Awaited<ReturnType<typeof installPluginFromMarketplace>>;
     try {
       result =
@@ -727,27 +687,16 @@ export async function updateNpmInstalledPlugins(params: {
               }),
               logger,
             })
-          : record.source === "kovahub"
-            ? await installPluginFromKovaHub({
-                spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
-                baseUrl: record.kovahubUrl,
-                mode: "update",
-                extensionsDir,
-                timeoutMs: params.timeoutMs,
-                dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
-                expectedPluginId: pluginId,
-                logger,
-              })
-            : await installPluginFromMarketplace({
-                marketplace: record.marketplaceSource!,
-                plugin: record.marketplacePlugin!,
-                mode: "update",
-                extensionsDir,
-                timeoutMs: params.timeoutMs,
-                dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
-                expectedPluginId: pluginId,
-                logger,
-              });
+          : await installPluginFromMarketplace({
+              marketplace: record.marketplaceSource!,
+              plugin: record.marketplacePlugin!,
+              mode: "update",
+              extensionsDir,
+              timeoutMs: params.timeoutMs,
+              dangerouslyForceUnsafeInstall: params.dangerouslyForceUnsafeInstall,
+              expectedPluginId: pluginId,
+              logger,
+            });
     } catch (err) {
       outcomes.push({
         pluginId,
@@ -768,20 +717,13 @@ export async function updateNpmInstalledPlugins(params: {
                 phase: "update",
                 result: result,
               })
-            : record.source === "kovahub"
-              ? formatKovaHubInstallFailure({
-                  pluginId,
-                  spec: effectiveSpec ?? `kovahub:${record.kovahubPackage!}`,
-                  phase: "update",
-                  error: result.error,
-                })
-              : formatMarketplaceInstallFailure({
-                  pluginId,
-                  marketplaceSource: record.marketplaceSource!,
-                  marketplacePlugin: record.marketplacePlugin!,
-                  phase: "update",
-                  error: result.error,
-                }),
+            : formatMarketplaceInstallFailure({
+                pluginId,
+                marketplaceSource: record.marketplaceSource!,
+                marketplacePlugin: record.marketplacePlugin!,
+                phase: "update",
+                error: result.error,
+              }),
       });
       continue;
     }
@@ -800,24 +742,6 @@ export async function updateNpmInstalledPlugins(params: {
         installPath: result.targetDir,
         version: nextVersion,
         ...buildNpmResolutionInstallFields(result.npmResolution),
-      });
-    } else if (record.source === "kovahub") {
-      const kovahubResult = result as Extract<
-        Awaited<ReturnType<typeof installPluginFromKovaHub>>,
-        { ok: true }
-      >;
-      next = recordPluginInstall(next, {
-        pluginId: resolvedPluginId,
-        source: "kovahub",
-        spec: effectiveSpec ?? record.spec ?? `kovahub:${record.kovahubPackage!}`,
-        installPath: result.targetDir,
-        version: nextVersion,
-        integrity: kovahubResult.kovahub.integrity,
-        resolvedAt: kovahubResult.kovahub.resolvedAt,
-        kovahubUrl: kovahubResult.kovahub.kovahubUrl,
-        kovahubPackage: kovahubResult.kovahub.kovahubPackage,
-        kovahubFamily: kovahubResult.kovahub.kovahubFamily,
-        kovahubChannel: kovahubResult.kovahub.kovahubChannel,
       });
     } else {
       const marketplaceResult = result as Extract<

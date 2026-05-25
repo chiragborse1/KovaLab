@@ -49,7 +49,7 @@ function isPreferredOrigin(candidate: PluginOrigin, current: PluginOrigin | unde
 }
 
 function normalizeDefaultChoice(value: unknown): PluginPackageInstall["defaultChoice"] | undefined {
-  return value === "npm" || value === "kovahub" || value === "local" ? value : undefined;
+  return value === "npm" || value === "local" ? value : undefined;
 }
 
 function resolveInstallInfoFromInstallRecord(

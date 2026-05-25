@@ -44,7 +44,7 @@ export function parsePluginsCommand(raw: string): PluginsCommand | null {
     if (!name) {
       return {
         action: "error",
-        message: "Usage: /plugins install <path|archive|npm-spec|kovahub:pkg>",
+        message: "Usage: /plugins install <path|archive|npm-spec>",
       };
     }
     return { action: "install", spec: name };

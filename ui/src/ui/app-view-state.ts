@@ -8,11 +8,7 @@ import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { PluginOperationState } from "./controllers/plugins.ts";
-import type {
-  KovaHubSearchResult,
-  KovaHubSkillDetail,
-  SkillMessage,
-} from "./controllers/skills.ts";
+import type { SkillMessage } from "./controllers/skills.ts";
 import type {
   ControlWizardCompletedStep,
   ControlWizardSection,
@@ -366,16 +362,6 @@ export type AppViewState = {
     skillMessages: Record<string, SkillMessage>;
     skillsBusyKey: string | null;
     skillsDetailKey: string | null;
-    kovahubSearchQuery: string;
-    kovahubSearchResults: KovaHubSearchResult[] | null;
-    kovahubSearchLoading: boolean;
-    kovahubSearchError: string | null;
-    kovahubDetail: KovaHubSkillDetail | null;
-    kovahubDetailSlug: string | null;
-    kovahubDetailLoading: boolean;
-    kovahubDetailError: string | null;
-    kovahubInstallSlug: string | null;
-    kovahubInstallMessage: { kind: "success" | "error"; text: string } | null;
     healthLoading: boolean;
     healthResult: HealthSummary | null;
     healthError: string | null;

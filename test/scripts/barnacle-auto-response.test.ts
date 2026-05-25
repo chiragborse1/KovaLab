@@ -119,12 +119,11 @@ function barnacleGithub(files: ReturnType<typeof file>[]) {
 }
 
 describe("barnacle-auto-response", () => {
-  it("keeps Barnacle-owned labels documented and KovaHub spelled correctly", () => {
-    expect(managedLabelSpecs["r: skill"].description).toContain("KovaHub");
-    expect(managedLabelSpecs["r: skill"].description).not.toContain("Kovahub");
+  it("keeps Barnacle-owned labels documented", () => {
+    expect(managedLabelSpecs["r: skill"].description).toContain("outside core");
     expect(managedLabelSpecs.dirty.description).toContain("dirty/unrelated");
     expect(managedLabelSpecs["r: support"].description).toContain("support requests");
-    expect(managedLabelSpecs["r: third-party-extension"].description).toContain("KovaHub");
+    expect(managedLabelSpecs["r: third-party-extension"].description).toContain("outside core");
     expect(managedLabelSpecs["r: too-many-prs"].description).toContain("ten active PRs");
 
     for (const label of Object.values(candidateLabels)) {

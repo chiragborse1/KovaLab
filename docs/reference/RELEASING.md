@@ -116,7 +116,7 @@ the maintainer-only release runbook.
   Example: `gh workflow run package-acceptance.yml --ref main -f workflow_ref=main -f source=npm -f package_spec=getkova@beta -f suite_profile=product -f telegram_mode=mock-openai`
   Common profiles:
   - `smoke`: install/channel/agent, gateway network, and config reload lanes
-  - `package`: artifact-native package/update/plugin lanes without OpenWebUI or live KovaHub
+  - `package`: artifact-native package/update/plugin lanes without OpenWebUI or live marketplace access
   - `product`: package profile plus MCP channels, cron/subagent cleanup,
     OpenAI web search, and OpenWebUI
   - `full`: Docker release-path chunks with OpenWebUI
@@ -411,7 +411,7 @@ Common package profiles:
 
 - `smoke`: quick package install/channel/agent, gateway network, and config
   reload lanes
-- `package`: install/update/plugin package contracts without live KovaHub; this is the release-check
+- `package`: install/update/plugin package contracts without live marketplace access; this is the release-check
   default
 - `product`: `package` plus MCP channels, cron/subagent cleanup, OpenAI web
   search, and OpenWebUI

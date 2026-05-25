@@ -19,13 +19,6 @@ export type SkillsCheckOptions = {
   json?: boolean;
 };
 
-function appendKovaHubHint(output: string, json?: boolean): string {
-  if (json) {
-    return output;
-  }
-  return `${output}\n\nTip: use \`kova skills search\`, \`kova skills install\`, and \`kova skills update\` for KovaHub-backed skills.`;
-}
-
 function formatSkillStatus(skill: SkillStatusEntry): string {
   if (skill.eligible) {
     return theme.success("✓ ready");
@@ -155,10 +148,9 @@ export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOpti
   }
 
   if (skills.length === 0) {
-    const message = opts.eligible
+    return opts.eligible
       ? `No eligible skills found. Run \`${formatCliCommand("kova skills list")}\` to see all skills.`
       : "No skills found.";
-    return appendKovaHubHint(message, opts.json);
   }
 
   const eligible = skills.filter((s) => s.eligible);
@@ -201,7 +193,7 @@ export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOpti
     lines.push(trustNotice);
   }
 
-  return appendKovaHubHint(lines.join("\n"), opts.json);
+  return lines.join("\n");
 }
 
 export function formatSkillInfo(
@@ -215,10 +207,7 @@ export function formatSkillInfo(
     if (opts.json) {
       return JSON.stringify({ error: "not found", skill: skillName }, null, 2);
     }
-    return appendKovaHubHint(
-      `Skill "${skillName}" not found. Run \`${formatCliCommand("kova skills list")}\` to see available skills.`,
-      opts.json,
-    );
+    return `Skill "${skillName}" not found. Run \`${formatCliCommand("kova skills list")}\` to see available skills.`;
   }
 
   if (opts.json) {
@@ -330,7 +319,7 @@ export function formatSkillInfo(
     );
   }
 
-  return appendKovaHubHint(lines.join("\n"), opts.json);
+  return lines.join("\n");
 }
 
 export function formatSkillsCheck(report: SkillStatusReport, opts: SkillsCheckOptions): string {
@@ -399,5 +388,5 @@ export function formatSkillsCheck(report: SkillStatusReport, opts: SkillsCheckOp
     }
   }
 
-  return appendKovaHubHint(lines.join("\n"), opts.json);
+  return lines.join("\n");
 }

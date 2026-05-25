@@ -7,7 +7,7 @@ export const rules = [
     label: "r: skill",
     close: true,
     message:
-      "Thanks for the contribution! New skills should be published on [KovaHub](https://kovahub.ai) for everyone to use. We’re keeping the core lean on skills, so I’m closing this out.",
+      "Thanks for the contribution! We’re keeping the core lean on skills, so please keep new skills as external packages or share them separately until KovaHub ships.",
   },
   {
     label: "r: support",
@@ -40,7 +40,7 @@ export const rules = [
     label: "r: third-party-extension",
     close: true,
     message:
-      "Please publish this as a third-party plugin on [KovaHub](https://kovahub.ai) instead of adding it to the core repo. Docs: https://docs.neuralstudio.in/plugin and https://docs.neuralstudio.in/tools/kovahub",
+      "Please keep this as a third-party plugin package instead of adding it to the core repo. Docs: https://docs.neuralstudio.in/plugin",
   },
   {
     label: "r: moltbook",
@@ -56,7 +56,7 @@ export const rules = [
 export const managedLabelSpecs = {
   "r: skill": {
     color: "5319E7",
-    description: "Auto-close: skills should be published on KovaHub, not added to core.",
+    description: "Auto-close: skills should stay outside core.",
   },
   "r: support": {
     color: "0E8A16",
@@ -80,7 +80,7 @@ export const managedLabelSpecs = {
   },
   "r: third-party-extension": {
     color: "5319E7",
-    description: "Auto-close: third-party plugins/capabilities belong on KovaHub.",
+    description: "Auto-close: third-party plugins/capabilities belong outside core.",
   },
   "r: moltbook": {
     color: "B60205",
@@ -132,7 +132,7 @@ export const managedLabelSpecs = {
   },
   "triage: external-plugin-candidate": {
     color: "C5DEF5",
-    description: "Candidate: plugin/capability may belong on KovaHub.",
+    description: "Candidate: plugin/capability may belong outside core.",
   },
 };
 

@@ -234,7 +234,7 @@ User-invocable skills are also exposed as slash commands:
     - In multi-account channels, config-targeted `/allowlist --account <id>` and `/config set channels.<provider>.accounts.<id>...` also honor the target account's `configWrites`.
     - `/usage` shows the current local TUI usage snapshot; `/usage off|tokens|full` controls the per-response usage footer; `/usage cost` prints a local cost summary from Kova session logs.
     - `/restart` is enabled by default; set `commands.restart: false` to disable it.
-    - `/plugins install <spec>` accepts the same plugin specs as `kova plugins install`: local path/archive, npm package, or `kovahub:<pkg>`.
+    - `/plugins install <spec>` accepts the same plugin specs as `kova plugins install`: local path/archive or npm package.
     - `/plugins enable|disable` updates plugin config and may prompt for a restart.
   </Accordion>
   <Accordion title="Channel-specific behavior">
@@ -401,7 +401,7 @@ Examples:
 /plugins
 /plugins list
 /plugin show context7
-/plugins install kovahub:context7
+/plugins install npm:context7
 /plugins update context7 --dry-run
 /plugins update all
 /plugins enable context7
@@ -410,7 +410,7 @@ Examples:
 
 <Note>
 - `/plugins list` and `/plugins show` use real plugin discovery against the current workspace plus on-disk config.
-- `/plugins install <spec>` accepts the same path, archive, npm, and `kovahub:<pkg>` specs as `kova plugins install`.
+- `/plugins install <spec>` accepts the same path, archive, and npm specs as `kova plugins install`.
 - `/plugins update <plugin>|all [--dry-run]` updates tracked plugin installs. Integrity drift fails closed from chat.
 - `/plugins enable|disable` updates plugin config only.
 - After install/update/enable/disable changes, restart the gateway to apply them.

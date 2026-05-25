@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { registerSkillsCli } from "./skills-cli.js";
 
 const mocks = vi.hoisted(() => {
-  const runtimeLogs: string[] = [];
   const runtimeStdout: string[] = [];
   const runtimeErrors: string[] = [];
   const stringifyArgs = (args: unknown[]) => args.map((value) => String(value)).join(" ");
@@ -47,7 +46,7 @@ const mocks = vi.hoisted(() => {
   };
   const defaultRuntime = {
     log: vi.fn((...args: unknown[]) => {
-      runtimeLogs.push(stringifyArgs(args));
+      void stringifyArgs(args);
     }),
     error: vi.fn((...args: unknown[]) => {
       runtimeErrors.push(stringifyArgs(args));
@@ -72,14 +71,9 @@ const mocks = vi.hoisted(() => {
     resolveAgentIdByWorkspacePathMock: vi.fn((_config: unknown, _cwd: string) => undefined),
     resolveDefaultAgentIdMock: vi.fn(() => "main"),
     resolveAgentWorkspaceDirMock: vi.fn((_config: unknown, _agentId: string) => "/tmp/workspace"),
-    searchSkillsFromKovaHubMock: vi.fn(),
-    installSkillFromKovaHubMock: vi.fn(),
-    updateSkillsFromKovaHubMock: vi.fn(),
-    readTrackedKovaHubSkillSlugsMock: vi.fn(),
     buildWorkspaceSkillStatusMock,
     skillStatusReportFixture,
     defaultRuntime,
-    runtimeLogs,
     runtimeStdout,
     runtimeErrors,
   };
@@ -90,25 +84,15 @@ const {
   resolveAgentIdByWorkspacePathMock,
   resolveDefaultAgentIdMock,
   resolveAgentWorkspaceDirMock,
-  searchSkillsFromKovaHubMock,
-  installSkillFromKovaHubMock,
-  updateSkillsFromKovaHubMock,
-  readTrackedKovaHubSkillSlugsMock,
   buildWorkspaceSkillStatusMock,
   skillStatusReportFixture,
   defaultRuntime,
-  runtimeLogs,
   runtimeStdout,
   runtimeErrors,
 } = mocks;
 
 vi.mock("../runtime.js", () => ({
   defaultRuntime: mocks.defaultRuntime,
-}));
-
-vi.mock("../utils.js", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../utils.js")>()),
-  CONFIG_DIR: "/tmp/kova-config",
 }));
 
 vi.mock("../config/config.js", () => ({
@@ -122,14 +106,6 @@ vi.mock("../agents/agent-scope.js", () => ({
   resolveDefaultAgentId: () => mocks.resolveDefaultAgentIdMock(),
   resolveAgentWorkspaceDir: (config: unknown, agentId: string) =>
     mocks.resolveAgentWorkspaceDirMock(config, agentId),
-}));
-
-vi.mock("../agents/skills-kovahub.js", () => ({
-  searchSkillsFromKovaHub: (...args: unknown[]) => mocks.searchSkillsFromKovaHubMock(...args),
-  installSkillFromKovaHub: (...args: unknown[]) => mocks.installSkillFromKovaHubMock(...args),
-  updateSkillsFromKovaHub: (...args: unknown[]) => mocks.updateSkillsFromKovaHubMock(...args),
-  readTrackedKovaHubSkillSlugs: (...args: unknown[]) =>
-    mocks.readTrackedKovaHubSkillSlugsMock(...args),
 }));
 
 vi.mock("../agents/skills-status.js", () => ({
@@ -148,218 +124,24 @@ describe("skills cli commands", () => {
   const runCommand = (argv: string[]) => createProgram().parseAsync(argv, { from: "user" });
 
   beforeEach(() => {
-    runtimeLogs.length = 0;
     runtimeStdout.length = 0;
     runtimeErrors.length = 0;
     loadConfigMock.mockReset();
     resolveAgentIdByWorkspacePathMock.mockReset();
     resolveDefaultAgentIdMock.mockReset();
     resolveAgentWorkspaceDirMock.mockReset();
-    searchSkillsFromKovaHubMock.mockReset();
-    installSkillFromKovaHubMock.mockReset();
-    updateSkillsFromKovaHubMock.mockReset();
-    readTrackedKovaHubSkillSlugsMock.mockReset();
     buildWorkspaceSkillStatusMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
     resolveAgentIdByWorkspacePathMock.mockReturnValue(undefined);
     resolveDefaultAgentIdMock.mockReturnValue("main");
     resolveAgentWorkspaceDirMock.mockReturnValue("/tmp/workspace");
-    searchSkillsFromKovaHubMock.mockResolvedValue([]);
-    installSkillFromKovaHubMock.mockResolvedValue({
-      ok: false,
-      error: "install disabled in test",
-    });
-    updateSkillsFromKovaHubMock.mockResolvedValue([]);
-    readTrackedKovaHubSkillSlugsMock.mockResolvedValue([]);
     buildWorkspaceSkillStatusMock.mockReturnValue(skillStatusReportFixture);
     defaultRuntime.log.mockClear();
     defaultRuntime.error.mockClear();
     defaultRuntime.writeStdout.mockClear();
     defaultRuntime.writeJson.mockClear();
     defaultRuntime.exit.mockClear();
-  });
-
-  it("searches KovaHub skills from the native CLI", async () => {
-    searchSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        slug: "calendar",
-        displayName: "Calendar",
-        summary: "CalDAV helpers",
-        version: "1.2.3",
-      },
-    ]);
-
-    await runCommand(["skills", "search", "calendar"]);
-
-    expect(searchSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      query: "calendar",
-      limit: undefined,
-    });
-    expect(runtimeLogs.some((line) => line.includes("calendar v1.2.3  Calendar"))).toBe(true);
-  });
-
-  it("installs a skill from KovaHub into the active workspace", async () => {
-    installSkillFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      slug: "calendar",
-      version: "1.2.3",
-      targetDir: "/tmp/workspace/skills/calendar",
-    });
-
-    await runCommand(["skills", "install", "calendar", "--version", "1.2.3"]);
-
-    expect(installSkillFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/workspace",
-      slug: "calendar",
-      version: "1.2.3",
-      force: false,
-      logger: expect.any(Object),
-    });
-    expect(
-      runtimeLogs.some((line) =>
-        line.includes("Installed calendar@1.2.3 -> /tmp/workspace/skills/calendar"),
-      ),
-    ).toBe(true);
-  });
-
-  it("installs a skill into the shared global skills directory", async () => {
-    installSkillFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      slug: "calendar",
-      version: "1.2.3",
-      targetDir: "/tmp/kova-config/skills/calendar",
-    });
-
-    await runCommand(["skills", "install", "calendar", "--global"]);
-
-    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
-    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
-    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
-    expect(installSkillFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/kova-config",
-      slug: "calendar",
-      version: undefined,
-      force: false,
-      logger: expect.any(Object),
-    });
-  });
-
-  it("rejects using --global and --agent together for installs", async () => {
-    await expect(
-      runCommand(["skills", "install", "calendar", "--global", "--agent", "main"]),
-    ).rejects.toThrow("__exit__:1");
-
-    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
-    expect(installSkillFromKovaHubMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects using parent --agent with install --global", async () => {
-    await expect(
-      runCommand(["skills", "--agent", "writer", "install", "calendar", "--global"]),
-    ).rejects.toThrow("__exit__:1");
-
-    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
-    expect(installSkillFromKovaHubMock).not.toHaveBeenCalled();
-  });
-
-  it("updates all tracked KovaHub skills", async () => {
-    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
-    updateSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        ok: true,
-        slug: "calendar",
-        previousVersion: "1.2.2",
-        version: "1.2.3",
-        changed: true,
-        targetDir: "/tmp/workspace/skills/calendar",
-      },
-    ]);
-
-    await runCommand(["skills", "update", "--all"]);
-
-    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/workspace");
-    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/workspace",
-      slug: undefined,
-      logger: expect.any(Object),
-    });
-    expect(runtimeLogs.some((line) => line.includes("Updated calendar: 1.2.2 -> 1.2.3"))).toBe(
-      true,
-    );
-    expect(runtimeErrors).toEqual([]);
-  });
-
-  it("updates tracked KovaHub skills in the shared global skills directory", async () => {
-    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
-    updateSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        ok: true,
-        slug: "calendar",
-        previousVersion: "1.2.2",
-        version: "1.2.3",
-        changed: true,
-        targetDir: "/tmp/kova-config/skills/calendar",
-      },
-    ]);
-
-    await runCommand(["skills", "update", "--all", "--global"]);
-
-    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
-    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
-    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
-    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/kova-config");
-    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/kova-config",
-      slug: undefined,
-      logger: expect.any(Object),
-    });
-  });
-
-  it("updates a single tracked KovaHub skill in the shared global skills directory", async () => {
-    readTrackedKovaHubSkillSlugsMock.mockResolvedValue(["calendar"]);
-    updateSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        ok: true,
-        slug: "calendar",
-        previousVersion: "1.2.2",
-        version: "1.2.3",
-        changed: true,
-        targetDir: "/tmp/kova-config/skills/calendar",
-      },
-    ]);
-
-    await runCommand(["skills", "update", "calendar", "--global"]);
-
-    expect(resolveAgentIdByWorkspacePathMock).not.toHaveBeenCalled();
-    expect(resolveDefaultAgentIdMock).not.toHaveBeenCalled();
-    expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
-    expect(readTrackedKovaHubSkillSlugsMock).toHaveBeenCalledWith("/tmp/kova-config");
-    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/kova-config",
-      slug: "calendar",
-      logger: expect.any(Object),
-    });
-  });
-
-  it("rejects using --global and --agent together for updates", async () => {
-    await expect(
-      runCommand(["skills", "update", "--all", "--global", "--agent", "main"]),
-    ).rejects.toThrow("__exit__:1");
-
-    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
-    expect(readTrackedKovaHubSkillSlugsMock).not.toHaveBeenCalled();
-    expect(updateSkillsFromKovaHubMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects using parent --agent with update --global", async () => {
-    await expect(
-      runCommand(["skills", "--agent", "writer", "update", "--all", "--global"]),
-    ).rejects.toThrow("__exit__:1");
-
-    expect(runtimeErrors).toContain("Use either --global or --agent, not both.");
-    expect(readTrackedKovaHubSkillSlugsMock).not.toHaveBeenCalled();
-    expect(updateSkillsFromKovaHubMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -414,6 +196,6 @@ describe("skills cli commands", () => {
     expect(defaultRuntime.log).not.toHaveBeenCalled();
     expect(runtimeErrors).toEqual([]);
     expect(runtimeStdout.at(-1)).toContain("calendar");
-    expect(runtimeStdout.at(-1)).toContain("kova skills search");
+    expect(runtimeStdout.at(-1)).not.toContain("kova skills search");
   });
 });

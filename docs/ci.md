@@ -36,7 +36,7 @@ from another GitHub Actions run, uploads it as `package-under-test`, then reuses
 the Docker release/E2E scheduler with that tarball instead of repacking the
 workflow checkout. Profiles cover smoke, package, product, full, and custom
 Docker lane selections. The `package` profile uses offline plugin coverage so
-published-package validation is not gated on live KovaHub availability. The
+published-package validation is not gated on a live marketplace. The
 optional Telegram lane reuses the
 `package-under-test` artifact in the `NPM Telegram Beta E2E` workflow, with the
 published npm spec path kept for standalone dispatches.

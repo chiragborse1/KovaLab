@@ -3,10 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const loadConfigMock = vi.fn(() => ({}));
 const resolveDefaultAgentIdMock = vi.fn(() => "main");
 const resolveAgentWorkspaceDirMock = vi.fn(() => "/tmp/workspace");
-const installSkillFromKovaHubMock = vi.fn();
 const installSkillMock = vi.fn();
-const uninstallSkillFromKovaHubMock = vi.fn();
-const updateSkillsFromKovaHubMock = vi.fn();
 
 vi.mock("../../config/config.js", () => ({
   getRuntimeConfig: () => loadConfigMock(),
@@ -17,12 +14,6 @@ vi.mock("../../agents/agent-scope.js", () => ({
   listAgentIds: vi.fn(() => ["main"]),
   resolveDefaultAgentId: () => resolveDefaultAgentIdMock(),
   resolveAgentWorkspaceDir: () => resolveAgentWorkspaceDirMock(),
-}));
-
-vi.mock("../../agents/skills-kovahub.js", () => ({
-  installSkillFromKovaHub: (...args: unknown[]) => installSkillFromKovaHubMock(...args),
-  uninstallSkillFromKovaHub: (...args: unknown[]) => uninstallSkillFromKovaHubMock(...args),
-  updateSkillsFromKovaHub: (...args: unknown[]) => updateSkillsFromKovaHubMock(...args),
 }));
 
 vi.mock("../../agents/skills-install.js", () => ({
@@ -38,24 +29,14 @@ describe("skills gateway handlers (kovahub)", () => {
     loadConfigMock.mockReset();
     resolveDefaultAgentIdMock.mockReset();
     resolveAgentWorkspaceDirMock.mockReset();
-    installSkillFromKovaHubMock.mockReset();
     installSkillMock.mockReset();
-    uninstallSkillFromKovaHubMock.mockReset();
-    updateSkillsFromKovaHubMock.mockReset();
 
     loadConfigMock.mockReturnValue({});
     resolveDefaultAgentIdMock.mockReturnValue("main");
     resolveAgentWorkspaceDirMock.mockReturnValue("/tmp/workspace");
   });
 
-  it("installs a KovaHub skill through skills.install", async () => {
-    installSkillFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      slug: "calendar",
-      version: "1.2.3",
-      targetDir: "/tmp/workspace/skills/calendar",
-    });
-
+  it("rejects KovaHub skill installs because the registry is disabled", async () => {
     let ok: boolean | null = null;
     let response: unknown;
     let error: unknown;
@@ -76,19 +57,11 @@ describe("skills gateway handlers (kovahub)", () => {
       },
     });
 
-    expect(installSkillFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/workspace",
-      slug: "calendar",
-      version: "1.2.3",
-      force: false,
-    });
-    expect(ok).toBe(true);
-    expect(error).toBeUndefined();
-    expect(response).toMatchObject({
-      ok: true,
-      message: "Installed calendar@1.2.3",
-      slug: "calendar",
-      version: "1.2.3",
+    expect(ok).toBe(false);
+    expect(response).toBeUndefined();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
     });
   });
 
@@ -138,18 +111,7 @@ describe("skills gateway handlers (kovahub)", () => {
     });
   });
 
-  it("updates KovaHub skills through skills.update", async () => {
-    updateSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        ok: true,
-        slug: "calendar",
-        previousVersion: "1.2.2",
-        version: "1.2.3",
-        changed: true,
-        targetDir: "/tmp/workspace/skills/calendar",
-      },
-    ]);
-
+  it("rejects KovaHub skill updates because the registry is disabled", async () => {
     let ok: boolean | null = null;
     let response: unknown;
     let error: unknown;
@@ -169,36 +131,15 @@ describe("skills gateway handlers (kovahub)", () => {
       },
     });
 
-    expect(updateSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/workspace",
-      slug: "calendar",
-    });
-    expect(ok).toBe(true);
-    expect(error).toBeUndefined();
-    expect(response).toMatchObject({
-      ok: true,
-      skillKey: "calendar",
-      config: {
-        source: "kovahub",
-        results: [
-          {
-            ok: true,
-            slug: "calendar",
-            version: "1.2.3",
-          },
-        ],
-      },
+    expect(ok).toBe(false);
+    expect(response).toBeUndefined();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
     });
   });
 
-  it("uninstalls a KovaHub skill through skills.uninstall", async () => {
-    uninstallSkillFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      slug: "calendar",
-      targetDir: "/tmp/workspace/skills/calendar",
-      removed: true,
-    });
-
+  it("rejects KovaHub skill uninstalls because the registry is disabled", async () => {
     let ok: boolean | null = null;
     let response: unknown;
     let error: unknown;
@@ -218,21 +159,15 @@ describe("skills gateway handlers (kovahub)", () => {
       },
     });
 
-    expect(uninstallSkillFromKovaHubMock).toHaveBeenCalledWith({
-      workspaceDir: "/tmp/workspace",
-      slug: "calendar",
-    });
-    expect(ok).toBe(true);
-    expect(error).toBeUndefined();
-    expect(response).toMatchObject({
-      ok: true,
-      message: "Uninstalled calendar",
-      slug: "calendar",
-      removed: true,
+    expect(ok).toBe(false);
+    expect(response).toBeUndefined();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
     });
   });
 
-  it("rejects KovaHub skills.update requests without slug or all", async () => {
+  it("returns unavailable before KovaHub update argument handling", async () => {
     let ok: boolean | null = null;
     let error: { code?: string; message?: string } | undefined;
     await skillsHandlers["skills.update"]({
@@ -250,7 +185,9 @@ describe("skills gateway handlers (kovahub)", () => {
     });
 
     expect(ok).toBe(false);
-    expect(error?.message).toContain('requires "slug" or "all"');
-    expect(updateSkillsFromKovaHubMock).not.toHaveBeenCalled();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
+    });
   });
 });

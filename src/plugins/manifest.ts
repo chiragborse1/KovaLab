@@ -1348,9 +1348,8 @@ export type PluginPackageChannelCliOption = {
 
 export type PluginPackageInstall = {
   npmSpec?: string;
-  kovahubSpec?: string;
   localPath?: string;
-  defaultChoice?: "npm" | "kovahub" | "local";
+  defaultChoice?: "npm" | "local";
   minHostVersion?: string;
   expectedIntegrity?: string;
   allowInvalidConfigRecovery?: boolean;

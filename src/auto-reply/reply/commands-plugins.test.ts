@@ -23,9 +23,7 @@ vi.mock("../../cli/npm-resolution.js", () => ({
 }));
 
 vi.mock("../../cli/plugins-command-helpers.js", () => ({
-  buildPreferredKovaHubSpec: vi.fn(() => null),
   createPluginInstallLogger: vi.fn(() => ({})),
-  decidePreferredKovaHubFallback: vi.fn(() => "fallback_to_npm"),
   resolveFileNpmSpecToLocalPath: vi.fn(() => null),
 }));
 
@@ -49,14 +47,6 @@ vi.mock("../../config/config.js", () => ({
 
 vi.mock("../../infra/archive.js", () => ({
   resolveArchiveKind: vi.fn(() => null),
-}));
-
-vi.mock("../../infra/kovahub.js", () => ({
-  parseKovaHubPluginSpec: vi.fn(() => null),
-}));
-
-vi.mock("../../plugins/kovahub.js", () => ({
-  installPluginFromKovaHub: vi.fn(),
 }));
 
 vi.mock("../../plugins/install.js", () => ({

@@ -37,8 +37,8 @@ Your `package.json` needs an `kova` field that tells the plugin system what your
     }
     ```
   </Tab>
-  <Tab title="Provider plugin / KovaHub baseline">
-    ```json kova-kovahub-package.json
+  <Tab title="Provider plugin package">
+    ```json package.json
     {
       "name": "@myorg/kova-my-plugin",
       "version": "1.0.0",
@@ -60,7 +60,8 @@ Your `package.json` needs an `kova` field that tells the plugin system what your
 </Tabs>
 
 <Note>
-If you publish the plugin externally on KovaHub, those `compat` and `build` fields are required. The canonical publish snippets live in `docs/snippets/plugin-publish/`.
+External plugin packages should keep those `compat` and `build` fields so Kova
+can verify runtime compatibility before loading them.
 </Note>
 
 ### `kova` fields
@@ -266,17 +267,16 @@ Even plugins with no config must ship a schema. An empty schema is valid:
 
 See [Plugin manifest](/plugins/manifest) for the full schema reference.
 
-## KovaHub publishing
-
-For plugin packages, use the package-specific KovaHub command:
+## Publishing
 
 ```bash
-kovahub package publish your-org/your-plugin --dry-run
-kovahub package publish your-org/your-plugin
+npm publish --dry-run
+npm publish
 ```
 
 <Note>
-The legacy skill-only publish alias is for skills. Plugin packages should always use `kovahub package publish`.
+KovaHub marketplace publishing is planned for a future Kova release and is not
+active in this build.
 </Note>
 
 ## Setup entry
@@ -475,27 +475,23 @@ The `ChannelSetupWizard` type supports `credentials`, `textInputs`, `dmPolicy`, 
 
 ## Publishing and installing
 
-**External plugins:** publish to [KovaHub](/tools/kovahub) or npm, then install:
+**External plugins:** publish to npm or provide a local/archive package, then install:
 
 <Tabs>
-  <Tab title="Auto (KovaHub then npm)">
+  <Tab title="npm package">
     ```bash
     kova plugins install @myorg/kova-my-plugin
     ```
-
-    Kova tries KovaHub first and falls back to npm automatically.
-
   </Tab>
-  <Tab title="KovaHub only">
+  <Tab title="local path">
     ```bash
-    kova plugins install kovahub:@myorg/kova-my-plugin
+    kova plugins install ./path/to/kova-my-plugin
     ```
   </Tab>
-  <Tab title="npm package spec">
-    There is no matching `npm:` override. Use the normal npm package spec when you want the npm path after KovaHub fallback:
+  <Tab title="archive">
 
     ```bash
-    kova plugins install @myorg/kova-my-plugin
+    kova plugins install ./kova-my-plugin.tgz
     ```
 
   </Tab>

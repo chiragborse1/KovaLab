@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const searchSkillsFromKovaHubMock = vi.fn();
-const fetchKovaHubSkillDetailMock = vi.fn();
-
 vi.mock("../../config/config.js", () => ({
   getRuntimeConfig: vi.fn(() => ({})),
   writeConfigFile: vi.fn(),
@@ -12,19 +9,6 @@ vi.mock("../../agents/agent-scope.js", () => ({
   listAgentIds: vi.fn(() => ["main"]),
   resolveDefaultAgentId: vi.fn(() => "main"),
   resolveAgentWorkspaceDir: vi.fn(() => "/tmp/workspace"),
-}));
-
-vi.mock("../../agents/skills-kovahub.js", () => ({
-  installSkillFromKovaHub: vi.fn(),
-  updateSkillsFromKovaHub: vi.fn(),
-  searchSkillsFromKovaHub: (...args: unknown[]) => searchSkillsFromKovaHubMock(...args),
-}));
-
-vi.mock("../../infra/kovahub.js", () => ({
-  fetchKovaHubSkillDetail: (...args: unknown[]) => fetchKovaHubSkillDetailMock(...args),
-  resolveKovaHubBaseUrl: vi.fn(() => "https://kovahub.ai"),
-  searchKovaHubSkills: vi.fn(),
-  downloadKovaHubSkillArchive: vi.fn(),
 }));
 
 vi.mock("../../agents/skills-install.js", () => ({
@@ -53,68 +37,20 @@ function callHandler(method: string, params: Record<string, unknown>) {
 }
 
 describe("skills.search handler", () => {
-  beforeEach(() => {
-    searchSkillsFromKovaHubMock.mockReset();
-    fetchKovaHubSkillDetailMock.mockReset();
-  });
+  beforeEach(() => {});
 
-  it("searches KovaHub with query and limit", async () => {
-    searchSkillsFromKovaHubMock.mockResolvedValue([
-      {
-        score: 0.95,
-        slug: "github",
-        displayName: "GitHub",
-        summary: "GitHub integration",
-        version: "1.0.0",
-        updatedAt: 1700000000,
-      },
-    ]);
-
+  it("reports registry search as unavailable", async () => {
     const { ok, response, error } = await callHandler("skills.search", {
       query: "github",
       limit: 10,
     });
 
-    expect(searchSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      query: "github",
-      limit: 10,
-    });
-    expect(ok).toBe(true);
-    expect(error).toBeUndefined();
-    expect(response).toEqual({
-      results: [
-        {
-          score: 0.95,
-          slug: "github",
-          displayName: "GitHub",
-          summary: "GitHub integration",
-          version: "1.0.0",
-          updatedAt: 1700000000,
-        },
-      ],
-    });
-  });
-
-  it("searches without query (browse all)", async () => {
-    searchSkillsFromKovaHubMock.mockResolvedValue([]);
-
-    const { ok, response } = await callHandler("skills.search", {});
-
-    expect(searchSkillsFromKovaHubMock).toHaveBeenCalledWith({
-      query: undefined,
-      limit: undefined,
-    });
-    expect(ok).toBe(true);
-    expect(response).toEqual({ results: [] });
-  });
-
-  it("returns error when KovaHub is unreachable", async () => {
-    searchSkillsFromKovaHubMock.mockRejectedValue(new Error("connection refused"));
-
-    const { ok, error } = await callHandler("skills.search", { query: "test" });
-
     expect(ok).toBe(false);
-    expect(error).toMatchObject({ message: "connection refused" });
+    expect(response).toBeUndefined();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
+    });
   });
 
   it("rejects limit below minimum", async () => {
@@ -125,7 +61,6 @@ describe("skills.search handler", () => {
 
     expect(ok).toBe(false);
     expect(error).toMatchObject({ code: "INVALID_REQUEST" });
-    expect(searchSkillsFromKovaHubMock).not.toHaveBeenCalled();
   });
 
   it("rejects limit above maximum", async () => {
@@ -136,53 +71,21 @@ describe("skills.search handler", () => {
 
     expect(ok).toBe(false);
     expect(error).toMatchObject({ code: "INVALID_REQUEST" });
-    expect(searchSkillsFromKovaHubMock).not.toHaveBeenCalled();
   });
 });
 
 describe("skills.detail handler", () => {
-  beforeEach(() => {
-    searchSkillsFromKovaHubMock.mockReset();
-    fetchKovaHubSkillDetailMock.mockReset();
-  });
-
-  it("fetches detail for a valid slug", async () => {
-    const detail = {
-      skill: {
-        slug: "github",
-        displayName: "GitHub",
-        summary: "GitHub integration",
-        createdAt: 1700000000,
-        updatedAt: 1700000000,
-      },
-      latestVersion: {
-        version: "1.0.0",
-        createdAt: 1700000000,
-      },
-      owner: {
-        handle: "kova",
-        displayName: "Kova",
-      },
-    };
-    fetchKovaHubSkillDetailMock.mockResolvedValue(detail);
-
+  it("reports registry detail as unavailable", async () => {
     const { ok, response, error } = await callHandler("skills.detail", {
       slug: "github",
     });
 
-    expect(fetchKovaHubSkillDetailMock).toHaveBeenCalledWith({ slug: "github" });
-    expect(ok).toBe(true);
-    expect(error).toBeUndefined();
-    expect(response).toEqual(detail);
-  });
-
-  it("returns error when slug is not found", async () => {
-    fetchKovaHubSkillDetailMock.mockRejectedValue(new Error("not found"));
-
-    const { ok, error } = await callHandler("skills.detail", { slug: "nonexistent" });
-
     expect(ok).toBe(false);
-    expect(error).toMatchObject({ message: "not found" });
+    expect(response).toBeUndefined();
+    expect(error).toMatchObject({
+      code: "UNAVAILABLE",
+      message: expect.stringContaining("registry integration is not available"),
+    });
   });
 
   it("rejects missing slug", async () => {
@@ -190,7 +93,6 @@ describe("skills.detail handler", () => {
 
     expect(ok).toBe(false);
     expect(error).toMatchObject({ code: "INVALID_REQUEST" });
-    expect(fetchKovaHubSkillDetailMock).not.toHaveBeenCalled();
   });
 
   it("rejects empty slug", async () => {
@@ -198,6 +100,5 @@ describe("skills.detail handler", () => {
 
     expect(ok).toBe(false);
     expect(error).toMatchObject({ code: "INVALID_REQUEST" });
-    expect(fetchKovaHubSkillDetailMock).not.toHaveBeenCalled();
   });
 });

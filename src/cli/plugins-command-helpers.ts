@@ -1,6 +1,4 @@
 import type { KovaConfig } from "../config/types.kova.js";
-import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
-import { KOVAHUB_INSTALL_ERROR_CODE } from "../plugins/kovahub.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
 import { buildPluginDiagnosticsReport } from "../plugins/status.js";
 import { defaultRuntime } from "../runtime.js";
@@ -119,38 +117,10 @@ export function logSlotWarnings(warnings: string[]) {
   }
 }
 
-export function buildPreferredKovaHubSpec(raw: string): string | null {
-  const parsed = parseRegistryNpmSpec(raw);
-  if (!parsed) {
-    return null;
-  }
-  return `kovahub:${parsed.name}${parsed.selector ? `@${parsed.selector}` : ""}`;
-}
-
 export function parseNpmPrefixSpec(raw: string): string | null {
   const trimmed = raw.trim();
   if (!normalizeLowercaseStringOrEmpty(trimmed).startsWith("npm:")) {
     return null;
   }
   return trimmed.slice("npm:".length).trim();
-}
-
-export const PREFERRED_KOVAHUB_FALLBACK_DECISION = {
-  FALLBACK_TO_NPM: "fallback_to_npm",
-  STOP: "stop",
-} as const;
-
-export type PreferredKovaHubFallbackDecision =
-  (typeof PREFERRED_KOVAHUB_FALLBACK_DECISION)[keyof typeof PREFERRED_KOVAHUB_FALLBACK_DECISION];
-
-export function decidePreferredKovaHubFallback(params: {
-  code?: string;
-}): PreferredKovaHubFallbackDecision {
-  if (
-    params.code === KOVAHUB_INSTALL_ERROR_CODE.PACKAGE_NOT_FOUND ||
-    params.code === KOVAHUB_INSTALL_ERROR_CODE.VERSION_NOT_FOUND
-  ) {
-    return PREFERRED_KOVAHUB_FALLBACK_DECISION.FALLBACK_TO_NPM;
-  }
-  return PREFERRED_KOVAHUB_FALLBACK_DECISION.STOP;
 }

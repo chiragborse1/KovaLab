@@ -47,7 +47,7 @@ function parseCatalogEntries(raw: unknown): OfficialExternalPluginCatalogEntry[]
 }
 
 function normalizeDefaultChoice(value: unknown): PluginPackageInstall["defaultChoice"] | undefined {
-  return value === "kovahub" || value === "npm" || value === "local" ? value : undefined;
+  return value === "npm" || value === "local" ? value : undefined;
 }
 
 export function getOfficialExternalPluginCatalogManifest(
@@ -83,17 +83,15 @@ export function resolveOfficialExternalPluginInstall(
   const manifest = getOfficialExternalPluginCatalogManifest(entry);
   const install = manifest?.install;
   const npmSpec = normalizeOptionalString(install?.npmSpec) ?? normalizeOptionalString(entry.name);
-  const kovahubSpec = normalizeOptionalString(install?.kovahubSpec);
   const localPath = normalizeOptionalString(install?.localPath);
-  if (!npmSpec && !kovahubSpec && !localPath) {
+  if (!npmSpec && !localPath) {
     return null;
   }
   const defaultChoice =
     normalizeDefaultChoice(install?.defaultChoice) ??
-    (npmSpec ? "npm" : kovahubSpec ? "kovahub" : localPath ? "local" : undefined);
+    (npmSpec ? "npm" : localPath ? "local" : undefined);
   return {
     ...(npmSpec ? { npmSpec } : {}),
-    ...(kovahubSpec ? { kovahubSpec } : {}),
     ...(localPath ? { localPath } : {}),
     ...(defaultChoice ? { defaultChoice } : {}),
     ...(install?.minHostVersion ? { minHostVersion: install.minHostVersion } : {}),

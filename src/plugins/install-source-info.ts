@@ -32,14 +32,9 @@ export type PluginInstallLocalSourceInfo = {
   path: string;
 };
 
-export type PluginInstallKovaHubSourceInfo = {
-  spec: string;
-};
-
 export type PluginInstallSourceInfo = {
   defaultChoice?: PluginPackageInstall["defaultChoice"];
   npm?: PluginInstallNpmSourceInfo;
-  kovahub?: PluginInstallKovaHubSourceInfo;
   local?: PluginInstallLocalSourceInfo;
   warnings: readonly PluginInstallSourceWarning[];
 };
@@ -59,7 +54,7 @@ function resolveNpmPinState(params: {
 }
 
 function resolveDefaultChoice(value: unknown): PluginPackageInstall["defaultChoice"] | undefined {
-  return value === "npm" || value === "kovahub" || value === "local" ? value : undefined;
+  return value === "npm" || value === "local" ? value : undefined;
 }
 
 function normalizeExpectedPackageName(value: string | null | undefined): string | undefined {
@@ -75,7 +70,6 @@ export function describePluginInstallSource(
   options?: DescribePluginInstallSourceOptions,
 ): PluginInstallSourceInfo {
   const npmSpec = normalizeOptionalString(install.npmSpec);
-  const kovahubSpec = normalizeOptionalString(install.kovahubSpec);
   const localPath = normalizeOptionalString(install.localPath);
   const defaultChoice = resolveDefaultChoice(install.defaultChoice);
   const expectedIntegrity = normalizeOptionalString(install.expectedIntegrity);
@@ -120,9 +114,6 @@ export function describePluginInstallSource(
   if (defaultChoice === "npm" && !npm) {
     warnings.push("default-choice-missing-source");
   }
-  if (defaultChoice === "kovahub" && !kovahubSpec) {
-    warnings.push("default-choice-missing-source");
-  }
   if (defaultChoice === "local" && !localPath) {
     warnings.push("default-choice-missing-source");
   }
@@ -133,7 +124,6 @@ export function describePluginInstallSource(
   return {
     ...(defaultChoice ? { defaultChoice } : {}),
     ...(npm ? { npm } : {}),
-    ...(kovahubSpec ? { kovahub: { spec: kovahubSpec } } : {}),
     ...(localPath ? { local: { path: localPath } } : {}),
     warnings,
   };

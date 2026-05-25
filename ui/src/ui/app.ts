@@ -77,11 +77,7 @@ import type {
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { PluginOperationState } from "./controllers/plugins.ts";
-import type {
-  KovaHubSearchResult,
-  KovaHubSkillDetail,
-  SkillMessage,
-} from "./controllers/skills.ts";
+import type { SkillMessage } from "./controllers/skills.ts";
 import type {
   ControlWizardCompletedStep,
   ControlWizardSection,
@@ -515,16 +511,6 @@ export class KovaApp extends LitElement {
   @state() skillsBusyKey: string | null = null;
   @state() skillMessages: Record<string, SkillMessage> = {};
   @state() skillsDetailKey: string | null = null;
-  @state() kovahubSearchQuery = "";
-  @state() kovahubSearchResults: KovaHubSearchResult[] | null = null;
-  @state() kovahubSearchLoading = false;
-  @state() kovahubSearchError: string | null = null;
-  @state() kovahubDetail: KovaHubSkillDetail | null = null;
-  @state() kovahubDetailSlug: string | null = null;
-  @state() kovahubDetailLoading = false;
-  @state() kovahubDetailError: string | null = null;
-  @state() kovahubInstallSlug: string | null = null;
-  @state() kovahubInstallMessage: { kind: "success" | "error"; text: string } | null = null;
 
   @state() healthLoading = false;
   @state() healthResult: HealthSummary | null = null;

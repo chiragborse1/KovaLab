@@ -87,28 +87,28 @@ Wraps papla.media TTS and sends results as Telegram voice notes (no annoying aut
   <img src="/assets/showcase/papla-tts.jpg" alt="Telegram voice note output from TTS" />
 </Card>
 
-<Card title="CodexMonitor" icon="eye" href="https://kovahub.ai/odrobnik/codexmonitor">
+<Card title="CodexMonitor" icon="eye">
   **@odrobnik** • `devtools` `codex` `brew`
 
 Homebrew-installed helper to list, inspect, and watch local OpenAI Codex sessions (CLI + VS Code).
 
-  <img src="/assets/showcase/codexmonitor.png" alt="CodexMonitor on KovaHub" />
+  <img src="/assets/showcase/codexmonitor.png" alt="CodexMonitor skill preview" />
 </Card>
 
-<Card title="Bambu 3D Printer Control" icon="print" href="https://kovahub.ai/tobiasbischoff/bambu-cli">
+<Card title="Bambu 3D Printer Control" icon="print">
   **@tobiasbischoff** • `hardware` `3d-printing` `skill`
 
 Control and troubleshoot BambuLab printers: status, jobs, camera, AMS, calibration, and more.
 
-  <img src="/assets/showcase/bambu-cli.png" alt="Bambu CLI skill on KovaHub" />
+  <img src="/assets/showcase/bambu-cli.png" alt="Bambu CLI skill preview" />
 </Card>
 
-<Card title="Vienna transport (Wiener Linien)" icon="train" href="https://kovahub.ai/hjanuschka/wienerlinien">
+<Card title="Vienna transport (Wiener Linien)" icon="train">
   **@hjanuschka** • `travel` `transport` `skill`
 
 Real-time departures, disruptions, elevator status, and routing for Vienna's public transport.
 
-  <img src="/assets/showcase/wienerlinien.png" alt="Wiener Linien skill on KovaHub" />
+  <img src="/assets/showcase/wienerlinien.png" alt="Wiener Linien skill preview" />
 </Card>
 
 <Card title="ParentPay school meals" icon="utensils">
@@ -117,7 +117,7 @@ Real-time departures, disruptions, elevator status, and routing for Vienna's pub
 Automated UK school meal booking via ParentPay. Uses mouse coordinates for reliable table cell clicking.
 </Card>
 
-<Card title="R2 upload (Send Me My Files)" icon="cloud-arrow-up" href="https://kovahub.ai/skills/r2-upload">
+<Card title="R2 upload (Send Me My Files)" icon="cloud-arrow-up">
   **@julianengel** • `files` `r2` `presigned-urls`
 
 Upload to Cloudflare R2/S3 and generate secure presigned download links. Useful for remote Kova instances.
@@ -216,7 +216,7 @@ Searches job listings, matches against CV keywords, and returns relevant opportu
 <Card title="Jira skill builder" icon="diagram-project" href="https://x.com/jdrhyne/status/2008336434827002232">
   **@jdrhyne** • `jira` `skill` `devtools`
 
-Kova connected to Jira, then generated a new skill on the fly (before it existed on KovaHub).
+Kova connected to Jira, then generated a new skill on the fly during the conversation.
 </Card>
 
 <Card title="Todoist skill via Telegram" icon="list-check" href="https://x.com/iamsubhrajyoti/status/2009949389884920153">
@@ -285,10 +285,10 @@ Speech-first entry points, phone bridges, and transcription-heavy workflows.
 Vapi voice assistant to Kova HTTP bridge. Near real-time phone calls with your agent.
 </Card>
 
-<Card title="OpenRouter transcription" icon="microphone" href="https://kovahub.ai/obviyus/openrouter-transcribe">
+<Card title="OpenRouter transcription" icon="microphone">
   **@obviyus** • `transcription` `multilingual` `skill`
 
-Multi-lingual audio transcription via OpenRouter (Gemini, and more). Available on KovaHub.
+Multi-lingual audio transcription via OpenRouter (Gemini, and more).
 </Card>
 
 </CardGroup>
@@ -305,8 +305,8 @@ Packaging, deployment, and integrations that make Kova easier to run and extend.
 Kova gateway running on Home Assistant OS with SSH tunnel support and persistent state.
 </Card>
 
-<Card title="Home Assistant skill" icon="toggle-on" href="https://kovahub.ai/skills/homeassistant">
-  **KovaHub** • `homeassistant` `skill` `automation`
+<Card title="Home Assistant skill" icon="toggle-on">
+  **Community** • `homeassistant` `skill` `automation`
 
 Control and automate Home Assistant devices via natural language.
 </Card>
@@ -317,8 +317,8 @@ Control and automate Home Assistant devices via natural language.
 Batteries-included nixified Kova configuration for reproducible deployments.
 </Card>
 
-<Card title="CalDAV calendar" icon="calendar" href="https://kovahub.ai/skills/caldav-calendar">
-  **KovaHub** • `calendar` `caldav` `skill`
+<Card title="CalDAV calendar" icon="calendar">
+  **Community** • `calendar` `caldav` `skill`
 
 Calendar skill using khal and vdirsyncer. Self-hosted calendar integration.
 </Card>

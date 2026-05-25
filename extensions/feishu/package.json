@@ -44,7 +44,6 @@
       "stageRuntimeDependencies": true
     },
     "release": {
-      "publishToKovaHub": true,
       "publishToNpm": true
     }
   }

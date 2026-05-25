@@ -810,9 +810,7 @@ export function registerPluginsCli(program: Command) {
 
   plugins
     .command("install")
-    .description(
-      "Install a plugin or hook pack (path, archive, npm spec, kovahub:package, or marketplace entry)",
-    )
+    .description("Install a plugin or hook pack (path, archive, npm spec, or marketplace entry)")
     .argument(
       "<path-or-spec-or-plugin>",
       "Path (.ts/.js/.zip/.tgz/.tar.gz), npm package spec, or marketplace plugin name",

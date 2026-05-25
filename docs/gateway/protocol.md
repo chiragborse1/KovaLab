@@ -453,18 +453,13 @@ enumeration of `src/gateway/server-methods/*.ts`.
   - `agentId` is optional; omit it to read the default agent workspace.
   - The response includes eligibility, missing requirements, config checks, and
     sanitized install options without exposing raw secret values.
-- Operators may call `skills.search` and `skills.detail` (`operator.read`) for
-  KovaHub discovery metadata.
-- Operators may call `skills.install` (`operator.admin`) in two modes:
-  - KovaHub mode: `{ source: "kovahub", slug, version?, force? }` installs a
-    skill folder into the default agent workspace `skills/` directory.
-  - Gateway installer mode: `{ name, installId, dangerouslyForceUnsafeInstall?, timeoutMs? }`
-    runs a declared `metadata.kova.install` action on the gateway host.
-- Operators may call `skills.update` (`operator.admin`) in two modes:
-  - KovaHub mode updates one tracked slug or all tracked KovaHub installs in
-    the default agent workspace.
-  - Config mode patches `skills.entries.<skillKey>` values such as `enabled`,
-    `apiKey`, and `env`.
+- Operators may call `skills.search` and `skills.detail` (`operator.read`), but
+  this build returns `UNAVAILABLE` until the Kova-owned marketplace ships.
+- Operators may call `skills.install` (`operator.admin`) with gateway installer
+  mode: `{ name, installId, dangerouslyForceUnsafeInstall?, timeoutMs? }` runs a
+  declared `metadata.kova.install` action on the gateway host.
+- Operators may call `skills.update` (`operator.admin`) to patch
+  `skills.entries.<skillKey>` values such as `enabled`, `apiKey`, and `env`.
 
 ## Exec approvals
 

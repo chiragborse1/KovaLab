@@ -15,10 +15,6 @@ const BLOCKED_WORKSPACE_DOTENV_KEYS = new Set([
   "ANTHROPIC_API_KEY",
   "ANTHROPIC_OAUTH_TOKEN",
   "BROWSER_EXECUTABLE_PATH",
-  "KOVAHUB_AUTH_TOKEN",
-  "KOVAHUB_CONFIG_PATH",
-  "KOVAHUB_TOKEN",
-  "KOVAHUB_URL",
   "HTTP_PROXY",
   "HTTPS_PROXY",
   "IRC_HOST",
@@ -118,17 +114,14 @@ const BLOCKED_WORKSPACE_DOTENV_KEYS = new Set([
 const BLOCKED_WORKSPACE_DOTENV_SUFFIXES = ["_API_HOST", "_BASE_URL", "_HOMESERVER"];
 const BLOCKED_WORKSPACE_DOTENV_PREFIXES = [
   "ANTHROPIC_API_KEY_",
-  "KOVAHUB_",
   "OPENAI_API_KEY_",
   // Workspace .env is untrusted; reserve the full Kova runtime namespace
   // for shell/global config so new KOVA_* controls are fail-closed by default.
   "KOVA_",
-  "KOVA_KOVAHUB_",
   "KOVA_DISABLE_",
   "KOVA_SKIP_",
   "KOVA_UPDATE_",
   "KOVA_",
-  "KOVA_KOVAHUB_",
   "KOVA_DISABLE_",
   "KOVA_SKIP_",
   "KOVA_UPDATE_",

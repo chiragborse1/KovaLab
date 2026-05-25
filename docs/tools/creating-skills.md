@@ -96,7 +96,7 @@ The YAML frontmatter supports these fields:
 - **Be concise** — instruct the model on _what_ to do, not how to be an AI
 - **Safety first** — if your skill uses `exec`, ensure prompts don't allow arbitrary command injection from untrusted input
 - **Test locally** — use `kova agent --message "..."` to test before sharing
-- **Use KovaHub** — browse and contribute skills at [KovaHub](https://kovahub.ai)
+- **Keep sharing simple** — test locally before sharing a skill folder or plugin package
 
 ## Where skills live
 
@@ -113,5 +113,5 @@ The YAML frontmatter supports these fields:
 
 - [Skills reference](/tools/skills) — loading, precedence, and gating rules
 - [Skills config](/tools/skills-config) — `skills.*` config schema
-- [KovaHub](/tools/kovahub) — public skill registry
+- [KovaHub](/tools/kovahub) — future marketplace status
 - [Building Plugins](/plugins/building-plugins) — plugins can ship skills

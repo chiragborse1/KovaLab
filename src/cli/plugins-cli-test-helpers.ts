@@ -10,7 +10,6 @@ import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 type UnknownMock = Mock<(...args: unknown[]) => unknown>;
 type AsyncUnknownMock = Mock<(...args: unknown[]) => Promise<unknown>>;
 type LoadConfigFn = (typeof import("../config/config.js"))["loadConfig"];
-type ParseKovaHubPluginSpecFn = (typeof import("../infra/kovahub.js"))["parseKovaHubPluginSpec"];
 type InstallPluginFromMarketplaceFn =
   (typeof import("../plugins/marketplace.js"))["installPluginFromMarketplace"];
 type ListMarketplacePluginsFn =
@@ -71,8 +70,6 @@ export const updateNpmInstalledHookPacks: AsyncUnknownMock = vi.fn();
 export const promptYesNo: AsyncUnknownMock = vi.fn();
 export const installPluginFromNpmSpec: AsyncUnknownMock = vi.fn();
 export const installPluginFromPath: AsyncUnknownMock = vi.fn();
-export const installPluginFromKovaHub: AsyncUnknownMock = vi.fn();
-export const parseKovaHubPluginSpec: Mock<ParseKovaHubPluginSpecFn> = vi.fn();
 export const installHooksFromNpmSpec: AsyncUnknownMock = vi.fn();
 export const installHooksFromPath: AsyncUnknownMock = vi.fn();
 export const recordHookInstall: UnknownMock = vi.fn();
@@ -466,36 +463,6 @@ vi.mock("../hooks/installs.js", () => ({
     >(recordHookInstall, ...args)) as (typeof import("../hooks/installs.js"))["recordHookInstall"],
 }));
 
-vi.mock("../plugins/kovahub.js", () => ({
-  KOVAHUB_INSTALL_ERROR_CODE: {
-    PACKAGE_NOT_FOUND: "package_not_found",
-    VERSION_NOT_FOUND: "version_not_found",
-  },
-  installPluginFromKovaHub: ((
-    ...args: Parameters<(typeof import("../plugins/kovahub.js"))["installPluginFromKovaHub"]>
-  ) =>
-    invokeMock<
-      Parameters<(typeof import("../plugins/kovahub.js"))["installPluginFromKovaHub"]>,
-      ReturnType<(typeof import("../plugins/kovahub.js"))["installPluginFromKovaHub"]>
-    >(
-      installPluginFromKovaHub,
-      ...args,
-    )) as (typeof import("../plugins/kovahub.js"))["installPluginFromKovaHub"],
-}));
-
-vi.mock("../infra/kovahub.js", () => ({
-  parseKovaHubPluginSpec: ((
-    ...args: Parameters<(typeof import("../infra/kovahub.js"))["parseKovaHubPluginSpec"]>
-  ) =>
-    invokeMock<
-      Parameters<(typeof import("../infra/kovahub.js"))["parseKovaHubPluginSpec"]>,
-      ReturnType<(typeof import("../infra/kovahub.js"))["parseKovaHubPluginSpec"]>
-    >(
-      parseKovaHubPluginSpec,
-      ...args,
-    )) as (typeof import("../infra/kovahub.js"))["parseKovaHubPluginSpec"],
-}));
-
 const { registerPluginsCli } = await import("./plugins-cli.js");
 
 export { registerPluginsCli };
@@ -543,8 +510,6 @@ export function resetPluginsCliTestState() {
   promptYesNo.mockReset();
   installPluginFromNpmSpec.mockReset();
   installPluginFromPath.mockReset();
-  installPluginFromKovaHub.mockReset();
-  parseKovaHubPluginSpec.mockReset();
   installHooksFromNpmSpec.mockReset();
   installHooksFromPath.mockReset();
   recordHookInstall.mockReset();
@@ -670,11 +635,6 @@ export function resetPluginsCliTestState() {
     ok: false,
     error: "npm install disabled in test",
   });
-  installPluginFromKovaHub.mockResolvedValue({
-    ok: false,
-    error: "kovahub install disabled in test",
-  });
-  parseKovaHubPluginSpec.mockReturnValue(null);
   installHooksFromPath.mockResolvedValue({
     ok: false,
     error: "hook path install disabled in test",

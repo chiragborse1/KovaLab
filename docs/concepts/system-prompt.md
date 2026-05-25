@@ -207,8 +207,7 @@ package docs). If local docs are unavailable, it falls back to
 The same section also includes the Kova source location. Git checkouts expose the local
 source root so the agent can inspect code directly. Package installs include the GitHub
 source URL and tell the agent to review source there whenever the docs are incomplete or
-stale. The prompt also notes the public docs mirror, community Discord, and KovaHub
-([https://kovahub.ai](https://kovahub.ai)) for skills discovery. It tells the model to
+stale. The prompt also notes the public docs mirror and community Discord. It tells the model to
 consult docs first for Kova behavior, commands, configuration, or architecture, and to
 run `kova status` itself when possible (asking the user only when it lacks access).
 For configuration specifically, it points agents to the `gateway` tool action

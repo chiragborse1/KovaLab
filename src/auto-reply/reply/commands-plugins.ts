@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import { buildNpmInstallRecordFields } from "../../cli/npm-resolution.js";
 import {
-  buildPreferredKovaHubSpec,
   createPluginInstallLogger,
-  decidePreferredKovaHubFallback,
   resolveFileNpmSpecToLocalPath,
 } from "../../cli/plugins-command-helpers.js";
 import { persistPluginInstall } from "../../cli/plugins-install-persist.js";
@@ -19,14 +17,12 @@ import {
 import type { KovaConfig } from "../../config/types.kova.js";
 import type { PluginInstallRecord } from "../../config/types.plugins.js";
 import { resolveArchiveKind } from "../../infra/archive.js";
-import { parseKovaHubPluginSpec } from "../../infra/kovahub.js";
 import { installPluginFromNpmSpec, installPluginFromPath } from "../../plugins/install.js";
 import {
   loadInstalledPluginIndexInstallRecords,
   withoutPluginInstallRecords,
   withPluginInstallRecords,
 } from "../../plugins/installed-plugin-index-records.js";
-import { installPluginFromKovaHub } from "../../plugins/kovahub.js";
 import { clearPluginManifestRegistryCache } from "../../plugins/manifest-registry.js";
 import type { PluginRecord } from "../../plugins/registry.js";
 import {
@@ -206,64 +202,12 @@ async function installPluginFromPluginsCommand(params: {
     return { ok: false, error: `Path not found: ${resolved}` };
   }
 
-  const kovahubSpec = parseKovaHubPluginSpec(params.raw);
-  if (kovahubSpec) {
-    const result = await installPluginFromKovaHub({
-      spec: params.raw,
-      logger: createPluginInstallLogger(),
-    });
-    if (!result.ok) {
-      return { ok: false, error: result.error };
-    }
-    clearPluginManifestRegistryCache();
-    await persistPluginInstall({
-      snapshot: params.snapshot,
-      pluginId: result.pluginId,
-      install: {
-        source: "kovahub",
-        spec: params.raw,
-        installPath: result.targetDir,
-        version: result.version,
-        integrity: result.kovahub.integrity,
-        resolvedAt: result.kovahub.resolvedAt,
-        kovahubUrl: result.kovahub.kovahubUrl,
-        kovahubPackage: result.kovahub.kovahubPackage,
-        kovahubFamily: result.kovahub.kovahubFamily,
-        kovahubChannel: result.kovahub.kovahubChannel,
-      },
-    });
-    return { ok: true, pluginId: result.pluginId };
-  }
-
-  const preferredKovaHubSpec = buildPreferredKovaHubSpec(params.raw);
-  if (preferredKovaHubSpec) {
-    const kovahubResult = await installPluginFromKovaHub({
-      spec: preferredKovaHubSpec,
-      logger: createPluginInstallLogger(),
-    });
-    if (kovahubResult.ok) {
-      clearPluginManifestRegistryCache();
-      await persistPluginInstall({
-        snapshot: params.snapshot,
-        pluginId: kovahubResult.pluginId,
-        install: {
-          source: "kovahub",
-          spec: preferredKovaHubSpec,
-          installPath: kovahubResult.targetDir,
-          version: kovahubResult.version,
-          integrity: kovahubResult.kovahub.integrity,
-          resolvedAt: kovahubResult.kovahub.resolvedAt,
-          kovahubUrl: kovahubResult.kovahub.kovahubUrl,
-          kovahubPackage: kovahubResult.kovahub.kovahubPackage,
-          kovahubFamily: kovahubResult.kovahub.kovahubFamily,
-          kovahubChannel: kovahubResult.kovahub.kovahubChannel,
-        },
-      });
-      return { ok: true, pluginId: kovahubResult.pluginId };
-    }
-    if (decidePreferredKovaHubFallback(kovahubResult) !== "fallback_to_npm") {
-      return { ok: false, error: kovahubResult.error };
-    }
+  if (params.raw.trim().toLowerCase().startsWith("kovahub:")) {
+    return {
+      ok: false,
+      error:
+        "KovaHub plugin installs are not available in this build. Use a local path, archive, npm package, or marketplace entry.",
+    };
   }
 
   const result = await installPluginFromNpmSpec({

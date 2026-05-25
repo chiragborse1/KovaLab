@@ -176,15 +176,10 @@ const resolveLauncherConfigPaths = () => {
   const stateOverride = process.env.KOVA_STATE_DIR?.trim();
   if (stateOverride) {
     const stateDir = resolveLauncherUserPath(stateOverride);
-    return [path.join(stateDir, "kova.json"), path.join(stateDir, "clawdbot.json")];
+    return [path.join(stateDir, "kova.json")];
   }
   const homeDir = resolveLauncherHomeDir();
-  return [
-    path.join(homeDir, ".kova", "kova.json"),
-    path.join(homeDir, ".kova", "clawdbot.json"),
-    path.join(homeDir, ".clawdbot", "kova.json"),
-    path.join(homeDir, ".clawdbot", "clawdbot.json"),
-  ];
+  return [path.join(homeDir, ".kova", "kova.json")];
 };
 
 const shouldDeferRootHelpToRuntimeEntry = () => {

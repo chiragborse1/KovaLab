@@ -94,7 +94,7 @@ describe("docker build helper", () => {
     expect(scenarios).toContain('"plugins-offline"');
     expect(scenarios).toContain("`bundled-plugin-install-uninstall-${index}`");
     expect(scenarios).toContain("pnpm test:docker:bundled-plugin-install-uninstall");
-    expect(scenarios).toContain("KOVA_PLUGINS_E2E_KOVAHUB=0");
+    expect(scenarios).not.toContain("KOVA_PLUGINS_E2E_KOVAHUB=0");
     expect(scenarios).toContain('"bundled-channel-deps-compat"');
     expect(scenarios).toContain("test:docker:bundled-channel-deps:fast");
   });
@@ -177,12 +177,10 @@ describe("docker build helper", () => {
     expect(runner).not.toContain('"agent.wait"');
   });
 
-  it("keeps KovaHub plugin Docker smoke hermetic by default", () => {
+  it("keeps KovaHub plugin Docker smoke removed", () => {
     const runner = readFileSync(PLUGINS_DOCKER_E2E_PATH, "utf8");
 
-    expect(runner).toContain("start_kovahub_fixture_server()");
-    expect(runner).toContain('KOVA_KOVAHUB_URL="http://127.0.0.1:');
-    expect(runner).toContain("live KovaHub can rate-limit CI");
-    expect(runner).toContain('[[ -z "${KOVA_KOVAHUB_URL:-}" && -z "${KOVAHUB_URL:-}" ]]');
+    expect(runner).toContain("KovaHub integration disabled");
+    expect(runner).not.toContain("start_kovahub_fixture_server()");
   });
 });

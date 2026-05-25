@@ -42,18 +42,18 @@ This is a living document maintained by the Kova community. See [CONTRIBUTING-TH
 
 ### 1.1 Purpose
 
-This threat model documents adversarial threats to the Kova AI agent platform and KovaHub skill marketplace, using the MITRE ATLAS framework designed specifically for AI/ML systems.
+This threat model documents adversarial threats to the Kova AI agent platform and future KovaHub marketplace, using the MITRE ATLAS framework designed specifically for AI/ML systems.
 
 ### 1.2 Scope
 
-| Component            | Included | Notes                                            |
-| -------------------- | -------- | ------------------------------------------------ |
-| Kova Agent Runtime   | Yes      | Core agent execution, tool calls, sessions       |
-| Gateway              | Yes      | Authentication, routing, channel integration     |
-| Channel Integrations | Yes      | WhatsApp, Telegram, Discord, Signal, Slack, etc. |
-| KovaHub Marketplace  | Yes      | Skill publishing, moderation, distribution       |
-| MCP Servers          | Yes      | External tool providers                          |
-| User Devices         | Partial  | Mobile apps, desktop clients                     |
+| Component            | Included | Notes                                              |
+| -------------------- | -------- | -------------------------------------------------- |
+| Kova Agent Runtime   | Yes      | Core agent execution, tool calls, sessions         |
+| Gateway              | Yes      | Authentication, routing, channel integration       |
+| Channel Integrations | Yes      | WhatsApp, Telegram, Discord, Signal, Slack, etc.   |
+| KovaHub Marketplace  | Future   | Planned skill publishing, moderation, distribution |
+| MCP Servers          | Yes      | External tool providers                            |
+| User Devices         | Partial  | Mobile apps, desktop clients                       |
 
 ### 1.3 Out of Scope
 
@@ -132,14 +132,14 @@ Nothing is explicitly out of scope for this threat model.
 
 ### 2.2 Data Flows
 
-| Flow | Source  | Destination | Data               | Protection           |
-| ---- | ------- | ----------- | ------------------ | -------------------- |
-| F1   | Channel | Gateway     | User messages      | TLS, AllowFrom       |
-| F2   | Gateway | Agent       | Routed messages    | Session isolation    |
-| F3   | Agent   | Tools       | Tool invocations   | Policy enforcement   |
-| F4   | Agent   | External    | web_fetch requests | SSRF blocking        |
-| F5   | KovaHub | Agent       | Skill code         | Moderation, scanning |
-| F6   | Agent   | Channel     | Responses          | Output filtering     |
+| Flow | Source             | Destination | Data               | Protection           |
+| ---- | ------------------ | ----------- | ------------------ | -------------------- |
+| F1   | Channel            | Gateway     | User messages      | TLS, AllowFrom       |
+| F2   | Gateway            | Agent       | Routed messages    | Session isolation    |
+| F3   | Agent              | Tools       | Tool invocations   | Policy enforcement   |
+| F4   | Agent              | External    | web_fetch requests | SSRF blocking        |
+| F5   | Future marketplace | Agent       | Skill code         | Moderation, scanning |
+| F6   | Agent              | Channel     | Responses          | Output filtering     |
 
 ---
 
@@ -272,9 +272,9 @@ Nothing is explicitly out of scope for this threat model.
 | Attribute               | Value                                                                    |
 | ----------------------- | ------------------------------------------------------------------------ |
 | **ATLAS ID**            | AML.T0010.001 - Supply Chain Compromise: AI Software                     |
-| **Description**         | Attacker publishes malicious skill to KovaHub                            |
+| **Description**         | Attacker publishes malicious skill to a future marketplace               |
 | **Attack Vector**       | Create account, publish skill with hidden malicious code                 |
-| **Affected Components** | KovaHub, skill loading, agent execution                                  |
+| **Affected Components** | Future marketplace, skill loading, agent execution                       |
 | **Current Mitigations** | GitHub account age verification, pattern-based moderation flags          |
 | **Residual Risk**       | Critical - No sandboxing, limited review                                 |
 | **Recommendations**     | VirusTotal integration (in progress), skill sandboxing, community review |
@@ -286,7 +286,7 @@ Nothing is explicitly out of scope for this threat model.
 | **ATLAS ID**            | AML.T0010.001 - Supply Chain Compromise: AI Software           |
 | **Description**         | Attacker compromises popular skill and pushes malicious update |
 | **Attack Vector**       | Account compromise, social engineering of skill owner          |
-| **Affected Components** | KovaHub versioning, auto-update flows                          |
+| **Affected Components** | Future marketplace versioning, auto-update flows               |
 | **Current Mitigations** | Version fingerprinting                                         |
 | **Residual Risk**       | High - Auto-updates may pull malicious versions                |
 | **Recommendations**     | Implement update signing, rollback capability, version pinning |
@@ -314,7 +314,7 @@ Nothing is explicitly out of scope for this threat model.
 | **ATLAS ID**            | AML.T0043 - Craft Adversarial Data                                     |
 | **Description**         | Attacker crafts skill content to evade moderation patterns             |
 | **Attack Vector**       | Unicode homoglyphs, encoding tricks, dynamic loading                   |
-| **Affected Components** | KovaHub moderation.ts                                                  |
+| **Affected Components** | Future marketplace moderation                                          |
 | **Current Mitigations** | Pattern-based FLAG_RULES                                               |
 | **Residual Risk**       | High - Simple regex easily bypassed                                    |
 | **Recommendations**     | Add behavioral analysis (VirusTotal Code Insight), AST-based detection |
@@ -441,7 +441,7 @@ Nothing is explicitly out of scope for this threat model.
 
 ---
 
-## 4. KovaHub Supply Chain Analysis
+## 4. Future Marketplace Supply Chain Analysis
 
 ### 4.1 Current Security Controls
 
@@ -596,7 +596,7 @@ T-EXEC-002 → T-EXFIL-001 → External exfiltration
 | Term                 | Definition                                                |
 | -------------------- | --------------------------------------------------------- |
 | **ATLAS**            | MITRE's Adversarial Threat Landscape for AI Systems       |
-| **KovaHub**          | Kova's skill marketplace                                  |
+| **KovaHub**          | Planned Kova marketplace                                  |
 | **Gateway**          | Kova's message routing and authentication layer           |
 | **MCP**              | Model Context Protocol - tool provider interface          |
 | **Prompt Injection** | Attack where malicious instructions are embedded in input |

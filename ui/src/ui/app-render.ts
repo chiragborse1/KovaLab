@@ -121,14 +121,9 @@ import {
   toggleSessionCompactionCheckpoints,
 } from "./controllers/sessions.ts";
 import {
-  closeKovaHubDetail,
-  installFromKovaHub,
   installSkill,
-  loadKovaHubDetail,
   loadSkills,
   saveSkillApiKey,
-  searchKovaHub,
-  setKovaHubSearchQuery,
   updateSkillEdit,
   updateSkillEnabled,
 } from "./controllers/skills.ts";
@@ -232,7 +227,6 @@ function resolveDreamingNextCycle(
   return formatDreamNextCycle(nextRunAtMs);
 }
 
-let kovahubSearchTimer: ReturnType<typeof setTimeout> | null = null;
 let controlWizardProgressTimer: ReturnType<typeof setTimeout> | null = null;
 
 const UPDATE_BANNER_DISMISS_KEY = "kova:control-ui:update-banner-dismissed:v1";
@@ -2557,16 +2551,6 @@ export function renderApp(state: AppViewState) {
                 messages: state.skillMessages,
                 busyKey: state.skillsBusyKey,
                 detailKey: state.skillsDetailKey,
-                kovahubQuery: state.kovahubSearchQuery,
-                kovahubResults: state.kovahubSearchResults,
-                kovahubSearchLoading: state.kovahubSearchLoading,
-                kovahubSearchError: state.kovahubSearchError,
-                kovahubDetail: state.kovahubDetail,
-                kovahubDetailSlug: state.kovahubDetailSlug,
-                kovahubDetailLoading: state.kovahubDetailLoading,
-                kovahubDetailError: state.kovahubDetailError,
-                kovahubInstallSlug: state.kovahubInstallSlug,
-                kovahubInstallMessage: state.kovahubInstallMessage,
                 onFilterChange: (next) => (state.skillsFilter = next),
                 onStatusFilterChange: (next) => (state.skillsStatusFilter = next),
                 onSourceFilterChange: (next) => (state.skillsSourceFilter = next),
@@ -2579,16 +2563,6 @@ export function renderApp(state: AppViewState) {
                   installSkill(state, skillKey, name, installId),
                 onDetailOpen: (key) => (state.skillsDetailKey = key),
                 onDetailClose: () => (state.skillsDetailKey = null),
-                onKovaHubQueryChange: (query) => {
-                  setKovaHubSearchQuery(state, query);
-                  if (kovahubSearchTimer) {
-                    clearTimeout(kovahubSearchTimer);
-                  }
-                  kovahubSearchTimer = setTimeout(() => searchKovaHub(state, query), 300);
-                },
-                onKovaHubDetailOpen: (slug) => loadKovaHubDetail(state, slug),
-                onKovaHubDetailClose: () => closeKovaHubDetail(state),
-                onKovaHubInstall: (slug) => installFromKovaHub(state, slug),
               }),
             )
           : nothing}

@@ -19,9 +19,6 @@ const mocks = vi.hoisted(() => ({
   applyPluginUninstallDirectoryRemoval: vi.fn(),
   formatUninstallActionLabels: vi.fn(),
   installPluginFromNpmSpec: vi.fn(),
-  installPluginFromKovaHub: vi.fn(),
-  parseKovaHubPluginSpec: vi.fn(),
-  buildPreferredKovaHubSpec: vi.fn(),
   parseNpmPrefixSpec: vi.fn(),
   resolveOfficialExternalPluginNpmSpec: vi.fn(),
   recordPluginInstall: vi.fn(),
@@ -46,7 +43,6 @@ vi.mock("../../plugins/toggle-config.js", () => ({
 }));
 vi.mock("../../cli/plugins-command-helpers.js", () => ({
   applySlotSelectionForPlugin: mocks.applySlotSelectionForPlugin,
-  buildPreferredKovaHubSpec: mocks.buildPreferredKovaHubSpec,
   parseNpmPrefixSpec: mocks.parseNpmPrefixSpec,
 }));
 vi.mock("../../plugins/installed-plugin-index-records.js", () => ({
@@ -65,12 +61,6 @@ vi.mock("../../plugins/uninstall.js", () => ({
 }));
 vi.mock("../../plugins/install.js", () => ({
   installPluginFromNpmSpec: mocks.installPluginFromNpmSpec,
-}));
-vi.mock("../../plugins/kovahub.js", () => ({
-  installPluginFromKovaHub: mocks.installPluginFromKovaHub,
-}));
-vi.mock("../../infra/kovahub.js", () => ({
-  parseKovaHubPluginSpec: mocks.parseKovaHubPluginSpec,
 }));
 vi.mock("../../plugins/official-external-plugin-catalog.js", () => ({
   resolveOfficialExternalPluginNpmSpec: mocks.resolveOfficialExternalPluginNpmSpec,
@@ -147,12 +137,6 @@ describe("plugins.status", () => {
       targetDir: "/tmp/demo",
       extensions: ["dist/index.js"],
     });
-    mocks.installPluginFromKovaHub.mockResolvedValue({
-      ok: false,
-      error: "not on kovahub",
-    });
-    mocks.parseKovaHubPluginSpec.mockReturnValue(null);
-    mocks.buildPreferredKovaHubSpec.mockReturnValue(null);
     mocks.parseNpmPrefixSpec.mockReturnValue(null);
     mocks.resolveOfficialExternalPluginNpmSpec.mockReturnValue(undefined);
     mocks.recordPluginInstall.mockImplementation((config, update) => ({

@@ -81,8 +81,7 @@ entry. See [Tool plugins](/plugins/tool-plugins).
 ### Install
 
 ```bash
-kova plugins install <package>                      # KovaHub first, then npm
-kova plugins install kovahub:<package>              # KovaHub only
+kova plugins install <package>                      # npm package
 kova plugins install npm:<package>                  # npm only
 kova plugins install <package> --force              # overwrite existing install
 kova plugins install <package> --pin                # pin version
@@ -94,7 +93,7 @@ kova plugins install <plugin> --marketplace https://github.com/<owner>/<repo>
 ```
 
 <Warning>
-Bare package names are checked against KovaHub first, then npm. Treat plugin installs like running code. Prefer pinned versions.
+Treat plugin installs like running code. Prefer pinned versions.
 </Warning>
 
 <AccordionGroup>
@@ -105,7 +104,7 @@ Bare package names are checked against KovaHub first, then npm. Treat plugin ins
 
   </Accordion>
   <Accordion title="--force and reinstall vs update">
-    `--force` reuses the existing install target and overwrites an already-installed plugin or hook pack in place. Use it when you are intentionally reinstalling the same id from a new local path, archive, KovaHub package, or npm artifact. For routine upgrades of an already tracked npm plugin, prefer `kova plugins update <id-or-npm-spec>`.
+    `--force` reuses the existing install target and overwrites an already-installed plugin or hook pack in place. Use it when you are intentionally reinstalling the same id from a new local path, archive, or npm artifact. For routine upgrades of an already tracked npm plugin, prefer `kova plugins update <id-or-npm-spec>`.
 
     If you run `plugins install` for a plugin id that is already installed, Kova stops and points you at `plugins update <id-or-npm-spec>` for a normal upgrade, or at `plugins install <package> --force` when you genuinely want to overwrite the current install from a different source.
 
@@ -116,7 +115,7 @@ Bare package names are checked against KovaHub first, then npm. Treat plugin ins
   <Accordion title="--dangerously-force-unsafe-install">
     `--dangerously-force-unsafe-install` is a break-glass option for false positives in the built-in dangerous-code scanner. It allows the install to continue even when the built-in scanner reports `critical` findings, but it does **not** bypass plugin `before_install` hook policy blocks and does **not** bypass scan failures.
 
-    This CLI flag applies to plugin install/update flows. Gateway-backed skill dependency installs use the matching `dangerouslyForceUnsafeInstall` request override, while `kova skills install` remains a separate KovaHub skill download/install flow.
+    This CLI flag applies to plugin install/update flows. Gateway-backed skill dependency installs use the matching `dangerouslyForceUnsafeInstall` request override.
 
   </Accordion>
   <Accordion title="Hook packs and npm specs">
@@ -124,7 +123,7 @@ Bare package names are checked against KovaHub first, then npm. Treat plugin ins
 
     Npm specs are **registry-only** (package name + optional **exact version** or **dist-tag**). Git/URL/file specs and semver ranges are rejected. Dependency installs run project-local with `--ignore-scripts` for safety, even when your shell has global npm install settings.
 
-    Use `npm:<package>` when you want to skip KovaHub lookup and install directly from npm. Bare package specs still prefer KovaHub and only fall back to npm when KovaHub does not have that package or version.
+    Use `npm:<package>` when you want to make npm resolution explicit.
 
     Bare specs and `@latest` stay on the stable track. If npm resolves either of those to a prerelease, Kova stops and asks you to opt in explicitly with a prerelease tag such as `@beta`/`@rc` or an exact prerelease version such as `@1.2.3-beta.4`.
 
@@ -139,28 +138,14 @@ Bare package names are checked against KovaHub first, then npm. Treat plugin ins
   </Accordion>
 </AccordionGroup>
 
-KovaHub installs use an explicit `kovahub:<package>` locator:
-
-```bash
-kova plugins install kovahub:kova-codex-app-server
-kova plugins install kovahub:kova-codex-app-server@1.2.3
-```
-
-Kova now also prefers KovaHub for bare npm-safe plugin specs. It only falls back to npm if KovaHub does not have that package or version:
-
-```bash
-kova plugins install kova-codex-app-server
-```
-
-Use `npm:` to force npm-only resolution, for example when KovaHub is unreachable or you know the package exists only on npm:
+Use `npm:` to force npm-only resolution:
 
 ```bash
 kova plugins install npm:kova-codex-app-server
 kova plugins install npm:@scope/plugin-name@1.0.1
 ```
 
-Kova downloads the package archive from KovaHub, checks the advertised plugin API / minimum gateway compatibility, then installs it through the normal archive path. Recorded installs keep their KovaHub source metadata for later updates.
-Unversioned KovaHub installs keep an unversioned recorded spec so `kova plugins update` can follow newer KovaHub releases; explicit version or tag selectors such as `kovahub:pkg@1.2.3` and `kovahub:pkg@beta` remain pinned to that selector.
+KovaHub registry installs are not active in this build. Legacy `kovahub:` install records can still be removed with `kova plugins uninstall`, but new installs use local paths, archives, npm, or marketplace entries.
 
 #### Marketplace shorthand
 

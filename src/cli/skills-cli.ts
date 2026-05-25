@@ -4,18 +4,11 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../agents/agent-scope.js";
-import {
-  installSkillFromKovaHub,
-  readTrackedKovaHubSkillSlugs,
-  searchSkillsFromKovaHub,
-  updateSkillsFromKovaHub,
-} from "../agents/skills-kovahub.js";
 import { getRuntimeConfig } from "../config/config.js";
 import { defaultRuntime } from "../runtime.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { theme } from "../terminal/theme.js";
-import { CONFIG_DIR } from "../utils.js";
 import { resolveOptionFromCommand } from "./cli-utils.js";
 import { formatSkillInfo, formatSkillsCheck, formatSkillsList } from "./skills-cli.format.js";
 
@@ -81,26 +74,6 @@ async function runSkillsAction(
   }
 }
 
-function resolveActiveWorkspaceDir(options?: ResolveSkillsWorkspaceOptions): string {
-  return resolveSkillsWorkspace(options).workspaceDir;
-}
-
-function resolveKovaHubTargetWorkspaceDir(
-  command: Command | undefined,
-  opts: { agent?: string; global?: boolean },
-): string | undefined {
-  const agentId = resolveAgentOption(command, opts);
-  if (opts.global && normalizeOptionalString(agentId)) {
-    defaultRuntime.error("Use either --global or --agent, not both.");
-    defaultRuntime.exit(1);
-    return undefined;
-  }
-  if (opts.global) {
-    return CONFIG_DIR;
-  }
-  return resolveActiveWorkspaceDir({ agentId });
-}
-
 /**
  * Register the skills CLI commands
  */
@@ -113,138 +86,6 @@ export function registerSkillsCli(program: Command) {
       "after",
       () =>
         `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/skills", "docs.neuralstudio.in/cli/skills")}\n`,
-    );
-
-  skills
-    .command("search")
-    .description("Search KovaHub skills")
-    .argument("[query...]", "Optional search query")
-    .option("--limit <n>", "Max results", (value) => Number.parseInt(value, 10))
-    .option("--json", "Output as JSON", false)
-    .action(async (queryParts: string[], opts: { limit?: number; json?: boolean }) => {
-      try {
-        const results = await searchSkillsFromKovaHub({
-          query: normalizeOptionalString(queryParts.join(" ")),
-          limit: opts.limit,
-        });
-        if (opts.json) {
-          defaultRuntime.writeJson({ results });
-          return;
-        }
-        if (results.length === 0) {
-          defaultRuntime.log("No KovaHub skills found.");
-          return;
-        }
-        for (const entry of results) {
-          const version = entry.version ? ` v${entry.version}` : "";
-          const summary = entry.summary ? `  ${entry.summary}` : "";
-          defaultRuntime.log(`${entry.slug}${version}  ${entry.displayName}${summary}`);
-        }
-      } catch (err) {
-        defaultRuntime.error(String(err));
-        defaultRuntime.exit(1);
-      }
-    });
-
-  skills
-    .command("install")
-    .description("Install a skill from KovaHub into the active or shared managed directory")
-    .argument("<slug>", "KovaHub skill slug")
-    .option("--version <version>", "Install a specific version")
-    .option("--force", "Overwrite an existing workspace skill", false)
-    .option("--global", "Install into the shared managed skills directory", false)
-    .option("--agent <id>", "Target agent workspace (defaults to cwd-inferred, then default agent)")
-    .action(
-      async (
-        slug: string,
-        opts: { version?: string; force?: boolean; global?: boolean; agent?: string },
-        command: Command,
-      ) => {
-        try {
-          const workspaceDir = resolveKovaHubTargetWorkspaceDir(command, opts);
-          if (!workspaceDir) {
-            return;
-          }
-          const result = await installSkillFromKovaHub({
-            workspaceDir,
-            slug,
-            version: opts.version,
-            force: Boolean(opts.force),
-            logger: {
-              info: (message) => defaultRuntime.log(message),
-            },
-          });
-          if (!result.ok) {
-            defaultRuntime.error(result.error);
-            defaultRuntime.exit(1);
-            return;
-          }
-          defaultRuntime.log(`Installed ${result.slug}@${result.version} -> ${result.targetDir}`);
-        } catch (err) {
-          defaultRuntime.error(String(err));
-          defaultRuntime.exit(1);
-        }
-      },
-    );
-
-  skills
-    .command("update")
-    .description("Update KovaHub-installed skills in the active or shared managed directory")
-    .argument("[slug]", "Single skill slug")
-    .option("--all", "Update all tracked KovaHub skills", false)
-    .option("--global", "Update skills in the shared managed skills directory", false)
-    .option("--agent <id>", "Target agent workspace (defaults to cwd-inferred, then default agent)")
-    .action(
-      async (
-        slug: string | undefined,
-        opts: { all?: boolean; global?: boolean; agent?: string },
-        command: Command,
-      ) => {
-        try {
-          if (!slug && !opts.all) {
-            defaultRuntime.error("Provide a skill slug or use --all.");
-            defaultRuntime.exit(1);
-            return;
-          }
-          if (slug && opts.all) {
-            defaultRuntime.error("Use either a skill slug or --all.");
-            defaultRuntime.exit(1);
-            return;
-          }
-          const workspaceDir = resolveKovaHubTargetWorkspaceDir(command, opts);
-          if (!workspaceDir) {
-            return;
-          }
-          const tracked = await readTrackedKovaHubSkillSlugs(workspaceDir);
-          if (opts.all && tracked.length === 0) {
-            defaultRuntime.log("No tracked KovaHub skills to update.");
-            return;
-          }
-          const results = await updateSkillsFromKovaHub({
-            workspaceDir,
-            slug,
-            logger: {
-              info: (message) => defaultRuntime.log(message),
-            },
-          });
-          for (const result of results) {
-            if (!result.ok) {
-              defaultRuntime.error(result.error);
-              continue;
-            }
-            if (result.changed) {
-              defaultRuntime.log(
-                `Updated ${result.slug}: ${result.previousVersion ?? "unknown"} -> ${result.version}`,
-              );
-              continue;
-            }
-            defaultRuntime.log(`${result.slug} already at ${result.version}`);
-          }
-        } catch (err) {
-          defaultRuntime.error(String(err));
-          defaultRuntime.exit(1);
-        }
-      },
     );
 
   skills

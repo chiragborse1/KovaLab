@@ -1536,8 +1536,6 @@
     "release:check": "pnpm deps:root-ownership:check && pnpm check:base-config-schema && pnpm check:bundled-channel-config-metadata && pnpm config:docs:check && pnpm plugin-sdk:check-exports && pnpm plugin-sdk:api:check && node --import tsx scripts/release-check.ts",
     "release:kova:npm:check": "node --import tsx scripts/kova-npm-release-check.ts",
     "release:kova:npm:verify-published": "node --import tsx scripts/kova-npm-postpublish-verify.ts",
-    "release:plugins:kovahub:check": "node --import tsx scripts/plugin-kovahub-release-check.ts",
-    "release:plugins:kovahub:plan": "node --import tsx scripts/plugin-kovahub-release-plan.ts",
     "release:plugins:npm:check": "node --import tsx scripts/plugin-npm-release-check.ts",
     "release:plugins:npm:plan": "node --import tsx scripts/plugin-npm-release-plan.ts",
     "runtime-sidecars:check": "node --import tsx scripts/generate-runtime-sidecar-paths-baseline.ts --check",

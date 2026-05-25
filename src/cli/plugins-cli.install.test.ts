@@ -11,13 +11,11 @@ import {
   enablePluginInConfig,
   installHooksFromNpmSpec,
   installHooksFromPath,
-  installPluginFromKovaHub,
   installPluginFromMarketplace,
   installPluginFromNpmSpec,
   installPluginFromPath,
   loadConfig,
   readConfigFileSnapshot,
-  parseKovaHubPluginSpec,
   recordHookInstall,
   recordPluginInstall,
   resetPluginsCliTestState,
@@ -55,31 +53,6 @@ function createEmptyPluginConfig(): KovaConfig {
   } as KovaConfig;
 }
 
-function createKovaHubInstallResult(params: {
-  pluginId: string;
-  packageName: string;
-  version: string;
-  channel: string;
-}): Awaited<ReturnType<typeof installPluginFromKovaHub>> {
-  return {
-    ok: true,
-    pluginId: params.pluginId,
-    targetDir: cliInstallPath(params.pluginId),
-    version: params.version,
-    packageName: params.packageName,
-    kovahub: {
-      source: "kovahub",
-      kovahubUrl: "https://kovahub.ai",
-      kovahubPackage: params.packageName,
-      kovahubFamily: "code-plugin",
-      kovahubChannel: params.channel,
-      version: params.version,
-      integrity: "sha256-abc",
-      resolvedAt: "2026-03-22T00:00:00.000Z",
-    },
-  };
-}
-
 function createNpmPluginInstallResult(
   pluginId = "demo",
 ): Awaited<ReturnType<typeof installPluginFromNpmSpec>> {
@@ -96,20 +69,11 @@ function createNpmPluginInstallResult(
   };
 }
 
-function mockKovaHubPackageNotFound(packageName: string) {
-  installPluginFromKovaHub.mockResolvedValue({
-    ok: false,
-    error: `KovaHub /api/v1/packages/${packageName} failed (404): Package not found`,
-    code: "package_not_found",
-  });
-}
-
 function primeNpmPluginFallback(pluginId = "demo") {
   const cfg = createEmptyPluginConfig();
   const enabledCfg = createEnabledPluginConfig(pluginId);
 
   loadConfig.mockReturnValue(cfg);
-  mockKovaHubPackageNotFound(pluginId);
   installPluginFromNpmSpec.mockResolvedValue(createNpmPluginInstallResult(pluginId));
   enablePluginInConfig.mockReturnValue({ config: enabledCfg });
   recordPluginInstall.mockReturnValue(enabledCfg);
@@ -173,7 +137,6 @@ function primeHookPackNpmFallback() {
   const installedCfg = createNpmHookPackInstalledConfig();
 
   loadConfig.mockReturnValue(cfg);
-  mockKovaHubPackageNotFound("@acme/demo-hooks");
   installPluginFromNpmSpec.mockResolvedValue({
     ok: false,
     error: "package.json missing kova.plugin.json",
@@ -197,7 +160,6 @@ function primeBlockedNpmPluginInstall(params: {
   code?: "security_scan_blocked" | "security_scan_failed";
 }) {
   loadConfig.mockReturnValue({} as KovaConfig);
-  mockKovaHubPackageNotFound(params.spec);
   installPluginFromNpmSpec.mockResolvedValue({
     ok: false,
     error: `Plugin "${params.pluginId}" installation blocked: dangerous code patterns detected: finding details`,
@@ -375,50 +337,16 @@ describe("plugins cli install", () => {
     );
   });
 
-  it("installs KovaHub plugins and persists source metadata", async () => {
-    const cfg = {
-      plugins: {
-        entries: {},
-      },
-    } as KovaConfig;
-    const enabledCfg = createEnabledPluginConfig("demo");
-    loadConfig.mockReturnValue(cfg);
-    parseKovaHubPluginSpec.mockReturnValue({ name: "demo" });
-    installPluginFromKovaHub.mockResolvedValue(
-      createKovaHubInstallResult({
-        pluginId: "demo",
-        packageName: "demo",
-        version: "1.2.3",
-        channel: "official",
-      }),
-    );
-    enablePluginInConfig.mockReturnValue({ config: enabledCfg });
-    applyExclusiveSlotSelection.mockReturnValue({
-      config: enabledCfg,
-      warnings: [],
-    });
+  it("rejects explicit kovahub plugin specs while the registry is disabled", async () => {
+    loadConfig.mockReturnValue(createEmptyPluginConfig());
 
-    await runPluginsCommand(["plugins", "install", "kovahub:demo"]);
-
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo",
-      }),
+    await expect(runPluginsCommand(["plugins", "install", "kovahub:demo"])).rejects.toThrow(
+      "__exit__:1",
     );
-    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
-      demo: expect.objectContaining({
-        source: "kovahub",
-        spec: "kovahub:demo",
-        installPath: cliInstallPath("demo"),
-        version: "1.2.3",
-        kovahubPackage: "demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-      }),
-    });
-    expect(writeConfigFile).toHaveBeenCalledWith(enabledCfg);
-    expect(runtimeLogs.some((line) => line.includes("Installed plugin: demo"))).toBe(true);
+
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
+    expect(writeConfigFile).not.toHaveBeenCalled();
+    expect(runtimeErrors.at(-1)).toContain("KovaHub plugin installs are not available");
   });
 
   it("does not persist incomplete config entries for config-gated bundled installs", async () => {
@@ -502,179 +430,23 @@ describe("plugins cli install", () => {
     }
   });
 
-  it("passes force through as overwrite mode for KovaHub installs", async () => {
-    const cfg = {
-      plugins: {
-        entries: {},
-      },
-    } as KovaConfig;
-    const enabledCfg = createEnabledPluginConfig("demo");
-
-    loadConfig.mockReturnValue(cfg);
-    parseKovaHubPluginSpec.mockReturnValue({ name: "demo" });
-    installPluginFromKovaHub.mockResolvedValue(
-      createKovaHubInstallResult({
-        pluginId: "demo",
-        packageName: "demo",
-        version: "1.2.3",
-        channel: "official",
-      }),
-    );
-    enablePluginInConfig.mockReturnValue({ config: enabledCfg });
-    recordPluginInstall.mockReturnValue(enabledCfg);
-    applyExclusiveSlotSelection.mockReturnValue({
-      config: enabledCfg,
-      warnings: [],
-    });
-
-    await runPluginsCommand(["plugins", "install", "kovahub:demo", "--force"]);
-
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo",
-        mode: "update",
-      }),
-    );
-  });
-
-  it("keeps explicit KovaHub versions pinned in install records", async () => {
-    const cfg = {
-      plugins: {
-        entries: {},
-      },
-    } as KovaConfig;
-    const enabledCfg = createEnabledPluginConfig("demo");
-
-    loadConfig.mockReturnValue(cfg);
-    parseKovaHubPluginSpec.mockReturnValue({ name: "demo", version: "1.2.3" });
-    installPluginFromKovaHub.mockResolvedValue(
-      createKovaHubInstallResult({
-        pluginId: "demo",
-        packageName: "demo",
-        version: "1.2.3",
-        channel: "official",
-      }),
-    );
-    enablePluginInConfig.mockReturnValue({ config: enabledCfg });
-    applyExclusiveSlotSelection.mockReturnValue({
-      config: enabledCfg,
-      warnings: [],
-    });
-
-    await runPluginsCommand(["plugins", "install", "kovahub:demo@1.2.3"]);
-
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo@1.2.3",
-      }),
-    );
-    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
-      demo: expect.objectContaining({
-        source: "kovahub",
-        spec: "kovahub:demo@1.2.3",
-        installPath: cliInstallPath("demo"),
-        version: "1.2.3",
-        kovahubPackage: "demo",
-      }),
-    });
-  });
-
-  it("prefers KovaHub before npm for bare plugin specs", async () => {
-    const cfg = {
-      plugins: {
-        entries: {},
-      },
-    } as KovaConfig;
-    const enabledCfg = createEnabledPluginConfig("demo");
-    loadConfig.mockReturnValue(cfg);
-    installPluginFromKovaHub.mockResolvedValue(
-      createKovaHubInstallResult({
-        pluginId: "demo",
-        packageName: "demo",
-        version: "1.2.3",
-        channel: "community",
-      }),
-    );
-    enablePluginInConfig.mockReturnValue({ config: enabledCfg });
-    applyExclusiveSlotSelection.mockReturnValue({
-      config: enabledCfg,
-      warnings: [],
-    });
-
-    await runPluginsCommand(["plugins", "install", "demo"]);
-
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo",
-      }),
-    );
-    expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
-    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
-      demo: expect.objectContaining({
-        source: "kovahub",
-        spec: "kovahub:demo",
-        installPath: cliInstallPath("demo"),
-        version: "1.2.3",
-        kovahubPackage: "demo",
-      }),
-    });
-    expect(writeConfigFile).toHaveBeenCalledWith(enabledCfg);
-  });
-
-  it("keeps explicit bare KovaHub selectors in install records", async () => {
-    const cfg = {
-      plugins: {
-        entries: {},
-      },
-    } as KovaConfig;
-    const enabledCfg = createEnabledPluginConfig("demo");
-    loadConfig.mockReturnValue(cfg);
-    installPluginFromKovaHub.mockResolvedValue(
-      createKovaHubInstallResult({
-        pluginId: "demo",
-        packageName: "demo",
-        version: "1.2.3-beta.1",
-        channel: "community",
-      }),
-    );
-    enablePluginInConfig.mockReturnValue({ config: enabledCfg });
-    applyExclusiveSlotSelection.mockReturnValue({
-      config: enabledCfg,
-      warnings: [],
-    });
-
-    await runPluginsCommand(["plugins", "install", "demo@beta"]);
-
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo@beta",
-      }),
-    );
-    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
-      demo: expect.objectContaining({
-        source: "kovahub",
-        spec: "kovahub:demo@beta",
-        version: "1.2.3-beta.1",
-        kovahubPackage: "demo",
-      }),
-    });
-  });
-
-  it("falls back to npm when KovaHub does not have the package", async () => {
+  it("installs bare plugin specs directly from npm", async () => {
     primeNpmPluginFallback();
 
     await runPluginsCommand(["plugins", "install", "demo"]);
 
-    expect(installPluginFromKovaHub).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo",
-      }),
-    );
     expect(installPluginFromNpmSpec).toHaveBeenCalledWith(
       expect.objectContaining({
         spec: "demo",
       }),
     );
+    expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
+      demo: expect.objectContaining({
+        source: "npm",
+        spec: "demo",
+        installPath: cliInstallPath("demo"),
+      }),
+    });
   });
 
   it("installs directly from npm when npm: prefix is used", async () => {
@@ -698,7 +470,6 @@ describe("plugins cli install", () => {
         mode: "install",
       }),
     );
-    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(writePersistedInstalledPluginIndexInstallRecords).toHaveBeenCalledWith({
       demo: expect.objectContaining({
         source: "npm",
@@ -733,7 +504,6 @@ describe("plugins cli install", () => {
         dangerouslyForceUnsafeInstall: true,
       }),
     );
-    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
   });
 
   it("reports npm install failures without trying KovaHub when npm: prefix is used", async () => {
@@ -751,7 +521,6 @@ describe("plugins cli install", () => {
       "__exit__:1",
     );
 
-    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("npm install failed");
   });
 
@@ -776,7 +545,6 @@ describe("plugins cli install", () => {
         spec: "memory-lancedb",
       }),
     );
-    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(writeConfigFile).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("Package not found on npm: memory-lancedb.");
   });
@@ -787,7 +555,6 @@ describe("plugins cli install", () => {
     await expect(runPluginsCommand(["plugins", "install", "npm:"])).rejects.toThrow("__exit__:1");
 
     expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
-    expect(installPluginFromKovaHub).not.toHaveBeenCalled();
     expect(runtimeErrors.at(-1)).toContain("unsupported npm: spec: missing package");
   });
 
@@ -963,7 +730,6 @@ describe("plugins cli install", () => {
 
   it("suggests update or --force when npm plugin install target already exists", async () => {
     loadConfig.mockReturnValue({} as KovaConfig);
-    mockKovaHubPackageNotFound("@example/lossless-claw");
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: "plugin already exists: /home/kova/.kova/extensions/lossless-claw (delete it first)",
@@ -1142,11 +908,6 @@ describe("plugins cli install", () => {
     const pluginInstallError = "plugin blocked by security scan";
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromKovaHub.mockResolvedValue({
-      ok: false,
-      error: "KovaHub /api/v1/packages/demo failed (404): Package not found",
-      code: "package_not_found",
-    });
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: pluginInstallError,
@@ -1181,11 +942,6 @@ describe("plugins cli install", () => {
     const pluginInstallError = "plugin security scan failed";
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromKovaHub.mockResolvedValue({
-      ok: false,
-      error: "KovaHub /api/v1/packages/demo failed (404): Package not found",
-      code: "package_not_found",
-    });
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: pluginInstallError,
@@ -1266,11 +1022,6 @@ describe("plugins cli install", () => {
     } as KovaConfig;
 
     loadConfig.mockReturnValue(cfg);
-    installPluginFromKovaHub.mockResolvedValue({
-      ok: false,
-      error: "KovaHub /api/v1/packages/@acme/demo-hooks failed (404): Package not found",
-      code: "package_not_found",
-    });
     installPluginFromNpmSpec.mockResolvedValue({
       ok: false,
       error: "package.json missing kova.plugin.json",
@@ -1303,19 +1054,6 @@ describe("plugins cli install", () => {
       }),
     );
     expect(runtimeLogs.some((line) => line.includes("Installed hook pack: demo-hooks"))).toBe(true);
-  });
-
-  it("does not fall back to npm when KovaHub rejects a real package", async () => {
-    installPluginFromKovaHub.mockResolvedValue({
-      ok: false,
-      error: 'Use "kova skills install demo" instead.',
-      code: "skill_package",
-    });
-
-    await expect(runPluginsCommand(["plugins", "install", "demo"])).rejects.toThrow("__exit__:1");
-
-    expect(installPluginFromNpmSpec).not.toHaveBeenCalled();
-    expect(runtimeErrors.at(-1)).toContain('Use "kova skills install demo" instead.');
   });
 
   it("falls back to installing hook packs from npm specs", async () => {

@@ -1,10 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
-import type {
-  KovaHubSearchResult,
-  KovaHubSkillDetail,
-  SkillMessageMap,
-} from "../controllers/skills.ts";
+import type { SkillMessageMap } from "../controllers/skills.ts";
 import { clampText } from "../format.ts";
 import { resolveSafeExternalUrl } from "../open-external-url.ts";
 import { normalizeLowercaseStringOrEmpty } from "../string-coerce.ts";
@@ -49,16 +45,6 @@ export type SkillsProps = {
   busyKey: string | null;
   messages: SkillMessageMap;
   detailKey: string | null;
-  kovahubQuery: string;
-  kovahubResults: KovaHubSearchResult[] | null;
-  kovahubSearchLoading: boolean;
-  kovahubSearchError: string | null;
-  kovahubDetail: KovaHubSkillDetail | null;
-  kovahubDetailSlug: string | null;
-  kovahubDetailLoading: boolean;
-  kovahubDetailError: string | null;
-  kovahubInstallSlug: string | null;
-  kovahubInstallMessage: { kind: "success" | "error"; text: string } | null;
   onFilterChange: (next: string) => void;
   onStatusFilterChange: (next: SkillsStatusFilter) => void;
   onSourceFilterChange: (next: SkillsSourceFilter) => void;
@@ -70,10 +56,6 @@ export type SkillsProps = {
   onInstall: (skillKey: string, name: string, installId: string) => void;
   onDetailOpen: (skillKey: string) => void;
   onDetailClose: () => void;
-  onKovaHubQueryChange: (query: string) => void;
-  onKovaHubDetailOpen: (slug: string) => void;
-  onKovaHubDetailClose: () => void;
-  onKovaHubInstall: (slug: string) => void;
 };
 
 type StatusTabDef = { id: SkillsStatusFilter; label: string };
@@ -302,7 +284,7 @@ export function renderSkills(props: SkillsProps) {
           <div>
             <div class="card-title">Skills</div>
             <div class="card-sub">
-              Manage local skills, missing requirements, API keys, and KovaHub installs.
+              Manage local skills, missing requirements, API keys, and dependency installs.
             </div>
           </div>
           <div class="skills-command-center__actions">
@@ -415,48 +397,10 @@ export function renderSkills(props: SkillsProps) {
                     ${groups.map((group) => renderSkillGroup(group, props))}
                   </div>`}
           </section>
-
-          <section class="card skills-discovery">
-            <div class="skills-section-head">
-              <div>
-                <div class="card-title">KovaHub</div>
-                <div class="card-sub">Search and install workspace skills from the registry.</div>
-              </div>
-              ${props.kovahubSearchLoading
-                ? html`<span class="muted">Searching...</span>`
-                : nothing}
-            </div>
-            <label class="field skills-search-field">
-              <input
-                .value=${props.kovahubQuery}
-                @input=${(event: Event) =>
-                  props.onKovaHubQueryChange((event.target as HTMLInputElement).value)}
-                placeholder="Search KovaHub skills..."
-                autocomplete="off"
-                name="kovahub-search"
-              />
-            </label>
-            ${props.kovahubSearchError
-              ? html`<div class="callout danger">${props.kovahubSearchError}</div>`
-              : nothing}
-            ${props.kovahubInstallMessage
-              ? html`<div
-                  class="callout ${props.kovahubInstallMessage.kind === "error"
-                    ? "danger"
-                    : "success"}"
-                >
-                  ${props.kovahubInstallMessage.text}
-                </div>`
-              : nothing}
-            ${renderKovaHubResults(props)}
-          </section>
         </div>
 
         <aside class="skills-side-column">
-          ${renderSetupQueue(setupQueue, props)}
-          ${props.kovahubDetailSlug
-            ? renderKovaHubInspector(props)
-            : renderSkillInspector(detailSkill, props)}
+          ${renderSetupQueue(setupQueue, props)} ${renderSkillInspector(detailSkill, props)}
         </aside>
       </section>
     </section>
@@ -517,45 +461,6 @@ function renderBulkBar(selected: SkillStatusEntry[], props: SkillsProps) {
       >
         Install missing deps
       </button>
-    </div>
-  `;
-}
-
-function renderKovaHubResults(props: SkillsProps) {
-  const results = props.kovahubResults;
-  if (!results) {
-    return html`<div class="skills-empty skills-empty--compact">
-      Search for installable skills.
-    </div>`;
-  }
-  if (results.length === 0) {
-    return html`<div class="skills-empty skills-empty--compact">No skills found on KovaHub.</div>`;
-  }
-  return html`
-    <div class="skills-kovahub-results">
-      ${results.map(
-        (result) => html`
-          <div class="skills-kovahub-row" @click=${() => props.onKovaHubDetailOpen(result.slug)}>
-            <span>
-              <strong>${result.displayName}</strong>
-              <small>${result.summary ? clampText(result.summary, 120) : result.slug}</small>
-            </span>
-            <span class="skills-kovahub-row__meta">
-              ${result.version ? html`<small>v${result.version}</small>` : nothing}
-              <button
-                class="btn btn--sm"
-                ?disabled=${props.kovahubInstallSlug !== null}
-                @click=${(event: Event) => {
-                  event.stopPropagation();
-                  props.onKovaHubInstall(result.slug);
-                }}
-              >
-                ${props.kovahubInstallSlug === result.slug ? "Installing..." : "Install"}
-              </button>
-            </span>
-          </div>
-        `,
-      )}
     </div>
   `;
 }
@@ -846,79 +751,5 @@ function renderRequirementRows(skill: SkillStatusEntry) {
         `,
       )}
     </div>
-  `;
-}
-
-function renderKovaHubInspector(props: SkillsProps) {
-  const detail = props.kovahubDetail;
-  return html`
-    <section class="card skills-inspector">
-      <div class="skills-inspector__header">
-        <div>
-          <div class="skills-inspector__eyebrow">KovaHub</div>
-          <div class="card-title">${detail?.skill?.displayName ?? props.kovahubDetailSlug}</div>
-          <div class="card-sub">Registry detail and install status.</div>
-        </div>
-        <button class="btn btn--sm" @click=${props.onKovaHubDetailClose}>Close</button>
-      </div>
-      ${props.kovahubDetailLoading
-        ? html`<div class="skills-empty skills-empty--compact">${t("common.loading")}</div>`
-        : props.kovahubDetailError
-          ? html`<div class="callout danger">${props.kovahubDetailError}</div>`
-          : detail?.skill
-            ? html`
-                <div class="skills-inspector-section">
-                  <div class="skills-inspector-section__title">Summary</div>
-                  <div class="skills-inspector-text">${detail.skill.summary ?? "No summary."}</div>
-                </div>
-                <div class="skills-inspector-section">
-                  <div class="skills-inspector-section__title">Registry</div>
-                  ${detail.owner?.displayName
-                    ? html`<div class="skills-meta-row">
-                        <span>Owner</span>
-                        <strong>
-                          ${detail.owner.displayName}${detail.owner.handle
-                            ? html` (@${detail.owner.handle})`
-                            : nothing}
-                        </strong>
-                      </div>`
-                    : nothing}
-                  ${detail.latestVersion
-                    ? html`<div class="skills-meta-row">
-                        <span>Latest</span>
-                        <strong>v${detail.latestVersion.version}</strong>
-                      </div>`
-                    : nothing}
-                  ${detail.metadata?.os
-                    ? html`<div class="skills-meta-row">
-                        <span>Platforms</span>
-                        <strong>${detail.metadata.os.join(", ")}</strong>
-                      </div>`
-                    : nothing}
-                </div>
-                ${detail.latestVersion?.changelog
-                  ? html`
-                      <div class="skills-inspector-section">
-                        <div class="skills-inspector-section__title">Changelog</div>
-                        <div class="skills-inspector-text">${detail.latestVersion.changelog}</div>
-                      </div>
-                    `
-                  : nothing}
-                <button
-                  class="btn primary"
-                  ?disabled=${props.kovahubInstallSlug !== null}
-                  @click=${() => {
-                    if (props.kovahubDetailSlug) {
-                      props.onKovaHubInstall(props.kovahubDetailSlug);
-                    }
-                  }}
-                >
-                  ${props.kovahubInstallSlug === props.kovahubDetailSlug
-                    ? "Installing..."
-                    : `Install ${detail.skill.displayName}`}
-                </button>
-              `
-            : html`<div class="skills-empty skills-empty--compact">Skill not found.</div>`}
-    </section>
   `;
 }

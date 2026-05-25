@@ -8,18 +8,15 @@ title: "Community plugins"
 
 Community plugins are third-party packages that extend Kova with new
 channels, tools, providers, or other capabilities. They are built and maintained
-by the community, published on [KovaHub](/tools/kovahub) or npm, and
-installable with a single command.
-
-KovaHub is the canonical discovery surface for community plugins. Do not open
-docs-only PRs just to add your plugin here for discoverability; publish it on
-KovaHub instead.
+by the community and installable from npm, local paths, archives, or marketplace
+entries.
 
 ```bash
 kova plugins install <package-name>
 ```
 
-Kova checks KovaHub first and falls back to npm automatically.
+KovaHub is planned for a future Kova-owned marketplace. It is not an active
+install or publish path in this build.
 
 ## Listed plugins
 
@@ -135,9 +132,9 @@ kova plugins install @wecom/wecom-kova-plugin
 We welcome community plugins that are useful, documented, and safe to operate.
 
 <Steps>
-  <Step title="Publish to KovaHub or npm">
+  <Step title="Publish to npm">
     Your plugin must be installable via `kova plugins install \<package-name\>`.
-    Publish to [KovaHub](/tools/kovahub) (preferred) or npm.
+    Publish it to npm or distribute it as a local/archive package.
     See [Building Plugins](/plugins/building-plugins) for the full guide.
 
   </Step>
@@ -149,9 +146,6 @@ We welcome community plugins that are useful, documented, and safe to operate.
   </Step>
 
   <Step title="Use docs PRs only for source-doc changes">
-    You do not need a docs PR just to make your plugin discoverable. Publish it
-    on KovaHub instead.
-
     Open a docs PR only when Kova's source docs need an actual content
     change, such as correcting install guidance or adding cross-repo
     documentation that belongs in the main docs set.
@@ -161,12 +155,12 @@ We welcome community plugins that are useful, documented, and safe to operate.
 
 ## Quality bar
 
-| Requirement                 | Why                                         |
-| --------------------------- | ------------------------------------------- |
-| Published on KovaHub or npm | Users need `kova plugins install` to work   |
-| Public GitHub repo          | Source review, issue tracking, transparency |
-| Setup and usage docs        | Users need to know how to configure it      |
-| Active maintenance          | Recent updates or responsive issue handling |
+| Requirement                          | Why                                         |
+| ------------------------------------ | ------------------------------------------- |
+| Published on npm or packaged locally | Users need `kova plugins install` to work   |
+| Public GitHub repo                   | Source review, issue tracking, transparency |
+| Setup and usage docs                 | Users need to know how to configure it      |
+| Active maintenance                   | Recent updates or responsive issue handling |
 
 Low-effort wrappers, unclear ownership, or unmaintained packages may be declined.
 

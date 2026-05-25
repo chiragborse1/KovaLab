@@ -172,7 +172,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
   </Accordion>
 
   <Accordion title="Can I load skills from a custom folder?">
-    Yes. Add extra directories via `skills.load.extraDirs` in `~/.kova/kova.json` (lowest precedence). Default precedence is `<workspace>/skills` → `<workspace>/.agents/skills` → `~/.agents/skills` → `~/.kova/skills` → bundled → `skills.load.extraDirs`. `kovahub` installs into `./skills` by default, which Kova treats as `<workspace>/skills` on the next session. If the skill should only be visible to certain agents, pair that with `agents.defaults.skills` or `agents.list[].skills`.
+    Yes. Add extra directories via `skills.load.extraDirs` in `~/.kova/kova.json` (lowest precedence). Default precedence is `<workspace>/skills` → `<workspace>/.agents/skills` → `~/.agents/skills` → `~/.kova/skills` → bundled → `skills.load.extraDirs`. If the skill should only be visible to certain agents, pair that with `agents.defaults.skills` or `agents.list[].skills`.
   </Accordion>
 
   <Accordion title="How can I use different models for different tasks?">
@@ -316,25 +316,15 @@ lives on the [First-run FAQ](/help/faq-first-run).
 
   <Accordion title="How do I install skills on Linux?">
     Use native `kova skills` commands or drop skills into your workspace. The macOS Skills UI isn't available on Linux.
-    Browse skills at [https://kovahub.ai](https://kovahub.ai).
 
     ```bash
-    kova skills search "calendar"
-    kova skills search --limit 20
-    kova skills install <skill-slug>
-    kova skills install <skill-slug> --version <version>
-    kova skills install <skill-slug> --force
-    kova skills install <skill-slug> --global
-    kova skills update --all
-    kova skills update --all --global
     kova skills list --eligible
+    kova skills info <skill-name>
     kova skills check
     ```
 
-    Native `kova skills install` writes into the active workspace `skills/`
-    directory by default. Add `--global` to install or update shared managed
-    skills. Install the separate `kovahub` CLI only if you want to publish or
-    sync your own skills. For shared installs across agents, use
+    For shared installs across agents, place skill folders in `~/.kova/skills`
+    and use
     `agents.defaults.skills` or `agents.list[].skills` if you want to narrow
     which agents can see a shared skill.
 
@@ -405,14 +395,15 @@ lives on the [First-run FAQ](/help/faq-first-run).
     If you want a native integration, open a feature request or build a skill
     targeting those APIs.
 
-    Install skills:
+    Inspect skills:
 
     ```bash
-    kova skills install <skill-slug>
-    kova skills update --all
+    kova skills list --eligible
+    kova skills info <skill-name>
+    kova skills check
     ```
 
-    Native installs land in the active workspace `skills/` directory. For shared skills across agents, place them in `~/.kova/skills/<name>/SKILL.md`. If only some agents should see a shared install, configure `agents.defaults.skills` or `agents.list[].skills`. Some skills expect binaries installed via Homebrew; on Linux that means Linuxbrew (see the Homebrew Linux FAQ entry above). See [Skills](/tools/skills), [Skills config](/tools/skills-config), and [KovaHub](/tools/kovahub).
+    For shared skills across agents, place them in `~/.kova/skills/<name>/SKILL.md`. If only some agents should see a shared skill, configure `agents.defaults.skills` or `agents.list[].skills`. Some skills expect binaries installed via Homebrew; on Linux that means Linuxbrew (see the Homebrew Linux FAQ entry above). See [Skills](/tools/skills), [Skills config](/tools/skills-config), and [KovaHub status](/tools/kovahub).
 
   </Accordion>
 

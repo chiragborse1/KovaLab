@@ -118,7 +118,7 @@ The sidebar is grouped by operating intent:
   </Accordion>
   <Accordion title="Cron, skills, nodes, exec approvals">
     - Cron jobs: list/add/edit/run/enable/disable + run history (`cron.*`).
-    - Skills: command-center summary, status/source filters, setup queue, in-page inspector, enable/disable, dependency install, API key updates, bulk actions, and KovaHub search/detail/install (`skills.*`).
+    - Skills: command-center summary, status/source filters, setup queue, in-page inspector, enable/disable, dependency install, API key updates, and bulk actions (`skills.*`).
     - Nodes: list + caps (`node.list`).
     - Exec approvals: edit gateway or node allowlists + ask policy for `exec host=gateway/node` (`exec.approvals.*`).
   </Accordion>

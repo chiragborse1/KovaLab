@@ -197,8 +197,8 @@ kova hooks disable command-logger
 ## Install hook packs
 
 ```bash
-kova plugins install <package>        # KovaHub first, then npm
-kova plugins install npm:<package>    # npm only
+kova plugins install <package>        # npm package
+kova plugins install npm:<package>    # explicit npm package
 kova plugins install <package> --pin  # pin version
 kova plugins install <path>           # local path
 ```

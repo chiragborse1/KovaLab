@@ -48,14 +48,13 @@ are **external** (published on npm by the community).
 If you prefer chat-native control, enable `commands.plugins: true` and use:
 
 ```text
-/plugin install kovahub:@kovaai/voice-call
+/plugin install npm:@kovaai/voice-call
 /plugin show voice-call
 /plugin enable voice-call
 ```
 
 The install path uses the same resolver as the CLI: local path/archive, explicit
-`kovahub:<pkg>`, explicit `npm:<pkg>`, or bare package spec (KovaHub first, then
-npm fallback).
+`npm:<pkg>`, or bare npm package spec.
 
 If config is invalid, install normally fails closed and points you at
 `kova doctor --fix`. The only recovery exception is a narrow bundled-plugin
@@ -359,8 +358,7 @@ kova plugins registry                  # inspect persisted registry state
 kova plugins registry --refresh        # rebuild persisted registry
 kova doctor --fix                      # repair plugin registry state
 
-kova plugins install <package>         # install (KovaHub first, then npm)
-kova plugins install kovahub:<pkg>     # install from KovaHub only
+kova plugins install <package>         # install from npm
 kova plugins install npm:<pkg>         # install from npm only
 kova plugins install <spec> --force    # overwrite existing install
 kova plugins install <path>            # install from local path
@@ -421,8 +419,7 @@ does not bypass plugin `before_install` policy blocks or scan-failure blocking.
 
 This CLI flag applies to plugin install/update flows only. Gateway-backed skill
 dependency installs use the matching `dangerouslyForceUnsafeInstall` request
-override instead, while `kova skills install` remains the separate KovaHub
-skill download/install flow.
+override instead.
 
 Compatible bundles participate in the same plugin list/inspect/enable/disable
 flow. Current runtime support includes bundle skills, Claude command-skills,

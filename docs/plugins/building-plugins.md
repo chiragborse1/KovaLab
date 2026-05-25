@@ -13,10 +13,9 @@ speech, realtime transcription, realtime voice, media understanding, image
 generation, video generation, web fetch, web search, agent tools, or any
 combination.
 
-You do not need to add your plugin to the Kova repository. Publish to
-[KovaHub](/tools/kovahub) or npm and users install with
-`kova plugins install <package-name>`. Kova tries KovaHub first and
-falls back to npm automatically.
+You do not need to add your plugin to the Kova repository. Publish to npm or
+ship a local/archive package and users install with
+`kova plugins install <package-name>`.
 
 ## Prerequisites
 
@@ -88,8 +87,7 @@ and provider plugins have dedicated guides linked above.
     </CodeGroup>
 
     Every plugin needs a manifest, even with no config. See
-    [Manifest](/plugins/manifest) for the full schema. The canonical KovaHub
-    publish snippets live in `docs/snippets/plugin-publish/`.
+    [Manifest](/plugins/manifest) for the full schema.
 
   </Step>
 
@@ -125,16 +123,13 @@ and provider plugins have dedicated guides linked above.
 
   <Step title="Test and publish">
 
-    **External plugins:** validate and publish with KovaHub, then install:
+    **External plugins:** validate, publish to npm, then install:
 
     ```bash
-    kovahub package publish your-org/your-plugin --dry-run
-    kovahub package publish your-org/your-plugin
-    kova plugins install kovahub:@myorg/kova-my-plugin
+    npm publish --dry-run
+    npm publish
+    kova plugins install @myorg/kova-my-plugin
     ```
-
-    Kova also checks KovaHub before npm for bare package specs like
-    `@myorg/kova-my-plugin`.
 
     **In-repo plugins:** place under the bundled plugin workspace tree — automatically discovered.
 

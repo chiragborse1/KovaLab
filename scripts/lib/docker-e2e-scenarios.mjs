@@ -230,14 +230,10 @@ export const mainLanes = [
     weight: 6,
   }),
   ...bundledPluginInstallUninstallLanes,
-  lane(
-    "plugins-offline",
-    "KOVA_PLUGINS_E2E_KOVAHUB=0 KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins",
-    {
-      resources: ["npm", "service"],
-      weight: 6,
-    },
-  ),
+  lane("plugins-offline", "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:plugins", {
+    resources: ["npm", "service"],
+    weight: 6,
+  }),
   npmLane(
     "bundled-channel-deps-compat",
     "KOVA_SKIP_DOCKER_BUILD=1 pnpm test:docker:bundled-channel-deps:fast",

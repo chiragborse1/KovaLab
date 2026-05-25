@@ -14,7 +14,6 @@ function appBundledPluginRoot(pluginId: string): string {
 
 const installPluginFromNpmSpecMock = vi.fn();
 const installPluginFromMarketplaceMock = vi.fn();
-const installPluginFromKovaHubMock = vi.fn();
 const resolveBundledPluginSourcesMock = vi.fn();
 const runCommandWithTimeoutMock = vi.fn();
 const tempDirs: string[] = [];
@@ -30,10 +29,6 @@ vi.mock("./install.js", () => ({
 
 vi.mock("./marketplace.js", () => ({
   installPluginFromMarketplace: (...args: unknown[]) => installPluginFromMarketplaceMock(...args),
-}));
-
-vi.mock("./kovahub.js", () => ({
-  installPluginFromKovaHub: (...args: unknown[]) => installPluginFromKovaHubMock(...args),
 }));
 
 vi.mock("./bundled-sources.js", () => ({
@@ -110,31 +105,6 @@ function createMarketplaceInstallConfig(params: {
           marketplaceSource: params.marketplaceSource,
           marketplacePlugin: params.marketplacePlugin,
           ...(params.marketplaceName ? { marketplaceName: params.marketplaceName } : {}),
-        },
-      },
-    },
-  };
-}
-
-function createKovaHubInstallConfig(params: {
-  pluginId: string;
-  installPath: string;
-  kovahubUrl: string;
-  kovahubPackage: string;
-  kovahubFamily: "bundle-plugin" | "code-plugin";
-  kovahubChannel: "community" | "official" | "private";
-}): KovaConfig {
-  return {
-    plugins: {
-      installs: {
-        [params.pluginId]: {
-          source: "kovahub" as const,
-          spec: `kovahub:${params.kovahubPackage}`,
-          installPath: params.installPath,
-          kovahubUrl: params.kovahubUrl,
-          kovahubPackage: params.kovahubPackage,
-          kovahubFamily: params.kovahubFamily,
-          kovahubChannel: params.kovahubChannel,
         },
       },
     },
@@ -274,7 +244,6 @@ describe("updateNpmInstalledPlugins", () => {
   beforeEach(() => {
     installPluginFromNpmSpecMock.mockReset();
     installPluginFromMarketplaceMock.mockReset();
-    installPluginFromKovaHubMock.mockReset();
     resolveBundledPluginSourcesMock.mockReset();
     runCommandWithTimeoutMock.mockReset();
   });
@@ -815,57 +784,6 @@ describe("updateNpmInstalledPlugins", () => {
     },
   );
 
-  it("updates KovaHub-installed plugins via recorded package metadata", async () => {
-    installPluginFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      pluginId: "demo",
-      targetDir: "/tmp/demo",
-      version: "1.2.4",
-      kovahub: {
-        source: "kovahub",
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-        integrity: "sha256-next",
-        resolvedAt: "2026-03-22T00:00:00.000Z",
-      },
-    });
-
-    const result = await updateNpmInstalledPlugins({
-      config: createKovaHubInstallConfig({
-        pluginId: "demo",
-        installPath: "/tmp/demo",
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-      }),
-      pluginIds: ["demo"],
-      timeoutMs: 1_800_000,
-    });
-
-    expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        spec: "kovahub:demo",
-        baseUrl: "https://kovahub.ai",
-        expectedPluginId: "demo",
-        mode: "update",
-        timeoutMs: 1_800_000,
-      }),
-    );
-    expect(result.config.plugins?.installs?.demo).toMatchObject({
-      source: "kovahub",
-      spec: "kovahub:demo",
-      installPath: "/tmp/demo",
-      version: "1.2.4",
-      kovahubPackage: "demo",
-      kovahubFamily: "code-plugin",
-      kovahubChannel: "official",
-      integrity: "sha256-next",
-    });
-  });
-
   it("migrates legacy unscoped install keys when a scoped npm package updates", async () => {
     installPluginFromNpmSpecMock.mockResolvedValue({
       ok: true,
@@ -1070,22 +988,6 @@ describe("updateNpmInstalledPlugins", () => {
         version: "1.2.0",
       }),
     );
-    installPluginFromKovaHubMock.mockResolvedValue({
-      ok: true,
-      pluginId: "demo",
-      targetDir: installPath,
-      version: "1.2.0",
-      extensions: ["index.ts"],
-      kovahub: {
-        source: "kovahub",
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-        integrity: "sha256-next",
-        resolvedAt: "2026-03-22T00:00:00.000Z",
-      },
-    });
     installPluginFromMarketplaceMock.mockResolvedValue({
       ok: true,
       pluginId: "demo",
@@ -1105,17 +1007,6 @@ describe("updateNpmInstalledPlugins", () => {
       pluginIds: ["demo"],
     });
     await updateNpmInstalledPlugins({
-      config: createKovaHubInstallConfig({
-        pluginId: "demo",
-        installPath,
-        kovahubUrl: "https://kovahub.ai",
-        kovahubPackage: "demo",
-        kovahubFamily: "code-plugin",
-        kovahubChannel: "official",
-      }),
-      pluginIds: ["demo"],
-    });
-    await updateNpmInstalledPlugins({
       config: createMarketplaceInstallConfig({
         pluginId: "demo",
         installPath,
@@ -1126,9 +1017,6 @@ describe("updateNpmInstalledPlugins", () => {
     });
 
     expect(installPluginFromNpmSpecMock).toHaveBeenCalledWith(
-      expect.objectContaining({ extensionsDir }),
-    );
-    expect(installPluginFromKovaHubMock).toHaveBeenCalledWith(
       expect.objectContaining({ extensionsDir }),
     );
     expect(installPluginFromMarketplaceMock).toHaveBeenCalledWith(

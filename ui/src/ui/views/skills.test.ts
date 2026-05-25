@@ -86,16 +86,6 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     busyKey: null,
     messages: {},
     detailKey: null,
-    kovahubQuery: "",
-    kovahubResults: null,
-    kovahubSearchLoading: false,
-    kovahubSearchError: null,
-    kovahubDetail: null,
-    kovahubDetailSlug: null,
-    kovahubDetailLoading: false,
-    kovahubDetailError: null,
-    kovahubInstallSlug: null,
-    kovahubInstallMessage: null,
     onFilterChange: () => undefined,
     onStatusFilterChange: () => undefined,
     onSourceFilterChange: () => undefined,
@@ -107,10 +97,6 @@ function createProps(overrides: Partial<SkillsProps> = {}): SkillsProps {
     onInstall: () => undefined,
     onDetailOpen: () => undefined,
     onDetailClose: () => undefined,
-    onKovaHubQueryChange: () => undefined,
-    onKovaHubDetailOpen: () => undefined,
-    onKovaHubDetailClose: () => undefined,
-    onKovaHubInstall: () => undefined,
     ...overrides,
   };
 }
@@ -139,7 +125,7 @@ describe("renderSkills", () => {
 
     const text = normalizeText(container);
     expect(text).toContain(
-      "Manage local skills, missing requirements, API keys, and KovaHub installs.",
+      "Manage local skills, missing requirements, API keys, and dependency installs.",
     );
     expect(text).toContain("Ready");
     expect(text).toContain("Needs setup");
@@ -291,92 +277,12 @@ describe("renderSkills", () => {
     expect(onInstall).toHaveBeenCalledWith("browser-skill", "Browser Skill", "brew-chromium");
   });
 
-  it("routes KovaHub search, detail, and install actions through the existing callbacks", () => {
+  it("does not render registry search while marketplace installs are disabled", () => {
     const container = document.createElement("div");
-    const onKovaHubQueryChange = vi.fn();
-    const onKovaHubDetailOpen = vi.fn();
-    const onKovaHubDetailClose = vi.fn();
-    const onKovaHubInstall = vi.fn();
 
-    render(
-      renderSkills(
-        createProps({
-          kovahubQuery: "git",
-          kovahubResults: [
-            {
-              score: 0.95,
-              slug: "github",
-              displayName: "GitHub",
-              summary: "GitHub integration for Kova",
-              version: "1.2.3",
-            },
-          ],
-          kovahubSearchError: "rate limited",
-          kovahubInstallMessage: { kind: "success", text: "Installed github" },
-          kovahubDetailSlug: "github",
-          kovahubDetail: {
-            skill: {
-              slug: "github",
-              displayName: "GitHub",
-              summary: "GitHub integration for Kova",
-              createdAt: 1_700_000_000,
-              updatedAt: 1_700_000_100,
-            },
-            latestVersion: {
-              version: "1.2.3",
-              createdAt: 1_700_000_200,
-              changelog: "Added search support",
-            },
-            metadata: {
-              os: ["macos", "linux"],
-            },
-            owner: {
-              displayName: "Kova",
-              handle: "kovaai",
-            },
-          },
-          onKovaHubQueryChange,
-          onKovaHubDetailOpen,
-          onKovaHubDetailClose,
-          onKovaHubInstall,
-        }),
-      ),
-      container,
-    );
+    render(renderSkills(createProps()), container);
 
-    const search = container.querySelector<HTMLInputElement>('input[name="kovahub-search"]');
-    expect(search).not.toBeNull();
-    search!.value = "calendar";
-    search!.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(onKovaHubQueryChange).toHaveBeenCalledWith("calendar");
-
-    const text = normalizeText(container);
-    expect(text).toContain("rate limited");
-    expect(text).toContain("Installed github");
-    expect(text).toContain("GitHub integration for Kova");
-    expect(text).toContain("Owner Kova (@kovaai)");
-    expect(text).toContain("Latest");
-    expect(text).toContain("v1.2.3");
-    expect(text).toContain("Platforms");
-    expect(text).toContain("macos, linux");
-    expect(text).toContain("Added search support");
-
-    container
-      .querySelector<HTMLElement>(".skills-kovahub-row")
-      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onKovaHubDetailOpen).toHaveBeenCalledWith("github");
-
-    const installButtons = Array.from(container.querySelectorAll("button")).filter((button) =>
-      button.textContent?.includes("Install"),
-    );
-    installButtons[0]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    installButtons.at(-1)?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onKovaHubInstall).toHaveBeenCalledWith("github");
-
-    const closeButton = Array.from(container.querySelectorAll(".skills-inspector button")).find(
-      (button) => button.textContent?.includes("Close"),
-    );
-    closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onKovaHubDetailClose).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('input[name="kovahub-search"]')).toBeNull();
+    expect(normalizeText(container)).not.toContain("KovaHub");
   });
 });
