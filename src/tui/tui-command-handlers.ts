@@ -390,6 +390,55 @@ function formatUsageSummary(state: TuiStateAccess): string {
   ].join("\n");
 }
 
+type TuiUpdateAction = "help" | "run" | "status";
+
+function parseTuiUpdateAction(args: string): TuiUpdateAction | null {
+  const first = normalizeLowercaseStringOrEmpty(args.trim().split(/\s+/)[0]);
+  if (!first || first === "status" || first === "check" || first === "info") {
+    return "status";
+  }
+  if (first === "run" || first === "now" || first === "yes") {
+    return "run";
+  }
+  if (first === "help" || first === "?") {
+    return "help";
+  }
+  return null;
+}
+
+async function formatTuiUpdateStatus(): Promise<string> {
+  try {
+    const { formatUpdateAvailableHint, formatUpdateOneLiner, getUpdateCheckResult } =
+      await import("../commands/status.update.js");
+    const update = await getUpdateCheckResult({
+      timeoutMs: 3500,
+      fetchGit: true,
+      includeRegistry: true,
+    });
+    const hint = formatUpdateAvailableHint(update);
+    return [
+      "Kova update status",
+      `- ${formatUpdateOneLiner(update).replace(/^Update:\s*/i, "")}`,
+      hint ? `- ${hint}` : "- Run kova update or /update run to update.",
+    ].join("\n");
+  } catch (err) {
+    return [
+      "Kova update status",
+      `- Check failed: ${sanitizeRenderableText(String(err))}`,
+      "- Shell check: kova update status",
+    ].join("\n");
+  }
+}
+
+function formatTuiUpdateHelp(): string {
+  return [
+    "Usage: /update [status|run]",
+    "- /update status checks the current install.",
+    "- /update run starts the updater.",
+    "- CLI with progress: kova update",
+  ].join("\n");
+}
+
 function formatTaskAge(timestamp?: number): string {
   if (typeof timestamp !== "number" || !Number.isFinite(timestamp)) {
     return "unknown";
@@ -1605,6 +1654,26 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "stop":
         await abortActive();
         break;
+      case "update": {
+        const action = parseTuiUpdateAction(args);
+        if (action === "status") {
+          echoCommand();
+          chatLog.addSystem(await formatTuiUpdateStatus());
+          break;
+        }
+        if (action === "help") {
+          echoCommand();
+          chatLog.addSystem(formatTuiUpdateHelp());
+          break;
+        }
+        if (action === "run") {
+          await sendMessage(raw, { queueIfBusy: false });
+          break;
+        }
+        echoCommand();
+        chatLog.addSystem(formatTuiUpdateHelp());
+        break;
+      }
       case "settings":
         openSettings();
         break;

@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCommandHandlers } from "./tui-command-handlers.js";
 import type { QueuedMessage, SessionInfo } from "./tui-types.js";
+
+const updateStatusMocks = vi.hoisted(() => ({
+  getUpdateCheckResult: vi.fn(),
+  formatUpdateOneLiner: vi.fn(),
+  formatUpdateAvailableHint: vi.fn(),
+}));
+
+vi.mock("../commands/status.update.js", () => updateStatusMocks);
 
 type LoadHistoryMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runAuthFlow"]>;
@@ -391,6 +399,16 @@ function createHarness(params?: {
 }
 
 describe("tui command handlers", () => {
+  beforeEach(() => {
+    updateStatusMocks.getUpdateCheckResult.mockReset().mockResolvedValue({
+      installKind: "git",
+    });
+    updateStatusMocks.formatUpdateOneLiner
+      .mockReset()
+      .mockReturnValue("Update: git dev · up to date");
+    updateStatusMocks.formatUpdateAvailableHint.mockReset().mockReturnValue(null);
+  });
+
   it("renders the sending indicator before chat.send resolves", async () => {
     let resolveSend: (value: { runId: string }) => void = () => {
       throw new Error("sendChat promise resolver was not initialized");
@@ -979,6 +997,43 @@ describe("tui command handlers", () => {
     });
     expect(addSystem).toHaveBeenCalledWith("usage footer: tokens");
     expect(refreshSessionInfo).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders update status locally without starting an agent turn", async () => {
+    const { handleCommand, sendChat, addUser, addSystem } = createHarness();
+
+    await handleCommand("/update status");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/update status");
+    expect(updateStatusMocks.getUpdateCheckResult).toHaveBeenCalledWith({
+      timeoutMs: 3500,
+      fetchGit: true,
+      includeRegistry: true,
+    });
+    expect(addSystem).toHaveBeenCalledWith(
+      [
+        "Kova update status",
+        "- git dev · up to date",
+        "- Run kova update or /update run to update.",
+      ].join("\n"),
+    );
+  });
+
+  it("keeps the updater run explicit in the TUI", async () => {
+    const { handleCommand, sendChat, addUser, addSystem } = createHarness();
+
+    await handleCommand("/update run");
+
+    expect(updateStatusMocks.getUpdateCheckResult).not.toHaveBeenCalled();
+    expect(addSystem).not.toHaveBeenCalledWith(expect.stringContaining("Kova update status"));
+    expect(addUser).toHaveBeenCalledWith("/update run");
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/update run",
+      }),
+    );
   });
 
   it("keeps gateway diagnostics on /gateway-status", async () => {
