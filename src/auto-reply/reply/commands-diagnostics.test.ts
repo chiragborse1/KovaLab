@@ -10,9 +10,17 @@ function buildDiagnosticsParams(commandBody = "/diagnostics") {
   } as KovaConfig);
 }
 
+type ExecArgs = {
+  ask?: string;
+  background?: boolean;
+  command: string;
+  security?: string;
+  timeout?: number;
+};
+
 describe("diagnostics command", () => {
   it("requests an approval-backed gateway diagnostics export from direct chats", async () => {
-    const execute = vi.fn(async () => ({
+    const execute = vi.fn(async (_toolCallId: string, _args: ExecArgs) => ({
       content: [{ type: "text", text: '{"path":"/tmp/kova-diagnostics.zip"}' }],
       details: {
         status: "completed",
@@ -44,8 +52,9 @@ describe("diagnostics command", () => {
         timeout: 30,
       }),
     );
-    expect(execute.mock.calls[0]?.[1]?.command).toContain("gateway");
-    expect(execute.mock.calls[0]?.[1]?.command).toContain("diagnostics");
+    const execArgs = execute.mock.calls[0]?.[1];
+    expect(execArgs?.command).toContain("gateway");
+    expect(execArgs?.command).toContain("diagnostics");
     expect(result?.shouldContinue).toBe(false);
     expect(result?.reply?.text).toContain("Diagnostics can include sensitive local logs");
     expect(result?.reply?.text).toContain("kova gateway diagnostics export --json");
@@ -66,7 +75,7 @@ describe("diagnostics command", () => {
   });
 
   it("does not add a duplicate reply while exec approval is pending", async () => {
-    const execute = vi.fn(async () => ({
+    const execute = vi.fn(async (_toolCallId: string, _args: ExecArgs) => ({
       details: {
         status: "approval-pending",
         approvalId: "approval-1",
