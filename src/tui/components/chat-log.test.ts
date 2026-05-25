@@ -69,6 +69,46 @@ describe("ChatLog", () => {
     expect(chatLog.children.length).toBe(20);
   });
 
+  it("renders collapsed tool cards with a useful hidden-output hint", () => {
+    const chatLog = new ChatLog(40);
+
+    chatLog.startTool("tool-1", "exec", { command: "pnpm test" });
+    chatLog.updateToolResult(
+      "tool-1",
+      { content: [{ type: "text", text: "secret output" }] },
+      { outputHidden: true },
+    );
+
+    const rendered = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(rendered).toContain("done");
+    expect(rendered).toContain("output hidden; use /details expanded to show tool output");
+    expect(rendered).not.toContain("secret output");
+  });
+
+  it("renders and updates approval cards by approval id", () => {
+    const chatLog = new ChatLog(40);
+
+    chatLog.showApproval("req-1", {
+      status: "pending",
+      title: "Command approval requested",
+      approvalSlug: "req-1",
+      command: "pnpm build",
+      host: "gateway",
+    });
+    chatLog.showApproval("req-1", {
+      status: "approved",
+      title: "Command approval resolved",
+      approvalSlug: "req-1",
+      host: "gateway",
+    });
+
+    const rendered = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(rendered).toContain("╭─ Approval");
+    expect(rendered).toContain("Command approval resolved - approved");
+    expect(rendered).not.toContain("pnpm build");
+    expect(chatLog.children.length).toBe(1);
+  });
+
   it("prunes system messages atomically when a non-system entry overflows the log", () => {
     const chatLog = new ChatLog(20);
     for (let i = 1; i <= 20; i++) {

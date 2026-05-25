@@ -1,6 +1,8 @@
 import type { Component } from "@mariozechner/pi-tui";
 import { Container, Spacer, Text } from "@mariozechner/pi-tui";
 import { theme } from "../theme/theme.js";
+import type { ApprovalEventSummary } from "./approval-event.js";
+import { ApprovalEventComponent } from "./approval-event.js";
 import { AssistantMessageComponent } from "./assistant-message.js";
 import { BtwInlineMessage } from "./btw-inline-message.js";
 import { ToolExecutionComponent } from "./tool-execution.js";
@@ -11,6 +13,7 @@ const PENDING_HISTORY_CLOCK_SKEW_TOLERANCE_MS = 60_000;
 export class ChatLog extends Container {
   private readonly maxComponents: number;
   private toolById = new Map<string, ToolExecutionComponent>();
+  private approvalById = new Map<string, ApprovalEventComponent>();
   private streamingRuns = new Map<string, AssistantMessageComponent>();
   private assistantTextByRun = new Map<string, string>();
   private pendingUsers = new Map<
@@ -33,6 +36,11 @@ export class ChatLog extends Container {
     for (const [toolId, tool] of this.toolById.entries()) {
       if (tool === component) {
         this.toolById.delete(toolId);
+      }
+    }
+    for (const [approvalId, approval] of this.approvalById.entries()) {
+      if (approval === component) {
+        this.approvalById.delete(approvalId);
       }
     }
     for (const [runId, message] of this.streamingRuns.entries()) {
@@ -70,6 +78,7 @@ export class ChatLog extends Container {
   clearAll(opts?: { preservePendingUsers?: boolean }) {
     this.clear();
     this.toolById.clear();
+    this.approvalById.clear();
     this.streamingRuns.clear();
     this.assistantTextByRun.clear();
     this.btwMessage = null;
@@ -293,7 +302,7 @@ export class ChatLog extends Container {
   updateToolResult(
     toolCallId: string,
     result: unknown,
-    opts?: { isError?: boolean; partial?: boolean },
+    opts?: { isError?: boolean; partial?: boolean; outputHidden?: boolean },
   ) {
     const existing = this.toolById.get(toolCallId);
     if (!existing) {
@@ -305,6 +314,7 @@ export class ChatLog extends Container {
     }
     existing.setResult(result as Record<string, unknown>, {
       isError: opts?.isError,
+      outputHidden: opts?.outputHidden,
     });
   }
 
@@ -313,5 +323,18 @@ export class ChatLog extends Container {
     for (const tool of this.toolById.values()) {
       tool.setExpanded(expanded);
     }
+  }
+
+  showApproval(key: string, summary: ApprovalEventSummary) {
+    const approvalKey = key.trim() || summary.approvalId || summary.approvalSlug || "approval";
+    const existing = this.approvalById.get(approvalKey);
+    if (existing) {
+      existing.setSummary(summary);
+      return existing;
+    }
+    const component = new ApprovalEventComponent(summary);
+    this.approvalById.set(approvalKey, component);
+    this.append(component);
+    return component;
   }
 }

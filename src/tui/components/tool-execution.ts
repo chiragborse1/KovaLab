@@ -52,6 +52,11 @@ function extractText(result?: ToolResult): string {
   return lines.join("\n").trim();
 }
 
+function readDetailString(result: ToolResult | undefined, key: string): string | undefined {
+  const value = result?.details?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 export class ToolExecutionComponent extends Container {
   private box: Box;
   private header: Text;
@@ -63,6 +68,7 @@ export class ToolExecutionComponent extends Container {
   private expanded = false;
   private isError = false;
   private isPartial = true;
+  private outputHidden = false;
 
   constructor(toolName: string, args: unknown) {
     super();
@@ -92,17 +98,33 @@ export class ToolExecutionComponent extends Container {
     this.refresh();
   }
 
-  setResult(result: ToolResult | undefined, opts?: { isError?: boolean }) {
+  setResult(result: ToolResult | undefined, opts?: { isError?: boolean; outputHidden?: boolean }) {
     this.result = result;
     this.isPartial = false;
     this.isError = Boolean(opts?.isError);
+    this.outputHidden = Boolean(opts?.outputHidden);
     this.refresh();
   }
 
   setPartialResult(result: ToolResult | undefined) {
     this.result = result;
     this.isPartial = true;
+    this.outputHidden = false;
     this.refresh();
+  }
+
+  private statusText(): string {
+    if (this.isPartial) {
+      return "running";
+    }
+    const approvalStatus = readDetailString(this.result, "status");
+    if (approvalStatus === "approval-pending") {
+      return "approval needed";
+    }
+    if (approvalStatus === "approval-unavailable") {
+      return "approval unavailable";
+    }
+    return this.isError ? "failed" : "done";
   }
 
   private refresh() {
@@ -117,14 +139,23 @@ export class ToolExecutionComponent extends Container {
       name: this.toolName,
       args: this.args,
     });
-    const title = `${display.emoji} ${display.label}${this.isPartial ? " (running)" : ""}`;
+    const status = this.statusText();
+    const title = `${display.emoji} ${display.label} - ${status}`;
     this.header.setText(theme.toolTitle(theme.bold(title)));
 
     const argLine = formatArgs(this.toolName, this.args);
     this.argsLine.setText(argLine ? theme.dim(argLine) : theme.dim(" "));
 
-    const raw = extractText(this.result);
-    const text = raw || (this.isPartial ? "…" : "");
+    const raw = this.outputHidden ? "" : extractText(this.result);
+    const text =
+      raw ||
+      (this.outputHidden
+        ? "output hidden; use /details expanded to show tool output"
+        : this.isPartial
+          ? "..."
+          : status.startsWith("approval")
+            ? "see approval card"
+            : "");
     if (!this.expanded && text) {
       const lines = text.split("\n");
       const preview =

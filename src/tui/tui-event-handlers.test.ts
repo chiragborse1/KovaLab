@@ -6,6 +6,7 @@ type MockFn = ReturnType<typeof vi.fn>;
 type HandlerChatLog = {
   startTool: (...args: unknown[]) => void;
   updateToolResult: (...args: unknown[]) => void;
+  showApproval: (...args: unknown[]) => void;
   addSystem: (...args: unknown[]) => void;
   updateAssistant: (...args: unknown[]) => void;
   finalizeAssistant: (...args: unknown[]) => void;
@@ -19,6 +20,7 @@ type HandlerTui = { requestRender: (...args: unknown[]) => void };
 type MockChatLog = {
   startTool: MockFn;
   updateToolResult: MockFn;
+  showApproval: MockFn;
   addSystem: MockFn;
   updateAssistant: MockFn;
   finalizeAssistant: MockFn;
@@ -34,6 +36,7 @@ function createMockChatLog(): MockChatLog & HandlerChatLog {
   return {
     startTool: vi.fn(),
     updateToolResult: vi.fn(),
+    showApproval: vi.fn(),
     addSystem: vi.fn(),
     updateAssistant: vi.fn(),
     finalizeAssistant: vi.fn(),
@@ -468,9 +471,47 @@ describe("tui-event-handlers: handleAgentEvent", () => {
     expect(chatLog.updateToolResult).toHaveBeenCalledTimes(1);
     expect(chatLog.updateToolResult).toHaveBeenCalledWith(
       "tc-on",
-      { content: [] },
-      { isError: false },
+      { content: [{ type: "text", text: "secret" }] },
+      { isError: false, outputHidden: true },
     );
+  });
+
+  it("renders approval events even when verbose tool cards are hidden", () => {
+    const { chatLog, tui, handleAgentEvent } = createHandlersHarness({
+      state: {
+        activeChatRunId: "run-approval",
+        sessionInfo: { verboseLevel: "off" },
+      },
+    });
+
+    handleAgentEvent({
+      runId: "run-approval",
+      stream: "approval",
+      data: {
+        phase: "requested",
+        status: "pending",
+        kind: "exec",
+        title: "Command approval requested",
+        approvalId: "12345678-1234-1234-1234-123456789012",
+        approvalSlug: "12345678",
+        command: "npm test",
+        host: "gateway",
+      },
+    });
+
+    expect(chatLog.showApproval).toHaveBeenCalledWith("12345678-1234-1234-1234-123456789012", {
+      phase: "requested",
+      kind: "exec",
+      status: "pending",
+      title: "Command approval requested",
+      approvalId: "12345678-1234-1234-1234-123456789012",
+      approvalSlug: "12345678",
+      command: "npm test",
+      host: "gateway",
+      reason: "",
+      message: "",
+    });
+    expect(tui.requestRender).toHaveBeenCalled();
   });
 
   it("refreshes history after a non-local chat final", () => {

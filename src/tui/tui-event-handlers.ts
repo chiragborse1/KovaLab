@@ -1,6 +1,7 @@
 import { isAuthErrorMessage } from "../agents/pi-embedded-helpers.js";
 import { parseAgentSessionKey } from "../sessions/session-key-utils.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
+import type { ApprovalEventSummary } from "./components/approval-event.js";
 import { asString, extractTextFromMessage, isCommandMessage } from "./tui-formatters.js";
 import { TuiStreamAssembler } from "./tui-stream-assembler.js";
 import type { AgentEvent, BtwEvent, ChatEvent, TuiStateAccess } from "./tui-types.js";
@@ -10,8 +11,9 @@ type EventHandlerChatLog = {
   updateToolResult: (
     toolCallId: string,
     result: unknown,
-    options?: { partial?: boolean; isError?: boolean },
+    options?: { partial?: boolean; isError?: boolean; outputHidden?: boolean },
   ) => void;
+  showApproval: (key: string, summary: ApprovalEventSummary) => void;
   addSystem: (text: string) => void;
   updateAssistant: (text: string, runId: string) => void;
   finalizeAssistant: (text: string, runId: string) => void;
@@ -544,9 +546,42 @@ export function createEventHandlers(context: EventHandlerContext) {
             isError: Boolean(data.isError),
           });
         } else {
-          chatLog.updateToolResult(toolCallId, { content: [] }, { isError: Boolean(data.isError) });
+          chatLog.updateToolResult(
+            toolCallId,
+            typeof data.result === "object" && data.result ? data.result : { content: [] },
+            { isError: Boolean(data.isError), outputHidden: true },
+          );
         }
       }
+      tui.requestRender();
+      return;
+    }
+    if (evt.stream === "approval") {
+      const data = evt.data ?? {};
+      const status = asString(data.status, "");
+      if (!status) {
+        return;
+      }
+      const approvalId = asString(data.approvalId, "");
+      const approvalSlug = asString(data.approvalSlug, "");
+      const key =
+        approvalId ||
+        approvalSlug ||
+        asString(data.itemId, "") ||
+        asString(data.toolCallId, "") ||
+        `${evt.runId}:approval`;
+      chatLog.showApproval(key, {
+        phase: asString(data.phase, ""),
+        kind: asString(data.kind, ""),
+        status,
+        title: asString(data.title, ""),
+        approvalId,
+        approvalSlug,
+        command: asString(data.command, ""),
+        host: asString(data.host, ""),
+        reason: asString(data.reason, ""),
+        message: asString(data.message, ""),
+      });
       tui.requestRender();
       return;
     }
