@@ -268,7 +268,7 @@ describe("startGatewayPostAttachRuntime", () => {
           pluginRegistry: initialRegistry,
           loadStartupPlugins,
           onStartupPluginsLoaded,
-          startupTrace: trace,
+          startupTrace: trace as never,
         }),
         deferSidecars: false,
       },

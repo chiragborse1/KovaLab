@@ -148,7 +148,7 @@ describe("gateway session utils", () => {
           thinkingDefault: "high",
         },
       },
-    } as KovaConfig);
+    } as unknown as KovaConfig);
 
     expect(defaults).toMatchObject({
       modelProvider: "openai-codex",
@@ -172,7 +172,7 @@ describe("gateway session utils", () => {
           },
         },
       },
-    } as KovaConfig);
+    } as unknown as KovaConfig);
 
     expect(defaults).toMatchObject({
       modelProvider: "openai-codex",
