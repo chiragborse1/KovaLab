@@ -136,7 +136,6 @@ export type SlashCommandOptions = {
 
 const COMMAND_ALIASES: Record<string, string> = {
   abort: "stop",
-  commands: "help",
   elev: "elevated",
   gwstatus: "gateway-status",
   limit: "limits",
@@ -146,7 +145,6 @@ const COMMAND_ALIASES: Record<string, string> = {
 
 const HIDDEN_ALIAS_NAMES = new Set([
   "abort",
-  "commands",
   "elev",
   "export",
   "gwstatus",
@@ -280,6 +278,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       argumentHint: "[all]",
       getArgumentCompletions: createLevelCompletion(["all"]),
     },
+    { name: "commands", description: "Show the full terminal command catalog" },
     { name: "gateway-status", description: "Show gateway status summary" },
     { name: "limits", description: "Explain context usage vs provider quotas" },
     ...(options.local ? [{ name: "auth", description: "Run provider auth/login flow" }] : []),
@@ -384,7 +383,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "usage",
-      description: "Toggle per-response usage line",
+      description: "Show usage or configure the per-response usage line",
       getArgumentCompletions: usageCompletions,
     },
     {
@@ -424,6 +423,22 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   return commands;
 }
 
+export function commandCatalogText(options: SlashCommandOptions = {}): string {
+  const commands = getSlashCommands(options).toSorted((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+  const lines = [
+    `Kova command catalog (${commands.length})`,
+    "Use /help for essentials; aliases still work.",
+    "",
+  ];
+  for (const command of commands) {
+    const hint = command.argumentHint ? ` ${command.argumentHint}` : "";
+    lines.push(`/${command.name}${hint} - ${command.description}`);
+  }
+  return lines.join("\n");
+}
+
 export function helpText(options: SlashCommandOptions & { verbose?: boolean } = {}): string {
   const thinkLevels = formatThinkingLevels(options.provider, options.model, "|");
   if (!options.verbose) {
@@ -454,13 +469,14 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       "/fast <status|on|off>",
       "/busy <status|queue|steer|interrupt|clear>",
       "",
-      "More: /help all, /gateway-status, /automation, /recover, /rollback",
-      "Short aliases still work; /commands opens this help.",
+      "More: /commands, /help all, /gateway-status, /automation, /recover, /rollback",
+      "Short aliases still work; /commands opens the full catalog.",
     ].join("\n");
   }
   return [
     "Kova terminal controls:",
     "/help",
+    "/commands",
     "/status",
     "/gateway-status",
     "/limits",
@@ -488,7 +504,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/verbose <on|off>",
     "/trace <on|off>",
     "/reasoning <on|off>",
-    "/usage <off|tokens|full>",
+    "/usage [off|tokens|full|cost]",
     "/elevated <on|off|ask|full>",
     "/activation <mention|always>",
     "/busy <status|queue|steer|interrupt|clear>",

@@ -114,12 +114,14 @@ snapshots.
 ## Kova terminal controls
 
 Run `/help` to show the compact terminal command map inside the TUI. Use
-`/help all` when you want the full command list. Help keeps local controls and
-the Gateway-backed command surface in one place.
+`/commands` when you want the full command catalog, or `/help all` when you
+want the long help view. Help keeps local controls and the Gateway-backed
+command surface in one place.
 
 Core:
 
 - `/help`
+- `/commands`
 - `/status [full|detail]`
 - `/gateway-status`
 - `/limits`

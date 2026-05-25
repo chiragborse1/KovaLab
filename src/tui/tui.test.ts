@@ -55,12 +55,12 @@ describe("tui slash commands", () => {
     });
   });
 
-  it("keeps duplicate command-help aliases out of the palette", () => {
+  it("shows first-class command catalog while hiding duplicate aliases", () => {
     const commands = getSlashCommands({});
     expect(commands.some((command) => command.name === "context")).toBe(true);
     expect(commands.some((command) => command.name === "persona")).toBe(true);
     expect(commands.some((command) => command.name === "plugins")).toBe(true);
-    expect(commands.some((command) => command.name === "commands")).toBe(false);
+    expect(commands.some((command) => command.name === "commands")).toBe(true);
   });
 
   it("offers persona argument completions", async () => {

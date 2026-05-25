@@ -460,8 +460,20 @@ describe("tui command handlers", () => {
     await handleCommand("/help");
     await handleCommand("/help all");
 
-    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("More: /help all"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("More: /commands, /help all"));
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("/elevated <on|off|ask|full>"));
+  });
+
+  it("shows the command catalog without starting an agent turn", async () => {
+    const { handleCommand, addSystem, addUser, sendChat } = createHarness();
+
+    await handleCommand("/commands");
+
+    expect(addUser).toHaveBeenCalledWith("/commands");
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Kova command catalog"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("/usage"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("/status"));
+    expect(sendChat).not.toHaveBeenCalled();
   });
 
   it("opens a context mode selector for /context without sending immediately", async () => {

@@ -10,7 +10,7 @@ import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { formatTokenCount } from "../utils/usage-format.js";
-import { helpText, parseCommand } from "./commands.js";
+import { commandCatalogText, helpText, parseCommand } from "./commands.js";
 import type { ChatLog } from "./components/chat-log.js";
 import {
   createFilterableSelectList,
@@ -1149,6 +1149,16 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             provider: state.sessionInfo.modelProvider,
             model: state.sessionInfo.model,
             verbose: /^(all|full|verbose)$/i.test(args.trim()),
+          }),
+        );
+        break;
+      case "commands":
+        echoCommand();
+        chatLog.addSystem(
+          commandCatalogText({
+            local: opts.local,
+            provider: state.sessionInfo.modelProvider,
+            model: state.sessionInfo.model,
           }),
         );
         break;

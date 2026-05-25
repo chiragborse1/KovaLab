@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSlashCommands, helpText, parseCommand } from "./commands.js";
+import { commandCatalogText, getSlashCommands, helpText, parseCommand } from "./commands.js";
 
 describe("parseCommand", () => {
   it("normalizes aliases and keeps command args", () => {
@@ -22,7 +22,10 @@ describe("parseCommand", () => {
   it("normalizes hidden lifecycle aliases", () => {
     expect(parseCommand("/abort")).toEqual({ name: "stop", args: "" });
     expect(parseCommand("/quit")).toEqual({ name: "exit", args: "" });
-    expect(parseCommand("/commands")).toEqual({ name: "help", args: "" });
+  });
+
+  it("keeps /commands as a first-class command catalog", () => {
+    expect(parseCommand("/commands")).toEqual({ name: "commands", args: "" });
   });
 
   it("returns empty name for empty input", () => {
@@ -156,10 +159,10 @@ describe("getSlashCommands", () => {
     expect(commandNames).toContain("elevated");
     expect(commandNames).toContain("gateway-status");
     expect(commandNames).toContain("stop");
+    expect(commandNames).toContain("commands");
     expect(commandNames).not.toContain("elev");
     expect(commandNames).not.toContain("gwstatus");
     expect(commandNames).not.toContain("abort");
-    expect(commandNames).not.toContain("commands");
     expect(commandNames).not.toContain("limit");
     expect(commandNames).not.toContain("quit");
     expect(commandNames).not.toContain("id");
@@ -199,6 +202,18 @@ describe("getSlashCommands", () => {
   });
 });
 
+describe("commandCatalogText", () => {
+  it("prints the full terminal command catalog", () => {
+    const output = commandCatalogText();
+
+    expect(output).toContain("Kova command catalog");
+    expect(output).toContain("Use /help for essentials");
+    expect(output).toContain("/commands - Show the full terminal command catalog");
+    expect(output).toContain("/usage");
+    expect(output).toContain("/status");
+  });
+});
+
 describe("helpText", () => {
   it("shows compact slash command help by default", () => {
     const output = helpText();
@@ -207,8 +222,8 @@ describe("helpText", () => {
     expect(output).toContain("/status - current session and runtime state");
     expect(output).toContain("/memory - memory health and commands");
     expect(output).toContain("/limits - context window vs provider quota");
-    expect(output).toContain("More: /help all");
-    expect(output).toContain("/commands opens this help");
+    expect(output).toContain("More: /commands, /help all");
+    expect(output).toContain("/commands opens the full catalog");
     expect(output).not.toContain("/elevated <on|off|ask|full>");
     expect(output).not.toContain("/abort");
     expect(output).not.toContain("/quit");
@@ -219,7 +234,7 @@ describe("helpText", () => {
     expect(output).toContain("/elevated <on|off|ask|full>");
     expect(output).toContain("/gateway-status");
     expect(output).toContain("/limits");
-    expect(output).not.toContain("/commands");
+    expect(output).toContain("/commands");
     expect(output).toContain("/crestodian [request]");
     expect(output).toContain("/session <key> (or /sessions [query])");
     expect(output).toContain("Kova terminal controls:");
