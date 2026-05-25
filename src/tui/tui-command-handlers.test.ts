@@ -366,6 +366,7 @@ function createHarness(params?: {
     queuedMessages: [] as QueuedMessage[],
     isConnected: params?.isConnected ?? true,
     sessionInfo: params?.sessionInfo ?? {},
+    toolsExpanded: false,
     activityStatus: "idle",
   };
 
