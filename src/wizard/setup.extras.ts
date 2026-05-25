@@ -126,9 +126,12 @@ export async function promptSetupExtraModules(params: {
   });
 
   const choices = rawChoices.map(normalizeExtraChoice).filter(Boolean) as SetupExtraChoice[];
-  if (choices.length === 0 || choices.includes("__none__")) {
+  const selectedModules = choices.filter(
+    (choice): choice is SetupExtraModule => choice !== "__none__",
+  );
+  if (selectedModules.length === 0) {
     return [];
   }
 
-  return [...new Set(choices)] as SetupExtraModule[];
+  return [...new Set(selectedModules)];
 }
