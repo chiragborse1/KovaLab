@@ -835,7 +835,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     statusText = null;
     statusLoader = new Loader(
       tui,
-      (spinner) => theme.userText(spinner),
+      (spinner) => theme.accentSoft(spinner),
       (text) => theme.userText(text),
       "",
     );
@@ -860,7 +860,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
           theme: {
             dim: theme.userText,
             bold: theme.bold,
-            accentSoft: theme.userText,
+            accentSoft: theme.accentSoft,
           },
           tick: waitingTick,
           elapsed,
