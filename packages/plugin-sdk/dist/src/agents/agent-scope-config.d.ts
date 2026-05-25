@@ -1,6 +1,6 @@
 import type { AgentContextLimitsConfig, AgentDefaultsConfig } from "../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../config/types.js";
-type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
+import type { KovaConfig } from "../config/types.js";
+type AgentEntry = NonNullable<NonNullable<KovaConfig["agents"]>["list"]>[number];
 export type ResolvedAgentConfig = {
     name?: string;
     workspace?: string;
@@ -11,6 +11,7 @@ export type ResolvedAgentConfig = {
     verboseDefault?: AgentDefaultsConfig["verboseDefault"];
     reasoningDefault?: AgentEntry["reasoningDefault"];
     fastModeDefault?: AgentEntry["fastModeDefault"];
+    experimental?: AgentDefaultsConfig["experimental"];
     skills?: AgentEntry["skills"];
     memorySearch?: AgentEntry["memorySearch"];
     humanDelay?: AgentEntry["humanDelay"];
@@ -24,11 +25,11 @@ export type ResolvedAgentConfig = {
     sandbox?: AgentEntry["sandbox"];
     tools?: AgentEntry["tools"];
 };
-export declare function listAgentEntries(cfg: OpenClawConfig): AgentEntry[];
-export declare function listAgentIds(cfg: OpenClawConfig): string[];
-export declare function resolveDefaultAgentId(cfg: OpenClawConfig): string;
-export declare function resolveAgentConfig(cfg: OpenClawConfig, agentId: string): ResolvedAgentConfig | undefined;
-export declare function resolveAgentContextLimits(cfg: OpenClawConfig | undefined, agentId?: string | null): AgentContextLimitsConfig | undefined;
-export declare function resolveAgentWorkspaceDir(cfg: OpenClawConfig, agentId: string, env?: NodeJS.ProcessEnv): string;
-export declare function resolveAgentDir(cfg: OpenClawConfig, agentId: string, env?: NodeJS.ProcessEnv): string;
+export declare function listAgentEntries(cfg: KovaConfig): AgentEntry[];
+export declare function listAgentIds(cfg: KovaConfig): string[];
+export declare function resolveDefaultAgentId(cfg: KovaConfig): string;
+export declare function resolveAgentConfig(cfg: KovaConfig, agentId: string): ResolvedAgentConfig | undefined;
+export declare function resolveAgentContextLimits(cfg: KovaConfig | undefined, agentId?: string | null): AgentContextLimitsConfig | undefined;
+export declare function resolveAgentWorkspaceDir(cfg: KovaConfig, agentId: string, env?: NodeJS.ProcessEnv): string;
+export declare function resolveAgentDir(cfg: KovaConfig, agentId: string, env?: NodeJS.ProcessEnv): string;
 export {};

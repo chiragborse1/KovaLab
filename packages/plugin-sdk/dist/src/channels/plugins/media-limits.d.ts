@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function resolveChannelMediaMaxBytes(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     resolveChannelLimitMb: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId: string;
     }) => number | undefined;
     accountId?: string | null;

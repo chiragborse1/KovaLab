@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type AgentAvatarResolution = {
     kind: "none";
     reason: string;
@@ -21,7 +21,7 @@ type AgentAvatarPublicSourceInput = {
     source?: string | null;
 };
 export declare function resolvePublicAgentAvatarSource(resolved: AgentAvatarPublicSourceInput): string | undefined;
-export declare function resolveAgentAvatar(cfg: OpenClawConfig, agentId: string, opts?: {
+export declare function resolveAgentAvatar(cfg: KovaConfig, agentId: string, opts?: {
     includeUiOverride?: boolean;
 }): AgentAvatarResolution;
 export {};

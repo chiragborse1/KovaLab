@@ -13,7 +13,7 @@ export { onSessionTranscriptUpdate } from "../sessions/transcript-events.js";
 export { splitShellArgs } from "../utils/shell-argv.js";
 export { runTasksWithConcurrency } from "../utils/run-with-concurrency.js";
 export { shortenHomeInString, shortenHomePath, resolveUserPath, truncateUtf16Safe, } from "../utils.js";
-export type { OpenClawConfig } from "../config/config.js";
+export type { KovaConfig } from "../config/config.js";
 export type { SessionSendPolicyConfig } from "../config/types.base.js";
 export type { SecretInput } from "../config/types.secrets.js";
 export type { MemoryBackend, MemoryCitationsMode, MemoryQmdConfig, MemoryQmdIndexPath, MemoryQmdMcporterConfig, MemoryQmdSearchMode, } from "../config/types.memory.js";

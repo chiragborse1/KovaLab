@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type CodexNativeSearchMode = "cached" | "live";
 export type CodexNativeSearchContextSize = "low" | "medium" | "high";
 export type CodexNativeSearchUserLocation = {
@@ -14,5 +14,5 @@ export type ResolvedCodexNativeWebSearchConfig = {
     contextSize?: CodexNativeSearchContextSize;
     userLocation?: CodexNativeSearchUserLocation;
 };
-export declare function resolveCodexNativeWebSearchConfig(config: OpenClawConfig | undefined): ResolvedCodexNativeWebSearchConfig;
-export declare function describeCodexNativeWebSearch(config: OpenClawConfig | undefined): string | undefined;
+export declare function resolveCodexNativeWebSearchConfig(config: KovaConfig | undefined): ResolvedCodexNativeWebSearchConfig;
+export declare function describeCodexNativeWebSearch(config: KovaConfig | undefined): string | undefined;

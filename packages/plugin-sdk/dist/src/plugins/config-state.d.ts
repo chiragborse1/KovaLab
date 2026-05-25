@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type PluginActivationConfigSourceLike, type PluginActivationSource, type PluginActivationStateLike } from "./config-activation-shared.js";
 import { isBundledChannelEnabledByChannelConfig as isBundledChannelEnabledByChannelConfigShared, type NormalizedPluginsConfig as SharedNormalizedPluginsConfig } from "./config-normalization-shared.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
@@ -6,23 +6,23 @@ export type { PluginActivationSource };
 export type PluginActivationState = PluginActivationStateLike;
 export type PluginActivationConfigSource = {
     plugins: NormalizedPluginsConfig;
-    rootConfig?: OpenClawConfig;
-} & PluginActivationConfigSourceLike<OpenClawConfig>;
+    rootConfig?: KovaConfig;
+} & PluginActivationConfigSourceLike<KovaConfig>;
 export type NormalizedPluginsConfig = SharedNormalizedPluginsConfig;
 export declare function normalizePluginId(id: string): string;
-export declare const normalizePluginsConfig: (config?: OpenClawConfig["plugins"]) => NormalizedPluginsConfig;
+export declare const normalizePluginsConfig: (config?: KovaConfig["plugins"]) => NormalizedPluginsConfig;
 export declare function createPluginActivationSource(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     plugins?: NormalizedPluginsConfig;
 }): PluginActivationConfigSource;
-export declare const hasExplicitPluginConfig: (plugins?: OpenClawConfig["plugins"]) => boolean;
-export declare function applyTestPluginDefaults(cfg: OpenClawConfig, env?: NodeJS.ProcessEnv): OpenClawConfig;
-export declare function isTestDefaultMemorySlotDisabled(cfg: OpenClawConfig, env?: NodeJS.ProcessEnv): boolean;
+export declare const hasExplicitPluginConfig: (plugins?: KovaConfig["plugins"]) => boolean;
+export declare function applyTestPluginDefaults(cfg: KovaConfig, env?: NodeJS.ProcessEnv): KovaConfig;
+export declare function isTestDefaultMemorySlotDisabled(cfg: KovaConfig, env?: NodeJS.ProcessEnv): boolean;
 export declare function resolvePluginActivationState(params: {
     id: string;
     origin: PluginOrigin;
     config: NormalizedPluginsConfig;
-    rootConfig?: OpenClawConfig;
+    rootConfig?: KovaConfig;
     enabledByDefault?: boolean;
     activationSource?: PluginActivationConfigSource;
     autoEnabledReason?: string;
@@ -36,7 +36,7 @@ type EffectiveActivationParams = {
     id: string;
     origin: PluginOrigin;
     config: NormalizedPluginsConfig;
-    rootConfig?: OpenClawConfig;
+    rootConfig?: KovaConfig;
     enabledByDefault?: boolean;
     activationSource?: PluginActivationConfigSource;
 };

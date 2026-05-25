@@ -1,5 +1,5 @@
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ReplyPayload } from "../types.js";
 import type { CommandHandler } from "./commands-types.js";
 type ModelsCommandSessionEntry = Partial<Pick<SessionEntry, "authProfileOverride" | "modelProvider" | "model">>;
@@ -18,16 +18,17 @@ export type ModelsRuntimeChoice = {
     label: string;
     description: string;
 };
-export declare function buildModelsProviderData(cfg: OpenClawConfig, agentId?: string): Promise<ModelsProviderData>;
+export declare function buildModelsProviderData(cfg: KovaConfig, agentId?: string): Promise<ModelsProviderData>;
 export declare function formatModelsAvailableHeader(params: {
     provider: string;
     total: number;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
+    agentId?: string;
     agentDir?: string;
     sessionEntry?: ModelsCommandSessionEntry;
 }): string;
 export declare function resolveModelsCommandReply(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     commandBodyNormalized: string;
     surface?: string;
     currentModel?: string;

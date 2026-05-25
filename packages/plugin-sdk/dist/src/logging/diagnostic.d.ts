@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { emitDiagnosticMemorySample } from "./diagnostic-memory.js";
 import { type SessionRef, type SessionStateValue } from "./diagnostic-session-state.js";
 export { diagnosticLogger, logLaneDequeue, logLaneEnqueue } from "./diagnostic-runtime.js";
 type EmitDiagnosticMemorySample = typeof emitDiagnosticMemorySample;
-export declare function resolveStuckSessionWarnMs(config?: OpenClawConfig): number;
+export declare function resolveStuckSessionWarnMs(config?: KovaConfig): number;
 export declare function logWebhookReceived(params: {
     channel: string;
     updateType?: string;
@@ -60,8 +60,8 @@ export declare function logToolLoopAction(params: SessionRef & {
     pairedToolName?: string;
 }): void;
 export declare function logActiveRuns(): void;
-export declare function startDiagnosticHeartbeat(config?: OpenClawConfig, opts?: {
-    getConfig?: () => OpenClawConfig;
+export declare function startDiagnosticHeartbeat(config?: KovaConfig, opts?: {
+    getConfig?: () => KovaConfig;
     emitMemorySample?: EmitDiagnosticMemorySample;
 }): void;
 export declare function stopDiagnosticHeartbeat(): void;

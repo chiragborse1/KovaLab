@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type AuthCredentialReasonCode } from "./auth-profiles/credential-state.js";
 import type { AuthProfileCredential, AuthProfileStore } from "./auth-profiles/types.js";
 export type AuthProfileSource = "store";
@@ -35,7 +35,7 @@ export declare function formatRemainingShort(remainingMs?: number, opts?: {
 }): string;
 export declare function buildAuthHealthSummary(params: {
     store: AuthProfileStore;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     warnAfterMs?: number;
     providers?: string[];
     runtimeCredentialsByProvider?: ReadonlyMap<string, AuthProfileCredential>;

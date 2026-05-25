@@ -1,5 +1,6 @@
 import fs from "node:fs";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
+import { type NpmProjectInstallEnvOptions } from "../infra/npm-install-env.js";
 export type RuntimeDepEntry = {
     name: string;
     version: string;
@@ -69,9 +70,7 @@ export declare function createBundledRuntimeDepsWritableInstallSpecs(params: {
     searchRoots: readonly string[];
     installRoot: string;
 }): string[];
-export declare function createBundledRuntimeDepsInstallEnv(env: NodeJS.ProcessEnv, options?: {
-    cacheDir?: string;
-}): NodeJS.ProcessEnv;
+export declare function createBundledRuntimeDepsInstallEnv(env: NodeJS.ProcessEnv, options?: NpmProjectInstallEnvOptions): NodeJS.ProcessEnv;
 export declare function createBundledRuntimeDepsInstallArgs(missingSpecs: readonly string[]): string[];
 export declare function resolveBundledRuntimeDepsNpmRunner(params: {
     npmArgs: string[];
@@ -82,7 +81,7 @@ export declare function resolveBundledRuntimeDepsNpmRunner(params: {
 }): BundledRuntimeDepsNpmRunner;
 export declare function scanBundledPluginRuntimeDeps(params: {
     packageRoot: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     pluginIds?: readonly string[];
     selectedPluginIds?: readonly string[];
     includeConfiguredChannels?: boolean;
@@ -158,7 +157,7 @@ export declare function ensureBundledPluginRuntimeDeps(params: {
     pluginId: string;
     pluginRoot: string;
     env: NodeJS.ProcessEnv;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     retainSpecs?: readonly string[];
     installDeps?: (params: BundledRuntimeDepsInstallParams) => void;
 }): BundledRuntimeDepsEnsureResult;

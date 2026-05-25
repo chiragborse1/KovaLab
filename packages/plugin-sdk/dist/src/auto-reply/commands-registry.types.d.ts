@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { CommandArgValues } from "./commands-args.types.js";
 export type { CommandArgValue, CommandArgValues, CommandArgs } from "./commands-args.types.js";
 export type CommandScope = "text" | "native" | "both";
@@ -12,7 +12,7 @@ export type CommandTier = "essential" | "standard" | "power";
 export type CommandCategory = "session" | "options" | "status" | "management" | "media" | "tools" | "docks";
 export type CommandArgType = "string" | "number" | "boolean";
 export type CommandArgChoiceContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider?: string;
     model?: string;
     command: ChatCommandDefinition;
@@ -66,7 +66,7 @@ export type CommandDetection = {
     regex: RegExp;
 };
 export type ShouldHandleTextCommandsParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     surface: string;
     commandSource?: "text" | "native";
 };

@@ -1,8 +1,8 @@
 import { authorizeConfigWrite } from "../../channels/plugins/config-writes.js";
 import type { ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function resolveConfigWriteDeniedText(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string | null;
     channelId: ChannelId | null;
     accountId?: string;

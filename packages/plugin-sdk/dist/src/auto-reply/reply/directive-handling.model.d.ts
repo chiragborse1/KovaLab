@@ -1,12 +1,12 @@
 import { type ModelAliasIndex } from "../../agents/model-selection.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ReplyPayload } from "../types.js";
 export { resolveModelSelectionFromDirective } from "./directive-handling.model-selection.js";
 import type { InlineDirectives } from "./directive-handling.parse.js";
 export declare function maybeHandleModelDirectiveInfo(params: {
     directives: InlineDirectives;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir: string;
     activeAgentId: string;
     provider: string;

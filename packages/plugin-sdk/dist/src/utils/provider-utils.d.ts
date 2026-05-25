@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
 /**
  * Utility functions for provider-specific logic and capabilities.
  */
 export declare function resolveReasoningOutputMode(params: {
     provider: string | undefined | null;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     modelId?: string;
@@ -18,7 +18,7 @@ export declare function resolveReasoningOutputMode(params: {
  * API fields for reasoning/thinking.
  */
 export declare function isReasoningTagProvider(provider: string | undefined | null, options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     modelId?: string;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AuthProfileStore } from "./types.js";
 export declare function buildAuthProfileId(params: {
     providerId: string;
@@ -6,7 +6,7 @@ export declare function buildAuthProfileId(params: {
     profilePrefix?: string;
 }): string;
 export declare function resolveAuthProfileMetadata(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store?: AuthProfileStore;
     profileId: string;
 }): {

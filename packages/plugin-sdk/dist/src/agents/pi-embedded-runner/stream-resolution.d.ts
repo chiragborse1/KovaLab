@@ -14,6 +14,7 @@ export declare function describeEmbeddedAgentStreamStrategy(params: {
     shouldUseWebSocketTransport: boolean;
     wsApiKey?: string;
     model: EmbeddedRunAttemptParams["model"];
+    resolvedApiKey?: string;
 }): string;
 export declare function resolveEmbeddedAgentApiKey(params: {
     provider: string;

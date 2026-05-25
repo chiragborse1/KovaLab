@@ -1,5 +1,5 @@
 import type { SessionEntry, SessionScope } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext } from "../templating.js";
 import type { ElevatedLevel } from "../thinking.js";
 import type { ReplyPayload } from "../types.js";
@@ -8,8 +8,8 @@ import type { ApplyInlineDirectivesFastLaneParams } from "./directive-handling.p
 import type { InlineDirectives } from "./directive-handling.parse.js";
 import type { createModelSelectionState } from "./model-selection.js";
 import type { TypingController } from "./typing.js";
-type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
-type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
+type AgentDefaults = NonNullable<KovaConfig["agents"]>["defaults"];
+type AgentEntry = NonNullable<NonNullable<KovaConfig["agents"]>["list"]>[number];
 export type ApplyDirectiveResult = {
     kind: "reply";
     reply: ReplyPayload | ReplyPayload[] | undefined;
@@ -29,7 +29,7 @@ export type ApplyDirectiveResult = {
 };
 export declare function applyInlineDirectiveOverrides(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     agentDir: string;
     agentCfg: AgentDefaults;

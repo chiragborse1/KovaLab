@@ -15,8 +15,8 @@ import type { ThinkLevel } from "../auto-reply/thinking.shared.js";
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
 import type { ChannelId } from "../channels/plugins/types.public.js";
 import type { ModelProviderConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelCompatConfig } from "../config/types.models.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { OperatorScope } from "../gateway/operator-scopes.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import type { InternalHookHandler } from "../hooks/internal-hook-types.js";
@@ -47,16 +47,16 @@ import type { createVpsAwareOAuthHandlers } from "./provider-oauth-flow.js";
 import type { ProviderRuntimeModel } from "./provider-runtime-model.types.js";
 import type { ProviderDefaultThinkingPolicyContext, ProviderThinkingProfile, ProviderThinkingPolicyContext } from "./provider-thinking.types.js";
 import type { PluginRuntime } from "./runtime/types.js";
-import type { OpenClawPluginHookOptions, OpenClawPluginToolFactory, OpenClawPluginToolOptions } from "./tool-types.js";
+import type { KovaPluginHookOptions, KovaPluginToolFactory, KovaPluginToolOptions } from "./tool-types.js";
 import type { WebFetchProviderPlugin, WebSearchProviderPlugin } from "./web-provider-types.js";
 type ModelProviderRequestTransportOverrides = import("../agents/provider-request-config.js").ModelProviderRequestTransportOverrides;
 export type { PluginRuntime } from "./runtime/types.js";
 export type { PluginOrigin } from "./plugin-origin.types.js";
 export type { PluginBundleFormat, PluginConfigUiHint, PluginDiagnostic, PluginFormat, } from "./manifest-types.js";
-export type { OpenClawPluginHookOptions, OpenClawPluginToolContext, OpenClawPluginToolFactory, OpenClawPluginToolOptions, } from "./tool-types.js";
+export type { KovaPluginHookOptions, KovaPluginToolContext, KovaPluginToolFactory, KovaPluginToolOptions, } from "./tool-types.js";
 export type { AnyAgentTool } from "../agents/tools/common.js";
 export type { AgentHarness } from "../agents/harness/types.js";
-export type { AgentToolResultMiddleware, AgentToolResultMiddlewareContext, AgentToolResultMiddlewareEvent, AgentToolResultMiddlewareHarness, AgentToolResultMiddlewareOptions, AgentToolResultMiddlewareResult, AgentToolResultMiddlewareRuntime, OpenClawAgentToolResult, } from "./agent-tool-result-middleware-types.js";
+export type { AgentToolResultMiddleware, AgentToolResultMiddlewareContext, AgentToolResultMiddlewareEvent, AgentToolResultMiddlewareHarness, AgentToolResultMiddlewareOptions, AgentToolResultMiddlewareResult, AgentToolResultMiddlewareRuntime, KovaAgentToolResult, } from "./agent-tool-result-middleware-types.js";
 export type { PluginConversationBinding, PluginConversationBindingRequestParams, PluginConversationBindingRequestResult, PluginConversationBindingResolvedEvent, PluginConversationBindingResolutionDecision, } from "./conversation-binding.types.js";
 export type { CliBackendAuthEpochMode, CliBackendNormalizeConfigContext, CliBackendPreparedExecution, CliBackendPrepareExecutionContext, CliBackendPlugin, CliBundleMcpMode, PluginTextReplacement, PluginTextTransforms, } from "./cli-backend.types.js";
 export * from "./hook-types.js";
@@ -91,7 +91,7 @@ export type PluginConfigValidation = {
  * function, or both. `uiHints` and `jsonSchema` are optional extras for docs,
  * forms, and config UIs.
  */
-export type OpenClawPluginConfigSchema = {
+export type KovaPluginConfigSchema = {
     safeParse?: (value: unknown) => {
         success: boolean;
         data?: unknown;
@@ -121,7 +121,7 @@ export type ProviderAuthResult = {
      * `models.providers.<id>` entries, default aliases, or agent model helpers.
      * The caller still persists auth-profile bindings separately.
      */
-    configPatch?: Partial<OpenClawConfig>;
+    configPatch?: Partial<KovaConfig>;
     defaultModel?: string;
     notes?: string[];
     /**
@@ -133,7 +133,7 @@ export type ProviderAuthResult = {
 };
 /** Interactive auth context passed to provider login/setup methods. */
 export type ProviderAuthContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     agentDir?: string;
     workspaceDir?: string;
@@ -193,8 +193,8 @@ export type ProviderNonInteractiveApiKeyCredentialParams = {
 };
 export type ProviderAuthMethodNonInteractiveContext = {
     authChoice: string;
-    config: OpenClawConfig;
-    baseConfig: OpenClawConfig;
+    config: KovaConfig;
+    baseConfig: KovaConfig;
     opts: ProviderAuthOptionBag;
     runtime: RuntimeEnv;
     agentDir?: string;
@@ -211,16 +211,16 @@ export type ProviderAuthMethod = {
      * Optional wizard/onboarding metadata for this specific auth method.
      *
      * Use this when one provider exposes multiple setup entries (for example API
-     * key + OAuth, or region-specific login flows). OpenClaw uses this to expose
+     * key + OAuth, or region-specific login flows). Kova uses this to expose
      * method-specific auth choices while keeping the provider id stable.
      */
     wizard?: ProviderPluginWizardSetup;
     run: (ctx: ProviderAuthContext) => Promise<ProviderAuthResult>;
-    runNonInteractive?: (ctx: ProviderAuthMethodNonInteractiveContext) => Promise<OpenClawConfig | null>;
+    runNonInteractive?: (ctx: ProviderAuthMethodNonInteractiveContext) => Promise<KovaConfig | null>;
 };
 export type ProviderCatalogOrder = "simple" | "profile" | "paired" | "late";
 export type ProviderCatalogContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -262,7 +262,7 @@ export type ProviderRuntimeProviderConfig = {
  * belong in `prepareDynamicModel`.
  */
 export type ProviderResolveDynamicModelContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -279,7 +279,7 @@ export type ProviderResolveDynamicModelContext = {
  */
 export type ProviderPrepareDynamicModelContext = ProviderResolveDynamicModelContext;
 export type ProviderPreferRuntimeResolvedModelContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -288,12 +288,12 @@ export type ProviderPreferRuntimeResolvedModelContext = {
 /**
  * Last-chance rewrite hook for provider-owned transport normalization.
  *
- * Runs after OpenClaw resolves an explicit/discovered/dynamic model and before
+ * Runs after Kova resolves an explicit/discovered/dynamic model and before
  * the embedded runner uses it. Typical uses: swap API ids, fix base URLs, or
  * patch provider-specific compat bits.
  */
 export type ProviderNormalizeResolvedModelContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -330,7 +330,7 @@ export type ProviderNormalizeTransportContext = {
  * for the request.
  */
 export type ProviderPrepareRuntimeAuthContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -362,7 +362,7 @@ export type ProviderPreparedRuntimeAuth = {
  * snapshots often need a different credential source than live inference
  * requests, and they run outside the embedded runner.
  *
- * The helper methods cover the common OpenClaw auth resolution paths:
+ * The helper methods cover the common Kova auth resolution paths:
  *
  * - `resolveApiKeyFromConfigAndStore`: env/config/plain token/api_key profiles
  * - `resolveOAuthToken`: oauth/token profiles resolved through the auth store,
@@ -372,7 +372,7 @@ export type ProviderPreparedRuntimeAuth = {
  * token blob, read a legacy credential file, or pick between aliases).
  */
 export type ProviderResolveUsageAuthContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -404,7 +404,7 @@ export type ProviderResolvedUsageAuth = {
  * owns the provider-specific HTTP request + response normalization.
  */
 export type ProviderFetchUsageSnapshotContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -417,25 +417,25 @@ export type ProviderFetchUsageSnapshotContext = {
 /**
  * Provider-owned auth-doctor hint input.
  *
- * Called when OAuth refresh fails and OpenClaw wants a provider-specific repair
+ * Called when OAuth refresh fails and Kova wants a provider-specific repair
  * hint to append to the generic re-auth message. Use this for legacy profile-id
  * migrations or other provider-owned auth-store cleanup guidance.
  */
 export type ProviderAuthDoctorHintContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     store: AuthProfileStore;
     provider: string;
     profileId?: string;
 };
 /**
- * Provider-owned extra-param normalization before OpenClaw builds its generic
+ * Provider-owned extra-param normalization before Kova builds its generic
  * stream option wrapper.
  *
  * Use this to set provider defaults or rewrite provider-specific config keys
  * into the merged `extraParams` object. Return the full next extraParams object.
  */
 export type ProviderPrepareExtraParamsContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -455,7 +455,7 @@ export type ProviderResolvePromptOverlayContext = ProviderSystemPromptContributi
     baseOverlay?: ProviderSystemPromptContribution;
 };
 export type ProviderFollowupFallbackRouteContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -471,7 +471,7 @@ export type ProviderFollowupFallbackRouteResult = {
     reason?: string;
 };
 export type ProviderResolveAuthProfileIdContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -488,7 +488,7 @@ export type ProviderReasoningOutputMode = "native" | "tagged";
  * @deprecated Legacy static provider capability bag.
  *
  * Core replay/runtime ownership now lives on explicit provider hooks such as
- * `buildReplayPolicy`, `normalizeToolSchemas`, and `wrapStreamFn`. OpenClaw no
+ * `buildReplayPolicy`, `normalizeToolSchemas`, and `wrapStreamFn`. Kova no
  * longer reads this bag at runtime, but the field remains typed so existing
  * third-party plugins do not fail to compile immediately.
  */
@@ -525,7 +525,7 @@ export type ProviderReplayPolicy = {
  * behavior and should stay with the provider plugin instead of core tables.
  */
 export type ProviderReplayPolicyContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
@@ -594,7 +594,7 @@ export type ProviderReasoningOutputModeContext = ProviderReplayPolicyContext;
  * as a wrapper around `streamSimple`).
  */
 export type ProviderCreateStreamFnContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -602,7 +602,7 @@ export type ProviderCreateStreamFnContext = {
     model: ProviderRuntimeModel;
 };
 /**
- * Provider-owned stream wrapper hook after OpenClaw applies its generic
+ * Provider-owned stream wrapper hook after Kova applies its generic
  * transport-independent wrappers.
  *
  * Use this for provider-specific payload/header/model mutations that still run
@@ -692,7 +692,7 @@ export type PluginEmbeddingProvider = {
  * plugin instead of the core memory switchboard.
  */
 export type ProviderCreateEmbeddingProviderContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -712,7 +712,7 @@ export type ProviderCreateEmbeddingProviderContext = {
 /**
  * Provider-owned prompt-cache eligibility.
  *
- * Return `true` or `false` to override OpenClaw's built-in provider cache TTL
+ * Return `true` or `false` to override Kova's built-in provider cache TTL
  * detection for this provider. Return `undefined` to fall back to core rules.
  */
 export type ProviderCacheTtlEligibilityContext = {
@@ -723,12 +723,12 @@ export type ProviderCacheTtlEligibilityContext = {
 /**
  * Provider-owned missing-auth message override.
  *
- * Runs only after OpenClaw exhausts normal env/profile/config auth resolution
+ * Runs only after Kova exhausts normal env/profile/config auth resolution
  * for the requested provider. Return a custom message to replace the generic
  * "No API key found" error.
  */
 export type ProviderBuildMissingAuthMessageContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -739,11 +739,11 @@ export type ProviderBuildMissingAuthMessageContext = {
  * Provider-owned unknown-model hint override.
  *
  * Runs after catalog/runtime lookup misses for the requested provider. Return a
- * hint suffix that OpenClaw should append to the generic `Unknown model`
+ * hint suffix that Kova should append to the generic `Unknown model`
  * error.
  */
 export type ProviderBuildUnknownModelHintContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -759,7 +759,7 @@ export type ProviderBuildUnknownModelHintContext = {
  * resolution, model listing, and catalog loading.
  */
 export type ProviderBuiltInModelSuppressionContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -785,13 +785,13 @@ export type ProviderModernModelPolicyContext = {
 /**
  * Final catalog augmentation hook.
  *
- * Runs after OpenClaw loads the discovered model catalog and merges configured
+ * Runs after Kova loads the discovered model catalog and merges configured
  * opt-in providers. Use this for forward-compat rows or vendor-owned synthetic
  * entries that should appear in `models list` and model pickers even when the
  * upstream registry has not caught up yet.
  */
 export type ProviderAugmentModelCatalogContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -878,20 +878,20 @@ export type ProviderOAuthProfileIdRepair = {
     promptLabel?: string;
 };
 export type ProviderModelSelectedContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     model: string;
     prompter: WizardPrompter;
     agentDir?: string;
     workspaceDir?: string;
 };
 export type ProviderDeferSyntheticProfileAuthContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider: string;
     providerConfig?: ModelProviderConfig;
     resolvedApiKey?: string;
 };
 export type ProviderSystemPromptContributionContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     provider: string;
@@ -962,7 +962,7 @@ export type ProviderPlugin = {
     /**
      * Optional async prefetch for dynamic model resolution.
      *
-     * OpenClaw calls this only from async model resolution paths. After it
+     * Kova calls this only from async model resolution paths. After it
      * completes, `resolveDynamicModel` is called again.
      */
     prepareDynamicModel?: (ctx: ProviderPrepareDynamicModelContext) => Promise<void>;
@@ -1045,7 +1045,7 @@ export type ProviderPlugin = {
     /**
      * Provider-owned replay-history sanitization.
      *
-     * Runs after OpenClaw performs generic transcript cleanup. Use this for
+     * Runs after Kova performs generic transcript cleanup. Use this for
      * provider-specific replay rewrites that should stay with the provider
      * plugin rather than in shared core compaction helpers.
      */
@@ -1061,7 +1061,7 @@ export type ProviderPlugin = {
     /**
      * Provider-owned tool-schema normalization.
      *
-     * Use this for transport-family schema cleanup before OpenClaw registers
+     * Use this for transport-family schema cleanup before Kova registers
      * tools with the embedded runner.
      */
     normalizeToolSchemas?: (ctx: ProviderNormalizeToolSchemasContext) => AnyAgentTool[] | null | undefined;
@@ -1103,7 +1103,7 @@ export type ProviderPlugin = {
      */
     createStreamFn?: (ctx: ProviderCreateStreamFnContext) => StreamFn | null | undefined;
     /**
-     * Provider-owned stream wrapper applied after generic OpenClaw wrappers.
+     * Provider-owned stream wrapper applied after generic Kova wrappers.
      *
      * Typical uses: provider attribution headers, request-body rewrites, or
      * provider-specific compat payload patches that do not justify a separate
@@ -1136,7 +1136,7 @@ export type ProviderPlugin = {
     /**
      * Runtime auth exchange hook.
      *
-     * Called after OpenClaw resolves the raw configured credential but before the
+     * Called after Kova resolves the raw configured credential but before the
      * runner stores it in runtime auth storage. This lets plugins exchange a
      * source credential (for example a GitHub token) into a short-lived runtime
      * token plus optional base URL override.
@@ -1184,14 +1184,14 @@ export type ProviderPlugin = {
      * Provider-owned missing-auth message override.
      *
      * Return a custom message when the provider wants a more specific recovery
-     * hint than OpenClaw's generic auth-store guidance.
+     * hint than Kova's generic auth-store guidance.
      */
     buildMissingAuthMessage?: (ctx: ProviderBuildMissingAuthMessageContext) => string | null | undefined;
     /**
      * Provider-owned unknown-model hint override.
      *
      * Return a suffix when the provider wants a more specific recovery hint than
-     * OpenClaw's generic `Unknown model` error after catalog/runtime lookup
+     * Kova's generic `Unknown model` error after catalog/runtime lookup
      * fails.
      */
     buildUnknownModelHint?: (ctx: ProviderBuildUnknownModelHintContext) => string | null | undefined;
@@ -1199,7 +1199,7 @@ export type ProviderPlugin = {
      * Provider-owned built-in model suppression.
      *
      * Return `{ suppress: true }` to hide a stale upstream row. Include
-     * `errorMessage` when OpenClaw should surface a provider-specific hint for
+     * `errorMessage` when Kova should surface a provider-specific hint for
      * direct model resolution failures.
      */
     suppressBuiltInModel?: (ctx: ProviderBuiltInModelSuppressionContext) => ProviderBuiltInModelSuppressionResult | null | undefined;
@@ -1207,7 +1207,7 @@ export type ProviderPlugin = {
      * Provider-owned final catalog augmentation.
      *
      * Return extra rows to append to the final catalog after discovery/config
-     * merging. OpenClaw deduplicates by `provider/id`, so plugins only need to
+     * merging. Kova deduplicates by `provider/id`, so plugins only need to
      * describe the desired supplemental rows.
      */
     augmentModelCatalog?: (ctx: ProviderAugmentModelCatalogContext) => Array<ModelCatalogEntry> | ReadonlyArray<ModelCatalogEntry> | Promise<Array<ModelCatalogEntry> | ReadonlyArray<ModelCatalogEntry> | null | undefined> | null | undefined;
@@ -1232,7 +1232,7 @@ export type ProviderPlugin = {
      * Provider-owned thinking level profile.
      *
      * Prefer this over the individual thinking capability hooks when a provider
-     * or model exposes a custom set of thinking levels. OpenClaw stores the
+     * or model exposes a custom set of thinking levels. Kova stores the
      * canonical `id`, shows `label` when provided, and downgrades stale stored
      * values by profile rank.
      */
@@ -1250,20 +1250,20 @@ export type ProviderPlugin = {
      * Provider-owned system-prompt contribution.
      *
      * Use this when a provider/model family needs cache-aware prompt tuning
-     * without replacing the full OpenClaw-owned system prompt.
+     * without replacing the full Kova-owned system prompt.
      */
     resolveSystemPromptContribution?: (ctx: ProviderSystemPromptContributionContext) => ProviderSystemPromptContribution | null | undefined;
     /**
      * Provider-owned GPT/model prompt overlay seam.
      *
-     * Runs after OpenClaw's built-in overlay is resolved and before the
+     * Runs after Kova's built-in overlay is resolved and before the
      * provider's regular system-prompt contribution is merged.
      */
     resolvePromptOverlay?: (ctx: ProviderResolvePromptOverlayContext) => ProviderSystemPromptContribution | null | undefined;
     /**
      * Provider-owned fallback route override for model/profile failure handling.
      *
-     * Return undefined/null to keep OpenClaw's default fallback policy.
+     * Return undefined/null to keep Kova's default fallback policy.
      */
     followupFallbackRoute?: (ctx: ProviderFollowupFallbackRouteContext) => ProviderFollowupFallbackRouteResult | null | undefined;
     /**
@@ -1277,7 +1277,7 @@ export type ProviderPlugin = {
      * Provider-owned final system-prompt transform.
      *
      * Use this sparingly when a provider transport needs small compatibility
-     * rewrites after OpenClaw has assembled the complete prompt. Return
+     * rewrites after Kova has assembled the complete prompt. Return
      * `undefined`/`null` to leave the prompt unchanged.
      */
     transformSystemPrompt?: (ctx: ProviderTransformSystemPromptContext) => string | null | undefined;
@@ -1285,7 +1285,7 @@ export type ProviderPlugin = {
      * Provider-owned bidirectional text replacements.
      *
      * `input` applies to system prompts and text message content before transport.
-     * `output` applies to assistant text deltas/final text before OpenClaw handles
+     * `output` applies to assistant text deltas/final text before Kova handles
      * its own control markers or channel delivery.
      */
     textTransforms?: PluginTextTransforms;
@@ -1295,7 +1295,7 @@ export type ProviderPlugin = {
      * Use this when config materialization needs provider-specific defaults that
      * depend on auth mode, env, or provider model-family semantics.
      */
-    applyConfigDefaults?: (ctx: ProviderApplyConfigDefaultsContext) => OpenClawConfig | null | undefined;
+    applyConfigDefaults?: (ctx: ProviderApplyConfigDefaultsContext) => KovaConfig | null | undefined;
     /**
      * Provider-owned "modern model" matcher used by live profile/smoke filters.
      *
@@ -1307,14 +1307,14 @@ export type ProviderPlugin = {
     /**
      * Provider-owned auth-profile API-key formatter.
      *
-     * OpenClaw uses this when a stored auth profile is already valid and needs to
+     * Kova uses this when a stored auth profile is already valid and needs to
      * be converted into the runtime `apiKey` string expected by the provider. Use
      * this for providers whose auth profile stores extra metadata alongside the
      * bearer token (for example Gemini CLI's `{ token, projectId }` payload).
      */
     formatApiKey?: (cred: AuthProfileCredential) => string;
     /**
-     * Legacy auth-profile ids that should be retired by `openclaw doctor`.
+     * Legacy auth-profile ids that should be retired by `kova doctor`.
      *
      * Use this when a provider plugin replaces an older core-managed profile id
      * and wants cleanup/migration messaging to live with the provider instead of
@@ -1322,7 +1322,7 @@ export type ProviderPlugin = {
      */
     deprecatedProfileIds?: string[];
     /**
-     * Legacy OAuth profile-id migrations that `openclaw doctor` should offer.
+     * Legacy OAuth profile-id migrations that `kova doctor` should offer.
      *
      * Use this when a provider moved from a legacy default OAuth profile id to a
      * newer identity-based id and wants doctor to own the config rewrite without
@@ -1332,7 +1332,7 @@ export type ProviderPlugin = {
     /**
      * Provider-owned OAuth refresh.
      *
-     * OpenClaw calls this before falling back to the shared `pi-ai` OAuth
+     * Kova calls this before falling back to the shared `pi-ai` OAuth
      * refreshers. Use it when the provider has a custom refresh endpoint, or when
      * the provider needs custom refresh-failure behavior that should stay out of
      * core auth-profile code.
@@ -1343,7 +1343,7 @@ export type ProviderPlugin = {
      *
      * Return a multiline repair hint when OAuth refresh fails and the provider
      * wants to steer users toward a specific auth-profile migration or recovery
-     * path. Return nothing to keep OpenClaw's generic error text.
+     * path. Return nothing to keep Kova's generic error text.
      */
     buildAuthDoctorHint?: (ctx: ProviderAuthDoctorHintContext) => string | Promise<string | null | undefined> | null | undefined;
     /**
@@ -1451,7 +1451,7 @@ export type MediaUnderstandingProviderPlugin = MediaUnderstandingProvider;
 export type ImageGenerationProviderPlugin = ImageGenerationProvider;
 export type VideoGenerationProviderPlugin = VideoGenerationProvider;
 export type MusicGenerationProviderPlugin = MusicGenerationProvider;
-export type OpenClawPluginGatewayMethod = {
+export type KovaPluginGatewayMethod = {
     method: string;
     handler: GatewayRequestHandler;
 };
@@ -1473,14 +1473,14 @@ export type PluginCommandContext = {
     sessionKey?: string;
     /** Ephemeral host session id for the active conversation when available. */
     sessionId?: string;
-    /** Transcript file for the active OpenClaw session when available. */
+    /** Transcript file for the active Kova session when available. */
     sessionFile?: string;
     /** Raw command arguments after the command name */
     args?: string;
     /** The full normalized command body */
     commandBody: string;
-    /** Current OpenClaw configuration */
-    config: OpenClawConfig;
+    /** Current Kova configuration */
+    config: KovaConfig;
     /** Raw "From" value (channel-scoped id) */
     from?: string;
     /** Raw "To" value (channel-scoped id) */
@@ -1508,7 +1508,7 @@ export type PluginCommandHandler = (ctx: PluginCommandContext) => PluginCommandR
 /**
  * Definition for a plugin-registered command.
  */
-export type OpenClawPluginCommandDefinition = {
+export type KovaPluginCommandDefinition = {
     /** Command name without leading slash (e.g., "tts") */
     name: string;
     /**
@@ -1547,57 +1547,57 @@ export type PluginInteractiveRegistration<TContext = unknown, TChannel extends s
     handler: (ctx: TContext) => Promise<TResult> | TResult;
 };
 export type PluginInteractiveHandlerRegistration = PluginInteractiveRegistration;
-export type OpenClawPluginHttpRouteAuth = "gateway" | "plugin";
-export type OpenClawPluginHttpRouteMatch = "exact" | "prefix";
-export type OpenClawPluginGatewayRuntimeScopeSurface = "write-default" | "trusted-operator";
-export type OpenClawPluginHttpRouteHandler = (req: IncomingMessage, res: ServerResponse) => Promise<boolean | void> | boolean | void;
-export type OpenClawPluginHttpRouteParams = {
+export type KovaPluginHttpRouteAuth = "gateway" | "plugin";
+export type KovaPluginHttpRouteMatch = "exact" | "prefix";
+export type KovaPluginGatewayRuntimeScopeSurface = "write-default" | "trusted-operator";
+export type KovaPluginHttpRouteHandler = (req: IncomingMessage, res: ServerResponse) => Promise<boolean | void> | boolean | void;
+export type KovaPluginHttpRouteParams = {
     path: string;
-    handler: OpenClawPluginHttpRouteHandler;
-    auth: OpenClawPluginHttpRouteAuth;
-    match?: OpenClawPluginHttpRouteMatch;
-    gatewayRuntimeScopeSurface?: OpenClawPluginGatewayRuntimeScopeSurface;
+    handler: KovaPluginHttpRouteHandler;
+    auth: KovaPluginHttpRouteAuth;
+    match?: KovaPluginHttpRouteMatch;
+    gatewayRuntimeScopeSurface?: KovaPluginGatewayRuntimeScopeSurface;
     replaceExisting?: boolean;
 };
-export type OpenClawPluginCliContext = {
+export type KovaPluginCliContext = {
     program: Command;
-    config: OpenClawConfig;
+    config: KovaConfig;
     workspaceDir?: string;
     logger: PluginLogger;
 };
-export type OpenClawPluginCliRegistrar = (ctx: OpenClawPluginCliContext) => void | Promise<void>;
+export type KovaPluginCliRegistrar = (ctx: KovaPluginCliContext) => void | Promise<void>;
 /**
  * Top-level CLI metadata for plugin-owned commands.
  *
  * Descriptors are the parse-time contract for lazy plugin CLI registration.
- * If you want OpenClaw to keep a plugin command lazy-loaded while still
+ * If you want Kova to keep a plugin command lazy-loaded while still
  * advertising it at the root CLI level, provide descriptors that cover every
  * top-level command root registered by that plugin CLI surface.
  */
-export type OpenClawPluginCliCommandDescriptor = {
+export type KovaPluginCliCommandDescriptor = {
     name: string;
     description: string;
     hasSubcommands: boolean;
 };
-export type OpenClawPluginReloadRegistration = {
+export type KovaPluginReloadRegistration = {
     restartPrefixes?: string[];
     hotPrefixes?: string[];
     noopPrefixes?: string[];
 };
-export type OpenClawPluginNodeHostCommand = {
+export type KovaPluginNodeHostCommand = {
     command: string;
     cap?: string;
     handle: (paramsJSON?: string | null) => Promise<string>;
 };
-export type OpenClawPluginSecurityAuditContext = {
-    config: OpenClawConfig;
-    sourceConfig: OpenClawConfig;
+export type KovaPluginSecurityAuditContext = {
+    config: KovaConfig;
+    sourceConfig: KovaConfig;
     env: NodeJS.ProcessEnv;
     stateDir: string;
     configPath: string;
 };
-export type OpenClawPluginSecurityAuditCollector = (ctx: OpenClawPluginSecurityAuditContext) => SecurityAuditFinding[] | Promise<SecurityAuditFinding[]>;
-export type OpenClawGatewayDiscoveryAdvertiseContext = {
+export type KovaPluginSecurityAuditCollector = (ctx: KovaPluginSecurityAuditContext) => SecurityAuditFinding[] | Promise<SecurityAuditFinding[]>;
+export type KovaGatewayDiscoveryAdvertiseContext = {
     machineDisplayName: string;
     gatewayPort: number;
     gatewayTlsEnabled: boolean;
@@ -1608,15 +1608,15 @@ export type OpenClawGatewayDiscoveryAdvertiseContext = {
     cliPath?: string;
     minimal: boolean;
 };
-export type OpenClawGatewayDiscoveryService = {
+export type KovaGatewayDiscoveryService = {
     id: string;
-    advertise: (ctx: OpenClawGatewayDiscoveryAdvertiseContext) => void | Promise<void | {
+    advertise: (ctx: KovaGatewayDiscoveryAdvertiseContext) => void | Promise<void | {
         stop?: () => void | Promise<void>;
     }>;
 };
 /** Context passed to long-lived plugin services. */
-export type OpenClawPluginServiceContext = {
-    config: OpenClawConfig;
+export type KovaPluginServiceContext = {
+    config: KovaConfig;
     workspaceDir?: string;
     stateDir: string;
     logger: PluginLogger;
@@ -1626,29 +1626,29 @@ export type OpenClawPluginServiceContext = {
     };
 };
 /** Background service registered by a plugin during `register(api)`. */
-export type OpenClawPluginService = {
+export type KovaPluginService = {
     id: string;
-    start: (ctx: OpenClawPluginServiceContext) => void | Promise<void>;
-    stop?: (ctx: OpenClawPluginServiceContext) => void | Promise<void>;
+    start: (ctx: KovaPluginServiceContext) => void | Promise<void>;
+    stop?: (ctx: KovaPluginServiceContext) => void | Promise<void>;
 };
-export type OpenClawPluginChannelRegistration = {
+export type KovaPluginChannelRegistration = {
     plugin: ChannelPlugin;
 };
 /** Module-level plugin definition loaded from a native plugin entry file. */
-export type OpenClawPluginDefinition = {
+export type KovaPluginDefinition = {
     id?: string;
     name?: string;
     description?: string;
     version?: string;
     kind?: PluginKind | PluginKind[];
-    configSchema?: OpenClawPluginConfigSchema;
-    reload?: OpenClawPluginReloadRegistration;
-    nodeHostCommands?: OpenClawPluginNodeHostCommand[];
-    securityAuditCollectors?: OpenClawPluginSecurityAuditCollector[];
-    register?: (api: OpenClawPluginApi) => void;
-    activate?: (api: OpenClawPluginApi) => void;
+    configSchema?: KovaPluginConfigSchema;
+    reload?: KovaPluginReloadRegistration;
+    nodeHostCommands?: KovaPluginNodeHostCommand[];
+    securityAuditCollectors?: KovaPluginSecurityAuditCollector[];
+    register?: (api: KovaPluginApi) => void;
+    activate?: (api: KovaPluginApi) => void;
 };
-export type OpenClawPluginModule = OpenClawPluginDefinition | ((api: OpenClawPluginApi) => void);
+export type KovaPluginModule = KovaPluginDefinition | ((api: KovaPluginApi) => void);
 /**
  * Public label exposed to plugin `register(api)` calls.
  *
@@ -1663,8 +1663,8 @@ export type OpenClawPluginModule = OpenClawPluginDefinition | ((api: OpenClawPlu
  * - `cli-metadata`: CLI command metadata collection.
  */
 export type PluginRegistrationMode = "full" | "discovery" | "setup-only" | "setup-runtime" | "cli-metadata";
-export type PluginConfigMigration = (config: OpenClawConfig) => {
-    config: OpenClawConfig;
+export type PluginConfigMigration = (config: KovaConfig) => {
+    config: KovaConfig;
     changes: string[];
 } | null | undefined;
 export type MigrationItemStatus = "planned" | "migrated" | "skipped" | "conflict" | "error";
@@ -1713,7 +1713,7 @@ export type MigrationApplyResult = MigrationPlan & {
     reportDir?: string;
 };
 export type MigrationProviderContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     runtime?: PluginRuntime;
     logger: PluginLogger;
     stateDir: string;
@@ -1724,7 +1724,7 @@ export type MigrationProviderContext = {
     reportDir?: string;
     signal?: AbortSignal;
 };
-/** Migration source implemented by a plugin and orchestrated by `openclaw migrate`. */
+/** Migration source implemented by a plugin and orchestrated by `kova migrate`. */
 export type MigrationProviderPlugin = {
     id: string;
     label: string;
@@ -1734,12 +1734,12 @@ export type MigrationProviderPlugin = {
     apply: (ctx: MigrationProviderContext, plan?: MigrationPlan) => MigrationApplyResult | Promise<MigrationApplyResult>;
 };
 export type PluginSetupAutoEnableContext = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
 };
 export type PluginSetupAutoEnableProbe = (ctx: PluginSetupAutoEnableContext) => string | string[] | null | undefined;
 /** Main registration API injected into native plugin entry files. */
-export type OpenClawPluginApi = {
+export type KovaPluginApi = {
     id: string;
     name: string;
     version?: string;
@@ -1747,7 +1747,7 @@ export type OpenClawPluginApi = {
     source: string;
     rootDir?: string;
     registrationMode: PluginRegistrationMode;
-    config: OpenClawConfig;
+    config: KovaConfig;
     pluginConfig?: Record<string, unknown>;
     /**
      * In-process runtime helpers for trusted native plugins.
@@ -1757,11 +1757,11 @@ export type OpenClawPluginApi = {
      */
     runtime: PluginRuntime;
     logger: PluginLogger;
-    registerTool: (tool: AnyAgentTool | OpenClawPluginToolFactory, opts?: OpenClawPluginToolOptions) => void;
-    registerHook: (events: string | string[], handler: InternalHookHandler, opts?: OpenClawPluginHookOptions) => void;
-    registerHttpRoute: (params: OpenClawPluginHttpRouteParams) => void;
+    registerTool: (tool: AnyAgentTool | KovaPluginToolFactory, opts?: KovaPluginToolOptions) => void;
+    registerHook: (events: string | string[], handler: InternalHookHandler, opts?: KovaPluginHookOptions) => void;
+    registerHttpRoute: (params: KovaPluginHttpRouteParams) => void;
     /** Register a native messaging channel plugin (channel capability). */
-    registerChannel: (registration: OpenClawPluginChannelRegistration | ChannelPlugin) => void;
+    registerChannel: (registration: KovaPluginChannelRegistration | ChannelPlugin) => void;
     /**
      * Register a gateway RPC method for this plugin.
      *
@@ -1772,31 +1772,31 @@ export type OpenClawPluginApi = {
     registerGatewayMethod: (method: string, handler: GatewayRequestHandler, opts?: {
         scope?: OperatorScope;
     }) => void;
-    registerCli: (registrar: OpenClawPluginCliRegistrar, opts?: {
+    registerCli: (registrar: KovaPluginCliRegistrar, opts?: {
         /** Explicit top-level command roots owned by this registrar. */
         commands?: string[];
         /**
          * Parse-time command descriptors for lazy root CLI registration.
          *
-         * When descriptors cover every top-level command root, OpenClaw can keep
+         * When descriptors cover every top-level command root, Kova can keep
          * the plugin registrar lazy in the normal root CLI path. Command-only
          * registrations stay on the eager compatibility path.
          */
-        descriptors?: OpenClawPluginCliCommandDescriptor[];
+        descriptors?: KovaPluginCliCommandDescriptor[];
     }) => void;
-    registerReload: (registration: OpenClawPluginReloadRegistration) => void;
-    registerNodeHostCommand: (command: OpenClawPluginNodeHostCommand) => void;
-    registerSecurityAuditCollector: (collector: OpenClawPluginSecurityAuditCollector) => void;
-    registerService: (service: OpenClawPluginService) => void;
+    registerReload: (registration: KovaPluginReloadRegistration) => void;
+    registerNodeHostCommand: (command: KovaPluginNodeHostCommand) => void;
+    registerSecurityAuditCollector: (collector: KovaPluginSecurityAuditCollector) => void;
+    registerService: (service: KovaPluginService) => void;
     /** Register a local gateway discovery advertiser such as mDNS/Bonjour. */
-    registerGatewayDiscoveryService: (service: OpenClawGatewayDiscoveryService) => void;
+    registerGatewayDiscoveryService: (service: KovaGatewayDiscoveryService) => void;
     /** Register a text-only CLI backend used by the local CLI runner. */
     registerCliBackend: (backend: CliBackendPlugin) => void;
     /** Register plugin-owned prompt/message compatibility text transforms. */
     registerTextTransforms: (transforms: PluginTextTransformRegistration) => void;
     /** Register a lightweight config migration that can run before plugin runtime loads. */
     registerConfigMigration: (migrate: PluginConfigMigration) => void;
-    /** Register an importer for `openclaw migrate` (migration capability). */
+    /** Register an importer for `kova migrate` (migration capability). */
     registerMigrationProvider: (provider: MigrationProviderPlugin) => void;
     /** Register a lightweight config probe that can auto-enable this plugin generically. */
     registerAutoEnableProbe: (probe: PluginSetupAutoEnableProbe) => void;
@@ -1827,7 +1827,7 @@ export type OpenClawPluginApi = {
      * Plugin commands are processed before built-in commands and before agent invocation.
      * Use this for simple state-toggling or status commands that don't need AI reasoning.
      */
-    registerCommand: (command: OpenClawPluginCommandDefinition) => void;
+    registerCommand: (command: KovaPluginCommandDefinition) => void;
     /** Register a context engine implementation (exclusive slot - only one active at a time). */
     registerContextEngine: (id: string, factory: import("../context-engine/registry.js").ContextEngineFactory) => void;
     /** Register a compaction provider (pluggable summarization backend). */
@@ -1874,5 +1874,6 @@ export type OpenClawPluginApi = {
     /** Register a lifecycle hook handler */
     on: <K extends PluginHookName>(hookName: K, handler: PluginHookHandlerMap[K], opts?: {
         priority?: number;
+        timeoutMs?: number;
     }) => void;
 };

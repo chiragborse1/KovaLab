@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { OutboundMediaAccess, OutboundMediaReadFile } from "./load-options.js";
 type OutboundHostMediaPolicyContext = {
     sessionKey?: string;
@@ -13,12 +13,12 @@ type OutboundHostMediaPolicyContext = {
     requesterSenderE164?: string | null;
 };
 export declare function createAgentScopedHostMediaReadFile(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     workspaceDir?: string;
 } & OutboundHostMediaPolicyContext): OutboundMediaReadFile | undefined;
 export declare function resolveAgentScopedOutboundMediaAccess(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     mediaSources?: readonly string[];
     workspaceDir?: string;

@@ -164,14 +164,14 @@ export declare const SkillsInstallParamsSchema: Type.TUnion<[Type.TObject<{
     dangerouslyForceUnsafeInstall: Type.TOptional<Type.TBoolean>;
     timeoutMs: Type.TOptional<Type.TInteger>;
 }>, Type.TObject<{
-    source: Type.TLiteral<"clawhub">;
+    source: Type.TLiteral<"kovahub">;
     slug: Type.TString;
     version: Type.TOptional<Type.TString>;
     force: Type.TOptional<Type.TBoolean>;
     timeoutMs: Type.TOptional<Type.TInteger>;
 }>]>;
 export declare const SkillsUninstallParamsSchema: Type.TObject<{
-    source: Type.TLiteral<"clawhub">;
+    source: Type.TLiteral<"kovahub">;
     slug: Type.TString;
 }>;
 export declare const SkillsUpdateParamsSchema: Type.TUnion<[Type.TObject<{
@@ -180,7 +180,7 @@ export declare const SkillsUpdateParamsSchema: Type.TUnion<[Type.TObject<{
     apiKey: Type.TOptional<Type.TString>;
     env: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
 }>, Type.TObject<{
-    source: Type.TLiteral<"clawhub">;
+    source: Type.TLiteral<"kovahub">;
     slug: Type.TOptional<Type.TString>;
     all: Type.TOptional<Type.TBoolean>;
 }>]>;

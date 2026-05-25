@@ -1,5 +1,6 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
+import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import type { MediaNormalizationEntry } from "../media-generation/normalization.types.js";
 export type GeneratedImageAsset = {
     buffer: Buffer;
@@ -35,14 +36,14 @@ export type ImageGenerationSourceImage = {
     metadata?: Record<string, unknown>;
 };
 export type ImageGenerationProviderConfiguredContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
 };
 export type ImageGenerationRequest = {
     provider: string;
     model: string;
     prompt: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     authStore?: AuthProfileStore;
     timeoutMs?: number;
@@ -55,6 +56,7 @@ export type ImageGenerationRequest = {
     background?: ImageGenerationBackground;
     inputImages?: ImageGenerationSourceImage[];
     providerOptions?: ImageGenerationProviderOptions;
+    ssrfPolicy?: SsrFPolicy;
 };
 export type ImageGenerationResult = {
     images: GeneratedImageAsset[];

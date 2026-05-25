@@ -1,6 +1,6 @@
-import type { OpenClawPackageManifest, PluginManifest, PluginManifestChannelConfig } from "./manifest.js";
+import type { KovaPackageManifest, PluginManifest, PluginManifestChannelConfig } from "./manifest.js";
 export declare function collectBundledChannelConfigs(params: {
     pluginDir: string;
     manifest: PluginManifest;
-    packageManifest?: OpenClawPackageManifest;
+    packageManifest?: KovaPackageManifest;
 }): Record<string, PluginManifestChannelConfig> | undefined;

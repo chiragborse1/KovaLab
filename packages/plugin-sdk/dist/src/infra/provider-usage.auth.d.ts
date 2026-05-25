@@ -1,4 +1,4 @@
-import { type OpenClawConfig } from "../config/config.js";
+import { type KovaConfig } from "../config/config.js";
 import type { UsageProviderId } from "./provider-usage.types.js";
 export type ProviderAuth = {
     provider: UsageProviderId;
@@ -9,7 +9,7 @@ export declare function resolveProviderAuths(params: {
     providers: UsageProviderId[];
     auth?: ProviderAuth[];
     agentDir?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     skipPluginAuthWithoutCredentialSource?: boolean;
 }): Promise<ProviderAuth[]>;

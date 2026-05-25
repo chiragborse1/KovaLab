@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { TtsAutoMode } from "../../config/types.tts.js";
 import type { FinalizedMsgContext } from "../templating.js";
 import type { ReplyDispatchKind, ReplyDispatcher } from "./reply-dispatcher.types.js";
@@ -12,7 +12,7 @@ export type AcpDispatchAttemptResult = {
 };
 export declare function tryDispatchAcpReply(params: {
     ctx: FinalizedMsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     dispatcher: ReplyDispatcher;
     runId?: string;
     sessionKey?: string;

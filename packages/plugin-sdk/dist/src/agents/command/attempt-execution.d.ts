@@ -1,6 +1,6 @@
 import type { ThinkLevel, VerboseLevel } from "../../auto-reply/thinking.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { resolveMessageChannel } from "../../utils/message-channel.js";
 import { type EmbeddedPiRunResult } from "../pi-embedded.js";
 import { buildWorkspaceSkillSnapshot } from "../skills.js";
@@ -36,7 +36,7 @@ export declare function persistCliTurnTranscript(params: {
 export declare function runAgentAttempt(params: {
     providerOverride: string;
     modelOverride: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionEntry: SessionEntry | undefined;
     sessionId: string;
     sessionKey: string | undefined;

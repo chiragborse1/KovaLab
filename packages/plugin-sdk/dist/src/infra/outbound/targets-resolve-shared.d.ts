@@ -1,6 +1,6 @@
 import type { ChannelPlugin } from "../../channels/plugins/types.plugin.js";
 import type { ChannelOutboundTargetMode } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 export type OutboundTargetResolution = {
     ok: true;
@@ -13,7 +13,7 @@ export type ResolveOutboundTargetParams = {
     channel: GatewayMessageChannel;
     to?: string;
     allowFrom?: string[];
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     accountId?: string | null;
     mode?: ChannelOutboundTargetMode;
 };

@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function ensureStaticModelAllowlistEntry(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     modelRef: string;
     defaultProvider?: string;
-}): OpenClawConfig;
+}): KovaConfig;

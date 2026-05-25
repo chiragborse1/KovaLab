@@ -2,7 +2,7 @@ import type { ImageSanitizationLimits } from "./image-sanitization.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import type { SandboxFsBridge } from "./sandbox/fs-bridge.js";
 export { REQUIRED_PARAM_GROUPS, assertRequiredParams, getToolParamsRecord, wrapToolParamValidation, } from "./pi-tools.params.js";
-type OpenClawReadToolOptions = {
+type KovaReadToolOptions = {
     modelContextWindowTokens?: number;
     imageSanitization?: ImageSanitizationLimits;
 };
@@ -42,4 +42,5 @@ export declare function createHostWorkspaceWriteTool(root: string, options?: {
 export declare function createHostWorkspaceEditTool(root: string, options?: {
     workspaceOnly?: boolean;
 }): AnyAgentTool;
-export declare function createOpenClawReadTool(base: AnyAgentTool, options?: OpenClawReadToolOptions): AnyAgentTool;
+export declare function createKovaReadTool(base: AnyAgentTool, options?: KovaReadToolOptions): AnyAgentTool;
+export declare function createKovaReadManyTool(readTool: AnyAgentTool): AnyAgentTool;

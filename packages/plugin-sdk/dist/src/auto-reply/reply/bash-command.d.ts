@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext } from "../templating.js";
 import type { ReplyPayload } from "../types.js";
 export declare function handleBashChatCommand(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     sessionKey: string;
     isGroup: boolean;

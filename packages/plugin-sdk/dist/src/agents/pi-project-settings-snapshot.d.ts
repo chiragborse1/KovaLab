@@ -1,5 +1,5 @@
 import type { SettingsManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { BundleMcpServerConfig } from "../plugins/bundle-mcp.js";
 export declare const DEFAULT_EMBEDDED_PI_PROJECT_SETTINGS_POLICY = "sanitize";
 export declare const SANITIZED_PROJECT_PI_KEYS: readonly ["shellPath", "shellCommandPrefix"];
@@ -9,9 +9,9 @@ export type PiSettingsSnapshot = ReturnType<SettingsManager["getGlobalSettings"]
 };
 export declare function loadEnabledBundlePiSettingsSnapshot(params: {
     cwd: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): PiSettingsSnapshot;
-export declare function resolveEmbeddedPiProjectSettingsPolicy(cfg?: OpenClawConfig): EmbeddedPiProjectSettingsPolicy;
+export declare function resolveEmbeddedPiProjectSettingsPolicy(cfg?: KovaConfig): EmbeddedPiProjectSettingsPolicy;
 export declare function buildEmbeddedPiSettingsSnapshot(params: {
     globalSettings: PiSettingsSnapshot;
     pluginSettings?: PiSettingsSnapshot;

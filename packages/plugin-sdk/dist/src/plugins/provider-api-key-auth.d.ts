@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ProviderAuthMethod, ProviderPluginWizardSetup } from "./types.js";
 type ProviderApiKeyAuthMethodOptions = {
     providerId: string;
@@ -18,7 +18,7 @@ type ProviderApiKeyAuthMethodOptions = {
     metadata?: Record<string, string>;
     noteMessage?: string;
     noteTitle?: string;
-    applyConfig?: (cfg: OpenClawConfig) => OpenClawConfig;
+    applyConfig?: (cfg: KovaConfig) => KovaConfig;
 };
 export declare function createProviderApiKeyAuthMethod(params: ProviderApiKeyAuthMethodOptions): ProviderAuthMethod;
 export {};

@@ -1,5 +1,5 @@
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function clearSessionAuthProfileOverride(params: {
     sessionEntry: SessionEntry;
     sessionStore: Record<string, SessionEntry>;
@@ -7,7 +7,7 @@ export declare function clearSessionAuthProfileOverride(params: {
     storePath?: string;
 }): Promise<void>;
 export declare function resolveSessionAuthProfileOverride(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     provider: string;
     agentDir: string;
     sessionEntry?: SessionEntry;

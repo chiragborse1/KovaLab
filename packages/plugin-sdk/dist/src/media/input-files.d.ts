@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import { type PdfExtractedImage } from "./pdf-extract.js";
 export type InputImageContent = PdfExtractedImage;
@@ -97,5 +97,5 @@ export declare function extractImageContentFromSource(source: InputImageSource, 
 export declare function extractFileContentFromSource(params: {
     source: InputFileSource;
     limits: InputFileLimits;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): Promise<InputFileExtractResult>;

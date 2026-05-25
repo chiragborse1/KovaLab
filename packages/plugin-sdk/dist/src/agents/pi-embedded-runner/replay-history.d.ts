@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import type { TranscriptPolicy } from "../transcript-policy.js";
 export declare function normalizeAssistantReplayContent(messages: AgentMessage[]): AgentMessage[];
@@ -14,7 +14,7 @@ export declare function sanitizeSessionHistory(params: {
     modelId?: string;
     provider?: string;
     allowedToolNames?: Iterable<string>;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     model?: ProviderRuntimeModel;
@@ -31,7 +31,7 @@ export declare function validateReplayTurns(params: {
     modelApi?: string | null;
     modelId?: string;
     provider?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     model?: ProviderRuntimeModel;

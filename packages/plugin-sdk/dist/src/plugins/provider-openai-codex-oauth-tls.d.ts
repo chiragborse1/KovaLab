@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 type PreflightFailureKind = "tls-cert" | "network";
 export type OpenAIOAuthTlsPreflightResult = {
     ok: true;
@@ -16,7 +16,7 @@ export declare function formatOpenAIOAuthTlsPreflightFix(result: Exclude<OpenAIO
     ok: true;
 }>): string;
 export declare function noteOpenAIOAuthTlsPrerequisites(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     deep?: boolean;
 }): Promise<void>;
 export {};

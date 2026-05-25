@@ -1,9 +1,9 @@
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../auto-reply/thinking.js";
 import { type SessionEntry, type SessionScope } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { MediaUnderstandingDecision } from "../media-understanding/types.js";
 import { formatTokenCount as formatTokenCountShared } from "../utils/usage-format.js";
-type AgentDefaults = NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>;
+type AgentDefaults = NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]>;
 type AgentConfig = Partial<AgentDefaults> & {
     model?: AgentDefaults["model"] | string;
 };
@@ -17,7 +17,7 @@ type QueueStatus = {
     showDetails?: boolean;
 };
 export type StatusArgs = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agent: AgentConfig;
     agentId?: string;
     runtimeContextTokens?: number;

@@ -1,6 +1,6 @@
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
-export declare function resolveParentForkMaxTokens(cfg: OpenClawConfig): number;
+import type { KovaConfig } from "../../config/types.kova.js";
+export declare function resolveParentForkMaxTokens(cfg: KovaConfig): number;
 export declare function forkSessionFromParent(params: {
     parentEntry: SessionEntry;
     agentId: string;

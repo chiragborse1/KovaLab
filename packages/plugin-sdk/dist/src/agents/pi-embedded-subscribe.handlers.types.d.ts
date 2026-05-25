@@ -44,11 +44,13 @@ export type EmbeddedPiSubscribeState = {
         thinking: boolean;
         final: boolean;
         inlineCode: InlineCodeState;
+        pendingTagFragment?: string;
     };
     partialBlockState: {
         thinking: boolean;
         final: boolean;
         inlineCode: InlineCodeState;
+        pendingTagFragment?: string;
     };
     lastStreamedAssistant?: string;
     lastStreamedAssistantCleaned?: string;
@@ -108,12 +110,17 @@ export type EmbeddedPiSubscribeContext = {
         thinking: boolean;
         final: boolean;
         inlineCode?: InlineCodeState;
+        pendingTagFragment?: string;
+    }, options?: {
+        final?: boolean;
     }) => string;
     emitBlockChunk: (text: string, options?: {
         assistantMessageIndex?: number;
+        final?: boolean;
     }) => void;
     flushBlockReplyBuffer: (options?: {
         assistantMessageIndex?: number;
+        final?: boolean;
     }) => void | Promise<void>;
     emitReasoningStream: (text: string) => void;
     consumeReplyDirectives: (text: string, options?: {

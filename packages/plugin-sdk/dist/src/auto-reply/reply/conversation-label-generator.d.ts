@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type ConversationLabelParams = {
     userMessage: string;
     prompt: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     agentDir?: string;
     maxLength?: number;

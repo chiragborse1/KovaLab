@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { SecretInput } from "../config/types.secrets.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { SecretInputMode } from "./provider-auth-types.js";
@@ -24,7 +24,7 @@ export declare function ensureApiKeyFromOptionEnvOrPrompt(params: {
     token: string | undefined;
     tokenProvider: string | undefined;
     secretInputMode?: SecretInputMode;
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     expectedProviders: string[];
     provider: string;
@@ -38,7 +38,7 @@ export declare function ensureApiKeyFromOptionEnvOrPrompt(params: {
     noteTitle?: string;
 }): Promise<string>;
 export declare function ensureApiKeyFromEnvOrPrompt(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     provider: string;
     envLabel: string;

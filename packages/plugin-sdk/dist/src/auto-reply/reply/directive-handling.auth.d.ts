@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type ModelAuthDetailMode = "compact" | "verbose";
-export declare const resolveAuthLabel: (provider: string, cfg: OpenClawConfig, modelsPath: string, agentDir?: string, mode?: ModelAuthDetailMode) => Promise<{
+export declare const resolveAuthLabel: (provider: string, cfg: KovaConfig, modelsPath: string, agentDir?: string, mode?: ModelAuthDetailMode) => Promise<{
     label: string;
     source: string;
 }>;

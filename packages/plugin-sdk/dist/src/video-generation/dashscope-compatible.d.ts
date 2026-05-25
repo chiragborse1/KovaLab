@@ -1,4 +1,4 @@
-import { postJsonRequest } from "openclaw/plugin-sdk/provider-http";
+import { postJsonRequest } from "getkova/plugin-sdk/provider-http";
 import type { GeneratedVideoAsset, VideoGenerationRequest, VideoGenerationResult, VideoGenerationSourceAsset } from "./types.js";
 export declare const DEFAULT_DASHSCOPE_WAN_VIDEO_MODEL = "wan2.6-t2v";
 export declare const DASHSCOPE_WAN_VIDEO_MODELS: string[];

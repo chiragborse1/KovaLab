@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { BundleLspServerConfig } from "../plugins/bundle-lsp.js";
 export type EmbeddedPiLspConfig = {
     lspServers: Record<string, BundleLspServerConfig>;
@@ -9,5 +9,5 @@ export type EmbeddedPiLspConfig = {
 };
 export declare function loadEmbeddedPiLspConfig(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): EmbeddedPiLspConfig;

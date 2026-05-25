@@ -1,5 +1,5 @@
 import type { NormalizedUsage } from "../agents/usage.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 /**
  * A single tier in a tiered-pricing schedule.  Prices are expressed as
  * USD per-million tokens, just like the flat `ModelCostConfig` fields.
@@ -39,7 +39,7 @@ export declare function formatUsd(value?: number): string | undefined;
 export declare function resolveModelCostConfig(params: {
     provider?: string;
     model?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     allowPluginNormalization?: boolean;
 }): ModelCostConfig | undefined;
 export declare function estimateUsageCost(params: {

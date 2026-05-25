@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 export type UninstallActions = {
     entry: boolean;
@@ -28,7 +28,7 @@ export declare function formatUninstallActionLabels(actions: UninstallActions): 
 export declare function formatUninstallSlotResetPreview(slotKey: "memory" | "contextEngine"): string;
 export type UninstallPluginResult = {
     ok: true;
-    config: OpenClawConfig;
+    config: KovaConfig;
     pluginId: string;
     actions: UninstallActions;
     warnings: string[];
@@ -41,7 +41,7 @@ export type PluginUninstallDirectoryRemoval = {
 };
 export type PluginUninstallPlanResult = {
     ok: true;
-    config: OpenClawConfig;
+    config: KovaConfig;
     pluginId: string;
     actions: UninstallActions;
     directoryRemoval: PluginUninstallDirectoryRemoval | null;
@@ -68,14 +68,14 @@ export declare function resolveUninstallChannelConfigKeys(pluginId: string, opts
  * Returns a new config with the plugin removed from entries, installs, allow, load.paths, slots,
  * and owned channel config.
  */
-export declare function removePluginFromConfig(cfg: OpenClawConfig, pluginId: string, opts?: {
+export declare function removePluginFromConfig(cfg: KovaConfig, pluginId: string, opts?: {
     channelIds?: string[];
 }): {
-    config: OpenClawConfig;
+    config: KovaConfig;
     actions: Omit<UninstallActions, "directory">;
 };
 export type UninstallPluginParams = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     pluginId: string;
     channelIds?: string[];
     deleteFiles?: boolean;

@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { DocumentExtractionRequest, DocumentExtractionResult } from "../plugins/document-extractor-types.js";
 export declare function extractDocumentContent(params: DocumentExtractionRequest & {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): Promise<(DocumentExtractionResult & {
     extractor: string;
 }) | null>;

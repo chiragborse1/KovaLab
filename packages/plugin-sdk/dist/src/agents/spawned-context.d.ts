@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type SpawnedRunMetadata = {
     spawnedBy?: string | null;
     groupId?: string | null;
@@ -23,7 +23,7 @@ export type NormalizedSpawnedRunMetadata = {
 export declare function normalizeSpawnedRunMetadata(value?: SpawnedRunMetadata | null): NormalizedSpawnedRunMetadata;
 export declare function mapToolContextToSpawnedRunMetadata(value?: SpawnedToolContext | null): Pick<NormalizedSpawnedRunMetadata, "groupId" | "groupChannel" | "groupSpace" | "workspaceDir">;
 export declare function resolveSpawnedWorkspaceInheritance(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     targetAgentId?: string;
     requesterSessionKey?: string;
     explicitWorkspaceDir?: string | null;

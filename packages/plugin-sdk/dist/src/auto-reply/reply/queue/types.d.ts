@@ -2,7 +2,7 @@ import type { ExecToolDefaults } from "../../../agents/bash-tools.js";
 import type { CurrentTurnPromptContext } from "../../../agents/pi-embedded-runner/run/params.js";
 import type { SkillSnapshot } from "../../../agents/skills.js";
 import type { SessionEntry } from "../../../config/sessions.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { PromptImageOrderEntry } from "../../../media/prompt-image-order.js";
 import type { InputProvenance } from "../../../sessions/input-provenance.js";
 import type { OriginatingChannelType } from "../../templating.js";
@@ -24,6 +24,7 @@ export type FollowupRun = {
     messageId?: string;
     summaryLine?: string;
     enqueuedAt: number;
+    abortSignal?: AbortSignal;
     images?: Array<{
         type: "image";
         data: string;
@@ -66,7 +67,7 @@ export type FollowupRun = {
         traceAuthorized?: boolean;
         sessionFile: string;
         workspaceDir: string;
-        config: OpenClawConfig;
+        config: KovaConfig;
         skillsSnapshot?: SkillSnapshot;
         provider: string;
         model: string;
@@ -93,10 +94,12 @@ export type FollowupRun = {
         skipProviderRuntimeHints?: boolean;
         silentExpected?: boolean;
         allowEmptyAssistantReplyAsSilent?: boolean;
+        suppressNextUserMessagePersistence?: boolean;
+        suppressTranscriptOnlyAssistantPersistence?: boolean;
     };
 };
 export type ResolveQueueSettingsParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string;
     sessionEntry?: SessionEntry;
     inlineMode?: QueueMode;

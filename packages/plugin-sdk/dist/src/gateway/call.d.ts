@@ -1,6 +1,6 @@
 import { getRuntimeConfig } from "../config/io.js";
 import { resolveConfigPath as resolveConfigPathFromPaths, resolveGatewayPort as resolveGatewayPortFromPaths, resolveStateDir as resolveStateDirFromPaths } from "../config/paths.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { loadOrCreateDeviceIdentity, type DeviceIdentity } from "../infra/device-identity.js";
 import { loadGatewayTlsRuntime } from "../infra/tls/gateway.js";
 import { type GatewayClientMode, type GatewayClientName } from "../utils/message-channel.js";
@@ -15,7 +15,7 @@ type CallGatewayBaseOptions = {
     token?: string;
     password?: string;
     tlsFingerprint?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     method: string;
     params?: unknown;
     expectFinal?: boolean;
@@ -56,7 +56,7 @@ declare const defaultGatewayCallDeps: {
     loadGatewayTlsRuntime: typeof loadGatewayTlsRuntime;
 };
 export declare function buildGatewayConnectionDetails(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     url?: string;
     configPath?: string;
     urlSource?: "cli" | "env";

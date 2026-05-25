@@ -1,5 +1,5 @@
 import type { ChannelApprovalNativeAdapter, ChannelApprovalNativeSurface, ChannelApprovalNativeTarget } from "../channels/plugins/approval-native.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
 import type { ExecApprovalRequest } from "./exec-approvals.js";
 import type { PluginApprovalRequest } from "./plugin-approvals.js";
@@ -15,7 +15,7 @@ export type ChannelApprovalNativeDeliveryPlan = {
     notifyOriginWhenDmOnly: boolean;
 };
 export declare function resolveChannelNativeApprovalDeliveryPlan(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     approvalKind: ChannelApprovalKind;
     request: ApprovalRequest;

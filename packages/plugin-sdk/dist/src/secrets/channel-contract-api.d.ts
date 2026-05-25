@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ResolverContext, SecretDefaults } from "./runtime-shared.js";
 import type { SecretTargetRegistryEntry } from "./target-registry-types.js";
 type UnsupportedSecretRefConfigCandidate = {
@@ -7,7 +7,7 @@ type UnsupportedSecretRefConfigCandidate = {
 };
 type BundledChannelContractApi = {
     collectRuntimeConfigAssignments?: (params: {
-        config: OpenClawConfig;
+        config: KovaConfig;
         defaults: SecretDefaults | undefined;
         context: ResolverContext;
     }) => void;

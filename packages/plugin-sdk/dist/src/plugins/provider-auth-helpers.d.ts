@@ -1,10 +1,10 @@
 import type { OAuthCredentials } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type SecretInput, type SecretRef } from "../config/types.secrets.js";
 import type { SecretInputMode } from "./provider-auth-types.js";
 export type ApiKeyStorageOptions = {
     secretInputMode?: SecretInputMode;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 };
 export type WriteOAuthCredentialsOptions = {
     syncSiblingAgents?: boolean;
@@ -26,12 +26,12 @@ export declare function upsertApiKeyProfile(params: {
     profileId?: string;
     metadata?: Record<string, string>;
 }): string;
-export declare function applyAuthProfileConfig(cfg: OpenClawConfig, params: {
+export declare function applyAuthProfileConfig(cfg: KovaConfig, params: {
     profileId: string;
     provider: string;
     mode: "api_key" | "oauth" | "token";
     email?: string;
     displayName?: string;
     preferProfileFirst?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function writeOAuthCredentials(provider: string, creds: OAuthCredentials, agentDir?: string, options?: WriteOAuthCredentialsOptions): Promise<string>;

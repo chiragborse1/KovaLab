@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type AcpSpawnRuntimeCloseHandle = {
     runtime: {
         close: (params: {
@@ -17,7 +17,7 @@ export type AcpSpawnRuntimeCloseHandle = {
     };
 };
 export declare function cleanupFailedAcpSpawn(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     shouldDeleteSession: boolean;
     deleteTranscript: boolean;

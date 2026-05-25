@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { saveAuthProfileStore, updateAuthProfileStoreWithLock } from "./store.js";
 import type { AuthProfileFailureReason, AuthProfileStore } from "./types.js";
 export { clearExpiredCooldowns, getSoonestCooldownExpiry, isProfileInCooldown, resolveProfileUnusableUntil, } from "./usage-state.js";
@@ -16,8 +16,8 @@ export declare function probeWhamForCooldown(store: AuthProfileStore, profileId:
 /**
  * Infer the most likely reason all candidate profiles are currently unavailable.
  *
- * We prefer explicit active `disabledReason` values (for example billing/auth)
- * over generic cooldown buckets, then fall back to failure-count signals.
+ * We prefer explicit active `disabledReason` / `cooldownReason` values over
+ * stale counter history, then fall back to failure-count signals.
  */
 export declare function resolveProfilesUnavailableReason(params: {
     store: AuthProfileStore;
@@ -44,7 +44,7 @@ export declare function markAuthProfileFailure(params: {
     store: AuthProfileStore;
     profileId: string;
     reason: AuthProfileFailureReason;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
     runId?: string;
     modelId?: string;

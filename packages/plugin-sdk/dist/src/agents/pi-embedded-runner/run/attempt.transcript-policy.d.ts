@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { AgentRuntimePlan } from "../../runtime-plan/types.js";
 import { type TranscriptPolicy } from "../../transcript-policy.js";
 export type AttemptRuntimeModelContext = NonNullable<Parameters<AgentRuntimePlan["transcript"]["resolvePolicy"]>[0]>;
@@ -7,6 +7,6 @@ export declare function resolveAttemptTranscriptPolicy(params: {
     runtimePlanModelContext: AttemptRuntimeModelContext;
     provider: string;
     modelId: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     env?: NodeJS.ProcessEnv;
 }): TranscriptPolicy;

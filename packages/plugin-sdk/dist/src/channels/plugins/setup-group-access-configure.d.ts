@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
 import { type ChannelAccessPolicy } from "./setup-group-access.js";
 export declare function configureChannelAccessWithAllowlist<TResolved>(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: WizardPrompter;
     label: string;
     currentPolicy: ChannelAccessPolicy;
@@ -10,13 +10,13 @@ export declare function configureChannelAccessWithAllowlist<TResolved>(params: {
     placeholder: string;
     updatePrompt: boolean;
     skipAllowlistEntries?: boolean;
-    setPolicy: (cfg: OpenClawConfig, policy: ChannelAccessPolicy) => OpenClawConfig;
+    setPolicy: (cfg: KovaConfig, policy: ChannelAccessPolicy) => KovaConfig;
     resolveAllowlist?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         entries: string[];
     }) => Promise<TResolved>;
     applyAllowlist?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         resolved: TResolved;
-    }) => OpenClawConfig;
-}): Promise<OpenClawConfig>;
+    }) => KovaConfig;
+}): Promise<KovaConfig>;

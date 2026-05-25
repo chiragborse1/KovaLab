@@ -1,5 +1,5 @@
 import type { ChannelApprovalCapability, ChannelApprovalNativeAdapter } from "../channels/plugins/types.adapters.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveApprovalOverGateway } from "./approval-gateway-resolver.js";
 import { CHANNEL_APPROVAL_NATIVE_RUNTIME_CONTEXT_CAPABILITY, createLazyChannelApprovalNativeRuntimeAdapter } from "./approval-handler-adapter-runtime.js";
 import type { ApprovalRequest, ApprovalResolved, ChannelApprovalKind, ChannelApprovalNativeRuntimeAdapter, ChannelApprovalNativeRuntimeSpec } from "./approval-handler-runtime-types.js";
@@ -16,7 +16,7 @@ export declare function createChannelApprovalNativeRuntimeAdapter<TPendingPayloa
 export type ChannelApprovalHandlerRuntimeSpec<TRequest extends ApprovalRequest> = {
     label: string;
     clientDisplayName: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     gatewayUrl?: string;
     eventKinds?: readonly ExecApprovalChannelRuntimeEventKind[];
     channel?: string;
@@ -61,7 +61,7 @@ export declare function createChannelApprovalHandlerFromCapability(params: {
     clientDisplayName: string;
     channel: string;
     channelLabel: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     gatewayUrl?: string;
     context?: unknown;

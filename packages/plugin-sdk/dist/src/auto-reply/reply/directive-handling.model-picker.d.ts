@@ -1,5 +1,5 @@
 import { type ModelRef } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type ModelPickerCatalogEntry = {
     provider: string;
     id: string;
@@ -7,7 +7,7 @@ export type ModelPickerCatalogEntry = {
 };
 export type ModelPickerItem = ModelRef;
 export declare function buildModelPickerItems(catalog: ModelPickerCatalogEntry[]): ModelPickerItem[];
-export declare function resolveProviderEndpointLabel(provider: string, cfg: OpenClawConfig): {
+export declare function resolveProviderEndpointLabel(provider: string, cfg: KovaConfig): {
     endpoint?: string;
     api?: string;
 };

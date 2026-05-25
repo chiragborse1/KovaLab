@@ -1,6 +1,6 @@
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
 import { modelKey } from "../../agents/model-selection.js";
-import { type OpenClawConfig } from "../../config/config.js";
+import { type KovaConfig } from "../../config/config.js";
 import type { AgentModelEntryConfig } from "../../config/types.agent-defaults.js";
 export { normalizeAlias } from "./alias-name.js";
 export { isLocalBaseUrl } from "./list.local-url.js";
@@ -10,22 +10,22 @@ export declare const ensureFlagCompatibility: (opts: {
 }) => void;
 export declare const formatTokenK: (value?: number | null) => string;
 export declare const formatMs: (value?: number | null) => string;
-export declare function loadValidConfigOrThrow(): Promise<OpenClawConfig>;
-export declare function updateConfig(mutator: (cfg: OpenClawConfig) => OpenClawConfig): Promise<OpenClawConfig>;
+export declare function loadValidConfigOrThrow(): Promise<KovaConfig>;
+export declare function updateConfig(mutator: (cfg: KovaConfig) => KovaConfig): Promise<KovaConfig>;
 export declare function resolveModelTarget(params: {
     raw: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): {
     provider: string;
     model: string;
 };
 export declare function resolveModelKeysFromEntries(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     entries: readonly string[];
 }): string[];
-export declare function buildAllowlistSet(cfg: OpenClawConfig): Set<string>;
+export declare function buildAllowlistSet(cfg: KovaConfig): Set<string>;
 export declare function resolveKnownAgentId(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     rawAgentId?: string | null;
 }): string | undefined;
 export type PrimaryFallbackConfig = {
@@ -41,10 +41,10 @@ export declare function mergePrimaryFallbackConfig(existing: PrimaryFallbackConf
     fallbacks?: string[];
 }): PrimaryFallbackConfig;
 export declare function applyDefaultModelPrimaryUpdate(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     modelRaw: string;
     field: "model" | "imageModel";
-}): OpenClawConfig;
+}): KovaConfig;
 export { modelKey };
 export { DEFAULT_MODEL, DEFAULT_PROVIDER };
 /**

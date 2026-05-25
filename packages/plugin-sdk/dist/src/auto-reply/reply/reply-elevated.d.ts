@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 import type { MsgContext } from "../templating.js";
 export { formatElevatedUnavailableMessage } from "./elevated-unavailable.js";
 export declare function resolveElevatedPermissions(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     ctx: MsgContext;
     provider: string;

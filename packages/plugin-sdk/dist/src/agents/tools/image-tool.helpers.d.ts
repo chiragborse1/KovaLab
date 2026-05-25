@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type ToolModelConfig } from "./model-config.helpers.js";
 export type ImageModelConfig = ToolModelConfig;
 export declare function hasImageReasoningOnlyResponse(message: AssistantMessage): boolean;
@@ -15,8 +15,8 @@ export declare function coerceImageAssistantText(params: {
     provider: string;
     model: string;
 }): string;
-export declare function coerceImageModelConfig(cfg?: OpenClawConfig): ImageModelConfig;
+export declare function coerceImageModelConfig(cfg?: KovaConfig): ImageModelConfig;
 export declare function resolveProviderVisionModelFromConfig(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider: string;
 }): string | null;

@@ -2,10 +2,10 @@ import type { GetReplyOptions } from "../auto-reply/get-reply-options.types.js";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
 import { type SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type BlockReplyChunking } from "./pi-embedded-block-chunker.js";
 type RunBtwSideQuestionParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir: string;
     provider: string;
     model: string;

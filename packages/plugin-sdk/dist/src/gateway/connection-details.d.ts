@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 export type GatewayConnectionDetails = {
     url: string;
     urlSource: string;
@@ -7,17 +7,17 @@ export type GatewayConnectionDetails = {
     message: string;
 };
 type GatewayConnectionDetailResolvers = {
-    getRuntimeConfig?: () => OpenClawConfig;
+    getRuntimeConfig?: () => KovaConfig;
     resolveConfigPath?: (env: NodeJS.ProcessEnv) => string;
-    resolveGatewayPort?: (cfg?: OpenClawConfig, env?: NodeJS.ProcessEnv) => number;
+    resolveGatewayPort?: (cfg?: KovaConfig, env?: NodeJS.ProcessEnv) => number;
 };
 export declare function readGatewayUrlEnv(env?: NodeJS.ProcessEnv): {
     url: string;
-    source: "KOVA_GATEWAY_URL" | "OPENCLAW_GATEWAY_URL";
+    source: "KOVA_GATEWAY_URL";
 } | undefined;
 export declare function resolveAllowInsecurePrivateWs(env?: NodeJS.ProcessEnv): boolean;
 export declare function buildGatewayConnectionDetailsWithResolvers(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     url?: string;
     configPath?: string;
     urlSource?: "cli" | "env";

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type MediaGenerationTaskHandle } from "./media-generate-background-shared.js";
 export type MusicGenerationTaskHandle = MediaGenerationTaskHandle;
 declare const musicGenerationTaskLifecycle: {
@@ -25,7 +25,7 @@ declare const musicGenerationTaskLifecycle: {
         error: unknown;
     }): void;
     wakeTaskCompletion(completionParams: {
-        config?: OpenClawConfig;
+        config?: KovaConfig;
         handle: MediaGenerationTaskHandle | null;
         status: "ok" | "error";
         statusLabel: string;
@@ -39,7 +39,7 @@ export declare const recordMusicGenerationTaskProgress: (...params: Parameters<t
 export declare const completeMusicGenerationTaskRun: (...params: Parameters<typeof musicGenerationTaskLifecycle.completeTaskRun>) => void;
 export declare const failMusicGenerationTaskRun: (...params: Parameters<typeof musicGenerationTaskLifecycle.failTaskRun>) => void;
 export declare function wakeMusicGenerationTaskCompletion(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     handle: MusicGenerationTaskHandle | null;
     status: "ok" | "error";
     statusLabel: string;

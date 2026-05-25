@@ -1,12 +1,12 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelAccountSnapshot } from "./types.core.js";
 export declare function createAccountListHelpers(channelKey: string, options?: {
     normalizeAccountId?: (id: string) => string;
     allowUnlistedDefaultAccount?: boolean;
 }): {
-    listConfiguredAccountIds: (cfg: OpenClawConfig) => string[];
-    listAccountIds: (cfg: OpenClawConfig) => string[];
-    resolveDefaultAccountId: (cfg: OpenClawConfig) => string;
+    listConfiguredAccountIds: (cfg: KovaConfig) => string[];
+    listAccountIds: (cfg: KovaConfig) => string[];
+    resolveDefaultAccountId: (cfg: KovaConfig) => string;
 };
 export declare function listCombinedAccountIds(params: {
     configuredAccountIds: Iterable<string>;

@@ -62,7 +62,7 @@ export declare function deferGatewayRestartUntilIdle(opts: {
     maxWaitMs?: number;
     reason?: string;
 }): void;
-export declare function triggerOpenClawRestart(): RestartAttempt;
+export declare function triggerKovaRestart(): RestartAttempt;
 export type ScheduledRestart = {
     ok: boolean;
     pid: number;

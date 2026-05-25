@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function collectConfiguredAgentHarnessRuntimes(config: OpenClawConfig, env: NodeJS.ProcessEnv): string[];
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function collectConfiguredAgentHarnessRuntimes(config: KovaConfig, env: NodeJS.ProcessEnv): string[];

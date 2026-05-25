@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
 import type { PluginManifestActivationCapability } from "./manifest.js";
@@ -38,7 +38,7 @@ export type PluginActivationPlan = {
 };
 type ResolveManifestActivationPlanParams = {
     trigger: PluginActivationPlannerTrigger;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     cache?: boolean;

@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function listAgentWorkspaceDirs(cfg: OpenClawConfig): string[];
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function listAgentWorkspaceDirs(cfg: KovaConfig): string[];

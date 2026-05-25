@@ -5,8 +5,8 @@ import type { JsonSchemaObject } from "../shared/json-schema.types.js";
 import { type PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 import type { PluginConfigUiHint } from "./manifest-types.js";
 import type { PluginKind } from "./plugin-kind.types.js";
-export declare const PLUGIN_MANIFEST_FILENAME = "openclaw.plugin.json";
-export declare const PLUGIN_MANIFEST_FILENAMES: readonly ["openclaw.plugin.json"];
+export declare const PLUGIN_MANIFEST_FILENAME = "kova.plugin.json";
+export declare const PLUGIN_MANIFEST_FILENAMES: readonly ["kova.plugin.json"];
 export declare const MAX_PLUGIN_MANIFEST_BYTES: number;
 export type PluginManifestChannelConfig = {
     schema: JsonSchemaObject;
@@ -139,7 +139,7 @@ export type PluginManifestSetup = {
     requiresRuntime?: boolean;
 };
 export type PluginManifestQaRunner = {
-    /** Subcommand mounted beneath `openclaw qa`, for example `matrix`. */
+    /** Subcommand mounted beneath `kova qa`, for example `matrix`. */
     commandName: string;
     /** Optional user-facing help text for fallback host stubs. */
     description?: string;
@@ -405,34 +405,33 @@ export type PluginPackageChannelCliOption = {
 };
 export type PluginPackageInstall = {
     npmSpec?: string;
-    clawhubSpec?: string;
     localPath?: string;
-    defaultChoice?: "npm" | "clawhub" | "local";
+    defaultChoice?: "npm" | "local";
     minHostVersion?: string;
     expectedIntegrity?: string;
     allowInvalidConfigRecovery?: boolean;
 };
-export type OpenClawPackageStartup = {
+export type KovaPackageStartup = {
     /**
      * Opt-in for channel plugins whose `setupEntry` fully covers the gateway
      * startup surface needed before the server starts listening.
      */
     deferConfiguredChannelFullLoadUntilAfterListen?: boolean;
 };
-export type OpenClawPackageSetupFeatures = {
+export type KovaPackageSetupFeatures = {
     configPromotion?: boolean;
     legacyStateMigrations?: boolean;
     legacySessionSurfaces?: boolean;
 };
-export type OpenClawPackageManifest = {
+export type KovaPackageManifest = {
     extensions?: string[];
     runtimeExtensions?: string[];
     setupEntry?: string;
     runtimeSetupEntry?: string;
-    setupFeatures?: OpenClawPackageSetupFeatures;
+    setupFeatures?: KovaPackageSetupFeatures;
     channel?: PluginPackageChannel;
     install?: PluginPackageInstall;
-    startup?: OpenClawPackageStartup;
+    startup?: KovaPackageStartup;
 };
 export declare const DEFAULT_PLUGIN_ENTRY_CANDIDATES: readonly ["index.ts", "index.js", "index.mjs", "index.cjs"];
 export type PackageExtensionResolution = {
@@ -450,6 +449,6 @@ export type PackageManifest = {
     name?: string;
     version?: string;
     description?: string;
-} & Partial<Record<ManifestKey, OpenClawPackageManifest>>;
-export declare function getPackageManifestMetadata(manifest: PackageManifest | undefined): OpenClawPackageManifest | undefined;
+} & Partial<Record<ManifestKey, KovaPackageManifest>>;
+export declare function getPackageManifestMetadata(manifest: PackageManifest | undefined): KovaPackageManifest | undefined;
 export declare function resolvePackageExtensionEntries(manifest: PackageManifest | undefined): PackageExtensionResolution;

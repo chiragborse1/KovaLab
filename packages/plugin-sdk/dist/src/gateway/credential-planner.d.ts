@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
 export type GatewayCredentialInputPath = "gateway.auth.token" | "gateway.auth.password" | "gateway.remote.token" | "gateway.remote.password";
 export type GatewayConfiguredCredentialInput = {
@@ -31,9 +31,9 @@ export type GatewayCredentialPlan = {
     remotePasswordFallbackActive: boolean;
     remotePasswordActive: boolean;
 };
-type GatewaySecretDefaults = NonNullable<OpenClawConfig["secrets"]>["defaults"];
+type GatewaySecretDefaults = NonNullable<KovaConfig["secrets"]>["defaults"];
 export declare const trimToUndefined: typeof normalizeOptionalString;
-export declare function readGatewayCredentialEnv(env: NodeJS.ProcessEnv, modernKey: "KOVA_GATEWAY_TOKEN" | "KOVA_GATEWAY_PASSWORD", legacyKey: "OPENCLAW_GATEWAY_TOKEN" | "OPENCLAW_GATEWAY_PASSWORD"): string | undefined;
+export declare function readGatewayCredentialEnv(env: NodeJS.ProcessEnv, modernKey: "KOVA_GATEWAY_TOKEN" | "KOVA_GATEWAY_PASSWORD"): string | undefined;
 /**
  * Like trimToUndefined but also rejects unresolved env var placeholders (e.g. `${VAR}`).
  * This prevents literal placeholder strings like `${KOVA_GATEWAY_TOKEN}` from being
@@ -45,7 +45,7 @@ export declare function trimCredentialToUndefined(value: unknown): string | unde
 export declare function hasGatewayTokenEnvCandidate(env?: NodeJS.ProcessEnv): boolean;
 export declare function hasGatewayPasswordEnvCandidate(env?: NodeJS.ProcessEnv): boolean;
 export declare function createGatewayCredentialPlan(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     defaults?: GatewaySecretDefaults;
 }): GatewayCredentialPlan;

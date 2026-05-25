@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { TaskFlowRecord } from "./task-flow-registry.types.js";
 import type { TaskRegistryControlRuntime } from "./task-registry-control.types.js";
 import type { TaskDeliveryState, TaskDeliveryStatus, TaskEventRecord, TaskNotifyPolicy, TaskRecord, TaskRegistrySummary, TaskRegistrySnapshot, TaskRuntime, TaskScopeKind, TaskStatus, TaskTerminalOutcome } from "./task-registry.types.js";
@@ -135,7 +135,7 @@ export declare function linkTaskToFlowById(params: {
     flowId: string;
 }): TaskRecord | null;
 export declare function cancelTaskById(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     taskId: string;
 }): Promise<{
     found: boolean;

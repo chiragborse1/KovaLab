@@ -76,7 +76,7 @@ export declare function resolvePluginLoaderJitiConfig(params: {
 };
 export declare function isBundledPluginExtensionPath(params: {
     modulePath: string;
-    openClawPackageRoot: string;
+    kovaPackageRoot: string;
     bundledPluginsDir?: string;
 }): boolean;
 export {};

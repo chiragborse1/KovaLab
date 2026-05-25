@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { type InstalledPluginIndex, type InstalledPluginIndexRecord, type LoadInstalledPluginIndexParams, type RefreshInstalledPluginIndexParams } from "./installed-plugin-index-types.js";
 export { INSTALLED_PLUGIN_INDEX_MIGRATION_VERSION, INSTALLED_PLUGIN_INDEX_VERSION, INSTALLED_PLUGIN_INDEX_WARNING, } from "./installed-plugin-index-types.js";
 export type { InstalledPluginIndex, InstalledPluginIndexRecord, InstalledPluginIndexRefreshReason, InstalledPluginInstallRecordInfo, InstalledPluginPackageChannelInfo, InstalledPluginStartupInfo, LoadInstalledPluginIndexParams, RefreshInstalledPluginIndexParams, } from "./installed-plugin-index-types.js";
@@ -8,6 +8,6 @@ export { resolveInstalledPluginIndexPolicyHash } from "./installed-plugin-index-
 export declare function loadInstalledPluginIndex(params?: LoadInstalledPluginIndexParams): InstalledPluginIndex;
 export declare function refreshInstalledPluginIndex(params: RefreshInstalledPluginIndexParams): InstalledPluginIndex;
 export declare function listInstalledPluginRecords(index: InstalledPluginIndex): readonly InstalledPluginIndexRecord[];
-export declare function listEnabledInstalledPluginRecords(index: InstalledPluginIndex, config?: OpenClawConfig): readonly InstalledPluginIndexRecord[];
+export declare function listEnabledInstalledPluginRecords(index: InstalledPluginIndex, config?: KovaConfig): readonly InstalledPluginIndexRecord[];
 export declare function getInstalledPluginRecord(index: InstalledPluginIndex, pluginId: string): InstalledPluginIndexRecord | undefined;
-export declare function isInstalledPluginEnabled(index: InstalledPluginIndex, pluginId: string, config?: OpenClawConfig): boolean;
+export declare function isInstalledPluginEnabled(index: InstalledPluginIndex, pluginId: string, config?: KovaConfig): boolean;

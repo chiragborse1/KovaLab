@@ -1,6 +1,6 @@
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ContextEngine } from "../../context-engine/types.js";
 import { buildEmbeddedCompactionRuntimeContext } from "../pi-embedded-runner/compaction-runtime-context.js";
 import { runContextEngineMaintenance as runContextEngineMaintenanceImpl } from "../pi-embedded-runner/context-engine-maintenance.js";
@@ -22,11 +22,11 @@ type SettingsManagerLike = {
 };
 type CliCompactionDeps = {
     openSessionManager: (sessionFile: string) => SessionManagerLike;
-    resolveContextEngine: (cfg: OpenClawConfig) => Promise<ContextEngine>;
+    resolveContextEngine: (cfg: KovaConfig) => Promise<ContextEngine>;
     createPreparedEmbeddedPiSettingsManager: (params: {
         cwd: string;
         agentDir: string;
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
         contextTokenBudget?: number;
     }) => SettingsManagerLike | Promise<SettingsManagerLike>;
     applyPiAutoCompactionGuard: (params: {
@@ -42,7 +42,7 @@ declare const cliCompactionDeps: CliCompactionDeps;
 export declare function setCliCompactionTestDeps(overrides: Partial<typeof cliCompactionDeps>): void;
 export declare function resetCliCompactionTestDeps(): void;
 export declare function runCliTurnCompactionLifecycle(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionId: string;
     sessionKey: string;
     sessionEntry: SessionEntry | undefined;

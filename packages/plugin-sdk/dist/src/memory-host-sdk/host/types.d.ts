@@ -95,6 +95,7 @@ export interface MemorySearchManager {
         sessionKey?: string;
         qmdSearchModeOverride?: "query" | "search" | "vsearch";
         onDebug?: (debug: MemorySearchRuntimeDebug) => void;
+        deferSearchSync?: boolean;
         sources?: MemorySource[];
     }): Promise<MemorySearchResult[]>;
     readFile(params: {

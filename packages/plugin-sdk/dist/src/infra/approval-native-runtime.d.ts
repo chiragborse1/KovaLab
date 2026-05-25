@@ -1,5 +1,5 @@
 import type { ChannelApprovalNativeAdapter } from "../channels/plugins/approval-native.types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ChannelApprovalNativePlannedTarget, type ChannelApprovalNativeDeliveryPlan } from "./approval-native-delivery.js";
 import type { ChannelNativeApprovalDeliveryCallbacks, ChannelNativeApprovalTransportSpec, PreparedChannelNativeApprovalTarget } from "./approval-native-runtime-types.js";
 import type { ChannelApprovalKind } from "./approval-types.js";
@@ -17,7 +17,7 @@ export type ChannelNativeApprovalPlanDeliveryResult<TPendingEntry> = {
     deliveredTargets: ChannelApprovalNativePlannedTarget[];
 };
 export declare function deliverApprovalRequestViaChannelNativePlan<TPreparedTarget, TPendingEntry, TRequest extends ApprovalRequest = ApprovalRequest>(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     approvalKind: ChannelApprovalKind;
     request: TRequest;

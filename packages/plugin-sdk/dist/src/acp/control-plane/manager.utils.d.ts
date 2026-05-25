@@ -1,5 +1,5 @@
 import type { SessionAcpMeta } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { AcpRuntimeError } from "../runtime/errors.js";
 import type { AcpSessionResolution } from "./manager.types.js";
 export declare function resolveAcpAgentFromSessionKey(sessionKey: string, fallback?: string): string;
@@ -8,7 +8,7 @@ export declare function resolveAcpSessionResolutionError(resolution: AcpSessionR
 export declare function requireReadySessionMeta(resolution: AcpSessionResolution): SessionAcpMeta;
 export declare function normalizeSessionKey(sessionKey: string): string;
 export declare function canonicalizeAcpSessionKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
 }): string;
 export declare function normalizeActorKey(sessionKey: string): string;
@@ -17,5 +17,5 @@ export declare function createUnsupportedControlError(params: {
     backend: string;
     control: string;
 }): AcpRuntimeError;
-export declare function resolveRuntimeIdleTtlMs(cfg: OpenClawConfig): number;
+export declare function resolveRuntimeIdleTtlMs(cfg: KovaConfig): number;
 export declare function hasLegacyAcpIdentityProjection(meta: SessionAcpMeta): boolean;

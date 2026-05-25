@@ -1,20 +1,24 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SecretInput } from "../../config/types.secrets.js";
 import type { EmbeddingInput } from "./embedding-inputs.js";
 export type EmbeddingProvider = {
     id: string;
     model: string;
     maxInputTokens?: number;
-    embedQuery: (text: string) => Promise<number[]>;
-    embedBatch: (texts: string[]) => Promise<number[][]>;
-    embedBatchInputs?: (inputs: EmbeddingInput[]) => Promise<number[][]>;
+    embedQuery: (text: string, options?: EmbeddingProviderCallOptions) => Promise<number[]>;
+    embedBatch: (texts: string[], options?: EmbeddingProviderCallOptions) => Promise<number[][]>;
+    embedBatchInputs?: (inputs: EmbeddingInput[], options?: EmbeddingProviderCallOptions) => Promise<number[][]>;
+    close?: () => Promise<void> | void;
+};
+export type EmbeddingProviderCallOptions = {
+    signal?: AbortSignal;
 };
 export type EmbeddingProviderId = string;
 export type EmbeddingProviderRequest = string;
 export type EmbeddingProviderFallback = string;
 export type GeminiTaskType = "RETRIEVAL_QUERY" | "RETRIEVAL_DOCUMENT" | "SEMANTIC_SIMILARITY" | "CLASSIFICATION" | "CLUSTERING" | "QUESTION_ANSWERING" | "FACT_VERIFICATION";
 export type EmbeddingProviderOptions = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     provider?: EmbeddingProviderRequest;
     remote?: {

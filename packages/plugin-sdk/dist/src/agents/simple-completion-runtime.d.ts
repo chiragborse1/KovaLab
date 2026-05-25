@@ -1,5 +1,5 @@
 import { complete, type Api, type Model } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ResolvedProviderAuth } from "./model-auth.js";
 type AllowedMissingApiKeyMode = ResolvedProviderAuth["mode"];
 export type SimpleCompletionModelOptions = {
@@ -29,12 +29,12 @@ export type PreparedSimpleCompletionModelForAgent = {
     auth?: ResolvedProviderAuth;
 };
 export declare function resolveSimpleCompletionSelectionForAgent(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     modelRef?: string;
 }): AgentSimpleCompletionSelection | null;
 export declare function prepareSimpleCompletionModel(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     modelId: string;
     agentDir?: string;
@@ -43,7 +43,7 @@ export declare function prepareSimpleCompletionModel(params: {
     allowMissingApiKeyModes?: ReadonlyArray<AllowedMissingApiKeyMode>;
 }): Promise<PreparedSimpleCompletionModel>;
 export declare function prepareSimpleCompletionModelForAgent(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     modelRef?: string;
     preferredProfile?: string;

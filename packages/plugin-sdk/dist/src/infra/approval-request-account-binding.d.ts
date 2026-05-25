@@ -1,5 +1,5 @@
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExecApprovalRequest } from "./exec-approvals.js";
 import type { PluginApprovalRequest } from "./plugin-approvals.js";
 export type ApprovalRequestLike = ExecApprovalRequest | PluginApprovalRequest;
@@ -8,21 +8,21 @@ export type PersistedApprovalRequestSessionEntry = {
     entry: SessionEntry;
 };
 export declare function resolvePersistedApprovalRequestSessionEntry(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
 }): PersistedApprovalRequestSessionEntry | null;
 export declare function resolveApprovalRequestAccountId(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
     channel?: string | null;
 }): string | null;
 export declare function resolveApprovalRequestChannelAccountId(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
     channel: string;
 }): string | null;
 export declare function doesApprovalRequestMatchChannelAccount(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
     channel: string;
     accountId?: string | null;

@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { PluginLoadOptions } from "../loader.js";
 import type { PluginLogger } from "../types.js";
 export type PluginRuntimeLoadContext = {
-    rawConfig: OpenClawConfig;
-    config: OpenClawConfig;
-    activationSourceConfig: OpenClawConfig;
+    rawConfig: KovaConfig;
+    config: KovaConfig;
+    activationSourceConfig: KovaConfig;
     autoEnabledReasons: Readonly<Record<string, string[]>>;
     workspaceDir: string | undefined;
     env: NodeJS.ProcessEnv;
@@ -12,8 +12,8 @@ export type PluginRuntimeLoadContext = {
 };
 export type PluginRuntimeResolvedLoadValues = Pick<PluginLoadOptions, "config" | "activationSourceConfig" | "autoEnabledReasons" | "workspaceDir" | "env" | "logger">;
 export type PluginRuntimeLoadContextOptions = {
-    config?: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
+    config?: KovaConfig;
+    activationSourceConfig?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     workspaceDir?: string;
     logger?: PluginLogger;

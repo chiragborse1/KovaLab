@@ -1,5 +1,5 @@
 /**
- * Hook system for OpenClaw agent events
+ * Hook system for Kova agent events
  *
  * Provides an extensible event-driven hook system for agent events
  * like command processing, session lifecycle, etc.
@@ -7,14 +7,14 @@
 import type { WorkspaceBootstrapFile } from "../agents/workspace.js";
 import type { CliDeps } from "../cli/outbound-send-deps.js";
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SessionsPatchParams } from "../gateway/protocol/schema/types.js";
 import type { InternalHookEvent, InternalHookEventType, InternalHookHandler } from "./internal-hook-types.js";
 export type { InternalHookEvent, InternalHookEventType, InternalHookHandler };
 export type AgentBootstrapHookContext = {
     workspaceDir: string;
     bootstrapFiles: WorkspaceBootstrapFile[];
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
     sessionId?: string;
     agentId?: string;
@@ -25,7 +25,7 @@ export type AgentBootstrapHookEvent = InternalHookEvent & {
     context: AgentBootstrapHookContext;
 };
 export type GatewayStartupHookContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     deps?: CliDeps;
     workspaceDir?: string;
 };
@@ -141,7 +141,7 @@ export type MessagePreprocessedHookEvent = InternalHookEvent & {
 export type SessionPatchHookContext = {
     sessionEntry: SessionEntry;
     patch: SessionsPatchParams;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 };
 export type SessionPatchHookEvent = InternalHookEvent & {
     type: "session";

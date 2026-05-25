@@ -1,5 +1,5 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { MediaUnderstandingConfig } from "../config/types.tools.js";
 import type { ActiveMediaModel } from "./active-model.types.js";
 import { MediaAttachmentCache } from "./attachments.js";
@@ -11,20 +11,20 @@ export type RunCapabilityResult = {
     outputs: MediaUnderstandingOutput[];
     decision: MediaUnderstandingDecision;
 };
-export declare function buildProviderRegistry(overrides?: Record<string, MediaUnderstandingProvider>, cfg?: OpenClawConfig): ProviderRegistry;
+export declare function buildProviderRegistry(overrides?: Record<string, MediaUnderstandingProvider>, cfg?: KovaConfig): ProviderRegistry;
 export declare function resolveMediaAttachmentLocalRoots(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: MsgContext;
 }): readonly string[];
 export declare function clearMediaUnderstandingBinaryCacheForTests(): void;
 export declare function resolveAutoImageModel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     activeModel?: ActiveMediaModel;
 }): Promise<ActiveMediaModel | null>;
 export declare function runCapability(params: {
     capability: MediaUnderstandingCapability;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: MsgContext;
     attachments: MediaAttachmentCache;
     media: MediaAttachment[];

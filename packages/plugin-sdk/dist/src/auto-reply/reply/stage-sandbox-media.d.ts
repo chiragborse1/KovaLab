@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 export declare function stageSandboxMedia(params: {
     ctx: MsgContext;
     sessionCtx: TemplateContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey?: string;
     workspaceDir: string;
 }): Promise<void>;

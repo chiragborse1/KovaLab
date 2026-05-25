@@ -1,5 +1,5 @@
 import { type SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { errorShape } from "./protocol/index.js";
 import { type ArchivedSessionTranscript } from "./session-transcript-files.fs.js";
 import { resolveGatewaySessionStoreTarget } from "./session-utils.js";
@@ -18,7 +18,7 @@ export declare function archiveSessionTranscriptsForSessionDetailed(params: {
     reason: "reset" | "deleted";
 }): ArchivedSessionTranscript[];
 export declare function emitGatewaySessionEndPluginHook(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     sessionId?: string;
     storePath: string;
@@ -30,7 +30,7 @@ export declare function emitGatewaySessionEndPluginHook(params: {
     nextSessionKey?: string;
 }): void;
 export declare function emitGatewaySessionStartPluginHook(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     sessionId?: string;
     resumedFrom?: string;
@@ -41,7 +41,7 @@ export declare function emitSessionUnboundLifecycleEvent(params: {
     emitHooks?: boolean;
 }): Promise<void>;
 export declare function cleanupSessionBeforeMutation(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     key: string;
     target: ReturnType<typeof resolveGatewaySessionStoreTarget>;
     entry: SessionEntry | undefined;

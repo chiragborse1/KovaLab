@@ -1,19 +1,19 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function canonicalizeSessionKeyForAgent(agentId: string, key: string): string;
 export declare function resolveSessionStoreKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     storeAgentId?: string;
 }): string;
-export declare function resolveSessionStoreAgentId(cfg: OpenClawConfig, canonicalKey: string): string;
+export declare function resolveSessionStoreAgentId(cfg: KovaConfig, canonicalKey: string): string;
 export declare function resolveStoredSessionKeyForAgentStore(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     sessionKey: string;
 }): string;
 export declare function resolveStoredSessionOwnerAgentId(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     sessionKey: string;
 }): string | null;
-export declare function canonicalizeSpawnedByForAgent(cfg: OpenClawConfig, agentId: string, spawnedBy?: string): string | undefined;
+export declare function canonicalizeSpawnedByForAgent(cfg: KovaConfig, agentId: string, spawnedBy?: string): string | undefined;

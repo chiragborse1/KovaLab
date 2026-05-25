@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "./types.openclaw.js";
-export declare function isChannelConfigured(cfg: OpenClawConfig, channelId: string, env?: NodeJS.ProcessEnv): boolean;
+import type { KovaConfig } from "./types.kova.js";
+export declare function isChannelConfigured(cfg: KovaConfig, channelId: string, env?: NodeJS.ProcessEnv): boolean;

@@ -1,8 +1,8 @@
 import type { MessagingToolSend } from "../../agents/pi-embedded-messaging.types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ReplyPayload } from "../types.js";
 export declare function resolveFollowupDeliveryPayloads(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     payloads: ReplyPayload[];
     messageProvider?: string;
     originatingAccountId?: string;

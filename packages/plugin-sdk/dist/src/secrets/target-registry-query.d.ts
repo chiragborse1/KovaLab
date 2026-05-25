@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { DiscoveredConfigSecretTarget, ResolvedPlanTarget, SecretTargetRegistryEntry } from "./target-registry-types.js";
 export declare function listSecretTargetRegistryEntries(): SecretTargetRegistryEntry[];
 export declare function isKnownSecretTargetType(value: unknown): value is string;
@@ -10,8 +10,8 @@ export declare function resolvePlanTargetAgainstRegistry(candidate: {
     accountId?: string;
 }): ResolvedPlanTarget | null;
 export declare function resolveConfigSecretTargetByPath(pathSegments: string[]): ResolvedPlanTarget | null;
-export declare function discoverConfigSecretTargets(config: OpenClawConfig): DiscoveredConfigSecretTarget[];
-export declare function discoverConfigSecretTargetsByIds(config: OpenClawConfig, targetIds?: Iterable<string>): DiscoveredConfigSecretTarget[];
+export declare function discoverConfigSecretTargets(config: KovaConfig): DiscoveredConfigSecretTarget[];
+export declare function discoverConfigSecretTargetsByIds(config: KovaConfig, targetIds?: Iterable<string>): DiscoveredConfigSecretTarget[];
 export declare function discoverAuthProfileSecretTargets(store: unknown): DiscoveredConfigSecretTarget[];
 export declare function discoverAuthProfileSecretTargetsByIds(store: unknown, targetIds?: Iterable<string>): DiscoveredConfigSecretTarget[];
 export declare function listAuthProfileSecretTargetEntries(): SecretTargetRegistryEntry[];

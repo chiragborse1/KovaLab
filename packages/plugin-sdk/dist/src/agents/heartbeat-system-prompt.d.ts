@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function shouldIncludeHeartbeatGuidanceForSystemPrompt(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     defaultAgentId?: string;
 }): boolean;
 export declare function resolveHeartbeatPromptForSystemPrompt(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     defaultAgentId?: string;
 }): string | undefined;

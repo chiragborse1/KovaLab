@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../config/types.js";
-export declare function resolveImageCapableConfigProviderIds(cfg?: OpenClawConfig): string[];
+import type { KovaConfig } from "../config/types.js";
+export declare function resolveImageCapableConfigProviderIds(cfg?: KovaConfig): string[];

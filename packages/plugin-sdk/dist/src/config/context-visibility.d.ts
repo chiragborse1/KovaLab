@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./config.js";
+import type { KovaConfig } from "./config.js";
 import type { ContextVisibilityMode } from "./types.base.js";
 export type ContextVisibilityDefaultsConfig = {
     channels?: {
@@ -9,7 +9,7 @@ export type ContextVisibilityDefaultsConfig = {
 };
 export declare function resolveDefaultContextVisibility(cfg: ContextVisibilityDefaultsConfig): ContextVisibilityMode | undefined;
 export declare function resolveChannelContextVisibilityMode(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string | null;
     configuredContextVisibility?: ContextVisibilityMode;

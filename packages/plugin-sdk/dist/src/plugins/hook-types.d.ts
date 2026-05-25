@@ -2,7 +2,7 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import type { ReplyDispatchKind, ReplyDispatcher } from "../auto-reply/reply/reply-dispatcher.types.js";
 import type { FinalizedMsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { TtsAutoMode } from "../config/types.tts.js";
 import type { DiagnosticTraceContext } from "../infra/diagnostic-trace-context.js";
 import type { PluginHookBeforeAgentStartEvent, PluginHookBeforeAgentStartResult, PluginHookBeforeModelResolveEvent, PluginHookBeforeModelResolveResult, PluginHookBeforePromptBuildEvent, PluginHookBeforePromptBuildResult } from "./hook-before-agent-start.types.js";
@@ -23,6 +23,7 @@ export type PluginHookAgentContext = {
     runId?: string;
     jobId?: string;
     trace?: DiagnosticTraceContext;
+    surface?: string;
     agentId?: string;
     sessionKey?: string;
     sessionId?: string;
@@ -191,7 +192,7 @@ export type PluginHookReplyDispatchEvent = {
     isTailDispatch?: boolean;
 };
 export type PluginHookReplyDispatchContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     dispatcher: ReplyDispatcher;
     abortSignal?: AbortSignal;
     onReplyStart?: () => Promise<void> | void;
@@ -368,7 +369,7 @@ export type PluginHookSubagentEndedEvent = {
 };
 export type PluginHookGatewayContext = {
     port?: number;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     getCron?: () => PluginHookGatewayCronService | undefined;
 };
@@ -538,5 +539,6 @@ export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = 
     hookName: K;
     handler: PluginHookHandlerMap[K];
     priority?: number;
+    timeoutMs?: number;
     source: string;
 };

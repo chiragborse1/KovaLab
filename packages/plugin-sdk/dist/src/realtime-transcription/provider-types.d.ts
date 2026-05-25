@@ -1,12 +1,12 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type RealtimeTranscriptionProviderId = string;
 export type RealtimeTranscriptionProviderConfig = Record<string, unknown>;
 export type RealtimeTranscriptionProviderResolveConfigContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     rawConfig: RealtimeTranscriptionProviderConfig;
 };
 export type RealtimeTranscriptionProviderConfiguredContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providerConfig: RealtimeTranscriptionProviderConfig;
 };
 export type RealtimeTranscriptionSessionCallbacks = {
@@ -16,6 +16,7 @@ export type RealtimeTranscriptionSessionCallbacks = {
     onError?: (error: Error) => void;
 };
 export type RealtimeTranscriptionSessionCreateRequest = RealtimeTranscriptionSessionCallbacks & {
+    cfg?: KovaConfig;
     providerConfig: RealtimeTranscriptionProviderConfig;
 };
 export type RealtimeTranscriptionSession = {

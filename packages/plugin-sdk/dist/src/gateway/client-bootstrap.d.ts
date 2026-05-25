@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExplicitGatewayAuth } from "./credentials.js";
 export declare function resolveGatewayUrlOverrideSource(urlSource: string): "cli" | "env" | undefined;
 export declare function resolveGatewayClientBootstrap(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     gatewayUrl?: string;
     explicitAuth?: ExplicitGatewayAuth;
     env?: NodeJS.ProcessEnv;

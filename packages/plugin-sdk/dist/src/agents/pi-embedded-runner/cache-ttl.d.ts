@@ -1,4 +1,4 @@
-export declare const CACHE_TTL_CUSTOM_TYPE = "openclaw.cache-ttl";
+export declare const CACHE_TTL_CUSTOM_TYPE = "kova.cache-ttl";
 export type CacheTtlEntryData = {
     timestamp: number;
     provider?: string;

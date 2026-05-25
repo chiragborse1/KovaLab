@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelCatalogEntry } from "./model-catalog.types.js";
 export { resolveThinkingDefault } from "./model-thinking-default.js";
 import { type ModelRef, findNormalizedProviderKey, findNormalizedProviderValue, legacyModelKey, modelKey, normalizeModelRef, normalizeProviderId, normalizeProviderIdForAuth, parseModelRef } from "./model-selection-normalize.js";
@@ -45,14 +45,14 @@ export declare function normalizeStoredOverrideModel(params: {
     providerOverride?: string;
     modelOverride?: string;
 };
-export declare function resolveAllowlistModelKey(raw: string, defaultProvider: string, cfg?: OpenClawConfig): string | null;
+export declare function resolveAllowlistModelKey(raw: string, defaultProvider: string, cfg?: KovaConfig): string | null;
 export declare function resolveDefaultModelForAgent(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
 }): ModelRef;
 export declare function canonicalizeCaseOnlyCatalogModelRef(params: {
     raw: string | undefined;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     defaultProvider: string;
     loadCatalog: () => Promise<ModelCatalogEntry[]>;
     aliasIndex?: ModelAliasIndex;
@@ -61,16 +61,16 @@ export declare function canonicalizeCaseOnlyCatalogModelRef(params: {
     preserveAuthProfile?: boolean;
 }): Promise<string | undefined>;
 export declare function resolveSubagentConfiguredModelSelection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
 }): string | undefined;
 export declare function resolveSubagentSpawnModelSelection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     modelOverride?: unknown;
 }): string;
 export declare function buildAllowedModelSet(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     defaultProvider: string;
     defaultModel?: string;
@@ -81,14 +81,14 @@ export declare function buildAllowedModelSet(params: {
     allowedKeys: Set<string>;
 };
 export declare function getModelRefStatus(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     ref: ModelRef;
     defaultProvider: string;
     defaultModel?: string;
 }): ModelRefStatus;
 export declare function resolveAllowedModelRef(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     raw: string;
     defaultProvider: string;

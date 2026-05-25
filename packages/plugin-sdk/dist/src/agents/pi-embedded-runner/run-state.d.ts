@@ -1,10 +1,20 @@
+import type { SourceReplyDeliveryMode } from "../../auto-reply/get-reply-options.types.js";
 export type EmbeddedPiQueueHandle = {
     kind?: "embedded";
-    queueMessage: (text: string) => Promise<void>;
+    queueMessage: (text: string, options?: EmbeddedPiQueueMessageOptions) => Promise<void>;
     isStreaming: () => boolean;
     isCompacting: () => boolean;
+    supportsTranscriptCommitWait?: boolean;
     cancel?: (reason?: "user_abort" | "restart" | "superseded") => void;
     abort: () => void;
+    sourceReplyDeliveryMode?: SourceReplyDeliveryMode;
+};
+export type EmbeddedPiQueueMessageOptions = {
+    steeringMode?: "all";
+    debounceMs?: number;
+    deliveryTimeoutMs?: number;
+    waitForTranscriptCommit?: boolean;
+    sourceReplyDeliveryMode?: SourceReplyDeliveryMode;
 };
 export type ActiveEmbeddedRunSnapshot = {
     transcriptLeafId: string | null;

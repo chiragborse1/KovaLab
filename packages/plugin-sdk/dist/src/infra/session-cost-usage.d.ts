@@ -1,7 +1,7 @@
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { CostUsageSummary, DiscoveredSession, SessionCostSummary, SessionLogEntry, SessionUsageTimeSeries } from "./session-cost-usage.types.js";
-export type { CostUsageDailyEntry, CostUsageSummary, CostUsageTotals, DiscoveredSession, SessionCostSummary, SessionDailyLatency, SessionDailyMessageCounts, SessionDailyModelUsage, SessionDailyUsage, SessionLatencyStats, SessionLogEntry, SessionMessageCounts, SessionModelUsage, SessionToolUsage, SessionUsageTimePoint, SessionUsageTimeSeries, } from "./session-cost-usage.types.js";
+export type { CostUsageDailyEntry, CostUsageSummary, CostUsageTotals, DiscoveredSession, SessionCostSummary, SessionDailyLatency, SessionDailyMessageCounts, SessionDailyModelUsage, SessionDailyUsage, SessionLatencyStats, SessionLogEntry, SessionMessageCounts, SessionModelUsage, SessionToolUsage, SessionUsageTimePoint, SessionUsageTimeSeries, UsageCacheStatus, } from "./session-cost-usage.types.js";
 export declare function resolveExistingUsageSessionFile(params: {
     sessionId?: string;
     sessionEntry?: SessionEntry;
@@ -12,7 +12,7 @@ export declare function loadCostUsageSummary(params?: {
     startMs?: number;
     endMs?: number;
     days?: number;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
 }): Promise<CostUsageSummary>;
 /**
@@ -28,7 +28,7 @@ export declare function loadSessionCostSummary(params: {
     sessionId?: string;
     sessionEntry?: SessionEntry;
     sessionFile?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     startMs?: number;
     endMs?: number;
@@ -37,7 +37,7 @@ export declare function loadSessionUsageTimeSeries(params: {
     sessionId?: string;
     sessionEntry?: SessionEntry;
     sessionFile?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     maxPoints?: number;
 }): Promise<SessionUsageTimeSeries | null>;
@@ -45,7 +45,7 @@ export declare function loadSessionLogs(params: {
     sessionId?: string;
     sessionEntry?: SessionEntry;
     sessionFile?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     limit?: number;
 }): Promise<SessionLogEntry[] | null>;

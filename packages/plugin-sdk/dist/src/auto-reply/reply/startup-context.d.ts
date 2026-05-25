@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../../config/config.js";
+import type { KovaConfig } from "../../config/config.js";
 export declare function shouldApplyStartupContext(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     action: "new" | "reset";
 }): boolean;
 export declare function buildSessionStartupContextPrelude(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     nowMs?: number;
 }): Promise<string | null>;

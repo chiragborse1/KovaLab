@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { loadInstalledPluginIndexInstallRecords, loadInstalledPluginIndexInstallRecordsSync, readPersistedInstalledPluginIndexInstallRecords, readPersistedInstalledPluginIndexInstallRecordsSync } from "./installed-plugin-index-record-reader.js";
 import { type RefreshInstalledPluginIndexParams } from "./installed-plugin-index.js";
@@ -16,7 +16,7 @@ type InstalledPluginIndexRecordRefreshOptions = InstalledPluginIndexRecordStoreO
 export declare function resolveInstalledPluginIndexRecordsStorePath(options?: InstalledPluginIndexRecordStoreOptions): string;
 export declare function writePersistedInstalledPluginIndexInstallRecords(records: Record<string, PluginInstallRecord>, options?: InstalledPluginIndexRecordRefreshOptions): Promise<string>;
 export declare function writePersistedInstalledPluginIndexInstallRecordsSync(records: Record<string, PluginInstallRecord>, options?: InstalledPluginIndexRecordRefreshOptions): string;
-export declare function withPluginInstallRecords(config: OpenClawConfig, records: Record<string, PluginInstallRecord>): OpenClawConfig;
-export declare function withoutPluginInstallRecords(config: OpenClawConfig): OpenClawConfig;
+export declare function withPluginInstallRecords(config: KovaConfig, records: Record<string, PluginInstallRecord>): KovaConfig;
+export declare function withoutPluginInstallRecords(config: KovaConfig): KovaConfig;
 export declare function recordPluginInstallInRecords(records: Record<string, PluginInstallRecord>, update: PluginInstallUpdate): Record<string, PluginInstallRecord>;
 export declare function removePluginInstallRecordFromRecords(records: Record<string, PluginInstallRecord>, pluginId: string): Record<string, PluginInstallRecord>;

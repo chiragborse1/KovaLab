@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExplicitGatewayAuth, GatewayCredentialMode, GatewayCredentialPrecedence, GatewayRemoteCredentialFallback, GatewayRemoteCredentialPrecedence } from "./credentials.js";
 export type GatewayConnectionAuthOptions = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     explicitAuth?: ExplicitGatewayAuth;
     urlOverride?: string;
@@ -19,7 +19,7 @@ export declare function resolveGatewayConnectionAuth(params: GatewayConnectionAu
     password?: string;
 }>;
 export declare function resolveGatewayConnectionAuthFromConfig(params: Omit<GatewayConnectionAuthOptions, "config"> & {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): {
     token?: string;
     password?: string;

@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
-export type BuildMentionRegexes = (cfg: OpenClawConfig | undefined, agentId?: string) => RegExp[];
+import type { KovaConfig } from "../../config/types.kova.js";
+export type BuildMentionRegexes = (cfg: KovaConfig | undefined, agentId?: string) => RegExp[];
 export type MatchesMentionPatterns = (text: string, mentionRegexes: RegExp[]) => boolean;
 export type ExplicitMentionSignal = {
     hasAnyMention: boolean;

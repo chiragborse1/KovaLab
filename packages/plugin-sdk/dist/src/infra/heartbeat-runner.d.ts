@@ -1,6 +1,6 @@
 import type { ChannelHeartbeatDeps } from "../channels/plugins/types.public.js";
 import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type RuntimeEnv } from "../runtime.js";
 import { isCronSystemEvent } from "./heartbeat-events-filter.js";
 import { areHeartbeatsEnabled, type HeartbeatRunResult, setHeartbeatsEnabled } from "./heartbeat-wake.js";
@@ -17,11 +17,11 @@ type HeartbeatConfig = AgentDefaultsConfig["heartbeat"];
 export { isCronSystemEvent };
 export type HeartbeatRunner = {
     stop: () => void;
-    updateConfig: (cfg: OpenClawConfig) => void;
+    updateConfig: (cfg: KovaConfig) => void;
 };
-export declare function resolveHeartbeatPrompt(cfg: OpenClawConfig, heartbeat?: HeartbeatConfig): string;
+export declare function resolveHeartbeatPrompt(cfg: KovaConfig, heartbeat?: HeartbeatConfig): string;
 export declare function runHeartbeatOnce(opts: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentId?: string;
     sessionKey?: string;
     heartbeat?: HeartbeatConfig;
@@ -29,7 +29,7 @@ export declare function runHeartbeatOnce(opts: {
     deps?: HeartbeatDeps;
 }): Promise<HeartbeatRunResult>;
 export declare function startHeartbeatRunner(opts: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     runtime?: RuntimeEnv;
     abortSignal?: AbortSignal;
     runOnce?: typeof runHeartbeatOnce;

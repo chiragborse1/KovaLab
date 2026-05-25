@@ -1,5 +1,5 @@
 import { Type } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type AnyAgentTool, type SandboxFsBridge, type ToolFsPolicy } from "./tool-runtime.helpers.js";
 export declare const PdfToolSchema: Type.TObject<{
     prompt: Type.TOptional<Type.TString>;
@@ -15,7 +15,7 @@ type PdfSandboxConfig = {
     bridge: SandboxFsBridge;
 };
 export declare function createPdfTool(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     sandbox?: PdfSandboxConfig;

@@ -1,16 +1,16 @@
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 export type OwnerDisplaySecretPersistState = {
     pendingByPath: Map<string, string>;
     persistInFlight: Set<string>;
     persistWarned: Set<string>;
 };
 export declare function persistGeneratedOwnerDisplaySecret(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     configPath: string;
     generatedSecret?: string;
     logger: Pick<typeof console, "warn">;
     state: OwnerDisplaySecretPersistState;
-    persistConfig: (config: OpenClawConfig, options: {
+    persistConfig: (config: KovaConfig, options: {
         expectedConfigPath: string;
     }) => Promise<unknown>;
-}): OpenClawConfig;
+}): KovaConfig;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ErrorShape, type SessionsResolveParams } from "./protocol/index.js";
 export type SessionsResolveResult = {
     ok: true;
@@ -8,6 +8,6 @@ export type SessionsResolveResult = {
     error: ErrorShape;
 };
 export declare function resolveSessionKeyFromResolveParams(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     p: SessionsResolveParams;
 }): Promise<SessionsResolveResult>;

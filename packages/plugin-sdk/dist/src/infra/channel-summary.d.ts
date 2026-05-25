@@ -1,9 +1,9 @@
 import type { ChannelPlugin } from "../channels/plugins/types.plugin.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ChannelSummaryOptions = {
     colorize?: boolean;
     includeAllowFrom?: boolean;
     plugins?: readonly ChannelPlugin[];
-    sourceConfig?: OpenClawConfig;
+    sourceConfig?: KovaConfig;
 };
-export declare function buildChannelSummary(cfg?: OpenClawConfig, options?: ChannelSummaryOptions): Promise<string[]>;
+export declare function buildChannelSummary(cfg?: KovaConfig, options?: ChannelSummaryOptions): Promise<string[]>;

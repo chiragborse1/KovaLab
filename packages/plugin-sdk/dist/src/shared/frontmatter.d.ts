@@ -1,29 +1,29 @@
 export declare function normalizeStringList(input: unknown): string[];
 export declare function getFrontmatterString(frontmatter: Record<string, unknown>, key: string): string | undefined;
 export declare function parseFrontmatterBool(value: string | undefined, fallback: boolean): boolean;
-export declare function resolveOpenClawManifestBlock(params: {
+export declare function resolveKovaManifestBlock(params: {
     frontmatter: Record<string, unknown>;
     key?: string;
 }): Record<string, unknown> | undefined;
-export type OpenClawManifestRequires = {
+export type KovaManifestRequires = {
     bins: string[];
     anyBins: string[];
     env: string[];
     config: string[];
 };
-export declare function resolveOpenClawManifestRequires(metadataObj: Record<string, unknown>): OpenClawManifestRequires | undefined;
-export declare function resolveOpenClawManifestInstall<T>(metadataObj: Record<string, unknown>, parseInstallSpec: (input: unknown) => T | undefined): T[];
-export declare function resolveOpenClawManifestOs(metadataObj: Record<string, unknown>): string[];
-export type ParsedOpenClawManifestInstallBase = {
+export declare function resolveKovaManifestRequires(metadataObj: Record<string, unknown>): KovaManifestRequires | undefined;
+export declare function resolveKovaManifestInstall<T>(metadataObj: Record<string, unknown>, parseInstallSpec: (input: unknown) => T | undefined): T[];
+export declare function resolveKovaManifestOs(metadataObj: Record<string, unknown>): string[];
+export type ParsedKovaManifestInstallBase = {
     raw: Record<string, unknown>;
     kind: string;
     id?: string;
     label?: string;
     bins?: string[];
 };
-export declare function parseOpenClawManifestInstallBase(input: unknown, allowedKinds: readonly string[]): ParsedOpenClawManifestInstallBase | undefined;
-export declare function applyOpenClawManifestInstallCommonFields<T extends {
+export declare function parseKovaManifestInstallBase(input: unknown, allowedKinds: readonly string[]): ParsedKovaManifestInstallBase | undefined;
+export declare function applyKovaManifestInstallCommonFields<T extends {
     id?: string;
     label?: string;
     bins?: string[];
-}>(spec: T, parsed: Pick<ParsedOpenClawManifestInstallBase, "id" | "label" | "bins">): T;
+}>(spec: T, parsed: Pick<ParsedKovaManifestInstallBase, "id" | "label" | "bins">): T;

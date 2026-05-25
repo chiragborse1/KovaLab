@@ -1,5 +1,6 @@
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type InputProvenance } from "../sessions/input-provenance.js";
 export type GuardedSessionManager = SessionManager & {
     /** Flush any synthetic tool results for pending tool calls. Idempotent. */
@@ -14,10 +15,19 @@ export type GuardedSessionManager = SessionManager & {
 export declare function guardSessionManager(sessionManager: SessionManager, opts?: {
     agentId?: string;
     sessionKey?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     contextWindowTokens?: number;
     inputProvenance?: InputProvenance;
     allowSyntheticToolResults?: boolean;
     missingToolResultText?: string;
     allowedToolNames?: Iterable<string>;
+    suppressNextUserMessagePersistence?: boolean;
+    suppressTranscriptOnlyAssistantPersistence?: boolean;
+    suppressAssistantErrorPersistence?: boolean;
+    onUserMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "user";
+    }>) => void | Promise<void>;
+    onAssistantErrorMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "assistant";
+    }>) => void | Promise<void>;
 }): GuardedSessionManager;

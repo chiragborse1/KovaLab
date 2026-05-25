@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelSetupWizard, ChannelSetupWizardStatus, ChannelSetupWizardTextInput } from "./setup-wizard.js";
 type SetupTextInputParams = Parameters<NonNullable<ChannelSetupWizardTextInput["currentValue"]>>[0];
 export declare function createDetectedBinaryStatus(params: {
@@ -11,11 +11,11 @@ export declare function createDetectedBinaryStatus(params: {
     configuredScore: number;
     unconfiguredScore: number;
     resolveConfigured: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string;
     }) => boolean | Promise<boolean>;
     resolveBinaryPath: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string;
     }) => string;
     detectBinary?: (path: string) => Promise<boolean>;

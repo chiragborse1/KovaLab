@@ -7,6 +7,11 @@ export type PluginsCommand = {
     action: "install";
     spec: string;
 } | {
+    action: "update";
+    name?: string;
+    all?: boolean;
+    dryRun?: boolean;
+} | {
     action: "enable";
     name: string;
 } | {

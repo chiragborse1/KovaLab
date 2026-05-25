@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type McpRequestContext = {
     sessionKey: string;
     messageProvider: string | undefined;
@@ -15,6 +15,6 @@ export declare function validateMcpLoopbackRequest(params: {
     senderIsOwner: boolean;
 } | null;
 export declare function readMcpHttpBody(req: IncomingMessage): Promise<string>;
-export declare function resolveMcpRequestContext(req: IncomingMessage, cfg: OpenClawConfig, auth: {
+export declare function resolveMcpRequestContext(req: IncomingMessage, cfg: KovaConfig, auth: {
     senderIsOwner: boolean;
 }): McpRequestContext;

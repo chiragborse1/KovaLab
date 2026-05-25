@@ -1,5 +1,5 @@
 import { type SenderLabelParams } from "../channels/sender-label.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type AgentEnvelopeParams = {
     channel: string;
     from?: string;
@@ -28,7 +28,7 @@ export type EnvelopeFormatOptions = {
      */
     userTimezone?: string;
 };
-export declare function resolveEnvelopeFormatOptions(cfg?: OpenClawConfig): EnvelopeFormatOptions;
+export declare function resolveEnvelopeFormatOptions(cfg?: KovaConfig): EnvelopeFormatOptions;
 export declare function formatEnvelopeTimestamp(ts: number | Date | undefined, options?: EnvelopeFormatOptions): string | undefined;
 export declare function formatAgentEnvelope(params: AgentEnvelopeParams): string;
 export declare function formatInboundEnvelope(params: {

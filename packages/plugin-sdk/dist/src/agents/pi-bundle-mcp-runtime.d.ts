@@ -1,16 +1,16 @@
 import type { jsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SessionMcpRuntime, SessionMcpRuntimeManager } from "./pi-bundle-mcp-types.js";
 type CreateSessionMcpRuntime = (params: Parameters<typeof createSessionMcpRuntime>[0] & {
     configFingerprint?: string;
 }) => SessionMcpRuntime;
 export declare function createBundleMcpJsonSchemaValidator(): jsonSchemaValidator;
-declare function resolveSessionMcpRuntimeIdleTtlMs(cfg?: OpenClawConfig): number;
+declare function resolveSessionMcpRuntimeIdleTtlMs(cfg?: KovaConfig): number;
 export declare function createSessionMcpRuntime(params: {
     sessionId: string;
     sessionKey?: string;
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): SessionMcpRuntime;
 declare function createSessionMcpRuntimeManager(opts?: {
     createRuntime?: CreateSessionMcpRuntime;
@@ -23,7 +23,7 @@ export declare function getOrCreateSessionMcpRuntime(params: {
     sessionId: string;
     sessionKey?: string;
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): Promise<SessionMcpRuntime>;
 export declare function disposeSessionMcpRuntime(sessionId: string): Promise<void>;
 export declare function retireSessionMcpRuntime(params: {

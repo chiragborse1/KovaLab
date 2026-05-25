@@ -1,3 +1,4 @@
+import { type PluginDiscoveryResult } from "./discovery.js";
 import { type PluginPackageChannel, type PluginPackageInstall } from "./manifest.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 export type PluginChannelCatalogEntry = {
@@ -13,4 +14,5 @@ export declare function listChannelCatalogEntries(params?: {
     origin?: PluginOrigin;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
+    discovery?: PluginDiscoveryResult;
 }): PluginChannelCatalogEntry[];

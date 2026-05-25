@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function resolveProfileOverride(params: {
     rawProfile?: string;
     provider: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
 }): {
     profileId?: string;

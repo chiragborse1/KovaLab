@@ -1,5 +1,5 @@
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 type ReadonlySessionManagerForRotation = Pick<SessionManager, "buildSessionContext" | "getBranch" | "getCwd" | "getEntries" | "getHeader">;
 export type CompactionTranscriptRotation = {
     rotated: boolean;
@@ -10,7 +10,7 @@ export type CompactionTranscriptRotation = {
     leafId?: string;
     entriesWritten?: number;
 };
-export declare function shouldRotateCompactionTranscript(config?: OpenClawConfig): boolean;
+export declare function shouldRotateCompactionTranscript(config?: KovaConfig): boolean;
 export declare function rotateTranscriptAfterCompaction(params: {
     sessionManager: ReadonlySessionManagerForRotation;
     sessionFile: string;

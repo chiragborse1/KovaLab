@@ -1,8 +1,9 @@
-export { assertOkOrThrowHttpError } from "../agents/provider-http-errors.js";
+export { assertOkOrThrowHttpError, readProviderJsonObjectResponse, readProviderJsonResponse, } from "../agents/provider-http-errors.js";
 import type { ProviderRequestCapability, ProviderRequestTransport } from "../agents/provider-attribution.js";
 import { type ProviderRequestTransportOverrides, type ResolvedProviderRequestConfig } from "../agents/provider-request-config.js";
 import type { GuardedFetchMode, GuardedFetchResult } from "../infra/net/fetch-guard.js";
 import type { LookupFn, PinnedDispatcherPolicy, SsrFPolicy } from "../infra/net/ssrf.js";
+import { type ProviderOperationRetryStage, type TransientProviderRetryConfig } from "../provider-runtime/operation-retry.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 export { fetchWithTimeout };
 export { normalizeBaseUrl } from "../agents/provider-request-config.js";
@@ -19,6 +20,7 @@ export type ProviderOperationDeadline = {
     label: string;
     timeoutMs?: number;
 };
+export type ProviderOperationTimeoutMs = number | (() => number);
 export declare function createProviderOperationDeadline(params: {
     timeoutMs?: number;
     label: string;
@@ -27,6 +29,10 @@ export declare function resolveProviderOperationTimeoutMs(params: {
     deadline: ProviderOperationDeadline;
     defaultTimeoutMs: number;
 }): number;
+export declare function createProviderOperationTimeoutResolver(params: {
+    deadline: ProviderOperationDeadline;
+    defaultTimeoutMs: number;
+}): () => number;
 export declare function waitProviderOperationPollInterval(params: {
     deadline: ProviderOperationDeadline;
     pollIntervalMs: number;
@@ -44,6 +50,25 @@ export declare function pollProviderOperationJson<TPayload>(params: {
     isComplete: (payload: TPayload) => boolean;
     getFailureMessage?: (payload: TPayload) => string | undefined;
 }): Promise<TPayload>;
+export declare function fetchProviderOperationResponse(params: {
+    stage: ProviderOperationRetryStage;
+    url: string;
+    init?: RequestInit;
+    timeoutMs?: ProviderOperationTimeoutMs;
+    fetchFn: typeof fetch;
+    provider?: string;
+    requestFailedMessage?: string;
+    retry?: TransientProviderRetryConfig;
+}): Promise<Response>;
+export declare function fetchProviderDownloadResponse(params: {
+    url: string;
+    init?: RequestInit;
+    timeoutMs?: ProviderOperationTimeoutMs;
+    fetchFn: typeof fetch;
+    provider?: string;
+    requestFailedMessage: string;
+    retry?: TransientProviderRetryConfig;
+}): Promise<Response>;
 export declare function resolveProviderHttpRequestConfig(params: {
     baseUrl?: string;
     defaultBaseUrl: string;
@@ -78,6 +103,7 @@ export declare function postTranscriptionRequest(params: {
     fetchFn: typeof fetch;
     pinDns?: boolean;
     allowPrivateNetwork?: boolean;
+    ssrfPolicy?: SsrFPolicy;
     dispatcherPolicy?: PinnedDispatcherPolicy;
     auditContext?: string;
     /**
@@ -95,6 +121,7 @@ export declare function postJsonRequest(params: {
     fetchFn: typeof fetch;
     pinDns?: boolean;
     allowPrivateNetwork?: boolean;
+    ssrfPolicy?: SsrFPolicy;
     dispatcherPolicy?: PinnedDispatcherPolicy;
     auditContext?: string;
     /**
@@ -112,6 +139,7 @@ export declare function postMultipartRequest(params: {
     fetchFn: typeof fetch;
     pinDns?: boolean;
     allowPrivateNetwork?: boolean;
+    ssrfPolicy?: SsrFPolicy;
     dispatcherPolicy?: PinnedDispatcherPolicy;
     auditContext?: string;
     /**

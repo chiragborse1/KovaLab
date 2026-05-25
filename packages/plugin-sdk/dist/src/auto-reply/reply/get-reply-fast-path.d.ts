@@ -1,25 +1,25 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext } from "../templating.js";
 import type { CommandContext } from "./commands-types.js";
 import type { SessionInitResult } from "./session.js";
-export declare function markCompleteReplyConfig<T extends OpenClawConfig>(config: T, options?: {
+export declare function markCompleteReplyConfig<T extends KovaConfig>(config: T, options?: {
     runtimeMode?: "fast" | "full";
 }): T;
-export declare function withFastReplyConfig<T extends OpenClawConfig>(config: T): T;
-export declare function withFullRuntimeReplyConfig<T extends OpenClawConfig>(config: T): T;
-export declare function isCompleteReplyConfig(config: unknown): config is OpenClawConfig;
+export declare function withFastReplyConfig<T extends KovaConfig>(config: T): T;
+export declare function withFullRuntimeReplyConfig<T extends KovaConfig>(config: T): T;
+export declare function isCompleteReplyConfig(config: unknown): config is KovaConfig;
 export declare function usesFullReplyRuntime(config: unknown): boolean;
 export declare function resolveGetReplyConfig(params: {
-    getRuntimeConfig: () => OpenClawConfig;
+    getRuntimeConfig: () => KovaConfig;
     isFastTestEnv: boolean;
-    configOverride?: OpenClawConfig;
-}): OpenClawConfig;
+    configOverride?: KovaConfig;
+}): KovaConfig;
 export declare function shouldUseReplyFastTestBootstrap(params: {
     isFastTestEnv: boolean;
-    configOverride?: OpenClawConfig;
+    configOverride?: KovaConfig;
 }): boolean;
 export declare function shouldUseReplyFastTestRuntime(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     isFastTestEnv: boolean;
 }): boolean;
 export declare function shouldUseReplyFastDirectiveExecution(params: {
@@ -31,7 +31,7 @@ export declare function shouldUseReplyFastDirectiveExecution(params: {
 }): boolean;
 export declare function buildFastReplyCommandContext(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     sessionKey?: string;
     isGroup: boolean;
@@ -39,12 +39,12 @@ export declare function buildFastReplyCommandContext(params: {
     commandAuthorized: boolean;
 }): CommandContext;
 export declare function shouldHandleFastReplyTextCommands(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     commandSource?: string;
 }): boolean;
 export declare function initFastReplySessionState(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     commandAuthorized: boolean;
     workspaceDir: string;

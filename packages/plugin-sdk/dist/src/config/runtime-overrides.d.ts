@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./types.js";
+import type { KovaConfig } from "./types.js";
 type OverrideTree = Record<string, unknown>;
 export declare function getConfigOverrides(): OverrideTree;
 export declare function resetConfigOverrides(): void;
@@ -11,5 +11,5 @@ export declare function unsetConfigOverride(pathRaw: string): {
     removed: boolean;
     error?: string;
 };
-export declare function applyConfigOverrides(cfg: OpenClawConfig): OpenClawConfig;
+export declare function applyConfigOverrides(cfg: KovaConfig): KovaConfig;
 export {};

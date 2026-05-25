@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { AgentInternalEvent } from "./internal-events.js";
-import { callGateway, getRuntimeConfig, queueEmbeddedPiMessage, sendMessage } from "./subagent-announce-delivery.runtime.js";
+import { callGateway, getRuntimeConfig, queueEmbeddedPiMessage, queueEmbeddedPiMessageWithOutcome, sendMessage } from "./subagent-announce-delivery.runtime.js";
 import { type SubagentAnnounceDeliveryResult } from "./subagent-announce-dispatch.js";
 import { type DeliveryContext } from "./subagent-announce-origin.js";
 import type { SpawnSubagentMode } from "./subagent-spawn.types.js";
@@ -13,9 +13,10 @@ type SubagentAnnounceDeliveryDeps = {
         isActive: boolean;
     };
     queueEmbeddedPiMessage: typeof queueEmbeddedPiMessage;
+    queueEmbeddedPiMessageWithOutcome: typeof queueEmbeddedPiMessageWithOutcome;
     sendMessage: typeof sendMessage;
 };
-export declare function resolveSubagentAnnounceTimeoutMs(cfg: OpenClawConfig): number;
+export declare function resolveSubagentAnnounceTimeoutMs(cfg: KovaConfig): number;
 export declare function isInternalAnnounceRequesterSession(sessionKey: string | undefined): boolean;
 export declare function runAnnounceDeliveryWithRetry<T>(params: {
     operation: string;
@@ -31,11 +32,11 @@ export declare function resolveSubagentCompletionOrigin(params: {
     expectsCompletionMessage: boolean;
 }): Promise<DeliveryContext | undefined>;
 export declare function loadRequesterSessionEntry(requesterSessionKey: string): {
-    cfg: OpenClawConfig;
-    entry: import("openclaw/plugin-sdk/session-store-runtime").SessionEntry;
+    cfg: KovaConfig;
+    entry: import("getkova/plugin-sdk/session-store-runtime").SessionEntry;
     canonicalKey: string;
 };
-export declare function loadSessionEntryByKey(sessionKey: string): import("openclaw/plugin-sdk/session-store-runtime").SessionEntry;
+export declare function loadSessionEntryByKey(sessionKey: string): import("getkova/plugin-sdk/session-store-runtime").SessionEntry;
 export declare function extractThreadCompletionFallbackText(internalEvents?: AgentInternalEvent[]): string;
 export declare function deliverSubagentAnnouncement(params: {
     requesterSessionKey: string;

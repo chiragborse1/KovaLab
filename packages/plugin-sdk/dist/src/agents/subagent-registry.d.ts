@@ -1,6 +1,6 @@
 import type { cleanupBrowserSessionsForLifecycleEnd } from "../browser-lifecycle-cleanup.js";
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ContextEngine } from "../context-engine/types.js";
 import { callGateway } from "../gateway/call.js";
 import { onAgentEvent } from "../infra/agent-events.js";
@@ -26,7 +26,7 @@ type SubagentRegistryDeps = {
     runSubagentAnnounceFlow: SubagentAnnounceModule["runSubagentAnnounceFlow"];
     ensureContextEnginesInitialized?: () => void;
     ensureRuntimePluginsLoaded?: typeof ensureRuntimePluginsLoadedFn;
-    resolveContextEngine?: (cfg: OpenClawConfig) => Promise<ContextEngine>;
+    resolveContextEngine?: (cfg: KovaConfig) => Promise<ContextEngine>;
 };
 export declare function scheduleSubagentOrphanRecovery(params?: {
     delayMs?: number;

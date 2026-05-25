@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ResolvedTimeFormat } from "./date-time.js";
 export type RuntimeInfoInput = {
     agentId?: string;
@@ -23,7 +23,7 @@ export type SystemPromptRuntimeParams = {
     userTimeFormat?: ResolvedTimeFormat;
 };
 export declare function buildSystemPromptParams(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     runtime: Omit<RuntimeInfoInput, "agentId">;
     workspaceDir?: string;

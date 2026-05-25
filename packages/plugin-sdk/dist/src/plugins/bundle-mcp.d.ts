@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginBundleFormat } from "./manifest-types.js";
 export type BundleMcpServerConfig = Record<string, unknown>;
 export type BundleMcpConfig = {
@@ -26,5 +26,5 @@ export declare function inspectBundleMcpRuntimeSupport(params: {
 }): BundleMcpRuntimeSupport;
 export declare function loadEnabledBundleMcpConfig(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): EnabledBundleMcpConfigResult;

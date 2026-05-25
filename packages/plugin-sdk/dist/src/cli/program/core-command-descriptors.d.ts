@@ -6,7 +6,7 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
     readonly hasSubcommands: false;
 } | {
     readonly name: "onboard";
-    readonly description: "Interactive onboarding for gateway, workspace, and skills";
+    readonly description: "Interactive onboarding for terminal chat, workspace, and skills";
     readonly hasSubcommands: false;
 } | {
     readonly name: "configure";
@@ -14,7 +14,7 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
     readonly hasSubcommands: false;
 } | {
     readonly name: "settings";
-    readonly description: "Open the Kova settings dashboard";
+    readonly description: "Open the terminal settings console";
     readonly hasSubcommands: false;
 } | {
     readonly name: "config";
@@ -33,8 +33,8 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
     readonly description: "Health checks + quick fixes for the gateway and channels";
     readonly hasSubcommands: false;
 } | {
-    readonly name: "dashboard";
-    readonly description: "Open the Control UI with your current token";
+    readonly name: "control-ui";
+    readonly description: "Open the optional browser Control UI";
     readonly hasSubcommands: false;
 } | {
     readonly name: "reset";
@@ -61,8 +61,12 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
     readonly description: "Manage isolated agents (workspaces, auth, routing)";
     readonly hasSubcommands: true;
 } | {
+    readonly name: "persona";
+    readonly description: "Inspect and edit the current agent persona";
+    readonly hasSubcommands: true;
+} | {
     readonly name: "status";
-    readonly description: "Show channel health and recent session recipients";
+    readonly description: "Show terminal readiness, Gateway health, and recent sessions";
     readonly hasSubcommands: false;
 } | {
     readonly name: "health";
@@ -75,6 +79,10 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
 } | {
     readonly name: "tasks";
     readonly description: "Inspect durable background task state";
+    readonly hasSubcommands: true;
+} | {
+    readonly name: "goals";
+    readonly description: "Manage durable terminal goals backed by TaskFlow";
     readonly hasSubcommands: true;
 })[];
 export declare function getCoreCliCommandDescriptors(): ReadonlyArray<CoreCliCommandDescriptor>;

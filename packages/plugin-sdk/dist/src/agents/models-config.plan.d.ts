@@ -1,10 +1,14 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ProviderConfig } from "./models-config.providers.js";
 export type ResolveImplicitProvidersForModelsJson = (params: {
     agentDir: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
+    workspaceDir?: string;
     explicitProviders: Record<string, ProviderConfig>;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
 }) => Promise<Record<string, ProviderConfig>>;
 export type ModelsJsonPlan = {
     action: "skip";
@@ -15,20 +19,28 @@ export type ModelsJsonPlan = {
     contents: string;
 };
 export declare function resolveProvidersForModelsJsonWithDeps(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir: string;
     env: NodeJS.ProcessEnv;
+    workspaceDir?: string;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
 }, deps?: {
     resolveImplicitProviders?: ResolveImplicitProvidersForModelsJson;
 }): Promise<Record<string, ProviderConfig>>;
-export declare function planOpenClawModelsJsonWithDeps(params: {
-    cfg: OpenClawConfig;
-    sourceConfigForSecrets?: OpenClawConfig;
+export declare function planKovaModelsJsonWithDeps(params: {
+    cfg: KovaConfig;
+    sourceConfigForSecrets?: KovaConfig;
     agentDir: string;
     env: NodeJS.ProcessEnv;
+    workspaceDir?: string;
     existingRaw: string;
     existingParsed: unknown;
+    providerDiscoveryProviderIds?: readonly string[];
+    providerDiscoveryTimeoutMs?: number;
+    providerDiscoveryEntriesOnly?: boolean;
 }, deps?: {
     resolveImplicitProviders?: ResolveImplicitProvidersForModelsJson;
 }): Promise<ModelsJsonPlan>;
-export declare function planOpenClawModelsJson(params: Parameters<typeof planOpenClawModelsJsonWithDeps>[0]): Promise<ModelsJsonPlan>;
+export declare function planKovaModelsJson(params: Parameters<typeof planKovaModelsJsonWithDeps>[0]): Promise<ModelsJsonPlan>;

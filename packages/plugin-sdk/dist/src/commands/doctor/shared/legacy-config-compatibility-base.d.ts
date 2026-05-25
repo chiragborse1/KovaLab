@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
-export declare function normalizeBaseCompatibilityConfigValues(cfg: OpenClawConfig, changes: string[], afterBrowser?: (config: OpenClawConfig) => OpenClawConfig): OpenClawConfig;
+import type { KovaConfig } from "../../../config/types.kova.js";
+export declare function normalizeBaseCompatibilityConfigValues(cfg: KovaConfig, changes: string[], afterBrowser?: (config: KovaConfig) => KovaConfig): KovaConfig;

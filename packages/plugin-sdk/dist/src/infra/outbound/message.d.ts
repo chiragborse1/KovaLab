@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type GatewayClientMode, type GatewayClientName } from "../../utils/message-channel.js";
 import { type OutboundDeliveryResult, type OutboundSendDeps } from "./deliver.js";
 import type { OutboundMirror } from "./mirror.js";
@@ -38,7 +38,7 @@ type MessageSendParams = {
     dryRun?: boolean;
     bestEffort?: boolean;
     deps?: OutboundSendDeps;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     gateway?: MessageGatewayOptions;
     idempotencyKey?: string;
     mirror?: OutboundMirror;
@@ -69,7 +69,7 @@ type MessagePollParams = {
     silent?: boolean;
     isAnonymous?: boolean;
     dryRun?: boolean;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     gateway?: MessageGatewayOptions;
     idempotencyKey?: string;
 };

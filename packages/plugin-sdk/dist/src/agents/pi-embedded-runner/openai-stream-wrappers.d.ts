@@ -1,6 +1,6 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { resolveOpenAITextVerbosity, type OpenAITextVerbosity } from "../openai-text-verbosity.js";
 type OpenAIServiceTier = "auto" | "default" | "flex" | "priority";
 export { resolveOpenAITextVerbosity };
@@ -15,7 +15,7 @@ export declare function createOpenAIFastModeWrapper(baseStreamFn: StreamFn | und
 export declare function createOpenAIServiceTierWrapper(baseStreamFn: StreamFn | undefined, serviceTier: OpenAIServiceTier): StreamFn;
 export declare function createOpenAITextVerbosityWrapper(baseStreamFn: StreamFn | undefined, verbosity: OpenAITextVerbosity): StreamFn;
 export declare function createCodexNativeWebSearchWrapper(baseStreamFn: StreamFn | undefined, params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
 }): StreamFn;
 export declare function createCodexDefaultTransportWrapper(baseStreamFn: StreamFn | undefined): StreamFn;

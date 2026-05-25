@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { AnyAgentTool } from "./tools/common.js";
 type LspServerCapabilities = {
     hoverProvider?: boolean;
@@ -18,7 +18,7 @@ export type BundleLspToolRuntime = {
 };
 export declare function createBundleLspToolRuntime(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     reservedToolNames?: Iterable<string>;
 }): Promise<BundleLspToolRuntime>;
 export {};

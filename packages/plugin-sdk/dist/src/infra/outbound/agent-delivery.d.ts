@@ -1,6 +1,6 @@
 import type { ChannelOutboundTargetMode } from "../../channels/plugins/types.public.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type GatewayMessageChannel } from "../../utils/message-channel.js";
 import type { OutboundTargetResolution } from "./targets.js";
 import { type SessionDeliveryTarget } from "./targets.js";
@@ -24,7 +24,7 @@ export declare function resolveAgentDeliveryPlan(params: {
      * overrides session-level `lastChannel` to prevent cross-channel reply
      * routing in shared sessions (dmScope="main").
      *
-     * @see https://github.com/openclaw/openclaw/issues/24152
+     * @see https://github.com/chiragborse1/KovaLab/issues/24152
      */
     turnSourceChannel?: string;
     /** Turn-source `to` — paired with `turnSourceChannel`. */
@@ -35,7 +35,7 @@ export declare function resolveAgentDeliveryPlan(params: {
     turnSourceThreadId?: string | number;
 }): AgentDeliveryPlan;
 export declare function resolveAgentOutboundTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     plan: AgentDeliveryPlan;
     targetMode?: ChannelOutboundTargetMode;
     validateExplicitTarget?: boolean;

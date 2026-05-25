@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ResolverContext, SecretDefaults, SecretResolverWarningCode } from "./runtime-shared.js";
 import type { RuntimeWebDiagnostic, RuntimeWebDiagnosticCode } from "./runtime-web-tools.types.js";
 export { isRecord } from "./shared.js";
@@ -29,8 +29,8 @@ export type RuntimeWebProviderSelectionParams<TProvider extends {
     configuredProvider?: string;
     metadata: TMetadata;
     diagnostics: RuntimeWebDiagnostic[];
-    sourceConfig: OpenClawConfig;
-    resolvedConfig: OpenClawConfig;
+    sourceConfig: KovaConfig;
+    resolvedConfig: KovaConfig;
     context: ResolverContext;
     defaults: SecretDefaults | undefined;
     deferKeylessFallback: boolean;
@@ -39,7 +39,7 @@ export type RuntimeWebProviderSelectionParams<TProvider extends {
     autoDetectSelectedCode: RuntimeWebWarningCode;
     readConfiguredCredential: (params: {
         provider: TProvider;
-        config: OpenClawConfig;
+        config: KovaConfig;
         toolConfig: TToolConfig;
     }) => unknown;
     resolveSecretInput: (params: {
@@ -48,7 +48,7 @@ export type RuntimeWebProviderSelectionParams<TProvider extends {
         envVars: string[];
     }) => Promise<SecretResolutionResult<TSource>>;
     setResolvedCredential: (params: {
-        resolvedConfig: OpenClawConfig;
+        resolvedConfig: KovaConfig;
         provider: TProvider;
         value: string;
     }) => void;
@@ -85,7 +85,7 @@ export type ResolveRuntimeWebProviderSurfaceParams<TProvider extends {
     diagnostics: RuntimeWebDiagnostic[];
     metadataDiagnostics: RuntimeWebDiagnostic[];
     invalidAutoDetectCode: RuntimeWebWarningCode;
-    sourceConfig: OpenClawConfig;
+    sourceConfig: KovaConfig;
     context: ResolverContext;
     configuredBundledPluginIdHint?: string;
     resolveProviders: (params: {
@@ -94,7 +94,7 @@ export type ResolveRuntimeWebProviderSurfaceParams<TProvider extends {
     sortProviders: (providers: TProvider[]) => TProvider[];
     readConfiguredCredential: (params: {
         provider: TProvider;
-        config: OpenClawConfig;
+        config: KovaConfig;
         toolConfig: TToolConfig;
     }) => unknown;
     ignoreKeylessProvidersForConfiguredSurface?: boolean;

@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "./types.js";
-export declare function normalizeExecSafeBinProfilesInConfig(cfg: OpenClawConfig): void;
+import type { KovaConfig } from "./types.js";
+export declare function normalizeExecSafeBinProfilesInConfig(cfg: KovaConfig): void;

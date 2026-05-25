@@ -1,4 +1,4 @@
-import { type OpenClawConfig } from "../config/config.js";
+import { type KovaConfig } from "../config/config.js";
 import { type ProviderAuth } from "./provider-usage.auth.js";
 import type { UsageProviderId, UsageSummary } from "./provider-usage.types.js";
 type UsageSummaryOptions = {
@@ -8,7 +8,7 @@ type UsageSummaryOptions = {
     auth?: ProviderAuth[];
     agentDir?: string;
     workspaceDir?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     fetch?: typeof fetch;
     skipPluginAuthWithoutCredentialSource?: boolean;

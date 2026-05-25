@@ -1,29 +1,29 @@
 import type { ConfigWriteOptions } from "../config/io.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
-type ConfigCommit = (config: OpenClawConfig, writeOptions?: ConfigWriteOptions) => Promise<void>;
+type ConfigCommit = (config: KovaConfig, writeOptions?: ConfigWriteOptions) => Promise<void>;
 export declare function commitPluginInstallRecordsWithConfig(params: {
     previousInstallRecords?: Record<string, PluginInstallRecord>;
     nextInstallRecords: Record<string, PluginInstallRecord>;
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     baseHash?: string;
     writeOptions?: ConfigWriteOptions;
 }): Promise<void>;
 export declare function commitConfigWriteWithPendingPluginInstalls(params: {
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     writeOptions?: ConfigWriteOptions;
     commit: ConfigCommit;
 }): Promise<{
-    config: OpenClawConfig;
+    config: KovaConfig;
     installRecords: Record<string, PluginInstallRecord>;
     movedInstallRecords: boolean;
 }>;
 export declare function commitConfigWithPendingPluginInstalls(params: {
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     baseHash?: string;
     writeOptions?: ConfigWriteOptions;
 }): Promise<{
-    config: OpenClawConfig;
+    config: KovaConfig;
     installRecords: Record<string, PluginInstallRecord>;
     movedInstallRecords: boolean;
 }>;

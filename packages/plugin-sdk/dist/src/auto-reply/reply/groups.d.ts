@@ -1,9 +1,9 @@
 import type { GroupKeyResolution, SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SilentReplyPolicy } from "../../shared/silent-reply-policy.js";
 import type { TemplateContext } from "../templating.js";
 export declare function resolveGroupRequireMention(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: TemplateContext;
     groupResolution?: GroupKeyResolution;
 }): Promise<boolean>;
@@ -28,7 +28,7 @@ export declare function resolveGroupSilentReplyBehavior(params: {
     allowEmptyAssistantReplyAsSilent: boolean;
 };
 export declare function buildGroupIntro(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionCtx: TemplateContext;
     sessionEntry?: SessionEntry;
     defaultActivation: "always" | "mention";

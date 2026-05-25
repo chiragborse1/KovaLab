@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type Skill } from "./skill-contract.js";
 import type { SkillEligibilityContext, SkillEntry, SkillSnapshot } from "./types.js";
 /**
@@ -12,7 +12,7 @@ export declare function buildWorkspaceSkillSnapshot(workspaceDir: string, opts?:
 }): SkillSnapshot;
 export declare function buildWorkspaceSkillsPrompt(workspaceDir: string, opts?: WorkspaceSkillBuildOptions): string;
 type WorkspaceSkillBuildOptions = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
     entries?: SkillEntry[];
@@ -24,12 +24,12 @@ type WorkspaceSkillBuildOptions = {
 export declare function resolveSkillsPromptForRun(params: {
     skillsSnapshot?: SkillSnapshot;
     entries?: SkillEntry[];
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir: string;
     agentId?: string;
 }): string;
 export declare function loadWorkspaceSkillEntries(workspaceDir: string, opts?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
     skillFilter?: string[];
@@ -37,7 +37,7 @@ export declare function loadWorkspaceSkillEntries(workspaceDir: string, opts?: {
     eligibility?: SkillEligibilityContext;
 }): SkillEntry[];
 export declare function loadVisibleWorkspaceSkillEntries(workspaceDir: string, opts?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
     skillFilter?: string[];
@@ -47,16 +47,16 @@ export declare function loadVisibleWorkspaceSkillEntries(workspaceDir: string, o
 export declare function syncSkillsToWorkspace(params: {
     sourceWorkspaceDir: string;
     targetWorkspaceDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     skillFilter?: string[];
     agentId?: string;
     eligibility?: SkillEligibilityContext;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
 }): Promise<void>;
-export declare function filterWorkspaceSkillEntries(entries: SkillEntry[], config?: OpenClawConfig): SkillEntry[];
+export declare function filterWorkspaceSkillEntries(entries: SkillEntry[], config?: KovaConfig): SkillEntry[];
 export declare function filterWorkspaceSkillEntriesWithOptions(entries: SkillEntry[], opts?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     skillFilter?: string[];
     eligibility?: SkillEligibilityContext;
 }): SkillEntry[];

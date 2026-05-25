@@ -1,5 +1,5 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 export declare const DEFAULT_ECHO_TRANSCRIPT_FORMAT = "\uD83D\uDCDD \"{transcript}\"";
 /**
  * Sends the transcript echo back to the originating chat.
@@ -7,7 +7,7 @@ export declare const DEFAULT_ECHO_TRANSCRIPT_FORMAT = "\uD83D\uDCDD \"{transcrip
  */
 export declare function sendTranscriptEcho(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     transcript: string;
     format?: string;
 }): Promise<void>;

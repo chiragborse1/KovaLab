@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import { authorizeHttpGatewayConnect, type GatewayAuthResult, type ResolvedGatewayAuth } from "./auth.js";
 export declare function getHeader(req: IncomingMessage, name: string): string | undefined;
@@ -16,7 +16,7 @@ export type GatewayHttpRequestAuthCheckResult = {
     ok: false;
     authResult: GatewayAuthResult;
 };
-export declare function resolveHttpBrowserOriginPolicy(req: IncomingMessage, cfg?: OpenClawConfig): NonNullable<Parameters<typeof authorizeHttpGatewayConnect>[0]["browserOriginPolicy"]>;
+export declare function resolveHttpBrowserOriginPolicy(req: IncomingMessage, cfg?: KovaConfig): NonNullable<Parameters<typeof authorizeHttpGatewayConnect>[0]["browserOriginPolicy"]>;
 export declare function authorizeGatewayHttpRequestOrReply(params: {
     req: IncomingMessage;
     res: ServerResponse;
@@ -31,7 +31,7 @@ export declare function checkGatewayHttpRequestAuth(params: {
     trustedProxies?: string[];
     allowRealIpFallback?: boolean;
     rateLimiter?: AuthRateLimiter;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): Promise<GatewayHttpRequestAuthCheckResult>;
 export declare function authorizeScopedGatewayHttpRequestOrReply(params: {
     req: IncomingMessage;
@@ -43,7 +43,7 @@ export declare function authorizeScopedGatewayHttpRequestOrReply(params: {
     operatorMethod: string;
     resolveOperatorScopes: (req: IncomingMessage, requestAuth: AuthorizedGatewayHttpRequest) => string[];
 }): Promise<{
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     requestAuth: AuthorizedGatewayHttpRequest;
 } | null>;
 export declare function isGatewayBearerHttpRequest(req: IncomingMessage, auth?: SharedSecretGatewayAuth): boolean;

@@ -1,6 +1,6 @@
 import { resolveConfiguredBindingRecord } from "../../channels/plugins/binding-registry.js";
 import { listAcpBindings } from "../../config/bindings.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { getSessionBindingService } from "../../infra/outbound/session-binding-service.js";
 export declare const __testing: {
     setDepsForTest(overrides?: Partial<{
@@ -10,7 +10,7 @@ export declare const __testing: {
     }>): void;
 };
 export declare function resolveEffectiveResetTargetSessionKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
     conversationId?: string | null;

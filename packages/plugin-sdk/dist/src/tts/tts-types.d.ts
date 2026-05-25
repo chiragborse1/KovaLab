@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ResolvedTtsPersona, TtsAutoMode, TtsConfig, TtsMode, TtsProvider } from "../config/types.tts.js";
 import type { SpeechModelOverridePolicy, SpeechProviderConfig } from "./provider-types.js";
 export type ResolvedTtsModelOverrides = SpeechModelOverridePolicy;
@@ -16,5 +16,5 @@ export type ResolvedTtsConfig = {
     maxTextLength: number;
     timeoutMs: number;
     rawConfig?: TtsConfig;
-    sourceConfig?: OpenClawConfig;
+    sourceConfig?: KovaConfig;
 };

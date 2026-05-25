@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import { hasMeaningfulConversationContent } from "../compaction-real-conversation.js";
 import type { AgentRuntimePlan } from "../runtime-plan/types.js";
@@ -24,7 +24,7 @@ declare function prepareCompactionSessionAgent(params: {
     effectiveModel: ProviderRuntimeModel;
     resolvedApiKey?: string;
     authStorage: unknown;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider: string;
     modelId: string;
     thinkLevel: ThinkLevel;
@@ -37,7 +37,7 @@ declare function prepareCompactionSessionAgent(params: {
 };
 declare function resolveCompactionProviderStream(params: {
     effectiveModel: ProviderRuntimeModel;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir: string;
     effectiveWorkspace: string;
 }): import("@mariozechner/pi-agent-core").StreamFn | undefined;

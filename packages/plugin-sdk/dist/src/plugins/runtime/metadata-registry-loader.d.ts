@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { PluginRegistry } from "../registry.js";
 import type { PluginLogger } from "../types.js";
 export declare function loadPluginMetadataRegistrySnapshot(options?: {
-    config?: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
+    config?: KovaConfig;
+    activationSourceConfig?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     logger?: PluginLogger;
     workspaceDir?: string;

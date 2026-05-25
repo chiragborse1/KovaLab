@@ -1,5 +1,5 @@
 import type { ReasoningLevel, ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ExecElevatedDefaults } from "../bash-tools.js";
 import type { SkillSnapshot } from "../skills.js";
 export type EmbeddedCompactionRuntimeContext = {
@@ -13,7 +13,7 @@ export type EmbeddedCompactionRuntimeContext = {
     authProfileId?: string;
     workspaceDir: string;
     agentDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     skillsSnapshot?: SkillSnapshot;
     senderIsOwner?: boolean;
     senderId?: string;
@@ -30,7 +30,7 @@ export type EmbeddedCompactionRuntimeContext = {
  * caller-supplied provider/model and optionally applying runtime defaults.
  */
 export declare function resolveEmbeddedCompactionTarget(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider?: string | null;
     modelId?: string | null;
     authProfileId?: string | null;
@@ -52,7 +52,7 @@ export declare function buildEmbeddedCompactionRuntimeContext(params: {
     authProfileId?: string | null;
     workspaceDir: string;
     agentDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     skillsSnapshot?: SkillSnapshot;
     senderIsOwner?: boolean;
     senderId?: string | null;

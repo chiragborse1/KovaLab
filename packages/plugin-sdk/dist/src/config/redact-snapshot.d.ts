@@ -1,12 +1,12 @@
 import { type ConfigUiHints } from "../shared/config-ui-hints-types.js";
-import type { ConfigFileSnapshot } from "./types.openclaw.js";
+import type { ConfigFileSnapshot } from "./types.kova.js";
 /**
  * Sentinel value used to replace sensitive config fields in gateway responses.
  * Write-side handlers (config.set, config.apply, config.patch) detect this
  * sentinel and restore the original value from the on-disk config, so a
  * round-trip through the Web UI does not corrupt credentials.
  */
-export declare const REDACTED_SENTINEL = "__OPENCLAW_REDACTED__";
+export declare const REDACTED_SENTINEL = "__KOVA_REDACTED__";
 /**
  * Returns a copy of the config snapshot with all sensitive fields
  * replaced by {@link REDACTED_SENTINEL}. The `hash` is preserved

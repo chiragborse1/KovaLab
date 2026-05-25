@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type PluginEnableResult = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     enabled: boolean;
     reason?: string;
 };
-export declare function enablePluginInConfig(cfg: OpenClawConfig, pluginId: string, options?: {
+export declare function enablePluginInConfig(cfg: KovaConfig, pluginId: string, options?: {
     updateChannelConfig?: boolean;
 }): PluginEnableResult;

@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AcpRuntime, AcpRuntimeHandle, AcpRuntimeStatus } from "../runtime/types.js";
 import type { SessionAcpMeta, SessionEntry } from "./manager.types.js";
 export declare function reconcileManagerRuntimeSessionIdentifiers(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     runtime: AcpRuntime;
     handle: AcpRuntimeHandle;
@@ -11,7 +11,7 @@ export declare function reconcileManagerRuntimeSessionIdentifiers(params: {
     failOnStatusError: boolean;
     setCachedHandle: (sessionKey: string, handle: AcpRuntimeHandle) => void;
     writeSessionMeta: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         mutate: (current: SessionAcpMeta | undefined, entry: SessionEntry | undefined) => SessionAcpMeta | null | undefined;
         failOnError?: boolean;

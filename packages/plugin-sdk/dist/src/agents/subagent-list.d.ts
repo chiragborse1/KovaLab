@@ -1,5 +1,5 @@
 import type { SessionEntry } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
 export type SubagentListItem = {
     index: number;
@@ -29,7 +29,7 @@ export type SessionEntryResolution = {
     entry: SessionEntry | undefined;
 };
 export declare function resolveSessionEntryForKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     key: string;
     cache: Map<string, Record<string, SessionEntry>>;
 }): SessionEntryResolution;
@@ -42,7 +42,7 @@ export declare function buildLatestSubagentRunIndex(runs: Map<string, SubagentRu
 export declare function createPendingDescendantCounter(runsSnapshot?: Map<string, SubagentRunRecord>): (sessionKey: string) => number;
 export declare function isActiveSubagentRun(entry: SubagentRunRecord, pendingDescendantCount: (sessionKey: string) => number): boolean;
 export declare function buildSubagentList(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     runs: SubagentRunRecord[];
     recentMinutes: number;
     taskMaxChars?: number;

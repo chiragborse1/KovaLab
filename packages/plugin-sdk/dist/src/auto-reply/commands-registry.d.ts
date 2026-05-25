@@ -1,5 +1,5 @@
 import type { SkillCommandSpec } from "../agents/skills.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { ChatCommandDefinition, CommandArgDefinition, CommandArgs, NativeCommandSpec, ShouldHandleTextCommandsParams } from "./commands-registry.types.js";
 export { isCommandEnabled, listChatCommands, listChatCommandsForConfig, } from "./commands-registry-list.js";
 export { getCommandDetection, maybeResolveTextAlias, normalizeCommandBody, resolveTextCommand, } from "./commands-registry-normalize.js";
@@ -11,7 +11,7 @@ export declare function listNativeCommandSpecs(params?: {
     skillCommands?: SkillCommandSpec[];
     provider?: string;
 }): NativeCommandSpec[];
-export declare function listNativeCommandSpecsForConfig(cfg: OpenClawConfig, params?: {
+export declare function listNativeCommandSpecsForConfig(cfg: KovaConfig, params?: {
     skillCommands?: SkillCommandSpec[];
     provider?: string;
 }): NativeCommandSpec[];
@@ -27,14 +27,14 @@ export type ResolvedCommandArgChoice = {
 export declare function resolveCommandArgChoices(params: {
     command: ChatCommandDefinition;
     arg: CommandArgDefinition;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider?: string;
     model?: string;
 }): ResolvedCommandArgChoice[];
 export declare function resolveCommandArgMenu(params: {
     command: ChatCommandDefinition;
     args?: CommandArgs;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider?: string;
     model?: string;
 }): {

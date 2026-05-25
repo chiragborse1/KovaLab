@@ -1,10 +1,10 @@
 import { type ModelAliasIndex } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { InlineDirectives } from "./directive-handling.parse.js";
 import { type ModelDirectiveSelection } from "./model-selection.js";
 export declare function resolveModelSelectionFromDirective(params: {
     directives: InlineDirectives;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir: string;
     defaultProvider: string;
     defaultModel: string;

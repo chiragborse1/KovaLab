@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { CompactEmbeddedPiSessionParams } from "../pi-embedded-runner/compact.types.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "../pi-embedded-runner/run/types.js";
 import { type EmbeddedAgentHarnessFallback, type EmbeddedAgentRuntime } from "../pi-embedded-runner/runtime.js";
@@ -11,7 +11,7 @@ type AgentHarnessPolicy = {
 export declare function selectAgentHarness(params: {
     provider: string;
     modelId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     sessionKey?: string;
     agentHarnessId?: string;
@@ -21,7 +21,7 @@ export declare function maybeCompactAgentHarnessSession(params: CompactEmbeddedP
 export declare function resolveAgentHarnessPolicy(params: {
     provider?: string;
     modelId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     sessionKey?: string;
     env?: NodeJS.ProcessEnv;

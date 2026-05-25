@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function isCliProvider(provider: string, cfg?: OpenClawConfig): boolean;
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function isCliProvider(provider: string, cfg?: KovaConfig): boolean;

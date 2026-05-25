@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SilentReplyConversationType } from "../../shared/silent-reply-policy.js";
 export type OutboundSessionContext = {
     /** Canonical session key used for internal hook dispatch. */
@@ -21,7 +21,7 @@ export type OutboundSessionContext = {
     requesterSenderE164?: string;
 };
 export declare function buildOutboundSessionContext(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey?: string | null;
     policySessionKey?: string | null;
     conversationType?: string | null;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type NormalizedPluginsConfig, type PluginActivationConfigSource } from "./config-state.js";
 export type PluginActivationCompatConfig = {
     allowlistPluginIds?: readonly string[];
@@ -11,10 +11,10 @@ export type PluginActivationBundledCompatMode = {
     vitest?: boolean;
 };
 export type PluginActivationInputs = {
-    rawConfig?: OpenClawConfig;
-    config?: OpenClawConfig;
+    rawConfig?: KovaConfig;
+    config?: KovaConfig;
     normalized: NormalizedPluginsConfig;
-    activationSourceConfig?: OpenClawConfig;
+    activationSourceConfig?: KovaConfig;
     activationSource: PluginActivationConfigSource;
     autoEnabledReasons: Record<string, string[]>;
 };
@@ -24,8 +24,8 @@ export type BundledPluginCompatibleActivationInputs = PluginActivationInputs & {
 };
 export type BundledPluginCompatibleLoadValues = Pick<BundledPluginCompatibleActivationInputs, "rawConfig" | "config" | "activationSourceConfig" | "autoEnabledReasons" | "compatPluginIds">;
 type BundledPluginCompatibleActivationParams = {
-    rawConfig?: OpenClawConfig;
-    resolvedConfig?: OpenClawConfig;
+    rawConfig?: KovaConfig;
+    resolvedConfig?: KovaConfig;
     autoEnabledReasons?: Record<string, string[]>;
     env?: NodeJS.ProcessEnv;
     workspaceDir?: string;
@@ -33,35 +33,37 @@ type BundledPluginCompatibleActivationParams = {
     applyAutoEnable?: boolean;
     compatMode: PluginActivationBundledCompatMode;
     resolveCompatPluginIds: (params: {
-        config?: OpenClawConfig;
+        config?: KovaConfig;
         workspaceDir?: string;
         env?: NodeJS.ProcessEnv;
         onlyPluginIds?: readonly string[];
     }) => string[];
 };
 export declare function withActivatedPluginIds(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     pluginIds: readonly string[];
     overrideGlobalDisable?: boolean;
     overrideExplicitDisable?: boolean;
-}): OpenClawConfig | undefined;
+}): KovaConfig | undefined;
 export declare function applyPluginCompatibilityOverrides(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     compat?: PluginActivationCompatConfig;
     env: NodeJS.ProcessEnv;
-}): OpenClawConfig | undefined;
+}): KovaConfig | undefined;
 export declare function resolvePluginActivationSnapshot(params: {
-    rawConfig?: OpenClawConfig;
-    resolvedConfig?: OpenClawConfig;
+    rawConfig?: KovaConfig;
+    resolvedConfig?: KovaConfig;
     autoEnabledReasons?: Record<string, string[]>;
     env?: NodeJS.ProcessEnv;
+    workspaceDir?: string;
     applyAutoEnable?: boolean;
 }): PluginActivationSnapshot;
 export declare function resolvePluginActivationInputs(params: {
-    rawConfig?: OpenClawConfig;
-    resolvedConfig?: OpenClawConfig;
+    rawConfig?: KovaConfig;
+    resolvedConfig?: KovaConfig;
     autoEnabledReasons?: Record<string, string[]>;
     env?: NodeJS.ProcessEnv;
+    workspaceDir?: string;
     compat?: PluginActivationCompatConfig;
     applyAutoEnable?: boolean;
 }): PluginActivationInputs;

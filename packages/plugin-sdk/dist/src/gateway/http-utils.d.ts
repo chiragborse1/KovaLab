@@ -1,9 +1,9 @@
 import type { IncomingMessage } from "node:http";
 export { authorizeGatewayHttpRequestOrReply, authorizeScopedGatewayHttpRequestOrReply, checkGatewayHttpRequestAuth, getBearerToken, getHeader, isGatewayBearerHttpRequest, resolveHttpBrowserOriginPolicy, resolveHttpSenderIsOwner, resolveOpenAiCompatibleHttpOperatorScopes, resolveOpenAiCompatibleHttpSenderIsOwner, resolveTrustedHttpOperatorScopes, type AuthorizedGatewayHttpRequest, type GatewayHttpRequestAuthCheckResult, } from "./http-auth-utils.js";
-export declare const OPENCLAW_MODEL_ID = "kova";
-export declare const OPENCLAW_DEFAULT_MODEL_ID = "kova/default";
+export declare const KOVA_MODEL_ID = "kova";
+export declare const KOVA_DEFAULT_MODEL_ID = "kova/default";
 export declare function resolveAgentIdFromHeader(req: IncomingMessage): string | undefined;
-export declare function resolveAgentIdFromModel(model: string | undefined, cfg?: import("../config/types.openclaw.ts").OpenClawConfig): string | undefined;
+export declare function resolveAgentIdFromModel(model: string | undefined, cfg?: import("../config/types.kova.ts").KovaConfig): string | undefined;
 export declare function resolveOpenAiCompatModelOverride(params: {
     req: IncomingMessage;
     agentId: string;

@@ -1,7 +1,7 @@
 import type { ModelCatalogEntry } from "../../agents/model-catalog.types.js";
 import { type ModelAliasIndex } from "../../agents/model-selection-shared.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 import { type ModelDirectiveSelection } from "./model-selection-directive.js";
 type ResetModelResult = {
@@ -9,7 +9,7 @@ type ResetModelResult = {
     cleanedBody?: string;
 };
 export declare function applyResetModelOverride(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     resetTriggered: boolean;
     bodyStripped?: string;

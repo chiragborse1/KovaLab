@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { BundledChannelLegacySessionSurface, BundledChannelLegacyStateMigrationDetector, BundledEntryModuleLoadOptions } from "../../plugin-sdk/channel-entry-contract.js";
 import type { PluginRuntime } from "../../plugins/runtime/types.js";
 import type { ChannelPlugin } from "./types.plugin.js";
@@ -34,13 +34,13 @@ export declare function hasBundledChannelPackageSetupFeature(id: ChannelId, feat
 export declare function listBundledChannelPlugins(): readonly ChannelPlugin[];
 export declare function listBundledChannelSetupPlugins(): readonly ChannelPlugin[];
 export declare function listBundledChannelSetupPluginsByFeature(feature: keyof NonNullable<BundledChannelSetupEntryRuntimeContract["features"]>, options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): readonly ChannelPlugin[];
 export declare function listBundledChannelLegacySessionSurfaces(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): readonly BundledChannelLegacySessionSurface[];
 export declare function listBundledChannelLegacyStateMigrationDetectors(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): readonly BundledChannelLegacyStateMigrationDetector[];
 export declare function hasBundledChannelEntryFeature(id: ChannelId, feature: keyof NonNullable<BundledChannelEntryRuntimeContract["features"]>): boolean;
 export declare function getBundledChannelAccountInspector(id: ChannelId): NonNullable<ChannelPlugin["config"]["inspectAccount"]> | undefined;

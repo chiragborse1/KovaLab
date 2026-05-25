@@ -1,26 +1,26 @@
 import { type Api, type Model } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type AuthProfileStore } from "./auth-profiles.js";
 import { type ResolvedProviderAuth } from "./model-auth-runtime-shared.js";
 export { ensureAuthProfileStore, resolveAuthProfileOrder } from "./auth-profiles.js";
 export { requireApiKey, resolveAwsSdkEnvVarName } from "./model-auth-runtime-shared.js";
 export type { ResolvedProviderAuth } from "./model-auth-runtime-shared.js";
 export type ProviderCredentialPrecedence = "profile-first" | "env-first";
-export declare function getCustomProviderApiKey(cfg: OpenClawConfig | undefined, provider: string): string | undefined;
+export declare function getCustomProviderApiKey(cfg: KovaConfig | undefined, provider: string): string | undefined;
 type ResolvedCustomProviderApiKey = {
     apiKey: string;
     source: string;
 };
 export declare function resolveUsableCustomProviderApiKey(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     env?: NodeJS.ProcessEnv;
 }): ResolvedCustomProviderApiKey | null;
-export declare function hasUsableCustomProviderApiKey(cfg: OpenClawConfig | undefined, provider: string, env?: NodeJS.ProcessEnv): boolean;
-export declare function shouldPreferExplicitConfigApiKeyAuth(cfg: OpenClawConfig | undefined, provider: string): boolean;
+export declare function hasUsableCustomProviderApiKey(cfg: KovaConfig | undefined, provider: string, env?: NodeJS.ProcessEnv): boolean;
+export declare function shouldPreferExplicitConfigApiKeyAuth(cfg: KovaConfig | undefined, provider: string): boolean;
 export declare function resolveApiKeyForProvider(params: {
     provider: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     profileId?: string;
     preferredProfile?: string;
     store?: AuthProfileStore;
@@ -33,17 +33,17 @@ export declare function resolveApiKeyForProvider(params: {
 export type ModelAuthMode = "api-key" | "oauth" | "token" | "mixed" | "aws-sdk" | "unknown";
 export { resolveEnvApiKey } from "./model-auth-env.js";
 export type { EnvApiKeyResult } from "./model-auth-env.js";
-export declare function resolveModelAuthMode(provider?: string, cfg?: OpenClawConfig, store?: AuthProfileStore): ModelAuthMode | undefined;
+export declare function resolveModelAuthMode(provider?: string, cfg?: KovaConfig, store?: AuthProfileStore): ModelAuthMode | undefined;
 export declare function hasAvailableAuthForProvider(params: {
     provider: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     preferredProfile?: string;
     store?: AuthProfileStore;
     agentDir?: string;
 }): Promise<boolean>;
 export declare function getApiKeyForModel(params: {
     model: Model<Api>;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     profileId?: string;
     preferredProfile?: string;
     store?: AuthProfileStore;
@@ -62,4 +62,4 @@ export declare function applyLocalNoAuthHeaderOverride<T extends Model<Api>>(mod
  * available, or when the API key is a synthetic marker (e.g. local-server
  * placeholders) rather than a real credential.
  */
-export declare function applyAuthHeaderOverride<T extends Model<Api>>(model: T, auth: ResolvedProviderAuth | null | undefined, cfg: OpenClawConfig | undefined): T;
+export declare function applyAuthHeaderOverride<T extends Model<Api>>(model: T, auth: ResolvedProviderAuth | null | undefined, cfg: KovaConfig | undefined): T;

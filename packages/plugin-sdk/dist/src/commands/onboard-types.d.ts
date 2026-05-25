@@ -27,8 +27,8 @@ type OnboardDynamicProviderOptions = {
 };
 export type OnboardOptions = OnboardDynamicProviderOptions & {
     mode?: OnboardMode;
-    /** "manual" is an alias for "advanced". */
-    flow?: "quickstart" | "advanced" | "manual" | "import";
+    /** "builder", "manual", and "advanced" are compatibility aliases for "extras". */
+    flow?: "quickstart" | "extras" | "builder" | "advanced" | "manual" | "import";
     workspace?: string;
     nonInteractive?: boolean;
     /** Required for non-interactive setup; skips the interactive risk prompt when true. */
@@ -65,6 +65,8 @@ export type OnboardOptions = OnboardDynamicProviderOptions & {
     tailscaleResetOnExit?: boolean;
     installDaemon?: boolean;
     daemonRuntime?: GatewayDaemonRuntime;
+    /** Opt into chat app setup during launch. Extras setup prompts only when selected. */
+    withChannels?: boolean;
     skipChannels?: boolean;
     /** @deprecated Legacy alias for `skipChannels`. */
     skipProviders?: boolean;

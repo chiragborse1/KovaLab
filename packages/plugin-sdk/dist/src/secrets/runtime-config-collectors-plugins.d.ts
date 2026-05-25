@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginOrigin } from "../plugins/plugin-origin.types.js";
 import { type ResolverContext, type SecretDefaults } from "./runtime-shared.js";
 /**
@@ -13,7 +13,7 @@ import { type ResolverContext, type SecretDefaults } from "./runtime-shared.js";
  * non-loadable plugins from blocking startup or preflight validation.
  */
 export declare function collectPluginConfigAssignments(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     defaults: SecretDefaults | undefined;
     context: ResolverContext;
     loadablePluginOrigins?: ReadonlyMap<string, PluginOrigin>;

@@ -1,7 +1,7 @@
 import { type ModelAliasIndex } from "../../agents/model-selection.js";
 import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
@@ -12,7 +12,7 @@ import { type ReplyExecOverrides } from "./get-reply-exec-overrides.js";
 import { defaultGroupActivation, resolveGroupRequireMention } from "./groups.js";
 import { createModelSelectionState } from "./model-selection.js";
 import type { TypingController } from "./typing.js";
-type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
+type AgentDefaults = NonNullable<KovaConfig["agents"]>["defaults"];
 export type ReplyDirectiveContinuation = {
     commandSource: string;
     command: ReturnType<typeof buildCommandContext>;
@@ -64,7 +64,7 @@ export type ReplyDirectiveResult = {
 };
 export declare function resolveReplyDirectives(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     agentDir: string;
     workspaceDir: string;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function splitModelRef(ref?: string): {
     provider: undefined;
     model: undefined;
@@ -10,11 +10,11 @@ export declare function splitModelRef(ref?: string): {
     model: string;
 };
 export declare function resolveConfiguredSubagentRunTimeoutSeconds(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     runTimeoutSeconds?: number;
 }): number;
 export declare function resolveSubagentModelAndThinkingPlan(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     targetAgentId: string;
     targetAgentConfig?: unknown;
     modelOverride?: string;

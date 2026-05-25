@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
 import { type ToolModelConfig } from "./model-config.helpers.js";
 import { type AnyAgentTool, type SandboxFsBridge, type ToolFsPolicy } from "./tool-runtime.helpers.js";
 export declare function resolveMusicGenerationModelConfigForTool(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
 }): ToolModelConfig | null;
 type MusicGenerateSandboxConfig = {
@@ -12,7 +12,7 @@ type MusicGenerateSandboxConfig = {
 };
 type MusicGenerateBackgroundScheduler = (work: () => Promise<void>) => void;
 export declare function createMusicGenerateTool(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     agentSessionKey?: string;
     requesterOrigin?: DeliveryContext;

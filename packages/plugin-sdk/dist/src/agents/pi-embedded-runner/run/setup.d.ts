@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../../../plugins/provider-runtime-model.types.js";
 import type { PluginHookBeforeAgentStartResult, PluginHookBeforeModelResolveAttachment, PluginHookBeforeModelResolveEvent } from "../../../plugins/types.js";
 import { type ContextWindowInfo } from "../../context-window-guard.js";
@@ -37,7 +37,7 @@ export declare function buildBeforeModelResolveAttachments(images: readonly {
     mimeType?: string;
 }[] | undefined): PluginHookBeforeModelResolveAttachment[] | undefined;
 export declare function resolveEffectiveRuntimeModel(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     modelId: string;
     runtimeModel: ProviderRuntimeModel;

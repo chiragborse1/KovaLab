@@ -1,5 +1,5 @@
 import type { AgentDefaultsConfig } from "../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 type HeartbeatConfig = AgentDefaultsConfig["heartbeat"];
 export type HeartbeatSummary = {
     enabled: boolean;
@@ -10,7 +10,7 @@ export type HeartbeatSummary = {
     model?: string;
     ackMaxChars: number;
 };
-export declare function isHeartbeatEnabledForAgent(cfg: OpenClawConfig, agentId?: string): boolean;
-export declare function resolveHeartbeatIntervalMs(cfg: OpenClawConfig, overrideEvery?: string, heartbeat?: HeartbeatConfig): number | null;
-export declare function resolveHeartbeatSummaryForAgent(cfg: OpenClawConfig, agentId?: string): HeartbeatSummary;
+export declare function isHeartbeatEnabledForAgent(cfg: KovaConfig, agentId?: string): boolean;
+export declare function resolveHeartbeatIntervalMs(cfg: KovaConfig, overrideEvery?: string, heartbeat?: HeartbeatConfig): number | null;
+export declare function resolveHeartbeatSummaryForAgent(cfg: KovaConfig, agentId?: string): HeartbeatSummary;
 export {};

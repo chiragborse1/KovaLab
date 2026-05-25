@@ -1,12 +1,12 @@
 import { type SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function resolveMemoryFlushContextWindowTokens(params: {
     modelId?: string;
     agentCfgContextTokens?: number;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider?: string;
 }): number;
-export declare function resolveMaxActiveTranscriptBytes(cfg?: OpenClawConfig): number | undefined;
+export declare function resolveMaxActiveTranscriptBytes(cfg?: KovaConfig): number | undefined;
 export declare function shouldRunMemoryFlush(params: {
     entry?: Pick<SessionEntry, "totalTokens" | "totalTokensFresh" | "compactionCount" | "memoryFlushCompactionCount">;
     /**

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./types.js";
+import type { KovaConfig } from "./types.js";
 /**
  * Nix mode detection: When KOVA_NIX_MODE=1, the gateway is running under Nix.
  * In this mode:
@@ -8,7 +8,7 @@ import type { OpenClawConfig } from "./types.js";
  */
 export declare function resolveIsNixMode(env?: NodeJS.ProcessEnv): boolean;
 export declare const isNixMode: boolean;
-export declare function resolveOpenClawCompatMode(env?: NodeJS.ProcessEnv): boolean;
+export declare function resolveKovaCompatMode(env?: NodeJS.ProcessEnv): boolean;
 export declare function resolveLegacyStateDir(homedir?: () => string): string;
 export declare function resolveLegacyStateDirs(homedir?: () => string): string[];
 export declare function resolveNewStateDir(homedir?: () => string): string;
@@ -40,7 +40,7 @@ export declare const CONFIG_PATH: string;
  * Order: explicit config path -> state-dir-derived paths -> new default.
  */
 export declare function resolveDefaultConfigCandidates(env?: NodeJS.ProcessEnv, homedir?: () => string): string[];
-export declare const DEFAULT_GATEWAY_PORT = 18790;
+export declare const DEFAULT_GATEWAY_PORT = 18789;
 /**
  * Gateway lock directory (ephemeral).
  * Default: os.tmpdir()/kova-<uid> (uid suffix when available).
@@ -55,4 +55,4 @@ export declare function resolveGatewayLockDir(tmpdir?: () => string): string;
  */
 export declare function resolveOAuthDir(env?: NodeJS.ProcessEnv, stateDir?: string): string;
 export declare function resolveOAuthPath(env?: NodeJS.ProcessEnv, stateDir?: string): string;
-export declare function resolveGatewayPort(cfg?: OpenClawConfig, env?: NodeJS.ProcessEnv): number;
+export declare function resolveGatewayPort(cfg?: KovaConfig, env?: NodeJS.ProcessEnv): number;

@@ -1,6 +1,6 @@
 import { SessionManager } from "@mariozechner/pi-coding-agent";
 import type { SessionCompactionCheckpoint, SessionCompactionCheckpointReason, SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare const MAX_COMPACTION_CHECKPOINT_SNAPSHOT_BYTES: number;
 export type CapturedCompactionCheckpointSnapshot = {
     sessionId: string;
@@ -18,7 +18,7 @@ export declare function captureCompactionCheckpointSnapshot(params: {
 }): CapturedCompactionCheckpointSnapshot | null;
 export declare function cleanupCompactionCheckpointSnapshot(snapshot: CapturedCompactionCheckpointSnapshot | null | undefined): Promise<void>;
 export declare function persistSessionCompactionCheckpoint(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     sessionId: string;
     reason: SessionCompactionCheckpointReason;

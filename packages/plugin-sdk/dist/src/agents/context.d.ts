@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export { resetContextWindowCacheForTest } from "./context-runtime-state.js";
 type ModelEntry = {
     id: string;
@@ -32,7 +32,7 @@ export declare function lookupContextTokens(modelId?: string, options?: {
     allowAsyncLoad?: boolean;
 }): number | undefined;
 export declare function resolveContextTokensForModel(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     provider?: string;
     model?: string;
     contextTokensOverride?: number;

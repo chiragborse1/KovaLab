@@ -1,6 +1,6 @@
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import type { ReplyToMode } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { OutboundDeliveryResult } from "../../infra/outbound/deliver-types.js";
 import type { OutboundDeliveryFormattingOptions } from "../../infra/outbound/formatting.js";
 import type { OutboundIdentity } from "../../infra/outbound/identity-types.js";
@@ -9,7 +9,7 @@ import type { MessagePresentation, ReplyPayloadDeliveryPin } from "../../interac
 import type { OutboundMediaAccess } from "../../media/load-options.js";
 import type { ChannelOutboundTargetMode, ChannelPollContext, ChannelPollResult } from "./types.core.js";
 export type ChannelOutboundContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     to: string;
     text: string;
     mediaUrl?: string;
@@ -84,24 +84,24 @@ export type ChannelOutboundAdapter = {
         payload: ReplyPayload;
     }) => boolean;
     resolveEffectiveTextChunkLimit?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         fallbackLimit?: number;
     }) => number | undefined;
     shouldSuppressLocalPayloadPrompt?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         payload: ReplyPayload;
         hint?: ChannelOutboundPayloadHint;
     }) => boolean;
     beforeDeliverPayload?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         target: ChannelOutboundTargetRef;
         payload: ReplyPayload;
         hint?: ChannelOutboundPayloadHint;
     }) => Promise<void> | void;
     afterDeliverPayload?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         target: ChannelOutboundTargetRef;
         payload: ReplyPayload;
         results: readonly OutboundDeliveryResult[];
@@ -114,7 +114,7 @@ export type ChannelOutboundAdapter = {
         ctx: ChannelOutboundPayloadContext;
     }) => Promise<ReplyPayload | null> | ReplyPayload | null;
     pinDeliveredMessage?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         target: ChannelOutboundTargetRef;
         messageId: string;
         pin: ReplyPayloadDeliveryPin;
@@ -137,7 +137,7 @@ export type ChannelOutboundAdapter = {
         targetThreadId?: string;
     }) => boolean;
     resolveTarget?: (params: {
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
         to?: string;
         allowFrom?: string[];
         accountId?: string | null;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ThreadBindingLifecycleRecord } from "../shared/thread-binding-lifecycle.js";
 export { resolveThreadBindingLifecycle, type ThreadBindingLifecycleRecord, } from "../shared/thread-binding-lifecycle.js";
 export type ThreadBindingSpawnKind = "subagent" | "acp";
@@ -32,18 +32,18 @@ export declare function resolveThreadBindingsEnabled(params: {
     sessionEnabledRaw: unknown;
 }): boolean;
 export declare function resolveThreadBindingSpawnPolicy(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string;
     kind: ThreadBindingSpawnKind;
 }): ThreadBindingSpawnPolicy;
 export declare function resolveThreadBindingIdleTimeoutMsForChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string;
 }): number;
 export declare function resolveThreadBindingMaxAgeMsForChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string;
 }): number;

@@ -1,7 +1,7 @@
 import type { ClearSessionQueueResult } from "../auto-reply/reply/queue.js";
 import { type SubagentTargetResolution } from "../auto-reply/reply/subagents-utils.js";
 import { updateSessionStore } from "../config/sessions/store.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { callGateway } from "../gateway/call.js";
 import { buildSubagentList, createPendingDescendantCounter, isActiveSubagentRun, resolveSessionEntryForKey, type BuiltSubagentList, type SessionEntryResolution, type SubagentListItem } from "./subagent-list.js";
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
@@ -23,12 +23,12 @@ export type ResolvedSubagentController = {
 export type { BuiltSubagentList, SessionEntryResolution, SubagentListItem };
 export { buildSubagentList, createPendingDescendantCounter, isActiveSubagentRun, resolveSessionEntryForKey, };
 export declare function resolveSubagentController(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentSessionKey?: string;
 }): ResolvedSubagentController;
 export declare function listControlledSubagentRuns(controllerSessionKey: string): SubagentRunRecord[];
 export declare function killAllControlledSubagentRuns(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     controller: ResolvedSubagentController;
     runs: SubagentRunRecord[];
 }): Promise<{
@@ -43,18 +43,18 @@ export declare function killAllControlledSubagentRuns(params: {
     labels: string[];
 }>;
 export declare function killControlledSubagentRun(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     controller: ResolvedSubagentController;
     entry: SubagentRunRecord;
 }): Promise<{
+    label?: undefined;
+    text?: undefined;
     status: "forbidden";
     runId: string;
     sessionKey: string;
     error: string;
-    label?: undefined;
     cascadeKilled?: undefined;
     cascadeLabels?: undefined;
-    text?: undefined;
 } | {
     error?: undefined;
     status: "done";
@@ -75,15 +75,15 @@ export declare function killControlledSubagentRun(params: {
     text: string;
 }>;
 export declare function killSubagentRunAdmin(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
 }): Promise<{
+    sessionKey?: undefined;
     cascadeKilled?: undefined;
     cascadeLabels?: undefined;
     found: false;
     killed: boolean;
     runId?: undefined;
-    sessionKey?: undefined;
 } | {
     found: true;
     killed: boolean;
@@ -93,7 +93,7 @@ export declare function killSubagentRunAdmin(params: {
     cascadeLabels: string[] | undefined;
 }>;
 export declare function steerControlledSubagentRun(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     controller: ResolvedSubagentController;
     entry: SubagentRunRecord;
     message: string;
@@ -114,16 +114,16 @@ export declare function steerControlledSubagentRun(params: {
     text: string;
 }>;
 export declare function sendControlledSubagentMessage(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     controller: ResolvedSubagentController;
     entry: SubagentRunRecord;
     message: string;
 }): Promise<{
+    text?: undefined;
     runId?: undefined;
     status: "forbidden";
     error: string;
     replyText?: undefined;
-    text?: undefined;
 } | {
     error?: undefined;
     status: "done";
@@ -132,22 +132,22 @@ export declare function sendControlledSubagentMessage(params: {
     replyText?: undefined;
 } | {
     error?: undefined;
+    text?: undefined;
     status: "timeout";
     runId: string;
     replyText?: undefined;
-    text?: undefined;
 } | {
+    text?: undefined;
     status: "error";
     runId: string;
     error: string;
     replyText?: undefined;
-    text?: undefined;
 } | {
     error?: undefined;
+    text?: undefined;
     status: "ok";
     runId: string;
     replyText: string | undefined;
-    text?: undefined;
 }>;
 export declare function resolveControlledSubagentTarget(runs: SubagentRunRecord[], token: string | undefined, options?: {
     recentMinutes?: number;

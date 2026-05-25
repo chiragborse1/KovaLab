@@ -1,6 +1,6 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { ChannelId, ChannelMessageActionName, ChannelThreadingToolContext } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type GatewayClientMode, type GatewayClientName } from "../../utils/message-channel.js";
 import type { OutboundSendDeps } from "./deliver.js";
 import type { MessagePollResult, MessageSendResult } from "./message.js";
@@ -13,7 +13,7 @@ export type MessageActionRunnerGateway = {
     mode: GatewayClientMode;
 };
 export type RunMessageActionParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     action: ChannelMessageActionName;
     params: Record<string, unknown>;
     defaultAccountId?: string;

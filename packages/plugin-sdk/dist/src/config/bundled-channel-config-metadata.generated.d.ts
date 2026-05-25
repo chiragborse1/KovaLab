@@ -3207,11 +3207,11 @@ export declare const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA: readonly [{
         };
         readonly streaming: {
             readonly label: "Discord Streaming Mode";
-            readonly help: 'Unified Discord stream preview mode: "off" | "partial" | "block" | "progress". "progress" maps to "partial" on Discord. Legacy boolean/streamMode keys are auto-mapped.';
+            readonly help: 'Unified Discord stream preview mode: "off" | "partial" | "block" | "progress" (default: "progress"). Legacy boolean/streamMode keys are auto-mapped.';
         };
         readonly "streaming.mode": {
             readonly label: "Discord Streaming Mode";
-            readonly help: 'Canonical Discord preview mode: "off" | "partial" | "block" | "progress". "progress" maps to "partial" on Discord.';
+            readonly help: 'Canonical Discord preview mode: "off" | "partial" | "block" | "progress" (default: "progress").';
         };
         readonly "streaming.chunkMode": {
             readonly label: "Discord Chunk Mode";
@@ -12083,7 +12083,7 @@ export declare const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA: readonly [{
         };
         readonly execApprovals: {
             readonly label: "Slack Exec Approvals";
-            readonly help: "Slack-native exec approval routing and approver authorization. When unset, OpenClaw auto-enables DM-first native approvals if approvers can be resolved for this workspace account.";
+            readonly help: "Slack-native exec approval routing and approver authorization. When unset, Kova auto-enables DM-first native approvals if approvers can be resolved for this workspace account.";
         };
         readonly "execApprovals.enabled": {
             readonly label: "Slack Exec Approvals Enabled";
@@ -14154,11 +14154,11 @@ export declare const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA: readonly [{
         };
         readonly streaming: {
             readonly label: "Telegram Streaming Mode";
-            readonly help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram. Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.';
+            readonly help: 'Unified Telegram stream preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). Legacy boolean/streamMode keys are detected; run doctor --fix to migrate.';
         };
         readonly "streaming.mode": {
             readonly label: "Telegram Streaming Mode";
-            readonly help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial"). "progress" maps to "partial" on Telegram.';
+            readonly help: 'Canonical Telegram preview mode: "off" | "partial" | "block" | "progress" (default: "partial").';
         };
         readonly "streaming.chunkMode": {
             readonly label: "Telegram Chunk Mode";
@@ -14250,7 +14250,7 @@ export declare const GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA: readonly [{
         };
         readonly execApprovals: {
             readonly label: "Telegram Exec Approvals";
-            readonly help: "Telegram-native exec approval routing and approver authorization. When unset, OpenClaw auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.";
+            readonly help: "Telegram-native exec approval routing and approver authorization. When unset, Kova auto-enables DM-first native approvals if approvers can be resolved for the selected bot account.";
         };
         readonly "execApprovals.enabled": {
             readonly label: "Telegram Exec Approvals Enabled";

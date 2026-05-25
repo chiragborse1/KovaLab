@@ -6,7 +6,7 @@ export type PluginConfigUiHint = {
     sensitive?: boolean;
     placeholder?: string;
 };
-export type PluginFormat = "openclaw" | "bundle";
+export type PluginFormat = "kova" | "bundle";
 export type PluginBundleFormat = "codex" | "claude" | "cursor";
 export type PluginDiagnostic = {
     level: "warn" | "error";

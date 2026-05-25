@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { JsonValue, TaskFlowRecord } from "../../tasks/task-flow-registry.types.js";
 import type { TaskDeliveryState, TaskDeliveryStatus, TaskNotifyPolicy, TaskRecord, TaskRegistrySummary, TaskRuntime } from "../../tasks/task-registry.types.js";
-import type { OpenClawPluginToolContext } from "../tool-types.js";
+import type { KovaPluginToolContext } from "../tool-types.js";
 export type ManagedTaskFlowRecord = TaskFlowRecord & {
     syncMode: "managed";
     controllerId: string;
@@ -94,7 +94,7 @@ export type BoundTaskFlowRuntime = {
     }) => ManagedTaskFlowMutationResult;
     cancel: (params: {
         flowId: string;
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
     }) => Promise<BoundTaskFlowCancelResult>;
     runTask: (params: {
         flowId: string;
@@ -120,5 +120,5 @@ export type PluginRuntimeTaskFlow = {
         sessionKey: string;
         requesterOrigin?: TaskDeliveryState["requesterOrigin"];
     }) => BoundTaskFlowRuntime;
-    fromToolContext: (ctx: Pick<OpenClawPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskFlowRuntime;
+    fromToolContext: (ctx: Pick<KovaPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskFlowRuntime;
 };

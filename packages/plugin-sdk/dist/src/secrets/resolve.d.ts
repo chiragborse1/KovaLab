@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SecretRef, SecretRefSource } from "../config/types.secrets.js";
 import type { SecretRefResolveCache } from "./resolve-types.js";
 export type { SecretRefResolveCache } from "./resolve-types.js";
 type ResolveSecretRefOptions = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     cache?: SecretRefResolveCache;
 };

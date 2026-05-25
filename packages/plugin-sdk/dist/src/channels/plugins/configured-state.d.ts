@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function listBundledChannelIdsWithConfiguredState(): string[];
 export declare function hasBundledChannelConfiguredState(params: {
     channelId: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     env?: NodeJS.ProcessEnv;
 }): boolean;

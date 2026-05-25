@@ -1,10 +1,10 @@
 import type { TSchema } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelMessageCapability } from "./message-capabilities.js";
 import { type ChannelMessageToolDiscoveryAdapter } from "./message-tool-api.js";
 import type { ChannelMessageActionDiscoveryContext, ChannelMessageActionName, ChannelMessageToolSchemaContribution } from "./types.public.js";
 export type ChannelMessageActionDiscoveryInput = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     channel?: string | null;
     currentChannelProvider?: string | null;
     currentChannelId?: string | null;
@@ -18,7 +18,7 @@ export type ChannelMessageActionDiscoveryInput = {
     senderIsOwner?: boolean;
 };
 type ChannelMessageActionDiscoveryParams = ChannelMessageActionDiscoveryInput & {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 };
 type ChannelMessageToolMediaSourceParamKeyInput = ChannelMessageActionDiscoveryParams & {
     action?: ChannelMessageActionName;
@@ -44,15 +44,15 @@ export declare function resolveMessageActionDiscoveryForPlugin(params: {
     includeCapabilities?: boolean;
     includeSchema?: boolean;
 }): ResolvedChannelMessageActionDiscovery;
-export declare function listChannelMessageActions(cfg: OpenClawConfig): ChannelMessageActionName[];
+export declare function listChannelMessageActions(cfg: KovaConfig): ChannelMessageActionName[];
 export declare function listCrossChannelSchemaSupportedMessageActions(params: ChannelMessageActionDiscoveryParams & {
     channel?: string;
 }): ChannelMessageActionName[];
-export declare function listChannelMessageCapabilities(cfg: OpenClawConfig): ChannelMessageCapability[];
+export declare function listChannelMessageCapabilities(cfg: KovaConfig): ChannelMessageCapability[];
 export declare function listChannelMessageCapabilitiesForChannel(params: ChannelMessageActionDiscoveryParams): ChannelMessageCapability[];
 export declare function resolveChannelMessageToolSchemaProperties(params: ChannelMessageActionDiscoveryParams): Record<string, TSchema>;
 export declare function resolveChannelMessageToolMediaSourceParamKeys(params: ChannelMessageToolMediaSourceParamKeyInput): string[];
-export declare function channelSupportsMessageCapability(cfg: OpenClawConfig, capability: ChannelMessageCapability): boolean;
+export declare function channelSupportsMessageCapability(cfg: KovaConfig, capability: ChannelMessageCapability): boolean;
 export declare function channelSupportsMessageCapabilityForChannel(params: ChannelMessageActionDiscoveryParams, capability: ChannelMessageCapability): boolean;
 export declare const __testing: {
     resetLoggedMessageActionErrors(): void;

@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ConfiguredAcpBindingSpec, type ResolvedConfiguredAcpBinding } from "./persistent-bindings.types.js";
 export declare function ensureConfiguredAcpBindingSession(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     spec: ConfiguredAcpBindingSpec;
 }): Promise<{
     ok: true;
@@ -12,7 +12,7 @@ export declare function ensureConfiguredAcpBindingSession(params: {
     error: string;
 }>;
 export declare function ensureConfiguredAcpBindingReady(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     configuredBinding: ResolvedConfiguredAcpBinding | null;
 }): Promise<{
     ok: true;
@@ -21,7 +21,7 @@ export declare function ensureConfiguredAcpBindingReady(params: {
     error: string;
 }>;
 export declare function resetAcpSessionInPlace(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     reason: "new" | "reset";
     clearMeta?: boolean;

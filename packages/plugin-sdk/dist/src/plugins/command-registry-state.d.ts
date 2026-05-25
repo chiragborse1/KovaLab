@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-import type { OpenClawPluginCommandDefinition } from "./types.js";
-export type RegisteredPluginCommand = OpenClawPluginCommandDefinition & {
+import type { KovaConfig } from "../config/types.kova.js";
+import type { KovaPluginCommandDefinition } from "./types.js";
+export type RegisteredPluginCommand = KovaPluginCommandDefinition & {
     pluginId: string;
     pluginName?: string;
     pluginRoot?: string;
@@ -17,7 +17,7 @@ export declare function getPluginCommandSpecs(provider?: string, options?: {
     env?: NodeJS.ProcessEnv;
     stateDir?: string;
     workspaceDir?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): Array<{
     name: string;
     description: string;

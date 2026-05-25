@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const OpenClawSchema: z.ZodObject<{
+export declare const KovaSchema: z.ZodObject<{
     $schema: z.ZodOptional<z.ZodString>;
     meta: z.ZodOptional<z.ZodObject<{
         lastTouchedVersion: z.ZodOptional<z.ZodString>;
@@ -108,7 +108,7 @@ export declare const OpenClawSchema: z.ZodObject<{
             userDataDir: z.ZodOptional<z.ZodString>;
             mcpCommand: z.ZodOptional<z.ZodString>;
             mcpArgs: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            driver: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"openclaw">, z.ZodLiteral<"clawd">, z.ZodLiteral<"existing-session">]>>;
+            driver: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"kova">, z.ZodLiteral<"kova">, z.ZodLiteral<"existing-session">]>>;
             headless: z.ZodOptional<z.ZodBoolean>;
             executablePath: z.ZodOptional<z.ZodString>;
             attachOnly: z.ZodOptional<z.ZodBoolean>;
@@ -206,7 +206,7 @@ export declare const OpenClawSchema: z.ZodObject<{
     models: z.ZodOptional<z.ZodObject<{
         mode: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"merge">, z.ZodLiteral<"replace">]>>;
         providers: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            baseUrl: z.ZodString;
+            baseUrl: z.ZodOptional<z.ZodString>;
             apiKey: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 source: z.ZodLiteral<"env">;
                 provider: z.ZodString;
@@ -476,7 +476,7 @@ export declare const OpenClawSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 allowPrivateNetwork: z.ZodOptional<z.ZodBoolean>;
             }, z.core.$strict>>;
-            models: z.ZodArray<z.ZodObject<{
+            models: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 id: z.ZodString;
                 name: z.ZodString;
                 api: z.ZodOptional<z.ZodEnum<{
@@ -536,7 +536,7 @@ export declare const OpenClawSchema: z.ZodObject<{
                     requiresOpenAiAnthropicToolPayload: z.ZodOptional<z.ZodBoolean>;
                 }, z.core.$strict>>;
                 metadataSource: z.ZodOptional<z.ZodLiteral<"models-add">>;
-            }, z.core.$strict>>;
+            }, z.core.$strict>>>;
         }, z.core.$strict>>>;
     }, z.core.$strict>>;
     nodeHost: z.ZodOptional<z.ZodObject<{
@@ -1069,6 +1069,9 @@ export declare const OpenClawSchema: z.ZodObject<{
                 stream: "stream";
             }>>;
             fastModeDefault: z.ZodOptional<z.ZodBoolean>;
+            experimental: z.ZodOptional<z.ZodObject<{
+                localModelLean: z.ZodOptional<z.ZodBoolean>;
+            }, z.core.$strict>>;
             skills: z.ZodOptional<z.ZodArray<z.ZodString>>;
             memorySearch: z.ZodOptional<z.ZodObject<{
                 enabled: z.ZodOptional<z.ZodBoolean>;
@@ -3596,12 +3599,14 @@ export declare const OpenClawSchema: z.ZodObject<{
                 telegram: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 discord: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 irc: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
+                googlechat: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 slack: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 mattermost: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 signal: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 imessage: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 msteams: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
                 webchat: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
+                matrix: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"steer">, z.ZodLiteral<"followup">, z.ZodLiteral<"collect">, z.ZodLiteral<"steer-backlog">, z.ZodLiteral<"steer+backlog">, z.ZodLiteral<"queue">, z.ZodLiteral<"interrupt">]>>;
             }, z.core.$strict>>;
             debounceMs: z.ZodOptional<z.ZodNumber>;
             debounceMsByChannel: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodNumber>>;
@@ -3972,7 +3977,7 @@ export declare const OpenClawSchema: z.ZodObject<{
                 extraDirs: z.ZodOptional<z.ZodArray<z.ZodString>>;
             }, z.core.$strict>>;
             installs: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-                source: z.ZodUnion<readonly [z.ZodLiteral<"npm">, z.ZodLiteral<"archive">, z.ZodLiteral<"path">, z.ZodLiteral<"clawhub">]>;
+                source: z.ZodUnion<readonly [z.ZodLiteral<"npm">, z.ZodLiteral<"archive">, z.ZodLiteral<"path">, z.ZodLiteral<"kovahub">]>;
                 spec: z.ZodOptional<z.ZodString>;
                 sourcePath: z.ZodOptional<z.ZodString>;
                 installPath: z.ZodOptional<z.ZodString>;
@@ -3984,10 +3989,10 @@ export declare const OpenClawSchema: z.ZodObject<{
                 shasum: z.ZodOptional<z.ZodString>;
                 resolvedAt: z.ZodOptional<z.ZodString>;
                 installedAt: z.ZodOptional<z.ZodString>;
-                clawhubUrl: z.ZodOptional<z.ZodString>;
-                clawhubPackage: z.ZodOptional<z.ZodString>;
-                clawhubFamily: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"code-plugin">, z.ZodLiteral<"bundle-plugin">]>>;
-                clawhubChannel: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"official">, z.ZodLiteral<"community">, z.ZodLiteral<"private">]>>;
+                kovahubUrl: z.ZodOptional<z.ZodString>;
+                kovahubPackage: z.ZodOptional<z.ZodString>;
+                kovahubFamily: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"code-plugin">, z.ZodLiteral<"bundle-plugin">]>>;
+                kovahubChannel: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"official">, z.ZodLiteral<"community">, z.ZodLiteral<"private">]>>;
                 hooks: z.ZodOptional<z.ZodArray<z.ZodString>>;
             }, z.core.$strict>>>;
         }, z.core.$strict>>;
@@ -4350,6 +4355,8 @@ export declare const OpenClawSchema: z.ZodObject<{
             hooks: z.ZodOptional<z.ZodObject<{
                 allowPromptInjection: z.ZodOptional<z.ZodBoolean>;
                 allowConversationAccess: z.ZodOptional<z.ZodBoolean>;
+                timeoutMs: z.ZodOptional<z.ZodNumber>;
+                timeouts: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodNumber>>;
             }, z.core.$strict>>;
             subagent: z.ZodOptional<z.ZodObject<{
                 allowModelOverride: z.ZodOptional<z.ZodBoolean>;

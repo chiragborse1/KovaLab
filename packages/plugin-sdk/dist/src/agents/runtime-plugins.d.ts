@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function ensureRuntimePluginsLoaded(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string | null;
     allowGatewaySubagentBinding?: boolean;
 }): void;

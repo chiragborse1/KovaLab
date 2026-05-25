@@ -105,6 +105,57 @@ export declare const TasksListResultSchema: Type.TObject<{
     count: Type.TNumber;
 }>;
 export type TasksListResult = Static<typeof TasksListResultSchema>;
+export declare const TasksAuditParamsSchema: Type.TObject<{}>;
+export type TasksAuditParams = Static<typeof TasksAuditParamsSchema>;
+export declare const TasksAuditResultSchema: Type.TObject<{
+    tasks: Type.TObject<{
+        total: Type.TNumber;
+        warnings: Type.TNumber;
+        errors: Type.TNumber;
+        byCode: Type.TObject<{
+            stale_queued: Type.TNumber;
+            stale_running: Type.TNumber;
+            lost: Type.TNumber;
+            delivery_failed: Type.TNumber;
+            missing_cleanup: Type.TNumber;
+            inconsistent_timestamps: Type.TNumber;
+        }>;
+    }>;
+    flows: Type.TObject<{
+        total: Type.TNumber;
+        warnings: Type.TNumber;
+        errors: Type.TNumber;
+        byCode: Type.TObject<{
+            restore_failed: Type.TNumber;
+            stale_running: Type.TNumber;
+            stale_waiting: Type.TNumber;
+            stale_blocked: Type.TNumber;
+            cancel_stuck: Type.TNumber;
+            missing_linked_tasks: Type.TNumber;
+            blocked_task_missing: Type.TNumber;
+            inconsistent_timestamps: Type.TNumber;
+        }>;
+    }>;
+}>;
+export type TasksAuditResult = Static<typeof TasksAuditResultSchema>;
+export declare const TasksMaintenanceParamsSchema: Type.TObject<{
+    apply: Type.TOptional<Type.TBoolean>;
+}>;
+export type TasksMaintenanceParams = Static<typeof TasksMaintenanceParamsSchema>;
+export declare const TasksMaintenanceResultSchema: Type.TObject<{
+    apply: Type.TBoolean;
+    tasks: Type.TObject<{
+        reconciled: Type.TNumber;
+        recovered: Type.TNumber;
+        cleanupStamped: Type.TNumber;
+        pruned: Type.TNumber;
+    }>;
+    flows: Type.TObject<{
+        reconciled: Type.TNumber;
+        pruned: Type.TNumber;
+    }>;
+}>;
+export type TasksMaintenanceResult = Static<typeof TasksMaintenanceResultSchema>;
 export declare const TasksShowParamsSchema: Type.TObject<{
     lookup: Type.TString;
 }>;

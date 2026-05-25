@@ -1,8 +1,8 @@
 import { type SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 type RunResult = Awaited<ReturnType<(typeof import("../pi-embedded.js"))["runEmbeddedPiAgent"]>>;
 export declare function updateSessionStoreAfterAgentRun(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     contextTokensOverride?: number;
     sessionId: string;
     sessionKey: string;

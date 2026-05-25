@@ -1,6 +1,7 @@
 import { type SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export { drainFormattedSystemEvents } from "./session-system-events.js";
+export declare function __testing_resetResolvedSkillsCache(): void;
 export declare function ensureSkillSnapshot(params: {
     sessionEntry?: SessionEntry;
     sessionStore?: Record<string, SessionEntry>;
@@ -9,7 +10,7 @@ export declare function ensureSkillSnapshot(params: {
     sessionId?: string;
     isFirstTurnInSession: boolean;
     workspaceDir: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     /** If provided, only load skills with these names (for per-channel skill filtering) */
     skillFilter?: string[];
 }): Promise<{
@@ -22,7 +23,7 @@ export declare function incrementCompactionCount(params: {
     sessionStore?: Record<string, SessionEntry>;
     sessionKey?: string;
     storePath?: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     now?: number;
     amount?: number;
     /** Token count after compaction - if provided, updates session token counts */

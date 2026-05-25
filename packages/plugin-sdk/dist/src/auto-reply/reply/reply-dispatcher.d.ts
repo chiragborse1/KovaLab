@@ -1,6 +1,6 @@
 import type { TypingCallbacks } from "../../channels/typing.js";
 import type { HumanDelayConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type SilentReplyConversationType } from "../../shared/silent-reply-policy.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
 import { type NormalizeReplySkipReason } from "./normalize-reply.js";
@@ -23,7 +23,7 @@ export type ReplyDispatchBeforeDeliver = (payload: ReplyPayload, info: {
 export type ReplyDispatcherOptions = {
     deliver: ReplyDispatchDeliverer;
     silentReplyContext?: {
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
         sessionKey?: string;
         surface?: string;
         conversationType?: SilentReplyConversationType;

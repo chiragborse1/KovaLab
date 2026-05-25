@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { type BundledRuntimeDepsInstallParams } from "./bundled-runtime-deps.js";
@@ -11,8 +11,8 @@ import type { PluginLogger } from "./types.js";
 export type PluginLoadResult = PluginRegistry;
 export { PluginLoadReentryError } from "./loader-cache-state.js";
 export type PluginLoadOptions = {
-    config?: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
+    config?: KovaConfig;
+    activationSourceConfig?: KovaConfig;
     autoEnabledReasons?: Readonly<Record<string, string[]>>;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
@@ -44,7 +44,7 @@ export declare class PluginLoadFailureError extends Error {
     constructor(registry: PluginRegistry);
 }
 export declare function clearPluginLoaderCache(): void;
-declare function ensureOpenClawPluginSdkAlias(distRoot: string): void;
+declare function ensureKovaPluginSdkAlias(distRoot: string): void;
 export declare const __testing: {
     buildPluginLoaderJitiOptions: typeof buildPluginLoaderJitiOptions;
     buildPluginLoaderAliasMap: typeof buildPluginLoaderAliasMap;
@@ -55,7 +55,7 @@ export declare const __testing: {
     resolvePluginSdkAliasCandidateOrder: typeof resolvePluginSdkAliasCandidateOrder;
     resolvePluginSdkAliasFile: typeof resolvePluginSdkAliasFile;
     resolvePluginRuntimeModulePath: typeof resolvePluginRuntimeModulePath;
-    ensureOpenClawPluginSdkAlias: typeof ensureOpenClawPluginSdkAlias;
+    ensureKovaPluginSdkAlias: typeof ensureKovaPluginSdkAlias;
     shouldLoadChannelPluginInSetupRuntime: typeof shouldLoadChannelPluginInSetupRuntime;
     shouldPreferNativeJiti: typeof shouldPreferNativeJiti;
     toSafeImportPath: typeof toSafeImportPath;
@@ -66,9 +66,9 @@ export declare const __testing: {
 };
 declare function resolvePluginLoadCacheContext(options?: PluginLoadOptions): {
     env: NodeJS.ProcessEnv;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     normalized: import("./config-normalization-shared.ts").NormalizedPluginsConfig;
-    activationSourceConfig: OpenClawConfig;
+    activationSourceConfig: KovaConfig;
     activationSource: PluginActivationConfigSource;
     autoEnabledReasons: Readonly<Record<string, string[]>>;
     onlyPluginIds: string[] | undefined;
@@ -94,9 +94,9 @@ declare function shouldLoadChannelPluginInSetupRuntime(params: {
     manifestChannels: string[];
     setupSource?: string;
     startupDeferConfiguredChannelFullLoadUntilAfterListen?: boolean;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     env: NodeJS.ProcessEnv;
     preferSetupRuntimeForChannelPlugins?: boolean;
 }): boolean;
-export declare function loadOpenClawPlugins(options?: PluginLoadOptions): PluginRegistry;
-export declare function loadOpenClawPluginCliRegistry(options?: PluginLoadOptions): Promise<PluginRegistry>;
+export declare function loadKovaPlugins(options?: PluginLoadOptions): PluginRegistry;
+export declare function loadKovaPluginCliRegistry(options?: PluginLoadOptions): Promise<PluginRegistry>;

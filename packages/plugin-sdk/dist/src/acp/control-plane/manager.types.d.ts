@@ -1,5 +1,5 @@
 import type { SessionAcpIdentity, AcpSessionRuntimeOptions, SessionAcpMeta, SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AcpRuntimeError } from "../runtime/errors.js";
 import { getAcpRuntimeBackend, requireAcpRuntimeBackend } from "../runtime/registry.js";
 import { listAcpSessionEntries, readAcpSessionEntry, upsertAcpSessionMeta } from "../runtime/session-meta.js";
@@ -17,7 +17,7 @@ export type AcpSessionResolution = {
     meta: SessionAcpMeta;
 };
 export type AcpInitializeSessionInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     agent: string;
     mode: AcpRuntimeSessionMode;
@@ -31,7 +31,7 @@ export type AcpTurnAttachment = {
     data: string;
 };
 export type AcpRunTurnInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     text: string;
     attachments?: AcpTurnAttachment[];
@@ -41,7 +41,7 @@ export type AcpRunTurnInput = {
     onEvent?: (event: AcpRuntimeEvent) => Promise<void> | void;
 };
 export type AcpCloseSessionInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     reason: string;
     discardPersistentState?: boolean;

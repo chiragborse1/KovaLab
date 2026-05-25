@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntry, ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type RuntimeEnv } from "../../runtime.js";
 export type TargetResolveKind = ChannelDirectoryEntryKind | "channel";
 export type ResolveAmbiguousMode = "error" | "best" | "first";
@@ -19,7 +19,7 @@ export type ResolveMessagingTargetResult = {
 };
 export { maybeResolveIdLikeTarget } from "./target-id-resolution.js";
 export declare function resolveChannelTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     input: string;
     accountId?: string | null;
@@ -37,7 +37,7 @@ export declare function formatTargetDisplay(params: {
     kind?: ChannelDirectoryEntryKind;
 }): string;
 export declare function resolveMessagingTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     input: string;
     accountId?: string | null;
@@ -46,7 +46,7 @@ export declare function resolveMessagingTarget(params: {
     resolveAmbiguous?: ResolveAmbiguousMode;
 }): Promise<ResolveMessagingTargetResult>;
 export declare function lookupDirectoryDisplay(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     targetId: string;
     accountId?: string | null;

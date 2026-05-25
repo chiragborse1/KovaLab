@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type PluginRegistryScope = "configured-channels" | "channels" | "all";
 export declare function ensurePluginRegistryLoaded(options?: {
     scope?: PluginRegistryScope;
-    config?: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
+    config?: KovaConfig;
+    activationSourceConfig?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     workspaceDir?: string;
     onlyPluginIds?: string[];

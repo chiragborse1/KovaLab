@@ -17,7 +17,7 @@ export declare function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSe
     isCompactionInFlight: () => boolean;
     getMessagingToolSentTexts: () => string[];
     getMessagingToolSentMediaUrls: () => string[];
-    getMessagingToolSentTargets: () => import("openclaw/plugin-sdk/agent-harness-runtime").MessagingToolSend[];
+    getMessagingToolSentTargets: () => import("getkova/plugin-sdk/agent-harness-runtime").MessagingToolSend[];
     getPendingToolMediaReply: () => BlockReplyPayload | null;
     getSuccessfulCronAdds: () => number;
     getReplayState: () => {

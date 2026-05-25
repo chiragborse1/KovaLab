@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { MediaUnderstandingCapability, MediaUnderstandingProvider } from "./types.js";
 export declare const DEFAULT_MAX_CHARS = 500;
 export declare const DEFAULT_MAX_CHARS_BY_CAPABILITY: Record<MediaUnderstandingCapability, number | undefined>;
@@ -11,17 +11,17 @@ export declare const DEFAULT_MEDIA_CONCURRENCY = 2;
 export declare function resolveDefaultMediaModel(params: {
     providerId: string;
     capability: MediaUnderstandingCapability;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): string | undefined;
 export declare function resolveAutoMediaKeyProviders(params: {
     capability: MediaUnderstandingCapability;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): string[];
 export declare function providerSupportsNativePdfDocument(params: {
     providerId: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providerRegistry?: Map<string, MediaUnderstandingProvider>;
 }): boolean;
 /**

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 /**
  * Strip any leading `provider/` or `provider:` prefix from a model id so the
  * bare-name regex matching below works against `openai/gpt-5.4` and
@@ -50,14 +50,14 @@ export declare function isStrictAgenticSupportedProviderModel(params: {
  * installations, not only users who opted in manually.
  */
 export declare function resolveEffectiveExecutionContract(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     agentId?: string | null;
     provider?: string | null;
     modelId?: string | null;
 }): "default" | "strict-agentic";
 export declare function isStrictAgenticExecutionContractActive(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     agentId?: string | null;
     provider?: string | null;

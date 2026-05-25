@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ConfiguredBindingResolution } from "./binding-types.js";
 export declare function ensureConfiguredBindingTargetReady(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     bindingResolution: ConfiguredBindingResolution | null;
 }): Promise<{
     ok: true;
@@ -10,7 +10,7 @@ export declare function ensureConfiguredBindingTargetReady(params: {
     error: string;
 }>;
 export declare function resetConfiguredBindingTargetInPlace(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     reason: "new" | "reset";
     commandSource?: string;
@@ -22,7 +22,7 @@ export declare function resetConfiguredBindingTargetInPlace(params: {
     error?: string;
 }>;
 export declare function ensureConfiguredBindingTargetSession(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     bindingResolution: ConfiguredBindingResolution;
 }): Promise<{
     ok: true;

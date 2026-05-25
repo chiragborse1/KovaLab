@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type PdfModelConfig = {
     primary?: string;
     fallbacks?: string[];
@@ -18,5 +18,5 @@ export declare function coercePdfAssistantText(params: {
     provider: string;
     model: string;
 }): string;
-export declare function coercePdfModelConfig(cfg?: OpenClawConfig): PdfModelConfig;
+export declare function coercePdfModelConfig(cfg?: KovaConfig): PdfModelConfig;
 export declare function resolvePdfToolMaxTokens(modelMaxTokens: number | undefined, requestedMaxTokens?: number): number;

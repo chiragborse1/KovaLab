@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./config-runtime.js";
+import type { KovaConfig } from "./config-runtime.js";
 type ApprovalKind = "exec" | "plugin";
 type ApprovalAuthorizationResult = {
     authorized: boolean;
@@ -8,20 +8,20 @@ export declare function isImplicitSameChatApprovalAuthorization(result: Approval
 export declare function createResolvedApproverActionAuthAdapter(params: {
     channelLabel: string;
     resolveApprovers: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => string[];
     normalizeSenderId?: (value: string) => string | undefined;
 }): {
     authorizeActorAction({ cfg, accountId, senderId, approvalKind, }: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         senderId?: string | null;
         action: "approve";
         approvalKind: ApprovalKind;
     }): ApprovalAuthorizationResult | {
+        reason?: undefined;
         readonly authorized: true;
-        readonly reason?: undefined;
     } | {
         readonly authorized: false;
         readonly reason: `\u274C You are not authorized to approve exec requests on ${string}.` | `\u274C You are not authorized to approve plugin requests on ${string}.`;

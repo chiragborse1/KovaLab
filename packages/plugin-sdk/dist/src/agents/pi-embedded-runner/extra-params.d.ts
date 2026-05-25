@@ -2,7 +2,7 @@ import type { StreamFn } from "@mariozechner/pi-agent-core";
 import type { SimpleStreamOptions } from "@mariozechner/pi-ai";
 import type { SettingsManager } from "@mariozechner/pi-coding-agent";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { prepareProviderExtraParams as prepareProviderExtraParamsRuntime, resolveProviderExtraParamsForTransport as resolveProviderExtraParamsForTransportRuntime, wrapProviderStreamFn as wrapProviderStreamFnRuntime } from "../../plugins/provider-hook-runtime.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 declare const defaultProviderRuntimeDeps: {
@@ -21,7 +21,7 @@ export declare const __testing: {
  * @internal Exported for testing only
  */
 export declare function resolveExtraParams(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     modelId: string;
     agentId?: string;
@@ -33,7 +33,7 @@ type CacheRetentionStreamOptions = Partial<SimpleStreamOptions> & {
 };
 export type SupportedTransport = Exclude<CacheRetentionStreamOptions["transport"], undefined>;
 export declare function resolvePreparedExtraParams(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     modelId: string;
     agentDir?: string;
@@ -61,7 +61,7 @@ export declare function resolveExplicitSettingsTransport(params: {
  */
 export declare function applyExtraParamsToAgent(agent: {
     streamFn?: StreamFn;
-}, cfg: OpenClawConfig | undefined, provider: string, modelId: string, extraParamsOverride?: Record<string, unknown>, thinkingLevel?: ThinkLevel, agentId?: string, workspaceDir?: string, model?: ProviderRuntimeModel, agentDir?: string, resolvedTransport?: SupportedTransport, options?: {
+}, cfg: KovaConfig | undefined, provider: string, modelId: string, extraParamsOverride?: Record<string, unknown>, thinkingLevel?: ThinkLevel, agentId?: string, workspaceDir?: string, model?: ProviderRuntimeModel, agentDir?: string, resolvedTransport?: SupportedTransport, options?: {
     preparedExtraParams?: Record<string, unknown>;
 }): {
     effectiveExtraParams: Record<string, unknown>;

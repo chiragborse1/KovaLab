@@ -1,5 +1,5 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { MediaNormalizationEntry } from "../media-generation/normalization.types.js";
 export type GeneratedVideoAsset = {
     /** Raw video bytes. Required for local delivery; omit when url is provided instead. */
@@ -35,14 +35,14 @@ export type VideoGenerationSourceAsset = {
     metadata?: Record<string, unknown>;
 };
 export type VideoGenerationProviderConfiguredContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
 };
 export type VideoGenerationRequest = {
     provider: string;
     model: string;
     prompt: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     authStore?: AuthProfileStore;
     timeoutMs?: number;

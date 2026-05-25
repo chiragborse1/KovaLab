@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginManifestConfigContracts } from "./manifest.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 export type PluginConfigContractMatch = {
@@ -14,7 +14,7 @@ export declare function collectPluginConfigContractMatches(params: {
     pathPattern: string;
 }): PluginConfigContractMatch[];
 export declare function resolvePluginConfigContractsById(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     cache?: boolean;

@@ -1,7 +1,7 @@
 import type { ExecApprovalRequest } from "../infra/exec-approvals.js";
 import type { PluginApprovalRequest } from "../infra/plugin-approvals.js";
 import type { ChannelApprovalCapability } from "./channel-contract.js";
-import type { OpenClawConfig } from "./config-runtime.js";
+import type { KovaConfig } from "./config-runtime.js";
 type ApprovalKind = "exec" | "plugin";
 type NativeApprovalDeliveryMode = "dm" | "channel" | "both";
 type NativeApprovalRequest = ExecApprovalRequest | PluginApprovalRequest;
@@ -11,12 +11,12 @@ type NativeApprovalTarget = {
 };
 type ChannelApprovalCapabilitySurfaces = Pick<ChannelApprovalCapability, "delivery" | "nativeRuntime" | "render" | "native">;
 type ApprovalAdapterParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     senderId?: string | null;
 };
 type DeliverySuppressionParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     approvalKind: ApprovalKind;
     target: {
         channel: string;
@@ -32,28 +32,28 @@ type DeliverySuppressionParams = {
 type ApproverRestrictedNativeApprovalParams = {
     channel: string;
     channelLabel: string;
-    listAccountIds: (cfg: OpenClawConfig) => string[];
+    listAccountIds: (cfg: KovaConfig) => string[];
     hasApprovers: (params: ApprovalAdapterParams) => boolean;
     isExecAuthorizedSender: (params: ApprovalAdapterParams) => boolean;
     isPluginAuthorizedSender?: (params: ApprovalAdapterParams) => boolean;
     isNativeDeliveryEnabled: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => boolean;
     resolveNativeDeliveryMode: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => NativeApprovalDeliveryMode;
     requireMatchingTurnSourceChannel?: boolean;
     resolveSuppressionAccountId?: (params: DeliverySuppressionParams) => string | undefined;
     resolveOriginTarget?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         approvalKind: ApprovalKind;
         request: NativeApprovalRequest;
     }) => NativeApprovalTarget | null | Promise<NativeApprovalTarget | null>;
     resolveApproverDmTargets?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         approvalKind: ApprovalKind;
         request: NativeApprovalRequest;

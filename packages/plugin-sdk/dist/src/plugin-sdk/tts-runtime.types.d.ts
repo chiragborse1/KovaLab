@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ResolvedTtsPersona, TtsAutoMode, TtsProvider } from "../config/types.tts.js";
 import type { SpeechProviderConfig, SpeechVoiceOption, TtsDirectiveOverrides, TtsDirectiveParseResult } from "../tts/provider-types.js";
 import type { TtsConfigResolutionContext } from "../tts/tts-config.js";
@@ -43,7 +43,7 @@ export type ResolveTtsAutoModeParams = {
     sessionAuto?: string;
 };
 export type ResolveExplicitTtsOverridesParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prefsPath?: string;
     provider?: string;
     modelId?: string;
@@ -54,7 +54,7 @@ export type ResolveExplicitTtsOverridesParams = {
 };
 export type TtsRequestParams = {
     text: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prefsPath?: string;
     channel?: string;
     overrides?: TtsDirectiveOverrides;
@@ -65,19 +65,19 @@ export type TtsRequestParams = {
 };
 export type TtsTelephonyRequestParams = {
     text: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prefsPath?: string;
 };
 export type ListSpeechVoicesParams = {
     provider: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     config?: ResolvedTtsConfig;
     apiKey?: string;
     baseUrl?: string;
 };
 export type MaybeApplyTtsToPayloadParams = {
     payload: ReplyPayload;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string;
     kind?: "tool" | "block" | "final";
     inboundAudio?: boolean;
@@ -98,7 +98,7 @@ export type TtsTestFacade = {
         outputFormat?: string;
     }) => boolean;
     summarizeText: (...args: unknown[]) => Promise<SummarizeResult>;
-    getResolvedSpeechProviderConfig: (config: ResolvedTtsConfig, providerId: string, cfg?: OpenClawConfig) => SpeechProviderConfig;
+    getResolvedSpeechProviderConfig: (config: ResolvedTtsConfig, providerId: string, cfg?: KovaConfig) => SpeechProviderConfig;
     formatTtsProviderError: (provider: TtsProvider, err: unknown) => string;
     sanitizeTtsErrorForLog: (err: unknown) => string;
 };
@@ -150,23 +150,23 @@ export type TextToSpeechTelephony = (params: TtsTelephonyRequestParams) => Promi
 export type ListSpeechVoices = (params: ListSpeechVoicesParams) => Promise<SpeechVoiceOption[]>;
 export type TtsRuntimeFacade = {
     _test: TtsTestFacade;
-    buildTtsSystemPromptHint: (cfg: OpenClawConfig, agentId?: string) => string | undefined;
+    buildTtsSystemPromptHint: (cfg: KovaConfig, agentId?: string) => string | undefined;
     getLastTtsAttempt: () => TtsStatusEntry | undefined;
-    getResolvedSpeechProviderConfig: (config: ResolvedTtsConfig, providerId: string, cfg?: OpenClawConfig) => SpeechProviderConfig;
+    getResolvedSpeechProviderConfig: (config: ResolvedTtsConfig, providerId: string, cfg?: KovaConfig) => SpeechProviderConfig;
     getTtsMaxLength: (prefsPath: string) => number;
     getTtsPersona: (config: ResolvedTtsConfig, prefsPath: string) => ResolvedTtsPersona | undefined;
     getTtsProvider: (config: ResolvedTtsConfig, prefsPath: string) => TtsProvider;
     isSummarizationEnabled: (prefsPath: string) => boolean;
     isTtsEnabled: (config: ResolvedTtsConfig, prefsPath: string, sessionAuto?: string) => boolean;
-    isTtsProviderConfigured: (config: ResolvedTtsConfig, provider: TtsProvider, cfg?: OpenClawConfig) => boolean;
+    isTtsProviderConfigured: (config: ResolvedTtsConfig, provider: TtsProvider, cfg?: KovaConfig) => boolean;
     listSpeechVoices: ListSpeechVoices;
     listTtsPersonas: (config: ResolvedTtsConfig) => ResolvedTtsPersona[];
     maybeApplyTtsToPayload: (params: MaybeApplyTtsToPayloadParams) => Promise<ReplyPayload>;
     resolveExplicitTtsOverrides: (params: ResolveExplicitTtsOverridesParams) => TtsDirectiveOverrides;
     resolveTtsAutoMode: (params: ResolveTtsAutoModeParams) => TtsAutoMode;
-    resolveTtsConfig: (cfg: OpenClawConfig, contextOrAgentId?: string | TtsConfigResolutionContext) => ResolvedTtsConfig;
+    resolveTtsConfig: (cfg: KovaConfig, contextOrAgentId?: string | TtsConfigResolutionContext) => ResolvedTtsConfig;
     resolveTtsPrefsPath: (config: ResolvedTtsConfig) => string;
-    resolveTtsProviderOrder: (primary: TtsProvider, cfg?: OpenClawConfig) => TtsProvider[];
+    resolveTtsProviderOrder: (primary: TtsProvider, cfg?: KovaConfig) => TtsProvider[];
     setLastTtsAttempt: (entry: TtsStatusEntry | undefined) => void;
     setSummarizationEnabled: (prefsPath: string, enabled: boolean) => void;
     setTtsAutoMode: (prefsPath: string, mode: TtsAutoMode) => void;

@@ -1,6 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
+import { type PluginMetadataSnapshot } from "./plugin-metadata-snapshot.js";
 import { type PluginRegistrySnapshot, type PluginRegistrySnapshotDiagnostic } from "./plugin-registry-snapshot.js";
 export type PluginLookUpTableOwnerMaps = {
     channels: ReadonlyMap<string, readonly string[]>;
@@ -42,10 +43,11 @@ export type PluginLookUpTable = {
     metrics: PluginLookUpTableMetrics;
 };
 export type LoadPluginLookUpTableParams = {
-    config: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
+    config: KovaConfig;
+    activationSourceConfig?: KovaConfig;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
     index?: PluginRegistrySnapshot;
+    metadataSnapshot?: PluginMetadataSnapshot;
 };
 export declare function loadPluginLookUpTable(params: LoadPluginLookUpTableParams): PluginLookUpTable;

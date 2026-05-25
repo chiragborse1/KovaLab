@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 type CommandSurfaceParams = {
     ctx: {
         OriginatingChannel?: string;
@@ -11,7 +11,7 @@ type CommandSurfaceParams = {
     };
 };
 type ChannelAccountParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: {
         OriginatingChannel?: string;
         Surface?: string;

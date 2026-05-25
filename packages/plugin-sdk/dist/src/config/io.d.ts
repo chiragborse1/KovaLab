@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import JSON5 from "json5";
 import { clearRuntimeConfigSnapshot as clearRuntimeConfigSnapshotState, getRuntimeConfigSnapshotMetadata as getRuntimeConfigSnapshotMetadataState, getRuntimeConfigSnapshot as getRuntimeConfigSnapshotState, getRuntimeConfigSourceSnapshot as getRuntimeConfigSourceSnapshotState, resetConfigRuntimeState as resetConfigRuntimeStateState, resolveRuntimeConfigCacheKey, selectApplicableRuntimeConfig, setRuntimeConfigSnapshot as setRuntimeConfigSnapshotState, setRuntimeConfigSnapshotRefreshHandler as setRuntimeConfigSnapshotRefreshHandlerState, type ConfigWriteAfterWrite, type RuntimeConfigWriteNotification } from "./runtime-snapshot.js";
-import type { OpenClawConfig, ConfigFileSnapshot } from "./types.js";
+import type { KovaConfig, ConfigFileSnapshot } from "./types.js";
 export { clearRuntimeConfigSnapshotState as clearRuntimeConfigSnapshot, getRuntimeConfigSnapshotMetadataState as getRuntimeConfigSnapshotMetadata, getRuntimeConfigSnapshotState as getRuntimeConfigSnapshot, getRuntimeConfigSourceSnapshotState as getRuntimeConfigSourceSnapshot, resetConfigRuntimeStateState as resetConfigRuntimeState, resolveRuntimeConfigCacheKey, selectApplicableRuntimeConfig, setRuntimeConfigSnapshotState as setRuntimeConfigSnapshot, setRuntimeConfigSnapshotRefreshHandlerState as setRuntimeConfigSnapshotRefreshHandler, };
 export { CircularIncludeError, ConfigIncludeError } from "./includes.js";
 export { MissingEnvVarError } from "./env-substitution.js";
@@ -84,9 +84,9 @@ export declare function createConfigIO(overrides?: ConfigIoDeps & {
     pluginValidation?: "full" | "skip";
 }): {
     configPath: string;
-    loadConfig: () => OpenClawConfig;
-    readBestEffortConfig: () => Promise<OpenClawConfig>;
-    readSourceConfigBestEffort: () => Promise<OpenClawConfig>;
+    loadConfig: () => KovaConfig;
+    readBestEffortConfig: () => Promise<KovaConfig>;
+    readSourceConfigBestEffort: () => Promise<KovaConfig>;
     readConfigFileSnapshot: () => Promise<ConfigFileSnapshot>;
     readConfigFileSnapshotForWrite: () => Promise<ReadConfigFileSnapshotForWriteResult>;
     promoteConfigSnapshotToLastKnownGood: (snapshot: ConfigFileSnapshot) => Promise<boolean>;
@@ -95,18 +95,18 @@ export declare function createConfigIO(overrides?: ConfigIoDeps & {
         reason: string;
     }) => Promise<boolean>;
     recoverConfigFromJsonRootSuffix: (snapshot: ConfigFileSnapshot) => Promise<boolean>;
-    writeConfigFile: (cfg: OpenClawConfig, options?: ConfigWriteOptions) => Promise<{
+    writeConfigFile: (cfg: KovaConfig, options?: ConfigWriteOptions) => Promise<{
         persistedHash: string;
-        persistedConfig: OpenClawConfig;
+        persistedConfig: KovaConfig;
     }>;
 };
 export declare function clearConfigCache(): void;
 export declare function registerConfigWriteListener(listener: (event: ConfigWriteNotification) => void): () => void;
-export declare function projectConfigOntoRuntimeSourceSnapshot(config: OpenClawConfig): OpenClawConfig;
-export declare function loadConfig(): OpenClawConfig;
-export declare function getRuntimeConfig(): OpenClawConfig;
-export declare function readBestEffortConfig(): Promise<OpenClawConfig>;
-export declare function readSourceConfigBestEffort(): Promise<OpenClawConfig>;
+export declare function projectConfigOntoRuntimeSourceSnapshot(config: KovaConfig): KovaConfig;
+export declare function loadConfig(): KovaConfig;
+export declare function getRuntimeConfig(): KovaConfig;
+export declare function readBestEffortConfig(): Promise<KovaConfig>;
+export declare function readSourceConfigBestEffort(): Promise<KovaConfig>;
 export declare function readConfigFileSnapshot(): Promise<ConfigFileSnapshot>;
 export declare function promoteConfigSnapshotToLastKnownGood(snapshot: ConfigFileSnapshot): Promise<boolean>;
 export declare function recoverConfigFromLastKnownGood(params: {
@@ -117,4 +117,4 @@ export declare function recoverConfigFromJsonRootSuffix(snapshot: ConfigFileSnap
 export declare function readSourceConfigSnapshot(): Promise<ConfigFileSnapshot>;
 export declare function readConfigFileSnapshotForWrite(): Promise<ReadConfigFileSnapshotForWriteResult>;
 export declare function readSourceConfigSnapshotForWrite(): Promise<ReadConfigFileSnapshotForWriteResult>;
-export declare function writeConfigFile(cfg: OpenClawConfig, options?: ConfigWriteOptions): Promise<void>;
+export declare function writeConfigFile(cfg: KovaConfig, options?: ConfigWriteOptions): Promise<void>;

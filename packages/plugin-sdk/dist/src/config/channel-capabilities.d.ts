@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "./config.js";
+import type { KovaConfig } from "./config.js";
 export declare function resolveChannelCapabilities(params: {
-    cfg?: Partial<OpenClawConfig>;
+    cfg?: Partial<KovaConfig>;
     channel?: string | null;
     accountId?: string | null;
 }): string[] | undefined;

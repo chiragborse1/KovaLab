@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { TtsAutoMode } from "../../config/types.tts.js";
 import type { FinalizedMsgContext } from "../templating.js";
 import type { ReplyPayload } from "../types.js";
@@ -24,7 +24,7 @@ export type AcpDispatchDeliveryCoordinator = {
     applyRoutedCounts: (counts: Record<ReplyDispatchKind, number>) => void;
 };
 export declare function createAcpDispatchDeliveryCoordinator(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
     ctx: FinalizedMsgContext;
     dispatcher: ReplyDispatcher;

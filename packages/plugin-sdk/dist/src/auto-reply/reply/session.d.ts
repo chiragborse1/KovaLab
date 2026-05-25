@@ -1,5 +1,5 @@
 import { type GroupKeyResolution, type SessionEntry, type SessionScope } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 export type SessionInitResult = {
     sessionCtx: TemplateContext;
@@ -21,6 +21,6 @@ export type SessionInitResult = {
 };
 export declare function initSessionState(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     commandAuthorized: boolean;
 }): Promise<SessionInitResult>;

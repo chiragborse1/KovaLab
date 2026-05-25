@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelId } from "./types.public.js";
 export declare function createChannelConversationBindingManager(params: {
     channelId: ChannelId;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
 }): Promise<{
     stop: () => void | Promise<void>;

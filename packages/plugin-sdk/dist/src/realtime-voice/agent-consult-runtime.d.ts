@@ -1,5 +1,5 @@
 import type { RunEmbeddedPiAgentParams } from "../agents/pi-embedded-runner/run/params.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { RuntimeLogger, PluginRuntimeCore } from "../plugins/runtime/types-core.js";
 import { type RealtimeVoiceAgentConsultTranscriptEntry } from "./agent-consult-tool.js";
 export type RealtimeVoiceAgentConsultRuntime = PluginRuntimeCore["agent"];
@@ -8,7 +8,7 @@ export type RealtimeVoiceAgentConsultResult = {
 };
 export { resolveRealtimeVoiceAgentConsultTools, resolveRealtimeVoiceAgentConsultToolsAllow, } from "./agent-consult-tool.js";
 export declare function consultRealtimeVoiceAgent(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentRuntime: RealtimeVoiceAgentConsultRuntime;
     logger: Pick<RuntimeLogger, "warn">;
     sessionKey: string;

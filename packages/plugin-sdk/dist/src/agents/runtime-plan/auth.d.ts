@@ -1,10 +1,10 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AgentRuntimeAuthPlan } from "./types.js";
 export declare function buildAgentRuntimeAuthPlan(params: {
     provider: string;
     authProfileProvider?: string;
     sessionAuthProfileId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     harnessId?: string;
     harnessRuntime?: string;

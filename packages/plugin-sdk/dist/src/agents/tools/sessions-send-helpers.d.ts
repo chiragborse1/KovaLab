@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export { ANNOUNCE_SKIP_TOKEN, REPLY_SKIP_TOKEN, isAnnounceSkip, isReplySkip, } from "./sessions-send-tokens.js";
 export type AnnounceTarget = {
     channel: string;
@@ -30,4 +30,4 @@ export declare function buildAgentToAgentAnnounceContext(params: {
     roundOneReply?: string;
     latestReply?: string;
 }): string;
-export declare function resolvePingPongTurns(cfg?: OpenClawConfig): number;
+export declare function resolvePingPongTurns(cfg?: KovaConfig): number;

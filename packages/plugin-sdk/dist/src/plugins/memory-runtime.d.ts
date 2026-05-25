@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function getActiveMemorySearchManager(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     purpose?: "default" | "status";
 }): Promise<{
@@ -8,7 +8,11 @@ export declare function getActiveMemorySearchManager(params: {
     error?: string;
 }>;
 export declare function resolveActiveMemoryBackendConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
 }): import("./memory-state.js").MemoryRuntimeBackendConfig | null;
-export declare function closeActiveMemorySearchManagers(cfg?: OpenClawConfig): Promise<void>;
+export declare function closeActiveMemorySearchManagers(cfg?: KovaConfig): Promise<void>;
+export declare function closeActiveMemorySearchManager(params: {
+    cfg: KovaConfig;
+    agentId: string;
+}): Promise<void>;

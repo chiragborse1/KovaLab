@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SecretDefaults } from "./models-config.providers.secrets.js";
-type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
+type ModelsConfig = NonNullable<KovaConfig["models"]>;
 export declare function enforceSourceManagedProviderSecrets(params: {
     providers: ModelsConfig["providers"];
     sourceProviders: ModelsConfig["providers"] | undefined;

@@ -1,5 +1,5 @@
 import { type SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
 export { getSubagentSessionRuntimeMs, getSubagentSessionStartedAt, resolveSubagentSessionStatus, } from "./subagent-session-metrics.js";
 export declare const MIN_ANNOUNCE_RETRY_DELAY_MS = 1000;
@@ -31,4 +31,4 @@ export declare function reconcileOrphanedRestoredRuns(params: {
     runs: Map<string, SubagentRunRecord>;
     resumedRuns: Set<string>;
 }): boolean;
-export declare function resolveArchiveAfterMs(cfg?: OpenClawConfig): number | undefined;
+export declare function resolveArchiveAfterMs(cfg?: KovaConfig): number | undefined;

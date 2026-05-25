@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveProviderEndpoint } from "./provider-attribution.js";
 export declare const CONTEXT_WINDOW_HARD_MIN_TOKENS = 16000;
 export declare const CONTEXT_WINDOW_WARN_BELOW_TOKENS = 32000;
@@ -8,7 +8,7 @@ export type ContextWindowInfo = {
     source: ContextWindowSource;
 };
 export declare function resolveContextWindowInfo(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     modelId: string;
     modelContextTokens?: number;

@@ -1,12 +1,12 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
-import { type OpenClawConfig } from "../config/config.js";
+import { type KovaConfig } from "../config/config.js";
 import type { PluginOrigin } from "../plugins/plugin-origin.types.js";
 import { type SecretResolverWarning } from "./runtime-shared.js";
 import type { RuntimeWebToolsMetadata } from "./runtime-web-tools.js";
 export type { SecretResolverWarning } from "./runtime-shared.js";
 export type PreparedSecretsRuntimeSnapshot = {
-    sourceConfig: OpenClawConfig;
-    config: OpenClawConfig;
+    sourceConfig: KovaConfig;
+    config: KovaConfig;
     authStores: Array<{
         agentDir: string;
         store: AuthProfileStore;
@@ -15,7 +15,7 @@ export type PreparedSecretsRuntimeSnapshot = {
     webTools: RuntimeWebToolsMetadata;
 };
 export declare function prepareSecretsRuntimeSnapshot(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env?: NodeJS.ProcessEnv;
     agentDirs?: string[];
     includeAuthStoreRefs?: boolean;

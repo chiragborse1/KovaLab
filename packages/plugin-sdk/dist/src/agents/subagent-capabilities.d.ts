@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare const SUBAGENT_SESSION_ROLES: readonly ["main", "orchestrator", "leaf"];
 export type SubagentSessionRole = (typeof SUBAGENT_SESSION_ROLES)[number];
 export declare const SUBAGENT_CONTROL_SCOPES: readonly ["children", "none"];
@@ -12,7 +12,7 @@ export type SessionCapabilityEntry = {
 };
 export type SessionCapabilityStore = Record<string, SessionCapabilityEntry>;
 export declare function resolveSubagentCapabilityStore(sessionKey: string | undefined | null, opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store?: SessionCapabilityStore;
 }): SessionCapabilityStore | undefined;
 export declare function resolveSubagentRoleForDepth(params: {
@@ -31,12 +31,12 @@ export declare function resolveSubagentCapabilities(params: {
     canControlChildren: boolean;
 };
 export declare function isSubagentEnvelopeSession(sessionKey: string | undefined | null, opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store?: SessionCapabilityStore;
     entry?: SessionCapabilityEntry;
 }): boolean;
 export declare function resolveStoredSubagentCapabilities(sessionKey: string | undefined | null, opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store?: SessionCapabilityStore;
 }): {
     depth: number;

@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { type CommandSecretResolutionMode } from "./command-secret-gateway.js";
-export declare function resolveCommandConfigWithSecrets<TConfig extends OpenClawConfig>(params: {
+export declare function resolveCommandConfigWithSecrets<TConfig extends KovaConfig>(params: {
     config: TConfig;
     commandName: string;
     targetIds: Set<string>;

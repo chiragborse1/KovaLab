@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function resolvePluginActivationSourceConfig(params: {
-    config?: OpenClawConfig;
-    activationSourceConfig?: OpenClawConfig;
-}): OpenClawConfig;
+    config?: KovaConfig;
+    activationSourceConfig?: KovaConfig;
+}): KovaConfig;

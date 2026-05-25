@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { CodexNativeSearchMode } from "./codex-native-web-search.shared.js";
 export { type CodexNativeSearchContextSize, type CodexNativeSearchMode, type CodexNativeSearchUserLocation, describeCodexNativeWebSearch, type ResolvedCodexNativeWebSearchConfig, resolveCodexNativeWebSearchConfig, } from "./codex-native-web-search.shared.js";
 export type CodexNativeSearchActivation = {
@@ -19,28 +19,28 @@ export declare function isCodexNativeSearchEligibleModel(params: {
 }): boolean;
 export declare function hasCodexNativeWebSearchTool(tools: unknown): boolean;
 export declare function hasAvailableCodexAuth(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
 }): boolean;
 export declare function resolveCodexNativeSearchActivation(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     modelProvider?: string;
     modelApi?: string;
     agentDir?: string;
 }): CodexNativeSearchActivation;
-export declare function buildCodexNativeWebSearchTool(config: OpenClawConfig | undefined): Record<string, unknown>;
+export declare function buildCodexNativeWebSearchTool(config: KovaConfig | undefined): Record<string, unknown>;
 export declare function patchCodexNativeWebSearchPayload(params: {
     payload: unknown;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): CodexNativeSearchPayloadPatchResult;
 export declare function shouldSuppressManagedWebSearchTool(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     modelProvider?: string;
     modelApi?: string;
     agentDir?: string;
 }): boolean;
 export declare function isCodexNativeWebSearchRelevant(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentId?: string;
     agentDir?: string;
 }): boolean;

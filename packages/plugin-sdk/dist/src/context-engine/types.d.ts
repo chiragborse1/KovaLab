@@ -223,6 +223,10 @@ export interface ContextEngine {
     /**
      * Compact context to reduce token usage.
      * May create summaries, prune old turns, etc.
+     *
+     * The host bounds this call with a finite safety timeout. Engines that run
+     * long operations should also honor `abortSignal` so in-flight compaction can
+     * stop promptly on run abort or host timeout.
      */
     compact(params: {
         sessionId: string;
@@ -238,6 +242,8 @@ export interface ContextEngine {
         customInstructions?: string;
         /** Optional runtime-owned context for engines that need caller state. */
         runtimeContext?: ContextEngineRuntimeContext;
+        /** Optional abort signal for host timeout or run-level abort cancellation. */
+        abortSignal?: AbortSignal;
     }): Promise<CompactResult>;
     /**
      * Prepare context-engine-managed subagent state before the child run starts.

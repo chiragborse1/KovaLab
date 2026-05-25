@@ -1,11 +1,11 @@
 import type { ChatType } from "../channels/chat-type.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function extractRequesterPeer(channelId: string | undefined, requesterTo: string | undefined): {
     peerId?: string;
     peerKind?: ChatType;
 };
 export declare function resolveRequesterOriginForChild(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     targetAgentId: string;
     requesterAgentId: string;
     requesterChannel?: string;

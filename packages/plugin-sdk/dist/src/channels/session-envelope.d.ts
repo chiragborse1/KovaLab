@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function resolveInboundSessionEnvelopeContext(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     sessionKey: string;
 }): {

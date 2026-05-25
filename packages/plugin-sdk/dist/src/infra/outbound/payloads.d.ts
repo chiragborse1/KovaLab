@@ -1,6 +1,6 @@
-import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
+import { resolveSendableOutboundReplyParts } from "getkova/plugin-sdk/reply-payload";
 import type { ReplyPayload } from "../../auto-reply/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type InteractiveReply, type MessagePresentation, type ReplyPayloadDelivery } from "../../interactive/payload.js";
 import { type SilentReplyConversationType } from "../../shared/silent-reply-policy.js";
 export type NormalizedOutboundPayload = {
@@ -32,7 +32,7 @@ export type OutboundPayloadPlan = {
     hasChannelData: boolean;
 };
 type OutboundPayloadPlanContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
     surface?: string;
     conversationType?: SilentReplyConversationType;

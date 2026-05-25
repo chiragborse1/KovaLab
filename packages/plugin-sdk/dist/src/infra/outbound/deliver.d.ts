@@ -1,6 +1,6 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { ReplyToMode } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { OutboundMediaAccess } from "../../media/load-options.js";
 import type { OutboundDeliveryResult } from "./deliver-types.js";
 import type { OutboundDeliveryFormattingOptions } from "./formatting.js";
@@ -15,7 +15,7 @@ export type { NormalizedOutboundPayload } from "./payloads.js";
 export { normalizeOutboundPayloads } from "./payloads.js";
 export { resolveOutboundSendDep, type OutboundSendDeps } from "./send-deps.js";
 type DeliverOutboundPayloadsCoreParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: Exclude<OutboundChannel, "none">;
     to: string;
     accountId?: string;

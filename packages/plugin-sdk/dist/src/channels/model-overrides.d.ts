@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ChannelMatchSource } from "./channel-config.js";
 export type ChannelModelOverride = {
     channel: string;
@@ -7,7 +7,7 @@ export type ChannelModelOverride = {
     matchSource?: ChannelMatchSource;
 };
 type ChannelModelOverrideParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string | null;
     groupId?: string | null;
     groupChatType?: string | null;

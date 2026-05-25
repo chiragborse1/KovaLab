@@ -1,4 +1,4 @@
-import { type OpenClawPackageManifest, type PluginManifest } from "./manifest.js";
+import { type KovaPackageManifest, type PluginManifest } from "./manifest.js";
 type BundledPluginPathPair = {
     source: string;
     built: string;
@@ -13,7 +13,7 @@ export type BundledPluginMetadata = {
     packageName?: string;
     packageVersion?: string;
     packageDescription?: string;
-    packageManifest?: OpenClawPackageManifest;
+    packageManifest?: KovaPackageManifest;
     manifest: PluginManifest;
 };
 export declare function clearBundledPluginMetadataCache(): void;
@@ -22,10 +22,12 @@ export declare function listBundledPluginMetadata(params?: {
     scanDir?: string;
     includeChannelConfigs?: boolean;
     includeSyntheticChannelConfigs?: boolean;
+    includeOfficialExternal?: boolean;
 }): readonly BundledPluginMetadata[];
 export declare function findBundledPluginMetadataById(pluginId: string, params?: {
     rootDir?: string;
     scanDir?: string;
+    includeOfficialExternal?: boolean;
 }): BundledPluginMetadata | undefined;
 export declare function resolveBundledPluginWorkspaceSourcePath(params: {
     rootDir: string;

@@ -1,5 +1,5 @@
 import type { ChannelId, ChannelMessageActionName, ChannelThreadingToolContext } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MessagePresentation } from "../../interactive/payload.js";
 export type CrossContextPresentationBuilder = (message: string) => MessagePresentation;
 export type CrossContextDecoration = {
@@ -12,10 +12,10 @@ export declare function enforceCrossContextPolicy(params: {
     action: ChannelMessageActionName;
     args: Record<string, unknown>;
     toolContext?: ChannelThreadingToolContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): void;
 export declare function buildCrossContextDecoration(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     target: string;
     toolContext?: ChannelThreadingToolContext;

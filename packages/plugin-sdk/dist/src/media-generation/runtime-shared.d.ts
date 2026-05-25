@@ -1,6 +1,6 @@
 import type { FallbackAttempt } from "../agents/model-fallback.types.js";
 import type { AgentModelConfig } from "../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { MediaGenerationNormalizationMetadataInput, MediaNormalizationEntry, MediaNormalizationValue } from "./normalization.types.js";
 export type ParsedProviderModelRef = {
     provider: string;
@@ -20,17 +20,17 @@ type CapabilityProviderCandidate = {
     defaultModel?: string | null;
     models?: readonly string[];
     isConfigured?: (ctx: {
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
         agentDir?: string;
     }) => boolean;
 };
 export declare function resolveCapabilityModelCandidates(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     modelConfig: AgentModelConfig | undefined;
     modelOverride?: string;
     parseModelRef: (raw: string | undefined) => ParsedProviderModelRef | null;
     agentDir?: string;
-    listProviders?: (cfg?: OpenClawConfig) => CapabilityProviderCandidate[];
+    listProviders?: (cfg?: KovaConfig) => CapabilityProviderCandidate[];
     autoProviderFallback?: boolean;
 }): ParsedProviderModelRef[];
 export declare function deriveAspectRatioFromSize(size?: string): string | undefined;

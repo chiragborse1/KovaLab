@@ -1,15 +1,15 @@
 import type { ChannelThreadingAdapter } from "../../channels/plugins/types.core.js";
 import type { ReplyToMode } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { OriginatingChannelType } from "../templating.js";
 import type { ReplyPayload, ReplyThreadingPolicy } from "../types.js";
-export declare function resolveConfiguredReplyToMode(cfg: OpenClawConfig, channel?: OriginatingChannelType, chatType?: string | null): ReplyToMode;
-export declare function resolveReplyToModeWithThreading(cfg: OpenClawConfig, threading: ChannelThreadingAdapter | undefined, params?: {
+export declare function resolveConfiguredReplyToMode(cfg: KovaConfig, channel?: OriginatingChannelType, chatType?: string | null): ReplyToMode;
+export declare function resolveReplyToModeWithThreading(cfg: KovaConfig, threading: ChannelThreadingAdapter | undefined, params?: {
     channel?: OriginatingChannelType;
     accountId?: string | null;
     chatType?: string | null;
 }): ReplyToMode;
-export declare function resolveReplyToMode(cfg: OpenClawConfig, channel?: OriginatingChannelType, accountId?: string | null, chatType?: string | null): ReplyToMode;
+export declare function resolveReplyToMode(cfg: KovaConfig, channel?: OriginatingChannelType, accountId?: string | null, chatType?: string | null): ReplyToMode;
 export declare function createReplyToModeFilter(mode: ReplyToMode, opts?: {
     allowExplicitReplyTagsWhenOff?: boolean;
 }): (payload: ReplyPayload) => ReplyPayload;

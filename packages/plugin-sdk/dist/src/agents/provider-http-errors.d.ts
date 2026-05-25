@@ -19,3 +19,8 @@ export declare function createProviderHttpError(response: Response, label: strin
 }): Promise<Error>;
 export declare function assertOkOrThrowProviderError(response: Response, label: string): Promise<void>;
 export declare function assertOkOrThrowHttpError(response: Response, label: string): Promise<void>;
+export declare function readProviderJsonResponse<T>(response: Response, label: string): Promise<T>;
+export declare function readProviderJsonObjectResponse(response: Response, label: string): Promise<Record<string, unknown>>;
+export declare function readProviderJsonArrayFieldResponse(response: Response, label: string, field: string): Promise<unknown[]>;
+export declare function assertProviderBinaryResponseContent(response: Response, label: string, kind?: string): void;
+export declare function readProviderBinaryResponse(response: Response, label: string, kind?: string): Promise<Uint8Array>;

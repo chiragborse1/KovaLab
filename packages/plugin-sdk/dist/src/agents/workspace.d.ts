@@ -8,6 +8,7 @@ export declare const DEFAULT_HEARTBEAT_FILENAME = "HEARTBEAT.md";
 export declare const DEFAULT_BOOTSTRAP_FILENAME = "BOOTSTRAP.md";
 export declare const DEFAULT_MEMORY_FILENAME = "MEMORY.md";
 declare const WORKSPACE_STATE_VERSION = 1;
+export declare function loadWorkspaceBootstrapTemplate(name: WorkspaceBootstrapFileName): Promise<string>;
 export type WorkspaceBootstrapFileName = typeof DEFAULT_AGENTS_FILENAME | typeof DEFAULT_SOUL_FILENAME | typeof DEFAULT_TOOLS_FILENAME | typeof DEFAULT_IDENTITY_FILENAME | typeof DEFAULT_USER_FILENAME | typeof DEFAULT_HEARTBEAT_FILENAME | typeof DEFAULT_BOOTSTRAP_FILENAME | typeof DEFAULT_MEMORY_FILENAME;
 export type WorkspaceBootstrapFile = {
     name: WorkspaceBootstrapFileName;

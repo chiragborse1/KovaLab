@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SandboxConfig, SandboxToolPolicyResolved } from "./types.js";
 export declare function resolveSandboxRuntimeStatus(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
 }): {
     agentId: string;
@@ -12,7 +12,7 @@ export declare function resolveSandboxRuntimeStatus(params: {
     toolPolicy: SandboxToolPolicyResolved;
 };
 export declare function formatSandboxToolPolicyBlockedMessage(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
     toolName: string;
 }): string | undefined;

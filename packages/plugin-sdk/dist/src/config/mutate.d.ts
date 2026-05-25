@@ -1,6 +1,6 @@
 import { readConfigFileSnapshotForWrite, type ConfigWriteOptions } from "./io.js";
 import { type ConfigWriteAfterWrite, type ConfigWriteFollowUp } from "./runtime-snapshot.js";
-import type { ConfigFileSnapshot, OpenClawConfig } from "./types.js";
+import type { ConfigFileSnapshot, KovaConfig } from "./types.js";
 export type ConfigMutationBase = "runtime" | "source";
 export declare class ConfigMutationConflictError extends Error {
     readonly currentHash: string | null;
@@ -12,16 +12,16 @@ export type ConfigReplaceResult = {
     path: string;
     previousHash: string | null;
     snapshot: ConfigFileSnapshot;
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     afterWrite: ConfigWriteAfterWrite;
     followUp: ConfigWriteFollowUp;
 };
 type ConfigMutationIO = {
     readConfigFileSnapshotForWrite: typeof readConfigFileSnapshotForWrite;
-    writeConfigFile: (cfg: OpenClawConfig, options?: ConfigWriteOptions) => Promise<unknown>;
+    writeConfigFile: (cfg: KovaConfig, options?: ConfigWriteOptions) => Promise<unknown>;
 };
 export declare function replaceConfigFile(params: {
-    nextConfig: OpenClawConfig;
+    nextConfig: KovaConfig;
     baseHash?: string;
     snapshot?: ConfigFileSnapshot;
     afterWrite?: ConfigWriteOptions["afterWrite"];
@@ -34,7 +34,7 @@ export declare function mutateConfigFile<T = void>(params: {
     afterWrite?: ConfigWriteOptions["afterWrite"];
     writeOptions?: ConfigWriteOptions;
     io?: ConfigMutationIO;
-    mutate: (draft: OpenClawConfig, context: {
+    mutate: (draft: KovaConfig, context: {
         snapshot: ConfigFileSnapshot;
         previousHash: string | null;
     }) => Promise<T | void> | T | void;

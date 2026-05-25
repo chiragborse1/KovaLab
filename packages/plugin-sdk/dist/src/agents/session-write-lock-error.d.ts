@@ -1,6 +1,6 @@
-export declare const SESSION_WRITE_LOCK_TIMEOUT_CODE = "OPENCLAW_SESSION_WRITE_LOCK_TIMEOUT";
+export declare const SESSION_WRITE_LOCK_TIMEOUT_CODE = "KOVA_SESSION_WRITE_LOCK_TIMEOUT";
 export declare class SessionWriteLockTimeoutError extends Error {
-    readonly code = "OPENCLAW_SESSION_WRITE_LOCK_TIMEOUT";
+    readonly code = "KOVA_SESSION_WRITE_LOCK_TIMEOUT";
     readonly timeoutMs: number;
     readonly owner: string;
     readonly lockPath: string;

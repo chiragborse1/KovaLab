@@ -1,6 +1,6 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import type { ReasoningLevel, ThinkLevel, VerboseLevel } from "../../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { ToolResultFormat } from "../../pi-embedded-subscribe.shared-types.js";
 import { type ToolErrorSummary } from "../../tool-error-summary.js";
 type ToolMetaEntry = {
@@ -12,7 +12,7 @@ export declare function buildEmbeddedRunPayloads(params: {
     toolMetas: ToolMetaEntry[];
     lastAssistant: AssistantMessage | undefined;
     lastToolError?: ToolErrorSummary;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     isCronTrigger?: boolean;
     sessionKey: string;
     provider?: string;

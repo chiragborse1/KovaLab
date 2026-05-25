@@ -3,7 +3,7 @@ import type { TSchema } from "typebox";
 import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { MarkdownTableMode } from "../../config/types.base.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { GatewayClientMode, GatewayClientName } from "../../gateway/protocol/client-info.js";
 import type { MessagePresentation } from "../../interactive/payload.js";
 import type { OutboundMediaAccess } from "../../media/load-options.js";
@@ -25,7 +25,7 @@ export type ChannelAgentTool = AgentTool<TSchema, unknown> & {
 };
 /** Lazy agent-tool factory used when tool availability depends on config. */
 export type ChannelAgentToolFactory = (params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }) => ChannelAgentTool[];
 /**
  * Discovery-time inputs passed to channel action adapters when the core is
@@ -34,7 +34,7 @@ export type ChannelAgentToolFactory = (params: {
  * tool params or runtime handles.
  */
 export type ChannelMessageActionDiscoveryContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     currentChannelId?: string | null;
     currentChannelProvider?: string | null;
     currentThreadTs?: string | null;
@@ -233,7 +233,7 @@ export type ChannelLogSink = {
     debug?: (msg: string) => void;
 };
 export type ChannelGroupContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     groupId?: string | null;
     /** Human label for channel-like group conversations (e.g. #general). */
     groupChannel?: string | null;
@@ -277,25 +277,25 @@ export type ChannelSecurityDmPolicy = {
     normalizeEntry?: (raw: string) => string;
 };
 export type ChannelSecurityContext<ResolvedAccount = unknown> = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     account: ResolvedAccount;
 };
 export type ChannelMentionAdapter = {
     stripRegexes?: (params: {
         ctx: MsgContext;
-        cfg: OpenClawConfig | undefined;
+        cfg: KovaConfig | undefined;
         agentId?: string;
     }) => RegExp[];
     stripPatterns?: (params: {
         ctx: MsgContext;
-        cfg: OpenClawConfig | undefined;
+        cfg: KovaConfig | undefined;
         agentId?: string;
     }) => string[];
     stripMentions?: (params: {
         text: string;
         ctx: MsgContext;
-        cfg: OpenClawConfig | undefined;
+        cfg: KovaConfig | undefined;
         agentId?: string;
     }) => string;
 };
@@ -309,7 +309,7 @@ export type ChannelStructuredComponents = unknown[];
 export type ChannelCrossContextPresentationFactory = (params: {
     originLabel: string;
     message: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
 }) => MessagePresentation;
 export type ChannelReplyTransport = {
@@ -336,7 +336,7 @@ export type ChannelOutboundSessionRoute = {
 };
 export type ChannelThreadingAdapter = {
     resolveReplyToMode?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         chatType?: string | null;
     }) => "off" | "first" | "all" | "batched";
@@ -352,7 +352,7 @@ export type ChannelThreadingAdapter = {
      */
     allowTagsWhenOff?: boolean;
     buildToolContext?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         context: ChannelThreadingContext;
         hasRepliedRef?: {
@@ -360,7 +360,7 @@ export type ChannelThreadingAdapter = {
         };
     }) => ChannelThreadingToolContext | undefined;
     resolveAutoThreadId?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         to: string;
         toolContext?: ChannelThreadingToolContext;
@@ -371,13 +371,13 @@ export type ChannelThreadingAdapter = {
         threadId?: string | number | null;
     }) => string | undefined;
     resolveReplyTransport?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         threadId?: string | number | null;
         replyToId?: string | null;
     }) => ChannelReplyTransport | null;
     resolveFocusedBinding?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
         context: ChannelThreadingContext;
     }) => ChannelFocusedBindingContext | null;
@@ -433,11 +433,11 @@ export type ChannelMessagingAdapter = {
         chatType: "group" | "channel";
     } | null;
     resolveInboundAttachmentRoots?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => string[];
     resolveRemoteInboundAttachmentRoots?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => string[];
     /**
@@ -518,11 +518,11 @@ export type ChannelMessagingAdapter = {
     buildCrossContextPresentation?: ChannelCrossContextPresentationFactory;
     transformReplyPayload?: (params: {
         payload: ReplyPayload;
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => ReplyPayload | null;
     enableInteractiveReplies?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => boolean;
     hasStructuredReplyPayload?: (params: {
@@ -536,7 +536,7 @@ export type ChannelMessagingAdapter = {
          * resolution. This should complement directory lookup, not duplicate it.
          */
         resolveTarget?: (params: {
-            cfg: OpenClawConfig;
+            cfg: KovaConfig;
             accountId?: string | null;
             input: string;
             normalized: string;
@@ -558,7 +558,7 @@ export type ChannelMessagingAdapter = {
      * Keep session-key orchestration in core and channel-native routing rules here.
      */
     resolveOutboundSessionRoute?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         agentId: string;
         accountId?: string | null;
         target: string;
@@ -575,11 +575,11 @@ export type ChannelMessagingAdapter = {
 };
 export type ChannelAgentPromptAdapter = {
     messageToolHints?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => string[];
     messageToolCapabilities?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => string[] | undefined;
     inboundFormattingHints?: (params: {
@@ -589,7 +589,7 @@ export type ChannelAgentPromptAdapter = {
         rules: string[];
     } | undefined;
     reactionGuidance?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => {
         level: "minimal" | "extensive";
@@ -611,7 +611,7 @@ export type ChannelMessageActionName = ChannelMessageActionNameFromList;
 export type ChannelMessageActionContext = {
     channel: ChannelId;
     action: ChannelMessageActionName;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     params: Record<string, unknown>;
     mediaAccess?: OutboundMediaAccess;
     mediaLocalRoots?: readonly string[];
@@ -689,7 +689,7 @@ export type ChannelPollResult = {
 };
 /** Shared poll input after core has normalized the common poll model. */
 export type ChannelPollContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     to: string;
     poll: PollInput;
     accountId?: string | null;

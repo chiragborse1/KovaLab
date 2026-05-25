@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelCatalogEntry } from "./model-catalog.types.js";
 import { type ModelRef } from "./model-selection-normalize.js";
 export type ModelAliasIndex = {
@@ -9,7 +9,7 @@ export type ModelAliasIndex = {
     byKey: Map<string, string[]>;
 };
 export declare function inferUniqueProviderFromConfiguredModels(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     model: string;
 }): string | undefined;
 export declare function inferUniqueProviderFromCatalog(params: {
@@ -17,39 +17,39 @@ export declare function inferUniqueProviderFromCatalog(params: {
     model: string;
 }): string | undefined;
 export declare function resolveBareModelDefaultProvider(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: readonly ModelCatalogEntry[];
     model: string;
     defaultProvider: string;
 }): string;
 export declare function resolveConfiguredOpenRouterCompatAlias(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     raw: string;
     defaultProvider: string;
     allowPluginNormalization?: boolean;
 }): ModelRef | null;
 export declare function parseModelRefWithCompatAlias(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     raw: string;
     defaultProvider: string;
     allowPluginNormalization?: boolean;
 }): ModelRef | null;
 export declare function resolveAllowlistModelKey(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     raw: string;
     defaultProvider: string;
 }): string | null;
 export declare function buildConfiguredAllowlistKeys(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     defaultProvider: string;
 }): Set<string> | null;
 export declare function buildModelAliasIndex(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     defaultProvider: string;
     allowPluginNormalization?: boolean;
 }): ModelAliasIndex;
 export declare function resolveModelRefFromString(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     raw: string;
     defaultProvider: string;
     aliasIndex?: ModelAliasIndex;
@@ -59,13 +59,13 @@ export declare function resolveModelRefFromString(params: {
     alias?: string;
 } | null;
 export declare function resolveConfiguredModelRef(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     defaultProvider: string;
     defaultModel: string;
     allowPluginNormalization?: boolean;
 }): ModelRef;
 export declare function buildAllowedModelSetWithFallbacks(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     defaultProvider: string;
     defaultModel?: string;
@@ -96,7 +96,7 @@ export declare function getModelRefStatusFromAllowedSet(params: {
     };
 }): ModelRefStatus;
 export declare function getModelRefStatusWithFallbackModels(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     catalog: ModelCatalogEntry[];
     ref: ModelRef;
     defaultProvider: string;
@@ -104,17 +104,17 @@ export declare function getModelRefStatusWithFallbackModels(params: {
     fallbackModels: readonly string[];
 }): ModelRefStatus;
 export declare function resolveAllowedModelRefFromAliasIndex(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     raw: string;
     defaultProvider: string;
     aliasIndex: ModelAliasIndex;
     getStatus: (ref: ModelRef) => ModelRefStatus;
 }): ResolveAllowedModelRefResult;
 export declare function buildConfiguredModelCatalog(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): ModelCatalogEntry[];
 export declare function resolveHooksGmailModel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     defaultProvider: string;
 }): ModelRef | null;
 export declare function normalizeModelSelection(value: unknown): string | undefined;

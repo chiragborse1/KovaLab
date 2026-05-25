@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type SecretInputUnresolvedReasonStyle = "generic" | "detailed";
 export type ConfiguredSecretInputSource = "config" | "secretRef" | "fallback";
 export declare function resolveConfiguredSecretInputString(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
     value: unknown;
     path: string;
@@ -12,7 +12,7 @@ export declare function resolveConfiguredSecretInputString(params: {
     unresolvedRefReason?: string;
 }>;
 export declare function resolveConfiguredSecretInputWithFallback(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
     value: unknown;
     path: string;
@@ -25,7 +25,7 @@ export declare function resolveConfiguredSecretInputWithFallback(params: {
     secretRefConfigured: boolean;
 }>;
 export declare function resolveRequiredConfiguredSecretRefInputString(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
     value: unknown;
     path: string;

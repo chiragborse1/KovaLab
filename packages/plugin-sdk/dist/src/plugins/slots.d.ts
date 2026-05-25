@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { PluginSlotsConfig } from "../config/types.plugins.js";
 import type { PluginKind } from "./plugin-kind.types.js";
 export type PluginSlotKey = keyof PluginSlotsConfig;
@@ -21,12 +21,12 @@ export declare function kindsEqual(a: PluginKind | PluginKind[] | undefined, b: 
 export declare function slotKeysForPluginKind(kind?: PluginKind | PluginKind[]): PluginSlotKey[];
 export declare function defaultSlotIdForKey(slotKey: PluginSlotKey): string;
 export type SlotSelectionResult = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     warnings: string[];
     changed: boolean;
 };
 export declare function applyExclusiveSlotSelection(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     selectedId: string;
     selectedKind?: PluginKind | PluginKind[];
     registry?: {

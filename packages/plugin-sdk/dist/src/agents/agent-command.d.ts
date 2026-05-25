@@ -9,7 +9,7 @@ declare function prepareAgentCommandExecution(opts: AgentCommandOpts & {
 }, runtime: RuntimeEnv): Promise<{
     body: string;
     transcriptBody: string;
-    cfg: import("openclaw/plugin-sdk").OpenClawConfig;
+    cfg: import("getkova/plugin-sdk").KovaConfig;
     normalizedSpawned: import("./spawned-context.js").NormalizedSpawnedRunMetadata;
     agentCfg: import("../config/types.agent-defaults.ts").AgentDefaultsConfig | undefined;
     thinkOverride: import("../auto-reply/thinking.shared.ts").ThinkLevel | undefined;

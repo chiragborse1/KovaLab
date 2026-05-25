@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 export type PluginAutoEnableCandidate = {
     pluginId: string;
     kind: "channel-configured";
@@ -34,7 +34,7 @@ export type PluginAutoEnableCandidate = {
     reason: string;
 };
 export type PluginAutoEnableResult = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     changes: string[];
     autoEnabledReasons: Record<string, string[]>;
 };

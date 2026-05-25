@@ -1,5 +1,5 @@
 import type { ChannelId } from "../channels/plugins/types.core.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type TextChunkProvider = ChannelId;
 /**
  * Chunking mode for outbound messages:
@@ -9,10 +9,10 @@ export type TextChunkProvider = ChannelId;
  *   exceeds the length limit.
  */
 export type ChunkMode = "length" | "newline";
-export declare function resolveTextChunkLimit(cfg: OpenClawConfig | undefined, provider?: TextChunkProvider, accountId?: string | null, opts?: {
+export declare function resolveTextChunkLimit(cfg: KovaConfig | undefined, provider?: TextChunkProvider, accountId?: string | null, opts?: {
     fallbackLimit?: number;
 }): number;
-export declare function resolveChunkMode(cfg: OpenClawConfig | undefined, provider?: TextChunkProvider, accountId?: string | null): ChunkMode;
+export declare function resolveChunkMode(cfg: KovaConfig | undefined, provider?: TextChunkProvider, accountId?: string | null): ChunkMode;
 /**
  * Split text on newlines, trimming line whitespace.
  * Blank lines are folded into the next non-empty line as leading "\n" prefixes.

@@ -1,4 +1,4 @@
-export { resolvePreferredOpenClawTmpDir } from "./tmp-openclaw-dir.js";
+export { resolvePreferredKovaTmpDir } from "./tmp-kova-dir.js";
 export type TempDownloadTarget = {
     dir: string;
     path: string;

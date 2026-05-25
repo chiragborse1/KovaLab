@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ProviderEnvVarLookupParams = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     includeUntrustedWorkspacePlugins?: boolean;

@@ -1,7 +1,7 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function recordInboundSessionMetaSafe(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     sessionKey: string;
     ctx: MsgContext;

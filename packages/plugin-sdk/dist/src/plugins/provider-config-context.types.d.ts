@@ -1,5 +1,5 @@
 import type { ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 /**
  * Provider-owned config normalization for `models.providers.<id>` entries.
  *
@@ -28,6 +28,6 @@ export type ProviderResolveConfigApiKeyContext = {
  */
 export type ProviderApplyConfigDefaultsContext = {
     provider: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
 };

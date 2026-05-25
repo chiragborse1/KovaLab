@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type HookInstallUpdate } from "../hooks/installs.js";
 import type { PluginInstallUpdate } from "../plugins/installs.js";
 export type ConfigSnapshotForInstallPersist = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     baseHash: string | undefined;
 };
 export declare function persistPluginInstall(params: {
@@ -12,11 +12,11 @@ export declare function persistPluginInstall(params: {
     enable?: boolean;
     successMessage?: string;
     warningMessage?: string;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;
 export declare function persistHookPackInstall(params: {
     snapshot: ConfigSnapshotForInstallPersist;
     hookPackId: string;
     hooks: string[];
     install: Omit<HookInstallUpdate, "hookId" | "hooks">;
     successMessage?: string;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;

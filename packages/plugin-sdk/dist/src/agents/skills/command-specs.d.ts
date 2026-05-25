@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SkillEligibilityContext, SkillCommandSpec, SkillEntry } from "./types.js";
 export declare function buildWorkspaceSkillCommandSpecs(workspaceDir: string, opts?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     managedSkillsDir?: string;
     bundledSkillsDir?: string;
     entries?: SkillEntry[];

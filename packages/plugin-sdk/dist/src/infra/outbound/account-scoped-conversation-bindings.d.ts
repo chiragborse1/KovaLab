@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type BindingTargetKind } from "./session-binding-service.js";
 export type AccountScopedConversationBindingRecord<TKind extends string = string> = {
     accountId: string;
@@ -28,7 +28,7 @@ export type AccountScopedConversationBindingManager<TKind extends string = strin
 };
 export declare function createAccountScopedConversationBindingManager<TKind extends string>(params: {
     channel: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     stateKey: symbol;
     accountId?: string | null;
     toStoredTargetKind: (raw: BindingTargetKind) => TKind;

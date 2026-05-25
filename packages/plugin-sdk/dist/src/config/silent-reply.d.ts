@@ -1,7 +1,7 @@
 import { type SilentReplyConversationType, type SilentReplyPolicy } from "../shared/silent-reply-policy.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 type ResolveSilentReplyParams = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
     surface?: string;
     conversationType?: SilentReplyConversationType;

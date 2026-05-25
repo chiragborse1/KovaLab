@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { type PluginCandidate } from "./discovery.js";
 import type { PluginManifestCommandAlias } from "./manifest-command-aliases.js";
 import type { PluginBundleFormat, PluginConfigUiHint, PluginDiagnostic, PluginFormat } from "./manifest-types.js";
-import { type OpenClawPackageManifest, type PluginManifestActivation, type PluginManifestConfigContracts, type PluginManifest, type PluginManifestChannelCommandDefaults, type PluginManifestChannelConfig, type PluginManifestContracts, type PluginManifestMediaUnderstandingProviderMetadata, type PluginManifestModelCatalog, type PluginManifestModelIdNormalization, type PluginManifestModelPricing, type PluginManifestModelSupport, type PluginManifestProviderEndpoint, type PluginManifestProviderRequest, type PluginManifestQaRunner, type PluginManifestSetup } from "./manifest.js";
+import { type KovaPackageManifest, type PluginManifestActivation, type PluginManifestConfigContracts, type PluginManifest, type PluginManifestChannelCommandDefaults, type PluginManifestChannelConfig, type PluginManifestContracts, type PluginManifestMediaUnderstandingProviderMetadata, type PluginManifestModelCatalog, type PluginManifestModelIdNormalization, type PluginManifestModelPricing, type PluginManifestModelSupport, type PluginManifestProviderEndpoint, type PluginManifestProviderRequest, type PluginManifestQaRunner, type PluginManifestSetup } from "./manifest.js";
 import type { PluginKind } from "./plugin-kind.types.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 export type PluginManifestContractListKey = "speechProviders" | "externalAuthProviders" | "mediaUnderstandingProviders" | "documentExtractors" | "realtimeVoiceProviders" | "realtimeTranscriptionProviders" | "imageGenerationProviders" | "videoGenerationProviders" | "musicGenerationProviders" | "memoryEmbeddingProviders" | "webContentExtractors" | "webFetchProviders" | "webSearchProviders" | "migrationProviders";
@@ -71,11 +71,11 @@ export type PluginManifestRegistry = {
 export type BundledChannelConfigCollector = (params: {
     pluginDir: string;
     manifest: PluginManifest;
-    packageManifest?: OpenClawPackageManifest;
+    packageManifest?: KovaPackageManifest;
 }) => Record<string, PluginManifestChannelConfig> | undefined;
 export { clearPluginManifestRegistryCache } from "./manifest-registry-state.js";
 export declare function loadPluginManifestRegistry(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     cache?: boolean;
     env?: NodeJS.ProcessEnv;

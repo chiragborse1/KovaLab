@@ -18,6 +18,6 @@ export declare function expectPrivateQaLabRuntimeSurfaceLoad(params: {
     tempDirs: string[];
     importRuntime: () => Promise<QaRuntimeModule>;
     loadBundledPluginPublicSurfaceModuleSync: SurfaceLoaderMock;
-    resolveOpenClawPackageRootSync: SurfaceLoaderMock;
+    resolveKovaPackageRootSync: SurfaceLoaderMock;
 }): Promise<void>;
 export {};

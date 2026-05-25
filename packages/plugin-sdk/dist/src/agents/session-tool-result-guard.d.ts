@@ -37,6 +37,15 @@ export declare function installSessionToolResultGuard(sessionManager: SessionMan
      */
     beforeMessageWriteHook?: (event: PluginHookBeforeMessageWriteEvent) => PluginHookBeforeMessageWriteResult | undefined;
     maxToolResultChars?: number;
+    suppressNextUserMessagePersistence?: boolean;
+    suppressTranscriptOnlyAssistantPersistence?: boolean;
+    suppressAssistantErrorPersistence?: boolean;
+    onUserMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "user";
+    }>) => void | Promise<void>;
+    onAssistantErrorMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "assistant";
+    }>) => void | Promise<void>;
 }): {
     flushPendingToolResults: () => void;
     clearPendingToolResults: () => void;

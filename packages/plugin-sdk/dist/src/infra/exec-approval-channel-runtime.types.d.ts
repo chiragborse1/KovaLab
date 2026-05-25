@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExecApprovalRequest, ExecApprovalResolved } from "./exec-approvals.js";
 import type { PluginApprovalRequest, PluginApprovalResolved } from "./plugin-approvals.js";
 type ApprovalRequestEvent = ExecApprovalRequest | PluginApprovalRequest;
@@ -7,7 +7,7 @@ export type ExecApprovalChannelRuntimeEventKind = "exec" | "plugin";
 export type ExecApprovalChannelRuntimeAdapter<TPending, TRequest extends ApprovalRequestEvent = ExecApprovalRequest, TResolved extends ApprovalResolvedEvent = ExecApprovalResolved> = {
     label: string;
     clientDisplayName: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     gatewayUrl?: string;
     eventKinds?: readonly ExecApprovalChannelRuntimeEventKind[];
     isConfigured: () => boolean;

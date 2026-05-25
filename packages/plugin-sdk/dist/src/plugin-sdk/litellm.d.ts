@@ -1,7 +1,7 @@
-import type { ModelDefinitionConfig, OpenClawConfig } from "../config/types.js";
+import type { ModelDefinitionConfig, KovaConfig } from "../config/types.js";
 type FacadeModule = {
-    applyLitellmConfig: (cfg: OpenClawConfig) => OpenClawConfig;
-    applyLitellmProviderConfig: (cfg: OpenClawConfig) => OpenClawConfig;
+    applyLitellmConfig: (cfg: KovaConfig) => KovaConfig;
+    applyLitellmProviderConfig: (cfg: KovaConfig) => KovaConfig;
     buildLitellmModelDefinition: () => ModelDefinitionConfig;
     LITELLM_BASE_URL: string;
     LITELLM_DEFAULT_MODEL_ID: string;

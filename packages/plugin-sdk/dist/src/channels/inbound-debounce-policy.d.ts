@@ -1,15 +1,15 @@
 import type { CommandNormalizeOptions } from "../auto-reply/commands-registry.js";
 import { createInboundDebouncer, type InboundDebounceCreateParams } from "../auto-reply/inbound-debounce.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 export declare function shouldDebounceTextInbound(params: {
     text: string | null | undefined;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     hasMedia?: boolean;
     commandOptions?: CommandNormalizeOptions;
     allowDebounce?: boolean;
 }): boolean;
 export declare function createChannelInboundDebouncer<T>(params: Omit<InboundDebounceCreateParams<T>, "debounceMs"> & {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     debounceMsOverride?: number;
 }): {

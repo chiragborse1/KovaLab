@@ -1,17 +1,17 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function setAccountEnabledInConfigSection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sectionKey: string;
     accountId: string;
     enabled: boolean;
     allowTopLevel?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function deleteAccountFromConfigSection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sectionKey: string;
     accountId: string;
     clearBaseFields?: string[];
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function clearAccountEntryFields<TAccountEntry extends object>(params: {
     accounts?: Record<string, TAccountEntry>;
     accountId: string;

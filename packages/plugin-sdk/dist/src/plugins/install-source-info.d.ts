@@ -15,13 +15,9 @@ export type PluginInstallNpmSourceInfo = {
 export type PluginInstallLocalSourceInfo = {
     path: string;
 };
-export type PluginInstallClawHubSourceInfo = {
-    spec: string;
-};
 export type PluginInstallSourceInfo = {
     defaultChoice?: PluginPackageInstall["defaultChoice"];
     npm?: PluginInstallNpmSourceInfo;
-    clawhub?: PluginInstallClawHubSourceInfo;
     local?: PluginInstallLocalSourceInfo;
     warnings: readonly PluginInstallSourceWarning[];
 };

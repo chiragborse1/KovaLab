@@ -13,7 +13,7 @@ export type CoreToolSection = {
     }>;
 };
 export declare const CORE_TOOL_GROUPS: {
-    "group:openclaw": string[];
+    "group:kova": string[];
 };
 export declare const PROFILE_OPTIONS: readonly [{
     readonly id: "minimal";

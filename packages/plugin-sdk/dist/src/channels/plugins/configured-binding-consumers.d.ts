@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { CompiledConfiguredBinding, ConfiguredBindingRecordResolution, ConfiguredBindingRuleConfig, ConfiguredBindingTargetFactory } from "./binding-types.js";
 import type { ChannelConfiguredBindingConversationRef } from "./types.adapters.js";
 export type ParsedConfiguredBindingSessionKey = {
@@ -9,7 +9,7 @@ export type ConfiguredBindingConsumer = {
     id: string;
     supports: (binding: ConfiguredBindingRuleConfig) => boolean;
     buildTargetFactory: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         binding: ConfiguredBindingRuleConfig;
         channel: string;
         agentId: string;

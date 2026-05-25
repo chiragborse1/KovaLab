@@ -1,17 +1,17 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare const OPENAI_PROVIDER_ID = "openai";
 export declare const OPENAI_CODEX_PROVIDER_ID = "openai-codex";
 export declare function isOpenAIProvider(provider: string | undefined): boolean;
 export declare function isOpenAICodexProvider(provider: string | undefined): boolean;
 export declare function openAIProviderUsesCodexRuntimeByDefault(params: {
     provider?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): boolean;
 export declare function parseModelRefProvider(value: unknown): string | undefined;
 export declare function modelRefUsesOpenAIProvider(value: unknown): boolean;
 export declare function modelSelectionShouldEnsureCodexPlugin(params: {
     model?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): boolean;
 export declare function hasOpenAICodexAuthProfileOverride(value: unknown): boolean;
 export declare function shouldRouteOpenAIPiThroughCodexAuthProvider(params: {
@@ -20,7 +20,7 @@ export declare function shouldRouteOpenAIPiThroughCodexAuthProvider(params: {
     agentHarnessId?: string;
     authProfileProvider?: string;
     authProfileId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
 }): boolean;
 export declare function listOpenAIAuthProfileProvidersForAgentRuntime(params: {
@@ -34,6 +34,6 @@ export declare function resolveOpenAIRuntimeProviderForPi(params: {
     agentHarnessId?: string;
     authProfileProvider?: string;
     authProfileId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
 }): string;

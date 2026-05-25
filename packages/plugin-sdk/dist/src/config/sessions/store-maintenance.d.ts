@@ -19,7 +19,7 @@ export type ResolvedSessionMaintenanceConfig = {
     highWaterBytes: number | null;
 };
 /**
- * Resolve maintenance settings from openclaw.json (`session.maintenance`).
+ * Resolve maintenance settings from kova.json (`session.maintenance`).
  * Falls back to built-in defaults when config is missing or unset.
  */
 export declare function resolveMaintenanceConfigFromInput(maintenance?: SessionMaintenanceConfig): ResolvedSessionMaintenanceConfig;

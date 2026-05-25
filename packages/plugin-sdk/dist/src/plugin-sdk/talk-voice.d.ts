@@ -1,2 +1,2 @@
 export { definePluginEntry } from "./plugin-entry.js";
-export type { OpenClawPluginApi } from "../plugins/types.js";
+export type { KovaPluginApi } from "../plugins/types.js";

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ConversationResolutionSource = "command-provider" | "focused-binding" | "command-fallback" | "inbound-provider" | "inbound-bundled-artifact" | "inbound-bundled-plugin" | "inbound-fallback";
 export type ConversationResolution = {
     canonical: {
@@ -12,7 +12,7 @@ export type ConversationResolution = {
     source: ConversationResolutionSource;
 };
 export type ResolveCommandConversationResolutionInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
     chatType?: string | null;
@@ -29,7 +29,7 @@ export type ResolveCommandConversationResolutionInput = {
     includePlacementHint?: boolean;
 };
 export type ResolveInboundConversationResolutionInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
     to?: string | null;

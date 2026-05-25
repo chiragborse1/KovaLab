@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function resolveAgentTimeoutSeconds(cfg?: OpenClawConfig): number;
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function resolveAgentTimeoutSeconds(cfg?: KovaConfig): number;
 export declare function resolveAgentTimeoutMs(opts: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     overrideMs?: number | null;
     overrideSeconds?: number | null;
     minMs?: number;

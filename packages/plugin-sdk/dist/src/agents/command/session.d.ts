@@ -1,6 +1,6 @@
 import { type ThinkLevel, type VerboseLevel } from "../../auto-reply/thinking.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type SessionResolution = {
     sessionId: string;
     sessionKey?: string;
@@ -22,19 +22,19 @@ type SessionKeyResolution = {
  * into that agent's main session key.
  */
 export declare function resolveStoredSessionKeyForSessionId(opts: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionId: string;
     agentId?: string;
 }): SessionKeyResolution;
 export declare function resolveSessionKeyForRequest(opts: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     to?: string;
     sessionId?: string;
     sessionKey?: string;
     agentId?: string;
 }): SessionKeyResolution;
 export declare function resolveSession(opts: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     to?: string;
     sessionId?: string;
     sessionKey?: string;

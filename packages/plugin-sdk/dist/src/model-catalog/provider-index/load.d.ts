@@ -1,2 +1,2 @@
-import type { OpenClawProviderIndex } from "./types.js";
-export declare function loadOpenClawProviderIndex(source?: unknown): OpenClawProviderIndex;
+import type { KovaProviderIndex } from "./types.js";
+export declare function loadKovaProviderIndex(source?: unknown): KovaProviderIndex;

@@ -1,22 +1,22 @@
 import type { ChannelId, ChannelThreadingToolContext } from "../../channels/plugins/types.public.js";
-import { type OpenClawConfig } from "../../config/config.js";
+import { type KovaConfig } from "../../config/config.js";
 import type { TemplateContext } from "../templating.js";
 import { resolveProviderScopedAuthProfile, resolveRunAuthProfile } from "./agent-runner-auth-profile.js";
 export { resolveProviderScopedAuthProfile, resolveRunAuthProfile };
 import type { FollowupRun } from "./queue.js";
-export declare function resolveQueuedReplyRuntimeConfig(config: OpenClawConfig): OpenClawConfig;
-export declare function resolveQueuedReplyExecutionConfig(config: OpenClawConfig, params?: {
+export declare function resolveQueuedReplyRuntimeConfig(config: KovaConfig): KovaConfig;
+export declare function resolveQueuedReplyExecutionConfig(config: KovaConfig, params?: {
     originatingChannel?: string;
     messageProvider?: string;
     originatingAccountId?: string;
     agentAccountId?: string;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;
 /**
  * Build provider-specific threading context for tool auto-injection.
  */
 export declare function buildThreadingToolContext(params: {
     sessionCtx: TemplateContext;
-    config: OpenClawConfig | undefined;
+    config: KovaConfig | undefined;
     hasRepliedRef: {
         value: boolean;
     } | undefined;
@@ -25,7 +25,7 @@ export declare const isBunFetchSocketError: (message?: string) => boolean;
 export declare const formatBunFetchSocketError: (message: string) => string;
 export declare const resolveEnforceFinalTag: (run: FollowupRun["run"], provider: string, model?: string) => boolean;
 export declare function resolveModelFallbackOptions(run: FollowupRun["run"]): {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     provider: string;
     model: string;
     agentDir: string;
@@ -44,7 +44,7 @@ export declare function buildEmbeddedRunBaseParams(params: {
     sessionFile: string;
     workspaceDir: string;
     agentDir: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
     skillsSnapshot: import("../../agents/skills.ts").SkillSnapshot | undefined;
     ownerNumbers: string[] | undefined;
     inputProvenance: import("../../sessions/input-provenance.ts").InputProvenance | undefined;
@@ -185,7 +185,7 @@ export declare function buildEmbeddedRunExecutionParams(params: {
         sessionFile: string;
         workspaceDir: string;
         agentDir: string;
-        config: OpenClawConfig;
+        config: KovaConfig;
         skillsSnapshot: import("../../agents/skills.ts").SkillSnapshot | undefined;
         ownerNumbers: string[] | undefined;
         inputProvenance: import("../../sessions/input-provenance.ts").InputProvenance | undefined;

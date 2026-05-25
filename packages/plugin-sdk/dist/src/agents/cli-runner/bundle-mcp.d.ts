@@ -1,5 +1,5 @@
 import type { CliBackendConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type BundleMcpConfig } from "../../plugins/bundle-mcp.js";
 import type { CliBundleMcpMode } from "../../plugins/types.js";
 type PreparedCliBundleMcpConfig = {
@@ -14,7 +14,7 @@ export declare function prepareCliBundleMcpConfig(params: {
     mode?: CliBundleMcpMode;
     backend: CliBackendConfig;
     workspaceDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     additionalConfig?: BundleMcpConfig;
     env?: Record<string, string>;
     warn?: (message: string) => void;

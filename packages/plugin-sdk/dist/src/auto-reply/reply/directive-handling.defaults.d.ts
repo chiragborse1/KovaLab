@@ -1,7 +1,7 @@
 import { type ModelAliasIndex } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function resolveDefaultModel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
 }): {
     defaultProvider: string;

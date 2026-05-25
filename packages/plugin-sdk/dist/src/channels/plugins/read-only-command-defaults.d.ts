@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelPlugin } from "./types.plugin.js";
 export type ChannelCommandDefaults = Pick<NonNullable<ChannelPlugin["commands"]>, "nativeCommandsAutoEnabled" | "nativeSkillsAutoEnabled">;
 export declare function isSafeManifestChannelId(channelId: string): boolean;
@@ -8,5 +8,5 @@ export declare function resolveReadOnlyChannelCommandDefaults(channelId: string,
     env?: NodeJS.ProcessEnv;
     stateDir?: string;
     workspaceDir?: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
 }): ChannelCommandDefaults | undefined;

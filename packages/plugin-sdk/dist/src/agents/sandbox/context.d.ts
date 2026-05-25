@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SandboxContext, SandboxDockerConfig, SandboxWorkspaceInfo } from "./types.js";
 export declare function resolveSandboxDockerUser(params: {
     docker: SandboxDockerConfig;
@@ -9,12 +9,12 @@ export declare function resolveSandboxDockerUser(params: {
     }>;
 }): Promise<SandboxDockerConfig>;
 export declare function resolveSandboxContext(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     workspaceDir?: string;
 }): Promise<SandboxContext | null>;
 export declare function ensureSandboxWorkspaceForSession(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     workspaceDir?: string;
 }): Promise<SandboxWorkspaceInfo | null>;

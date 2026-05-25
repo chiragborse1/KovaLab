@@ -1,7 +1,7 @@
 import { type ChatType } from "../channels/chat-type.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function resolveFirstBoundAccountId(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channelId: string;
     agentId: string;
     peerId?: string;

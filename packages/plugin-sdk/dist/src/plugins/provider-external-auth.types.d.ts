@@ -1,8 +1,8 @@
 import type { AuthProfileStore, OAuthCredential } from "../agents/auth-profiles/types.js";
 import type { ModelProviderAuthMode, ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ProviderResolveSyntheticAuthContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider: string;
     providerConfig?: ModelProviderConfig;
 };
@@ -13,7 +13,7 @@ export type ProviderSyntheticAuthResult = {
     expiresAt?: number;
 };
 export type ProviderResolveExternalOAuthProfilesContext = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;

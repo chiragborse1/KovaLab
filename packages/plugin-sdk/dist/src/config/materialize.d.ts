@@ -1,5 +1,5 @@
-import type { OpenClawConfig, ResolvedSourceConfig, RuntimeConfig } from "./types.js";
+import type { KovaConfig, ResolvedSourceConfig, RuntimeConfig } from "./types.js";
 export type ConfigMaterializationMode = "load" | "missing" | "snapshot";
-export declare function asResolvedSourceConfig(config: OpenClawConfig): ResolvedSourceConfig;
-export declare function asRuntimeConfig(config: OpenClawConfig): RuntimeConfig;
-export declare function materializeRuntimeConfig(config: OpenClawConfig, mode: ConfigMaterializationMode): RuntimeConfig;
+export declare function asResolvedSourceConfig(config: KovaConfig): ResolvedSourceConfig;
+export declare function asRuntimeConfig(config: KovaConfig): RuntimeConfig;
+export declare function materializeRuntimeConfig(config: KovaConfig, mode: ConfigMaterializationMode): RuntimeConfig;

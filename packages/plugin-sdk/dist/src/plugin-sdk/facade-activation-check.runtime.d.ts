@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { createPluginActivationSource, normalizePluginsConfig } from "../plugins/config-state.js";
 import { type PluginManifestRecord } from "../plugins/manifest-registry.js";
 export type FacadePluginManifestLike = Pick<PluginManifestRecord, "id" | "origin" | "enabledByDefault" | "rootDir" | "channels">;
@@ -38,7 +38,7 @@ export declare function evaluateBundledPluginPublicSurfaceAccess(params: {
         artifactBasename: string;
     };
     manifestRecord: FacadePluginManifestLike;
-    config: OpenClawConfig;
+    config: KovaConfig;
     normalizedPluginsConfig: ReturnType<typeof normalizePluginsConfig>;
     activationSource: ReturnType<typeof createPluginActivationSource>;
     autoEnabledReasons: Record<string, string[]>;

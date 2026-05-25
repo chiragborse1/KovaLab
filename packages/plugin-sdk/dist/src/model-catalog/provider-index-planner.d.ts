@@ -1,4 +1,4 @@
-import type { OpenClawProviderIndex } from "./provider-index/index.js";
+import type { KovaProviderIndex } from "./provider-index/index.js";
 import type { NormalizedModelCatalogRow } from "./types.js";
 export type ProviderIndexModelCatalogPlanEntry = {
     provider: string;
@@ -10,6 +10,6 @@ export type ProviderIndexModelCatalogPlan = {
     entries: readonly ProviderIndexModelCatalogPlanEntry[];
 };
 export declare function planProviderIndexModelCatalogRows(params: {
-    index: OpenClawProviderIndex;
+    index: KovaProviderIndex;
     providerFilter?: string;
 }): ProviderIndexModelCatalogPlan;

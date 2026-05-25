@@ -30,7 +30,7 @@ export declare function shouldUseEnvHttpProxyForUrl(targetUrl: string, env?: Nod
  * Undici does not export its matcher, so this is a targeted reimplementation
  * kept in sync with the upstream file above. Paired with
  * `hasEnvHttpProxyConfigured` this gates the trusted-env-proxy auto-upgrade
- * in provider HTTP helpers; see openclaw#64974 review thread on NO_PROXY
+ * in provider HTTP helpers; see kova#64974 review thread on NO_PROXY
  * SSRF bypass.
  */
 export declare function matchesNoProxy(targetUrl: string, env?: NodeJS.ProcessEnv): boolean;

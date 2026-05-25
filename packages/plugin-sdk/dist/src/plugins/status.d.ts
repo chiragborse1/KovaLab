@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginCompatCode } from "./compat/registry.js";
 import { type PluginCapabilityEntry, type PluginInspectShape } from "./inspect-shape.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
@@ -70,7 +70,7 @@ export type PluginInspectReport = {
     compatibility: PluginCompatibilityNotice[];
 };
 type PluginReportParams = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     effectiveOnly?: boolean;
     workspaceDir?: string;
     /** Use an explicit env when plugin roots should resolve independently from process.env. */
@@ -82,35 +82,35 @@ export declare function buildPluginSnapshotReport(params?: PluginReportParams): 
 export declare function buildPluginDiagnosticsReport(params?: PluginReportParams): PluginStatusReport;
 export declare function buildPluginInspectReport(params: {
     id: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     logger?: PluginLogger;
     report?: PluginStatusReport;
 }): PluginInspectReport | null;
 export declare function buildAllPluginInspectReports(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     logger?: PluginLogger;
     report?: PluginStatusReport;
 }): PluginInspectReport[];
 export declare function buildPluginCompatibilityWarnings(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     logger?: PluginLogger;
     report?: PluginStatusReport;
 }): string[];
 export declare function buildPluginCompatibilityNotices(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     logger?: PluginLogger;
     report?: PluginStatusReport;
 }): PluginCompatibilityNotice[];
 export declare function buildPluginCompatibilitySnapshotNotices(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): PluginCompatibilityNotice[];

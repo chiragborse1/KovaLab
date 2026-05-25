@@ -1,5 +1,5 @@
 import type { StreamFn } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { EmbeddedRunTrigger } from "./params.js";
 /**
  * Default idle timeout for LLM streaming responses in milliseconds.
@@ -10,7 +10,7 @@ export declare const DEFAULT_LLM_IDLE_TIMEOUT_MS: number;
  * @returns Idle timeout in milliseconds, or 0 to disable
  */
 export declare function resolveLlmIdleTimeoutMs(params?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     trigger?: EmbeddedRunTrigger;
     runTimeoutMs?: number;
     modelRequestTimeoutMs?: number;

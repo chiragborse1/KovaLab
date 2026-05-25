@@ -1,6 +1,6 @@
 import type { SessionSendPolicyConfig } from "../../config/types.base.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MemoryBackend, MemoryCitationsMode, MemoryQmdSearchMode } from "../../config/types.memory.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
 export type ResolvedMemoryBackendConfig = {
     backend: MemoryBackend;
     citations: MemoryCitationsMode;
@@ -51,6 +51,6 @@ export type ResolvedQmdConfig = {
     scope?: SessionSendPolicyConfig;
 };
 export declare function resolveMemoryBackendConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
 }): ResolvedMemoryBackendConfig;

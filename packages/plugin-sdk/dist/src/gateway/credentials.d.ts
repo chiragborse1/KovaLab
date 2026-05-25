@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export { hasGatewayPasswordEnvCandidate, hasGatewayTokenEnvCandidate, readGatewayCredentialEnv, trimCredentialToUndefined, trimToUndefined, } from "./credential-planner.js";
 export type ExplicitGatewayAuth = {
     token?: string;
@@ -26,7 +26,7 @@ export declare function resolveGatewayCredentialsFromValues(params: {
     passwordPrecedence?: GatewayCredentialPrecedence;
 }): ResolvedGatewayCredentials;
 export declare function resolveGatewayCredentialsFromConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     env?: NodeJS.ProcessEnv;
     explicitAuth?: ExplicitGatewayAuth;
     urlOverride?: string;
@@ -40,11 +40,11 @@ export declare function resolveGatewayCredentialsFromConfig(params: {
     remotePasswordFallback?: GatewayRemoteCredentialFallback;
 }): ResolvedGatewayCredentials;
 export declare function resolveGatewayProbeCredentialsFromConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     mode: GatewayCredentialMode;
     env?: NodeJS.ProcessEnv;
     explicitAuth?: ExplicitGatewayAuth;
 }): ResolvedGatewayCredentials;
 export declare function resolveGatewayDriftCheckCredentialsFromConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): ResolvedGatewayCredentials;

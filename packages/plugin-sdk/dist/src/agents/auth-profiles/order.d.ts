@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type AuthCredentialReasonCode } from "./credential-state.js";
 import type { AuthProfileStore } from "./types.js";
 export type AuthProfileEligibilityReasonCode = AuthCredentialReasonCode | "profile_missing" | "provider_mismatch" | "mode_mismatch";
@@ -7,14 +7,14 @@ export type AuthProfileEligibility = {
     reasonCode: AuthProfileEligibilityReasonCode;
 };
 export declare function resolveAuthProfileEligibility(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store: AuthProfileStore;
     provider: string;
     profileId: string;
     now?: number;
 }): AuthProfileEligibility;
 export declare function resolveAuthProfileOrder(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store: AuthProfileStore;
     provider: string;
     preferredProfile?: string;

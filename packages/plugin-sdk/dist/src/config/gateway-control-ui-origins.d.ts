@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 export type GatewayNonLoopbackBindMode = "lan" | "tailnet" | "custom" | "auto";
 export declare function isGatewayNonLoopbackBindMode(bind: unknown): bind is GatewayNonLoopbackBindMode;
 export declare function hasConfiguredControlUiAllowedOrigins(params: {
@@ -11,7 +11,7 @@ export declare function buildDefaultControlUiAllowedOrigins(params: {
     bind: unknown;
     customBindHost?: string;
 }): string[];
-export declare function ensureControlUiAllowedOriginsForNonLoopbackBind(config: OpenClawConfig, opts?: {
+export declare function ensureControlUiAllowedOriginsForNonLoopbackBind(config: KovaConfig, opts?: {
     defaultPort?: number;
     requireControlUiEnabled?: boolean;
     /** Resolved runtime bind override. Mirrors Gateway runtime precedence:
@@ -27,7 +27,7 @@ export declare function ensureControlUiAllowedOriginsForNonLoopbackBind(config: 
      *  dependency from the config layer on the gateway runtime layer. */
     isContainerEnvironment?: () => boolean;
 }): {
-    config: OpenClawConfig;
+    config: KovaConfig;
     seededOrigins: string[] | null;
     bind: GatewayNonLoopbackBindMode | null;
 };

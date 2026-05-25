@@ -1,6 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { TSchema } from "typebox";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { AnyAgentTool } from "./tools/common.js";
 export type BundleMcpToolRuntime = {
     tools: AnyAgentTool[];
@@ -45,7 +45,7 @@ export type SessionMcpRuntimeManager = {
         sessionId: string;
         sessionKey?: string;
         workspaceDir: string;
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
     }) => Promise<SessionMcpRuntime>;
     bindSessionKey: (sessionKey: string, sessionId: string) => void;
     resolveSessionId: (sessionKey: string) => string | undefined;

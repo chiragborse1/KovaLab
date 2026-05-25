@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { resolveAutoMediaKeyProviders, resolveDefaultMediaModel } from "../../media-understanding/defaults.js";
 import { getMediaUnderstandingProvider } from "../../media-understanding/provider-registry.js";
 import { buildProviderRegistry } from "../../media-understanding/runner.js";
@@ -29,7 +29,7 @@ declare function resolveImageToolMaxTokens(modelMaxTokens: number | undefined, r
  *   - fall back to OpenAI/Anthropic when available
  */
 export declare function resolveImageModelConfigForTool(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir: string;
 }): ImageModelConfig | null;
 type ImageSandboxConfig = {
@@ -37,7 +37,7 @@ type ImageSandboxConfig = {
     bridge: SandboxFsBridge;
 };
 export declare function createImageTool(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     sandbox?: ImageSandboxConfig;

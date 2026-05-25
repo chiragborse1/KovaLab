@@ -1,5 +1,5 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
-export declare const ATTEMPT_CACHE_TTL_CUSTOM_TYPE = "openclaw.cache-ttl";
+import type { KovaConfig } from "../../../config/types.kova.js";
+export declare const ATTEMPT_CACHE_TTL_CUSTOM_TYPE = "kova.cache-ttl";
 export declare function composeSystemPromptWithHookContext(params: {
     baseSystemPrompt?: string;
     prependSystemContext?: string;
@@ -20,7 +20,7 @@ export declare function shouldUseOpenAIWebSocketTransport(params: {
 export declare function shouldAppendAttemptCacheTtl(params: {
     timedOutDuringCompaction: boolean;
     compactionOccurredThisAttempt: boolean;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider: string;
     modelId: string;
     modelApi?: string;
@@ -32,7 +32,7 @@ export declare function appendAttemptCacheTtlIfNeeded(params: {
     };
     timedOutDuringCompaction: boolean;
     compactionOccurredThisAttempt: boolean;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     provider: string;
     modelId: string;
     modelApi?: string;

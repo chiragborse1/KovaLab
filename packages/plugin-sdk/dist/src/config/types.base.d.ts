@@ -9,6 +9,7 @@ export type DmPolicy = "pairing" | "allowlist" | "open" | "disabled";
 export type ContextVisibilityMode = "all" | "allowlist" | "allowlist_quote";
 export type TextChunkMode = "length" | "newline";
 export type StreamingMode = "off" | "partial" | "block" | "progress";
+export type ChannelStreamingCommandTextMode = "raw" | "status";
 export type OutboundRetryConfig = {
     /** Max retry attempts for outbound requests (default: 3). */
     attempts?: number;
@@ -29,6 +30,22 @@ export type BlockStreamingChunkConfig = {
     maxChars?: number;
     breakPreference?: "paragraph" | "newline" | "sentence";
 };
+export type ChannelStreamingProgressConfig = {
+    /** Initial progress title. "auto" picks from labels; false hides the title. Default: "auto". */
+    label?: string | false;
+    /** Candidate labels for label="auto". Defaults to Kova's built-in progress labels. */
+    labels?: string[];
+    /** Maximum number of progress lines to keep below the label. Default: 8. */
+    maxLines?: number;
+    /** Maximum characters per compact progress line before truncation. Default: 120. */
+    maxLineChars?: number;
+    /** Progress draft renderer. "text" is the portable fallback; "rich" lets supported channels use structured UI. */
+    render?: "text" | "rich";
+    /** Include compact tool/task progress in the draft. Default: true. */
+    toolProgress?: boolean;
+    /** Command/exec progress detail in the draft. "raw" preserves released behavior; "status" shows only the tool label. Default: "raw". */
+    commandText?: ChannelStreamingCommandTextMode;
+};
 export type ChannelStreamingPreviewConfig = {
     /** Chunking thresholds for preview-draft updates while streaming. */
     chunk?: BlockStreamingChunkConfig;
@@ -38,6 +55,8 @@ export type ChannelStreamingPreviewConfig = {
      * Default: true.
      */
     toolProgress?: boolean;
+    /** Command/exec progress detail in the preview. "raw" preserves released behavior; "status" shows only the tool label. Default: "raw". */
+    commandText?: ChannelStreamingCommandTextMode;
 };
 export type ChannelStreamingBlockConfig = {
     /** Enable chunked block-reply delivery for channels that support it. */
@@ -62,11 +81,12 @@ export type ChannelStreamingConfig = {
      */
     nativeTransport?: boolean;
     preview?: ChannelStreamingPreviewConfig;
+    progress?: ChannelStreamingProgressConfig;
     block?: ChannelStreamingBlockConfig;
 };
 export type ChannelDeliveryStreamingConfig = Pick<ChannelStreamingConfig, "chunkMode" | "block">;
-export type ChannelPreviewStreamingConfig = Pick<ChannelStreamingConfig, "mode" | "chunkMode" | "preview" | "block">;
-export type SlackChannelStreamingConfig = Pick<ChannelStreamingConfig, "mode" | "chunkMode" | "preview" | "block" | "nativeTransport">;
+export type ChannelPreviewStreamingConfig = Pick<ChannelStreamingConfig, "mode" | "chunkMode" | "preview" | "progress" | "block">;
+export type SlackChannelStreamingConfig = Pick<ChannelStreamingConfig, "mode" | "chunkMode" | "preview" | "progress" | "block" | "nativeTransport">;
 export type MarkdownTableMode = "off" | "bullets" | "code" | "block";
 export type MarkdownConfig = {
     /** Table rendering mode (off|bullets|code|block). */
@@ -149,7 +169,7 @@ export type SessionConfig = {
     typingMode?: TypingMode;
     /**
      * Max parent transcript token count allowed for thread/session forking.
-     * If parent totalTokens is above this value, OpenClaw skips parent fork and
+     * If parent totalTokens is above this value, Kova skips parent fork and
      * starts a fresh thread session instead. Set to 0 to disable this guard.
      */
     parentForkMaxTokens?: number;

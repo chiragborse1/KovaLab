@@ -1,7 +1,7 @@
 import type { ChannelOutboundTargetMode } from "../../channels/plugins/types.core.js";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { AgentDefaultsConfig } from "../../config/types.agent-defaults.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { DeliveryContext } from "../../utils/delivery-context.types.js";
 import type { DeliverableMessageChannel, GatewayMessageChannel } from "../../utils/message-channel.js";
 import { type OutboundTargetResolution } from "./targets-resolve-shared.js";
@@ -27,18 +27,18 @@ export declare function resolveOutboundTarget(params: {
     channel: GatewayMessageChannel;
     to?: string;
     allowFrom?: string[];
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     accountId?: string | null;
     mode?: ChannelOutboundTargetMode;
 }): OutboundTargetResolution;
 export declare function resolveHeartbeatDeliveryTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     entry?: SessionEntry;
     heartbeat?: AgentDefaultsConfig["heartbeat"];
     turnSource?: DeliveryContext;
 }): OutboundTarget;
 export declare function resolveHeartbeatSenderContext(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     entry?: SessionEntry;
     delivery: OutboundTarget;
 }): HeartbeatSenderContext;

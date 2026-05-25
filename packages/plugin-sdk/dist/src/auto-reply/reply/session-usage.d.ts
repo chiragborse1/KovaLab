@@ -1,10 +1,10 @@
 import { type NormalizedUsage } from "../../agents/usage.js";
 import { type SessionSystemPromptReport } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function persistSessionUsageUpdate(params: {
     storePath?: string;
     sessionKey?: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     usage?: NormalizedUsage;
     /**
      * Usage from the last individual API call (not accumulated). When provided,

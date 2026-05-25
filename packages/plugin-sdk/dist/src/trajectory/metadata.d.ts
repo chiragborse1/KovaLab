@@ -1,9 +1,9 @@
 import type { SkillSnapshot } from "../agents/skills.js";
 import type { SessionSystemPromptReport } from "../config/sessions/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 type BuildTrajectoryRunMetadataParams = {
     env?: NodeJS.ProcessEnv;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir: string;
     sessionFile?: string;
     sessionKey?: string;

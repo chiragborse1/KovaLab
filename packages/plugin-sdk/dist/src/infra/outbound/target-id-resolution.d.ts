@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type ResolvedIdLikeTarget = {
     to: string;
     kind: ChannelDirectoryEntryKind | "channel";
@@ -7,7 +7,7 @@ export type ResolvedIdLikeTarget = {
     source: "normalized" | "directory";
 };
 export declare function maybeResolveIdLikeTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     input: string;
     accountId?: string | null;

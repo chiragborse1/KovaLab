@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type DirectoryCacheKey = {
     channel: ChannelId;
     accountId?: string | null;
@@ -14,10 +14,10 @@ export declare class DirectoryCache<T> {
     private lastConfigRef;
     private readonly maxSize;
     constructor(ttlMs: number, maxSize?: number);
-    get(key: string, cfg: OpenClawConfig): T | undefined;
-    set(key: string, value: T, cfg: OpenClawConfig): void;
+    get(key: string, cfg: KovaConfig): T | undefined;
+    set(key: string, value: T, cfg: KovaConfig): void;
     clearMatching(match: (key: string) => boolean): void;
-    clear(cfg?: OpenClawConfig): void;
+    clear(cfg?: KovaConfig): void;
     private resetIfConfigChanged;
     private pruneExpired;
     private evictToMaxSize;

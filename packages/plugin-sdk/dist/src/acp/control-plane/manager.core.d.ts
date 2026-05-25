@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AcpRuntime, AcpRuntimeHandle } from "../runtime/types.js";
 import { type AcpCloseSessionInput, type AcpCloseSessionResult, type AcpInitializeSessionInput, type AcpManagerObservabilitySnapshot, type AcpRunTurnInput, type AcpSessionManagerDeps, type AcpSessionResolution, type AcpSessionRuntimeOptions, type AcpSessionStatus, type AcpStartupIdentityReconcileResult, type SessionAcpMeta } from "./manager.types.js";
 export declare class AcpSessionManager {
@@ -13,12 +13,12 @@ export declare class AcpSessionManager {
     private lastEvictedAt;
     constructor(deps?: AcpSessionManagerDeps);
     resolveSession(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
     }): AcpSessionResolution;
-    getObservabilitySnapshot(cfg: OpenClawConfig): AcpManagerObservabilitySnapshot;
+    getObservabilitySnapshot(cfg: KovaConfig): AcpManagerObservabilitySnapshot;
     reconcilePendingSessionIdentities(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
     }): Promise<AcpStartupIdentityReconcileResult>;
     initializeSession(input: AcpInitializeSessionInput): Promise<{
         runtime: AcpRuntime;
@@ -26,28 +26,28 @@ export declare class AcpSessionManager {
         meta: SessionAcpMeta;
     }>;
     getSessionStatus(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         signal?: AbortSignal;
     }): Promise<AcpSessionStatus>;
     setSessionRuntimeMode(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         runtimeMode: string;
     }): Promise<AcpSessionRuntimeOptions>;
     setSessionConfigOption(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         key: string;
         value: string;
     }): Promise<AcpSessionRuntimeOptions>;
     updateSessionRuntimeOptions(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         patch: Partial<AcpSessionRuntimeOptions>;
     }): Promise<AcpSessionRuntimeOptions>;
     resetSessionRuntimeOptions(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
     }): Promise<AcpSessionRuntimeOptions>;
     runTurn(input: AcpRunTurnInput): Promise<void>;
@@ -56,7 +56,7 @@ export declare class AcpSessionManager {
     private cleanupTimedOutTurn;
     private awaitCleanupWithGrace;
     cancelSession(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         reason?: string;
     }): Promise<void>;

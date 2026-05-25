@@ -1,6 +1,6 @@
 import { type ModelAliasIndex } from "../../agents/model-selection.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { InlineDirectives } from "./directive-handling.parse.js";
 import type { ThinkLevel } from "./directives.js";
 export type PersistedThinkingLevelRemap = {
@@ -12,7 +12,7 @@ export type PersistedThinkingLevelRemap = {
 export declare function persistInlineDirectives(params: {
     directives: InlineDirectives;
     effectiveModelDirective?: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     sessionEntry?: SessionEntry;
     sessionStore?: Record<string, SessionEntry>;
@@ -28,7 +28,7 @@ export declare function persistInlineDirectives(params: {
     model: string;
     initialModelLabel: string;
     formatModelSwitchEvent: (label: string, alias?: string) => string;
-    agentCfg: NonNullable<OpenClawConfig["agents"]>["defaults"] | undefined;
+    agentCfg: NonNullable<KovaConfig["agents"]>["defaults"] | undefined;
     messageProvider?: string;
     surface?: string;
     gatewayClientScopes?: string[];

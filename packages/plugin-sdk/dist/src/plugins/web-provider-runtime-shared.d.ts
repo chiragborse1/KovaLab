@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginLoadOptions } from "./loader.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 import type { PluginRegistry } from "./registry.js";
@@ -6,7 +6,7 @@ type WebProviderSnapshotCacheEntry<TEntry> = {
     expiresAt: number;
     providers: TEntry[];
 };
-export type WebProviderSnapshotCache<TEntry> = WeakMap<OpenClawConfig, WeakMap<NodeJS.ProcessEnv, Map<string, WebProviderSnapshotCacheEntry<TEntry>>>>;
+export type WebProviderSnapshotCache<TEntry> = WeakMap<KovaConfig, WeakMap<NodeJS.ProcessEnv, Map<string, WebProviderSnapshotCacheEntry<TEntry>>>>;
 export type ResolvePluginWebProvidersParams = {
     config?: PluginLoadOptions["config"];
     workspaceDir?: string;

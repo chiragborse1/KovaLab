@@ -1,7 +1,8 @@
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelCompatConfig } from "../config/types.models.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { ToolLoopDetectionConfig } from "../config/types.tools.js";
 import type { DiagnosticTraceContext } from "../infra/diagnostic-trace-context.js";
+import type { AuthProfileStore } from "./auth-profiles.js";
 import type { ExecToolDefaults } from "./bash-tools.exec-types.js";
 import type { ProcessToolDefaults } from "./bash-tools.process.js";
 import type { ModelAuthMode } from "./model-auth.js";
@@ -10,15 +11,17 @@ import { cleanToolSchemaForGemini } from "./pi-tools.schema.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import type { SandboxContext } from "./sandbox.js";
 declare function applyModelProviderToolPolicy(tools: AnyAgentTool[], params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     modelProvider?: string;
     modelApi?: string;
     modelId?: string;
+    agentId?: string;
+    sessionKey?: string;
     agentDir?: string;
     modelCompat?: ModelCompatConfig;
 }): AnyAgentTool[];
 export declare function resolveToolLoopDetectionConfig(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentId?: string;
 }): ToolLoopDetectionConfig | undefined;
 export declare const __testing: {
@@ -28,7 +31,7 @@ export declare const __testing: {
     readonly assertRequiredParams: typeof assertRequiredParams;
     readonly applyModelProviderToolPolicy: typeof applyModelProviderToolPolicy;
 };
-export declare function createOpenClawCodingTools(options?: {
+export declare function createKovaCodingTools(options?: {
     agentId?: string;
     exec?: ExecToolDefaults & ProcessToolDefaults;
     messageProvider?: string;
@@ -56,7 +59,7 @@ export declare function createOpenClawCodingTools(options?: {
      * Defaults to workspaceDir when not set.
      */
     spawnWorkspaceDir?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     abortSignal?: AbortSignal;
     /**
      * Provider of the currently selected model (used for provider-specific tool quirks).
@@ -112,6 +115,8 @@ export declare function createOpenClawCodingTools(options?: {
     disableMessageTool?: boolean;
     /** Keep the message tool available even when the selected profile omits it. */
     forceMessageTool?: boolean;
+    /** Active auth profile store for plugin-owned tools. */
+    authProfileStore?: AuthProfileStore;
     /** Whether the sender is an owner (required for owner-only tools). */
     senderIsOwner?: boolean;
     /** Callback invoked when sessions_yield tool is called. */

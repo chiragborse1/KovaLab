@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type MemoryReadResult } from "./read-file-shared.js";
 export declare function readMemoryFile(params: {
     workspaceDir: string;
@@ -10,7 +10,7 @@ export declare function readMemoryFile(params: {
     maxChars?: number;
 }): Promise<MemoryReadResult>;
 export declare function readAgentMemoryFile(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     relPath: string;
     from?: number;

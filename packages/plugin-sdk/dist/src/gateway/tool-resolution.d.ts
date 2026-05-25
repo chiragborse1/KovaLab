@@ -1,8 +1,8 @@
 import type { AnyAgentTool } from "../agents/tools/common.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type GatewayScopedToolSurface = "http" | "loopback";
 export declare function resolveGatewayScopedTools(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     messageProvider?: string;
     accountId?: string;

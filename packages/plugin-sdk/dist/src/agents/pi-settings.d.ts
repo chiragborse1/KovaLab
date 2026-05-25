@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ContextEngineInfo } from "../context-engine/types.js";
 export declare const DEFAULT_PI_COMPACTION_RESERVE_TOKENS_FLOOR = 20000;
 type PiSettingsManagerLike = {
@@ -25,10 +25,10 @@ export declare function ensurePiCompactionReserveTokens(params: {
     didOverride: boolean;
     reserveTokens: number;
 };
-export declare function resolveCompactionReserveTokensFloor(cfg?: OpenClawConfig): number;
+export declare function resolveCompactionReserveTokensFloor(cfg?: KovaConfig): number;
 export declare function applyPiCompactionSettingsFromConfig(params: {
     settingsManager: PiSettingsManagerLike;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     /** When known, the resolved context window budget for the current model. */
     contextTokenBudget?: number;
 }): {

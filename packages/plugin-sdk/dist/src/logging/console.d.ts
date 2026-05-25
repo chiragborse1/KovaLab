@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { type LogLevel } from "./levels.js";
 import type { ConsoleStyle } from "./types.js";
 export type { ConsoleStyle } from "./types.js";
@@ -7,7 +7,7 @@ type ConsoleSettings = {
     style: ConsoleStyle;
 };
 export type ConsoleLoggerSettings = ConsoleSettings;
-type ConsoleConfigLoader = () => OpenClawConfig["logging"] | undefined;
+type ConsoleConfigLoader = () => KovaConfig["logging"] | undefined;
 export declare function setConsoleConfigLoaderForTests(loader?: ConsoleConfigLoader): void;
 export declare function getConsoleSettings(): ConsoleLoggerSettings;
 export declare function getResolvedConsoleSettings(): ConsoleLoggerSettings;

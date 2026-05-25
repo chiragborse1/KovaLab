@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type NormalizedPluginsConfig } from "./config-normalization-shared.js";
 import type { BundledChannelConfigCollector, PluginManifestContractListKey, PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
@@ -69,7 +69,7 @@ export type PluginRegistryIdNormalizerOptions = {
 };
 export declare function loadPluginManifestRegistryForPluginRegistry(params?: LoadPluginRegistryManifestParams): PluginManifestRegistry;
 export declare function createPluginRegistryIdNormalizer(index: PluginRegistrySnapshot, options?: PluginRegistryIdNormalizerOptions): (pluginId: string) => string;
-export declare function normalizePluginsConfigWithRegistry(config: OpenClawConfig["plugins"] | undefined, index: PluginRegistrySnapshot, options?: PluginRegistryIdNormalizerOptions): NormalizedPluginsConfig;
+export declare function normalizePluginsConfigWithRegistry(config: KovaConfig["plugins"] | undefined, index: PluginRegistrySnapshot, options?: PluginRegistryIdNormalizerOptions): NormalizedPluginsConfig;
 export declare function listPluginContributionIds(params: ListPluginContributionIdsParams): readonly string[];
 export declare function resolvePluginContributionOwners(params: ResolvePluginContributionOwnersParams): readonly string[];
 export declare function resolveProviderOwners(params: ResolveProviderOwnersParams): readonly string[];

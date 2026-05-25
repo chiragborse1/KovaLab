@@ -2,7 +2,7 @@ import { getAcpSessionManager } from "../../acp/control-plane/manager.js";
 import { abortEmbeddedPiRun } from "../../agents/pi-embedded-runner/runs.js";
 import { getLatestSubagentRunByChildSessionKey, listSubagentRunsForController, markSubagentRunTerminated } from "../../agents/subagent-registry.js";
 import { type SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { FinalizedMsgContext } from "../templating.js";
 import { getAbortMemory, getAbortMemorySizeForTest, isAbortRequestText, isAbortTrigger, resetAbortMemoryForTest, setAbortMemory } from "./abort-primitives.js";
 export { resolveAbortCutoffFromContext, shouldSkipMessageByAbortCutoff } from "./abort-cutoff.js";
@@ -25,14 +25,14 @@ export declare function resolveSessionEntryForKey(store: Record<string, SessionE
     legacyKeys?: string[];
 };
 export declare function stopSubagentsForRequester(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     requesterSessionKey?: string;
 }): {
     stopped: number;
 };
 export declare function tryFastAbortFromMessage(params: {
     ctx: FinalizedMsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): Promise<{
     handled: boolean;
     aborted: boolean;

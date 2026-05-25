@@ -1,14 +1,14 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function withBundledPluginAllowlistCompat(params: {
-    config: OpenClawConfig | undefined;
+    config: KovaConfig | undefined;
     pluginIds: readonly string[];
-}): OpenClawConfig | undefined;
+}): KovaConfig | undefined;
 export declare function withBundledPluginEnablementCompat(params: {
-    config: OpenClawConfig | undefined;
+    config: KovaConfig | undefined;
     pluginIds: readonly string[];
-}): OpenClawConfig | undefined;
+}): KovaConfig | undefined;
 export declare function withBundledPluginVitestCompat(params: {
-    config: OpenClawConfig | undefined;
+    config: KovaConfig | undefined;
     pluginIds: readonly string[];
     env?: NodeJS.ProcessEnv;
-}): OpenClawConfig | undefined;
+}): KovaConfig | undefined;

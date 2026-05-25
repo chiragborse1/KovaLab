@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ConfiguredBindingResolution, StatefulBindingTargetDescriptor } from "./binding-types.js";
 export type StatefulBindingTargetReadyResult = {
     ok: true;
@@ -24,19 +24,19 @@ export type StatefulBindingTargetResetResult = {
 export type StatefulBindingTargetDriver = {
     id: string;
     ensureReady: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         bindingResolution: ConfiguredBindingResolution;
     }) => Promise<StatefulBindingTargetReadyResult>;
     ensureSession: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         bindingResolution: ConfiguredBindingResolution;
     }) => Promise<StatefulBindingTargetSessionResult>;
     resolveTargetBySessionKey?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
     }) => StatefulBindingTargetDescriptor | null;
     resetInPlace?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         sessionKey: string;
         bindingTarget: StatefulBindingTargetDescriptor;
         reason: "new" | "reset";
@@ -47,7 +47,7 @@ export declare function registerStatefulBindingTargetDriver(driver: StatefulBind
 export declare function unregisterStatefulBindingTargetDriver(id: string): void;
 export declare function getStatefulBindingTargetDriver(id: string): StatefulBindingTargetDriver | null;
 export declare function resolveStatefulBindingTargetBySessionKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
 }): {
     driver: StatefulBindingTargetDriver;

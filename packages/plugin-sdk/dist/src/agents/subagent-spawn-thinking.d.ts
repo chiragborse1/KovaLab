@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function resolveSubagentThinkingOverride(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     targetAgentConfig?: unknown;
     thinkingOverrideRaw?: string;
 }): {

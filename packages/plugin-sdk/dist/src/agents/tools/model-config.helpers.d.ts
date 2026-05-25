@@ -1,12 +1,12 @@
 import type { AgentModelConfig } from "../../config/types.agents-shared.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type ToolModelConfig = {
     primary?: string;
     fallbacks?: string[];
     timeoutMs?: number;
 };
 export declare function hasToolModelConfig(model: ToolModelConfig | undefined): boolean;
-export declare function resolveDefaultModelRef(cfg?: OpenClawConfig): {
+export declare function resolveDefaultModelRef(cfg?: KovaConfig): {
     provider: string;
     model: string;
 };

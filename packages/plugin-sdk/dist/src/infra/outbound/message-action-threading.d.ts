@@ -1,10 +1,10 @@
 import type { ChannelId, ChannelThreadingAdapter, ChannelThreadingToolContext } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { OutboundSessionRoute, ResolveOutboundSessionRouteParams } from "./outbound-session.js";
 import type { ResolvedMessagingTarget } from "./target-resolver.js";
 type ResolveAutoThreadId = NonNullable<ChannelThreadingAdapter["resolveAutoThreadId"]>;
 export declare function resolveAndApplyOutboundThreadId(actionParams: Record<string, unknown>, context: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     to: string;
     accountId?: string | null;
     toolContext?: ChannelThreadingToolContext;
@@ -15,7 +15,7 @@ export declare function resolveAndApplyOutboundReplyToId(actionParams: Record<st
     toolContext?: ChannelThreadingToolContext;
 }): string | undefined;
 export declare function prepareOutboundMirrorRoute(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     to: string;
     actionParams: Record<string, unknown>;
@@ -28,7 +28,7 @@ export declare function prepareOutboundMirrorRoute(params: {
     resolveAutoThreadId?: ResolveAutoThreadId;
     resolveOutboundSessionRoute: (params: ResolveOutboundSessionRouteParams) => Promise<OutboundSessionRoute | null>;
     ensureOutboundSessionEntry: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         channel: ChannelId;
         accountId?: string | null;
         route: OutboundSessionRoute;

@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { SpeechProviderPlugin } from "../plugins/types.js";
 import type { SpeechModelOverridePolicy, SpeechProviderConfig, TtsDirectiveParseResult } from "./provider-types.js";
 type ParseTtsDirectiveOptions = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providers?: readonly SpeechProviderPlugin[];
     providerConfigs?: Record<string, SpeechProviderConfig>;
     preferredProviderId?: string;

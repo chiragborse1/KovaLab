@@ -1,9 +1,9 @@
 export declare const A2UI_PATH = "/__kova__/a2ui";
-export declare const LEGACY_A2UI_PATH = "/__openclaw__/a2ui";
+export declare const LEGACY_A2UI_PATH = "/__kova__/a2ui";
 export declare const CANVAS_HOST_PATH = "/__kova__/canvas";
-export declare const LEGACY_CANVAS_HOST_PATH = "/__openclaw__/canvas";
+export declare const LEGACY_CANVAS_HOST_PATH = "/__kova__/canvas";
 export declare const CANVAS_WS_PATH = "/__kova__/ws";
-export declare const LEGACY_CANVAS_WS_PATH = "/__openclaw__/ws";
+export declare const LEGACY_CANVAS_WS_PATH = "/__kova__/ws";
 export declare function isA2uiPath(pathname: string): boolean;
 export declare function resolveA2uiPathBase(pathname: string): string | undefined;
 export declare function isCanvasHostPath(pathname: string): boolean;

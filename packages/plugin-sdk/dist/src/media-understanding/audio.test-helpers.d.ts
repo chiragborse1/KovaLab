@@ -8,7 +8,7 @@ export declare function createAuthCaptureJsonFetch(responseBody: unknown): {
             http?: boolean;
             https?: boolean;
         }) => void;
-        __openclawAcceptsDispatcher: true;
+        __kovaAcceptsDispatcher: true;
     };
     getAuthHeader: () => string | null;
 };
@@ -20,7 +20,7 @@ export declare function createRequestCaptureJsonFetch(responseBody: unknown): {
             http?: boolean;
             https?: boolean;
         }) => void;
-        __openclawAcceptsDispatcher: true;
+        __kovaAcceptsDispatcher: true;
     };
     getRequest: () => {
         url: string | null;

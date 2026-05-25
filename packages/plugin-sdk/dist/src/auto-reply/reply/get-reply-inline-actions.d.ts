@@ -1,7 +1,7 @@
 import type { BlockReplyChunking } from "../../agents/pi-embedded-block-chunker.js";
 import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { SessionEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 import type { ElevatedLevel, ReasoningLevel, ThinkLevel, VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions, ReplyPayload } from "../types.js";
@@ -20,7 +20,7 @@ export type InlineActionResult = {
 export declare function handleInlineActions(params: {
     ctx: MsgContext;
     sessionCtx: TemplateContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     agentDir?: string;
     sessionEntry?: SessionEntry;

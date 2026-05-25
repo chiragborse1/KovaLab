@@ -9,15 +9,15 @@ export declare function resolveMcpLoopbackBearerToken(runtime: McpLoopbackRuntim
 export declare function clearActiveMcpLoopbackRuntimeByOwnerToken(ownerToken: string): void;
 export declare function createMcpLoopbackServerConfig(port: number): {
     mcpServers: {
-        openclaw: {
+        kova: {
             type: string;
             url: string;
             headers: {
                 Authorization: string;
                 "x-session-key": string;
-                "x-openclaw-agent-id": string;
-                "x-openclaw-account-id": string;
-                "x-openclaw-message-channel": string;
+                "x-kova-agent-id": string;
+                "x-kova-account-id": string;
+                "x-kova-message-channel": string;
             };
         };
     };

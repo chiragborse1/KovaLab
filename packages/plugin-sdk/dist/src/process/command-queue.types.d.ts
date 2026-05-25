@@ -1,4 +1,6 @@
-export type CommandQueueEnqueueFn = <T>(task: () => Promise<T>, opts?: {
+export type CommandQueueEnqueueOptions = {
     warnAfterMs?: number;
     onWait?: (waitMs: number, queuedAhead: number) => void;
-}) => Promise<T>;
+    taskTimeoutMs?: number;
+};
+export type CommandQueueEnqueueFn = <T>(task: () => Promise<T>, opts?: CommandQueueEnqueueOptions) => Promise<T>;

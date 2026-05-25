@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { ContextEnginePromptCacheInfo, ContextEngineRuntimeContext } from "../../../context-engine/types.js";
 import type { PluginHookAgentContext, PluginHookBeforeAgentStartResult, PluginHookBeforePromptBuildResult } from "../../../plugins/types.js";
 import { type NormalizedUsage } from "../../usage.js";
@@ -23,7 +23,7 @@ export declare function resolvePromptBuildHookResult(params: {
 }): Promise<PluginHookBeforePromptBuildResult>;
 export declare function resolvePromptModeForSession(sessionKey?: string): "minimal" | "full";
 export declare function shouldInjectHeartbeatPrompt(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentId?: string;
     defaultAgentId?: string;
     isDefaultAgent: boolean;
@@ -47,7 +47,7 @@ export declare function mergeOrphanedTrailingUserPrompt(params: {
     removeLeaf: boolean;
 };
 export declare function resolveAttemptFsWorkspaceOnly(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionAgentId: string;
 }): boolean;
 export declare function prependSystemPromptAddition(params: {

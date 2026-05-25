@@ -1,5 +1,5 @@
 import type { LegacyConfigRule } from "../config/legacy.shared.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 export declare function collectRelevantDoctorPluginIds(raw: unknown): string[];
 export declare function collectRelevantDoctorPluginIdsForTouchedPaths(params: {
     raw: unknown;
@@ -11,11 +11,11 @@ export declare function listPluginDoctorLegacyConfigRules(params?: {
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];
 }): LegacyConfigRule[];
-export declare function applyPluginDoctorCompatibilityMigrations(cfg: OpenClawConfig, params?: {
+export declare function applyPluginDoctorCompatibilityMigrations(cfg: KovaConfig, params?: {
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];
 }): {
-    config: OpenClawConfig;
+    config: KovaConfig;
     changes: string[];
 };

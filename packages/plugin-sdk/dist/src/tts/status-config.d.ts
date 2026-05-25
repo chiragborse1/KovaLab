@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { TtsAutoMode, TtsProvider } from "../config/types.tts.js";
 type TtsStatusSnapshot = {
     autoMode: TtsAutoMode;
@@ -13,7 +13,7 @@ type TtsStatusSnapshot = {
     summarize: boolean;
 };
 export declare function resolveStatusTtsSnapshot(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionAuto?: string;
     agentId?: string;
     channelId?: string;

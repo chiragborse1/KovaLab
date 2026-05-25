@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type NormalizedPluginsConfig = {
     enabled: boolean;
     allow: string[];
@@ -24,6 +24,6 @@ export type NormalizedPluginsConfig = {
 };
 export type NormalizePluginId = (id: string) => string;
 export declare const identityNormalizePluginId: NormalizePluginId;
-export declare function normalizePluginsConfigWithResolver(config?: OpenClawConfig["plugins"], normalizePluginId?: NormalizePluginId): NormalizedPluginsConfig;
-export declare function hasExplicitPluginConfig(plugins?: OpenClawConfig["plugins"]): boolean;
-export declare function isBundledChannelEnabledByChannelConfig(cfg: OpenClawConfig | undefined, pluginId: string): boolean;
+export declare function normalizePluginsConfigWithResolver(config?: KovaConfig["plugins"], normalizePluginId?: NormalizePluginId): NormalizedPluginsConfig;
+export declare function hasExplicitPluginConfig(plugins?: KovaConfig["plugins"]): boolean;
+export declare function isBundledChannelEnabledByChannelConfig(cfg: KovaConfig | undefined, pluginId: string): boolean;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type ConversationRef, type SessionBindingRecord } from "../../infra/outbound/session-binding-service.js";
 import type { ResolvedAgentRoute } from "../../routing/resolve-route.js";
 import type { ConfiguredBindingResolution } from "./binding-types.js";
@@ -23,14 +23,14 @@ type ConfiguredBindingRouteConversationInput = {
     parentConversationId?: string;
 };
 export declare function resolveConfiguredBindingRoute(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     route: ResolvedAgentRoute;
 } & ConfiguredBindingRouteConversationInput): ConfiguredBindingRouteResult;
 export declare function resolveRuntimeConversationBindingRoute(params: {
     route: ResolvedAgentRoute;
 } & ConfiguredBindingRouteConversationInput): RuntimeConversationBindingRouteResult;
 export declare function ensureConfiguredBindingRouteReady(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     bindingResolution: ConfiguredBindingResolution | null;
 }): Promise<{
     ok: true;

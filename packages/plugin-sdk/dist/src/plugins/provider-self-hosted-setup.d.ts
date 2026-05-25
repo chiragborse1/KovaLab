@@ -1,6 +1,6 @@
 import type { AuthProfileCredential } from "../agents/auth-profiles/types.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { ProviderDiscoveryContext, ProviderAuthResult, ProviderAuthMethodNonInteractiveContext } from "./types.js";
 export { SELF_HOSTED_DEFAULT_CONTEXT_WINDOW, SELF_HOSTED_DEFAULT_COST, SELF_HOSTED_DEFAULT_MAX_TOKENS, } from "../agents/self-hosted-provider-defaults.js";
@@ -12,9 +12,9 @@ export declare function discoverOpenAICompatibleLocalModels(params: {
     maxTokens?: number;
     env?: NodeJS.ProcessEnv;
 }): Promise<ModelDefinitionConfig[]>;
-export declare function applyProviderDefaultModel(cfg: OpenClawConfig, modelRef: string): OpenClawConfig;
+export declare function applyProviderDefaultModel(cfg: KovaConfig, modelRef: string): KovaConfig;
 type OpenAICompatibleSelfHostedProviderSetupParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: WizardPrompter;
     providerId: string;
     providerLabel: string;
@@ -27,7 +27,7 @@ type OpenAICompatibleSelfHostedProviderSetupParams = {
     maxTokens?: number;
 };
 type OpenAICompatibleSelfHostedProviderPromptResult = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     credential: AuthProfileCredential;
     modelId: string;
     modelRef: string;
@@ -57,4 +57,4 @@ export declare function configureOpenAICompatibleSelfHostedProviderNonInteractiv
     reasoning?: boolean;
     contextWindow?: number;
     maxTokens?: number;
-}): Promise<OpenClawConfig | null>;
+}): Promise<KovaConfig | null>;

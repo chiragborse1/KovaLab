@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExecApprovalRequest } from "./exec-approvals.js";
 import type { PluginApprovalRequest } from "./plugin-approvals.js";
 export { doesApprovalRequestMatchChannelAccount, resolveApprovalRequestAccountId, resolveApprovalRequestChannelAccountId, } from "./approval-request-account-binding.js";
@@ -20,7 +20,7 @@ export type ApprovalRequestSessionConversation = {
 };
 type ApprovalRequestLike = ExecApprovalRequest | PluginApprovalRequest;
 type ApprovalRequestOriginTargetResolver<TTarget> = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
     channel: string;
     accountId?: string | null;
@@ -35,7 +35,7 @@ export declare function resolveApprovalRequestSessionConversation(params: {
     bundledFallback?: boolean;
 }): ApprovalRequestSessionConversation | null;
 export declare function resolveExecApprovalSessionTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ExecApprovalRequest;
     turnSourceChannel?: string | null;
     turnSourceTo?: string | null;
@@ -43,7 +43,7 @@ export declare function resolveExecApprovalSessionTarget(params: {
     turnSourceThreadId?: string | number | null;
 }): ExecApprovalSessionTarget | null;
 export declare function resolveApprovalRequestSessionTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     request: ApprovalRequestLike;
 }): ExecApprovalSessionTarget | null;
 export declare function resolveApprovalRequestOriginTarget<TTarget>(params: ApprovalRequestOriginTargetResolver<TTarget>): TTarget | null;

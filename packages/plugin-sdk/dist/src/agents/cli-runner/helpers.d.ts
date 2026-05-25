@@ -2,7 +2,7 @@ import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import type { CliBackendConfig } from "../../config/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import type { SandboxFsBridge } from "../sandbox/fs-bridge.js";
 export { buildCliSupervisorScopeKey, resolveCliNoOutputTimeoutMs } from "./reliability.js";
@@ -16,7 +16,7 @@ export declare function resolveCliRunQueueKey(params: {
 }): string;
 export declare function buildSystemPrompt(params: {
     workspaceDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     defaultThinkLevel?: ThinkLevel;
     extraSystemPrompt?: string;
     ownerNumbers?: string[];

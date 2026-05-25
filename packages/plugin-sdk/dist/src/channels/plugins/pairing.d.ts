@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import type { ChannelId } from "./channel-id.types.js";
 import type { ChannelPairingAdapter } from "./pairing.types.js";
@@ -9,7 +9,7 @@ export declare function resolvePairingChannel(raw: unknown): ChannelId;
 export declare function notifyPairingApproved(params: {
     channelId: ChannelId;
     id: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     runtime?: RuntimeEnv;
     /** Extension channels can pass their adapter directly to bypass registry lookup. */
     pairingAdapter?: ChannelPairingAdapter;

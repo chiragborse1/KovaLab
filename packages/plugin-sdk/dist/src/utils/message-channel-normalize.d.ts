@@ -1,6 +1,6 @@
 import { type InternalMessageChannel } from "./message-channel-constants.js";
 type ChannelId = string & {
-    readonly __openclawChannelIdBrand?: never;
+    readonly __kovaChannelIdBrand?: never;
 };
 export type DeliverableMessageChannel = ChannelId;
 export type GatewayMessageChannel = DeliverableMessageChannel;

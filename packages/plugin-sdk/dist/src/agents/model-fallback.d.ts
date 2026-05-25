@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { FallbackAttempt } from "./model-fallback.types.js";
 import type { FailoverReason } from "./pi-embedded-helpers/types.js";
 /**
@@ -62,7 +62,7 @@ export declare const _probeThrottleInternals: {
     readonly markProbeAttempt: typeof markProbeAttempt;
 };
 export declare function runWithModelFallback<T>(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider: string;
     model: string;
     runId?: string;
@@ -74,7 +74,7 @@ export declare function runWithModelFallback<T>(params: {
     classifyResult?: ModelFallbackResultClassifier<T>;
 }): Promise<ModelFallbackRunResult<T>>;
 export declare function runWithImageModelFallback<T>(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     modelOverride?: string;
     run: (provider: string, model: string) => Promise<T>;
     onError?: ModelFallbackErrorHandler;

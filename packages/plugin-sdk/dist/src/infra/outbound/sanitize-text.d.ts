@@ -7,8 +7,8 @@
  * Converts common inline HTML to lightweight-markup equivalents used by
  * WhatsApp/Signal/Telegram and strips any remaining tags.
  *
- * @see https://github.com/openclaw/openclaw/issues/31884
- * @see https://github.com/openclaw/openclaw/issues/18558
+ * @see https://github.com/chiragborse1/KovaLab/issues/31884
+ * @see https://github.com/chiragborse1/KovaLab/issues/18558
  */
 /**
  * Convert common HTML tags to their plain-text/lightweight-markup equivalents

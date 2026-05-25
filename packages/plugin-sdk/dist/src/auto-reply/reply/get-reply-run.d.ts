@@ -1,7 +1,7 @@
 import type { ExecToolDefaults } from "../../agents/bash-tools.js";
 import type { EmbeddedFullAccessBlockedReason } from "../../agents/pi-embedded-runner/types.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SilentReplyConversationType } from "../../shared/silent-reply-policy.js";
 import type { MsgContext, TemplateContext } from "../templating.js";
 import { type ElevatedLevel, type ReasoningLevel, type ThinkLevel, type VerboseLevel } from "../thinking.js";
@@ -11,7 +11,7 @@ import type { InlineDirectives } from "./directive-handling.js";
 import { buildGroupIntro } from "./groups.js";
 import type { createModelSelectionState } from "./model-selection.js";
 import type { TypingController } from "./typing.js";
-type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
+type AgentDefaults = NonNullable<KovaConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
 export declare function resolvePromptSilentReplyConversationType(params: {
     ctx: Pick<MsgContext, "ChatType" | "CommandSource" | "CommandTargetSessionKey" | "SessionKey">;
@@ -26,11 +26,11 @@ export declare function buildExecOverridePromptHint(params: {
 type RunPreparedReplyParams = {
     ctx: MsgContext;
     sessionCtx: TemplateContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId: string;
     agentDir: string;
     agentCfg: AgentDefaults;
-    sessionCfg: OpenClawConfig["session"];
+    sessionCfg: KovaConfig["session"];
     commandAuthorized: boolean;
     command: ReturnType<typeof buildCommandContext>;
     commandSource?: string;

@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ExecApprovalDecision } from "./exec-approvals.js";
 export type ResolveApprovalOverGatewayParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     approvalId: string;
     decision: ExecApprovalDecision;
     senderId?: string | null;

@@ -1,13 +1,13 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "typebox";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../../plugins/provider-runtime-model.types.js";
 import type { AgentRuntimePlan } from "./types.js";
 type AgentRuntimeToolPolicyParams<TSchemaType extends TSchema = TSchema, TResult = unknown> = {
     runtimePlan?: AgentRuntimePlan;
     tools: AgentTool<TSchemaType, TResult>[];
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     modelId?: string;

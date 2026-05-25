@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import { type SecretRef } from "../config/types.secrets.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 export type SecretRefSetupPromptCopy = {
@@ -13,7 +13,7 @@ export type SecretRefSetupPromptCopy = {
 };
 export declare function extractEnvVarFromSourceLabel(source: string): string | undefined;
 export declare function resolveRefFallbackInput(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     provider: string;
     preferredEnvVar?: string;
     env?: NodeJS.ProcessEnv;
@@ -23,7 +23,7 @@ export declare function resolveRefFallbackInput(params: {
 };
 export declare function promptSecretRefForSetup(params: {
     provider: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
     prompter: WizardPrompter;
     preferredEnvVar?: string;
     copy?: SecretRefSetupPromptCopy;

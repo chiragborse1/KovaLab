@@ -1,4 +1,4 @@
-export declare const NOVNC_PASSWORD_ENV_KEY = "OPENCLAW_BROWSER_NOVNC_PASSWORD";
+export declare const NOVNC_PASSWORD_ENV_KEY = "KOVA_BROWSER_NOVNC_PASSWORD";
 export type NoVncObserverTokenPayload = {
     noVncPort: number;
     password?: string;

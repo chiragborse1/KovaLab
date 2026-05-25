@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { KovaConfig } from "../config/config.js";
 import type { SecretInput } from "../config/types.secrets.js";
 import { type MemoryMultimodalSettings } from "../memory-host-sdk/multimodal.js";
 export type ResolvedMemorySearchConfig = {
@@ -85,5 +85,5 @@ export type ResolvedMemorySearchConfig = {
     };
 };
 export type ResolvedMemorySearchSyncConfig = ResolvedMemorySearchConfig["sync"];
-export declare function resolveMemorySearchConfig(cfg: OpenClawConfig, agentId: string): ResolvedMemorySearchConfig | null;
-export declare function resolveMemorySearchSyncConfig(cfg: OpenClawConfig, agentId: string): ResolvedMemorySearchSyncConfig | null;
+export declare function resolveMemorySearchConfig(cfg: KovaConfig, agentId: string): ResolvedMemorySearchConfig | null;
+export declare function resolveMemorySearchSyncConfig(cfg: KovaConfig, agentId: string): ResolvedMemorySearchSyncConfig | null;

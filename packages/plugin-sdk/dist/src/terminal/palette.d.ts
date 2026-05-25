@@ -1,10 +1,10 @@
-export declare const LOBSTER_PALETTE: {
-    readonly accent: "#FF5A2D";
-    readonly accentBright: "#FF7A3D";
-    readonly accentDim: "#D14A22";
-    readonly info: "#FF8A5B";
+export declare const KOVA_TERMINAL_PALETTE: {
+    readonly accent: "#00B8A9";
+    readonly accentBright: "#36D399";
+    readonly accentDim: "#187A73";
+    readonly info: "#4C8DFF";
     readonly success: "#2FBF71";
-    readonly warn: "#FFB020";
-    readonly error: "#E23D2D";
-    readonly muted: "#8B7F77";
+    readonly warn: "#F5A524";
+    readonly error: "#EF4444";
+    readonly muted: "#7B8794";
 };

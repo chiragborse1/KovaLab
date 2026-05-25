@@ -1,7 +1,7 @@
 import type { ReplyPayload } from "../auto-reply/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ResolveDirectStatusReplyForSessionParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     sessionKey: string;
     channel: string;
     senderId?: string;

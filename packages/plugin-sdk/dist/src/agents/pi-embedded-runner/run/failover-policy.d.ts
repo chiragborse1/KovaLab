@@ -32,6 +32,7 @@ type PromptDecisionParams = {
     fallbackConfigured: boolean;
     failoverFailure: boolean;
     failoverReason: FailoverReason | null;
+    profileRotationAllowed?: boolean;
     profileRotated: boolean;
 };
 type AssistantDecisionParams = {
@@ -41,6 +42,7 @@ type AssistantDecisionParams = {
     fallbackConfigured: boolean;
     failoverFailure: boolean;
     failoverReason: FailoverReason | null;
+    profileRotationAllowed?: boolean;
     timedOut: boolean;
     timedOutDuringCompaction: boolean;
     profileRotated: boolean;

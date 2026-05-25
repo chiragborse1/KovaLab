@@ -1,14 +1,14 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ChannelPlugin } from "./plugins/types.plugin.js";
 export declare function inspectChannelAccount(params: {
     plugin: ChannelPlugin;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId: string;
 }): Promise<unknown>;
 export declare function resolveInspectedChannelAccount(params: {
     plugin: ChannelPlugin;
-    cfg: OpenClawConfig;
-    sourceConfig: OpenClawConfig;
+    cfg: KovaConfig;
+    sourceConfig: KovaConfig;
     accountId: string;
 }): Promise<{
     account: unknown;

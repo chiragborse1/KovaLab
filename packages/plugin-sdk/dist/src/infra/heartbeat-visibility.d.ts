@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 export type ResolvedHeartbeatVisibility = {
     showOk: boolean;
@@ -11,7 +11,7 @@ export type ResolvedHeartbeatVisibility = {
  * For webchat, uses channels.defaults.heartbeat since webchat doesn't have per-channel config.
  */
 export declare function resolveHeartbeatVisibility(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: GatewayMessageChannel;
     accountId?: string;
 }): ResolvedHeartbeatVisibility;

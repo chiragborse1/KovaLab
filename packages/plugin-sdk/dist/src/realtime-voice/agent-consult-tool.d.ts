@@ -1,5 +1,5 @@
 import type { RealtimeVoiceTool } from "./provider-types.js";
-export declare const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "openclaw_agent_consult";
+export declare const REALTIME_VOICE_AGENT_CONSULT_TOOL_NAME = "kova_agent_consult";
 export declare const REALTIME_VOICE_AGENT_CONSULT_TOOL_POLICIES: readonly ["safe-read-only", "owner", "none"];
 export type RealtimeVoiceAgentConsultToolPolicy = (typeof REALTIME_VOICE_AGENT_CONSULT_TOOL_POLICIES)[number];
 export type RealtimeVoiceAgentConsultArgs = {

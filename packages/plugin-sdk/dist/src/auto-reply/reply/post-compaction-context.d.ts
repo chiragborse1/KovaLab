@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 /**
  * Read critical sections from workspace AGENTS.md for post-compaction injection.
  * Returns formatted system event text, or null if no AGENTS.md or no relevant sections.
@@ -6,7 +6,7 @@ import type { OpenClawConfig } from "../../config/types.openclaw.js";
  * daily memory files instead of guessing based on training cutoff.
  */
 export type PostCompactionContextOptions = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentId?: string;
     nowMs?: number;
 };

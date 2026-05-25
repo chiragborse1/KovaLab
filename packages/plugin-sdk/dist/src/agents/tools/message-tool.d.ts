@@ -1,14 +1,14 @@
 import { resolveCommandSecretRefsViaGateway } from "../../cli/command-secret-gateway.js";
 import { getScopedChannelsCommandSecretTargets } from "../../cli/command-secret-targets.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { runMessageAction } from "../../infra/outbound/message-action-runner.js";
 import type { AnyAgentTool } from "./common.js";
 type MessageToolOptions = {
     agentAccountId?: string;
     agentSessionKey?: string;
     sessionId?: string;
-    config?: OpenClawConfig;
-    getRuntimeConfig?: () => OpenClawConfig;
+    config?: KovaConfig;
+    getRuntimeConfig?: () => KovaConfig;
     getScopedChannelsCommandSecretTargets?: typeof getScopedChannelsCommandSecretTargets;
     resolveCommandSecretRefsViaGateway?: typeof resolveCommandSecretRefsViaGateway;
     runMessageAction?: typeof runMessageAction;

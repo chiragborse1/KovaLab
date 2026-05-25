@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ProviderPlugin, ProviderExtraParamsForTransportContext, ProviderPrepareExtraParamsContext, ProviderResolveAuthProfileIdContext, ProviderFollowupFallbackRouteContext, ProviderFollowupFallbackRouteResult, ProviderWrapStreamFnContext } from "./types.js";
 declare function buildHookProviderCacheKey(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     onlyPluginIds?: string[];
     providerRefs?: string[];
@@ -13,7 +13,7 @@ export declare const __testing: {
     readonly buildHookProviderCacheKey: typeof buildHookProviderCacheKey;
 };
 export declare function resolveProviderPluginsForHooks(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     onlyPluginIds?: string[];
@@ -25,7 +25,7 @@ export declare function resolveProviderPluginsForHooks(params: {
 }): ProviderPlugin[];
 export declare function resolveProviderRuntimePlugin(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     applyAutoEnable?: boolean;
@@ -35,41 +35,41 @@ export declare function resolveProviderRuntimePlugin(params: {
 }): ProviderPlugin | undefined;
 export declare function resolveProviderHookPlugin(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): ProviderPlugin | undefined;
 export declare function prepareProviderExtraParams(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     context: ProviderPrepareExtraParamsContext;
 }): Record<string, unknown> | undefined;
 export declare function resolveProviderExtraParamsForTransport(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     context: ProviderExtraParamsForTransportContext;
 }): import("./types.js").ProviderExtraParamsForTransportResult | undefined;
 export declare function resolveProviderAuthProfileId(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     context: ProviderResolveAuthProfileIdContext;
 }): string | undefined;
 export declare function resolveProviderFollowupFallbackRoute(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     context: ProviderFollowupFallbackRouteContext;
 }): ProviderFollowupFallbackRouteResult | undefined;
 export declare function wrapProviderStreamFn(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     context: ProviderWrapStreamFnContext;

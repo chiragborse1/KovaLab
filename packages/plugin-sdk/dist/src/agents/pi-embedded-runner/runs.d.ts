@@ -1,6 +1,24 @@
-import { type ActiveEmbeddedRunSnapshot, type EmbeddedPiQueueHandle, type EmbeddedRunModelSwitchRequest } from "./run-state.js";
-export { getActiveEmbeddedRunCount, type ActiveEmbeddedRunSnapshot, type EmbeddedPiQueueHandle, type EmbeddedRunModelSwitchRequest, } from "./run-state.js";
-export declare function queueEmbeddedPiMessage(sessionId: string, text: string): boolean;
+import { type ActiveEmbeddedRunSnapshot, type EmbeddedPiQueueHandle, type EmbeddedPiQueueMessageOptions, type EmbeddedRunModelSwitchRequest } from "./run-state.js";
+export { getActiveEmbeddedRunCount, type ActiveEmbeddedRunSnapshot, type EmbeddedPiQueueHandle, type EmbeddedPiQueueMessageOptions, type EmbeddedRunModelSwitchRequest, } from "./run-state.js";
+export type EmbeddedPiQueueFailureReason = "no_active_run" | "not_streaming" | "compacting" | "source_reply_delivery_mode_mismatch" | "transcript_commit_wait_unsupported" | "runtime_rejected";
+export type EmbeddedPiQueueMessageOutcome = {
+    queued: true;
+    sessionId: string;
+    target: "embedded_run" | "reply_run";
+    gatewayHealth: "live";
+    deliveredAtMs?: number;
+    enqueuedAtMs?: number;
+} | {
+    queued: false;
+    sessionId: string;
+    reason: EmbeddedPiQueueFailureReason;
+    gatewayHealth: "live";
+    errorMessage?: string;
+};
+export declare function formatEmbeddedPiQueueFailureSummary(outcome: EmbeddedPiQueueMessageOutcome): string | undefined;
+export declare function queueEmbeddedPiMessage(sessionId: string, text: string, options?: EmbeddedPiQueueMessageOptions): boolean;
+export declare function queueEmbeddedPiMessageWithOutcome(sessionId: string, text: string, options?: EmbeddedPiQueueMessageOptions): EmbeddedPiQueueMessageOutcome;
+export declare function queueEmbeddedPiMessageWithOutcomeAsync(sessionId: string, text: string, options?: EmbeddedPiQueueMessageOptions): Promise<EmbeddedPiQueueMessageOutcome>;
 /**
  * Abort embedded PI runs.
  *

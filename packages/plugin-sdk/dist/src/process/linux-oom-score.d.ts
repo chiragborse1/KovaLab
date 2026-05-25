@@ -10,11 +10,11 @@
  * child and then `exec`s the real command, so there is no extra long-lived
  * shell process and no change to the final process identity.
  *
- * Opt out per-process by setting `OPENCLAW_CHILD_OOM_SCORE_ADJ=0` (also
+ * Opt out per-process by setting `KOVA_CHILD_OOM_SCORE_ADJ=0` (also
  * accepts `false`/`no`/`off`). Callers may also provide the key via
  * `params.env` for per-child overrides.
  */
-export declare const CHILD_OOM_SCORE_ADJ_ENV_KEY = "OPENCLAW_CHILD_OOM_SCORE_ADJ";
+export declare const CHILD_OOM_SCORE_ADJ_ENV_KEY = "KOVA_CHILD_OOM_SCORE_ADJ";
 export type OomWrapOptions = {
     platform?: NodeJS.Platform;
     env?: NodeJS.ProcessEnv;

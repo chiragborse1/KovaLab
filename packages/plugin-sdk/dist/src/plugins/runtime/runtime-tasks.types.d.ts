@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { TaskDeliveryState } from "../../tasks/task-registry.types.js";
-import type { OpenClawPluginToolContext } from "../tool-types.js";
+import type { KovaPluginToolContext } from "../tool-types.js";
 import type { PluginRuntimeTaskFlow } from "./runtime-taskflow.types.js";
 import type { TaskFlowDetail, TaskFlowView, TaskRunAggregateSummary, TaskRunCancelResult, TaskRunDetail, TaskRunView } from "./task-domain-types.js";
 export type { TaskFlowDetail, TaskFlowView, TaskRunAggregateSummary, TaskRunCancelResult, TaskRunDetail, TaskRunView, } from "./task-domain-types.js";
@@ -14,7 +14,7 @@ export type BoundTaskRunsRuntime = {
     resolve: (token: string) => TaskRunDetail | undefined;
     cancel: (params: {
         taskId: string;
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
     }) => Promise<TaskRunCancelResult>;
 };
 export type PluginRuntimeTaskRuns = {
@@ -22,7 +22,7 @@ export type PluginRuntimeTaskRuns = {
         sessionKey: string;
         requesterOrigin?: TaskDeliveryState["requesterOrigin"];
     }) => BoundTaskRunsRuntime;
-    fromToolContext: (ctx: Pick<OpenClawPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskRunsRuntime;
+    fromToolContext: (ctx: Pick<KovaPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskRunsRuntime;
 };
 export type BoundTaskFlowsRuntime = {
     readonly sessionKey: string;
@@ -38,7 +38,7 @@ export type PluginRuntimeTaskFlows = {
         sessionKey: string;
         requesterOrigin?: TaskDeliveryState["requesterOrigin"];
     }) => BoundTaskFlowsRuntime;
-    fromToolContext: (ctx: Pick<OpenClawPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskFlowsRuntime;
+    fromToolContext: (ctx: Pick<KovaPluginToolContext, "sessionKey" | "deliveryContext">) => BoundTaskFlowsRuntime;
 };
 export type PluginRuntimeTasks = {
     runs: PluginRuntimeTaskRuns;

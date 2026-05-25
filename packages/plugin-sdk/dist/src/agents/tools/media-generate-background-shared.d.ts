@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
 import { type AgentInternalEvent } from "../internal-events.js";
 export type MediaGenerationTaskHandle = {
@@ -31,7 +31,7 @@ type FailMediaGenerationTaskRunParams = {
     error: unknown;
 };
 type WakeMediaGenerationTaskCompletionParams = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     handle: MediaGenerationTaskHandle | null;
     status: "ok" | "error";
     statusLabel: string;
@@ -68,7 +68,7 @@ export declare function failMediaGenerationTaskRun(params: {
     progressSummary: string;
 }): void;
 export declare function wakeMediaGenerationTaskCompletion(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     handle: MediaGenerationTaskHandle | null;
     status: "ok" | "error";
     statusLabel: string;

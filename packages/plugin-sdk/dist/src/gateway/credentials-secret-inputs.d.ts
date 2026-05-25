@@ -1,7 +1,7 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ExplicitGatewayAuth, type GatewayCredentialMode, type GatewayCredentialPrecedence, type GatewayRemoteCredentialFallback, type GatewayRemoteCredentialPrecedence } from "./credentials.js";
 export type GatewayCredentialSecretInputOptions = {
-    config: OpenClawConfig;
+    config: KovaConfig;
     explicitAuth?: ExplicitGatewayAuth;
     urlOverride?: string;
     urlOverrideSource?: "cli" | "env";

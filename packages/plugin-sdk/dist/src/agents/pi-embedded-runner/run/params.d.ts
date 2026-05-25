@@ -1,8 +1,9 @@
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { ReplyPayload } from "../../../auto-reply/reply-payload.js";
 import type { ReplyOperation } from "../../../auto-reply/reply/reply-run-registry.js";
 import type { ReasoningLevel, ThinkLevel, VerboseLevel } from "../../../auto-reply/thinking.js";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { PromptImageOrderEntry } from "../../../media/prompt-image-order.js";
 import type { CommandQueueEnqueueFn } from "../../../process/command-queue.types.js";
 import type { InputProvenance } from "../../../sessions/input-provenance.js";
@@ -42,6 +43,8 @@ export type RunEmbeddedPiAgentParams = {
     /** Session-like key for sandbox and tool-policy resolution. Defaults to sessionKey. */
     sandboxSessionKey?: string;
     agentId?: string;
+    /** Local client surface hint for plugin hot-path policy. */
+    surface?: string;
     messageChannel?: string;
     messageProvider?: string;
     agentAccountId?: string;
@@ -100,7 +103,7 @@ export type RunEmbeddedPiAgentParams = {
     sessionFile: string;
     workspaceDir: string;
     agentDir?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     skillsSnapshot?: SkillSnapshot;
     prompt: string;
     /** User-visible prompt body to submit and persist; runtime context travels separately. */
@@ -188,10 +191,21 @@ export type RunEmbeddedPiAgentParams = {
      * where transient service pressure is often model-scoped.
      */
     allowTransientCooldownProbe?: boolean;
+    suppressNextUserMessagePersistence?: boolean;
+    suppressTranscriptOnlyAssistantPersistence?: boolean;
+    suppressAssistantErrorPersistence?: boolean;
+    onUserMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "user";
+    }>) => void;
+    onAssistantErrorMessagePersisted?: (message: Extract<AgentMessage, {
+        role: "assistant";
+    }>) => void;
     /**
      * Dispose bundled MCP runtimes when the overall run ends instead of preserving
      * the session-scoped cache. Intended for one-shot local CLI runs that must
      * exit promptly after emitting the final JSON result.
      */
     cleanupBundleMcpOnRunEnd?: boolean;
+    /** Prefer quick interactive error surfacing over same-provider auth-profile retries. */
+    interactiveFailover?: boolean;
 };

@@ -1,5 +1,5 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { WorkspaceBootstrapFile } from "../workspace.js";
 import type { EmbeddedContextFile } from "./types.js";
 type ThoughtSignatureSanitizeOptions = {
@@ -16,9 +16,9 @@ export declare function stripThoughtSignatures<T>(content: T, options?: ThoughtS
 export declare const DEFAULT_BOOTSTRAP_MAX_CHARS = 12000;
 export declare const DEFAULT_BOOTSTRAP_TOTAL_MAX_CHARS = 60000;
 export declare const DEFAULT_BOOTSTRAP_PROMPT_TRUNCATION_WARNING_MODE = "once";
-export declare function resolveBootstrapMaxChars(cfg?: OpenClawConfig): number;
-export declare function resolveBootstrapTotalMaxChars(cfg?: OpenClawConfig): number;
-export declare function resolveBootstrapPromptTruncationWarningMode(cfg?: OpenClawConfig): "off" | "once" | "always";
+export declare function resolveBootstrapMaxChars(cfg?: KovaConfig): number;
+export declare function resolveBootstrapTotalMaxChars(cfg?: KovaConfig): number;
+export declare function resolveBootstrapPromptTruncationWarningMode(cfg?: KovaConfig): "off" | "once" | "always";
 export declare function ensureSessionHeader(params: {
     sessionFile: string;
     sessionId: string;

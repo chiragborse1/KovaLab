@@ -1,15 +1,15 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ChannelSecurityDmPolicy } from "./types.core.js";
 import type { ChannelPlugin } from "./types.plugin.js";
 export declare function resolveChannelDefaultAccountId<ResolvedAccount>(params: {
     plugin: ChannelPlugin<ResolvedAccount>;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountIds?: string[];
 }): string;
 export declare function formatPairingApproveHint(channelId: string): string;
 export declare function parseOptionalDelimitedEntries(value?: string): string[] | undefined;
 export declare function buildAccountScopedDmSecurityPolicy(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channelKey: string;
     accountId?: string | null;
     fallbackAccountId?: string | null;

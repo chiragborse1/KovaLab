@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { PluginHookSessionEndEvent, PluginHookSessionEndReason, PluginHookSessionStartEvent } from "../../plugins/hook-types.js";
 export type SessionHookContext = {
     sessionId: string;
@@ -8,7 +8,7 @@ export type SessionHookContext = {
 export declare function buildSessionStartHookPayload(params: {
     sessionId: string;
     sessionKey: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     resumedFrom?: string;
 }): {
     event: PluginHookSessionStartEvent;
@@ -17,7 +17,7 @@ export declare function buildSessionStartHookPayload(params: {
 export declare function buildSessionEndHookPayload(params: {
     sessionId: string;
     sessionKey: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     messageCount?: number;
     durationMs?: number;
     reason?: PluginHookSessionEndReason;

@@ -1,11 +1,11 @@
 import type { ExecApprovalSessionTarget } from "../infra/exec-approval-session-target.js";
 import type { ExecApprovalRequest } from "../infra/exec-approvals.js";
 import type { PluginApprovalRequest } from "../infra/plugin-approvals.js";
-import type { OpenClawConfig } from "./config-runtime.js";
+import type { KovaConfig } from "./config-runtime.js";
 type ApprovalRequest = ExecApprovalRequest | PluginApprovalRequest;
 type ApprovalKind = "exec" | "plugin";
 type ApprovalResolverParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
     approvalKind?: ApprovalKind;
     request: ApprovalRequest;
@@ -25,7 +25,7 @@ export declare function createChannelNativeOriginTargetResolver<TTarget>(params:
 export declare function createChannelApproverDmTargetResolver<TApprover, TTarget extends NativeApprovalTarget = NativeApprovalTarget>(params: {
     shouldHandleRequest?: (params: ApprovalResolverParams) => boolean;
     resolveApprovers: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string | null;
     }) => readonly TApprover[];
     mapApprover: (approver: TApprover, params: ApprovalResolverParams) => TTarget | null | undefined;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ClaudeBundleCommandSpec = {
     pluginId: string;
     rawName: string;
@@ -8,5 +8,5 @@ export type ClaudeBundleCommandSpec = {
 };
 export declare function loadEnabledClaudeBundleCommands(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): ClaudeBundleCommandSpec[];

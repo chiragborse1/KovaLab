@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../../config/types.openclaw.js";
+import type { KovaConfig } from "../../../config/types.kova.js";
 import type { AuthProfileFailureReason } from "../../auth-profiles.js";
 import { FailoverError } from "../../failover-error.js";
 import { type FailoverReason } from "../../pi-embedded-helpers.js";
@@ -37,7 +37,7 @@ export declare function handleAssistantFailover(params: {
         model: string;
     };
     lastAssistant: AssistantMessage | undefined;
-    config: OpenClawConfig | undefined;
+    config: KovaConfig | undefined;
     sessionKey?: string;
     authFailure: boolean;
     rateLimitFailure: boolean;

@@ -1,2 +1,2 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
-export declare function resolveSkillRuntimeConfig(config?: OpenClawConfig): OpenClawConfig | undefined;
+import type { KovaConfig } from "../../config/types.kova.js";
+export declare function resolveSkillRuntimeConfig(config?: KovaConfig): KovaConfig | undefined;

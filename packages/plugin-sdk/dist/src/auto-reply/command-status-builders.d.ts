@@ -1,6 +1,6 @@
 import type { SkillCommandSpec } from "../agents/skills.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function buildHelpMessage(cfg?: OpenClawConfig): string;
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function buildHelpMessage(cfg?: KovaConfig): string;
 export type CommandsMessageOptions = {
     page?: number;
     surface?: string;
@@ -13,5 +13,5 @@ export type CommandsMessageResult = {
     hasNext: boolean;
     hasPrev: boolean;
 };
-export declare function buildCommandsMessage(cfg?: OpenClawConfig, skillCommands?: SkillCommandSpec[], options?: CommandsMessageOptions): string;
-export declare function buildCommandsMessagePaginated(cfg?: OpenClawConfig, skillCommands?: SkillCommandSpec[], options?: CommandsMessageOptions): CommandsMessageResult;
+export declare function buildCommandsMessage(cfg?: KovaConfig, skillCommands?: SkillCommandSpec[], options?: CommandsMessageOptions): string;
+export declare function buildCommandsMessagePaginated(cfg?: KovaConfig, skillCommands?: SkillCommandSpec[], options?: CommandsMessageOptions): CommandsMessageResult;

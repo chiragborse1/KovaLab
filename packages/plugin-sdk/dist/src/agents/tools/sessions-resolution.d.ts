@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { callGateway } from "../../gateway/call.js";
 import { listSpawnedSessionKeys } from "../../plugin-sdk/session-visibility.js";
 import { looksLikeSessionId } from "../../sessions/session-id.js";
 type GatewayCaller = typeof callGateway;
-export declare function resolveMainSessionAlias(cfg: OpenClawConfig): {
+export declare function resolveMainSessionAlias(cfg: KovaConfig): {
     mainKey: string;
     alias: string;
     scope: import("../../config/types.base.ts").SessionScope;

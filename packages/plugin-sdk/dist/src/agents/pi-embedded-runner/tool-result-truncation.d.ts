@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 /**
  * Default hard cap for a single live tool result text block.
  *
@@ -38,7 +38,7 @@ export declare function calculateMaxToolResultChars(contextWindowTokens: number)
 export declare function calculateMaxToolResultCharsWithCap(contextWindowTokens: number, hardCapChars: number): number;
 export declare function resolveLiveToolResultMaxChars(params: {
     contextWindowTokens: number;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentId?: string | null;
 }): number;
 /**

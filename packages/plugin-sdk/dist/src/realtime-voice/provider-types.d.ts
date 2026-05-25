@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type RealtimeVoiceProviderId = string;
 export type RealtimeVoiceRole = "user" | "assistant";
 export type RealtimeVoiceCloseReason = "completed" | "error";
@@ -44,11 +44,11 @@ export type RealtimeVoiceBridgeCallbacks = {
 };
 export type RealtimeVoiceProviderConfig = Record<string, unknown>;
 export type RealtimeVoiceProviderResolveConfigContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     rawConfig: RealtimeVoiceProviderConfig;
 };
 export type RealtimeVoiceProviderConfiguredContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     providerConfig: RealtimeVoiceProviderConfig;
 };
 export type RealtimeVoiceBridgeCreateRequest = RealtimeVoiceBridgeCallbacks & {

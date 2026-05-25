@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginBundleFormat } from "./manifest-types.js";
 export type BundleLspServerConfig = Record<string, unknown>;
 export type BundleLspConfig = {
@@ -17,7 +17,7 @@ export declare function inspectBundleLspRuntimeSupport(params: {
 }): BundleLspRuntimeSupport;
 export declare function loadEnabledBundleLspConfig(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): {
     config: BundleLspConfig;
     diagnostics: Array<{

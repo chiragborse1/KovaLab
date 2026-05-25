@@ -5,7 +5,7 @@ export type TrajectoryToolDefinition = {
     parameters?: unknown;
 };
 export type TrajectoryEvent = {
-    traceSchema: "openclaw-trajectory";
+    traceSchema: "kova-trajectory";
     schemaVersion: 1;
     traceId: string;
     source: TrajectoryEventSource;
@@ -25,7 +25,7 @@ export type TrajectoryEvent = {
     data?: Record<string, unknown>;
 };
 export type TrajectoryBundleManifest = {
-    traceSchema: "openclaw-trajectory";
+    traceSchema: "kova-trajectory";
     schemaVersion: 1;
     generatedAt: string;
     traceId: string;

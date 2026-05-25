@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { PluginWebFetchProviderEntry, WebFetchProviderToolDefinition } from "../plugins/types.js";
 import type { RuntimeWebFetchMetadata } from "../secrets/runtime-web-tools.types.js";
-type WebFetchConfig = NonNullable<OpenClawConfig["tools"]>["web"] extends infer Web ? Web extends {
+type WebFetchConfig = NonNullable<KovaConfig["tools"]>["web"] extends infer Web ? Web extends {
     fetch?: infer Fetch;
 } ? Fetch : undefined : undefined;
 export type ResolveWebFetchDefinitionParams = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sandboxed?: boolean;
     runtimeWebFetch?: RuntimeWebFetchMetadata;
     providerId?: string;
@@ -17,17 +17,17 @@ export declare function resolveWebFetchEnabled(params: {
 }): boolean;
 export declare function isWebFetchProviderConfigured(params: {
     provider: Pick<PluginWebFetchProviderEntry, "envVars" | "getConfiguredCredentialValue" | "getCredentialValue" | "requiresCredential">;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): boolean;
 export declare function listWebFetchProviders(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): PluginWebFetchProviderEntry[];
 export declare function listConfiguredWebFetchProviders(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): PluginWebFetchProviderEntry[];
 export declare function resolveWebFetchProviderId(params: {
     fetch?: WebFetchConfig;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     providers?: PluginWebFetchProviderEntry[];
 }): string;
 export declare function resolveWebFetchDefinition(options?: ResolveWebFetchDefinitionParams): {

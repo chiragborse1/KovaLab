@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { callGateway } from "../../gateway/call.js";
 import { type GatewayMessageChannel } from "../../utils/message-channel.js";
 import type { AnyAgentTool } from "./common.js";
@@ -7,7 +7,7 @@ export declare function createSessionsSendTool(opts?: {
     agentSessionKey?: string;
     agentChannel?: GatewayMessageChannel;
     sandboxed?: boolean;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     callGateway?: GatewayCaller;
 }): AnyAgentTool;
 export {};

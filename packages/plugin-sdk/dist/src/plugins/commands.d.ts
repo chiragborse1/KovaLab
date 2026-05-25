@@ -4,7 +4,7 @@
  * Manages commands registered by plugins that bypass the LLM agent.
  * These commands are processed before built-in commands and before agent invocation.
  */
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { clearPluginCommands, clearPluginCommandsForPlugin, listProviderPluginCommandSpecs, registerPluginCommand, validateCommandName, validatePluginCommandDefinition } from "./command-registration.js";
 import { type RegisteredPluginCommand } from "./command-registry-state.js";
 import { getPluginCommandSpecs } from "./command-specs.js";
@@ -23,7 +23,7 @@ export declare function matchPluginCommand(commandBody: string): {
     args?: string;
 } | null;
 declare function resolveBindingConversationFromCommand(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     channel: string;
     senderId?: string;
     from?: string;
@@ -56,7 +56,7 @@ export declare function executePluginCommand(params: {
     sessionId?: PluginCommandContext["sessionId"];
     sessionFile?: PluginCommandContext["sessionFile"];
     commandBody: string;
-    config: OpenClawConfig;
+    config: KovaConfig;
     from?: PluginCommandContext["from"];
     to?: PluginCommandContext["to"];
     accountId?: PluginCommandContext["accountId"];

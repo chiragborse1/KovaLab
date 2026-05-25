@@ -51,6 +51,11 @@ export declare const SUB_CLI_DESCRIPTORS: readonly ({
     readonly hasSubcommands: true;
     readonly hidden?: undefined;
 } | {
+    readonly name: "permissions";
+    readonly description: "Show terminal tool, exec, sandbox, and plugin permissions";
+    readonly hasSubcommands: false;
+    readonly hidden?: undefined;
+} | {
     readonly name: "nodes";
     readonly description: "Manage gateway-owned node pairing and node commands";
     readonly hasSubcommands: true;
@@ -72,19 +77,24 @@ export declare const SUB_CLI_DESCRIPTORS: readonly ({
     readonly hidden?: undefined;
 } | {
     readonly name: "tui";
-    readonly description: "Open a terminal UI connected to the Gateway";
+    readonly description: "Open the compatibility terminal UI command";
     readonly hasSubcommands: false;
-    readonly hidden?: undefined;
+    readonly hidden: true;
 } | {
     readonly name: "terminal";
-    readonly description: "Open a local terminal UI (alias for tui --local)";
+    readonly description: "Open a local terminal UI (compatibility alias)";
     readonly hasSubcommands: false;
-    readonly hidden?: undefined;
+    readonly hidden: true;
 } | {
     readonly name: "chat";
-    readonly description: "Open a local terminal UI (alias for tui --local)";
+    readonly description: "Open a local terminal UI (compatibility alias)";
     readonly hasSubcommands: false;
-    readonly hidden?: undefined;
+    readonly hidden: true;
+} | {
+    readonly name: "tui-local-backend";
+    readonly description: "Run the local TUI backend worker";
+    readonly hasSubcommands: false;
+    readonly hidden: true;
 } | {
     readonly name: "cron";
     readonly description: "Manage cron jobs via the Gateway scheduler";
@@ -126,8 +136,8 @@ export declare const SUB_CLI_DESCRIPTORS: readonly ({
     readonly hasSubcommands: false;
     readonly hidden?: undefined;
 } | {
-    readonly name: "clawbot";
-    readonly description: "Legacy clawbot command aliases";
+    readonly name: "kova";
+    readonly description: "Legacy kova command aliases";
     readonly hasSubcommands: true;
     readonly hidden: true;
 } | {

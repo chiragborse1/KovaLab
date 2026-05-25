@@ -1,15 +1,15 @@
 import type { SessionEntry } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type ExecAsk, type ExecHost, type ExecSecurity, type ExecTarget } from "../infra/exec-approvals.js";
 export declare function canExecRequestNode(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionEntry?: SessionEntry;
     agentId?: string;
     sessionKey?: string;
     sandboxAvailable?: boolean;
 }): boolean;
 export declare function resolveExecDefaults(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionEntry?: SessionEntry;
     agentId?: string;
     sessionKey?: string;

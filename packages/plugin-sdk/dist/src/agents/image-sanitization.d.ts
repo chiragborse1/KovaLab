@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ImageSanitizationLimits = {
     maxDimensionPx?: number;
     maxBytes?: number;
 };
 export declare const DEFAULT_IMAGE_MAX_DIMENSION_PX = 1200;
 export declare const DEFAULT_IMAGE_MAX_BYTES: number;
-export declare function resolveImageSanitizationLimits(cfg?: OpenClawConfig): ImageSanitizationLimits;
+export declare function resolveImageSanitizationLimits(cfg?: KovaConfig): ImageSanitizationLimits;

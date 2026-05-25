@@ -1,5 +1,5 @@
 import { getRuntimeConfig } from "../config/config.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { callGateway } from "../gateway/call.js";
 import type { DeliveryContext } from "../utils/delivery-context.types.js";
 import type { ensureRuntimePluginsLoaded as ensureRuntimePluginsLoadedFn } from "./runtime-plugins.js";
@@ -33,7 +33,7 @@ export declare function createSubagentRunManager(params: {
     callGateway: typeof callGateway;
     getRuntimeConfig: typeof getRuntimeConfig;
     ensureRuntimePluginsLoaded: typeof ensureRuntimePluginsLoadedFn | ((args: {
-        config: OpenClawConfig;
+        config: KovaConfig;
         workspaceDir?: string;
         allowGatewaySubagentBinding?: boolean;
     }) => void | Promise<void>);
@@ -42,7 +42,7 @@ export declare function createSubagentRunManager(params: {
     stopSweeper(): void;
     resumeSubagentRun(runId: string): void;
     clearPendingLifecycleError(runId: string): void;
-    resolveSubagentWaitTimeoutMs(cfg: OpenClawConfig, runTimeoutSeconds?: number): number;
+    resolveSubagentWaitTimeoutMs(cfg: KovaConfig, runTimeoutSeconds?: number): number;
     scheduleOrphanRecovery(args?: {
         delayMs?: number;
         maxRetries?: number;

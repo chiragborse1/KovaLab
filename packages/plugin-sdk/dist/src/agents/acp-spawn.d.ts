@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare const ACP_SPAWN_MODES: readonly ["run", "session"];
 export type SpawnAcpMode = (typeof ACP_SPAWN_MODES)[number];
 export declare const ACP_SPAWN_SANDBOX_MODES: readonly ["inherit", "require"];
@@ -58,7 +58,7 @@ export declare function isSpawnAcpAcceptedResult(result: SpawnAcpResult): result
 export declare const ACP_SPAWN_ACCEPTED_NOTE = "initial ACP task queued in isolated session; follow-ups continue in the bound thread.";
 export declare const ACP_SPAWN_SESSION_ACCEPTED_NOTE = "thread-bound ACP session stays active after this task; continue in-thread for follow-ups.";
 export declare function resolveAcpSpawnRuntimePolicyError(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     requesterSessionKey?: string;
     requesterSandboxed?: boolean;
     sandbox?: SpawnAcpSandboxMode;

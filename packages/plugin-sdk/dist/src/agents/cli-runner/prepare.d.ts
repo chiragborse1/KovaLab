@@ -1,5 +1,6 @@
 import { ensureMcpLoopbackServer } from "../../gateway/mcp-http.js";
 import { createMcpLoopbackServerConfig, getActiveMcpLoopbackRuntime } from "../../gateway/mcp-http.loopback-runtime.js";
+import { resolveMcpLoopbackScopedTools } from "../../gateway/mcp-http.runtime.js";
 import type { CliBackendAuthEpochMode, CliBackendPreparedExecution } from "../../plugins/cli-backend.types.js";
 import type { AuthProfileCredential } from "../auth-profiles/types.js";
 import { makeBootstrapWarn as makeBootstrapWarnImpl, resolveBootstrapContextForRun as resolveBootstrapContextForRunImpl } from "../bootstrap-files.js";
@@ -10,12 +11,14 @@ declare const prepareDeps: {
     getActiveMcpLoopbackRuntime: typeof getActiveMcpLoopbackRuntime;
     ensureMcpLoopbackServer: typeof ensureMcpLoopbackServer;
     createMcpLoopbackServerConfig: typeof createMcpLoopbackServerConfig;
-    resolveOpenClawReferencePaths: (params: Parameters<typeof import("../docs-path.js").resolveOpenClawReferencePaths>[0]) => Promise<{
+    resolveMcpLoopbackScopedTools: typeof resolveMcpLoopbackScopedTools;
+    resolveKovaReferencePaths: (params: Parameters<typeof import("../docs-path.js").resolveKovaReferencePaths>[0]) => Promise<{
         docsPath: string | null;
         sourcePath: string | null;
     }>;
 };
 export declare function setCliRunnerPrepareTestDeps(overrides: Partial<typeof prepareDeps>): void;
+export declare function resetCliRunnerPrepareTestDepsForTest(): void;
 export declare function shouldSkipLocalCliCredentialEpoch(params: {
     authEpochMode?: CliBackendAuthEpochMode;
     authProfileId?: string;

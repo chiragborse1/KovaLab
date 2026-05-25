@@ -31,10 +31,10 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-24";
     readonly warningStarts: "2026-04-24";
     readonly removeAfter: "2026-07-24";
-    readonly replacement: "focused `openclaw/plugin-sdk/<subpath>` imports";
+    readonly replacement: "focused `getkova/plugin-sdk/<subpath>` imports";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk", "openclaw/plugin-sdk/compat"];
-    readonly diagnostics: readonly ["OPENCLAW_PLUGIN_SDK_COMPAT_DEPRECATED"];
+    readonly surfaces: readonly ["getkova/plugin-sdk", "getkova/plugin-sdk/compat"];
+    readonly diagnostics: readonly ["KOVA_PLUGIN_SDK_COMPAT_DEPRECATED"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-index.test.ts", "src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }, {
     readonly code: "bundled-plugin-allowlist";
@@ -76,7 +76,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-24";
     readonly replacement: "`setup.providers[].envVars` and `providerAuthChoices`";
     readonly docsPath: "/plugins/manifest";
-    readonly surfaces: readonly ["openclaw.plugin.json providerAuthEnvVars", "provider setup"];
+    readonly surfaces: readonly ["kova.plugin.json providerAuthEnvVars", "provider setup"];
     readonly diagnostics: readonly ["manifest compatibility diagnostic"];
     readonly tests: readonly ["src/plugins/setup-registry.test.ts", "src/plugins/provider-auth-choices.test.ts"];
 }, {
@@ -89,7 +89,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-24";
     readonly replacement: "`channelConfigs.<id>.schema` and setup descriptors";
     readonly docsPath: "/plugins/manifest";
-    readonly surfaces: readonly ["openclaw.plugin.json channelEnvVars", "channel setup"];
+    readonly surfaces: readonly ["kova.plugin.json channelEnvVars", "channel setup"];
     readonly diagnostics: readonly ["manifest compatibility diagnostic"];
     readonly tests: readonly ["src/plugins/setup-registry.test.ts", "src/channels/plugins/setup-group-access.test.ts"];
 }, {
@@ -183,9 +183,9 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-25";
     readonly warningStarts: "2026-04-25";
     readonly removeAfter: "2026-07-25";
-    readonly replacement: "`openclaw/plugin-sdk/agent-runtime`";
+    readonly replacement: "`getkova/plugin-sdk/agent-runtime`";
     readonly docsPath: "/plugins/sdk-agent-harness";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/agent-harness", "openclaw/plugin-sdk/agent-harness-runtime"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/agent-harness", "getkova/plugin-sdk/agent-harness-runtime"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }, {
@@ -221,7 +221,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-25";
     readonly replacement: "`kova plugins registry --refresh` and `kova doctor --fix`";
     readonly docsPath: "/cli/plugins#registry";
-    readonly surfaces: readonly ["OPENCLAW_DISABLE_PERSISTED_PLUGIN_REGISTRY", "plugin registry reads"];
+    readonly surfaces: readonly ["KOVA_DISABLE_PERSISTED_PLUGIN_REGISTRY", "plugin registry reads"];
     readonly diagnostics: readonly ["persisted-registry-disabled"];
     readonly tests: readonly ["src/plugins/plugin-registry.test.ts"];
 }, {
@@ -234,7 +234,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-25";
     readonly replacement: "`kova plugins registry --refresh` and `kova doctor --fix`";
     readonly docsPath: "/cli/plugins#registry";
-    readonly surfaces: readonly ["OPENCLAW_DISABLE_PLUGIN_REGISTRY_MIGRATION", "OPENCLAW_FORCE_PLUGIN_REGISTRY_MIGRATION", "package postinstall plugin registry migration"];
+    readonly surfaces: readonly ["KOVA_DISABLE_PLUGIN_REGISTRY_MIGRATION", "KOVA_FORCE_PLUGIN_REGISTRY_MIGRATION", "package postinstall plugin registry migration"];
     readonly diagnostics: readonly ["postinstall migration skip", "postinstall migration force deprecation warning"];
     readonly tests: readonly ["src/commands/doctor/shared/plugin-registry-migration.test.ts"];
 }, {
@@ -346,9 +346,9 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "`openclaw.channel.exposure` metadata";
+    readonly replacement: "`kova.channel.exposure` metadata";
     readonly docsPath: "/plugins/sdk-setup";
-    readonly surfaces: readonly ["openclaw.channel.showConfigured", "openclaw.channel.showInSetup"];
+    readonly surfaces: readonly ["kova.channel.showConfigured", "kova.channel.showInSetup"];
     readonly diagnostics: readonly ["channel exposure compatibility path"];
     readonly tests: readonly ["src/commands/channel-setup/discovery.test.ts"];
 }, {
@@ -359,7 +359,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "focused channel SDK subpaths, especially `openclaw/plugin-sdk/channel-runtime-context`";
+    readonly replacement: "focused channel SDK subpaths, especially `getkova/plugin-sdk/channel-runtime-context`";
     readonly docsPath: "/plugins/sdk-migration";
     readonly surfaces: readonly [string];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
@@ -372,35 +372,35 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "`openclaw/plugin-sdk/command-status`";
+    readonly replacement: "`getkova/plugin-sdk/command-status`";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/command-auth buildCommandsMessage", "openclaw/plugin-sdk/command-auth buildCommandsMessagePaginated", "openclaw/plugin-sdk/command-auth buildHelpMessage"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/command-auth buildCommandsMessage", "getkova/plugin-sdk/command-auth buildCommandsMessagePaginated", "getkova/plugin-sdk/command-auth buildHelpMessage"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugin-sdk/command-auth.test.ts"];
 }, {
-    readonly code: "clawdbot-config-type-alias";
+    readonly code: "kova-config-type-alias";
     readonly status: "deprecated";
     readonly owner: "sdk";
     readonly introduced: "2026-04-24";
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "`OpenClawConfig`";
+    readonly replacement: "`KovaConfig`";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk `ClawdbotConfig` type export"];
+    readonly surfaces: readonly ["getkova/plugin-sdk `KovaConfig` type export"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-index.test.ts"];
 }, {
-    readonly code: "openclaw-schema-type-alias";
+    readonly code: "kova-schema-type-alias";
     readonly status: "deprecated";
     readonly owner: "sdk";
     readonly introduced: "2026-04-26";
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "`OpenClawConfig` from `openclaw/plugin-sdk/config-schema`";
+    readonly replacement: "`KovaConfig` from `getkova/plugin-sdk/config-schema`";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk `OpenClawSchemaType` type export"];
+    readonly surfaces: readonly ["getkova/plugin-sdk `KovaSchemaType` type export"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-index.test.ts"];
 }, {
@@ -411,10 +411,10 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "injected `api.runtime.*` helpers or focused `openclaw/plugin-sdk/<subpath>` imports";
+    readonly replacement: "injected `api.runtime.*` helpers or focused `getkova/plugin-sdk/<subpath>` imports";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/extension-api"];
-    readonly diagnostics: readonly ["OPENCLAW_EXTENSION_API_DEPRECATED"];
+    readonly surfaces: readonly ["getkova/extension-api"];
+    readonly diagnostics: readonly ["KOVA_EXTENSION_API_DEPRECATED"];
     readonly tests: readonly ["src/plugins/sdk-alias.test.ts", "src/index.test.ts"];
 }, {
     readonly code: "memory-split-registration";
@@ -556,7 +556,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-26";
     readonly replacement: "semantic `presentation` capabilities";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/channel-actions createMessageToolButtonsSchema", "openclaw/plugin-sdk/channel-actions createMessageToolCardSchema"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/channel-actions createMessageToolButtonsSchema", "getkova/plugin-sdk/channel-actions createMessageToolCardSchema"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }, {
@@ -569,7 +569,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-26";
     readonly replacement: "`resolveInboundMentionDecision({ facts, policy })`";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/channel-inbound resolveMentionGating", "openclaw/plugin-sdk/channel-inbound resolveMentionGatingWithBypass", "openclaw/plugin-sdk/channel-mention-gating resolveMentionGating", "openclaw/plugin-sdk/channel-mention-gating resolveMentionGatingWithBypass"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/channel-inbound resolveMentionGating", "getkova/plugin-sdk/channel-inbound resolveMentionGatingWithBypass", "getkova/plugin-sdk/channel-mention-gating resolveMentionGating", "getkova/plugin-sdk/channel-mention-gating resolveMentionGatingWithBypass"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }, {
@@ -582,7 +582,7 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly removeAfter: "2026-07-26";
     readonly replacement: "provider-owned `createTool(...)` on the returned `WebSearchProviderPlugin`";
     readonly docsPath: "/plugins/sdk-provider-plugins";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/provider-web-search createPluginBackedWebSearchProvider"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/provider-web-search createPluginBackedWebSearchProvider"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }, {
@@ -606,9 +606,9 @@ export declare const PLUGIN_COMPAT_RECORDS: readonly [{
     readonly deprecated: "2026-04-26";
     readonly warningStarts: "2026-04-26";
     readonly removeAfter: "2026-07-26";
-    readonly replacement: "`openclaw/plugin-sdk/testing`";
+    readonly replacement: "`getkova/plugin-sdk/testing`";
     readonly docsPath: "/plugins/sdk-migration";
-    readonly surfaces: readonly ["openclaw/plugin-sdk/test-utils"];
+    readonly surfaces: readonly ["getkova/plugin-sdk/test-utils"];
     readonly diagnostics: readonly ["plugin SDK compatibility warning"];
     readonly tests: readonly ["src/plugins/contracts/plugin-sdk-subpaths.test.ts"];
 }];

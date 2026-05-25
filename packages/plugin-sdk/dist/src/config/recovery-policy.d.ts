@@ -1,4 +1,4 @@
-import type { ConfigFileSnapshot } from "./types.openclaw.js";
+import type { ConfigFileSnapshot } from "./types.kova.js";
 /**
  * Returns true when an invalid config snapshot is scoped entirely to plugin entries.
  */

@@ -1,5 +1,5 @@
 import type { DmPolicy, GroupPolicy } from "../../config/types.base.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SecretInput } from "../../config/types.secrets.js";
 import type { WizardPrompter } from "../../wizard/prompts.js";
 import type { ChannelSetupDmPolicy, ChannelSetupWizard, ChannelSetupWizardAllowFromEntry, ChannelSetupWizardStatus, PromptAccountId } from "./setup-wizard-types.js";
@@ -39,7 +39,7 @@ export declare function createStandardChannelSetupStatus(params: {
     includeStatusLine?: boolean;
     resolveConfigured: ChannelSetupWizardStatus["resolveConfigured"];
     resolveExtraStatusLines?: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId?: string;
         configured: boolean;
     }) => string[] | Promise<string[]>;
@@ -49,76 +49,76 @@ export declare function resolveSetupAccountId(params: {
     defaultAccountId: string;
 }): string;
 export declare function resolveAccountIdForConfigure(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: WizardPrompter;
     label: string;
     accountOverride?: string;
     shouldPromptAccountIds: boolean;
-    listAccountIds: (cfg: OpenClawConfig) => string[];
+    listAccountIds: (cfg: KovaConfig) => string[];
     defaultAccountId: string;
 }): Promise<string>;
 export declare function setAccountAllowFromForChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId: string;
     allowFrom: string[];
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function patchTopLevelChannelConfigSection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     enabled?: boolean;
     clearFields?: string[];
     patch: Record<string, unknown>;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function patchNestedChannelConfigSection(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     section: string;
     enabled?: boolean;
     clearFields?: string[];
     patch: Record<string, unknown>;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setTopLevelChannelAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     allowFrom: string[];
     enabled?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setNestedChannelAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     section: string;
     allowFrom: string[];
     enabled?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setTopLevelChannelDmPolicyWithAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     dmPolicy: DmPolicy;
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
-}): OpenClawConfig;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
+}): KovaConfig;
 export declare function setNestedChannelDmPolicyWithAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     section: string;
     dmPolicy: DmPolicy;
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
     enabled?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setTopLevelChannelGroupPolicy(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     groupPolicy: GroupPolicy;
     enabled?: boolean;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function createTopLevelChannelDmPolicy(params: {
     label: string;
     channel: string;
     policyKey: string;
     allowFromKey: string;
-    getCurrent: (cfg: OpenClawConfig) => DmPolicy;
+    getCurrent: (cfg: KovaConfig) => DmPolicy;
     promptAllowFrom?: ChannelSetupDmPolicy["promptAllowFrom"];
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
 }): ChannelSetupDmPolicy;
 export declare function createNestedChannelDmPolicy(params: {
     label: string;
@@ -126,61 +126,61 @@ export declare function createNestedChannelDmPolicy(params: {
     section: string;
     policyKey: string;
     allowFromKey: string;
-    getCurrent: (cfg: OpenClawConfig) => DmPolicy;
+    getCurrent: (cfg: KovaConfig) => DmPolicy;
     promptAllowFrom?: ChannelSetupDmPolicy["promptAllowFrom"];
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
     enabled?: boolean;
 }): ChannelSetupDmPolicy;
 export declare function createTopLevelChannelDmPolicySetter(params: {
     channel: string;
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
-}): (cfg: OpenClawConfig, dmPolicy: DmPolicy) => OpenClawConfig;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
+}): (cfg: KovaConfig, dmPolicy: DmPolicy) => KovaConfig;
 export declare function createNestedChannelDmPolicySetter(params: {
     channel: string;
     section: string;
-    getAllowFrom?: (cfg: OpenClawConfig) => Array<string | number> | undefined;
+    getAllowFrom?: (cfg: KovaConfig) => Array<string | number> | undefined;
     enabled?: boolean;
-}): (cfg: OpenClawConfig, dmPolicy: DmPolicy) => OpenClawConfig;
+}): (cfg: KovaConfig, dmPolicy: DmPolicy) => KovaConfig;
 export declare function createTopLevelChannelAllowFromSetter(params: {
     channel: string;
     enabled?: boolean;
-}): (cfg: OpenClawConfig, allowFrom: string[]) => OpenClawConfig;
+}): (cfg: KovaConfig, allowFrom: string[]) => KovaConfig;
 export declare function createNestedChannelAllowFromSetter(params: {
     channel: string;
     section: string;
     enabled?: boolean;
-}): (cfg: OpenClawConfig, allowFrom: string[]) => OpenClawConfig;
+}): (cfg: KovaConfig, allowFrom: string[]) => KovaConfig;
 export declare function createTopLevelChannelGroupPolicySetter(params: {
     channel: string;
     enabled?: boolean;
-}): (cfg: OpenClawConfig, groupPolicy: "open" | "allowlist" | "disabled") => OpenClawConfig;
+}): (cfg: KovaConfig, groupPolicy: "open" | "allowlist" | "disabled") => KovaConfig;
 export declare function setChannelDmPolicyWithAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     dmPolicy: DmPolicy;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setCompatChannelDmPolicyWithAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     dmPolicy: DmPolicy;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setCompatChannelAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     allowFrom: string[];
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setAccountGroupPolicyForChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId: string;
     groupPolicy: GroupPolicy;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function setAccountDmAllowFromForChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId: string;
     allowFrom: string[];
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function createCompatChannelDmPolicy(params: {
     label: string;
     channel: string;
@@ -217,27 +217,27 @@ export declare function createAccountScopedGroupAccessSection<TResolved>(params:
     resolveAllowlist?: NonNullable<NonNullable<ChannelSetupWizard["groupAccess"]>["resolveAllowlist"]>;
     fallbackResolved: (entries: string[]) => TResolved;
     applyAllowlist: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId: string;
         resolved: TResolved;
-    }) => OpenClawConfig;
+    }) => KovaConfig;
 }): NonNullable<ChannelSetupWizard["groupAccess"]>;
 type AccountScopedChannel = string;
 type CompatDmChannel = string;
 export declare function patchCompatDmChannelConfig(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     patch: Record<string, unknown>;
-}): OpenClawConfig;
-export declare function setSetupChannelEnabled(cfg: OpenClawConfig, channel: string, enabled: boolean): OpenClawConfig;
+}): KovaConfig;
+export declare function setSetupChannelEnabled(cfg: KovaConfig, channel: string, enabled: boolean): KovaConfig;
 export declare function patchChannelConfigForAccount(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: AccountScopedChannel;
     accountId: string;
     patch: Record<string, unknown>;
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function applySingleTokenPromptResult(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId: string;
     tokenPatchKey: string;
@@ -245,7 +245,7 @@ export declare function applySingleTokenPromptResult(params: {
         useEnv: boolean;
         token: SecretInput | null;
     };
-}): OpenClawConfig;
+}): KovaConfig;
 export declare function buildSingleChannelSecretPromptState(params: {
     accountConfigured: boolean;
     hasConfigToken: boolean;
@@ -278,7 +278,7 @@ export type SingleChannelSecretInputPromptResult = {
     resolvedValue: string;
 };
 export declare function runSingleChannelSecretStep(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: Pick<WizardPrompter, "confirm" | "text" | "select" | "note">;
     providerHint: string;
     credentialLabel: string;
@@ -292,15 +292,15 @@ export declare function runSingleChannelSecretStep(params: {
     inputPrompt: string;
     preferredEnvVar?: string;
     onMissingConfigured?: () => Promise<void>;
-    applyUseEnv?: (cfg: OpenClawConfig) => OpenClawConfig | Promise<OpenClawConfig>;
-    applySet?: (cfg: OpenClawConfig, value: SecretInput, resolvedValue: string) => OpenClawConfig | Promise<OpenClawConfig>;
+    applyUseEnv?: (cfg: KovaConfig) => KovaConfig | Promise<KovaConfig>;
+    applySet?: (cfg: KovaConfig, value: SecretInput, resolvedValue: string) => KovaConfig | Promise<KovaConfig>;
 }): Promise<{
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     action: SingleChannelSecretInputPromptResult["action"];
     resolvedValue?: string;
 }>;
 export declare function promptSingleChannelSecretInput(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     prompter: Pick<WizardPrompter, "confirm" | "text" | "select" | "note">;
     providerHint: string;
     credentialLabel: string;
@@ -317,7 +317,7 @@ type ParsedAllowFromResult = {
     entries: string[];
     error?: string;
 };
-export declare function promptParsedAllowFromForAccount<TConfig extends OpenClawConfig>(params: {
+export declare function promptParsedAllowFromForAccount<TConfig extends KovaConfig>(params: {
     cfg: TConfig;
     accountId?: string;
     defaultAccountId: string;
@@ -341,7 +341,7 @@ export declare function promptParsedAllowFromForAccount<TConfig extends OpenClaw
         allowFrom: string[];
     }) => TConfig | Promise<TConfig>;
 }): Promise<TConfig>;
-export declare function createPromptParsedAllowFromForAccount<TConfig extends OpenClawConfig>(params: {
+export declare function createPromptParsedAllowFromForAccount<TConfig extends KovaConfig>(params: {
     defaultAccountId: string | ((cfg: TConfig) => string);
     noteTitle?: string;
     noteLines?: string[];
@@ -363,7 +363,7 @@ export declare function createPromptParsedAllowFromForAccount<TConfig extends Op
     }) => TConfig | Promise<TConfig>;
 }): NonNullable<ChannelSetupDmPolicy["promptAllowFrom"]>;
 export declare function promptParsedAllowFromForScopedChannel(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string;
     defaultAccountId: string;
@@ -374,20 +374,20 @@ export declare function promptParsedAllowFromForScopedChannel(params: {
     placeholder: string;
     parseEntries: (raw: string) => ParsedAllowFromResult;
     getExistingAllowFrom: (params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         accountId: string;
     }) => Array<string | number>;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;
 export declare function createTopLevelChannelParsedAllowFromPrompt(params: {
     channel: string;
-    defaultAccountId: string | ((cfg: OpenClawConfig) => string);
+    defaultAccountId: string | ((cfg: KovaConfig) => string);
     enabled?: boolean;
     noteTitle?: string;
     noteLines?: string[];
     message: string;
     placeholder: string;
     parseEntries: (raw: string) => ParsedAllowFromResult;
-    getExistingAllowFrom?: (cfg: OpenClawConfig) => Array<string | number>;
+    getExistingAllowFrom?: (cfg: KovaConfig) => Array<string | number>;
     mergeEntries?: (params: {
         existing: Array<string | number>;
         parsed: string[];
@@ -396,14 +396,14 @@ export declare function createTopLevelChannelParsedAllowFromPrompt(params: {
 export declare function createNestedChannelParsedAllowFromPrompt(params: {
     channel: string;
     section: string;
-    defaultAccountId: string | ((cfg: OpenClawConfig) => string);
+    defaultAccountId: string | ((cfg: KovaConfig) => string);
     enabled?: boolean;
     noteTitle?: string;
     noteLines?: string[];
     message: string;
     placeholder: string;
     parseEntries: (raw: string) => ParsedAllowFromResult;
-    getExistingAllowFrom?: (cfg: OpenClawConfig) => Array<string | number>;
+    getExistingAllowFrom?: (cfg: KovaConfig) => Array<string | number>;
     mergeEntries?: (params: {
         existing: Array<string | number>;
         parsed: string[];
@@ -469,7 +469,7 @@ export declare function promptResolvedAllowFrom(params: {
     }) => Promise<AllowFromResolution[]>;
 }): Promise<string[]>;
 export declare function promptLegacyChannelAllowFrom(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: CompatDmChannel;
     prompter: WizardPrompter;
     existing: Array<string | number>;
@@ -484,15 +484,15 @@ export declare function promptLegacyChannelAllowFrom(params: {
         token: string;
         entries: string[];
     }) => Promise<AllowFromResolution[]>;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;
 export declare function promptLegacyChannelAllowFromForAccount<TAccount>(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: CompatDmChannel;
     prompter: WizardPrompter;
     accountId?: string;
     defaultAccountId: string;
-    resolveAccount: (cfg: OpenClawConfig, accountId: string) => TAccount;
-    resolveExisting: (account: TAccount, cfg: OpenClawConfig) => Array<string | number>;
+    resolveAccount: (cfg: KovaConfig, accountId: string) => TAccount;
+    resolveExisting: (account: TAccount, cfg: KovaConfig) => Array<string | number>;
     resolveToken: (account: TAccount) => string | null | undefined;
     noteTitle: string;
     noteLines: string[];
@@ -504,7 +504,7 @@ export declare function promptLegacyChannelAllowFromForAccount<TAccount>(params:
         token: string;
         entries: string[];
     }) => Promise<AllowFromResolution[]>;
-}): Promise<OpenClawConfig>;
+}): Promise<KovaConfig>;
 export declare const patchLegacyDmChannelConfig: typeof patchCompatDmChannelConfig;
 export declare const setLegacyChannelDmPolicyWithAllowFrom: typeof setCompatChannelDmPolicyWithAllowFrom;
 export declare const setLegacyChannelAllowFrom: typeof setCompatChannelAllowFrom;

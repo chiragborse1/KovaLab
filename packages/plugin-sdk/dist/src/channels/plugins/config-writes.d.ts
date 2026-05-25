@@ -1,16 +1,16 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type ConfigWriteAuthorizationResultLike, type ConfigWriteScopeLike, type ConfigWriteTargetLike } from "./config-write-policy-shared.js";
 import type { ChannelId } from "./types.core.js";
 export type ConfigWriteScope = ConfigWriteScopeLike;
 export type ConfigWriteTarget = ConfigWriteTargetLike;
 export type ConfigWriteAuthorizationResult = ConfigWriteAuthorizationResultLike;
 export declare function resolveChannelConfigWrites(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channelId?: ChannelId | null;
     accountId?: string | null;
 }): boolean;
 export declare function authorizeConfigWrite(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     origin?: ConfigWriteScope;
     target?: ConfigWriteTarget;
     allowBypass?: boolean;

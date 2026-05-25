@@ -11,10 +11,12 @@ export type CommandRunner = (argv: string[], options: {
 export type ResolvedGlobalInstallCommand = {
     manager: GlobalInstallManager;
     command: string;
+    installPrefix?: string;
 };
 export type ResolvedGlobalInstallTarget = ResolvedGlobalInstallCommand & {
     globalRoot: string | null;
     packageRoot: string | null;
+    installPrefix?: string;
 };
 export declare const KOVA_MAIN_PACKAGE_SPEC = "github:chiragborse1/KovaLab#main";
 export declare function isMainPackageTarget(value: string): boolean;
@@ -39,11 +41,12 @@ export declare function resolveGlobalInstallTarget(params: {
     runCommand: CommandRunner;
     timeoutMs: number;
     pkgRoot?: string | null;
+    honorPackageRoot?: boolean;
 }): Promise<ResolvedGlobalInstallTarget>;
 export declare function detectGlobalInstallManagerForRoot(runCommand: CommandRunner, pkgRoot: string, timeoutMs: number): Promise<GlobalInstallManager | null>;
 export declare function detectGlobalInstallManagerByPresence(runCommand: CommandRunner, timeoutMs: number): Promise<GlobalInstallManager | null>;
-export declare function globalInstallArgs(managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand, spec: string, pkgRoot?: string | null): string[];
-export declare function globalInstallFallbackArgs(managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand, spec: string, pkgRoot?: string | null): string[] | null;
+export declare function globalInstallArgs(managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand, spec: string, pkgRoot?: string | null, installPrefix?: string | null): string[];
+export declare function globalInstallFallbackArgs(managerOrCommand: GlobalInstallManager | ResolvedGlobalInstallCommand, spec: string, pkgRoot?: string | null, installPrefix?: string | null): string[] | null;
 export declare function cleanupGlobalRenameDirs(params: {
     globalRoot: string;
     packageName: string;

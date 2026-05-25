@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./config.js";
+import type { KovaConfig } from "./config.js";
 export type DangerousNameMatchingConfig = {
     dangerouslyAllowNameMatching?: boolean;
 };
@@ -14,4 +14,4 @@ export type DangerousNameMatchingResolverInput = {
 };
 export declare function isDangerousNameMatchingEnabled(config: DangerousNameMatchingConfig | null | undefined): boolean;
 export declare function resolveDangerousNameMatchingEnabled(input: DangerousNameMatchingResolverInput): boolean;
-export declare function collectProviderDangerousNameMatchingScopes(cfg: OpenClawConfig, provider: string): ProviderDangerousNameMatchingScope[];
+export declare function collectProviderDangerousNameMatchingScopes(cfg: KovaConfig, provider: string): ProviderDangerousNameMatchingScope[];

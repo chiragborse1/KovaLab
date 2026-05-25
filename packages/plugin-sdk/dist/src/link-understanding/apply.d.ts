@@ -1,10 +1,10 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type ApplyLinkUnderstandingResult = {
     outputs: string[];
     urls: string[];
 };
 export declare function applyLinkUnderstanding(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): Promise<ApplyLinkUnderstandingResult>;

@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 type SessionDepthEntry = {
     sessionId?: unknown;
     spawnDepth?: unknown;
     spawnedBy?: unknown;
 };
 export declare function getSubagentDepthFromSessionStore(sessionKey: string | undefined | null, opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     store?: Record<string, SessionDepthEntry>;
 }): number;
 export {};

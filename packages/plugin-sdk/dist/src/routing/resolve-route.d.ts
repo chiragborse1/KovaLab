@@ -1,5 +1,5 @@
 import type { ChatType } from "../channels/chat-type.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 /** @deprecated Use ChatType from channels/chat-type.js */
 export type RoutePeerKind = ChatType;
 export type RoutePeer = {
@@ -7,7 +7,7 @@ export type RoutePeer = {
     id: string;
 };
 export type ResolveAgentRouteInput = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: string;
     accountId?: string | null;
     peer?: RoutePeer | null;
@@ -49,5 +49,5 @@ export declare function buildAgentSessionKey(params: {
     dmScope?: "main" | "per-peer" | "per-channel-peer" | "per-account-channel-peer";
     identityLinks?: Record<string, string[]>;
 }): string;
-export declare function pickFirstExistingAgentId(cfg: OpenClawConfig, agentId: string): string;
+export declare function pickFirstExistingAgentId(cfg: KovaConfig, agentId: string): string;
 export declare function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentRoute;

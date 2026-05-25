@@ -1,5 +1,5 @@
 import type { CliBackendConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveRuntimeCliBackends } from "../plugins/cli-backends.runtime.js";
 import { resolvePluginSetupCliBackend } from "../plugins/setup-registry.js";
 import type { CliBackendAuthEpochMode, CliBundleMcpMode, CliBackendPlugin, PluginTextTransforms } from "../plugins/types.js";
@@ -27,7 +27,7 @@ export type ResolvedCliBackendLiveTest = {
     dockerBinaryName?: string;
 };
 export declare function resolveCliBackendLiveTest(provider: string): ResolvedCliBackendLiveTest | null;
-export declare function resolveCliBackendConfig(provider: string, cfg?: OpenClawConfig, options?: {
+export declare function resolveCliBackendConfig(provider: string, cfg?: KovaConfig, options?: {
     agentId?: string;
 }): ResolvedCliBackend | null;
 export declare const __testing: {

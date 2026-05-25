@@ -44,7 +44,7 @@ export declare const InternalHooksSchema: z.ZodOptional<z.ZodObject<{
         extraDirs: z.ZodOptional<z.ZodArray<z.ZodString>>;
     }, z.core.$strict>>;
     installs: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-        source: z.ZodUnion<readonly [z.ZodLiteral<"npm">, z.ZodLiteral<"archive">, z.ZodLiteral<"path">, z.ZodLiteral<"clawhub">]>;
+        source: z.ZodUnion<readonly [z.ZodLiteral<"npm">, z.ZodLiteral<"archive">, z.ZodLiteral<"path">, z.ZodLiteral<"kovahub">]>;
         spec: z.ZodOptional<z.ZodString>;
         sourcePath: z.ZodOptional<z.ZodString>;
         installPath: z.ZodOptional<z.ZodString>;
@@ -56,10 +56,10 @@ export declare const InternalHooksSchema: z.ZodOptional<z.ZodObject<{
         shasum: z.ZodOptional<z.ZodString>;
         resolvedAt: z.ZodOptional<z.ZodString>;
         installedAt: z.ZodOptional<z.ZodString>;
-        clawhubUrl: z.ZodOptional<z.ZodString>;
-        clawhubPackage: z.ZodOptional<z.ZodString>;
-        clawhubFamily: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"code-plugin">, z.ZodLiteral<"bundle-plugin">]>>;
-        clawhubChannel: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"official">, z.ZodLiteral<"community">, z.ZodLiteral<"private">]>>;
+        kovahubUrl: z.ZodOptional<z.ZodString>;
+        kovahubPackage: z.ZodOptional<z.ZodString>;
+        kovahubFamily: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"code-plugin">, z.ZodLiteral<"bundle-plugin">]>>;
+        kovahubChannel: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"official">, z.ZodLiteral<"community">, z.ZodLiteral<"private">]>>;
         hooks: z.ZodOptional<z.ZodArray<z.ZodString>>;
     }, z.core.$strict>>>;
 }, z.core.$strict>>;

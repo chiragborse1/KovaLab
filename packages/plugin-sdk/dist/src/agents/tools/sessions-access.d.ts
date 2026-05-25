@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type { AgentToAgentPolicy, SessionAccessAction, SessionAccessResult, SessionToolsVisibility, } from "../../plugin-sdk/session-visibility.js";
 export { createAgentToAgentPolicy, createSessionVisibilityChecker, createSessionVisibilityGuard, listSpawnedSessionKeys, resolveEffectiveSessionToolsVisibility, resolveSandboxSessionToolsVisibility, resolveSessionToolsVisibility, } from "../../plugin-sdk/session-visibility.js";
 export declare function resolveSandboxedSessionToolContext(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentSessionKey?: string;
     sandboxed?: boolean;
 }): {

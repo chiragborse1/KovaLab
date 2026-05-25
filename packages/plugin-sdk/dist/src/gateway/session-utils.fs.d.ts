@@ -3,7 +3,7 @@ type SessionTitleFields = {
     firstUserMessage: string | null;
     lastMessagePreview: string | null;
 };
-export declare function attachOpenClawTranscriptMeta(message: unknown, meta: Record<string, unknown>): unknown;
+export declare function attachKovaTranscriptMeta(message: unknown, meta: Record<string, unknown>): unknown;
 export declare function readSessionMessages(sessionId: string, storePath: string | undefined, sessionFile?: string): unknown[];
 export { archiveFileOnDisk, archiveSessionTranscripts, cleanupArchivedSessionTranscripts, resolveSessionTranscriptCandidates, } from "./session-transcript-files.fs.js";
 export declare function capArrayByJsonBytes<T>(items: T[], maxBytes: number): {

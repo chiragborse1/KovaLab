@@ -1,5 +1,5 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { ActiveMediaModel } from "./active-model.types.js";
 import type { MediaUnderstandingProvider } from "./types.js";
 /**
@@ -9,7 +9,7 @@ import type { MediaUnderstandingProvider } from "./types.js";
  */
 export declare function transcribeFirstAudio(params: {
     ctx: MsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     providers?: Record<string, MediaUnderstandingProvider>;
     activeModel?: ActiveMediaModel;

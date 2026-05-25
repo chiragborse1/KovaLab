@@ -1,5 +1,5 @@
 import type { MsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { MediaUnderstandingConfig, MediaUnderstandingModelConfig } from "../config/types.tools.js";
 import { MediaAttachmentCache } from "./attachments.js";
 import type { MediaUnderstandingCapability, MediaUnderstandingDecision, MediaUnderstandingModelDecision, MediaUnderstandingOutput, MediaUnderstandingProvider } from "./types.js";
@@ -17,7 +17,7 @@ export declare function summarizeDecisionReason(reason?: string): string | undef
 export declare function runProviderEntry(params: {
     capability: MediaUnderstandingCapability;
     entry: MediaUnderstandingModelConfig;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: MsgContext;
     attachmentIndex: number;
     cache: MediaAttachmentCache;
@@ -28,7 +28,7 @@ export declare function runProviderEntry(params: {
 export declare function runCliEntry(params: {
     capability: MediaUnderstandingCapability;
     entry: MediaUnderstandingModelConfig;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     ctx: MsgContext;
     attachmentIndex: number;
     cache: MediaAttachmentCache;

@@ -6,7 +6,7 @@
  * that are still tracked as active in the subagent registry) and sends a
  * synthetic resume message to restart their work.
  *
- * @see https://github.com/openclaw/openclaw/issues/47711
+ * @see https://github.com/chiragborse1/KovaLab/issues/47711
  */
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
 /**

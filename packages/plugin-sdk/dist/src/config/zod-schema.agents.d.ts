@@ -523,6 +523,9 @@ export declare const AgentsSchema: z.ZodOptional<z.ZodObject<{
             stream: "stream";
         }>>;
         fastModeDefault: z.ZodOptional<z.ZodBoolean>;
+        experimental: z.ZodOptional<z.ZodObject<{
+            localModelLean: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>>;
         skills: z.ZodOptional<z.ZodArray<z.ZodString>>;
         memorySearch: z.ZodOptional<z.ZodObject<{
             enabled: z.ZodOptional<z.ZodBoolean>;

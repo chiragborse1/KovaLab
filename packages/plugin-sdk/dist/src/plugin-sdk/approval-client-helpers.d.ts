@@ -3,7 +3,7 @@ import { matchesApprovalRequestFilters } from "../infra/approval-request-filters
 import { getExecApprovalReplyMetadata } from "../infra/exec-approval-reply.js";
 import type { ExecApprovalRequest } from "../infra/exec-approvals.js";
 import type { PluginApprovalRequest } from "../infra/plugin-approvals.js";
-import type { OpenClawConfig } from "./config-runtime.js";
+import type { KovaConfig } from "./config-runtime.js";
 import type { ReplyPayload } from "./reply-payload.js";
 type ApprovalRequest = ExecApprovalRequest | PluginApprovalRequest;
 type ApprovalTarget = "dm" | "channel" | "both";
@@ -15,7 +15,7 @@ type ChannelApprovalConfig = {
     sessionFilter?: string[];
 };
 type ApprovalProfileParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     accountId?: string | null;
 };
 export { getExecApprovalReplyMetadata, matchesApprovalRequestFilters };
@@ -24,7 +24,7 @@ export declare function isChannelExecApprovalClientEnabledFromConfig(params: {
     approverCount: number;
 }): boolean;
 export declare function isChannelExecApprovalTargetRecipient(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     senderId?: string | null;
     accountId?: string | null;
     channel: string;

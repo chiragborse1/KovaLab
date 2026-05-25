@@ -1,6 +1,6 @@
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import { type SessionEntry, updateSessionStoreEntry } from "../../config/sessions.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import type { TemplateContext } from "../templating.js";
 import type { VerboseLevel } from "../thinking.js";
@@ -32,7 +32,7 @@ export declare function readPromptTokensFromSessionLog(sessionId?: string, sessi
     storePath?: string;
 }): Promise<SessionTranscriptUsageSnapshot | undefined>;
 export declare function runPreflightCompactionIfNeeded(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     followupRun: FollowupRun;
     promptForEstimate?: string;
     defaultModel: string;
@@ -46,7 +46,7 @@ export declare function runPreflightCompactionIfNeeded(params: {
     replyOperation: ReplyOperation;
 }): Promise<SessionEntry | undefined>;
 export declare function runMemoryFlushIfNeeded(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     followupRun: FollowupRun;
     promptForEstimate?: string;
     sessionCtx: TemplateContext;

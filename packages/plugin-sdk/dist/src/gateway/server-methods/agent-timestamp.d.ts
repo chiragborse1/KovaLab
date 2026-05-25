@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.js";
+import type { KovaConfig } from "../../config/types.js";
 export interface TimestampInjectionOptions {
     timezone?: string;
     now?: Date;
@@ -18,10 +18,10 @@ export interface TimestampInjectionOptions {
  * these handlers, so there is no double-stamping risk. The detection
  * pattern is a safety net for edge cases.
  *
- * @see https://github.com/openclaw/openclaw/issues/3658
+ * @see https://github.com/chiragborse1/KovaLab/issues/3658
  */
 export declare function injectTimestamp(message: string, opts?: TimestampInjectionOptions): string;
 /**
- * Build TimestampInjectionOptions from an OpenClawConfig.
+ * Build TimestampInjectionOptions from an KovaConfig.
  */
-export declare function timestampOptsFromConfig(cfg: OpenClawConfig): TimestampInjectionOptions;
+export declare function timestampOptsFromConfig(cfg: KovaConfig): TimestampInjectionOptions;

@@ -22,6 +22,16 @@ export type HookRunnerOptions = {
      * Defaults to fail-open unless explicitly overridden for a hook name.
      */
     failurePolicyByHook?: Partial<Record<PluginHookName, HookFailurePolicy>>;
+    /**
+     * Optional timeout for void/observation hooks. A timed-out hook is logged and
+     * the runner continues, but the plugin's underlying work is not cancelled.
+     */
+    voidHookTimeoutMsByHook?: Partial<Record<PluginHookName, number>>;
+    /**
+     * Optional timeout for modifying hooks. A timed-out hook is logged and skipped,
+     * but the plugin's underlying work is not cancelled.
+     */
+    modifyingHookTimeoutMsByHook?: Partial<Record<PluginHookName, number>>;
 };
 export type PluginTargetedInboundClaimOutcome = {
     status: "handled";

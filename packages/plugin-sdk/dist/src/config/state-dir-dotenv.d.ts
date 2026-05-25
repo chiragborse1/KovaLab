@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "./types.js";
+import type { KovaConfig } from "./types.js";
 export declare function readStateDirDotEnvVarsFromStateDir(stateDir: string): Record<string, string>;
 /**
  * Read and parse `~/.kova/.env` (or `$KOVA_STATE_DIR/.env`), returning
@@ -16,5 +16,5 @@ export declare function readStateDirDotEnvVars(env: Record<string, string | unde
  */
 export declare function collectDurableServiceEnvVars(params: {
     env: Record<string, string | undefined>;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): Record<string, string>;

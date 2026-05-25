@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type ToolModelConfig } from "./model-config.helpers.js";
 import { type AnyAgentTool, type SandboxFsBridge, type ToolFsPolicy } from "./tool-runtime.helpers.js";
 export declare function resolveImageGenerationModelConfigForTool(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
 }): ToolModelConfig | null;
 type ImageGenerateSandboxConfig = {
@@ -10,7 +10,7 @@ type ImageGenerateSandboxConfig = {
     bridge: SandboxFsBridge;
 };
 export declare function createImageGenerateTool(options?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     sandbox?: ImageGenerateSandboxConfig;

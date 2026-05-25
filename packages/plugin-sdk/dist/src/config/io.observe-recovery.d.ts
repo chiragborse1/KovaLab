@@ -1,4 +1,4 @@
-import type { ConfigFileSnapshot } from "./types.openclaw.js";
+import type { ConfigFileSnapshot } from "./types.kova.js";
 export type ObserveRecoveryDeps = {
     fs: {
         promises: {

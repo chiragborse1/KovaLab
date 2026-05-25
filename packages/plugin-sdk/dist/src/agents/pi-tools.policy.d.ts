@@ -1,9 +1,9 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import type { SandboxToolPolicy } from "./sandbox.js";
 import { type SessionCapabilityStore } from "./subagent-capabilities.js";
-export declare function resolveSubagentToolPolicy(cfg?: OpenClawConfig, depth?: number): SandboxToolPolicy;
-export declare function resolveSubagentToolPolicyForSession(cfg: OpenClawConfig | undefined, sessionKey: string, opts?: {
+export declare function resolveSubagentToolPolicy(cfg?: KovaConfig, depth?: number): SandboxToolPolicy;
+export declare function resolveSubagentToolPolicyForSession(cfg: KovaConfig | undefined, sessionKey: string, opts?: {
     store?: SessionCapabilityStore;
 }): SandboxToolPolicy;
 export declare function filterToolsByPolicy(tools: AnyAgentTool[], policy?: SandboxToolPolicy): AnyAgentTool[];
@@ -12,7 +12,7 @@ export declare function resolveGroupContextFromSessionKey(sessionKey?: string | 
     groupIds?: string[];
 };
 export declare function resolveEffectiveToolPolicy(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     agentId?: string;
     modelProvider?: string;
@@ -29,7 +29,7 @@ export declare function resolveEffectiveToolPolicy(params: {
     providerProfileAlsoAllow: string[] | undefined;
 };
 export declare function resolveGroupToolPolicy(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     spawnedBy?: string | null;
     messageProvider?: string;

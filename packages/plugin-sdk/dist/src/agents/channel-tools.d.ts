@@ -1,10 +1,10 @@
 import type { ChannelAgentTool, ChannelMessageActionName } from "../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 type ChannelAgentToolMeta = {
     channelId: string;
 };
 type ChannelMessageActionDiscoveryParams = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     currentChannelId?: string | null;
     currentThreadTs?: string | null;
     currentMessageId?: string | number | null;
@@ -29,20 +29,20 @@ export declare function listChannelSupportedActions(params: ChannelMessageAction
  */
 export declare function listAllChannelSupportedActions(params: ChannelMessageActionDiscoveryParams): ChannelMessageActionName[];
 export declare function listChannelAgentTools(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): ChannelAgentTool[];
 export declare function resolveChannelMessageToolHints(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
 }): string[];
 export declare function resolveChannelMessageToolCapabilities(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
 }): string[];
 export declare function resolveChannelReactionGuidance(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     channel?: string | null;
     accountId?: string | null;
 }): {

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type LegacyRuntimeModelProviderAlias = {
     /** Legacy provider id that encoded the runtime in the model ref. */
     legacyProvider: string;
@@ -23,7 +23,7 @@ export declare function isLegacyRuntimeModelProvider(provider: string): boolean;
 export declare function isCliRuntimeAlias(runtime: string | undefined): boolean;
 export declare function resolveCliRuntimeExecutionProvider(params: {
     provider: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentId?: string;
     runtimeOverride?: string;
 }): string | undefined;

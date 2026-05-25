@@ -1,5 +1,5 @@
 import type { ChannelId } from "../channels/plugins/channel-id.types.js";
-import type { OpenClawConfig } from "./types.openclaw.js";
+import type { KovaConfig } from "./types.kova.js";
 import { type GroupToolPolicyBySenderConfig, type GroupToolPolicyConfig } from "./types.tools.js";
 export type GroupPolicyChannel = ChannelId;
 export type ChannelGroupConfig = {
@@ -24,7 +24,7 @@ export declare function resolveToolsBySender(params: {
     toolsBySender?: GroupToolPolicyBySenderConfig;
 } & GroupToolPolicySender): GroupToolPolicyConfig | undefined;
 export declare function resolveChannelGroupPolicy(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: GroupPolicyChannel;
     groupId?: string | null;
     accountId?: string | null;
@@ -33,7 +33,7 @@ export declare function resolveChannelGroupPolicy(params: {
     hasGroupAllowFrom?: boolean;
 }): ChannelGroupPolicy;
 export declare function resolveChannelGroupRequireMention(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: GroupPolicyChannel;
     groupId?: string | null;
     accountId?: string | null;
@@ -42,7 +42,7 @@ export declare function resolveChannelGroupRequireMention(params: {
     overrideOrder?: "before-config" | "after-config";
 }): boolean;
 export declare function resolveChannelGroupToolsPolicy(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: GroupPolicyChannel;
     groupId?: string | null;
     groupIdCandidates?: Array<string | null | undefined>;

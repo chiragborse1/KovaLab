@@ -1,6 +1,6 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { ChannelId, ChannelThreadingToolContext } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { OutboundMediaAccess, OutboundMediaReadFile } from "../../media/load-options.js";
 import type { GatewayClientMode, GatewayClientName } from "../../utils/message-channel.js";
 import type { OutboundSendDeps } from "./deliver.js";
@@ -15,7 +15,7 @@ export type OutboundGatewayContext = {
     mode: GatewayClientMode;
 };
 export type OutboundSendContext = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     params: Record<string, unknown>;
     /** Active agent id for per-agent outbound media root scoping. */

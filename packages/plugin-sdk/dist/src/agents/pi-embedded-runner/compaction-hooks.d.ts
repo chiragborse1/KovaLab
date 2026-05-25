@@ -1,8 +1,8 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 export declare function runPostCompactionSideEffects(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     sessionKey?: string;
     sessionFile: string;
 }): Promise<void>;

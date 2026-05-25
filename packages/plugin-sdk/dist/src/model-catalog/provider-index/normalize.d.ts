@@ -1,2 +1,2 @@
-import type { OpenClawProviderIndex } from "./types.js";
-export declare function normalizeOpenClawProviderIndex(value: unknown): OpenClawProviderIndex | undefined;
+import type { KovaProviderIndex } from "./types.js";
+export declare function normalizeKovaProviderIndex(value: unknown): KovaProviderIndex | undefined;

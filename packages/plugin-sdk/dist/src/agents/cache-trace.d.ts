@@ -1,5 +1,5 @@
 import type { AgentMessage, StreamFn } from "@mariozechner/pi-agent-core";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type QueuedFileWriter } from "./queued-file-writer.js";
 export type CacheTraceStage = "cache:result" | "cache:state" | "session:loaded" | "session:sanitized" | "session:limited" | "prompt:before" | "prompt:images" | "stream:context" | "session:after";
 export type CacheTraceEvent = {
@@ -33,7 +33,7 @@ export type CacheTrace = {
     wrapStreamFn: (streamFn: StreamFn) => StreamFn;
 };
 type CacheTraceInit = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     env?: NodeJS.ProcessEnv;
     runId?: string;
     sessionId?: string;

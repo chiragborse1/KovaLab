@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { type QueuedDelivery, type QueuedDeliveryPayload } from "./delivery-queue-storage.js";
 export type RecoverySummary = {
     recovered: number;
@@ -7,7 +7,7 @@ export type RecoverySummary = {
     deferredBackoff: number;
 };
 export type DeliverFn = (params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 } & QueuedDeliveryPayload & {
     skipQueue?: boolean;
 }) => Promise<unknown>;
@@ -40,7 +40,7 @@ export declare function isPermanentDeliveryError(error: string): boolean;
 export declare function drainPendingDeliveries(opts: {
     drainKey: string;
     logLabel: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     log: RecoveryLogger;
     stateDir?: string;
     deliver: DeliverFn;
@@ -53,7 +53,7 @@ export declare function drainPendingDeliveries(opts: {
 export declare function recoverPendingDeliveries(opts: {
     deliver: DeliverFn;
     log: RecoveryLogger;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     stateDir?: string;
     /** Maximum wall-clock time for recovery in ms. Remaining entries are deferred to next startup. Default: 60 000. */
     maxRecoveryMs?: number;

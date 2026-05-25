@@ -1,3 +1,4 @@
+import type { CommandQueueEnqueueOptions } from "./command-queue.types.js";
 /**
  * Dedicated error type thrown when a queued command is rejected because
  * its lane was cleared.  Callers that fire-and-forget enqueued tasks can
@@ -5,6 +6,14 @@
  */
 export declare class CommandLaneClearedError extends Error {
     constructor(lane?: string);
+}
+/**
+ * Dedicated error type thrown when an active command exceeds its caller-owned
+ * lane timeout. The underlying task may still be unwinding, but the lane is
+ * released so queued work is not blocked forever.
+ */
+export declare class CommandLaneTaskTimeoutError extends Error {
+    constructor(lane: string, timeoutMs: number);
 }
 /**
  * Dedicated error type thrown when a new command is rejected because the
@@ -19,14 +28,8 @@ export declare class GatewayDrainingError extends Error {
  */
 export declare function markGatewayDraining(): void;
 export declare function setCommandLaneConcurrency(lane: string, maxConcurrent: number): void;
-export declare function enqueueCommandInLane<T>(lane: string, task: () => Promise<T>, opts?: {
-    warnAfterMs?: number;
-    onWait?: (waitMs: number, queuedAhead: number) => void;
-}): Promise<T>;
-export declare function enqueueCommand<T>(task: () => Promise<T>, opts?: {
-    warnAfterMs?: number;
-    onWait?: (waitMs: number, queuedAhead: number) => void;
-}): Promise<T>;
+export declare function enqueueCommandInLane<T>(lane: string, task: () => Promise<T>, opts?: CommandQueueEnqueueOptions): Promise<T>;
+export declare function enqueueCommand<T>(task: () => Promise<T>, opts?: CommandQueueEnqueueOptions): Promise<T>;
 export declare function getQueueSize(lane?: string): number;
 export declare function getTotalQueueSize(): number;
 export declare function clearCommandLane(lane?: string): number;

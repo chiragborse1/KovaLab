@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export { bumpSkillsSnapshotVersion, getSkillsSnapshotVersion, registerSkillsChangeListener, shouldRefreshSnapshotForVersion, type SkillsChangeEvent, } from "./refresh-state.js";
 export declare const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[];
 export declare function shouldIgnoreSkillsWatchPath(watchPath: string, stats?: {
@@ -6,6 +6,6 @@ export declare function shouldIgnoreSkillsWatchPath(watchPath: string, stats?: {
 }): boolean;
 export declare function ensureSkillsWatcher(params: {
     workspaceDir: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): void;
 export declare function resetSkillsRefreshForTest(): Promise<void>;

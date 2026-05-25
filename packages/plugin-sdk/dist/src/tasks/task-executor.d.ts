@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { DetachedRunningTaskCreateParams, DetachedTaskCreateParams, DetachedTaskFinalizeParams } from "./detached-task-runtime-contract.js";
 import type { TaskFlowRecord } from "./task-flow-registry.types.js";
 import type { TaskDeliveryState, TaskDeliveryStatus, TaskNotifyPolicy, TaskRecord, TaskRegistrySummary, TaskRuntime, TaskStatus, TaskTerminalOutcome } from "./task-registry.types.js";
@@ -123,16 +123,16 @@ export declare function runTaskInFlowForOwner(params: RunTaskInFlowParams & {
     callerOwnerKey: string;
 }): RunTaskInFlowResult;
 export declare function cancelFlowById(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     flowId: string;
 }): Promise<CancelFlowResult>;
 export declare function cancelFlowByIdForOwner(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     flowId: string;
     callerOwnerKey: string;
 }): Promise<CancelFlowResult>;
 export declare function cancelDetachedTaskRunById(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     taskId: string;
 }): Promise<import("./detached-task-runtime-contract.js").DetachedTaskCancelResult>;
 export {};

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { FinalizedMsgContext } from "../templating.js";
 export type FastAbortResult = {
     handled: boolean;
@@ -7,6 +7,6 @@ export type FastAbortResult = {
 };
 export type TryFastAbortFromMessage = (params: {
     ctx: FinalizedMsgContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }) => Promise<FastAbortResult>;
 export type FormatAbortReplyText = (stoppedSubagents?: number) => string;

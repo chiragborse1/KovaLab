@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 import { type AnyAgentTool } from "./common.js";
 export declare function createNodesTool(options?: {
@@ -7,7 +7,7 @@ export declare function createNodesTool(options?: {
     agentAccountId?: string;
     currentChannelId?: string;
     currentThreadTs?: string | number;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     modelHasVision?: boolean;
     allowMediaInvokeCommands?: boolean;
 }): AnyAgentTool;

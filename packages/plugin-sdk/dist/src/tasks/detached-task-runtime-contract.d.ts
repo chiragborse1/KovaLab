@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { TaskDeliveryState, TaskDeliveryStatus, TaskNotifyPolicy, TaskRecord, TaskRuntime, TaskScopeKind, TaskStatus, TaskTerminalOutcome } from "./task-registry.types.js";
 export type DetachedTaskCreateParams = {
     runtime: TaskRuntime;
@@ -82,7 +82,7 @@ export type DetachedTaskDeliveryStatusParams = {
     error?: string;
 };
 export type DetachedTaskCancelParams = {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     taskId: string;
 };
 export type DetachedTaskCancelResult = {

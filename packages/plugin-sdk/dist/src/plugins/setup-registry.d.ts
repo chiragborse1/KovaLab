@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { CliBackendPlugin, PluginConfigMigration, PluginSetupAutoEnableProbe, ProviderPlugin } from "./types.js";
 type SetupProviderEntry = {
     pluginId: string;
@@ -46,34 +46,34 @@ export declare const __testing: {
 };
 export declare function clearPluginSetupRegistryCache(): void;
 export declare function resolvePluginSetupRegistry(params?: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];
 }): PluginSetupRegistry;
 export declare function resolvePluginSetupProvider(params: {
     provider: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];
 }): ProviderPlugin | undefined;
 export declare function resolvePluginSetupCliBackend(params: {
     backend: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): SetupCliBackendEntry | undefined;
 export declare function runPluginSetupConfigMigrations(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): {
-    config: OpenClawConfig;
+    config: KovaConfig;
     changes: string[];
 };
 export declare function resolvePluginSetupAutoEnableReasons(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     pluginIds?: readonly string[];

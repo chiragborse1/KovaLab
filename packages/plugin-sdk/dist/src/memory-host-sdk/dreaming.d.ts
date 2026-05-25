@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare const DEFAULT_MEMORY_DREAMING_ENABLED = false;
 export declare const DEFAULT_MEMORY_DREAMING_TIMEZONE: undefined;
 export declare const DEFAULT_MEMORY_DREAMING_VERBOSE_LOGGING = false;
@@ -8,13 +8,13 @@ export declare const DEFAULT_MEMORY_DREAMING_FREQUENCY = "0 3 * * *";
 export declare const DEFAULT_MEMORY_DREAMING_PLUGIN_ID = "memory-core";
 export declare const MANAGED_MEMORY_DREAMING_CRON_NAME = "Memory Dreaming Promotion";
 export declare const MANAGED_MEMORY_DREAMING_CRON_TAG = "[managed-by=memory-core.short-term-promotion]";
-export declare const MEMORY_DREAMING_SYSTEM_EVENT_TEXT = "__openclaw_memory_core_short_term_promotion_dream__";
+export declare const MEMORY_DREAMING_SYSTEM_EVENT_TEXT = "__kova_memory_core_short_term_promotion_dream__";
 export declare const LEGACY_MEMORY_LIGHT_DREAMING_CRON_NAME = "Memory Light Dreaming";
 export declare const LEGACY_MEMORY_LIGHT_DREAMING_CRON_TAG = "[managed-by=memory-core.dreaming.light]";
-export declare const LEGACY_MEMORY_LIGHT_DREAMING_EVENT_TEXT = "__openclaw_memory_core_light_sleep__";
+export declare const LEGACY_MEMORY_LIGHT_DREAMING_EVENT_TEXT = "__kova_memory_core_light_sleep__";
 export declare const LEGACY_MEMORY_REM_DREAMING_CRON_NAME = "Memory REM Dreaming";
 export declare const LEGACY_MEMORY_REM_DREAMING_CRON_TAG = "[managed-by=memory-core.dreaming.rem]";
-export declare const LEGACY_MEMORY_REM_DREAMING_EVENT_TEXT = "__openclaw_memory_core_rem_sleep__";
+export declare const LEGACY_MEMORY_REM_DREAMING_EVENT_TEXT = "__kova_memory_core_rem_sleep__";
 export declare const DEFAULT_MEMORY_LIGHT_DREAMING_CRON_EXPR = "0 */6 * * *";
 export declare const DEFAULT_MEMORY_LIGHT_DREAMING_LOOKBACK_DAYS = 2;
 export declare const DEFAULT_MEMORY_LIGHT_DREAMING_LIMIT = 100;
@@ -118,16 +118,16 @@ export type MemoryDreamingWorkspace = {
     workspaceDir: string;
     agentIds: string[];
 };
-export declare function resolveMemoryDreamingPluginId(cfg: OpenClawConfig | Record<string, unknown> | undefined): string;
-export declare function resolveMemoryDreamingPluginConfig(cfg: OpenClawConfig | Record<string, unknown> | undefined): Record<string, unknown> | undefined;
+export declare function resolveMemoryDreamingPluginId(cfg: KovaConfig | Record<string, unknown> | undefined): string;
+export declare function resolveMemoryDreamingPluginConfig(cfg: KovaConfig | Record<string, unknown> | undefined): Record<string, unknown> | undefined;
 export declare const resolveMemoryCorePluginConfig: typeof resolveMemoryDreamingPluginConfig;
 export declare function resolveMemoryDreamingConfig(params: {
     pluginConfig?: Record<string, unknown>;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): MemoryDreamingConfig;
 export declare function resolveMemoryDeepDreamingConfig(params: {
     pluginConfig?: Record<string, unknown>;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): MemoryDeepDreamingConfig & {
     timezone?: string;
     verboseLogging: boolean;
@@ -135,7 +135,7 @@ export declare function resolveMemoryDeepDreamingConfig(params: {
 };
 export declare function resolveMemoryLightDreamingConfig(params: {
     pluginConfig?: Record<string, unknown>;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): MemoryLightDreamingConfig & {
     timezone?: string;
     verboseLogging: boolean;
@@ -143,7 +143,7 @@ export declare function resolveMemoryLightDreamingConfig(params: {
 };
 export declare function resolveMemoryRemDreamingConfig(params: {
     pluginConfig?: Record<string, unknown>;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): MemoryRemDreamingConfig & {
     timezone?: string;
     verboseLogging: boolean;
@@ -151,4 +151,4 @@ export declare function resolveMemoryRemDreamingConfig(params: {
 };
 export declare function formatMemoryDreamingDay(epochMs: number, timezone?: string): string;
 export declare function isSameMemoryDreamingDay(firstEpochMs: number, secondEpochMs: number, timezone?: string): boolean;
-export declare function resolveMemoryDreamingWorkspaces(cfg: OpenClawConfig): MemoryDreamingWorkspace[];
+export declare function resolveMemoryDreamingWorkspaces(cfg: KovaConfig): MemoryDreamingWorkspace[];

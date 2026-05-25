@@ -3,7 +3,7 @@ export { createAgentToAgentPolicy, createSessionVisibilityGuard, resolveEffectiv
 export type { SessionReferenceResolution } from "./sessions-resolution.js";
 export { isRequesterSpawnedSessionVisible, isResolvedSessionVisibleToRequester, listSpawnedSessionKeys, looksLikeSessionId, looksLikeSessionKey, resolveCurrentSessionClientAlias, resolveDisplaySessionKey, resolveInternalSessionKey, resolveMainSessionAlias, resolveSessionReference, resolveVisibleSessionReference, shouldResolveSessionIdInput, shouldVerifyRequesterSpawnedSessionVisibility, } from "./sessions-resolution.js";
 export { extractAssistantText, sanitizeTextContent, stripToolMessages, } from "./chat-history-text.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type SessionKind = "main" | "group" | "cron" | "hook" | "node" | "other";
 export type SessionListDeliveryContext = {
     channel?: string;
@@ -58,7 +58,7 @@ export type SessionListRow = {
 export declare function resolveSessionToolContext(opts?: {
     agentSessionKey?: string;
     sandboxed?: boolean;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
 }): {
     mainKey: string;
     alias: string;
@@ -66,7 +66,7 @@ export declare function resolveSessionToolContext(opts?: {
     requesterInternalKey: string | undefined;
     effectiveRequesterKey: string;
     restrictToSpawned: boolean;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 };
 export declare function classifySessionKind(params: {
     key: string;

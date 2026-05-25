@@ -1,9 +1,9 @@
 import type { ModelProviderConfig } from "../config/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type LoadPluginRegistryParams, type PluginRegistrySnapshot } from "./plugin-registry.js";
 import type { ProviderDiscoveryOrder, ProviderPlugin } from "./types.js";
 export type ResolveRuntimePluginDiscoveryProvidersParams = {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     onlyPluginIds?: string[];
@@ -28,7 +28,7 @@ export declare function normalizePluginDiscoveryResult(params: {
 }): Record<string, ModelProviderConfig>;
 export declare function runProviderCatalog(params: {
     provider: ProviderPlugin;
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;
@@ -48,7 +48,7 @@ export declare function runProviderCatalog(params: {
 }): Promise<import("./types.js").ProviderCatalogResult> | undefined;
 export declare function runProviderStaticCatalog(params: {
     provider: ProviderPlugin;
-    config: OpenClawConfig;
+    config: KovaConfig;
     agentDir?: string;
     workspaceDir?: string;
     env: NodeJS.ProcessEnv;

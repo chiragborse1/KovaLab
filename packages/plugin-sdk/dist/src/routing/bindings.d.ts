@@ -1,9 +1,9 @@
 import type { AgentRouteBinding } from "../config/types.agents.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
-export declare function listBindings(cfg: OpenClawConfig): AgentRouteBinding[];
-export declare function listBoundAccountIds(cfg: OpenClawConfig, channelId: string): string[];
-export declare function resolveDefaultAgentBoundAccountId(cfg: OpenClawConfig, channelId: string): string | null;
-export declare function buildChannelAccountBindings(cfg: OpenClawConfig): Map<string, Map<string, string[]>>;
+import type { KovaConfig } from "../config/types.kova.js";
+export declare function listBindings(cfg: KovaConfig): AgentRouteBinding[];
+export declare function listBoundAccountIds(cfg: KovaConfig, channelId: string): string[];
+export declare function resolveDefaultAgentBoundAccountId(cfg: KovaConfig, channelId: string): string | null;
+export declare function buildChannelAccountBindings(cfg: KovaConfig): Map<string, Map<string, string[]>>;
 export declare function resolvePreferredAccountId(params: {
     accountIds: string[];
     defaultAccountId: string;

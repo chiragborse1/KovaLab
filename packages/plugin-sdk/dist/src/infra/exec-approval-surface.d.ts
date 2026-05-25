@@ -1,4 +1,4 @@
-import { type OpenClawConfig } from "../config/config.js";
+import { type KovaConfig } from "../config/config.js";
 export type ExecApprovalInitiatingSurfaceState = {
     kind: "enabled";
     channel: string | undefined;
@@ -18,7 +18,7 @@ export type ExecApprovalInitiatingSurfaceState = {
 export declare function resolveExecApprovalInitiatingSurfaceState(params: {
     channel?: string | null;
     accountId?: string | null;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): ExecApprovalInitiatingSurfaceState;
 export declare function supportsNativeExecApprovalClient(channel?: string | null): boolean;
 export declare function listNativeExecApprovalClientLabels(params?: {

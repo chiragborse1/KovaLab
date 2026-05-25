@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { ProviderRuntimeModel } from "../plugins/provider-runtime-model.types.js";
 import type { ToolCallIdMode } from "./tool-call-id.js";
 export type TranscriptSanitizeMode = "full" | "images-only";
@@ -29,7 +29,7 @@ export declare function resolveTranscriptPolicy(params: {
     modelApi?: string | null;
     provider?: string | null;
     modelId?: string | null;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
     model?: ProviderRuntimeModel;

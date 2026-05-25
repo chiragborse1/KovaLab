@@ -1,4 +1,4 @@
-export declare const SYSTEM_PROMPT_CACHE_BOUNDARY = "\n<!-- OPENCLAW_CACHE_BOUNDARY -->\n";
+export declare const SYSTEM_PROMPT_CACHE_BOUNDARY = "\n<!-- KOVA_CACHE_BOUNDARY -->\n";
 export declare function stripSystemPromptCacheBoundary(text: string): string;
 export declare function splitSystemPromptCacheBoundary(text: string): {
     stablePrefix: string;

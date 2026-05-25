@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { GetReplyOptions } from "../get-reply-options.types.js";
 import type { FinalizedMsgContext, MsgContext } from "../templating.js";
 import type { DispatchFromConfigResult } from "./dispatch-from-config.types.js";
@@ -8,14 +8,14 @@ type DispatchReplyContext = MsgContext | FinalizedMsgContext;
 type DispatchReplyOptions = Omit<GetReplyOptions, "onBlockReply">;
 export type DispatchReplyWithBufferedBlockDispatcher = (params: {
     ctx: DispatchReplyContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     dispatcherOptions: ReplyDispatcherWithTypingOptions;
     replyOptions?: DispatchReplyOptions;
     replyResolver?: GetReplyFromConfig;
 }) => Promise<DispatchFromConfigResult>;
 export type DispatchReplyWithDispatcher = (params: {
     ctx: DispatchReplyContext;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     dispatcherOptions: ReplyDispatcherOptions;
     replyOptions?: DispatchReplyOptions;
     replyResolver?: GetReplyFromConfig;

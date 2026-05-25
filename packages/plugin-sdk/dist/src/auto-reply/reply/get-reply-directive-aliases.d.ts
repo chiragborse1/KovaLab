@@ -1,11 +1,11 @@
 import type { SkillCommandSpec } from "../../agents/skills.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function reserveSkillCommandNames(params: {
     reservedCommands: Set<string>;
     skillCommands: SkillCommandSpec[];
 }): void;
 export declare function resolveConfiguredDirectiveAliases(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     commandTextHasSlash: boolean;
     reservedCommands: Set<string>;
 }): string[];

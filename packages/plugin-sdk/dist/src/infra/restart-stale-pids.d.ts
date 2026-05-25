@@ -1,7 +1,7 @@
 declare function sleepSync(ms: number): void;
 /**
  * Find PIDs of gateway processes listening on the given port using synchronous lsof.
- * Returns only PIDs that belong to openclaw gateway processes (not the current process).
+ * Returns only PIDs that belong to kova gateway processes (not the current process).
  */
 export declare function findGatewayPidsOnPortSync(port: number, spawnTimeoutMs?: number): number[];
 /**

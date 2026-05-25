@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function resolveEffectivePluginIds(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     env: NodeJS.ProcessEnv;
     workspaceDir?: string;
 }): string[];

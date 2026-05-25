@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { normalizePluginsConfig } from "./config-state.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 type OwnerPlugin = Pick<PluginManifestRecord, "id" | "origin" | "enabledByDefault">;
@@ -17,6 +17,6 @@ export declare function passesManifestOwnerBasePolicy(params: {
 export declare function isActivatedManifestOwner(params: {
     plugin: OwnerPlugin;
     normalizedConfig: NormalizedPluginsConfig;
-    rootConfig?: OpenClawConfig;
+    rootConfig?: KovaConfig;
 }): boolean;
 export {};

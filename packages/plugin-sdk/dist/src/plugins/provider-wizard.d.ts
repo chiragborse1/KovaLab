@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { ProviderAuthMethod, ProviderPlugin, ProviderPluginWizardSetup } from "./types.js";
 export declare const PROVIDER_PLUGIN_CHOICE_PREFIX = "provider-plugin:";
@@ -20,12 +20,12 @@ export type ProviderModelPickerEntry = {
 };
 export declare function buildProviderPluginMethodChoice(providerId: string, methodId: string): string;
 export declare function resolveProviderWizardOptions(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): ProviderWizardOption[];
 export declare function resolveProviderModelPickerEntries(params: {
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     workspaceDir?: string;
     env?: NodeJS.ProcessEnv;
 }): ProviderModelPickerEntry[];
@@ -38,7 +38,7 @@ export declare function resolveProviderPluginChoice(params: {
     wizard?: ProviderPluginWizardSetup;
 } | null;
 export declare function runProviderModelSelectedHook(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     model: string;
     prompter: WizardPrompter;
     agentDir?: string;

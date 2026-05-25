@@ -1,5 +1,5 @@
+import type { KovaConfig } from "../config/types.kova.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { MemorySearchManager } from "../memory-host-sdk/host/types.js";
 export type MemoryPromptSectionBuilder = (params: {
     availableTools: Set<string>;
@@ -66,7 +66,7 @@ export type MemoryFlushPlan = {
     relativePath: string;
 };
 export type MemoryFlushPlanResolver = (params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     nowMs?: number;
 }) => MemoryFlushPlan | null;
 export type RegisteredMemorySearchManager = MemorySearchManager;
@@ -81,7 +81,7 @@ export type MemoryRuntimeBackendConfig = {
 };
 export type MemoryPluginRuntime = {
     getMemorySearchManager(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         agentId: string;
         purpose?: "default" | "status";
     }): Promise<{
@@ -89,9 +89,13 @@ export type MemoryPluginRuntime = {
         error?: string;
     }>;
     resolveMemoryBackendConfig(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
         agentId: string;
     }): MemoryRuntimeBackendConfig;
+    closeMemorySearchManager?(params: {
+        cfg: KovaConfig;
+        agentId: string;
+    }): Promise<void>;
     closeAllMemorySearchManagers?(): Promise<void>;
 };
 export type MemoryPluginPublicArtifactContentType = "markdown" | "json" | "text";
@@ -105,7 +109,7 @@ export type MemoryPluginPublicArtifact = {
 };
 export type MemoryPluginPublicArtifactsProvider = {
     listArtifacts(params: {
-        cfg: OpenClawConfig;
+        cfg: KovaConfig;
     }): Promise<MemoryPluginPublicArtifact[]>;
 };
 export type MemoryPluginCapability = {
@@ -142,7 +146,7 @@ export declare function listMemoryPromptSupplements(): MemoryPromptSupplementReg
 /** @deprecated Use registerMemoryCapability(pluginId, { flushPlanResolver }) instead. */
 export declare function registerMemoryFlushPlanResolver(resolver: MemoryFlushPlanResolver): void;
 export declare function resolveMemoryFlushPlan(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     nowMs?: number;
 }): MemoryFlushPlan | null;
 export declare function getMemoryFlushPlanResolver(): MemoryFlushPlanResolver | undefined;
@@ -151,7 +155,7 @@ export declare function registerMemoryRuntime(runtime: MemoryPluginRuntime): voi
 export declare function getMemoryRuntime(): MemoryPluginRuntime | undefined;
 export declare function hasMemoryRuntime(): boolean;
 export declare function listActiveMemoryPublicArtifacts(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
 }): Promise<MemoryPluginPublicArtifact[]>;
 export declare function restoreMemoryPluginState(state: MemoryPluginState): void;
 export declare function clearMemoryPluginState(): void;

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { BundleMcpDiagnostic, BundleMcpServerConfig } from "../plugins/bundle-mcp.js";
 export type EmbeddedPiMcpConfig = {
     mcpServers: Record<string, BundleMcpServerConfig>;
@@ -6,5 +6,5 @@ export type EmbeddedPiMcpConfig = {
 };
 export declare function loadEmbeddedPiMcpConfig(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
 }): EmbeddedPiMcpConfig;

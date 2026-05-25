@@ -1,5 +1,5 @@
 import type { ChannelDirectoryEntryKind, ChannelId } from "../../channels/plugins/types.public.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function normalizeChannelTargetInput(raw: string): string;
 declare function resetTargetNormalizerCacheForTests(): void;
 export declare const __testing: {
@@ -23,7 +23,7 @@ export declare function looksLikeTargetId(params: {
     normalized?: string;
 }): boolean;
 export declare function maybeResolvePluginMessagingTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     channel: ChannelId;
     input: string;
     accountId?: string | null;

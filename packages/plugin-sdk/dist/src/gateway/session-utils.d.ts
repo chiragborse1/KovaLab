@@ -1,19 +1,28 @@
 import type { ModelCatalogEntry } from "../agents/model-catalog.js";
+import { listThinkingLevelOptions } from "../auto-reply/thinking.js";
 import { type SessionEntry, type SessionScope } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
+import type { ModelCostConfig } from "../utils/usage-format.js";
 import type { GatewayAgentRow, GatewaySessionRow, GatewaySessionsDefaults, SessionsListResult } from "./session-utils.types.js";
-export { archiveFileOnDisk, archiveSessionTranscripts, attachOpenClawTranscriptMeta, capArrayByJsonBytes, readFirstUserMessageFromTranscript, readLastMessagePreviewFromTranscript, readLatestSessionUsageFromTranscript, readSessionTitleFieldsFromTranscript, readSessionPreviewItemsFromTranscript, readSessionMessages, resolveSessionTranscriptCandidates, } from "./session-utils.fs.js";
+export { archiveFileOnDisk, archiveSessionTranscripts, attachKovaTranscriptMeta, capArrayByJsonBytes, readFirstUserMessageFromTranscript, readLastMessagePreviewFromTranscript, readLatestSessionUsageFromTranscript, readSessionTitleFieldsFromTranscript, readSessionPreviewItemsFromTranscript, readSessionMessages, resolveSessionTranscriptCandidates, } from "./session-utils.fs.js";
 export { canonicalizeSpawnedByForAgent, resolveSessionStoreKey } from "./session-store-key.js";
 export type { GatewayAgentRow, GatewaySessionRow, GatewaySessionsDefaults, SessionsListResult, SessionsPatchResult, SessionsPreviewEntry, SessionsPreviewResult, } from "./session-utils.types.js";
 export declare function deriveSessionTitle(entry: SessionEntry | undefined, firstUserMessage?: string | null): string | undefined;
+type SessionListRowContext = {
+    modelCostConfigByModelRef: Map<string, ModelCostConfig | undefined>;
+    thinkingMetadataByModelRef: Map<string, {
+        levels: ReturnType<typeof listThinkingLevelOptions>;
+        defaultLevel: ReturnType<typeof resolveGatewaySessionThinkingDefault>;
+    }>;
+};
 /**
  * Returns the owning agent id if the session key belongs to an agent that is no
  * longer present in config (deleted). Returns null for non-agent legacy/global
  * keys, or when the owning agent still exists (#65524).
  */
-export declare function resolveDeletedAgentIdFromSessionKey(cfg: OpenClawConfig, sessionKey: string): string | null;
+export declare function resolveDeletedAgentIdFromSessionKey(cfg: KovaConfig, sessionKey: string): string | null;
 export declare function loadSessionEntry(sessionKey: string): {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     storePath: string;
     store: Record<string, SessionEntry>;
     entry: SessionEntry | undefined;
@@ -40,7 +49,7 @@ export declare function pruneLegacyStoreKeys(params: {
     candidates: Iterable<string>;
 }): void;
 export declare function migrateAndPruneGatewaySessionStoreKey(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     key: string;
     store: Record<string, SessionEntry>;
 }): {
@@ -59,14 +68,14 @@ export declare function parseGroupKey(key: string): {
     kind?: "group" | "channel";
     id?: string;
 } | null;
-export declare function listAgentsForGateway(cfg: OpenClawConfig): {
+export declare function listAgentsForGateway(cfg: KovaConfig): {
     defaultId: string;
     mainKey: string;
     scope: SessionScope;
     agents: GatewayAgentRow[];
 };
 export declare function resolveGatewaySessionStoreTarget(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     key: string;
     scanLegacyKeys?: boolean;
     store?: Record<string, SessionEntry>;
@@ -77,8 +86,14 @@ export declare function resolveGatewaySessionStoreTarget(params: {
     storeKeys: string[];
 };
 export { loadCombinedSessionStoreForGateway } from "../config/sessions/combined-store-gateway.js";
-export declare function getSessionDefaults(cfg: OpenClawConfig): GatewaySessionsDefaults;
-export declare function resolveSessionModelRef(cfg: OpenClawConfig, entry?: SessionEntry | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">, agentId?: string): {
+declare function resolveGatewaySessionThinkingDefault(params: {
+    cfg: KovaConfig;
+    provider: string;
+    model: string;
+    agentId?: string;
+}): "adaptive" | "high" | "low" | "max" | "medium" | "minimal" | "off" | "xhigh";
+export declare function getSessionDefaults(cfg: KovaConfig): GatewaySessionsDefaults;
+export declare function resolveSessionModelRef(cfg: KovaConfig, entry?: SessionEntry | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">, agentId?: string): {
     provider: string;
     model: string;
 };
@@ -87,12 +102,12 @@ export declare function resolveGatewayModelSupportsImages(params: {
     provider?: string;
     model?: string;
 }): Promise<boolean>;
-export declare function resolveSessionModelIdentityRef(cfg: OpenClawConfig, entry?: SessionEntry | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">, agentId?: string, fallbackModelRef?: string): {
+export declare function resolveSessionModelIdentityRef(cfg: KovaConfig, entry?: SessionEntry | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">, agentId?: string, fallbackModelRef?: string): {
     provider?: string;
     model: string;
 };
 export declare function buildGatewaySessionRow(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     storePath: string;
     store: Record<string, SessionEntry>;
     key: string;
@@ -100,6 +115,7 @@ export declare function buildGatewaySessionRow(params: {
     now?: number;
     includeDerivedTitles?: boolean;
     includeLastMessage?: boolean;
+    rowContext?: SessionListRowContext;
 }): GatewaySessionRow;
 export declare function loadGatewaySessionRow(sessionKey: string, options?: {
     includeDerivedTitles?: boolean;
@@ -107,7 +123,7 @@ export declare function loadGatewaySessionRow(sessionKey: string, options?: {
     now?: number;
 }): GatewaySessionRow | null;
 export declare function listSessionsFromStore(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     storePath: string;
     store: Record<string, SessionEntry>;
     opts: import("./protocol/index.js").SessionsListParams;

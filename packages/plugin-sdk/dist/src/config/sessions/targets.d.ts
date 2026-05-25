@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../types.openclaw.js";
+import type { KovaConfig } from "../types.kova.js";
 export type SessionStoreSelectionOptions = {
     store?: string;
     agent?: string;
@@ -8,12 +8,12 @@ export type SessionStoreTarget = {
     agentId: string;
     storePath: string;
 };
-export declare function resolveAllAgentSessionStoreTargetsSync(cfg: OpenClawConfig, params?: {
+export declare function resolveAllAgentSessionStoreTargetsSync(cfg: KovaConfig, params?: {
     env?: NodeJS.ProcessEnv;
 }): SessionStoreTarget[];
-export declare function resolveAllAgentSessionStoreTargets(cfg: OpenClawConfig, params?: {
+export declare function resolveAllAgentSessionStoreTargets(cfg: KovaConfig, params?: {
     env?: NodeJS.ProcessEnv;
 }): Promise<SessionStoreTarget[]>;
-export declare function resolveSessionStoreTargets(cfg: OpenClawConfig, opts: SessionStoreSelectionOptions, params?: {
+export declare function resolveSessionStoreTargets(cfg: KovaConfig, opts: SessionStoreSelectionOptions, params?: {
     env?: NodeJS.ProcessEnv;
 }): SessionStoreTarget[];

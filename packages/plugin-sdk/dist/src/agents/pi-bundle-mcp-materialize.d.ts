@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { BundleMcpToolRuntime, SessionMcpRuntime } from "./pi-bundle-mcp-types.js";
 export declare function materializeBundleMcpToolsForRun(params: {
     runtime: SessionMcpRuntime;
@@ -7,11 +7,11 @@ export declare function materializeBundleMcpToolsForRun(params: {
 }): Promise<BundleMcpToolRuntime>;
 export declare function createBundleMcpToolRuntime(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     reservedToolNames?: Iterable<string>;
     createRuntime?: (params: {
         sessionId: string;
         workspaceDir: string;
-        cfg?: OpenClawConfig;
+        cfg?: KovaConfig;
     }) => SessionMcpRuntime;
 }): Promise<BundleMcpToolRuntime>;

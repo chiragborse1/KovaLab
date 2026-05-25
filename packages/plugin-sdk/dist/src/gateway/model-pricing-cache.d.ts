@@ -1,20 +1,20 @@
 import { type ModelRef } from "../agents/model-selection.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { PluginManifestRegistry } from "../plugins/manifest-registry.js";
 import type { PluginLookUpTable } from "../plugins/plugin-lookup-table.js";
 import { getCachedGatewayModelPricing } from "./model-pricing-cache-state.js";
 export { getCachedGatewayModelPricing };
-export declare function collectConfiguredModelPricingRefs(config: OpenClawConfig, options?: {
+export declare function collectConfiguredModelPricingRefs(config: KovaConfig, options?: {
     manifestRegistry?: PluginManifestRegistry;
 }): ModelRef[];
 export declare function refreshGatewayModelPricingCache(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     fetchImpl?: typeof fetch;
     pluginLookUpTable?: Pick<PluginLookUpTable, "index" | "manifestRegistry">;
     manifestRegistry?: PluginManifestRegistry;
 }): Promise<void>;
 export declare function startGatewayModelPricingRefresh(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     fetchImpl?: typeof fetch;
     pluginLookUpTable?: Pick<PluginLookUpTable, "index" | "manifestRegistry">;
     manifestRegistry?: PluginManifestRegistry;

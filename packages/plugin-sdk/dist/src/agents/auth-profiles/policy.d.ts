@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { AuthProfileStore } from "./types.js";
 type OAuthSecretRefPolicyViolation = {
     profileId: string;
@@ -7,12 +7,12 @@ type OAuthSecretRefPolicyViolation = {
 };
 export declare function collectOAuthSecretRefPolicyViolations(params: {
     store: AuthProfileStore;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     profileIds?: Iterable<string>;
 }): OAuthSecretRefPolicyViolation[];
 export declare function assertNoOAuthSecretRefPolicyViolations(params: {
     store: AuthProfileStore;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     profileIds?: Iterable<string>;
     context?: string;
 }): void;

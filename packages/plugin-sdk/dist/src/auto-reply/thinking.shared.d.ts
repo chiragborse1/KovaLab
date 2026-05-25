@@ -17,6 +17,7 @@ export declare const BASE_THINKING_LEVELS: ThinkLevel[];
 export declare const THINKING_LEVEL_RANKS: Record<ThinkLevel, number>;
 export declare function isBinaryThinkingProvider(provider?: string | null): boolean;
 export declare function normalizeThinkLevel(raw?: string | null): ThinkLevel | undefined;
+export declare function isSessionDefaultDirectiveValue(raw?: string | null): boolean;
 export declare function listThinkingLevels(_provider?: string | null, _model?: string | null): ThinkLevel[];
 export declare function listThinkingLevelLabels(provider?: string | null, model?: string | null): string[];
 export declare function formatThinkingLevels(provider?: string | null, model?: string | null, separator?: string): string;

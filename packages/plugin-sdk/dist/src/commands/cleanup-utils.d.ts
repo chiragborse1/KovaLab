@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { RuntimeEnv } from "../runtime.js";
 export type RemovalResult = {
     ok: boolean;
@@ -11,9 +11,9 @@ export type CleanupResolvedPaths = {
     configInsideState: boolean;
     oauthInsideState: boolean;
 };
-export declare function collectWorkspaceDirs(cfg: OpenClawConfig | undefined): string[];
+export declare function collectWorkspaceDirs(cfg: KovaConfig | undefined): string[];
 export declare function buildCleanupPlan(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     stateDir: string;
     configPath: string;
     oauthDir: string;

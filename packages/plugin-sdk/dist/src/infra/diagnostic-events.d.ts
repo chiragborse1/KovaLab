@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type DiagnosticTraceContext } from "./diagnostic-trace-context.js";
 export type DiagnosticSessionState = "idle" | "processing" | "waiting";
 type DiagnosticBaseEvent = {
@@ -361,7 +361,7 @@ export type DiagnosticEventMetadata = Readonly<{
     trusted: boolean;
 }>;
 type DiagnosticEventListener = (evt: DiagnosticEventPayload, metadata: DiagnosticEventMetadata) => void;
-export declare function isDiagnosticsEnabled(config?: OpenClawConfig): boolean;
+export declare function isDiagnosticsEnabled(config?: KovaConfig): boolean;
 export declare function setDiagnosticsEnabledForProcess(enabled: boolean): void;
 export declare function areDiagnosticsEnabledForProcess(): boolean;
 export declare function emitDiagnosticEvent(event: DiagnosticEventInput): void;

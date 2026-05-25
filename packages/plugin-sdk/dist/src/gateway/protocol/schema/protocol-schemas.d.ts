@@ -1462,14 +1462,14 @@ export declare const ProtocolSchemas: {
         dangerouslyForceUnsafeInstall: import("typebox").TOptional<import("typebox").TBoolean>;
         timeoutMs: import("typebox").TOptional<import("typebox").TInteger>;
     }>, import("typebox").TObject<{
-        source: import("typebox").TLiteral<"clawhub">;
+        source: import("typebox").TLiteral<"kovahub">;
         slug: import("typebox").TString;
         version: import("typebox").TOptional<import("typebox").TString>;
         force: import("typebox").TOptional<import("typebox").TBoolean>;
         timeoutMs: import("typebox").TOptional<import("typebox").TInteger>;
     }>]>;
     SkillsUninstallParams: import("typebox").TObject<{
-        source: import("typebox").TLiteral<"clawhub">;
+        source: import("typebox").TLiteral<"kovahub">;
         slug: import("typebox").TString;
     }>;
     SkillsUpdateParams: import("typebox").TUnion<[import("typebox").TObject<{
@@ -1478,7 +1478,7 @@ export declare const ProtocolSchemas: {
         apiKey: import("typebox").TOptional<import("typebox").TString>;
         env: import("typebox").TOptional<import("typebox").TRecord<"^.*$", import("typebox").TString>>;
     }>, import("typebox").TObject<{
-        source: import("typebox").TLiteral<"clawhub">;
+        source: import("typebox").TLiteral<"kovahub">;
         slug: import("typebox").TOptional<import("typebox").TString>;
         all: import("typebox").TOptional<import("typebox").TBoolean>;
     }>]>;
@@ -1834,6 +1834,53 @@ export declare const ProtocolSchemas: {
             }>;
         }>;
         count: import("typebox").TNumber;
+    }>;
+    TasksAuditParams: import("typebox").TObject<{}>;
+    TasksAuditResult: import("typebox").TObject<{
+        tasks: import("typebox").TObject<{
+            total: import("typebox").TNumber;
+            warnings: import("typebox").TNumber;
+            errors: import("typebox").TNumber;
+            byCode: import("typebox").TObject<{
+                stale_queued: import("typebox").TNumber;
+                stale_running: import("typebox").TNumber;
+                lost: import("typebox").TNumber;
+                delivery_failed: import("typebox").TNumber;
+                missing_cleanup: import("typebox").TNumber;
+                inconsistent_timestamps: import("typebox").TNumber;
+            }>;
+        }>;
+        flows: import("typebox").TObject<{
+            total: import("typebox").TNumber;
+            warnings: import("typebox").TNumber;
+            errors: import("typebox").TNumber;
+            byCode: import("typebox").TObject<{
+                restore_failed: import("typebox").TNumber;
+                stale_running: import("typebox").TNumber;
+                stale_waiting: import("typebox").TNumber;
+                stale_blocked: import("typebox").TNumber;
+                cancel_stuck: import("typebox").TNumber;
+                missing_linked_tasks: import("typebox").TNumber;
+                blocked_task_missing: import("typebox").TNumber;
+                inconsistent_timestamps: import("typebox").TNumber;
+            }>;
+        }>;
+    }>;
+    TasksMaintenanceParams: import("typebox").TObject<{
+        apply: import("typebox").TOptional<import("typebox").TBoolean>;
+    }>;
+    TasksMaintenanceResult: import("typebox").TObject<{
+        apply: import("typebox").TBoolean;
+        tasks: import("typebox").TObject<{
+            reconciled: import("typebox").TNumber;
+            recovered: import("typebox").TNumber;
+            cleanupStamped: import("typebox").TNumber;
+            pruned: import("typebox").TNumber;
+        }>;
+        flows: import("typebox").TObject<{
+            reconciled: import("typebox").TNumber;
+            pruned: import("typebox").TNumber;
+        }>;
     }>;
     TasksShowParams: import("typebox").TObject<{
         lookup: import("typebox").TString;

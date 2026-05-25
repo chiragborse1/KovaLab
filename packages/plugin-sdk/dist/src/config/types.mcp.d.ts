@@ -20,7 +20,7 @@ export type McpServerConfig = {
     [key: string]: unknown;
 };
 export type McpConfig = {
-    /** Named MCP server definitions managed by OpenClaw. */
+    /** Named MCP server definitions managed by Kova. */
     servers?: Record<string, McpServerConfig>;
     /**
      * Idle TTL for session-scoped bundled MCP runtimes, in milliseconds.

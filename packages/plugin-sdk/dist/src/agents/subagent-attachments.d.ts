@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export declare function decodeStrictBase64(value: string, maxDecodedBytes: number): Buffer | null;
 export type SubagentInlineAttachment = {
     name: string;
@@ -32,7 +32,7 @@ export type MaterializeSubagentAttachmentsResult = {
     error: string;
 };
 export declare function materializeSubagentAttachments(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     targetAgentId: string;
     attachments?: SubagentInlineAttachment[];
     mountPathHint?: string;

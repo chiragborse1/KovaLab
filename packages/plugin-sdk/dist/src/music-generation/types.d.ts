@@ -1,5 +1,5 @@
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { MediaNormalizationEntry } from "../media-generation/normalization.types.js";
 export type MusicGenerationOutputFormat = "mp3" | "wav";
 export type GeneratedMusicAsset = {
@@ -16,14 +16,14 @@ export type MusicGenerationSourceImage = {
     metadata?: Record<string, unknown>;
 };
 export type MusicGenerationProviderConfiguredContext = {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
 };
 export type MusicGenerationRequest = {
     provider: string;
     model: string;
     prompt: string;
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentDir?: string;
     authStore?: AuthProfileStore;
     timeoutMs?: number;

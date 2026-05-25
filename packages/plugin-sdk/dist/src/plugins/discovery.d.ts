@@ -1,5 +1,5 @@
 import type { PluginBundleFormat, PluginDiagnostic, PluginFormat } from "./manifest-types.js";
-import { type PluginManifest, type OpenClawPackageManifest } from "./manifest.js";
+import { type PluginManifest, type KovaPackageManifest } from "./manifest.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 export type PluginCandidate = {
     idHint: string;
@@ -14,7 +14,7 @@ export type PluginCandidate = {
     packageVersion?: string;
     packageDescription?: string;
     packageDir?: string;
-    packageManifest?: OpenClawPackageManifest;
+    packageManifest?: KovaPackageManifest;
     bundledManifest?: PluginManifest;
     bundledManifestPath?: string;
 };
@@ -24,7 +24,7 @@ export type PluginDiscoveryResult = {
 };
 export declare function clearPluginDiscoveryCache(): void;
 export type CandidateBlockReason = "source_escapes_root" | "path_stat_failed" | "path_world_writable" | "path_suspicious_ownership";
-export declare function discoverOpenClawPlugins(params: {
+export declare function discoverKovaPlugins(params: {
     workspaceDir?: string;
     extraPaths?: string[];
     ownershipUid?: number | null;

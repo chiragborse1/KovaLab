@@ -6,7 +6,7 @@
  * provider where the message originated, even when the main session is shared
  * across multiple providers.
  */
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SilentReplyConversationType } from "../../shared/silent-reply-policy.js";
 import { INTERNAL_MESSAGE_CHANNEL } from "../../utils/message-channel.js";
 import type { OriginatingChannelType } from "../templating.js";
@@ -37,7 +37,7 @@ export type RouteReplyParams = {
     /** Thread id for replies (Telegram topic id or Matrix thread event id). */
     threadId?: string | number;
     /** Config for provider-specific settings. */
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     /** Optional abort signal for cooperative cancellation. */
     abortSignal?: AbortSignal;
     /** Mirror reply into session transcript (default: true when sessionKey is set). */

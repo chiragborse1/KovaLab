@@ -7,7 +7,7 @@
  *
  *     [plugin-load-profile] phase=<X> plugin=<Y> elapsedMs=<N> [extras…] source=<S>
  *
- * The same `OPENCLAW_PLUGIN_LOAD_PROFILE=1` env flag activates all probes.
+ * The same `KOVA_PLUGIN_LOAD_PROFILE=1` env flag activates all probes.
  *
  * Tooling that scrapes these lines (e.g. PERF-STARTUP-PLAN.md profiling
  * methodology) depends on the field order being:

@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export type BlockStreamingCoalescing = {
     minChars: number;
     maxChars: number;
@@ -18,7 +18,7 @@ export declare function clampPositiveInteger(value: unknown, fallback: number, b
     max: number;
 }): number;
 export declare function resolveEffectiveBlockStreamingConfig(params: {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     provider?: string;
     accountId?: string | null;
     chunking?: BlockStreamingChunking;
@@ -30,8 +30,8 @@ export declare function resolveEffectiveBlockStreamingConfig(params: {
     chunking: BlockStreamingChunking;
     coalescing: BlockStreamingCoalescing;
 };
-export declare function resolveBlockStreamingChunking(cfg: OpenClawConfig | undefined, provider?: string, accountId?: string | null): BlockStreamingChunking;
-export declare function resolveBlockStreamingCoalescing(cfg: OpenClawConfig | undefined, provider?: string, accountId?: string | null, chunking?: {
+export declare function resolveBlockStreamingChunking(cfg: KovaConfig | undefined, provider?: string, accountId?: string | null): BlockStreamingChunking;
+export declare function resolveBlockStreamingCoalescing(cfg: KovaConfig | undefined, provider?: string, accountId?: string | null, chunking?: {
     minChars: number;
     maxChars: number;
     breakPreference: "paragraph" | "newline" | "sentence";

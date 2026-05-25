@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import type { PluginBundleFormat } from "./manifest-types.js";
 type ReadBundleJsonResult = {
@@ -37,7 +37,7 @@ export declare function inspectBundleServerRuntimeSupport<TConfig>(params: {
 }): BundleServerRuntimeSupport;
 export declare function loadEnabledBundleConfig<TConfig, TDiagnostic>(params: {
     workspaceDir: string;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     createEmptyConfig: () => TConfig;
     loadBundleConfig: (params: {
         pluginId: string;

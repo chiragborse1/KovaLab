@@ -64,12 +64,20 @@ type MutableAssistantOutput = {
 };
 export { sanitizeTransportPayloadText } from "./transport-stream-shared.js";
 export declare function resolveAzureOpenAIApiVersion(env?: NodeJS.ProcessEnv): string;
+declare function processResponsesStream(openaiStream: AsyncIterable<unknown>, output: MutableAssistantOutput, stream: {
+    push(event: unknown): void;
+}, model: Model<Api>, options?: {
+    serviceTier?: ResponseCreateParamsStreaming["service_tier"];
+    applyServiceTierPricing?: (usage: MutableAssistantOutput["usage"], serviceTier?: ResponseCreateParamsStreaming["service_tier"]) => void;
+    signal?: AbortSignal;
+}): Promise<void>;
 declare function buildOpenAISdkRequestOptions(model: Model<Api>, signal?: AbortSignal): {
     signal?: AbortSignal;
     timeout?: number;
 } | undefined;
 declare function createOpenAIResponsesClient(model: Model<Api>, context: Context, apiKey: string, optionHeaders?: Record<string, string>, turnHeaders?: Record<string, string>): OpenAI;
 export declare function createOpenAIResponsesTransportStreamFn(): StreamFn;
+declare function sanitizeOpenAICodexResponsesParams<T extends Record<string, unknown>>(model: Model<Api>, params: T): T;
 export declare function buildOpenAIResponsesParams(model: Model<Api>, context: Context, options: OpenAIResponsesOptions | undefined, metadata?: Record<string, string>): OpenAIResponsesRequestParams;
 export declare function createAzureOpenAIResponsesTransportStreamFn(): StreamFn;
 declare function createAzureOpenAIClient(model: Model<Api>, context: Context, apiKey: string, optionHeaders?: Record<string, string>, turnHeaders?: Record<string, string>): AzureOpenAI;
@@ -82,6 +90,8 @@ declare function buildOpenAICompletionsClientConfig(model: Model<Api>, context: 
 export declare function createOpenAICompletionsTransportStreamFn(): StreamFn;
 declare function processOpenAICompletionsStream(responseStream: AsyncIterable<ChatCompletionChunk>, output: MutableAssistantOutput, model: Model<Api>, stream: {
     push(event: unknown): void;
+}, options?: {
+    signal?: AbortSignal;
 }): Promise<void>;
 type OpenAIResponsesRequestParams = {
     model: string;
@@ -125,5 +135,7 @@ export declare const __testing: {
     createOpenAICompletionsClient: typeof createOpenAICompletionsClient;
     createOpenAIResponsesClient: typeof createOpenAIResponsesClient;
     buildOpenAICompletionsClientConfig: typeof buildOpenAICompletionsClientConfig;
+    sanitizeOpenAICodexResponsesParams: typeof sanitizeOpenAICodexResponsesParams;
+    processResponsesStream: typeof processResponsesStream;
     processOpenAICompletionsStream: typeof processOpenAICompletionsStream;
 };

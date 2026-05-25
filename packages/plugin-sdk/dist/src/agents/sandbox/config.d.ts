@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { SandboxSshSettings } from "../../config/types.sandbox.js";
 import type { SandboxBrowserConfig, SandboxConfig, SandboxDockerConfig, SandboxPruneConfig, SandboxScope, SandboxSshConfig } from "./types.js";
 export declare const DANGEROUS_SANDBOX_DOCKER_BOOLEAN_KEYS: readonly ["dangerouslyAllowReservedContainerTargets", "dangerouslyAllowExternalBindSources", "dangerouslyAllowContainerNamespaceJoin"];
@@ -30,4 +30,4 @@ export declare function resolveSandboxSshConfig(params: {
     globalSsh?: Partial<SandboxSshSettings>;
     agentSsh?: Partial<SandboxSshSettings>;
 }): SandboxSshConfig;
-export declare function resolveSandboxConfigForAgent(cfg?: OpenClawConfig, agentId?: string): SandboxConfig;
+export declare function resolveSandboxConfigForAgent(cfg?: KovaConfig, agentId?: string): SandboxConfig;

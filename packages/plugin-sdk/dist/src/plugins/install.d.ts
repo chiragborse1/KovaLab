@@ -10,10 +10,10 @@ export declare const PLUGIN_INSTALL_ERROR_CODE: {
     readonly INVALID_MIN_HOST_VERSION: "invalid_min_host_version";
     readonly UNKNOWN_HOST_VERSION: "unknown_host_version";
     readonly INCOMPATIBLE_HOST_VERSION: "incompatible_host_version";
-    readonly MISSING_OPENCLAW_EXTENSIONS: "missing_openclaw_extensions";
+    readonly MISSING_KOVA_EXTENSIONS: "missing_kova_extensions";
     readonly MISSING_PLUGIN_MANIFEST: "missing_plugin_manifest";
-    readonly EMPTY_OPENCLAW_EXTENSIONS: "empty_openclaw_extensions";
-    readonly INVALID_OPENCLAW_EXTENSIONS: "invalid_openclaw_extensions";
+    readonly EMPTY_KOVA_EXTENSIONS: "empty_kova_extensions";
+    readonly INVALID_KOVA_EXTENSIONS: "invalid_kova_extensions";
     readonly NPM_PACKAGE_NOT_FOUND: "npm_package_not_found";
     readonly PLUGIN_ID_MISMATCH: "plugin_id_mismatch";
     readonly SECURITY_SCAN_BLOCKED: "security_scan_blocked";

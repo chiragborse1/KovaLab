@@ -1,7 +1,7 @@
-import type { ModelProviderConfig, OpenClawConfig } from "../config/types.js";
+import type { ModelProviderConfig, KovaConfig } from "../config/types.js";
 type FacadeModule = {
-    applyOpenrouterConfig: (cfg: OpenClawConfig) => OpenClawConfig;
-    applyOpenrouterProviderConfig: (cfg: OpenClawConfig) => OpenClawConfig;
+    applyOpenrouterConfig: (cfg: KovaConfig) => KovaConfig;
+    applyOpenrouterProviderConfig: (cfg: KovaConfig) => KovaConfig;
     buildOpenrouterProvider: () => ModelProviderConfig;
     OPENROUTER_DEFAULT_MODEL_REF: string;
 };

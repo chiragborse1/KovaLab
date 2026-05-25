@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 export type WorkspaceFallbackReason = "missing" | "blank" | "invalid_type";
 type AgentIdSource = "explicit" | "session_key" | "default";
 export type ResolveRunWorkspaceResult = {
@@ -13,7 +13,7 @@ export declare function resolveRunWorkspaceDir(params: {
     workspaceDir: unknown;
     sessionKey?: string;
     agentId?: string;
-    config?: OpenClawConfig;
+    config?: KovaConfig;
     env?: NodeJS.ProcessEnv;
 }): ResolveRunWorkspaceResult;
 export {};

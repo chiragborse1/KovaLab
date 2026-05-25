@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/types.js";
+import type { KovaConfig } from "../config/types.js";
 import type { ContextEngine } from "./types.js";
 /**
  * A factory that creates a ContextEngine instance.
@@ -46,5 +46,5 @@ export declare function clearContextEnginesForOwner(owner: string): void;
  * violation) are logged and silently replaced by the default engine.
  * Throws only when the default engine itself cannot be resolved.
  */
-export declare function resolveContextEngine(config?: OpenClawConfig): Promise<ContextEngine>;
+export declare function resolveContextEngine(config?: KovaConfig): Promise<ContextEngine>;
 export {};

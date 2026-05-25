@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import type { HookExternalContentSource } from "../security/external-content.js";
 import { type HookMappingResolved } from "./hooks-mapping.js";
 import type { HookMessageChannel } from "./hooks.types.js";
@@ -22,7 +22,7 @@ export type HookSessionPolicyResolved = {
     allowedSessionKeyPrefixes?: string[];
 };
 export type HookSessionKeySource = "request" | "mapping-static" | "mapping-templated";
-export declare function resolveHooksConfig(cfg: OpenClawConfig): HooksConfigResolved | null;
+export declare function resolveHooksConfig(cfg: KovaConfig): HooksConfigResolved | null;
 export declare function isSessionKeyAllowedByPrefix(sessionKey: string, prefixes: string[]): boolean;
 export declare function extractHookToken(req: IncomingMessage): string | undefined;
 export declare function readJsonBody(req: IncomingMessage, maxBytes: number): Promise<{

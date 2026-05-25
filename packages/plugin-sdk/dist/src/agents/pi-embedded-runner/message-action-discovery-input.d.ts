@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export declare function buildEmbeddedMessageActionDiscoveryInput(params: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     channel: string;
     currentChannelId?: string | null;
     currentThreadTs?: string | null;
@@ -12,7 +12,7 @@ export declare function buildEmbeddedMessageActionDiscoveryInput(params: {
     senderId?: string | null;
     senderIsOwner?: boolean;
 }): {
-    cfg: OpenClawConfig | undefined;
+    cfg: KovaConfig | undefined;
     channel: string;
     currentChannelId: string | undefined;
     currentThreadTs: string | undefined;

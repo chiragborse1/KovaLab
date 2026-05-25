@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 export { extractLeadingHttpStatus, formatRawAssistantErrorForUi, isCloudflareOrHtmlErrorPage, parseApiErrorInfo, } from "../../shared/assistant-error-format.js";
 import { isModelNotFoundErrorMessage } from "../live-model-errors.js";
 import type { FailoverReason } from "./types.js";
@@ -32,7 +32,7 @@ export declare function classifyFailoverReasonFromHttpStatus(status: number | un
 export declare function classifyFailoverSignal(signal: FailoverSignal): FailoverClassification | null;
 export declare function classifyProviderRuntimeFailureKind(signal: FailoverSignal | string): ProviderRuntimeFailureKind;
 export declare function formatAssistantErrorText(msg: AssistantMessage, opts?: {
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     sessionKey?: string;
     provider?: string;
     model?: string;

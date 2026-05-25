@@ -1,6 +1,6 @@
 import type { Api, Model } from "@mariozechner/pi-ai";
 import { type AuthStorage, type ModelRegistry } from "@mariozechner/pi-coding-agent";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import { applyProviderResolvedModelCompatWithPlugins, applyProviderResolvedTransportWithPlugin, buildProviderUnknownModelHintWithPlugin, normalizeProviderTransportWithPlugin, prepareProviderDynamicModel, runProviderDynamicModel, normalizeProviderResolvedModelWithPlugin, shouldPreferProviderRuntimeResolvedModel } from "../../plugins/provider-runtime.js";
 import { buildModelAliasLines } from "../model-alias-lines.js";
 import { buildInlineProviderModels } from "./model.inline-provider.js";
@@ -20,11 +20,11 @@ export declare function resolveModelWithRegistry(params: {
     provider: string;
     modelId: string;
     modelRegistry: ModelRegistry;
-    cfg?: OpenClawConfig;
+    cfg?: KovaConfig;
     agentDir?: string;
     runtimeHooks?: ProviderRuntimeHooks;
 }): Model<Api> | undefined;
-export declare function resolveModel(provider: string, modelId: string, agentDir?: string, cfg?: OpenClawConfig, options?: {
+export declare function resolveModel(provider: string, modelId: string, agentDir?: string, cfg?: KovaConfig, options?: {
     authStorage?: AuthStorage;
     modelRegistry?: ModelRegistry;
     runtimeHooks?: ProviderRuntimeHooks;
@@ -35,7 +35,7 @@ export declare function resolveModel(provider: string, modelId: string, agentDir
     authStorage: AuthStorage;
     modelRegistry: ModelRegistry;
 };
-export declare function resolveModelAsync(provider: string, modelId: string, agentDir?: string, cfg?: OpenClawConfig, options?: {
+export declare function resolveModelAsync(provider: string, modelId: string, agentDir?: string, cfg?: KovaConfig, options?: {
     authStorage?: AuthStorage;
     modelRegistry?: ModelRegistry;
     retryTransientProviderRuntimeMiss?: boolean;

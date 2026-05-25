@@ -1,5 +1,5 @@
 import type { FinalizedMsgContext } from "../auto-reply/templating.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type DiagnosticTraceContext } from "../infra/diagnostic-trace-context.js";
 import type { PluginHookInboundClaimContext, PluginHookInboundClaimEvent, PluginHookMessageContext, PluginHookMessageReceivedEvent, PluginHookMessageSentEvent } from "../plugins/hook-message.types.js";
 import type { MessagePreprocessedHookContext, MessageReceivedHookContext, MessageSentHookContext, MessageTranscribedHookContext } from "./internal-hooks.js";
@@ -85,10 +85,10 @@ export declare function toPluginInboundClaimEvent(canonical: CanonicalInboundMes
 export declare function toPluginMessageReceivedEvent(canonical: CanonicalInboundMessageHookContext): PluginHookMessageReceivedEvent;
 export declare function toPluginMessageSentEvent(canonical: CanonicalSentMessageHookContext): PluginHookMessageSentEvent;
 export declare function toInternalMessageReceivedContext(canonical: CanonicalInboundMessageHookContext): MessageReceivedHookContext;
-export declare function toInternalMessageTranscribedContext(canonical: CanonicalInboundMessageHookContext, cfg: OpenClawConfig): MessageTranscribedHookContext & {
-    cfg: OpenClawConfig;
+export declare function toInternalMessageTranscribedContext(canonical: CanonicalInboundMessageHookContext, cfg: KovaConfig): MessageTranscribedHookContext & {
+    cfg: KovaConfig;
 };
-export declare function toInternalMessagePreprocessedContext(canonical: CanonicalInboundMessageHookContext, cfg: OpenClawConfig): MessagePreprocessedHookContext & {
-    cfg: OpenClawConfig;
+export declare function toInternalMessagePreprocessedContext(canonical: CanonicalInboundMessageHookContext, cfg: KovaConfig): MessagePreprocessedHookContext & {
+    cfg: KovaConfig;
 };
 export declare function toInternalMessageSentContext(canonical: CanonicalSentMessageHookContext): MessageSentHookContext;

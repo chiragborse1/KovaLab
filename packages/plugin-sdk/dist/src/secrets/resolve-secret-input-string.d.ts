@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { type SecretRef } from "../config/types.secrets.js";
-type SecretDefaults = NonNullable<OpenClawConfig["secrets"]>["defaults"];
+type SecretDefaults = NonNullable<KovaConfig["secrets"]>["defaults"];
 export declare function resolveSecretInputString(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     value: unknown;
     env: NodeJS.ProcessEnv;
     defaults?: SecretDefaults;

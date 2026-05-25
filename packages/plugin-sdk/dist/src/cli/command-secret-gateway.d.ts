@@ -1,11 +1,11 @@
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { KovaConfig } from "../config/types.kova.js";
 import { resolveManifestContractOwnerPluginId } from "../plugins/plugin-registry.js";
 import { analyzeCommandSecretAssignmentsFromSnapshot } from "../secrets/command-config.js";
 import { collectConfigAssignments } from "../secrets/runtime-config-collectors.js";
 import { resolveRuntimeWebTools } from "../secrets/runtime-web-tools.js";
 import { discoverConfigSecretTargetsByIds } from "../secrets/target-registry.js";
 type ResolveCommandSecretsResult = {
-    resolvedConfig: OpenClawConfig;
+    resolvedConfig: KovaConfig;
     diagnostics: string[];
     targetStatesByPath: Record<string, CommandSecretTargetState>;
     hadUnresolvedTargets: boolean;
@@ -26,7 +26,7 @@ export declare const __testing: {
     resetDepsForTest(): void;
 };
 export declare function resolveCommandSecretRefsViaGateway(params: {
-    config: OpenClawConfig;
+    config: KovaConfig;
     commandName: string;
     targetIds: Set<string>;
     mode?: CommandSecretResolutionModeInput;

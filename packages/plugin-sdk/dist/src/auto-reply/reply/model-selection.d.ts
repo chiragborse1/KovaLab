@@ -1,6 +1,6 @@
 import type { ModelCatalogEntry } from "../../agents/model-catalog.js";
 import type { SessionEntry } from "../../config/sessions/types.js";
-import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { KovaConfig } from "../../config/types.kova.js";
 import type { ThinkLevel } from "./directives.js";
 export { resolveModelDirectiveSelection, type ModelDirectiveSelection, } from "./model-selection-directive.js";
 type ModelCatalog = ModelCatalogEntry[];
@@ -16,14 +16,14 @@ type ModelSelectionState = {
     needsModelCatalog: boolean;
 };
 export declare function createFastTestModelSelectionState(params: {
-    agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+    agentCfg: NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> | undefined;
     provider: string;
     model: string;
 }): ModelSelectionState;
 export declare function createModelSelectionState(params: {
-    cfg: OpenClawConfig;
+    cfg: KovaConfig;
     agentId?: string;
-    agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+    agentCfg: NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> | undefined;
     sessionEntry?: SessionEntry;
     sessionStore?: Record<string, SessionEntry>;
     sessionKey?: string;
@@ -39,8 +39,8 @@ export declare function createModelSelectionState(params: {
     hasResolvedHeartbeatModelOverride?: boolean;
 }): Promise<ModelSelectionState>;
 export declare function resolveContextTokens(params: {
-    cfg: OpenClawConfig;
-    agentCfg: NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]> | undefined;
+    cfg: KovaConfig;
+    agentCfg: NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> | undefined;
     provider: string;
     model: string;
 }): number;
