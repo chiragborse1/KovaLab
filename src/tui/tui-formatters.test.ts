@@ -321,7 +321,7 @@ describe("formatTuiFooterLine", () => {
         reasoningLevel: "off",
         queuedCount: 0,
       }),
-    ).toBe("main/tui-123 | ctx 18k/272k (7%)");
+    ).toBe("main/tui-123  ctx 18k/272k (7%)");
   });
 
   it("includes only active runtime modifiers", () => {
@@ -336,7 +336,7 @@ describe("formatTuiFooterLine", () => {
         queuedCount: 2,
       }),
     ).toBe(
-      "main/research | think high | fast | verbose full | reasoning:stream | queue 2 | ctx 20k/200k (10%)",
+      "main/research  think high  fast  verbose full  reasoning:stream  queue 2  ctx 20k/200k (10%)",
     );
   });
 });

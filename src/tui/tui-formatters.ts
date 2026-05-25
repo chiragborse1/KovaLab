@@ -423,7 +423,7 @@ export function formatTuiFooterLine(params: {
       : null,
     params.tokens,
   ].filter((part): part is string => typeof part === "string" && part.length > 0);
-  return parts.join(" | ");
+  return parts.join("  ");
 }
 
 export function formatContextUsageLine(params: {
