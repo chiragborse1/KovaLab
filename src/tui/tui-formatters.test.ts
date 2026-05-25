@@ -4,6 +4,7 @@ import {
   extractTextFromMessage,
   extractThinkingFromMessage,
   formatFooterSessionLabel,
+  formatTuiFooterLine,
   isCommandMessage,
   sanitizeRenderableText,
 } from "./tui-formatters.js";
@@ -305,6 +306,38 @@ describe("formatFooterSessionLabel", () => {
         displayName: "market scan",
       }),
     ).toBe("main/research (market scan)");
+  });
+});
+
+describe("formatTuiFooterLine", () => {
+  it("keeps the footer focused on session, active flags, queue, and context", () => {
+    expect(
+      formatTuiFooterLine({
+        sessionLabel: "main/tui-123",
+        tokens: "ctx 18k/272k (7%)",
+        thinkingLevel: "off",
+        fastMode: false,
+        verboseLevel: "off",
+        reasoningLevel: "off",
+        queuedCount: 0,
+      }),
+    ).toBe("main/tui-123 | ctx 18k/272k (7%)");
+  });
+
+  it("includes only active runtime modifiers", () => {
+    expect(
+      formatTuiFooterLine({
+        sessionLabel: "main/research",
+        tokens: "ctx 20k/200k (10%)",
+        thinkingLevel: "high",
+        fastMode: true,
+        verboseLevel: "full",
+        reasoningLevel: "stream",
+        queuedCount: 2,
+      }),
+    ).toBe(
+      "main/research | think high | fast | verbose full | reasoning:stream | queue 2 | ctx 20k/200k (10%)",
+    );
   });
 });
 

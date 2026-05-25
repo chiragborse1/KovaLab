@@ -48,6 +48,11 @@ const TUI_TRACE_SEGMENT_BUDGETS: Array<{
     budgetMs: 750,
     reason: "slash-command pipeline",
   },
+  {
+    pattern: /^tool\..+\.start$/i,
+    budgetMs: 10_000,
+    reason: "tool runtime",
+  },
 ];
 
 export function isTuiTurnTraceEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
@@ -74,6 +79,10 @@ export function formatTuiTurnTrace(payload: unknown): string {
 }
 
 function classifySlowTraceSegment(stage: string): string {
+  const toolMatch = /^tool\.([^.]+)\.start$/i.exec(stage);
+  if (toolMatch?.[1]) {
+    return `tool runtime: ${toolMatch[1]}`;
+  }
   if (/agent\.dispatch/i.test(stage)) {
     return "provider/model runtime";
   }

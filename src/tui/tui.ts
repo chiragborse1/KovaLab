@@ -32,7 +32,7 @@ import { editorTheme, theme } from "./theme/theme.js";
 import type { TuiBackend } from "./tui-backend.js";
 import { createCommandHandlers } from "./tui-command-handlers.js";
 import { createEventHandlers } from "./tui-event-handlers.js";
-import { formatFooterSessionLabel, formatTokens } from "./tui-formatters.js";
+import { formatFooterSessionLabel, formatTokens, formatTuiFooterLine } from "./tui-formatters.js";
 import { createLocalShellRunner } from "./tui-local-shell.js";
 import { createOverlayHandlers } from "./tui-overlays.js";
 import { createSessionActions } from "./tui-session-actions.js";
@@ -1047,30 +1047,19 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       sessionLabel: sessionKeyLabel,
       displayName: sessionInfo.displayName,
     });
-    const modelLabel = resolveTuiModelLabel({
-      provider: sessionInfo.modelProvider,
-      model: sessionInfo.model,
-    });
     const tokens = formatContextGauge(
       formatTokens(sessionInfo.totalTokens ?? null, sessionInfo.contextTokens ?? null),
     );
-    const think = sessionInfo.thinkingLevel ?? "off";
-    const fast = sessionInfo.fastMode === true;
-    const verbose = sessionInfo.verboseLevel ?? "off";
-    const reasoning = sessionInfo.reasoningLevel ?? "off";
-    const reasoningLabel =
-      reasoning === "on" ? "reasoning" : reasoning === "stream" ? "reasoning:stream" : null;
-    const footerParts = [
+    const footerLine = formatTuiFooterLine({
       sessionLabel,
-      modelLabel,
-      think !== "off" ? `think ${think}` : null,
-      fast ? "fast" : null,
-      verbose !== "off" ? `verbose ${verbose}` : null,
-      reasoningLabel,
-      queuedMessages.length > 0 ? `queue ${queuedMessages.length}` : null,
       tokens,
-    ].filter((part): part is string => typeof part === "string" && part.length > 0);
-    footer.setText(theme.dim(footerParts.join(" | ")));
+      thinkingLevel: sessionInfo.thinkingLevel,
+      fastMode: sessionInfo.fastMode,
+      verboseLevel: sessionInfo.verboseLevel,
+      reasoningLevel: sessionInfo.reasoningLevel,
+      queuedCount: queuedMessages.length,
+    });
+    footer.setText(theme.dim(footerLine));
   };
 
   const { openOverlay, closeOverlay } = createOverlayHandlers(tui, editor);

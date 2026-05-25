@@ -398,6 +398,34 @@ export function formatFooterSessionLabel(params: {
   return `${base} (${displayName})`;
 }
 
+export function formatTuiFooterLine(params: {
+  sessionLabel: string;
+  tokens: string;
+  thinkingLevel?: string | null;
+  fastMode?: boolean | null;
+  verboseLevel?: string | null;
+  reasoningLevel?: string | null;
+  queuedCount?: number | null;
+}): string {
+  const think = params.thinkingLevel ?? "off";
+  const verbose = params.verboseLevel ?? "off";
+  const reasoning = params.reasoningLevel ?? "off";
+  const reasoningLabel =
+    reasoning === "on" ? "reasoning" : reasoning === "stream" ? "reasoning:stream" : null;
+  const parts = [
+    params.sessionLabel,
+    think !== "off" ? `think ${think}` : null,
+    params.fastMode === true ? "fast" : null,
+    verbose !== "off" ? `verbose ${verbose}` : null,
+    reasoningLabel,
+    typeof params.queuedCount === "number" && params.queuedCount > 0
+      ? `queue ${params.queuedCount}`
+      : null,
+    params.tokens,
+  ].filter((part): part is string => typeof part === "string" && part.length > 0);
+  return parts.join(" | ");
+}
+
 export function formatContextUsageLine(params: {
   total?: number | null;
   context?: number | null;

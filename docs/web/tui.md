@@ -61,7 +61,7 @@ Use `--password` if your Gateway uses password auth.
 - Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
-- Footer: compact `agent/session`, model, active mode flags, queued messages, and `ctx used/limit`.
+- Footer: compact `agent/session`, active mode flags, queued messages, and `ctx used/limit`.
 - Input: text editor with autocomplete.
 
 The `ctx` gauge is the current session's estimated model context usage. When it

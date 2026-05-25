@@ -691,10 +691,15 @@ describe("EmbeddedTuiBackend", () => {
   it("emits opt-in timing trace events for local turns", async () => {
     process.env.KOVA_TUI_TRACE = "1";
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
-    agentCommandFromIngressMock.mockResolvedValueOnce({
+    const pending = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    agentCommandFromIngressMock.mockReturnValueOnce(pending.promise);
+    const result = {
       payloads: [{ text: "hello" }],
       meta: {},
-    });
+    };
 
     const backend = new EmbeddedTuiBackend();
     const events: Array<{ event: string; payload: unknown }> = [];
@@ -708,6 +713,17 @@ describe("EmbeddedTuiBackend", () => {
       message: "hello",
       runId: "run-trace",
     });
+    registeredListener?.({
+      runId: "run-trace",
+      stream: "tool",
+      data: { phase: "start", toolCallId: "tc-search", name: "web_search" },
+    });
+    registeredListener?.({
+      runId: "run-trace",
+      stream: "tool",
+      data: { phase: "result", toolCallId: "tc-search", name: "web_search" },
+    });
+    pending.resolve(result);
     await waitFor(() =>
       events.some(
         (entry) =>
@@ -732,6 +748,8 @@ describe("EmbeddedTuiBackend", () => {
         "agent.imports.end",
         "agent.dispatch.start",
         "agent.dispatch.end",
+        "tool.web_search.start",
+        "tool.web_search.result",
         "turn.final",
         "summary",
       ]),

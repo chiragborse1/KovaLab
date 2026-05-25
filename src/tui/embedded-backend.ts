@@ -204,6 +204,15 @@ function buildEmbeddedStatusReply(params: {
   return lines.join("\n");
 }
 
+function sanitizeTraceSegment(value: unknown, fallback: string): string {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) {
+    return fallback;
+  }
+  const normalized = raw.replace(/[^a-z0-9_.-]+/gi, "_").replace(/^_+|_+$/g, "");
+  return normalized.slice(0, 64) || fallback;
+}
+
 function replyText(reply: ReplyPayload | ReplyPayload[] | undefined): string {
   return payloadText(reply);
 }
@@ -907,6 +916,19 @@ export class EmbeddedTuiBackend implements TuiBackend {
     if (!run.firstAgentEventSent) {
       run.firstAgentEventSent = true;
       run.trace.step("agent.event.first", evt.stream);
+    }
+    if (evt.stream === "lifecycle") {
+      const phase = sanitizeTraceSegment(evt.data?.phase, "event");
+      if (phase === "start" || phase === "end" || phase === "error") {
+        run.trace.step(`lifecycle.${phase}`);
+      }
+    } else if (evt.stream === "tool") {
+      const phase = sanitizeTraceSegment(evt.data?.phase, "event");
+      if (phase === "start" || phase === "result") {
+        const toolName = sanitizeTraceSegment(evt.data?.name, "tool");
+        const isError = evt.data?.isError === true ? "error" : undefined;
+        run.trace.step(`tool.${toolName}.${phase}`, isError);
+      }
     }
 
     if (evt.stream !== "assistant") {

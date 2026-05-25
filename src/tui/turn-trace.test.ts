@@ -46,6 +46,15 @@ describe("tui turn trace", () => {
     });
   });
 
+  it("classifies slow tool spans by tool name", () => {
+    expect(
+      summarizeTuiTraceSegments([{ stage: "tool.web_search.start", durationMs: 12_000 }]),
+    ).toEqual({
+      slowestDetail: "slowest tool.web_search.start 12.00s (tool runtime: web_search)",
+      budgetDetail: "budget tool.web_search.start 12.00s > 10.00s (tool runtime)",
+    });
+  });
+
   it("formats trace payloads defensively", () => {
     expect(formatTuiTurnTrace({ stage: "summary", elapsedMs: 1250, detail: "final" })).toBe(
       "trace summary +1.25s | final",
