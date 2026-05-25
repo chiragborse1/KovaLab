@@ -37,6 +37,7 @@ export class MessageFrame implements Component {
     return [
       this.renderTop(frameWidth),
       ...content.map((line) => this.renderContentLine(line, innerWidth)),
+      this.renderBottom(frameWidth),
     ];
   }
 
@@ -45,19 +46,24 @@ export class MessageFrame implements Component {
   }
 
   private renderTop(width: number): string {
-    const maxTitleWidth = Math.max(1, width - 7);
+    const maxTitleWidth = Math.max(1, width - 8);
     const title = truncateToWidth(this.options.title, maxTitleWidth, "…");
     const titleWidth = visibleWidth(title);
-    const fillerWidth = Math.max(0, width - 4 - titleWidth);
+    const fillerWidth = Math.max(0, width - 5 - titleWidth);
 
     return [
       this.options.theme.border("╭─ "),
       this.options.theme.title(title),
       this.options.theme.border(` ${"─".repeat(fillerWidth)}`),
+      this.options.theme.border("╮"),
     ].join("");
   }
 
   private renderContentLine(line: string, innerWidth: number): string {
     return [this.options.theme.border("  "), padToWidth(line, innerWidth)].join("");
+  }
+
+  private renderBottom(width: number): string {
+    return this.options.theme.border(`╰${"─".repeat(Math.max(0, width - 2))}╯`);
   }
 }

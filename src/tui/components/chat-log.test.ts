@@ -52,7 +52,8 @@ describe("ChatLog", () => {
     expect(rendered).toContain("  please check the build");
     expect(rendered).toContain("╭─ Kova");
     expect(rendered).toContain("  Build looks clean.");
-    expect(rendered).not.toContain("╰");
+    expect(rendered).toContain("╰");
+    expect(rendered).not.toContain("│");
   });
 
   it("drops stale tool references when old components are pruned", () => {
