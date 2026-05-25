@@ -7,8 +7,8 @@
     "@whiskeysockets/baileys": "7.0.0-rc.9",
     "https-proxy-agent": "^9.0.0",
     "jimp": "^1.6.1",
-    "typebox": "1.1.33",
-    "undici": "8.2.0"
+    "typebox": "1.1.38",
+    "undici": "8.3.0"
   },
   "devDependencies": {
     "@getkova/plugin-sdk": "workspace:*",
