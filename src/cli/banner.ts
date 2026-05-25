@@ -50,11 +50,11 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
   const commitLabel = commit ?? "unknown";
   const tagline = pickTagline({ ...options, mode: resolveTaglineMode(options) });
   const rich = options.richTty ?? isRich();
-  const title = "🦄 Kova";
-  const prefix = "🦄 ";
+  const title = "Kova";
+  const prefix = "";
   const columns = options.columns ?? process.stdout.columns ?? 120;
   const plainBaseLine = `${title} ${version} (${commitLabel})`;
-  const plainFullLine = tagline ? `${plainBaseLine} — ${tagline}` : plainBaseLine;
+  const plainFullLine = tagline ? `${plainBaseLine} · ${tagline}` : plainBaseLine;
   const fitsOnOneLine = visibleWidth(plainFullLine) <= columns;
   if (rich) {
     if (fitsOnOneLine) {
@@ -63,7 +63,7 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
       }
       return `${theme.heading(title)} ${theme.info(version)} ${theme.muted(
         `(${commitLabel})`,
-      )} ${theme.muted("—")} ${theme.accentDim(tagline)}`;
+      )} ${theme.muted("·")} ${theme.info(tagline)}`;
     }
     const line1 = `${theme.heading(title)} ${theme.info(version)} ${theme.muted(
       `(${commitLabel})`,
@@ -71,7 +71,7 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
     if (!tagline) {
       return line1;
     }
-    const line2 = `${" ".repeat(prefix.length)}${theme.accentDim(tagline)}`;
+    const line2 = `${" ".repeat(prefix.length)}${theme.info(tagline)}`;
     return `${line1}\n${line2}`;
   }
   if (fitsOnOneLine) {

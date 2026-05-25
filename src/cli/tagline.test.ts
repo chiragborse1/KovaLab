@@ -13,7 +13,7 @@ describe("pickTagline", () => {
   it("keeps KOVA_TAGLINE_INDEX behavior in random mode", () => {
     const value = pickTagline({
       mode: "random",
-      env: { KOVA_TAGLINE_INDEX: "0" } as NodeJS.ProcessEnv,
+      env: { KOVA_TAGLINE_INDEX: "1" } as NodeJS.ProcessEnv,
     });
     expect(value.length).toBeGreaterThan(0);
     expect(value).not.toBe(DEFAULT_TAGLINE);

@@ -15,7 +15,7 @@ ERROR='\033[38;2;230;57;70m'        # coral-mid     #e63946
 MUTED='\033[38;2;90;100;128m'       # text-muted    #5a6480
 NC='\033[0m' # No Color
 
-DEFAULT_TAGLINE="All your chats, one Kova."
+DEFAULT_TAGLINE="terminal agent ready"
 NODE_DEFAULT_MAJOR=24
 NODE_MIN_MAJOR=22
 NODE_MIN_MINOR=14
@@ -876,126 +876,7 @@ install_kova_npm() {
     return 0
 }
 
-TAGLINES=()
-TAGLINES+=("Your terminal just got sharper; type something and let the bot handle the busywork.")
-TAGLINES+=("Welcome to the command line: where dreams compile and confidence segfaults.")
-TAGLINES+=("I run on caffeine, JSON5, and the audacity of \"it worked on my machine.\"")
-TAGLINES+=("Gateway online—please keep hands, feet, and appendages inside the shell at all times.")
-TAGLINES+=("I speak fluent bash, mild sarcasm, and aggressive tab-completion energy.")
-TAGLINES+=("One CLI to rule them all, and one more restart because you changed the port.")
-TAGLINES+=("If it works, it's automation; if it breaks, it's a \"learning opportunity.\"")
-TAGLINES+=("Pairing codes exist because even bots believe in consent—and good security hygiene.")
-TAGLINES+=("Your .env is showing; don't worry, I'll pretend I didn't see it.")
-TAGLINES+=("I'll do the boring stuff while you dramatically stare at the logs like it's cinema.")
-TAGLINES+=("I'm not saying your workflow is chaotic... I'm just bringing a linter and a helmet.")
-TAGLINES+=("Type the command with confidence—nature will provide the stack trace if needed.")
-TAGLINES+=("I don't judge, but your missing API keys are absolutely judging you.")
-TAGLINES+=("I can grep it, git blame it, and gently roast it—pick your coping mechanism.")
-TAGLINES+=("Hot reload for config, cold sweat for deploys.")
-TAGLINES+=("I'm the assistant your terminal demanded, not the one your sleep schedule requested.")
-TAGLINES+=("I keep secrets like a vault... unless you print them in debug logs again.")
-TAGLINES+=("Automation with edge: minimal fuss, maximum lift.")
-TAGLINES+=("I'm basically a Swiss Army knife, but with more opinions and fewer sharp edges.")
-TAGLINES+=("If you're lost, run doctor; if you're brave, run prod; if you're wise, run tests.")
-TAGLINES+=("Your task has been queued; your dignity has been deprecated.")
-TAGLINES+=("I can't fix your code taste, but I can fix your build and your backlog.")
-TAGLINES+=("I'm not magic—I'm just extremely persistent with retries and coping strategies.")
-TAGLINES+=("It's not \"failing,\" it's \"discovering new ways to configure the same thing wrong.\"")
-TAGLINES+=("Give me a workspace and I'll give you fewer tabs, fewer toggles, and more oxygen.")
-TAGLINES+=("I read logs so you can keep pretending you don't have to.")
-TAGLINES+=("If something's on fire, I can't extinguish it—but I can write a beautiful postmortem.")
-TAGLINES+=("I'll refactor your busywork like it owes me money.")
-TAGLINES+=("Say \"stop\" and I'll stop—say \"ship\" and we'll both learn a lesson.")
-TAGLINES+=("I'm the reason your shell history looks like a hacker-movie montage.")
-TAGLINES+=("I'm like tmux: confusing at first, then suddenly you can't live without me.")
-TAGLINES+=("I can run local, remote, or purely on vibes—results may vary with DNS.")
-TAGLINES+=("If you can describe it, I can probably automate it—or at least make it funnier.")
-TAGLINES+=("Your config is valid, your assumptions are not.")
-TAGLINES+=("I don't just autocomplete—I auto-commit (emotionally), then ask you to review (logically).")
-TAGLINES+=("Less clicking, more shipping, fewer \"where did that file go\" moments.")
-TAGLINES+=("Kova up, commit in—let's ship something mildly responsible.")
-TAGLINES+=("I'll streamline your workflow: messy problems in, useful outcomes out.")
-TAGLINES+=("Shell yeah—I'm here to move the toil out of your way.")
-TAGLINES+=("If it's repetitive, I'll automate it; if it's hard, I'll bring jokes and a rollback plan.")
-TAGLINES+=("Because texting yourself reminders is so 2024.")
-TAGLINES+=("WhatsApp, but make it ✨engineering✨.")
-TAGLINES+=("Turning \"I'll reply later\" into \"my bot replied instantly\".")
-TAGLINES+=("The one chat assistant in your contacts that can actually do the work.")
-TAGLINES+=("Chat automation for people who peaked at IRC.")
-TAGLINES+=("Because Siri wasn't answering at 3AM.")
-TAGLINES+=("IPC, but it's your phone.")
-TAGLINES+=("The UNIX philosophy meets your DMs.")
-TAGLINES+=("curl for conversations.")
-TAGLINES+=("WhatsApp Business, but without the business.")
-TAGLINES+=("Meta wishes they shipped this fast.")
-TAGLINES+=("End-to-end encrypted, Zuck-to-Zuck excluded.")
-TAGLINES+=("The only bot Mark can't train on your DMs.")
-TAGLINES+=("WhatsApp automation without the \"please accept our new privacy policy\".")
-TAGLINES+=("Chat APIs that don't require a Senate hearing.")
-TAGLINES+=("Because Threads wasn't the answer either.")
-TAGLINES+=("Your messages, your servers, Meta's tears.")
-TAGLINES+=("iMessage green bubble energy, but for everyone.")
-TAGLINES+=("Siri's competent cousin.")
-TAGLINES+=("Works on Android. Crazy concept, we know.")
-TAGLINES+=("No \$999 stand required.")
-TAGLINES+=("We ship features faster than Apple ships calculator updates.")
-TAGLINES+=("Your AI assistant, now without the \$3,499 headset.")
-TAGLINES+=("Think different. Actually think.")
-TAGLINES+=("Ah, the fruit tree company! 🍎")
-
-HOLIDAY_NEW_YEAR="New Year's Day: New year, new config—same old EADDRINUSE, but this time we resolve it like grown-ups."
-HOLIDAY_LUNAR_NEW_YEAR="Lunar New Year: May your builds be lucky, your branches prosperous, and your merge conflicts chased away with fireworks."
-HOLIDAY_CHRISTMAS="Christmas: Ho ho ho—Santa's little Kova assistant is here to ship joy, roll back chaos, and stash the keys safely."
-HOLIDAY_EID="Eid al-Fitr: Celebration mode: queues cleared, tasks completed, and good vibes committed to main with clean history."
-HOLIDAY_DIWALI="Diwali: Let the logs sparkle and the bugs flee—today we light up the terminal and ship with pride."
-HOLIDAY_EASTER="Easter: I found your missing environment variable—consider it a tiny CLI egg hunt with fewer jellybeans."
-HOLIDAY_HANUKKAH="Hanukkah: Eight nights, eight retries, zero shame—may your gateway stay lit and your deployments stay peaceful."
-HOLIDAY_HALLOWEEN="Halloween: Spooky season: beware haunted dependencies, cursed caches, and the ghost of node_modules past."
-HOLIDAY_THANKSGIVING="Thanksgiving: Grateful for stable ports, working DNS, and a bot that reads the logs so nobody has to."
-HOLIDAY_VALENTINES="Valentine's Day: Roses are typed, violets are piped—I'll automate the chores so you can spend time with humans."
-
-append_holiday_taglines() {
-    local today
-    local month_day
-    today="$(date -u +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)"
-    month_day="$(date -u +%m-%d 2>/dev/null || date +%m-%d)"
-
-    case "$month_day" in
-        "01-01") TAGLINES+=("$HOLIDAY_NEW_YEAR") ;;
-        "02-14") TAGLINES+=("$HOLIDAY_VALENTINES") ;;
-        "10-31") TAGLINES+=("$HOLIDAY_HALLOWEEN") ;;
-        "12-25") TAGLINES+=("$HOLIDAY_CHRISTMAS") ;;
-    esac
-
-    case "$today" in
-        "2025-01-29"|"2026-02-17"|"2027-02-06") TAGLINES+=("$HOLIDAY_LUNAR_NEW_YEAR") ;;
-        "2025-03-30"|"2025-03-31"|"2026-03-20"|"2027-03-10") TAGLINES+=("$HOLIDAY_EID") ;;
-        "2025-10-20"|"2026-11-08"|"2027-10-28") TAGLINES+=("$HOLIDAY_DIWALI") ;;
-        "2025-04-20"|"2026-04-05"|"2027-03-28") TAGLINES+=("$HOLIDAY_EASTER") ;;
-        "2025-11-27"|"2026-11-26"|"2027-11-25") TAGLINES+=("$HOLIDAY_THANKSGIVING") ;;
-        "2025-12-15"|"2025-12-16"|"2025-12-17"|"2025-12-18"|"2025-12-19"|"2025-12-20"|"2025-12-21"|"2025-12-22"|"2026-12-05"|"2026-12-06"|"2026-12-07"|"2026-12-08"|"2026-12-09"|"2026-12-10"|"2026-12-11"|"2026-12-12"|"2027-12-25"|"2027-12-26"|"2027-12-27"|"2027-12-28"|"2027-12-29"|"2027-12-30"|"2027-12-31"|"2028-01-01") TAGLINES+=("$HOLIDAY_HANUKKAH") ;;
-    esac
-}
-
-pick_tagline() {
-    append_holiday_taglines
-    local count=${#TAGLINES[@]}
-    if [[ "$count" -eq 0 ]]; then
-        echo "$DEFAULT_TAGLINE"
-        return
-    fi
-    if [[ -n "${KOVA_TAGLINE_INDEX:-}" ]]; then
-        if [[ "${KOVA_TAGLINE_INDEX}" =~ ^[0-9]+$ ]]; then
-            local idx=$((KOVA_TAGLINE_INDEX % count))
-            echo "${TAGLINES[$idx]}"
-            return
-        fi
-    fi
-    local idx=$((RANDOM % count))
-    echo "${TAGLINES[$idx]}"
-}
-
-TAGLINE=$(pick_tagline)
+TAGLINE="$DEFAULT_TAGLINE"
 
 NO_ONBOARD=${KOVA_NO_ONBOARD:-0}
 NO_PROMPT=${KOVA_NO_PROMPT:-0}

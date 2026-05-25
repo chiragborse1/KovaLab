@@ -506,13 +506,13 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 ],
                 title: "CLI Banner Tagline Mode",
                 description:
-                  'Controls tagline style in the CLI startup banner: "random" (default) picks from the rotating tagline pool, "default" always shows the neutral default tagline, and "off" hides tagline text while keeping the banner version line.',
+                  'Controls tagline style in the CLI startup banner: "default" shows the neutral readiness line, "random" rotates through calm Kova-owned lines, and "off" hides tagline text while keeping the banner version line.',
               },
             },
             additionalProperties: false,
             title: "CLI Banner",
             description:
-              "CLI startup banner controls for title/version line and tagline style behavior. Keep banner enabled for fast version/context checks, then tune tagline mode to your preferred noise level.",
+              "CLI startup banner controls for the title/version line and calm readiness tagline.",
           },
         },
         additionalProperties: false,
@@ -24176,12 +24176,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "cli.banner": {
       label: "CLI Banner",
-      help: "CLI startup banner controls for title/version line and tagline style behavior. Keep banner enabled for fast version/context checks, then tune tagline mode to your preferred noise level.",
+      help: "CLI startup banner controls for the title/version line and calm readiness tagline.",
       tags: ["advanced"],
     },
     "cli.banner.taglineMode": {
       label: "CLI Banner Tagline Mode",
-      help: 'Controls tagline style in the CLI startup banner: "random" (default) picks from the rotating tagline pool, "default" always shows the neutral default tagline, and "off" hides tagline text while keeping the banner version line.',
+      help: 'Controls tagline style in the CLI startup banner: "default" shows the neutral readiness line, "random" rotates through calm Kova-owned lines, and "off" hides tagline text while keeping the banner version line.',
       tags: ["advanced"],
     },
     "update.channel": {
