@@ -114,13 +114,26 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
   backend.onDisconnected = (reason) => writeProtocol({ type: "disconnected", reason });
   backend.onGap = (info) => writeProtocol({ type: "gap", info });
 
+  let stopPromise: Promise<void> | null = null;
+  const stopBackend = () => {
+    stopPromise ??= Promise.resolve(backend.stop());
+    return stopPromise;
+  };
+  const stopAndExit = (code: number) => {
+    void stopBackend()
+      .catch((error: unknown) => {
+        writeProtocol({ type: "fatal", error: errorMessage(error) });
+      })
+      .finally(() => {
+        process.exit(code);
+      });
+  };
+
   process.once("SIGTERM", () => {
-    backend.stop();
-    process.exit(0);
+    stopAndExit(0);
   });
   process.once("SIGINT", () => {
-    backend.stop();
-    process.exit(0);
+    stopAndExit(0);
   });
   process.once("uncaughtException", (error) => {
     writeProtocol({ type: "fatal", error: errorMessage(error) });
@@ -149,7 +162,7 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
     }
 
     if (request.type === "stop") {
-      backend.stop();
+      await stopBackend();
       break;
     }
 
@@ -177,7 +190,7 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
       });
   }
 
-  backend.stop();
+  await stopBackend();
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
