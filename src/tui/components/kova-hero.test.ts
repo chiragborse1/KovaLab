@@ -81,6 +81,7 @@ describe("KovaHero", () => {
     expect(rendered).toContain("15k/272k");
     expect(rendered).toContain("[");
     expect(rendered).toContain("6%");
+    expect(rendered.match(/\b6%/g)).toHaveLength(1);
   });
 
   it("maps known legacy skill source labels without changing unknown sources", () => {

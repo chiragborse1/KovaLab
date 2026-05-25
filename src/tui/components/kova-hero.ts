@@ -92,7 +92,7 @@ export function formatContextGauge(tokenLabel: string): string {
   }
   const filled = Math.max(0, Math.min(10, Math.round(percent / 10)));
   const gauge = `${"█".repeat(filled)}${"░".repeat(10 - filled)}`;
-  return `ctx ${compact} ${theme.dim(`[${gauge}]`)} ${String(percent)}%`;
+  return `ctx ${compact} ${theme.dim(`[${gauge}]`)}`;
 }
 
 function formatToolGroups(groups: KovaHeroToolGroup[]): string[] {
