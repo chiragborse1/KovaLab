@@ -15,6 +15,7 @@ type RunAuthFlow = NonNullable<Parameters<typeof createCommandHandlers>[0]["runA
 type AbortActiveMock = ReturnType<typeof vi.fn> & (() => Promise<void>);
 type SelectableOverlay = {
   onSelect?: (item: { value: string; label?: string; description?: string }) => void;
+  onCancel?: () => void;
   getFilterText?: () => string;
 };
 type SetActivityStatusMock = ReturnType<typeof vi.fn> & ((text: string) => void);
@@ -55,6 +56,18 @@ function createHarness(params?: {
   busyInputMode?: "queue" | "steer" | "interrupt";
   sessionInfo?: SessionInfo;
   opts?: { local?: boolean };
+  pendingApprovals?: Array<{
+    key: string;
+    commandId: string;
+    title: string;
+    status: "pending";
+    approvalId?: string;
+    approvalSlug?: string;
+    allowedDecisions: Array<"allow-once" | "allow-always" | "deny">;
+    command?: string;
+    host?: string;
+    message?: string;
+  }>;
 }) {
   const sendChat = params?.sendChat ?? vi.fn().mockResolvedValue({ runId: "r1" });
   const steerChat = params?.steerChat;
@@ -313,6 +326,19 @@ function createHarness(params?: {
   const addUser = vi.fn();
   const addSystem = vi.fn();
   const setToolsExpanded = vi.fn();
+  const listPendingApprovals = vi.fn(() => params?.pendingApprovals ?? []);
+  const findPendingApproval = vi.fn((value: string) => {
+    const approvals = params?.pendingApprovals ?? [];
+    return (
+      approvals.find(
+        (approval) =>
+          approval.commandId === value ||
+          approval.approvalId === value ||
+          approval.approvalSlug === value ||
+          approval.key === value,
+      ) ?? null
+    );
+  });
   const requestRender = vi.fn();
   const noteLocalRunId = vi.fn();
   const noteLocalBtwRunId = vi.fn();
@@ -363,7 +389,13 @@ function createHarness(params?: {
       branchSessionCheckpoint,
       restoreSessionCheckpoint,
     } as never,
-    chatLog: { addUser, addSystem, setToolsExpanded } as never,
+    chatLog: {
+      addUser,
+      addSystem,
+      setToolsExpanded,
+      listPendingApprovals,
+      findPendingApproval,
+    } as never,
     tui: { requestRender } as never,
     opts: params?.opts ?? {},
     state: state as never,
@@ -411,6 +443,8 @@ function createHarness(params?: {
     addUser,
     addSystem,
     setToolsExpanded,
+    listPendingApprovals,
+    findPendingApproval,
     requestRender,
     loadHistory,
     refreshSessionInfo,
@@ -661,6 +695,92 @@ describe("tui command handlers", () => {
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("profile: coding"));
     expect(addSystem).toHaveBeenCalledWith(
       expect.stringContaining("runtime: 1 tools across 1 groups"),
+    );
+  });
+
+  it("opens an approval decision picker for the only pending approval", async () => {
+    const { handleCommand, sendChat, openOverlay, closeOverlay, addUser } = createHarness({
+      pendingApprovals: [
+        {
+          key: "approval-1",
+          commandId: "12345678",
+          title: "Command approval requested",
+          status: "pending",
+          approvalId: "12345678-1234-1234-1234-123456789012",
+          approvalSlug: "12345678",
+          allowedDecisions: ["allow-once", "deny"],
+          command: "pnpm test",
+          host: "gateway",
+        },
+      ],
+    });
+
+    await handleCommand("/approve");
+    const selector = openOverlay.mock.calls[0]?.[0] as SelectableOverlay | undefined;
+    selector?.onSelect?.({ value: "allow-once", label: "Allow once" });
+    await flushAsyncSelect();
+
+    expect(addUser).toHaveBeenCalledWith("/approve");
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        message: "/approve 12345678 allow-once",
+      }),
+    );
+    expect(closeOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens a pending approval picker before the decision picker when several approvals exist", async () => {
+    const { handleCommand, sendChat, openOverlay, closeOverlay } = createHarness({
+      pendingApprovals: [
+        {
+          key: "approval-a",
+          commandId: "aaa11111",
+          title: "First approval",
+          status: "pending",
+          approvalSlug: "aaa11111",
+          allowedDecisions: ["deny"],
+          command: "first command",
+        },
+        {
+          key: "approval-b",
+          commandId: "bbb22222",
+          title: "Second approval",
+          status: "pending",
+          approvalSlug: "bbb22222",
+          allowedDecisions: ["allow-always", "deny"],
+          command: "second command",
+        },
+      ],
+    });
+
+    await handleCommand("/approve");
+    const approvalSelector = openOverlay.mock.calls[0]?.[0] as SelectableOverlay | undefined;
+    approvalSelector?.onSelect?.({ value: "bbb22222", label: "bbb22222 - Second approval" });
+
+    const decisionSelector = openOverlay.mock.calls[1]?.[0] as SelectableOverlay | undefined;
+    decisionSelector?.onSelect?.({ value: "allow-always", label: "Allow always" });
+    await flushAsyncSelect();
+
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "/approve bbb22222 allow-always",
+      }),
+    );
+    expect(closeOverlay).toHaveBeenCalledTimes(2);
+  });
+
+  it("forwards explicit approval commands through the shared command path", async () => {
+    const { handleCommand, sendChat, openOverlay, addUser } = createHarness();
+
+    await handleCommand("/approve req-1 deny");
+
+    expect(openOverlay).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/approve req-1 deny");
+    expect(sendChat).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "/approve req-1 deny",
+      }),
     );
   });
 

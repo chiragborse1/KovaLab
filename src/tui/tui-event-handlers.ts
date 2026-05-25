@@ -1,7 +1,8 @@
 import { isAuthErrorMessage } from "../agents/pi-embedded-helpers.js";
 import { parseAgentSessionKey } from "../sessions/session-key-utils.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
-import type { ApprovalEventSummary } from "./components/approval-event.js";
+import type { ApprovalDecision, ApprovalEventSummary } from "./components/approval-event.js";
+import { normalizeApprovalDecision } from "./components/approval-event.js";
 import { asString, extractTextFromMessage, isCommandMessage } from "./tui-formatters.js";
 import { TuiStreamAssembler } from "./tui-stream-assembler.js";
 import type { AgentEvent, BtwEvent, ChatEvent, TuiStateAccess } from "./tui-types.js";
@@ -57,6 +58,16 @@ const RUN_RECOVERY_HINT =
   "Recovery: session history is preserved; use /sessions to reopen saved sessions, /reset to start clean, or !kova tasks list to inspect detached background work.";
 const STALE_RUN_RECOVERY_HINT =
   "If detached work was involved, run !kova tasks audit to surface stale or lost background tasks.";
+
+function readApprovalDecisions(value: unknown): ApprovalDecision[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const decisions = value
+    .map((entry) => normalizeApprovalDecision(entry))
+    .filter((entry): entry is ApprovalDecision => entry !== null);
+  return decisions.length > 0 ? decisions : undefined;
+}
 
 export function createEventHandlers(context: EventHandlerContext) {
   const {
@@ -570,6 +581,7 @@ export function createEventHandlers(context: EventHandlerContext) {
         asString(data.itemId, "") ||
         asString(data.toolCallId, "") ||
         `${evt.runId}:approval`;
+      const allowedDecisions = readApprovalDecisions(data.allowedDecisions);
       chatLog.showApproval(key, {
         phase: asString(data.phase, ""),
         kind: asString(data.kind, ""),
@@ -577,6 +589,7 @@ export function createEventHandlers(context: EventHandlerContext) {
         title: asString(data.title, ""),
         approvalId,
         approvalSlug,
+        ...(allowedDecisions ? { allowedDecisions } : {}),
         command: asString(data.command, ""),
         host: asString(data.host, ""),
         reason: asString(data.reason, ""),

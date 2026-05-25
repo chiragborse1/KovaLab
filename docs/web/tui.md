@@ -61,7 +61,8 @@ Use `--password` if your Gateway uses password auth.
 - Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Approval cards: exec/tool approval requests stay visible even when tool
-  details are hidden; respond with the shown `/approve ...` command.
+  details are hidden; run `/approve` to choose a pending request, or respond
+  with the shown `/approve ...` command.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
 - Footer: compact `agent/session`, active mode flags, queued messages, and `ctx used/limit`.
 - Input: text editor with autocomplete.
@@ -141,6 +142,7 @@ Core:
 - `/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]`
 - `/skill <name> [args]`
 - `/plugins [list|verbose|show <plugin>]`
+- `/approve [id] [allow-once|allow-always|deny]`
 
 Capability map:
 

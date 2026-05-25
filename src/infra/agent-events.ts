@@ -55,6 +55,7 @@ export type AgentPlanEventData = {
 export type AgentApprovalEventPhase = "requested" | "resolved";
 export type AgentApprovalEventStatus = "pending" | "unavailable" | "approved" | "denied" | "failed";
 export type AgentApprovalEventKind = "exec" | "plugin" | "unknown";
+export type AgentApprovalDecision = "allow-once" | "allow-always" | "deny";
 
 export type AgentApprovalEventData = {
   phase: AgentApprovalEventPhase;
@@ -65,6 +66,7 @@ export type AgentApprovalEventData = {
   toolCallId?: string;
   approvalId?: string;
   approvalSlug?: string;
+  allowedDecisions?: AgentApprovalDecision[];
   command?: string;
   host?: string;
   reason?: string;

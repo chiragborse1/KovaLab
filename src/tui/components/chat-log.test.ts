@@ -92,9 +92,17 @@ describe("ChatLog", () => {
       status: "pending",
       title: "Command approval requested",
       approvalSlug: "req-1",
+      allowedDecisions: ["allow-once", "deny"],
       command: "pnpm build",
       host: "gateway",
     });
+    expect(chatLog.listPendingApprovals()).toEqual([
+      expect.objectContaining({
+        commandId: "req-1",
+        allowedDecisions: ["allow-once", "deny"],
+        command: "pnpm build",
+      }),
+    ]);
     chatLog.showApproval("req-1", {
       status: "approved",
       title: "Command approval resolved",
@@ -107,6 +115,7 @@ describe("ChatLog", () => {
     expect(rendered).toContain("Command approval resolved - approved");
     expect(rendered).not.toContain("pnpm build");
     expect(chatLog.children.length).toBe(1);
+    expect(chatLog.listPendingApprovals()).toEqual([]);
   });
 
   it("prunes system messages atomically when a non-system entry overflows the log", () => {

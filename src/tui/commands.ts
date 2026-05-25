@@ -15,6 +15,7 @@ const TRACE_LEVELS = ["on", "off"];
 const FAST_LEVELS = ["status", "on", "off", "default"];
 const REASONING_LEVELS = ["on", "off"];
 const ELEVATED_LEVELS = ["on", "off", "ask", "full"];
+const APPROVAL_LEVELS = ["pending", "allow-once", "allow-always", "deny"];
 const ACTIVATION_LEVELS = ["mention", "always"];
 const USAGE_FOOTER_LEVELS = ["off", "tokens", "full", "cost"];
 const BUSY_LEVELS = ["status", "queue", "steer", "interrupt", "clear"];
@@ -269,6 +270,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
   const reasoningCompletions = createLevelCompletion(REASONING_LEVELS);
   const usageCompletions = createLevelCompletion(USAGE_FOOTER_LEVELS);
   const elevatedCompletions = createLevelCompletion(ELEVATED_LEVELS);
+  const approvalCompletions = createLevelCompletion(APPROVAL_LEVELS);
   const activationCompletions = createLevelCompletion(ACTIVATION_LEVELS);
   const busyCompletions = createLevelCompletion(BUSY_LEVELS);
   const surfaceCompletions = createLevelCompletion(SURFACE_LEVELS);
@@ -320,6 +322,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       },
     },
     { name: "permissions", description: "Show tool, exec, sandbox, and plugin permissions" },
+    {
+      name: "approve",
+      description: "Choose or resolve a pending approval",
+      argumentHint: "[id] [allow-once|allow-always|deny]",
+      getArgumentCompletions: approvalCompletions,
+    },
     {
       name: "tasks",
       description: "Show background tasks and repair checks",
@@ -486,6 +494,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
       "/tasks - background work",
       "/plugins - plugin status",
       "/permissions - permission center",
+      "/approve - choose a pending approval",
       "",
       "Control:",
       `/think <default|${thinkLevels}>`,
@@ -522,6 +531,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/skill <name> [args]",
     "/plugins [list|verbose|show <plugin>]",
     "/permissions",
+    "/approve [id] [allow-once|allow-always|deny]",
     "",
     "Run controls:",
     `/think <default|${thinkLevels}>`,

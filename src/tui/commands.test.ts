@@ -68,6 +68,11 @@ describe("getSlashCommands", () => {
     ]);
     const usage = commands.find((command) => command.name === "usage");
     expect(usage?.getArgumentCompletions?.("c")).toEqual([{ value: "cost", label: "cost" }]);
+    const approve = commands.find((command) => command.name === "approve");
+    expect(approve?.getArgumentCompletions?.("allow-")).toEqual([
+      { value: "allow-once", label: "allow-once" },
+      { value: "allow-always", label: "allow-always" },
+    ]);
   });
 
   it("keeps session status on the shared command path and exposes gateway status separately", () => {
@@ -241,6 +246,7 @@ describe("helpText", () => {
     expect(output).toContain("/status - current session and runtime state");
     expect(output).toContain("/memory - memory health and commands");
     expect(output).toContain("/limits - context window vs provider quota");
+    expect(output).toContain("/approve - choose a pending approval");
     expect(output).toContain("/details <hidden|collapsed|expanded>");
     expect(output).toContain("More: /commands, /help all");
     expect(output).toContain("/commands opens the full catalog");
@@ -270,6 +276,7 @@ describe("helpText", () => {
     );
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins [list|verbose|show <plugin>]");
+    expect(output).toContain("/approve [id] [allow-once|allow-always|deny]");
     expect(output).toContain("Run controls:");
     expect(output).toContain("/details <status|hidden|collapsed|expanded|cycle>");
     expect(output).toContain("/stop");

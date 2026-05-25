@@ -11,11 +11,32 @@ export type ApprovalEventSummary = {
   title?: string;
   approvalId?: string;
   approvalSlug?: string;
+  allowedDecisions?: ApprovalDecision[];
   command?: string;
   host?: string;
   reason?: string;
   message?: string;
 };
+
+export type ApprovalDecision = "allow-once" | "allow-always" | "deny";
+
+export const DEFAULT_APPROVAL_DECISIONS: ApprovalDecision[] = [
+  "allow-once",
+  "allow-always",
+  "deny",
+];
+
+export function normalizeApprovalDecision(value: unknown): ApprovalDecision | null {
+  return value === "allow-once" || value === "allow-always" || value === "deny" ? value : null;
+}
+
+export function resolveApprovalDecisions(summary: ApprovalEventSummary): ApprovalDecision[] {
+  const decisions =
+    summary.allowedDecisions?.filter(
+      (decision): decision is ApprovalDecision => normalizeApprovalDecision(decision) !== null,
+    ) ?? [];
+  return decisions.length > 0 ? decisions : DEFAULT_APPROVAL_DECISIONS;
+}
 
 function formatApprovalStatus(status: string): string {
   switch (status) {
@@ -52,8 +73,17 @@ export function formatApprovalEvent(summary: ApprovalEventSummary): string {
   if (summary.status === "pending") {
     const id = approvalCommandId(summary);
     if (id) {
-      lines.push(`Allow once: /approve ${id} allow-once`);
-      lines.push(`Deny: /approve ${id} deny`);
+      const decisions = resolveApprovalDecisions(summary);
+      if (decisions.includes("allow-once")) {
+        lines.push(`Allow once: /approve ${id} allow-once`);
+      }
+      if (decisions.includes("allow-always")) {
+        lines.push(`Allow always: /approve ${id} allow-always`);
+      }
+      if (decisions.includes("deny")) {
+        lines.push(`Deny: /approve ${id} deny`);
+      }
+      lines.push("Or run /approve to choose.");
     }
   } else if (summary.status === "unavailable") {
     lines.push("No interactive approval route is available for this request.");

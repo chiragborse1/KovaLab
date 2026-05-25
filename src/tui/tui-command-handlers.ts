@@ -14,6 +14,7 @@ import { normalizeAgentId } from "../routing/session-key.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { formatTokenCount } from "../utils/usage-format.js";
 import { commandCatalogText, helpText, parseCommand } from "./commands.js";
+import type { ApprovalDecision } from "./components/approval-event.js";
 import type { ChatLog } from "./components/chat-log.js";
 import {
   createFilterableSelectList,
@@ -122,6 +123,17 @@ function formatNamePreview(names: string[], limit: number): string {
   }
   const remaining = names.length - visible.length;
   return remaining > 0 ? `${visible.join(", ")}, +${String(remaining)} more` : visible.join(", ");
+}
+
+function formatApprovalDecisionLabel(decision: ApprovalDecision): string {
+  switch (decision) {
+    case "allow-once":
+      return "Allow once";
+    case "allow-always":
+      return "Allow always";
+    case "deny":
+      return "Deny";
+  }
 }
 
 function normalizeSurfaceMode(args: string): "compact" | "verbose" | null {
@@ -884,6 +896,59 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     });
   };
 
+  const sendApprovalDecision = async (approvalId: string, decision: ApprovalDecision) => {
+    await sendMessage(`/approve ${approvalId} ${decision}`, { queueIfBusy: false });
+  };
+
+  const openApprovalDecisionSelector = (approvalId: string) => {
+    const approval = chatLog.findPendingApproval(approvalId);
+    if (!approval) {
+      chatLog.addSystem(`no pending approval found for ${sanitizeRenderableText(approvalId)}`);
+      tui.requestRender();
+      return;
+    }
+    const items = approval.allowedDecisions.map((decision) => ({
+      value: decision,
+      label: formatApprovalDecisionLabel(decision),
+      description:
+        decision === "allow-once"
+          ? "Allow this command one time"
+          : decision === "allow-always"
+            ? "Add durable trust for matching future commands"
+            : "Block this command",
+    }));
+    const selector = createSearchableSelectList(items, Math.min(5, Math.max(3, items.length)));
+    openSelector(selector, async (value) => {
+      await sendApprovalDecision(approval.commandId, value as ApprovalDecision);
+    });
+  };
+
+  const openApprovalSelector = () => {
+    const approvals = chatLog.listPendingApprovals();
+    if (approvals.length === 0) {
+      chatLog.addSystem("no pending approvals");
+      tui.requestRender();
+      return;
+    }
+    if (approvals.length === 1) {
+      openApprovalDecisionSelector(approvals[0]?.commandId ?? "");
+      return;
+    }
+    const items = approvals.map((approval) => ({
+      value: approval.commandId,
+      label: `${approval.commandId} - ${approval.title}`,
+      description: truncateLine(approval.command ?? approval.message ?? approval.host ?? "", 90),
+    }));
+    const selector = createSearchableSelectList(items, 9);
+    selector.onSelect = (item) => {
+      closeOverlayAndRender();
+      openApprovalDecisionSelector(item.value);
+    };
+    selector.onCancel = closeOverlayAndRender;
+    openOverlay(selector);
+    tui.requestRender();
+  };
+
   const showToolsCatalog = async (args: string) => {
     const mode = normalizeSurfaceMode(args);
     if (!mode) {
@@ -1451,6 +1516,22 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         echoCommand();
         await showPermissions();
         break;
+      case "approve": {
+        const parts = args.split(/\s+/).filter(Boolean);
+        const approvalAction = normalizeLowercaseStringOrEmpty(args);
+        if (parts.length === 0 || approvalAction === "pending" || approvalAction === "choose") {
+          echoCommand();
+          openApprovalSelector();
+          break;
+        }
+        if (parts.length === 1 && chatLog.findPendingApproval(parts[0] ?? "")) {
+          echoCommand();
+          openApprovalDecisionSelector(parts[0] ?? "");
+          break;
+        }
+        await sendMessage(raw, { queueIfBusy: false });
+        break;
+      }
       case "tasks":
         echoCommand();
         await showTaskSnapshot("tasks", args);

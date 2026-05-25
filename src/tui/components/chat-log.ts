@@ -1,8 +1,8 @@
 import type { Component } from "@mariozechner/pi-tui";
 import { Container, Spacer, Text } from "@mariozechner/pi-tui";
 import { theme } from "../theme/theme.js";
-import type { ApprovalEventSummary } from "./approval-event.js";
-import { ApprovalEventComponent } from "./approval-event.js";
+import type { ApprovalDecision, ApprovalEventSummary } from "./approval-event.js";
+import { ApprovalEventComponent, resolveApprovalDecisions } from "./approval-event.js";
 import { AssistantMessageComponent } from "./assistant-message.js";
 import { BtwInlineMessage } from "./btw-inline-message.js";
 import { ToolExecutionComponent } from "./tool-execution.js";
@@ -10,10 +10,28 @@ import { UserMessageComponent } from "./user-message.js";
 
 const PENDING_HISTORY_CLOCK_SKEW_TOLERANCE_MS = 60_000;
 
+export type PendingApproval = {
+  key: string;
+  commandId: string;
+  title: string;
+  status: "pending";
+  approvalId?: string;
+  approvalSlug?: string;
+  allowedDecisions: ApprovalDecision[];
+  command?: string;
+  host?: string;
+  message?: string;
+};
+
+function approvalCommandId(summary: ApprovalEventSummary): string {
+  return (summary.approvalSlug ?? summary.approvalId ?? "").trim();
+}
+
 export class ChatLog extends Container {
   private readonly maxComponents: number;
   private toolById = new Map<string, ToolExecutionComponent>();
   private approvalById = new Map<string, ApprovalEventComponent>();
+  private pendingApprovals = new Map<string, PendingApproval>();
   private streamingRuns = new Map<string, AssistantMessageComponent>();
   private assistantTextByRun = new Map<string, string>();
   private pendingUsers = new Map<
@@ -79,6 +97,7 @@ export class ChatLog extends Container {
     this.clear();
     this.toolById.clear();
     this.approvalById.clear();
+    this.pendingApprovals.clear();
     this.streamingRuns.clear();
     this.assistantTextByRun.clear();
     this.btwMessage = null;
@@ -330,11 +349,64 @@ export class ChatLog extends Container {
     const existing = this.approvalById.get(approvalKey);
     if (existing) {
       existing.setSummary(summary);
-      return existing;
+    } else {
+      const component = new ApprovalEventComponent(summary);
+      this.approvalById.set(approvalKey, component);
+      this.append(component);
     }
-    const component = new ApprovalEventComponent(summary);
-    this.approvalById.set(approvalKey, component);
-    this.append(component);
-    return component;
+    const commandId = approvalCommandId(summary);
+    if (summary.status === "pending" && commandId) {
+      this.pendingApprovals.set(commandId, {
+        key: approvalKey,
+        commandId,
+        title: summary.title?.trim() || "Approval",
+        status: "pending",
+        allowedDecisions: resolveApprovalDecisions(summary),
+        ...(summary.approvalId ? { approvalId: summary.approvalId } : {}),
+        ...(summary.approvalSlug ? { approvalSlug: summary.approvalSlug } : {}),
+        ...(summary.command ? { command: summary.command } : {}),
+        ...(summary.host ? { host: summary.host } : {}),
+        ...(summary.message ? { message: summary.message } : {}),
+      });
+    } else {
+      this.pendingApprovals.delete(approvalKey);
+      if (summary.approvalId) {
+        this.pendingApprovals.delete(summary.approvalId);
+      }
+      if (summary.approvalSlug) {
+        this.pendingApprovals.delete(summary.approvalSlug);
+      }
+      for (const [pendingKey, pending] of this.pendingApprovals.entries()) {
+        if (
+          pending.key === approvalKey ||
+          (summary.approvalId && pending.approvalId === summary.approvalId) ||
+          (summary.approvalSlug && pending.approvalSlug === summary.approvalSlug)
+        ) {
+          this.pendingApprovals.delete(pendingKey);
+        }
+      }
+    }
+    return existing ?? this.approvalById.get(approvalKey);
+  }
+
+  listPendingApprovals(): PendingApproval[] {
+    return Array.from(this.pendingApprovals.values());
+  }
+
+  findPendingApproval(value: string): PendingApproval | null {
+    const normalized = value.trim();
+    if (!normalized) {
+      return null;
+    }
+    return (
+      this.pendingApprovals.get(normalized) ??
+      this.listPendingApprovals().find(
+        (approval) =>
+          approval.approvalId === normalized ||
+          approval.approvalSlug === normalized ||
+          approval.key === normalized,
+      ) ??
+      null
+    );
   }
 }

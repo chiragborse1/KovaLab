@@ -969,6 +969,9 @@ export async function handleToolExecutionEnd(
           ? {
               approvalId: execDetails.approvalId,
               approvalSlug: execDetails.approvalSlug,
+              ...(execDetails.allowedDecisions
+                ? { allowedDecisions: [...execDetails.allowedDecisions] }
+                : {}),
             }
           : {}),
         command: execDetails.command,
