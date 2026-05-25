@@ -68,13 +68,6 @@ export declare const OpenClawSchema: z.ZodObject<{
             taglineMode: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"random">, z.ZodLiteral<"default">, z.ZodLiteral<"off">]>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
-    crestodian: z.ZodOptional<z.ZodObject<{
-        rescue: z.ZodOptional<z.ZodObject<{
-            enabled: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"auto">, z.ZodBoolean]>>;
-            ownerDmOnly: z.ZodOptional<z.ZodBoolean>;
-            pendingTtlMinutes: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>;
-    }, z.core.$strict>>;
     update: z.ZodOptional<z.ZodObject<{
         channel: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"stable">, z.ZodLiteral<"beta">, z.ZodLiteral<"dev">]>>;
         checkOnStart: z.ZodOptional<z.ZodBoolean>;

@@ -1,10 +1,6 @@
 import type { NamedCommandDescriptor } from "./command-group-descriptors.js";
 export type CoreCliCommandDescriptor = NamedCommandDescriptor;
 export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
-    readonly name: "crestodian";
-    readonly description: "Open the ring-zero setup and repair helper";
-    readonly hasSubcommands: false;
-} | {
     readonly name: "setup";
     readonly description: "Initialize local config and agent workspace";
     readonly hasSubcommands: false;
