@@ -42,7 +42,16 @@ function text(value: unknown): string {
       return "";
     }
   }
-  return sanitizeTerminalText(String(value));
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return sanitizeTerminalText(`${value}`);
+  }
+  if (typeof value === "symbol") {
+    return sanitizeTerminalText(value.description ?? "");
+  }
+  if (typeof value === "function") {
+    return sanitizeTerminalText(value.name);
+  }
+  return "";
 }
 
 function summarizeList(values: readonly string[] | undefined, empty: string): string {

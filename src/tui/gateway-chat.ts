@@ -256,7 +256,7 @@ export class GatewayChatClient implements TuiBackend {
   }
 
   async getConfig() {
-    return (await this.client.request("config.get", {})) as TuiConfigSnapshot;
+    return await this.client.request("config.get", {});
   }
 
   async listModels(): Promise<GatewayModelChoice[]> {
