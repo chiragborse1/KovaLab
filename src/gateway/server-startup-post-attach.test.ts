@@ -253,10 +253,13 @@ describe("startGatewayPostAttachRuntime", () => {
     const onStartupPluginsLoaded = vi.fn(async () => undefined);
     const logGatewayStartup = vi.fn(async () => undefined);
     const startGatewaySidecars = vi.fn(async () => ({ pluginServices: null }));
+    const measure = vi.fn(
+      async <T>(_name: string, run: () => T | Promise<T>): Promise<T> => await run(),
+    );
     const trace = {
       mark: vi.fn(),
       detail: vi.fn(),
-      measure: vi.fn(async (_name: string, run: () => unknown) => await run()),
+      measure,
     };
 
     await startGatewayPostAttachRuntime(

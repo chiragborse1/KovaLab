@@ -167,6 +167,7 @@ describe("gateway session utils", () => {
       models: {
         providers: {
           "openai-codex": {
+            baseUrl: "https://example.test/v1",
             models: [{ id: "gpt-5.5", contextWindow: 272000 }],
           },
         },
