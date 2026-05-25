@@ -41,6 +41,19 @@ describe("ChatLog", () => {
     expect(chatLog.children.length).toBe(1);
   });
 
+  it("renders user and assistant messages with distinct Kova frames", () => {
+    const chatLog = new ChatLog(40);
+    chatLog.addUser("please check the build");
+    chatLog.startAssistant("Build looks clean.", "run-ui");
+
+    const rendered = normalizeTestText(chatLog.render(48).join("\n"));
+
+    expect(rendered).toContain("╭─ You");
+    expect(rendered).toContain("│ please check the build");
+    expect(rendered).toContain("╭─ Kova");
+    expect(rendered).toContain("│ Build looks clean.");
+  });
+
   it("drops stale tool references when old components are pruned", () => {
     const chatLog = new ChatLog(20);
     chatLog.startTool("tool-1", "read_file", { path: "a.txt" });
