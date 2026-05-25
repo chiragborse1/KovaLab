@@ -307,6 +307,15 @@ describe("scripts/test-projects changed-target routing", () => {
     ).toEqual([]);
   });
 
+  it("skips generated plugin SDK declaration changes", () => {
+    expect(
+      resolveChangedTargetArgs(["--changed", "origin/main"], process.cwd(), () => [
+        "packages/plugin-sdk/dist/src/plugin-sdk/index.d.ts",
+        "packages/plugin-sdk/dist/src/agents/kova-tools.d.ts",
+      ]),
+    ).toEqual([]);
+  });
+
   it("skips root agent guidance changes instead of broad-running tests", () => {
     expect(
       buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => ["AGENTS.md"]),

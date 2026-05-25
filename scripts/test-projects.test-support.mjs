@@ -326,6 +326,7 @@ const GENERATED_CHANGED_TEST_TARGETS = new Set([
   "src/canvas-host/a2ui/.bundle.hash",
   "src/canvas-host/a2ui/a2ui.bundle.js",
 ]);
+const GENERATED_CHANGED_TEST_TARGET_PREFIXES = ["packages/plugin-sdk/dist/"];
 const SOURCE_ROOTS_FOR_IMPORT_GRAPH = ["src", "extensions", "packages", "ui/src", "test"];
 const IMPORTABLE_FILE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts"];
 const IMPORT_SPECIFIER_PATTERN =
@@ -716,6 +717,9 @@ function shouldUseBroadChangedTargets(env = process.env) {
 
 function isRoutableChangedTarget(changedPath) {
   if (GENERATED_CHANGED_TEST_TARGETS.has(changedPath)) {
+    return false;
+  }
+  if (GENERATED_CHANGED_TEST_TARGET_PREFIXES.some((prefix) => changedPath.startsWith(prefix))) {
     return false;
   }
   if (changedPath.endsWith(".live.test.ts")) {
