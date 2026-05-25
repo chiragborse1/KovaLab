@@ -419,6 +419,9 @@ export async function startGatewayServer(
       startupRuntimeConfig,
       minimalTestGateway,
       loadRuntimePlugins: false,
+      ...(startupConfigLoad.pluginMetadataSnapshot
+        ? { pluginMetadataSnapshot: startupConfigLoad.pluginMetadataSnapshot }
+        : {}),
       log,
     }),
   );

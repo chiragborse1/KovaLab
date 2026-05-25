@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/types.kova.js";
+import { resolveInstalledPluginIndexPolicyHash } from "./installed-plugin-index-policy.js";
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
+import type { PluginMetadataSnapshot } from "./plugin-metadata-snapshot.js";
 import type { PluginRegistrySnapshot } from "./plugin-registry.js";
 
 const listPotentialConfiguredChannelIds = vi.hoisted(() => vi.fn());
@@ -182,6 +184,80 @@ describe("loadPluginLookUpTable", () => {
     expect(table.owners.contracts.get("tools")).toEqual(["telegram"]);
     expect(table.startup.channelPluginIds).toEqual(["telegram"]);
     expect(table.startup.configuredDeferredChannelPluginIds).toEqual([]);
+    expect(table.startup.pluginIds).toEqual(["telegram"]);
+  });
+
+  it("reuses a compatible plugin metadata snapshot", async () => {
+    const plugins = [
+      createManifestRecord({
+        id: "telegram",
+        origin: "bundled",
+        channels: ["telegram"],
+      }),
+    ];
+    const config = {
+      channels: {
+        telegram: { token: "configured" },
+      },
+      plugins: {
+        slots: { memory: "none" },
+      },
+    } as KovaConfig;
+    const index = {
+      ...createIndex(plugins),
+      policyHash: resolveInstalledPluginIndexPolicyHash(config),
+    };
+    const manifestRegistry: PluginManifestRegistry = {
+      plugins,
+      diagnostics: [manifestDiagnostic],
+    };
+    const owners = {
+      channels: new Map([["telegram", Object.freeze(["telegram"])]]) as ReadonlyMap<
+        string,
+        readonly string[]
+      >,
+      channelConfigs: new Map(),
+      providers: new Map(),
+      modelCatalogProviders: new Map(),
+      cliBackends: new Map(),
+      setupProviders: new Map(),
+      commandAliases: new Map(),
+      contracts: new Map(),
+    };
+    const normalizePluginId = vi.fn((pluginId: string) => pluginId);
+    const metadataSnapshot: PluginMetadataSnapshot = {
+      policyHash: index.policyHash,
+      index,
+      registryDiagnostics: [],
+      manifestRegistry,
+      plugins,
+      diagnostics: manifestRegistry.diagnostics,
+      byPluginId: new Map(plugins.map((plugin) => [plugin.id, plugin])),
+      normalizePluginId,
+      owners,
+      metrics: {
+        registrySnapshotMs: 10,
+        manifestRegistryMs: 20,
+        ownerMapsMs: 30,
+        totalMs: 60,
+        indexPluginCount: 1,
+        manifestPluginCount: 1,
+      },
+    };
+    const { loadPluginLookUpTable } = await import("./plugin-lookup-table.js");
+
+    const table = loadPluginLookUpTable({
+      config,
+      env: {},
+      index,
+      metadataSnapshot,
+    });
+
+    expect(loadPluginManifestRegistryForInstalledIndex).not.toHaveBeenCalled();
+    expect(table.manifestRegistry).toBe(manifestRegistry);
+    expect(table.byPluginId).toBe(metadataSnapshot.byPluginId);
+    expect(table.owners).toBe(owners);
+    expect(table.normalizePluginId).toBe(normalizePluginId);
     expect(table.startup.pluginIds).toEqual(["telegram"]);
   });
 });

@@ -9,6 +9,7 @@ import {
   scanBundledPluginRuntimeDeps,
 } from "../plugins/bundled-runtime-deps.js";
 import { loadPluginLookUpTable } from "../plugins/plugin-lookup-table.js";
+import type { PluginMetadataSnapshot } from "../plugins/plugin-metadata-snapshot.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
 import { getActivePluginRegistry, setActivePluginRegistry } from "../plugins/runtime.js";
 import { listGatewayMethods } from "./server-methods-list.js";
@@ -128,6 +129,7 @@ export async function prepareGatewayPluginBootstrap(params: {
   startupRuntimeConfig: KovaConfig;
   minimalTestGateway: boolean;
   loadRuntimePlugins?: boolean;
+  pluginMetadataSnapshot?: PluginMetadataSnapshot;
   log: GatewayPluginBootstrapLog;
 }) {
   const startupMaintenanceConfig =
@@ -182,6 +184,9 @@ export async function prepareGatewayPluginBootstrap(params: {
         workspaceDir: defaultWorkspaceDir,
         env: process.env,
         activationSourceConfig: params.cfgAtStart,
+        ...(params.pluginMetadataSnapshot
+          ? { metadataSnapshot: params.pluginMetadataSnapshot }
+          : {}),
       });
   const deferredConfiguredChannelPluginIds = [
     ...(pluginLookUpTable?.startup.configuredDeferredChannelPluginIds ?? []),

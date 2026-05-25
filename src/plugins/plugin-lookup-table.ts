@@ -8,6 +8,10 @@ import { hashJson } from "./installed-plugin-index-hash.js";
 import { loadPluginManifestRegistryForInstalledIndex } from "./manifest-registry-installed.js";
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
+import {
+  isPluginMetadataSnapshotCompatible,
+  type PluginMetadataSnapshot,
+} from "./plugin-metadata-snapshot.js";
 import { createPluginRegistryIdNormalizer } from "./plugin-registry-contributions.js";
 import {
   loadPluginRegistrySnapshotWithMetadata,
@@ -64,6 +68,7 @@ export type LoadPluginLookUpTableParams = {
   workspaceDir?: string;
   env: NodeJS.ProcessEnv;
   index?: PluginRegistrySnapshot;
+  metadataSnapshot?: PluginMetadataSnapshot;
 };
 
 function appendOwner(owners: Map<string, string[]>, ownedId: string, pluginId: string): void {
@@ -138,22 +143,40 @@ function buildOwnerMaps(plugins: readonly PluginManifestRecord[]): PluginLookUpT
 export function loadPluginLookUpTable(params: LoadPluginLookUpTableParams): PluginLookUpTable {
   const totalStartedAt = performance.now();
   const registryStartedAt = performance.now();
-  const registryResult = loadPluginRegistrySnapshotWithMetadata({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-    ...(params.index ? { index: params.index } : {}),
-  });
+  const metadataSnapshot =
+    params.metadataSnapshot &&
+    isPluginMetadataSnapshotCompatible({
+      snapshot: params.metadataSnapshot,
+      config: params.config,
+      env: params.env,
+      workspaceDir: params.workspaceDir,
+      ...(params.index ? { index: params.index } : {}),
+    })
+      ? params.metadataSnapshot
+      : undefined;
+  const registryResult = metadataSnapshot
+    ? {
+        snapshot: metadataSnapshot.index,
+        diagnostics: metadataSnapshot.registryDiagnostics,
+      }
+    : loadPluginRegistrySnapshotWithMetadata({
+        config: params.config,
+        workspaceDir: params.workspaceDir,
+        env: params.env,
+        ...(params.index ? { index: params.index } : {}),
+      });
   const registrySnapshotMs = performance.now() - registryStartedAt;
   const index = registryResult.snapshot;
   const manifestStartedAt = performance.now();
-  const manifestRegistry = loadPluginManifestRegistryForInstalledIndex({
-    index,
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-    includeDisabled: true,
-  });
+  const manifestRegistry =
+    metadataSnapshot?.manifestRegistry ??
+    loadPluginManifestRegistryForInstalledIndex({
+      index,
+      config: params.config,
+      workspaceDir: params.workspaceDir,
+      env: params.env,
+      includeDisabled: true,
+    });
   const manifestRegistryMs = performance.now() - manifestStartedAt;
   const startupPlanStartedAt = performance.now();
   const channelPluginIds = resolveChannelPluginIdsFromRegistry({ manifestRegistry });
@@ -173,10 +196,14 @@ export function loadPluginLookUpTable(params: LoadPluginLookUpTableParams): Plug
     manifestRegistry,
   });
   const startupPlanMs = performance.now() - startupPlanStartedAt;
-  const normalizePluginId = createPluginRegistryIdNormalizer(index, { manifestRegistry });
-  const byPluginId = new Map(manifestRegistry.plugins.map((plugin) => [plugin.id, plugin]));
+  const normalizePluginId =
+    metadataSnapshot?.normalizePluginId ??
+    createPluginRegistryIdNormalizer(index, { manifestRegistry });
+  const byPluginId =
+    metadataSnapshot?.byPluginId ??
+    new Map(manifestRegistry.plugins.map((plugin) => [plugin.id, plugin]));
   const ownerMapsStartedAt = performance.now();
-  const owners = buildOwnerMaps(manifestRegistry.plugins);
+  const owners = metadataSnapshot?.owners ?? buildOwnerMaps(manifestRegistry.plugins);
   const ownerMapsMs = performance.now() - ownerMapsStartedAt;
   const startup = {
     channelPluginIds,

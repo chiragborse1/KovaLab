@@ -223,6 +223,28 @@ describe("prepareGatewayPluginBootstrap runtime-deps staging", () => {
     );
   });
 
+  it("threads prepared plugin metadata into lookup-table bootstrap", async () => {
+    const log = createLog();
+    const pluginMetadataSnapshot = { policyHash: "policy" } as never;
+    const { prepareGatewayPluginBootstrap } = await import("./server-startup-plugins.js");
+
+    await prepareGatewayPluginBootstrap({
+      cfgAtStart: {},
+      startupRuntimeConfig: {},
+      minimalTestGateway: false,
+      loadRuntimePlugins: false,
+      pluginMetadataSnapshot,
+      log,
+    });
+
+    expect(loadPluginLookUpTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadataSnapshot: pluginMetadataSnapshot,
+      }),
+    );
+    expect(loadGatewayStartupPlugins).not.toHaveBeenCalled();
+  });
+
   it("can prepare descriptor-only bootstrap without loading plugin runtime", async () => {
     const log = createLog();
     const { prepareGatewayPluginBootstrap } = await import("./server-startup-plugins.js");
