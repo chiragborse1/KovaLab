@@ -37,6 +37,43 @@ const AUTOMATION_LEVELS = ["list", "running", "queued", "failed", "audit"];
 const RECOVER_LEVELS = ["status", "apply"];
 const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
 const UPDATE_LEVELS = ["status", "run"];
+const PERMISSION_COMMAND_COMPLETIONS = [
+  {
+    value: "edit",
+    label: "edit",
+    description: "Open the terminal permission picker",
+  },
+  {
+    value: "preset locked",
+    label: "preset locked",
+    description: "Deny host exec for this session",
+  },
+  {
+    value: "preset reviewed",
+    label: "preset reviewed",
+    description: "Ask before every host exec",
+  },
+  {
+    value: "preset balanced",
+    label: "preset balanced",
+    description: "Allow trusted commands, ask on misses",
+  },
+  {
+    value: "preset trusted",
+    label: "preset trusted",
+    description: "No exec prompts for this trusted session",
+  },
+  {
+    value: "preset default",
+    label: "preset default",
+    description: "Use config defaults for this session",
+  },
+  {
+    value: "help",
+    label: "help",
+    description: "Show permission command usage",
+  },
+];
 const MEMORY_COMMAND_COMPLETIONS = [
   {
     value: "status",
@@ -234,6 +271,20 @@ function appendSlashCommand(
     });
     return;
   }
+  if (normalizedName === "permissions") {
+    commands.push({
+      name: normalizedName,
+      description,
+      argumentHint: "edit | preset <locked|reviewed|balanced|trusted|default>",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return PERMISSION_COMMAND_COMPLETIONS.filter((item) =>
+          item.value.startsWith(normalizedPrefix),
+        );
+      },
+    });
+    return;
+  }
   if (normalizedName === "context") {
     commands.push({
       name: normalizedName,
@@ -321,7 +372,17 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
         return PLUGIN_COMMAND_COMPLETIONS.filter((item) => item.value.startsWith(normalizedPrefix));
       },
     },
-    { name: "permissions", description: "Show tool, exec, sandbox, and plugin permissions" },
+    {
+      name: "permissions",
+      description: "Show or adjust terminal permission controls",
+      argumentHint: "edit | preset <locked|reviewed|balanced|trusted|default>",
+      getArgumentCompletions: (prefix) => {
+        const normalizedPrefix = normalizeLowercaseStringOrEmpty(prefix);
+        return PERMISSION_COMMAND_COMPLETIONS.filter((item) =>
+          item.value.startsWith(normalizedPrefix),
+        );
+      },
+    },
     {
       name: "approve",
       description: "Choose or resolve a pending approval",
@@ -530,7 +591,7 @@ export function helpText(options: SlashCommandOptions & { verbose?: boolean } = 
     "/persona <status|show [lines=<count>|all]|path>",
     "/skill <name> [args]",
     "/plugins [list|verbose|show <plugin>]",
-    "/permissions",
+    "/permissions [edit|preset <locked|reviewed|balanced|trusted|default>]",
     "/approve [id] [allow-once|allow-always|deny]",
     "",
     "Run controls:",

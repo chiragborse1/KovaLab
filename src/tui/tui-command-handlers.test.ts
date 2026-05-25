@@ -698,6 +698,58 @@ describe("tui command handlers", () => {
     );
   });
 
+  it("applies terminal permission presets as session overrides", async () => {
+    const { handleCommand, sendChat, patchSession, addUser, addSystem, refreshSessionInfo } =
+      createHarness();
+
+    await handleCommand("/permissions preset balanced");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/permissions preset balanced");
+    expect(patchSession).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      execHost: "gateway",
+      execSecurity: "allowlist",
+      execAsk: "on-miss",
+    });
+    expect(refreshSessionInfo).toHaveBeenCalledTimes(1);
+    expect(addSystem).toHaveBeenCalledWith(
+      "permissions updated: balanced (host=gateway security=allowlist ask=on-miss)",
+    );
+  });
+
+  it("opens a terminal permission picker", async () => {
+    const { handleCommand, sendChat, patchSession, openOverlay, closeOverlay } = createHarness();
+
+    await handleCommand("/permissions edit");
+    const selector = openOverlay.mock.calls[0]?.[0] as SelectableOverlay | undefined;
+    selector?.onSelect?.({ value: "preset:trusted", label: "Preset: Trusted" });
+    await flushAsyncSelect();
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(patchSession).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      execHost: "gateway",
+      execSecurity: "full",
+      execAsk: "off",
+    });
+    expect(closeOverlay).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears terminal permission session overrides", async () => {
+    const { handleCommand, patchSession, addSystem } = createHarness();
+
+    await handleCommand("/permissions preset default");
+
+    expect(patchSession).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      execHost: null,
+      execSecurity: null,
+      execAsk: null,
+    });
+    expect(addSystem).toHaveBeenCalledWith("permissions updated: default (config defaults)");
+  });
+
   it("opens an approval decision picker for the only pending approval", async () => {
     const { handleCommand, sendChat, openOverlay, closeOverlay, addUser } = createHarness({
       pendingApprovals: [

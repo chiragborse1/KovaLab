@@ -51,6 +51,53 @@ type TuiSessionCheckpointList = Awaited<
 type TuiSessionCheckpointResult = Awaited<
   ReturnType<NonNullable<TuiBackend["getSessionCheckpoint"]>>
 >;
+type TuiSessionPatch = Parameters<TuiBackend["patchSession"]>[0];
+
+type PermissionPresetName = "locked" | "reviewed" | "balanced" | "trusted";
+type PermissionSessionPatch = Pick<TuiSessionPatch, "execHost" | "execSecurity" | "execAsk">;
+
+const PERMISSION_PRESETS: Record<
+  PermissionPresetName,
+  {
+    label: string;
+    description: string;
+    patch: Required<PermissionSessionPatch>;
+  }
+> = {
+  locked: {
+    label: "Locked",
+    description: "Deny host exec for this session",
+    patch: { execHost: "gateway", execSecurity: "deny", execAsk: "off" },
+  },
+  reviewed: {
+    label: "Reviewed",
+    description: "Ask before every host exec",
+    patch: { execHost: "gateway", execSecurity: "allowlist", execAsk: "always" },
+  },
+  balanced: {
+    label: "Balanced",
+    description: "Allow trusted commands, ask on misses",
+    patch: { execHost: "gateway", execSecurity: "allowlist", execAsk: "on-miss" },
+  },
+  trusted: {
+    label: "Trusted",
+    description: "No exec prompts for this trusted session",
+    patch: { execHost: "gateway", execSecurity: "full", execAsk: "off" },
+  },
+};
+
+const PERMISSION_PRESET_ALIASES: Record<string, PermissionPresetName> = {
+  balanced: "balanced",
+  cautious: "balanced",
+  deny: "locked",
+  "deny-all": "locked",
+  full: "trusted",
+  locked: "locked",
+  reviewed: "reviewed",
+  safe: "reviewed",
+  trusted: "trusted",
+  yolo: "trusted",
+};
 
 type CommandHandlerContext = {
   client: TuiBackend;
@@ -123,6 +170,21 @@ function formatNamePreview(names: string[], limit: number): string {
   }
   const remaining = names.length - visible.length;
   return remaining > 0 ? `${visible.join(", ")}, +${String(remaining)} more` : visible.join(", ");
+}
+
+function normalizePermissionPresetName(value: string): PermissionPresetName | null {
+  const normalized = normalizeLowercaseStringOrEmpty(value);
+  return PERMISSION_PRESET_ALIASES[normalized] ?? null;
+}
+
+function formatPermissionPatch(patch: PermissionSessionPatch): string {
+  return [
+    patch.execHost ? `host=${patch.execHost}` : "",
+    patch.execSecurity ? `security=${patch.execSecurity}` : "",
+    patch.execAsk ? `ask=${patch.execAsk}` : "",
+  ]
+    .filter((part) => part.length > 0)
+    .join(" ");
 }
 
 function formatApprovalDecisionLabel(decision: ApprovalDecision): string {
@@ -1080,6 +1142,181 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     );
   };
 
+  const showPermissionsHelp = () => {
+    chatLog.addSystem(
+      [
+        "usage: /permissions [edit|preset <locked|reviewed|balanced|trusted|default>]",
+        "",
+        "Session presets",
+        "- locked: deny host exec",
+        "- reviewed: ask before every host exec",
+        "- balanced: allow trusted commands, ask on misses",
+        "- trusted: no exec prompts for this trusted session",
+        "- default: clear session exec overrides and use config defaults",
+        "",
+        "Durable config still lives in CLI: kova exec-policy preset cautious|yolo|deny-all",
+      ].join("\n"),
+    );
+  };
+
+  const applyPermissionSessionPatch = async (label: string, patch: PermissionSessionPatch) => {
+    try {
+      const result = await client.patchSession({
+        key: state.currentSessionKey,
+        ...patch,
+      });
+      const detail = formatPermissionPatch(patch);
+      chatLog.addSystem(
+        `permissions updated: ${label}${detail ? ` (${detail})` : " (config defaults)"}`,
+      );
+      applySessionInfoFromPatch(result);
+      await refreshSessionInfo();
+    } catch (err) {
+      chatLog.addSystem(`permissions update failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const applyPermissionPreset = async (presetName: PermissionPresetName) => {
+    const preset = PERMISSION_PRESETS[presetName];
+    await applyPermissionSessionPatch(preset.label.toLowerCase(), preset.patch);
+  };
+
+  const resetPermissionSessionOverrides = async () => {
+    await applyPermissionSessionPatch("default", {
+      execHost: null,
+      execSecurity: null,
+      execAsk: null,
+    });
+  };
+
+  const setElevatedMode = async (mode: "on" | "off" | "ask" | "full") => {
+    try {
+      const result = await client.patchSession({
+        key: state.currentSessionKey,
+        elevatedLevel: mode,
+      });
+      chatLog.addSystem(`elevated set to ${mode}`);
+      applySessionInfoFromPatch(result);
+      await refreshSessionInfo();
+    } catch (err) {
+      chatLog.addSystem(`elevated failed: ${String(err)}`);
+    }
+  };
+
+  const openPermissionsEditor = () => {
+    const presetItems = (
+      Object.entries(PERMISSION_PRESETS) as Array<
+        [PermissionPresetName, (typeof PERMISSION_PRESETS)[PermissionPresetName]]
+      >
+    ).map(([value, preset]) => ({
+      value: `preset:${value}`,
+      label: `Preset: ${preset.label}`,
+      description: preset.description,
+    }));
+    const items = [
+      ...presetItems,
+      {
+        value: "preset:default",
+        label: "Preset: Config default",
+        description: "Clear session exec overrides",
+      },
+      {
+        value: "elevated:off",
+        label: "Elevated: off",
+        description: "Disable elevated exec for this session",
+      },
+      {
+        value: "elevated:on",
+        label: "Elevated: on",
+        description: "Use elevated exec when requested",
+      },
+      {
+        value: "elevated:ask",
+        label: "Elevated: ask",
+        description: "Ask before elevated exec",
+      },
+      {
+        value: "elevated:full",
+        label: "Elevated: full",
+        description: "Allow elevated exec when policy permits it",
+      },
+      {
+        value: "show",
+        label: "Show current permissions",
+        description: "Render the current policy summary",
+      },
+    ];
+    const selector = createSearchableSelectList(items, 10);
+    openSelector(selector, async (value) => {
+      if (value === "show") {
+        await showPermissions();
+        return;
+      }
+      if (value === "preset:default") {
+        await resetPermissionSessionOverrides();
+        return;
+      }
+      if (value.startsWith("preset:")) {
+        const presetName = normalizePermissionPresetName(value.slice("preset:".length));
+        if (!presetName) {
+          chatLog.addSystem("unknown permissions preset");
+          return;
+        }
+        await applyPermissionPreset(presetName);
+        return;
+      }
+      if (
+        value === "elevated:off" ||
+        value === "elevated:on" ||
+        value === "elevated:ask" ||
+        value === "elevated:full"
+      ) {
+        await setElevatedMode(value.slice("elevated:".length) as "on" | "off" | "ask" | "full");
+      }
+    });
+  };
+
+  const handlePermissionsCommand = async (args: string) => {
+    const parts = args.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      await showPermissions();
+      return;
+    }
+    const action = normalizeLowercaseStringOrEmpty(parts[0] ?? "");
+    if (action === "edit" || action === "settings" || action === "choose") {
+      openPermissionsEditor();
+      return;
+    }
+    if (action === "help" || action === "?") {
+      showPermissionsHelp();
+      return;
+    }
+    if (action === "preset") {
+      const presetArg = normalizeLowercaseStringOrEmpty(parts[1] ?? "");
+      if (presetArg === "default" || presetArg === "reset") {
+        await resetPermissionSessionOverrides();
+        return;
+      }
+      const presetName = normalizePermissionPresetName(presetArg);
+      if (presetName) {
+        await applyPermissionPreset(presetName);
+        return;
+      }
+      showPermissionsHelp();
+      return;
+    }
+    if (action === "default" || action === "reset") {
+      await resetPermissionSessionOverrides();
+      return;
+    }
+    const presetName = normalizePermissionPresetName(action);
+    if (presetName) {
+      await applyPermissionPreset(presetName);
+      return;
+    }
+    showPermissionsHelp();
+  };
+
   const currentDetailsMode = (): DetailsMode => {
     const verbose = state.sessionInfo.verboseLevel ?? "off";
     if (verbose === "full" || state.toolsExpanded) {
@@ -1514,7 +1751,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         break;
       case "permissions":
         echoCommand();
-        await showPermissions();
+        await handlePermissionsCommand(args);
         break;
       case "approve": {
         const parts = args.split(/\s+/).filter(Boolean);
@@ -1765,17 +2002,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem("usage: /elevated <on|off|ask|full>");
           break;
         }
-        try {
-          const result = await client.patchSession({
-            key: state.currentSessionKey,
-            elevatedLevel: args,
-          });
-          chatLog.addSystem(`elevated set to ${args}`);
-          applySessionInfoFromPatch(result);
-          await refreshSessionInfo();
-        } catch (err) {
-          chatLog.addSystem(`elevated failed: ${String(err)}`);
-        }
+        await setElevatedMode(args as "on" | "off" | "ask" | "full");
         break;
       case "activation": {
         if (!args) {

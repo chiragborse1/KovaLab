@@ -73,6 +73,14 @@ describe("getSlashCommands", () => {
       { value: "allow-once", label: "allow-once" },
       { value: "allow-always", label: "allow-always" },
     ]);
+    const permissions = commands.find((command) => command.name === "permissions");
+    expect(permissions?.getArgumentCompletions?.("preset b")).toEqual([
+      {
+        value: "preset balanced",
+        label: "preset balanced",
+        description: "Allow trusted commands, ask on misses",
+      },
+    ]);
   });
 
   it("keeps session status on the shared command path and exposes gateway status separately", () => {
@@ -276,6 +284,9 @@ describe("helpText", () => {
     );
     expect(output).toContain("/skill <name> [args]");
     expect(output).toContain("/plugins [list|verbose|show <plugin>]");
+    expect(output).toContain(
+      "/permissions [edit|preset <locked|reviewed|balanced|trusted|default>]",
+    );
     expect(output).toContain("/approve [id] [allow-once|allow-always|deny]");
     expect(output).toContain("Run controls:");
     expect(output).toContain("/details <status|hidden|collapsed|expanded|cycle>");

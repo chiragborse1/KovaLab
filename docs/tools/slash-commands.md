@@ -148,7 +148,7 @@ Current source-of-truth:
     - `/help` shows the short help summary.
     - `/commands` shows the generated command catalog.
     - `/tools [compact|verbose]` shows what the current agent can use right now.
-    - `/permissions` shows the terminal permission center: tool profile/overrides, exec approval mode, sandbox mode, plugin gates, and the CLI commands that change them.
+    - `/permissions` shows the terminal permission center: tool profile/overrides, exec approval mode, sandbox mode, plugin gates, and the commands that change them. In the TUI, `/permissions edit` opens the picker and `/permissions preset <locked|reviewed|balanced|trusted|default>` changes the current session's exec posture.
     - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available. In the local TUI, bare `/status` is a fast terminal snapshot; use `/status full` for this richer status block.
     - `/diagnostics [note]` explains diagnostics privacy and requests an approval-backed `kova gateway diagnostics export --json` support bundle.
     - `/tasks` lists active/recent background tasks for the current session.
@@ -292,6 +292,7 @@ For profile and override editing, use terminal/config surfaces such as `kova set
 
 - It summarizes `tools.profile`, explicit allow/deny lists, filesystem guards, elevated exec state, exec approval policy, sandbox mode, plugin allow/deny lists, and agent overrides.
 - In the terminal TUI it also includes current runtime counts from `/tools` and `/plugins` when the backend exposes them.
+- In the terminal TUI, `/permissions edit` opens an interactive permission picker. `/permissions preset locked|reviewed|balanced|trusted|default` adjusts current-session exec defaults only; use `kova exec-policy` for durable local config.
 - For a non-interactive shell view, run `kova permissions`; for the detailed exec merge with the host approvals file, run `kova exec-policy show` or `kova approvals get`.
 
 ## Usage surfaces (what shows where)

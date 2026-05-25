@@ -168,6 +168,7 @@ export function formatPermissionSummary(params: PermissionSummaryInput): string 
       : "- none",
     "",
     "Change commands",
+    "- Terminal session: `/permissions edit`, `/permissions preset balanced`, `/elevated ask`, `/approve`",
     "- Tool profiles: edit `tools.profile`, `tools.allow`, `tools.deny` in `kova settings` or `kova config`",
     "- Exec policy: `kova exec-policy show`, `kova exec-policy preset cautious`, `kova approvals get`",
     "- Sandbox: `kova sandbox explain`",

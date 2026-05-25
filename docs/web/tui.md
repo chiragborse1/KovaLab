@@ -142,6 +142,7 @@ Core:
 - `/memory [status|help|sync [force]|search <query>|read <path[:line[-end]]>|dreams]`
 - `/skill <name> [args]`
 - `/plugins [list|verbose|show <plugin>]`
+- `/permissions [edit|preset <locked|reviewed|balanced|trusted|default>]`
 - `/approve [id] [allow-once|allow-always|deny]`
 
 Capability map:
@@ -164,6 +165,13 @@ Session controls:
 - `/elevated <on|off|ask|full>`
 - `/activation <mention|always>`
 - `/busy <status|queue|steer|interrupt|clear>`
+
+Permission controls:
+
+- `/permissions` shows the current tool, exec, sandbox, plugin, and agent override policy.
+- `/permissions edit` opens the terminal permission picker.
+- `/permissions preset locked|reviewed|balanced|trusted|default` changes current-session exec defaults. These are session overrides; use `kova exec-policy preset cautious|yolo|deny-all` when you want durable local config.
+- `/approve` resolves pending exec/tool approval prompts.
 
 Busy input defaults to `queue` in the terminal so accidental follow-ups do not
 interrupt an active local run. Use `/busy interrupt` when you explicitly want a
