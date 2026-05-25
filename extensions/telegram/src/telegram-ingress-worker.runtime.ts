@@ -18,10 +18,12 @@ const retryInitialMs = 1000;
 const retryMaxMs = 30_000;
 let stopped = false;
 let activeController: AbortController | undefined;
+const sendToParent = parentPort?.postMessage.bind(parentPort) as
+  | ((message: TelegramIngressWorkerMessage) => void)
+  | undefined;
 
 function post(message: TelegramIngressWorkerMessage): void {
-  // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node worker_threads ports do not accept a targetOrigin argument.
-  parentPort?.postMessage(message);
+  sendToParent?.(message);
 }
 
 function sleep(ms: number): Promise<void> {
