@@ -35,6 +35,13 @@ function text(value: unknown): string {
   if (value === undefined || value === null) {
     return "";
   }
+  if (typeof value === "object") {
+    try {
+      return sanitizeTerminalText(JSON.stringify(value));
+    } catch {
+      return "";
+    }
+  }
   return sanitizeTerminalText(String(value));
 }
 

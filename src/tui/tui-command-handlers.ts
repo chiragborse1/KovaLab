@@ -196,6 +196,7 @@ function formatApprovalDecisionLabel(decision: ApprovalDecision): string {
     case "deny":
       return "Deny";
   }
+  return sanitizeRenderableText(decision);
 }
 
 function normalizeSurfaceMode(args: string): "compact" | "verbose" | null {
