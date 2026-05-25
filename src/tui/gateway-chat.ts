@@ -37,7 +37,6 @@ import type {
   ChatSendOptions,
   TuiAgentsList,
   TuiBackend,
-  TuiConfigSnapshot,
   TuiEvent,
   TuiModelChoice,
   TuiSessionCheckpointBranch,
