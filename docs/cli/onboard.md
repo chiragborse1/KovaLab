@@ -9,10 +9,14 @@ title: "Onboard"
 
 Interactive onboarding for the terminal-first Kova agent setup.
 
-The interactive flow starts with a Kova Start screen. The default path asks only
-for model/auth and workspace, saves a private local Gateway config for later,
-then opens terminal chat. Advanced setup keeps the full Gateway, channel,
-service, web search, skills, and hooks prompts.
+The interactive flow starts with a Kova onboarding screen. The default path,
+**Kova Start**, asks only for model/auth and workspace, saves a private local
+Gateway config for later, then opens terminal chat.
+
+For larger setup, use **Kova Builder**. Builder is goal-based: it keeps the
+model/workspace base separate from optional modules, then asks you to select
+only the modules you want now, such as Gateway/service, messaging channels, web
+search, skills, plugins, or automation hooks.
 
 After a valid config exists, plain `kova onboard` opens terminal settings
 instead of repeating first-run onboarding. Pass explicit onboarding flags such
@@ -46,6 +50,7 @@ kova onboard
 kova settings
 kova onboard --modern
 kova onboard --flow quickstart
+kova onboard --flow builder
 kova onboard --flow manual
 kova onboard --flow import
 kova onboard --import-from hermes --import-source ~/.hermes
@@ -194,7 +199,8 @@ kova onboard --non-interactive \
 <AccordionGroup>
   <Accordion title="Flow types">
     - `quickstart`: Kova Start, minimal prompts, terminal chat first, auto-generates a Gateway token, and skips Gateway health/service, channels, web search, skills, and hooks until later.
-    - `manual`: Custom setup, full prompts for port, bind, and auth (alias of `advanced`).
+    - `builder`: Kova Builder, a goal-based planner that reuses the current home unless you choose to tune it, then runs only the selected setup modules.
+    - `manual` / `advanced`: compatibility aliases for `builder`.
     - `import`: runs a detected migration provider, previews the plan, then applies after confirmation.
   </Accordion>
   <Accordion title="Provider prefiltering">
@@ -214,7 +220,7 @@ kova onboard --non-interactive \
     - Local onboarding DM scope behavior: [CLI setup reference](/start/wizard-cli-reference#outputs-and-internals).
     - Fastest first chat: `kova chat` (embedded terminal agent, no browser or channel setup).
     - Normal post-setup control: `kova settings`, `kova status --all`, `kova logs`, and TUI slash commands such as `/status`, `/tasks`, `/memory`, `/skills`, and `/plugins`.
-    - Kova Start skips channels, web search, skills, hooks, and service install by default. Use `--with-channels`, advanced setup, `kova settings`, or `kova channels add` when you want the larger surface.
+    - Kova Start skips channels, web search, skills, hooks, and service install by default. Use `--with-channels`, Kova Builder, `kova settings`, or `kova channels add` when you want the larger surface.
     - Custom provider: connect any OpenAI or Anthropic compatible endpoint, including hosted providers not listed. Use Unknown to auto-detect.
     - If Hermes state is detected, onboarding offers a migration flow. Use [Migrate](/cli/migrate) for dry-run plans, overwrite mode, reports, and exact mappings.
   </Accordion>

@@ -74,7 +74,7 @@ export async function setupWizardShellCompletion(params: {
 
   if (!completionStatus.profileInstalled) {
     // Case 3: No completion at all
-    if (params.flow === "quickstart") {
+    if (params.flow === "quickstart" || params.flow === "builder") {
       return;
     }
 

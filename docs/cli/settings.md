@@ -47,9 +47,10 @@ Keyboard controls:
 
 After an editor finishes, the settings console opens again with refreshed values.
 
-`kova settings` does not remove the full onboarding path. The **Full Setup**
-row still opens the complete setup wizard for first-time setup, import, reset,
-bootstrap, and advanced setup flows.
+`kova settings` does not remove onboarding. The **Kova Builder** row opens the
+goal-based setup planner for first-time setup, import, reset, bootstrap, and
+optional modules such as Gateway/service, channels, web search, skills, plugins,
+and hooks.
 
 For scripts, use targeted non-interactive commands instead:
 

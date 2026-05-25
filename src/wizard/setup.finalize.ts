@@ -34,6 +34,7 @@ import { launchTuiCli } from "../tui/tui-launch.js";
 import { resolveUserPath } from "../utils.js";
 import { listConfiguredWebSearchProviders } from "../web-search/runtime.js";
 import type { WizardPrompter } from "./prompts.js";
+import type { SetupBuilderModule } from "./setup.builder.js";
 import { setupWizardShellCompletion } from "./setup.completion.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
 import type { GatewayWizardSettings, WizardFlow } from "./setup.types.js";
@@ -45,6 +46,7 @@ type FinalizeOnboardingOptions = {
   nextConfig: KovaConfig;
   workspaceDir: string;
   settings: GatewayWizardSettings;
+  builderModules?: SetupBuilderModule[];
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
 };
@@ -64,9 +66,16 @@ export async function finalizeSetupWizard(
 ): Promise<{ launchedTui: boolean }> {
   const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime } = options;
   const isQuickstart = flow === "quickstart";
-  let gatewayProbe: { ok: boolean; detail?: string } = isQuickstart
-    ? { ok: false, detail: "not checked during Kova Start" }
-    : { ok: true };
+  const isBuilder = flow === "builder";
+  const builderModules = options.builderModules ?? [];
+  const builderWantsGateway = builderModules.includes("gateway") || opts.installDaemon === true;
+  let gatewayProbe: { ok: boolean; detail?: string } =
+    isQuickstart || (isBuilder && !builderWantsGateway)
+      ? {
+          ok: false,
+          detail: isQuickstart ? "not checked during Kova Start" : "not checked by Kova Builder",
+        }
+      : { ok: true };
   let resolvedGatewayPassword = "";
 
   const withWizardProgress = async <T>(
@@ -87,7 +96,9 @@ export async function finalizeSetupWizard(
   const explicitInstallDaemon =
     typeof opts.installDaemon === "boolean" ? opts.installDaemon : undefined;
   const shouldPrepareServiceLayer =
-    explicitInstallDaemon === true || (!isQuickstart && explicitInstallDaemon !== false);
+    explicitInstallDaemon === true ||
+    (!isQuickstart && !isBuilder && explicitInstallDaemon !== false) ||
+    (isBuilder && builderWantsGateway && explicitInstallDaemon !== false);
   const systemdAvailable =
     process.platform === "linux" && shouldPrepareServiceLayer
       ? await isSystemdUserServiceAvailable()
@@ -118,7 +129,7 @@ export async function finalizeSetupWizard(
     installDaemon = explicitInstallDaemon;
   } else if (process.platform === "linux" && !systemdAvailable) {
     installDaemon = false;
-  } else if (flow === "quickstart") {
+  } else if (flow === "quickstart" || (isBuilder && !builderWantsGateway)) {
     installDaemon = false;
   } else {
     installDaemon = await prompter.confirm({
@@ -265,7 +276,9 @@ export async function finalizeSetupWizard(
     }
   }
 
-  const shouldCheckGatewayHealth = !opts.skipHealth && (!isQuickstart || installDaemon);
+  const shouldCheckGatewayHealth =
+    !opts.skipHealth &&
+    ((!isQuickstart && !isBuilder) || installDaemon || (isBuilder && builderWantsGateway));
   if (shouldCheckGatewayHealth) {
     const probeLinks = resolveControlUiLinks({
       bind: nextConfig.gateway?.bind ?? "loopback",
@@ -356,19 +369,35 @@ export async function finalizeSetupWizard(
       ].join("\n"),
       "Gateway",
     );
+  } else if (isBuilder && !builderWantsGateway) {
+    await prompter.note(
+      [
+        "Gateway health check skipped because Gateway was not selected in Kova Builder.",
+        `Check later: ${formatCliCommand("kova status --all")}`,
+      ].join("\n"),
+      "Gateway",
+    );
   }
 
   const controlUiEnabled =
     nextConfig.gateway?.controlUi?.enabled === true ||
     baseConfig.gateway?.controlUi?.enabled === true;
 
-  if (!isQuickstart) {
+  if (!isQuickstart && !isBuilder) {
     await prompter.note(
       [
         "Optional apps can extend Kova after terminal chat is working:",
         "- macOS app for system hooks and notifications",
         "- iOS app for camera and canvas workflows",
         "- Android app for camera and canvas workflows",
+      ].join("\n"),
+      "Kova apps",
+    );
+  } else if (isBuilder && (builderWantsGateway || builderModules.includes("channels"))) {
+    await prompter.note(
+      [
+        "Terminal chat is still the base.",
+        "Apps and remote surfaces can be added after the local agent is working.",
       ].join("\n"),
       "Kova apps",
     );
@@ -387,7 +416,8 @@ export async function finalizeSetupWizard(
     settings.authMode === "token" && settings.gatewayToken
       ? `${links.httpUrl}#token=${encodeURIComponent(settings.gatewayToken)}`
       : links.httpUrl;
-  const shouldProbeGatewayForSummary = !isQuickstart || installDaemon;
+  const shouldProbeGatewayForSummary =
+    (!isQuickstart && !isBuilder) || installDaemon || (isBuilder && builderWantsGateway);
   if (shouldProbeGatewayForSummary && (opts.skipHealth || !gatewayProbe.ok)) {
     gatewayProbe = await probeGatewayReachable({
       url: links.wsUrl,
@@ -422,18 +452,33 @@ export async function finalizeSetupWizard(
             : "Add later: channels, web search, skills, hooks, background service.",
           "Docs: https://docs.neuralstudio.in/web/tui",
         ]
-      : [
-          `Primary start: ${formatCliCommand("kova chat")}`,
-          "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
-          "Useful first commands inside chat: /status, /memory, /persona, /tools",
-          `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`,
-          `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
-          controlUiEnabled && settings.authMode === "token" && settings.gatewayToken
-            ? `Legacy web UI (with token): ${authedUrl}`
-            : undefined,
-          `Gateway detail: ${gatewayStatusLine}`,
-          "Docs: https://docs.neuralstudio.in/web/tui",
-        ]
+      : isBuilder
+        ? [
+            `Primary start: ${formatCliCommand("kova chat")}`,
+            "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
+            "Useful first commands inside chat: /status, /memory, /persona, /tools",
+            builderModules.length
+              ? `Builder modules: ${builderModules.join(", ")}`
+              : "Builder modules: none; current setup left in place.",
+            builderWantsGateway
+              ? `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`
+              : "Gateway: unchanged.",
+            builderWantsGateway ? `Gateway detail: ${gatewayStatusLine}` : undefined,
+            `Add more: ${formatCliCommand("kova settings")}`,
+            "Docs: https://docs.neuralstudio.in/web/tui",
+          ]
+        : [
+            `Primary start: ${formatCliCommand("kova chat")}`,
+            "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
+            "Useful first commands inside chat: /status, /memory, /persona, /tools",
+            `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`,
+            `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
+            controlUiEnabled && settings.authMode === "token" && settings.gatewayToken
+              ? `Legacy web UI (with token): ${authedUrl}`
+              : undefined,
+            `Gateway detail: ${gatewayStatusLine}`,
+            "Docs: https://docs.neuralstudio.in/web/tui",
+          ]
     )
       .filter(Boolean)
       .join("\n"),
@@ -458,7 +503,10 @@ export async function finalizeSetupWizard(
       );
     }
 
-    if ((!isQuickstart || installDaemon) && gatewayProbe.ok) {
+    if (
+      ((!isQuickstart && !isBuilder) || builderWantsGateway || installDaemon) &&
+      gatewayProbe.ok
+    ) {
       await prompter.note(
         [
           "Gateway token: shared auth for remote clients, channels, nodes, and legacy web UI when enabled.",
@@ -560,7 +608,7 @@ export async function finalizeSetupWizard(
     );
   }
 
-  if (!isQuickstart) {
+  if (!isQuickstart && !isBuilder) {
     await prompter.note(
       [
         "Back up your Kova workspace.",
@@ -572,6 +620,14 @@ export async function finalizeSetupWizard(
     await prompter.note(
       "Keep Kova secure: review access, review tools, and avoid public exposure. https://docs.neuralstudio.in/security",
       "Security",
+    );
+  } else if (isBuilder) {
+    await prompter.note(
+      [
+        "Kova Builder only changed the modules selected in this run.",
+        `Add or revise modules later: ${formatCliCommand("kova settings")}`,
+      ].join("\n"),
+      "Kova Builder",
     );
   }
 
@@ -625,6 +681,7 @@ export async function finalizeSetupWizard(
   const webSearchProvider = nextConfig.tools?.web?.search?.provider;
   const webSearchEnabled = nextConfig.tools?.web?.search?.enabled;
   const configuredSearchProviders = listConfiguredWebSearchProviders({ config: nextConfig });
+  const shouldReportWebSearch = !isBuilder || builderModules.includes("web");
   if (isQuickstart) {
     await prompter.note(
       [
@@ -632,7 +689,17 @@ export async function finalizeSetupWizard(
         `Chat: ${formatCliCommand("kova chat")}`,
         `Persona: ${formatCliCommand("kova persona edit")}`,
         `Memory: ${formatCliCommand("kova memory status")}`,
-        `Advanced setup: ${formatCliCommand("kova onboard --flow advanced")}`,
+        `Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+      ].join("\n"),
+      "Next steps",
+    );
+  } else if (isBuilder && !shouldReportWebSearch) {
+    await prompter.note(
+      [
+        "Kova Builder is ready.",
+        `Chat: ${formatCliCommand("kova chat")}`,
+        `Settings: ${formatCliCommand("kova settings")}`,
+        `Web search later: ${formatCliCommand("kova configure --section web")}`,
       ].join("\n"),
       "Next steps",
     );
@@ -733,7 +800,7 @@ export async function finalizeSetupWizard(
     }
   }
 
-  if (!isQuickstart && codexNativeSummary) {
+  if (!isQuickstart && (!isBuilder || shouldReportWebSearch) && codexNativeSummary) {
     await prompter.note(
       [
         codexNativeSummary,
@@ -744,7 +811,7 @@ export async function finalizeSetupWizard(
     );
   }
 
-  if (!isQuickstart) {
+  if (!isQuickstart && !isBuilder) {
     await prompter.note(
       [
         `Chat: ${formatCliCommand("kova chat")}`,
@@ -752,6 +819,16 @@ export async function finalizeSetupWizard(
         `Persona: ${formatCliCommand("kova persona edit")}`,
         `Memory: ${formatCliCommand("kova memory status")}`,
         `Channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
+      ].join("\n"),
+      "Next steps",
+    );
+  } else if (isBuilder && shouldReportWebSearch) {
+    await prompter.note(
+      [
+        "Kova Builder is ready.",
+        `Chat: ${formatCliCommand("kova chat")}`,
+        `Settings: ${formatCliCommand("kova settings")}`,
+        `Gateway later: ${formatCliCommand("kova configure --section gateway")}`,
       ].join("\n"),
       "Next steps",
     );

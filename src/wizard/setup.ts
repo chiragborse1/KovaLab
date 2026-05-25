@@ -21,6 +21,11 @@ import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { resolveUserPath } from "../utils.js";
 import { WizardCancelledError, type WizardPrompter } from "./prompts.js";
+import {
+  promptSetupBuilderModules,
+  resolveGatewaySettingsFromDefaults,
+  type SetupBuilderModule,
+} from "./setup.builder.js";
 import { detectSetupMigrationSources, runSetupMigrationImport } from "./setup.migration-import.js";
 import { resolveSetupSecretInputString } from "./setup.secret-input.js";
 import {
@@ -31,6 +36,7 @@ import {
 import type { QuickstartGatewayDefaults, WizardFlow } from "./setup.types.js";
 
 type SetupFlowChoice = WizardFlow | "import";
+type ExistingSetupAction = "use" | "tune" | "reset";
 
 type AuthChoiceModule = typeof import("../commands/auth-choice.js");
 type ConfigLoggingModule = typeof import("../config/logging.js");
@@ -192,7 +198,17 @@ export async function runSetupWizard(
   await prompter.intro("Kova Setup");
   await requireRiskAcknowledgement({ opts, prompter });
 
-  const snapshot = await readSetupConfigFileSnapshot();
+  let snapshotLoadedMessage = "Kova home loaded.";
+  const snapshotProgress = prompter.progress("Reading Kova home");
+  let snapshot!: Awaited<ReturnType<typeof readSetupConfigFileSnapshot>>;
+  try {
+    snapshot = await readSetupConfigFileSnapshot();
+  } catch (error) {
+    snapshotLoadedMessage = "Kova home failed to load.";
+    throw error;
+  } finally {
+    snapshotProgress.stop(snapshotLoadedMessage);
+  }
   let baseConfig: KovaConfig = snapshot.valid
     ? snapshot.exists
       ? (snapshot.sourceConfig ?? snapshot.config)
@@ -240,22 +256,24 @@ export async function runSetupWizard(
   }
 
   const quickstartHint = "First chat first: model/auth, workspace, then terminal chat.";
-  const manualHint = "Full control over Gateway, channels, tools, service, and advanced setup.";
+  const builderHint =
+    "Goal-based setup: choose only Gateway, channels, web, skills, plugins, or hooks when you want them.";
   const explicitFlowRaw = opts.flow?.trim();
-  const normalizedExplicitFlow = explicitFlowRaw === "manual" ? "advanced" : explicitFlowRaw;
+  const normalizedExplicitFlow =
+    explicitFlowRaw === "manual" || explicitFlowRaw === "advanced" ? "builder" : explicitFlowRaw;
   if (
     normalizedExplicitFlow &&
     normalizedExplicitFlow !== "quickstart" &&
-    normalizedExplicitFlow !== "advanced" &&
+    normalizedExplicitFlow !== "builder" &&
     normalizedExplicitFlow !== "import"
   ) {
-    runtime.error("Invalid --flow (use quickstart, manual, advanced, or import).");
+    runtime.error("Invalid --flow (use quickstart, builder, manual, advanced, or import).");
     runtime.exit(1);
     return;
   }
   const explicitFlow: SetupFlowChoice | undefined =
     normalizedExplicitFlow === "quickstart" ||
-    normalizedExplicitFlow === "advanced" ||
+    normalizedExplicitFlow === "builder" ||
     normalizedExplicitFlow === "import"
       ? normalizedExplicitFlow
       : undefined;
@@ -279,7 +297,7 @@ export async function runSetupWizard(
       message: "How should Kova start?",
       options: [
         { value: "quickstart", label: "Kova Start", hint: quickstartHint },
-        { value: "advanced", label: "Advanced setup", hint: manualHint },
+        { value: "builder", label: "Kova Builder", hint: builderHint },
         importOption,
       ],
       initialValue: "quickstart",
@@ -287,28 +305,39 @@ export async function runSetupWizard(
 
   if (opts.mode === "remote" && flow === "quickstart") {
     await prompter.note(
-      "Kova Start is local-only. Switching to Advanced setup for remote Gateway setup.",
+      "Kova Start is local-only. Switching to Kova Builder for remote Gateway setup.",
       "Setup path",
     );
-    flow = "advanced";
+    flow = "builder";
   }
 
+  let existingSetupAction: ExistingSetupAction = snapshot.exists ? "use" : "tune";
   if (snapshot.exists) {
-    await prompter.note(
-      onboardHelpers.summarizeExistingConfig(baseConfig),
-      "Existing Kova setup found",
-    );
+    await prompter.note(onboardHelpers.summarizeExistingConfig(baseConfig), "Kova home");
 
-    const action = await prompter.select({
-      message: "What should happen to this setup?",
+    const selectedAction = await prompter.select({
+      message: "Kova found an existing home. What should happen next?",
       options: [
-        { value: "keep", label: "Keep current setup" },
-        { value: "modify", label: "Change current setup" },
-        { value: "reset", label: "Start clean" },
+        {
+          value: "use",
+          label: "Use current home",
+          hint: "Keep model, workspace, Gateway, and secrets unchanged",
+        },
+        {
+          value: "tune",
+          label: "Tune model or workspace",
+          hint: "Change the base chat setup before choosing extras",
+        },
+        { value: "reset", label: "Reset Kova", hint: "Clear config before rebuilding" },
       ],
+      initialValue: "use",
     });
+    existingSetupAction =
+      selectedAction === "tune" || selectedAction === "reset" || selectedAction === "use"
+        ? selectedAction
+        : "use";
 
-    if (action === "reset") {
+    if (existingSetupAction === "reset") {
       const workspaceDefault = onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig);
       const resetScope = (await prompter.select({
         message: "What should be cleared?",
@@ -326,6 +355,7 @@ export async function runSetupWizard(
       })) as ResetScope;
       await onboardHelpers.handleReset(resetScope, resolveUserPath(workspaceDefault), runtime);
       baseConfig = {};
+      existingSetupAction = "tune";
     }
   }
 
@@ -574,14 +604,19 @@ export async function runSetupWizard(
     return;
   }
 
+  const shouldPromptCoreSetup =
+    !snapshot.exists ||
+    existingSetupAction !== "use" ||
+    opts.workspace !== undefined ||
+    opts.authChoice !== undefined;
   const workspaceInput =
     opts.workspace ??
-    (flow === "quickstart"
-      ? onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig)
-      : await prompter.text({
+    (shouldPromptCoreSetup && flow !== "quickstart"
+      ? await prompter.text({
           message: "Kova workspace",
           initialValue: onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig),
-        }));
+        })
+      : onboardHelpers.resolveOnboardWorkspaceDefault(baseConfig));
 
   const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);
 
@@ -592,7 +627,7 @@ export async function runSetupWizard(
     nextConfig = applySkipBootstrapConfig(nextConfig);
   }
 
-  const authChoiceFromPrompt = opts.authChoice === undefined;
+  const authChoiceFromPrompt = opts.authChoice === undefined && shouldPromptCoreSetup;
   let authChoice: AuthChoice | undefined = opts.authChoice;
   let authStore:
     | ReturnType<(typeof import("../agents/auth-profiles.runtime.js"))["ensureAuthProfileStore"]>
@@ -607,7 +642,16 @@ export async function runSetupWizard(
       allowKeychainPrompt: false,
     });
   }
-  while (true) {
+  if (!shouldPromptCoreSetup && opts.authChoice === undefined) {
+    await prompter.note(
+      [
+        "Using your current model/auth and workspace.",
+        "Kova Builder will only touch modules you choose next.",
+      ].join("\n"),
+      "Current chat base",
+    );
+  }
+  while (shouldPromptCoreSetup || opts.authChoice !== undefined) {
     if (authChoiceFromPrompt) {
       authChoice = await promptAuthChoiceGrouped!({
         prompter,
@@ -718,34 +762,68 @@ export async function runSetupWizard(
     break;
   }
 
-  const { configureGatewayForSetup } = await import("./setup.gateway-config.js");
-  const gateway = await configureGatewayForSetup({
-    flow: wizardFlow,
-    baseConfig,
-    nextConfig,
-    localPort,
-    quickstartGateway,
-    secretInputMode: opts.secretInputMode,
-    prompter,
-    runtime,
-  });
-  nextConfig = gateway.nextConfig;
-  const settings = gateway.settings;
+  const builderModules: SetupBuilderModule[] =
+    flow === "builder"
+      ? await promptSetupBuilderModules({
+          config: nextConfig,
+          workspaceDir,
+          gatewayDefaults: quickstartGateway,
+          prompter,
+        })
+      : [];
+
+  let settings = resolveGatewaySettingsFromDefaults(quickstartGateway);
+  const shouldConfigureGateway =
+    flow === "quickstart" ||
+    flow === "advanced" ||
+    builderModules.includes("gateway") ||
+    (flow === "builder" && opts.installDaemon === true);
+  if (shouldConfigureGateway) {
+    const { configureGatewayForSetup } = await import("./setup.gateway-config.js");
+    const gateway = await configureGatewayForSetup({
+      flow: flow === "builder" ? "advanced" : wizardFlow,
+      baseConfig,
+      nextConfig,
+      localPort,
+      quickstartGateway,
+      secretInputMode: opts.secretInputMode,
+      prompter,
+      runtime,
+    });
+    nextConfig = gateway.nextConfig;
+    settings = gateway.settings;
+  } else if (flow === "builder") {
+    await prompter.note(
+      [
+        "Gateway setup left unchanged.",
+        `Add it later: ${formatCliCommand("kova settings")}`,
+        `Or run: ${formatCliCommand("kova configure --section gateway")}`,
+      ].join("\n"),
+      "Gateway",
+    );
+  }
 
   const channelsExplicitlyRequested = opts.withChannels === true || opts.skipChannels === false;
   const skipChannelSetup =
     opts.skipChannels === true ||
     opts.skipProviders === true ||
-    (flow === "quickstart" && !channelsExplicitlyRequested);
+    (flow === "quickstart" && !channelsExplicitlyRequested) ||
+    (flow === "builder" && !builderModules.includes("channels"));
   if (skipChannelSetup) {
     const message =
       flow === "quickstart" && opts.skipChannels !== true && opts.skipProviders !== true
         ? [
             "Quick setup keeps the first run terminal-only and skips chat channel setup.",
             `Add channels later: ${formatCliCommand("kova channels add --channel telegram")}`,
-            `Or rerun custom setup: ${formatCliCommand("kova onboard --flow advanced")}`,
+            `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
           ].join("\n")
-        : "Chat channels skipped. You can add them later.";
+        : flow === "builder"
+          ? [
+              "Messaging channels left unchanged.",
+              `Add later: ${formatCliCommand("kova channels add --channel telegram")}`,
+              `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
+            ].join("\n")
+          : "Chat channels skipped. You can add them later.";
     await prompter.note(message, "Channels");
   } else {
     const { listChannelPlugins } = await import("../channels/plugins/index.js");
@@ -776,15 +854,24 @@ export async function runSetupWizard(
     skipBootstrap: Boolean(nextConfig.agents?.defaults?.skipBootstrap),
   });
 
-  if (opts.skipSearch || flow === "quickstart") {
+  const skipWebSearchSetup =
+    opts.skipSearch ||
+    flow === "quickstart" ||
+    (flow === "builder" && !builderModules.includes("web"));
+  if (skipWebSearchSetup) {
     const message =
       flow === "quickstart" && !opts.skipSearch
         ? [
             "Kova Start skips web search until terminal chat works.",
             `Add it later: ${formatCliCommand("kova configure --section web")}`,
-            `Or rerun Advanced setup: ${formatCliCommand("kova onboard --flow advanced")}`,
+            `Or reopen Kova Builder: ${formatCliCommand("kova onboard --flow builder")}`,
           ].join("\n")
-        : "Web search skipped. You can add it later.";
+        : flow === "builder" && !builderModules.includes("web")
+          ? [
+              "Web search left unchanged.",
+              `Add later: ${formatCliCommand("kova configure --section web")}`,
+            ].join("\n")
+          : "Web search skipped. You can add it later.";
     await prompter.note(message, "Web search");
   } else {
     const { setupSearch } = await import("../commands/onboard-search.js");
@@ -794,7 +881,11 @@ export async function runSetupWizard(
     });
   }
 
-  if (opts.skipSkills || flow === "quickstart") {
+  const skipSkillSetup =
+    opts.skipSkills ||
+    flow === "quickstart" ||
+    (flow === "builder" && !builderModules.includes("skills"));
+  if (skipSkillSetup) {
     const message =
       flow === "quickstart" && !opts.skipSkills
         ? [
@@ -802,7 +893,11 @@ export async function runSetupWizard(
             `Inspect later: ${formatCliCommand("kova skills")}`,
             `Configure later: ${formatCliCommand("kova settings")}`,
           ].join("\n")
-        : "Skills skipped. You can install them later.";
+        : flow === "builder" && !builderModules.includes("skills")
+          ? ["Skills left unchanged.", `Inspect later: ${formatCliCommand("kova skills")}`].join(
+              "\n",
+            )
+          : "Skills skipped. You can install them later.";
     await prompter.note(message, "Skills");
   } else {
     const { setupSkills } = await import("../commands/onboard-skills.js");
@@ -810,28 +905,39 @@ export async function runSetupWizard(
   }
 
   // Plugin configuration (sandbox backends, tool plugins, etc.)
-  if (flow !== "quickstart") {
+  if (flow !== "quickstart" && (flow !== "builder" || builderModules.includes("plugins"))) {
     const { setupPluginConfig } = await import("./setup.plugin-config.js");
     nextConfig = await setupPluginConfig({
       config: nextConfig,
       prompter,
       workspaceDir,
     });
+  } else if (flow === "builder" && !builderModules.includes("plugins")) {
+    await prompter.note(
+      ["Plugin setup left unchanged.", `Review later: ${formatCliCommand("kova settings")}`].join(
+        "\n",
+      ),
+      "Plugins",
+    );
   }
 
   // Setup hooks (session memory on /new)
-  if (flow === "quickstart") {
-    await prompter.note(
-      [
-        "Automation hooks skipped for Kova Start.",
-        `Review later: ${formatCliCommand("kova hooks list")}`,
-        `Enable later: ${formatCliCommand("kova hooks enable <name>")}`,
-      ].join("\n"),
-      "Automation hooks",
-    );
-  } else {
+  if (flow !== "quickstart" && (flow !== "builder" || builderModules.includes("hooks"))) {
     const { setupInternalHooks } = await import("../commands/onboard-hooks.js");
     nextConfig = await setupInternalHooks(nextConfig, runtime, prompter);
+  } else {
+    const message =
+      flow === "quickstart"
+        ? [
+            "Automation hooks skipped for Kova Start.",
+            `Review later: ${formatCliCommand("kova hooks list")}`,
+            `Enable later: ${formatCliCommand("kova hooks enable <name>")}`,
+          ].join("\n")
+        : [
+            "Automation hooks left unchanged.",
+            `Review later: ${formatCliCommand("kova hooks list")}`,
+          ].join("\n");
+    await prompter.note(message, "Automation hooks");
   }
 
   nextConfig = onboardHelpers.applyWizardMetadata(nextConfig, { command: "onboard", mode });
@@ -847,6 +953,7 @@ export async function runSetupWizard(
     nextConfig,
     workspaceDir,
     settings,
+    builderModules,
     prompter,
     runtime,
   });

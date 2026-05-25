@@ -40,7 +40,8 @@ export async function setupWizardCommand(
       resolveDeprecatedAuthChoiceReplacement(originalAuthChoice, { env: process.env })!.message,
     );
   }
-  const flow = opts.flow === "manual" ? ("advanced" as const) : opts.flow;
+  const flow =
+    opts.flow === "manual" || opts.flow === "advanced" ? ("builder" as const) : opts.flow;
   const normalizedOpts =
     normalizedAuthChoice === opts.authChoice && flow === opts.flow
       ? opts

@@ -34,8 +34,8 @@ type OnboardDynamicProviderOptions = {
 
 export type OnboardOptions = OnboardDynamicProviderOptions & {
   mode?: OnboardMode;
-  /** "manual" is an alias for "advanced". */
-  flow?: "quickstart" | "advanced" | "manual" | "import";
+  /** "manual" and "advanced" are compatibility aliases for "builder". */
+  flow?: "quickstart" | "builder" | "advanced" | "manual" | "import";
   workspace?: string;
   nonInteractive?: boolean;
   /** Required for non-interactive setup; skips the interactive risk prompt when true. */
@@ -72,7 +72,7 @@ export type OnboardOptions = OnboardDynamicProviderOptions & {
   tailscaleResetOnExit?: boolean;
   installDaemon?: boolean;
   daemonRuntime?: GatewayDaemonRuntime;
-  /** Opt into chat channel setup during quickstart. Custom setup still prompts by default. */
+  /** Opt into chat channel setup during quickstart. Builder setup prompts only when selected. */
   withChannels?: boolean;
   skipChannels?: boolean;
   /** @deprecated Legacy alias for `skipChannels`. */

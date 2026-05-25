@@ -10,16 +10,16 @@ sidebarTitle: "Onboarding: CLI"
 CLI onboarding is the **recommended** way to shape a new Kova instance on macOS,
 Linux, or Windows (via WSL2; strongly recommended).
 The default path is **Kova Start**: choose model/auth, choose the workspace, and
-open terminal chat. Advanced setup keeps web search, skills, hooks, channels,
-service install, and Gateway health checks in the same guided flow when you want
-the larger surface immediately.
+open terminal chat. Larger setup now goes through **Kova Builder**, a goal-based
+planner that lets you pick only the modules you want now: Gateway/service,
+messaging channels, web search, skills, plugins, or automation hooks.
 
 ```bash
 kova onboard
 ```
 
-Onboarding opens with a short **Kova Start** screen that explains the first-chat
-path before any config is written.
+Onboarding opens with a short Kova screen that explains the first-chat path and
+the optional Builder path before any config is written.
 
 <Info>
 Fastest first chat: run `kova chat`. It uses the embedded local agent runtime,
@@ -42,7 +42,7 @@ you do not have to repeat first-run onboarding for routine edits.
 </Note>
 
 <Tip>
-Advanced setup includes a web recall step where you can pick a provider such as
+Kova Builder includes a web recall module where you can pick a provider such as
 Brave, DuckDuckGo, Exa, Firecrawl, Gemini, Grok, Kimi, MiniMax Search, Ollama
 Web Search, Perplexity, SearXNG, or Tavily. Some providers require an API key,
 while others are key-free. You can also configure this later with `kova
@@ -64,10 +64,13 @@ Onboarding starts by choosing a setup type:
     - Tool policy default for new local setups: `tools.profile: "coding"` (existing explicit profile is preserved)
     - DM isolation default: local onboarding writes `session.dmScope: "per-channel-peer"` when unset. Details: [CLI Setup Reference](/start/wizard-cli-reference#outputs-and-internals)
     - Tailscale access **Off**
-    - Gateway health/service, channels, web search, skills, and hooks are skipped by default; use advanced setup, `kova settings`, or `kova channels add` when you want Kova outside the terminal
+    - Gateway health/service, channels, web search, skills, and hooks are skipped by default; use Kova Builder, `kova settings`, or `kova channels add` when you want Kova outside the terminal
   </Tab>
-  <Tab title="Custom setup">
-    - Full control over mode, workspace, network access, Gateway auth, channels, service, and skills.
+  <Tab title="Kova Builder">
+    - Reuses the current Kova home by default.
+    - Lets you tune model/workspace only when you choose to.
+    - Runs only selected modules: Gateway/service, messaging channels, web search, skills, plugins, and hooks.
+    - Leaves unselected modules unchanged and points you to the matching command for later.
   </Tab>
 </Tabs>
 
@@ -86,13 +89,13 @@ Onboarding starts by choosing a setup type:
 3. **Gateway access** — Port, bind address, auth mode, Tailscale access for always-on and remote surfaces.
    In interactive token mode, choose default plaintext token storage or opt into SecretRef.
    Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
-4. **Chat channels** — skipped by default in Kova Start. Advanced setup can configure built-in and bundled chat channels such as BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams, QQ Bot, Signal, Slack, Telegram, WhatsApp, and more.
-5. **Background service** — Advanced setup can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback.
+4. **Chat channels** — skipped by default in Kova Start. Kova Builder can configure built-in and bundled chat channels such as BlueBubbles, Discord, Feishu, Google Chat, Mattermost, Microsoft Teams, QQ Bot, Signal, Slack, Telegram, WhatsApp, and more when you select the messaging module.
+5. **Background service** — Kova Builder can install a LaunchAgent (macOS), systemd user unit (Linux/WSL2), or native Windows Scheduled Task with per-user Startup-folder fallback when you select the Gateway module.
    If token auth requires a token and `gateway.auth.token` is SecretRef-managed, daemon install validates it but does not persist the resolved token into supervisor service environment metadata.
    If token auth requires a token and the configured token SecretRef is unresolved, daemon install is blocked with actionable guidance.
    If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, daemon install is blocked until mode is set explicitly.
-6. **Health check** — Advanced setup verifies the Gateway when a service or running Gateway is expected. Kova Start skips this so first chat is not blocked by Gateway startup.
-7. **Skills and hooks** — Advanced setup installs recommended skills and can enable automation hooks. Kova Start leaves both for later.
+6. **Health check** — Kova Builder verifies the Gateway only when the Gateway module is selected or a service install is requested. Kova Start skips this so first chat is not blocked by Gateway startup.
+7. **Skills and hooks** — Kova Builder installs skill dependencies or enables automation hooks only when you select those modules. Kova Start leaves both for later.
 8. **Start** — Opens Terminal chat by default, offers the legacy browser UI only when explicitly enabled, or finishes without launching.
 
 <Note>

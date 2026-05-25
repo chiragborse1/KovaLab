@@ -57,9 +57,9 @@ describe("formatWizardBootScreen", () => {
     const output = formatWizardBootScreen();
 
     expect(output).toContain("KOVA");
-    expect(output).toContain("Kova Start");
-    expect(output).toContain("first chat first, extras later");
-    expect(output).toContain("channels, Gateway, skills, web tools");
+    expect(output).toContain("Kova Onboarding");
+    expect(output).toContain("chat first, build only what you need");
+    expect(output).toContain("Gateway, channels, web, skills, hooks");
     expect(output).not.toContain("Initializing environment");
     expect(output).not.toContain("OpenClaw");
     expect(output).not.toContain("openclaw");

@@ -90,6 +90,7 @@ const finalizeSetupWizard = vi.hoisted(() =>
 const listChannelPlugins = vi.hoisted(() => vi.fn(() => []));
 const logConfigUpdated = vi.hoisted(() => vi.fn(() => {}));
 const setupInternalHooks = vi.hoisted(() => vi.fn(async (cfg) => cfg));
+const setupPluginConfig = vi.hoisted(() => vi.fn(async (args) => args.config));
 
 const setupChannels = vi.hoisted(() => vi.fn(async (cfg) => cfg));
 const setupSearch = vi.hoisted(() => vi.fn(async (cfg) => cfg));
@@ -286,6 +287,10 @@ vi.mock("../tui/tui.js", () => ({
 
 vi.mock("./setup.gateway-config.js", () => ({
   configureGatewayForSetup,
+}));
+
+vi.mock("./setup.plugin-config.js", () => ({
+  setupPluginConfig,
 }));
 
 vi.mock("./setup.finalize.js", () => ({
@@ -504,6 +509,75 @@ describe("runSetupWizard", () => {
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining("Kova Start skips skill installation for a faster first run."),
       "Skills",
+    );
+  });
+
+  it("runs Kova Builder as selected modules instead of the full checklist", async () => {
+    configureGatewayForSetup.mockClear();
+    setupChannels.mockClear();
+    setupSearch.mockClear();
+    setupSkills.mockClear();
+    setupPluginConfig.mockClear();
+    setupInternalHooks.mockClear();
+    promptAuthChoiceGrouped.mockClear();
+    finalizeSetupWizard.mockClear();
+    readConfigFileSnapshot.mockResolvedValueOnce({
+      path: "/tmp/.chiragborse1/KovaLab.json",
+      exists: true,
+      raw: "{}",
+      parsed: {},
+      resolved: {},
+      valid: true,
+      config: {
+        agents: {
+          defaults: {
+            model: { primary: "openai/gpt-5.5" },
+            workspace: "/tmp/kova-workspace",
+          },
+        },
+        gateway: { mode: "local", port: 18789, bind: "loopback", auth: { mode: "token" } },
+      },
+      issues: [],
+      warnings: [],
+      legacyIssues: [],
+    });
+    const select = vi.fn(async (params: WizardSelectParams<unknown>) => {
+      if (params.message === "Kova found an existing home. What should happen next?") {
+        return "use";
+      }
+      return "quickstart";
+    }) as unknown as WizardPrompter["select"];
+    const multiselect = vi.fn(async () => [
+      "web",
+      "hooks",
+    ]) as unknown as WizardPrompter["multiselect"];
+    const prompter = buildWizardPrompter({ select, multiselect });
+    const runtime = createRuntime();
+
+    await runSetupWizard(
+      {
+        acceptRisk: true,
+        flow: "builder",
+        installDaemon: false,
+        skipHealth: true,
+        skipUi: true,
+      },
+      runtime,
+      prompter,
+    );
+
+    expect(promptAuthChoiceGrouped).not.toHaveBeenCalled();
+    expect(configureGatewayForSetup).not.toHaveBeenCalled();
+    expect(setupChannels).not.toHaveBeenCalled();
+    expect(setupSkills).not.toHaveBeenCalled();
+    expect(setupPluginConfig).not.toHaveBeenCalled();
+    expect(setupSearch).toHaveBeenCalledTimes(1);
+    expect(setupInternalHooks).toHaveBeenCalledTimes(1);
+    expect(finalizeSetupWizard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        flow: "builder",
+        builderModules: ["web", "hooks"],
+      }),
     );
   });
 
