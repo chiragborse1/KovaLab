@@ -866,6 +866,59 @@ describe("tui command handlers", () => {
     );
   });
 
+  it("shows current usage without changing the footer mode", async () => {
+    const { handleCommand, sendChat, patchSession, addUser, addSystem } = createHarness({
+      sessionInfo: {
+        responseUsage: "full",
+        inputTokens: 15000,
+        outputTokens: 17,
+        totalTokens: 18000,
+        contextTokens: 272000,
+        modelProvider: "openai-codex",
+        model: "gpt-5.5",
+      },
+    });
+
+    await handleCommand("/usage");
+
+    expect(addUser).toHaveBeenCalledWith("/usage");
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(patchSession).not.toHaveBeenCalled();
+    expect(addSystem).toHaveBeenCalledWith(
+      [
+        "Usage",
+        "- Footer: full",
+        "- Last turn: 15k in / 17 out",
+        "- Context: tokens 18k/272k (254k left, 7%)",
+        "- Model: openai-codex/gpt-5.5",
+        "- Configure footer: /usage tokens, /usage full, /usage off",
+        "- Cost summary: /usage cost",
+        "- Full runtime status: /status full",
+      ].join("\n"),
+    );
+  });
+
+  it("updates the usage footer only when a mode is provided", async () => {
+    const patchSession = vi.fn().mockResolvedValue({ responseUsage: "tokens" });
+    const {
+      handleCommand,
+      addSystem,
+      patchSession: patched,
+      refreshSessionInfo,
+    } = createHarness({
+      patchSession,
+    });
+
+    await handleCommand("/usage tokens");
+
+    expect(patched).toHaveBeenCalledWith({
+      key: "agent:main:main",
+      responseUsage: "tokens",
+    });
+    expect(addSystem).toHaveBeenCalledWith("usage footer: tokens");
+    expect(refreshSessionInfo).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps gateway diagnostics on /gateway-status", async () => {
     const { handleCommand, getGatewayStatus, addSystem, addUser, sendChat } = createHarness({
       getGatewayStatus: vi.fn().mockResolvedValue({

@@ -120,7 +120,7 @@ the Gateway-backed command surface in one place.
 Core:
 
 - `/help`
-- `/status`
+- `/status [full|detail]`
 - `/gateway-status`
 - `/limits`
 - `/agent <id>` (or `/agents`)
@@ -155,7 +155,7 @@ Session controls:
 - `/verbose <on|full|off>`
 - `/trace <on|off>`
 - `/reasoning <on|off|stream>`
-- `/usage <off|tokens|full>`
+- `/usage [off|tokens|full|cost]`
 - `/elevated <on|off|ask|full>`
 - `/activation <mention|always>`
 - `/busy <status|queue|steer|interrupt|clear>`
@@ -207,6 +207,16 @@ Local mode only:
 
 Other Gateway slash commands are forwarded to the Gateway and shown as system
 output. See [Slash commands](/tools/slash-commands).
+
+Bare `/status` is a fast local terminal snapshot so it stays responsive even
+when history, tools, or provider checks are slow. Use `/status full` or
+`/status detail` when you want the richer shared status block with model,
+runtime, session, and usage details.
+
+Bare `/usage` shows the current terminal usage snapshot without changing
+settings. Use `/usage tokens`, `/usage full`, or `/usage off` to change the
+per-response footer mode, and `/usage cost` for the local cost summary when
+available.
 
 ## Local shell commands
 

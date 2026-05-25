@@ -9,6 +9,7 @@ import {
 import type { SessionsPatchResult } from "../gateway/protocol/index.js";
 import { formatRelativeTimestamp } from "../infra/format-time/format-relative.ts";
 import { normalizeAgentId } from "../routing/session-key.js";
+import { formatTokenCount } from "../utils/usage-format.js";
 import { helpText, parseCommand } from "./commands.js";
 import type { ChatLog } from "./components/chat-log.js";
 import {
@@ -354,6 +355,36 @@ function formatLimitsSummary(state: TuiStateAccess): string {
     "- This is the model context window, not your provider account quota.",
     "- Provider quotas/rate limits come from the provider and may not be exposed to Kova.",
     "- Shell check when available: kova status --usage",
+  ].join("\n");
+}
+
+function formatUsageTokenCount(value?: number | null): string {
+  return typeof value === "number" && Number.isFinite(value) ? formatTokenCount(value) : "?";
+}
+
+function formatUsageSummary(state: TuiStateAccess): string {
+  const info = state.sessionInfo;
+  const total = info.totalTokens ?? null;
+  const context = info.contextTokens ?? null;
+  const remaining =
+    typeof total === "number" && typeof context === "number" ? Math.max(0, context - total) : null;
+  const percent =
+    typeof total === "number" && typeof context === "number" && context > 0
+      ? (total / context) * 100
+      : null;
+  const model = [info.modelProvider, info.model].filter(Boolean).join("/") || "current model";
+  const footerMode = resolveResponseUsageMode(info.responseUsage);
+  return [
+    "Usage",
+    `- Footer: ${footerMode}`,
+    `- Last turn: ${formatUsageTokenCount(info.inputTokens)} in / ${formatUsageTokenCount(
+      info.outputTokens,
+    )} out`,
+    `- Context: ${formatContextUsageLine({ total, context, remaining, percent })}`,
+    `- Model: ${model}`,
+    "- Configure footer: /usage tokens, /usage full, /usage off",
+    "- Cost summary: /usage cost",
+    "- Full runtime status: /status full",
   ].join("\n");
 }
 
@@ -1381,25 +1412,27 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         }
         break;
       case "usage": {
-        if (/^cost(?:\s|$)/i.test(args.trim())) {
+        const usageArgs = args.trim();
+        if (!usageArgs) {
+          echoCommand();
+          chatLog.addSystem(formatUsageSummary(state));
+          break;
+        }
+        if (/^cost(?:\s|$)/i.test(usageArgs)) {
           await sendMessage(raw, { queueIfBusy: false });
           break;
         }
-        const normalized = args ? normalizeUsageDisplay(args) : undefined;
-        if (args && !normalized) {
+        const normalized = normalizeUsageDisplay(usageArgs);
+        if (!normalized) {
           chatLog.addSystem("usage: /usage <off|tokens|full|cost>");
           break;
         }
-        const currentRaw = state.sessionInfo.responseUsage;
-        const current = resolveResponseUsageMode(currentRaw);
-        const next =
-          normalized ?? (current === "off" ? "tokens" : current === "tokens" ? "full" : "off");
         try {
           const result = await client.patchSession({
             key: state.currentSessionKey,
-            responseUsage: next === "off" ? null : next,
+            responseUsage: normalized === "off" ? null : normalized,
           });
-          chatLog.addSystem(`usage footer: ${next}`);
+          chatLog.addSystem(`usage footer: ${normalized}`);
           applySessionInfoFromPatch(result);
           await refreshSessionInfo();
         } catch (err) {

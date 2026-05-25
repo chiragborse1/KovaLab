@@ -148,14 +148,14 @@ Current source-of-truth:
     - `/help` shows the short help summary.
     - `/commands` shows the generated command catalog.
     - `/tools [compact|verbose]` shows what the current agent can use right now.
-    - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available.
+    - `/status` shows execution/runtime status, including `Execution`/`Runtime` labels and provider usage/quota when available. In the local TUI, bare `/status` is a fast terminal snapshot; use `/status full` for this richer status block.
     - `/crestodian <request>` runs the Crestodian setup and repair helper from an owner DM.
     - `/tasks` lists active/recent background tasks for the current session.
     - `/context [list|detail|json]` explains how context is assembled.
     - `/memory status`, `/memory sync [force]`, `/memory search <query>`, `/memory read <path[:line[-end]]>`, and `/memory dreams` inspect memory health, refresh recall, search, read cited source excerpts, and review the Dream Diary from chat.
     - `/persona status`, `/persona show [lines=<count>|all]`, and `/persona path` inspect the active `SOUL.md`; writes stay terminal-only through `kova persona edit` or `kova persona init`.
     - `/whoami` shows your sender id. Alias: `/id`.
-    - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary.
+    - `/usage off|tokens|full|cost` controls the per-response usage footer or prints a local cost summary. In the local TUI, bare `/usage` shows the current usage snapshot without changing footer settings.
   </Accordion>
   <Accordion title="Skills, allowlists, approvals">
     - `/skill <name> [input]` runs a skill by name.
@@ -230,7 +230,7 @@ User-invocable skills are also exposed as slash commands:
     - For full provider usage breakdown, use `kova status --usage`.
     - `/allowlist add|remove` requires `commands.config=true` and honors channel `configWrites`.
     - In multi-account channels, config-targeted `/allowlist --account <id>` and `/config set channels.<provider>.accounts.<id>...` also honor the target account's `configWrites`.
-    - `/usage` controls the per-response usage footer; `/usage cost` prints a local cost summary from Kova session logs.
+    - `/usage` shows the current local TUI usage snapshot; `/usage off|tokens|full` controls the per-response usage footer; `/usage cost` prints a local cost summary from Kova session logs.
     - `/restart` is enabled by default; set `commands.restart: false` to disable it.
     - `/plugins install <spec>` accepts the same plugin specs as `kova plugins install`: local path/archive, npm package, or `kovahub:<pkg>`.
     - `/plugins enable|disable` updates plugin config and may prompt for a restart.
