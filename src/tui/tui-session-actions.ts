@@ -215,6 +215,7 @@ export function createSessionActions(context: SessionActionContext) {
 
     state.sessionInfo = next;
     updateAutocompleteProvider();
+    updateHeader();
     updateFooter();
     tui.requestRender();
   };

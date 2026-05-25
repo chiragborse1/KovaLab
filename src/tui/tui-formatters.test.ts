@@ -3,6 +3,7 @@ import {
   extractContentFromMessage,
   extractTextFromMessage,
   extractThinkingFromMessage,
+  formatFooterSessionLabel,
   isCommandMessage,
   sanitizeRenderableText,
 } from "./tui-formatters.js";
@@ -282,6 +283,28 @@ describe("isCommandMessage", () => {
     expect(isCommandMessage({ command: true })).toBe(true);
     expect(isCommandMessage({ command: false })).toBe(false);
     expect(isCommandMessage({})).toBe(false);
+  });
+});
+
+describe("formatFooterSessionLabel", () => {
+  it("keeps the lower TUI footer compact for normal terminal sessions", () => {
+    expect(
+      formatFooterSessionLabel({
+        agentLabel: "main",
+        sessionLabel: "tui-123",
+        displayName: "TUI",
+      }),
+    ).toBe("main/tui-123");
+  });
+
+  it("keeps meaningful display names", () => {
+    expect(
+      formatFooterSessionLabel({
+        agentLabel: "main",
+        sessionLabel: "research",
+        displayName: "market scan",
+      }),
+    ).toBe("main/research (market scan)");
   });
 });
 

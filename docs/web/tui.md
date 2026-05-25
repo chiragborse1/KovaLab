@@ -61,7 +61,7 @@ Use `--password` if your Gateway uses password auth.
 - Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
 - Chat log: user messages, assistant replies, system notices, tool cards.
 - Status line: connection/run state (connecting, running, streaming, idle, error).
-- Footer: connection state + agent + session + model + think/fast/verbose/trace/reasoning + `ctx used/limit` + deliver.
+- Footer: compact `agent/session`, model, active mode flags, queued messages, and `ctx used/limit`.
 - Input: text editor with autocomplete.
 
 The `ctx` gauge is the current session's estimated model context usage. When it
@@ -81,7 +81,7 @@ snapshots.
 - Session scope:
   - `per-sender` (default): each agent has many sessions.
   - `global`: the TUI always uses the `global` session (the picker may be empty).
-- The current agent + session are always visible in the footer.
+- The current agent + session are always visible in the footer as `agent/session`.
 
 ## Sending + delivery
 

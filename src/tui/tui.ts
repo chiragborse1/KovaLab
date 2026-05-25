@@ -32,7 +32,7 @@ import { editorTheme, theme } from "./theme/theme.js";
 import type { TuiBackend } from "./tui-backend.js";
 import { createCommandHandlers } from "./tui-command-handlers.js";
 import { createEventHandlers } from "./tui-event-handlers.js";
-import { formatTokens } from "./tui-formatters.js";
+import { formatFooterSessionLabel, formatTokens } from "./tui-formatters.js";
 import { createLocalShellRunner } from "./tui-local-shell.js";
 import { createOverlayHandlers } from "./tui-overlays.js";
 import { createSessionActions } from "./tui-session-actions.js";
@@ -944,7 +944,10 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       statusLoader?.stop();
       statusLoader = null;
       ensureStatusText();
-      const text = activityStatus ? `${connectionStatus} | ${activityStatus}` : connectionStatus;
+      const text =
+        activityStatus && activityStatus !== "idle"
+          ? `${connectionStatus} | ${activityStatus}`
+          : connectionStatus;
       statusText?.setText(theme.dim(text));
     }
     updateHeader();
@@ -1038,10 +1041,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
 
   const updateFooter = () => {
     const sessionKeyLabel = formatSessionKey(currentSessionKey);
-    const sessionLabel = sessionInfo.displayName
-      ? `${sessionKeyLabel} (${sessionInfo.displayName})`
-      : sessionKeyLabel;
     const agentLabel = formatAgentLabel(currentAgentId);
+    const sessionLabel = formatFooterSessionLabel({
+      agentLabel,
+      sessionLabel: sessionKeyLabel,
+      displayName: sessionInfo.displayName,
+    });
     const modelLabel = resolveTuiModelLabel({
       provider: sessionInfo.modelProvider,
       model: sessionInfo.model,
@@ -1056,8 +1061,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     const reasoningLabel =
       reasoning === "on" ? "reasoning" : reasoning === "stream" ? "reasoning:stream" : null;
     const footerParts = [
-      `agent ${agentLabel}`,
-      `session ${sessionLabel}`,
+      sessionLabel,
       modelLabel,
       think !== "off" ? `think ${think}` : null,
       fast ? "fast" : null,

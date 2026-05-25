@@ -157,6 +157,29 @@ describe("gateway session utils", () => {
     });
   });
 
+  test("session defaults use provider-aware context windows", () => {
+    const defaults = getSessionDefaults({
+      agents: {
+        defaults: {
+          model: { primary: "openai-codex/gpt-5.5" },
+        },
+      },
+      models: {
+        providers: {
+          "openai-codex": {
+            models: [{ id: "gpt-5.5", contextWindow: 272000 }],
+          },
+        },
+      },
+    } as KovaConfig);
+
+    expect(defaults).toMatchObject({
+      modelProvider: "openai-codex",
+      model: "gpt-5.5",
+      contextTokens: 272000,
+    });
+  });
+
   test("session rows use per-agent thinking default from config", () => {
     const cfg = {
       agents: {

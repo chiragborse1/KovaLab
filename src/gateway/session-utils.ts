@@ -8,7 +8,7 @@ import {
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../agents/agent-scope.js";
-import { lookupContextTokens, resolveContextTokensForModel } from "../agents/context.js";
+import { resolveContextTokensForModel } from "../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import type { ModelCatalogEntry } from "../agents/model-catalog.js";
 import {
@@ -1151,7 +1151,12 @@ export function getSessionDefaults(cfg: KovaConfig): GatewaySessionsDefaults {
   });
   const contextTokens =
     cfg.agents?.defaults?.contextTokens ??
-    lookupContextTokens(resolved.model, { allowAsyncLoad: false }) ??
+    resolveContextTokensForModel({
+      cfg,
+      provider: resolved.provider,
+      model: resolved.model,
+      allowAsyncLoad: false,
+    }) ??
     DEFAULT_CONTEXT_TOKENS;
   const thinkingLevels = listThinkingLevelOptions(resolved.provider, resolved.model);
   return {

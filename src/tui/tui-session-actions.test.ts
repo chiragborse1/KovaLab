@@ -77,6 +77,7 @@ describe("tui session actions", () => {
 
     const state = createBaseState();
 
+    const updateHeader = vi.fn();
     const updateFooter = vi.fn();
     const updateAutocompleteProvider = vi.fn();
     const requestRender = vi.fn();
@@ -87,6 +88,7 @@ describe("tui session actions", () => {
       btw: createBtwPresenter(),
       tui: { requestRender } as unknown as import("@mariozechner/pi-tui").TUI,
       state,
+      updateHeader,
       updateFooter,
       updateAutocompleteProvider,
     });
@@ -134,6 +136,7 @@ describe("tui session actions", () => {
 
     expect(state.sessionInfo.model).toBe("Minimax-M2.7");
     expect(updateAutocompleteProvider).toHaveBeenCalledTimes(2);
+    expect(updateHeader).toHaveBeenCalledTimes(2);
     expect(updateFooter).toHaveBeenCalledTimes(2);
     expect(requestRender).toHaveBeenCalledTimes(2);
   });
@@ -326,6 +329,9 @@ describe("tui session actions", () => {
       lastCtrlCAt: 0,
     };
 
+    const updateHeader = vi.fn();
+    const updateFooter = vi.fn();
+
     const { refreshSessionInfo } = createSessionActions({
       client: { listSessions } as unknown as TuiBackend,
       chatLog: { addSystem: vi.fn() } as unknown as import("./components/chat-log.js").ChatLog,
@@ -337,8 +343,8 @@ describe("tui session actions", () => {
       initialSessionInput: "",
       initialSessionAgentId: null,
       resolveSessionKey: vi.fn(),
-      updateHeader: vi.fn(),
-      updateFooter: vi.fn(),
+      updateHeader,
+      updateFooter,
       updateAutocompleteProvider: vi.fn(),
       setActivityStatus: vi.fn(),
     });
@@ -348,6 +354,8 @@ describe("tui session actions", () => {
     expect(state.sessionInfo.model).toBe("gpt-5.4");
     expect(state.sessionInfo.modelProvider).toBe("openai");
     expect(state.sessionInfo.contextTokens).toBe(272000);
+    expect(updateHeader).toHaveBeenCalled();
+    expect(updateFooter).toHaveBeenCalled();
   });
 
   it("resets activity status to idle when switching sessions after streaming", async () => {

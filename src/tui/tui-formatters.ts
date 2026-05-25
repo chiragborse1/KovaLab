@@ -385,6 +385,19 @@ export function formatTokens(total?: number | null, context?: number | null) {
   return `tokens ${totalLabel}/${formatTokenCount(context)}${pct !== null ? ` (${pct}%)` : ""}`;
 }
 
+export function formatFooterSessionLabel(params: {
+  agentLabel: string;
+  sessionLabel: string;
+  displayName?: string | null;
+}): string {
+  const base = `${params.agentLabel}/${params.sessionLabel}`;
+  const displayName = params.displayName?.trim();
+  if (!displayName || displayName.toLowerCase() === "tui" || displayName === params.sessionLabel) {
+    return base;
+  }
+  return `${base} (${displayName})`;
+}
+
 export function formatContextUsageLine(params: {
   total?: number | null;
   context?: number | null;
