@@ -292,6 +292,87 @@ describe("EmbeddedTuiBackend", () => {
     }
   });
 
+  it("waits for finishing local runs before tearing down embedded mode", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const pending = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    let abortSignal: AbortSignal | undefined;
+    agentCommandFromIngressMock.mockImplementationOnce((params: { abortSignal?: AbortSignal }) => {
+      abortSignal = params.abortSignal;
+      return pending.promise;
+    });
+
+    const backend = new EmbeddedTuiBackend();
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "hello",
+      runId: "run-finishing-stop",
+    });
+    await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 1);
+
+    registeredListener?.({
+      runId: "run-finishing-stop",
+      stream: "lifecycle",
+      data: { phase: "finishing" },
+    });
+    const stopPromise = backend.stop();
+    await flushMicrotasks();
+
+    expect(abortSignal?.aborted).toBe(false);
+    expect(isEmbeddedMode()).toBe(true);
+
+    pending.resolve({ payloads: [{ text: "done" }], meta: {} });
+    await stopPromise;
+
+    expect(isEmbeddedMode()).toBe(false);
+  });
+
+  it("aborts finishing local runs immediately when shutdown grace is disabled", async () => {
+    const previous = process.env.KOVA_TUI_LOCAL_RUN_SHUTDOWN_GRACE_MS;
+    process.env.KOVA_TUI_LOCAL_RUN_SHUTDOWN_GRACE_MS = "0";
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const pending = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    let abortSignal: AbortSignal | undefined;
+    agentCommandFromIngressMock.mockImplementationOnce((params: { abortSignal?: AbortSignal }) => {
+      abortSignal = params.abortSignal;
+      return pending.promise;
+    });
+
+    const backend = new EmbeddedTuiBackend();
+    try {
+      backend.start();
+      await backend.sendChat({
+        sessionKey: "agent:main:main",
+        message: "hello",
+        runId: "run-finishing-stop-now",
+      });
+      await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 1);
+
+      registeredListener?.({
+        runId: "run-finishing-stop-now",
+        stream: "lifecycle",
+        data: { phase: "finishing" },
+      });
+      await backend.stop();
+
+      expect(abortSignal?.aborted).toBe(true);
+      expect(isEmbeddedMode()).toBe(false);
+    } finally {
+      pending.resolve({ payloads: [], meta: {} });
+      if (previous === undefined) {
+        delete process.env.KOVA_TUI_LOCAL_RUN_SHUTDOWN_GRACE_MS;
+      } else {
+        process.env.KOVA_TUI_LOCAL_RUN_SHUTDOWN_GRACE_MS = previous;
+      }
+    }
+  });
+
   it("keeps final short replies like No after suppressing lead-fragment deltas", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
     const pending = deferred<{

@@ -1140,10 +1140,14 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       exitReason: result?.exitReason ?? "exit",
       ...(result?.crestodianMessage ? { crestodianMessage: result.crestodianMessage } : {}),
     };
-    client.stop();
-    void drainAndStopTuiSafely(tui).then(() => {
-      finishTui?.();
-    });
+    void Promise.resolve(client.stop())
+      .catch(() => {
+        // Shutdown is best-effort here; terminal restore still has to run.
+      })
+      .then(() => drainAndStopTuiSafely(tui))
+      .then(() => {
+        finishTui?.();
+      });
   };
   const exitAwareClient = client as TuiBackend & {
     setRequestExitHandler?: (handler: () => void) => void;

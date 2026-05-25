@@ -42,6 +42,7 @@
 - CLI/TUI: compact the terminal hero inventory into tool and skill counts instead of listing bulky tool and skill names on the first screen. Thanks @chiragborse1
 - CLI/TUI: make the lower footer quieter by omitting the repeated model label and add trace spans for local tool runtime latency. Thanks @chiragborse1
 - CLI/TUI: route shared `/session idle`, `/session max-age`, `/models ...`, and `/usage cost` commands through the shared slash-command path, and let `/new <model>` apply the model to the new isolated terminal session. Thanks @chiragborse1
+- CLI/TUI: give finishing local terminal runs a bounded shutdown grace period so exit does not cut off final cleanup after the assistant lifecycle has ended. Thanks @chiragborse1
 - CLI/TUI: make `/recover` a Gateway-aware self-healing loop that audits tasks and Task Flow, previews safe repair, and applies maintenance without starting an agent turn. Thanks @chiragborse1
 - CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
 - Gateway startup: bind the control plane before loading plugin runtime so local clients can connect while plugins finish warming. Thanks @chiragborse1
