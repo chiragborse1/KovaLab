@@ -60,7 +60,7 @@ function loadOnboardSearchModule(): Promise<OnboardSearchModule> {
 export async function finalizeSetupWizard(
   options: FinalizeOnboardingOptions,
 ): Promise<{ launchedTui: boolean }> {
-  const { flow, opts, baseConfig, nextConfig, settings, prompter, runtime } = options;
+  const { flow, opts, nextConfig, settings, prompter, runtime } = options;
   const isQuickstart = flow === "quickstart";
   const isExtras = flow === "extras";
   const extraModules = options.extraModules ?? [];
