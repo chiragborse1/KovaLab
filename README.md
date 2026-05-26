@@ -26,21 +26,14 @@ remote operation.
 
 Runtime: **Node 24 recommended**, or **Node 22.14+**.
 
-Linux and macOS:
-
-```bash
+```text
+# Linux / macOS / WSL2
 curl -fsSL https://www.neuralstudio.in/install.sh | bash
-```
 
-Windows PowerShell:
-
-```powershell
+# Windows PowerShell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
-```
 
-Manual npm install:
-
-```bash
+# Manual npm install
 npm install -g getkova@latest
 ```
 
