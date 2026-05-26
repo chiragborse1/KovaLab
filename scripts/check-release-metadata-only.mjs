@@ -109,6 +109,7 @@ function stableJson(value) {
 
 function normalizeVersionText(raw) {
   return raw
+    .replace(/\b\d+\.\d+\.\d+(?:-beta\.\d+)?\b/gu, "<KOVA_VERSION>")
     .replace(/\b20\d{2}\.\d{1,2}\.\d{1,2}(?:-beta\.\d+|-\d+)?\b/gu, "<KOVA_VERSION>")
     .replace(/\b20\d{6}(?:\d{2})?\b/gu, "<KOVA_BUILD>");
 }

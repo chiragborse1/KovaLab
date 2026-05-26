@@ -668,6 +668,47 @@ describe("scripts/changed-lanes", () => {
     ).toThrow();
   });
 
+  it("allows semver beta version-only generated schema changes", () => {
+    const dir = makeTempRepoRoot(tempDirs, "kova-release-metadata-semver-");
+    git(dir, ["init", "-q", "--initial-branch=main"]);
+    mkdirSync(path.join(dir, "src/config"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "src/config/schema.base.generated.ts"),
+      'export const GENERATED_BASE_CONFIG_SCHEMA = { version: "2.0.0-beta.7" };\n',
+      "utf8",
+    );
+    git(dir, ["add", "src/config/schema.base.generated.ts"]);
+    git(dir, [
+      "-c",
+      "user.email=test@example.com",
+      "-c",
+      "user.name=Test User",
+      "commit",
+      "-q",
+      "-m",
+      "initial",
+    ]);
+
+    writeFileSync(
+      path.join(dir, "src/config/schema.base.generated.ts"),
+      'export const GENERATED_BASE_CONFIG_SCHEMA = { version: "2.0.0-beta.8" };\n',
+      "utf8",
+    );
+    git(dir, ["add", "src/config/schema.base.generated.ts"]);
+
+    expect(() =>
+      execFileSync(
+        process.execPath,
+        [path.join(repoRoot, "scripts", "check-release-metadata-only.mjs"), "--staged"],
+        {
+          cwd: dir,
+          env: createNestedGitEnv(),
+          stdio: "pipe",
+        },
+      ),
+    ).not.toThrow();
+  });
+
   it("routes root test/support changes to the tooling test lane instead of all lanes", () => {
     const result = detectChangedLanes(["test/git-hooks-pre-commit.test.ts"]);
     const plan = createChangedCheckPlan(result);
