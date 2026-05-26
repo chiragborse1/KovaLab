@@ -68,6 +68,7 @@
 
 ### Fixes
 
+- CLI/onboarding: show a full KOVA AGENT startup banner and keep the first terminal handoff quiet instead of sending an automatic starter message. Thanks @chiragborse1
 - CLI/onboarding: make the quickstart advanced setup confirmation run the advanced steps directly instead of showing a second extras picker. Thanks @chiragborse1
 - CLI/TUI: label the terminal footer gauge as context usage and make bare `/memory` show status while keeping `/memory help` for command hints. Thanks @chiragborse1
 - CLI/TUI: keep fast local slash-command replies from leaving the terminal busy, echo local command rows before command output, add `/plugins` status inspection, and render the footer token gauge as a progress bar. Thanks @chiragborse1
