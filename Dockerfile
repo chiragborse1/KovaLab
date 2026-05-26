@@ -60,8 +60,6 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY kova.mjs ./
-COPY kova.mjs ./
-COPY ui/package.json ./ui/package.json
 COPY patches ./patches
 COPY scripts/postinstall-bundled-plugins.mjs scripts/preinstall-package-manager-warning.mjs scripts/npm-runner.mjs scripts/windows-cmd-helpers.mjs ./scripts/
 
@@ -109,9 +107,6 @@ RUN pnpm canvas:a2ui:bundle || \
      echo "stub" > src/canvas-host/a2ui/.bundle.hash && \
      rm -rf vendor/a2ui apps/shared/KovaKit/Tools/CanvasA2UI)
 RUN pnpm build:docker
-# Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
-ENV KOVA_PREFER_PNPM=1
-RUN pnpm ui:build
 RUN pnpm qa:lab:build
 
 # Prune dev dependencies and strip build-only metadata before copying
@@ -121,10 +116,10 @@ ARG KOVA_EXTENSIONS
 ARG KOVA_BUNDLED_PLUGIN_DIR
 # Keep the install layer frozen, but allow prune to run against the full copied
 # workspace tree subset used during `pnpm install`. The build stage only copied
-# the root, `ui`, and opted-in plugin manifests into the install layer, so
+# the root and opted-in plugin manifests into the install layer, so
 # prune must not rediscover unrelated workspaces from the later full source
 # copy.
-RUN printf 'packages:\n  - .\n  - ui\n' > /tmp/pnpm-workspace.runtime.yaml && \
+RUN printf 'packages:\n  - .\n' > /tmp/pnpm-workspace.runtime.yaml && \
     for ext in $KOVA_EXTENSIONS; do \
       printf '  - %s/%s\n' "$KOVA_BUNDLED_PLUGIN_DIR" "$ext" >> /tmp/pnpm-workspace.runtime.yaml; \
     done && \
