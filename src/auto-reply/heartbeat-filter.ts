@@ -5,6 +5,8 @@ const HEARTBEAT_TASK_PROMPT_PREFIX =
   "Run the following periodic tasks (only those due based on their intervals):";
 const HEARTBEAT_TASK_PROMPT_ACK = "After completing all due tasks, reply with ONLY: NO_REPLY.";
 const LEGACY_HEARTBEAT_TASK_PROMPT_ACK = "After completing all due tasks, reply HEARTBEAT_OK.";
+const LEGACY_HEARTBEAT_PROMPT =
+  "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.";
 const LEGACY_HEARTBEAT_TRANSCRIPT_PROMPTS = new Set<string>([
   "[Kova heartbeat poll]",
   "[Open\u0043law heartbeat poll]",
@@ -56,6 +58,9 @@ export function isHeartbeatUserMessage(
     return true;
   }
   if (normalizedHeartbeatPrompt && trimmed.startsWith(normalizedHeartbeatPrompt)) {
+    return true;
+  }
+  if (trimmed.startsWith(LEGACY_HEARTBEAT_PROMPT)) {
     return true;
   }
   return (
