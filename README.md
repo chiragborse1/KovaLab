@@ -15,8 +15,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-Kova is a local-first agent that starts in the terminal and grows with your workflow.
-Run `kova`, talk to your agent, connect tools when you need them, and use the Gateway only when you need always-on channels or remote operation.
+Kova is a local-first agent that starts in the terminal and grows with your
+workflow. Run `kova`, talk to your agent, connect tools when you need them, and
+turn on the Gateway only when you want always-on channels, cron, nodes, or
+remote operation.
 
 [Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Support](SUPPORT.md) · [Security](SECURITY.md) · [Discord](https://discord.gg/uT9ETzpaHT)
 
@@ -49,7 +51,8 @@ kova onboard
 kova
 ```
 
-`kova onboard` sets up the workspace, provider/model, Gateway basics, and optional channels.
+`kova onboard` sets up the workspace, provider/model, Gateway basics, and
+optional channels.
 `kova` opens the terminal chat directly with the embedded local agent.
 
 For scripts:
@@ -66,7 +69,7 @@ kova agent --local --message "Summarize today's plan"
 - **Tools**: filesystem, shell, browser, web search, media, cron, nodes, messaging, and automation surfaces.
 - **Channels**: Telegram, WhatsApp, Discord, Slack, Signal, Matrix, Google Chat, and more through plugins.
 - **Gateway**: optional headless control plane for always-on access, channel delivery, cron, nodes, and remote operation.
-- **Apps and nodes**: optional macOS, iOS, Android, browser, canvas, and voice surfaces.
+- **Apps and nodes**: optional macOS, iOS, Android, canvas, and voice surfaces.
 
 ## Default shape
 
@@ -116,7 +119,7 @@ kova plugins list            # inspect plugins
 Kova also publishes a container image for server and VPS deployments:
 
 ```bash
-docker pull ghcr.io/chiragborse1/kova:dev
+docker pull ghcr.io/chiragborse1/kova:main
 ```
 
 For normal laptop/terminal use, prefer the regular installer. Use Docker when
@@ -162,8 +165,11 @@ pnpm kova
 Development loop:
 
 ```bash
-pnpm gateway:watch
+pnpm kova
 ```
+
+Use `pnpm gateway:watch` only when you are specifically developing the
+headless Gateway or channel runtime.
 
 Build artifacts:
 

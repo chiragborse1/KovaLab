@@ -1,13 +1,13 @@
 ---
 summary: "How the installer scripts work (install.sh, install-cli.sh, install.ps1), flags, and automation"
 read_when:
-  - You want to understand `kova.ai/install.sh`
+  - You want to understand `www.neuralstudio.in/install.sh`
   - You want to automate installs (CI / headless)
   - You want to install from a GitHub checkout
 title: "Installer internals"
 ---
 
-Kova ships three installer scripts, served from `kova.ai`.
+Kova ships three installer scripts, served from `www.neuralstudio.in`.
 
 | Script                             | Platform             | What it does                                                                                           |
 | ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |

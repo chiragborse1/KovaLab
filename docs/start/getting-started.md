@@ -56,10 +56,9 @@ Need to install Node? See [Node setup](/install/node).
     kova onboard
     ```
 
-    Onboarding walks through the small base setup: workspace, model/auth, and
-    optional chat channels. After that, optional setup can add web recall,
-    skills, plugins, and automation. Gateway port and service setup stay in
-    extras for when you need always-on or remote access.
+    Onboarding walks through the small base setup: workspace, model/auth,
+    Gateway basics, and optional chat channels. After that, optional setup can
+    add web recall, skills, plugins, automation, and always-on service setup.
 
     See [Onboarding (CLI)](/start/wizard) for the full reference.
 
@@ -73,13 +72,13 @@ Need to install Node? See [Node setup](/install/node).
     channel is required for the first conversation.
 
   </Step>
-  <Step title="Optional: verify the Gateway">
+  <Step title="Optional: always-on Gateway">
     ```bash
     kova gateway status
     ```
 
     The Gateway is headless infrastructure for remote access, channels, cron,
-    nodes, apps, and optional web compatibility. Install the daemon with
+    nodes, apps, and remote compatibility. Install the daemon with
     `kova onboard --install-daemon` or start it manually with `kova gateway run`
     when you need those surfaces.
 

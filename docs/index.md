@@ -101,13 +101,22 @@ The terminal owns the primary agent loop. The Gateway extends that loop to remot
 
 <Steps>
   <Step title="Install Kova">
-    ```bash
-    npm install -g getkova@latest
-    ```
+    <Tabs>
+      <Tab title="macOS / Linux / WSL2">
+        ```bash
+        curl -fsSL https://www.neuralstudio.in/install.sh | bash
+        ```
+      </Tab>
+      <Tab title="Windows PowerShell">
+        ```powershell
+        powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.neuralstudio.in/install.ps1 | iex"
+        ```
+      </Tab>
+    </Tabs>
   </Step>
-  <Step title="Onboard and install the service">
+  <Step title="Onboard">
     ```bash
-    kova onboard --install-daemon
+    kova onboard
     ```
   </Step>
   <Step title="Chat">
@@ -132,8 +141,9 @@ Need the full install and dev setup? See [Getting Started](/start/getting-starte
 
 Config lives at `~/.kova/kova.json`.
 
-- If you **do nothing**, Kova uses the bundled Pi binary in RPC mode with per-sender sessions.
-- If you want to lock it down, start with `channels.whatsapp.allowFrom` and (for groups) mention rules.
+- If you **do nothing after onboarding**, Kova starts as a local terminal agent.
+- If you enable chat channels, start with channel pairing or allowlists and
+  require mentions in groups.
 
 Example:
 

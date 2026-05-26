@@ -8,7 +8,10 @@ title: "Personal assistant setup"
 
 # Building a personal assistant with Kova
 
-Kova is a self-hosted gateway that connects Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more to AI agents. This guide covers the "personal assistant" setup: a dedicated WhatsApp number that behaves like your always-on AI assistant.
+Kova is a terminal-first local agent that can grow into an always-on personal
+assistant through the headless Gateway. This guide covers the dedicated channel
+setup: a separate WhatsApp number that behaves like your AI assistant while the
+main control surface stays in the terminal.
 
 ## ⚠️ Safety first
 

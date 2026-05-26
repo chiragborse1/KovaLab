@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Kova",
-  "description": "Self-hosted gateway that connects Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more to AI coding agents. Run one Gateway process on your own machine and message your AI assistant from anywhere.",
+  "description": "Terminal-first local AI agent with memory, skills, tools, chat channels, and an optional headless Gateway for always-on workflows.",
   "theme": "mint",
   "icons": {
     "library": "lucide"
@@ -46,7 +46,7 @@
       },
       {
         "label": "Discord",
-        "href": "https://discord.com/invite/kova",
+        "href": "https://discord.gg/uT9ETzpaHT",
         "icon": "discord"
       }
     ]
@@ -923,7 +923,7 @@
             "groups": [
               {
                 "group": "Overview",
-                "pages": ["index", "start/showcase", "concepts/features"]
+                "pages": ["index", "start/showcase", "start/launch-post", "concepts/features"]
               },
               {
                 "group": "First steps",

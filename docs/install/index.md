@@ -15,7 +15,8 @@ title: "Install"
 
 ## Recommended: installer script
 
-The fastest way to install. It detects your OS, installs Node if needed, installs Kova, and launches onboarding.
+The fastest way to install. It detects your OS, installs Node if needed,
+installs Kova, and launches onboarding.
 
 <Tabs>
   <Tab title="macOS / Linux / WSL2">
@@ -73,14 +74,16 @@ If you already manage Node yourself:
   <Tab title="npm">
     ```bash
     npm install -g getkova@latest
-    kova onboard --install-daemon
+    kova onboard
+    kova
     ```
   </Tab>
   <Tab title="pnpm">
     ```bash
     pnpm add -g getkova@latest
     pnpm approve-builds -g
-    kova onboard --install-daemon
+    kova onboard
+    kova
     ```
 
     <Note>
@@ -91,7 +94,8 @@ If you already manage Node yourself:
   <Tab title="bun">
     ```bash
     bun add -g getkova@latest
-    kova onboard --install-daemon
+    kova onboard
+    kova
     ```
 
     <Note>
@@ -116,10 +120,11 @@ For contributors or anyone who wants to run from a local checkout:
 
 ```bash
 git clone https://github.com/chiragborse1/KovaLab.git
-cd kova
+cd KovaLab
 pnpm install && pnpm build
 pnpm link --global
-kova onboard --install-daemon
+kova onboard
+kova
 ```
 
 Or skip the link and use `pnpm kova ...` from inside the repo. See [Setup](/start/setup) for full development workflows.
@@ -155,7 +160,7 @@ npm install -g github:chiragborse1/KovaLab#main
 ```bash
 kova --version      # confirm the CLI is available
 kova doctor         # check for config issues
-kova gateway status # verify the Gateway is running
+kova status         # verify the local terminal runtime
 ```
 
 If you want managed startup after install:
