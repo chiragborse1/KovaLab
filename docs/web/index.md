@@ -1,44 +1,27 @@
 ---
-summary: "Legacy Gateway browser surfaces, bind modes, and security"
+summary: "Gateway remote access without a browser surface"
 read_when:
   - You want to access the Gateway over Tailscale
-  - You want the browser Control UI and config editing
-title: "Web"
+  - You are choosing a safe bind mode for remote Kova access
+title: "Remote Access"
 ---
 
 Kova is terminal-first. Use `kova`, `kova status`, `kova settings`, and
-`kova logs` for normal operation. The Gateway can still serve the legacy
-**browser Control UI** (Vite + Lit) from the same port as the Gateway WebSocket
-when it is enabled and assets are available:
+`kova logs` for normal operation.
 
-- default: `http://<host>:18789/`
-- with `gateway.tls.enabled: true`: `https://<host>:18789/`
-- optional prefix: set `gateway.controlUi.basePath` (e.g. `/kova`)
-
-Capabilities live in [Control UI](/web/control-ui). The rest of this page
-focuses on bind modes, security, and web-facing surfaces.
+The Gateway HTTP server remains useful for WebSockets, health checks, webhooks,
+plugin endpoints, channel callbacks, nodes, and remote CLI/TUI clients. It no
+longer serves a bundled browser surface.
 
 ## Webhooks
 
-When `hooks.enabled=true`, the Gateway also exposes a small webhook endpoint on the same HTTP server.
-See [Gateway configuration](/gateway/configuration) → `hooks` for auth + payloads.
-
-## Config
-
-The terminal path does not require web assets. Enable the legacy browser UI
-explicitly when you want that surface:
-
-```json5
-{
-  gateway: {
-    controlUi: { enabled: true, basePath: "/kova" }, // basePath optional
-  },
-}
-```
+When `hooks.enabled=true`, the Gateway exposes a small webhook endpoint on the
+same HTTP server. See [Gateway configuration](/gateway/configuration) for auth
+and payload settings.
 
 ## Tailscale access
 
-### Integrated Serve (recommended)
+### Integrated Serve
 
 Keep the Gateway on loopback and let Tailscale Serve proxy it:
 
@@ -57,9 +40,8 @@ Then start the gateway:
 kova gateway
 ```
 
-Open:
-
-- `https://<magicdns>/` (or your configured `gateway.controlUi.basePath`)
+Connect from another machine with the CLI/TUI using the served URL and Gateway
+credentials.
 
 ### Tailnet bind + token
 
@@ -67,65 +49,35 @@ Open:
 {
   gateway: {
     bind: "tailnet",
-    controlUi: { enabled: true },
     auth: { mode: "token", token: "your-token" },
   },
 }
 ```
 
-Then start the gateway (this non-loopback example uses shared-secret token
-auth):
+Then start the gateway:
 
 ```bash
 kova gateway
 ```
 
-Open:
+Use `kova gateway status --deep` to inspect the resolved bind, auth, and remote
+connection hints.
 
-- `http://<tailscale-ip>:18789/` (or your configured `gateway.controlUi.basePath`)
+### Public internet
 
-### Public internet (Funnel)
-
-```json5
-{
-  gateway: {
-    bind: "loopback",
-    tailscale: { mode: "funnel" },
-    auth: { mode: "password" }, // or KOVA_GATEWAY_PASSWORD
-  },
-}
-```
+Avoid exposing the Gateway directly to the public internet. If you must put it
+behind a public reverse proxy, use TLS, strong Gateway auth, and explicit trusted
+proxy configuration. Keep channel webhook paths separate from operator access.
 
 ## Security notes
 
-- Gateway auth is required by default (token, password, trusted-proxy, or Tailscale Serve identity headers when enabled).
-- Non-loopback binds still **require** gateway auth. In practice that means token/password auth or an identity-aware reverse proxy with `gateway.auth.mode: "trusted-proxy"`.
+- Gateway auth is required by default.
+- Non-loopback binds still require token, password, Tailscale identity, or an
+  identity-aware reverse proxy with `gateway.auth.mode: "trusted-proxy"`.
 - The wizard creates shared-secret auth by default and usually generates a
-  gateway token (even on loopback).
-- In shared-secret mode, the UI sends `connect.params.auth.token` or
-  `connect.params.auth.password`.
-- When `gateway.tls.enabled: true`, local Control UI and status helpers render
-  `https://` Control UI URLs and `wss://` WebSocket URLs.
-- In identity-bearing modes such as Tailscale Serve or `trusted-proxy`, the
-  WebSocket auth check is satisfied from request headers instead.
-- For non-loopback Control UI deployments, set `gateway.controlUi.allowedOrigins`
-  explicitly (full origins). Without it, gateway startup is refused by default.
-- `gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true` enables
-  Host-header origin fallback mode, but is a dangerous security downgrade.
-- With Serve, Tailscale identity headers can satisfy Control UI/WebSocket auth
-  when `gateway.auth.allowTailscale` is `true` (no token/password required).
-  HTTP API endpoints do not use those Tailscale identity headers; they follow
-  the gateway's normal HTTP auth mode instead. Set
-  `gateway.auth.allowTailscale: false` to require explicit credentials. See
-  [Tailscale](/gateway/tailscale) and [Security](/gateway/security). This
-  tokenless flow assumes the gateway host is trusted.
-- `gateway.tailscale.mode: "funnel"` requires `gateway.auth.mode: "password"` (shared password).
-
-## Building the UI
-
-The Gateway serves static files from `dist/control-ui`. Build them only when you
-are using the legacy browser UI:
-
-```bash
-pnpm ui:build
-```
+  Gateway token.
+- When `gateway.tls.enabled: true`, status helpers render `https://` and `wss://`
+  connection hints.
+- `gateway.tailscale.mode: "funnel"` requires `gateway.auth.mode: "password"`.
+- Run `kova security audit --deep` after changing bind, TLS, proxy, or channel
+  webhook settings.

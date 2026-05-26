@@ -242,9 +242,9 @@ describe("sessions tools", () => {
               lastMessagePreview: "Need review on the patch",
             },
             {
-              key: "agent:main:dashboard:child",
+              key: "agent:main:local:child",
               kind: "direct",
-              sessionId: "s-dashboard-child",
+              sessionId: "s-local-child",
               updatedAt: 12,
               parentSessionKey: "agent:main:main",
             },
@@ -342,8 +342,8 @@ describe("sessions tools", () => {
     expect(group?.derivedTitle).toBe("Dev room");
     expect(group?.lastMessagePreview).toBe("Need review on the patch");
 
-    const dashboardChild = details.sessions?.find((s) => s.key === "agent:main:dashboard:child");
-    expect(dashboardChild?.parentSessionKey).toBe("agent:main:main");
+    const localChild = details.sessions?.find((s) => s.key === "agent:main:local:child");
+    expect(localChild?.parentSessionKey).toBe("agent:main:main");
 
     const subagentWorker = details.sessions?.find((s) => s.key === "agent:main:subagent:worker");
     expect(subagentWorker?.spawnedBy).toBe("agent:main:main");

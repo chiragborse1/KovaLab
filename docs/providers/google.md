@@ -352,7 +352,7 @@ SDK rejects language-code hints on this API path.
 </Note>
 
 <Note>
-Control UI Talk browser sessions still require a realtime voice provider with a
+Gateway clients Talk browser sessions still require a realtime voice provider with a
 browser WebRTC session implementation. Today that path is OpenAI Realtime; the
 Google provider is for backend realtime bridges.
 </Note>

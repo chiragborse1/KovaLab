@@ -38,7 +38,7 @@ This makes core aware of native UI shapes, weakens plugin runtime laziness, and 
 
 - Core decides the best semantic presentation for a message from declared capabilities.
 - Extensions declare capabilities and render semantic presentation into native transport payloads.
-- Web Control UI remains separate from chat native UI.
+- Web Gateway clients remains separate from chat native UI.
 - Native channel payloads are not exposed through the shared agent or CLI message surface.
 - Unsupported presentation features auto-degrade to the best text representation.
 - Delivery behavior such as pinning a sent message is generic delivery metadata, not presentation.

@@ -20,7 +20,7 @@ import {
   writeSessionStore,
 } from "./test-helpers.js";
 import { agentCommand } from "./test-helpers.runtime-state.js";
-import { installConnectedControlUiServerSuite } from "./test-with-server.js";
+import { installConnectedOperatorClientServerSuite } from "./test-with-server.js";
 
 installGatewayTestHooks({ scope: "suite" });
 const CHAT_RESPONSE_TIMEOUT_MS = 10_000;
@@ -28,7 +28,7 @@ const CHAT_RESPONSE_TIMEOUT_MS = 10_000;
 let ws: WebSocket;
 let port: number;
 
-installConnectedControlUiServerSuite((started) => {
+installConnectedOperatorClientServerSuite((started) => {
   ws = started.ws;
   port = started.port;
 });
@@ -200,22 +200,22 @@ describe("gateway server chat", () => {
     };
   };
 
-  test("sessions.send accepts dashboard messages for existing sessions", async () => {
+  test("sessions.send accepts local chat messages for existing sessions", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-send-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     try {
       await writeSessionStore({
         entries: {
-          "agent:main:dashboard:test-send": {
-            sessionId: "sess-dashboard-send",
+          "agent:main:local:test-send": {
+            sessionId: "sess-local-send",
             updatedAt: Date.now(),
           },
         },
       });
 
       const res = await rpcReq(ws, "sessions.send", {
-        key: "agent:main:dashboard:test-send",
-        message: "hello from dashboard",
+        key: "agent:main:local:test-send",
+        message: "hello from local chat",
         idempotencyKey: "idem-sessions-send-1",
       });
       expect(res.ok).toBe(true);
@@ -227,22 +227,22 @@ describe("gateway server chat", () => {
     }
   });
 
-  test("sessions.steer accepts dashboard follow-up messages for existing sessions", async () => {
+  test("sessions.steer accepts local follow-up messages for existing sessions", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-steer-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     try {
       await writeSessionStore({
         entries: {
-          "agent:main:dashboard:test-steer": {
-            sessionId: "sess-dashboard-steer",
+          "agent:main:local:test-steer": {
+            sessionId: "sess-local-steer",
             updatedAt: Date.now(),
           },
         },
       });
 
       const res = await rpcReq(ws, "sessions.steer", {
-        key: "agent:main:dashboard:test-steer",
-        message: "follow-up from dashboard",
+        key: "agent:main:local:test-steer",
+        message: "follow-up from local chat",
         idempotencyKey: "idem-sessions-steer-1",
       });
       expect(res.ok).toBe(true);
@@ -254,21 +254,21 @@ describe("gateway server chat", () => {
     }
   });
 
-  test("sessions.abort stops active dashboard runs", async () => {
+  test("sessions.abort stops active local chat runs", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-abort-"));
     testState.sessionStorePath = path.join(dir, "sessions.json");
     try {
       await writeSessionStore({
         entries: {
-          "agent:main:dashboard:test-abort": {
-            sessionId: "sess-dashboard-abort",
+          "agent:main:local:test-abort": {
+            sessionId: "sess-local-abort",
             updatedAt: Date.now(),
           },
         },
       });
 
       const sendRes = await rpcReq(ws, "sessions.send", {
-        key: "agent:main:dashboard:test-abort",
+        key: "agent:main:local:test-abort",
         message: "hello",
         idempotencyKey: "idem-sessions-abort-1",
         timeoutMs: 30_000,
@@ -276,7 +276,7 @@ describe("gateway server chat", () => {
       expect(sendRes.ok).toBe(true);
 
       const abortRes = await rpcReq(ws, "sessions.abort", {
-        key: "agent:main:dashboard:test-abort",
+        key: "agent:main:local:test-abort",
         runId: "idem-sessions-abort-1",
       });
       expect(abortRes.ok).toBe(true);
@@ -323,7 +323,7 @@ describe("gateway server chat", () => {
       await new Promise<void>((resolve) => webchatWs?.once("open", resolve));
       await connectOk(webchatWs, {
         client: {
-          id: GATEWAY_CLIENT_NAMES.CONTROL_UI,
+          id: GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT,
           version: "dev",
           platform: "web",
           mode: GATEWAY_CLIENT_MODES.WEBCHAT,

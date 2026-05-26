@@ -14,7 +14,6 @@ const { detectChangedScope, detectInstallSmokeScope, detectNodeFastScope, listCh
       runWindows: boolean;
       runSkillsPython: boolean;
       runChangedSmoke: boolean;
-      runControlUiI18n: boolean;
     };
     detectInstallSmokeScope: (paths: string[]) => {
       runFastInstallSmoke: boolean;
@@ -66,7 +65,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: true,
       runChangedSmoke: true,
-      runControlUiI18n: true,
     });
   });
 
@@ -78,7 +76,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -90,7 +87,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -102,7 +98,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["apps/macos-mlx-tts/Sources/KovaMLXTTSHelper/main.swift"])).toEqual({
       runNode: false,
@@ -111,7 +106,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["apps/shared/KovaKit/Sources/Foo.swift"])).toEqual({
       runNode: false,
@@ -120,7 +114,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -132,7 +125,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -144,7 +136,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
 
     expect(detectChangedScope(["assets/icon.png"])).toEqual({
@@ -154,7 +145,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -166,7 +156,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -178,7 +167,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: true,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -190,7 +178,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: true,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -202,7 +189,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -214,7 +200,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/auto-reply/reply/streaming-directives.ts"])).toEqual({
       runNode: true,
@@ -223,7 +208,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/process/exec.ts"])).toEqual({
       runNode: true,
@@ -232,7 +216,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/process/exec.windows.test.ts"])).toEqual({
       runNode: true,
@@ -241,7 +224,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/shared/runtime-import.ts"])).toEqual({
       runNode: true,
@@ -250,7 +232,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/shared/runtime-import.test.ts"])).toEqual({
       runNode: true,
@@ -259,7 +240,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/plugins/import-specifier.test.ts"])).toEqual({
       runNode: true,
@@ -268,7 +248,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/npm-runner.mjs"])).toEqual({
       runNode: true,
@@ -277,7 +256,6 @@ describe("detectChangedScope", () => {
       runWindows: true,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -289,7 +267,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope([bundledPluginFile("matrix", "package.json")])).toEqual({
       runNode: true,
@@ -298,7 +275,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope([".github/workflows/install-smoke.yml"])).toEqual({
       runNode: true,
@@ -307,7 +283,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/qr-import-docker.sh"])).toEqual({
       runNode: true,
@@ -316,7 +291,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/gateway-network-docker.sh"])).toEqual({
       runNode: true,
@@ -325,7 +299,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/Dockerfile"])).toEqual({
       runNode: true,
@@ -334,7 +307,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/bundled-channel-runtime-deps-docker.sh"])).toEqual({
       runNode: true,
@@ -343,7 +315,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/agents-delete-shared-workspace-docker.sh"])).toEqual({
       runNode: true,
@@ -352,7 +323,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/e2e/plugin-update-unchanged-docker.sh"])).toEqual({
       runNode: true,
@@ -361,7 +331,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/postinstall-bundled-plugins.mjs"])).toEqual({
       runNode: true,
@@ -370,7 +339,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["scripts/ci-changed-scope.mjs"])).toEqual({
       runNode: true,
@@ -379,7 +347,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/plugins/bundled-runtime-deps.ts"])).toEqual({
       runNode: true,
@@ -388,7 +355,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
   });
 
@@ -400,7 +366,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/plugin-sdk/provider-entry.ts"])).toEqual({
       runNode: true,
@@ -409,7 +374,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/gateway/protocol/messages.ts"])).toEqual({
       runNode: true,
@@ -418,7 +382,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope(["src/channels/plugins/catalog.ts"])).toEqual({
       runNode: true,
@@ -427,7 +390,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: true,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope([bundledPluginFile("matrix", "index.ts")])).toEqual({
       runNode: true,
@@ -436,7 +398,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
   });
 
@@ -479,7 +440,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
     });
     expect(detectChangedScope([bundledPluginFile("matrix", "index.test.ts")])).toEqual({
       runNode: true,
@@ -488,29 +448,6 @@ describe("detectChangedScope", () => {
       runWindows: false,
       runSkillsPython: false,
       runChangedSmoke: false,
-      runControlUiI18n: false,
-    });
-  });
-
-  it("runs control-ui locale check only for control-ui i18n surfaces", () => {
-    expect(detectChangedScope(["ui/src/i18n/locales/en.ts"])).toEqual({
-      runNode: true,
-      runMacos: false,
-      runAndroid: false,
-      runWindows: false,
-      runSkillsPython: false,
-      runChangedSmoke: false,
-      runControlUiI18n: true,
-    });
-
-    expect(detectChangedScope(["scripts/control-ui-i18n.ts"])).toEqual({
-      runNode: true,
-      runMacos: false,
-      runAndroid: false,
-      runWindows: false,
-      runSkillsPython: false,
-      runChangedSmoke: false,
-      runControlUiI18n: true,
     });
   });
 

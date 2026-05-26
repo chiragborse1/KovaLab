@@ -118,7 +118,7 @@ Run a persistent Kova Gateway on Oracle Cloud's **Always Free** ARM tier (up to 
     curl http://localhost:18789
     ```
 
-    Access the Control UI from any device on your tailnet:
+    Access the Gateway clients from any device on your tailnet:
 
     ```
     https://kova.<tailnet-name>.ts.net/

@@ -113,13 +113,11 @@ Malformed local-model reasoning tags are handled conservatively. Closed `<think>
 - Heartbeat probe body is the configured heartbeat prompt (default: `Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`). Inline directives in a heartbeat message apply as usual (but avoid changing session defaults from heartbeats).
 - Heartbeat delivery defaults to the final payload only. To also send the separate `Thinking` message (when available), set `agents.defaults.heartbeat.includeReasoning: true` or per-agent `agents.list[].heartbeat.includeReasoning: true`.
 
-## Web chat UI
+## Local chat state
 
-- The web chat thinking selector mirrors the session's stored level from the inbound session store/config when the page loads.
-- Picking another level writes the session override immediately via `sessions.patch`; it does not wait for the next send and it is not a one-shot `thinkingOnce` override.
+- `/think:<level>` updates the stored session thinking level used by terminal and local gateway chat sessions.
 - The first option is always `Default (<resolved level>)`, where the resolved default comes from the active session model's provider thinking profile plus the same fallback logic that `/status` and `session_status` use.
-- The picker uses `thinkingLevels` returned by the gateway session row/defaults, with `thinkingOptions` kept as a legacy label list. The browser UI does not keep its own provider regex list; plugins own model-specific level sets.
-- `/think:<level>` still works and updates the same stored session level, so chat directives and the picker stay in sync.
+- Gateway session rows expose `thinkingLevels`, with `thinkingOptions` kept as a legacy label list for older clients. Plugins own model-specific level sets.
 
 ## Provider profiles
 

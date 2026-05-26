@@ -275,7 +275,7 @@ describe("models.authStatus", () => {
   it("still flags provider as missing when apiKey env SecretRef points at an unset env var", async () => {
     // Config declares an env SecretRef but the referenced env var isn't
     // set. We read process.env directly for env-source SecretRefs and fall
-    // through to the normal missing synthesis so the dashboard surfaces
+    // through to the normal missing synthesis so operator clients surface
     // the broken config instead of masking it.
     delete process.env.MODELS_AUTH_STATUS_TEST_MISSING_KEY;
     mocks.getRuntimeConfig.mockReturnValue({

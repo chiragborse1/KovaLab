@@ -831,7 +831,7 @@ describe("doctor.memory dream actions", () => {
     );
   });
 
-  it("repairs contaminated dreaming artifacts for control-ui callers", async () => {
+  it("repairs contaminated dreaming artifacts for operator-client callers", async () => {
     resolveAgentWorkspaceDir.mockReturnValue("/tmp/kova");
     repairDreamingArtifacts.mockResolvedValue({
       changed: true,
@@ -865,7 +865,7 @@ describe("doctor.memory dream actions", () => {
     );
   });
 
-  it("dedupes exact dream diary duplicates for control-ui callers", async () => {
+  it("dedupes exact dream diary duplicates for operator-client callers", async () => {
     resolveAgentWorkspaceDir.mockReturnValue("/tmp/kova");
     dedupeDreamDiaryEntries.mockResolvedValue({
       dreamsPath: "/tmp/kova/DREAMS.md",

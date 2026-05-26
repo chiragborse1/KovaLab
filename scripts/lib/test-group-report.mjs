@@ -37,9 +37,6 @@ export function resolveTestArea(file) {
   if (parts[0] === "apps" && parts[1]) {
     return `apps/${parts[1]}`;
   }
-  if (parts[0] === "ui") {
-    return parts[3] ? `ui/${parts[3]}` : "ui";
-  }
   if (parts[0] === "test" && parts[1]) {
     return `test/${parts[1]}`;
   }

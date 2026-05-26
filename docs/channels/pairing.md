@@ -128,7 +128,7 @@ you can opt in to first-time node auto-approval with explicit CIDRs or exact IPs
 ```
 
 This only applies to fresh `role: node` pairing requests with no requested
-scopes. Operator, browser, Control UI, and WebChat clients still require manual
+scopes. Operator, browser, and local chat clients still require manual
 approval. Role, scope, metadata, and public-key changes still require manual
 approval.
 

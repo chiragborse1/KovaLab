@@ -17,6 +17,8 @@ safer to operate, faster to use, or clearer to extend.
 - Website: https://www.neuralstudio.in/
 - Docs: https://docs.neuralstudio.in/
 - Discord: https://discord.gg/uT9ETzpaHT
+- Support: SUPPORT.md
+- Code of Conduct: CODE_OF_CONDUCT.md
 - Issues: https://github.com/chiragborse1/KovaLab/issues/new/choose
 
 ## Current Priorities
@@ -38,16 +40,15 @@ If a change does not clearly fit one of these buckets, open an issue first.
 Kova is intentionally plugin-first. Put behavior in the smallest owner that can
 hold it without making core depend on a specific integration.
 
-| Change type                          | Preferred home                                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Provider integration                 | `extensions/<provider>`                                                                     |
-| Chat/channel integration             | `extensions/<channel>`                                                                      |
-| Tool backed by a service or runtime  | plugin in `extensions/`                                                                     |
-| Reusable user procedure              | `skills/<skill>` or workspace skill                                                         |
-| Gateway protocol or routing contract | `src/gateway/protocol` and docs                                                             |
-| Terminal operator workflow           | CLI/TUI under `src/cli`, `src/commands`, or `src/tui`                                       |
-| Browser Control UI compatibility fix | `ui/`, only when the terminal path already exists or the issue is security/release-critical |
-| Docs-only user guidance              | `docs/` plus README when it is a first-run surface                                          |
+| Change type                          | Preferred home                                        |
+| ------------------------------------ | ----------------------------------------------------- |
+| Provider integration                 | `extensions/<provider>`                               |
+| Chat/channel integration             | `extensions/<channel>`                                |
+| Tool backed by a service or runtime  | plugin in `extensions/`                               |
+| Reusable user procedure              | `skills/<skill>` or workspace skill                   |
+| Gateway protocol or routing contract | `src/gateway/protocol` and docs                       |
+| Terminal operator workflow           | CLI/TUI under `src/cli`, `src/commands`, or `src/tui` |
+| Docs-only user guidance              | `docs/` plus README when it is a first-run surface    |
 
 Do not move plugin-owned behavior into core just because it is convenient.
 Core should expose generic seams; integrations should own their defaults,
@@ -94,13 +95,6 @@ Build:
 
 ```bash
 pnpm build
-```
-
-Build the optional browser Control UI only when you touched web assets or
-release packaging:
-
-```bash
-pnpm ui:build
 ```
 
 ## Docs First

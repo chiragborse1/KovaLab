@@ -66,8 +66,7 @@ cat > \"\$HOME/.chiragborse1/KovaLab.json\" <<'JSON'
     \"auth\": {
       \"mode\": \"token\",
       \"token\": \"$TOKEN\"
-    },
-    \"controlUi\": { \"enabled\": false }
+    }
   },
   \"browser\": {
     \"enabled\": true,

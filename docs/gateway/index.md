@@ -74,7 +74,7 @@ After the first successful load, the running process serves the active in-memory
 - Single multiplexed port for:
   - WebSocket control/RPC
   - HTTP APIs, OpenAI compatible (`/v1/models`, `/v1/embeddings`, `/v1/chat/completions`, `/v1/responses`, `/tools/invoke`)
-  - Control UI and hooks
+  - Gateway clients and hooks
 - Default bind mode: `loopback`.
 - Auth is required by default. Shared-secret setups use
   `gateway.auth.token` / `gateway.auth.password` (or
@@ -113,10 +113,10 @@ All of these run on the main Gateway port and use the same trusted operator auth
 | Bind mode    | CLI/override → `gateway.bind` → `loopback`                |
 
 Gateway startup uses the same effective port and bind when it seeds local
-Control UI origins for non-loopback binds. For example, `--bind lan --port 3000`
+Gateway clients origins for non-loopback binds. For example, `--bind lan --port 3000`
 seeds `http://localhost:3000` and `http://127.0.0.1:3000` before runtime
 validation runs. Add any remote browser origins, such as HTTPS proxy URLs, to
-`gateway.controlUi.allowedOrigins` explicitly.
+`remote origin policy` explicitly.
 
 ### Hot reload modes
 

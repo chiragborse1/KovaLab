@@ -12,7 +12,7 @@ describe("formatAgentEnvelope", () => {
     withEnv({ TZ: "UTC" }, () => {
       const ts = Date.UTC(2025, 0, 2, 3, 4); // 2025-01-02T03:04:00Z
       const body = formatAgentEnvelope({
-        channel: "WebChat",
+        channel: "Local Chat",
         from: "user1",
         host: "mac-mini",
         ip: "10.0.0.5",
@@ -21,7 +21,7 @@ describe("formatAgentEnvelope", () => {
         body: "hello",
       });
 
-      expect(body).toBe("[WebChat user1 mac-mini 10.0.0.5 Thu 2025-01-02T03:04Z] hello");
+      expect(body).toBe("[Local Chat user1 mac-mini 10.0.0.5 Thu 2025-01-02T03:04Z] hello");
     });
   });
 
@@ -29,49 +29,49 @@ describe("formatAgentEnvelope", () => {
     const ts = Date.UTC(2025, 0, 2, 3, 4);
     const expectedTimestamp = formatEnvelopeTimestamp(ts, { timezone: "local" });
     const body = formatAgentEnvelope({
-      channel: "WebChat",
+      channel: "Local Chat",
       timestamp: ts,
       body: "hello",
     });
 
-    expect(body).toBe(`[WebChat ${expectedTimestamp}] hello`);
+    expect(body).toBe(`[Local Chat ${expectedTimestamp}] hello`);
   });
 
   it("formats timestamps in UTC when configured", () => {
     withEnv({ TZ: "America/Los_Angeles" }, () => {
       const ts = Date.UTC(2025, 0, 2, 3, 4); // 2025-01-02T03:04:00Z (19:04 PST)
       const body = formatAgentEnvelope({
-        channel: "WebChat",
+        channel: "Local Chat",
         timestamp: ts,
         envelope: { timezone: "utc" },
         body: "hello",
       });
 
-      expect(body).toBe("[WebChat Thu 2025-01-02T03:04Z] hello");
+      expect(body).toBe("[Local Chat Thu 2025-01-02T03:04Z] hello");
     });
   });
 
   it("formats timestamps in user timezone when configured", () => {
     const ts = Date.UTC(2025, 0, 2, 3, 4); // 2025-01-02T03:04:00Z (04:04 CET)
     const body = formatAgentEnvelope({
-      channel: "WebChat",
+      channel: "Local Chat",
       timestamp: ts,
       envelope: { timezone: "user", userTimezone: "Europe/Vienna" },
       body: "hello",
     });
 
-    expect(body).toMatch(/\[WebChat Thu 2025-01-02 04:04 [^\]]+\] hello/);
+    expect(body).toMatch(/\[Local Chat Thu 2025-01-02 04:04 [^\]]+\] hello/);
   });
 
   it("omits timestamps when configured", () => {
     const ts = Date.UTC(2025, 0, 2, 3, 4);
     const body = formatAgentEnvelope({
-      channel: "WebChat",
+      channel: "Local Chat",
       timestamp: ts,
       envelope: { includeTimestamp: false },
       body: "hello",
     });
-    expect(body).toBe("[WebChat] hello");
+    expect(body).toBe("[Local Chat] hello");
   });
 
   it("handles missing optional fields", () => {

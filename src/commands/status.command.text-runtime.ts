@@ -25,13 +25,11 @@ export {
   buildStatusOverviewRows,
   buildStatusUpdateSurface,
   buildGatewayStatusSummaryParts,
-  formatStatusControlUiValue,
   formatGatewayAuthUsed,
   formatGatewaySelfSummary,
   resolveStatusUpdateChannelInfo,
   formatStatusServiceValue,
   formatStatusTailscaleValue,
-  resolveStatusControlUiUrl,
 } from "./status-all/format.js";
 export {
   formatDuration,

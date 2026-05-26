@@ -25,8 +25,7 @@ const log = createSubsystemLogger("models-auth-status");
 export const MODEL_AUTH_STATUS_NEVER_LOADED = 0;
 
 /**
- * Models-auth status wire types. Mirrored in ui/src/ui/types.ts via an
- * `import(...)` re-export — edit here and the UI picks up the change.
+ * Models-auth status wire types for gateway clients.
  *
  * Expiry fields are grouped into a sub-object so they're present together or
  * not at all: a profile either has a time-bounded credential or it doesn't.
@@ -104,7 +103,7 @@ function providerDisplayName(provider: string): string {
  * Aggregate provider status from OAuth profiles only. `buildAuthHealthSummary`
  * rolls up across both OAuth and token profiles, which mis-reports providers
  * where a healthy OAuth sits alongside an expired/missing bearer token.
- * For the dashboard's OAuth-health signal, token profiles are a separate
+ * For the status endpoint's OAuth-health signal, token profiles are a separate
  * concern — we want "is OAuth healthy?", not "is every credential healthy?"
  *
  * `expectsOAuth` surfaces the configured-OAuth-but-no-oauth-profile case as
@@ -193,7 +192,7 @@ function mapProvider(
  * Providers with `models.providers.<id>.apiKey` set (commonly via a
  * SecretRef env binding) are excluded from the "missing" synthesis even
  * when their `auth` mode is `oauth` or `token` — an env-backed credential
- * is already present, so flagging the dashboard as missing would cry wolf
+ * is already present, so flagging the status endpoint as missing would cry wolf
  * for a working auth path. They can still show up with real status if the
  * profile store has an entry for them.
  */
@@ -216,12 +215,12 @@ function resolveConfiguredProviders(cfg: KovaConfig): {
     // Treat as env-backed when the credential is currently resolvable:
     // - inline string literal → always resolvable (satisfies auth today)
     // - env SecretRef → check process.env for the referenced id (the only
-    //   source we can cheaply verify synchronously on a dashboard read)
+    //   source we can cheaply verify synchronously on a status read)
     // - file/exec SecretRef → conservatively treat as env-backed; we can't
     //   read files or run commands here without making this a heavy async
     //   path, and the alternative is crying wolf on valid configs
     // A SecretRef pointing at an unset env var falls through to the normal
-    // "missing" synthesis so the dashboard surfaces the broken config.
+    // "missing" synthesis so operator clients surface the broken config.
     let resolvable = false;
     if (typeof apiKey === "string" && apiKey.length > 0) {
       resolvable = true;

@@ -83,11 +83,6 @@ If the Gateway is unreachable, the CLI prints a short hint to run:
 kova doctor
 ```
 
-### Legacy browser UI
-
-The legacy browser UI can tail the same file using `logs.tail` when that surface
-is enabled. The CLI remains the recommended path.
-
 ### Channel-only logs
 
 To filter channel activity (WhatsApp/Telegram/etc), use:
@@ -100,8 +95,8 @@ kova channels logs --channel whatsapp
 
 ### File logs (JSONL)
 
-Each line in the log file is a JSON object. The CLI and legacy browser UI parse these
-entries to render structured output (time, level, subsystem, message).
+Each line in the log file is a JSON object. CLI tools parse these entries to
+render structured output (time, level, subsystem, message).
 
 File-log JSONL records also include machine-filterable top-level fields when
 available:

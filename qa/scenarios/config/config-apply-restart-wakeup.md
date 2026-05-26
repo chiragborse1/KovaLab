@@ -58,7 +58,7 @@ steps:
           - ref: env
       - set: nextConfig
         value:
-          expr: "(() => { const nextConfig = structuredClone(current.config); const gatewayConfig = (nextConfig.gateway ??= {}); const controlUi = (gatewayConfig.controlUi ??= {}); const allowedOrigins = Array.isArray(controlUi.allowedOrigins) ? [...controlUi.allowedOrigins] : []; if (!allowedOrigins.includes('http://127.0.0.1:65535')) allowedOrigins.push('http://127.0.0.1:65535'); controlUi.allowedOrigins = allowedOrigins; return nextConfig; })()"
+          expr: "(() => { const nextConfig = structuredClone(current.config); const gatewayConfig = (nextConfig.gateway ??= {}); const reload = (gatewayConfig.reload ??= {}); reload.deferralTimeoutMs = 1000 + Math.floor(Math.random() * 1000); return nextConfig; })()"
       - set: wakeMarker
         value:
           expr: "`QA-RESTART-${randomUUID().slice(0, 8)}`"

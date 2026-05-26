@@ -262,11 +262,11 @@ describe("buildAgentSystemPrompt", () => {
       workspaceDir: "/tmp/kova",
     });
 
-    expect(prompt).not.toContain("## Control UI Embed");
-    expect(prompt).not.toContain("Use `[embed ...]` only in Control UI/webchat sessions");
+    expect(prompt).not.toContain("## Operator client Embed");
+    expect(prompt).not.toContain("Use `[embed ...]` only in Operator client/webchat sessions");
   });
 
-  it("includes embed guidance only for webchat sessions", () => {
+  it("does not include embed guidance for webchat sessions", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/kova",
       runtimeInfo: {
@@ -275,18 +275,9 @@ describe("buildAgentSystemPrompt", () => {
       },
     });
 
-    expect(prompt).toContain("## Control UI Embed");
-    expect(prompt).toContain("Use `[embed ...]` only in Control UI/webchat sessions");
-    expect(prompt).toContain('[embed ref="cv_123" title="Status" height="320" /]');
-    expect(prompt).toContain(
-      '[embed url="/__kova__/canvas/documents/cv_123/index.html" title="Status" height="320" /]',
-    );
-    expect(prompt).toContain(
-      "Never use local filesystem paths or `file://...` URLs in `[embed ...]`.",
-    );
-    expect(prompt).toContain(
-      "The active hosted embed root for this session is: `/Users/example/.kova-dev/canvas`.",
-    );
+    expect(prompt).not.toContain("## Operator client Embed");
+    expect(prompt).not.toContain("Use `[embed ...]` only in Operator client/webchat sessions");
+    expect(prompt).not.toContain('[embed ref="cv_123" title="Status" height="320" /]');
     expect(prompt).not.toContain('[embed content_type="html" title="Status"]...[/embed]');
   });
 

@@ -2,7 +2,7 @@
 summary: "Run Kova Gateway on exe.dev (VM + HTTPS proxy) for remote access"
 read_when:
   - You want a cheap always-on Linux host for the Gateway
-  - You want remote Control UI access without running your own VPS
+  - You want remote Gateway clients access without running your own VPS
 title: "exe.dev"
 ---
 
@@ -29,7 +29,7 @@ Shelley, [exe.dev](https://exe.dev)'s agent, can install Kova instantly with our
 prompt. The prompt used is as below:
 
 ```
-Set up Kova (https://docs.neuralstudio.in/install) on this VM. Use the non-interactive and accept-risk flags for kova onboarding. Add the supplied auth or token as needed. Configure nginx to forward from the default port 18789 to the root location on the default enabled site config, making sure to enable Websocket support. Pairing is done by "kova devices list" and "kova devices approve <request id>". Make sure the Control UI shows that Kova's health is OK. exe.dev handles forwarding from port 8000 to port 80/443 and HTTPS for us, so the final "reachable" should be <vm-name>.exe.xyz, without port specification.
+Set up Kova (https://docs.neuralstudio.in/install) on this VM. Use the non-interactive and accept-risk flags for kova onboarding. Add the supplied auth or token as needed. Configure nginx to forward from the default port 18789 to the root location on the default enabled site config, making sure to enable Websocket support. Pairing is done by "kova devices list" and "kova devices approve <request id>". Make sure the Gateway clients shows that Kova's health is OK. exe.dev handles forwarding from port 8000 to port 80/443 and HTTPS for us, so the final "reachable" should be <vm-name>.exe.xyz, without port specification.
 ```
 
 ## Manual installation
@@ -107,7 +107,7 @@ and append-style `X-Forwarded-For` chains are treated as a hardening risk.
 
 ## 5) Access Kova and grant privileges
 
-Access `https://<vm-name>.exe.xyz/` (see the Control UI output from onboarding). If it prompts for auth, paste the
+Access `https://<vm-name>.exe.xyz/` (see the Gateway clients output from onboarding). If it prompts for auth, paste the
 configured shared secret from the VM. This guide uses token auth, so retrieve `gateway.auth.token`
 with `kova config get gateway.auth.token` (or generate one with `kova doctor --generate-gateway-token`).
 If you changed the gateway to password auth, use `gateway.auth.password` / `KOVA_GATEWAY_PASSWORD` instead.

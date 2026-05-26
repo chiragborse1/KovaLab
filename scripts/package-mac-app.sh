@@ -157,13 +157,6 @@ else
   echo "📦 Skipping JS build (SKIP_TSC=1)"
 fi
 
-if [[ "${SKIP_UI_BUILD:-0}" != "1" ]]; then
-  echo "🖥  Building Control UI (ui:build)"
-  (cd "$ROOT_DIR" && node scripts/ui.js build)
-else
-  echo "🖥  Skipping Control UI build (SKIP_UI_BUILD=1)"
-fi
-
 cd "$ROOT_DIR/apps/macos"
 
 echo "🔨 Building $PRODUCT ($BUILD_CONFIG) [${BUILD_ARCHS[*]}]"
@@ -268,17 +261,6 @@ if [ -f "$MODEL_CATALOG_SRC" ]; then
   cp "$MODEL_CATALOG_SRC" "$MODEL_CATALOG_DEST"
 else
   echo "WARN: model catalog missing at $MODEL_CATALOG_SRC (continuing)" >&2
-fi
-
-echo "📦 Copying Control UI assets"
-CONTROL_UI_SRC="$ROOT_DIR/dist/control-ui"
-CONTROL_UI_DEST="$APP_ROOT/Contents/Resources/control-ui"
-if [ -d "$CONTROL_UI_SRC" ] && [ -f "$CONTROL_UI_SRC/index.html" ]; then
-  rm -rf "$CONTROL_UI_DEST"
-  cp -R "$CONTROL_UI_SRC" "$CONTROL_UI_DEST"
-else
-  echo "ERROR: Control UI assets missing at $CONTROL_UI_SRC. Run pnpm ui:build first." >&2
-  exit 1
 fi
 
 echo "📦 Copying KovaKit resources"

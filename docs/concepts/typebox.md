@@ -46,7 +46,7 @@ Common methods + events:
 | ---------- | ---------------------------------------------------------- | ---------------------------------- |
 | Core       | `connect`, `health`, `status`                              | `connect` must be first            |
 | Messaging  | `send`, `agent`, `agent.wait`, `system-event`, `logs.tail` | side-effects need `idempotencyKey` |
-| Chat       | `chat.history`, `chat.send`, `chat.abort`                  | WebChat uses these                 |
+| Chat       | `chat.history`, `chat.send`, `chat.abort`                  | local chat uses these              |
 | Sessions   | `sessions.list`, `sessions.patch`, `sessions.delete`       | session admin                      |
 | Automation | `wake`, `cron.list`, `cron.run`, `cron.runs`               | wake + cron control                |
 | Nodes      | `node.list`, `node.invoke`, `node.pair.*`                  | Gateway WS + node actions          |

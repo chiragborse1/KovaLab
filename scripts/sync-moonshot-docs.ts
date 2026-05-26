@@ -1,16 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  MOONSHOT_KIMI_K2_CONTEXT_WINDOW,
-  MOONSHOT_KIMI_K2_COST,
-  MOONSHOT_KIMI_K2_INPUT,
-  MOONSHOT_KIMI_K2_MAX_TOKENS,
-  MOONSHOT_KIMI_K2_MODELS,
-} from "../ui/src/ui/data/moonshot-kimi-k2";
+import { buildMoonshotProvider } from "../extensions/moonshot/provider-catalog";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..");
+const moonshotModels = buildMoonshotProvider().models ?? [];
 
 function replaceBlockLines(
   text: string,
@@ -51,23 +46,23 @@ function replaceBlockLines(
 }
 
 function renderKimiK2Ids(prefix: string) {
-  return [...MOONSHOT_KIMI_K2_MODELS.map((model) => `- \`${prefix}${model.id}\``), ""];
+  return [...moonshotModels.map((model) => `- \`${prefix}${model.id}\``), ""];
 }
 
 function renderMoonshotAliases() {
-  return MOONSHOT_KIMI_K2_MODELS.map((model, index) => {
-    const isLast = index === MOONSHOT_KIMI_K2_MODELS.length - 1;
+  return moonshotModels.map((model, index) => {
+    const isLast = index === moonshotModels.length - 1;
     const suffix = isLast ? "" : ",";
-    return `"moonshot/${model.id}": { alias: "${model.alias}" }${suffix}`;
+    return `"moonshot/${model.id}": { alias: "${model.alias ?? model.name ?? model.id}" }${suffix}`;
   });
 }
 
 function renderMoonshotModels() {
-  const input = JSON.stringify([...MOONSHOT_KIMI_K2_INPUT]);
-  const cost = `input: ${MOONSHOT_KIMI_K2_COST.input}, output: ${MOONSHOT_KIMI_K2_COST.output}, cacheRead: ${MOONSHOT_KIMI_K2_COST.cacheRead}, cacheWrite: ${MOONSHOT_KIMI_K2_COST.cacheWrite}`;
-
-  return MOONSHOT_KIMI_K2_MODELS.flatMap((model, index) => {
-    const isLast = index === MOONSHOT_KIMI_K2_MODELS.length - 1;
+  return moonshotModels.flatMap((model, index) => {
+    const input = JSON.stringify([...(model.input ?? ["text"])]);
+    const modelCost = model.cost ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+    const cost = `input: ${modelCost.input}, output: ${modelCost.output}, cacheRead: ${modelCost.cacheRead}, cacheWrite: ${modelCost.cacheWrite}`;
+    const isLast = index === moonshotModels.length - 1;
     const closing = isLast ? "}" : "},";
     return [
       "{",
@@ -76,8 +71,8 @@ function renderMoonshotModels() {
       `  reasoning: ${model.reasoning},`,
       `  input: ${input},`,
       `  cost: { ${cost} },`,
-      `  contextWindow: ${MOONSHOT_KIMI_K2_CONTEXT_WINDOW},`,
-      `  maxTokens: ${MOONSHOT_KIMI_K2_MAX_TOKENS}`,
+      `  contextWindow: ${model.contextWindow ?? 0},`,
+      `  maxTokens: ${model.maxTokens ?? 0}`,
       closing,
     ];
   });

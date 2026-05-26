@@ -186,58 +186,6 @@ describe("ui.seamColor", () => {
   });
 });
 
-describe("gateway.controlUi.embedSandbox", () => {
-  it("accepts strict, scripts, and trusted modes", () => {
-    for (const mode of ["strict", "scripts", "trusted"] as const) {
-      const result = KovaSchema.safeParse({
-        gateway: {
-          controlUi: {
-            embedSandbox: mode,
-          },
-        },
-      });
-      expect(result.success).toBe(true);
-    }
-  });
-
-  it("rejects unsupported values", () => {
-    const result = KovaSchema.safeParse({
-      gateway: {
-        controlUi: {
-          embedSandbox: "yolo",
-        },
-      },
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("gateway.controlUi.allowExternalEmbedUrls", () => {
-  it("accepts boolean values", () => {
-    for (const value of [true, false]) {
-      const result = KovaSchema.safeParse({
-        gateway: {
-          controlUi: {
-            allowExternalEmbedUrls: value,
-          },
-        },
-      });
-      expect(result.success).toBe(true);
-    }
-  });
-
-  it("rejects non-boolean values", () => {
-    const result = KovaSchema.safeParse({
-      gateway: {
-        controlUi: {
-          allowExternalEmbedUrls: "yes",
-        },
-      },
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
 describe("plugins.entries.*.hooks", () => {
   it.each([true, false])("accepts allowConversationAccess=%s", (allowConversationAccess) => {
     const result = KovaSchema.safeParse({

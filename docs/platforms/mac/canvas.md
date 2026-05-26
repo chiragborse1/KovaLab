@@ -125,4 +125,4 @@ The app prompts for confirmation unless a valid key is provided.
 ## Related
 
 - [macOS app](/platforms/macos)
-- [WebChat](/web/webchat)
+- [local chat](/web/tui)

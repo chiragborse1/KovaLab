@@ -345,9 +345,9 @@ off unless you are actively debugging and can revert quickly.
 
 Examples:
 
-- `gateway.controlUi.allowInsecureAuth`
-- `gateway.controlUi.dangerouslyDisableDeviceAuth`
-- `gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback`
+- `gateway auth compatibility settings`
+- `gateway device-auth policy`
+- `gateway trusted-proxy origin policy`
 - `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork`
 - `tools.exec.applyPatch.workspaceOnly=false`
 - `plugins.entries.acpx.config.permissionMode=approve-all`

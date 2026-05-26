@@ -114,7 +114,7 @@ export function runResolveOutboundTargetCoreTests(): void {
       const res = resolveOutboundTarget({ channel: "webchat", to: "x" });
       expect(res.ok).toBe(false);
       if (!res.ok) {
-        expect(res.error.message).toContain("WebChat");
+        expect(res.error.message).toContain("local chat");
       }
     });
   });

@@ -42,10 +42,6 @@ jobs:
       - name: Build Kova
         run: pnpm build
 
-      # Build the browser Control UI so the release is verified against the web surface too.
-      - name: Build Control UI
-        run: pnpm ui:build
-
       # Pack the npm artifact; this gives users a downloadable installable tarball.
       - name: Pack npm artifact
         run: npm pack

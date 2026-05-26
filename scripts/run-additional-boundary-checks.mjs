@@ -51,7 +51,6 @@ export const BOUNDARY_CHECKS = [
     "pnpm",
     ["run", "lint:extensions:no-relative-outside-package"],
   ],
-  ["lint:ui:no-raw-window-open", "pnpm", ["lint:ui:no-raw-window-open"]],
 ].map(([label, command, args]) => ({ label, command, args }));
 
 export function resolveConcurrency(value, fallback = 4) {

@@ -12,7 +12,7 @@ import {
   DEFAULT_WORKSPACE,
   ensureWorkspaceAndSessions,
   LEGACY_DEFAULT_WORKSPACE,
-  resolveControlUiLinks,
+  resolveGatewayHttpLinks,
   waitForGatewayReachable,
 } from "../onboard-helpers.js";
 import type { OnboardOptions } from "../onboard-types.js";
@@ -274,11 +274,10 @@ export async function runNonInteractiveLocalSetup(params: {
 
   if (!opts.skipHealth) {
     const { healthCommand } = await import("../health.js");
-    const links = resolveControlUiLinks({
+    const links = resolveGatewayHttpLinks({
       bind: gatewayResult.bind as "auto" | "lan" | "loopback" | "custom" | "tailnet",
       port: gatewayResult.port,
       customBindHost: nextConfig.gateway?.customBindHost,
-      basePath: undefined,
       tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
     });
     const installDaemonGatewayHealthTiming = resolveInstallDaemonGatewayHealthTiming();

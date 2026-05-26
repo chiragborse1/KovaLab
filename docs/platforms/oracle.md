@@ -109,13 +109,13 @@ When prompted "How do you want to hatch your bot?", select **"Do this later"**.
 
 ## 6) Configure Gateway (loopback + token auth) and enable Tailscale Serve
 
-Use token auth as the default. It’s predictable and avoids needing any “insecure auth” Control UI flags.
+Use token auth as the default. It’s predictable and avoids needing any “insecure auth” Gateway clients flags.
 
 ```bash
 # Keep the Gateway private on the VM
 kova config set gateway.bind loopback
 
-# Require auth for the Gateway + Control UI
+# Require auth for the Gateway + Gateway clients
 kova config set gateway.auth.mode token
 kova doctor --generate-gateway-token
 
@@ -158,7 +158,7 @@ This blocks SSH on port 22, HTTP, HTTPS, and everything else at the network edge
 
 ---
 
-## Access the Control UI
+## Access the Gateway clients
 
 From any device on your Tailscale network:
 
@@ -256,7 +256,7 @@ kova doctor --non-interactive
 journalctl --user -u kova-gateway.service -n 50
 ```
 
-### Cannot reach Control UI
+### Cannot reach Gateway clients
 
 ```bash
 # Verify Tailscale Serve is running

@@ -18,7 +18,7 @@ public enum GatewayConnectAuthDetailCode: String, Sendable {
     case authTailscaleWhoisFailed = "AUTH_TAILSCALE_WHOIS_FAILED"
     case authTailscaleIdentityMismatch = "AUTH_TAILSCALE_IDENTITY_MISMATCH"
     case pairingRequired = "PAIRING_REQUIRED"
-    case controlUiDeviceIdentityRequired = "CONTROL_UI_DEVICE_IDENTITY_REQUIRED"
+    case operatorClientDeviceIdentityRequired = "OPERATOR_CLIENT_DEVICE_IDENTITY_REQUIRED"
     case deviceIdentityRequired = "DEVICE_IDENTITY_REQUIRED"
     case deviceAuthInvalid = "DEVICE_AUTH_INVALID"
     case deviceAuthDeviceIdMismatch = "DEVICE_AUTH_DEVICE_ID_MISMATCH"
@@ -155,7 +155,7 @@ public struct GatewayConnectAuthError: LocalizedError, Sendable {
             .authPasswordNotConfigured,
             .authRateLimited,
             .pairingRequired,
-            .controlUiDeviceIdentityRequired,
+            .operatorClientDeviceIdentityRequired,
             .deviceIdentityRequired:
             return true
         default:

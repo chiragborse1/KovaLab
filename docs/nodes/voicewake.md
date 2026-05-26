@@ -66,7 +66,7 @@ Route targets support exactly one of:
 
 Who receives it:
 
-- All WebSocket clients (macOS app, WebChat, etc.)
+- All WebSocket clients (macOS app, local chat, etc.)
 - All connected nodes (iOS/Android), and also on node connect as an initial “current state” push.
 
 ## Client behavior

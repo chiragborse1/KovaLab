@@ -59,8 +59,6 @@ const isLegacyPackageAcceptanceCompat = (version) => {
   }
   return true;
 };
-const fixtureUiBuildSource = `const fs=require("node:fs");fs.mkdirSync("dist/control-ui",{recursive:true});fs.writeFileSync("dist/control-ui/index.html","<!doctype html><title>fixture</title>\\n")`;
-const fixtureUiBuildCommand = `node -e ${JSON.stringify(fixtureUiBuildSource)}`;
 const nextPnpm = { ...packageJson.pnpm, allowUnusedPatches: true };
 const patchedDependencies = nextPnpm.patchedDependencies;
 if (
@@ -101,21 +99,13 @@ packageJson.scripts = {
   ...packageJson.scripts,
   build: "node -e \"console.log(\\\"fixture build skipped\\\")\"",
   lint: "node -e \"console.log(\\\"fixture lint skipped\\\")\"",
-  "ui:build": fixtureUiBuildCommand,
 };
 fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
-fs.mkdirSync("/tmp/kova-git/dist/control-ui", { recursive: true });
-fs.writeFileSync("/tmp/kova-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
 NODE
 (
   cd "$git_root"
   npm install --omit=optional --no-fund --no-audit >/tmp/kova-git-install.log 2>&1
 )
-node - <<'"'"'NODE'"'"'
-const fs = require("node:fs");
-fs.mkdirSync("/tmp/kova-git/dist/control-ui", { recursive: true });
-fs.writeFileSync("/tmp/kova-git/dist/control-ui/index.html", "<!doctype html><title>fixture</title>\n");
-NODE
 
 git config --global user.email "docker-e2e@kovaai.local"
 git config --global user.name "Kova Docker E2E"
@@ -123,7 +113,6 @@ git config --global gc.auto 0
 git -C "$git_root" init -q
 git -C "$git_root" config gc.auto 0
 git -C "$git_root" add -A
-git -C "$git_root" add -f dist/control-ui/index.html
 git -C "$git_root" commit -qm "test fixture"
 fixture_sha="$(git -C "$git_root" rev-parse HEAD)"
 

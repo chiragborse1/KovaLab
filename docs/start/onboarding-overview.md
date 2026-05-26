@@ -8,8 +8,8 @@ sidebarTitle: "Onboarding Overview"
 ---
 
 Kova has two onboarding paths. Both configure auth, workspace identity, and the
-local agent. CLI onboarding is terminal-first; Gateway, channels, apps, and the
-legacy browser UI are optional follow-up surfaces.
+local agent. CLI onboarding is terminal-first; Gateway, channels, and apps are
+optional follow-up surfaces.
 
 ## Which path should I use?
 

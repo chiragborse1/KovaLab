@@ -87,9 +87,9 @@ describe("session delivery direct-session routing overrides", () => {
     "agent:main:telegram:direct:123456:thread:99",
     "agent:main:telegram:account-a:direct:123456:topic:ops",
   ])(
-    "preserves persisted external route when webchat accesses channel-peer session %s (fixes #47745)",
+    "preserves persisted external route when local chat accesses channel-peer session %s (fixes #47745)",
     (sessionKey) => {
-      // Webchat/dashboard viewing an external-channel session must not overwrite
+      // Local chat viewing an external-channel session must not overwrite
       // the delivery route — subagents must still deliver to the original channel.
       expect(
         resolveLastChannelRaw({
@@ -101,7 +101,7 @@ describe("session delivery direct-session routing overrides", () => {
       expect(
         resolveLastToRaw({
           originatingChannelRaw: "webchat",
-          originatingToRaw: "session:dashboard",
+          originatingToRaw: "session:local",
           persistedLastChannel: "telegram",
           persistedLastTo: "123456",
           sessionKey,
@@ -128,7 +128,7 @@ describe("session delivery direct-session routing overrides", () => {
     expect(
       resolveLastToRaw({
         originatingChannelRaw: "webchat",
-        originatingToRaw: "session:dashboard",
+        originatingToRaw: "session:local",
         persistedLastChannel: "telegram",
         persistedLastTo: "group:12345",
         sessionKey,

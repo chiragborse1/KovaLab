@@ -26,7 +26,7 @@ title: "Kova"
 
 <p align="center">
   <strong>Terminal-first local agent for memory, skills, tools, and durable workflows.</strong><br />
-  Start in kova. Add the headless Gateway, channels, Control UI, WebChat, and mobile nodes when you want Kova outside the terminal.
+  Start in kova. Add the headless Gateway, channels, apps, and mobile nodes when you want Kova outside the terminal.
 </p>
 
 <Columns>
@@ -43,7 +43,7 @@ title: "Kova"
 
 ## What is Kova?
 
-Kova is a **terminal-native local agent** with memory, skills, sessions, and tools at the center. You run it from `kova` first, then enable the Gateway when you want always-on delivery, channels, cron, nodes, apps, or the browser Control UI.
+Kova is a **terminal-native local agent** with memory, skills, sessions, and tools at the center. You run it from `kova` first, then enable the Gateway when you want always-on delivery, channels, cron, nodes, or apps.
 
 **Who is it for?** Developers and power users who want a personal AI assistant that works locally, remembers durable context, learns reusable procedures, and can still be reached remotely when needed.
 
@@ -66,7 +66,7 @@ flowchart LR
   B --> D["Tools"]
   E["Headless Gateway"] --> B
   E --> F["Channels + apps"]
-  E --> G["Control UI"]
+  E --> G["Nodes + remote clients"]
 ```
 
 The terminal owns the primary agent loop. The Gateway extends that loop to remote clients, channels, scheduled work, and app nodes.
@@ -89,8 +89,8 @@ The terminal owns the primary agent loop. The Gateway extends that loop to remot
   <Card title="Media support" icon="image" href="/nodes/images">
     Send and receive images, audio, and documents.
   </Card>
-  <Card title="Web Control UI" icon="monitor" href="/web/control-ui">
-    Optional browser admin for config, channels, cron, logs, skills, sessions, and nodes.
+  <Card title="Gateway operations" icon="server" href="/gateway">
+    Always-on channels, cron, logs, nodes, remote access, and health checks.
   </Card>
   <Card title="Mobile nodes" icon="smartphone" href="/nodes">
     Pair iOS and Android nodes for Canvas, camera, and voice-enabled workflows.
@@ -117,19 +117,12 @@ The terminal owns the primary agent loop. The Gateway extends that loop to remot
     kova
     ```
 
-    Add the Control UI or a channel later when the local agent is working.
+    Add channels or nodes later when the local agent is working.
 
   </Step>
 </Steps>
 
 Need the full install and dev setup? See [Getting Started](/start/getting-started).
-
-## Control UI
-
-Open the optional browser Control UI after the Gateway starts.
-
-- Local default: [http://127.0.0.1:18789/](http://127.0.0.1:18789/)
-- Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)
 
 <p align="center">
   <img src="/assets/kova-logo.png" alt="Kova" width="320" />

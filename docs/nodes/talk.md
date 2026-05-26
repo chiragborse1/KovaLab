@@ -18,7 +18,7 @@ Talk mode is a continuous voice conversation loop:
 - **Always-on overlay** while Talk mode is enabled.
 - **Listening → Thinking → Speaking** phase transitions.
 - On a **short pause** (silence window), the current transcript is sent.
-- Replies are **written to WebChat** (same as typing).
+- Replies are **written to local chat** (same as typing).
 - **Interrupt on speech** (default on): if the user starts talking while the assistant is speaking, we stop playback and note the interruption timestamp for the next prompt.
 
 ## Voice directives in replies

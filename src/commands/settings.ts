@@ -20,7 +20,7 @@ import { resolveUserPath, shortenHomePath, truncateUtf16Safe } from "../utils.js
 import { resolveSetupSecretInputString } from "../wizard/setup.secret-input.js";
 import { configureCommandWithSections } from "./configure.commands.js";
 import type { WizardSection } from "./configure.shared.js";
-import { resolveControlUiLinks, probeGatewayReachable } from "./onboard-helpers.js";
+import { probeGatewayReachable, resolveGatewayHttpLinks } from "./onboard-helpers.js";
 import { setupWizardCommand } from "./onboard.js";
 
 type SettingsAction =
@@ -32,7 +32,7 @@ type SettingsAction =
 
 type SettingsToggle = "memory" | "browser" | "voice" | "theme";
 
-export type SettingsDashboardRow = {
+export type SettingsPanelRow = {
   id: string;
   label: string;
   value: string;
@@ -201,10 +201,10 @@ function withStatus(
   return statusMap?.[id] ?? fallback;
 }
 
-export function buildSettingsDashboardRows(
+export function buildSettingsPanelRows(
   cfg: KovaConfig,
   statusMap?: SettingsStatusMap,
-): SettingsDashboardRow[] {
+): SettingsPanelRow[] {
   const model = splitModelRef(modelPrimary(cfg.agents?.defaults?.model));
   const channels = countConfiguredChannels(cfg);
   const webSearch = cfg.tools?.web?.search;
@@ -386,9 +386,7 @@ export function buildSettingsDashboardRows(
   ];
 }
 
-export function buildSettingsPaletteCommands(
-  rows: SettingsDashboardRow[],
-): SettingsPaletteCommand[] {
+export function buildSettingsPaletteCommands(rows: SettingsPanelRow[]): SettingsPaletteCommand[] {
   const labels: Record<string, string> = {
     provider: "Change Provider",
     model: "Change Model",
@@ -481,11 +479,10 @@ async function resolveSettingsStatusSnapshot(cfg: KovaConfig): Promise<SettingsS
     : false;
 
   const gatewayPort = cfg.gateway?.port ?? 18789;
-  const localLinks = resolveControlUiLinks({
+  const localLinks = resolveGatewayHttpLinks({
     bind: cfg.gateway?.bind ?? "loopback",
     port: gatewayPort,
     customBindHost: cfg.gateway?.customBindHost,
-    basePath: cfg.gateway?.controlUi?.basePath,
     tlsEnabled: cfg.gateway?.tls?.enabled === true,
   });
   const remoteUrl = normalizeOptionalString(cfg.gateway?.remote?.url);
@@ -624,8 +621,8 @@ function truncatePlain(input: string, width: number): string {
   return `${truncateUtf16Safe(input, width - 3)}...`;
 }
 
-export function renderSettingsDashboard(params: {
-  rows: SettingsDashboardRow[];
+export function renderSettingsPanel(params: {
+  rows: SettingsPanelRow[];
   selectedIndex: number;
   message?: string;
   searchQuery?: string;
@@ -713,7 +710,7 @@ function normalizeSearchQuery(query: string): string {
   return query.trim().replace(/^\/+/, "").toLowerCase();
 }
 
-export function findSettingsRowIndex(rows: SettingsDashboardRow[], query: string): number {
+export function findSettingsRowIndex(rows: SettingsPanelRow[], query: string): number {
   const normalized = normalizeSearchQuery(query);
   if (!normalized) {
     return 0;
@@ -801,8 +798,8 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
   let runtimeStatus = statusSnapshot.runtime;
   if (!stdin.isTTY || !stdout.isTTY) {
     runtime.log(
-      renderSettingsDashboard({
-        rows: buildSettingsDashboardRows(workingConfig, statusMap),
+      renderSettingsPanel({
+        rows: buildSettingsPanelRows(workingConfig, statusMap),
         selectedIndex: 0,
         runtimeStatus,
       }),
@@ -841,7 +838,7 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
       alternateScreen = true;
     };
     const render = () => {
-      const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
+      const rows = buildSettingsPanelRows(workingConfig!, statusMap);
       const paletteCommands =
         paletteQuery === undefined
           ? undefined
@@ -849,7 +846,7 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
       enterAlternateScreen();
       stdout.write("\x1b[H\x1b[J");
       stdout.write(
-        renderSettingsDashboard({
+        renderSettingsPanel({
           rows,
           selectedIndex,
           message,
@@ -898,7 +895,7 @@ export async function settingsCommand(runtime: RuntimeEnv = defaultRuntime): Pro
     const nextAction = await new Promise<SettingsAction | null>((resolve, reject) => {
       onKeypress = async (_chunk: string, key: { name?: string; ctrl?: boolean }) => {
         try {
-          const rows = buildSettingsDashboardRows(workingConfig!, statusMap);
+          const rows = buildSettingsPanelRows(workingConfig!, statusMap);
           const selected = rows[selectedIndex] ?? rows[0];
           if (!selected) {
             cleanup();

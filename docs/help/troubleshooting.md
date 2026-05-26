@@ -86,7 +86,7 @@ Reference: [Plugin architecture](/plugins/architecture)
 flowchart TD
   A[Kova is not working] --> B{What breaks first}
   B --> C[No replies]
-  B --> D[Control UI will not connect]
+  B --> D[Gateway clients will not connect]
   B --> E[Gateway will not start or service not running]
   B --> F[Channel connects but messages do not flow]
   B --> G[Cron or heartbeat did not fire or did not deliver]
@@ -94,7 +94,7 @@ flowchart TD
   B --> I[Browser tool fails]
 
   C --> C1[/No replies section/]
-  D --> D1[/Control UI section/]
+  D --> D1[/Gateway clients section/]
   E --> E1[/Gateway section/]
   F --> F1[/Channel flow section/]
   G --> G1[/Automation section/]
@@ -134,7 +134,7 @@ flowchart TD
 
   </Accordion>
 
-  <Accordion title="Control UI will not connect">
+  <Accordion title="Gateway clients will not connect">
     ```bash
     kova status
     kova gateway status
@@ -145,7 +145,7 @@ flowchart TD
 
     Good output looks like:
 
-    - `Control UI: http://...` is shown in `kova gateway status`
+    - `Gateway clients: http://...` is shown in `kova gateway status`
     - `Connectivity probe: ok`
     - `Capability: read-only`, `write-capable`, or `admin-capable`
     - No auth loop in logs
@@ -153,25 +153,25 @@ flowchart TD
     Common log signatures:
 
     - `device identity required` → HTTP/non-secure context cannot complete device auth.
-    - `origin not allowed` → browser `Origin` is not allowed for the Control UI
+    - `origin not allowed` → browser `Origin` is not allowed for the Gateway clients
       gateway target.
     - `AUTH_TOKEN_MISMATCH` with retry hints (`canRetryWithDeviceToken=true`) → one trusted device-token retry may occur automatically.
     - That cached-token retry reuses the cached scope set stored with the paired
       device token. Explicit `deviceToken` / explicit `scopes` callers keep
       their requested scope set instead.
-    - On the async Tailscale Serve Control UI path, failed attempts for the same
+    - On the async Tailscale Serve Gateway clients path, failed attempts for the same
       `{scope, ip}` are serialized before the limiter records the failure, so a
       second concurrent bad retry can already show `retry later`.
     - `too many failed authentication attempts (retry later)` from a localhost
       browser origin → repeated failures from that same `Origin` are temporarily
       locked out; another localhost origin uses a separate bucket.
     - repeated `unauthorized` after that retry → wrong token/password, auth mode mismatch, or stale paired device token.
-    - `gateway connect failed:` → UI is targeting the wrong URL/port or unreachable gateway.
+    - `gateway connect failed:` → client is targeting the wrong URL/port or unreachable gateway.
 
     Deep pages:
 
-    - [/gateway/troubleshooting#control-ui-connectivity](/gateway/troubleshooting#control-ui-connectivity)
-    - [/web/control-ui](/web/control-ui)
+    - [/gateway/troubleshooting#gateway-client-connectivity](/gateway/troubleshooting#gateway-client-connectivity)
+    - [/gateway/remote](/gateway/remote)
     - [/gateway/authentication](/gateway/authentication)
 
   </Accordion>

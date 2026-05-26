@@ -385,28 +385,19 @@ current_build_commit() {
 }
 
 source_tree_dirty_for_build() {
-  [[ -n "$(git status --porcelain -- src ui packages extensions package.json pnpm-lock.yaml 'tsconfig*.json' 2>/dev/null)" ]]
-}
-
-current_build_has_control_ui() {
-  [[ -f dist/control-ui/index.html ]] || return 1
-  compgen -G "dist/control-ui/assets/*" >/dev/null
+  [[ -n "$(git status --porcelain -- src packages extensions package.json pnpm-lock.yaml 'tsconfig*.json' 2>/dev/null)" ]]
 }
 
 ensure_current_build() {
   local build_commit head rc
   head="$(git rev-parse HEAD)"
   build_commit="$(current_build_commit)"
-  if [[ "$build_commit" == "$head" ]] && ! source_tree_dirty_for_build && current_build_has_control_ui; then
+  if [[ "$build_commit" == "$head" ]] && ! source_tree_dirty_for_build; then
     return 0
   fi
   say "Build dist for current head"
   pnpm build
   rc=$?
-  if [[ $rc -eq 0 ]]; then
-    pnpm ui:build
-    rc=$?
-  fi
   if [[ $rc -eq 0 ]]; then
     parallels_package_assert_no_generated_drift
     rc=$?

@@ -146,8 +146,8 @@ to auto-approving first-time node pairing from trusted CIDRs:
 ```
 
 This is disabled by default. It only applies to fresh `role: node` pairing with
-no requested scopes. Operator/browser clients, Control UI, WebChat, and role,
-scope, metadata, or public-key upgrades still require manual approval.
+no requested scopes. Operator/browser clients and role, scope, metadata, or
+public-key upgrades still require manual approval.
 
 If the node retries pairing with changed auth details (role/scopes/public key),
 the previous pending request is superseded and a new `requestId` is created.

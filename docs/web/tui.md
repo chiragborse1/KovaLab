@@ -205,8 +205,8 @@ This is session rollback, not filesystem restore. File-mutation checkpoints are
 tracked separately in [Filesystem Checkpoint And Rollback](/plan/filesystem-checkpoint-rollback).
 
 `/memory dreams` reads the latest Dream Diary entries from `DREAMS.md` or
-`dreams.md` without opening the browser Control UI. Use `/memory dreams all` for
-the full file or `/memory dreams lines=40` for a smaller tail.
+`dreams.md` directly in the terminal. Use `/memory dreams all` for the full file
+or `/memory dreams lines=40` for a smaller tail.
 
 Session lifecycle:
 
@@ -359,7 +359,7 @@ No output after sending a message:
 
 ## Related
 
-- [Control UI](/web/control-ui) — web-based control interface
+- [Settings](/cli/settings) — terminal settings console
 - [Config](/cli/config) — inspect, validate, and edit `kova.json`
 - [Doctor](/cli/doctor) — guided repair and migration checks
 - [CLI Reference](/cli) — full CLI command reference

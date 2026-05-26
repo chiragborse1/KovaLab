@@ -351,7 +351,6 @@ describe("gatherDaemonStatus", () => {
         gateway: {
           bind: "custom",
           customBindHost: "10.0.0.5",
-          controlUi: { enabled: true },
         },
       }),
     );
@@ -378,7 +377,6 @@ describe("gatherDaemonStatus", () => {
         path: configPath,
         exists: true,
         valid: true,
-        controlUi: { enabled: true },
       });
       expect(status.config?.daemon).toBe(status.config?.cli);
       expect(status.gateway?.bindMode).toBe("custom");

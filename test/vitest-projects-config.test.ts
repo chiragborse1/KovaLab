@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createPatternFileHelper } from "./helpers/pattern-file.js";
-import { normalizeConfigPath, normalizeConfigPaths } from "./helpers/vitest-config-paths.js";
+import { normalizeConfigPath } from "./helpers/vitest-config-paths.js";
 import { createAgentsVitestConfig } from "./vitest/vitest.agents.config.ts";
 import bundledConfig from "./vitest/vitest.bundled.config.ts";
 import { createCommandsLightVitestConfig } from "./vitest/vitest.commands-light.config.ts";
@@ -21,9 +21,7 @@ import {
   resolveSharedVitestWorkerConfig,
   sharedVitestConfig,
 } from "./vitest/vitest.shared.config.ts";
-import { createUiVitestConfig } from "./vitest/vitest.ui.config.ts";
 import { createUnitFastVitestConfig } from "./vitest/vitest.unit-fast.config.ts";
-import unitUiConfig from "./vitest/vitest.unit-ui.config.ts";
 import { createUnitVitestConfig } from "./vitest/vitest.unit.config.ts";
 
 const patternFiles = createPatternFileHelper("kova-vitest-projects-config-");
@@ -138,26 +136,6 @@ describe("projects vitest config", () => {
     expect(config.test.include).toEqual([
       "src/channels/plugins/contracts/directory.registry-backed-shard-a.contract.test.ts",
     ]);
-  });
-
-  it("keeps the root ui lane aligned with the shared jsdom setup", () => {
-    const config = createUiVitestConfig();
-    expect(config.test.environment).toBe("jsdom");
-    expect(config.test.isolate).toBe(false);
-    expect(normalizeConfigPath(config.test.runner)).toBe("test/non-isolated-runner.ts");
-    const setupFiles = normalizeConfigPaths(config.test.setupFiles);
-    expect(setupFiles).not.toContain("test/setup-kova-runtime.ts");
-    expect(setupFiles).toContain("ui/src/test-helpers/lit-warnings.setup.ts");
-    expect(config.test.deps?.optimizer?.web?.enabled).toBe(true);
-  });
-
-  it("keeps the unit-ui shard aligned with the shared jsdom setup", () => {
-    expect(unitUiConfig.test?.environment).toBe("jsdom");
-    expect(unitUiConfig.test?.isolate).toBe(false);
-    expect(normalizeConfigPath(unitUiConfig.test?.runner)).toBe("test/non-isolated-runner.ts");
-    const setupFiles = normalizeConfigPaths(unitUiConfig.test?.setupFiles);
-    expect(setupFiles).not.toContain("test/setup-kova-runtime.ts");
-    expect(setupFiles).toContain("ui/src/test-helpers/lit-warnings.setup.ts");
   });
 
   it("keeps the unit lane on the non-isolated runner by default", () => {

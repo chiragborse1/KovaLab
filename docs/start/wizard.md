@@ -92,7 +92,7 @@ Onboarding starts with the same base flow for new and returning users:
    If token auth requires a token and the configured token SecretRef is unresolved, daemon install is blocked with actionable guidance.
    If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, daemon install is blocked until mode is set explicitly.
 8. **Health check** — Extras verify the Gateway only when always-on Gateway is selected or a service install is requested.
-9. **Start** — Opens Terminal chat by default, offers the legacy browser UI only when explicitly enabled, or finishes without launching.
+9. **Start** — Opens Terminal chat by default or finishes without launching.
 
 <Note>
 Re-running onboarding does **not** wipe anything unless you explicitly choose **Reset** (or pass `--reset`).

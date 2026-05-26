@@ -2,13 +2,13 @@
 summary: "Deploy Kova on Railway with one-click template"
 read_when:
   - Deploying Kova to Railway
-  - You want a one-click cloud deploy with browser-based Control UI
+  - You want a one-click cloud deploy with terminal-first Gateway
 title: "Railway"
 ---
 
 # Railway
 
-Deploy Kova on Railway with a one-click template and access it through the web Control UI.
+Deploy Kova on Railway with a one-click template and access it through the Gateway clients.
 This is the easiest "no terminal on the server" path: Railway runs the Gateway for you.
 
 ## Quick checklist (new users)
@@ -34,11 +34,11 @@ Railway will either:
 
 Then open:
 
-- `https://<your-railway-domain>/kova` — Control UI
+- `https://<your-railway-domain>/kova` — Gateway clients
 
 ## What you get
 
-- Hosted Kova Gateway + Control UI
+- Hosted Kova Gateway + Gateway clients
 - Persistent storage via Railway Volume (`/data`) so `kova.json`,
   per-agent `auth-profiles.json`, channel/provider state, sessions, and
   workspace survive redeploys
@@ -68,7 +68,7 @@ Set these variables on the service:
 
 ## Connect a channel
 
-Use the Control UI at `/kova` or run `kova onboard` via Railway's shell for channel setup instructions:
+Use the Gateway clients at `/kova` or run `kova onboard` via Railway's shell for channel setup instructions:
 
 - [Telegram](/channels/telegram) (fastest — just a bot token)
 - [Discord](/channels/discord)

@@ -12,10 +12,8 @@ describe("gateway startup log", () => {
 
     logGatewayStartup({
       cfg: {
-        gateway: {
-          controlUi: {
-            dangerouslyDisableDeviceAuth: true,
-          },
+        hooks: {
+          gmail: { allowUnsafeExternalContent: true },
         },
       },
       bindHost: "127.0.0.1",
@@ -28,7 +26,7 @@ describe("gateway startup log", () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("dangerous config flags enabled"));
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("gateway.controlUi.dangerouslyDisableDeviceAuth=true"),
+      expect.stringContaining("hooks.gmail.allowUnsafeExternalContent=true"),
     );
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("kova security audit"));
   });

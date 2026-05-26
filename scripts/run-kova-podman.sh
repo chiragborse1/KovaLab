@@ -7,7 +7,7 @@
 #   ./scripts/run-kova-podman.sh launch setup  # Onboarding wizard
 #
 # Manage the running container from the host CLI:
-#   kova --container kova control-ui --no-open
+#   kova --container kova status
 #   kova --container kova channels login
 #
 # Legacy: "setup-host" delegates to the Podman setup script
@@ -337,140 +337,6 @@ create_token_env_file() {
   printf '%s' "$tmp"
 }
 
-sync_local_control_ui_origins_via_cli() {
-  local file="$1"
-  local port="$2"
-  local config_dir=""
-  local allowed_json=""
-  local merged_json=""
-  config_dir="$(dirname "$file")"
-  if ! command -v kova >/dev/null 2>&1; then
-    echo "Warning: kova not found; unable to sync gateway.controlUi.allowedOrigins in $file." >&2
-    return 0
-  fi
-  if ! command -v python3 >/dev/null 2>&1; then
-    KOVA_CONTAINER="" KOVA_CONFIG_DIR="$config_dir" \
-      kova config set gateway.controlUi.allowedOrigins \
-      "[\"http://127.0.0.1:${port}\",\"http://localhost:${port}\"]" \
-      --strict-json >/dev/null
-    return 0
-  fi
-  allowed_json="$(
-    KOVA_CONTAINER="" KOVA_CONFIG_DIR="$config_dir" \
-      kova config get gateway.controlUi.allowedOrigins --json 2>/dev/null || true
-  )"
-  merged_json="$(python3 - "$port" "$allowed_json" <<'PY'
-import json
-import sys
-
-port = sys.argv[1]
-raw = sys.argv[2] if len(sys.argv) > 2 else ""
-desired = [
-    f"http://127.0.0.1:{port}",
-    f"http://localhost:{port}",
-]
-allowed = []
-if raw:
-    try:
-        parsed = json.loads(raw)
-        if isinstance(parsed, list):
-            allowed = parsed
-    except json.JSONDecodeError:
-        allowed = []
-cleaned = []
-seen = set()
-for origin in allowed + desired:
-    if not isinstance(origin, str):
-        continue
-    normalized = origin.strip()
-    if not normalized or normalized in seen:
-        continue
-    cleaned.append(normalized)
-    seen.add(normalized)
-print(json.dumps(cleaned))
-PY
-  )"
-  KOVA_CONTAINER="" KOVA_CONFIG_DIR="$config_dir" \
-    kova config set gateway.controlUi.allowedOrigins "$merged_json" --strict-json >/dev/null
-}
-
-sync_local_control_ui_origins() {
-  local file="$1"
-  local port="$2"
-  local dir=""
-  local tmp=""
-  ensure_safe_write_file_path "config file" "$file"
-  if ! command -v python3 >/dev/null 2>&1; then
-    echo "Warning: python3 not found; unable to sync gateway.controlUi.allowedOrigins in $file." >&2
-    return 0
-  fi
-  dir="$(dirname "$file")"
-  ensure_private_existing_dir_owned_by_user "config file directory" "$dir"
-  tmp="$(mktemp "$dir/.config.tmp.XXXXXX")"
-  if ! python3 - "$file" "$port" "$tmp" <<'PY'
-import json
-import sys
-
-path = sys.argv[1]
-port = sys.argv[2]
-tmp = sys.argv[3]
-try:
-    with open(path, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
-except json.JSONDecodeError as exc:
-    print(
-        f"Warning: unable to sync gateway.controlUi.allowedOrigins in {path}: existing config is not strict JSON ({exc}). Leaving file unchanged.",
-        file=sys.stderr,
-    )
-    raise SystemExit(1)
-if not isinstance(data, dict):
-    raise SystemExit(f"{path}: expected top-level object")
-gateway = data.setdefault("gateway", {})
-if not isinstance(gateway, dict):
-    raise SystemExit(f"{path}: expected gateway object")
-gateway.setdefault("mode", "local")
-control_ui = gateway.setdefault("controlUi", {})
-if not isinstance(control_ui, dict):
-    raise SystemExit(f"{path}: expected gateway.controlUi object")
-allowed = control_ui.get("allowedOrigins")
-desired = [
-    f"http://127.0.0.1:{port}",
-    f"http://localhost:{port}",
-]
-if not isinstance(allowed, list):
-    allowed = []
-cleaned = []
-seen = set()
-for origin in allowed:
-    if not isinstance(origin, str):
-        continue
-    normalized = origin.strip()
-    if not normalized or normalized in seen:
-        continue
-    cleaned.append(normalized)
-    seen.add(normalized)
-for origin in desired:
-    if origin not in seen:
-        cleaned.append(origin)
-        seen.add(origin)
-control_ui["allowedOrigins"] = cleaned
-with open(tmp, "w", encoding="utf-8") as fh:
-    json.dump(data, fh, indent=2)
-    fh.write("\n")
-PY
-  then
-    rm -f "$tmp"
-    sync_local_control_ui_origins_via_cli "$file" "$port"
-    return 0
-  fi
-  [[ -s "$tmp" ]] || {
-    rm -f "$tmp"
-    return 0
-  }
-  chmod 600 "$tmp" 2>/dev/null || true
-  mv -f "$tmp" "$file"
-}
-
 TOKEN_ENV_FILE=""
 cleanup_token_env_file() {
   if [[ -n "$TOKEN_ENV_FILE" && -f "$TOKEN_ENV_FILE" ]]; then
@@ -497,7 +363,6 @@ JSON
   )
   echo "Created $CONFIG_JSON (minimal gateway.mode=local)." >&2
 fi
-sync_local_control_ui_origins "$CONFIG_JSON" "$HOST_GATEWAY_PORT"
 
 PODMAN_USERNS="${KOVA_PODMAN_USERNS:-keep-id}"
 USERNS_ARGS=()
@@ -566,7 +431,7 @@ podman run --pull="$PODMAN_PULL" -d --replace \
   node dist/index.js gateway --bind "$GATEWAY_BIND" --port 18789 >/dev/null
 
 echo "Container $CONTAINER_NAME started: http://127.0.0.1:${HOST_GATEWAY_PORT}/"
-echo "podman exec -it $CONTAINER_NAME kova control-ui --no-open"
+echo "podman exec -it $CONTAINER_NAME kova status"
 echo "podman exec -it $CONTAINER_NAME kova devices approve --latest  # if pairing required"
 echo "podman logs -f $CONTAINER_NAME"
 if [[ "$PLATFORM_NAME" == "Linux" ]]; then

@@ -158,7 +158,7 @@ private enum GatewayConnectErrorCodes {
     static let authPasswordNotConfigured = GatewayConnectAuthDetailCode.authPasswordNotConfigured.rawValue
     static let authRateLimited = GatewayConnectAuthDetailCode.authRateLimited.rawValue
     static let pairingRequired = GatewayConnectAuthDetailCode.pairingRequired.rawValue
-    static let controlUiDeviceIdentityRequired = GatewayConnectAuthDetailCode.controlUiDeviceIdentityRequired.rawValue
+    static let operatorClientDeviceIdentityRequired = GatewayConnectAuthDetailCode.operatorClientDeviceIdentityRequired.rawValue
     static let deviceIdentityRequired = GatewayConnectAuthDetailCode.deviceIdentityRequired.rawValue
 }
 

@@ -91,7 +91,7 @@ first-token/provider-dispatch timing is desired.
 
 The Markdown report is the terminal-first dashboard for speed work. It shows TUI
 startup, first event, final latency, slowest trace segment, and child component
-exit state without requiring a browser UI.
+exit state without requiring a browser surface.
 
 ## Model latency bench (local keys)
 

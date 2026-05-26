@@ -7,10 +7,10 @@ import OSLog
 import QuartzCore
 import SwiftUI
 
-private let webChatSwiftLogger = Logger(subsystem: "ai.kova", category: "WebChatSwiftUI")
-private let webChatThinkingLevelDefaultsKey = "kova.webchat.thinkingLevel"
+private let localChatSwiftLogger = Logger(subsystem: "ai.kova", category: "LocalChatSwiftUI")
+private let localChatThinkingLevelDefaultsKey = "kova.webchat.thinkingLevel"
 
-private enum WebChatSwiftUILayout {
+private enum LocalChatSwiftUILayout {
     static let windowSize = NSSize(width: 500, height: 840)
     static let panelSize = NSSize(width: 480, height: 640)
     static let windowMinSize = NSSize(width: 480, height: 360)
@@ -31,7 +31,7 @@ struct MacGatewayChatTransport: KovaChatTransport {
             let result = try JSONDecoder().decode(ModelsListResult.self, from: data)
             return result.models.map(Self.mapModelChoice)
         } catch {
-            webChatSwiftLogger.warning(
+            localChatSwiftLogger.warning(
                 "models.list failed; hiding model picker: \(error.localizedDescription, privacy: .public)")
             return []
         }
@@ -139,7 +139,7 @@ struct MacGatewayChatTransport: KovaChatTransport {
                 do {
                     try await GatewayConnection.shared.refresh()
                 } catch {
-                    webChatSwiftLogger.error("gateway refresh failed \(error.localizedDescription, privacy: .public)")
+                    localChatSwiftLogger.error("gateway refresh failed \(error.localizedDescription, privacy: .public)")
                 }
 
                 let stream = await GatewayConnection.shared.subscribe()
@@ -214,8 +214,8 @@ struct MacGatewayChatTransport: KovaChatTransport {
 // MARK: - Window controller
 
 @MainActor
-final class WebChatSwiftUIWindowController {
-    private let presentation: WebChatPresentation
+final class LocalChatSwiftUIWindowController {
+    private let presentation: LocalChatPresentation
     private let sessionKey: String
     private let hosting: NSHostingController<KovaChatView>
     private let contentController: NSViewController
@@ -224,11 +224,11 @@ final class WebChatSwiftUIWindowController {
     var onClosed: (() -> Void)?
     var onVisibilityChanged: ((Bool) -> Void)?
 
-    convenience init(sessionKey: String, presentation: WebChatPresentation) {
+    convenience init(sessionKey: String, presentation: LocalChatPresentation) {
         self.init(sessionKey: sessionKey, presentation: presentation, transport: MacGatewayChatTransport())
     }
 
-    init(sessionKey: String, presentation: WebChatPresentation, transport: any KovaChatTransport) {
+    init(sessionKey: String, presentation: LocalChatPresentation, transport: any KovaChatTransport) {
         self.sessionKey = sessionKey
         self.presentation = presentation
         let vm = KovaChatViewModel(
@@ -236,7 +236,7 @@ final class WebChatSwiftUIWindowController {
             transport: transport,
             initialThinkingLevel: Self.persistedThinkingLevel(),
             onThinkingLevelChanged: { level in
-                UserDefaults.standard.set(level, forKey: webChatThinkingLevelDefaultsKey)
+                UserDefaults.standard.set(level, forKey: localChatThinkingLevelDefaultsKey)
             })
         let accent = Self.color(fromHex: AppStateStore.shared.seamColorHex)
         self.hosting = NSHostingController(rootView: KovaChatView(
@@ -298,8 +298,8 @@ final class WebChatSwiftUIWindowController {
         guard let window else { return .zero }
         guard let anchor = anchorProvider() else {
             let frame = WindowPlacement.topRightFrame(
-                size: WebChatSwiftUILayout.panelSize,
-                padding: WebChatSwiftUILayout.anchorPadding)
+                size: LocalChatSwiftUILayout.panelSize,
+                padding: LocalChatSwiftUILayout.anchorPadding)
             window.setFrame(frame, display: false)
             return frame
         }
@@ -307,12 +307,12 @@ final class WebChatSwiftUIWindowController {
             screen.frame.contains(anchor.origin) || screen.frame.contains(NSPoint(x: anchor.midX, y: anchor.midY))
         } ?? NSScreen.main
         let bounds = (screen?.visibleFrame ?? .zero).insetBy(
-            dx: WebChatSwiftUILayout.anchorPadding,
-            dy: WebChatSwiftUILayout.anchorPadding)
+            dx: LocalChatSwiftUILayout.anchorPadding,
+            dy: LocalChatSwiftUILayout.anchorPadding)
         let frame = WindowPlacement.anchoredBelowFrame(
-            size: WebChatSwiftUILayout.panelSize,
+            size: LocalChatSwiftUILayout.panelSize,
             anchor: anchor,
-            padding: WebChatSwiftUILayout.anchorPadding,
+            padding: LocalChatSwiftUILayout.anchorPadding,
             in: bounds)
         window.setFrame(frame, display: false)
         return frame
@@ -337,7 +337,7 @@ final class WebChatSwiftUIWindowController {
     }
 
     private static func persistedThinkingLevel() -> String? {
-        let stored = UserDefaults.standard.string(forKey: webChatThinkingLevelDefaultsKey)?
+        let stored = UserDefaults.standard.string(forKey: localChatThinkingLevelDefaultsKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
         guard let stored, ["off", "minimal", "low", "medium", "high", "xhigh", "adaptive"].contains(stored) else {
@@ -347,13 +347,13 @@ final class WebChatSwiftUIWindowController {
     }
 
     private static func makeWindow(
-        for presentation: WebChatPresentation,
+        for presentation: LocalChatPresentation,
         contentViewController: NSViewController) -> NSWindow
     {
         switch presentation {
         case .window:
             let window = NSWindow(
-                contentRect: NSRect(origin: .zero, size: WebChatSwiftUILayout.windowSize),
+                contentRect: NSRect(origin: .zero, size: LocalChatSwiftUILayout.windowSize),
                 styleMask: [.titled, .closable, .resizable, .miniaturizable],
                 backing: .buffered,
                 defer: false)
@@ -365,14 +365,14 @@ final class WebChatSwiftUIWindowController {
             window.backgroundColor = .clear
             window.isOpaque = false
             window.center()
-            WindowPlacement.ensureOnScreen(window: window, defaultSize: WebChatSwiftUILayout.windowSize)
-            window.minSize = WebChatSwiftUILayout.windowMinSize
+            WindowPlacement.ensureOnScreen(window: window, defaultSize: LocalChatSwiftUILayout.windowSize)
+            window.minSize = LocalChatSwiftUILayout.windowMinSize
             window.contentView?.wantsLayer = true
             window.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
             return window
         case .panel:
-            let panel = WebChatPanel(
-                contentRect: NSRect(origin: .zero, size: WebChatSwiftUILayout.panelSize),
+            let panel = LocalChatPanel(
+                contentRect: NSRect(origin: .zero, size: LocalChatSwiftUILayout.panelSize),
                 styleMask: [.borderless],
                 backing: .buffered,
                 defer: false)
@@ -391,15 +391,15 @@ final class WebChatSwiftUIWindowController {
             panel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
             panel.setFrame(
                 WindowPlacement.topRightFrame(
-                    size: WebChatSwiftUILayout.panelSize,
-                    padding: WebChatSwiftUILayout.anchorPadding),
+                    size: LocalChatSwiftUILayout.panelSize,
+                    padding: LocalChatSwiftUILayout.anchorPadding),
                 display: false)
             return panel
         }
     }
 
     private static func makeContentController(
-        for presentation: WebChatPresentation,
+        for presentation: LocalChatPresentation,
         hosting: NSHostingController<KovaChatView>) -> NSViewController
     {
         let controller = NSViewController()
@@ -452,9 +452,9 @@ final class WebChatSwiftUIWindowController {
     private func ensureWindowSize() {
         guard case .window = self.presentation, let window else { return }
         let current = window.frame.size
-        let min = WebChatSwiftUILayout.windowMinSize
+        let min = LocalChatSwiftUILayout.windowMinSize
         if current.width < min.width || current.height < min.height {
-            let frame = WindowPlacement.centeredFrame(size: WebChatSwiftUILayout.windowSize)
+            let frame = WindowPlacement.centeredFrame(size: LocalChatSwiftUILayout.windowSize)
             window.setFrame(frame, display: false)
         }
     }

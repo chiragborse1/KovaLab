@@ -6,7 +6,7 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-struct WebChatSwiftUISmokeTests {
+struct LocalChatSwiftUISmokeTests {
     private struct TestTransport: KovaChatTransport {
         func requestHistory(sessionKey: String) async throws -> KovaChatHistoryPayload {
             let json = """
@@ -42,7 +42,7 @@ struct WebChatSwiftUISmokeTests {
     }
 
     @Test func `window controller show and close`() {
-        let controller = WebChatSwiftUIWindowController(
+        let controller = LocalChatSwiftUIWindowController(
             sessionKey: "main",
             presentation: .window,
             transport: TestTransport())
@@ -52,7 +52,7 @@ struct WebChatSwiftUISmokeTests {
 
     @Test func `panel controller present and close`() {
         let anchor = { NSRect(x: 200, y: 400, width: 40, height: 40) }
-        let controller = WebChatSwiftUIWindowController(
+        let controller = LocalChatSwiftUIWindowController(
             sessionKey: "main",
             presentation: .panel(anchorProvider: anchor),
             transport: TestTransport())

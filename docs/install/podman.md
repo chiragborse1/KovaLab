@@ -90,15 +90,10 @@ export KOVA_CONTAINER=kova
 Then commands such as these will run inside that container automatically:
 
 ```bash
-kova control-ui --no-open
 kova gateway status --deep   # includes extra service scan
 kova doctor
 kova channels login
 ```
-
-On macOS, Podman machine may make the browser appear non-local to the gateway.
-If the Control UI reports device-auth errors after launch, use the Tailscale guidance in
-[Podman + Tailscale](#podman--tailscale).
 
 <a id="podman--tailscale"></a>
 
@@ -115,7 +110,7 @@ Podman-specific note:
 See:
 
 - [Tailscale](/gateway/tailscale)
-- [Control UI](/web/control-ui)
+- [Gateway clients](/gateway/remote)
 
 ## Systemd (Quadlet, optional)
 
@@ -160,8 +155,6 @@ The launch script and Quadlet bind-mount host state into the container:
 By default those are host directories, not anonymous container state, so
 `kova.json`, per-agent `auth-profiles.json`, channel/provider state,
 sessions, and workspace survive container replacement.
-The Podman setup also seeds `gateway.controlUi.allowedOrigins` for `127.0.0.1` and `localhost` on the published gateway port so the local Control UI works with the container's non-loopback bind.
-
 Useful env vars for the manual launcher:
 
 - `KOVA_PODMAN_CONTAINER` -- container name (`kova` by default)
@@ -189,7 +182,6 @@ Quadlet note:
 - **Container logs:** `podman logs -f kova`
 - **Stop container:** `podman stop kova`
 - **Remove container:** `podman rm -f kova`
-- **Open Control UI URL from host CLI:** `kova control-ui --no-open`
 - **Health/status via host CLI:** `kova gateway status --deep` (RPC probe + extra
   service scan)
 

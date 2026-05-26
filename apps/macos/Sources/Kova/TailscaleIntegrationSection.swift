@@ -181,9 +181,9 @@ struct TailscaleIntegrationSection: View {
     @ViewBuilder
     private var accessURLRow: some View {
         if let host = self.effectiveService.tailscaleHostname {
-            let url = "https://\(host)/ui/"
+            let url = "https://\(host)/"
             HStack(spacing: 8) {
-                Text("Dashboard URL:")
+                Text("Gateway URL:")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if let link = URL(string: url) {

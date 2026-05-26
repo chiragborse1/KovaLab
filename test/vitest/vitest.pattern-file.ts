@@ -7,7 +7,7 @@ function normalizeCliPattern(value: string): string {
     .replace(/^\.\/+/u, "")
     .replace(/\/+$/u, "");
   if (
-    /^(?:src|test|extensions|ui|packages|apps)(?:\/|$)/u.test(normalized) &&
+    /^(?:src|test|extensions|packages|apps)(?:\/|$)/u.test(normalized) &&
     !/[?*[\]{}]/u.test(normalized) &&
     !/\.(?:[cm]?[jt]sx?)$/u.test(normalized)
   ) {
@@ -22,7 +22,7 @@ function looksLikeCliIncludePattern(value: string): boolean {
     normalized.includes(".test.") ||
     normalized.includes(".e2e.") ||
     normalized.includes(".live.") ||
-    /^(?:src|test|extensions|ui|packages|apps)(?:\/|$)/u.test(normalized)
+    /^(?:src|test|extensions|packages|apps)(?:\/|$)/u.test(normalized)
   );
 }
 

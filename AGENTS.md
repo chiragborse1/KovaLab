@@ -77,7 +77,7 @@ Telegraph style. Root rules only. Read scoped `AGENTS.md` before subtree work.
   - never: `Auto response`, `Labeler`, `Docs Sync Publish Repo`, `Docs Agent`, `Test Performance Agent`, `Stale`.
   - conditional: `CI` exact SHA only; `Docs` only docs task/no local docs proof; `Workflow Sanity` only workflow/composite/CI-policy edits; `Plugin NPM Release` only plugin package/release metadata.
   - release/manual only: `Docker Release`, `Kova NPM Release`, `macOS Release`, `Kova Release Checks`, `Cross-OS Release Checks`, `NPM Telegram Beta E2E`.
-  - explicit/surface only: `QA-Lab - All Lanes`, `Scheduled Live And E2E`, `Install Smoke`, `CodeQL`, `Sandbox Common Smoke`, `Parity gate`, `Blacksmith Testbox`, `Control UI Locale Refresh`.
+  - explicit/surface only: `QA-Lab - All Lanes`, `Scheduled Live And E2E`, `Install Smoke`, `CodeQL`, `Sandbox Common Smoke`, `Parity gate`, `Blacksmith Testbox`.
 - `/landpr`: do not idle on `auto-response` or `check-docs`. Treat docs as local proof unless `check-docs` already failed with actionable relevant error.
 - Poll 30-60s. Fetch jobs/logs/artifacts only after failure/completion or concrete need.
 

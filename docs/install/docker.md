@@ -69,16 +69,13 @@ Docker is **optional**. Use it only if you want a containerized gateway or to va
 
   </Step>
 
-  <Step title="Open the Control UI">
-    Open `http://127.0.0.1:18789/` in your browser and paste the configured
-    shared secret into Settings. The setup script writes a token to `.env` by
-    default; if you switch the container config to password auth, use that
-    password instead.
-
-    Need the URL again?
+  <Step title="Check the Gateway">
+    Use the CLI helper to confirm the Gateway is reachable. The setup script
+    writes a token to `.env` by default; if you switch the container config to
+    password auth, use that password instead.
 
     ```bash
-    docker compose run --rm kova-cli control-ui --no-open
+    docker compose run --rm kova-cli status --all
     ```
 
   </Step>
@@ -111,7 +108,7 @@ docker build -t kova:local -f Dockerfile .
 docker compose run --rm --no-deps --entrypoint node kova-gateway \
   dist/index.js onboard --mode local --no-install-daemon
 docker compose run --rm --no-deps --entrypoint node kova-gateway \
-  dist/index.js config set --batch-json '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"},{"path":"gateway.controlUi.allowedOrigins","value":["http://localhost:18789","http://127.0.0.1:18789"]}]'
+  dist/index.js config set --batch-json '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"}]'
 docker compose up -d kova-gateway
 ```
 
@@ -304,7 +301,7 @@ echo 'source ~/.kovadock/kovadock-helpers.sh' >> ~/.zshrc && source ~/.zshrc
 
 If you installed KovaDock from the older `scripts/shell-helpers/kovadock-helpers.sh` raw path, rerun the install command above so your local helper file tracks the new location.
 
-Then use `kovadock-start`, `kovadock-stop`, `kovadock-control-ui`, etc. Run
+Then use `kovadock-start`, `kovadock-stop`, `kovadock-status`, etc. Run
 `kovadock-help` for all commands.
 See [KovaDock](/install/kovadock) for the full helper guide.
 
@@ -367,13 +364,10 @@ See [KovaDock](/install/kovadock) for the full helper guide.
     RUN corepack enable
     WORKDIR /app
     COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-    COPY ui/package.json ./ui/package.json
     COPY scripts ./scripts
     RUN pnpm install --frozen-lockfile
     COPY . .
     RUN pnpm build
-    RUN pnpm ui:install
-    RUN pnpm ui:build
     ENV NODE_ENV=production
     CMD ["node","dist/index.js"]
     ```
@@ -485,16 +479,16 @@ scripts/sandbox-setup.sh
     The VM needs at least 2 GB RAM. Use a larger machine class and retry.
   </Accordion>
 
-  <Accordion title="Unauthorized or pairing required in Control UI">
-    Fetch a fresh Control UI link and approve the browser device:
+  <Accordion title="Unauthorized or pairing required">
+    Check Gateway auth and approve the client device:
 
     ```bash
-    docker compose run --rm kova-cli control-ui --no-open
+    docker compose run --rm kova-cli status --all
     docker compose run --rm kova-cli devices list
     docker compose run --rm kova-cli devices approve <requestId>
     ```
 
-    More detail: [Control UI](/web/control-ui), [Devices](/cli/devices).
+    More detail: [Devices](/cli/devices).
 
   </Accordion>
 

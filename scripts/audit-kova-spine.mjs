@@ -85,26 +85,6 @@ function largestFiles(files, limit) {
     .slice(0, limit);
 }
 
-function countPattern(files, pattern) {
-  let occurrences = 0;
-  let matchingFiles = 0;
-  for (const file of files) {
-    let content;
-    try {
-      content = readFileSync(file, "utf8");
-    } catch {
-      continue;
-    }
-    const matches = content.match(pattern);
-    if (!matches) {
-      continue;
-    }
-    matchingFiles += 1;
-    occurrences += matches.length;
-  }
-  return { files: matchingFiles, occurrences };
-}
-
 function buildAudit() {
   const files = gitLsFiles();
   const docsFiles = files.filter(
@@ -123,10 +103,6 @@ function buildAudit() {
   const bundledPluginManifests = files.filter((file) =>
     /^extensions\/[^/]+\/kova\.plugin\.json$/.test(file),
   );
-  const uiStyleFiles = files.filter(
-    (file) => file.startsWith("ui/src/styles/") && file.endsWith(".css"),
-  );
-
   return {
     snapshot: {
       bundledPluginManifests: bundledPluginManifests.length,
@@ -136,12 +112,6 @@ function buildAudit() {
     largestSourceAreas: topEntries(countTopLevel(files, "src"), 10),
     largestExtensionAreas: topEntries(countTopLevel(files, "extensions"), 10),
     largestTextFiles: largestFiles(files, 20),
-    controlUiDriftSignals: {
-      cardOrElevatedTokens: countPattern(uiStyleFiles, /var\(--(?:card|bg-elevated)\)/g),
-      shadowDeclarations: countPattern(uiStyleFiles, /box-shadow\s*:/g),
-      gradientDeclarations: countPattern(uiStyleFiles, /(?:linear|radial)-gradient\(/g),
-      radiusTokenDeclarations: countPattern(uiStyleFiles, /border-radius\s*:\s*var\(--radius/g),
-    },
   };
 }
 
@@ -174,12 +144,6 @@ function printMarkdown(audit) {
   console.log("");
   for (const entry of audit.largestTextFiles) {
     console.log(`- ${entry.path}: ${entry.lines}`);
-  }
-  console.log("");
-  console.log("## Control UI Drift Signals");
-  console.log("");
-  for (const [name, value] of Object.entries(audit.controlUiDriftSignals)) {
-    console.log(`- ${name}: ${value.occurrences} occurrences in ${value.files} files`);
   }
 }
 

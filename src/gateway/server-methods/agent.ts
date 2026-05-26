@@ -80,7 +80,6 @@ import {
 import { resolveAssistantIdentity } from "../assistant-identity.js";
 import { registerChatAbortController, resolveAgentRunExpiresAtMs } from "../chat-abort.js";
 import { MediaOffloadError, parseMessageWithAttachments } from "../chat-attachments.js";
-import { resolveAssistantAvatarUrl } from "../control-ui-shared.js";
 import { ADMIN_SCOPE } from "../method-scopes.js";
 import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
 import {
@@ -1252,18 +1251,11 @@ export const agentHandlers: GatewayRequestHandlers = {
     }
     const cfg = context.getRuntimeConfig();
     const identity = resolveAssistantIdentity({ cfg, agentId });
-    const avatarValue =
-      resolveAssistantAvatarUrl({
-        avatar: identity.avatar,
-        agentId: identity.agentId,
-        basePath: cfg.gateway?.controlUi?.basePath,
-      }) ?? identity.avatar;
     const avatarResolution = resolveAgentAvatar(cfg, identity.agentId, { includeUiOverride: true });
     respond(
       true,
       {
         ...identity,
-        avatar: avatarValue,
         avatarSource: resolvePublicAgentAvatarSource(avatarResolution),
         avatarStatus: avatarResolution.kind,
         avatarReason: avatarResolution.kind === "none" ? avatarResolution.reason : undefined,

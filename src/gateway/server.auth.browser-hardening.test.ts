@@ -16,7 +16,6 @@ import {
   connectOk,
   installGatewayTestHooks,
   readConnectChallengeNonce,
-  rpcReq,
   testState,
   trackConnectChallengeNonce,
   withGatewayServer,
@@ -93,9 +92,6 @@ async function writeTrustedProxyBrowserAuthConfig() {
         },
       },
       trustedProxies: ["127.0.0.1"],
-      controlUi: {
-        allowedOrigins: [ALLOWED_BROWSER_ORIGIN],
-      },
     },
   });
 }
@@ -135,7 +131,7 @@ async function expectBrowserOriginConnectRejected(params: {
       expect(res.ok).toBe(false);
       expect(res.error?.message ?? "").toContain("origin not allowed");
       expect((res.error?.details as { code?: string } | undefined)?.code).toBe(
-        ConnectErrorDetailCodes.CONTROL_UI_ORIGIN_NOT_ALLOWED,
+        ConnectErrorDetailCodes.OPERATOR_CLIENT_ORIGIN_NOT_ALLOWED,
       );
     } finally {
       ws.close();
@@ -153,33 +149,34 @@ describe("gateway auth browser hardening", () => {
       expect(res.ok).toBe(false);
       expect(res.error?.message ?? "").toContain("origin not allowed");
       expect((res.error?.details as { code?: string } | undefined)?.code).toBe(
-        ConnectErrorDetailCodes.CONTROL_UI_ORIGIN_NOT_ALLOWED,
+        ConnectErrorDetailCodes.OPERATOR_CLIENT_ORIGIN_NOT_ALLOWED,
       );
     });
   });
 
-  test("accepts trusted-proxy browser connects from allowed origins", async () => {
+  test("rejects trusted-proxy browser connects after browser surface removal", async () => {
     await withTrustedProxyBrowserWs(ALLOWED_BROWSER_ORIGIN, async (ws) => {
-      const payload = await connectOk(ws, {
+      const res = await connectReq(ws, {
         client: TEST_OPERATOR_CLIENT,
         device: null,
       });
-      expect(payload.type).toBe("hello-ok");
+      expect(res.ok).toBe(false);
+      expect(res.error?.message ?? "").toContain("origin not allowed");
+      expect((res.error?.details as { code?: string } | undefined)?.code).toBe(
+        ConnectErrorDetailCodes.OPERATOR_CLIENT_ORIGIN_NOT_ALLOWED,
+      );
     });
   });
 
-  test("clears scopes for trusted-proxy non-control-ui browser sessions", async () => {
+  test("rejects trusted-proxy browser sessions before scope evaluation", async () => {
     await withTrustedProxyBrowserWs(ALLOWED_BROWSER_ORIGIN, async (ws) => {
-      const payload = await connectOk(ws, {
+      const res = await connectReq(ws, {
         client: TEST_OPERATOR_CLIENT,
         device: null,
         scopes: ["operator.read"],
       });
-      expect(payload.type).toBe("hello-ok");
-
-      const status = await rpcReq(ws, "status");
-      expect(status.ok).toBe(false);
-      expect(status.error?.message ?? "").toContain("missing scope");
+      expect(res.ok).toBe(false);
+      expect(res.error?.message ?? "").toContain("origin not allowed");
     });
   });
 
@@ -191,9 +188,10 @@ describe("gateway auth browser hardening", () => {
       expectedMessage: "origin not allowed",
     },
     {
-      name: "accepts allowed origins",
+      name: "rejects formerly allowed origins",
       origin: ALLOWED_BROWSER_ORIGIN,
-      ok: true,
+      ok: false,
+      expectedMessage: "origin not allowed",
     },
   ])(
     "keeps non-proxy browser-origin behavior unchanged: $name",
@@ -201,11 +199,7 @@ describe("gateway auth browser hardening", () => {
       const { writeConfigFile } = await import("../config/config.js");
       testState.gatewayAuth = { mode: "token", token: "secret" };
       await writeConfigFile({
-        gateway: {
-          controlUi: {
-            allowedOrigins: [ALLOWED_BROWSER_ORIGIN],
-          },
-        },
+        gateway: {},
       });
 
       await withGatewayServer(async ({ port }) => {
@@ -222,7 +216,7 @@ describe("gateway auth browser hardening", () => {
           } else {
             expect(res.error?.message ?? "").toContain(expectedMessage ?? "");
             expect((res.error?.details as { code?: string } | undefined)?.code).toBe(
-              ConnectErrorDetailCodes.CONTROL_UI_ORIGIN_NOT_ALLOWED,
+              ConnectErrorDetailCodes.OPERATOR_CLIENT_ORIGIN_NOT_ALLOWED,
             );
           }
         } finally {
@@ -232,7 +226,7 @@ describe("gateway auth browser hardening", () => {
     },
   );
 
-  test("rejects non-local browser origins for non-control-ui clients", async () => {
+  test("rejects non-local browser origins for non-operator-client clients", async () => {
     await expectBrowserOriginConnectRejected({});
   });
 
@@ -345,7 +339,7 @@ describe("gateway auth browser hardening", () => {
     });
   });
 
-  test("does not silently auto-pair non-control-ui browser clients on loopback", async () => {
+  test("does not silently auto-pair non-operator-client browser clients on loopback", async () => {
     const { listDevicePairing } = await import("../infra/device-pairing.js");
     testState.gatewayAuth = { mode: "token", token: "secret" };
 
@@ -381,7 +375,7 @@ describe("gateway auth browser hardening", () => {
     });
   });
 
-  test("rejects forged loopback origin for control-ui when proxy headers make client non-local", async () => {
+  test("rejects forged loopback origin for operator-client when proxy headers make client non-local", async () => {
     testState.gatewayAuth = { mode: "token", token: "secret" };
     await withGatewayServer(async ({ port }) => {
       const ws = await openWs(port, {
@@ -393,7 +387,7 @@ describe("gateway auth browser hardening", () => {
           token: "secret",
           client: {
             ...TEST_OPERATOR_CLIENT,
-            id: GATEWAY_CLIENT_NAMES.CONTROL_UI,
+            id: GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT,
             mode: GATEWAY_CLIENT_MODES.UI,
           },
         });

@@ -250,7 +250,7 @@ struct PermissionRow: View {
         case .appleScript:
             "Control other apps (e.g. Terminal) for automation actions"
         case .notifications: "Show desktop alerts for agent activity"
-        case .accessibility: "Control UI elements when an action requires it"
+        case .accessibility: "Interact with app elements when an action requires it"
         case .screenRecording: "Capture the screen for context or screenshots"
         case .microphone: "Allow Voice Wake and audio capture"
         case .speechRecognition: "Transcribe Voice Wake trigger phrases on-device"

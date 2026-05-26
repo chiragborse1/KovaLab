@@ -1,13 +1,13 @@
 ---
-summary: "Integrated Tailscale Serve/Funnel for the Gateway Control UI"
+summary: "Integrated Tailscale Serve/Funnel for the Gateway Gateway clients"
 read_when:
-  - Exposing the Gateway Control UI outside localhost
-  - Automating tailnet or public Control UI access
+  - Exposing the Gateway Gateway clients outside localhost
+  - Automating tailnet or public Gateway clients access
 title: "Tailscale"
 ---
 
 Kova can auto-configure Tailscale **Serve** (tailnet) or **Funnel** (public) for the
-Gateway Control UI and WebSocket port. This keeps the Gateway bound to loopback while
+Gateway Gateway clients and WebSocket port. This keeps the Gateway bound to loopback while
 Tailscale provides HTTPS, routing, and (for Serve) identity headers.
 
 ## Modes
@@ -30,17 +30,17 @@ Set `gateway.auth.mode` to control the handshake:
 - `trusted-proxy` (identity-aware reverse proxy; see [Trusted Proxy Auth](/gateway/trusted-proxy-auth))
 
 When `tailscale.mode = "serve"` and `gateway.auth.allowTailscale` is `true`,
-Control UI/WebSocket auth can use Tailscale identity headers
+Gateway clients/WebSocket auth can use Tailscale identity headers
 (`tailscale-user-login`) without supplying a token/password. Kova verifies
 the identity by resolving the `x-forwarded-for` address via the local Tailscale
 daemon (`tailscale whois`) and matching it to the header before accepting it.
 Kova only treats a request as Serve when it arrives from loopback with
 Tailscale’s `x-forwarded-for`, `x-forwarded-proto`, and `x-forwarded-host`
 headers.
-For Control UI operator sessions that include browser device identity, this
+For Gateway clients operator sessions that include browser device identity, this
 verified Serve path also skips the device-pairing round trip. It does not bypass
 browser device identity: device-less clients are still rejected, and node-role
-or non-Control UI WebSocket connections still follow the normal pairing and
+or non-Gateway clients WebSocket connections still follow the normal pairing and
 auth checks.
 HTTP API endpoints (for example `/v1/*`, `/tools/invoke`, and `/api/channels/*`)
 do **not** use Tailscale identity-header auth. They still follow the gateway's
@@ -65,7 +65,7 @@ and use `gateway.auth.mode: "token"` or `"password"`.
 }
 ```
 
-Open: `https://<magicdns>/` (or your configured `gateway.controlUi.basePath`)
+Open: `https://<magicdns>/` (or your configured `gateway base path`)
 
 ### Tailnet-only (bind to Tailnet IP)
 
@@ -82,7 +82,7 @@ Use this when you want the Gateway to listen directly on the Tailnet IP (no Serv
 
 Connect from another Tailnet device:
 
-- Control UI: `http://<tailscale-ip>:18789/`
+- Gateway clients: `http://<tailscale-ip>:18789/`
 - WebSocket: `ws://<tailscale-ip>:18789`
 
 <Note>
@@ -123,7 +123,7 @@ kova gateway --tailscale funnel --auth password
   port. The Kova-managed Funnel password-only policy is unchanged.
 - `gateway.bind: "tailnet"` is a direct Tailnet bind (no HTTPS, no Serve/Funnel).
 - `gateway.bind: "auto"` prefers loopback; use `tailnet` if you want Tailnet-only.
-- Serve/Funnel only expose the **Gateway control UI + WS**. Nodes connect over
+- Serve/Funnel only expose the **Gateway Gateway clients + WS**. Nodes connect over
   the same Gateway WS endpoint, so Serve can work for node access.
 
 ## Browser control (remote Gateway + local browser)

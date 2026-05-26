@@ -87,12 +87,6 @@ export function resolveMissingPluginCommandMessage(
   if (!normalizedPluginId) {
     return null;
   }
-  if (normalizedPluginId === "dashboard") {
-    return (
-      "The `kova dashboard` command has been removed. Use `kova` for terminal chat, " +
-      "or `kova control-ui` for the optional browser Control UI."
-    );
-  }
   const allow =
     Array.isArray(config?.plugins?.allow) && config.plugins.allow.length > 0
       ? config.plugins.allow

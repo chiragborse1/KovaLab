@@ -1,16 +1,9 @@
 import {
-  buildDefaultControlUiAllowedOrigins,
-  hasConfiguredControlUiAllowedOrigins,
-  isGatewayNonLoopbackBindMode,
-  resolveGatewayPortWithDefault,
-} from "../../../config/gateway-control-ui-origins.js";
-import {
   defineLegacyConfigMigration,
   getRecord,
   type LegacyConfigMigrationSpec,
   type LegacyConfigRule,
 } from "../../../config/legacy.shared.js";
-import { DEFAULT_GATEWAY_PORT } from "../../../config/paths.js";
 import { normalizeOptionalLowercaseString } from "../../../shared/string-coerce.js";
 
 const GATEWAY_BIND_RULE: LegacyConfigRule = {
@@ -52,43 +45,6 @@ function escapeControlForLog(value: string): string {
 }
 
 export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_GATEWAY: LegacyConfigMigrationSpec[] = [
-  defineLegacyConfigMigration({
-    id: "gateway.controlUi.allowedOrigins-seed-for-non-loopback",
-    describe: "Seed gateway.controlUi.allowedOrigins for existing non-loopback gateway installs",
-    apply: (raw, changes) => {
-      const gateway = getRecord(raw.gateway);
-      if (!gateway) {
-        return;
-      }
-      const bind = gateway.bind;
-      if (!isGatewayNonLoopbackBindMode(bind)) {
-        return;
-      }
-      const controlUi = getRecord(gateway.controlUi) ?? {};
-      if (
-        hasConfiguredControlUiAllowedOrigins({
-          allowedOrigins: controlUi.allowedOrigins,
-          dangerouslyAllowHostHeaderOriginFallback:
-            controlUi.dangerouslyAllowHostHeaderOriginFallback,
-        })
-      ) {
-        return;
-      }
-      const port = resolveGatewayPortWithDefault(gateway.port, DEFAULT_GATEWAY_PORT);
-      const origins = buildDefaultControlUiAllowedOrigins({
-        port,
-        bind,
-        customBindHost:
-          typeof gateway.customBindHost === "string" ? gateway.customBindHost : undefined,
-      });
-      gateway.controlUi = { ...controlUi, allowedOrigins: origins };
-      raw.gateway = gateway;
-      changes.push(
-        `Seeded gateway.controlUi.allowedOrigins ${JSON.stringify(origins)} for bind=${bind}. ` +
-          "Required since v2026.2.26. Add other machine origins to gateway.controlUi.allowedOrigins if needed.",
-      );
-    },
-  }),
   defineLegacyConfigMigration({
     id: "gateway.bind.host-alias->bind-mode",
     describe: "Normalize gateway.bind host aliases to supported bind modes",

@@ -85,7 +85,7 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 ## Profile metadata
 
-Profile data is published as a NIP-01 `kind:0` event. Manage it directly in config or through channel setup/configuration commands; the legacy browser Control UI profile editor is optional compatibility surface area.
+Profile data is published as a NIP-01 `kind:0` event. Manage it directly in config or through channel setup/configuration commands.
 
 Example:
 

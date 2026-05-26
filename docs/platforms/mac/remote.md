@@ -7,7 +7,7 @@ title: "Remote control"
 
 # Remote Kova (macOS ⇄ remote host)
 
-This flow lets the macOS app act as a full remote control for an Kova gateway running on another host (desktop/server). It’s the app’s **Remote over SSH** (remote run) feature. All features—health checks, Voice Wake forwarding, and Web Chat—reuse the same remote SSH configuration from _Settings → General_.
+This flow lets the macOS app act as a full remote control for an Kova gateway running on another host (desktop/server). It’s the app’s **Remote over SSH** (remote run) feature. All features—health checks, Voice Wake forwarding, and gateway control calls—reuse the same remote SSH configuration from _Settings → General_.
 
 ## Modes
 
@@ -24,7 +24,7 @@ Remote mode supports two transports:
 
 In SSH tunnel mode, discovered LAN/tailnet hostnames are saved as
 `gateway.remote.sshTarget`. The app keeps `gateway.remote.url` on the local
-tunnel endpoint, for example `ws://127.0.0.1:18789`, so CLI, Web Chat, and
+tunnel endpoint, for example `ws://127.0.0.1:18789`, so CLI, local chat, and
 the local node-host service all use the same safe loopback transport.
 
 Browser automation in remote mode is owned by the CLI node host, not by the
@@ -52,13 +52,13 @@ node.
    - **Project root** (advanced): remote checkout path used for commands.
    - **CLI path** (advanced): optional path to a runnable `kova` entrypoint/binary (auto-filled when advertised).
 3. Hit **Test remote**. Success indicates the remote `kova status --json` runs correctly. Failures usually mean PATH/CLI issues; exit 127 means the CLI isn’t found remotely.
-4. Health checks and Web Chat will now run through this SSH tunnel automatically.
+4. Health checks and local chat will now run through this SSH tunnel automatically.
 
-## Web Chat
+## Local chat
 
-- **SSH tunnel**: Web Chat connects to the gateway over the forwarded WebSocket control port (default 18789).
-- **Direct (ws/wss)**: Web Chat connects straight to the configured gateway URL.
-- There is no separate WebChat HTTP server anymore.
+- **SSH tunnel**: local chat connects to the gateway over the forwarded WebSocket control port (default 18789).
+- **Direct (ws/wss)**: local chat connects straight to the configured gateway URL.
+- There is no separate local chat HTTP server anymore.
 
 ## Permissions
 
@@ -81,7 +81,7 @@ node.
 
 - **exit 127 / not found**: `kova` isn’t on PATH for non-login shells. Add it to `/etc/paths`, your shell rc, or symlink into `/usr/local/bin`/`/opt/homebrew/bin`.
 - **Health probe failed**: check SSH reachability, PATH, and that Baileys is logged in (`kova status --json`).
-- **Web Chat stuck**: confirm the gateway is running on the remote host and the forwarded port matches the gateway WS port; the UI requires a healthy WS connection.
+- **Local chat stuck**: confirm the gateway is running on the remote host and the forwarded port matches the gateway WS port; the client requires a healthy WS connection.
 - **Node IP shows 127.0.0.1**: expected with the SSH tunnel. Switch **Transport** to **Direct (ws/wss)** if you want the gateway to see the real client IP.
 - **Voice Wake**: trigger phrases are forwarded automatically in remote mode; no separate forwarder is needed.
 

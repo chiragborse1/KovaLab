@@ -252,7 +252,7 @@ describe("scripts/docker/setup.sh", () => {
       "run --rm --no-deps --entrypoint node kova-gateway dist/index.js onboard --mode local --no-install-daemon",
     );
     expect(log).toContain(
-      'run --rm --no-deps --entrypoint node kova-gateway dist/index.js config set --batch-json [{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"},{"path":"gateway.controlUi.allowedOrigins","value":["http://localhost:18789","http://127.0.0.1:18789"]}]',
+      'run --rm --no-deps --entrypoint node kova-gateway dist/index.js config set --batch-json [{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"lan"}]',
     );
     expect(log).not.toContain("run --rm kova-cli onboard --mode local --no-install-daemon");
   });

@@ -39,7 +39,7 @@ runs. Stored visible user turns use that transcript body instead of the
 runtime-enriched prompt.
 
 For legacy sessions that already persisted runtime wrappers, Gateway history
-surfaces apply a display projection before returning messages to WebChat,
+surfaces apply a display projection before returning messages to local chat,
 TUI, REST, or SSE clients.
 
 ---

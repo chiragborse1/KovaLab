@@ -22,7 +22,7 @@ export const LogsTailResultSchema = Type.Object(
   { additionalProperties: false },
 );
 
-// WebChat/WebSocket-native chat methods
+// Local WebSocket-native chat methods
 export const ChatHistoryParamsSchema = Type.Object(
   {
     sessionKey: NonEmptyString,

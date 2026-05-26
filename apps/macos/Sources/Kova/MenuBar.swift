@@ -135,7 +135,7 @@ struct KovaApp: App {
         guard let button = item.button else { return }
         if button.subviews.contains(where: { $0 is StatusItemMouseHandlerView }) { return }
 
-        WebChatManager.shared.onPanelVisibilityChanged = { [self] visible in
+        LocalChatManager.shared.onPanelVisibilityChanged = { [self] visible in
             self.isPanelVisible = visible
             self.updateStatusHighlight()
             self.updateHoverHUDSuppression()
@@ -149,11 +149,11 @@ struct KovaApp: App {
         handler.translatesAutoresizingMaskIntoConstraints = false
         handler.onLeftClick = { [self] in
             HoverHUDController.shared.dismiss(reason: "statusItemClick")
-            self.toggleWebChatPanel()
+            self.toggleLocalChatPanel()
         }
         handler.onRightClick = { [self] in
             HoverHUDController.shared.dismiss(reason: "statusItemRightClick")
-            WebChatManager.shared.closePanel()
+            LocalChatManager.shared.closePanel()
             self.isMenuPresented = true
             self.updateStatusHighlight()
         }
@@ -173,12 +173,12 @@ struct KovaApp: App {
     }
 
     @MainActor
-    private func toggleWebChatPanel() {
+    private func toggleLocalChatPanel() {
         HoverHUDController.shared.setSuppressed(true)
         self.isMenuPresented = false
         Task { @MainActor in
-            let sessionKey = await WebChatManager.shared.preferredSessionKey()
-            WebChatManager.shared.togglePanel(
+            let sessionKey = await LocalChatManager.shared.preferredSessionKey()
+            LocalChatManager.shared.togglePanel(
                 sessionKey: sessionKey,
                 anchorProvider: { [self] in self.statusButtonScreenFrame() })
         }
@@ -243,7 +243,7 @@ private final class StatusItemMouseHandlerView: NSView {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var state: AppState?
-    private let webChatAutoLogger = Logger(subsystem: "ai.kova", category: "Chat")
+    private let localChatAutoLogger = Logger(subsystem: "ai.kova", category: "Chat")
     let updaterController: UpdaterProviding = makeUpdaterController()
 
     func application(_: NSApplication, open urls: [URL]) {
@@ -283,10 +283,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Developer/testing helper: auto-open chat when launched with --chat (or legacy --webchat).
         if CommandLine.arguments.contains("--chat") || CommandLine.arguments.contains("--webchat") {
-            self.webChatAutoLogger.debug("Auto-opening chat via CLI flag")
+            self.localChatAutoLogger.debug("Auto-opening chat via CLI flag")
             Task { @MainActor in
-                let sessionKey = await WebChatManager.shared.preferredSessionKey()
-                WebChatManager.shared.show(sessionKey: sessionKey)
+                let sessionKey = await LocalChatManager.shared.preferredSessionKey()
+                LocalChatManager.shared.show(sessionKey: sessionKey)
             }
         }
     }
@@ -300,8 +300,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MacNodeModeCoordinator.shared.stop()
         TerminationSignalWatcher.shared.stop()
         VoiceWakeGlobalSettingsSync.shared.stop()
-        WebChatManager.shared.close()
-        WebChatManager.shared.resetTunnels()
+        LocalChatManager.shared.close()
+        LocalChatManager.shared.resetTunnels()
         Task { await RemoteTunnelManager.shared.stopAll() }
         Task { await GatewayConnection.shared.shutdown() }
         Task { await PeekabooBridgeHostCoordinator.shared.stop() }

@@ -1,8 +1,8 @@
 import { normalizeOptionalLowercaseString } from "../../shared/string-coerce.js";
 
 export const GATEWAY_CLIENT_IDS = {
-  WEBCHAT_UI: "webchat-ui",
-  CONTROL_UI: "kova-control-ui",
+  LOCAL_CHAT: "local-chat",
+  OPERATOR_CLIENT: "kova-operator-client",
   TUI: "kova-tui",
   WEBCHAT: "webchat",
   CLI: "cli",

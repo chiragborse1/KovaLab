@@ -101,38 +101,6 @@ Need to install Node? See [Node setup](/install/node).
   </Step>
 </Steps>
 
-<Accordion title="Legacy: enable the browser Control UI">
-  Kova's primary flow is terminal-first. If you still need the legacy browser
-  Control UI, enable it explicitly and point `gateway.controlUi.root` to built
-  static assets when you use a custom build.
-
-```bash
-mkdir -p "$HOME/.kova/control-ui-custom"
-# Copy your built static files into that directory.
-```
-
-Then set:
-
-```json
-{
-  "gateway": {
-    "controlUi": {
-      "enabled": true,
-      "root": "$HOME/.kova/control-ui-custom"
-    }
-  }
-}
-```
-
-Restart the Gateway and reopen the Control UI:
-
-```bash
-kova gateway restart
-kova control-ui
-```
-
-</Accordion>
-
 ## What to do next
 
 <Columns>

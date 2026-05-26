@@ -15,7 +15,7 @@ final class ScreenController {
     /// Callback invoked when an kova:// deep link is tapped in the canvas
     var onDeepLink: ((URL) -> Void)?
 
-    /// Callback invoked when the user clicks an A2UI action (e.g. button) inside the canvas web UI.
+    /// Callback invoked when the user clicks an A2UI action (e.g. button) inside the canvas surface.
     var onA2UIAction: (([String: Any]) -> Void)?
 
     private var debugStatusEnabled: Bool = false

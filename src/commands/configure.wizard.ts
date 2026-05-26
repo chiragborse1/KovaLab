@@ -9,7 +9,6 @@ import { logConfigUpdated } from "../config/logging.js";
 import { ConfigMutationConflictError } from "../config/mutate.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { readGatewayCredentialEnv } from "../gateway/credentials.js";
-import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
 import { resolvePluginContributionOwners } from "../plugins/plugin-registry.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
@@ -47,7 +46,7 @@ import {
   guardCancel,
   LEGACY_DEFAULT_WORKSPACE,
   probeGatewayReachable,
-  resolveControlUiLinks,
+  resolveGatewayHttpLinks,
   summarizeExistingConfig,
   waitForGatewayReachable,
 } from "./onboard-helpers.js";
@@ -120,11 +119,10 @@ async function runGatewayHealthCheck(params: {
   runtime: RuntimeEnv;
   port: number;
 }): Promise<void> {
-  const localLinks = resolveControlUiLinks({
+  const localLinks = resolveGatewayHttpLinks({
     bind: params.cfg.gateway?.bind ?? "loopback",
     port: params.port,
     customBindHost: params.cfg.gateway?.customBindHost,
-    basePath: undefined,
     tlsEnabled: params.cfg.gateway?.tls?.enabled === true,
   });
   const remoteUrl = params.cfg.gateway?.remote?.url?.trim();
@@ -820,20 +818,11 @@ export async function runConfigureWizard(
         }
       }
 
-      const controlUiEnabled = nextConfig.gateway?.controlUi?.enabled === true;
-      if (controlUiEnabled) {
-        const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-        if (!controlUiAssets.ok && controlUiAssets.message) {
-          runtime.error(controlUiAssets.message);
-        }
-      }
-
       const bind = nextConfig.gateway?.bind ?? "loopback";
-      const links = resolveControlUiLinks({
+      const links = resolveGatewayHttpLinks({
         bind,
         port: gatewayPort,
         customBindHost: nextConfig.gateway?.customBindHost,
-        basePath: nextConfig.gateway?.controlUi?.basePath,
         tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
       });
       const newPassword =
@@ -877,7 +866,7 @@ export async function runConfigureWizard(
       note(
         [
           `Terminal settings: kova settings`,
-          controlUiEnabled ? `Legacy web UI: ${links.httpUrl}` : "Legacy web UI: not enabled",
+          `Gateway HTTP: ${links.httpUrl}`,
           `Gateway WS: ${links.wsUrl}`,
           gatewayStatusLine,
           "Docs: https://docs.neuralstudio.in/cli/settings",

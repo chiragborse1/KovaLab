@@ -227,7 +227,6 @@ git clone https://github.com/chiragborse1/KovaLab.git
 cd kova
 pnpm install
 pnpm build
-pnpm ui:build
 pnpm kova onboard --install-daemon
 ```
 

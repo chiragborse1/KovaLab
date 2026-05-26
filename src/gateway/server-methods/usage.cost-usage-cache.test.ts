@@ -10,7 +10,7 @@
 //
 // Production trigger: MenuSessionsInjector polls usage.cost every ~45s with
 // no params, exercising parseDateRange's default branch on every UTC day
-// rollover. The Control UI adds more key variance via explicit startDate /
+// rollover. The Operator client adds more key variance via explicit startDate /
 // endDate / utcTimeZone combinations.
 //
 // CAL-003 compliance: no mock of internal branches. Growth is driven through

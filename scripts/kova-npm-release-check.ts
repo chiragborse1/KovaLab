@@ -69,17 +69,14 @@ const OPTIONAL_LOCAL_EMBEDDING_RUNTIME_PACKAGE = "node-llama-cpp";
 const MAX_CALVER_DISTANCE_DAYS = 2;
 const REQUIRED_PACKED_PATHS = [
   PACKAGE_DIST_INVENTORY_RELATIVE_PATH,
-  "dist/control-ui/index.html",
   "docs/index.md",
   "docs/cli/gateway.md",
-  "docs/web/control-ui.md",
   "patches/@agentclientprotocol__claude-agent-acp@0.31.0.patch",
   "patches/@whiskeysockets__baileys@7.0.0-rc.9.patch",
   "scripts/lib/official-external-channel-catalog.json",
   "scripts/lib/official-external-plugin-catalog.json",
   ...WORKSPACE_TEMPLATE_PACK_PATHS,
 ];
-const CONTROL_UI_ASSET_PREFIX = "dist/control-ui/assets/";
 const FORBIDDEN_PACKED_PATH_RULES = [
   {
     prefix: "docs/.generated/",
@@ -508,23 +505,16 @@ export function parseNpmPackJsonOutput(stdout: string): NpmPackResult[] | null {
   return null;
 }
 
-export function collectControlUiPackErrors(paths: Iterable<string>): string[] {
+export function collectRequiredPackErrors(paths: Iterable<string>): string[] {
   const packedPaths = new Set(paths);
-  const assetPaths = [...packedPaths].filter((path) => path.startsWith(CONTROL_UI_ASSET_PREFIX));
   const errors: string[] = [];
 
   for (const requiredPath of REQUIRED_PACKED_PATHS) {
     if (!packedPaths.has(requiredPath)) {
       errors.push(
-        `npm package is missing required path "${requiredPath}". Ensure UI assets are built and included before publish.`,
+        `npm package is missing required path "${requiredPath}". Ensure runtime artifacts are built and included before publish.`,
       );
     }
-  }
-
-  if (assetPaths.length === 0) {
-    errors.push(
-      `npm package is missing Control UI asset payload under "${CONTROL_UI_ASSET_PREFIX}". Refuse release when the dashboard tarball would be empty.`,
-    );
   }
 
   return errors;
@@ -563,7 +553,7 @@ function collectPackedTarballErrors(): string[] {
   );
 
   return [
-    ...collectControlUiPackErrors(packedPaths),
+    ...collectRequiredPackErrors(packedPaths),
     ...collectForbiddenPackedPathErrors(packedPaths),
     ...collectForbiddenPackedContentErrors(packedPaths),
     ...collectPackedTestCargoErrors(packedPaths),

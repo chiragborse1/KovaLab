@@ -1,7 +1,7 @@
 ---
 summary: "Rich output shortcode protocol for embeds, media, audio hints, and replies"
 read_when:
-  - Changing assistant output rendering in the Control UI
+  - Changing assistant output rendering in clients
   - Debugging `[embed ...]`, `MEDIA:`, reply, or audio presentation directives
 title: "Rich output protocol"
 ---
@@ -11,7 +11,7 @@ Assistant output can carry a small set of delivery/render directives:
 - `MEDIA:` for attachment delivery
 - `[[audio_as_voice]]` for audio presentation hints
 - `[[reply_to_current]]` / `[[reply_to:<id>]]` for reply metadata
-- `[embed ...]` for Control UI rich rendering
+- `[embed ...]` for clients that support rich rendering
 
 Remote `MEDIA:` attachments must be public `https:` URLs. Plain `http:`,
 loopback, link-local, private, and internal hostnames are ignored as attachment
@@ -21,7 +21,7 @@ Plain Markdown image syntax stays text by default. Channels that intentionally
 map Markdown image replies to media attachments opt in at their outbound
 adapter; Telegram does this so `![alt](url)` can still become a media reply.
 
-These directives are separate. `MEDIA:` and reply/voice tags remain delivery metadata; `[embed ...]` is the web-only rich render path.
+These directives are separate. `MEDIA:` and reply/voice tags remain delivery metadata; `[embed ...]` is an optional rich render path for clients that support it.
 Trusted tool-result media uses the same `MEDIA:` / `[[audio_as_voice]]` parser before delivery, so text tool outputs can still mark an audio attachment as a voice note.
 
 When block streaming is enabled, `MEDIA:` remains single-delivery metadata for a
@@ -31,7 +31,7 @@ from the final payload.
 
 ## `[embed ...]`
 
-`[embed ...]` is the only agent-facing rich render syntax for the Control UI.
+`[embed ...]` is the only agent-facing rich render syntax for compatible clients.
 
 Self-closing example:
 
@@ -45,7 +45,7 @@ Rules:
 - Embed shortcodes render in the assistant message surface only.
 - Only URL-backed embeds are rendered. Use `ref="..."` or `url="..."`.
 - Block-form inline HTML embed shortcodes are not rendered.
-- The web UI strips the shortcode from visible text and renders the embed inline.
+- Rich-output clients strip the shortcode from visible text and render the embed inline.
 - `MEDIA:` is not an embed alias and should not be used for rich embed rendering.
 
 ## Stored rendering shape

@@ -25,7 +25,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm ui:build
       - run: pnpm release:kova:npm:check
         env:
           RELEASE_TAG: ${{ github.ref_name }}

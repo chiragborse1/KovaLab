@@ -759,7 +759,6 @@ export async function runDiscordQaLive(params: {
       primaryModel,
       alternateModel,
       fastMode: params.fastMode,
-      controlUiEnabled: false,
       mutateConfig: (cfg) =>
         buildDiscordQaConfig(cfg, {
           guildId: runtimeEnv.guildId,

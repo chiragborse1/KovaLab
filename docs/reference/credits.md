@@ -9,7 +9,7 @@ title: "Credits"
 
 ## The name
 
-Kova is the product name used across the gateway, Control UI, and docs.
+Kova is the product name used across the gateway, Gateway clients, and docs.
 
 ## Credits
 

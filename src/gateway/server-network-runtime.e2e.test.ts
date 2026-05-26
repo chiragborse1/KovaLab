@@ -95,7 +95,6 @@ describe("gateway network runtime", () => {
       server = await startGatewayServer(await getFreeGatewayPort(), {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       });
 
       expect(isEnvHttpProxyDispatcher(getGlobalDispatcher())).toBe(true);

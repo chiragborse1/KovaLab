@@ -137,7 +137,7 @@ Security boundary:
 - Disabled when `gateway.nodes.pairing.autoApproveCidrs` is unset.
 - No blanket LAN or private-network auto-approve mode exists.
 - Only fresh `role: node` device pairing with no requested scopes is eligible.
-- Operator, browser, Control UI, and WebChat clients stay manual.
+- Operator and Gateway client pairing stays manual.
 - Role, scope, metadata, and public-key upgrades stay manual.
 - Same-host loopback trusted-proxy header paths are not eligible because that
   path can be spoofed by local callers.
@@ -149,7 +149,7 @@ changes (for example, display name or client platform hints), Kova treats
 that as a `metadata-upgrade`. Silent auto-approval is narrow: it applies only
 to trusted non-browser local reconnects that already proved possession of local
 or shared credentials, including same-host native app reconnects after OS
-version metadata changes. Browser/Control UI clients and remote clients still
+version metadata changes. Browser/Gateway clients clients and remote clients still
 use the explicit re-approval flow. Scope upgrades (read to write/admin) and
 public key changes are **not** eligible for metadata-upgrade auto-approval —
 they stay as explicit re-approval requests.

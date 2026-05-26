@@ -14,7 +14,6 @@ import {
   readConfigFileSnapshot,
   recoverConfigFromLastKnownGood,
   registerConfigWriteListener,
-  replaceConfigFile,
 } from "../config/config.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
 import { resolveMainSessionKey } from "../config/sessions.js";
@@ -54,7 +53,6 @@ import {
 import { createGatewayAuxHandlers } from "./server-aux-handlers.js";
 import { createChannelManager } from "./server-channels.js";
 import { createGatewayCloseHandler, runGatewayClosePrelude } from "./server-close.js";
-import { resolveGatewayControlUiRootState } from "./server-control-ui-root.js";
 import { buildGatewayCronService } from "./server-cron.js";
 import { applyGatewayLaneConcurrency } from "./server-lanes.js";
 import { createGatewayServerLiveState, type GatewayServerLiveState } from "./server-live-state.js";
@@ -102,7 +100,6 @@ import { resolveHookClientIpConfig } from "./server/hook-client-ip-config.js";
 import { createReadinessChecker } from "./server/readiness.js";
 import { loadGatewayTlsRuntime } from "./server/tls.js";
 import { resolveSharedGatewaySessionGeneration } from "./server/ws-shared-generation.js";
-import { maybeSeedControlUiAllowedOriginsAtStartup } from "./startup-control-ui-origins.js";
 
 export { __resetModelCatalogCacheForTest } from "./server-model-catalog.js";
 
@@ -245,11 +242,6 @@ export type GatewayServerOptions = {
    */
   host?: string;
   /**
-   * If false, do not serve the browser Control UI.
-   * Default: config `gateway.controlUi.enabled` (or false when absent).
-   */
-  controlUiEnabled?: boolean;
-  /**
    * If false, do not serve `POST /v1/chat/completions`.
    * Default: config `gateway.http.endpoints.chatCompletions.enabled` (or false when absent).
    */
@@ -379,34 +371,10 @@ export async function startGatewayServer(
       getActiveBundledRuntimeDepsInstallCount() +
       getInspectableTaskRegistrySummary().active,
   );
-  // Compatibility startup migration: seed gateway.controlUi.allowedOrigins for
-  // explicit non-loopback Control UI installs that upgraded to v2026.2.26+
-  // without required origins.
-  const controlUiSeed = minimalTestGateway
-    ? { config: cfgAtStart, persistedAllowedOriginsSeed: false }
-    : await startupTrace.measure("control-ui.seed", () =>
-        maybeSeedControlUiAllowedOriginsAtStartup({
-          config: cfgAtStart,
-          writeConfig: async (nextConfig) => {
-            await replaceConfigFile({
-              nextConfig,
-              afterWrite: { mode: "auto" },
-            });
-          },
-          log,
-          runtimeBind: opts.bind,
-          runtimePort: port,
-        }),
-      );
-  cfgAtStart = controlUiSeed.config;
   // Capture the final config hash only after startup writes (plugin auto-enable,
-  // auth token generation, control-UI origin seeding) so the config reloader can
-  // suppress its own persistence events without rereading config on every boot.
-  if (
-    startupConfigLoad.wroteConfig ||
-    authBootstrap.persistedGeneratedToken ||
-    controlUiSeed.persistedAllowedOriginsSeed
-  ) {
+  // auth token generation) so the config reloader can suppress its own
+  // persistence events without rereading config on every boot.
+  if (startupConfigLoad.wroteConfig || authBootstrap.persistedGeneratedToken) {
     const startupSnapshot = await startupTrace.measure("config.final-snapshot", () =>
       readConfigFileSnapshot(),
     );
@@ -472,7 +440,6 @@ export async function startGatewayServer(
       port,
       bind: opts.bind,
       host: opts.host,
-      controlUiEnabled: opts.controlUiEnabled,
       openAiChatCompletionsEnabled: opts.openAiChatCompletionsEnabled,
       openResponsesEnabled: opts.openResponsesEnabled,
       auth: opts.auth,
@@ -481,14 +448,11 @@ export async function startGatewayServer(
   );
   const {
     bindHost,
-    controlUiEnabled,
     openAiChatCompletionsEnabled,
     openAiChatCompletionsConfig,
     openResponsesEnabled,
     openResponsesConfig,
     strictTransportSecurityHeader,
-    controlUiBasePath,
-    controlUiRoot: controlUiRootOverride,
     resolvedAuth,
     tailscaleConfig,
     tailscaleMode,
@@ -533,18 +497,6 @@ export async function startGatewayServer(
   const rateLimitConfig = cfgAtStart.gateway?.auth?.rateLimit;
   const { rateLimiter: authRateLimiter, browserRateLimiter: browserAuthRateLimiter } =
     createGatewayAuthRateLimiters(rateLimitConfig);
-
-  const controlUiRootState = await startupTrace.measure("control-ui.root", () =>
-    resolveGatewayControlUiRootState({
-      controlUiRootOverride,
-      controlUiEnabled,
-      autoBuildAssets:
-        controlUiEnabled &&
-        (cfgAtStart.gateway?.controlUi?.enabled === true || opts.controlUiEnabled === true),
-      gatewayRuntime,
-      log,
-    }),
-  );
 
   const wizardRunner = opts.wizardRunner ?? runDefaultSetupWizard;
   const { wizardSessions, findRunningWizard, purgeWizardSession } = createWizardSessionTracker();
@@ -601,9 +553,6 @@ export async function startGatewayServer(
       cfg: cfgAtStart,
       bindHost,
       port,
-      controlUiEnabled,
-      controlUiBasePath,
-      controlUiRoot: controlUiRootState,
       openAiChatCompletionsEnabled,
       openAiChatCompletionsConfig,
       openResponsesEnabled,
@@ -978,7 +927,6 @@ export async function startGatewayServer(
           tailscaleMode,
           resetOnExit: tailscaleConfig.resetOnExit ?? false,
           preserveFunnel: tailscaleConfig.preserveFunnel ?? false,
-          controlUiBasePath,
           logTailscale,
           gatewayPluginConfigAtStart,
           pluginRegistry,

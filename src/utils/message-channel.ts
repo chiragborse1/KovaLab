@@ -48,14 +48,14 @@ export function isGatewayCliClient(client?: GatewayClientInfoLike | null): boole
   return normalizeGatewayClientMode(client?.mode) === GATEWAY_CLIENT_MODES.CLI;
 }
 
-export function isOperatorUiClient(client?: GatewayClientInfoLike | null): boolean {
+export function isOperatorGatewayClient(client?: GatewayClientInfoLike | null): boolean {
   const clientId = normalizeGatewayClientName(client?.id);
-  return clientId === GATEWAY_CLIENT_NAMES.CONTROL_UI || clientId === GATEWAY_CLIENT_NAMES.TUI;
+  return clientId === GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT || clientId === GATEWAY_CLIENT_NAMES.TUI;
 }
 
-export function isBrowserOperatorUiClient(client?: GatewayClientInfoLike | null): boolean {
+export function isBrowserOperatorGatewayClient(client?: GatewayClientInfoLike | null): boolean {
   const clientId = normalizeGatewayClientName(client?.id);
-  return clientId === GATEWAY_CLIENT_NAMES.CONTROL_UI;
+  return clientId === GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT;
 }
 
 export function isInternalMessageChannel(raw?: string | null): raw is InternalMessageChannel {
@@ -67,7 +67,7 @@ export function isWebchatClient(client?: GatewayClientInfoLike | null): boolean 
   if (mode === GATEWAY_CLIENT_MODES.WEBCHAT) {
     return true;
   }
-  return normalizeGatewayClientName(client?.id) === GATEWAY_CLIENT_NAMES.WEBCHAT_UI;
+  return normalizeGatewayClientName(client?.id) === GATEWAY_CLIENT_NAMES.LOCAL_CHAT;
 }
 
 export function isMarkdownCapableMessageChannel(raw?: string | null): boolean {

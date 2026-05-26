@@ -4,7 +4,6 @@ import { registerMaintenanceCommands } from "./register.maintenance.js";
 
 const mocks = vi.hoisted(() => ({
   doctorCommand: vi.fn(),
-  controlUiCommand: vi.fn(),
   resetCommand: vi.fn(),
   uninstallCommand: vi.fn(),
   runtime: {
@@ -14,14 +13,10 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-const { doctorCommand, controlUiCommand, resetCommand, uninstallCommand, runtime } = mocks;
+const { doctorCommand, resetCommand, uninstallCommand, runtime } = mocks;
 
 vi.mock("../../commands/doctor.js", () => ({
   doctorCommand: mocks.doctorCommand,
-}));
-
-vi.mock("../../commands/control-ui.js", () => ({
-  controlUiCommand: mocks.controlUiCommand,
 }));
 
 vi.mock("../../commands/reset.js", () => ({
@@ -85,27 +80,6 @@ describe("registerMaintenanceCommands doctor action", () => {
     );
   });
 
-  it("passes noOpen to control-ui command", async () => {
-    controlUiCommand.mockResolvedValue(undefined);
-
-    await runMaintenanceCli(["control-ui", "--no-open"]);
-
-    expect(controlUiCommand).toHaveBeenCalledWith(
-      runtime,
-      expect.objectContaining({
-        noOpen: true,
-      }),
-    );
-  });
-
-  it("does not expose dashboard in help output", () => {
-    const program = new Command();
-    registerMaintenanceCommands(program);
-
-    expect(program.helpInformation()).toContain("control-ui");
-    expect(program.helpInformation()).not.toContain("dashboard");
-  });
-
   it("passes reset options to reset command", async () => {
     resetCommand.mockResolvedValue(undefined);
 
@@ -157,14 +131,5 @@ describe("registerMaintenanceCommands doctor action", () => {
         dryRun: true,
       }),
     );
-  });
-
-  it("exits with code 1 when control-ui fails", async () => {
-    controlUiCommand.mockRejectedValue(new Error("control ui failed"));
-
-    await runMaintenanceCli(["control-ui"]);
-
-    expect(runtime.error).toHaveBeenCalledWith("Error: control ui failed");
-    expect(runtime.exit).toHaveBeenCalledWith(1);
   });
 });

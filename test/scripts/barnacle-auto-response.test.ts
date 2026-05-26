@@ -168,7 +168,7 @@ describe("barnacle-auto-response", () => {
 
   it("warns on broad high-surface PRs instead of auto-closing them as dirty", () => {
     const labels = classifyPullRequestCandidateLabels(pr("Cleanup plugin docs"), [
-      file("ui/src/app.ts"),
+      file("src/tui/gateway-chat.ts"),
       file("src/gateway/server.ts"),
       file("extensions/slack/src/index.ts"),
       file("docs/plugins/community.md"),
@@ -185,7 +185,7 @@ describe("barnacle-auto-response", () => {
     ].join("\n");
 
     const labels = classifyPullRequestCandidateLabels(pr("Fix gateway crash", body), [
-      file("ui/src/app.ts"),
+      file("src/tui/gateway-chat.ts"),
       file("src/gateway/server.ts"),
       file("extensions/slack/src/index.ts"),
       file("docs/plugins/community.md"),
@@ -196,7 +196,7 @@ describe("barnacle-auto-response", () => {
 
   it("does not add candidate labels to maintainer-authored PRs", async () => {
     const { calls, github } = barnacleGithub([
-      file("ui/src/app.ts"),
+      file("src/tui/gateway-chat.ts"),
       file("src/gateway/server.ts"),
       file("extensions/slack/src/index.ts"),
       file("docs/plugins/community.md"),
@@ -220,7 +220,7 @@ describe("barnacle-auto-response", () => {
 
   it("removes stale Barnacle candidate and PR-limit labels from maintainer-authored PRs", async () => {
     const { calls, github } = barnacleGithub([
-      file("ui/src/app.ts"),
+      file("src/tui/gateway-chat.ts"),
       file("src/gateway/server.ts"),
       file("extensions/slack/src/index.ts"),
       file("docs/plugins/community.md"),
@@ -252,7 +252,7 @@ describe("barnacle-auto-response", () => {
 
   it("still adds candidate labels to broad contributor PRs", async () => {
     const { calls, github } = barnacleGithub([
-      file("ui/src/app.ts"),
+      file("src/tui/gateway-chat.ts"),
       file("src/gateway/server.ts"),
       file("extensions/slack/src/index.ts"),
       file("docs/plugins/community.md"),

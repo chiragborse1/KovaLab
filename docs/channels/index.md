@@ -41,7 +41,6 @@ Text is supported everywhere; media and reactions vary by channel.
 - [Tlon](/channels/tlon) — Urbit-based messenger (bundled plugin).
 - [Twitch](/channels/twitch) — Twitch chat via IRC connection (bundled plugin).
 - [Voice Call](/plugins/voice-call) — Telephony via Plivo or Twilio (plugin, installed separately).
-- [WebChat](/web/webchat) — Gateway WebChat UI over WebSocket.
 - [WeChat](/channels/wechat) — Tencent iLink Bot plugin via QR login; private chats only (external plugin).
 - [WhatsApp](/channels/whatsapp) — Most popular; uses Baileys and requires QR pairing.
 - [Zalo](/channels/zalo) — Zalo Bot API; Vietnam's popular messenger (bundled plugin).

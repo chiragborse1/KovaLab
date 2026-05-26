@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
   connectReq,
-  CONTROL_UI_CLIENT,
+  OPERATOR_CLIENT,
   ConnectErrorDetailCodes,
   getFreePort,
   openTailscaleWs,
@@ -80,32 +80,32 @@ export function registerAuthModesSuite(): void {
       ws.close();
     });
 
-    test("returns control ui hint when token is missing", async () => {
+    test("returns operator client hint when token is missing", async () => {
       const ws = await openWs(port, { origin: originForPort(port) });
       const res = await connectReq(ws, {
         skipDefaultAuth: true,
         client: {
-          ...CONTROL_UI_CLIENT,
+          ...OPERATOR_CLIENT,
         },
       });
       expect(res.ok).toBe(false);
-      expect(res.error?.message ?? "").toContain("Control UI settings");
+      expect(res.error?.message ?? "").toContain("client settings");
       ws.close();
     });
 
-    test("rejects control ui without device identity by default", async () => {
+    test("rejects operator client without device identity by default", async () => {
       const ws = await openWs(port, { origin: originForPort(port) });
       const res = await connectReq(ws, {
         token: "secret",
         device: null,
         client: {
-          ...CONTROL_UI_CLIENT,
+          ...OPERATOR_CLIENT,
         },
       });
       expect(res.ok).toBe(false);
       expect(res.error?.message ?? "").toContain("secure context");
       expect((res.error?.details as { code?: string } | undefined)?.code).toBe(
-        ConnectErrorDetailCodes.CONTROL_UI_DEVICE_IDENTITY_REQUIRED,
+        ConnectErrorDetailCodes.OPERATOR_CLIENT_DEVICE_IDENTITY_REQUIRED,
       );
       ws.close();
     });
@@ -145,17 +145,14 @@ export function registerAuthModesSuite(): void {
   describe("tailscale auth", () => {
     let server: Awaited<ReturnType<typeof startGatewayServer>>;
     let port: number;
-    const tailscaleOrigin = "https://gateway.tailnet.ts.net";
 
     beforeAll(async () => {
       testState.gatewayAuth = { mode: "token", token: "secret", allowTailscale: true };
-      testState.gatewayControlUi = { allowedOrigins: [tailscaleOrigin] };
       const { replaceConfigFile } = await import("../config/config.js");
       await replaceConfigFile({
         nextConfig: {
           gateway: {
             auth: testState.gatewayAuth,
-            controlUi: testState.gatewayControlUi,
           },
         },
         afterWrite: { mode: "auto" },
@@ -170,7 +167,6 @@ export function registerAuthModesSuite(): void {
 
     beforeEach(() => {
       testState.gatewayAuth = { mode: "token", token: "secret", allowTailscale: true };
-      testState.gatewayControlUi = { allowedOrigins: [tailscaleOrigin] };
       testTailscaleWhois.value = { login: "peter", name: "Peter" };
     });
 
@@ -186,12 +182,12 @@ export function registerAuthModesSuite(): void {
       ws.close();
     });
 
-    test("skips pairing for tailscale-authenticated control ui with device identity", async () => {
+    test("skips pairing for tailscale-authenticated operator client with device identity", async () => {
       const ws = await openTailscaleWs(port, { origin: tailscaleOrigin });
       const res = await connectReq(ws, {
         skipDefaultAuth: true,
         client: {
-          ...CONTROL_UI_CLIENT,
+          ...OPERATOR_CLIENT,
         },
       });
       expect(res.ok, JSON.stringify(res)).toBe(true);

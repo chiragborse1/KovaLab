@@ -328,14 +328,14 @@ describe("buildInboundUserContextPrefix", () => {
   it("does not treat group chats as direct based on sender id", () => {
     const text = buildInboundUserContextPrefix({
       ChatType: "group",
-      SenderId: "kova-control-ui",
+      SenderId: "kova-operator-client",
       MessageSid: "123",
       ConversationLabel: "some-label",
     } as TemplateContext);
 
     const conversationInfo = parseConversationInfoPayload(text);
     expect(conversationInfo["message_id"]).toBe("123");
-    expect(conversationInfo["sender_id"]).toBe("kova-control-ui");
+    expect(conversationInfo["sender_id"]).toBe("kova-operator-client");
     expect(conversationInfo["conversation_label"]).toBe("some-label");
   });
 

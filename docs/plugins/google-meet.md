@@ -114,7 +114,7 @@ kova googlemeet create --no-join
 `googlemeet create` has two paths:
 
 - API create: used when Google Meet OAuth credentials are configured. This is
-  the most deterministic path and does not depend on browser UI state.
+  the most deterministic path and does not depend on browser surface state.
 - Browser fallback: used when OAuth credentials are absent. Kova uses the
   pinned Chrome node, opens `https://meet.google.com/new`, waits for Google to
   redirect to a real meeting-code URL, then returns that URL. This path requires

@@ -53,7 +53,7 @@ describe("browser-runtime", () => {
     const env = createEnv();
 
     await qaBrowserOpenTab(env, {
-      url: "http://127.0.0.1:43124/control-ui/chat?session=test",
+      url: "http://127.0.0.1:43124/qa/chat?session=test",
       profile: "kova",
     });
 
@@ -66,7 +66,7 @@ describe("browser-runtime", () => {
           profile: "kova",
         },
         body: {
-          url: "http://127.0.0.1:43124/control-ui/chat?session=test",
+          url: "http://127.0.0.1:43124/qa/chat?session=test",
         },
         timeoutMs: 20_000,
       },

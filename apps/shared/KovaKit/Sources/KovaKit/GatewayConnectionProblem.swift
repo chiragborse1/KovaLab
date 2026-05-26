@@ -280,7 +280,7 @@ public enum GatewayConnectionProblemMapper {
                 authError: authError)
         case .pairingRequired:
             return self.pairingProblem(for: authError)
-        case .controlUiDeviceIdentityRequired, .deviceIdentityRequired:
+        case .operatorClientDeviceIdentityRequired, .deviceIdentityRequired:
             return self.problem(
                 kind: .deviceIdentityRequired,
                 owner: .iphone,

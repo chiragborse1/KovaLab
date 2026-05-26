@@ -11,14 +11,14 @@ _A short origin story for the current Kova identity._
 
 ## The short version
 
-Kova is the current name, voice, and visual identity for the gateway. It grew out of earlier project names during a fast-moving rebrand, and the goal of that rebrand was simple: one product name that works cleanly across the CLI, the Control UI, docs, and onboarding.
+Kova is the current name, voice, and visual identity for the terminal agent and Gateway. It grew out of earlier project names during a fast-moving rebrand, and the goal of that rebrand was simple: one product name that works cleanly across the CLI, docs, channels, plugins, and onboarding.
 
 ## What Kova means
 
 Kova is the operator-facing product identity for the whole system:
 
 - the gateway you run
-- the Control UI you open in the browser
+- the terminal chat and CLI commands you use
 - the agent you message through your channels
 - the docs and onboarding flow that explain it
 

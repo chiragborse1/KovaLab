@@ -81,8 +81,8 @@ final class HoverHUDController {
         guard let anchorProvider = self.anchorProvider else { return }
         self.dismiss(reason: "openChat")
         Task { @MainActor in
-            let sessionKey = await WebChatManager.shared.preferredSessionKey()
-            WebChatManager.shared.togglePanel(sessionKey: sessionKey, anchorProvider: anchorProvider)
+            let sessionKey = await LocalChatManager.shared.preferredSessionKey()
+            LocalChatManager.shared.togglePanel(sessionKey: sessionKey, anchorProvider: anchorProvider)
         }
     }
 

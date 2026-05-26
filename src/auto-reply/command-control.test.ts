@@ -300,7 +300,7 @@ describe("resolveCommandAuthorization", () => {
       Provider: "webchat",
       Surface: "webchat",
       OriginatingChannel: "webchat",
-      SenderId: "kova-control-ui",
+      SenderId: "kova-operator-client",
     } as MsgContext;
 
     const auth = resolveCommandAuthorization({

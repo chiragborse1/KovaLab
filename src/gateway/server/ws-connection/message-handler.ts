@@ -50,9 +50,9 @@ import {
 } from "../../../shared/device-bootstrap-profile.js";
 import { roleScopesAllow } from "../../../shared/operator-scope-compat.js";
 import {
-  isBrowserOperatorUiClient,
+  isBrowserOperatorGatewayClient,
   isGatewayCliClient,
-  isOperatorUiClient,
+  isOperatorGatewayClient,
   isWebchatClient,
 } from "../../../utils/message-channel.js";
 import { resolveRuntimeServiceVersion } from "../../../version.js";
@@ -126,10 +126,10 @@ import { resolveConnectAuthDecision, resolveConnectAuthState } from "./auth-cont
 import { formatGatewayAuthFailureMessage } from "./auth-messages.js";
 import {
   evaluateMissingDeviceIdentity,
-  isTrustedProxyControlUiOperatorAuth,
-  resolveControlUiAuthPolicy,
+  isTrustedProxyOperatorClientOperatorAuth,
+  resolveOperatorClientAuthPolicy,
   shouldClearUnboundScopesForMissingDeviceIdentity,
-  shouldSkipControlUiPairing,
+  shouldSkipOperatorClientPairing,
 } from "./connect-policy.js";
 import {
   resolveDeviceSignaturePayloadVersion,
@@ -506,27 +506,24 @@ export function attachGatewayWsMessageHandler(params: {
         connectParams.role = role;
         connectParams.scopes = scopes;
 
-        const isControlUi = isOperatorUiClient(normalizedClient);
-        const isBrowserOperatorUi = isBrowserOperatorUiClient(normalizedClient);
+        const isOperatorClient = isOperatorGatewayClient(normalizedClient);
+        const isBrowserOperatorGateway = isBrowserOperatorGatewayClient(normalizedClient);
         const isWebchat = isWebchatConnect(connectParams);
         const isNativeAppUi =
           normalizedClient.mode === GATEWAY_CLIENT_MODES.UI &&
           (normalizedClient.id === GATEWAY_CLIENT_IDS.MACOS_APP ||
             normalizedClient.id === GATEWAY_CLIENT_IDS.IOS_APP ||
             normalizedClient.id === GATEWAY_CLIENT_IDS.ANDROID_APP);
-        if (enforceOriginCheckForAnyClient || isBrowserOperatorUi || isWebchat) {
-          const hostHeaderOriginFallbackEnabled =
-            configSnapshot.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
+        if (enforceOriginCheckForAnyClient || isBrowserOperatorGateway || isWebchat) {
           const originCheck = checkBrowserOrigin({
             requestHost,
             origin: requestOrigin,
-            allowedOrigins: configSnapshot.gateway?.controlUi?.allowedOrigins,
-            allowHostHeaderOriginFallback: hostHeaderOriginFallbackEnabled,
+            allowedOrigins: undefined,
+            allowHostHeaderOriginFallback: false,
             isLocalClient,
           });
           if (!originCheck.ok) {
-            const errorMessage =
-              "origin not allowed (open the Control UI from the gateway host or allow it in gateway.controlUi.allowedOrigins)";
+            const errorMessage = "origin not allowed for this gateway connection";
             markHandshakeFailure("origin-mismatch", {
               origin: requestOrigin ?? "n/a",
               host: requestHost ?? "n/a",
@@ -534,7 +531,7 @@ export function attachGatewayWsMessageHandler(params: {
             });
             sendHandshakeErrorResponse(ErrorCodes.INVALID_REQUEST, errorMessage, {
               details: {
-                code: ConnectErrorDetailCodes.CONTROL_UI_ORIGIN_NOT_ALLOWED,
+                code: ConnectErrorDetailCodes.OPERATOR_CLIENT_ORIGIN_NOT_ALLOWED,
                 reason: originCheck.reason,
               },
             });
@@ -546,11 +543,6 @@ export function attachGatewayWsMessageHandler(params: {
             logWsControl.warn(
               `security warning: websocket origin accepted via Host-header fallback conn=${connId} count=${originCheckMetrics.hostHeaderFallbackAccepted} host=${requestHost ?? "n/a"} origin=${requestOrigin ?? "n/a"}`,
             );
-            if (hostHeaderOriginFallbackEnabled) {
-              logGateway.warn(
-                "security metric: gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback accepted a websocket connect request",
-              );
-            }
           }
         }
 
@@ -560,12 +552,11 @@ export function attachGatewayWsMessageHandler(params: {
         const hasTokenAuth = Boolean(connectParams.auth?.token);
         const hasPasswordAuth = Boolean(connectParams.auth?.password);
         const hasSharedAuth = hasTokenAuth || hasPasswordAuth;
-        const controlUiAuthPolicy = resolveControlUiAuthPolicy({
-          isControlUi,
-          controlUiConfig: configSnapshot.gateway?.controlUi,
+        const operatorClientAuthPolicy = resolveOperatorClientAuthPolicy({
+          isOperatorClient,
           deviceRaw,
         });
-        const device = controlUiAuthPolicy.device;
+        const device = operatorClientAuthPolicy.device;
 
         let {
           authResult,
@@ -650,23 +641,23 @@ export function attachGatewayWsMessageHandler(params: {
           authMethod,
         });
         const handleMissingDeviceIdentity = (): boolean => {
-          const trustedProxyAuthOk = isTrustedProxyControlUiOperatorAuth({
-            isControlUi,
+          const trustedProxyAuthOk = isTrustedProxyOperatorClientOperatorAuth({
+            isOperatorClient,
             role,
             authMode: resolvedAuth.mode,
             authOk,
             authMethod,
           });
-          const preserveInsecureLocalControlUiScopes =
-            isControlUi &&
-            controlUiAuthPolicy.allowInsecureAuthConfigured &&
+          const preserveInsecureLocalOperatorClientScopes =
+            isOperatorClient &&
+            operatorClientAuthPolicy.allowInsecureAuthConfigured &&
             isLocalClient &&
             (authMethod === "token" || authMethod === "password");
           const decision = evaluateMissingDeviceIdentity({
             hasDeviceIdentity: Boolean(device),
             role,
-            isControlUi,
-            controlUiAuthPolicy,
+            isOperatorClient,
+            operatorClientAuthPolicy,
             trustedProxyAuthOk,
             localBackendSelfPairingOk: skipLocalBackendSelfPairing,
             sharedAuthOk,
@@ -683,8 +674,8 @@ export function attachGatewayWsMessageHandler(params: {
             !skipLocalBackendSelfPairing &&
             shouldClearUnboundScopesForMissingDeviceIdentity({
               decision,
-              controlUiAuthPolicy,
-              preserveInsecureLocalControlUiScopes,
+              operatorClientAuthPolicy,
+              preserveInsecureLocalOperatorClientScopes,
               authMethod,
               trustedProxyAuthOk,
             })
@@ -695,14 +686,14 @@ export function attachGatewayWsMessageHandler(params: {
             return true;
           }
 
-          if (decision.kind === "reject-control-ui-insecure-auth") {
+          if (decision.kind === "reject-operator-client-insecure-auth") {
             const errorMessage =
-              "control ui requires device identity (use HTTPS or localhost secure context)";
-            markHandshakeFailure("control-ui-insecure-auth", {
-              insecureAuthConfigured: controlUiAuthPolicy.allowInsecureAuthConfigured,
+              "operator client requires device identity (use HTTPS or localhost secure context)";
+            markHandshakeFailure("operator-client-insecure-auth", {
+              insecureAuthConfigured: operatorClientAuthPolicy.allowInsecureAuthConfigured,
             });
             sendHandshakeErrorResponse(ErrorCodes.INVALID_REQUEST, errorMessage, {
-              details: { code: ConnectErrorDetailCodes.CONTROL_UI_DEVICE_IDENTITY_REQUIRED },
+              details: { code: ConnectErrorDetailCodes.OPERATOR_CLIENT_DEVICE_IDENTITY_REQUIRED },
             });
             close(1008, errorMessage);
             return false;
@@ -864,15 +855,15 @@ export function attachGatewayWsMessageHandler(params: {
         let boundBootstrapProfile: DeviceBootstrapProfile | null = null;
         let handoffBootstrapProfile: DeviceBootstrapProfile | null = null;
 
-        const trustedProxyAuthOk = isTrustedProxyControlUiOperatorAuth({
-          isControlUi,
+        const trustedProxyAuthOk = isTrustedProxyOperatorClientOperatorAuth({
+          isOperatorClient,
           role,
           authMode: resolvedAuth.mode,
           authOk,
           authMethod,
         });
-        const skipControlUiPairingForDevice = shouldSkipControlUiPairing(
-          controlUiAuthPolicy,
+        const skipOperatorClientPairingForDevice = shouldSkipOperatorClientPairing(
+          operatorClientAuthPolicy,
           role,
           trustedProxyAuthOk,
           resolvedAuth.mode,
@@ -958,8 +949,8 @@ export function attachGatewayWsMessageHandler(params: {
               scopes.length === 0 &&
               !existingPairedDevice &&
               bootstrapTokenCandidate &&
-              !isControlUi &&
-              !isBrowserOperatorUi &&
+              !isOperatorClient &&
+              !isBrowserOperatorGateway &&
               !isWebchat &&
               connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE
             ) {
@@ -972,7 +963,7 @@ export function attachGatewayWsMessageHandler(params: {
             const allowSilentLocalPairing = shouldAllowSilentLocalPairing({
               locality: pairingLocality,
               hasBrowserOriginHeader,
-              isControlUi,
+              isOperatorClient,
               isWebchat,
               isNativeAppUi,
               reason,
@@ -984,7 +975,7 @@ export function attachGatewayWsMessageHandler(params: {
                 reason,
                 scopes,
                 hasBrowserOriginHeader,
-                isControlUi,
+                isOperatorClient,
                 isWebchat,
                 reportedClientIpSource,
                 reportedClientIp,
@@ -997,8 +988,8 @@ export function attachGatewayWsMessageHandler(params: {
               role === "node" &&
               scopes.length === 0 &&
               !existingPairedDevice &&
-              !isControlUi &&
-              !isBrowserOperatorUi &&
+              !isOperatorClient &&
+              !isBrowserOperatorGateway &&
               !isWebchat &&
               connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE &&
               boundBootstrapProfile !== null &&
@@ -1146,7 +1137,7 @@ export function attachGatewayWsMessageHandler(params: {
           const paired = await getPairedDevice(device.id);
           const isPaired = paired?.publicKey === devicePublicKey;
           if (!isPaired) {
-            if (!(skipLocalBackendSelfPairing || skipControlUiPairingForDevice)) {
+            if (!(skipLocalBackendSelfPairing || skipOperatorClientPairingForDevice)) {
               const ok = await requirePairing("not-paired", paired);
               if (!ok) {
                 return;
@@ -1168,7 +1159,7 @@ export function attachGatewayWsMessageHandler(params: {
               const allowSilentMetadataUpgrade = shouldAllowSilentLocalPairing({
                 locality: pairingLocality,
                 hasBrowserOriginHeader,
-                isControlUi,
+                isOperatorClient,
                 isWebchat,
                 isNativeAppUi,
                 reason: "metadata-upgrade",
@@ -1239,8 +1230,8 @@ export function attachGatewayWsMessageHandler(params: {
               bootstrapTokenCandidate &&
               role === "node" &&
               scopes.length === 0 &&
-              !isControlUi &&
-              !isBrowserOperatorUi &&
+              !isOperatorClient &&
+              !isBrowserOperatorGateway &&
               !isWebchat &&
               connectParams.client.mode === GATEWAY_CLIENT_MODES.NODE &&
               pairedRoles.includes("operator") &&

@@ -389,7 +389,7 @@ function buildTimedWatchCommand(pidFilePath, timeFilePath, isolatedHomeDir, port
   const shellSource = [
     'echo "$$" > "$KOVA_WATCH_PID_FILE"',
     'mkdir -p "$KOVA_HOME/.kova"',
-    `printf '%s\n' '{"gateway":{"controlUi":{"enabled":false}},"plugins":{"enabled":false}}' > "$KOVA_HOME/.kova/kova.json"`,
+    `printf '%s\n' '{"gateway":{},"plugins":{"enabled":false}}' > "$KOVA_HOME/.kova/kova.json"`,
     `exec node scripts/watch-node.mjs gateway --force --allow-unconfigured --port ${String(port)} --token watch-regression-token`,
   ].join("\n");
   const env = {

@@ -68,7 +68,6 @@ export type GatewayTestHoistedState = {
     cronEnabled: boolean | undefined;
     gatewayBind: "auto" | "lan" | "tailnet" | "loopback" | undefined;
     gatewayAuth: Record<string, unknown> | undefined;
-    gatewayControlUi: Record<string, unknown> | undefined;
     hooksConfig: HooksConfig | undefined;
     canvasHostPort: number | undefined;
     legacyIssues: Array<{ path: string; message: string }>;
@@ -128,7 +127,6 @@ const gatewayTestHoisted = vi.hoisted(() => {
       cronEnabled: false,
       gatewayBind: undefined,
       gatewayAuth: undefined,
-      gatewayControlUi: undefined,
       hooksConfig: undefined,
       canvasHostPort: undefined,
       legacyIssues: [],

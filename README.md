@@ -16,9 +16,9 @@
 </p>
 
 Kova is a local-first agent that starts in the terminal and grows with your workflow.
-Run `kova`, talk to your agent, connect tools when you need them, and keep the browser UI as an optional operator surface instead of the main experience.
+Run `kova`, talk to your agent, connect tools when you need them, and use the Gateway only when you need always-on channels or remote operation.
 
-[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Security](https://docs.neuralstudio.in/gateway/security) · [Discord](https://discord.gg/uT9ETzpaHT)
+[Website](https://www.neuralstudio.in/) · [Docs](https://docs.neuralstudio.in/) · [Getting Started](https://docs.neuralstudio.in/start/getting-started) · [Support](SUPPORT.md) · [Security](SECURITY.md) · [Discord](https://discord.gg/uT9ETzpaHT)
 
 ## Install
 
@@ -77,7 +77,7 @@ install -> onboard -> kova
 ```
 
 The Gateway is infrastructure. Use it when you want always-on delivery, chat channels, cron, or remote nodes.
-The browser Control UI is an advanced operator surface, not the primary chat surface.
+The browser surface has been removed; terminal chat and CLI commands are the operator surface.
 
 ## Security
 
@@ -169,7 +169,6 @@ Build artifacts:
 
 ```bash
 pnpm build
-pnpm ui:build
 ```
 
 `pnpm kova ...` runs from the source checkout. `pnpm build` creates `dist/` for packaged Node execution and release validation.

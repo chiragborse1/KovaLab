@@ -11,13 +11,9 @@ const CORE_TEST_CONFIGS = new Set([
 
 const CORE_PROD_CONFIGS = new Set(["tsconfig.core.json"]);
 const TSGO_SPARSE_SKIP_ENV_KEY = "KOVA_TSGO_SPARSE_SKIP";
-const CORE_SPARSE_ROOTS = ["packages", "ui/src"];
+const CORE_SPARSE_ROOTS = ["packages"];
 
 const CORE_PROD_REQUIRED_PATHS = [
-  {
-    path: "apps/shared/KovaKit/Sources/KovaKit/Resources/tool-display.json",
-    whenPresent: "ui/src/ui/tool-display.ts",
-  },
   {
     path: "scripts/lib/bundled-runtime-sidecar-paths.json",
     whenPresent: "src/plugins/runtime-sidecar-paths.ts",
@@ -36,13 +32,7 @@ const CORE_PROD_REQUIRED_PATHS = [
   },
 ];
 
-const CORE_TEST_REQUIRED_PATHS = [
-  "packages/plugin-package-contract/src/index.ts",
-  "ui/src/i18n/lib/registry.ts",
-  "ui/src/i18n/lib/types.ts",
-  "ui/src/ui/app-settings.ts",
-  "ui/src/ui/gateway.ts",
-];
+const CORE_TEST_REQUIRED_PATHS = ["packages/plugin-package-contract/src/index.ts"];
 
 export function shouldSkipSparseTsgoGuardError(env = process.env) {
   const value = env[TSGO_SPARSE_SKIP_ENV_KEY]?.trim().toLowerCase();

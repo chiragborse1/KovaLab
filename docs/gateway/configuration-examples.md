@@ -119,7 +119,6 @@ Save to `~/.kova/kova.json` and you can DM the bot from that number.
         slack: "collect",
         signal: "collect",
         imessage: "collect",
-        webchat: "collect",
       },
     },
   },
@@ -334,7 +333,6 @@ Save to `~/.kova/kova.json` and you can DM the bot from that number.
         slack: ["U123"],
         signal: ["+15555550123"],
         imessage: ["user@example.com"],
-        webchat: ["session:demo"],
       },
     },
   },
@@ -425,7 +423,6 @@ Save to `~/.kova/kova.json` and you can DM the bot from that number.
     mode: "local",
     port: 18789,
     bind: "loopback",
-    controlUi: { enabled: true, basePath: "/kova" },
     auth: {
       mode: "token",
       token: "gateway-token",

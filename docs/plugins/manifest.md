@@ -550,7 +550,7 @@ paths:
 
 Non-bundled plugins that declare `channels[]` should also declare matching
 `channelConfigs` entries. Without them, Kova can still load the plugin, but
-cold-path config schema, setup, and Control UI surfaces cannot know the
+cold-path config schema, setup, and Gateway clients surfaces cannot know the
 channel-owned option shape until plugin runtime executes.
 
 `channelConfigs.<channel-id>.commands.nativeCommandsAutoEnabled` and

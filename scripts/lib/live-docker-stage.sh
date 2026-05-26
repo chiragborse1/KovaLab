@@ -15,8 +15,6 @@ kova_live_stage_source_tree() {
     --exclude=.git \
     --exclude=node_modules \
     --exclude=dist \
-    --exclude=ui/dist \
-    --exclude=ui/node_modules \
     --exclude=.pnpm-store \
     --exclude=.tmp \
     --exclude=.tmp-precommit-venv \

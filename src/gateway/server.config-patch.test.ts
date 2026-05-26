@@ -30,7 +30,7 @@ function requireWs(): Awaited<ReturnType<typeof startServerWithClient>>["ws"] {
 
 beforeAll(async () => {
   sharedTempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-config-"));
-  startedServer = await startServerWithClient(undefined, { controlUiEnabled: true });
+  startedServer = await startServerWithClient(undefined, { operatorClientEnabled: true });
   await connectOk(requireWs());
 });
 

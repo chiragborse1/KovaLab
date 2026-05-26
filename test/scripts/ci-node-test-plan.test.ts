@@ -51,11 +51,6 @@ describe("scripts/lib/ci-node-test-plan.mjs", () => {
         requiresDist: false,
         shardName: "core-unit-src-security",
       },
-      {
-        configs: ["test/vitest/vitest.unit-ui.config.ts"],
-        requiresDist: false,
-        shardName: "core-unit-ui",
-      },
     ]);
   });
 
@@ -119,12 +114,11 @@ describe("scripts/lib/ci-node-test-plan.mjs", () => {
           "test/vitest/vitest.media.config.ts",
           "test/vitest/vitest.media-understanding.config.ts",
           "test/vitest/vitest.tui.config.ts",
-          "test/vitest/vitest.ui.config.ts",
           "test/vitest/vitest.wizard.config.ts",
         ],
         requiresDist: false,
         runner: undefined,
-        shardName: "core-runtime-media-ui",
+        shardName: "core-runtime-media",
       },
       {
         configs: [

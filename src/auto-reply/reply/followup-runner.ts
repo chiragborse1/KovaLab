@@ -224,7 +224,7 @@ export function createFollowupRunner(params: {
     });
     try {
       const runId = crypto.randomUUID();
-      const shouldSurfaceToControlUi = isInternalMessageChannel(
+      const shouldSurfaceToOperatorClient = isInternalMessageChannel(
         resolveOriginMessageProvider({
           originatingChannel: queued.originatingChannel,
           provider: run.messageProvider,
@@ -234,7 +234,7 @@ export function createFollowupRunner(params: {
         registerAgentRunContext(runId, {
           sessionKey: run.sessionKey,
           verboseLevel: run.verboseLevel,
-          isControlUiVisible: shouldSurfaceToControlUi,
+          isOperatorClientVisible: shouldSurfaceToOperatorClient,
         });
       }
       let autoCompactionCount = 0;

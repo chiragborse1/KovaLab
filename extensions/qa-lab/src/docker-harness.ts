@@ -103,12 +103,6 @@ ${params.bindUiDist ? `    volumes:\n      - ${qaLabUiMount}:${QA_LAB_UI_OVERLAY
       - "127.0.0.1"
       - --advertise-port
       - "${params.qaLabPort}"
-      - --control-ui-url
-      - "http://127.0.0.1:${params.gatewayPort}/"
-      - --control-ui-proxy-target
-      - "http://kova-qa-gateway:18789/"
-      - --control-ui-token
-      - "${params.gatewayToken}"
 ${params.bindUiDist ? `      - --ui-dist-dir\n      - "${QA_LAB_UI_OVERLAY_DIR}"\n` : ""}      - --auto-kickoff-target
       - direct
       - --send-kickoff-on-start
@@ -203,9 +197,7 @@ Suggested flow:
    - \`docker compose -f docker-compose.qa.yml up${params.usePrebuiltImage ? "" : " --build"} -d\`
 3. Open the QA dashboard:
    - \`${params.includeQaLabUi ? `http://127.0.0.1:${params.qaLabPort}` : "not published in this scaffold"}\`
-4. The single QA site embeds both panes:
-   - left: Control UI
-   - right: Slack-ish QA lab
+4. The QA site shows the Slack-ish QA lab and runner status.
 5. The repo-backed kickoff task auto-injects on startup.
 
 Fast UI refresh:
@@ -219,10 +211,8 @@ Fast UI refresh:
 Gateway:
 
 - health: \`http://127.0.0.1:${params.gatewayPort}/healthz\`
-- Control UI: \`http://127.0.0.1:${params.gatewayPort}/\`
 - Mock OpenAI: internal \`http://qa-mock-openai:44080/v1\`
 
-This scaffold uses localhost Control UI insecure-auth compatibility for QA only.
 The gateway runs with in-process restarts inside Docker so restart actions do not
 kill the container by detaching a replacement child.
 `;
@@ -263,7 +253,6 @@ export async function writeQaDockerHarnessFiles(params: {
     gatewayToken,
     providerBaseUrl,
     workspaceDir: "/tmp/kova/workspace",
-    controlUiRoot: "/app/dist/control-ui",
     transportPluginIds: QA_CHANNEL_REQUIRED_PLUGIN_IDS,
     transportConfig: createQaChannelGatewayConfig({
       baseUrl: qaBusBaseUrl,

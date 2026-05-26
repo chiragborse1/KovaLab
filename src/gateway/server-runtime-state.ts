@@ -16,7 +16,6 @@ import type { RuntimeEnv } from "../runtime.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import type { ChatAbortControllerEntry } from "./chat-abort.js";
-import type { ControlUiRootState } from "./control-ui.js";
 import type { HooksConfigResolved } from "./hooks.js";
 import type { AuthorizedGatewayHttpRequest } from "./http-auth-utils.js";
 import { isLoopbackHost, resolveGatewayListenHosts } from "./net.js";
@@ -57,9 +56,6 @@ export async function createGatewayRuntimeState(params: {
   cfg: import("../config/config.js").KovaConfig;
   bindHost: string;
   port: number;
-  controlUiEnabled: boolean;
-  controlUiBasePath: string;
-  controlUiRoot?: ControlUiRootState;
   openAiChatCompletionsEnabled: boolean;
   openAiChatCompletionsConfig?: import("../config/types.gateway.js").GatewayHttpChatCompletionsConfig;
   openResponsesEnabled: boolean;
@@ -201,12 +197,6 @@ export async function createGatewayRuntimeState(params: {
           "Ensure authentication is configured before exposing to public networks.",
       );
     }
-    if (params.cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true) {
-      params.log.warn(
-        "⚠️  gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true is enabled. " +
-          "Host-header origin fallback weakens origin checks and should only be used as break-glass.",
-      );
-    }
     // Create WebSocketServer first (with noServer: true) so we can attach upgrade handlers
     // before HTTP servers start listening. This prevents a race condition where connections
     // arrive before the upgrade handler is attached, which causes silent 1006 errors.
@@ -222,9 +212,6 @@ export async function createGatewayRuntimeState(params: {
       const httpServer = createGatewayHttpServer({
         canvasHost,
         clients,
-        controlUiEnabled: params.controlUiEnabled,
-        controlUiBasePath: params.controlUiBasePath,
-        controlUiRoot: params.controlUiRoot,
         openAiChatCompletionsEnabled: params.openAiChatCompletionsEnabled,
         openAiChatCompletionsConfig: params.openAiChatCompletionsConfig,
         openResponsesEnabled: params.openResponsesEnabled,

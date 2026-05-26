@@ -70,13 +70,13 @@ describe("resolveTsdownBuildInvocation", () => {
     const rootDir = createTempDir("kova-tsdown-build-");
     const distDir = path.join(rootDir, "dist");
     const distRuntimeDir = path.join(rootDir, "dist-runtime");
-    await fsPromises.mkdir(path.join(distDir, "control-ui"), { recursive: true });
+    await fsPromises.mkdir(path.join(distDir, "custom-asset"), { recursive: true });
     await fsPromises.mkdir(distRuntimeDir, { recursive: true });
     await fsPromises.writeFile(path.join(distDir, "delegate-BPjCe4gC.js"), "old delegate\n");
     await fsPromises.writeFile(path.join(distDir, "compact.runtime-2DiEmVcA.js"), "old runtime\n");
     await fsPromises.writeFile(path.join(distDir, "compact.runtime.js"), "stable alias\n");
     await fsPromises.writeFile(path.join(distDir, "entry.js"), "entry\n");
-    await fsPromises.writeFile(path.join(distDir, "control-ui", "index.html"), "asset\n");
+    await fsPromises.writeFile(path.join(distDir, "custom-asset", "index.html"), "asset\n");
     await fsPromises.writeFile(
       path.join(distRuntimeDir, "heartbeat-runner.runtime-fspOEj_1.js"),
       "old runtime\n",
@@ -92,7 +92,7 @@ describe("resolveTsdownBuildInvocation", () => {
       "entry\n",
     );
     await expect(
-      fsPromises.readFile(path.join(distDir, "control-ui", "index.html"), "utf8"),
+      fsPromises.readFile(path.join(distDir, "custom-asset", "index.html"), "utf8"),
     ).resolves.toBe("asset\n");
     await expect(
       fsPromises.readFile(path.join(distRuntimeDir, "heartbeat-runner.runtime.js"), "utf8"),

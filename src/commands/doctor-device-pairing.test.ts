@@ -51,9 +51,9 @@ describe("noteDevicePairingHealth", () => {
             publicKey,
             role: "operator",
             scopes: ["operator.read"],
-            clientId: "control-ui",
+            clientId: "operator-client",
             clientMode: "webchat",
-            displayName: "Dashboard",
+            displayName: "Operator Client",
           });
           await approveDevicePairing(initial.request.requestId, {
             callerScopes: ["operator.read"],
@@ -84,9 +84,9 @@ describe("noteDevicePairingHealth", () => {
         publicKey,
         role: "operator",
         scopes: ["operator.admin"],
-        clientId: "control-ui",
+        clientId: "operator-client",
         clientMode: "webchat",
-        displayName: "Dashboard",
+        displayName: "Operator Client",
       });
 
       await noteDevicePairingHealth({
@@ -180,9 +180,9 @@ describe("noteDevicePairingHealth", () => {
           role: "operator",
           roles: ["operator"],
           scopes: ["operator.admin"],
-          clientId: "control-ui",
+          clientId: "operator-client",
           clientMode: "webchat",
-          displayName: "Dashboard",
+          displayName: "Operator Client",
           ts: 1,
           isRepair: false,
         },
@@ -214,7 +214,7 @@ describe("noteDevicePairingHealth", () => {
           role: "operator",
           roles: ["operator"],
           scopes: ["operator.admin"],
-          clientId: "control-ui\tclient",
+          clientId: "operator-client\tclient",
           clientMode: "webchat",
           displayName: "\u001b[2Kbad\nname",
           ts: 1,
@@ -232,7 +232,7 @@ describe("noteDevicePairingHealth", () => {
     const message = String(noteMock.mock.calls[0]?.[0] ?? "");
     expect(message).toContain("bad\\nname");
     expect(message).not.toContain("\u001b");
-    expect(message).not.toContain("control-ui\tclient");
+    expect(message).not.toContain("operator-client\tclient");
   });
 
   it("quotes untrusted device pairing fields in suggested commands", async () => {
@@ -245,9 +245,9 @@ describe("noteDevicePairingHealth", () => {
           role: "operator",
           roles: ["operator"],
           scopes: ["operator.read"],
-          clientId: "control-ui",
+          clientId: "operator-client",
           clientMode: "webchat",
-          displayName: "Dashboard",
+          displayName: "Operator Client",
           ts: 1,
           isRepair: true,
         },
@@ -256,8 +256,8 @@ describe("noteDevicePairingHealth", () => {
         {
           deviceId: "device; echo pwn",
           publicKey: "paired-pubkey",
-          displayName: "Dashboard",
-          clientId: "control-ui",
+          displayName: "Operator Client",
+          clientId: "operator-client",
           clientMode: "webchat",
           role: "operator; touch /tmp/pwn",
           roles: ["operator; touch /tmp/pwn"],

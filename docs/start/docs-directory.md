@@ -29,14 +29,12 @@ For a complete map of the docs, see [Docs hubs](/start/hubs).
 - [Gateway runbook](/gateway)
 - [Nodes (iOS and Android)](/nodes)
 - [TUI](/web/tui)
-- [Legacy web surfaces](/web)
+- [Remote access](/web)
 - [Discovery and transports](/gateway/discovery)
 - [Remote access](/gateway/remote)
 
 ## Providers and UX
 
-- [WebChat](/web/webchat)
-- [Control UI (legacy browser)](/web/control-ui)
 - [Telegram](/channels/telegram)
 - [Discord](/channels/discord)
 - [Mattermost](/channels/mattermost)

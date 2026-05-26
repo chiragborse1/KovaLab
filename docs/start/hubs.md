@@ -77,7 +77,6 @@ Use these hubs to discover every page, including deep dives and reference docs t
 - [QQ Bot](/channels/qqbot)
 - [iMessage (legacy)](/channels/imessage)
 - [Location parsing](/channels/location)
-- [WebChat](/web/webchat)
 - [Webhooks](/automation/cron-jobs#webhooks)
 - [Gmail Pub/Sub](/automation/cron-jobs#gmail-pubsub-integration)
 
@@ -93,7 +92,6 @@ Use these hubs to discover every page, including deep dives and reference docs t
 - [Doctor](/gateway/doctor)
 - [Logging](/gateway/logging)
 - [Sandboxing](/gateway/sandboxing)
-- [Control UI (legacy browser)](/web/control-ui)
 - [Remote access](/gateway/remote)
 - [Remote gateway README](/gateway/remote-gateway-readme)
 - [Tailscale](/gateway/tailscale)
@@ -145,7 +143,6 @@ Use these hubs to discover every page, including deep dives and reference docs t
 - [macOS menu bar](/platforms/mac/menu-bar)
 - [macOS voice wake](/platforms/mac/voicewake)
 - [macOS voice overlay](/platforms/mac/voice-overlay)
-- [macOS WebChat](/platforms/mac/webchat)
 - [macOS Canvas](/platforms/mac/canvas)
 - [macOS child process](/platforms/mac/child-process)
 - [macOS health](/platforms/mac/health)

@@ -91,7 +91,6 @@ const entries = [
     value: (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").trim(),
   },
   { path: "models.providers.openai.models", value: [] },
-  { path: "gateway.controlUi.enabled", value: false },
   { path: "gateway.mode", value: "local" },
   { path: "gateway.bind", value: "lan" },
   { path: "gateway.auth.mode", value: "token" },

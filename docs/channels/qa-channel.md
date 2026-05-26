@@ -87,7 +87,7 @@ pnpm kova qa suite
 ```
 
 That launches the private QA debugger at a local URL, separate from the
-shipped Control UI bundle.
+packaged terminal-first runtime.
 
 ## Scope
 

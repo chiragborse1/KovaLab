@@ -470,7 +470,7 @@ describe("gateway server sessions", () => {
     bundleMcpRuntimeMocks.disposeSessionMcpRuntime.mockResolvedValue(undefined);
   });
 
-  test("sessions.create stores dashboard session model and parent linkage, and creates a transcript", async () => {
+  test("sessions.create stores local session model and parent linkage, and creates a transcript", async () => {
     const { dir, storePath } = await createSessionStoreDir();
     piSdkMock.enabled = true;
     piSdkMock.models = [{ id: "gpt-test-a", name: "A", provider: "openai" }];
@@ -494,14 +494,14 @@ describe("gateway server sessions", () => {
       };
     }>("sessions.create", {
       agentId: "ops",
-      label: "Dashboard Chat",
+      label: "Local Chat",
       model: "openai/gpt-test-a",
       parentSessionKey: "main",
     });
 
     expect(created.ok).toBe(true);
-    expect(created.payload?.key).toMatch(/^agent:ops:dashboard:/);
-    expect(created.payload?.entry?.label).toBe("Dashboard Chat");
+    expect(created.payload?.key).toMatch(/^agent:ops:local:/);
+    expect(created.payload?.entry?.label).toBe("Local Chat");
     expect(created.payload?.entry?.providerOverride).toBe("openai");
     expect(created.payload?.entry?.modelOverride).toBe("gpt-test-a");
     expect(created.payload?.entry?.parentSessionKey).toBe("agent:main:main");
@@ -524,7 +524,7 @@ describe("gateway server sessions", () => {
     const key = created.payload?.key as string;
     expect(rawStore[key]).toMatchObject({
       sessionId: created.payload?.sessionId,
-      label: "Dashboard Chat",
+      label: "Local Chat",
       providerOverride: "openai",
       modelOverride: "gpt-test-a",
       parentSessionKey: "agent:main:main",
@@ -540,10 +540,10 @@ describe("gateway server sessions", () => {
     });
   });
 
-  test("sessions.create accepts an explicit key for persistent dashboard sessions", async () => {
+  test("sessions.create accepts an explicit key for persistent local sessions", async () => {
     await createSessionStoreDir();
 
-    const key = "agent:ops-agent:dashboard:direct:subagent-orchestrator";
+    const key = "agent:ops-agent:local:direct:subagent-orchestrator";
     const created = await directSessionReq<{
       key?: string;
       sessionId?: string;
@@ -552,12 +552,12 @@ describe("gateway server sessions", () => {
       };
     }>("sessions.create", {
       key,
-      label: "Dashboard Orchestrator",
+      label: "Local Orchestrator",
     });
 
     expect(created.ok).toBe(true);
     expect(created.payload?.key).toBe(key);
-    expect(created.payload?.entry?.label).toBe("Dashboard Orchestrator");
+    expect(created.payload?.entry?.label).toBe("Local Orchestrator");
     expect(created.payload?.sessionId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
@@ -665,12 +665,12 @@ describe("gateway server sessions", () => {
       messageSeq?: number;
     }>(ws, "sessions.create", {
       agentId: "ops",
-      label: "Dashboard Chat",
+      label: "Local Chat",
       task: "hello from create",
     });
 
     expect(created.ok).toBe(true);
-    expect(created.payload?.key).toMatch(/^agent:ops:dashboard:/);
+    expect(created.payload?.key).toMatch(/^agent:ops:local:/);
     expect(created.payload?.sessionId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
@@ -727,7 +727,7 @@ describe("gateway server sessions", () => {
           sessionId: "sess-parent",
           updatedAt: Date.now(),
         },
-        "dashboard:child": {
+        "local:child": {
           sessionId: "sess-child",
           updatedAt: Date.now() - 1_000,
           modelProvider: "anthropic",
@@ -761,9 +761,9 @@ describe("gateway server sessions", () => {
     expect(listed.ok).toBe(true);
     const parent = listed.payload?.sessions.find((session) => session.key === "agent:main:main");
     const child = listed.payload?.sessions.find(
-      (session) => session.key === "agent:main:dashboard:child",
+      (session) => session.key === "agent:main:local:child",
     );
-    expect(parent?.childSessions).toEqual(["agent:main:dashboard:child"]);
+    expect(parent?.childSessions).toEqual(["agent:main:local:child"]);
     expect(child?.parentSessionKey).toBe("agent:main:main");
     expect(child?.totalTokens).toBe(3_000);
     expect(child?.totalTokensFresh).toBe(true);
@@ -3506,7 +3506,7 @@ describe("gateway server sessions", () => {
     await new Promise<void>((resolve) => ws.once("open", resolve));
     await connectOk(ws, {
       client: {
-        id: GATEWAY_CLIENT_IDS.WEBCHAT_UI,
+        id: GATEWAY_CLIENT_IDS.LOCAL_CHAT,
         version: "1.0.0",
         platform: "test",
         mode: GATEWAY_CLIENT_MODES.UI,
@@ -3613,7 +3613,7 @@ describe("gateway server sessions", () => {
     await new Promise<void>((resolve) => ws.once("open", resolve));
     await connectOk(ws, {
       client: {
-        id: GATEWAY_CLIENT_IDS.WEBCHAT_UI,
+        id: GATEWAY_CLIENT_IDS.LOCAL_CHAT,
         version: "1.0.0",
         platform: "test",
         mode: GATEWAY_CLIENT_MODES.UI,
@@ -3744,8 +3744,8 @@ describe("gateway server sessions", () => {
     ws.close();
   });
 
-  test("control-ui client can delete sessions even in webchat mode", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-control-ui-delete-"));
+  test("operator-client client can delete sessions even in webchat mode", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kova-sessions-operator-client-delete-"));
     const storePath = path.join(dir, "sessions.json");
     testState.sessionStorePath = storePath;
 
@@ -3769,7 +3769,7 @@ describe("gateway server sessions", () => {
     await new Promise<void>((resolve) => ws.once("open", resolve));
     await connectOk(ws, {
       client: {
-        id: GATEWAY_CLIENT_IDS.CONTROL_UI,
+        id: GATEWAY_CLIENT_IDS.OPERATOR_CLIENT,
         version: "1.0.0",
         platform: "test",
         mode: GATEWAY_CLIENT_MODES.WEBCHAT,

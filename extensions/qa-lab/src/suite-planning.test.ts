@@ -11,7 +11,6 @@ import {
   normalizeQaSuiteConcurrency,
   resolveQaSuiteWorkerStartStaggerMs,
   resolveQaSuiteOutputDir,
-  scenarioRequiresControlUi,
   selectQaSuiteScenarios,
 } from "./suite-planning.js";
 import { makeQaSuiteTestScenario } from "./suite-test-helpers.js";
@@ -257,17 +256,6 @@ describe("qa suite planning helpers", () => {
     expect(collectQaSuiteGatewayRuntimeOptions(scenarios)).toEqual({
       forwardHostHome: true,
     });
-  });
-
-  it("enables Control UI only for Control UI scenario workers", () => {
-    expect(
-      scenarioRequiresControlUi(
-        makeQaSuiteTestScenario("control-ui", {
-          surface: "control-ui",
-        }),
-      ),
-    ).toBe(true);
-    expect(scenarioRequiresControlUi(makeQaSuiteTestScenario("plain"))).toBe(false);
   });
 
   it("filters provider-specific scenarios from an implicit live lane", () => {

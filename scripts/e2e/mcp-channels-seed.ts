@@ -16,12 +16,7 @@ async function main() {
 
   const seededConfig = applyDockerOpenAiProviderConfig(
     {
-      gateway: {
-        controlUi: {
-          allowInsecureAuth: true,
-          enabled: false,
-        },
-      },
+      gateway: {},
       agents: {
         defaults: {
           heartbeat: {

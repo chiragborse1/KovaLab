@@ -327,7 +327,6 @@ describeLive("gateway live (cli backend)", () => {
       const server = await startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       });
       logCliBackendLiveStep("server-started");
       const client = await connectTestGatewayClient({

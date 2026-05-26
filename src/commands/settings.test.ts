@@ -4,10 +4,10 @@ import type { KovaConfig } from "../config/types.kova.js";
 import {
   applySettingsToggle,
   buildSettingsPaletteCommands,
-  buildSettingsDashboardRows,
+  buildSettingsPanelRows,
   filterSettingsPaletteCommands,
   findSettingsRowIndex,
-  renderSettingsDashboard,
+  renderSettingsPanel,
 } from "./settings.js";
 
 describe("settings console", () => {
@@ -30,7 +30,7 @@ describe("settings console", () => {
       ui: { seamColor: "#ff710e" },
     };
 
-    const rows = buildSettingsDashboardRows(cfg);
+    const rows = buildSettingsPanelRows(cfg);
 
     expect(rows.map((row) => row.label)).toEqual([
       "Provider",
@@ -59,7 +59,7 @@ describe("settings console", () => {
   });
 
   it("shows the Kova workspace when config still has the legacy default workspace", () => {
-    const rows = buildSettingsDashboardRows({
+    const rows = buildSettingsPanelRows({
       agents: {
         defaults: {
           workspace: resolveLegacyDefaultAgentWorkspaceDir(),
@@ -87,14 +87,14 @@ describe("settings console", () => {
   });
 
   it("finds settings rows from slash-search queries", () => {
-    const rows = buildSettingsDashboardRows({});
+    const rows = buildSettingsPanelRows({});
 
     expect(rows[findSettingsRowIndex(rows, "/gateway")]?.id).toBe("gateway");
     expect(rows[findSettingsRowIndex(rows, "browser")]?.id).toBe("browser");
   });
 
   it("builds a command palette with direct actions", () => {
-    const rows = buildSettingsDashboardRows({});
+    const rows = buildSettingsPanelRows({});
     const commands = buildSettingsPaletteCommands(rows);
 
     expect(commands.map((command) => command.label)).toContain("Change Provider");
@@ -103,8 +103,8 @@ describe("settings console", () => {
   });
 
   it("renders the keyboard help and status column", () => {
-    const rows = buildSettingsDashboardRows({});
-    const output = renderSettingsDashboard({
+    const rows = buildSettingsPanelRows({});
+    const output = renderSettingsPanel({
       rows,
       selectedIndex: 0,
       searchQuery: "gateway",
@@ -127,9 +127,9 @@ describe("settings console", () => {
   });
 
   it("renders the command palette overlay", () => {
-    const rows = buildSettingsDashboardRows({});
+    const rows = buildSettingsPanelRows({});
     const commands = filterSettingsPaletteCommands(buildSettingsPaletteCommands(rows), "gateway");
-    const output = renderSettingsDashboard({
+    const output = renderSettingsPanel({
       rows,
       selectedIndex: 0,
       palette: {

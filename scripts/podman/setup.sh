@@ -199,81 +199,6 @@ PY
   exit 1
 }
 
-seed_local_control_ui_origins() {
-  local file="$1"
-  local port="$2"
-  local dir=""
-  local tmp=""
-  ensure_safe_write_file_path "config file" "$file"
-  if ! command -v python3 >/dev/null 2>&1; then
-    echo "Warning: python3 not found; unable to seed gateway.controlUi.allowedOrigins in $file." >&2
-    return 0
-  fi
-  dir="$(dirname "$file")"
-  tmp="$(mktemp "$dir/.config.tmp.XXXXXX")"
-  if ! python3 - "$file" "$port" "$tmp" <<'PY'
-import json
-import sys
-
-path = sys.argv[1]
-port = sys.argv[2]
-tmp = sys.argv[3]
-try:
-    with open(path, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
-except json.JSONDecodeError as exc:
-    print(
-        f"Warning: unable to seed gateway.controlUi.allowedOrigins in {path}: existing config is not strict JSON ({exc}). Leaving file unchanged.",
-        file=sys.stderr,
-    )
-    raise SystemExit(1)
-if not isinstance(data, dict):
-    raise SystemExit(f"{path}: expected top-level object")
-gateway = data.setdefault("gateway", {})
-if not isinstance(gateway, dict):
-    raise SystemExit(f"{path}: expected gateway object")
-gateway.setdefault("mode", "local")
-control_ui = gateway.setdefault("controlUi", {})
-if not isinstance(control_ui, dict):
-    raise SystemExit(f"{path}: expected gateway.controlUi object")
-allowed = control_ui.get("allowedOrigins")
-managed_localhosts = {"127.0.0.1", "localhost"}
-desired = [
-    f"http://127.0.0.1:{port}",
-    f"http://localhost:{port}",
-]
-if not isinstance(allowed, list):
-    allowed = []
-cleaned = []
-for origin in allowed:
-    if not isinstance(origin, str):
-        continue
-    normalized = origin.strip()
-    if not normalized:
-        continue
-    if normalized.startswith("http://"):
-        host_port = normalized[len("http://") :]
-        host = host_port.split(":", 1)[0]
-        if host in managed_localhosts:
-            continue
-    cleaned.append(normalized)
-control_ui["allowedOrigins"] = cleaned + desired
-with open(tmp, "w", encoding="utf-8") as fh:
-    json.dump(data, fh, indent=2)
-    fh.write("\n")
-PY
-  then
-    rm -f "$tmp"
-    return 0
-  fi
-  [[ -s "$tmp" ]] || {
-    rm -f "$tmp"
-    return 0
-  }
-  chmod 600 "$tmp" 2>/dev/null || true
-  mv -f "$tmp" "$file"
-}
-
 upsert_env_var() {
   local file="$1"
   local key="$2"
@@ -404,20 +329,13 @@ if [[ ! -f "$CONFIG_JSON" ]]; then
     write_file_atomically "$CONFIG_JSON" 600 <<JSON
 {
   "gateway": {
-    "mode": "local",
-        "controlUi": {
-          "allowedOrigins": [
-        "http://127.0.0.1:${SEED_GATEWAY_PORT}",
-        "http://localhost:${SEED_GATEWAY_PORT}"
-      ]
-    }
+    "mode": "local"
   }
 }
 JSON
   )
   echo "Wrote minimal config to $CONFIG_JSON"
 fi
-seed_local_control_ui_origins "$CONFIG_JSON" "$SEED_GATEWAY_PORT"
 
 if [[ "$INSTALL_QUADLET" == true ]]; then
   QUADLET_DIR="$KOVA_HOME/.config/containers/systemd"
@@ -460,4 +378,4 @@ echo
 echo "Next:"
 echo "  ./scripts/run-kova-podman.sh launch"
 echo "  ./scripts/run-kova-podman.sh launch setup"
-echo "  kova --container $KOVA_CONTAINER_NAME control-ui --no-open"
+echo "  kova --container $KOVA_CONTAINER_NAME status"

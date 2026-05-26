@@ -323,9 +323,7 @@ export function surfacesForFile(filename) {
   if (/\.generated\/|generated|\.snap$/i.test(filename)) {
     surfaces.add("generated");
   }
-  if (filename.startsWith("ui/")) {
-    surfaces.add("ui");
-  } else if (filename.startsWith("src/gateway/")) {
+  if (filename.startsWith("src/gateway/")) {
     surfaces.add("src/gateway");
   } else if (filename.startsWith("src/plugins/")) {
     surfaces.add("src/plugins");

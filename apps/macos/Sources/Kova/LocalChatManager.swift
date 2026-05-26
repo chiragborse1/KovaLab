@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 
 /// A borderless panel that can still accept key focus (needed for typing).
-final class WebChatPanel: NSPanel {
+final class LocalChatPanel: NSPanel {
     override var canBecomeKey: Bool {
         true
     }
@@ -12,7 +12,7 @@ final class WebChatPanel: NSPanel {
     }
 }
 
-enum WebChatPresentation {
+enum LocalChatPresentation {
     case window
     case panel(anchorProvider: () -> NSRect?)
 
@@ -23,12 +23,12 @@ enum WebChatPresentation {
 }
 
 @MainActor
-final class WebChatManager {
-    static let shared = WebChatManager()
+final class LocalChatManager {
+    static let shared = LocalChatManager()
 
-    private var windowController: WebChatSwiftUIWindowController?
+    private var windowController: LocalChatSwiftUIWindowController?
     private var windowSessionKey: String?
-    private var panelController: WebChatSwiftUIWindowController?
+    private var panelController: LocalChatSwiftUIWindowController?
     private var panelSessionKey: String?
     private var cachedPreferredSessionKey: String?
 
@@ -50,7 +50,7 @@ final class WebChatManager {
             self.windowController = nil
             self.windowSessionKey = nil
         }
-        let controller = WebChatSwiftUIWindowController(sessionKey: sessionKey, presentation: .window)
+        let controller = LocalChatSwiftUIWindowController(sessionKey: sessionKey, presentation: .window)
         controller.onVisibilityChanged = { [weak self] visible in
             self?.onPanelVisibilityChanged?(visible)
         }
@@ -75,7 +75,7 @@ final class WebChatManager {
             }
         }
 
-        let controller = WebChatSwiftUIWindowController(
+        let controller = LocalChatSwiftUIWindowController(
             sessionKey: sessionKey,
             presentation: .panel(anchorProvider: anchorProvider))
         controller.onClosed = { [weak self] in

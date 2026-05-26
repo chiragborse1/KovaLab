@@ -14,32 +14,6 @@ describe("security audit gateway exposure findings", () => {
   it("warns on insecure or dangerous flags", () => {
     const cases = [
       {
-        name: "control UI allows insecure auth",
-        cfg: {
-          gateway: {
-            controlUi: { allowInsecureAuth: true },
-          },
-        } satisfies KovaConfig,
-        expectedFinding: {
-          checkId: "gateway.control_ui.insecure_auth",
-          severity: "warn",
-        },
-        expectedDangerousDetails: ["gateway.controlUi.allowInsecureAuth=true"],
-      },
-      {
-        name: "control UI device auth is disabled",
-        cfg: {
-          gateway: {
-            controlUi: { dangerouslyDisableDeviceAuth: true },
-          },
-        } satisfies KovaConfig,
-        expectedFinding: {
-          checkId: "gateway.control_ui.device_auth_disabled",
-          severity: "critical",
-        },
-        expectedDangerousDetails: ["gateway.controlUi.dangerouslyDisableDeviceAuth=true"],
-      },
-      {
         name: "generic insecure debug flags",
         cfg: {
           hooks: {
@@ -78,83 +52,6 @@ describe("security audit gateway exposure findings", () => {
         expect(finding?.detail, `${testCase.name}:${snippet}`).toContain(snippet);
       }
     }
-  });
-
-  it.each([
-    {
-      name: "flags non-loopback Control UI without allowed origins",
-      cfg: {
-        gateway: {
-          bind: "lan",
-          auth: { mode: "token", token: "very-long-browser-token-0123456789" },
-          controlUi: { enabled: true },
-        },
-      } satisfies KovaConfig,
-      expectedFinding: {
-        checkId: "gateway.control_ui.allowed_origins_required",
-        severity: "critical",
-      },
-    },
-    {
-      name: "flags wildcard Control UI origins by exposure level on loopback",
-      cfg: {
-        gateway: {
-          bind: "loopback",
-          controlUi: { enabled: true, allowedOrigins: ["*"] },
-        },
-      } satisfies KovaConfig,
-      expectedFinding: {
-        checkId: "gateway.control_ui.allowed_origins_wildcard",
-        severity: "warn",
-      },
-    },
-    {
-      name: "flags wildcard Control UI origins by exposure level when exposed",
-      cfg: {
-        gateway: {
-          bind: "lan",
-          auth: { mode: "token", token: "very-long-browser-token-0123456789" },
-          controlUi: { enabled: true, allowedOrigins: ["*"] },
-        },
-      } satisfies KovaConfig,
-      expectedFinding: {
-        checkId: "gateway.control_ui.allowed_origins_wildcard",
-        severity: "critical",
-      },
-      expectedNoFinding: "gateway.control_ui.allowed_origins_required",
-    },
-  ])("$name", ({ cfg, expectedFinding, expectedNoFinding }) => {
-    const findings = collectGatewayConfigFindings(cfg, cfg, {});
-    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining(expectedFinding)]));
-    if (expectedNoFinding) {
-      expect(findings.some((finding) => finding.checkId === expectedNoFinding)).toBe(false);
-    }
-  });
-
-  it("flags dangerous host-header origin fallback and suppresses missing allowed-origins finding", () => {
-    const cfg: KovaConfig = {
-      gateway: {
-        bind: "lan",
-        auth: { mode: "token", token: "very-long-browser-token-0123456789" },
-        controlUi: {
-          dangerouslyAllowHostHeaderOriginFallback: true,
-        },
-      },
-    };
-
-    const findings = collectGatewayConfigFindings(cfg, cfg, {});
-    expect(hasFinding("gateway.control_ui.host_header_origin_fallback", "critical", findings)).toBe(
-      true,
-    );
-    expect(
-      findings.some((finding) => finding.checkId === "gateway.control_ui.allowed_origins_required"),
-    ).toBe(false);
-    const flags = findings.find(
-      (finding) => finding.checkId === "config.insecure_or_dangerous_flags",
-    );
-    expect(flags?.detail ?? "").toContain(
-      "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true",
-    );
   });
 
   it.each([

@@ -114,14 +114,14 @@ const TEST_OPERATOR_CLIENT = {
   mode: GATEWAY_CLIENT_MODES.TEST,
 };
 
-const CONTROL_UI_CLIENT = {
-  id: GATEWAY_CLIENT_NAMES.CONTROL_UI,
+const OPERATOR_CLIENT = {
+  id: GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT,
   version: "1.0.0",
   platform: "web",
   mode: GATEWAY_CLIENT_MODES.WEBCHAT,
 };
 
-const TRUSTED_PROXY_CONTROL_UI_HEADERS = {
+const TRUSTED_PROXY_OPERATOR_CLIENT_HEADERS = {
   origin: "https://localhost",
   "x-forwarded-for": "203.0.113.10",
   "x-forwarded-proto": "https",
@@ -220,13 +220,9 @@ async function approvePendingPairingIfNeeded() {
   }
 }
 
-async function configureTrustedProxyControlUiAuth() {
+async function configureTrustedProxyOperatorClientAuth() {
   const { replaceConfigFile } = await import("../config/config.js");
   testState.gatewayAuth = undefined;
-  testState.gatewayControlUi = {
-    ...testState.gatewayControlUi,
-    allowedOrigins: ["https://localhost"],
-  };
   await replaceConfigFile({
     nextConfig: {
       gateway: {
@@ -238,24 +234,17 @@ async function configureTrustedProxyControlUiAuth() {
           },
         },
         trustedProxies: ["127.0.0.1"],
-        controlUi: {
-          allowedOrigins: ["https://localhost"],
-        },
       },
     },
     afterWrite: { mode: "auto" },
   });
 }
 
-async function writeTrustedProxyControlUiConfig(params?: { allowInsecureAuth?: boolean }) {
+async function writeTrustedProxyOperatorClientConfig() {
   const { replaceConfigFile } = await import("../config/config.js");
   const nextConfig = {
     gateway: {
       trustedProxies: ["127.0.0.1"],
-      controlUi: {
-        allowedOrigins: ["https://localhost"],
-        ...(params?.allowInsecureAuth ? { allowInsecureAuth: true } : {}),
-      },
     },
   };
   await replaceConfigFile({
@@ -345,9 +334,7 @@ async function startRateLimitedTokenServerWithPairedDeviceToken() {
     rateLimit: { maxAttempts: 1, windowMs: 60_000, lockoutMs: 60_000, exemptLoopback: false },
   } satisfies Record<string, unknown>;
 
-  const { server, ws, port, prevToken } = await startServerWithClient(undefined, {
-    controlUiEnabled: true,
-  });
+  const { server, ws, port, prevToken } = await startServerWithClient(undefined, {});
   const deviceIdentityPath = nextAuthIdentityPath("kova-auth-rate-limit");
   try {
     const initial = await connectReq(ws, { token: "secret", deviceIdentityPath });
@@ -390,9 +377,9 @@ export {
   approvePendingPairingIfNeeded,
   BACKEND_GATEWAY_CLIENT,
   buildDeviceAuthPayload,
-  configureTrustedProxyControlUiAuth,
+  configureTrustedProxyOperatorClientAuth,
   connectReq,
-  CONTROL_UI_CLIENT,
+  OPERATOR_CLIENT,
   createSignedDevice,
   createGatewaySuiteHarness,
   ensurePairedDeviceTokenForCurrentIdentity,
@@ -416,13 +403,13 @@ export {
   startServerWithClient,
   TEST_OPERATOR_CLIENT,
   trackConnectChallengeNonce,
-  TRUSTED_PROXY_CONTROL_UI_HEADERS,
+  TRUSTED_PROXY_OPERATOR_CLIENT_HEADERS,
   testState,
   testTailscaleWhois,
   waitForWsClose,
   withGatewayServer,
   withRuntimeVersionEnv,
-  writeTrustedProxyControlUiConfig,
+  writeTrustedProxyOperatorClientConfig,
 };
 export { ConnectErrorDetailCodes } from "./protocol/connect-error-details.js";
 export { getPreauthHandshakeTimeoutMsFromEnv } from "./handshake-timeouts.js";

@@ -40,7 +40,6 @@ import {
   normalizeQaSuiteConcurrency,
   resolveQaSuiteWorkerStartStaggerMs,
   resolveQaSuiteOutputDir,
-  scenarioRequiresControlUi,
   selectQaSuiteScenarios,
   splitModelRef,
 } from "./suite-planning.js";
@@ -83,7 +82,6 @@ export type QaSuiteRunParams = {
   lab?: QaLabServerHandle;
   startLab?: QaSuiteStartLabFn;
   concurrency?: number;
-  controlUiEnabled?: boolean;
   transportReadyTimeoutMs?: number;
 };
 
@@ -520,10 +518,6 @@ export async function runQaSuite(params?: QaSuiteRunParams): Promise<QaSuiteResu
               scenarioIds: [scenario.id],
               concurrency: 1,
               startLab,
-              // Most isolated workers do not need their own Control UI proxy.
-              // Control UI scenarios do, because they open the worker's
-              // gateway-backed app directly.
-              controlUiEnabled: scenarioRequiresControlUi(scenario),
             });
             const scenarioResult: QaSuiteScenarioResult =
               result.scenarios[0] ??
@@ -668,23 +662,17 @@ export async function runQaSuite(params?: QaSuiteRunParams): Promise<QaSuiteResu
     providerBaseUrl: mock ? `${mock.baseUrl}/v1` : undefined,
     transport,
     transportBaseUrl: lab.listenUrl,
-    controlUiAllowedOrigins: [lab.listenUrl],
     providerMode,
     primaryModel,
     alternateModel,
     fastMode,
     thinkingDefault: params?.thinkingDefault,
     claudeCliAuthMode: params?.claudeCliAuthMode,
-    controlUiEnabled: params?.controlUiEnabled ?? true,
     enabledPluginIds,
     forwardHostHome: gatewayRuntimeOptions?.forwardHostHome,
     mutateConfig: gatewayConfigPatch
       ? (cfg) => applyQaMergePatch(cfg, gatewayConfigPatch) as KovaConfig
       : undefined,
-  });
-  lab.setControlUi({
-    controlUiProxyTarget: gateway.baseUrl,
-    controlUiToken: gateway.token,
   });
   const env: QaSuiteEnvironment = {
     lab,
@@ -835,12 +823,6 @@ export async function runQaSuite(params?: QaSuiteRunParams): Promise<QaSuiteResu
     await mock?.stop();
     if (ownsLab) {
       await lab.stop();
-    } else {
-      lab.setControlUi({
-        controlUiUrl: null,
-        controlUiToken: null,
-        controlUiProxyTarget: null,
-      });
     }
   }
 }

@@ -176,11 +176,11 @@ Related:
 - [Groups](/channels/groups)
 - [Pairing](/channels/pairing)
 
-<a id="dashboard-control-ui-connectivity"></a>
+<a id="gateway-client-connectivity"></a>
 
-## Control UI Connectivity
+## Gateway clients Connectivity
 
-When Control UI will not connect, validate URL, auth mode, and secure context assumptions.
+When Gateway clients will not connect, validate URL, auth mode, and secure context assumptions.
 
 ```bash
 kova gateway status
@@ -192,20 +192,20 @@ kova gateway status --json
 
 Look for:
 
-- Correct probe URL and Control UI URL.
+- Correct probe URL and Gateway client URL.
 - Auth mode/token mismatch between client and gateway.
 - HTTP usage where device identity is required.
 
 <AccordionGroup>
   <Accordion title="Connect / auth signatures">
     - `device identity required` → non-secure context or missing device auth.
-    - `origin not allowed` → browser `Origin` is not in `gateway.controlUi.allowedOrigins` (or you are connecting from a non-loopback browser origin without an explicit allowlist).
+    - `origin not allowed` → browser `Origin` is not in `remote origin policy` (or you are connecting from a non-loopback browser origin without an explicit allowlist).
     - `device nonce required` / `device nonce mismatch` → client is not completing the challenge-based device auth flow (`connect.challenge` + `device.nonce`).
     - `device signature invalid` / `device signature expired` → client signed the wrong payload (or stale timestamp) for the current handshake.
     - `AUTH_TOKEN_MISMATCH` with `canRetryWithDeviceToken=true` → client can do one trusted retry with cached device token.
     - That cached-token retry reuses the cached scope set stored with the paired device token. Explicit `deviceToken` / explicit `scopes` callers keep their requested scope set instead.
     - Outside that retry path, connect auth precedence is explicit shared token/password first, then explicit `deviceToken`, then stored device token, then bootstrap token.
-    - On the async Tailscale Serve Control UI path, failed attempts for the same `{scope, ip}` are serialized before the limiter records the failure. Two bad concurrent retries from the same client can therefore surface `retry later` on the second attempt instead of two plain mismatches.
+    - On the async Tailscale Serve Gateway clients path, failed attempts for the same `{scope, ip}` are serialized before the limiter records the failure. Two bad concurrent retries from the same client can therefore surface `retry later` on the second attempt instead of two plain mismatches.
     - `too many failed authentication attempts (retry later)` from a browser-origin loopback client → repeated failures from that same normalized `Origin` are locked out temporarily; another localhost origin uses a separate bucket.
     - repeated `unauthorized` after that retry → shared token/device token drift; refresh token config and re-approve/rotate device token if needed.
     - `gateway connect failed:` → wrong host/port/url target.
@@ -218,7 +218,7 @@ Use `error.details.code` from the failed `connect` response to pick the next act
 
 | Detail code                  | Meaning                                                                                                                                                                                      | Recommended action                                                                                                                                                                                                                                                                       |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AUTH_TOKEN_MISSING`         | Client did not send a required shared token.                                                                                                                                                 | Paste/set token in the client and retry. For Control UI paths: `kova config get gateway.auth.token` then paste into Control UI settings.                                                                                                                                                 |
+| `AUTH_TOKEN_MISSING`         | Client did not send a required shared token.                                                                                                                                                 | Paste/set token in the client and retry. For Gateway clients paths: `kova config get gateway.auth.token` then paste into Gateway clients settings.                                                                                                                                       |
 | `AUTH_TOKEN_MISMATCH`        | Shared token did not match gateway auth token.                                                                                                                                               | If `canRetryWithDeviceToken=true`, allow one trusted retry. Cached-token retries reuse stored approved scopes; explicit `deviceToken` / `scopes` callers keep requested scopes. If still failing, run the [token drift recovery checklist](/cli/devices#token-drift-recovery-checklist). |
 | `AUTH_DEVICE_TOKEN_MISMATCH` | Cached per-device token is stale or revoked.                                                                                                                                                 | Rotate/re-approve device token using [devices CLI](/cli/devices), then reconnect.                                                                                                                                                                                                        |
 | `PAIRING_REQUIRED`           | Device identity needs approval. Check `error.details.reason` for `not-paired`, `scope-upgrade`, `role-upgrade`, or `metadata-upgrade`, and use `requestId` / `remediationHint` when present. | Approve pending request: `kova devices list` then `kova devices approve <requestId>`. Scope/role upgrades use the same flow after you review the requested access.                                                                                                                       |
@@ -257,7 +257,7 @@ If `kova devices rotate` / `revoke` / `remove` is denied unexpectedly:
 Related:
 
 - [Configuration](/gateway/configuration) (gateway auth modes)
-- [Control UI](/web/control-ui)
+- [Gateway clients](/gateway/remote)
 - [Devices](/cli/devices)
 - [Remote access](/gateway/remote)
 - [Trusted proxy auth](/gateway/trusted-proxy-auth)
@@ -589,7 +589,7 @@ Most post-upgrade breakage is config drift or stricter defaults now being enforc
 
     What to check:
 
-    - Pending device approvals for Control UI or nodes.
+    - Pending device approvals for Gateway clients or nodes.
     - Pending DM pairing approvals after policy or identity changes.
 
     Common signatures:

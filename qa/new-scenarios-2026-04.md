@@ -42,7 +42,7 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Tool call still succeeds after the switch.
   - Final answer keeps prior context.
 - Docs: `docs/help/testing.md`, `docs/concepts/model-failover.md`
-- Code: `extensions/qa-lab/src/suite.ts`, `docs/web/webchat.md`
+- Code: `extensions/qa-lab/src/suite.ts`, `docs/web/tui.md`
 
 ## 4. MCP-backed recall via QMD/mcporter
 
@@ -112,7 +112,7 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Gateway restarts cleanly.
   - The skill flips from eligible to disabled.
 - Docs: `docs/gateway/configuration.md`, `docs/gateway/protocol.md`
-- Code: `docs/gateway/configuration.md`, `docs/web/control-ui.md`
+- Code: `docs/gateway/configuration.md`, `docs/gateway/protocol.md`
 
 ## 9. Restart-required config apply with wake-up
 
@@ -125,7 +125,7 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Restart happens once.
   - Session wake-up ping arrives.
   - Agent continues in the same logical workflow after restart.
-- Docs: `docs/gateway/configuration.md`, `docs/web/control-ui.md`
+- Docs: `docs/gateway/configuration.md`, `docs/gateway/protocol.md`
 - Code: `docs/gateway/configuration.md`, `docs/gateway/protocol.md`
 
 ## 10. Runtime inventory drift check
@@ -139,8 +139,8 @@ Ten repo-grounded candidate scenarios to add after the current seed suite.
   - Enabled item is callable.
   - Disabled item is absent or blocked for the right reason.
   - Inventory and runtime behavior stay in sync.
-- Docs: `docs/gateway/protocol.md`, `docs/web/webchat.md`
-- Code: `docs/gateway/protocol.md`, `docs/web/control-ui.md`
+- Docs: `docs/gateway/protocol.md`, `docs/web/tui.md`
+- Code: `docs/gateway/protocol.md`, `docs/web/tui.md`
 
 ## Best next additions to the executable suite
 

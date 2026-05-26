@@ -17,8 +17,6 @@ import {
   CROSS_OS_GATEWAY_STATUS_COMMAND_TIMEOUT_MS,
   CROSS_OS_GATEWAY_STATUS_RPC_TIMEOUT_MS,
   CROSS_OS_WINDOWS_GATEWAY_READY_TIMEOUT_MS,
-  CROSS_OS_DASHBOARD_FETCH_TIMEOUT_MS,
-  CROSS_OS_DASHBOARD_SMOKE_TIMEOUT_MS,
   isImmutableReleaseRef,
   looksLikeReleaseVersionRef,
   normalizeRequestedRef,
@@ -47,11 +45,6 @@ import {
 } from "../../scripts/kova-cross-os-release-checks.ts";
 
 describe("scripts/kova-cross-os-release-checks", () => {
-  it("keeps dashboard smoke patient enough for cold packaged gateway startup", () => {
-    expect(CROSS_OS_DASHBOARD_SMOKE_TIMEOUT_MS).toBeGreaterThanOrEqual(120_000);
-    expect(CROSS_OS_DASHBOARD_FETCH_TIMEOUT_MS).toBeGreaterThanOrEqual(10_000);
-  });
-
   it("keeps gateway RPC status probes patient enough for live release startup", () => {
     expect(CROSS_OS_GATEWAY_STATUS_RPC_TIMEOUT_MS).toBeGreaterThanOrEqual(30_000);
     expect(CROSS_OS_GATEWAY_STATUS_COMMAND_TIMEOUT_MS).toBeGreaterThan(
@@ -474,7 +467,6 @@ describe("scripts/kova-cross-os-release-checks", () => {
       );
 
       expect(packageHasScript(packageRoot, "build")).toBe(true);
-      expect(packageHasScript(packageRoot, "ui:build")).toBe(false);
     } finally {
       rmSync(packageRoot, { recursive: true, force: true });
     }

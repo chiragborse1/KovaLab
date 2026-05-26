@@ -62,7 +62,7 @@ There are two related systems:
 ```
 
 <ParamField path="commands.text" type="boolean" default="true">
-  Enables parsing `/...` in chat messages. On surfaces without native commands (WhatsApp/WebChat/Signal/iMessage/Google Chat/Microsoft Teams), text commands still work even if you set this to `false`.
+  Enables parsing `/...` in chat messages. On surfaces without native commands (WhatsApp/local chat/Signal/iMessage/Google Chat/Microsoft Teams), text commands still work even if you set this to `false`.
 </ParamField>
 <ParamField path="commands.native" type='boolean | "auto"' default='"auto"'>
   Registers native commands. Auto: on for Discord/Telegram; off for Slack (until you add slash commands); ignored for providers without native support. Set `channels.discord.commands.native`, `channels.telegram.commands.native`, or `channels.slack.commands.native` to override per provider (bool or `"auto"`). `false` clears previously registered commands on Discord/Telegram at startup. Slack commands are managed in the Slack app and are not removed automatically.
@@ -124,7 +124,6 @@ Current source-of-truth:
 <AccordionGroup>
   <Accordion title="Sessions and runs">
     - `/new [model]` archives the current session and starts a fresh one; `/reset` wipes the current session in place. They are not aliases.
-    - In the Control UI, typed `/new` creates and switches to a fresh Control UI session, except when `session.dmScope: "main"` is configured and the current parent is the agent's main session; then it resets the main session in place.
     - `/reset soft [message]` keeps the current transcript, drops reused CLI backend session ids, and reruns startup/system-prompt loading in-place.
     - `/compact [instructions]` compacts the session context. See [Compaction](/concepts/compaction).
     - `/stop` aborts the current run.

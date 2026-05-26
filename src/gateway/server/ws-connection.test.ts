@@ -157,7 +157,7 @@ describe("attachGatewayWsConnectionHandler", () => {
 
     const registered = passed.setClient({
       socket,
-      connect: { client: { id: "kova-control-ui", mode: "webchat" } },
+      connect: { client: { id: "kova-operator-client", mode: "webchat" } },
       connId: "late-client",
       usesSharedGatewayAuth: false,
     });

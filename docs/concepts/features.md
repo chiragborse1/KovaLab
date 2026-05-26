@@ -9,7 +9,7 @@ title: "Features"
 
 <Columns>
   <Card title="Channels" icon="message-square" href="/channels">
-    Discord, iMessage, Signal, Slack, Telegram, WhatsApp, WebChat, and more with a single Gateway.
+    Discord, iMessage, Signal, Slack, Telegram, WhatsApp, and more with a single Gateway.
   </Card>
   <Card title="Plugins" icon="plug" href="/tools/plugin">
     Bundled plugins add Matrix, Nextcloud Talk, Nostr, Twitch, Zalo, and more without separate installs in normal current releases.
@@ -20,8 +20,8 @@ title: "Features"
   <Card title="Media" icon="image" href="/nodes/images">
     Images, audio, video, documents, and image/video generation.
   </Card>
-  <Card title="Apps and UI" icon="monitor" href="/web/control-ui">
-    Web Control UI and macOS companion app.
+  <Card title="Apps and nodes" icon="monitor" href="/gateway/remote">
+    Terminal, Gateway, macOS companion app, and mobile nodes.
   </Card>
   <Card title="Mobile nodes" icon="smartphone" href="/nodes">
     iOS and Android nodes with pairing, voice/chat, and rich device commands.
@@ -32,7 +32,7 @@ title: "Features"
 
 **Channels:**
 
-- Built-in channels include Discord, Google Chat, iMessage (legacy), IRC, Signal, Slack, Telegram, WebChat, and WhatsApp
+- Built-in channels include Discord, Google Chat, iMessage (legacy), IRC, Signal, Slack, Telegram, and WhatsApp
 - Bundled plugin channels include BlueBubbles for iMessage, Feishu, LINE, Matrix, Mattermost, Microsoft Teams, Nextcloud Talk, Nostr, QQ Bot, Synology Chat, Tlon, Twitch, Zalo, and Zalo Personal
 - Optional separately installed channel plugins include Voice Call and third-party packages such as WeChat
 - Third-party channel plugins can extend the Gateway further, such as WeChat
@@ -61,7 +61,7 @@ title: "Features"
 
 **Apps and interfaces:**
 
-- WebChat and browser Control UI
+- Terminal chat and Gateway clients
 - macOS menu bar companion app
 - iOS node with pairing, Canvas, camera, screen recording, location, and voice
 - Android node with pairing, chat, voice, Canvas, camera, and device commands

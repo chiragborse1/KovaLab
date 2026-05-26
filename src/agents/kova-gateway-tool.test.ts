@@ -480,24 +480,6 @@ describe("gateway tool", () => {
     );
   });
 
-  it("rejects config.patch that enables dangerouslyDisableDeviceAuth", async () => {
-    const tool = requireGatewayTool();
-
-    await expect(
-      tool.execute("call-dangerous-device-auth", {
-        action: "config.patch",
-        raw: "{ gateway: { controlUi: { dangerouslyDisableDeviceAuth: true } } }",
-      }),
-    ).rejects.toThrow(
-      "gateway config.patch cannot change protected config paths: gateway.controlUi.dangerouslyDisableDeviceAuth",
-    );
-    expect(callGatewayTool).not.toHaveBeenCalledWith(
-      "config.patch",
-      expect.any(Object),
-      expect.anything(),
-    );
-  });
-
   it("rejects config.patch that enables allowUnsafeExternalContent on gmail hooks", async () => {
     const tool = requireGatewayTool();
 
@@ -526,42 +508,6 @@ describe("gateway tool", () => {
       }),
     ).rejects.toThrow(
       "gateway config.patch cannot change protected config paths: tools.exec.applyPatch.workspaceOnly",
-    );
-    expect(callGatewayTool).not.toHaveBeenCalledWith(
-      "config.patch",
-      expect.any(Object),
-      expect.anything(),
-    );
-  });
-
-  it("rejects config.patch that enables allowInsecureAuth on control UI", async () => {
-    const tool = requireGatewayTool();
-
-    await expect(
-      tool.execute("call-dangerous-insecure-auth", {
-        action: "config.patch",
-        raw: "{ gateway: { controlUi: { allowInsecureAuth: true } } }",
-      }),
-    ).rejects.toThrow(
-      "gateway config.patch cannot change protected config paths: gateway.controlUi.allowInsecureAuth",
-    );
-    expect(callGatewayTool).not.toHaveBeenCalledWith(
-      "config.patch",
-      expect.any(Object),
-      expect.anything(),
-    );
-  });
-
-  it("rejects config.patch that enables dangerouslyAllowHostHeaderOriginFallback", async () => {
-    const tool = requireGatewayTool();
-
-    await expect(
-      tool.execute("call-dangerous-origin-fallback", {
-        action: "config.patch",
-        raw: "{ gateway: { controlUi: { dangerouslyAllowHostHeaderOriginFallback: true } } }",
-      }),
-    ).rejects.toThrow(
-      "gateway config.patch cannot change protected config paths: gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback",
     );
     expect(callGatewayTool).not.toHaveBeenCalledWith(
       "config.patch",

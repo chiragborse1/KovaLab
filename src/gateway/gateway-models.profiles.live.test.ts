@@ -1475,7 +1475,6 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
       startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       }),
       `${params.label}: gateway-start`,
     );
@@ -2327,7 +2326,6 @@ describeLive("gateway live (dev agent, profile keys)", () => {
         startGatewayServer(port, {
           bind: "loopback",
           auth: { mode: "token", token },
-          controlUiEnabled: false,
         }),
         "zai-fallback: gateway-start",
       );

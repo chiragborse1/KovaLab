@@ -1,14 +1,14 @@
 ---
-summary: "Terminal parity checklist for retiring the browser Control UI"
+summary: "Terminal parity checklist for retiring the browser Gateway clients"
 read_when:
-  - You are moving a Control UI workflow into the CLI or TUI
+  - You are moving a Gateway clients workflow into the CLI or TUI
   - You want to know whether a browser-only workflow still blocks terminal-first Kova
 title: "Terminal Control Parity"
 ---
 
 # Terminal Control Parity
 
-Kova is moving toward a terminal-first control surface. The browser Control UI
+Kova is moving toward a terminal-first control surface. The browser Gateway clients
 should stay available as an optional legacy surface until the important
 operator workflows below have terminal equivalents with tests and docs.
 
@@ -18,7 +18,7 @@ need, and has a small proof command or test.
 
 ## Current Matrix
 
-| Control UI workflow            | Terminal equivalent                                                                           | Status  | Next action                                                                    |
+| Gateway clients workflow       | Terminal equivalent                                                                           | Status  | Next action                                                                    |
 | ------------------------------ | --------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
 | Chat with the agent            | `kova`                                                                                        | Ready   | Keep first-run latency and local backend checks in the TUI test loop.          |
 | Gateway status                 | `kova status`, `/status`, `/gateway-status`                                                   | Ready   | Keep browser wording out of default status output.                             |
@@ -73,7 +73,7 @@ Ready:
 Not copied into the MVP:
 
 - Hermes skin packs and full Ink/React renderer architecture.
-- Hermes-only kanban/dashboard surfaces.
+- Hermes-only kanban surfaces.
 - Hermes-specific names, icons, and release language.
 - Byte-for-byte transcript formatting where Kova already has product-owned
   terminal commands or safety behavior.
@@ -83,4 +83,4 @@ Not copied into the MVP:
 - [TUI](/web/tui)
 - [Memory CLI](/cli/memory)
 - [Persona CLI](/cli/persona)
-- [Control UI](/web/control-ui)
+- [Gateway clients](/gateway/remote)

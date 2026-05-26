@@ -179,10 +179,10 @@ For shared or team use:
 - Prefer sandboxed runtimes and explicit tool allowlists.
 - Treat group chats as untrusted input.
 
-## Web, Gateway, and Remote Access
+## Gateway and Remote Access
 
-The Gateway is the control plane. The browser Control UI is an optional legacy
-operator surface. Neither should be exposed directly to the public internet.
+The Gateway is the control plane for channels, nodes, cron, and remote access.
+Do not expose it directly to the public internet.
 
 Preferred remote access:
 

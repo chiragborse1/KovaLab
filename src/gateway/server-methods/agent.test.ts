@@ -1102,7 +1102,7 @@ describe("gateway agent handler", () => {
         reqId: "webchat-origin-1",
         client: {
           connect: {
-            client: { id: "webchat-ui", mode: "webchat" },
+            client: { id: "local-chat", mode: "webchat" },
           },
         } as AgentHandlerArgs["client"],
         isWebchatConnect: () => true,

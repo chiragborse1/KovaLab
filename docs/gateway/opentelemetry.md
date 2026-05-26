@@ -341,7 +341,7 @@ You can also leave `diagnostics-otel` out of `plugins.allow`, or run
 
 ## Related
 
-- [Logging](/logging) — file logs, console output, CLI tailing, and the Control UI Logs tab
+- [Logging](/logging) — file logs, console output, CLI tailing, and the Gateway clients Logs tab
 - [Gateway logging internals](/gateway/logging) — WS log styles, subsystem prefixes, and console capture
 - [Diagnostics flags](/diagnostics/flags) — targeted debug-log flags
 - [Diagnostics export](/gateway/diagnostics) — operator support-bundle tool (separate from OTEL export)

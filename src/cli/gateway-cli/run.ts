@@ -32,7 +32,6 @@ import {
 import type { GatewayWsLogStyle } from "../../gateway/ws-logging.js";
 import { setGatewayWsLogStyle } from "../../gateway/ws-logging.js";
 import { setVerbose } from "../../globals.js";
-import { resolveControlUiRootSync } from "../../infra/control-ui-assets.js";
 import { isTruthyEnvValue } from "../../infra/env.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { GatewayLockError } from "../../infra/gateway-lock.js";
@@ -205,27 +204,6 @@ function formatModeErrorList(modes: readonly string[]): string {
     return `${quoted[0]} or ${quoted[1]}`;
   }
   return `${quoted.slice(0, -1).join(", ")}, or ${quoted[quoted.length - 1]}`;
-}
-
-function maybeLogPendingControlUiBuild(cfg: KovaConfig): void {
-  if (cfg.gateway?.controlUi?.enabled !== true) {
-    return;
-  }
-  if (toOptionString(cfg.gateway?.controlUi?.root)) {
-    return;
-  }
-  if (
-    resolveControlUiRootSync({
-      moduleUrl: import.meta.url,
-      argv1: process.argv[1],
-      cwd: process.cwd(),
-    })
-  ) {
-    return;
-  }
-  gatewayLog.info(
-    "web console assets are missing for explicit gateway.controlUi.enabled=true; startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
-  );
 }
 
 function getGatewayStartGuardErrors(params: {
@@ -421,7 +399,6 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
 
   gatewayLog.info("config: loading runtime profile");
   const { cfg, snapshot } = await readGatewayStartupConfig({ startupTrace });
-  maybeLogPendingControlUiBuild(cfg);
   const portOverride = parsePort(opts.port);
   if (opts.port !== undefined && portOverride === null) {
     defaultRuntime.error("Invalid port");

@@ -134,7 +134,7 @@ Run these steps on the machine where the Gateway runs (that is where the workspa
   </Step>
   <Step title="Add a private remote">
     <Tabs>
-      <Tab title="GitHub web UI">
+      <Tab title="GitHub browser surface">
         1. Create a new **private** repository on GitHub.
         2. Do not initialize with a README (avoids merge conflicts).
         3. Copy the HTTPS remote URL.
@@ -152,7 +152,7 @@ Run these steps on the machine where the Gateway runs (that is where the workspa
         gh repo create kova-workspace --private --source . --remote origin --push
         ```
       </Tab>
-      <Tab title="GitLab web UI">
+      <Tab title="GitLab browser surface">
         1. Create a new **private** repository on GitLab.
         2. Do not initialize with a README (avoids merge conflicts).
         3. Copy the HTTPS remote URL.

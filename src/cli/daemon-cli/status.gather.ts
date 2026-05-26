@@ -6,12 +6,7 @@ import {
   resolveGatewayPort,
   resolveStateDir,
 } from "../../config/config.js";
-import type {
-  KovaConfig,
-  ConfigFileSnapshot,
-  GatewayBindMode,
-  GatewayControlUiConfig,
-} from "../../config/types.js";
+import type { KovaConfig, ConfigFileSnapshot, GatewayBindMode } from "../../config/types.js";
 import { readLastGatewayErrorLine } from "../../daemon/diagnostics.js";
 import type { FindExtraGatewayServicesOptions } from "../../daemon/inspect.js";
 import type { ServiceConfigAudit } from "../../daemon/service-audit.js";
@@ -38,7 +33,6 @@ type ConfigSummary = {
   exists: boolean;
   valid: boolean;
   issues?: Array<{ path: string; message: string }>;
-  controlUi?: GatewayControlUiConfig;
 };
 
 type GatewayStatusSummary = {
@@ -181,7 +175,6 @@ async function readFastStatusConfig(configPath: string): Promise<StatusConfigRea
       path: configPath,
       exists: true,
       valid: true,
-      controlUi: cfg.gateway?.controlUi,
     },
     cfg,
     mode: "fast",
@@ -205,7 +198,6 @@ async function readFullStatusConfig(params: {
       exists: snapshot?.exists ?? false,
       valid: snapshot?.valid ?? true,
       ...(snapshot?.issues?.length ? { issues: snapshot.issues } : {}),
-      controlUi: cfg.gateway?.controlUi,
     },
     cfg,
     mode: "full",

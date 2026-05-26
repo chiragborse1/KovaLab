@@ -3,9 +3,9 @@ import Testing
 
 @Suite(.serialized)
 @MainActor
-struct WebChatManagerTests {
+struct LocalChatManagerTests {
     @Test func `preferred session key is non empty`() async {
-        let key = await WebChatManager.shared.preferredSessionKey()
+        let key = await LocalChatManager.shared.preferredSessionKey()
         #expect(!key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 }

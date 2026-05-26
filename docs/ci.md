@@ -8,10 +8,6 @@ read_when:
 
 The CI runs on every push to `main` and every pull request. It uses smart scoping to skip expensive jobs when only unrelated areas changed. Manual `workflow_dispatch` runs intentionally bypass smart scoping and fan out the full normal CI graph for release candidates or broad validation.
 
-The Control UI build is scoped on normal push/PR runs. It runs when `ui/`, root
-package metadata, the lockfile, or the CI workflow itself changes; manual
-`workflow_dispatch` still runs it explicitly.
-
 Changed-test shards run with one Vitest worker and 6 GB Node heap headroom. The
 single worker keeps file-level concurrency predictable on shared runners; the
 larger heap prevents long serial agent/config shards from failing after passing
@@ -232,7 +228,7 @@ gh workflow run duplicate-after-merge.yml \
 | `security-scm-fast`              | Private key detection and workflow audit via `zizmor`                                        | Always on non-draft pushes and PRs |
 | `security-dependency-audit`      | Dependency-free production lockfile audit against npm advisories                             | Always on non-draft pushes and PRs |
 | `security-fast`                  | Required aggregate for the fast security jobs                                                | Always on non-draft pushes and PRs |
-| `build-artifacts`                | Build `dist/`, Control UI, built-artifact checks, and reusable downstream artifacts          | Node-relevant changes              |
+| `build-artifacts`                | Build `dist/`, run built-artifact checks, and produce reusable downstream artifacts          | Node-relevant changes              |
 | `checks-fast-core`               | Fast Linux correctness lanes such as bundled/plugin-contract/protocol checks                 | Node-relevant changes              |
 | `checks-fast-contracts-channels` | Sharded channel contract checks with a stable aggregate check result                         | Node-relevant changes              |
 | `checks-node-extensions`         | Full bundled-plugin test shards across the extension suite                                   | Node-relevant changes              |
@@ -253,7 +249,7 @@ gh workflow run duplicate-after-merge.yml \
 Manual CI dispatches run the same job graph as normal CI but force every
 scoped lane on: Linux Node shards, bundled-plugin shards, channel contracts,
 Node 22 compatibility, `check`, `check-additional`, build smoke, docs checks,
-Python skills, Windows, macOS, Android, and Control UI i18n. Manual runs use a
+Python skills, Windows, macOS, and Android. Manual runs use a
 unique concurrency group so a release-candidate full suite is not cancelled by
 another push or PR run on the same ref. The optional `target_ref` input lets a
 trusted caller run that graph against a branch, tag, or full commit SHA while

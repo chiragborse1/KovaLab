@@ -18,9 +18,9 @@ export type ResolveOutboundTargetParams = {
   mode?: ChannelOutboundTargetMode;
 };
 
-function buildWebChatDeliveryError(): Error {
+function buildLocalChatDeliveryError(): Error {
   return new Error(
-    `Delivering to WebChat is not supported via \`${formatCliCommand("kova agent")}\`; use WhatsApp/Telegram or run with --deliver=false.`,
+    `Delivering to local chat is not supported via \`${formatCliCommand("kova agent")}\`; use WhatsApp/Telegram or run with --deliver=false.`,
   );
 }
 
@@ -32,7 +32,7 @@ export function resolveOutboundTargetWithPlugin(params: {
   if (params.target.channel === INTERNAL_MESSAGE_CHANNEL) {
     return {
       ok: false,
-      error: buildWebChatDeliveryError(),
+      error: buildLocalChatDeliveryError(),
     };
   }
 

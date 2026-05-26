@@ -223,7 +223,7 @@ If a node no longer auto-discovers the Gateway after Docker setup:
    ```
 
 3. Use a direct target when Bonjour is disabled:
-   - Control UI or local tools: `http://127.0.0.1:18789`
+   - Gateway clients or local tools: `http://127.0.0.1:18789`
    - LAN clients: `http://<gateway-host>:18789`
    - Cross-network clients: Tailnet MagicDNS, Tailnet IP, SSH tunnel, or
      wide-area DNS-SD

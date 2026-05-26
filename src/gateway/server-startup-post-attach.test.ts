@@ -620,7 +620,6 @@ function createPostAttachParams(overrides: Partial<PostAttachParams> = {}): Post
     tailscaleMode: "off",
     resetOnExit: false,
     preserveFunnel: false,
-    controlUiBasePath: "/",
     logTailscale: {
       info: vi.fn(),
       warn: vi.fn(),

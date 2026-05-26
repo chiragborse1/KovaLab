@@ -75,8 +75,6 @@ export type SeedScenario = {
 export type Bootstrap = {
   baseUrl: string;
   latestReport: ReportEnvelope["report"];
-  controlUiUrl: string | null;
-  controlUiEmbeddedUrl: string | null;
   kickoffTask: string;
   scenarios: SeedScenario[];
   defaults: {
@@ -763,7 +761,7 @@ function renderCaptureStartupInstructions(status: CaptureStartupStatus | null): 
 KOVA_DEBUG_PROXY_REQUIRE=1 \\
 KOVA_DEBUG_PROXY_URL=http://127.0.0.1:7799 \\
 pnpm kova gateway --port 18789 --bind loopback`;
-  const qaStart = "pnpm qa:lab:ui --port 43124 --control-ui-url http://127.0.0.1:18789/";
+  const qaStart = "pnpm qa:lab:ui --port 43124";
   const caInstall = "pnpm proxy:install-ca";
   const caTrust =
     "sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /Users/thoffman/.kova/debug-proxy/certs/root-ca.pem";
@@ -977,7 +975,6 @@ function deriveSelection(state: UiState): RunnerSelection | null {
 function renderHeader(state: UiState): string {
   const runner = state.bootstrap?.runner ?? null;
   const run = state.scenarioRun;
-  const controlUrl = state.bootstrap?.controlUiUrl;
 
   return `
     <header class="header">
@@ -990,7 +987,6 @@ function renderHeader(state: UiState): string {
         </div>
       </div>
       <div class="header-right">
-        ${controlUrl ? `<a class="header-link" href="${esc(controlUrl)}" target="_blank" rel="noreferrer">Control UI</a>` : ""}
         <button class="btn-ghost btn-sm" data-action="toggle-sidebar">${state.sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}</button>
         <button class="btn-ghost btn-sm" data-action="refresh"${state.busy ? " disabled" : ""}>Refresh</button>
         <button class="btn-ghost btn-sm" data-action="reset"${state.busy ? " disabled" : ""}>Reset</button>

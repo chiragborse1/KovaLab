@@ -184,9 +184,6 @@ describe("gateway probe endpoints", () => {
       cfg: {
         gateway: {
           trustedProxies: ["10.0.0.1"],
-          controlUi: {
-            allowedOrigins: ["https://control.example"],
-          },
         },
       },
       run: async () => {

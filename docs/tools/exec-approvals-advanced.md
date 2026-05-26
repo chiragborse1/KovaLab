@@ -115,7 +115,7 @@ Configuration location:
 - `safeBins` comes from config (`tools.exec.safeBins` or per-agent `agents.list[].tools.exec.safeBins`).
 - `safeBinTrustedDirs` comes from config (`tools.exec.safeBinTrustedDirs` or per-agent `agents.list[].tools.exec.safeBinTrustedDirs`).
 - `safeBinProfiles` comes from config (`tools.exec.safeBinProfiles` or per-agent `agents.list[].tools.exec.safeBinProfiles`). Per-agent profile keys override global keys.
-- allowlist entries live in host-local `~/.kova/exec-approvals.json` under `agents.<id>.allowlist` (or via Control UI / `kova approvals allowlist ...`).
+- allowlist entries live in host-local `~/.kova/exec-approvals.json` under `agents.<id>.allowlist` (or via `kova approvals allowlist ...`).
 - `kova security audit` warns with `tools.exec.safe_bins_interpreter_unprofiled` when interpreter/runtime bins appear in `safeBins` without explicit profiles.
 - `kova doctor --fix` can scaffold missing custom `safeBinProfiles.<bin>` entries as `{}` (review and tighten afterward). Interpreter/runtime bins are not auto-scaffolded.
 
@@ -168,7 +168,7 @@ timeout, the request is treated as an approval timeout and surfaced as a denial 
 After an approved async exec finishes, Kova sends a followup `agent` turn to the same session.
 
 - If a valid external delivery target exists (deliverable channel plus target `to`), followup delivery uses that channel.
-- In webchat-only or internal-session flows with no external target, followup delivery stays session-only (`deliver: false`).
+- In local-chat-only or internal-session flows with no external target, followup delivery stays session-only (`deliver: false`).
 - If a caller explicitly requests strict external delivery with no resolvable external channel, the request fails with `INVALID_REQUEST`.
 - If `bestEffortDeliver` is enabled and no external channel can be resolved, delivery is downgraded to session-only instead of failing.
 

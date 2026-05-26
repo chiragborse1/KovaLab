@@ -6,16 +6,16 @@
 
 - CLI/onboarding: simplify `kova onboard` into a Kova-owned base flow for workspace, model/auth, Gateway port, and chat channels, with web recall, skills, plugins, hooks, and background service kept in optional advanced setup. Thanks @chiragborse1
 - CLI/onboarding: tighten first-run setup copy around terminal chat, persona, memory, status, and channel follow-up commands. Thanks @chiragborse1
+- Product: remove the legacy browser dashboard package, serving path, build lanes, QA proxy, and docs so Kova is terminal-first by default. Thanks @chiragborse1
 - CLI/TUI: add `/limits` so terminal users can distinguish the context-window gauge from provider account quotas and rate limits. Thanks @chiragborse1
-- CLI/TUI: add `kova permissions` and `/permissions` so terminal users can inspect tool profiles, exec approvals, sandbox mode, plugin gates, and agent overrides without opening the Control UI. Thanks @chiragborse1
-- CLI/TUI: add `/permissions edit` and `/permissions preset` so terminal users can adjust current-session exec posture without opening the Control UI. Thanks @chiragborse1
-- CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat`, demoting Dashboard wording to optional Control UI, and adding chat-first next steps. Thanks @chiragborse1
-- CLI: add `kova control-ui` as the explicit browser admin command and move command output to Control UI wording. Thanks @chiragborse1
+- CLI/TUI: add `kova permissions` and `/permissions` so terminal users can inspect tool profiles, exec approvals, sandbox mode, plugin gates, and agent overrides from the shell. Thanks @chiragborse1
+- CLI/TUI: add `/permissions edit` and `/permissions preset` so terminal users can adjust current-session exec posture from chat. Thanks @chiragborse1
+- CLI: make `kova status` a terminal command-center snapshot by surfacing `kova chat` and chat-first next steps. Thanks @chiragborse1
 - CLI/TUI: reshape `/help` into a terminal command center that surfaces Gateway status, tools, context, skills, plugin management, and run controls from one place. Thanks @chiragborse1
 - CLI/TUI: make `/help` compact by default, add `/help all`, and show actionable names in compact `/tools` and `/skills` output. Thanks @chiragborse1
 - CLI/TUI: add a first-class `/memory` command for terminal memory status and direct recall search from the chat command center. Thanks @chiragborse1
-- CLI/TUI: add `kova memory dreams` and `/memory dreams` so Dream Diary review works from terminal and chat without opening the Control UI. Thanks @chiragborse1
-- CLI/TUI: add `kova persona` and `/persona` so `SOUL.md` persona status, reading, creation, and terminal editing work without the Control UI. Thanks @chiragborse1
+- CLI/TUI: add `kova memory dreams` and `/memory dreams` so Dream Diary review works from terminal and chat. Thanks @chiragborse1
+- CLI/TUI: add `kova persona` and `/persona` so `SOUL.md` persona status, reading, creation, and terminal editing work from the terminal. Thanks @chiragborse1
 - CLI: add `kova logs --grep`, `--level`, and `--subsystem` filters so terminal log review can replace browser log panes. Thanks @chiragborse1
 - CLI/TUI: add `/plugins update` with dry-run support so tracked plugin upgrades can be managed from terminal chat. Thanks @chiragborse1
 - CLI: add `kova plugins compatibility-report` for maintainer plugin compatibility and deprecation cleanup review from the terminal. Thanks @chiragborse1
@@ -46,7 +46,7 @@
 - CLI/TUI: route shared `/session idle`, `/session max-age`, `/models ...`, and `/usage cost` commands through the shared slash-command path, and let `/new <model>` apply the model to the new isolated terminal session. Thanks @chiragborse1
 - CLI/TUI: give finishing local terminal runs a bounded shutdown grace period so exit does not cut off final cleanup after the assistant lifecycle has ended. Thanks @chiragborse1
 - CLI/TUI: make `/recover` a Gateway-aware self-healing loop that audits tasks and Task Flow, previews safe repair, and applies maintenance without starting an agent turn. Thanks @chiragborse1
-- CLI: remove the retired browser alias and migrate install, Docker, Podman, and UI connection hints to `kova control-ui`. Thanks @chiragborse1
+- CLI: remove retired browser-admin hints and migrate install, Docker, and Podman guidance to terminal/Gateway commands. Thanks @chiragborse1
 - Gateway startup: bind the control plane before loading plugin runtime so local clients can connect while plugins finish warming. Thanks @chiragborse1
 - Gateway startup: reuse the prepared plugin metadata snapshot for lookup-table bootstrap so startup avoids a duplicate manifest registry walk. Thanks @chiragborse1
 - Active Memory: make recall cache-first by default so cold memory searches warm in the background instead of blocking the first reply token. Thanks @chiragborse1
@@ -60,12 +60,10 @@
 - Plugins: reuse explicit discovery results across bundled capability scans so startup and provider registry loads avoid redundant filesystem walks. Thanks @SebTardif
 - Agents: expose structured embedded-run queue outcomes so completion handoffs can distinguish stale, compacting, and unsupported transcript-wait wakes. Thanks @galiniliev
 - Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugin entries from chat without editing config by hand. Thanks @kevinslin
-- Gateway startup now overlaps logging, connector warmup, plugin services, and channel startup so the dashboard becomes ready sooner. Thanks @samzong
+- Gateway startup now overlaps logging, connector warmup, plugin services, and channel startup so local clients can connect sooner. Thanks @samzong
 - Gateway restarts can now emit restart trace timings for signal receipt, drain, shutdown close, next startup, readiness, CPU-adjacent resource counts, and memory. Thanks @samzong
 - Add a Gateway restart benchmark command and docs so startup/restart performance work can measure `/healthz`, `/readyz`, downtime, restart traces, CPU, and memory consistently. Thanks @samzong
 - Channels: render Telegram and Discord tool-progress previews with a stable `Working` draft label and shared progress formatting instead of animated `Working...` status text. Thanks @chiragborse1
-- Simplify the Control UI Agents section with quieter copy, plain agent rows, a compact overview, and less decorative workspace/file editing chrome. Thanks @chiragborse1
-- Add a dedicated Control UI Persona menu with simple Identity, Behavior, and About You sections, default file creation, bootstrap status, and local draft recovery after refresh. Thanks @chiragborse1
 
 ### Fixes
 
@@ -102,7 +100,6 @@
 - Telegram doctor: explain malformed `channels.telegram.groups` shapes with the expected group-id/topic object map while keeping core validation messages plugin-agnostic. Thanks @giodl73
 - WhatsApp: clarify inbound group diagnostics so observed but unregistered groups point to `channels.whatsapp.groups` without changing routing or sender authorization. Thanks @neeravmakwana
 - Codex app-server: summarize deferred Kova dynamic tool names in developer instructions so `tool_search` can load lazily advertised tools by exact name. Thanks @pashpashpash
-- Control UI: keep chat delete confirmation popovers clamped inside the viewport instead of letting them open off-screen near edges. Thanks @ThiagoCAltoe
 - Skills: refresh session skill snapshots when configured watch roots change so newly added shared skill directories are visible immediately. Thanks @hclsys
 - Memory Wiki: preserve imported source write diagnostics for directory collisions and avoid clobbering hardlink targets when bridge pages are regenerated. Thanks @TurboTheTurtle
 - GitHub Copilot: add IDE request headers to dynamically resolved and configured model entries so Pi-native compaction uses the same provider contract as normal turns. Thanks @efpiva

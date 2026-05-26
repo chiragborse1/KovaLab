@@ -11,7 +11,7 @@ const BASE_PARAMS = {
   reason: "not-paired" as NodePairingAutoApproveReason,
   scopes: [],
   hasBrowserOriginHeader: false,
-  isControlUi: false,
+  isOperatorClient: false,
   isWebchat: false,
   reportedClientIpSource: "direct" as const,
   reportedClientIp: "192.168.1.42",
@@ -121,11 +121,11 @@ describe("shouldAutoApproveNodePairingFromTrustedCidrs", () => {
       patch: { hasBrowserOriginHeader: true },
     },
     {
-      name: "Control UI client",
-      patch: { isControlUi: true },
+      name: "Operator client client",
+      patch: { isOperatorClient: true },
     },
     {
-      name: "WebChat client",
+      name: "local chat client",
       patch: { isWebchat: true },
     },
     {

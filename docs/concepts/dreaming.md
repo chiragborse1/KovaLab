@@ -89,7 +89,7 @@ There is also a grounded historical backfill lane for review and recovery work:
   </Accordion>
 </AccordionGroup>
 
-Use `kova memory dreams`, `/memory dreams`, and the `memory rem-*` commands above to inspect diary output and decide whether grounded candidates deserve promotion. The legacy browser Control UI can still visualize this flow, but terminal review is the primary path.
+Use `kova memory dreams`, `/memory dreams`, and the `memory rem-*` commands above to inspect diary output and decide whether grounded candidates deserve promotion. The legacy browser Gateway clients can still visualize this flow, but terminal review is the primary path.
 
 ## Deep ranking signals
 

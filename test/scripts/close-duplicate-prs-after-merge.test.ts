@@ -20,7 +20,7 @@ function pr(params: {
   return {
     body: params.body ?? "",
     closingIssuesReferences: [],
-    files: (params.files ?? ["ui/src/ui/chat/grouped-render.ts"]).map((path) => ({ path })),
+    files: (params.files ?? ["src/tui/gateway-chat.ts"]).map((path) => ({ path })),
     mergeCommit: params.mergeCommit ? { oid: params.mergeCommit } : null,
     mergedAt: params.mergedAt ?? null,
     number: params.number,
@@ -60,12 +60,12 @@ diff --git a/b.ts b/b.ts
     const diffs = new Map([
       [
         70532,
-        `diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts
+        `diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts
 @@ -402,8 +402,11 @@`,
       ],
       [
         70530,
-        `diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts
+        `diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts
 @@ -402,8 +402,11 @@`,
       ],
     ]);
@@ -83,7 +83,7 @@ diff --git a/b.ts b/b.ts
         candidate: { number: 70530 },
         evidence: {
           overlappingHunks: true,
-          sharedFiles: ["ui/src/ui/chat/grouped-render.ts"],
+          sharedFiles: ["src/tui/gateway-chat.ts"],
           sharedIssues: [],
         },
       },
@@ -102,12 +102,12 @@ diff --git a/b.ts b/b.ts
     const diffs = new Map([
       [
         70532,
-        `diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts
+        `diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts
 @@ -402,8 +402,11 @@`,
       ],
       [
         70592,
-        `diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts
+        `diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts
 @@ -286,8 +286,11 @@`,
       ],
     ]);
@@ -173,11 +173,11 @@ diff --git a/b.ts b/b.ts
       ],
       [
         "pr diff 70532 --repo chiragborse1/KovaLab --color=never",
-        "diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts\n@@ -402,8 +402,11 @@",
+        "diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts\n@@ -402,8 +402,11 @@",
       ],
       [
         "pr diff 70592 --repo chiragborse1/KovaLab --color=never",
-        "diff --git a/ui/src/ui/chat/grouped-render.ts b/ui/src/ui/chat/grouped-render.ts\n@@ -286,8 +286,11 @@",
+        "diff --git a/src/tui/gateway-chat.ts b/src/tui/gateway-chat.ts\n@@ -286,8 +286,11 @@",
       ],
     ]);
     const runGh = (args: string[]) => {

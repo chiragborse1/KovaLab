@@ -462,37 +462,6 @@ describe("scripts/test-projects changed-target routing", () => {
     ]);
   });
 
-  it("routes changed ui support files to the ui lane without dead include globs", () => {
-    const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
-      "ui/src/styles/base.css",
-      "ui/src/test-helpers/lit-warnings.setup.ts",
-    ]);
-
-    expect(plans).toEqual([
-      {
-        config: "test/vitest/vitest.ui.config.ts",
-        forwardedArgs: [],
-        includePatterns: null,
-        watchMode: false,
-      },
-    ]);
-  });
-
-  it("routes changed ui root config files to the ui lane", () => {
-    const plans = buildVitestRunPlans(["--changed", "origin/main"], process.cwd(), () => [
-      "ui/vite.config.ts",
-    ]);
-
-    expect(plans).toEqual([
-      {
-        config: "test/vitest/vitest.ui.config.ts",
-        forwardedArgs: [],
-        includePatterns: null,
-        watchMode: false,
-      },
-    ]);
-  });
-
   it("routes auto-reply route source files to route regression tests", () => {
     expect(
       resolveChangedTestTargetPlan([
@@ -984,7 +953,6 @@ describe("scripts/test-projects full-suite sharding", () => {
         "test/vitest/vitest.full-core-unit-fast.config.ts",
         "test/vitest/vitest.full-core-unit-src.config.ts",
         "test/vitest/vitest.full-core-unit-security.config.ts",
-        "test/vitest/vitest.full-core-unit-ui.config.ts",
         "test/vitest/vitest.full-core-unit-support.config.ts",
         "test/vitest/vitest.full-core-support-boundary.config.ts",
         "test/vitest/vitest.full-core-contracts.config.ts",
@@ -1118,7 +1086,6 @@ describe("scripts/test-projects full-suite sharding", () => {
       "test/vitest/vitest.unit-fast.config.ts",
       "test/vitest/vitest.unit-src.config.ts",
       "test/vitest/vitest.unit-security.config.ts",
-      "test/vitest/vitest.unit-ui.config.ts",
       "test/vitest/vitest.unit-support.config.ts",
       "test/vitest/vitest.boundary.config.ts",
       "test/vitest/vitest.tooling.config.ts",
@@ -1141,7 +1108,6 @@ describe("scripts/test-projects full-suite sharding", () => {
       "test/vitest/vitest.shared-core.config.ts",
       "test/vitest/vitest.tasks.config.ts",
       "test/vitest/vitest.tui.config.ts",
-      "test/vitest/vitest.ui.config.ts",
       "test/vitest/vitest.utils.config.ts",
       "test/vitest/vitest.wizard.config.ts",
       "test/vitest/vitest.gateway-core.config.ts",

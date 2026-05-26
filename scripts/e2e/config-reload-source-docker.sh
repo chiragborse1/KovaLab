@@ -45,9 +45,6 @@ cat > \"\$HOME/.chiragborse1/KovaLab.json\" <<'JSON'
       }
     },
     \"channelHealthCheckMinutes\": 1,
-    \"controlUi\": {
-      \"enabled\": false
-    },
     \"reload\": {
       \"mode\": \"hybrid\",
       \"debounceMs\": 0

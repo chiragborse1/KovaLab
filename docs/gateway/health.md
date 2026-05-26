@@ -16,7 +16,7 @@ Short guide to verify channel connectivity without guessing.
 - `kova health` — asks the running gateway for its health snapshot (WS-only; no direct channel sockets from the CLI).
 - `kova health --verbose` — forces a live health probe and prints gateway connection details.
 - `kova health --json` — machine-readable health snapshot output.
-- Send `/status` as a standalone message in WhatsApp/WebChat to get a status reply without invoking the agent.
+- Send `/status` as a standalone message in supported chat channels to get a status reply without invoking the agent.
 - Logs: tail `/tmp/chiragborse1/KovaLab-*.log` and filter for `web-heartbeat`, `web-reconnect`, `web-auto-reply`, `web-inbound`.
 
 ## Deep diagnostics

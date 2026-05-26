@@ -65,10 +65,6 @@ kovadock-start
 kovadock-fix-token
 ```
 
-```bash
-kovadock-control-ui
-```
-
 If you see "pairing required":
 
 ```bash
@@ -101,13 +97,12 @@ kovadock-approve <request-id>
 | `kovadock-cli <command>`  | Run Kova CLI commands                          |
 | `kovadock-exec <command>` | Execute arbitrary commands in the container    |
 
-### Web UI & Devices
+### Devices
 
-| Command                 | Description                                    |
-| ----------------------- | ---------------------------------------------- |
-| `kovadock-control-ui`   | Open Control UI in browser with authentication |
-| `kovadock-devices`      | List device pairing requests                   |
-| `kovadock-approve <id>` | Approve a device pairing request               |
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `kovadock-devices`      | List device pairing requests     |
+| `kovadock-approve <id>` | Approve a device pairing request |
 
 ### Setup & Configuration
 

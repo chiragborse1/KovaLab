@@ -37,7 +37,7 @@ The fastest way to get started. Hostinger handles infrastructure, Docker, and au
   </Step>
 
   <Step title="Complete installation">
-    Click **Finish** to deploy the instance. Once ready, access the Kova Control UI from **Kova Overview** in hPanel.
+    Click **Finish** to deploy the instance. Once ready, access the Kova Gateway clients from **Kova Overview** in hPanel.
   </Step>
 
 </Steps>
@@ -67,7 +67,7 @@ More control over your server. Hostinger deploys Kova via Docker on your VPS and
   </Step>
 
   <Step title="Start Kova">
-    Click **Deploy**. Once running, open the Kova Control UI from the hPanel by clicking on **Open**.
+    Click **Deploy**. Once running, open the Kova Gateway clients from the hPanel by clicking on **Open**.
   </Step>
 
 </Steps>
@@ -80,7 +80,7 @@ Send "Hi" to your assistant on the channel you connected. Kova will reply and wa
 
 ## Troubleshooting
 
-**Control UI not loading** -- Wait a few minutes for the container to finish provisioning. Check the Docker Manager logs in hPanel.
+**Gateway clients not loading** -- Wait a few minutes for the container to finish provisioning. Check the Docker Manager logs in hPanel.
 
 **Docker container keeps restarting** -- Open Docker Manager logs and look for configuration errors (missing tokens, invalid API keys).
 

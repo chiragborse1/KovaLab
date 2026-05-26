@@ -640,7 +640,6 @@ export async function startGatewayPostAttachRuntime(
     tailscaleMode: GatewayTailscaleMode;
     resetOnExit: boolean;
     preserveFunnel: boolean;
-    controlUiBasePath: string;
     logTailscale: {
       info: (msg: string) => void;
       warn: (msg: string) => void;
@@ -735,7 +734,6 @@ export async function startGatewayPostAttachRuntime(
             resetOnExit: params.resetOnExit,
             preserveFunnel: params.preserveFunnel,
             port: params.port,
-            controlUiBasePath: params.controlUiBasePath,
             logTailscale: params.logTailscale,
           }),
         );

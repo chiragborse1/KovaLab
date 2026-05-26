@@ -77,7 +77,6 @@ describe("startQaLiveLaneGateway", () => {
       providerMode: "mock-openai",
       primaryModel: "mock-openai/gpt-5.5",
       alternateModel: "mock-openai/gpt-5.5-alt",
-      controlUiEnabled: false,
     });
 
     expect(startQaProviderServer).toHaveBeenCalledWith("mock-openai");
@@ -102,7 +101,6 @@ describe("startQaLiveLaneGateway", () => {
       providerMode: "mock-openai",
       primaryModel: "mock-openai/gpt-5.5",
       alternateModel: "mock-openai/gpt-5.5-alt",
-      controlUiEnabled: false,
     });
 
     await harness.stop({ preserveToDir: ".artifacts/qa-e2e/debug" });
@@ -118,7 +116,6 @@ describe("startQaLiveLaneGateway", () => {
       providerMode: "live-frontier",
       primaryModel: "openai/gpt-5.5",
       alternateModel: "openai/gpt-5.5",
-      controlUiEnabled: false,
     });
 
     expect(startQaProviderServer).toHaveBeenCalledWith("live-frontier");
@@ -143,7 +140,6 @@ describe("startQaLiveLaneGateway", () => {
       providerMode: "mock-openai",
       primaryModel: "mock-openai/gpt-5.5",
       alternateModel: "mock-openai/gpt-5.5-alt",
-      controlUiEnabled: false,
     });
 
     await expect(harness.stop()).rejects.toThrow(
@@ -163,7 +159,6 @@ describe("startQaLiveLaneGateway", () => {
       providerMode: "mock-openai",
       primaryModel: "mock-openai/gpt-5.5",
       alternateModel: "mock-openai/gpt-5.5-alt",
-      controlUiEnabled: false,
     });
 
     await expect(harness.stop()).rejects.toThrow(

@@ -710,22 +710,6 @@ export const KovaSchema = z
           ])
           .optional(),
         customBindHost: z.string().optional(),
-        controlUi: z
-          .object({
-            enabled: z.boolean().optional(),
-            basePath: z.string().optional(),
-            root: z.string().optional(),
-            embedSandbox: z
-              .union([z.literal("strict"), z.literal("scripts"), z.literal("trusted")])
-              .optional(),
-            allowExternalEmbedUrls: z.boolean().optional(),
-            allowedOrigins: z.array(z.string()).optional(),
-            dangerouslyAllowHostHeaderOriginFallback: z.boolean().optional(),
-            allowInsecureAuth: z.boolean().optional(),
-            dangerouslyDisableDeviceAuth: z.boolean().optional(),
-          })
-          .strict()
-          .optional(),
         auth: z
           .object({
             mode: z

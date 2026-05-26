@@ -2,7 +2,7 @@
 summary: "CLI reference for `kova persona` (status/show/path/init/edit SOUL.md)"
 read_when:
   - Editing the agent persona from the terminal
-  - Replacing Control UI persona editing with CLI/TUI workflows
+  - Replacing Gateway clients persona editing with CLI/TUI workflows
 title: "Persona"
 ---
 

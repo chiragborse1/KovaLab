@@ -83,7 +83,7 @@ For a high-level overview, see [Onboarding (CLI)](/start/wizard).
     - In token mode, interactive setup offers:
       - **Generate/store plaintext token** (default)
       - **Use SecretRef** (opt-in)
-      - Quickstart reuses existing `gateway.auth.token` SecretRefs across `env`, `file`, and `exec` providers for onboarding probes and optional Control UI access.
+      - Quickstart reuses existing `gateway.auth.token` SecretRefs across `env`, `file`, and `exec` providers for onboarding probes and Gateway clients.
       - If that SecretRef is configured but cannot be resolved, onboarding fails early with a clear fix message instead of silently degrading runtime auth.
     - In password mode, interactive setup also supports plaintext or SecretRef storage.
     - Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
@@ -135,11 +135,6 @@ For a high-level overview, see [Onboarding (CLI)](/start/wizard).
     - Summary + next steps, including iOS/Android/macOS apps for extra features.
   </Step>
 </Steps>
-
-<Note>
-If no GUI is detected, onboarding prints SSH port-forward instructions for the Control UI instead of opening a browser.
-If the Control UI assets are missing, onboarding attempts to build them; fallback is `pnpm ui:build` (auto-installs UI deps).
-</Note>
 
 ## Non-interactive mode
 
@@ -193,7 +188,7 @@ kova agents add work \
 ## Gateway wizard RPC
 
 The Gateway exposes the onboarding flow over RPC (`wizard.start`, `wizard.next`, `wizard.cancel`, `wizard.status`).
-Clients (macOS app, Control UI) can render steps without re‑implementing onboarding logic.
+Clients can render steps without re-implementing onboarding logic.
 
 ## Signal setup (signal-cli)
 

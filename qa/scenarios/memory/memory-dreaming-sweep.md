@@ -15,7 +15,7 @@ successCriteria:
 docsRefs:
   - docs/concepts/dreaming.md
   - docs/reference/memory-config.md
-  - docs/web/control-ui.md
+  - docs/web/tui.md
 codeRefs:
   - extensions/memory-core/src/dreaming.ts
   - extensions/memory-core/src/dreaming-phases.ts

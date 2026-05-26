@@ -7,11 +7,7 @@ vi.mock("./auth.js", () => ({
 
 vi.mock("../config/config.js", () => ({
   getRuntimeConfig: vi.fn(() => ({
-    gateway: {
-      controlUi: {
-        allowedOrigins: ["https://control.example.com"],
-      },
-    },
+    gateway: {},
   })),
 }));
 
@@ -77,7 +73,7 @@ describe("authorizeGatewayHttpRequestOrReply", () => {
     });
   });
 
-  it("forwards browser-origin policy into HTTP auth", async () => {
+  it("forwards gateway origin policy into HTTP auth", async () => {
     vi.mocked(authorizeHttpGatewayConnect).mockResolvedValue({
       ok: true,
       method: "trusted-proxy",
@@ -103,7 +99,7 @@ describe("authorizeGatewayHttpRequestOrReply", () => {
         browserOriginPolicy: {
           requestHost: "gateway.example.com",
           origin: "https://evil.example",
-          allowedOrigins: ["https://control.example.com"],
+          allowedOrigins: undefined,
           allowHostHeaderOriginFallback: false,
         },
       }),

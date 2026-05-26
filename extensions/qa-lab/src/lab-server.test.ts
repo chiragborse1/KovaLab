@@ -1,5 +1,4 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -254,8 +253,6 @@ describe("qa-lab server", () => {
       port: 0,
       outputPath,
       repoRoot,
-      controlUiUrl: "http://127.0.0.1:18789/",
-      controlUiToken: "qa-token",
     });
     cleanups.push(async () => {
       await lab.stop();
@@ -264,8 +261,6 @@ describe("qa-lab server", () => {
     const bootstrapResponse = await fetchWithRetry(`${lab.baseUrl}/api/bootstrap`);
     expect(bootstrapResponse.status).toBe(200);
     const bootstrap = (await bootstrapResponse.json()) as {
-      controlUiUrl: string | null;
-      controlUiEmbeddedUrl: string | null;
       kickoffTask: string;
       scenarios: Array<{ id: string; title: string }>;
       defaults: { conversationId: string; senderId: string };
@@ -273,8 +268,6 @@ describe("qa-lab server", () => {
     };
     expect(bootstrap.defaults.conversationId).toBe("qa-operator");
     expect(bootstrap.defaults.senderId).toBe("qa-operator");
-    expect(bootstrap.controlUiUrl).toBe("http://127.0.0.1:18789/");
-    expect(bootstrap.controlUiEmbeddedUrl).toBe("http://127.0.0.1:18789/#token=qa-token");
     expect(bootstrap.kickoffTask).toContain("Lobster Invaders");
     expect(bootstrap.scenarios.length).toBeGreaterThanOrEqual(10);
     expect(bootstrap.scenarios.some((scenario) => scenario.id === "dm-chat-baseline")).toBe(true);
@@ -370,68 +363,6 @@ describe("qa-lab server", () => {
     expect(
       manualSnapshot.messages.some((message) => message.text.includes("Lobster Invaders")),
     ).toBe(true);
-  });
-
-  it("proxies control-ui paths through /control-ui", async () => {
-    const upstream = createServer((req, res) => {
-      if ((req.url ?? "/") === "/healthz") {
-        res.writeHead(200, { "content-type": "application/json" });
-        res.end(JSON.stringify({ ok: true, status: "live" }));
-        return;
-      }
-      res.writeHead(200, {
-        "content-type": "text/html; charset=utf-8",
-        "x-frame-options": "DENY",
-        "content-security-policy": "default-src 'self'; frame-ancestors 'none';",
-      });
-      res.end("<!doctype html><title>control-ui</title><h1>Control UI</h1>");
-    });
-    await new Promise<void>((resolve, reject) => {
-      upstream.once("error", reject);
-      upstream.listen(0, "127.0.0.1", () => resolve());
-    });
-    cleanups.push(
-      async () =>
-        await new Promise<void>((resolve, reject) =>
-          upstream.close((error) => (error ? reject(error) : resolve())),
-        ),
-    );
-
-    const address = upstream.address();
-    if (!address || typeof address === "string") {
-      throw new Error("expected upstream address");
-    }
-
-    const lab = await startQaLabServer({
-      host: "127.0.0.1",
-      port: 0,
-      advertiseHost: "127.0.0.1",
-      advertisePort: 43124,
-      controlUiProxyTarget: `http://127.0.0.1:${address.port}/`,
-      controlUiToken: "proxy-token",
-    });
-    cleanups.push(async () => {
-      await lab.stop();
-    });
-
-    const bootstrap = (await (await fetchWithRetry(`${lab.listenUrl}/api/bootstrap`)).json()) as {
-      controlUiUrl: string | null;
-      controlUiEmbeddedUrl: string | null;
-    };
-    expect(bootstrap.controlUiUrl).toBe("http://127.0.0.1:43124/control-ui/");
-    expect(bootstrap.controlUiEmbeddedUrl).toBe(
-      "http://127.0.0.1:43124/control-ui/#token=proxy-token",
-    );
-
-    const healthResponse = await fetchWithRetry(`${lab.listenUrl}/control-ui/healthz`);
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({ ok: true, status: "live" });
-
-    const rootResponse = await fetchWithRetry(`${lab.listenUrl}/control-ui/`);
-    expect(rootResponse.status).toBe(200);
-    expect(rootResponse.headers.get("x-frame-options")).toBeNull();
-    expect(rootResponse.headers.get("content-security-policy")).toContain("frame-ancestors 'self'");
-    expect(await rootResponse.text()).toContain("Control UI");
   });
 
   it("serves the built QA UI bundle when available", async () => {
@@ -629,7 +560,7 @@ describe("qa-lab server", () => {
     expect(snapshot.messages.filter((message) => message.direction === "outbound")).toHaveLength(0);
   });
 
-  it("exposes structured outcomes and can attach control-ui after startup", async () => {
+  it("exposes structured outcomes after startup", async () => {
     const lab = await startQaLabServer({
       host: "127.0.0.1",
       port: 0,
@@ -666,16 +597,6 @@ describe("qa-lab server", () => {
         },
       ],
     });
-    lab.setControlUi({
-      controlUiUrl: "http://127.0.0.1:18789/",
-      controlUiToken: "late-token",
-    });
-
-    const bootstrap = (await (await fetchWithRetry(`${lab.baseUrl}/api/bootstrap`)).json()) as {
-      controlUiEmbeddedUrl: string | null;
-    };
-    expect(bootstrap.controlUiEmbeddedUrl).toBe("http://127.0.0.1:18789/#token=late-token");
-
     const outcomes = (await (await fetchWithRetry(`${lab.baseUrl}/api/outcomes`)).json()) as {
       run: {
         status: string;

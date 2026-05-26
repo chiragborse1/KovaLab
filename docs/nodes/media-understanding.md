@@ -154,7 +154,7 @@ Recommended defaults:
     - If the model returns more than `maxChars`, output is trimmed.
     - `prompt` defaults to simple "Describe the {media}." plus the `maxChars` guidance (image/video only).
     - If the active primary image model already supports vision natively, Kova skips the `[Image]` summary block and passes the original image into the model instead.
-    - If a Gateway/WebChat primary model is text-only, image attachments are preserved as offloaded `media://inbound/*` refs so the image/PDF tools or configured image model can still inspect them instead of losing the attachment.
+    - If a Gateway/local chat primary model is text-only, image attachments are preserved as offloaded `media://inbound/*` refs so the image/PDF tools or configured image model can still inspect them instead of losing the attachment.
     - Explicit `kova infer image describe --model <provider/model>` requests are different: they run that image-capable provider/model directly, including Ollama refs such as `ollama/qwen2.5vl:7b`.
     - If `<capability>.enabled: true` but no models are configured, Kova tries the **active reply model** when its provider supports the capability.
   </Accordion>

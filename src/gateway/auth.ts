@@ -52,7 +52,7 @@ type ConnectAuth = {
   password?: string;
 };
 
-export type GatewayAuthSurface = "http" | "ws-control-ui";
+export type GatewayAuthSurface = "http" | "ws-operator-client";
 
 export type AuthorizeGatewayConnectParams = {
   auth: ResolvedGatewayAuth;
@@ -62,7 +62,7 @@ export type AuthorizeGatewayConnectParams = {
   tailscaleWhois?: TailscaleWhoisLookup;
   /**
    * Explicit auth surface. HTTP keeps Tailscale forwarded-header auth disabled.
-   * WS Control UI enables it intentionally for tokenless trusted-host login.
+   * WS Operator client enables it intentionally for tokenless trusted-host login.
    */
   authSurface?: GatewayAuthSurface;
   /** Optional rate limiter instance; when provided, failed attempts are tracked per IP. */
@@ -305,7 +305,7 @@ function authorizeTrustedProxy(params: {
 }
 
 function shouldAllowTailscaleHeaderAuth(authSurface: GatewayAuthSurface): boolean {
-  return authSurface === "ws-control-ui";
+  return authSurface === "ws-operator-client";
 }
 
 function authorizeTrustedProxyBrowserOrigin(params: {
@@ -518,11 +518,11 @@ export async function authorizeHttpGatewayConnect(
   });
 }
 
-export async function authorizeWsControlUiGatewayConnect(
+export async function authorizeWsOperatorClientGatewayConnect(
   params: Omit<AuthorizeGatewayConnectParams, "authSurface">,
 ): Promise<GatewayAuthResult> {
   return authorizeGatewayConnect({
     ...params,
-    authSurface: "ws-control-ui",
+    authSurface: "ws-operator-client",
   });
 }

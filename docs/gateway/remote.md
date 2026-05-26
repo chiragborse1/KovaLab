@@ -23,7 +23,7 @@ Think of the **Gateway host** as where the agent lives. It owns sessions, auth p
 
 Run the Gateway on a persistent host (VPS or home server) and reach it via **Tailscale** or SSH.
 
-- **Best UX:** keep `gateway.bind: "loopback"` and use **Tailscale Serve** for the Control UI.
+- **Best UX:** keep `gateway.bind: "loopback"` and use **Tailscale Serve** for the Gateway clients.
 - **Fallback:** keep loopback plus SSH tunnel from any machine that needs access.
 - **Examples:** [exe.dev](/install/exe-dev) (easy VM) or [Hetzner](/install/hetzner) (production VPS).
 
@@ -34,7 +34,7 @@ Ideal when your laptop sleeps often but you want the agent always-on.
 The laptop does **not** run the agent. It connects remotely:
 
 - Use the macOS app's **Remote over SSH** mode (Settings → General → Kova runs).
-- The app opens and manages the tunnel, so WebChat and health checks just work.
+- The app opens and manages the tunnel, so local chat and health checks just work.
 
 Runbook: [macOS remote access](/platforms/mac/remote).
 
@@ -43,7 +43,7 @@ Runbook: [macOS remote access](/platforms/mac/remote).
 Keep the Gateway local but expose it safely:
 
 - SSH tunnel to the laptop from other machines, or
-- Tailscale Serve the Control UI and keep the Gateway loopback-only.
+- Tailscale Serve the Gateway clients and keep the Gateway loopback-only.
 
 Guides: [Tailscale](/gateway/tailscale) and [Web overview](/web).
 
@@ -124,14 +124,14 @@ Gateway credential resolution follows one shared contract across call/probe/stat
 
 ## Chat UI over SSH
 
-WebChat no longer uses a separate HTTP port. The SwiftUI chat UI connects directly to the Gateway WebSocket.
+local chat no longer uses a separate HTTP port. The SwiftUI chat UI connects directly to the Gateway WebSocket.
 
 - Forward `18789` over SSH (see above), then connect clients to `ws://127.0.0.1:18789`.
 - On macOS, prefer the app’s “Remote over SSH” mode, which manages the tunnel automatically.
 
 ## macOS app Remote over SSH
 
-The macOS menu bar app can drive the same setup end-to-end (remote status checks, WebChat, and Voice Wake forwarding).
+The macOS menu bar app can drive the same setup end-to-end (remote status checks, local chat, and Voice Wake forwarding).
 
 Runbook: [macOS remote access](/platforms/mac/remote).
 
@@ -149,7 +149,7 @@ Short version: **keep the Gateway loopback-only** unless you’re sure you need 
 - Local call paths can use `gateway.remote.*` as fallback only when `gateway.auth.*` is unset.
 - If `gateway.auth.token` / `gateway.auth.password` is explicitly configured via SecretRef and unresolved, resolution fails closed (no remote fallback masking).
 - `gateway.remote.tlsFingerprint` pins the remote TLS cert when using `wss://`.
-- **Tailscale Serve** can authenticate Control UI/WebSocket traffic via identity
+- **Tailscale Serve** can authenticate Gateway clients/WebSocket traffic via identity
   headers when `gateway.auth.allowTailscale: true`; HTTP API endpoints do not
   use that Tailscale header auth and instead follow the gateway's normal HTTP
   auth mode. This tokenless flow assumes the gateway host is trusted. Set it to

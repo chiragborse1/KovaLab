@@ -512,7 +512,6 @@ async function runGatewayPrompt(prompt: string): Promise<PromptResult> {
       {
         gateway: {
           mode: "local",
-          controlUi: { enabled: false },
           tailscale: { mode: "off" },
         },
         discovery: {

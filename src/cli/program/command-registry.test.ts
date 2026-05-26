@@ -28,7 +28,6 @@ vi.mock("./register.backup.js", () => ({
 vi.mock("./register.maintenance.js", () => ({
   registerMaintenanceCommands: (program: Command) => {
     program.command("doctor");
-    program.command("control-ui");
     program.command("reset");
     program.command("uninstall");
   },
@@ -143,13 +142,12 @@ describe("command-registry", () => {
     expect(names.length).toBeGreaterThan(1);
   });
 
-  it("does not expose the removed dashboard placeholder in root help", () => {
+  it("does not expose removed browser-surface placeholders in root help", () => {
     const program = createProgram();
     registerCoreCliCommands(program, testProgramContext, ["node", "kova", "--help"]);
 
     const help = program.helpInformation();
-    expect(help).toContain("control-ui");
-    expect(help).not.toContain("dashboard");
+    expect(help).not.toContain("operator-client");
   });
 
   it("treats maintenance commands as top-level builtins", async () => {
@@ -159,8 +157,7 @@ describe("command-registry", () => {
 
     const names = getCoreCliCommandNames();
     expect(names).toContain("doctor");
-    expect(names).toContain("control-ui");
-    expect(names).not.toContain("dashboard");
+    expect(names).not.toContain("operator-client");
     expect(names).toContain("reset");
     expect(names).toContain("uninstall");
     expect(names).not.toContain("maintenance");
@@ -181,13 +178,13 @@ describe("command-registry", () => {
     expect(names).toContain("tasks");
   });
 
-  it("replaces placeholders when loading a grouped entry by secondary command name", async () => {
+  it("replaces placeholders when loading a grouped maintenance command", async () => {
     const program = createProgram();
     registerCoreCliCommands(program, testProgramContext, ["node", "kova", "doctor"]);
     expect(namesOf(program)).toEqual(["doctor"]);
 
-    const found = await registerCoreCliByName(program, testProgramContext, "control-ui");
+    const found = await registerCoreCliByName(program, testProgramContext, "reset");
     expect(found).toBe(true);
-    expect(namesOf(program)).toEqual(["doctor", "control-ui", "reset", "uninstall"]);
+    expect(namesOf(program)).toEqual(["doctor", "reset", "uninstall"]);
   });
 });

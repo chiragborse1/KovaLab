@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildQaGatewayConfig,
-  DEFAULT_QA_CONTROL_UI_ALLOWED_ORIGINS,
-  mergeQaControlUiAllowedOrigins,
-} from "./qa-gateway-config.js";
+import { buildQaGatewayConfig } from "./qa-gateway-config.js";
 import type { QaTransportGatewayConfig } from "./qa-transport.js";
 
 function createQaChannelTransportParams(baseUrl = "http://127.0.0.1:43124") {
@@ -285,55 +281,15 @@ describe("buildQaGatewayConfig", () => {
     });
   });
 
-  it("can disable control ui for suite-only gateway children", () => {
+  it("does not emit legacy browser dashboard config", () => {
     const cfg = buildQaGatewayConfig({
       bind: "loopback",
       gatewayPort: 18789,
       gatewayToken: "token",
       workspaceDir: "/tmp/qa-workspace",
-      controlUiEnabled: false,
       ...createQaChannelTransportParams(),
     });
 
-    expect(cfg.gateway?.controlUi?.enabled).toBe(false);
-    expect(cfg.gateway?.controlUi).not.toHaveProperty("allowInsecureAuth");
-    expect(cfg.gateway?.controlUi).not.toHaveProperty("allowedOrigins");
-  });
-
-  it("pins control ui to a provided built root when available", () => {
-    const cfg = buildQaGatewayConfig({
-      bind: "loopback",
-      gatewayPort: 18789,
-      gatewayToken: "token",
-      workspaceDir: "/tmp/qa-workspace",
-      controlUiRoot: "/tmp/kova/dist/control-ui",
-      ...createQaChannelTransportParams(),
-    });
-
-    expect(cfg.gateway?.controlUi?.enabled).toBe(true);
-    expect(cfg.gateway?.controlUi?.root).toBe("/tmp/kova/dist/control-ui");
-  });
-
-  it("merges dynamic qa-lab origins without dropping the built control ui root", () => {
-    expect(mergeQaControlUiAllowedOrigins(["http://127.0.0.1:60196", "  "])).toEqual([
-      ...DEFAULT_QA_CONTROL_UI_ALLOWED_ORIGINS,
-      "http://127.0.0.1:60196",
-    ]);
-
-    const cfg = buildQaGatewayConfig({
-      bind: "loopback",
-      gatewayPort: 18789,
-      gatewayToken: "token",
-      workspaceDir: "/tmp/qa-workspace",
-      controlUiRoot: "/tmp/kova/dist/control-ui",
-      controlUiAllowedOrigins: ["http://127.0.0.1:60196"],
-      ...createQaChannelTransportParams(),
-    });
-
-    expect(cfg.gateway?.controlUi?.root).toBe("/tmp/kova/dist/control-ui");
-    expect(cfg.gateway?.controlUi?.allowedOrigins).toEqual([
-      ...DEFAULT_QA_CONTROL_UI_ALLOWED_ORIGINS,
-      "http://127.0.0.1:60196",
-    ]);
+    expect(cfg.gateway).not.toHaveProperty("controlUi");
   });
 });

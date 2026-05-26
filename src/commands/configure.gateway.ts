@@ -2,7 +2,6 @@ import { resolveGatewayPort } from "../config/config.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { isValidEnvSecretRefId, type SecretInput } from "../config/types.secrets.js";
 import {
-  maybeAddTailnetOriginToControlUiAllowedOrigins,
   TAILSCALE_DOCS_LINES,
   TAILSCALE_EXPOSURE_OPTIONS,
   TAILSCALE_MISSING_BIN_NOTE_LINES,
@@ -331,12 +330,6 @@ export async function promptGatewayConfig(
       },
     },
   };
-
-  next = await maybeAddTailnetOriginToControlUiAllowedOrigins({
-    config: next,
-    tailscaleMode,
-    tailscaleBin,
-  });
 
   return { config: next, port, token: gatewayTokenForCalls };
 }

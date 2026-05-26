@@ -49,13 +49,13 @@ Use `trusted-proxy` auth mode when:
   </Step>
 </Steps>
 
-## Control UI pairing behavior
+## Gateway clients pairing behavior
 
-When `gateway.auth.mode = "trusted-proxy"` is active and the request passes trusted-proxy checks, Control UI WebSocket sessions can connect without device pairing identity.
+When `gateway.auth.mode = "trusted-proxy"` is active and the request passes trusted-proxy checks, Gateway clients WebSocket sessions can connect without device pairing identity.
 
 Implications:
 
-- Pairing is no longer the primary gate for Control UI access in this mode.
+- Pairing is no longer the primary gate for Gateway clients access in this mode.
 - Your reverse proxy auth policy and `allowUsers` become the effective access control.
 - Keep gateway ingress locked to trusted proxy IPs only (`gateway.trustedProxies` + firewall).
 
@@ -93,8 +93,8 @@ Implications:
 - Trusted-proxy auth rejects loopback-source requests (`127.0.0.1`, `::1`, loopback CIDRs).
 - Same-host loopback reverse proxies do **not** satisfy trusted-proxy auth.
 - For same-host loopback proxy setups, use token/password auth instead, or route through a non-loopback trusted proxy address that Kova can verify.
-- Non-loopback Control UI deployments still need explicit `gateway.controlUi.allowedOrigins`.
-- **Forwarded-header evidence overrides loopback locality.** If a request arrives on loopback but carries `X-Forwarded-For` / `X-Forwarded-Host` / `X-Forwarded-Proto` headers pointing at a non-local origin, that evidence disqualifies the loopback locality claim. The request is treated as remote for pairing, trusted-proxy auth, and Control UI device-identity gating. This prevents a same-host loopback proxy from laundering forwarded-header identity into trusted-proxy auth.
+- Non-loopback Gateway clients deployments still need explicit `remote origin policy`.
+- **Forwarded-header evidence overrides loopback locality.** If a request arrives on loopback but carries `X-Forwarded-For` / `X-Forwarded-Host` / `X-Forwarded-Proto` headers pointing at a non-local origin, that evidence disqualifies the loopback locality claim. The request is treated as remote for pairing, trusted-proxy auth, and Gateway clients device-identity gating. This prevents a same-host loopback proxy from laundering forwarded-header identity into trusted-proxy auth.
   </Warning>
 
 ### Configuration reference
@@ -311,7 +311,7 @@ Behavior:
 - When the header is present but empty, the request declares **no** operator scopes.
 - When the header is absent, normal identity-bearing HTTP APIs fall back to the standard operator default scope set.
 - Gateway-auth **plugin HTTP routes** are narrower by default: when `x-kova-scopes` is absent, their runtime scope falls back to `operator.write`.
-- Browser-origin HTTP requests still have to pass `gateway.controlUi.allowedOrigins` (or deliberate Host-header fallback mode) even after trusted-proxy auth succeeds.
+- Browser-origin HTTP requests still have to pass `remote origin policy` (or deliberate Host-header fallback mode) even after trusted-proxy auth succeeds.
 
 Practical rule: send `x-kova-scopes` explicitly when you want a trusted-proxy request to be narrower than the defaults, or when a gateway-auth plugin route needs something stronger than write scope.
 
@@ -324,7 +324,7 @@ Before enabling trusted-proxy auth, verify:
 - [ ] **No loopback proxy source**: trusted-proxy auth fails closed for loopback-source requests.
 - [ ] **Proxy strips headers**: Your proxy overwrites (not appends) `x-forwarded-*` headers from clients.
 - [ ] **TLS termination**: Your proxy handles TLS; users connect via HTTPS.
-- [ ] **allowedOrigins is explicit**: Non-loopback Control UI uses explicit `gateway.controlUi.allowedOrigins`.
+- [ ] **allowedOrigins is explicit**: Non-loopback Gateway clients uses explicit `remote origin policy`.
 - [ ] **allowUsers is set** (recommended): Restrict to known users rather than allowing anyone authenticated.
 - [ ] **No mixed token config**: Do not set both `gateway.auth.token` and `gateway.auth.mode: "trusted-proxy"`.
 
@@ -338,7 +338,7 @@ The audit checks for:
 - Missing `trustedProxies` configuration
 - Missing `userHeader` configuration
 - Empty `allowUsers` (allows any authenticated user)
-- Wildcard or missing browser-origin policy on exposed Control UI surfaces
+- Wildcard or missing browser-origin policy on exposed Gateway clients surfaces
 
 ## Troubleshooting
 
@@ -384,13 +384,13 @@ The audit checks for:
     The user is authenticated but not in `allowUsers`. Either add them or remove the allowlist.
   </Accordion>
   <Accordion title="trusted_proxy_origin_not_allowed">
-    Trusted-proxy auth succeeded, but the browser `Origin` header did not pass Control UI origin checks.
+    Trusted-proxy auth succeeded, but the browser `Origin` header did not pass Gateway clients origin checks.
 
     Check:
 
-    - `gateway.controlUi.allowedOrigins` includes the exact browser origin.
+    - `remote origin policy` includes the exact browser origin.
     - You are not relying on wildcard origins unless you intentionally want allow-all behavior.
-    - If you intentionally use Host-header fallback mode, `gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true` is set deliberately.
+    - If you intentionally use Host-header fallback mode, `gateway trusted-proxy origin policy=true` is set deliberately.
 
   </Accordion>
   <Accordion title="WebSocket still failing">
@@ -421,7 +421,7 @@ If you're moving from token auth to trusted-proxy:
     Restart the Gateway.
   </Step>
   <Step title="Test WebSocket">
-    Test WebSocket connections from the Control UI.
+    Test WebSocket connections from the Gateway clients.
   </Step>
   <Step title="Audit">
     Run `kova security audit` and review findings.

@@ -118,7 +118,6 @@ export async function loadQaRunnerModelOptions(params: { repoRoot: string; signa
       alternateModel: QA_FRONTIER_CATALOG_ALTERNATE_MODEL,
       enabledProviderIds: [...QA_FRONTIER_PROVIDER_IDS],
       imageGenerationModel: null,
-      controlUiEnabled: false,
       transportPluginIds: QA_CHANNEL_REQUIRED_PLUGIN_IDS,
       transportConfig: createQaChannelGatewayConfig({
         baseUrl: "http://127.0.0.1:9",

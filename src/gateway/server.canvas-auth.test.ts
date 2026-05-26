@@ -232,8 +232,6 @@ async function withCanvasGatewayHarness(params: {
   const httpServer = createGatewayHttpServer({
     canvasHost,
     clients,
-    controlUiEnabled: false,
-    controlUiBasePath: "/__control__",
     openAiChatCompletionsEnabled: false,
     openResponsesEnabled: false,
     handleHooksRequest: async () => false,

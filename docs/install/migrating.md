@@ -112,7 +112,7 @@ On the new machine, confirm:
 
 - [ ] `kova status` shows the gateway running.
 - [ ] Channels are still connected (no re-pairing needed).
-- [ ] The Control UI opens and shows existing sessions.
+- [ ] `kova sessions list` shows existing sessions.
 - [ ] Workspace files (memory, configs) are present.
 
 ## Upgrade a plugin in place

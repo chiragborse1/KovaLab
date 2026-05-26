@@ -152,64 +152,6 @@ describe("configureGatewayForSetup", () => {
     expect(result.nextConfig.gateway?.port).toBe(18791);
   });
 
-  it("enables insecure local control ui auth for fresh quickstart loopback setups", async () => {
-    mocks.randomToken.mockReturnValue("generated-token");
-
-    const result = await runGatewayConfig({
-      flow: "quickstart",
-      textQueue: [],
-    });
-
-    expect(result.nextConfig.gateway?.controlUi?.allowInsecureAuth).toBe(true);
-  });
-
-  it("preserves explicit control ui auth policy in quickstart", async () => {
-    mocks.randomToken.mockReturnValue("generated-token");
-
-    const result = await runGatewayConfig({
-      flow: "quickstart",
-      textQueue: [],
-      nextConfig: {
-        gateway: {
-          controlUi: {
-            allowInsecureAuth: false,
-          },
-        },
-      },
-    });
-
-    expect(result.nextConfig.gateway?.controlUi?.allowInsecureAuth).toBe(false);
-  });
-
-  it("enables insecure local control ui auth when quickstart reuses an existing loopback config", async () => {
-    mocks.randomToken.mockReturnValue("generated-token");
-    const prompter = createPrompter({
-      selectQueue: [],
-      textQueue: [],
-    });
-    const runtime = createRuntime();
-
-    const result = await configureGatewayForSetup({
-      flow: "quickstart",
-      baseConfig: {},
-      nextConfig: {
-        gateway: {
-          port: 18789,
-          bind: "loopback",
-        },
-      },
-      localPort: 18789,
-      quickstartGateway: {
-        ...createQuickstartGateway("token"),
-        hasExisting: true,
-      },
-      prompter,
-      runtime,
-    });
-
-    expect(result.nextConfig.gateway?.controlUi?.allowInsecureAuth).toBe(true);
-  });
-
   it("does not set password to literal 'undefined' when prompt returns undefined", async () => {
     mocks.randomToken.mockReturnValue("unused");
     const result = await runGatewayConfig({
@@ -220,23 +162,6 @@ describe("configureGatewayForSetup", () => {
     expect(authConfig?.mode).toBe("password");
     expect(authConfig?.password).toBe("");
     expect(authConfig?.password).not.toBe("undefined");
-  });
-
-  it("seeds control UI allowed origins for non-loopback binds", async () => {
-    mocks.randomToken.mockReturnValue("generated-token");
-    const result = await runGatewayConfig({
-      bindChoice: "lan",
-      nextConfig: {
-        gateway: {
-          controlUi: { enabled: true },
-        },
-      },
-    });
-
-    expect(result.nextConfig.gateway?.controlUi?.allowedOrigins).toEqual([
-      "http://localhost:18789",
-      "http://127.0.0.1:18789",
-    ]);
   });
 
   it("honors secretInputMode=ref for gateway password prompts", async () => {

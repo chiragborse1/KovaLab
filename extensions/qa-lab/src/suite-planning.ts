@@ -1,5 +1,4 @@
 import path from "node:path";
-import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
 import { ensureRepoBoundDirectory, resolveRepoRelativeOutputDir } from "./cli-paths.js";
 import type { QaCliBackendAuthMode } from "./gateway-child.js";
 import type { QaProviderMode } from "./model-selection.js";
@@ -156,10 +155,6 @@ function collectQaSuiteGatewayRuntimeOptions(
   return forwardHostHome ? { forwardHostHome: true } : undefined;
 }
 
-function scenarioRequiresControlUi(scenario: QaSeedScenario) {
-  return normalizeLowercaseStringOrEmpty(scenario.surface) === "control-ui";
-}
-
 function normalizeQaSuiteConcurrency(
   value: number | undefined,
   scenarioCount: number,
@@ -271,7 +266,6 @@ export {
   resolveQaSuiteWorkerStartStaggerMs,
   resolveQaSuiteOutputDir,
   scenarioMatchesLiveLane,
-  scenarioRequiresControlUi,
   selectQaSuiteScenarios,
   splitModelRef,
 };

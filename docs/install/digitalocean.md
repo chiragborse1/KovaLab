@@ -77,7 +77,7 @@ Run a persistent Kova Gateway on a DigitalOcean Droplet.
     ```
   </Step>
 
-  <Step title="Access the Control UI">
+  <Step title="Access the Gateway clients">
     The gateway binds to loopback by default. Pick one of these options.
 
     **Option A: SSH tunnel (simplest)**

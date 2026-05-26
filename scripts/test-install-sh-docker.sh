@@ -243,7 +243,6 @@ prepare_update_tarball() {
       restore_local_dist_from_image "$UPDATE_DIST_IMAGE"
     elif [[ "$UPDATE_SKIP_LOCAL_BUILD" != "1" ]]; then
       pnpm build
-      pnpm ui:build
     fi
     UPDATE_EXPECT_VERSION="$(
       node -p 'JSON.parse(require("node:fs").readFileSync("package.json", "utf8")).version'

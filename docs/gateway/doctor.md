@@ -71,7 +71,7 @@ cat ~/.kova/kova.json
 <AccordionGroup>
   <Accordion title="Health, UI, and updates">
     - Optional pre-flight update for git installs (interactive only).
-    - UI protocol freshness check (rebuilds Control UI when the protocol schema is newer).
+    - UI protocol freshness check (rebuilds Gateway clients when the protocol schema is newer).
     - Health check + restart prompt.
     - Skills status summary (eligible/missing/blocked) and plugin status.
   </Accordion>
@@ -123,7 +123,7 @@ cat ~/.kova/kova.json
 
 ## Dreams UI backfill and reset
 
-The Control UI Dreams scene includes **Backfill**, **Reset**, and **Clear Grounded** actions for the grounded dreaming workflow. These actions use gateway doctor-style RPC methods, but they are **not** part of `kova doctor` CLI repair/migration.
+The Gateway clients Dreams scene includes **Backfill**, **Reset**, and **Clear Grounded** actions for the grounded dreaming workflow. These actions use gateway doctor-style RPC methods, but they are **not** part of `kova doctor` CLI repair/migration.
 
 What they do:
 

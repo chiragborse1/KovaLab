@@ -99,15 +99,11 @@ ephemeral overlay concept.
 
 The answer is still treated as a side result, not normal session history.
 
-### Control UI / web
+### Terminal behavior
 
-The Gateway emits BTW correctly as `chat.side_result`, and BTW is not included
-in `chat.history`, so the persistence contract is already correct for web.
-
-The current Control UI still needs a dedicated `chat.side_result` consumer to
-render BTW live in the browser. Until that client-side support lands, BTW is a
-Gateway-level feature with full TUI and external-channel behavior, but not yet
-a complete browser UX.
+The Gateway emits BTW as `chat.side_result`, and BTW is not included in
+`chat.history`, so the persistence contract stays separate from normal session
+history.
 
 ## When to use BTW
 

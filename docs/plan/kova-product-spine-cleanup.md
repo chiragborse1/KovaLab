@@ -11,7 +11,7 @@ read_when:
 
 Phase 0 and Phase 1 are in progress. Kova's current product direction is
 terminal-first: `kova`, `kova status`, `kova settings`, `kova logs`, and
-the TUI command center are the primary operator surfaces. The browser Control UI
+the TUI command center are the primary operator surfaces. The browser Gateway clients
 is now treated as a legacy/optional surface, not the product spine.
 
 ## Progress
@@ -30,7 +30,7 @@ Done:
   plugin-owned behavior.
 - Terminal-first docs now identify `kova` and `kova settings` as the daily
   control surfaces.
-- Control UI work is frozen to compatibility, security, and release safety. New
+- Gateway clients work is frozen to compatibility, security, and release safety. New
   operator UX should land in CLI/TUI unless a platform app explicitly owns it.
 - Duplicate and large-file hotspots have a static inventory in
   [Duplicate And Hotspot Inventory](/plan/duplicate-hotspot-inventory).
@@ -49,7 +49,7 @@ Done:
 - `kova status`, `kova status --all`, and TUI docs now point users to the
   terminal commands that own channel, plugin, model, and sandbox capabilities.
 - Core docs and CLI prompts now point ordinary administration toward terminal
-  commands first, keeping the browser Control UI as optional compatibility.
+  commands first, keeping the browser Gateway clients as optional compatibility.
 - The first hotspot cleanup slice moved bundled runtime dependency Jiti aliasing
   out of the plugin loader into an owner-focused plugin helper module.
 - Memory, Dream Diary review, memory promotion, and Skill Workshop proposals
@@ -163,7 +163,7 @@ where terminal users already are:
 - TUI slash commands such as `/status`, `/tasks`, `/automation`, `/recover`,
   `/memory`, `/skills`, and `/plugins`
 
-The browser Control UI remains compatibility surface area. Keep it secure and
+The browser Gateway clients remains compatibility surface area. Keep it secure and
 buildable, but do not add new product-critical workflows there unless the same
 workflow has a terminal path.
 
@@ -187,7 +187,7 @@ Rewrite the core concept docs around one path:
 - explain automation as triggers, authority, workflows, and task state
 - explain memory and context as separate responsibilities
 - explain plugins as the extension model for everything not owned by core
-- explain the browser UI as optional/legacy, never the required setup path
+- explain the browser surface as optional/legacy, never the required setup path
 
 ### Phase 2: Duplicate Inventory
 
@@ -220,6 +220,6 @@ closing real capability gaps while preserving Kova's local-first architecture.
 
 - Do not remove features only because they feel messy.
 - Do not move plugin-owned behavior into core for convenience.
-- Do not use web UI redesign as a substitute for architecture cleanup.
+- Do not use browser surface redesign as a substitute for architecture cleanup.
 - Do not add large new automation or memory features until the existing model is
   documented and reconciled.

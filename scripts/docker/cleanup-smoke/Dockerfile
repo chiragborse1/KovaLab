@@ -15,7 +15,6 @@ RUN --mount=type=cache,id=kova-cleanup-smoke-apt-cache,target=/var/cache/apt,sha
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY kova.mjs ./
-COPY ui/package.json ./ui/package.json
 COPY packages ./packages
 COPY extensions ./extensions
 COPY patches ./patches

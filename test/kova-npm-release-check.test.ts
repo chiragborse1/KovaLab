@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   compareReleaseVersions,
-  collectControlUiPackErrors,
+  collectRequiredPackErrors,
   collectForbiddenPackedContentErrors,
   collectForbiddenPackedPathErrors,
   collectPackedTestCargoErrors,
@@ -24,6 +24,12 @@ import { PACKAGE_DIST_INVENTORY_RELATIVE_PATH } from "../src/infra/package-dist-
 
 const REQUIRED_PACKED_PATHS = [
   PACKAGE_DIST_INVENTORY_RELATIVE_PATH,
+  "docs/index.md",
+  "docs/cli/gateway.md",
+  "patches/@agentclientprotocol__claude-agent-acp@0.31.0.patch",
+  "patches/@whiskeysockets__baileys@7.0.0-rc.9.patch",
+  "scripts/lib/official-external-channel-catalog.json",
+  "scripts/lib/official-external-plugin-catalog.json",
   ...WORKSPACE_TEMPLATE_PACK_PATHS,
 ] as const;
 
@@ -324,16 +330,16 @@ describe("parseNpmPackJsonOutput", () => {
       'npm warn Unknown project config "node-linker".',
       "",
       "> getkova@0.2.0 prepack",
-      "> pnpm build && pnpm ui:build",
+      "> pnpm build",
       "",
       "[copy-hook-metadata] Copied 4 hook metadata files.",
-      '[{"filename":"getkova.tgz","files":[{"path":"dist/control-ui/index.html"}]}]',
+      '[{"filename":"getkova.tgz","files":[{"path":"dist/index.js"}]}]',
     ].join("\n");
 
     expect(parseNpmPackJsonOutput(stdout)).toEqual([
       {
         filename: "getkova.tgz",
-        files: [{ path: "dist/control-ui/index.html" }],
+        files: [{ path: "dist/index.js" }],
       },
     ]);
   });
@@ -343,26 +349,18 @@ describe("parseNpmPackJsonOutput", () => {
   });
 });
 
-describe("collectControlUiPackErrors", () => {
-  it("rejects packs that ship the dashboard HTML without the asset payload", () => {
-    expect(collectControlUiPackErrors(["dist/control-ui/index.html"])).toEqual([
+describe("collectRequiredPackErrors", () => {
+  it("rejects packs that miss required runtime paths", () => {
+    expect(collectRequiredPackErrors(["dist/index.js"])).toEqual([
       ...REQUIRED_PACKED_PATHS.map(
         (requiredPath) =>
-          `npm package is missing required path "${requiredPath}". Ensure UI assets are built and included before publish.`,
+          `npm package is missing required path "${requiredPath}". Ensure runtime artifacts are built and included before publish.`,
       ),
-      'npm package is missing Control UI asset payload under "dist/control-ui/assets/". Refuse release when the dashboard tarball would be empty.',
     ]);
   });
 
-  it("accepts packs that ship dashboard HTML and bundled assets", () => {
-    expect(
-      collectControlUiPackErrors([
-        "dist/control-ui/index.html",
-        ...REQUIRED_PACKED_PATHS,
-        "dist/control-ui/assets/index-Bu8rSoJV.js",
-        "dist/control-ui/assets/index-BK0yXA_h.css",
-      ]),
-    ).toEqual([]);
+  it("accepts packs that ship required runtime paths", () => {
+    expect(collectRequiredPackErrors(REQUIRED_PACKED_PATHS)).toEqual([]);
   });
 });
 

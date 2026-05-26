@@ -58,8 +58,6 @@ describe("gateway HTTP request trace scope", () => {
         const httpServer = createGatewayHttpServer({
           canvasHost: null,
           clients: new Set(),
-          controlUiEnabled: false,
-          controlUiBasePath: "/__control__",
           openAiChatCompletionsEnabled: false,
           openResponsesEnabled: false,
           handleHooksRequest: async (_req, res) => {

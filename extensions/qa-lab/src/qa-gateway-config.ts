@@ -13,21 +13,7 @@ import type { QaTransportGatewayConfig } from "./qa-transport.js";
 
 export { normalizeQaThinkingLevel, type QaThinkingLevel } from "./qa-thinking.js";
 
-export const DEFAULT_QA_CONTROL_UI_ALLOWED_ORIGINS = Object.freeze([
-  "http://127.0.0.1:18789",
-  "http://localhost:18789",
-  "http://127.0.0.1:43124",
-  "http://localhost:43124",
-]);
-
 export const QA_BASE_RUNTIME_PLUGIN_IDS = Object.freeze(["acpx", "memory-core"]);
-
-export function mergeQaControlUiAllowedOrigins(extraOrigins?: string[]) {
-  const normalizedExtra = (extraOrigins ?? [])
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
-  return [...new Set([...DEFAULT_QA_CONTROL_UI_ALLOWED_ORIGINS, ...normalizedExtra])];
-}
 
 export function buildQaGatewayConfig(params: {
   bind: "loopback" | "lan";
@@ -35,9 +21,6 @@ export function buildQaGatewayConfig(params: {
   gatewayToken: string;
   providerBaseUrl?: string;
   workspaceDir: string;
-  controlUiRoot?: string;
-  controlUiAllowedOrigins?: string[];
-  controlUiEnabled?: boolean;
   providerMode?: QaProviderMode;
   primaryModel?: string;
   alternateModel?: string;
@@ -107,7 +90,6 @@ export function buildQaGatewayConfig(params: {
       fastMode: params.fastMode,
       thinkingDefault: params.thinkingDefault,
     });
-  const allowedOrigins = mergeQaControlUiAllowedOrigins(params.controlUiAllowedOrigins);
   const gatewayModels = provider.buildGatewayModels({
     providerBaseUrl,
     liveProviderConfigs: params.liveProviderConfigs,
@@ -217,18 +199,6 @@ export function buildQaGatewayConfig(params: {
         // QA restart scenarios need deterministic reload timing instead of the
         // much longer production deferral window.
         deferralTimeoutMs: 1_000,
-      },
-      controlUi: {
-        enabled: params.controlUiEnabled ?? true,
-        ...((params.controlUiEnabled ?? true) && params.controlUiRoot
-          ? { root: params.controlUiRoot }
-          : {}),
-        ...((params.controlUiEnabled ?? true)
-          ? {
-              allowInsecureAuth: true,
-              allowedOrigins,
-            }
-          : {}),
       },
     },
     discovery: {

@@ -156,9 +156,6 @@ async function runQaUi(opts: {
   port?: number;
   advertiseHost?: string;
   advertisePort?: number;
-  controlUiUrl?: string;
-  controlUiToken?: string;
-  controlUiProxyTarget?: string;
   uiDistDir?: string;
   autoKickoffTarget?: string;
   embeddedGateway?: string;
@@ -543,12 +540,6 @@ export function registerQaLabCli(program: Command) {
     .option("--advertise-port <port>", "Optional public port to advertise", (value: string) =>
       Number(value),
     )
-    .option("--control-ui-url <url>", "Optional Control UI URL to embed beside the QA panel")
-    .option("--control-ui-token <token>", "Optional Control UI token for embedded links")
-    .option(
-      "--control-ui-proxy-target <url>",
-      "Optional upstream Control UI target for /control-ui proxying",
-    )
     .option("--ui-dist-dir <path>", "Optional QA Lab UI asset directory override")
     .option("--auto-kickoff-target <kind>", "Kickoff default target (direct or channel)")
     .option("--embedded-gateway <mode>", "Embedded gateway mode hint", "enabled")
@@ -564,9 +555,6 @@ export function registerQaLabCli(program: Command) {
         port?: number;
         advertiseHost?: string;
         advertisePort?: number;
-        controlUiUrl?: string;
-        controlUiToken?: string;
-        controlUiProxyTarget?: string;
         uiDistDir?: string;
         autoKickoffTarget?: string;
         embeddedGateway?: string;

@@ -639,7 +639,7 @@ describe("normalizeRpcAttachmentsToChatAttachments", () => {
     expect(normalizeRpcAttachmentsToChatAttachments(attachments)).toEqual(expected);
   });
 
-  it("accepts dashboard image attachments with nested base64 source", () => {
+  it("accepts local image attachments with nested base64 source", () => {
     const res = normalizeRpcAttachmentsToChatAttachments([
       {
         type: "image",
@@ -1632,7 +1632,7 @@ describe("exec approval handlers", () => {
     }
   });
 
-  it("resolves Control UI-style approvals by id while preserving stored turn-source metadata", async () => {
+  it("resolves Operator client-style approvals by id while preserving stored turn-source metadata", async () => {
     const { handlers, forwarder, respond, context } = createForwardingExecApprovalFixture();
     const broadcasts: Array<{ event: string; payload: unknown }> = [];
     const requestContext = {
@@ -1648,7 +1648,7 @@ describe("exec approval handlers", () => {
       respond,
       context: requestContext,
       params: {
-        id: "approval-control-ui-multichannel",
+        id: "approval-operator-client-multichannel",
         twoPhase: true,
         timeoutMs: 60_000,
         host: "gateway",
@@ -1666,7 +1666,7 @@ describe("exec approval handlers", () => {
     const resolveRespond = vi.fn();
     await resolveExecApproval({
       handlers,
-      id: "approval-control-ui-multichannel",
+      id: "approval-operator-client-multichannel",
       respond: resolveRespond,
       context: requestContext,
     });
@@ -1675,7 +1675,7 @@ describe("exec approval handlers", () => {
     expect(resolveRespond).toHaveBeenCalledWith(true, { ok: true }, undefined);
     expect(forwarder.handleResolved).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: "approval-control-ui-multichannel",
+        id: "approval-operator-client-multichannel",
         decision: "allow-once",
         request: expect.objectContaining({
           sessionKey: "agent:main:feishu:chat-123",
@@ -1690,7 +1690,7 @@ describe("exec approval handlers", () => {
       expect.objectContaining({
         event: "exec.approval.resolved",
         payload: expect.objectContaining({
-          id: "approval-control-ui-multichannel",
+          id: "approval-operator-client-multichannel",
           request: expect.objectContaining({
             turnSourceChannel: "feishu",
             turnSourceTo: "chat-123",

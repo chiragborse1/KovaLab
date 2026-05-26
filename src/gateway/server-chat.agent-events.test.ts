@@ -1399,7 +1399,7 @@ describe("agent event handler", () => {
     });
     registerAgentRunContext("run-hidden", {
       sessionKey: "session-hidden",
-      isControlUiVisible: false,
+      isOperatorClientVisible: false,
       verboseLevel: "off",
     });
 

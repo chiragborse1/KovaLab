@@ -44,14 +44,14 @@ Print the generated JSON schema for `kova.json` to stdout as JSON.
 <AccordionGroup>
   <Accordion title="What it includes">
     - The current root config schema, plus a root `$schema` string field for editor tooling.
-    - Field `title` and `description` docs metadata used by the Control UI.
+    - Field `title` and `description` docs metadata used by CLI clients and generated docs.
     - Nested object, wildcard (`*`), and array-item (`[]`) nodes inherit the same `title` / `description` metadata when matching field documentation exists.
     - `anyOf` / `oneOf` / `allOf` branches inherit the same docs metadata too when matching field documentation exists.
     - Best-effort live plugin + channel schema metadata when runtime manifests can be loaded.
     - A clean fallback schema even when the current config is invalid.
   </Accordion>
   <Accordion title="Related runtime RPC">
-    `config.schema.lookup` returns one normalized config path with a shallow schema node (`title`, `description`, `type`, `enum`, `const`, common bounds), matched UI hint metadata, and immediate child summaries. Use it for path-scoped drill-down in Control UI or custom clients.
+    `config.schema.lookup` returns one normalized config path with a shallow schema node (`title`, `description`, `type`, `enum`, `const`, common bounds), matched hint metadata, and immediate child summaries. Use it for path-scoped drill-down in custom clients.
   </Accordion>
 </AccordionGroup>
 

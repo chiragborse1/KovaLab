@@ -75,7 +75,7 @@ export function resolveHandshakeBrowserSecurityContext(params: {
 export function shouldAllowSilentLocalPairing(params: {
   locality: PairingLocalityKind;
   hasBrowserOriginHeader: boolean;
-  isControlUi: boolean;
+  isOperatorClient: boolean;
   isWebchat: boolean;
   isNativeAppUi?: boolean;
   reason: "not-paired" | "role-upgrade" | "scope-upgrade" | "metadata-upgrade";
@@ -83,7 +83,7 @@ export function shouldAllowSilentLocalPairing(params: {
   if (params.locality === "remote") {
     return false;
   }
-  if (params.hasBrowserOriginHeader && !params.isControlUi && !params.isWebchat) {
+  if (params.hasBrowserOriginHeader && !params.isOperatorClient && !params.isWebchat) {
     return false;
   }
   if (
@@ -101,7 +101,7 @@ export function shouldAllowSilentLocalPairing(params: {
   if (
     params.reason === "metadata-upgrade" &&
     !params.hasBrowserOriginHeader &&
-    !params.isControlUi &&
+    !params.isOperatorClient &&
     !params.isWebchat &&
     ((params.locality === "direct_local" && params.isNativeAppUi === true) ||
       params.locality === "cli_container_local" ||
@@ -167,7 +167,7 @@ function resolveOriginHost(origin?: string): string {
   }
 }
 
-function isControlUiBrowserContainerLocalEquivalent(params: {
+function isOperatorClientBrowserContainerLocalEquivalent(params: {
   connectParams: ConnectParams;
   requestHost?: string;
   requestOrigin?: string;
@@ -177,12 +177,12 @@ function isControlUiBrowserContainerLocalEquivalent(params: {
   sharedAuthOk: boolean;
   authMethod: GatewayAuthResult["method"];
 }): boolean {
-  const isControlUiBrowser =
-    params.connectParams.client.id === GATEWAY_CLIENT_IDS.CONTROL_UI &&
+  const isOperatorClientBrowser =
+    params.connectParams.client.id === GATEWAY_CLIENT_IDS.OPERATOR_CLIENT &&
     params.connectParams.client.mode === GATEWAY_CLIENT_MODES.WEBCHAT;
   const usesSharedSecretAuth = params.authMethod === "token" || params.authMethod === "password";
   return (
-    isControlUiBrowser &&
+    isOperatorClientBrowser &&
     params.sharedAuthOk &&
     usesSharedSecretAuth &&
     !params.hasProxyHeaders &&
@@ -208,7 +208,7 @@ export function resolvePairingLocality(params: {
     return "direct_local";
   }
   if (
-    isControlUiBrowserContainerLocalEquivalent({
+    isOperatorClientBrowserContainerLocalEquivalent({
       connectParams: params.connectParams,
       requestHost: params.requestHost,
       requestOrigin: params.requestOrigin,

@@ -3,7 +3,6 @@ name: kova-codeql-javascript-typescript
 paths:
   - src
   - extensions
-  - ui/src
   - skills
 
 paths-ignore:

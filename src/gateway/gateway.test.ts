@@ -266,7 +266,6 @@ module.exports = {
       const server = await startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       });
 
       try {
@@ -341,7 +340,6 @@ module.exports = {
       const server = await startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token: wizardToken },
-        controlUiEnabled: false,
         wizardRunner: async (_opts, _runtime, prompter) => {
           await prompter.intro("Wizard E2E");
           await prompter.note("write token");
@@ -421,7 +419,6 @@ module.exports = {
       const port2 = await getFreeGatewayPort();
       const server2 = await startGatewayServer(port2, {
         bind: "loopback",
-        controlUiEnabled: false,
       });
       try {
         const resNoToken = await connectDeviceAuthReq({
@@ -497,7 +494,6 @@ module.exports = {
       const server = await startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       });
 
       try {

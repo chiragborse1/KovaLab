@@ -3,7 +3,7 @@ summary: "Private QA automation shape for qa-lab, qa-channel, seeded scenarios, 
 read_when:
   - Extending qa-lab or qa-channel
   - Adding repo-backed QA scenarios
-  - Building higher-realism QA automation around the Gateway Control UI
+  - Building higher-realism QA automation around the Gateway Gateway clients
 title: "QA E2E automation"
 ---
 
@@ -21,7 +21,7 @@ Current pieces:
 
 The current QA operator flow is a two-pane QA site:
 
-- Left: Gateway Control UI with the agent.
+- Left: Gateway Gateway clients with the agent.
 - Right: QA Lab, showing the Slack-ish transcript and scenario plan.
 
 Run it with:
@@ -198,7 +198,7 @@ the source of truth for one test run and should define:
 
 The reusable runtime surface that backs `qa-flow` is allowed to stay generic
 and cross-cutting. For example, markdown scenarios can combine transport-side
-helpers with browser-side helpers that drive the embedded Control UI through the
+helpers with browser-side helpers that drive the embedded Gateway clients through the
 Gateway `browser.request` seam without adding a special-case runner.
 
 Scenario files should be grouped by product capability rather than source tree
@@ -316,4 +316,4 @@ When no `--judge-model` is passed, the judges default to
 
 - [Testing](/help/testing)
 - [QA Channel](/channels/qa-channel)
-- [Control UI](/web/control-ui)
+- [Gateway clients](/gateway/remote)

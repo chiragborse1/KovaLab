@@ -152,7 +152,7 @@ When you set `--url`, the CLI does not fall back to config or environment creden
 
 ## Token drift recovery checklist
 
-Use this when Control UI or other clients keep failing with `AUTH_TOKEN_MISMATCH` or `AUTH_DEVICE_TOKEN_MISMATCH`.
+Use this when clients keep failing with `AUTH_TOKEN_MISMATCH` or `AUTH_DEVICE_TOKEN_MISMATCH`.
 
 1. Confirm current gateway token source:
 
@@ -189,8 +189,7 @@ Notes:
 
 Related:
 
-- [Control UI auth troubleshooting](/web/control-ui#if-you-see-unauthorized-1008)
-- [Gateway troubleshooting](/gateway/troubleshooting#control-ui-connectivity)
+- [Gateway troubleshooting](/gateway/troubleshooting)
 
 ## Related
 

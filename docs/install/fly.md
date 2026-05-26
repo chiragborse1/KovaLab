@@ -22,7 +22,7 @@ read_when:
 1. Clone repo → customize `fly.toml`
 2. Create app + volume → set secrets
 3. Deploy with `fly deploy`
-4. SSH in to create config or use Control UI
+4. SSH in to create config or use Gateway clients
 
 <Steps>
   <Step title="Create the Fly app">
@@ -193,14 +193,7 @@ read_when:
       },
       "gateway": {
         "mode": "local",
-        "bind": "auto",
-        "controlUi": {
-          "allowedOrigins": [
-            "https://my-kova.fly.dev",
-            "http://localhost:3000",
-            "http://127.0.0.1:3000"
-          ]
-        }
+        "bind": "auto"
       },
       "meta": {}
     }
@@ -210,10 +203,10 @@ read_when:
     **Note:** With `KOVA_STATE_DIR=/data`, the config path is `/data/kova.json`.
 
     **Note:** Replace `https://my-kova.fly.dev` with your real Fly app
-    origin. Gateway startup seeds local Control UI origins from the runtime
-    `--bind` and `--port` values so first boot can proceed before config exists,
-    but browser access through Fly still needs the exact HTTPS origin listed in
-    `gateway.controlUi.allowedOrigins`.
+    origin when you configure remote clients. Gateway startup seeds local
+    Gateway client origins from the runtime `--bind` and `--port` values so
+    first boot can proceed before config exists, but public remote access still
+    needs the exact HTTPS origin in your reverse-proxy or client policy.
 
     **Note:** The Discord token can come from either:
 
@@ -232,7 +225,7 @@ read_when:
   </Step>
 
   <Step title="Access the Gateway">
-    ### Control UI
+    ### Gateway clients
 
     Open in browser:
 
@@ -486,12 +479,12 @@ The ngrok tunnel runs inside the container and provides a public webhook URL wit
 
 ### Security benefits
 
-| Aspect            | Public       | Private    |
-| ----------------- | ------------ | ---------- |
-| Internet scanners | Discoverable | Hidden     |
-| Direct attacks    | Possible     | Blocked    |
-| Control UI access | Browser      | Proxy/VPN  |
-| Webhook delivery  | Direct       | Via tunnel |
+| Aspect                 | Public       | Private    |
+| ---------------------- | ------------ | ---------- |
+| Internet scanners      | Discoverable | Hidden     |
+| Direct attacks         | Possible     | Blocked    |
+| Gateway clients access | Browser      | Proxy/VPN  |
+| Webhook delivery       | Direct       | Via tunnel |
 
 ## Notes
 

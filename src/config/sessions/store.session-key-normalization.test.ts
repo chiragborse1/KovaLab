@@ -11,14 +11,14 @@ import {
 } from "../sessions.js";
 
 const CANONICAL_KEY = "agent:main:webchat:dm:mixed-user";
-const MIXED_CASE_KEY = "Agent:Main:WebChat:DM:MiXeD-User";
+const MIXED_CASE_KEY = "Agent:Main:LocalChat:DM:MiXeD-User";
 
 function createInboundContext(): MsgContext {
   return {
     Provider: "webchat",
     Surface: "webchat",
     ChatType: "direct",
-    From: "WebChat:User-1",
+    From: "LocalChat:User-1",
     To: "webchat:agent",
     SessionKey: MIXED_CASE_KEY,
     OriginatingTo: "webchat:user-1",
@@ -131,7 +131,7 @@ describe("session store key normalization", () => {
             origin: {
               provider: "webchat",
               chatType: "direct",
-              from: "WebChat:User-1",
+              from: "LocalChat:User-1",
               to: "webchat:user-1",
             },
           },

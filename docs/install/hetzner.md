@@ -31,7 +31,7 @@ See [Security](/gateway/security) and [VPS hosting](/vps).
 - Install Docker (isolated app runtime)
 - Start the Kova Gateway in Docker
 - Persist `~/.kova` + `~/.kova/workspace` on the host (survives restarts/rebuilds)
-- Access the Control UI from your laptop via an SSH tunnel
+- Access the Gateway clients from your laptop via an SSH tunnel
 
 That mounted `~/.kova` state includes `kova.json`, per-agent
 `agents/<agentId>/agent/auth-profiles.json`, and `.env`.

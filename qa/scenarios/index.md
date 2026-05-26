@@ -35,7 +35,6 @@ Theme directories:
 - `plugins/` - plugin, skill, and MCP tool integration
 - `runtime/` - turn recovery, compaction, approval, and inventory behavior
 - `scheduling/` - cron and recurring work
-- `ui/` - Control UI plus qa-channel flows
 - `workspace/` - repo-reading and workspace artifact tasks
 
 ```yaml qa-pack

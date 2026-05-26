@@ -59,7 +59,7 @@ node scripts/audit-kova-spine.mjs --json
   - `extensions/feishu`: 194
   - `extensions/msteams`: 180
   - `extensions/qa-lab`: 180
-- Control UI drift signals:
+- Gateway clients drift signals:
   - card/elevated tokens: 148 occurrences in 9 files
   - shadow declarations: 116 occurrences in 11 files
   - gradient declarations: 42 occurrences in 7 files
@@ -77,7 +77,6 @@ weight:
 
 Large hand-maintained or test files worth targeted review:
 
-- `ui/src/styles/components.css`
 - `src/plugins/loader.test.ts`
 - `extensions/qa-matrix/src/runners/contract/scenarios.test.ts`
 - `src/agents/openai-transport-stream.test.ts`
@@ -148,20 +147,6 @@ cleanup should label each feature as:
 - compaction
 - review or knowledge curation
 
-### Legacy Browser UI
-
-The legacy browser UI has structural and visual hotspots:
-
-- `ui/src/styles/components.css`
-- `ui/src/styles/config-quick.css`
-- `ui/src/styles/layout.css`
-- `ui/src/styles/layout.mobile.css`
-- `ui/src/styles/control-panel.css`
-- `ui/src/ui/app-render.ts`
-
-Do not broaden this surface while Kova is terminal-first. Edit these files only
-for compatibility, security, release safety, or direct bug fixes.
-
 ## Cleanup Order
 
 1. Keep product-spine docs current before code cleanup.
@@ -177,10 +162,10 @@ for compatibility, security, release safety, or direct bug fixes.
 
 - Config/Gateway defaults: aligned the default Gateway port and canonical config
   path references across runtime, tests, scripts, and docs.
-- Legacy browser UI: previous visual cleanup work remains documented, but new
+- Legacy browser surface: previous visual cleanup work remains documented, but new
   operator UX should land in CLI/TUI first.
 - Repo audit repeatability: added `scripts/audit-kova-spine.mjs` to refresh the
-  same tracked-file counts, largest-file signals, and Control UI drift counts.
+  same tracked-file counts, largest-file signals, and Gateway clients drift counts.
 - Plugin loader: moved bundled runtime dependency Jiti alias collection into
   `src/plugins/bundled-runtime-jiti-aliases.ts` so loader orchestration no
   longer owns dependency export-map scanning.

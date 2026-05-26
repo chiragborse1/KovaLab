@@ -28,7 +28,6 @@ describe("resolveGatewayRuntimeConfig", () => {
             bind: "lan" as const,
             auth: TRUSTED_PROXY_AUTH,
             trustedProxies: ["192.168.1.1"],
-            controlUi: { allowedOrigins: ["https://control.example.com"] },
           },
         },
         expectedBindHost: "0.0.0.0",
@@ -84,7 +83,6 @@ describe("resolveGatewayRuntimeConfig", () => {
             bind: "lan" as const,
             auth: TRUSTED_PROXY_AUTH,
             trustedProxies: [],
-            controlUi: { allowedOrigins: ["https://control.example.com"] },
           },
         },
         expectedMessage:
@@ -136,7 +134,6 @@ describe("resolveGatewayRuntimeConfig", () => {
           gateway: {
             bind: "lan" as const,
             auth: TOKEN_AUTH,
-            controlUi: { allowedOrigins: ["https://control.example.com"] },
           },
         },
         expectedAuthMode: "token",
@@ -206,58 +203,7 @@ describe("resolveGatewayRuntimeConfig", () => {
       );
     });
 
-    it.each([
-      {
-        name: "rejects non-loopback control UI when allowed origins are missing",
-        cfg: {
-          gateway: {
-            bind: "lan" as const,
-            auth: TOKEN_AUTH,
-            controlUi: { enabled: true },
-          },
-        },
-        expectedError: "non-loopback Control UI requires gateway.controlUi.allowedOrigins",
-      },
-      {
-        name: "allows non-loopback control UI without allowed origins when dangerous fallback is enabled",
-        cfg: {
-          gateway: {
-            bind: "lan" as const,
-            auth: TOKEN_AUTH,
-            controlUi: {
-              enabled: true,
-              dangerouslyAllowHostHeaderOriginFallback: true,
-            },
-          },
-        },
-        expectedBindHost: "0.0.0.0",
-      },
-      {
-        name: "allows non-loopback control UI when allowed origins collapse after trimming",
-        cfg: {
-          gateway: {
-            bind: "lan" as const,
-            auth: TOKEN_AUTH,
-            controlUi: {
-              enabled: true,
-              allowedOrigins: ["  https://control.example.com  "],
-            },
-          },
-        },
-        expectedBindHost: "0.0.0.0",
-      },
-    ])("$name", async ({ cfg, expectedError, expectedBindHost }) => {
-      if (expectedError) {
-        await expect(resolveGatewayRuntimeConfig({ cfg, port: 18789 })).rejects.toThrow(
-          expectedError,
-        );
-        return;
-      }
-      const result = await resolveGatewayRuntimeConfig({ cfg, port: 18789 });
-      expect(result.bindHost).toBe(expectedBindHost);
-    });
-
-    it("allows non-loopback gateway without Control UI origins when browser UI is not enabled", async () => {
+    it("allows non-loopback gateway with auth configured", async () => {
       const result = await resolveGatewayRuntimeConfig({
         cfg: {
           gateway: {
@@ -269,7 +215,6 @@ describe("resolveGatewayRuntimeConfig", () => {
       });
 
       expect(result.bindHost).toBe("0.0.0.0");
-      expect(result.controlUiEnabled).toBe(false);
     });
   });
 
@@ -286,23 +231,11 @@ describe("resolveGatewayRuntimeConfig", () => {
         cfg: {
           gateway: {
             auth: TOKEN_AUTH,
-            controlUi: { enabled: true, allowedOrigins: ["https://control.example.com"] },
           },
         },
         port: 18789,
       });
       expect(result.bindHost).toBe("0.0.0.0");
-    });
-
-    it("rejects container auto-bind with auth but without allowedOrigins (origin check preserved)", async () => {
-      const fs = require("node:fs");
-      vi.spyOn(fs, "accessSync").mockImplementation(() => undefined); // /.dockerenv exists
-      await expect(
-        resolveGatewayRuntimeConfig({
-          cfg: { gateway: { auth: TOKEN_AUTH, controlUi: { enabled: true } } },
-          port: 18789,
-        }),
-      ).rejects.toThrow(/non-loopback Control UI requires gateway\.controlUi\.allowedOrigins/);
     });
 
     it("rejects container auto-bind without auth (security invariant preserved)", async () => {
@@ -366,7 +299,6 @@ describe("resolveGatewayRuntimeConfig", () => {
           gateway: {
             bind: "lan",
             auth: TOKEN_AUTH,
-            controlUi: { allowedOrigins: ["https://control.example.com"] },
           },
         },
         port: 18789,

@@ -22,7 +22,7 @@ Notes:
 
 - `kova` is the default local terminal chat command.
 - `chat`, `terminal`, and `tui --local` remain compatibility paths.
-- Local mode is the fastest first chat path and does not require the Gateway or Control UI.
+- Local mode is the fastest first chat path and does not require the Gateway or Gateway clients.
 - `--local` cannot be combined with `--url`, `--token`, or `--password`.
 - `tui` resolves configured gateway auth SecretRefs for token/password auth when possible (`env`/`file`/`exec` providers).
 - When launched from inside a configured agent workspace directory, TUI auto-selects that agent for the session key default (unless `--session` is explicitly `agent:<id>:...`).

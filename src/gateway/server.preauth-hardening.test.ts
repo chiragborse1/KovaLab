@@ -90,8 +90,6 @@ describe("gateway pre-auth hardening", () => {
     const httpServer = createGatewayHttpServer({
       canvasHost: null,
       clients,
-      controlUiEnabled: false,
-      controlUiBasePath: "/__control__",
       openAiChatCompletionsEnabled: false,
       openResponsesEnabled: false,
       handleHooksRequest: async () => false,

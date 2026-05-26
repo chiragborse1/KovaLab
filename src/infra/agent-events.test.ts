@@ -75,11 +75,11 @@ describe("agent-events sequencing", () => {
     expect(phases).toEqual(["start", "end"]);
   });
 
-  test("omits sessionKey for runs hidden from Control UI", async () => {
+  test("omits sessionKey for runs hidden from Operator client", async () => {
     resetAgentRunContextForTest();
     registerAgentRunContext("run-hidden", {
       sessionKey: "session-quietchat",
-      isControlUiVisible: false,
+      isOperatorClientVisible: false,
     });
 
     let receivedSessionKey: string | undefined;
@@ -101,7 +101,7 @@ describe("agent-events sequencing", () => {
     resetAgentRunContextForTest();
     registerAgentRunContext("run-ctx", {
       sessionKey: "session-main",
-      isControlUiVisible: true,
+      isOperatorClientVisible: true,
     });
     registerAgentRunContext("run-ctx", {
       verboseLevel: "full",
@@ -112,7 +112,7 @@ describe("agent-events sequencing", () => {
       sessionKey: "session-main",
       verboseLevel: "full",
       isHeartbeat: true,
-      isControlUiVisible: true,
+      isOperatorClientVisible: true,
     });
   });
 

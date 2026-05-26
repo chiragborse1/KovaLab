@@ -9,7 +9,6 @@ import {
   resolveExplicitGatewayAuth,
 } from "../gateway/call.js";
 import { GatewayClient, GatewayClientRequestError } from "../gateway/client.js";
-import { isLoopbackHost } from "../gateway/net.js";
 import {
   GATEWAY_CLIENT_CAPS,
   GATEWAY_CLIENT_MODES,
@@ -62,7 +61,7 @@ type ResolvedGatewayConnection = {
   url: string;
   token?: string;
   password?: string;
-  allowInsecureLocalOperatorUi?: boolean;
+  allowInsecureLocalOperatorClient?: boolean;
 };
 
 function throwGatewayAuthResolutionError(reason: string): never {
@@ -135,7 +134,7 @@ export class GatewayChatClient implements TuiBackend {
       clientVersion: VERSION,
       platform: process.platform,
       mode: GATEWAY_CLIENT_MODES.UI,
-      deviceIdentity: connection.allowInsecureLocalOperatorUi ? null : undefined,
+      deviceIdentity: connection.allowInsecureLocalOperatorClient ? null : undefined,
       caps: [GATEWAY_CLIENT_CAPS.TOOL_EVENTS],
       instanceId: randomUUID(),
       minProtocol: PROTOCOL_VERSION,
@@ -361,23 +360,14 @@ export async function resolveGatewayConnection(
     config,
     ...(urlOverride ? { url: urlOverride } : {}),
   }).url;
-  const allowInsecureLocalOperatorUi = (() => {
-    if (config.gateway?.controlUi?.allowInsecureAuth !== true) {
-      return false;
-    }
-    try {
-      return isLoopbackHost(new URL(url).hostname);
-    } catch {
-      return false;
-    }
-  })();
+  const allowInsecureLocalOperatorClient = false;
 
   if (urlOverride) {
     return {
       url,
       token: explicitAuth.token,
       password: explicitAuth.password,
-      allowInsecureLocalOperatorUi,
+      allowInsecureLocalOperatorClient,
     };
   }
 
@@ -395,7 +385,7 @@ export async function resolveGatewayConnection(
       url,
       token: resolved.token,
       password: resolved.password,
-      allowInsecureLocalOperatorUi: false,
+      allowInsecureLocalOperatorClient: false,
     };
   }
 
@@ -410,7 +400,7 @@ export async function resolveGatewayConnection(
       url,
       token: resolved.token,
       password: resolved.password,
-      allowInsecureLocalOperatorUi,
+      allowInsecureLocalOperatorClient,
     };
   }
 
@@ -434,6 +424,6 @@ export async function resolveGatewayConnection(
     url,
     token: resolved.token,
     password: resolved.password,
-    allowInsecureLocalOperatorUi,
+    allowInsecureLocalOperatorClient,
   };
 }

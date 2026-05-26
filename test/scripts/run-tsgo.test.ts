@@ -46,13 +46,7 @@ describe("run-tsgo sparse guard", () => {
 
   it("ignores sparse worktrees when the required files are present", () => {
     const cwd = createTempDir("kova-run-tsgo-");
-    const requiredPaths = [
-      "packages/plugin-package-contract/src/index.ts",
-      "ui/src/i18n/lib/registry.ts",
-      "ui/src/i18n/lib/types.ts",
-      "ui/src/ui/app-settings.ts",
-      "ui/src/ui/gateway.ts",
-    ];
+    const requiredPaths = ["packages/plugin-package-contract/src/index.ts"];
 
     for (const relativePath of requiredPaths) {
       const absolutePath = path.join(cwd, relativePath);
@@ -65,20 +59,14 @@ describe("run-tsgo sparse guard", () => {
       getSparseTsgoGuardError(["-p", "tsconfig.core.test.non-agents.json"], {
         cwd,
         isSparseCheckoutEnabled: () => true,
-        sparseCheckoutPatterns: ["/packages/", "/ui/src/"],
+        sparseCheckoutPatterns: ["/packages/"],
       }),
     ).toBeNull();
   });
 
-  it("rejects sparse core worktrees that include only selected ui and package files", () => {
+  it("rejects sparse core worktrees that include only selected package files", () => {
     const cwd = createTempDir("kova-run-tsgo-");
-    const requiredPaths = [
-      "packages/plugin-package-contract/src/index.ts",
-      "ui/src/i18n/lib/registry.ts",
-      "ui/src/i18n/lib/types.ts",
-      "ui/src/ui/app-settings.ts",
-      "ui/src/ui/gateway.ts",
-    ];
+    const requiredPaths = ["packages/plugin-package-contract/src/index.ts"];
 
     for (const relativePath of requiredPaths) {
       const absolutePath = path.join(cwd, relativePath);
@@ -90,41 +78,32 @@ describe("run-tsgo sparse guard", () => {
       getSparseTsgoGuardError(["-p", "tsconfig.core.test.json"], {
         cwd,
         isSparseCheckoutEnabled: () => true,
-        sparseCheckoutPatterns: [
-          "/packages/plugin-package-contract/src/index.ts",
-          "/ui/src/i18n/lib/registry.ts",
-          "/ui/src/i18n/lib/types.ts",
-          "/ui/src/ui/app-settings.ts",
-          "/ui/src/ui/gateway.ts",
-        ],
+        sparseCheckoutPatterns: ["/packages/plugin-package-contract/src/index.ts"],
       }),
     ).toMatchInlineSnapshot(`
       "tsconfig.core.test.json cannot be typechecked from this sparse checkout because tracked project inputs are missing or only partially included:
       - packages
-      - ui/src
       Expand this worktree's sparse checkout to include those paths, or rerun in a full worktree."
     `);
   });
 
-  it("returns a helpful message for sparse core worktrees missing transitive project files", () => {
+  it("returns a helpful message for sparse core worktrees missing package roots", () => {
     const cwd = createTempDir("kova-run-tsgo-");
-    const uiToolDisplay = path.join(cwd, "ui/src/ui/tool-display.ts");
-    fs.mkdirSync(path.dirname(uiToolDisplay), { recursive: true });
-    fs.writeFileSync(uiToolDisplay, "", "utf8");
 
     expect(
       getSparseTsgoGuardError(["-p", "tsconfig.core.json"], {
         cwd,
         isSparseCheckoutEnabled: () => true,
+        sparseCheckoutPatterns: ["/src/"],
       }),
     ).toMatchInlineSnapshot(`
       "tsconfig.core.json cannot be typechecked from this sparse checkout because tracked project inputs are missing or only partially included:
-      - apps/shared/KovaKit/Sources/KovaKit/Resources/tool-display.json
+      - packages
       Expand this worktree's sparse checkout to include those paths, or rerun in a full worktree."
     `);
   });
 
-  it("returns a helpful message for sparse core-test worktrees missing ui and packages files", () => {
+  it("returns a helpful message for sparse core-test worktrees missing package files", () => {
     const cwd = createTempDir("kova-run-tsgo-");
 
     expect(
@@ -135,10 +114,6 @@ describe("run-tsgo sparse guard", () => {
     ).toMatchInlineSnapshot(`
       "tsconfig.core.test.json cannot be typechecked from this sparse checkout because tracked project inputs are missing or only partially included:
       - packages/plugin-package-contract/src/index.ts
-      - ui/src/i18n/lib/registry.ts
-      - ui/src/i18n/lib/types.ts
-      - ui/src/ui/app-settings.ts
-      - ui/src/ui/gateway.ts
       Expand this worktree's sparse checkout to include those paths, or rerun in a full worktree."
     `);
   });

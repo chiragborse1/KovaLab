@@ -67,7 +67,6 @@ export async function runQaManualLane(params: QaManualLaneParams) {
     alternateModel: params.alternateModel,
     fastMode: params.fastMode,
     thinkingDefault: params.thinkingDefault,
-    controlUiEnabled: false,
   });
 
   const timeoutMs = resolveManualLaneTimeoutMs({

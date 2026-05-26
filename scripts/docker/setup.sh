@@ -107,35 +107,13 @@ read_env_gateway_token() {
 }
 
 sync_gateway_config() {
-  local allowed_origin_json=""
-  local current_allowed_origins=""
   local batch_json=""
 
-  if [[ "${KOVA_GATEWAY_BIND}" != "loopback" ]]; then
-    allowed_origin_json="$(printf '["http://localhost:%s","http://127.0.0.1:%s"]' "$KOVA_GATEWAY_PORT" "$KOVA_GATEWAY_PORT")"
-    current_allowed_origins="$(
-      run_prestart_cli config get gateway.controlUi.allowedOrigins 2>/dev/null || true
-    )"
-    current_allowed_origins="${current_allowed_origins//$'\r'/}"
-  fi
-
   batch_json="$(printf '[{"path":"gateway.mode","value":"local"},{"path":"gateway.bind","value":"%s"}' "$KOVA_GATEWAY_BIND")"
-  if [[ -n "$allowed_origin_json" ]]; then
-    if [[ -n "$current_allowed_origins" && "$current_allowed_origins" != "null" && "$current_allowed_origins" != "[]" ]]; then
-      echo "Control UI allowlist already configured; leaving gateway.controlUi.allowedOrigins unchanged."
-    else
-      batch_json+=",{\"path\":\"gateway.controlUi.allowedOrigins\",\"value\":$allowed_origin_json}"
-    fi
-  fi
   batch_json+="]"
 
   run_prestart_cli config set --batch-json "$batch_json" >/dev/null
   echo "Pinned gateway.mode=local and gateway.bind=$KOVA_GATEWAY_BIND for Docker setup."
-  if [[ -n "$allowed_origin_json" ]]; then
-    if [[ -z "$current_allowed_origins" || "$current_allowed_origins" == "null" || "$current_allowed_origins" == "[]" ]]; then
-      echo "Set gateway.controlUi.allowedOrigins to $allowed_origin_json for non-loopback bind."
-    fi
-  fi
 }
 
 run_prestart_gateway() {

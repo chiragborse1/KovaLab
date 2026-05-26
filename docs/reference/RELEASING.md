@@ -60,7 +60,7 @@ the maintainer-only release runbook.
 5. Bump every required version location for the intended tag, then run the
    local deterministic preflight:
    `pnpm check:test-types`, `pnpm check:architecture`,
-   `pnpm build && pnpm ui:build`, and `pnpm release:check`.
+   `pnpm build`, and `pnpm release:check`.
 6. Run `Kova NPM Release` with `preflight_only=true`. Before a tag exists,
    a full 40-character release-branch SHA is allowed for validation-only
    preflight. Save the successful `preflight_run_id`.
@@ -92,9 +92,8 @@ the maintainer-only release runbook.
   covered outside the faster local `pnpm check` gate
 - Run `pnpm check:architecture` before release preflight so the broader import
   cycle and architecture boundary checks are green outside the faster local gate
-- Run `pnpm build && pnpm ui:build` before `pnpm release:check` so the expected
-  `dist/*` release artifacts and Control UI bundle exist for the pack
-  validation step
+- Run `pnpm build` before `pnpm release:check` so the expected `dist/*` release
+  artifacts exist for the pack validation step
 - Run the manual `Full Release Validation` workflow before release approval to
   kick off all pre-release test boxes from one entrypoint. It accepts a branch,
   tag, or full commit SHA, dispatches manual `CI`, and dispatches
@@ -125,8 +124,7 @@ the maintainer-only release runbook.
   coverage for the release candidate. Manual CI dispatches bypass changed
   scoping and force the Linux Node shards, bundled-plugin shards, channel
   contracts, Node 22 compatibility, `check`, `check-additional`, build smoke,
-  docs checks, Python skills, Windows, macOS, Android, and Control UI i18n
-  lanes.
+  docs checks, Python skills, Windows, macOS, and Android lanes.
   Example: `gh workflow run ci.yml --ref release/0.2.0`
 - Run `pnpm qa:otel:smoke` when validating release telemetry. It exercises
   QA-lab through a local OTLP/HTTP receiver and verifies the exported trace
@@ -198,9 +196,6 @@ Validation` or from the `main`/release workflow ref so workflow logic and
   also checks the same temp-prefix upgrade path from `YYYY.M.D` to `YYYY.M.D-N`
   so release corrections cannot silently leave older global installs on the
   base stable payload
-- npm release preflight fails closed unless the tarball includes both
-  `dist/control-ui/index.html` and a non-empty `dist/control-ui/assets/` payload
-  so we do not ship an empty browser Control UI again
 - Post-publish verification also checks that the published registry install
   contains non-empty bundled plugin runtime deps under the root `dist/*`
   layout. A release that ships with missing or empty bundled plugin
@@ -289,7 +284,7 @@ The Vitest box is the manual `CI` child workflow. Manual CI intentionally
 bypasses changed scoping and forces the normal test graph for the release
 candidate: Linux Node shards, bundled-plugin shards, channel contracts, Node 22
 compatibility, `check`, `check-additional`, build smoke, docs checks, Python
-skills, Windows, macOS, Android, and Control UI i18n.
+skills, Windows, macOS, and Android.
 
 Use this box to answer "did the source tree pass the full normal test suite?"
 It is not the same as release-path product validation. Evidence to keep:

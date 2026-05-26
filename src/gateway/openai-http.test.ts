@@ -28,7 +28,6 @@ beforeAll(async () => {
     opts: {
       host: "127.0.0.1",
       auth: { mode: "none" },
-      controlUiEnabled: false,
       openAiChatCompletionsEnabled: true,
     },
   });
@@ -44,7 +43,6 @@ async function startServer(port: number, opts?: { openAiChatCompletionsEnabled?:
   return await startGatewayServer(port, {
     host: "127.0.0.1",
     auth: { mode: "none" },
-    controlUiEnabled: false,
     openAiChatCompletionsEnabled: opts?.openAiChatCompletionsEnabled ?? true,
   });
 }
@@ -53,7 +51,6 @@ async function startTokenServer(port: number, opts?: { openAiChatCompletionsEnab
   return await startGatewayServer(port, {
     host: "127.0.0.1",
     auth: { mode: "token", token: "secret" },
-    controlUiEnabled: false,
     openAiChatCompletionsEnabled: opts?.openAiChatCompletionsEnabled ?? true,
   });
 }
@@ -927,7 +924,6 @@ describe("OpenAI-compatible HTTP API (e2e)", () => {
       {
         serverOptions: {
           host: "127.0.0.1",
-          controlUiEnabled: false,
           openAiChatCompletionsEnabled: true,
         },
       },

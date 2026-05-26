@@ -264,11 +264,11 @@ async function expectManifestId(tmp: string, relativePath: string, id: string) {
 
 describe("run-node script", () => {
   it.runIf(process.platform !== "win32")(
-    "preserves control-ui assets by building with tsdown --no-clean",
+    "preserves existing dist assets by building with tsdown --no-clean",
     async () => {
       await withTempDir({ prefix: "kova-run-node-" }, async (tmp) => {
         const argsPath = resolvePath(tmp, ".build-args.txt");
-        const indexPath = resolvePath(tmp, "dist/control-ui/index.html");
+        const indexPath = resolvePath(tmp, "dist/custom-asset/index.html");
 
         await writeRuntimePostBuildScaffold(tmp);
         await fs.mkdir(path.dirname(indexPath), { recursive: true });
@@ -279,7 +279,10 @@ describe("run-node script", () => {
           if (cmd === process.execPath && args[0] === "scripts/tsdown-build.mjs") {
             fsSync.writeFileSync(argsPath, args.join(" "), "utf-8");
             if (!args.includes("--no-clean")) {
-              fsSync.rmSync(resolvePath(tmp, "dist/control-ui"), { recursive: true, force: true });
+              fsSync.rmSync(resolvePath(tmp, "dist/custom-asset"), {
+                recursive: true,
+                force: true,
+              });
             }
           }
           if (cmd === process.execPath) {

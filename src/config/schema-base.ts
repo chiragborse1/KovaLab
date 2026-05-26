@@ -161,7 +161,7 @@ function stripChannelSchema(schema: ConfigSchema): ConfigSchema {
     return next;
   }
   // Allow `$schema` in config files for editor tooling, but hide it from the
-  // Control UI form schema so it does not show up as a configurable section.
+  // generated config schema so it does not show up as a configurable section.
   delete root.properties.$schema;
   if (Array.isArray(root.required)) {
     root.required = root.required.filter((key) => key !== "$schema");

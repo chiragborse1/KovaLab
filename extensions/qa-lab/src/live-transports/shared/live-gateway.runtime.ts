@@ -42,14 +42,12 @@ export async function startQaLiveLaneGateway(params: {
     createGatewayConfig: (params: { baseUrl: string }) => Pick<KovaConfig, "channels" | "messages">;
   };
   transportBaseUrl: string;
-  controlUiAllowedOrigins?: string[];
   providerMode: QaProviderMode;
   primaryModel: string;
   alternateModel: string;
   fastMode?: boolean;
   thinkingDefault?: QaThinkingLevel;
   claudeCliAuthMode?: QaCliBackendAuthMode;
-  controlUiEnabled?: boolean;
   mutateConfig?: (cfg: KovaConfig) => KovaConfig;
 }) {
   const mock = await startQaProviderServer(params.providerMode);
@@ -60,14 +58,12 @@ export async function startQaLiveLaneGateway(params: {
       providerBaseUrl: mock ? `${mock.baseUrl}/v1` : undefined,
       transport: params.transport,
       transportBaseUrl: params.transportBaseUrl,
-      controlUiAllowedOrigins: params.controlUiAllowedOrigins,
       providerMode: params.providerMode,
       primaryModel: params.primaryModel,
       alternateModel: params.alternateModel,
       fastMode: params.fastMode,
       thinkingDefault: params.thinkingDefault,
       claudeCliAuthMode: params.claudeCliAuthMode,
-      controlUiEnabled: params.controlUiEnabled,
       mutateConfig: params.mutateConfig,
     });
     return {

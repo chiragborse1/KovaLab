@@ -63,7 +63,6 @@ const config = {
   gateway: {
     port,
     auth: { mode: "token", token },
-    controlUi: { enabled: false },
   },
   agents: {
     defaults: {

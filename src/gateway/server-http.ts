@@ -16,7 +16,6 @@ import {
   createDiagnosticTraceContext,
   runWithDiagnosticTraceContext,
 } from "../infra/diagnostic-trace-context.js";
-import { resolveAssistantIdentity } from "./assistant-identity.js";
 import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import {
   authorizeHttpGatewayConnect,
@@ -25,7 +24,6 @@ import {
   type ResolvedGatewayAuth,
 } from "./auth.js";
 import { normalizeCanvasScopedUrl } from "./canvas-capability.js";
-import type { ControlUiRootState } from "./control-ui.js";
 import type { AuthorizedGatewayHttpRequest } from "./http-auth-utils.js";
 import { sendGatewayAuthFailure, setDefaultSecurityHeaders } from "./http-common.js";
 import { resolveRequestClientIp } from "./net.js";
@@ -51,8 +49,6 @@ type PluginHttpRequestHandler = (
   },
 ) => Promise<boolean>;
 
-let identityAvatarModulePromise: Promise<typeof import("../agents/identity-avatar.js")> | undefined;
-let controlUiModulePromise: Promise<typeof import("./control-ui.js")> | undefined;
 let embeddingsHttpModulePromise: Promise<typeof import("./embeddings-http.js")> | undefined;
 let managedImageAttachmentsModulePromise:
   | Promise<typeof import("./managed-image-attachments.js")>
@@ -74,16 +70,6 @@ let httpAuthUtilsModulePromise: Promise<typeof import("./http-auth-utils.js")> |
 let pluginRouteRuntimeScopesModulePromise:
   | Promise<typeof import("./server/plugin-route-runtime-scopes.js")>
   | undefined;
-
-function getIdentityAvatarModule() {
-  identityAvatarModulePromise ??= import("../agents/identity-avatar.js");
-  return identityAvatarModulePromise;
-}
-
-function getControlUiModule() {
-  controlUiModulePromise ??= import("./control-ui.js");
-  return controlUiModulePromise;
-}
 
 function getEmbeddingsHttpModule() {
   embeddingsHttpModulePromise ??= import("./embeddings-http.js");
@@ -374,8 +360,8 @@ export async function runGatewayHttpRequestStages(
       if (!stage.continueOnError) {
         throw err;
       }
-      // Log and skip the failing stage so subsequent stages (control-ui,
-      // gateway-probes, etc.) remain reachable. A common trigger is a
+      // Log and skip the failing stage so subsequent gateway stages remain
+      // reachable. A common trigger is a
       // plugin-owned route/runtime code still failing to load an optional dependency.
       console.error(`[gateway-http] stage "${stage.name}" threw — skipping:`, err);
     }
@@ -462,9 +448,6 @@ function buildPluginRequestStages(params: {
 export function createGatewayHttpServer(opts: {
   canvasHost: CanvasHostHandler | null;
   clients: Set<GatewayWsClient>;
-  controlUiEnabled: boolean;
-  controlUiBasePath: string;
-  controlUiRoot?: ControlUiRootState;
   openAiChatCompletionsEnabled: boolean;
   openAiChatCompletionsConfig?: import("../config/types.gateway.js").GatewayHttpChatCompletionsConfig;
   openResponsesEnabled: boolean;
@@ -484,9 +467,6 @@ export function createGatewayHttpServer(opts: {
   const {
     canvasHost,
     clients,
-    controlUiEnabled,
-    controlUiBasePath,
-    controlUiRoot,
     openAiChatCompletionsEnabled,
     openAiChatCompletionsConfig,
     openResponsesEnabled,
@@ -703,9 +683,9 @@ export function createGatewayHttpServer(opts: {
           run: () => canvasHost.handleHttpRequest(req, res),
         });
       }
-      // Plugin routes run before the Control UI SPA catch-all so explicitly
-      // registered plugin endpoints stay reachable. Core built-in gateway
-      // routes above still keep precedence on overlapping paths.
+      // Plugin routes run after core built-in gateway routes so explicitly
+      // registered plugin endpoints stay reachable without overriding core
+      // paths.
       requestStages.push(
         ...buildPluginRequestStages({
           req,
@@ -736,52 +716,6 @@ export function createGatewayHttpServer(opts: {
             },
           ),
       });
-
-      if (controlUiEnabled) {
-        requestStages.push({
-          name: "control-ui-assistant-media",
-          run: async () =>
-            (await getControlUiModule()).handleControlUiAssistantMediaRequest(req, res, {
-              basePath: controlUiBasePath,
-              config: configSnapshot,
-              agentId: resolveAssistantIdentity({ cfg: configSnapshot }).agentId,
-              auth: resolvedAuth,
-              trustedProxies,
-              allowRealIpFallback,
-              rateLimiter,
-            }),
-        });
-        requestStages.push({
-          name: "control-ui-avatar",
-          run: async () => {
-            const { handleControlUiAvatarRequest } = await getControlUiModule();
-            const { resolveAgentAvatar } = await getIdentityAvatarModule();
-            return handleControlUiAvatarRequest(req, res, {
-              basePath: controlUiBasePath,
-              auth: resolvedAuth,
-              trustedProxies,
-              allowRealIpFallback,
-              rateLimiter,
-              resolveAvatar: (agentId) =>
-                resolveAgentAvatar(configSnapshot, agentId, { includeUiOverride: true }),
-            });
-          },
-        });
-        requestStages.push({
-          name: "control-ui-http",
-          run: async () =>
-            (await getControlUiModule()).handleControlUiHttpRequest(req, res, {
-              basePath: controlUiBasePath,
-              config: configSnapshot,
-              agentId: resolveAssistantIdentity({ cfg: configSnapshot }).agentId,
-              root: controlUiRoot,
-              auth: resolvedAuth,
-              trustedProxies,
-              allowRealIpFallback,
-              rateLimiter,
-            }),
-        });
-      }
 
       if (await runGatewayHttpRequestStages(requestStages)) {
         return;

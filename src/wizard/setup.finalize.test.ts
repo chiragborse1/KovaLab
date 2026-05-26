@@ -58,10 +58,10 @@ const listConfiguredWebSearchProviders = vi.hoisted(() =>
 
 vi.mock("../commands/onboard-helpers.js", () => ({
   detectBrowserOpenSupport: vi.fn(async () => ({ ok: false })),
-  formatControlUiSshHint: vi.fn(() => "ssh hint"),
+  formatGatewaySshHint: vi.fn(() => "ssh hint"),
   openUrl: vi.fn(async () => false),
   probeGatewayReachable,
-  resolveControlUiLinks: vi.fn(() => ({
+  resolveGatewayHttpLinks: vi.fn(() => ({
     httpUrl: "http://127.0.0.1:18789",
     wsUrl: "ws://127.0.0.1:18789",
   })),
@@ -129,10 +129,6 @@ vi.mock("../daemon/service.js", () => ({
 vi.mock("../daemon/systemd.js", () => ({
   isSystemdUserServiceAvailable,
   readSystemdUserLingerStatus,
-}));
-
-vi.mock("../infra/control-ui-assets.js", () => ({
-  ensureControlUiAssetsBuilt: vi.fn(async () => ({ ok: true })),
 }));
 
 vi.mock("../terminal/restore.js", () => ({
@@ -671,7 +667,7 @@ describe("finalizeSetupWizard", () => {
       expect.stringContaining("You skipped background service install"),
       "Gateway",
     );
-    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Control UI ready");
+    expect(prompter.note).not.toHaveBeenCalledWith(expect.any(String), "Gateway ready");
   });
 
   it("skips Gateway probes during launch without a daemon", async () => {

@@ -767,17 +767,6 @@ describe("test-projects args", () => {
     ]);
   });
 
-  it("routes ui targets to the ui config", () => {
-    expect(buildVitestRunPlans(["ui/src/ui/views/channels.test.ts"])).toEqual([
-      {
-        config: "test/vitest/vitest.ui.config.ts",
-        forwardedArgs: [],
-        includePatterns: ["ui/src/ui/views/channels.test.ts"],
-        watchMode: false,
-      },
-    ]);
-  });
-
   it("routes utils targets to the utils config", () => {
     expect(buildVitestRunPlans(["src/utils/path.test.ts"])).toEqual([
       {

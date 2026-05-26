@@ -98,11 +98,11 @@ Run a persistent, always-on Kova Gateway on a Raspberry Pi. Since the Pi is just
     ```
   </Step>
 
-  <Step title="Access the Control UI">
-    On your computer, get a Control UI URL from the Pi:
+  <Step title="Check the Gateway">
+    On your computer, get Gateway status from the Pi:
 
     ```bash
-    ssh user@gateway-host 'kova control-ui --no-open'
+    ssh user@gateway-host 'kova gateway status --deep'
     ```
 
     Then create an SSH tunnel in another terminal:
@@ -111,7 +111,7 @@ Run a persistent, always-on Kova Gateway on a Raspberry Pi. Since the Pi is just
     ssh -N -L 18789:127.0.0.1:18789 user@gateway-host
     ```
 
-    Open the printed URL in your local browser. For always-on remote access, see [Tailscale integration](/gateway/tailscale).
+    Use `kova status --all`, `kova logs --follow`, or a remote TUI session to administer the Gateway. For always-on remote access, see [Tailscale integration](/gateway/tailscale).
 
   </Step>
 </Steps>

@@ -15,18 +15,14 @@ import { resolveGatewayInstallToken } from "../commands/gateway-install-token.js
 import { formatHealthCheckFailure } from "../commands/health-format.js";
 import { healthCommand } from "../commands/health.js";
 import {
-  detectBrowserOpenSupport,
-  formatControlUiSshHint,
-  openUrl,
   probeGatewayReachable,
   waitForGatewayReachable,
-  resolveControlUiLinks,
+  resolveGatewayHttpLinks,
 } from "../commands/onboard-helpers.js";
 import type { OnboardOptions } from "../commands/onboard-types.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { describeGatewayServiceRestart, resolveGatewayService } from "../daemon/service.js";
 import { isSystemdUserServiceAvailable } from "../daemon/systemd.js";
-import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { restoreTerminalState } from "../terminal/restore.js";
@@ -280,11 +276,10 @@ export async function finalizeSetupWizard(
     !opts.skipHealth &&
     ((!isQuickstart && !isExtras) || installDaemon || (isExtras && extrasWantGateway));
   if (shouldCheckGatewayHealth) {
-    const probeLinks = resolveControlUiLinks({
+    const probeLinks = resolveGatewayHttpLinks({
       bind: nextConfig.gateway?.bind ?? "loopback",
       port: settings.port,
       customBindHost: nextConfig.gateway?.customBindHost,
-      basePath: undefined,
       tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
     });
     // Daemon install/restart can briefly flap the WS; wait a bit so health check doesn't false-fail.
@@ -379,10 +374,6 @@ export async function finalizeSetupWizard(
     );
   }
 
-  const controlUiEnabled =
-    nextConfig.gateway?.controlUi?.enabled === true ||
-    baseConfig.gateway?.controlUi?.enabled === true;
-
   if (!isQuickstart && !isExtras) {
     await prompter.note(
       [
@@ -403,19 +394,12 @@ export async function finalizeSetupWizard(
     );
   }
 
-  const controlUiBasePath =
-    nextConfig.gateway?.controlUi?.basePath ?? baseConfig.gateway?.controlUi?.basePath;
-  const links = resolveControlUiLinks({
+  const links = resolveGatewayHttpLinks({
     bind: settings.bind,
     port: settings.port,
     customBindHost: settings.customBindHost,
-    basePath: controlUiBasePath,
     tlsEnabled: nextConfig.gateway?.tls?.enabled === true,
   });
-  const authedUrl =
-    settings.authMode === "token" && settings.gatewayToken
-      ? `${links.httpUrl}#token=${encodeURIComponent(settings.gatewayToken)}`
-      : links.httpUrl;
   const shouldProbeGatewayForSummary =
     (!isQuickstart && !isExtras) || installDaemon || (isExtras && extrasWantGateway);
   if (shouldProbeGatewayForSummary && (opts.skipHealth || !gatewayProbe.ok)) {
@@ -472,10 +456,6 @@ export async function finalizeSetupWizard(
             "Runs the embedded local agent. No browser, Gateway, or chat channel is required.",
             "Useful first commands inside chat: /status, /memory, /persona, /tools",
             `Gateway: ${gatewayProbe.ok ? "reachable" : "not detected"} at ${links.wsUrl}`,
-            `Legacy web UI: ${controlUiEnabled ? links.httpUrl : "disabled"}`,
-            controlUiEnabled && settings.authMode === "token" && settings.gatewayToken
-              ? `Legacy web UI (with token): ${authedUrl}`
-              : undefined,
             `Gateway detail: ${gatewayStatusLine}`,
             "Docs: https://docs.neuralstudio.in/web/tui",
           ]
@@ -485,9 +465,7 @@ export async function finalizeSetupWizard(
     "Terminal start",
   );
 
-  let controlUiOpened = false;
-  let controlUiOpenHint: string | undefined;
-  let hatchChoice: "tui" | "web" | "later" | null = null;
+  let hatchChoice: "tui" | "later" | null = null;
   let launchedTui = false;
 
   if (!opts.skipUi) {
@@ -506,22 +484,18 @@ export async function finalizeSetupWizard(
     if (((!isQuickstart && !isExtras) || extrasWantGateway || installDaemon) && gatewayProbe.ok) {
       await prompter.note(
         [
-          "Gateway token: shared auth for remote clients, channels, nodes, and legacy web UI when enabled.",
+          "Gateway token: shared auth for remote clients, channels, and nodes.",
           "Local terminal chat does not need a browser token.",
           "Stored in: $KOVA_CONFIG_PATH (default: ~/.kova/kova.json) under gateway.auth.token, or in KOVA_GATEWAY_TOKEN.",
           `View token: ${formatCliCommand("kova config get gateway.auth.token")}`,
           `Generate token: ${formatCliCommand("kova doctor --generate-gateway-token")}`,
-          `If you opt into the legacy web UI later: ${formatCliCommand("kova control-ui --no-open")}`,
         ].join("\n"),
         "Gateway token",
       );
     }
 
-    const hatchOptions: { value: "tui" | "web" | "later"; label: string }[] = [
+    const hatchOptions: { value: "tui" | "later"; label: string }[] = [
       { value: "tui", label: "Open Terminal chat (recommended)" },
-      ...(gatewayProbe.ok && controlUiEnabled
-        ? [{ value: "web" as const, label: "Open Control UI (advanced)" }]
-        : []),
       { value: "later", label: "Finish without launching" },
     ];
 
@@ -544,40 +518,6 @@ export async function finalizeSetupWizard(
         restoreTerminalState("post-setup tui", { resumeStdinIfPaused: true });
       }
       launchedTui = true;
-    } else if (hatchChoice === "web") {
-      const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-      if (!controlUiAssets.ok && controlUiAssets.message) {
-        runtime.error(controlUiAssets.message);
-      }
-      const browserSupport = await detectBrowserOpenSupport();
-      if (browserSupport.ok) {
-        controlUiOpened = await openUrl(authedUrl);
-        if (!controlUiOpened) {
-          controlUiOpenHint = formatControlUiSshHint({
-            port: settings.port,
-            basePath: controlUiBasePath,
-            token: settings.authMode === "token" ? settings.gatewayToken : undefined,
-          });
-        }
-      } else {
-        controlUiOpenHint = formatControlUiSshHint({
-          port: settings.port,
-          basePath: controlUiBasePath,
-          token: settings.authMode === "token" ? settings.gatewayToken : undefined,
-        });
-      }
-      await prompter.note(
-        [
-          `Control UI link (with token): ${authedUrl}`,
-          controlUiOpened
-            ? "Opened in your browser."
-            : "Copy/paste this URL in a browser on this machine.",
-          controlUiOpenHint,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-        "Control UI ready",
-      );
     } else {
       await prompter.note(
         [
@@ -585,9 +525,6 @@ export async function finalizeSetupWizard(
           `Inspect readiness: ${formatCliCommand("kova status --all")}`,
           `Tune persona: ${formatCliCommand("kova persona edit")}`,
           `Check memory: ${formatCliCommand("kova memory status")}`,
-          controlUiEnabled
-            ? `Legacy web UI: ${formatCliCommand("kova control-ui --no-open")}`
-            : undefined,
         ]
           .filter(Boolean)
           .join("\n"),
@@ -629,50 +566,6 @@ export async function finalizeSetupWizard(
   }
 
   await setupWizardShellCompletion({ flow, prompter });
-
-  const shouldOpenControlUi =
-    !opts.skipUi &&
-    gatewayProbe.ok &&
-    controlUiEnabled &&
-    settings.authMode === "token" &&
-    Boolean(settings.gatewayToken) &&
-    hatchChoice === null;
-  if (shouldOpenControlUi) {
-    const controlUiAssets = await ensureControlUiAssetsBuilt(runtime);
-    if (!controlUiAssets.ok && controlUiAssets.message) {
-      runtime.error(controlUiAssets.message);
-    }
-    const browserSupport = await detectBrowserOpenSupport();
-    if (browserSupport.ok) {
-      controlUiOpened = await openUrl(authedUrl);
-      if (!controlUiOpened) {
-        controlUiOpenHint = formatControlUiSshHint({
-          port: settings.port,
-          basePath: controlUiBasePath,
-          token: settings.gatewayToken,
-        });
-      }
-    } else {
-      controlUiOpenHint = formatControlUiSshHint({
-        port: settings.port,
-        basePath: controlUiBasePath,
-        token: settings.gatewayToken,
-      });
-    }
-
-    await prompter.note(
-      [
-        `Control UI link (with token): ${authedUrl}`,
-        controlUiOpened
-          ? "Opened in your browser."
-          : "Copy/paste this URL in a browser on this machine.",
-        controlUiOpenHint,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-      "Control UI ready",
-    );
-  }
 
   const codexNativeSummary = describeCodexNativeWebSearch(nextConfig);
   const webSearchProvider = nextConfig.tools?.web?.search?.provider;
@@ -832,11 +725,9 @@ export async function finalizeSetupWizard(
   }
 
   await prompter.outro(
-    controlUiOpened
-      ? "Kova is ready. Legacy web UI opened in your browser."
-      : launchedTui
-        ? "Kova terminal chat is ready."
-        : "Kova is ready. Start with `kova` when you are ready.",
+    launchedTui
+      ? "Kova terminal chat is ready."
+      : "Kova is ready. Start with `kova` when you are ready.",
   );
 
   return { launchedTui };

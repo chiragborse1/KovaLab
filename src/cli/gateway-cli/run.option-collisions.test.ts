@@ -39,9 +39,6 @@ const writeDiagnosticStabilityBundleForFailureSync = vi.fn((_reason: string, _er
   message: "wrote stability bundle: /tmp/kova-stability.json",
   path: "/tmp/kova-stability.json",
 }));
-const controlUiState = vi.hoisted(() => ({
-  root: "/tmp/kova-control-ui" as string | null,
-}));
 
 const { runtimeErrors, defaultRuntime, resetRuntimeCapture } = createCliRuntimeCapture();
 
@@ -83,10 +80,6 @@ vi.mock("../../gateway/auth.js", () => ({
 
 vi.mock("../../gateway/server.js", () => ({
   startGatewayServer: (port: number, opts?: unknown) => startGatewayServer(port, opts),
-}));
-
-vi.mock("../../infra/control-ui-assets.js", () => ({
-  resolveControlUiRootSync: () => controlUiState.root,
 }));
 
 vi.mock("../../gateway/ws-logging.js", () => ({
@@ -169,7 +162,6 @@ describe("gateway run option collisions", () => {
     resetRuntimeCapture();
     configState.cfg = {};
     configState.snapshot = { exists: false };
-    controlUiState.root = "/tmp/kova-control-ui";
     gatewayLogMessages.length = 0;
     recoverConfigFromLastKnownGood.mockReset();
     recoverConfigFromLastKnownGood.mockResolvedValue(false);
@@ -294,23 +286,6 @@ describe("gateway run option collisions", () => {
       expect.objectContaining({
         bind: "loopback",
       }),
-    );
-  });
-
-  it("logs when explicit control UI startup will build missing web console assets", async () => {
-    controlUiState.root = null;
-    configState.cfg = {
-      gateway: {
-        controlUi: {
-          enabled: true,
-        },
-      },
-    };
-
-    await runGatewayCli(["gateway", "run", "--allow-unconfigured"]);
-
-    expect(gatewayLogMessages).toContain(
-      "web console assets are missing for explicit gateway.controlUi.enabled=true; startup may spend a few seconds building them before the control plane binds. `pnpm gateway:watch` does not rebuild console assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the console. For a full local dist, run `pnpm build && pnpm ui:build`.",
     );
   });
 

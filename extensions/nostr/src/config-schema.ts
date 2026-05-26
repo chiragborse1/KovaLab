@@ -101,6 +101,6 @@ export const NostrConfigSchema = z.object({
 export type NostrConfig = z.infer<typeof NostrConfigSchema>;
 
 /**
- * JSON Schema for Control UI (converted from Zod)
+ * JSON Schema for channel configuration forms (converted from Zod)
  */
 export const nostrChannelConfigSchema = buildChannelConfigSchema(NostrConfigSchema);

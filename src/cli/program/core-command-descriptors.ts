@@ -46,11 +46,6 @@ const coreCliCommandCatalog = defineCommandDescriptorCatalog([
     hasSubcommands: false,
   },
   {
-    name: "control-ui",
-    description: "Open the optional browser Control UI",
-    hasSubcommands: false,
-  },
-  {
     name: "reset",
     description: "Reset local config/state (keeps the CLI installed)",
     hasSubcommands: false,

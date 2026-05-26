@@ -193,7 +193,6 @@ describeLive("gateway live trajectory export", () => {
       const server = await startGatewayServer(port, {
         bind: "loopback",
         auth: { mode: "token", token },
-        controlUiEnabled: false,
       });
       logLiveStep("gateway-started", { port });
       cleanup.push(async () => {

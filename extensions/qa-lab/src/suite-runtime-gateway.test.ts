@@ -67,9 +67,7 @@ describe("qa suite gateway helpers", () => {
   it("detects full config applies that only differ by gateway-written metadata", () => {
     const config = {
       gateway: {
-        controlUi: {
-          allowedOrigins: ["http://127.0.0.1:5173"],
-        },
+        port: 18789,
       },
       meta: {
         updatedAt: "2026-04-25T10:00:00.000Z",
@@ -81,9 +79,7 @@ describe("qa suite gateway helpers", () => {
         config,
         JSON.stringify({
           gateway: {
-            controlUi: {
-              allowedOrigins: ["http://127.0.0.1:5173"],
-            },
+            port: 18789,
           },
         }),
       ),
@@ -95,9 +91,7 @@ describe("qa suite gateway helpers", () => {
       isConfigApplyNoopForSnapshot(
         {
           gateway: {
-            controlUi: {
-              allowedOrigins: ["http://127.0.0.1:5173"],
-            },
+            port: 18789,
           },
           meta: {
             updatedAt: "2026-04-25T10:00:00.000Z",
@@ -105,9 +99,7 @@ describe("qa suite gateway helpers", () => {
         },
         JSON.stringify({
           gateway: {
-            controlUi: {
-              allowedOrigins: ["http://127.0.0.1:5174"],
-            },
+            port: 18790,
           },
         }),
       ),

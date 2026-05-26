@@ -72,7 +72,6 @@ const BASE_CONFIG = {
     mode: "local",
     bind: "loopback",
     auth: { mode: "none" },
-    controlUi: { enabled: false },
     tailscale: { mode: "off" },
   },
   plugins: {

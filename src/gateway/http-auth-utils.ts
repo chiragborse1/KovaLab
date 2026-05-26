@@ -52,14 +52,12 @@ export type GatewayHttpRequestAuthCheckResult =
 
 export function resolveHttpBrowserOriginPolicy(
   req: IncomingMessage,
-  cfg = getRuntimeConfig(),
 ): NonNullable<Parameters<typeof authorizeHttpGatewayConnect>[0]["browserOriginPolicy"]> {
   return {
     requestHost: getHeader(req, "host"),
     origin: getHeader(req, "origin"),
-    allowedOrigins: cfg.gateway?.controlUi?.allowedOrigins,
-    allowHostHeaderOriginFallback:
-      cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true,
+    allowedOrigins: undefined,
+    allowHostHeaderOriginFallback: false,
   };
 }
 
@@ -109,7 +107,7 @@ export async function checkGatewayHttpRequestAuth(params: {
   cfg?: KovaConfig;
 }): Promise<GatewayHttpRequestAuthCheckResult> {
   const token = getBearerToken(params.req);
-  const browserOriginPolicy = resolveHttpBrowserOriginPolicy(params.req, params.cfg);
+  const browserOriginPolicy = resolveHttpBrowserOriginPolicy(params.req);
   const authResult = await authorizeHttpGatewayConnect({
     auth: params.auth,
     connectAuth: token ? { token, password: token } : null,

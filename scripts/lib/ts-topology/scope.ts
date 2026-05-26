@@ -29,9 +29,6 @@ function classifyScope(relPath: string): ConsumerScope {
   if (relPath.startsWith("apps/")) {
     return "app";
   }
-  if (relPath.startsWith("ui/")) {
-    return "ui";
-  }
   if (relPath.startsWith("scripts/")) {
     return "script";
   }

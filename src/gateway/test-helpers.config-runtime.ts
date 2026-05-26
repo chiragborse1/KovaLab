@@ -96,18 +96,6 @@ export function createGatewayConfigModuleMock(actual: GatewayConfigModule): Gate
     if (testState.gatewayAuth) {
       fileGateway.auth = testState.gatewayAuth;
     }
-    if (testState.gatewayControlUi) {
-      const fileControlUi =
-        fileGateway.controlUi &&
-        typeof fileGateway.controlUi === "object" &&
-        !Array.isArray(fileGateway.controlUi)
-          ? (fileGateway.controlUi as Record<string, unknown>)
-          : {};
-      fileGateway.controlUi = {
-        ...fileControlUi,
-        ...testState.gatewayControlUi,
-      };
-    }
     const gateway = Object.keys(fileGateway).length > 0 ? fileGateway : undefined;
 
     const fileCanvasHost =

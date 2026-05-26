@@ -54,8 +54,8 @@ describe("qa docker harness", () => {
     expect(compose).toContain(
       '        - fetch("http://127.0.0.1:18789/healthz").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))',
     );
-    expect(compose).toContain("      - --control-ui-proxy-target");
-    expect(compose).toContain('      - "http://kova-qa-gateway:18789/"');
+    expect(compose).not.toContain("--control-ui");
+    expect(compose).not.toContain("/control-ui");
     expect(compose).toContain("      - --send-kickoff-on-start");
     expect(compose).toContain("      - --ui-dist-dir");
     expect(compose).toContain('      - "/opt/kova-qa-lab-ui"');
@@ -73,10 +73,10 @@ describe("qa docker harness", () => {
     expect(envExample).toContain("QA_LAB_URL=http://127.0.0.1:43124");
 
     const config = await readFile(path.join(outputDir, "state", "kova.json"), "utf8");
-    expect(config).toContain('"allowInsecureAuth": true');
+    expect(config).not.toContain('"controlUi"');
+    expect(config).not.toContain('"allowInsecureAuth"');
     expect(config).toContain('"pluginToolsMcpBridge": true');
     expect(config).toContain('"kovaToolsMcpBridge": true');
-    expect(config).toContain("/app/dist/control-ui");
     expect(config).toContain("C-3PO QA");
     expect(config).toContain('"/tmp/kova/workspace"');
 

@@ -84,7 +84,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "direct_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "not-paired",
       }),
@@ -93,7 +93,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "direct_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "role-upgrade",
       }),
@@ -102,7 +102,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "direct_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "scope-upgrade",
       }),
@@ -111,7 +111,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "browser_container_local",
         hasBrowserOriginHeader: true,
-        isControlUi: true,
+        isOperatorClient: true,
         isWebchat: true,
         reason: "not-paired",
       }),
@@ -120,7 +120,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "direct_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "metadata-upgrade",
       }),
@@ -131,7 +131,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "remote",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "role-upgrade",
       }),
@@ -159,10 +159,10 @@ describe("handshake auth helpers", () => {
     ).toBe("direct_local");
   });
 
-  it("classifies Docker-published loopback Control UI as browser-container-local", () => {
+  it("classifies Docker-published loopback Operator client as browser-container-local", () => {
     const connectParams = {
       client: {
-        id: GATEWAY_CLIENT_IDS.CONTROL_UI,
+        id: GATEWAY_CLIENT_IDS.OPERATOR_CLIENT,
         mode: GATEWAY_CLIENT_MODES.WEBCHAT,
       },
     } as ConnectParams;
@@ -194,10 +194,10 @@ describe("handshake auth helpers", () => {
     ).toBe("browser_container_local");
   });
 
-  it("keeps Docker-published non-loopback Control UI origins remote", () => {
+  it("keeps Docker-published non-loopback Operator client origins remote", () => {
     const connectParams = {
       client: {
-        id: GATEWAY_CLIENT_IDS.CONTROL_UI,
+        id: GATEWAY_CLIENT_IDS.OPERATOR_CLIENT,
         mode: GATEWAY_CLIENT_MODES.WEBCHAT,
       },
     } as ConnectParams;
@@ -591,7 +591,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "shared_secret_loopback_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "scope-upgrade",
       }),
@@ -600,7 +600,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "shared_secret_loopback_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "role-upgrade",
       }),
@@ -611,7 +611,7 @@ describe("handshake auth helpers", () => {
       shouldAllowSilentLocalPairing({
         locality: "shared_secret_loopback_local",
         hasBrowserOriginHeader: false,
-        isControlUi: false,
+        isOperatorClient: false,
         isWebchat: false,
         reason: "metadata-upgrade",
       }),
@@ -624,7 +624,7 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "direct_local",
           hasBrowserOriginHeader: false,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: false,
           isNativeAppUi: true,
           reason: "metadata-upgrade",
@@ -637,7 +637,7 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "direct_local",
           hasBrowserOriginHeader: false,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
@@ -649,7 +649,7 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "cli_container_local",
           hasBrowserOriginHeader: false,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
@@ -661,7 +661,7 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "shared_secret_loopback_local",
           hasBrowserOriginHeader: false,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
@@ -673,31 +673,31 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "remote",
           hasBrowserOriginHeader: false,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
       ).toBe(false);
     });
 
-    it("still requires approval for metadata-upgrade from browser_container_local (Control UI)", () => {
+    it("still requires approval for metadata-upgrade from browser_container_local (Operator client)", () => {
       expect(
         shouldAllowSilentLocalPairing({
           locality: "browser_container_local",
           hasBrowserOriginHeader: true,
-          isControlUi: true,
+          isOperatorClient: true,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
       ).toBe(false);
     });
 
-    it("still requires approval for direct local Browser or Control UI metadata-upgrade", () => {
+    it("still requires approval for direct local Browser or Operator client metadata-upgrade", () => {
       expect(
         shouldAllowSilentLocalPairing({
           locality: "direct_local",
           hasBrowserOriginHeader: true,
-          isControlUi: true,
+          isOperatorClient: true,
           isWebchat: false,
           reason: "metadata-upgrade",
         }),
@@ -706,7 +706,7 @@ describe("handshake auth helpers", () => {
         shouldAllowSilentLocalPairing({
           locality: "direct_local",
           hasBrowserOriginHeader: true,
-          isControlUi: false,
+          isOperatorClient: false,
           isWebchat: true,
           reason: "metadata-upgrade",
         }),

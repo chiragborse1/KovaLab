@@ -331,15 +331,14 @@ node-host approvals through the same `system.execApprovals.get/set` capability.
 See [Approvals CLI](/cli/approvals).
 
 If a node does not advertise exec approvals yet, edit its local
-`~/.kova/exec-approvals.json` directly. The legacy browser Control UI still has
-a Nodes card for compatibility, but it is not the primary editing path.
+`~/.kova/exec-approvals.json` directly.
 
 ## Approval flow
 
 When a prompt is required, the gateway broadcasts
-`exec.approval.requested` to operator clients. The Control UI and macOS
-app resolve it via `exec.approval.resolve`, then the gateway forwards the
-approved request to the node host.
+`exec.approval.requested` to operator clients. Clients resolve it via
+`exec.approval.resolve`, then the gateway forwards the approved request to the
+node host.
 
 For `host=node`, approval requests include a canonical `systemRunPlan`
 payload. The gateway uses that plan as the authoritative

@@ -213,9 +213,6 @@ function classifyFile(relativePath) {
   if (first === "src") {
     return `src/${parts[1] ?? "(root)"}`;
   }
-  if (first === "ui") {
-    return `ui/${parts[1] ?? "(root)"}`;
-  }
   if (first === "test") {
     return `test/${parts[1] ?? "(root)"}`;
   }

@@ -7,8 +7,6 @@ import {
   buildGatewayStatusJsonPayload,
   buildGatewayStatusSummaryParts,
   formatGatewaySelfSummary,
-  resolveStatusControlUiUrl,
-  formatStatusControlUiValue,
   formatStatusServiceValue,
   formatStatusTailscaleValue,
 } from "./format.js";
@@ -49,12 +47,6 @@ describe("status-all format", () => {
     });
   });
 
-  it("formats legacy web UI values consistently", () => {
-    expect(formatStatusControlUiValue("https://kova.local")).toBe("https://kova.local");
-    expect(formatStatusControlUiValue("")).toBe("disabled");
-    expect(formatStatusControlUiValue(null)).toBe("disabled");
-  });
-
   it("builds shared update surface values", () => {
     const newerRegistryVersion = "9999.0.0";
 
@@ -88,39 +80,6 @@ describe("status-all format", () => {
       updateLine: `git main · ↔ origin/main · behind 2 · npm update ${newerRegistryVersion}`,
       updateAvailable: true,
     });
-  });
-
-  it("resolves legacy web UI urls from explicit gateway config", () => {
-    expect(
-      resolveStatusControlUiUrl({
-        cfg: {
-          gateway: {
-            bind: "loopback",
-            controlUi: { enabled: true, basePath: "/ui" },
-          },
-        },
-      }),
-    ).toBe("http://127.0.0.1:18789/ui/");
-    expect(
-      resolveStatusControlUiUrl({
-        cfg: {
-          gateway: {
-            bind: "loopback",
-            tls: { enabled: true },
-            controlUi: { enabled: true },
-          },
-        },
-      }),
-    ).toBe("https://127.0.0.1:18789/");
-    expect(
-      resolveStatusControlUiUrl({
-        cfg: {
-          gateway: {
-            controlUi: { enabled: false },
-          },
-        },
-      }),
-    ).toBeNull();
   });
 
   it("formats tailscale values for terse and detailed views", () => {
@@ -207,7 +166,7 @@ describe("status-all format", () => {
   it("builds shared gateway surface values for node and gateway views", () => {
     expect(
       buildStatusGatewaySurfaceValues({
-        cfg: { gateway: { bind: "loopback", controlUi: { enabled: true } } },
+        cfg: { gateway: { bind: "loopback" } },
         gatewayMode: "remote",
         remoteUrlMissing: false,
         gatewayConnection: {
@@ -235,7 +194,6 @@ describe("status-all format", () => {
         decorateWarn: (value) => `warn(${value})`,
       }),
     ).toEqual({
-      controlUiUrl: "http://127.0.0.1:18789/",
       gatewayValue:
         "remote · wss://gateway.example.com (config) · ok(reachable 123ms) · auth token · gateway app 1.2.3",
       gatewaySelfValue: "gateway app 1.2.3",
@@ -247,7 +205,7 @@ describe("status-all format", () => {
   it("prefers node-only gateway values when present", () => {
     expect(
       buildStatusGatewaySurfaceValues({
-        cfg: { gateway: { controlUi: { enabled: false } } },
+        cfg: { gateway: {} },
         gatewayMode: "local",
         remoteUrlMissing: false,
         gatewayConnection: {
@@ -273,7 +231,6 @@ describe("status-all format", () => {
         },
       }),
     ).toEqual({
-      controlUiUrl: null,
       gatewayValue: "node → remote.example:18789 · no local gateway",
       gatewaySelfValue: null,
       gatewayServiceValue: "LaunchAgent not installed",
@@ -285,7 +242,6 @@ describe("status-all format", () => {
     expect(
       buildStatusOverviewRows({
         prefixRows: [{ Item: "Version", Value: "1.0.0" }],
-        controlUiValue: "https://kova.local",
         tailscaleValue: "serve · https://tail.example",
         channelLabel: "stable",
         gitLabel: "main @ v1.0.0",
@@ -302,7 +258,6 @@ describe("status-all format", () => {
     ).toEqual([
       { Item: "Version", Value: "1.0.0" },
       { Item: "Terminal", Value: "kova" },
-      { Item: "Legacy web UI", Value: "https://kova.local" },
       { Item: "Tailscale exposure", Value: "serve · https://tail.example" },
       { Item: "Channel", Value: "stable" },
       { Item: "Git", Value: "main @ v1.0.0" },
@@ -323,7 +278,7 @@ describe("status-all format", () => {
       buildStatusOverviewSurfaceRows({
         cfg: {
           update: { channel: "stable" },
-          gateway: { bind: "loopback", controlUi: { enabled: true } },
+          gateway: { bind: "loopback" },
         },
         update: {
           installKind: "git",
@@ -375,7 +330,6 @@ describe("status-all format", () => {
     ).toEqual([
       { Item: "Version", Value: "1.0.0" },
       { Item: "Terminal", Value: "kova" },
-      { Item: "Legacy web UI", Value: "http://127.0.0.1:18789/" },
       { Item: "Tailscale exposure", Value: "serve · box.tail.ts.net · https://box.tail.ts.net" },
       { Item: "Channel", Value: "stable (config)" },
       { Item: "Git", Value: "main · tag v1.2.3" },

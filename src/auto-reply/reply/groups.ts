@@ -204,7 +204,7 @@ function resolveProviderLabel(rawProvider: string | undefined): string {
     return "chat";
   }
   if (isInternalMessageChannel(providerKey)) {
-    return "WebChat";
+    return "Local Chat";
   }
   const labels: Record<string, string> = {
     imessage: "iMessage",

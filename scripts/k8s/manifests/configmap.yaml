@@ -13,9 +13,6 @@ data:
         "port": 18789,
         "auth": {
           "mode": "token"
-        },
-        "controlUi": {
-          "enabled": true
         }
       },
       "agents": {

@@ -20,13 +20,12 @@ function hasLoggingFinding(
 }
 
 describe("security audit loopback and logging findings", () => {
-  it("evaluates loopback control UI and logging exposure findings", async () => {
+  it("evaluates loopback gateway and logging exposure findings", async () => {
     await Promise.all([
       (async () => {
         const cfg: KovaConfig = {
           gateway: {
             bind: "loopback",
-            controlUi: { enabled: true },
             auth: { mode: "trusted-proxy" },
           },
         };
@@ -42,7 +41,6 @@ describe("security audit loopback and logging findings", () => {
         const cfg: KovaConfig = {
           gateway: {
             bind: "loopback",
-            controlUi: { enabled: true },
             auth: { mode: "token", token: "test-token" },
           },
         };
@@ -63,7 +61,6 @@ describe("security audit loopback and logging findings", () => {
           const cfg: KovaConfig = {
             gateway: {
               bind: "loopback",
-              controlUi: { enabled: true },
               auth: {},
             },
           };

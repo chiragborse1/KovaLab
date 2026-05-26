@@ -2024,9 +2024,6 @@ install_kova_from_git() {
 
     SHARP_IGNORE_GLOBAL_LIBVIPS="$SHARP_IGNORE_GLOBAL_LIBVIPS" run_quiet_step "Installing dependencies" run_pnpm -C "$repo_dir" install
 
-    if ! run_quiet_step "Building UI" run_pnpm -C "$repo_dir" ui:build; then
-        ui_warn "UI build failed; continuing (CLI may still work)"
-    fi
     run_quiet_step "Building Kova" run_pnpm -C "$repo_dir" build
 
     ensure_user_local_bin_on_path
@@ -2162,20 +2159,6 @@ run_doctor() {
     fi
     run_quiet_step "Running doctor" "$kova_bin" doctor --non-interactive || true
     ui_success "Doctor complete"
-}
-
-maybe_open_control_ui() {
-    local kova_bin="${KOVA_BIN:-}"
-    if [[ -z "$kova_bin" ]]; then
-        kova_bin="$(resolve_kova_bin || true)"
-    fi
-    if [[ -z "$kova_bin" ]]; then
-        return 0
-    fi
-    if ! "$kova_bin" control-ui --help >/dev/null 2>&1; then
-        return 0
-    fi
-    "$kova_bin" control-ui || true
 }
 
 resolve_workspace_dir() {
@@ -2432,7 +2415,6 @@ main() {
     if check_existing_kova; then
         is_upgrade=true
     fi
-    local should_open_dashboard=false
     local skip_onboard=false
 
     ui_stage "Preparing environment"
@@ -2516,7 +2498,6 @@ main() {
     fi
     if [[ "$run_doctor_after" == "true" ]]; then
         run_doctor
-        should_open_dashboard=true
     fi
 
     # Step 7: If BOOTSTRAP.md is still present in the workspace, resume onboarding
@@ -2623,7 +2604,6 @@ main() {
             if [[ -f "${config_path}" || -f "$HOME/.chiragborse1/KovaLab.json" || -f "$HOME/.kova/kova.json" ]]; then
                 ui_info "Config already present; running doctor"
                 run_doctor
-                should_open_dashboard=true
                 ui_info "Config already present; skipping onboarding"
                 skip_onboard=true
             fi
@@ -2668,10 +2648,6 @@ main() {
 
     if ! verify_installation; then
         exit 1
-    fi
-
-    if [[ "$should_open_dashboard" == "true" ]]; then
-        maybe_open_control_ui
     fi
 
     show_footer_links

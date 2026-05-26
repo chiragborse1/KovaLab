@@ -17,7 +17,6 @@ describe("browser security audit collector", () => {
   it("flags browser control without auth", () => {
     const findings = collectFindings({
       gateway: {
-        controlUi: { enabled: false },
         auth: {},
       },
       browser: {

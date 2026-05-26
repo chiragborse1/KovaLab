@@ -1137,7 +1137,6 @@ export async function runTelegramQaLive(params: {
       primaryModel,
       alternateModel,
       fastMode: params.fastMode,
-      controlUiEnabled: false,
       mutateConfig: (cfg) =>
         buildTelegramQaConfig(cfg, {
           groupId: runtimeEnv.groupId,

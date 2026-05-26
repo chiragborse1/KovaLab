@@ -22,8 +22,7 @@ Notes:
 
 - The Overview starts with `Terminal: kova`. Use `kova settings`,
   `kova logs`, `kova tasks`, `kova memory`, `kova skills`, and TUI slash
-  commands for daily administration. The browser UI appears only when it is
-  explicitly enabled.
+  commands for daily administration.
 - The `Capability map` row points to the terminal commands that own capability
   and runtime-config inventory: `kova channels capabilities`, `kova plugins
 inspect --all`, `kova mcp status`, `kova models status`, and `kova sandbox

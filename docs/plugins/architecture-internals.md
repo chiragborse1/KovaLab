@@ -42,7 +42,7 @@ The manifest is the control-plane source of truth. Kova uses it to:
 - identify the plugin
 - discover declared channels/skills/config schema or bundle capabilities
 - validate `plugins.entries.<id>.config`
-- augment Control UI labels/placeholders
+- augment Gateway clients labels/placeholders
 - show install/catalog metadata
 - preserve cheap activation and setup descriptors without loading plugin runtime
 

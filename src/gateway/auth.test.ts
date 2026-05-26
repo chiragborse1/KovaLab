@@ -7,7 +7,7 @@ import {
   hasForwardedRequestHeaders,
   isLocalDirectRequest,
   resolveEffectiveSharedGatewayAuth,
-  authorizeWsControlUiGatewayConnect,
+  authorizeWsOperatorClientGatewayConnect,
   resolveGatewayAuth,
 } from "./auth.js";
 
@@ -72,7 +72,7 @@ describe("gateway auth", () => {
   }
 
   async function expectTailscaleHeaderAuthResult(params: {
-    authorize: typeof authorizeHttpGatewayConnect | typeof authorizeWsControlUiGatewayConnect;
+    authorize: typeof authorizeHttpGatewayConnect | typeof authorizeWsOperatorClientGatewayConnect;
     expected: { ok: false; reason: string } | { ok: true; method: string; user: string };
   }) {
     const res = await params.authorize({
@@ -368,7 +368,7 @@ describe("gateway auth", () => {
       auth: { mode: "token", token: "secret", allowTailscale: true },
       connectAuth: null,
       tailscaleWhois: createTailscaleWhois(),
-      authSurface: "ws-control-ui",
+      authSurface: "ws-operator-client",
       req: createTailscaleForwardedReq(),
     });
 
@@ -399,7 +399,7 @@ describe("gateway auth", () => {
       auth: { mode: "token" as const, token: "secret", allowTailscale: true },
       connectAuth: { token: "wrong" },
       tailscaleWhois,
-      authSurface: "ws-control-ui" as const,
+      authSurface: "ws-operator-client" as const,
       req: createTailscaleForwardedReq(),
       trustedProxies: ["127.0.0.1"],
       rateLimiter: limiter,
@@ -425,9 +425,9 @@ describe("gateway auth", () => {
     });
   });
 
-  it("enables tailscale header auth on ws control-ui auth wrapper", async () => {
+  it("enables tailscale header auth on ws operator-client auth wrapper", async () => {
     await expectTailscaleHeaderAuthResult({
-      authorize: authorizeWsControlUiGatewayConnect,
+      authorize: authorizeWsOperatorClientGatewayConnect,
       expected: { ok: true, method: "tailscale", user: "peter" },
     });
   });

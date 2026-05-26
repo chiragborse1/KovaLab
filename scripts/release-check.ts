@@ -74,7 +74,6 @@ const requiredPathGroups = [
   "dist/plugin-sdk/root-alias.cjs",
   "dist/build-info.json",
   "dist/channel-catalog.json",
-  "dist/control-ui/index.html",
 ];
 const forbiddenPrefixes = [
   "dist-runtime/",
@@ -591,23 +590,14 @@ export function collectMissingPackPaths(paths: Iterable<string>): string[] {
 }
 
 export function resolveMissingPackBuildHint(missing: readonly string[]): string | null {
-  const needsControlUiBuild = missing.includes("dist/control-ui/index.html");
   const needsRuntimeBuild = missing.some(
-    (path) =>
-      path !== "dist/control-ui/index.html" &&
-      (path === "dist/build-info.json" || path.startsWith("dist/")),
+    (path) => path === "dist/build-info.json" || path.startsWith("dist/"),
   );
 
-  if (!needsControlUiBuild && !needsRuntimeBuild) {
+  if (!needsRuntimeBuild) {
     return null;
   }
 
-  if (needsControlUiBuild && needsRuntimeBuild) {
-    return "release-check: build and Control UI artifacts are missing. Run `pnpm build && pnpm ui:build` before `pnpm release:check`.";
-  }
-  if (needsControlUiBuild) {
-    return "release-check: Control UI artifacts are missing. Run `pnpm ui:build` before `pnpm release:check`.";
-  }
   return "release-check: build artifacts are missing. Run `pnpm build` before `pnpm release:check`.";
 }
 

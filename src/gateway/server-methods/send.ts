@@ -121,7 +121,7 @@ async function resolveRequestedChannel(params: {
       return {
         error: errorShape(
           ErrorCodes.INVALID_REQUEST,
-          "unsupported channel: webchat (internal-only). Use `chat.send` for WebChat UI messages or choose a deliverable channel.",
+          "unsupported channel: webchat (internal-only). Use `chat.send` for local chat messages or choose a deliverable channel.",
         ),
       };
     }

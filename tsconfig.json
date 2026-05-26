@@ -28,6 +28,6 @@
       "@kovaai/*": ["./extensions/*"]
     }
   },
-  "include": ["src/**/*", "ui/**/*", "extensions/**/*", "packages/**/*"],
+  "include": ["src/**/*", "extensions/**/*", "packages/**/*"],
   "exclude": ["node_modules", "dist", "**/dist/**"]
 }

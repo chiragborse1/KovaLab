@@ -35,7 +35,7 @@ describe("gateway control-plane write rate limit", () => {
       role: "operator",
       scopes: ["operator.admin"],
       client: {
-        id: "kova-control-ui",
+        id: "kova-operator-client",
         version: "1.0.0",
         platform: "darwin",
         mode: "ui",

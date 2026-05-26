@@ -11,8 +11,7 @@ import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import { resolveConfigPath } from "../config/paths.js";
 import { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";
 import type { KovaConfig } from "../config/types.kova.js";
-import { resolveControlUiLinks } from "../gateway/control-ui-links.js";
-import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
+import { resolveGatewayHttpLinks } from "../gateway/gateway-http-links.js";
 import { probeGateway } from "../gateway/probe.js";
 import {
   detectBrowserOpenSupport,
@@ -38,7 +37,7 @@ export { randomToken } from "./random-token.js";
 
 export { detectBinary };
 export { detectBrowserOpenSupport, openUrl, openUrlInBackground, resolveBrowserOpenCommand };
-export { resolveControlUiLinks };
+export { resolveGatewayHttpLinks };
 
 export function guardCancel<T>(value: T | symbol, runtime: RuntimeEnv): T {
   if (isCancel(value)) {
@@ -144,27 +143,16 @@ export function applyWizardMetadata(
   };
 }
 
-export function formatControlUiSshHint(params: {
-  port: number;
-  basePath?: string;
-  token?: string;
-}): string {
-  const basePath = normalizeControlUiBasePath(params.basePath);
-  const uiPath = basePath ? `${basePath}/` : "/";
-  const localUrl = `http://localhost:${params.port}${uiPath}`;
-  const authedUrl = params.token
-    ? `${localUrl}#token=${encodeURIComponent(params.token)}`
-    : undefined;
+export function formatGatewaySshHint(params: { port: number }): string {
+  const localUrl = `http://localhost:${params.port}`;
   const sshTarget = resolveSshTargetHint();
   return [
-    "No GUI detected. Open from your computer:",
+    "Forward the Gateway port from your computer:",
     `ssh -N -L ${params.port}:127.0.0.1:${params.port} ${sshTarget}`,
-    "Then open:",
-    localUrl,
-    authedUrl,
+    "Then connect your terminal client to:",
+    `${localUrl} (WebSocket: ws://localhost:${params.port})`,
     "Docs:",
     "https://docs.neuralstudio.in/gateway/remote",
-    "https://docs.neuralstudio.in/web/control-ui",
   ]
     .filter(Boolean)
     .join("\n");

@@ -5,7 +5,6 @@
   },
   "include": [
     "src/**/*.d.ts",
-    "ui/**/*.d.ts",
     "extensions/**/*.d.ts",
     "extensions/**/*.test.ts",
     "extensions/**/*.test.tsx",

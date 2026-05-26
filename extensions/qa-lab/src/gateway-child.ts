@@ -474,29 +474,18 @@ function isRetryableRpcStartupError(error: unknown) {
   );
 }
 
-export function resolveQaControlUiRoot(params: { repoRoot: string; controlUiEnabled?: boolean }) {
-  if (params.controlUiEnabled === false) {
-    return undefined;
-  }
-  const controlUiRoot = path.join(params.repoRoot, "dist", "control-ui");
-  const indexPath = path.join(controlUiRoot, "index.html");
-  return existsSync(indexPath) ? controlUiRoot : undefined;
-}
-
 export async function startQaGatewayChild(params: {
   repoRoot: string;
   command?: QaGatewayChildCommand;
   providerBaseUrl?: string;
   transport: Pick<QaTransportAdapter, "requiredPluginIds" | "createGatewayConfig">;
   transportBaseUrl: string;
-  controlUiAllowedOrigins?: string[];
   providerMode?: QaProviderMode;
   primaryModel?: string;
   alternateModel?: string;
   fastMode?: boolean;
   thinkingDefault?: QaThinkingLevel;
   claudeCliAuthMode?: QaCliBackendAuthMode;
-  controlUiEnabled?: boolean;
   enabledPluginIds?: string[];
   forwardHostHome?: boolean;
   mutateConfig?: (cfg: KovaConfig) => KovaConfig;
@@ -557,11 +546,6 @@ export async function startQaGatewayChild(params: {
       gatewayToken,
       providerBaseUrl: params.providerBaseUrl,
       workspaceDir,
-      controlUiRoot: resolveQaControlUiRoot({
-        repoRoot: params.repoRoot,
-        controlUiEnabled: params.controlUiEnabled,
-      }),
-      controlUiAllowedOrigins: params.controlUiAllowedOrigins,
       providerMode,
       primaryModel: params.primaryModel,
       alternateModel: params.alternateModel,
@@ -573,7 +557,6 @@ export async function startQaGatewayChild(params: {
       liveProviderConfigs,
       fastMode: params.fastMode,
       thinkingDefault: params.thinkingDefault,
-      controlUiEnabled: params.controlUiEnabled,
     });
   const buildStagedGatewayConfig = async (gatewayPort: number) => {
     let cfg = buildGatewayConfig(gatewayPort);

@@ -140,7 +140,6 @@ const createConfigIO = vi.hoisted(() =>
 );
 const ensureSystemdUserLingerInteractive = vi.hoisted(() => vi.fn(async () => {}));
 const isSystemdUserServiceAvailable = vi.hoisted(() => vi.fn(async () => true));
-const ensureControlUiAssetsBuilt = vi.hoisted(() => vi.fn(async () => ({ ok: true })));
 const runTui = vi.hoisted(() => vi.fn(async (_options: unknown) => {}));
 const setupWizardShellCompletion = vi.hoisted(() => vi.fn(async () => {}));
 const probeGatewayReachable = vi.hoisted(() => vi.fn(async () => ({ ok: true })));
@@ -249,8 +248,8 @@ vi.mock("../commands/onboard-helpers.js", () => ({
   printWizardHeader: vi.fn(),
   probeGatewayReachable,
   waitForGatewayReachable: vi.fn(async () => {}),
-  formatControlUiSshHint: vi.fn(() => "ssh hint"),
-  resolveControlUiLinks: vi.fn(() => ({
+  formatGatewaySshHint: vi.fn(() => "ssh hint"),
+  resolveGatewayHttpLinks: vi.fn(() => ({
     httpUrl: "http://127.0.0.1:18789",
     wsUrl: "ws://127.0.0.1:18789",
   })),
@@ -262,10 +261,6 @@ vi.mock("../commands/systemd-linger.js", () => ({
 
 vi.mock("../daemon/systemd.js", () => ({
   isSystemdUserServiceAvailable,
-}));
-
-vi.mock("../infra/control-ui-assets.js", () => ({
-  ensureControlUiAssetsBuilt,
 }));
 
 vi.mock("../plugins/status.js", () => ({

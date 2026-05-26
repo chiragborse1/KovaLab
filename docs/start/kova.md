@@ -68,10 +68,9 @@ Now message the assistant number from your allowlisted phone.
 
 When onboarding finishes, Kova offers terminal chat first. Start or return to it
 anytime with `kova`. Use `kova settings`, `kova status --all`, and
-`kova logs` for normal administration. The browser UI is legacy/optional; if
-you enable it and it prompts for auth, paste the configured shared secret into
-Control UI settings. Onboarding uses a token by default (`gateway.auth.token`),
-but password auth works too if you switched `gateway.auth.mode` to `password`.
+`kova logs` for normal administration. Onboarding uses a token by default
+(`gateway.auth.token`), but password auth works too if you switched
+`gateway.auth.mode` to `password`.
 
 ## Give the agent a workspace (AGENTS)
 
@@ -225,7 +224,6 @@ Logs live under `/tmp/kova/` (default: `kova-YYYY-MM-DD.log`).
 
 ## Next steps
 
-- WebChat: [WebChat](/web/webchat)
 - Gateway ops: [Gateway runbook](/gateway)
 - Cron + wakeups: [Cron jobs](/automation/cron-jobs)
 - macOS menu bar companion: [Kova macOS app](/platforms/macos)

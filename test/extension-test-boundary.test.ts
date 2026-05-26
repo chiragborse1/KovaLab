@@ -101,10 +101,7 @@ describe("non-extension test boundaries", () => {
       ...walk(path.join(repoRoot, "test")),
       ...walk(path.join(repoRoot, "packages")),
     ].filter(
-      (file) =>
-        !file.startsWith(BUNDLED_PLUGIN_PATH_PREFIX) &&
-        !file.startsWith("test/helpers/") &&
-        !file.startsWith("ui/"),
+      (file) => !file.startsWith(BUNDLED_PLUGIN_PATH_PREFIX) && !file.startsWith("test/helpers/"),
     );
 
     const offenders = testFiles

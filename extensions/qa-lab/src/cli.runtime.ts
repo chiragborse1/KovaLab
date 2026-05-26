@@ -880,9 +880,6 @@ export async function runQaLabUiCommand(opts: {
   port?: number;
   advertiseHost?: string;
   advertisePort?: number;
-  controlUiUrl?: string;
-  controlUiToken?: string;
-  controlUiProxyTarget?: string;
   uiDistDir?: string;
   autoKickoffTarget?: string;
   embeddedGateway?: string;
@@ -895,9 +892,6 @@ export async function runQaLabUiCommand(opts: {
     port: Number.isFinite(opts.port) ? opts.port : undefined,
     advertiseHost: opts.advertiseHost,
     advertisePort: Number.isFinite(opts.advertisePort) ? opts.advertisePort : undefined,
-    controlUiUrl: opts.controlUiUrl,
-    controlUiToken: opts.controlUiToken,
-    controlUiProxyTarget: opts.controlUiProxyTarget,
     uiDistDir: opts.uiDistDir,
     autoKickoffTarget: opts.autoKickoffTarget,
     embeddedGateway: opts.embeddedGateway,

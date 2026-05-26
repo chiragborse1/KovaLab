@@ -70,16 +70,7 @@ function createMattermostCallbackConfig(callbackPath: string) {
   };
 }
 
-function createRootMountedControlUiOverrides(handlePluginRequest: PluginRequestHandler) {
-  return {
-    controlUiEnabled: true,
-    controlUiBasePath: "",
-    controlUiRoot: { kind: "missing" as const },
-    handlePluginRequest,
-  };
-}
-
-const withRootMountedControlUiServer = (params: {
+const withRootMountedOperatorClientServer = (params: {
   prefix: string;
   handlePluginRequest: PluginRequestHandler;
   run: Parameters<typeof withGatewayServer>[0]["run"];
@@ -87,7 +78,7 @@ const withRootMountedControlUiServer = (params: {
   withPluginGatewayServer({
     prefix: params.prefix,
     resolvedAuth: AUTH_NONE,
-    overrides: createRootMountedControlUiOverrides(params.handlePluginRequest),
+    overrides: { handlePluginRequest: params.handlePluginRequest },
     run: params.run,
   });
 
@@ -593,7 +584,7 @@ describe("gateway plugin HTTP auth boundary", () => {
     });
   });
 
-  test("serves plugin routes before control ui spa fallback", async () => {
+  test("serves plugin routes before the default gateway 404", async () => {
     const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
       const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
       if (pathname === "/plugins/diffs/view/demo-id/demo-token") {
@@ -605,8 +596,8 @@ describe("gateway plugin HTTP auth boundary", () => {
       return false;
     });
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-precedence-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-precedence-test-",
       handlePluginRequest,
       run: async (server) => {
         const response = await sendRequest(server, {
@@ -620,7 +611,7 @@ describe("gateway plugin HTTP auth boundary", () => {
     });
   });
 
-  test("passes POST webhook routes through root-mounted control ui to plugins", async () => {
+  test("passes POST webhook routes through gateway HTTP to plugins", async () => {
     const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
       const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
       if (req.method !== "POST" || pathname !== "/bluebubbles-webhook") {
@@ -632,8 +623,8 @@ describe("gateway plugin HTTP auth boundary", () => {
       return true;
     });
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-webhook-post-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-webhook-post-test-",
       handlePluginRequest,
       run: async (server) => {
         const response = await sendRequest(server, {
@@ -648,7 +639,7 @@ describe("gateway plugin HTTP auth boundary", () => {
     });
   });
 
-  test("plugin routes take priority over control ui catch-all", async () => {
+  test("plugin routes take priority over the gateway 404", async () => {
     const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
       const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
       if (pathname === "/my-plugin/inbound") {
@@ -660,8 +651,8 @@ describe("gateway plugin HTTP auth boundary", () => {
       return false;
     });
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-shadow-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-shadow-test-",
       handlePluginRequest,
       run: async (server) => {
         const response = await sendRequest(server, { path: "/my-plugin/inbound" });
@@ -673,27 +664,27 @@ describe("gateway plugin HTTP auth boundary", () => {
     });
   });
 
-  test("unmatched plugin paths fall through to control ui", async () => {
+  test("unmatched plugin paths fall through to the default gateway 404", async () => {
     const handlePluginRequest = vi.fn(async () => false);
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-fallthrough-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-fallthrough-test-",
       handlePluginRequest,
       run: async (server) => {
         const response = await sendRequest(server, { path: "/chat" });
 
         expect(handlePluginRequest).toHaveBeenCalledTimes(1);
-        expect(response.res.statusCode).toBe(503);
-        expect(response.getBody()).toContain("Web console assets not found");
+        expect(response.res.statusCode).toBe(404);
+        expect(response.getBody()).toContain("Not Found");
       },
     });
   });
 
-  test("root-mounted control ui does not swallow gateway probe routes", async () => {
+  test("plugin routes do not swallow gateway probe routes", async () => {
     const handlePluginRequest = vi.fn(async () => false);
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-probes-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-probes-test-",
       handlePluginRequest,
       run: async (server) => {
         await expectProbeRoutesHealthy(server);
@@ -702,11 +693,11 @@ describe("gateway plugin HTTP auth boundary", () => {
     });
   });
 
-  test("root-mounted control ui keeps gateway probe routes reserved ahead of plugins", async () => {
+  test("gateway probe routes stay reserved ahead of plugins", async () => {
     const handlePluginRequest = createHealthzPluginHandler();
 
-    await withRootMountedControlUiServer({
-      prefix: "kova-plugin-http-control-ui-probe-shadow-test-",
+    await withRootMountedOperatorClientServer({
+      prefix: "kova-plugin-http-operator-client-probe-shadow-test-",
       handlePluginRequest,
       run: async (server) => {
         await expectHealthzProbeReserved({ server, handlePluginRequest });

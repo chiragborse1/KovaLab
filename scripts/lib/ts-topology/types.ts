@@ -2,15 +2,7 @@ import type ts from "typescript";
 
 export type UsageBucket = "internal" | "production" | "test";
 
-export type ConsumerScope =
-  | "src"
-  | "extension"
-  | "package"
-  | "app"
-  | "ui"
-  | "script"
-  | "test"
-  | "other";
+export type ConsumerScope = "src" | "extension" | "package" | "app" | "script" | "test" | "other";
 
 export type TopologyReportName =
   | "public-surface-usage"

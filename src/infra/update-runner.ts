@@ -2,10 +2,6 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { type CommandOptions, runCommandWithTimeout } from "../process/exec.js";
-import {
-  resolveControlUiDistIndexHealth,
-  resolveControlUiDistIndexPathForRoot,
-} from "./control-ui-assets.js";
 import { readPackageVersion } from "./package-json.js";
 import { normalizePackageTagInput } from "./package-tag.js";
 import { runGlobalPackageUpdateSteps } from "./package-update-steps.js";
@@ -568,8 +564,6 @@ function normalizeFallbackFailureReason(stepName: string): NonNullable<UpdateRun
       return "global-install-failed";
     case "kova doctor":
       return "doctor-failed";
-    case "ui:build (post-doctor repair)":
-      return "ui-build-failed";
     default:
       return "unexpected-error";
   }
@@ -741,11 +735,7 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
     };
 
     const statusCheck = await runStep(
-      step(
-        "clean check",
-        ["git", "-C", gitRoot, "status", "--porcelain", "--", ":!dist/control-ui/"],
-        gitRoot,
-      ),
+      step("clean check", ["git", "-C", gitRoot, "status", "--porcelain"], gitRoot),
     );
     steps.push(statusCheck);
     const hasUncommittedChanges =
@@ -1243,22 +1233,6 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
         };
       }
 
-      const uiBuildStep = await runStep(
-        step("ui:build", managerScriptArgs(manager.manager, "ui:build"), gitRoot, manager.env),
-      );
-      steps.push(uiBuildStep);
-      if (uiBuildStep.exitCode !== 0) {
-        return {
-          status: "error",
-          mode: "git",
-          root: gitRoot,
-          reason: "ui-build-failed",
-          before: { sha: beforeSha, version: beforeVersion },
-          steps,
-          durationMs: Date.now() - startedAt,
-        };
-      }
-
       const doctorEntry = path.join(gitRoot, "kova.mjs");
       const doctorEntryExists = await fs
         .stat(doctorEntry)
@@ -1302,62 +1276,6 @@ export async function runGatewayUpdate(opts: UpdateRunnerOptions = {}): Promise<
           steps,
           durationMs: Date.now() - startedAt,
         };
-      }
-
-      const uiIndexHealth = await resolveControlUiDistIndexHealth({ root: gitRoot });
-      if (!uiIndexHealth.exists) {
-        const repairArgv = managerScriptArgs(manager.manager, "ui:build");
-        const started = Date.now();
-        const repairResult = await runCommand(repairArgv, {
-          cwd: gitRoot,
-          timeoutMs,
-          env: manager.env,
-        });
-        const repairStep: UpdateStepResult = {
-          name: "ui:build (post-doctor repair)",
-          command: repairArgv.join(" "),
-          cwd: gitRoot,
-          durationMs: Date.now() - started,
-          exitCode: repairResult.code,
-          stdoutTail: trimLogTail(repairResult.stdout, MAX_LOG_CHARS),
-          stderrTail: trimLogTail(repairResult.stderr, MAX_LOG_CHARS),
-        };
-        steps.push(repairStep);
-
-        if (repairResult.code !== 0) {
-          return {
-            status: "error",
-            mode: "git",
-            root: gitRoot,
-            reason: "ui-build-failed",
-            before: { sha: beforeSha, version: beforeVersion },
-            steps,
-            durationMs: Date.now() - startedAt,
-          };
-        }
-
-        const repairedUiIndexHealth = await resolveControlUiDistIndexHealth({ root: gitRoot });
-        if (!repairedUiIndexHealth.exists) {
-          const uiIndexPath =
-            repairedUiIndexHealth.indexPath ?? resolveControlUiDistIndexPathForRoot(gitRoot);
-          steps.push({
-            name: "ui assets verify",
-            command: `verify ${uiIndexPath}`,
-            cwd: gitRoot,
-            durationMs: 0,
-            exitCode: 1,
-            stderrTail: `missing ${uiIndexPath}`,
-          });
-          return {
-            status: "error",
-            mode: "git",
-            root: gitRoot,
-            reason: "ui-assets-missing",
-            before: { sha: beforeSha, version: beforeVersion },
-            steps,
-            durationMs: Date.now() - startedAt,
-          };
-        }
       }
 
       const failedStep = findBlockingGitFailure(steps);

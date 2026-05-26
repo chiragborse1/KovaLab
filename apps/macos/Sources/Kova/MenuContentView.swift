@@ -108,15 +108,8 @@ struct MenuContent: View {
             Divider()
             Button {
                 Task { @MainActor in
-                    await self.openDashboard()
-                }
-            } label: {
-                Label("Open Dashboard", systemImage: "gauge")
-            }
-            Button {
-                Task { @MainActor in
-                    let sessionKey = await WebChatManager.shared.preferredSessionKey()
-                    WebChatManager.shared.show(sessionKey: sessionKey)
+                    let sessionKey = await LocalChatManager.shared.preferredSessionKey()
+                    LocalChatManager.shared.show(sessionKey: sessionKey)
                 }
             } label: {
                 Label("Open Chat", systemImage: "bubble.left.and.bubble.right")
@@ -334,20 +327,6 @@ struct MenuContent: View {
         self.openSettings()
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: .kovaSelectSettingsTab, object: tab)
-        }
-    }
-
-    @MainActor
-    private func openDashboard() async {
-        do {
-            let config = try await GatewayEndpointStore.shared.requireConfig()
-            let url = try GatewayEndpointStore.dashboardURL(for: config, mode: self.state.connectionMode)
-            NSWorkspace.shared.open(url)
-        } catch {
-            let alert = NSAlert()
-            alert.messageText = "Dashboard unavailable"
-            alert.informativeText = error.localizedDescription
-            alert.runModal()
         }
     }
 

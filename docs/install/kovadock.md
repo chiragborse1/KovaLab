@@ -2,13 +2,13 @@
 summary: "KovaDock shell helpers for Docker-based Kova installs"
 read_when:
   - You run Kova with Docker often and want shorter day-to-day commands
-  - You want a helper layer for Control UI, logs, token setup, and pairing flows
+  - You want a helper layer for logs, token setup, and pairing flows
 title: "KovaDock"
 ---
 
 KovaDock is a small shell-helper layer for Docker-based Kova installs.
 
-It gives you short commands like `kovadock-start`, `kovadock-control-ui`, and `kovadock-fix-token` instead of longer `docker compose ...` invocations.
+It gives you short commands like `kovadock-start`, `kovadock-status`, and `kovadock-fix-token` instead of longer `docker compose ...` invocations.
 
 If you have not set up Docker yet, start with [Docker](/install/docker).
 
@@ -43,11 +43,10 @@ If you previously installed KovaDock from `scripts/shell-helpers/kovadock-helper
 | `kovadock-cli <command>`  | Run Kova CLI commands in Docker               |
 | `kovadock-exec <command>` | Execute an arbitrary command in the container |
 
-### Web UI and pairing
+### Pairing
 
 | Command                 | Description                  |
 | ----------------------- | ---------------------------- |
-| `kovadock-control-ui`   | Open the Control UI URL      |
 | `kovadock-devices`      | List pending device pairings |
 | `kovadock-approve <id>` | Approve a pairing request    |
 
@@ -76,10 +75,10 @@ If you previously installed KovaDock from `scripts/shell-helpers/kovadock-helper
 ```bash
 kovadock-start
 kovadock-fix-token
-kovadock-control-ui
+kovadock-status
 ```
 
-If the browser says pairing is required:
+If pairing is required:
 
 ```bash
 kovadock-devices

@@ -389,28 +389,12 @@
       "destination": "/gateway/configuration"
     },
     {
-      "source": "/control-ui",
-      "destination": "/web/control-ui"
-    },
-    {
       "source": "/cron-jobs",
       "destination": "/automation/cron-jobs"
     },
     {
       "source": "/cron-vs-heartbeat",
       "destination": "/automation"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/web/control-ui"
-    },
-    {
-      "source": "/web/dashboard",
-      "destination": "/web/control-ui"
-    },
-    {
-      "source": "/cli/dashboard",
-      "destination": "/cli/control-ui"
     },
     {
       "source": "/device-models",
@@ -595,10 +579,6 @@
     {
       "source": "/mac/voicewake",
       "destination": "/platforms/mac/voicewake"
-    },
-    {
-      "source": "/mac/webchat",
-      "destination": "/platforms/mac/webchat"
     },
     {
       "source": "/mac/xpc",
@@ -803,10 +783,6 @@
     {
       "source": "/voicewake",
       "destination": "/nodes/voicewake"
-    },
-    {
-      "source": "/webchat",
-      "destination": "/web/webchat"
     },
     {
       "source": "/webhook",
@@ -1401,7 +1377,6 @@
                     "pages": [
                       "platforms/mac/voicewake",
                       "platforms/mac/voice-overlay",
-                      "platforms/mac/webchat",
                       "platforms/mac/canvas",
                       "platforms/mac/skills",
                       "platforms/mac/peekaboo"
@@ -1529,8 +1504,8 @@
                 ]
               },
               {
-                "group": "Web interfaces",
-                "pages": ["web/index", "web/control-ui", "web/webchat", "web/tui"]
+                "group": "Remote and terminal interfaces",
+                "pages": ["web/index", "web/tui"]
               }
             ]
           },
@@ -1611,7 +1586,7 @@
                   },
                   {
                     "group": "Interfaces",
-                    "pages": ["cli/control-ui", "cli/tui"]
+                    "pages": ["cli/tui"]
                   },
                   {
                     "group": "Utility",

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Kova
 
-struct WebChatMainSessionKeyTests {
+struct LocalChatMainSessionKeyTests {
     @Test func `config get snapshot main key falls back to main when missing`() throws {
         let json = """
         {

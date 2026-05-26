@@ -68,7 +68,7 @@ steps:
           - ref: env
       - set: nextConfig
         value:
-          expr: "(() => { const nextConfig = structuredClone(current.config); const gatewayConfig = (nextConfig.gateway ??= {}); const controlUi = (gatewayConfig.controlUi ??= {}); const allowedOrigins = Array.isArray(controlUi.allowedOrigins) ? [...controlUi.allowedOrigins] : []; const origin = `http://127.0.0.1:${64000 + Math.floor(Math.random() * 999)}`; if (!allowedOrigins.includes(origin)) allowedOrigins.push(origin); controlUi.allowedOrigins = allowedOrigins; return nextConfig; })()"
+          expr: "(() => { const nextConfig = structuredClone(current.config); const gatewayConfig = (nextConfig.gateway ??= {}); const reload = (gatewayConfig.reload ??= {}); reload.deferralTimeoutMs = 2000 + Math.floor(Math.random() * 1000); return nextConfig; })()"
       - call: applyConfig
         args:
           - env:

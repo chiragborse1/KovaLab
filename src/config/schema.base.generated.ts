@@ -824,7 +824,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   pattern: "^#?[0-9a-fA-F]{6}$",
                   title: "Browser Profile Accent Color",
                   description:
-                    "Per-profile accent color for visual differentiation in dashboards and browser-related UI hints. Use distinct colors for high-signal operator recognition of active profiles.",
+                    "Per-profile accent color for visual differentiation in terminal and status surfaces. Use distinct colors for high-signal operator recognition of active profiles.",
                 },
               },
               required: ["color"],
@@ -21622,7 +21622,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             type: "boolean",
             title: "Web Channel Enabled",
             description:
-              "Enables the web channel runtime and related websocket lifecycle behavior. Keep disabled when web chat is unused to reduce active connection management overhead.",
+              "Enables the browser-based channel runtime and related websocket lifecycle behavior. Keep disabled when browser-backed channels are unused to reduce active connection management overhead.",
           },
           heartbeatSeconds: {
             type: "integer",
@@ -21682,7 +21682,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "Web Channel",
         description:
-          "Web channel runtime settings for heartbeat and reconnect behavior when operating web-based chat surfaces. Use reconnect values tuned to your network reliability profile and expected uptime needs.",
+          "Browser-based channel runtime settings for heartbeat and reconnect behavior. Use reconnect values tuned to your network reliability profile and expected uptime needs.",
       },
       channels: {
         title: "Channels",
@@ -21901,7 +21901,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             maximum: 9007199254740991,
             title: "Gateway Port",
             description:
-              "TCP port used by the gateway listener for API, control UI, and channel-facing ingress paths. Use a dedicated port and avoid collisions with reverse proxies or local developer services.",
+              "TCP port used by the gateway listener for API and channel-facing ingress paths. Use a dedicated port and avoid collisions with reverse proxies or local developer services.",
           },
           mode: {
             anyOf: [
@@ -21950,84 +21950,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
             title: "Gateway Custom Bind Host",
             description:
               "Explicit bind host/IP used when gateway.bind is set to custom for manual interface targeting. Use a precise address and avoid wildcard binds unless external exposure is required.",
-          },
-          controlUi: {
-            type: "object",
-            properties: {
-              enabled: {
-                type: "boolean",
-                title: "Control UI Enabled",
-                description:
-                  "Enables terminal status advertising and source-checkout auto-builds for the legacy browser Control UI when true. Set false for strict terminal-only operation, and enable only when you intentionally use the browser surface.",
-              },
-              basePath: {
-                type: "string",
-                title: "Control UI Base Path",
-                description: "Optional URL prefix where the web console is served (e.g. /kova).",
-              },
-              root: {
-                type: "string",
-                title: "Control UI Assets Root",
-                description:
-                  "Optional filesystem root for web console assets (defaults to dist/control-ui).",
-              },
-              embedSandbox: {
-                anyOf: [
-                  {
-                    type: "string",
-                    const: "strict",
-                  },
-                  {
-                    type: "string",
-                    const: "scripts",
-                  },
-                  {
-                    type: "string",
-                    const: "trusted",
-                  },
-                ],
-                title: "Control UI Embed Sandbox Mode",
-                description:
-                  'Iframe sandbox policy for hosted web console embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
-              },
-              allowExternalEmbedUrls: {
-                type: "boolean",
-                title: "Allow External Control UI Embed URLs",
-                description:
-                  "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your web console intentionally embeds trusted third-party pages; hosted /__kova__/canvas and /__kova__/a2ui documents do not need it.",
-              },
-              allowedOrigins: {
-                type: "array",
-                items: {
-                  type: "string",
-                },
-                title: "Control UI Allowed Origins",
-                description:
-                  'Allowed browser origins for web console websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback web console deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
-              },
-              dangerouslyAllowHostHeaderOriginFallback: {
-                type: "boolean",
-                title: "Dangerously Allow Host-Header Origin Fallback",
-                description:
-                  "DANGEROUS toggle that enables Host-header based origin fallback for web console websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
-              },
-              allowInsecureAuth: {
-                type: "boolean",
-                title: "Insecure Control UI Auth Toggle",
-                description:
-                  "Loosens strict browser auth checks for the web console when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
-              },
-              dangerouslyDisableDeviceAuth: {
-                type: "boolean",
-                title: "Dangerously Disable Control UI Device Auth",
-                description:
-                  "Disables web console device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
-              },
-            },
-            additionalProperties: false,
-            title: "Control UI",
-            description:
-              "Legacy browser Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep the terminal surfaces as the primary operator path and pair any web exposure with strong auth controls.",
           },
           auth: {
             type: "object",
@@ -22300,9 +22222,9 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                 type: "integer",
                 exclusiveMinimum: 0,
                 maximum: 500000,
-                title: "WebChat History Max Chars",
+                title: "Local Chat History Max Chars",
                 description:
-                  "Max characters per text field in chat.history responses before truncation (default: 12000).",
+                  "Max characters per text field in local chat history responses before truncation (default: 12000). The stored key name is kept for compatibility.",
               },
             },
             additionalProperties: false,
@@ -22976,7 +22898,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     },
                     title: "Gateway Node Pairing Auto-Approve CIDRs",
                     description:
-                      "Opt-in CIDR/IP allowlist for auto-approving first-time node-role device pairing with no requested scopes. Disabled when unset. Operator, browser, Control UI, and any role, scope, metadata, or public-key upgrade pairing still require manual approval.",
+                      "Opt-in CIDR/IP allowlist for auto-approving first-time node-role device pairing with no requested scopes. Disabled when unset. Operator, browser, and any role, scope, metadata, or public-key upgrade pairing still require manual approval.",
                   },
                 },
                 additionalProperties: false,
@@ -23009,7 +22931,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
         additionalProperties: false,
         title: "Gateway",
         description:
-          "Gateway runtime surface for bind mode, auth, control UI, remote transport, and operational safety controls. Keep conservative defaults unless you intentionally expose the gateway beyond trusted local interfaces.",
+          "Gateway runtime surface for bind mode, auth, remote transport, and operational safety controls. Keep conservative defaults unless you intentionally expose the gateway beyond trusted local interfaces.",
       },
       memory: {
         type: "object",
@@ -23929,7 +23851,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       label: "Gateway",
       group: "Gateway",
       order: 30,
-      help: "Gateway runtime surface for bind mode, auth, control UI, remote transport, and operational safety controls. Keep conservative defaults unless you intentionally expose the gateway beyond trusted local interfaces.",
+      help: "Gateway runtime surface for bind mode, auth, remote transport, and operational safety controls. Keep conservative defaults unless you intentionally expose the gateway beyond trusted local interfaces.",
       tags: ["advanced"],
     },
     nodeHost: {
@@ -24546,7 +24468,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.port": {
       label: "Gateway Port",
-      help: "TCP port used by the gateway listener for API, control UI, and channel-facing ingress paths. Use a dedicated port and avoid collisions with reverse proxies or local developer services.",
+      help: "TCP port used by the gateway listener for API and channel-facing ingress paths. Use a dedicated port and avoid collisions with reverse proxies or local developer services.",
       tags: ["network"],
     },
     "gateway.mode": {
@@ -24562,16 +24484,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     "gateway.customBindHost": {
       label: "Gateway Custom Bind Host",
       help: "Explicit bind host/IP used when gateway.bind is set to custom for manual interface targeting. Use a precise address and avoid wildcard binds unless external exposure is required.",
-      tags: ["network"],
-    },
-    "gateway.controlUi": {
-      label: "Control UI",
-      help: "Legacy browser Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep the terminal surfaces as the primary operator path and pair any web exposure with strong auth controls.",
-      tags: ["network"],
-    },
-    "gateway.controlUi.enabled": {
-      label: "Control UI Enabled",
-      help: "Enables terminal status advertising and source-checkout auto-builds for the legacy browser Control UI when true. Set false for strict terminal-only operation, and enable only when you intentionally use the browser surface.",
       tags: ["network"],
     },
     "gateway.auth": {
@@ -24883,7 +24795,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "browser.profiles.*.color": {
       label: "Browser Profile Accent Color",
-      help: "Per-profile accent color for visual differentiation in dashboards and browser-related UI hints. Use distinct colors for high-signal operator recognition of active profiles.",
+      help: "Per-profile accent color for visual differentiation in terminal and status surfaces. Use distinct colors for high-signal operator recognition of active profiles.",
       tags: ["storage"],
     },
     "tools.allow": {
@@ -25638,49 +25550,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: "Allow RFC 2544 benchmark-range IPs (198.18.0.0/15) for fake-IP proxy compatibility such as Clash or Surge.",
       tags: ["access", "tools"],
     },
-    "gateway.controlUi.basePath": {
-      label: "Control UI Base Path",
-      help: "Optional URL prefix where the web console is served (e.g. /kova).",
-      placeholder: "/kova",
-      tags: ["network", "storage"],
-    },
-    "gateway.controlUi.root": {
-      label: "Control UI Assets Root",
-      help: "Optional filesystem root for web console assets (defaults to dist/control-ui).",
-      placeholder: "dist/control-ui",
-      tags: ["network"],
-    },
-    "gateway.controlUi.embedSandbox": {
-      label: "Control UI Embed Sandbox Mode",
-      help: 'Iframe sandbox policy for hosted web console embeds. "strict" disables scripts, "scripts" allows interactive embeds while keeping origin isolation (default), and "trusted" adds `allow-same-origin` for same-site documents that intentionally need stronger privileges.',
-      tags: ["security", "access", "advanced"],
-    },
-    "gateway.controlUi.allowExternalEmbedUrls": {
-      label: "Allow External Control UI Embed URLs",
-      help: "DANGEROUS toggle that allows hosted embeds to load absolute external http(s) URLs. Keep this off unless your web console intentionally embeds trusted third-party pages; hosted /__kova__/canvas and /__kova__/a2ui documents do not need it.",
-      tags: ["security", "access", "network", "advanced"],
-    },
-    "gateway.controlUi.allowedOrigins": {
-      label: "Control UI Allowed Origins",
-      help: 'Allowed browser origins for web console websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback web console deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
-      placeholder: "https://control.example.com",
-      tags: ["access", "network"],
-    },
-    "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback": {
-      label: "Dangerously Allow Host-Header Origin Fallback",
-      help: "DANGEROUS toggle that enables Host-header based origin fallback for web console websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
-      tags: ["security", "access", "network", "advanced"],
-    },
-    "gateway.controlUi.allowInsecureAuth": {
-      label: "Insecure Control UI Auth Toggle",
-      help: "Loosens strict browser auth checks for the web console when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
-      tags: ["security", "access", "network", "advanced"],
-    },
-    "gateway.controlUi.dangerouslyDisableDeviceAuth": {
-      label: "Dangerously Disable Control UI Device Auth",
-      help: "Disables web console device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
-      tags: ["security", "access", "network", "advanced"],
-    },
     "gateway.push": {
       label: "Gateway Push Delivery",
       help: "Push-delivery settings used by the gateway when it needs to wake or notify paired devices. Configure relay-backed APNs here for official iOS builds; direct APNs auth remains env-based for local/manual builds.",
@@ -25794,7 +25663,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "gateway.nodes.pairing.autoApproveCidrs": {
       label: "Gateway Node Pairing Auto-Approve CIDRs",
-      help: "Opt-in CIDR/IP allowlist for auto-approving first-time node-role device pairing with no requested scopes. Disabled when unset. Operator, browser, Control UI, and any role, scope, metadata, or public-key upgrade pairing still require manual approval.",
+      help: "Opt-in CIDR/IP allowlist for auto-approving first-time node-role device pairing with no requested scopes. Disabled when unset. Operator, browser, and any role, scope, metadata, or public-key upgrade pairing still require manual approval.",
       tags: ["security", "access", "network", "advanced"],
     },
     "gateway.nodes.allowCommands": {
@@ -25808,8 +25677,8 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["access", "network"],
     },
     "gateway.webchat.chatHistoryMaxChars": {
-      label: "WebChat History Max Chars",
-      help: "Max characters per text field in chat.history responses before truncation (default: 12000).",
+      label: "Local Chat History Max Chars",
+      help: "Max characters per text field in local chat history responses before truncation (default: 12000). The stored key name is kept for compatibility.",
       tags: ["network", "performance"],
     },
     "nodeHost.browserProxy": {
@@ -27979,12 +27848,12 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     web: {
       label: "Web Channel",
-      help: "Web channel runtime settings for heartbeat and reconnect behavior when operating web-based chat surfaces. Use reconnect values tuned to your network reliability profile and expected uptime needs.",
+      help: "Browser-based channel runtime settings for heartbeat and reconnect behavior. Use reconnect values tuned to your network reliability profile and expected uptime needs.",
       tags: ["advanced"],
     },
     "web.enabled": {
       label: "Web Channel Enabled",
-      help: "Enables the web channel runtime and related websocket lifecycle behavior. Keep disabled when web chat is unused to reduce active connection management overhead.",
+      help: "Enables the browser-based channel runtime and related websocket lifecycle behavior. Keep disabled when browser-backed channels are unused to reduce active connection management overhead.",
       tags: ["advanced"],
     },
     "web.heartbeatSeconds": {

@@ -17,7 +17,7 @@ describe("scripts/test-group-report grouping", () => {
     expect(resolveTestArea("extensions/discord/src/send.test.ts")).toBe("extensions/discord");
     expect(resolveTestArea("src/commands/agent.test.ts")).toBe("src/commands");
     expect(resolveTestArea("packages/plugin-sdk/src/index.test.ts")).toBe("packages/plugin-sdk");
-    expect(resolveTestArea("ui/src/ui/views/chat.test.ts")).toBe("ui/views");
+    expect(resolveTestArea("src/tui/gateway-chat.test.ts")).toBe("src/tui");
     expect(resolveTestArea("test/scripts/test-group-report.test.ts")).toBe("test/scripts");
   });
 

@@ -725,7 +725,7 @@ describe("listSessionsFromStore subagent metadata", () => {
     }
   });
 
-  test("includes explicit parentSessionKey relationships for dashboard child sessions", () => {
+  test("includes explicit parentSessionKey relationships for local child sessions", () => {
     resetSubagentRegistryForTests({ persist: false });
     const now = Date.now();
     const store: Record<string, SessionEntry> = {
@@ -733,7 +733,7 @@ describe("listSessionsFromStore subagent metadata", () => {
         sessionId: "sess-main",
         updatedAt: now,
       } as SessionEntry,
-      "agent:main:dashboard:child": {
+      "agent:main:local:child": {
         sessionId: "sess-child",
         updatedAt: now - 1_000,
         parentSessionKey: "agent:main:main",
@@ -748,12 +748,12 @@ describe("listSessionsFromStore subagent metadata", () => {
     });
 
     const main = result.sessions.find((session) => session.key === "agent:main:main");
-    const child = result.sessions.find((session) => session.key === "agent:main:dashboard:child");
-    expect(main?.childSessions).toEqual(["agent:main:dashboard:child"]);
+    const child = result.sessions.find((session) => session.key === "agent:main:local:child");
+    expect(main?.childSessions).toEqual(["agent:main:local:child"]);
     expect(child?.parentSessionKey).toBe("agent:main:main");
   });
 
-  test("returns dashboard child sessions when filtering by parentSessionKey owner", () => {
+  test("returns local child sessions when filtering by parentSessionKey owner", () => {
     resetSubagentRegistryForTests({ persist: false });
     const now = Date.now();
     const store: Record<string, SessionEntry> = {
@@ -761,8 +761,8 @@ describe("listSessionsFromStore subagent metadata", () => {
         sessionId: "sess-main",
         updatedAt: now,
       } as SessionEntry,
-      "agent:main:dashboard:child": {
-        sessionId: "sess-dashboard-child",
+      "agent:main:local:child": {
+        sessionId: "sess-local-child",
         updatedAt: now - 1_000,
         parentSessionKey: "agent:main:main",
       } as SessionEntry,
@@ -777,7 +777,7 @@ describe("listSessionsFromStore subagent metadata", () => {
       },
     });
 
-    expect(result.sessions.map((session) => session.key)).toEqual(["agent:main:dashboard:child"]);
+    expect(result.sessions.map((session) => session.key)).toEqual(["agent:main:local:child"]);
   });
 
   test("does not reattach stale terminal store-only child links", () => {

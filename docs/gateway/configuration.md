@@ -56,9 +56,9 @@ field map and defaults.
     kova config unset plugins.entries.brave.config.webSearch.apiKey
     ```
   </Tab>
-  <Tab title="Control UI">
+  <Tab title="Gateway clients">
     Open [http://127.0.0.1:18789](http://127.0.0.1:18789) and use the **Config** tab.
-    The Control UI renders a form from the live config schema, including field
+    The Gateway clients renders a form from the live config schema, including field
     `title` / `description` docs metadata plus plugin and channel schemas when
     available, with a **Raw JSON** editor as an escape hatch. For drill-down
     UIs and other tooling, the gateway also exposes `config.schema.lookup` to
@@ -75,7 +75,7 @@ field map and defaults.
 Kova only accepts configurations that fully match the schema. Unknown keys, malformed types, or invalid values cause the Gateway to **refuse to start**. The only root-level exception is `$schema` (string), so editors can attach JSON Schema metadata.
 </Warning>
 
-`kova config schema` prints the canonical JSON Schema used by Control UI
+`kova config schema` prints the canonical JSON Schema used by Gateway clients
 and validation. `config.schema.lookup` fetches a single path-scoped node plus
 child summaries for drill-down tooling. Field `title`/`description` docs metadata
 carries through nested objects, wildcard (`*`), array-item (`[]`), and `anyOf`/

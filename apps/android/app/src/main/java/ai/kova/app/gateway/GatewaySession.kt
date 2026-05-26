@@ -941,7 +941,7 @@ class GatewaySession(
       "AUTH_PASSWORD_MISMATCH",
       "AUTH_RATE_LIMITED",
       "PAIRING_REQUIRED",
-      "CONTROL_UI_DEVICE_IDENTITY_REQUIRED",
+      "OPERATOR_CLIENT_DEVICE_IDENTITY_REQUIRED",
       "DEVICE_IDENTITY_REQUIRED" -> true
       "AUTH_TOKEN_MISMATCH" -> deviceTokenRetryBudgetUsed && !pendingDeviceTokenRetry
       else -> false

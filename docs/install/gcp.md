@@ -23,7 +23,7 @@ Pricing varies by machine type and region; pick the smallest VM that fits your w
 - Install Docker (isolated app runtime)
 - Start the Kova Gateway in Docker
 - Persist `~/.kova` + `~/.kova/workspace` on the host (survives restarts/rebuilds)
-- Access the Control UI from your laptop via an SSH tunnel
+- Access the Gateway clients from your laptop via an SSH tunnel
 
 That mounted `~/.kova` state includes `kova.json`, per-agent
 `agents/<agentId>/agent/auth-profiles.json`, and `.env`.
@@ -83,7 +83,7 @@ For the generic Docker flow, see [Docker](/install/docker).
 
     **Option B: Cloud Console**
 
-    All steps can be done via the web UI at [https://console.cloud.google.com](https://console.cloud.google.com)
+    All steps can be done via the browser surface at [https://console.cloud.google.com](https://console.cloud.google.com)
 
   </Step>
 
@@ -299,10 +299,10 @@ For the generic Docker flow, see [Docker](/install/docker).
   <Step title="GCP-specific launch notes">
     On GCP, if build fails with `Killed` or `exit code 137` during `pnpm install --frozen-lockfile`, the VM is out of memory. Use `e2-small` minimum, or `e2-medium` for more reliable first builds.
 
-    When binding to LAN (`KOVA_GATEWAY_BIND=lan`), configure a trusted browser origin before continuing:
+    When binding to LAN (`KOVA_GATEWAY_BIND=lan`), keep token or password auth enabled before continuing:
 
     ```bash
-    docker compose run --rm kova-cli config set gateway.controlUi.allowedOrigins '["http://127.0.0.1:18789"]' --strict-json
+    docker compose run --rm kova-cli gateway status --deep
     ```
 
     If you changed the gateway port, replace `18789` with your configured port.
@@ -316,22 +316,15 @@ For the generic Docker flow, see [Docker](/install/docker).
     gcloud compute ssh kova-gateway --zone=us-central1-a -- -L 18789:127.0.0.1:18789
     ```
 
-    Open in your browser:
-
-    `http://127.0.0.1:18789/`
-
-    Reprint a clean Control UI link:
+    Check the Gateway from the CLI:
 
     ```bash
-    docker compose run --rm kova-cli control-ui --no-open
+    docker compose run --rm kova-cli gateway status
     ```
 
-    If the UI prompts for shared-secret auth, paste the configured token or
-    password into Control UI settings. This Docker flow writes a token by
-    default; if you switch the container config to password auth, use that
-    password instead.
-
-    If Control UI shows `unauthorized` or `disconnected (1008): pairing required`, approve the browser device:
+    This Docker flow writes a token by default. If Gateway clients show
+    `unauthorized` or `disconnected (1008): pairing required`, approve the
+    device:
 
     ```bash
     docker compose run --rm kova-cli devices list

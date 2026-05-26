@@ -3,7 +3,7 @@ summary: "FAQ: quick-start and first-run setup — install, onboard, auth, subsc
 read_when:
   - New install, onboarding stuck, or first-run errors
   - Choosing auth and provider subscriptions
-  - Cannot access docs.kova.ai, cannot open Control UI, install stuck
+  - Cannot access docs.kova.ai, cannot open Gateway clients, install stuck
 title: "FAQ: first-run setup"
 sidebarTitle: "First-run FAQ"
 ---
@@ -95,7 +95,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     cd kova
     pnpm install
     pnpm build
-    pnpm ui:build
+    pnpm build
     kova onboard
     ```
 
@@ -103,28 +103,28 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   </Accordion>
 
-  <Accordion title="How do I open the Control UI after onboarding?">
-    The wizard opens your browser with a clean (non-tokenized) Control UI URL right after onboarding and also prints the link in the summary. Keep that tab open; if it didn't launch, copy/paste the printed URL on the same machine.
+  <Accordion title="How do I open the Gateway clients after onboarding?">
+    The wizard opens your browser with a clean (non-tokenized) Gateway clients URL right after onboarding and also prints the link in the summary. Keep that tab open; if it didn't launch, copy/paste the printed URL on the same machine.
   </Accordion>
 
-  <Accordion title="How do I authenticate the Control UI on localhost vs remote?">
+  <Accordion title="How do I authenticate the Gateway clients on localhost vs remote?">
     **Localhost (same machine):**
 
     - Open `http://127.0.0.1:18789/`.
-    - If it asks for shared-secret auth, paste the configured token or password into Control UI settings.
+    - If it asks for shared-secret auth, paste the configured token or password into Gateway clients settings.
     - Token source: `gateway.auth.token` (or `KOVA_GATEWAY_TOKEN`).
     - Password source: `gateway.auth.password` (or `KOVA_GATEWAY_PASSWORD`).
     - If no shared secret is configured yet, generate a token with `kova doctor --generate-gateway-token`.
 
     **Not on localhost:**
 
-    - **Tailscale Serve** (recommended): keep bind loopback, run `kova gateway --tailscale serve`, open `https://<magicdns>/`. If `gateway.auth.allowTailscale` is `true`, identity headers satisfy Control UI/WebSocket auth (no pasted shared secret, assumes trusted gateway host); HTTP APIs still require shared-secret auth unless you deliberately use private-ingress `none` or trusted-proxy HTTP auth.
+    - **Tailscale Serve** (recommended): keep bind loopback, run `kova gateway --tailscale serve`, open `https://<magicdns>/`. If `gateway.auth.allowTailscale` is `true`, identity headers satisfy Gateway clients/WebSocket auth (no pasted shared secret, assumes trusted gateway host); HTTP APIs still require shared-secret auth unless you deliberately use private-ingress `none` or trusted-proxy HTTP auth.
       Bad concurrent Serve auth attempts from the same client are serialized before the failed-auth limiter records them, so the second bad retry can already show `retry later`.
-    - **Tailnet bind**: run `kova gateway --bind tailnet --token "<token>"` (or configure password auth), open `http://<tailscale-ip>:18789/`, then paste the matching shared secret in Control UI settings.
+    - **Tailnet bind**: run `kova gateway --bind tailnet --token "<token>"` (or configure password auth), open `http://<tailscale-ip>:18789/`, then paste the matching shared secret in Gateway clients settings.
     - **Identity-aware reverse proxy**: keep the Gateway behind a non-loopback trusted proxy, configure `gateway.auth.mode: "trusted-proxy"`, then open the proxy URL.
     - **SSH tunnel**: `ssh -N -L 18789:127.0.0.1:18789 user@host` then open `http://127.0.0.1:18789/`. Shared-secret auth still applies over the tunnel; paste the configured token or password if prompted.
 
-    See [Control UI](/web/control-ui) and [Web surfaces](/web) for bind modes and auth details.
+    See [Gateway clients](/gateway/remote) and [Web surfaces](/web) for bind modes and auth details.
 
   </Accordion>
 
@@ -459,7 +459,7 @@ and troubleshooting see the main [FAQ](/help/faq).
     - [exe.dev](/install/exe-dev)
 
     How it works in the cloud: the **Gateway runs on the server**, and you access it
-    from your laptop/phone via the Control UI (or Tailscale/SSH). Your state + workspace
+    from your laptop/phone via the Gateway clients (or Tailscale/SSH). Your state + workspace
     live on the server, so treat the host as the source of truth and back it up.
 
     You can pair **nodes** (Mac/iOS/Android/headless) to that cloud Gateway to access

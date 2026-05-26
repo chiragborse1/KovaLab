@@ -72,19 +72,19 @@ through PI, `kova doctor` warns and leaves the route unchanged.
 
 ## Kova feature coverage
 
-| OpenAI capability         | Kova surface                                               | Status                                                 |
-| ------------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
-| Chat / Responses          | `openai/<model>` model provider                            | Yes                                                    |
-| Codex subscription models | `openai-codex/<model>` with `openai-codex` OAuth           | Yes                                                    |
-| Codex app-server harness  | `openai/<model>` with `agentRuntime.id: codex`             | Yes                                                    |
-| Server-side web search    | Native OpenAI Responses tool                               | Yes, when web search is enabled and no provider pinned |
-| Images                    | `image_generate`                                           | Yes                                                    |
-| Videos                    | `video_generate`                                           | Yes                                                    |
-| Text-to-speech            | `messages.tts.provider: "openai"` / `tts`                  | Yes                                                    |
-| Batch speech-to-text      | `tools.media.audio` / media understanding                  | Yes                                                    |
-| Streaming speech-to-text  | Voice Call `streaming.provider: "openai"`                  | Yes                                                    |
-| Realtime voice            | Voice Call `realtime.provider: "openai"` / Control UI Talk | Yes                                                    |
-| Embeddings                | memory embedding provider                                  | Yes                                                    |
+| OpenAI capability         | Kova surface                                                    | Status                                                 |
+| ------------------------- | --------------------------------------------------------------- | ------------------------------------------------------ |
+| Chat / Responses          | `openai/<model>` model provider                                 | Yes                                                    |
+| Codex subscription models | `openai-codex/<model>` with `openai-codex` OAuth                | Yes                                                    |
+| Codex app-server harness  | `openai/<model>` with `agentRuntime.id: codex`                  | Yes                                                    |
+| Server-side web search    | Native OpenAI Responses tool                                    | Yes, when web search is enabled and no provider pinned |
+| Images                    | `image_generate`                                                | Yes                                                    |
+| Videos                    | `video_generate`                                                | Yes                                                    |
+| Text-to-speech            | `messages.tts.provider: "openai"` / `tts`                       | Yes                                                    |
+| Batch speech-to-text      | `tools.media.audio` / media understanding                       | Yes                                                    |
+| Streaming speech-to-text  | Voice Call `streaming.provider: "openai"`                       | Yes                                                    |
+| Realtime voice            | Voice Call `realtime.provider: "openai"` / Gateway clients Talk | Yes                                                    |
+| Embeddings                | memory embedding provider                                       | Yes                                                    |
 
 ## Memory embeddings
 

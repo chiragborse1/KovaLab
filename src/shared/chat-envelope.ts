@@ -1,6 +1,6 @@
 const ENVELOPE_PREFIX = /^\[([^\]]+)\]\s*/;
 const ENVELOPE_CHANNELS = [
-  "WebChat",
+  "Local Chat",
   "WhatsApp",
   "Telegram",
   "Signal",

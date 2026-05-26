@@ -3,7 +3,7 @@ summary: "Comprehensive application modernization plan with frontend delivery sk
 title: "Application modernization plan"
 read_when:
   - Planning a broad Kova application modernization pass
-  - Updating frontend implementation standards for app or Control UI work
+  - Updating frontend implementation standards for app or Gateway clients work
   - Turning a broad product quality review into phased engineering work
 ---
 
@@ -138,7 +138,7 @@ Definition of done:
 
 ## Recommended first slice
 
-Start with a scoped Control UI and onboarding pass:
+Start with a scoped Gateway clients and onboarding pass:
 
 - Audit first-run setup, provider auth readiness, gateway status, and plugin
   setup surfaces.

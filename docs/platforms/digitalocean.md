@@ -103,9 +103,9 @@ systemctl --user status kova-gateway.service
 journalctl --user -u kova-gateway.service -f
 ```
 
-## 6) Access the Control UI
+## 6) Access the Gateway clients
 
-The gateway binds to loopback by default. To access the Control UI:
+The gateway binds to loopback by default. To access the Gateway clients:
 
 **Option A: SSH Tunnel (recommended)**
 
@@ -132,7 +132,7 @@ Open: `https://<magicdns>/`
 
 Notes:
 
-- Serve keeps the Gateway loopback-only and authenticates Control UI/WebSocket traffic via Tailscale identity headers (tokenless auth assumes trusted gateway host; HTTP APIs do not use those Tailscale headers and instead follow the gateway's normal HTTP auth mode).
+- Serve keeps the Gateway loopback-only and authenticates Gateway clients/WebSocket traffic via Tailscale identity headers (tokenless auth assumes trusted gateway host; HTTP APIs do not use those Tailscale headers and instead follow the gateway's normal HTTP auth mode).
 - To require explicit shared-secret credentials instead, set `gateway.auth.allowTailscale: false` and use `gateway.auth.mode: "token"` or `"password"`.
 
 **Option C: Tailnet bind (no Serve)**

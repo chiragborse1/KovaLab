@@ -512,7 +512,7 @@ describe("collectForbiddenPackPaths", () => {
 });
 
 describe("collectMissingPackPaths", () => {
-  it("requires the shipped channel catalog, control ui, and optional bundled metadata", () => {
+  it("requires the shipped channel catalog and optional bundled metadata", () => {
     const missing = collectMissingPackPaths([
       "dist/index.js",
       "dist/entry.js",
@@ -527,7 +527,6 @@ describe("collectMissingPackPaths", () => {
       expect.arrayContaining([
         "dist/channel-catalog.json",
         PACKAGE_DIST_INVENTORY_RELATIVE_PATH,
-        "dist/control-ui/index.html",
         "scripts/npm-runner.mjs",
         "scripts/preinstall-package-manager-warning.mjs",
         "scripts/postinstall-bundled-plugins.mjs",
@@ -549,7 +548,6 @@ describe("collectMissingPackPaths", () => {
       collectMissingPackPaths([
         "dist/index.js",
         "dist/entry.js",
-        "dist/control-ui/index.html",
         "dist/extensions/acpx/mcp-proxy.mjs",
         bundledDistPluginFile("diffs", "assets/viewer-runtime.js"),
         ...requiredBundledPluginPackPaths,
@@ -583,20 +581,6 @@ describe("resolveMissingPackBuildHint", () => {
   it("points missing runtime build artifacts at pnpm build", () => {
     expect(resolveMissingPackBuildHint(["dist/build-info.json"])).toBe(
       "release-check: build artifacts are missing. Run `pnpm build` before `pnpm release:check`.",
-    );
-  });
-
-  it("points missing Control UI artifacts at pnpm ui:build", () => {
-    expect(resolveMissingPackBuildHint(["dist/control-ui/index.html"])).toBe(
-      "release-check: Control UI artifacts are missing. Run `pnpm ui:build` before `pnpm release:check`.",
-    );
-  });
-
-  it("points combined runtime and Control UI misses at both build commands", () => {
-    expect(
-      resolveMissingPackBuildHint(["dist/build-info.json", "dist/control-ui/index.html"]),
-    ).toBe(
-      "release-check: build and Control UI artifacts are missing. Run `pnpm build && pnpm ui:build` before `pnpm release:check`.",
     );
   });
 

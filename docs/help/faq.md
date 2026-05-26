@@ -83,7 +83,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
 
 <AccordionGroup>
   <Accordion title="What is Kova, in one paragraph?">
-    Kova is a personal AI assistant you run on your own devices. It replies on the messaging surfaces you already use (WhatsApp, Telegram, Slack, Mattermost, Discord, Google Chat, Signal, iMessage, WebChat, and bundled channel plugins such as QQ Bot) and can also do voice + a live Canvas on supported platforms. The **Gateway** is the always-on control plane; the assistant is the product.
+    Kova is a personal AI assistant you run on your own devices. It replies on the messaging surfaces you already use (WhatsApp, Telegram, Slack, Mattermost, Discord, Google Chat, Signal, iMessage, and bundled channel plugins such as QQ Bot) and can also do voice + a live Canvas on supported platforms. The **Gateway** is the always-on control plane; the assistant is the product.
   </Accordion>
 
   <Accordion title="Value proposition">
@@ -154,7 +154,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
     Advantages:
 
     - **Persistent memory + workspace** across sessions
-    - **Multi-platform access** (WhatsApp, Telegram, TUI, WebChat)
+    - **Multi-platform access** (WhatsApp, Telegram, TUI, and plugins)
     - **Tool orchestration** (browser, files, scheduling, hooks)
     - **Always-on Gateway** (run on a VPS, interact from anywhere)
     - **Nodes** for local browser/screen/camera/exec
@@ -684,7 +684,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
     - Local call paths can use `gateway.remote.*` as fallback only when `gateway.auth.*` is unset.
     - For password auth, set `gateway.auth.mode: "password"` plus `gateway.auth.password` (or `KOVA_GATEWAY_PASSWORD`) instead.
     - If `gateway.auth.token` / `gateway.auth.password` is explicitly configured via SecretRef and unresolved, resolution fails closed (no remote fallback masking).
-    - Shared-secret Control UI setups authenticate via `connect.params.auth.token` or `connect.params.auth.password` (stored in app/UI settings). Identity-bearing modes such as Tailscale Serve or `trusted-proxy` use request headers instead. Avoid putting shared secrets in URLs.
+    - Shared-secret Gateway clients setups authenticate via `connect.params.auth.token` or `connect.params.auth.password` (stored in app/UI settings). Identity-bearing modes such as Tailscale Serve or `trusted-proxy` use request headers instead. Avoid putting shared secrets in URLs.
     - With `gateway.auth.mode: "trusted-proxy"`, same-host loopback reverse proxies still do **not** satisfy trusted-proxy auth. The trusted proxy must be a configured non-loopback source.
 
   </Accordion>
@@ -1028,7 +1028,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
        - SSH: `ssh user@your-vps.tailnet-xxxx.ts.net`
        - Gateway WS: `ws://your-vps.tailnet-xxxx.ts.net:18789`
 
-    If you want the Control UI without SSH, use Tailscale Serve on the VPS:
+    If you want the Gateway clients without SSH, use Tailscale Serve on the VPS:
 
     ```bash
     kova gateway --tailscale serve
@@ -1039,7 +1039,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
   </Accordion>
 
   <Accordion title="How do I connect a Mac node to a remote Gateway (Tailscale Serve)?">
-    Serve exposes the **Gateway Control UI + WS**. Nodes connect over the same Gateway WS endpoint.
+    Serve exposes the **Gateway Gateway clients + WS**. Nodes connect over the same Gateway WS endpoint.
 
     Recommended setup:
 
@@ -1380,7 +1380,7 @@ lives on the [Models FAQ](/help/faq-models).
 
 <AccordionGroup>
   <Accordion title="What port does the Gateway use?">
-    `gateway.port` controls the single multiplexed port for WebSocket + HTTP (Control UI, hooks, etc.).
+    `gateway.port` controls the single multiplexed port for WebSocket + HTTP (Gateway clients, hooks, etc.).
 
     Precedence:
 
@@ -1445,12 +1445,12 @@ lives on the [Models FAQ](/help/faq-models).
 
   </Accordion>
 
-  <Accordion title='The Control UI says "unauthorized" (or keeps reconnecting). What now?'>
+  <Accordion title='The Gateway clients says "unauthorized" (or keeps reconnecting). What now?'>
     Your gateway auth path and the UI's auth method do not match.
 
     Facts (from code):
 
-    - The Control UI keeps the token in `sessionStorage` for the current browser tab session and selected gateway URL, so same-tab refreshes keep working without restoring long-lived localStorage token persistence.
+    - The Gateway clients keeps the token in `sessionStorage` for the current browser tab session and selected gateway URL, so same-tab refreshes keep working without restoring long-lived localStorage token persistence.
     - On `AUTH_TOKEN_MISMATCH`, trusted clients can attempt one bounded retry with a cached device token when the gateway returns retry hints (`canRetryWithDeviceToken=true`, `recommendedNextStep=retry_with_device_token`).
     - That cached-token retry now reuses the cached approved scopes stored with the device token. Explicit `deviceToken` / explicit `scopes` callers still keep their requested scope set instead of inheriting cached scopes.
     - Outside that retry path, connect auth precedence is explicit shared token/password first, then explicit `deviceToken`, then stored device token, then bootstrap token.
@@ -1458,10 +1458,10 @@ lives on the [Models FAQ](/help/faq-models).
 
     Fix:
 
-    - Fastest: `kova control-ui` (prints + copies the Control UI URL, tries to open; shows SSH hint if headless).
+    - Fastest: `kova gateway status --deep` (prints + copies the Gateway clients URL, tries to open; shows SSH hint if headless).
     - If you don't have a token yet: `kova doctor --generate-gateway-token`.
     - If remote, tunnel first: `ssh -N -L 18789:127.0.0.1:18789 user@host` then open `http://127.0.0.1:18789/`.
-    - Shared-secret mode: set `gateway.auth.token` / `KOVA_GATEWAY_TOKEN` or `gateway.auth.password` / `KOVA_GATEWAY_PASSWORD`, then paste the matching secret in Control UI settings.
+    - Shared-secret mode: set `gateway.auth.token` / `KOVA_GATEWAY_TOKEN` or `gateway.auth.password` / `KOVA_GATEWAY_PASSWORD`, then paste the matching secret in Gateway clients settings.
     - Tailscale Serve mode: make sure `gateway.auth.allowTailscale` is enabled and you are opening the Serve URL, not a raw loopback/tailnet URL that bypasses Tailscale identity headers.
     - Trusted-proxy mode: make sure you are coming through the configured non-loopback identity-aware proxy, not a same-host loopback proxy or raw gateway URL.
     - If mismatch persists after the one retry, rotate/re-approve the paired device token:
@@ -1470,7 +1470,7 @@ lives on the [Models FAQ](/help/faq-models).
     - If that rotate call says it was denied, check two things:
       - paired-device sessions can rotate only their **own** device unless they also have `operator.admin`
       - explicit `--scope` values cannot exceed the caller's current operator scopes
-    - Still stuck? Run `kova status --all` and follow [Troubleshooting](/gateway/troubleshooting). See [Control UI](/web/control-ui) for auth details.
+    - Still stuck? Run `kova status --all` and follow [Troubleshooting](/gateway/troubleshooting). See [Gateway clients](/gateway/remote) for auth details.
 
   </Accordion>
 
@@ -1627,7 +1627,7 @@ lives on the [Models FAQ](/help/faq-models).
 
     - Model auth not loaded on the **gateway host** (check `models status`).
     - Channel pairing/allowlist blocking replies (check channel config + logs).
-    - WebChat or Control UI is open without the right token.
+    - A Gateway client is open without the right token.
 
     If you are remote, confirm the tunnel/Tailscale connection is up and that the
     Gateway WebSocket is reachable.
@@ -1641,7 +1641,7 @@ lives on the [Models FAQ](/help/faq-models).
 
     1. Is the Gateway running? `kova gateway status`
     2. Is the Gateway healthy? `kova status`
-    3. Does the UI have the right token? `kova control-ui`
+    3. Does the UI have the right token? `kova gateway status --deep`
     4. If remote, is the tunnel/Tailscale link up?
 
     Then tail logs:
@@ -1650,7 +1650,7 @@ lives on the [Models FAQ](/help/faq-models).
     kova logs --follow
     ```
 
-    Docs: [Control UI](/web/control-ui), [Remote access](/gateway/remote), [Troubleshooting](/gateway/troubleshooting).
+    Docs: [Gateway clients](/gateway/remote), [Remote access](/gateway/remote), [Troubleshooting](/gateway/troubleshooting).
 
   </Accordion>
 

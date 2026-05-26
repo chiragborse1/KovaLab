@@ -508,7 +508,6 @@ async function startMatrixQaLiveLaneGateway(params: {
   primaryModel: string;
   alternateModel: string;
   fastMode?: boolean;
-  controlUiEnabled?: boolean;
   mutateConfig?: (cfg: KovaConfig) => KovaConfig;
 }): Promise<MatrixQaLiveLaneGatewayHarness> {
   return (await loadQaRuntimeModule().startQaLiveLaneGateway(
@@ -671,7 +670,6 @@ export async function runMatrixQaLive(params: {
             primaryModel,
             alternateModel,
             fastMode: params.fastMode,
-            controlUiEnabled: false,
             mutateConfig: (cfg) =>
               buildMatrixQaConfig(cfg, {
                 ...gatewayConfigParams,

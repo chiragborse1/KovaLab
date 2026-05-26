@@ -31,12 +31,6 @@ export function collectGatewayConfigFindings(
   const bind = typeof cfg.gateway?.bind === "string" ? cfg.gateway.bind : "loopback";
   const tailscaleMode = cfg.gateway?.tailscale?.mode ?? "off";
   const auth = resolveGatewayAuth({ authConfig: cfg.gateway?.auth, tailscaleMode, env });
-  const controlUiEnabled = cfg.gateway?.controlUi?.enabled === true;
-  const controlUiAllowedOrigins = (cfg.gateway?.controlUi?.allowedOrigins ?? [])
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const dangerouslyAllowHostHeaderOriginFallback =
-    cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
   const trustedProxies = Array.isArray(cfg.gateway?.trustedProxies)
     ? cfg.gateway.trustedProxies
     : [];
@@ -76,8 +70,6 @@ export function collectGatewayConfigFindings(
         : explicitAuthMode === "none" || explicitAuthMode === "trusted-proxy"
           ? false
           : tokenConfigured || passwordConfigured;
-  const hasTailscaleAuth = auth.allowTailscale && tailscaleMode === "serve";
-  const hasGatewayAuth = hasSharedSecret || hasTailscaleAuth;
   const allowRealIpFallback = cfg.gateway?.allowRealIpFallback === true;
   const mdnsMode = cfg.discovery?.mdns?.mode ?? "minimal";
 
@@ -117,72 +109,16 @@ export function collectGatewayConfigFindings(
   }
 
   const usesProxyTrust = auth.mode === "trusted-proxy" || allowRealIpFallback;
-  if (bind === "loopback" && controlUiEnabled && usesProxyTrust && trustedProxies.length === 0) {
+  if (bind === "loopback" && usesProxyTrust && trustedProxies.length === 0) {
     findings.push({
       checkId: "gateway.trusted_proxies_missing",
       severity: "warn",
       title: "Reverse proxy headers are not trusted",
       detail:
         "gateway.bind is loopback and gateway.trustedProxies is empty. " +
-        "If you expose the Control UI through a reverse proxy, configure trusted proxies " +
+        "If you expose the Gateway through a reverse proxy, configure trusted proxies " +
         "so local-client checks cannot be spoofed.",
-      remediation:
-        "Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only.",
-    });
-  }
-
-  if (bind === "loopback" && controlUiEnabled && !hasGatewayAuth) {
-    findings.push({
-      checkId: "gateway.loopback_no_auth",
-      severity: "critical",
-      title: "Gateway auth missing on loopback",
-      detail:
-        "gateway.bind is loopback but no gateway auth secret is configured. " +
-        "If the Control UI is exposed through a reverse proxy, unauthenticated access is possible.",
-      remediation: "Set gateway.auth (token recommended) or keep the Control UI local-only.",
-    });
-  }
-  if (
-    bind !== "loopback" &&
-    controlUiEnabled &&
-    controlUiAllowedOrigins.length === 0 &&
-    !dangerouslyAllowHostHeaderOriginFallback
-  ) {
-    findings.push({
-      checkId: "gateway.control_ui.allowed_origins_required",
-      severity: "critical",
-      title: "Non-loopback Control UI missing explicit allowed origins",
-      detail:
-        "Control UI is enabled on a non-loopback bind but gateway.controlUi.allowedOrigins is empty. " +
-        "Strict origin policy requires explicit allowed origins for non-loopback deployments.",
-      remediation:
-        "Set gateway.controlUi.allowedOrigins to full trusted origins (for example https://control.example.com). " +
-        "If your deployment intentionally relies on Host-header origin fallback, set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true.",
-    });
-  }
-  if (controlUiAllowedOrigins.includes("*")) {
-    const exposed = bind !== "loopback";
-    findings.push({
-      checkId: "gateway.control_ui.allowed_origins_wildcard",
-      severity: exposed ? "critical" : "warn",
-      title: "Control UI allowed origins contains wildcard",
-      detail:
-        'gateway.controlUi.allowedOrigins includes "*" which means allow any browser origin for web console requests. This disables origin allowlisting and should be treated as an intentional allow-all policy.',
-      remediation:
-        'Replace wildcard origins with explicit trusted origins (for example https://control.example.com). Do not use "*" outside tightly controlled local testing.',
-    });
-  }
-  if (dangerouslyAllowHostHeaderOriginFallback) {
-    const exposed = bind !== "loopback";
-    findings.push({
-      checkId: "gateway.control_ui.host_header_origin_fallback",
-      severity: exposed ? "critical" : "warn",
-      title: "DANGEROUS: Host-header origin fallback enabled",
-      detail:
-        "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true enables Host-header origin fallback " +
-        "for web console websocket checks and weakens DNS rebinding protections.",
-      remediation:
-        "Disable gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback and configure explicit gateway.controlUi.allowedOrigins.",
+      remediation: "Set gateway.trustedProxies to your proxy IPs or keep the Gateway local-only.",
     });
   }
 
@@ -233,28 +169,6 @@ export function collectGatewayConfigFindings(
       severity: "info",
       title: "Tailscale Serve exposure enabled",
       detail: `gateway.tailscale.mode="serve" exposes the Gateway to your tailnet (loopback behind Tailscale).`,
-    });
-  }
-
-  if (cfg.gateway?.controlUi?.allowInsecureAuth === true) {
-    findings.push({
-      checkId: "gateway.control_ui.insecure_auth",
-      severity: "warn",
-      title: "Web console insecure auth toggle enabled",
-      detail:
-        "gateway.controlUi.allowInsecureAuth=true does not bypass secure context or device identity checks; only dangerouslyDisableDeviceAuth disables web console device identity checks.",
-      remediation: "Disable it or switch to HTTPS (Tailscale Serve) or localhost.",
-    });
-  }
-
-  if (cfg.gateway?.controlUi?.dangerouslyDisableDeviceAuth === true) {
-    findings.push({
-      checkId: "gateway.control_ui.device_auth_disabled",
-      severity: "critical",
-      title: "DANGEROUS: web console device auth disabled",
-      detail:
-        "gateway.controlUi.dangerouslyDisableDeviceAuth=true disables device identity checks for the web console.",
-      remediation: "Disable it unless you are in a short-lived break-glass scenario.",
     });
   }
 
