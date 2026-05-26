@@ -5316,6 +5316,96 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   },
                 ],
               },
+              pulse: {
+                type: "object",
+                properties: {
+                  every: {
+                    type: "string",
+                  },
+                  activeHours: {
+                    type: "object",
+                    properties: {
+                      start: {
+                        type: "string",
+                      },
+                      end: {
+                        type: "string",
+                      },
+                      timezone: {
+                        type: "string",
+                      },
+                    },
+                    additionalProperties: false,
+                  },
+                  model: {
+                    type: "string",
+                  },
+                  session: {
+                    type: "string",
+                  },
+                  includeReasoning: {
+                    type: "boolean",
+                  },
+                  target: {
+                    type: "string",
+                  },
+                  directPolicy: {
+                    anyOf: [
+                      {
+                        type: "string",
+                        const: "allow",
+                      },
+                      {
+                        type: "string",
+                        const: "block",
+                      },
+                    ],
+                    title: "Pulse Direct Policy",
+                    description:
+                      'Controls whether Pulse delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
+                  },
+                  to: {
+                    type: "string",
+                  },
+                  accountId: {
+                    type: "string",
+                  },
+                  prompt: {
+                    type: "string",
+                  },
+                  includeSystemPromptSection: {
+                    type: "boolean",
+                    title: "Pulse Include System Prompt Section",
+                    description:
+                      "Includes the default agent's ## Pulse system prompt section when true. Turn this off to keep Pulse runtime behavior while omitting the Pulse prompt instructions from the agent system prompt.",
+                  },
+                  ackMaxChars: {
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 9007199254740991,
+                  },
+                  suppressToolErrorWarnings: {
+                    type: "boolean",
+                    title: "Pulse Suppress Tool Error Warnings",
+                    description: "Suppress tool error warning payloads during Pulse runs.",
+                  },
+                  timeoutSeconds: {
+                    type: "integer",
+                    exclusiveMinimum: 0,
+                    maximum: 9007199254740991,
+                    title: "Pulse Timeout (Seconds)",
+                    description:
+                      "Maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
+                  },
+                  lightContext: {
+                    type: "boolean",
+                  },
+                  isolatedSession: {
+                    type: "boolean",
+                  },
+                },
+                additionalProperties: false,
+              },
               heartbeat: {
                 type: "object",
                 properties: {
@@ -5361,8 +5451,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       },
                     ],
                     title: "Heartbeat Direct Policy",
-                    description:
-                      'Controls whether heartbeat delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
+                    description: "Legacy alias for agents.defaults.pulse.directPolicy.",
                   },
                   to: {
                     type: "string",
@@ -5377,7 +5466,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     type: "boolean",
                     title: "Heartbeat Include System Prompt Section",
                     description:
-                      "Includes the default agent's ## Heartbeats system prompt section when true. Turn this off to keep heartbeat runtime behavior while omitting the heartbeat prompt instructions from the agent system prompt.",
+                      "Legacy alias for agents.defaults.pulse.includeSystemPromptSection.",
                   },
                   ackMaxChars: {
                     type: "integer",
@@ -5387,15 +5476,15 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   suppressToolErrorWarnings: {
                     type: "boolean",
                     title: "Heartbeat Suppress Tool Error Warnings",
-                    description: "Suppress tool error warning payloads during heartbeat runs.",
+                    description:
+                      "Legacy alias for agents.defaults.pulse.suppressToolErrorWarnings.",
                   },
                   timeoutSeconds: {
                     type: "integer",
                     exclusiveMinimum: 0,
                     maximum: 9007199254740991,
                     title: "Heartbeat Timeout (Seconds)",
-                    description:
-                      "Maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
+                    description: "Legacy alias for agents.defaults.pulse.timeoutSeconds.",
                   },
                   lightContext: {
                     type: "boolean",
@@ -7053,6 +7142,96 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                   exclusiveMinimum: 0,
                   maximum: 9007199254740991,
                 },
+                pulse: {
+                  type: "object",
+                  properties: {
+                    every: {
+                      type: "string",
+                    },
+                    activeHours: {
+                      type: "object",
+                      properties: {
+                        start: {
+                          type: "string",
+                        },
+                        end: {
+                          type: "string",
+                        },
+                        timezone: {
+                          type: "string",
+                        },
+                      },
+                      additionalProperties: false,
+                    },
+                    model: {
+                      type: "string",
+                    },
+                    session: {
+                      type: "string",
+                    },
+                    includeReasoning: {
+                      type: "boolean",
+                    },
+                    target: {
+                      type: "string",
+                    },
+                    directPolicy: {
+                      anyOf: [
+                        {
+                          type: "string",
+                          const: "allow",
+                        },
+                        {
+                          type: "string",
+                          const: "block",
+                        },
+                      ],
+                      title: "Pulse Direct Policy",
+                      description:
+                        'Per-agent override for Pulse direct/DM delivery policy; use "block" for agents that should only send Pulse alerts to non-DM destinations.',
+                    },
+                    to: {
+                      type: "string",
+                    },
+                    accountId: {
+                      type: "string",
+                    },
+                    prompt: {
+                      type: "string",
+                    },
+                    includeSystemPromptSection: {
+                      type: "boolean",
+                      title: "Pulse Include System Prompt Section",
+                      description:
+                        "Per-agent override for whether the default agent's ## Pulse system prompt section is injected. Use false to keep Pulse runtime behavior but omit the Pulse prompt instructions from that agent's system prompt.",
+                    },
+                    ackMaxChars: {
+                      type: "integer",
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    suppressToolErrorWarnings: {
+                      type: "boolean",
+                      title: "Pulse Suppress Tool Error Warnings",
+                      description: "Suppress tool error warning payloads during Pulse runs.",
+                    },
+                    timeoutSeconds: {
+                      type: "integer",
+                      exclusiveMinimum: 0,
+                      maximum: 9007199254740991,
+                      title: "Pulse Timeout (Seconds)",
+                      description:
+                        "Per-agent maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to inherit the merged Pulse/default agent timeout.",
+                    },
+                    lightContext: {
+                      type: "boolean",
+                    },
+                    isolatedSession: {
+                      type: "boolean",
+                    },
+                  },
+                  additionalProperties: false,
+                },
                 heartbeat: {
                   type: "object",
                   properties: {
@@ -7098,8 +7277,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                         },
                       ],
                       title: "Heartbeat Direct Policy",
-                      description:
-                        'Per-agent override for heartbeat direct/DM delivery policy; use "block" for agents that should only send heartbeat alerts to non-DM destinations.',
+                      description: "Legacy alias for agents.list.*.pulse.directPolicy.",
                     },
                     to: {
                       type: "string",
@@ -7114,7 +7292,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                       type: "boolean",
                       title: "Heartbeat Include System Prompt Section",
                       description:
-                        "Per-agent override for whether the default agent's ## Heartbeats system prompt section is injected. Use false to keep heartbeat runtime behavior but omit the heartbeat prompt instructions from that agent's system prompt.",
+                        "Legacy alias for agents.list.*.pulse.includeSystemPromptSection.",
                     },
                     ackMaxChars: {
                       type: "integer",
@@ -7124,15 +7302,15 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
                     suppressToolErrorWarnings: {
                       type: "boolean",
                       title: "Heartbeat Suppress Tool Error Warnings",
-                      description: "Suppress tool error warning payloads during heartbeat runs.",
+                      description:
+                        "Legacy alias for agents.list[].pulse.suppressToolErrorWarnings.",
                     },
                     timeoutSeconds: {
                       type: "integer",
                       exclusiveMinimum: 0,
                       maximum: 9007199254740991,
                       title: "Heartbeat Timeout (Seconds)",
-                      description:
-                        "Per-agent maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to inherit the merged heartbeat/default agent timeout.",
+                      description: "Legacy alias for agents.list[].pulse.timeoutSeconds.",
                     },
                     lightContext: {
                       type: "boolean",
@@ -27018,14 +27196,52 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       help: 'Embedded Pi execution contract: "default" keeps the standard runner behavior, while "strict-agentic" keeps OpenAI/OpenAI Codex GPT-5-family runs acting until they hit a real blocker instead of stopping at plans or filler.',
       tags: ["advanced"],
     },
+    "agents.defaults.pulse.includeSystemPromptSection": {
+      label: "Pulse Include System Prompt Section",
+      help: "Includes the default agent's ## Pulse system prompt section when true. Turn this off to keep Pulse runtime behavior while omitting the Pulse prompt instructions from the agent system prompt.",
+      tags: ["advanced"],
+    },
+    "agents.list.*.pulse.includeSystemPromptSection": {
+      label: "Pulse Include System Prompt Section",
+      help: "Per-agent override for whether the default agent's ## Pulse system prompt section is injected. Use false to keep Pulse runtime behavior but omit the Pulse prompt instructions from that agent's system prompt.",
+      tags: ["advanced"],
+    },
+    "agents.defaults.pulse.directPolicy": {
+      label: "Pulse Direct Policy",
+      help: 'Controls whether Pulse delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
+      tags: ["access", "storage"],
+    },
+    "agents.list.*.pulse.directPolicy": {
+      label: "Pulse Direct Policy",
+      help: 'Per-agent override for Pulse direct/DM delivery policy; use "block" for agents that should only send Pulse alerts to non-DM destinations.',
+      tags: ["access", "storage"],
+    },
+    "agents.defaults.pulse.suppressToolErrorWarnings": {
+      label: "Pulse Suppress Tool Error Warnings",
+      help: "Suppress tool error warning payloads during Pulse runs.",
+      tags: ["advanced"],
+    },
+    "agents.list.*.pulse.suppressToolErrorWarnings": {
+      label: "Pulse Suppress Tool Error Warnings",
+      tags: ["advanced"],
+    },
+    "agents.defaults.pulse.timeoutSeconds": {
+      label: "Pulse Timeout (Seconds)",
+      help: "Maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
+      tags: ["performance"],
+    },
+    "agents.list.*.pulse.timeoutSeconds": {
+      label: "Pulse Timeout (Seconds)",
+      tags: ["performance"],
+    },
     "agents.defaults.heartbeat.includeSystemPromptSection": {
       label: "Heartbeat Include System Prompt Section",
-      help: "Includes the default agent's ## Heartbeats system prompt section when true. Turn this off to keep heartbeat runtime behavior while omitting the heartbeat prompt instructions from the agent system prompt.",
+      help: "Legacy alias for agents.defaults.pulse.includeSystemPromptSection.",
       tags: ["automation"],
     },
     "agents.list.*.heartbeat.includeSystemPromptSection": {
       label: "Heartbeat Include System Prompt Section",
-      help: "Per-agent override for whether the default agent's ## Heartbeats system prompt section is injected. Use false to keep heartbeat runtime behavior but omit the heartbeat prompt instructions from that agent's system prompt.",
+      help: "Legacy alias for agents.list.*.pulse.includeSystemPromptSection.",
       tags: ["automation"],
     },
     "agents.list[].embeddedPi": {
@@ -27040,17 +27256,17 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.heartbeat.directPolicy": {
       label: "Heartbeat Direct Policy",
-      help: 'Controls whether heartbeat delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
+      help: "Legacy alias for agents.defaults.pulse.directPolicy.",
       tags: ["access", "storage", "automation"],
     },
     "agents.list.*.heartbeat.directPolicy": {
       label: "Heartbeat Direct Policy",
-      help: 'Per-agent override for heartbeat direct/DM delivery policy; use "block" for agents that should only send heartbeat alerts to non-DM destinations.',
+      help: "Legacy alias for agents.list.*.pulse.directPolicy.",
       tags: ["access", "storage", "automation"],
     },
     "agents.defaults.heartbeat.suppressToolErrorWarnings": {
       label: "Heartbeat Suppress Tool Error Warnings",
-      help: "Suppress tool error warning payloads during heartbeat runs.",
+      help: "Legacy alias for agents.defaults.pulse.suppressToolErrorWarnings.",
       tags: ["automation"],
     },
     "agents.list.*.heartbeat.suppressToolErrorWarnings": {
@@ -27059,7 +27275,7 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
     },
     "agents.defaults.heartbeat.timeoutSeconds": {
       label: "Heartbeat Timeout (Seconds)",
-      help: "Maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
+      help: "Legacy alias for agents.defaults.pulse.timeoutSeconds.",
       tags: ["performance", "automation"],
     },
     "agents.list.*.heartbeat.timeoutSeconds": {
@@ -28189,14 +28405,24 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       placeholder: "avatars/kova.png",
       tags: ["advanced"],
     },
+    "agents.list[].pulse.suppressToolErrorWarnings": {
+      label: "Agent Pulse Suppress Tool Error Warnings",
+      help: "Suppress tool error warning payloads during Pulse runs.",
+      tags: ["advanced"],
+    },
+    "agents.list[].pulse.timeoutSeconds": {
+      label: "Agent Pulse Timeout (Seconds)",
+      help: "Per-agent maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to inherit the merged Pulse/default agent timeout.",
+      tags: ["performance"],
+    },
     "agents.list[].heartbeat.suppressToolErrorWarnings": {
       label: "Agent Heartbeat Suppress Tool Error Warnings",
-      help: "Suppress tool error warning payloads during heartbeat runs.",
+      help: "Legacy alias for agents.list[].pulse.suppressToolErrorWarnings.",
       tags: ["automation"],
     },
     "agents.list[].heartbeat.timeoutSeconds": {
       label: "Agent Heartbeat Timeout (Seconds)",
-      help: "Per-agent maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to inherit the merged heartbeat/default agent timeout.",
+      help: "Legacy alias for agents.list[].pulse.timeoutSeconds.",
       tags: ["performance", "automation"],
     },
     "agents.list[].sandbox.browser.network": {
@@ -28740,6 +28966,6 @@ export const GENERATED_BASE_CONFIG_SCHEMA: BaseConfigSchemaResponse = {
       tags: ["advanced", "url-secret"],
     },
   },
-  version: "2.0.0-beta.6",
+  version: "2.0.0-beta.7",
   generatedAt: "2026-03-22T21:17:33.302Z",
 };
