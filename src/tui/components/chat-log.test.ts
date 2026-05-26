@@ -41,18 +41,18 @@ describe("ChatLog", () => {
     expect(chatLog.children.length).toBe(1);
   });
 
-  it("renders user and assistant messages with distinct Kova frames", () => {
+  it("renders user and assistant messages as compact transcript entries", () => {
     const chatLog = new ChatLog(40);
     chatLog.addUser("please check the build");
     chatLog.startAssistant("Build looks clean.", "run-ui");
 
     const rendered = normalizeTestText(chatLog.render(48).join("\n"));
 
-    expect(rendered).toContain("╭─ You");
-    expect(rendered).toContain("  please check the build");
-    expect(rendered).toContain("╭─ Kova");
-    expect(rendered).toContain("  Build looks clean.");
-    expect(rendered).toContain("╰");
+    expect(rendered).toContain("❯ please check the build");
+    expect(rendered).toContain("● Build looks clean.");
+    expect(rendered).not.toContain("╭─ You");
+    expect(rendered).not.toContain("╭─ Kova");
+    expect(rendered).not.toContain("╰");
     expect(rendered).not.toContain("│");
   });
 
@@ -80,7 +80,7 @@ describe("ChatLog", () => {
     );
 
     const rendered = normalizeTestText(chatLog.render(120).join("\n"));
-    expect(rendered).toContain("┊");
+    expect(rendered).toContain("●");
     expect(rendered).toContain("$");
     expect(rendered).toContain("pnpm test");
     expect(rendered).not.toContain("output hidden");
@@ -94,13 +94,14 @@ describe("ChatLog", () => {
     chatLog.updateToolResult("tool-1", { content: [{ type: "text", text: "file output" }] });
 
     let rendered = normalizeTestText(chatLog.render(120).join("\n"));
-    expect(rendered).toContain("┊");
+    expect(rendered).toContain("●");
     expect(rendered).toContain("read");
     expect(rendered).toContain("src/index.ts");
     expect(rendered).not.toContain("file output");
 
     chatLog.setToolsExpanded(true);
     rendered = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(rendered).toContain("└ file output");
     expect(rendered).toContain("file output");
   });
 

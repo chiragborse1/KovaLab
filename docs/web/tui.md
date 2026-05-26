@@ -58,7 +58,7 @@ Use `--password` if your Gateway uses password auth.
 ## What you see
 
 - Header: compact control deck with connection state, activity, current model, context gauge, agent/session, tools, and skills.
-- Chat log: user messages, assistant replies, system notices, compact tool activity.
+- Chat log: user prompts, assistant replies, system notices, compact tool activity.
 - Approval cards: exec/tool approval requests stay visible even when tool
   details are hidden; run `/approve` to choose a pending request, or respond
   with the shown `/approve ...` command.
@@ -66,11 +66,14 @@ Use `--password` if your Gateway uses password auth.
 - Footer: compact `agent/session`, active mode flags, queued messages, and `ctx used/limit`.
 - Input: text editor with autocomplete.
 
-Tool activity uses a compact Hermes-style rail. The duration on each tool line is
-only the tool's runtime after Kova receives the tool-start event. If a turn takes
-time before the first tool appears, the status line now says whether Kova is
-waiting on the model/provider or running a tool. Use `KOVA_TUI_TRACE=1 kova` for
-the full per-turn timing breakdown when a reply feels slow.
+The chat transcript uses a compact command-log style: user turns start with `❯`,
+assistant turns start with `●`, and tool activity appears as nearby `●` rows with
+short action labels, target details, and runtime. Expanded tool output is nested
+under the tool row with `└`. The duration on each tool line is only the tool's
+runtime after Kova receives the tool-start event. If a turn takes time before the
+first tool appears, the status line now says whether Kova is waiting on the
+model/provider or running a tool. Use `KOVA_TUI_TRACE=1 kova` for the full
+per-turn timing breakdown when a reply feels slow.
 
 The `ctx` gauge is the current session's estimated model context usage. When it
 gets close to the selected model's context limit, Kova needs compaction or a new

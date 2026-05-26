@@ -117,7 +117,7 @@ function compactToolLine(params: {
   const finish = (emoji: string, label: string, detail: string) => {
     const detailText = truncate(detail || formatToolDetail(display) || display.detail || name);
     const durationText = duration ? `  ${duration}` : "";
-    return `┊ ${emoji} ${formatLabel(label)} ${detailText}${durationText}${statusSuffix}`.trimEnd();
+    return `● ${emoji} ${formatLabel(label)} ${detailText}${durationText}${statusSuffix}`.trimEnd();
   };
 
   if (key === "web_search" || key === "x_search") {
@@ -223,7 +223,7 @@ export class ToolExecutionComponent extends Container {
     super();
     this.toolName = toolName;
     this.args = args;
-    this.line = new Text("", 1, 0);
+    this.line = new Text("", 0, 0);
     this.output = new Markdown("", 0, 0, markdownTheme, {
       color: (line) => theme.toolOutput(line),
     });
@@ -293,7 +293,12 @@ export class ToolExecutionComponent extends Container {
       const lines = text.split("\n");
       const preview =
         lines.length > PREVIEW_LINES ? `${lines.slice(0, PREVIEW_LINES).join("\n")}\n…` : text;
-      this.output.setText(preview.replace(/^/gm, "  "));
+      this.output.setText(
+        preview
+          .split("\n")
+          .map((line, index) => `${index === 0 ? "  └ " : "    "}${line}`)
+          .join("\n"),
+      );
     } else {
       this.output.setText("");
     }

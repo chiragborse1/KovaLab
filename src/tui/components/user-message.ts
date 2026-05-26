@@ -1,7 +1,7 @@
 import { Container, Spacer } from "@mariozechner/pi-tui";
 import { markdownTheme, theme } from "../theme/theme.js";
 import { HyperlinkMarkdown } from "./hyperlink-markdown.js";
-import { MessageFrame } from "./message-frame.js";
+import { PrefixBlock } from "./prefix-block.js";
 
 export class UserMessageComponent extends Container {
   private body: HyperlinkMarkdown;
@@ -12,15 +12,7 @@ export class UserMessageComponent extends Container {
       color: (line) => theme.userText(line),
     });
     this.addChild(new Spacer(1));
-    this.addChild(
-      new MessageFrame(this.body, {
-        title: "You",
-        theme: {
-          border: theme.userBorder,
-          title: theme.userTitle,
-        },
-      }),
-    );
+    this.addChild(new PrefixBlock(this.body, theme.userPrompt("❯ ")));
   }
 
   setText(text: string) {

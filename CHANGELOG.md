@@ -4,6 +4,7 @@
 
 ### Changes
 
+- CLI/TUI: switch the chat transcript to a compact command-log style with prompt/bullet turns and nested expanded tool output. Thanks @chiragborse1
 - CLI/onboarding: simplify `kova onboard` into a Kova-owned base flow for workspace, model/auth, Gateway port, and chat channels, with web recall, skills, plugins, hooks, and background service kept in optional advanced setup. Thanks @chiragborse1
 - CLI/onboarding: tighten first-run setup copy around terminal chat, persona, memory, status, and channel follow-up commands. Thanks @chiragborse1
 - Product: remove the legacy browser dashboard package, serving path, build lanes, QA proxy, and docs so Kova is terminal-first by default. Thanks @chiragborse1

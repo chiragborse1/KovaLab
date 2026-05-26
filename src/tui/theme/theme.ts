@@ -160,6 +160,8 @@ export const theme = {
   system: fg(palette.systemText),
   userBg: bg(palette.userBg),
   userText: fg(palette.userText),
+  userPrompt: (text: string) => chalk.bold(fg(palette.userText)(text)),
+  assistantPrompt: (text: string) => chalk.bold(fg(palette.accent)(text)),
   assistantBorder: fg(palette.assistantBorder),
   assistantTitle: (text: string) => chalk.bold(fg(palette.assistantTitle)(text)),
   userBorder: fg(palette.userBorder),
