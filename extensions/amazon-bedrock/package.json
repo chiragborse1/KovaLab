@@ -5,9 +5,9 @@
   "description": "Kova Amazon Bedrock provider plugin",
   "type": "module",
   "dependencies": {
-    "@aws-sdk/client-bedrock": "3.1036.0",
-    "@aws-sdk/client-bedrock-runtime": "3.1036.0",
-    "@aws-sdk/credential-provider-node": "3.972.36"
+    "@aws-sdk/client-bedrock": "3.1053.0",
+    "@aws-sdk/client-bedrock-runtime": "3.1053.0",
+    "@aws-sdk/credential-provider-node": "3.972.44"
   },
   "devDependencies": {
     "@getkova/plugin-sdk": "workspace:*"
