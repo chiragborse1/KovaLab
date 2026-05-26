@@ -87,6 +87,19 @@ describe("ChatLog", () => {
     expect(rendered).not.toContain("secret output");
   });
 
+  it("uses available terminal width for compact tool details", () => {
+    const chatLog = new ChatLog(40);
+    const query = "GitHub Actions outage May 26 2026 GitHub status incident";
+
+    chatLog.startTool("tool-1", "web_search", { query });
+
+    const wide = normalizeTestText(chatLog.render(120).join("\n"));
+    expect(wide).toContain(query);
+
+    const narrow = normalizeTestText(chatLog.render(52).join("\n"));
+    expect(narrow).toContain("...");
+  });
+
   it("shows tool output only when details are expanded", () => {
     const chatLog = new ChatLog(40);
 

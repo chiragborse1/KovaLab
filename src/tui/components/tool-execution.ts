@@ -1,4 +1,4 @@
-import { Container, Markdown, Spacer, Text } from "@mariozechner/pi-tui";
+import { Container, Markdown, Spacer, Text, visibleWidth } from "@mariozechner/pi-tui";
 import { formatToolDetail, resolveToolDisplay } from "../../agents/tool-display.js";
 import { markdownTheme, theme } from "../theme/theme.js";
 import { sanitizeRenderableText } from "../tui-formatters.js";
@@ -17,7 +17,8 @@ type ToolResult = {
 };
 
 const PREVIEW_LINES = 12;
-const DETAIL_WIDTH = 42;
+const DEFAULT_DETAIL_WIDTH = 42;
+const MIN_DETAIL_WIDTH = 18;
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -42,7 +43,7 @@ function oneline(value: string): string {
   return value.split(/\s+/).filter(Boolean).join(" ");
 }
 
-function truncate(value: string, maxLen = DETAIL_WIDTH): string {
+function truncate(value: string, maxLen = DEFAULT_DETAIL_WIDTH): string {
   const text = oneline(value);
   if (text.length <= maxLen) {
     return text;
@@ -102,6 +103,7 @@ function compactToolLine(params: {
   elapsedMs?: number;
   status: string;
   isError: boolean;
+  renderWidth?: number;
 }): string {
   const record = asRecord(params.args);
   const name = params.toolName.trim();
@@ -115,9 +117,21 @@ function compactToolLine(params: {
       : "";
 
   const finish = (emoji: string, label: string, detail: string) => {
-    const detailText = truncate(detail || formatToolDetail(display) || display.detail || name);
     const durationText = duration ? `  ${duration}` : "";
-    return `● ${emoji} ${formatLabel(label)} ${detailText}${durationText}${statusSuffix}`.trimEnd();
+    const prefix = `● ${emoji} ${formatLabel(label)} `;
+    const suffix = `${durationText}${statusSuffix}`;
+    const maxDetailWidth =
+      typeof params.renderWidth === "number" && Number.isFinite(params.renderWidth)
+        ? Math.max(
+            MIN_DETAIL_WIDTH,
+            Math.floor(params.renderWidth) - visibleWidth(prefix) - visibleWidth(suffix),
+          )
+        : DEFAULT_DETAIL_WIDTH;
+    const detailText = truncate(
+      detail || formatToolDetail(display) || display.detail || name,
+      maxDetailWidth,
+    );
+    return `${prefix}${detailText}${suffix}`.trimEnd();
   };
 
   if (key === "web_search" || key === "x_search") {
@@ -274,7 +288,7 @@ export class ToolExecutionComponent extends Container {
     return this.isError ? "failed" : "done";
   }
 
-  private refresh() {
+  private refresh(renderWidth?: number) {
     const status = this.statusText();
     const line = compactToolLine({
       toolName: this.toolName,
@@ -282,6 +296,7 @@ export class ToolExecutionComponent extends Container {
       elapsedMs: this.completedAt !== undefined ? this.completedAt - this.startedAt : undefined,
       status,
       isError: this.isError,
+      renderWidth,
     });
     this.line.setText(this.isError ? theme.error(line) : theme.toolOutput(line));
 
@@ -302,5 +317,10 @@ export class ToolExecutionComponent extends Container {
     } else {
       this.output.setText("");
     }
+  }
+
+  render(width: number): string[] {
+    this.refresh(width);
+    return super.render(width);
   }
 }
