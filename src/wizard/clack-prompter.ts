@@ -8,6 +8,7 @@ import {
   multiselect,
   type Option,
   outro,
+  password,
   select,
   spinner,
   text,
@@ -50,6 +51,23 @@ export function tokenizedOptionFilter<T>(search: string, option: Option<T>): boo
   }
   const haystack = buildOptionSearchText(option);
   return tokens.every((token) => haystack.includes(token));
+}
+
+function isSensitiveTextPrompt(params: {
+  message: string;
+  placeholder?: string;
+  sensitive?: boolean;
+}): boolean {
+  if (params.sensitive === true) {
+    return true;
+  }
+  const text = `${params.message} ${params.placeholder ?? ""}`.toLowerCase();
+  return (
+    text.includes("api key") ||
+    text.includes("token") ||
+    text.includes("password") ||
+    text.includes("secret")
+  );
 }
 
 export function createClackPrompter(): WizardPrompter {
@@ -115,6 +133,14 @@ export function createClackPrompter(): WizardPrompter {
     },
     text: async (params) => {
       const validate = params.validate;
+      if (isSensitiveTextPrompt(params)) {
+        return guardCancel(
+          await password({
+            message: stylePromptMessage(params.message),
+            validate: validate ? (value) => validate(value ?? "") : undefined,
+          }),
+        );
+      }
       return guardCancel(
         await text({
           message: stylePromptMessage(params.message),

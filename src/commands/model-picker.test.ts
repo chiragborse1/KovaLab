@@ -267,6 +267,40 @@ describe("promptDefaultModel", () => {
     ]);
   });
 
+  it("keeps model catalogs cold even when the current model is from another provider", async () => {
+    const select = vi.fn(async (params) => params.initialValue as never);
+    const prompter = makePrompter({ select });
+    const config = {
+      agents: {
+        defaults: {
+          model: "openai/gpt-5.5",
+        },
+      },
+    } as KovaConfig;
+
+    const result = await promptDefaultModel({
+      config,
+      prompter,
+      allowKeep: true,
+      includeManual: true,
+      ignoreAllowlist: true,
+      preferredProvider: "openrouter",
+      browseCatalogOnDemand: true,
+    });
+
+    expect(result).toEqual({});
+    expect(loadModelCatalog).not.toHaveBeenCalled();
+    expect(select.mock.calls[0]?.[0]).toMatchObject({
+      searchable: false,
+      initialValue: "__keep__",
+    });
+    expect(select.mock.calls[0]?.[0]?.options).toEqual([
+      expect.objectContaining({ value: "__keep__", hint: "current provider: openai" }),
+      expect.objectContaining({ value: "__manual__" }),
+      expect.objectContaining({ value: "__browse__" }),
+    ]);
+  });
+
   it("loads the full model catalog when the user chooses to browse", async () => {
     loadModelCatalog.mockResolvedValue([
       {

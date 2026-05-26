@@ -53,7 +53,14 @@ function createDeferred<T>(): Deferred<T> {
   return { promise, resolve, reject };
 }
 
-function isSensitiveTextPrompt(params: { message: string; placeholder?: string }): boolean {
+function isSensitiveTextPrompt(params: {
+  message: string;
+  placeholder?: string;
+  sensitive?: boolean;
+}): boolean {
+  if (params.sensitive === true) {
+    return true;
+  }
   const text = `${params.message} ${params.placeholder ?? ""}`.toLowerCase();
   return (
     text.includes("api key") ||
@@ -130,6 +137,7 @@ class WizardSessionPrompter implements WizardPrompter {
     message: string;
     initialValue?: string;
     placeholder?: string;
+    sensitive?: boolean;
     validate?: (value: string) => string | undefined;
   }): Promise<string> {
     const res = await this.prompt({

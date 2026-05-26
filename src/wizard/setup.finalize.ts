@@ -73,6 +73,7 @@ export async function finalizeSetupWizard(
         }
       : { ok: true };
   let resolvedGatewayPassword = "";
+  let shellCompletionSetup = false;
 
   const withWizardProgress = async <T>(
     label: string,
@@ -87,6 +88,13 @@ export async function finalizeSetupWizard(
         typeof options.doneMessage === "function" ? options.doneMessage() : options.doneMessage,
       );
     }
+  };
+  const setupShellCompletionOnce = async () => {
+    if (shellCompletionSetup) {
+      return;
+    }
+    shellCompletionSetup = true;
+    await setupWizardShellCompletion({ flow, prompter });
   };
 
   const explicitInstallDaemon =
@@ -472,10 +480,10 @@ export async function finalizeSetupWizard(
     if (hasBootstrap) {
       await prompter.note(
         [
-          "This first message gives Kova its first personal context.",
+          "Your workspace starter file gives Kova its first personal context.",
           "Take your time when the terminal opens.",
           "Specific goals, boundaries, and preferences make the agent more useful.",
-          'We will send: "Wake up, my friend!"',
+          "No message will be sent automatically.",
         ].join("\n"),
         "First chat",
       );
@@ -506,18 +514,18 @@ export async function finalizeSetupWizard(
     });
 
     if (hatchChoice === "tui") {
+      await setupShellCompletionOnce();
       restoreTerminalState("pre-setup tui", { resumeStdinIfPaused: true });
       try {
         await launchTuiCli({
           local: true,
           deliver: false,
-          message: hasBootstrap ? "Wake up, my friend!" : undefined,
           timeoutMs: HATCH_TUI_TIMEOUT_MS,
         });
       } finally {
         restoreTerminalState("post-setup tui", { resumeStdinIfPaused: true });
       }
-      launchedTui = true;
+      return { launchedTui: true };
     } else {
       await prompter.note(
         [
@@ -565,7 +573,7 @@ export async function finalizeSetupWizard(
     );
   }
 
-  await setupWizardShellCompletion({ flow, prompter });
+  await setupShellCompletionOnce();
 
   const codexNativeSummary = describeCodexNativeWebSearch(nextConfig);
   const webSearchProvider = nextConfig.tools?.web?.search?.provider;

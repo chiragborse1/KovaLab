@@ -56,7 +56,8 @@ describe("formatWizardBootScreen", () => {
   it("prints the Kova setup identity before onboarding starts", () => {
     const output = formatWizardBootScreen();
 
-    expect(output).toContain("KOVA SETUP");
+    expect(output).toContain("KOVA AGENT");
+    expect(output).toContain("██╗  ██╗ ██████╗");
     expect(output).toContain("1. choose workspace");
     expect(output).toContain("2. choose model");
     expect(output).toContain("3. connect chat apps (optional)");
@@ -274,13 +275,13 @@ describe("resolveGatewayHttpLinks", () => {
   });
 
   it("keeps loopback for auto even when tailnet is present", () => {
-    mocks.pickPrimaryTailnetIPv4.mockReturnValueOnce("100.64.0.9");
     const links = resolveGatewayHttpLinks({
       port: 18789,
       bind: "auto",
     });
     expect(links.httpUrl).toBe("http://127.0.0.1:18789/");
     expect(links.wsUrl).toBe("ws://127.0.0.1:18789");
+    expect(mocks.pickPrimaryTailnetIPv4).not.toHaveBeenCalled();
   });
 
   it("falls back to loopback for tailnet bind when interface discovery throws", () => {

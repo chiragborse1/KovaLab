@@ -340,9 +340,9 @@ describe("finalizeSetupWizard", () => {
     expect(launchTuiCli).toHaveBeenCalledWith({
       local: true,
       deliver: false,
-      message: undefined,
       timeoutMs: 300_000,
     });
+    expect(launchTuiCli.mock.calls[0]?.[0]).not.toHaveProperty("message");
     expect(prompter.note).toHaveBeenCalledWith(
       expect.stringContaining("Primary start: kova"),
       "Terminal start",
@@ -353,6 +353,7 @@ describe("finalizeSetupWizard", () => {
       ),
       "Terminal start",
     );
+    expect(prompter.outro).not.toHaveBeenCalled();
   });
 
   it("passes setup auth through health reachability checks", async () => {

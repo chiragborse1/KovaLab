@@ -276,24 +276,40 @@ export async function applyAuthChoiceLoadedPluginProvider(
     resolveAgentWorkspaceDir(params.config, agentId) ?? resolveDefaultAgentWorkspaceDir();
   let nextConfig = params.config;
   let enabledConfig = params.config;
+  const progress =
+    typeof params.prompter.progress === "function"
+      ? params.prompter.progress("Preparing provider setup")
+      : { update: () => {}, stop: () => {} };
+  let providerSetupReady = false;
+  let runtime: Awaited<ReturnType<typeof loadPluginProviderRuntime>>;
+  let manifestAuthChoice: ProviderAuthChoiceMetadata | undefined;
+  let installCatalogEntry: ReturnType<typeof resolveProviderInstallCatalogEntry>;
+  try {
+    progress.update("Loading provider setup helpers");
+    runtime = await loadPluginProviderRuntime();
+    progress.update("Resolving selected provider");
+    manifestAuthChoice = resolveManifestAuthChoiceScope({
+      authChoice: params.authChoice,
+      config: nextConfig,
+      workspaceDir,
+      env: params.env,
+    });
+    installCatalogEntry = resolveProviderInstallCatalogEntry(params.authChoice, {
+      config: nextConfig,
+      workspaceDir,
+      env: params.env,
+      includeUntrustedWorkspacePlugins: false,
+    });
+    providerSetupReady = true;
+  } finally {
+    progress.stop(providerSetupReady ? "Provider setup ready." : undefined);
+  }
   const {
     resolvePluginProviders,
     resolvePluginSetupProvider,
     resolveProviderPluginChoice,
     runProviderModelSelectedHook,
-  } = await loadPluginProviderRuntime();
-  const manifestAuthChoice = resolveManifestAuthChoiceScope({
-    authChoice: params.authChoice,
-    config: nextConfig,
-    workspaceDir,
-    env: params.env,
-  });
-  const installCatalogEntry = resolveProviderInstallCatalogEntry(params.authChoice, {
-    config: nextConfig,
-    workspaceDir,
-    env: params.env,
-    includeUntrustedWorkspacePlugins: false,
-  });
+  } = runtime!;
   if (installCatalogEntry) {
     const enableResult = enablePluginInConfig(nextConfig, installCatalogEntry.pluginId);
     if (!enableResult.enabled) {

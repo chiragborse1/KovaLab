@@ -75,15 +75,7 @@ const finalizeSetupWizard = vi.hoisted(() =>
       return { launchedTui: false };
     }
 
-    let message: string | undefined;
-    try {
-      await fs.stat(path.join(options.workspaceDir, DEFAULT_BOOTSTRAP_FILENAME));
-      message = "Wake up, my friend!";
-    } catch {
-      message = undefined;
-    }
-
-    await runTui({ local: true, deliver: false, message });
+    await runTui({ local: true, deliver: false });
     return { launchedTui: true };
   }),
 );
@@ -709,10 +701,7 @@ describe("runSetupWizard", () => {
     ).rejects.toThrow("auth choice is required");
   });
 
-  async function runTuiHatchTest(params: {
-    writeBootstrapFile: boolean;
-    expectedMessage: string | undefined;
-  }) {
+  async function runTuiHatchTest(params: { writeBootstrapFile: boolean }) {
     runTui.mockClear();
 
     const workspaceDir = await makeCaseDir("workspace-");
@@ -751,17 +740,17 @@ describe("runSetupWizard", () => {
       expect.objectContaining({
         local: true,
         deliver: false,
-        message: params.expectedMessage,
       }),
     );
+    expect(runTui.mock.calls[0]?.[0]).not.toHaveProperty("message");
   }
 
-  it("launches TUI without auto-delivery when hatching", async () => {
-    await runTuiHatchTest({ writeBootstrapFile: true, expectedMessage: "Wake up, my friend!" });
+  it("launches TUI without an automatic first message when hatching", async () => {
+    await runTuiHatchTest({ writeBootstrapFile: true });
   });
 
   it("offers TUI hatch even without BOOTSTRAP.md", async () => {
-    await runTuiHatchTest({ writeBootstrapFile: false, expectedMessage: undefined });
+    await runTuiHatchTest({ writeBootstrapFile: false });
   });
 
   it("shows the web search hint at the end of setup", async () => {

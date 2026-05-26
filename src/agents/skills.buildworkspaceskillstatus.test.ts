@@ -27,9 +27,10 @@ function makeEntry(params: {
   requires?: { bins?: string[]; env?: string[]; config?: string[] };
   install?: Array<{
     id: string;
-    kind: "brew" | "download";
+    kind: "brew" | "download" | "go";
     bins?: string[];
     formula?: string;
+    module?: string;
     os?: string[];
     url?: string;
     label?: string;
@@ -240,5 +241,33 @@ describe("buildWorkspaceSkillStatus", () => {
     } else {
       expect(skill?.install).toEqual([]);
     }
+  });
+
+  it("does not surface go installers when go is unavailable", async () => {
+    const entry = makeEntry({
+      name: "go-backed-skill",
+      requires: {
+        bins: ["go-backed-bin"],
+      },
+      install: [
+        {
+          id: "go",
+          kind: "go",
+          module: "example.com/go-backed-bin@latest",
+          bins: ["go-backed-bin"],
+          label: "Install go-backed-bin (go)",
+        },
+      ],
+    });
+
+    const report = withEnv({ PATH: "" }, () =>
+      buildWorkspaceSkillStatus("/tmp/ws", {
+        entries: [entry],
+      }),
+    );
+    const skill = report.skills.find((reportEntry) => reportEntry.name === "go-backed-skill");
+
+    expect(skill).toBeDefined();
+    expect(skill?.install).toEqual([]);
   });
 });

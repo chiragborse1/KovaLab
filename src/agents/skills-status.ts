@@ -120,7 +120,14 @@ function normalizeInstallOptions(
   }
 
   const platform = process.platform;
+  const goAvailable = hasBinary("go");
   const filtered = install.filter((spec) => {
+    if (platform === "win32" && spec.kind === "brew") {
+      return false;
+    }
+    if (spec.kind === "go" && !goAvailable) {
+      return false;
+    }
     const osList = spec.os ?? [];
     return osList.length === 0 || osList.includes(platform);
   });

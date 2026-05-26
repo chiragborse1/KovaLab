@@ -65,12 +65,12 @@ describe("tui-waiting", () => {
       tick: 1,
       elapsed: "12s",
       connectionStatus: "local ready",
-      phase: "model deciding next action",
+      phase: "waiting for model response",
       phrases: ["moseying"],
       animated: false,
     });
 
-    expect(msg).toContain("<d>model deciding next action</d>");
+    expect(msg).toContain("<d>waiting for model response</d>");
     expect(msg).toContain("local ready");
   });
 });

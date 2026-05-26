@@ -832,11 +832,14 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
       return activityDetail;
     }
     if (activityStatus === "waiting") {
+      if (elapsedSeconds >= 60) {
+        return "long model request; provider or network may be slow";
+      }
       if (elapsedSeconds >= 20) {
-        return "still waiting on model/provider";
+        return "provider request still running";
       }
       if (elapsedSeconds >= 8) {
-        return "model deciding next action";
+        return "waiting for model response";
       }
     }
     return null;

@@ -520,13 +520,8 @@ export async function promptDefaultModel(
   const resolvedKey = modelKey(resolved.provider, resolved.model);
   const configuredKey = configuredRaw ? resolvedKey : "";
 
-  if (
-    loadCatalog &&
-    browseCatalogOnDemand &&
-    preferredProvider &&
-    allowKeep &&
-    normalizeProviderId(resolved.provider) === preferredProvider
-  ) {
+  if (loadCatalog && browseCatalogOnDemand && preferredProvider && allowKeep) {
+    const resolvedProvider = normalizeProviderId(resolved.provider);
     const options: WizardSelectOption[] = [
       {
         value: KEEP_VALUE,
@@ -534,7 +529,11 @@ export async function promptDefaultModel(
           ? `Keep current (${configuredRaw})`
           : `Keep current (default: ${resolvedKey})`,
         hint:
-          configuredRaw && configuredRaw !== resolvedKey ? `resolves to ${resolvedKey}` : undefined,
+          configuredRaw && configuredRaw !== resolvedKey
+            ? `resolves to ${resolvedKey}`
+            : resolvedProvider && resolvedProvider !== preferredProvider
+              ? `current provider: ${resolved.provider}`
+              : undefined,
       },
     ];
     if (includeManual) {

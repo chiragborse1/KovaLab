@@ -131,6 +131,10 @@ export async function setupChannels(
   };
   const getVisibleChannelPlugin = (channel: ChannelChoice): ChannelSetupPlugin | undefined =>
     scopedPluginsById.get(channel) ?? activePluginsById.get(channel);
+  let visibleEntriesCache: ReturnType<typeof resolveChannelSetupEntries> | undefined;
+  const clearVisibleEntriesCache = () => {
+    visibleEntriesCache = undefined;
+  };
   const listVisibleInstalledPlugins = (): ChannelSetupPlugin[] => {
     const merged = new Map<string, ChannelSetupPlugin>();
     const registryPlugins = listActiveChannelSetupPlugins().map(rememberActivePlugin);
@@ -146,12 +150,14 @@ export async function setupChannels(
     }
     return Array.from(merged.values());
   };
-  const resolveVisibleChannelEntries = () =>
-    resolveChannelSetupEntries({
+  const resolveVisibleChannelEntries = () => {
+    visibleEntriesCache ??= resolveChannelSetupEntries({
       cfg: next,
       installedPlugins: listVisibleInstalledPlugins(),
       workspaceDir: resolveWorkspaceDir(),
     });
+    return visibleEntriesCache;
+  };
   const loadScopedChannelPlugin = async (
     channel: ChannelChoice,
     pluginId?: string,
@@ -164,6 +170,14 @@ export async function setupChannels(
     const existing = getVisibleChannelPlugin(channel);
     if (existing && setup?.forceReload !== true) {
       return existing;
+    }
+    if (!pluginId && setup?.forceReload !== true) {
+      const bundledPlugin = getBundledChannelSetupPlugin(channel);
+      if (bundledPlugin) {
+        rememberScopedPlugin(bundledPlugin);
+        clearVisibleEntriesCache();
+        return bundledPlugin;
+      }
     }
     const snapshot = loadChannelSetupPluginRegistrySnapshotForChannel({
       cfg: next,
@@ -179,11 +193,13 @@ export async function setupChannels(
       snapshot.channels.find((entry) => entry.plugin.id === channel)?.plugin;
     if (plugin) {
       rememberScopedPlugin(plugin);
+      clearVisibleEntriesCache();
       return plugin;
     }
     const bundledPlugin = getBundledChannelSetupPlugin(channel);
     if (bundledPlugin) {
       rememberScopedPlugin(bundledPlugin);
+      clearVisibleEntriesCache();
       return bundledPlugin;
     }
     return undefined;
@@ -342,6 +358,7 @@ export async function setupChannels(
     }
     const result = enablePluginInConfig(next, channel);
     next = result.config;
+    clearVisibleEntriesCache();
     if (!result.enabled) {
       await prompter.note(
         `Cannot enable ${channel}: ${result.reason ?? "plugin disabled"}.`,
@@ -543,6 +560,7 @@ export async function setupChannels(
         workspaceDir,
       });
       next = result.cfg;
+      clearVisibleEntriesCache();
       if (!result.installed) {
         return "retry_selection";
       }
@@ -569,6 +587,7 @@ export async function setupChannels(
           autoConfirmSingleSource: true,
         });
         next = result.cfg;
+        clearVisibleEntriesCache();
         if (!result.installed) {
           return "retry_selection";
         }
@@ -606,6 +625,7 @@ export async function setupChannels(
           autoConfirmSingleSource: true,
         });
         next = result.cfg;
+        clearVisibleEntriesCache();
         if (!result.installed) {
           return "retry_selection";
         }
