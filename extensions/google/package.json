@@ -5,7 +5,7 @@
   "description": "Kova Google plugin",
   "type": "module",
   "dependencies": {
-    "@google/genai": "^1.50.1",
+    "@google/genai": "^2.6.0",
     "@mariozechner/pi-ai": "0.70.2"
   },
   "devDependencies": {
