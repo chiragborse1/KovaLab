@@ -46,7 +46,7 @@ beforeAll(async () => {
     `${JSON.stringify(buildSharedTokenReloadConfig(), null, 2)}\n`,
     "utf-8",
   );
-  server = await startGatewayServer(port, { operatorClientEnabled: true });
+  server = await startGatewayServer(port);
 });
 
 beforeEach(() => {

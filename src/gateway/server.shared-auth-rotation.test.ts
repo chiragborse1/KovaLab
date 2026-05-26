@@ -125,7 +125,7 @@ describe("gateway shared auth rotation", () => {
   beforeAll(async () => {
     port = await getFreePort();
     testState.gatewayAuth = { mode: "token", token: OLD_TOKEN };
-    server = await startGatewayServer(port, { operatorClientEnabled: true });
+    server = await startGatewayServer(port);
   });
 
   beforeEach(() => {
@@ -196,7 +196,7 @@ describe("gateway shared auth rotation with unchanged SecretRefs", () => {
       )}\n`,
       "utf-8",
     );
-    secretRefServer = await startGatewayServer(secretRefPort, { operatorClientEnabled: true });
+    secretRefServer = await startGatewayServer(secretRefPort);
   });
 
   beforeEach(() => {

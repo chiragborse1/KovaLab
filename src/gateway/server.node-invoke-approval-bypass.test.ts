@@ -103,7 +103,7 @@ describe("node.invoke approval bypass", () => {
   let port: number;
 
   beforeAll(async () => {
-    const started = await startServerWithClient("secret", { operatorClientEnabled: true });
+    const started = await startServerWithClient("secret");
     server = started.server;
     port = started.port;
     started.ws.close();

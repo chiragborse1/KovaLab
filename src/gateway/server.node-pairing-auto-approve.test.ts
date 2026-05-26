@@ -91,7 +91,7 @@ describe("gateway trusted CIDR node pairing auto-approve", () => {
     if (!lanIp || !(await canUseLanSelfConnect(lanIp))) {
       return;
     }
-    const started = await startServer(TOKEN, { bind: "lan", operatorClientEnabled: false });
+    const started = await startServer(TOKEN, { bind: "lan" });
     let ws: WebSocket | undefined;
     try {
       const loaded = loadDeviceIdentity("trusted-cidr-default-off");
@@ -133,7 +133,7 @@ describe("gateway trusted CIDR node pairing auto-approve", () => {
         },
       },
     });
-    const started = await startServer(TOKEN, { bind: "lan", operatorClientEnabled: false });
+    const started = await startServer(TOKEN, { bind: "lan" });
     let ws: WebSocket | undefined;
     try {
       const loaded = loadDeviceIdentity("trusted-cidr-direct-lan-auto-approve");

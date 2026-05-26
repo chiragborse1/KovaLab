@@ -80,8 +80,6 @@ async function withRealtimeGateway(run: (params: { port: number }) => Promise<vo
       const httpServer = createGatewayHttpServer({
         canvasHost: null,
         clients,
-        operatorClientEnabled: false,
-        operatorClientBasePath: "/__control__",
         openAiChatCompletionsEnabled: false,
         openResponsesEnabled: false,
         handleHooksRequest: async () => false,

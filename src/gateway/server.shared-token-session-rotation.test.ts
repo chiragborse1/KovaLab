@@ -48,7 +48,7 @@ beforeAll(async () => {
     )}\n`,
     "utf-8",
   );
-  server = await startGatewayServer(port, { operatorClientEnabled: true });
+  server = await startGatewayServer(port);
 });
 
 afterAll(async () => {

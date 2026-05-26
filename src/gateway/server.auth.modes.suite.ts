@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import {
   connectReq,
-  OPERATOR_CLIENT,
   ConnectErrorDetailCodes,
   getFreePort,
   openTailscaleWs,
@@ -13,6 +13,20 @@ import {
   testState,
   testTailscaleWhois,
 } from "./server.auth.shared.js";
+
+const TUI_OPERATOR_CLIENT = {
+  id: GATEWAY_CLIENT_NAMES.TUI,
+  version: "1.0.0",
+  platform: "test",
+  mode: GATEWAY_CLIENT_MODES.CLI,
+};
+
+const BROWSER_OPERATOR_CLIENT = {
+  id: GATEWAY_CLIENT_NAMES.OPERATOR_CLIENT,
+  version: "1.0.0",
+  platform: "web",
+  mode: GATEWAY_CLIENT_MODES.WEBCHAT,
+};
 
 export function registerAuthModesSuite(): void {
   describe("password auth", () => {
@@ -85,7 +99,7 @@ export function registerAuthModesSuite(): void {
       const res = await connectReq(ws, {
         skipDefaultAuth: true,
         client: {
-          ...OPERATOR_CLIENT,
+          ...BROWSER_OPERATOR_CLIENT,
         },
       });
       expect(res.ok).toBe(false);
@@ -99,7 +113,7 @@ export function registerAuthModesSuite(): void {
         token: "secret",
         device: null,
         client: {
-          ...OPERATOR_CLIENT,
+          ...BROWSER_OPERATOR_CLIENT,
         },
       });
       expect(res.ok).toBe(false);
@@ -182,12 +196,12 @@ export function registerAuthModesSuite(): void {
       ws.close();
     });
 
-    test("skips pairing for tailscale-authenticated operator client with device identity", async () => {
-      const ws = await openTailscaleWs(port, { origin: tailscaleOrigin });
+    test("skips pairing for tailscale-authenticated TUI operator client with device identity", async () => {
+      const ws = await openTailscaleWs(port);
       const res = await connectReq(ws, {
         skipDefaultAuth: true,
         client: {
-          ...OPERATOR_CLIENT,
+          ...TUI_OPERATOR_CLIENT,
         },
       });
       expect(res.ok, JSON.stringify(res)).toBe(true);
