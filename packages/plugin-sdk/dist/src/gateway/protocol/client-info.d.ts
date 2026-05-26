@@ -1,6 +1,6 @@
 export declare const GATEWAY_CLIENT_IDS: {
-    readonly WEBCHAT_UI: "webchat-ui";
-    readonly CONTROL_UI: "kova-control-ui";
+    readonly LOCAL_CHAT: "local-chat";
+    readonly OPERATOR_CLIENT: "kova-operator-client";
     readonly TUI: "kova-tui";
     readonly WEBCHAT: "webchat";
     readonly CLI: "cli";
@@ -15,8 +15,8 @@ export declare const GATEWAY_CLIENT_IDS: {
 };
 export type GatewayClientId = (typeof GATEWAY_CLIENT_IDS)[keyof typeof GATEWAY_CLIENT_IDS];
 export declare const GATEWAY_CLIENT_NAMES: {
-    readonly WEBCHAT_UI: "webchat-ui";
-    readonly CONTROL_UI: "kova-control-ui";
+    readonly LOCAL_CHAT: "local-chat";
+    readonly OPERATOR_CLIENT: "kova-operator-client";
     readonly TUI: "kova-tui";
     readonly WEBCHAT: "webchat";
     readonly CLI: "cli";

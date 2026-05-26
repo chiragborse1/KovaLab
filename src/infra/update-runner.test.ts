@@ -69,56 +69,6 @@ describe("runGatewayUpdate", () => {
     // Shared fixtureRoot cleaned up in afterAll.
   });
 
-  async function createStableTagRunner(params: {
-    stableTag: string;
-    onDoctor?: () => Promise<void>;
-  }) {
-    const calls: string[] = [];
-    const doctorNodePath = await resolveStableNodePath(process.execPath);
-    const doctorKey = `${doctorNodePath} ${path.join(tempDir, "kova.mjs")} doctor --non-interactive --fix`;
-
-    const runCommand = async (argv: string[]) => {
-      const key = argv.join(" ");
-      calls.push(key);
-
-      if (key === `git -C ${tempDir} rev-parse --show-toplevel`) {
-        return { stdout: tempDir, stderr: "", code: 0 };
-      }
-      if (key === `git -C ${tempDir} rev-parse HEAD`) {
-        return { stdout: "abc123", stderr: "", code: 0 };
-      }
-      if (key === `git -C ${tempDir} status --porcelain`) {
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      if (key === `git -C ${tempDir} fetch --all --prune --tags`) {
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      if (key === `git -C ${tempDir} tag --list v* --sort=-v:refname`) {
-        return { stdout: `${params.stableTag}\n`, stderr: "", code: 0 };
-      }
-      if (key === `git -C ${tempDir} checkout --detach ${params.stableTag}`) {
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      if (key === "pnpm install") {
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      if (key === "pnpm build") {
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      if (key === doctorKey) {
-        await params.onDoctor?.();
-        return { stdout: "", stderr: "", code: 0 };
-      }
-      return { stdout: "", stderr: "", code: 0 };
-    };
-
-    return {
-      runCommand,
-      calls,
-      doctorKey,
-    };
-  }
-
   async function setupGitCheckout(options?: { packageManager?: string }) {
     await fs.mkdir(path.join(tempDir, ".git"));
     const pkg: Record<string, string> = { name: "kova", version: "1.0.0" };

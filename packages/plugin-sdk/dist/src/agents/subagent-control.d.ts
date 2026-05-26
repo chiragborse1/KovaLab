@@ -47,14 +47,14 @@ export declare function killControlledSubagentRun(params: {
     controller: ResolvedSubagentController;
     entry: SubagentRunRecord;
 }): Promise<{
-    label?: undefined;
-    text?: undefined;
     status: "forbidden";
     runId: string;
     sessionKey: string;
     error: string;
+    label?: undefined;
     cascadeKilled?: undefined;
     cascadeLabels?: undefined;
+    text?: undefined;
 } | {
     error?: undefined;
     status: "done";
@@ -78,12 +78,12 @@ export declare function killSubagentRunAdmin(params: {
     cfg: KovaConfig;
     sessionKey: string;
 }): Promise<{
-    sessionKey?: undefined;
     cascadeKilled?: undefined;
     cascadeLabels?: undefined;
     found: false;
     killed: boolean;
     runId?: undefined;
+    sessionKey?: undefined;
 } | {
     found: true;
     killed: boolean;

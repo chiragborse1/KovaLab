@@ -10,8 +10,8 @@ type GatewayClientInfoLike = {
     id?: string | null;
 };
 export declare function isGatewayCliClient(client?: GatewayClientInfoLike | null): boolean;
-export declare function isOperatorUiClient(client?: GatewayClientInfoLike | null): boolean;
-export declare function isBrowserOperatorUiClient(client?: GatewayClientInfoLike | null): boolean;
+export declare function isOperatorGatewayClient(client?: GatewayClientInfoLike | null): boolean;
+export declare function isBrowserOperatorGatewayClient(client?: GatewayClientInfoLike | null): boolean;
 export declare function isInternalMessageChannel(raw?: string | null): raw is InternalMessageChannel;
 export declare function isWebchatClient(client?: GatewayClientInfoLike | null): boolean;
 export declare function isMarkdownCapableMessageChannel(raw?: string | null): boolean;

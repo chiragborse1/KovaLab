@@ -4054,17 +4054,6 @@ export declare const KovaSchema: z.ZodObject<{
         mode: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"local">, z.ZodLiteral<"remote">]>>;
         bind: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"auto">, z.ZodLiteral<"lan">, z.ZodLiteral<"loopback">, z.ZodLiteral<"custom">, z.ZodLiteral<"tailnet">]>>;
         customBindHost: z.ZodOptional<z.ZodString>;
-        controlUi: z.ZodOptional<z.ZodObject<{
-            enabled: z.ZodOptional<z.ZodBoolean>;
-            basePath: z.ZodOptional<z.ZodString>;
-            root: z.ZodOptional<z.ZodString>;
-            embedSandbox: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"strict">, z.ZodLiteral<"scripts">, z.ZodLiteral<"trusted">]>>;
-            allowExternalEmbedUrls: z.ZodOptional<z.ZodBoolean>;
-            allowedOrigins: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            dangerouslyAllowHostHeaderOriginFallback: z.ZodOptional<z.ZodBoolean>;
-            allowInsecureAuth: z.ZodOptional<z.ZodBoolean>;
-            dangerouslyDisableDeviceAuth: z.ZodOptional<z.ZodBoolean>;
-        }, z.core.$strict>>;
         auth: z.ZodOptional<z.ZodObject<{
             mode: z.ZodOptional<z.ZodUnion<readonly [z.ZodLiteral<"none">, z.ZodLiteral<"token">, z.ZodLiteral<"password">, z.ZodLiteral<"trusted-proxy">]>>;
             token: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodDiscriminatedUnion<[z.ZodObject<{

@@ -6,7 +6,7 @@ type WebchatAudioEmbeddingOptions = {
 };
 type WebchatAssistantMediaOptions = WebchatAudioEmbeddingOptions;
 /**
- * Build Control UI / transcript `content` blocks for local TTS (or other) audio files
+ * Build transcript `content` blocks for local TTS (or other) audio files.
  * referenced by slash-command / agent replies when the webchat path only had text aggregation.
  */
 export declare function buildWebchatAudioContentBlocksFromReplyPayloads(payloads: ReplyPayload[], options?: WebchatAudioEmbeddingOptions): Promise<Array<Record<string, unknown>>>;

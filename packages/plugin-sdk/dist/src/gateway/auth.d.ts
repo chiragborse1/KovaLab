@@ -18,7 +18,7 @@ type ConnectAuth = {
     token?: string;
     password?: string;
 };
-export type GatewayAuthSurface = "http" | "ws-control-ui";
+export type GatewayAuthSurface = "http" | "ws-operator-client";
 export type AuthorizeGatewayConnectParams = {
     auth: ResolvedGatewayAuth;
     connectAuth?: ConnectAuth | null;
@@ -27,7 +27,7 @@ export type AuthorizeGatewayConnectParams = {
     tailscaleWhois?: TailscaleWhoisLookup;
     /**
      * Explicit auth surface. HTTP keeps Tailscale forwarded-header auth disabled.
-     * WS Control UI enables it intentionally for tokenless trusted-host login.
+     * WS Operator client enables it intentionally for tokenless trusted-host login.
      */
     authSurface?: GatewayAuthSurface;
     /** Optional rate limiter instance; when provided, failed attempts are tracked per IP. */
@@ -52,4 +52,4 @@ export declare function isLocalDirectRequest(req?: IncomingMessage, _trustedProx
 export declare function assertGatewayAuthConfigured(auth: ResolvedGatewayAuth, rawAuthConfig?: GatewayAuthConfig | null): void;
 export declare function authorizeGatewayConnect(params: AuthorizeGatewayConnectParams): Promise<GatewayAuthResult>;
 export declare function authorizeHttpGatewayConnect(params: Omit<AuthorizeGatewayConnectParams, "authSurface">): Promise<GatewayAuthResult>;
-export declare function authorizeWsControlUiGatewayConnect(params: Omit<AuthorizeGatewayConnectParams, "authSurface">): Promise<GatewayAuthResult>;
+export declare function authorizeWsOperatorClientGatewayConnect(params: Omit<AuthorizeGatewayConnectParams, "authSurface">): Promise<GatewayAuthResult>;

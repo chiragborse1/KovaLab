@@ -68,41 +68,6 @@ export type TalkConfigResponse = TalkConfig & {
     /** Canonical active Talk payload for clients. */
     resolved?: ResolvedTalkConfig;
 };
-export type GatewayControlUiConfig = {
-    /** If true, the Gateway serves and may auto-build the legacy browser Control UI. */
-    enabled?: boolean;
-    /** Optional base path prefix for the web console (e.g. "/kova"). */
-    basePath?: string;
-    /** Optional filesystem root for web console assets (defaults to dist/control-ui). */
-    root?: string;
-    /**
-     * Embed sandbox mode for hosted web console previews.
-     * - strict: no script execution inside embeds
-     * - scripts: allow scripts while keeping embeds origin-isolated (default)
-     * - trusted: allow scripts and same-origin privileges
-     */
-    embedSandbox?: "strict" | "scripts" | "trusted";
-    /**
-     * DANGEROUS: Allow hosted embeds to load absolute external http(s) URLs.
-     * Default off; prefer hosted /__kova__/canvas or /__kova__/a2ui content.
-     */
-    allowExternalEmbedUrls?: boolean;
-    /** Allowed browser origins for web console websocket connections. */
-    allowedOrigins?: string[];
-    /**
-     * DANGEROUS: Keep Host-header origin fallback behavior.
-     * Supported long-term for deployments that intentionally rely on this policy.
-     */
-    dangerouslyAllowHostHeaderOriginFallback?: boolean;
-    /**
-     * Insecure-auth toggle.
-     * Control UI still requires secure context + device identity unless
-     * dangerouslyDisableDeviceAuth is enabled.
-     */
-    allowInsecureAuth?: boolean;
-    /** DANGEROUS: Disable device identity checks for the Control UI (default: false). */
-    dangerouslyDisableDeviceAuth?: boolean;
-};
 export type GatewayAuthMode = "none" | "token" | "password" | "trusted-proxy";
 /**
  * Configuration for trusted reverse proxy authentication.
@@ -381,7 +346,7 @@ export type GatewayConfig = {
      */
     mode?: "local" | "remote";
     /**
-     * Bind address policy for the Gateway WebSocket + Control UI HTTP server.
+     * Bind address policy for the Gateway WebSocket + HTTP server.
      * - auto: Loopback (127.0.0.1) if available, else 0.0.0.0 (fallback to all interfaces)
      * - lan: 0.0.0.0 (all interfaces, no fallback)
      * - loopback: 127.0.0.1 (local-only)
@@ -392,7 +357,6 @@ export type GatewayConfig = {
     bind?: GatewayBindMode;
     /** Custom IP address for bind="custom" mode. Fallback: 0.0.0.0. */
     customBindHost?: string;
-    controlUi?: GatewayControlUiConfig;
     auth?: GatewayAuthConfig;
     tailscale?: GatewayTailscaleConfig;
     remote?: GatewayRemoteConfig;
@@ -414,7 +378,7 @@ export type GatewayConfig = {
     allowRealIpFallback?: boolean;
     /** Tool access restrictions for HTTP /tools/invoke endpoint. */
     tools?: GatewayToolsConfig;
-    /** WebChat display/history settings. */
+    /** Local chat display/history settings. */
     webchat?: GatewayWebchatConfig;
     /**
      * Channel health monitor interval in minutes.

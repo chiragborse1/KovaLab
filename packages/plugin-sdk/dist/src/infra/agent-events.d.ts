@@ -83,7 +83,7 @@ export type AgentRunContext = {
     verboseLevel?: VerboseLevel;
     isHeartbeat?: boolean;
     /** Whether control UI clients should receive chat/agent updates for this run. */
-    isControlUiVisible?: boolean;
+    isOperatorClientVisible?: boolean;
     /** Timestamp when this context was first registered (for TTL-based cleanup). */
     registeredAt?: number;
     /** Timestamp of last activity (updated on every emitAgentEvent). */

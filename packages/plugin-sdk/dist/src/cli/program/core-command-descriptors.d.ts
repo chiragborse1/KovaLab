@@ -33,10 +33,6 @@ export declare const CORE_CLI_COMMAND_DESCRIPTORS: readonly ({
     readonly description: "Health checks + quick fixes for the gateway and channels";
     readonly hasSubcommands: false;
 } | {
-    readonly name: "control-ui";
-    readonly description: "Open the optional browser Control UI";
-    readonly hasSubcommands: false;
-} | {
     readonly name: "reset";
     readonly description: "Reset local config/state (keeps the CLI installed)";
     readonly hasSubcommands: false;

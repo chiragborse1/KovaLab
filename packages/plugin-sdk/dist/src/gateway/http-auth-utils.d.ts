@@ -16,7 +16,7 @@ export type GatewayHttpRequestAuthCheckResult = {
     ok: false;
     authResult: GatewayAuthResult;
 };
-export declare function resolveHttpBrowserOriginPolicy(req: IncomingMessage, cfg?: KovaConfig): NonNullable<Parameters<typeof authorizeHttpGatewayConnect>[0]["browserOriginPolicy"]>;
+export declare function resolveHttpBrowserOriginPolicy(req: IncomingMessage): NonNullable<Parameters<typeof authorizeHttpGatewayConnect>[0]["browserOriginPolicy"]>;
 export declare function authorizeGatewayHttpRequestOrReply(params: {
     req: IncomingMessage;
     res: ServerResponse;

@@ -143,7 +143,6 @@ const logHooks = log.child("hooks");
 const logPlugins = log.child("plugins");
 const logWsControl = log.child("rpc");
 const logSecrets = log.child("secrets");
-const gatewayRuntime = runtimeForLogger(log);
 const canvasRuntime = runtimeForLogger(logCanvas);
 
 function createGatewayStartupTrace() {
